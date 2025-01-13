@@ -15,7 +15,7 @@ class PHObject;
 class SvtxVertexMap_v1 : public SvtxVertexMap
 {
  public:
-  SvtxVertexMap_v1();
+  SvtxVertexMap_v1() = default;
   SvtxVertexMap_v1(const SvtxVertexMap_v1& vertexmap);
   SvtxVertexMap_v1& operator=(const SvtxVertexMap_v1& vertexmap);
   ~SvtxVertexMap_v1() override;

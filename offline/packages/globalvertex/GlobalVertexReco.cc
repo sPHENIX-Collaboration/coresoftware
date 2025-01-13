@@ -23,16 +23,13 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <cfloat>
 #include <cmath>
 #include <cstdlib>  // for exit
 #include <iostream>
 #include <set>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 
-using namespace std;
-
-GlobalVertexReco::GlobalVertexReco(const string &name)
+GlobalVertexReco::GlobalVertexReco(const std::string &name)
   : SubsysReco(name)
 {
 }
@@ -41,8 +38,8 @@ int GlobalVertexReco::InitRun(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    cout << "======================= GlobalVertexReco::InitRun() =======================" << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "======================= GlobalVertexReco::InitRun() =======================" << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return CreateNodes(topNode);
@@ -52,7 +49,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "GlobalVertexReco::process_event -- entered" << endl;
+    std::cout << "GlobalVertexReco::process_event -- entered" << std::endl;
   }
 
   //---------------------------------
@@ -61,7 +58,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   GlobalVertexMap *globalmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!globalmap)
   {
-    cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap" << std::endl;
     exit(-1);
   }
 
@@ -92,7 +89,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   {
     if (Verbosity())
     {
-      cout << "GlobalVertexReco::process_event - svtxmap && mbdmap" << endl;
+      std::cout << "GlobalVertexReco::process_event - svtxmap && mbdmap" << std::endl;
     }
 
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
@@ -102,7 +99,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       const SvtxVertex *svtx = svtxiter->second;
 
       const MbdVertex *mbd_best = nullptr;
-      float min_sigma = FLT_MAX;
+      float min_sigma = std::numeric_limits<float>::max();
       for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
            mbditer != mbdmap->end();
            ++mbditer)
@@ -158,7 +155,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   {
     if (Verbosity())
     {
-      cout << "GlobalVertexReco::process_event - svtxmap " << endl;
+      std::cout << "GlobalVertexReco::process_event - svtxmap " << std::endl;
     }
 
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
@@ -171,7 +168,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
-      if (isnan(svtx->get_z()))
+      if (std::isnan(svtx->get_z()))
       {
         continue;
       }
@@ -208,7 +205,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   {
     if (Verbosity())
     {
-      cout << "GlobalVertexReco::process_event -  mbdmap" << endl;
+      std::cout << "GlobalVertexReco::process_event -  mbdmap" << std::endl;
     }
 
     for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
@@ -221,7 +218,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
-      if (isnan(mbd->get_z()))
+      if (std::isnan(mbd->get_z()))
       {
         continue;
       }
@@ -289,7 +286,7 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

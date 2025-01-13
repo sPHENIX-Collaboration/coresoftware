@@ -14,7 +14,7 @@
 class MbdVertexMapv1 : public MbdVertexMap
 {
  public:
-  MbdVertexMapv1();
+  MbdVertexMapv1() = default;
   ~MbdVertexMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;

@@ -6,21 +6,14 @@
 #include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair
 
-using namespace std;
-
-MbdVertexMapv1::MbdVertexMapv1()
-  : _map()
-{
-}
-
 MbdVertexMapv1::~MbdVertexMapv1()
 {
   MbdVertexMapv1::clear();
 }
 
-void MbdVertexMapv1::identify(ostream& os) const
+void MbdVertexMapv1::identify(std::ostream& os) const
 {
-  os << "MbdVertexMapv1: size = " << _map.size() << endl;
+  os << "MbdVertexMapv1: size = " << _map.size() << std::endl;
   return;
 }
 
@@ -61,7 +54,7 @@ MbdVertex* MbdVertexMapv1::insert(MbdVertex* clus)
   {
     index = _map.rbegin()->first + 1;
   }
-  _map.insert(make_pair(index, clus));
+  _map.insert(std::make_pair(index, clus));
   _map[index]->set_id(index);
   return _map[index];
 }

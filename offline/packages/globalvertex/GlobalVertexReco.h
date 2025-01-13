@@ -48,12 +48,12 @@ class GlobalVertexReco : public SubsysReco
  private:
   int CreateNodes(PHCompositeNode *topNode);
 
-  float _xdefault = 0.;
-  float _xerr = 0.3;
-  float _ydefault = 0.;
-  float _yerr = 0.3;
-  float _tdefault = 0.;
-  float _terr = 0.2;
+  float _xdefault {0.};
+  float _xerr {0.3};
+  float _ydefault  {0.};
+  float _yerr {0.3};
+  float _tdefault {0.};
+  float _terr {0.2};
 };
 
-#endif  // G4VERTEX_GLOBALVERTEXRECO_H
+#endif  // GLOBALVERTEX_GLOBALVERTEXRECO_H

@@ -17,7 +17,7 @@ class Vertex : public PHObject
   typedef std::set<unsigned int>::const_iterator ConstTrackIter;
   typedef std::set<unsigned int>::iterator TrackIter;
 
-  ~Vertex() override {}
+  ~Vertex() override = default;
 
   // PHObject virtual overloads
 
@@ -86,6 +86,9 @@ class Vertex : public PHObject
   virtual TrackIter begin_tracks();
   virtual TrackIter find_track(unsigned int trackid);
   virtual TrackIter end_tracks();
+
+ protected:
+  Vertex() = default;
 
  private:
   ClassDefOverride(Vertex, 1);
