@@ -47,12 +47,12 @@ class MinimumBiasClassifier : public SubsysReco
   int Download_centralityScale(const std::string &dbfile);
   int Download_centralityVertexScales(const std::string &dbfile);
 
-  void setOverwriteScale(const std::string url)
+  void setOverwriteScale(const std::string &url)
   {
     m_overwrite_url_scale = url;
     m_overwrite_scale = true;    
   }
-  void setOverwriteVtx(const std::string url)
+  void setOverwriteVtx(const std::string &url)
   {
     m_overwrite_url_vtx = url;
     m_overwrite_vtx = true;    
