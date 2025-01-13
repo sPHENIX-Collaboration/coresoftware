@@ -22,7 +22,10 @@ int TriggerDSTSkimmer::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    if (ievent % 1000 == 0) std::cout << "Processing event " << ievent << std::endl;
+    if (ievent % 1000 == 0)
+    {
+      std::cout << "Processing event " << ievent << std::endl;
+    }
     ievent++;
   }
 
@@ -43,13 +46,13 @@ int TriggerDSTSkimmer::process_event(PHCompositeNode *topNode)
   {
     bool trigger_fired = false;
     Gl1Packet *_gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-    int gl1_trigger_vector_scaled[64];
+    int gl1_trigger_vector_scaled[64] = {0};
     if (_gl1PacketInfo)
     {
       uint64_t scaledtriggervec = _gl1PacketInfo->lValue(0, "ScaledVector");
-      for (int iv = 0; iv < 64; ++iv)
+      for (auto &val : gl1_trigger_vector_scaled)
       {
-        gl1_trigger_vector_scaled[iv] = ((scaledtriggervec & 0x1U) == 0x1U);
+        val = ((scaledtriggervec & 0x1U) == 0x1U);
         scaledtriggervec = (scaledtriggervec >> 1U) & 0xffffffffU;
       }
     }
@@ -66,7 +69,10 @@ int TriggerDSTSkimmer::process_event(PHCompositeNode *topNode)
         break;
       }
     }
-    if (!trigger_fired) return Fun4AllReturnCodes::ABORTEVENT;
+    if (!trigger_fired)
+    {
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
