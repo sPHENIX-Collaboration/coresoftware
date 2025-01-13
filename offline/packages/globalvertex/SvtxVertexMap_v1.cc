@@ -7,6 +7,7 @@
 #include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair
 
+// NOLINTNEXTLINE(bugprone-copy-constructor-init)
 SvtxVertexMap_v1::SvtxVertexMap_v1(const SvtxVertexMap_v1& vertexmap)
   : _map()
 {

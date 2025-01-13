@@ -108,7 +108,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         const MbdVertex *mbd = mbditer->second;
 
         float combined_error = sqrt(svtx->get_error(2, 2) + pow(mbd->get_z_err(), 2));
-        float sigma = fabs(svtx->get_z() - mbd->get_z()) / combined_error;
+        float sigma = std::fabs(svtx->get_z() - mbd->get_z()) / combined_error;
         if (sigma < min_sigma)
         {
           min_sigma = sigma;
@@ -257,7 +257,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       for (const auto &[vkey, vertex] : *globalmap)
       {
         float dz = track->get_z() - vertex->get_z();
-        if (fabs(dz) < maxdz)
+        if (std::fabs(dz) < maxdz)
         {
           maxdz = dz;
           vtxid = vkey;
