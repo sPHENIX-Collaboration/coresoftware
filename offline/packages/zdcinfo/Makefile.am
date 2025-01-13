@@ -36,10 +36,8 @@ ROOTDICTS = \
   Zdcinfov2_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  Zdcinfo_Dict_rdict.pcm \
-  Zdcinfov1_Dict_rdict.pcm \
-  Zdcinfov2_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libzdcinfo_io_la_SOURCES = \
   $(ROOTDICTS) \

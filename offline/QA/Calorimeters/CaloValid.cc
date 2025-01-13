@@ -16,22 +16,24 @@
 
 #include <qautils/QAHistManagerDef.h>
 
+#include <ffaobjects/EventHeader.h>
+
+#include <ffarawobjects/Gl1Packet.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <ffarawobjects/Gl1Packet.h>
 
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3F.h>
+#include <TH3.h>
 #include <TLorentzVector.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
 #include <TSystem.h>
-#include <ffaobjects/EventHeader.h>
 
 #include <boost/format.hpp>
 
@@ -63,6 +65,7 @@ CaloValid::~CaloValid()
     delete h_ohcal_channel_pedestal[i];
     delete h_ohcal_channel_energy[i];
   }
+  delete trigAna;
 }
 
 int CaloValid::Init(PHCompositeNode* /*unused*/)
