@@ -1,5 +1,7 @@
-#ifndef G4MBD_MBDVERTEXV1_H
-#define G4MBD_MBDVERTEXV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_MBDVERTEXV1_H
+#define GLOBALVERTEX_MBDVERTEXV1_H
 
 #include "MbdVertex.h"
 

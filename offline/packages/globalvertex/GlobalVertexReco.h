@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4VERTEX_GLOBALVERTEXRECO_H
-#define G4VERTEX_GLOBALVERTEXRECO_H
+#ifndef GLOBALVERTEX_GLOBALVERTEXRECO_H
+#define GLOBALVERTEX_GLOBALVERTEXRECO_H
 
 //===========================================================
 /// \file GlobalVertexReco.h

@@ -1,5 +1,7 @@
-#ifndef TRACKBASEHISTORIC_SVTXVERTEXV1_H
-#define TRACKBASEHISTORIC_SVTXVERTEXV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_SVTXVERTEXV1_H
+#define GLOBALVERTEX_SVTXVERTEXV1_H
 
 #include "SvtxVertex.h"
 

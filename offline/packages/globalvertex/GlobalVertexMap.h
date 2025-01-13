@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4VERTEX_GLOBALVERTEXMAP_H
-#define G4VERTEX_GLOBALVERTEXMAP_H
+#ifndef GLOBALVERTEX_GLOBALVERTEXMAP_H
+#define GLOBALVERTEX_GLOBALVERTEXMAP_H
 
 #include <phool/PHObject.h>
 
