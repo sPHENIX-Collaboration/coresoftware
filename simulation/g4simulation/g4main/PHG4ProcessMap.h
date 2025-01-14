@@ -4,15 +4,15 @@
 #include "PHG4MCProcessDefs.h"
 
 #include <cstdint>
-#include <string>
 #include <map>
+#include <string_view>
 
 class G4VProcess;
 
 class PHG4ProcessMap
 {
  public:
-  PHG4ProcessMap()= default;
+  PHG4ProcessMap() = default;
   PHG4ProcessMap(const PHG4ProcessMap& rhs) = default;
   PHG4ProcessMap(PHG4ProcessMap&& rhs) = delete;
   PHG4ProcessMap& operator=(const PHG4ProcessMap& rhs) = delete;
@@ -33,7 +33,7 @@ class PHG4ProcessMap
 
   // get methods
   PHG4MCProcess GetMCProcess(const G4VProcess* process) const;
-  std::string GetMCProcessName(const G4VProcess* process) const;
+  std::string_view GetMCProcessName(const G4VProcess* process) const;
 
  private:
   // methods
