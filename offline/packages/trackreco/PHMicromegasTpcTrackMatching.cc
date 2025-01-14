@@ -123,22 +123,22 @@ namespace
     }
     else
     {
-     
+
       double denom = nx + ny*m;
       if(denom == 0) {
         return false; // lines are parallel and there is no intersection
       }
- 
+
       double x = (nx*x0 + ny*y0 - ny*b)/denom;
       double y = m*x + b;
       // a straight line has a unique intersection point
       xplus = xminus = x;
       yplus = yminus = y;
- 
+
     }
 
     return true;
-  }  
+  }
 
   // streamer of TVector3
   [[maybe_unused]] inline std::ostream& operator<<(std::ostream& out, const TVector3& vector)
@@ -293,10 +293,10 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         clusters.push_back(tpc_clus);
         // make necessary corrections to the global position
         clusGlobPos.push_back( m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, tpc_clus, crossing) );
-        
+
     }
 
-    double xy_m = 0, xy_b = 0;   
+    double xy_m = 0, xy_b = 0;
     double R = 0, X0 = 0, Y0 = 0;
     double A = 0, B = 0;
 
@@ -317,11 +317,11 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         }
         continue;  // skip to the next TPC tracklet
       }
-      
+
       const auto params = TrackFitUtils::fitClustersZeroField(clusGlobPos, cluster_list, true); // This is for the intersection
       xy_m = params[0];
       xy_b = params[1];
- 
+
       // get the straight line representing the z trajectory in the form of z vs radius
       std::tie(A, B) = TrackFitUtils::line_fit(clusGlobPos);
       if (Verbosity() > 10)
@@ -364,7 +364,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       {
         std::cout << " non-zero field fitted line has A " << A << " B " << B << std::endl;
       }
-  
+
     } // end !_zero_field
 
     // loop over micromegas layer
@@ -377,10 +377,10 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       double xplus, yplus, xminus, yminus;
       if(_zero_field) { // start _zero_field
-      
+
         // method to find where the fitted line intersects this layer
         std::tie(xplus, yplus, xminus, yminus) = TrackFitUtils::line_circle_intersection(layer_radius, xy_m, xy_b);
-        
+
       } else { // start _zero_field!
 
         // method to find where fitted circle intersects this layer
@@ -393,7 +393,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       {
         std::cout << "xplus: " << xplus << " yplus " << yplus << " xminus " << xminus << " yminus " << std::endl;
       }
- 
+
       if (!std::isfinite(xplus))
        {
          if (Verbosity() > 10)
@@ -402,7 +402,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
            std::cout << PHWHERE << " mm_radius " << layer_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
          }
 
-         continue; 
+         continue;
       }
       // we can figure out which solution is correct based on the last cluster position in the TPC
       const double last_clus_phi = std::atan2(clusGlobPos.back()(1), clusGlobPos.back()(0));
