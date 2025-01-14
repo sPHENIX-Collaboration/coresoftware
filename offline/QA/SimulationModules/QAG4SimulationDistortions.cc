@@ -165,12 +165,20 @@ int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 //____________________________________________________________________________..
 int QAG4SimulationDistortions::InitRun(PHCompositeNode* topNode)
 {
+  // track map
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
+
+  // cluster map
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
+  // load geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  if (not m_trackMap or not m_clusterContainer or not m_tGeometry)
+  // load distortion corrections
+  m_globalPositionWrapper.loadNodes(topNode);
+
+
+  if (!m_trackMap || !m_clusterContainer || !m_tGeometry)
   {
     std::cout << PHWHERE << "Necessary distortion container not on node tree. Bailing."
               << std::endl;
@@ -229,17 +237,30 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
   auto t_tree = dynamic_cast<TTree*>(hm->getHisto(get_histo_prefix() + "residTree"));
   assert(t_tree);
 
+  std::cout << "QAG4SimulationDistortions::process_event - tracks: " << m_trackMap->size() << std::endl;
   for (const auto& [key, track] : *m_trackMap)
   {
+
+    // get track crossing and check
+    const auto crossing = track->get_crossing();
+    if(crossing == SHRT_MAX)
+    {
+      std::cout << "QAG4SimulationDistortions::process_event - invalid crossing. Track skipped." << std::endl;
+      continue;
+    }
+
+    // check track quality
     if (!checkTrack(track))
     {
       continue;
     }
+
+    // get seeeds
     auto tpcSeed = track->get_tpc_seed();
     auto siliconSeed = track->get_silicon_seed();
 
     /// Should have never been added to the map...
-    if (not tpcSeed or not siliconSeed)
+    if (!tpcSeed || !siliconSeed)
     {
       continue;
     }
@@ -259,7 +280,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
 
       auto cluster = m_clusterContainer->findCluster(ckey);
 
-      const auto clusGlobPosition = m_tGeometry->getGlobalPosition(ckey, cluster);
+      const auto clusGlobPosition = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, crossing);
 
       const float clusR = get_r(clusGlobPosition(0), clusGlobPosition(1));
       const float clusPhi = std::atan2(clusGlobPosition(1), clusGlobPosition(0));
@@ -349,6 +370,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
 
 bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 {
+
   if (track->get_pt() < 0.5)
   {
     return false;

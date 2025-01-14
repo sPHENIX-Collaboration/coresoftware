@@ -26,6 +26,7 @@ libsimqa_modules_la_LIBADD = \
   -ljetbase \
   -lphg4hit \
   -ltrackbase_historic_io \
+  -ltpc \
   -lCLHEP \
   -ldecayfinder_io \
   -lphhepmc \
@@ -45,7 +46,7 @@ pkginclude_HEADERS = \
   QAG4SimulationVertex.h \
   QAG4SimulationUpsilon.h \
   QAG4SimulationTruthDecay.h \
-  QAG4Decayer.h 
+  QAG4Decayer.h
 
 libsimqa_kfparticle_la_SOURCES = \
   QAG4SimulationKFParticle.cc
@@ -63,7 +64,7 @@ libsimqa_modules_la_SOURCES = \
   QAG4SimulationVertex.cc \
   QAG4SimulationUpsilon.cc \
   QAG4SimulationTruthDecay.cc \
-  QAG4Decayer.cc 
+  QAG4Decayer.cc
 
 ################################################
 # linking tests
