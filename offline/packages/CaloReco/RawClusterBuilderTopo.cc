@@ -1367,8 +1367,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int highest_pseudocluster_index = -1;
       int second_highest_pseudocluster_index = -1;
 
-      float highest_pseudocluster_E = -1;
-      float second_highest_pseudocluster_E = -2;
+      float highest_pseudocluster_E = -999;
+      float second_highest_pseudocluster_E = -999;
 
       for (unsigned int n = 0; n < pseudocluster_adjacency.size(); n++)
       {
