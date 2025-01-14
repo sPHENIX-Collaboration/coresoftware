@@ -1,9 +1,13 @@
-#ifndef TRACKBASEHISTORIC_SVTXVERTEXMAP_H
-#define TRACKBASEHISTORIC_SVTXVERTEXMAP_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_SVTXVERTEXMAP_H
+#define GLOBALVERTEX_SVTXVERTEXMAP_H
 
 #include "SvtxVertex.h"
 
 #include <phool/PHObject.h>
+
+#include <cstddef>
 #include <iostream>
 #include <map>
 

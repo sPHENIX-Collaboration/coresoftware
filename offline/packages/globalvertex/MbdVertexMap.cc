@@ -1,8 +1,13 @@
 #include "MbdVertexMap.h"
 
+#include <map>
+
 class MbdVertex;
 
-std::map<unsigned int, MbdVertex*> DummyMbdVertexMap;
+namespace
+{
+  std::map<unsigned int, MbdVertex *> DummyMbdVertexMap;
+}
 
 MbdVertexMap::ConstIter MbdVertexMap::begin() const
 {

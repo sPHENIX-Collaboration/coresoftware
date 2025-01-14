@@ -3,71 +3,53 @@
 #include <cmath>
 #include <utility>  // for swap
 
-using namespace std;
-
 SvtxVertex_v1::SvtxVertex_v1()
-  : _id(0xFFFFFFFF)
-  , _t0(NAN)
-  , _pos()
-  , _chisq(NAN)
-  , _ndof(0xFFFFFFFF)
-  , _err()
-  , _track_ids()
 {
-  for (float& _po : _pos)
-  {
-    _po = NAN;
-  }
-  for (int j = 0; j < 3; ++j)
-  {
-    for (int i = j; i < 3; ++i)
-    {
-      set_error(i, j, NAN);
-    }
-  }
+  std::fill(std::begin(_pos), std::end(_pos), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(_err), std::end(_err), std::numeric_limits<float>::quiet_NaN());
 }
 
-void SvtxVertex_v1::identify(ostream& os) const
+void SvtxVertex_v1::identify(std::ostream &os) const
 {
-  os << "---SvtxVertex_v1--------------------" << endl;
-  os << "vertexid: " << get_id() << endl;
+  os << "---SvtxVertex_v1--------------------" << std::endl;
+  os << "vertexid: " << get_id() << std::endl;
 
-  os << " t0 = " << get_t() << endl;
+  os << " t0 = " << get_t() << std::endl;
 
   os << " (x,y,z) =  (" << get_position(0);
   os << ", " << get_position(1) << ", ";
-  os << get_position(2) << ") cm" << endl;
+  os << get_position(2) << ") cm" << std::endl;
 
   os << " chisq = " << get_chisq() << ", ";
-  os << " ndof = " << get_ndof() << endl;
+  os << " ndof = " << get_ndof() << std::endl;
 
   os << "         ( ";
   os << get_error(0, 0) << " , ";
   os << get_error(0, 1) << " , ";
-  os << get_error(0, 2) << " )" << endl;
+  os << get_error(0, 2) << " )" << std::endl;
   os << "  err  = ( ";
   os << get_error(1, 0) << " , ";
   os << get_error(1, 1) << " , ";
-  os << get_error(1, 2) << " )" << endl;
+  os << get_error(1, 2) << " )" << std::endl;
   os << "         ( ";
   os << get_error(2, 0) << " , ";
   os << get_error(2, 1) << " , ";
-  os << get_error(2, 2) << " )" << endl;
+  os << get_error(2, 2) << " )" << std::endl;
 
   os << " list of tracks ids: ";
   for (ConstTrackIter iter = begin_tracks(); iter != end_tracks(); ++iter)
   {
     os << *iter << " ";
   }
-  os << endl;
-  os << "-----------------------------------------------" << endl;
+  os << std::endl;
+  os << "-----------------------------------------------" << std::endl;
 
   return;
 }
 
 int SvtxVertex_v1::isValid() const
 {
-  if (_id == 0xFFFFFFFF)
+  if (_id == std::numeric_limits<unsigned int>::max())
   {
     return 0;
   }
@@ -79,12 +61,12 @@ int SvtxVertex_v1::isValid() const
   {
     return 0;
   }
-  if (_ndof == 0xFFFFFFFF)
+  if (_ndof == std::numeric_limits<unsigned int>::max())
   {
     return 0;
   }
 
-  for (float _po : _pos)
+  for (const float &_po : _pos)
   {
     if (std::isnan(_po))
     {

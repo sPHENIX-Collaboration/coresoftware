@@ -2,49 +2,36 @@
 
 #include <cmath>
 
-using namespace std;
-
-MbdVertexv1::MbdVertexv1()
-  : _id(0xFFFFFFFF)
-  , _t(NAN)
-  , _t_err(NAN)
-  , _z(NAN)
-  , _z_err(NAN)
+void MbdVertexv1::identify(std::ostream& os) const
 {
-}
-
-MbdVertexv1::~MbdVertexv1() = default;
-
-void MbdVertexv1::identify(ostream& os) const
-{
-  os << "---MbdVertexv1--------------------------------" << endl;
-  os << "vertexid: " << get_id() << endl;
-  os << " t = " << get_t() << " +/- " << get_t_err() << endl;
-  os << " z =  " << get_z() << " +/- " << get_z_err() << endl;
-  os << "-----------------------------------------------" << endl;
+  os << "---MbdVertexv1--------------------------------" << std::endl;
+  os << "vertexid: " << get_id() << std::endl;
+  os << " t = " << get_t() << " +/- " << get_t_err() << std::endl;
+  os << " z =  " << get_z() << " +/- " << get_z_err() << std::endl;
+  os << "-----------------------------------------------" << std::endl;
 
   return;
 }
 
 int MbdVertexv1::isValid() const
 {
-  if (_id == 0xFFFFFFFF)
+  if (_id == std::numeric_limits<unsigned int>::max())
   {
     return 0;
   }
-  if (isnan(_t))
+  if (std::isnan(_t))
   {
     return 0;
   }
-  if (isnan(_t_err))
+  if (std::isnan(_t_err))
   {
     return 0;
   }
-  if (isnan(_z))
+  if (std::isnan(_z))
   {
     return 0;
   }
-  if (isnan(_z_err))
+  if (std::isnan(_z_err))
   {
     return 0;
   }
