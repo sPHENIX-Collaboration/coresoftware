@@ -12,9 +12,9 @@ GlobalVertexv2::~GlobalVertexv2()
 
 void GlobalVertexv2::Reset()
 {
-  for (GlobalVertex::VertexIter iter = _vtxs.begin(); iter != _vtxs.end(); ++iter)
+  for (auto & _vtx : _vtxs)
   {
-    for (auto vertex : iter->second)
+    for (auto vertex : _vtx.second)
     {
       delete vertex;
     }
