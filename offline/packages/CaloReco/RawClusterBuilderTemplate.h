@@ -61,7 +61,12 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_inputnodename = inpNodenm;
   }
 
-   void set_min_cluster_E_saved(float min_cluster_E) { m_min_cluster_e = min_cluster_E; }
+  void set_min_cluster_E_saved(float min_cluster_E) { m_min_cluster_e = min_cluster_E; }
+  
+  void setSubclusterSplitting(bool doSubClusterSplitting)
+  {
+    m_subclustersplitting = doSubClusterSplitting;
+  }
 
   
 
@@ -104,6 +109,8 @@ class RawClusterBuilderTemplate : public SubsysReco
   // 2 - use NO zvertex (zvtx = 0)
 
   float m_min_cluster_e{0.0};
+
+  bool m_subclustersplitting{true};
 
   std::string m_inputnodename;
   std::string m_outputnodename;
