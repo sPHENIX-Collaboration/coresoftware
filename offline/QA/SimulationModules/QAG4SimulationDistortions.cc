@@ -140,20 +140,20 @@ int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
   TTree* t(nullptr);
 
   t = new TTree(TString(get_histo_prefix()) + "residTree", "tpc residual info");
-  t->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/D");
-  t->Branch("tanBeta", &m_tanBeta, "tanBeta/D");
-  t->Branch("drphi", &m_drphi, "drphi/D");
-  t->Branch("dz", &m_dz, "dz/D");
-  t->Branch("clusR", &m_clusR, "clusR/D");
-  t->Branch("clusPhi", &m_clusPhi, "clusPhi/D");
-  t->Branch("clusZ", &m_clusZ, "clusZ/D");
-  t->Branch("statePhi", &m_statePhi, "statePhi/D");
-  t->Branch("stateZ", &m_stateZ, "stateZ/D");
-  t->Branch("stateR", &m_stateR, "stateR/D");
-  t->Branch("stateRPhiErr", &m_stateRPhiErr, "stateRPhiErr/D");
-  t->Branch("stateZErr", &m_stateZErr, "stateZErr/D");
-  t->Branch("clusRPhiErr", &m_clusRPhiErr, "clusRPhiErr/D");
-  t->Branch("clusZErr", &m_clusZErr, "clusZErr/D");
+  t->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/F");
+  t->Branch("tanBeta", &m_tanBeta, "tanBeta/F");
+  t->Branch("drphi", &m_drphi, "drphi/F");
+  t->Branch("dz", &m_dz, "dz/F");
+  t->Branch("clusR", &m_clusR, "clusR/F");
+  t->Branch("clusPhi", &m_clusPhi, "clusPhi/F");
+  t->Branch("clusZ", &m_clusZ, "clusZ/F");
+  t->Branch("statePhi", &m_statePhi, "statePhi/F");
+  t->Branch("stateZ", &m_stateZ, "stateZ/F");
+  t->Branch("stateR", &m_stateR, "stateR/F");
+  t->Branch("stateRPhiErr", &m_stateRPhiErr, "stateRPhiErr/F");
+  t->Branch("stateZErr", &m_stateZErr, "stateZErr/F");
+  t->Branch("clusRPhiErr", &m_clusRPhiErr, "clusRPhiErr/F");
+  t->Branch("clusZErr", &m_clusZErr, "clusZErr/F");
   t->Branch("cluskey", &m_cluskey, "cluskey/l");
   t->Branch("event", &m_event, "event/I");
 
