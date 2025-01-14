@@ -72,6 +72,7 @@ ROOTHITDICTS = \
   PHG4Showerv1_Dict.cc \
   PHG4VtxPoint_Dict.cc \
   PHG4VtxPointv1_Dict.cc \
+  PHG4VtxPointv2_Dict.cc \
   PHG4TruthInfoContainer_Dict.cc
 
 # this is a tweak to install files in $(libdir), automake refuses
@@ -98,7 +99,8 @@ libphg4hit_la_SOURCES = \
   PHG4Showerv1.cc \
   PHG4TruthInfoContainer.cc \
   PHG4VtxPoint.cc \
-  PHG4VtxPointv1.cc
+  PHG4VtxPointv1.cc \
+  PHG4VtxPointv2.cc
 
 libg4testbench_la_SOURCES = \
   Fun4AllMessenger.cc \
@@ -206,6 +208,7 @@ pkginclude_HEADERS = \
   PHG4VertexSelection.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
+  PHG4VtxPointv2.h \
   ReadEICFiles.h \
   CosmicSpray.h \
   EcoMug.h
