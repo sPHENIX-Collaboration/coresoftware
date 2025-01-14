@@ -138,6 +138,23 @@ FROG::location(const std::string &logical_name)
           break;
         }
       }
+      else if (iter == "HPSSRAW")
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << "Searching FileCatalog for Hpss Raw Data File "
+               << logical_name << std::endl;
+        }
+        if (HpssRawDataSearch(logical_name))
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "Found raw data file " << logical_name << " in Hpss, returning "
+                 << pfn << std::endl;
+          }
+          break;
+        }
+      }
       else if (iter == "MINIO")
       {
         if (Verbosity() > 1)
@@ -397,6 +414,29 @@ bool FROG::RawDataSearch(const std::string &lname)
     return bret;
   }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
+
+  odbc::Statement *stmt = odbc_connection->createStatement();
+  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+
+  if (rs->next())
+  {
+    pfn = rs->getString(1);
+    bret = true;
+  }
+  delete rs;
+  delete stmt;
+  return bret;
+}
+
+bool FROG::HpssRawDataSearch(const std::string &lname)
+{
+  bool bret = false;
+  odbc::Connection *odbc_connection = GetConnection("RawdataCatalog_read");
+  if (!odbc_connection)
+  {
+    return bret;
+  }
+  std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'hpss'";
 
   odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);

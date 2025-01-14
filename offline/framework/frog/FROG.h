@@ -24,6 +24,7 @@ class FROG
   bool LustreSearch(const std::string &lname);
   bool MinIOSearch(const std::string &lname);
   bool RawDataSearch(const std::string &lname);
+  bool HpssRawDataSearch(const std::string &lname);
   bool PGSearch(const std::string &lname);
   void Verbosity(const int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
