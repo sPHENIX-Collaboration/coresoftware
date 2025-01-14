@@ -1071,6 +1071,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   // get new local coords from moved cluster
   Surface surf = geometry->maps().getSurface(ckey, cluster);
+  Surface surf_ideal = geometry->maps().getSurface(ckey, cluster); //Unchanged by distortion corrections
   // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
   auto trkrid = TrkrDefs::getTrkrId(ckey);
   if (trkrid == TrkrDefs::tpcId)
@@ -1144,8 +1145,8 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   //! Switch to get ideal transforms
   alignmentTransformationContainer::use_alignment = false;
-  auto idealcenter = surf->center(geometry->geometry().getGeoContext());
-  auto idealnorm = -1 * surf->normal(geometry->geometry().getGeoContext());
+  auto idealcenter = surf_ideal->center(geometry->geometry().getGeoContext());
+  auto idealnorm = -1 * surf_ideal->normal(geometry->geometry().getGeoContext());
 
   // replace the corrected moved cluster local position with the readout position from ideal geometry for now
   // This allows us to see the distortion corrections by subtracting this uncorrected position
@@ -1153,8 +1154,8 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   //  Acts::Vector3 ideal_local(loc.x(), loc.y(), 0.0);
   auto nominal_loc = geometry->getLocalCoords(ckey, cluster);
   Acts::Vector3 ideal_local(nominal_loc.x(), nominal_loc.y(), 0.0);
-  Acts::Vector3 ideal_glob = surf->transform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
-  auto idealrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
+  Acts::Vector3 ideal_glob = surf_ideal->transform(geometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
+  auto idealrot = surf_ideal->transform(geometry->geometry().getGeoContext()).rotation();
 
   //! These calculations are taken from the wikipedia page for Euler angles,
   //! under the Tait-Bryan angle explanation. Formulas for the angles
