@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4VERTEX_GLOBALVERTEXV1_H
-#define G4VERTEX_GLOBALVERTEXV1_H
+#ifndef GLOBALVERTEX_GLOBALVERTEXV1_H
+#define GLOBALVERTEX_GLOBALVERTEXV1_H
 
 #include "GlobalVertex.h"
 

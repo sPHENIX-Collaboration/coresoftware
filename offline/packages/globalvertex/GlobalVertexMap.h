@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4VERTEX_GLOBALVERTEXMAP_H
-#define G4VERTEX_GLOBALVERTEXMAP_H
+#ifndef GLOBALVERTEX_GLOBALVERTEXMAP_H
+#define GLOBALVERTEX_GLOBALVERTEXMAP_H
 
 #include <phool/PHObject.h>
 
@@ -20,7 +20,7 @@ class GlobalVertexMap : public PHObject
 
   void identify(std::ostream& os = std::cout) const override { os << "GlobalVertexMap base class" << std::endl; }
   int isValid() const override { return 0; }
-  virtual void CopyTo(GlobalVertexMap *) {return;}
+  virtual void CopyTo(GlobalVertexMap*) { return; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
