@@ -68,7 +68,10 @@ SingleTpcTimeFrameInput::SingleTpcTimeFrameInput(const std::string &name)
 SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
 {
   delete[] plist;
-
+  delete m_FillPoolTimer;
+  delete m_getNextEventTimer;
+  delete m_ProcessPacketTimer;
+  delete m_getTimeFrameTimer;
   for (auto iter : m_TpcTimeFrameBuilderMap)
   {
     delete iter.second;
