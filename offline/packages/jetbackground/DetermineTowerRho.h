@@ -9,8 +9,8 @@
 #ifndef JETBACKGROUND_DETERMINETOWERRHO_H
 #define JETBACKGROUND_DETERMINETOWERRHO_H
 
-#include "EventRho.h"
 #include "DetermineEventRho.h"
+#include "EventRho.h"
 
 using DetermineTowerRho = DetermineEventRho;
 
