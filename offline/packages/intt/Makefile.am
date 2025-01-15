@@ -118,7 +118,6 @@ libintt_io_la_SOURCES = \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
-  -lcdbobjects \
   -lffamodules \
   -lg4detectors_io \
   -lphool \
