@@ -19,9 +19,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  CylinderGeom_Mvtx.h \
-  CylinderGeom_MvtxHelper.h \
-  MvtxCombinedRawDataDecoder.h \
   MvtxClusterizer.h \
   MvtxHitPruner.h \
   MvtxNoiseMap.h \
@@ -43,42 +40,30 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeom_Mvtx_Dict_rdict.pcm \
-<<<<<<< HEAD
-  MvtxNoiseMap_Dict_rdict.pcm
-=======
 	MvtxNoiseMap_Dict_rdict.pcm \
   MvtxPixelMask_Dict_rdict.pcm \
   MvtxPixelMaskv1_Dict_rdict.pcm
->>>>>>> 9c73c7b0e... Add dynamic masking
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
-  CylinderGeom_MvtxHelper.cc \
-  MvtxCombinedRawDataDecoder.cc \
   MvtxClusterizer.cc \
   MvtxHitPruner.cc \
-<<<<<<< HEAD
-  MvtxPixelDefs.cc \
-  MvtxPixelMask.cc
-=======
   MvtxCombinedRawDataDecoder.cc \
   MvtxRawPixelMasker.cc
->>>>>>> 9c73c7b0e... Add dynamic masking
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
-  -lActsCore \
   -lCLHEP \
-  -lcdbobjects \
-  -lffamodules \
-  -lffarawobjects \
   -lfun4all \
+  -lffarawobjects \
   -lfun4allraw \
-  -lmvtx_decoder \
+  -lffamodules \
   -lphg4hit \
   -lSubsysReco \
   -ltrack_io \
-  -ltrackbase_historic_io
+  -lmvtx_decoder \
+  -ltrackbase_historic_io \
+  -lcdbobjects
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
@@ -90,10 +75,6 @@ libmvtx_io_la_SOURCES = \
   MvtxRawPixelDefs.cc 
 
 libmvtx_io_la_LIBADD = \
-<<<<<<< HEAD
-  -lg4detectors_io \
-  -lphool
-=======
   -lActsCore \
   -lphool \
   -lfun4all \
@@ -106,7 +87,6 @@ libmvtx_io_la_LIBADD = \
   -ltrack_io \
   -lmvtx_decoder \
   -lg4detectors_io
->>>>>>> 9c73c7b0e... Add dynamic masking
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
