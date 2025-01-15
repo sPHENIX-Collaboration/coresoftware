@@ -291,7 +291,6 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       std::cout << "TpcCombinedRawDataUnpacker:: do zero suppression" << std::endl;
     }
     TH2C* feehist = nullptr;
-    std::vector<int>::iterator fee_entries_vec_it;
     hpedestal = 60;
     hpedwidth = m_zs_threshold;
 
@@ -315,7 +314,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     unsigned int fee_key = create_fee_key(side, mc_sectors[sector % 12], rx, fee);
     // find or insert TH2C;
     std::map<unsigned int, TH2C*>::iterator fee_map_it;
-    std::map<unsigned int, std::vector<int>>::iterator fee_entries_it;
+
 
     fee_map_it = feeadc_map.find(fee_key);
     if (fee_map_it != feeadc_map.end())
@@ -330,11 +329,8 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       std::vector<int> feeentries(feehist->GetNbinsX(), 0);
       feeentries_map.insert(std::make_pair(fee_key, feeentries));
     }
-    fee_entries_it = feeentries_map.find(fee_key);
-    if (fee_entries_it != feeentries_map.end())
-    {
-      fee_entries_vec_it = (*fee_entries_it).second.begin();
-    }
+    auto fee_entries_it = feeentries_map.find(fee_key);
+    std::vector<int>& fee_entries_vec = (*fee_entries_it).second;
 
     float threshold_cut = m_zs_threshold;
 
@@ -356,7 +352,10 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
           if ((float(adc) - hpedestal) > threshold_cut)
           {
             feehist->Fill(t, adc - hpedestal);
-            fee_entries_vec_it[t]++;
+            if(t < (int)fee_entries_vec.size())
+            {
+              fee_entries_vec[t]++;
+            }
           }
         }
       }
