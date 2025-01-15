@@ -108,7 +108,7 @@ class EmcCluster : public TObject
   /// Returns the EmcCluster position in PHENIX global coord system
   void GetGlobalPos(float& xg, float& yg, float& zg);
   /// Splits the Cluster onto SubClusters; returns list of clusters and list of peak towers corresponding to subclusters
-  int GetSubClusters(std::vector<EmcCluster>& sClList, std::vector<EmcModule>& ppeaks);
+  int GetSubClusters(std::vector<EmcCluster>& sClList, std::vector<EmcModule>& ppeaks, bool dosubclustersplitting);
   float GetProb(float& chi2, int& ndf);
 
  protected:

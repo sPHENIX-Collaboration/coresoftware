@@ -332,7 +332,7 @@ float EmcCluster::GetProb(float& chi2, int& ndf)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcModule>& ppeaks)
+int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcModule>& ppeaks, bool dosubclustersplitting)
 {
   // Splits the cluster onto subclusters
   // The number of subclusters is equal to the number of Local Maxima in a cluster.
@@ -385,6 +385,10 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   //
   //  Find peak (maximum) position (towers with local maximum amp)
   //
+
+  int maxc=0;
+  float maxamp = 0;
+
   npk = 0;
   for (ic = 0; ic < nhit; ic++)
   {
@@ -432,6 +436,10 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
       }
 
       // ic is a maximum in a 3x3 tower group
+      if (amp > maxamp) {
+        maxamp = amp;
+        maxc = npk;
+      }   
       PeakCh[npk] = ic;
       npk++;
     }
@@ -445,8 +453,23 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   }
   */
 
+  if(!dosubclustersplitting){
+    hl.clear();
+    for (int ich = 0; ich < nhit; ich++)
+    {
+      hl.push_back(hlist[ich]);
+    }
+    peak.ReInitialize(hl);
+    PkList.push_back(peak);
+
+    ppeaks.push_back(hlist[PeakCh[maxc]]);
+    delete[] hlist;
+    return 1;
+  }
+
+
   // there was only one peak
-  if (npk <= 1)
+  if(npk <= 1)
   {
     hl.clear();
     for (int ich = 0; ich < nhit; ich++)
