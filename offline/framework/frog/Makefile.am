@@ -2,9 +2,9 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I$(OPT_SPHENIX)/include \
-  -I`root-config --incdir`
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(OPT_SPHENIX)/include \
+  -isystem`root-config --incdir`
 
 lib_LTLIBRARIES = libFROG.la
 
