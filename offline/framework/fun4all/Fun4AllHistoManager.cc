@@ -115,13 +115,14 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
   }
   recoConsts *rc = recoConsts::instance();
   int runnumber = 0;
-  if (rc->FlagExist("RUNNUMBER"))
-    {
-      runnumber = rc->get_IntFlag("RUNNUMBER");
+  std::string runseg = "";
+  if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
+  {
+    runnumber = rc->get_IntFlag("RUNNUMBER");
+     runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
+
     }
   
-  std::string runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
-
   std::string theoutfile = m_outfilename + runseg;
   std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << theoutfile.c_str() << std::endl;
 
