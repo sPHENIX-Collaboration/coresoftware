@@ -9,8 +9,14 @@
 #include <calobase/TowerInfoContainer.h>
 #include <caloreco/CaloTowerDefs.h>
 
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <ffaobjects/EventHeader.h>
 
 #include <qautils/QAHistManagerDef.h>
 
@@ -20,8 +26,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
-#include <ffamodules/CDBInterface.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -33,7 +37,6 @@
 #include <TProfile.h>
 #include <TProfile2D.h>
 #include <TSystem.h>
-#include <ffaobjects/EventHeader.h>
 
 #include <boost/format.hpp>
 
@@ -59,16 +62,21 @@ CaloFittingQA::CaloFittingQA(const std::string& name)
 {
 }
 
+CaloFittingQA::~CaloFittingQA()
+{
+  delete cdbttree;
+}
+
 int CaloFittingQA::Init(PHCompositeNode* /*unused*/)
 {
-  if (m_debug)
+  if (Verbosity() > 0)
   {
     std::cout << "In CaloFittingQA::Init" << std::endl;
   }
 
   createHistos();
 
-  if (m_debug)
+  if (Verbosity() > 0)
   {
     std::cout << "Leaving CaloFittingQA::Init" << std::endl;
   }
@@ -77,7 +85,7 @@ int CaloFittingQA::Init(PHCompositeNode* /*unused*/)
 
 int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
 {
-  if (m_debug)
+  if (Verbosity() > 0)
   {
     std::cout << "In CaloFittingQA::InitRun" << std::endl;
   }
@@ -95,7 +103,7 @@ int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
   }
   cdbttree = new CDBTTree(calibdir.c_str());
 
-  if (m_debug)
+  if (Verbosity() > 0)
   {
     std::cout << "Leaving CaloFittingQA::InitRun" << std::endl;
   }
@@ -129,7 +137,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
     std::cout << "CaloFittingQA::process_towers()  No event header" << std::endl;
   }
 
-  if (m_debug)
+  if (Verbosity() > 0)
   {
     std::cout << _eventcounter << std::endl;
     std::cout << "Event header evtsequence " << event_number << std::endl;
@@ -209,7 +217,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
           zs_energy = cemc_waveforms.at(channel).at(1) - cemc_waveforms.at(channel).at(0);
           h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_waveforms.at(channel).at(0));
         }
-        if (m_debug) 
+        if (Verbosity() > 0) 
         {
           std::cout << "EMCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
@@ -243,7 +251,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
           zs_energy = ohcal_waveforms.at(channel).at(1) - ohcal_waveforms.at(channel).at(0);
           h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_waveforms.at(channel).at(0));
         }
-        if (m_debug) 
+        if (Verbosity() > 0) 
         {
           std::cout << "OHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
@@ -277,7 +285,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
           zs_energy = ihcal_waveforms.at(channel).at(1) - ihcal_waveforms.at(channel).at(0);
           h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_waveforms.at(channel).at(0));
         }
-        if (m_debug) 
+        if (Verbosity() > 0) 
         {
           std::cout << "IHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
