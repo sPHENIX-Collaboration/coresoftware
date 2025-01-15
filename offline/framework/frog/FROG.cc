@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <random> // For retrying connections
+#include <random>  // For retrying connections
 #include <string>
 #include <thread>
 
@@ -58,14 +58,14 @@ FROG::location(const std::string &logical_name)
         if (Verbosity() > 1)
         {
           std::cout << "Searching FileCatalog for disk resident file "
-               << logical_name << std::endl;
+                    << logical_name << std::endl;
         }
         if (PGSearch(logical_name))
         {
           if (Verbosity() > 1)
           {
             std::cout << "Found " << logical_name << " in FileCatalog, returning "
-                 << pfn << std::endl;
+                      << pfn << std::endl;
           }
           break;
         }
@@ -75,14 +75,14 @@ FROG::location(const std::string &logical_name)
         if (Verbosity() > 1)
         {
           std::cout << "Searching FileCatalog for dCache file "
-               << logical_name << std::endl;
+                    << logical_name << std::endl;
         }
         if (dCacheSearch(logical_name))
         {
           if (Verbosity() > 1)
           {
             std::cout << "Found " << logical_name << " in dCache, returning "
-                 << pfn << std::endl;
+                      << pfn << std::endl;
           }
           break;
         }
@@ -92,14 +92,14 @@ FROG::location(const std::string &logical_name)
         if (Verbosity() > 1)
         {
           std::cout << "Searching FileCatalog for XRootD file "
-               << logical_name << std::endl;
+                    << logical_name << std::endl;
         }
         if (XRootDSearch(logical_name))
         {
           if (Verbosity() > 1)
           {
             std::cout << "Found " << logical_name << " in XRootD, returning "
-                 << pfn << std::endl;
+                      << pfn << std::endl;
           }
           break;
         }
@@ -109,14 +109,14 @@ FROG::location(const std::string &logical_name)
         if (Verbosity() > 1)
         {
           std::cout << "Searching FileCatalog for Lustre file "
-               << logical_name << std::endl;
+                    << logical_name << std::endl;
         }
         if (LustreSearch(logical_name))
         {
           if (Verbosity() > 1)
           {
             std::cout << "Found " << logical_name << " in Lustre, returning "
-                 << pfn << std::endl;
+                      << pfn << std::endl;
           }
           break;
         }
@@ -126,14 +126,14 @@ FROG::location(const std::string &logical_name)
         if (Verbosity() > 1)
         {
           std::cout << "Searching FileCatalog for Raw Data file "
-               << logical_name << std::endl;
+                    << logical_name << std::endl;
         }
         if (RawDataSearch(logical_name))
         {
           if (Verbosity() > 1)
           {
             std::cout << "Found raw data file " << logical_name << " in Lustre, returning "
-                 << pfn << std::endl;
+                      << pfn << std::endl;
           }
           break;
         }
@@ -143,14 +143,14 @@ FROG::location(const std::string &logical_name)
         if (Verbosity() > 1)
         {
           std::cout << "Searching FileCatalog for Hpss Raw Data File "
-               << logical_name << std::endl;
+                    << logical_name << std::endl;
         }
         if (HpssRawDataSearch(logical_name))
         {
           if (Verbosity() > 1)
           {
             std::cout << "Found raw data file " << logical_name << " in Hpss, returning "
-                 << pfn << std::endl;
+                      << pfn << std::endl;
           }
           break;
         }
@@ -160,14 +160,14 @@ FROG::location(const std::string &logical_name)
         if (Verbosity() > 1)
         {
           std::cout << "Searching FileCatalog for Lustre file via MinIO "
-               << logical_name << std::endl;
+                    << logical_name << std::endl;
         }
         if (MinIOSearch(logical_name))
         {
           if (Verbosity() > 1)
           {
             std::cout << "Found " << logical_name << " in Lustre, returning MinIO URL "
-                 << pfn << std::endl;
+                      << pfn << std::endl;
           }
           break;
         }
@@ -178,8 +178,8 @@ FROG::location(const std::string &logical_name)
         {
           std::cout << "Trying path " << iter << std::endl;
         }
-        std::string fullfile (iter);
-	fullfile.append("/").append(logical_name);
+        std::string fullfile(iter);
+        fullfile.append("/").append(logical_name);
         if (localSearch(fullfile))
         {
           break;
@@ -216,7 +216,7 @@ odbc::Connection *FROG::GetConnection(const std::string &database)
     return iter->second;
   }
   std::random_device ran_dev;
-  std::seed_seq seeds {ran_dev(), ran_dev(), ran_dev()}; //...
+  std::seed_seq seeds{ran_dev(), ran_dev(), ran_dev()};  //...
   std::mt19937_64 mersenne_twister(seeds);
   std::uniform_int_distribution<> uniform(m_MIN_SLEEP_DUR, m_MAX_SLEEP_DUR);
   int icount = 0;
@@ -231,7 +231,7 @@ odbc::Connection *FROG::GetConnection(const std::string &database)
     catch (odbc::SQLException &e)
     {
       std::cout << PHWHERE
-           << " Exception caught during DriverManager::getConnection" << std::endl;
+                << " Exception caught during DriverManager::getConnection" << std::endl;
       std::cout << "Message: " << e.getMessage() << std::endl;
     }
     icount++;
@@ -243,7 +243,7 @@ odbc::Connection *FROG::GetConnection(const std::string &database)
 
 void FROG::Disconnect()
 {
-  for (auto iter : m_OdbcConnectionMap)
+  for (const auto &iter : m_OdbcConnectionMap)
   {
     delete iter.second;
   }
@@ -263,7 +263,7 @@ bool FROG::PGSearch(const std::string &lname)
   if (Verbosity() > 1)
   {
     std::cout << "sql query:" << std::endl
-	      << sqlquery << std::endl;
+              << sqlquery << std::endl;
   }
   odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
@@ -291,7 +291,7 @@ bool FROG::dCacheSearch(const std::string &lname)
   if (Verbosity() > 1)
   {
     std::cout << "sql query:" << std::endl
-	      << sqlquery << std::endl;
+              << sqlquery << std::endl;
   }
   odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
@@ -322,7 +322,7 @@ bool FROG::XRootDSearch(const std::string &lname)
   if (Verbosity() > 1)
   {
     std::cout << "sql query:" << std::endl
-	      << sqlquery << std::endl;
+              << sqlquery << std::endl;
   }
   odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
@@ -330,7 +330,7 @@ bool FROG::XRootDSearch(const std::string &lname)
   if (rs->next())
   {
     std::string xrootdfile = rs->getString(1);
-    pfn = "root://xrdsphenix.rcf.bnl.gov/"  + xrootdfile;
+    pfn = "root://xrdsphenix.rcf.bnl.gov/" + xrootdfile;
     bret = true;
   }
   delete rs;
@@ -374,7 +374,7 @@ bool FROG::MinIOSearch(const std::string &lname)
   if (Verbosity() > 1)
   {
     std::cout << "sql query:" << std::endl
-	      << sqlquery << std::endl;
+              << sqlquery << std::endl;
   }
   odbc::Statement *stmt = odbc_connection->createStatement();
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
@@ -386,18 +386,17 @@ bool FROG::MinIOSearch(const std::string &lname)
     size_t strpos = pfn.find(toreplace);
     if (strpos == std::string::npos)
     {
-      std::cout << " could not locate " << toreplace 
-		<< " in full file path " << pfn << std::endl;
+      std::cout << " could not locate " << toreplace
+                << " in full file path " << pfn << std::endl;
       exit(1);
     }
     else if (strpos > 0)
     {
-      std::cout << "full file path " << pfn 
-		<< "does not start with " << toreplace << std::endl;
+      std::cout << "full file path " << pfn
+                << "does not start with " << toreplace << std::endl;
       exit(1);
-
     }
-    pfn.replace(pfn.begin(),pfn.begin()+toreplace.size(),"s3://sphenixs3.rcf.bnl.gov:9000");
+    pfn.replace(pfn.begin(), pfn.begin() + toreplace.size(), "s3://sphenixs3.rcf.bnl.gov:9000");
     bret = true;
   }
   delete rs;
