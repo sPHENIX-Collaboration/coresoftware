@@ -543,7 +543,10 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
         std::map<unsigned int, std::vector<float>>::iterator fee_blm_it = feebaseline_map.find(fee_key);
         if (fee_blm_it != feebaseline_map.end())
         {
-          corr = (*fee_blm_it).second[tbin];
+          if(tbin < (int)(*fee_blm_it).second.size())
+          {
+            corr = (*fee_blm_it).second[tbin];
+          }
           hitr->second->setAdc(0);
           float nuadc = (float(adc) - corr);
           if (nuadc < 0)
