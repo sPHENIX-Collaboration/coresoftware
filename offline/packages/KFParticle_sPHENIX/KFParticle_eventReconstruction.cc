@@ -121,10 +121,10 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
   int track_stop = m_num_tracks_from_intermediate[0];
   std::vector<KFParticle> goodCandidates;
   std::vector<KFParticle> goodVertex;
-  std::vector<KFParticle> goodDaughters[m_num_tracks];
-  std::vector<KFParticle> goodIntermediates[m_num_intermediate_states];
-  std::vector<KFParticle> potentialIntermediates[m_num_intermediate_states];
-  std::vector<std::vector<KFParticle>> potentialDaughters[m_num_intermediate_states];
+  std::vector<KFParticle> *goodDaughters = new std::vector<KFParticle>[m_num_tracks];
+  std::vector<KFParticle> *goodIntermediates = new std::vector<KFParticle>[m_num_intermediate_states];
+  std::vector<KFParticle> *potentialIntermediates = new std::vector<KFParticle>[m_num_intermediate_states];
+  std::vector<std::vector<KFParticle>> *potentialDaughters = new std::vector<std::vector<KFParticle>>[m_num_intermediate_states];
   for (int i = 0; i < m_num_intermediate_states; ++i)
   {
     std::vector<KFParticle> vertices;
@@ -168,7 +168,7 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 
           int num_mother_decay_products = m_num_intermediate_states + num_remaining_tracks;
           assert(num_mother_decay_products > 0);
-          KFParticle motherDecayProducts[num_mother_decay_products];
+          KFParticle *motherDecayProducts = new KFParticle[num_mother_decay_products];
           std::vector<KFParticle> finalTracks = potentialDaughters[0][a];
 
           for (int i = 0; i < m_num_intermediate_states; ++i)
@@ -399,10 +399,14 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
               goodDaughters[j].clear();
             }
           }
+	  delete [] motherDecayProducts;
         }  // Close forth intermediate
       }    // Close third intermediate
     }      // Close second intermediate
   }        // Close first intermediate
+  delete [] goodDaughters;
+  delete [] goodIntermediates;
+  delete [] potentialIntermediates;
 }
 
 void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
@@ -416,7 +420,8 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
 {
   int nTracks = n_track_stop - n_track_start;
   std::vector<std::vector<int>> uniqueCombinations = findUniqueDaughterCombinations(n_track_start, n_track_stop);
-  std::vector<KFParticle> goodCandidates, goodVertex, goodDaughters[nTracks];
+  std::vector<KFParticle> goodCandidates, goodVertex;
+  std::vector<KFParticle> *goodDaughters = new std::vector<KFParticle>[nTracks];
   KFParticle candidate;
   bool isGood;
   bool fixToPV = m_constrain_to_vertex && !isIntermediate;
@@ -429,7 +434,7 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
 
   for (auto& i_comb : goodTracksThatMeetCand)  // Loop over all good track combinations
   {
-    KFParticle daughterTracks[nTracks];
+    KFParticle *daughterTracks = new KFParticle[nTracks];
 
     for (int i_track = 0; i_track < nTracks; ++i_track)
     {
@@ -520,7 +525,9 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
         goodDaughters[j].clear();
       }
     }
+    delete [] daughterTracks;
   }
+  delete [] goodDaughters;
 }
 
 int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, bool isAnInterMother,
@@ -563,7 +570,6 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
       }
     }
   }
-
   return bestCombinationIndex;
 }
 
@@ -578,6 +584,5 @@ KFParticle KFParticle_eventReconstruction::createFakePV()
   kfp_vertex.NDF() = 0;
   kfp_vertex.Chi2() = 0;
   kfp_vertex.SetId(0);
-
   return kfp_vertex;
 }

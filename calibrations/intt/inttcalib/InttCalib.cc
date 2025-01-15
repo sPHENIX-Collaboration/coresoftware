@@ -233,7 +233,7 @@ int InttCalib::EndRun(int const run_number)
 }
 int InttCalib::ConfigureHotMap_fee()
 {
-  std::map<double, int> hitrate_pdf[m_MAX_LADDER];
+  std::map<double, int> hitrate_pdf[m_MAX_LADDER]{};
   std::string name[m_MAX_LADDER], title[m_MAX_LADDER];
   for (int i = 0; i < m_MAX_LADDER; ++i)
   {
@@ -291,7 +291,7 @@ int InttCalib::ConfigureHotMap_fee()
 
 int InttCalib::ConfigureHotMap_v3()
 {
-  std::map<double, int> hitrate_pdf[m_MAX_INDEX];
+  std::map<double, int> hitrate_pdf[m_MAX_INDEX]{};
   std::string name[m_MAX_INDEX], title[m_MAX_INDEX];
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
@@ -923,7 +923,8 @@ int InttCalib::MakeHotMapPng_v2()
   }
 
   // count how many are cold/hot
-  double n_hot = 0, n_cold = 0, n_dead = 0, n_total = 0;
+  double n_hot = 0, n_cold = 0, n_total = 0;
+  // double n_dead = 0;
   for (InttMap::RawData_s raw = InttMap::RawDataBegin;
        raw != InttMap::RawDataEnd; ++raw)
   {
@@ -942,10 +943,10 @@ int InttCalib::MakeHotMapPng_v2()
     {
       ++n_hot;
     }
-    if (hitrate == 0)
-    {
-      ++n_dead;
-    }
+    // if (hitrate == 0)
+    // {
+    //   ++n_dead;
+    // }
     ++n_total;
   }
 
@@ -1999,7 +2000,7 @@ InttCalib::CalculateStandardDeviation(const std::vector<int> &data)
   }
   double mean = sum / static_cast<double>(data.size() - n_masked_ladder);
   double sumSquaredDiffs = 0.0;
-  int count = 0;
+//  int count = 0;
   for (int i : data)
   {
     if (i == -1)
@@ -2007,7 +2008,7 @@ InttCalib::CalculateStandardDeviation(const std::vector<int> &data)
       continue;  // do not include maksed ladder for std calculation
     }
     sumSquaredDiffs += (i - mean) * (i - mean);
-    count++;
+//    count++;
   }
   double stddev = std::sqrt(sumSquaredDiffs /
                             static_cast<double>(data.size() - n_masked_ladder));

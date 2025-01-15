@@ -23,12 +23,14 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h> // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <ffaobjects/EventHeader.h>
+
 #include <ffarawobjects/Gl1Packet.h>
 
-#include <cdbobjects/CDBTTree.h> // for CDBTTree
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
 #include <ffamodules/CDBInterface.h>
 
 #include <TH1.h>
@@ -41,62 +43,80 @@
 #include <boost/format.hpp>
 
 #include <cassert>
-#include <cmath> // for log10, pow, sqrt, abs, M_PI
+#include <cmath>  // for log10, pow, sqrt, abs, M_PI
 #include <cstdint>
-#include <iostream> // for operator<<, endl, basic_...
+#include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
-#include <map> // for operator!=, _Rb_tree_con...
+#include <map>  // for operator!=, _Rb_tree_con...
 #include <string>
-#include <utility> // for pair
+#include <utility>  // for pair
 
 GlobalQA::GlobalQA(const std::string &name)
-    : SubsysReco(name), detector("HCALIN") {
-  evtcount = 0;
+  : SubsysReco(name)
+  , detector("HCALIN")
+{
 }
 
-GlobalQA::~GlobalQA() = default;
+GlobalQA::~GlobalQA()
+{
+  delete cdbttree2;
+}
 
-int GlobalQA::Init(PHCompositeNode * /*unused*/) {
-  if (m_debug) {
+int GlobalQA::Init(PHCompositeNode * /*unused*/)
+{
+  if (m_debug)
+  {
     std::cout << "In GlobalQA::Init" << std::endl;
   }
-
-  if (!m_overrideSEPDMapName) {
+  CDBTTree *cdbttree{nullptr};
+  if (!m_overrideSEPDMapName)
+  {
     m_sEPDMapName = "SEPD_CHANNELMAP";
   }
-  if (!m_overrideSEPDFieldName) {
+  if (!m_overrideSEPDFieldName)
+  {
     m_sEPDfieldname = "epd_channel_map";
   }
   std::string calibdir = CDBInterface::instance()->getUrl(m_sEPDMapName);
-  if (!calibdir.empty()) {
+  if (!calibdir.empty())
+  {
     cdbttree = new CDBTTree(calibdir);
-  } else {
+  }
+  else
+  {
     std::cout << "GlobalQA::::InitRun No SEPD mapping file for domain "
               << m_sEPDMapName << " found" << std::endl;
     exit(1);
   }
   v.clear();
-  for (int i = 0; i < 768; i++) {
-
+  for (int i = 0; i < 768; i++)
+  {
     int keymap = cdbttree->GetIntValue(i, m_sEPDfieldname);
-    if (keymap == 999) {
+    if (keymap == 999)
+    {
       continue;
     }
 
     key = TowerInfoDefs::encode_epd(keymap);
     v.push_back(key);
   }
+  delete cdbttree;
 
-  if (!m_overrideSEPDADCName) {
+  if (!m_overrideSEPDADCName)
+  {
     m_sEPDADCName = "SEPD_ADC_CHANNELS";
   }
-  if (!m_overrideSEPDADCFieldName) {
+  if (!m_overrideSEPDADCFieldName)
+  {
     m_sEPDADCfieldname = "towerinfo_to_adc_channel";
   }
   std::string ADCdir = CDBInterface::instance()->getUrl(m_sEPDADCName);
-  if (!ADCdir.empty()) {
+  if (!ADCdir.empty())
+  {
     cdbttree2 = new CDBTTree(ADCdir);
-  } else {
+  }
+  else
+  {
     std::cout << "GlobalQA::::InitRun No SEPD ADC file for domain "
               << m_sEPDADCName << " found" << std::endl;
     exit(1);
@@ -104,39 +124,48 @@ int GlobalQA::Init(PHCompositeNode * /*unused*/) {
 
   createHistos();
 
-  if (m_debug) {
+  if (m_debug)
+  {
     std::cout << "Leaving GlobalQA::Init" << std::endl;
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int GlobalQA::process_event(PHCompositeNode *topNode) {
+int GlobalQA::process_event(PHCompositeNode *topNode)
+{
   _eventcounter++;
   process_towers(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int GlobalQA::process_towers(PHCompositeNode *topNode) {
-  if (m_debug) {
+int GlobalQA::process_towers(PHCompositeNode *topNode)
+{
+  if (m_debug)
+  {
     std::cout << _eventcounter << std::endl;
   }
 
   //--------------------------- trigger and GL1-------------------------------//
   Gl1Packet *gl1PacketInfo =
       findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-  if (!gl1PacketInfo) {
+  if (!gl1PacketInfo)
+  {
     std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"
               << std::endl;
   }
 
   uint64_t triggervec = 0;
-  if (gl1PacketInfo) {
+  if (gl1PacketInfo)
+  {
     triggervec = gl1PacketInfo->getScaledVector();
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 64; i++)
+    {
       bool trig_decision = ((triggervec & 0x1U) == 0x1U);
 
-      if (trig_decision) {
+      if (trig_decision)
+      {
         h_GlobalQA_triggerVec->Fill(i);
       }
       triggervec = (triggervec >> 1U) & 0xffffffffU;
@@ -144,57 +173,71 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     triggervec = gl1PacketInfo->getScaledVector();
   }
 
-  if ((triggervec >> 0xAU) & 0x1U) {
+  if ((triggervec >> 0xAU) & 0x1U)
+  {
     //--------------------------- MBD vertex------------------------------//
     MbdVertexMap *mbdmap =
         findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
     MbdVertex *bvertex = nullptr;
     float mbd_zvtx = std::numeric_limits<float>::quiet_NaN();
-    if (mbdmap) {
+    if (mbdmap)
+    {
       for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
-           mbditer != mbdmap->end(); ++mbditer) {
+           mbditer != mbdmap->end(); ++mbditer)
+      {
         bvertex = mbditer->second;
       }
-      if (bvertex) {
+      if (bvertex)
+      {
         mbd_zvtx = bvertex->get_z();
       }
     }
     h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
     h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
-    if (!std::isfinite(mbd_zvtx)) {
+    if (!std::isfinite(mbd_zvtx))
+    {
       h_GlobalQA_mbd_zvtxq->SetBinContent(
           1, h_GlobalQA_mbd_zvtxq->GetBinContent(1) + 1);
-    } else {
+    }
+    else
+    {
       h_GlobalQA_mbd_zvtxq->SetBinContent(
           2, h_GlobalQA_mbd_zvtxq->GetBinContent(2) + 1);
     }
   }
 
-
   //--------------------------- sEPD ------------------------------//
-  if (_eventcounter == 1) {
-      for (unsigned int i = 0; i < 744; i++) {
-        float rbin = (float)(TowerInfoDefs::get_epd_rbin(v[i]));
-        float phibin = (float)(TowerInfoDefs::get_epd_phibin(v[i]));
-        int adc_channel = cdbttree2->GetIntValue(i, m_sEPDADCfieldname);
-        int arm = TowerInfoDefs::get_epd_arm(v[i]);
-        if (arm == 0) {
-          h2_GlobalQA_sEPD_ADC_channel_south->Fill(rbin, phibin, adc_channel);
-        } else if (arm == 1) {
-          h2_GlobalQA_sEPD_ADC_channel_north->Fill(rbin, phibin, adc_channel);
-        }
+  if (_eventcounter == 1)
+  {
+    for (unsigned int i = 0; i < 744; i++)
+    {
+      float rbin = (float) (TowerInfoDefs::get_epd_rbin(v[i]));
+      float phibin = (float) (TowerInfoDefs::get_epd_phibin(v[i]));
+      int adc_channel = cdbttree2->GetIntValue(i, m_sEPDADCfieldname);
+      int arm = TowerInfoDefs::get_epd_arm(v[i]);
+      if (arm == 0)
+      {
+        h2_GlobalQA_sEPD_ADC_channel_south->Fill(rbin, phibin, adc_channel);
+      }
+      else if (arm == 1)
+      {
+        h2_GlobalQA_sEPD_ADC_channel_north->Fill(rbin, phibin, adc_channel);
       }
     }
+  }
 
-  if ((triggervec >> 0xAU) & 0x1U) {
+  if ((triggervec >> 0xAU) & 0x1U)
+  {
     //--------------------------- sEPD ------------------------------//
     TowerInfoContainer *_sepd_towerinfo =
         findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
     unsigned int ntowers = 0;
-    if (_sepd_towerinfo) {
+    if (_sepd_towerinfo)
+    {
       ntowers = _sepd_towerinfo->size();
     }
-    if (ntowers != 744) {
+    if (ntowers != 744)
+    {
       std::cout << "sEPD container has unexpected size - exiting now!"
                 << std::endl;
       exit(1);
@@ -202,24 +245,30 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
 
     float sepdsouthadcsum = 0.;
     float sepdnorthadcsum = 0.;
-    if (_sepd_towerinfo) {
-      for (unsigned int i = 0; i < ntowers; i++) {
+    if (_sepd_towerinfo)
+    {
+      for (unsigned int i = 0; i < ntowers; i++)
+      {
         float _time =
             _sepd_towerinfo->get_tower_at_channel(i)->get_time_float();
         float _e = _sepd_towerinfo->get_tower_at_channel(i)->get_energy();
         int arm = TowerInfoDefs::get_epd_arm(v[i]);
-        float rbin = (float)(TowerInfoDefs::get_epd_rbin(v[i]));
-        float phibin = (float)(TowerInfoDefs::get_epd_phibin(v[i]));
+        float rbin = (float) (TowerInfoDefs::get_epd_rbin(v[i]));
+        float phibin = (float) (TowerInfoDefs::get_epd_phibin(v[i]));
 
-        if (_time > 0.) {
+        if (_time > 0.)
+        {
           h_GlobalQA_sEPD_tile[i]->Fill(_e);
           if ((i != 29) && (i != 153) &&
-              (i != 649)) // skip problematic channels
+              (i != 649))  // skip problematic channels
           {
-            if (arm == 0) {
+            if (arm == 0)
+            {
               sepdsouthadcsum += _e;
               h2Profile_GlobalQA_sEPD_tiles_south->Fill(rbin, phibin, _e);
-            } else if (arm == 1) {
+            }
+            else if (arm == 1)
+            {
               sepdnorthadcsum += _e;
               h2Profile_GlobalQA_sEPD_tiles_north->Fill(rbin, phibin, _e);
             }
@@ -233,14 +282,16 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     }
   }
 
-  if ((triggervec >> 0x3U) & 0x1U) {
+  if ((triggervec >> 0x3U) & 0x1U)
+  {
     // ------------------------------------- ZDC
     // -----------------------------------------//
 
     Zdcinfo *_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
     float totalzdcsouthcalib = 0.;
     float totalzdcnorthcalib = 0.;
-    if (_zdcinfo) {
+    if (_zdcinfo)
+    {
       totalzdcsouthcalib = _zdcinfo->get_zdc_energy(0);
       totalzdcnorthcalib = _zdcinfo->get_zdc_energy(1);
       zdc_zvtx = _zdcinfo->get_zvertex();
@@ -251,17 +302,19 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     }
   }
 
-  if ((triggervec >> 0xAU) & 0x1U) {
+  if ((triggervec >> 0xAU) & 0x1U)
+  {
     //--------------------------- MBD ----------------------------------------//
     MbdPmtContainer *bbcpmts =
         findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
-    if (!bbcpmts) {
+    if (!bbcpmts)
+    {
       std::cout << "GlobalQA::process_event: Could not find MbdPmtContainer,"
                 << std::endl;
       // return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-    int hits = 0;
+    //    int hits = 0;
     int hits_n = 0;
     int hits_s = 0;
     int hits_n_t = 0;
@@ -276,30 +329,39 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     float tot_charge_n = 0.;
 
     float charge_thresh = 0.4;
-    if (bbcpmts) {
+    if (bbcpmts)
+    {
       int nPMTs = bbcpmts->get_npmt();
-      for (int i = 0; i < nPMTs; i++) {
+      for (int i = 0; i < nPMTs; i++)
+      {
         MbdPmtHit *mbdpmt = bbcpmts->get_pmt(i);
         float q = mbdpmt->get_q();
         float t = mbdpmt->get_time();
-        if (i < 64) {
+        if (i < 64)
+        {
           tot_charge_s += q;
-          if (q > charge_thresh) {
+          if (q > charge_thresh)
+          {
             hits_s++;
           }
-          if (i == 56 || std::isnan(t)) {
+          if (i == 56 || std::isnan(t))
+          {
             continue;
           }
           hits_s_t++;
           time_sum_s.push_back(t);
           sum_s += t;
           sum_s2 += t * t;
-        } else if (i >= 64) {
+        }
+        else if (i >= 64)
+        {
           tot_charge_n += q;
-          if (q > charge_thresh) {
+          if (q > charge_thresh)
+          {
             hits_n++;
           }
-          if (i == 120 || std::isnan(t)) {
+          if (i == 120 || std::isnan(t))
+          {
             continue;
           }
           hits_n_t++;
@@ -307,9 +369,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
           sum_n += t;
           sum_n2 += t * t;
         }
-        if (q > charge_thresh) {
-          hits++;
-        }
+        // if (q > charge_thresh) {
+        //   hits++;
+        // }
       }
     }
 
@@ -323,55 +385,70 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
     int central_cut = 4;
     float sigma_cut = 1.5;
 
-    if (hits_s_t >= central_cut) {
+    if (hits_s_t >= central_cut)
+    {
       mean_south = sum_s / static_cast<float>(hits_s_t);
       float rms_s = sqrt(sum_s2 / static_cast<float>(hits_s_t) -
                          TMath::Power(mean_south, 2));
       int nhit_s_center = 0;
       float sum_s_center = 0.;
 
-      for (unsigned int is = 0; is < length_s; is++) {
-        if (fabs(time_sum_s.at(is) - mean_south) < sigma_cut * rms_s) {
+      for (unsigned int is = 0; is < length_s; is++)
+      {
+        if (fabs(time_sum_s.at(is) - mean_south) < sigma_cut * rms_s)
+        {
           sum_s_center += time_sum_s.at(is);
           nhit_s_center++;
         }
       }
 
-      if (nhit_s_center > 0) {
+      if (nhit_s_center > 0)
+      {
         float mean_south_center =
             sum_s_center / static_cast<float>(nhit_s_center);
         mean_south = mean_south_center;
       }
-    } else if (hits_s >= 2 && (hits_s_t >= 1)) {
+    }
+    else if (hits_s >= 2 && (hits_s_t >= 1))
+    {
       mean_south = sum_s / static_cast<float>(hits_s_t);
     }
 
-    if (hits_n_t >= central_cut) {
+    if (hits_n_t >= central_cut)
+    {
       mean_north = sum_n / static_cast<float>(hits_n_t);
       float rms_n = sqrt(sum_n2 / static_cast<float>(hits_n_t) -
                          TMath::Power(mean_north, 2));
       int nhit_n_center = 0;
       float sum_n_center = 0.;
 
-      for (unsigned int ino = 0; ino < length_n; ino++) {
-        if (fabs(time_sum_n.at(ino) - mean_north) < sigma_cut * rms_n) {
+      for (unsigned int ino = 0; ino < length_n; ino++)
+      {
+        if (fabs(time_sum_n.at(ino) - mean_north) < sigma_cut * rms_n)
+        {
           sum_n_center += time_sum_n.at(ino);
           nhit_n_center++;
         }
       }
 
-      if (nhit_n_center > 0) {
+      if (nhit_n_center > 0)
+      {
         float mean_north_center =
             sum_n_center / static_cast<float>(nhit_n_center);
         mean_north = mean_north_center;
       }
-    } else if (hits_n >= 2 && hits_n_t >= 1) {
+    }
+    else if (hits_n >= 2 && hits_n_t >= 1)
+    {
       mean_north = sum_n / static_cast<float>(hits_n_t);
     }
     float calc_zvtx;
-    if (mean_north != 999 && mean_south != 999) {
+    if (mean_north != 999 && mean_south != 999)
+    {
       calc_zvtx = 15 * (mean_south - mean_north);
-    } else {
+    }
+    else
+    {
       calc_zvtx = 999;
     }
 
@@ -389,12 +466,13 @@ int GlobalQA::process_towers(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int GlobalQA::End(PHCompositeNode * /*topNode*/) {
-
+int GlobalQA::End(PHCompositeNode * /*topNode*/)
+{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void GlobalQA::createHistos() {
+void GlobalQA::createHistos()
+{
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
@@ -487,7 +565,8 @@ void GlobalQA::createHistos() {
                "h2_GlobalQA_sEPD_ADC_channel_north ; #eta; #phi", 16, -0.5,
                15.5, 24, -0.5, 23.5);
 
-  for (int tile = 0; tile < 744; tile++) {
+  for (int tile = 0; tile < 744; tile++)
+  {
     h_GlobalQA_sEPD_tile[tile] = new TH1D(
         boost::str(boost::format("h_GlobalQA_sEPD_tile%d") % tile).c_str(), "",
         20016, -15.5, 20000.5);

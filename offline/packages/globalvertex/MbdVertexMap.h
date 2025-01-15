@@ -1,5 +1,7 @@
-#ifndef G4MBD_MBDVERTEXMAP_H
-#define G4MBD_MBDVERTEXMAP_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_MBDVERTEXMAP_H
+#define GLOBALVERTEX_MBDVERTEXMAP_H
 
 #include <phool/PHObject.h>
 
@@ -15,7 +17,7 @@ class MbdVertexMap : public PHObject
   typedef std::map<unsigned int, MbdVertex*>::const_iterator ConstIter;
   typedef std::map<unsigned int, MbdVertex*>::iterator Iter;
 
-  ~MbdVertexMap() override {}
+  ~MbdVertexMap() override = default;
 
   void identify(std::ostream& os = std::cout) const override { os << "MbdVertexMap base class" << std::endl; }
   int isValid() const override { return 0; }
@@ -39,7 +41,7 @@ class MbdVertexMap : public PHObject
   virtual Iter end();
 
  protected:
-  MbdVertexMap() {}
+  MbdVertexMap() = default;
 
  private:
   ClassDefOverride(MbdVertexMap, 1);

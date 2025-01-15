@@ -52,6 +52,11 @@ class CaloTowerStatus : public SubsysReco
     fraction_badChi2_threshold = threshold;
     return;
   }
+  void set_badChi2_max_threshold(float threshold)
+  {
+    badChi2_treshold_max = threshold;
+    return;
+  }
   void set_time_cut(float threshold)
   {
     time_cut = threshold;
@@ -113,6 +118,7 @@ class CaloTowerStatus : public SubsysReco
 
   float badChi2_treshold_const = {1e4};
   float badChi2_treshold_quadratic = {1./100};
+  float badChi2_treshold_max = {1e8};
   float fraction_badChi2_threshold = {0.01};
   float time_cut = 2;  // number of samples from the mean time for the channel in the run
 };

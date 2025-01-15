@@ -18,7 +18,8 @@ libcalotrigger_io_la_LIBADD = \
   -lphool \
   -lodbc++ \
   -lcalo_io \
-  -lmbd_io
+  -lmbd_io \
+  -lzdcinfo_io
 
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
@@ -43,6 +44,7 @@ pkginclude_HEADERS = \
   LL1Outv1.h \
   TriggerAnalyzer.h \
   CaloTriggerEmulator.h \
+  MBDTriggerEmulator.h \
   LL1PacketGetter.h \
   TriggerDefs.h \
   TriggerRunInfoReco.h \
@@ -69,19 +71,8 @@ ROOTDICTS = \
   MinimumBiasInfov1_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  TriggerRunInfo_Dict_rdict.pcm \
-  TriggerRunInfov1_Dict_rdict.pcm \
-  CaloTriggerInfo_Dict_rdict.pcm \
-  CaloTriggerInfov1_Dict_rdict.pcm \
-  MinimumBiasInfo_Dict_rdict.pcm \
-  MinimumBiasInfov1_Dict_rdict.pcm \
-  LL1Out_Dict_rdict.pcm \
-  LL1Outv1_Dict_rdict.pcm \
-  TriggerPrimitive_Dict_rdict.pcm \
-  TriggerPrimitivev1_Dict_rdict.pcm \
-  TriggerPrimitiveContainer_Dict_rdict.pcm \
-  TriggerPrimitiveContainerv1_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libcalotrigger_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -102,6 +93,7 @@ libcalotrigger_la_SOURCES = \
   LL1PacketGetter.cc \
   TriggerAnalyzer.cc\
   CaloTriggerEmulator.cc \
+  MBDTriggerEmulator.cc \
   CaloTriggerSim.cc \
   MinimumBiasClassifier.cc
 

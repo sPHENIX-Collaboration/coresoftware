@@ -233,7 +233,10 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << "RetowerCEMC::CreateNode : " << EMRetowerName << " already exists! " << std::endl;
+      if(Verbosity() > 0) 
+      {
+        std::cout << "RetowerCEMC::CreateNode : " << EMRetowerName << " already exists! " << std::endl;
+      }
     }
   }
   else
@@ -251,7 +254,10 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << "RetowerCEMC::CreateNode : TOWER_CALIB_CEMC_RETOWER already exists! " << std::endl;
+      if (Verbosity() > 0) 
+      {
+        std::cout << "RetowerCEMC::CreateNode : TOWER_CALIB_CEMC_RETOWER already exists! " << std::endl;
+      }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
