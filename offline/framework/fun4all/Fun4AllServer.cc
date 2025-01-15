@@ -734,7 +734,7 @@ int Fun4AllServer::process_event()
             MakeNodesTransient(runNode);  // make all nodes transient by default
             (*iterOutMan)->WriteNode(runNode);
             (*iterOutMan)->RunAfterClosing();
-            segment = static_cast<Fun4AllDstOutputManager*>((*iterOutMan))->Segment();
+            segment = (*iterOutMan)->Segment();
             writing = true;
           }
         }
