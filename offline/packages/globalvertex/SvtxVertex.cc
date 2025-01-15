@@ -1,6 +1,9 @@
 #include "SvtxVertex.h"
 
-SvtxVertex::TrackSet trackSet;
+namespace
+{
+  SvtxVertex::TrackSet trackSet;
+}
 
 SvtxVertex::ConstTrackIter SvtxVertex::begin_tracks() const
 {

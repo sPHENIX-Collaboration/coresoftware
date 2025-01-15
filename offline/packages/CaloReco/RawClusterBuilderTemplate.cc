@@ -472,7 +472,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     //    ecl = pc->GetTotalEnergy();
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
 
-    int npk = pc->GetSubClusters(PList, Peaks);
+    int npk = pc->GetSubClusters(PList, Peaks,m_subclustersplitting);
     if (npk < 0)
     {
       return Fun4AllReturnCodes::ABORTEVENT;

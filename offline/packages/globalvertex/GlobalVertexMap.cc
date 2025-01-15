@@ -1,6 +1,11 @@
 #include "GlobalVertexMap.h"
 
-std::map<unsigned int, GlobalVertex*> DummyGlobalVertexMap;
+#include <map>
+
+namespace
+{
+  std::map<unsigned int, GlobalVertex *> DummyGlobalVertexMap;
+}
 
 GlobalVertexMap::ConstIter GlobalVertexMap::begin() const
 {

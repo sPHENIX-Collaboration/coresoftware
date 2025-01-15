@@ -1,15 +1,18 @@
-#ifndef G4MBD_MBDVERTEXV1_H
-#define G4MBD_MBDVERTEXV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_MBDVERTEXV1_H
+#define GLOBALVERTEX_MBDVERTEXV1_H
 
 #include "MbdVertex.h"
 
 #include <iostream>
+#include <limits>
 
 class MbdVertexv1 : public MbdVertex
 {
  public:
-  MbdVertexv1();
-  ~MbdVertexv1() override;
+  MbdVertexv1() = default;
+  ~MbdVertexv1() override = default;
 
   // PHObject virtual overloads
 
@@ -36,11 +39,11 @@ class MbdVertexv1 : public MbdVertex
   void set_z_err(float z_err) override { _z_err = z_err; }
 
  private:
-  unsigned int _id;  //< unique identifier within container
-  float _t;          //< collision time
-  float _t_err;      //< collision time uncertainty
-  float _z;          //< collision position z
-  float _z_err;      //< collision position z uncertainty
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};  //< unique identifier within container
+  float _t{std::numeric_limits<float>::quiet_NaN()};           //< collision time
+  float _t_err{std::numeric_limits<float>::quiet_NaN()};       //< collision time uncertainty
+  float _z{std::numeric_limits<float>::quiet_NaN()};           //< collision position z
+  float _z_err{std::numeric_limits<float>::quiet_NaN()};       //< collision position z uncertainty
 
   ClassDefOverride(MbdVertexv1, 1);
 };

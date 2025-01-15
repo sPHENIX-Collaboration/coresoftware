@@ -7,20 +7,14 @@
 #include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair
 
-using namespace std;
-
-SvtxVertexMap_v1::SvtxVertexMap_v1()
-  : _map()
-{
-}
-
+// NOLINTNEXTLINE(bugprone-copy-constructor-init)
 SvtxVertexMap_v1::SvtxVertexMap_v1(const SvtxVertexMap_v1& vertexmap)
   : _map()
 {
   for (auto iter : vertexmap)
   {
     SvtxVertex* vertex = dynamic_cast<SvtxVertex*>(iter.second->CloneMe());
-    _map.insert(make_pair(vertex->get_id(), vertex));
+    _map.insert(std::make_pair(vertex->get_id(), vertex));
   }
 }
 
@@ -30,14 +24,14 @@ SvtxVertexMap_v1& SvtxVertexMap_v1::operator=(const SvtxVertexMap_v1& vertexmap)
   for (auto iter : vertexmap)
   {
     SvtxVertex* vertex = dynamic_cast<SvtxVertex*>(iter.second->CloneMe());
-    _map.insert(make_pair(vertex->get_id(), vertex));
+    _map.insert(std::make_pair(vertex->get_id(), vertex));
   }
   return *this;
 }
 
 SvtxVertexMap_v1::~SvtxVertexMap_v1()
 {
-  Reset();
+  SvtxVertexMap_v1::Reset();
 }
 
 void SvtxVertexMap_v1::Reset()
@@ -50,9 +44,9 @@ void SvtxVertexMap_v1::Reset()
   _map.clear();
 }
 
-void SvtxVertexMap_v1::identify(ostream& os) const
+void SvtxVertexMap_v1::identify(std::ostream& os) const
 {
-  os << "SvtxVertexMap_v1: size = " << _map.size() << endl;
+  os << "SvtxVertexMap_v1: size = " << _map.size() << std::endl;
   return;
 }
 
@@ -83,7 +77,7 @@ SvtxVertex* SvtxVertexMap_v1::insert(SvtxVertex* vertex)
   {
     index = _map.rbegin()->first + 1;
   }
-  _map.insert(make_pair(index, vertex));
+  _map.insert(std::make_pair(index, vertex));
   _map[index]->set_id(index);
   return _map[index];
 }
