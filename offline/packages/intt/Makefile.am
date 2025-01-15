@@ -40,19 +40,16 @@ pkginclude_HEADERS = \
   CylinderGeomInttHelper.h \
   InttArborist.h \
   InttBadChannelMap.h \
-  InttBadChannelMapv1.h \
   InttBCOMap.h \
   InttClusterizer.h \
   InttCombinedRawDataDecoder.h \
   InttDacMap.h \
   InttFeeMap.h \
-  InttFeeMapv1.h \
   InttFelixMap.h \
   InttMap.h \
   InttMapping.h \
   InttOdbcQuery.h \
   InttSurveyMap.h \
-  InttSurveyMapv1.h \
   InttXYVertexFinder.h \
   InttZVertexFinder.h \
   InttVertexMap.h \
@@ -67,13 +64,6 @@ noinst_HEADERS = \
 
 ROOTDICTS = \
   CylinderGeomIntt_Dict.cc \
-  InttBadChannelMap_Dict.cc \
-  InttBadChannelMapv1_Dict.cc \
-  InttFeeMap_Dict.cc \
-  InttFeeMapv1_Dict.cc \
-  InttMap_Dict.cc \
-  InttSurveyMap_Dict.cc \
-  InttSurveyMapv1_Dict.cc \
   InttVertexMap_Dict.cc \
   InttVertexMapv1_Dict.cc \
   InttVertex_Dict.cc \
@@ -82,13 +72,6 @@ ROOTDICTS = \
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeomIntt_Dict_rdict.pcm \
-  InttBadChannelMap_Dict_rdict.pcm \
-  InttBadChannelMapv1_Dict_rdict.pcm \
-  InttFeeMap_Dict_rdict.pcm \
-  InttFeeMapv1_Dict_rdict.pcm \
-  InttMap_Dict_rdict.pcm \
-  InttSurveyMap_Dict_rdict.pcm \
-  InttSurveyMapv1_Dict_rdict.pcm \
   InttVertexMap_Dict_rdict.pcm \
   InttVertexMapv1_Dict_rdict.pcm \
   InttVertex_Dict_rdict.pcm \
@@ -100,18 +83,15 @@ libintt_la_SOURCES = \
   InttArborist.cc \
   InttBCOMap.cc \
   InttBadChannelMap.cc \
-  InttBadChannelMapv1.cc \
   InttClusterizer.cc \
   InttCombinedRawDataDecoder.cc \
   InttDacMap.cc \
   InttFeeMap.cc \
-  InttFeeMapv1.cc \
   InttFelixMap.cc \
   InttMapping.cc \
   InttOdbcQuery.cc \
   InttMap.cc \
   InttSurveyMap.cc \
-  InttSurveyMapv1.cc \
   InttVertexUtil.cc \
   InttXYVertexFinder.cc \
   InttZVertexFinder.cc \
@@ -133,19 +113,11 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeomIntt.cc \
-  InttBadChannelMap.cc \
-  InttBadChannelMapv1.cc \
-  InttFeeMap.cc \
-  InttFeeMapv1.cc \
-  InttMap.cc \
-  InttSurveyMap.cc \
-  InttSurveyMapv1.cc \
   InttVertexMap.cc \
   InttVertexMapv1.cc \
   InttVertexv1.cc
 
 libintt_io_la_LIBADD = \
-  -lcdbobjects \
   -lffamodules \
   -lg4detectors_io \
   -lphool \
