@@ -182,9 +182,9 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
       std::vector<float> pt_over_nconst{};
       int total_constituents = 0;
 
-      for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
+      for ( auto &fastjet : fastjets )
       {
-        auto comps = fastjets[ijet].constituents();
+        auto comps = fastjet.constituents();
         if (comps.size() > 0)
         {
           float total_px = 0;
@@ -201,6 +201,25 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
 
         }  // end of if comps.size() > 0
       }    // end of loop over fastjets
+
+      // {
+      //   // auto comps = fastjets[ijet].constituents();
+      //   if (comps.size() > 0)
+      //   {
+      //     float total_px = 0;
+      //     float total_py = 0;
+      //     for (auto &comp : comps)
+      //     {
+      //       auto particle = particles[comp.user_index()];
+      //       total_px += particle->get_px();
+      //       total_py += particle->get_py();
+      //       total_constituents++;
+      //     }  // end of loop over constituents
+      //     float jet_avg_pt = (std::sqrt((total_px * total_px) + (total_py * total_py)) / (1.0 * comps.size()));
+      //     pt_over_nconst.push_back(jet_avg_pt);
+
+      //   }  // end of if comps.size() > 0
+      // }    // end of loop over fastjets
 
       float n_empty_jets = 1.0 * (fastjets.size() - pt_over_nconst.size());
       float mean_N = (1.0 * total_constituents) / (1.0 * fastjets.size());
@@ -256,13 +275,12 @@ void DetermineEventRho::add_method(EventRho::Method rho_method, std::string outp
   std::string method_name = EventRhov1::get_method_string(rho_method);
 
   // check if method already exists
-  for (auto &method : m_rho_methods)
+  if (std::find(m_rho_methods.begin(), m_rho_methods.end(), rho_method) != m_rho_methods.end())
   {
-    if (method == rho_method)
-    {
-      return;
-    }
+    std::cout << PHWHERE << " method " << method_name << " already exists, skipping" << std::endl;
+    return;
   }
+
   m_rho_methods.push_back(rho_method);
 
   // if no output name is specified, use default
@@ -388,7 +406,7 @@ void DetermineEventRho::print_settings(std::ostream &os)
 {
   os << PHWHERE << "-----------------------------------" << std::endl;
   os << "Methods: ";
-  for (auto &rho_method : m_rho_methods)
+  for (auto rho_method : m_rho_methods)
   {
     os << EventRhov1::get_method_string(rho_method) << ", ";
   }
@@ -401,7 +419,7 @@ void DetermineEventRho::print_settings(std::ostream &os)
   }
 
   os << "Outputs: ";
-  for (auto &output : m_output_nodes)
+  for (auto output : m_output_nodes)
   {
     os << output << ", ";
   }
