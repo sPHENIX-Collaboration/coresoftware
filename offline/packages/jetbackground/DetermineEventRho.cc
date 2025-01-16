@@ -419,7 +419,7 @@ void DetermineEventRho::print_settings(std::ostream &os)
   }
 
   os << "Outputs: ";
-  for (auto output : m_output_nodes)
+  for (const auto& output : m_output_nodes)
   {
     os << output << ", ";
   }
