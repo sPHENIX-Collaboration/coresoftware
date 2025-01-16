@@ -85,6 +85,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
       int ieta = towerinfosEM3->getTowerEtaBin(channelkey);
       int iphi = towerinfosEM3->getTowerPhiBin(channelkey);
       rawtower_e[ieta][iphi] = tower->get_energy();
+      rawtower_time[ieta][iphi] = tower->get_time_float();
       rawtower_status[ieta][iphi] = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
     }
     EMRetowerName = m_towerNodePrefix + "_CEMC_RETOWER";
@@ -98,6 +99,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
       for (int iphi_ihcal = 0; iphi_ihcal < nphi_ihcal; ++iphi_ihcal)
       {
         double retower_e_temp = 0;
+        double retower_time_temp = 0;
         double retower_badarea = 0;
         for (int ieta_emcal = retower_lowerbound_originaltower_ieta[ieta_ihcal]; ieta_emcal <= retower_upperbound_originaltower_ieta[ieta_ihcal]; ++ieta_emcal)
         {
@@ -128,6 +130,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
             else
             {
               retower_e_temp += rawtower_e[ieta_emcal][iphi_emcal_wrap] * fraction_temp;
+              retower_time_temp += rawtower_time[ieta_emcal][iphi_emcal_wrap] * rawtower_e[ieta_emcal][iphi_emcal_wrap] * fraction_temp;
             }
           }
         }
@@ -143,6 +146,14 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         else
         {
           towerinfo->set_energy(retower_e_temp / (double) (1 - scalefactor));
+          if (retower_e_temp == 0)
+          {
+            towerinfo->set_time_float(0);
+          }
+          else
+          {
+            towerinfo->set_time_float((retower_time_temp / (double)retower_e_temp));
+          }
           towerinfo->set_chi2(scalefactor);
         }
       }
