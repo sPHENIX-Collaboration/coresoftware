@@ -32,6 +32,7 @@ libjetbackground_la_LIBADD = \
 
 pkginclude_HEADERS = \
   DetermineTowerBackground.h \
+  DetermineEventRho.h \
   DetermineTowerRho.h \
   SubtractTowers.h \
   SubtractTowersCS.h \
@@ -40,6 +41,8 @@ pkginclude_HEADERS = \
   FastJetAlgoSub.h \
   TowerBackground.h \
   TowerBackgroundv1.h \
+  EventRho.h \
+  EventRhov1.h \
   TowerRho.h \
   TowerRhov1.h \
   BeamBackgroundFilterAndQA.h \
@@ -51,25 +54,25 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   TowerBackground_Dict.cc \
   TowerBackgroundv1_Dict.cc \
-  TowerRho_Dict.cc \
-  TowerRhov1_Dict.cc
+  EventRho_Dict.cc \
+  EventRhov1_Dict.cc 
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TowerBackground_Dict_rdict.pcm \
   TowerBackgroundv1_Dict_rdict.pcm \
-  TowerRho_Dict_rdict.pcm \
-  TowerRhov1_Dict_rdict.pcm
+  EventRho_Dict_rdict.pcm \
+  EventRhov1_Dict_rdict.pcm 
 
 libjetbackground_io_la_SOURCES = \
   $(ROOTDICTS) \
   TowerBackgroundv1.cc \
-  TowerRhov1.cc 
+  EventRhov1.cc
 
 libjetbackground_la_SOURCES = \
   CopyAndSubtractJets.cc \
   DetermineTowerBackground.cc \
-  DetermineTowerRho.cc \
+  DetermineEventRho.cc \
   FastJetAlgoSub.cc \
   RetowerCEMC.cc \
   SubtractTowers.cc \
