@@ -508,7 +508,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   if (_enable_EMCal)
   {
     TowerInfo *towerInfo = nullptr;
-    for (unsigned int iEM = 0; iEM < towerinfosEM->size(); iEM++)
+    unsigned int n_EM_towers = towerinfosEM->size();
+    for (unsigned int iEM = 0; iEM < n_EM_towers; iEM++)
     {
       towerInfo = towerinfosEM->get_tower_at_channel(iEM);
       if (_only_good_towers && (!towerInfo->get_isGood()))
@@ -520,10 +521,14 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int ti_iphi = towerinfosEM->getTowerPhiBin(towerinfo_key);
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ti_ieta, ti_iphi);
 
-      RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(key);
+      //RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(key);
 
-      int ieta = _geom_containers[2]->get_etabin(tower_geom->get_eta());
-      int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
+      //int ieta = _geom_containers[2]->get_etabin(tower_geom->get_eta());
+      //int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
+
+      int ieta = ti_ieta;
+      int iphi = ti_iphi;
+
       float this_E = towerInfo->get_energy();
 
       // if not using abs E, short circuit all negative towers right here (same for IHCal, OHCal below)
@@ -554,7 +559,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   if (_enable_HCal)
   {
     TowerInfo *towerInfo = nullptr;
-    for (unsigned int iIH = 0; iIH < towerinfosIH->size(); iIH++)
+    unsigned int n_IH_towers = towerinfosIH->size();
+    for (unsigned int iIH = 0; iIH < n_IH_towers; iIH++)
     {
       towerInfo = towerinfosIH->get_tower_at_channel(iIH);
       if (_only_good_towers && (!towerInfo->get_isGood()))
@@ -592,8 +598,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         };
       }
     }
-
-    for (unsigned int iOH = 0; iOH < towerinfosOH->size(); iOH++)
+    unsigned int n_OH_towers = towerinfosOH->size();
+    for (unsigned int iOH = 0; iOH < n_OH_towers; iOH++)
     {
       towerInfo = towerinfosOH->get_tower_at_channel(iOH);
       if (_only_good_towers && (!towerInfo->get_isGood()))
@@ -610,6 +616,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int ieta = _geom_containers[1]->get_etabin(tower_geom->get_eta());
       int iphi = _geom_containers[1]->get_phibin(tower_geom->get_phi());
       float this_E = towerInfo->get_energy();
+
 
       if (!_use_absE && this_E < 1.E-10)
       {
@@ -1362,6 +1369,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
           }
         }
       }
+
 
       // now figure out which pseudoclusters this shared tower is adjacent to...
       int highest_pseudocluster_index = -1;
