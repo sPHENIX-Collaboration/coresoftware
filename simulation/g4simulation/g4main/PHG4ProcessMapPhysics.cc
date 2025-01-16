@@ -1,25 +1,20 @@
 #include "PHG4ProcessMapPhysics.h"
 
+#include "PHG4MCProcessDefs.h"
 #include "PHG4ProcessMap.h"
 
 // G4 process code headers
-#include <G4DecayProcessType.hh>
-#include <G4EmProcessSubType.hh>
-#include <G4FastSimulationProcessType.hh>
-#include <G4HadronicProcessType.hh>
-#include <G4OpProcessSubType.hh>
-#include <G4ProcessType.hh>
-#include <G4TransportationProcessType.hh>
+#include <Geant4/G4DecayProcessType.hh>
+#include <Geant4/G4EmProcessSubType.hh>
+#include <Geant4/G4FastSimulationProcessType.hh>
+#include <Geant4/G4HadronicProcessType.hh>
+#include <Geant4/G4OpProcessSubType.hh>
+#include <Geant4/G4ProcessType.hh>
+#include <Geant4/G4TransportationProcessType.hh>
 
 PHG4ProcessMapPhysics::PHG4ProcessMapPhysics()
 {
   FillMap();
-}
-
-PHG4ProcessMapPhysics& Instance()
-{
-  static PHG4ProcessMapPhysics fgInstance;
-  return fgInstance;
 }
 
 void PHG4ProcessMapPhysics::FillMap()
@@ -134,4 +129,13 @@ void PHG4ProcessMapPhysics::FillMap()
 
   // TG4StackPopperProcessType: 601
   // pMap.Add(fStackPopper, kPNull);                  // TG4 value: 601 (VMC Hadronic process, VMC is not available in sPHENIX)
+}
+
+PHG4MCProcess PHG4ProcessMapPhysics::GetMCProcess(const G4VProcess* process) const
+{
+  return PHG4ProcessMap::Instance().GetMCProcess(process);
+}
+  std::string_view PHG4ProcessMapPhysics::GetMCProcessName(const G4VProcess* process) const
+{
+  return PHG4ProcessMap::Instance().GetMCProcessName(process);
 }

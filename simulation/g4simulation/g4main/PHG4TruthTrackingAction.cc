@@ -3,13 +3,14 @@
 #include "PHG4Particle.h"  // for PHG4Particle
 #include "PHG4Particlev2.h"
 #include "PHG4Particlev3.h"
+#include "PHG4ProcessMapPhysics.h"
 #include "PHG4Shower.h"  // for PHG4Shower
 #include "PHG4Showerv1.h"
 #include "PHG4TrackUserInfoV1.h"
 #include "PHG4TruthEventAction.h"
 #include "PHG4TruthInfoContainer.h"
 #include "PHG4UserPrimaryParticleInformation.h"
-#include "PHG4VtxPointv1.h"
+#include "PHG4VtxPointv2.h"
 
 #include <phool/getClass.h>
 
@@ -24,7 +25,6 @@
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <cmath>     // for sqrt
-#include <cstddef>   // for size_t
 #include <iostream>  // for operator<<, endl
 #include <utility>   // for pair
 
@@ -289,8 +289,12 @@ PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, 
   {
     return truth.GetVtxMap().find(iter->second)->second;
   }
+  // get G4Track creator process
+  const auto g4Process = track.GetCreatorProcess();
+  // convert G4 Process to MC process
+  const auto process = PHG4ProcessMapPhysics::Instance().GetMCProcess(g4Process);
   // otherwise, create and add a new one
-  PHG4VtxPoint* vtxpt = new PHG4VtxPointv1(v[0] / cm, v[1] / cm, v[2] / cm, track.GetGlobalTime() / ns, vtxindex);
+  PHG4VtxPoint* vtxpt = new PHG4VtxPointv2(v[0] / cm, v[1] / cm, v[2] / cm, track.GetGlobalTime() / ns, vtxindex, process);
 
   return truth.AddVertex(vtxindex, vtxpt)->second;
 }
