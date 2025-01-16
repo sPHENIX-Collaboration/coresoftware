@@ -2,7 +2,7 @@
 #include "PHG4ProcessMap.h"
 #include "PHG4MCProcessDefs.h"
 
-#include <G4VProcess.hh>
+#include <Geant4/G4VProcess.hh>
 
 #include <iomanip>
 #include <iostream>

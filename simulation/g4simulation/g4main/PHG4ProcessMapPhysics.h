@@ -1,13 +1,15 @@
 #ifndef G4MAIN_PHG4PROCESSMAPPHYSICS_H
 #define G4MAIN_PHG4PROCESSMAPPHYSICS_H
 
-#include <cstdint>
-#include <string>
+#include "PHG4MCProcessDefs.h"
+
 #include <map>
+#include <string>
 
 class G4VProcess;
 
-class PHG4ProcessMapPhysics {
+class PHG4ProcessMapPhysics
+{
  public:
   // explicit constructor
   PHG4ProcessMapPhysics();
@@ -22,7 +24,16 @@ class PHG4ProcessMapPhysics {
   /// default destructor
   ~PHG4ProcessMapPhysics() = default;
 
-  PHG4ProcessMapPhysics& Instance();
+  // static access method
+  static PHG4ProcessMapPhysics& Instance()
+  {
+    static PHG4ProcessMapPhysics fgInstance;
+    return fgInstance;
+  }
+
+  // get methods
+  PHG4MCProcess GetMCProcess(const G4VProcess* process) const;
+  std::string_view GetMCProcessName(const G4VProcess* process) const;
 
  private:
   void FillMap();
