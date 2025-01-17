@@ -28,13 +28,23 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   void SetDefaultParameters() override;
 
-  void set_phi_search_window(const double win) { _phi_search_win = win; }
+  void set_phi_search_window(const double _min, const double _max=-100.) { 
+    if (_max==-100) {
+      _phi_search_win_min = -_min;
+      _phi_search_win_max = _min;
+    } else {
+      _phi_search_win_min = _min;
+      _phi_search_win_max = _max;
+    }
+  }
+
   void set_eta_search_window(const double win) { _eta_search_win = win; }
   void set_x_search_window(const double win) { _x_search_win = win; }
   void set_y_search_window(const double win) { _y_search_win = win; }
   void set_z_search_window(const double win) { _z_search_win = win; }
 
-  float get_phi_search_window() const { return _phi_search_win; }
+  std::pair<float,float> get_phi_search_window() const 
+  { return {_phi_search_win_min, _phi_search_win_max}; }
   float get_eta_search_window() const { return _eta_search_win; }
   float get_x_search_window() const { return _x_search_win; }
   float get_y_search_window() const { return _y_search_win; }
@@ -42,12 +52,14 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   void zeroField(const bool flag) { _zero_field = flag; }
   
-  void set_match_window_function_pars(const double a, const double b, const double ptmin)
-  {
-    _match_function_a = a;
-    _match_function_b = b;
-    _match_function_ptmin = ptmin;
-  }
+  // 2025.01.16 : we will use constant search windows for now.
+  // This feature may be re-added when our residuals and distortions are better under control.
+  /* void set_match_window_function_pars(const double a, const double b, const double ptmin) */
+  /* { */
+  /*   _match_function_a = a; */
+  /*   _match_function_b = b; */
+  /*   _match_function_ptmin = ptmin; */
+  /* } */
   void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
@@ -78,22 +90,26 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
   short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
   double getBunchCrossing(unsigned int trid, double z_mismatch);
-  double getMatchingInflationFactor(double tpc_pt);
+  // 2025.01.16 -- we won't inflate the search windows for now...
+  /* double getMatchingInflationFactor(double tpc_pt) { return 1.; }; */
 
   TFile *_file = nullptr;
   TNtuple *_tree = nullptr;
 
   // default values, can be replaced from the macro
-  double _phi_search_win = 0.01;
+  // 2025.01.16: update phi with an upper and lower bound
+  /* double _phi_search_win = 0.01; */
+  double _phi_search_win_min = -0.25;
+  double _phi_search_win_max = 0.05;
   double _eta_search_win = 0.004;
   double _x_search_win = 0.3;
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
 
-  double _match_function_a = 1.0;
-  double _match_function_b = 5.0;
-  double _match_function_pow = 1.0;
-  double _match_function_ptmin = 0.15;
+  /* double _match_function_a = 1.0; */
+  /* double _match_function_b = 5.0; */
+  /* double _match_function_pow = 1.0; */
+  /* double _match_function_ptmin = 0.15; */
   bool _use_old_matching = false;  // normally false
 
   bool _zero_field = false;     // fit straight lines if true
