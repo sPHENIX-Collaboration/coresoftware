@@ -21,14 +21,28 @@ class BEmcRec;
 class EmcModule
 {
  public:
-  EmcModule();
-  EmcModule(int ich_, float amp_, float tof_);
+  EmcModule()
+    : ich(0)
+      , amp(0)
+      , tof(0)
+  {
+  }
 
+  //_____________________________________________________________________________
+  EmcModule(int ich_, float amp_, float tof_)
+    : ich(ich_)
+      , amp(amp_)
+      , tof(tof_)
+  {
+  }
+  
   virtual ~EmcModule() {}
 
   int ich;    // module id (linear)
   float amp;  // module signal
   float tof;  // module time-of-flight
+
+
 };
 
 // ///////////////////////////////////////////////////////////////////////////
