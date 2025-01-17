@@ -349,6 +349,11 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
         {
           m_waveforms.at(i).at(j) += m_fixpedestal;
         }
+        // saturate at 2^14
+        if(m_waveforms.at(i).at(j) > 16384)
+        {
+          m_waveforms.at(i).at(j) = 16384;
+        }
         m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
       }
     }
