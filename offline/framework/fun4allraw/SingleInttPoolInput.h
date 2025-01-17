@@ -33,6 +33,17 @@ class SingleInttPoolInput : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
   const std::set<uint64_t> &BclkStack() const override { return m_BclkStack; }
   const std::map<uint64_t, std::set<int>> &BeamClockFEE() const override { return m_BeamClockFEE; }
+  void triggeredMode(const bool isTriggered)
+  {
+    if(isTriggered)
+    {
+      SetNegativeBco(1);
+      SetBcoRange(2);
+      return;
+    }
+    SetNegativeBco(120-23);
+    SetBcoRange(500);
+  }
 
  private:
   Packet **plist{nullptr};
