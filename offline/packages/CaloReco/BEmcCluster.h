@@ -21,12 +21,7 @@ class BEmcRec;
 class EmcModule
 {
  public:
-  EmcModule()
-    : ich(0)
-      , amp(0)
-      , tof(0)
-  {
-  }
+  EmcModule() = default;
 
   //_____________________________________________________________________________
   EmcModule(int ich_, float amp_, float tof_)
@@ -38,9 +33,9 @@ class EmcModule
   
   virtual ~EmcModule() {}
 
-  int ich;    // module id (linear)
-  float amp;  // module signal
-  float tof;  // module time-of-flight
+  int ich {0};    // module id (linear)
+  float amp {0};  // module signal
+  float tof {0};  // module time-of-flight
 
 
 };
