@@ -115,6 +115,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   void BufferSize(const int size) { buffersize = size; }
   int SplitLevel() const { return splitlevel; }
   int BufferSize() const { return buffersize; }
+  int Segment() { return m_CurrentSegment; }
 
  protected:
   /*!
@@ -123,6 +124,9 @@ class Fun4AllOutputManager : public Fun4AllBase
   */
   Fun4AllOutputManager(const std::string &myname);
   Fun4AllOutputManager(const std::string &myname, const std::string &outfname);
+
+  //! current segment
+  int m_CurrentSegment{0};
 
  private:
   //! add file rule to filename (runnumber-segment)
@@ -160,6 +164,7 @@ class Fun4AllOutputManager : public Fun4AllBase
 
   //! vector of associated module indexes
   std::vector<unsigned> m_RecoModuleIndexVector;
+
 };
 
 #endif
