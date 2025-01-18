@@ -19,21 +19,6 @@ int const EmcCluster::fgPeakIter = 6;
 // Emin cuts cluster energy: Ecl >= Epk1+Epk2 +...+Epkn !!!!!!!!!!!!!
 float const EmcCluster::fgEmin = 0.002;
 
-EmcModule::EmcModule()
-  : ich(0)
-  , amp(0)
-  , tof(0)
-{
-}
-
-//_____________________________________________________________________________
-EmcModule::EmcModule(int ich_, float amp_, float tof_)
-  : ich(ich_)
-  , amp(amp_)
-  , tof(tof_)
-{
-}
-
 // ///////////////////////////////////////////////////////////////////////////
 // EmcCluster member functions
 
