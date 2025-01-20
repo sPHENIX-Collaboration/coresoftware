@@ -1,0 +1,14 @@
+Universe 	= vanilla
+Executable 	= /gpfs/mnt/gpfs02
+Arguments       = 
+Output  	= /gpfs/mnt/gpfs02
+Error 		= /gpfs/mnt/gpfs02
+Log  		= /gpfs/mnt/gpfs02
+Initialdir  	= /gpfs/mnt/gpfs02
+PeriodicHold 	= (NumJobStarts>=1 && JobStatus == 1)
+accounting_group = group_phenix.u
+accounting_group_user =
+request_memory = 8192MB
+Priority = 90
+job_lease_duration = 3600
+Queue 1

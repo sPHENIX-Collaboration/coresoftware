@@ -1,0 +1,160 @@
+# -*- ThePEG-repository -*-
+
+##################################################
+# Example generator based on LHC parameters
+# usage: Herwig read LHC.in
+##################################################
+
+read snippets/PPCollider.in
+##################################################
+#switch pdfs to comparable to Pythia		##
+##################################################
+#read snippets/PDF-NNPDF30NLO.in 
+
+##################################################
+# Technical parameters for this run
+##################################################
+cd /Herwig/Generators
+#set EventGenerator:NumberOfEvents 100000
+
+##################################################
+#RHIC physics parameters (override defaults here) 
+##################################################
+
+
+########################
+## sqrt(s) = 200 GeV ##
+########################
+set EventGenerator:EventHandler:LuminosityFunction:Energy 200.0*GeV
+ 
+##################################################
+# Cuts to jets					##
+##################################################
+
+cd /Herwig/Cuts
+set /Herwig/Cuts/PhotonKtCut:MinKT 10*GeV
+#7 GeV to match pythia "10GeV" pthatmin cut
+##################################################
+# Matrix Elements for hadron-hadron collisions 
+# (by default only gamma/Z switched on)
+##################################################
+cd /Herwig/MatrixElements/
+
+#
+#  Electroweak boson W/Z processes
+#
+# Drell-Yan Z/gamma
+#insert SubProcess:MatrixElements[0] MEqq2gZ2ff
+#
+# Drell-Yan W
+# insert SubProcess:MatrixElements[0] MEqq2W2ff
+#
+# W+jet
+# insert SubProcess:MatrixElements[0] MEWJet
+#
+# Z+jet
+# insert SubProcess:MatrixElements[0] MEZJet
+#
+# WW/WZ/ZZ
+# insert SubProcess:MatrixElements[0] MEPP2VV
+#
+# Wgamma/Zgamma
+# insert SubProcess:MatrixElements[0] MEPP2VGamma
+#
+# Use old YFS formalism to add QED radiation off W/Z decay products.
+# Note: By default QED radiation is already included.
+# read snippets/YFS.in
+
+#
+#  QCD and gamma processes
+#
+# QCD 2-2 scattering
+ insert SubProcess:MatrixElements[0] MEQCD2to2
+#
+# gamma+jet
+ insert SubProcess:MatrixElements[1] MEGammaJet
+#
+# gamma-gamma
+# insert SubProcess:MatrixElements[0] MEGammaGamma
+
+#
+#  Heavy quark processes
+#
+#
+# top-antitop production
+# insert SubProcess:MatrixElements[0] MEHeavyQuark
+#
+# single-top
+# t-channel
+# insert SubProcess:MatrixElements[0] MESingleTopTChannel
+# s-channel
+# insert SubProcess:MatrixElements[0] MESingleTopSChannel
+# tW
+# insert SubProcess:MatrixElements[0] MESingleTopTW
+#
+#  Higgs Processes
+#
+#
+# gg/qqbar -> Higgs (recommend including q qbar->Hg as not in ME correction)
+# insert SubProcess:MatrixElements[0] MEHiggs
+# insert SubProcess:MatrixElements[0] MEHiggsJet
+# set MEHiggsJet:Process qqbar
+# set /Herwig/Cuts/JetKtCut:MinKT 0.0*GeV
+#
+# higgs+jet
+# insert SubProcess:MatrixElements[0] MEHiggsJet
+#
+# higgs + W (N.B. if considering all W decay modes useful to set )
+#           (jet pT cut to zero so no cut on W decay products    )
+# insert SubProcess:MatrixElements[0] MEPP2WH
+# set /Herwig/Cuts/JetKtCut:MinKT 0.0*GeV
+#
+# higgs + Z (N.B. if considering all Z decay modes useful to set )
+#           (jet pT cut to zero so no cut on Z decay products    )
+# insert SubProcess:MatrixElements[0] MEPP2ZH
+# set /Herwig/Cuts/JetKtCut:MinKT 0.0*GeV
+#
+# VBF Higgs
+# insert SubProcess:MatrixElements[0] MEPP2HiggsVBF
+#
+# t tbar Higgs
+# insert SubProcess:MatrixElements[0] MEPP2ttbarH
+#
+# b bbar Higgs
+# insert SubProcess:MatrixElements[0] MEPP2bbbarH
+
+cd /Herwig/Generators
+
+##################################################
+#  Useful analysis handlers for hadron-hadron physics
+##################################################
+# analysis of W/Z events
+# insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/DrellYan
+# analysis of top-antitop events
+# insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/TTbar
+# analysis of gamma+jet events
+# insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/GammaJet
+# analysis of gamma-gamma events
+# insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/GammaGamma
+# analysis of higgs-jet events
+# insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/HiggsJet
+#analsis of hard QCD 
+# inserw EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/JetsPlus
+##################################################
+## prepare for Rivet analysis or HepMC output
+## when running with parton shower
+##################################################
+#read snippets/Rivet.in
+#insert /Herwig/Analysis/Rivet:Analyses 0 XXX_2015_ABC123
+read snippets/HepMC.in
+#insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/HepMCFile
+set /Herwig/Analysis/HepMC:PrintEvent 50000000
+set /Herwig/Analysis/HepMC:Format GenEvent
+set /Herwig/Analysis/HepMCFile:Units GeV_mm
+#set /Herwig/Analsysis/Plot:EventNumber 12
+#insert EventGenerator:AnalysisHandlers 0 /Herwig/Analysis/Plot
+
+##################################################
+# Save run for later usage with 'Herwig run'
+##################################################
+saverun Herwig_Fragmentation_and_DirectPhotonJet10 EventGenerator
