@@ -30,6 +30,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   void SetProbNoiseParam(float rn) { fProbNoiseParam = rn; }
 
   void set_threshold_energy(const float e) { _min_tower_e = e; }
+  void set_peakthreshold_energy(const float e) { _min_peak_e = e; }
   void setEnergyNorm(const float norm) { fEnergyNorm = norm; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
   void LoadProfile(const std::string& fname);
@@ -83,6 +84,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   float fEnergyNorm{1.};
 
   float _min_tower_e{0.020};
+  float _min_peak_e{0.200};
   int chkenergyconservation{0};
 
   std::string detector;
