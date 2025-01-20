@@ -76,6 +76,7 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   bemc->SetVertex(vertex);
   // Set threshold
   bemc->SetTowerThreshold(_min_tower_e);
+  bemc->SetPeakThreshold(_min_peak_e);
   bemc->SetProbNoiseParam(fProbNoiseParam);
 }
 
@@ -347,6 +348,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   bemc->SetVertex(vertex);
   // Set threshold
   bemc->SetTowerThreshold(_min_tower_e);
+  bemc->SetPeakThreshold(_min_peak_e);
 
   bemc->SetProbNoiseParam(fProbNoiseParam);
   bemc->SetProfileProb(bProfProb);
