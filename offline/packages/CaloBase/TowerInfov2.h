@@ -46,6 +46,9 @@ class TowerInfov2 : public TowerInfov1
   void set_isRecovered(bool isRecovered) override { set_status_bit(6, isRecovered); }
   bool get_isRecovered() const override { return get_status_bit(6); }
 
+  void set_isSaturated(bool isSaturated) override { set_status_bit(7, isSaturated); }
+  bool get_isSaturated() const override { return get_status_bit(7); }
+
   bool get_isGood() const override { return !(get_isHot() || get_isBadChi2() || get_isNoCalib()); }
 
   uint8_t get_status() const override { return _status; }
