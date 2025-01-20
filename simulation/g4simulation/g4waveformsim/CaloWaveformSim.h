@@ -46,7 +46,7 @@ class CaloWaveformSim : public SubsysReco
     NOISE_TREE = 2
   };
 
-  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
 
   /** Called for each event.
       This is where you do the real work.
