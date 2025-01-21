@@ -446,24 +446,24 @@ int MbdCalib::Download_T0Corr(const std::string& dbase_location)
     }
     cdbttree->LoadCalibrations();
 
-    _t0corrmean = cdbttree->GetSingleFloatValue("t0meancorr");
-    _t0corrmeanerr = cdbttree->GetSingleFloatValue("t0meancorrerr");
-    _t0corr_fitmean[0] = cdbttree->GetSingleFloatValue("t0corr_fitmean0");
-    _t0corr_fitmeanerr[0] = cdbttree->GetSingleFloatValue("t0corr_fitmeanerr0");
-    _t0corr_fitsigma[0] = cdbttree->GetSingleFloatValue("t0corr_fitsigma0");
-    _t0corr_fitsigmaerr[0] = cdbttree->GetSingleFloatValue("t0corr_fitsigmaerr0");
-    _t0corr_fitmean[1] = cdbttree->GetSingleFloatValue("t1corr_fitmean1");
-    _t0corr_fitmeanerr[1] = cdbttree->GetSingleFloatValue("t1corr_fitmeanerr1");
-    _t0corr_fitsigma[1] = cdbttree->GetSingleFloatValue("t1corr_fitsigma1");
-    _t0corr_fitsigmaerr[1] = cdbttree->GetSingleFloatValue("t1corr_fitsigmaerr1");
-    _t0corr_hmean[0] = cdbttree->GetSingleFloatValue("t0corr_hmean0");
-    _t0corr_hmeanerr[0] = cdbttree->GetSingleFloatValue("t0corr_hmeanerr0");
-    _t0corr_hstddev[0] = cdbttree->GetSingleFloatValue("t0corr_hstddev0");
-    _t0corr_hstddeverr[0] = cdbttree->GetSingleFloatValue("t0corr_hstddeverr0");
-    _t0corr_hmean[1] = cdbttree->GetSingleFloatValue("t1corr_hmean1");
-    _t0corr_hmeanerr[1] = cdbttree->GetSingleFloatValue("t1corr_hmeanerr1");
-    _t0corr_hstddev[1] = cdbttree->GetSingleFloatValue("t1corr_hstddev1");
-    _t0corr_hstddeverr[1] = cdbttree->GetSingleFloatValue("t1corr_hstddeverr1");
+    _t0corrmean = cdbttree->GetSingleFloatValue("_t0corrmean");
+    _t0corrmeanerr = cdbttree->GetSingleFloatValue("_t0corrmeanerr");
+    _t0corr_fitmean[0] = cdbttree->GetSingleFloatValue("_t0corr_fitmean0");
+    _t0corr_fitmeanerr[0] = cdbttree->GetSingleFloatValue("_t0corr_fitmeanerr0");
+    _t0corr_fitsigma[0] = cdbttree->GetSingleFloatValue("_t0corr_fitsigma0");
+    _t0corr_fitsigmaerr[0] = cdbttree->GetSingleFloatValue("_t0corr_fitsigmaerr0");
+    _t0corr_fitmean[1] = cdbttree->GetSingleFloatValue("_t0corr_fitmean1");
+    _t0corr_fitmeanerr[1] = cdbttree->GetSingleFloatValue("_t0corr_fitmeanerr1");
+    _t0corr_fitsigma[1] = cdbttree->GetSingleFloatValue("_t0corr_fitsigma1");
+    _t0corr_fitsigmaerr[1] = cdbttree->GetSingleFloatValue("_t0corr_fitsigmaerr1");
+    _t0corr_hmean[0] = cdbttree->GetSingleFloatValue("_t0corr_hmean0");
+    _t0corr_hmeanerr[0] = cdbttree->GetSingleFloatValue("_t0corr_hmeanerr0");
+    _t0corr_hstddev[0] = cdbttree->GetSingleFloatValue("_t0corr_hstddev0");
+    _t0corr_hstddeverr[0] = cdbttree->GetSingleFloatValue("_t0corr_hstddeverr0");
+    _t0corr_hmean[1] = cdbttree->GetSingleFloatValue("_t0corr_hmean1");
+    _t0corr_hmeanerr[1] = cdbttree->GetSingleFloatValue("_t0corr_hmeanerr1");
+    _t0corr_hstddev[1] = cdbttree->GetSingleFloatValue("_t0corr_hstddev1");
+    _t0corr_hstddeverr[1] = cdbttree->GetSingleFloatValue("_t0corr_hstddeverr1");
 
     if (Verbosity() > 0)
     {
