@@ -40,12 +40,10 @@ class RawClusterLikelihoodProfile : public SubsysReco
   ClusterCDFCalculator *cdfcalc{nullptr};
   const int inputDimx{7};
   const int inputDimy{7};
-  const int inputDimz{1};
-  const int outputDim{1};
 
   const float minET{3};
 
-  std::string m_profile_name{"/sphenix/user/jpark4/sPHENIX_software/CaloTreeMaker/run/EmcalCluster/NeutralMesonAna/sPHENIX-PPG11Analysis/Profile/profile/analysis/ProfileLikelihoodD2.root"};
+  std::string m_profile_name{"/sphenix/user/jpark4/CDBfiles/EMCalProb/ProfileLikelihoodD2_single_gamma.root"};
 
   std::string m_inputNodeName{"CLUSTERINFO_CEMC"};
   std::string m_outputNodeName{"CLUSTERINFO_CEMC_PROFILE"};

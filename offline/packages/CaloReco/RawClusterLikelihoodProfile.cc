@@ -33,7 +33,7 @@ RawClusterLikelihoodProfile::~RawClusterLikelihoodProfile() = default;
 
 int RawClusterLikelihoodProfile::Init(PHCompositeNode *topNode)
 {
-  //load profile for prob calculation
+  // load profile for prob calculation
   cdfcalc = new ClusterCDFCalculator();
   cdfcalc->LoadProfile(m_profile_name);
 
@@ -73,7 +73,7 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
-      RawCluster *profileCluster = (RawCluster*) cluster->CloneMe();
+      RawCluster *profileCluster = (RawCluster *) cluster->CloneMe();
       _clusters->AddCluster(profileCluster);
     }
   }
@@ -99,11 +99,11 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
       continue;
     }
     const RawCluster::TowerMap tower_map = cluster->get_towermap();
-    
+
     std::vector<float> shower_shapes = cluster->get_shower_shapes(m_tower_thres_e);
     int ieta_center_of_gravity = std::floor(shower_shapes[4] + 0.5);
     int iphi_center_of_gravity = std::floor(shower_shapes[5] + 0.5);
-    
+
     std::vector<double> input;
     int vectorSize = inputDimx * inputDimy;
     input.resize(vectorSize, 0);
@@ -140,7 +140,7 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
         input.at(index) = towerinfo->get_energy();
       }
     }
-    double prob = cdfcalc->GetCDF(input,m_profile_dimension);
+    double prob = cdfcalc->GetCDF(input, m_profile_dimension);
     cluster->set_prob(prob);
   }
 
