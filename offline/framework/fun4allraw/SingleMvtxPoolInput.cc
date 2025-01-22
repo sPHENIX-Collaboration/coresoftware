@@ -157,7 +157,8 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             auto num_hits = pool->get_TRG_NR_HITS(feeId, i_strb);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
-            if (strb_bco < minBCO)
+            
+            if (strb_bco < minBCO - m_NegativeBco)
             {
               continue;
             }
@@ -435,7 +436,7 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
   }
   else if (m_strobeWidth > 9 && m_strobeWidth < 11)
   {
-    m_BcoRange = 100;
+    m_BcoRange = 500;
     m_NegativeBco = 500;
   }
   else if (m_strobeWidth < 1) // triggered mode
