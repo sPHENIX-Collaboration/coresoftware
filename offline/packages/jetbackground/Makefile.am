@@ -74,6 +74,7 @@ libjetbackground_la_SOURCES = \
   CopyAndSubtractJets.cc \
   DetermineTowerBackground.cc \
   DetermineEventRho.cc \
+  DetermineTowerRho.cc \
   FastJetAlgoSub.cc \
   NullFilter.cc \
   RetowerCEMC.cc \
