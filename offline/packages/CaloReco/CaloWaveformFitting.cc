@@ -121,7 +121,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       else
       {
         auto h = new TH1F(std::string("h_" + std::to_string((int) round(v.at(size1)))).c_str(), "", size1, -0.5, size1 - 0.5);
-        
+
         int ndata = 0;
         for (int i = 0; i < size1; ++i)
         {
@@ -154,7 +154,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         ROOT::Fit::FitResult fitres = fitter->Result();
         double chi2min = fitres.MinFcnValue();
         //chi2min /= size1 - 3;  // divide by the number of dof
-        chi2min /= size1 - 3;  // divide by the number of dof
+        chi2min /= ndata - 3;  // divide by the number of dof
         if (chi2min > _chi2threshold && (f->GetParameter(2) < _bfr_highpedestalthreshold || pedestal < _bfr_highpedestalthreshold) && (f->GetParameter(2) > _bfr_lowpedestalthreshold || pedestal > _bfr_lowpedestalthreshold) && _dobitfliprecovery) 
         {
           std::vector<float> rv; // temporary recovered waveform
