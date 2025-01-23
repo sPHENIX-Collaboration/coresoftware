@@ -1,8 +1,9 @@
 #ifndef RAWCLUSTERLIKELIHOODPROFILE_H
 #define RAWCLUSTERLIKELIHOODPROFILE_H
 
-#include <fun4all/SubsysReco.h>
 #include "ClusterCDFCalculator.h"
+
+#include <fun4all/SubsysReco.h>
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -31,9 +32,9 @@ class RawClusterLikelihoodProfile : public SubsysReco
   void set_towerNodeName(const std::string &towerNodeName) { m_towerNodeName = towerNodeName; }
 
   void set_min_cluster_e(const float min_cluster_e) { m_min_cluster_e = min_cluster_e; }
-  
+
   void set_tower_threshold(const float tower_thres_e) { m_tower_thres_e = tower_thres_e; }
-  
+
   void set_profile_dimension(const int nProfDim) { m_profile_dimension = nProfDim; }
 
  private:
@@ -57,8 +58,7 @@ class RawClusterLikelihoodProfile : public SubsysReco
   float m_tower_thres_e{0.070};
   int m_profile_dimension{3};
 
-  void CreateNodes(PHCompositeNode* topNode);
-
+  void CreateNodes(PHCompositeNode *topNode);
 };
 
 #endif

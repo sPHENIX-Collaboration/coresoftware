@@ -9,7 +9,6 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-// Tower stuff
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
@@ -17,8 +16,8 @@
 #include <ffaobjects/EventHeader.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 
 #include <iostream>
