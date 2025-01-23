@@ -76,7 +76,7 @@ odbc::Connection *SpinDBOutput::ConnectDB()
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     return (nullptr);
   }
 
@@ -103,7 +103,7 @@ int SpinDBOutput::PrintDBColumn()
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -144,7 +144,7 @@ int SpinDBOutput::PrintDBRawContent(int runnum)
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -153,7 +153,7 @@ int SpinDBOutput::PrintDBRawContent(int runnum)
 
   if (rs->next() == 0)
   {
-    std::cerr << (boost::format("Error : Can't find data for run %d \n") % runnum).str();
+    std::cout << (boost::format("Error : Can't find data for run %d \n") % runnum).str();
     delete rs;
     delete stmt;
     delete con;
@@ -196,7 +196,7 @@ int SpinDBOutput::PrintDBRawContent(int runnum, int qa_level)
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -205,7 +205,7 @@ int SpinDBOutput::PrintDBRawContent(int runnum, int qa_level)
 
   if (rs->next() == 0)
   {
-    std::cerr << (boost::format("Error : Can't find data for run %d (with qa_level %d)\n") % runnum % qa_level).str();
+    std::cout << (boost::format("Error : Can't find data for run %d (with qa_level %d)\n") % runnum % qa_level).str();
     delete rs;
     delete stmt;
     delete con;
@@ -241,7 +241,7 @@ int SpinDBOutput::CheckRunRow(int runnum)
   odbc::Connection *con = ConnectDB();
   if (con == nullptr)
   {
-    std::cerr << "No Connection to the Database!\n";
+    std::cout << "No Connection to the Database!\n";
     return (0);
   }
 
@@ -255,7 +255,7 @@ int SpinDBOutput::CheckRunRow(int runnum)
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -295,7 +295,7 @@ int SpinDBOutput::CheckRunRow(int runnum, int qa_level)
   odbc::Connection *con = ConnectDB();
   if (con == nullptr)
   {
-    std::cerr << "No Connection to the Database!\n";
+    std::cout << "No Connection to the Database!\n";
     return (0);
   }
 
@@ -309,7 +309,7 @@ int SpinDBOutput::CheckRunRow(int runnum, int qa_level)
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -368,7 +368,7 @@ int SpinDBOutput::StoreDBContent(int run1, int run2)
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -426,7 +426,7 @@ int SpinDBOutput::StoreDBContent(int run1, int run2, int qa_level)
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -501,7 +501,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum)
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -510,7 +510,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum)
 
   if (rs->next() == 0)
   {
-    std::cerr << (boost::format("Error : Can't find data for run %d \n") % runnum).str();
+    std::cout << (boost::format("Error : Can't find data for run %d \n") % runnum).str();
     delete rs;
     delete stmt;
     delete con;
@@ -559,7 +559,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_leve
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -568,7 +568,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_leve
 
   if (rs->next() == 0)
   {
-    std::cerr << (boost::format("Error : Can't find data for run %d (with qa_level %d)\n") % runnum % qa_level).str();
+    std::cout << (boost::format("Error : Can't find data for run %d (with qa_level %d)\n") % runnum % qa_level).str();
     delete rs;
     delete stmt;
     delete con;
@@ -601,7 +601,7 @@ int SpinDBOutput::GetDBContentStore(SpinDBContent &spin_cont, int runnum)
     return 1;
   }
 
-  std::cerr << (boost::format("Error : Can't find row for run %d.\n") % runnum).str();
+  std::cout << (boost::format("Error : Can't find row for run %d.\n") % runnum).str();
 
   return 0;
 }
@@ -719,7 +719,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     return (ERROR_VALUE);
   }
 
@@ -730,7 +730,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
     {
       if (verbosity > 0)
       {
-        std::cerr << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
+        std::cout << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
       }
       return 0;
     }
@@ -739,7 +739,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
   {
     if (verbosity > 0)
     {
-      std::cerr << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
+      std::cout << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
     }
     return 0;
   }
@@ -777,8 +777,8 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
 
   if (value1.size() != value.size())
   {
-    std::cerr << "Error : Number of values are inconsistent with expected.\n";
-    std::cerr << " (" << name << " : " << value1.size() << " != " << value.size() << ")\n";
+    std::cout << "Error : Number of values are inconsistent with expected.\n";
+    std::cout << " (" << name << " : " << value1.size() << " != " << value.size() << ")\n";
     return (0);
   }
 
@@ -860,7 +860,7 @@ int SpinDBOutput::GetDefaultQA(int runnum){
   }
   catch(odbc::SQLException& e)
   {
-    std::cerr << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
     delete rs;
     delete stmt;
     delete con;
@@ -869,7 +869,7 @@ int SpinDBOutput::GetDefaultQA(int runnum){
 
   if(rs->next()==0)
   {
-    std::cerr << (boost::format("Error : Can't find data for run %d \n") % runnum).str();
+    std::cout << (boost::format("Error : Can't find data for run %d \n") % runnum).str();
     delete rs;
     delete stmt;
     delete con;
