@@ -103,35 +103,48 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
 }
 
 void PHSiliconTpcTrackMatching::WindowMatcher::init_bools() {
-  only_fabs = (negL[0]==100. || posL[0] == 100.);
-  all_pos_Q = (negR[0]==100.);
-  if (posR[0]==100.) { use_legacy = true; }
-  negL_b0 = (negL[1]==0.); 
-  negR_b0 = (negR[1]==0.); 
-  posL_b0 = (posL[1]==0.); 
-  posR_b0 = (posR[1]==0.); 
+  // set values for positive tracks
+  fabs_max_posQ = (posLo[0]==100.);
+  posLo_b0 = (posLo[1]==0.);
+  posHi_b0 = (posHi[1]==0.);
+  // if no values for negative tracks, copy over from positive tracks
+  if (negHi[0]==100.) {
+    negLo = posLo;
+    negHi = posHi;
+    fabs_max_negQ = fabs_max_posQ;
+    negLo_b0 = posLo_b0;
+    negHi_b0 = posHi_b0;
+    min_pt_negQ = min_pt_posQ;
+  } else {
+    fabs_max_negQ = (negLo[0]==100.);
+    negLo_b0 = (negLo[1]==0.);
+    negHi_b0 = (negHi[1]==0.);
+  }
 }
 
-bool PHSiliconTpcTrackMatching::WindowMatcher::in_window(bool posQ, double pt_tpc, double pt_si) 
+bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
+(const bool posQ, const double pt_tpc, double pt_si) 
 {
   const auto delta = pt_tpc-pt_si;
   if (use_legacy) {
     return fabs(delta)*parent_ptr->getMatchingInflationFactor(pt_tpc) < leg_search_win;
   }
-  if (posQ || all_pos_Q) {
-    if (only_fabs) {
-      return fabs(delta) < fn_exp(posR, posR_b0, pt_tpc);
+  if (posQ) {
+    double pt = (pt_tpc<min_pt_posQ) ? min_pt_posQ : pt_tpc;
+    if (fabs_max_posQ) {
+      return fabs(delta) < fn_exp(posHi, posHi_b0, pt);
     } else {
-      return (delta > fn_exp(posL, posL_b0, pt_tpc) 
-           && delta < fn_exp(posR, posR_b0, pt_tpc));
-    } 
-  } else { // negative Q track
-    if (only_fabs) {
-      return fabs(delta) < fn_exp(negR, negR_b0, pt_tpc);
+      return (delta > fn_exp(posLo, posLo_b0, pt) 
+           && delta < fn_exp(posHi, posHi_b0, pt));
+    }
+  } else {
+    double pt = (pt_tpc<min_pt_negQ) ? min_pt_negQ : pt_tpc;
+    if (fabs_max_negQ) {
+      return fabs(delta) < fn_exp(negHi, negHi_b0, pt);
     } else {
-      return (delta > fn_exp(negL, negL_b0, pt_tpc) 
-           && delta < fn_exp(negR, negR_b0, pt_tpc));
-    } 
+      return (delta > fn_exp(negLo, negLo_b0, pt) 
+           && delta < fn_exp(negHi, negHi_b0, pt));
+    }
   }
 }
 
@@ -462,6 +475,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
       tpc_q = _tracklet_tpc->get_charge();
     }
+
+    // mag is only used when set_use_legacy(true) has been invoked
     double mag = getMatchingInflationFactor(tpc_pt);
 
     if (Verbosity() > 8)
@@ -553,7 +568,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     _tree->Fill(data);
   }
 
-      if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
+      if (window_deta.in_window(tpc_q, tpc_eta, si_eta))
       {
         eta_match = true;
       }
@@ -565,15 +580,17 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       bool position_match = false;
       if (_pp_mode)
       {
-        if( std::abs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && std::abs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag)
+        if (window_dx.in_window(tpc_q, tpc_pos.x(), si_pos.x()) 
+         && window_dy.in_window(tpc_q, tpc_pos.y(), si_pos.y()))
         {
           position_match = true;
         }
       }
       else
       {
-        if (
-            fabs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && fabs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag && fabs(tpc_pos.z() - si_pos.z()) < _z_search_win * mag)
+        if (window_dx.in_window(tpc_q, tpc_pos.x(), si_pos.x()) 
+         && window_dy.in_window(tpc_q, tpc_pos.y(), si_pos.y())
+         && window_dz.in_window(tpc_q, tpc_pos.z(), si_pos.z()))
         {
           position_match = true;
         }
@@ -585,14 +602,20 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       }
 
       bool phi_match = false;
-      if (fabs(tpc_phi - si_phi) < _phi_search_win * mag)
+      if (window_dphi.in_window(tpc_q, tpc_phi, si_phi))
       {
         phi_match = true;
+        // if phi fails, account for case where |tpc_phi-si_phi|>PI
+      } else if (fabs(tpc_phi-si_phi)>M_PI) {
+        auto tpc_phi_wrap = tpc_phi;
+        if ((tpc_phi_wrap - si_phi) > M_PI) { 
+          tpc_phi_wrap -= 2*M_PI; 
+        } else {
+          tpc_phi_wrap += 2*M_PI;
+        }
+        phi_match = window_dphi.in_window(tpc_q, tpc_phi_wrap, si_phi);
       }
-      if (fabs(fabs(tpc_phi - si_phi) - 2.0 * M_PI) < _phi_search_win * mag)
-      {
-        phi_match = true;
-      }
+         
       if (!phi_match)
       {
         continue;
