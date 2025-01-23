@@ -31,55 +31,56 @@ libjetbackground_la_LIBADD = \
   -lSubsysReco
 
 pkginclude_HEADERS = \
-  DetermineTowerBackground.h \
-  DetermineEventRho.h \
-  DetermineTowerRho.h \
-  SubtractTowers.h \
-  SubtractTowersCS.h \
-  RetowerCEMC.h \
-  CopyAndSubtractJets.h \
-  FastJetAlgoSub.h \
-  TowerBackground.h \
-  TowerBackgroundv1.h \
-  EventRho.h \
-  EventRhov1.h \
-  TowerRho.h \
-  TowerRhov1.h \
   BeamBackgroundFilterAndQA.h \
   BeamBackgroundFilterAndQADefs.h \
   BaseBeamBackgroundFilter.h \
+  CopyAndSubtractJets.h \
+  DetermineTowerBackground.h \
+  DetermineEventRho.h \
+  DetermineTowerRho.h \
+  EventRho.h \
+  EventRhov1.h \
+  FastJetAlgoSub.h \
   NullFilter.h \
-  StreakSidebandFilter.h
+  RetowerCEMC.h \
+  StreakSidebandFilter.h \
+  SubtractTowers.h \
+  SubtractTowersCS.h \
+  TowerBackground.h \
+  TowerBackgroundv1.h \
+  TowerRho.h \
+  TowerRhov1.h
 
 ROOTDICTS = \
+  EventRho_Dict.cc \
+  EventRhov1_Dict.cc \
   TowerBackground_Dict.cc \
   TowerBackgroundv1_Dict.cc \
-  EventRho_Dict.cc \
-  EventRhov1_Dict.cc 
+  TowerRho_Dict.cc \
+  TowerRhov1_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  TowerBackground_Dict_rdict.pcm \
-  TowerBackgroundv1_Dict_rdict.pcm \
-  EventRho_Dict_rdict.pcm \
-  EventRhov1_Dict_rdict.pcm 
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libjetbackground_io_la_SOURCES = \
   $(ROOTDICTS) \
+  EventRhov1.cc \
   TowerBackgroundv1.cc \
-  EventRhov1.cc
+  TowerRhov1.cc
 
 libjetbackground_la_SOURCES = \
+  BeamBackgroundFilterAndQA.cc \
   CopyAndSubtractJets.cc \
   DetermineTowerBackground.cc \
   DetermineEventRho.cc \
+  DetermineTowerRho.cc \
   FastJetAlgoSub.cc \
-  RetowerCEMC.cc \
-  SubtractTowers.cc \
-  SubtractTowersCS.cc \
-  BeamBackgroundFilterAndQA.cc \
   NullFilter.cc \
-  StreakSidebandFilter.cc
+  RetowerCEMC.cc \
+  StreakSidebandFilter.cc \
+  SubtractTowers.cc \
+  SubtractTowersCS.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
