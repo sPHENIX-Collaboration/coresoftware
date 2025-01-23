@@ -73,6 +73,21 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   std::istringstream stringline(m_fieldMap);
   stringline >> fieldstrength;
 
+  // initialize the WindowMatchers
+  if (_use_legacy_windowing) {
+    window_dx.set_use_legacy(_x_search_win, this);
+    window_dy.set_use_legacy(_y_search_win, this);
+    window_dz.set_use_legacy(_z_search_win, this);
+    window_deta.set_use_legacy(_eta_search_win, this);
+    window_dphi.set_use_legacy(_phi_search_win, this);
+  } else {
+    window_dx.init_bools();
+    window_dy.init_bools();
+    window_dz.init_bools();
+    window_dphi.init_bools();
+    window_deta.init_bools();
+  }
+
   return ret;
 }
 
@@ -85,6 +100,39 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
   // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
 
   return;
+}
+
+void PHSiliconTpcTrackMatching::WindowMatcher::init_bools() {
+  only_fabs = (negL[0]==100. || posL[0] == 100.);
+  all_pos_Q = (negR[0]==100.);
+  if (posR[0]==100.) { use_legacy = true; }
+  negL_b0 = (negL[1]==0.); 
+  negR_b0 = (negR[1]==0.); 
+  posL_b0 = (posL[1]==0.); 
+  posR_b0 = (posR[1]==0.); 
+}
+
+bool PHSiliconTpcTrackMatching::WindowMatcher::in_window(bool posQ, double pt_tpc, double pt_si) 
+{
+  const auto delta = pt_tpc-pt_si;
+  if (use_legacy) {
+    return fabs(delta)*parent_ptr->getMatchingInflationFactor(pt_tpc) < leg_search_win;
+  }
+  if (posQ || all_pos_Q) {
+    if (only_fabs) {
+      return fabs(delta) < fn_exp(posR, posR_b0, pt_tpc);
+    } else {
+      return (delta > fn_exp(posL, posL_b0, pt_tpc) 
+           && delta < fn_exp(posR, posR_b0, pt_tpc));
+    } 
+  } else { // negative Q track
+    if (only_fabs) {
+      return fabs(delta) < fn_exp(negR, negR_b0, pt_tpc);
+    } else {
+      return (delta > fn_exp(negL, negL_b0, pt_tpc) 
+           && delta < fn_exp(negR, negR_b0, pt_tpc));
+    } 
+  }
 }
 
 //____________________________________________________________________________..
