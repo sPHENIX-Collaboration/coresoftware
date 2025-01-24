@@ -154,6 +154,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
         ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
         fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
+        fitter->Config().MinimizerOptions().SetPrintLevel(-1);
         double params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - m_peakTimeTemp), static_cast<double>(pedestal)};
         //double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
         fitter->Config().SetParamsSettings(3, params);
