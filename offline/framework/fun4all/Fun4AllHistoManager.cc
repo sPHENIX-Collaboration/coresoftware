@@ -9,6 +9,7 @@
 #include <TH1.h>
 #include <TNamed.h>
 #include <TTree.h>
+#include <TSystem.h>
 
 #include <RVersion.h>
 #if ROOT_VERSION_CODE >= ROOT_VERSION(5, 20, 0)
@@ -16,6 +17,9 @@
 #include <THnSparse.h>
 #endif
 
+#include <boost/format.hpp>
+
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -29,6 +33,11 @@ Fun4AllHistoManager::Fun4AllHistoManager(const std::string &name)
 
 Fun4AllHistoManager::~Fun4AllHistoManager()
 {
+
+   // the last file is closed by deleting the output manager, if we want to execute a script at the end
+  // we have to run it here
+  RunAfterClosing();
+
   while (Histo.begin() != Histo.end())
   {
     delete Histo.begin()->second;
@@ -37,16 +46,56 @@ Fun4AllHistoManager::~Fun4AllHistoManager()
   return;
 }
 
+int Fun4AllHistoManager::RunAfterClosing()
+{
+  unsigned int iret = 0;
+  if (m_outfilename == m_LastClosedFileName)
+  {
+    if (Verbosity() > 1)
+    {
+    std::cout << PHWHERE << " Output file name has not changed, not closing "
+	      << m_outfilename << " again" << std::endl;
+    }
+    return iret;
+  }
+  m_LastClosedFileName = m_outfilename;
+  if (!m_RunAfterClosingScript.empty())
+  {
+    if (!std::filesystem::exists(m_RunAfterClosingScript))
+    {
+      std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " not found" << std::endl;
+      return -1;
+    }
+    if (!((std::filesystem::status(m_RunAfterClosingScript).permissions() & std::filesystem::perms::owner_exec) == std::filesystem::perms::owner_exec))
+    {
+      std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " is not owner executable" << std::endl;
+      return -1;
+    }
+
+    std::string fullcmd = m_RunAfterClosingScript + " " + m_outfilename + " " + m_ClosingArgs;
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << " running " << fullcmd << std::endl;
+    }
+    iret = gSystem->Exec(fullcmd.c_str());
+  }
+  if (iret)
+  {
+    iret = iret >> 8U;
+  }
+  return iret;
+}
+
 int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::string &openmode)
 {
   int iret = 0;
   if (!filename.empty())
   {
-    outfilename = filename;
+    m_outfilename = filename;
   }
   else
   {
-    if (outfilename.empty())
+    if (m_outfilename.empty())
     {
       recoConsts *rc = recoConsts::instance();
       std::ostringstream filnam;
@@ -61,18 +110,29 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
       filnam << Name() << "-"
              << std::setfill('0') << std::setw(10)
              << runnumber << ".root";
-      outfilename = filnam.str();
+      m_outfilename = filnam.str();
     }
   }
-  std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << outfilename << std::endl;
+  recoConsts *rc = recoConsts::instance();
+  int runnumber = 0;
+  std::string runseg = "";
+  if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
+  {
+    runnumber = rc->get_IntFlag("RUNNUMBER");
+     runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
+
+    }
+  
+  std::string theoutfile = m_outfilename + runseg;
+  std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << theoutfile.c_str() << std::endl;
 
   const int compress = 9;
   std::ostringstream creator;
   creator << "Created by " << Name();
-  TFile hfile(outfilename.c_str(), openmode.c_str(), creator.str().c_str(), compress);
+  TFile hfile(theoutfile.c_str(), openmode.c_str(), creator.str().c_str(), compress);
   if (!hfile.IsOpen())
   {
-    std::cout << PHWHERE << " Could not open output file" << outfilename << std::endl;
+    std::cout << PHWHERE << " Could not open output file" << theoutfile.c_str() << std::endl;
     return -1;
   }
 

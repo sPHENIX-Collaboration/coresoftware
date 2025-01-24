@@ -1,10 +1,9 @@
 #ifndef INTT_MAP_H
 #define INTT_MAP_H
 
-#include <phool/PHObject.h>
 #include <iostream>
 
-class InttMap : public PHObject
+class InttMap
 {
  public:
   typedef int field_t;
@@ -95,9 +94,6 @@ class InttMap : public PHObject
   {
     bool operator()(struct Offline_s const&, struct Offline_s const&) const;
   };
-
- private:
-  ClassDefOverride(InttMap, 1);
 };
 
 bool operator<(struct InttMap::Online_s const&, InttMap::Online_s const&);

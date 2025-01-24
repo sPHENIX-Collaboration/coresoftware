@@ -1,10 +1,13 @@
-#ifndef TRACKBASEHISTORIC_SVTXVERTEXV1_H
-#define TRACKBASEHISTORIC_SVTXVERTEXV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_SVTXVERTEXV1_H
+#define GLOBALVERTEX_SVTXVERTEXV1_H
 
 #include "SvtxVertex.h"
 
 #include <cstddef>  // for size_t
 #include <iostream>
+#include <limits>
 #include <set>
 
 class PHObject;
@@ -13,7 +16,7 @@ class SvtxVertex_v1 : public SvtxVertex
 {
  public:
   SvtxVertex_v1();
-  ~SvtxVertex_v1() override {}
+  ~SvtxVertex_v1() override = default;
 
   // PHObject virtual overloads
 
@@ -72,13 +75,13 @@ class SvtxVertex_v1 : public SvtxVertex
  private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
-  unsigned int _id;                   //< unique identifier within container
-  float _t0;                          //< collision time
-  float _pos[3];                      //< collision position x,y,z
-  float _chisq;                       //< vertex fit chisq
-  unsigned int _ndof;                 //< degrees of freedom
-  float _err[6];                      //< error covariance matrix (packed storage) (+/- cm^2)
-  std::set<unsigned int> _track_ids;  //< list of track ids
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};    //< unique identifier within container
+  float _t0{std::numeric_limits<float>::quiet_NaN()};            //< collision time
+  float _pos[3]{};                                                 //< collision position x,y,z
+  float _chisq{std::numeric_limits<float>::quiet_NaN()};         //< vertex fit chisq
+  unsigned int _ndof{std::numeric_limits<unsigned int>::max()};  //< degrees of freedom
+  float _err[6]{};                                                 //< error covariance matrix (packed storage) (+/- cm^2)
+  std::set<unsigned int> _track_ids;                             //< list of track ids
 
   ClassDefOverride(SvtxVertex_v1, 1);
 };

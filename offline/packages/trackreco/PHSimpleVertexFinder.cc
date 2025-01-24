@@ -446,10 +446,10 @@ int PHSimpleVertexFinder::GetNodes(PHCompositeNode *topNode)
   }
 
 
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   if (!_cluster_map)
   {
-    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << std::endl;
+    std::cout << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER container" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

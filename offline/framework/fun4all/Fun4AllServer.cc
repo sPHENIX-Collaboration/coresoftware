@@ -8,6 +8,7 @@
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllSyncManager.h"
 #include "SubsysReco.h"
+#include "Fun4AllDstOutputManager.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>  // for PHNode
@@ -673,7 +674,8 @@ int Fun4AllServer::process_event()
   }
 
   gROOT->cd(currdir.c_str());
-
+  bool writing = false;
+  int segment = std::numeric_limits<int>::min();
   //  mainIter.print();
   if (!OutputManager.empty() && !eventbad)  // there are registered IO managers and
   // the event is not flagged bad
@@ -702,6 +704,7 @@ int Fun4AllServer::process_event()
         exit(1);
       }
       std::vector<Fun4AllOutputManager *>::iterator iterOutMan;
+     
       for (iterOutMan = OutputManager.begin(); iterOutMan != OutputManager.end(); ++iterOutMan)
       {
         if (!(*iterOutMan)->DoNotWriteEvent(&RetCodes))
@@ -731,6 +734,8 @@ int Fun4AllServer::process_event()
             MakeNodesTransient(runNode);  // make all nodes transient by default
             (*iterOutMan)->WriteNode(runNode);
             (*iterOutMan)->RunAfterClosing();
+            segment = (*iterOutMan)->Segment();
+            writing = true;
           }
         }
         else
@@ -740,6 +745,25 @@ int Fun4AllServer::process_event()
             std::cout << "Not Writing Event for " << (*iterOutMan)->Name() << std::endl;
           }
         }
+      }
+    }
+  }
+  if(!HistoManager.empty() && !eventbad && writing)
+  {
+    for( const auto& histit : HistoManager)
+    {
+      if((*histit).dumpHistoSegments())
+      {
+        if(Verbosity() > 0)
+        {
+          std::cout << PHWHERE << (*histit).Name() << " wrote events, closing " << (*histit).OutFileName() << std::endl;
+        }
+        // This is -1 because the segment is initially determined in the first event of a
+        // segment from the DST, then incremented. So it is always 1 ahead of the histos
+        (*histit).segment(segment-1);
+        (*histit).dumpHistos();
+        (*histit).RunAfterClosing();
+        (*histit).Reset();
       }
     }
   }

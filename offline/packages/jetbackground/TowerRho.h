@@ -1,5 +1,5 @@
-#ifndef RHOBASE_TOWERRHO_H
-#define RHOBASE_TOWERRHO_H
+#ifndef JETBACKGROUND_TOWERRHO_H
+#define JETBACKGROUND_TOWERRHO_H
 
 //===========================================================
 /// \file TowerRho.h
@@ -7,16 +7,11 @@
 /// \author Tanner Mengel
 //===========================================================
 
+#include <jetbase/Jet.h>
+
 #include <phool/PHObject.h>
 
 #include <iostream>
-
-/// \class TowerRho
-///
-/// \brief PHObject to store rho and sigma for calorimeter towers on an event-by-event basis
-///
-/// This class is a PHObject to store rho and sigma for calorimeter towers on an event-by-event basis
-/// Options for rho calculation are AREA and MULT or NONE
 
 class TowerRho : public PHObject
 {
@@ -51,4 +46,4 @@ class TowerRho : public PHObject
   ClassDefOverride(TowerRho, 1);
 };
 
-#endif  // RHOBASE_TOWERRHO_H
+#endif  // JETBACKGROUND_TOWERRHO_H

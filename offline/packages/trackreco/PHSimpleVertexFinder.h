@@ -52,6 +52,7 @@ class PHSimpleVertexFinder : public SubsysReco
   void setTrackMapName(const std::string &name) { _track_map_name = name; }
   void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
   void zeroField(const bool flag) { _zero_field = flag; }
+  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
 
  private:
   int GetNodes(PHCompositeNode *topNode);
@@ -85,6 +86,8 @@ class PHSimpleVertexFinder : public SubsysReco
   unsigned int _nmvtx_required = 3;
   double _track_pt_cut = 0.0;
   double _outlier_cut = 0.015;
+  //name of TRKR_CLUSTER Container
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   bool _zero_field = false;     // fit straight lines if true
 

@@ -22,7 +22,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
 {
  public:
   TpcCombinedRawDataUnpacker(std::string const &name = "TpcCombinedRawDataUnpacker", std::string const &outF = "TpcCombinedRawDataUnpackerOutput.root");
-
+  ~TpcCombinedRawDataUnpacker() override;
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
