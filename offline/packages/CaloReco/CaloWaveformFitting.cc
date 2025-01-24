@@ -139,6 +139,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         //if too many are saturated don't do the saturation recovery need enough ndf
         if(ndata > (size1 - 4))
         {
+	 ndata = size1;
          for (int i = 0; i < size1; ++i)
          {
             h->SetBinContent(i + 1, v.at(i));
