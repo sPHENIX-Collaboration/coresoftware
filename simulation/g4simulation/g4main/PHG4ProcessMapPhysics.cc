@@ -19,7 +19,7 @@ PHG4ProcessMapPhysics::PHG4ProcessMapPhysics()
 
 void PHG4ProcessMapPhysics::FillMap()
 {
-  auto pMap = PHG4ProcessMap::Instance();
+  auto& pMap = PHG4ProcessMap::Instance();
 
   // clang-format off
   // G4EmProcessSubType: 1 - 26; 40; 49

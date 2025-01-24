@@ -13,11 +13,11 @@ class PHG4ProcessMap
 {
  public:
   PHG4ProcessMap() = default;
-  PHG4ProcessMap(const PHG4ProcessMap& rhs) = default;
+  PHG4ProcessMap(const PHG4ProcessMap& rhs) = delete;
   PHG4ProcessMap(PHG4ProcessMap&& rhs) = delete;
   PHG4ProcessMap& operator=(const PHG4ProcessMap& rhs) = delete;
   PHG4ProcessMap& operator=(PHG4ProcessMap&& rhs) = delete;
-  ~PHG4ProcessMap() = default;
+  ~PHG4ProcessMap() { Clear(); }
 
   // static access method
   static PHG4ProcessMap& Instance()

@@ -14,7 +14,7 @@ class PHG4ProcessMapPhysics
   // explicit constructor
   PHG4ProcessMapPhysics();
   /// default copy constructor
-  PHG4ProcessMapPhysics(const PHG4ProcessMapPhysics& rhs);
+  PHG4ProcessMapPhysics(const PHG4ProcessMapPhysics& rhs) = delete;
   /// default copy asigment
   PHG4ProcessMapPhysics& operator=(const PHG4ProcessMapPhysics& rhs) = delete;
   /// default move constructor
