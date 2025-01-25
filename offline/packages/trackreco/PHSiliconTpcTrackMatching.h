@@ -141,8 +141,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   WindowMatcher window_dx   { {100.,0.,0.}, {5.3, 0., 0.} };
   WindowMatcher window_dy   { {100.,0.,0.}, {5.2, 0., 0.} };
   WindowMatcher window_dz   { {100.,0.,0.}, {0., 2.6, 0.38}, {100,0.,0.,}, {0., 1.45, 0.49} };
-  WindowMatcher window_dphi { {0., -0.25, 0.},  {0.05, 0., 0.} };
+  WindowMatcher window_dphi { {-0.25, 0., 0.},  {0.05, 0., 0.} };
   WindowMatcher window_deta { {100.,0.,0.}, {0.050, 0.0064, 1.1}, {100,0.,0.,}, {0.045, 0.0031, 1.0} };
+
+  bool _print_windows = false;
+  void print_windows(bool print=true) { _print_windows = print; }
 
   void zeroField(const bool flag) { _zero_field = flag; }
   

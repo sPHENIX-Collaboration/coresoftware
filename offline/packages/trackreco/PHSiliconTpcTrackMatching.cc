@@ -81,11 +81,11 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
     window_deta.set_use_legacy(_eta_search_win, this);
     window_dphi.set_use_legacy(_phi_search_win, this);
   } else {
-    window_dx.init_bools("dx", Verbosity()   >0);
-    window_dy.init_bools("dy", Verbosity()   >0);
-    window_dz.init_bools("dz", Verbosity()   >0);
-    window_dphi.init_bools("dphi", Verbosity() >0);
-    window_deta.init_bools("deta", Verbosity() >0);
+    window_dx.init_bools("dx", _print_windows || Verbosity()   >0);
+    window_dy.init_bools("dy", _print_windows || Verbosity()   >0);
+    window_dz.init_bools("dz", _print_windows || Verbosity()   >0);
+    window_dphi.init_bools("dphi", _print_windows || Verbosity() >0);
+    window_deta.init_bools("deta", _print_windows || Verbosity() >0);
   }
 
   return ret;
@@ -132,19 +132,19 @@ void PHSiliconTpcTrackMatching::WindowMatcher::init_bools(const std::string& tag
   }
   if (print) {
     std::cout << " Track matching window, " << tag << ":" << std::endl;
-    if (negLo[0]==100) {
-      std::cout << "   all tracks: ";
-    } else {
-      std::cout << "   +Q tracks:  ";
-    }
 
+    if (posHi==negHi && posLo == negLo) {
+      std::cout << "  all tracks: ";
+    } else {
+      std::cout << "   +Q tracks: ";
+    }
     if (posLo[0]==100) {
       std::cout << "  |" << tag <<"| < " << print_fn(posHi) << std::endl;
     } else {
       std::cout << print_fn(posLo) <<" < " << tag << " < " << print_fn(posHi) << std::endl;
     }
 
-    if (negLo[0]!=100) {
+    if (posHi != negHi || posLo != negLo) {
       std::cout << "   -Q tracks: ";
       if (negLo[0]==100) {
         std::cout << "  |" << tag <<"| < " << print_fn(negHi) << std::endl;
