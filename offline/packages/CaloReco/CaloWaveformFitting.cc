@@ -121,11 +121,32 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       else
       {
         auto h = new TH1F(std::string("h_" + std::to_string((int) round(v.at(size1)))).c_str(), "", size1, -0.5, size1 - 0.5);
-        for (int i = 0; i < size1; i++)
+
+        int ndata = 0;
+        for (int i = 0; i < size1; ++i)
         {
-          h->SetBinContent(i + 1, v.at(i));
-          h->SetBinError(i + 1, 1);
+          if (v.at(i) == 16383)
+          {
+            continue;
+          }
+          else
+          {
+            h->SetBinContent(i + 1, v.at(i));
+            h->SetBinError(i + 1, 1);
+            ndata++;
+          }
         }
+        //if too many are saturated don't do the saturation recovery need enough ndf
+        if(ndata > (size1 - 4))
+        {
+	 ndata = size1;
+         for (int i = 0; i < size1; ++i)
+         {
+            h->SetBinContent(i + 1, v.at(i));
+            h->SetBinError(i + 1, 1);  
+         }       
+        }
+
         auto f = new TF1(std::string("f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
         ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
         ROOT::Fit::BinData data(v.size() - 1, 1);
@@ -133,17 +154,32 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         ROOT::Fit::Chi2Function *EPChi2 = new ROOT::Fit::Chi2Function(data, *fitFunction);
         ROOT::Fit::Fitter *fitter = new ROOT::Fit::Fitter();
         fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
-        double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
+        fitter->Config().MinimizerOptions().SetPrintLevel(-1);
+        double params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - m_peakTimeTemp), static_cast<double>(pedestal)};
+        //double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
         fitter->Config().SetParamsSettings(3, params);
         fitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
-        if (m_setTimeLim) 
+        if (m_setTimeLim)
         {
           fitter->Config().ParSettings(1).SetLimits(m_timeLim_low, m_timeLim_high);
         }
         fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
         ROOT::Fit::FitResult fitres = fitter->Result();
+        //get the result status
+        /*
+        bool validfit = fitres.IsValid();
+        if(!validfit)
+        {
+          std::cout<<"invalid fit"<<std::endl;
+          for (int i = 0; i < size1; ++i)
+        {
+          std::cout<<v.at(i)<<std::endl;
+        }
+        }
+        */
         double chi2min = fitres.MinFcnValue();
-        chi2min /= size1 - 3;  // divide by the number of dof
+        //chi2min /= size1 - 3;  // divide by the number of dof
+        chi2min /= ndata - 3;  // divide by the number of dof
         if (chi2min > _chi2threshold && (f->GetParameter(2) < _bfr_highpedestalthreshold || pedestal < _bfr_highpedestalthreshold) && (f->GetParameter(2) > _bfr_lowpedestalthreshold || pedestal > _bfr_lowpedestalthreshold) && _dobitfliprecovery) 
         {
           std::vector<float> rv; // temporary recovered waveform
