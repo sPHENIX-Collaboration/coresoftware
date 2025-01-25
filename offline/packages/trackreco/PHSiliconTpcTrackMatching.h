@@ -34,7 +34,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   //   for pT < min_pT
   //   otherwise
   //     |dX| < window 
-  bool _use_legacy_windowing = false;
+  bool _use_legacy_windowing = true;
   void set_use_legacy_windowing (bool set_par=true) { _use_legacy_windowing=set_par; }
 
   void set_phi_search_window(const double win) { _phi_search_win = win; }
