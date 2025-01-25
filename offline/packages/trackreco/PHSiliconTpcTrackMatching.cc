@@ -81,11 +81,11 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
     window_deta.set_use_legacy(_eta_search_win, this);
     window_dphi.set_use_legacy(_phi_search_win, this);
   } else {
-    window_dx.init_bools();
-    window_dy.init_bools();
-    window_dz.init_bools();
-    window_dphi.init_bools();
-    window_deta.init_bools();
+    window_dx.init_bools("dx", Verbosity()   >0);
+    window_dy.init_bools("dy", Verbosity()   >0);
+    window_dz.init_bools("dz", Verbosity()   >0);
+    window_dphi.init_bools("dphi", Verbosity() >0);
+    window_deta.init_bools("deta", Verbosity() >0);
   }
 
   return ret;
@@ -102,7 +102,17 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
   return;
 }
 
-void PHSiliconTpcTrackMatching::WindowMatcher::init_bools() {
+std::string PHSiliconTpcTrackMatching::WindowMatcher::print_fn(const Arr3D& dat) {
+  std::ostringstream os;
+  if (dat[1]==0.) {
+    os << dat[0];
+  } else {
+    os << dat[0] << (dat[1]>=0 ? "+" : "") << dat[1] <<"*exp("<<dat[2]<<"/pT)";
+  }
+  return os.str();
+}
+
+void PHSiliconTpcTrackMatching::WindowMatcher::init_bools(const std::string& tag, const bool print) {
   // set values for positive tracks
   fabs_max_posQ = (posLo[0]==100.);
   posLo_b0 = (posLo[1]==0.);
@@ -120,17 +130,41 @@ void PHSiliconTpcTrackMatching::WindowMatcher::init_bools() {
     negLo_b0 = (negLo[1]==0.);
     negHi_b0 = (negHi[1]==0.);
   }
+  if (print) {
+    std::cout << " Track matching window, " << tag << ":" << std::endl;
+    if (negLo[0]==100) {
+      std::cout << "   all tracks: ";
+    } else {
+      std::cout << "   +Q tracks:  ";
+    }
+
+    if (posLo[0]==100) {
+      std::cout << "  |" << tag <<"| < " << print_fn(posHi) << std::endl;
+    } else {
+      std::cout << print_fn(posLo) <<" < " << tag << " < " << print_fn(posHi) << std::endl;
+    }
+
+    if (negLo[0]!=100) {
+      std::cout << "   -Q tracks: ";
+      if (negLo[0]==100) {
+        std::cout << "  |" << tag <<"| < " << print_fn(negHi) << std::endl;
+      } else {
+        std::cout << print_fn(negLo) <<" < " << tag << " < " << print_fn(negHi) << std::endl;
+      }
+    }
+  }
+
 }
 
 bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
-(const bool posQ, const double pt_tpc, double pt_si) 
+(const bool posQ, const double tpc_pt, const double tpc_X, const double si_X) 
 {
-  const auto delta = pt_tpc-pt_si;
+  const auto delta = tpc_X-si_X;
   if (use_legacy) {
-    return fabs(delta)*parent_ptr->getMatchingInflationFactor(pt_tpc) < leg_search_win;
+    return fabs(delta)*parent_ptr->getMatchingInflationFactor(tpc_pt) < leg_search_win;
   }
   if (posQ) {
-    double pt = (pt_tpc<min_pt_posQ) ? min_pt_posQ : pt_tpc;
+    double pt = (tpc_pt<min_pt_posQ) ? min_pt_posQ : tpc_pt;
     if (fabs_max_posQ) {
       return fabs(delta) < fn_exp(posHi, posHi_b0, pt);
     } else {
@@ -138,7 +172,7 @@ bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
            && delta < fn_exp(posHi, posHi_b0, pt));
     }
   } else {
-    double pt = (pt_tpc<min_pt_negQ) ? min_pt_negQ : pt_tpc;
+    double pt = (tpc_pt<min_pt_negQ) ? min_pt_negQ : tpc_pt;
     if (fabs_max_negQ) {
       return fabs(delta) < fn_exp(negHi, negHi_b0, pt);
     } else {
@@ -153,7 +187,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 {
   if(Verbosity() > 2)
   {
-    std::cout << " FIXME PHSiliconTpcTrackMatching " 
+    std::cout << " Warning: PHSiliconTpcTrackMatching " 
       << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
   }
   // _track_map contains the TPC seed track stubs
@@ -476,6 +510,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       tpc_q = _tracklet_tpc->get_charge();
     }
 
+    bool is_posQ = (tpc_q>0.);
+
     // mag is only used when set_use_legacy(true) has been invoked
     double mag = getMatchingInflationFactor(tpc_pt);
 
@@ -568,7 +604,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     _tree->Fill(data);
   }
 
-      if (window_deta.in_window(tpc_q, tpc_eta, si_eta))
+      if (window_deta.in_window(is_posQ, tpc_pt, tpc_eta, si_eta))
       {
         eta_match = true;
       }
@@ -580,17 +616,17 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       bool position_match = false;
       if (_pp_mode)
       {
-        if (window_dx.in_window(tpc_q, tpc_pos.x(), si_pos.x()) 
-         && window_dy.in_window(tpc_q, tpc_pos.y(), si_pos.y()))
+        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x()) 
+         && window_dy.in_window(is_posQ, tpc_pt, tpc_pos.y(), si_pos.y()))
         {
           position_match = true;
         }
       }
       else
       {
-        if (window_dx.in_window(tpc_q, tpc_pos.x(), si_pos.x()) 
-         && window_dy.in_window(tpc_q, tpc_pos.y(), si_pos.y())
-         && window_dz.in_window(tpc_q, tpc_pos.z(), si_pos.z()))
+        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x()) 
+         && window_dy.in_window(is_posQ, tpc_pt, tpc_pos.y(), si_pos.y())
+         && window_dz.in_window(is_posQ, tpc_pt, tpc_pos.z(), si_pos.z()))
         {
           position_match = true;
         }
@@ -602,7 +638,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       }
 
       bool phi_match = false;
-      if (window_dphi.in_window(tpc_q, tpc_phi, si_phi))
+      if (window_dphi.in_window(is_posQ, tpc_pt, tpc_phi, si_phi))
       {
         phi_match = true;
         // if phi fails, account for case where |tpc_phi-si_phi|>PI
@@ -613,7 +649,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
         } else {
           tpc_phi_wrap += 2*M_PI;
         }
-        phi_match = window_dphi.in_window(tpc_q, tpc_phi_wrap, si_phi);
+        phi_match = window_dphi.in_window(is_posQ, tpc_pt, tpc_phi_wrap, si_phi);
       }
          
       if (!phi_match)
@@ -755,8 +791,6 @@ double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
   {
     mag = _match_function_a + _match_function_b / pow(tpc_pt, _match_function_pow);
   }
-
-  // std::cout << "  tpc_pt = " << tpc_pt << " mag " << mag << " a " << _match_function_a << " b " << _match_function_b << std::endl;
 
   return mag;
 }

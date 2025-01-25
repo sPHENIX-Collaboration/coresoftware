@@ -68,42 +68,41 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     // - for for positive and negative tracks
     // - only one curve if |dX|<fn_max, or two if like  fn_min<dX<fnmax
     using Arr3D = std::array<double,3>;
-    Arr3D posHi { 100., 0., 0. }; // (above a3,b3,c3), 100 for use _use_legacy_windowing
+    std::string print_fn(const Arr3D&);
     Arr3D posLo { 100., 0., 0. }; // (above a2,b2,c2), 100 for |dX|
-    Arr3D negHi { 100., 0., 0. }; // (above a1,b1,c1), 100 for treat all tracks pos Q
+    Arr3D posHi { 100., 0., 0. }; // (above a3,b3,c3), 100 for use _use_legacy_windowing
     Arr3D negLo { 100., 0., 0. }; // (above a0,b0,c0), 100 for |dX|
+    Arr3D negHi { 100., 0., 0. }; // (above a1,b1,c1), 100 for treat all tracks pos Q
                                  
     // efficiency flags set during PHSiliconTpcTrackMatching::InitRun()
-    double min_pt_posQ  = 0.15; // only grow function windows down to 150 MeV
-    double min_pt_negQ  = 0.15; // only grow function windows down to 150 MeV
     bool fabs_max_posQ  = true;
     bool fabs_max_negQ  = true;
     bool negLo_b0 = true;
     bool negHi_b0 = true;
     bool posLo_b0 = true;
     bool posHi_b0 = true;
+    double min_pt_posQ  = 0.25; // only grow function windows down to 150 MeV
+    double min_pt_negQ  = 0.25; // only grow function windows down to 150 MeV
+
+    WindowMatcher(
+        const Arr3D _posLo={100.,0.,0.},  
+        const Arr3D _posHi={100.,0.,0.}, 
+        const Arr3D _negLo={100.,0.,0.}, 
+        const Arr3D _negHi={100.,0.,0.}, 
+        const double _min_pt_posQ=0.25, 
+        const double _min_pt_negQ=0.25)
+      : posLo{_posLo}, posHi{_posHi}, negLo{_negLo}, negHi{_negHi}, 
+      min_pt_posQ{_min_pt_posQ}, min_pt_negQ{_min_pt_negQ} {};
 
     inline double fn_exp(const Arr3D& arr, const bool& b_is_0, double pT) {
-      return b_is_0 ? arr[0] : arr[0]+arr[1]*exp(arr[2]/pT);
+      return (b_is_0 ? arr[0] : arr[0]+arr[1]*exp(arr[2]/pT));
     }
 
-    void init_bools();
+    void init_bools(const std::string& which_window="", const bool print=false);
 
-    bool in_window(bool posQ, double tpc, double si);
+    bool in_window(bool posQ, const double tpc_pt, const double tpc_X, const double si_X);
     
-    // initialize to |deltaX|<fn, both +/-Q
-    WindowMatcher(const Arr3D _posHi, const double _min_pt=0.15) 
-      : posHi{_posHi}, min_pt_posQ{_min_pt} {};
-    // initialize to fn_lo < deltaX < fn_hi, both +/-Q
-    WindowMatcher(const Arr3D _posLo, const Arr3D _posHi, 
-        const double _min_pt=0.15) 
-      : posHi{_posHi}, posLo{_posLo}, min_pt_posQ{_min_pt} {};
     // initialize to fn_lo < deltaX < fn_hi for +Q, and fn_lo < deltaX < fn_hi for -Q
-    WindowMatcher(const Arr3D _posLo, const Arr3D _posHi, 
-                  const Arr3D _negLo, const Arr3D _negHi, 
-         const double _min_pt_posQ=0.15, const double _min_pt_negQ=0.15)
-      : posHi{_posHi}, posLo{_posLo}, negHi{_negHi}, negLo{_negLo}, 
-      min_pt_posQ{_min_pt_posQ}, min_pt_negQ{_min_pt_negQ} {};
 
     void reset_fns() { 
       posLo={100.,0.,0.}; 
@@ -113,38 +112,37 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     };
 
     // same max for |deltaX| for pos and neg Q
-    void set_QoverpT_maxabs    (const Arr3D _posHi, const double _min_pt=0.15)
+    void set_QoverpT_maxabs    (const Arr3D _posHi, const double _min_pt=0.25)
     { reset_fns(); posHi=_posHi; min_pt_posQ = _min_pt; };
 
     // same range for deltaX for pos and neg Q
-    void set_QoverpT_range     (const Arr3D _posLo, const Arr3D _posHi, const double _min_pt=0.15)
+    void set_QoverpT_range     (const Arr3D _posLo, const Arr3D _posHi, const double _min_pt=0.25)
     { reset_fns(); posLo=_posLo; posHi=_posHi; min_pt_posQ=_min_pt; };
 
     // max for |deltaX| for pos Q
-    void set_posQoverpT_maxabs (const Arr3D _posHi, const double _min_pt=0.15)
+    void set_posQoverpT_maxabs (const Arr3D _posHi, const double _min_pt=0.25)
     { posLo={100.,0.,0.}; posHi=_posHi; min_pt_posQ = _min_pt; };
 
     // max for |deltaX| for neg Q
-    void set_negQoverpT_maxabs (const Arr3D _negHi, const double _min_pt=0.15)
+    void set_negQoverpT_maxabs (const Arr3D _negHi, const double _min_pt=0.25)
     { posLo={100.,0.,0.}; negHi=_negHi; min_pt_negQ = _min_pt; };
 
     // range for deltaX for pos Q
-    void set_posQoverpT_range  (const Arr3D _posLo, const Arr3D _posHi, const double _min_pt=0.15)
+    void set_posQoverpT_range  (const Arr3D _posLo, const Arr3D _posHi, const double _min_pt=0.25)
     { posLo=_posLo; posHi=_posHi; min_pt_posQ = _min_pt; };
 
     // range for deltaX for neg Q
-    void set_negQoverpT_range  (const Arr3D _negLo, const Arr3D _negHi, const double _min_pt=0.15)
+    void set_negQoverpT_range  (const Arr3D _negLo, const Arr3D _negHi, const double _min_pt=0.25)
     { negLo=_negLo; negHi=_negHi; min_pt_negQ = _min_pt; };
 
   };
 
   // initialize the window matchers with default values
-  WindowMatcher window_dx   { {5.3, 0., 0.} };
-  WindowMatcher window_dy   { {5.2, 0., 0.} };
-  WindowMatcher window_dz   { {0., 1.45, 0.49}, {0., 2.6, 0.38} };
-  WindowMatcher window_dphi { {-0.25, 0., 0.},  {0.05, 0., 0.}, {100.,0.,0.}, {100.,0.,0.} };
-  WindowMatcher window_deta { {0.045, 0.0031, 1.0}, {0.050, 0.0064, 1.1} };
-  
+  WindowMatcher window_dx   { {100.,0.,0.}, {5.3, 0., 0.} };
+  WindowMatcher window_dy   { {100.,0.,0.}, {5.2, 0., 0.} };
+  WindowMatcher window_dz   { {100.,0.,0.}, {0., 2.6, 0.38}, {100,0.,0.,}, {0., 1.45, 0.49} };
+  WindowMatcher window_dphi { {0., -0.25, 0.},  {0.05, 0., 0.} };
+  WindowMatcher window_deta { {100.,0.,0.}, {0.050, 0.0064, 1.1}, {100,0.,0.,}, {0.045, 0.0031, 1.0} };
 
   void zeroField(const bool flag) { _zero_field = flag; }
   
