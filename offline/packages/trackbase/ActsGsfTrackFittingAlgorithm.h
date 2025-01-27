@@ -17,10 +17,8 @@
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #include <Acts/TrackFitting/GaussianSumFitter.hpp>
 #pragma GCC diagnostic pop
-
 #include <Acts/TrackFitting/GsfMixtureReduction.hpp>
 #include <Acts/Utilities/Helpers.hpp>
-
 
 namespace
 {
@@ -41,6 +39,12 @@ namespace
       Acts::TrackContainer<Acts::VectorTrackContainer,
                            Acts::VectorMultiTrajectory, std::shared_ptr>;
 
+  enum class MixtureReductionAlgorithm
+  {
+    weightCut,
+    KLDistance
+  };
+
   struct GsfFitterFunctionImpl
     : public ActsTrackFittingAlgorithm::TrackFitterFunction
   {
@@ -52,8 +56,10 @@ namespace
     double weightCutoff = 0;
     bool abortOnError = false;
     bool disableAllMaterialHandling = false;
-    Acts::MixtureReductionMethod reductionMethod =
-        Acts::MixtureReductionMethod::eMaxWeight;
+    MixtureReductionAlgorithm reductionAlg =
+        MixtureReductionAlgorithm::KLDistance;
+    Acts::ComponentMergeMethod mergeMethod =
+        Acts::ComponentMergeMethod::eMaxWeight;
 
     ActsSourceLink::SurfaceAccessor m_slSurfaceAccessor;
 
@@ -85,11 +91,25 @@ namespace
           weightCutoff,
           abortOnError,
           disableAllMaterialHandling};
-
+      gsfOptions.componentMergeMethod = mergeMethod;
       gsfOptions.extensions.calibrator.connect<&calibrator_t::calibrate>(
           &calibrator);
       gsfOptions.extensions.surfaceAccessor.connect<&ActsSourceLink::SurfaceAccessor::operator()>(&m_slSurfaceAccessor);
-      gsfOptions.extensions.mixtureReducer.connect<&Acts::reduceMixtureWithKLDistance>();
+      switch (reductionAlg)
+      {
+      case MixtureReductionAlgorithm::weightCut:
+      {
+        gsfOptions.extensions.mixtureReducer
+            .connect<&Acts::reduceMixtureLargestWeights>();
+      }
+      break;
+      case MixtureReductionAlgorithm::KLDistance:
+      {
+        gsfOptions.extensions.mixtureReducer
+            .connect<&Acts::reduceMixtureWithKLDistance>();
+      }
+      break;
+      }
 
       return gsfOptions;
     }
@@ -129,6 +149,6 @@ class ActsGsfTrackFittingAlgorithm
       std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
       BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
       double weightCutoff,
-      Acts::MixtureReductionMethod finalReductionMethod, bool abortOnError,
+      MixtureReductionAlgorithm finalReductionMethod, bool abortOnError,
       bool disableAllMaterialHandling, const Acts::Logger& logger = *Acts::getDefaultLogger("GSF", Acts::Logging::FATAL));
 };
