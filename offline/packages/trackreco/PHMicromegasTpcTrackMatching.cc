@@ -437,7 +437,9 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
          continue;
       }
       // we can figure out which solution is correct based on the last cluster position in the TPC
-      const double last_clus_phi = std::atan2(clusGlobPos.back()(1), clusGlobPos.back()(0));
+      const double last_clus_phi = _use_silicon ?
+        std::atan2(clusGlobPos_silicon.back()(1), clusGlobPos_silicon.back()(0)):
+        std::atan2(clusGlobPos.back()(1), clusGlobPos.back()(0));
       double phi_plus = std::atan2(yplus, xplus);
       double phi_minus = std::atan2(yminus, xminus);
 
