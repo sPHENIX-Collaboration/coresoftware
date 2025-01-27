@@ -123,7 +123,7 @@ class AlignmentTransformation
 
   bool use_intt_survey_geometry = false;
 
-  Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, bool survey);
+  Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& sensorAnglesGlobal, bool survey);
 
   alignmentTransformationContainer* transformMap = NULL;
   alignmentTransformationContainer* transformMapTransient = NULL;

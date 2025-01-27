@@ -447,7 +447,14 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
     peak.ReInitialize(hl);
     PkList.push_back(peak);
 
-    ppeaks.push_back(hlist[PeakCh[maxc]]);
+    if (npk > 0)
+    {
+      ppeaks.push_back(hlist[PeakCh[maxc]]);
+    }
+    else
+    {
+      ppeaks.push_back(GetMaxTower());
+    }
     delete[] hlist;
     return 1;
   }
