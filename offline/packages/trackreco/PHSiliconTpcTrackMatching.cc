@@ -157,11 +157,11 @@ void PHSiliconTpcTrackMatching::WindowMatcher::init_bools(const std::string& tag
 }
 
 bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
-(const bool posQ, const double tpc_pt, const double tpc_X, const double si_X) 
+(const bool posQ, const double tpc_pt, const double tpc_X, const double si_X)
 {
   const auto delta = tpc_X-si_X;
   if (use_legacy) {
-    return fabs(delta)*parent_ptr->getMatchingInflationFactor(tpc_pt) < leg_search_win;
+    return fabs(delta) < leg_search_win * parent_ptr->getMatchingInflationFactor(tpc_pt);
   }
   if (posQ) {
     double pt = (tpc_pt<min_pt_posQ) ? min_pt_posQ : tpc_pt;
