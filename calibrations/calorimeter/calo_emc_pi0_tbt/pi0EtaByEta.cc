@@ -196,14 +196,41 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     std::cout << "pi0EtaByEta GlobalVertexMap node is missing" << std::endl;
     // return Fun4AllReturnCodes::ABORTRUN;
   }
+  
   float vtx_z = 0;
-  if (vertexmap && !vertexmap->empty())
+  bool found_vertex = false;
+  if (vertexmap && !vertexmap->empty()) 
   {
-    GlobalVertex* vtx = vertexmap->begin()->second;
+    GlobalVertex *vtx = vertexmap->begin()->second;
     if (vtx)
     {
-      vtx_z = vtx->get_z();
+      if (m_use_vertextype) 
+      {
+        auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+        auto typeEndIter = vtx->end_vertexes();
+        for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+        {
+          const auto &[type, vertexVec] = *iter;
+          if (type != m_vertex_type) { continue; }
+          for (const auto *vertex : vertexVec)
+          {
+            if (!vertex) { continue; }
+            vtx_z = vertex->get_z();
+            found_vertex = true;
+          }
+        }
+      } 
+      else 
+      {
+        vtx_z = vtx->get_z();
+        found_vertex = true;
+      }
     }
+  }
+
+  if (!found_vertex && reqVertex) 
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");

@@ -50,7 +50,10 @@ TpcCombinedRawDataUnpacker::TpcCombinedRawDataUnpacker(std::string const& name, 
 {
   // Do nothing
 }
-
+TpcCombinedRawDataUnpacker::~TpcCombinedRawDataUnpacker()
+{
+  delete m_cdbttree;
+}
 int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
 {
   std::cout << "TpcCombinedRawDataUnpacker::Init(PHCompositeNode *topNode) Initializing" << std::endl;
