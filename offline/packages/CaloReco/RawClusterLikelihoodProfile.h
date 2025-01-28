@@ -48,7 +48,7 @@ class RawClusterLikelihoodProfile : public SubsysReco
   const float minET{1};
 
   std::string m_profile_name{"/sphenix/user/jpark4/CDBfiles/EMCalProb/ProfileLikelihoodD2_single_gamma.root"};
-  std::string m_profile_merged_cluster_name{"/sphenix/user/jpark4/CDBfiles/EMCalProb/ProfileLikelihoodD2_single_pi0_pt1015.root"};
+  std::string m_profile_merged_cluster_name{"/sphenix/user/jpark4/CDBfiles/EMCalProb/ProfileLikelihoodD2_single_pi0.root"};
 
   std::string m_inputNodeName{"CLUSTERINFO_CEMC"};
   std::string m_outputNodeName{"CLUSTERINFO_CEMC_PROFILE"};
