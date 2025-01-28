@@ -32,109 +32,134 @@ void ClusterCDFCalculator::LoadProfile(const std::string& filename)
 
 void ClusterCDFCalculator::LoadHistogramsAndMatrices()
 {
-  hD2_3x3 = (TH1D*) file->Get("hD2_3x3");
-  hD2_5x5 = (TH1D*) file->Get("hD2_5x5");
-  hD2_7x7 = (TH1D*) file->Get("hD2_7x7");
-  if (!hD2_3x3 || !hD2_5x5 || !hD2_7x7)
+  henbins = (TH1D*) file->Get("hen");
+  if (!henbins)
   {
-    std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more required histograms (hD2_3x3, hD2_5x5, hD2_7x7) are missing." << std::endl;
+    std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() FATAL ERROR : energy bins histogram does not exist.. return.." << std::endl;
     return;
   }
+  const int nBins = henbins->GetNbinsX();
+  hD2_3x3.resize(nBins, nullptr);
+  hD2_5x5.resize(nBins, nullptr);
+  hD2_7x7.resize(nBins, nullptr);
 
-  auto hD2mean3 = (TH1D*) file->Get("hD2mean3");
-  auto hD2mean5 = (TH1D*) file->Get("hD2mean5");
-  auto hD2mean7 = (TH1D*) file->Get("hD2mean7");
+  meanD2_3x3.resize(nBins, -1);
+  meanD2_5x5.resize(nBins, -1);
+  meanD2_7x7.resize(nBins, -1);
 
-  if (!hD2mean3 || !hD2mean5 || !hD2mean7)
+  inverseCovarianceMatrix_3x3.resize(nBins, TMatrixD(NMATRIX_3x3, NMATRIX_3x3));
+  inverseCovarianceMatrix_5x5.resize(nBins, TMatrixD(NMATRIX_5x5, NMATRIX_5x5));
+  inverseCovarianceMatrix_7x7.resize(nBins, TMatrixD(NMATRIX_7x7, NMATRIX_7x7));
+
+  ratioHistograms_3x3.resize(nBins, std::vector<TH1D*>(NMATRIX_3x3, nullptr));
+  ratioHistograms_5x5.resize(nBins, std::vector<TH1D*>(NMATRIX_5x5, nullptr));
+  ratioHistograms_7x7.resize(nBins, std::vector<TH1D*>(NMATRIX_7x7, nullptr));
+
+  for (int binidx = 0; binidx < nBins; ++binidx)
   {
-    std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more required histograms (hD2_3x3, hD2_5x5, hD2_7x7) are missing." << std::endl;
-    return;
-  }
+    std::string hD2_3x3_name = (boost::format("hD2_3x3_en%d") % binidx).str();
+    std::string hD2_5x5_name = (boost::format("hD2_5x5_en%d") % binidx).str();
+    std::string hD2_7x7_name = (boost::format("hD2_7x7_en%d") % binidx).str();
 
-  meanD2_3x3 = hD2mean3->GetBinContent(1);
-  meanD2_5x5 = hD2mean5->GetBinContent(1);
-  meanD2_7x7 = hD2mean7->GetBinContent(1);
+    hD2_3x3[binidx] = dynamic_cast<TH1D*>(file->Get(hD2_3x3_name.c_str()));
+    hD2_5x5[binidx] = dynamic_cast<TH1D*>(file->Get(hD2_5x5_name.c_str()));
+    hD2_7x7[binidx] = dynamic_cast<TH1D*>(file->Get(hD2_7x7_name.c_str()));
 
-  for (int i = 0; i < NMATRIX_3x3; ++i)
-  {
-    std::string histName = (boost::format("heratio_3x3_%d") % i).str();
-    auto hist = (TH1D*) file->Get(histName.c_str());
-    if (!hist)
+    if (!hD2_3x3[binidx] || !hD2_5x5[binidx] || !hD2_7x7[binidx])
     {
-      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more hD2 histograms for bin " << binidx << " are missing. Returning..." << std::endl;
       return;
     }
-    ratioHistograms_3x3.push_back(hist);
-  }
-  for (int i = 0; i < NMATRIX_5x5; ++i)
-  {
-    std::string histName = (boost::format("heratio_5x5_%d") % i).str();
-    auto hist = (TH1D*) file->Get(histName.c_str());
-    if (!hist)
+
+    auto hD2mean3 = dynamic_cast<TH1D*>(file->Get((boost::format("hD2mean3_en%d") % binidx).str().c_str()));
+    auto hD2mean5 = dynamic_cast<TH1D*>(file->Get((boost::format("hD2mean5_en%d") % binidx).str().c_str()));
+    auto hD2mean7 = dynamic_cast<TH1D*>(file->Get((boost::format("hD2mean7_en%d") % binidx).str().c_str()));
+
+    if (!hD2mean3 || !hD2mean5 || !hD2mean7)
     {
-      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more required histograms (hD2_3x3, hD2_5x5, hD2_7x7) are missing." << std::endl;
       return;
     }
-    ratioHistograms_5x5.push_back(hist);
-  }
-  for (int i = 0; i < NMATRIX_7x7; ++i)
-  {
-    std::string histName = (boost::format("heratio_7x7_%d") % i).str();
-    auto hist = (TH1D*) file->Get(histName.c_str());
-    if (!hist)
+
+    meanD2_3x3[binidx] = hD2mean3->GetBinContent(1);
+    meanD2_5x5[binidx] = hD2mean5->GetBinContent(1);
+    meanD2_7x7[binidx] = hD2mean7->GetBinContent(1);
+
+    for (int i = 0; i < NMATRIX_3x3; ++i)
     {
-      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+      std::string histName = (boost::format("heratio_3x3_en%d_%d") % binidx % i).str();
+      ratioHistograms_3x3[binidx][i] = dynamic_cast<TH1D*>(file->Get(histName.c_str()));
+      if (!ratioHistograms_3x3[binidx][i])
+      {
+        std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+        return;
+      }
+    }
+
+    for (int i = 0; i < NMATRIX_5x5; ++i)
+    {
+      std::string histName = (boost::format("heratio_5x5_en%d_%d") % binidx % i).str();
+      ratioHistograms_5x5[binidx][i] = dynamic_cast<TH1D*>(file->Get(histName.c_str()));
+      if (!ratioHistograms_5x5[binidx][i])
+      {
+        std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+        return;
+      }
+    }
+
+    for (int i = 0; i < NMATRIX_7x7; ++i)
+    {
+      std::string histName = (boost::format("heratio_7x7_en%d_%d") % binidx % i).str();
+      ratioHistograms_7x7[binidx][i] = dynamic_cast<TH1D*>(file->Get(histName.c_str()));
+      if (!ratioHistograms_7x7[binidx][i])
+      {
+        std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+        return;
+      }
+    }
+
+    auto hCovMatrix3x3 = (TH2D*) file->Get((boost::format("hCovMatrix3_en%d") % binidx).str().c_str());
+    auto hCovMatrix5x5 = (TH2D*) file->Get((boost::format("hCovMatrix5_en%d") % binidx).str().c_str());
+    auto hCovMatrix7x7 = (TH2D*) file->Get((boost::format("hCovMatrix7_en%d") % binidx).str().c_str());
+
+    if (!hCovMatrix3x3 || !hCovMatrix5x5 || !hCovMatrix7x7)
+    {
+      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hCovMatrix5x5 histograms are missing." << std::endl;
       return;
     }
-    ratioHistograms_7x7.push_back(hist);
-  }
-
-  TH2D* hCovMatrix3x3 = (TH2D*) file->Get("hCovMatrix3");
-  TH2D* hCovMatrix5x5 = (TH2D*) file->Get("hCovMatrix5");
-  TH2D* hCovMatrix7x7 = (TH2D*) file->Get("hCovMatrix7");
-
-  if (!hCovMatrix3x3 || !hCovMatrix5x5 || !hCovMatrix7x7)
-  {
-    std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hCovMatrix5x5 histograms are missing." << std::endl;
-    return;
-  }
-
-  inverseCovarianceMatrix_3x3.ResizeTo(NMATRIX_3x3, NMATRIX_3x3);
-  inverseCovarianceMatrix_5x5.ResizeTo(NMATRIX_5x5, NMATRIX_5x5);
-  inverseCovarianceMatrix_7x7.ResizeTo(NMATRIX_7x7, NMATRIX_7x7);
-
-  for (int i = 0; i < NMATRIX_3x3; ++i)
-  {
-    for (int j = 0; j < NMATRIX_3x3; ++j)
+    for (int i = 0; i < NMATRIX_3x3; ++i)
     {
-      inverseCovarianceMatrix_3x3(i, j) = hCovMatrix3x3->GetBinContent(i + 1, j + 1);
+      for (int j = 0; j < NMATRIX_3x3; ++j)
+      {
+        inverseCovarianceMatrix_3x3[binidx](i, j) = hCovMatrix3x3->GetBinContent(i + 1, j + 1);
+      }
     }
-  }
-  for (int i = 0; i < NMATRIX_5x5; ++i)
-  {
-    for (int j = 0; j < NMATRIX_5x5; ++j)
+    for (int i = 0; i < NMATRIX_5x5; ++i)
     {
-      inverseCovarianceMatrix_5x5(i, j) = hCovMatrix5x5->GetBinContent(i + 1, j + 1);
+      for (int j = 0; j < NMATRIX_5x5; ++j)
+      {
+        inverseCovarianceMatrix_5x5[binidx](i, j) = hCovMatrix5x5->GetBinContent(i + 1, j + 1);
+      }
     }
-  }
-  for (int i = 0; i < NMATRIX_7x7; ++i)
-  {
-    for (int j = 0; j < NMATRIX_7x7; ++j)
+    for (int i = 0; i < NMATRIX_7x7; ++i)
     {
-      inverseCovarianceMatrix_7x7(i, j) = hCovMatrix7x7->GetBinContent(i + 1, j + 1);
+      for (int j = 0; j < NMATRIX_7x7; ++j)
+      {
+        inverseCovarianceMatrix_7x7[binidx](i, j) = hCovMatrix7x7->GetBinContent(i + 1, j + 1);
+      }
     }
-  }
 
-  try
-  {
-    inverseCovarianceMatrix_3x3.Invert();
-    inverseCovarianceMatrix_5x5.Invert();
-    inverseCovarianceMatrix_7x7.Invert();
-  }
-  catch (const std::exception& e)
-  {
-    std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices - Exception covariance invert for " << e.what() << " abort.." << std::endl;
-    return;
+    try
+    {
+      inverseCovarianceMatrix_3x3[binidx].Invert();
+      inverseCovarianceMatrix_5x5[binidx].Invert();
+      inverseCovarianceMatrix_7x7[binidx].Invert();
+    }
+    catch (const std::exception& e)
+    {
+      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices - Exception covariance invert for " << e.what() << " abort.." << std::endl;
+      return;
+    }
   }
 }
 
@@ -172,7 +197,7 @@ double ClusterCDFCalculator::GetCDFValue(double jointDeviation, TH1D* hD2)
   return hD2->Integral(bin, hD2->GetNbinsX());
 }
 
-double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, int NMATRIXDIM)
+double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, double clusterenergy, int NMATRIXDIM)
 {
   if (NMATRIXDIM != 3 && NMATRIXDIM != 5 && NMATRIXDIM != 7)
   {
@@ -184,6 +209,26 @@ double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, int NMA
   if (towersize != gridSize)
   {
     std::cerr << "ClusterCDFCalculator::GetCDF error: Invalid tower energy vector size! Need to be in size of 49 (7x7)." << std::endl;
+    return -1;
+  }
+
+  int ibin = -1;
+  if (henbins)
+  {
+    ibin = henbins->FindFixBin(clusterenergy) - 1;
+    if (ibin < 0)
+    {
+      std::cerr << "ClusterCDFCalculator::GetCDF fatal error: histogram bin below 0... set prob. to -1." << std::endl;
+      return -1;
+    }
+    else if (ibin >= henbins->GetNbinsX())
+    {
+      ibin = henbins->GetNbinsX() - 1;
+    }
+  }
+  else
+  {
+    std::cerr << "ClusterCDFCalculator::GetCDF error: Energy bins histogram (henbins) is not loaded!" << std::endl;
     return -1;
   }
 
@@ -200,18 +245,18 @@ double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, int NMA
 
   if (NMATRIXDIM == NMATRIXDIM3)
   {
-    double jointDeviation = CalculateJointDeviation(inputenergies, ratioHistograms_3x3, inverseCovarianceMatrix_3x3, meanD2_3x3);
-    return GetCDFValue(jointDeviation, hD2_3x3);
+    double jointDeviation = CalculateJointDeviation(inputenergies, ratioHistograms_3x3[ibin], inverseCovarianceMatrix_3x3[ibin], meanD2_3x3[ibin]);
+    return GetCDFValue(jointDeviation, hD2_3x3[ibin]);
   }
   else if (NMATRIXDIM == NMATRIXDIM5)
   {
-    double jointDeviation = CalculateJointDeviation(inputenergies, ratioHistograms_5x5, inverseCovarianceMatrix_5x5, meanD2_5x5);
-    return GetCDFValue(jointDeviation, hD2_5x5);
+    double jointDeviation = CalculateJointDeviation(inputenergies, ratioHistograms_5x5[ibin], inverseCovarianceMatrix_5x5[ibin], meanD2_5x5[ibin]);
+    return GetCDFValue(jointDeviation, hD2_5x5[ibin]);
   }
   else if (NMATRIXDIM == NMATRIXDIM7)
   {
-    double jointDeviation = CalculateJointDeviation(inputenergies, ratioHistograms_7x7, inverseCovarianceMatrix_7x7, meanD2_7x7);
-    return GetCDFValue(jointDeviation, hD2_7x7);
+    double jointDeviation = CalculateJointDeviation(inputenergies, ratioHistograms_7x7[ibin], inverseCovarianceMatrix_7x7[ibin], meanD2_7x7[ibin]);
+    return GetCDFValue(jointDeviation, hD2_7x7[ibin]);
   }
   else
   {

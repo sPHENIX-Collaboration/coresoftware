@@ -35,6 +35,8 @@ int RawClusterLikelihoodProfile::Init(PHCompositeNode *topNode)
   // load profile for prob calculation
   cdfcalc = new ClusterCDFCalculator();
   cdfcalc->LoadProfile(m_profile_name);
+  cdfcalcmergedcluster = new ClusterCDFCalculator();
+  cdfcalcmergedcluster->LoadProfile(m_profile_merged_cluster_name);
 
   if (m_inputNodeName == m_outputNodeName)
   {
@@ -84,13 +86,37 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
     std::cout << "RawClusterLikelihoodProfile::process_event Could not locate tower node " << towerNodeName << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  /*
+    std::string globalvtxNodeName = m_globalvtxNodeName;
+    GlobalVertexMap *globalvtxmap = findNode::getClass<GlobalVertexMap>(topNode,globalvtxNodeName);
+    bool isglbvtx=true;
+    if(!globalvtxmap || globalvtxmap->empty())
+    {
+      isglbvtx=false;
+    }
+
+    if(isglbvtx){
+      GlobalVertex *bvertex= nullptr;
+      for (GlobalVertexMap::ConstIter globaliter= globalvtxmap->begin(); globaliter != globalvtxmap->end(); ++globaliter)
+      {
+        bvertex = globaliter->second;
+      }
+      if(!bvertex){std::cout << "could not find globalvtxmap iter :: set vtx to (-999,-999,-999)" << std::endl;}
+      else if(bvertex){
+        vz = bvertex->get_z();
+        vy = bvertex->get_y();
+        vx = bvertex->get_x();
+      }
+    }
+  */
 
   RawClusterContainer::Map clusterMap = _clusters->getClustersMap();
   for (auto &clusterPair : clusterMap)
   {
     RawCluster *cluster = clusterPair.second;
     cluster->set_prob(-1);
-    CLHEP::Hep3Vector vertex(0, 0, 0);
+    cluster->set_merged_cluster_prob(-1);
+    CLHEP::Hep3Vector vertex(vx, vy, vz);
     CLHEP::Hep3Vector E_vec_cluster_Full = RawClusterUtility::GetEVec(*cluster, vertex);
     float ET = E_vec_cluster_Full.perp();
     if (ET < minET)
@@ -139,8 +165,13 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
         input.at(index) = towerinfo->get_energy();
       }
     }
-    double prob = cdfcalc->GetCDF(input, m_profile_dimension);
+    double clusterE = E_vec_cluster_Full.mag();
+    std::cout << "at least I am here.." << std::endl;
+    double prob = cdfcalc->GetCDF(input, clusterE, m_profile_dimension);
+    std::cout << "alright good..!!" << std::endl;
+    double prob_merged_cluster = cdfcalcmergedcluster->GetCDF(input, clusterE, m_profile_dimension);
     cluster->set_prob(prob);
+    cluster->set_merged_cluster_prob(prob_merged_cluster);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -149,6 +180,7 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
 int RawClusterLikelihoodProfile::End(PHCompositeNode * /*topNode*/)
 {
   delete cdfcalc;
+  delete cdfcalcmergedcluster;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
