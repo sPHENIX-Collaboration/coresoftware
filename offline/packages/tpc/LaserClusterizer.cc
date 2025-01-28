@@ -446,40 +446,6 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(LaserClusterContainerNode);
   }
 
-  if (m_debug)
-  {
-    m_debugFile = new TFile(m_debugFileName.c_str(), "RECREATE");
-  }
-  float timeHistMax = m_time_samples_max;
-  timeHistMax -= 0.5;
-  m_itHist_0 = new TH1I("m_itHist_0", "side 0;it", m_time_samples_max, -0.5, timeHistMax);
-  m_itHist_1 = new TH1I("m_itHist_1", "side 1;it", m_time_samples_max, -0.5, timeHistMax);
-
-  if (m_debug)
-  {
-    m_clusterTree = new TTree("clusterTree", "clusterTree");
-    m_clusterTree->Branch("event", &m_event);
-    m_clusterTree->Branch("clusters", &m_eventClusters);
-    m_clusterTree->Branch("itHist_0", &m_itHist_0);
-    m_clusterTree->Branch("itHist_1", &m_itHist_1);
-    m_clusterTree->Branch("nClusters", &m_nClus);
-    m_clusterTree->Branch("time_search", &time_search);
-    m_clusterTree->Branch("time_clus", &time_clus);
-    m_clusterTree->Branch("time_erase", &time_erase);
-    m_clusterTree->Branch("time_all", &time_all);
-  }
-
-  m_tdriftmax = AdcClockPeriod * NZBinsSide;
-
-  t_all = std::make_unique<PHTimer>("t_all");
-  t_all->stop();
-  t_search = std::make_unique<PHTimer>("t_search");
-  t_search->stop();
-  t_clus = std::make_unique<PHTimer>("t_clus");
-  t_clus->stop();
-  t_erase = std::make_unique<PHTimer>("t_erase");
-  t_erase->stop();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -558,13 +524,6 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  m_eventClusters = nullptr;
-  m_nClus = 0;
-  time_search = 0;
-  time_clus = 0;
-  time_erase = 0;
-  time_all = 0;
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);;
   
@@ -646,28 +605,51 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 	{
 	  std::cout << "Error:unable to create thread," << rc << std::endl;
 	}
+
+	if (m_do_sequential)
+	{
+	  //wait for termination of thread
+	  int rc2 = pthread_join(thread_pair.thread, nullptr);
+	  if (rc2)
+	  {
+	    std::cout << "Error:unable to join," << rc2 << std::endl;
+	  }
+
+	  //add clusters from thread to laserClusterContainer
+	  const auto &data(thread_pair.data);
+	  for(int index = 0; index < (int) data.cluster_vector.size(); ++index)
+	  {
+	    auto cluster = data.cluster_vector[index];
+	    const auto ckey = data.cluster_key_vector[index];
+	    
+	    m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+	  }
+	}
       }
     }
   }
   
   pthread_attr_destroy(&attr);
 
-  for (const auto & thread_pair : threads)
+  if (!m_do_sequential)
   {
-    int rc2 = pthread_join(thread_pair.thread, nullptr);
-    if (rc2)
+    for (const auto & thread_pair : threads)
     {
-      std::cout << "Error:unable to join," << rc2 << std::endl;
-    }
-
-    const auto &data(thread_pair.data);
-
-    for(int index = 0; index < (int) data.cluster_vector.size(); ++index)
-    {
-      auto cluster = data.cluster_vector[index];
-      const auto ckey = data.cluster_key_vector[index];
+      int rc2 = pthread_join(thread_pair.thread, nullptr);
+      if (rc2)
+      {
+	std::cout << "Error:unable to join," << rc2 << std::endl;
+      }
       
-      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+      const auto &data(thread_pair.data);
+      
+      for(int index = 0; index < (int) data.cluster_vector.size(); ++index)
+      {
+	auto cluster = data.cluster_vector[index];
+	const auto ckey = data.cluster_key_vector[index];
+	
+	m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+      }
     }
   }
 
@@ -678,24 +660,4 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 
-}
-
-int LaserClusterizer::ResetEvent(PHCompositeNode * /*topNode*/)
-{
-  //m_itHist_0->Reset();
-  //m_itHist_1->Reset();
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int LaserClusterizer::End(PHCompositeNode * /*topNode*/)
-{
-  if (m_debug)
-  {
-    m_debugFile->cd();
-    m_clusterTree->Write();
-    m_debugFile->Close();
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
 }
