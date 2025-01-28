@@ -75,11 +75,11 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
 
   // initialize the WindowMatchers
   if (_use_legacy_windowing) {
-    window_dx.set_use_legacy(_x_search_win, this);
-    window_dy.set_use_legacy(_y_search_win, this);
-    window_dz.set_use_legacy(_z_search_win, this);
-    window_deta.set_use_legacy(_eta_search_win, this);
-    window_dphi.set_use_legacy(_phi_search_win, this);
+    window_dx.set_use_legacy(_x_search_win);
+    window_dy.set_use_legacy(_y_search_win);
+    window_dz.set_use_legacy(_z_search_win);
+    window_deta.set_use_legacy(_eta_search_win);
+    window_dphi.set_use_legacy(_phi_search_win);
   } else {
     window_dx.init_bools("dx", _print_windows || Verbosity()   >0);
     window_dy.init_bools("dy", _print_windows || Verbosity()   >0);
@@ -107,7 +107,7 @@ std::string PHSiliconTpcTrackMatching::WindowMatcher::print_fn(const Arr3D& dat)
   if (dat[1]==0.) {
     os << dat[0];
   } else {
-    os << dat[0] << (dat[1]>=0 ? "+" : "") << dat[1] <<"*exp("<<dat[2]<<"/pT)";
+    os << dat[0] << (dat[1]>0 ? "+" : "") << dat[1] <<"*exp("<<dat[2]<<"/pT)";
   }
   return os.str();
 }
@@ -161,7 +161,14 @@ bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
 {
   const auto delta = tpc_X-si_X;
   if (use_legacy) {
-    return fabs(delta) < leg_search_win * parent_ptr->getMatchingInflationFactor(tpc_pt);
+    // legacy functional form: a+b/tpc_pt^c for all tracks > 150 MeV
+    // there were setters for a,b,c and pT_min, but the new form
+    // of a+b*exp(c/pT) works better.
+    double mag = 1.;
+    if (tpc_pt>0.15) {
+      mag = 1.+5./tpc_pt;
+    }
+    return fabs(delta) < mag * leg_search_win;
   }
   if (posQ) {
     double pt = (tpc_pt<min_pt_posQ) ? min_pt_posQ : tpc_pt;
@@ -512,8 +519,8 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
     bool is_posQ = (tpc_q>0.);
 
-    // mag is only used when set_use_legacy(true) has been invoked
-    double mag = getMatchingInflationFactor(tpc_pt);
+    // mag is only used for printouts from legacy code.
+    double mag = 1.+5./tpc_pt;
 
     if (Verbosity() > 8)
     {
@@ -781,18 +788,6 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
   }
 
   return;
-}
-
-double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
-{
-  double mag = 1.0;
-
-  if (tpc_pt > _match_function_ptmin)
-  {
-    mag = _match_function_a + _match_function_b / pow(tpc_pt, _match_function_pow);
-  }
-
-  return mag;
 }
 
 std::vector<TrkrDefs::cluskey> PHSiliconTpcTrackMatching::getTrackletClusterList(TrackSeed* tracklet)

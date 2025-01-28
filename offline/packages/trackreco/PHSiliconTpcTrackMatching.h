@@ -54,12 +54,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     // --- option to use the legacy method ---
     bool use_legacy = false;
     double leg_search_win = 1.; // use if use_legacy == true; set in InitRun
-    PHSiliconTpcTrackMatching* parent_ptr {nullptr};
-    void set_use_legacy(double _leg_search_win, PHSiliconTpcTrackMatching* parent) 
+    /* PHSiliconTpcTrackMatching* parent_ptr {nullptr}; */
+    void set_use_legacy(double _leg_search_win)
     { 
       use_legacy=true; 
       leg_search_win=_leg_search_win; 
-      parent_ptr=parent; 
     }
 
     // --- new method, comparing to a+b*exp(c/pT)
@@ -149,12 +148,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   void zeroField(const bool flag) { _zero_field = flag; }
   
-  void set_match_window_function_pars(const double a, const double b, const double ptmin)
-  {
-    _match_function_a = a;
-    _match_function_b = b;
-    _match_function_ptmin = ptmin;
-  }
   void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
@@ -185,7 +178,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
   short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
   double getBunchCrossing(unsigned int trid, double z_mismatch);
-  double getMatchingInflationFactor(double tpc_pt);
 
   TFile *_file = nullptr;
   TNtuple *_tree = nullptr;
@@ -197,10 +189,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
 
-  double _match_function_a = 1.0;
-  double _match_function_b = 5.0;
-  double _match_function_pow = 1.0;
-  double _match_function_ptmin = 0.15;
   bool _use_old_matching = false;  // normally false
 
   bool _zero_field = false;     // fit straight lines if true
