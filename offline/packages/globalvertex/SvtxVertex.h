@@ -1,18 +1,18 @@
-#ifndef TRACKBASEHISTORIC_SVTXVERTEX_H
-#define TRACKBASEHISTORIC_SVTXVERTEX_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_SVTXVERTEX_H
+#define GLOBALVERTEX_SVTXVERTEX_H
 
 #include "Vertex.h"
 
-#include <climits>
-#include <cmath>
+#include <cstddef>
 #include <iostream>
-#include <set>
-#include <vector>
+#include <limits>
 
 class SvtxVertex : public Vertex
 {
  public:
-  ~SvtxVertex() override {}
+  ~SvtxVertex() override = default;
 
   // PHObject virtual overloads
 
@@ -26,34 +26,34 @@ class SvtxVertex : public Vertex
 
   // vertex info
 
-  virtual unsigned int get_id() const override { return UINT_MAX; }
+  virtual unsigned int get_id() const override { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_id(unsigned int) override {}
 
   virtual float get_t0() const override { return get_t(); }
   virtual void set_t0(float t0) override { set_t(t0); }
 
-  virtual float get_t() const override { return NAN; }
+  virtual float get_t() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_t(float) override {}
 
-  virtual float get_x() const override { return NAN; }
+  virtual float get_x() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_x(float) override {}
 
-  virtual float get_y() const override { return NAN; }
+  virtual float get_y() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_y(float) override {}
 
-  virtual float get_z() const override { return NAN; }
+  virtual float get_z() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_z(float) override {}
 
-  virtual float get_chisq() const override { return NAN; }
+  virtual float get_chisq() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_chisq(float) override {}
 
-  virtual unsigned int get_ndof() const override { return UINT_MAX; }
+  virtual unsigned int get_ndof() const override { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_ndof(unsigned int) override {}
 
-  virtual float get_position(unsigned int) const override { return NAN; }
+  virtual float get_position(unsigned int) const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_position(unsigned int, float) override {}
 
-  virtual float get_error(unsigned int, unsigned int) const override { return NAN; }
+  virtual float get_error(unsigned int, unsigned int) const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_error(unsigned int, unsigned int, float) override {}
 
   //

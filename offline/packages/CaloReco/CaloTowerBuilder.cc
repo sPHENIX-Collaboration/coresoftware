@@ -227,6 +227,10 @@ int CaloTowerBuilder::process_sim()
     for (int j = 0; j < n_samples; j++)
     {
       towerinfo->set_waveform_value(j, waveforms.at(i).at(j));
+      if(std::round(waveforms.at(i).at(j)) >= m_saturation)
+      {
+        towerinfo->set_isSaturated(true);
+      }
     }
   }
   waveforms.clear();
@@ -449,6 +453,10 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     
     for (int j = 0; j < n_samples; j++)
     {
+      if(std::round(waveforms.at(i).at(j)) >= m_saturation)
+      {
+        towerinfo->set_isSaturated(true);
+      }
       towerinfo->set_waveform_value(j, waveforms.at(i).at(j));
     }
   }

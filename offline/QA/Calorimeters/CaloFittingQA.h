@@ -11,6 +11,7 @@
 #include <vector>
 
 // Forward declarations
+class CDBTTree;
 class PHCompositeNode;
 class TH1;
 class TH2;
@@ -24,7 +25,7 @@ class CaloFittingQA : public SubsysReco
   CaloFittingQA(const std::string& name = "CaloFittingQA");  // const std::string &filename = "testQA.root"); //int nevents = 100);
 
   //! destructor
-  ~CaloFittingQA() override = default;
+  ~CaloFittingQA() override;
 
   //! full initialization
   int Init(PHCompositeNode*) override;
@@ -39,8 +40,6 @@ class CaloFittingQA : public SubsysReco
   int process_towers(PHCompositeNode*);
   int process_data(PHCompositeNode *topNode, CaloTowerDefs::DetectorSystem dettype, std::vector<std::vector<float>> &waveforms);
   bool skipChannel(int ich, int pid, CaloTowerDefs::DetectorSystem dettype);
-
-  void set_debug(bool debug) { m_debug = debug; }
 
   void set_offlineflag(const bool f = true)
   {
@@ -82,7 +81,6 @@ class CaloFittingQA : public SubsysReco
 
   int _eventcounter{0};
 
-  bool m_debug{false};
   bool m_UseOfflinePacketFlag{true};
   bool m_SimFlag{false};
 

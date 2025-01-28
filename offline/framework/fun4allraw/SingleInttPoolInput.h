@@ -9,7 +9,7 @@
 #include <set>
 #include <string>
 #include <vector>
-
+#include <iostream>
 class InttRawHit;
 class Packet;
 class PHCompositeNode;
@@ -33,6 +33,20 @@ class SingleInttPoolInput : public SingleStreamingInput
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
   const std::set<uint64_t> &BclkStack() const override { return m_BclkStack; }
   const std::map<uint64_t, std::set<int>> &BeamClockFEE() const override { return m_BeamClockFEE; }
+  void streamingMode(const bool isStreaming)
+  {
+    if(isStreaming)
+    {
+      SetNegativeBco(120 - 23);
+      SetBcoRange(500);
+      std::cout << "INTT set to streaming event combining"<<std::endl;
+      return;
+    }
+
+    SetNegativeBco(1);
+    SetBcoRange(2);
+    std::cout << "INTT set to triggered event combining" << std::endl;
+  }
 
  private:
   Packet **plist{nullptr};

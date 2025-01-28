@@ -76,6 +76,7 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   bemc->SetVertex(vertex);
   // Set threshold
   bemc->SetTowerThreshold(_min_tower_e);
+  bemc->SetPeakThreshold(_min_peak_e);
   bemc->SetProbNoiseParam(fProbNoiseParam);
 }
 
@@ -347,6 +348,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   bemc->SetVertex(vertex);
   // Set threshold
   bemc->SetTowerThreshold(_min_tower_e);
+  bemc->SetPeakThreshold(_min_peak_e);
 
   bemc->SetProbNoiseParam(fProbNoiseParam);
   bemc->SetProfileProb(bProfProb);
@@ -472,7 +474,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     //    ecl = pc->GetTotalEnergy();
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
 
-    int npk = pc->GetSubClusters(PList, Peaks);
+    int npk = pc->GetSubClusters(PList, Peaks,m_subclustersplitting);
     if (npk < 0)
     {
       return Fun4AllReturnCodes::ABORTEVENT;

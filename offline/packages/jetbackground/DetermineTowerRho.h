@@ -1,44 +1,31 @@
-#ifndef RHOBASE_DETERMINETOWERRHO_H
-#define RHOBASE_DETERMINETOWERRHO_H
+/*!
+ * \file DetermineTowerRho.h
+ * \brief UE background rho calculator.
+ * \author Tanner Mengel <tmengel@bnl.gov>
+ * \version $Verison: 2.0.1 $
+ * \date $Date: 02/01/2024. Revised 09/19/2024$
+ */
 
-//===========================================================
-/// \file DetermineTowerRho.h
-/// \brief UE background rho calculator
-/// \author Tanner Mengel
-//===========================================================
+#ifndef JETBACKGROUND_DETERMINETOWERHO_H
+#define JETBACKGROUND_DETERMINETOWERHO_H
 
 #include "TowerRho.h"
-#include "TowerRhov1.h"
 
-#include <jetbase/Jet.h>
-//#include <jetbase/JetAlgo.h>
-//#include <jetbase/JetInput.h>
-
-// fun4all includes
 #include <fun4all/SubsysReco.h>
 
-#include <fastjet/JetDefinition.hh>
-//#include <fastjet/PseudoJet.hh>
-
-// system includes
 #include <iostream>
 #include <string>
 #include <vector>
 
-// forward declarations
 class PHCompositeNode;
 class JetInput;
+class Jet;
+
 namespace fastjet
 {
   class PseudoJet;
-}
-
-/// \class DetermineTowerRho
-///
-/// \brief UE background calculator
-///
-/// This module estimates rho for the area and multiplicty methods using kt jets
-///
+  class Selector;
+}  // namespace fastjet
 
 class DetermineTowerRho : public SubsysReco
 {
@@ -51,125 +38,80 @@ class DetermineTowerRho : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   // add rho method (Area or Multiplicity)
-  void add_method(TowerRho::Method rho_method, std::string output = "")
-  {
-    // get method name
-    std::string method_name = TowerRhov1::get_method_string(rho_method);
+  void add_method(TowerRho::Method rho_method, std::string output_node = "");
 
-    // check if method already exists
-    for (auto &method : _rho_methods)
-    {
-      if (method == rho_method)
-      {
-        std::cout << "WARNING: rho method " << method_name << " already exists" << std::endl;
-        return;
-      }
-    }
+  // inputs for estimating background
+  void add_input(JetInput *input) { m_inputs.push_back(input); }
+  void add_tower_input(JetInput *input) { add_input(input); }  // for backwards compatibility
 
-    _rho_methods.push_back(rho_method);
+  // set the jet algorithm used to cluster background jets
+  // default is KT
+  void set_algo(const Jet::ALGO algo) { m_bkgd_jet_algo = algo; }
+  Jet::ALGO get_algo() const { return m_bkgd_jet_algo; }
 
-    // if no output name is specified, use default
-    if (output == "")
-    {
-      output = "TowerRho_" + method_name;
-    }
-
-    // add output name
-    _outputs.push_back(output);
-  }
-
-  // inputs for background jets
-  void add_tower_input(JetInput *input) { _inputs.push_back(input); }
-
-  void set_algo(Jet::ALGO algo) { m_bkgd_jet_algo = algo; }
-  Jet::ALGO get_algo() { return m_bkgd_jet_algo; }
-
-  // set the jet algorithm parameter used to calculate the background jets
-  void set_par(float par) { m_par = par; }  // default is 0.4
+  // set the jet algorithm parameter for background jets
+  // default is 0.4
+  void set_par(const float val) { m_par = val; }
   float get_par() { return m_par; }
 
-  // set the absolute eta range for the background jet calculation // default is 1.1
-  void set_tower_abs_eta(float abseta) { m_abs_tower_eta_range = abseta; }
-  float get_tower_abs_eta() const { return m_abs_tower_eta_range; }
+  // set the absolute eta range for tower acceptance
+  // default is 1.1
+  void set_abs_eta(const float val) { m_abs_input_eta_range = val; }
+  float get_abs_eta() const { return m_abs_input_eta_range; }
 
-  // set the absolute eta range for the background jet calculation // default is 1.1 - m_par (set in the init_algo method)
+  void set_tower_abs_eta(const float val) { set_abs_eta(val); }  // for backwards compatibility
+  float get_tower_abs_eta() const { return get_abs_eta(); }      // for backwards compatibility
+
+  // set the absolute eta range for jet acceptance
+  // default is 1.1
   void set_jet_abs_eta(float abseta) { m_abs_jet_eta_range = abseta; }
   float get_jet_abs_eta() const { return m_abs_jet_eta_range; }
 
-  // set the number of hardest towers to omit from the background jet calculation // default is 2
-  void set_omit_nhardest(int omit_nhardest) { m_omit_nhardest = omit_nhardest; }
-  int get_omit_nhardest() const { return m_omit_nhardest; }
+  // set the number of hardest towers to omit
+  // default is 2
+  void set_omit_nhardest(const unsigned int val) { m_omit_nhardest = val; }
+  unsigned int get_omit_nhardest() const { return m_omit_nhardest; }
 
-  // set the minimum pT for towers and jets used in the background jet calculation
-  void set_tower_min_pT(float min_pT) { m_tower_min_pT = min_pT; }  // default is 0.0
-  float get_tower_min_pT() const { return m_tower_min_pT; }
-
-  // set the minimum pT for towers and jets used in the background jet calculation
-  void set_jet_min_pT(float min_pT) { m_jet_min_pT = min_pT; }  // default is 1.0
-  float get_jet_min_pT() const { return m_jet_min_pT; }
-
-  // set the ghost area for the background jet calculation
-  void set_ghost_area(float ghost_area) { m_ghost_area = ghost_area; }  // default is 0.01
+  // set the ghost area
+  // default is 0.01
+  void set_ghost_area(const float val) { m_ghost_area = val; }
   float get_ghost_area() const { return m_ghost_area; }
 
+  // set the minimum pT for jets accepted in the background estimation
+  // default is off (VOID_CUT)
+  void set_jet_min_pT(const float val) { m_jet_min_pT = val; }
+  float get_jet_min_pT() const { return m_jet_min_pT; }
+
   // print settings
-  void print_settings(std::ostream &os = std::cout) const;
-
-  // tower cut
-  // void do_tower_cut(bool b = true) { m_do_tower_cut = b; }
-
-  // void set_tower_threshold(float threshold)
-  // {
-  // m_tower_threshold = threshold;
-  // }
+  void print_settings(std::ostream &os = std::cout);
 
  private:
-  // internal methods
-  int CreateNode(PHCompositeNode *topNode);
-  void FillNode(PHCompositeNode *topNode, unsigned int ipos, const float rho, const float sigma);
-
   // variables
-  std::vector<JetInput *> _inputs;
-  std::vector<std::string> _outputs;
-  std::vector<TowerRho::Method> _rho_methods;
-  Jet::ALGO _algo{Jet::ALGO::KT};
+  std::vector<JetInput *> m_inputs{};
+  std::vector<std::string> m_output_nodes{};
+  std::vector<TowerRho::Method> m_rho_methods{};
 
-  // int m_verbosity { 0 };
-
-  // settings for the background jet calculation
   Jet::ALGO m_bkgd_jet_algo{Jet::ALGO::KT};  // default is KT
+  float m_par{0.4};                          // default is 0.4
 
-  float m_par{0.4};  // default is 0.4
+  float m_abs_input_eta_range{1.1};  // default is 1.1
+  unsigned int m_omit_nhardest{2};   // default is 2
+  float m_ghost_area{0.01};          // default is 0.01
 
-  // eta ranges for the background jet calculation
-  float m_abs_tower_eta_range{1.1};  // default is 1.1
-  float m_abs_jet_eta_range{5.0};    // default is 1.1 - m_par (set in the init_algo method)
+  const float VOID_CUT{-999.0};
+  float m_jet_min_pT{-999.0};         // default is off
+  float m_abs_jet_eta_range{-999.0};  // default is off
 
-  float m_abs_ghost_eta{5.0};  // set in the init_algo method
+  // internal methods
+  int CreateNodes(PHCompositeNode *topNode);
 
-  int m_omit_nhardest{2};
+  float CalcPercentile(const std::vector<float> &sorted_vec,
+                       const float percentile, const float nempty) const;
 
-  float m_tower_min_pT{0.0};
-  float m_jet_min_pT{0.0};
+  void CalcMedianStd(const std::vector<float> &vec,
+                     float n_empty_jets, float &median, float &std_dev) const;
 
-  float m_ghost_area{0.01};
-
-  // tower threshold
-  // bool m_do_tower_cut { false };
-  // float m_tower_threshold { 0.0 };
-
-  fastjet::JetAlgorithm get_fj_algo();
-  std::string get_fj_algo_name();
-  std::string m_fj_algo_name;
-  std::vector<fastjet::PseudoJet> get_pseudojets(PHCompositeNode *topNode);
-
-  float _percentile(const std::vector<float> &sorted_vec,
-                    const float percentile,
-                    const float nempty) const;
-  void _median_stddev(const std::vector<float> &vec,
-                      float n_empty_jets,
-                      float &median,
-                      float &std_dev) const;
+  fastjet::Selector get_jet_selector();
 };
 
-#endif  // RHOBASE_DETERMINETOWERRHO_H
+#endif  // JETBACKGROUND_DETERMINETOWERHO_H
