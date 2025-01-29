@@ -446,6 +446,8 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(LaserClusterContainerNode);
   }
 
+  m_tdriftmax = AdcClockPeriod * NZBinsSide;
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
