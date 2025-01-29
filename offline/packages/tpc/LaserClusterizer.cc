@@ -66,7 +66,7 @@ namespace
     ActsGeometry *tGeometry = nullptr;
     std::vector<TrkrHitSet *> hitsets;
     std::vector<unsigned int> layers;
-    bool side = 0;
+    bool side = false;
     unsigned int sector = 0;
     std::vector<LaserCluster *> cluster_vector;
     std::vector<TrkrDefs::cluskey> cluster_key_vector;
@@ -427,7 +427,10 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
 
   // Create the Cluster node if required
   std::string laserClusterNodeName = "LASER_CLUSTER";
-  if (m_lamination) laserClusterNodeName = "LAMINATION_CLUSTER";
+  if (m_lamination)
+  {
+    laserClusterNodeName = "LAMINATION_CLUSTER";
+  }
   auto laserclusters = findNode::getClass<LaserClusterContainer>(dstNode, laserClusterNodeName);
   if (!laserclusters)
   {
@@ -501,7 +504,10 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   
   // get node for clusters
   std::string laserClusterNodeName = "LASER_CLUSTER";
-  if (m_lamination) laserClusterNodeName = "LAMINATION_CLUSTER";
+  if (m_lamination)
+  {
+    laserClusterNodeName = "LAMINATION_CLUSTER";
+  }
   m_clusterlist = findNode::getClass<LaserClusterContainer>(topNode, laserClusterNodeName);
   if (!m_clusterlist)
   {
@@ -536,7 +542,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   };
 
   std::vector<thread_pair_t> threads;
-  threads.reserve(12*3*2);
+  threads.reserve(72);
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
