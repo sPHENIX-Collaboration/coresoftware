@@ -1,5 +1,14 @@
 #include "ClusterCDFCalculator.h"
 
+#include <TH1.h>
+#include <TH2.h>
+#include <TMatrixD.h>
+#include <TVectorD.h>
+
+#include <boost/format.hpp>
+
+#include <iostream>
+
 ClusterCDFCalculator::~ClusterCDFCalculator()
 {
   if (file)
@@ -13,7 +22,7 @@ void ClusterCDFCalculator::LoadProfile(const std::string& filename)
 {
   if (file)
   {
-    std::cerr << "ClusterCDFCalculator::LoadProfile Warning: a file is already loaded.. closing it first" << std::endl;
+    std::cout << "ClusterCDFCalculator::LoadProfile Warning: a file is already loaded.. closing it first" << std::endl;
     file->Close();
     delete file;
     file = nullptr;
@@ -23,7 +32,7 @@ void ClusterCDFCalculator::LoadProfile(const std::string& filename)
 
   if (!file || file->IsZombie())
   {
-    std::cerr << "ClusterCDFCalculator::LoadProfile error: Could not open file!" << std::endl;
+    std::cout << "ClusterCDFCalculator::LoadProfile error: Could not open file!" << std::endl;
     return;
   }
 
@@ -32,10 +41,10 @@ void ClusterCDFCalculator::LoadProfile(const std::string& filename)
 
 void ClusterCDFCalculator::LoadHistogramsAndMatrices()
 {
-  henbins = (TH1D*) file->Get("hen");
+  file->GetObject("hen",henbins);
   if (!henbins)
   {
-    std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() FATAL ERROR : energy bins histogram does not exist.. return.." << std::endl;
+    std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() FATAL ERROR : energy bins histogram does not exist.. return.." << std::endl;
     return;
   }
   const int nBins = henbins->GetNbinsX();
@@ -51,9 +60,9 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
   inverseCovarianceMatrix_5x5.resize(nBins, TMatrixD(NMATRIX_5x5, NMATRIX_5x5));
   inverseCovarianceMatrix_7x7.resize(nBins, TMatrixD(NMATRIX_7x7, NMATRIX_7x7));
 
-  ratioHistograms_3x3.resize(nBins, std::vector<TH1D*>(NMATRIX_3x3, nullptr));
-  ratioHistograms_5x5.resize(nBins, std::vector<TH1D*>(NMATRIX_5x5, nullptr));
-  ratioHistograms_7x7.resize(nBins, std::vector<TH1D*>(NMATRIX_7x7, nullptr));
+  ratioHistograms_3x3.resize(nBins, std::vector<TH1*>(NMATRIX_3x3, nullptr));
+  ratioHistograms_5x5.resize(nBins, std::vector<TH1*>(NMATRIX_5x5, nullptr));
+  ratioHistograms_7x7.resize(nBins, std::vector<TH1*>(NMATRIX_7x7, nullptr));
 
   for (int binidx = 0; binidx < nBins; ++binidx)
   {
@@ -61,23 +70,25 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     std::string hD2_5x5_name = (boost::format("hD2_5x5_en%d") % binidx).str();
     std::string hD2_7x7_name = (boost::format("hD2_7x7_en%d") % binidx).str();
 
-    hD2_3x3[binidx] = dynamic_cast<TH1D*>(file->Get(hD2_3x3_name.c_str()));
-    hD2_5x5[binidx] = dynamic_cast<TH1D*>(file->Get(hD2_5x5_name.c_str()));
-    hD2_7x7[binidx] = dynamic_cast<TH1D*>(file->Get(hD2_7x7_name.c_str()));
+    file->GetObject(hD2_3x3_name.c_str(),hD2_3x3[binidx]);
+    file->GetObject(hD2_5x5_name.c_str(),hD2_5x5[binidx]);
+    file->GetObject(hD2_7x7_name.c_str(),hD2_7x7[binidx]);
 
     if (!hD2_3x3[binidx] || !hD2_5x5[binidx] || !hD2_7x7[binidx])
     {
-      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more hD2 histograms for bin " << binidx << " are missing. Returning..." << std::endl;
+      std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more hD2 histograms for bin " << binidx << " are missing. Returning..." << std::endl;
       return;
     }
-
-    auto hD2mean3 = dynamic_cast<TH1D*>(file->Get((boost::format("hD2mean3_en%d") % binidx).str().c_str()));
-    auto hD2mean5 = dynamic_cast<TH1D*>(file->Get((boost::format("hD2mean5_en%d") % binidx).str().c_str()));
-    auto hD2mean7 = dynamic_cast<TH1D*>(file->Get((boost::format("hD2mean7_en%d") % binidx).str().c_str()));
+    TH1 *hD2mean3 {nullptr};
+    file->GetObject((boost::format("hD2mean3_en%d") % binidx).str().c_str(),hD2mean3);
+    TH1 *hD2mean5{nullptr};
+    file->GetObject((boost::format("hD2mean5_en%d") % binidx).str().c_str(),hD2mean5);
+    TH1 *hD2mean7{nullptr};
+    file->GetObject((boost::format("hD2mean7_en%d") % binidx).str().c_str(),hD2mean7);
 
     if (!hD2mean3 || !hD2mean5 || !hD2mean7)
     {
-      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more required histograms (hD2_3x3, hD2_5x5, hD2_7x7) are missing." << std::endl;
+      std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: One or more required histograms (hD2_3x3, hD2_5x5, hD2_7x7) are missing." << std::endl;
       return;
     }
 
@@ -88,10 +99,10 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     for (int i = 0; i < NMATRIX_3x3; ++i)
     {
       std::string histName = (boost::format("heratio_3x3_en%d_%d") % binidx % i).str();
-      ratioHistograms_3x3[binidx][i] = dynamic_cast<TH1D*>(file->Get(histName.c_str()));
+      file->GetObject(histName.c_str(),ratioHistograms_3x3[binidx][i]);
       if (!ratioHistograms_3x3[binidx][i])
       {
-        std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
         return;
       }
     }
@@ -99,10 +110,10 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     for (int i = 0; i < NMATRIX_5x5; ++i)
     {
       std::string histName = (boost::format("heratio_5x5_en%d_%d") % binidx % i).str();
-      ratioHistograms_5x5[binidx][i] = dynamic_cast<TH1D*>(file->Get(histName.c_str()));
+      file->GetObject(histName.c_str(),ratioHistograms_5x5[binidx][i]);
       if (!ratioHistograms_5x5[binidx][i])
       {
-        std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
         return;
       }
     }
@@ -110,21 +121,23 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     for (int i = 0; i < NMATRIX_7x7; ++i)
     {
       std::string histName = (boost::format("heratio_7x7_en%d_%d") % binidx % i).str();
-      ratioHistograms_7x7[binidx][i] = dynamic_cast<TH1D*>(file->Get(histName.c_str()));
+      file->GetObject(histName.c_str(),ratioHistograms_7x7[binidx][i]);
       if (!ratioHistograms_7x7[binidx][i])
       {
-        std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
+        std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hist " << histName.c_str() << " is missing." << std::endl;
         return;
       }
     }
-
-    auto hCovMatrix3x3 = (TH2D*) file->Get((boost::format("hCovMatrix3_en%d") % binidx).str().c_str());
-    auto hCovMatrix5x5 = (TH2D*) file->Get((boost::format("hCovMatrix5_en%d") % binidx).str().c_str());
-    auto hCovMatrix7x7 = (TH2D*) file->Get((boost::format("hCovMatrix7_en%d") % binidx).str().c_str());
+    TH2 *hCovMatrix3x3 {nullptr};
+    file->GetObject((boost::format("hCovMatrix3_en%d") % binidx).str().c_str(),hCovMatrix3x3);
+    TH2 *hCovMatrix5x5 {nullptr};
+    file->GetObject((boost::format("hCovMatrix5_en%d") % binidx).str().c_str(),hCovMatrix5x5);
+    TH2 *hCovMatrix7x7 {nullptr};
+    file->GetObject((boost::format("hCovMatrix7_en%d") % binidx).str().c_str(),hCovMatrix7x7);
 
     if (!hCovMatrix3x3 || !hCovMatrix5x5 || !hCovMatrix7x7)
     {
-      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hCovMatrix5x5 histograms are missing." << std::endl;
+      std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices() error: hCovMatrix5x5 histograms are missing." << std::endl;
       return;
     }
     for (int i = 0; i < NMATRIX_3x3; ++i)
@@ -157,14 +170,14 @@ void ClusterCDFCalculator::LoadHistogramsAndMatrices()
     }
     catch (const std::exception& e)
     {
-      std::cerr << "ClusterCDFCalculator::LoadHistogramsAndMatrices - Exception covariance invert for " << e.what() << " abort.." << std::endl;
+      std::cout << "ClusterCDFCalculator::LoadHistogramsAndMatrices - Exception covariance invert for " << e.what() << " abort.." << std::endl;
       return;
     }
   }
 }
 
 double ClusterCDFCalculator::CalculateJointDeviation(const std::vector<double>& energies,
-                                                     const std::vector<TH1D*>& ratioHistograms,
+                                                     const std::vector<TH1*>& ratioHistograms,
                                                      const TMatrixD& inverseCovarianceMatrix,
                                                      double meanD2)
 {
@@ -187,7 +200,7 @@ double ClusterCDFCalculator::CalculateJointDeviation(const std::vector<double>& 
   return probVector * (inverseCovarianceMatrix * probVector) / meanD2;
 }
 
-double ClusterCDFCalculator::GetCDFValue(double jointDeviation, TH1D* hD2)
+double ClusterCDFCalculator::GetCDFValue(double jointDeviation, TH1* hD2)
 {
   int bin = hD2->FindBin(jointDeviation);
   if (bin <= 0 || bin > hD2->GetNbinsX())
@@ -201,14 +214,14 @@ double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, double 
 {
   if (NMATRIXDIM != 3 && NMATRIXDIM != 5 && NMATRIXDIM != 7)
   {
-    std::cerr << "ClusterCDFCalculator::GetCDF error: Invalid dimension as input! only 3x3, 5x5, 7x7 are available use input 3 or 5 or 7." << std::endl;
+    std::cout << "ClusterCDFCalculator::GetCDF error: Invalid dimension as input! only 3x3, 5x5, 7x7 are available use input 3 or 5 or 7." << std::endl;
     return -1;
   }
 
   int towersize = energies.size();
   if (towersize != gridSize)
   {
-    std::cerr << "ClusterCDFCalculator::GetCDF error: Invalid tower energy vector size! Need to be in size of 49 (7x7)." << std::endl;
+    std::cout << "ClusterCDFCalculator::GetCDF error: Invalid tower energy vector size! Need to be in size of 49 (7x7)." << std::endl;
     return -1;
   }
 
@@ -218,7 +231,7 @@ double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, double 
     ibin = henbins->FindFixBin(clusterenergy) - 1;
     if (ibin < 0)
     {
-      std::cerr << "ClusterCDFCalculator::GetCDF fatal error: histogram bin below 0... set prob. to -1." << std::endl;
+      std::cout << "ClusterCDFCalculator::GetCDF fatal error: histogram bin below 0... set prob. to -1." << std::endl;
       return -1;
     }
     else if (ibin >= henbins->GetNbinsX())
@@ -228,7 +241,7 @@ double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, double 
   }
   else
   {
-    std::cerr << "ClusterCDFCalculator::GetCDF error: Energy bins histogram (henbins) is not loaded!" << std::endl;
+    std::cout << "ClusterCDFCalculator::GetCDF error: Energy bins histogram (henbins) is not loaded!" << std::endl;
     return -1;
   }
 
@@ -260,7 +273,7 @@ double ClusterCDFCalculator::GetCDF(const std::vector<double>& energies, double 
   }
   else
   {
-    std::cerr << "ClusterCDFCalculator::GetCDF error: Invalid input size. Supported sizes are 3 (for 3x3), 5 (for 5x5), and 7 (for 7x7)." << std::endl;
+    std::cout << "ClusterCDFCalculator::GetCDF error: Invalid input size. Supported sizes are 3 (for 3x3), 5 (for 5x5), and 7 (for 7x7)." << std::endl;
     return -1;
   }
 }
@@ -270,7 +283,7 @@ std::unordered_set<int> ClusterCDFCalculator::getSubsetIndices(int _gridsize, in
   std::unordered_set<int> indices;
   if (_subsetsize > _gridsize || _subsetsize % 2 == 0)
   {
-    std::cerr << "Invalid subset size!" << std::endl;
+    std::cout << "Invalid subset size!" << std::endl;
     return indices;
   }
 
