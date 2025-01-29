@@ -125,13 +125,14 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     {
       std::cout << "Getting ZDC" << std::endl;
     }
-
-  if (!m_zdcinfo)
-  {
-    m_mb_info->setIsAuAuMinimumBias(false);
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
+  if (!m_issim)
+    {
+      if (!m_zdcinfo)
+	{
+	  m_mb_info->setIsAuAuMinimumBias(false);
+	  return Fun4AllReturnCodes::EVENT_OK;
+	}
+    }
   //  Z vertex is within range
   if (std::fabs(m_vertex) > m_z_vtx_cut && minbiascheck)
   {
@@ -177,11 +178,14 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
 	  //m_mb_info->setIsAuAuMinimumBias(false);
 	  //return Fun4AllReturnCodes::EVENT_OK;
 	}
-      if (m_zdcinfo->get_zdc_energy(iside) <= m_zdc_cut  && minbiascheck)
+      if (!m_issim)
 	{
-	  minbiascheck = false;
-	  //m_mb_info->setIsAuAuMinimumBias(false);
-	  //return Fun4AllReturnCodes::EVENT_OK;	 
+	  if (m_zdcinfo->get_zdc_energy(iside) <= m_zdc_cut  && minbiascheck)
+	    {
+	      minbiascheck = false;
+	      //m_mb_info->setIsAuAuMinimumBias(false);
+	      //return Fun4AllReturnCodes::EVENT_OK;	 
+	    }
 	}
     }
   if ((m_mbd_charge_sum[0] + m_mbd_charge_sum[1]) > 2100  && minbiascheck)
@@ -244,16 +248,19 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
-  m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
-  if (Verbosity())
+  if (!m_issim)
     {
-      std::cout << "Getting ZDC Info" << std::endl;
-    }
-
-  if (!m_zdcinfo)
-    {
-      std::cout << "no zdc towers node " << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
+      m_zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+      if (Verbosity())
+	{
+	  std::cout << "Getting ZDC Info" << std::endl;
+	}
+      
+      if (!m_zdcinfo)
+	{
+	  std::cout << "no zdc towers node " << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
     }
   if (Verbosity())
     {
