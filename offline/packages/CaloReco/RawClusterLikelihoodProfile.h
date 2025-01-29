@@ -1,5 +1,5 @@
-#ifndef RAWCLUSTERLIKELIHOODPROFILE_H
-#define RAWCLUSTERLIKELIHOODPROFILE_H
+#ifndef CALORECO_RAWCLUSTERLIKELIHOODPROFILE_H
+#define CALORECO_RAWCLUSTERLIKELIHOODPROFILE_H
 
 #include "ClusterCDFCalculator.h"
 
@@ -13,7 +13,7 @@ class RawClusterLikelihoodProfile : public SubsysReco
  public:
   RawClusterLikelihoodProfile(const std::string &name = "RawClusterLikelihoodProfile");
 
-  ~RawClusterLikelihoodProfile() override;
+  ~RawClusterLikelihoodProfile() override = default;
 
   int Init(PHCompositeNode *topNode) override;
 

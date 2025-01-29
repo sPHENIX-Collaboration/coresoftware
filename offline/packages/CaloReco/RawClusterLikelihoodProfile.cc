@@ -28,8 +28,6 @@ RawClusterLikelihoodProfile::RawClusterLikelihoodProfile(const std::string &name
 {
 }
 
-RawClusterLikelihoodProfile::~RawClusterLikelihoodProfile() = default;
-
 int RawClusterLikelihoodProfile::Init(PHCompositeNode *topNode)
 {
   // load profile for prob calculation
