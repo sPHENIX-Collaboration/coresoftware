@@ -4,6 +4,7 @@
 #define QAG4SIMULATIONDISTORTIONS_H
 
 #include <fun4all/SubsysReco.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <math.h>
@@ -38,6 +39,9 @@ class QAG4SimulationDistortions : public SubsysReco
   SvtxTrackMap* m_trackMap = nullptr;
   TrkrClusterContainer* m_clusterContainer = nullptr;
   ActsGeometry* m_tGeometry = nullptr;
+
+  //! tpc global position wrapper
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 
   int m_event = 0;
   float m_tanAlpha = NAN;

@@ -19,21 +19,6 @@ int const EmcCluster::fgPeakIter = 6;
 // Emin cuts cluster energy: Ecl >= Epk1+Epk2 +...+Epkn !!!!!!!!!!!!!
 float const EmcCluster::fgEmin = 0.002;
 
-EmcModule::EmcModule()
-  : ich(0)
-  , amp(0)
-  , tof(0)
-{
-}
-
-//_____________________________________________________________________________
-EmcModule::EmcModule(int ich_, float amp_, float tof_)
-  : ich(ich_)
-  , amp(amp_)
-  , tof(tof_)
-{
-}
-
 // ///////////////////////////////////////////////////////////////////////////
 // EmcCluster member functions
 
@@ -332,7 +317,7 @@ float EmcCluster::GetProb(float& chi2, int& ndf)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcModule>& ppeaks)
+int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcModule>& ppeaks, bool dosubclustersplitting)
 {
   // Splits the cluster onto subclusters
   // The number of subclusters is equal to the number of Local Maxima in a cluster.
@@ -385,6 +370,10 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   //
   //  Find peak (maximum) position (towers with local maximum amp)
   //
+
+  int maxc=0;
+  float maxamp = 0;
+
   npk = 0;
   for (ic = 0; ic < nhit; ic++)
   {
@@ -432,6 +421,10 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
       }
 
       // ic is a maximum in a 3x3 tower group
+      if (amp > maxamp) {
+        maxamp = amp;
+        maxc = npk;
+      }   
       PeakCh[npk] = ic;
       npk++;
     }
@@ -445,8 +438,30 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   }
   */
 
+  if(!dosubclustersplitting){
+    hl.clear();
+    for (int ich = 0; ich < nhit; ich++)
+    {
+      hl.push_back(hlist[ich]);
+    }
+    peak.ReInitialize(hl);
+    PkList.push_back(peak);
+
+    if (npk > 0)
+    {
+      ppeaks.push_back(hlist[PeakCh[maxc]]);
+    }
+    else
+    {
+      ppeaks.push_back(GetMaxTower());
+    }
+    delete[] hlist;
+    return 1;
+  }
+
+
   // there was only one peak
-  if (npk <= 1)
+  if(npk <= 1)
   {
     hl.clear();
     for (int ich = 0; ich < nhit; ich++)

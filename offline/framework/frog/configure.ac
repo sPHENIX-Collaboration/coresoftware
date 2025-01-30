@@ -9,15 +9,16 @@ LT_INIT([disable-static])
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   treat warnings as errors: -Werror
-case $CXX in
- clang++)
+CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wextra -Werror"
+dnl case $CXX in
+dnl  clang++)
 dnl odbc++ uses auto_ptr
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wextra"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wno-deprecated-declarations -Wextra"
- ;;
-esac
+dnl  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wextra"
+dnl ;;
+dnl *g++)
+dnl  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic -Wno-deprecated-declarations -Wextra"
+dnl ;;
+dnl esac
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

@@ -10,19 +10,20 @@
 #include <fun4all/SubsysReco.h>
 
 #include <array>
-#include <string> // for string
+#include <string>  // for string
 
 class CDBTTree;
 class PHCompositeNode;
 
-class EpdReco : public SubsysReco {
-public:
+class EpdReco : public SubsysReco
+{
+ public:
   EpdReco(const std::string &name = "EpdReco");
-  ~EpdReco() override = default;
+  ~EpdReco() override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
-private:
+ private:
   void CreateNodes(PHCompositeNode *topNode);
   float GetTilePhi(int thisphi);
   float GetTilePhi0(int thisphi0);
@@ -37,11 +38,11 @@ private:
 
   std::string m_fieldname;
   std::string m_calibName;
-  std::string m_Detector {"SEPD"};
-  std::string m_TowerInfoNodeName_calib {"TOWERINFO_CALIB_SEPD"};
+  std::string m_Detector{"SEPD"};
+  std::string m_TowerInfoNodeName_calib{"TOWERINFO_CALIB_SEPD"};
 
-  std::array<float,24> tilephi{};
-  std::array<float,12> tilephi0{};
+  std::array<float, 24> tilephi{};
+  std::array<float, 12> tilephi0{};
 };
 
-#endif // EPD_EPDRECO_H
+#endif  // EPD_EPDRECO_H

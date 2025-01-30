@@ -2,22 +2,34 @@
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
+#include <phool/phool.h>
+
+#include <Rtypes.h> // For Int_t, Long64_t, etc
+
 #include <filesystem>  // for exists
 
-int InttBadChannelMap::LoadFromFile(
-    std::string const& filename)
+InttBadChannelMap::~InttBadChannelMap()
+{
+  delete m_bad_channel_set;
+}
+
+int InttBadChannelMap::LoadFromFile(std::string const& filename)
 {
   if (filename.empty())
   {
-    std::cout << "int InttBadChannelMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tArgument 'filename' is empty string" << std::endl;
+    std::cerr
+      << PHWHERE << "\n"
+      << "\tArgument 'filename' is empty string\n"
+      << std::flush;
     return 1;
   }
 
   if (!std::filesystem::exists(filename))
   {
-    std::cout << "int InttBadChannelMap::LoadFromFile(std::string const& filename)" << std::endl;
-    std::cout << "\tFile '" << filename << "' does not exist" << std::endl;
+    std::cerr
+      << PHWHERE << "\n"
+      << "\tFile '" << filename << "' does not exist\n"
+      << std::flush;
     return 1;
   }
 
@@ -27,13 +39,14 @@ int InttBadChannelMap::LoadFromFile(
   return v_LoadFromCDBTTree(cdbttree);
 }
 
-int InttBadChannelMap::LoadFromCDB(
-    std::string const& name)
+int InttBadChannelMap::LoadFromCDB(std::string const& name)
 {
   if (name.empty())
   {
-    std::cout << "int InttBadChannelMap::LoadFromCDB(std::string const& name)" << std::endl;
-    std::cout << "\tArgument 'name' is empty string" << std::endl;
+    std::cerr
+      << PHWHERE << "\n"
+      << "\tArgument 'name' is empty string\n"
+      << std::flush;
     return 1;
   }
 
@@ -44,49 +57,64 @@ int InttBadChannelMap::LoadFromCDB(
   return v_LoadFromCDBTTree(cdbttree);
 }
 
-void InttBadChannelMap::identify(
-    std::ostream& out) const
+int InttBadChannelMap::v_LoadFromCDBTTree(CDBTTree& cdbttree)
 {
-  out << "InttBadChannelMap\n"
-      << "\tBase Version\n"
-      << "\tUnimplemented" << std::endl;
+  delete m_bad_channel_set;
+  m_bad_channel_set = new Set_t;
+
+  m_bad_channel_set->clear();
+  Long64_t N = cdbttree.GetSingleIntValue("size");
+  for (Long64_t n = 0; n < N; ++n)
+  {
+    m_bad_channel_set->insert((struct InttMap::Offline_s){
+        .layer = cdbttree.GetIntValue(n, "layer"),
+        .ladder_phi = cdbttree.GetIntValue(n, "ladder_phi"),
+        .ladder_z = cdbttree.GetIntValue(n, "ladder_z"),
+        .strip_z = cdbttree.GetIntValue(n, "strip_z"),
+        .strip_phi = cdbttree.GetIntValue(n, "strip_phi"),
+    });
+  }
+
+  return 0;
+}
+
+void InttBadChannelMap::identify(std::ostream& out) const
+{
+  out
+    << PHWHERE << "\n"
+    << "\tsize: " << size() << "\n"
+    << std::flush;
 }
 
 std::size_t InttBadChannelMap::size() const
 {
-  return 0;
+  return m_bad_channel_set ? m_bad_channel_set->size() : 0;
 }
 
-bool InttBadChannelMap::IsBad(
-    InttMap::Online_s const&
-    /*unused*/) const
+bool InttBadChannelMap::IsBad(InttMap::Online_s const& /*unused*/) const
 {
-  std::cout << "InttBadChannelMap::IsBad\n"
-            << "\tUnplemented overload (InttMap::Online_s)" << std::endl;
+  std::cerr
+    << PHWHERE << "\n"
+    << "\tUnimplemented overload\n"
+    << std::flush;
   return false;
 }
 
-bool InttBadChannelMap::IsBad(
-    InttMap::Offline_s const&
-    /*unused*/) const
+bool InttBadChannelMap::IsBad(InttMap::Offline_s const& ofl) const
 {
-  std::cout << "InttBadChannelMap::IsBad\n"
-            << "\tUnplemented overload (InttMap::Offline_s)" << std::endl;
+  if (!m_bad_channel_set)
+  {
+    return false;
+  }
+  return m_bad_channel_set->find(ofl) != m_bad_channel_set->end();
+}
+
+bool InttBadChannelMap::IsBad(InttMap::RawData_s const& /*unused*/) const
+{
+  std::cerr
+    << PHWHERE << "\n"
+    << "\tUnimplemented overload\n"
+    << std::flush;
   return false;
 }
 
-bool InttBadChannelMap::IsBad(
-    InttMap::RawData_s const&
-    /*unused*/) const
-{
-  std::cout << "InttBadChannelMap::IsBad\n"
-            << "\tUnplemented overload (InttMap::RawData_s)" << std::endl;
-  return false;
-}
-
-int InttBadChannelMap::v_LoadFromCDBTTree(
-    CDBTTree&
-    /*unused*/)
-{
-  return 0;
-}

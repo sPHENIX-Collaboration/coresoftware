@@ -56,6 +56,8 @@ pkginclude_HEADERS = \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterCNNClassifier.h \
+  RawClusterLikelihoodProfile.h \
+  ClusterCDFCalculator.h \
   RawClusterPositionCorrection.h \
   RawClusterZVertexRecorrect.h \
   RawTowerCalibration.h \
@@ -86,6 +88,8 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
   RawClusterCNNClassifier.cc \
+  RawClusterLikelihoodProfile.cc \
+  ClusterCDFCalculator.cc \
   RawClusterPositionCorrection.cc \
   RawClusterZVertexRecorrect.cc \
   RawTowerCombiner.cc \

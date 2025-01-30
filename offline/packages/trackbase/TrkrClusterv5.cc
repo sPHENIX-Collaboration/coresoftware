@@ -84,7 +84,7 @@ void TrkrClusterv5::CopyFrom(const TrkrCluster& source)
   setSubSurfKey(source.getSubSurfKey());
   setAdc(source.getAdc());
   setMaxAdc(source.getMaxAdc());
-  setPhiError(source.getPhiError());
+  setPhiError(source.getRPhiError());
   setZError(source.getZError());
   setPhiSize(source.getPhiSize());
   setZSize(source.getZSize());

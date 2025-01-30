@@ -140,6 +140,8 @@ class CaloTowerBuilder : public SubsysReco
   float m_timeLim_high{4.0};
   bool m_dobitfliprecovery{false};
 
+  int m_saturation{16383};
+
   std::string m_fieldname;
   std::string m_calibName;
   std::string m_directURL;
