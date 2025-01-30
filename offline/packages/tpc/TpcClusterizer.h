@@ -79,7 +79,6 @@ public:
   bool record_ClusHitsVerbose{false};
 
   TrkrHitSetContainer *m_hits = nullptr;
-  RawHitSetContainer *m_rawhits = nullptr;
   TrkrClusterContainer *m_clusterlist = nullptr;
   TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
@@ -88,7 +87,6 @@ public:
   bool _use_nn = false;
   bool do_hit_assoc = true;
   bool do_wedge_emulation = false;
-  bool do_sequential = false;
   bool do_read_raw = false;
   bool do_singles = true;
   bool do_split = false;
