@@ -39,9 +39,10 @@ public:
   void set_use_nn(bool use_nn) { _use_nn = use_nn; }
   void set_do_hit_association(bool do_assoc) { do_hit_assoc = do_assoc; }
   void set_do_wedge_emulation(bool do_wedge) { do_wedge_emulation = do_wedge; }
-  void set_do_sequential(bool do_seq) { do_sequential = do_seq; }
+  void set_do_sequential(bool do_seq) { if(do_seq) {m_nthreads = 1;} }
   void set_do_split(bool split) { do_split = split; }
   void set_fixed_window(int fixed) { do_fixed_window = fixed; }
+  void set_nthreads(int nthreads) { m_nthreads= nthreads; }
   void set_pedestal(float val) { pedestal = val; }
   void set_seed_threshold(float val) { seed_threshold = val; }
   void set_edge_threshold(float val) { edge_threshold = val; }
@@ -104,6 +105,7 @@ public:
   unsigned short MaxClusterHalfSizeT = 5;
 
   double m_tdriftmax = 0;
+  double m_nthreads = 9;
   double AdcClockPeriod = 53.0;  // ns
   double NZBinsSide = 249;
 
