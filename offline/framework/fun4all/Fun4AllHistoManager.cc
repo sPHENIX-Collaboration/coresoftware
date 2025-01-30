@@ -49,16 +49,7 @@ Fun4AllHistoManager::~Fun4AllHistoManager()
 int Fun4AllHistoManager::RunAfterClosing()
 {
   unsigned int iret = 0;
-  if (m_outfilename == m_LastClosedFileName)
-  {
-    if (Verbosity() > 1)
-    {
-    std::cout << PHWHERE << " Output file name has not changed, not closing "
-	      << m_outfilename << " again" << std::endl;
-    }
-    return iret;
-  }
-  m_LastClosedFileName = m_outfilename;
+  
   if (!m_RunAfterClosingScript.empty())
   {
     if (!std::filesystem::exists(m_RunAfterClosingScript))
