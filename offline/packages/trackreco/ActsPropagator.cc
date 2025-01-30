@@ -10,7 +10,7 @@
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
-
+#include <Acts/Propagator/VoidNavigator.hpp>
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
@@ -218,7 +218,7 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
 
   std::shared_ptr<const Acts::Logger> logger = Acts::getDefaultLogger("ActsPropagator", logLevel);
 
-  return ActsPropagator::FastPropagator(stepper, Acts::detail::VoidNavigator(),
+  return ActsPropagator::FastPropagator(stepper, Acts::VoidNavigator(),
                                         logger);
 }
 ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()

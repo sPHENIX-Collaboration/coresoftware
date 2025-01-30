@@ -18,7 +18,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(MYINSTALL)/lib64
 
 pkginclude_HEADERS = \
   ActsAlignmentStates.h \
