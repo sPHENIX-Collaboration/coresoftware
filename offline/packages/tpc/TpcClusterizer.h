@@ -13,8 +13,6 @@ class ClusHitsVerbosev1;
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
-class RawHitSet;
-class RawHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrainingHitsContainer;
