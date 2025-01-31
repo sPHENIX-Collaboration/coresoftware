@@ -57,8 +57,10 @@ class MinimumBiasClassifier : public SubsysReco
     m_overwrite_url_vtx = url;
     m_overwrite_vtx = true;    
   }
+  void setIsSim(const bool sim) { m_issim = sim; }
 
  private:
+  bool m_issim{false};
   float getVertexScale();
   std::string m_dbfilename;
 

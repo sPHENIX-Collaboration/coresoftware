@@ -49,16 +49,7 @@ Fun4AllHistoManager::~Fun4AllHistoManager()
 int Fun4AllHistoManager::RunAfterClosing()
 {
   unsigned int iret = 0;
-  if (m_outfilename == m_LastClosedFileName)
-  {
-    if (Verbosity() > 1)
-    {
-    std::cout << PHWHERE << " Output file name has not changed, not closing "
-	      << m_outfilename << " again" << std::endl;
-    }
-    return iret;
-  }
-  m_LastClosedFileName = m_outfilename;
+  
   if (!m_RunAfterClosingScript.empty())
   {
     if (!std::filesystem::exists(m_RunAfterClosingScript))
@@ -71,8 +62,16 @@ int Fun4AllHistoManager::RunAfterClosing()
       std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " is not owner executable" << std::endl;
       return -1;
     }
+  recoConsts *rc = recoConsts::instance();
+  int runnumber = 0;
+  std::string runseg = "";
+  if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
+  {
+    runnumber = rc->get_IntFlag("RUNNUMBER");
+    runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
 
-    std::string fullcmd = m_RunAfterClosingScript + " " + m_outfilename + " " + m_ClosingArgs;
+    }
+    std::string fullcmd = m_RunAfterClosingScript + " " + m_outfilename + runseg + " " + m_ClosingArgs;
     if (Verbosity() > 1)
     {
       std::cout << PHWHERE << " running " << fullcmd << std::endl;
