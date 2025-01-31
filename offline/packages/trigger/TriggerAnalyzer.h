@@ -1,17 +1,13 @@
-#ifndef CALOTRIGGER_TRIGGERANALYZER_H
-#define CALOTRIGGER_TRIGGERANALYZER_H
+#ifndef TRIGGER_TRIGGERANALYZER_H
+#define TRIGGER_TRIGGERANALYZER_H
 
-#include "TriggerRunInfo.h"
-#include "TriggerRunInfov1.h"
-#include "LL1Out.h"
-#include "LL1Outv1.h"
-
-#include <ffarawobjects/Gl1Packet.h>
-#include <ffarawobjects/Gl1Packetv2.h>
-
-#include <phool/PHCompositeNode.h>
-
+#include <cstdint>
 #include <string>
+
+class Gl1Packet;
+class LL1Out;
+class PHCompositeNode;
+class TriggerRunInfo;
 
 class TriggerAnalyzer
 {

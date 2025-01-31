@@ -2,7 +2,7 @@
 #define TRIGGER_TRIGGERDEFS_H__
 
 #include <cstdint>
-#include <iostream>
+#include <string>
 
 namespace TriggerDefs
 {

@@ -8,6 +8,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <iostream>
+
 int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
 {
 

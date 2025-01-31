@@ -1,7 +1,5 @@
 #include "CaloTriggerInfov1.h"
 
-#include <ostream>
-
 void CaloTriggerInfov1::identify(std::ostream& os) const
 {
   os << "CaloTriggerInfo: highest EMCal 2x2 eta/phi = " << m_EMCAL_2x2_BEST_ETA << " / " << m_EMCAL_2x2_BEST_PHI << ", E = " << m_EMCAL_2x2_BEST_E << std::endl;

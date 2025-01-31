@@ -1,33 +1,24 @@
 #ifndef TRIGGER_CALOTRIGGEREMULATOR_H
 #define TRIGGER_CALOTRIGGEREMULATOR_H
 
-//#include "LL1Outv1.h"
 #include "TriggerDefs.h"
 
 #include <fun4all/SubsysReco.h>
 
-#include <cstdint>
 #include <map>
+#include <string>
 #include <vector>
 
 // Forward declarations
 class CDBHistos;
 class CDBTTree;
-class TriggerPrimitive;
 class TriggerPrimitiveContainer;
 class LL1Out;
 class Event;
 class TowerInfoContainer;
 class CaloPacketContainer;
-class Fun4AllHistoManager;
 class PHCompositeNode;
-class TFile;
 class TH1;
-class TH1I;
-class TNtuple;
-class TTree;
-class TProfile;
-class TEfficiency;
 
 class CaloTriggerEmulator : public SubsysReco
 {
@@ -198,18 +189,18 @@ class CaloTriggerEmulator : public SubsysReco
 
   TriggerPrimitiveContainer *m_primitives_emcal_2x2_ll1{nullptr};
 
-  /* std::map<unsigned int, TH1I> h_mbd_charge_lut; */
-  /* std::map<unsigned int, TH1I> h_mbd_time_lut; */
-  /* std::map<unsigned int, TH1I> h_mbd_slewing_lut; */
+  /* std::map<unsigned int, TH1> h_mbd_charge_lut; */
+  /* std::map<unsigned int, TH1> h_mbd_time_lut; */
+  /* std::map<unsigned int, TH1> h_mbd_slewing_lut; */
 
   unsigned int m_l1_hcal_table[4096]{};
   unsigned int m_l1_adc_table[1024]{};
   unsigned int m_l1_8x8_table[1024]{};
   unsigned int m_l1_slewing_table[4096]{};
 
-  std::map<unsigned int, TH1I*> h_emcal_lut{};
-  std::map<unsigned int, TH1I*> h_hcalin_lut{};
-  std::map<unsigned int, TH1I*> h_hcalout_lut{};
+  std::map<unsigned int, TH1*> h_emcal_lut{};
+  std::map<unsigned int, TH1*> h_hcalin_lut{};
+  std::map<unsigned int, TH1*> h_hcalout_lut{};
 
   CDBTTree *cdbttree_adcmask{nullptr};
   CDBHistos *cdbttree_emcal{nullptr};
