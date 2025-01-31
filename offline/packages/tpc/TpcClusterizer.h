@@ -52,7 +52,6 @@ public:
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size; }
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size; }
   void set_reject_event(bool reject) { m_rejectEvent = reject; }
-
   void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; }
   void set_nzbins(int val){NZBinsSide = val; is_reco = true;}
   void set_rawdata_reco()
