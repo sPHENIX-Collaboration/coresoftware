@@ -263,6 +263,7 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
 void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, const std::vector<Jet *> &jets)
 {
   JetMap *jetmap = findNode::getClass<JetMap>(topNode, _outputs[ipos]);
+  jetmap->Reset();
   if (!jetmap)
   {
     std::cout << PHWHERE << " ERROR: Can't find JetMap: " << _outputs[ipos] << std::endl;
@@ -287,6 +288,7 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, const std::vector<
 void JetReco::FillJetContainer(PHCompositeNode *topNode, int ipos, std::vector<Jet *> &inputs)
 {
   JetContainer *jetconn = findNode::getClass<JetContainer>(topNode, JC_name(_outputs[ipos]));
+  jetconn->Reset();
   if (!jetconn)
   {
     std::cout << PHWHERE << " ERROR: Can't find JetContainer: " << _outputs[ipos] << std::endl;
