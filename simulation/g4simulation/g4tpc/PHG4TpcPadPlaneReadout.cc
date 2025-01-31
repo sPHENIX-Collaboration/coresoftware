@@ -107,6 +107,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
+  set_double_param("tpc_adc_clock", GeomContainer->GetFirstLayerCellGeom()->get_zstep());
 
   if(m_use_module_gain_weights)
     {
