@@ -8,13 +8,14 @@
 
 #define _RAW_READER_ERROR_CHECKS_ // comment this to disable error checking
 
-#include "mvtx_decoder/mvtx_utils.h"
-#include "mvtx_decoder/PayLoadCont.h"
-#include "mvtx_decoder/PayLoadSG.h"
-#include "mvtx_decoder/DecodingStat.h"
-#include "mvtx_decoder/GBTWord.h"
-#include "mvtx_decoder/InteractionRecord.h"
-#include "mvtx_decoder/StrobeData.h"
+#include "mvtx_utils.h"
+#include "RDH.h"
+#include "PayLoadCont.h"
+#include "PayLoadSG.h"
+#include "DecodingStat.h"
+#include "GBTWord.h"
+#include "InteractionRecord.h"
+#include "StrobeData.h"
 
 #include <iostream>
 #include <memory>
@@ -31,8 +32,8 @@
     return AbortedOnError;                                                    \
   }
 
-namespace mvtx
-{
+namespace mvtx {
+
   using namespace mvtx_utils;
 
 /// support for the GBT single link data
@@ -72,11 +73,12 @@ struct GBTLink
 
   GBTLinkDecodingStat statistics; // link decoding statistics
 
-  bool hbf_error = false;
-
+  uint8_t  hbf_error = 0;
   uint32_t hbf_length = 0;
   uint32_t prev_pck_cnt = 0;
   uint32_t hbf_count = 0;
+
+  bool hbf_skip = false;
 
   PayLoadSG rawData;         // scatter-gatter buffer for cached CRU pages, each starting with RDH
   size_t dataOffset = 0;     //
@@ -97,25 +99,24 @@ struct GBTLink
 
   void clearCableData()
   {
-    for ( auto&& _data : cableData )
+    for (auto& _data : cableData)
     {
       _data.clear();
     }
   }
 
-  int readFlxWord( GBTWord* gbtwords, uint16_t &w16 );
-  int decode_lane( const uint8_t chipId, PayLoadCont& buffer );
+  int readFlxWord(GBTWord* gbtwords, uint16_t& w16);
+  int decode_lane(const uint8_t chipId, PayLoadCont& buffer);
 
   void getRowCol(const uint8_t reg, const uint16_t addr, uint16_t& row, uint16_t& col)
   {
-    row = ( addr >> 0x1 ) & 0x1FF;
-    col = ( reg << 5 | ( (addr >> 9) & 0x1E ) ) | ( (addr ^ addr >> 1) & 0x1 );
+    row = (addr >> 0x1) & 0x1FF;
+    col = (reg << 5 | ((addr >> 9) & 0x1E)) | ((addr ^ addr >> 1) & 0x1);
   }
 
   void addHit(const uint8_t laneId, const uint8_t bc, uint8_t reg, const uint16_t addr)
   {
     auto* hit = new mvtx_hit();
-//	  memset(hit, 0, sizeof(*hit));
 
     hit->chip_id = laneId;
     hit->bunchcounter = bc;
@@ -177,7 +178,7 @@ struct GBTLink
 
     std::cerr << "Link: " << feeId << ", Chip: " << (int)chipId;
     std::cerr << " invalid byte 0x" << std::hex << (int)(dataC) << std::endl;
-    while ( buffer.next(dataC) )
+    while (buffer.next(dataC))
     {
       std::cerr << " " << std::hex << (int)(dataC) << " ";
     }
@@ -204,7 +205,7 @@ struct GBTLink
     }
   }
 
-//  ClassDefNV(GBTLink, 1);
+  ClassDefNV(GBTLink, 1);
 };
 
 ///_________________________________________________________________
@@ -233,72 +234,75 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
       data.movePtr(currRawPiece->size);
       dataOffset = 0;
       // start of the RDH
-      if ( ! (currRawPiece = rawData.nextPiece()) )
+      if (! (currRawPiece = rawData.nextPiece()))
       { // fetch next CRU page
         break;                                     // Data chunk (TF?) is done
       }
     }
 
-    if ( currRawPiece->hasError ) // Skip
+    if (currRawPiece->hasError != mvtx::PayLoadSG::HBF_ERRORS::NoError) // Skip
     {
       dataOffset = currRawPiece->size;
       ++hbf_count;
       continue;
     }
 
-    if ( !dataOffset )
+    if (! dataOffset)
     {
       hbf_start = data.getPtr();
     }
 
     // here we always start with the RDH
-    RdhExt_t rdh = {};
     uint8_t* rdh_start = data.getPtr() + dataOffset;
-    rdh.decode(rdh_start);
-    if (! rdh.checkRDH(true) )
+    const auto* rdhP = reinterpret_cast<const mvtx::RDH*>(rdh_start);
+    if (! mvtx::RDHUtils::checkRDH(mvtx::RDHAny::voidify(*rdhP), true, true))
     {
+      // In case of corrupt RDH, skip HBF
       dataOffset = currRawPiece->size;
       ++hbf_count;
       continue;
     }
 
-    size_t pagesize = (rdh.pageSize + 1) * FLXWordLength;
+    size_t pagesize = ((*rdhP).pageSize + 1) * FLXWordLength;
     const size_t nFlxWords = (pagesize - (2 * FLXWordLength)) / FLXWordLength;
     //Fill statistics
-    if ( !rdh.packetCounter )
+    if (! (*rdhP).packetCounter)
     {
-      if ( dataOffset )
+      if (dataOffset)
       {
         log_error << "Wrong dataOffset value " << dataOffset << " at the start of a HBF" << std::endl;
-        assert(false);
+        // move buffer pointer to begin of RDH and reset dataOffset
+        dataOffset = 0;
       }
-      detectorField = rdh.detectorField;
+      detectorField = (*rdhP).detectorField;
       statistics.clear();
       //TODO: initialize/clear alpide data buffer
-      for ( uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg )
+      for (uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg)
       {
-        if  ( (rdh.trgType >> trg) & 1 )
+        if (((*rdhP).trgType >> trg) & 1)
         {
-          statistics.trgBitCounts[trg]++;
+          ++statistics.trgBitCounts[trg];
         }
       }
       hbfEntry = rawData.currentPieceId(); // in case of problems with RDH, dump full TF
       ++hbf_count;
     }
-    else if ( !rdh.stopBit )
+    else if (! (*rdhP).stopBit)
     {
       if (prev_evt_complete)
       {
         log_error << "Previous event was already completed" << std::endl;
-        assert(false);
+        dataOffset = currRawPiece->size;
+        ++hbf_count;
+        continue;
       }
     }
 
-    dataOffset += 2 * FLXWordLength;
-    int prev_gbt_cnt = 3;
+    dataOffset += 2 * FLXWordLength; // skip RDH
+    int prev_gbt_cnt = (*rdhP).rdhGBTcounter;
     GBTWord gbtWords[3];
     uint16_t w16 = 0;
-    for ( size_t iflx = 0; iflx < nFlxWords; ++iflx )
+    for (size_t iflx = 0; iflx < nFlxWords; ++iflx)
     {
       readFlxWord(gbtWords, w16);
       int16_t n_gbt_cnt = (w16 & 0x3FF) - prev_gbt_cnt;
@@ -310,106 +314,109 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
         PrintBlock(std::cerr, rdh_start, nFlxWords + 2);
         std::cerr << "Full HBF" << std::endl;
         PrintBlock(std::cerr, hbf_start, (currRawPiece->size/32) );
+        hbf_skip = true;
         break;
       }
-      for ( int i = 0; i < n_gbt_cnt; ++i )
+
+      for (int i = 0; i < n_gbt_cnt; ++i)
       {
         auto &gbtWord = gbtWords[i];
-        if ( gbtWord.isIHW() ) // ITS HEADER WORD
+        if (gbtWord.isIHW()) // ITS HEADER WORD
         {
           //TODO assert first word after RDH and active lanes
-          if (! ( !gbtWord.activeLanes ||
-                    ((gbtWord.activeLanes >> 0) & 0x7) == 0x7 ||
-                    ((gbtWord.activeLanes >> 3) & 0x7) == 0x7 ||
-                    ((gbtWord.activeLanes >> 6) & 0x7) == 0x7) )
+          if (! ((!gbtWord.activeLanes) ||
+                 ((gbtWord.activeLanes >> 0) & 0x7) == 0x7 ||
+                 ((gbtWord.activeLanes >> 3) & 0x7) == 0x7 ||
+                 ((gbtWord.activeLanes >> 6) & 0x7) == 0x7) )
           {
             log_error << "Expected all active lanes for links, but " << gbtWord.activeLanes << "found in HBF " << hbfEntry << ", " \
               << gbtWord.asString().data() << std::endl;
-            assert(false);
           }
         }
-        else if ( gbtWord.isTDH() ) // TRIGGER DATA HEADER (TDH)
+        else if (gbtWord.isTDH()) // TRIGGER DATA HEADER (TDH)
         {
           header_found = true;
           ir.orbit = gbtWord.bco;
           ir.bc = gbtWord.bc;
-          if ( gbtWord.bc ) //statistic trigger for first bc already filled on RDH
+
+          if (gbtWord.bc) //statistic trigger for first bc already filled on RDH
           {
-            for ( uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg )
+            for (uint32_t trg = GBTLinkDecodingStat::BitMaps::ORBIT; trg < GBTLinkDecodingStat::nBitMap; ++trg)
             {
-              if ( trg == GBTLinkDecodingStat::BitMaps::FE_RST ) //  TDH save first 12 bits only
+              if (trg == GBTLinkDecodingStat::BitMaps::FE_RST) //  TDH save first 12 bits only
                 break;
-              if ( ((gbtWord.triggerType >> trg) & 1) )
+              if (((gbtWord.triggerType >> trg) & 1))
               {
-                statistics.trgBitCounts[trg]++;
+                ++statistics.trgBitCounts[trg];
               }
             }
           }
 
-          if ( (gbtWord.triggerType >> GBTLinkDecodingStat::BitMaps::PHYSICS) & 0x1 )
+          if ((gbtWord.triggerType >> GBTLinkDecodingStat::BitMaps::PHYSICS) & 0x1)
           {
             mL1TrgTime.push_back(ir);
           }
 
-          if ( !gbtWord.continuation && !gbtWord.noData)
+          if ((! gbtWord.continuation) && (! gbtWord.noData))
           {
             n_no_continuation++;
             mTrgData.emplace_back(ir.orbit, ir.bc);
             mTrgData.back().detectorField = detectorField;
           } // end if not cont
         } // end TDH
-        else if ( gbtWord.isCDW() ) // CALIBRATION DATA WORD
+        else if (gbtWord.isCDW()) // CALIBRATION DATA WORD
         {
           mTrgData.back().hasCDW = true;
           mTrgData.back().calWord = *(reinterpret_cast<GBTCalibDataWord*>(&gbtWord));
         }
-        else if ( gbtWord.isTDT() )
+        else if (gbtWord.isTDT())
         {
-//          trailer_found = true;
-          if ( gbtWord.packet_done )
+          // trailer_found = true;
+          if (gbtWord.packet_done)
           {
-            n_packet_done++;
+            ++n_packet_done;
             if (n_packet_done < n_no_continuation)
             {
               log_error << "TDT packet done before TDH no continuation " << n_no_continuation \
                 << " != " << n_packet_done << std::endl;
-              assert(false);
+              // TODO: Add error counter
             }
           }
           prev_evt_complete = gbtWord.packet_done;
           //TODO: YCM Add warning and counter for timeout and violation
         }
-        else if ( gbtWord.isDDW() ) // DIAGNOSTIC DATA WORD (DDW)
+        else if (gbtWord.isDDW()) // DIAGNOSTIC DATA WORD (DDW)
         {
-          if (! rdh.stopBit)
+          if (! (*rdhP).stopBit)
           {
-            log_error << "" << std::endl;
-            assert(false);
+            log_error << "DDW was found in a packet with stop bit: " <<  (*rdhP).stopBit << std::endl;
+            //TODO: YCM Add warning and counter DDW not in final packet
           }
         }
-        else if ( gbtWord.isDiagnosticIB() ) // IB DIAGNOSTIC DATA
+        else if (gbtWord.isDiagnosticIB()) // IB DIAGNOSTIC DATA
         {
             std::cout << "WARNING: IB Diagnostic word found." << std::endl;
             std::cout << "diagnostic_lane_id: " << (gbtWord.id >> 5);
             std::cout << " lane_error_id: " << gbtWord.lane_error_id;
             std::cout << " diasnotic_data: 0x" << std::hex << gbtWord.diagnostic_data << std::endl;
         }
-        else if ( gbtWord.isData() ) //IS IB DATA
+        else if (gbtWord.isData()) //IS IB DATA
         {
           if (! header_found )
           {
-            log_error << "Trigger header not found before chip data" << std::endl;
-            assert(false);
+            log_error << "Trigger header not found before chip data. skipping data" << std::endl;
+            clearCableData();
+            continue;
           }
-          auto lane = ( gbtWord.data8[9] & 0x1F ) % 3;
+          auto lane = (gbtWord.data8[9] & 0x1F) % 3;
           cableData[lane].add(gbtWord.getW8(), 9);
         }
 
-        if ( prev_evt_complete )
+        if (prev_evt_complete)
         {
-          for( auto&& itr = cableData.begin(); itr != cableData.end(); ++itr)
+          for (auto&& itr = cableData.begin(); itr != cableData.end(); ++itr)
           {
-            if (!itr->isEmpty())
+            if (! itr->isEmpty())
             {
               decode_lane(std::distance(cableData.begin(), itr), *itr);
             }
@@ -421,20 +428,28 @@ inline GBTLink::CollectedDataStatus GBTLink::collectROFCableData(/*const Mapping
         }
       }
     }
+    if (hbf_skip)
+    {
+      hbf_skip = false;
+      clearCableData();
+      dataOffset = currRawPiece->size;
+      ++hbf_count;
+      continue;
+    }
   }
-  return  (status = StoppedOnEndOfData);
+  return (status = StoppedOnEndOfData);
 }
 
 //_________________________________________________
-inline int GBTLink::decode_lane( const uint8_t chipId, PayLoadCont& buffer)
+inline int GBTLink::decode_lane(const uint8_t chipId, PayLoadCont& buffer)
 {
   int ret = 0; // currently we just print stuff, but we will add stuff to our
                // structures and return a status later (that's why it's not a const function)
 
-  if ( buffer.getSize() < 3 )
+  if (buffer.getSize() < 3)
   {
     log_error << "chip data is too short: " << buffer.getSize() << std::endl;
-    assert(false);
+    return -1;
   }
 
   uint8_t dataC = 0;
@@ -455,7 +470,7 @@ inline int GBTLink::decode_lane( const uint8_t chipId, PayLoadCont& buffer)
     return 0;
   }
 
-  while ( buffer.next(dataC) )
+  while (buffer.next(dataC))
   {
     if ( dataC == 0xF1 ) // BUSY ON
     {
@@ -465,88 +480,92 @@ inline int GBTLink::decode_lane( const uint8_t chipId, PayLoadCont& buffer)
     {
       busy_off = true;
     }
-    else if ( (dataC & 0xF0) == 0xF0) // APE
+    else if ((dataC & 0xF0) == 0xF0) // APE
     {
       check_APE(chipId, dataC);
       chip_trailer_found = true;
       busy_on = busy_off = chip_header_found = 0;
     }
-    else if ( (dataC & 0xF0) == 0xE0 ) // EMPTY
+    else if ((dataC & 0xF0) == 0xE0) // EMPTY
     {
       chip_header_found = false;
       chip_trailer_found = true;
       laneId = (dataC & 0x0F) % 3;
-      if ( laneId != chipId )
+      if (laneId != chipId)
       {
         log_error << "Error laneId " << laneId << " (" << (dataC & 0xF) << ") and chipId " << chipId << std::endl;
-        assert(false);
       }
       buffer.next(bc);
       busy_on = busy_off = false;
     }
     else
     {
-      if ( chip_header_found )
+      if (chip_header_found)
       {
-        if ( (dataC & 0xE0) == 0xC0 ) // REGION HEADER
+        if ((dataC & 0xE0) == 0xC0) // REGION HEADER
         {
-          if ( buffer.getUnusedSize() < 2 )
+          if (buffer.getUnusedSize() < 2)
           {
             log_error << "No data short would fit (at least a data short after region header!)" << std::endl;
-            assert(false);
+            buffer.erase(buffer.getUnusedSize());
+            chip_header_found = false;
+            continue;
           }
           // TODO: move first region header out of loop, asserting its existence
           reg = dataC & 0x1F;
         }
-        else if ( (dataC & 0xC0) == 0x40 ) // DATA SHORT
+        else if((dataC & 0xC0) == 0x40) // DATA SHORT
         {
-          if( buffer.isEmpty() )
+          if(buffer.isEmpty())
           {
             log_error << "data short do not fit" << std::endl;
-            assert(false);
+            chip_header_found = false;
+            continue;
           }
-          if ( reg == 0xFF )
+          if (reg == 0xFF)
           {
             log_error << "data short at " << buffer.getOffset() << " before region header" << std::endl;
-            assert(false);
+             continue;
           }
           dataS = (dataC << 8);
           buffer.next(dataC);
           dataS |= dataC;
           addHit(laneId, bc, reg, (dataS & 0x3FFF));
         }
-        else if ( (dataC & 0xC0) == 0x00) // DATA LONG
+        else if ((dataC & 0xC0) == 0x00) // DATA LONG
         {
-          if ( buffer.getUnusedSize() < 3 )
+          if (buffer.getUnusedSize() < 3)
           {
             log_error << "No data long would fit (at least a data short after region header!)" << std::endl;
-            assert(false);
+            buffer.erase(buffer.getUnusedSize());
+            chip_header_found = false;
+            continue;
           }
-          if ( reg == 0xFF )
+          if (reg == 0xFF)
           {
             log_error << "data short at " << buffer.getOffset() << " before region header" << std::endl;
-            assert(false);
+            continue;
           }
           buffer.next(dataS);
-          uint16_t addr = ((dataC & 0x3F) << 8) | ( (dataS >> 8) & 0xFF );
-          addHit(laneId, bc, reg, addr);
+          uint16_t addr = ((dataC & 0x3F) << 8) | ((dataS >> 8) & 0xFF);
           uint8_t hit_map = (dataS & 0xFF);
-          if ( hit_map & 0x80 )
+          if (hit_map & 0x80)
           {
             log_error << "Wrong bit before DATA LONG bit map" << std::endl;
-            assert(false);
+            continue;
           }
-          while( hit_map != 0x00 )
+          addHit(laneId, bc, reg, addr);
+          while(hit_map != 0x00)
           {
             ++addr;
-            if ( hit_map & 1 )
+            if (hit_map & 0x1)
             {
               addHit(laneId, bc, reg, addr);
             }
             hit_map >>= 1;
           }
         }
-        else if ( (dataC & 0xF0) == 0xB0 ) // CHIP TRAILER
+        else if ((dataC & 0xF0) == 0xB0) // CHIP TRAILER
         {
 //          uint8_t flag = (dataC & 0x0F);
           //TODO: YCM add chipdata statistic
@@ -560,7 +579,7 @@ inline int GBTLink::decode_lane( const uint8_t chipId, PayLoadCont& buffer)
       }
       else
       {
-        if ( (dataC & 0xF0) == 0xA0 ) // CHIP HEADER
+        if ((dataC & 0xF0) == 0xA0) // CHIP HEADER
         {
           if (! chip_trailer_found)
           {
@@ -572,7 +591,6 @@ inline int GBTLink::decode_lane( const uint8_t chipId, PayLoadCont& buffer)
           if (laneId != chipId )
           {
             log_error << "Error laneId " << laneId << " (" << (dataC & 0xF) << ") and chipId " << chipId << std::endl;
-            assert(false);
           }
           buffer.next(bc);
           reg = 0xFF;

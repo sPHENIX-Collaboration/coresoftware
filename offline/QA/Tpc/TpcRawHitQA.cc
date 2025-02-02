@@ -15,7 +15,6 @@
 #include <phool/getClass.h>
 
 #include <TH2.h>
-#include <TMath.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
 #include <cassert>

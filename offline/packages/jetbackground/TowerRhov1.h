@@ -1,5 +1,5 @@
-#ifndef RHOBASE_TOWERRHOV1_H
-#define RHOBASE_TOWERRHOV1_H
+#ifndef JETBACKGROUND_TOWERRHOV1_H
+#define JETBACKGROUND_TOWERRHOV1_H
 
 //===========================================================
 /// \file TowerRhov1.h
@@ -9,13 +9,10 @@
 
 #include "TowerRho.h"
 
-#include <iostream>
-#include <string>
-
 class TowerRhov1 : public TowerRho
 {
  public:
-  TowerRhov1() = default;
+  TowerRhov1();
   ~TowerRhov1() override = default;
 
   void identify(std::ostream &os = std::cout) const override;
@@ -36,11 +33,12 @@ class TowerRhov1 : public TowerRho
   static std::string get_method_string(TowerRho::Method method);  // new in v1
 
  private:
+
   float m_tower_rho{0};                                        // momentum density
   float m_tower_sigma{0};                                      // sigma of momentum density
-  TowerRho::Method m_rho_method_type{TowerRho::Method::NONE};  // method of rho calculation
+  TowerRho::Method m_rho_method_type{ TowerRho::Method::NONE };  // method of rho calculation
 
   ClassDefOverride(TowerRhov1, 1);
 };
 
-#endif  // RHOBASE_TOWERRHOV1_H
+#endif  // JETBACKGROUND_TOWERRHOV1_H

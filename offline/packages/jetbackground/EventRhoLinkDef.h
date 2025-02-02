@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class InttFeeMapv1 + ;
+#pragma link C++ class EventRho + ;
 
 #endif /* __CINT__ */

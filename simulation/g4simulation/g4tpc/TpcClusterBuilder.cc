@@ -477,7 +477,7 @@ void TpcClusterBuilder::print_file(
     auto& track = _pair.second;
     fout << " id( " << track->getTrackid() << ")  phi:eta:pt(" << track->getPhi() << ":" << track->getPseudoRapidity() << ":" << track->getPt() << ") nclusters("
          << track->getClusters().size() << ") ";
-    int nclus = 0;
+//    int nclus = 0;
     for (auto cluskey : track->getClusters())
     {
       auto C = m_clusterlist->findCluster(cluskey);
@@ -488,7 +488,7 @@ void TpcClusterBuilder::print_file(
            << C->getPhiSize() << ":"
            << C->getLocalY() << ":"
            << C->getZSize() << ") ";
-      ++nclus;
+//      ++nclus;
     }
     fout << std::endl;
   }

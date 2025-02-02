@@ -189,7 +189,7 @@ bool StreakSidebandFilter::IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs
     std::cout << "StreakSidebandFilter::IsTowerNotStreaky() Checking if tower not consistent w/ streak" << std::endl;
   }
 
-  const bool isBadStatus = (tower.status != 1);
+  const bool isBadStatus = !(tower.isGood);
   const bool isBelowEneCut = (tower.energy < m_config.minStreakTwrEne);
   return (isBadStatus || isBelowEneCut);
 
@@ -206,7 +206,7 @@ bool StreakSidebandFilter::IsNeighborNotStreaky(const BeamBackgroundFilterAndQAD
     std::cout << "StreakSidebandFilter::IsNeighborNotStreaky() Checking if neighboring tower not consistent w/ streak" << std::endl;
   }
 
-  const bool isBadStatus = (tower.status != 1);
+  const bool isBadStatus = !(tower.isGood);
   const bool isAboveEneCut = (tower.energy > m_config.maxAdjacentTwrEne);
   return (isBadStatus || isAboveEneCut);
 

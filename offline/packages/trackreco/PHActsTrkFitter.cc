@@ -1227,7 +1227,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   }
 
   // clusters
-  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   if (!m_clusterContainer)
   {
     std::cout << PHWHERE

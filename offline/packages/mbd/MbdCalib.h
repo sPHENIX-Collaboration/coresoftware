@@ -29,8 +29,8 @@ class MbdCalib
   virtual ~MbdCalib() {}
 
   float get_qgain(const int ipmt) const { return _qfit_mpv[ipmt]; }
-  float get_tq0(const int ipmt) const { return _tqfit_t0mean[ipmt]; }
   float get_tt0(const int ipmt) const { return _ttfit_t0mean[ipmt]; }
+  float get_tq0(const int ipmt) const { return _tqfit_t0mean[ipmt]; }
   float get_t0corr() const { return _t0corrmean; }
   float get_ped(const int ifeech) const { return _pedmean[ifeech]; }
   float get_pedrms(const int ifeech) const { return _pedsigma[ifeech]; }
@@ -69,6 +69,8 @@ class MbdCalib
 
   void set_sampmax(const int ifeech, const int val) { _sampmax[ifeech] = val; }
   void set_ped(const int ifeech, const float m, const float merr, const float s, const float serr);
+  void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
+  void set_tq0(const int ipmt, const float t0) { _tqfit_t0mean[ipmt] = t0; }
 
   int Download_Gains(const std::string& dbfile);
   int Download_TQT0(const std::string& dbfile);
@@ -99,6 +101,7 @@ class MbdCalib
   int Write_TTT0(const std::string& dbfile);
   int Write_T0Corr(const std::string& dbfile);
   int Write_Ped(const std::string& dbfile);
+  int Write_Gains(const std::string& dbfile);
 
   void Reset_TQT0();
   void Reset_TTT0();

@@ -49,6 +49,7 @@ class RetowerCEMC : public SubsysReco
   int retower_first_lowerbound_originaltower_iphi{-1};
 
   double rawtower_e[neta_emcal][nphi_emcal] = {{0.0}};
+  double rawtower_time[neta_emcal][nphi_emcal] = {{0.0}};
   int rawtower_status[neta_emcal][nphi_emcal] = {{0}};
 
   std::string EMTowerName;

@@ -62,6 +62,7 @@ class TrackResiduals : public SubsysReco
   void setSegment(const int segment) { m_segment = segment; }
 
   void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
+  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
@@ -112,6 +113,7 @@ class TrackResiduals : public SubsysReco
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   bool m_doAlignment = false;
   bool m_ppmode = false;

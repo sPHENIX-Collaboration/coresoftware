@@ -25,7 +25,7 @@
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
 #include <trackbase/RawHitSetContainer.h>
-#include <trackbase/RawHitSetv1.h>
+#include <trackbase/RawHitSet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -43,7 +43,6 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-
 
 #include <TMatrixFfwd.h>    // for TMatrixF
 #include <TMatrixT.h>       // for TMatrixT, ope...
@@ -92,7 +91,7 @@ namespace
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
-    RawHitSetv1 *rawhitset = nullptr;
+    RawHitSet *rawhitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
     int side = 0;
@@ -173,16 +172,19 @@ namespace
     const int FixedWindow = (int) my_data.FixedWindow;
     tup = 0;
     tdown = 0;
-    if(FixedWindow!=0){
+    if (FixedWindow != 0)
+    {
       tup = FixedWindow;
       tdown = FixedWindow;
-      if(tbin+tup >= NTBinsMax){
-	tup = NTBinsMax-tbin-1;
-	edge++;
+      if (tbin + tup >= NTBinsMax)
+      {
+        tup = NTBinsMax - tbin - 1;
+        edge++;
       }
-      if((tbin-tdown) <= 0){
-	tdown = tbin;
-	edge++;
+      if ((tbin - tdown) <= 0)
+      {
+        tdown = tbin;
+        edge++;
       }
       return;
     }
@@ -265,16 +267,19 @@ namespace
     const int FixedWindow = (int) my_data.FixedWindow;
     phidown = 0;
     phiup = 0;
-    if(FixedWindow!=0){
+    if (FixedWindow != 0)
+    {
       phiup = FixedWindow;
       phidown = FixedWindow;
-      if(phibin+phiup >= NPhiBinsMax){
-	phiup = NPhiBinsMax-phibin-1;
-	edge++;
+      if (phibin + phiup >= NPhiBinsMax)
+      {
+        phiup = NPhiBinsMax - phibin - 1;
+        edge++;
       }
-      if(phibin-phidown <= 0){
-	phidown = phibin;
-	edge++;
+      if (phibin - phidown <= 0)
+      {
+        phidown = phibin;
+        edge++;
       }
       return;
     }
@@ -352,48 +357,65 @@ namespace
     }
     return;
   }
-  
-  int is_hit_isolated(int iphi, int it,int NPhiBinsMax, int NTBinsMax , const std::vector<std::vector<unsigned short>> &adcval)
+
+  int is_hit_isolated(int iphi, int it, int NPhiBinsMax, int NTBinsMax, const std::vector<std::vector<unsigned short>> &adcval)
   {
-    //check isolated hits
-    // const int NPhiBinsMax = (int) my_data.phibins;
-    //const int NTBinsMax = (int) my_data.tbins;
-    
-    
+    // check isolated hits
+    //  const int NPhiBinsMax = (int) my_data.phibins;
+    // const int NTBinsMax = (int) my_data.tbins;
+
     int isosum = 0;
-    int isophimin = iphi-1;
-    if(isophimin<0){isophimin = 0;}
-    int isophimax = iphi+1;
-    if(!(isophimax<NPhiBinsMax)){isophimax = NPhiBinsMax-1;}
-    int isotmin = it-1;
-    if(isotmin<0){isotmin = 0;}
-    int isotmax = it+1;
-    if(!(isotmax<NTBinsMax)){isotmax = NTBinsMax-1;}
-    for(int isophi = isophimin;isophi<=isophimax;isophi++){ 
-      for(int isot = isotmin;isot<=isotmax;isot++){
-	if(isophi==iphi&&isot==it){continue;}
-	/*
-	std::cout <<" isominphi: " << isophimin 
-		  << "phi: " << isophi
-		  <<" isomaxphi: " << isophimax
-		  <<" maxphi: " << NPhiBinsMax
-		  <<" isomint: " << isotmin
-		  << " t: " << isot
-		  <<" isomaxt: " << isotmax
-		  << " maxt: " << NTBinsMax
-		  << std::endl;
-	*/
-	isosum+= adcval[isophi][isot];
-	/*
-	std::cout << "adc " << adcval[isophi][isot]
-		  << " isosum " << isosum
-		  << " done" 
-		  << std::endl;
-	*/
+    int isophimin = iphi - 1;
+    if (isophimin < 0)
+    {
+      isophimin = 0;
+    }
+    int isophimax = iphi + 1;
+    if (!(isophimax < NPhiBinsMax))
+    {
+      isophimax = NPhiBinsMax - 1;
+    }
+    int isotmin = it - 1;
+    if (isotmin < 0)
+    {
+      isotmin = 0;
+    }
+    int isotmax = it + 1;
+    if (!(isotmax < NTBinsMax))
+    {
+      isotmax = NTBinsMax - 1;
+    }
+    for (int isophi = isophimin; isophi <= isophimax; isophi++)
+    {
+      for (int isot = isotmin; isot <= isotmax; isot++)
+      {
+        if (isophi == iphi && isot == it)
+        {
+          continue;
+        }
+        /*
+        std::cout <<" isominphi: " << isophimin
+                  << "phi: " << isophi
+                  <<" isomaxphi: " << isophimax
+                  <<" maxphi: " << NPhiBinsMax
+                  <<" isomint: " << isotmin
+                  << " t: " << isot
+                  <<" isomaxt: " << isotmax
+                  << " maxt: " << NTBinsMax
+                  << std::endl;
+        */
+        isosum += adcval[isophi][isot];
+        /*
+        std::cout << "adc " << adcval[isophi][isot]
+                  << " isosum " << isosum
+                  << " done"
+                  << std::endl;
+        */
       }
     }
     int isiso = 0;
-    if(isosum==0){
+    if (isosum == 0)
+    {
       isiso = 1;
     }
     return isiso;
@@ -403,23 +425,27 @@ namespace
   {
     // search along phi at the peak in t
     //    const int NPhiBinsMax = (int) my_data.phibins;
-    //const int NTBinsMax = (int) my_data.tbins;
+    // const int NTBinsMax = (int) my_data.tbins;
     int tup = 0;
     int tdown = 0;
     find_t_range(phibin, tbin, my_data, adcval, tdown, tup, touch, edge);
     // now we have the t extent of the cluster, go find the phi edges
-    for (int it = tbin - tdown; it <= (tbin + tup); it++){
+    for (int it = tbin - tdown; it <= (tbin + tup); it++)
+    {
       int phiup = 0;
       int phidown = 0;
       find_phi_range(phibin, it, my_data, adcval, phidown, phiup, touch, edge);
-      for (int iphi = (phibin - phidown); iphi <= (phibin + phiup); iphi++){
+      for (int iphi = (phibin - phidown); iphi <= (phibin + phiup); iphi++)
+      {
         if (adcval[iphi][it] > 0 && adcval[iphi][it] != USHRT_MAX)
         {
-	  if (my_data.do_singles){
-	    if(is_hit_isolated(iphi,it, (int) my_data.phibins,(int) my_data.tbins, adcval)){
-	      continue;
-	    }
-	  }  
+          if (my_data.do_singles)
+          {
+            if (is_hit_isolated(iphi, it, (int) my_data.phibins, (int) my_data.tbins, adcval))
+            {
+              continue;
+            }
+          }
           ihit hit;
           hit.iphi = iphi;
           hit.it = it;
@@ -506,18 +532,36 @@ namespace
       int iphi = iter.iphi + my_data.phioffset;
       int it = iter.it + my_data.toffset;
       double adc = iter.adc;
-      
-      if (adc <= 0){ continue; }
 
-      if (adc > max_adc) { max_adc = adc; }
+      if (adc <= 0)
+      {
+        continue;
+      }
 
-      if (iphi > phibinhi){ phibinhi = iphi; }
+      if (adc > max_adc)
+      {
+        max_adc = adc;
+      }
 
-      if (iphi < phibinlo) { phibinlo = iphi; }
+      if (iphi > phibinhi)
+      {
+        phibinhi = iphi;
+      }
 
-      if (it > tbinhi) { tbinhi = it; }
+      if (iphi < phibinlo)
+      {
+        phibinlo = iphi;
+      }
 
-      if (it < tbinlo) { tbinlo = it; }
+      if (it > tbinhi)
+      {
+        tbinhi = it;
+      }
+
+      if (it < tbinlo)
+      {
+        tbinlo = it;
+      }
 
       // if(it==it_center){ yg_sum += adc; }
       // update phi sums
@@ -550,7 +594,6 @@ namespace
           pnew.first->second += adc;
         }
       }
-
 
       // capture the hitkeys for all adc values above a certain threshold
       TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, it);
@@ -840,7 +883,7 @@ namespace
     }
     else if (my_data->rawhitset != nullptr)
     {
-      RawHitSetv1 *hitset = my_data->rawhitset;
+      RawHitSet *hitset = my_data->rawhitset;
       /*std::cout << "Layer: " << my_data->layer
                 << "Side: " << my_data->side
                 << "Sector: " << my_data->sector
@@ -849,16 +892,15 @@ namespace
       */
       for (int nphi = 0; nphi < phibins; nphi++)
       {
-        //	nhits += hitset->m_tpchits[nphi].size();
-        if (hitset->m_tpchits[nphi].size() == 0)
+        if (hitset->size(nphi) == 0)
         {
           continue;
         }
 
         int pindex = 0;
-        for (unsigned int nt = 0; nt < hitset->m_tpchits[nphi].size(); nt++)
+        for (unsigned int nt = 0; nt < hitset->size(nphi); nt++)
         {
-          unsigned short val = hitset->m_tpchits[nphi][nt];
+          unsigned short val = (*(hitset->getHits(nphi)))[nt];
 
           if (val == 0)
           {
@@ -881,7 +923,7 @@ namespace
             }
             else
             {
-              if ((hitset->m_tpchits[nphi][nt - 1] == 0) && (hitset->m_tpchits[nphi][nt + 1] == 0))
+              if (((*(hitset->getHits(nphi)))[nt - 1] == 0) && ((*(hitset->getHits(nphi)))[nt + 1] == 0))
               {  // found zero count
                 pindex += val;
               }
@@ -938,13 +980,15 @@ namespace
       int it = hiHit.it;
       unsigned short edge = hiHit.edge;
       double adc = hiHit.adc;
-      if (my_data->do_singles){
-	if(is_hit_isolated(iphi,it, (int) my_data->phibins,(int) my_data->tbins,adcval)){
-	  remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
-	  continue;
-	}
+      if (my_data->do_singles)
+      {
+        if (is_hit_isolated(iphi, it, (int) my_data->phibins, (int) my_data->tbins, adcval))
+        {
+          remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
+          continue;
+        }
       }
-     
+
       // put all hits in the all_hit_map (sorted by adc)
       // start with highest adc hit
       //  -> cluster around it and get vector of hits
@@ -953,43 +997,62 @@ namespace
       int nedge = 0;
       get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
 
-      if(my_data->FixedWindow>0){
-	//get cluster dimensions and check if they hit the window boundaries
-	int wphibinhi = -1;
-	int wphibinlo = 666666;
-	int wtbinhi = -1;
-	int wtbinlo = 666666;
-	for (auto witer : ihit_list){
-	  int wiphi = witer.iphi + my_data->phioffset;
-	  int wit = witer.it + my_data->toffset;
-	  double wadc = witer.adc;      
-	  if (wadc <= 0){ continue; }
-	  if (wiphi > wphibinhi){ wphibinhi = wiphi; }
-	  if (wiphi < wphibinlo) { wphibinlo = wiphi; }
-	  if (wit > wtbinhi) { wtbinhi = wit; }
-	  if (wit < wtbinlo) { wtbinlo = wit; }
-	}
-	char wtsize = wtbinhi - wtbinlo + 1;
-	char wphisize = wphibinhi - wphibinlo + 1;
+      if (my_data->FixedWindow > 0)
+      {
+        // get cluster dimensions and check if they hit the window boundaries
+        int wphibinhi = -1;
+        int wphibinlo = 666666;
+        int wtbinhi = -1;
+        int wtbinlo = 666666;
+        for (auto witer : ihit_list)
+        {
+          int wiphi = witer.iphi + my_data->phioffset;
+          int wit = witer.it + my_data->toffset;
+          double wadc = witer.adc;
+          if (wadc <= 0)
+          {
+            continue;
+          }
+          if (wiphi > wphibinhi)
+          {
+            wphibinhi = wiphi;
+          }
+          if (wiphi < wphibinlo)
+          {
+            wphibinlo = wiphi;
+          }
+          if (wit > wtbinhi)
+          {
+            wtbinhi = wit;
+          }
+          if (wit < wtbinlo)
+          {
+            wtbinlo = wit;
+          }
+        }
+        char wtsize = wtbinhi - wtbinlo + 1;
+        char wphisize = wphibinhi - wphibinlo + 1;
 
-	//check if we have a super big cluster and switch from fixed window to step down
-	if(ihit_list.size()>(0.5*pow((2*my_data->FixedWindow+1),2))||
-	   wphisize>=(2*my_data->FixedWindow+1)||
-	   wtsize>=(2*my_data->FixedWindow+1)){
-	  int window_cache = my_data->FixedWindow;
-	  //std::cout << " fixed size before " << ihit_list.size() << " | " << pow((2*my_data->FixedWindow+1),2) << std::endl;
-	  my_data->FixedWindow = 0;
-	  //reset hit list and try again without fixed window
-	  ihit_list.clear();
-	  get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
-	  //std::cout << " stepdown size after " << ihit_list.size() << std::endl;
-	  my_data->FixedWindow = window_cache;
-	}
+        // check if we have a super big cluster and switch from fixed window to step down
+        if (ihit_list.size() > (0.5 * pow((2 * my_data->FixedWindow + 1), 2)) ||
+            wphisize >= (2 * my_data->FixedWindow + 1) ||
+            wtsize >= (2 * my_data->FixedWindow + 1))
+        {
+          int window_cache = my_data->FixedWindow;
+          // std::cout << " fixed size before " << ihit_list.size() << " | " << pow((2*my_data->FixedWindow+1),2) << std::endl;
+          my_data->FixedWindow = 0;
+          // reset hit list and try again without fixed window
+          ihit_list.clear();
+          get_cluster(iphi, it, *my_data, adcval, ihit_list, ntouch, nedge);
+          // std::cout << " stepdown size after " << ihit_list.size() << std::endl;
+          my_data->FixedWindow = window_cache;
+        }
       }
-      if(ihit_list.size()<=1){
-	remove_hits(ihit_list, all_hit_map, adcval);
-	ihit_list.clear();
-	remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
+      if (ihit_list.size() <= 1)
+      {
+        remove_hits(ihit_list, all_hit_map, adcval);
+        ihit_list.clear();
+        remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
       }
       // -> calculate cluster parameters
       // -> add hits to truth association
@@ -1295,10 +1358,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
   if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
   {
-    std::cout << std::endl << " mutex init failed" << std::endl;
+    std::cout << std::endl
+              << " mutex init failed" << std::endl;
     return 1;
   }
-  int count = 0;
+//  int count = 0;
 
   if (!do_read_raw)
   {
@@ -1345,10 +1409,13 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
       unsigned short NPhiBinsSector = NPhiBins / 12;
       unsigned short NTBins = 0;
-      if(is_reco){
-	NTBins = NZBinsSide;
-      }else{
-	NTBins = (unsigned short) layergeom->get_zbins();
+      if (is_reco)
+      {
+        NTBins = NZBinsSide;
+      }
+      else
+      {
+        NTBins = (unsigned short) layergeom->get_zbins();
       }
       unsigned short NTBinsSide = NTBins;
       unsigned short NTBinsMin = 0;
@@ -1422,7 +1489,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
           m_clusterhitassoc->addAssoc(ckey, hkey);
         }
       }
-      count++;
+//      count++;
     }
   }
   else
@@ -1446,7 +1513,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
       thread_pair.data.layergeom = layergeom;
       thread_pair.data.hitset = nullptr;
-      thread_pair.data.rawhitset = dynamic_cast<RawHitSetv1 *>(hitset);
+      thread_pair.data.rawhitset = hitset;
       thread_pair.data.layer = layer;
       thread_pair.data.pedestal = pedestal;
       thread_pair.data.sector = sector;
@@ -1544,12 +1611,12 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
           m_clusterhitassoc->addAssoc(ckey, hkey);
         }
       }
-      count++;
+//      count++;
     }
   }
 
   pthread_attr_destroy(&attr);
-  count = 0;
+//  count = 0;
   // wait for completion of all threads
   if (!do_sequential)
   {

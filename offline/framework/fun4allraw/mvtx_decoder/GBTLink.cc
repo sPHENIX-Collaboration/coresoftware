@@ -3,7 +3,7 @@
 // @sa <O2/Detectors/ITSMFT/common/reconstruction/src/GBTLink.cxx>
 //     <e5b583efa>
 
-#include "mvtx_decoder/GBTLink.h"
+#include "GBTLink.h"
 
 #include <bitset>
 
@@ -56,7 +56,7 @@ void GBTLink::clear(bool resetStat, bool resetTFRaw)
   {
     rawData.clear();
     mL1TrgTime.clear();
-    for (auto&& trg : mTrgData)
+    for (auto& trg : mTrgData)
     {
       trg.clear();
     }

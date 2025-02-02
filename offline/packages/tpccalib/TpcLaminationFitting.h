@@ -31,10 +31,8 @@ class TpcLaminationFitting : public SubsysReco
   ~TpcLaminationFitting() override = default;
 
   /// output file name for storing the space charge reconstruction matrices
-  void setOutputfile(const std::string &outputfile)
-  {
-    m_outputfile = outputfile;
-  }
+  void setOutputfile(const std::string &outputfile);
+
   void set_event_sequence(int seq)
   {
     m_event_sequence = seq;
@@ -47,6 +45,8 @@ class TpcLaminationFitting : public SubsysReco
   }
 
   void set_grid_dimensions(int phibins, int rbins);
+
+  void set_nLayerCut(unsigned int cut) { m_nLayerCut = cut; }
 
   int InitRun(PHCompositeNode *topNode) override;
 
@@ -74,7 +74,7 @@ class TpcLaminationFitting : public SubsysReco
   TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
 
   std::string m_outputfile{"CMDistortionCorrections.root"};
-  std::string m_fitFileName{"laminationFits.pdf"};
+  std::string m_fitFileName{""};
 
   TH2 *m_hLamination[18][2]{{nullptr}};
   TF1 *m_fLamination[18][2]{{nullptr}};
@@ -86,6 +86,8 @@ class TpcLaminationFitting : public SubsysReco
   TH2 *phiDistortionLamination[2]{nullptr};
   TH2 *scaleFactorMap[2]{nullptr};
 
+  unsigned int m_nLayerCut{1};
+  
   bool m_useHeader{true};
 
   int m_event_index{0};
@@ -93,6 +95,18 @@ class TpcLaminationFitting : public SubsysReco
 
   double m_nClusters{0};
   int m_nEvents{0};
+
+  TTree *m_laminationTree{nullptr};
+  int m_runnumber{0};
+  int m_segment{0};
+  bool m_side{false};
+  int m_lamIndex{0};
+  double m_lamPhi{0};
+  double m_A{0};
+  double m_B{0};
+  double m_C{0};
+  double m_dist{0};
+  int m_nBins{0};
 
   int m_phibins{24};
   static constexpr float m_phiMin{0};

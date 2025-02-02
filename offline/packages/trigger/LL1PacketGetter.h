@@ -49,9 +49,9 @@ class LL1PacketGetter : public SubsysReco
   TriggerPrimitive *_trigger_primitive{nullptr};
   std::map<unsigned int, std::vector<unsigned int>> *_trigger_words{nullptr};
 
-  std::map<unsigned int, std::pair<int, int>> m_prim_sum_map;
-  std::map<unsigned int, std::pair<int, int>> m_packet_map;
-  std::map<unsigned int, int> m_word_map;
+  std::map<unsigned int, std::pair<int, int>> m_prim_sum_map{};
+  std::map<unsigned int, std::pair<int, int>> m_packet_map{};
+  std::map<unsigned int, int> m_word_map{};
   TriggerDefs::TriggerId m_triggerid;
   unsigned int m_triggerkey{0};
   TriggerDefs::DetectorId m_detectorid;

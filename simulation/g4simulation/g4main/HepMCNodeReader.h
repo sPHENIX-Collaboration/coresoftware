@@ -3,12 +3,15 @@
 #ifndef G4MAIN_HEPMCNODEREADER_H
 #define G4MAIN_HEPMCNODEREADER_H
 
+#include <TF1.h>
+
 #include <fun4all/SubsysReco.h>
 
 // rootcint barfs with this header so we need to hide it
 #include <gsl/gsl_rng.h>
 
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 
@@ -23,10 +26,7 @@ class HepMCNodeReader : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
-  void pythia(const bool pythia)
-  {
-    is_pythia = pythia;
-  }
+  void pythia(const bool pythia) { is_pythia = pythia; }
 
   //! this function is depreciated.
   //! Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.
@@ -54,9 +54,17 @@ class HepMCNodeReader : public SubsysReco
     use_seed = 1;
   }
 
+  // Method to add strangeness content of the event: f is the fraction of additional strangeness particles, in percent
+  void AddStrangeness(const float f) { addfraction = f; }
+
  private:
   double smeargauss(const double width);
   double smearflat(const double width);
+
+  // Exponentially modified Gaussian distribution function, modelling pT
+  static double EMGFunction(double *x, double *par);
+  // Double Gaussian function, modelling eta
+  static double DBGFunction(double *x, double *par);
 
   gsl_rng *RandomGenerator{nullptr};
   bool is_pythia{false};
@@ -69,6 +77,15 @@ class HepMCNodeReader : public SubsysReco
   double width_vx{0.0};
   double width_vy{0.0};
   double width_vz{0.0};
+
+  // Method to change the strangeness content of the event
+  std::vector<int> list_strangePID = {310, 3122, -3122};                               // K_s0 (PID=310), Lambda (PID=3122)
+  std::vector<double> list_strangePIDprob = {1 - 0.333, 0.333 / 2., 0.333 / 2.};       // K_s0 (PID=310) has 2/3 probability, Lambda (PID=3122) has 1/3 probability
+  std::vector<std::pair<int, std::pair<double, double>>> list_strangePID_probrange{};  // list of strange particles and their probability ranges
+  float addfraction{0.0};                                                              // additional strangeness particles, in percent; default 0
+  int Nstrange_add{0};                                                                 // number of strange particles to be added; default 0
+  TF1 *fpt{nullptr};
+  TF1 *feta{nullptr};
 };
 
 #endif

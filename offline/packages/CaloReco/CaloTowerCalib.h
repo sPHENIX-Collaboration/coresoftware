@@ -78,6 +78,20 @@ class CaloTowerCalib : public SubsysReco
     m_doZScrosscalib = doZScrosscalib;
   }
 
+  void set_dotimecalib(bool dotimecalib)
+  {
+    m_dotimecalib = dotimecalib;
+  }
+
+  void set_doCalibOnly(bool docalib = true)
+  {
+    if (docalib) 
+    {
+      m_dotimecalib = false;
+      m_doZScrosscalib = false;
+    }
+  }
+
   void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
  private:

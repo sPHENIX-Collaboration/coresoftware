@@ -22,7 +22,6 @@
 #include <TDatabasePDG.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TParticlePDG.h>  // for TParticlePDG
 #include <TString.h>
 #include <TVector3.h>
@@ -34,6 +33,8 @@
 #include <cmath>
 #include <cstdlib>  // for abs
 #include <iostream>
+#include <set>
+#include <string>
 #include <utility>  // for pair
 
 QAG4SimulationUpsilon::QAG4SimulationUpsilon(const std::string &name)
@@ -205,7 +206,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TruthInfoContainer::ConstRange range = _truthContainer->GetPrimaryParticleRange();
+  PHG4TruthInfoContainer::ConstRange const range = _truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
     // get the truth particle information
@@ -233,15 +234,15 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
       }
     }
 
-    double gpx = g4particle->get_px();
-    double gpy = g4particle->get_py();
-    double gpz = g4particle->get_pz();
+    double const gpx = g4particle->get_px();
+    double const gpy = g4particle->get_py();
+    double const gpz = g4particle->get_pz();
     double gpt = 0;
     double geta = NAN;
 
     if (gpx != 0 && gpy != 0)
     {
-      TVector3 gv(gpx, gpy, gpz);
+      TVector3 const gv(gpx, gpy, gpz);
       gpt = gv.Pt();
       geta = gv.Eta();
       //      gphi = gv.Phi();
@@ -309,16 +310,16 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
       h_nReco_etaGen->Fill(geta);
       h_nReco_pTGen->Fill(gpt);
 
-      double px = track->get_px();
-      double py = track->get_py();
-      double pz = track->get_pz();
+      double const px = track->get_px();
+      double const py = track->get_py();
+      double const pz = track->get_pz();
       double pt;
-      TVector3 v(px, py, pz);
+      TVector3 const v(px, py, pz);
       pt = v.Pt();
       //        eta = v.Pt();
       //      phi = v.Pt();
 
-      float pt_ratio = (gpt != 0) ? pt / gpt : 0;
+      float const pt_ratio = (gpt != 0) ? pt / gpt : 0;
       h_pTRecoGenRatio->Fill(pt_ratio);
       h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
       h_norm->Fill("Reco Track", 1);

@@ -293,8 +293,31 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xy(const std::vector<Ac
 }
 
 //_________________________________________________________________________________
+TrackFitUtils::line_circle_intersection_output_t TrackFitUtils::line_circle_intersection(double r, double m, double b)
+{
+
+  const double a_coef = 1+square(m);
+  const double b_coef = 2*m*b;
+  const double c_coef = square(b)-square(r);
+  const double delta = square(b_coef)-4*a_coef*c_coef;
+
+  const double sqdelta = std::sqrt(delta);
+
+
+  const double xplus = (-b_coef + sqdelta) / (2. * a_coef);
+  const double xminus = (-b_coef - sqdelta) / (2. * a_coef);
+
+  const double yplus = m*xplus + b;
+  const double yminus = m*xminus + b;
+
+  return std::make_tuple(xplus, yplus, xminus, yminus);
+
+}
+
+//_________________________________________________________________________________
 TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_intersection(double r1, double r2, double x2, double y2)
 {
+
   const double D = square(r1) - square(r2) + square(x2) + square(y2);
   const double a = 1.0 + square(x2 / y2);
   const double b = -D * x2 / square(y2);
@@ -955,9 +978,8 @@ TrackFitUtils::zero_field_track_params(
   py -= y;
   pz -= z;
 
-  // scale momentum vector pT to 0.5 GeV/c
-  const double pt_zerofield = 0.5;
-  const double scale = sqrt(px*px+py*py)/pt_zerofield;
+  // scale momentum vector pT to 5. GeV/c
+  const double scale = sqrt(px*px+py*py)/5.;
   px /= scale;
   py /= scale;
   pz /= scale;
@@ -968,5 +990,5 @@ TrackFitUtils::zero_field_track_params(
     std::cout << "phi: " << phi << " eta: " << eta << " pT: 1" <<
     " x,y,z: " << x<<"<"<<y<<","<<z<<"  P: " << px<<","<<py<<","<<pz << std::endl;
   }
-  return std::make_tuple(true, phi, eta, pt_zerofield, Acts::Vector3(x,y,z), p);
+  return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x,y,z), p);
 }

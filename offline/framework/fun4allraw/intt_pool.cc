@@ -706,7 +706,7 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
   FEEs_by_BCO[BCO].insert(fee);
   BCOs_by_FEE[fee].insert(BCO);
 
-  int count = 0;
+//  int count = 0;
   for (unsigned int i = 3; i < hitlist.size(); i++)
   {
     unsigned int x = hitlist[i];
@@ -740,7 +740,7 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
 
     //    coutfl << "count " << count << "  " << hit->bco << endl;  
     intt_hits.push_back(hit);
-    count++;
+//    count++;
   }
   // coutfl << "pushed back " << count  << " hits for FEE " << fee << " with BCO 0x" << std::hex << BCO << dec
   // 	 << " size of hitlist now " << intt_hits.size() << std::endl;

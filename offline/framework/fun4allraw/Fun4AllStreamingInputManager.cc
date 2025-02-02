@@ -921,7 +921,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   for (auto &p : m_MvtxInputVector)
   {
     auto gtml1bcoset_perfee = p->getFeeGTML1BCOMap();
-    int feecounter = 0;
+//    int feecounter = 0;
     for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
     {
       auto link = MvtxRawDefs::decode_feeid(feeid);
@@ -939,7 +939,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
           break;
         }
       }
-      feecounter++;
+//      feecounter++;
     }
 
   }
@@ -1009,7 +1009,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   else
   {
-    while (m_MvtxRawHitMap.begin()->first <= select_crossings - m_mvtx_bco_range) //streamed
+    while (select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings) //streamed
     {
       if (Verbosity() > 2)
       {

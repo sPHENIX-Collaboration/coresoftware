@@ -30,6 +30,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   void SetProbNoiseParam(float rn) { fProbNoiseParam = rn; }
 
   void set_threshold_energy(const float e) { _min_tower_e = e; }
+  void set_peakthreshold_energy(const float e) { _min_peak_e = e; }
   void setEnergyNorm(const float norm) { fEnergyNorm = norm; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
   void LoadProfile(const std::string& fname);
@@ -61,7 +62,12 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_inputnodename = inpNodenm;
   }
 
-   void set_min_cluster_E_saved(float min_cluster_E) { m_min_cluster_e = min_cluster_E; }
+  void set_min_cluster_E_saved(float min_cluster_E) { m_min_cluster_e = min_cluster_E; }
+  
+  void setSubclusterSplitting(bool doSubClusterSplitting)
+  {
+    m_subclustersplitting = doSubClusterSplitting;
+  }
 
   
 
@@ -78,6 +84,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   float fEnergyNorm{1.};
 
   float _min_tower_e{0.020};
+  float _min_peak_e{0.200};
   int chkenergyconservation{0};
 
   std::string detector;
@@ -104,6 +111,8 @@ class RawClusterBuilderTemplate : public SubsysReco
   // 2 - use NO zvertex (zvtx = 0)
 
   float m_min_cluster_e{0.0};
+
+  bool m_subclustersplitting{true};
 
   std::string m_inputnodename;
   std::string m_outputnodename;

@@ -1,7 +1,7 @@
 // @sa <O2/DataFormats/common/src/InteractionRecord.cxx>
 //     <03608ff89>
 
-#include "mvtx_decoder/InteractionRecord.h"
+#include "InteractionRecord.h"
 #include <iostream>
 #include <sstream>
 

@@ -8,6 +8,7 @@
 
 #include <ffaobjects/EventHeader.h>
 
+#include <fun4all/Fun4AllUtils.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -20,9 +21,11 @@
 #include <TGraph.h>
 #include <TH2.h>
 #include <TH3.h>
+#include <TLine.h>
 #include <TPaveText.h>
 #include <TString.h>
 #include <TStyle.h>
+#include <TTree.h>
 #include <TVector3.h>
 
 #include <boost/format.hpp>
@@ -76,7 +79,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 //______________________________________
 int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
 {
-  m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
+  m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
   if (!m_correctedCMcluster_map)
   {
     std::cout << PHWHERE << "CORRECTED_CM_CLISTER Node missing, abort." << std::endl;
@@ -166,6 +169,19 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
     m_dcc_out->m_hentries[i] = new TH2I((boost::format("hEntries%s") % extension[i]).str().c_str(), (boost::format("hEntries%s") % extension[i]).str().c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
   }
 
+  m_laminationTree = new TTree("laminationTree","laminationTree");
+  m_laminationTree->Branch("runnumber",&m_runnumber);
+  m_laminationTree->Branch("segment",&m_segment);
+  m_laminationTree->Branch("side",&m_side);
+  m_laminationTree->Branch("lamIndex",&m_lamIndex);
+  m_laminationTree->Branch("lamPhi",&m_lamPhi);
+  m_laminationTree->Branch("A",&m_A);
+  m_laminationTree->Branch("B",&m_B);
+  m_laminationTree->Branch("C",&m_C);
+  m_laminationTree->Branch("distanceToFit",&m_dist);
+  m_laminationTree->Branch("nBinsFit",&m_nBins);
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -208,7 +224,7 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     LaserCluster *cmclus = cmclus_orig;
     // const unsigned int adc = cmclus->getAdc();
     bool side = (bool) TpcDefs::getSide(cmkey);
-    if (cmclus->getNLayers() <= 1)
+    if (cmclus->getNLayers() <= m_nLayerCut)
     {
       continue;
     }
@@ -284,7 +300,7 @@ int TpcLaminationFitting::fitLaminations()
       TGraph *gr = new TGraph();
       TGraph *proj = new TGraph();
 
-      m_fLamination[l][s]->SetParameters(-0.022 * seedScale + m_laminationCenter[l][s], 4.595 * seedScale, 0.138);
+      m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s], 4.595 * seedScale, 0.138);
 
       TF1 *fitSeed = (TF1 *) m_fLamination[l][s]->Clone();
       fitSeed->SetName((boost::format("fitSeed%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str());
@@ -327,11 +343,11 @@ int TpcLaminationFitting::fitLaminations()
           {
             continue;
           }
-          if (pred2 == -999 && fabs(j - noFitPredBin) > nBinAvg)
+          if (pred2 == -999 && std::abs(j - noFitPredBin) > nBinAvg)
           {
             continue;
           }
-          if (pred2 != -999 && fabs(j - noFitPredBin) > nBinAvg && fabs(j - pred2Bin) > nBinAvg)
+          if (pred2 != -999 && std::abs(j - noFitPredBin) > nBinAvg && std::abs(j - pred2Bin) > nBinAvg)
           {
             continue;
           }
@@ -419,12 +435,8 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
   {
     for (int l = 0; l < 18; l++)
     {
-      std::cout << "working on lamination " << l << " side " << (s == 1 ? "north" : "south") << std::endl;
-      std::cout << "distance to fit: " << m_distanceToFit[l][s] << "   " << m_nBinsFit[l][s] << " bins used" << std::endl;
-
       if (!m_laminationGoodFit[l][s])
       {
-        std::cout << "fit is bad" << std::endl;
         continue;
       }
 
@@ -453,8 +465,6 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
     }
   }
 
-  std::cout << "filled lamination hists" << std::endl;
-
   for (int s = 0; s < 2; s++)
   {
     m_dcc_out->m_hDPint[s] = (TH2 *) phiDistortionLamination[s]->Clone();
@@ -477,14 +487,11 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
   }
   */
 
-  std::cout << "copied into m_dcc_out" << std::endl;
-
   // m_dcc_out->m_hDPint[0] = (TH2*)phiDistortionLamination[0]->Clone();
   // m_dcc_out->m_hDPint[1] = (TH2*)phiDistortionLamination[1]->Clone();
 
   for (int s = 0; s < 2; s++)
   {
-    std::cout << "working on side " << s << std::endl;
     for (int i = 1; i <= m_dcc_out->m_hDPint[s]->GetNbinsY(); i++)
     {
       double R = m_dcc_out->m_hDPint[s]->GetYaxis()->GetBinCenter(i);
@@ -501,8 +508,6 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
         }
       }
 
-      std::cout << "R=" << R << " has " << laminationPhiBins.size() << " good laminations" << std::endl;
-
       if (laminationPhiBins.size() > 1)
       {
         laminationPhiBins.push_back(laminationPhiBins[0]);
@@ -510,7 +515,6 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
 
       for (int lamPair = 0; lamPair < (int) laminationPhiBins.size() - 1; lamPair++)
       {
-        std::cout << "working on lamination pair " << lamPair << std::endl;
         double dist0 = m_dcc_out->m_hDPint[s]->GetBinContent(laminationPhiBins[lamPair], i);
         double dist1 = m_dcc_out->m_hDPint[s]->GetBinContent(laminationPhiBins[lamPair + 1], i);
 
@@ -557,53 +561,53 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  std::cout << "drawing fits" << std::endl;
-  TCanvas *c1 = new TCanvas();
-  gStyle->SetPalette(56);
-  c1->SetLogz();
-  gStyle->SetOptStat(0);
-  c1->SaveAs((boost::format("%s[") %m_fitFileName).str().c_str());
-  for (int s = 0; s < 2; s++)
+  if(m_fitFileName != "")
   {
-    for (int l = 0; l < 18; l++)
+    TCanvas *c1 = new TCanvas();
+    gStyle->SetPalette(56);
+    c1->SetLogz();
+    gStyle->SetOptStat(0);
+    c1->SaveAs((boost::format("%s[") % m_fitFileName).str().c_str());
+    for (int s = 0; s < 2; s++)
     {
-      c1->Clear();
-      m_hLamination[l][s]->Draw("COLZ");
-      m_fLamination[l][s]->SetLineColor(kRed);
-      if (!m_laminationGoodFit[l][s])
+      for (int l = 0; l < 18; l++)
       {
-        m_fLamination[l][s]->SetLineColor(kMagenta);
+	c1->Clear();
+	m_hLamination[l][s]->Draw("COLZ");
+	m_fLamination[l][s]->SetLineColor(kRed);
+	if (!m_laminationGoodFit[l][s])
+	{
+	  m_fLamination[l][s]->SetLineColor(kMagenta);
+	}
+	m_fLamination[l][s]->Draw("same");
+	
+	TLine *line = new TLine(30,m_laminationCenter[l][s],80,m_laminationCenter[l][s]);
+	line->SetLineColor(kBlue);
+	line->SetLineStyle(2);
+	line->Draw("same");
+	
+	TPaveText *pars = new TPaveText(0.6, 0.55, 0.85, 0.85, "NDC");
+	pars->AddText("#phi = A + B#times e^{-C#times R}");
+	pars->AddText((boost::format("A=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
+	pars->AddText((boost::format("B=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(1) %m_fLamination[l][s]->GetParError(1)).str().c_str());
+	pars->AddText((boost::format("C=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(2) %m_fLamination[l][s]->GetParError(2)).str().c_str());
+	pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
+	pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
+	pars->Draw("same");
+	c1->SaveAs(m_fitFileName.c_str());
       }
-      m_fLamination[l][s]->Draw("same");
-
-      TPaveText *pars = new TPaveText(0.6, 0.55, 0.85, 0.85, "NDC");
-      pars->AddText("#phi = A + B#times e^{-C#times R}");
-      pars->AddText((boost::format("A=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
-      pars->AddText((boost::format("B=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(1) %m_fLamination[l][s]->GetParError(1)).str().c_str());
-      pars->AddText((boost::format("C=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(2) %m_fLamination[l][s]->GetParError(2)).str().c_str());
-      pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
-      pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
-      pars->Draw("same");
-      c1->SaveAs(m_fitFileName.c_str());
     }
+    c1->SaveAs((boost::format("%s]") %m_fitFileName).str().c_str());
   }
-  c1->SaveAs(m_fitFileName.c_str());
-
-  std::cout << "done with fitting" << std::endl;
-
+  
   TFile *simDistortion = new TFile("/cvmfs/sphenix.sdcc.bnl.gov/gcc-12.1.0/release/release_new/new.10/share/calibrations/distortion_maps/average_minus_static_distortion_inverted_10-new.root", "READ");
-  std::cout << "opened sim file" << std::endl;
   TH3 *hIntDistortionP_posz = (TH3 *) simDistortion->Get("hIntDistortionP_posz");
   hIntDistortionP_posz->GetZaxis()->SetRange(2, 2);
-  std::cout << "got pos phi dist and set range" << std::endl;
   TH2 *simPhiDistortion[2];
-  std::cout << "made 2D projection holder" << std::endl;
   simPhiDistortion[1] = (TH2 *) hIntDistortionP_posz->Project3D("yx");
   TH3 *hIntDistortionP_negz = (TH3 *) simDistortion->Get("hIntDistortionP_negz");
   hIntDistortionP_negz->GetZaxis()->SetRange(hIntDistortionP_negz->GetNbinsZ() - 1, hIntDistortionP_negz->GetNbinsZ() - 1);
-  std::cout << "got neg phi dist and set range" << std::endl;
   simPhiDistortion[0] = (TH2 *) hIntDistortionP_negz->Project3D("yx");
-  std::cout << "made 2D projection" << std::endl;
 
   int interpolateSuccess = InterpolatePhiDistortions(simPhiDistortion);
   if (interpolateSuccess != Fun4AllReturnCodes::EVENT_OK)
@@ -612,16 +616,12 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  std::cout << "done with interpolating" << std::endl;
-
   for (int s = 0; s < 2; s++)
   {
     scaleFactorMap[s] = (TH2 *) m_dcc_out->m_hDPint[s]->Clone();
     scaleFactorMap[s]->SetName((boost::format("scaleFactorMap%d") %s).str().c_str());
     scaleFactorMap[s]->Divide(simPhiDistortion[s]);
   }
-
-  std::cout << "done with scale factor" << std::endl;
 
   TH3 *hIntDistortionR_posz = (TH3 *) simDistortion->Get("hIntDistortionR_posz");
   hIntDistortionR_posz->GetZaxis()->SetRange(2, 2);
@@ -650,11 +650,25 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     m_dcc_out->m_hDRint[s]->Multiply(scaleFactorMap[s]);
   }
 
-  std::cout << "done with R map" << std::endl;
 
   fill_guarding_bins(m_dcc_out);
 
-  std::cout << "done with guarding bins" << std::endl;
+
+  for(int s=0; s<2; s++)
+  {
+    for(int l=0; l<18; l++)
+    {
+      m_side = s;
+      m_lamIndex = s*18 + l;
+      m_lamPhi = m_laminationCenter[l][s];
+      m_A = m_fLamination[l][s]->GetParameter(0) - m_laminationCenter[l][s];
+      m_B = m_fLamination[l][s]->GetParameter(1);
+      m_C = m_fLamination[l][s]->GetParameter(2);
+      m_dist = m_distanceToFit[l][s];
+      m_nBins = m_nBinsFit[l][s];
+      m_laminationTree->Fill();
+    }
+  }
 
   TFile *outputfile = new TFile(m_outputfile.c_str(), "RECREATE");
   outputfile->cd();
@@ -670,10 +684,9 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     phiDistortionLamination[s]->Write();
     scaleFactorMap[s]->Write();
   }
+  m_laminationTree->Write();
 
   outputfile->Close();
-
-  std::cout << "done with writing" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -688,6 +701,8 @@ void TpcLaminationFitting::fill_guarding_bins(TpcDistortionCorrectionContainer *
       const auto phibins = h->GetNbinsX();
       const auto rbins = h->GetNbinsY();
 
+      int r30Bin = h->GetYaxis()->FindBin(30.0) + 1;
+
       for (int ir = 0; ir < rbins; ir++)
       {
         h->SetBinContent(1, ir + 1, h->GetBinContent(phibins - 1, ir + 1));
@@ -699,12 +714,22 @@ void TpcLaminationFitting::fill_guarding_bins(TpcDistortionCorrectionContainer *
 
       for (int iphi = 0; iphi < phibins; iphi++)
       {
-        h->SetBinContent(iphi + 1, 1, h->GetBinContent(iphi + 1, 2));
-        h->SetBinError(iphi + 1, 1, h->GetBinError(iphi + 1, 2));
+        h->SetBinContent(iphi + 1, r30Bin-1, h->GetBinContent(iphi + 1, r30Bin));
+        h->SetBinError(iphi + 1, r30Bin-1, h->GetBinError(iphi + 1, r30Bin));
 
         h->SetBinContent(iphi + 1, rbins, h->GetBinContent(iphi + 1, rbins - 1));
         h->SetBinError(iphi + 1, rbins, h->GetBinError(iphi + 1, rbins - 1));
       }
     }
   }
+}
+
+
+//_____________________________
+void TpcLaminationFitting::setOutputfile(const std::string &outputfile)
+{
+  m_outputfile = outputfile;
+  std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(m_outputfile);
+  m_runnumber = runseg.first;
+  m_segment = runseg.second;
 }

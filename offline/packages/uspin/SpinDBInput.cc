@@ -272,10 +272,25 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
     UpdateValue(runnum, qa_level, "crossingshift", xingshift);
   }
 
-  float bpol[ncross], bpolerr[ncross], bpolsys[ncross], ypol[ncross], ypolerr[ncross], ypolsys[ncross];
-  int bpat[ncross], ypat[ncross], bad_bunch[ncross];
-  long long mbd_vtxcut[ncross], mbd_nocut[ncross];
-  long long zdc_nocut[ncross];
+  // float bpol[ncross], bpolerr[ncross], bpolsys[ncross], ypol[ncross], ypolerr[ncross], ypolsys[ncross];
+  // int bpat[ncross], ypat[ncross], bad_bunch[ncross];
+  // long long mbd_vtxcut[ncross], mbd_nocut[ncross];
+  // long long zdc_nocut[ncross];
+  float *bpol = new float[ncross];
+  float *bpolerr = new float[ncross];
+  float *bpolsys = new float[ncross];
+  float *ypol = new float[ncross];
+  float *ypolerr = new float[ncross];
+  float *ypolsys = new float[ncross];
+
+  int *bpat = new int[ncross];
+  int *ypat = new int[ncross];
+  int *bad_bunch = new int[ncross];
+
+  long long *mbd_vtxcut = new long long[ncross];
+  long long *mbd_nocut = new long long[ncross];
+  long long *zdc_nocut = new long long[ncross];
+  
   for (int i = 0; i < ncross; i++)
   {
     spin_cont.GetPolarizationBlue(i, bpol[i], bpolerr[i], bpolsys[i]);
@@ -505,6 +520,20 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
   {
     UpdateValue(runnum, qa_level, "crossanglemax", cross_angle_max);
   }
+  delete [] bpol;
+  delete [] bpolerr;
+  delete [] bpolsys;
+  delete [] ypol;
+  delete [] ypolerr;
+  delete [] ypolsys;
+
+  delete [] bpat;
+  delete [] ypat;
+  delete [] bad_bunch;
+
+  delete [] mbd_vtxcut;
+  delete [] mbd_nocut;
+  delete [] zdc_nocut;
 
   return (1);
 }
@@ -638,13 +667,14 @@ int SpinDBInput::InitializeValue(int runnum, int qa_level, const char *name)
 
 int SpinDBInput::InitializeArray(int runnum, int qa_level, const char *name, int nvalue)
 {
-  int ERROR_ARRAY[nvalue];
+  int *ERROR_ARRAY = new int[nvalue];
   for (int i = 0; i < nvalue; i++)
   {
     ERROR_ARRAY[i] = ERROR_VALUE;
   }
-
-  return (UpdateArray(runnum, qa_level, name, ERROR_ARRAY, nvalue));
+  int iret = UpdateArray(runnum, qa_level, name, ERROR_ARRAY, nvalue);
+  delete [] ERROR_ARRAY;
+  return (iret);
 }
 
 ////////////////////////////////////////////////////////////

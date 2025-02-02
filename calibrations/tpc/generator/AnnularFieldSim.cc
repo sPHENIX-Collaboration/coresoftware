@@ -328,7 +328,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   {
     double atphi = FilterPhiPos(at.Phi());
     double fromphi = FilterPhiPos(from.Phi());
-    double delphi = abs(at.DeltaPhi(from));
+    double delphi = std::abs(at.DeltaPhi(from));
     // to allow us to use the same greens function set for both sides of the tpc, we shift into the valid greens region if needed:
     at.SetZ(at.Z() + green_shift);
     from.SetZ(from.Z() + green_shift);
@@ -1212,7 +1212,7 @@ void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, in
 void AnnularFieldSim::load_spacecharge(TH3 *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity, const std::string &inputchargestring)
 {
   // new plan:  use ChargeMapReader:
-  if (abs(zoffset) > 0.001)
+  if (std::abs(zoffset) > 0.001)
   {
     std::cout << boost::str(boost::format("nonzero zoffset given (%E) but new spacecharge loader can't deal with that.  Failing.") % zoffset) << std::endl;
     assert(false);
@@ -2033,7 +2033,7 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
   {
     if (truncation_length > 0)
     {
-      rdist = abs(ir - r);
+      rdist = std::abs(ir - r);
       remdist = sqrt(truncation_length * truncation_length - rdist * rdist);
       if (remdist < 0)
       {
@@ -2044,7 +2044,7 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
     {
       if (truncation_length > 0)
       {
-        phidist = fmin(abs(iphi - phi), abs(abs(iphi - phi) - nphi));  // think about this in phi... rcc food for thought.
+        phidist = fmin(std::abs(iphi - phi), std::abs(std::abs(iphi - phi) - nphi));  // think about this in phi... rcc food for thought.
         remdist = sqrt(truncation_length * truncation_length - phidist * phidist);
         if (remdist < 0)
         {
@@ -2055,7 +2055,7 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
       {
         if (truncation_length > 0)
         {
-          zdist = abs(iz - z);
+          zdist = std::abs(iz - z);
           remdist = sqrt(truncation_length * truncation_length - zdist * zdist);
           if (remdist < 0)
           {
@@ -2524,7 +2524,10 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
   BoundsCase zBound;
   zBound = GetZindexAndCheckBounds(zdest, &zt);
   bool rdrswitch = RdeltaRswitch;
-  *success = 0;
+  if (success)
+  {
+    *success = 0;
+  }
   if (zBound == OutOfBounds)
   {
     if (hasTwin)
@@ -2754,9 +2757,9 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase, const TVector
         hEfield[ax][1]->Fill(rpz_coord[(ax + 1) % 3], rpz_coord[(ax + 2) % 3], field.Y());
         hEfield[ax][2]->Fill(rpz_coord[(ax + 1) % 3], rpz_coord[(ax + 2) % 3], field.Z());
         hCharge[ax]->Fill(rpz_coord[(ax + 1) % 3], rpz_coord[(ax + 2) % 3], GetChargeAt(lpos));
-        hEfieldComp[ax][0]->Fill((abs(field.X())));
-        hEfieldComp[ax][1]->Fill((abs(field.Y())));
-        hEfieldComp[ax][2]->Fill((abs(field.Z())));
+        hEfieldComp[ax][0]->Fill((std::abs(field.X())));
+        hEfieldComp[ax][1]->Fill((std::abs(field.Y())));
+        hEfieldComp[ax][2]->Fill((std::abs(field.Z())));
       }
     }
   }
@@ -3901,7 +3904,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 
   // short-circuit if there's no travel length:
 
-  if (fabs(zdist) < ALMOST_ZERO * step.Z())
+  if (std::abs(zdist) < ALMOST_ZERO * step.Z())
   {
     //   std::cout <<  boost::str(boost::format("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.") %start.X() %start.Y() %start.Z() %zdest %zdist) << std::endl;
     return zero_vector;
@@ -3927,7 +3930,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
     fieldIntB = fieldIntegral(zdest, start, Bfield);
   }
 
-  if (abs(fieldInt.Z() / zdist) < ALMOST_ZERO)
+  if (std::abs(fieldInt.Z() / zdist) < ALMOST_ZERO)
   {
     std::cout << "GetStepDistortion is attempting to swim with no drift field:" << std::endl;
     std::cout << boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") % start.X() % start.Y() % start.Z() % zdest) << std::endl;
@@ -3940,7 +3943,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
   // double fieldz=Enominal; // ideal field over path.
 
   // these values should be with real, not nominal field?
-  // double mu=abs(vdrift/Enominal);//vdrift in [cm/s], field in [V/cm] hence mu in [cm^2/(V*s)];  should be a positive value.  drift velocity over field magnitude, not field direction.
+  // double mu=std::abs(vdrift/Enominal);//vdrift in [cm/s], field in [V/cm] hence mu in [cm^2/(V*s)];  should be a positive value.  drift velocity over field magnitude, not field direction.
   // double omegatau=-mu*Bnominal;//minus sign is for electron charge.
   double omegatau = omegatau_nominal;  // don't compute this every time!
   // or:  omegatau=-10*(10*B.Z()/Tesla)*(vdrift/(cm/us))/(fieldz/(V/cm)); //which is the same as my calculation up to a sign.
@@ -3980,7 +3983,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
     std::cout << boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") % deltaX % deltaY % deltaZ) << std::endl;
   }
 
-  // if (abs(deltaZ / zdist) > 0.25)
+  // if (std::abs(deltaZ / zdist) > 0.25)
   if (false)
   {
     std::cout << "GetStepDistortion produced a very large zdistortion!" << std::endl;
@@ -3996,7 +3999,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
     // assert(false);
   }
 
-  if (abs(deltaX) < 1E-20 && !(chargeCase == NoSpacecharge))
+  if (std::abs(deltaX) < 1E-20 && !(chargeCase == NoSpacecharge))
   {
     std::cout << boost::str(boost::format("GetStepDistortion produced a very small deltaX: %E") % deltaX) << std::endl;
     std::cout << boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") % c0 % c1 % c2) << std::endl;
@@ -4008,7 +4011,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
     // assert(1==2);
   }
 
-  // if (!(abs(deltaX) < 1E3))
+  // if (!(std::abs(deltaX) < 1E3))
   if (false)
   {
     std::cout << boost::str(boost::format("GetStepDistortion produced a very large deltaX: %E") % deltaX) << std::endl;

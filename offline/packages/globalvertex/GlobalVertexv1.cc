@@ -1,6 +1,8 @@
 #include "GlobalVertexv1.h"
 
+#include <algorithm>
 #include <cmath>
+#include <iterator>
 
 GlobalVertexv1::GlobalVertexv1(const GlobalVertex::VTXTYPE id)
   : _id(id)

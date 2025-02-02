@@ -56,7 +56,7 @@ CaloWaveformSim::~CaloWaveformSim()
   gsl_rng_free(m_RandomGenerator);
 }
 
-int CaloWaveformSim::Init(PHCompositeNode *topNode)
+int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
@@ -349,6 +349,16 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
         {
           m_waveforms.at(i).at(j) += m_fixpedestal;
         }
+        // saturate at 2^14 - 1
+        if(m_waveforms.at(i).at(j) > 16383)
+        {
+          m_waveforms.at(i).at(j) = 16383;
+        }
+        if(m_waveforms.at(i).at(j) < 0)
+	      {
+	        m_waveforms.at(i).at(j) = 0;
+	      }
+        
         m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
       }
     }
