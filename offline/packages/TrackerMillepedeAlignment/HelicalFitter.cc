@@ -117,7 +117,7 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
 
     if(straight_line_fit)
       {
- 	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi");
+ 	track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi:track_eta");
      }
     else
       {
@@ -273,11 +273,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       continue;  // discard this track, not enough clusters to fit
     }
 
-  if (Verbosity() > 1)
-    {
+  //if (Verbosity() > 1)
+  //  {
       std::cout << " Track " << trackid << " xy slope " << fitpars[0] << " y intercept " << fitpars[1] 
-          << " zslope " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
-    }
+          << " zslope " << fitpars[2] << " Z0 " << fitpars[3]  << " eta "<<tracklet->get_eta() <<" phi "<< tracklet->get_phi()<<std::endl;
+    //}
       }
     else
       {
@@ -285,6 +285,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     {
       continue;   // discard incomplete seeds
     }
+  if(fabs(tracklet->get_eta()) > m_eta_cut)
+  {
+    continue;
+  }
 
   fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
       
@@ -358,11 +362,15 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         continue;  // discard this track, not enough clusters to fit
       }
     
-    if (Verbosity() > 1)
-      {
+    //if (Verbosity() > 1)
+    //  {
         std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
-      << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << std::endl;
-      }
+      << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << " eta "<<tracklet->get_eta()<<" phi "<< tracklet->get_phi()<< std::endl;
+      //}
+    if(fabs(tracklet->get_eta()) > m_eta_cut)
+  {
+    continue;
+  }
   }
       else
   {
@@ -477,6 +485,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         std::cout << " reject this track, nsilicon = " << nsilicon << std::endl;
       }
+      continue;
+    }
+    if(fabs(newTrack.get_eta()) > m_eta_cut)
+    {
       continue;
     }
     cumulative_global_vec.push_back(global_vec);
@@ -954,15 +966,17 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       Acts::Vector3 r = mom.cross(Acts::Vector3(0., 0., 1.));
       float perigee_phi = atan2(r(1), r(0));
       float track_phi = atan2(newTrack.get_py(), newTrack.get_px());
+      float track_eta = atanh(newTrack.get_pz()/newTrack.get_p());
+      std::cout<<"px "<< newTrack.get_px()<<" py "<<newTrack.get_py()<< " track_eta "<<track_eta<< " track_phi "<<track_phi<<std::endl;
       if(straight_line_fit)
 	{
-	  float ntp_data[27] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+	  float ntp_data[28] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
 				lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3],
 				glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
 				lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3],
 				glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
 				newTrack.get_x(), newTrack.get_y(), newTrack.get_z(), 
-				(float) event_vtx(0), (float ) event_vtx(1), (float) event_vtx(2), track_phi, perigee_phi};
+				(float) event_vtx(0), (float ) event_vtx(1), (float) event_vtx(2), track_phi, perigee_phi, track_eta};
 	  
 	  track_ntp->Fill(ntp_data);
 	}
@@ -1415,10 +1429,10 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
     }
 
     // drop INTT clusters for now  -- TEMPORARY!
-    if (layer > 2 && layer < 7)
-    {
-      continue;
-    }
+    //if (layer > 2 && layer < 7)
+    //{
+    //  continue;
+    //}
 
 
     cluskey_vec.push_back(key);

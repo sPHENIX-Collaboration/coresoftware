@@ -649,6 +649,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
 						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt, bool mvtx_east, bool mvtx_west)
 {
   std::vector<float> fitpars;
+  std::tuple<double, double> xy_fit_pars;
 
   // make the helical fit using TrackFitUtils
   if (global_vec.size() < 3)
@@ -664,6 +665,9 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
   bool cross_mvtx_half = false;
   if ((mvtx_east||mvtx_west)) {
     cross_mvtx_half=TrackFitUtils::isTrackCrossMvtxHalf(cluskey_vec);
+  }
+  else {
+    xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
   }
   for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
   {
@@ -691,8 +695,9 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
       return fitpars;
     }
   std::tuple<double, double> xz_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
-  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec_noINTT);
-
+  if ((mvtx_east||mvtx_west)) {
+    xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec_noINTT);
+  }
 
   fitpars.push_back(std::get<0>(xy_fit_pars));
   fitpars.push_back(std::get<1>(xy_fit_pars));

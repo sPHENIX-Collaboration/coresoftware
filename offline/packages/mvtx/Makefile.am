@@ -24,6 +24,7 @@ pkginclude_HEADERS = \
   MvtxNoiseMap.h \
   MvtxCombinedRawDataDecoder.h \
   CylinderGeom_Mvtx.h \
+  CylinderGeom_MvtxHelper.h \
   SegmentationAlpide.h \
   MvtxPixelMask.h \
   MvtxPixelMaskv1.h \
@@ -46,6 +47,7 @@ nobase_dist_pcm_DATA = \
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
+  CylinderGeom_MvtxHelper.cc \
   MvtxClusterizer.cc \
   MvtxHitPruner.cc \
   MvtxCombinedRawDataDecoder.cc \
