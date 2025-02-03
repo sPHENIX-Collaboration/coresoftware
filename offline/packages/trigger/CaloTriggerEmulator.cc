@@ -1,21 +1,17 @@
 #include "CaloTriggerEmulator.h"
 
-#include "LL1Defs.h"
 #include "LL1Outv1.h"
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerPrimitivev1.h"
 
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv3.h>
 #include <calobase/TowerInfoDefs.h>
-#include <calobase/TowerInfov3.h>
+#include <calobase/TowerInfo.h>
 
 #include <ffamodules/CDBInterface.h>
 
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
-#include <ffarawobjects/CaloPacketContainerv1.h>
-#include <ffarawobjects/CaloPacketv1.h>
 
 #include <cdbobjects/CDBHistos.h>  // for CDBHistos
 #include <cdbobjects/CDBTTree.h>   // for CDBHistos
@@ -38,14 +34,15 @@
 
 #include <TFile.h>
 #include <TH1.h>
-#include <TH1I.h>
 #include <TNtuple.h>
 
-#include <bitset>
-#include <cassert>
+#include <algorithm>
 #include <cstdint>
+#include <cstdlib>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 
 // constructor
 CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)

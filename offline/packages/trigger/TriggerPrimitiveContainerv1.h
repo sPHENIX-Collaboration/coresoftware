@@ -1,17 +1,15 @@
 #ifndef TRIGGER_TRIGGERPRIMITIVECONTAINERV1_H
 #define TRIGGER_TRIGGERPRIMITIVECONTAINERV1_H
 
-#include "TriggerPrimitive.h"
 #include "TriggerPrimitiveContainer.h"
-#include "TriggerPrimitivev1.h"
 
-#include <phool/PHObject.h>
+#include "TriggerDefs.h"
 
 #include <iostream>
 #include <map>
-#include <ostream>
-#include <string>
 #include <utility>
+
+class TriggerPrimitive;
 
 ///
 

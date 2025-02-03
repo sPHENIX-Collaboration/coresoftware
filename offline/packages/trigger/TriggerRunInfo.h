@@ -1,9 +1,8 @@
-#ifndef __TRIGGERRUNINFO_H__
-#define __TRIGGERRUNINFO_H__
+#ifndef TRIGGER_TRIGGERRUNINFO_H
+#define TRIGGER_TRIGGERRUNINFO_H
 
 #include <phool/PHObject.h>
 
-#include <array>
 #include <cstdint>
 #include <iostream>
 #include <string>

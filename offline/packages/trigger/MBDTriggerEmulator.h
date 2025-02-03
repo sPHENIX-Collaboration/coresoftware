@@ -1,37 +1,22 @@
 #ifndef TRIGGER_MBDTRIGGEREMULATOR_H
 #define TRIGGER_MBDTRIGGEREMULATOR_H
 
-#include "LL1Outv1.h"
 #include "TriggerDefs.h"
-#include "TriggerPrimitiveContainerv1.h"
-#include "TriggerPrimitivev1.h"
 
 #include <fun4all/SubsysReco.h>
 
-#include <TEfficiency.h>
-#include <TH2.h>
-#include <TProfile.h>
-#include <TTree.h>
-#include <TNtuple.h>
-
-#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
 
 // Forward declarations
 class CDBHistos;
-class TriggerPrimitive;
 class TriggerPrimitiveContainer;
 class LL1Out;
 class Event;
-class TowerInfoContainer;
 class CaloPacketContainer;
-class Fun4AllHistoManager;
 class PHCompositeNode;
-class TFile;
-class TNtuple;
-class TTree;
-class TProfile;
-class TEfficiency;
-class TH2D;
+class TH1;
 
 class MBDTriggerEmulator : public SubsysReco
 {
@@ -96,7 +81,7 @@ class MBDTriggerEmulator : public SubsysReco
   std::string m_mbd_time_lutname;  
   std::string m_mbd_slewing_lutname;
 
-  TriggerDefs::TriggerId m_triggerid = TriggerDefs::TriggerId::mbdTId;
+  TriggerDefs::TriggerId m_triggerid {TriggerDefs::TriggerId::mbdTId};
 
   bool m_use_max{true};
 
@@ -110,13 +95,13 @@ class MBDTriggerEmulator : public SubsysReco
 
   TriggerPrimitiveContainer *m_primitives_mbd{nullptr};
 
-  /* std::map<unsigned int, TH1I> h_mbd_charge_lut; */
-  /* std::map<unsigned int, TH1I> h_mbd_time_lut; */
-  /* std::map<unsigned int, TH1I> h_mbd_slewing_lut; */
+  /* std::map<unsigned int, TH1> h_mbd_charge_lut; */
+  /* std::map<unsigned int, TH1> h_mbd_time_lut; */
+  /* std::map<unsigned int, TH1> h_mbd_slewing_lut; */
 
-  std::map<unsigned int, TH1I*> h_mbd_charge_lut{};
-  std::map<unsigned int, TH1I*> h_mbd_time_lut{};
-  std::map<unsigned int, TH1I*> h_mbd_slewing_lut{};
+  std::map<unsigned int, TH1*> h_mbd_charge_lut{};
+  std::map<unsigned int, TH1*> h_mbd_time_lut{};
+  std::map<unsigned int, TH1*> h_mbd_slewing_lut{};
 
   CDBHistos *cdbttree_mbd_charge{nullptr};
   CDBHistos *cdbttree_mbd_time{nullptr};

@@ -4,10 +4,10 @@
 #include "LL1Out.h"
 #include "TriggerDefs.h"
 
-#include <phool/PHObject.h>
-
-#include <ostream>
+#include <iostream>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 ///

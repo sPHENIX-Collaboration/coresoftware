@@ -3,14 +3,14 @@
 #ifndef TRIGGER_LL1PACKETGETTER_H
 #define TRIGGER_LL1PACKETGETTER_H
 
-#include "LL1Out.h"
 #include "TriggerDefs.h"
-#include "TriggerPrimitive.h"
-#include "TriggerPrimitiveContainer.h"
 
 #include <fun4all/SubsysReco.h>
 
+#include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
 class PHCompositeNode;
 class LL1Out;

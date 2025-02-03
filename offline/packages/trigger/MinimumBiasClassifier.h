@@ -6,19 +6,16 @@
 #include <array>
 #include <limits>
 #include <string>  // for allocator, string
+#include <utility>
+
 // Forward declarations
 
 class MinimumBiasInfo;
 class PHCompositeNode;
+class Zdcinfo;
 class MbdPmtContainer;
 class MbdPmtHit;
-class Zdcinfo;
-class TowerInfo;
-class MbdPmtContainer;
-class MbdPmtHit;
-class Zdcinfo;
 class GlobalVertexMap;
-class GlobalVertex;
 
 class MinimumBiasClassifier : public SubsysReco
 {
