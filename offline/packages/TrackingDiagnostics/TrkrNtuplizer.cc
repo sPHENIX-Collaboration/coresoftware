@@ -268,7 +268,7 @@ TrkrNtuplizer::~TrkrNtuplizer()
   delete _timer;
 }
 
-int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
+int TrkrNtuplizer::Init(PHCompositeNode* topNode)
 {
   _ievent = 0;
 
@@ -331,6 +331,15 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*topNode*/)
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
   /**/
+  auto geom =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

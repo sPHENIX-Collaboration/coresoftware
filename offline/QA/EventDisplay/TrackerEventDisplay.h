@@ -22,6 +22,7 @@ class TrackerEventDisplay : public SubsysReco
   ~TrackerEventDisplay() override = default;
 
   int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
