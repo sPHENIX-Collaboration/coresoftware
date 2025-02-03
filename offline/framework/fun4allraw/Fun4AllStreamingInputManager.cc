@@ -1009,7 +1009,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   else
   {
-    while (m_MvtxRawHitMap.begin()->first <= select_crossings - m_mvtx_bco_range) //streamed
+    while (select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings) //streamed
     {
       if (Verbosity() > 2)
       {

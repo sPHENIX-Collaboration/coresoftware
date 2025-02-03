@@ -227,9 +227,9 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
-    int bcodiff = gl1 ? gl1bco - strobe : 0;
-    double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
-    int index = m_mvtx_is_triggered ? 0 : std::floor(timeElapsed / m_strobeWidth);
+    int bcodiff = gl1 ? strobe - gl1bco : 0;
+    double timeElapsed = bcodiff * 0.1065;  // 106 ns rhic clock
+    int index = m_mvtx_is_triggered ? 0 : std::ceil(timeElapsed / m_strobeWidth);
 
     if (index < -16 || index > 15)
     {
