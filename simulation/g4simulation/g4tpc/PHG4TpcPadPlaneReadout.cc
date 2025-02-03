@@ -102,7 +102,9 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   {
     return reply;
   }
-
+  const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
+  GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
+  assert(GeomContainer);
   if(m_use_module_gain_weights)
     {
       int side, region, sector;
