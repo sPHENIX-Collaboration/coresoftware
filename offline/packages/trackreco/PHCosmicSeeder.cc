@@ -77,7 +77,6 @@ int PHCosmicSeeder::InitRun(PHCompositeNode* topNode)
 int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
 {
   PHCosmicSeeder::PositionMap clusterPositions;
-  //TFile *gregMaskFile ("gregMaskHists.root","READ");
   for (const auto& hitsetkey : m_clusterContainer->getHitSetKeys(m_trackerId))
   {
     auto range = m_clusterContainer->getClusters(hitsetkey);
@@ -86,8 +85,7 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
       const auto ckey = citer->first;
       const auto cluster = citer->second;
       const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
-      //if (!gregMask(ckey, gregMaskFile)) 
-        clusterPositions.insert(std::make_pair(ckey, global));
+      clusterPositions.insert(std::make_pair(ckey, global));
     }
   }
   if (Verbosity() > 2)
@@ -269,6 +267,11 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
         longestxzslope = seed2.xzslope;
       }
 
+      float pdiff_tol = 1.0;
+      if(m_trackerId == TrkrDefs::TrkrId::mvtxId)
+      {
+        pdiff_tol = 0.25
+      }
       float pdiff = std::fabs((seed1.xyslope - seed2.xyslope) / longestxyslope);
       float pdiff2 = std::fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
       float pdiff3 = std::fabs((seed1.xzintercept - seed2.xzintercept) / longestxzint);
@@ -277,7 +280,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       {
         std::cout << "pdiff1,2,3,4 " << pdiff<<", "<<pdiff2<<", "<<pdiff3<<", "<<pdiff4 << std::endl;
       }
-      if (pdiff < 0.25 && pdiff2 < 0.25 && pdiff3 < 0.25 && pdiff4 < 0.25)
+      if (pdiff < pdiff_tol && pdiff2 < pdiff_tol && pdiff3 < pdiff_tol && pdiff4 < pdiff_tol)
       {
         seedsToDelete.insert(j);
         for (auto& key : seed2.ckeys)
@@ -376,12 +379,6 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
     {
       continue;
     }
-    //additional pruning for MVTX only seeds, require xy line to pass withing 26cm of center of detector
-    //double dist_to_orig = std::fabs(initialSeeds[i].xyintercept)/std::sqrt(1+initialSeeds[i].xyslope*initialSeeds[i].xyslope);
-    //if (dist_to_orig > 26.0)
-    //{
-    //  continue;
-    //}
     prunedSeeds.push_back(initialSeeds[i]);
   }
 
@@ -421,9 +418,6 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
         std::cout << "checking keys " << key1 << ", " << key2 << " with dist apart " << dist << std::endl;
         std::cout << "positions are " << pos1.transpose() << "    ,     "
                   << pos2.transpose() << std::endl;
-        std::cout << "layer, stave, chip 1: "<<TrkrDefs::getHitSetKeyFromClusKey(key1)<<", "<<key1<<std::endl;
-        std::cout << "key1: L"<<int(TrkrDefs::getLayer(key1))<<"_"<<int(MvtxDefs::getStaveId(key1))<<", "<<int(MvtxDefs::getChipId(key1))<<std::endl;
-        std::cout << "key2: L"<<int(TrkrDefs::getLayer(key2))<<"_"<<int(MvtxDefs::getStaveId(key2))<<", "<<int(MvtxDefs::getChipId(key2))<<std::endl;
       }
       PHCosmicSeeder::seed doub;
 
@@ -669,15 +663,3 @@ int PHCosmicSeeder::End(PHCompositeNode* /*unused*/)
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
-// tmp mask
-//bool PHCosmicSeeder::gregMask(TrkrDefs::cluskey key, TrkrCluster* cluster, TFile* gregMaskFile)
-//{
-//  uint8_t layer = TrkrDefs::getLayer(key);
-//  uint8_t stave = MvtxDefs::getStaveId(key);
-//  uint8_t chip = MvtxDefs::getChipId(key);
-//  TH1F* h = nullptr;
-//  std::string hist_name = "Channel_"+std::to_string(layer)+"_"+std::to_string(stave)+"_"+std::to_string(chip);
-//  h = gregMaskFile->GetObject(hist_name.c_str());
-//
-//}
-//

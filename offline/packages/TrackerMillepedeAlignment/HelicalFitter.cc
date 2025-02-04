@@ -273,11 +273,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       continue;  // discard this track, not enough clusters to fit
     }
 
-  //if (Verbosity() > 1)
-  //  {
+  if (Verbosity() > 1)
+    {
       std::cout << " Track " << trackid << " xy slope " << fitpars[0] << " y intercept " << fitpars[1] 
           << " zslope " << fitpars[2] << " Z0 " << fitpars[3]  << " eta "<<tracklet->get_eta() <<" phi "<< tracklet->get_phi()<<std::endl;
-    //}
+    }
       }
     else
       {
@@ -362,11 +362,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         continue;  // discard this track, not enough clusters to fit
       }
     
-    //if (Verbosity() > 1)
-    //  {
+    if (Verbosity() > 1)
+      {
         std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1] 
       << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << " eta "<<tracklet->get_eta()<<" phi "<< tracklet->get_phi()<< std::endl;
-      //}
+      }
     if(fabs(tracklet->get_eta()) > m_eta_cut)
   {
     continue;
