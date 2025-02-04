@@ -194,7 +194,6 @@ int CentralityReco::FillVars()
       std::cout << scale_factor << "*" << m_centrality_scale << std::endl;
     }
 
-  m_mbd_total_charge = 0; // Reset the total charge
   for (int i = 0; i < 128; i++)
     {
       

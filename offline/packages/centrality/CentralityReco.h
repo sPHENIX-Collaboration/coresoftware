@@ -83,7 +83,7 @@ class CentralityReco : public SubsysReco
 
   unsigned int m_key{std::numeric_limits<unsigned int>::max()};
 
-  float m_mbd_total_charge{std::numeric_limits<float>::quiet_NaN()};
+  float m_mbd_total_charge{0.}; // init to zero for use in first event
 
   double m_centrality_scale{std::numeric_limits<double>::quiet_NaN()};
   std::vector<std::pair<std::pair<float, float>, float>>  m_vertex_scales{};
