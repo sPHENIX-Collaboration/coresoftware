@@ -784,7 +784,6 @@ namespace
 
   void ProcessSectorData(thread_data *my_data)
   {
-    std::cout << "Process Sector Data " << std::endl;
     const auto &pedestal = my_data->pedestal;
     const auto &phibins = my_data->phibins;
     const auto &phioffset = my_data->phioffset;
