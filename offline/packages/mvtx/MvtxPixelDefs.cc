@@ -1,87 +1,70 @@
-#ifndef MVTX_MVTXCOMBINEDRAWDATADECODER_H
-#define MVTX_MVTXCOMBINEDRAWDATADECODER_H
+#include "MvtxPixelDefs.h"
 
-/*!
- * \file MvtxCombinedRawDataDecoder.h
- * \author Cameron Dean <cameron.dean@cern.ch>
- * \author Jakub Kvapil <jakub.kvapil@cern.ch>
- */
-
-#include <fun4all/SubsysReco.h>
-
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
+#include <cstdint>
 
-#include "MvtxPixelMask.h"
-
-class MvtxEventInfo;
-class MvtxRawEvtHeader;
-class MvtxRawHitContainer;
-class MvtxRawHit;
-class PHCompositeNode;
-class TrkrHitSetContainer;
-
-/// mvtx raw data decoder
-class MvtxCombinedRawDataDecoder : public SubsysReco
+// MvtPixelDefs namespace
+//==============================================================================
+MvtxPixelDefs::pixelkey MvtxPixelDefs::gen_pixelkey(const uint32_t hitset_key, const uint32_t hitkey)
 {
- public:
-  /// constructor
-  MvtxCombinedRawDataDecoder(const std::string& name = "MvtxCombinedRawDataDecoder");
+  return ((uint64_t) hitset_key << MvtxPixelDefs::kBitShiftLadder) | ((uint64_t) hitkey & 0xFFFFFFFF);
+}
 
-  /// global initialization
-  int Init(PHCompositeNode*) override;
+uint32_t MvtxPixelDefs::get_hitsetkey(const MvtxPixelDefs::pixelkey pkey)
+{
+  return (uint32_t) (pkey >> MvtxPixelDefs::kBitShiftLadder);
+}
 
-  /// run initialization
-  int InitRun(PHCompositeNode*) override;
+uint32_t MvtxPixelDefs::get_hitkey(const MvtxPixelDefs::pixelkey pkey)
+{
+  return (uint32_t) pkey & 0xFFFFFFFF;
+}
 
-  /// event processing
-  int process_event(PHCompositeNode*) override;
+MvtxPixelDefs::pixelkey MvtxPixelDefs::gen_pixelkey_from_coors(const uint8_t layer, const uint8_t stave, const uint8_t chip, const uint16_t row, const uint16_t col)
+{
+  return MvtxPixelDefs::gen_pixelkey(MvtxDefs::genHitSetKey(layer, stave, chip, 0), MvtxDefs::genHitKey(col, row));
+}
 
-  /// end of processing
-  int End(PHCompositeNode*) override;
+MvtxPixelDefs::pixelkey MvtxPixelDefs::gen_pixelkey(MvtxRawHit *hit)
+{
+  if (!hit)
+  {
+    return MvtxPixelDefs::VOID_PIXEL;
+  }
+  const TrkrDefs::hitkey this_hitkey = MvtxDefs::genHitKey(hit->get_col(), hit->get_row());
+  const TrkrDefs::hitsetkey this_hitsetkey = MvtxDefs::genHitSetKey(hit->get_layer_id(), hit->get_stave_id(), hit->get_chip_id(), 0);
+  MvtxPixelDefs::pixelkey this_pixelkey = MvtxPixelDefs::gen_pixelkey(this_hitsetkey, this_hitkey);
+  return this_pixelkey;
+}
 
-  void useRawHitNodeName(const std::string& name) { m_MvtxRawHitNodeName = name; }
+unsigned int MvtxPixelDefs::get_layer(const MvtxPixelDefs::pixelkey pkey)
+{
+  uint32_t hitsetkey = get_hitsetkey(pkey);
+  return TrkrDefs::getLayer(hitsetkey);
+}
 
-  void useRawEvtHeaderNodeName(const std::string& name) { m_MvtxRawEvtHeaderNodeName = name; }
+unsigned int MvtxPixelDefs::get_stave(const MvtxPixelDefs::pixelkey pkey)
+{
+  uint32_t hitsetkey = get_hitsetkey(pkey);
+  return MvtxDefs::getStaveId(hitsetkey);
+}
 
-  void writeMvtxEventHeader(bool write) { m_writeMvtxEventHeader = write; }
+unsigned int MvtxPixelDefs::get_chip(const MvtxPixelDefs::pixelkey pkey)
+{
+  uint32_t hitsetkey = get_hitsetkey(pkey);
+  return MvtxDefs::getChipId(hitsetkey);
+}
 
-  void doOfflineMasking(bool do_masking) { m_doOfflineMasking = do_masking; }
+unsigned int MvtxPixelDefs::get_row(const MvtxPixelDefs::pixelkey pkey)
+{
+  uint32_t hitkey = get_hitkey(pkey);
+  return MvtxDefs::getRow(hitkey);
+}
 
-  void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
-
-  void  SetReadStrWidthFromDB(const bool val){ m_readStrWidthFromDB = val; }
-  bool  GetReadStrWidthFromDB(){ return m_readStrWidthFromDB; }
-  void  SetStrobeWidth(const float val) { m_strobeWidth = val; }
-  float GetStrobeWidth() { return m_strobeWidth; }
-
- private:
-  void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
-
-  TrkrHitSetContainer* hit_set_container = nullptr;
-  MvtxEventInfo* mvtx_event_header = nullptr;
-  MvtxRawEvtHeader* mvtx_raw_event_header = nullptr;
-  MvtxRawHitContainer* mvtx_hit_container = nullptr;
-  MvtxRawHit* mvtx_hit = nullptr;
-
-  std::string m_MvtxRawHitNodeName = "MVTXRAWHIT";
-  std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
-
-  bool m_readStrWidthFromDB = true;
-  float m_strobeWidth = 89.;  //! microseconds
-
-  bool m_writeMvtxEventHeader = true;
-  // std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> m_hotPixelMap;
-
-  // mask hot pixels
-  bool m_doOfflineMasking{false};
-  MvtxPixelMask * m_hot_pixel_mask{nullptr};
-
-  bool m_mvtx_is_triggered{false};
-};
-
-#endif
+unsigned int MvtxPixelDefs::get_col(const MvtxPixelDefs::pixelkey pkey)
+{
+  uint32_t hitkey = get_hitkey(pkey);
+  return MvtxDefs::getCol(hitkey);
+}
