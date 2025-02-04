@@ -270,7 +270,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       float pdiff_tol = 1.0;
       if(m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
-        pdiff_tol = 0.25
+        pdiff_tol = 0.25;
       }
       float pdiff = std::fabs((seed1.xyslope - seed2.xyslope) / longestxyslope);
       float pdiff2 = std::fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
