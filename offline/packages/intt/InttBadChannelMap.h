@@ -15,8 +15,12 @@ class InttBadChannelMap
   InttBadChannelMap() = default;
   virtual ~InttBadChannelMap();
 
-  int LoadFromFile(std::string const& = "InttBadChannelMap.root");
-  int LoadFromCDB(std::string const& = "InttBadChannelMap");
+  int Load(std::string const& = "InttBadChannelMap");
+
+  /// Depreciated; use int Load(const& std::string)
+  int LoadFromFile(std::string const& s = "InttBadChannelMap.root") {return Load(s);}
+  /// Depreciated; use int Load(const& std::string)
+  int LoadFromCDB(std::string const& s = "InttBadChannelMap") {return Load(s);}
 
   virtual void identify(std::ostream& = std::cout) const;
   virtual std::size_t size() const;
