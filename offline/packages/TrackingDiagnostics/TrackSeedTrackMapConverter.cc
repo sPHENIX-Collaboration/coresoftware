@@ -289,7 +289,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         svtxtrack->set_py(trackSeed->get_pt() * std::sin(trackSeed->get_phi()));
         svtxtrack->set_pz(trackSeed->get_pz());
       }
-      
+
       // calculate chisq and ndf
       float R = 1. / std::fabs(trackSeed->get_qOverR());
       float X0 = trackSeed->get_X0();

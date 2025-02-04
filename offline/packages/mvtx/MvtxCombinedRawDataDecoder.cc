@@ -5,8 +5,6 @@
  */
 
 #include "MvtxCombinedRawDataDecoder.h"
-#include "MvtxPixelMask.h"
-#include "MvtxPixelMaskv1.h"
 
 #include <fun4allraw/MvtxRawDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -132,7 +130,12 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   {
     runMvtxTriggered(true);
   }
-
+  // Load the hot pixel map from the CDB
+  if(m_doOfflineMasking)
+  {
+    m_hot_pixel_mask = new MvtxPixelMask();
+    m_hot_pixel_mask->load_from_CDB();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -160,21 +163,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
   }
-
-  
-  if( m_doOfflineMasking )
-  {
-    m_hot_pixel_mask = findNode::getClass<MvtxPixelMaskv1>(topNode, m_MvtxHotPixelMaskNodeName);
-    if ( !m_hot_pixel_mask )
-    {
-      std::cout << PHWHERE << "::" << __func__ << ": Could not get \""
-              << m_MvtxHotPixelMaskNodeName << "\" from Node Tree" << std::endl;
-      std::cout << "Have you enabled this yet?" << std::endl;
-      exit(1);
-    }
-    if ( Verbosity() > 2 ) { m_hot_pixel_mask->identify(); }
-  }
-
   // Could we just get the first strobe BCO instead of setting this to 0?
   // Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
   //  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
@@ -279,9 +267,9 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    if( m_doOfflineMasking )
+    if(m_doOfflineMasking)
     {
-      if ( !m_hot_pixel_mask->is_masked(mvtx_hit) )
+      if (!m_hot_pixel_mask->is_masked(mvtx_hit))
       { // Check if the pixel is masked
         hit = new TrkrHitv2;
         hitset_it->second->addHitSpecificKey(hitkey, hit);

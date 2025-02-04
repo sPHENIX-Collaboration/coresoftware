@@ -19,76 +19,59 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  CylinderGeom_Mvtx.h \
+  CylinderGeom_MvtxHelper.h \
+  MvtxCombinedRawDataDecoder.h \
   MvtxClusterizer.h \
   MvtxHitPruner.h \
   MvtxNoiseMap.h \
-  MvtxCombinedRawDataDecoder.h \
-  CylinderGeom_Mvtx.h \
-  CylinderGeom_MvtxHelper.h \
-  SegmentationAlpide.h \
+  MvtxPixelDefs.h \
   MvtxPixelMask.h \
-  MvtxPixelMaskv1.h \
-  MvtxRawPixelDefs.h \
-  MvtxRawPixelMasker.h 
-
+  SegmentationAlpide.h
 
 ROOTDICTS = \
   CylinderGeom_Mvtx_Dict.cc \
-  MvtxNoiseMap_Dict.cc \
-  MvtxPixelMask_Dict.cc \
-  MvtxPixelMaskv1_Dict.cc
+  MvtxNoiseMap_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   CylinderGeom_Mvtx_Dict_rdict.pcm \
-	MvtxNoiseMap_Dict_rdict.pcm \
-  MvtxPixelMask_Dict_rdict.pcm \
-  MvtxPixelMaskv1_Dict_rdict.pcm
+  MvtxNoiseMap_Dict_rdict.pcm
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   CylinderGeom_MvtxHelper.cc \
+  MvtxCombinedRawDataDecoder.cc \
   MvtxClusterizer.cc \
   MvtxHitPruner.cc \
-  MvtxCombinedRawDataDecoder.cc \
-  MvtxRawPixelMasker.cc
+  MvtxPixelDefs.cc \
+  MvtxPixelMask.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
+  -lActsCore \
   -lCLHEP \
-  -lfun4all \
-  -lffarawobjects \
-  -lfun4allraw \
+  -lcdbobjects \
   -lffamodules \
+  -lffarawobjects \
+  -lfun4all \
+  -lfun4allraw \
+  -lmvtx_decoder \
   -lphg4hit \
   -lSubsysReco \
   -ltrack_io \
-  -lmvtx_decoder \
-  -ltrackbase_historic_io \
-  -lcdbobjects
+  -ltrackbase_historic_io
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
   MvtxNoiseMap.cc \
-  SegmentationAlpide.cc \
-  MvtxPixelMaskv1.cc \
-  MvtxRawPixelDefs.cc 
+  SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \
-  -lActsCore \
-  -lphool \
-  -lfun4all \
-  -lffamodules \
-  -lffarawobjects \
-  -lcdbobjects \
-  -lCLHEP \
-  -lfun4allraw \
-  -lphg4hit \
-  -ltrack_io \
-  -lmvtx_decoder \
-  -lg4detectors_io
+  -lg4detectors_io \
+  -lphool
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
