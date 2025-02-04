@@ -55,6 +55,16 @@ using namespace std;
 // Global chi^2 approach to the Alignment of the ATLAS Silicon Tracking Detectors
 // ATL-INDET-PUB-2005-002, 11 October 2005
 
+namespace { // Anonymous
+  bool arr_has_nan (float* arr)
+  {
+    for (int i = 0; i < AlignmentDefs::NLC; ++i)
+    {
+      if (isnan(arr[i])) return true;
+    }
+    return false;
+  }
+};
 //____________________________________________________________________________..
 HelicalFitter::HelicalFitter(const std::string& name)
   : SubsysReco(name)
@@ -830,10 +840,27 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
       {
+         if (arr_has_nan(lcl_derivativeX)) {
+          std::cerr << "lcl_derivativeX is NaN" << std::endl;
+          continue;
+        }
+        if (arr_has_nan(glbl_derivativeX)) {
+          std::cerr << "glbl_derivativeX is NaN" << std::endl;
+          continue;
+        } 
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
+      
       if (!isnan(residual(1)) && clus_sigma(1) < 1.0 )
       {
+        if (arr_has_nan(lcl_derivativeY)) {
+          std::cerr << "lcl_derivativeY is NaN" << std::endl;
+          continue;
+        }
+        if (arr_has_nan(glbl_derivativeY)) {
+          std::cerr << "glbl_derivativeY is NaN" << std::endl;
+          continue;
+        }
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeY, AlignmentDefs::NGL, glbl_derivativeY, glbl_label, residual(1), errinf * clus_sigma(1));
       }
     }
@@ -951,10 +978,26 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
         if (!isnan(vtx_residual(0)))
         {
+        if (arr_has_nan(lclvtx_derivativeX)) {
+          std::cerr << "lclvtx_derivativeX is NaN" << std::endl;
+          continue;
+        }
+        if (arr_has_nan(glblvtx_derivativeX)) {
+          std::cerr << "glblvtx_derivativeX is NaN" << std::endl;
+          continue;
+        } 
           _mille->mille(AlignmentDefs::NLC, lclvtx_derivativeX, AlignmentDefs::NGLVTX, glblvtx_derivativeX, AlignmentDefs::glbl_vtx_label, vtx_residual(0), vtx_sigma(0));
         }
         if (!isnan(vtx_residual(1)))
         {
+          if (arr_has_nan(lclvtx_derivativeY)) {
+          std::cerr << "lclvtx_derivativeY is NaN" << std::endl;
+          continue;
+        }
+        if (arr_has_nan(glblvtx_derivativeY)) {
+          std::cerr << "glblvtx_derivativeY is NaN" << std::endl;
+          continue;
+        } 
           _mille->mille(AlignmentDefs::NLC, lclvtx_derivativeY, AlignmentDefs::NGLVTX, glblvtx_derivativeY, AlignmentDefs::glbl_vtx_label, vtx_residual(1), vtx_sigma(1));
         }
       }
@@ -967,7 +1010,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       float perigee_phi = atan2(r(1), r(0));
       float track_phi = atan2(newTrack.get_py(), newTrack.get_px());
       float track_eta = atanh(newTrack.get_pz()/newTrack.get_p());
-      std::cout<<"px "<< newTrack.get_px()<<" py "<<newTrack.get_py()<< " track_eta "<<track_eta<< " track_phi "<<track_phi<<std::endl;
       if(straight_line_fit)
 	{
 	  float ntp_data[28] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
