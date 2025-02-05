@@ -49,6 +49,11 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setStrobeRange(const int low, const int high)
+  {
+    m_lowStrobeIndex = low;
+    m_highStrobeIndex = high;
+  }
   void setunc(float unc) { m_uncfactor = unc; }
   /// Set seeding with truth clusters
   void useTruthClusters(bool useTruthClusters)
@@ -181,7 +186,8 @@ class PHActsSiliconSeeding : public SubsysReco
       TrkrCluster *clus);
 
   /// Get all space points for the seeder
-  std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent);
+  std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent,
+    const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
 
   /// Projects circle fit to radii to find possible MVTX/INTT clusters
@@ -229,6 +235,8 @@ class PHActsSiliconSeeding : public SubsysReco
   TrkrClusterContainer *m_clusterMap = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
 
+  int m_lowStrobeIndex = 0;
+  int m_highStrobeIndex = 1;
   /// Configuration classes for Acts seeding
   Acts::SeedFinderConfig<SpacePoint> m_seedFinderCfg;
   Acts::SpacePointGridConfig m_gridCfg;
