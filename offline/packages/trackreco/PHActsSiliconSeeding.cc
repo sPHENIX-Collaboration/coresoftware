@@ -255,7 +255,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
   int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
-  /// Loop over grid volumes
+  int strobe = m_lowStrobeIndex;
+  /// Loop over grid volumes. In our case this will be strobe
   for (auto& seeds : seedVector)
   {
     /// Loop over actual seeds in this grid volume
@@ -410,7 +411,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       //! try to get a crossing value based on INTT
       trackSeed->set_crossing(getCrossingIntt(*trackSeed));
-
+     
       m_seedContainer->insert(trackSeed.get());
 
       fitTimer->stop();
@@ -420,6 +421,11 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         std::cout << "Intt fit time " << circlefittime << " and svtx time "
                   << svtxtracktime << std::endl;
       }
+    }
+    strobe++;
+    if(strobe > m_highStrobeIndex)
+    {
+      std::cout << PHWHERE << "Error: some how grid seed vector is not the same as the number of strobes" << std::endl;
     }
   }
 
