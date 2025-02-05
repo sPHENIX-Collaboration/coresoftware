@@ -231,12 +231,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         uint8_t status = tower->get_status();
         h_emcal_tower_e->Fill(offlineenergy);
 				h_emcal_tower_e_wide_range->Fill(offlineenergy);
-				h_ihcal_tower_e->Fill(offlineenergy);
-				h_ihcal_tower_e_wide_range->Fill(offlineenergy);
-				h_ohcal_tower_e->Fill(offlineenergy);
-				h_ohcal_tower_e_wide_range->Fill(offlineenergy);
-
-        float pedestal = tower->get_pedestal();
+				
+				float pedestal = tower->get_pedestal();
         h_cemc_channel_pedestal[channel]->Fill(pedestal);
 
         for (int is = 0; is < 8; is++)
@@ -298,6 +294,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         h_ihcal_status->Fill(tower->get_status());
         float pedestal = tower->get_pedestal();
         h_ihcal_channel_pedestal[channel]->Fill(pedestal);
+				h_ihcal_tower_e->Fill(offlineenergy);
+				h_ihcal_tower_e_wide_range->Fill(offlineenergy);
 
         uint8_t status = tower->get_status();
         for (int is = 0; is < 8; is++)
@@ -353,6 +351,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         h_ohcal_status->Fill(tower->get_status());
         float pedestal = tower->get_pedestal();
         h_ohcal_channel_pedestal[channel]->Fill(pedestal);
+				h_ohcal_tower_e->Fill(offlineenergy);
+				h_ohcal_tower_e_wide_range->Fill(offlineenergy);
 
         uint8_t status = tower->get_status();
         for (int is = 0; is < 8; is++)
