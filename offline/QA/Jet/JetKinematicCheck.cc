@@ -1,23 +1,31 @@
 //____________________________________________________________________________..
 
 #include "JetKinematicCheck.h"
-#include <TH1D.h>
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TLegend.h>
-#include <TPad.h>
+
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <jetbase/JetContainer.h>
 #include <jetbase/Jetv2.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
-#include <algorithm>
-#include <cmath>
-#include <string>
-#include <vector>
+
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <TLegend.h>
+#include <TPad.h>
 
 #include <boost/format.hpp>
+
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <string>
+#include <vector>
 //____________________________________________________________________________..
 
 JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
@@ -31,12 +39,6 @@ JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
   , m_recoJetNameR03(recojetnameR03)
   , m_recoJetNameR04(recojetnameR04)
   , m_recoJetNameR05(recojetnameR05)
-  , m_histTag("AllTrig")
-  , m_restrictEtaRange(true)
-  , m_etaRange(-1.1, 1.1)
-  , m_ptRange(10, 100)
-  , m_doTrgSelect(false)
-  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
 {
   if (Verbosity() > 1)
   {
@@ -51,11 +53,14 @@ JetKinematicCheck::~JetKinematicCheck()
   {
     std::cout << "JetKinematicCheck::~JetKinematicCheck() Calling dtor" << std::endl;
   }
+  delete m_analyzer;
 }
 
 //____________________________________________________________________________..
 int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
 {
+  delete m_analyzer;
+  m_analyzer = new TriggerAnalyzer();
   hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
@@ -219,7 +224,8 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
   {
-    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, topNode);
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
       return Fun4AllReturnCodes::EVENT_OK;

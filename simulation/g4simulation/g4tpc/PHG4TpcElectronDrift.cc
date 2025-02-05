@@ -434,15 +434,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4TruthInfoContainer *truthinfo =
       findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!m_tGeometry)
-  {
-    std::cout << PHWHERE
-              << "ActsGeometry not found on node tree. Exiting"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   unsigned int count_g4hits = 0;
   //  int count_electrons = 0;

@@ -8,7 +8,9 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
+#include <iostream>
+
+int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
 {
 
   if (m_useEmulator)
@@ -19,20 +21,18 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode *topNode)
       std::cout << " no trigger emulator" << std::endl;
       return 1;
     }
-
-    ll1out_jet = findNode::getClass<LL1Out>(topNode, "LL1OUT_JET");
-    if (!ll1out_jet)
-    {
-      std::cout << " no trigger emulator" << std::endl;
-      return 1;
-    }
-
-    triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
-    if (!triggerruninfo) 
-    {
-      std::cout << " no triggerruninfo" << std::endl;
-      return 1;
-    }
+  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  if (!gl1packet)
+  {
+    std::cout << " no gl1 packet" << std::endl;
+    return 1;
+  }
+  triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+  if (!triggerruninfo)
+  {
+    std::cout << " no triggerruninfo" << std::endl;
+    return 1;
+  }
 
     fillTriggerVector();
 
@@ -94,7 +94,6 @@ bool TriggerAnalyzer::didTriggerFire(int triggerbit)
 {
   uint32_t bit = (uint32_t) triggerbit;
   return (((gl1_scaledvec >> bit) & 0x1U) == 0x1U);
-
 }
 
 int TriggerAnalyzer::getTriggerPrescale(const std::string& triggername)
@@ -111,7 +110,6 @@ bool TriggerAnalyzer::checkRawTrigger(const std::string& triggername)
 {
   uint32_t bit = triggerruninfo->getTriggerBitByName(triggername);
   return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
-
 }
 
 bool TriggerAnalyzer::checkRawTrigger(int triggerbit)

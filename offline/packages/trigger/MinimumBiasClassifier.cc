@@ -2,8 +2,6 @@
 
 #include "MinimumBiasInfov1.h"
 
-#include <mbd/MbdPmtContainer.h>
-#include <mbd/MbdPmtHit.h>
 #include <zdcinfo/Zdcinfo.h>
 
 #include <ffamodules/CDBInterface.h>

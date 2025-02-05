@@ -13,8 +13,6 @@ class ClusHitsVerbosev1;
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
-class RawHitSet;
-class RawHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrainingHitsContainer;
@@ -39,9 +37,10 @@ public:
   void set_use_nn(bool use_nn) { _use_nn = use_nn; }
   void set_do_hit_association(bool do_assoc) { do_hit_assoc = do_assoc; }
   void set_do_wedge_emulation(bool do_wedge) { do_wedge_emulation = do_wedge; }
-  void set_do_sequential(bool do_seq) { do_sequential = do_seq; }
+  void set_do_sequential(bool do_seq) { if(do_seq) {m_nthreads = 1;} }
   void set_do_split(bool split) { do_split = split; }
   void set_fixed_window(int fixed) { do_fixed_window = fixed; }
+  void set_nthreads(int nthreads) { m_nthreads= nthreads; }
   void set_pedestal(float val) { pedestal = val; }
   void set_seed_threshold(float val) { seed_threshold = val; }
   void set_edge_threshold(float val) { edge_threshold = val; }
@@ -53,7 +52,6 @@ public:
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size; }
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size; }
   void set_reject_event(bool reject) { m_rejectEvent = reject; }
-
   void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; }
   void set_nzbins(int val){NZBinsSide = val; is_reco = true;}
   void set_rawdata_reco()
@@ -78,7 +76,6 @@ public:
   bool record_ClusHitsVerbose{false};
 
   TrkrHitSetContainer *m_hits = nullptr;
-  RawHitSetContainer *m_rawhits = nullptr;
   TrkrClusterContainer *m_clusterlist = nullptr;
   TrkrClusterHitAssoc *m_clusterhitassoc = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
@@ -87,7 +84,6 @@ public:
   bool _use_nn = false;
   bool do_hit_assoc = true;
   bool do_wedge_emulation = false;
-  bool do_sequential = false;
   bool do_read_raw = false;
   bool do_singles = true;
   bool do_split = false;
@@ -104,6 +100,7 @@ public:
   unsigned short MaxClusterHalfSizeT = 5;
 
   double m_tdriftmax = 0;
+  double m_nthreads = 9;
   double AdcClockPeriod = 53.0;  // ns
   double NZBinsSide = 249;
 

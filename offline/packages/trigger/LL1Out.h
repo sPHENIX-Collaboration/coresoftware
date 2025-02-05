@@ -7,7 +7,10 @@
 
 #include <iostream>
 #include <map>
-#include <ostream>
+#include <string>
+#include <utility>
+#include <vector> 
+
 ///
 class LL1Out : public PHObject
 {
