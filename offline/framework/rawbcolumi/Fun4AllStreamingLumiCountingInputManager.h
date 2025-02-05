@@ -58,10 +58,7 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   SyncObject *m_SyncObject{nullptr};
   PHCompositeNode *m_topNode{nullptr};
 
-  uint64_t m_RefBCO{0};
-  uint64_t m_nextRefBCO{0};
   int m_RunNumber{0};
-  int m_BunchNumber{0};
   unsigned int m_negative_bco_window{0};
   unsigned int m_positive_bco_window{0};
   uint64_t m_rawgl1scaler{0};
@@ -95,12 +92,11 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   TH1 *h_gl1p_MBDSN_bunchid_scaled{nullptr};
   TH1 *h_gl1p_rawgl1scaler{nullptr};
   TH1 *h_gl1p_ZDCCoin_bunchid_raw{nullptr};
-  uint64_t m_bco_trim;
-  uint64_t m_lower_bound;
-  uint64_t m_upper_bound;
-  int m_bunch_number;
+  uint64_t m_bco_trim{};
+  uint64_t m_lower_bound{};
+  uint64_t m_upper_bound{};
+  int m_bunch_number{};
   TTree* ttree = nullptr;
-  TTree* tr2;
   TFile *tfile = nullptr;
   std::string m_outputFileName = "/sphenix/user/xuzhiwan/luminosity/streaming-macro/macro/output.root"; // Default value
 };
