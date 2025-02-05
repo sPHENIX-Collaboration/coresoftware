@@ -162,7 +162,7 @@ int JetCalib::CreateNodeTree(PHCompositeNode *topNode)
 
 std::string JetCalib::fetchCalibDir(const char *calibType)
 {
-  std::string calibName = Form("JES_Calib_%s", calibType);
+  std::string calibName = std::string("JES_Calib_") + calibType;
   return CDBInterface::instance()->getUrl(calibName);
 }
 
