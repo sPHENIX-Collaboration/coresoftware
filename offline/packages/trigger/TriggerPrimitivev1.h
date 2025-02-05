@@ -4,11 +4,8 @@
 #include "TriggerDefs.h"
 #include "TriggerPrimitive.h"
 
-#include <phool/PHObject.h>
-
+#include <cstddef>
 #include <iostream>
-#include <map>
-#include <ostream>
 #include <vector>
 
 ///

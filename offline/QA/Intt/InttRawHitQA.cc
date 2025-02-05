@@ -80,6 +80,11 @@ int InttRawHitQA::InitRun(PHCompositeNode *topNode)
     if(theNode)
     {
       std::cout << PHWHERE << " Found INTT Raw hit container node " << theNode->getName() << std::endl;
+      // skip if theNode->getName() is INTTEVENTHEADER
+      if(theNode->getName() == "INTTEVENTHEADER")
+      {
+        continue;
+      }
       auto cont = (InttRawHitContainer*)theNode->getData();
       if(cont)
       {

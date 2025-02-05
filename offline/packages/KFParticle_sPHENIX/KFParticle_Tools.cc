@@ -404,11 +404,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
         float dca = 0;
         if (m_use_2D_matching_tools)
         {
-          daughterParticles[*i_it].GetDistanceFromParticleXY(daughterParticles[*j_it]);
+          dca = daughterParticles[*i_it].GetDistanceFromParticleXY(daughterParticles[*j_it]);
         }
         else
         {
-          daughterParticles[*i_it].GetDistanceFromParticle(daughterParticles[*j_it]);
+          dca = daughterParticles[*i_it].GetDistanceFromParticle(daughterParticles[*j_it]);
         }
 
         if (dca <= m_comb_DCA)
@@ -470,11 +470,11 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
           float dca = 0;
           if (m_use_2D_matching_tools)
           {
-            daughterParticles[i_it].GetDistanceFromParticleXY(daughterParticles[goodTracksThatMeet[i_prongs][i]]);
+            dca = daughterParticles[i_it].GetDistanceFromParticleXY(daughterParticles[goodTracksThatMeet[i_prongs][i]]);
           }
           else
           {
-            daughterParticles[i_it].GetDistanceFromParticle(daughterParticles[goodTracksThatMeet[i_prongs][i]]);          
+            dca = daughterParticles[i_it].GetDistanceFromParticle(daughterParticles[goodTracksThatMeet[i_prongs][i]]);          
           }
 
           if (dca > m_comb_DCA)

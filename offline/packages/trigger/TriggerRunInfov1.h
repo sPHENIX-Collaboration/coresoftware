@@ -3,8 +3,6 @@
 
 #include "TriggerRunInfo.h"
 
-#include <phool/PHObject.h>
-
 #include <array>
 #include <cstdint>
 #include <iostream>

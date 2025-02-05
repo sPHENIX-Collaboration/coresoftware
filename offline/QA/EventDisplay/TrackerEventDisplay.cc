@@ -55,7 +55,19 @@ int TrackerEventDisplay::Init(PHCompositeNode* /*topNode*/)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+int TrackerEventDisplay::InitRun(PHCompositeNode *topNode)
+{
+  auto geom =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 int TrackerEventDisplay::process_event(PHCompositeNode* topNode)
 {
   makeJsonFile(topNode);

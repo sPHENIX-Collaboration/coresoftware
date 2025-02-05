@@ -728,15 +728,19 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
   {
     if (cvalue.compare(0, 1, "{") != 0 || cvalue.compare(length - 1, 1, "}") != 0)
     {
-      std::cout << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
-      // printf("Error : Is this array? (%s), length = %d\n",name, length);
+      if (verbosity > 0)
+      {
+        std::cout << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
+      }
       return 0;
     }
   }
   else
   {
-    std::cout << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
-    // printf("Error : Is this array? (%s), length = %d\n",name, length);
+    if (verbosity > 0)
+    {
+      std::cout << (boost::format("Error : Is this array? (%s), length = %d\n") % name % length).str();
+    }
     return 0;
   }
 

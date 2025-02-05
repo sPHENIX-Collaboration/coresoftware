@@ -57,9 +57,12 @@ class SpinDBOutput
   int GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_level);
   int GetDBContentStore(SpinDBContent &spin_cont, int runnum);
   int GetDefaultQA(int runnum);
+  void Verbosity(int verbose = 0){verbosity=verbose;}
 
  private:
   static const int ERROR_VALUE;
+
+  int verbosity = 0;
 
   std::string db_name;
   std::string user_name;
@@ -75,6 +78,8 @@ class SpinDBOutput
   int GetArray(odbc::ResultSet *rs, const char *name, unsigned int *value, int nvalue);
   int GetArray(odbc::ResultSet *rs, const char *name, int *value, int nvalue);
   int GetArray(odbc::ResultSet *rs, const char *name, long long *value, int nvalue);
+
+  
 };
 
 #endif /* USPIN_SPINDBOUTPUT_H */

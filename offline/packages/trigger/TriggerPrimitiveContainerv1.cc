@@ -1,12 +1,8 @@
 #include "TriggerPrimitiveContainerv1.h"
+
+#include "TriggerPrimitivev1.h"
 #include "TriggerDefs.h"
 
-#include <phool/PHObject.h>
-
-#include <TClonesArray.h>
-
-#include <cassert>
-#include <cmath>
 #include <iostream>
 
 TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::TriggerId tid, const TriggerDefs::DetectorId did)
