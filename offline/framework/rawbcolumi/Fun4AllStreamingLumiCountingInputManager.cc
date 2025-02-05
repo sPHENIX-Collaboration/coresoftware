@@ -6,28 +6,28 @@
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/Gl1Packetv2.h>
 
+#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
-#include <fun4all/Fun4AllHistoManager.h>
 
 #include <ffaobjects/SyncObject.h>  // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
 
+#include <frog/FROG.h>
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
-#include <frog/FROG.h>
 
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 #include <boost/format.hpp>
 
+#include <TFile.h>
 #include <TH1.h>
 #include <TSystem.h>
 #include <TTree.h>
-#include <TFile.h>
 
 #include <algorithm>  // for max
 #include <cassert>
@@ -53,7 +53,7 @@ Fun4AllStreamingLumiCountingInputManager::~Fun4AllStreamingLumiCountingInputMana
   {
     fileclose();
   }
-//  std::cout<<"----Write? files to output.root"<<std::endl;
+  //  std::cout<<"----Write? files to output.root"<<std::endl;
 
   delete m_SyncObject;
   // clear leftover raw event maps and vectors with poolreaders
@@ -64,7 +64,6 @@ Fun4AllStreamingLumiCountingInputManager::~Fun4AllStreamingLumiCountingInputMana
   }
 
   m_Gl1InputVector.clear();
-
 }
 
 int Fun4AllStreamingLumiCountingInputManager::run(const int /*nevents*/)
@@ -74,27 +73,27 @@ int Fun4AllStreamingLumiCountingInputManager::run(const int /*nevents*/)
   {
     iret += FillGl1();
   }
-/*   std::cout<<"----Storing files to output.root"<<std::endl;
-  tfile = TFile::Open(m_outputFileName.c_str(), "RECREATE", "");//UPDATE
-  ttree->Write("", TObject::kOverwrite);
-  h_lumibco->Write("", TObject::kOverwrite);
-  h_bunchnumber->Write("", TObject::kOverwrite);
-  h_bunchnumber_occur->Write("", TObject::kOverwrite);
-  tfile->Close();
-  delete tfile;
-*/
+  /*   std::cout<<"----Storing files to output.root"<<std::endl;
+    tfile = TFile::Open(m_outputFileName.c_str(), "RECREATE", "");//UPDATE
+    ttree->Write("", TObject::kOverwrite);
+    h_lumibco->Write("", TObject::kOverwrite);
+    h_bunchnumber->Write("", TObject::kOverwrite);
+    h_bunchnumber_occur->Write("", TObject::kOverwrite);
+    tfile->Close();
+    delete tfile;
+  */
   return iret;
 }
 
 void Fun4AllStreamingLumiCountingInputManager::SetOutputFileName(const std::string &fileName)
 {
-    m_outputFileName = fileName; // Update the filename
+  m_outputFileName = fileName;  // Update the filename
 }
 
 int Fun4AllStreamingLumiCountingInputManager::fileclose()
 {
-//  std::cout<<"----fileclose()"<<std::endl;
-//  QAHistManagerDef::saveQARootFile(m_output_file);
+  //  std::cout<<"----fileclose()"<<std::endl;
+  //  QAHistManagerDef::saveQARootFile(m_output_file);
   return 0;
 }
 
@@ -117,8 +116,8 @@ void Fun4AllStreamingLumiCountingInputManager::Print(const std::string &what) co
 
 int Fun4AllStreamingLumiCountingInputManager::ResetEvent()
 {
-  //zhiwan
-  //m_RefBCO = 0;
+  // zhiwan
+  // m_RefBCO = 0;
   return 0;
 }
 
@@ -209,10 +208,10 @@ void Fun4AllStreamingLumiCountingInputManager::registerStreamingInput(SingleStre
   {
     std::cout << "registering " << evtin->Name()
               << " number of registered inputs: "
-              << m_Gl1InputVector.size() 
+              << m_Gl1InputVector.size()
               << std::endl;
   }
-   std::cout <<m_Gl1InputVector.size() << std::endl;
+  std::cout << m_Gl1InputVector.size() << std::endl;
 }
 
 void Fun4AllStreamingLumiCountingInputManager::AddGl1RawHit(uint64_t bclk, Gl1Packet *hit)
@@ -222,10 +221,10 @@ void Fun4AllStreamingLumiCountingInputManager::AddGl1RawHit(uint64_t bclk, Gl1Pa
 
 void Fun4AllStreamingLumiCountingInputManager::AddGl1Window(uint64_t bco_trim, int negative_window, int positive_window)
 {
-  m_BCOWindows[bco_trim] = std::make_pair(bco_trim-negative_window,bco_trim+positive_window);
+  m_BCOWindows[bco_trim] = std::make_pair(bco_trim - negative_window, bco_trim + positive_window);
 }
 
-void Fun4AllStreamingLumiCountingInputManager::AddGl1BunchNumber(uint64_t bco_trim,int bunch_number)
+void Fun4AllStreamingLumiCountingInputManager::AddGl1BunchNumber(uint64_t bco_trim, int bunch_number)
 {
   m_BCOBunchNumber[bco_trim] = bunch_number;
 }
@@ -238,9 +237,9 @@ int Fun4AllStreamingLumiCountingInputManager::FillGl1()
     if (Verbosity() > 0)
     {
       std::cout << "Fun4AllStreamingLumiCountingInputManager::FillGl1 - fill pool for " << iter->Name() << std::endl;
-   std::cout<<"Run number "<<iter->RunNumber()<<std::endl;  
-}
-   iter->FillPool();
+      std::cout << "Run number " << iter->RunNumber() << std::endl;
+    }
+    iter->FillPool();
 
     if (m_RunNumber == 0)
     {
@@ -262,97 +261,108 @@ int Fun4AllStreamingLumiCountingInputManager::FillGl1()
     }
   }
 
-    if (Verbosity() > 0){
-    std::cout<<"Here BCO "<< m_BCOWindows.begin()->first<<" left "<<m_BCOWindows.begin()->second.first<<" right "<< m_BCOWindows.begin()->second.second<<std::endl;
-}
-/*
-for (const auto &entry : m_BCOWindows) {
-    uint64_t key = entry.first;
-    uint64_t valueFirst = entry.second.first;
-    uint64_t valueSecond = entry.second.second;
-    std::cout << "Key: " << key 
-              << ", Value First: " << valueFirst 
-              << ", Value Second: " << valueSecond 
-              << std::endl;
-}
+  if (Verbosity() > 0)
+  {
+    std::cout << "Here BCO " << m_BCOWindows.begin()->first << " left " << m_BCOWindows.begin()->second.first << " right " << m_BCOWindows.begin()->second.second << std::endl;
+  }
+  /*
+  for (const auto &entry : m_BCOWindows) {
+      uint64_t key = entry.first;
+      uint64_t valueFirst = entry.second.first;
+      uint64_t valueSecond = entry.second.second;
+      std::cout << "Key: " << key
+                << ", Value First: " << valueFirst
+                << ", Value Second: " << valueSecond
+                << std::endl;
+  }
 
-for (const auto& [bco_trim, bunch_number] : m_BCOBunchNumber) {
-    std::cout << "Here BCO " << bco_trim << " Bunch Number " << bunch_number << std::endl;
-}
-*/
-//std::cout << "Here BCO " <<m_BCOWindows.begin()->first <<std::endl;
- 
-if (m_BCOWindows.size() > 1) {
-	auto first_element = m_BCOWindows.begin();
-        auto second_element = std::next(m_BCOWindows.begin());
-//	std::cout<<"Key 1: "<<first_element->first<<" Value ( "<<first_element->second.first<<" , "<<first_element->second.second<<std::endl;
-//	std::cout<<"Key 2: "<<second_element->first<<" Value ( "<<second_element->second.first<<" , "<<second_element->second.second<<std::endl;
-// 	std::cout<<second_element->first - first_element->first<<" compared with window "<< m_negative_bco_window+m_positive_bco_window <<std::endl;
-	//constexpr uint64_t MAX_40BIT_VALUE = 0xFFFFFFFFFF;
+  for (const auto& [bco_trim, bunch_number] : m_BCOBunchNumber) {
+      std::cout << "Here BCO " << bco_trim << " Bunch Number " << bunch_number << std::endl;
+  }
+  */
+  // std::cout << "Here BCO " <<m_BCOWindows.begin()->first <<std::endl;
 
-	//special case for overflow: second_element - first_element > 1099511000000, then switch them
-	m_diffBCO = second_element->first - first_element->first;
+  if (m_BCOWindows.size() > 1)
+  {
+    auto first_element = m_BCOWindows.begin();
+    auto second_element = std::next(m_BCOWindows.begin());
+    //	std::cout<<"Key 1: "<<first_element->first<<" Value ( "<<first_element->second.first<<" , "<<first_element->second.second<<std::endl;
+    //	std::cout<<"Key 2: "<<second_element->first<<" Value ( "<<second_element->second.first<<" , "<<second_element->second.second<<std::endl;
+    // 	std::cout<<second_element->first - first_element->first<<" compared with window "<< m_negative_bco_window+m_positive_bco_window <<std::endl;
+    // constexpr uint64_t MAX_40BIT_VALUE = 0xFFFFFFFFFF;
 
-	if(second_element->first - first_element->first>1099510000000){
-	flat_overflow = true;
-//int temp_m_diffBCO=first_element->first+1099511627775+1-second_element->first;
-	bco_temp = first_element->first;
-	m_BCOWindows.erase(m_BCOWindows.begin());
-	bco_temp+=1099511627775+1;
-	m_BCOWindows[bco_temp] = std::make_pair(bco_temp-m_negative_bco_window,bco_temp+m_positive_bco_window);
-	first_element = m_BCOWindows.begin();
-	second_element = std::next(m_BCOWindows.begin());
-	m_diffBCO = second_element->first - first_element->first;
-	std::cout<<"overflow new diff "<<m_diffBCO<<" new first element "<<first_element->first<<" new second element "<<second_element->first<<std::endl;
-	}
-        h_diffbco->Fill(m_diffBCO);
-	if(m_diffBCO < static_cast<int>(m_negative_bco_window+m_positive_bco_window) ){
-		m_BCOWindows.begin()->second.second = second_element->second.first;
-  		std::cout<<"*** new Key 1 BCO "<< m_BCOWindows.begin()->first<<" left "<<m_BCOWindows.begin()->second.first<<" right "<< m_BCOWindows.begin()->second.second<<std::endl;
-	}
-    } 
+    // special case for overflow: second_element - first_element > 1099511000000, then switch them
+    m_diffBCO = second_element->first - first_element->first;
 
-   m_bco_trim =m_BCOWindows.begin()->first;
-   m_lower_bound = m_BCOWindows.begin()->second.first;
-   m_upper_bound = m_BCOWindows.begin()->second.second;
-   m_bunch_number = m_BCOBunchNumber[m_BCOWindows.begin()->first]; 
-   //ttree->Fill();
-   h_bunchnumber->Fill(m_BCOBunchNumber[m_BCOWindows.begin()->first]);
-   h_lumibco->Fill(m_BCOWindows.begin()->second.second - m_BCOWindows.begin()->second.first);
-
-   int lower = -1*static_cast<int>(m_bco_trim - m_lower_bound);
-   int upper = (m_upper_bound>m_bco_trim)?static_cast<int>(m_upper_bound-m_bco_trim):-1*static_cast<int>(m_bco_trim -m_upper_bound);// it is possible that upper is <0 
-  //std::cout<<"lower="<<lower<<", upper = "<<upper<<std::endl;//<<" or upper2 = "<<lower+(m_BCOWindows.begin()->second.second - m_BCOWindows.begin()->second.first)<<std::endl;
-   for(int i = lower; i< upper;i++){
-     int adjusted_bunch = m_bunch_number +i;
-          while (adjusted_bunch < 0) {
-                adjusted_bunch += 120;
-            }
-            while (adjusted_bunch > 119) {
-                adjusted_bunch -= 120;
-            }
-          if(i!=0) {
-		h_bunchnumber_occur->Fill(adjusted_bunch);
-	}//else{std::cout<<"same gl1 removed"<<std::endl;}
-   }
-
-   if (!m_BCOBunchNumber.empty()) {
-	m_BCOBunchNumber.erase(m_BCOWindows.begin()->first);
-        //m_BCOBunchNumber.erase(m_BCOBunchNumber.begin());
-   }
-   if (!m_BCOWindows.empty()) {
-        m_BCOWindows.erase(m_BCOWindows.begin());
+    if (second_element->first - first_element->first > 1099510000000)
+    {
+      flat_overflow = true;
+      // int temp_m_diffBCO=first_element->first+1099511627775+1-second_element->first;
+      bco_temp = first_element->first;
+      m_BCOWindows.erase(m_BCOWindows.begin());
+      bco_temp += 1099511627775 + 1;
+      m_BCOWindows[bco_temp] = std::make_pair(bco_temp - m_negative_bco_window, bco_temp + m_positive_bco_window);
+      first_element = m_BCOWindows.begin();
+      second_element = std::next(m_BCOWindows.begin());
+      m_diffBCO = second_element->first - first_element->first;
+      std::cout << "overflow new diff " << m_diffBCO << " new first element " << first_element->first << " new second element " << second_element->first << std::endl;
     }
-   if(flat_overflow){
-        m_BCOWindows.erase(m_BCOWindows.begin());
-        bco_temp-=1099511627775+1;
-        m_BCOWindows[bco_temp] = std::make_pair(bco_temp-m_negative_bco_window,bco_temp+m_positive_bco_window);
-	std::cout<<" Change back, new bco window map  "<<m_BCOBunchNumber.begin()->first<<std::endl;
-	flat_overflow=false;
-	}
+    h_diffbco->Fill(m_diffBCO);
+    if (m_diffBCO < static_cast<int>(m_negative_bco_window + m_positive_bco_window))
+    {
+      m_BCOWindows.begin()->second.second = second_element->second.first;
+      std::cout << "*** new Key 1 BCO " << m_BCOWindows.begin()->first << " left " << m_BCOWindows.begin()->second.first << " right " << m_BCOWindows.begin()->second.second << std::endl;
+    }
+  }
 
-//mow use new
- 
+  m_bco_trim = m_BCOWindows.begin()->first;
+  m_lower_bound = m_BCOWindows.begin()->second.first;
+  m_upper_bound = m_BCOWindows.begin()->second.second;
+  m_bunch_number = m_BCOBunchNumber[m_BCOWindows.begin()->first];
+  // ttree->Fill();
+  h_bunchnumber->Fill(m_BCOBunchNumber[m_BCOWindows.begin()->first]);
+  h_lumibco->Fill(m_BCOWindows.begin()->second.second - m_BCOWindows.begin()->second.first);
+
+  int lower = -1 * static_cast<int>(m_bco_trim - m_lower_bound);
+  int upper = (m_upper_bound > m_bco_trim) ? static_cast<int>(m_upper_bound - m_bco_trim) : -1 * static_cast<int>(m_bco_trim - m_upper_bound);  // it is possible that upper is <0
+                                                                                                                                                // std::cout<<"lower="<<lower<<", upper = "<<upper<<std::endl;//<<" or upper2 = "<<lower+(m_BCOWindows.begin()->second.second - m_BCOWindows.begin()->second.first)<<std::endl;
+  for (int i = lower; i < upper; i++)
+  {
+    int adjusted_bunch = m_bunch_number + i;
+    while (adjusted_bunch < 0)
+    {
+      adjusted_bunch += 120;
+    }
+    while (adjusted_bunch > 119)
+    {
+      adjusted_bunch -= 120;
+    }
+    if (i != 0)
+    {
+      h_bunchnumber_occur->Fill(adjusted_bunch);
+    }  // else{std::cout<<"same gl1 removed"<<std::endl;}
+  }
+
+  if (!m_BCOBunchNumber.empty())
+  {
+    m_BCOBunchNumber.erase(m_BCOWindows.begin()->first);
+    // m_BCOBunchNumber.erase(m_BCOBunchNumber.begin());
+  }
+  if (!m_BCOWindows.empty())
+  {
+    m_BCOWindows.erase(m_BCOWindows.begin());
+  }
+  if (flat_overflow)
+  {
+    m_BCOWindows.erase(m_BCOWindows.begin());
+    bco_temp -= 1099511627775 + 1;
+    m_BCOWindows[bco_temp] = std::make_pair(bco_temp - m_negative_bco_window, bco_temp + m_positive_bco_window);
+    std::cout << " Change back, new bco window map  " << m_BCOBunchNumber.begin()->first << std::endl;
+    flat_overflow = false;
+  }
+
+  // mow use new
+
   Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1RAWHIT");
   for (auto gl1hititer : m_Gl1RawHitMap.begin()->second.Gl1RawHitVector)
   {
@@ -363,51 +373,60 @@ if (m_BCOWindows.size() > 1) {
     }
   }
 
-//add for mbd p_gl1
-  Gl1Packet *p_gl1 = findNode::getClass<Gl1Packetv2>(m_topNode,"GL1RAWHIT");//"GL1Packet"); 
-    if (!p_gl1){std::cout<<"CAN not find this Gl1Packetv2"<<std::endl;}
-    else{
-        int bunchnumber = p_gl1->getBunchNumber();
-//	uint64_t evtBCO_gl1 = p_gl1->getBCO() & 0xFFFFFFFFFFU; 
-//        for (int i = 0; i <9;i++)// int(GL1PScaler_raw_vec.size()); i++)
-//        {
-            if (p_gl1->lValue(0, "GL1PRAW"))// 0-8, 0 is MBDSN
-            {
-            //    GL1PScaler_raw_vec[i][bunchnumber] = p_gl1->lValue(i, "GL1PRAW");
-//		std::cout<<"evtBCO: "<<evtBCO_gl1<<" bunchnumber ="<<bunchnumber<<" i = "<<i<<" ,gl1praw = " <<p_gl1->lValue(i, "GL1PRAW")<<std::endl;
-		m_bunchnumber_MBDNS_raw[bunchnumber] = p_gl1->lValue(0, "GL1PRAW");
-                m_bunchnumber_MBDNS_live[bunchnumber] = p_gl1->lValue(0, "GL1PLIVE");
-                m_bunchnumber_MBDNS_scaled[bunchnumber] = p_gl1->lValue(0, "GL1PSCALED");
-		m_bunchnumber_ZDCCoin_raw[bunchnumber] = p_gl1->lValue(5, "GL1PRAW");//zdc coincidence
-		//h_gl1p_MBDSN_bunchid->Fill(bunchnumber, p_gl1->lValue(0, "GL1PRAW"));
-		//std::cout<<" bunchnumber ="<<bunchnumber<<" ,gl1praw = " <<p_gl1->lValue(0, "GL1PRAW")<<std::endl;
-            }
-  //      }
-	if(p_gl1->lValue(0, 0)){
-//		m_bunchnumber_rawgl1scaler[bunchnumber] = p_gl1->lValue(0, 0);
-	//	std::cout<<" bunchnumber ="<<bunchnumber<<" ,gl1rawscaler = "<< p_gl1->lValue(0, 0)<<std::endl;
-		m_rawgl1scaler= p_gl1->lValue(0, 0);
-	}
+  // add for mbd p_gl1
+  Gl1Packet *p_gl1 = findNode::getClass<Gl1Packetv2>(m_topNode, "GL1RAWHIT");  //"GL1Packet");
+  if (!p_gl1)
+  {
+    std::cout << "CAN not find this Gl1Packetv2" << std::endl;
+  }
+  else
+  {
+    int bunchnumber = p_gl1->getBunchNumber();
+    //	uint64_t evtBCO_gl1 = p_gl1->getBCO() & 0xFFFFFFFFFFU;
+    //        for (int i = 0; i <9;i++)// int(GL1PScaler_raw_vec.size()); i++)
+    //        {
+    if (p_gl1->lValue(0, "GL1PRAW"))  // 0-8, 0 is MBDSN
+    {
+      //    GL1PScaler_raw_vec[i][bunchnumber] = p_gl1->lValue(i, "GL1PRAW");
+      //		std::cout<<"evtBCO: "<<evtBCO_gl1<<" bunchnumber ="<<bunchnumber<<" i = "<<i<<" ,gl1praw = " <<p_gl1->lValue(i, "GL1PRAW")<<std::endl;
+      m_bunchnumber_MBDNS_raw[bunchnumber] = p_gl1->lValue(0, "GL1PRAW");
+      m_bunchnumber_MBDNS_live[bunchnumber] = p_gl1->lValue(0, "GL1PLIVE");
+      m_bunchnumber_MBDNS_scaled[bunchnumber] = p_gl1->lValue(0, "GL1PSCALED");
+      m_bunchnumber_ZDCCoin_raw[bunchnumber] = p_gl1->lValue(5, "GL1PRAW");  // zdc coincidence
+      // h_gl1p_MBDSN_bunchid->Fill(bunchnumber, p_gl1->lValue(0, "GL1PRAW"));
+      // std::cout<<" bunchnumber ="<<bunchnumber<<" ,gl1praw = " <<p_gl1->lValue(0, "GL1PRAW")<<std::endl;
     }
+    //      }
+    if (p_gl1->lValue(0, 0))
+    {
+      //		m_bunchnumber_rawgl1scaler[bunchnumber] = p_gl1->lValue(0, 0);
+      //	std::cout<<" bunchnumber ="<<bunchnumber<<" ,gl1rawscaler = "<< p_gl1->lValue(0, 0)<<std::endl;
+      m_rawgl1scaler = p_gl1->lValue(0, 0);
+    }
+  }
   ttree->Fill();
 
-  if(m_lastevent_flag){
-       for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_MBDNS_raw) {
-           h_gl1p_MBDSN_bunchid_raw->Fill(bunchnumber, mbdns_value);
-       }
-       for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_MBDNS_live) {
-           h_gl1p_MBDSN_bunchid_live->Fill(bunchnumber, mbdns_value);
-       }
-       for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_MBDNS_scaled) {
-           h_gl1p_MBDSN_bunchid_scaled->Fill(bunchnumber, mbdns_value);
-       }
-       //for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_rawgl1scaler) {
-           h_gl1p_rawgl1scaler->Fill(1, m_rawgl1scaler);
-       //}
-      for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_ZDCCoin_raw) {
-           h_gl1p_ZDCCoin_bunchid_raw->Fill(bunchnumber, mbdns_value);
-       }
- 
+  if (m_lastevent_flag)
+  {
+    for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_MBDNS_raw)
+    {
+      h_gl1p_MBDSN_bunchid_raw->Fill(bunchnumber, mbdns_value);
+    }
+    for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_MBDNS_live)
+    {
+      h_gl1p_MBDSN_bunchid_live->Fill(bunchnumber, mbdns_value);
+    }
+    for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_MBDNS_scaled)
+    {
+      h_gl1p_MBDSN_bunchid_scaled->Fill(bunchnumber, mbdns_value);
+    }
+    // for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_rawgl1scaler) {
+    h_gl1p_rawgl1scaler->Fill(1, m_rawgl1scaler);
+    //}
+    for (const auto &[bunchnumber, mbdns_value] : m_bunchnumber_ZDCCoin_raw)
+    {
+      h_gl1p_ZDCCoin_bunchid_raw->Fill(bunchnumber, mbdns_value);
+    }
   }
   // if we run streaming, we only need the first gl1 bco to skip over all the junk
   // which is taken before the daq actually starts. But once we have the first event
@@ -421,8 +440,8 @@ if (m_BCOWindows.size() > 1) {
     {
       delete iter;
     }
-      m_gl1_registered_flag = false;
-      m_Gl1InputVector.clear();
+    m_gl1_registered_flag = false;
+    m_Gl1InputVector.clear();
   }
   else
   {
@@ -433,43 +452,51 @@ if (m_BCOWindows.size() > 1) {
     m_Gl1RawHitMap.begin()->second.Gl1RawHitVector.clear();
     m_Gl1RawHitMap.erase(m_Gl1RawHitMap.begin());
   }
- // std::cout << "size  m_Gl1RawHitMap: " <<  m_Gl1RawHitMap.size()
+  // std::cout << "size  m_Gl1RawHitMap: " <<  m_Gl1RawHitMap.size()
   // 	    << std::endl;
 
-    if (Verbosity() > 0){
-if(m_alldone_flag){std::cout<<"all done is true"<<std::endl;}
-}
+  if (Verbosity() > 0)
+  {
+    if (m_alldone_flag)
+    {
+      std::cout << "all done is true" << std::endl;
+    }
+  }
 
-if(m_alldone_flag){
-  std::cout<<m_event_number<<" Events -- Storing files to output.root"<<std::endl;
-  std::string updatedFileName = m_outputFileName +"_" + std::to_string(m_event_number)+ ".root";
-  if(TFile::Open(updatedFileName.c_str(), "READ")) {updatedFileName = m_outputFileName +"_" + std::to_string(m_event_number+1)+ ".root";}
-  tfile = TFile::Open(updatedFileName.c_str(), "RECREATE", "");
-  ttree->Write("", TObject::kOverwrite);
-  h_lumibco->Write("", TObject::kOverwrite);
-  h_bunchnumber->Write("", TObject::kOverwrite);
-  h_bunchnumber_occur->Write("", TObject::kOverwrite);
-  h_diffbco->Write("", TObject::kOverwrite); 
- h_gl1p_MBDSN_bunchid_raw->Write("", TObject::kOverwrite);
- h_gl1p_MBDSN_bunchid_live->Write("", TObject::kOverwrite);
- h_gl1p_MBDSN_bunchid_scaled->Write("", TObject::kOverwrite);
- h_gl1p_rawgl1scaler->Write("", TObject::kOverwrite);
- h_gl1p_ZDCCoin_bunchid_raw->Write("", TObject::kOverwrite);
- tfile->Close();
-  delete tfile;
+  if (m_alldone_flag)
+  {
+    std::cout << m_event_number << " Events -- Storing files to output.root" << std::endl;
+    std::string updatedFileName = m_outputFileName + "_" + std::to_string(m_event_number) + ".root";
+    if (TFile::Open(updatedFileName.c_str(), "READ"))
+    {
+      updatedFileName = m_outputFileName + "_" + std::to_string(m_event_number + 1) + ".root";
+    }
+    tfile = TFile::Open(updatedFileName.c_str(), "RECREATE", "");
+    ttree->Write("", TObject::kOverwrite);
+    h_lumibco->Write("", TObject::kOverwrite);
+    h_bunchnumber->Write("", TObject::kOverwrite);
+    h_bunchnumber_occur->Write("", TObject::kOverwrite);
+    h_diffbco->Write("", TObject::kOverwrite);
+    h_gl1p_MBDSN_bunchid_raw->Write("", TObject::kOverwrite);
+    h_gl1p_MBDSN_bunchid_live->Write("", TObject::kOverwrite);
+    h_gl1p_MBDSN_bunchid_scaled->Write("", TObject::kOverwrite);
+    h_gl1p_rawgl1scaler->Write("", TObject::kOverwrite);
+    h_gl1p_ZDCCoin_bunchid_raw->Write("", TObject::kOverwrite);
+    tfile->Close();
+    delete tfile;
 
- ttree->Reset();
- h_lumibco->Reset();
- h_bunchnumber->Reset();
- h_bunchnumber_occur->Reset();
- h_diffbco->Reset();
- h_gl1p_MBDSN_bunchid_raw->Reset();
- h_gl1p_MBDSN_bunchid_live->Reset();
- h_gl1p_MBDSN_bunchid_scaled->Reset();
-h_gl1p_rawgl1scaler->Reset();
-h_gl1p_ZDCCoin_bunchid_raw->Reset();
-}
-  
+    ttree->Reset();
+    h_lumibco->Reset();
+    h_bunchnumber->Reset();
+    h_bunchnumber_occur->Reset();
+    h_diffbco->Reset();
+    h_gl1p_MBDSN_bunchid_raw->Reset();
+    h_gl1p_MBDSN_bunchid_live->Reset();
+    h_gl1p_MBDSN_bunchid_scaled->Reset();
+    h_gl1p_rawgl1scaler->Reset();
+    h_gl1p_ZDCCoin_bunchid_raw->Reset();
+  }
+
   return 0;
 }
 
@@ -485,20 +512,19 @@ void Fun4AllStreamingLumiCountingInputManager::SetPositiveWindow(const unsigned 
 
 void Fun4AllStreamingLumiCountingInputManager::createLuminosityHistos()
 {
- 
-auto hm = QAHistManagerDef::getHistoManager();
+  auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-//zhiwan
-{
-  auto tr = new TTree("BCOWindowTree", "BCO Window Data");
-  tr->Branch("bco_trim", &m_bco_trim);
-  tr->Branch("lower_bound", &m_lower_bound);
-  tr->Branch("upper_bound", &m_upper_bound);
-  tr->Branch("bunch_number", &m_bunch_number);
-//  tr->Branch("rawgl1scaler", &m_rawgl1scaler);
-  tr->SetAutoFlush(100000);
-  hm->registerHisto(tr);
-}
+  // zhiwan
+  {
+    auto tr = new TTree("BCOWindowTree", "BCO Window Data");
+    tr->Branch("bco_trim", &m_bco_trim);
+    tr->Branch("lower_bound", &m_lower_bound);
+    tr->Branch("upper_bound", &m_upper_bound);
+    tr->Branch("bunch_number", &m_bunch_number);
+    //  tr->Branch("rawgl1scaler", &m_rawgl1scaler);
+    tr->SetAutoFlush(100000);
+    hm->registerHisto(tr);
+  }
 
   {
     auto h = new TH1I("h_LumiBCO", "Lumi BCO", 500, 0, 500);
@@ -558,11 +584,11 @@ auto hm = QAHistManagerDef::getHistoManager();
   h_lumibco = dynamic_cast<TH1 *>(hm->getHisto("h_LumiBCO"));
   h_bunchnumber = dynamic_cast<TH1 *>(hm->getHisto("h_BunchNumber"));
   h_bunchnumber_occur = dynamic_cast<TH1 *>(hm->getHisto("h_BunchNumberOccurance"));
-  ttree = dynamic_cast<TTree*>(hm->getHisto("BCOWindowTree"));
+  ttree = dynamic_cast<TTree *>(hm->getHisto("BCOWindowTree"));
   h_diffbco = dynamic_cast<TH1 *>(hm->getHisto("h_diffBCO"));
-  h_gl1p_MBDSN_bunchid_raw = dynamic_cast<TH1 *>(hm->getHisto("h_MBDSNraw_BunchID")); 
-  h_gl1p_MBDSN_bunchid_live = dynamic_cast<TH1 *>(hm->getHisto("h_MBDSNlive_BunchID")); 
-  h_gl1p_MBDSN_bunchid_scaled = dynamic_cast<TH1 *>(hm->getHisto("h_MBDSNscaled_BunchID")); 
-  h_gl1p_rawgl1scaler= dynamic_cast<TH1 *>(hm->getHisto("h_rawgl1scalerBunchID"));
+  h_gl1p_MBDSN_bunchid_raw = dynamic_cast<TH1 *>(hm->getHisto("h_MBDSNraw_BunchID"));
+  h_gl1p_MBDSN_bunchid_live = dynamic_cast<TH1 *>(hm->getHisto("h_MBDSNlive_BunchID"));
+  h_gl1p_MBDSN_bunchid_scaled = dynamic_cast<TH1 *>(hm->getHisto("h_MBDSNscaled_BunchID"));
+  h_gl1p_rawgl1scaler = dynamic_cast<TH1 *>(hm->getHisto("h_rawgl1scalerBunchID"));
   h_gl1p_ZDCCoin_bunchid_raw = dynamic_cast<TH1 *>(hm->getHisto("h_gl1p_ZDCCoin_BunchID"));
 }

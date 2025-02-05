@@ -70,17 +70,25 @@ void SingleGl1PoolInputv2::FillPool(const unsigned int /*nbclks*/)
     {
       std::cout << PHWHERE << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
-if ((m_total_event == 0 && evt->getEvtType() == ENDRUNEVENT) || 
-    (m_total_event != 0 && evt->getEvtSequence() - 2 == m_total_event)) 
-{
- m_alldone_flag = true;
- m_lastevent_flag = true;
- }
-if(evt->getEvtSequence()%5000==0) {m_alldone_flag = true; m_lastevent_flag = true;}
-if (Verbosity() > 2){ 
-    if(m_alldone_flag){std::cout<<"gl1 all done is true"<<std::endl;}
-      //else{std::cout<<"gl1 all done is false"<<std::endl;}
-}
+    if ((m_total_event == 0 && evt->getEvtType() == ENDRUNEVENT) ||
+        (m_total_event != 0 && evt->getEvtSequence() - 2 == m_total_event))
+    {
+      m_alldone_flag = true;
+      m_lastevent_flag = true;
+    }
+    if (evt->getEvtSequence() % 5000 == 0)
+    {
+      m_alldone_flag = true;
+      m_lastevent_flag = true;
+    }
+    if (Verbosity() > 2)
+    {
+      if (m_alldone_flag)
+      {
+        std::cout << "gl1 all done is true" << std::endl;
+      }
+      // else{std::cout<<"gl1 all done is false"<<std::endl;}
+    }
     RunNumber(evt->getRunNumber());
     if (GetVerbosity() > 1)
     {
@@ -111,12 +119,15 @@ if (Verbosity() > 2){
     {
       std::cout << PHWHERE << "Packet 14001 is null ptr" << std::endl;
       evt->identify();
-      m_alldone_flag=true; m_lastevent_flag=true; 
-      if (StreamingLumiInputManager()) {
-	StreamingLumiInputManager()->SetEndofEvent(m_alldone_flag, m_lastevent_flag);
-	StreamingLumiInputManager()->SetEventNumber(EventSequence);
-	}
-      m_alldone_flag=false; m_lastevent_flag=false;
+      m_alldone_flag = true;
+      m_lastevent_flag = true;
+      if (StreamingLumiInputManager())
+      {
+        StreamingLumiInputManager()->SetEndofEvent(m_alldone_flag, m_lastevent_flag);
+        StreamingLumiInputManager()->SetEventNumber(EventSequence);
+      }
+      m_alldone_flag = false;
+      m_lastevent_flag = false;
       continue;
     }
     if (Verbosity() > 1)
@@ -127,21 +138,25 @@ if (Verbosity() > 2){
     Gl1Packet *newhit = new Gl1Packetv2();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     uint64_t bco_trim = gtm_bco & 0xFFFFFFFFFFU;
-//	std::cout<<bco_trim<<std::endl;
-    m_BCOWindows[bco_trim] = std::make_pair(bco_trim-m_negative_bco_window,bco_trim+m_positive_bco_window);
-//    std::cout<<"BCO "<< m_BCOWindows.begin()->first<<" left "<<m_BCOWindows.begin()->second.first<<" right "<< m_BCOWindows.begin()->second.second<<std::endl;
-    m_BCOBunchNumber[bco_trim] = packet->lValue(0, "BunchNumber"); 
-  //  std::cout<<"BCO "<<bco_trim << " Bunch Number "<< m_BCOBunchNumber[bco_trim]<<std::endl;
+    //	std::cout<<bco_trim<<std::endl;
+    m_BCOWindows[bco_trim] = std::make_pair(bco_trim - m_negative_bco_window, bco_trim + m_positive_bco_window);
+    //    std::cout<<"BCO "<< m_BCOWindows.begin()->first<<" left "<<m_BCOWindows.begin()->second.first<<" right "<< m_BCOWindows.begin()->second.second<<std::endl;
+    m_BCOBunchNumber[bco_trim] = packet->lValue(0, "BunchNumber");
+    //  std::cout<<"BCO "<<bco_trim << " Bunch Number "<< m_BCOBunchNumber[bco_trim]<<std::endl;
     if (StreamingLumiInputManager())
     {
       StreamingLumiInputManager()->AddGl1Window(bco_trim, m_negative_bco_window, m_positive_bco_window);
       StreamingLumiInputManager()->AddGl1BunchNumber(bco_trim, m_BCOBunchNumber[bco_trim]);
-     StreamingLumiInputManager()->SetEndofEvent(m_alldone_flag, m_lastevent_flag);
-    StreamingLumiInputManager()->SetEventNumber(EventSequence);
-    StreamingLumiInputManager()->SetNegativeWindow(m_negative_bco_window);
-    StreamingLumiInputManager()->SetPositiveWindow(m_positive_bco_window);
+      StreamingLumiInputManager()->SetEndofEvent(m_alldone_flag, m_lastevent_flag);
+      StreamingLumiInputManager()->SetEventNumber(EventSequence);
+      StreamingLumiInputManager()->SetNegativeWindow(m_negative_bco_window);
+      StreamingLumiInputManager()->SetPositiveWindow(m_positive_bco_window);
     }
-if(evt->getEvtSequence()%5000==0) {m_alldone_flag = false;m_lastevent_flag = false;}
+    if (evt->getEvtSequence() % 5000 == 0)
+    {
+      m_alldone_flag = false;
+      m_lastevent_flag = false;
+    }
 
     m_FEEBclkMap.insert(gtm_bco);
     newhit->setBCO(packet->lValue(0, "BCO"));
@@ -200,7 +215,6 @@ if(evt->getEvtSequence()%5000==0) {m_alldone_flag = false;m_lastevent_flag = fal
 
 void SingleGl1PoolInputv2::Print(const std::string &what) const
 {
-  
   if (what == "ALL" || what == "FEEBCLK")
   {
     for (auto bcliter : m_FEEBclkMap)
@@ -248,7 +262,6 @@ void SingleGl1PoolInputv2::CleanupUsedPackets(const uint64_t bclk)
       break;
     }
   }
-
 
   for (auto iter : toclearbclk)
   {

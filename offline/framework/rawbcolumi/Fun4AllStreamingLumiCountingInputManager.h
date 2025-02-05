@@ -4,13 +4,13 @@
 #define RAWBCOLUMI_FUN4ALLSTREAMINGLUMICOUNTINGINPUTMANAGER_H
 
 #include <fun4allraw/InputManagerType.h>
-//#include <fun4allraw/Fun4AllStreamingInputManager.h>
+// #include <fun4allraw/Fun4AllStreamingInputManager.h>
 #include <fun4all/Fun4AllInputManager.h>
 
+#include <TTree.h>
 #include <map>
 #include <set>
 #include <string>
-#include <TTree.h>
 class SingleStreamingInputv2;
 class Gl1Packet;
 class PHCompositeNode;
@@ -38,13 +38,17 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   int FillGl1();
   void AddGl1RawHit(uint64_t bclk, Gl1Packet *hit);
   void AddGl1Window(uint64_t bclk, int negative_window, int positive_window);
-  void AddGl1BunchNumber(uint64_t bclk,int bunch_number);
+  void AddGl1BunchNumber(uint64_t bclk, int bunch_number);
   void SetNegativeWindow(const unsigned int i);
   void SetPositiveWindow(const unsigned int i);
   void Streaming(bool b = true) { m_StreamingFlag = b; }
   void SetOutputFileName(const std::string &fileName);
-  void SetEndofEvent(bool flag=false, bool flag2 = false) {m_alldone_flag=flag;m_lastevent_flag=flag2;}
-  void SetEventNumber(int num){m_event_number=num;}
+  void SetEndofEvent(bool flag = false, bool flag2 = false)
+  {
+    m_alldone_flag = flag;
+    m_lastevent_flag = flag2;
+  }
+  void SetEventNumber(int num) { m_event_number = num; }
 
  private:
   struct Gl1RawHitInfo
@@ -62,17 +66,17 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   unsigned int m_negative_bco_window{0};
   unsigned int m_positive_bco_window{0};
   uint64_t m_rawgl1scaler{0};
-//  std::string m_output_file="output.root";
-    bool m_alldone_flag={false};
-  bool m_lastevent_flag={false};
+  //  std::string m_output_file="output.root";
+  bool m_alldone_flag = {false};
+  bool m_lastevent_flag = {false};
   int m_event_number{0};
   int m_diffBCO{0};
   bool m_gl1_registered_flag{false};
   bool m_StreamingFlag{false};
   bool flat_overflow{false};
- uint64_t bco_temp=0;
- 
- std::vector<SingleStreamingInputv2 *> m_Gl1InputVector;
+  uint64_t bco_temp = 0;
+
+  std::vector<SingleStreamingInputv2 *> m_Gl1InputVector;
   std::map<uint64_t, Gl1RawHitInfo> m_Gl1RawHitMap;
   std::map<uint64_t, std::pair<uint64_t, uint64_t>> m_BCOWindows;
   std::map<uint64_t, int> m_BCOBunchNumber;
@@ -80,7 +84,7 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   std::map<int, long> m_bunchnumber_MBDNS_live;
   std::map<int, long> m_bunchnumber_MBDNS_scaled;
   std::map<int, long> m_bunchnumber_ZDCCoin_raw;
-  //std::map<int, long> m_bunchnumber_rawgl1scaler;
+  // std::map<int, long> m_bunchnumber_rawgl1scaler;
 
   // QA histos
   TH1 *h_lumibco{nullptr};
@@ -96,9 +100,9 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   uint64_t m_lower_bound{};
   uint64_t m_upper_bound{};
   int m_bunch_number{};
-  TTree* ttree = nullptr;
+  TTree *ttree = nullptr;
   TFile *tfile = nullptr;
-  std::string m_outputFileName = "/sphenix/user/xuzhiwan/luminosity/streaming-macro/macro/output.root"; // Default value
+  std::string m_outputFileName = "/sphenix/user/xuzhiwan/luminosity/streaming-macro/macro/output.root";  // Default value
 };
 
 #endif /* RAWBCOLUMI_FUN4ALLSTREAMINGLUMICOUNTINGINPUTMANAGER_H */

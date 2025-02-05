@@ -29,7 +29,7 @@ class SingleGl1PoolInputv2 : public SingleStreamingInputv2
   //  void ConfigureStreamingInputManager() override;
   void SetNegativeWindow(const unsigned int value) { m_negative_bco_window = value; }
   void SetPositiveWindow(const unsigned int value) { m_positive_bco_window = value; }
-  void SetTotalEvent(const int value){m_total_event=value;}
+  void SetTotalEvent(const int value) { m_total_event = value; }
 
  private:
   unsigned int m_NumSpecialEvents{0};
@@ -44,11 +44,11 @@ class SingleGl1PoolInputv2 : public SingleStreamingInputv2
   std::set<uint64_t> m_FEEBclkMap;
   std::set<uint64_t> m_BclkStack;
 
-   unsigned int m_negative_bco_window = 20;
-   unsigned int m_positive_bco_window = 325;
-   bool m_alldone_flag={false};
-   bool m_lastevent_flag={false};
-   int m_total_event = std::numeric_limits<int>::max();
+  unsigned int m_negative_bco_window = 20;
+  unsigned int m_positive_bco_window = 325;
+  bool m_alldone_flag = {false};
+  bool m_lastevent_flag = {false};
+  int m_total_event = std::numeric_limits<int>::max();
 };
 
 #endif
