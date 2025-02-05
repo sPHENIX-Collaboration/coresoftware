@@ -1336,7 +1336,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   //  int n_total  = vec_thread_data.size();
   int n_all = vec_thread_data.size();
   int n_job_per_thread = n_all/m_nthreads;
-  int n_thread = 0;
+//  int n_thread = 0;
   int n = 0;
   
   while(n<n_all){
@@ -1357,7 +1357,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       std::cout << "Error:unable to create thread," << rc << std::endl;
     }
     n+=n_job_per_thread;
-    n_thread++;
+//    n_thread++;
     if(n>=n_all){
       break;
     }
