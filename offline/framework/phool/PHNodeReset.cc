@@ -12,7 +12,7 @@
 
 void PHNodeReset::perform(PHNode* node)
 {
-  if (node->getResetFlag() != true)
+  if (!node->getResetFlag())
   {
     return;
   }

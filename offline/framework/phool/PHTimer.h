@@ -191,10 +191,10 @@ class PHTimer
     time_struct(void) = default;
 
     //! low wheight bits cpu count
-    unsigned long _low {0};
+    unsigned long _low{0};
 
     //! high wheight bits cpu count
-    unsigned long _high {0};
+    unsigned long _high{0};
   };
 
   //! gets time from cpu clock counts
@@ -229,10 +229,10 @@ class PHTimer
   time_struct _stop_time;
 
   //! cumulated time
-  double _accumulated_time {0};
+  double _accumulated_time{0};
 
   //! number of restart/stop cycles
-  unsigned int _ncycle {0};
+  unsigned int _ncycle{0};
 };
 
 #endif

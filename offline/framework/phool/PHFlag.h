@@ -39,9 +39,9 @@ class PHFlag
   virtual uint64_t get_uint64Flag(const std::string &name, const uint64_t defaultval);
   virtual void set_uint64Flag(const std::string &name, const uint64_t flag);
 
-  virtual const std::string get_StringFlag(const std::string &name) const;
-  virtual const std::string get_StringFlag(const std::string &name, const std::string &defaultval);
-  virtual void set_StringFlag(const std::string &name, const std::string &flag);
+  virtual std::string get_StringFlag(const std::string &name) const;
+  virtual std::string get_StringFlag(const std::string &name, const std::string &defaultval);
+  virtual void set_StringFlag(const std::string &name, const std::string &charstr);
 
   virtual void Print() const;
   virtual void PrintDoubleFlags() const;

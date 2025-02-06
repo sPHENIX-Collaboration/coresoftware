@@ -59,7 +59,7 @@ class PHNodeIOManager : public PHIOManager
   int FillBranchMap();
   PHCompositeNode *reconstructNodeTree(PHCompositeNode *);
   bool readEventFromFile(size_t requestedEvent);
-  std::string getBranchClassName(TBranch *);
+  static std::string getBranchClassName(TBranch *);
 
   TFile *file{nullptr};
   TTree *tree{nullptr};
