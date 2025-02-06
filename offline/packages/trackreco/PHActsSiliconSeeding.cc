@@ -411,7 +411,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
 
       //! try to get a crossing value based on INTT
       trackSeed->set_crossing(getCrossingIntt(*trackSeed));
-     
+
       m_seedContainer->insert(trackSeed.get());
 
       fitTimer->stop();
@@ -423,7 +423,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       }
     }
     strobe++;
-    if(strobe > m_highStrobeIndex)
+    if (strobe > m_highStrobeIndex)
     {
       std::cout << PHWHERE << "Error: some how grid seed vector is not the same as the number of strobes" << std::endl;
     }
@@ -824,7 +824,7 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
 }
 
 std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts::Extent& rRangeSPExtent,
-  const int strobe)
+                                                                           const int strobe)
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
@@ -838,13 +838,13 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
   {
     for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det))
     {
-      if(det == TrkrDefs::TrkrId::mvtxId)
+      if (det == TrkrDefs::TrkrId::mvtxId)
       {
-      auto strobeId = MvtxDefs::getStrobeId(hitsetkey);
-      if(strobeId != strobe)
-      {
-        continue;
-      }
+        auto strobeId = MvtxDefs::getStrobeId(hitsetkey);
+        if (strobeId != strobe)
+        {
+          continue;
+        }
       }
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)

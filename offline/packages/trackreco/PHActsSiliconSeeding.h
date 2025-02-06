@@ -71,7 +71,7 @@ class PHActsSiliconSeeding : public SubsysReco
   {
     m_inttrPhiSearchWin = win;
   }
-  void setinttZSearchWindow(const float& win)
+  void setinttZSearchWindow(const float &win)
   {
     m_inttzSearchWin = win;
   }
@@ -146,7 +146,7 @@ class PHActsSiliconSeeding : public SubsysReco
   {
     m_helixcut = cut;
   }
-  void bfield(const float field) 
+  void bfield(const float field)
   {
     m_bField = field;
   }
@@ -187,14 +187,14 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Get all space points for the seeder
   std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent,
-    const int strobe);
+                                                        const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
 
   /// Projects circle fit to radii to find possible MVTX/INTT clusters
   /// belonging to track stub
   std::vector<TrkrDefs::cluskey> findMatches(
       std::vector<Acts::Vector3> &clusters,
-      std::vector<TrkrDefs::cluskey>& keys,
+      std::vector<TrkrDefs::cluskey> &keys,
       TrackSeed &seed);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
@@ -202,8 +202,8 @@ class PHActsSiliconSeeding : public SubsysReco
                                                    const double xProj[],
                                                    const double yProj[],
                                                    const double zProj[]);
-  short int getCrossingIntt(TrackSeed& si_track);
-  std::vector<short int> getInttCrossings(TrackSeed& si_track);
+  short int getCrossingIntt(TrackSeed &si_track);
+  std::vector<short int> getInttCrossings(TrackSeed &si_track);
 
   void createHistograms();
   void writeHistograms();
@@ -303,7 +303,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Search window for phi to match intt clusters in cm
   double m_inttrPhiSearchWin = 0.1;
-  float m_inttzSearchWin = 0.8; // default to a half strip width
+  float m_inttzSearchWin = 0.8;  // default to a half strip width
   double m_mvtxrPhiSearchWin = 0.2;
   float m_mvtxzSearchWin = 0.5;
   /// Whether or not to use truth clusters in hit lookup
