@@ -1,7 +1,5 @@
 #include "TriggerPrimitive.h"
-#include "TriggerDefs.h"
 
-#include <cmath>
 #include <iostream>
 
 namespace

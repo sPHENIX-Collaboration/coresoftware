@@ -64,7 +64,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
     unsigned short NTBinsMin = 0;
     unsigned short PhiOffset = NPhiBinsSector * sector;
     unsigned short TOffset = NTBinsMin;
-
+    AdcClockPeriod = layergeom->get_zstep();
     double m_tdriftmax = AdcClockPeriod * NTBins / 2.0;
 
     unsigned short phibins = NPhiBinsSector;

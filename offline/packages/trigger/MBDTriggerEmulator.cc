@@ -3,18 +3,15 @@
 #include "LL1Defs.h"
 #include "LL1Outv1.h"
 #include "TriggerPrimitiveContainerv1.h"
-#include "TriggerPrimitivev1.h"
+#include "TriggerPrimitive.h"
+
 #include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainerv1.h>
-#include <ffarawobjects/CaloPacketv1.h>
-#include <ffamodules/CDBInterface.h>
-#include <cdbobjects/CDBHistos.h>  // for CDBHistos
-#include <Event/Event.h>
-#include <Event/EventTypes.h>
-#include <Event/packet.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
+#include <ffamodules/CDBInterface.h>
+
+#include <cdbobjects/CDBHistos.h>  // for CDBHistos
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -22,17 +19,23 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
-#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <TFile.h>
+#include <Event/Event.h>
+#include <Event/EventTypes.h>
+#include <Event/packet.h>
 
+#include <TH1.h>
+
+#include <algorithm>
 #include <bitset>
-#include <cassert>
 #include <cstdint>
+#include <cstdlib>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 
 // constructor
 MBDTriggerEmulator::MBDTriggerEmulator(const std::string &name)
@@ -597,10 +600,10 @@ int MBDTriggerEmulator::process_trigger()
       return Fun4AllReturnCodes::EVENT_OK;
     }
 
-  TriggerPrimitivev1::Range sumrange;
+  TriggerPrimitive::Range sumrange;
   int ip, isum;
 
-  TriggerPrimitiveContainerv1::Range range = m_primitives_mbd->getTriggerPrimitives();
+  TriggerPrimitiveContainer::Range range = m_primitives_mbd->getTriggerPrimitives();
 
   if (Verbosity() >= 2)
     {
@@ -619,12 +622,12 @@ int MBDTriggerEmulator::process_trigger()
   for (int is = 0; is < nsample; is++)
     {
       ip = 0;
-      for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter, ip++)
+      for (TriggerPrimitiveContainer::Iter iter = range.first; iter != range.second; ++iter, ip++)
 	{
 	  TriggerPrimitive *primitive = (*iter).second;
 	  sumrange = primitive->getSums();
 	  isum = 0;
-	  for (TriggerPrimitivev1::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum, isum++)
+	  for (TriggerPrimitive::Iter iter_sum = sumrange.first; iter_sum != sumrange.second; ++iter_sum, isum++)
 	    {
 	      if (isum < 8)
 		{

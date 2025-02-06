@@ -116,7 +116,18 @@ int Tpc3DClusterizer::InitRun(PHCompositeNode *topNode)
     m_outputFile = new TFile(m_outputFileName.c_str(), "RECREATE");
 
     m_clusterNT = new TNtuple("clus3D", "clus3D","event:seed:x:y:z:r:phi:phibin:tbin:adc:maxadc:layer:phielem:zelem:size:phisize:tsize:lsize");
-  } 
+  }
+  
+  m_geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!m_geom_container)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  AdcClockPeriod = m_geom_container->GetFirstLayerCellGeom()->get_zstep();
+
   m_tdriftmax = AdcClockPeriod * NZBinsSide;
 
   t_all = std::make_unique<PHTimer>("t_all");
@@ -162,14 +173,6 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
   if (!m_clusterlist)
   {
     std::cout << PHWHERE << " ERROR: Can't find LASER_CLUSTER." << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  m_geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!m_geom_container)
-  {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

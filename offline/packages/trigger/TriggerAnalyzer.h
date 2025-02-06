@@ -1,5 +1,5 @@
-#ifndef CALOTRIGGER_TRIGGERANALYZER_H
-#define CALOTRIGGER_TRIGGERANALYZER_H
+#ifndef TRIGGER_TRIGGERANALYZER_H
+#define TRIGGER_TRIGGERANALYZER_H
 
 #include <cstdint>
 #include <string>
@@ -14,8 +14,8 @@ class TriggerAnalyzer
  public:
   TriggerAnalyzer() = default;
   ~TriggerAnalyzer() = default;
-  
-  int decodeTriggers(PHCompositeNode *topNode);
+
+  int decodeTriggers(PHCompositeNode* topNode);
 
   bool didTriggerFire(const std::string& triggername);
   bool didTriggerFire(int triggerbit);
@@ -56,4 +56,3 @@ class TriggerAnalyzer
 };
 
 #endif /* CALOTRIGGER_TRIGGERANALYZER_H */
-
