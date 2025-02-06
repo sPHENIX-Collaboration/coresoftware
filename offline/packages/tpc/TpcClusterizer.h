@@ -69,6 +69,7 @@ public:
     set_max_cluster_half_size_z(20);
     set_fixed_window(3);
   };
+  void set_sampa_tbias(double value ) { m_sampa_tbias = value; }
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
  private:
