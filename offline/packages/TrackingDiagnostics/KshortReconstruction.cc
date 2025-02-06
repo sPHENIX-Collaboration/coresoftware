@@ -533,7 +533,7 @@ int KshortReconstruction::InitRun(PHCompositeNode* topNode)
     m_output_trackMap = new SvtxTrackMap_v2();
     PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, m_output_trackMap_node_name.c_str(), "PHObject");
     dstNode->addNode(outputTrackNode);
-    if (Verbosity() > 1) std::cout << m_output_trackMap_node_name << " node added" << std::endl;
+    if (Verbosity() > 1) { std::cout << m_output_trackMap_node_name << " node added" << std::endl; }
   }
 
   return 0;
