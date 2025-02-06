@@ -193,13 +193,13 @@ void Fun4AllStreamingLumiCountingInputManager::registerStreamingInput(SingleStre
     evtin->CreateDSTNode(m_topNode);
   }
   evtin->ConfigureStreamingInputManager();
-  switch (system)
+  if (system == InputManagerType::GL1)
   {
-  case InputManagerType::GL1:
     m_gl1_registered_flag = true;
     m_Gl1InputVector.push_back(evtin);
-    break;
-  default:
+  }
+  else
+  {
     std::cout << "invalid subsystem flag " << system << std::endl;
     gSystem->Exit(1);
     exit(1);
