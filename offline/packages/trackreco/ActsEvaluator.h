@@ -95,7 +95,7 @@ class ActsEvaluator
 
 //  SvtxEvaluator* m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer* m_truthInfo{nullptr};
-  SvtxTrackMap *m_trackMap{nullptr}, *m_actsProtoTrackMap{nullptr};
+  SvtxTrackMap* m_trackMap{nullptr};
   SvtxEvalStack* m_svtxEvalStack{nullptr};
 
   ActsGeometry* m_tGeometry{nullptr};

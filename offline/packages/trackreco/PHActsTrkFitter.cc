@@ -184,7 +184,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
 
   auto logLevel = Acts::Logging::FATAL;
 
-  if (m_actsEvaluator)
+  if (m_actsEvaluator && m_simActsEvaluator)
   {
     m_evaluator->next_event(topNode);
   }
@@ -196,19 +196,6 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
     if (Verbosity() > 4)
     {
       logLevel = Acts::Logging::VERBOSE;
-    }
-  }
-
-  /// Fill an additional track map if using the acts evaluator
-  /// for proto track comparison to fitted track
-  if (m_actsEvaluator)
-  {
-    /// wipe at the beginning of every new fit pass, so that the seeds
-    /// are whatever is currently in SvtxTrackMap
-    m_seedTracks->clear();
-    for (const auto& [key, track] : *m_trackMap)
-    {
-      m_seedTracks->insert(track);
     }
   }
 
@@ -1171,20 +1158,6 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     m_alignmentStateMap = new SvtxAlignmentStateMap_v1;
     auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap, "SvtxAlignmentStateMap", "PHObject");
     svtxNode->addNode(node);
-  }
-
-  if (m_actsEvaluator)
-  {
-    m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode, _seed_track_map_name);
-
-    if (!m_seedTracks)
-    {
-      m_seedTracks = new SvtxTrackMap_v2;
-
-      PHIODataNode<PHObject>* seedNode =
-          new PHIODataNode<PHObject>(m_seedTracks, _seed_track_map_name, "PHObject");
-      svtxNode->addNode(seedNode);
-    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
