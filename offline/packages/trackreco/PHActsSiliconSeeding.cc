@@ -29,8 +29,8 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedHelper.h>
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #ifndef __clang__
 #pragma GCC diagnostic push
@@ -185,65 +185,67 @@ int PHActsSiliconSeeding::End(PHCompositeNode* /*topNode*/)
 GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
 {
   Acts::SeedFinder<SpacePoint> seedFinder(m_seedFinderCfg);
-
-  /// Covariance converter functor needed by seed finder
-  auto covConverter =
-      [=](const SpacePoint& sp, float zAlign, float rAlign, float sigmaError)
-      -> std::pair<Acts::Vector3, Acts::Vector2>
-  {
-    Acts::Vector3 position{sp.x(), sp.y(), sp.z()};
-    Acts::Vector2 cov;
-    cov[0] = (sp.m_varianceR + rAlign * rAlign) * sigmaError;
-    cov[1] = (sp.m_varianceZ + zAlign * zAlign) * sigmaError;
-    return std::make_pair(position, cov);
-  };
-
-  Acts::Extent rRangeSPExtent;
-
-  spVec = getSiliconSpacePoints(rRangeSPExtent);
-
-  if (m_seedAnalysis)
-  {
-    h_nInputMeas->Fill(spVec.size());
-  }
-
-  auto grid =
-      Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg,
-                                                          m_gridOptions);
-
-  auto spGroup = Acts::BinnedSPGroup<SpacePoint>(spVec.begin(),
-                                                 spVec.end(),
-                                                 covConverter,
-                                                 m_bottomBinFinder,
-                                                 m_topBinFinder,
-                                                 std::move(grid),
-                                                 rRangeSPExtent,
-                                                 m_seedFinderCfg,
-                                                 m_seedFinderOptions);
-
-  /// variable middle SP radial region of interest
-  const Acts::Range1D<float> rMiddleSPRange(
-      std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5,
-      std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
-
   GridSeeds seedVector;
-  SeedContainer seeds;
-  seeds.clear();
-  decltype(seedFinder)::SeedingState state;
-  state.spacePointData.resize(spVec.size(),
-                              m_seedFinderCfg.useDetailedDoubleMeasurementInfo);
-  for (const auto [bottom, middle, top] : spGroup)
+  for (int strobe = m_lowStrobeIndex; strobe < m_highStrobeIndex; strobe++)
   {
-    seedFinder.createSeedsForGroup(m_seedFinderOptions,
-                                   state, spGroup.grid(),
-                                   std::back_inserter(seeds),
-                                   bottom,
-                                   middle,
-                                   top,
-                                   rMiddleSPRange);
-  }
+    /// Covariance converter functor needed by seed finder
+    auto covConverter =
+        [=](const SpacePoint& sp, float zAlign, float rAlign, float sigmaError)
+        -> std::pair<Acts::Vector3, Acts::Vector2>
+    {
+      Acts::Vector3 position{sp.x(), sp.y(), sp.z()};
+      Acts::Vector2 cov;
+      cov[0] = (sp.m_varianceR + rAlign * rAlign) * sigmaError;
+      cov[1] = (sp.m_varianceZ + zAlign * zAlign) * sigmaError;
+      return std::make_pair(position, cov);
+    };
 
-  seedVector.push_back(seeds);
+    Acts::Extent rRangeSPExtent;
+
+    spVec = getSiliconSpacePoints(rRangeSPExtent, strobe);
+
+    if (m_seedAnalysis)
+    {
+      h_nInputMeas->Fill(spVec.size());
+    }
+
+    auto grid =
+        Acts::SpacePointGridCreator::createGrid<SpacePoint>(m_gridCfg,
+                                                            m_gridOptions);
+
+    auto spGroup = Acts::BinnedSPGroup<SpacePoint>(spVec.begin(),
+                                                   spVec.end(),
+                                                   covConverter,
+                                                   m_bottomBinFinder,
+                                                   m_topBinFinder,
+                                                   std::move(grid),
+                                                   rRangeSPExtent,
+                                                   m_seedFinderCfg,
+                                                   m_seedFinderOptions);
+
+    /// variable middle SP radial region of interest
+    const Acts::Range1D<float> rMiddleSPRange(
+        std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5,
+        std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
+
+    SeedContainer seeds;
+    seeds.clear();
+    decltype(seedFinder)::SeedingState state;
+    state.spacePointData.resize(spVec.size(),
+                                m_seedFinderCfg.useDetailedDoubleMeasurementInfo);
+    for (const auto [bottom, middle, top] : spGroup)
+    {
+      seedFinder.createSeedsForGroup(m_seedFinderOptions,
+                                     state, spGroup.grid(),
+                                     std::back_inserter(seeds),
+                                     bottom,
+                                     middle,
+                                     top,
+                                     rMiddleSPRange);
+    }
+
+    seedVector.push_back(seeds);
+  }
 
   return seedVector;
 }
@@ -253,7 +255,8 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
   int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
-  /// Loop over grid volumes
+  int strobe = m_lowStrobeIndex;
+  /// Loop over grid volumes. In our case this will be strobe
   for (auto& seeds : seedVector)
   {
     /// Loop over actual seeds in this grid volume
@@ -335,7 +338,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
       fitTimer->restart();
 
       TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 8);
-      const auto position( TrackSeedHelper::get_xyz(trackSeed.get()) );
+      const auto position(TrackSeedHelper::get_xyz(trackSeed.get()));
       if (std::abs(position.x()) > m_maxSeedPCA || std::abs(position.y()) > m_maxSeedPCA)
       {
         if (Verbosity() > 1)
@@ -418,6 +421,11 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         std::cout << "Intt fit time " << circlefittime << " and svtx time "
                   << svtxtracktime << std::endl;
       }
+    }
+    strobe++;
+    if (strobe > m_highStrobeIndex)
+    {
+      std::cout << PHWHERE << "Error: some how grid seed vector is not the same as the number of strobes" << std::endl;
     }
   }
 
@@ -731,19 +739,18 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     matchedClusters.push_back(minResidckey[5]);
     clusters.push_back(minResidGlobPos[5]);
   }
-  else if(minResidLayer[6] < std::numeric_limits<float>::max())
+  else if (minResidLayer[6] < std::numeric_limits<float>::max())
   {
     matchedClusters.push_back(minResidckey[6]);
     clusters.push_back(minResidGlobPos[6]);
   }
 
+  if (m_seedAnalysis)
+  {
+    h_nMatchedClusters->Fill(matchedClusters.size());
+  }
 
-if (m_seedAnalysis)
-{
-  h_nMatchedClusters->Fill(matchedClusters.size());
-}
-
-return matchedClusters;
+  return matchedClusters;
 }
 
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
@@ -816,7 +823,8 @@ SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
   return spPtr;
 }
 
-std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts::Extent& rRangeSPExtent)
+std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts::Extent& rRangeSPExtent,
+                                                                           const int strobe)
 {
   std::vector<const SpacePoint*> spVec;
   unsigned int numSiliconHits = 0;
@@ -830,6 +838,14 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
   {
     for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det))
     {
+      if (det == TrkrDefs::TrkrId::mvtxId)
+      {
+        auto strobeId = MvtxDefs::getStrobeId(hitsetkey);
+        if (strobeId != strobe)
+        {
+          continue;
+        }
+      }
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
