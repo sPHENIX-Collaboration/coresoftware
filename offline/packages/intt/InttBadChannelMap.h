@@ -15,12 +15,12 @@ class InttBadChannelMap
   InttBadChannelMap() = default;
   virtual ~InttBadChannelMap();
 
-  int Load(std::string const& = "InttBadChannelMap");
+  int Load(std::string const& = "INTT_Hotmap"); // Should match CDB tag
 
   /// Depreciated; use int Load(const& std::string)
   int LoadFromFile(std::string const& s = "InttBadChannelMap.root") {return Load(s);}
   /// Depreciated; use int Load(const& std::string)
-  int LoadFromCDB(std::string const& s = "InttBadChannelMap") {return Load(s);}
+  int LoadFromCDB(std::string const& s =  "INTT_Hotmap") {return Load(s);}
 
   virtual void identify(std::ostream& = std::cout) const;
   virtual std::size_t size() const;
