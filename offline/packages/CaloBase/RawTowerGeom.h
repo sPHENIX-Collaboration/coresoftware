@@ -12,13 +12,13 @@
 class RawTowerGeom : public PHObject
 {
  public:
-  ~RawTowerGeom() override {}
+  ~RawTowerGeom() override = default;
 
-  RawTowerGeom(const RawTowerGeom& /*geom*/){};
+  //RawTowerGeom(const RawTowerGeom& /*geom*/){}
 
   void identify(std::ostream& os = std::cout) const override;
 
-  virtual void set_id(RawTowerDefs::keytype) { PHOOL_VIRTUAL_WARN("set_id()"); }
+  virtual void set_id(RawTowerDefs::keytype /*key*/) { PHOOL_VIRTUAL_WARN("set_id()"); }
 
   virtual RawTowerDefs::keytype get_id() const
   {
@@ -56,43 +56,43 @@ class RawTowerGeom : public PHObject
     return -1;
   }
 
-  virtual void set_center_x(double)
+  virtual void set_center_x(double /*x*/)
   {
     PHOOL_VIRTUAL_WARN("set_center_x()");
     return;
   }
 
-  virtual void set_center_y(double)
+  virtual void set_center_y(double /*y*/)
   {
     PHOOL_VIRTUAL_WARN("set_center_y()");
     return;
   }
 
-  virtual void set_center_z(double)
+  virtual void set_center_z(double /*z*/)
   {
     PHOOL_VIRTUAL_WARN("set_center_z()");
     return;
   }
 
-  virtual void set_vertices(const std::vector<double>&)
+  virtual void set_vertices(const std::vector<double>& /*vertices*/)
   {
     PHOOL_VIRTUAL_WARN("set_vertices()");
     return;
   }
 
-  virtual void set_size_x(double)
+  virtual void set_size_x(double /*dx*/)
   {
     PHOOL_VIRTUAL_WARN("set_size_x()");
     return;
   }
 
-  virtual void set_size_y(double)
+  virtual void set_size_y(double /*dy*/)
   {
     PHOOL_VIRTUAL_WARN("set_size_y()");
     return;
   }
 
-  virtual void set_size_z(double)
+  virtual void set_size_z(double /*dz*/)
   {
     PHOOL_VIRTUAL_WARN("set_size_z()");
     return;
@@ -224,19 +224,19 @@ class RawTowerGeom : public PHObject
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  virtual double get_vertex_x(int) const
+  virtual double get_vertex_x(int /*i*/) const
   {
     PHOOL_VIRTUAL_WARN("get_vertex_x()");
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  virtual double get_vertex_y(int) const
+  virtual double get_vertex_y(int /*i*/) const
   {
     PHOOL_VIRTUAL_WARN("get_vertex_y()");
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  virtual double get_vertex_z(int) const
+  virtual double get_vertex_z(int /*i*/) const
   {
     PHOOL_VIRTUAL_WARN("get_vertex_z()");
     return std::numeric_limits<float>::quiet_NaN();
@@ -290,7 +290,7 @@ class RawTowerGeom : public PHObject
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  virtual void set_tower_type(int)
+  virtual void set_tower_type(int /*tt*/)
   {
     PHOOL_VIRTUAL_WARN("set_tower_type()");
     return;
@@ -317,24 +317,24 @@ class RawTowerGeom : public PHObject
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  virtual void set_rotx(double)
+  virtual void set_rotx(double /*rotx*/)
   {
     PHOOL_VIRTUAL_WARN("set_rotx()");
     return;
   }
-  virtual void set_roty(double)
+  virtual void set_roty(double /*roty*/)
   {
     PHOOL_VIRTUAL_WARN("set_roty()");
     return;
   }
-  virtual void set_rotz(double)
+  virtual void set_rotz(double /*rotz*/)
   {
     PHOOL_VIRTUAL_WARN("set_rotz()");
     return;
   }
 
  protected:
-  RawTowerGeom() {}
+  RawTowerGeom() = default;
 
   ClassDefOverride(RawTowerGeom, 2)
 };

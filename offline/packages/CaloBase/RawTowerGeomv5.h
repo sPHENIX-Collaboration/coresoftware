@@ -11,10 +11,10 @@
 class RawTowerGeomv5 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv5() {}
-  RawTowerGeomv5(RawTowerDefs::keytype id);
-  RawTowerGeomv5(const RawTowerGeom& geom0);
-  ~RawTowerGeomv5() override {}
+  RawTowerGeomv5() = default;
+  explicit RawTowerGeomv5(RawTowerDefs::keytype id);
+  explicit RawTowerGeomv5(const RawTowerGeom& geom0);
+  ~RawTowerGeomv5() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
 
@@ -57,7 +57,7 @@ class RawTowerGeomv5 : public RawTowerGeom
     return;
   }
 
-  void set_vertices(const std::vector<double>&) override;
+  void set_vertices(const std::vector<double>& /*vertices*/) override;
 
   double get_center_x() const override { return _center.x; }
   double get_center_y() const override { return _center.y; }

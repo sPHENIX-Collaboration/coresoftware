@@ -13,7 +13,7 @@ class RawTowerGeomContainer;
 class CaloGeomMappingv2 : public SubsysReco
 {
  public:
-  CaloGeomMappingv2(const std::string& name = "CaloGeomMappingv2");
+  explicit CaloGeomMappingv2(const std::string& name = "CaloGeomMappingv2");
 
   ~CaloGeomMappingv2() override;
 

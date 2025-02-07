@@ -48,8 +48,6 @@ int CaloGeomMappingv2::Init(PHCompositeNode *topNode)
 {
   std::cout << "CaloGeomMappingv2::Init(PHCompositeNode *topNode) Initializing" << std::endl;
 
-  /* std::cout << "Printing node tree before new node creation:" << std::endl; */
-  /* topNode->print(); */
   try
   {
     CreateGeomNode(topNode);
@@ -59,8 +57,6 @@ int CaloGeomMappingv2::Init(PHCompositeNode *topNode)
     std::cout << e.what() << std::endl;
     exit(1);
   }
-  /* std::cout << "Printing node tree after new node creation:" << std::endl; */
-  /* topNode->print(); */
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -137,23 +133,30 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode *topNode)
   }
 
   // Populate container with RawTowerGeom objects
-  for (int iSector = 0; iSector < 32; iSector++)
+  // The calorimeter is built out of 32 sectors with 192 unique towers (here, a "unique tower" actually corresponds to a block
+  const int nSectors = 32;
+  const int nUniqueTowers = 192; 
+  const int nDimensions = 3;
+  // Each block is made of 4 neighbouring towers, for a total of 18 separate tower vertices.
+  const int nTowerVerticesPerBlock = 18;
+  const int nVerticesPerTower = 8;
+  for (int iSector = 0; iSector < nSectors; iSector++)
   {
-    for (int iUniqueTower = 0; iUniqueTower < 192; iUniqueTower++)
+    for (int iUniqueTower = 0; iUniqueTower < nUniqueTowers; iUniqueTower++)
     {
       // Vertices' coordinates of the corresponding unique block.
-      std::vector<double> vertices(18 * 3);
+      std::vector<double> vertices((unsigned long) nTowerVerticesPerBlock * nDimensions);
       for (int i = 0; i < 8; i++)
       {
-        vertices[i * 3 + 0] = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "vtx_" + std::to_string(i) + "_x") / 10;  // Convert mm to cm
-        vertices[i * 3 + 1] = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "vtx_" + std::to_string(i) + "_y") / 10;
-        vertices[i * 3 + 2] = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "vtx_" + std::to_string(i) + "_z") / 10;
+        vertices[i * nDimensions + 0] = cdbttree->GetDoubleValue(iUniqueTower * nSectors + iSector + 1, "vtx_" + std::to_string(i) + "_x") / 10;  // Convert mm to cm
+        vertices[i * nDimensions + 1] = cdbttree->GetDoubleValue(iUniqueTower * nSectors + iSector + 1, "vtx_" + std::to_string(i) + "_y") / 10;
+        vertices[i * nDimensions + 2] = cdbttree->GetDoubleValue(iUniqueTower * nSectors + iSector + 1, "vtx_" + std::to_string(i) + "_z") / 10;
       }
 
       // Get the rotation vector of the block:
-      double rot_x = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "rot_x");
-      double rot_y = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "rot_y");
-      double rot_z = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "rot_z");
+      double rot_x = cdbttree->GetDoubleValue(iUniqueTower * nSectors + iSector + 1, "rot_x");
+      double rot_y = cdbttree->GetDoubleValue(iUniqueTower * nSectors + iSector + 1, "rot_y");
+      double rot_z = cdbttree->GetDoubleValue(iUniqueTower * nSectors + iSector + 1, "rot_z");
 
       // Divide each block into 4 equal towers.
       for (int j = 0; j < 3; j++)
@@ -191,12 +194,12 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode *topNode)
           int ieta = ietaBlock * 2 + iTower;
           int iphi = iphiBlock * 2 + jTower;
 
-          std::vector<double> towerVertices(8 * 3);
-          for (int ivtx = 0; ivtx < 8; ivtx++)
+          std::vector<double> towerVertices((unsigned long) nVerticesPerTower * nDimensions); // 8 x 3
+          for (int ivtx = 0; ivtx < nVerticesPerTower; ivtx++)
           {
-            for (int icoord = 0; icoord < 3; icoord++)
+            for (int icoord = 0; icoord < nDimensions; icoord++)
             {
-              towerVertices[ivtx * 3 + icoord] = vertices[(sub_tower[iTower][jTower][ivtx] - 1) * 3 + icoord];
+              towerVertices[ivtx * nDimensions + icoord] = vertices[(sub_tower[iTower][jTower][ivtx] - 1) * nDimensions + icoord];
             }
           }
 
@@ -214,10 +217,6 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode *topNode)
           const double x(tg0->get_center_x());
           const double y(tg0->get_center_y());
           const double z(tg0->get_center_z());
-          // std::cout << "tower " << key << ": (" << x << "," << y << "," << z << ")" << std::endl;
-          /* const double x(0); */
-          /* const double y(0); */
-          /* const double z(0); */
 
           RawTowerGeom *tg = m_RawTowerGeomContainer->get_tower_geometry(key);
           if (tg)
