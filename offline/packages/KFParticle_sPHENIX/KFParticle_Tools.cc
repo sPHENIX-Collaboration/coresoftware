@@ -284,7 +284,6 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
       continue;
     }
     
-    std::cout << "adding track " << trackID << " with nMVTX = " << MVTX_hits << ", which should be at least " << m_nMVTXHits << std::endl;
     daughterParticles.push_back(makeParticle(topNode));  /// Turn all dst tracks in KFP tracks
     daughterParticles[trackID].SetId(iter.first);
     ++trackID;
