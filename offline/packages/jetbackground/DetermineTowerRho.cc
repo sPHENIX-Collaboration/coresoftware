@@ -186,9 +186,10 @@ int DetermineTowerRho::process_event(PHCompositeNode *topNode)
       for (auto &fastjet : fastjets)
       {
         float const this_X = fastjet.area();
-        if (this_X <= 0 || this_X != this_X || fastjet.is_pure_ghost())
+        // if (this_X <= 0 || this_X != this_X || fastjet.is_pure_ghost())
+        if (this_X <= 0 || this_X != this_X )
         {
-          if (Verbosity() > 0)
+          if (Verbosity() > 2)
           {
             std::cout << PHWHERE << " ::WARNING: Discarding jet with zero area. Zero-area jets may be due to (i) too large a ghost area (ii) a jet being outside the ghost range (iii) the computation not being done using an appropriate algorithm (kt;C/A)." << std::endl;
           }
@@ -223,8 +224,10 @@ int DetermineTowerRho::process_event(PHCompositeNode *topNode)
 
       if (empty_X != 0.0)
       {
-        std::cerr << PHWHERE << " ::WARNING: Found " << empty_X << " empty jets with zero area. This may be due to (i) too large a ghost area (ii) a jet being outside the ghost range (iii) the computation not being done using an appropriate algorithm (kt;C/A)." << std::endl;
-        total_X += empty_X;
+        if ( Verbosity() > 0 ){
+          std::cerr << PHWHERE << " ::WARNING: Found " << empty_X << " empty jets with zero area. This may be due to (i) too large a ghost area (ii) a jet being outside the ghost range (iii) the computation not being done using an appropriate algorithm (kt;C/A)." << std::endl;
+        }
+          total_X += empty_X;
       }
 
       float const n_empty_jets = njets_total - njets_used;
