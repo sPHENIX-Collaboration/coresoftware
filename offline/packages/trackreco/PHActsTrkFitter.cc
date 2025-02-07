@@ -226,7 +226,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
   }
 
   // put this in the output file
-  if (Verbosity() == 0)
+  if (Verbosity() > 0)
   {
     std::cout << "The Acts track fitter had " << m_nBadFits
               << " fits return an error" << std::endl;
