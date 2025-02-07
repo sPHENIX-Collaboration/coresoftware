@@ -2,6 +2,7 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -17,7 +18,7 @@
 #include <TH1.h>
 #include <TNtuple.h>
 
-int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
+int KshortReconstruction::process_event(PHCompositeNode* topNode)
 {
   // Loop over tracks and check for close DCA match with all other tracks
   for (auto tr1_it = m_svtxTrackMap->begin(); tr1_it != m_svtxTrackMap->end(); ++tr1_it)
@@ -183,6 +184,14 @@ int KshortReconstruction::process_event(PHCompositeNode* /**topNode*/)
           std::cout << "Final: pca_rel1_proj: " << pca_rel1_proj << " pca_rel2_proj: " << pca_rel2_proj << " mom1: " << projected_mom1 << " mom2: " << projected_mom2 << std::endl
                     << std::endl;
         }
+
+        if (m_save_tracks)
+        {
+          m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_output_trackMap_node_name.c_str());
+          m_output_trackMap->insertWithKey(tr1, tr1->get_id());
+          m_output_trackMap->insertWithKey(tr2, tr2->get_id());
+        }
+
       }
     }
   }
@@ -507,6 +516,25 @@ int KshortReconstruction::InitRun(PHCompositeNode* topNode)
   getNodes(topNode);
 
   recomass = new TH1D("recomass", "recomass", 1000, 0.0, 1);  // root histogram arguments: name,title,bins,minvalx,maxvalx
+
+  //Add new track map to save selected tracks
+  if (m_save_tracks)
+  {
+    PHNodeIterator nodeIter(topNode);
+
+    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(nodeIter.findFirst("PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      dstNode = new PHCompositeNode("DST");
+      topNode->addNode(dstNode);
+      std::cout << "DST node added" << std::endl;
+    }
+
+    m_output_trackMap = new SvtxTrackMap_v2();
+    PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, m_output_trackMap_node_name.c_str(), "PHObject");
+    dstNode->addNode(outputTrackNode);
+    if (Verbosity() > 1) { std::cout << m_output_trackMap_node_name << " node added" << std::endl; }
+  }
 
   return 0;
 }
