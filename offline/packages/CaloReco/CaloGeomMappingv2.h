@@ -13,8 +13,7 @@ class RawTowerGeomContainer;
 class CaloGeomMappingv2 : public SubsysReco
 {
  public:
-
-  CaloGeomMappingv2(const std::string &name = "CaloGeomMappingv2");
+  CaloGeomMappingv2(const std::string& name = "CaloGeomMappingv2");
 
   ~CaloGeomMappingv2() override;
 
@@ -23,7 +22,7 @@ class CaloGeomMappingv2 : public SubsysReco
       register them to Fun4AllServer (so they can be output to file
       using Fun4AllServer::dumpHistos() method).
    */
-  int Init(PHCompositeNode *topNode) override;
+  int Init(PHCompositeNode* topNode) override;
 
   /** Called for first event when run number is known.
       Typically this is where you may want to fetch data from
@@ -56,13 +55,13 @@ class CaloGeomMappingv2 : public SubsysReco
 
   void setTowerGeomNodeName(const std::string& name);
 
-  void set_detector_name(const std::string &name);
+  void set_detector_name(const std::string& name);
   std::string get_detector_name();
 
  protected:
-  std::string m_Detector; // CEMC, HCALIN or HCALOUT
+  std::string m_Detector;  // CEMC, HCALIN or HCALOUT
   std::string m_TowerGeomNodeName;
-  RawTowerGeomContainer* m_RawTowerGeomContainer; // Name of the output TOWERGEOM node
+  RawTowerGeomContainer* m_RawTowerGeomContainer;  // Name of the output TOWERGEOM node
 };
 
-#endif // CALOGEOMMAPPING_H
+#endif  // CALOGEOMMAPPING_H

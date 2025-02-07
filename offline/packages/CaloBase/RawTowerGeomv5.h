@@ -8,18 +8,6 @@
 #include <iostream>
 #include <limits>
 
-typedef std::pair<double,double> vertex_t;
-typedef std::vector<vertex_t> vertices_t;
-
-struct point_coordinates {
-  double R;
-  double eta;
-  double phi;
-  double x;
-  double y;
-  double z;
-};
-
 class RawTowerGeomv5 : public RawTowerGeom
 {
  public:
@@ -103,58 +91,48 @@ class RawTowerGeomv5 : public RawTowerGeom
   double get_phi() const override;
   double get_theta() const override;
 
+  // This structure is only used by this class
+  struct point_coordinates
+  {
+    double x;
+    double y;
+    double z;
+  };
+
  protected:
+  using vertex_t = std::pair<double, double>;
+  using vertices_t = std::vector<vertex_t>;
+
   RawTowerDefs::keytype _towerid{std::numeric_limits<RawTowerDefs::keytype>::max()};
 
   static constexpr int _nVtx = 8;
-  point_coordinates _center{std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN()};
-  point_coordinates _center_int{std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN()};
-  point_coordinates _center_ext{std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN()};
-  point_coordinates _center_low_eta{std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN()};
-  point_coordinates _center_high_eta{std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN()};
-  point_coordinates _center_low_phi{std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN()};
-  point_coordinates _center_high_phi{std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN(),
-                  std::numeric_limits<double>::signaling_NaN()};
+  point_coordinates _center{std::numeric_limits<double>::quiet_NaN(),
+                            std::numeric_limits<double>::quiet_NaN(),
+                            std::numeric_limits<double>::quiet_NaN()};
+  point_coordinates _center_int{std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN()};
+  point_coordinates _center_ext{std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN(),
+                                std::numeric_limits<double>::quiet_NaN()};
+  point_coordinates _center_low_eta{std::numeric_limits<double>::quiet_NaN(),
+                                    std::numeric_limits<double>::quiet_NaN(),
+                                    std::numeric_limits<double>::quiet_NaN()};
+  point_coordinates _center_high_eta{std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN()};
+  point_coordinates _center_low_phi{std::numeric_limits<double>::quiet_NaN(),
+                                    std::numeric_limits<double>::quiet_NaN(),
+                                    std::numeric_limits<double>::quiet_NaN()};
+  point_coordinates _center_high_phi{std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN()};
 
   std::vector<point_coordinates> _vertices;
-  double _rotx{std::numeric_limits<double>::signaling_NaN()};
-  double _roty{std::numeric_limits<double>::signaling_NaN()};
-  double _rotz{std::numeric_limits<double>::signaling_NaN()};
-  
+  double _rotx{std::numeric_limits<double>::quiet_NaN()};
+  double _roty{std::numeric_limits<double>::quiet_NaN()};
+  double _rotz{std::numeric_limits<double>::quiet_NaN()};
+
   ClassDefOverride(RawTowerGeomv5, 4)
 };
 

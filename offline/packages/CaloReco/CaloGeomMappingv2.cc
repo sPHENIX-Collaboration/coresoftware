@@ -5,10 +5,10 @@
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHIODataNode.h>  // for PHIODataNode
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>
@@ -21,18 +21,18 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv5.h>
 
-#include <cstdlib>                                     // for exit
-#include <exception>                                    // for exception
-#include <iostream>                                     // for operator<<, endl
-#include <cmath>                                       // for fabs, atan, cos
-#include <stdexcept>                                    // for runtime_error
-#include <utility>                                      // for pair
+#include <cmath>      // for fabs, atan, cos
+#include <cstdlib>    // for exit
+#include <exception>  // for exception
+#include <iostream>   // for operator<<, endl
+#include <stdexcept>  // for runtime_error
+#include <utility>    // for pair
 
 //____________________________________________________________________________..
-CaloGeomMappingv2::CaloGeomMappingv2(const std::string &name):
- SubsysReco(name),
- m_Detector("CEMC"),
- m_RawTowerGeomContainer(nullptr)
+CaloGeomMappingv2::CaloGeomMappingv2(const std::string &name)
+  : SubsysReco(name)
+  , m_Detector("CEMC")
+  , m_RawTowerGeomContainer(nullptr)
 {
   std::cout << "CaloGeomMappingv2::CaloGeomMappingv2(const std::string &name) Calling ctor" << std::endl;
 }
@@ -64,22 +64,22 @@ int CaloGeomMappingv2::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode* topNode)
+void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-      std::cout << PHWHERE << "Run Node missing, doing nothing." << std::endl;
-      throw std::runtime_error("Failed to find Run node in CaloGeomMappingv2::CreateGeomNode");
+    std::cout << PHWHERE << "Run Node missing, doing nothing." << std::endl;
+    throw std::runtime_error("Failed to find Run node in CaloGeomMappingv2::CreateGeomNode");
   }
 
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", m_Detector));
   if (!RunDetNode)
   {
-      RunDetNode = new PHCompositeNode(m_Detector);
-      runNode->addNode(RunDetNode);
+    RunDetNode = new PHCompositeNode(m_Detector);
+    runNode->addNode(RunDetNode);
   }
 
   const RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(m_Detector);
@@ -100,8 +100,8 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode* topNode)
   // For the moment, the default geometry file is not yet in CDB
 
   // All towers' geome
-  std::string inName="/sphenix/user/virgilemahaut/geometry/macros/calo_geom_mapping_exact.root";
-  CDBTTree * cdbttree = new CDBTTree(inName);
+  std::string inName = "/sphenix/user/virgilemahaut/geometry/macros/calo_geom_mapping_exact.root";
+  CDBTTree *cdbttree = new CDBTTree(inName);
 
   std::string parBase;
   // Set the radius, thickness, number of eta and phi bins
@@ -141,42 +141,41 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode* topNode)
   {
     for (int iUniqueTower = 0; iUniqueTower < 192; iUniqueTower++)
     {
-
       // Vertices' coordinates of the corresponding unique block.
-      std::vector<double> vertices(18*3);
-      for (int i = 0; i < 8; i++) 
+      std::vector<double> vertices(18 * 3);
+      for (int i = 0; i < 8; i++)
       {
-        vertices[i*3+0] = cdbttree->GetDoubleValue(iUniqueTower*32+iSector+1,"vtx_" + std::to_string(i) + "_x") / 10; // Convert mm to cm
-        vertices[i*3+1] = cdbttree->GetDoubleValue(iUniqueTower*32+iSector+1,"vtx_" + std::to_string(i) + "_y") / 10;
-        vertices[i*3+2] = cdbttree->GetDoubleValue(iUniqueTower*32+iSector+1,"vtx_" + std::to_string(i) + "_z") / 10;
+        vertices[i * 3 + 0] = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "vtx_" + std::to_string(i) + "_x") / 10;  // Convert mm to cm
+        vertices[i * 3 + 1] = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "vtx_" + std::to_string(i) + "_y") / 10;
+        vertices[i * 3 + 2] = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "vtx_" + std::to_string(i) + "_z") / 10;
       }
 
       // Get the rotation vector of the block:
-      double rot_x = cdbttree->GetDoubleValue(iUniqueTower*32+iSector+1,"rot_x");
-      double rot_y = cdbttree->GetDoubleValue(iUniqueTower*32+iSector+1,"rot_y");
-      double rot_z = cdbttree->GetDoubleValue(iUniqueTower*32+iSector+1,"rot_z");
+      double rot_x = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "rot_x");
+      double rot_y = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "rot_y");
+      double rot_z = cdbttree->GetDoubleValue(iUniqueTower * 32 + iSector + 1, "rot_z");
 
       // Divide each block into 4 equal towers.
-      for (int j = 0; j < 3; j++) 
+      for (int j = 0; j < 3; j++)
       {
         for (int i = 0; i < 4; i++)
         {
-          vertices[(8+i)*3+j]=(vertices[i*3+j] + vertices[((i+1)%4)*3+j]) / 2;
-          vertices[(8+i+4)*3+j]=(vertices[(i+4)*3+j] + vertices[((i+1)%4+4)*3+j]) / 2;
+          vertices[(8 + i) * 3 + j] = (vertices[i * 3 + j] + vertices[((i + 1) % 4) * 3 + j]) / 2;
+          vertices[(8 + i + 4) * 3 + j] = (vertices[(i + 4) * 3 + j] + vertices[((i + 1) % 4 + 4) * 3 + j]) / 2;
         }
-        vertices[(16)*3+j] = (vertices[0*3+j] + vertices[1*3+j] + vertices[2*3+j] + vertices[3*3+j]) / 4;
-        vertices[(17)*3+j] = (vertices[4*3+j] + vertices[5*3+j] + vertices[6*3+j] + vertices[7*3+j]) / 4;
+        vertices[(16) * 3 + j] = (vertices[0 * 3 + j] + vertices[1 * 3 + j] + vertices[2 * 3 + j] + vertices[3 * 3 + j]) / 4;
+        vertices[(17) * 3 + j] = (vertices[4 * 3 + j] + vertices[5 * 3 + j] + vertices[6 * 3 + j] + vertices[7 * 3 + j]) / 4;
       }
 
       int ietaBlock = iUniqueTower / 4;
-      int iphiBlock = iSector * 4 + iUniqueTower % 4; 
+      int iphiBlock = iSector * 4 + iUniqueTower % 4;
 
       // Vertices' indices for each of the 4 individual towers.
       double sub_tower[2][2][8];
-      double sub_tower_01[8] = {12,17,11,4,16,18,15,8}; // low eta high phi
-      double sub_tower_00[8] = {17,10,3,11,18,14,7,15}; // low eta low phi
-      double sub_tower_11[8] = {1,9,17,12,5,13,18,16}; // high eta high phi
-      double sub_tower_10[8] = {9,2,10,17,13,6,14,18}; // high eta low phi
+      double sub_tower_01[8] = {12, 17, 11, 4, 16, 18, 15, 8};  // low eta high phi
+      double sub_tower_00[8] = {17, 10, 3, 11, 18, 14, 7, 15};  // low eta low phi
+      double sub_tower_11[8] = {1, 9, 17, 12, 5, 13, 18, 16};   // high eta high phi
+      double sub_tower_10[8] = {9, 2, 10, 17, 13, 6, 14, 18};   // high eta low phi
       for (int ivtx = 0; ivtx < 8; ivtx++)
       {
         sub_tower[0][0][ivtx] = sub_tower_00[ivtx];
@@ -192,22 +191,21 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode* topNode)
           int ieta = ietaBlock * 2 + iTower;
           int iphi = iphiBlock * 2 + jTower;
 
-          std::vector<double> towerVertices(8*3);
+          std::vector<double> towerVertices(8 * 3);
           for (int ivtx = 0; ivtx < 8; ivtx++)
           {
-            for (int icoord = 0; icoord < 3; icoord++) 
+            for (int icoord = 0; icoord < 3; icoord++)
             {
-              towerVertices[ivtx*3+icoord] = vertices[(sub_tower[iTower][jTower][ivtx]-1)*3+icoord];
+              towerVertices[ivtx * 3 + icoord] = vertices[(sub_tower[iTower][jTower][ivtx] - 1) * 3 + icoord];
             }
           }
 
           // build tower geom here
           const RawTowerDefs::keytype key =
-            RawTowerDefs::encode_towerid(caloid, ieta, iphi);
-          
-      
+              RawTowerDefs::encode_towerid(caloid, ieta, iphi);
+
           RawTowerGeomv5 *tg0 = new RawTowerGeomv5(key);
-      
+
           tg0->set_vertices(towerVertices);
           tg0->set_rotx(rot_x);
           tg0->set_roty(rot_y);
@@ -216,11 +214,11 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode* topNode)
           const double x(tg0->get_center_x());
           const double y(tg0->get_center_y());
           const double z(tg0->get_center_z());
-          //std::cout << "tower " << key << ": (" << x << "," << y << "," << z << ")" << std::endl;
+          // std::cout << "tower " << key << ": (" << x << "," << y << "," << z << ")" << std::endl;
           /* const double x(0); */
           /* const double y(0); */
           /* const double z(0); */
-          
+
           RawTowerGeom *tg = m_RawTowerGeomContainer->get_tower_geometry(key);
           if (tg)
           {
@@ -234,7 +232,7 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode* topNode)
             {
               std::cout << "CaloGeomMappingv2::CreateGeomNode - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
                         << std::endl;
-              
+
               exit(1);
             }
             if (fabs(tg->get_center_y() - y) > 1e-4)
@@ -256,7 +254,7 @@ void CaloGeomMappingv2::CreateGeomNode(PHCompositeNode* topNode)
             {
               std::cout << "CaloGeomMappingv2::CreateGeomNode - building tower geometry " << key << "" << std::endl;
             }
-            
+
             tg = tg0;
             m_RawTowerGeomContainer->add_tower_geometry(tg);
           }
@@ -271,7 +269,7 @@ void CaloGeomMappingv2::set_detector_name(const std::string &name)
   m_Detector = name;
 }
 
-void CaloGeomMappingv2::setTowerGeomNodeName(const std::string& name)
+void CaloGeomMappingv2::setTowerGeomNodeName(const std::string &name)
 {
   m_TowerGeomNodeName = name;
 }

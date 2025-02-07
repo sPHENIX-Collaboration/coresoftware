@@ -15,7 +15,7 @@ RawTowerGeomv5::RawTowerGeomv5(const RawTowerGeom& geom0)
   _rotx = geom0.get_rotx();
   _roty = geom0.get_roty();
   _rotz = geom0.get_rotz();
-  
+
   _vertices.resize(_nVtx);
   for (int i = 0; i < _nVtx; i++)
   {
@@ -31,7 +31,7 @@ RawTowerGeomv5::RawTowerGeomv5(const RawTowerGeom& geom0)
   _center_int.x = geom0.get_center_int_x();
   _center_int.y = geom0.get_center_int_y();
   _center_int.z = geom0.get_center_int_z();
-  
+
   _center_ext.x = geom0.get_center_ext_x();
   _center_ext.y = geom0.get_center_ext_y();
   _center_ext.z = geom0.get_center_ext_z();
@@ -55,8 +55,7 @@ RawTowerGeomv5::RawTowerGeomv5(const RawTowerGeom& geom0)
 
 void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
 {
-
-  /*       y                     
+  /*       y
            |                    7_______6
            |                   /|      /|
            |_______ z        8/_|_____/5|
@@ -69,7 +68,7 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
   if ((int) vertices.size() != _nVtx * 3)
   {
     std::cerr
-      << "RawTowerGeomv5::set_vertices - input " << vertices.size() << " vertices given. Expected 8 x 3." << std::endl;
+        << "RawTowerGeomv5::set_vertices - input " << vertices.size() << " vertices given. Expected 8 x 3." << std::endl;
     exit(1);
   }
 
@@ -104,9 +103,9 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
   _vertices.resize(_nVtx);
   for (int i = 0; i < _nVtx; i++)
   {
-    _vertices[i].x = vertices[i*3+0];
-    _vertices[i].y = vertices[i*3+1];
-    _vertices[i].z = vertices[i*3+2];
+    _vertices[i].x = vertices[i * 3 + 0];
+    _vertices[i].y = vertices[i * 3 + 1];
+    _vertices[i].z = vertices[i * 3 + 2];
 
     _center.x += _vertices[i].x;
     _center.y += _vertices[i].y;
@@ -161,7 +160,7 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
   _center_ext.x /= (float) _nVtx / 2.;
   _center_ext.y /= (float) _nVtx / 2.;
   _center_ext.z /= (float) _nVtx / 2.;
-  
+
   _center_low_eta.x /= (float) _nVtx / 2.;
   _center_low_eta.y /= (float) _nVtx / 2.;
   _center_low_eta.z /= (float) _nVtx / 2.;
@@ -178,10 +177,8 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
   _center_high_phi.y /= (float) _nVtx / 2.;
   _center_high_phi.z /= (float) _nVtx / 2.;
 
-
-
   return;
-} 
+}
 
 double RawTowerGeomv5::get_center_radius() const
 {
