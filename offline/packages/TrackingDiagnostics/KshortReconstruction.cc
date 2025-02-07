@@ -1,6 +1,6 @@
 #include "KshortReconstruction.h"
 
-#include <ffaobjects/EventHeaderv1.h>
+#include <ffaobjects/EventHeader.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase_historic/ActsTransformations.h>
@@ -29,7 +29,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
   int m_runNumber, m_evtNumber;
   if (evtNode)
   {
-    EventHeaderv1* evtHeader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
+    EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
     m_runNumber = evtHeader->get_RunNumber();
     m_evtNumber = evtHeader->get_EvtSequence();
   }
