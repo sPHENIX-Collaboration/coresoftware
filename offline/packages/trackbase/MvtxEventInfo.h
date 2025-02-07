@@ -22,10 +22,11 @@
 class MvtxEventInfo : public PHObject
 {
  public:
+  //! ctor
   MvtxEventInfo() = default;
 
-  /// dtor
-  virtual ~MvtxEventInfo() = default;
+  //! dtor
+  ~MvtxEventInfo() override = default;
 
   PHObject *CloneMe() const override;
 
@@ -58,12 +59,12 @@ class MvtxEventInfo : public PHObject
   void set_stringval(const std::string & /*name*/, const std::string & /*ival*/);
   std::string get_stringval(const std::string & /*name*/) const;
 
-  virtual void set_number_HB(const int /*ival*/){};
+  virtual void set_number_HB(const int /*ival*/) {};
   virtual int get_number_HB() const { return 0; };
 
-  virtual void set_strobe_BCO(const uint64_t /*strobe_BCO*/){};
+  virtual void set_strobe_BCO(const uint64_t /*strobe_BCO*/) {};
 
-  virtual void set_strobe_BCO_L1_BCO(const uint64_t /*strobe_BCO*/, const uint64_t /*L1_BCO*/){};
+  virtual void set_strobe_BCO_L1_BCO(const uint64_t /*strobe_BCO*/, const uint64_t /*L1_BCO*/) {};
 
   virtual unsigned int get_number_strobes() const { return 0; };
   virtual unsigned int get_number_L1s() const { return 0; };
@@ -71,8 +72,11 @@ class MvtxEventInfo : public PHObject
   virtual std::set<uint64_t> get_strobe_BCOs() const { return dummySet; };
   virtual std::set<uint64_t> get_L1_BCOs() const { return dummySet; };
 
-  virtual std::set<uint64_t> get_strobe_BCO_from_L1_BCO(const uint64_t /*ival*/) const { return dummySet; };
+  virtual std::set<uint64_t> get_strobe_BCO_from_L1_BCO(const uint64_t /*ival*/) const { return dummySet; }
   virtual std::set<uint64_t> get_L1_BCO_from_strobe_BCO(const uint64_t /*ival*/) const { return dummySet; };
+
+  virtual void add_strobe_BCO(const uint64_t & /*strb_val*/) {};
+  virtual void add_L1_BCO(const uint64_t & /*strb_val*/) {};
 
  protected:
   std::map<std::string, int32_t> m_IntEventProperties;
