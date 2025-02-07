@@ -11,7 +11,18 @@
 class MvtxRawEvtHeaderv1 : public MvtxRawEvtHeader
 {
  public:
+  //! ctor
   MvtxRawEvtHeaderv1() = default;
+
+  //! cp/mv ctor
+  MvtxRawEvtHeaderv1(const MvtxRawEvtHeaderv1&) = default;
+  MvtxRawEvtHeaderv1(MvtxRawEvtHeaderv1&&) = default;
+
+  //! cp/mv assignment
+  MvtxRawEvtHeaderv1& operator=(const MvtxRawEvtHeaderv1&) = default;
+  MvtxRawEvtHeaderv1& operator=(MvtxRawEvtHeaderv1&&) = default;
+
+  //! dtor
   ~MvtxRawEvtHeaderv1() override = default;
 
   /// Clear Event
