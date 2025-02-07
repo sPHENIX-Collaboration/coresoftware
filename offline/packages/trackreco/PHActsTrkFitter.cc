@@ -161,6 +161,10 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   {
     m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);
     m_evaluator->Init(topNode);
+    if(m_actsEvaluator && !m_simActsEvaluator)
+    {
+      m_evaluator->isData();
+    }
     m_evaluator->verbosity(Verbosity());
   }
 
@@ -179,12 +183,12 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
   PHTimer eventTimer("eventTimer");
   eventTimer.stop();
   eventTimer.restart();
-
+  m_nBadFits = 0;
   m_event++;
 
   auto logLevel = Acts::Logging::FATAL;
 
-  if (m_actsEvaluator && m_simActsEvaluator)
+  if (m_actsEvaluator)
   {
     m_evaluator->next_event(topNode);
   }
@@ -222,8 +226,12 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
   }
 
   // put this in the output file
-  if (Verbosity() > 0)
+  if (Verbosity() == 0)
   {
+    std::cout << "The Acts track fitter had " << m_nBadFits
+              << " fits return an error" << std::endl;
+    std::cout << " seed map size " << m_seedMap->size() << std::endl;
+
     std::cout << " SvtxTrackMap size is now " << m_trackMap->size()
               << std::endl;
   }
@@ -264,9 +272,6 @@ int PHActsTrkFitter::End(PHCompositeNode* /*topNode*/)
 
   if (Verbosity() > 0)
   {
-    std::cout << "The Acts track fitter had " << m_nBadFits
-              << " fits return an error" << std::endl;
-
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -275,11 +280,6 @@ int PHActsTrkFitter::End(PHCompositeNode* /*topNode*/)
 void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
-
-  if (Verbosity() > 0)
-  {
-    std::cout << " seed map size " << m_seedMap->size() << std::endl;
-  }
 
   for (auto track : *m_seedMap)
   {
@@ -802,7 +802,7 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult& fitOutput,
                           trackTips, indexedParams);
 
     m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
-
+    
     if (m_actsEvaluator)
     {
       m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,

@@ -69,6 +69,11 @@ void ActsEvaluator::Init(PHCompositeNode* topNode)
 }
 void ActsEvaluator::next_event(PHCompositeNode* topNode)
 {
+  m_eventNr++;
+  if(m_isData)
+  {
+    return;
+  }
   if (!m_svtxEvalStack)
   {
     m_svtxEvalStack = new SvtxEvalStack(topNode);
@@ -76,7 +81,6 @@ void ActsEvaluator::next_event(PHCompositeNode* topNode)
 
   m_svtxEvalStack->next_event(topNode);
 
-  m_eventNr++;
 }
 void ActsEvaluator::process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
 				  std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
@@ -1253,6 +1257,7 @@ void ActsEvaluator::clearTrackVariables()
 
 void ActsEvaluator::initializeTree()
 {
+  
   m_trackFile = new TFile(m_filename.c_str(), "RECREATE");
 
   m_trackTree = new TTree("tracktree", "A tree with Acts KF track information");
