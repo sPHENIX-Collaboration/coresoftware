@@ -20,10 +20,7 @@
 #include <TSystem.h>
 #include <TTree.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
-#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>
@@ -101,7 +98,7 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     }
     file->SetCompressionSettings(m_CompressionSetting);
     tree = new TTree(TreeName.c_str(), title.c_str());
-    tree->SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
+    TTree::SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
     gROOT->cd(currdir.c_str());
     return true;
     break;
@@ -126,6 +123,9 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     tree = new TTree(TreeName.c_str(), title.c_str());
     gROOT->cd(currdir.c_str());
     return true;
+    break;
+  default:
+    std::cout << PHWHERE << "Invalid Access mode " << accessMode << std::endl;
     break;
   }
 
@@ -186,14 +186,7 @@ bool PHNodeIOManager::write(TObject** data, const std::string& path, int nodebuf
 
 bool PHNodeIOManager::read(size_t requestedEvent)
 {
-  if (readEventFromFile(requestedEvent))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return readEventFromFile(requestedEvent);
 }
 
 PHCompositeNode*
@@ -211,10 +204,8 @@ PHNodeIOManager::read(PHCompositeNode* topNode, size_t requestedEvent)
   {
     return topNode;
   }
-  else
-  {
-    return nullptr;
-  }
+
+  return nullptr;
 }
 
 void PHNodeIOManager::print() const
@@ -300,7 +291,8 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
 
   if (requestedEvent)
   {
-    if ((bytesRead = tree->GetEvent(requestedEvent)))
+    bytesRead = tree->GetEvent(requestedEvent);
+    if (bytesRead)
     {
       eventNumber = requestedEvent + 1;
     }
@@ -397,7 +389,8 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   TObjArray* branchArray = tree->GetListOfBranches();
 
   // We need these in the loops down below...
-  size_t i, j;
+  size_t i;
+  size_t j;
 
   // If a topNode was provided, we can feed the iterator with it.
   if (!topNode)
@@ -450,11 +443,11 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     assert(thisClass != nullptr);
 
     PHIODataNode<TObject>* newIODataNode =
-        static_cast<PHIODataNode<TObject>*>(nodeIter.findFirst("PHIODataNode", (*splitvec.rbegin()).c_str()));
+        static_cast<PHIODataNode<TObject>*>(nodeIter.findFirst("PHIODataNode", *splitvec.rbegin()));
     if (!newIODataNode)
     {
       TObject* newTObject = static_cast<TObject*>(thisClass->New());
-      newIODataNode = new PHIODataNode<TObject>(newTObject, (*splitvec.rbegin()).c_str());
+      newIODataNode = new PHIODataNode<TObject>(newTObject, *splitvec.rbegin());
       nodeIter.addNode(newIODataNode);
     }
     else
@@ -475,7 +468,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
                   << "instead of searching the node tree you are in trouble now" << std::endl;
         delete newIODataNode;
         TObject* newTObject = static_cast<TObject*>(thisClass->New());
-        newIODataNode = new PHIODataNode<TObject>(newTObject, (*splitvec.rbegin()).c_str());
+        newIODataNode = new PHIODataNode<TObject>(newTObject, *splitvec.rbegin());
         nodeIter.addNode(newIODataNode);
       }
     }
@@ -522,12 +515,7 @@ bool PHNodeIOManager::isSelected(const std::string& objectName)
 {
   std::map<std::string, TBranch*>::const_iterator p = fBranches.find(objectName);
 
-  if (p != fBranches.end())
-  {
-    return true;
-  }
-
-  return false;
+  return p != fBranches.end();
 }
 
 bool PHNodeIOManager::SetCompressionSetting(const int level)

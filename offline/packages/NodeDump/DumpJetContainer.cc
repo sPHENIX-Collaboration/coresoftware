@@ -33,7 +33,7 @@ int DumpJetContainer::process_Node(PHNode *myNode)
     *fout << "par: " << jets->get_par() << std::endl;
     *fout << "algo: " << jets->get_algo() << std::endl;
     /* auto jet_properties = jets->get_property_vec(); */
-    for (auto jet : *jets)
+    for (auto *jet : *jets)
     {
       *fout << "id: " << jet->get_id() << std::endl;
       *fout << "px: " << jet->get_px() << std::endl;
