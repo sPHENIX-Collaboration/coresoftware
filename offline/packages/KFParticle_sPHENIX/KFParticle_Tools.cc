@@ -261,10 +261,10 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
           ++MVTX_hits;
         }
       }
-      if (MVTX_hits < m_nMVTXHits)
-      {
-        continue;
-      }
+    }
+    if (MVTX_hits < m_nMVTXHits)
+    {
+      continue;
     }
     if (tpcseed)
     {
@@ -278,12 +278,12 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
           ++TPC_hits;
         }
       }
-      if (TPC_hits < m_nTPCHits)
-      {
-        continue;
-      }
     }
-
+    if (TPC_hits < m_nTPCHits)
+    {
+      continue;
+    }
+    
     daughterParticles.push_back(makeParticle(topNode));  /// Turn all dst tracks in KFP tracks
     daughterParticles[trackID].SetId(iter.first);
     ++trackID;

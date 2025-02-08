@@ -24,18 +24,18 @@ class INTTZvtx
  public:
   struct clu_info
   {
-    int column;
+    int column = -1;
     // int chip_id;
-    double avg_chan;
-    int sum_adc;
-    int sum_adc_conv;
-    int size;
+    double avg_chan = -9999.9;
+    int sum_adc = -1;
+    int sum_adc_conv = -1;
+    int size = -1;
 
-    double x;
-    double y;
-    double z;
-    int layer;
-    double phi;
+    double x = -9999.9;
+    double y = -9999.9;
+    double z = -9999.9;
+    int layer = -1;
+    double phi = -9999.9;
     // std::vector<double> bco_diff_vec; // note : for the multi-hit cluster, more than one hit was included. so more than one bco_diff
   };
 
