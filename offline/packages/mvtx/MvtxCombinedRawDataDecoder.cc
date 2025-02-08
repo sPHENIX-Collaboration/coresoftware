@@ -66,11 +66,11 @@ void MvtxCombinedRawDataDecoder::CreateNodes(PHCompositeNode *topNode)
 
   // create mvtx hitset helper container if needed
   mvtx_hit_set_helper =
-      findNode::getClass<TrkrHitSetContMvtxHelper>(topNode, MvtxHitSetHelperName.c_str());
+      findNode::getClass<TrkrHitSetContMvtxHelper>(topNode, MvtxHitSetHelperName);
   if (!mvtx_hit_set_helper)
   {
     // find or create TRKR node
-    auto trkrNode = dynamic_cast<PHCompositeNode *>(
+    auto *trkrNode = dynamic_cast<PHCompositeNode *>(
         iter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrNode)
     {
@@ -80,8 +80,8 @@ void MvtxCombinedRawDataDecoder::CreateNodes(PHCompositeNode *topNode)
 
     // create container and add to the tree
     mvtx_hit_set_helper = new TrkrHitSetContMvtxHelperv1;
-    auto newNode = new PHIODataNode<PHObject>(mvtx_hit_set_helper, MvtxHitSetHelperName.c_str(),
-                                              "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(mvtx_hit_set_helper, MvtxHitSetHelperName,
+                                               "PHObject");
     trkrNode->addNode(newNode);
   }
 
@@ -91,7 +91,7 @@ void MvtxCombinedRawDataDecoder::CreateNodes(PHCompositeNode *topNode)
   if (!hit_set_container)
   {
     // find or create TRKR node
-    auto trkrNode = dynamic_cast<PHCompositeNode *>(
+    auto *trkrNode = dynamic_cast<PHCompositeNode *>(
         iter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrNode)
     {
@@ -101,13 +101,13 @@ void MvtxCombinedRawDataDecoder::CreateNodes(PHCompositeNode *topNode)
 
     // create container and add to the tree
     hit_set_container = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hit_set_container, "TRKR_HITSET",
-                                              "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(hit_set_container, "TRKR_HITSET",
+                                               "PHObject");
     trkrNode->addNode(newNode);
   }
 
   // Check if MVTX event header already exists
-  auto mvtxNode = dynamic_cast<PHCompositeNode *>(
+  auto *mvtxNode = dynamic_cast<PHCompositeNode *>(
       iter.findFirst("PHCompositeNode", "MVTX"));
   if (!mvtxNode)
   {
@@ -120,7 +120,7 @@ void MvtxCombinedRawDataDecoder::CreateNodes(PHCompositeNode *topNode)
   if (!mvtx_event_header)
   {
     mvtx_event_header = new MvtxEventInfov3();
-    auto newHeader = new PHIODataNode<PHObject>(
+    auto *newHeader = new PHIODataNode<PHObject>(
         mvtx_event_header, "MVTXEVENTHEADER", "PHObject");
     mvtxNode->addNode(newHeader);
   }
@@ -153,7 +153,7 @@ void MvtxCombinedRawDataDecoder::GetNodes(PHCompositeNode *topNode)
       findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 
   mvtx_hit_set_helper =
-      findNode::getClass<TrkrHitSetContMvtxHelper>(topNode, MvtxHitSetHelperName.c_str());
+      findNode::getClass<TrkrHitSetContMvtxHelper>(topNode, MvtxHitSetHelperName);
 
   mvtx_event_header =
       findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
@@ -161,14 +161,14 @@ void MvtxCombinedRawDataDecoder::GetNodes(PHCompositeNode *topNode)
   // Could we just get the first strobe BCO instead of setting this to 0?
   // Possible problem, what if the first BCO isn't the mean, then we'll shift tracker hit sets? Probably not a bad thing but depends on hit stripping
   //  uint64_t gl1rawhitbco = gl1 ? gl1->get_bco() : 0;
-  auto gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  auto *gl1 = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (gl1)
   {
     gl1rawhitbco = gl1->lValue(0, "BCO");
   }
   else
   {
-    auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+    auto *oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
     if (oldgl1)
     {
       gl1rawhitbco = oldgl1->get_bco();
@@ -257,7 +257,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   auto nMvtxFeeIdInfo = mvtx_raw_event_header->get_nFeeIdInfo();
   for (size_t i{}; i < nMvtxFeeIdInfo; ++i)
   {
-    auto feeIdInfo = mvtx_raw_event_header->get_feeIdInfo(i);
+    auto *feeIdInfo = mvtx_raw_event_header->get_feeIdInfo(i);
     mvtx_event_header->add_strobe_BCO(feeIdInfo->get_bco());
   }
   if (Verbosity() >= 3)
@@ -265,7 +265,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     mvtx_raw_hit_container->identify();
   }
 
-  uint64_t strobe = -1;  // Initialise to -1 for debugging
+  uint64_t hit_strobe = -1;  // Initialise to -1 for debugging
   uint8_t layer = 0;
   uint8_t stave = 0;
   uint8_t chip = 0;
@@ -276,19 +276,19 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   for (unsigned int i = 0; i < mvtx_raw_hit_container->get_nhits(); i++)
   {
     mvtx_rawhit = mvtx_raw_hit_container->get_hit(i);
-    strobe = mvtx_rawhit->get_bco();
+    hit_strobe = mvtx_rawhit->get_bco();
     layer = mvtx_rawhit->get_layer_id();
     stave = mvtx_rawhit->get_stave_id();
     chip = mvtx_rawhit->get_chip_id();
     row = mvtx_rawhit->get_row();
     col = mvtx_rawhit->get_col();
 
-    const auto it = strobe_list.find(strobe);
+    const auto it = strobe_list.find(hit_strobe);
     int32_t index = -1;
     if (it == strobe_list.cend())
     {
-      std::cout << "Warning: hit strobe BCO " << strobe << " is not found in evet combined strobe list:" << std::endl;
-      for (auto &strobe : strobe_list)
+      std::cout << "Warning: hit strobe BCO " << hit_strobe << " is not found in evet combined strobe list:" << std::endl;
+      for (const auto &strobe : strobe_list)
       {
         std::cout << "0x" << std::hex << strobe << std::dec << std::endl;
       }
@@ -330,7 +330,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
       const TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(col, row);
 
       // find existing hit, or create
-      auto hit = hitset_it->second->getHit(hitkey);
+      auto *hit = hitset_it->second->getHit(hitkey);
       if (hit)
       {
         if (Verbosity() > 1)
@@ -367,13 +367,13 @@ int MvtxCombinedRawDataDecoder::End(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void MvtxCombinedRawDataDecoder::removeDuplicates(
-    std::vector<std::pair<uint64_t, uint32_t> > &v)
-{
-  auto end = v.end();
-  for (auto it = v.begin(); it != end; ++it)
-  {
-    end = remove(it + 1, end, *it);
-  }
-  v.erase(end, v.end());
-}
+// void MvtxCombinedRawDataDecoder::removeDuplicates(
+//     std::vector<std::pair<uint64_t, uint32_t> > &v)
+// {
+//   auto end = v.end();
+//   for (auto it = v.begin(); it != end; ++it)
+//   {
+//     end = remove(it + 1, end, *it);
+//   }
+//   v.erase(end, v.end());
+// }

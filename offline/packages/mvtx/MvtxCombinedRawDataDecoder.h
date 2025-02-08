@@ -54,12 +54,12 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
   void runMvtxTriggered(bool b = true) { m_mvtx_is_triggered = b; }
 
   void SetReadStrWidthFromDB(const bool val) { m_readStrWidthFromDB = val; }
-  bool GetReadStrWidthFromDB() { return m_readStrWidthFromDB; }
+  bool GetReadStrWidthFromDB() const { return m_readStrWidthFromDB; }
   void SetStrobeWidth(const float val) { m_strobeWidth = val; }
-  float GetStrobeWidth() { return m_strobeWidth; }
+  float GetStrobeWidth() const { return m_strobeWidth; }
 
  private:
-  void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
+  // static void removeDuplicates(std::vector<std::pair<uint64_t, uint32_t>>& v);
   void CreateNodes(PHCompositeNode*);
   void GetNodes(PHCompositeNode*);
 
