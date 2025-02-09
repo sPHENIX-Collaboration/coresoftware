@@ -164,7 +164,6 @@ class Fun4AllOutputManager : public Fun4AllBase
 
   //! vector of associated module indexes
   std::vector<unsigned> m_RecoModuleIndexVector;
-
 };
 
 #endif

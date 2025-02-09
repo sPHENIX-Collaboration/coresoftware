@@ -23,13 +23,13 @@ class Fun4AllMemoryTracker : public Fun4AllBase
   void Start(const std::string &trackername, const std::string &group = "");
   void Stop(const std::string &trackername, const std::string &group = "");
 
-  int GetRSSMemory() const;
+  static int GetRSSMemory();
   void PrintMemoryTracker(const std::string &name = "") const;
   std::vector<int> GetMemoryVector(const std::string &name) const;
 
  private:
   Fun4AllMemoryTracker();
-  std::string CreateFullTrackerName(const std::string &trackername, const std::string &group = "");
+  static std::string CreateFullTrackerName(const std::string &trackername, const std::string &group = "");
   static Fun4AllMemoryTracker *mInstance;
   std::map<std::string, std::vector<int>> mMemoryTrackerMap;
   std::map<std::string, int> mStartMem;
