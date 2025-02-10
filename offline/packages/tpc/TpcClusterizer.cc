@@ -125,9 +125,9 @@ namespace
   struct thread_pair_t
   {
     pthread_t thread{};
-    int start = 0;
-    int end = 1;
-    std::vector<thread_data> *data = nullptr;
+    int start;
+    int end;
+    std::vector<thread_data> *data;
   };
 
   pthread_mutex_t mythreadlock;
@@ -1319,11 +1319,13 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       this_thread_data.pads_per_sector = 0;
       this_thread_data.phistep = 0;
     }
+  printf("done setting up threads\n");
 
   
   // create vector of thread pairs and reserve the right size upfront to avoid reallocation
   std::vector<thread_pair_t> threads;
   threads.reserve(num_hitsets);
+  printf("done setting up thread vector\n");
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
