@@ -1400,15 +1400,16 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 	}
 	mClusHitsVerbose->push_hits(ckey);
       }
-    }
+      //      }
       
-    // copy hit associations to map
-    for (const auto &[hindex, hkey] : data.association_vector){
-      // generate cluster key
-      const auto hckey = TrkrDefs::genClusKey(hitsetkey, hindex);
-      
-      // add to association table
-      m_clusterhitassoc->addAssoc(hckey, hkey);
+      // copy hit associations to map
+      for (const auto &[hindex, hkey] : data.association_vector){
+	// generate cluster key
+	const auto hckey = TrkrDefs::genClusKey(hitsetkey, hindex);
+	
+	// add to association table
+	m_clusterhitassoc->addAssoc(hckey, hkey);
+      }
     }
     
     if (_store_hits){
