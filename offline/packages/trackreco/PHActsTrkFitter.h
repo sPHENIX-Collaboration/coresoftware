@@ -233,7 +233,7 @@ class PHActsTrkFitter : public SubsysReco
   std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
 
   //! tracks
-  SvtxTrackMap* m_seedTracks = nullptr;
+//  SvtxTrackMap* m_seedTracks = nullptr;
 
   //! tpc global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
