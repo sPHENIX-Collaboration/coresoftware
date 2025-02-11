@@ -17,8 +17,8 @@
 #include <iostream>
 #include <string>
 
-Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, const std::string &fname)
-  : Fun4AllOutputManager(myname, fname)
+Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, const std::string &filename)
+  : Fun4AllOutputManager(myname, filename)
 {
   return;
 }
@@ -72,7 +72,7 @@ void Fun4AllDstOutputManager::Print(const std::string &what) const
       }
       else
       {
-        for (auto &nodename : stripnodes)
+        for (const auto &nodename : stripnodes)
         {
           std::cout << Name() << ": Node " << nodename << " will be stripped" << std::endl;
         }
@@ -80,7 +80,7 @@ void Fun4AllDstOutputManager::Print(const std::string &what) const
     }
     else
     {
-      for (auto &nodename : savenodes)
+      for (const auto &nodename : savenodes)
       {
         std::cout << Name() << ": Node " << nodename << " is written out" << std::endl;
       }
@@ -117,7 +117,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
     se->MakeNodesPersistent(startNode);
     if (!stripnodes.empty())
     {
-      for (auto &nodename : stripnodes)
+      for (const auto &nodename : stripnodes)
       {
         PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
         if (ChosenNode)
@@ -137,7 +137,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    for (auto &nodename : savenodes)
+    for (const auto &nodename : savenodes)
     {
       PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
@@ -166,7 +166,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    for (auto &nodename : savenodes)
+    for (const auto &nodename : savenodes)
     {
       PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
@@ -217,7 +217,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     se->MakeNodesPersistent(thisNode);
     if (!striprunnodes.empty())
     {
-      for (auto &nodename : striprunnodes)
+      for (const auto &nodename : striprunnodes)
       {
         PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
         if (ChosenNode)
@@ -237,7 +237,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   }
   else
   {
-    for (auto &nodename : saverunnodes)
+    for (const auto &nodename : saverunnodes)
     {
       PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)

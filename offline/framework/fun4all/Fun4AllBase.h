@@ -70,7 +70,7 @@ class Fun4AllBase
 
   /// Sets the downscale of printouts for this module.
   /// Use (cnt%VerbosityDownscale()) in the code to apply
-  virtual void VerbosityDownscale(uint32_t ival) { m_VerbosityDownscale = std::max(1U,ival); }
+  virtual void VerbosityDownscale(uint32_t ival) { m_VerbosityDownscale = std::max(1U, ival); }
 
  protected:
   /** ctor.
@@ -81,9 +81,9 @@ class Fun4AllBase
   std::string m_ThisName;
 
   /// The verbosity level. 0 means not verbose at all.
-  uint64_t m_Verbosity {VERBOSITY_QUIET};
+  uint64_t m_Verbosity{VERBOSITY_QUIET};
   /// The frequency of printouts
-  uint32_t m_VerbosityDownscale {1};
+  uint32_t m_VerbosityDownscale{1};
 };
 
 #endif

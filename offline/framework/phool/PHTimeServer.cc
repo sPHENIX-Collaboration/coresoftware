@@ -65,12 +65,10 @@ PHTimeServer::timer PHTimeServer::get_timer(const std::string& key)
   {
     return _iter->second;
   }
-  else
-  {
-    std::ostringstream what;
-    what << "unknown timer \"" << key << "\" requested.";
-    throw std::invalid_argument(what.str());
-  }
+
+  std::ostringstream what;
+  what << "unknown timer \"" << key << "\" requested.";
+  throw std::invalid_argument(what.str());
 }
 
 //_________________________________________________________
@@ -82,12 +80,10 @@ PHTimeServer::timer PHTimeServer::get_single_shot_timer(const std::string& key)
   {
     return _iter->second;
   }
-  else
-  {
-    std::ostringstream what;
-    what << "unknown timer \"" << key << "\" requested.";
-    throw std::invalid_argument(what.str());
-  }
+
+  std::ostringstream what;
+  what << "unknown timer \"" << key << "\" requested.";
+  throw std::invalid_argument(what.str());
 }
 
 //_________________________________________________________
