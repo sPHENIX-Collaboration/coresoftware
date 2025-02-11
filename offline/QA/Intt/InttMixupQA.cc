@@ -1,35 +1,35 @@
 #include "InttMixupQA.h"
 
-#include <fun4all/SubsysReco.h>
-#include <TString.h>
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TGraph.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TGraph.h>
-#include <TFile.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <ffarawobjects/InttRawHitContainer.h>
-#include <phool/getClass.h>
-#include <TROOT.h>
-#include <TCanvas.h>
-#include <TVirtualPad.h>
-#include <TLine.h>
-#include <TStyle.h>
 #include <TLegend.h>
+#include <TLine.h>
+#include <TROOT.h>
+#include <TString.h>
+#include <TStyle.h>
+#include <TVirtualPad.h>
+#include <ffarawobjects/InttRawHitContainer.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>  // PHWHERE
 #include <qautils/QAHistManagerDef.h>
 
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
 #include <TSystem.h>
 
-#include <string>
 #include <limits>
 #include <map>
-#include <utility>
 #include <sstream>
+#include <string>
+#include <utility>
 
 using namespace std;
 

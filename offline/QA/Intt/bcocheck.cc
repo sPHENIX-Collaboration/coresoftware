@@ -1,20 +1,20 @@
 #include "bcocheck.h"
-#include <string>
-#include <fun4all/SubsysReco.h>
-#include <iostream>
-#include <ostream>
-#include <TString.h>
-#include <TH1.h>
 #include <TFile.h>
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <TH1.h>
+#include <TString.h>
+#include <TStyle.h>
+#include <TSystem.h>
 #include <ffarawobjects/InttRawHitContainer.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <TSystem.h>
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
+#include <iostream>
 #include <limits>
-#include <TStyle.h>
+#include <ostream>
+#include <string>
 
 using namespace std;
 
@@ -84,8 +84,8 @@ int bcocheck::process_event(PHCompositeNode *topNode)
   }
 
   uint64_t const longbco_full = inttcont->get_nhits() > 0
-                              ? inttcont->get_hit(0)->get_bco()
-                              : std::numeric_limits<uint64_t>::max();
+                                    ? inttcont->get_hit(0)->get_bco()
+                                    : std::numeric_limits<uint64_t>::max();
   // uint64_t difevent_bcofull = (longbco_full &bit )-(long_prev_bcofull &bit);
   // h_interval->Fill(difevent_bcofull);
   uint64_t const bco_full = longbco_full & 0x7FU;
