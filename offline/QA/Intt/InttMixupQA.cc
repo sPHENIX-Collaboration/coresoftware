@@ -1,13 +1,35 @@
 #include "InttMixupQA.h"
 
+#include <fun4all/SubsysReco.h>
+#include <TString.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TGraph.h>
+#include <TFile.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <ffarawobjects/InttRawHitContainer.h>
+#include <phool/getClass.h>
+#include <TROOT.h>
+#include <TCanvas.h>
+#include <TVirtualPad.h>
+#include <TLine.h>
+#include <TStyle.h>
+#include <TLegend.h>
 #include <phool/phool.h>  // PHWHERE
 #include <qautils/QAHistManagerDef.h>
 
+#include <cstdlib>
+#include <cstdint>
+#include <fstream>
 #include <iostream>
 
 #include <TSystem.h>
 
-#include <boost/format.hpp>
+#include <string>
+#include <limits>
+#include <map>
+#include <utility>
+#include <sstream>
 
 using namespace std;
 
@@ -16,7 +38,7 @@ InttMixupQA::InttMixupQA(const string &name, const int run_num, const int felix_
 {
   run_num_ = run_num;
   felix_num_ = felix_num;
-  cout << "felix_num_=" << felix_num_ << "felix_num=" << felix_num << endl;
+  cout << "felix_num_=" << felix_num_ << "felix_num=" << felix_num << '\n';
 }
 
 InttMixupQA::~InttMixupQA() = default;
@@ -25,7 +47,7 @@ int InttMixupQA::Init(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 5)
   {
-    std::cout << "Beginning Init in InttMixupQA" << std::endl;
+    std::cout << "Beginning Init in InttMixupQA" << '\n';
   }
 
   return 0;
@@ -35,13 +57,13 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
 {
   if (!topNode)
   {
-    std::cout << "InttMixupQA::InitRun(PHCompositeNode* topNode)" << std::endl;
-    std::cout << "\tCould not retrieve topNode; doing nothing" << std::endl;
+    std::cout << "InttMixupQA::InitRun(PHCompositeNode* topNode)" << '\n';
+    std::cout << "\tCould not retrieve topNode; doing nothing" << '\n';
 
     return 1;
   }
 
-  cout << "felix_num_=" << felix_num_ << endl;
+  cout << "felix_num_=" << felix_num_ << '\n';
 
   // Initialize histograms
   for (int felix = 0; felix < kFelix_num_; felix++)
@@ -66,7 +88,7 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
     {
       std::cerr << PHWHERE << "\n"
                 << "\tQAHistManagerDef::getHistoManager() returned null\n"
-                << "\texit(1)" << std::endl;
+                << "\texit(1)" << '\n';
       gSystem->Exit(1);
       exit(1);
     }
@@ -111,10 +133,10 @@ int InttMixupQA::InitRun(PHCompositeNode *topNode)
     h_vsprefull_bco_all[felix]->SetXTitle("BCO");
     h_vsprefull_bco_all[felix]->SetYTitle("BCO_FULL previous event &0x7F");
 
-    string name1 = "Mixup Multiplicity" + to_string(felix);
-    string name2 = "Mixup/all Multiplcity" + to_string(felix);
-    string title1 = name1 + Form("_Run%d", run_num_);
-    string title2 = name2 + Form("_Run%d", run_num_);
+    string const name1 = "Mixup Multiplicity" + to_string(felix);
+    string const name2 = "Mixup/all Multiplcity" + to_string(felix);
+    string const title1 = name1 + Form("_Run%d", run_num_);
+    string const title2 = name2 + Form("_Run%d", run_num_);
     for (int p = 0; p < divimul; p++)
     {
       h_mixupmulti[felix][p] = new TH1F((name1 + Form("_%d", p)).c_str(), (title1 + Form("_%d", p)).c_str(), 200, 0, bin);
@@ -231,7 +253,7 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 5)
   {
     cout << "prev_bcofull=" << prev_bcofull << " "
-         << "pre_allhit=" << pre_allhit << endl;
+         << "pre_allhit=" << pre_allhit << '\n';
   }
 
   // get event bco_full
@@ -253,22 +275,22 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
    }*/
 
   // get raw hit
-  string m_InttRawNodeName = "INTTRAWHIT";
+  string const m_InttRawNodeName = "INTTRAWHIT";
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
   if (!inttcont)
   {
-    cout << PHWHERE << endl;
-    cout << "InttMixupQA::process_event(PHCompositeNode* topNode)" << endl;
-    cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << endl;
-    cout << "Exiting" << endl;
+    cout << PHWHERE << '\n';
+    cout << "InttMixupQA::process_event(PHCompositeNode* topNode)" << '\n';
+    cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << '\n';
+    cout << "Exiting" << '\n';
     gSystem->Exit(1);
     exit(1);
   }
 
-  uint64_t longbco_full = (0 < inttcont->get_nhits()) ? inttcont->get_hit(0)->get_bco() : std::numeric_limits<uint64_t>::max();
-  uint64_t difevent_bcofull = (longbco_full & bit) - (long_prev_bcofull & bit);
+  uint64_t const longbco_full = (0 < inttcont->get_nhits()) ? inttcont->get_hit(0)->get_bco() : std::numeric_limits<uint64_t>::max();
+  uint64_t const difevent_bcofull = (longbco_full & bit) - (long_prev_bcofull & bit);
   h_interval->Fill(difevent_bcofull);
-  uint64_t bco_full = longbco_full & 0x7FU;
+  uint64_t const bco_full = longbco_full & 0x7FU;
   // cout<<"longbco_full="<<longbco_full<<endl;
 
   ievent_++;
@@ -284,13 +306,13 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
 
   if ((ievent_ % 100 == 0 && ievent_ < 1000) || ievent_ % 1000 == 0)
   {
-    cout << "Process event #" << ievent_ << endl;
+    cout << "Process event #" << ievent_ << '\n';
   }
 
-  int nhits = inttcont->get_nhits();
+  int const nhits = inttcont->get_nhits();
   if (Verbosity() > 5)
   {
-    cout << "Nhits = " << nhits << endl;
+    cout << "Nhits = " << nhits << '\n';
   }
 
   map<int, int> map_hit;
@@ -306,13 +328,13 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
   {
     InttRawHit *intthit = inttcont->get_hit(i);
 
-    int fnum = intthit->get_packetid() - 3001;  // packet id
-    int fchn = intthit->get_fee();              // module
-    int adc = intthit->get_adc();               // adc
-    int chip = intthit->get_chip_id();          // chip
-    int chan = intthit->get_channel_id();       // channel
-    int bco = intthit->get_FPHX_BCO();          // FPHX bco
-    int hitID = 100000000 * (fnum + 1) + 1000000 * fchn + 10000 * chip + 10 * chan + adc;
+    int const fnum = intthit->get_packetid() - 3001;  // packet id
+    int const fchn = intthit->get_fee();              // module
+    int const adc = intthit->get_adc();               // adc
+    int const chip = intthit->get_chip_id();          // chip
+    int const chan = intthit->get_channel_id();       // channel
+    int const bco = intthit->get_FPHX_BCO();          // FPHX bco
+    int const hitID = 100000000 * (fnum + 1) + 1000000 * fchn + 10000 * chip + 10 * chan + adc;
     // int hitID_h = 10000000 * (fnum+1) + 100000 * fchn + 1000 * chip + chan;
 
     // clone hit cut
@@ -322,7 +344,7 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
       map_hit.insert(make_pair(hitID, 0));
       if (Verbosity() > 5)
       {
-        cout << hitID << " " << fnum + 1 << " " << fchn << " " << chip << " " << chan << " " << adc << " " << bco << endl;
+        cout << hitID << " " << fnum + 1 << " " << fchn << " " << chip << " " << chan << " " << adc << " " << bco << '\n';
       }
 
       // hot channel cut
@@ -399,7 +421,7 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
     if (Verbosity() > 5)
     {
       cout << "bco_full=" << bco_full << " "
-           << "bco=" << bco << " " << endl;
+           << "bco=" << bco << " " << '\n';
     }
   }
 
@@ -410,7 +432,7 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
       cout << "Felix#" << id << " "
            << "Nmixup=" << Nmixup[id] << " "
            << "Ncopy=" << Ncopy[id] << " "
-           << "Nclone=" << ncln_fx[id] << endl;
+           << "Nclone=" << ncln_fx[id] << '\n';
     }
   }
 
@@ -472,7 +494,7 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 5)
       {
         cout << "Felix=" << felix << " "
-             << "mixupfraction=" << mixupfraction[felix] << "Nmixup=" << Nmixup[felix] << "pre_allhit=" << pre_allhit[felix] << "Ncopy=" << Ncopy[felix] << "copyfraction=" << copyfraction[felix] << endl;
+             << "mixupfraction=" << mixupfraction[felix] << "Nmixup=" << Nmixup[felix] << "pre_allhit=" << pre_allhit[felix] << "Ncopy=" << Ncopy[felix] << "copyfraction=" << copyfraction[felix] << '\n';
       }
     }
     // h_divinter->Divide(h_mixinterval,h_interval);
@@ -480,7 +502,7 @@ int InttMixupQA::process_event(PHCompositeNode *topNode)
     {
       // cout<<nhit_fx[felix]<<endl;
 
-      fNhit[felix] << nhit_fx[felix] << endl;
+      fNhit[felix] << nhit_fx[felix] << '\n';
     }
     pre_allhit[felix] = nhit_fx[felix];
     // Initialize pre_allhit array
@@ -507,7 +529,7 @@ int InttMixupQA::End(PHCompositeNode * /*topNode*/)
 
   if (Verbosity() > 1)
   {
-    std::cout << "Processing InttMixupQA done" << std::endl;
+    std::cout << "Processing InttMixupQA done" << '\n';
   }
 
   /*for (int felix=0;felix<8;felix++){
@@ -528,8 +550,8 @@ int InttMixupQA::SetOutputDir(std::string const &dir)
 {
   output_dir_ = dir;
 
-  string run_num_str = string(8 - to_string(run_num_).size(), '0') + to_string(run_num_);
-  string fnum_str = to_string(felix_num_);
+  string const run_num_str = string(8 - to_string(run_num_).size(), '0') + to_string(run_num_);
+  string const fnum_str = to_string(felix_num_);
 
   output_root_ = output_dir_ + "root/" + output_basename_ + run_num_str + "intt" + fnum_str + ".root";
   output_pdf_ = output_dir_ + "plots/" + output_basename_ + run_num_str + "intt" + fnum_str + ".pdf";
@@ -594,13 +616,13 @@ void InttMixupQA::GetBcopeak()
     {
       if (Verbosity())
       {
-        std::cerr << PHWHERE << std::endl;
+        std::cerr << PHWHERE << '\n';
       }
       continue;
     }
 
     // default peakbin for can't found peak bin
-    int maxbin_sub = hbco[i]->GetMaximumBin();
+    int const maxbin_sub = hbco[i]->GetMaximumBin();
     DEFAULT_BCO_VALUE[i] = hbco[i]->GetBinLowEdge(maxbin_sub);
   }
 
@@ -612,32 +634,32 @@ void InttMixupQA::GetBcopeak()
   // find peak and BG area
   for (int id = 0; id < 8; id++)
   {
-    double max = hbco[id]->GetMaximum();
-    int maxbin = hbco[id]->GetMaximumBin();
+    double const max = hbco[id]->GetMaximum();
+    int const maxbin = hbco[id]->GetMaximumBin();
     peakbco[id] = hbco[id]->GetBinLowEdge(maxbin);
-    cout << id << " " << max << " " << maxbin << " " << peakbco[id] << endl;
+    cout << id << " " << max << " " << maxbin << " " << peakbco[id] << '\n';
 
     hbcohist[id] = new TH1F(Form("hbcohist_%d", id), Form("hbcohist_%d", id), 200, 0, max * 1.1);
-    int N = hbco[id]->GetNbinsX();
+    int const N = hbco[id]->GetNbinsX();
     for (int ibin = 0; ibin < N; ibin++)
     {
-      double cont = hbco[id]->GetBinContent(ibin + 1);
+      double const cont = hbco[id]->GetBinContent(ibin + 1);
       hbcohist[id]->Fill(cont);
     }
   }
 
   for (int id = 0; id < 8; id++)
   {
-    double max = hbco[id]->GetMaximum();
+    double const max = hbco[id]->GetMaximum();
     hbcohist2[id] = new TH1F(Form("hbcohist2_%d", id), Form("hbcohist2_%d", id), 200, 0, max * 1.1);
 
-    int N = hbco[id]->GetNbinsX();
-    double mean = hbcohist[id]->GetMean();
-    double rms = hbcohist[id]->GetRMS();
+    int const N = hbco[id]->GetNbinsX();
+    double const mean = hbcohist[id]->GetMean();
+    double const rms = hbcohist[id]->GetRMS();
 
     for (int ibin = 0; ibin < N; ibin++)
     {
-      double cont = hbco[id]->GetBinContent(ibin + 1);
+      double const cont = hbco[id]->GetBinContent(ibin + 1);
       if (mean + 3 * rms > cont)
       {
         hbcohist2[id]->Fill(cont);
@@ -656,11 +678,11 @@ void InttMixupQA::GetBcopeak()
     {
       f_felixpeak << id << " : ";
       // double thre   = bg_mean[id] + 6*bg_rms[id];
-      double thre = 5 * bg_mean[id];
+      double const thre = 5 * bg_mean[id];
       ;
-      int maxbin = hbco[id]->GetMaximumBin();
+      int const maxbin = hbco[id]->GetMaximumBin();
 
-      int N = hbco[id]->GetNbinsX();
+      int const N = hbco[id]->GetNbinsX();
       bool peak_found = false;
 
       for (int ibin = 0; ibin < 10; ibin++)
@@ -670,16 +692,16 @@ void InttMixupQA::GetBcopeak()
         {
           binid += N;  // binid+=128;
         }
-        double cont = hbco[id]->GetBinContent(binid + 1);
+        double const cont = hbco[id]->GetBinContent(binid + 1);
         cout << id << " :  " << ibin << " " << binid << " " << maxbin;
         if (cont > thre)
         {
-          int peakbin = hbco[id]->GetBinLowEdge(binid + 1);
+          int const peakbin = hbco[id]->GetBinLowEdge(binid + 1);
           cout << " exceed : " << peakbin;
           f_felixpeak << peakbin << " ";
           peak_found = true;
         }
-        cout << endl;
+        cout << '\n';
       }
       for (int ibin = 0; ibin < 10; ibin++)
       {
@@ -688,23 +710,23 @@ void InttMixupQA::GetBcopeak()
         {
           binid -= N;  // binid+=128;
         }
-        double cont = hbco[id]->GetBinContent(binid + 1);
+        double const cont = hbco[id]->GetBinContent(binid + 1);
         cout << id << " :  " << ibin << " " << binid << " " << maxbin;
         if (cont > thre)
         {
-          int peakbin = hbco[id]->GetBinLowEdge(binid + 1);
+          int const peakbin = hbco[id]->GetBinLowEdge(binid + 1);
           cout << " exceed : " << peakbin;
           f_felixpeak << peakbin << " ";
           peak_found = true;
         }
-        cout << endl;
+        cout << '\n';
       }
       if (!peak_found)
       {
         f_felixpeak << DEFAULT_BCO_VALUE[id] << " ";
       }
 
-      f_felixpeak << endl;
+      f_felixpeak << '\n';
     }
     f_felixpeak.close();
   }
@@ -713,10 +735,10 @@ void InttMixupQA::GetBcopeak()
   float minimum = 1000000;
   for (auto &id : hbco)
   {
-    cout << id->GetMinimumBin() << endl;
-    cout << id->GetBinContent(id->GetMinimumBin()) << endl;
-    double min = id->GetBinContent(id->GetMinimumBin());
-    cout << min << endl;
+    cout << id->GetMinimumBin() << '\n';
+    cout << id->GetBinContent(id->GetMinimumBin()) << '\n';
+    double const min = id->GetBinContent(id->GetMinimumBin());
+    cout << min << '\n';
     if (min < minimum)
     {
       minimum = min;
@@ -745,7 +767,7 @@ void InttMixupQA::GetBcopeak()
   {
     c1->cd(id + 9);
     gPad->SetLogy();
-    double max = hbcohist[id]->GetMaximum();
+    double const max = hbcohist[id]->GetMaximum();
 
     hbcohist[id]->Draw();
     hbcohist2[id]->SetLineColor(2);
@@ -765,15 +787,15 @@ void InttMixupQA::GetBcopeak()
 
 void InttMixupQA::Readpeak()
 {
-  std::string bcofile_ = (output_txt_ + Form("bco_%d.txt", run_num_));
+  std::string const bcofile_ = (output_txt_ + Form("bco_%d.txt", run_num_));
 
   if (bcofile_.size() > 0)
   {
-    cout << "BCO file : " << bcofile_.c_str() << endl;
+    cout << "BCO file : " << bcofile_.c_str() << '\n';
     ifstream file(bcofile_.c_str());
     if (!file.is_open())
     {
-      std::cerr << "Failed to open file: " << bcofile_ << std::endl;
+      std::cerr << "Failed to open file: " << bcofile_ << '\n';
       return;
     }
 
@@ -796,7 +818,7 @@ void InttMixupQA::Readpeak()
           felix = stoi(sbuf.c_str());
           if (felix < 0 || felix > 7)
           {
-            cout << "felixid out of range. id=" << felix << endl;
+            cout << "felixid out of range. id=" << felix << '\n';
             break;
           }
         }
@@ -813,11 +835,11 @@ void InttMixupQA::Readpeak()
           {
             // cout<<"   "<<sbuf2<<endl;
             bcopar_[felix].insert(stoi(sbuf2));
-            int peak = stoi(sbuf2);
-            int peak1 = peak + 1;
-            int peak2 = peak + 2;
-            int peak_1 = peak - 1;
-            int peak_2 = peak - 2;
+            int const peak = stoi(sbuf2);
+            int const peak1 = peak + 1;
+            int const peak2 = peak + 2;
+            int const peak_1 = peak - 1;
+            int const peak_2 = peak - 2;
             sbuf3 = to_string(peak1);
             sbuf4 = to_string(peak2);
             sbuf5 = to_string(peak_1);
@@ -834,26 +856,26 @@ void InttMixupQA::Readpeak()
     file.close();
   }
 
-  cout << "BCO peaks " << endl;
+  cout << "BCO peaks " << '\n';
   for (int i = 0; i < 8; i++)
   {
     cout << "    felix " << i << " : ";
-    for (int itr : bcopar_[i])
+    for (int const itr : bcopar_[i])
     {
       cout << itr << " ";
     }
-    cout << endl;
+    cout << '\n';
   }
 
-  cout << "Around BCO peaks " << endl;
+  cout << "Around BCO peaks " << '\n';
   for (int i = 0; i < 8; i++)
   {
     cout << "    felix " << i << " : ";
-    for (int itr : otbcopar_[i])
+    for (int const itr : otbcopar_[i])
     {
       cout << itr << " ";
     }
-    cout << endl;
+    cout << '\n';
   }
 }
 
@@ -891,7 +913,7 @@ void InttMixupQA::Readpeak()
 
 void InttMixupQA::DrawHists()
 {
-  std::cout << "output pdf: " << output_pdf_ << std::endl;
+  std::cout << "output pdf: " << output_pdf_ << '\n';
 
   /////////////////////////Mixup plot Draw//////////////////////////////
   TCanvas *c0 = new TCanvas("c0", "c0");
@@ -940,7 +962,7 @@ void InttMixupQA::DrawHists()
     h_allmulti_[felix]->GetXaxis()->SetNdivisions(405);
     h_allmulti_[felix]->GetYaxis()->SetNdivisions(405);
     // h_allmulti[i]->SetXTitle("Hit Multiplcity/event");
-    int a = h_allmulti_[felix]->GetMaximum();
+    int const a = h_allmulti_[felix]->GetMaximum();
     h_allmulti_[felix]->GetYaxis()->SetRangeUser(1, a * 1.6);
     h_allmulti_[felix]->SetXTitle("Number of hits of previous event");
     h_allmulti_[felix]->SetYTitle("Entry");
@@ -954,7 +976,7 @@ void InttMixupQA::DrawHists()
     for (int p = 0; p < 10; p++)
     {
       h_mixupmulti[felix][p]->Draw("same");
-      int color = p + 2;
+      int const color = p + 2;
       if (color == 10)
       {
         h_mixupmulti[felix][p]->SetLineColor(46);
@@ -984,7 +1006,7 @@ void InttMixupQA::DrawHists()
       {
         h_divmul[felix][p]->Draw("same");
       }
-      int color2 = p + 2;
+      int const color2 = p + 2;
       if (color2 == 10)
       {
         h_divmul[felix][p]->SetLineColor(46);
