@@ -13,15 +13,15 @@
 #include <Acts/Definitions/Units.hpp>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <iostream>
+#include <iterator>
+#include <limits>
+#include <ostream>
+#include <set>
+#include <tuple>
 #include <utility>
 #include <vector>
-#include <limits>
-#include <tuple>
-#include <set>
-#include <iostream>
-#include <ostream>
-#include <iterator>
-#include <cstdint>
 
 namespace
 {
@@ -71,12 +71,12 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   Acts::Vector3 tangent = (second_point_pca - pca) / (second_point_pca - pca).norm();
 
   // Direction is ambiguous, use cluster direction to resolve it
-  float const phi = atan2(global(1),global(0));
+  float const phi = atan2(global(1), global(0));
   float const tangent_phi = atan2(tangent(1), tangent(0));
-  if(std::fabs(tangent_phi - phi) > M_PI / 2)
-    {
-      tangent = -1.0 * tangent;
-    }
+  if (std::fabs(tangent_phi - phi) > M_PI / 2)
+  {
+    tangent = -1.0 * tangent;
+  }
 
   // get the PCA of the cluster to that line
   // Approximate track with a straight line consisting of the state position posref and the vector (px,py,pz)
@@ -98,7 +98,6 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
 
   auto surf = geometry->maps().getSurface(key, cluster);
 
-  
   //! Take two random x points and calculate y and z on the line to find 2
   //! 3D points with which to calculate the 3D line
   float const x1 = -1;
@@ -235,38 +234,38 @@ TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const std
   return circle_fit_by_taubin(positions_2d);
 }
 
-
 //_________________________________________________________________________________
 TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::position_vector_t& positions)
 {
   // calculate the best line fit to an array of x and y points,
-  // which minimizing the square of the distances orthogonally 
+  // which minimizing the square of the distances orthogonally
   // from the points to the line. Assume that the variances of x and y
   //  are equal (this is the Deming method)
-    // get the mean values
-    double xmean = 0.;
-    double ymean = 0.;
-    for (const auto& [x, y] : positions)
-    {
-      xmean = xmean + x;
-      ymean = ymean + y;
-    }
-    double const n = positions.size();
-    xmean /= n;
-    ymean /= n;
+  // get the mean values
+  double xmean = 0.;
+  double ymean = 0.;
+  for (const auto& [x, y] : positions)
+  {
+    xmean = xmean + x;
+    ymean = ymean + y;
+  }
+  double const n = positions.size();
+  xmean /= n;
+  ymean /= n;
 
-    // calculate the standard deviations
-    double ssd_x = 0.;
-    double ssd_y = 0.;
-    double ssd_xy = 0.;
-    for (const auto& [x, y] : positions) {
-      ssd_x += square(x-xmean);
-      ssd_y += square(y-ymean);
-      ssd_xy += (x-xmean)*(y-ymean);
-    }
-    const double slope = (ssd_y-ssd_x+sqrt(square(ssd_y-ssd_x)+4*square(ssd_xy)))/2./ssd_xy;
-    const double intercept = ymean - slope * xmean;
-    return std::make_tuple(slope, intercept);
+  // calculate the standard deviations
+  double ssd_x = 0.;
+  double ssd_y = 0.;
+  double ssd_xy = 0.;
+  for (const auto& [x, y] : positions)
+  {
+    ssd_x += square(x - xmean);
+    ssd_y += square(y - ymean);
+    ssd_xy += (x - xmean) * (y - ymean);
+  }
+  const double slope = (ssd_y - ssd_x + sqrt(square(ssd_y - ssd_x) + 4 * square(ssd_xy))) / 2. / ssd_xy;
+  const double intercept = ymean - slope * xmean;
+  return std::make_tuple(slope, intercept);
 }
 
 //_________________________________________________________________________________
@@ -299,7 +298,7 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xy(const std::vector<Ac
   position_vector_t positions_2d;
   for (const auto& position : positions)
   {
-    positions_2d.emplace_back(position.x(), position.y());   // returns dx/dy and y intercept
+    positions_2d.emplace_back(position.x(), position.y());  // returns dx/dy and y intercept
   }
 
   return line_fit(positions_2d);
@@ -308,29 +307,25 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit_xy(const std::vector<Ac
 //_________________________________________________________________________________
 TrackFitUtils::line_circle_intersection_output_t TrackFitUtils::line_circle_intersection(double r, double m, double b)
 {
-
-  const double a_coef = 1+square(m);
-  const double b_coef = 2*m*b;
-  const double c_coef = square(b)-square(r);
-  const double delta = square(b_coef)-4*a_coef*c_coef;
+  const double a_coef = 1 + square(m);
+  const double b_coef = 2 * m * b;
+  const double c_coef = square(b) - square(r);
+  const double delta = square(b_coef) - 4 * a_coef * c_coef;
 
   const double sqdelta = std::sqrt(delta);
-
 
   const double xplus = (-b_coef + sqdelta) / (2. * a_coef);
   const double xminus = (-b_coef - sqdelta) / (2. * a_coef);
 
-  const double yplus = m*xplus + b;
-  const double yminus = m*xminus + b;
+  const double yplus = m * xplus + b;
+  const double yminus = m * xminus + b;
 
   return std::make_tuple(xplus, yplus, xminus, yminus);
-
 }
 
 //_________________________________________________________________________________
 TrackFitUtils::circle_circle_intersection_output_t TrackFitUtils::circle_circle_intersection(double r1, double r2, double x2, double y2)
 {
-
   const double D = square(r1) - square(r2) + square(x2) + square(y2);
   const double a = 1.0 + square(x2 / y2);
   const double b = -D * x2 / square(y2);
@@ -442,7 +437,7 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         float const dcax = pcax - x;
         float const dcay = pcay - y;
         float dca = std::sqrt(square(dcax) + square(dcay));
-        if(!isXY && TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
+        if (!isXY && TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
         {
           //! Just ignore the z direction completely for the intt
           dca = dcay;
@@ -545,7 +540,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
           keysToAdd.insert(cluskey);
         }
       }  // end cluster iteration
-    }    // end hitsetkey iteration
+    }  // end hitsetkey iteration
   }
 
   for (auto& key : keysToAdd)
@@ -585,7 +580,7 @@ Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
   float const projection = 0.25;  // cm
   Acts::Vector3 const second_point = pca + projection * pca / pca.norm();
   Acts::Vector2 second_point_pca_circle = get_circle_point_pca(radius, x0, y0, second_point);
-  float const second_point_pca_z = second_point_pca_circle.norm() * zslope + z0; 
+  float const second_point_pca_z = second_point_pca_circle.norm() * zslope + z0;
   Acts::Vector3 const second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -638,14 +633,14 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
     }
   }
   //  std::cout << " use_intt = " << use_intt << std::endl;
-  if(use_intt)
-    {
-      global_vec_noINTT = global_vec;
-    }
+  if (use_intt)
+  {
+    global_vec_noINTT = global_vec;
+  }
   if (global_vec_noINTT.size() < 3)
-    {
-      return fitpars;
-    }
+  {
+    return fitpars;
+  }
   std::tuple<double, double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
 
   fitpars.push_back(std::get<0>(circle_fit_pars));
@@ -659,7 +654,7 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
-						       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt, bool mvtx_east, bool mvtx_west)
+                                                       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt, bool mvtx_east, bool mvtx_west)
 {
   std::vector<float> fitpars;
   std::tuple<double, double> xy_fit_pars;
@@ -667,27 +662,29 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
   // make the helical fit using TrackFitUtils
   if (global_vec.size() < 3)
   {
-    std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 cluskeys " << ((int)global_vec.size()) << std::endl;
+    std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 cluskeys " << ((int) global_vec.size()) << std::endl;
     return fitpars;
   }
-//  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
+  //  std::tuple<double, double> xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
 
   // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
   // also, for half to half cosmics, allow selection of only 1 half of mvtx (east or west)
   std::vector<Acts::Vector3> global_vec_noINTT;
   bool cross_mvtx_half = false;
-  if ((mvtx_east||mvtx_west)) {
-    cross_mvtx_half=TrackFitUtils::isTrackCrossMvtxHalf(cluskey_vec);
+  if ((mvtx_east || mvtx_west))
+  {
+    cross_mvtx_half = TrackFitUtils::isTrackCrossMvtxHalf(cluskey_vec);
   }
-  else {
+  else
+  {
     xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec);
   }
   for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
   {
     unsigned int const trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
-    if ((mvtx_east||mvtx_west) && trkrid == TrkrDefs::mvtxId)
+    if ((mvtx_east || mvtx_west) && trkrid == TrkrDefs::mvtxId)
     {
-      if(cross_mvtx_half && TrackFitUtils::includeMvtxHit(cluskey_vec[ivec], mvtx_east, mvtx_west))
+      if (cross_mvtx_half && TrackFitUtils::includeMvtxHit(cluskey_vec[ivec], mvtx_east, mvtx_west))
       {
         global_vec_noINTT.push_back(global_vec[ivec]);
       }
@@ -698,17 +695,18 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
     }
   }
   //  std::cout << " use_intt = " << use_intt << std::endl;
-  if(use_intt)
-    {
-      global_vec_noINTT = global_vec;
-    }
+  if (use_intt)
+  {
+    global_vec_noINTT = global_vec;
+  }
   if (global_vec_noINTT.size() < 3)
-    {
-       //std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 non-INTT cluskeys " << ((int)global_vec_noINTT.size()) << std::endl;
-      return fitpars;
-    }
+  {
+    // std::cout << " TrackFitUtils::fitClustersZeroField failed for <3 non-INTT cluskeys " << ((int)global_vec_noINTT.size()) << std::endl;
+    return fitpars;
+  }
   std::tuple<double, double> xz_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
-  if ((mvtx_east||mvtx_west)) {
+  if ((mvtx_east || mvtx_west))
+  {
     xy_fit_pars = TrackFitUtils::line_fit_xy(global_vec_noINTT);
   }
 
@@ -719,10 +717,10 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
 
   /*
   std::cout << "   dy/dx " << fitpars[0]
-	    << " y0 " << fitpars[1]
-	    << " dz/dx " << fitpars[2]
-	    << " z0 " << fitpars[3]
-	    << std::endl;
+            << " y0 " << fitpars[1]
+            << " dz/dx " << fitpars[2]
+            << " z0 " << fitpars[3]
+            << std::endl;
   std::cout << " global (layer 0): " << std::endl << global_vec_noINTT[0] << std::endl;
   std::cout << " global (layer 2): " << std::endl << global_vec_noINTT[2] << std::endl;
   */
@@ -766,40 +764,40 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
 //_________________________________________
 Acts::Vector2 TrackFitUtils::get_line_point_pca(double slope, double intercept, Acts::Vector3 global)
 {
-  // return closest point (in xy) on the line to the point global  
+  // return closest point (in xy) on the line to the point global
   /* Acts::Vector2 point(global(0), global(1)); */
   /* Acts::Vector2 posref(0, intercept);       // arbitrary point on the line */
-  /* Acts::Vector2 arb_point(2.0, slope*2.0 + intercept); // second arbitrary point on line */ 
+  /* Acts::Vector2 arb_point(2.0, slope*2.0 + intercept); // second arbitrary point on line */
   /* Acts::Vector2 tangent = arb_point - posref; */
   /* tangent = tangent/tangent.norm();   // +/- the line direction */
   /* Acts::Vector2 pca = posref + ((point - posref).dot(tangent))*tangent; */
 
-  const double& m  = slope;
-  const double& b  = intercept;
+  const double& m = slope;
+  const double& b = intercept;
   const double& x0 = global(0);
   const double& y0 = global(1);
-  const double  xp = (x0+m*(y0-b))/(1+m*m);
-  const double  yp = m*xp+b;
+  const double xp = (x0 + m * (y0 - b)) / (1 + m * m);
+  const double yp = m * xp + b;
 
-  return {xp,yp}; //Acts::Vector2(pca;
+  return {xp, yp};  // Acts::Vector2(pca;
 
   /* return std::tuple(xp,yp); */
-
 }
 
-double TrackFitUtils::z_fit_to_pca(const double xy_slope, const double xy_intercept, 
-    const std::vector<Acts::Vector3>& glob_pts) 
+double TrackFitUtils::z_fit_to_pca(const double xy_slope, const double xy_intercept,
+                                   const std::vector<Acts::Vector3>& glob_pts)
 {
   // Project (0,0) to the line, this is the origin (pca)
   // Project each point to the line and find the distance along the line to pca
   // Collect the distance and Z
   // Fit Z=m*dist+b; and return b of the fit
-  auto pca = get_line_point_pca(xy_slope, xy_intercept, Acts::Vector3(0,0,0));
-  std::vector<std::pair<double,double>> zd_vec;
-  for (auto& glob : glob_pts) {
-    auto point = get_line_point_pca(xy_slope, xy_intercept, glob); // point = point on line
-    double const dist = sqrt(square(pca.x()-point.x())+square(pca.y()+point.y()));
-    zd_vec.emplace_back(dist,glob.z());
+  auto pca = get_line_point_pca(xy_slope, xy_intercept, Acts::Vector3(0, 0, 0));
+  std::vector<std::pair<double, double>> zd_vec;
+  for (auto& glob : glob_pts)
+  {
+    auto point = get_line_point_pca(xy_slope, xy_intercept, glob);  // point = point on line
+    double const dist = sqrt(square(pca.x() - point.x()) + square(pca.y() + point.y()));
+    zd_vec.emplace_back(dist, glob.z());
   }
   auto slope_and_b = line_fit(zd_vec);
   /* double zd_slope; */
@@ -808,11 +806,11 @@ double TrackFitUtils::z_fit_to_pca(const double xy_slope, const double xy_interc
   return std::get<1>(slope_and_b);
 }
 
-double TrackFitUtils::line_dist_to_pca (const double slope, const double intercept, 
-      const Acts::Vector2& pca, const Acts::Vector3& global)
+double TrackFitUtils::line_dist_to_pca(const double slope, const double intercept,
+                                       const Acts::Vector2& pca, const Acts::Vector3& global)
 {
   auto point_on_line = get_line_point_pca(slope, intercept, global);
-  return sqrt(square(pca.x()-point_on_line.x())+square(pca.y()-point_on_line.y()));
+  return sqrt(square(pca.x() - point_on_line.x()) + square(pca.y() - point_on_line.y()));
 }
 
 //_________________________________________________________________________________
@@ -908,8 +906,10 @@ float TrackFitUtils::get_helix_pathlength(std::vector<float>& fitpars, const Act
   // - when pz is zero, the helix is degenerate, so this method assumes the pathlength is on the first loop around
   // - this method does not check whether the start and end points are actually compatible with the helix;
   //   the actual points that this method uses are those points on the helix with the same z and phi as start_point and end_point
-  if(fitpars.size()!=5) { return -1e9;
-}
+  if (fitpars.size() != 5)
+  {
+    return -1e9;
+  }
   float const R = fitpars[0];
   float const x0 = fitpars[1];
   float const y0 = fitpars[2];
@@ -919,27 +919,27 @@ float TrackFitUtils::get_helix_pathlength(std::vector<float>& fitpars, const Act
   // path length in z per half-turn of helix = dz/dr * (apogee r - perigee r)
   // apogee r = sqrt(x0^2+y0^2) + R
   // perigee r = sqrt(x0^2+y0^2) - R
-  float const half_turn_z_pathlength = zslope*2*R;
+  float const half_turn_z_pathlength = zslope * 2 * R;
 
   // find number of turns
   float const z_dist = end_point.z() - start_point.z();
   int const n_turns = std::floor(std::fabs(z_dist / half_turn_z_pathlength));
 
   // phi relative to center of circle
-  float const phic_start = atan2(start_point.y()-y0,start_point.x()-x0);
-  float const phic_end = atan2(end_point.y()-y0,end_point.x()-x0);
-  float const phic_dist = std::fabs(phic_end-phic_start) + n_turns*2*M_PI;
-  float const xy_dist = R*phic_dist;
+  float const phic_start = atan2(start_point.y() - y0, start_point.x() - x0);
+  float const phic_end = atan2(end_point.y() - y0, end_point.x() - x0);
+  float const phic_dist = std::fabs(phic_end - phic_start) + n_turns * 2 * M_PI;
+  float const xy_dist = R * phic_dist;
 
-  float const pathlength = std::sqrt(xy_dist*xy_dist+z_dist*z_dist);
+  float const pathlength = std::sqrt(xy_dist * xy_dist + z_dist * z_dist);
   return pathlength;
 }
 
 float TrackFitUtils::get_helix_surface_pathlength(const Surface& surf, std::vector<float>& fitpars, const Acts::Vector3& start_point, ActsGeometry* tGeometry)
 {
   Acts::Vector3 surface_center = surf->center(tGeometry->geometry().getGeoContext()) * 0.1;
-  Acts::Vector3 const intersection = get_helix_surface_intersection(surf,fitpars,surface_center,tGeometry);
-  return get_helix_pathlength(fitpars,start_point,intersection);
+  Acts::Vector3 const intersection = get_helix_surface_intersection(surf, fitpars, surface_center, tGeometry);
+  return get_helix_pathlength(fitpars, start_point, intersection);
 }
 
 /* std::tuple<double,double> TrackFitUtils::dca_on_line2D_to_point( */
@@ -951,27 +951,27 @@ float TrackFitUtils::get_helix_surface_pathlength(const Surface& surf, std::vect
 /* } */
 
 // phi, eta, pT, pos_dca, momentum -- note that momentum is such that pT\equiv1
-std::tuple<bool, double, double, double, Acts::Vector3, Acts::Vector3> 
+std::tuple<bool, double, double, double, Acts::Vector3, Acts::Vector3>
 TrackFitUtils::zero_field_track_params(
-    ActsGeometry* _tGeometry, 
-    TrkrClusterContainer* _cluster_map, 
+    ActsGeometry* _tGeometry,
+    TrkrClusterContainer* _cluster_map,
     const std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
   std::vector<Acts::Vector3> global_vec;
 
-  // get the global positions 
+  // get the global positions
   getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
-  if (global_vec.size()<2) 
+  if (global_vec.size() < 2)
   {
-    return std::make_tuple(false, 0., 0., 0., Acts::Vector3(0.,0.,0), Acts::Vector3(0.,0.,0.));
+    return std::make_tuple(false, 0., 0., 0., Acts::Vector3(0., 0., 0), Acts::Vector3(0., 0., 0.));
   }
 
   // get the y=mx+b and z=mx+b fits
   auto params = fitClustersZeroField(global_vec, cluskey_vec, true);
-  if (params.size()<4) 
+  if (params.size() < 4)
   {
-    std::cout << " fit params failed at size : " << ((int)params.size()) << std::endl;
-    return std::make_tuple(false, 0., 0., 0., Acts::Vector3(0.,0.,0), Acts::Vector3(0.,0.,0.));
+    std::cout << " fit params failed at size : " << ((int) params.size()) << std::endl;
+    return std::make_tuple(false, 0., 0., 0., Acts::Vector3(0., 0., 0), Acts::Vector3(0., 0., 0.));
   }
   const double xy_m = params[0];
   const double xy_b = params[1];
@@ -979,18 +979,18 @@ TrackFitUtils::zero_field_track_params(
   const double xz_b = params[3];
 
   // get the DCA in x,y to the line (from y=mx+b)
-  double x,y,z;
+  double x, y, z;
   // use the get_line_point_pca
-  // use the function TrackFitUtils::get_line_point_pca 
-  Acts::Vector2 dca_xy = get_line_point_pca(xy_m, xy_b, {0.,0.,0});
+  // use the function TrackFitUtils::get_line_point_pca
+  Acts::Vector2 dca_xy = get_line_point_pca(xy_m, xy_b, {0., 0., 0});
   x = dca_xy.x();
   y = dca_xy.y();
   /* std::tie(x,y) = dca_on_line2D_to_point(0,0,xy_m,xy_b); */
-  z = xz_m * x + xz_b; //
+  z = xz_m * x + xz_b;  //
 
   // Need direction for the momentum vector
   Acts::Vector3 cluster = global_vec.back();
-  auto clus_dca_xy = get_line_point_pca(xy_m, xy_b, {cluster.x(),cluster.y(),0});
+  auto clus_dca_xy = get_line_point_pca(xy_m, xy_b, {cluster.x(), cluster.y(), 0});
   double px = clus_dca_xy.x();
   double py = clus_dca_xy.y();
   double pz = xz_m * px + xz_b;
@@ -998,11 +998,12 @@ TrackFitUtils::zero_field_track_params(
   // calc the alternative pz value:
   double const alt_z = z_fit_to_pca(xy_m, xy_b, global_vec);
   bool const PRINT_DEBUG = false;
-  if (PRINT_DEBUG) {
-    std::cout << " zthis " << z << " and alt " 
-      << alt_z << " DELTA: " << (alt_z-z) << " xy-slope " << xy_m << std::endl;
+  if (PRINT_DEBUG)
+  {
+    std::cout << " zthis " << z << " and alt "
+              << alt_z << " DELTA: " << (alt_z - z) << " xy-slope " << xy_m << std::endl;
   }
-  z = alt_z; // this correction is normally quite small
+  z = alt_z;  // this correction is normally quite small
 
   // correct to direction from the pca to origin
   px -= x;
@@ -1010,18 +1011,18 @@ TrackFitUtils::zero_field_track_params(
   pz -= z;
 
   // scale momentum vector pT to 5. GeV/c
-  const double scale = sqrt(px*px+py*py)/5.;
+  const double scale = sqrt(px * px + py * py) / 5.;
   px /= scale;
   py /= scale;
   pz /= scale;
-  auto p = Acts::Vector3(px,py,pz);
-  const double phi = std::atan2(py,px); 
-  const double eta = atanh(pz/p.norm()); 
-  if (PRINT_DEBUG) {
-    std::cout << "phi: " << phi << " eta: " << eta << " pT: 1" <<
-    " x,y,z: " << x<<"<"<<y<<","<<z<<"  P: " << px<<","<<py<<","<<pz << std::endl;
+  auto p = Acts::Vector3(px, py, pz);
+  const double phi = std::atan2(py, px);
+  const double eta = atanh(pz / p.norm());
+  if (PRINT_DEBUG)
+  {
+    std::cout << "phi: " << phi << " eta: " << eta << " pT: 1" << " x,y,z: " << x << "<" << y << "," << z << "  P: " << px << "," << py << "," << pz << std::endl;
   }
-  return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x,y,z), p);
+  return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x, y, z), p);
 }
 
 bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_vec)
@@ -1031,17 +1032,21 @@ bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_
   for (unsigned long ivec : cluskey_vec)
   {
     uint32_t const hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ivec);
-    unsigned int const layer =TrkrDefs::getLayer(hitsetkey);
+    unsigned int const layer = TrkrDefs::getLayer(hitsetkey);
     unsigned int const stave = MvtxDefs::getStaveId(hitsetkey);
-    if(stave > (2+layer) && stave < (9+layer*3)) {
+    if (stave > (2 + layer) && stave < (9 + layer * 3))
+    {
       isEast = true;
-    } else {
+    }
+    else
+    {
       isWest = true;
-}
+    }
   }
-  if (isEast&&isWest) {
+  if (isEast && isWest)
+  {
     return true;
-}
+  }
   return false;
 }
 
@@ -1049,21 +1054,22 @@ bool TrackFitUtils::includeMvtxHit(TrkrDefs::cluskey clus_key, bool mvtx_east, b
 {
   uint32_t const hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
   bool const is_east = isMvtxEast(hitsetkey);
-  if((is_east && mvtx_east)||(!is_east&&mvtx_west)) {
+  if ((is_east && mvtx_east) || (!is_east && mvtx_west))
+  {
     return true;
-}
+  }
 
   return false;
-
 }
 
-bool TrackFitUtils::isMvtxEast(uint32_t hitsetkey) 
+bool TrackFitUtils::isMvtxEast(uint32_t hitsetkey)
 {
-  unsigned int const layer =TrkrDefs::getLayer(hitsetkey);
+  unsigned int const layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int const stave = MvtxDefs::getStaveId(hitsetkey);
   bool is_east = false;
-  if(stave > (2+layer) && stave < (9+layer*3)) {
-    is_east= true;
-}
+  if (stave > (2 + layer) && stave < (9 + layer * 3))
+  {
+    is_east = true;
+  }
   return is_east;
 }
