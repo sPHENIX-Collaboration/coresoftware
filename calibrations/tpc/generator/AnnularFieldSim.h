@@ -224,7 +224,7 @@ class AnnularFieldSim
 
   void UpdateOmegaTau()
   {
-    omegatau_nominal = -Bnominal * vdrift / abs(Enominal);
+    omegatau_nominal = -Bnominal * vdrift / std::abs(Enominal);
     return;
   };  // various constants to match internal representation to the familiar formula.  Adding in these factors suggests I should switch to a unitful calculation throughout...
   // units:

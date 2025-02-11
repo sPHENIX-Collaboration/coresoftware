@@ -23,24 +23,22 @@
 #include <string>
 #include <vector>
 
-class LaserClusterContainerv1;
-class LaserClusterv1;
+class LaserClusterContainer;
+class LaserCluster;
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
 
-namespace bg = boost::geometry;
-namespace bgi = boost::geometry::index;
-typedef bg::model::point<float, 3, bg::cs::cartesian> point;
-typedef bg::model::box<point> box;
-typedef std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> specHitKey;
-typedef std::pair<point, specHitKey> pointKeyLaser;
-
 class Tpc3DClusterizer : public SubsysReco
 {
  public:
+typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
+typedef boost::geometry::model::box<point> box;
+typedef std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> specHitKey;
+typedef std::pair<point, specHitKey> pointKeyLaser;
+
   Tpc3DClusterizer(const std::string &name = "Tpc3DClusterizer");
   ~Tpc3DClusterizer() override = default;
 
@@ -51,8 +49,8 @@ class Tpc3DClusterizer : public SubsysReco
 
   // void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int,std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap);
   void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
-  // void remove_hits(std::vector<pointKeyLaser> &clusHits,  bgi::rtree<pointKeyLaser, bgi::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
-  void remove_hits(std::vector<pointKeyLaser> &clusHits, bgi::rtree<pointKeyLaser, bgi::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
+  // void remove_hits(std::vector<pointKeyLaser> &clusHits,  boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16> > &rtree, std::multimap <unsigned int, std::pair<TrkrDefs::hitkey,TrkrDefs::hitsetkey>> &adcMap, std::multimap <unsigned int, float*> &adcCoords);
+  void remove_hits(std::vector<pointKeyLaser> &clusHits, boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
   void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name) { m_debugFileName = name; }
@@ -64,50 +62,50 @@ class Tpc3DClusterizer : public SubsysReco
   void set_min_adc_sum(float val) { min_adc_sum = val; }
 
  private:
-  int m_event = -1;
-  int m_seed = -1;
+  int m_event {-1};
+  int m_seed {-1};
 
-  TrkrHitSetContainer *m_hits = nullptr;
-  LaserClusterContainerv1 *m_clusterlist = nullptr;
-  ActsGeometry *m_tGeometry = nullptr;
-  PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
-  double pedestal = 74.4;
-  double min_clus_size = 1;
-  double min_adc_sum = 10;
-  //  double m_pedestal = 74.4;
+  TrkrHitSetContainer *m_hits {nullptr};
+  LaserClusterContainer *m_clusterlist {nullptr};
+  ActsGeometry *m_tGeometry {nullptr};
+  PHG4TpcCylinderGeomContainer *m_geom_container {nullptr};
+  double pedestal {74.4};
+  double min_clus_size {1};
+  double min_adc_sum {10};
+  //  double m_pedestal {74.4};
 
-  double m_tdriftmax = 0;
-  double AdcClockPeriod = 53.0;  // ns
-  double NZBinsSide = 360-76;//249;
+  double m_tdriftmax {0};
+  double AdcClockPeriod {53.0};  // ns
+  double NZBinsSide {360-76};//249;
 
 
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
-  // double m_sampa_tbias = 39.6;  // ns
+  // double m_sampa_tbias {39.6};  // ns
 
-  bool m_debug = false;
-  bool m_output = false;
-  std::string m_debugFileName = "Tpc3DClusterizer_debug.root";
-  std::string m_outputFileName = "Tpc3DClusterizer_output.root";
-  TFile *m_debugFile = nullptr;
-  TFile *m_outputFile = nullptr;
-  TTree *m_clusterTree = nullptr;
-  TNtuple *m_clusterNT = nullptr;
-  // TTree *m_hitTree = nullptr;
-  TH1I *m_itHist_0 = nullptr;
-  TH1I *m_itHist_1 = nullptr;
+  bool m_debug {false};
+  bool m_output {false};
+  std::string m_debugFileName {"Tpc3DClusterizer_debug.root"};
+  std::string m_outputFileName {"Tpc3DClusterizer_output.root"};
+  TFile *m_debugFile {nullptr};
+  TFile *m_outputFile {nullptr};
+  TTree *m_clusterTree {nullptr};
+  TNtuple *m_clusterNT {nullptr};
+  // TTree *m_hitTree {nullptr};
+  TH1I *m_itHist_0 {nullptr};
+  TH1I *m_itHist_1 {nullptr};
 
-  TH1D *m_tHist_0 = nullptr;
-  TH1D *m_tHist_1 = nullptr;
+  TH1D *m_tHist_0 {nullptr};
+  TH1D *m_tHist_1 {nullptr};
 
-  int m_nClus = 0;
-  double time_search = 0;
-  double time_clus = 0;
-  double time_erase = 0;
-  double time_all = 0;
+  int m_nClus {0};
+  double time_search {0};
+  double time_clus {0};
+  double time_erase {0};
+  double time_all {0};
 
-  LaserClusterv1 *m_currentCluster = nullptr;
-  std::vector<LaserClusterv1 *> m_eventClusters = {nullptr};
+  LaserCluster *m_currentCluster {nullptr};
+  std::vector<LaserCluster *> m_eventClusters;
   std::vector<float> m_currentHit;
   std::vector<float> m_currentHit_hardware;
 

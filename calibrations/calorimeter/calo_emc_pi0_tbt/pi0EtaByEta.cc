@@ -196,14 +196,41 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     std::cout << "pi0EtaByEta GlobalVertexMap node is missing" << std::endl;
     // return Fun4AllReturnCodes::ABORTRUN;
   }
+  
   float vtx_z = 0;
-  if (vertexmap && !vertexmap->empty())
+  bool found_vertex = false;
+  if (vertexmap && !vertexmap->empty()) 
   {
-    GlobalVertex* vtx = vertexmap->begin()->second;
+    GlobalVertex *vtx = vertexmap->begin()->second;
     if (vtx)
     {
-      vtx_z = vtx->get_z();
+      if (m_use_vertextype) 
+      {
+        auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+        auto typeEndIter = vtx->end_vertexes();
+        for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+        {
+          const auto &[type, vertexVec] = *iter;
+          if (type != m_vertex_type) { continue; }
+          for (const auto *vertex : vertexVec)
+          {
+            if (!vertex) { continue; }
+            vtx_z = vertex->get_z();
+            found_vertex = true;
+          }
+        }
+      } 
+      else 
+      {
+        vtx_z = vtx->get_z();
+        found_vertex = true;
+      }
     }
+  }
+
+  if (!found_vertex && reqVertex) 
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
@@ -509,7 +536,7 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
     float mass_val_out = fitFunOut[i]->GetParameter(1);
     float mass_err_out = fitFunOut[i]->GetParError(1);
     h_peak_eta->SetBinContent(i + 1, mass_val_out);
-    if (isnan(h_M_eta[i]->GetEntries()))
+    if (std::isnan(h_M_eta[i]->GetEntries()))
     {
       h_peak_eta->SetBinError(i + 1, 0);
       continue;
@@ -641,7 +668,7 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
       float mass_err_out = fitFunOut[i][j]->GetParError(1);
       h_peak_tbt->SetBinContent(i + 1, j + 1, mass_val_out);
 
-      if (isnan(h_M_tbt[i][j]->GetEntries()))
+      if (std::isnan(h_M_tbt[i][j]->GetEntries()))
       {
         h_peak_tbt->SetBinContent(i + 1, j + 1, 0);
         h_peak_tbt->SetBinError(i + 1, j + 1, 0);
@@ -754,7 +781,7 @@ bool pi0EtaByEta::checkOutput(const std::string& file)
 
   float final_mass_target = target_pi0_mass;
 
-  int numConv = 0;
+//  int numConv = 0;
   int numNotConv = 0;
 
   for (int i = 0; i < 96; i++)
@@ -771,7 +798,7 @@ bool pi0EtaByEta::checkOutput(const std::string& file)
     std::cout << "err " << corr << std::endl;
     if (fabs(corr) < convLev)
     {
-      numConv++;
+//      numConv++;
     }
     else
     {

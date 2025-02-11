@@ -1,6 +1,8 @@
 #ifndef CALOVALID_CALOVALID_H
 #define CALOVALID_CALOVALID_H
 
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
@@ -10,6 +12,7 @@
 class PHCompositeNode;
 class TH1;
 class TH2;
+class TH3;
 class TProfile2D;
 class TProfile;
 
@@ -46,6 +49,10 @@ class CaloValid : public SubsysReco
   void MirrorHistogram(TH1* histogram);
   std::string getHistoPrefix() const;
 
+  TriggerAnalyzer* trigAna{nullptr};
+  TH3* h_pi0_trigIB_mass {nullptr};
+  std::vector<int> triggerIndices {10, 28, 29, 30, 31}; //MBD NS>=1, Photon Triggers
+    
   TH1* h_cemc_channel_pedestal[128 * 192]{nullptr};
   TH1* h_ihcal_channel_pedestal[32 * 48]{nullptr};
   TH1* h_ohcal_channel_pedestal[32 * 48]{nullptr};
@@ -97,6 +104,11 @@ class CaloValid : public SubsysReco
   TH1* h_ihcaltime{nullptr};
   TH1* h_ohcaltime{nullptr};
   TH1* h_emcal_tower_e{nullptr};
+  TH1* h_emcal_tower_e_wide_range{nullptr};
+  TH1* h_ihcal_tower_e{nullptr};
+  TH1* h_ihcal_tower_e_wide_range{nullptr};
+  TH1* h_ohcal_tower_e{nullptr};
+  TH1* h_ohcal_tower_e_wide_range{nullptr};
   TH2* h_etaphi_clus{nullptr};
   TH1* h_clusE{nullptr};
 
@@ -124,3 +136,4 @@ class CaloValid : public SubsysReco
 };
 
 #endif
+

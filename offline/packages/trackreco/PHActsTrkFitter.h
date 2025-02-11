@@ -95,7 +95,11 @@ class PHActsTrkFitter : public SubsysReco
   {
     m_actsEvaluator = actsEvaluator;
   }
-
+  void useActsEvaluatorSimulation(bool actsEvaluator)
+  {
+    m_simActsEvaluator = actsEvaluator;
+    m_actsEvaluator = actsEvaluator;
+  }
   void setEvaluatorName(const std::string& name) { m_evalname = name; }
   void setFieldMap(const std::string& fieldMap)
   {
@@ -113,7 +117,6 @@ class PHActsTrkFitter : public SubsysReco
 
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
-  void set_seed_track_map_name(const std::string& map_name) { _seed_track_map_name = map_name; }
 
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
@@ -121,6 +124,7 @@ class PHActsTrkFitter : public SubsysReco
   void set_enable_geometric_crossing_estimate(bool flag) { m_enable_crossing_estimate = flag ; }
   void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
+  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
 
  private:
   /// Get all the nodes
@@ -213,10 +217,15 @@ class PHActsTrkFitter : public SubsysReco
   // max variation of bunch crossing away from crossing_estimate
   short int max_bunch_search = 2;
 
+  //name of TRKR_CLUSTER container
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
+
   //!@name evaluator
   //@{
   bool m_actsEvaluator = false;
-  std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
+  bool m_simActsEvaluator = false;
+  std::unique_ptr<ActsEvaluator>
+      m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
   //@}
 
@@ -238,7 +247,6 @@ class PHActsTrkFitter : public SubsysReco
 
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
-  std::string _seed_track_map_name = "SeedTrackMap";
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;

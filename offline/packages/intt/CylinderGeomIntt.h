@@ -3,13 +3,13 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>
 
-#include <trackbase/ActsGeometry.h>
-
 #include <TVector2.h>
 #include <TVector3.h>
 
 #include <cmath>
 #include <iostream>
+
+class CylinderGeomInttHelper;
 
 class CylinderGeomIntt : public PHG4CylinderGeom
 {
@@ -67,9 +67,14 @@ class CylinderGeomIntt : public PHG4CylinderGeom
     return m_StripY;
   }
 
-  double get_strip_z_spacing() const override
+  // double get_strip_z_spacing() const override // Only return type-A 1.6 cm strip z size
+  // {
+  //   return m_StripZ[0];
+  // }
+  // using PHG4CylinderGeom::get_strip_z_spacing; // brings both overloads from base class into scope
+  double get_strip_z_spacing(const int itype = 0) const override
   {
-    return m_StripZ[0];
+    return (itype == 0 || itype == 1) ? m_StripZ[itype] : m_StripZ[0];
   }
 
   double get_strip_tilt() const override
@@ -93,17 +98,12 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   }
 
   // our own
-  void find_segment_center(const Surface& surface, ActsGeometry* tGeometry, double location[]);
-  void find_strip_center(const Surface& surface, ActsGeometry* tGeometry, const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[]);
   void find_strip_index_values(const int segment_z_bin, const double ypos, const double zpos, int& strip_y_index, int& strip_z_index) override;
 
   bool load_geometry() { return true; }
-  void find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[]);
   void find_indices_from_segment_center(int& segment_z_bin, int& segment_phi_bin, double location[]);
-  TVector3 get_world_from_local_coords(const Surface& surface, ActsGeometry* tGeometry, const TVector2& local);
-  TVector3 get_world_from_local_coords(const Surface& surface, ActsGeometry* tGeometry, const TVector3& local);
-  TVector3 get_local_from_world_coords(const Surface& surface, ActsGeometry* tGeometry, TVector3 world);
   void find_indices_from_world_location(int& segment_z_bin, int& segment_phi_bin, double location[]);
+  void find_strip_center_localcoords (const int segment_z_bin, const int strip_y_index, const int strip_z_index, double* location);
 
   void find_strip_center(int, int, int, int, double*) override
   {
@@ -120,6 +120,8 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   }
 
  protected:
+  friend CylinderGeomInttHelper;
+
   int m_Layer{-1};
   int m_NStripsPhiCell{-1};
   int m_NStripsZSensor[2]{-1, -1};

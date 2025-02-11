@@ -42,22 +42,22 @@ class PHTFileServer
     open a SafeTFile. If filename is not found in the map, create a new TFile
     and append to the map; increment counter otherwise
   */
-  void open(const std::string& filename, const std::string& type = "RECREATE");
+  static void open(const std::string& filename, const std::string& type = "RECREATE");
 
   //! flush TFile matching filename
-  bool flush(const std::string& filename);
+  static bool flush(const std::string& filename);
 
   //! change to directory of TFile matching filename
-  bool cd(const std::string& filename);
+  static bool cd(const std::string& filename);
 
   /*! \brief
     if TFile is found in map and counter is 0, close the TFile,
     decrement counter otherwise
   */
-  bool write(const std::string& filename);
+  static bool write(const std::string& filename);
 
   //! close all TFiles
-  void close(void);
+  static void close(void);
 
  private:
   //! constructor

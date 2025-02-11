@@ -12,15 +12,13 @@
 #ifndef JETQADEFS_H
 #define JETQADEFS_H
 
-#include <ffarawobjects/Gl1Packet.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <phool/phool.h>
-#include <bitset>
-#include <boost/dynamic_bitset.hpp>
-#include <cassert>
-#include <cmath>
+
 #include <iostream>
+#include <map>
+#include <string>
 
 // ----------------------------------------------------------------------------
 //! Namespace to hold misc. definitions for the Jet QA
@@ -31,86 +29,92 @@ namespace JetQADefs
   // enums -------------------------------------------------------------------
 
   // -------------------------------------------------------------------------
-  //! Trigger indices in GL1 packets
+  //! Trigger flags
   // -------------------------------------------------------------------------
-  /*! Gives indices of triggers as they are provided in the
-   *  GL1 packet. The list is:
-   *  | Index | Trigger                       |
-   *  | ----- | ----------------------------- |
-   *  | 0     | Clock                         |
-   *  | 1     | ZDC South                     |
-   *  | 2     | ZDC North                     |
-   *  | 3     | ZDC Coincidence               |
-   *  | 4     | Random                        |
-   *  | 5     | HCAL Singles                  |
-   *  | 8     | MBD S >= 1                    |
-   *  | 9     | MBD N >= 1                    |
-   *  | 10    | MBD N&S >= 1                  |
-   *  | 11    | MBD N&S >= 2                  |
-   *  | 12    | MBD N&S, vtx < 10 cm          |
-   *  | 13    | MBD N&S, vtx < 30 cm          |
-   *  | 14    | MBD N&S, vtx < 60 cm          |
-   *  | 15    | HCAL Singles + MBD NS >= 1    |
-   *  | 16    | Jet 1 + MBD NS >= 1           |
-   *  | 17    | Jet 2 + MBD NS >= 1           |
-   *  | 18    | Jet 3 + MBD NS >= 1           |
-   *  | 19    | Jet 4 + MBD NS >= 1           |
-   *  | 20    | Jet 1 (no MBD coincidence)    |
-   *  | 21    | Jet 2 (no MBD coincidence)    |
-   *  | 22    | Jet 3 (no MBD coincidence)    |
-   *  | 23    | Jet 4 (no MBD coincidence)    |
-   *  | 24    | Photon 1 + MBD NS >= 1        |
-   *  | 25    | Photon 2 + MBD NS >= 1        |
-   *  | 26    | Photon 3 + MBD NS >= 1        |
-   *  | 27    | Photon 4 + MBD NS >= 1        |
-   *  | 28    | Photon 1 (no MBD coincidence) |
-   *  | 29    | Photon 2 (no MBD coincidence) |
-   *  | 30    | Photon 3 (no MBD coincidence) |
-   *  | 31    | Photon 4 (no MBD coincidence) |
+  /*! Enumerates possible triggers for easy reference in QA modules
+   *  and Fun4all macros. Note that any missing indices (e.g. 6, 7)
+   *  correspond to trigger bits that are currently unused.
    */
   enum GL1
   {
-    Clock = 0,
-    ZDCS = 1,
-    ZDCN = 2,
-    ZDCNS = 3,
-    Random = 4,
-    HCalSingle = 5,
-    MBDS = 8,
-    MBDN = 9,
-    MBDNS1 = 10,
-    MBDNS2 = 11,
-    MBDNSVtx10 = 12,
-    MBDNSVtx30 = 13,
-    MBDNSVtx60 = 14,
-    MBDNSHCalSingle = 15,
-    MBDNSJet1 = 16,
-    MBDNSJet2 = 17,
-    MBDNSJet3 = 18,
-    MBDNSJet4 = 19,
-    Jet1 = 20,
-    Jet2 = 21,
-    Jet3 = 22,
-    Jet4 = 23,
-    MBDNSPhoton1 = 24,
-    MBDNSPhoton2 = 25,
-    MBDNSPhoton3 = 26,
-    MBDNSPhoton4 = 27,
-    Photon1 = 28,
-    Photon2 = 29,
-    Photon3 = 30,
-    Photon4 = 31
+    Clock           = 0,  /*!< Clock */
+    ZDCS            = 1,  /*!< ZDC South */
+    ZDCN            = 2,  /*!< ZDC North */
+    ZDCNS           = 3,  /*!< ZDC Coincidence */
+    HCalSingle      = 4,  /*!< HCAL Singles */
+    HCalCoin        = 5,  /*!< HCAL Coincidence */
+    MBDS            = 8,  /*!< MBD S >= 1 */
+    MBDN            = 9,  /*!< MBD N >= 1 */
+    MBDNS1          = 10, /*!< MBD N&S >= 1 */
+    MBDNS2          = 11, /*!< MBD N&S >= 2 */
+    MBDNSVtx10      = 12, /*!< MBD N&S >= 1, vtx < 10 cm */
+    MBDNSVtx30      = 13, /*!< MBD N&S >= 1, vtx < 30 cm */
+    MBDNSVtx60      = 14, /*!< MBD N&S >= 1, vtx < 60 cm */
+    MBDNSHCalSingle = 15, /*!< HCAL Singles + MBD NS >= 1 */
+    MBDNSJet1       = 16, /*!< Jet 6 GeV + MBD NS >= 1 */
+    MBDNSJet2       = 17, /*!< Jet 8 GeV + MBD NS >= 1 */
+    MBDNSJet3       = 18, /*!< Jet 10 GeV + MBD NS >= 1 */
+    MBDNSJet4       = 19, /*!< Jet 12 GeV + MBD NS >= 1 */
+    Jet1            = 20, /*!< Jet 6 GeV (no MBD coincidence) */
+    Jet2            = 21, /*!< Jet 8 GeV (no MBD coincidence) */
+    Jet3            = 22, /*!< Jet 10 GeV (no MBD coincidence) */
+    Jet4            = 23, /*!< Jet 12 GeV (no MBD coincidence) */
+    MBDNSPhoton1    = 24, /*!< Photon 2 GeV+ MBD NS >= 1 */
+    MBDNSPhoton2    = 25, /*!< Photon 3 GeV + MBD NS >= 1 */
+    MBDNSPhoton3    = 26, /*!< Photon 4 GeV + MBD NS >= 1 */
+    MBDNSPhoton4    = 27, /*!< Photon 5 GeV + MBD NS >= 1 */
+    Photon1         = 28, /*!< Photon 2 GeV (no MBD coincidence) */
+    Photon2         = 29, /*!< Photon 3 GeV (no MBD coincidence) */
+    Photon3         = 30, /*!< Photon 4 GeV (no MBD coincidence) */
+    Photon4         = 31  /*!< Photon 5 GeV (no MBD coincidence) */
   };
 
   // constants ----------------------------------------------------------------
 
   // --------------------------------------------------------------------------
-  //! Max no. of trigger indices
+  //! Map of trigger flag onto name
   // --------------------------------------------------------------------------
-  inline uint32_t NMaxTrgIndex()
+  /*! This helper method provides a map from the triggers
+   *  enumerated by `JetQADefs::GL1` to their official
+   *  names. Used by `JetQADefs::DidTriggerFire` to
+   *  identify if a trigger fired.
+   */
+  inline std::map<uint32_t, std::string> MapTriggerFlagToName()
   {
-    static const uint32_t nMaxTrgIndex = 32;
-    return nMaxTrgIndex;
+    static const std::map<uint32_t, std::string> mapFlagToName = 
+    {
+      {Clock           , "Clock"},
+      {ZDCS            , "ZDC South"},
+      {ZDCN            , "ZDC North"},
+      {ZDCNS           , "ZDC Coincidence"},
+      {HCalSingle      , "HCAL Singles"},
+      {HCalCoin        , "HCAL Coincidence"},
+      {MBDS            , "MBD S >= 1"},
+      {MBDN            , "MBD N >= 1"},
+      {MBDNS1          , "MBD N&S >= 1"},
+      {MBDNS2          , "MBD N&S >= 2"},
+      {MBDNSVtx10      , "MBD N&S >= 1, vtx < 10 cm"},
+      {MBDNSVtx30      , "MBD N&S >= 1, vtx < 30 cm"},
+      {MBDNSVtx60      , "MBD N&S >= 1, vtx < 60 cm"},
+      {MBDNSHCalSingle , "HCAL Singles + MBD NS >= 1"},
+      {MBDNSJet1       , "Jet 6 GeV + MBD NS >= 1"},
+      {MBDNSJet2       , "Jet 8 GeV + MBD NS >= 1"},
+      {MBDNSJet3       , "Jet 10 GeV + MBD NS >= 1"},
+      {MBDNSJet4       , "Jet 12 GeV + MBD NS >= 1"},
+      {Jet1            , "Jet 6 GeV"},
+      {Jet2            , "Jet 8 GeV"},
+      {Jet3            , "Jet 10 GeV"},
+      {Jet4            , "Jet 12 GeV"},
+      {MBDNSPhoton1    , "Photon 2 GeV+ MBD NS >= 1"},
+      {MBDNSPhoton2    , "Photon 3 GeV + MBD NS >= 1"},
+      {MBDNSPhoton3    , "Photon 4 GeV + MBD NS >= 1"},
+      {MBDNSPhoton4    , "Photon 5 GeV + MBD NS >= 1"},
+      {Photon1         , "Photon 2 GeV"},
+      {Photon2         , "Photon 3 GeV"},
+      {Photon3         , "Photon 4 GeV"},
+      {Photon4         , "Photon 5 GeV"}
+    };
+    return mapFlagToName;
   }
 
   // methods ------------------------------------------------------------------
@@ -118,37 +122,25 @@ namespace JetQADefs
   // --------------------------------------------------------------------------
   //! Check if a particular trigger fired
   // --------------------------------------------------------------------------
-  inline bool DidTriggerFire(const uint32_t trg, PHCompositeNode* topNode)
+  /*! Helper method to check if a particular trigger based on
+   *  it's flag (see `JetQADefs::MapTriggerFlagToName()`).
+   *  Returns value of `TriggerAnalyzer::didTriggerFire(
+   *  std::string)`.
+   *
+   *  If unknown trigger flag is provided, method will
+   *  cause Fun4All to abort.
+   */ 
+  inline bool DidTriggerFire(const uint32_t trg, TriggerAnalyzer* analyzer)
   {
-    // grab GL1 packet from node tree
-    Gl1Packet* packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-    if (!packet)
+
+    if (MapTriggerFlagToName().count(trg) == 0)
     {
-      std::cerr << PHWHERE << ": PANIC: not able to grab GL1 packet! aborting!" << std::endl;
+      std::cerr << PHWHERE << ": PANIC: unknown trigger flag (" << trg << ") provided! Aborting" << std::endl;
       exit(1);
     }
+    return analyzer->didTriggerFire( MapTriggerFlagToName()[trg] );
 
-    // grab trigger bits
-    boost::dynamic_bitset<> triggers(NMaxTrgIndex(), packet->getTriggerInput());
-
-    // loop through bits and check if specified one is set
-    bool didTrgFire = false;
-    for (uint32_t iTrg = 0; iTrg < NMaxTrgIndex(); iTrg++)
-    {
-      // only consider specified trigger
-      if (iTrg != trg) continue;
-
-      // if trigger bit set, break and return true
-      if (triggers.test(iTrg))
-      {
-        didTrgFire = true;
-        break;
-      }
-
-    }  // end index loop
-    return didTrgFire;
-
-  }  // end 'DidTriggerFire(uint32_t, PHCompositeNode*)'
+  }  // end 'DidTriggerFire(uint32_t, TriggerAnalyzer*)'
 
 }  // namespace JetQADefs
 

@@ -12,7 +12,7 @@ Fun4AllMemoryTracker::Fun4AllMemoryTracker()
 {
 }
 
-int Fun4AllMemoryTracker::GetRSSMemory() const
+int Fun4AllMemoryTracker::GetRSSMemory()
 {
   ProcInfo_t procinfo;
   gSystem->GetProcInfo(&procinfo);

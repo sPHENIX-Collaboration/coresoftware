@@ -1,7 +1,8 @@
 #include "TowerRhov1.h"
 
-#include <ostream>
-#include <cstdlib> // for exit
+#include <jetbase/Jet.h>
+
+#include <cstdlib> 
 
 
 TowerRhov1::TowerRhov1()
@@ -9,7 +10,6 @@ TowerRhov1::TowerRhov1()
   , m_tower_sigma(0)
   , m_rho_method_type(TowerRho::Method::NONE)
 {
-  
 }
 
 void TowerRhov1::identify(std::ostream& os) const
@@ -23,7 +23,7 @@ void TowerRhov1::identify(std::ostream& os) const
 
 void TowerRhov1::set_method(TowerRho::Method method)
 {
-  get_method_string(method); // check if method is valid
+  get_method_string(method);
   m_rho_method_type = method;
   return ;
 }
@@ -48,5 +48,3 @@ std::string TowerRhov1::get_method_string(TowerRho::Method method)
   }
   return "NONE";
 }
-
-

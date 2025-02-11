@@ -16,7 +16,7 @@ class PHNodeReset : public PHNodeOperation
   ~PHNodeReset() override {}
 
  protected:
-  void perform(PHNode*) override;
+  void perform(PHNode *) override;
 };
 
 #endif

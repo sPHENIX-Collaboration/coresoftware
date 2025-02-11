@@ -16,7 +16,7 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrClusterv3.h>  // for TrkrCluster
 #include <trackbase/TrkrDefs.h>       // for cluskey, getLayer, TrkrId
-
+#include <trackbase_historic/TrackSeedHelper.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -38,6 +38,7 @@
 #include <map>       // for map
 #include <set>       // for _Rb_tree_const_iterator
 #include <utility>   // for pair, make_pair
+#include <optional>  // for line-circle function
 
 namespace
 {
@@ -56,14 +57,26 @@ namespace
     return std::sqrt(square(x) + square(y));
   }
 
+  //! assemble list of cluster keys associated to seeds
+  std::vector<TrkrDefs::cluskey> get_cluster_keys( const std::vector<TrackSeed*>& seeds )
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for( const auto& seed: seeds )
+    {
+      if( seed )
+      { std::copy( seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter( out ) ); }
+    }
+    return out;
+  }
+
   /// calculate intersection from circle to line, in 2d. return true on success
   /**
-   * circle is defined as (x-xc)**2 + (y-yc)**2 = r**2
-   * line is defined as nx(x-x0) + ny(y-y0) = 0
-   * to solve we substitute y by y0 - nx/ny*(x-x0) in the circle equation and solve the 2nd order polynom
-   * there is the extra complication that ny can be 0 (vertical line) to prevent this, we multiply all terms of the polynom by ny**2
-   * and account for this special case when calculating x from y
-   */
+  * circle is defined as (x-xc)**2 + (y-yc)**2 = r**2
+  * line is defined as nx(x-x0) + ny(y-y0) = 0
+  * to solve we substitute y by y0 - nx/ny*(x-x0) in the circle equation and solve the 2nd order polynom
+  * there is the extra complication that ny can be 0 (vertical line) to prevent this, we multiply all terms of the polynom by ny**2
+  * and account for this special case when calculating x from y
+  */
   bool circle_line_intersection(
       double r, double xc, double yc,
       double x0, double y0, double nx, double ny,
@@ -107,6 +120,38 @@ namespace
     return true;
   }
 
+  bool line_line_intersection(
+      double m, double b,
+      double x0, double y0, double nx, double ny,
+      double& xplus, double& yplus, double& xminus, double& yminus)
+  {
+    if (ny == 0)
+    {
+      // vertical lines are defined by ny=0 and x = x0
+      xplus = xminus = x0;
+
+      // calculate y accordingly
+      yplus = yminus = m * x0 + b;
+    }
+    else
+    {
+
+      double denom = nx + ny*m;
+      if(denom == 0) {
+        return false; // lines are parallel and there is no intersection
+      }
+
+      double x = (nx*x0 + ny*y0 - ny*b)/denom;
+      double y = m*x + b;
+      // a straight line has a unique intersection point
+      xplus = xminus = x;
+      yplus = yminus = y;
+
+    }
+
+    return true;
+  }
+
   // streamer of TVector3
   [[maybe_unused]] inline std::ostream& operator<<(std::ostream& out, const TVector3& vector)
   {
@@ -121,18 +166,28 @@ PHMicromegasTpcTrackMatching::PHMicromegasTpcTrackMatching(const std::string& na
   : SubsysReco(name)
 {
 }
-
 //____________________________________________________________________________..
-int PHMicromegasTpcTrackMatching::InitRun(PHCompositeNode* topNode)
+int PHMicromegasTpcTrackMatching::Init(PHCompositeNode* /* topNode */)
 {
-  std::cout << std::endl
-            << PHWHERE
+  std::cout
+            << "PHMicromegasTpcTrackMatching::Init - "
             << " rphi_search_win inner layer " << _rphi_search_win[0]
             << " z_search_win inner layer " << _z_search_win[0]
             << " rphi_search_win outer layer " << _rphi_search_win[1]
             << " z_search_win outer layer " << _z_search_win[1]
             << std::endl;
 
+  std::cout << "PHMicromegasTpcTrackMatching::Init - _use_silicon: " << _use_silicon << std::endl;
+  std::cout << "PHMicromegasTpcTrackMatching::Init - _zero_field: " << _zero_field << std::endl;
+  std::cout << "PHMicromegasTpcTrackMatching::Init - _min_tpc_layer: " << _min_tpc_layer << std::endl;
+  std::cout << "PHMicromegasTpcTrackMatching::Init - _max_tpc_layer: " << _max_tpc_layer << std::endl;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+int PHMicromegasTpcTrackMatching::InitRun(PHCompositeNode* topNode)
+{
   // load micromegas geometry
   _geomContainerMicromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
   if (!_geomContainerMicromegas)
@@ -231,67 +286,125 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     }
 
     // Get the outermost TPC clusters for this tracklet
-    std::map<unsigned int, TrkrCluster*> outer_clusters;
-    std::vector<TrkrCluster*> clusters;
     std::vector<Acts::Vector3> clusGlobPos;
+    std::vector<Acts::Vector3> clusGlobPos_silicon;
+    std::vector<Acts::Vector3> clusGlobPos_mvtx;
 
-    for (auto key_iter = tracklet_tpc->begin_cluster_keys(); key_iter != tracklet_tpc->end_cluster_keys(); ++key_iter)
+    // try extrapolate track to Micromegas and find corresponding tile
+    /* this is all copied from PHMicromegasTpcTrackMatching */
+    const auto cluster_keys = get_cluster_keys({tracklet_tpc,tracklet_si});
+    for( const auto& cluster_key:cluster_keys )
     {
-      const auto& cluster_key = *key_iter;
-      unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
-      if (layer < _min_tpc_layer)
+      // detector id and layer
+      const auto detid = TrkrDefs::getTrkrId(cluster_key);
+      switch( detid )
       {
-        continue;
-      }
-      if (layer >= _min_mm_layer)
-      {
-        continue;
-      }
 
-      // get the cluster
-      TrkrCluster* tpc_clus = _cluster_map->findCluster(cluster_key);
-      if (!tpc_clus)
-      {
-        continue;
+        case TrkrDefs::tpcId:
+        {
+          // layer
+          const unsigned int layer = TrkrDefs::getLayer(cluster_key);
+
+          // check layer range
+          if( layer < _min_tpc_layer || layer >= _max_tpc_layer )
+          { continue; }
+
+          // get matching
+          const auto cluster = _cluster_map->findCluster(cluster_key);
+          clusGlobPos.push_back( m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing) );
+          break;
+        }
+
+        case TrkrDefs::mvtxId:
+        {
+          // get matching
+          const auto cluster = _cluster_map->findCluster(cluster_key);
+          const auto global_position = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing);
+          clusGlobPos_silicon.push_back( global_position );
+          clusGlobPos_mvtx.push_back( global_position );
+          break;
+        }
+
+        case TrkrDefs::inttId:
+        {
+          // get matching
+          const auto cluster = _cluster_map->findCluster(cluster_key);
+          const auto global_position = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing);
+          clusGlobPos_silicon.push_back( global_position );
+          break;
+        }
+
+        default:
+        break;
       }
-
-      outer_clusters.insert(std::make_pair(layer, tpc_clus));
-      clusters.push_back(tpc_clus);
-
-      // make necessary corrections to the global position
-      clusGlobPos.push_back( m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, tpc_clus, crossing) );
 
     }
 
-    // need at least 3 clusters to fit a circle
-    if (outer_clusters.size() < 3)
+    // check number of clusters
+    if( _use_silicon )
     {
-      if (Verbosity() > 3)
-      {
-        std::cout << PHWHERE << "  -- skip this tpc tracklet, not enough outer clusters " << std::endl;
-      }
-      continue;  // skip to the next TPC tracklet
+
+      if( clusGlobPos_mvtx.size()<3 ) { continue; }
+
+    } else {
+
+      if( clusGlobPos.size()<3 ) { continue; }
+
     }
 
-    // fit a circle to the clusters
-    const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(clusGlobPos);
+    // r,z linear fit
+    /* applies to both field ON and field OFF configurations */
+    const auto [slope_rz, intersect_rz] = _use_silicon ?
+      TrackFitUtils::line_fit(clusGlobPos_mvtx):
+      TrackFitUtils::line_fit(clusGlobPos);
+
     if (Verbosity() > 10)
     {
-      std::cout << " Fitted circle has R " << R << " X0 " << X0 << " Y0 " << Y0 << std::endl;
+      std::cout << " r,z fitted line has slope_rz " << slope_rz << " intersect_rz " << intersect_rz << std::endl;
     }
 
-    // toss tracks for which the fitted circle could not have come from the vertex
-    if (R < 40.0)
-    {
-      continue;
-    }
+    // x,y straight fit paramers
+    double slope_xy = 0, intersect_xy = 0;
 
-    // get the straight line representing the z trajectory in the form of z vs radius
-    const auto [A, B] = TrackFitUtils::line_fit(clusGlobPos);
-    if (Verbosity() > 10)
-    {
-      std::cout << " Fitted line has A " << A << " B " << B << std::endl;
+    // circle fit parameters
+    double R = 0, X0 = 0, Y0 = 0;
+
+    if(_zero_field) {
+
+      if (Verbosity() > 10)
+      {
+        std::cout << "zero field is ON, starting TPC clusters linear fit" << std::endl;
+      }
+
+      // x,y straight fit
+      std::tie( slope_xy, intersect_xy ) = _use_silicon ?
+        TrackFitUtils::line_fit_xy(clusGlobPos_silicon):
+        TrackFitUtils::line_fit_xy(clusGlobPos);
+
+      if (Verbosity() > 10)
+      {
+        std::cout << " zero field x,y fit has slope_xy " << slope_xy << " intersect_xy " << intersect_xy << std::endl;
+      }
+
+    } else {
+
+      if(Verbosity() > 10)
+      {
+        std::cout << "zero field is OFF, starting TPC clusters circle fit" << std::endl;
+      }
+
+      // x,y circle
+      std::tie( R, X0, Y0 ) = _use_silicon ?
+        TrackFitUtils::circle_fit_by_taubin(clusGlobPos_silicon):
+        TrackFitUtils::circle_fit_by_taubin(clusGlobPos);
+
+      // toss tracks for which the fitted circle could not have come from the vertex
+      if (R < 40.0)
+      {
+        continue;
+      }
+
     }
 
     // loop over micromegas layer
@@ -302,29 +415,37 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const auto layergeom = static_cast<CylinderGeomMicromegas*>(_geomContainerMicromegas->GetLayerGeom(layer));
       const auto layer_radius = layergeom->get_radius();
 
-      // method to find where fitted circle intersects this layer
-      auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layer_radius, R, X0, Y0);
+      // get intersection to track
+      auto [xplus, yplus, xminus, yminus] =
+        _zero_field ?
+        TrackFitUtils::line_circle_intersection(layer_radius, slope_xy, intersect_xy):
+        TrackFitUtils::circle_circle_intersection(layer_radius, R, X0, Y0);
 
-      // finds the intersection of the fitted circle with the micromegas layer
-      if (!std::isfinite(xplus))
+      if (Verbosity() > 10)
       {
-        if (Verbosity() > 10)
-        {
-          std::cout << PHWHERE << " circle/circle intersection calculation failed, skip this case" << std::endl;
-          std::cout << PHWHERE << " mm_radius " << layer_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
-        }
-
-        continue;
+        std::cout << "xplus: " << xplus << " yplus " << yplus << " xminus " << xminus << " yminus " << std::endl;
       }
 
+      if (!std::isfinite(xplus))
+       {
+         if (Verbosity() > 10)
+         {
+           std::cout << PHWHERE << " circle/circle intersection calculation failed, skip this case" << std::endl;
+           std::cout << PHWHERE << " mm_radius " << layer_radius << " fitted R " << R << " fitted X0 " << X0 << " fitted Y0 " << Y0 << std::endl;
+         }
+
+         continue;
+      }
       // we can figure out which solution is correct based on the last cluster position in the TPC
-      const double last_clus_phi = std::atan2(clusGlobPos.back()(1), clusGlobPos.back()(0));
+      const double last_clus_phi = _use_silicon ?
+        std::atan2(clusGlobPos_silicon.back()(1), clusGlobPos_silicon.back()(0)):
+        std::atan2(clusGlobPos.back()(1), clusGlobPos.back()(0));
       double phi_plus = std::atan2(yplus, xplus);
       double phi_minus = std::atan2(yminus, xminus);
 
       // calculate z
       double r = layer_radius;
-      double z = B + A * r;
+      double z = intersect_rz + slope_rz * r;
 
       // select the angle that is the closest to last cluster
       // store phi, apply coarse space charge corrections in calibration mode
@@ -349,14 +470,30 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const double nx = tile_norm.x();
       const double ny = tile_norm.y();
 
-      // calculate intersection to tile
-      if (!circle_line_intersection(R, X0, Y0, x0, y0, nx, ny, xplus, yplus, xminus, yminus))
-      {
-        if (Verbosity() > 10)
+      if(_zero_field) {
+
+        // calculate intersection to tile
+        if (!line_line_intersection(slope_xy, intersect_xy, x0, y0, nx, ny, xplus, yplus, xminus, yminus))
         {
-          std::cout << PHWHERE << "circle_line_intersection - failed" << std::endl;
+          if (Verbosity() > 10)
+          {
+            std::cout << PHWHERE << "line_line_intersection - failed" << std::endl;
+          }
+          continue;
         }
-        continue;
+
+      } else {
+
+        // calculate intersection to tile
+        if (!circle_line_intersection(R, X0, Y0, x0, y0, nx, ny, xplus, yplus, xminus, yminus))
+        {
+          if (Verbosity() > 10)
+          {
+            std::cout << PHWHERE << "circle_line_intersection - failed" << std::endl;
+          }
+          continue;
+        }
+
       }
 
       // select again angle closest to last cluster
@@ -368,7 +505,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const double x = (is_plus ? xplus : xminus);
       const double y = (is_plus ? yplus : yminus);
       r = get_r(x, y);
-      z = B + A * r;
+      z = intersect_rz + slope_rz * r;
 
       /*
        * create planar intersection point in world coordinates
@@ -574,3 +711,46 @@ int PHMicromegasTpcTrackMatching::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+std::vector<TrkrDefs::cluskey> PHMicromegasTpcTrackMatching::getTrackletClusterList(TrackSeed* tracklet)
+{
+  std::vector<TrkrDefs::cluskey> cluskey_vec;
+  for (auto clusIter = tracklet->begin_cluster_keys();
+       clusIter != tracklet->end_cluster_keys();
+       ++clusIter)
+  {
+    auto key = *clusIter;
+    auto cluster = _cluster_map->findCluster(key);
+    if (!cluster)
+    {
+      if(Verbosity() > 1)
+      {
+        std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      }
+      continue;
+    }
+
+    /// Make a safety check for clusters that couldn't be attached to a surface
+    auto surf = _tGeometry->maps().getSurface(key, cluster);
+    if (!surf)
+    {
+      continue;
+    }
+
+    // drop some bad layers in the TPC completely
+    unsigned int layer = TrkrDefs::getLayer(key);
+    if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
+    {
+      continue;
+    }
+
+    /* if (layer > 2 && layer < 7) */
+    /* { */
+      /* continue; */
+    /* } */
+
+
+
+    cluskey_vec.push_back(key);
+  }  // end loop over clusters for this track
+  return cluskey_vec;
+}

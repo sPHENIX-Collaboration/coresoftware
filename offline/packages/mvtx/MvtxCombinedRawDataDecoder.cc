@@ -116,7 +116,11 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   }
   recoConsts *rc = recoConsts::instance();
   int runNumber = rc->get_IntFlag("RUNNUMBER");
-  m_strobeWidth = MvtxRawDefs::getStrobeLength(runNumber);
+
+  if (m_readStrWidthFromDB)
+  {
+    m_strobeWidth = MvtxRawDefs::getStrobeLength(runNumber);
+  }
   if(std::isnan(m_strobeWidth))
   {
     std::cout << "MvtxCombinedRawDataDecoder::InitRun - strobe width is undefined for this run, defaulting to 89 mus" << std::endl;
@@ -212,7 +216,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
         findNode::getClass<MvtxEventInfo>(topNode, "MVTXEVENTHEADER");
     assert(mvtx_event_header);
   }
- 
+
   for (unsigned int i = 0; i < mvtx_hit_container->get_nhits(); i++)
   {
     mvtx_hit = mvtx_hit_container->get_hit(i);
@@ -223,9 +227,9 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_hit->get_row();
     col = mvtx_hit->get_col();
 
-    int bcodiff = gl1 ? gl1bco - strobe : 0;
-    double timeElapsed = bcodiff * 0.106;  // 106 ns rhic clock
-    int index = m_mvtx_is_triggered ? 0 : std::floor(timeElapsed / m_strobeWidth);
+    int bcodiff = gl1 ? strobe - gl1bco : 0;
+    double timeElapsed = bcodiff * 0.1065;  // 106 ns rhic clock
+    int index = m_mvtx_is_triggered ? 0 : std::ceil(timeElapsed / m_strobeWidth);
 
     if (index < -16 || index > 15)
     {

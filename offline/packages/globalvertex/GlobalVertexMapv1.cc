@@ -3,8 +3,7 @@
 #include "GlobalVertex.h"
 #include "GlobalVertexMap.h"
 
-#include <iterator>  // for reverse_iterator
-#include <utility>   // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 GlobalVertexMapv1::~GlobalVertexMapv1()
 {
@@ -58,11 +57,11 @@ GlobalVertex* GlobalVertexMapv1::insert(GlobalVertex* clus)
   return _map[index];
 }
 
-void GlobalVertexMapv1::CopyTo(GlobalVertexMap *to_global)
+void GlobalVertexMapv1::CopyTo(GlobalVertexMap* to_global)
 {
-  for (auto const &it : _map)
+  for (auto const& it : _map)
   {
-    GlobalVertex *glvtx = dynamic_cast<GlobalVertex *> (it.second->CloneMe());
+    GlobalVertex* glvtx = dynamic_cast<GlobalVertex*>(it.second->CloneMe());
     to_global->insert(glvtx);
   }
 }

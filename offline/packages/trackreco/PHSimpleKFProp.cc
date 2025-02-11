@@ -245,7 +245,13 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   {
     std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
   }
-
+  if(_max_seeds > 0)
+  {
+    if(_track_map->size() > _max_seeds){
+      std::cout << PHWHERE << "number of TPC seeds > " << _max_seeds << " aborting event." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
   for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
@@ -1351,6 +1357,11 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 {
   // testing with presets for rejection
   PHGhostRejection rejector(Verbosity(), seeds);
+  rejector.set_phi_cut(_ghost_phi_cut);
+  rejector.set_eta_cut(_ghost_eta_cut);
+  rejector.set_x_cut(_ghost_x_cut);
+  rejector.set_y_cut(_ghost_y_cut);
+  rejector.set_z_cut(_ghost_z_cut);
   // If you want to reject tracks (before they are are made) can set them here:
   // rejector.set_min_pt_cut(0.2);
   // rejector.set_must_span_sectors(true);

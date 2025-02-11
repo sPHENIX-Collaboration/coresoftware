@@ -80,7 +80,7 @@ Jet* JetContainerv1::get_UncheckedAt(unsigned int index)
 void JetContainerv1::print_jets(std::ostream& os)
 {
   os << " No. of jets: " << m_njets;
-  if (!isnan(m_RhoMedian))
+  if (!std::isnan(m_RhoMedian))
   {
     os << " rho median " << m_RhoMedian;
   }
@@ -91,11 +91,11 @@ void JetContainerv1::print_jets(std::ostream& os)
   {
     os << (boost::format("  jet(%2i) : pT(%6.2f)  eta(%6.2f)  phi(%6.2f)") % ijet % jet->get_pt() % jet->get_eta() % jet->get_phi()).str();
     ++ijet;
-    unsigned int i = 0;
+//    unsigned int i = 0;
     for (auto prop : m_pindex)
     {
       os << (boost::format("  %8s(%6.2f)") % (str_Jet_PROPERTY(prop.first)) % (jet->get_property(prop.second))).str();
-      i++;
+//      i++;
     }
     os << std::endl;
   }

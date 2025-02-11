@@ -7,7 +7,7 @@ static constexpr int NHITS = 100;
 
 MicromegasRawHitContainerv1::MicromegasRawHitContainerv1()
 {
-  MicromegasRawHitsTCArray = new TClonesArray("MicromegasRawHitV1", NHITS);
+  MicromegasRawHitsTCArray = new TClonesArray("MicromegasRawHitv1", NHITS);
 }
 
 MicromegasRawHitContainerv1::~MicromegasRawHitContainerv1()

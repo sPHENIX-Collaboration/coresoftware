@@ -14,6 +14,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
+#include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
@@ -28,6 +29,7 @@
 #include <TObjString.h>
 
 #include <iostream>
+#include <numeric> // for std::accumulate
 
 namespace G4Eval
 {

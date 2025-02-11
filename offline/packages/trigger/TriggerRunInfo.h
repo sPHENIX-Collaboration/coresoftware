@@ -1,9 +1,8 @@
-#ifndef __TRIGGERRUNINFO_H__
-#define __TRIGGERRUNINFO_H__
+#ifndef TRIGGER_TRIGGERRUNINFO_H
+#define TRIGGER_TRIGGERRUNINFO_H
 
 #include <phool/PHObject.h>
 
-#include <array>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -18,9 +17,11 @@ class TriggerRunInfo : public PHObject
   void identify(std::ostream& os = std::cout) const override;
   virtual void setTrigger(int , const std::string&, int, int)  {return;}
   virtual void setTriggerScalers(int , int, uint64_t) {return;}
-
-  virtual int getPrescaleByName(const std::string&) const {return 0;}       
-  virtual int getPrescaleByBit(int) const { return 0; }
+  virtual void setTriggerPrescale(int, double) {return;}
+  virtual double getPrescaleByName(const std::string&) const {return 0;}       
+  virtual double getPrescaleByBit(int) const { return 0; }
+  virtual int getInitialPrescaleByName(const std::string&) const {return 0;}       
+  virtual int getInitialPrescaleByBit(int) const { return 0; }
 
   virtual uint64_t getScalersByName(const std::string&) const {return 0;}       
   virtual uint64_t getScalersByBit(int) const { return 0; }

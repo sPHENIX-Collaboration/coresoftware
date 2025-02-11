@@ -27,6 +27,7 @@ pkginclude_HEADERS = \
   ALICEKF.h \
   AssocInfoContainer.h \
   AssocInfoContainerv1.h \
+  DSTClusterPruning.h \
   GPUTPCBaseTrackParam.h \
   GPUTPCTrackLinearisation.h \
   GPUTPCTrackParam.h \
@@ -127,6 +128,7 @@ ACTS_LIBS = \
 libtrack_reco_la_SOURCES = \
   $(ACTS_SOURCES) \
   ALICEKF.cc \
+  DSTClusterPruning.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
   AzimuthalSeeder.cc \
@@ -184,8 +186,10 @@ libtrack_reco_la_LIBADD = \
   -lglobalvertex_io \
   -lgsl \
   -lgslcblas \
+  -lintt \
   -lintt_io \
   -lmicromegas_io \
+  -lmvtx \
   -lmvtx_io \
   -lphparameter_io \
   -lPHGenFit \

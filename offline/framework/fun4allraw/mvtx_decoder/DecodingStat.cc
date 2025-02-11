@@ -3,9 +3,9 @@
 // @sa <O2/Detectors/ITSMFT/common/reconstruction/src/DecodingStat.cxx>
 //     <3cbcf82df>
 
-#include "mvtx_decoder/DecodingStat.h"
-#include "mvtx_decoder/PixelData.h"
-#include "mvtx_decoder/mvtx_utils.h"
+#include "DecodingStat.h"
+#include "PixelData.h"
+#include "mvtx_utils.h"
 
 #include <bitset>
 #include <sstream>

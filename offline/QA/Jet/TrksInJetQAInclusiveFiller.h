@@ -13,6 +13,15 @@
 // submodule definitions
 #include "TrksInJetQABaseFiller.h"
 
+// jet libraries
+#include <jetbase/Jet.h>
+#include <jetbase/JetContainer.h>
+
+// phool libraries
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
 // tracking libraries
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
@@ -23,14 +32,6 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-// jet libraries
-#include <jetbase/Jet.h>
-#include <jetbase/JetContainer.h>
-
-// phool libraries
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
 
 // c+ utilities
 #include <cassert>

@@ -434,21 +434,12 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4TruthInfoContainer *truthinfo =
       findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if (!m_tGeometry)
-  {
-    std::cout << PHWHERE
-              << "ActsGeometry not found on node tree. Exiting"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   unsigned int count_g4hits = 0;
   //  int count_electrons = 0;
 
   //  double ecollectedhits = 0.0;
-  int ncollectedhits = 0;
+//  int ncollectedhits = 0;
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
@@ -560,7 +551,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }
 
     int notReachingReadout = 0;
-    int notInAcceptance = 0;
+//    int notInAcceptance = 0;
     for (unsigned int i = 0; i < n_electrons; i++)
     {
       // We choose the electron starting position at random from a flat
@@ -679,7 +670,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
       {
-        notInAcceptance++;
+//        notInAcceptance++;
         continue;
       }
 
@@ -793,7 +784,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
             eg4hit += temp_tpchit->getEnergy();
             //            ecollectedhits += temp_tpchit->getEnergy();
-            ncollectedhits++;
+//            ncollectedhits++;
           }
 
           // find or add this hit to the node tree

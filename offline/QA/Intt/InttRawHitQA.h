@@ -67,6 +67,7 @@ class InttRawHitQA : public SubsysReco
   static const int kChan_num_ = 128;    // the number of channel in a single chip
   static const int kFirst_pid_ = 3001;  // the first pid (packet ID), which means intt0
 
+    std::vector<InttRawHitContainer*> m_rawhit_containers;
   int previous_event_counter_ = -1;
   int last_event_counter_ = 0;
   int event_counter_by_myself_ = 0;  // because the event counter is not reliable, I count it by myself for histogram normalization
@@ -104,14 +105,9 @@ class InttRawHitQA : public SubsysReco
   TH1* hist_event_counter_diff_[kFelix_num_]{nullptr};
 
   ///////////////////////////////////////////
-  // nodes
-  ///////////////////////////////////////////
-  InttRawHitContainer* node_inttrawhit_map_{nullptr};
-
-  ///////////////////////////////////////////
   // functions
   ///////////////////////////////////////////
-  virtual std::vector<InttRawHit*> GetHits();
+  virtual std::vector<InttRawHit*> GetHits(InttRawHitContainer* container);
 };
 
 #endif  // INTTRAWHITQA_H

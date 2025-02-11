@@ -33,19 +33,30 @@ void SpinDBContent::Initialize()
     bad_bunch[icross] = ERROR_VALUE;
   }
 
-  tc_x_blue = (float) ERROR_VALUE;
-  tc_x_blueerr = (float) ERROR_VALUE;
-  tc_y_blue = (float) ERROR_VALUE;
-  tc_y_blueerr = (float) ERROR_VALUE;
-  tc_x_yellow = (float) ERROR_VALUE;
-  tc_x_yellowerr = (float) ERROR_VALUE;
-  tc_y_yellow = (float) ERROR_VALUE;
-  tc_y_yellowerr = (float) ERROR_VALUE;
-
   cross_angle = (float) ERROR_VALUE;
   cross_angle_std = (float) ERROR_VALUE;
   cross_angle_min = (float) ERROR_VALUE;
   cross_angle_max = (float) ERROR_VALUE;
+
+  asym_bf = (float) ERROR_VALUE;
+  asym_bb = (float) ERROR_VALUE;
+  asym_yf = (float) ERROR_VALUE;
+  asym_yb = (float) ERROR_VALUE;
+  asymerr_bf = (float) ERROR_VALUE;
+  asymerr_bb = (float) ERROR_VALUE;
+  asymerr_yf = (float) ERROR_VALUE;
+  asymerr_yb = (float) ERROR_VALUE;
+  phase_bf = (float) ERROR_VALUE;
+  phase_bb = (float) ERROR_VALUE;
+  phase_yf = (float) ERROR_VALUE;
+  phase_yb = (float) ERROR_VALUE;
+  phaseerr_bf = (float) ERROR_VALUE;
+  phaseerr_bb = (float) ERROR_VALUE;
+  phaseerr_yf = (float) ERROR_VALUE;
+  phaseerr_yb = (float) ERROR_VALUE;
+
+
+
 }
 
 /////////////////////////////////////////////////////////////////
@@ -77,11 +88,6 @@ void SpinDBContent::Print() const
 
     std::cout << (boost::format(" : %6.3f +- %6.3f +- %6.3f %6.3f +- %6.3f +- %6.3f\n") % bpol[i] % bpolerr[i] % bpolsys[i] % ypol[i] % ypolerr[i] % ypolsys[i]).str();
   }
-
-  std::cout << (boost::format("Transvers comp. blue X   = %f +- %f\n") % tc_x_blue % tc_x_blueerr).str();
-  std::cout << (boost::format("Transvers comp. blue Y   = %f +- %f\n") % tc_y_blue % tc_y_blueerr).str();
-  std::cout << (boost::format("Transvers comp. yellow X = %f +- %f\n") % tc_x_yellow % tc_x_yellowerr).str();
-  std::cout << (boost::format("Transvers comp. yellow Y = %f +- %f\n") % tc_y_yellow % tc_y_yellowerr).str();
 
   return;
 }
@@ -230,37 +236,74 @@ int SpinDBContent::SetBadBunchFlag(int bunch, int value)
 
 //////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompBlueX(float value, float error)
+void SpinDBContent::SetAsymBlueForward(float value, float error)
 {
-  tc_x_blue = value;
-  tc_x_blueerr = error;
+  asym_bf = value;
+  asymerr_bf = error;
   return;
 }
 
 //////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompBlueY(float value, float error)
+void SpinDBContent::SetAsymBlueBackward(float value, float error)
 {
-  tc_y_blue = value;
-  tc_y_blueerr = error;
+  asym_bb = value;
+  asymerr_bb = error;
   return;
 }
 
 ////////////////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompYellowX(float value, float error)
+void SpinDBContent::SetAsymYellowForward(float value, float error)
 {
-  tc_x_yellow = value;
-  tc_x_yellowerr = error;
+  asym_yf = value;
+  asymerr_yf = error;
   return;
 }
 
 /////////////////////////////////////////////////////////////////
 
-void SpinDBContent::SetTransCompYellowY(float value, float error)
+void SpinDBContent::SetAsymYellowBackward(float value, float error)
 {
-  tc_y_yellow = value;
-  tc_y_yellowerr = error;
+  asym_yb = value;
+  asymerr_yb = error;
+  return;
+}
+
+
+//////////////////////////////////////////////////////
+
+void SpinDBContent::SetPhaseBlueForward(float value, float error)
+{
+  phase_bf = value;
+  phaseerr_bf = error;
+  return;
+}
+
+//////////////////////////////////////////////////////
+
+void SpinDBContent::SetPhaseBlueBackward(float value, float error)
+{
+  phase_bb = value;
+  phaseerr_bb = error;
+  return;
+}
+
+////////////////////////////////////////////////////////////////
+
+void SpinDBContent::SetPhaseYellowForward(float value, float error)
+{
+  phase_yf = value;
+  phaseerr_yf = error;
+  return;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void SpinDBContent::SetPhaseYellowBackward(float value, float error)
+{
+  phase_yb = value;
+  phaseerr_yb = error;
   return;
 }
 
@@ -458,73 +501,73 @@ int SpinDBContent::GetBadBunchFlag(int bunch)
 
 ///////////////////////////////////////////////////////////////
 
-void SpinDBContent::GetTransCompBlueX(float &value, float &error)
+void SpinDBContent::GetAsymBlueForward(float &value, float &error)
 {
-  value = tc_x_blue;
-  error = tc_x_blueerr;
+  value = asym_bf;
+  error = asymerr_bf;
   return;
 }
 
 ///////////////////////////////////////////////////////////////
 
-void SpinDBContent::GetTransCompBlueX(double &value, double &error)
+void SpinDBContent::GetAsymBlueBackward(float &value, float &error)
 {
-  value = (double) tc_x_blue;
-  error = (double) tc_x_blueerr;
+  value = asym_bb;
+  error = asymerr_bb;
   return;
 }
 
 ///////////////////////////////////////////////////////////////
 
-void SpinDBContent::GetTransCompBlueY(float &value, float &error)
+void SpinDBContent::GetAsymYellowForward(float &value, float &error)
 {
-  value = tc_y_blue;
-  error = tc_y_blueerr;
-  return;
-}
-
-///////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompBlueY(double &value, double &error)
-{
-  value = (double) tc_y_blue;
-  error = (double) tc_y_blueerr;
-  return;
-}
-
-///////////////////////////////////////////////////////////////
-
-void SpinDBContent::GetTransCompYellowX(float &value, float &error)
-{
-  value = tc_x_yellow;
-  error = tc_x_yellowerr;
+  value = asym_yf;
+  error = asymerr_yf;
   return;
 }
 
 //////////////////////////////////////////////////////////////
 
-void SpinDBContent::GetTransCompYellowX(double &value, double &error)
+void SpinDBContent::GetAsymYellowBackward(float &value, float &error)
 {
-  value = (double) tc_x_yellow;
-  error = (double) tc_x_yellowerr;
+  value = asym_yb;
+  error = asymerr_yb;
   return;
 }
 
 //////////////////////////////////////////////////////////////
 
-void SpinDBContent::GetTransCompYellowY(float &value, float &error)
+void SpinDBContent::GetPhaseBlueForward(float &value, float &error)
 {
-  value = tc_y_yellow;
-  error = tc_y_yellowerr;
+  value = phase_bf;
+  error = phaseerr_bf;
+  return;
+}
+
+///////////////////////////////////////////////////////////////
+
+void SpinDBContent::GetPhaseBlueBackward(float &value, float &error)
+{
+  value = phase_bb;
+  error = phaseerr_bb;
+  return;
+}
+
+///////////////////////////////////////////////////////////////
+
+void SpinDBContent::GetPhaseYellowForward(float &value, float &error)
+{
+  value = phase_yf;
+  error = phaseerr_yf;
   return;
 }
 
 //////////////////////////////////////////////////////////////
 
-void SpinDBContent::GetTransCompYellowY(double &value, double &error)
+void SpinDBContent::GetPhaseYellowBackward(float &value, float &error)
 {
-  value = (double) tc_y_yellow;
-  error = (double) tc_y_yellowerr;
+  value = phase_yb;
+  error = phaseerr_yb;
   return;
 }
 

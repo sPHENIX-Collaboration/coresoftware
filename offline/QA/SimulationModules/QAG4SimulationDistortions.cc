@@ -1,6 +1,8 @@
 
 #include "QAG4SimulationDistortions.h"
 
+#include <fun4all/SubsysReco.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -10,30 +12,29 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <globalvertex/SvtxVertexMap.h>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/TrackSeed.h>
 
-#include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TNamed.h>
 #include <TString.h>
 #include <TTree.h>
-#include <TVector3.h>
 
-#include <array>
+#include <Acts/Definitions/Algebra.hpp>
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <map>      // for map
+#include <iterator>
+#include <string>
 #include <utility>  // for pair
+#include <vector>
 
 namespace
 {
@@ -56,11 +57,17 @@ namespace
   inline constexpr T deltaPhi(const T& phi)
   {
     if (phi > M_PI)
+    {
       return phi - 2. * M_PI;
+    }
     else if (phi <= -M_PI)
+    {
       return phi + 2. * M_PI;
+    }
     else
+    {
       return phi;
+    }
   }
 
   /// return number of clusters of a given type that belong to a tracks
@@ -80,12 +87,10 @@ QAG4SimulationDistortions::QAG4SimulationDistortions(const std::string& name)
 }
 
 //____________________________________________________________________________..
-QAG4SimulationDistortions::~QAG4SimulationDistortions()
-{
-}
+QAG4SimulationDistortions::~QAG4SimulationDistortions() = default;
 
 //____________________________________________________________________________..
-int QAG4SimulationDistortions::Init(PHCompositeNode*)
+int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -135,20 +140,20 @@ int QAG4SimulationDistortions::Init(PHCompositeNode*)
   TTree* t(nullptr);
 
   t = new TTree(TString(get_histo_prefix()) + "residTree", "tpc residual info");
-  t->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/D");
-  t->Branch("tanBeta", &m_tanBeta, "tanBeta/D");
-  t->Branch("drphi", &m_drphi, "drphi/D");
-  t->Branch("dz", &m_dz, "dz/D");
-  t->Branch("clusR", &m_clusR, "clusR/D");
-  t->Branch("clusPhi", &m_clusPhi, "clusPhi/D");
-  t->Branch("clusZ", &m_clusZ, "clusZ/D");
-  t->Branch("statePhi", &m_statePhi, "statePhi/D");
-  t->Branch("stateZ", &m_stateZ, "stateZ/D");
-  t->Branch("stateR", &m_stateR, "stateR/D");
-  t->Branch("stateRPhiErr", &m_stateRPhiErr, "stateRPhiErr/D");
-  t->Branch("stateZErr", &m_stateZErr, "stateZErr/D");
-  t->Branch("clusRPhiErr", &m_clusRPhiErr, "clusRPhiErr/D");
-  t->Branch("clusZErr", &m_clusZErr, "clusZErr/D");
+  t->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/F");
+  t->Branch("tanBeta", &m_tanBeta, "tanBeta/F");
+  t->Branch("drphi", &m_drphi, "drphi/F");
+  t->Branch("dz", &m_dz, "dz/F");
+  t->Branch("clusR", &m_clusR, "clusR/F");
+  t->Branch("clusPhi", &m_clusPhi, "clusPhi/F");
+  t->Branch("clusZ", &m_clusZ, "clusZ/F");
+  t->Branch("statePhi", &m_statePhi, "statePhi/F");
+  t->Branch("stateZ", &m_stateZ, "stateZ/F");
+  t->Branch("stateR", &m_stateR, "stateR/F");
+  t->Branch("stateRPhiErr", &m_stateRPhiErr, "stateRPhiErr/F");
+  t->Branch("stateZErr", &m_stateZErr, "stateZErr/F");
+  t->Branch("clusRPhiErr", &m_clusRPhiErr, "clusRPhiErr/F");
+  t->Branch("clusZErr", &m_clusZErr, "clusZErr/F");
   t->Branch("cluskey", &m_cluskey, "cluskey/l");
   t->Branch("event", &m_event, "event/I");
 
@@ -160,12 +165,20 @@ int QAG4SimulationDistortions::Init(PHCompositeNode*)
 //____________________________________________________________________________..
 int QAG4SimulationDistortions::InitRun(PHCompositeNode* topNode)
 {
+  // track map
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
+
+  // cluster map
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
+  // load geometry
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  if (not m_trackMap or not m_clusterContainer or not m_tGeometry)
+  // load distortion corrections
+  m_globalPositionWrapper.loadNodes(topNode);
+
+
+  if (!m_trackMap || !m_clusterContainer || !m_tGeometry)
   {
     std::cout << PHWHERE << "Necessary distortion container not on node tree. Bailing."
               << std::endl;
@@ -177,7 +190,7 @@ int QAG4SimulationDistortions::InitRun(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int QAG4SimulationDistortions::process_event(PHCompositeNode*)
+int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
 {
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -224,17 +237,30 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
   auto t_tree = dynamic_cast<TTree*>(hm->getHisto(get_histo_prefix() + "residTree"));
   assert(t_tree);
 
+  std::cout << "QAG4SimulationDistortions::process_event - tracks: " << m_trackMap->size() << std::endl;
   for (const auto& [key, track] : *m_trackMap)
   {
+
+    // get track crossing and check
+    const auto crossing = track->get_crossing();
+    if(crossing == SHRT_MAX)
+    {
+      std::cout << "QAG4SimulationDistortions::process_event - invalid crossing. Track skipped." << std::endl;
+      continue;
+    }
+
+    // check track quality
     if (!checkTrack(track))
     {
       continue;
     }
+
+    // get seeeds
     auto tpcSeed = track->get_tpc_seed();
     auto siliconSeed = track->get_silicon_seed();
 
     /// Should have never been added to the map...
-    if (not tpcSeed or not siliconSeed)
+    if (!tpcSeed || !siliconSeed)
     {
       continue;
     }
@@ -250,11 +276,11 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
         continue;
       }
 
-      TrkrDefs::cluskey ckey = std::stoll(state->get_name());
+      TrkrDefs::cluskey const ckey = std::stoll(state->get_name());
 
       auto cluster = m_clusterContainer->findCluster(ckey);
 
-      const auto clusGlobPosition = m_tGeometry->getGlobalPosition(ckey, cluster);
+      const auto clusGlobPosition = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, crossing);
 
       const float clusR = get_r(clusGlobPosition(0), clusGlobPosition(1));
       const float clusPhi = std::atan2(clusGlobPosition(1), clusGlobPosition(0));
@@ -344,6 +370,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode*)
 
 bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 {
+
   if (track->get_pt() < 0.5)
   {
     return false;
@@ -351,8 +378,14 @@ bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys(get_cluster_keys(track));
-  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2) { return false; }
-  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2) { return false; }
+  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2)
+  {
+    return false;
+  }
+  if (count_clusters<TrkrDefs::inttId>(cluster_keys) < 2)
+  {
+    return false;
+  }
   if (count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2)
   {
     return false;

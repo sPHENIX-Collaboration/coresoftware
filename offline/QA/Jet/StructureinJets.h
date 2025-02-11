@@ -4,21 +4,17 @@
 #ifndef QA_JET_STRUCTUREINJETS_H
 #define QA_JET_STRUCTUREINJETS_H
 
-// qa utilities
-//#include <qautils/QAHistManagerDef.h>
+#include "JetQADefs.h"
 
-// f4a includes
-//#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-
-#include "JetQADefs.h"
 
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH2;
 class TH3;
+class TriggerAnalyzer;
 
 class StructureinJets : public SubsysReco
 {
@@ -90,6 +86,7 @@ class StructureinJets : public SubsysReco
   TH3 *m_h_track_vs_calo_pt{nullptr};
   TH2 *m_h_track_pt{nullptr};
   Fun4AllHistoManager *m_manager{nullptr};
+  TriggerAnalyzer *m_analyzer{nullptr};
 };
 
 #endif  // QA_JET_STRUCTUREINJETS_H

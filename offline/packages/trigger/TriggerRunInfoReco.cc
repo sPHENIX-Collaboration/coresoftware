@@ -2,6 +2,7 @@
 #include "TriggerRunInfov1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -13,7 +14,9 @@
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>
+#include <odbc++/types.h>
 
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 
@@ -42,6 +45,7 @@ int TriggerRunInfoReco::Init(PHCompositeNode *topNode)
 
 int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
 {
+
   recoConsts *rc = recoConsts::instance();
   int runnumber = rc->get_IntFlag("RUNNUMBER");
 
@@ -53,6 +57,17 @@ int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  if (m_useEmulator)
+    {
+      SetTriggerEmulator(triggerRunInfo);
+      if (Verbosity()) 
+	{
+	  triggerRunInfo->identify();
+	}
+
+
+      return Fun4AllReturnCodes::EVENT_OK; 
+    }
   // Fetch trigger prescales and fill the TriggerRunInfo object
   if (fetchTriggerPrescales(runnumber, triggerRunInfo) != 0)
   {
@@ -67,9 +82,34 @@ int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  triggerRunInfo->identify();
-  
+  if (Verbosity()) 
+    {
+      triggerRunInfo->identify();
+    }
   return Fun4AllReturnCodes::EVENT_OK;
+}
+void TriggerRunInfoReco::SetTriggerEmulator(TriggerRunInfo *triggerRunInfo)
+{
+  std::string names[64];
+  for (int i = 0; i < 64; i++)
+    {
+      names[i] = "unknown" + std::to_string(i);
+    }
+  for (int i = 0; i < 64; i++)
+    {
+      triggerRunInfo->setTrigger(i, "unknown", i, 0);
+    }
+
+  triggerRunInfo->setTrigger(28, "Photon 2 GeV", 28, 1);
+  triggerRunInfo->setTrigger(29, "Photon 3 GeV", 29, 1);
+  triggerRunInfo->setTrigger(30, "Photon 4 GeV", 30, 1);
+  triggerRunInfo->setTrigger(31, "Photon 5 GeV", 31, 1);
+  triggerRunInfo->setTrigger(20, "Jet 6 GeV", 20, 1);
+  triggerRunInfo->setTrigger(21, "Jet 8 GeV", 21, 1);
+  triggerRunInfo->setTrigger(22, "Jet 10 GeV", 22, 1);
+  triggerRunInfo->setTrigger(23, "Jet 12 GeV", 23, 1);
+
+  return;
 }
 
 int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *triggerRunInfo)
@@ -133,6 +173,7 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
   delete dbConnection;
   return 0;
 }
+
 int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *triggerRunInfo)
 {
   odbc::Connection *dbConnection = nullptr;
@@ -169,16 +210,27 @@ int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *trigg
       
     }
 
+  delete resultSet;
+  delete stmt;
+  delete dbConnection;
+
   for (int i = 0; i < 64; i++)
   {
     for (int j = 0 ; j < 3; j++)
       {
 	triggerRunInfo->setTriggerScalers(i, j, scalers[i][j]);
+
       }
+    double scaled = static_cast<double>(scalers[i][0]);
+    double live = static_cast<double>(scalers[i][1]);
+    double prescale = -1;
+    if (scaled >= 1) 
+      {
+	prescale = live/scaled;
+      }
+    triggerRunInfo->setTriggerPrescale(i, prescale);
+
   }
 
-  delete resultSet;
-  delete stmt;
-  delete dbConnection;
   return 0;
 }
