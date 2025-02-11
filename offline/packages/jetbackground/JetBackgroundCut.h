@@ -13,7 +13,7 @@ class JetBackgroundCut : public SubsysReco
 {
  public:
 
-  JetBackgroundCut(const std::string jetNodeName, const std::string &name = "JetBackgroundCutModule", const int debug = 0, const bool doAbort = 0, GlobalVertex::VTXTYPE vtxtype = GlobalVertex::MBD, int sysvar = 0);
+  JetBackgroundCut(const std::string& jetNodeName, const std::string &name = "JetBackgroundCutModule", const int debug = 0, const bool doAbort = 0, GlobalVertex::VTXTYPE vtxtype = GlobalVertex::MBD, int sysvar = 0);
 
   virtual ~JetBackgroundCut();
 

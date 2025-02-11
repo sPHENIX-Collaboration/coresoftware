@@ -23,7 +23,7 @@
 using namespace std;
 
 //____________________________________________________________________________..
-JetBackgroundCut::JetBackgroundCut(const std::string jetNodeName, const std::string &name, const int debug, const bool doAbort, GlobalVertex::VTXTYPE vtxtype, int sysvar):
+JetBackgroundCut::JetBackgroundCut(const std::string& jetNodeName, const std::string &name, const int debug, const bool doAbort, GlobalVertex::VTXTYPE vtxtype, int sysvar):
   SubsysReco(name), _cutParams(name)
 {
   _name = name;
@@ -37,9 +37,7 @@ JetBackgroundCut::JetBackgroundCut(const std::string jetNodeName, const std::str
 
 //____________________________________________________________________________..
 JetBackgroundCut::~JetBackgroundCut()
-{
-
-}
+= default;
 
 //____________________________________________________________________________..
 int JetBackgroundCut::Init(PHCompositeNode *topNode)
@@ -89,7 +87,8 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
 
   if(!towersEM || !towersOH || !geom[0] || !geom[1] || !gvtxmap)
     {
-      if(_debug > 0 && !_missingInfoWarningPrinted) cerr << "Missing critical info; abort event. Further warnings will be suppressed. AddressOf towersEM/towersOH/geomIH/geomOH/gvtxmap : " << towersEM << "/" << towersOH << "/" << geom[0] << "/" << geom[1] << "/" << gvtxmap << endl;
+      if(_debug > 0 && !_missingInfoWarningPrinted) { cerr << "Missing critical info; abort event. Further warnings will be suppressed. AddressOf towersEM/towersOH/geomIH/geomOH/gvtxmap : " << towersEM << "/" << towersOH << "/" << geom[0] << "/" << geom[1] << "/" << gvtxmap << endl;
+}
       _missingInfoWarningPrinted = true;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -98,7 +97,8 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
     {
       if(gvtxmap->empty())
 	{
-	  if(_debug > 0) cout << "gvtxmap empty - aborting event." << endl;
+	  if(_debug > 0) { cout << "gvtxmap empty - aborting event." << endl;
+}
 	  return Fun4AllReturnCodes::ABORTEVENT;
 	}
       GlobalVertex* gvtx = gvtxmap->begin()->second;
@@ -109,33 +109,39 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
 	  for(auto iter = startIter; iter != endIter; ++iter)
 	    {
 	      const auto &[type, vertexVec] = *iter;
-	      if(type != _vtxtype) continue;
+	      if(type != _vtxtype) { continue;
+}
 	      for(const auto *vertex : vertexVec)
 		{
-		  if(!vertex) continue;
+		  if(!vertex) { continue;
+}
 		  zvtx = vertex->get_z();
 		}
 	    }
 	}
       else
 	{
-	  if(_debug > 0) cout << "gvtx is NULL! Aborting event." << endl;
+	  if(_debug > 0) { cout << "gvtx is NULL! Aborting event." << endl;
+}
 	  return Fun4AllReturnCodes::ABORTEVENT;
 	}
     }
 
   if(std::isnan(zvtx))
     {
-      if(_debug > 0) cout << "zvtx is NAN after attempting to grab it. ABORT EVENT!" << endl;
+      if(_debug > 0) { cout << "zvtx is NAN after attempting to grab it. ABORT EVENT!" << endl;
+}
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  if(_debug > 1) cout << "Getting jets: " << endl;
+  if(_debug > 1) { cout << "Getting jets: " << endl;
+}
 
   if(jets)
     {
       int tocheck = jets->size();
-      if(_debug > 2) cout << "Found " << tocheck << " jets to check..." << endl;
+      if(_debug > 2) { cout << "Found " << tocheck << " jets to check..." << endl;
+}
       for(int i=0; i<tocheck; ++i)
 	{
 	  float jetET = 0;
@@ -152,8 +158,10 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
 	    {
 	      continue;
 	    }
-	  if(jetET < 8) continue;
-	  if(_debug > 2) cout << "found a good jet!" << endl;
+	  if(jetET < 8) { continue;
+}
+	  if(_debug > 2) { cout << "found a good jet!" << endl;
+}
 	  if(jetET > maxJetET)
 	    {
 	      if(maxJetET){
@@ -214,7 +222,8 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
     }
   else
     {
-      if(_debug > 0) cout << "No jet node!" << endl;
+      if(_debug > 0) { cout << "No jet node!" << endl;
+}
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
@@ -223,7 +232,8 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
     {
       isDijet = true;
       dPhi = abs(maxJetPhi - subJetPhi);
-      if(dPhi > M_PI) dPhi = 2*M_PI - dPhi;
+      if(dPhi > M_PI) { dPhi = 2*M_PI - dPhi;
+}
     }
   bool dPhiCut = failsdPhiCut(dPhi, isDijet);
 
