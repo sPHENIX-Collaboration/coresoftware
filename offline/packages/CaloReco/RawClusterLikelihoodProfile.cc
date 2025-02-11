@@ -13,6 +13,10 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
+
+#include <ffamodules/CDBInterface.h>
 #include <ffaobjects/EventHeader.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -30,11 +34,8 @@ RawClusterLikelihoodProfile::RawClusterLikelihoodProfile(const std::string &name
 
 int RawClusterLikelihoodProfile::Init(PHCompositeNode *topNode)
 {
-  // load profile for prob calculation
   cdfcalc = new ClusterCDFCalculator();
-  cdfcalc->LoadProfile(m_profile_name);
-  cdfcalcmergedcluster = new ClusterCDFCalculator();
-  cdfcalcmergedcluster->LoadProfile(m_profile_merged_cluster_name);
+  cdfcalc->LoadProfile(m_profile_path);
 
   if (m_inputNodeName == m_outputNodeName)
   {
@@ -84,29 +85,28 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
     std::cout << "RawClusterLikelihoodProfile::process_event Could not locate tower node " << towerNodeName << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  /*
-    std::string globalvtxNodeName = m_globalvtxNodeName;
-    GlobalVertexMap *globalvtxmap = findNode::getClass<GlobalVertexMap>(topNode,globalvtxNodeName);
-    bool isglbvtx=true;
-    if(!globalvtxmap || globalvtxmap->empty())
-    {
-      isglbvtx=false;
-    }
 
-    if(isglbvtx){
-      GlobalVertex *bvertex= nullptr;
-      for (GlobalVertexMap::ConstIter globaliter= globalvtxmap->begin(); globaliter != globalvtxmap->end(); ++globaliter)
-      {
-        bvertex = globaliter->second;
-      }
-      if(!bvertex){std::cout << "could not find globalvtxmap iter :: set vtx to (-999,-999,-999)" << std::endl;}
-      else if(bvertex){
-        vz = bvertex->get_z();
-        vy = bvertex->get_y();
-        vx = bvertex->get_x();
-      }
+  std::string globalvtxNodeName = m_globalvtxNodeName;
+  GlobalVertexMap *globalvtxmap = findNode::getClass<GlobalVertexMap>(topNode,globalvtxNodeName);
+  bool isglbvtx=true;
+  if(!globalvtxmap || globalvtxmap->empty())
+  {
+    isglbvtx=false;
+  }
+
+  if(isglbvtx){
+    GlobalVertex *bvertex= nullptr;
+    for (GlobalVertexMap::ConstIter globaliter= globalvtxmap->begin(); globaliter != globalvtxmap->end(); ++globaliter)
+    {
+      bvertex = globaliter->second;
     }
-  */
+    if(!bvertex){std::cout << "WARNING! RawClusterLikelihoodProfile::could not find globalvtxmap iter :: set vtx to (0,0,0)" << std::endl;}
+    else if(bvertex){
+      vz = bvertex->get_z();
+      vy = bvertex->get_y();
+      vx = bvertex->get_x();
+    }
+  }
 
   RawClusterContainer::Map clusterMap = _clusters->getClustersMap();
   for (auto &clusterPair : clusterMap)
@@ -116,8 +116,8 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
     cluster->set_merged_cluster_prob(-1);
     CLHEP::Hep3Vector vertex(vx, vy, vz);
     CLHEP::Hep3Vector E_vec_cluster_Full = RawClusterUtility::GetEVec(*cluster, vertex);
-    float ET = E_vec_cluster_Full.perp();
-    if (ET < minET)
+    double clusterE = E_vec_cluster_Full.mag();
+    if (clusterE < m_min_cluster_e)
     {
       continue;
     }
@@ -163,11 +163,9 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
         input.at(index) = towerinfo->get_energy();
       }
     }
-    double clusterE = E_vec_cluster_Full.mag();
-    std::cout << "at least I am here.." << std::endl;
-    double prob = cdfcalc->GetCDF(input, clusterE, m_profile_dimension);
-    std::cout << "alright good..!!" << std::endl;
-    double prob_merged_cluster = cdfcalcmergedcluster->GetCDF(input, clusterE, m_profile_dimension);
+    std::pair<double, double> probpair = cdfcalc->GetCDF(input, clusterE, m_profile_dimension);
+    double prob = probpair.first; 
+    double prob_merged_cluster = probpair.second; 
     cluster->set_prob(prob);
     cluster->set_merged_cluster_prob(prob_merged_cluster);
   }
@@ -178,7 +176,6 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
 int RawClusterLikelihoodProfile::End(PHCompositeNode * /*topNode*/)
 {
   delete cdfcalc;
-  delete cdfcalcmergedcluster;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -192,7 +189,6 @@ void RawClusterLikelihoodProfile::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
-  // Grab the CEMC node
   PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
@@ -200,10 +196,8 @@ void RawClusterLikelihoodProfile::CreateNodes(PHCompositeNode *topNode)
     throw std::runtime_error("Failed to find DST node in EmcRawTowerBuilder::CreateNodes");
   }
 
-  // Get the _det_name subnode
   PHCompositeNode *cemcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "CEMC"));
 
-  // Check that it is there
   if (!cemcNode)
   {
     cemcNode = new PHCompositeNode("CEMC");
