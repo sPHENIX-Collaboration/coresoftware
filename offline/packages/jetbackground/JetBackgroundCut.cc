@@ -1,25 +1,17 @@
 #include "JetBackgroundCut.h"
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerSimv1.h>
-#include <calobase/TowerInfoContainerSimv2.h>
 #include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfoContainerv3.h>
 #include <ffarawobjects/Gl1Packetv2.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <globalvertex/GlobalVertexMapv1.h>
-#include <globalvertex/MbdVertex.h>
-#include <globalvertex/MbdVertexMapv1.h>
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainerv1.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phparameter/PHParameters.h>
 #include <cmath>
-#include <iostream>
 using namespace std;
 
 //____________________________________________________________________________..

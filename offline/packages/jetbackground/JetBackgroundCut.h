@@ -3,7 +3,6 @@
 
 #include <fun4all/SubsysReco.h>
 #include <globalvertex/GlobalVertex.h>
-#include <phool/recoConsts.h>
 #include <phparameter/PHParameters.h>
 #include <cmath>
 #include <string>
