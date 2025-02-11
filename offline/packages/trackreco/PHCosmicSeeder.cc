@@ -2,18 +2,16 @@
 #include "PHCosmicSeeder.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNode.h>
+#include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
-#include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase_historic/TrackSeed.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
@@ -21,7 +19,17 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
+#include <algorithm>
 #include <cmath>
+#include <string>
+#include <utility>
+#include <iostream>
+#include <ostream>
+#include <memory>
+#include <set>
+#include <vector>
+#include <iterator>
+#include <stdexcept>
 namespace
 {
   template <class T>
@@ -139,8 +147,9 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
   for (auto& seed_A : chainedSeeds)
   {
     // if mvtx only, we are interested only in seeds with > 3 hits
-    if (m_trackerId == TrkrDefs::TrkrId::mvtxId &&seed_A.ckeys.size() < 4)
+    if (m_trackerId == TrkrDefs::TrkrId::mvtxId &&seed_A.ckeys.size() < 4) {
       continue;
+}
     if (m_analysis)
     {
       float seed_data[] = {
@@ -272,10 +281,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       {
         pdiff_tol = 0.25;
       }
-      float pdiff = std::fabs((seed1.xyslope - seed2.xyslope) / longestxyslope);
-      float pdiff2 = std::fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
-      float pdiff3 = std::fabs((seed1.xzintercept - seed2.xzintercept) / longestxzint);
-      float pdiff4 = std::fabs((seed1.xzslope - seed2.xzslope) / longestxzslope);
+      float const pdiff = std::fabs((seed1.xyslope - seed2.xyslope) / longestxyslope);
+      float const pdiff2 = std::fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
+      float const pdiff3 = std::fabs((seed1.xzintercept - seed2.xzintercept) / longestxzint);
+      float const pdiff4 = std::fabs((seed1.xzslope - seed2.xzslope) / longestxzslope);
       if (Verbosity() > 1)
       {
         std::cout << "pdiff1,2,3,4 " << pdiff<<", "<<pdiff2<<", "<<pdiff3<<", "<<pdiff4 << std::endl;
@@ -404,7 +413,7 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
         continue;
       }
       // make a cut on clusters to at least be close to each other within a few cm
-      float dist = (pos2 - pos1).norm();
+      float const dist = (pos2 - pos1).norm();
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId && (TrkrDefs::getLayer(key1)==TrkrDefs::getLayer(key2)))
       {
         continue;
@@ -463,8 +472,8 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
         continue;
       }
       // only look at the cluster that is within 2cm of the doublet clusters
-      float dist1 = (pos1 - pos).norm();
-      float dist2 = (pos2 - pos).norm();
+      float const dist1 = (pos1 - pos).norm();
+      float const dist2 = (pos2 - pos).norm();
       float dist12_check = 2.;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
@@ -485,9 +494,9 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
 	}
       }
 
-      float predy = dub.xyslope * pos.x() + dub.xyintercept;
-      float predz = dub.xzslope * pos.x() + dub.xzintercept;
-      float predz2 = dub.yzslope * pos.y() + dub.yzintercept;
+      float const predy = dub.xyslope * pos.x() + dub.xyintercept;
+      float const predz = dub.xzslope * pos.x() + dub.xzintercept;
+      float const predz2 = dub.yzslope * pos.y() + dub.yzintercept;
       if (Verbosity() > 2)
       {
         std::cout << "testing ckey " << key << " with box dca "

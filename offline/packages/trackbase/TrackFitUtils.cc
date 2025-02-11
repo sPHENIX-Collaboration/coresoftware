@@ -1,14 +1,27 @@
 #include "TrackFitUtils.h"
 
 #include "ActsGeometry.h"
-#include "TpcDefs.h"
+#include "ActsSurfaceMaps.h"
+#include "MvtxDefs.h"
 #include "TrkrClusterContainerv4.h"
-#include "TrkrClusterv5.h"
 #include "TrkrDefs.h"  // for cluskey, getTrkrId, tpcId
 
+#include <math.h>
 #include <trackbase/MvtxDefs.h>
 
+#include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Definitions/Units.hpp>
+#include <algorithm>
 #include <cmath>
+#include <utility>
+#include <vector>
+#include <limits>
+#include <tuple>
+#include <set>
+#include <iostream>
+#include <ostream>
+#include <iterator>
+#include <cstdint>
 
 namespace
 {
@@ -31,35 +44,35 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   // no analytic solution for the coordinates of the closest approach of a helix to a point
   // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA
 
-  float radius = fitpars[0];
-  float x0 = fitpars[1];
-  float y0 = fitpars[2];
-  float zslope = fitpars[3];
-  float z0 = fitpars[4];
+  float const radius = fitpars[0];
+  float const x0 = fitpars[1];
+  float const y0 = fitpars[2];
+  float const zslope = fitpars[3];
+  float const z0 = fitpars[4];
 
   Acts::Vector2 pca_circle = TrackFitUtils::get_circle_point_pca(radius, x0, y0, global);
 
   // The radius of the PCA determines the z position:
-  float pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
-  float pca_z = pca_circle_radius * zslope + z0;
-  Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
+  float const pca_circle_radius = pca_circle.norm();  // radius of the PCA of the circle to the point
+  float const pca_z = pca_circle_radius * zslope + z0;
+  Acts::Vector3 const pca(pca_circle(0), pca_circle(1), pca_z);
 
   // now we want a second point on the helix so we can get a local straight line approximation to the track
   // Get the angle of the PCA relative to the fitted circle center
-  float angle_pca = atan2(pca_circle(1) - y0, pca_circle(0) - x0);
+  float const angle_pca = atan2(pca_circle(1) - y0, pca_circle(0) - x0);
   // calculate coords of a point at a slightly larger angle
-  float d_angle = 0.005;
-  float newx = radius * std::cos(angle_pca + d_angle) + x0;
-  float newy = radius * std::sin(angle_pca + d_angle) + y0;
-  float newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
-  Acts::Vector3 second_point_pca(newx, newy, newz);
+  float const d_angle = 0.005;
+  float const newx = radius * std::cos(angle_pca + d_angle) + x0;
+  float const newy = radius * std::sin(angle_pca + d_angle) + y0;
+  float const newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
+  Acts::Vector3 const second_point_pca(newx, newy, newz);
 
   // pca and second_point_pca define a straight line approximation to the track
   Acts::Vector3 tangent = (second_point_pca - pca) / (second_point_pca - pca).norm();
 
   // Direction is ambiguous, use cluster direction to resolve it
-  float phi = atan2(global(1),global(0));
-  float tangent_phi = atan2(tangent(1), tangent(0));
+  float const phi = atan2(global(1),global(0));
+  float const tangent_phi = atan2(tangent(1), tangent(0));
   if(std::fabs(tangent_phi - phi) > M_PI / 2)
     {
       tangent = -1.0 * tangent;
@@ -70,7 +83,7 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
 
   // The position of the closest point on the line to global is:
   // posref + projection of difference between the point and posref on the tangent vector
-  Acts::Vector3 final_pca = pca + ((global - pca).dot(tangent)) * tangent;
+  Acts::Vector3 const final_pca = pca + ((global - pca).dot(tangent)) * tangent;
 
   auto line = std::make_pair(final_pca, tangent);
 
@@ -88,25 +101,25 @@ Acts::Vector3 TrackFitUtils::surface_3Dline_intersection(const TrkrDefs::cluskey
   
   //! Take two random x points and calculate y and z on the line to find 2
   //! 3D points with which to calculate the 3D line
-  float x1 = -1;
-  float x2 = 5;
-  float y1 = xyslope * x1 + xyint;
-  float y2 = xyslope * x2 + xyint;
+  float const x1 = -1;
+  float const x2 = 5;
+  float const y1 = xyslope * x1 + xyint;
+  float const y2 = xyslope * x2 + xyint;
 
-  float z1 = (y1 - yzint) / yzslope;
-  float z2 = (y2 - yzint) / yzslope;
+  float const z1 = (y1 - yzint) / yzslope;
+  float const z2 = (y2 - yzint) / yzslope;
 
   Acts::Vector3 v1(x1, y1, z1), v2(x2, y2, z2);
-  Acts::Vector3 surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
-  Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 const surfcenter = surf->center(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
+  Acts::Vector3 const surfnorm = surf->normal(geometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
   Acts::Vector3 u = v2 - v1;
-  float dot = surfnorm.dot(u);
+  float const dot = surfnorm.dot(u);
 
   //! If it does not satisfy this, line was parallel to the surface
   if (abs(dot) > 1e-6)
   {
-    Acts::Vector3 w = v1 - surfcenter;
-    float fac = -surfnorm.dot(w) / dot;
+    Acts::Vector3 const w = v1 - surfcenter;
+    float const fac = -surfnorm.dot(w) / dot;
     u *= fac;
     intersection = v1 + u;
   }
@@ -141,9 +154,9 @@ TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const Tra
 
   for (auto& [x, y] : positions)
   {
-    double Xi = x - meanX;  //  centered x-coordinates
-    double Yi = y - meanY;  //  centered y-coordinates
-    double Zi = square(Xi) + square(Yi);
+    double const Xi = x - meanX;  //  centered x-coordinates
+    double const Yi = y - meanY;  //  centered y-coordinates
+    double const Zi = square(Xi) + square(Yi);
 
     Mxy += Xi * Yi;
     Mxx += Xi * Xi;
@@ -204,9 +217,9 @@ TrackFitUtils::circle_fit_output_t TrackFitUtils::circle_fit_by_taubin(const Tra
   const double Ycenter = (Myz * (Mxx - x) - Mxz * Mxy) / DET / 2;
 
   //  assembling the output
-  double X0 = Xcenter + meanX;
-  double Y0 = Ycenter + meanY;
-  double R = std::sqrt(square(Xcenter) + square(Ycenter) + Mz);
+  double const X0 = Xcenter + meanX;
+  double const Y0 = Ycenter + meanY;
+  double const R = std::sqrt(square(Xcenter) + square(Ycenter) + Mz);
   return std::make_tuple(R, X0, Y0);
 }
 
@@ -238,7 +251,7 @@ TrackFitUtils::line_fit_output_t TrackFitUtils::line_fit(const TrackFitUtils::po
       xmean = xmean + x;
       ymean = ymean + y;
     }
-    double n = positions.size();
+    double const n = positions.size();
     xmean /= n;
     ymean /= n;
 
@@ -345,8 +358,8 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
                                               const unsigned int& startLayer,
                                               const unsigned int& endLayer)
 {
-  float slope = std::get<0>(fitpars);
-  float intercept = std::get<1>(fitpars);
+  float const slope = std::get<0>(fitpars);
+  float const intercept = std::get<1>(fitpars);
 
   int nclusters = 0;
   std::set<TrkrDefs::cluskey> keys_to_add;
@@ -392,7 +405,7 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
       auto range = clusterContainer->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
-        TrkrDefs::cluskey cluskey = clusIter->first;
+        TrkrDefs::cluskey const cluskey = clusIter->first;
 
         TrkrCluster* cluster = clusIter->second;
 
@@ -418,16 +431,16 @@ unsigned int TrackFitUtils::addClustersOnLine(TrackFitUtils::line_fit_output_t& 
         //! The line connecting the cluster and the line is necessarily
         //! perpendicular, so it has the opposite and reciprocal slope
         //! The cluster is on the line so we use it to find the intercept
-        float perpSlope = -1 / slope;
-        float perpIntercept = y - perpSlope * x;
+        float const perpSlope = -1 / slope;
+        float const perpIntercept = y - perpSlope * x;
 
         //! Now we have two lines, so solve the system of eqns to get the intersection
-        float pcax = (perpIntercept - intercept) / (slope - perpSlope);
-        float pcay = slope * pcax + intercept;
+        float const pcax = (perpIntercept - intercept) / (slope - perpSlope);
+        float const pcay = slope * pcax + intercept;
         //! Take the difference to find the distance
 
-        float dcax = pcax - x;
-        float dcay = pcay - y;
+        float const dcax = pcax - x;
+        float const dcay = pcay - y;
         float dca = std::sqrt(square(dcax) + square(dcay));
         if(!isXY && TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::inttId)
         {
@@ -514,7 +527,7 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
       auto range = _cluster_map->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
-        TrkrDefs::cluskey cluskey = clusIter->first;
+        TrkrDefs::cluskey const cluskey = clusIter->first;
 
         TrkrCluster* cluster = clusIter->second;
 
@@ -523,9 +536,9 @@ unsigned int TrackFitUtils::addClusters(std::vector<float>& fitpars,
         Acts::Vector3 pca = get_helix_pca(fitpars, global);
         float dca = (pca - global).norm();
 
-        Acts::Vector2 global_xy(global(0), global(1));
-        Acts::Vector2 pca_xy(pca(0), pca(1));
-        Acts::Vector2 pca_xy_residual = pca_xy - global_xy;
+        Acts::Vector2 const global_xy(global(0), global(1));
+        Acts::Vector2 const pca_xy(pca(0), pca(1));
+        Acts::Vector2 const pca_xy_residual = pca_xy - global_xy;
         dca = pca_xy_residual.norm();
         if (dca < dca_cut)
         {
@@ -554,29 +567,29 @@ Acts::Vector3 TrackFitUtils::get_helix_pca(std::vector<float>& fitpars,
   // no analytic solution for the coordinates of the closest approach of a helix to a point
   // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA
 
-  float radius = fitpars[0];
-  float x0 = fitpars[1];
-  float y0 = fitpars[2];
-  float zslope = fitpars[3];
-  float z0 = fitpars[4];
+  float const radius = fitpars[0];
+  float const x0 = fitpars[1];
+  float const y0 = fitpars[2];
+  float const zslope = fitpars[3];
+  float const z0 = fitpars[4];
 
   Acts::Vector2 pca_circle = get_circle_point_pca(radius, x0, y0, global);
 
   // The radius of the PCA determines the z position:
-  float pca_circle_radius = pca_circle.norm();
-  float pca_z = pca_circle_radius * zslope + z0;
-  Acts::Vector3 pca(pca_circle(0), pca_circle(1), pca_z);
+  float const pca_circle_radius = pca_circle.norm();
+  float const pca_z = pca_circle_radius * zslope + z0;
+  Acts::Vector3 const pca(pca_circle(0), pca_circle(1), pca_z);
 
   // now we want a second point on the helix so we can get a local straight line approximation to the track
   // project the circle PCA vector an additional small amount and find the helix PCA to that point
-  float projection = 0.25;  // cm
-  Acts::Vector3 second_point = pca + projection * pca / pca.norm();
+  float const projection = 0.25;  // cm
+  Acts::Vector3 const second_point = pca + projection * pca / pca.norm();
   Acts::Vector2 second_point_pca_circle = get_circle_point_pca(radius, x0, y0, second_point);
-  float second_point_pca_z = second_point_pca_circle.norm() * zslope + z0; 
-  Acts::Vector3 second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
+  float const second_point_pca_z = second_point_pca_circle.norm() * zslope + z0; 
+  Acts::Vector3 const second_point_pca(second_point_pca_circle(0), second_point_pca_circle(1), second_point_pca_z);
 
   // pca and second_point_pca define a straight line approximation to the track
-  Acts::Vector3 tangent = (second_point_pca - pca) / (second_point_pca - pca).norm();
+  Acts::Vector3 const tangent = (second_point_pca - pca) / (second_point_pca - pca).norm();
 
   // get the PCA of the cluster to that line
   Acts::Vector3 final_pca = getPCALinePoint(global, tangent, pca);
@@ -591,8 +604,8 @@ Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float 
   // draw a line from the origin of the circle to the point
   // the intersection of the line with the circle is at the distance radius from the origin along that line
 
-  Acts::Vector2 origin(x0, y0);
-  Acts::Vector2 point(global(0), global(1));
+  Acts::Vector2 const origin(x0, y0);
+  Acts::Vector2 const point(global(0), global(1));
 
   Acts::Vector2 pca = origin + radius * (point - origin) / (point - origin).norm();
 
@@ -617,7 +630,7 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
   std::vector<Acts::Vector3> global_vec_noINTT;
   for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
   {
-    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
+    unsigned int const trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
 
     if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
     {
@@ -671,7 +684,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3
   }
   for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
   {
-    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
+    unsigned int const trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
     if ((mvtx_east||mvtx_west) && trkrid == TrkrDefs::mvtxId)
     {
       if(cross_mvtx_half && TrackFitUtils::includeMvtxHit(cluskey_vec[ivec], mvtx_east, mvtx_west))
@@ -723,7 +736,7 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
                                         std::vector<Acts::Vector3>& global_vec,
                                         const std::vector<TrkrDefs::cluskey>& cluskey_vec)
 {
-  for (unsigned long key : cluskey_vec)
+  for (unsigned long const key : cluskey_vec)
   {
     auto cluster = _cluster_map->findCluster(key);
     if (!cluster)
@@ -732,7 +745,7 @@ void TrackFitUtils::getTrackletClusters(ActsGeometry* _tGeometry,
       continue;
     }
 
-    Acts::Vector3 global = _tGeometry->getGlobalPosition(key, cluster);
+    Acts::Vector3 const global = _tGeometry->getGlobalPosition(key, cluster);
 
     /*
     const unsigned int trkrId = TrkrDefs::getTrkrId(key);
@@ -785,7 +798,7 @@ double TrackFitUtils::z_fit_to_pca(const double xy_slope, const double xy_interc
   std::vector<std::pair<double,double>> zd_vec;
   for (auto& glob : glob_pts) {
     auto point = get_line_point_pca(xy_slope, xy_intercept, glob); // point = point on line
-    double dist = sqrt(square(pca.x()-point.x())+square(pca.y()+point.y()));
+    double const dist = sqrt(square(pca.x()-point.x())+square(pca.y()+point.y()));
     zd_vec.emplace_back(dist,glob.z());
   }
   auto slope_and_b = line_fit(zd_vec);
@@ -827,15 +840,15 @@ Acts::Vector3 TrackFitUtils::get_helix_surface_intersection(const Surface& surf,
 {
   // we want the point where the helix intersects the plane of the surface
   // get the plane of the surface
-  Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
+  Acts::Vector3 const sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
   Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext());
   sensorNormal /= sensorNormal.norm();
 
   // there are analytic solutions for a line-plane intersection.
   // to use this, need to get the vector tangent to the helix near the measurement and a point on it.
-  std::pair<Acts::Vector3, Acts::Vector3> line = get_helix_tangent(fitpars, global);
-  Acts::Vector3 pca = line.first;
-  Acts::Vector3 tangent = line.second;
+  std::pair<Acts::Vector3, Acts::Vector3> const line = get_helix_tangent(fitpars, global);
+  Acts::Vector3 const pca = line.first;
+  Acts::Vector3 const tangent = line.second;
 
   Acts::Vector3 intersection = get_line_plane_intersection(pca, tangent, sensorCenter, sensorNormal);
 
@@ -852,7 +865,7 @@ Acts::Vector3 TrackFitUtils::get_line_plane_intersection(const Acts::Vector3& pc
   // (p - sensor_center).sensor_normal = 0
 
   // The solution is:
-  float d = (sensorCenter - pca).dot(sensorNormal) / tangent.dot(sensorNormal);
+  float const d = (sensorCenter - pca).dot(sensorNormal) / tangent.dot(sensorNormal);
   return pca + d * tangent;
 }
 std::vector<double> TrackFitUtils::getLineClusterResiduals(TrackFitUtils::position_vector_t& rz_pts, float slope, float intercept)
@@ -862,14 +875,14 @@ std::vector<double> TrackFitUtils::getLineClusterResiduals(TrackFitUtils::positi
   std::transform(rz_pts.begin(), rz_pts.end(),
                  std::back_inserter(residuals), [slope, intercept](const std::pair<double, double>& point)
                  {
-    double r = point.first;
-    double z = point.second;
+    double const r = point.first;
+    double const z = point.second;
     
     // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
     
-    double a = -slope;
-    double b = 1.0;
-    double c = -intercept;
+    double const a = -slope;
+    double const b = 1.0;
+    double const c = -intercept;
     return std::abs(a*r+b*z+c)/sqrt(square(a)+square(b)); });
   return residuals;
 }
@@ -880,8 +893,8 @@ std::vector<double> TrackFitUtils::getCircleClusterResiduals(TrackFitUtils::posi
   std::transform(xy_pts.begin(), xy_pts.end(),
                  std::back_inserter(residuals), [R, X0, Y0](const std::pair<double, double>& point)
                  {
-    double x = point.first;
-    double y = point.second;
+    double const x = point.first;
+    double const y = point.second;
 
     // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
     return std::sqrt( square(x-X0) + square(y-Y0) )  -  R; });
@@ -897,35 +910,35 @@ float TrackFitUtils::get_helix_pathlength(std::vector<float>& fitpars, const Act
   //   the actual points that this method uses are those points on the helix with the same z and phi as start_point and end_point
   if(fitpars.size()!=5) { return -1e9;
 }
-  float R = fitpars[0];
-  float x0 = fitpars[1];
-  float y0 = fitpars[2];
-  float zslope = fitpars[3];
+  float const R = fitpars[0];
+  float const x0 = fitpars[1];
+  float const y0 = fitpars[2];
+  float const zslope = fitpars[3];
   // float z0 = fitpars[4];
 
   // path length in z per half-turn of helix = dz/dr * (apogee r - perigee r)
   // apogee r = sqrt(x0^2+y0^2) + R
   // perigee r = sqrt(x0^2+y0^2) - R
-  float half_turn_z_pathlength = zslope*2*R;
+  float const half_turn_z_pathlength = zslope*2*R;
 
   // find number of turns
-  float z_dist = end_point.z() - start_point.z();
-  int n_turns = std::floor(std::fabs(z_dist / half_turn_z_pathlength));
+  float const z_dist = end_point.z() - start_point.z();
+  int const n_turns = std::floor(std::fabs(z_dist / half_turn_z_pathlength));
 
   // phi relative to center of circle
-  float phic_start = atan2(start_point.y()-y0,start_point.x()-x0);
-  float phic_end = atan2(end_point.y()-y0,end_point.x()-x0);
-  float phic_dist = std::fabs(phic_end-phic_start) + n_turns*2*M_PI;
-  float xy_dist = R*phic_dist;
+  float const phic_start = atan2(start_point.y()-y0,start_point.x()-x0);
+  float const phic_end = atan2(end_point.y()-y0,end_point.x()-x0);
+  float const phic_dist = std::fabs(phic_end-phic_start) + n_turns*2*M_PI;
+  float const xy_dist = R*phic_dist;
 
-  float pathlength = std::sqrt(xy_dist*xy_dist+z_dist*z_dist);
+  float const pathlength = std::sqrt(xy_dist*xy_dist+z_dist*z_dist);
   return pathlength;
 }
 
 float TrackFitUtils::get_helix_surface_pathlength(const Surface& surf, std::vector<float>& fitpars, const Acts::Vector3& start_point, ActsGeometry* tGeometry)
 {
   Acts::Vector3 surface_center = surf->center(tGeometry->geometry().getGeoContext()) * 0.1;
-  Acts::Vector3 intersection = get_helix_surface_intersection(surf,fitpars,surface_center,tGeometry);
+  Acts::Vector3 const intersection = get_helix_surface_intersection(surf,fitpars,surface_center,tGeometry);
   return get_helix_pathlength(fitpars,start_point,intersection);
 }
 
@@ -983,8 +996,8 @@ TrackFitUtils::zero_field_track_params(
   double pz = xz_m * px + xz_b;
 
   // calc the alternative pz value:
-  double alt_z = z_fit_to_pca(xy_m, xy_b, global_vec);
-  bool PRINT_DEBUG = false;
+  double const alt_z = z_fit_to_pca(xy_m, xy_b, global_vec);
+  bool const PRINT_DEBUG = false;
   if (PRINT_DEBUG) {
     std::cout << " zthis " << z << " and alt " 
       << alt_z << " DELTA: " << (alt_z-z) << " xy-slope " << xy_m << std::endl;
@@ -1015,27 +1028,30 @@ bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_
 {
   bool isWest = false;
   bool isEast = false;
-  for (unsigned int ivec = 0; ivec < cluskey_vec.size(); ++ivec)
+  for (unsigned long ivec : cluskey_vec)
   {
-    uint32_t hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey_vec[ivec]);
-    unsigned int layer =TrkrDefs::getLayer(hitsetkey);
-    unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
-    if(stave > (2+layer) && stave < (9+layer*3))
+    uint32_t const hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ivec);
+    unsigned int const layer =TrkrDefs::getLayer(hitsetkey);
+    unsigned int const stave = MvtxDefs::getStaveId(hitsetkey);
+    if(stave > (2+layer) && stave < (9+layer*3)) {
       isEast = true;
-    else
+    } else {
       isWest = true;
+}
   }
-  if (isEast&&isWest)
+  if (isEast&&isWest) {
     return true;
+}
   return false;
 }
 
 bool TrackFitUtils::includeMvtxHit(TrkrDefs::cluskey clus_key, bool mvtx_east, bool mvtx_west)
 {
-  uint32_t hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
-  bool is_east = isMvtxEast(hitsetkey);
-  if((is_east && mvtx_east)||(!is_east&&mvtx_west))
+  uint32_t const hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
+  bool const is_east = isMvtxEast(hitsetkey);
+  if((is_east && mvtx_east)||(!is_east&&mvtx_west)) {
     return true;
+}
 
   return false;
 
@@ -1043,10 +1059,11 @@ bool TrackFitUtils::includeMvtxHit(TrkrDefs::cluskey clus_key, bool mvtx_east, b
 
 bool TrackFitUtils::isMvtxEast(uint32_t hitsetkey) 
 {
-  unsigned int layer =TrkrDefs::getLayer(hitsetkey);
-  unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+  unsigned int const layer =TrkrDefs::getLayer(hitsetkey);
+  unsigned int const stave = MvtxDefs::getStaveId(hitsetkey);
   bool is_east = false;
-  if(stave > (2+layer) && stave < (9+layer*3))
+  if(stave > (2+layer) && stave < (9+layer*3)) {
     is_east= true;
+}
   return is_east;
 }
