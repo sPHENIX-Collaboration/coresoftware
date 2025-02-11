@@ -25,7 +25,9 @@ libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
   -lcalo_io \
   -lConstituentSubtractor \
+  -lglobalvertex \
   -ljetbase \
+  -lphparameter \
   -lphg4hit \
   -lqautils \
   -lSubsysReco
@@ -41,6 +43,7 @@ pkginclude_HEADERS = \
   EventRho.h \
   EventRhov1.h \
   FastJetAlgoSub.h \
+  JetBackgroundCut.h \
   NullFilter.h \
   RetowerCEMC.h \
   StreakSidebandFilter.h \
@@ -76,6 +79,7 @@ libjetbackground_la_SOURCES = \
   DetermineEventRho.cc \
   DetermineTowerRho.cc \
   FastJetAlgoSub.cc \
+  JetBackgroundCut.cc \
   NullFilter.cc \
   RetowerCEMC.cc \
   StreakSidebandFilter.cc \
