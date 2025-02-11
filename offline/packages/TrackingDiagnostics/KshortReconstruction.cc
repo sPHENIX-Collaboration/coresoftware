@@ -80,7 +80,10 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     }
 
     std::vector<TrkrDefs::cluskey> ckeys1;
-    ckeys1.insert(ckeys1.end(), siliconseed->begin_cluster_keys(), siliconseed->end_cluster_keys());
+    if (siliconseed)
+    {
+      ckeys1.insert(ckeys1.end(), siliconseed->begin_cluster_keys(), siliconseed->end_cluster_keys());
+    }
 
     unsigned int track1_mvtx_cluster_size = 0;
     unsigned int track1_intt_cluster_size = 0;
@@ -147,7 +150,10 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
       }
 
       std::vector<TrkrDefs::cluskey> ckeys2;
-      ckeys2.insert(ckeys2.end(), siliconseed2->begin_cluster_keys(), siliconseed2->end_cluster_keys());
+      if (siliconseed2)
+      {
+        ckeys2.insert(ckeys2.end(), siliconseed2->begin_cluster_keys(), siliconseed2->end_cluster_keys());
+      }
 
       unsigned int track2_mvtx_cluster_size = 0;
       unsigned int track2_intt_cluster_size = 0;
