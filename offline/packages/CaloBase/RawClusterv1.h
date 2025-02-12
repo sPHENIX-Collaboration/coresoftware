@@ -66,6 +66,8 @@ class RawClusterv1 : public RawCluster
   float get_chi2() const override { return get_property_float(prop_chi2); }
   //! cluster template probability for EM shower
   float get_prob() const override { return get_property_float(prop_prob); }
+  //! cluster template merged pi0 cluster probability for EM shower
+  float get_merged_cluster_prob() const override { return get_property_float(prop_merged_cluster_prob); }
   //! isolation ET default
   float get_et_iso() const override { return get_property_float(prop_et_iso_calotower_R03); }
   //! isolation ET the radius and hueristic can be specified
@@ -102,6 +104,8 @@ class RawClusterv1 : public RawCluster
   void set_chi2(const float chi2) override { set_property(prop_chi2, chi2); }
   //! cluster template probability for EM shower
   void set_prob(const float prob) override { set_property(prop_prob, prob); }
+  //! cluster template merged pi0 cluster probability for EM shower
+  void set_merged_cluster_prob(const float probmergedcluster) override { set_property(prop_merged_cluster_prob, probmergedcluster); }
   //! isolation ET default
   void set_et_iso(const float e) override { set_property(prop_et_iso_calotower_R03, e); }
   //! isolation ET the radius and hueristic can be specified
