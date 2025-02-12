@@ -19,6 +19,7 @@
 #include <trackbase/TrkrDefs.h>  // for cluskey, getTrkrId, tpcId
 #include <trackbase/alignmentTransformationContainer.h>
 
+#include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
