@@ -80,12 +80,12 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   if (scanSteps){
   for(int i=0;i<10;i++){
   	TString study_filestring=Form("%s.steps%d.hist.root","study_file_changinginterval",50*(i+1));
-  tpc->GenerateSeparateDistortionMaps(study_filestring,50*(i+1),1,1,1,1,true);
+  tpc->GenerateSeparateDistortionMaps(std::string(study_filestring.Data()),50*(i+1),1,1,1,1,true);
   //tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,false);
 }
 }
   else{
-   tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),450,1,1,1,1,false);
+   tpc->GenerateSeparateDistortionMaps(std::string(outputfilename.Data()),450,1,1,1,1,false);
 }
 
   printf("distortions mapped.\n");
@@ -209,7 +209,7 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
       //tpc->GenerateDistortionMaps(outputfilename,2,2,2,1,true);
 
 
-      tpc->GenerateSeparateDistortionMaps(outputfilename,2,2,2,1,true,nSteps);
+      tpc->GenerateSeparateDistortionMaps(std::string(outputfilename.Data()),2,2,2,1,true,nSteps);
 
       printf("distortions mapped.\n");
       tpc->PlotFieldSlices(outputfilename.Data(),pos);
