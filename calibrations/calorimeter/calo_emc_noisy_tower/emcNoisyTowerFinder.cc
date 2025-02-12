@@ -296,7 +296,7 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
       int val = h_hot->GetBinContent(i + 1, j + 1);
       float sigma = h_heatSigma->GetBinContent(i + 1, j + 1);
       cdbttree_out->SetIntValue(key, m_fieldname_out, val);
-      cdbttree_out->SetFloatValue(key, "CEMC_sigma", sigma);
+      cdbttree_out->SetFloatValue(key, m_caloName+"_sigma", sigma);
     }
   }
   cdbttree_out->Commit();
