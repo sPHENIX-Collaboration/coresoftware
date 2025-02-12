@@ -11,7 +11,18 @@ class TClonesArray;
 class MvtxRawEvtHeaderv2 : public MvtxRawEvtHeader
 {
  public:
+  //! ctor
   MvtxRawEvtHeaderv2();
+
+  //! cp/mv ctor
+  MvtxRawEvtHeaderv2(const MvtxRawEvtHeaderv2 &) = default;
+  MvtxRawEvtHeaderv2(MvtxRawEvtHeaderv2 &&) = default;
+
+  //! cp/mv assignment
+  MvtxRawEvtHeaderv2 &operator=(const MvtxRawEvtHeaderv2 &) = default;
+  MvtxRawEvtHeaderv2 &operator=(MvtxRawEvtHeaderv2 &&) = default;
+
+  //! dtor
   ~MvtxRawEvtHeaderv2() override;
 
   /// Clear Event
