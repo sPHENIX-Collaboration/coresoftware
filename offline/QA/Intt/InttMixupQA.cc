@@ -18,6 +18,8 @@
 #include <phool/phool.h>  // PHWHERE
 #include <qautils/QAHistManagerDef.h>
 
+#include <boost/format.hpp>
+
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
