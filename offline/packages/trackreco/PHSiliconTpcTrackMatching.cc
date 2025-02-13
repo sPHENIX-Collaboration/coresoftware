@@ -739,18 +739,23 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
     float z_tpc = TrackSeedHelper::get_z(tpc_track);
     float z_mismatch = z_tpc - z_si;
 
-    float mag_crossing_z_mismatch = fabs(crossing) * crossing_period * vdrift;
+    // get TPC side from one of the TPC clusters
+    std::vector<TrkrDefs::cluskey> temp_clusters = getTrackletClusterList(tpc_track);
+    if(temp_clusters.size() == 0)
+      {
+	continue;
+      }
+    unsigned int this_side =   TpcDefs::getSide(temp_clusters[0]);
 
-    // We do not know the sign  of the z mismatch for a given crossing unless we know the drift direction in the TPC, use magnitude
-    // could instead look up any TPC cluster key in the track to get side
-    // z-mismatch can occasionally be up to 2 crossings due to TPC extrapolation precision
-    if (fabs(fabs(z_mismatch) - mag_crossing_z_mismatch) < 3.0)
+    float z_tpc_corrected = _clusterCrossingCorrection.correctZ(z_tpc, this_side, crossing);
+    float z_mismatch_corrected = z_tpc_corrected - z_si;
+    if (fabs(z_mismatch_corrected) < _crossing_deltaz_max)
     {
       if (Verbosity() > 1)
       {
         std::cout << "  Success:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id
-                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch
-                  << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << " drift velocity " << vdrift << std::endl;
+                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << "z_tpc_corrected " << z_tpc_corrected
+                  << " z_mismatch_corrected " << z_mismatch_corrected << " drift velocity " << vdrift << std::endl;
       }
     }
     else
@@ -758,11 +763,11 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
       if (Verbosity() > 1)
       {
         std::cout << "  FAILURE:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id
-                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch
-                  << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
+                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << "z_tpc_corrected " << z_tpc_corrected
+                  << " z_mismatch_corrected " << z_mismatch_corrected << std::endl;
       }
 
-      // bad_map.insert(std::make_pair(tpcid, si_id));
+      bad_map.insert(std::make_pair(tpcid, si_id));
     }
   }
 

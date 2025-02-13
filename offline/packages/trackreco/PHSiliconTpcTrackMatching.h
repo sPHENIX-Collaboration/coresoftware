@@ -5,6 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phparameter/PHParameterInterface.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #include <trackbase/ActsGeometry.h>
 
 #include <map>
@@ -42,6 +43,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_x_search_window(const double win) { _x_search_win = win; }
   void set_y_search_window(const double win) { _y_search_win = win; }
   void set_z_search_window(const double win) { _z_search_win = win; }
+  void set_crossing_deltaz_max(const double dz) {_crossing_deltaz_max = dz ;} 
 
   float get_phi_search_window() const { return _phi_search_win; }
   float get_eta_search_window() const { return _eta_search_win; }
@@ -203,6 +205,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   TrkrClusterCrossingAssoc *_cluster_crossing_map{nullptr};
   int m_event = 0;
   std::map<unsigned int, double> _z_mismatch_map;
+
+  TpcClusterZCrossingCorrection _clusterCrossingCorrection;
+  float _crossing_deltaz_max = 10.0; 
 
   //  double _collision_rate = 50e3;  // input rate for phi correction
   //  double _reference_collision_rate = 50e3;  // reference rate for phi correction
