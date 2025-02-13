@@ -5,10 +5,10 @@
 #include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHIODataNode.h>  // for PHIODataNode
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>
@@ -21,18 +21,17 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 
-#include <cstdlib>                                     // for exit
-#include <exception>                                    // for exception
-#include <iostream>                                     // for operator<<, endl
-#include <cmath>                                       // for fabs, atan, cos
-#include <stdexcept>                                    // for runtime_error
-#include <utility>                                      // for pair
+#include <cmath>      // for fabs, atan, cos
+#include <cstdlib>    // for exit
+#include <exception>  // for exception
+#include <iostream>   // for operator<<, endl
+#include <stdexcept>  // for runtime_error
+#include <utility>    // for pair
 
 //____________________________________________________________________________..
-CaloGeomMapping::CaloGeomMapping(const std::string &name):
- SubsysReco(name),
- m_Detector("CEMC"),
- m_RawTowerGeomContainer(nullptr)
+CaloGeomMapping::CaloGeomMapping(const std::string &name)
+  : SubsysReco(name)
+  , m_Detector("CEMC")
 {
 }
 
@@ -41,7 +40,7 @@ int CaloGeomMapping::Init(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-  std::cout << "CaloGeomMapping::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+    std::cout << "CaloGeomMapping::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   }
   /* std::cout << "Printing node tree before new node creation:" << std::endl; */
   /* topNode->print(); */
@@ -59,22 +58,22 @@ int CaloGeomMapping::Init(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
+void CaloGeomMapping::CreateGeomNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-      std::cout << PHWHERE << "Run Node missing, doing nothing." << std::endl;
-      throw std::runtime_error("Failed to find Run node in CaloGeomMapping::CreateGeomNode");
+    std::cout << PHWHERE << "Run Node missing, doing nothing." << std::endl;
+    throw std::runtime_error("Failed to find Run node in CaloGeomMapping::CreateGeomNode");
   }
 
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", m_Detector));
   if (!RunDetNode)
   {
-      RunDetNode = new PHCompositeNode(m_Detector);
-      runNode->addNode(RunDetNode);
+    RunDetNode = new PHCompositeNode(m_Detector);
+    runNode->addNode(RunDetNode);
   }
 
   const RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(m_Detector);
@@ -89,8 +88,8 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
   }
 
   // Get the geometry mapping file from the Conditions Database
-  std::string inName=CDBInterface::instance()->getUrl("CALO_TOWER_GEOMETRY");
-  CDBTTree * cdbttree = new CDBTTree(inName);
+  std::string inName = CDBInterface::instance()->getUrl("CALO_TOWER_GEOMETRY");
+  CDBTTree *cdbttree = new CDBTTree(inName);
   cdbttree->LoadCalibrations();
 
   std::string parName;
@@ -152,19 +151,19 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
   }
 
   // Populate container with RawTowerGeom objects
-  for (int ieta=0; ieta<m_RawTowerGeomContainer->get_etabins(); ieta++)
+  for (int ieta = 0; ieta < m_RawTowerGeomContainer->get_etabins(); ieta++)
   {
-    for (int iphi=0; iphi<m_RawTowerGeomContainer->get_phibins(); iphi++)
+    for (int iphi = 0; iphi < m_RawTowerGeomContainer->get_phibins(); iphi++)
     {
       // build tower geom here
       const RawTowerDefs::keytype key =
-	RawTowerDefs::encode_towerid(caloid, ieta, iphi);
+          RawTowerDefs::encode_towerid(caloid, ieta, iphi);
 
       double r = m_RawTowerGeomContainer->get_radius();
       const double x(r * cos(m_RawTowerGeomContainer->get_phicenter(iphi)));
       const double y(r * sin(m_RawTowerGeomContainer->get_phicenter(iphi)));
       /* const double z(r / tan(PHG4Utils::get_theta(m_RawTowerGeomContainer->get_etacenter(ieta)))); */
-      const double z(r / tan(2*atan(exp(-1*m_RawTowerGeomContainer->get_etacenter(ieta)))));
+      const double z(r / tan(2 * atan(exp(-1 * m_RawTowerGeomContainer->get_etacenter(ieta)))));
       /* const double x(0); */
       /* const double y(0); */
       /* const double z(0); */
@@ -172,46 +171,46 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
       RawTowerGeom *tg = m_RawTowerGeomContainer->get_tower_geometry(key);
       if (tg)
       {
-	if (Verbosity() > 0)
-	{
-	  std::cout << "CaloGeomMapping::CreateGeomNode - Tower geometry " << key << " already exists" << std::endl;
-	}
+        if (Verbosity() > 0)
+        {
+          std::cout << "CaloGeomMapping::CreateGeomNode - Tower geometry " << key << " already exists" << std::endl;
+        }
 
-	if (fabs(tg->get_center_x() - x) > 1e-4)
-	{
-	  std::cout << "CaloGeomMapping::CreateGeomNode - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
-	    << std::endl;
+        if (fabs(tg->get_center_x() - x) > 1e-4)
+        {
+          std::cout << "CaloGeomMapping::CreateGeomNode - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+                    << std::endl;
 
-	  exit(1);
-	}
-	if (fabs(tg->get_center_y() - y) > 1e-4)
-	{
-	  std::cout << "CaloGeomMapping::CreateGeomNode - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
-	    << std::endl;
-	  exit(1);
-	}
-	if (fabs(tg->get_center_z() - z) > 1e-4)
-	{
-	  std::cout << "CaloGeomMapping::CreateGeomNode - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
-	    << std::endl;
-	  exit(1);
-	}
+          exit(1);
+        }
+        if (fabs(tg->get_center_y() - y) > 1e-4)
+        {
+          std::cout << "CaloGeomMapping::CreateGeomNode - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+                    << std::endl;
+          exit(1);
+        }
+        if (fabs(tg->get_center_z() - z) > 1e-4)
+        {
+          std::cout << "CaloGeomMapping::CreateGeomNode - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+                    << std::endl;
+          exit(1);
+        }
       }
       else
       {
-	if (Verbosity() > 0)
-	{
-	  std::cout << "CaloGeomMapping::CreateGeomNode - building tower geometry " << key << "" << std::endl;
-	}
+        if (Verbosity() > 0)
+        {
+          std::cout << "CaloGeomMapping::CreateGeomNode - building tower geometry " << key << "" << std::endl;
+        }
 
-	tg = new RawTowerGeomv1(key);
+        tg = new RawTowerGeomv1(key);
 
-	tg->set_center_x(x);
-	tg->set_center_y(y);
-	tg->set_center_z(z);
-	m_RawTowerGeomContainer->add_tower_geometry(tg);
-	/* std::cout << "Added new RawTowerGeom " << tg << "; more details:\n"; */
-	/* tg->identify(); */
+        tg->set_center_x(x);
+        tg->set_center_y(y);
+        tg->set_center_z(z);
+        m_RawTowerGeomContainer->add_tower_geometry(tg);
+        /* std::cout << "Added new RawTowerGeom " << tg << "; more details:\n"; */
+        /* tg->identify(); */
       }
     }
   }  // end loop over eta, phi bins

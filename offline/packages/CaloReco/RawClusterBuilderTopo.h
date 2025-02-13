@@ -47,7 +47,8 @@ class RawClusterBuilderTopo : public SubsysReco
     _sigma_peri = peri;
   }
 
-  void set_absE(bool allow) {
+  void set_absE(bool allow)
+  {
     _use_absE = allow;
   }
 
@@ -125,17 +126,17 @@ class RawClusterBuilderTopo : public SubsysReco
   // utility functions to express IHCal<->EMCal overlap in phi
   int get_first_matching_EMCal_phi_from_IHCal(int index_hcal_phi)
   {
-    return (4*index_hcal_phi + 5) % _EMCAL_NPHI;
+    return (4 * index_hcal_phi + 5) % _EMCAL_NPHI;
   }
 
   int get_matching_HCal_phi_from_EMCal(int index_emcal_phi)
   {
-    return ((index_emcal_phi + 251)/4) % _HCAL_NPHI;
+    return ((index_emcal_phi + 251) / 4) % _HCAL_NPHI;
   }
 
   std::vector<int> get_adjacent_towers_by_ID(int ID);
 
-  float calculate_dR(float, float, float, float);
+  static float calculate_dR(float, float, float, float);
 
   void export_single_cluster(const std::vector<int> &);
 

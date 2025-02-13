@@ -13,7 +13,6 @@ class RawTowerGeomContainer;
 class CaloGeomMapping : public SubsysReco
 {
  public:
-
   CaloGeomMapping(const std::string &name = "CaloGeomMapping");
 
   ~CaloGeomMapping() override = default;
@@ -26,21 +25,21 @@ class CaloGeomMapping : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
 
   // Create tower geometry mapping node
-  void CreateGeomNode(PHCompositeNode* topNode);
+  void CreateGeomNode(PHCompositeNode *topNode);
 
   void set_detector_name(const std::string &name)
-    {
-      m_Detector = name;
-    }
+  {
+    m_Detector = name;
+  }
   const std::string &get_detector_name()
-    {
-      return m_Detector;
-    }
+  {
+    return m_Detector;
+  }
 
  protected:
-  std::string m_Detector; // CEMC, HCALIN or HCALOUT
+  std::string m_Detector;  // CEMC, HCALIN or HCALOUT
   std::string m_TowerGeomNodeName;
-  RawTowerGeomContainer* m_RawTowerGeomContainer;
+  RawTowerGeomContainer *m_RawTowerGeomContainer {nullptr};
 };
 
-#endif // CALOGEOMMAPPING_H
+#endif  // CALOGEOMMAPPING_H

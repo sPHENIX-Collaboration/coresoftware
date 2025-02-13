@@ -80,8 +80,7 @@ class RawTowerCombiner : public SubsysReco
   }
 
   //! prefix to the tower node
-  const std::string
-  &get_tower_node_prefix() const
+  const std::string &get_tower_node_prefix() const
   {
     return _tower_node_prefix;
   }
