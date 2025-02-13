@@ -74,7 +74,7 @@ class CaloWaveformProcessing : public SubsysReco
   }
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
-  static std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
+  static std::vector<std::vector<float>> calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector);
 
   void initialize_processing();
 

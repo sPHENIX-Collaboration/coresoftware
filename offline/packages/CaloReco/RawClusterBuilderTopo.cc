@@ -212,7 +212,7 @@ void RawClusterBuilderTopo::export_single_cluster(const std::vector<int> &origin
   return;
 }
 
-void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, std::vector<float> pseudocluster_sumE, std::vector<float> pseudocluster_eta, std::vector<float> pseudocluster_phi)
+void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, const std::vector<float> &pseudocluster_sumE, const std::vector<float> &pseudocluster_eta, const std::vector<float> &pseudocluster_phi)
 {
   if (n_clusters != 1)  // if we didn't just pass down from export_single_cluster
   {

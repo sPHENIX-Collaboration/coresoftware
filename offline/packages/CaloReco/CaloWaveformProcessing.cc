@@ -89,7 +89,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
   return fitresults;
 }
 
-std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std::vector<std::vector<float>> chnlvector)
+std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
   unsigned int nchnls = chnlvector.size();

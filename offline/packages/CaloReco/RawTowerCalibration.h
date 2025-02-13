@@ -83,7 +83,7 @@ class RawTowerCalibration : public SubsysReco
     _GeV_ADC_file = value;
   }
 
-  std::string get_calib_tower_node_prefix() const
+  const std::string &get_calib_tower_node_prefix() const
   {
     return _calib_tower_node_prefix;
   }
@@ -108,7 +108,7 @@ class RawTowerCalibration : public SubsysReco
     _pedestal_file = value;
   }
 
-  std::string get_raw_tower_node_prefix() const
+  const std::string &get_raw_tower_node_prefix() const
   {
     return _raw_tower_node_prefix;
   }

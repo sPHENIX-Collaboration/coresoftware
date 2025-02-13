@@ -53,8 +53,8 @@ class CaloWaveformFitting
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
-  std::vector<std::vector<float>> calo_processing_fast(std::vector<std::vector<float>> chnlvector);
-  std::vector<std::vector<float>> calo_processing_nyquist(std::vector<std::vector<float>> chnlvector);
+  std::vector<std::vector<float>> calo_processing_fast(const std::vector<std::vector<float>> &chnlvector);
+  std::vector<std::vector<float>> calo_processing_nyquist(const std::vector<std::vector<float>> &chnlvector);
 
   void initialize_processing(const std::string &templatefile);
 

@@ -34,20 +34,15 @@ CaloGeomMapping::CaloGeomMapping(const std::string &name):
  m_Detector("CEMC"),
  m_RawTowerGeomContainer(nullptr)
 {
-  std::cout << "CaloGeomMapping::CaloGeomMapping(const std::string &name) Calling ctor" << std::endl;
-}
-
-//____________________________________________________________________________..
-CaloGeomMapping::~CaloGeomMapping()
-{
-  std::cout << "CaloGeomMapping::~CaloGeomMapping() Calling dtor" << std::endl;
 }
 
 //____________________________________________________________________________..
 int CaloGeomMapping::Init(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "CaloGeomMapping::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-
+  }
   /* std::cout << "Printing node tree before new node creation:" << std::endl; */
   /* topNode->print(); */
   try
@@ -63,56 +58,6 @@ int CaloGeomMapping::Init(PHCompositeNode *topNode)
   /* topNode->print(); */
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-//____________________________________________________________________________..
-/*
-int CaloGeomMapping::InitRun(PHCompositeNode *topNode)
-{
-  std::cout << "CaloGeomMapping::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int CaloGeomMapping::process_event(PHCompositeNode *topNode)
-{
-  std::cout << "CaloGeomMapping::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int CaloGeomMapping::ResetEvent(PHCompositeNode *topNode)
-{
-  std::cout << "CaloGeomMapping::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int CaloGeomMapping::EndRun(const int runnumber)
-{
-  std::cout << "CaloGeomMapping::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int CaloGeomMapping::End(PHCompositeNode *topNode)
-{
-  std::cout << "CaloGeomMapping::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int CaloGeomMapping::Reset(PHCompositeNode *topNode)
-{
- std::cout << "CaloGeomMapping::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-void CaloGeomMapping::Print(const std::string &what) const
-{
-  std::cout << "CaloGeomMapping::Print(const std::string &what) const Printing info for " << what << std::endl;
-}
-*/
 
 void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
 {
@@ -186,7 +131,8 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
   for (int ibin = 0; ibin < m_RawTowerGeomContainer->get_etabins(); ibin++)
   {
     parName = parBase + "_eta_";
-    double first, second;
+    double first;
+    double second;
     first = cdbttree->GetDoubleValue(ibin, parName + "first");
     second = cdbttree->GetDoubleValue(ibin, parName + "second");
     const std::pair<double, double> range(first, second);
@@ -196,7 +142,8 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
   for (int ibin = 0; ibin < m_RawTowerGeomContainer->get_phibins(); ibin++)
   {
     parName = parBase + "_phi_";
-    double first, second;
+    double first;
+    double second;
     first = cdbttree->GetDoubleValue(ibin, parName + "first");
     second = cdbttree->GetDoubleValue(ibin, parName + "second");
     const std::pair<double, double> range(first, second);
@@ -269,13 +216,3 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode* topNode)
     }
   }  // end loop over eta, phi bins
 }  // end of building RawTowerGeomContainer
-
-void CaloGeomMapping::set_detector_name(const std::string &name)
-{
-  m_Detector = name;
-}
-
-std::string CaloGeomMapping::get_detector_name()
-{
-  return m_Detector;
-}

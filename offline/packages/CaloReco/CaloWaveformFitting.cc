@@ -373,7 +373,7 @@ void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float 
   delete sp;
   return;
 }
-std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::vector<std::vector<float>> chnlvector)
+std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
   int nchnls = chnlvector.size();
@@ -436,7 +436,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
   return fit_values;
 }
 
-std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(std::vector<std::vector<float>> chnlvector)
+std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
   int nchnls = chnlvector.size();

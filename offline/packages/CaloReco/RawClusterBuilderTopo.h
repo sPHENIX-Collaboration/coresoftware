@@ -139,7 +139,7 @@ class RawClusterBuilderTopo : public SubsysReco
 
   void export_single_cluster(const std::vector<int> &);
 
-  void export_clusters(const std::vector<int> &, std::map<int, std::pair<int, int> >, unsigned int, std::vector<float>, std::vector<float>, std::vector<float>);
+  void export_clusters(const std::vector<int> &, std::map<int, std::pair<int, int> >, unsigned int, const std::vector<float> &, const std::vector<float> &, const std::vector<float> &);
 
   int get_ID(int ilayer, int ieta, int iphi)
   {
