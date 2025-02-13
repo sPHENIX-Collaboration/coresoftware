@@ -268,7 +268,7 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, const std::vector<
     std::cout << PHWHERE << " ERROR: Can't find JetMap: " << _outputs[ipos] << std::endl;
     exit(-1);
   }
-
+  jetmap->Reset();
   jetmap->set_algo(_algos[ipos]->get_algo());
   jetmap->set_par(_algos[ipos]->get_par());
   for (auto &_input : _inputs)
@@ -292,6 +292,7 @@ void JetReco::FillJetContainer(PHCompositeNode *topNode, int ipos, std::vector<J
     std::cout << PHWHERE << " ERROR: Can't find JetContainer: " << _outputs[ipos] << std::endl;
     exit(-1);
   }
+  jetconn->Reset();
   _algos[ipos]->cluster_and_fill(inputs, jetconn);  // fills the jet container with clustered jets
   for (auto &_input : _inputs)
   {

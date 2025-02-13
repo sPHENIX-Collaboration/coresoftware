@@ -1,8 +1,9 @@
 #include "TriggerPrimitivev1.h"
 #include "TriggerDefs.h"
 
-#include <cmath>
 #include <iostream>
+#include <map>
+#include <utility>
 
 TriggerPrimitivev1::TriggerPrimitivev1(TriggerDefs::TriggerPrimKey key)
 {

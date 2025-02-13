@@ -33,34 +33,32 @@ void PHTimer::Frequency::set_cpu_freq(const std::string& path)
   {
     throw std::runtime_error(std::string("cpu info. unavailable"));
   }
-  else
+
+  // Now parse it looking for the string "cpu MHz"
+  char readLine[1024];
+  std::string searchString("cpu MHz");
+  while ((cpuProcFile.rdstate() & std::ios::failbit) == 0)
   {
-    // Now parse it looking for the string "cpu MHz"
-    char readLine[1024];
-    std::string searchString("cpu MHz");
-    while ((cpuProcFile.rdstate() & std::ios::failbit) == 0)
+    // Read into the raw char array and then construct a std::string
+    // (std::string) to do the searching
+    cpuProcFile.getline(readLine, 1024);
+    std::string readLineString(readLine);
+    if (readLineString.find(searchString) != std::string::npos)
     {
-      // Read into the raw char array and then construct a std::string
-      // (std::string) to do the searching
-      cpuProcFile.getline(readLine, 1024);
-      std::string readLineString(readLine);
-      if (readLineString.find(searchString) != std::string::npos)
+      // Now look for the :, the clock frequency will follow it
+      size_t semicolonPosition = readLineString.find(':', 0);
+      if (semicolonPosition == std::string::npos)
       {
-        // Now look for the :, the clock frequency will follow it
-        size_t semicolonPosition = readLineString.find(':', 0);
-        if (semicolonPosition == std::string::npos)
-        {
-          throw std::runtime_error(std::string("wrong format for cpu info file"));
-        }
-        std::string frequencyString(readLineString.substr(semicolonPosition + 1));
-
-        // Make a string stream for the conversion to floating number
-        double freqMHz = 0;
-        std::istringstream frequencySstream(frequencyString);
-
-        frequencySstream >> freqMHz;
-        _frequency = freqMHz * 1e6;
+        throw std::runtime_error(std::string("wrong format for cpu info file"));
       }
+      std::string frequencyString(readLineString.substr(semicolonPosition + 1));
+
+      // Make a string stream for the conversion to floating number
+      double freqMHz = 0;
+      std::istringstream frequencySstream(frequencyString);
+
+      frequencySstream >> freqMHz;
+      _frequency = freqMHz * 1e6;
     }
   }
 }
@@ -87,7 +85,7 @@ double PHTimer::get_difference(const PHTimer::time_struct& t0, const PHTimer::ti
 void PHTimer::PRINT(std::ostream& os, const std::string& message)
 {
   const int max_col = 80;
-  if (!message.size())
+  if (message.empty())
   {
     os << std::string(max_col, '-') << std::endl;
     return;

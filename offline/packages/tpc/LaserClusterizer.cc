@@ -448,9 +448,18 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
         new PHIODataNode<PHObject>(laserclusters, laserClusterNodeName, "PHObject");
     DetNode->addNode(LaserClusterContainerNode);
   }
-
-  m_tdriftmax = AdcClockPeriod * NZBinsSide;
   
+  m_geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!m_geom_container)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  // get the first layer to get the clock freq
+  AdcClockPeriod = m_geom_container->GetFirstLayerCellGeom()->get_zstep();
+  m_tdriftmax = AdcClockPeriod * NZBinsSide;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -512,14 +521,6 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   if (!m_clusterlist)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << laserClusterNodeName << "." << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  m_geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!m_geom_container)
-  {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

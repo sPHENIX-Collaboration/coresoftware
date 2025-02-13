@@ -12,8 +12,25 @@
 
 // module utilities
 #include "TrksInJetQATypes.h"
+
 // submodule definitions
 #include "TrksInJetQABaseFiller.h"
+
+// g4eval includes
+#include <g4eval/ClusKeyIter.h>
+
+// jet includes
+#include <jetbase/Jet.h>
+#include <jetbase/JetContainer.h>
+
+// particle flow includes
+#include <particleflowreco/ParticleFlowElement.h>
+#include <particleflowreco/ParticleFlowElementContainer.h>
+
+// phool includes
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 // tracking includes
 #include <trackbase/ActsGeometry.h>
@@ -25,19 +42,6 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-// particle flow includes
-#include <particleflowreco/ParticleFlowElement.h>
-#include <particleflowreco/ParticleFlowElementContainer.h>
-// jet includes
-#include <jetbase/Jet.h>
-#include <jetbase/JetContainer.h>
-// g4eval includes
-#include <g4eval/ClusKeyIter.h>
-
-// phool includes
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
 
 // c+ utilities
 #include <cassert>
@@ -75,7 +79,7 @@ class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller
   SvtxTrack* GetTrkFromPFO(PFObject* pfo);
 
   // additional dst nodes needed
-  PFObjectStore* m_flowStore = NULL;
+  PFObjectStore* m_flowStore {nullptr};
 
   // for tracks in jet
   std::vector<SvtxTrack*> m_trksInJet;

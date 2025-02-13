@@ -6,9 +6,12 @@
 #include <queue>
 #include <random>
 
-static std::queue<unsigned int> seedqueue;
-static std::mt19937 fRandomGenerator;
-static std::uniform_int_distribution<unsigned int> fDistribution;
+namespace
+{
+  std::queue<unsigned int> seedqueue;
+  std::mt19937 fRandomGenerator;
+  std::uniform_int_distribution<unsigned int> fDistribution;
+}  // namespace
 
 bool PHRandomSeed::fInitialized(false);
 bool PHRandomSeed::fFixed(false);

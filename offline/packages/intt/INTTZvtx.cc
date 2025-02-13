@@ -811,7 +811,8 @@ bool INTTZvtx::ProcessEvt(
                 outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.x, outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.y,
                 inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.x, inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.y,
                 beam_origin.first, beam_origin.second);
-            if (m_enable_qa) {
+            if (m_enable_qa)
+            {
               dca_inner_phi->Fill(Clus_InnerPhi_Offset, DCA_sign);
             }
 
@@ -1881,7 +1882,14 @@ std::vector<double> INTTZvtx::find_Ngroup(TH1* hist_in)
     }
   }
 
-  peak_group_ratio = group_entry_vec[peak_group_ID] / (accumulate(group_entry_vec.begin(), group_entry_vec.end(), 0.0));
+  if (group_entry_vec.size() > 0)
+  {
+    peak_group_ratio = group_entry_vec[peak_group_ID] / (accumulate(group_entry_vec.begin(), group_entry_vec.end(), 0.0));
+  }
+  else
+  {
+    peak_group_ratio = 0.0;
+  }
 
   // for (int i = 0; i < group_Nbin_vec.size(); i++)
   // {
@@ -1896,6 +1904,12 @@ std::vector<double> INTTZvtx::find_Ngroup(TH1* hist_in)
   // std::cout<<"Peak group ID : "<<peak_group_ID<<std::endl;
   // std::cout<<"peak group width : "<<group_widthL_vec[peak_group_ID]<<" "<<group_widthR_vec[peak_group_ID]<<std::endl;
   // std::cout<<"ratio : "<<peak_group_ratio<<std::endl;
+
+  // for the case that all bin content in the for statemene above is 0
+  if (int(group_widthL_vec.size()) <= peak_group_ID || int(group_widthR_vec.size()) <= peak_group_ID)
+  {  // added by Genki (Jan 2025)
+    return {double(group_Nbin_vec.size()), peak_group_ratio, -9999, -9999};
+  }
 
   // note : {N_group, ratio (if two), peak widthL, peak widthR}
   return {double(group_Nbin_vec.size()), peak_group_ratio, group_widthL_vec[peak_group_ID], group_widthR_vec[peak_group_ID]};

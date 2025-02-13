@@ -1,7 +1,6 @@
 
 #include "TriggerPrimitiveContainer.h"
 
-#include <cmath>
 #include <iostream>
 
 namespace

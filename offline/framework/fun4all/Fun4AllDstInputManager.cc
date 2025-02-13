@@ -147,14 +147,12 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
 
     return 0;
   }
-  else
-  {
-    std::cout << PHWHERE << ": " << Name() << " Could not open file "
-              << FileName() << std::endl;
-    delete m_IManager;
-    m_IManager = nullptr;
-    return -1;
-  }
+
+  std::cout << PHWHERE << ": " << Name() << " Could not open file "
+            << FileName() << std::endl;
+  delete m_IManager;
+  m_IManager = nullptr;
+  return -1;
 }
 
 int Fun4AllDstInputManager::run(const int nevents)
@@ -169,13 +167,11 @@ int Fun4AllDstInputManager::run(const int nevents)
       }
       return -1;
     }
-    else
+
+    if (OpenNextFile())
     {
-      if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return -1;
     }
   }
   if (Verbosity() > 3)
@@ -362,7 +358,7 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
       // and also have to push this one back
       PushBackEvents(1);
       if (syncobject->RunNumber() > mastersync->RunNumber() ||        // check if run number too large
-          syncobject->EventNumber() > mastersync->EventNumber() ||  // check if event counter too large
+          syncobject->EventNumber() > mastersync->EventNumber() ||    // check if event counter too large
           syncobject->SegmentNumber() > mastersync->SegmentNumber())  // check segment number too large
       {
         // the event from first file which determines the mastersync
@@ -394,7 +390,7 @@ int Fun4AllDstInputManager::SyncIt(const SyncObject *mastersync)
         syncobject->identify();
         return Fun4AllReturnCodes::SYNC_FAIL;
       }
-      else if (Verbosity() > 3)
+      if (Verbosity() > 3)
       {
         std::cout << PHWHERE << " Resynchronization successfull for " << Name() << std::endl;
         std::cout << "MasterSync->identify:" << std::endl;
@@ -466,7 +462,7 @@ readnextsync:
     if (m_IManager)
     {
       EventOnDst = m_IManager->getEventNumber();  // this returns the next number of the event
-      itest = m_IManager->readSpecific(EventOnDst, syncbranchname.c_str());
+      itest = m_IManager->readSpecific(EventOnDst, syncbranchname);
     }
     else
     {
@@ -566,7 +562,7 @@ int Fun4AllDstInputManager::setBranches()
       std::map<const std::string, int>::const_iterator branchiter;
       for (branchiter = branchread.begin(); branchiter != branchread.end(); ++branchiter)
       {
-        m_IManager->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+        m_IManager->selectObjectToRead(branchiter->first, branchiter->second);
         if (Verbosity() > 0)
         {
           std::cout << branchiter->first << " set to " << branchiter->second << std::endl;
