@@ -101,27 +101,12 @@ class RawClusterBuilderTopo : public SubsysReco
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
-  std::vector<std::vector<std::vector<float> > > _TOWERMAP_E_LAYER_ETA_PHI;
-  std::vector<std::vector<std::vector<int> > > _TOWERMAP_KEY_LAYER_ETA_PHI;
-  std::vector<std::vector<std::vector<int> > > _TOWERMAP_STATUS_LAYER_ETA_PHI;
-
-  std::vector<std::vector<float> > _EMTOWERMAP_E_ETA_PHI;
-  std::vector<std::vector<int> > _EMTOWERMAP_KEY_ETA_PHI;
-  std::vector<std::vector<int> > _EMTOWERMAP_STATUS_ETA_PHI;
-
   // geometric constants to express IHCal<->EMCal overlap in eta
   static int RawClusterBuilderTopo_constants_EMCal_eta_start_given_IHCal[];
 
   static int RawClusterBuilderTopo_constants_EMCal_eta_end_given_IHCal[];
 
   static int RawClusterBuilderTopo_constants_IHCal_eta_given_EMCal[];
-
-  // geometric parameters defined at runtime
-  int _EMCAL_NETA;
-  int _EMCAL_NPHI;
-
-  int _HCAL_NETA;
-  int _HCAL_NPHI;
 
   // utility functions to express IHCal<->EMCal overlap in phi
   int get_first_matching_EMCal_phi_from_IHCal(int index_hcal_phi)
@@ -217,31 +202,44 @@ class RawClusterBuilderTopo : public SubsysReco
     }
   }
 
-  RawClusterContainer *_clusters = nullptr;
+  RawClusterContainer *_clusters {nullptr};
 
   RawTowerGeomContainer *_geom_containers[3]{};
 
+  // geometric parameters defined at runtime
+  int _EMCAL_NETA {-1};
+  int _EMCAL_NPHI{-1};
+
+  int _HCAL_NETA{-1};
+  int _HCAL_NPHI{-1};
+
   float _noise_LAYER[3]{};
 
-  float _sigma_seed;
-  float _sigma_grow;
-  float _sigma_peri;
-
-  bool _allow_corner_neighbor;
-  bool _use_absE;
-
-  bool _enable_HCal;
-  bool _enable_EMCal;
-
-  bool _do_split;
+  float _sigma_seed {4.0};
+  float _sigma_grow {2.0};
+  float _sigma_peri {0.0};
   float _local_max_minE_LAYER[3]{};
-  float _R_shower;
-
-  bool _only_good_towers;
-
+  float _R_shower {0.025};
   float _min_cluster_E{0.0};
 
-  std::string ClusterNodeName;
+  bool _allow_corner_neighbor {true};
+  bool _use_absE {true};
+
+  bool _enable_HCal {true};
+  bool _enable_EMCal {true};
+
+  bool _do_split {true};
+  bool _only_good_towers {true};
+
+  std::vector<std::vector<std::vector<float> > > _TOWERMAP_E_LAYER_ETA_PHI;
+  std::vector<std::vector<std::vector<int> > > _TOWERMAP_KEY_LAYER_ETA_PHI;
+  std::vector<std::vector<std::vector<int> > > _TOWERMAP_STATUS_LAYER_ETA_PHI;
+
+  std::vector<std::vector<float> > _EMTOWERMAP_E_ETA_PHI;
+  std::vector<std::vector<int> > _EMTOWERMAP_KEY_ETA_PHI;
+  std::vector<std::vector<int> > _EMTOWERMAP_STATUS_ETA_PHI;
+
+  std::string ClusterNodeName {"TOPOCLUSTER_HCAL"};
 };
 
 #endif

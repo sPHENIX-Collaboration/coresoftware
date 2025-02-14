@@ -344,21 +344,6 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
 
 RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   : SubsysReco(name)
-  , _EMCAL_NETA(-1)
-  , _EMCAL_NPHI(-1)
-  , _HCAL_NETA(-1)
-  , _HCAL_NPHI(-1)
-  , _sigma_seed(4.0)
-  , _sigma_grow(2.0)
-  , _sigma_peri(0.0)
-  , _use_absE(true)
-  , _allow_corner_neighbor(true)
-  , _enable_HCal(true)
-  , _enable_EMCal(true)
-  , _do_split(true)
-  , _R_shower(0.025)
-  , _only_good_towers(true)
-  , ClusterNodeName("TOPOCLUSTER_HCAL")
 {
   // geometry defined at run-time
 
