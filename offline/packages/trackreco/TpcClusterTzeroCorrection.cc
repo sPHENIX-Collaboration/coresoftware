@@ -49,10 +49,6 @@ int TpcClusterTzeroCorrection::End(PHCompositeNode* /*topNode*/ )
 //_____________________________________________________________________
 void TpcClusterTzeroCorrection::SetDefaultParameters()
 {
-  // Data on gasses @20 C and 760 Torr from the following source:
-  // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
-  // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
-  // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
   return;
 }
 
