@@ -8,8 +8,8 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TNamed.h>
-#include <TTree.h>
 #include <TSystem.h>
+#include <TTree.h>
 
 #include <RVersion.h>
 #if ROOT_VERSION_CODE >= ROOT_VERSION(5, 20, 0)
@@ -33,8 +33,7 @@ Fun4AllHistoManager::Fun4AllHistoManager(const std::string &name)
 
 Fun4AllHistoManager::~Fun4AllHistoManager()
 {
-
-   // the last file is closed by deleting the output manager, if we want to execute a script at the end
+  // the last file is closed by deleting the output manager, if we want to execute a script at the end
   // we have to run it here
   RunAfterClosing();
 
@@ -49,7 +48,7 @@ Fun4AllHistoManager::~Fun4AllHistoManager()
 int Fun4AllHistoManager::RunAfterClosing()
 {
   unsigned int iret = 0;
-  
+
   if (!m_RunAfterClosingScript.empty())
   {
     if (!std::filesystem::exists(m_RunAfterClosingScript))
@@ -62,14 +61,13 @@ int Fun4AllHistoManager::RunAfterClosing()
       std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " is not owner executable" << std::endl;
       return -1;
     }
-  recoConsts *rc = recoConsts::instance();
-  int runnumber = 0;
-  std::string runseg = "";
-  if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
-  {
-    runnumber = rc->get_IntFlag("RUNNUMBER");
-    runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
-
+    recoConsts *rc = recoConsts::instance();
+    int runnumber = 0;
+    std::string runseg;
+    if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
+    {
+      runnumber = rc->get_IntFlag("RUNNUMBER");
+      runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
     }
     std::string fullcmd = m_RunAfterClosingScript + " " + m_outfilename + runseg + " " + m_ClosingArgs;
     if (Verbosity() > 1)
@@ -114,14 +112,13 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
   }
   recoConsts *rc = recoConsts::instance();
   int runnumber = 0;
-  std::string runseg = "";
+  std::string runseg;
   if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
   {
     runnumber = rc->get_IntFlag("RUNNUMBER");
-     runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
+    runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
+  }
 
-    }
-  
   std::string theoutfile = m_outfilename + runseg;
   std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << theoutfile.c_str() << std::endl;
 
@@ -163,16 +160,16 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
     {
       std::cout << " Histogram named " << hptr->GetName();
       std::cout << " key " << hname;
-      if (dirname.size())
+      if (!dirname.empty())
       {
         std::cout << " being saved to directory " << dirname;
       }
       std::cout << std::endl;
     }
 
-    if (dirname.size())
+    if (!dirname.empty())
     {
-      TDirectoryHelper::mkdir(&hfile, dirname.c_str());
+      TDirectoryHelper::mkdir(&hfile, dirname);
       hfile.cd(dirname.c_str());
     }
 
@@ -274,11 +271,10 @@ Fun4AllHistoManager::getHisto(const unsigned int ihisto) const
     }
     return histoiter->second;
   }
-  else
-  {
-    std::cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
-              << ihisto << ", maximum number is " << size << std::endl;
-  }
+
+  std::cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
+            << ihisto << ", maximum number is " << size << std::endl;
+
   return nullptr;
 }
 
@@ -299,11 +295,10 @@ Fun4AllHistoManager::getHistoName(const unsigned int ihisto) const
     }
     return histoiter->first;
   }
-  else
-  {
-    std::cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
-              << ihisto << ", maximum number is " << size << std::endl;
-  }
+
+  std::cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
+            << ihisto << ", maximum number is " << size << std::endl;
+
   return "";
 }
 

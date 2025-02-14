@@ -22,6 +22,11 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/alignmentTransformationContainer.h>
 
+#include <trackbase/RawHit.h>
+#include <trackbase/RawHitSet.h>
+#include <trackbase/RawHitSetContainer.h>
+#include <trackbase/RawHitSet.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -86,6 +91,7 @@ namespace
   {
     PHG4TpcCylinderGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
+    RawHitSet *rawhitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
     int side = 0;
@@ -120,14 +126,6 @@ namespace
     bool fillClusHitsVerbose = false;
     vec_dVerbose phivec_ClusHitsVerbose;  // only fill if fillClusHitsVerbose
     vec_dVerbose zvec_ClusHitsVerbose;    // only fill if fillClusHitsVerbose
-  };
-
-  struct thread_pair_t
-  {
-    pthread_t thread{};
-    int start = 0;
-    int end = 1;
-    std::vector<thread_data> *data = nullptr;
   };
 
   pthread_mutex_t mythreadlock;
@@ -883,7 +881,91 @@ namespace
         }
       }
     }
-    
+    else if (my_data->rawhitset != nullptr)
+    {
+      RawHitSet *hitset = my_data->rawhitset;
+      /*std::cout << "Layer: " << my_data->layer
+                << "Side: " << my_data->side
+                << "Sector: " << my_data->sector
+                << " nhits:  " << hitset.size()
+                << std::endl;
+      */
+      for (int nphi = 0; nphi < phibins; nphi++)
+      {
+        if (hitset->size(nphi) == 0)
+        {
+          continue;
+        }
+
+        int pindex = 0;
+        for (unsigned int nt = 0; nt < hitset->size(nphi); nt++)
+        {
+          unsigned short val = (*(hitset->getHits(nphi)))[nt];
+
+          if (val == 0)
+          {
+            pindex++;
+          }
+          else
+          {
+            if (nt == 0)
+            {
+              if (val > 5)
+              {
+                ihit thisHit;
+                thisHit.iphi = nphi;
+                thisHit.it = pindex;
+                thisHit.adc = val;
+                thisHit.edge = 0;
+                all_hit_map.insert(std::make_pair(val, thisHit));
+              }
+              adcval[nphi][pindex++] = val;
+            }
+            else
+            {
+              if (((*(hitset->getHits(nphi)))[nt - 1] == 0) && ((*(hitset->getHits(nphi)))[nt + 1] == 0))
+              {  // found zero count
+                pindex += val;
+              }
+              else
+              {
+                if (val > 5)
+                {
+                  ihit thisHit;
+                  thisHit.iphi = nphi;
+                  thisHit.it = pindex;
+                  thisHit.adc = val;
+                  thisHit.edge = 0;
+                  all_hit_map.insert(std::make_pair(val, thisHit));
+                }
+                adcval[nphi][pindex++] = val;
+              }
+            }
+          }
+        }
+      }
+    }
+    /*
+    if (my_data->do_singles)
+    {
+      for (auto ahit : all_hit_map)
+      {
+        ihit hiHit = ahit.second;
+        int iphi = hiHit.iphi;
+        int it = hiHit.it;
+        unsigned short edge = hiHit.edge;
+        double adc = hiHit.adc;
+        if (it > 0 && it < tbins)
+        {
+          if (adcval[iphi][it - 1] == 0 &&
+              adcval[iphi][it + 1] == 0)
+          {
+            remove_hit(adc, iphi, it, edge, all_hit_map, adcval);
+          }
+        }
+      }
+    }
+    */
     // std::cout << "done filling " << std::endl;
     while (all_hit_map.size() > 0)
     {
@@ -980,20 +1062,23 @@ namespace
       remove_hits(ihit_list, all_hit_map, adcval);
       ihit_list.clear();
     }
+    /*    if( my_data->rawhitset!=nullptr){
+      RawHitSetv1 *hitset = my_data->rawhitset;
+      std::cout << "Layer: " << my_data->layer
+                << " Side: " << my_data->side
+                << " Sector: " << my_data->sector
+                << " nhits:  " << hitset->size()
+                << " nhits coutn :  " << nhits
+                << " nclus: " << my_data->cluster_vector.size()
+                << std::endl;
+    }
+    */
     // pthread_exit(nullptr);
   }
   void *ProcessSector(void *threadarg)
   {
-    auto thread_arg = static_cast<thread_pair_t *>(threadarg);
-    //    const auto &data_vec(thread_pair.data);
-    int start  = thread_arg->start;
-    int end  = thread_arg->end;
-    std::vector<thread_data> *data = thread_arg->data;
-    //thread_data mydata  =  data->at(start);
-    for(int i = start;i<end;i++){
-      ProcessSectorData(&data->at(i));
-      //std::cout << "Job: " << i << " clusters found:  " << data->at(i).cluster_vector.size() << std::endl;
-    }
+    auto my_data = static_cast<thread_data *>(threadarg);
+    ProcessSectorData(my_data);
     pthread_exit(nullptr);
   }
 }  // namespace
@@ -1177,13 +1262,26 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  if (!do_read_raw)
+  {
     // get node containing the digitized hits
-  m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if (!m_hits)
+    m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    if (!m_hits)
     {
       std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
+  }
+  else
+  {
+    // get node containing the digitized hits
+    m_rawhits = findNode::getClass<RawHitSetContainer>(topNode, "TRKR_RAWHITSET");
+    if (!m_rawhits)
+    {
+      std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  }
 
   // get laser event info, if exists and event has laser and rejection is on, don't bother with clustering
   LaserEventInfo *laserInfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
@@ -1238,21 +1336,48 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
 
   TrkrHitSetContainer::ConstRange hitsetrange;
+  RawHitSetContainer::ConstRange rawhitsetrange;
   int num_hitsets = 0;
 
-  hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  num_hitsets = std::distance(hitsetrange.first, hitsetrange.second);
+  if (!do_read_raw)
+  {
+    hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
+    num_hitsets = std::distance(hitsetrange.first, hitsetrange.second);
+  }
+  else
+  {
+    rawhitsetrange = m_rawhits->getHitSets(TrkrDefs::TrkrId::tpcId);
+    num_hitsets = std::distance(rawhitsetrange.first, rawhitsetrange.second);
+  }
 
   // create structure to store given thread and associated data
-  std::vector<thread_data> vec_thread_data;
-  vec_thread_data.reserve(num_hitsets);
+  struct thread_pair_t
+  {
+    pthread_t thread{};
+    thread_data data;
+  };
 
-  //  int count = 0;
+  // create vector of thread pairs and reserve the right size upfront to avoid reallocation
+  std::vector<thread_pair_t> threads;
+  threads.reserve(num_hitsets);
 
-  // Prepare thread data, one for each hitset
-  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second;
-       ++hitsetitr)
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+  if (pthread_mutex_init(&mythreadlock, nullptr) != 0)
+  {
+    std::cout << std::endl
+              << " mutex init failed" << std::endl;
+    return 1;
+  }
+//  int count = 0;
+
+  if (!do_read_raw)
+  {
+    for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
+         hitsetitr != hitsetrange.second;
+         ++hitsetitr)
     {
       // if(count>0)continue;
       TrkrHitSet *hitset = hitsetitr->second;
@@ -1260,35 +1385,36 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       int side = TpcDefs::getSide(hitsetitr->first);
       unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
       PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
-      
+
       // instanciate new thread pair, at the end of thread vector
-      thread_data &this_thread_data = vec_thread_data.emplace_back();
+      thread_pair_t &thread_pair = threads.emplace_back();
       if (mClusHitsVerbose)
-	{
-        this_thread_data.fillClusHitsVerbose = true;
+      {
+        thread_pair.data.fillClusHitsVerbose = true;
       };
 
-      this_thread_data.layergeom = layergeom;
-      this_thread_data.hitset = hitset;
-      this_thread_data.layer = layer;
-      this_thread_data.pedestal = pedestal;
-      this_thread_data.seed_threshold = seed_threshold;
-      this_thread_data.edge_threshold = edge_threshold;
-      this_thread_data.sector = sector;
-      this_thread_data.side = side;
-      this_thread_data.do_assoc = do_hit_assoc;
-      this_thread_data.do_wedge_emulation = do_wedge_emulation;
-      this_thread_data.do_singles = do_singles;
-      this_thread_data.tGeometry = m_tGeometry;
-      this_thread_data.maxHalfSizeT = MaxClusterHalfSizeT;
-      this_thread_data.maxHalfSizePhi = MaxClusterHalfSizePhi;
-      this_thread_data.sampa_tbias = m_sampa_tbias;
-      this_thread_data.verbosity = Verbosity();
-      this_thread_data.do_split = do_split;
-      this_thread_data.FixedWindow = do_fixed_window;
-      this_thread_data.min_err_squared = min_err_squared;
-      this_thread_data.min_clus_size = min_clus_size;
-      this_thread_data.min_adc_sum = min_adc_sum;
+      thread_pair.data.layergeom = layergeom;
+      thread_pair.data.hitset = hitset;
+      thread_pair.data.rawhitset = nullptr;
+      thread_pair.data.layer = layer;
+      thread_pair.data.pedestal = pedestal;
+      thread_pair.data.seed_threshold = seed_threshold;
+      thread_pair.data.edge_threshold = edge_threshold;
+      thread_pair.data.sector = sector;
+      thread_pair.data.side = side;
+      thread_pair.data.do_assoc = do_hit_assoc;
+      thread_pair.data.do_wedge_emulation = do_wedge_emulation;
+      thread_pair.data.do_singles = do_singles;
+      thread_pair.data.tGeometry = m_tGeometry;
+      thread_pair.data.maxHalfSizeT = MaxClusterHalfSizeT;
+      thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
+      thread_pair.data.sampa_tbias = m_sampa_tbias;
+      thread_pair.data.verbosity = Verbosity();
+      thread_pair.data.do_split = do_split;
+      thread_pair.data.FixedWindow = do_fixed_window;
+      thread_pair.data.min_err_squared = min_err_squared;
+      thread_pair.data.min_clus_size = min_clus_size;
+      thread_pair.data.min_adc_sum = min_adc_sum;
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
       unsigned short NPhiBinsSector = NPhiBins / 12;
       unsigned short NTBins = 0;
@@ -1306,114 +1432,259 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned short TOffset = NTBinsMin;
 
       m_tdriftmax = AdcClockPeriod * NZBinsSide;
-      this_thread_data.m_tdriftmax = m_tdriftmax;
+      thread_pair.data.m_tdriftmax = m_tdriftmax;
 
-      this_thread_data.phibins = NPhiBinsSector;
-      this_thread_data.phioffset = PhiOffset;
-      this_thread_data.tbins = NTBinsSide;
-      this_thread_data.toffset = TOffset;
+      thread_pair.data.phibins = NPhiBinsSector;
+      thread_pair.data.phioffset = PhiOffset;
+      thread_pair.data.tbins = NTBinsSide;
+      thread_pair.data.toffset = TOffset;
 
-      this_thread_data.radius = layergeom->get_radius();
-      this_thread_data.drift_velocity = m_tGeometry->get_drift_velocity();
-      this_thread_data.pads_per_sector = 0;
-      this_thread_data.phistep = 0;
+      thread_pair.data.radius = layergeom->get_radius();
+      thread_pair.data.drift_velocity = m_tGeometry->get_drift_velocity();
+      thread_pair.data.pads_per_sector = 0;
+      thread_pair.data.phistep = 0;
+      int rc;
+      rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *) &thread_pair.data);
+
+      if (rc)
+      {
+        std::cout << "Error:unable to create thread," << rc << std::endl;
+      }
+      if (do_sequential)
+      {
+        int rc2 = pthread_join(thread_pair.thread, nullptr);
+        if (rc2)
+        {
+          std::cout << "Error:unable to join," << rc2 << std::endl;
+        }
+
+        // get the hitsetkey from thread data
+        const auto &data(thread_pair.data);
+        const auto hitsetkey = TpcDefs::genHitSetKey(data.layer, data.sector, data.side);
+
+        // copy clusters to map
+        for (uint32_t index = 0; index < data.cluster_vector.size(); ++index)
+        {
+          // generate cluster key
+          const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
+
+          // get cluster
+          auto cluster = data.cluster_vector[index];
+
+          // insert in map
+          m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+
+          if (mClusHitsVerbose)
+          {
+            for (auto &hit : data.phivec_ClusHitsVerbose[index])
+            {
+              mClusHitsVerbose->addPhiHit(hit.first, hit.second);
+            }
+            for (auto &hit : data.zvec_ClusHitsVerbose[index])
+            {
+              mClusHitsVerbose->addZHit(hit.first, hit.second);
+            }
+            mClusHitsVerbose->push_hits(ckey);
+          }
+        }
+
+        // copy hit associations to map
+        for (const auto &[index, hkey] : thread_pair.data.association_vector)
+        {
+          // generate cluster key
+          const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
+
+          // add to association table
+          m_clusterhitassoc->addAssoc(ckey, hkey);
+        }
+      }
+//      count++;
     }
-
-  
-  // create vector of thread pairs and reserve the right size upfront to avoid reallocation
-  std::vector<thread_pair_t> threads;
-  threads.reserve(num_hitsets);
-  pthread_attr_t attr;
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
-  if (pthread_mutex_init(&mythreadlock, nullptr) != 0){
-    std::cout << std::endl
-              << " mutex init failed" << std::endl;
-    return 1;
   }
-  //process thread
-  //  int n_total  = vec_thread_data.size();
-  int n_all = vec_thread_data.size();
-  int n_job_per_thread = n_all/m_nthreads;
-//  int n_thread = 0;
-  int n = 0;
-  
-  while(n<n_all){
-    //create thread
-    thread_pair_t &thread_pair = threads.emplace_back();
-    //load thread
-    thread_pair.start = n;
-    int end = n+n_job_per_thread;
-    if(end>n_all){
-      end = n_all;
-    }
-    thread_pair.end = end;
-    thread_pair.data = &vec_thread_data;
-    //launch thread
-    int rc;
-    rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *) &thread_pair);
-    if (rc){
-      std::cout << "Error:unable to create thread," << rc << std::endl;
-    }
-    n+=n_job_per_thread;
-//    n_thread++;
-    if(n>=n_all){
-      break;
+  else
+  {
+    for (RawHitSetContainer::ConstIterator hitsetitr = rawhitsetrange.first;
+         hitsetitr != rawhitsetrange.second;
+         ++hitsetitr)
+    {
+      //	if(count>0)continue;
+      //    const auto hitsetid = hitsetitr->first;
+      //	std::cout << " starting thread # " << count << std::endl;
+
+      RawHitSet *hitset = hitsetitr->second;
+      unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
+      int side = TpcDefs::getSide(hitsetitr->first);
+      unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
+      PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+
+      // instanciate new thread pair, at the end of thread vector
+      thread_pair_t &thread_pair = threads.emplace_back();
+
+      thread_pair.data.layergeom = layergeom;
+      thread_pair.data.hitset = nullptr;
+      thread_pair.data.rawhitset = hitset;
+      thread_pair.data.layer = layer;
+      thread_pair.data.pedestal = pedestal;
+      thread_pair.data.sector = sector;
+      thread_pair.data.side = side;
+      thread_pair.data.do_assoc = do_hit_assoc;
+      thread_pair.data.do_wedge_emulation = do_wedge_emulation;
+      thread_pair.data.tGeometry = m_tGeometry;
+      thread_pair.data.maxHalfSizeT = MaxClusterHalfSizeT;
+      thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
+      thread_pair.data.sampa_tbias = m_sampa_tbias;
+      thread_pair.data.verbosity = Verbosity();
+
+      unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
+      unsigned short NPhiBinsSector = NPhiBins / 12;
+      unsigned short NTBins = (unsigned short) layergeom->get_zbins();
+      unsigned short NTBinsSide = NTBins;
+      unsigned short NTBinsMin = 0;
+      unsigned short PhiOffset = NPhiBinsSector * sector;
+      unsigned short TOffset = NTBinsMin;
+
+      m_tdriftmax = AdcClockPeriod * NZBinsSide;
+      thread_pair.data.m_tdriftmax = m_tdriftmax;
+
+      thread_pair.data.phibins = NPhiBinsSector;
+      thread_pair.data.phioffset = PhiOffset;
+      thread_pair.data.tbins = NTBinsSide;
+      thread_pair.data.toffset = TOffset;
+
+      /*
+      PHG4TpcCylinderGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
+      for( float iphi = 1408; iphi < 1408+ 128;iphi+=0.1){
+        double clusiphi = iphi;
+        double clusphi = testlayergeom->get_phi(clusiphi);
+        double radius = layergeom->get_radius();
+        float clusx = radius * cos(clusphi);
+        float clusy = radius * sin(clusphi);
+        float clusz  = -37.524;
+
+        TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey( 32,11, 0 );
+        Acts::Vector3 global(clusx, clusy, clusz);
+        TrkrDefs::subsurfkey subsurfkey = 0;
+
+        Surface surface = m_tGeometry->get_tpc_surface_from_coords(
+                                                                   tpcHitSetKey,
+                                                                   global,
+                                                                   subsurfkey);
+        std::cout << " iphi: " << iphi << " clusphi: " << clusphi << " surfkey " << subsurfkey << std::endl;
+        //	std::cout << "surfkey" << subsurfkey << std::endl;
+      }
+      continue;
+      */
+      int rc = 0;
+      //      if(layer==32)
+      rc = pthread_create(&thread_pair.thread, &attr, ProcessSector, (void *) &thread_pair.data);
+      //      else
+      // continue;
+
+      if (rc)
+      {
+        std::cout << "Error:unable to create thread," << rc << std::endl;
+      }
+
+      if (do_sequential)
+      {
+        int rc2 = pthread_join(thread_pair.thread, nullptr);
+        if (rc2)
+        {
+          std::cout << "Error:unable to join," << rc2 << std::endl;
+        }
+
+        // get the hitsetkey from thread data
+        const auto &data(thread_pair.data);
+        const auto hitsetkey = TpcDefs::genHitSetKey(data.layer, data.sector, data.side);
+
+        // copy clusters to map
+        for (uint32_t index = 0; index < data.cluster_vector.size(); ++index)
+        {
+          // generate cluster key
+          const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
+
+          // get cluster
+          auto cluster = data.cluster_vector[index];
+
+          // insert in map
+          m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+        }
+
+        // copy hit associations to map
+        for (const auto &[index, hkey] : thread_pair.data.association_vector)
+        {
+          // generate cluster key
+          const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
+
+          // add to association table
+          m_clusterhitassoc->addAssoc(ckey, hkey);
+        }
+      }
+//      count++;
     }
   }
 
   pthread_attr_destroy(&attr);
-  //  count = 0;
+//  count = 0;
   // wait for completion of all threads
-  for (const auto &thread_pair : threads){
-    int rc2 = pthread_join(thread_pair.thread, nullptr);
-    if (rc2){
-      std::cout << "Error:unable to join," << rc2 << std::endl;
-    }
-  }
-  for(auto data : vec_thread_data){
-    //auto &data  =  thread_pair.data->at(thread_pair.start);
-    // get the hitsetkey from thread data
-    //    const auto &data_vec(thread_pair.data);
-    // for (const auto &data : data_vec){
-    const auto hitsetkey = TpcDefs::genHitSetKey(data.layer, data.sector, data.side);
-    // copy clusters to map
-    for (uint32_t index = 0; index < data.cluster_vector.size(); ++index){
-      // generate cluster key
-      const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
-      
-      // get cluster
-      auto cluster = data.cluster_vector[index];
-      
-      // insert in map
-      // std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
-      m_clusterlist->addClusterSpecifyKey(ckey, cluster);
-      
-      if (mClusHitsVerbose){
-	for (auto &hit : data.phivec_ClusHitsVerbose[index]){
-	  mClusHitsVerbose->addPhiHit(hit.first, (float) hit.second);
-	}
-	for (auto &hit : data.zvec_ClusHitsVerbose[index]){
-	  mClusHitsVerbose->addZHit(hit.first, (float) hit.second);
-	}
-	mClusHitsVerbose->push_hits(ckey);
+  if (!do_sequential)
+  {
+    for (const auto &thread_pair : threads)
+    {
+      int rc2 = pthread_join(thread_pair.thread, nullptr);
+      if (rc2)
+      {
+        std::cout << "Error:unable to join," << rc2 << std::endl;
       }
-    }
-      
-    // copy hit associations to map
-    for (const auto &[hindex, hkey] : data.association_vector){
-      // generate cluster key
-      const auto hckey = TrkrDefs::genClusKey(hitsetkey, hindex);
-      
-      // add to association table
-      m_clusterhitassoc->addAssoc(hckey, hkey);
-    }
-    
-    if (_store_hits){
-      for (auto v_hit : data.v_hits){
-	m_training->v_hits.emplace_back(*v_hit);
-	delete v_hit;
+
+      // get the hitsetkey from thread data
+      const auto &data(thread_pair.data);
+      const auto hitsetkey = TpcDefs::genHitSetKey(data.layer, data.sector, data.side);
+
+      // copy clusters to map
+      for (uint32_t index = 0; index < data.cluster_vector.size(); ++index)
+      {
+        // generate cluster key
+        const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
+
+        // get cluster
+        auto cluster = data.cluster_vector[index];
+
+        // insert in map
+        // std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
+        m_clusterlist->addClusterSpecifyKey(ckey, cluster);
+
+        if (mClusHitsVerbose)
+        {
+          for (auto &hit : data.phivec_ClusHitsVerbose[index])
+          {
+            mClusHitsVerbose->addPhiHit(hit.first, (float) hit.second);
+          }
+          for (auto &hit : data.zvec_ClusHitsVerbose[index])
+          {
+            mClusHitsVerbose->addZHit(hit.first, (float) hit.second);
+          }
+          mClusHitsVerbose->push_hits(ckey);
+        }
+      }
+
+      // copy hit associations to map
+      for (const auto &[index, hkey] : thread_pair.data.association_vector)
+      {
+        // generate cluster key
+        const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
+
+        // add to association table
+        m_clusterhitassoc->addAssoc(ckey, hkey);
+      }
+
+      for (auto v_hit : thread_pair.data.v_hits)
+      {
+        if (_store_hits)
+        {
+          m_training->v_hits.emplace_back(*v_hit);
+        }
+        delete v_hit;
       }
     }
   }

@@ -1,5 +1,6 @@
 #include "CopyIODataNodes.h"
 
+#include <globalvertex/GlobalVertexMapv1.h>
 #include <globalvertex/GlobalVertexMap.h>
 
 #include <calotrigger/MinimumBiasInfo.h>
@@ -227,7 +228,7 @@ void CopyIODataNodes::CreateGlobalVertexMap(PHCompositeNode *from_topNode, PHCom
       dstNode = new PHCompositeNode("DST");
       to_topNode->addNode(dstNode);
     }
-    to_globalvertexmap = dynamic_cast<GlobalVertexMap *>(from_globalvertexmap->CloneMe());
+    to_globalvertexmap = new GlobalVertexMapv1();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(to_globalvertexmap, "GlobalVertexMap", "PHObject");
     dstNode->addNode(newNode);
   }

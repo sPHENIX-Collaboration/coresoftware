@@ -86,12 +86,12 @@ int Fun4AllInputManager::AddListFile(const std::string &filename, const int do_i
   getline(infile, FullLine);
   while (!infile.eof())
   {
-    if (FullLine.size() && FullLine[0] != '#')  // remove comments
+    if (!FullLine.empty() && FullLine[0] != '#')  // remove comments
     {
       AddFile(FullLine);
       nfiles++;
     }
-    else if (FullLine.size())
+    else if (!FullLine.empty())
     {
       if (Verbosity() > 0)
       {

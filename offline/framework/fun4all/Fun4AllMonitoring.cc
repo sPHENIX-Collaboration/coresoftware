@@ -105,7 +105,7 @@ void Fun4AllMonitoring::Get_Memory()
   }
 }
 
-void Fun4AllMonitoring::PrintsMaps() const
+void Fun4AllMonitoring::PrintsMaps()
 {
   static int icnt = 0;
   std::stringstream smaps;

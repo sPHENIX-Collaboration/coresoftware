@@ -231,7 +231,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         uint8_t status = tower->get_status();
         h_emcal_tower_e->Fill(offlineenergy);
         h_emcal_tower_e_wide_range->Fill(offlineenergy);
-        
+        if (tower->get_isSaturated()) h_emcal_tower_e_saturated->Fill(offlineenergy);
         float pedestal = tower->get_pedestal();
         h_cemc_channel_pedestal[channel]->Fill(pedestal);
 
@@ -296,6 +296,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         h_ihcal_channel_pedestal[channel]->Fill(pedestal);
         h_ihcal_tower_e->Fill(offlineenergy);
         h_ihcal_tower_e_wide_range->Fill(offlineenergy);
+        if (tower->get_isSaturated()) h_ihcal_tower_e_saturated->Fill(offlineenergy);
 
         uint8_t status = tower->get_status();
         for (int is = 0; is < 8; is++)
@@ -353,6 +354,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         h_ohcal_channel_pedestal[channel]->Fill(pedestal);
         h_ohcal_tower_e->Fill(offlineenergy);
         h_ohcal_tower_e_wide_range->Fill(offlineenergy);
+        if (tower->get_isSaturated()) h_ohcal_tower_e_saturated->Fill(offlineenergy);
 
         uint8_t status = tower->get_status();
         for (int is = 0; is < 8; is++)
@@ -1004,6 +1006,10 @@ void CaloValid::createHistos()
   h_emcal_tower_e_wide_range->SetDirectory(nullptr);
   hm->registerHisto(h_emcal_tower_e_wide_range);
 
+  h_emcal_tower_e_saturated = new TH1F(boost::str(boost::format("%semcal_tower_e_saturated") % getHistoPrefix()).c_str(), "emcal_tower_e_saturated", 1000, -10., 40.);
+  h_emcal_tower_e_saturated->SetDirectory(nullptr);
+  hm->registerHisto(h_emcal_tower_e_saturated);
+
   h_ihcal_tower_e = new TH1F(boost::str(boost::format("%sihcal_tower_e") % getHistoPrefix()).c_str(), "ihcal_tower_e", 5000, -0.1, 1);
   h_ihcal_tower_e->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_tower_e);
@@ -1012,6 +1018,10 @@ void CaloValid::createHistos()
   h_ihcal_tower_e_wide_range->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_tower_e_wide_range);
 
+  h_ihcal_tower_e_saturated = new TH1F(boost::str(boost::format("%sihcal_tower_e_saturated") % getHistoPrefix()).c_str(), "ihcal_tower_e_saturated", 1000, -10., 40.);
+  h_ihcal_tower_e_saturated->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_tower_e_saturated);
+
   h_ohcal_tower_e = new TH1F(boost::str(boost::format("%sohcal_tower_e") % getHistoPrefix()).c_str(), "ohcal_tower_e", 5000, -0.1, 1);
   h_ohcal_tower_e->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_tower_e);
@@ -1019,6 +1029,10 @@ void CaloValid::createHistos()
   h_ohcal_tower_e_wide_range = new TH1F(boost::str(boost::format("%sohcal_tower_e_wide_range") % getHistoPrefix()).c_str(), "ohcal_tower_e_wide_range", 1000, -10., 40.);
   h_ohcal_tower_e_wide_range->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_tower_e_wide_range);
+
+  h_ohcal_tower_e_saturated = new TH1F(boost::str(boost::format("%sohcal_tower_e_saturated") % getHistoPrefix()).c_str(), "ohcal_tower_e_saturated", 1000, -10., 40.);
+  h_ohcal_tower_e_saturated->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_tower_e_saturated);
 
   // cluster QA
   h_etaphi_clus = new TH2F(boost::str(boost::format("%setaphi_clus") % getHistoPrefix()).c_str(), "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);

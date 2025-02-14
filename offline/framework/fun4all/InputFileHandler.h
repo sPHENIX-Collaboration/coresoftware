@@ -20,7 +20,7 @@ class InputFileHandler
   void IsOpen(const int i) { m_IsOpen = i; }
   void SetVerbosity(const int i) { m_Verbosity = i; }
   int GetVerbosity() const { return m_Verbosity; }
-  const std::list<std::string>& GetFileList() const { return m_FileList; }
+  const std::list<std::string> &GetFileList() const { return m_FileList; }
   void UpdateFileList();
   void FileName(const std::string &fn) { m_FileName = fn; }
   const std::string FileName() const { return m_FileName; }
