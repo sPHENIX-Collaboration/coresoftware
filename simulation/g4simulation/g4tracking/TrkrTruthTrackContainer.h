@@ -33,12 +33,6 @@ class TrkrTruthTrackContainer : public PHObject
   virtual bool hasTrackid(unsigned int /*trackid*/) const { return false; };
   virtual Map& getMap();
 
-  /*
-  int nhw() { return 6; };
-  int nhw_cc();
-  virtual int nhw_virt() { return 60; };
-  */
-
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override
   {
