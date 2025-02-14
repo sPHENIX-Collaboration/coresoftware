@@ -862,9 +862,7 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const PHCASeeding::keyP
 
     pvec_t xy_pts;
     std::transform(chain.begin(), chain.end(), std::back_inserter(xy_pts),
-      [this](const keyPtr& p) -> pvec_t::value_type {
-        return {p->x, p->y};
-      });
+      [](const keyPtr& p) -> pvec_t::value_type { return {p->x, p->y}; });
 
     // fit a circle through x,y coordinates
     const auto [R, X0, Y0] = TrackFitUtils::circle_fit_by_taubin(xy_pts);
