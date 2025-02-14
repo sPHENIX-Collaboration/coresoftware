@@ -98,7 +98,7 @@ class Fun4AllSingleDstPileupInputManager : public Fun4AllInputManager
   std::unique_ptr<PHNodeIOManager> m_IManager_background;
 
   //! time between crossings. This is a RHIC constant (ns)
-  double m_time_between_crossings = 106;
+  double m_time_between_crossings = 106.65237;
 
   //! collision rate (Hz)
   double m_collision_rate = 5e4;
