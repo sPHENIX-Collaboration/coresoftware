@@ -10,8 +10,13 @@
 #include <iostream>
 #include <limits>
 
-float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;  // default value, override from macro
-float TpcClusterZCrossingCorrection::_time_between_crossings = 106;  // ns, same value as in pileup generator
+// default value, override from macro
+float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;
+
+// ns, same value as in pileup generator
+float TpcClusterZCrossingCorrection::_time_between_crossings = 106.65237;
+
+//______________________________________________________________________________________________
 float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing)
 {
   if (crossing == std::numeric_limits<short>::max())
