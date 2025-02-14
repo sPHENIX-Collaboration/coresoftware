@@ -35,6 +35,9 @@ class ActsGeometry
   void set_drift_velocity(double vd) { _drift_velocity = vd; }
   double get_drift_velocity() { return _drift_velocity; }
 
+  void set_tpc_tzero(double tz) { _tpc_tzero = tz; }
+  double get_tpc_tzero() { return _tpc_tzero; }
+
   void set_crossing_period(double t) { _crossing_period = t; }
   double get_crossing_period() { return _crossing_period; }
 
@@ -70,6 +73,7 @@ class ActsGeometry
   ActsSurfaceMaps m_surfMaps;
 
   double _drift_velocity = 8.0e-3;  // cm/ns
+  double _tpc_tzero = 0.0;  // ns
   double _crossing_period = 106.0;  // ns
 };
 

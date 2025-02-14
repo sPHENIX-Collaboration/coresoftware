@@ -138,6 +138,7 @@ class MakeActsGeometry : public SubsysReco
   double getSurfStepZ() { return m_surfStepZ; }
 
   void set_drift_velocity(double vd) { m_drift_velocity = vd; }
+  void set_tpc_tzero(double tz) { m_tpc_tzero = tz; }
 
   void set_nSurfPhi(unsigned int value)
   {
@@ -282,6 +283,7 @@ class MakeActsGeometry : public SubsysReco
   //  int m_verbosity = 0;
 
   double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
+  double m_tpc_tzero = 0.0;  // ns, override from macro
 
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField = "1.4";
