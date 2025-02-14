@@ -97,8 +97,6 @@ class TpcLaminationFitting : public SubsysReco
   int m_nEvents{0};
 
   TTree *m_laminationTree{nullptr};
-  int m_runnumber{0};
-  int m_segment{0};
   bool m_side{false};
   int m_lamIndex{0};
   double m_lamPhi{0};

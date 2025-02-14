@@ -161,6 +161,10 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   {
     m_evaluator = std::make_unique<ActsEvaluator>(m_evalname);
     m_evaluator->Init(topNode);
+    if(m_actsEvaluator && !m_simActsEvaluator)
+    {
+      m_evaluator->isData();
+    }
     m_evaluator->verbosity(Verbosity());
   }
 
@@ -179,7 +183,7 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
   PHTimer eventTimer("eventTimer");
   eventTimer.stop();
   eventTimer.restart();
-
+  m_nBadFits = 0;
   m_event++;
 
   auto logLevel = Acts::Logging::FATAL;
@@ -196,19 +200,6 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
     if (Verbosity() > 4)
     {
       logLevel = Acts::Logging::VERBOSE;
-    }
-  }
-
-  /// Fill an additional track map if using the acts evaluator
-  /// for proto track comparison to fitted track
-  if (m_actsEvaluator)
-  {
-    /// wipe at the beginning of every new fit pass, so that the seeds
-    /// are whatever is currently in SvtxTrackMap
-    m_seedTracks->clear();
-    for (const auto& [key, track] : *m_trackMap)
-    {
-      m_seedTracks->insert(track);
     }
   }
 
@@ -237,6 +228,10 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
   // put this in the output file
   if (Verbosity() > 0)
   {
+    std::cout << "The Acts track fitter had " << m_nBadFits
+              << " fits return an error" << std::endl;
+    std::cout << " seed map size " << m_seedMap->size() << std::endl;
+
     std::cout << " SvtxTrackMap size is now " << m_trackMap->size()
               << std::endl;
   }
@@ -277,9 +272,6 @@ int PHActsTrkFitter::End(PHCompositeNode* /*topNode*/)
 
   if (Verbosity() > 0)
   {
-    std::cout << "The Acts track fitter had " << m_nBadFits
-              << " fits return an error" << std::endl;
-
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -288,11 +280,6 @@ int PHActsTrkFitter::End(PHCompositeNode* /*topNode*/)
 void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 {
   auto logger = Acts::getDefaultLogger("PHActsTrkFitter", logLevel);
-
-  if (Verbosity() > 0)
-  {
-    std::cout << " seed map size " << m_seedMap->size() << std::endl;
-  }
 
   for (auto track : *m_seedMap)
   {
@@ -815,7 +802,7 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult& fitOutput,
                           trackTips, indexedParams);
 
     m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
-
+    
     if (m_actsEvaluator)
     {
       m_evaluator->evaluateTrackFit(tracks, trackTips, indexedParams, track,
@@ -1171,20 +1158,6 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
     m_alignmentStateMap = new SvtxAlignmentStateMap_v1;
     auto node = new PHDataNode<SvtxAlignmentStateMap>(m_alignmentStateMap, "SvtxAlignmentStateMap", "PHObject");
     svtxNode->addNode(node);
-  }
-
-  if (m_actsEvaluator)
-  {
-    m_seedTracks = findNode::getClass<SvtxTrackMap>(topNode, _seed_track_map_name);
-
-    if (!m_seedTracks)
-    {
-      m_seedTracks = new SvtxTrackMap_v2;
-
-      PHIODataNode<PHObject>* seedNode =
-          new PHIODataNode<PHObject>(m_seedTracks, _seed_track_map_name, "PHObject");
-      svtxNode->addNode(seedNode);
-    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

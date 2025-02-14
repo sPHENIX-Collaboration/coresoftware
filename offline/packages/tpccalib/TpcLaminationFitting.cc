@@ -8,7 +8,6 @@
 
 #include <ffaobjects/EventHeader.h>
 
-#include <fun4all/Fun4AllUtils.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -170,8 +169,6 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   }
 
   m_laminationTree = new TTree("laminationTree","laminationTree");
-  m_laminationTree->Branch("runnumber",&m_runnumber);
-  m_laminationTree->Branch("segment",&m_segment);
   m_laminationTree->Branch("side",&m_side);
   m_laminationTree->Branch("lamIndex",&m_lamIndex);
   m_laminationTree->Branch("lamPhi",&m_lamPhi);
@@ -729,7 +726,4 @@ void TpcLaminationFitting::fill_guarding_bins(TpcDistortionCorrectionContainer *
 void TpcLaminationFitting::setOutputfile(const std::string &outputfile)
 {
   m_outputfile = outputfile;
-  std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(m_outputfile);
-  m_runnumber = runseg.first;
-  m_segment = runseg.second;
 }

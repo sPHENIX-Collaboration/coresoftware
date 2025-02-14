@@ -103,6 +103,10 @@ class AlignmentTransformation
 
   void verbosity() { localVerbosity = 1; }
   void misalignmentFactor(uint8_t layer, const double factor);
+  double misalignmentFactor(uint8_t layer)
+  {
+    return transformMap->getMisalignmentFactor(layer);
+  }
   void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur; }
 
  private:

@@ -408,6 +408,7 @@ int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
 void AlignmentTransformation::misalignmentFactor(uint8_t layer, const double factor)
 {
   transformMap->setMisalignmentFactor(layer, factor);
+  transformMapTransient->setMisalignmentFactor(layer, factor);
 }
 void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode* topNode)
 {

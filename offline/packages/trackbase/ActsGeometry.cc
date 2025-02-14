@@ -149,9 +149,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
               << hitsetkey << std::endl;
     return nullptr;
   }
-
   double world_phi = atan2(world[1], world[0]);
-
   std::vector<Surface>& surf_vec = mapIter->second;
   unsigned int surf_index = 999;
 
@@ -160,7 +158,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   // we use TPC side from the hitsetkey, since z can be either sign in northa nd south, depending on crossing
   double fraction = (world_phi + M_PI) / (2.0 * M_PI);
 
-  double rounded_nsurf = round((double) (surf_vec.size() / 2) * fraction - 0.5);  // NOLINT
+  double rounded_nsurf = std::round((double) (surf_vec.size() / 2) * fraction - 0.5);  // NOLINT
   unsigned int nsurfm = (unsigned int) rounded_nsurf;
 
   if (side == 0)
@@ -169,21 +167,47 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   }
 
   unsigned int nsurf = nsurfm % surf_vec.size();
-
   Surface this_surf = surf_vec[nsurf];
 
   auto vec3d = this_surf->center(geometry().getGeoContext());
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
   double surf_phi = atan2(surf_center[1], surf_center[0]);
   double surfStepPhi = geometry().tpcSurfStepPhi;
-
-  if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
+if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
   {
     surf_index = nsurf;
     subsurfkey = nsurf;
   }
   else
   {
+    // check for the periodic boundary condition
+    auto firstsurf = *surf_vec.begin();
+    auto firstsurfcenter = firstsurf->center(geometry().getGeoContext());
+    float firstsurf_phi = atan2(firstsurfcenter[1], firstsurfcenter[0]);
+    if (world_phi < firstsurf_phi - surfStepPhi / 2.0)
+    {
+      world_phi += 2.0 * M_PI;
+    }
+    //check a few surfaces around this one
+    for( int i = -1; i <= 1; i++)
+    {
+      if(i==0) // already tried this one
+      {
+        continue;
+      }
+      unsigned int new_nsurf = (nsurf+i) % surf_vec.size();
+      this_surf = surf_vec[new_nsurf];
+      vec3d = this_surf->center(geometry().getGeoContext());
+      surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      surf_phi = atan2(surf_center[1], surf_center[0]);
+  
+      if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
+      {
+        surf_index = new_nsurf;
+        subsurfkey = new_nsurf;
+        return surf_vec[surf_index];
+      }
+    }
     return nullptr;
   }
 

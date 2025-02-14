@@ -2,13 +2,15 @@
 #define TRIGGER_TRIGGERPRIMITIVECONTAINER_H
 
 #include "TriggerDefs.h"
-#include "TriggerPrimitive.h"
 
 #include <phool/PHObject.h>
 
+#include <cstddef>
 #include <iostream>
 #include <map>
-#include <ostream>
+#include <utility>
+
+class TriggerPrimitive;
 
 ///
 class TriggerPrimitiveContainer : public PHObject

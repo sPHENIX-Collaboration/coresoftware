@@ -1,8 +1,5 @@
 #include "LL1Out.h"
 
-#include "LL1ReturnCodes.h"
-
-#include <cmath>
 #include <iostream>
 
 namespace

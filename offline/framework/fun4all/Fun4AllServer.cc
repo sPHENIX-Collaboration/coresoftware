@@ -1,5 +1,6 @@
 #include "Fun4AllServer.h"
 
+#include "Fun4AllDstOutputManager.h"
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllHistoManager.h"  // for Fun4AllHistoManager
 #include "Fun4AllMemoryTracker.h"
@@ -8,7 +9,6 @@
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllSyncManager.h"
 #include "SubsysReco.h"
-#include "Fun4AllDstOutputManager.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>  // for PHNode
@@ -37,7 +37,7 @@
 #include <memory>  // for allocator_traits<>::value_type
 #include <sstream>
 
-//#define FFAMEMTRACKER
+// #define FFAMEMTRACKER
 
 Fun4AllServer *Fun4AllServer::__instance = nullptr;
 
@@ -218,8 +218,8 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
   int iret = 0;
   try
   {
-    std::string memory_tracker_name = subsystem->Name() + "_" + topnodename;
 #ifdef FFAMEMTRACKER
+    std::string memory_tracker_name = subsystem->Name() + "_" + topnodename;
     ffamemtracker->Start(memory_tracker_name, "SubsysReco");
 #endif
     if (Verbosity() >= 3)
@@ -285,7 +285,8 @@ int Fun4AllServer::unregisterSubsystem(SubsysReco *subsystem)
 
 int Fun4AllServer::unregisterSubsystemsNow()
 {
-  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter, removeiter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator sysiter;
+  std::vector<std::pair<SubsysReco *, PHCompositeNode *>>::iterator removeiter;
   for (removeiter = DeleteSubsystems.begin();
        removeiter != DeleteSubsystems.end();
        ++removeiter)
@@ -704,7 +705,7 @@ int Fun4AllServer::process_event()
         exit(1);
       }
       std::vector<Fun4AllOutputManager *>::iterator iterOutMan;
-     
+
       for (iterOutMan = OutputManager.begin(); iterOutMan != OutputManager.end(); ++iterOutMan)
       {
         if (!(*iterOutMan)->DoNotWriteEvent(&RetCodes))
@@ -748,19 +749,19 @@ int Fun4AllServer::process_event()
       }
     }
   }
-  if(!HistoManager.empty() && !eventbad && writing)
+  if (!HistoManager.empty() && !eventbad && writing)
   {
-    for( const auto& histit : HistoManager)
+    for (const auto &histit : HistoManager)
     {
-      if((*histit).dumpHistoSegments())
+      if ((*histit).dumpHistoSegments())
       {
-        if(Verbosity() > 0)
+        if (Verbosity() > 0)
         {
           std::cout << PHWHERE << (*histit).Name() << " wrote events, closing " << (*histit).OutFileName() << std::endl;
         }
         // This is -1 because the segment is initially determined in the first event of a
         // segment from the DST, then incremented. So it is always 1 ahead of the histos
-        (*histit).segment(segment-1);
+        (*histit).segment(segment - 1);
         (*histit).dumpHistos();
         (*histit).RunAfterClosing();
         (*histit).Reset();
@@ -848,10 +849,8 @@ int Fun4AllServer::BeginRun(const int runno)
 #endif
   if (!bortime_override)
   {
-    if (beginruntimestamp)
-    {
-      delete beginruntimestamp;
-    }
+    delete beginruntimestamp;
+
     beginruntimestamp = new PHTimeStamp();
   }
   else
@@ -1180,7 +1179,7 @@ void Fun4AllServer::Print(const std::string &what) const
   if (what == "ALL" || what == "HISTOS")
   {
     // loop over the map and print out the content (name and location in memory)
-    for (auto &histoman : HistoManager)
+    for (const auto &histoman : HistoManager)
     {
       histoman->Print(what);
     }
@@ -1204,7 +1203,7 @@ void Fun4AllServer::Print(const std::string &what) const
   if (what == "ALL" || what == "INPUTMANAGER")
   {
     // the input managers are managed by the input singleton
-    for (auto &syncman : SyncManagers)
+    for (const auto &syncman : SyncManagers)
     {
       std::cout << "SyncManager: " << syncman->Name() << std::endl;
       syncman->Print(what);
@@ -1227,7 +1226,7 @@ void Fun4AllServer::Print(const std::string &what) const
       std::string::size_type pos = pass_on.find('%');
       pass_on = pass_on.substr(pos + 1, pass_on.size());
     }
-    for (auto &outman : OutputManager)
+    for (const auto &outman : OutputManager)
     {
       outman->Print(pass_on);
     }
@@ -1292,7 +1291,9 @@ int Fun4AllServer::outfileclose()
 
 int Fun4AllServer::InitNodeTree(PHCompositeNode *topNode)
 {
-  PHCompositeNode *dstNode, *runNode, *parNode;
+  PHCompositeNode *dstNode;
+  PHCompositeNode *runNode;
+  PHCompositeNode *parNode;
   dstNode = new PHCompositeNode("DST");
   topNode->addNode(dstNode);
   runNode = new PHCompositeNode("RUN");
@@ -1492,7 +1493,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
         BeginRun(runnumber);
       }
     }
-    if (Verbosity() >= 1 && ((icnt + 1)%VerbosityDownscale() == 0))
+    if (Verbosity() >= 1 && ((icnt + 1) % VerbosityDownscale() == 0))
     {
       std::cout << "Fun4AllServer::run - processing event "
                 << (icnt + 1) << " from run " << runnumber << std::endl;
@@ -1765,7 +1766,7 @@ void Fun4AllServer::PrintTimer(const std::string &name)
   return;
 }
 
-void Fun4AllServer::PrintMemoryTracker(const std::string &name) const
+void Fun4AllServer::PrintMemoryTracker(const std::string &name)
 {
 #ifdef FFAMEMTRACKER
   ffamemtracker->PrintMemoryTracker(name);

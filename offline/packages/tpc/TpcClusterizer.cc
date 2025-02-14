@@ -1228,6 +1228,15 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
   }
+  auto geom =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  
+  AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

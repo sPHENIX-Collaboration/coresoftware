@@ -80,6 +80,11 @@ int InttRawHitQA::InitRun(PHCompositeNode *topNode)
     if(theNode)
     {
       std::cout << PHWHERE << " Found INTT Raw hit container node " << theNode->getName() << std::endl;
+      // skip if theNode->getName() is INTTEVENTHEADER
+      if(theNode->getName() == "INTTEVENTHEADER")
+      {
+        continue;
+      }
       auto cont = (InttRawHitContainer*)theNode->getData();
       if(cont)
       {
@@ -189,7 +194,7 @@ void InttRawHitQA::createHistos()
       std::string name = getHistoPrefix() + "intt" + std::to_string(felix) + "_" + std::to_string(ladder);
       std::string title = name + ";Chip;Channel;Entries";
       auto h = new TH2I(name.c_str(), title.c_str(),
-                        InttQa::kChip_num, 1, InttQa::kChip_num,
+                        InttQa::kChip_num, 1, InttQa::kChip_num + 1,
                         InttQa::kChan_num, 0, InttQa::kChan_num);
       hm->registerHisto(h);
     }

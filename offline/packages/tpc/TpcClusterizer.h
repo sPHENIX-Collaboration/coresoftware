@@ -13,14 +13,13 @@ class ClusHitsVerbosev1;
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
-class RawHitSet;
-class RawHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrainingHitsContainer;
 class PHG4TpcCylinderGeom;
 class PHG4TpcCylinderGeomContainer;
-
+class RawHitSetContainer;
+class RawHitSet;
 class TpcClusterizer : public SubsysReco
 {
 public:
@@ -53,7 +52,6 @@ public:
   void set_max_cluster_half_size_phi(unsigned short size) { MaxClusterHalfSizePhi = size; }
   void set_max_cluster_half_size_z(unsigned short size) { MaxClusterHalfSizeT = size; }
   void set_reject_event(bool reject) { m_rejectEvent = reject; }
-
   void set_ClusHitsVerbose(bool set = true) { record_ClusHitsVerbose = set; }
   void set_nzbins(int val){NZBinsSide = val; is_reco = true;}
   void set_rawdata_reco()
@@ -71,6 +69,7 @@ public:
     set_max_cluster_half_size_z(20);
     set_fixed_window(3);
   };
+  void set_sampa_tbias(double value ) { m_sampa_tbias = value; }
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
  private:
@@ -87,8 +86,8 @@ public:
   bool _use_nn = false;
   bool do_hit_assoc = true;
   bool do_wedge_emulation = false;
-  bool do_sequential = false;
   bool do_read_raw = false;
+  bool do_sequential = false;
   bool do_singles = true;
   bool do_split = false;
   bool is_reco = false;

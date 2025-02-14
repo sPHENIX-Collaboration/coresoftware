@@ -2,7 +2,6 @@
 
 #include <calobase/TowerInfoDefs.h>
 
-#include <bitset>
 #include <cstring>
 
 uint32_t

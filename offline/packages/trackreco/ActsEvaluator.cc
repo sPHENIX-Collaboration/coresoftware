@@ -69,6 +69,11 @@ void ActsEvaluator::Init(PHCompositeNode* topNode)
 }
 void ActsEvaluator::next_event(PHCompositeNode* topNode)
 {
+  m_eventNr++;
+  if(m_isData)
+  {
+    return;
+  }
   if (!m_svtxEvalStack)
   {
     m_svtxEvalStack = new SvtxEvalStack(topNode);
@@ -76,7 +81,6 @@ void ActsEvaluator::next_event(PHCompositeNode* topNode)
 
   m_svtxEvalStack->next_event(topNode);
 
-  m_eventNr++;
 }
 void ActsEvaluator::process_track(const ActsTrackFittingAlgorithm::TrackContainer& tracks,
 				  std::vector<Acts::MultiTrajectoryTraits::IndexType>& trackTips,
@@ -120,9 +124,11 @@ void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackConta
     }
     return;
   }
-
-  SvtxTrackEval* trackeval = m_svtxEvalStack->get_track_eval();
-
+  SvtxTrackEval* trackeval = nullptr;
+  if (m_svtxEvalStack)
+  {
+    trackeval = m_svtxEvalStack->get_track_eval();
+  }
   int iTrack = track->get_id();
   int iTraj = iTrack;
   if (m_verbosity > 2)
@@ -148,17 +154,20 @@ void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackConta
     std::cout << "Evaluating track key " << iTrack
               << " for track tip " << trackTip << std::endl;
   }
-
-  PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
-
+  PHG4Particle* g4particle = nullptr;
+  if (trackeval)
+  {
+    g4particle = trackeval->max_truth_particle_by_nclusters(track);
+  }
   if (m_verbosity > 1)
   {
     std::cout << "Analyzing SvtxTrack " << iTrack << std::endl;
-
+    if(g4particle){
     std::cout << "TruthParticle : " << g4particle->get_px()
               << ", " << g4particle->get_py() << ", "
               << g4particle->get_pz() << ", " << g4particle->get_e()
               << std::endl;
+    }
   }
 
   m_trackNr = iTrack;
@@ -193,7 +202,9 @@ void ActsEvaluator::evaluateTrackFit(const ActsTrackFittingAlgorithm::TrackConta
   m_ndf_fit = trajState.NDF;
   m_quality = track->get_quality();
 
+if(g4particle){
   fillG4Particle(g4particle);
+  }
   fillProtoTrack(seed);
   fillFittedTrackParams(paramsMap, trackTip);
   visitTrackStates(mj, trackTip, measurements);
@@ -293,6 +304,15 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     /// the map created in PHActsSourceLinks
     float gt = -9999;
     Acts::Vector3 globalTruthPos = getGlobalTruthHit(cluskey, gt);
+    float truthLOC0 = std::numeric_limits<float>::quiet_NaN();
+    float truthLOC1 = std::numeric_limits<float>::quiet_NaN();
+    float truthPHI = std::numeric_limits<float>::quiet_NaN();
+    float truthTHETA = std::numeric_limits<float>::quiet_NaN();
+    float truthQOP = std::numeric_limits<float>::quiet_NaN();
+    float truthTIME = std::numeric_limits<float>::quiet_NaN();
+    float momentum = std::numeric_limits<float>::quiet_NaN();
+    if(!std::isnan(globalTruthPos(0)))
+    {
     float gx = globalTruthPos(0);
     float gy = globalTruthPos(1);
     float gz = globalTruthPos(2);
@@ -314,18 +334,15 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     m_t_dx.push_back(gx / r);
     m_t_dy.push_back(gy / r);
     m_t_dz.push_back(gz / r);
-
+    
     /// Get the truth track parameter at this track State
-    float truthLOC0 = 0;
-    float truthLOC1 = 0;
-    float truthPHI = 0;
-    float truthTHETA = 0;
-    float truthQOP = 0;
-    float truthTIME = 0;
-    float momentum = std::sqrt(m_t_px * m_t_px +
-                          m_t_py * m_t_py +
-                          m_t_pz * m_t_pz);
 
+    if(!std::isnan(m_t_px))
+    {
+        momentum = std::sqrt(m_t_px * m_t_px +
+           m_t_py * m_t_py +
+           m_t_pz * m_t_pz);
+    }
     if(vecResult.ok())
       {
 	Acts::Vector2 truthLocVec = vecResult.value();
@@ -350,7 +367,24 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     m_t_eTHETA.push_back(truthTHETA);
     m_t_eQOP.push_back(truthQOP);
     m_t_eT.push_back(truthTIME);
+    }
+    else
+    {
+      m_t_x.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_y.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_z.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_r.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_dx.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_dy.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_dz.push_back(std::numeric_limits<float>::quiet_NaN());
 
+      m_t_eLOC0.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_eLOC1.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_ePHI.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_eTHETA.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_eQOP.push_back(std::numeric_limits<float>::quiet_NaN());
+      m_t_eT.push_back(std::numeric_limits<float>::quiet_NaN());
+    }
     /// Get the predicted parameter for this state
     bool predicted = false;
     if (state.hasPredicted())
@@ -744,6 +778,13 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
 Acts::Vector3 ActsEvaluator::getGlobalTruthHit(TrkrDefs::cluskey cluskey,
                                                float& _gt)
 {
+  Acts::Vector3 ret(std::numeric_limits<float>::quiet_NaN(),
+                    std::numeric_limits<float>::quiet_NaN(),
+                    std::numeric_limits<float>::quiet_NaN());
+  if(m_svtxEvalStack == nullptr)
+                    {
+                      return ret;
+                    }
   SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
 
   const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluskey);
@@ -764,10 +805,11 @@ Acts::Vector3 ActsEvaluator::getGlobalTruthHit(TrkrDefs::cluskey cluskey,
   gx *= Acts::UnitConstants::cm;
   gy *= Acts::UnitConstants::cm;
   gz *= Acts::UnitConstants::cm;
-
-  Acts::Vector3 globalPos(gx, gy, gz);
+  ret(0) = gx;
+  ret(1) = gy;
+  ret(2) = gz;
   _gt = gt;
-  return globalPos;
+  return ret;
 }
 
 //___________________________________________________________________________________
@@ -815,20 +857,7 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
       auto cluster = m_clusterContainer->findCluster(key);
 
       /// Get source link global position
-      Acts::Vector2 loc(cluster->getLocalX(),
-                        cluster->getLocalY());
-
-      if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::tpcId)
-      {
-        // must convert local Y from cluster average time of arival to local cluster z position
-        double drift_velocity = m_tGeometry->get_drift_velocity();
-        double zdriftlength = cluster->getLocalY() * drift_velocity;
-        double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
-        double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
-        unsigned int side = TpcDefs::getSide(key);
-        if (side == 0) zloc = -zloc;
-        loc(1) = zloc * Acts::UnitConstants::cm;
-      }
+      Acts::Vector2 loc = m_tGeometry->getLocalCoords(key, cluster);
 
       Acts::Vector3 mom(0, 0, 0);
       Acts::Vector3 globalPos = m_tGeometry->getGlobalPosition(key, cluster) * Acts::UnitConstants::cm;
@@ -843,7 +872,15 @@ void ActsEvaluator::fillProtoTrack(const TrackSeed* seed)
       float gt = -9999;
 
       Acts::Vector3 globalTruthPos = getGlobalTruthHit(key, gt);
-
+      if(std::isnan(globalTruthPos(0)))
+      {
+        m_t_SL_lx.push_back(std::numeric_limits<float>::quiet_NaN());
+        m_t_SL_ly.push_back(std::numeric_limits<float>::quiet_NaN());
+        m_t_SL_gx.push_back(std::numeric_limits<float>::quiet_NaN());
+        m_t_SL_gy.push_back(std::numeric_limits<float>::quiet_NaN());
+        m_t_SL_gz.push_back(std::numeric_limits<float>::quiet_NaN());
+        return;
+      }
       float gx = globalTruthPos(0);
       float gy = globalTruthPos(1);
       float gz = globalTruthPos(2);
@@ -1015,15 +1052,7 @@ int ActsEvaluator::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-  if (!m_truthInfo)
-  {
-    std::cout << PHWHERE << "PHG4TruthInfoContainer not found, cannot continue!"
-              << std::endl;
-
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
 
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
@@ -1045,20 +1074,21 @@ int ActsEvaluator::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsProtoTrackMap = findNode::getClass<SvtxTrackMap>(topNode, "SeedTrackMap");
-  if (!m_actsProtoTrackMap)
-  {
-    std::cout << PHWHERE << "No Acts proto tracks on node tree. Bailing."
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterContainer)
   {
     std::cout << PHWHERE << "No clusters, bailing"
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_truthInfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
+  if (!m_truthInfo)
+  {
+    std::cout << PHWHERE << "PHG4TruthInfoContainer not found! If you are not running the Acts Evaluator on data, this will crash"
+              << std::endl;
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1227,6 +1257,7 @@ void ActsEvaluator::clearTrackVariables()
 
 void ActsEvaluator::initializeTree()
 {
+  
   m_trackFile = new TFile(m_filename.c_str(), "RECREATE");
 
   m_trackTree = new TTree("tracktree", "A tree with Acts KF track information");

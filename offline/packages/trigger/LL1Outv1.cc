@@ -1,11 +1,7 @@
 #include "LL1Outv1.h"
-#include "LL1ReturnCodes.h"
 #include "TriggerDefs.h"
-#include "TriggerPrimitiveContainerv1.h"
-#include "TriggerPrimitivev1.h"
 
-#include <algorithm>
-#include <cmath>
+#include <cstdint>
 #include <iostream>
 
 LL1Outv1::LL1Outv1()

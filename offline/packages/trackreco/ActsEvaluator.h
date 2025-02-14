@@ -58,6 +58,7 @@ class ActsEvaluator
                      const TrackSeed* seed,
                      const ActsTrackFittingAlgorithm::MeasurementContainer& measurements);
   void End();
+  void isData() { m_isData = true; }
   void setEvalCKF(bool evalCKF) { m_evalCKF = evalCKF; }
   void verbosity(int verb) { m_verbosity = verb; }
   void next_event(PHCompositeNode* topNode);
@@ -95,7 +96,7 @@ class ActsEvaluator
 
 //  SvtxEvaluator* m_svtxEvaluator{nullptr};
   PHG4TruthInfoContainer* m_truthInfo{nullptr};
-  SvtxTrackMap *m_trackMap{nullptr}, *m_actsProtoTrackMap{nullptr};
+  SvtxTrackMap* m_trackMap{nullptr};
   SvtxEvalStack* m_svtxEvalStack{nullptr};
 
   ActsGeometry* m_tGeometry{nullptr};
@@ -105,6 +106,7 @@ class ActsEvaluator
   /// boolean indicating whether or not to evaluate the CKF or
   /// the KF. Must correspond with what was run to do fitting
   /// i.e. PHActsTrkFitter or PHActsTrkProp
+  bool m_isData = false;
   bool m_evalCKF = false;
   int m_verbosity = 0;
   std::string m_filename;

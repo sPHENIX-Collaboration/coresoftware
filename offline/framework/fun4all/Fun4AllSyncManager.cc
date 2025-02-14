@@ -256,19 +256,17 @@ readerror:
             m_CurrentRun = runno;
             continue;
           }
-          else
+
+          if (m_CurrentRun != runno && !m_MixRunsOkFlag)
           {
-            if (m_CurrentRun != runno && !m_MixRunsOkFlag)
+            std::cout << PHWHERE << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << std::endl;
+            std::cout << "Here are the list of input managers and runnumbers:" << std::endl;
+            for (Fun4AllInputManager *inman : m_InManager)
             {
-              std::cout << PHWHERE << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << std::endl;
-              std::cout << "Here are the list of input managers and runnumbers:" << std::endl;
-              for (Fun4AllInputManager *inman : m_InManager)
-              {
-                std::cout << inman->Name() << " runno: " << inman->RunNumber() << std::endl;
-              }
-              std::cout << "Exiting now" << std::endl;
-              exit(1);
+              std::cout << inman->Name() << " runno: " << inman->RunNumber() << std::endl;
             }
+            std::cout << "Exiting now" << std::endl;
+            exit(1);
           }
         }
       }
@@ -309,11 +307,9 @@ int Fun4AllSyncManager::skip(const int nevnts)
     {
       return 0;
     }
-    else
-    {
-      std::cout << PHWHERE << " Error during skipping events" << std::endl;
-      return iret;
-    }
+
+    std::cout << PHWHERE << " Error during skipping events" << std::endl;
+    return iret;
   }
   std::cout << PHWHERE << " Cannot skip events: No Input Managers registered?" << std::endl;
   Print("INPUTMANAGER");
@@ -480,7 +476,7 @@ void Fun4AllSyncManager::PrintSyncProblem() const
   std::cout << "Bad use of Fun4AllDstInputManager for file(s) which do not have a synchronization object" << std::endl;
   std::cout << "This works for single streams but if you run with multiple input streams this might lead to event mixing" << std::endl;
   std::cout << "If you insist to run this (you take full responsibility), change the following in your macro: " << std::endl;
-  for (auto iter : m_InManager)
+  for (auto *iter : m_InManager)
   {
     if (iter->HasSyncObject() < 0)
     {
