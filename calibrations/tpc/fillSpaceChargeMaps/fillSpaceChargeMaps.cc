@@ -32,6 +32,12 @@
 #include <utility>  // for pair
 #include <vector>
 
+namespace
+{
+  // time between crossings (ns)
+  static constexpr double m_time_between_crossing = 106.65237;
+}
+
 //____________________________________________________________________________..
 fillSpaceChargeMaps::fillSpaceChargeMaps(const std::string &name, const std::string &filename)
   : SubsysReco(name)
@@ -362,8 +368,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
             }
             else
             {
-              z_prim[iz] = _hit_z - (bX - _event_bunchXing) * 106 * vIon * ns;
-              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_prim[iz] = _hit_z - (bX - _event_bunchXing) * m_time_between_crossing * vIon * ns;
+              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * m_time_between_crossing * vIon * ns;
             }
             if (z_prim[iz] > 0 && z_prim[iz] < 1.055 * m)
             {
@@ -394,8 +400,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
             }
             else
             {
-              z_prim[iz] = _hit_z + (bX - _event_bunchXing) * 106 * vIon * ns;
-              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_prim[iz] = _hit_z + (bX - _event_bunchXing) * m_time_between_crossing * vIon * ns;
+              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * m_time_between_crossing * vIon * ns;
             }
             if (z_prim[iz] < 0 && z_prim[iz] > -1.055 * m)
             {

@@ -32,6 +32,12 @@
 #include <string>
 #include <utility>  // for pair
 
+namespace
+{
+  // time between crossings (ns)
+  static constexpr double m_time_between_crossing = 106.65237;
+}
+
 bool IsOverFrame(double r, double phi);
 
 bool IsOverFrame(double r, double phi)
@@ -456,7 +462,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
           {
             if (z >= 0 && z < 1.055 * m)
             {
-              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * m_time_between_crossing * vIon * ns;
               if (z_ibf[iz] > 0 && z_ibf[iz] < 1.055 * m)
               {
                 f_fill_ibf[iz] = 1;
@@ -464,7 +470,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
             }
             if (z < 0 && z > -1.055 * m)
             {
-              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * m_time_between_crossing * vIon * ns;
               if (z_ibf[iz] < 0 && z_ibf[iz] > -1.055 * m)
               {
                 f_fill_ibf[iz] = 1;
