@@ -35,6 +35,12 @@
 #include <array>
 #include <cassert>
 
+namespace
+{
+  // time between crossings (microseconds)
+  static constexpr double m_time_between_crossing = 106.65237 / 1000;
+}
+
 //_________________________________________________________
 MvtxCombinedRawDataDecoder::MvtxCombinedRawDataDecoder(const std::string &name)
   : SubsysReco(name)
@@ -228,7 +234,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     col = mvtx_hit->get_col();
 
     int bcodiff = gl1 ? strobe - gl1bco : 0;
-    double timeElapsed = bcodiff * 0.1065;  // 106 ns rhic clock
+    double timeElapsed = bcodiff * m_time_between_crossing;
     int index = m_mvtx_is_triggered ? 0 : std::ceil(timeElapsed / m_strobeWidth);
 
     if (index < -16 || index > 15)
