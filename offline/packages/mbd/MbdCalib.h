@@ -2,7 +2,7 @@
 #define MBD_MBDCALIB_H
 
 #include "MbdDefs.h"
-#include <mbd/MbdGeom.h>
+#include "MbdGeom.h"
 
 #ifndef ONLINE
 #include <fun4all/Fun4AllBase.h>
