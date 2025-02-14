@@ -15,4 +15,4 @@ TrkrTruthTrackContainer::Map& TrkrTruthTrackContainer::getMap()
   return dummy_map;
 }
 
-int TrkrTruthTrackContainer::nhw_cc() { return 106; };
+// int TrkrTruthTrackContainer::nhw_cc() { return 106; };
