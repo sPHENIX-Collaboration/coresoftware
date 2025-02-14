@@ -10,7 +10,7 @@
 #include <iostream>
 #include <limits>
 
-// default value, override from macro
+// default value, override from macro (cm/ns)
 float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;
 
 // ns, same value as in pileup generator
