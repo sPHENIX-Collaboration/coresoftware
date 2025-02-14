@@ -21,6 +21,7 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/sphenix_constants.h>
 
 #include <TDatabasePDG.h>
 #include <TF1.h>
@@ -173,7 +174,7 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
     // get the first time
     if (this_hit->get_t(1) < first_time[ch])
     {
-      if (fabs(this_hit->get_t(1)) < 106.5)
+      if (fabs(this_hit->get_t(1)) < sphenix_constants::time_between_crossings)
       {
         first_time[ch] = this_hit->get_t(1) - vtxp->get_t();
         Float_t dt = gsl_ran_gaussian(m_RandomGenerator, _tres);  // get fluctuation in time

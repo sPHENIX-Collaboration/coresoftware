@@ -27,6 +27,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
+#include <phool/sphenix_constants.h>
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
@@ -34,12 +35,6 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-
-namespace
-{
-  // time between crossings (microseconds)
-  static constexpr double m_time_between_crossing = 106.65237 / 1000;
-}
 
 //_________________________________________________________
 MvtxCombinedRawDataDecoder::MvtxCombinedRawDataDecoder(const std::string &name)
@@ -120,7 +115,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
   {
     se->unregisterSubsystem(this);
   }
-  recoConsts *rc = recoConsts::instance();
+  auto rc = recoConsts::instance();
   int runNumber = rc->get_IntFlag("RUNNUMBER");
 
   if (m_readStrWidthFromDB)
@@ -234,8 +229,12 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     col = mvtx_hit->get_col();
 
     int bcodiff = gl1 ? strobe - gl1bco : 0;
-    double timeElapsed = bcodiff * m_time_between_crossing;
-    int index = m_mvtx_is_triggered ? 0 : std::ceil(timeElapsed / m_strobeWidth);
+
+    // elapsed time (us, to match strobeWidth)
+    const double timeElapsed = bcodiff * sphenix_constants::time_between_crossings/1000;
+
+    // strobe index
+    const int index = m_mvtx_is_triggered ? 0 : std::ceil(timeElapsed / m_strobeWidth);
 
     if (index < -16 || index > 15)
     {

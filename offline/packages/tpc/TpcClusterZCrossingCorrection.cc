@@ -6,6 +6,8 @@
 
 #include "TpcClusterZCrossingCorrection.h"
 
+#include <phool/sphenix_constants.h>
+
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -14,7 +16,7 @@
 float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;
 
 // ns, same value as in pileup generator
-float TpcClusterZCrossingCorrection::_time_between_crossings = 106.65237;
+float TpcClusterZCrossingCorrection::_time_between_crossings = sphenix_constants::time_between_crossings;
 
 //______________________________________________________________________________________________
 float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing)

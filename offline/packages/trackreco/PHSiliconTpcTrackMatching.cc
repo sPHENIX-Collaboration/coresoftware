@@ -26,6 +26,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/sphenix_constants.h>
 
 #include <TF1.h>
 #include <TFile.h>
@@ -39,13 +40,6 @@
 #include <utility>  // for pair
 
 using namespace std;
-
-namespace
-{
-
-  //! time between crossing (ns)
-  static constexpr double time_between_crossings = 106.65237;
-}
 
 //____________________________________________________________________________..
 PHSiliconTpcTrackMatching::PHSiliconTpcTrackMatching(const std::string &name)
@@ -327,7 +321,7 @@ short int PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpci
 double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch)
 {
   const double vdrift = _tGeometry->get_drift_velocity();  // cm/ns
-  const double z_bunch_separation = time_between_crossings * vdrift; // cm
+  const double z_bunch_separation = sphenix_constants::time_between_crossings * vdrift; // cm
 
   // The sign of z_mismatch will depend on which side of the TPC the tracklet is in
   TrackSeed *track = _track_map->get(trid);

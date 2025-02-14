@@ -39,6 +39,8 @@ class TpcClusterZCrossingCorrection
   //! drift velocity (cm/ns)
   static float _vdrift;
 
+  private:
+
   //! time between crossing (ns)
   static float _time_between_crossings;
 

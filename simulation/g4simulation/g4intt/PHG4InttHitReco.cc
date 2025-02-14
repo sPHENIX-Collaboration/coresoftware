@@ -41,6 +41,7 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <phool/sphenix_constants.h>
 
 #include <TSystem.h>
 
@@ -622,7 +623,7 @@ void PHG4InttHitReco::SetDefaultParameters()
   // provides for multiple layers/detector types
   set_default_double_param("tmax", 7020.0);  // max upper time window for extended readout
   set_default_double_param("tmin", -20.0);   // min lower time window for extended readout
-  set_default_double_param("beam_crossing_period", 106.65237);
+  set_default_double_param("beam_crossing_period", sphenix_constants::time_between_crossings);
 
   return;
 }

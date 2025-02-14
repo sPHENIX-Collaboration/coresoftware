@@ -14,6 +14,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/sphenix_constants.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -24,13 +25,6 @@
 #include <cassert>
 #include <memory>
 #include <set>
-
-namespace
-{
-  // time between crossings (microseconds)
-  static constexpr double m_time_between_crossing = 106.65237 / 1000;
-}
-
 
 SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
   : SingleStreamingInput(name)
@@ -457,8 +451,8 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
   }
   else // catchall for anyting else to set to a range based on the rhic clock
   {
-    m_BcoRange = std::ceil(m_strobeWidth / m_time_between_crossing);
-    m_NegativeBco = std::ceil(m_strobeWidth / m_time_between_crossing);
+    m_BcoRange = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
+    m_NegativeBco = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
   }
   if(Verbosity() > 1)
   {
