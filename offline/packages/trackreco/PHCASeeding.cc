@@ -1179,7 +1179,7 @@ void PHCASeeding::FillTupWinGrowSeed(const PHCASeeding::keyPtrList& seed, const 
   float dzdr_t1 = (zt - z1) / dr_t1;
   // if (fabs(dzdr_12 - dzdr_t1) > _clusadd_delta_dzdr_window)) // then fail this link
 
-  auto& third_pos = seed.rbegin()[2];
+  keyPtr third_pos = seed.rbegin()[2];
   float x3 = third_pos->x;
   float y3 = third_pos->y;
   float z3 = third_pos->z;

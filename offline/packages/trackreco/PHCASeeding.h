@@ -9,7 +9,7 @@
  */
 
 // Statements for if we want to save out the intermediary clustering steps
-#define _PHCASEEDING_CLUSTERLOG_TUPOUT_
+/* #define _PHCASEEDING_CLUSTERLOG_TUPOUT_ */
 /* #define _PHCASEEDING_CHAIN_FORKS_ */
 /* #define _PHCASEEDING_TIMER_OUT_ */
 
