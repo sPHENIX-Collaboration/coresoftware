@@ -18,6 +18,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -238,18 +239,15 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
     const int first_bin = ibin * _n_combine_phi;
     assert(first_bin >= 0 && first_bin < towergeom->get_phibins());
 
-    int last_bin = (ibin + 1) * _n_combine_phi - 1;
-    if (last_bin >= towergeom->get_phibins())
-    {
-      last_bin = towergeom->get_phibins();
-    }
+    int last_bin = ((ibin + 1) * _n_combine_phi) - 1;
+    last_bin = std::min(last_bin, towergeom->get_phibins());
 
     const std::pair<double, double> range1 = towergeom->get_phibounds(
         first_bin);
     const std::pair<double, double> range2 = towergeom->get_phibounds(
         last_bin);
 
-    phi_bound_map.push_back(std::make_pair(range1.first, range2.second));
+    phi_bound_map.emplace_back(range1.first, range2.second);
   }
 
   for (int ibin = 0; ibin < new_etabins; ibin++)
@@ -257,18 +255,15 @@ void RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
     const int first_bin = ibin * _n_combine_eta;
     assert(first_bin >= 0 && first_bin < towergeom->get_etabins());
 
-    int last_bin = (ibin + 1) * _n_combine_eta - 1;
-    if (last_bin >= towergeom->get_etabins())
-    {
-      last_bin = towergeom->get_etabins();
-    }
+    int last_bin = ((ibin + 1) * _n_combine_eta) - 1;
+    last_bin = std::min(last_bin, towergeom->get_etabins());
 
     const std::pair<double, double> range1 = towergeom->get_etabounds(
         first_bin);
     const std::pair<double, double> range2 = towergeom->get_etabounds(
         last_bin);
 
-    eta_bound_map.push_back(std::make_pair(range1.first, range2.second));
+    eta_bound_map.emplace_back(range1.first, range2.second);
   }
 
   // now update the tower geometry object with the new tower structure.

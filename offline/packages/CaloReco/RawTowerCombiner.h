@@ -67,9 +67,7 @@ class RawTowerCombiner : public SubsysReco
  public:
   RawTowerCombiner(const std::string &name = "RawTowerCombiner");
 
-  ~RawTowerCombiner() override
-  {
-  }
+  ~RawTowerCombiner() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -82,8 +80,7 @@ class RawTowerCombiner : public SubsysReco
   }
 
   //! prefix to the tower node
-  std::string
-  get_tower_node_prefix() const
+  const std::string &get_tower_node_prefix() const
   {
     return _tower_node_prefix;
   }

@@ -155,6 +155,12 @@ class RawCluster : public PHObject
     PHOOL_VIRTUAL_WARN("get_prob()");
     return std::numeric_limits<float>::signaling_NaN();
   }
+  //! cluster template probability for merged pi0 EM shower
+  virtual float get_merged_cluster_prob() const
+  {
+    PHOOL_VIRTUAL_WARN("get_merged_cluster_prob()");
+    return std::numeric_limits<float>::signaling_NaN();
+  }
   //! isolation ET default
   virtual float get_et_iso() const
   {
@@ -217,6 +223,8 @@ class RawCluster : public PHObject
   virtual void set_chi2(const float) { PHOOL_VIRTUAL_WARNING; }
   //! cluster template probability for EM shower
   virtual void set_prob(const float) { PHOOL_VIRTUAL_WARNING; }
+  //! cluster template merged pi0 cluster probability for EM shower
+  virtual void set_merged_cluster_prob(const float) { PHOOL_VIRTUAL_WARNING; }
   //! isolation ET
   virtual void set_et_iso(const float) { PHOOL_VIRTUAL_WARNING; }
   virtual void set_et_iso(const float /*e*/, const int /*radiusx10*/, bool /*subtracted*/, bool /*clusterTower*/) { PHOOL_VIRTUAL_WARNING; }
@@ -247,6 +255,8 @@ class RawCluster : public PHObject
     prop_prob = 1,
     //! reduced chi2 for EM shower
     prop_chi2 = 2,
+    //! cluster template merged pi0 cluster probability for EM shower
+    prop_merged_cluster_prob = 3,
 
     // ----- analysis specific quantities -----
     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.1
