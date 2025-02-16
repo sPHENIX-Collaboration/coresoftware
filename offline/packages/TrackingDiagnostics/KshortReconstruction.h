@@ -10,9 +10,6 @@
 #include <globalvertex/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-#include <tpc/TpcDistortionCorrection.h>
-
 #include <Acts/Definitions/Algebra.hpp>
 
 #include <Acts/EventData/TrackParameters.hpp>

@@ -161,9 +161,6 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   Acts::Vector3 globalvtxToLocalvtx(SvtxTrack& track, const Acts::Vector3& event_vertex, Acts::Vector3 PCA);
   Acts::Vector3 localvtxToGlobalvtx(SvtxTrack& track, const Acts::Vector3& event_vtx, const Acts::Vector3& PCA);
 
-  //! cluster z correction
-  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
-
   //! global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
 

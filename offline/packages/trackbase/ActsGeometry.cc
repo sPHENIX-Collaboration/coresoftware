@@ -21,15 +21,8 @@ namespace
   }
 }  // namespace
 
-Eigen::Matrix<float, 3, 1> ActsGeometry::getGlobalPositionF(
-    TrkrDefs::cluskey key,
-    TrkrCluster* cluster)
-{
-  Acts::Vector3 doublePos = getGlobalPosition(key, cluster);
-  return Eigen::Matrix<float, 3, 1>(doublePos(0), doublePos(1), doublePos(2));
-}
-
-Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster)
+//________________________________________________________________________________________________
+Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   Acts::Vector3 glob;
 
@@ -41,7 +34,7 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster
 
   /// If silicon/TPOT, the transform is one-to-one since the surface is planar
 
-  auto surface = maps().getSurface(key, cluster);
+  auto surface = m_surfMaps.getSurface(key, cluster);
 
   if (!surface)
   {
@@ -55,16 +48,18 @@ Acts::Vector3 ActsGeometry::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster
 
   Acts::Vector2 local(cluster->getLocalX(), cluster->getLocalY());
   Acts::Vector3 global;
-  global = surface->localToGlobal(geometry().getGeoContext(),
+  global = surface->localToGlobal(m_tGeometry.getGeoContext(),
                                   local * Acts::UnitConstants::cm,
                                   Acts::Vector3(1, 1, 1));
   global /= Acts::UnitConstants::cm;
 
   return global;
 }
+
+//________________________________________________________________________________________________
 Acts::Vector3 ActsGeometry::getGlobalPositionTpc(const TrkrDefs::hitsetkey& hitsetkey,
 const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
-const float& clockPeriod)
+const float& clockPeriod) const
 {
   Acts::Vector3 glob;
   const auto trkrid = TrkrDefs::getTrkrId(hitsetkey);
@@ -83,7 +78,7 @@ const float& clockPeriod)
   {
     zloc = -zloc;
   }
-  
+
   auto x = rad * std::cos(phi);
   auto y = rad * std::sin(phi);
   auto z = surfaceZCenter + zloc;
@@ -92,7 +87,9 @@ const float& clockPeriod)
   glob.z() = z;
   return glob;
 }
-Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrCluster* cluster)
+
+//________________________________________________________________________________________________
+Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   Acts::Vector3 glob;
 
@@ -104,7 +101,7 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
     return glob;
   }
 
-  auto surface = maps().getSurface(key, cluster);
+  auto surface = m_surfMaps.getSurface(key, cluster);
 
   if (!surface)
   {
@@ -125,7 +122,7 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
     zloc = -zloc;
   }
   Acts::Vector2 local(cluster->getLocalX(), zloc);
-  glob = surface->localToGlobal(geometry().getGeoContext(),
+  glob = surface->localToGlobal(m_tGeometry.getGeoContext(),
                                 local * Acts::UnitConstants::cm,
                                 Acts::Vector3(1, 1, 1));
   glob /= Acts::UnitConstants::cm;
@@ -136,21 +133,22 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
 Surface ActsGeometry::get_tpc_surface_from_coords(
     TrkrDefs::hitsetkey hitsetkey,
     Acts::Vector3 world,
-    TrkrDefs::subsurfkey& subsurfkey)
+    TrkrDefs::subsurfkey& subsurfkey) const
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
 
-  auto mapIter = maps().m_tpcSurfaceMap.find(layer);
+  auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
 
-  if (mapIter == maps().m_tpcSurfaceMap.end())
+  if (mapIter == m_surfMaps.m_tpcSurfaceMap.end())
   {
     std::cout << "Error: hitsetkey not found in ActsGeometry::get_tpc_surface_from_coords, hitsetkey = "
               << hitsetkey << std::endl;
     return nullptr;
   }
   double world_phi = atan2(world[1], world[0]);
-  std::vector<Surface>& surf_vec = mapIter->second;
+
+  const auto& surf_vec = mapIter->second;
   unsigned int surf_index = 999;
 
   // Predict which surface index this phi and side will correspond to
@@ -169,11 +167,12 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   unsigned int nsurf = nsurfm % surf_vec.size();
   Surface this_surf = surf_vec[nsurf];
 
-  auto vec3d = this_surf->center(geometry().getGeoContext());
+  auto vec3d = this_surf->center(m_tGeometry.getGeoContext());
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
   double surf_phi = atan2(surf_center[1], surf_center[0]);
-  double surfStepPhi = geometry().tpcSurfStepPhi;
-if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
+  double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
+
+  if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
   {
     surf_index = nsurf;
     subsurfkey = nsurf;
@@ -200,7 +199,7 @@ if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStep
       vec3d = this_surf->center(geometry().getGeoContext());
       surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       surf_phi = atan2(surf_center[1], surf_center[0]);
-  
+
       if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
       {
         surf_index = new_nsurf;
@@ -214,7 +213,8 @@ if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStep
   return surf_vec[surf_index];
 }
 
-Acts::Transform3 ActsGeometry::makeAffineTransform(Acts::Vector3 rot, Acts::Vector3 trans)
+//________________________________________________________________________________________________
+Acts::Transform3 ActsGeometry::makeAffineTransform(Acts::Vector3 rot, Acts::Vector3 trans) const
 {
   Acts::Transform3 actsAffine;
 
@@ -230,7 +230,8 @@ Acts::Transform3 ActsGeometry::makeAffineTransform(Acts::Vector3 rot, Acts::Vect
   return actsAffine;
 }
 
-Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster)
+//________________________________________________________________________________________________
+Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   Acts::Vector2 local;
 
@@ -245,39 +246,6 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
     {
       zloc = -zloc;
     }
-    local(0) = cluster->getLocalX();
-    local(1) = zloc;
-  }
-  else
-  {
-    local(0) = cluster->getLocalX();
-    local(1) = cluster->getLocalY();
-  }
-
-  return local;
-}
-
-Acts::Vector2 ActsGeometry::getCrossingCorrectedLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, int crossing)
-{
-  Acts::Vector2 local;
-
-  const auto trkrid = TrkrDefs::getTrkrId(key);
-  if (trkrid == TrkrDefs::tpcId)
-  {
-    local = getLocalCoords(key, cluster);
-
-    double crossing_correction = (double) crossing * _crossing_period * _drift_velocity;
-    double zloc;
-    unsigned int side = TpcDefs::getSide(key);
-    if (side == 1)
-    {
-      zloc = local(1) + crossing_correction;  // north correction is positive for positive crossings
-    }
-    else
-    {
-      zloc = local(1) - crossing_correction;
-    }
-
     local(0) = cluster->getLocalX();
     local(1) = zloc;
   }
