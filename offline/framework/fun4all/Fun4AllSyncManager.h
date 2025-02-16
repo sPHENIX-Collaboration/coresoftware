@@ -52,7 +52,7 @@ class Fun4AllSyncManager : public Fun4AllBase
   void Repeat(const int i = -1) { m_Repeat = i; }
   void PushBackInputMgrsEvents(const int i);
   int ResetEvent();
-  const std::vector<Fun4AllInputManager *> GetInputManagers() const { return m_InManager; }
+  const std::vector<Fun4AllInputManager *> &GetInputManagers() const { return m_InManager; }
   bool MixRunsOk() const { return m_MixRunsOkFlag; }
   void MixRunsOk(bool b) { m_MixRunsOkFlag = b; }
 
