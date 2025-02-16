@@ -50,7 +50,7 @@ public:
 
   void Verbosity(const int i) {verbosity = i;}
   void Name(const std::string &n) {name = n;}
-  std::string Name() const {return name;}
+  const std::string &Name() const {return name;}
 
 
 protected:
