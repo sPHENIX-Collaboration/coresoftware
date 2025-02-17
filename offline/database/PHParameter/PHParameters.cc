@@ -5,8 +5,6 @@
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
-//#include <ffamodules/CDBInterface.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
@@ -85,11 +83,7 @@ int PHParameters::get_int_param(const std::string &name) const
 
 bool PHParameters::exist_int_param(const std::string &name) const
 {
-  if (m_IntParMap.find(name) != m_IntParMap.end())
-  {
-    return true;
-  }
-  return false;
+  return m_IntParMap.find(name) != m_IntParMap.end();
 }
 
 void PHParameters::printint() const
@@ -128,11 +122,7 @@ PHParameters::get_double_param(const std::string &name) const
 
 bool PHParameters::exist_double_param(const std::string &name) const
 {
-  if (m_DoubleParMap.find(name) != m_DoubleParMap.end())
-  {
-    return true;
-  }
-  return false;
+  return m_DoubleParMap.find(name) != m_DoubleParMap.end();
 }
 
 void PHParameters::Print(Option_t * /*option*/) const
@@ -211,11 +201,7 @@ PHParameters::get_string_param(const std::string &name) const
 
 bool PHParameters::exist_string_param(const std::string &name) const
 {
-  if (m_StringParMap.find(name) != m_StringParMap.end())
-  {
-    return true;
-  }
-  return false;
+  return m_StringParMap.find(name) != m_StringParMap.end();
 }
 
 void PHParameters::printstring() const
@@ -456,7 +442,8 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
                  ::tolower);
   std::filesystem::path targetDir(dir);
 
-  std::filesystem::recursive_directory_iterator diriter(targetDir), eod;
+  std::filesystem::recursive_directory_iterator diriter(targetDir);
+  std::filesystem::recursive_directory_iterator eod;
   boost::char_separator<char> sep("-.");
   std::map<unsigned int, std::string> calibfiles;
   BOOST_FOREACH (std::filesystem::path const &i, std::make_pair(diriter, eod))
@@ -509,7 +496,7 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
   TFile *f = TFile::Open(fname.c_str());
   if (issuper)
   {
-    PdbParameterMapContainer *myparm = static_cast<PdbParameterMapContainer *>(f->Get("PdbParameterMapContainer"));
+    PdbParameterMapContainer *myparm = dynamic_cast<PdbParameterMapContainer *>(f->Get("PdbParameterMapContainer"));
     assert(myparm);
 
     if (myparm->GetParameters(detid) == nullptr)
@@ -525,7 +512,7 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
   }
   else
   {
-    PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+    PdbParameterMap *myparm = dynamic_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
     assert(myparm);
     std::cout << "Received PdbParameterMap with (Hash = 0x" << std::hex << myparm->get_hash() << std::dec << ")" << std::endl;
 
@@ -545,7 +532,7 @@ int PHParameters::ReadFromCDBFile(const std::string &url)
     std::cout << "could not open " << url << std::endl;
     gSystem->Exit(1);
   }
-  PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+  PdbParameterMap *myparm = dynamic_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
   if (!myparm)
   {
     std::cout << "could not get PdbParameterMap from " << url << std::endl;
@@ -577,7 +564,7 @@ void PHParameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
 }
 
 unsigned int
-PHParameters::ConvertStringToUint(const std::string &str) const
+PHParameters::ConvertStringToUint(const std::string &str)
 {
   unsigned int tics;
   try
