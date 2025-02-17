@@ -22,12 +22,12 @@ class JetBackgroundCut : public SubsysReco
     if (_sysvar > 0)
     {
       widen = 0.05;
-      shift = -2.5;
+      shift = -1;
     }
     else if (_sysvar < 0)
     {
       widen = -0.05;
-      shift = 2.5;
+      shift = 1;
     }
     return (emFrac < (0.1 + widen) && ET > (50 * emFrac + 20 + shift)) && (dPhiCut || !isDijet);
   }
@@ -39,12 +39,12 @@ class JetBackgroundCut : public SubsysReco
     if (_sysvar > 0)
     {
       widen = -0.05;
-      shift = -2.5;
+      shift = -1;
     }
     else if (_sysvar < 0)
     {
       widen = 0.05;
-      shift = 2.5;
+      shift = 1;
     }
     return (emFrac > (0.9 + widen) && ET > (-50 * emFrac + 70 + shift)) && (dPhiCut || !isDijet);
   }
