@@ -430,7 +430,7 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
     }
   }
 
-  static const int _PRINT_THRESHOLD = 0;
+  static const int _PRINT_THRESHOLD = 2;
 
   t_process->restart();
 
