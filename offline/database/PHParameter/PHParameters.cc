@@ -1,8 +1,6 @@
 #include "PHParameters.h"
 
-#include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
@@ -394,110 +392,6 @@ void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const std::string &n
   }
   CopyToPdbParameterMap(nodeparams);
   return;
-}
-
-int PHParameters::WriteToDB()
-{
-  PdbBankManager *bankManager = PdbBankManager::instance();
-  PdbApplication *application = bankManager->getApplication();
-  if (!application->startUpdate())
-  {
-    std::cout << PHWHERE << " Aborting, Database not writable" << std::endl;
-    application->abort();
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  //  Make a bank ID...
-  PdbBankID bankID(0);  // lets start at zero
-  PHTimeStamp TStart(0);
-  PHTimeStamp TStop(0xffffffff);
-
-  std::string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapBank", bankID,
-                                                "Geometry Parameters", TStart, TStop, tablename);
-  if (NewBank)
-  {
-    NewBank->setLength(1);
-    PdbParameterMap *myparm = (PdbParameterMap *) &NewBank->getEntry(0);
-    CopyToPdbParameterMap(myparm);
-    application->commit(NewBank);
-    delete NewBank;
-  }
-  else
-  {
-    std::cout << PHWHERE " Committing to DB failed" << std::endl;
-    return -1;
-  }
-  return 0;
-}
-
-int PHParameters::ReadFromDB(const std::string &name, const int detid)
-{
-  PdbBankManager *bankManager = PdbBankManager::instance();
-  PdbApplication *application = bankManager->getApplication();
-  if (!application->startRead())
-  {
-    std::cout << PHWHERE << " Aborting, Database not readable" << std::endl;
-    application->abort();
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  //  Make a bank ID...
-  PdbBankID bankID(0);  // lets start at zero
-  PHTimeStamp TSearch(10);
-
-  std::string tablename = name + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapContainerBank", bankID, tablename, TSearch);
-  if (NewBank)
-  {
-    PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) &NewBank->getEntry(0);
-    FillFrom(myparm, detid);
-    delete NewBank;
-  }
-  else
-  {
-    std::cout << PHWHERE " Reading from DB failed" << std::endl;
-    return -1;
-  }
-  return 0;
-}
-
-int PHParameters::ReadFromDB()
-{
-  PdbBankManager *bankManager = PdbBankManager::instance();
-  PdbApplication *application = bankManager->getApplication();
-  if (!application->startRead())
-  {
-    std::cout << PHWHERE << " Aborting, Database not readable" << std::endl;
-    application->abort();
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  //  Make a bank ID...
-  PdbBankID bankID(0);  // lets start at zero
-  PHTimeStamp TSearch(10);
-
-  std::string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
-                                               tablename, TSearch);
-  if (NewBank)
-  {
-    PdbParameterMap *myparm = (PdbParameterMap *) &NewBank->getEntry(0);
-    FillFrom(myparm);
-    delete NewBank;
-  }
-  else
-  {
-    std::cout << PHWHERE " Reading from DB failed" << std::endl;
-    return -1;
-  }
-  return 0;
 }
 
 int PHParameters::WriteToCDBFile(const std::string &filename)

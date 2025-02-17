@@ -59,7 +59,7 @@ class PHParameters : public PHObject
   std::pair<std::map<const std::string, std::string>::const_iterator, std::map<const std::string, std::string>::const_iterator> get_all_string_params() { return std::make_pair(m_StringParMap.begin(), m_StringParMap.end()); }
 
   void set_name(const std::string &name) { m_Detector = name; }
-  std::string Name() const { return m_Detector; }
+  const std::string &Name() const { return m_Detector; }
 
   void FillFrom(const PdbParameterMap *saveparams);
   void FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer);
@@ -73,9 +73,6 @@ class PHParameters : public PHObject
   void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
 
-  int WriteToDB();
-  int ReadFromDB();
-  int ReadFromDB(const std::string &name, const int layer);
   int WriteToCDBFile(const std::string &filename);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");
 
