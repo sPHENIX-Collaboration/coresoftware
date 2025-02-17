@@ -95,7 +95,11 @@ class PHActsTrkFitter : public SubsysReco
   {
     m_actsEvaluator = actsEvaluator;
   }
-
+  void useActsEvaluatorSimulation(bool actsEvaluator)
+  {
+    m_simActsEvaluator = actsEvaluator;
+    m_actsEvaluator = actsEvaluator;
+  }
   void setEvaluatorName(const std::string& name) { m_evalname = name; }
   void setFieldMap(const std::string& fieldMap)
   {
@@ -113,7 +117,6 @@ class PHActsTrkFitter : public SubsysReco
 
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
-  void set_seed_track_map_name(const std::string& map_name) { _seed_track_map_name = map_name; }
 
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
@@ -220,7 +223,9 @@ class PHActsTrkFitter : public SubsysReco
   //!@name evaluator
   //@{
   bool m_actsEvaluator = false;
-  std::unique_ptr<ActsEvaluator> m_evaluator = nullptr;
+  bool m_simActsEvaluator = false;
+  std::unique_ptr<ActsEvaluator>
+      m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
   //@}
 
@@ -228,7 +233,7 @@ class PHActsTrkFitter : public SubsysReco
   std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
 
   //! tracks
-  SvtxTrackMap* m_seedTracks = nullptr;
+//  SvtxTrackMap* m_seedTracks = nullptr;
 
   //! tpc global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
@@ -242,7 +247,6 @@ class PHActsTrkFitter : public SubsysReco
 
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
-  std::string _seed_track_map_name = "SeedTrackMap";
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;

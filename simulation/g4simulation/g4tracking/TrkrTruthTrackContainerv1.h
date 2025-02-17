@@ -30,7 +30,6 @@ class TrkrTruthTrackContainerv1 : public TrkrTruthTrackContainer
   TrkrTruthTrackContainerv1() = default;
 
   void identify(std::ostream& os = std::cout) const override;
-  int nhw_virt() override { return 61; };
 
  private:
   // the data

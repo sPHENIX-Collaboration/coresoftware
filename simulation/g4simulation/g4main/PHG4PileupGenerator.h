@@ -5,6 +5,8 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
+#include <phool/sphenix_constants.h>
+
 #include <string>  // for string
 
 class PHCompositeNode;
@@ -40,7 +42,7 @@ class PHG4PileupGenerator : public PHG4ParticleGeneratorBase
   double _min_integration_time = -1000.;
   double _max_integration_time = 1000.;
   double _collision_rate = 100.;  // kHz
-  double _time_between_crossings = 106.;
+  double _time_between_crossings = sphenix_constants::time_between_crossings; // ns
 
   double _ave_coll_per_crossing = 1.;  // recalculated
   int _min_crossing = 0;               // recalculated

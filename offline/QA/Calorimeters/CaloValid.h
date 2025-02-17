@@ -105,10 +105,13 @@ class CaloValid : public SubsysReco
   TH1* h_ohcaltime{nullptr};
   TH1* h_emcal_tower_e{nullptr};
   TH1* h_emcal_tower_e_wide_range{nullptr};
+  TH1* h_emcal_tower_e_saturated{nullptr};
   TH1* h_ihcal_tower_e{nullptr};
   TH1* h_ihcal_tower_e_wide_range{nullptr};
+  TH1* h_ihcal_tower_e_saturated{nullptr};
   TH1* h_ohcal_tower_e{nullptr};
   TH1* h_ohcal_tower_e_wide_range{nullptr};
+  TH1* h_ohcal_tower_e_saturated{nullptr};
   TH2* h_etaphi_clus{nullptr};
   TH1* h_clusE{nullptr};
 
