@@ -27,7 +27,7 @@ class TrkrHitSetContMvtxHelper : public PHObject
 {
  public:
   using map_tp_value = std::set<TrkrDefs::hitsetkey>;
-  using Map = std::map<uint32_t, map_tp_value>;
+  using Map = std::map<int32_t, map_tp_value>;
   using Iterator = Map::iterator;
   using ConstIterator = Map::const_iterator;
 
@@ -44,19 +44,19 @@ class TrkrHitSetContMvtxHelper : public PHObject
   //! PHObject functions
   void Reset() override;
 
-  virtual bool addHitSetKey(const uint32_t /*dummy*/, const TrkrDefs::hitsetkey /*dummy*/)
+  virtual bool addHitSetKey(const int32_t & /*dummy*/, const TrkrDefs::hitsetkey & /*dummy*/)
   {
     return false;
   }
 
   //! preferred removal method, key is currently the hit id
-  virtual bool removeHitSetKey(const uint32_t /*strobe*/, const TrkrDefs::hitsetkey /*dummy*/)
+  virtual bool removeHitSetKey(int32_t /*strobe*/, const TrkrDefs::hitsetkey /*dummy*/)
   {
     return false;
   }
 
   //! return all HitSetKeys
-  virtual const map_tp_value &getHitSetKeys(const uint32_t /*strobe*/) = 0;
+  virtual const map_tp_value &getHitSetKeys(int32_t /*strobe*/) = 0;
 
   virtual unsigned int size() const
   {

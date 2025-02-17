@@ -31,10 +31,10 @@ class TrkrHitSetContMvtxHelperv1 : public TrkrHitSetContMvtxHelper
   //! PHObject functions
   void Reset() override;
 
-  bool addHitSetKey(const uint32_t strobe, const TrkrDefs::hitsetkey hitsetkey) override;
+  bool addHitSetKey(const int32_t &strobe, const TrkrDefs::hitsetkey &hitsetkey) override;
 
   //! preferred removal method, key is currently the hit id
-  bool removeHitSetKey(const uint32_t strobe, const TrkrDefs::hitsetkey hitsetkey) override
+  bool removeHitSetKey(const int32_t strobe, const TrkrDefs::hitsetkey hitsetkey) override
   {
     size_t ret = m_strb_hitsetkey_map[strobe].erase(hitsetkey);
     if (!ret)
@@ -46,7 +46,7 @@ class TrkrHitSetContMvtxHelperv1 : public TrkrHitSetContMvtxHelper
   }
 
   //! return all HitSetKeys
-  const TrkrHitSetContMvtxHelper::map_tp_value &getHitSetKeys(const uint32_t strobe) override;
+  const TrkrHitSetContMvtxHelper::map_tp_value &getHitSetKeys(int32_t strobe) override;
 
   unsigned int size() const override
   {

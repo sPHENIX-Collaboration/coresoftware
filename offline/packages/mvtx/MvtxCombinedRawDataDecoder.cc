@@ -34,7 +34,6 @@
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>  // for accessing the MVTX hot pixel file from the CDB
 
-#include <algorithm>
 #include <cassert>
 #include <iterator>
 
@@ -202,7 +201,7 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-  auto rc = recoConsts::instance();
+  auto *rc = recoConsts::instance();
   int runNumber = rc->get_IntFlag("RUNNUMBER");
 
   if (m_readStrWidthFromDB)
@@ -238,8 +237,8 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
 
   // get the last 40 bits by bit shifting left then right to match
   // to the mvtx bco
-  // auto lbshift = gl1rawhitbco << 24U;
-  // auto gl1bco = lbshift >> 24U;
+  auto lbshift = gl1rawhitbco << 24U;
+  auto gl1bco = lbshift >> 24U;
 
   // std::vector<std::pair<uint64_t, uint32_t> > strobe_bc_pairs;
   // std::set<uint64_t> l1BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
@@ -249,7 +248,7 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   //   std::cout << "MVTX header BCO " << mvtxbco << " and GL1 BCO " << gl1bco
   //             << std::endl;
   // }
-  //
+
   for (const auto &L1 : mvtx_raw_event_header->getMvtxLvL1BCO())
   {
     mvtx_event_header->add_L1_BCO(L1);
@@ -264,6 +263,9 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   {
     mvtx_raw_hit_container->identify();
   }
+  const auto &strobe_list = mvtx_event_header->get_strobe_BCOs();
+  auto it_strb_bco_zero = strobe_list.upper_bound(gl1bco);
+  auto str_wGL1_idx = std::distance(strobe_list.cbegin(), it_strb_bco_zero) - 1;
 
   uint64_t hit_strobe = -1;  // Initialise to -1 for debugging
   uint8_t layer = 0;
@@ -272,7 +274,6 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   uint16_t row = 0;
   uint16_t col = 0;
 
-  const auto &strobe_list = mvtx_event_header->get_strobe_BCOs();
   for (unsigned int i = 0; i < mvtx_raw_hit_container->get_nhits(); i++)
   {
     mvtx_rawhit = mvtx_raw_hit_container->get_hit(i);
@@ -283,8 +284,8 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     row = mvtx_rawhit->get_row();
     col = mvtx_rawhit->get_col();
 
+    int strobe_index = -20;
     const auto it = strobe_list.find(hit_strobe);
-    int32_t index = -1;
     if (it == strobe_list.cend())
     {
       std::cout << "Warning: hit strobe BCO " << hit_strobe << " is not found in evet combined strobe list:" << std::endl;
@@ -295,66 +296,64 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     }
     else
     {
-      index = std::distance(strobe_list.cbegin(), it);
+      strobe_index = static_cast<int>(std::distance(strobe_list.cbegin(), it) - str_wGL1_idx);
     }
 
     // int bcodiff = gl1rawhitbco ? strobe - gl1bco : 0;
     //   double timeElapsed = bcodiff * 0.1065;  // 106 ns rhic clock
     //   int index = m_mvtx_is_triggered ? 0 : std::ceil(timeElapsed / m_strobeWidth);
-    //
-    //   if (index < -16 || index > 15)
-    //   {
-    //     continue;  // Index is out of the 5-bit signed range
-    //   }
+
+    if (strobe_index < -16 || strobe_index > 15)
+    {
+      std::cout << "Strobe index: " << strobe_index << " out of range" << std::endl;
+      continue;  // Index is out of the 5-bit signed range
+    }
 
     if (Verbosity() >= 10)
     {
       mvtx_rawhit->identify();
     }
 
-    if (index >= 0)
+    const TrkrDefs::hitsetkey hitsetkey =
+        MvtxDefs::genHitSetKey(layer, stave, chip, strobe_index);
+    if (!hitsetkey)
     {
-      const TrkrDefs::hitsetkey hitsetkey =
-          MvtxDefs::genHitSetKey(layer, stave, chip, index);
-      if (!hitsetkey)
+      continue;
+    }
+
+    mvtx_hit_set_helper->addHitSetKey(strobe_index, hitsetkey);
+
+    // get matching hitset
+    const auto hitset_it = hit_set_container->findOrAddHitSet(hitsetkey);
+
+    // generate hit key
+    const TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(col, row);
+
+    // find existing hit, or create
+    auto *hit = hitset_it->second->getHit(hitkey);
+    if (hit)
+    {
+      if (Verbosity() > 1)
       {
-        continue;
+        std::cout << PHWHERE << "::" << __func__
+                  << " - duplicated hit, hitsetkey: " << hitsetkey
+                  << " hitkey: " << hitkey << std::endl;
       }
+      continue;
+    }
 
-      mvtx_hit_set_helper->addHitSetKey(index, hitsetkey);
-
-      // get matching hitset
-      const auto hitset_it = hit_set_container->findOrAddHitSet(hitsetkey);
-
-      // generate hit key
-      const TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(col, row);
-
-      // find existing hit, or create
-      auto *hit = hitset_it->second->getHit(hitkey);
-      if (hit)
-      {
-        if (Verbosity() > 1)
-        {
-          std::cout << PHWHERE << "::" << __func__
-                    << " - duplicated hit, hitsetkey: " << hitsetkey
-                    << " hitkey: " << hitkey << std::endl;
-        }
-        continue;
-      }
-
-      if (m_doOfflineMasking)
-      {
-        if (!m_hot_pixel_mask->is_masked(mvtx_rawhit))
-        {  // Check if the pixel is masked
-          hit = new TrkrHitv2;
-          hitset_it->second->addHitSpecificKey(hitkey, hit);
-        }
-      }
-      else
-      {
+    if (m_doOfflineMasking)
+    {
+      if (!m_hot_pixel_mask->is_masked(mvtx_rawhit))
+      {  // Check if the pixel is masked
         hit = new TrkrHitv2;
         hitset_it->second->addHitSpecificKey(hitkey, hit);
       }
+    }
+    else
+    {
+      hit = new TrkrHitv2;
+      hitset_it->second->addHitSpecificKey(hitkey, hit);
     }
   }
 

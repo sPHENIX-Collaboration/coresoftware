@@ -17,14 +17,14 @@ void TrkrHitSetContMvtxHelperv1::Reset()
   m_strb_hitsetkey_map.clear();
 }
 
-bool TrkrHitSetContMvtxHelperv1::addHitSetKey(const uint32_t strobe, const TrkrDefs::hitsetkey key)
+bool TrkrHitSetContMvtxHelperv1::addHitSetKey(const int32_t& strobe, const TrkrDefs::hitsetkey& key)
 {
   const auto ret = m_strb_hitsetkey_map[strobe].insert(key);
   return ret.second;
 }
 
 const TrkrHitSetContMvtxHelper::map_tp_value&
-TrkrHitSetContMvtxHelperv1::getHitSetKeys(const uint32_t strobe)
+TrkrHitSetContMvtxHelperv1::getHitSetKeys(const int32_t strobe)
 {
   return m_strb_hitsetkey_map[strobe];
 }
