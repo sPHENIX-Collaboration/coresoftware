@@ -97,7 +97,7 @@ class PHTimer
   }
 
   //! get timer name
-  std::string get_name(void) const
+  const std::string &get_name(void) const
   {
     return _name;
   }

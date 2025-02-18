@@ -20,9 +20,9 @@ class Fun4AllRolloverFileOutStream : public Fun4AllFileOutStream
                                const int increment = 1,
                                const std::string &name = "Fun4AllRolloverFileOutStream");
 
-  virtual ~Fun4AllRolloverFileOutStream() = default;
+  ~Fun4AllRolloverFileOutStream() override = default;
   int WriteEventOut(Event *evt) override;
-  void identify(std::ostream &os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const override;
 
  private:
   void open_new_file();

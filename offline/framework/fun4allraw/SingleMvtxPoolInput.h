@@ -28,7 +28,7 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
   void setRawEventHeaderName(const std::string &name) { m_rawEventHeaderName = name; }
-  std::string getRawEventHeaderName() const { return m_rawEventHeaderName; }
+  const std::string &getRawEventHeaderName() const { return m_rawEventHeaderName; }
 
   void  SetReadStrWidthFromDB(const bool val){ m_readStrWidthFromDB = val; }
   bool  GetReadStrWidthFromDB(){ return m_readStrWidthFromDB; }

@@ -103,16 +103,9 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
   // We leave the defaults intact in case there is no entry for
   // those in the object read from the DB or file
   // Order: read first DB, then calib file if both are enabled
-  if (ReadDB() || get_filetype() != PHG4DetectorGroupSubsystem::none)
+  if (get_filetype() != PHG4DetectorGroupSubsystem::none)
   {
-    if (ReadDB())
-    {
-      ReadParamsFromDB(calibdetname, isSuperDetector);
-    }
-    if (get_filetype() != PHG4DetectorGroupSubsystem::none)
-    {
-      ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
-    }
+    ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
   }
   else
   {
@@ -483,41 +476,6 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
       detidparams->set_string_param(iter2.first, iter2.second);
     }
   }
-}
-
-int PHG4DetectorGroupSubsystem::SaveParamsToDB()
-{
-  int iret = 0;
-  assert(m_ParamsContainer);
-  iret = m_ParamsContainer->WriteToDB();
-  if (iret)
-  {
-    std::cout << "problem committing to DB" << std::endl;
-  }
-  return iret;
-}
-
-int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const std::string & /*name*/, const int /*issuper*/)
-{
-  int iret = 1;
-  // if (issuper)
-  //   {
-  //     iret = params->ReadFromDB(name,layer);
-  //   }
-  // else
-  //   {
-  //     iret = params->ReadFromDB();
-  //   }
-  //  if (iret)
-  std::cout << boost::stacktrace::stacktrace();
-  std::cout << std::endl
-            << "DO NOT PANIC - this is not a segfault" << std::endl;
-  std::cout << "This method is a dummy, tell the offline gurus about it and give this stack trace" << std::endl;
-  {
-    std::cout << "problem reading from DB" << std::endl;
-  }
-  gSystem->Exit(1);
-  return iret;
 }
 
 int PHG4DetectorGroupSubsystem::SaveParamsToFile(const PHG4DetectorGroupSubsystem::FILE_TYPE ftyp)

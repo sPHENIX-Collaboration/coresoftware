@@ -1,5 +1,5 @@
-#ifndef INPUTFILEHANDLER_H
-#define INPUTFILEHANDLER_H
+#ifndef FUN4ALL_INPUTFILEHANDLER_H
+#define FUN4ALL_INPUTFILEHANDLER_H
 
 #include <list>
 #include <string>
@@ -23,12 +23,12 @@ class InputFileHandler
   const std::list<std::string> &GetFileList() const { return m_FileList; }
   void UpdateFileList();
   void FileName(const std::string &fn) { m_FileName = fn; }
-  const std::string FileName() const { return m_FileName; }
+  const std::string &FileName() const { return m_FileName; }
 
  private:
-  int m_IsOpen = 0;
-  int m_Repeat = 0;
-  int m_Verbosity = 0;
+  int m_IsOpen {0};
+  int m_Repeat {0};
+  int m_Verbosity {0};
   std::string m_FileName;
   std::list<std::string> m_FileList;
   std::list<std::string> m_FileListCopy;

@@ -47,8 +47,6 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   int ReadDB() const { return m_UseDBFlag; }
   FILE_TYPE get_filetype() const { return m_FileType; }
   void UseCalibFiles(const FILE_TYPE ftyp) { m_FileType = ftyp; }
-  int SaveParamsToDB();
-  int ReadParamsFromDB(const std::string &name, const int issuper);
   int SaveParamsToFile(const FILE_TYPE ftyp);
   int ReadParamsFromFile(const std::string &name, const FILE_TYPE ftyp, const int issuper);
   void SetCalibrationFileDir(const std::string &calibdir) { m_CalibFileDir = calibdir; }

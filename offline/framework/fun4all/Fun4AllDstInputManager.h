@@ -40,24 +40,24 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   PHCompositeNode *runNodeCopy() { return m_RunNodeCopy; }
   void runNodeSum(PHCompositeNode *node) { m_RunNodeSum = node; }
   PHCompositeNode *runNodeSum() { return m_RunNodeSum; }
-  std::string RunNodeName() const { return RunNode; }
+  const std::string &RunNodeName() const { return RunNode; }
   std::string fullfilename;
 
  private:
-  int m_ReadRunTTree = 1;
-  int events_total = 0;
-  int events_thisfile = 0;
-  int events_skipped_during_sync = 0;
-  int m_HaveSyncObject = 0;
+  PHCompositeNode *dstNode {nullptr};
+  PHCompositeNode *m_RunNode {nullptr};
+  PHCompositeNode *m_RunNodeCopy {nullptr};
+  PHCompositeNode *m_RunNodeSum {nullptr};
+  PHNodeIOManager *m_IManager {nullptr};
+  SyncObject *syncobject {nullptr};
+  int m_ReadRunTTree {1};
+  int events_total {0};
+  int events_thisfile {0};
+  int events_skipped_during_sync {0};
+  int m_HaveSyncObject {0};
   std::map<const std::string, int> branchread;
   std::string syncbranchname;
-  PHCompositeNode *dstNode = nullptr;
-  PHCompositeNode *m_RunNode = nullptr;
-  PHCompositeNode *m_RunNodeCopy = nullptr;
-  PHCompositeNode *m_RunNodeSum = nullptr;
-  PHNodeIOManager *m_IManager = nullptr;
-  SyncObject *syncobject = nullptr;
-  std::string RunNode = "RUN";
+  std::string RunNode {"RUN"};
 };
 
 #endif /* __FUN4ALLDSTINPUTMANAGER_H__ */
