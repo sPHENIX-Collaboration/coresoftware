@@ -88,7 +88,8 @@ pkginclude_HEADERS =  \
   PHTimeServer.h \
   PHTimeStamp.h \
   PHTypedNodeIterator.h \
-  recoConsts.h
+  recoConsts.h \
+  sphenix_constants.h
 
 noinst_PROGRAMS = \
   testexternals_phool \

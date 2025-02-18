@@ -16,17 +16,17 @@ class oBuffer;
 class Fun4AllFileOutStream : public Fun4AllEventOutStream
 {
  public:
-  static const unsigned int LENGTH = (4 * 1024 * 1024);
+  static constexpr unsigned int LENGTH = (4 * 1024 * 1024);
   Fun4AllFileOutStream(const std::string &frule = "OUTDATA-%010d-%04d.PRDFF", const std::string &name = "FILEOUTSTREAM");
-  virtual ~Fun4AllFileOutStream();
+  ~Fun4AllFileOutStream() override;
   int WriteEventOut(Event *evt) override;
   int CloseOutStream() override;
-  void identify(std::ostream &os = std::cout) const;
+  virtual void identify(std::ostream &os = std::cout) const;
   oBuffer *GetoBuffer() { return m_ob; }
   void SetoBuffer(oBuffer *bf) { m_ob = bf; }
   uint64_t MaxSize() const { return m_MaxSize; }
   void DeleteoBuffer();
-  std::string FileRule() const { return m_FileRule; }
+  const std::string &FileRule() const { return m_FileRule; }
   int iSeq() const { return m_iSeq; }
   void iSeq(const int i) { m_iSeq = i; }
   uint64_t BytesWritten() const { return m_BytesWritten; }

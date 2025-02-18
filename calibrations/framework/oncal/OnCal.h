@@ -38,7 +38,7 @@ class OnCal : public SubsysReco
   unsigned int AllDone() const { return alldone; }
   void AllDone(const int i) { alldone = i; }
   void AddComment(const std::string &adcom);
-  std::string Comment() const { return m_Comment; }
+  const std::string &Comment() const { return m_Comment; }
   int GetPdbCalTables(std::vector<std::string> &vec) const
   {
     vec = pdbcaltables;
@@ -50,12 +50,12 @@ class OnCal : public SubsysReco
 
  protected:
   OnCal(const std::string &Name);  // so noone can call it from outside
+  unsigned int alldone {0};
   std::string m_Comment;
   std::vector<std::string> pdbcaltables;
   std::vector<std::string> pdbcalclasses;
   std::vector<std::pair<int, int> > bankids;
   std::vector<std::string> localfilelist;
-  unsigned int alldone;
 };
 
 #endif /* __ONCAL_H__ */

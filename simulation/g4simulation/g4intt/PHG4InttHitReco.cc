@@ -41,6 +41,7 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <phool/sphenix_constants.h>
 
 #include <TSystem.h>
 
@@ -243,7 +244,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   }
   else // use CDB file
   {
-    hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName); 
+    hotStripFile = std::filesystem::exists(m_hotStripFileName) ? m_hotStripFileName : CDBInterface::instance()->getUrl(m_hotStripFileName);
   }
 
   std::cout << "PHG4InttHitReco::InitRun - Use local hot channel map file: " << m_useLocalHitMaskFile << std::endl
@@ -622,7 +623,7 @@ void PHG4InttHitReco::SetDefaultParameters()
   // provides for multiple layers/detector types
   set_default_double_param("tmax", 7020.0);  // max upper time window for extended readout
   set_default_double_param("tmin", -20.0);   // min lower time window for extended readout
-  set_default_double_param("beam_crossing_period", 106.0);
+  set_default_double_param("beam_crossing_period", sphenix_constants::time_between_crossings);
 
   return;
 }

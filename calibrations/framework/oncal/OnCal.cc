@@ -8,7 +8,6 @@
 
 OnCal::OnCal(const std::string &Name)
   : SubsysReco(Name)
-  , alldone(0)
 {
 }
 

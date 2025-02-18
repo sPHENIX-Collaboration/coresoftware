@@ -165,15 +165,15 @@ void PHParameterInterface::UpdateParametersWithMacro()
 
 void PHParameterInterface::SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename)
 {
-  m_Locked = true; // no more modifications after it it on the node tree
+  m_Locked = true;  // no more modifications after it it on the node tree
   m_Params->SaveToNodeTree(runNode, nodename);
   return;
 }
 
 void PHParameterInterface::PutOnParNode(PHCompositeNode *parNode, const std::string &nodename)
 {
-  m_Locked = true; // no more modifications after it it on the node tree
-  PHParameters *newparams = new PHParameters(*m_Params,m_Params->Name());
+  m_Locked = true;  // no more modifications after it it on the node tree
+  PHParameters *newparams = new PHParameters(*m_Params, m_Params->Name());
   parNode->addNode(new PHDataNode<PHParameters>(newparams, nodename));
 }
 

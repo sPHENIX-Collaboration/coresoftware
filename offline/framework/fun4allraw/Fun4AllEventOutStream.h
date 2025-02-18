@@ -10,10 +10,7 @@
 
 #include <Event/phenixTypes.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/numeric/interval.hpp>
-#pragma GCC diagnostic pop
 
 #include <map>
 #include <string>
@@ -43,16 +40,16 @@ class Fun4AllEventOutStream : public Fun4AllBase
   Fun4AllEventOutputManager *MyManager() { return m_MyManager; }
 
  private:
-  PHDWORD *evtbuf = nullptr;
-  Fun4AllEventOutputManager *m_MyManager = nullptr;  // pointer to my master
-  unsigned int evtbuf_size = 0;
+  PHDWORD *evtbuf {nullptr};
+  Fun4AllEventOutputManager *m_MyManager {nullptr};  // pointer to my master
+  Packet **plist {nullptr};
+  unsigned int evtbuf_size {0};
   // flag to stear behavior, if 1 only add packets (drop all others), if 0 no filtering,
   // if -1 accept all, drop selected and afterwards add back selected ones
-  int add_or_remove = 0;
-  Packet **plist = nullptr;
-  int max_npackets = 1000;
-  int npackets = 0;
-  int default_addall = 0;
+  int add_or_remove {0};
+  int max_npackets {1000};
+  int npackets {0};
+  int default_addall {0};
   std::map<int, boost::numeric::interval<int> > addpktrange;
   std::map<int, boost::numeric::interval<int> > droppktrange;
 };

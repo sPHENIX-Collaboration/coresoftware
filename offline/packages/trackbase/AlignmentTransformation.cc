@@ -65,6 +65,14 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     datafile.open(alignmentParamsFile);
   }
 
+  // Get the TPC time offset from ActsGeometry and convert to an additional dz
+  double tpc_tzero = m_tGeometry->get_tpc_tzero();
+  double tpc_vdrift = m_tGeometry->get_drift_velocity();
+  double tzero_dz = tpc_tzero * tpc_vdrift * 10.0;  // convert cm to mm
+
+  std::cout << "AlignmentTransformation::CreateMap:  TPC tzero " << tpc_tzero << " tpc_vdrift " << tpc_vdrift 
+	    << " z offset (mm) " << tzero_dz << std::endl; 
+ 
   ActsSurfaceMaps surfMaps = m_tGeometry->maps();
   Surface surf;
 
@@ -101,7 +109,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	    exit(1);
 	  }
 	dgrx=0; dgry = 0; dgrz = 0;
-	if(linecount == 1)
+
+	if(linecount == 1 && localVerbosity > 0)
 	  {
 	    std::cout << PHWHERE << "The  alignment parameters file has only 6 parameters" << std::endl
 		      << "     --- setting global rotation parameters to zero!" << std::endl;
@@ -129,7 +138,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     // Perturbation translations and angles for stave and sensor
     Eigen::Vector3d sensorAngles(alpha, beta, gamma);
     Eigen::Vector3d millepedeTranslation(dx, dy, dz);
-   Eigen::Vector3d sensorAnglesGlobal(dgrx, dgry, dgrz);
+    Eigen::Vector3d sensorAnglesGlobal(dgrx, dgry, dgrz);
 
     unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey);  // specify between detectors
 
@@ -201,8 +210,20 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
           sensorAngles = sensorAngles + perturbationAngles;
           millepedeTranslation = millepedeTranslation + perturbationTranslation;
         }
-        unsigned int sector = TpcDefs::getSectorId(hitsetkey);
+
+	// modify dz for TPC hitsetkeys to include tpc tzero
         unsigned int side = TpcDefs::getSide(hitsetkey);
+	if(side == 0)
+	  {
+	    millepedeTranslation(2) -= tzero_dz;
+	  }
+	else
+	  {
+	    millepedeTranslation(2) += tzero_dz;
+	  }
+
+
+        unsigned int sector = TpcDefs::getSectorId(hitsetkey);
         int subsurfkey_min = (1 - side) * 144 + (144 - sector * 12) - 12 - 6;
         int subsurfkey_max = subsurfkey_min + 12;
         // std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
