@@ -1,13 +1,9 @@
 #include "PHParameters.h"
 
-#include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
-
-//#include <ffamodules/CDBInterface.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -87,11 +83,7 @@ int PHParameters::get_int_param(const std::string &name) const
 
 bool PHParameters::exist_int_param(const std::string &name) const
 {
-  if (m_IntParMap.find(name) != m_IntParMap.end())
-  {
-    return true;
-  }
-  return false;
+  return m_IntParMap.find(name) != m_IntParMap.end();
 }
 
 void PHParameters::printint() const
@@ -130,11 +122,7 @@ PHParameters::get_double_param(const std::string &name) const
 
 bool PHParameters::exist_double_param(const std::string &name) const
 {
-  if (m_DoubleParMap.find(name) != m_DoubleParMap.end())
-  {
-    return true;
-  }
-  return false;
+  return m_DoubleParMap.find(name) != m_DoubleParMap.end();
 }
 
 void PHParameters::Print(Option_t * /*option*/) const
@@ -213,11 +201,7 @@ PHParameters::get_string_param(const std::string &name) const
 
 bool PHParameters::exist_string_param(const std::string &name) const
 {
-  if (m_StringParMap.find(name) != m_StringParMap.end())
-  {
-    return true;
-  }
-  return false;
+  return m_StringParMap.find(name) != m_StringParMap.end();
 }
 
 void PHParameters::printstring() const
@@ -396,110 +380,6 @@ void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const std::string &n
   return;
 }
 
-int PHParameters::WriteToDB()
-{
-  PdbBankManager *bankManager = PdbBankManager::instance();
-  PdbApplication *application = bankManager->getApplication();
-  if (!application->startUpdate())
-  {
-    std::cout << PHWHERE << " Aborting, Database not writable" << std::endl;
-    application->abort();
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  //  Make a bank ID...
-  PdbBankID bankID(0);  // lets start at zero
-  PHTimeStamp TStart(0);
-  PHTimeStamp TStop(0xffffffff);
-
-  std::string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapBank", bankID,
-                                                "Geometry Parameters", TStart, TStop, tablename);
-  if (NewBank)
-  {
-    NewBank->setLength(1);
-    PdbParameterMap *myparm = (PdbParameterMap *) &NewBank->getEntry(0);
-    CopyToPdbParameterMap(myparm);
-    application->commit(NewBank);
-    delete NewBank;
-  }
-  else
-  {
-    std::cout << PHWHERE " Committing to DB failed" << std::endl;
-    return -1;
-  }
-  return 0;
-}
-
-int PHParameters::ReadFromDB(const std::string &name, const int detid)
-{
-  PdbBankManager *bankManager = PdbBankManager::instance();
-  PdbApplication *application = bankManager->getApplication();
-  if (!application->startRead())
-  {
-    std::cout << PHWHERE << " Aborting, Database not readable" << std::endl;
-    application->abort();
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  //  Make a bank ID...
-  PdbBankID bankID(0);  // lets start at zero
-  PHTimeStamp TSearch(10);
-
-  std::string tablename = name + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapContainerBank", bankID, tablename, TSearch);
-  if (NewBank)
-  {
-    PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) &NewBank->getEntry(0);
-    FillFrom(myparm, detid);
-    delete NewBank;
-  }
-  else
-  {
-    std::cout << PHWHERE " Reading from DB failed" << std::endl;
-    return -1;
-  }
-  return 0;
-}
-
-int PHParameters::ReadFromDB()
-{
-  PdbBankManager *bankManager = PdbBankManager::instance();
-  PdbApplication *application = bankManager->getApplication();
-  if (!application->startRead())
-  {
-    std::cout << PHWHERE << " Aborting, Database not readable" << std::endl;
-    application->abort();
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  //  Make a bank ID...
-  PdbBankID bankID(0);  // lets start at zero
-  PHTimeStamp TSearch(10);
-
-  std::string tablename = m_Detector + "_geoparams";
-  std::transform(tablename.begin(), tablename.end(), tablename.begin(), ::tolower);
-  PdbCalBank *NewBank = bankManager->fetchBank("PdbParameterMapBank", bankID,
-                                               tablename, TSearch);
-  if (NewBank)
-  {
-    PdbParameterMap *myparm = (PdbParameterMap *) &NewBank->getEntry(0);
-    FillFrom(myparm);
-    delete NewBank;
-  }
-  else
-  {
-    std::cout << PHWHERE " Reading from DB failed" << std::endl;
-    return -1;
-  }
-  return 0;
-}
-
 int PHParameters::WriteToCDBFile(const std::string &filename)
 {
   PdbParameterMap *myparm = new PdbParameterMap();
@@ -562,7 +442,8 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
                  ::tolower);
   std::filesystem::path targetDir(dir);
 
-  std::filesystem::recursive_directory_iterator diriter(targetDir), eod;
+  std::filesystem::recursive_directory_iterator diriter(targetDir);
+  std::filesystem::recursive_directory_iterator eod;
   boost::char_separator<char> sep("-.");
   std::map<unsigned int, std::string> calibfiles;
   BOOST_FOREACH (std::filesystem::path const &i, std::make_pair(diriter, eod))
@@ -615,7 +496,7 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
   TFile *f = TFile::Open(fname.c_str());
   if (issuper)
   {
-    PdbParameterMapContainer *myparm = static_cast<PdbParameterMapContainer *>(f->Get("PdbParameterMapContainer"));
+    PdbParameterMapContainer *myparm = dynamic_cast<PdbParameterMapContainer *>(f->Get("PdbParameterMapContainer"));
     assert(myparm);
 
     if (myparm->GetParameters(detid) == nullptr)
@@ -631,7 +512,7 @@ int PHParameters::ReadFromFile(const std::string &name, const std::string &exten
   }
   else
   {
-    PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+    PdbParameterMap *myparm = dynamic_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
     assert(myparm);
     std::cout << "Received PdbParameterMap with (Hash = 0x" << std::hex << myparm->get_hash() << std::dec << ")" << std::endl;
 
@@ -651,7 +532,7 @@ int PHParameters::ReadFromCDBFile(const std::string &url)
     std::cout << "could not open " << url << std::endl;
     gSystem->Exit(1);
   }
-  PdbParameterMap *myparm = static_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
+  PdbParameterMap *myparm = dynamic_cast<PdbParameterMap *>(f->Get("PdbParameterMap"));
   if (!myparm)
   {
     std::cout << "could not get PdbParameterMap from " << url << std::endl;
@@ -683,7 +564,7 @@ void PHParameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
 }
 
 unsigned int
-PHParameters::ConvertStringToUint(const std::string &str) const
+PHParameters::ConvertStringToUint(const std::string &str)
 {
   unsigned int tics;
   try

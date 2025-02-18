@@ -6,6 +6,7 @@
 
 #include "TpcGlobalPositionWrapper.h"
 
+#include "TpcClusterZCrossingCorrection.h"
 #include "TpcDistortionCorrectionContainer.h"
 
 #include <phool/getClass.h>
@@ -96,7 +97,7 @@ Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(con
     }
 
     // apply crossing correction
-    global.z() = m_crossingCorrection.correctZ(global.z(), TpcDefs::getSide(key), crossing);
+    global.z() = TpcClusterZCrossingCorrection::correctZ(global.z(), TpcDefs::getSide(key), crossing);
 
     // apply distortion corrections
     global = applyDistortionCorrections(global);

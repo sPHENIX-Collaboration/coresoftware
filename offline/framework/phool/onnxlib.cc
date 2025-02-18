@@ -18,7 +18,8 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
 
   Ort::AllocatorWithDefaultOptions allocator;
 
-  std::vector<Ort::Value> inputTensors, outputTensors;
+  std::vector<Ort::Value> inputTensors;
+  std::vector<Ort::Value> outputTensors;
 
   std::vector<int64_t> inputDimsN = {N, Nsamp};
   std::vector<int64_t> outputDimsN = {N, Nreturn};
@@ -52,7 +53,8 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
 
   std::vector<float> outputTensorValues(outputlen);
 
-  std::vector<Ort::Value> inputTensors, outputTensors;
+  std::vector<Ort::Value> inputTensors;
+  std::vector<Ort::Value> outputTensors;
 
   inputTensors.push_back(Ort::Value::CreateTensor<float>(memoryInfo, input.data(), inputlen, inputDims.data(), inputDims.size()));
 

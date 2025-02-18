@@ -42,12 +42,12 @@ TowerInfoContainerSimv2::TowerInfoContainerSimv2(DETECTOR detec)
 
 TowerInfoContainerSimv2::TowerInfoContainerSimv2(const TowerInfoContainerSimv2& source)
   : TowerInfoContainer(source)
+  , _clones(new TClonesArray("TowerInfoSimv2", (int) source.size()))
+  , _detector(source.get_detectorid())
 {
-  _detector = source.get_detectorid();
-  _clones = new TClonesArray("TowerInfoSimv2", source.size());
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerSimv2");
-  for (unsigned int i = 0; i < source.size(); ++i)
+  for (int i = 0; i < (int) source.size(); ++i)
   {
     // as tower numbers are fixed per event
     // construct towers once per run, and clear the towers for first use
@@ -98,13 +98,13 @@ TowerInfoSimv2* TowerInfoContainerSimv2::get_tower_at_channel(int pos)
 
 TowerInfoSimv2* TowerInfoContainerSimv2::get_tower_at_key(int pos)
 {
-  int index = decode_key(pos);
+  int index = (int) decode_key(pos);
   return (TowerInfoSimv2*) _clones->At(index);
 }
 
 unsigned int TowerInfoContainerSimv2::encode_key(unsigned int towerIndex)
 {
-  int key = 0;
+  unsigned int key = 0;
   if (_detector == DETECTOR::EMCAL)
   {
     key = TowerInfoContainer::encode_emcal(towerIndex);
@@ -130,7 +130,7 @@ unsigned int TowerInfoContainerSimv2::encode_key(unsigned int towerIndex)
 
 unsigned int TowerInfoContainerSimv2::decode_key(unsigned int tower_key)
 {
-  int index = 0;
+  unsigned int index = 0;
 
   if (_detector == DETECTOR::EMCAL)
   {

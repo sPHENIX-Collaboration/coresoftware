@@ -3,6 +3,8 @@
 #include "PHG4InttDigitizer.h"
 #include "InttDeadMap.h"
 
+#include <intt/InttBadChannelMap.h>
+
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -54,6 +56,7 @@ PHG4InttDigitizer::PHG4InttDigitizer(const std::string &name)
 PHG4InttDigitizer::~PHG4InttDigitizer()
 {
   gsl_rng_free(RandomGenerator);
+  delete m_bad_channel_map;
 }
 
 int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
@@ -106,6 +109,27 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   mNoiseSigma = get_double_param("NoiseSigma");
   mEnergyPerPair = get_double_param("EnergyPerPair");
 
+  // Load InttBadChannelMap at SOR
+  int load_rv = 0;
+  delete m_bad_channel_map;
+  m_bad_channel_map = new InttBadChannelMap;
+  if (m_which_bad_channel_map.empty())
+  {
+	// Use default tag name
+    load_rv = m_bad_channel_map->Load();
+  }
+  else
+  {
+	// User redirected callibration
+    load_rv = m_bad_channel_map->Load(m_which_bad_channel_map);
+  }
+
+  // Delete and nullify pointer load fails (effectively no mask)
+  if (load_rv != 0) {
+    delete m_bad_channel_map;
+	m_bad_channel_map = nullptr;
+  }
+
   //----------------
   // Report Settings
   //----------------
@@ -113,6 +137,7 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "====================== PHG4InttDigitizer::InitRun() =====================" << std::endl;
+	std::cout << " Masking " << (m_bad_channel_map ? m_bad_channel_map->size() : 0) << " channels" << std::endl;
     for (auto &iter1 : _max_adc)
     {
       std::cout << " Max ADC in Layer #" << iter1.first << " = " << iter1.second << std::endl;
@@ -171,19 +196,6 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   //---------------------------
   // Get common Nodes
   //---------------------------
-  const InttDeadMap *deadmap = findNode::getClass<InttDeadMap>(topNode, "DEADMAP_INTT");
-  if (Verbosity() >= VERBOSITY_MORE)
-  {
-    if (deadmap)
-    {
-      std::cout << "PHG4InttDigitizer::DigitizeLadderCells - Use deadmap ";
-      deadmap->identify();
-    }
-    else
-    {
-      std::cout << "PHG4InttDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << std::endl;
-    }
-  }
 
   // Get the TrkrHitSetContainer node
   TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -233,27 +245,24 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       int strip_row = InttDefs::getRow(hitkey);  // strip phi index
 
       // Apply deadmap here if desired
-      if (deadmap)
-      {
-        if (deadmap->isDeadChannelIntt(
-                layer,
-                ladder_phi,
-                ladder_z,
-                strip_col,
-                strip_row))
+      if (m_bad_channel_map && m_bad_channel_map->IsBad(InttMap::Offline_s{
+        layer,
+        ladder_phi,
+        ladder_z,
+        strip_col,
+        strip_row})
+      ) {
+        ++m_nDeadCells;
+      
+        if (Verbosity() >= VERBOSITY_MORE)
         {
-          ++m_nDeadCells;
-
-          if (Verbosity() >= VERBOSITY_MORE)
-          {
-            std::cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
-            hit->identify();
-          }
-
-          dead_hits.insert(hit_iter->first);  // store hitkey of dead channels to be remove later
-          continue;
+          std::cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
+          hit->identify();
         }
-      }  //    if (deadmap)
+      
+        dead_hits.insert(hit_iter->first);  // store hitkey of dead channels to be remove later
+        continue;
+      }
 
       if (_energy_scale.count(layer) > 1)
       {
@@ -375,6 +384,7 @@ void PHG4InttDigitizer::SetDefaultParameters()
   set_default_double_param("NoiseMean", 457.2);
   set_default_double_param("NoiseSigma", 166.6);
   set_default_double_param("EnergyPerPair", 3.62e-9);  // GeV/e-h
+  m_which_bad_channel_map = "";
   return;
 }
 

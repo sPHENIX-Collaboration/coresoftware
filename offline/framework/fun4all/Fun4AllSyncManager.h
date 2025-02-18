@@ -20,7 +20,7 @@ class Fun4AllSyncManager : public Fun4AllBase
  public:
   Fun4AllSyncManager(const std::string &name = "SYNCMANAGERNONAME");
   ~Fun4AllSyncManager() override;
-  int registerInputManager(Fun4AllInputManager *InManager);
+  int registerInputManager(Fun4AllInputManager *InputManager);
   Fun4AllInputManager *getInputManager(const std::string &name);
 
   //! run n events (0 means up to end of file
@@ -52,7 +52,7 @@ class Fun4AllSyncManager : public Fun4AllBase
   void Repeat(const int i = -1) { m_Repeat = i; }
   void PushBackInputMgrsEvents(const int i);
   int ResetEvent();
-  const std::vector<Fun4AllInputManager *> GetInputManagers() const { return m_InManager; }
+  const std::vector<Fun4AllInputManager *> &GetInputManagers() const { return m_InManager; }
   bool MixRunsOk() const { return m_MixRunsOkFlag; }
   void MixRunsOk(bool b) { m_MixRunsOkFlag = b; }
 

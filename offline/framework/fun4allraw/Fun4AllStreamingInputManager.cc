@@ -788,6 +788,11 @@ int Fun4AllStreamingInputManager::FillIntt()
     for (auto iter : m_InttInputVector)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+      if(m_intt_negative_bco < 2) //triggered mode
+      {
+        iter->clearPacketBClkStackMap(m_InttRawHitMap.begin()->first);
+        iter->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
+      }
     }
     m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
     m_InttRawHitMap.erase(m_InttRawHitMap.begin());

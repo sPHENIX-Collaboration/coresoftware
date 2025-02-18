@@ -137,6 +137,11 @@ class CaloWaveformSim : public SubsysReco
     m_highgain = _highgain;
     return;
   }
+  void set_pedestal_scale(float _pedestal_scale)
+  {
+    m_pedestal_scale = _pedestal_scale;
+    return;
+  }
   // for CEMC light yield correction
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
@@ -166,6 +171,7 @@ class CaloWaveformSim : public SubsysReco
   bool m_highgain{false};
   int m_gain{1};
   float m_peakpos{6.};
+  float m_pedestal_scale{1.};
   gsl_rng *m_RandomGenerator{nullptr};
 
   PHG4CylinderCellGeom_Spacalv1 *geo{nullptr};

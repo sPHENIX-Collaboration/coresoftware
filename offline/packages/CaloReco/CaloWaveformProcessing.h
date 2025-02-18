@@ -55,12 +55,12 @@ class CaloWaveformProcessing : public SubsysReco
 
   int get_nthreads();
 
-  void set_softwarezerosuppression(bool usezerosuppression,int softwarezerosuppression)
+  void set_softwarezerosuppression(bool usezerosuppression, int softwarezerosuppression)
   {
     _nsoftwarezerosuppression = softwarezerosuppression;
     _bdosoftwarezerosuppression = usezerosuppression;
   }
-  void set_timeFitLim(float low,float high)
+  void set_timeFitLim(float low, float high)
   {
     m_setTimeLim = true;
     m_timeLim_low = low;
@@ -68,12 +68,13 @@ class CaloWaveformProcessing : public SubsysReco
     return;
   }
 
-  void set_bitFlipRecovery(bool dobitfliprecovery) {
+  void set_bitFlipRecovery(bool dobitfliprecovery)
+  {
     _dobitfliprecovery = dobitfliprecovery;
   }
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
-  std::vector<std::vector<float>> calo_processing_ONNX(std::vector<std::vector<float>> chnlvector);
+  static std::vector<std::vector<float>> calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector);
 
   void initialize_processing();
 

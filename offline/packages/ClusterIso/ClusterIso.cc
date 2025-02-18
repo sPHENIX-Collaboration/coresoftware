@@ -513,22 +513,7 @@ int ClusterIso::End(PHCompositeNode * /*topNode*/)
 
 bool ClusterIso::IsAcceptableTower(TowerInfo *tower)
 {
-  if (tower->get_isBadTime())
-  {
-    return false;
-  }
-
-  if (tower->get_isHot())
-  {
-    return false;
-  }
-
-  if (tower->get_isBadChi2())
-  {
-    return false;
-  }
-
-  if (tower->get_isNotInstr())
+  if (!tower->get_isGood())
   {
     return false;
   }

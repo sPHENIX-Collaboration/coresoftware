@@ -6,11 +6,7 @@
 
 #include <TSystem.h>
 
-// boost stacktrace header causes a shadow warning
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
-#pragma GCC diagnostic pop
 
 #include <iostream>
 

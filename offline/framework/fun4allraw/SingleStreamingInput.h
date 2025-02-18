@@ -57,7 +57,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   virtual const std::set<uint64_t> &BclkStack() const { return m_BclkStack; }
   virtual const std::map<uint64_t, std::set<int>> &BeamClockFEE() const { return m_BeamClockFEE; }
   void setHitContainerName(const std::string &name) { m_rawHitContainerName = name; }
-  std::string getHitContainerName() const { return m_rawHitContainerName; }
+  const std::string &getHitContainerName() const { return m_rawHitContainerName; }
   const std::map<int, std::set<uint64_t>> &getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
   //! event assembly QA histograms

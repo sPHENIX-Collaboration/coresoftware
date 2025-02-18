@@ -26,6 +26,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/sphenix_constants.h>
 
 #include <TF1.h>
 #include <TFile.h>
@@ -175,7 +176,7 @@ bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
     if (fabs_max_posQ) {
       return fabs(delta) < fn_exp(posHi, posHi_b0, pt);
     } else {
-      return (delta > fn_exp(posLo, posLo_b0, pt) 
+      return (delta > fn_exp(posLo, posLo_b0, pt)
            && delta < fn_exp(posHi, posHi_b0, pt));
     }
   } else {
@@ -183,7 +184,7 @@ bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
     if (fabs_max_negQ) {
       return fabs(delta) < fn_exp(negHi, negHi_b0, pt);
     } else {
-      return (delta > fn_exp(negLo, negLo_b0, pt) 
+      return (delta > fn_exp(negLo, negLo_b0, pt)
            && delta < fn_exp(negHi, negHi_b0, pt));
     }
   }
@@ -194,7 +195,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 {
   if(Verbosity() > 2)
   {
-    std::cout << " Warning: PHSiliconTpcTrackMatching " 
+    std::cout << " Warning: PHSiliconTpcTrackMatching "
       << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
   }
   // _track_map contains the TPC seed track stubs
@@ -319,15 +320,13 @@ short int PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpci
 
 double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch)
 {
-  double vdrift = _tGeometry->get_drift_velocity();  // cm/ns
-  vdrift *= 1000.0;                                  // cm/microsecond
-  //  double vdrift = 8.00;  // cm /microsecond
-  // double z_bunch_separation = 0.106 * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
-  double z_bunch_separation = (crossing_period / 1000.0) * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
+  const double vdrift = _tGeometry->get_drift_velocity();  // cm/ns
+  const double z_bunch_separation = sphenix_constants::time_between_crossings * vdrift; // cm
 
   // The sign of z_mismatch will depend on which side of the TPC the tracklet is in
   TrackSeed *track = _track_map->get(trid);
 
+  // crossing
   double crossings = z_mismatch / z_bunch_separation;
 
   // Check the TPC side for the first cluster in the track
@@ -496,7 +495,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       Acts::Vector3  mom;
       bool ok_track;
 
-      std::tie(ok_track, tpc_phi, tpc_eta, tpc_pt, tpc_pos, mom) = 
+      std::tie(ok_track, tpc_phi, tpc_eta, tpc_pt, tpc_pos, mom) =
         TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
       if (!ok_track) { continue; }
       tpc_px = mom.x();
@@ -581,7 +580,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       Acts::Vector3  mom;
       bool ok_track;
 
-      std::tie(ok_track, si_phi, si_eta, si_pt, si_pos, mom) = 
+      std::tie(ok_track, si_phi, si_eta, si_pt, si_pos, mom) =
         TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
       if (!ok_track) { continue; }
       si_px = mom.x();
@@ -623,7 +622,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       bool position_match = false;
       if (_pp_mode)
       {
-        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x()) 
+        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x())
          && window_dy.in_window(is_posQ, tpc_pt, tpc_pos.y(), si_pos.y()))
         {
           position_match = true;
@@ -631,7 +630,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       }
       else
       {
-        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x()) 
+        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x())
          && window_dy.in_window(is_posQ, tpc_pt, tpc_pos.y(), si_pos.y())
          && window_dz.in_window(is_posQ, tpc_pt, tpc_pos.z(), si_pos.z()))
         {
@@ -651,14 +650,14 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
         // if phi fails, account for case where |tpc_phi-si_phi|>PI
       } else if (fabs(tpc_phi-si_phi)>M_PI) {
         auto tpc_phi_wrap = tpc_phi;
-        if ((tpc_phi_wrap - si_phi) > M_PI) { 
-          tpc_phi_wrap -= 2*M_PI; 
+        if ((tpc_phi_wrap - si_phi) > M_PI) {
+          tpc_phi_wrap -= 2*M_PI;
         } else {
           tpc_phi_wrap += 2*M_PI;
         }
         phi_match = window_dphi.in_window(is_posQ, tpc_pt, tpc_phi_wrap, si_phi);
       }
-         
+
       if (!phi_match)
       {
         continue;
@@ -739,18 +738,23 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
     float z_tpc = TrackSeedHelper::get_z(tpc_track);
     float z_mismatch = z_tpc - z_si;
 
-    float mag_crossing_z_mismatch = fabs(crossing) * crossing_period * vdrift;
+    // get TPC side from one of the TPC clusters
+    std::vector<TrkrDefs::cluskey> temp_clusters = getTrackletClusterList(tpc_track);
+    if(temp_clusters.size() == 0)
+      {
+	continue;
+      }
+    unsigned int this_side =   TpcDefs::getSide(temp_clusters[0]);
 
-    // We do not know the sign  of the z mismatch for a given crossing unless we know the drift direction in the TPC, use magnitude
-    // could instead look up any TPC cluster key in the track to get side
-    // z-mismatch can occasionally be up to 2 crossings due to TPC extrapolation precision
-    if (fabs(fabs(z_mismatch) - mag_crossing_z_mismatch) < 3.0)
+    float z_tpc_corrected = _clusterCrossingCorrection.correctZ(z_tpc, this_side, crossing);
+    float z_mismatch_corrected = z_tpc_corrected - z_si;
+    if (fabs(z_mismatch_corrected) < _crossing_deltaz_max)
     {
       if (Verbosity() > 1)
       {
         std::cout << "  Success:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id
-                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch
-                  << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << " drift velocity " << vdrift << std::endl;
+                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << "z_tpc_corrected " << z_tpc_corrected
+                  << " z_mismatch_corrected " << z_mismatch_corrected << " drift velocity " << vdrift << std::endl;
       }
     }
     else
@@ -758,11 +762,11 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
       if (Verbosity() > 1)
       {
         std::cout << "  FAILURE:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id
-                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch
-                  << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
+                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << "z_tpc_corrected " << z_tpc_corrected
+                  << " z_mismatch_corrected " << z_mismatch_corrected << std::endl;
       }
 
-      // bad_map.insert(std::make_pair(tpcid, si_id));
+      bad_map.insert(std::make_pair(tpcid, si_id));
     }
   }
 

@@ -6,15 +6,20 @@
 
 #include "TpcClusterZCrossingCorrection.h"
 
+#include <phool/sphenix_constants.h>
+
 #include <cmath>
 #include <iostream>
 #include <limits>
 
-float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;  // default value, override from macro
+// default value, override from macro (cm/ns)
+float TpcClusterZCrossingCorrection::_vdrift = 8.0e-03;
 
-TpcClusterZCrossingCorrection::TpcClusterZCrossingCorrection() = default;
+// ns, same value as in pileup generator
+float TpcClusterZCrossingCorrection::_time_between_crossings = sphenix_constants::time_between_crossings;
 
-float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing) const
+//______________________________________________________________________________________________
+float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, short int crossing)
 {
   if (crossing == std::numeric_limits<short>::max())
   {

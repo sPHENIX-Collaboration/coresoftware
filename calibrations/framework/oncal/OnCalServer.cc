@@ -15,9 +15,7 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/RunToTime.h>
 
@@ -394,8 +392,6 @@ int OnCalServer::End()
     std::cout << "No Events read, you probably gave me an empty filelist" << std::endl;
     return -1;
   }
-  PdbApplication *app = PdbApplication::instance();
-  app->setDBName("oncal");
   int i = 0;
   std::vector<std::pair<SubsysReco *, PHCompositeNode *> >::iterator iter;
   gROOT->cd(default_Tdirectory.c_str());
@@ -1717,9 +1713,6 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
   }
   if (rs->next() || testmode)
   {
-    PdbBankManager *bankManager = PdbBankManager::instance();
-    PdbApplication *application = bankManager->getApplication();
-    application->setDBName("oncal");
     std::string tablecomment = "Subsytem provided";
     iret = calibrator->CreateCalibration(runnumber, what, tablecomment, commit);
     if (!iret)
@@ -1789,75 +1782,6 @@ void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const std::st
     updateDB(table, "files", filelist, RunNumber());
   }
   return;
-}
-
-int OnCalServer::CopySnglTable(const std::string &pdbclass, const std::string &tablename, const int bankid, const int FromRun, const int ToRun, const int commit)
-{
-  int iret = CopySnglTableNewBankId(pdbclass, tablename, bankid, bankid, FromRun, ToRun, commit);
-  return iret;
-}
-
-int OnCalServer::CopySnglTableNewBankId(const std::string &pdbclass, const std::string &tablename, const int bankid, const int Tobankid, const int FromRun, const int ToRun, const int commit)
-{
-  RunToTime *rt = RunToTime::instance();
-  PHTimeStamp *ts = rt->getBeginTime(FromRun);
-  assert(ts);
-  PdbBankManager *bankManager = PdbBankManager::instance();
-  PdbApplication *application = bankManager->getApplication();
-  application->setDBName("oncal");
-  PdbBankID BankID(bankid);
-  PdbCalBank *pdbBank = bankManager->fetchBank(pdbclass.c_str(), BankID, tablename.c_str(), *ts);
-  assert(pdbBank);
-  PHTimeStamp *tstartnew = rt->getBeginTime(ToRun);
-  PHTimeStamp *tendnew = rt->getEndTime(ToRun);
-  application->startUpdate();
-  PdbCalBank *pdbBanknew = (PdbCalBank *) (pdbBank->clone());
-  std::ostringstream newdesc;
-  newdesc << "copied from run " << FromRun;
-  if (pdbBanknew)
-  {
-    pdbBanknew->setLength(pdbBank->getLength());
-    if (Verbosity() > 0)
-    {
-      for (unsigned int i = 0; i < pdbBank->getLength(); i++)
-      {
-        std::cout << "orig: " << std::endl;
-        pdbBank->printEntry(i);
-        std::cout << "new: " << std::endl;
-        pdbBanknew->printEntry(i);
-      }
-    }
-    PHTimeStamp tsins;
-    pdbBanknew->setInsertTime(tsins);
-    pdbBanknew->setStartValTime(*tstartnew);
-    pdbBanknew->setEndValTime(*tendnew);
-    pdbBanknew->setDescription(newdesc.str().c_str());
-    if (bankid != Tobankid)
-    {
-      pdbBanknew->setBankID(Tobankid);
-    }
-    if (Verbosity() > 0)
-    {
-      std::cout << "StartValTime: orig " << pdbBank->getStartValTime()
-                << ", new: " << pdbBanknew->getStartValTime() << std::endl;
-      std::cout << "EndValTime: orig " << pdbBank->getEndValTime()
-                << ", new: " << pdbBanknew->getEndValTime() << std::endl;
-    }
-    if (commit)
-    {
-      application->commit(pdbBanknew);
-    }
-    else
-    {
-      application->abort();
-    }
-  }
-  delete pdbBank;
-
-  delete ts;
-  delete tstartnew;
-  delete tendnew;
-  return 0;
 }
 
 int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int previous)

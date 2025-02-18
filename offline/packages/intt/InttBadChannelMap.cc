@@ -13,33 +13,7 @@ InttBadChannelMap::~InttBadChannelMap()
   delete m_bad_channel_set;
 }
 
-int InttBadChannelMap::LoadFromFile(std::string const& filename)
-{
-  if (filename.empty())
-  {
-    std::cerr
-      << PHWHERE << "\n"
-      << "\tArgument 'filename' is empty string\n"
-      << std::flush;
-    return 1;
-  }
-
-  if (!std::filesystem::exists(filename))
-  {
-    std::cerr
-      << PHWHERE << "\n"
-      << "\tFile '" << filename << "' does not exist\n"
-      << std::flush;
-    return 1;
-  }
-
-  CDBTTree cdbttree(filename);
-  cdbttree.LoadCalibrations();
-
-  return v_LoadFromCDBTTree(cdbttree);
-}
-
-int InttBadChannelMap::LoadFromCDB(std::string const& name)
+int InttBadChannelMap::Load(std::string const& name)
 {
   if (name.empty())
   {
@@ -50,10 +24,28 @@ int InttBadChannelMap::LoadFromCDB(std::string const& name)
     return 1;
   }
 
-  std::string database = CDBInterface::instance()->getUrl(name);
-  CDBTTree cdbttree(database);
-  cdbttree.LoadCalibrations();
+  std::string filename = name.find(".root") != std::string::npos ? name : CDBInterface::instance()->getUrl(name);
 
+  if (filename.empty())
+  {
+    std::cerr
+      << PHWHERE << "\n"
+      << "\tCalibration '" << name << "' not found in CDB\n"
+      << std::flush;
+    return 1;
+  }
+
+  if (!std::filesystem::exists(filename))
+  {
+    std::cerr
+      << PHWHERE << "\n"
+      << "\tFile '" << filename << "' not does not exist\n"
+      << std::flush;
+    return 1;
+  }
+
+  CDBTTree cdbttree(filename);
+  cdbttree.LoadCalibrations();
   return v_LoadFromCDBTTree(cdbttree);
 }
 
