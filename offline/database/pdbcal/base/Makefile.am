@@ -27,7 +27,7 @@ ROOT_DICTS = \
 
 pcmdir = $(libdir)
 # more elegant way to create pcm files (without listing them)
-nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
+nobase_dist_pcm_DATA = $(ROOT_DICTS:.cc=_rdict.pcm)
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
