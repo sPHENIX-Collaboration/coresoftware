@@ -18,7 +18,7 @@ gainname="not_using_gain"
 fi
 
 source /opt/sphenix/core/bin/sphenix_setup.sh -n
-export MYINSTALL=/sphenix/u/czhang4/install
+export MYINSTALL=/star/u/rcorliss/install
 source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
  
 for (( n=0; n<$nmax; n++ ));
