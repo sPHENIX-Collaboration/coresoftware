@@ -34,7 +34,7 @@ class PHG4TpcDetector : public PHG4Detector
 
   int IsInTpc(G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { m_SuperDetectorName = name; }
-  const std::string SuperDetector() const { return m_SuperDetectorName; }
+  const std::string &SuperDetector() const { return m_SuperDetectorName; }
 
  private:
   void CreateTpcGasMixture();
@@ -42,7 +42,7 @@ class PHG4TpcDetector : public PHG4Detector
   int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcExternalSupports(G4LogicalVolume *logicWorld);
 
-  void CreateCompositeMaterial(const std::string &compositeName, std::vector<std::string> materialName, std::vector<double> thickness);
+  void CreateCompositeMaterial(const std::string &compositeName, std::vector<std::string> materialName, const std::vector<double> &thickness);
 
   //! add geometry node
   /** this setups the relevant geometry needed for offline reconstruciton */

@@ -461,10 +461,10 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
   return 0;
 }
 
-void PHG4TpcDetector ::CreateCompositeMaterial(
+void PHG4TpcDetector::CreateCompositeMaterial(
     const std::string &compositeName,
     std::vector<std::string> materialName,
-    std::vector<double> thickness)
+    const std::vector<double> &thickness)
 {
   // takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
 

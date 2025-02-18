@@ -169,10 +169,10 @@ G4AssemblyVolume *PHG4TpcEndCapDetector::ConstructEndCapAssembly()
   return assemblyvol;
 }
 
-void PHG4TpcEndCapDetector ::CreateCompositeMaterial(
+void PHG4TpcEndCapDetector::CreateCompositeMaterial(
     const std::string &compositeName,
     std::vector<std::string> materialName,
-    std::vector<double> thickness)
+    const std::vector<double> &thickness)
 {
   // takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
 
