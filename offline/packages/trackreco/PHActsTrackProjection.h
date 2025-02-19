@@ -100,7 +100,7 @@ class PHActsTrackProjection : public SubsysReco
                             double &minIndex, double &minDphi,
                             double &minDeta, double &minE);
   double deltaPhi(const double &phi);
- 
+
   /// Objects containing the Acts track fit results
   ActsGeometry *m_tGeometry = nullptr;
   SvtxTrackMap *m_trackMap = nullptr;
@@ -109,8 +109,6 @@ class PHActsTrackProjection : public SubsysReco
   /// Objects to hold calorimeter information. There are
   /// only 3 calo layers
   const static int m_nCaloLayers = 3;
-  std::vector<std::string> m_caloNames;
-  std::vector<SvtxTrack::CAL_LAYER> m_caloTypes;
   std::map<std::string, SurfacePtr> m_caloSurfaces;
   /// An optional map that allows projection to an arbitrary radius
   /// Results are written to the SvtxTrack based on the provided CAL_LAYER

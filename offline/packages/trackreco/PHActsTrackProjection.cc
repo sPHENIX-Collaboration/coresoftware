@@ -35,23 +35,15 @@
 #include <CLHEP/Vector/ThreeVector.h>
 #include <math.h>
 
+namespace
+{
+  static const std::vector<std::string> m_caloNames = { "CEMC", "HCALIN", "HCALOUT", "OUTER_CEMC", "OUTER_HCALIN", "OUTER_HCALOUT" };
+  static const std::vector<SvtxTrack::CAL_LAYER> m_caloTypes = { SvtxTrack::CEMC, SvtxTrack::HCALIN, SvtxTrack::HCALOUT, SvtxTrack::OUTER_CEMC, SvtxTrack::OUTER_HCALIN, SvtxTrack::OUTER_HCALOUT };
+}
+
 PHActsTrackProjection::PHActsTrackProjection(const std::string& name)
   : SubsysReco(name)
-{
-  m_caloNames.push_back("CEMC");
-  m_caloNames.push_back("HCALIN");
-  m_caloNames.push_back("HCALOUT");
-  m_caloNames.push_back("OUTER_CEMC");
-  m_caloNames.push_back("OUTER_HCALIN");
-  m_caloNames.push_back("OUTER_HCALOUT");
-
-  m_caloTypes.push_back(SvtxTrack::CEMC);
-  m_caloTypes.push_back(SvtxTrack::HCALIN);
-  m_caloTypes.push_back(SvtxTrack::HCALOUT);
-  m_caloTypes.push_back(SvtxTrack::OUTER_CEMC);
-  m_caloTypes.push_back(SvtxTrack::OUTER_HCALIN);
-  m_caloTypes.push_back(SvtxTrack::OUTER_HCALOUT);
-}
+{}
 
 int PHActsTrackProjection::InitRun(PHCompositeNode* topNode)
 {
@@ -288,9 +280,9 @@ PHActsTrackProjection::propagateTrack(
 int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
                                                  const int caloLayer)
 {
-  std::string towerGeoNodeName = "TOWERGEOM_" + m_caloNames.at(caloLayer);
-  std::string towerNodeName = "TOWERINFO_CALIB_" + m_caloNames.at(caloLayer);
-  std::string clusterNodeName = "CLUSTER_" + m_caloNames.at(caloLayer);
+  const std::string towerGeoNodeName = "TOWERGEOM_" + m_caloNames.at(caloLayer);
+  const std::string towerNodeName = "TOWERINFO_CALIB_" + m_caloNames.at(caloLayer);
+  const std::string clusterNodeName = "CLUSTER_" + m_caloNames.at(caloLayer);
 
   m_towerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, towerGeoNodeName.c_str());
 
@@ -305,7 +297,8 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
     m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, nodeName.c_str());
   }
 
-  if((!m_clusterContainer) && (Verbosity() > 1))
+  if((!m_clusterContainer) )
+    // && (Verbosity() > 1))
   {
     std::cout << PHWHERE
               << "Calo cluster container for " << m_caloNames.at(caloLayer)
