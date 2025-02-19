@@ -11,66 +11,75 @@ class ActsGeometry
 {
  public:
   ActsGeometry() = default;
-  ~ActsGeometry() {}
+  ~ActsGeometry() = default;
 
-  void setGeometry(ActsTrackingGeometry& tGeometry)
+  void setGeometry(const ActsTrackingGeometry& tGeometry)
   {
     m_tGeometry = tGeometry;
   }
 
-  void setSurfMaps(ActsSurfaceMaps& surfMaps)
+  void setSurfMaps(const ActsSurfaceMaps& surfMaps)
   {
     m_surfMaps = surfMaps;
   }
 
+  //! const accessor
+  const ActsTrackingGeometry& geometry() const
+  {
+    return m_tGeometry;
+  }
+
+  //! mutable accessor
   ActsTrackingGeometry& geometry()
   {
     return m_tGeometry;
   }
+
+  //! const accessor
+  const ActsSurfaceMaps& maps() const
+  {
+    return m_surfMaps;
+  }
+
+  //! mutable accessor
   ActsSurfaceMaps& maps()
   {
     return m_surfMaps;
   }
 
   void set_drift_velocity(double vd) { _drift_velocity = vd; }
-  double get_drift_velocity() { return _drift_velocity; }
 
-  void set_crossing_period(double t) { _crossing_period = t; }
-  double get_crossing_period() { return _crossing_period; }
+  void set_tpc_tzero(double tz) { _tpc_tzero = tz; }
+  double get_tpc_tzero() const { return _tpc_tzero; }
 
-  Eigen::Matrix<float, 3, 1> getGlobalPositionF(
-      TrkrDefs::cluskey key,
-      TrkrCluster* cluster);
+  double get_drift_velocity() const { return _drift_velocity; }
 
   Acts::Vector3 getGlobalPosition(
       TrkrDefs::cluskey key,
-      TrkrCluster* cluster);
+      TrkrCluster* cluster) const;
 
   Acts::Vector3 getGlobalPositionTpc(
       TrkrDefs::cluskey key,
-      TrkrCluster* cluster);
+      TrkrCluster* cluster) const;
 
   Acts::Vector3 getGlobalPositionTpc(
       const TrkrDefs::hitsetkey& hitsetkey, const TrkrDefs::hitkey& hitkey, const float& phi, const float& rad,
-      const float& clockPeriod);
+      const float& clockPeriod) const;
 
   Surface get_tpc_surface_from_coords(
       TrkrDefs::hitsetkey hitsetkey,
       Acts::Vector3 world,
-      TrkrDefs::subsurfkey& subsurfkey);
+      TrkrDefs::subsurfkey& subsurfkey) const ;
 
-  Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation);
+  Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation) const;
 
-  Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster);
-
-  Acts::Vector2 getCrossingCorrectedLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, int crossing);
+  Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster) const;
 
  private:
   ActsTrackingGeometry m_tGeometry;
   ActsSurfaceMaps m_surfMaps;
-
   double _drift_velocity = 8.0e-3;  // cm/ns
-  double _crossing_period = 106.0;  // ns
+  double _tpc_tzero = 0.0;  // ns
 };
 
 #endif

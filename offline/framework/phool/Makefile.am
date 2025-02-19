@@ -10,6 +10,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64
 
+pcmdir = $(libdir)
+
 if USE_ONLINE
 lib_LTLIBRARIES = \
   libphool.la
@@ -17,8 +19,8 @@ lib_LTLIBRARIES = \
 ROOTDICTS = \
   PHObject_Dict.cc
 
-nobase_dist_pcm_DATA = \
-  PHObject_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libphool_la_SOURCES = \
   $(ROOTDICTS) \
@@ -41,9 +43,8 @@ ROOTDICTS = \
   PHObject_Dict.cc \
   PHTimeStamp_Dict.cc
 
-nobase_dist_pcm_DATA = \
-  PHObject_Dict_rdict.pcm \
-  PHTimeStamp_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libphool_la_SOURCES = \
   $(ROOTDICTS) \
@@ -87,7 +88,8 @@ pkginclude_HEADERS =  \
   PHTimeServer.h \
   PHTimeStamp.h \
   PHTypedNodeIterator.h \
-  recoConsts.h
+  recoConsts.h \
+  sphenix_constants.h
 
 noinst_PROGRAMS = \
   testexternals_phool \
@@ -99,9 +101,6 @@ libphool_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `root-config --libs`
-
-
-pcmdir = $(libdir)
 
 
 libsph_onnx_la_SOURCES = \

@@ -59,23 +59,20 @@ class PHParameters : public PHObject
   std::pair<std::map<const std::string, std::string>::const_iterator, std::map<const std::string, std::string>::const_iterator> get_all_string_params() { return std::make_pair(m_StringParMap.begin(), m_StringParMap.end()); }
 
   void set_name(const std::string &name) { m_Detector = name; }
-  std::string Name() const { return m_Detector; }
+  const std::string &Name() const { return m_Detector; }
 
   void FillFrom(const PdbParameterMap *saveparams);
-  void FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer);
+  void FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int detid);
   void FillFrom(const PHParameters *saveparams);
   // save parameters on node tree
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   // save parameters in container on node tree
-  void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
+  void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int detid);
 
   // update parameters on node tree (in case the subsystem modified them)
   void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename);
-  void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
+  void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int detid);
 
-  int WriteToDB();
-  int ReadFromDB();
-  int ReadFromDB(const std::string &name, const int layer);
   int WriteToCDBFile(const std::string &filename);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");
 
@@ -84,9 +81,9 @@ class PHParameters : public PHObject
   {
     return ReadFromFile(name, extension, 0, 0, dir);
   }
-  int ReadFromCDBFile(const std::string &name);
+  int ReadFromCDBFile(const std::string &url);
   //! Fully fledged read
-  int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const int issuper, const std::string &dir = ".");
+  int ReadFromFile(const std::string &name, const std::string &extension, const int detid, const int issuper, const std::string &dir = ".");
   void CopyToPdbParameterMap(PdbParameterMap *myparm);
 
   void printint() const;
@@ -94,13 +91,13 @@ class PHParameters : public PHObject
   void printstring() const;
 
  private:
-  unsigned int ConvertStringToUint(const std::string &str) const;
+  static unsigned int ConvertStringToUint(const std::string &str);
   std::string m_Detector;
   dMap m_DoubleParMap;
   iMap m_IntParMap;
   strMap m_StringParMap;
 
-  //No Class Def since this class is not intended to be persistent
+  // No Class Def since this class is not intended to be persistent
 };
 
 #endif  // PHPARAMETER_PHPARAMETERS_H

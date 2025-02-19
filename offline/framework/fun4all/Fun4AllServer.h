@@ -111,7 +111,7 @@ class Fun4AllServer : public Fun4AllBase
   void NodeIdentify(const std::string &name);
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
   void PrintTimer(const std::string &name = "");
-  void PrintMemoryTracker(const std::string &name = "") const;
+  static void PrintMemoryTracker(const std::string &name = "");
   int RunNumber() const { return runnumber; }
   int EventCounter() const { return eventcounter; }
   std::map<const std::string, PHTimer>::const_iterator timer_begin() { return timer_map.begin(); }
@@ -119,12 +119,12 @@ class Fun4AllServer : public Fun4AllBase
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");
-  int InitNodeTree(PHCompositeNode *topNode);
+  static int InitNodeTree(PHCompositeNode *topNode);
   int CountOutNodes(PHCompositeNode *startNode);
   int CountOutNodesRecursive(PHCompositeNode *startNode, const int icount);
   int UpdateEventSelector(Fun4AllOutputManager *manager);
   int unregisterSubsystemsNow();
-  int setRun(const int runnumber);
+  int setRun(const int runno);
   static Fun4AllServer *__instance;
   TH1 *FrameWorkVars{nullptr};
   Fun4AllMemoryTracker *ffamemtracker{nullptr};

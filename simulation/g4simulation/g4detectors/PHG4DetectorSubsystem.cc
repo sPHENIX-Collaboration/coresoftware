@@ -89,10 +89,6 @@ int PHG4DetectorSubsystem::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      if (ReadDB())
-      {
-        ReadParamsFromDB(calibdetname, isSuperDetector);
-      }
       if (get_filetype() != PHG4DetectorSubsystem::none)
       {
         ReadParamsFromFile(calibdetname, get_filetype(), isSuperDetector);
@@ -296,41 +292,6 @@ void PHG4DetectorSubsystem::InitializeParameters()
   }
 }
 
-int PHG4DetectorSubsystem::SaveParamsToDB()
-{
-  int iret = 0;
-  if (paramscontainer)
-  {
-    iret = paramscontainer->WriteToDB();
-  }
-  else
-  {
-    iret = params->WriteToDB();
-  }
-  if (iret)
-  {
-    std::cout << "problem committing to DB" << std::endl;
-  }
-  return iret;
-}
-
-int PHG4DetectorSubsystem::ReadParamsFromDB(const std::string &name, const int issuper)
-{
-  int iret = 0;
-  if (issuper)
-  {
-    iret = params->ReadFromDB(name, layer);
-  }
-  else
-  {
-    iret = params->ReadFromDB();
-  }
-  if (iret)
-  {
-    std::cout << "problem reading from DB" << std::endl;
-  }
-  return iret;
-}
 
 int PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TYPE ftyp)
 {

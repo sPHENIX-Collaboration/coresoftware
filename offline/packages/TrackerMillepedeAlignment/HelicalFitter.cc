@@ -3,6 +3,8 @@
 #include "AlignmentDefs.h"
 #include "Mille.h"
 
+#include <tpc/TpcClusterZCrossingCorrection.h>
+
 /// Tracking includes
 #include <fun4all/SubsysReco.h>
 #include <math.h>
@@ -287,6 +289,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     TrackFitUtils::getTrackletClusters(_tGeometry, _cluster_map, global_vec, cluskey_vec);
 
     correctTpcGlobalPositions(global_vec, cluskey_vec);
+
 
     std::vector<float> fitpars;
     std::vector<float> fitpars_mvtx_half;
@@ -926,6 +929,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
     }
 
+
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
     float dca3dxy = 0;
@@ -1060,6 +1064,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
         track_ntp->Fill(ntp_data);
       }
+
     }
 
     if (Verbosity() > 1)
@@ -1961,22 +1966,16 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   projX = X - (tanvec.dot(X) / tanvec.dot(Z)) * Z;
   projY = Y - (tanvec.dot(Y) / tanvec.dot(Z)) * Z;
 
-  if (Verbosity() > 1)
-  {
-    std::cout << "    tanvec: " << std::endl
-              << tanvec << std::endl;
-    std::cout << "    X: " << std::endl
-              << X << std::endl;
-    std::cout << "    Y: " << std::endl
-              << Y << std::endl;
-    std::cout << "    Z: " << std::endl
-              << Z << std::endl;
+  if(Verbosity() > 1)
+    {
+      std::cout << "    tanvec: " << std::endl << tanvec << std::endl;
+      std::cout << "    X: " << std::endl << X << std::endl;
+      std::cout << "    Y: " << std::endl << Y << std::endl;
+      std::cout << "    Z: " << std::endl << Z << std::endl;
 
-    std::cout << "    projX: " << std::endl
-              << projX << std::endl;
-    std::cout << "    projY: " << std::endl
-              << projY << std::endl;
-  }
+      std::cout << "    projX: " << std::endl << projX << std::endl;
+      std::cout << "    projY: " << std::endl << projY << std::endl;
+    }
 
   return;
 }

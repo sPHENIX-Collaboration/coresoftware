@@ -29,10 +29,9 @@ class PHParametersContainer : public PHObject
   const PHParameters *GetParameters(const int detid) const;
   PHParameters *GetParametersToModify(const int detid);
   int WriteToFile(const std::string &extension, const std::string &dir);
-  int WriteToDB();
 
   void set_name(const std::string &name) { superdetectorname = name; }
-  std::string Name() const { return superdetectorname; }
+  const std::string &Name() const { return superdetectorname; }
   //  std::pair<std::map<int, PHParameters *>::const_iterator,  std::map<int, PHParameters *>::const_iterator> GetAllParameters() {return std::make_pair(parametermap.begin(),parametermap.end());}
   ConstRange GetAllParameters() const { return std::make_pair(parametermap.begin(), parametermap.end()); }
   void Print(Option_t *option = "") const override;

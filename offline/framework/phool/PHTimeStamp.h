@@ -41,8 +41,7 @@ class PHTimeStamp : public PHObject
   time_t getTics() const;
   void setTics(const time_t);
 
-  int isInRange(const PHTimeStamp &, const PHTimeStamp &);
-  void print();
+  int isInRange(const PHTimeStamp &, const PHTimeStamp &) const;
 
   int operator==(const PHTimeStamp &) const;
   int operator!=(const PHTimeStamp &) const;
@@ -58,8 +57,8 @@ class PHTimeStamp : public PHObject
   void print() const;
 
  private:
-  phtime_t ticsToBinaryTime(time_t) const;
-  time_t binaryTimeToTics(phtime_t) const;
+  static phtime_t ticsToBinaryTime(time_t);
+  static time_t binaryTimeToTics(phtime_t);
 
  protected:
   phtime_t binaryTime{};

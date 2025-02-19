@@ -7,8 +7,6 @@
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
-
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
 #include <trackbase/ClusterErrorPara.h>

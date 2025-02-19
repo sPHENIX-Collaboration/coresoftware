@@ -1,17 +1,13 @@
 #include "PHFlag.h"
 
-// boost stacktrace header causes a shadow warning
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
-#pragma GCC diagnostic pop
 
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <utility>  // for pair
 
-const std::string
+std::string
 PHFlag::get_StringFlag(const std::string &name) const
 {
   std::map<std::string, std::string>::const_iterator iter = m_StringFlagMap.find(name);
@@ -26,7 +22,7 @@ PHFlag::get_StringFlag(const std::string &name) const
   return "";
 }
 
-const std::string
+std::string
 PHFlag::get_StringFlag(const std::string &name, const std::string &defaultval)
 {
   std::map<std::string, std::string>::const_iterator iter = m_StringFlagMap.find(name);
@@ -34,11 +30,9 @@ PHFlag::get_StringFlag(const std::string &name, const std::string &defaultval)
   {
     return iter->second;
   }
-  else
-  {
-    set_StringFlag(name, defaultval);
-    return get_StringFlag(name);
-  }
+
+  set_StringFlag(name, defaultval);
+  return get_StringFlag(name);
 }
 
 void PHFlag::set_StringFlag(const std::string &name, const std::string &charstr)
@@ -68,11 +62,9 @@ double PHFlag::get_DoubleFlag(const std::string &name, const double defaultval)
   {
     return iter->second;
   }
-  else
-  {
-    set_DoubleFlag(name, defaultval);
-    return get_DoubleFlag(name);
-  }
+
+  set_DoubleFlag(name, defaultval);
+  return get_DoubleFlag(name);
 }
 
 void PHFlag::set_DoubleFlag(const std::string &name, const double iflag)
@@ -102,11 +94,9 @@ float PHFlag::get_FloatFlag(const std::string &name, const float defaultval)
   {
     return iter->second;
   }
-  else
-  {
-    set_FloatFlag(name, defaultval);
-    return get_FloatFlag(name);
-  }
+
+  set_FloatFlag(name, defaultval);
+  return get_FloatFlag(name);
 }
 
 void PHFlag::set_FloatFlag(const std::string &name, const float iflag)
@@ -136,11 +126,9 @@ int PHFlag::get_IntFlag(const std::string &name, int defaultval)
   {
     return iter->second;
   }
-  else
-  {
-    set_IntFlag(name, defaultval);
-    return get_IntFlag(name);
-  }
+
+  set_IntFlag(name, defaultval);
+  return get_IntFlag(name);
 }
 
 void PHFlag::set_IntFlag(const std::string &name, const int iflag)
@@ -170,11 +158,9 @@ uint64_t PHFlag::get_uint64Flag(const std::string &name, uint64_t defaultval)
   {
     return iter->second;
   }
-  else
-  {
-    set_uint64Flag(name, defaultval);
-    return get_uint64Flag(name);
-  }
+
+  set_uint64Flag(name, defaultval);
+  return get_uint64Flag(name);
 }
 
 void PHFlag::set_uint64Flag(const std::string &name, const uint64_t iflag)
