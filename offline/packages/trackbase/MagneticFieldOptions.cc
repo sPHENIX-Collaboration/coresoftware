@@ -2,16 +2,15 @@
 
 #include "MagneticFieldOptions.h"
 
-#include "Acts/Definitions/Units.hpp"
-#include "Acts/MagneticField/BFieldMapUtils.hpp"
-#include "Acts/MagneticField/MagneticFieldProvider.hpp"
-#include "Acts/MagneticField/SolenoidBField.hpp"
-#include "Acts/Utilities/Logger.hpp"
-#include "ActsExamples/Framework/Sequencer.hpp"
-#include "ActsExamples/MagneticField/FieldMapRootIo.hpp"
-#include "ActsExamples/MagneticField/FieldMapTextIo.hpp"
-#include "ActsExamples/MagneticField/ScalableBFieldService.hpp"
-#include "ActsExamples/Utilities/Options.hpp"
+#include <Acts/Definitions/Units.hpp>
+#include <Acts/MagneticField/BFieldMapUtils.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
+#include <Acts/MagneticField/SolenoidBField.hpp>
+#include <Acts/Utilities/Logger.hpp>
+#include <ActsExamples/MagneticField/FieldMapRootIo.hpp>
+#include <ActsExamples/MagneticField/FieldMapTextIo.hpp>
+#include <ActsExamples/MagneticField/ScalableBFieldService.hpp>
+#include <ActsExamples/Utilities/Options.hpp>
 
 #include <filesystem>
 #include <memory>
@@ -90,9 +89,6 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
   using namespace ActsExamples::detail;
   using std::filesystem::path;
 
-  ACTS_LOCAL_LOGGER(
-      Acts::getDefaultLogger("MagneticField", Acts::Logging::INFO));
-
   // first option: create a constant field
   if (vars.count("bf-constant-tesla") != 0u) {
     const auto values = vars["bf-constant-tesla"].as<Reals<3>>();
@@ -100,10 +96,8 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
                         values[1] * Acts::UnitConstants::T,
                         values[2] * Acts::UnitConstants::T);
     if (vars["bf-scalable"].as<bool>()) {
-      ACTS_INFO("Use a constant magnetic field with per-event scaling");
       return std::make_shared<ScalableBField>(field);
     } else {
-      ACTS_INFO("Use a constant magnetic field");
       return std::make_shared<Acts::ConstantBField>(field);
     }
   }
@@ -121,14 +115,10 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
 
     bool readRoot = false;
     if (file.extension() == ".root") {
-      ACTS_INFO("Read magnetic field map from ROOT file '" << file << "'");
       readRoot = true;
     } else if (file.extension() == ".txt") {
-      ACTS_INFO("Read magnetic field map from text file '" << file << "'");
       readRoot = false;
     } else {
-      ACTS_ERROR("'" << file
-                     << "' is an unsupported magnetic field map file type");
       throw std::runtime_error("Unsupported magnetic field map file type");
     }
 
@@ -138,7 +128,6 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
         return (bins[0] * (sizes[1] * sizes[2]) + bins[1] * sizes[2] + bins[2]);
       };
 
-      ACTS_INFO("Use XYZ field map");
       if (readRoot) {
         auto map = makeMagneticFieldMapXyzFromRoot(
             std::move(mapBins), file.native(), tree, lengthUnit, fieldUnit,
@@ -158,7 +147,6 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
         return (bins[1] * sizes[0] + bins[0]);
       };
 
-      ACTS_INFO("Use RZ field map");
       if (readRoot) {
         auto map = makeMagneticFieldMapRzFromRoot(
             std::move(mapBins), file.native(), tree, lengthUnit, fieldUnit,
@@ -173,7 +161,6 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
       }
 
     } else {
-      ACTS_ERROR("'" << type << "' is an unknown magnetic field map type");
       throw std::runtime_error("Unknown magnetic field map type");
     }
   }
@@ -189,9 +176,7 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
     solenoidConfig.nCoils = vars["bf-solenoid-ncoils"].as<size_t>();
     solenoidConfig.bMagCenter =
         vars["bf-solenoid-mag-tesla"].as<double>() * Acts::UnitConstants::T;
-    ACTS_INFO("Use solenoid magnetic field with magnitude "
-              << solenoidConfig.bMagCenter / Acts::UnitConstants::T
-              << " Tesla at the center.");
+
     const auto solenoidField = Acts::SolenoidBField(solenoidConfig);
     // The parameters for creating a field map
     auto getRange = [&](const char* name, auto unit, auto& lower, auto& upper) {
@@ -211,6 +196,5 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
   }
 
   // default option: no field
-  ACTS_INFO("Use no magnetic field");
   return std::make_shared<Acts::NullBField>();
 }
