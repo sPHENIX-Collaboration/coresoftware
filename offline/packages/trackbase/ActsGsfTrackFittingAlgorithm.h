@@ -20,6 +20,12 @@
 #include <Acts/TrackFitting/GsfMixtureReduction.hpp>
 #include <Acts/Utilities/Helpers.hpp>
 
+enum class MixtureReductionAlgorithm
+{
+  weightCut,
+  KLDistance
+};
+
 namespace
 {
   using BetheHeitlerApprox = Acts::AtlasBetheHeitlerApprox<6, 5>;
@@ -39,11 +45,7 @@ namespace
       Acts::TrackContainer<Acts::VectorTrackContainer,
                            Acts::VectorMultiTrajectory, std::shared_ptr>;
 
-  enum class MixtureReductionAlgorithm
-  {
-    weightCut,
-    KLDistance
-  };
+
 
   struct GsfFitterFunctionImpl
     : public ActsTrackFittingAlgorithm::TrackFitterFunction

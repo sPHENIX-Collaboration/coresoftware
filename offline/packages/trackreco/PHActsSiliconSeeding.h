@@ -294,7 +294,7 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<std::pair<int, int>> zBinNeighborsBottom;
   int nphineighbors = 1;
  std::unique_ptr<const Acts::GridBinFinder<2ul>> m_bottomBinFinder;
- std::unique_ptr<const Acts::GridBinGinder<2ul>> m_topBinFinder;
+ std::unique_ptr<const Acts::GridBinFinder<2ul>> m_topBinFinder;
 
  int m_event = 0;
 
