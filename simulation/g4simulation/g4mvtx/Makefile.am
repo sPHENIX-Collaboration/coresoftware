@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = `geant4-config --cflags`
+AM_CXXFLAGS = `geant4-config --cflags | sed 's/-I/-isystem/g'`
 
 lib_LTLIBRARIES = \
   libg4mvtx.la

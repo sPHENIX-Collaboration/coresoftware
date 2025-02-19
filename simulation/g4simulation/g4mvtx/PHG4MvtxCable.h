@@ -32,30 +32,30 @@ class PHG4MvtxCable
 
   virtual ~PHG4MvtxCable() = default;
 
-  std::string get_name() { return m_name; };
-  std::string get_coreMaterial() { return m_coreMaterial; };
-  double get_coreRadius() { return m_coreRadius; };
-  double get_sheathRadius() { return m_sheathRadius; };
-  double get_xSouth() { return m_xSouth; };
-  double get_xNorth() { return m_xNorth; };
-  double get_ySouth() { return m_ySouth; };
-  double get_yNorth() { return m_yNorth; };
-  double get_zSouth() { return m_zSouth; };
-  double get_zNorth() { return m_zNorth; };
-  std::string get_color() { return m_color; };
+  const std::string &get_name() { return m_name; }
+  const std::string &get_coreMaterial() { return m_coreMaterial; }
+  double get_coreRadius() { return m_coreRadius; }
+  double get_sheathRadius() { return m_sheathRadius; }
+  double get_xSouth() { return m_xSouth; }
+  double get_xNorth() { return m_xNorth; }
+  double get_ySouth() { return m_ySouth; }
+  double get_yNorth() { return m_yNorth; }
+  double get_zSouth() { return m_zSouth; }
+  double get_zNorth() { return m_zNorth; }
+  const std::string &get_color() { return m_color; }
 
  private:
-  const std::string m_name = "cable";
-  const std::string m_coreMaterial = "G4_Cu";
-  const double m_coreRadius = 1;
-  const double m_sheathRadius = 2;
-  const double m_xSouth = 0.;
-  const double m_xNorth = 1.;
-  const double m_ySouth = 0.;
-  const double m_yNorth = 1.;
-  const double m_zSouth = 0.;
-  const double m_zNorth = 1.;
-  const std::string m_color = "red";
+  const std::string m_name {"cable"};
+  const std::string m_coreMaterial {"G4_Cu"};
+  const double m_coreRadius {1};
+  const double m_sheathRadius {2};
+  const double m_xSouth {0.};
+  const double m_xNorth {1.};
+  const double m_ySouth {0.};
+  const double m_yNorth {1.};
+  const double m_zSouth {0.};
+  const double m_zNorth {1.};
+  const std::string m_color {"red"};
 };
 
 #endif
