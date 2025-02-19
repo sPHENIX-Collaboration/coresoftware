@@ -194,6 +194,8 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   std::string data_outfilename{"mille_helical_output_data_file.bin"};
   std::string steering_outfilename{"steer_helical.txt"};
   std::string ntuple_outfilename{"HF_ntuple.root"};
+  
+  TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 
   bool fitsilicon{true};
   bool fittpc{false};
