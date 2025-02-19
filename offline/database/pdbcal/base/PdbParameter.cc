@@ -1,16 +1,8 @@
 #include "PdbParameter.h"
 
-#include <cmath>
 #include <iostream>
 
-using namespace std;
-
-PdbParameter::PdbParameter()
-  : thePar(NAN)
-{
-}
-
-PdbParameter::PdbParameter(const double value, const string &name)
+PdbParameter::PdbParameter(const double value, const std::string &name)
   : thePar(value)
   , theName(name)
 {
@@ -18,5 +10,5 @@ PdbParameter::PdbParameter(const double value, const string &name)
 
 void PdbParameter::print() const
 {
-  cout << theName << ": " << thePar << endl;
+  std::cout << theName << ": " << thePar << std::endl;
 }

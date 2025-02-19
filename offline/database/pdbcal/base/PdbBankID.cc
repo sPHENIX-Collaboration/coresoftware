@@ -12,8 +12,8 @@
 #include <iostream>
 
 PdbBankID::PdbBankID(const int val)
+  : bankID(val)
 {
-  bankID = val;
 }
 
 void PdbBankID::print() const
