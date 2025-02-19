@@ -43,7 +43,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
-  ~PHG4TpcElectronDrift() override{};
+  ~PHG4TpcElectronDrift() override = default;
   int Init(PHCompositeNode *) override;
   int InitRun(PHCompositeNode *) override;
   int process_event(PHCompositeNode *) override;
@@ -58,7 +58,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   }
 
   //! detector name
-  std::string Detector() const
+  const std::string &Detector() const
   {
     return detector;
   }

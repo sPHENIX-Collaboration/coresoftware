@@ -1005,10 +1005,6 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   C4F10->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4);
   C4F10->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 10);
 
-  G4Material *CF4 = new G4Material("CF4", density = 3.72 * mg / cm3, ncomponents = 2, kStateGas, 288.15 * kelvin, 1 * atmosphere);
-  CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 1);
-  CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 4);
-
   G4Element *elLu = new G4Element(name = "Lutetium", symbol = "Lu", z = 71., a = 174.97 * g / mole);
   G4Material *LSO = new G4Material("LSO",                    // its name
                                    density = 7.4 * g / cm3,  // its density

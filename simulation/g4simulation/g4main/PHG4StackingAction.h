@@ -14,9 +14,7 @@ class PHG4StackingAction
 {
  public:
   PHG4StackingAction(const std::string& name, const int i = 0);
-  virtual ~PHG4StackingAction()
-  {
-  }
+  virtual ~PHG4StackingAction() = default;
 
   //! stacking action. This gets called by the stacking action when a new track is generated
   // It can classify those tracks (urgent, wait, kill, postpone to next event)
@@ -29,11 +27,11 @@ class PHG4StackingAction
 
   virtual void SetInterfacePointers(PHCompositeNode*) { return; }
   virtual void Print(const std::string& /*what*/) const { return; }
-  std::string GetName() const { return m_Name; }
+  const std::string &GetName() const { return m_Name; }
   void SetName(const std::string& name) { m_Name = name; }
 
  private:
-  int m_Verbosity = 0;
+  int m_Verbosity {0};
   std::string m_Name;
 };
 
