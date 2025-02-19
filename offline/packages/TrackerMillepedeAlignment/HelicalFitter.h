@@ -12,12 +12,14 @@
 #include <trackbase/TrackFitUtils.h>
 
 #include <phparameter/PHParameterInterface.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <fun4all/SubsysReco.h>
 
 #include <map>
 #include <string>
 
+class TpcClusterZCrossingCorrection;
 class PHCompositeNode;
 class TrackSeedContainer;
 class TrackSeed;
