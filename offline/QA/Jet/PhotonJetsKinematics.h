@@ -78,7 +78,7 @@ class PhotonJetsKinematics : public SubsysReco
  // hist manager
 
  TriggerAnalyzer* m_analyzer {nullptr};
- Fun4AllHistoManager* manager;
+ Fun4AllHistoManager* manager {nullptr};
  std::string modulename;
  std::string inputnode;
  std::string histtag;
