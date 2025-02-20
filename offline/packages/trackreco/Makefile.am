@@ -114,7 +114,6 @@ AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 ACTS_LIBS = \
   -lActsCore \
   -lActsPluginTGeo \
-  -lActsExamplesCommon \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework
 
@@ -163,12 +162,11 @@ libtrack_reco_la_SOURCES = \
   TpcSeedFilter.cc
 
 libtrack_reco_la_LIBADD = \
-  -lcalo_io \
   -lActsCore \
   -lActsPluginTGeo \
-  -lActsExamplesCommon \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
+  -lcalo_io \
   -lg4eval \
   -lg4testbench \
   -lg4detectors \
