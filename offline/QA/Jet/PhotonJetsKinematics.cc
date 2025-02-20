@@ -48,19 +48,28 @@ PhotonJetsKinematics::PhotonJetsKinematics(const std::string &modulename, const 
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_doTrgSelect(false)
 {
-  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::PhotonJetsKinematics(const std::string &name, const std::string&outputfilename) Calling ctor" << std::endl;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::PhotonJetsKinematics(const std::string &name, const std::string&outputfilename) Calling ctor" << std::endl;
+    }
 }
 //____________________________________________________________________________..
 PhotonJetsKinematics::~PhotonJetsKinematics()
 {
-  std::cout << "PhotonJetsKinematics::~PhotonJetsKinematics() Calling dtor" << std::endl;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::~PhotonJetsKinematics() Calling dtor" << std::endl;
+    }
   delete m_analyzer;
 }
 
 //____________________________________________________________________________..
 int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
 {
-  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+    }
 
   // initialize trigger analyzer and hist manager
   delete m_analyzer;
@@ -123,7 +132,10 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
 int PhotonJetsKinematics::InitRun(PHCompositeNode* /*topNode*/)
 {
 
-  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -134,7 +146,7 @@ int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, m_inputnode);
   if (!clusterContainer)
     {
-      std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
+      std::cout << PHWHERE << "PhotonJetsKinematics::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
       return 0;
     }
 
@@ -170,23 +182,32 @@ int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
        h_emcal_cluster_eta_phi->Fill(clus_eta, clus_phi);
        h_emcal_cluster_eta->Fill(clus_eta);  // 1D eta plot
        h_emcal_cluster_phi->Fill(clus_phi);  // 1D phi plot
-   }
+    }
 
-  // std::cout << "PhotonJetsKinematics::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-   return Fun4AllReturnCodes::EVENT_OK;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+    }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int PhotonJetsKinematics::ResetEvent(PHCompositeNode* /*topNode*/)
 {
-  // std::cout << "PhotonJetsKinematics::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int PhotonJetsKinematics::EndRun(const int runnumber)
 {
-  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  if (Verbosity() > 1) 
+    {
+      std::cout << "PhotonJetsKinematics::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -203,7 +224,10 @@ int PhotonJetsKinematics::End(PHCompositeNode* /*topNode*/)
   m_manager->registerHisto(h_emcal_cluster_eta);  
   m_manager->registerHisto(h_emcal_cluster_phi); 
 
-  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::End(PHCompositeNode *topNode) This is the End..." << std::endl; 
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::End(PHCompositeNode *topNode) This is the End..." << std::endl; 
+    }
   return Fun4AllReturnCodes::EVENT_OK;
   
 }
@@ -211,12 +235,18 @@ int PhotonJetsKinematics::End(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int PhotonJetsKinematics::Reset(PHCompositeNode* /*topNode*/)
 {
-  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 void PhotonJetsKinematics::Print(const std::string &what) const
 {
-  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::Print(const std::string &what) const Printing info for " << what << std::endl;
+  if (Verbosity() > 1)
+    {
+      std::cout << "PhotonJetsKinematics::Print(const std::string &what) const Printing info for " << what << std::endl;
+    }
 }
