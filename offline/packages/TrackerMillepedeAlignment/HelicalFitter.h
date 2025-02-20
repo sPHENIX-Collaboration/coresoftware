@@ -76,6 +76,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_vertex_param_fixed(unsigned int param){ fixed_vertex_params.insert(param);}
   void set_straight_line_fit(bool flag) {straight_line_fit = flag; }
   void set_eta_cut(double eta_cut) {m_eta_cut = eta_cut;}
+  void set_pt_cut(double pt_cut) {m_pt_min = pt_cut;}
   //-1 is regular operation, 0 is east fixed, 1 is west fixed
   void set_do_mvtx_half(int half) {do_mvtx_half = half; }
   void set_fitted_subsystems(bool si, bool tpc, bool full)
@@ -204,6 +205,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   float dca_cut{0.19};  // cm
 
   float m_eta_cut{99999.};
+  float m_pt_min{0.5};
 
   SvtxVertexMap* m_vertexmap{nullptr};
   SvtxTrackMap* m_trackmap{nullptr};

@@ -519,7 +519,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
-    if (std::abs(newTrack.get_eta()) > m_eta_cut)
+    if(fabs(newTrack.get_eta()) > m_eta_cut || newTrack.get_pt() < m_pt_min)
     {
       continue;
     }
