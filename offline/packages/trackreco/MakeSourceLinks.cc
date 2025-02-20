@@ -381,7 +381,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     {
       TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
       TrkrDefs::subsurfkey new_subsurfkey = 0;
-      std::cout << "hitsetkey and subsurf key " << hitsetkey << "  " << new_subsurfkey << std::endl;
       surf = tGeometry->get_tpc_surface_from_coords(hitsetkey, global, new_subsurfkey);
     }
 
