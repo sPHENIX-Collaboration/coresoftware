@@ -90,13 +90,11 @@ int Fun4AllRunNodeInputManager::run(const int /*nevents*/)
       }
       return -1;
     }
-    else
+
+    if (OpenNextFile())
     {
-      if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return -1;
     }
   }
   return 0;

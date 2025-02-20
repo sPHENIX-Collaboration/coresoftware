@@ -41,7 +41,8 @@ class emcNoisyTowerFinder : public SubsysReco
   void set_energy_threshold_adc(float val) { energy_threshold_adc = val; }
   void set_energy_threshold_gev(float val) { energy_threshold_gev = val; }
   void set_sigma_bad_thresh(float val) { sigma_bad_thresh = val; }
-  void set_hcal(){Nphi = 64; Neta = 24; return;}
+  void set_ihcal(){Nphi = 64; Neta = 24; m_caloName = "HCALIN"; return;}
+  void set_ohcal(){Nphi = 64; Neta = 24; m_caloName = "HCALOUT"; return;}
   float findMedian(const std::vector<float>& arr);
 
 
@@ -53,7 +54,8 @@ class emcNoisyTowerFinder : public SubsysReco
   std::string Outfile{"commissioning.root"};
 
   std::string m_fieldname = "Femc_datadriven_qm1_correction";
-
+  std::string m_caloName = "CEMC";
+  
   TH2F* h_hits_eta_phi_adc{nullptr};
   TProfile2D* pr_hits_eta_phi_adc{nullptr};
   TH2F* h_hits_eta_phi_gev{nullptr};

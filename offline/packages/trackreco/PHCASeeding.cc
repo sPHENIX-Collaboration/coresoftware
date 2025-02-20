@@ -136,6 +136,16 @@ namespace
     return phi;
   }
 
+  // note: assumes that a and b are in same range of phi;
+  // this will fail if a\in[-2 pi,0] and b\in[0,2 pi] 
+  // in this case is ok, as all are atan2 which [-pi,pi]
+  inline float wrap_dphi(float a, float b) {
+    float   _dphi = b-a;
+    return (_dphi < -M_PI) ? _dphi += 2*M_PI
+         : (_dphi >  M_PI) ? _dphi -= 2*M_PI
+         : _dphi;
+  }
+
   /// pseudo rapidity of Acts::Vector3
   /* inline double get_eta(const Acts::Vector3& position) */
   /* { */
@@ -773,9 +783,9 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
           {
             continue;
           }
-          const float dphi_01 = phi[i0] - phi[i1];
-          const float dphi_12 = phi[i1] - phi[i2];
-          const float dphi_23 = phi[i2] - phi[i3];
+          const float dphi_01 = wrap_dphi(phi[i1], phi[i0]);
+          const float dphi_12 = wrap_dphi(phi[i2], phi[i1]);
+          const float dphi_23 = wrap_dphi(phi[i3], phi[i2]);
           const float dR_23 = R[i2] - R[i3];
           const float d2phidr2_01 = dphi_01 / dR_01 / dR_01 - dphi_12 / dR_12 / dR_12;
           const float d2phidr2_12 = dphi_12 / dR_12 / dR_12 - dphi_23 / dR_23 / dR_23;

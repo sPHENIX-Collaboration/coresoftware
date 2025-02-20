@@ -16,14 +16,15 @@
 #include <ROOT/TThreadedObject.hxx>
 
 #include <pthread.h>
+#include <algorithm>
 #include <iostream>
-#include <string>
 #include <limits>
+#include <string>
 
-ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);
+static ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);
 double CaloWaveformFitting::template_function(double *x, double *par)
 {
-  Double_t v1 = par[0] * h_template->Interpolate(x[0] - par[1]) + par[2];
+  Double_t v1 = (par[0] * h_template->Interpolate(x[0] - par[1])) + par[2];
   return v1;
 }
 
@@ -37,7 +38,7 @@ void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
   TFile *fin = TFile::Open(templatefile.c_str());
   assert(fin);
   assert(fin->IsOpen());
-  h_template = static_cast<TProfile *>(fin->Get("waveform_template"));
+  h_template = dynamic_cast<TProfile *>(fin->Get("waveform_template"));
   h_template->SetDirectory(nullptr);
   fin->Close();
   delete fin;
@@ -64,14 +65,14 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
     int size1 = v.size() - 1;
     if (size1 == _nzerosuppresssamples)
     {
-      v.push_back(v.at(1) - v.at(0));  // returns peak sample - pedestal sample
-      v.push_back(std::numeric_limits<float>::quiet_NaN());                 // set time to qnan for ZS
+      v.push_back(v.at(1) - v.at(0));                        // returns peak sample - pedestal sample
+      v.push_back(std::numeric_limits<float>::quiet_NaN());  // set time to qnan for ZS
       v.push_back(v.at(0));
-      if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
-      { 
+      if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
+      {
         v.push_back(1000000);
-      } 
-      else 
+      }
+      else
       {
         v.push_back(std::numeric_limits<float>::quiet_NaN());
       }
@@ -103,16 +104,16 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         pedestal = 0.5 * (v.at(size1 - 3) + v.at(size1 - 2));
       }
 
-      if ( (_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight-pedestal  < _nsoftwarezerosuppression)  )
+      if ((_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression))
       {
         v.push_back(v.at(6) - v.at(0));
         v.push_back(std::numeric_limits<float>::quiet_NaN());
         v.push_back(v.at(0));
-        if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
-        { 
+        if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
+        {
           v.push_back(1000000);
-        } 
-        else 
+        }
+        else
         {
           v.push_back(std::numeric_limits<float>::quiet_NaN());
         }
@@ -120,7 +121,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
       }
       else
       {
-        auto h = new TH1F(std::string("h_" + std::to_string((int) round(v.at(size1)))).c_str(), "", size1, -0.5, size1 - 0.5);
+        auto *h = new TH1F(std::string("h_" + std::to_string((int) round(v.at(size1)))).c_str(), "", size1, -0.5, size1 - 0.5);
 
         int ndata = 0;
         for (int i = 0; i < size1; ++i)
@@ -129,25 +130,23 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           {
             continue;
           }
-          else
+
+          h->SetBinContent(i + 1, v.at(i));
+          h->SetBinError(i + 1, 1);
+          ndata++;
+        }
+        // if too many are saturated don't do the saturation recovery need enough ndf
+        if (ndata > (size1 - 4))
+        {
+          ndata = size1;
+          for (int i = 0; i < size1; ++i)
           {
             h->SetBinContent(i + 1, v.at(i));
             h->SetBinError(i + 1, 1);
-            ndata++;
           }
         }
-        //if too many are saturated don't do the saturation recovery need enough ndf
-        if(ndata > (size1 - 4))
-        {
-	 ndata = size1;
-         for (int i = 0; i < size1; ++i)
-         {
-            h->SetBinContent(i + 1, v.at(i));
-            h->SetBinError(i + 1, 1);  
-         }       
-        }
 
-        auto f = new TF1(std::string("f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
+        auto *f = new TF1(std::string("f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
         ROOT::Math::WrappedMultiTF1 *fitFunction = new ROOT::Math::WrappedMultiTF1(*f, 3);
         ROOT::Fit::BinData data(v.size() - 1, 1);
         ROOT::Fit::FillData(data, h);
@@ -156,7 +155,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         fitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
         fitter->Config().MinimizerOptions().SetPrintLevel(-1);
         double params[] = {static_cast<double>(maxheight - pedestal), static_cast<double>(maxbin - m_peakTimeTemp), static_cast<double>(pedestal)};
-        //double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
+        // double params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
         fitter->Config().SetParamsSettings(3, params);
         fitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
         if (m_setTimeLim)
@@ -165,7 +164,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         }
         fitter->FitFCN(*EPChi2, nullptr, data.Size(), true);
         ROOT::Fit::FitResult fitres = fitter->Result();
-        //get the result status
+        // get the result status
         /*
         bool validfit = fitres.IsValid();
         if(!validfit)
@@ -178,22 +177,22 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         }
         */
         double chi2min = fitres.MinFcnValue();
-        //chi2min /= size1 - 3;  // divide by the number of dof
+        // chi2min /= size1 - 3;  // divide by the number of dof
         chi2min /= ndata - 3;  // divide by the number of dof
-        if (chi2min > _chi2threshold && (f->GetParameter(2) < _bfr_highpedestalthreshold || pedestal < _bfr_highpedestalthreshold) && (f->GetParameter(2) > _bfr_lowpedestalthreshold || pedestal > _bfr_lowpedestalthreshold) && _dobitfliprecovery) 
+        if (chi2min > _chi2threshold && (f->GetParameter(2) < _bfr_highpedestalthreshold || pedestal < _bfr_highpedestalthreshold) && (f->GetParameter(2) > _bfr_lowpedestalthreshold || pedestal > _bfr_lowpedestalthreshold) && _dobitfliprecovery)
         {
-          std::vector<float> rv; // temporary recovered waveform
+          std::vector<float> rv;  // temporary recovered waveform
           rv.reserve(size1);
           for (int i = 0; i < size1; i++)
           {
             rv.push_back(v.at(i));
           }
-          unsigned int bits[3] = {8192,4096,2048};
-          for (auto bit : bits) 
+          unsigned int bits[3] = {8192, 4096, 2048};
+          for (auto bit : bits)
           {
-            for (int i = 0; i < size1; i++) 
+            for (int i = 0; i < size1; i++)
             {
-              if (((unsigned int)rv.at(i) & bit) && ((unsigned int)rv.at(i) % bit > _bfr_lowpedestalthreshold)) 
+              if (((unsigned int) rv.at(i) & bit) && ((unsigned int) rv.at(i) % bit > _bfr_lowpedestalthreshold))
               {
                 rv.at(i) = rv.at(i) - bit;
               }
@@ -227,8 +226,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           {
             pedestal = 0.5 * (rv.at(size1 - 3) + rv.at(size1 - 2));
           }
-          
-          auto recover_f = new TF1(std::string("recover_f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
+
+          auto *recover_f = new TF1(std::string("recover_f_" + std::to_string((int) round(v.at(size1)))).c_str(), this, &CaloWaveformFitting::template_function, 0, 31, 3, "CaloWaveformFitting", "template_function");
           ROOT::Math::WrappedMultiTF1 *recoverFitFunction = new ROOT::Math::WrappedMultiTF1(*recover_f, 3);
           ROOT::Fit::BinData recoverData(rv.size() - 1, 1);
           ROOT::Fit::FillData(recoverData, h);
@@ -237,12 +236,13 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           recoverFitter->Config().MinimizerOptions().SetMinimizerType("GSLMultiFit");
           double recover_params[] = {static_cast<double>(maxheight - pedestal), 0, static_cast<double>(pedestal)};
           recoverFitter->Config().SetParamsSettings(3, recover_params);
-          recoverFitter->Config().ParSettings(1).SetLimits(-1*m_peakTimeTemp, size1-m_peakTimeTemp);// set lim on time par 
+          recoverFitter->Config().ParSettings(1).SetLimits(-1 * m_peakTimeTemp, size1 - m_peakTimeTemp);  // set lim on time par
           recoverFitter->FitFCN(*recoverEPChi2, nullptr, recoverData.Size(), true);
           ROOT::Fit::FitResult recover_fitres = recoverFitter->Result();
           double recover_chi2min = recover_fitres.MinFcnValue();
-          recover_chi2min /= size1-3; // divide by the number of dof
-          if (recover_chi2min < _chi2lowthreshold && recover_f->GetParameter(2) < _bfr_highpedestalthreshold && recover_f->GetParameter(2) > _bfr_lowpedestalthreshold) {
+          recover_chi2min /= size1 - 3;  // divide by the number of dof
+          if (recover_chi2min < _chi2lowthreshold && recover_f->GetParameter(2) < _bfr_highpedestalthreshold && recover_f->GetParameter(2) > _bfr_lowpedestalthreshold)
+          {
             for (int i = 0; i < size1; i++)
             {
               v.at(i) = rv.at(i);
@@ -254,7 +254,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
             v.push_back(recover_chi2min);
             v.push_back(1);
           }
-          else 
+          else
           {
             for (int i = 0; i < 3; i++)
             {
@@ -267,8 +267,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
           delete recoverFitFunction;
           delete recoverFitter;
           delete recoverEPChi2;
-        } 
-        else 
+        }
+        else
         {
           for (int i = 0; i < 3; i++)
           {
@@ -292,7 +292,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
   std::vector<float> fit_params_tmp;
   for (int i = 0; i < size3; i++)
   {
-    std::vector<float> tv = chnlvector.at(i);
+    const std::vector<float> &tv = chnlvector.at(i);
     int size2 = tv.size();
     for (int q = 5; q > 0; q--)
     {
@@ -311,7 +311,11 @@ void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float 
   double xp[3] = {x0, x1, x2};
   double yp[3] = {y0, y1, y2};
   TSpline3 *sp = new TSpline3("", xp, yp, n, "b2e2", 0, 0);
-  double X, Y, B, C, D;
+  double X;
+  double Y;
+  double B;
+  double C;
+  double D;
   ymax = y1;
   xmax = x1;
   if (y0 > ymax)
@@ -333,7 +337,7 @@ void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float 
       {
         // TSpline is a quadratic equation
 
-        float root = -B / (2 * C) + X;
+        float root = (-B / (2 * C)) + X;
         if (root >= xp[i] && root <= xp[i + 1])
         {
           float yvalue = sp->Eval(root);
@@ -348,7 +352,7 @@ void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float 
     else
     {
       // find x when derivative = 0
-      float root = (-2 * C + sqrt(4 * C * C - 12 * B * D)) / (6 * D) + X;
+      float root = ((-2 * C + sqrt((4 * C * C) - (12 * B * D))) / (6 * D)) + X;
       if (root >= xp[i] && root <= xp[i + 1])
       {
         float yvalue = sp->Eval(root);
@@ -358,7 +362,7 @@ void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float 
           xmax = root;
         }
       }
-      root = (-2 * C - sqrt(4 * C * C - 12 * B * D)) / (6 * D) + X;
+      root = (-2 * C - sqrt((4 * C * C) - (12 * B * D))) / (6 * D) + X;
       if (root >= xp[i] && root <= xp[i + 1])
       {
         float yvalue = sp->Eval(root);
@@ -373,13 +377,13 @@ void CaloWaveformFitting::FastMax(float x0, float x1, float x2, float y0, float 
   delete sp;
   return;
 }
-std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::vector<std::vector<float>> chnlvector)
+std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
   int nchnls = chnlvector.size();
   for (int m = 0; m < nchnls; m++)
   {
-    std::vector<float> v = chnlvector.at(m);
+    const std::vector<float> &v = chnlvector.at(m);
     int nsamples = v.size();
 
     double maxy = v.at(0);
@@ -392,10 +396,10 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
       amp = v.at(1);
       time = std::numeric_limits<float>::quiet_NaN();
       ped = v.at(0);
-      if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
-      { 
+      if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
+      {
         chi2 = 1000000;
-      } 
+      }
     }
     else if (nsamples >= 3)
     {
@@ -436,33 +440,32 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_fast(std::v
   return fit_values;
 }
 
-std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(std::vector<std::vector<float>> chnlvector)
+std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_nyquist(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
   int nchnls = chnlvector.size();
   for (int m = 0; m < nchnls; m++)
   {
     std::vector<float> v = chnlvector.at(m);
-    int nsamples = (int)v.size();
+    int nsamples = (int) v.size();
 
     if (nsamples == 2)
     {
       float chi2 = std::numeric_limits<float>::quiet_NaN();
-      if (v.at(0) != 0 && v.at(1) == 0) // check if post-sample is 0, if so set high chi2
-      { 
+      if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
+      {
         chi2 = 1000000;
       }
       fit_values.push_back({v.at(1) - v.at(0), std::numeric_limits<float>::quiet_NaN(), v.at(0), chi2, 0});
       continue;
     }
-    
+
     std::vector<float> result = NyquistInterpolation(v);
     fit_values.push_back(result);
   }
   return fit_values;
-
 }
-//mabye I can find a way to make it thread safe
+// mabye I can find a way to make it thread safe
 std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> &vec_signal_samples)
 {
   // int N = (int) vec_signal_samples.size();
@@ -475,17 +478,16 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
 
   while (steplength > 0.001)
   {
-    //use 1.5 instead of 1 to avoid the floating point error...
-    float starttime = maxpos - 1 * steplength;
-    float endtime = maxpos + 1.5 * steplength;
-    
+    // use 1.5 instead of 1 to avoid the floating point error...
+    float starttime = maxpos - (1 * steplength);
+    float endtime = maxpos + (1.5 * steplength);
+
     for (float i = starttime; i < endtime; i += steplength)
     {
-
       float yval = max;
-      if(i != maxpos){ 
+      if (i != maxpos)
+      {
         yval = psinc(i, vec_signal_samples);
-       
       }
       if (yval > max)
       {
@@ -495,7 +497,7 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
     }
     steplength /= 2;
   }
- 
+
   float pedestal = 0;
 
   if (maxpos > 5)
@@ -510,26 +512,24 @@ std::vector<float> CaloWaveformFitting::NyquistInterpolation(std::vector<float> 
   {
     pedestal = (vec_signal_samples[0] + vec_signal_samples[1]) / 2;
   }
-  //need more consideration for what is the most effieicnt
+  // need more consideration for what is the most effieicnt
   else
   {
     pedestal = max;
     for (float i = maxpos - 5; i < maxpos; i += 0.1)
     {
       float yval = psinc(i, vec_signal_samples);
-      if (yval < pedestal)
-      {
-        pedestal = yval;
-      }
+      pedestal = std::min(yval, pedestal);
     }
   }
-  //calculate chi2 using the tempalte
+  // calculate chi2 using the tempalte
   float chi2 = 0;
   double par[3] = {max - pedestal, maxpos - m_peakTimeTemp, pedestal};
-  for(int i = 0; i < (int)vec_signal_samples.size(); i++){
-    double xval[1] = {(double)i};
+  for (int i = 0; i < (int) vec_signal_samples.size(); i++)
+  {
+    double xval[1] = {(double) i};
     float diff = vec_signal_samples[i] - template_function(xval, par);
-    chi2 += diff*diff;
+    chi2 += diff * diff;
   }
   std::vector<float> val = {max - pedestal, maxpos, pedestal, chi2, 0};
   return val;
@@ -589,15 +589,12 @@ float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samp
 
   if (std::abs(std::round(time) - time) < 1e-6)
   {
- 
     if (time < 0 || time >= N)
     {
       return stablepsinc(time, vec_signal_samples);
     }
-    else
-    {
-      return vec_signal_samples.at(std::round(time));
-    }
+
+    return vec_signal_samples.at(std::round(time));
   }
 
   float sum = 0;
@@ -619,6 +616,6 @@ float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samp
       sum += vec_signal_samples[n] * std::sin(piu) / (std::sin(piuN)) / N;
     }
   }
- 
+
   return sum;
 }

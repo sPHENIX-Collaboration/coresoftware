@@ -27,8 +27,9 @@ libjetbackground_la_LIBADD = \
   -lConstituentSubtractor \
   -lglobalvertex \
   -ljetbase \
-  -lphparameter \
+  -lpdbcalBase \
   -lphg4hit \
+  -lphparameter \
   -lqautils \
   -lSubsysReco
 

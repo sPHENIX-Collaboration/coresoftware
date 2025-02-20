@@ -52,6 +52,11 @@ struct ActsTrackingGeometry
   Acts::GeometryContext geoContext;
   Acts::MagneticFieldContext magFieldContext;
 
+  const Acts::GeometryContext& getGeoContext() const
+  {
+    return geoContext;
+  }
+
   Acts::GeometryContext& getGeoContext()
   {
     return geoContext;

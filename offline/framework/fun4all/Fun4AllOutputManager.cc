@@ -90,8 +90,8 @@ int Fun4AllOutputManager::RunAfterClosing()
   {
     if (Verbosity() > 1)
     {
-    std::cout << PHWHERE << " Output file name has not changed, not closing "
-	      << m_OutFileName << " again" << std::endl;
+      std::cout << PHWHERE << " Output file name has not changed, not closing "
+                << m_OutFileName << " again" << std::endl;
     }
     return iret;
   }
