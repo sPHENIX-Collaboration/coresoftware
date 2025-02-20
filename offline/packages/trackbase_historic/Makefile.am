@@ -17,7 +17,7 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(MYINSTALL)/lib64
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   ActsTransformations.h \
@@ -213,7 +213,7 @@ libtrackbase_historic_io_la_SOURCES = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(MYINSTALL)/lib64
+  -L$(OFFLINE_MAIN)/lib64
 
 # dependency on libtrack.so breaks the io only library concept
 libtrackbase_historic_io_la_LIBADD = \
