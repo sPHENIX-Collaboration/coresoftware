@@ -3,19 +3,16 @@
 #ifndef PHOTONJETSKINEMATICS_H
 #define PHOTONJETSKINEMATICS_H
 
+#include "JetQADefs.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2D.h>
-#include "JetQADefs.h"
 
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
 class TH2;
-class TH3;
 class TriggerAnalyzer;
 
 class PhotonJetsKinematics : public SubsysReco

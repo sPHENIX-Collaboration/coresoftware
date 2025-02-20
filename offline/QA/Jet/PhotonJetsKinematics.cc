@@ -1,25 +1,8 @@
 //____________________________________________________________________________..
 
 #include "PhotonJetsKinematics.h"
-#include <fun4all/PHTFileServer.h>
 
-// Fun4all includes
-#include <calotrigger/TriggerAnalyzer.h>
-
-#include <fun4all/Fun4AllHistoManager.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-
-#include <TFile.h>
-#include <phool/getClass.h>
-#include "TH1.h"
-#include "TMath.h"
-//#include <jetbase/JetContainer.h>
-
-
-// Tower includes
+// calobase includes
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
@@ -31,12 +14,24 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
-// Cluster includes
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
+// calotrigger includes
+#include <calotrigger/TriggerAnalyzer.h>
 
-// QA includes
+// fun4all includes
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+// phool includes
+#include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+
+// qautils includes
 #include <qautils/QAHistManagerDef.h>
+
+// root includes
+#include <TH1.h>
+#include <TH2.h>
+#include <TMath.h>
 
 // c++ includes
 #include <algorithm>
