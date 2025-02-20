@@ -19,6 +19,7 @@
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/Gl1RawHit.h>
 #include <ffarawobjects/MvtxFeeIdInfov1.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
@@ -190,15 +191,20 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
 {
   CreateNodes(topNode);
 
-  Fun4AllServer *se = Fun4AllServer::instance();
-
   if (!mvtx_raw_event_header || !mvtx_raw_hit_container)
   {
-    se->unregisterSubsystem(this);
+    Fun4AllServer::instance()->unregisterSubsystem(this);
     std::cout << PHWHERE << "::" << __func__ << ": Could not get \""
               << m_MvtxRawHitNodeName << " or " << m_MvtxRawEvtHeaderNodeName << "\" from Node Tree" << std::endl;
     std::cout << "Have you built this yet?" << std::endl;
     exit(1);
+  }
+  if (dynamic_cast<MvtxRawEvtHeaderv1 *>(mvtx_raw_event_header))
+  {
+    std::cout << "MvtxCombinedRawDataDecoder::GetNodes() !!!WARNING!!! using obsolete MvtxRawEvtHeaderv1.";
+    std::cout << " Unregistering MvtxCombinedRawDataDecoder SubsysReco." << std::endl;
+    Fun4AllServer::instance()->unregisterSubsystem(this);
+    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   auto *rc = recoConsts::instance();
@@ -365,6 +371,7 @@ int MvtxCombinedRawDataDecoder::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 
 // void MvtxCombinedRawDataDecoder::removeDuplicates(
 //     std::vector<std::pair<uint64_t, uint32_t> > &v)

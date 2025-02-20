@@ -11,6 +11,6 @@ namespace sphenix_constants
 
   //! time between RHIC crossings (ns)
   static constexpr double time_between_crossings = 106.65237;
-
+  static constexpr double CF4_density = 3.86; // mg / cm3 Tom Hemmick
 }
 #endif
