@@ -40,13 +40,13 @@
 #include <vector>
 //____________________________________________________________________________..
 
-PhotonJetsKinematics::PhotonJetsKinematics(const std::string &m_modulename, const std::string &m_inputnode) :
-  SubsysReco(m_modulename)
-  , modulename(m_modulename)
-  , inputnode(m_inputnode)
-  , histtag("AllTrig")
-  , trgToSelect(JetQADefs::GL1::MBDNSJet1)
-  , doTrgSelect(false)
+PhotonJetsKinematics::PhotonJetsKinematics(const std::string &modulename, const std::string &inputnode, const std::string &histtag) :
+  SubsysReco(modulename)
+  , m_modulename(modulename)
+  , m_inputnode(inputnode)
+  , m_histtag(histtag)
+  , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
+  , m_doTrgSelect(false)
 {
   if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::PhotonJetsKinematics(const std::string &name, const std::string&outputfilename) Calling ctor" << std::endl;
 }
@@ -65,15 +65,15 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
   // initialize trigger analyzer and hist manager
   delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
-  manager = QAHistManagerDef::getHistoManager();
-  if (!manager)
+  m_manager = QAHistManagerDef::getHistoManager();
+  if (!m_manager)
     {
       std::cerr << PHWHERE << "PANIC: couldn't grab histogram manager!" << std::endl;
-      assert(manager);
+      assert(m_manager);
     }
 
   // make sure module name is lower case
-  std::string smallModuleName = modulename;
+  std::string smallModuleName = m_modulename;
   std::transform(
 		 smallModuleName.begin(),
 		 smallModuleName.end(),
@@ -90,9 +90,9 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
   for (auto& histName : vecHistNames)
     {
       histName.insert(0, "h_" + smallModuleName + "_");
-      if (!histtag.empty())
+      if (!m_histtag.empty())
 	{
-	  histName.append("_" + histtag);
+	  histName.append("_" + m_histtag);
 	}
     }
 
@@ -131,7 +131,7 @@ int PhotonJetsKinematics::InitRun(PHCompositeNode* /*topNode*/)
 int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
 {  
 
-  RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, inputnode);
+  RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, m_inputnode);
   if (!clusterContainer)
     {
       std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
@@ -139,10 +139,10 @@ int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
     }
 
   // if needed, check if trigger fired
-  if (doTrgSelect)
+  if (m_doTrgSelect)
     {
       m_analyzer->decodeTriggers(topNode);
-      bool hasTrigger = JetQADefs::DidTriggerFire(trgToSelect, m_analyzer);
+      bool hasTrigger = JetQADefs::DidTriggerFire(m_trgToSelect, m_analyzer);
       if (!hasTrigger)
 	{
 	  return Fun4AllReturnCodes::EVENT_OK;
@@ -197,11 +197,11 @@ int PhotonJetsKinematics::End(PHCompositeNode* /*topNode*/)
   // if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::End - Output to " << outfilename << std::endl;
   
   //Outputting the histograms
-  manager->registerHisto(h_emcal_cluster_eta_phi);
-  manager->registerHisto(h_emcal_cluster_energy);
-  manager->registerHisto(h_emcal_cluster_chi2);
-  manager->registerHisto(h_emcal_cluster_eta);  
-  manager->registerHisto(h_emcal_cluster_phi); 
+  m_manager->registerHisto(h_emcal_cluster_eta_phi);
+  m_manager->registerHisto(h_emcal_cluster_energy);
+  m_manager->registerHisto(h_emcal_cluster_chi2);
+  m_manager->registerHisto(h_emcal_cluster_eta);  
+  m_manager->registerHisto(h_emcal_cluster_phi); 
 
   if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::End(PHCompositeNode *topNode) This is the End..." << std::endl; 
   return Fun4AllReturnCodes::EVENT_OK;

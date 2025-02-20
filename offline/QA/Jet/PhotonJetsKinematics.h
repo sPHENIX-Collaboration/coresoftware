@@ -20,7 +20,7 @@ class PhotonJetsKinematics : public SubsysReco
  public:
 
 
-  PhotonJetsKinematics(const std::string &modulename = "PhotonJetsKinematics", const std::string &inputnode = "CLUSTERINFO_CEMC");
+  PhotonJetsKinematics(const std::string &modulename = "PhotonJetsKinematics", const std::string &inputnode = "CLUSTERINFO_CEMC", const std::string &histtag = "");
   ~PhotonJetsKinematics() override;
 
   /** Called during initialization.
@@ -59,14 +59,14 @@ class PhotonJetsKinematics : public SubsysReco
   /// specifies a trigger to select
   void SetTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSPhoton1)
   {
-    doTrgSelect = true;
-    trgToSelect = trig;
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
   }
 
   /// set histogram tag
   void SetHistTag(const std::string& tag)
   {
-    histtag = tag;
+    m_histtag = tag;
   }
 
  private:
@@ -75,19 +75,19 @@ class PhotonJetsKinematics : public SubsysReco
  // hist manager
 
  TriggerAnalyzer* m_analyzer {nullptr};
- Fun4AllHistoManager* manager {nullptr};
- std::string modulename;
- std::string inputnode;
- std::string histtag;
- uint32_t trgToSelect;
- bool doTrgSelect;
+ Fun4AllHistoManager* m_manager {nullptr};
+ std::string m_modulename;
+ std::string m_inputnode;
+ std::string m_histtag;
+ uint32_t m_trgToSelect;
+ bool m_doTrgSelect;
 
  ///Output histograms
- TH1 *h_emcal_cluster_chi2 = nullptr;
- TH1 *h_emcal_cluster_energy = nullptr;
- TH2 *h_emcal_cluster_eta_phi = nullptr;
- TH1 *h_emcal_cluster_eta = nullptr;    // <-- Declare eta histogram
- TH1 *h_emcal_cluster_phi = nullptr;    // <-- Declare phi histogram
+ TH1 *h_emcal_cluster_chi2 {nullptr};
+ TH1 *h_emcal_cluster_energy {nullptr};
+ TH2 *h_emcal_cluster_eta_phi {nullptr};
+ TH1 *h_emcal_cluster_eta {nullptr};    // <-- Declare eta histogram
+ TH1 *h_emcal_cluster_phi {nullptr};    // <-- Declare phi histogram
 };
 
 #endif // PHOTONJETSKINEMATICS_H
