@@ -12,7 +12,6 @@
 #include <phool/getClass.h>
 #include <phparameter/PHParameters.h>
 #include <cmath>
-using namespace std;
 
 //____________________________________________________________________________..
 JetBackgroundCut::JetBackgroundCut(const std::string &jetNodeName, const std::string &name, const int debug, const bool doAbort, GlobalVertex::VTXTYPE vtxtype, int sysvar)
@@ -46,7 +45,7 @@ void JetBackgroundCut::CreateNodeTree(PHCompositeNode *topNode)
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   if (!parNode)
   {
-    cout << "No RUN node found; cannot create PHParameters for storing cut results. Aborting run!";
+    std::cout << "No RUN node found; cannot create PHParameters for storing cut results. Aborting run!";
   }
 
   _cutParams.SaveToNodeTree(parNode, "JetCutParams");
@@ -77,7 +76,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
   {
     if (_debug > 0 && !_missingInfoWarningPrinted)
     {
-      cerr << "Missing critical info; abort event. Further warnings will be suppressed. AddressOf towersEM/towersOH/geomIH/geomOH/gvtxmap : " << towersEM << "/" << towersOH << "/" << geom[0] << "/" << geom[1] << "/" << gvtxmap << endl;
+      std::cout << "Missing critical info; abort event. Further warnings will be suppressed. AddressOf towersEM/towersOH/geomIH/geomOH/gvtxmap : " << towersEM << "/" << towersOH << "/" << geom[0] << "/" << geom[1] << "/" << gvtxmap << std::endl;
     }
     _missingInfoWarningPrinted = true;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -89,7 +88,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
     {
       if (_debug > 0)
       {
-        cout << "gvtxmap empty - aborting event." << endl;
+        std::cout << "gvtxmap empty - aborting event." << std::endl;
       }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -119,7 +118,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
     {
       if (_debug > 0)
       {
-        cout << "gvtx is NULL! Aborting event." << endl;
+        std::cout << "gvtx is NULL! Aborting event." << std::endl;
       }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -129,14 +128,14 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
   {
     if (_debug > 0)
     {
-      cout << "zvtx is NAN after attempting to grab it. ABORT EVENT!" << endl;
+      std::cout << "zvtx is NAN after attempting to grab it. ABORT EVENT!" << std::endl;
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   if (_debug > 1)
   {
-    cout << "Getting jets: " << endl;
+    std::cout << "Getting jets: " << std::endl;
   }
 
   if (jets)
@@ -144,7 +143,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
     int tocheck = jets->size();
     if (_debug > 2)
     {
-      cout << "Found " << tocheck << " jets to check..." << endl;
+      std::cout << "Found " << tocheck << " jets to check..." << std::endl;
     }
     for (int i = 0; i < tocheck; ++i)
     {
@@ -155,7 +154,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
       if (jet)
       {
         jetEta = jet->get_eta();
-        jetET = jet->get_e() / cosh(jetEta);
+        jetET = jet->get_e() / std::cosh(jetEta);
         jetPhi = jet->get_phi();
       }
       else
@@ -168,7 +167,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
       }
       if (_debug > 2)
       {
-        cout << "found a good jet!" << endl;
+        std::cout << "found a good jet!" << std::endl;
       }
       if (jetET > maxJetET)
       {
@@ -204,11 +203,11 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
           RawTowerGeom *tower_geom = geom[0]->get_tower_geometry(geomkey);
           float radius = 93.5;
           float ihEta = tower_geom->get_eta();
-          float emZ = radius / (tan(2 * atan(exp(-ihEta))));
+          float emZ = radius / (std::tan(2 * std::atan(std::exp(-ihEta))));
           float newz = emZ - zvtx;
-          float newTheta = atan2(radius, newz);
-          float towerEta = -log(tan(0.5 * newTheta));
-          frcem += tower->get_energy() / cosh(towerEta);
+          float newTheta = std::atan2(radius, newz);
+          float towerEta = -log(std::tan(0.5 * newTheta));
+          frcem += tower->get_energy() / std::cosh(towerEta);
         }
         if (comp.first == 7 || comp.first == 27)
         {
@@ -218,9 +217,9 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
           RawTowerGeom *tower_geom = geom[1]->get_tower_geometry(geomkey);
           float radius = tower_geom->get_center_radius();
           float newz = tower_geom->get_center_z() - zvtx;
-          float newTheta = atan2(radius, newz);
-          float towerEta = -log(tan(0.5 * newTheta));
-          frcoh += tower->get_energy() / cosh(towerEta);
+          float newTheta = std::atan2(radius, newz);
+          float towerEta = -log(std::tan(0.5 * newTheta));
+          frcoh += tower->get_energy() / std::cosh(towerEta);
         }
       }
 
@@ -232,7 +231,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
   {
     if (_debug > 0)
     {
-      cout << "No jet node!" << endl;
+      std::cout << "No jet node!" << std::endl;
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -241,7 +240,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
   if (subJetET > 8)
   {
     isDijet = true;
-    dPhi = abs(maxJetPhi - subJetPhi);
+    dPhi = std::abs(maxJetPhi - subJetPhi);
     if (dPhi > M_PI)
     {
       dPhi = 2 * M_PI - dPhi;
