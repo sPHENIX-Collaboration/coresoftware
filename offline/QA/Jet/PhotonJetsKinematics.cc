@@ -4,6 +4,7 @@
 #include <fun4all/PHTFileServer.h>
 
 // Fun4all includes
+#include <calotrigger/TriggerAnalyzer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 
@@ -58,12 +59,17 @@ PhotonJetsKinematics::PhotonJetsKinematics(const std::string &m_modulename, cons
 PhotonJetsKinematics::~PhotonJetsKinematics()
 {
   std::cout << "PhotonJetsKinematics::~PhotonJetsKinematics() Calling dtor" << std::endl;
+  delete m_analyzer;
 }
 
 //____________________________________________________________________________..
 int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
 {
   if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+
+  // initialize trigger analyzer and hist manager
+  delete m_analyzer;
+  m_analyzer = new TriggerAnalyzer();
   manager = QAHistManagerDef::getHistoManager();
   if (!manager)
     {
@@ -140,7 +146,8 @@ int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
   // if needed, check if trigger fired
   if (doTrgSelect)
     {
-      bool hasTrigger = JetQADefs::DidTriggerFire(trgToSelect, topNode);
+      m_analyzer->decodeTriggers(topNode);
+      bool hasTrigger = JetQADefs::DidTriggerFire(trgToSelect, m_analyzer);
       if (!hasTrigger)
 	{
 	  return Fun4AllReturnCodes::EVENT_OK;

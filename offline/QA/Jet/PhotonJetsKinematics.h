@@ -16,6 +16,7 @@ class PHCompositeNode;
 class TH1;
 class TH2;
 class TH3;
+class TriggerAnalyzer;
 
 class PhotonJetsKinematics : public SubsysReco
 {
@@ -76,6 +77,7 @@ class PhotonJetsKinematics : public SubsysReco
   // TFile *outfile;
  // hist manager
 
+ TriggerAnalyzer* m_analyzer {nullptr};
  Fun4AllHistoManager* manager;
  std::string modulename;
  std::string inputnode;
