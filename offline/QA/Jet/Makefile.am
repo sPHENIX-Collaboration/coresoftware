@@ -32,7 +32,7 @@ pkginclude_HEADERS = \
   RhosinEvent.h \
   JetSeedCount.h \
   JetKinematicCheck.h \
-  photonjetskinematics.h
+  PhotonJetsKinematics.h
 
 libjetqa_la_SOURCES = \
   ConstituentsinJets.cc \
@@ -49,7 +49,7 @@ libjetqa_la_SOURCES = \
   RhosinEvent.cc \
   JetSeedCount.cc \
   JetKinematicCheck.cc \
-  photonjetskinematics.cc
+  PhotonJetsKinematics.cc
 
 libjetqa_la_LIBADD = \
   -L$(libdir) \

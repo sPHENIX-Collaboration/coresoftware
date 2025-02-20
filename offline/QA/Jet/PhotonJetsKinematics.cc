@@ -1,6 +1,6 @@
 //____________________________________________________________________________..
 
-#include "photonjetskinematics.h"
+#include "PhotonJetsKinematics.h"
 #include <fun4all/PHTFileServer.h>
 
 // Fun4all includes
@@ -44,7 +44,7 @@
 #include <vector>
 //____________________________________________________________________________..
 
-photonjetskinematics::photonjetskinematics(const std::string &m_modulename, const std::string &m_inputnode) :
+PhotonJetsKinematics::PhotonJetsKinematics(const std::string &m_modulename, const std::string &m_inputnode) :
   SubsysReco(m_modulename)
   , modulename(m_modulename)
   , inputnode(m_inputnode)
@@ -52,18 +52,18 @@ photonjetskinematics::photonjetskinematics(const std::string &m_modulename, cons
   , trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , doTrgSelect(false)
 {
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::photonjetskinematics(const std::string &name, const std::string&outputfilename) Calling ctor" << std::endl;
+  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::PhotonJetsKinematics(const std::string &name, const std::string&outputfilename) Calling ctor" << std::endl;
 }
 //____________________________________________________________________________..
-photonjetskinematics::~photonjetskinematics()
+PhotonJetsKinematics::~PhotonJetsKinematics()
 {
-  std::cout << "photonjetskinematics::~photonjetskinematics() Calling dtor" << std::endl;
+  std::cout << "PhotonJetsKinematics::~PhotonJetsKinematics() Calling dtor" << std::endl;
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::Init(PHCompositeNode* /*topNode*/)
+int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
 {
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::Init(PHCompositeNode *topNode) Initializing" << std::endl;
   manager = QAHistManagerDef::getHistoManager();
   if (!manager)
     {
@@ -119,15 +119,15 @@ int photonjetskinematics::Init(PHCompositeNode* /*topNode*/)
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::InitRun(PHCompositeNode* /*topNode*/)
+int PhotonJetsKinematics::InitRun(PHCompositeNode* /*topNode*/)
 {
 
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::process_event(PHCompositeNode *topNode)
+int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
 {  
 
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, inputnode);
@@ -170,29 +170,29 @@ int photonjetskinematics::process_event(PHCompositeNode *topNode)
        h_emcal_cluster_phi->Fill(clus_phi);  // 1D phi plot
    }
 
-  // std::cout << "photonjetskinematics::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  // std::cout << "PhotonJetsKinematics::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
    return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::ResetEvent(PHCompositeNode* /*topNode*/)
+int PhotonJetsKinematics::ResetEvent(PHCompositeNode* /*topNode*/)
 {
-  // std::cout << "photonjetskinematics::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  // std::cout << "PhotonJetsKinematics::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::EndRun(const int runnumber)
+int PhotonJetsKinematics::EndRun(const int runnumber)
 {
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::End(PHCompositeNode* /*topNode*/)
+int PhotonJetsKinematics::End(PHCompositeNode* /*topNode*/)
 {
   // Commenting out the following line because Jenkins keeps failing the build test :( 
-  // if (Verbosity() > 1) std::cout << "photonjetskinematics::End - Output to " << outfilename << std::endl;
+  // if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::End - Output to " << outfilename << std::endl;
   
   //Outputting the histograms
   manager->registerHisto(h_emcal_cluster_eta_phi);
@@ -201,20 +201,20 @@ int photonjetskinematics::End(PHCompositeNode* /*topNode*/)
   manager->registerHisto(h_emcal_cluster_eta);  
   manager->registerHisto(h_emcal_cluster_phi); 
 
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::End(PHCompositeNode *topNode) This is the End..." << std::endl; 
+  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::End(PHCompositeNode *topNode) This is the End..." << std::endl; 
   return Fun4AllReturnCodes::EVENT_OK;
   
 }
 
 //____________________________________________________________________________..
-int photonjetskinematics::Reset(PHCompositeNode* /*topNode*/)
+int PhotonJetsKinematics::Reset(PHCompositeNode* /*topNode*/)
 {
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-void photonjetskinematics::Print(const std::string &what) const
+void PhotonJetsKinematics::Print(const std::string &what) const
 {
-  if (Verbosity() > 1) std::cout << "photonjetskinematics::Print(const std::string &what) const Printing info for " << what << std::endl;
+  if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::Print(const std::string &what) const Printing info for " << what << std::endl;
 }
