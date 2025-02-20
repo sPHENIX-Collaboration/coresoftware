@@ -17,13 +17,13 @@ class TH1;
 class TH2;
 class TH3;
 
-class photonjetskinematics : public SubsysReco
+class PhotonJetsKinematics : public SubsysReco
 {
  public:
 
 
-  photonjetskinematics(const std::string &modulename = "photonjetskinematics", const std::string &inputnode = "CLUSTERINFO_CEMC");
-  ~photonjetskinematics() override;
+  PhotonJetsKinematics(const std::string &modulename = "PhotonJetsKinematics", const std::string &inputnode = "CLUSTERINFO_CEMC");
+  ~PhotonJetsKinematics() override;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
