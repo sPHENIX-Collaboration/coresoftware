@@ -27,7 +27,7 @@ class PHG4EICMvtxDetector : public PHG4Detector
   PHG4EICMvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam);
 
   //! destructor
-  ~PHG4EICMvtxDetector() override {}
+  ~PHG4EICMvtxDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume* world) override;
@@ -42,9 +42,9 @@ class PHG4EICMvtxDetector : public PHG4Detector
   int IsAbsorberActive(int lyr) const { return m_IsLayerAbsorberActive[lyr]; }
   int IsBlackHole(int lyr) const { return m_IsBlackHole[lyr]; }
   void SuperDetector(const std::string& name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
   void Detector(const std::string& name) { m_Detector = name; }
-  const std::string Detector() const { return m_Detector; }
+  const std::string &Detector() const { return m_Detector; }
 
   int get_layer(int stv_index) const;
   int get_stave(int stv_index) const;
