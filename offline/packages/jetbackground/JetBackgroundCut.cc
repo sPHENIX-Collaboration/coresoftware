@@ -264,6 +264,11 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
   _cutParams.set_int_param("failsHiEmJetCut", failsHiEm);
   _cutParams.set_int_param("failsIhJetCut", failsIhCut);
   _cutParams.set_int_param("failsAnyJetCut", failsAnyCut);
+  _cutParams.set_int_param("isDijet", isDijet);
+  _cutParams.set_double_param("frcem", frcem);
+  _cutParams.set_double_param("frcoh", frcoh);
+  _cutParams.set_double_param("maxJetET", maxJetET);
+  _cutParams.set_double_param("dPhi", dPhi);
   _cutParams.UpdateNodeTree(parNode, "JetCutParams");
 
   return Fun4AllReturnCodes::EVENT_OK;
