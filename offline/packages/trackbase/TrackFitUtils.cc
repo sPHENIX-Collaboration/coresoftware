@@ -611,7 +611,7 @@ Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float 
 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global_vec,
-                                              std::vector<TrkrDefs::cluskey> cluskey_vec,
+                                              const std::vector<TrkrDefs::cluskey> &cluskey_vec,
                                               bool use_intt)
 {
   std::vector<float> fitpars;
@@ -657,6 +657,7 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClustersZeroField(const std::vector<Acts::Vector3>& global_vec,
                                                        const std::vector<TrkrDefs::cluskey>& cluskey_vec, bool use_intt, bool mvtx_east, bool mvtx_west)
+
 {
   std::vector<float> fitpars;
   std::tuple<double, double> xy_fit_pars;
@@ -1028,7 +1029,7 @@ TrackFitUtils::zero_field_track_params(
   return std::make_tuple(true, phi, eta, 1, Acts::Vector3(x, y, z), p);
 }
 
-bool TrackFitUtils::isTrackCrossMvtxHalf(std::vector<TrkrDefs::cluskey> cluskey_vec)
+bool TrackFitUtils::isTrackCrossMvtxHalf(const std::vector<TrkrDefs::cluskey> &cluskey_vec)
 {
   bool isWest = false;
   bool isEast = false;

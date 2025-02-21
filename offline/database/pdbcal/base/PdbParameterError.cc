@@ -10,14 +10,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
-PdbParameterError::PdbParameterError()
-  : theParError(NAN)
-{
-}
-
-PdbParameterError::PdbParameterError(const double value, const double error, const string &name)
+PdbParameterError::PdbParameterError(const double value, const double error, const std::string &name)
   : PdbParameter(value, name)
   , theParError(error)
 {
@@ -25,5 +18,5 @@ PdbParameterError::PdbParameterError(const double value, const double error, con
 
 void PdbParameterError::print() const
 {
-  cout << theName << ": " << thePar << " +/- " << theParError << endl;
+  std::cout << getName() << ": " << getParameter() << " +/- " << getParameterError() << std::endl;
 }

@@ -7,14 +7,14 @@
 
 #include "PdbParameter.h"
 
+#include <limits>
 #include <string>
 
 class PdbParameterError : public PdbParameter
 {
  public:
-  PdbParameterError();
   PdbParameterError(const double, const double, const std::string &name);
-  ~PdbParameterError() override {}
+  ~PdbParameterError() override = default;
 
   double getParameterError() const { return theParError; }
 
@@ -23,7 +23,10 @@ class PdbParameterError : public PdbParameter
   void print() const override;
 
  protected:
-  double theParError;
+  PdbParameterError() = default;
+
+ private:
+  double theParError{std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PdbParameterError, 1);
 };
