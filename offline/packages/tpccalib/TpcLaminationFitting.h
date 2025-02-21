@@ -95,14 +95,19 @@ class TpcLaminationFitting : public SubsysReco
 
   double m_nClusters{0};
   int m_nEvents{0};
-
+  int m_runnumber{};
+  
   TTree *m_laminationTree{nullptr};
   bool m_side{false};
   int m_lamIndex{0};
   double m_lamPhi{0};
+  bool m_goodFit{false};
   double m_A{0};
   double m_B{0};
   double m_C{0};
+  double m_A_err{0};
+  double m_B_err{0};
+  double m_C_err{0};
   double m_dist{0};
   int m_nBins{0};
 
