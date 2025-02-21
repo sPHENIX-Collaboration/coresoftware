@@ -962,7 +962,7 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   return;
 }
 
-void AnnularFieldSim::load3dBfield(const std::string &filename, const std::string &treename, int zsign, float scale)
+void AnnularFieldSim::load3dBfield(const std::string &filename, const std::string &treename, int zsign, float scale, float zshift)
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores field as Tesla.
@@ -978,14 +978,15 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   fTree->SetBranchAddress("bz", &fz);
   fTree->SetBranchAddress("phi", &phi);
   fTree->SetBranchAddress("bphi", &fphi);
-  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla * scale, zsign);
+  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla * scale, zsign, zshift);
   return;
 }
 
-void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign)
+void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float zshift)
 {
   // we're loading a tree of unknown size and spacing -- and possibly uneven spacing -- into our local data.
   // formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
+  // the z shift moves the detector in the field (hence for a +1 shift in z, the field value at (0,0,0) is recorded at detector coordinate (0,0,-1)
 
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
   int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
@@ -1005,7 +1006,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   for (int i = 0; i < nEntries; i++)
   {  // could probably do this with an iterator
     source->GetEntry(i);
-    float zval = *zptr * zsign;  // right now, need the ability to flip the sign of the z coordinate.
+    float zval = *zptr * zsign-zshift;  // right now, need the ability to flip the sign of the z coordinate.
     // note that the z sign also needs to affect the field sign in that direction, which is handled outside in the z components of the fills
     // if we aren't asking for phi symmetry, build just the one phi strip
     if (!phiSymmetry)

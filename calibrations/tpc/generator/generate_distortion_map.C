@@ -10,13 +10,13 @@ R__LOAD_LIBRARY(libfieldsim.so)
 char field_string[200];
 char lookup_string[200];
 
-AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
+AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true, float zshift=0);
 AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
 void TestSpotDistortion(AnnularFieldSim *t);
 void SurveyFiles(TFileCollection* filelist);
 
   
-void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500, bool scanSteps=false){
+void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500, bool scanSteps=false, float zshift=0){
   printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
  
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
@@ -25,7 +25,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   //and some parameters of the files we're loading:
   bool usesChargeDensity=false; //true if source hists contain charge density per bin.  False if hists are charge per bin.
   float tpc_chargescale=1.6e-19;//Coulombs per bin unit.
-  float spacecharge_cm_per_axis_unit=0.1;//cm per histogram axis unit, matching the MDC2 sample from Evgeny.
+  float spacecharge_cm_per_axis_unit=0.1;//cm per histogram axis unit (mm), matching the MDC2 sample from Evgeny.
   
   //file names we'll be filling as we go:
   TFile *infile, *gainfile;
@@ -35,7 +35,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
 
   //now build the time-consuming part:
   AnnularFieldSim *tpc;
-    tpc=SetupDefaultSphenixTpc(hasTwin,hasSpacecharge);//loads the lookup, fields, etc.
+    tpc=SetupDefaultSphenixTpc(hasTwin,hasSpacecharge, zshift);//loads the lookup, fields, etc.
  
   //and the location to plot the fieldslices about:
  TVector3 pos=0.5*(tpc->GetOuterEdge()+tpc->GetInnerEdge());;
@@ -235,7 +235,7 @@ void TestSpotDistortion(AnnularFieldSim *t){
       return;
 }
 
-AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
+AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge, float zshift){
   //step1:  specify the sPHENIX space charge model parameters
   const float tpc_rmin=20.0;
   const float tpc_rmax=78.0;
@@ -302,9 +302,9 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
     sprintf(field_string,"realE_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
   }
    if (realB){
-    tpc->load3dBfield("/sphenix/user/rcorliss/field/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
+    tpc->load3dBfield("/sphenix/user/rcorliss/field/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5, zshift);
         //tpc->loadBfield("sPHENIX.2d.root","fieldmap");
-    sprintf(field_string,"realB_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+    sprintf(field_string,"realB_B%2.1f_E%2.1f_z%2.1f",tpc_magField,tpc_cmVolt/tpc_z,zshift);
   } 
   if (realE && realB){
     sprintf(field_string,"real_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
@@ -361,7 +361,7 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge){
     twin->setFlatFields(tpc_magField,-tpc_cmVolt/tpc_z);
     //sprintf(field_string,"flat_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
     //twin->loadBfield("sPHENIX.2d.root","fieldmap");
-    twin->load3dBfield("/sphenix/user/rcorliss/rossegger/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
+    twin->load3dBfield("/sphenix/user/rcorliss/rossegger/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5, zshift);
     twin->loadEfield("/sphenix/user/rcorliss/rossegger/externalEfield.ttree.root","fTree",-1);//final '-1' tells it to flip z and the field z coordinate. r coordinate doesn't change, and we assume phi won't either, though the latter is less true.
 
 
