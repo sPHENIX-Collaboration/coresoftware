@@ -46,9 +46,9 @@ class PHG4MvtxDetector : public PHG4Detector
   int IsSupportActive(int lyr) const { return m_IsLayerSupportActive[lyr]; }
   int IsBlackHole(int lyr) const { return m_IsBlackHole[lyr]; }
   void SuperDetector(const std::string& name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
   void Detector(const std::string& name) { m_Detector = name; }
-  const std::string Detector() const { return m_Detector; }
+  const std::string &Detector() const { return m_Detector; }
 
   int get_layer(int stv_index) const;
   int get_stave(int stv_index) const;
@@ -96,7 +96,7 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<double, n_Layers> m_nominal_phi0{};
 
   // For modified geometry
-  bool apply_misalignment = false;
+  bool apply_misalignment {false};
   double m_GlobalDisplacementX = 0.0;
   double m_GlobalDisplacementY = 0.0;
   double m_GlobalDisplacementZ = 0.0;

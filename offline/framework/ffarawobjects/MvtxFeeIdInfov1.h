@@ -8,9 +8,20 @@
 class MvtxFeeIdInfov1 : public MvtxFeeIdInfo
 {
  public:
-  MvtxFeeIdInfov1() {}
-  MvtxFeeIdInfov1(MvtxFeeIdInfo* info);
-  ~MvtxFeeIdInfov1() override{};
+  //! ctor
+  MvtxFeeIdInfov1() = default;
+  explicit MvtxFeeIdInfov1(MvtxFeeIdInfo* info);
+
+  //! cp/mv ctor
+  MvtxFeeIdInfov1(const MvtxFeeIdInfov1&) = default;
+  MvtxFeeIdInfov1(MvtxFeeIdInfov1&&) = default;
+
+  //! cp/mv assigment
+  MvtxFeeIdInfov1& operator=(const MvtxFeeIdInfov1&) = default;
+  MvtxFeeIdInfov1& operator=(MvtxFeeIdInfov1&&) = default;
+
+  //! dtor
+  ~MvtxFeeIdInfov1() override = default;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -29,7 +40,7 @@ class MvtxFeeIdInfov1 : public MvtxFeeIdInfo
   // cppcheck-suppress virtualCallInConstructor
   void set_bco(const uint64_t val) override { m_bco = val; }
 
- protected:
+ private:
   uint16_t m_feeId = std::numeric_limits<uint16_t>::max();
   uint32_t m_detField = std::numeric_limits<uint32_t>::max();
   uint64_t m_bco = std::numeric_limits<uint64_t>::max();

@@ -39,7 +39,7 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   //@}
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
 
  private:
   PHParameters *m_Params{nullptr};
@@ -73,7 +73,7 @@ class PHG4TpcEndCapDetector : public PHG4Detector
   void CreateCompositeMaterial(               //
       const std::string &compositeName,       //! desired name for the new material
       std::vector<std::string> materialName,  //! vector of the names of the component materials in G4
-      std::vector<double> thickness           //! thickness of this particular layer (assuming 100 percent filled)
+      const std::vector<double> &thickness           //! thickness of this particular layer (assuming 100 percent filled)
   );
 };
 

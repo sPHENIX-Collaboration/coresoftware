@@ -27,13 +27,12 @@ ROOT_DICTS = \
 
 pcmdir = $(libdir)
 # more elegant way to create pcm files (without listing them)
-nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
+nobase_dist_pcm_DATA = $(ROOT_DICTS:.cc=_rdict.pcm)
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
   $(ROOT_DICTS) \
   PdbBankID.cc \
-  PdbBankManager.cc \
   PdbCalBank.cc \
   PdbParameter.cc \
   PdbParameterError.cc \
@@ -44,15 +43,9 @@ libpdbcalBase_la_SOURCES = \
 
 #please add new includes sorted according to the roman alphabet
 pkginclude_HEADERS = \
-  Pdb.h \
   PdbBankID.h \
-  PdbBankList.h \
-  PdbBankListIterator.h \
-  PdbBankManager.h \
   PdbCalBank.h \
-  PdbCalBankIterator.h \
   PdbCalChan.h \
-  PdbClassMap.h \
   PdbParameter.h \
   PdbParameterError.h \
   PdbParameterMap.h \

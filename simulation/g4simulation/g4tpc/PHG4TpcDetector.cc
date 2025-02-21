@@ -6,6 +6,8 @@
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Subsystem.h>
@@ -15,7 +17,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-#include <phparameter/PHParameters.h>
+#include <phool/sphenix_constants.h>
 
 #include <TSystem.h>
 
@@ -123,7 +125,7 @@ void PHG4TpcDetector::CreateTpcGasMixture()
   G4double tpcGasTemperature = (273.15 + m_Params->get_double_param("TPC_gas_temperature")) * kelvin;
   G4double tpcGasPressure = m_Params->get_double_param("TPC_gas_pressure") * atmosphere;
 
-  G4Material *CF4 = new G4Material("CF4", density = 3.78 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
+  G4Material *CF4 = new G4Material("CF4", density = sphenix_constants::CF4_density * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
   CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 1);
   CF4->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), natoms = 4);
 
@@ -459,10 +461,10 @@ int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
   return 0;
 }
 
-void PHG4TpcDetector ::CreateCompositeMaterial(
+void PHG4TpcDetector::CreateCompositeMaterial(
     const std::string &compositeName,
     std::vector<std::string> materialName,
-    std::vector<double> thickness)
+    const std::vector<double> &thickness)
 {
   // takes in a list of material names known to Geant already, and thicknesses, and creates a new material called compositeName.
 

@@ -7,15 +7,12 @@
 
 #include "PdbCalChan.h"
 
+#include <limits>
 #include <string>
 
 class PdbParameter : public PdbCalChan
 {
  public:
-  PdbParameter();  // this ctor should not be called but it cannot be
-                   // made private since CINT needs a
-                   // default ctor when reading from file
-
   PdbParameter(const double, const std::string &name);
   ~PdbParameter() override = default;
 
@@ -28,7 +25,10 @@ class PdbParameter : public PdbCalChan
   void print() const override;
 
  protected:
-  double thePar;
+  PdbParameter() = default;  // this ctor should not be called
+
+ private:
+  double thePar{std::numeric_limits<double>::quiet_NaN()};
   std::string theName;
 
   ClassDefOverride(PdbParameter, 1);

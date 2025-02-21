@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
+#include <trackbase/MvtxDefs.h>
 
 #include <map>
 #include <string>
@@ -23,8 +24,10 @@ class PHCosmicSeeder : public SubsysReco
   {
     float xyslope = std::numeric_limits<float>::quiet_NaN();
     float xyintercept = std::numeric_limits<float>::quiet_NaN();
-    float rzslope = std::numeric_limits<float>::quiet_NaN();
-    float rzintercept = std::numeric_limits<float>::quiet_NaN();
+    float xzslope = std::numeric_limits<float>::quiet_NaN();
+    float xzintercept = std::numeric_limits<float>::quiet_NaN();
+    float yzslope = std::numeric_limits<float>::quiet_NaN();
+    float yzintercept = std::numeric_limits<float>::quiet_NaN();
     std::set<TrkrDefs::cluskey> ckeys;
   };
   using SeedVector = std::vector<seed>;
@@ -50,7 +53,7 @@ class PHCosmicSeeder : public SubsysReco
   void recalculateSeedLineParameters(seed &seed, PositionMap &clusters, bool isXY);
 
   float m_xyTolerance = 2.;  //! cm
-//  float m_rzTolerance = 2.;  //! cm
+//  float m_xzTolerance = 2.;  //! cm
   std::string m_trackMapName = "TpcTrackSeedContainer";
   TrkrDefs::TrkrId m_trackerId = TrkrDefs::TrkrId::tpcId;
   ActsGeometry *m_tGeometry = nullptr;

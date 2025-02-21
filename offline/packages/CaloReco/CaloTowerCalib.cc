@@ -140,7 +140,9 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = "ohcal_abscalib_cosmic";
+      // converts ADC (peak hieght) to energy deposited by a 
+      // minimum ionizing particle in both absorber and active volume. 
+      m_calibName = "HCALOUT_calib_ADC_to_ETower";
     }
     if (!m_overrideFieldName)
     {
@@ -153,8 +155,17 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      std::cout << "CaloTowerCalib::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
-      exit(1);
+      m_calibName = "HCALOUT_calib_ADC_to_ETower_default";
+      calibdir = CDBInterface::instance()->getUrl(m_calibName);
+      if (!calibdir.empty())
+      {
+        cdbttree = new CDBTTree(calibdir);
+      }
+      else
+      {
+        std::cout << "CaloTowerCalib::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
+        exit(1);
+      }
     }
   }
   else if (m_dettype == CaloTowerDefs::ZDC)
