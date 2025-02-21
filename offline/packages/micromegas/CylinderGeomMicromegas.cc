@@ -330,7 +330,10 @@ CylinderGeomMicromegas::range_t CylinderGeomMicromegas::get_theta_range(uint til
       const auto strip_count = get_strip_count(tileid, geometry);
       const auto strip_length = get_strip_length(tileid, geometry);
       const auto mid_strip_center_local = get_local_coordinates(tileid, geometry, strip_count/2);
-      const auto mid_strip_begin = get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(0,-strip_length/2));
+      // need to add special care for tile 0, whose half detector is disconnected
+      const auto mid_strip_begin = tileid == 0 ?
+        get_world_from_local_coords(tileid, geometry, mid_strip_center_local):
+        get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(0,-strip_length/2));
       const auto mid_strip_end = get_world_from_local_coords( tileid, geometry, mid_strip_center_local + TVector2(0,strip_length/2));
       return {
         std::atan2(get_r(mid_strip_begin.x(), mid_strip_begin.y()), mid_strip_begin.z()),
@@ -342,7 +345,10 @@ CylinderGeomMicromegas::range_t CylinderGeomMicromegas::get_theta_range(uint til
     case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
     {
       const auto strip_count = get_strip_count(tileid, geometry);
-      const auto first_strip_center = get_world_coordinates(tileid, geometry, 0);
+      // need to add special care for tile 0, whose half detector is disconnected
+      const auto first_strip_center = tileid == 0 ?
+        get_world_coordinates(tileid, geometry, 128):
+        get_world_coordinates(tileid, geometry, 0);
       const auto last_strip_center = get_world_coordinates(tileid, geometry, strip_count-1);
       return {
         std::atan2(get_r(first_strip_center.x(), first_strip_center.y()), first_strip_center.z()),
