@@ -15,7 +15,6 @@
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
 ActsPropagator::SurfacePtr
