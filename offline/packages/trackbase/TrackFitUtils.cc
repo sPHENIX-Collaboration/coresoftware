@@ -655,8 +655,8 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
 }
 
 //_________________________________________________________________________________
-std::vector<float> TrackFitUtils::fitClustersZeroField(std::vector<Acts::Vector3>& global_vec,
-                                                       std::vector<TrkrDefs::cluskey> cluskey_vec, bool use_intt, bool mvtx_east, bool mvtx_west)
+std::vector<float> TrackFitUtils::fitClustersZeroField(const std::vector<Acts::Vector3>& global_vec,
+                                                       const std::vector<TrkrDefs::cluskey>& cluskey_vec, bool use_intt, bool mvtx_east, bool mvtx_west)
 {
   std::vector<float> fitpars;
   std::tuple<double, double> xy_fit_pars;

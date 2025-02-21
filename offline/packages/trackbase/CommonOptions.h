@@ -23,8 +23,6 @@ enum class OutputFormat : uint8_t {
   All = std::numeric_limits<uint8_t>::max()
 };
 
-ACTS_DEFINE_ENUM_BITWISE_OPERATORS(OutputFormat)
-
 namespace Options {
 
 /// Construct the options description with minimal default options.

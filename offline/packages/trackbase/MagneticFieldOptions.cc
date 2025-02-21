@@ -123,8 +123,8 @@ ActsExamples::Options::readMagneticField(const Variables& vars) {
     }
 
     if (type == "xyz") {
-      auto mapBins = [](std::array<size_t, 3> bins,
-                        std::array<size_t, 3> sizes) {
+      auto mapBins = [](const std::array<size_t, 3>& bins,
+                        const std::array<size_t, 3>& sizes) {
         return (bins[0] * (sizes[1] * sizes[2]) + bins[1] * sizes[2] + bins[2]);
       };
 
