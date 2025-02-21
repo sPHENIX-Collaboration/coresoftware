@@ -336,8 +336,8 @@ CylinderGeomMicromegas::range_t CylinderGeomMicromegas::get_theta_range(uint til
         get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(0,-strip_length/2));
       const auto mid_strip_end = get_world_from_local_coords( tileid, geometry, mid_strip_center_local + TVector2(0,strip_length/2));
       return {
-        std::atan2(get_r(mid_strip_begin.x(), mid_strip_begin.y()), mid_strip_begin.z()),
-        std::atan2(get_r(mid_strip_end.x(), mid_strip_end.y()), mid_strip_end.z())
+        std::atan2(mid_strip_begin.z(), get_r(mid_strip_begin.x(), mid_strip_begin.y())),
+        std::atan2(mid_strip_end.z(), get_r(mid_strip_end.x(), mid_strip_end.y()))
       };
     }
 
@@ -351,8 +351,8 @@ CylinderGeomMicromegas::range_t CylinderGeomMicromegas::get_theta_range(uint til
         get_world_coordinates(tileid, geometry, 0);
       const auto last_strip_center = get_world_coordinates(tileid, geometry, strip_count-1);
       return {
-        std::atan2(get_r(first_strip_center.x(), first_strip_center.y()), first_strip_center.z()),
-        std::atan2(get_r(last_strip_center.x(), last_strip_center.y()), last_strip_center.z())
+        std::atan2(first_strip_center.z(), get_r(first_strip_center.x(), first_strip_center.y())),
+        std::atan2(last_strip_center.z(), get_r(last_strip_center.x(), last_strip_center.y()))
       };
     }
   }

@@ -117,7 +117,10 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   /// get the phi range, in global coordinates, corresponding to a given tile
   range_t get_phi_range(uint tileid, ActsGeometry* ) const;
 
-  /// get the theta range, in r,z plane, measured with respect to (0,0), in global coordinates, corresponding to a given tile
+  /**
+   * get the theta range, in r,z plane, measured with respect to (0,0), in global coordinates, corresponding to a given tile
+   * Note: theta is calculated with respect to the vertical axis, as theta = std::atan2(z, r).
+   */
   range_t get_theta_range(uint tileid, ActsGeometry* ) const;
 
   //@}
