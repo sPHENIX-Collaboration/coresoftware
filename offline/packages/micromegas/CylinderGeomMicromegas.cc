@@ -162,7 +162,7 @@ int CylinderGeomMicromegas::find_strip_from_world_coords( uint tileid, ActsGeome
 {
   // convert to local coordinates
   const auto local_coordinates = get_local_from_world_coords( tileid, geometry, world_coordinates );
-  
+
   // check against thickness
   if( std::abs(local_coordinates.z() ) >= m_thickness/2 )
   {
@@ -181,7 +181,7 @@ int CylinderGeomMicromegas::find_strip_from_local_coords( uint tileid, ActsGeome
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
   // get boundaries and corresponding dimension
-  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );
   auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
   const auto half_length_x = rectangle_bounds->halfLengthX()/Acts::UnitConstants::cm;
   const auto half_length_y = rectangle_bounds->halfLengthY()/Acts::UnitConstants::cm;
@@ -216,7 +216,7 @@ double CylinderGeomMicromegas::get_strip_length( uint tileid, ActsGeometry* geom
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
   // get boundaries and return corresponding dimension
-  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );
   auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
   switch( m_segmentation_type )
   {
@@ -239,7 +239,7 @@ uint CylinderGeomMicromegas::get_strip_count( uint tileid, ActsGeometry* geometr
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
   // get boundaries and corresponding dimension
-  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );
   auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
   switch( m_segmentation_type )
   {
@@ -262,7 +262,7 @@ TVector2 CylinderGeomMicromegas::get_local_coordinates( uint tileid, ActsGeometr
   const auto surface = geometry->maps().getMMSurface(hitsetkey);
 
   // get boundaries and return corresponding dimension
-  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );  
+  assert( surface->bounds().type() == Acts::SurfaceBounds::BoundsType::eRectangle );
   auto rectangle_bounds = static_cast<const Acts::RectangleBounds*>( &surface->bounds() );
 
   switch( m_segmentation_type )
@@ -281,6 +281,80 @@ TVector2 CylinderGeomMicromegas::get_local_coordinates( uint tileid, ActsGeometr
 //________________________________________________________________________________
 TVector3 CylinderGeomMicromegas::get_world_coordinates( uint tileid, ActsGeometry* geometry, uint stripnum ) const
 { return get_world_from_local_coords( tileid, geometry, get_local_coordinates( tileid, geometry, stripnum ) ); }
+
+//________________________________________________________________________________
+CylinderGeomMicromegas::range_t CylinderGeomMicromegas::get_phi_range(uint tileid, ActsGeometry* geometry ) const
+{
+  switch( m_segmentation_type )
+  {
+    // for phi views we use the phi of the first and last strip, at middle of strip
+    case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+    {
+      const auto strip_count = get_strip_count(tileid, geometry);
+      const auto first_strip_center = get_world_coordinates(tileid, geometry, 0);
+      const auto last_strip_center = get_world_coordinates(tileid, geometry, strip_count-1);
+      return {
+        std::atan2(first_strip_center.y(), first_strip_center.x()),
+        std::atan2(last_strip_center.y(), last_strip_center.x())
+      };
+    }
+
+    // for z views we use the begin and end phi of the center strip
+    case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+    {
+      const auto strip_count = get_strip_count(tileid, geometry);
+      const auto strip_length = get_strip_length(tileid, geometry);
+      const auto mid_strip_center_local = get_local_coordinates( tileid, geometry, strip_count/2 );
+      const auto mid_strip_begin = get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(-strip_length/2,0));
+      const auto mid_strip_end = get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(strip_length/2,0));
+      return {
+        std::atan2(mid_strip_begin.y(), mid_strip_begin.x()),
+        std::atan2(mid_strip_end.y(), mid_strip_end.x())
+      };
+    }
+
+  }
+
+  // unreachable
+  return {};
+}
+
+//________________________________________________________________________________
+CylinderGeomMicromegas::range_t CylinderGeomMicromegas::get_theta_range(uint tileid, ActsGeometry* geometry ) const
+{
+  switch( m_segmentation_type )
+  {
+    // for phi views we use the begin and end theta of the center strip
+    case MicromegasDefs::SegmentationType::SEGMENTATION_PHI:
+    {
+      const auto strip_count = get_strip_count(tileid, geometry);
+      const auto strip_length = get_strip_length(tileid, geometry);
+      const auto mid_strip_center_local = get_local_coordinates(tileid, geometry, strip_count/2);
+      const auto mid_strip_begin = get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(0,-strip_length/2));
+      const auto mid_strip_end = get_world_from_local_coords( tileid, geometry, mid_strip_center_local + TVector2(0,strip_length/2));
+      return {
+        std::atan2(get_r(mid_strip_begin.x(), mid_strip_begin.y()), mid_strip_begin.z()),
+        std::atan2(get_r(mid_strip_end.x(), mid_strip_end.y()), mid_strip_end.z())
+      };
+    }
+
+    // for z views we use the theta of the first and last strip, at middle of strip
+    case MicromegasDefs::SegmentationType::SEGMENTATION_Z:
+    {
+      const auto strip_count = get_strip_count(tileid, geometry);
+      const auto first_strip_center = get_world_coordinates(tileid, geometry, 0);
+      const auto last_strip_center = get_world_coordinates(tileid, geometry, strip_count-1);
+      return {
+        std::atan2(get_r(first_strip_center.x(), first_strip_center.y()), first_strip_center.z()),
+        std::atan2(get_r(last_strip_center.x(), last_strip_center.y()), last_strip_center.z())
+      };
+    }
+  }
+
+  // unreachable
+  return {};
+
+}
 
 //________________________________________________________________________________
 void CylinderGeomMicromegas::identify( std::ostream& out ) const

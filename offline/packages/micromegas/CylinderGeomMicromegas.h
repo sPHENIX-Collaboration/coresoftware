@@ -111,6 +111,15 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   /// reference radius used in macro to convert tile size in azimuth into a angle range (cm)
   static constexpr double reference_radius = 82;
 
+  /// shortcut for min/max window
+  using range_t = std::pair<double, double>;
+
+  /// get the phi range, in global coordinates, corresponding to a given tile
+  range_t get_phi_range(uint tileid, ActsGeometry* ) const;
+
+  /// get the theta range, in r,z plane, measured with respect to (0,0), in global coordinates, corresponding to a given tile
+  range_t get_theta_range(uint tileid, ActsGeometry* ) const;
+
   //@}
 
   //!@name modifiers
@@ -159,9 +168,9 @@ class CylinderGeomMicromegas : public PHG4CylinderGeom
   double m_pitch = 0.1;
 
   //! tiles
-  /** 
-   * \brief tiles are only used in "find_tile_cylindrical". 
-   * For all other methods we use ACTS surfaces instead 
+  /**
+   * \brief tiles are only used in "find_tile_cylindrical".
+   * For all other methods we use ACTS surfaces instead
    */
   MicromegasTile::List m_tiles;
 
