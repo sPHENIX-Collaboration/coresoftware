@@ -196,15 +196,14 @@ int MvtxCombinedRawDataDecoder::InitRun(PHCompositeNode *topNode)
     Fun4AllServer::instance()->unregisterSubsystem(this);
     std::cout << PHWHERE << "::" << __func__ << ": Could not get \""
               << m_MvtxRawHitNodeName << " or " << m_MvtxRawEvtHeaderNodeName << "\" from Node Tree" << std::endl;
-    std::cout << "Have you built this yet?" << std::endl;
-    exit(1);
+    std::cout << "Unregistering subsystem and continuing on" << std::endl;
+
   }
   if (dynamic_cast<MvtxRawEvtHeaderv1 *>(mvtx_raw_event_header))
   {
-    std::cout << "MvtxCombinedRawDataDecoder::GetNodes() !!!WARNING!!! using obsolete MvtxRawEvtHeaderv1.";
+    std::cout << PHWHERE <<  "MvtxCombinedRawDataDecoder::GetNodes() !!!WARNING!!! using obsolete MvtxRawEvtHeaderv1.";
     std::cout << " Unregistering MvtxCombinedRawDataDecoder SubsysReco." << std::endl;
     Fun4AllServer::instance()->unregisterSubsystem(this);
-    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   auto *rc = recoConsts::instance();
