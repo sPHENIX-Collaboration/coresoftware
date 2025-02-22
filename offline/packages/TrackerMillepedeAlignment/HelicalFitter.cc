@@ -144,7 +144,7 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
     }
     else
     {
-      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi");
+      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi:track_eta:track_p:track_pt");
     }
   }
 
@@ -1042,6 +1042,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       float const perigee_phi = atan2(r(1), r(0));
       float const track_phi = atan2(newTrack.get_py(), newTrack.get_px());
       float const track_eta = atanh(newTrack.get_pz() / newTrack.get_p());
+      float const track_p = newTrack.get_p();
+      float const track_pt = newTrack.get_pt();
       if (straight_line_fit)
       {
         float ntp_data[28] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
@@ -1056,13 +1058,13 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-        float ntp_data[29] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+        float ntp_data[32] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
                               lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3], lclvtx_derivativeX[4],
                               glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
                               lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3], lclvtx_derivativeY[4],
                               glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
                               newTrack.get_x(), newTrack.get_y(), newTrack.get_z(),
-                              (float) event_vtx(0), (float) event_vtx(1), (float) event_vtx(2), track_phi, perigee_phi};
+                              (float) event_vtx(0), (float) event_vtx(1), (float) event_vtx(2), track_phi, perigee_phi, track_eta, track_p, track_pt};
 
         track_ntp->Fill(ntp_data);
       }
