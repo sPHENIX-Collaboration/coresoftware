@@ -777,14 +777,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         // get the local parameters using the ideal transforms
         alignmentTransformationContainer::use_alignment = false;
         Acts::Vector3 ideal_center = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;
-        Acts::Vector3 ideal_norm = -surf->normal(_tGeometry->geometry().getGeoContext());
+        Acts::Vector3 ideal_norm = -surf->normal(_tGeometry->geometry().getGeoContext(),Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
         Acts::Vector3 const ideal_local(xloc, zloc, 0.0);  // cm
         Acts::Vector3 ideal_glob = surf->transform(_tGeometry->geometry().getGeoContext()) * (ideal_local * Acts::UnitConstants::cm);
         ideal_glob /= Acts::UnitConstants::cm;
         alignmentTransformationContainer::use_alignment = true;
 
         Acts::Vector3 sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // cm
-        Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext());
+        Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext(), Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
         unsigned int sector = TpcDefs::getSectorId(cluskey_vec[ivec]);
         unsigned int const side = TpcDefs::getSide(cluskey_vec[ivec]);
         unsigned int subsurf = cluster->getSubSurfKey();
@@ -1093,7 +1093,7 @@ Acts::Vector3 HelicalFitter::get_helix_surface_intersection(const Surface& surf,
   // we want the point where the helix intersects the plane of the surface
   // get the plane of the surface
   Acts::Vector3 const sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
-  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext());
+  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   sensorNormal /= sensorNormal.norm();
 
   // there are analytic solutions for a line-plane intersection.
@@ -1112,7 +1112,7 @@ Acts::Vector3 HelicalFitter::get_line_surface_intersection(const Surface& surf, 
   // we want the point where the helix intersects the plane of the surface
   // get the plane of the surface
   Acts::Vector3 const sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
-  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext());
+  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   sensorNormal /= sensorNormal.norm();
 
   /*
@@ -1150,7 +1150,7 @@ Acts::Vector3 HelicalFitter::get_helix_surface_intersection(const Surface& surf,
 
   // get the plane of the surface
   Acts::Vector3 const sensorCenter = surf->center(_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
-  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext());
+  Acts::Vector3 sensorNormal = -surf->normal(_tGeometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   sensorNormal /= sensorNormal.norm();
 
   // there are analytic solutions for a line-plane intersection.
@@ -1947,7 +1947,7 @@ void HelicalFitter::get_projectionXY(const Surface& surf, const std::pair<Acts::
   // We need the three unit vectors in the sensor local frame, transformed to the global frame
   //====================================================================
   // sensorNormal is the Z vector in the global frame
-  Acts::Vector3 const Z = -surf->normal(_tGeometry->geometry().getGeoContext());
+  Acts::Vector3 const Z = -surf->normal(_tGeometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
   Acts::Vector3 const xloc(1.0, 0.0, 0.0);  // local coord unit vector in x

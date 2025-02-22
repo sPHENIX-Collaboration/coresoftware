@@ -231,7 +231,7 @@ namespace
     Acts::Vector3 center = surface->center(my_data.tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
 
     /// no conversion needed, only used in acts
-    const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().getGeoContext());
+    const Acts::Vector3 normal = surface->normal(my_data.tGeometry->geometry().getGeoContext(), Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
     const double clusRadius = std::sqrt(square(clusx) + square(clusy));
     const double rClusPhi = clusRadius * clusphi;
     const double surfRadius = sqrt(center(0) * center(0) + center(1) * center(1));
