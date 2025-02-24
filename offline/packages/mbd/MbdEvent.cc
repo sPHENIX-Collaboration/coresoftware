@@ -6,25 +6,26 @@
 #include "MbdPmtHit.h"
 
 #ifndef ONLINE
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/phool.h>
-#include <phool/recoConsts.h>
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
 #endif
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 
 #include <TCanvas.h>
+#include <TDirectory.h>
 #include <TF1.h>
+#include <TGraphErrors.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TGraphErrors.h>
 #include <TSystem.h>
-#include <TDirectory.h>
 
+#include <array>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
@@ -770,7 +771,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     }
   }
 
-  std::vector<float> hit_times[2];  // times of the hits in each [arm]
+  std::array<std::vector<float>,2> hit_times;  // times of the hits in each [arm]
 
   // calculate bbc global variables
   if (_verbose >= 10)
