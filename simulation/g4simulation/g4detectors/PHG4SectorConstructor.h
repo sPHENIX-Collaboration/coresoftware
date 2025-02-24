@@ -102,8 +102,8 @@ namespace PHG4Sector
       return layer_list;
     }
 
-    std::string
-    get_material() const
+    const std::string
+    &get_material() const
     {
       return material;
     }

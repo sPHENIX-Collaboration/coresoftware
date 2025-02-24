@@ -22,7 +22,7 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
     root = 2
   };
 
-  ~PHG4DetectorSubsystem() override {}
+  ~PHG4DetectorSubsystem() override = default;
 
   int Init(PHCompositeNode *) final;
   int InitRun(PHCompositeNode *) final;
@@ -68,7 +68,7 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   void SetSupportActive(const int i = 1);
 
   void SuperDetector(const std::string &name);
-  const std::string SuperDetector() const { return superdetector; }
+  const std::string &SuperDetector() const { return superdetector; }
 
   int GetLayer() const { return layer; }
   virtual void SetDefaultParameters() = 0;  // this one has to be implemented by the daughter

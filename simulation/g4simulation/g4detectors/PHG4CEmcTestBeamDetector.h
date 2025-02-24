@@ -22,9 +22,7 @@ class PHG4CEmcTestBeamDetector : public PHG4Detector
   PHG4CEmcTestBeamDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam, const int lyr = 0);
 
   //! destructor
-  ~PHG4CEmcTestBeamDetector(void) override
-  {
-  }
+  ~PHG4CEmcTestBeamDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -48,7 +46,7 @@ class PHG4CEmcTestBeamDetector : public PHG4Detector
   void SetAbsorberActive(const int i = 1) { absorberactive = i; }
   int IsActive() const { return active; }
   void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
+  const std::string &SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }
 
   void BlackHole(const int i = 1) { blackhole = i; }
