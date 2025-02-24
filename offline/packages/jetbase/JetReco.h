@@ -46,7 +46,7 @@ class JetReco : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   void add_input(JetInput *input) { _inputs.push_back(input); }
-  void add_algo(JetAlgo *algo, std::string output)
+  void add_algo(JetAlgo *algo, const std::string &output)
   {
     _algos.push_back(algo);
     _outputs.push_back(output);
@@ -72,7 +72,7 @@ class JetReco : public SubsysReco
   // transition functions, while moving from JetMap to JetContainer.
   // May be removed after transition is made, depending on state of
   // functions
-  std::string JC_name(std::string name)
+  std::string JC_name(const std::string &name)
   {
     if (which_fill == TRANSITION::BOTH || which_fill == TRANSITION::PRETEND_BOTH)
       return name + "_JC";
