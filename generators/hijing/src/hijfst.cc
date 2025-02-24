@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-//using namespace fastjet;
-
 bool enablep = false;
 struct algo_info
 {
