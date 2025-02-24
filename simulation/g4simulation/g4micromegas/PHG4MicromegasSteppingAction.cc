@@ -286,6 +286,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep, bool 
 
       // ownership is transferred to container
       // so we release the hit
+      // cppcheck says to check the return code, likely it should be non-zero
+      // cppcheck-suppress *
       m_hit.release();
     }
     else
