@@ -697,7 +697,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
   return;
 }
 
-void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry, std::vector<std::vector<double>> contributing_hits_exit, float& g4phisize, float& g4zsize)
+void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, const std::vector<std::vector<double>> &contributing_hits_entry, const std::vector<std::vector<double>> &contributing_hits_exit, float& g4phisize, float& g4zsize)
 {
   // sort the contributing g4hits in radius
   double inner_radius = 100.;
