@@ -5,14 +5,17 @@
 
 #include <phool/onnxlib.h>
 
-#include <algorithm>                  // for max
+#include <algorithm>  // for max
 #include <cassert>
-#include <cstdlib>                   // for getenv
+#include <cstdlib>  // for getenv
 #include <iostream>
-#include <memory>                     // for allocator_traits<>::value_type
+#include <memory>  // for allocator_traits<>::value_type
 #include <string>
 
-Ort::Session *onnxmodule;
+namespace
+{
+  Ort::Session *onnxmodule;
+}
 
 CaloWaveformProcessing::~CaloWaveformProcessing()
 {
@@ -32,17 +35,17 @@ void CaloWaveformProcessing::initialize_processing()
     m_Fitter->set_nthreads(get_nthreads());
     if (m_setTimeLim)
     {
-      m_Fitter->set_timeFitLim(m_timeLim_low,m_timeLim_high);
+      m_Fitter->set_timeFitLim(m_timeLim_low, m_timeLim_high);
     }
 
-    if (_bdosoftwarezerosuppression == true)
-      {
-	m_Fitter->set_softwarezerosuppression(_bdosoftwarezerosuppression,_nsoftwarezerosuppression);
-      }
-      if (_dobitfliprecovery)
-      {
-        m_Fitter->set_bitFlipRecovery(_dobitfliprecovery);
-      }
+    if (_bdosoftwarezerosuppression)
+    {
+      m_Fitter->set_softwarezerosuppression(_bdosoftwarezerosuppression, _nsoftwarezerosuppression);
+    }
+    if (_dobitfliprecovery)
+    {
+      m_Fitter->set_bitFlipRecovery(_dobitfliprecovery);
+    }
   }
   else if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
@@ -61,13 +64,13 @@ void CaloWaveformProcessing::initialize_processing()
 
 std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::vector<std::vector<float>> waveformvector)
 {
-  int size1 = waveformvector.size();
+  unsigned int size1 = waveformvector.size();
   std::vector<std::vector<float>> fitresults;
   if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
   {
-    for (int i = 0; i < size1; i++)
+    for (unsigned int i = 0; i < size1; i++)
     {
-      waveformvector.at(i).push_back(i);
+      waveformvector.at(i).push_back((float) i);
     }
     fitresults = m_Fitter->calo_processing_templatefit(waveformvector);
   }
@@ -86,23 +89,23 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
   return fitresults;
 }
 
-std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(std::vector<std::vector<float>> chnlvector)
+std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
-  int nchnls = chnlvector.size();
-  for (int m = 0; m < nchnls; m++)
+  unsigned int nchnls = chnlvector.size();
+  for (unsigned int m = 0; m < nchnls; m++)
   {
-    std::vector<float> v = chnlvector.at(m);
-    int nsamples = v.size() - 1;
+    const std::vector<float> &v = chnlvector.at(m);
+    unsigned int nsamples = v.size() - 1;
     std::vector<float> vtmp;
     vtmp.reserve(nsamples);
-    for (int k = 0; k < nsamples; k++)
+    for (unsigned int k = 0; k < nsamples; k++)
     {
-      vtmp.push_back(v.at(k) / 1000.0);
+      vtmp.push_back((float) (v.at(k) / 1000.0));
     }
     std::vector<float> val = onnxInference(onnxmodule, vtmp, 1, 31, 3);
-    int nvals = val.size();
-    for (int i = 0; i < nvals; i++)
+    unsigned int nvals = val.size();
+    for (unsigned int i = 0; i < nvals; i++)
     {
       if (i == 0 || i == 2)
       {

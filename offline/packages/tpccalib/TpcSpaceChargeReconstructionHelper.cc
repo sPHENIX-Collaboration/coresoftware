@@ -36,38 +36,11 @@ namespace
     return phi;
   }
 
-  /// shortcut to angular window, needed to define TPOT acceptance
-  using range_t = std::pair<double, double>;
-
-  /// list of angular windows
-  using range_list_t = std::vector<range_t>;
-
   /// make sure angles in a given window are betwwen [0, 2PI]
-  range_t transform_range(const range_t& a)
+  TpcSpaceChargeReconstructionHelper::range_t transform_range(const TpcSpaceChargeReconstructionHelper::range_t& a)
   {
     return {get_bound_angle(a.first), get_bound_angle(a.second)};
   }
-
-  ///@name detector geometry
-  //@{
-  /// phi range for central sector (TPC sectors 9 and 21)
-  const range_t phi_range_central = transform_range({-1.742, -1.43979});
-
-  /// phi range for east sector (TPC sectors 8 and 20)
-  const range_t phi_range_east = transform_range({-2.27002, -1.9673});
-
-  /// phi range for west sector (TPC sectors 10 and 22)
-  const range_t phi_range_west = transform_range({-1.21452, -0.911172});
-
-  /// list of theta (polar) angles for each micromeas in central sector
-  const range_list_t theta_range_central = {{-0.918257, -0.613136}, {-0.567549, -0.031022}, {0.0332154, 0.570419}, {0.613631, 0.919122}};
-
-  /// list of theta (polar) angles for each micromeas in east sector
-  const range_list_t theta_range_east = {{-0.636926, -0.133603}, {0.140678, 0.642714}};
-
-  /// list of theta (polar) angles for each micromeas in west sector
-  const range_list_t theta_range_west = {{-0.643676, -0.141004}, {0.13485, 0.640695}};
-  //@}
 
   /// short class to check if a given value is in provided range
   class range_ftor_t
@@ -75,7 +48,7 @@ namespace
    public:
     explicit range_ftor_t(double value)
       : m_value(value){};
-    bool operator()(const range_t& range)
+    bool operator()(const TpcSpaceChargeReconstructionHelper::range_t& range)
     {
       return m_value > range.first && m_value < range.second;
     }
@@ -85,18 +58,33 @@ namespace
   };
 
   /// returns true if given value is in provided range
-  bool in_range(const double& value, const range_t& range)
-  {
-    return range_ftor_t(value)(range);
-  }
+  bool in_range(const double& value, const TpcSpaceChargeReconstructionHelper::range_t& range)
+  { return range_ftor_t(value)(range); }
 
   /// returns true if given value is in any of the provided range
-  bool in_range(const double& value, const range_list_t& range_list)
-  {
-    return std::any_of(range_list.begin(), range_list.end(), range_ftor_t(value));
-  }
+  bool in_range(const double& value, const TpcSpaceChargeReconstructionHelper::range_list_t& range_list)
+  { return std::any_of(range_list.begin(), range_list.end(), range_ftor_t(value)); }
 
 }  // namespace
+
+/// default TPOT geometry, hardcoded
+/// phi range for central sector (TPC sectors 9 and 21)
+TpcSpaceChargeReconstructionHelper::range_t TpcSpaceChargeReconstructionHelper::phi_range_central = transform_range({-1.742, -1.43979});
+
+/// phi range for east sector (TPC sectors 8 and 20)
+TpcSpaceChargeReconstructionHelper::range_t TpcSpaceChargeReconstructionHelper::phi_range_east = transform_range({-2.27002, -1.9673});
+
+/// phi range for west sector (TPC sectors 10 and 22)
+TpcSpaceChargeReconstructionHelper::range_t TpcSpaceChargeReconstructionHelper::phi_range_west = transform_range({-1.21452, -0.911172});
+
+/// list of theta angles for each micromeas in central sector with theta defined as atan2(z,r)
+TpcSpaceChargeReconstructionHelper::range_list_t TpcSpaceChargeReconstructionHelper::theta_range_central = {{-0.918257, -0.613136}, {-0.567549, -0.031022}, {0.0332154, 0.570419}, {0.613631, 0.919122}};
+
+/// list of theta angles for each micromeas in central sector with theta defined as atan2(z,r)
+TpcSpaceChargeReconstructionHelper::range_list_t TpcSpaceChargeReconstructionHelper::theta_range_east = {{-0.636926, -0.133603}, {0.140678, 0.642714}};
+
+/// list of theta angles for each micromeas in central sector with theta defined as atan2(z,r)
+TpcSpaceChargeReconstructionHelper::range_list_t TpcSpaceChargeReconstructionHelper::theta_range_west = {{-0.643676, -0.141004}, {0.13485, 0.640695}};
 
 //____________________________________________________________________________________
 void TpcSpaceChargeReconstructionHelper::create_tpot_mask(TH3* hmask)
@@ -611,3 +599,15 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
 
   return hout;
 }
+
+//___________________________________________________________________________________________________
+void TpcSpaceChargeReconstructionHelper::set_phi_range_central( const range_t& range)
+{ phi_range_central = transform_range(range); }
+
+//___________________________________________________________________________________________________
+void TpcSpaceChargeReconstructionHelper::set_phi_range_east( const range_t& range)
+{ phi_range_east = transform_range(range); }
+
+//___________________________________________________________________________________________________
+void TpcSpaceChargeReconstructionHelper::set_phi_range_west( const range_t& range)
+{ phi_range_west = transform_range(range); }

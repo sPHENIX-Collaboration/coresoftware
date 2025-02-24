@@ -31,10 +31,10 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   // legacy parameters
   // The legacy code matched tracks as:
-  //     |dX| < window * (a+b/pow(pT,c)) 
+  //     |dX| < window * (a+b/pow(pT,c))
   //   for pT < min_pT
   //   otherwise
-  //     |dX| < window 
+  //     |dX| < window
   bool _use_legacy_windowing = true;
   void set_use_legacy_windowing (bool set_par=true) { _use_legacy_windowing=set_par; }
 
@@ -43,7 +43,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_x_search_window(const double win) { _x_search_win = win; }
   void set_y_search_window(const double win) { _y_search_win = win; }
   void set_z_search_window(const double win) { _z_search_win = win; }
-  void set_crossing_deltaz_max(const double dz) {_crossing_deltaz_max = dz ;} 
+  void set_crossing_deltaz_max(const double dz) {_crossing_deltaz_max = dz ;}
 
   float get_phi_search_window() const { return _phi_search_win; }
   float get_eta_search_window() const { return _eta_search_win; }
@@ -58,9 +58,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     double leg_search_win = 1.; // use if use_legacy == true; set in InitRun
     /* PHSiliconTpcTrackMatching* parent_ptr {nullptr}; */
     void set_use_legacy(double _leg_search_win)
-    { 
-      use_legacy=true; 
-      leg_search_win=_leg_search_win; 
+    {
+      use_legacy=true;
+      leg_search_win=_leg_search_win;
     }
 
     // --- new method, comparing to a+b*exp(c/pT)
@@ -70,11 +70,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     // - only one curve if |dX|<fn_max, or two if like  fn_min<dX<fnmax
     using Arr3D = std::array<double,3>;
     std::string print_fn(const Arr3D&);
-    Arr3D posLo { 100., 0., 0. }; // (above a2,b2,c2), 100 for |dX|
-    Arr3D posHi { 100., 0., 0. }; // (above a3,b3,c3), 100 for use _use_legacy_windowing
-    Arr3D negLo { 100., 0., 0. }; // (above a0,b0,c0), 100 for |dX|
-    Arr3D negHi { 100., 0., 0. }; // (above a1,b1,c1), 100 for treat all tracks pos Q
-                                 
+    Arr3D posLo { 100, 0, 0 }; // (above a2,b2,c2), 100 for |dX|
+    Arr3D posHi { 100, 0, 0 }; // (above a3,b3,c3), 100 for use _use_legacy_windowing
+    Arr3D negLo { 100, 0, 0 }; // (above a0,b0,c0), 100 for |dX|
+    Arr3D negHi { 100, 0, 0 }; // (above a1,b1,c1), 100 for treat all tracks pos Q
+
     // efficiency flags set during PHSiliconTpcTrackMatching::InitRun()
     bool fabs_max_posQ  = true;
     bool fabs_max_negQ  = true;
@@ -86,13 +86,13 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     double min_pt_negQ  = 0.25; // only grow function windows down to 150 MeV
 
     WindowMatcher(
-        const Arr3D _posLo={100.,0.,0.},  
-        const Arr3D _posHi={100.,0.,0.}, 
-        const Arr3D _negLo={100.,0.,0.}, 
-        const Arr3D _negHi={100.,0.,0.}, 
-        const double _min_pt_posQ=0.25, 
+        const Arr3D& _posLo={100,0,0},
+        const Arr3D& _posHi={100,0,0},
+        const Arr3D& _negLo={100,0,0},
+        const Arr3D& _negHi={100,0,0},
+        const double _min_pt_posQ=0.25,
         const double _min_pt_negQ=0.25)
-      : posLo{_posLo}, posHi{_posHi}, negLo{_negLo}, negHi{_negHi}, 
+      : posLo{_posLo}, posHi{_posHi}, negLo{_negLo}, negHi{_negHi},
       min_pt_posQ{_min_pt_posQ}, min_pt_negQ{_min_pt_negQ} {};
 
     inline double fn_exp(const Arr3D& arr, const bool& b_is_0, double pT) {
@@ -102,38 +102,38 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
     void init_bools(const std::string& which_window="", const bool print=false);
 
     bool in_window(bool posQ, const double tpc_pt, const double tpc_X, const double si_X);
-    
+
     // initialize to fn_lo < deltaX < fn_hi for +Q, and fn_lo < deltaX < fn_hi for -Q
 
-    void reset_fns() { 
-      posLo={100.,0.,0.}; 
-      posHi={100.,0.,0.}; 
-      negLo={100.,0.,0.}; 
-      negHi={100.,0.,0.}; 
+    void reset_fns() {
+      posLo={100,0,0};
+      posHi={100,0,0};
+      negLo={100,0,0};
+      negHi={100,0,0};
     };
 
     // same max for |deltaX| for pos and neg Q
-    void set_QoverpT_maxabs    (const Arr3D _posHi, const double _min_pt=0.25)
+    void set_QoverpT_maxabs    (const Arr3D& _posHi, const double _min_pt=0.25)
     { reset_fns(); posHi=_posHi; min_pt_posQ = _min_pt; };
 
     // same range for deltaX for pos and neg Q
-    void set_QoverpT_range     (const Arr3D _posLo, const Arr3D _posHi, const double _min_pt=0.25)
+    void set_QoverpT_range     (const Arr3D& _posLo, const Arr3D& _posHi, const double _min_pt=0.25)
     { reset_fns(); posLo=_posLo; posHi=_posHi; min_pt_posQ=_min_pt; };
 
     // max for |deltaX| for pos Q
-    void set_posQoverpT_maxabs (const Arr3D _posHi, const double _min_pt=0.25)
+    void set_posQoverpT_maxabs (const Arr3D& _posHi, const double _min_pt=0.25)
     { posLo={100.,0.,0.}; posHi=_posHi; min_pt_posQ = _min_pt; };
 
     // max for |deltaX| for neg Q
-    void set_negQoverpT_maxabs (const Arr3D _negHi, const double _min_pt=0.25)
+    void set_negQoverpT_maxabs (const Arr3D& _negHi, const double _min_pt=0.25)
     { posLo={100.,0.,0.}; negHi=_negHi; min_pt_negQ = _min_pt; };
 
     // range for deltaX for pos Q
-    void set_posQoverpT_range  (const Arr3D _posLo, const Arr3D _posHi, const double _min_pt=0.25)
+    void set_posQoverpT_range  (const Arr3D& _posLo, const Arr3D& _posHi, const double _min_pt=0.25)
     { posLo=_posLo; posHi=_posHi; min_pt_posQ = _min_pt; };
 
     // range for deltaX for neg Q
-    void set_negQoverpT_range  (const Arr3D _negLo, const Arr3D _negHi, const double _min_pt=0.25)
+    void set_negQoverpT_range  (const Arr3D& _negLo, const Arr3D& _negHi, const double _min_pt=0.25)
     { negLo=_negLo; negHi=_negHi; min_pt_negQ = _min_pt; };
 
   };
@@ -149,7 +149,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void print_windows(bool print=true) { _print_windows = print; }
 
   void zeroField(const bool flag) { _zero_field = flag; }
-  
+
   void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
@@ -207,12 +207,11 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   std::map<unsigned int, double> _z_mismatch_map;
 
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
-  float _crossing_deltaz_max = 10.0; 
+  float _crossing_deltaz_max = 10.0;
 
   //  double _collision_rate = 50e3;  // input rate for phi correction
   //  double _reference_collision_rate = 50e3;  // reference rate for phi correction
   //  double _si_vertex_dzmax = 0.25;  // mm
-  double crossing_period = 106.0;  // ns
   double fieldstrength{std::numeric_limits<double>::quiet_NaN()};
 
   bool _test_windows = false;

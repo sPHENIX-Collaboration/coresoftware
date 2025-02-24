@@ -32,7 +32,7 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
 
   int Write(PHCompositeNode *startNode) override;
   int WriteNode(PHCompositeNode *thisNode) override;
-  std::string UsedOutFileName() const { return m_UsedOutFileName; }
+  const std::string &UsedOutFileName() const { return m_UsedOutFileName; }
   void CompressionSetting(const int i) override { m_CompressionSetting = i; }
 
  private:

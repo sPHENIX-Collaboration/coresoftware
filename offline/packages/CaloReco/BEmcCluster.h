@@ -86,7 +86,7 @@ class EmcCluster : public TObject
   /// Returns number of EmcModules in EmcCluster
   int GetNofHits() { return fHitList.size(); }
   /// Returns EmcCluster fHitList
-  std::vector<EmcModule> GetHitList() { return fHitList; };
+  const std::vector<EmcModule> &GetHitList() { return fHitList; };
   /// Returns the EmcModule with the maximum energy
   EmcModule GetMaxTower();
   /// Returns the EmcModule corresponding to the reconstructed impact tower

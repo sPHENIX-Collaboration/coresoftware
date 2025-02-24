@@ -28,6 +28,9 @@ RawCluster::get_property_info(const PROPERTY prop_id)
   case prop_chi2:
     return std::make_pair("reduced chi2 for EM shower", RawCluster::type_float);
     break;
+  case prop_merged_cluster_prob:
+    return std::make_pair("cluster template merged pi0 cluster probability for EM shower", RawCluster::type_float);
+    break;
 
   case prop_et_iso_calotower_sub_R01:
     return std::make_pair("subtracted calortower isolation ET R=.1", RawCluster::type_float);

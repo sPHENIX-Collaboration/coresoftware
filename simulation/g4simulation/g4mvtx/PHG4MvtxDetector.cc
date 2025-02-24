@@ -40,12 +40,8 @@
 #include <Geant4/G4Types.hh>            // for G4double
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
-// xerces has some shadowed variables
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <Geant4/G4GDMLParser.hh>
 #include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
-#pragma GCC diagnostic pop
 
 #include <cmath>
 #include <cstdio>    // for sprintf
@@ -391,7 +387,10 @@ void PHG4MvtxDetector::SetDisplayProperty(G4AssemblyVolume *av)
   int nDaughters = av->TotalImprintedVolumes();
   for (int i = 0; i < nDaughters; ++i, ++it)
   {
-    std::cout << "SetDisplayProperty - AV[" << i << "] = " << (*it)->GetName() << std::endl;
+    if (Verbosity() >= 50)
+    {
+      std::cout << "SetDisplayProperty - AV[" << i << "] = " << (*it)->GetName() << std::endl;
+    }
     G4VPhysicalVolume *pv = (*it);
 
     G4LogicalVolume *worldLogical = pv->GetLogicalVolume();

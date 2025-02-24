@@ -26,49 +26,30 @@ ROOT_DICTS = \
   PdbParameterMapContainer_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  PdbBankID_Dict_rdict.pcm \
-  PdbCalBank_Dict_rdict.pcm \
-  PdbCalChan_Dict_rdict.pcm \
-  PdbParameter_Dict_rdict.pcm \
-  PdbParameterError_Dict_rdict.pcm \
-  PdbParameterMap_Dict_rdict.pcm \
-  PdbParameterMapContainer_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOT_DICTS:.cc=_rdict.pcm)
 
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
   $(ROOT_DICTS) \
-  PdbApplication.cc \
   PdbBankID.cc \
-  PdbBankManager.cc \
   PdbCalBank.cc \
   PdbParameter.cc \
   PdbParameterError.cc \
   PdbParameterMap.cc \
   PdbParameterMapContainer.cc \
-  PHGenericFactoryT.C \
   RunToTime.cc
 
 
 #please add new includes sorted according to the roman alphabet
 pkginclude_HEADERS = \
-  Pdb.h \
-  PdbApplication.h \
-  PdbApplicationFactory.h \
   PdbBankID.h \
-  PdbBankList.h \
-  PdbBankListIterator.h \
-  PdbBankManager.h \
-  PdbBankManagerFactory.h \
   PdbCalBank.h \
-  PdbCalBankIterator.h \
   PdbCalChan.h \
-  PdbClassMap.h \
   PdbParameter.h \
   PdbParameterError.h \
   PdbParameterMap.h \
   PdbParameterMapContainer.h \
-  PHGenericFactoryT.h \
   RunToTime.h
 
 BUILT_SOURCES = testexternals.C

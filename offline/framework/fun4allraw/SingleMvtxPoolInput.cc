@@ -14,6 +14,7 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/sphenix_constants.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -157,7 +158,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             auto num_hits = pool->get_TRG_NR_HITS(feeId, i_strb);
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
-            
+
             if (strb_bco < minBCO - m_NegativeBco)
             {
               continue;
@@ -450,8 +451,8 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
   }
   else // catchall for anyting else to set to a range based on the rhic clock
   {
-    m_BcoRange = std::ceil(m_strobeWidth / 0.1065);
-    m_NegativeBco = std::ceil(m_strobeWidth / 0.1065);
+    m_BcoRange = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
+    m_NegativeBco = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
   }
   if(Verbosity() > 1)
   {

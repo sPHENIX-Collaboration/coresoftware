@@ -110,7 +110,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   void SetNEvents(const unsigned int nevt);
   unsigned int GetNEvents() const { return m_MaxEvents; }
   void FileRule(const std::string &newrule) { m_FileRule = newrule; }
-  const std::string FileRule() const { return m_FileRule; }
+  const std::string &FileRule() const { return m_FileRule; }
   void SplitLevel(const int split) { splitlevel = split; }
   void BufferSize(const int size) { buffersize = size; }
   int SplitLevel() const { return splitlevel; }

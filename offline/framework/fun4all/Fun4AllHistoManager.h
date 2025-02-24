@@ -44,7 +44,7 @@ class Fun4AllHistoManager : public Fun4AllBase
   void Reset();
   int RunAfterClosing();
   int dumpHistos(const std::string &filename = "", const std::string &openmode = "RECREATE");
-  std::string OutFileName() { return m_outfilename; }
+  const std::string &OutFileName() { return m_outfilename; }
   void setOutfileName(const std::string &filename) { m_outfilename = filename; }
   bool dumpHistoSegments() { return m_dumpHistoSegments; }
   void dumpHistoSegments(const bool dump) { m_dumpHistoSegments = dump; }
