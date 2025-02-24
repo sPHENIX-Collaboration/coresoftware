@@ -29,11 +29,11 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
 
   QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
 
-  virtual ~QAG4SimulationCalorimeterSum() {}
+  ~QAG4SimulationCalorimeterSum() override = default;
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   uint32_t
   get_flags() const
@@ -69,8 +69,7 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
   std::string
   get_histo_prefix();
 
-  std::string
-  get_calo_name_cemc() const
+  const std::string &get_calo_name_cemc() const
   {
     return _calo_name_cemc;
   }
@@ -81,8 +80,7 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
     _calo_name_cemc = caloNameCemc;
   }
 
-  std::string
-  get_calo_name_hcalin() const
+  const std::string &get_calo_name_hcalin() const
   {
     return _calo_name_hcalin;
   }
@@ -93,8 +91,7 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
     _calo_name_hcalin = caloNameHcalin;
   }
 
-  std::string
-  get_calo_name_hcalout() const
+  const std::string &get_calo_name_hcalout() const
   {
     return _calo_name_hcalout;
   }
