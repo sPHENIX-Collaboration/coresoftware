@@ -23,9 +23,7 @@ class PHG4BbcDetector : public PHG4Detector
   PHG4BbcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam = "BBC");
 
   //! destructor
-  ~PHG4BbcDetector() override
-  {
-  }
+  ~PHG4BbcDetector() override = default;
 
   //! construct BBC/MBD
   void ConstructMe(G4LogicalVolume *world) override;
@@ -36,7 +34,7 @@ class PHG4BbcDetector : public PHG4Detector
   int IsInBbc(G4VPhysicalVolume *) const;
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
 
   PHG4BbcDisplayAction *GetDisplayAction() { return m_DisplayAction; }
 

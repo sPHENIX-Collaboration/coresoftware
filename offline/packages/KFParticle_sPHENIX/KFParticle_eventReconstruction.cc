@@ -412,9 +412,9 @@ void KFParticle_eventReconstruction::buildChain(std::vector<KFParticle>& selecte
 void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& selectedMotherCand,
                                                        std::vector<KFParticle>& selectedVertexCand,
                                                        std::vector<std::vector<KFParticle>>& selectedDaughtersCand,
-                                                       std::vector<KFParticle> daughterParticlesCand,
-                                                       std::vector<std::vector<int>> goodTracksThatMeetCand,
-                                                       std::vector<KFParticle> primaryVerticesCand,
+                                                       const std::vector<KFParticle>& daughterParticlesCand,
+                                                       const std::vector<std::vector<int>>& goodTracksThatMeetCand,
+                                                       const std::vector<KFParticle>& primaryVerticesCand,
                                                        int n_track_start, int n_track_stop,
                                                        bool isIntermediate, int intermediateNumber, bool constrainMass)
 {

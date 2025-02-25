@@ -23,7 +23,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
     root = 2
   };
 
-  ~PHG4DetectorGroupSubsystem() override {}
+  ~PHG4DetectorGroupSubsystem() override = default;
   int Init(PHCompositeNode *) final;
   int InitRun(PHCompositeNode *) final;
 
@@ -64,7 +64,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void BlackHole(const int detid, const int i);
   void BlackHole(const int i = 1);
   void SuperDetector(const std::string &name);
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
   int GetLayer() const { return m_Layer; }
   virtual void SetDefaultParameters() = 0;  // this one has to be implemented by the daughter
 

@@ -374,7 +374,7 @@ int KFParticle_Tools::calcMinIP(const KFParticle &track, const std::vector<KFPar
   return 0;
 }
 
-std::vector<int> KFParticle_Tools::findAllGoodTracks(std::vector<KFParticle> daughterParticles, const std::vector<KFParticle> &primaryVertices)
+std::vector<int> KFParticle_Tools::findAllGoodTracks(const std::vector<KFParticle> &daughterParticles, const std::vector<KFParticle> &primaryVertices)
 {
   std::vector<int> goodTrackIndex;
 
@@ -527,7 +527,7 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
   return goodTracksThatMeet;
 }
 
-std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks)
+std::vector<std::vector<int>> KFParticle_Tools::appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks)
 {
   std::vector<std::vector<int>> goodTracksThatMeet, goodTracksThatMeetIntermediates;  //, vectorOfGoodTracks;
   if (num_remaining_tracks == 1)

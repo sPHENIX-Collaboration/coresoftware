@@ -81,7 +81,7 @@ class PHG4SpacalDetector : public PHG4Detector
   }
 
   const std::string
-  SuperDetector() const
+  &SuperDetector() const
   {
     return superdetector;
   }

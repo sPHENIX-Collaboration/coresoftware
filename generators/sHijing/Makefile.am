@@ -14,7 +14,7 @@ AM_LDFLAGS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include
+  -isystem$(OFFLINE_MAIN)/include
 
 AM_FFLAGS="-DFVOIDP=INTEGER*8"
 

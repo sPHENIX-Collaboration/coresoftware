@@ -191,8 +191,8 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
   /** @name Materials
    */
   ///@{
-  std::string
-  get_absorber_mat() const
+  const std::string
+  &get_absorber_mat() const
   {
     return absorber_mat;
   }
@@ -203,8 +203,8 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
     absorber_mat = absorberMat;
   }
 
-  std::string
-  get_fiber_clading_mat() const
+  const std::string
+  &get_fiber_clading_mat() const
   {
     return fiber_clading_mat;
   }
@@ -215,8 +215,8 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
     fiber_clading_mat = fiberCladingMat;
   }
 
-  std::string
-  get_fiber_core_mat() const
+  const std::string
+  &get_fiber_core_mat() const
   {
     return fiber_core_mat;
   }

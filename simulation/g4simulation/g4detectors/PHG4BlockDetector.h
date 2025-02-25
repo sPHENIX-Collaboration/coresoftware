@@ -21,9 +21,7 @@ class PHG4BlockDetector : public PHG4Detector
   PHG4BlockDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr = 0);
 
   //! destructor
-  ~PHG4BlockDetector(void) override
-  {
-  }
+  ~PHG4BlockDetector(void) override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -34,7 +32,7 @@ class PHG4BlockDetector : public PHG4Detector
   //@}
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
   int get_Layer() const { return m_Layer; }
 
  private:
