@@ -16,7 +16,6 @@
 #include <Acts/Propagator/Propagator.hpp>
 #pragma GCC diagnostic pop
 #include <Acts/Propagator/Navigator.hpp>
-#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 
 #include <Acts/Utilities/Result.hpp>
 

@@ -22,7 +22,7 @@
 #include <Acts/Utilities/CalibrationContext.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-#include <ActsExamples/Detector/TGeoDetectorWithOptions.hpp>
+#include <trackbase/TGeoDetectorWithOptions.h>
 #ifndef __CLING__
 #include <boost/program_options.hpp>
 #endif

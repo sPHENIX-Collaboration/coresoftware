@@ -221,7 +221,7 @@ int PHTpcClusterMover::process_event(PHCompositeNode * /*topNode*/)
       newclus->setSubSurfKey(subsurfkey);
 
       // get local coordinates
-      Acts::Vector3 normal = surface->normal(_tGeometry->geometry().getGeoContext());
+      Acts::Vector3 normal = surface->normal(_tGeometry->geometry().getGeoContext(), Acts::Vector3(1,1,1),Acts::Vector3(1,1,1));
       auto local = surface->globalToLocal(_tGeometry->geometry().getGeoContext(),
                                           global * Acts::UnitConstants::cm,
                                           normal);
