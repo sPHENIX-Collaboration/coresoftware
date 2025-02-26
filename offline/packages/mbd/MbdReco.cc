@@ -131,7 +131,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
 
   // For multiple global vertex
-  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
+  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0 && _calpass==0 )
   {
     auto vertex = new MbdVertexv2();
     vertex->set_t(m_mbdevent->get_bbct0());

@@ -7,14 +7,10 @@
 
 #include <fstream>
 #include <vector>
-#include <queue>
 
-
-class TFile;
 class TTree;
 class TGraphErrors;
 class TH2;
-// class THnSparse;
 class MbdCalib;
 
 /**
@@ -75,7 +71,8 @@ class MbdSig
 
   void CalcEventPed0(const Int_t minsamp, const Int_t maxsamp);
   void CalcEventPed0(const Double_t minx, const Double_t maxx);
-  void CalcEventPed0_PreSamp(const Int_t pre_samp, const Int_t nsamps = 1);
+  int CalcEventPed0_PreSamp(const Int_t pre_samp, const Int_t nsamps = 1);
+  void Remove_Pileup();
 
   TH1 *GetPedHist() { return hPed0; }
 
@@ -130,6 +127,10 @@ class MbdSig
 
   int _evt_counter{0};
   MbdCalib *_mbdcal{nullptr};
+  float _pileup_p0{0.};
+  float _pileup_p1{0.};
+  float _pileup_p2{0.};
+  TF1 *fit_pileup{nullptr};
 
   /** fit values*/
   // should make an array for the different methods
@@ -187,6 +188,10 @@ class MbdSig
   TF1 *template_fcn{nullptr};
   Double_t fit_min_time{};  //! min time for fit, in original units of waveform data
   Double_t fit_max_time{};  //! max time for fit, in original units of waveform data
+
+  std::ofstream *_pileupfile{nullptr};  // for writing out waveforms from prev. crossing pileup
+                                        // use for calibrating out the tail from these events
+
 
   int _verbose{0};
 };
