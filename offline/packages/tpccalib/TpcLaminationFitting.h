@@ -70,6 +70,7 @@ class TpcLaminationFitting : public SubsysReco
 
   TpcDistortionCorrectionContainer *m_dcc_in_module_edge{nullptr};
   TpcDistortionCorrectionContainer *m_dcc_in_static{nullptr};
+  TpcDistortionCorrectionContainer *m_dcc_in_average{nullptr};
 
   TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
 
@@ -96,6 +97,8 @@ class TpcLaminationFitting : public SubsysReco
   double m_nClusters{0};
   int m_nEvents{0};
   int m_runnumber{};
+
+  std::map<int, float>  m_run_ZDC_map;
   
   TTree *m_laminationTree{nullptr};
   bool m_side{false};

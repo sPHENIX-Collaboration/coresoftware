@@ -75,6 +75,30 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  //Make map for run and ZDC rate
+  m_run_ZDC_map.insert(std::pair<int, float>(49709, 555.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(52077, 0.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(52078, 0.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53534, 3013.5));
+  m_run_ZDC_map.insert(std::pair<int, float>(53630, 6849.3));
+  m_run_ZDC_map.insert(std::pair<int, float>(53631, 5577.8));
+  m_run_ZDC_map.insert(std::pair<int, float>(53632, 5151.2));
+  m_run_ZDC_map.insert(std::pair<int, float>(53652, 4600.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53687, 3967.2));
+  m_run_ZDC_map.insert(std::pair<int, float>(53716, 3070.1));
+  m_run_ZDC_map.insert(std::pair<int, float>(53738, 4510.7));
+  m_run_ZDC_map.insert(std::pair<int, float>(53739, 4165.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53741, 3738.1));
+  m_run_ZDC_map.insert(std::pair<int, float>(53742, 3721.4));
+  m_run_ZDC_map.insert(std::pair<int, float>(53743, 3693.4));
+  m_run_ZDC_map.insert(std::pair<int, float>(53744, 3581.9));
+  m_run_ZDC_map.insert(std::pair<int, float>(53756, 4471.4));
+  m_run_ZDC_map.insert(std::pair<int, float>(53783, 4825.7));
+  m_run_ZDC_map.insert(std::pair<int, float>(53871, 6871.5));
+  m_run_ZDC_map.insert(std::pair<int, float>(53876, 5082.3));
+  m_run_ZDC_map.insert(std::pair<int, float>(53877, 4758.5));
+  m_run_ZDC_map.insert(std::pair<int, float>(53879, 4315.0));
+
   int ret = GetNodes(topNode);
   return ret;
 }
@@ -99,6 +123,12 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   if (m_dcc_in_static)
   {
     std::cout << "TpcLaminationFitting::GetNodes - found TPC distortion correction container static" << std::endl;
+  }
+
+  m_dcc_in_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
+  if (m_dcc_in_average)
+  {
+    std::cout << "TpcLaminationFitting::GetNodes - found TPC distortion correction container average" << std::endl;
   }
 
   PHNodeIterator iter(topNode);
@@ -236,15 +266,51 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+    //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
+    std::cout << "Original coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
     if (m_dcc_in_module_edge)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_module_edge);
     }
+    std::cout << "module edge coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
     if (m_dcc_in_static)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_static);
     }
+    std::cout << "static coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
+    if (m_dcc_in_average)
+    {
+      std::cout << "doing average" << std::endl;
+      std::cout << "is radians: " << m_dcc_in_average->m_phi_hist_in_radians << std::endl;
+      std::cout << "interpolate z: " << m_dcc_in_average->m_interpolate_z << std::endl;
+      std::cout << "dimension: " << m_dcc_in_average->m_dimensions << std::endl;
+
+      int sIndex = (side ? 1 : 0);
+      
+      std::cout << "r map: " << m_dcc_in_average->m_hDRint[sIndex] << "   name: " << m_dcc_in_average->m_hDRint[sIndex]->GetName() << "   title: " << m_dcc_in_average->m_hDRint[sIndex]->GetTitle() << "   entries: " << m_dcc_in_average->m_hDRint[sIndex]->GetEntries() << std::endl;
+      std::cout << "phi map: " << m_dcc_in_average->m_hDPint[sIndex] << "   name: " << m_dcc_in_average->m_hDPint[sIndex]->GetName() << "   title: " << m_dcc_in_average->m_hDPint[sIndex]->GetTitle() << "   entries: " << m_dcc_in_average->m_hDPint[sIndex]->GetEntries() << std::endl;
+      double tmpR = sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
+      double tmpPhi = atan2(pos[1], pos[0]);
+      if(tmpPhi < 0)
+      {
+	tmpPhi += 2 * M_PI;
+
+      }
+      auto binP = m_dcc_in_average->m_hDRint[sIndex]->GetXaxis()->FindBin(tmpPhi);
+      auto binR = m_dcc_in_average->m_hDRint[sIndex]->GetYaxis()->FindBin(tmpR);
+      std::cout << "in R: " << tmpR << "   out R: " << tmpR - m_dcc_in_average->m_hDRint[sIndex]->Interpolate(tmpPhi, tmpR) << std::endl;
+      std::cout << "R distiortion: " << m_dcc_in_average->m_hDRint[sIndex]->Interpolate(tmpPhi, tmpR) << std::endl;
+      std::cout << "R distortion bin content: " << m_dcc_in_average->m_hDRint[sIndex]->GetBinContent(binP, binR) << std::endl;
+      
+      binP = m_dcc_in_average->m_hDPint[sIndex]->GetXaxis()->FindBin(tmpPhi);
+      binR = m_dcc_in_average->m_hDPint[sIndex]->GetYaxis()->FindBin(tmpR);
+      std::cout << "in phi: " << tmpPhi << "   out phi: " << tmpPhi - (m_dcc_in_average->m_hDPint[sIndex]->Interpolate(tmpPhi, tmpR)/tmpR) << std::endl;
+      std::cout << "phi distortion: " << (m_dcc_in_average->m_hDPint[sIndex]->Interpolate(tmpPhi, tmpR)/tmpR) << std::endl;
+      std::cout << "phi distortion bin content: " << m_dcc_in_average->m_hDPint[sIndex]->GetBinContent(binP, binR) << std::endl;
+      pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_average);
+    }
+    std::cout << "average coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl << std::endl;
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
 
@@ -293,32 +359,23 @@ int TpcLaminationFitting::fitLaminations()
   */
   //double seedScale = (m_nClusters / m_nEvents) / 3718.8030;
 
-  double ZDC[6] = {3013.5, 3581.9, 4431.4, 4758.5, 5082.3, 6849.3};
-  int ZDCindex = 0;
-  if(m_runnumber == 53534)
+  float ZDC = 4500.0;
+  auto it = m_run_ZDC_map.find(m_runnumber);
+  if( it != m_run_ZDC_map.end() )
   {
-    ZDCindex = 0;
+    std::cout << "runnumber " << m_runnumber << " found. It has ZDC NS rate of " << it->second << std::endl;
+    ZDC = it->second;
   }
-  else if(m_runnumber == 53744)
+  else
   {
-    ZDCindex = 1;
+    std::cout << "runnumber " << m_runnumber << " not found. Using default value of 4500" << std::endl;
   }
-  else if(m_runnumber == 53756)
+
+  if(m_dcc_in_average)
   {
-    ZDCindex = 2;
+    ZDC = 0.0;
   }
-  else if(m_runnumber == 53877)
-  {
-    ZDCindex = 3;
-  }
-  else if(m_runnumber == 53876)
-  {
-    ZDCindex = 4;
-  }
-  else if(m_runnumber == 53630)
-  {
-    ZDCindex = 5;
-  }
+  
 
   TF1 *Af[2] = {new TF1("AN","pol1",0,100000), new TF1("AS","pol1",0,100000)};
   Af[0]->SetParameters(-0.007999,-1.783e-6);
@@ -349,7 +406,7 @@ int TpcLaminationFitting::fitLaminations()
       //m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s], log(4.595 * seedScale/(-0.022 + m_laminationCenter[l][s])), 0.138);
       //m_fLamination[l][s]->SetParameters(-0.011 + m_laminationCenter[l][s], 0.025, 0.16);
       //m_fLamination[l][s]->SetParameters(-0.011, 30, 0.16, m_laminationCenter[l][s]);
-      m_fLamination[l][s]->SetParameters(Af[s]->Eval(ZDC[ZDCindex]), Bf[s]->Eval(ZDC[ZDCindex]), Cseed[s], m_laminationCenter[l][s]);
+      m_fLamination[l][s]->SetParameters(Af[s]->Eval(ZDC), Bf[s]->Eval(ZDC), Cseed[s], m_laminationCenter[l][s]);
       m_fLamination[l][s]->FixParameter(3, m_laminationCenter[l][s]);
       
       TF1 *fitSeed = (TF1 *) m_fLamination[l][s]->Clone();
