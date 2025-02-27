@@ -31,7 +31,6 @@
 // root includes
 #include <TH1.h>
 #include <TH2.h>
-#include <TMath.h>
 
 // c++ includes
 #include <algorithm>
