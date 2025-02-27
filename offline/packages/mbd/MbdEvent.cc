@@ -78,10 +78,12 @@ MbdEvent::MbdEvent(const int cal_pass) :
 
   // Debug stuff
   _debugintt = 0;
+/*
   if (_debugintt )
   {
     ReadSyncFile();
   }
+*/
 
   Clear();
 }
@@ -633,7 +635,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
  
-      if ( (m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000) )
+      // why are there bad tq0?
+      if ( ((m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || fabs(_mbdcal->get_tq0(pmtch))>100. )
       {
         // m_t0[ifeech] = -9999.;
         m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -662,9 +665,16 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
         }
       }
 
-      m_pmtq[pmtch] = m_ampl[ifeech] / _mbdcal->get_qgain(pmtch);
+      if ( _mbdcal->get_qgain(pmtch) > 0. )
+      {
+        m_pmtq[pmtch] = m_ampl[ifeech] / _mbdcal->get_qgain(pmtch);
+      }
+      else
+      {
+        m_pmtq[pmtch] = 0.;
+      }
 
-      if (m_pmtq[pmtch] < 0.25)
+      if (m_pmtq[pmtch] < 0.25 && (_runnum < 40000) )
       {
         m_pmtq[pmtch] = 0.;
         m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -677,11 +687,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
       */
     }
-    else  // not a good time hit
-    {
-      m_pmtq[pmtch] = 0.;
-      m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
-    }
+
   }
 
 
@@ -726,7 +732,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
     }
 
-    return -1002;
+    //return -1002;
+    return m_evt;
   }
 
   return m_evt;
@@ -752,11 +759,13 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   }
 
   // Debug stuff
+/*
   if ( _debugintt && (bbevt[_syncevt] != (m_evt - 1)))
   {
     _verbose = 0;
     return 1;
   }
+*/
 
   if (gausfit[0] == nullptr)
   {
@@ -871,6 +880,11 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       ac->cd(iarm + 1);
     }
 
+    if ( hevt_bbct[iarm]->GetEntries()==0 )//chiu
+    {
+      std::cout << PHWHERE << " hevt_bbct EMPTY" << std::endl;
+    }
+
     hevt_bbct[iarm]->Fit(gausfit[iarm], "BNQLR");
 
     // m_bbct[iarm] = m_bbct[iarm] / m_bbcn[iarm];
@@ -905,6 +919,30 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       {
         double zearly = (tepmt[0] - tepmt[1]) * MbdDefs::C / 2.0;
         double znew = (m_bbct[0] - m_bbct[1]) * MbdDefs::C / 2.0;
+
+/*
+        if (_debugintt)
+        {
+          double intzdiff = intz[_syncevt] / 10. - mybbz[_syncevt];
+          double intzediff = intz[_syncevt] / 10. - zearly;
+          if (fabs(znew - mybbz[_syncevt]) > 0.1)
+          {
+            std::cout << "**ERR** " << znew << "\t" << mybbz[_syncevt] << std::endl;
+          }
+          std::string junk;
+          std::cout << m_evt << "\t" << bbevt[_syncevt] << "\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
+          std::cout << m_evt << " gmean " << gausfit[0]->GetParameter(1) << "\t" << gausfit[1]->GetParameter(1) << std::endl;
+          std::cout << m_evt << " mean " << hevt_bbct[0]->GetMean(1) << "\t" << hevt_bbct[1]->GetMean(1) << std::endl;
+          std::cout << m_evt << " gsigma " << gausfit[0]->GetParameter(2) << "\t" << gausfit[1]->GetParameter(2) << std::endl;
+          std::cout << m_evt << " rms " << hevt_bbct[0]->GetRMS() << "\t" << hevt_bbct[1]->GetRMS() << std::endl;
+          std::cout << m_evt << " te ch " << epmt[0] << "\t" << epmt[1] << "\t" << tepmt[0] << "\t" << tepmt[1] << std::endl;
+          std::cout << m_evt << " tetl " << m_bbcte[0] << "\t" << m_bbctl[0] << "\t" << m_bbcte[1] << "\t" << m_bbctl[1] << std::endl;
+          std::cout << m_evt << " bz intz " << mybbz[_syncevt] << "\t" << intz[_syncevt] / 10. << "\t" << intzdiff << "\t" << intzdiff * 2.0 / MbdDefs::C << std::endl;
+          std::cout << m_evt << " bze " << zearly << "\t" << intzediff << std::endl;
+          std::cout << "? ";
+          //std::cin >> junk;
+        }
+*/
 
         if (_debugintt)
         {
@@ -998,17 +1036,19 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       bbcout->set_t0(get_bbct0(), get_bbct0err());
       bbcout->set_zvtx(get_bbcz(), get_bbczerr());
       
+/*
       if ( _debugintt )
       {
         bbcout->set_t0(intz[_syncevt]/10.);
       }
+*/
 
     }
   }
 
   if ( _debugintt )
   {
-    _syncevt++;
+    //_syncevt++;
     _verbose = 0;
   }
 
@@ -1190,6 +1230,10 @@ int MbdEvent::CalcPedCalib()
 
     pedgaus->SetParameters(ampl,mean,sigma);
     pedgaus->SetRange(mean-4*sigma, mean+4*sigma);
+    if ( hped0->GetEntries()==0 ) //chiu
+    {
+      std::cout << "HPED0 EMPTY" << std::endl;
+    }
     hped0->Fit(pedgaus,"RNQ");
 
     mean = pedgaus->GetParameter(1);

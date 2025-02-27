@@ -51,10 +51,14 @@ class MbdPmtHitV1 : public MbdPmtHit
   }
 
  private:
-  Short_t bpmt{-1};
-  Float_t bq{std::numeric_limits<float>::quiet_NaN()};
-  Float_t btt{std::numeric_limits<float>::quiet_NaN()};
-  Float_t btq{std::numeric_limits<float>::quiet_NaN()};
+  //Short_t bpmt{-1};
+  //Float_t bq{std::numeric_limits<float>::quiet_NaN()};
+  //Float_t btt{std::numeric_limits<float>::quiet_NaN()};
+  //Float_t btq{std::numeric_limits<float>::quiet_NaN()};
+  Short_t bpmt;
+  Float_t bq;
+  Float_t btt;
+  Float_t btq;
 
   ClassDefOverride(MbdPmtHitV1, 1)
 };

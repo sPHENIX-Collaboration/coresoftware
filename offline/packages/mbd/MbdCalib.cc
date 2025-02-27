@@ -127,6 +127,13 @@ int MbdCalib::Download_All()
     }
     Download_SlewCorr(slew_url);
 
+    std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
+    if (Verbosity() > 0)
+    {
+      std::cout << "pileup_url " << pileup_url << std::endl;
+    }
+    Download_Pileup(pileup_url);
+
     if (do_templatefit)
     {
       std::string shape_url = _cdb->getUrl("MBD_SHAPES");
@@ -166,6 +173,9 @@ int MbdCalib::Download_All()
 
     std::string slew_file = bbc_caldir + "/mbd_slewcorr.calib";
     Download_SlewCorr(slew_file);
+
+    std::string pileup_file = bbc_caldir + "/mbd_pileup.calib";
+    Download_Pileup(pileup_file);
 
     if (do_templatefit)
     {
@@ -1171,6 +1181,91 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
   return 1;
 }
 
+int MbdCalib::Download_Pileup(const std::string& dbase_location)
+{
+  // Reset All Values
+  Reset_Pileup();
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "Opening " << dbase_location << std::endl;
+  }
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
+  {
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    if ( cdbttree == nullptr )
+    {
+      std::cerr << "MBD pileup calib not found, skipping" << std::endl;
+      _status = -1;
+      return _status;
+    }
+    cdbttree->LoadCalibrations();
+
+    for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+    {
+      _pileup_p0[ifeech] = cdbttree->GetFloatValue(ifeech, "pileup_p0");
+      _pileup_p0err[ifeech] = cdbttree->GetFloatValue(ifeech, "pileup_p0err");
+      _pileup_p1[ifeech] = cdbttree->GetFloatValue(ifeech, "pileup_p1");
+      _pileup_p1err[ifeech] = cdbttree->GetFloatValue(ifeech, "pileup_p1err");
+      _pileup_p2[ifeech] = cdbttree->GetFloatValue(ifeech, "pileup_p2");
+      _pileup_p2err[ifeech] = cdbttree->GetFloatValue(ifeech, "pileup_p2err");
+      _pileup_chi2ndf[ifeech] = cdbttree->GetFloatValue(ifeech, "pileup_chi2ndf");
+      if (Verbosity() > 0)
+      {
+        if (ifeech < 2 || ifeech >= (MbdDefs::MBD_N_FEECH-2) )
+        {
+          std::cout << ifeech << "\t" << _pileup_p0[ifeech] << std::endl;
+        }
+      }
+    }
+    delete cdbttree;
+  }
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
+  {
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    int feech = -1;
+    while (infile >> feech)
+    {
+      infile >> _pileup_p0[feech] >> _pileup_p0err[feech]
+             >> _pileup_p1[feech] >> _pileup_p1err[feech]
+             >> _pileup_p2[feech] >> _pileup_p2err[feech]
+             >> _pileup_chi2ndf[feech];
+
+      if (Verbosity() > 0)
+      {
+        if (feech < 2 || feech >= MbdDefs::MBD_N_PMT - 2)
+        {
+          std::cout << feech << "\t" << _pileup_p0[feech] << "\t" << _pileup_p0err[feech]
+                             << "\t" << _pileup_p1[feech] << "\t" << _pileup_p1err[feech]
+                             << "\t" << _pileup_p2[feech] << "\t" << _pileup_p2err[feech]
+                             << "\t" << _pileup_chi2ndf[feech] << std::endl;
+        }
+      }
+    }
+  }
+  
+  if ( std::isnan(_pileup_p0[0]) )
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;
+  }
+
+  return 1;
+}
+
 #ifndef ONLINE
 int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
 {
@@ -1673,6 +1768,61 @@ int MbdCalib::Write_Gains(const std::string& dbfile)
 }
 
 #ifndef ONLINE
+int MbdCalib::Write_CDB_Pileup(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "MBD_PILEUP" << std::endl;
+  for (size_t ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    // store in a CDBTree
+    cdbttree->SetFloatValue(ifeech, "pileup_p0", _pileup_p0[ifeech]);
+    cdbttree->SetFloatValue(ifeech, "pileup_p0err", _pileup_p0err[ifeech]);
+    cdbttree->SetFloatValue(ifeech, "pileup_p1", _pileup_p1[ifeech]);
+    cdbttree->SetFloatValue(ifeech, "pileup_p1err", _pileup_p1err[ifeech]);
+    cdbttree->SetFloatValue(ifeech, "pileup_p2", _pileup_p2[ifeech]);
+    cdbttree->SetFloatValue(ifeech, "pileup_p2err", _pileup_p2err[ifeech]);
+    cdbttree->SetFloatValue(ifeech, "pileup_chi2ndf", _pileup_chi2ndf[ifeech]);
+
+    if (ifeech < 5 || ifeech >= MbdDefs::MBD_N_PMT - 5)
+    {
+      std::cout << ifeech << "\t" << cdbttree->GetFloatValue(ifeech, "pileup_p0") << std::endl;
+    }
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+#endif
+
+int MbdCalib::Write_Pileup(const std::string& dbfile)
+{
+  std::ofstream cal_pileup_file;
+  cal_pileup_file.open(dbfile);
+  for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    cal_pileup_file << ifeech << "\t" << _pileup_p0[ifeech] << "\t" << _pileup_p0err[ifeech]
+      << "\t" << _pileup_p1[ifeech] << "\t" << _pileup_p1err[ifeech]
+      << "\t" << _pileup_p2[ifeech] << "\t" << _pileup_p2err[ifeech]
+      << "\t" << _pileup_chi2ndf[ifeech] << std::endl;
+  }
+  cal_pileup_file.close();
+
+  return 1;
+}
+
+#ifndef ONLINE
 int MbdCalib::Write_CDB_All()
 {
   return 1;
@@ -1773,6 +1923,18 @@ void MbdCalib::Reset_Gains()
   _qfit_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
 }
 
+void MbdCalib::Reset_Pileup()
+{
+  // Set all initial values
+  _pileup_p0.fill(std::numeric_limits<float>::quiet_NaN());
+  _pileup_p1.fill(std::numeric_limits<float>::quiet_NaN());
+  _pileup_p2.fill(std::numeric_limits<float>::quiet_NaN());
+  _pileup_p0err.fill(std::numeric_limits<float>::quiet_NaN());
+  _pileup_p1err.fill(std::numeric_limits<float>::quiet_NaN());
+  _pileup_p2err.fill(std::numeric_limits<float>::quiet_NaN());
+  _qfit_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
+}
+
 void MbdCalib::Reset()
 {
   Reset_TTT0();
@@ -1780,6 +1942,7 @@ void MbdCalib::Reset()
   Reset_Ped();
   Reset_Gains();
   Reset_T0Corr();
+  Reset_Pileup();
 
   _sampmax.fill(-1);
 }
