@@ -65,8 +65,6 @@ class OnCalServer : public Fun4AllServer
   int SyncOncalTimeStampsToRunDB(const int commit = 0);
   int ClosestGoodRun(OnCal *calibrator, const int runno, const int previous = fetchrun::CLOSEST);
   int CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit = 0) const;
-  int CopySnglTable(const std::string &pdbclass, const std::string &tablename, const int bankid, const int FromRun, const int ToRun, const int commit);
-  int CopySnglTableNewBankId(const std::string &pdbclass, const std::string &tablename, const int bankid, const int Tobankid, const int FromRun, const int ToRun, const int commit);
   int OverwriteCalibration(OnCal *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
   int FixMissingCalibration(OnCal *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
 

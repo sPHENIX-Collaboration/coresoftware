@@ -4,12 +4,12 @@
 
 short PHG4ScintillatorSlatv1::get_row() const
 {
-  return (key & 0xFFFF);
+  return (key & 0xFFFFU);
 }
 
 short PHG4ScintillatorSlatv1::get_column() const
 {
-  return (key >> 16);
+  return (key >> 16U);
 }
 
 void PHG4ScintillatorSlatv1::identify(std::ostream& os) const

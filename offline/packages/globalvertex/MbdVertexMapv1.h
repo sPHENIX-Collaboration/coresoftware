@@ -1,5 +1,7 @@
-#ifndef G4MBD_MBDVERTEXMAPV1_H
-#define G4MBD_MBDVERTEXMAPV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_MBDVERTEXMAPV1_H
+#define GLOBALVERTEX_MBDVERTEXMAPV1_H
 
 #include "MbdVertexMap.h"
 
@@ -12,7 +14,7 @@
 class MbdVertexMapv1 : public MbdVertexMap
 {
  public:
-  MbdVertexMapv1();
+  MbdVertexMapv1() = default;
   ~MbdVertexMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;

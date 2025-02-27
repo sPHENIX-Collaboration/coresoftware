@@ -42,7 +42,7 @@ PHG4EnvelopeSteppingAction::PHG4EnvelopeSteppingAction(PHG4EnvelopeDetector* det
 }
 
 //____________________________________________________________________________..
-bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_used*/)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();

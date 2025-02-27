@@ -6,7 +6,6 @@
  * \brief provides the tpc 3d global position with all distortion and crossing corrections applied
  * \author Joe Osborn <josborn1@bnl.gov>, Hugo Pereira Da Costa <hugo.pereira-da-costa@lanl.gov>
  */
-#include "TpcClusterZCrossingCorrection.h"
 #include "TpcDistortionCorrection.h"
 
 #include <trackbase/TrkrDefs.h>
@@ -24,6 +23,18 @@ class TpcGlobalPositionWrapper
   //! constructor
   explicit TpcGlobalPositionWrapper() = default;
 
+  //! verbosity
+  void set_verbosity(int value)
+  {
+    m_verbosity = value;
+  }
+
+  //! verbosity
+  int verbosity() const
+  {
+    return m_verbosity;
+  }
+
   //! load relevant nodes from tree
   void loadNodes(PHCompositeNode* /*topnode*/);
 
@@ -39,8 +50,8 @@ class TpcGlobalPositionWrapper
 
   private:
 
-  //! cluster z crossing correction interface
-  TpcClusterZCrossingCorrection m_crossingCorrection;
+  //! verbosity
+  unsigned int m_verbosity = 0;
 
   //! distortion correction interface
   TpcDistortionCorrection m_distortionCorrection;

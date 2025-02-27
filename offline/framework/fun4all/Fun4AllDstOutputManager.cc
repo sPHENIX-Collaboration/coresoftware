@@ -17,8 +17,8 @@
 #include <iostream>
 #include <string>
 
-Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, const std::string &fname)
-  : Fun4AllOutputManager(myname, fname)
+Fun4AllDstOutputManager::Fun4AllDstOutputManager(const std::string &myname, const std::string &filename)
+  : Fun4AllOutputManager(myname, filename)
 {
   return;
 }
@@ -72,7 +72,7 @@ void Fun4AllDstOutputManager::Print(const std::string &what) const
       }
       else
       {
-        for (auto &nodename : stripnodes)
+        for (const auto &nodename : stripnodes)
         {
           std::cout << Name() << ": Node " << nodename << " will be stripped" << std::endl;
         }
@@ -80,7 +80,7 @@ void Fun4AllDstOutputManager::Print(const std::string &what) const
     }
     else
     {
-      for (auto &nodename : savenodes)
+      for (const auto &nodename : savenodes)
       {
         std::cout << Name() << ": Node " << nodename << " is written out" << std::endl;
       }
@@ -117,7 +117,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
     se->MakeNodesPersistent(startNode);
     if (!stripnodes.empty())
     {
-      for (auto &nodename : stripnodes)
+      for (const auto &nodename : stripnodes)
       {
         PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
         if (ChosenNode)
@@ -137,7 +137,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    for (auto &nodename : savenodes)
+    for (const auto &nodename : savenodes)
     {
       PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
@@ -166,7 +166,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   }
   else
   {
-    for (auto &nodename : savenodes)
+    for (const auto &nodename : savenodes)
     {
       PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
@@ -202,6 +202,14 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     m_UsedOutFileName = OutFileName() + std::string("?reproducible=") + std::string(p.filename());
   }
   dstOut = new PHNodeIOManager(UsedOutFileName(), access_type, PHRunTree);
+  if (SplitLevel() != std::numeric_limits<int>::min())
+  {
+    dstOut->SplitLevel(SplitLevel());
+  }
+  if (BufferSize() != std::numeric_limits<int>::min())
+  {
+    dstOut->BufferSize(BufferSize());
+  }
   Fun4AllServer *se = Fun4AllServer::instance();
   PHNodeIterator nodeiter(thisNode);
   if (saverunnodes.empty())
@@ -209,7 +217,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     se->MakeNodesPersistent(thisNode);
     if (!striprunnodes.empty())
     {
-      for (auto &nodename : striprunnodes)
+      for (const auto &nodename : striprunnodes)
       {
         PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
         if (ChosenNode)
@@ -229,7 +237,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   }
   else
   {
-    for (auto &nodename : saverunnodes)
+    for (const auto &nodename : saverunnodes)
     {
       PHNode *ChosenNode = nodeiter.findFirst("PHIODataNode", nodename);
       if (ChosenNode)
@@ -276,13 +284,21 @@ int Fun4AllDstOutputManager::outfile_open_first_write()
       fullpath = p.parent_path();
     }
     std::string runseg = (boost::format("-%08d-%05d") % runnumber % m_CurrentSegment).str();
-//    std::string runseg = (boost::format(FileRule()) % runnumber % m_CurrentSegment).str();
+    //    std::string runseg = (boost::format(FileRule()) % runnumber % m_CurrentSegment).str();
     std::string newfile = fullpath + std::string("/") + m_FileNameStem + runseg + std::string(p.extension());
     OutFileName(newfile);
     m_CurrentSegment++;
   }
   m_UsedOutFileName = OutFileName() + std::string("?reproducible=") + std::string(p.filename());
   dstOut = new PHNodeIOManager(UsedOutFileName(), PHWrite);
+  if (SplitLevel() != std::numeric_limits<int>::min())
+  {
+    dstOut->SplitLevel(SplitLevel());
+  }
+  if (BufferSize() != std::numeric_limits<int>::min())
+  {
+    dstOut->BufferSize(BufferSize());
+  }
   if (!dstOut->isFunctional())
   {
     delete dstOut;

@@ -3,22 +3,26 @@
 
 #include "InttMap.h"
 
-#include <phool/PHObject.h>
 #include <iostream>
 #include <string>
+#include <set>
 
 class CDBTTree;
 
-class InttBadChannelMap : public PHObject
+class InttBadChannelMap
 {
  public:
   InttBadChannelMap() = default;
-  ~InttBadChannelMap() override = default;
+  virtual ~InttBadChannelMap();
 
-  int LoadFromFile(std::string const& = "InttBadChannelMap.root");
-  int LoadFromCDB(std::string const& = "InttBadChannelMap");
+  int Load(std::string const& = "INTT_Hotmap"); // Should match CDB tag
 
-  virtual void identify(std::ostream& = std::cout) const override;
+  /// Depreciated; use int Load(const& std::string)
+  int LoadFromFile(std::string const& s = "InttBadChannelMap.root") {return Load(s);}
+  /// Depreciated; use int Load(const& std::string)
+  int LoadFromCDB(std::string const& s =  "INTT_Hotmap") {return Load(s);}
+
+  virtual void identify(std::ostream& = std::cout) const;
   virtual std::size_t size() const;
 
   virtual bool IsBad(InttMap::Online_s const&) const;
@@ -29,7 +33,9 @@ class InttBadChannelMap : public PHObject
   virtual int v_LoadFromCDBTTree(CDBTTree&);
 
  private:
-  ClassDefOverride(InttBadChannelMap, 1)
+  typedef std::set<InttMap::Offline_s, InttMap::OfflineWildcardComparator> Set_t;
+  Set_t* m_bad_channel_set{nullptr};
+
 };
 
 #endif  // INTT_BAD_CHANNEL_MAP_H

@@ -51,7 +51,7 @@ class MicromegasBcoMatchingInformation_v2
     uint16_t type = 0;
     uint16_t user_word = 0;
     uint32_t bx_timestamp = 0;
-    uint64_t gtm_bco = 0;
+    // uint64_t gtm_bco = 0;
 
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;

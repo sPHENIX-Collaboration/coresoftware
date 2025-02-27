@@ -548,7 +548,7 @@ void TpcDirectLaserReconstruction::process_track(SvtxTrack* track)
 
     // maximum drift time.
     /* it is needed to calculate a given hit position from its drift time */
-    static constexpr double AdcClockPeriod = 53.0;  // ns
+    const double AdcClockPeriod = layergeom->get_zstep();  // ns
     const unsigned short NTBins = (unsigned short) layergeom->get_zbins();
     const float tdriftmax = AdcClockPeriod * NTBins / 2.0;
 

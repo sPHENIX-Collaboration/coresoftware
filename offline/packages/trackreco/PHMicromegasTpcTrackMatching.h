@@ -35,10 +35,14 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_rphi_search_window_lyr2(const double win) { _rphi_search_win[1] = win; }
   void set_z_search_window_lyr2(const double win) { _z_search_win[1] = win; }
   void set_min_tpc_layer(const unsigned int layer) { _min_tpc_layer = layer; }
+  void set_max_tpc_layer(const unsigned int layer) { _max_tpc_layer = layer; }
   void set_test_windows_printout(const bool test) { _test_windows = test; }
   void set_pp_mode(const bool mode) { _pp_mode = mode; }
+  void set_use_silicon( const bool value ) { _use_silicon = value; }
   void SetIteration(int iter) { _n_iteration = iter; }
 
+  void zeroField(const bool flag) { _zero_field = flag; }
+  int Init(PHCompositeNode* topNode) override;
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
   int End(PHCompositeNode*) override;
@@ -57,6 +61,19 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   static constexpr unsigned int _n_mm_layers{2};
 
   bool _use_truth_clusters = false;
+
+  //! if true, use straight fit instead of helical to extrapolate to TPOT
+  bool _zero_field = false;
+
+  //! if true, use silicon clusters instead of TPC to extrapolate to TPOT
+  bool _use_silicon = false;
+
+  // range of TPC layers to use in projection to micromegas
+  unsigned int _min_tpc_layer = 39;
+
+  // range of TPC layers to use in projection to micromegas
+  unsigned int _max_tpc_layer = 55;
+
   TrkrClusterContainer* _cluster_map{nullptr};
   TrkrClusterContainer* _corrected_cluster_map{nullptr};
 
@@ -70,8 +87,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   //! default z search window for each layer
   std::array<double, _n_mm_layers> _z_search_win{26.0, 0.25};
 
-  // range of TPC layers to use in projection to micromegas
-  unsigned int _min_tpc_layer{38};
+  // get the cluster list for zeroField
+  std::vector<TrkrDefs::cluskey> getTrackletClusterList(TrackSeed* tracklet);
 
   /// first micromegas layer
   /** it is reset in ::Setup using actual micromegas geometry */

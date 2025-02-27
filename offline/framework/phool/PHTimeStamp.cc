@@ -97,24 +97,19 @@ void PHTimeStamp::setBinTics(const phtime_t t)
   binaryTime = t;
 }
 
-phtime_t PHTimeStamp::ticsToBinaryTime(time_t tics) const
+phtime_t PHTimeStamp::ticsToBinaryTime(time_t tics)
 {
-  return tics * ticFactor + ticOffset;
+  return (tics * ticFactor) + ticOffset;
 }
 
-time_t PHTimeStamp::binaryTimeToTics(phtime_t bt) const
+time_t PHTimeStamp::binaryTimeToTics(phtime_t bt)
 {
   return (bt - ticOffset) / ticFactor;
 }
 
-int PHTimeStamp::isInRange(const PHTimeStamp &t1, const PHTimeStamp &t2)
+int PHTimeStamp::isInRange(const PHTimeStamp &t1, const PHTimeStamp &t2) const
 {
   return (binaryTime > t1.getBinaryTime() && binaryTime < t2.getBinaryTime());
-}
-
-void PHTimeStamp::print()
-{
-  std::cout << *this;
 }
 
 //

@@ -25,13 +25,16 @@ class CDBInterface : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  void Disable() {disable = true;}
+
   std::string getUrl(const std::string &domain, const std::string &filename = "");
 
  private:
   CDBInterface(const std::string &name = "CDBInterface");
 
   static CDBInterface *__instance;
-  SphenixClient *cdbclient = nullptr;
+  SphenixClient *cdbclient {nullptr};
+  bool disable {false};
   std::set<std::tuple<std::string, std::string, uint64_t>> m_UrlVector;
 };
 

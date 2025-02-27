@@ -209,8 +209,10 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
   TH2F *h_hitClean;  // = new TH2F("h_hitClean", "", Neta, 0, Neta, Nphi, 0, Nphi);
   TH2F *h_heatSigma = new TH2F("h_heatSigma", "", Neta, 0, Neta, Nphi, 0, Nphi);
   TH1F *h_perMedian = new TH1F("h_perMedian", "", 500, 0, 5);
-  TH1F *h1_hits[Neta];
-  TH1F *h1_hits2[Neta];
+  std::vector<TH1 *> h1_hits;
+  h1_hits.resize(Neta);
+  std::vector<TH1 *> h1_hits2;
+  h1_hits2.resize(Neta);
   h_hits->Write();
   h_hitClean = (TH2F *) h_hits->Clone("h_hitClean");
 
@@ -294,7 +296,7 @@ void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilen
       int val = h_hot->GetBinContent(i + 1, j + 1);
       float sigma = h_heatSigma->GetBinContent(i + 1, j + 1);
       cdbttree_out->SetIntValue(key, m_fieldname_out, val);
-      cdbttree_out->SetFloatValue(key, "CEMC_sigma", sigma);
+      cdbttree_out->SetFloatValue(key, m_caloName+"_sigma", sigma);
     }
   }
   cdbttree_out->Commit();

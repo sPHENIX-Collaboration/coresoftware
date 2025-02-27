@@ -32,7 +32,7 @@
 #include <utility>
 #include <vector>
 
-bool sort_by_pair_second(const std::pair<int, float> &a, const std::pair<int, float> &b)
+static bool sort_by_pair_second(const std::pair<int, float> &a, const std::pair<int, float> &b)
 {
   return (a.second > b.second);
 }
@@ -212,7 +212,7 @@ void RawClusterBuilderTopo::export_single_cluster(const std::vector<int> &origin
   return;
 }
 
-void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, std::vector<float> pseudocluster_sumE, std::vector<float> pseudocluster_eta, std::vector<float> pseudocluster_phi)
+void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_towers, std::map<int, std::pair<int, int> > tower_ownership, unsigned int n_clusters, const std::vector<float> &pseudocluster_sumE, const std::vector<float> &pseudocluster_eta, const std::vector<float> &pseudocluster_phi)
 {
   if (n_clusters != 1)  // if we didn't just pass down from export_single_cluster
   {
@@ -327,7 +327,7 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
     float mean_y = clusters_y[cl] / clusters_absE[cl];
     float mean_z = clusters_z[cl] / clusters_absE[cl];
 
-    clusters[cl]->set_r(std::sqrt(mean_y * mean_y + mean_x * mean_x));
+    clusters[cl]->set_r(std::sqrt((mean_y * mean_y) + (mean_x * mean_x)));
     clusters[cl]->set_phi(std::atan2(mean_y, mean_x));
     clusters[cl]->set_z(mean_z);
 
@@ -335,7 +335,7 @@ void RawClusterBuilderTopo::export_clusters(const std::vector<int> &original_tow
 
     if (Verbosity() > 1)
     {
-      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(std::atan2(std::sqrt(mean_y * mean_y + mean_x * mean_x), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
+      std::cout << "RawClusterBuilderTopo::export_clusters: added cluster with E = " << clusters_E[cl] << ", eta = " << -1 * log(tan(std::atan2(std::sqrt((mean_y * mean_y) + (mean_x * mean_x)), mean_z) / 2.0)) << ", phi = " << std::atan2(mean_y, mean_x) << std::endl;
     }
   }
 
@@ -346,36 +346,15 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   : SubsysReco(name)
 {
   // geometry defined at run-time
-  _EMCAL_NETA = -1;
-  _EMCAL_NPHI = -1;
 
-  _HCAL_NETA = -1;
-  _HCAL_NPHI = -1;
   std::fill(std::begin(_geom_containers), std::end(_geom_containers), nullptr);
   _noise_LAYER[0] = 0.0025;
   _noise_LAYER[1] = 0.006;
   _noise_LAYER[2] = 0.03;  // EM
 
-  _sigma_seed = 4.0;
-  _sigma_grow = 2.0;
-  _sigma_peri = 0.0;
-
-  _use_absE = true;
-  _allow_corner_neighbor = true;
-
-  _enable_HCal = true;
-  _enable_EMCal = true;
-
-  _do_split = true;
-  _R_shower = 0.025;
-
-  _only_good_towers = true;
-
   _local_max_minE_LAYER[0] = 1;
   _local_max_minE_LAYER[1] = 1;
   _local_max_minE_LAYER[2] = 1;
-
-  ClusterNodeName = "TOPOCLUSTER_HCAL";
 }
 
 int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
@@ -508,7 +487,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   if (_enable_EMCal)
   {
     TowerInfo *towerInfo = nullptr;
-    for (unsigned int iEM = 0; iEM < towerinfosEM->size(); iEM++)
+    unsigned int n_EM_towers = towerinfosEM->size();
+    for (unsigned int iEM = 0; iEM < n_EM_towers; iEM++)
     {
       towerInfo = towerinfosEM->get_tower_at_channel(iEM);
       if (_only_good_towers && (!towerInfo->get_isGood()))
@@ -520,10 +500,14 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int ti_iphi = towerinfosEM->getTowerPhiBin(towerinfo_key);
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ti_ieta, ti_iphi);
 
-      RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(key);
+      // RawTowerGeom *tower_geom = _geom_containers[2]->get_tower_geometry(key);
 
-      int ieta = _geom_containers[2]->get_etabin(tower_geom->get_eta());
-      int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
+      // int ieta = _geom_containers[2]->get_etabin(tower_geom->get_eta());
+      // int iphi = _geom_containers[2]->get_phibin(tower_geom->get_phi());
+
+      int ieta = ti_ieta;
+      int iphi = ti_iphi;
+
       float this_E = towerInfo->get_energy();
 
       // if not using abs E, short circuit all negative towers right here (same for IHCal, OHCal below)
@@ -554,7 +538,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
   if (_enable_HCal)
   {
     TowerInfo *towerInfo = nullptr;
-    for (unsigned int iIH = 0; iIH < towerinfosIH->size(); iIH++)
+    unsigned int n_IH_towers = towerinfosIH->size();
+    for (unsigned int iIH = 0; iIH < n_IH_towers; iIH++)
     {
       towerInfo = towerinfosIH->get_tower_at_channel(iIH);
       if (_only_good_towers && (!towerInfo->get_isGood()))
@@ -592,8 +577,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
         };
       }
     }
-
-    for (unsigned int iOH = 0; iOH < towerinfosOH->size(); iOH++)
+    unsigned int n_OH_towers = towerinfosOH->size();
+    for (unsigned int iOH = 0; iOH < n_OH_towers; iOH++)
     {
       towerInfo = towerinfosOH->get_tower_at_channel(iOH);
       if (_only_good_towers && (!towerInfo->get_isGood()))
@@ -660,7 +645,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
   std::vector<std::vector<int> > all_cluster_towers;  // store final cluster tower lists here
 
-  while (list_of_seeds.size() > 0)
+  while (!list_of_seeds.empty())
   {
     int seed_ID = list_of_seeds.at(0).first;
     list_of_seeds.erase(list_of_seeds.begin());
@@ -697,7 +682,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       std::cout << " RawClusterBuilderTopo::process_event: Entering Growth stage for cluster " << cluster_index << std::endl;
     }
 
-    while (grow_tower_ID.size() > 0)
+    while (!grow_tower_ID.empty())
     {
       int grow_ID = grow_tower_ID.at(0);
       grow_tower_ID.erase(grow_tower_ID.begin());
@@ -1242,7 +1227,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       neighbor_list.clear();
 
       // now transfer over new neighbor list
-      for (; new_neighbor_list.size() > 0;)
+      for (; !new_neighbor_list.empty();)
       {
         neighbor_list.push_back(new_neighbor_list.front());
         new_neighbor_list.pop_front();
@@ -1250,7 +1235,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 
       first_pass = false;
 
-    } while (neighbor_list.size() > 0);
+    } while (!neighbor_list.empty());
 
     if (Verbosity() > 100)
     {
@@ -1321,7 +1306,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       std::cout << "RawClusterBuilderTopo::process_event now splitting up shared clusters (including unassigned clusters), initial shared list has size " << shared_list.size() << std::endl;
     }
     // iterate through shared cells, identifying which two they belong to
-    while (shared_list.size() > 0)
+    while (!shared_list.empty())
     {
       // pick the first cell and pop off list
       int shared_ID = shared_list.at(0);
@@ -1367,8 +1352,8 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       int highest_pseudocluster_index = -1;
       int second_highest_pseudocluster_index = -1;
 
-      float highest_pseudocluster_E = -1;
-      float second_highest_pseudocluster_E = -2;
+      float highest_pseudocluster_E = -999;
+      float second_highest_pseudocluster_E = -999;
 
       for (unsigned int n = 0; n < pseudocluster_adjacency.size(); n++)
       {
@@ -1453,7 +1438,7 @@ void RawClusterBuilderTopo::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;

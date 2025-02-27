@@ -5,9 +5,10 @@
 
 #include <phool/PHObject.h>
 
+#include <cstddef>
 #include <iostream>
 #include <map>
-#include <ostream>
+#include <utility>
 #include <vector>
 
 ///

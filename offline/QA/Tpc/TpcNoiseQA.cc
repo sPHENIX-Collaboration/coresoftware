@@ -1,11 +1,8 @@
 // Includes
 #include "TpcNoiseQA.h"
 
-#include <qautils/QAHistManagerDef.h>
-
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -15,22 +12,24 @@
 #include <Event/Event.h>
 #include <Event/packet.h>
 
+#include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
 
-#include <boost/format.hpp>
-
 #include <cassert>
 #include <cstddef>
-#include <iostream>
 #include <memory>
+
+#include <qautils/QAHistManagerDef.h>
+#include <boost/format.hpp>
+
+#include <iostream>
 #include <string>
 //
 
 //____________________________________________________________________________..
 TpcNoiseQA::TpcNoiseQA(const std::string &name)
-  : SubsysReco("TpcNoiseQA")
-  , m_fname(name)
+  : SubsysReco(name)
 {
   // reserves memory for max ADC samples
   m_adcSamples.resize(1024, 0);
@@ -41,24 +40,9 @@ TpcNoiseQA::TpcNoiseQA(const std::string &name)
 //____________________________________________________________________________..
 int TpcNoiseQA::InitRun(PHCompositeNode * /*unused*/)
 {
-  // Takes string of raw data file and truncates it down to sector number
-  sectorNum = m_fname;
-  size_t pos = sectorNum.find("TPC_ebdc");
-  sectorNum.erase(sectorNum.begin(), sectorNum.begin() + pos + 8);
-  sectorNum.erase(sectorNum.begin() + 2, sectorNum.end());
-  if (sectorNum.at(0) == '0')
-  {
-    sectorNum.erase(sectorNum.begin(), sectorNum.begin() + 1);
-  }
-  //
-
-  // Sets side to South if SectorNum > 11 (EBDC 12-23)
-  if (stoi(sectorNum) > 11)
-  {
-    side = 1;
-  }
-
-  // Creates data file and checks whether it was successfully opened
+  // // Creates data file and checks whether it was successfully opened
+  // m_file = TFile::Open(m_fname.c_str(), "recreate");
+  // assert(m_file->IsOpen());
 
   // double r_bins_new[r_bins_N + 1];
   for (int i = 0; i < r_bins_N + 1; i++)
@@ -111,42 +95,53 @@ int TpcNoiseQA::process_event(PHCompositeNode *topNode)
   assert(hm);
 
   // Reference histograms initialized in header file to histos in HistoManager
-  h_NPol_Ped_Mean = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sNPol_Ped_Mean_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
-  h_NPol_Ped_RMS = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sNPol_Ped_RMS_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
-  h_SPol_Ped_Mean = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sSPol_Ped_Mean_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
-  h_SPol_Ped_RMS = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sSPol_Ped_RMS_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
+  h_NPol_Ped_Mean = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sNPol_Ped_Mean") % getHistoPrefix()).c_str()));
+  h_NPol_Ped_RMS = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sNPol_Ped_RMS") % getHistoPrefix()).c_str()));
+  h_SPol_Ped_Mean = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sSPol_Ped_Mean") % getHistoPrefix()).c_str()));
+  h_SPol_Ped_RMS = dynamic_cast<TH2F *>(hm->getHisto(boost::str(boost::format("%sSPol_Ped_RMS") % getHistoPrefix()).c_str()));
   //
 
+  int sector = 0;
+
+  std::vector<Packet *> pktvec = _event->getPacketVector();
+
   // Loop over packets in event
-  for (int packet : m_packets)
+  for (auto packet : pktvec)
   {
-    if (Verbosity())
-    {
-      std::cout << __PRETTY_FUNCTION__ << " : decoding packet " << packet << std::endl;
-    }
-
-    m_packet = packet;
-
-    // Assigns data from packet to variable p then checks if packet exists
-    // Continues if not
-    std::unique_ptr<Packet> p(_event->getPacket(m_packet));
-    if (!p)
+    if (!packet)
     {
       if (Verbosity())
       {
-        std::cout << __PRETTY_FUNCTION__ << " : missing packet " << packet << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " : missing packet " << std::endl;
       }
       continue;
     }
+    int32_t packet_id = packet->getIdentifier();
+
+    if (Verbosity())
+    {
+      std::cout << __PRETTY_FUNCTION__ << " : decoding packet " << packet_id << std::endl;
+    }
+
+    int ep = (packet_id - 4000) % 10;
+    sector = (packet_id - 4000 - ep) / 10;
+    if (sector > 11)
+    {
+      side = 1;
+    }
+    else
+    {
+      side = 0;
+    }
 
     // pull number of waveforms
-    m_nWaveformInFrame = p->iValue(0, "NR_WF");
+    m_nWaveformInFrame = packet->iValue(0, "NR_WF");
 
     for (int wf = 0; wf < m_nWaveformInFrame; wf++)
     {
-      m_FEE = p->iValue(wf, "FEE");
-      m_Channel = p->iValue(wf, "CHANNEL");
-      m_nSamples = p->iValue(wf, "SAMPLES");
+      m_FEE = packet->iValue(wf, "FEE");
+      m_Channel = packet->iValue(wf, "CHANNEL");
+      m_nSamples = packet->iValue(wf, "SAMPLES");
 
       // Checks if sample number and number of ADC values agrees
       // assert(m_nSamples < (int) m_adcSamples.size());
@@ -160,7 +155,7 @@ int TpcNoiseQA::process_event(PHCompositeNode *topNode)
       for (int s = 0; s < m_nSamples; s++)
       {
         // Assign ADC value of sample s in waveform wf to adcSamples[s]
-        m_adcSamples[s] = p->iValue(wf, s);
+        m_adcSamples[s] = packet->iValue(wf, s);
 
         if (m_adcSamples[s] == 0 || std::isnan(float(m_adcSamples[s])))
         {
@@ -215,7 +210,7 @@ int TpcNoiseQA::process_event(PHCompositeNode *topNode)
       }
       key = 256 * (feeM) + channel_no;
       R = M.getR(feeM, channel_no);
-      phi = pow(-1, side) * M.getPhi(feeM, channel_no) + (stoi(sectorNum) - side * 12.0) * M_PI / 6.0;
+      phi = pow(-1, side) * M.getPhi(feeM, channel_no) + (sector - side * 12.0) * M_PI / 6.0;
 
       if (phi < 0.0)
       {
@@ -245,6 +240,25 @@ int TpcNoiseQA::process_event(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TpcNoiseQA::End(PHCompositeNode * /*unused*/)
 {
+  // // Set histogram directory to 0 so data is saved after closing file
+  // h_NPol_Ped_Mean->SetDirectory(nullptr);
+  // h_NPol_Ped_RMS->SetDirectory(nullptr);
+  // h_SPol_Ped_Mean->SetDirectory(nullptr);
+  // h_SPol_Ped_RMS->SetDirectory(nullptr);
+
+  // // Write histograms to file
+  // m_file->cd();
+  // h_NPol_Ped_Mean->Write();
+  // h_NPol_Ped_RMS->Write();
+  // h_SPol_Ped_Mean->Write();
+  // h_SPol_Ped_RMS->Write();
+
+  // std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_file->GetName() << std::endl;
+
+  // m_file->ls();
+
+  // // Close the file
+  // m_file->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -261,22 +275,22 @@ void TpcNoiseQA::createHistos()
 
   // Create and register histos in HistoManager
   {
-    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_Mean_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_Mean") % getHistoPrefix()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_RMS_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sNPol_Ped_RMS") % getHistoPrefix()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_Mean_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_Mean") % getHistoPrefix()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_RMS_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
+    auto h = new TH2F(boost::str(boost::format("%sSPol_Ped_RMS") % getHistoPrefix()).c_str(), ";x;y", (2 * r_bins_N + nphi + 1), r_bins_new, (2 * r_bins_N + nphi + 1), r_bins_new);
     hm->registerHisto(h);
   }
 }

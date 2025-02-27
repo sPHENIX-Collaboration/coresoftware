@@ -32,7 +32,7 @@ class PayLoadCont
 
   PayLoadCont& operator=(const PayLoadCont& src);
 
-  const uint8_t* data() const { return mBuffer.data(); }
+  const uint8_t *data() const { return mBuffer.data(); }
 
   ///< increase the buffer size
   void expand(size_t sz);

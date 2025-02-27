@@ -100,7 +100,7 @@
 #include <cstdlib>
 #include <exception>  // for exception
 #include <filesystem>
-#include <iostream>   // for operator<<, endl
+#include <iostream>  // for operator<<, endl
 #include <memory>
 
 class G4EmSaturation;
@@ -294,7 +294,7 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
     if (std::filesystem::path(m_FieldMapFile).extension() != ".root")
     {
       // loading from database
-      m_FieldMapFile  = CDBInterface::instance()->getUrl(m_FieldMapFile);
+      m_FieldMapFile = CDBInterface::instance()->getUrl(m_FieldMapFile);
     }
     if (std::filesystem::exists(m_FieldMapFile))
     {

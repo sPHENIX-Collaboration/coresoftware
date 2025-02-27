@@ -365,8 +365,8 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
   }
   deta1 /= totalE;
   dphi1 /= totalE;
-  deta2 /= totalE - deta1 * deta1;
-  dphi2 /= totalE - dphi1 * dphi1;
+  deta2 = deta2 / totalE - (deta1 * deta1);
+  dphi2 = dphi2 / totalE - (dphi1 * dphi1);
   // find the index of the center 4 towers
   int centertowerieta = std::floor(deta1 + 0.5);
   int centertoweriphi = std::floor(dphi1 + 0.5);

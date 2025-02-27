@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef CALOGEOMMAPPING_H
-#define CALOGEOMMAPPING_H
+#ifndef CALORECO_CALOGEOMMAPPING_H
+#define CALORECO_CALOGEOMMAPPING_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -13,10 +13,9 @@ class RawTowerGeomContainer;
 class CaloGeomMapping : public SubsysReco
 {
  public:
-
   CaloGeomMapping(const std::string &name = "CaloGeomMapping");
 
-  ~CaloGeomMapping() override;
+  ~CaloGeomMapping() override = default;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
@@ -25,42 +24,22 @@ class CaloGeomMapping : public SubsysReco
    */
   int Init(PHCompositeNode *topNode) override;
 
-  /** Called for first event when run number is known.
-      Typically this is where you may want to fetch data from
-      database, because you know the run number. A place
-      to book histograms which have to know the run number.
-   */
-  /* int InitRun(PHCompositeNode *topNode) override; */
-
-  /** Called for each event.
-      This is where you do the real work.
-   */
-  /* int process_event(PHCompositeNode *topNode) override; */
-
-  /// Clean up internals after each event.
-  /* int ResetEvent(PHCompositeNode *topNode) override; */
-
-  /// Called at the end of each run.
-  /* int EndRun(const int runnumber) override; */
-
-  /// Called at the end of all processing.
-  /* int End(PHCompositeNode *topNode) override; */
-
-  /// Reset
-  /* int Reset(PHCompositeNode * topNode) override; */
-
-  /* void Print(const std::string &what = "ALL") const override; */
-
   // Create tower geometry mapping node
-  void CreateGeomNode(PHCompositeNode* topNode);
+  void CreateGeomNode(PHCompositeNode *topNode);
 
-  void set_detector_name(const std::string &name);
-  std::string get_detector_name();
+  void set_detector_name(const std::string &name)
+  {
+    m_Detector = name;
+  }
+  const std::string &get_detector_name()
+  {
+    return m_Detector;
+  }
 
  protected:
-  std::string m_Detector; // CEMC, HCALIN or HCALOUT
+  std::string m_Detector;  // CEMC, HCALIN or HCALOUT
   std::string m_TowerGeomNodeName;
-  RawTowerGeomContainer* m_RawTowerGeomContainer;
+  RawTowerGeomContainer *m_RawTowerGeomContainer {nullptr};
 };
 
-#endif // CALOGEOMMAPPING_H
+#endif  // CALOGEOMMAPPING_H

@@ -140,15 +140,19 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   ///////////////////////////////////////
   std::cout << "calibinfo BCO : " << m_calibinfoBCO.first << " " << (m_calibinfoBCO.second == CDB ? "CDB" : "FILE") << std::endl;
   m_bcomap.Verbosity(Verbosity());
+  int temp_offset = 0;
   if (m_calibinfoBCO.second == CDB)
   {
-    m_bcomap.LoadFromCDB(m_calibinfoBCO.first);
+    temp_offset = m_bcomap.LoadFromCDB(m_calibinfoBCO.first);
   }
   else
   {
-    m_bcomap.LoadFromFile(m_calibinfoBCO.first);
+    temp_offset = m_bcomap.LoadFromFile(m_calibinfoBCO.first);
   }
-
+  if(m_triggeredMode)
+  {
+    set_inttFeeOffset(temp_offset);
+  }
   ///////////////////////////////////////
   //
   std::cout << "Intt BadChannelMap : size = " << m_HotChannelSet.size() << "  ";
@@ -257,7 +261,7 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 
     ////////////////////////
     // bco filter
-    if (m_bcomap.IsBad(raw, bco_full, bco))
+    if (m_bcomap.IsBad(raw, bco_full, bco) && m_bcoFilter)
     {
       // std::cout<<"bad bco removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
       continue;

@@ -1,12 +1,8 @@
 #include "TriggerPrimitiveContainerv1.h"
+
+#include "TriggerPrimitivev1.h"
 #include "TriggerDefs.h"
 
-#include <phool/PHObject.h>
-
-#include <TClonesArray.h>
-
-#include <cassert>
-#include <cmath>
 #include <iostream>
 
 TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::TriggerId tid, const TriggerDefs::DetectorId did)
@@ -40,11 +36,11 @@ TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::Trig
     nsums = 24;
   }
   else if (tid == TriggerDefs::pairTId)
-  {
-    nprimitives = 16;
-    m_primitiveid = TriggerDefs::PrimitiveId::pairPId;
-    nsums = 16;
-  }
+    {
+      nprimitives = 32;
+      m_primitiveid = TriggerDefs::PrimitiveId::pairPId;
+      nsums = 3;
+    }
   else if (tid == TriggerDefs::mbdTId)
   {
     nprimitives = 4;

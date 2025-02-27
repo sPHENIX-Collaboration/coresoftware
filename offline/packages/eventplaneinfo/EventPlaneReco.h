@@ -43,7 +43,7 @@ private:
   bool _mbdEpReco{false};
   bool _sepdEpReco{false};
 
-  float _epd_e{6.0};
+  float _epd_e{10.0};
   float _mbd_e{10.0};
   float mbdQ{0.};
 

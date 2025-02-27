@@ -5,7 +5,7 @@
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-
+#include <phool/PHPointerListIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -26,11 +26,38 @@ int MvtxRawHitQA::InitRun(PHCompositeNode *topNode)
 {
   createHistos();
 
-  rawhitcont = findNode::getClass<MvtxRawHitContainer>(topNode, "MVTXRAWHIT");
-
-  if (!rawhitcont)
+ PHNodeIterator trkr_itr(topNode);
+  PHCompositeNode *mvtx_node = dynamic_cast<PHCompositeNode *>(
+      trkr_itr.findFirst("PHCompositeNode", "MVTX"));  
+  if(!mvtx_node)
   {
-    std::cout << PHWHERE << "Missing MvtxRawHitContainer node!!!" << std::endl;
+    std::cout << PHWHERE << " No MVTX node found, exit" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  PHNodeIterator mvtx_itr(mvtx_node);
+  PHPointerListIterator<PHNode> iter(mvtx_itr.ls());
+  PHNode *thisnode;
+  while((thisnode = iter()))
+  {
+    if(thisnode->getType() !="PHIODataNode")
+    {
+      continue;
+    }
+    // only want the raw hits, not the header nodes
+    if((thisnode->getName()).find("HEADER") != std::string::npos)
+    {
+      continue;
+    }
+    PHIODataNode<MvtxRawHitContainer> *theNode = static_cast<PHIODataNode<MvtxRawHitContainer> *>(thisnode);
+    if(theNode)
+    {
+      std::cout << PHWHERE << " Found Mvtx Raw hit container node " << theNode->getName() << std::endl;
+      auto cont = (MvtxRawHitContainer*)theNode->getData();
+      if(cont)
+      {
+        m_rawhit_containers.push_back(cont);
+      }
+    }
   }
 
   auto hm = QAHistManagerDef::getHistoManager();
@@ -76,6 +103,8 @@ int MvtxRawHitQA::process_event(PHCompositeNode * /*unused*/)
   cols.clear();
 
   unsigned int raw_hit_num = 0;
+  for(auto& rawhitcont : m_rawhit_containers)
+  {
   if (rawhitcont)
   {
     raw_hit_num = rawhitcont->get_nhits();
@@ -149,7 +178,7 @@ int MvtxRawHitQA::process_event(PHCompositeNode * /*unused*/)
       h_nhits_stave_chip_layer2->Fill(chips[i],staves[i]);
     }
   }
-
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

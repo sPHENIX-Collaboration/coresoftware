@@ -6,6 +6,7 @@
 
 #include "TpcGlobalPositionWrapper.h"
 
+#include "TpcClusterZCrossingCorrection.h"
 #include "TpcDistortionCorrectionContainer.h"
 
 #include <phool/getClass.h>
@@ -22,23 +23,23 @@ void TpcGlobalPositionWrapper::loadNodes( PHCompositeNode* topNode )
 
   // tpc distortion corrections
   m_dcc_module_edge = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerModuleEdge");
-  if (m_dcc_module_edge)
+  if (m_dcc_module_edge && m_verbosity > 0)
   {
     std::cout << "TpcGlobalPositionWrapper::loadNodes - found module edge TPC distortion correction container" << std::endl;
   }
 
   m_dcc_static = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerStatic");
-  if (m_dcc_static)
+  if (m_dcc_static && m_verbosity > 0)
   {
     std::cout << "TpcGlobalPositionWrapper::loadNodes - found static TPC distortion correction container" << std::endl;
   }
   m_dcc_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (m_dcc_average)
+  if (m_dcc_average && m_verbosity > 0)
   {
     std::cout << "TpcGlobalPositionWrapper::loadNodes - found average TPC distortion correction container" << std::endl;
   }
   m_dcc_fluctuation = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerFluctuation");
-  if (m_dcc_fluctuation)
+  if (m_dcc_fluctuation && m_verbosity > 0)
   {
     std::cout << "TpcGlobalPositionWrapper::loadNodes - found fluctuation TPC distortion correction container" << std::endl;
   }
@@ -96,7 +97,7 @@ Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(con
     }
 
     // apply crossing correction
-    global.z() = m_crossingCorrection.correctZ(global.z(), TpcDefs::getSide(key), crossing);
+    global.z() = TpcClusterZCrossingCorrection::correctZ(global.z(), TpcDefs::getSide(key), crossing);
 
     // apply distortion corrections
     global = applyDistortionCorrections(global);

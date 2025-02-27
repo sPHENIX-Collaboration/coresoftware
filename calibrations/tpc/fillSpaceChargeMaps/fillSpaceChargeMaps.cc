@@ -11,6 +11,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/sphenix_constants.h>
 
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
@@ -86,7 +87,7 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
                                5.8165, 5.8484, 5.8803, 5.9122, 5.944, 5.9759, 6.0078, 6.0214, 6.0533, 6.0851, 6.117, 6.1489, 6.1808, 6.2127, 6.2445,
                                6.2764, 2 * M_PI};
 
-  double z_bins[2 * nz + 1];
+  double *z_bins = new double[2 * nz + 1];
   for (int z = 0; z <= 2 * nz; z++)
   {
     z_bins[z] = -z_rdo + z_rdo / nz * z;
@@ -275,7 +276,7 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
       {
         if (oldPos.z() < 0)
         {
-          oldPos.SetZ(abs(oldPos.z()));
+          oldPos.SetZ(std::abs(oldPos.z()));
           newPos = shifter.ShiftForward(oldPos);
           newPos.SetZ(newPos.z() * -1);
         }
@@ -362,8 +363,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
             }
             else
             {
-              z_prim[iz] = _hit_z - (bX - _event_bunchXing) * 106 * vIon * ns;
-              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_prim[iz] = _hit_z - (bX - _event_bunchXing) * sphenix_constants::time_between_crossings * vIon * ns;
+              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * sphenix_constants::time_between_crossings * vIon * ns;
             }
             if (z_prim[iz] > 0 && z_prim[iz] < 1.055 * m)
             {
@@ -394,8 +395,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
             }
             else
             {
-              z_prim[iz] = _hit_z + (bX - _event_bunchXing) * 106 * vIon * ns;
-              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_prim[iz] = _hit_z + (bX - _event_bunchXing) * sphenix_constants::time_between_crossings * vIon * ns;
+              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * sphenix_constants::time_between_crossings * vIon * ns;
             }
             if (z_prim[iz] < 0 && z_prim[iz] > -1.055 * m)
             {

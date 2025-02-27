@@ -2,6 +2,7 @@
 
 /// Tracking includes
 #include <trackbase/MvtxDefs.h>
+#include <trackbase/TrackFitUtils.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterCrossingAssoc.h>
@@ -25,6 +26,7 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/sphenix_constants.h>
 
 #include <TF1.h>
 #include <TFile.h>
@@ -72,6 +74,21 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   std::istringstream stringline(m_fieldMap);
   stringline >> fieldstrength;
 
+  // initialize the WindowMatchers
+  if (_use_legacy_windowing) {
+    window_dx.set_use_legacy(_x_search_win);
+    window_dy.set_use_legacy(_y_search_win);
+    window_dz.set_use_legacy(_z_search_win);
+    window_deta.set_use_legacy(_eta_search_win);
+    window_dphi.set_use_legacy(_phi_search_win);
+  } else {
+    window_dx.init_bools("dx", _print_windows || Verbosity()   >0);
+    window_dy.init_bools("dy", _print_windows || Verbosity()   >0);
+    window_dz.init_bools("dz", _print_windows || Verbosity()   >0);
+    window_dphi.init_bools("dphi", _print_windows || Verbosity() >0);
+    window_deta.init_bools("deta", _print_windows || Verbosity() >0);
+  }
+
   return ret;
 }
 
@@ -86,9 +103,101 @@ void PHSiliconTpcTrackMatching::SetDefaultParameters()
   return;
 }
 
+std::string PHSiliconTpcTrackMatching::WindowMatcher::print_fn(const Arr3D& dat) {
+  std::ostringstream os;
+  if (dat[1]==0.) {
+    os << dat[0];
+  } else {
+    os << dat[0] << (dat[1]>0 ? "+" : "") << dat[1] <<"*exp("<<dat[2]<<"/pT)";
+  }
+  return os.str();
+}
+
+void PHSiliconTpcTrackMatching::WindowMatcher::init_bools(const std::string& tag, const bool print) {
+  // set values for positive tracks
+  fabs_max_posQ = (posLo[0]==100.);
+  posLo_b0 = (posLo[1]==0.);
+  posHi_b0 = (posHi[1]==0.);
+  // if no values for negative tracks, copy over from positive tracks
+  if (negHi[0]==100.) {
+    negLo = posLo;
+    negHi = posHi;
+    fabs_max_negQ = fabs_max_posQ;
+    negLo_b0 = posLo_b0;
+    negHi_b0 = posHi_b0;
+    min_pt_negQ = min_pt_posQ;
+  } else {
+    fabs_max_negQ = (negLo[0]==100.);
+    negLo_b0 = (negLo[1]==0.);
+    negHi_b0 = (negHi[1]==0.);
+  }
+  if (print) {
+    std::cout << " Track matching window, " << tag << ":" << std::endl;
+
+    if (posHi==negHi && posLo == negLo) {
+      std::cout << "  all tracks: ";
+    } else {
+      std::cout << "   +Q tracks: ";
+    }
+    if (posLo[0]==100) {
+      std::cout << "  |" << tag <<"| < " << print_fn(posHi) << std::endl;
+    } else {
+      std::cout << print_fn(posLo) <<" < " << tag << " < " << print_fn(posHi) << std::endl;
+    }
+
+    if (posHi != negHi || posLo != negLo) {
+      std::cout << "   -Q tracks: ";
+      if (negLo[0]==100) {
+        std::cout << "  |" << tag <<"| < " << print_fn(negHi) << std::endl;
+      } else {
+        std::cout << print_fn(negLo) <<" < " << tag << " < " << print_fn(negHi) << std::endl;
+      }
+    }
+  }
+
+}
+
+bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
+(const bool posQ, const double tpc_pt, const double tpc_X, const double si_X)
+{
+  const auto delta = tpc_X-si_X;
+  if (use_legacy) {
+    // legacy functional form: a+b/tpc_pt^c for all tracks > 150 MeV
+    // there were setters for a,b,c and pT_min, but the new form
+    // of a+b*exp(c/pT) works better.
+    double mag = 1.;
+    if (tpc_pt>0.15) {
+      mag = 1.+5./tpc_pt;
+    }
+    return fabs(delta) < mag * leg_search_win;
+  }
+  if (posQ) {
+    double pt = (tpc_pt<min_pt_posQ) ? min_pt_posQ : tpc_pt;
+    if (fabs_max_posQ) {
+      return fabs(delta) < fn_exp(posHi, posHi_b0, pt);
+    } else {
+      return (delta > fn_exp(posLo, posLo_b0, pt)
+           && delta < fn_exp(posHi, posHi_b0, pt));
+    }
+  } else {
+    double pt = (tpc_pt<min_pt_negQ) ? min_pt_negQ : tpc_pt;
+    if (fabs_max_negQ) {
+      return fabs(delta) < fn_exp(negHi, negHi_b0, pt);
+    } else {
+      return (delta > fn_exp(negLo, negLo_b0, pt)
+           && delta < fn_exp(negHi, negHi_b0, pt));
+    }
+  }
+}
+
 //____________________________________________________________________________..
 int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
 {
+  if(Verbosity() > 2)
+  {
+    std::cout << " Warning: PHSiliconTpcTrackMatching "
+      << ( _zero_field ? "zero field is ON" : " zero field is OFF") << std::endl;
+  }
   // _track_map contains the TPC seed track stubs
   // _track_map_silicon contains the silicon seed track stubs
   // _svtx_seed_map contains the combined silicon and tpc track seeds
@@ -211,15 +320,13 @@ short int PHSiliconTpcTrackMatching::findCrossingGeometrically(unsigned int tpci
 
 double PHSiliconTpcTrackMatching::getBunchCrossing(unsigned int trid, double z_mismatch)
 {
-  double vdrift = _tGeometry->get_drift_velocity();  // cm/ns
-  vdrift *= 1000.0;                                  // cm/microsecond
-  //  double vdrift = 8.00;  // cm /microsecond
-  // double z_bunch_separation = 0.106 * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
-  double z_bunch_separation = (crossing_period / 1000.0) * vdrift;  // 106 ns bunch crossing interval, as in pileup generator
+  const double vdrift = _tGeometry->get_drift_velocity();  // cm/ns
+  const double z_bunch_separation = sphenix_constants::time_between_crossings * vdrift; // cm
 
   // The sign of z_mismatch will depend on which side of the TPC the tracklet is in
   TrackSeed *track = _track_map->get(trid);
 
+  // crossing
   double crossings = z_mismatch / z_bunch_separation;
 
   // Check the TPC side for the first cluster in the track
@@ -378,9 +485,42 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
           << endl;
     }
 
-    double tpc_phi = _tracklet_tpc->get_phi();
-    double tpc_eta = _tracklet_tpc->get_eta();
-    double tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
+    double tpc_phi, tpc_eta, tpc_pt;
+    float tpc_px, tpc_py, tpc_pz;
+    int tpc_q;
+    Acts::Vector3 tpc_pos;
+    if (_zero_field) {
+      auto cluster_list = getTrackletClusterList(_tracklet_tpc);
+
+      Acts::Vector3  mom;
+      bool ok_track;
+
+      std::tie(ok_track, tpc_phi, tpc_eta, tpc_pt, tpc_pos, mom) =
+        TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
+      if (!ok_track) { continue; }
+      tpc_px = mom.x();
+      tpc_py = mom.y();
+      tpc_pz = mom.z();
+      tpc_q = -100;
+    } else {
+      tpc_phi = _tracklet_tpc->get_phi();
+      tpc_eta = _tracklet_tpc->get_eta();
+      tpc_pt = fabs(1. / _tracklet_tpc->get_qOverR()) * (0.3 / 100.) * fieldstrength;
+
+      tpc_pos = TrackSeedHelper::get_xyz(_tracklet_tpc);
+
+      tpc_px = _tracklet_tpc->get_px();
+      tpc_py = _tracklet_tpc->get_py();
+      tpc_pz = _tracklet_tpc->get_pz();
+
+      tpc_q = _tracklet_tpc->get_charge();
+    }
+
+    bool is_posQ = (tpc_q>0.);
+
+    // mag is only used for printouts from legacy code.
+    double mag = 1.+5./tpc_pt;
+
     if (Verbosity() > 8)
     {
       std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " phi " << tpc_phi << " pt " << tpc_pt << " tpc z " << TrackSeedHelper::get_z(_tracklet_tpc) << std::endl;
@@ -389,7 +529,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     // this factor will increase the window size at low pT
     // otherwise the matching efficiency drops off at low pT
 
-    double mag = getMatchingInflationFactor(tpc_pt);
 
     if (_use_old_matching)  // for testing only
     {
@@ -415,11 +554,6 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       _tracklet_tpc->identify();
     }
 
-    const auto tpc_pos = TrackSeedHelper::get_xyz(_tracklet_tpc);
-    const auto tpc_px = _tracklet_tpc->get_px();
-    const auto tpc_py = _tracklet_tpc->get_py();
-    const auto tpc_pz = _tracklet_tpc->get_pz();
-    const int tpc_q = _tracklet_tpc->get_charge();
 
     bool matched = false;
 
@@ -431,21 +565,41 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       _tracklet_si = _track_map_silicon->get(phtrk_iter_si);
       if (!_tracklet_si)
       {
+
         continue;
       }
       bool eta_match = false;
-      double si_eta = _tracklet_si->get_eta();
-      double si_phi = _tracklet_si->get_phi();
 
-      const auto si_pos = TrackSeedHelper::get_xyz(_tracklet_si);
-      const auto si_px = _tracklet_si->get_px();
-      const auto si_py = _tracklet_si->get_py();
-      const auto si_pz = _tracklet_si->get_pz();
+    double si_phi, si_eta, si_pt;
+    float si_px, si_py, si_pz;
+    int si_q;
+    Acts::Vector3 si_pos;
+    if (_zero_field) {
+      auto cluster_list = getTrackletClusterList(_tracklet_si);
 
+      Acts::Vector3  mom;
+      bool ok_track;
 
+      std::tie(ok_track, si_phi, si_eta, si_pt, si_pos, mom) =
+        TrackFitUtils::zero_field_track_params(_tGeometry, _cluster_map, cluster_list);
+      if (!ok_track) { continue; }
+      si_px = mom.x();
+      si_py = mom.y();
+      si_pz = mom.z();
+      si_q = -100;
+    } else {
+      si_eta = _tracklet_si->get_eta();
+      si_phi = _tracklet_si->get_phi();
+
+      si_pos = TrackSeedHelper::get_xyz(_tracklet_si);
+      si_px = _tracklet_si->get_px();
+      si_py = _tracklet_si->get_py();
+      si_pz = _tracklet_si->get_pz();
+	    si_q = _tracklet_si->get_charge();
+    }
 	  int si_crossing = _tracklet_si->get_crossing();
-	  int si_q = _tracklet_si->get_charge();
-      unsigned int siid = phtrk_iter_si;
+    unsigned int siid = phtrk_iter_si;
+
   if(_test_windows)
   {
     float data[] = {
@@ -456,7 +610,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
     _tree->Fill(data);
   }
 
-      if (fabs(tpc_eta - si_eta) < _eta_search_win * mag)
+      if (window_deta.in_window(is_posQ, tpc_pt, tpc_eta, si_eta))
       {
         eta_match = true;
       }
@@ -468,15 +622,17 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       bool position_match = false;
       if (_pp_mode)
       {
-        if( std::abs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && std::abs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag)
+        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x())
+         && window_dy.in_window(is_posQ, tpc_pt, tpc_pos.y(), si_pos.y()))
         {
           position_match = true;
         }
       }
       else
       {
-        if (
-            fabs(tpc_pos.x() - si_pos.x()) < _x_search_win * mag && fabs(tpc_pos.y() - si_pos.y()) < _y_search_win * mag && fabs(tpc_pos.z() - si_pos.z()) < _z_search_win * mag)
+        if (window_dx.in_window(is_posQ, tpc_pt, tpc_pos.x(), si_pos.x())
+         && window_dy.in_window(is_posQ, tpc_pt, tpc_pos.y(), si_pos.y())
+         && window_dz.in_window(is_posQ, tpc_pt, tpc_pos.z(), si_pos.z()))
         {
           position_match = true;
         }
@@ -488,14 +644,20 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       }
 
       bool phi_match = false;
-      if (fabs(tpc_phi - si_phi) < _phi_search_win * mag)
+      if (window_dphi.in_window(is_posQ, tpc_pt, tpc_phi, si_phi))
       {
         phi_match = true;
+        // if phi fails, account for case where |tpc_phi-si_phi|>PI
+      } else if (fabs(tpc_phi-si_phi)>M_PI) {
+        auto tpc_phi_wrap = tpc_phi;
+        if ((tpc_phi_wrap - si_phi) > M_PI) {
+          tpc_phi_wrap -= 2*M_PI;
+        } else {
+          tpc_phi_wrap += 2*M_PI;
+        }
+        phi_match = window_dphi.in_window(is_posQ, tpc_pt, tpc_phi_wrap, si_phi);
       }
-      if (fabs(fabs(tpc_phi - si_phi) - 2.0 * M_PI) < _phi_search_win * mag)
-      {
-        phi_match = true;
-      }
+
       if (!phi_match)
       {
         continue;
@@ -530,7 +692,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
         cout << " Try_silicon: crossing" << si_crossing <<  "  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi <<  "   si_q" << si_q << "   tpc_q" << tpc_q
              << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " tpc_x " << tpc_pos.x() << " tpc_y " << tpc_pos.y() << " tpc_z " << tpc_pos.z()
              << " dx " << tpc_pos.x() - si_pos.x() << " dy " << tpc_pos.y() - si_pos.y() << " dz " << tpc_pos.z() - si_pos.z()
-			 << endl;
+			 << " mag: " << mag << endl;
       }
 
     }
@@ -576,18 +738,23 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
     float z_tpc = TrackSeedHelper::get_z(tpc_track);
     float z_mismatch = z_tpc - z_si;
 
-    float mag_crossing_z_mismatch = fabs(crossing) * crossing_period * vdrift;
+    // get TPC side from one of the TPC clusters
+    std::vector<TrkrDefs::cluskey> temp_clusters = getTrackletClusterList(tpc_track);
+    if(temp_clusters.size() == 0)
+      {
+	continue;
+      }
+    unsigned int this_side =   TpcDefs::getSide(temp_clusters[0]);
 
-    // We do not know the sign  of the z mismatch for a given crossing unless we know the drift direction in the TPC, use magnitude
-    // could instead look up any TPC cluster key in the track to get side
-    // z-mismatch can occasionally be up to 2 crossings due to TPC extrapolation precision
-    if (fabs(fabs(z_mismatch) - mag_crossing_z_mismatch) < 3.0)
+    float z_tpc_corrected = _clusterCrossingCorrection.correctZ(z_tpc, this_side, crossing);
+    float z_mismatch_corrected = z_tpc_corrected - z_si;
+    if (fabs(z_mismatch_corrected) < _crossing_deltaz_max)
     {
       if (Verbosity() > 1)
       {
         std::cout << "  Success:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id
-                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch
-                  << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << " drift velocity " << vdrift << std::endl;
+                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << "z_tpc_corrected " << z_tpc_corrected
+                  << " z_mismatch_corrected " << z_mismatch_corrected << " drift velocity " << vdrift << std::endl;
       }
     }
     else
@@ -595,11 +762,11 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
       if (Verbosity() > 1)
       {
         std::cout << "  FAILURE:  crossing " << crossing << " tpcid " << tpcid << " si id " << si_id
-                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch
-                  << " mag_crossing_z_mismatch " << mag_crossing_z_mismatch << std::endl;
+                  << " tpc z " << z_tpc << " si z " << z_si << " z_mismatch " << z_mismatch << "z_tpc_corrected " << z_tpc_corrected
+                  << " z_mismatch_corrected " << z_mismatch_corrected << std::endl;
       }
 
-      // bad_map.insert(std::make_pair(tpcid, si_id));
+      bad_map.insert(std::make_pair(tpcid, si_id));
     }
   }
 
@@ -627,16 +794,47 @@ void PHSiliconTpcTrackMatching::checkCrossingMatches(std::multimap<unsigned int,
   return;
 }
 
-double PHSiliconTpcTrackMatching::getMatchingInflationFactor(double tpc_pt)
+std::vector<TrkrDefs::cluskey> PHSiliconTpcTrackMatching::getTrackletClusterList(TrackSeed* tracklet)
 {
-  double mag = 1.0;
-
-  if (tpc_pt > _match_function_ptmin)
+  std::vector<TrkrDefs::cluskey> cluskey_vec;
+  for (auto clusIter = tracklet->begin_cluster_keys();
+       clusIter != tracklet->end_cluster_keys();
+       ++clusIter)
   {
-    mag = _match_function_a + _match_function_b / pow(tpc_pt, _match_function_pow);
-  }
+    auto key = *clusIter;
+    auto cluster = _cluster_map->findCluster(key);
+    if (!cluster)
+    {
+      if(Verbosity() > 1)
+      {
+        std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
+      }
+      continue;
+    }
 
-  //  std::cout << " tpc_pt = " << tpc_pt << " mag " << mag << " a " << match_function_a << " b " << match_function_b << std::endl;
+    /// Make a safety check for clusters that couldn't be attached to a surface
+    auto surf = _tGeometry->maps().getSurface(key, cluster);
+    if (!surf)
+    {
+      continue;
+    }
 
-  return mag;
+    // drop some bad layers in the TPC completely
+    unsigned int layer = TrkrDefs::getLayer(key);
+    if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
+    {
+      continue;
+    }
+
+    // drop INTT clusters for now  -- TEMPORARY!
+    // Note: the zerofield fit uses the INTT for xy fit but not yz fit
+    /* if (layer > 2 && layer < 7) */
+    /* { */
+      /* continue; */
+    /* } */
+
+
+    cluskey_vec.push_back(key);
+  }  // end loop over clusters for this track
+  return cluskey_vec;
 }

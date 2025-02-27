@@ -11,34 +11,38 @@
 #define TRKSINJETQA_H
 
 // module utilities
+#include "JetQADefs.h"
 #include "TrksInJetQAConfig.h"
 #include "TrksInJetQAHist.h"
 #include "TrksInJetQAInJetFiller.h"
 #include "TrksInJetQAInclusiveFiller.h"
 
-// qa utilities
-#include <qautils/QAHistManagerDef.h>
+// calo trigger includes
+#include <calotrigger/TriggerAnalyzer.h>
 
 // f4a includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
+
 // phool includes
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
+
+// qa utilities
+#include <qautils/QAHistManagerDef.h>
+
 // root includes
 #include <TFile.h>
 
 // c++ utilities
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
-
-// jet qa utilities
-#include "JetQADefs.h"
 
 // TrksInJetQA definition -----------------------------------------------------
 
@@ -53,7 +57,7 @@ class TrksInJetQA : public SubsysReco
   };
 
   // ctor/dtor
-  TrksInJetQA(const std::string& name);
+  TrksInJetQA(const std::string& name = "TrksInJetQA");
   ~TrksInJetQA() override;
 
   // setters
@@ -83,19 +87,19 @@ class TrksInJetQA : public SubsysReco
   void RegisterHistograms();
 
   // io members
-  //   - FIXME raw pointers should be smart ones!
-  TFile* m_outFile = NULL;
-  std::string m_moduleName = "TrksInJetQA";
-  std::string m_outFileName = "tracksInJetsQA.root";
-  Fun4AllHistoManager* m_manager = NULL;
+  TFile* m_outFile {nullptr};
+  std::string m_moduleName;
+  std::string m_outFileName {"tracksInJetsQA.root"};
+  Fun4AllHistoManager* m_manager {nullptr};
+  TriggerAnalyzer* m_analyzer {nullptr};
 
   // trigger selection
-  bool m_doTrgSelect = false;
-  uint32_t m_trgToSelect = JetQADefs::GL1::MBDNSJet1;
+  bool m_doTrgSelect {false};
+  uint32_t m_trgToSelect {JetQADefs::GL1::MBDNSJet1};
 
   // optional prefix, suffix for histograms
-  std::optional<std::string> m_histPrefix = std::nullopt;
-  std::optional<std::string> m_histSuffix = std::nullopt;
+  std::optional<std::string> m_histPrefix {std::nullopt};
+  std::optional<std::string> m_histSuffix {std::nullopt};
 
   // submodules to run
   std::unique_ptr<TrksInJetQAInJetFiller> m_inJet;

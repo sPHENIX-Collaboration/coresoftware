@@ -61,16 +61,14 @@ PHNode* PHNodeIterator::findFirst(const std::string& requiredType, const std::st
     {
       return thisNode;
     }
-    else
+
+    if (thisNode->getType() == "PHCompositeNode")
     {
-      if (thisNode->getType() == "PHCompositeNode")
+      PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
+      PHNode* nodeFoundInSubTree = nodeIter.findFirst(requiredType, requiredName);
+      if (nodeFoundInSubTree)
       {
-        PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
-        PHNode* nodeFoundInSubTree = nodeIter.findFirst(requiredType.c_str(), requiredName.c_str());
-        if (nodeFoundInSubTree)
-        {
-          return nodeFoundInSubTree;
-        }
+        return nodeFoundInSubTree;
       }
     }
   }
@@ -88,16 +86,14 @@ PHNode* PHNodeIterator::findFirst(const std::string& requiredName)
     {
       return thisNode;
     }
-    else
+
+    if (thisNode->getType() == "PHCompositeNode")
     {
-      if (thisNode->getType() == "PHCompositeNode")
+      PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
+      PHNode* nodeFoundInSubTree = nodeIter.findFirst(requiredName);
+      if (nodeFoundInSubTree)
       {
-        PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
-        PHNode* nodeFoundInSubTree = nodeIter.findFirst(requiredName.c_str());
-        if (nodeFoundInSubTree)
-        {
-          return nodeFoundInSubTree;
-        }
+        return nodeFoundInSubTree;
       }
     }
   }
@@ -120,10 +116,8 @@ bool PHNodeIterator::cd(const std::string& pathString)
     boost::split(splitpath, pathString, boost::is_any_of(phooldefs::nodetreepathdelim));
     bool pathFound;
     PHNode* subNode;
-    int i = 0;
     for (const auto& iter : splitpath)
     {
-      i++;
       if (iter == "..")
       {
         if (currentNode->getParent())

@@ -21,6 +21,8 @@
 
 #include "KFParticle_sPHENIX.h"
 
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMap.h>
 #include <globalvertex/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
@@ -55,7 +57,7 @@ namespace TMVA
   class Reader;
 }
 
-int candidateCounter = 0;
+//int candidateCounter = 0;
 
 /// KFParticle constructor
 KFParticle_sPHENIX::KFParticle_sPHENIX()
@@ -84,6 +86,7 @@ KFParticle_sPHENIX::KFParticle_sPHENIX(const std::string &name)
 
 int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
 {
+  
   if (m_save_output && Verbosity() >= VERBOSITY_SOME)
   {
     std::cout << "Output nTuple: " << m_outfile_name << std::endl;
@@ -121,23 +124,40 @@ int KFParticle_sPHENIX::InitRun(PHCompositeNode *topNode)
 
 int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 {
+  
   std::vector<KFParticle> mother, vertex_kfparticle;
   std::vector<std::vector<KFParticle>> daughters, intermediates;
   int nPVs, multiplicity;
 
   if (!m_use_fake_pv)
   {
-    SvtxVertexMap *check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
-    if (check_vertexmap->size() == 0)
+    if (m_use_mbd_vertex)
     {
-      if (Verbosity() >= VERBOSITY_SOME)
+      MbdVertexMap* check_vertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+      if (check_vertexmap->size() == 0)
       {
-        std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
+        if (Verbosity() >= VERBOSITY_SOME)
+        {
+          std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
+        }
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
     }
-  }
+    else
+    {
+      SvtxVertexMap* check_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name);
+      if (check_vertexmap->size() == 0)
+      {
+        if (Verbosity() >= VERBOSITY_SOME)
+        {
+          std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
+        }
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
+    }
 
+  }
+  
   SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
   if (check_trackmap->size() == 0)
   {
@@ -147,11 +167,9 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
   multiplicity = check_trackmap->size();
 
   createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs);
-
   if (!m_has_intermediates_sPHENIX)
   {
     intermediates = daughters;
@@ -165,13 +183,15 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   {
     for (unsigned int i = 0; i < mother.size(); ++i)
     {
-      if (m_save_output && candidateCounter == 0)
+      
+      if (m_save_output && getCandidateCounter() == 0)
       {
         m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
         initializeBranches();
       }
 
-      candidateCounter += 1;
+      //candidateCounter += 1;
+      incrementCandidateCounter();
 
       if (m_save_output)
       {
@@ -201,9 +221,9 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
 int KFParticle_sPHENIX::End(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of candidates: " << candidateCounter << std::endl;
+  std::cout << "KFParticle_sPHENIX object " << Name() << " finished. Number of candidates: " << getCandidateCounter() << std::endl;
 
-  if (m_save_output && candidateCounter != 0)
+  if (m_save_output && getCandidateCounter() != 0)
   {
     m_outfile->Write();
     m_outfile->Close();

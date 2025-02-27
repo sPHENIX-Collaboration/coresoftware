@@ -32,7 +32,7 @@ class QAG4Decayer : public SubsysReco
   //		QAG4Decayer();
   QAG4Decayer(const std::string &name = "QAG4Decayer");
 
-  virtual ~QAG4Decayer();
+  ~QAG4Decayer() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   //		int Init() override;

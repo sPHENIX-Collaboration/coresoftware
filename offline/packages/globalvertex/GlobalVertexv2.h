@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4VERTEX_GLOBALVERTEXV2_H
-#define G4VERTEX_GLOBALVERTEXV2_H
+#ifndef GLOBALVERTEX_GLOBALVERTEXV2_H
+#define GLOBALVERTEX_GLOBALVERTEXV2_H
 
 #include "GlobalVertex.h"
 
@@ -9,21 +9,20 @@
 #include <iostream>
 #include <limits>
 #include <map>
-#include <utility>  // for pair, make_pair
 
 class PHObject;
 
 class GlobalVertexv2 : public GlobalVertex
 {
  public:
-  GlobalVertexv2();
+  GlobalVertexv2() = default;
   GlobalVertexv2(const unsigned int id);
-  ~GlobalVertexv2() override = default;
+  ~GlobalVertexv2() override;
 
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override { *this = GlobalVertexv2(); }
+  void Reset() override;
   int isValid() const override;
   PHObject* CloneMe() const override { return new GlobalVertexv2(*this); }
 
@@ -53,6 +52,7 @@ class GlobalVertexv2 : public GlobalVertex
 
   void clear_vtxs() override { _vtxs.clear(); }
   void insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex) override;
+  void clone_insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex) override;
   size_t erase_vtxs(GlobalVertex::VTXTYPE type) override { return _vtxs.erase(type); }
   void erase_vtxs(GlobalVertex::VertexIter iter) override { _vtxs.erase(iter); }
 
@@ -65,9 +65,9 @@ class GlobalVertexv2 : public GlobalVertex
   GlobalVertex::VertexIter end_vertexes() override { return _vtxs.end(); }
 
  private:
-  unsigned int _id;
-  unsigned int _bco;                                    //< global bco
-  std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;  //< list of vtxs
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};
+  unsigned int _bco{std::numeric_limits<unsigned int>::max()};  //< global bco
+  std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;          //< list of vtxs
 
   ClassDefOverride(GlobalVertexv2, 2);
 };

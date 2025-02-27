@@ -2,17 +2,19 @@
 #define TRIGGER_MINBIASCLASSIFIER_H
 
 #include <fun4all/SubsysReco.h>
-
+#include <vector>
 #include <array>
 #include <limits>
 #include <string>  // for allocator, string
+#include <utility>
+
 // Forward declarations
 
 class MinimumBiasInfo;
 class PHCompositeNode;
-class MbdOut;
-class TowerInfoContainer;
-class TowerInfo;
+class Zdcinfo;
+class MbdPmtContainer;
+class MbdPmtHit;
 class GlobalVertexMap;
 
 class MinimumBiasClassifier : public SubsysReco
@@ -37,20 +39,56 @@ class MinimumBiasClassifier : public SubsysReco
 
   int FillMinimumBiasInfo();
 
+  bool passesHitCut(MbdPmtHit *hit);
+
+  int Download_centralityScale(const std::string &dbfile);
+  int Download_centralityVertexScales(const std::string &dbfile);
+
+  void setOverwriteScale(const std::string &url)
+  {
+    m_overwrite_url_scale = url;
+    m_overwrite_scale = true;    
+  }
+  void setOverwriteVtx(const std::string &url)
+  {
+    m_overwrite_url_vtx = url;
+    m_overwrite_vtx = true;    
+  }
+  void setIsSim(const bool sim) { m_issim = sim; }
+
  private:
-  const float _z_vtx_cut{60.};
-  const float _mbd_north_cut{10.};
-  const float _mbd_south_cut{150};
-  const int _mbd_tube_cut{2};
-  const float _zdc_cut{40.};
+  bool m_issim{false};
+  float getVertexScale();
+  std::string m_dbfilename;
 
-  MinimumBiasInfo *_mb_info{nullptr};
-  MbdOut *_mbd_out{nullptr};
-  GlobalVertexMap *_global_vertex_map{nullptr};
-  TowerInfoContainer *_towers_zdc{nullptr};
-  TowerInfo *_tmp_tower{nullptr};
+  bool m_overwrite_scale{false};
+  bool m_overwrite_vtx{false};
+  std::string m_overwrite_url_scale{""};
+  std::string m_overwrite_url_vtx{""};
 
-  std::array<float, 17> _zdc_energy_sum{};
+  const float m_z_vtx_cut{60.};
+  const float m_mbd_north_cut{10.};
+  const float m_mbd_south_cut{150};
+  const float m_mbd_charge_cut{0.5};
+  const float m_mbd_time_cut{25.};
+//  const int m_mbd_tube_cut{2};
+  const float m_zdc_cut{60.};
+
+  MinimumBiasInfo *m_mb_info{nullptr};
+  MbdPmtContainer *m_mbd_container{nullptr};
+  MbdPmtHit *m_mbd_pmt{nullptr};
+  GlobalVertexMap *m_global_vertex_map{nullptr};
+  Zdcinfo *m_zdcinfo{nullptr};
+
+  std::array<float, 2> m_zdc_energy_sum{};
+  std::array<float, 2> m_mbd_charge_sum{};
+  std::array<int, 2> m_mbd_hit{};
+
+  double m_centrality_scale{std::numeric_limits<double>::quiet_NaN()};
+  double m_vertex_scale{std::numeric_limits<double>::quiet_NaN()};
+  float m_vertex{std::numeric_limits<float>::quiet_NaN()};
+  std::vector<std::pair<std::pair<float, float>, float>>  m_vertex_scales{};
+
 };
 
 #endif

@@ -45,14 +45,41 @@ namespace TrackFitUtils
   /**
    * copied from: https://www.bragitoff.com
    * typically used to fit we want to fit z vs radius
+   * 
+   * Updated to use the "Deming model" by default:
+   * minimizing by orthoncal distance to line in x and y
+   * (instead of the y-distance). For details, see:
+   * http://staff.pubhealth.ku.dk/~bxc/MethComp/Deming.pdf
    */
   line_fit_output_t line_fit(const position_vector_t&);
+
+  /*
+   * Need to make a metric for distance from points to lines origin (pca).
+   *  - project point "global" to the line.
+   *  - return distance on line to the pca (the point of closest approach to origin)
+   */
+  double line_dist_to_pca (const double slope, const double intercept, 
+      const Acts::Vector2& pca, const Acts::Vector3& global);
 
   /// convenient overload
   line_fit_output_t line_fit(const std::vector<Acts::Vector3>&);
 
   line_fit_output_t line_fit_xy(const std::vector<Acts::Vector3>& positions);
   line_fit_output_t line_fit_xz(const std::vector<Acts::Vector3>& positions);
+
+  /// line-circle intersection output. (xplus, yplus, xminus, yminus)
+  using line_circle_intersection_output_t = std::tuple<double, double, double, double>;
+  /**
+  * r is radius of sPHENIX layer
+  * m and b are parameters of line fitted to TPC clusters in the x-y plane (slope and intersection)
+  * the solutions are xplus, xminus, yplus, yminus
+  * The intersection of the line-circle occurs when
+  * y = m*x + b
+  * Here we assume that circle is an sPHENIX layer centered on x1=y1=0
+  * x^2 +y^2 = r^2
+  * substitute for y in equation of circle, solve for x, and then for y.
+  **/
+  line_circle_intersection_output_t line_circle_intersection(double r, double m, double b);
 
   /// circle-circle intersection output. (xplus, yplus, xminus, yminus)
   using circle_circle_intersection_output_t = std::tuple<double, double, double, double>;
@@ -103,7 +130,7 @@ namespace TrackFitUtils
   void getTrackletClusters(ActsGeometry* _tGeometry,
                                   TrkrClusterContainer* _cluster_map,
                                   std::vector<Acts::Vector3>& global_vec,
-                                  std::vector<TrkrDefs::cluskey>& cluskey_vec);
+                                  const std::vector<TrkrDefs::cluskey>& cluskey_vec);
   Acts::Vector3 surface_3Dline_intersection(const TrkrDefs::cluskey& key,
                                                    TrkrCluster* cluster, ActsGeometry* geometry, float& xyslope, float& xyint, float& yzslope, float& yzint);
 
@@ -122,6 +149,18 @@ namespace TrackFitUtils
 
   float get_helix_pathlength(std::vector<float>& fitpars, const Acts::Vector3& start_point, const Acts::Vector3& end_point);
   float get_helix_surface_pathlength(const Surface& surf, std::vector<float>& fitpars, const Acts::Vector3& start_point, ActsGeometry* tGeometry);
+
+  /* std::tuple<double,double> dca_on_line2D_to_point(const double x0, const double y0, const double xy_m, const double xy_b); */
+  // get track fit parameters for track matching:: is-good-fit, phi, eta, pt==1, pos_vec3, mom_vec3
+  std::tuple<bool, double, double, double, Acts::Vector3, Acts::Vector3> 
+    zero_field_track_params(
+      ActsGeometry* _tGeometry, 
+      TrkrClusterContainer* _cluster_map, 
+      const std::vector<TrkrDefs::cluskey>& clusters
+    );
+
+   double z_fit_to_pca(const double slope, const double intercept, 
+    const std::vector<Acts::Vector3>& glob_pts);
 };
 
 #endif

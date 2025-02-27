@@ -43,6 +43,8 @@ class TowerInfo : public PHObject
   virtual bool get_isZS() const { return false; }
   virtual void set_isRecovered(bool /*isRecovered*/) { return; }
   virtual bool get_isRecovered() const { return false; }
+  virtual void set_isSaturated(bool /*isSaturated*/) { return; }
+  virtual bool get_isSaturated() const { return false; }
   virtual bool get_isGood() const { return true; }
   virtual uint8_t get_status() const { return 0; }
   virtual void set_status(uint8_t /*status*/) { return; }

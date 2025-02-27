@@ -18,7 +18,6 @@
 
 #include <iostream>  // for operator<<, endl, basic...
 #include <limits>
-#include <memory>  // for allocator_traits<>::val...
 #include <vector>  // for vector
 
 //____________________________________________________________________________..

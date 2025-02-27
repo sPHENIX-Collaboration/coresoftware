@@ -221,7 +221,7 @@ int TrackToCalo::process_event(PHCompositeNode *topNode)
 
   for(unsigned int itrack = 0; itrack < _track_phi_emc.size(); itrack++)
   {
-    if(isnan(_track_phi_emc.at(itrack)) || isnan(_track_z_emc.at(itrack)))
+    if(std::isnan(_track_phi_emc.at(itrack)) || std::isnan(_track_z_emc.at(itrack)))
     {
       continue;
     }

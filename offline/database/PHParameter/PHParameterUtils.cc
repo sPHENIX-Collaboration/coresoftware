@@ -12,7 +12,7 @@
 
 void PHParameterUtils::FillPHParametersFromCDB(PHParameters &params, const std::string &domain)
 {
-  std::string url =  CDBInterface::instance()->getUrl(domain);
+  std::string url = CDBInterface::instance()->getUrl(domain);
   params.ReadFromCDBFile(url);
   return;
 }

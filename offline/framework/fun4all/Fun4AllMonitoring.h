@@ -20,7 +20,7 @@ class Fun4AllMonitoring : public Fun4AllBase
   ~Fun4AllMonitoring() override = default;
   void Snapshot(const std::string &what = "AfterProcessEvent");
 
-  void PrintsMaps() const;
+  static void PrintsMaps();
 
   void Get_Memory();
   void OutFileName(const std::string &fname);

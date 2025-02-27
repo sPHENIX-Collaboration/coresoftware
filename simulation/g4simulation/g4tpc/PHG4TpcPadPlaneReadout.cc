@@ -102,12 +102,9 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   {
     return reply;
   }
-
-  // load geo node
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
-
   if(m_use_module_gain_weights)
     {
       int side, region, sector;
@@ -1041,7 +1038,7 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_double_param("neffelectrons_threshold", 1.0);
   set_default_double_param("maxdriftlength", 105.5);     // cm
-  set_default_double_param("tpc_adc_clock", 53.0);       // ns, for 18.8 MHz clock
+  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA

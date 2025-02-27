@@ -6,16 +6,17 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
+CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -Werror"
 dnl leaving this here in case we want to play with different compiler 
 dnl specific flags
-case $CXX in
- clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
- *g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
- ;;
-esac
+dnl case $CXX in
+dnl  clang++)
+dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+dnl  ;;
+dnl  *g++)
+dnl   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra"
+dnl  ;;
+dnl esac
 
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "

@@ -5,6 +5,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   `geant4-config --libs-without-gui` \
   `fastjet-config --libs` \
+  -no-pie \
   -lHepMC \
   -lhijing \
   -lhijing_dummy \

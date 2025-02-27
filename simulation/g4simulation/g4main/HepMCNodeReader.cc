@@ -36,6 +36,9 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
+#include <TDatabasePDG.h>
+#include <TLorentzVector.h>
+
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -103,6 +106,63 @@ int HepMCNodeReader::Init(PHCompositeNode *topNode)
     std::cout << Name() << " override random seed: " << phseed << std::endl;
   }
   gsl_rng_set(RandomGenerator, phseed);
+
+  if (addfraction < 0.0)
+  {
+    std::cout << "[WARNING] addfraction is negative which is not allowed. Setting addfraction to 0." << std::endl;
+    addfraction = 0.0;
+  }
+
+  if (addfraction != 0.0)
+  {
+    fpt = new TF1("fpt", EMGFunction, -10, 10, 4);
+    fpt->SetParameter(0, 1);            // normalization
+    fpt->SetParameter(1, 4.71648e-01);  // mu
+    fpt->SetParameter(2, 1.89602e-01);  // sigma
+    fpt->SetParameter(3, 2.26981e+00);  // lambda
+
+    feta = new TF1("feta", DBGFunction, -1, 1, 4);
+    feta->SetParameter(0, 1);             // normalization
+    feta->SetParameter(1, -4.08301e-01);  // mu1
+    feta->SetParameter(2, 4.11930e-01);   // mu2
+    feta->SetParameter(3, 3.59063e-01);   // sigma
+
+    std::vector<std::pair<int, double>> l_PIDProb;
+    for (size_t i = 0; i < list_strangePID.size(); i++)
+    {
+      l_PIDProb.emplace_back(list_strangePID[i], list_strangePIDprob[i]);
+    }
+
+    std::sort(l_PIDProb.begin(), l_PIDProb.end(),
+              [](const std::pair<int, double> &a, const std::pair<int, double> &b) -> bool
+              {
+                return a.second < b.second;
+              });
+
+    double sum = 0.0;
+    for (const auto &it : l_PIDProb)
+    {
+      sum += it.second;
+      list_strangePID_probrange.emplace_back(it.first, std::make_pair(sum - it.second, sum));
+    }
+
+    if (Verbosity() > 0)
+    {
+      std::cout << "[INFO] Sorted list of strange particles and their probabilities: " << std::endl;
+
+      for (const auto &it : l_PIDProb)
+      {
+        std::cout << "PID: " << it.first << " Probability: " << it.second << std::endl;
+      }
+
+      std::cout << "[INFO] List of strange particles and their probability ranges: " << std::endl;
+      for (const auto &it : list_strangePID_probrange)
+      {
+        std::cout << "PID: " << it.first << " Probability range: [" << it.second.first << "," << it.second.second << "]" << std::endl;
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -254,6 +314,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     std::list<HepMC::GenParticle *> finalstateparticles;
     std::list<HepMC::GenParticle *>::const_iterator fiter;
 
+    int Nstrange = 0;  // count the number of strange particles with PID in list_strangePID per event
+
     // units in G4 interface are GeV and CM as in PHENIX convention
     const double mom_factor = HepMC::Units::conversion_factor(evt->momentum_unit(), HepMC::Units::GEV);
     const double length_factor = HepMC::Units::conversion_factor(evt->length_unit(), HepMC::Units::CM);
@@ -288,6 +350,11 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
             std::cout << "\tparticle passed " << std::endl;
           }
           finalstateparticles.push_back(*p);
+
+          if (std::find(list_strangePID.begin(), list_strangePID.end(), std::abs((*p)->pdg_id())) != list_strangePID.end())
+          {
+            Nstrange++;
+          }
         }
         else
         {
@@ -297,6 +364,15 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
             std::cout << "\tparticle failed " << std::endl;
           }
         }
+      }  // for (HepMC::GenVertex::particle_iterator p = (*v)->particles_begin(HepMC::children); p != (*v)->particles_end(HepMC::children); ++p)
+
+      // Add additional strange particles if addfraction is not zero; round up to the ceiling integer
+      Nstrange_add = static_cast<int>(std::ceil(Nstrange * addfraction * 0.01));
+
+      if (Verbosity() > 1)
+      {
+        std::cout << "[DEBUG] Number of original strange particles: " << Nstrange << std::endl;
+        std::cout << "[DEBUG] addfraction: " << addfraction << "%; Number of strange particles to be added: " << Nstrange_add << std::endl;
       }
 
       if (!finalstateparticles.empty())
@@ -406,12 +482,54 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
           {
             ineve->AddEmbeddedParticle(particle, embed_flag);
           }
+        }  // for (fiter = finalstateparticles.begin(); fiter != finalstateparticles.end(); ++fiter)
+
+        // add strange particles given Nstrange_add
+        if (addfraction > 0)
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "[INFO] Add strange particles. Number of strange particles to be added: " << Nstrange_add << std::endl;
+          }
+
+          // Add strange particles given Nstrange_add
+          for (int i = 0; i < Nstrange_add; i++)
+          {
+            int pid = list_strangePID[0];  // default to the first PID in the list, i.e K_s0
+            double prob = gsl_rng_uniform_pos(RandomGenerator);
+            for (const auto &it : list_strangePID_probrange)
+            {
+              if (prob >= it.second.first && prob < it.second.second)
+              {
+                pid = it.first;
+                break;
+              }
+            }
+
+            // sample pt and eta from the EMG and DBG functions; phi between -pi and pi
+            double pt = fpt->GetRandom();
+            double eta = feta->GetRandom();
+            double phi = (gsl_rng_uniform_pos(RandomGenerator) * 2 * M_PI) - M_PI;
+            double mass = TDatabasePDG::Instance()->GetParticle(pid)->Mass();
+
+            TLorentzVector lv;
+            lv.SetPtEtaPhiM(pt, eta, phi, mass);
+
+            // create a new particle
+            PHG4Particle *particle = new PHG4Particlev1();
+            particle->set_pid(pid);
+            particle->set_px(lv.Px());
+            particle->set_py(lv.Py());
+            particle->set_pz(lv.Pz());
+            particle->set_barcode(std::numeric_limits<int>::max() - i);  // set the barcode to be distinct from the existing particles; backward counting from the maximum integer value
+
+            ineve->AddParticle(vtxindex, particle);
+          }
         }
-      }  //      if (!finalstateparticles.empty())
 
-    }  //    for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
-
-  }  // For pile-up simulation: loop end for PHHepMC event map
+      }  // if (!finalstateparticles.empty())
+    }    // for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
+  }      // For pile-up simulation: loop end for PHHepMC event map
   if (Verbosity() > 0)
   {
     ineve->identify();
@@ -466,6 +584,35 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
   width_vy = s_y;
   width_vz = s_z;
   return;
+}
+
+double HepMCNodeReader::EMGFunction(double *x, double *par)
+{
+  // parameterization: https://en.wikipedia.org/wiki/Exponentially_modified_Gaussian_distribution
+
+  double N = par[0];       // Normalization
+  double mu = par[1];      // Mean of the Gaussian
+  double sigma = par[2];   // Width of the Gaussian
+  double lambda = par[3];  // Decay constant of the Exponential
+
+  double t = x[0];
+  double z = (mu + lambda * sigma * sigma - t) / (sqrt(2) * sigma);
+
+  double prefactor = lambda / 2.0;
+  double exp_part = exp((lambda / 2.0) * (2.0 * mu + lambda * sigma * sigma - 2.0 * t));
+  double erfc_part = TMath::Erfc(z);
+
+  return N * prefactor * exp_part * erfc_part;
+}
+
+double HepMCNodeReader::DBGFunction(double *x, double *par)
+{
+  double N = par[0];      // Normalization
+  double mu1 = par[1];    // Mean of the first Gaussian
+  double mu2 = par[2];    // Mean of the second Gaussian
+  double sigma = par[3];  // Width of the Gaussian
+
+  return N * (TMath::Gaus(x[0], mu1, sigma) + TMath::Gaus(x[0], mu2, sigma));
 }
 
 void HepMCNodeReader::Embed(const int /*unused*/)

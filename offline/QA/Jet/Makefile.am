@@ -32,10 +32,10 @@ pkginclude_HEADERS = \
   RhosinEvent.h \
   JetSeedCount.h \
   JetKinematicCheck.h \
-  photonjetskinematics.h
+  PhotonJetsKinematics.h
 
 libjetqa_la_SOURCES = \
-  ConstituentsinJets.cc\
+  ConstituentsinJets.cc \
   StructureinJets.cc \
   TrksInJetQA.cc \
   TrksInJetQABaseFiller.cc \
@@ -49,12 +49,13 @@ libjetqa_la_SOURCES = \
   RhosinEvent.cc \
   JetSeedCount.cc \
   JetKinematicCheck.cc \
-  photonjetskinematics.cc
+  PhotonJetsKinematics.cc
 
 libjetqa_la_LIBADD = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -lcalo_io \
+  -lcalotrigger \
   -ljetbackground\
   -lg4jets \
   -lcentrality_io \
@@ -82,10 +83,6 @@ testexternals.C:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f $(BUILT_SOURCES)

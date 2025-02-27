@@ -17,6 +17,7 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <phool/sphenix_constants.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -164,7 +165,7 @@ int readDigitalCurrents::Init(PHCompositeNode * /*topNode*/)
   // R0 sector 10: -2.86919 < phi < -2.36679
   // R0 sector 11: -3.39279 < phi < -2.89039
 
-  double z_bins[2 * nz + 1];
+  double *z_bins = new double[2 * nz + 1];
   for (int z = 0; z <= 2 * nz; z++)
   {
     z_bins[z] = -z_rdo + z_rdo / nz * z;
@@ -456,7 +457,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
           {
             if (z >= 0 && z < 1.055 * m)
             {
-              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_ibf[iz] = 1.055 * m - (bX - _event_bunchXing) * sphenix_constants::time_between_crossings * vIon * ns;
               if (z_ibf[iz] > 0 && z_ibf[iz] < 1.055 * m)
               {
                 f_fill_ibf[iz] = 1;
@@ -464,7 +465,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
             }
             if (z < 0 && z > -1.055 * m)
             {
-              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * 106 * vIon * ns;
+              z_ibf[iz] = -1.055 * m + (bX - _event_bunchXing) * sphenix_constants::time_between_crossings * vIon * ns;
               if (z_ibf[iz] < 0 && z_ibf[iz] > -1.055 * m)
               {
                 f_fill_ibf[iz] = 1;

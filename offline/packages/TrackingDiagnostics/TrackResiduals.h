@@ -48,18 +48,21 @@ class TrackResiduals : public SubsysReco
   void clusterTree() { m_doClusters = true; }
   void hitTree() { m_doHits = true; }
   void noEventTree() {m_doEventTree = false;}
+  void MatchedTracksOnly() {m_doMatchedOnly = true;}
   void ppmode() { m_ppmode = true; }
   void convertSeeds(bool flag) { m_convertSeeds = flag; }
   void dropClustersNoState(bool flag) { m_dropClustersNoState = flag; }
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
+  void job(const int job) { m_job = job; }
   void linefitAll() { m_linefitTPCOnly = false; }
   void setClusterMinSize(unsigned int size) { m_min_cluster_size = size; }
   void failedTree() { m_doFailedSeeds = true; }
   void setSegment(const int segment) { m_segment = segment; }
 
   void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
+  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
 
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
@@ -102,6 +105,7 @@ class TrackResiduals : public SubsysReco
   bool m_doEventTree = true;
   bool m_zeroField = false;
   bool m_doFailedSeeds = false;
+  bool m_doMatchedOnly = false;
 
   TpcClusterMover m_clusterMover;
   TpcGlobalPositionWrapper m_globalPositionWrapper;
@@ -109,6 +113,7 @@ class TrackResiduals : public SubsysReco
   ClusterErrorPara m_clusErrPara;
   std::string m_alignmentMapName = "SvtxAlignmentStateMap";
   std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   bool m_doAlignment = false;
   bool m_ppmode = false;
@@ -122,6 +127,9 @@ class TrackResiduals : public SubsysReco
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();
+  int m_job = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpcclus = std::numeric_limits<int>::quiet_NaN();
+
   std::vector<int> m_firedTriggers;
   uint64_t m_gl1BunchCrossing = std::numeric_limits<uint64_t>::quiet_NaN();
 

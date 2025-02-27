@@ -66,6 +66,12 @@ class CaloTowerBuilder : public SubsysReco
     m_bdosoftwarezerosuppression = usezerosuppression;
   }
 
+  void set_inputNodePrefix(const std::string &name)
+  {
+    m_inputNodePrefix = name;
+    return;
+  }
+
   void set_outputNodePrefix(const std::string &name)
   {
     m_outputNodePrefix = name;
@@ -133,6 +139,8 @@ class CaloTowerBuilder : public SubsysReco
   float m_timeLim_low{-3.0};
   float m_timeLim_high{4.0};
   bool m_dobitfliprecovery{false};
+
+  int m_saturation{16383};
 
   std::string m_fieldname;
   std::string m_calibName;

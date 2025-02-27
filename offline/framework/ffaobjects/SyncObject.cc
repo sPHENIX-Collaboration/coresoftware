@@ -44,16 +44,20 @@ SyncObject::operator=(const SyncObject& source)
   return *this;
 }
 
-int SyncObject::Different(const SyncObject* other) const
+unsigned int SyncObject::Different(const SyncObject* other) const
 {
-  int iret = 0;
+  unsigned int iret = 0;
   if (EventNumber() != other->EventNumber())
   {
-    iret += 0x1;
+    iret += 0x1U;
   }
   if (RunNumber() != other->RunNumber())
   {
-    iret |= 0x2;
+    iret |= 0x2U;
+  }
+  if (SegmentNumber() != other->SegmentNumber())
+  {
+    iret |= 0x4U;
   }
   return iret;
 }

@@ -93,7 +93,7 @@ class PHG4ConeSubsystem : public PHG4DetectorSubsystem
   PHG4DisplayAction* m_DisplayAction = nullptr;
 
   //! Color setting if we want to override the default
-  std::array<double, 4> m_ColorArray;
+  std::array<double, 4> m_ColorArray{};
 };
 
 #endif  // G4DETECTORS_PHG4CONESUBSYSTEM_H

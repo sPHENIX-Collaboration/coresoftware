@@ -72,7 +72,7 @@ int Tpc3DClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  auto laserclusters = findNode::getClass<LaserClusterContainerv1>(dstNode, "LASER_CLUSTER");
+  auto laserclusters = findNode::getClass<LaserClusterContainer>(dstNode, "LASER_CLUSTER");
   if (!laserclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -116,7 +116,18 @@ int Tpc3DClusterizer::InitRun(PHCompositeNode *topNode)
     m_outputFile = new TFile(m_outputFileName.c_str(), "RECREATE");
 
     m_clusterNT = new TNtuple("clus3D", "clus3D","event:seed:x:y:z:r:phi:phibin:tbin:adc:maxadc:layer:phielem:zelem:size:phisize:tsize:lsize");
-  } 
+  }
+  
+  m_geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!m_geom_container)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  AdcClockPeriod = m_geom_container->GetFirstLayerCellGeom()->get_zstep();
+
   m_tdriftmax = AdcClockPeriod * NZBinsSide;
 
   t_all = std::make_unique<PHTimer>("t_all");
@@ -158,18 +169,10 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
   }
   
   // get node for clusters
-  m_clusterlist = findNode::getClass<LaserClusterContainerv1>(topNode, "LASER_CLUSTER");
+  m_clusterlist = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!m_clusterlist)
   {
     std::cout << PHWHERE << " ERROR: Can't find LASER_CLUSTER." << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  m_geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!m_geom_container)
-  {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -539,8 +542,8 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   int tsize = itmax - itmin +1;
   if (m_debug)
   {
-    m_currentCluster = (LaserClusterv1 *) clus->CloneMe();
-    m_eventClusters.push_back((LaserClusterv1 *) m_currentCluster->CloneMe());
+    m_currentCluster = (LaserCluster *) clus->CloneMe();
+    m_eventClusters.push_back((LaserCluster *) m_currentCluster->CloneMe());
   }
   if(nHits>1&&tsize>5){
     const auto ckey = TrkrDefs::genClusKey(maxKey, m_clusterlist->size());
