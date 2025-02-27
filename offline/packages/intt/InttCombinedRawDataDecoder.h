@@ -32,9 +32,9 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int LoadBadChannelMap(std::string const& s) {return m_badmap.Load(s);}
 
   /// Depreciated; use LoadHotChannelMap(const std::string&);
-  int LoadHotChannelMapLocal(std::string const& = "INTT_HotChannelMap.root");
+  int LoadHotChannelMapLocal(std::string const& s = "INTT_HotChannelMap.root") {return LoadBadChannelMap(s);}
   /// Depreciated; use LoadHotChannelMap(const std::string&);
-  int LoadHotChannelMapRemote(std::string const& = "INTT_HotChannelMap");
+  int LoadHotChannelMapRemote(std::string const& s = "INTT_HotChannelMap") {return LoadBadChannelMap(s);}
 
   void SetCalibDAC(std::string const& calibname = "INTT_DACMAP", const CalibRef& calibref = CDB)
   {
