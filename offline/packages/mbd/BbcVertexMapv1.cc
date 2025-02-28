@@ -6,21 +6,14 @@
 #include <iterator>  // for reverse_iterator
 #include <utility>   // for pair, make_pair
 
-using namespace std;
-
-BbcVertexMapv1::BbcVertexMapv1()
-  : _map()
-{
-}
-
 BbcVertexMapv1::~BbcVertexMapv1()
 {
   BbcVertexMapv1::clear();
 }
 
-void BbcVertexMapv1::identify(ostream& os) const
+void BbcVertexMapv1::identify(std::ostream& os) const
 {
-  os << "BbcVertexMapv1: size = " << _map.size() << endl;
+  os << "BbcVertexMapv1: size = " << _map.size() << std::endl;
   return;
 }
 
@@ -54,14 +47,14 @@ BbcVertex* BbcVertexMapv1::get(unsigned int id)
   return iter->second;
 }
 
-BbcVertex* BbcVertexMapv1::insert(BbcVertex* clus)
+BbcVertex* BbcVertexMapv1::insert(BbcVertex* vertex)
 {
   unsigned int index = 0;
   if (!_map.empty())
   {
     index = _map.rbegin()->first + 1;
   }
-  _map.insert(make_pair(index, clus));
+  _map.insert(std::make_pair(index, vertex));
   _map[index]->set_id(index);
   return _map[index];
 }

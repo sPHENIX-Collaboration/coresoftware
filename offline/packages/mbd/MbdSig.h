@@ -1,5 +1,5 @@
-#ifndef __MBDSIG_H__
-#define __MBDSIG_H__
+#ifndef MBD_MBDSIG_H
+#define MBD_MBDSIG_H
 
 #include "MbdRunningStats.h"
 
@@ -7,14 +7,10 @@
 
 #include <fstream>
 #include <vector>
-#include <queue>
 
-
-class TFile;
 class TTree;
 class TGraphErrors;
 class TH2;
-// class THnSparse;
 class MbdCalib;
 
 /**
@@ -49,8 +45,8 @@ class MbdSig
    * sample number starts from 0
    * Ped0 is the running pedestal and rms
    * */
-  void FillPed0(const Int_t minsamp, const Int_t maxsamp);
-  void FillPed0(const Double_t minsamp, const Double_t maxsamp);
+  void FillPed0(const Int_t sampmin, const Int_t sampmax);
+  void FillPed0(const Double_t begin, const Double_t end);
 
   Double_t GetPed0() { return ped0; }
   Double_t GetPed0RMS() { return ped0rms; }
@@ -73,9 +69,10 @@ class MbdSig
 
   void SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps = -1, const int max_samp = -1);
 
-  void CalcEventPed0(const Int_t minsamp, const Int_t maxsamp);
-  void CalcEventPed0(const Double_t minx, const Double_t maxx);
-  void CalcEventPed0_PreSamp(const Int_t pre_samp, const Int_t nsamps = 1);
+  void CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp);
+  void CalcEventPed0(const Double_t minpedx, const Double_t maxpedx);
+  int CalcEventPed0_PreSamp(const Int_t presample, const Int_t nsamps = 1);
+  void Remove_Pileup();
 
   TH1 *GetPedHist() { return hPed0; }
 
@@ -95,10 +92,10 @@ class MbdSig
   Double_t Integral(const Double_t xmin, const Double_t xmax);
 
   /** The maximum value from all samples */
-  void LocMax(Double_t &x_at_max, Double_t &ymax, Double_t minxrange = 0., Double_t maxxrange = 0.);
+  void LocMax(Double_t &x_at_max, Double_t &ymax, Double_t xminrange = 0., Double_t xmaxrange = 0.);
 
   /** The minimum value from all samples (including negatives) */
-  void LocMin(Double_t &x_at_min, Double_t &ymin, Double_t minxrange = 0., Double_t maxxrange = 0.);
+  void LocMin(Double_t &x_at_min, Double_t &ymin, Double_t xminrange = 0., Double_t xmaxrange = 0.);
 
   /** Use template fit to get ampl and time */
   Int_t FitTemplate(const Int_t sampmax = -1);
@@ -117,7 +114,7 @@ class MbdSig
 
   void WritePedHist();
 
-  void PadUpdate();
+  void PadUpdate() const;
   void Print();
   void Verbose(const int v) { _verbose = v; }
 
@@ -130,6 +127,10 @@ class MbdSig
 
   int _evt_counter{0};
   MbdCalib *_mbdcal{nullptr};
+  float _pileup_p0{0.};
+  float _pileup_p1{0.};
+  float _pileup_p2{0.};
+  TF1 *fit_pileup{nullptr};
 
   /** fit values*/
   // should make an array for the different methods
@@ -187,6 +188,10 @@ class MbdSig
   TF1 *template_fcn{nullptr};
   Double_t fit_min_time{};  //! min time for fit, in original units of waveform data
   Double_t fit_max_time{};  //! max time for fit, in original units of waveform data
+
+  std::ofstream *_pileupfile{nullptr};  // for writing out waveforms from prev. crossing pileup
+                                        // use for calibrating out the tail from these events
+
 
   int _verbose{0};
 };

@@ -38,6 +38,7 @@ class PHCosmicSeeder : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
+  void adcCut(float cut) { m_adcCut = cut; }
   void xyTolerance(float tol) { m_xyTolerance = tol; }
   void seedAnalysis() { m_analysis = true; }
   void trackMapName(const std::string &name) { m_trackMapName = name; }
@@ -57,6 +58,7 @@ class PHCosmicSeeder : public SubsysReco
   std::string m_trackMapName = "TpcTrackSeedContainer";
   TrkrDefs::TrkrId m_trackerId = TrkrDefs::TrkrId::tpcId;
   ActsGeometry *m_tGeometry = nullptr;
+  float m_adcCut = 0;
   TrkrClusterContainer *m_clusterContainer = nullptr;
   TrackSeedContainer *m_seedContainer = nullptr;
   TFile *m_outfile = nullptr;

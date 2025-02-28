@@ -2,7 +2,10 @@
 
 class BbcVertex;
 
-std::map<unsigned int, BbcVertex*> DummyBbcVertexMap;
+namespace
+{
+  std::map<unsigned int, BbcVertex*> DummyBbcVertexMap;
+}
 
 BbcVertexMap::ConstIter BbcVertexMap::begin() const
 {

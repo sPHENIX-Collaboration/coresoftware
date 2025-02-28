@@ -1,5 +1,5 @@
-#ifndef __MBD_MBDPMTSIMHITV1_H__
-#define __MBD_MBDPMTSIMHITV1_H__
+#ifndef MBD_MBDPMTSIMHITV1_H
+#define MBD_MBDPMTSIMHITV1_H
 
 #include "MbdPmtHit.h"
 
@@ -10,7 +10,7 @@
 class MbdPmtSimHitV1 : public MbdPmtHit
 {
  public:
-  MbdPmtSimHitV1() {}
+  MbdPmtSimHitV1() = default;
   ~MbdPmtSimHitV1() override = default;
 
   //! Just does a clear
@@ -54,7 +54,7 @@ class MbdPmtSimHitV1 : public MbdPmtHit
   }
 
   //! Prints out exact identity of object
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   //! isValid returns non zero if object contains valid data
   virtual int isValid() const override
