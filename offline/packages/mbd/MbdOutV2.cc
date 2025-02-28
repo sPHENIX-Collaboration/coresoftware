@@ -6,9 +6,6 @@
 #include <iostream>
 
 //______________________________________
-MbdOutV2::MbdOutV2() = default;
-
-//______________________________________
 void MbdOutV2::Reset()
 {
   bz = std::numeric_limits<Float_t>::quiet_NaN();
@@ -25,9 +22,6 @@ void MbdOutV2::Reset()
   clk = 0;
   femclk = 0;
 }
-
-//______________________________________
-MbdOutV2::~MbdOutV2() = default;
 
 //______________________________________
 int MbdOutV2::isValid() const

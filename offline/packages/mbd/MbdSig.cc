@@ -13,18 +13,17 @@
 #include <TSpline.h>
 #include <TTree.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <limits>
 
-using namespace std;
-
 MbdSig::MbdSig(const int chnum, const int nsamp)
   : _ch{chnum}
   , _nsamples{nsamp}
 {
-  // cout << "In MbdSig::MbdSig(" << _ch << "," << _nsamples << ")" << endl;
+  // std::cout << "In MbdSig::MbdSig(" << _ch << "," << _nsamples << ")" << std::endl;
 }
 
 void MbdSig::Init()
@@ -92,23 +91,23 @@ void MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_
 
   Double_t xbinwid = (template_endtime - template_begintime) / (template_npointsx - 1);
   Double_t ybinwid = (1.1 + 0.1) / template_npointsy;  // yscale... should we vary this?
-  if (h2Template)
-  {
+  
+  
     delete h2Template;
-  }
-  if (h2Residuals)
-  {
+  
+  
+  
     delete h2Residuals;
-  }
+  
 
   TString name = "h2Template";
   name += _ch;
-  h2Template = new TH2F(name, name, template_npointsx, template_begintime - xbinwid / 2., template_endtime + xbinwid / 2,
-                        template_npointsy, -0.1 + ybinwid / 2.0, 1.1 + ybinwid / 2.0);
+  h2Template = new TH2F(name, name, template_npointsx, template_begintime - (xbinwid / 2.), template_endtime + (xbinwid / 2),
+                        template_npointsy, -0.1 + (ybinwid / 2.0), 1.1 + (ybinwid / 2.0));
 
   name = "h2Residuals";
   name += _ch;
-  h2Residuals = new TH2F(name, name, template_npointsx, template_begintime - xbinwid / 2., template_endtime + xbinwid / 2,
+  h2Residuals = new TH2F(name, name, template_npointsx, template_begintime - (xbinwid / 2.), template_endtime + (xbinwid / 2),
                          80, -20, 20);
 
   /*
@@ -188,7 +187,7 @@ void MbdSig::SetY(const Float_t* y, const int invert)
   // Apply pedestal
   if (use_ped0 != 0 || minped0samp >= 0 || minped0x != maxped0x || ped_presamp != 0)
   {
-    // cout << "sub" << endl;
+    // std::cout << "sub" << std::endl;
  
     int ispileup = 0; // whether pileup event or not (from prev crossing)
                       // note pileup correction not implemented for CalcEventPed0(),
@@ -215,7 +214,7 @@ void MbdSig::SetY(const Float_t* y, const int invert)
       gSubPulse->SetPointError(isamp, 0., ped0rms);
     }
 
-    if ( ispileup==1 && !isnan(_pileup_p0) )
+    if ( ispileup==1 && !std::isnan(_pileup_p0) )
     {
       Remove_Pileup();
     }
@@ -239,12 +238,12 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
   f_ampl = -9999.;
   f_time = -9999.;
 
-  // cout << "_nsamples " << _nsamples << endl;
-  // cout << "use_ped0 " << use_ped0 << "\t" << ped0 << endl;
+  // std::cout << "_nsamples " << _nsamples << std::endl;
+  // std::cout << "use_ped0 " << use_ped0 << "\t" << ped0 << std::endl;
 
   for (int isamp = 0; isamp < _nsamples; isamp++)
   {
-    // cout << "aaa\t" << isamp << "\t" << x[isamp] << "\t" << y[isamp] << endl;
+    // std::cout << "aaa\t" << isamp << "\t" << x[isamp] << "\t" << y[isamp] << std::endl;
     hRawPulse->SetBinContent(isamp + 1, y[isamp]);
     gRawPulse->SetPoint(isamp, x[isamp], y[isamp]);
     gRawPulse->SetPointError(isamp, 0, 4.0);
@@ -280,7 +279,7 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
     {
       if ( _verbose && isamp==(_nsamples-1) )
       {
-        cout << "bbb ch " << _ch << "\t" << isamp << "\t" << x[isamp] << "\t" << invert*(y[isamp]-ped0) << endl;
+        std::cout << "bbb ch " << _ch << "\t" << isamp << "\t" << x[isamp] << "\t" << invert*(y[isamp]-ped0) << std::endl;
       }
       hSubPulse->SetBinContent(isamp + 1, invert * (y[isamp] - ped0));
       hSubPulse->SetBinError(isamp + 1, ped0rms);
@@ -295,7 +294,7 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
 
     if ( _verbose && _ch==9 )
     {
-      cout << "SetXY: ch " << _ch << endl;
+      std::cout << "SetXY: ch " << _ch << std::endl;
       gSubPulse->Print("ALL");
     }
   }
@@ -371,7 +370,7 @@ Double_t MbdSig::GetSplineAmpl()
 {
   if (gSubPulse == nullptr)
   {
-    cout << "gsub bad " << (uint64_t) gSubPulse << endl;
+    std::cout << "gsub bad " << (uint64_t) gSubPulse << std::endl;
     return 0.;
   }
 
@@ -380,14 +379,11 @@ Double_t MbdSig::GetSplineAmpl()
   // First find maximum, to rescale
   f_ampl = -999999.;
   double step_size = 0.01;
-  // cout << "step size " << step_size << endl;
+  // std::cout << "step size " << step_size << std::endl;
   for (double ix = 0; ix < _nsamples; ix += step_size)
   {
     Double_t val = s3.Eval(ix);
-    if (val > f_ampl)
-    {
-      f_ampl = val;
-    }
+    f_ampl = std::max(val, f_ampl);
   }
 
   return f_ampl;
@@ -400,7 +396,8 @@ void MbdSig::WritePedHist()
 
 void MbdSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
 {
-  Double_t x, y;
+  Double_t x;
+  Double_t y;
   for (int isamp = sampmin; isamp <= sampmax; isamp++)
   {
     gRawPulse->GetPoint(isamp, x, y);
@@ -414,14 +411,15 @@ void MbdSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
     ped0rms = ped0stats->RMS();
     */
 
-    // cout << "ped0 " << _ch << " " << n << "\t" << ped0 << endl;
-    // cout << "ped0 " << _ch << "\t" << ped0 << endl;
+    // std::cout << "ped0 " << _ch << " " << n << "\t" << ped0 << std::endl;
+    // std::cout << "ped0 " << _ch << "\t" << ped0 << std::endl;
   }
 }
 
 void MbdSig::FillPed0(const Double_t begin, const Double_t end)
 {
-  Double_t x, y;
+  Double_t x;
+  Double_t y;
   Int_t n = gRawPulse->GetN();
   for (int isamp = 0; isamp < n; isamp++)
   {
@@ -436,7 +434,7 @@ void MbdSig::FillPed0(const Double_t begin, const Double_t end)
          ped0rms = ped0stats->RMS();
          */
 
-      // cout << "ped0 " << _ch << " " << n << "\t" << x << "\t" << y << endl;
+      // std::cout << "ped0 " << _ch << " " << n << "\t" << x << "\t" << y << std::endl;
     }
 
     // quit if we are past the ped region
@@ -454,16 +452,17 @@ void MbdSig::SetPed0(const Double_t mean, const Double_t rms)
   use_ped0 = 1;
   hpulse = hSubPulse;
   gpulse = gSubPulse;
-  // if ( _ch==8 ) cout << "_ch " << _ch << " Ped = " << ped0 << endl;
+  // if ( _ch==8 ) std::cout << "_ch " << _ch << " Ped = " << ped0 << std::endl;
 }
 
 // Get Event by Event Ped0 if requested
 void MbdSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
 {
-  // if (_ch==8) cout << "In MbdSig::CalcEventPed0(int,int)" << endl;
+  // if (_ch==8) std::cout << "In MbdSig::CalcEventPed0(int,int)" << std::endl;
   hPedEvt->Reset();
 
-  Double_t x, y;
+  Double_t x;
+  Double_t y;
   for (int isamp = minpedsamp; isamp <= maxpedsamp; isamp++)
   {
     gRawPulse->GetPoint(isamp, x, y);
@@ -471,7 +470,7 @@ void MbdSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
     hPed0->Fill(y);
     hPedEvt->Fill(y);
     // ped0stats->Push( y );
-    // if ( _ch==8 ) cout << "ped0stats " << isamp << "\t" << y << endl;
+    // if ( _ch==8 ) std::cout << "ped0stats " << isamp << "\t" << y << std::endl;
   }
 
   // use straight mean for pedestal
@@ -480,7 +479,7 @@ void MbdSig::CalcEventPed0(const Int_t minpedsamp, const Int_t maxpedsamp)
   float rms = hPedEvt->GetRMS();
 
   SetPed0(mean, rms);
-  // if (_ch==8) cout << "ped0stats mean, rms " << mean << "\t" << rms << endl;
+  // if (_ch==8) std::cout << "ped0stats mean, rms " << mean << "\t" << rms << std::endl;
 }
 
 // Get Event by Event Ped0 if requested
@@ -488,7 +487,8 @@ void MbdSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
 {
   hPedEvt->Reset();
 
-  Double_t x, y;
+  Double_t x;
+  Double_t y;
   Int_t n = gRawPulse->GetN();
 
   for (int isamp = 0; isamp < n; isamp++)
@@ -615,7 +615,8 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   {
     mean = ped_fcn->GetParameter(0);
 
-    Double_t x, y;
+    Double_t x;
+    Double_t y;
 
     for (int isamp = minsamp; isamp <= maxsamp; isamp++)
     {
@@ -659,7 +660,7 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
           std::cout << "aaa ch " << _ch << "\t" << _evt_counter << "\t" << mean << "\t" << ped0statsrms << std::endl;
         }
         std::string junk;
-        cin >> junk;
+        std::cin >> junk;
       }
     }
 
@@ -675,7 +676,7 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   if (_verbose > 0 && _evt_counter < 10)
   {
     std::cout << "CalcEventPed0_PreSamp: ped0stats " << _ch << "\t" << _evt_counter << "\t" << mean << "\t" << rms << std::endl;
-    cout << "CalcEventPed0_PreSamp: ped0stats " << ped0stats->RMS() << std::endl;
+    std::cout << "CalcEventPed0_PreSamp: ped0stats " << ped0stats->RMS() << std::endl;
   }
 
   _verbose = 0;
@@ -714,7 +715,7 @@ Double_t MbdSig::LeadingEdge(const Double_t threshold)
   Double_t dy = y[sample] - y[sample - 1];
   Double_t dt1 = y[sample] - threshold;
 
-  Double_t t0 = x[sample] - dt1 * (dx / dy);
+  Double_t t0 = x[sample] - (dt1 * (dx / dy));
 
   return t0;
 }
@@ -736,7 +737,7 @@ Double_t MbdSig::dCFD(const Double_t fraction_threshold)
   }
 
   Double_t threshold = fraction_threshold * ymax;  // get fraction of amplitude
-  // cout << "threshold = " << threshold << "\tymax = " << ymax <<endl;
+  // std::cout << "threshold = " << threshold << "\tymax = " << ymax <<std::endl;
 
   int sample = -1;
   for (int isamp = 0; isamp < n; isamp++)
@@ -760,7 +761,7 @@ Double_t MbdSig::dCFD(const Double_t fraction_threshold)
   Double_t dy = y[sample] - y[sample - 1];
   Double_t dt1 = y[sample] - threshold;
 
-  Double_t t0 = x[sample] - dt1 * (dx / dy);
+  Double_t t0 = x[sample] - (dt1 * (dx / dy));
 
   return t0;
 }
@@ -774,7 +775,7 @@ Double_t MbdSig::MBDTDC(const Int_t max_samp)
   if (y == nullptr)
   {
     std::cout << "ERROR y == 0" << std::endl;
-    return NAN;
+    return std::numeric_limits<Double_t>::quiet_NaN();
   }
 
   f_time = y[max_samp];
@@ -861,14 +862,14 @@ void MbdSig::LocMax(Double_t& x_at_max, Double_t& ymax, Double_t xminrange, Doub
 
   if ( _verbose )
   {
-    string junk;
-    cin >> junk;
+    std::string junk;
+    std::cin >> junk;
     std::cout << "MbdSig::LocMax, " << x_at_max << "\t" << ymax << std::endl;
     _verbose = 0;
   }
 }
 
-void MbdSig::LocMin(Double_t& x_at_max, Double_t& ymin, Double_t xminrange, Double_t xmaxrange)
+void MbdSig::LocMin(Double_t& x_at_min, Double_t& ymin, Double_t xminrange, Double_t xmaxrange)
 {
   // Find index of minimum peak (for neg signals)
   Int_t n = gSubPulse->GetN();
@@ -899,7 +900,7 @@ void MbdSig::LocMin(Double_t& x_at_max, Double_t& ymin, Double_t xminrange, Doub
     if (y[i] < ymin)
     {
       ymin = y[i];
-      x_at_max = x[i];
+      x_at_min = x[i];
     }
   }
 
@@ -909,16 +910,17 @@ void MbdSig::LocMin(Double_t& x_at_max, Double_t& ymin, Double_t xminrange, Doub
 
 void MbdSig::Print()
 {
-  Double_t x, y;
-  cout << "CH " << _ch << endl;
+  Double_t x;
+  Double_t y;
+  std::cout << "CH " << _ch << std::endl;
   for (int isamp = 0; isamp < _nsamples; isamp++)
   {
     gpulse->GetPoint(isamp, x, y);
-    cout << isamp << "\t" << x << "\t" << y << endl;
+    std::cout << isamp << "\t" << x << "\t" << y << std::endl;
   }
 }
 
-void MbdSig::PadUpdate()
+void MbdSig::PadUpdate() const
 {
   // Make sure TCanvas is created externally!
   std::cout << PHWHERE << " PadUpdate\t_verbose = " << _verbose << std::endl;
@@ -926,11 +928,11 @@ void MbdSig::PadUpdate()
   {
     gPad->Modified();
     gPad->Update();
-    cout << _ch << " ? ";
+    std::cout << _ch << " ? ";
     if ( _verbose>10 )
     {
       std::string junk;
-      cin >> junk;
+      std::cin >> junk;
 
       if (junk[0] == 'w' || junk[0] == 's')
       {
@@ -983,7 +985,7 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
       Double_t y0 = template_y[0];
       return par[0] * y0;
     }
-    else if (xx > template_endtime)
+    if (xx > template_endtime)
     {
       // Double_t x0,y0;
       Double_t y0 = template_y[template_npointsx - 1];
@@ -1008,8 +1010,8 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
   {
     if (verbose > 0)
     {
-      cout << "ERROR, ilow ihigh " << ilow << "\t" << ihigh << endl;
-      cout << " " << xx << " " << x[0] << " " << par[1] << endl;
+      std::cout << "ERROR, ilow ihigh " << ilow << "\t" << ihigh << std::endl;
+      std::cout << " " << xx << " " << x[0] << " " << par[1] << std::endl;
     }
 
     if (ilow < 0)
@@ -1044,11 +1046,12 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 
   // Reject points where ADC saturates
   int samp_point = static_cast<int>(x[0]);
-  Double_t temp_x, temp_y;
+  Double_t temp_x;
+  Double_t temp_y;
   gRawPulse->GetPoint(samp_point, temp_x, temp_y);
   if (temp_y > 16370)
   {
-    //if ( _ch==185 ) cout << "ADCSATURATED " << _ch << "\t" << samp_point << "\t" << temp_x << "\t" << temp_y << std::endl;
+    //if ( _ch==185 ) std::cout << "ADCSATURATED " << _ch << "\t" << samp_point << "\t" << temp_x << "\t" << temp_y << std::endl;
     TF1::RejectPoint();
   }
 
@@ -1068,7 +1071,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   {
     f_ampl = 0.;
     f_time = std::numeric_limits<Float_t>::quiet_NaN();
-    cout << "ERROR, gSubPulse empty" << endl;
+    std::cout << "ERROR, gSubPulse empty" << std::endl;
     return 1;
   }
 
@@ -1093,7 +1096,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
 
   if (_verbose > 0)
   {
-    cout << "Fitting ch " << _ch << endl;
+    std::cout << "Fitting ch " << _ch << std::endl;
   }
 
   // Get x and y of maximum
@@ -1232,8 +1235,8 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   if (_verbose > 0 && fabs(f_ampl) > 0.)
   {
     _verbose = 12;
-    cout << "FitTemplate " << _ch << "\t" << f_ampl << "\t" << f_time << endl;
-    cout << "            " << template_fcn->GetChisquare()/template_fcn->GetNDF() << endl;
+    std::cout << "FitTemplate " << _ch << "\t" << f_ampl << "\t" << f_time << std::endl;
+    std::cout << "            " << template_fcn->GetChisquare()/template_fcn->GetNDF() << std::endl;
     gSubPulse->Draw("ap");
     gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
     gPad->SetGridy(1);

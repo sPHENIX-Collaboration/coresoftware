@@ -13,9 +13,9 @@ class MbdOutV2 : public MbdOut
 {
  public:
   ///
-  MbdOutV2();
+  MbdOutV2() = default;
   ///
-  ~MbdOutV2() override;
+  ~MbdOutV2() override = default;
 
   /// Clear Event from memory
   void Reset() override;
@@ -23,7 +23,7 @@ class MbdOutV2 : public MbdOut
   /** identify Function from PHObject
       @param os Output Stream
    */
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &out = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;

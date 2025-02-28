@@ -19,13 +19,13 @@
 
 #include <TString.h>
 
-MbdCalib::MbdCalib()
+MbdCalib::MbdCalib() : _rc(recoConsts::instance())
 {
   Reset();
   _mbdgeom = std::make_unique<MbdGeomV1>();
 
 #ifndef ONLINE
-  _rc = recoConsts::instance();
+  
   if ( _rc->FlagExist("MBD_TEMPLATEFIT") )
   {
     do_templatefit = _rc->get_IntFlag("MBD_TEMPLATEFIT");
@@ -148,7 +148,7 @@ int MbdCalib::Download_All()
 #endif
 
   // download local calibs (text versions)
-  if ( bbc_caldir.size() > 0 )
+  if ( !bbc_caldir.empty() )
   {
     std::string sampmax_file = bbc_caldir + "/mbd_sampmax.calib";
     Download_SampMax(sampmax_file);
@@ -433,7 +433,7 @@ int MbdCalib::Download_T0Corr(const std::string& dbase_location)
   _t0corr_hstddev.fill(std::numeric_limits<float>::quiet_NaN());
   _t0corr_hstddeverr.fill(std::numeric_limits<float>::quiet_NaN());
 
-  if ( dbase_location.size()==0 )
+  if ( dbase_location.empty() )
   {
     return 0;
   }
@@ -702,7 +702,7 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
 
       for (int ipt = 0; ipt < _shape_npts[ifeech]; ipt++)
       {
-        int chtemp = 1000 * ipt + ifeech;
+        int chtemp = (1000 * ipt) + ifeech;
 
         float val = cdbttree->GetFloatValue(chtemp, "shape_val");
         _shape_y[ifeech].push_back(val);
@@ -838,7 +838,7 @@ int MbdCalib::Download_Shapes(const std::string& dbase_location)
     infile.close();
   }
 
-  if ( _shape_y[8].size()==0 )
+  if ( _shape_y[8].empty() )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -887,7 +887,7 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
 
       for (int ipt=0; ipt<_tcorr_npts[ifeech]; ipt++)
       {
-        int chtemp = 1000*ipt + ifeech; // in cdbtree, entry has id = 1000*datapoint + ifeech
+        int chtemp = (1000*ipt) + ifeech; // in cdbtree, entry has id = 1000*datapoint + ifeech
 
         float val = cdbttree->GetFloatValue(chtemp, "tcorr_val");
         _tcorr_y[ifeech].push_back( val );
@@ -963,7 +963,7 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
     infile.close();
   }
 
-  if ( _tcorr_y[0].size()==0 )
+  if ( _tcorr_y[0].empty() )
   {
     std::cout << PHWHERE << ", ERROR, MBD tcorr not loaded, " << dbase_location << std::endl;
     _status = -1;
@@ -988,7 +988,7 @@ int MbdCalib::Download_TimeCorr(const std::string& dbase_location)
 
       // simple linear interpolation for now
       double slope = (_tcorr_y[ifeech][calib_index+1] - _tcorr_y[ifeech][calib_index])/step;
-      float tcorr_interp = _tcorr_y[ifeech][calib_index] + interp*slope;
+      float tcorr_interp = _tcorr_y[ifeech][calib_index] + (interp*slope);
  
       _tcorr_y_interp[ifeech].push_back( tcorr_interp );
 
@@ -1046,7 +1046,7 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
 
       for (int ipt=0; ipt<_scorr_npts[ifeech]; ipt++)
       {
-        int chtemp = 1000*ipt + ifeech; // in cdbtree, entry has id = 1000*datapoint + ifeech
+        int chtemp = (1000*ipt) + ifeech; // in cdbtree, entry has id = 1000*datapoint + ifeech
 
         float val = cdbttree->GetFloatValue(chtemp, "scorr_val");
         _scorr_y[ifeech].push_back( val );
@@ -1124,7 +1124,7 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
     infile.close();
   }
 
-  if ( _scorr_y[0].size()==0 )
+  if ( _scorr_y[0].empty() )
   {
     std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
     _status = -1;
@@ -1155,7 +1155,7 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
 
       // simple linear interpolation for now
       double slope = (_scorr_y[ifeech][calib_index+1] - _scorr_y[ifeech][calib_index])/step;
-      float scorr_interp = _scorr_y[ifeech][calib_index] + interp*slope;
+      float scorr_interp = _scorr_y[ifeech][calib_index] + (interp*slope);
  
       _scorr_y_interp[ifeech].push_back( scorr_interp );
 
@@ -1546,7 +1546,7 @@ int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
 
     for (int ipt = 0; ipt < _shape_npts[ifeech]; ipt++)
     {
-      int temp_ch = ipt * 1000 + ifeech;
+      int temp_ch = (ipt * 1000) + ifeech;
       cdbttree->SetFloatValue(temp_ch, "shape_val", _shape_y[ifeech][ipt]);
     }
 
@@ -1556,7 +1556,7 @@ int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
 
     for (int ipt = 0; ipt < _shape_npts[ifeech]; ipt++)
     {
-      int temp_ch = ipt * 1000 + ifeech;
+      int temp_ch = (ipt * 1000) + ifeech;
       cdbttree->SetFloatValue(temp_ch, "sherr_val", _sherr_yerr[ifeech][ipt]);
     }
   }
@@ -1576,7 +1576,7 @@ int MbdCalib::Write_CDB_Shapes(const std::string& dbfile)
       std::cout << ifeech << "\t" << cdbttree->GetIntValue(ifeech, "shape_npts") << std::endl;
       for (int ipt = 0; ipt < 10; ipt++)
       {
-        int temp_ch = ipt * 1000 + (int)ifeech;
+        int temp_ch = (ipt * 1000) + (int)ifeech;
         std::cout << cdbttree->GetFloatValue(temp_ch, "shape_val") << "  ";
       }
       std::cout << std::endl;
@@ -1616,7 +1616,7 @@ int MbdCalib::Write_CDB_TimeCorr(const std::string& dbfile)
 
     for (int ipt=0; ipt<_tcorr_npts[ifeech]; ipt++)
     {
-      int temp_ch = ipt*1000 + (int)ifeech;
+      int temp_ch = (ipt*1000) + ifeech;
       cdbttree->SetFloatValue(temp_ch,"tcorr_val",_tcorr_y[ifeech][ipt]);
     }
   }
@@ -1636,7 +1636,7 @@ int MbdCalib::Write_CDB_TimeCorr(const std::string& dbfile)
       std::cout << ifeech << "\t" <<  cdbttree->GetIntValue(ifeech,"tcorr_npts") << std::endl;
       for (int ipt=0; ipt<10; ipt++)
       {
-        int temp_ch = ipt*1000 + (int)ifeech;
+        int temp_ch = (ipt*1000) + (int)ifeech;
         std::cout << cdbttree->GetFloatValue(temp_ch,"tcorr_val") << "  ";
       }
       std::cout << std::endl;
@@ -1677,7 +1677,7 @@ int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
 
     for (int ipt=0; ipt<_scorr_npts[ifeech]; ipt++)
     {
-      int temp_ch = ipt*1000 + (int)ifeech;
+      int temp_ch = (ipt*1000) + (int)ifeech;
       cdbttree->SetFloatValue(temp_ch,"scorr_val",_scorr_y[ifeech][ipt]);
     }
   }
@@ -1697,7 +1697,7 @@ int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
       std::cout << ifeech << "\t" <<  cdbttree->GetIntValue(ifeech,"scorr_npts") << std::endl;
       for (int ipt=0; ipt<10; ipt++)
       {
-        int temp_ch = ipt*1000 + (int)ifeech;
+        int temp_ch = (ipt*1000) + (int)ifeech;
         std::cout << cdbttree->GetFloatValue(temp_ch,"scorr_val") << "  ";
       }
       std::cout << std::endl;
