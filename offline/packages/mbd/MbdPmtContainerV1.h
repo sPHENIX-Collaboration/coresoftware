@@ -1,5 +1,5 @@
-#ifndef __MBD_MBDPMTCONTAINERV1_H__
-#define __MBD_MBDPMTCONTAINERV1_H__
+#ifndef MBD_MBDPMTCONTAINERV1_H__
+#define MBD_MBDPMTCONTAINERV1_H__
 
 #include "MbdPmtContainer.h"
 
@@ -23,7 +23,7 @@ public:
   /** identify Function from PHObject
       @param os Output Stream
    */
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &out = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;

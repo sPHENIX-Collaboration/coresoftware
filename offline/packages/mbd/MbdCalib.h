@@ -90,16 +90,16 @@ class MbdCalib
   void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
   void set_tq0(const int ipmt, const float t0) { _tqfit_t0mean[ipmt] = t0; }
 
-  int Download_Gains(const std::string& dbfile);
-  int Download_TQT0(const std::string& dbfile);
-  int Download_TTT0(const std::string& dbfile);
-  int Download_T0Corr(const std::string& dbfile);
-  int Download_Ped(const std::string& dbfile);
-  int Download_SampMax(const std::string& dbfile);
-  int Download_Shapes(const std::string& dbfile);
-  int Download_TimeCorr(const std::string& dbfile);
-  int Download_SlewCorr(const std::string& dbfile);
-  int Download_Pileup(const std::string& dbfile);
+  int Download_Gains(const std::string& dbase_location);
+  int Download_TQT0(const std::string& dbase_location);
+  int Download_TTT0(const std::string& dbase_location);
+  int Download_T0Corr(const std::string& dbase_location);
+  int Download_Ped(const std::string& dbase_location);
+  int Download_SampMax(const std::string& dbase_location);
+  int Download_Shapes(const std::string& dbase_location);
+  int Download_TimeCorr(const std::string& dbase_location);
+  int Download_SlewCorr(const std::string& dbase_location);
+  int Download_Pileup(const std::string& dbase_location);
   int Download_All();
 
 #ifndef ONLINE
@@ -113,7 +113,7 @@ class MbdCalib
   int Write_CDB_SlewCorr(const std::string& dbfile);
   int Write_CDB_Gains(const std::string& dbfile);
   int Write_CDB_Pileup(const std::string& dbfile);
-  int Write_CDB_All();
+  static int Write_CDB_All();
 #endif
 
   int Write_SampMax(const std::string& dbfile);

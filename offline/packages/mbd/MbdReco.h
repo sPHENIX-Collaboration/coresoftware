@@ -1,5 +1,5 @@
-#ifndef __MBDRECO_H__
-#define __MBDRECO_H__
+#ifndef MBD_MBDRECO_H
+#define MBD_MBDRECO_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -23,7 +23,7 @@ class MbdReco : public SubsysReco
  public:
   MbdReco(const std::string &name = "MbdReco");
 
-  ~MbdReco() override;
+  ~MbdReco() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;

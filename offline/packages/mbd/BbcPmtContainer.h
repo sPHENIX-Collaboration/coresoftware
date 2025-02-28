@@ -1,7 +1,7 @@
 // virtual Bbc PMT Container class
 
-#ifndef __BBC_BBCPMTCONTAINER_H__
-#define __BBC_BBCPMTCONTAINER_H__
+#ifndef MBD_BBCPMTCONTAINER_H
+#define MBD_BBCPMTCONTAINER_H
 
 #include <phool/PHObject.h>
 
@@ -15,7 +15,7 @@ class BbcPmtContainer : public PHObject
 {
  public:
   /// dtor
-  virtual ~BbcPmtContainer() {}
+  virtual ~BbcPmtContainer() = default;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -40,9 +40,9 @@ class BbcPmtContainer : public PHObject
   virtual BbcPmtHit *get_pmt(const int ipmt) const;
 
  private:
-  void virtual_warning(const std::string& funcname) const;
+  static void virtual_warning(const std::string& funcsname) ;
 
   ClassDefOverride(BbcPmtContainer, 1)
 };
 
-#endif  // __BBC_BBCPMTCONTAINER_H__
+#endif  // MBD_BBCPMTCONTAINER_H

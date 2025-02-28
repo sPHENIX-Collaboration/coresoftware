@@ -10,7 +10,7 @@
 class MbdPmtHitV1 : public MbdPmtHit
 {
  public:
-  MbdPmtHitV1() {}
+  MbdPmtHitV1() = default;
   ~MbdPmtHitV1() override = default;
 
   //! Just does a clear
@@ -41,7 +41,7 @@ class MbdPmtHitV1 : public MbdPmtHit
   }
 
   //! Prints out exact identity of object
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   //! isValid returns non zero if object contains valid data
   virtual int isValid() const override

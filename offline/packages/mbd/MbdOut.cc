@@ -1,8 +1,8 @@
 #include "MbdOut.h"
 #include "MbdReturnCodes.h"
 
-#include <cmath>
 #include <iostream>
+#include <limits>
 
 void MbdOut::identify(std::ostream& os) const
 {
@@ -25,26 +25,26 @@ int MbdOut::isValid() const
 Float_t MbdOut::get_zvtx() const
 {
   virtual_warning("get_zvtx()");
-  return NAN;
+  return std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 Float_t MbdOut::get_zvtxerr() const
 {
   virtual_warning("get_zvtxerr()");
-  return NAN;
+  return std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 Float_t MbdOut::get_t0() const
 {
   virtual_warning("get_t0()");
-  return NAN;
+  return std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 //__________________________________________
 Float_t MbdOut::get_t0err() const
 {
   virtual_warning("get_t0err()");
-  return NAN;
+  return std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 //__________________________________________
@@ -90,13 +90,13 @@ Short_t MbdOut::get_npmt(const int /*iarm*/) const
 Float_t MbdOut::get_q(const int /*iarm*/) const
 {
   virtual_warning("get_q(const int iarm)");
-  return NAN;
+  return std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 Float_t MbdOut::get_time(const int /*iarm*/) const
 {
   virtual_warning("get_time(const int iarm)");
-  return NAN;
+  return std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 Int_t MbdOut::get_evt() const
@@ -117,7 +117,7 @@ UShort_t MbdOut::get_femclock() const
   return 0;
 }
 
-void MbdOut::virtual_warning(const std::string& funcsname) const
+void MbdOut::virtual_warning(const std::string& funcsname) 
 {
   std::cout << "MbdOut::" << funcsname << " is virtual, doing nothing" << std::endl;
   return;

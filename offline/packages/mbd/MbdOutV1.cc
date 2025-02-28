@@ -6,9 +6,6 @@
 #include <iostream>
 
 //______________________________________
-MbdOutV1::MbdOutV1() = default;
-
-//______________________________________
 void MbdOutV1::Reset()
 {
   bz = std::numeric_limits<Float_t>::quiet_NaN();
@@ -22,9 +19,6 @@ void MbdOutV1::Reset()
   bts = std::numeric_limits<Float_t>::quiet_NaN();
   btn = std::numeric_limits<Float_t>::quiet_NaN();
 }
-
-//______________________________________
-MbdOutV1::~MbdOutV1() = default;
 
 //______________________________________
 int MbdOutV1::isValid() const
