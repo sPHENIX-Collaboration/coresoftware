@@ -538,7 +538,7 @@ void PHG4TpcDetector::add_geometry_node()
   std::string calibdir = CDBInterface::instance()->getUrl("TPC_FEE_CHANNEL_MAP");
   if (! calibdir.empty())
   {
-        cdbttree = std::unique_ptr<CDBTTree>(new CDBTTree(calibdir));
+    cdbttree = std::unique_ptr<CDBTTree>(new CDBTTree(calibdir));
     cdbttree->LoadCalibrations();
   }
   else
@@ -673,45 +673,25 @@ void PHG4TpcDetector::add_geometry_node()
 
         sector_min_Phi[zside].push_back(sec_min_phi[zside][isector][iregion]);
         sector_max_Phi[zside].push_back(sec_max_phi[zside][isector][iregion]);
-           std::cout<<" Module "<<iregion <<" side "<<zside<<" sector "<<isector<<" sec_min "<<sector_min_Phi[zside].at(isector)<<" sec_max "<<sector_max_Phi[zside].at(isector)<<" phi pad width "<<phi_bin_width_cdb[iregion*16]<<std::endl; 
-
       }  // isector
     }
 
-    double sum_r = 0;
     for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
     {
-      double r_length = Thickness[iregion];
-      if (iregion == 0 && layer > 0)
+      if (Verbosity())
       {
-        if (layer % 2 == 0)
-        {
-          r_length = Thickness[4];
-        }
-        else
-        {
-          r_length = Thickness[3];
-        }
-      }
-      sum_r += r_length;
-    }
-
-    for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
-    {
-     // if (Verbosity())
-     // {
         std::cout << " layer " << layer << " MinLayer " << MinLayer[iregion] << " region " << iregion
                   << " radius " << layer_radius[(int) layer - 7]
                   << " thickness " << Thickness[iregion]
                   << " NTBins " << NTBins << " tmin " << MinT << " tstep " << TBinWidth
                   << " phibins " << NPhiBins[iregion] << " phistep " << phi_bin_width_cdb[layer] << std::endl;
-      //}
+      }
 
       auto layerseggeo = new PHG4TpcCylinderGeom;
       layerseggeo->set_layer(layer);
 
       double r_length = Thickness[iregion];
-      if (iregion == 0 && layer > 6)
+      if (iregion == 0)
       {
         if (layer % 2 == 0)
         {
