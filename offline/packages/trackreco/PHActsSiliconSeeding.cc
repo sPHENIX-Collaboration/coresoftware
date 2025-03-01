@@ -296,11 +296,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         {
           m_mvtxgx.push_back(globalPosition(0));
           m_mvtxgy.push_back(globalPosition(1));
-          float clusr = std::sqrt(square(globalPosition(0)) + square(globalPosition(1)));
-          if (globalPosition.y() < 0)
-          {
-            clusr *= -1;
-          }          m_mvtxgz.push_back(globalPosition(2));
+	  m_mvtxgz.push_back(globalPosition(2));
         }
         positions.insert(std::make_pair(cluskey, globalPosition));
         if (Verbosity() > 1)
