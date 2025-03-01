@@ -599,6 +599,8 @@ void PHG4TpcDetector::add_geometry_node()
   std::array<double, NLayers > phi_bin_width_cdb;
   std::array<std::array<std::array<double, 3 >, NSectors >, NSides > sec_max_phi; 
   std::array<std::array<std::array<double, 3 >, NSectors >, NSides > sec_min_phi; 
+  int Nfee = 26;
+  int Nch = 256;
   for (int f = 0; f < Nfee; f++)
   {
     for (int ch = 0; ch < Nch; ch++)
@@ -744,7 +746,6 @@ void PHG4TpcDetector::add_geometry_node()
       }
       geonode->AddLayerCellGeom(layerseggeo);
 
-      current_r += r_length + pad_space;
     }
   }
 }
