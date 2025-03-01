@@ -711,7 +711,7 @@ void PHG4TpcDetector::add_geometry_node()
       layerseggeo->set_layer(layer);
 
       double r_length = Thickness[iregion];
-      if (iregion == 0 && layer > 0)
+      if (iregion == 0 && layer > 6)
       {
         if (layer % 2 == 0)
         {
