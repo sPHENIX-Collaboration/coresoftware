@@ -296,13 +296,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
         {
           m_mvtxgx.push_back(globalPosition(0));
           m_mvtxgy.push_back(globalPosition(1));
-          float clusr = std::sqrt(square(globalPosition(0)) + square(globalPosition(1)));
-          if (globalPosition.y() < 0)
-          {
-            clusr *= -1;
-          }
-          m_mvtxgr.push_back(clusr);
-          m_mvtxgz.push_back(globalPosition(2));
+	  m_mvtxgz.push_back(globalPosition(2));
         }
         positions.insert(std::make_pair(cluskey, globalPosition));
         if (Verbosity() > 1)
@@ -472,22 +466,39 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed& si_track)
     crossing_keep = intt_crossings[0];
     for (unsigned int ic = 1; ic < intt_crossings.size(); ++ic)
     {
-      if (intt_crossings[ic] != crossing_keep)
-      {
-        if (Verbosity() > 1)
-        {
-          std::cout << " Warning: INTT crossings not all the same "
-                    << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " keep the first one in the list" << std::endl;
-        }
-      }
+      if(intt_crossings[ic] != crossing_keep)
+	{
+	  if(abs(intt_crossings[ic] - crossing_keep) > 1)
+	    {
+	      keep_it = false;
+	      
+	      if (Verbosity() > 1)
+		{
+		  std::cout << " Warning: INTT crossings not all the same "
+			    << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " setting crossing to SHRT_MAX" << std::endl;
+		}
+	    }
+	  else
+	    {
+	      // we have INTT clusters with crossing values that differ by 1
+	      // This can be a readout issue, we take the lower value as the correct one
+
+	      if(Verbosity() > 1) { std::cout << " ic " << ic << " crossing keep " << crossing_keep << " intt_crossings " << intt_crossings[ic] << std::endl; }
+	      if(intt_crossings[ic] < crossing_keep)
+		{
+		  crossing_keep = intt_crossings[ic];
+		  if(Verbosity() > 1) { std::cout << "         ----- crossing keep changed to " << crossing_keep << std::endl; }
+		}
+	    }
+	}
     }
   }
-
+  
   if (keep_it)
-  {
-    return crossing_keep;
-  }
-
+    {
+      return crossing_keep;
+    }
+  
   return SHRT_MAX;
 }
 
@@ -543,7 +554,7 @@ std::vector<short int> PHActsSiliconSeeding::getInttCrossings(TrackSeed& si_trac
       auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
       for (auto iter1 = crossings.first; iter1 != crossings.second; ++iter1)
       {
-        if (Verbosity() > 1)
+	if (Verbosity() > 1)
         {
           std::cout << "                si Track with cluster " << iter1->first << " layer " << layer << " crossing " << iter1->second << std::endl;
         }
