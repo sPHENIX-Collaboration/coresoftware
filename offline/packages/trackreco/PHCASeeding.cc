@@ -430,7 +430,7 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
     }
   }
 
-  static const int _PRINT_THRESHOLD = 2;
+  static const int _PRINT_THRESHOLD = 2; 
 
   t_process->restart();
 
@@ -744,11 +744,11 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
   int nsplit_chains = -1;
   unsigned int seed_index = 0;
   while (seed_index < seeds.size()) {
-    auto& seed = seeds[seed_index];
+    keyPtrList* seed = &seeds[seed_index];
     seed_index++;
 
-    Checker_dphidz clus_checker(_clusadd_delta_dzdr_window, _clusadd_delta_dphidr2_window, seed);
-    keyPtrList head_keys = {seed.back()};
+    Checker_dphidz clus_checker(_clusadd_delta_dzdr_window, _clusadd_delta_dphidr2_window, *seed);
+    keyPtrList head_keys = {seed->back()};
 
     while (true) // iterate until break
     {
@@ -772,9 +772,9 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
       if (nmatched == 1) { // one matched key
         const auto& new_cluster = *matching_keys.begin();
         if (clus_checker.check_cluster(new_cluster)) {
-          // the 1 key is a good key
-          seed.emplace_back(new_cluster);
-          if (seed.size()>=_max_clusters_per_seed) { break; }
+          // first key is a good key
+          seed->emplace_back(new_cluster);
+          if (seed->size()>=_max_clusters_per_seed) { break; }
           clus_checker.add_cluster();
           head_keys = {new_cluster};
           continue;
@@ -792,13 +792,13 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
       {  
         // see if the link passes the growth cuts
         if (_split_seeds)
-        { FillTupWinGrowSeed(seed, p); }
+        { FillTupWinGrowSeed(*seed, p); }
 
         if (clus_checker.check_cluster(p)) 
         { passing_keys.emplace_back(p); } 
 
         if (_split_seeds)
-        { fill_split_chains(seed, passing_keys, nsplit_chains); }
+        { fill_split_chains(*seed, passing_keys, nsplit_chains); }
       } 
 
       const unsigned int npass = passing_keys.size();
@@ -806,12 +806,13 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
         if (_split_seeds) { // make new chains up to this link
           for (unsigned int i = 1; i < passing_keys.size(); ++i)
           {
-            keyPtrList newseed = {seed.begin(), seed.end()};
+            keyPtrList newseed = {seed->begin(), seed->end()};
             newseed.emplace_back(passing_keys[i]);
             seeds.emplace_back(std::move(newseed));
+            seed = &seeds[seed_index]; // seeds might have rearranged
           }
-          seed.emplace_back(passing_keys[0]);
-          if (seed.size() >= _max_clusters_per_seed) { break; }
+          seed->emplace_back(passing_keys[0]);
+          if (seed->size() >= _max_clusters_per_seed) { break; }
           clus_checker.add_cluster(passing_keys[0]);
           head_keys = {passing_keys[0]};
           continue;
@@ -824,17 +825,17 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
       } else if (npass == 0) {
         break;
       } else { // there is a single passing seed
-        seed.emplace_back(passing_keys[0]);
-        if (seed.size() >= _max_clusters_per_seed) { break; }
+        seed->emplace_back(passing_keys[0]);
+        if (seed->size() >= _max_clusters_per_seed) { break; }
         clus_checker.add_cluster(passing_keys[0]);
         head_keys = {passing_keys[0]};
         continue;
       }
     } // end growing single seed
          
-    if (seed.size() >= _min_clusters_per_seed)
+    if (seed->size() >= _min_clusters_per_seed)
     {
-      fill_tuple_with_seed(_tupclus_grown_seeds, seed);
+      fill_tuple_with_seed(_tupclus_grown_seeds, *seed);
     }
   }  // end of loop over seeds
 }
