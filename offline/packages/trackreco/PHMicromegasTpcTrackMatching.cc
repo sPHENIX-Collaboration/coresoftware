@@ -355,11 +355,14 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
     if( has_micromegas )
     {
-      std::cout
-        << "PHMicromegasTpcTrackMatching::process_event -"
-        << " Micromegas hits already associated to TPC seed. "
-        << " Skipping this track"
-        << std::endl;
+      if( Verbosity() )
+      {
+        std::cout
+          << "PHMicromegasTpcTrackMatching::process_event -"
+          << " Micromegas hits already associated to TPC seed."
+          << " Skipping this track"
+          << std::endl;
+      }
       continue;
     }
 
