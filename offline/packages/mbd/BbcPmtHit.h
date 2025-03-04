@@ -13,8 +13,8 @@
 class BbcPmtHit : public PHObject
 {
  public:
-  BbcPmtHit() {}
-  virtual ~BbcPmtHit() override = default;
+  BbcPmtHit() = default;
+  ~BbcPmtHit() override = default;
 
   virtual Short_t get_pmt() const
   {
@@ -51,7 +51,7 @@ class BbcPmtHit : public PHObject
     PHOOL_VIRTUAL_WARNING;
   }
 
-  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual void identify(std::ostream& oout = std::cout) const override;
 
   virtual int isValid() const override { return 0; }
 

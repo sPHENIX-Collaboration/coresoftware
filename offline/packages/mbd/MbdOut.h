@@ -12,7 +12,7 @@ class MbdOut : public PHObject
 {
  public:
   ///
-  ~MbdOut() override {}
+  ~MbdOut() override = default;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -111,7 +111,7 @@ class MbdOut : public PHObject
   virtual void FillFromClass(const MbdOut& old);
 
  private:
-  void virtual_warning(const std::string& funcname) const;
+  static void virtual_warning(const std::string& funcsname) ;
 
   ClassDefOverride(MbdOut, 1)
 };

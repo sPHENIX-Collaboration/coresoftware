@@ -1,5 +1,5 @@
-#ifndef __MBD_GEOM_H__
-#define __MBD_GEOM_H__
+#ifndef MBD_GEOM_H
+#define MBD_GEOM_H
 
 #include <phool/PHObject.h>
 
@@ -7,19 +7,19 @@
 #include <utility>
 #include <tuple>
 #include <iostream>
-#include <cmath>
+#include <limits>
 
 class MbdGeom : public PHObject
 {
   public:
     MbdGeom() = default;
-    ~MbdGeom() override {};
+    ~MbdGeom() override = default;
 
-    virtual float get_x(const unsigned int /*pmtch*/) const {return NAN;};
-    virtual float get_y(const unsigned int /*pmtch*/) const {return NAN;};
-    virtual float get_z(const unsigned int /*pmtch*/) const {return NAN;};
-    virtual float get_r(const unsigned int /*pmtch*/) const {return NAN;};
-    virtual float get_phi(const unsigned int /*pmtch*/) const {return NAN;};
+    virtual float get_x(const unsigned int /*pmtch*/) const {return std::numeric_limits<float>::quiet_NaN();};
+    virtual float get_y(const unsigned int /*pmtch*/) const {return std::numeric_limits<float>::quiet_NaN();};
+    virtual float get_z(const unsigned int /*pmtch*/) const {return std::numeric_limits<float>::quiet_NaN();};
+    virtual float get_r(const unsigned int /*pmtch*/) const {return std::numeric_limits<float>::quiet_NaN();};
+    virtual float get_phi(const unsigned int /*pmtch*/) const {return std::numeric_limits<float>::quiet_NaN();};
     virtual int   get_arm(const unsigned int pmtch) const { return pmtch / 64; }
     virtual int   get_feech(const unsigned int pmtch, const unsigned int type = 1) const {
       return (pmtch / 8) * 16 + pmtch % 8 + 8*type;

@@ -62,8 +62,8 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
     return m_TowerEnergySrc;
   }
 
-  std::string
-  get_sim_tower_node_prefix() const
+  const std::string
+  &get_sim_tower_node_prefix() const
   {
     return m_SimTowerNodePrefix;
   }

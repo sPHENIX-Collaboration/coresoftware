@@ -125,7 +125,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_get_charge_conjugate = get_charge_conjugate;
   }
 
-  void setDaughters(std::vector<std::pair<std::string, int> /*unused*/> daughter_list)
+  void setDaughters(std::vector<std::pair<std::string, int>> &daughter_list)
   {
     for (unsigned int i = 0; i < daughter_list.size(); ++i)
     {
@@ -134,7 +134,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     }
   }
 
-  void setIntermediateStates(std::vector<std::pair<std::string, int> /*unused*/> intermediate_list)
+  void setIntermediateStates(const std::vector<std::pair<std::string, int>> &intermediate_list)
   {
     for (unsigned int i = 0; i < intermediate_list.size(); ++i)
     {
@@ -221,7 +221,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void constrainIntermediateMasses(bool constrain_int_mass = true) { m_constrain_int_mass = constrain_int_mass; }
 
-  void setIntermediateMassRange(std::vector<std::pair<float, float> /*unused*/> intermediate_mass_range)
+  void setIntermediateMassRange(const std::vector<std::pair<float, float>> &intermediate_mass_range)
   {
     for (unsigned int i = 0; i < intermediate_mass_range.size(); ++i) m_intermediate_mass_range.push_back(intermediate_mass_range[i]);
   }
@@ -280,7 +280,7 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setNumMVAPars(unsigned int nPars) { m_nPars = nPars; }
 
-  void setMVAVarList(std::vector<std::string> mva_variable_list)
+  void setMVAVarList(const std::vector<std::string> &mva_variable_list)
   {
     for (unsigned int i = 0; i < mva_variable_list.size(); ++i) m_mva_variable_list.push_back(mva_variable_list[i]);
   }

@@ -33,9 +33,6 @@ MbdReco::MbdReco(const std::string &name)
 }
 
 //____________________________________________________________________________..
-MbdReco::~MbdReco() = default;
-
-//____________________________________________________________________________..
 int MbdReco::Init(PHCompositeNode *topNode)
 {
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
@@ -101,7 +98,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       }
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
-    else if (status == Fun4AllReturnCodes::ABORTEVENT )
+    if (status == Fun4AllReturnCodes::ABORTEVENT )
     {
       static int counter = 0;
       if ( counter<3 )
@@ -111,12 +108,12 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    else if ( status == -1001 )
+    if ( status == -1001 )
     {
       // calculating sampmax on this event
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
-    else if (status < 0)
+    if (status < 0)
     {
       return Fun4AllReturnCodes::EVENT_OK;
     }
@@ -131,9 +128,9 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
 
   // For multiple global vertex
-  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0)
+  if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0 && _calpass==0 )
   {
-    auto vertex = new MbdVertexv2();
+    auto *vertex = new MbdVertexv2();
     vertex->set_t(m_mbdevent->get_bbct0());
     vertex->set_z(m_mbdevent->get_bbcz());
     vertex->set_z_err(0.6);

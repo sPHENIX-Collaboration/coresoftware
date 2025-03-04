@@ -33,11 +33,11 @@ class MbdEvent
   MbdEvent(const int cal_pass = 0);
   virtual ~MbdEvent();
 
-  int SetRawData(Event *event, MbdPmtContainer *mbdpmts);
+  int SetRawData(Event *event, MbdPmtContainer *bbcpmts);
 #ifndef ONLINE
-  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *mbdpmts, Gl1Packet *gl1raw);
+  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
 #endif
-  int Calculate(MbdPmtContainer *mbdpmts, MbdOut *mbdout);
+  int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout);
   int InitRun();
   int End();
   void Clear();
@@ -70,7 +70,7 @@ class MbdEvent
 
   int  calib_is_done() { return _calib_done; }
 
-  int ProcessRawPackets(MbdPmtContainer *mbdpmts);
+  int ProcessRawPackets(MbdPmtContainer *bbcpmts);
 
   int  Verbosity() { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
@@ -81,10 +81,10 @@ class MbdEvent
   MbdGeom *_mbdgeom{nullptr};
   MbdCalib *_mbdcal{nullptr};
 
-  int Read_Charge_Calib(const std::string &calfname);
-  int Read_TQ_T0_Offsets(const std::string &calfname);
-  int Read_TQ_CLK_Offsets(const std::string &calfname);
-  int Read_TT_CLK_Offsets(const std::string &calfname);
+  int Read_Charge_Calib(const std::string &gainfname);
+  int Read_TQ_T0_Offsets(const std::string &t0cal_fname);
+  int Read_TQ_CLK_Offsets(const std::string &t0cal_fname);
+  int Read_TT_CLK_Offsets(const std::string &t0cal_fname);
   //int DoQuickClockOffsetCalib();
 
   int _debugintt{0};
@@ -162,7 +162,7 @@ class MbdEvent
   int CalcPedCalib();
 
   //
-  void ClusterEarliest(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax);
+  void ClusterEarliest(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax) const;
  
   TCanvas *ac{nullptr};  // for plots used during debugging
 

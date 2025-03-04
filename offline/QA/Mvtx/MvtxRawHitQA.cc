@@ -5,6 +5,8 @@
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
@@ -32,7 +34,8 @@ int MvtxRawHitQA::InitRun(PHCompositeNode *topNode)
   if(!mvtx_node)
   {
     std::cout << PHWHERE << " No MVTX node found, exit" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    Fun4AllServer::instance()->unregisterSubsystem(this);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   PHNodeIterator mvtx_itr(mvtx_node);
   PHPointerListIterator<PHNode> iter(mvtx_itr.ls());

@@ -6,9 +6,6 @@
 #include <iostream>
 
 //______________________________________
-BbcOutV1::BbcOutV1() = default;
-
-//______________________________________
 void BbcOutV1::Reset()
 {
   bz = std::numeric_limits<Float_t>::quiet_NaN();
@@ -22,9 +19,6 @@ void BbcOutV1::Reset()
   bts = std::numeric_limits<Float_t>::quiet_NaN();
   btn = std::numeric_limits<Float_t>::quiet_NaN();
 }
-
-//______________________________________
-BbcOutV1::~BbcOutV1() = default;
 
 //______________________________________
 int BbcOutV1::isValid() const

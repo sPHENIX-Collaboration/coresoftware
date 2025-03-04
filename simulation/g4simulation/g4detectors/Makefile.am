@@ -100,7 +100,7 @@ pkginclude_HEADERS = \
   PHG4ZDCDefs.h \
   PHG4ZDCSubsystem.h
 
-ROOT_IO_DICTS = \
+ROOTDICTS = \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer_Dict.cc \
   PHG4BlockGeom_Dict.cc \
@@ -133,40 +133,11 @@ ROOT_IO_DICTS = \
   PHG4TpcCylinderGeomContainer_Dict.cc 
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  PHG4BlockCellGeom_Dict_rdict.pcm \
-  PHG4BlockCellGeomContainer_Dict_rdict.pcm \
-  PHG4BlockGeom_Dict_rdict.pcm \
-  PHG4BlockGeomContainer_Dict_rdict.pcm \
-  PHG4BlockGeomv1_Dict_rdict.pcm \
-  PHG4Cell_Dict_rdict.pcm \
-  PHG4Cellv1_Dict_rdict.pcm \
-  PHG4CellContainer_Dict_rdict.pcm \
-  PHG4CylinderGeom_Dict_rdict.pcm \
-  PHG4CylinderGeomv1_Dict_rdict.pcm \
-  PHG4CylinderGeomv2_Dict_rdict.pcm \
-  PHG4CylinderGeomv3_Dict_rdict.pcm \
-  PHG4CylinderGeomv4_Dict_rdict.pcm \
-  PHG4CylinderGeom_Spacalv1_Dict_rdict.pcm \
-  PHG4CylinderGeom_Spacalv2_Dict_rdict.pcm \
-  PHG4CylinderGeom_Spacalv3_Dict_rdict.pcm \
-  PHG4CylinderGeomContainer_Dict_rdict.pcm \
-  PHG4CylinderCell_Dict_rdict.pcm \
-  PHG4CylinderCellv1_Dict_rdict.pcm \
-  PHG4CylinderCellv2_Dict_rdict.pcm \
-  PHG4CylinderCellv3_Dict_rdict.pcm \
-  PHG4CylinderCellContainer_Dict_rdict.pcm \
-  PHG4CylinderCellGeom_Dict_rdict.pcm \
-  PHG4CylinderCellGeom_Spacalv1_Dict_rdict.pcm \
-  PHG4CylinderCellGeomContainer_Dict_rdict.pcm \
-  PHG4ScintillatorSlat_Dict_rdict.pcm \
-  PHG4ScintillatorSlatv1_Dict_rdict.pcm \
-  PHG4ScintillatorSlatContainer_Dict_rdict.pcm \
-  PHG4TpcCylinderGeom_Dict_rdict.pcm \
-  PHG4TpcCylinderGeomContainer_Dict_rdict.pcm 
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libg4detectors_io_la_SOURCES = \
-  $(ROOT_IO_DICTS) \
+  $(ROOTDICTS) \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeomContainer.cc \
   PHG4BlockGeom.cc \

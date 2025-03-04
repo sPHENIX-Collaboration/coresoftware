@@ -54,7 +54,7 @@ class PHG4OuterHcalDetector : public PHG4Detector
   //@}
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
   int get_Layer() const { return m_Layer; }
   void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
   int ConsistencyCheck() const;

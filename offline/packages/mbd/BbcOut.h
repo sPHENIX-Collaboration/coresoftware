@@ -12,7 +12,7 @@ class BbcOut : public PHObject
 {
  public:
   ///
-  ~BbcOut() override {}
+  ~BbcOut() override = default;
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -108,7 +108,7 @@ class BbcOut : public PHObject
   virtual void FillFromClass(const BbcOut& old);
 
  private:
-  void virtual_warning(const std::string& funcname) const;
+  static void virtual_warning(const std::string& funcsname);
 
   ClassDefOverride(BbcOut, 1)
 };

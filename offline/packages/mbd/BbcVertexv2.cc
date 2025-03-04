@@ -2,32 +2,23 @@
 
 #include <cmath>
 
-using namespace std;
-
 BbcVertexv2::BbcVertexv2()
-  : _id(0xFFFFFFFF)
-  , _t(NAN)
-  , _t_err(NAN)
-  , _z(NAN)
-  , _z_err(NAN)
 {
   for (int i = 0; i < 2; i++)
   {
     _bbc_ns_npmt[i] = 0;
-    _bbc_ns_q[i] = NAN;
-    _bbc_ns_t[i] = NAN;
+    _bbc_ns_q[i] = std::numeric_limits<float>::quiet_NaN();
+    _bbc_ns_t[i] = std::numeric_limits<float>::quiet_NaN();
   }
 }
 
-BbcVertexv2::~BbcVertexv2() = default;
-
-void BbcVertexv2::identify(ostream& os) const
+void BbcVertexv2::identify(std::ostream& os) const
 {
-  os << "---BbcVertexv2--------------------------------" << endl;
-  os << "vertexid: " << get_id() << endl;
-  os << " t = " << get_t() << " +/- " << get_t_err() << endl;
-  os << " z =  " << get_z() << " +/- " << get_z_err() << endl;
-  os << "-----------------------------------------------" << endl;
+  os << "---BbcVertexv2--------------------------------" << std::endl;
+  os << "vertexid: " << get_id() << std::endl;
+  os << " t = " << get_t() << " +/- " << get_t_err() << std::endl;
+  os << " z =  " << get_z() << " +/- " << get_z_err() << std::endl;
+  os << "-----------------------------------------------" << std::endl;
 
   return;
 }

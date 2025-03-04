@@ -4,12 +4,13 @@
 #include "BbcVertex.h"
 
 #include <iostream>
+#include <limits>
 
 class BbcVertexv2 : public BbcVertex
 {
  public:
   BbcVertexv2();
-  ~BbcVertexv2() override;
+  ~BbcVertexv2() override = default;
 
   // PHObject virtual overloads
 
@@ -47,11 +48,11 @@ class BbcVertexv2 : public BbcVertex
   float get_bbc_t(int iarm) const override { return _bbc_ns_t[iarm]; }
 
  private:
-  unsigned int _id;  //< unique identifier within container
-  float _t;          //< collision time
-  float _t_err;      //< collision time uncertainty
-  float _z;          //< collision position z
-  float _z_err;      //< collision position z uncertainty
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};  //< unique identifier within container
+  float _t{std::numeric_limits<float>::quiet_NaN()};          //< collision time
+  float _t_err{std::numeric_limits<float>::quiet_NaN()};      //< collision time uncertainty
+  float _z{std::numeric_limits<float>::quiet_NaN()};          //< collision position z
+  float _z_err{std::numeric_limits<float>::quiet_NaN()};      //< collision position z uncertainty
   int _bbc_ns_npmt[2]{};
   float _bbc_ns_q[2]{};
   float _bbc_ns_t[2]{};

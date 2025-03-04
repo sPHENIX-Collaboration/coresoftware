@@ -21,7 +21,7 @@ class RawTowerBuilderByHitIndex : public SubsysReco
 {
  public:
   RawTowerBuilderByHitIndex(const std::string &name = "RawTowerBuilderByHitIndex");
-  ~RawTowerBuilderByHitIndex() override {}
+  ~RawTowerBuilderByHitIndex() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
 
@@ -48,8 +48,8 @@ class RawTowerBuilderByHitIndex : public SubsysReco
   /** Get prefix for tower collection to identify simulated towers
    * before digitization.
    */
-  std::string
-  get_sim_tower_node_prefix() const
+  const std::string
+  &get_sim_tower_node_prefix() const
   {
     return m_SimTowerNodePrefix;
   }

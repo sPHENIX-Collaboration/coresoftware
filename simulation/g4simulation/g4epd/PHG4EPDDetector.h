@@ -36,7 +36,7 @@ class PHG4EPDDetector : public PHG4Detector
   uint32_t module_id_for(G4VPhysicalVolume* volume);
 
   void SuperDetector(std::string const& name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
+  const std::string &SuperDetector() const { return superdetector; }
 
   PHG4EPDDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 

@@ -1,16 +1,16 @@
-#ifndef __BBCPMTINFOV1_H__
-#define __BBCPMTINFOV1_H__
+#ifndef MBD_BBCPMTINFOV1_H
+#define MBD_BBCPMTINFOV1_H
 
 #include <calobase/TowerInfo.h>
 
 #include <phool/PHObject.h>
 
-#include <cmath>
+#include <limits>
 
 class BbcPmtInfoV1 : public TowerInfo
 {
  public:
-  BbcPmtInfoV1() {}
+  BbcPmtInfoV1() = default;
   // BbcPmtInfoV1(TowerInfo& tower);
   ~BbcPmtInfoV1() override = default;
   void Reset() override;
@@ -19,12 +19,12 @@ class BbcPmtInfoV1 : public TowerInfo
   void Clear(Option_t* = "") override;
 
   //! Prints out exact identity of object
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   //! isValid returns non zero if object contains vailid data
   virtual int isValid() const override
   {
-    if (bq == NAN) return 0;
+    if (bq == std::numeric_limits<Float_t>::quiet_NaN()) return 0;
     return 1;
   }
 
@@ -54,9 +54,9 @@ class BbcPmtInfoV1 : public TowerInfo
 
  private:
   Short_t bpmt{-1};  ///
-  Float_t bq{NAN};
-  Float_t btt{NAN};
-  Float_t btq{NAN};
+  Float_t bq{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t btt{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t btq{std::numeric_limits<Float_t>::quiet_NaN()};
 
   ClassDefOverride(BbcPmtInfoV1, 1);
 };

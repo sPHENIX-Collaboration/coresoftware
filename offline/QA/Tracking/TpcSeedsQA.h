@@ -41,15 +41,15 @@ class TpcSeedsQA : public SubsysReco
   int End(PHCompositeNode* topNode) override;
 
   void setClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
-  std::string getClusterContainerName() { return m_clusterContainerName; }
+  const std::string &getClusterContainerName() { return m_clusterContainerName; }
   void setActsGeomName(const std::string& name) { m_actsGeomName = name; }
-  std::string getActsGeomName() { return m_actsGeomName; }
+  const std::string &getActsGeomName() { return m_actsGeomName; }
   void setG4GeomName(const std::string& name) { m_g4GeomName = name; }
-  std::string getG4GeomName() { return m_g4GeomName; }
+  const std::string &getG4GeomName() { return m_g4GeomName; }
   void setTrackMapName(const std::string& name) { m_trackMapName = name; }
-  std::string getTrackMapName() { return m_trackMapName; }
+  const std::string &getTrackMapName() { return m_trackMapName; }
   void setVertexMapName(const std::string& name) { m_vertexMapName = name; }
-  std::string gettVertexMapName() { return m_vertexMapName; }
+  const std::string &gettVertexMapName() { return m_vertexMapName; }
   float calc_dedx(TrackSeed* tpcseed);
   void setSegment(const int segment) { m_segment = segment; }
   void segment(const int seg) { m_segment = seg; }

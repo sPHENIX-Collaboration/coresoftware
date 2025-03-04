@@ -22,7 +22,7 @@ class PHG4EnvelopeDetector : public PHG4Detector
   PHG4EnvelopeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   // Destructor
-  ~PHG4EnvelopeDetector() override {}
+  ~PHG4EnvelopeDetector() override = default;
 
   // Construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -45,7 +45,7 @@ class PHG4EnvelopeDetector : public PHG4Detector
   int IsActive() const { return _active; }
 
   void SuperDetector(const std::string &name) { _superdetector = name; }
-  const std::string SuperDetector() const { return _superdetector; }
+  const std::string &SuperDetector() const { return _superdetector; }
 
   int get_Layer() const { return _layer; }
 
