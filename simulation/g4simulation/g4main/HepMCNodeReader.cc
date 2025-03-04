@@ -121,7 +121,8 @@ int HepMCNodeReader::Init(PHCompositeNode *topNode)
     fpt->SetParameter(2, 1.89602e-01);  // sigma
     fpt->SetParameter(3, 2.26981e+00);  // lambda
 
-    feta = new TF1("feta", DBGFunction, -1, 1, 4);
+    std::cout << "[INFO] eta is sampled between [" << -1 * sel_eta << "," << sel_eta << "]" << std::endl;
+    feta = new TF1("feta", DBGFunction, -1*sel_eta, sel_eta, 4);
     feta->SetParameter(0, 1);             // normalization
     feta->SetParameter(1, -4.08301e-01);  // mu1
     feta->SetParameter(2, 4.11930e-01);   // mu2
@@ -353,7 +354,14 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
           if (std::find(list_strangePID.begin(), list_strangePID.end(), std::abs((*p)->pdg_id())) != list_strangePID.end())
           {
-            Nstrange++;
+            // count number of strange particles with PID in list_strangePID within the kinematic selection (sPHNEIX acceptance)
+            // |eta|<=1 and momentum within sel_ptmin and sel_ptmax
+            if ((fabs((*p)->momentum().eta()) <= sel_eta) && //
+                ((*p)->momentum().perp() >= sel_ptmin && (*p)->momentum().perp() <= sel_ptmax) //
+            )
+            {
+              Nstrange++;
+            }
           }
         }
         else
@@ -371,7 +379,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
       if (Verbosity() > 1)
       {
-        std::cout << "[DEBUG] Number of original strange particles: " << Nstrange << std::endl;
+        std::cout << "[DEBUG] Number of original strange particles with kinematic selection (abs(eta) cut: " << sel_eta << ", pT cut: " << sel_ptmin << " - " << sel_ptmax << "): " << Nstrange << std::endl;
         std::cout << "[DEBUG] addfraction: " << addfraction << "%; Number of strange particles to be added: " << Nstrange_add << std::endl;
       }
 
