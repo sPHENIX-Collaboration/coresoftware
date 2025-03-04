@@ -290,6 +290,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::vector<Acts::Vector3> clusGlobPos_silicon;
     std::vector<Acts::Vector3> clusGlobPos_mvtx;
 
+    bool has_micromegas = false;
+
     // try extrapolate track to Micromegas and find corresponding tile
     /* this is all copied from PHMicromegasTpcTrackMatching */
     const auto cluster_keys = get_cluster_keys({tracklet_tpc,tracklet_si});
@@ -335,10 +337,30 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           break;
         }
 
+        case TrkrDefs::micromegasId:
+        {
+          /*
+           * micromegas clusters already associated to seed
+           * skip
+           */
+          has_micromegas = true;
+          break;
+        }
+
         default:
         break;
       }
 
+    }
+
+    if( has_micromegas )
+    {
+      std::cout
+        << "PHMicromegasTpcTrackMatching::process_event -"
+        << " Micromegas hits already associated to TPC seed. "
+        << " Skipping this track"
+        << std::endl;
+      continue;
     }
 
     // check number of clusters
