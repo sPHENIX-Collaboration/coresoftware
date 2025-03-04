@@ -281,30 +281,29 @@ int PHActsTrackProjection::setCaloContainerNodes(PHCompositeNode* topNode,
                                                  const int caloLayer)
 {
   const std::string towerGeoNodeName = "TOWERGEOM_" + m_caloNames.at(caloLayer);
-  const std::string towerNodeName = "TOWERINFO_CALIB_" + m_caloNames.at(caloLayer);
-  const std::string clusterNodeName = "CLUSTER_" + m_caloNames.at(caloLayer);
-
   m_towerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, towerGeoNodeName.c_str());
 
+  const std::string towerNodeName = "TOWERINFO_CALIB_" + m_caloNames.at(caloLayer);
   m_towerContainer = findNode::getClass<TowerInfoContainer>(topNode, towerNodeName.c_str());
 
-  m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName.c_str());
-
-  if (m_useCemcPosRecalib and
-      m_caloNames.at(caloLayer).compare("CEMC") == 0)
+  for( const std::string basename: {"CLUSTER_POS_COR_", "CLUSTERINFO_", "CLUSTER_" } )
   {
-    std::string nodeName = "CLUSTER_POS_COR_" + m_caloNames.at(caloLayer);
-    m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, nodeName.c_str());
+    const std::string clusterNodeName = basename + m_caloNames.at(caloLayer);
+    m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName.c_str());
+    if( m_clusterContainer )
+    {
+      // std::cout << "PHActsTrackProjection::setCaloContainerNodes - found " << clusterNodeName << std::endl;
+      break;
+    }
   }
 
-  if((!m_clusterContainer) )
-    // && (Verbosity() > 1))
-  {
-    std::cout << PHWHERE
-              << "Calo cluster container for " << m_caloNames.at(caloLayer)
-              << "not found on node tree. Track projections to calos WILL be filled."
-              << std::endl;
-  }
+//   if((!m_clusterContainer) )
+//   {
+//     std::cout << PHWHERE
+//               << "Calo cluster container for " << m_caloNames.at(caloLayer)
+//               << " not found on node tree. Track projections to calos will be filled."
+//               << std::endl;
+//   }
 
   if (!m_towerGeomContainer or !m_towerContainer)
   {
