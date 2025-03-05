@@ -226,7 +226,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
 
     // This is the global position
     double clusiphi = iphi_sum / adc_sum;
-    double clusphi = layergeom->get_phi(clusiphi);
+    double clusphi = layergeom->get_phi(clusiphi, side);
     /* double clusphi = phi_sum / adc_sum; */
     float clusx = radius * cos(clusphi);
     float clusy = radius * sin(clusphi);

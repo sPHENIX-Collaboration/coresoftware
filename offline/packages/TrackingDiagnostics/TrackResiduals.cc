@@ -923,7 +923,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_hittbin = TpcDefs::getTBin(hitkey);
 
         auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
-        auto phi = geoLayer->get_phicenter(m_hitpad);
+        auto phi = geoLayer->get_phicenter(m_hitpad, m_side);
         auto radius = geoLayer->get_radius();
         float AdcClockPeriod = geoLayer->get_zstep();
         auto glob = geometry->getGlobalPositionTpc(m_hitsetkey, hitkey, phi, radius, AdcClockPeriod);
@@ -965,6 +965,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 {
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+
 
   // move the corrected cluster positions back to the original readout surface
   auto global_moved = m_clusterMover.processTrack(global);
