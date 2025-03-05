@@ -1038,7 +1038,10 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name.c_str());
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   m_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-
+  if(!m_cluster_map || !m_geom_container){
+    std::cout << "Can't continue in KFParticle_Tools::get_dEdx, returning -1" << std::endl;
+    return -1.0;
+  }
 
   SvtxTrack *daughter_track = toolSet.getTrack(daughter.Id(), m_dst_trackmap);
   TrackSeed *tpcseed = daughter_track->get_tpc_seed();
