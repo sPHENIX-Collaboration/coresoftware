@@ -29,6 +29,7 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackAnalysisUtils.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
@@ -1044,51 +1045,55 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   }
 
   SvtxTrack *daughter_track = toolSet.getTrack(daughter.Id(), m_dst_trackmap);
-  TrackSeed *tpcseed = daughter_track->get_tpc_seed();
 
 
-  std::vector<TrkrDefs::cluskey> clusterKeys;
-    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-		       tpcseed->end_cluster_keys());
+  return TrackAnalysisUtils::get_dEdx(daughter_track, m_cluster_map, m_geom_container);
 
-    std::vector<float> dedxlist;
-    for (unsigned long cluster_key : clusterKeys){
-      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-      if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
-	  continue;
-      }
-      TrkrCluster* cluster = m_cluster_map->findCluster(cluster_key);
+  // TrackSeed *tpcseed = daughter_track->get_tpc_seed();
 
-      float adc = cluster->getAdc();
-      PHG4TpcCylinderGeom* GeoLayer_local = m_geom_container->GetLayerCellGeom(layer_local);
-      float thick = GeoLayer_local->get_thickness();
+
+  // std::vector<TrkrDefs::cluskey> clusterKeys;
+  //   clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+	// 	       tpcseed->end_cluster_keys());
+
+  //   std::vector<float> dedxlist;
+  //   for (unsigned long cluster_key : clusterKeys){
+  //     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+  //     if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
+	//   continue;
+  //     }
+  //     TrkrCluster* cluster = m_cluster_map->findCluster(cluster_key);
+
+  //     float adc = cluster->getAdc();
+  //     PHG4TpcCylinderGeom* GeoLayer_local = m_geom_container->GetLayerCellGeom(layer_local);
+  //     float thick = GeoLayer_local->get_thickness();
       
-      float r = GeoLayer_local->get_radius();
-      float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
-      float beta = atan(tpcseed->get_slope());
-      float alphacorr = cos(alpha);
-      if(alphacorr<0||alphacorr>4){
-	alphacorr=4;
-      }
-      float betacorr = cos(beta);
-      if(betacorr<0||betacorr>4){
-	betacorr=4;
-      }
-      adc/=thick;
-      adc*=alphacorr;
-      adc*=betacorr;
-      dedxlist.push_back(adc);
-      sort(dedxlist.begin(), dedxlist.end());
-    }
-    int trunc_min = 0;
-    int trunc_max = (int)dedxlist.size()*0.7;
-    float sumdedx = 0;
-    int ndedx = 0;
-    for(int j = trunc_min; j<=trunc_max;j++){
-      sumdedx+=dedxlist.at(j);
-      ndedx++;
-    }
-    sumdedx/=ndedx;
-    return sumdedx;
+  //     float r = GeoLayer_local->get_radius();
+  //     float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+  //     float beta = atan(tpcseed->get_slope());
+  //     float alphacorr = cos(alpha);
+  //     if(alphacorr<0||alphacorr>4){
+	// alphacorr=4;
+  //     }
+  //     float betacorr = cos(beta);
+  //     if(betacorr<0||betacorr>4){
+	// betacorr=4;
+  //     }
+  //     adc/=thick;
+  //     adc*=alphacorr;
+  //     adc*=betacorr;
+  //     dedxlist.push_back(adc);
+  //     sort(dedxlist.begin(), dedxlist.end());
+  //   }
+  //   int trunc_min = 0;
+  //   int trunc_max = (int)dedxlist.size()*0.7;
+  //   float sumdedx = 0;
+  //   int ndedx = 0;
+  //   for(int j = trunc_min; j<=trunc_max;j++){
+  //     sumdedx+=dedxlist.at(j);
+  //     ndedx++;
+  //   }
+  //   sumdedx/=ndedx;
+  //   return sumdedx;
 
 }

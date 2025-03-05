@@ -222,7 +222,8 @@ libtrackbase_historic_io_la_LIBADD = \
 
 libtrackbase_historic_la_LIBADD = \
   libtrackbase_historic_io.la \
-  -ltrack
+  -ltrack \ 
+  -lg4tpc 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
