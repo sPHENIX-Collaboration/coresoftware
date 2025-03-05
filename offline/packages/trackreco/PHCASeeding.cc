@@ -746,7 +746,9 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
   while (seed_index < seeds.size()) {
     keyPtrList* seed = &seeds[seed_index];
     seed_index++;
-
+    // already grown needs may exist if they are from a split chain
+    if (seed->size() >= _max_clusters_per_seed) { continue; }
+    
     Checker_dphidz clus_checker(_clusadd_delta_dzdr_window, _clusadd_delta_dphidr2_window, *seed);
     keyPtrList head_keys = {seed->back()};
 
@@ -772,7 +774,7 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
       if (nmatched == 1) { // one matched key
         const auto& new_cluster = *matching_keys.begin();
         if (clus_checker.check_cluster(new_cluster)) {
-          // first key is a good key
+          // one matched key, and is good
           seed->emplace_back(new_cluster);
           if (seed->size()>=_max_clusters_per_seed) { break; }
           clus_checker.add_cluster();
@@ -809,7 +811,8 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
             keyPtrList newseed = {seed->begin(), seed->end()};
             newseed.emplace_back(passing_keys[i]);
             seeds.emplace_back(std::move(newseed));
-            seed = &seeds[seed_index]; // seeds might have rearranged
+            seed = &seeds[seed_index-1]; // refresh the pointer b/c
+                                         // the vector may have re-sorted
           }
           seed->emplace_back(passing_keys[0]);
           if (seed->size() >= _max_clusters_per_seed) { break; }
@@ -832,12 +835,12 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
         continue;
       }
     } // end growing single seed
-         
-    if (seed->size() >= _min_clusters_per_seed)
-    {
-      fill_tuple_with_seed(_tupclus_grown_seeds, *seed);
-    }
   }  // end of loop over seeds
+  for (auto& seed : seeds) {
+    if (seed.size() >= _min_clusters_per_seed) {
+      fill_tuple_with_seed(_tupclus_grown_seeds, seed);
+    }
+  }
 }
 
 std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const PHCASeeding::keyPtrLists& chains) const
@@ -850,7 +853,7 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const PHCASeeding::keyP
 
   for (const auto& chain : chains)
   {
-    if (chain.size() < 3 || chain.size() < _min_clusters_per_track)
+    if (chain.size() < 3 || chain.size() < _min_clusters_per_seed)
     {
       continue;
     }
@@ -884,6 +887,7 @@ std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const PHCASeeding::keyP
       trackseed.insert_cluster_key(p->key);
     }
     clean_chains.push_back(trackseed);
+    fill_tuple_with_seed(_tupclus_pub_seeds, chain);
     if (Verbosity() > 2)
     {
       std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
@@ -992,6 +996,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   _tupclus_bilinks = new TNtuple("bilinks", "bilinks", "event:layer:topbot01:x:y:z");
   _tupclus_seeds = new TNtuple("seeds", "3 bilink seeds cores", "event:layer:seed012:x:y:z");
   _tupclus_grown_seeds = new TNtuple("grown_seeds", "grown seeds", "event:layer:seednum05:x:y:z:dzdr:d2phidr2");
+  _tupclus_pub_seeds = new TNtuple("pub_seeds", "published seeds", "event:layer:seednum05:x:y:z:dzdr:d2phidr2");
   _tupwin_link = new TNtuple("win_link", "neighbor clusters considered to make links", "event:layer0:x0:y0:z0:layer1:x1:y1:z1:dphi:dz");
   _tupwin_cos_angle = new TNtuple("win_cos_angle", "cos angle to make links", "event:layer0:x0:y0:z0:layer1:x1:y1:z1:layer2:x2:y2:z2:cos_angle");
   _tupwin_seed23 = new TNtuple("win_seed23", "xyL for points 1 and 2", "event:layer2:x2:y2:z2:layer3:x3:y3:z3");
@@ -1122,6 +1127,7 @@ void PHCASeeding::write_tuples()
   _tupclus_bilinks->Write();
   _tupclus_seeds->Write();
   _tupclus_grown_seeds->Write();
+  _tupclus_pub_seeds->Write();
   _tupwin_link->Write();
   _tupwin_cos_angle->Write();
   _tupwin_seed23->Write();

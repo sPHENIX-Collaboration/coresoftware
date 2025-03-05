@@ -231,6 +231,7 @@ class PHCASeeding : public PHTrackSeeding
   TNtuple* _tupclus_bilinks = nullptr;      // bi-linked clusters
   TNtuple* _tupclus_seeds = nullptr;        // seed (outermost three bi-linked chain
   TNtuple* _tupclus_grown_seeds = nullptr;  // seeds saved out
+  TNtuple* _tupclus_pub_seeds = nullptr;    // published seeds
                                             //
   TNtuple* _tup_chainbody = nullptr;
   TNtuple* _tup_chainfork = nullptr;
