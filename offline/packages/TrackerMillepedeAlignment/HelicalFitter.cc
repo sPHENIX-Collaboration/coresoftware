@@ -90,7 +90,7 @@ HelicalFitter::HelicalFitter(const std::string& name)
   vertexPosition(1) = 0;
 
   vtx_sigma(0) = 0.005;
-  vtx_sigma(1) = 0.005;
+  vtx_sigma(1) = 0.01;
 }
 
 //____________________________________________________________________________..
@@ -223,6 +223,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   unsigned int nsilicon = 0;
   unsigned int ntpc = 0;
   unsigned int nclus = 0;
+  int trkid_correction = 0;
   bool h2h_flag = false;
   bool mvtx_east_only = false;
   bool mvtx_west_only = false;
@@ -242,6 +243,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   std::vector<TrackSeed> cumulative_someseed;
   std::vector<SvtxTrack_v4> cumulative_newTrack;
   std::vector<int> cumulative_trackid;
+  std::vector<Acts::Vector3> cumulative_event_vertex;
 
   if (fittpc && _track_map_tpc != nullptr)
   {
@@ -264,6 +266,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     }
     if (!tracklet)
     {
+      trkid_correction++;
       continue;
     }
 
@@ -274,6 +277,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     getTrackletClusterList(tracklet, cluskey_vec);
     if (cluskey_vec.size() < 3)
     {
+      trkid_correction++;
       continue;
     }
     int nintt = 0;
@@ -315,6 +319,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     }
     else
     {
+      //std::cout<<"event: "<<event<<"  , trackid: "<<trackid-trkid_correction<<"  , nhits: "<<cluskey_vec.size()<< "  , crossing: "<<tracklet->get_crossing()<<std::endl;
       if (fitsilicon && nintt < 2)
       {
         continue;  // discard incomplete seeds
@@ -520,10 +525,51 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
-    if(fabs(newTrack.get_eta()) > m_eta_cut || newTrack.get_pt() < m_pt_min|| newTrack.get_crossing()==0)
+    if(fabs(newTrack.get_eta()) > m_eta_cut || newTrack.get_pt() < m_pt_min)
     {
       continue;
     }
+
+    Acts::Vector3 event_vtx(0.0,0.0,0.0);
+    bool passed_vtx_flag = false;
+      //std::cout<<"HF trackid: "<<trackid-trkid_correction<<"  ,HF crossing: "<<newTrack.get_crossing()<<std::endl;
+      //std::cout<<" trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
+    for (const auto& [vtxkey, vertex] : *m_vertexmap)
+    {
+        //std::cout<<"event: "<<event<<"  , vtx crossing: "<<vertex->get_beam_crossing()<<std::endl;
+        //std::cout<< ", vtx position: "<<vertex->get_x()<<" , "<<vertex->get_y()<< " , "<<vertex->get_z()<<std::endl;
+        for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
+      {
+        //std::cout<<"vtx: "<<vertex->get_id()<<" , trackiter*: "<<*trackiter<<std::endl;
+        //SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
+        //if (vtxtrack)
+        //{
+          //unsigned int const vtxtrackid = vtxtrack->get_id();
+          if ((trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>2)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
+          {
+              //std::cout<<"matched"<<std::endl;
+            event_vtx(0) = vertex->get_x();
+            event_vtx(1) = vertex->get_y();
+            event_vtx(2) = vertex->get_z();
+            passed_vtx_flag = true;
+            if (Verbosity() > 0)
+            {
+              //std::cout << "vtx crossing: "<<vertex->get_beam_crossing()<<"setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey<< std::endl;
+              //std::cout  <<"crossing:" << vtxtrack->get_crossing()<<" vtx  " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+              //std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
+            }
+          }
+      }
+    }
+      //std::cout<<std::endl;
+
+    if(!passed_vtx_flag)
+    {
+      continue;
+    }
+
+    //std::cout<<"Saved Tracl  , event: "<<event<<"  , trackid: "<<trackid<<"  , cluskey_vec.size: "<<cluskey_vec.size()<<std::endl;
+
     cumulative_global_vec.push_back(global_vec);
     cumulative_cluskey_vec.push_back(cluskey_vec);
     cumulative_vertex.push_back(track_vtx);
@@ -531,7 +577,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     cumulative_fitpars_mvtx_half_vec.push_back(fitpars_mvtx_half);
     cumulative_someseed.push_back(someseed);
     cumulative_newTrack.push_back(newTrack);
-    cumulative_trackid.push_back(trackid);
+    cumulative_trackid.push_back(trackid-trkid_correction);
+    cumulative_event_vertex.push_back(event_vtx);
   }
 
   // terminate loop over tracks
@@ -560,7 +607,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     const auto& someseed = cumulative_someseed[trackid];
     auto newTrack = cumulative_newTrack[trackid];
     SvtxAlignmentStateMap::StateVec statevec;
-    //int trackid_test=cumulative_trackid[trackid];
+    int trackid_test=cumulative_trackid[trackid];
+    auto event_vtx = cumulative_event_vertex[trackid];
 
     // get the residuals and derivatives for all clusters
     for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
@@ -805,7 +853,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         if (straight_line_fit)
         {
           float ntp_data[78] = {
-              (float) event, (float) trackid,
+              (float) event, (float) trackid_test,
               (float) layer, (float) nsilicon, (float) h2h_flag, (float) ntpc, (float) nclus, (float) trkrid, (float) sector, (float) side,
               (float) subsurf, phi,
               (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
@@ -831,7 +879,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         else
         {
           float ntp_data[76] = {
-              (float) event, (float) trackid,
+              (float) event, (float) trackid_test,
               (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) newTrack.get_crossing(), (float) sector, (float) side,
               (float) subsurf, phi,
               (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
@@ -895,12 +943,12 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
     }
 
-    m_alignmentmap->insertWithKey(trackid, statevec);
-    m_trackmap->insertWithKey(&newTrack, trackid);
+    m_alignmentmap->insertWithKey(trackid_test, statevec);
+    m_trackmap->insertWithKey(&newTrack, trackid_test);
 
     // if cosmics, end here, if collision track, continue with vtx
     //   skip the common vertex requirement for this track unless there are 3 tracks in the event
-    if (accepted_tracks < 3)
+    if (accepted_tracks < 1)
     {
       _mille->end();
       continue;
@@ -941,12 +989,12 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       //std::cout<<"end vtx"<<std::endl;
     }
 
-    //end loop for tracks with no track vtx association
-    if (averageVertex(0)==event_vtx(0)&&averageVertex(1)==event_vtx(1))
-    {
-      _mille->end();
-      continue;
-    }
+    ////end loop for tracks with no track vtx association
+    //if (averageVertex(0)==event_vtx(0)&&averageVertex(1)==event_vtx(1))
+    //{
+    //  _mille->end();
+    //  continue;
+    //}
 
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
@@ -1062,7 +1110,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       float const track_pt = newTrack.get_pt();
       if (straight_line_fit)
       {
-        float ntp_data[28] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+        float ntp_data[28] = {(float) trackid_test, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
                               lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3],
                               glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
                               lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3],
@@ -1074,7 +1122,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-        float ntp_data[32] = {(float) trackid, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+        float ntp_data[32] = {(float) trackid_test, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
                               lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3], lclvtx_derivativeX[4],
                               glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
                               lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3], lclvtx_derivativeY[4],
@@ -1543,7 +1591,7 @@ Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster* cluster, TrkrDefs::clu
   auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
   double const phierror = sqrt(para_errors.first);
   double const zerror = sqrt(para_errors.second);
-  clus_sigma(1) = zerror;
+  clus_sigma(1) = zerror * 2.0;
   clus_sigma(0) = phierror;
 
   return clus_sigma;
