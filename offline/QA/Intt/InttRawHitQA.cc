@@ -10,6 +10,7 @@
 #include <phool/PHPointerListIterator.h>
 #include <fun4all/Fun4AllHistoManager.h>  // for Fun4AllHistoManager
 #include <fun4all/Fun4AllReturnCodes.h>   // for EVENT_OK, ABORTEVENT
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/getClass.h>  // for getClass
 #include <phool/phool.h>     // for PHWHERE
@@ -64,8 +65,9 @@ int InttRawHitQA::InitRun(PHCompositeNode *topNode)
       trkr_itr.findFirst("PHCompositeNode", "INTT"));  
   if(!intt_node)
   {
-    std::cout << PHWHERE << " No INTT node found, exit" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    std::cout << PHWHERE << " No INTT node found, unregistering subsystem" << std::endl;
+    Fun4AllServer::instance()->unregisterSubsystem(this);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   PHNodeIterator intt_itr(intt_node);
   PHPointerListIterator<PHNode> iter(intt_itr.ls());

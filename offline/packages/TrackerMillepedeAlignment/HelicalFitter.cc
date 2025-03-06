@@ -2091,7 +2091,7 @@ bool HelicalFitter::is_tpc_sector_fixed(unsigned int layer, unsigned int sector,
   return ret;
 }
 
-void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
+void HelicalFitter::correctTpcGlobalPositions(std::vector<Acts::Vector3> global_vec, const std::vector<TrkrDefs::cluskey> &cluskey_vec)
 {
   for (unsigned int iclus = 0; iclus < cluskey_vec.size(); ++iclus)
   {

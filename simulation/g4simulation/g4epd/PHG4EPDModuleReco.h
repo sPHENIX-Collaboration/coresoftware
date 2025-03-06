@@ -18,7 +18,7 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
  public:
   PHG4EPDModuleReco(const std::string &name = "EpdModuleReco");
 
-  ~PHG4EPDModuleReco() override {}
+  ~PHG4EPDModuleReco() override = default;
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -33,8 +33,7 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
 
   void Detector(const std::string &detector);
 
-  std::string
-  get_epd_sim_tower_node_prefix() const
+  const std::string &get_epd_sim_tower_node_prefix() const
   {
     return m_EPDSimTowerNodePrefix;
   }
@@ -45,8 +44,7 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
     m_EPDSimTowerNodePrefix = epdsimTowerNodePrefix;
   }
 
-  std::string
-  get_epd_calib_tower_node_prefix() const
+  const std::string &get_epd_calib_tower_node_prefix() const
   {
     return m_EPDCalibTowerNodePrefix;
   }

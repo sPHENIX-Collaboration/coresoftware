@@ -21,7 +21,7 @@ class PHG4PSTOFDetector : public PHG4Detector
   PHG4PSTOFDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam);
 
   //! destructor
-  ~PHG4PSTOFDetector() override {}
+  ~PHG4PSTOFDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -34,7 +34,7 @@ class PHG4PSTOFDetector : public PHG4Detector
   //@}
 
   void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
+  const std::string &SuperDetector() const { return superdetector; }
 
  protected:
   int IsActive;

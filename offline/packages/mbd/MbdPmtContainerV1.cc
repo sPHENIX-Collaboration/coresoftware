@@ -8,11 +8,11 @@
 
 static const int NPMTMBDV1 = 128;
 
-MbdPmtContainerV1::MbdPmtContainerV1()
+MbdPmtContainerV1::MbdPmtContainerV1() : MbdPmtHits(new TClonesArray("MbdPmtHitV1", NPMTMBDV1))
 {
   // MbdPmtHit is class for single hit (members: pmt,adc,tdc0,tdc1), do not mix
   // with TClonesArray *MbdPmtHits
-  MbdPmtHits = new TClonesArray("MbdPmtHitV1", NPMTMBDV1);
+  
 }
 
 MbdPmtContainerV1::~MbdPmtContainerV1()

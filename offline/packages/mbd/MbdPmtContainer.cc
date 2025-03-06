@@ -41,7 +41,7 @@ MbdPmtHit *MbdPmtContainer::get_pmt(const int /*iPmt*/) const
   return nullptr;
 }
 
-void MbdPmtContainer::virtual_warning(const std::string& funcsname) const
+void MbdPmtContainer::virtual_warning(const std::string& funcsname) 
 {
   std::cout << "MbdPmtContainer::" << funcsname << " is virtual, doing nothing" << std::endl;
   return;

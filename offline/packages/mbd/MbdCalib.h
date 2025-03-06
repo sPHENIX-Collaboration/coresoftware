@@ -67,20 +67,39 @@ class MbdCalib
   std::vector<float> get_shape(const int ifeech) const { return _shape_y[ifeech]; }
   std::vector<float> get_sherr(const int ifeech) const { return _sherr_yerr[ifeech]; }
 
+  float get_pileup(const int ifeech, const int ipar) const {
+
+    if (ipar==0)
+    {
+      return _pileup_p0[ifeech];
+    }
+    else if (ipar==1)
+    {
+      return _pileup_p1[ifeech];
+    }
+    else if (ipar==2)
+    {
+      return _pileup_p2[ifeech];
+    }
+
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
   void set_sampmax(const int ifeech, const int val) { _sampmax[ifeech] = val; }
   void set_ped(const int ifeech, const float m, const float merr, const float s, const float serr);
   void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
   void set_tq0(const int ipmt, const float t0) { _tqfit_t0mean[ipmt] = t0; }
 
-  int Download_Gains(const std::string& dbfile);
-  int Download_TQT0(const std::string& dbfile);
-  int Download_TTT0(const std::string& dbfile);
-  int Download_T0Corr(const std::string& dbfile);
-  int Download_Ped(const std::string& dbfile);
-  int Download_SampMax(const std::string& dbfile);
-  int Download_Shapes(const std::string& dbfile);
-  int Download_TimeCorr(const std::string& dbfile);
-  int Download_SlewCorr(const std::string& dbfile);
+  int Download_Gains(const std::string& dbase_location);
+  int Download_TQT0(const std::string& dbase_location);
+  int Download_TTT0(const std::string& dbase_location);
+  int Download_T0Corr(const std::string& dbase_location);
+  int Download_Ped(const std::string& dbase_location);
+  int Download_SampMax(const std::string& dbase_location);
+  int Download_Shapes(const std::string& dbase_location);
+  int Download_TimeCorr(const std::string& dbase_location);
+  int Download_SlewCorr(const std::string& dbase_location);
+  int Download_Pileup(const std::string& dbase_location);
   int Download_All();
 
 #ifndef ONLINE
@@ -93,7 +112,8 @@ class MbdCalib
   int Write_CDB_TimeCorr(const std::string& dbfile);
   int Write_CDB_SlewCorr(const std::string& dbfile);
   int Write_CDB_Gains(const std::string& dbfile);
-  int Write_CDB_All();
+  int Write_CDB_Pileup(const std::string& dbfile);
+  static int Write_CDB_All();
 #endif
 
   int Write_SampMax(const std::string& dbfile);
@@ -102,12 +122,14 @@ class MbdCalib
   int Write_T0Corr(const std::string& dbfile);
   int Write_Ped(const std::string& dbfile);
   int Write_Gains(const std::string& dbfile);
+  int Write_Pileup(const std::string& dbfile);
 
   void Reset_TQT0();
   void Reset_TTT0();
   void Reset_T0Corr();
   void Reset_Ped();
   void Reset_Gains();
+  void Reset_Pileup();
 
   void Update_TQT0(const float dz, const float dt = 0.); // update with new z-vertex, t0
   void Update_TTT0(const float dz, const float dt = 0.);
@@ -175,6 +197,15 @@ class MbdCalib
 
   // SampMax (Peak of waveform)
   std::array<int, MbdDefs::MBD_N_FEECH> _sampmax{};
+
+  // Pileup waveform correction
+  std::array<float, MbdDefs::MBD_N_FEECH> _pileup_p0{};
+  std::array<float, MbdDefs::MBD_N_FEECH> _pileup_p0err{};
+  std::array<float, MbdDefs::MBD_N_FEECH> _pileup_p1{};
+  std::array<float, MbdDefs::MBD_N_FEECH> _pileup_p1err{};
+  std::array<float, MbdDefs::MBD_N_FEECH> _pileup_p2{};
+  std::array<float, MbdDefs::MBD_N_FEECH> _pileup_p2err{};
+  std::array<float, MbdDefs::MBD_N_FEECH> _pileup_chi2ndf{};
 
   // Waveform Template
   int do_templatefit{0};

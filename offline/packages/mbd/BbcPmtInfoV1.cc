@@ -1,5 +1,4 @@
 #include "BbcPmtInfoV1.h"
-//#include <iostream>
 
 void BbcPmtInfoV1::Reset()
 {
@@ -10,9 +9,9 @@ void BbcPmtInfoV1::Clear(Option_t* /*unused*/)
 {
   // std::cout << "clearing " << bpmt << std::endl;
   bpmt = -1;
-  bq = NAN;
-  btt = NAN;
-  btq = NAN;
+  bq = std::numeric_limits<Float_t>::quiet_NaN();
+  btt = std::numeric_limits<Float_t>::quiet_NaN();
+  btq = std::numeric_limits<Float_t>::quiet_NaN();
 }
 
 void BbcPmtInfoV1::identify(std::ostream& out) const

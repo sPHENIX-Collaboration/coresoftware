@@ -214,7 +214,7 @@ class ResonanceJetTagging : public SubsysReco
     setRecombScheme(recomb_scheme);
   }
   void setJetContainerName(const std::string &n) { m_jetcontainer_name = n; }
-  std::string getJetContainerName() { return m_jetcontainer_name; }
+  const std::string &getJetContainerName() { return m_jetcontainer_name; }
   void setDoRecunstructed(bool b) { m_dorec = b; }
   bool getDoRecunstructed() { return m_dorec; }
   void setDoTruth(bool b) { m_dotruth = b; }

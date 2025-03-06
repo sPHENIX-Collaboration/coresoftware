@@ -14,9 +14,9 @@
 class PHG4TpcCylinderGeom : public PHG4CylinderGeom
 {
  public:
-  PHG4TpcCylinderGeom(){};
+  PHG4TpcCylinderGeom() = default;
 
-  ~PHG4TpcCylinderGeom(){};
+  ~PHG4TpcCylinderGeom() override = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -69,15 +69,15 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
 
   static const int NSides = 2;
 
-  void set_r_bias(std::array<std::vector<double>, NSides> dr) { sector_R_bias = dr; }
-  void set_phi_bias(std::array<std::vector<double>, NSides> dphi) { sector_Phi_bias = dphi; }
+  void set_r_bias(const std::array<std::vector<double>, NSides> &dr) { sector_R_bias = dr; }
+  void set_phi_bias(const std::array<std::vector<double>, NSides> &dphi) { sector_Phi_bias = dphi; }
 
   // void set_sector_phi(const double s_phi){sector_phi = s_phi;}
-  void set_sector_min_phi(std::array<std::vector<double>, NSides> s_min_phi) { sector_min_Phi = s_min_phi; }
-  void set_sector_max_phi(std::array<std::vector<double>, NSides> s_max_phi) { sector_max_Phi = s_max_phi; }
+  void set_sector_min_phi(const std::array<std::vector<double>, NSides> &s_min_phi) { sector_min_Phi = s_min_phi; }
+  void set_sector_max_phi(const std::array<std::vector<double>, NSides> &s_max_phi) { sector_max_Phi = s_max_phi; }
 
-  std::array<std::vector<double>, NSides> get_sector_min_phi() { return sector_min_Phi; }
-  std::array<std::vector<double>, NSides> get_sector_max_phi() { return sector_max_Phi; }
+  const std::array<std::vector<double>, NSides> &get_sector_min_phi() { return sector_min_Phi; }
+  const std::array<std::vector<double>, NSides> &get_sector_max_phi() { return sector_max_Phi; }
 
  protected:
   void check_binning_method(const int i) const;

@@ -64,8 +64,8 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
     sidewall_thickness = sidewallThickness;
   }
 
-  std::string
-  get_sidewall_mat() const
+  const std::string
+  &get_sidewall_mat() const
   {
     return sidewall_mat;
   }

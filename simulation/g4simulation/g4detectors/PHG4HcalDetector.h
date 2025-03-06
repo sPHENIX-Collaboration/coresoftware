@@ -26,9 +26,7 @@ class PHG4HcalDetector : public PHG4Detector
   PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int layer = 0);
 
   //! destructor
-  ~PHG4HcalDetector(void) override
-  {
-  }
+  ~PHG4HcalDetector(void) override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume* world) override;
@@ -54,7 +52,7 @@ class PHG4HcalDetector : public PHG4Detector
   void SetDetectorType(const std::string& typ) { detector_type = typ; }
   int IsInCylinderActive(const G4VPhysicalVolume*);
   void SuperDetector(const std::string& name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
+  const std::string &SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }
   G4UserSteppingAction* GetSteppingAction() override
   {
