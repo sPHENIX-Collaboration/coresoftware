@@ -16,7 +16,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
-#include <trackbase_historic/TrackAnalysisUtils.h>
+#include <trackreco/TrackAnalysisUtils.h>
 
 #include <trackreco/ActsPropagator.h>
 

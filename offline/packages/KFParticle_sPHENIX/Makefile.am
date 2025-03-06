@@ -56,7 +56,8 @@ libkfparticle_sphenix_la_LIBADD = \
   -lfun4all \
   -lg4eval \
   -lTMVA \
-  -lphhepmc
+  -lphhepmc \
+  -ltrack_reco
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

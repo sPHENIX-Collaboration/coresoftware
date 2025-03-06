@@ -29,7 +29,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/TrackAnalysisUtils.h>
+#include <trackreco/TrackAnalysisUtils.h>
 #include <trackbase_historic/TrackSeed.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>

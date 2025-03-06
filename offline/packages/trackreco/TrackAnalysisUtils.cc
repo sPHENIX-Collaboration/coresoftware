@@ -1,6 +1,6 @@
 #include "TrackAnalysisUtils.h"
 
-#include "SvtxTrack.h"
+#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <g4detectors/PHG4TpcCylinderGeom.h>
