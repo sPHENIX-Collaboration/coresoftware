@@ -639,7 +639,7 @@ double PHCASeeding::getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b,
   return 2 * sin(break_angle) / hypot_length;
 }
 
-PHCASeeding::keyLists PHCASeeding::removeDuplicates(PHCASeeding::keyLists seeds)
+PHCASeeding::keyLists PHCASeeding::removeDuplicates(const PHCASeeding::keyLists& seeds)
 {
   // Removes duplicate seeds (those that are subsets of another seed, with up to [differences_to_merge] allowed differences)
   PHCASeeding::keyLists newseeds;

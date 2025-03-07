@@ -225,7 +225,7 @@ class PHCASeeding : public PHTrackSeeding
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double zmin, double phimax, double zmax, std::vector<pointKey>& returned_values) const;
   std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
   double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
-  PHCASeeding::keyLists removeDuplicates(PHCASeeding::keyLists seeds);
+  PHCASeeding::keyLists removeDuplicates(const PHCASeeding::keyLists& seeds);
 
   void publishSeeds(const std::vector<TrackSeed_v2>& seeds) const;
 
