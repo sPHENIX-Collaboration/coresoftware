@@ -1842,7 +1842,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
-  auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   std::set<unsigned int> tpc_seed_ids;
@@ -2169,7 +2169,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
-  auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   std::set<unsigned int> tpc_seed_ids;
