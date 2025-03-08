@@ -56,7 +56,6 @@ pkginclude_HEADERS = \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
   SvtxTrackState_v2.h \
-  TrackAnalysisUtils.h \
   SvtxTrackInfo.h \
   SvtxTrackInfo_v1.h \
   SvtxTrackInfo_v2.h \
@@ -163,7 +162,6 @@ nobase_dist_pcm_DATA = \
 
 libtrackbase_historic_la_SOURCES = \
   ActsTransformations.cc \
-  TrackAnalysisUtils.cc \
   TrackSeedHelper.cc
 
 # sources for io library

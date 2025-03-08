@@ -37,6 +37,7 @@ libg4eval_la_LIBADD = \
   -lphg4hit \
   -ltrack \
   -ltrackbase_historic \
+  -ltrack_reco \
   -ltpc_io
 
 pkginclude_HEADERS = \

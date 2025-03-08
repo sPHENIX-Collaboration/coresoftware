@@ -1,6 +1,10 @@
 #include "TrackAnalysisUtils.h"
 
-#include "SvtxTrack.h"
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrCluster.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <cmath>
 
@@ -76,6 +80,55 @@ namespace TrackAnalysisUtils
       }
     }
     return out;
+  }
+
+  float get_dEdx(SvtxTrack* track, TrkrClusterContainer* cluster_map, PHG4TpcCylinderGeomContainer* geom_container){
+  TrackSeed *tpcseed = track->get_tpc_seed();
+
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+		       tpcseed->end_cluster_keys());
+
+    std::vector<float> dedxlist;
+    for (unsigned long cluster_key : clusterKeys){
+      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+      if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
+	  continue;
+      }
+      TrkrCluster* cluster = cluster_map->findCluster(cluster_key);
+
+      float adc = cluster->getAdc();
+      PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
+      float thick = GeoLayer_local->get_thickness();
+      
+      float r = GeoLayer_local->get_radius();
+      float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
+      float beta = atan(tpcseed->get_slope());
+      float alphacorr = cos(alpha);
+      if(alphacorr<0||alphacorr>4){
+	alphacorr=4;
+      }
+      float betacorr = cos(beta);
+      if(betacorr<0||betacorr>4){
+	betacorr=4;
+      }
+      adc/=thick;
+      adc*=alphacorr;
+      adc*=betacorr;
+      dedxlist.push_back(adc);
+      sort(dedxlist.begin(), dedxlist.end());
+    }
+    int trunc_min = 0;
+    int trunc_max = (int)dedxlist.size()*0.7;
+    float sumdedx = 0;
+    int ndedx = 0;
+    for(int j = trunc_min; j<=trunc_max;j++){
+      sumdedx+=dedxlist.at(j);
+      ndedx++;
+    }
+    sumdedx/=ndedx;
+    return sumdedx;
+
   }
 
 }  // namespace TrackAnalysisUtils
