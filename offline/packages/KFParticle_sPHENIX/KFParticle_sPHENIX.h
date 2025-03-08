@@ -305,6 +305,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void doTruthMatching(bool truth = true) { m_truth_matching = truth; }
 
+  void getTriggerInfo(bool get = true) { m_get_trigger_info = get; }
+
   void getDetectorInfo(bool detinfo = true) { m_detector_info = detinfo; }
 
   void getCaloInfo(bool caloinfo = true) { m_calo_info = caloinfo; }

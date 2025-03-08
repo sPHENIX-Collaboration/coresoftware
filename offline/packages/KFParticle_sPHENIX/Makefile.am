@@ -20,6 +20,7 @@ pkginclude_HEADERS = \
   KFParticle_Container.h \
   KFParticle_DST.h \
   KFParticle_truthAndDetTools.h \
+  KFParticle_triggerInfo.h \
   KFParticle_nTuple.h \
   KFParticle_Tools.h \
   KFParticle_MVA.h \
@@ -40,6 +41,7 @@ libkfparticle_sphenix_io_la_SOURCES = \
 libkfparticle_sphenix_la_SOURCES = \
   KFParticle_DST.cc \
   KFParticle_truthAndDetTools.cc \
+  KFParticle_triggerInfo.cc \
   KFParticle_nTuple.cc \
   KFParticle_Tools.cc \
   KFParticle_MVA.cc \
@@ -56,7 +58,9 @@ libkfparticle_sphenix_la_LIBADD = \
   -lfun4all \
   -lg4eval \
   -lTMVA \
-  -lphhepmc
+  -lphhepmc \
+  -lcalotrigger \
+  -lffarawobjects
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
