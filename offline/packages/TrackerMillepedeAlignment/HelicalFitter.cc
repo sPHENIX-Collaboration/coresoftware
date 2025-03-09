@@ -135,7 +135,7 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
     }
     else
     {
-      ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:crossing:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+      ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:quality:crossing:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
     }
 
     if (straight_line_fit)
@@ -144,7 +144,7 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
     }
     else
     {
-      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi:track_eta:track_p:track_pt");
+      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:quality:track_phi:perigee_phi:track_eta:track_p:track_pt");
     }
   }
 
@@ -609,6 +609,115 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     SvtxAlignmentStateMap::StateVec statevec;
     int trackid_test=cumulative_trackid[trackid];
     auto event_vtx = cumulative_event_vertex[trackid];
+    float pull_cumulative = 0.;
+
+    for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
+    {
+      auto global = global_vec[ivec];
+      auto cluskey = cluskey_vec[ivec];
+      auto cluster = _cluster_map->findCluster(cluskey);
+
+      if (!cluster)
+      {
+        continue;
+      }
+
+      unsigned int const trkrid = TrkrDefs::getTrkrId(cluskey);
+
+      // What we need now is to find the point on the surface at which the helix would intersect
+      // If we have that point, we can transform the fit back to local coords
+      // we have fitpars for the helix, and the cluster key - from which we get the surface
+
+      Surface const surf = _tGeometry->maps().getSurface(cluskey, cluster);
+      Acts::Vector3 helix_pca(0, 0, 0);
+      Acts::Vector3 helix_tangent(0, 0, 0);
+      Acts::Vector3 fitpoint;
+      Acts::Vector3 fitpoint_mvtx_half;
+      if (straight_line_fit)
+      {
+        fitpoint = get_line_surface_intersection(surf, fitpars);
+        fitpoint_mvtx_half = get_line_surface_intersection(surf, fitpars_mvtx_half);
+      }
+      else
+      {
+        fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
+      }
+
+      // fitpoint is the point where the helical fit intersects the plane of the surface
+      // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
+      Acts::Vector3 fitpoint_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint * Acts::UnitConstants::cm);
+      Acts::Vector3 fitpoint_mvtx_half_local = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (fitpoint_mvtx_half * Acts::UnitConstants::cm);
+
+      fitpoint_local /= Acts::UnitConstants::cm;
+      fitpoint_mvtx_half_local /= Acts::UnitConstants::cm;
+
+      auto xloc = cluster->getLocalX();  // in cm
+      auto zloc = cluster->getLocalY();
+
+      if (trkrid == TrkrDefs::tpcId)
+      {
+        zloc = convertTimeToZ(cluskey, cluster);
+      }
+
+      Acts::Vector2 residual(xloc - fitpoint_local(0), zloc - fitpoint_local(1));
+      //if(global_vec.size()==6)
+      //  std::cout<<"Look here 1: "<<event<<newTrack.id()<<" : "<<residual<<std::endl;
+      unsigned int const layer = TrkrDefs::getLayer(cluskey_vec[ivec]);
+
+      SvtxTrackState_v1 svtxstate(fitpoint.norm());
+      svtxstate.set_x(fitpoint(0));
+      svtxstate.set_y(fitpoint(1));
+      svtxstate.set_z(fitpoint(2));
+      std::pair<Acts::Vector3, Acts::Vector3> tangent;
+      if (straight_line_fit)
+      {
+        tangent = get_line_tangent(fitpars, global);
+      }
+      else
+      {
+        tangent = get_helix_tangent(fitpars, global);
+      }
+
+      svtxstate.set_px(someseed.get_p() * tangent.second.x());
+      svtxstate.set_py(someseed.get_p() * tangent.second.y());
+      svtxstate.set_pz(someseed.get_p() * tangent.second.z());
+      newTrack.insert_state(&svtxstate);
+
+      if (Verbosity() > 1)
+      {
+        Acts::Vector3 loc_check = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
+        loc_check /= Acts::UnitConstants::cm;
+        std::cout << "    layer " << layer << std::endl
+                  << " cluster global " << global(0) << " " << global(1) << " " << global(2) << std::endl
+                  << " fitpoint " << fitpoint(0) << " " << fitpoint(1) << " " << fitpoint(2) << std::endl
+                  << " fitpoint_local " << fitpoint_local(0) << " " << fitpoint_local(1) << " " << fitpoint_local(2) << std::endl
+                  << " cluster local x " << cluster->getLocalX() << " cluster local y " << cluster->getLocalY() << std::endl
+                  << " cluster global to local x " << loc_check(0) << " local y " << loc_check(1) << "  local z " << loc_check(2) << std::endl
+                  << " cluster local residual x " << residual(0) << " cluster local residual y " << residual(1) << std::endl;
+      }
+
+      if (Verbosity() > 1)
+      {
+        Acts::Transform3 transform = surf->transform(_tGeometry->geometry().getGeoContext());
+        std::cout << "Transform is:" << std::endl;
+        std::cout << transform.matrix() << std::endl;
+        Acts::Vector3 loc_check = surf->transform(_tGeometry->geometry().getGeoContext()).inverse() * (global * Acts::UnitConstants::cm);
+        loc_check /= Acts::UnitConstants::cm;
+        unsigned int const sector = TpcDefs::getSectorId(cluskey_vec[ivec]);
+        unsigned int const side = TpcDefs::getSide(cluskey_vec[ivec]);
+        std::cout << "    layer " << layer << " sector " << sector << " side " << side << " subsurf " << cluster->getSubSurfKey() << std::endl
+                  << " cluster global " << global(0) << " " << global(1) << " " << global(2) << std::endl
+                  << " fitpoint " << fitpoint(0) << " " << fitpoint(1) << " " << fitpoint(2) << std::endl
+                  << " fitpoint_local " << fitpoint_local(0) << " " << fitpoint_local(1) << " " << fitpoint_local(2) << std::endl
+                  << " cluster local x " << cluster->getLocalX() << " cluster local y " << cluster->getLocalY() << std::endl
+                  << " cluster global to local x " << loc_check(0) << " local y " << loc_check(1) << "  local z " << loc_check(2) << std::endl
+                  << " cluster local residual x " << residual(0) << " cluster local residual y " << residual(1) << std::endl;
+      }
+
+      // need standard deviation of measurements
+      Acts::Vector2 clus_sigma = getClusterError(cluster, cluskey, global);
+      pull_cumulative += ((residual(0)*residual(0))/(clus_sigma(0)*clus_sigma(0)))+((residual(1)*residual(1))/(clus_sigma(1)*clus_sigma(1)));
+    }
 
     // get the residuals and derivatives for all clusters
     for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
@@ -878,9 +987,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
         else
         {
-          float ntp_data[76] = {
+          float ntp_data[77] = {
               (float) event, (float) trackid_test,
-              (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) newTrack.get_crossing(), (float) sector, (float) side,
+              (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) pull_cumulative, (float) newTrack.get_crossing(), (float) sector, (float) side,
               (float) subsurf, phi,
               (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
               (float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
@@ -1122,13 +1231,13 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-        float ntp_data[32] = {(float) trackid_test, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+        float ntp_data[33] = {(float) trackid_test, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
                               lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3], lclvtx_derivativeX[4],
                               glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
                               lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3], lclvtx_derivativeY[4],
                               glblvtx_derivativeY[0], glblvtx_derivativeY[1], glblvtx_derivativeY[2],
                               newTrack.get_x(), newTrack.get_y(), newTrack.get_z(),
-                              (float) event_vtx(0), (float) event_vtx(1), (float) event_vtx(2), track_phi, perigee_phi, track_eta, track_p, track_pt};
+                              (float) event_vtx(0), (float) event_vtx(1), (float) event_vtx(2), pull_cumulative, track_phi, perigee_phi, track_eta, track_p, track_pt};
 
         track_ntp->Fill(ntp_data);
       }
