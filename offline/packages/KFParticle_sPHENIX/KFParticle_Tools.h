@@ -41,6 +41,8 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
+class TrkrClusterContainer;
+class PHG4TpcCylinderGeomContainer;
 
 class KFParticle_Tools : protected KFParticle_MVA
 {
@@ -104,6 +106,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   float getParticleMass(const int PDGID);
 
   void identify(const KFParticle &particle);
+
+  float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter);
 
  protected:
   std::string m_mother_name_Tools;
@@ -194,6 +198,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   SvtxTrack *m_dst_track {nullptr};
   SvtxVertexMap *m_dst_vertexmap {nullptr};
   SvtxVertex *m_dst_vertex {nullptr};
+  TrkrClusterContainer *m_cluster_map {nullptr};
+  PHG4TpcCylinderGeomContainer *m_geom_container {nullptr};
 
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);

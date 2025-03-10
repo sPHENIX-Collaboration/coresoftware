@@ -30,6 +30,11 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrCluster.h>
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/SvtxVertex.h>
@@ -94,6 +99,8 @@ KFParticle_Tools::KFParticle_Tools()
   , m_dst_track()
   , m_dst_vertexmap()
   , m_dst_vertex()
+  , m_cluster_map()
+  , m_geom_container()
 {
 }
 
@@ -1022,4 +1029,66 @@ void KFParticle_Tools::identify(const KFParticle &particle)
   std::cout << particle.GetY() << " +/- " << std::sqrt(particle.GetCovariance(1, 1)) << ", ";
   std::cout << particle.GetZ() << " +/- " << std::sqrt(particle.GetCovariance(2, 2)) << ") cm\n"
             << std::endl;
+}
+
+
+
+
+float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter){
+  m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name.c_str());
+  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if(!m_cluster_map || !m_geom_container){
+    std::cout << "Can't continue in KFParticle_Tools::get_dEdx, returning -1" << std::endl;
+    return -1.0;
+  }
+
+  SvtxTrack *daughter_track = toolSet.getTrack(daughter.Id(), m_dst_trackmap);
+  TrackSeed *tpcseed = daughter_track->get_tpc_seed();
+
+
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+		       tpcseed->end_cluster_keys());
+
+    std::vector<float> dedxlist;
+    for (unsigned long cluster_key : clusterKeys){
+      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+      if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId){
+	  continue;
+      }
+      TrkrCluster* cluster = m_cluster_map->findCluster(cluster_key);
+
+      float adc = cluster->getAdc();
+      PHG4TpcCylinderGeom* GeoLayer_local = m_geom_container->GetLayerCellGeom(layer_local);
+      float thick = GeoLayer_local->get_thickness();
+      
+      float r = GeoLayer_local->get_radius();
+      float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
+      float beta = atan(tpcseed->get_slope());
+      float alphacorr = cos(alpha);
+      if(alphacorr<0||alphacorr>4){
+	alphacorr=4;
+      }
+      float betacorr = cos(beta);
+      if(betacorr<0||betacorr>4){
+	betacorr=4;
+      }
+      adc/=thick;
+      adc*=alphacorr;
+      adc*=betacorr;
+      dedxlist.push_back(adc);
+      sort(dedxlist.begin(), dedxlist.end());
+    }
+    int trunc_min = 0;
+    int trunc_max = (int)dedxlist.size()*0.7;
+    float sumdedx = 0;
+    int ndedx = 0;
+    for(int j = trunc_min; j<=trunc_max;j++){
+      sumdedx+=dedxlist.at(j);
+      ndedx++;
+    }
+    sumdedx/=ndedx;
+    return sumdedx;
+
 }
