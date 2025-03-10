@@ -151,7 +151,7 @@ namespace
       PHG4TpcCylinderGeom *layergeom = my_data.geom_container->GetLayerCellGeom((int) coords[0]);
       
       double r = layergeom->get_radius();
-      double phi = layergeom->get_phi(coords[1]);
+      double phi = layergeom->get_phi(coords[1], side);
       double t = layergeom->get_zcenter(fabs(coords[2]));
       
       double hitzdriftlength = t * my_data.tGeometry->get_drift_velocity();
