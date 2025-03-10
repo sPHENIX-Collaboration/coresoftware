@@ -26,12 +26,16 @@ void CaloWaveformProcessing::initialize_processing()
 {
   char *calibrationsroot = getenv("CALIBRATIONROOT");
   assert(calibrationsroot);
-  if (m_processingtype == CaloWaveformProcessing::TEMPLATE)
+  if (m_processingtype == CaloWaveformProcessing::TEMPLATE || m_processingtype == CaloWaveformProcessing::TEMPLATE_NOSAT)
   {
     std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
     url_template = CDBInterface::instance()->getUrl(m_template_name, calibrations_repo_template);
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
+    if(m_processingtype == CaloWaveformProcessing::TEMPLATE_NOSAT)
+    {
+      m_Fitter->set_handleSaturation(false);
+    }
     m_Fitter->set_nthreads(get_nthreads());
     if (m_setTimeLim)
     {
