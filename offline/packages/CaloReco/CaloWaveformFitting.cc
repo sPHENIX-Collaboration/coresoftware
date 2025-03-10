@@ -126,7 +126,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         int ndata = 0;
         for (int i = 0; i < size1; ++i)
         {
-          if (v.at(i) == 16383)
+          if ((v.at(i) == 16383) && _handleSaturation)
           {
             continue;
           }
