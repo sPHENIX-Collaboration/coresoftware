@@ -52,6 +52,11 @@ class CaloWaveformFitting
     _dobitfliprecovery = dobitfliprecovery;
   }
 
+  void set_handleSaturation(bool handleSaturation = true)
+  {
+    _handleSaturation = handleSaturation;
+  }
+
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
   static std::vector<std::vector<float>> calo_processing_fast(const std::vector<std::vector<float>> &chnlvector);
@@ -86,6 +91,7 @@ class CaloWaveformFitting
   bool _maxsoftwarezerosuppression{false};
   bool m_setTimeLim{false};
   bool _dobitfliprecovery{false};
+  bool _handleSaturation{true};
 
   std::string m_template_input_file;
   std::string url_template;
