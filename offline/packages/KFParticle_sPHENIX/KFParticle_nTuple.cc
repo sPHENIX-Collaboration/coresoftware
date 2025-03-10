@@ -32,7 +32,7 @@ void KFParticle_nTuple::initializeVariables()
   // m_calculated_mother_cov = -99;
 }
 
-void KFParticle_nTuple::initializeBranches()
+void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 {
   delete m_tree;
   m_tree = new TTree("DecayTree", "DecayTree");
@@ -289,6 +289,11 @@ void KFParticle_nTuple::initializeBranches()
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
+
+  if (m_get_trigger_info)
+  {
+    m_trigger_info_available = buildTriggerBranches(topNode, m_tree);
+  }
 }
 
 void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
@@ -616,11 +621,21 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_runNumber = m_evtNumber = -1;
   }
 
+  if (m_trigger_info_available)
+  {
+    fillTriggerBranches(topNode);
+  }
+
   m_tree->Fill();
 
   if (m_truth_matching || m_detector_info)
   {
     clearVectors();
+  }
+
+  if (m_trigger_info_available)
+  {
+    resetTriggerBranches();
   }
 }
 
