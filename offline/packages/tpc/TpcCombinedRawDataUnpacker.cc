@@ -151,7 +151,11 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     m_ntup_hits = new TNtuple("NTH", "NTH", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width");
     m_ntup_hits_corr = new TNtuple("NTC", "NTC", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width:corr");
     if(m_ChanHitsCut){
+<<<<<<< HEAD
       m_HitsinChan = new TH1F("HitsinChan","HitsinChan",451,-0.5,450.5);
+=======
+      m_HitsinChan = new TH1F("HitsinChan","HitsinChan",450,-0.5,449.5);
+>>>>>>> 5ef4c1b272708b3cd9360636975533012ba002cb
     }
   }
 
