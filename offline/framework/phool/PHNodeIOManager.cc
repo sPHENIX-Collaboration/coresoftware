@@ -38,8 +38,8 @@ PHNodeIOManager::PHNodeIOManager(const std::string& f,
 
 PHNodeIOManager::PHNodeIOManager(const std::string& f, const std::string& title,
                                  const PHAccessType a)
+  : isFunctionalFlag(setFile(f, title, a) ? 1 : 0)
 {
-  isFunctionalFlag = setFile(f, title, a) ? 1 : 0;
 }
 
 PHNodeIOManager::PHNodeIOManager(const std::string& f, const PHAccessType a,
@@ -260,7 +260,7 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
   {
     // For this one we need to go down a little before getting the
     // name...
-    TLeafObject* leaf = static_cast<TLeafObject*>(branch->GetLeaf(branch->GetName()));
+    TLeafObject* leaf = dynamic_cast<TLeafObject*>(branch->GetLeaf(branch->GetName()));
     assert(leaf != nullptr);
     return leaf->GetTypeName();
   }
@@ -356,7 +356,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     return nullptr;
   }
 
-  tree = static_cast<TTree*>(file->Get(TreeName.c_str()));
+  file->GetObject(TreeName.c_str(),tree);
 
   if (!tree)
   {
@@ -443,7 +443,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     assert(thisClass != nullptr);
 
     PHIODataNode<TObject>* newIODataNode =
-        static_cast<PHIODataNode<TObject>*>(nodeIter.findFirst("PHIODataNode", *splitvec.rbegin()));
+        dynamic_cast<PHIODataNode<TObject>*>(nodeIter.findFirst("PHIODataNode", *splitvec.rbegin()));
     if (!newIODataNode)
     {
       TObject* newTObject = static_cast<TObject*>(thisClass->New());
@@ -564,7 +564,8 @@ int PHNodeIOManager::FillBranchMap()
 {
   if (fBranches.empty())
   {
-    TTree* treetmp = static_cast<TTree*>(file->Get(TreeName.c_str()));
+    TTree* treetmp = nullptr;
+    file->GetObject(TreeName.c_str(),treetmp);
     if (treetmp)
     {
       TObjArray* branchArray = treetmp->GetListOfBranches();

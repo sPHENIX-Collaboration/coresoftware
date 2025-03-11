@@ -37,10 +37,10 @@ class PHNode
   void makeTransient() { persistent = false; }
 
  protected:
-  PHNode *parent {nullptr};
-  bool persistent {true};
-  bool reset_able {true};
-  std::string type {"PHNode"};
+  PHNode *parent{nullptr};
+  bool persistent{true};
+  bool reset_able{true};
+  std::string type{"PHNode"};
   std::string objecttype;
   std::string name;
   std::string objectclass;
