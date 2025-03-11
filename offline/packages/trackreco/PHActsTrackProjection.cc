@@ -105,18 +105,29 @@ int PHActsTrackProjection::End(PHCompositeNode* /*topNode*/)
 
 int PHActsTrackProjection::projectTracks(SvtxTrack::CAL_LAYER caloLayer)
 {
+
+  // make sure caloSurface is valid
+  const auto surface_iter = m_caloSurfaces.find(caloLayer);
+  if( surface_iter == m_caloSurfaces.end() ) return Fun4AllReturnCodes::EVENT_OK;
+  const auto& cylSurf = surface_iter->second;
+
+  // create propagator
   ActsPropagator prop(m_tGeometry);
+
+  // loop over tracks
   for (const auto& [key, track] : *m_trackMap)
   {
     auto params = prop.makeTrackParams(track, m_vertexMap);
     if(!params.ok())
-      {
-	continue;
-      }
-    const auto cylSurf = m_caloSurfaces.at(caloLayer);
+    {
+      continue;
+    }
+
+    // propagate
     const auto result = propagateTrack(params.value(), cylSurf);
     if (result.ok())
     {
+      // update track
       updateSvtxTrack(result.value(), track, caloLayer);
     }
   }
@@ -195,10 +206,11 @@ int PHActsTrackProjection::makeCaloSurfacePtrs(PHCompositeNode* topNode)
 
     if( !towerGeomContainer )
     {
-      std::cout << PHWHERE
-        << "Calo tower geometry container for " << caloname
-        << "not found on node tree. Track projections to calos won't be filled."
+      std::cout << PHWHERE << "-"
+        << " Calo tower geometry container for " << caloname
+        << " not found on node tree. Track projections to calos won't be filled."
         << std::endl;
+      continue;
     }
 
     // get calorimeter inner radius and store
