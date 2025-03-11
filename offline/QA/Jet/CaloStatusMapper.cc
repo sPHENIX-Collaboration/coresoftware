@@ -107,7 +107,7 @@ CaloStatusMapper::~CaloStatusMapper()
 // ----------------------------------------------------------------------------
 //! Initialize module
 // ----------------------------------------------------------------------------
-int CaloStatusMapper::Init(PHCompositeNode* topNode)
+int CaloStatusMapper::Init(PHCompositeNode* /*topNode*/)
 {
 
   if (m_config.debug)
@@ -212,7 +212,7 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
 // ----------------------------------------------------------------------------
 //! Run final calculations
 // ----------------------------------------------------------------------------
-int CaloStatusMapper::End(PHCompositeNode *topNode)
+int CaloStatusMapper::End(PHCompositeNode* /*topNode*/)
 {
 
   if (m_config.debug)
