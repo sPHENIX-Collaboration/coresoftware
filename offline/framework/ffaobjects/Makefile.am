@@ -5,7 +5,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -29,18 +29,8 @@ ROOTDICTS = \
   EventHeaderv2_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  CdbUrlSave_Dict_rdict.pcm \
-  CdbUrlSavev1_Dict_rdict.pcm \
-  FlagSave_Dict_rdict.pcm \
-  FlagSavev1_Dict_rdict.pcm \
-  RunHeader_Dict_rdict.pcm \
-  RunHeaderv1_Dict_rdict.pcm \
-  SyncObject_Dict_rdict.pcm \
-  SyncObjectv1_Dict_rdict.pcm \
-  EventHeader_Dict_rdict.pcm \
-  EventHeaderv1_Dict_rdict.pcm \
-  EventHeaderv2_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 pkginclude_HEADERS = \
   CdbUrlSave.h \
