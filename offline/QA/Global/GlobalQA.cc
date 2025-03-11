@@ -371,7 +371,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     if (hits_s_t >= central_cut)
     {
       mean_south = sum_s / static_cast<float>(hits_s_t);
-      float rms_s = sqrt((sum_s2 / static_cast<float>(hits_s_t)) - (mean_south * mean_south));
+      float rms_s = std::sqrt((sum_s2 / static_cast<float>(hits_s_t)) - (mean_south * mean_south));
       int nhit_s_center = 0;
       float sum_s_center = 0.;
 
