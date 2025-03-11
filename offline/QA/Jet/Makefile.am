@@ -14,6 +14,7 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
+  CaloStatusMapper.h \
   ConstituentsinJets.h \
   JetQADefs.h \
   StructureinJets.h \
@@ -34,6 +35,7 @@ pkginclude_HEADERS = \
   JetKinematicCheck.h
 
 libjetqa_la_SOURCES = \
+  CaloStatusMapper.cc \
   ConstituentsinJets.cc \
   StructureinJets.cc \
   TrksInJetQA.cc \
