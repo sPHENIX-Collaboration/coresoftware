@@ -32,7 +32,7 @@ void KFParticle_nTuple::initializeVariables()
   // m_calculated_mother_cov = -99;
 }
 
-void KFParticle_nTuple::initializeBranches()
+void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 {
   delete m_tree;
   m_tree = new TTree("DecayTree", "DecayTree");
@@ -228,6 +228,7 @@ void KFParticle_nTuple::initializeBranches()
     m_tree->Branch(TString(daughter_number) + "_track_ID", &m_calculated_daughter_trid[i], TString(daughter_number) + "_track_ID/I");
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
+    m_tree->Branch(TString(daughter_number) + "_dEdx", &m_calculated_daughter_dedx[i], TString(daughter_number) + "_dEdx/F");
 
     if (m_calo_info)
     {
@@ -289,6 +290,11 @@ void KFParticle_nTuple::initializeBranches()
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
+
+  if (m_get_trigger_info)
+  {
+    m_trigger_info_available = buildTriggerBranches(topNode, m_tree);
+  }
 }
 
 void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
@@ -504,6 +510,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     SvtxTrackMap *thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple.c_str());
     SvtxTrack *thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
     m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing(); 
+    m_calculated_daughter_dedx[i] = kfpTupleTools.get_dEdx(topNode, daughterArray[i]);
 
     if (m_calo_info)
     {
@@ -616,11 +623,21 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_runNumber = m_evtNumber = -1;
   }
 
+  if (m_trigger_info_available)
+  {
+    fillTriggerBranches(topNode);
+  }
+
   m_tree->Fill();
 
   if (m_truth_matching || m_detector_info)
   {
     clearVectors();
+  }
+
+  if (m_trigger_info_available)
+  {
+    resetTriggerBranches();
   }
 }
 

@@ -2,6 +2,7 @@
 #define KFPARTICLESPHENIX_KFPARTICLENTUPLE_H
 
 #include "KFParticle_truthAndDetTools.h"
+#include "KFParticle_triggerInfo.h"
 
 #include <KFParticle.h>
 
@@ -11,7 +12,7 @@
 class PHCompositeNode;
 class TTree;
 
-class KFParticle_nTuple : public KFParticle_truthAndDetTools
+class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_triggerInfo
 {
  public:
   /// Constructor
@@ -24,7 +25,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   void initializeVariables();
 
   /// Initialises required branches based off the user selection (number of tracks, PV constraints etc ) and sets branch names if specified
-  void initializeBranches();
+  void initializeBranches(PHCompositeNode* topNode);
 
   /// Fills required information for your selection, also requests truth and detector information if needed
   void fillBranch(PHCompositeNode *topNode,
@@ -45,6 +46,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   // int m_num_tracks_from_intermediate_nTuple[99];
   std::vector<int> m_num_tracks_from_intermediate_nTuple;
   bool m_truth_matching {false};
+  bool m_get_trigger_info {false};
   bool m_detector_info {false};
   bool m_calo_info {false};
   std::string m_mother_name;
@@ -161,6 +163,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
   int m_calculated_daughter_pdgID[max_tracks] = {0};
   // float *m_calculated_daughter_cov[max_tracks];
   float m_calculated_daughter_cov[max_tracks][21] = {{0}, {0}};
+  float m_calculated_daughter_dedx[max_tracks] = {0};
 
   float m_daughter_dca[99] = {0};
   float m_daughter_dca_xy[99] = {0};
@@ -182,6 +185,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools
 
   int m_runNumber = -1;
   int m_evtNumber = -1;
+
+  bool m_trigger_info_available {false};
 };
 
 #endif
