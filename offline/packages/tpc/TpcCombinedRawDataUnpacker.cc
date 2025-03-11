@@ -355,7 +355,9 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 	  }
 	}
       }
-      m_HitsinChan->Fill(nhitschan);
+      if(m_writeTree){
+	m_HitsinChan->Fill(nhitschan);
+      }
       if(nhitschan>100) continue;
     }
     
