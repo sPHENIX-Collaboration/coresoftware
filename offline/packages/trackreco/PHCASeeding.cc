@@ -470,7 +470,8 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
 
            For each starting seed, grow it by links in the following layer.
            Could use a map or make a double-linked list, but don't. We just
-           iterate and check.
+           iterate and check. (From testing this is comparable/faster for
+           current sized vectors).
 
            In any case, if the seed has multiple matches we just ghost it.
   */
