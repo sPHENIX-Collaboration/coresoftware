@@ -8,7 +8,7 @@ void EventHeaderv2::Reset()
   m_bunchCrossing = 0;
 }
 
-void EventHeaderv2::identify(std::ostream& out) const
+void EventHeaderv2::identify(std::ostream &out) const
 {
   out << "identify yourself: I am an EventHeaderv2 Object" << std::endl;
   out
