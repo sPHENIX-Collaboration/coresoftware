@@ -20,7 +20,7 @@ class RunHeader : public PHObject
   void Reset() override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
   void identify(std::ostream &os = std::cout) const override;
 
@@ -38,16 +38,16 @@ class RunHeader : public PHObject
   virtual void set_intval(const std::string & /*name*/, const int /*ival*/) { return; }
   virtual int get_intval(const std::string & /*name*/) const { return std::numeric_limits<int>::min(); }
 
-  virtual void set_bor_timestamp(const int time ) {set_intval("BORTIME",time);}
-  virtual int get_bor_timestamp() const {return get_intval("BORTIME");}
+  virtual void set_bor_timestamp(const int time) { set_intval("BORTIME", time); }
+  virtual int get_bor_timestamp() const { return get_intval("BORTIME"); }
 
-  virtual void set_eor_timestamp(const int time ) {set_intval("EORTIME",time);}
-  virtual int get_eor_timestamp() const {return get_intval("EORTIME");}
+  virtual void set_eor_timestamp(const int time) { set_intval("EORTIME", time); }
+  virtual int get_eor_timestamp() const { return get_intval("EORTIME"); }
   /// switches off the pesky virtual warning messages
-  void NoWarning(const int i = 1);
+  static void NoWarning(const int i = 1);
 
  private:
-  void warning(const std::string &func) const;
+  static void warning(const std::string &func);
 
   ClassDefOverride(RunHeader, 1)
 };
