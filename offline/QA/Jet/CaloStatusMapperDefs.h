@@ -12,7 +12,7 @@
 #define CLUSTERSTATUSMAPPER_DEFS_H
 
 // calobase libraries
-#include <calobase/TowerInfov2.h>
+#include <calobase/TowerInfo.h>
 
 // root libraries
 #include <TH1.h>
