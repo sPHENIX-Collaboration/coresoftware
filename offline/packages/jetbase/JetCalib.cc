@@ -1,6 +1,8 @@
 #include "JetCalib.h"
+
+#include "JetContainerv1.h"
+
 #include <cdbobjects/CDBTF.h>  // for CDBTF1
-#include "JetContainer.h"
 
 #include <ffamodules/CDBInterface.h>
 #include <ffaobjects/EventHeader.h>
@@ -64,6 +66,7 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
     m_JetCalibFile = new CDBTF(fetchCalibDir("Default"));
     if (m_JetCalibFile)
     {
+      m_JetCalibFile->LoadCalibrations();    
       m_JetCalibFunc = m_JetCalibFile->getTF("JES_Calib_Default_Func");
       if (!m_JetCalibFunc)
       {
@@ -94,11 +97,11 @@ int JetCalib::process_event(PHCompositeNode *topNode)
   for (auto jet : *_raw_jets)
   {
     float pt = jet->get_pt();
+    float calib_pt = getTotalCorrFactor(m_JetCalibFunc, pt);
     auto calib_jet = _calib_jets->add_jet();
-    float corrFactor = getTotalCorrFactor(m_JetCalibFunc, pt);
-    calib_jet->set_px(jet->get_px() * corrFactor);
-    calib_jet->set_py(jet->get_py() * corrFactor);
-    calib_jet->set_pz(jet->get_pz() * corrFactor);
+    calib_jet->set_px(calib_pt * cos(jet->get_phi()));
+    calib_jet->set_py(calib_pt * sin(jet->get_phi()));
+    calib_jet->set_pz(calib_pt * sinh(jet->get_eta()));
     calib_jet->set_id(ijet);
     calib_jet->set_isCalib(1);
     ijet++;
@@ -143,7 +146,7 @@ int JetCalib::CreateNodeTree(PHCompositeNode *topNode)
   JetContainer *test_jets = findNode::getClass<JetContainer>(topNode, m_outputNode);
   if (!test_jets)
   {
-    JetContainer *calib_jets = new JetContainer();
+    JetContainer *calib_jets = new JetContainerv1();
     PHIODataNode<PHObject> *calibjetNode;
     if (Verbosity() > 0)
     {
