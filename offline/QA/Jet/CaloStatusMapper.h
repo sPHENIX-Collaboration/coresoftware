@@ -19,7 +19,7 @@
 #include "CaloStatusMapperDefs.h"
 
 // calo base
-#include <calobase/TowerInfoContainerv2.h>
+#include <calobase/TowerInfoContainer.h>
 
 // f4a libraries
 #include <fun4all/SubsysReco.h>

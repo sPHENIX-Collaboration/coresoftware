@@ -14,7 +14,7 @@
 #include "CaloStatusMapper.h"
 
 // calo base
-#include <calobase/TowerInfov2.h>
+#include <calobase/TowerInfo.h>
 
 // calo trigger
 #include <calotrigger/TriggerAnalyzer.h>
