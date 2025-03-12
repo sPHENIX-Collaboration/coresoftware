@@ -88,7 +88,7 @@ class CaloStatusMapper : public SubsysReco
     void SetConfig(const Config& config) {m_config = config;}
 
     // getters
-    Config GetConfig() {return m_config;}
+    const Config& GetConfig() {return m_config;}
 
     // f4a methods
     int Init(PHCompositeNode* /*topNode*/) override;
@@ -113,7 +113,7 @@ class CaloStatusMapper : public SubsysReco
     TriggerAnalyzer* m_analyzer {nullptr};
 
     ///! status labels
-    std::map<CaloStatusMapperDefs::Stat, std::string> m_mapStatLabels {CaloStatusMapperDefs::StatLabels()};
+    const& std::map<CaloStatusMapperDefs::Stat, std::string> m_mapStatLabels {CaloStatusMapperDefs::StatLabels()};
 
     ///! output histograms
     std::map<std::string, TH1*> m_hists;
