@@ -94,9 +94,6 @@ class PHActsTrackProjection : public SubsysReco
 
   /// constant field value
   float m_constFieldVal = 1.4;
-
-  /// true if at least one calorimeter is available
-  bool m_calosAvailable = true;
 };
 
 #endif
