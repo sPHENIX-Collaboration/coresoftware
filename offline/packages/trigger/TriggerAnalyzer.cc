@@ -4,7 +4,6 @@
 #include "TriggerRunInfo.h"
 
 #include <ffarawobjects/Gl1Packet.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -24,8 +23,12 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
   gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1packet)
   {
-    std::cout << " no gl1 packet" << std::endl;
-    return 1;
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT"); //Different term used in track production
+    if (!gl1packet)
+    {
+      std::cout << "no gl1 packet" << std::endl;
+      return 1;
+    }
   }
   triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
   if (!triggerruninfo)
@@ -39,10 +42,14 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
     return 0;
   }
   gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-  if (!gl1packet) 
+  if (!gl1packet)
   {
-    std::cout << " no gl1 packet" << std::endl;
-    return 1;
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT"); //Different term used in track production
+    if (!gl1packet)
+    {
+      std::cout << "no gl1 packet" << std::endl;
+      return 1;
+    }
   }
   triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
   if (!triggerruninfo) 
