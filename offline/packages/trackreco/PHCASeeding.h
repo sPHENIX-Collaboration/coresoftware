@@ -103,9 +103,9 @@ class PHCASeeding : public PHTrackSeeding
   // struct to efficiency keep tracks of growing seed parameters
   // this avoid recalculating cluster values as adding clusters
   // grows outwards, always using the last three clusters
-  struct Checker_dphidz
+  struct ClusAdd_Checker
   {
-   Checker_dphidz(
+   ClusAdd_Checker(
       const float& _delta_dzdr_window,
       const float& _delta_dphidr2_window,
       keyPtrList& seed_triplet);
@@ -114,6 +114,8 @@ class PHCASeeding : public PHTrackSeeding
     const float& delta_dphidr2_window;
 
 
+    std::array<float,4> x       {}; // need for Menger Curve calculation
+    std::array<float,4> y       {}; // ... same ...
     std::array<float,4> z       {};
     std::array<float,4> phi     {};
     std::array<float,4> R       {};
@@ -131,6 +133,11 @@ class PHCASeeding : public PHTrackSeeding
     void add_cluster(const keyPtr = nullptr); // add a cluster to end of the chain
                                               // if no entry, keep last cluster checked
     void add_clusters(const keyPtrList&);  // add the average cluster value 
+
+    float mengerCurveLast(); // get MengerCurvature of points 0, 1, 2 -- save values input for mengerCurve(point 3)
+    float x2, y2, z2, l2; // saved in mengerCurveLast from point i0->i2
+    float mengerCurve(const keyPtr); // get MengerCurvature of points 1, 2, 3=keyPtr
+    inline float breaking_angle(float, float, float, float, float, float, float, float);
 
     private:
     void update(const keyPtr);
@@ -161,6 +168,7 @@ class PHCASeeding : public PHTrackSeeding
   );
 
   ~PHCASeeding() override {}
+  void SetMengerBest(bool opt = true) { _menger_best  = opt; } // supercedes split seeds -- will just pick the best seed out of multiple options
   void SetSplitSeeds(bool opt = true) { _split_seeds = opt; }
   void SetMultClustersPerLayer(bool opt = true) { _doubles_in_seed = opt; }
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up)
@@ -180,6 +188,8 @@ class PHCASeeding : public PHTrackSeeding
   }
   void SetMinHitsPerCluster(unsigned int minHits) { _min_nhits_per_cluster = minHits; }
   void SetMinClustersPerTrack(unsigned int minClus) { _min_clusters_per_track = minClus; }
+  void SetNDifferencesToMerge(size_t nDiff) { _differences_to_merge = nDiff; }
+  void SetMinClustToMerge(size_t minclus) { _minclus_tomerge = minclus; }
   void SetNClustersPerSeedRange(unsigned int minClus, unsigned int maxClus)
   {
     _min_clusters_per_seed = minClus;
@@ -270,6 +280,7 @@ class PHCASeeding : public PHTrackSeeding
   std::pair<linkIterList, linkIterArr> CreateBilinks(keyPtrArr&);
   keyPtrLists MakeSeedTripletHeads(const linkIterList&, const linkIterArr&) const;
   void GrowSeeds(keyPtrLists&, const linkIterArr&);
+  void RemoveDuplicates(keyPtrLists&);
   std::vector<TrackSeed_v2> RemoveBadClusters(const keyPtrLists& seeds) const;
   keyPtrList FillTree(boost_rtree&, const keyPtrList&);
   void PublishSeeds(std::vector<TrackSeed_v2>&);
@@ -296,13 +307,20 @@ class PHCASeeding : public PHTrackSeeding
   float _clusadd_delta_dzdr_window = 0.5;
   float _clusadd_delta_dphidr2_window = 0.005;
   float _max_sin_phi;
+  size_t _differences_to_merge = 2;
+  size_t _minclus_tomerge = 6; // i.e., only merge seeds 6 clusters and above
+                               // this is important, as an already merged seed could have lost 
+                               // disagreeing clusters, and then, e.g., a 4 cluster seed would only 
+                               // have to match 2 clusters to merge. (or a 2 cluster seed would be a bomb
+                               // that would cut a hole in the next seed if matching in layers.)
   /* float _cosTheta_limit; */
   double _rz_outlier_threshold = 0.1;
   double _xy_outlier_threshold = 0.1;
   double _fieldDir = -1;
   bool _use_const_field = false;
   bool _doubles_in_seed = false;
-  bool _split_seeds = true;
+  bool _split_seeds = true; // 
+  bool _menger_best = false; // don't set to true now, just for Jenkins -- but default to true later
   bool _reject_zsize1 = false;
   float _const_field = 1.4;
   bool _use_fixed_clus_err = false;

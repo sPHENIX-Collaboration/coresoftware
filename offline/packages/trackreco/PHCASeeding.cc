@@ -149,10 +149,46 @@ namespace
     timer->restart();
   }
 
+  class CompareKeyPtr {
+    // Order the keyPtrs first by layer, then by their pointer values This
+    // allows the vectors to be layer searcehd with std::lower_bound (or
+    // upper_bound), and for the vectors to be used in finding the set
+    // intersection (which also required sorted contents).
+    public:
+      bool operator()(PHCASeeding::keyPtr a, PHCASeeding::keyPtr b) const {
+        return std::tuple<uint8_t, PHCASeeding::keyPtr>(TrkrDefs::getLayer(a->key), a) 
+             < std::tuple<uint8_t, PHCASeeding::keyPtr>(TrkrDefs::getLayer(b->key), b);
+      }
+  };
+
+  static bool seedAinB(PHCASeeding::keyPtrList& A, PHCASeeding::keyPtrList& B, unsigned int min_diff) {
+    // Note! A and B *must* be sorted for these methods to work
+    // see if A is a subset of B
+   
+    // short circuit -- if B is too small, A cannot be in it
+    if (B.size() - A.size() > min_diff) return false;
+
+    // find lower bound (lb) of A range which overlaps in B (i.e. greater than B[0])
+    auto a_lb = std::lower_bound(A.begin(), A.end(), B[0], CompareKeyPtr());
+    if (a_lb - A.begin() > min_diff) return false;
+
+    // find upper bound (ub) of A overlapping in B (i.e. less than B.back())
+    auto a_up = std::upper_bound(A.begin(), A.end(), B.back(), CompareKeyPtr());
+    if (A.end() - a_up > min_diff) return false;
+
+    // enough of A is in B (within layers) to compare the actual clusters
+    // find the number of Elements between a_lb and a_up (inclusive) that are in B
+
+    // Find the intersection of A and B
+    PHCASeeding::keyPtrList AandB;
+    std::set_intersection(a_lb, a_up, B.begin(), B.end(), std::back_inserter(AandB), CompareKeyPtr());
+    return A.size() - AandB.size() <= min_diff;
+  }
+
 }  // namespace
 
 
-PHCASeeding::Checker_dphidz::Checker_dphidz(
+PHCASeeding::ClusAdd_Checker::ClusAdd_Checker(
   const float& _clusadd_delta_z_window,
   const float& _clusadd_delta_phi_window,
   keyPtrList& seed)
@@ -162,11 +198,11 @@ PHCASeeding::Checker_dphidz::Checker_dphidz(
   // add the last three clusters from the seed triplet
   for (int i=0;i<3;++i) {
     const auto&  p = *(seed.end()-3+i);
-    const float x = p->x;
-    const float y = p->y;
+    x[i] = p->x;
+    y[i] = p->y;
     z[i] = p->z;
     phi[i] = p->phi;
-    R[i] = sqrt(x*x+y*y);
+    R[i] = sqrt(x[i]*x[i]+y[i]*y[i]);
     if (i>0) {
       dR[i] = R[i]-R[i-1];
       dZdR[i] = (z[i]-z[i-1])/dR[i];
@@ -176,7 +212,7 @@ PHCASeeding::Checker_dphidz::Checker_dphidz(
   }
 }
 
-bool PHCASeeding::Checker_dphidz::check_cluster(PHCASeeding::keyPtr p)
+bool PHCASeeding::ClusAdd_Checker::check_cluster(PHCASeeding::keyPtr p)
 {
   update(p);
   return 
@@ -184,19 +220,19 @@ bool PHCASeeding::Checker_dphidz::check_cluster(PHCASeeding::keyPtr p)
    &&  (fabs(dphidR2[i3]-2*dphidR2[i2]+dphidR2[i1]) <= delta_dphidr2_window);
 }
 
-void PHCASeeding::Checker_dphidz::update(const PHCASeeding::keyPtr p) {
-  const float x = p->x;
-  const float y = p->y;
+void PHCASeeding::ClusAdd_Checker::update(const PHCASeeding::keyPtr p) {
+  x[i3] = p->x;
+  y[i3] = p->y;
   z[i3] = p->z;
   phi[i3] = p->phi;
-  R[i3] = sqrt(x*x+y*y);
+  R[i3] = sqrt(x[i3]*x[i3]+y[i3]*y[i3]);
   dR[i3] = R[i3]-R[i2];
   dZdR[i3] = (z[i3]-z[i2])/dR[i3];
   auto dphi = wrap_dphi(phi[i2],phi[i3]);
   dphidR2[i3] = dphi/dR[i3]/dR[i3];
 }
 
-void PHCASeeding::Checker_dphidz::update(const PHCASeeding::keyPtrList& ptrs) {
+void PHCASeeding::ClusAdd_Checker::update(const PHCASeeding::keyPtrList& ptrs) {
   // get the average values of z, phi, R, and update with those
   double _x = std::accumulate(ptrs.begin(), ptrs.end(), 0., 
     [](double sum, const keyPtr& p) { return sum + p->x; });
@@ -216,7 +252,7 @@ void PHCASeeding::Checker_dphidz::update(const PHCASeeding::keyPtrList& ptrs) {
   dphidR2[i3] = (phi[i3]-phi[i2])/dR[i3]/dR[i3];
 }
 
-void PHCASeeding::Checker_dphidz::add_cluster(const PHCASeeding::keyPtr p) {
+void PHCASeeding::ClusAdd_Checker::add_cluster(const PHCASeeding::keyPtr p) {
   if (p) { update(p); }
   ++index;
   i1 = (index+1)%4;
@@ -224,12 +260,52 @@ void PHCASeeding::Checker_dphidz::add_cluster(const PHCASeeding::keyPtr p) {
   i3 = (index+3)%4;
 }
 
-void PHCASeeding::Checker_dphidz::add_clusters(const keyPtrList& ptrs) {
+void PHCASeeding::ClusAdd_Checker::add_clusters(const keyPtrList& ptrs) {
   update(ptrs);
   ++index;
   i1 = (index+1)%4;
   i2 = (index+2)%4;
   i3 = (index+3)%4;
+}
+
+float PHCASeeding::ClusAdd_Checker::mengerCurveLast() {
+  int i0 = index%4;
+  float x1 = x[i1]-x[i0];
+  float y1 = y[i1]-y[i0];
+  float z1 = z[i1]-z[i0];
+  float l1 = sqrt(x1*x1+y1*y1+z1*z1);
+  
+  x2 = x[i2]-x[i1];
+  y2 = y[i2]-y[i1];
+  z2 = z[i2]-z[i1];
+  l2 = sqrt(x2*x2+y2*y2+z2*z2);
+
+  float hyp = sqrt(square<float>(x[i2]-x[i0])+square<float>(y[i2]-y[i0]) + square<float>(z[i2]-z[i0]));
+
+  return 2*sin(breaking_angle(-x1, -y1, -z1, l1, x2, y2, z2, l2))/hyp;
+}
+
+float PHCASeeding::ClusAdd_Checker::mengerCurve(const keyPtr p) {
+  // note: mengerCurveLast *must* be called first -- initializes x2,y2,z2,l2
+  update(p); // udpate values of i3 point
+  float x3 = x[i3]-x[i2];
+  float y3 = y[i3]-y[i2];
+  float z3 = z[i3]-z[i2];
+  float l3 = sqrt(x3*x3+y3*y3+z3*z3);
+
+  float hyp = sqrt(square<float>(x[i3]-x[i1])+square<float>(y[i3]-y[i1]) + square<float>(z[i3]-z[i1]));
+  return 2*sin(breaking_angle(-x2, -y2, -z2, l2, x3, y3, z3, l3))/hyp;
+}
+
+inline float PHCASeeding::ClusAdd_Checker::breaking_angle(float dxL, float dyL, float dzL, float lL,
+                                                    float dxR, float dyR, float dzR, float lR) {
+  float sx = sqrt(dxL/lL+dxR/lR);
+  float sy = sqrt(dyL/lL+dyR/lR);
+  float sz = sqrt(dzL/lL+dzR/lR);
+  float dx = sqrt(dxL/lL-dxR/lR);
+  float dy = sqrt(dyL/lL-dyR/lR);
+  float dz = sqrt(dzL/lL-dzR/lR);
+  return 2 * atan2(sqrt(dx * dx + dy * dy + dz * dz), sqrt(sx * sx + sy * sy + sz * sz));
 }
 
 // using namespace ROOT::Minuit2;
@@ -484,6 +560,9 @@ int PHCASeeding::Process(PHCompositeNode* /*topNode*/)
 
   GrowSeeds(seeds, links);
   print_reset_time(t_process, Verbosity(), _PRINT_THRESHOLD, "grown seeds");
+
+  RemoveDuplicates(seeds);
+  print_reset_time(t_process, Verbosity(), _PRINT_THRESHOLD, "remove seed duplicates");
 
   auto v2_seeds = RemoveBadClusters(seeds);
   print_reset_time(t_process, Verbosity(), _PRINT_THRESHOLD, "removed bad clusters");
@@ -750,7 +829,7 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
     // already grown needs may exist if they are from a split chain
     if (seed->size() >= _max_clusters_per_seed) { continue; }
     
-    Checker_dphidz clus_checker(_clusadd_delta_dzdr_window, _clusadd_delta_dphidr2_window, *seed);
+    ClusAdd_Checker clus_checker(_clusadd_delta_dzdr_window, _clusadd_delta_dphidr2_window, *seed);
     keyPtrList head_keys = {seed->back()};
 
     while (true) // iterate until break
@@ -806,7 +885,21 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
 
       const unsigned int npass = passing_keys.size();
       if (npass > 1) { // most likely case
-        if (_split_seeds) { // make new chains up to this link
+        if (_menger_best) { // add the cluster that has the best Menger Curvature
+          const float current_curv = clus_checker.mengerCurveLast();
+          float best_dcurve = fabs(current_curv-clus_checker.mengerCurve(passing_keys[0]));
+          unsigned int i_dcurve = 0; // index of best curvature
+          for (unsigned int index=1; index<passing_keys.size(); ++index) {
+            float new_dcurve = fabs(current_curv-clus_checker.mengerCurve(passing_keys[index]));
+            if (new_dcurve<best_dcurve) {
+              i_dcurve = index;
+              best_dcurve = new_dcurve;
+            }
+          }
+          clus_checker.add_cluster(passing_keys[i_dcurve]);
+          head_keys = {passing_keys[i_dcurve]};
+          continue;
+        } else if (_split_seeds) { // make new chains up to this link
           for (unsigned int i = 1; i < passing_keys.size(); ++i)
           {
             keyPtrList newseed = {seed->begin(), seed->end()};
@@ -842,6 +935,60 @@ void PHCASeeding::GrowSeeds(PHCASeeding::keyPtrLists& seeds, const PHCASeeding::
       fill_tuple_with_seed(_tupclus_grown_seeds, seed);
     }
   }
+}
+
+void PHCASeeding::RemoveDuplicates(PHCASeeding::keyPtrLists& seeds)
+{
+  // Removes duplicate seeds (those that are subsets of another seed, with up to [differences_to_merge] allowed differences)
+  // NOTE:
+  //   There are algorithmic choices to make -- if a track is a duplicate, do
+  //   we still check it against other tracks to see if they are duplicates?
+  //   i.e. if A in B, and C in A, but C not in B, then removing A at the first 
+  //   interation (and then only ever checkign B against C) will not remove C.
+  //
+  //   Another NOTE:
+  //   if A is *longer* by <= _differences_to_merge B, B could be entirely
+  //   contained in A, but A would be removed as "contained in B". 
+  //   In the current configuration, if _differences_to_merge == 2, then
+  //   this should only be a trouble with the triplet heads, maybe
+  
+  //   Sort the keys, first by layer, then by ptr value
+  for (auto& seed : seeds) {
+    std::sort(seed.begin(), seed.end(), CompareKeyPtr());
+  }
+
+  // find all duplicates; any seed marked is removed and never considered again
+  int n_duplicates = 0;
+  std::vector<bool> is_dup(seeds.size(), false);
+  for (unsigned int i=0; i<seeds.size()-1; ++i) {
+    if (is_dup[i]) { continue; }
+    for (unsigned int j=i+1; j<seeds.size(); ++j) {
+      if (is_dup[j]) { continue; }
+      if (seedAinB(seeds[i], seeds[j], _differences_to_merge)) {
+        is_dup[i] = true;
+        ++n_duplicates;
+        /* break; */
+      } else if (seedAinB(seeds[j], seeds[i], _differences_to_merge)) {
+        is_dup[j] = true;
+        ++n_duplicates;
+      }
+    }
+  }
+
+  keyPtrLists newseeds;
+  newseeds.reserve(seeds.size()-n_duplicates);
+  for (unsigned int i=0;i<seeds.size();++i) {
+    if (!is_dup[i]) { 
+      newseeds.emplace_back(std::move(seeds[i])); 
+    }
+  }
+
+  if (Verbosity() > 2) {
+    std::cout << " Number of duplicate seeds removed: " << n_duplicates << std::endl;
+  }
+
+  // put the results back into seeds -- release the other copy...
+  seeds = std::move(newseeds);
 }
 
 std::vector<TrackSeed_v2> PHCASeeding::RemoveBadClusters(const PHCASeeding::keyPtrLists& chains) const
@@ -1147,7 +1294,7 @@ void PHCASeeding::fill_tuple(TNtuple* tup, float val, PHCASeeding::keyPtr p) con
 void PHCASeeding::fill_tuple_with_seed(TNtuple* tup, const PHCASeeding::keyPtrList& seed) const
 {
   keyPtrList trio {seed.begin(), seed.begin()+3};
-  Checker_dphidz checker(_clusadd_delta_dzdr_window, _clusadd_delta_dphidr2_window, trio);
+  ClusAdd_Checker checker(_clusadd_delta_dzdr_window, _clusadd_delta_dphidr2_window, trio);
 
   int cnt = 0;
   // also output the dR/dZ and dphi2/dR2
