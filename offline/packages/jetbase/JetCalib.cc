@@ -1,6 +1,8 @@
 #include "JetCalib.h"
-#include <cdbobjects/CDBTF.h>  // for CDBTF1
+
 #include "JetContainerv1.h"
+
+#include <cdbobjects/CDBTF.h>  // for CDBTF1
 
 #include <ffamodules/CDBInterface.h>
 #include <ffaobjects/EventHeader.h>
