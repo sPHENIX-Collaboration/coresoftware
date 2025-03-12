@@ -51,7 +51,7 @@ namespace CaloStatusMapperDefs
   {
     EMCal,  ///!< EMCal geometry
     HCal,   ///!< I/OHCal geometry
-    NONE  ///!< Unspecified geometry
+    NONE    ///!< Unspecified geometry
   };
 
 
@@ -80,13 +80,13 @@ namespace CaloStatusMapperDefs
   inline std::map<Stat, std::string> const& StatLabels()
   {
     static std::map<Stat, std::string> mapStatLabels = {
-      {Stat::Good,     "Good"},
-      {Stat::Hot,      "Hot"},
-      {Stat::BadTime,  "BadTime"},
-      {Stat::BadChi,   "BadChi"},
+      {Stat::Good, "Good"},
+      {Stat::Hot, "Hot"},
+      {Stat::BadTime, "BadTime"},
+      {Stat::BadChi, "BadChi"},
       {Stat::NotInstr, "NotInstr"},
-      {Stat::NoCalib,  "NoCalib"},
-      {Stat::Unknown,  "Unknown"}
+      {Stat::NoCalib, "NoCalib"},
+      {Stat::Unknown, "Unknown"}
     };
     return mapStatLabels;
   }
@@ -105,8 +105,8 @@ namespace CaloStatusMapperDefs
     // members
     std::string label {""};  ///! axis label
     std::size_t nBins {10};  ///! no. of bins in an axis
-    float       start {0.};  ///! low edge of 1st bin
-    float       stop  {1.};  ///! high edge of last bin
+    float start {0.};        ///! low edge of 1st bin
+    float stop {1.};         ///! high edge of last bin
 
   };  // end AxisDef
 
@@ -124,8 +124,8 @@ namespace CaloStatusMapperDefs
 
     // axis definitions
     AxisDef stat {"Status", S, -0.5, S - 0.5};
-    AxisDef eta  {"i_{#eta}", H, -0.5, H - 0.5};
-    AxisDef phi  {"i_{#phi}", F, -0.5, F - 0.5};
+    AxisDef eta {"i_{#eta}", H, -0.5, H - 0.5};
+    AxisDef phi {"i_{#phi}", F, -0.5, F - 0.5};
 
     //! make 1 1d status plot
     TH1D* MakeStatus1D(const std::string& name) const
@@ -175,23 +175,23 @@ namespace CaloStatusMapperDefs
   {
 
     Stat status = Stat::Unknown;
-    if (tower -> get_isHot())
+    if (tower->get_isHot())
     {
       status = Stat::Hot;
     }
-    else if (tower -> get_isBadTime())
+    else if (tower->get_isBadTime())
     {
       status = Stat::BadTime;
     }
-    else if (tower -> get_isBadChi2())
+    else if (tower->get_isBadChi2())
     {
       status = Stat::BadChi;
     }
-    else if (tower -> get_isNotInstr())
+    else if (tower->get_isNotInstr())
     {
       status = Stat::NotInstr;
     }
-    else if (tower -> get_isNoCalib())
+    else if (tower->get_isNoCalib())
     {
       status = Stat::NoCalib;
     }

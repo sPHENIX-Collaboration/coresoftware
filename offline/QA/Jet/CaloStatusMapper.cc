@@ -142,7 +142,7 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
   // if needed, check if selected trigger fired
   if (m_config.doTrgSelect)
   {
-    m_analyzer -> decodeTriggers(topNode);
+    m_analyzer->decodeTriggers(topNode);
     bool hasTrigger = JetQADefs::DidTriggerFire(m_config.trgToSelect, m_analyzer);
     if (!hasTrigger)
     {
@@ -167,12 +167,12 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
     {
 
       // grab eta, phi indices
-      const int32_t key  = towers -> encode_key(iTower);
-      const int32_t iEta = towers -> getTowerEtaBin(key);
-      const int32_t iPhi = towers -> getTowerPhiBin(key);
+      const int32_t key = towers->encode_key(iTower);
+      const int32_t iEta = towers->getTowerEtaBin(key);
+      const int32_t iPhi = towers->getTowerPhiBin(key);
 
       // get status
-      const auto tower  = towers -> get_tower_at_channel(iTower);
+      const auto tower = towers->get_tower_at_channel(iTower);
       const auto status = CaloStatusMapperDefs::GetTowerStatus(tower);
       if (status == CaloStatusMapperDefs::Stat::Unknown)
       {
@@ -184,16 +184,16 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
       } 
 
       // make base eta/phi hist name
-      const std::string statLabel  = m_mapStatLabels[status];
+      const std::string statLabel = m_mapStatLabels[status];
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName, statLabel);
       const std::string perPhiBase = MakeBaseName("NPerPhi", nodeName, statLabel);
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName, statLabel);
 
       // fill histograms accordingly
-      m_hists[statBase]   -> Fill(status);
-      m_hists[perEtaBase] -> Fill(iEta);
-      m_hists[perPhiBase] -> Fill(iPhi);
-      m_hists[phiEtaBase] -> Fill(iEta, iPhi);
+      m_hists[statBase]->Fill(status);
+      m_hists[perEtaBase]->Fill(iEta);
+      m_hists[perPhiBase]->Fill(iPhi);
+      m_hists[phiEtaBase]->Fill(iEta, iPhi);
 
     }  // end tower loop
   }  // end node loop
@@ -221,12 +221,12 @@ int CaloStatusMapper::End(PHCompositeNode* /*topNode*/)
   for (const auto& nodeName : m_config.inNodeNames)
   {
     const std::string statBase = MakeBaseName("Status", nodeName.first);
-    m_hists[statBase] -> Scale(1. / (double) m_nEvent);
+    m_hists[statBase]->Scale(1. / (double) m_nEvent);
   }
 
   // register hists and exit
   for (const auto& hist : m_hists) {
-    m_manager -> registerHisto(hist.second);
+    m_manager->registerHisto(hist.second);
   }
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -293,7 +293,7 @@ void CaloStatusMapper::BuildHistograms()
     {
 
       // set relevant bin label for status histogram
-      m_hists[statBase] -> GetXaxis() -> SetBinLabel(statLabel.first + 1, statLabel.second.data());
+      m_hists[statBase]->GetXaxis()->SetBinLabel(statLabel.first + 1, statLabel.second.data());
 
       // make base eta/phi hist name
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName.first, statLabel.second);
