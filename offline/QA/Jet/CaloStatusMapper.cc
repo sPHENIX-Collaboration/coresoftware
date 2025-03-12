@@ -40,9 +40,6 @@
 #include <cassert>
 #include <iostream>
 
-// abbreviate namespace for convenience
-namespace CSMD = CaloStatusMapperDefs;
-
 
 
 // ctor/dtor ==================================================================
@@ -176,8 +173,8 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
 
       // get status
       const auto tower  = towers -> get_tower_at_channel(iTower);
-      const auto status = CSMD::GetTowerStatus(tower);
-      if (status == CSMD::Stat::Unknown)
+      const auto status = CaloStatusMapperDefs::GetTowerStatus(tower);
+      if (status == CaloStatusMapperDefs::Stat::Unknown)
       {
         std::cout << PHWHERE << ": Warning! Tower has an unknown status!\n"
                   << "  channel = " << iTower << ", key = " << key << "\n"
@@ -276,8 +273,8 @@ void CaloStatusMapper::BuildHistograms()
   }
 
   // instantiate histogram definitions
-  const CSMD::EMCalHistDef emHistDef;
-  const CSMD::HCalHistDef  hcHistDef;
+  const CaloStatusMapperDefs::EMCalHistDef emHistDef;
+  const CaloStatusMapperDefs::HCalHistDef  hcHistDef;
 
   // loop over input node names
   for (const auto& nodeName : m_config.inNodeNames)
@@ -285,7 +282,7 @@ void CaloStatusMapper::BuildHistograms()
 
     // make status hist name
     const std::string statBase = MakeBaseName("Status", nodeName.first);
-    const std::string statName = CSMD::MakeQAHistName(statBase, m_config.moduleName, m_config.histTag);
+    const std::string statName = CaloStatusMapperDefs::MakeQAHistName(statBase, m_config.moduleName, m_config.histTag);
 
     // create status hist
     //   - n.b. calo type doesn't matter here
@@ -304,19 +301,19 @@ void CaloStatusMapper::BuildHistograms()
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName.first, statLabel.second);
 
       // make full eta/phi hist name
-      const std::string namePerEta = CSMD::MakeQAHistName(perEtaBase, m_config.moduleName, m_config.histTag);
-      const std::string namePerPhi = CSMD::MakeQAHistName(perPhiBase, m_config.moduleName, m_config.histTag);
-      const std::string namePhiEta = CSMD::MakeQAHistName(phiEtaBase, m_config.moduleName, m_config.histTag);
+      const std::string namePerEta = CaloStatusMapperDefs::MakeQAHistName(perEtaBase, m_config.moduleName, m_config.histTag);
+      const std::string namePerPhi = CaloStatusMapperDefs::MakeQAHistName(perPhiBase, m_config.moduleName, m_config.histTag);
+      const std::string namePhiEta = CaloStatusMapperDefs::MakeQAHistName(phiEtaBase, m_config.moduleName, m_config.histTag);
 
       // make eta/phi hists
       switch (nodeName.second)
       {
-        case CSMD::Calo::HCal:
+        case CaloStatusMapperDefs::Calo::HCal:
           m_hists[perEtaBase] = hcHistDef.MakeEta1D(namePerEta);
           m_hists[perPhiBase] = hcHistDef.MakePhi1D(namePerPhi);
           m_hists[phiEtaBase] = hcHistDef.MakePhiEta2D(namePhiEta);
           break;
-        case CSMD::Calo::EMCal:
+        case CaloStatusMapperDefs::Calo::EMCal:
           [[fallthrough]];
         default:
           m_hists[perEtaBase] = emHistDef.MakeEta1D(namePerEta);
