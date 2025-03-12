@@ -110,6 +110,19 @@ class MicromegasBcoMatchingInformation_v2
     m_multiplier = value;
   }
 
+  /// muliplier adjustment count
+  /** controls how often the gtm multiplier is automatically adjusted */
+  static void set_max_multiplier_adjustment_count( unsigned int value )
+  {
+    m_max_multiplier_adjustment_count = value;
+  }
+
+  // define limit for matching fee_bco to fee_bco_predicted from gtm_bco
+  static void set_gtm_bco_diff( unsigned int value )
+  {
+    m_max_gtm_bco_diff = value;
+  }
+
   //! find reference from modebits
   bool find_reference_from_modebits(const gtm_payload&);
 
@@ -166,6 +179,13 @@ class MicromegasBcoMatchingInformation_v2
 
   //! gtm clock multiplier
   static double m_multiplier;
+
+  //! multiplier adjustment count
+  /* controls how often the gtm multiplier is automatically adjusted */
+  static unsigned int m_max_multiplier_adjustment_count;
+
+  // define limit for matching fee_bco to fee_bco_predicted
+  static unsigned int m_max_gtm_bco_diff;
 
   //! adjustment to multiplier
   double m_multiplier_adjustment = 0;

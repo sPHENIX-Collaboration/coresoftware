@@ -86,13 +86,7 @@ namespace
   }
 
   // define limit for matching two fee_bco
-  static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
-
-  // define limit for matching two fee_bco
   static constexpr unsigned int m_max_fee_bco_diff = 10;
-
-  // define limit for matching fee_bco to fee_bco_predicted
-  static constexpr unsigned int m_max_gtm_bco_diff = 100;
 
   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
   static constexpr unsigned int m_max_matching_data_size = 50;
@@ -124,8 +118,14 @@ namespace
 }  // namespace
 
 // this is the clock multiplier from lvl1 to fee clock
-/* todo: should replace with actual rational number for John K. */
 double MicromegasBcoMatchingInformation_v2::m_multiplier = 4.262916255;
+
+// muliplier adjustment count
+/* controls how often the gtm multiplier is automatically adjusted */
+unsigned int MicromegasBcoMatchingInformation_v2::m_max_multiplier_adjustment_count = 200;
+
+// define limit for matching fee_bco to fee_bco_predicted
+unsigned int MicromegasBcoMatchingInformation_v2::m_max_gtm_bco_diff = 100;
 
 //___________________________________________________
 std::optional<uint32_t> MicromegasBcoMatchingInformation_v2::get_predicted_fee_bco(uint64_t gtm_bco) const
