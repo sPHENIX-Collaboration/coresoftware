@@ -964,7 +964,7 @@ void PHCASeeding::RemoveDuplicates(PHCASeeding::keyPtrLists& seeds)
     if (is_dup[i]) { continue; }
     for (unsigned int j=i+1; j<seeds.size(); ++j) {
       if (is_dup[j]) { continue; }
-      if (seedAinB(seeds[i], seeds[j], _differences_to_merge)) {
+      if (!is_dup[i] && seedAinB(seeds[i], seeds[j], _differences_to_merge)) {
         is_dup[i] = true;
         ++n_duplicates;
         /* break; */
@@ -976,6 +976,8 @@ void PHCASeeding::RemoveDuplicates(PHCASeeding::keyPtrLists& seeds)
   }
 
   keyPtrLists newseeds;
+  std::cout << " seeds size: " << seeds.size() << std::endl;
+  std::cout << " n_duplicates: " << n_duplicates << std::endl;
   newseeds.reserve(seeds.size()-n_duplicates);
   for (unsigned int i=0;i<seeds.size();++i) {
     if (!is_dup[i]) { 
