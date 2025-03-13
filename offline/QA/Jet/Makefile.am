@@ -15,6 +15,7 @@ AM_CPPFLAGS = \
 
 pkginclude_HEADERS = \
   CaloStatusMapper.h \
+  CaloStatusMapperDefs.h \
   ConstituentsinJets.h \
   JetQADefs.h \
   StructureinJets.h \
