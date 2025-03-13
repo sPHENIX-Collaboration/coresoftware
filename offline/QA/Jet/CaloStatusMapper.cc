@@ -184,7 +184,7 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
       } 
 
       // make base eta/phi hist name
-      const std::string statLabel = m_mapStatLabels[status];
+      const std::string statLabel = CaloStatusMapperDefs::StatLabels().at(status);
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName, statLabel);
       const std::string perPhiBase = MakeBaseName("NPerPhi", nodeName, statLabel);
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName, statLabel);
@@ -289,7 +289,7 @@ void CaloStatusMapper::BuildHistograms()
     m_hists[statBase] = emHistDef.MakeStatus1D(statName);
 
     // loop over status labels
-    for (const auto& statLabel : m_mapStatLabels)
+    for (const auto& statLabel : CaloStatusMapperDefs::StatLabels())
     {
 
       // set relevant bin label for status histogram

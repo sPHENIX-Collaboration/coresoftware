@@ -112,9 +112,6 @@ class CaloStatusMapper : public SubsysReco
     ///! for checking which trigger fired
     TriggerAnalyzer* m_analyzer {nullptr};
 
-    ///! status labels
-    const& std::map<CaloStatusMapperDefs::Stat, std::string> m_mapStatLabels {CaloStatusMapperDefs::StatLabels()};
-
     ///! output histograms
     std::map<std::string, TH1*> m_hists;
 
