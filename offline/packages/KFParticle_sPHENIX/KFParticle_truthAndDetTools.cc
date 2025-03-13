@@ -279,7 +279,6 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
       std::cout << "Have a global vertex with no " << vtxType << " vertex... shouldn't happen in KFParticle_truthAndDetTools::fillTruthBranch..." << std::endl;
     }
 
-/*
     auto svtxvertexvector = svtxviter->second;
     MbdVertex *mbdvertex = nullptr;
     SvtxVertex *svtxvertex = nullptr;
@@ -295,10 +294,8 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
         svtxvertex = dst_vertexmap->find(vertex_iter->get_id())->second;
       }
     }
-*/
 
     PHG4VtxPoint *truePoint = nullptr;
-/*
     if (m_use_mbd_vertex_truth)
     {
       std::set<PHG4VtxPoint*> truePointSet = vertexeval->all_truth_points(mbdvertex);
@@ -308,13 +305,11 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
     {
       truePoint = vertexeval->max_truth_point_by_ntracks(svtxvertex);
     }
-*/
+
     if (truePoint == nullptr && isParticleValid)
     {
-std::cout << "g4particle->get_parent_id() = " << g4particle->get_parent_id() << std::endl;
-      PHG4Particle *g4mother = m_truthinfo->GetParticle(g4particle->get_parent_id());
-      //PHG4Particle *g4mother = m_truthinfo->GetPrimaryParticle(g4particle->get_parent_id());
-g4mother->identify();
+      //PHG4Particle *g4mother = m_truthinfo->GetParticle(g4particle->get_parent_id());
+      PHG4Particle *g4mother = m_truthinfo->GetPrimaryParticle(g4particle->get_parent_id());
       truePoint = m_truthinfo->GetVtx(g4mother->get_vtx_id());  // Note, this may not be the PV for a decay with tertiaries
     }
 
@@ -361,10 +356,6 @@ g4mother->identify();
     m_true_daughter_pv_x[daughter_id] = truePoint == nullptr ? -99. : truePoint->get_x();
     m_true_daughter_pv_y[daughter_id] = truePoint == nullptr ? -99. : truePoint->get_y();
     m_true_daughter_pv_z[daughter_id] = truePoint == nullptr ? -99. : truePoint->get_z();
-std::cout << "m_true_daughter_vertex_x[" << daughter_id << "] = " << m_true_daughter_vertex_x[daughter_id] << ", m_true_daughter_pv_x[" << daughter_id << "] = " << m_true_daughter_pv_x[daughter_id] << ", delta = " << m_true_daughter_vertex_x[daughter_id] - m_true_daughter_pv_x[daughter_id] << std::endl;
-std::cout << "m_true_daughter_vertex_y[" << daughter_id << "] = " << m_true_daughter_vertex_y[daughter_id] << ", m_true_daughter_pv_y[" << daughter_id << "] = " << m_true_daughter_pv_y[daughter_id] << ", delta = " << m_true_daughter_vertex_y[daughter_id] - m_true_daughter_pv_y[daughter_id] << std::endl;
-std::cout << "m_true_daughter_vertex_z[" << daughter_id << "] = " << m_true_daughter_vertex_z[daughter_id] << ", m_true_daughter_pv_z[" << daughter_id << "] = " << m_true_daughter_pv_z[daughter_id] << ", delta = " << m_true_daughter_vertex_z[daughter_id] - m_true_daughter_pv_z[daughter_id] << std::endl;
-
   }
 }
 
