@@ -135,7 +135,7 @@ class PHCASeeding : public PHTrackSeeding
     void add_clusters(const keyPtrList&);  // add the average cluster value 
 
     float mengerCurveLast(); // get MengerCurvature of points 0, 1, 2 -- save values input for mengerCurve(point 3)
-    float x2, y2, z2, l2; // saved in mengerCurveLast from point i0->i2
+    float x2{0}, y2{0}, z2{0}, l2{0}; // saved in mengerCurveLast from point i0->i2
     float mengerCurve(const keyPtr); // get MengerCurvature of points 1, 2, 3=keyPtr
     inline float breaking_angle(float, float, float, float, float, float, float, float);
 
