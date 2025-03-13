@@ -150,6 +150,9 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     m_ntup = new TNtuple("NT", "NT", "event:gtmbco:packid:ep:sector:side:fee:rx:entries:ped:width");
     m_ntup_hits = new TNtuple("NTH", "NTH", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width");
     m_ntup_hits_corr = new TNtuple("NTC", "NTC", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width:corr");
+    if(m_ChanHitsCut){
+      m_HitsinChan = new TH1F("HitsinChan","HitsinChan",451,-0.5,450.5);
+    }
   }
 
   if (Verbosity() >= 1)
@@ -225,8 +228,9 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
   uint64_t bco_max = 0;
 
   const auto nhits = tpccont->get_nhits();
-
+  
   int max_time_range = 0;
+  
   for (unsigned int i = 0; i < nhits; i++)
   {
     TpcRawHit* tpchit = tpccont->get_hit(i);
@@ -243,6 +247,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
     int fee = tpchit->get_fee();
     int channel = tpchit->get_channel();
+    
     int feeM = FEE_map[fee];
     if (FEE_R[fee] == 2)
     {
@@ -271,8 +276,8 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    //    uint16_t sampadd = tpchit->get_sampaaddress();
-    // uint16_t sampch = tpchit->get_sampachannel();
+    uint16_t sampadd = tpchit->get_sampaaddress();
+    uint16_t sampch = tpchit->get_sampachannel();
     //    uint16_t sam = tpchit->get_samples();
     max_time_range = tpchit->get_samples();
     varname = "phi";  // + std::to_string(key);
@@ -334,6 +339,28 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
     float threshold_cut = m_zs_threshold;
 
+    int nhitschan=0;
+    
+    if(m_ChanHitsCut){
+      for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator(tpchit->CreateAdcIterator());!adc_iterator->IsDone();adc_iterator->Next()){
+	const uint16_t s = adc_iterator->CurrentTimeBin();
+	const uint16_t adc = adc_iterator->CurrentAdc();
+	int t = s - m_presampleShift - m_t0;
+	if (t < 0) continue;
+	if (feehist != nullptr){
+	  if (adc > 0){
+	    if ((float(adc) - hpedestal) > threshold_cut){
+	      nhitschan++;
+	    }
+	  }
+	}
+      }
+      if(m_writeTree){
+	m_HitsinChan->Fill(nhitschan);
+      }
+      if(nhitschan>100) continue;
+    }
+    
     for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator(tpchit->CreateAdcIterator());
          !adc_iterator->IsDone();
          adc_iterator->Next())
@@ -374,26 +401,26 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 
         if (m_writeTree)
         {
-          float fXh[18];
-          int nh = 0;
-
-          fXh[nh++] = _ievent - 1;
-          fXh[nh++] = 0;                        // gtm_bco;
-          fXh[nh++] = 0;                        // packet_id;
-          fXh[nh++] = 0;                        // ep;
-          fXh[nh++] = mc_sectors[sector % 12];  // Sector;
-          fXh[nh++] = side;
-          fXh[nh++] = fee;
-          fXh[nh++] = 0;  // channel;
-          fXh[nh++] = 0;  // sampadd;
-          fXh[nh++] = 0;  // sampch;
-          fXh[nh++] = (float) phibin;
-          fXh[nh++] = (float) t;
-          fXh[nh++] = layer;
-          fXh[nh++] = (float(adc) - hpedestal);
-          fXh[nh++] = hpedestal;
-          fXh[nh++] = hpedwidth;
-          m_ntup_hits->Fill(fXh);
+	    float fXh[18];
+	    int nh = 0;
+	    
+	    fXh[nh++] = _ievent - 1;
+	    fXh[nh++] = gtm_bco;                        // gtm_bco;
+	    fXh[nh++] = packet_id;                        // packet_id;
+	    fXh[nh++] = ep;                        // ep;
+	    fXh[nh++] = mc_sectors[sector % 12];  // Sector;
+	    fXh[nh++] = side;
+	    fXh[nh++] = fee;
+	    fXh[nh++] = channel;  // channel;
+	    fXh[nh++] = sampadd;  // sampadd;
+	    fXh[nh++] = sampch;  // sampch;
+	    fXh[nh++] = (float) phibin;
+	    fXh[nh++] = (float) t;
+	    fXh[nh++] = layer;
+	    fXh[nh++] = (float(adc) - hpedestal);
+	    fXh[nh++] = hpedestal;
+	    fXh[nh++] = hpedwidth;
+	    m_ntup_hits->Fill(fXh);
         }
       }
     }
@@ -615,6 +642,9 @@ int TpcCombinedRawDataUnpacker::End(PHCompositeNode* /*topNode*/)
     m_ntup->Write();
     m_ntup_hits->Write();
     m_ntup_hits_corr->Write();
+    if(m_ChanHitsCut){
+      m_HitsinChan->Write();
+    }
     m_file->Close();
   }
   if (Verbosity())

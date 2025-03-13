@@ -16,6 +16,7 @@ class CDBInterface;
 class TH2I;
 class TH2C;
 class TFile;
+class TH1F;
 class TNtuple;
 
 class TpcCombinedRawDataUnpacker : public SubsysReco
@@ -28,6 +29,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int process_event(PHCompositeNode *) override;
   int End(PHCompositeNode *topNode) override;
   void writeTree() { m_writeTree = true; }
+  void doChanHitsCut(bool cut){m_ChanHitsCut=cut;};
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
   void doZSEmulation(bool val) { m_do_zs_emulation = val; }
   void ReadZeroSuppressedData() { 
@@ -105,6 +107,9 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int mc_sectors[12]{5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
   int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
   int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
+
+  TH1F *m_HitsinChan{nullptr};
+  bool m_ChanHitsCut{false};
 
   float m_ped_sig_cut{4.0};
 
