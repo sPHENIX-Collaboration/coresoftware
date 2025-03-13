@@ -6,7 +6,10 @@
 
 class PHObject;
 
-static int nowarning = 0;
+namespace
+{
+  int nowarning = 0;
+}
 
 void RunHeader::Reset()
 {
@@ -54,7 +57,7 @@ void RunHeader::NoWarning(const int i)
   return;
 }
 
-void RunHeader::warning(const std::string& funcname) const
+void RunHeader::warning(const std::string& funcname)
 {
   if (!nowarning)
   {

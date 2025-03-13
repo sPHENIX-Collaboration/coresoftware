@@ -20,9 +20,11 @@ void PHNodeIntegrate::perform(PHNode *node)
   {
     if (node->getObjectType() == "PHObject")
     {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
       PHObject *obj = static_cast<PHDataNode<PHObject> *>(node)->getData();
       if (obj->Integrate())
       {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
         PHObject *sumobj = findNode::getClass<PHObject>(runsumnode, node->getName());
         if (sumobj)
         {

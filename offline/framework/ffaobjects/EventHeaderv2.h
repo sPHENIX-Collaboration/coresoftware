@@ -36,11 +36,11 @@ class EventHeaderv2 : public EventHeaderv1
 
   /*!
    * identify Function from PHObject
-   * @param os Output Stream 
+   * @param os Output Stream
    */
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
-  void CopyTo(EventHeader *) override;
+  void CopyTo(EventHeader*) override;
 
   //! bunch crossing
   void set_BunchCrossing(int64_t value) override
@@ -56,7 +56,7 @@ class EventHeaderv2 : public EventHeaderv1
 
  private:
   //! bunch crossing id
-  int64_t m_bunchCrossing {0};
+  int64_t m_bunchCrossing{0};
 
   ClassDefOverride(EventHeaderv2, 2)
 };
