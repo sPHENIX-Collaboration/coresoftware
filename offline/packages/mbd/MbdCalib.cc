@@ -19,13 +19,17 @@
 
 #include <TString.h>
 
-MbdCalib::MbdCalib() : _rc(recoConsts::instance())
+
+MbdCalib::MbdCalib()
 {
   Reset();
   _mbdgeom = std::make_unique<MbdGeomV1>();
 
 #ifndef ONLINE
-  
+  // clang-tidy suggests to put this into the ctor but then ONLINE
+  // does not compile anymore
+  // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
+  _rc = recoConsts::instance();
   if ( _rc->FlagExist("MBD_TEMPLATEFIT") )
   {
     do_templatefit = _rc->get_IntFlag("MBD_TEMPLATEFIT");
