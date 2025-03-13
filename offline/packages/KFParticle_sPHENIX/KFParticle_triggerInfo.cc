@@ -16,10 +16,14 @@ KFParticle_triggerInfo::~KFParticle_triggerInfo() = default;  // Destructor
 bool KFParticle_triggerInfo::buildTriggerBranches(PHCompositeNode *topNode, TTree *m_tree)
 {
   //First, check whether we actually have the right information
-  auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1packet)
   {
-    return false;
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    if (!gl1packet)
+    {
+      return false;
+    }
   }
 
   auto triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");

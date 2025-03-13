@@ -613,9 +613,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int lt_eta = recoCluster->get_lead_tower().first;
         unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
-        int ld_ib_eta = lt_eta / 8;
-        int ld_ib_phi = lt_phi / 8;
-        int IB_num    = ld_ib_eta * 12 + ld_ib_phi;
+        int IB_num = (lt_eta / 8)*32 + (lt_phi / 8);
 
         for (int bit : scaledActiveBits)
         {
