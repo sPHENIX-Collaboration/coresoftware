@@ -976,8 +976,6 @@ void PHCASeeding::RemoveDuplicates(PHCASeeding::keyPtrLists& seeds)
   }
 
   keyPtrLists newseeds;
-  std::cout << " seeds size: " << seeds.size() << std::endl;
-  std::cout << " n_duplicates: " << n_duplicates << std::endl;
   newseeds.reserve(seeds.size()-n_duplicates);
   for (unsigned int i=0;i<seeds.size();++i) {
     if (!is_dup[i]) { 
