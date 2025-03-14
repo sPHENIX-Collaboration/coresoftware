@@ -167,7 +167,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
 
-  GridSeeds runSeeder(std::vector<const SpacePoint *> &spVec);
+  void runSeeder();
 
   /// Configure the seeding parameters for Acts. There
   /// are a number of tunable parameters for the seeder here
