@@ -58,7 +58,27 @@ PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
 {
 }
-
+PHActsSiliconSeeding::~PHActsSiliconSeeding()
+{
+  delete m_file;
+  delete m_tree;
+  delete h_nInttProj;
+  delete h_nMvtxHits;
+  delete h_nInttHits;
+  delete h_nMatchedClusters;
+  delete h_nHits;
+  delete h_nSeeds;
+  delete h_nActsSeeds;
+  delete h_nTotSeeds;
+  delete h_nInputMeas;
+  delete h_nInputMvtxMeas;
+  delete h_nInputInttMeas;
+  delete h_hits;
+  delete h_zhits;
+  delete h_projHits;
+  delete h_zprojHits;
+  delete h_resids;
+}
 int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
 {
   Acts::SeedFilterConfig sfCfg = configureSeedFilter();

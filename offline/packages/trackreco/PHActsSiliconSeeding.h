@@ -44,6 +44,7 @@ class PHActsSiliconSeeding : public SubsysReco
 {
  public:
   PHActsSiliconSeeding(const std::string &name = "PHActsSiliconSeeding");
+  ~PHActsSiliconSeeding() override;
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
