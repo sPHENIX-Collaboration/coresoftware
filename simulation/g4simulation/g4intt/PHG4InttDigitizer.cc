@@ -115,19 +115,19 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   m_bad_channel_map = new InttBadChannelMap;
   if (m_which_bad_channel_map.empty())
   {
-	// Use default tag name
+    // Use default tag name
     load_rv = m_bad_channel_map->Load();
   }
   else
   {
-	// User redirected callibration
+    // User redirected callibration
     load_rv = m_bad_channel_map->Load(m_which_bad_channel_map);
   }
 
   // Delete and nullify pointer load fails (effectively no mask)
   if (load_rv != 0) {
     delete m_bad_channel_map;
-	m_bad_channel_map = nullptr;
+    m_bad_channel_map = nullptr;
   }
 
   //----------------
@@ -137,7 +137,7 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "====================== PHG4InttDigitizer::InitRun() =====================" << std::endl;
-	std::cout << " Masking " << (m_bad_channel_map ? m_bad_channel_map->size() : 0) << " channels" << std::endl;
+    std::cout << " Masking " << (m_bad_channel_map ? m_bad_channel_map->size() : 0) << " channels" << std::endl;
     for (auto &iter1 : _max_adc)
     {
       std::cout << " Max ADC in Layer #" << iter1.first << " = " << iter1.second << std::endl;
@@ -244,14 +244,16 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       int strip_col = InttDefs::getCol(hitkey);  // strip z index
       int strip_row = InttDefs::getRow(hitkey);  // strip phi index
 
+      InttNameSpace::Offline_s ofl;
+      ofl.layer = layer;
+      ofl.ladder_phi = ladder_phi;
+      ofl.ladder_z = ladder_z;
+      ofl.strip_x = strip_row;
+      ofl.strip_y = strip_col;
+
       // Apply deadmap here if desired
-      if (m_bad_channel_map && m_bad_channel_map->IsBad(InttMap::Offline_s{
-        layer,
-        ladder_phi,
-        ladder_z,
-        strip_col,
-        strip_row})
-      ) {
+      if (m_bad_channel_map && m_bad_channel_map->IsBad(ofl))
+      {
         ++m_nDeadCells;
       
         if (Verbosity() >= VERBOSITY_MORE)
