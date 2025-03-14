@@ -260,7 +260,8 @@ PHNodeIOManager::getBranchClassName(TBranch* branch)
   {
     // For this one we need to go down a little before getting the
     // name...
-    TLeafObject* leaf = dynamic_cast<TLeafObject*>(branch->GetLeaf(branch->GetName()));
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
+    TLeafObject* leaf = static_cast<TLeafObject*>(branch->GetLeaf(branch->GetName()));
     assert(leaf != nullptr);
     return leaf->GetTypeName();
   }
@@ -442,8 +443,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     // later if a class is not loaded
     assert(thisClass != nullptr);
 
-    PHIODataNode<TObject>* newIODataNode =
-        dynamic_cast<PHIODataNode<TObject>*>(nodeIter.findFirst("PHIODataNode", *splitvec.rbegin()));
+    PHIODataNode<TObject>* newIODataNode = static_cast<PHIODataNode<TObject>*>(nodeIter.findFirst("PHIODataNode", *splitvec.rbegin()));// NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
     if (!newIODataNode)
     {
       TObject* newTObject = static_cast<TObject*>(thisClass->New());
