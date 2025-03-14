@@ -33,7 +33,7 @@ MbdReco::MbdReco(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int MbdReco::Init(PHCompositeNode *topNode)
+int MbdReco::Init(PHCompositeNode * /*topNode*/)
 {
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
