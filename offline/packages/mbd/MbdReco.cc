@@ -33,17 +33,12 @@ MbdReco::MbdReco(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int MbdReco::Init(PHCompositeNode *topNode)
+int MbdReco::Init(PHCompositeNode * /*topNode*/)
 {
   m_gaussian = std::make_unique<TF1>("gaussian", "gaus", 0, 20);
   m_gaussian->FixParameter(2, m_tres);
 
   m_mbdevent = std::make_unique<MbdEvent>(_calpass);
-
-  if (createNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
-  {
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -51,6 +46,11 @@ int MbdReco::Init(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int MbdReco::InitRun(PHCompositeNode *topNode)
 {
+  if (createNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
+  {
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
   int ret = getNodes(topNode);
 
   m_mbdevent->SetSim(_simflag);
@@ -199,7 +199,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
     bbcNode->addNode(MbdOutNode);
   }
 
-  m_mbdpmts = findNode::getClass<MbdPmtContainer>(bbcNode, "MbdPmtContainer");
+  m_mbdpmts = findNode::getClass<MbdPmtSimContainerV1>(bbcNode, "MbdPmtContainer");
   if (!m_mbdpmts)
   {
     m_mbdpmts = new MbdPmtContainerV1();
