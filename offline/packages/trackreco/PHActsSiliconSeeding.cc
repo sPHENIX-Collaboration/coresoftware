@@ -58,7 +58,27 @@ PHActsSiliconSeeding::PHActsSiliconSeeding(const std::string& name)
   : SubsysReco(name)
 {
 }
-
+PHActsSiliconSeeding::~PHActsSiliconSeeding()
+{
+  delete m_file;
+  delete m_tree;
+  delete h_nInttProj;
+  delete h_nMvtxHits;
+  delete h_nInttHits;
+  delete h_nMatchedClusters;
+  delete h_nHits;
+  delete h_nSeeds;
+  delete h_nActsSeeds;
+  delete h_nTotSeeds;
+  delete h_nInputMeas;
+  delete h_nInputMvtxMeas;
+  delete h_nInputInttMeas;
+  delete h_hits;
+  delete h_zhits;
+  delete h_projHits;
+  delete h_zprojHits;
+  delete h_resids;
+}
 int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
 {
   Acts::SeedFilterConfig sfCfg = configureSeedFilter();
@@ -115,48 +135,19 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
     }
   }
 
-  auto eventTimer = std::make_unique<PHTimer>("eventTimer");
-  eventTimer->stop();
-  eventTimer->restart();
-
   if (Verbosity() > 0)
   {
     std::cout << "Processing PHActsSiliconSeeding event "
               << m_event << std::endl;
   }
 
-  std::vector<const SpacePoint*> spVec;
-  auto seedVector = runSeeder(spVec);
-
-  eventTimer->stop();
-  auto seederTime = eventTimer->get_accumulated_time();
-  eventTimer->restart();
-
-  makeSvtxTracks(seedVector);
-
-  eventTimer->stop();
-  auto circleFitTime = eventTimer->get_accumulated_time();
-
-  for (auto sp : spVec)
-  {
-    delete sp;
-  }
-  spVec.clear();
+  runSeeder();
+ 
 
   if (Verbosity() > 0)
   {
     std::cout << "Finished PHActsSiliconSeeding process_event"
               << std::endl;
-  }
-
-  if (Verbosity() > 0)
-  {
-    std::cout << "PHActsSiliconSeeding Acts seed time "
-              << seederTime << std::endl;
-    std::cout << "PHActsSiliconSeeding circle fit time "
-              << circleFitTime << std::endl;
-    std::cout << "PHActsSiliconSeeding total event time "
-              << circleFitTime + seederTime << std::endl;
   }
 
   m_event++;
@@ -182,12 +173,18 @@ int PHActsSiliconSeeding::End(PHCompositeNode* /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
+void PHActsSiliconSeeding::runSeeder()
 {
   Acts::SeedFinder<SpacePoint> seedFinder(m_seedFinderCfg);
-  GridSeeds seedVector;
+
+  auto eventTimer = std::make_unique<PHTimer>("eventTimer");
+  eventTimer->stop();
+  int circleFitTime = 0;
+  int seederTime = 0;
+  int spTime = 0;
   for (int strobe = m_lowStrobeIndex; strobe < m_highStrobeIndex; strobe++)
   {
+    GridSeeds seedVector;
     /// Covariance converter functor needed by seed finder
     auto covConverter =
         [=](const SpacePoint& sp, float zAlign, float rAlign, float sigmaError)
@@ -201,9 +198,10 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
     };
 
     Acts::Extent rRangeSPExtent;
-
-    spVec = getSiliconSpacePoints(rRangeSPExtent, strobe);
-
+    eventTimer->restart();
+    auto spVec = getSiliconSpacePoints(rRangeSPExtent, strobe);
+    eventTimer->stop();
+    spTime += eventTimer->get_accumulated_time();
     if (m_seedAnalysis)
     {
       h_nInputMeas->Fill(spVec.size());
@@ -227,7 +225,10 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
     const Acts::Range1D<float> rMiddleSPRange(
         std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5,
         std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
+   
 
+
+    eventTimer->restart();
     SeedContainer seeds;
     seeds.clear();
     decltype(seedFinder)::SeedingState state;
@@ -243,11 +244,36 @@ GridSeeds PHActsSiliconSeeding::runSeeder(std::vector<const SpacePoint*>& spVec)
                                      top,
                                      rMiddleSPRange);
     }
+    eventTimer->stop();
+    seederTime += eventTimer->get_accumulated_time();
+    eventTimer->restart();
 
     seedVector.push_back(seeds);
+
+    makeSvtxTracks(seedVector);
+
+    eventTimer->stop();
+    circleFitTime += eventTimer->get_accumulated_time();
+
+    for (auto sp : spVec)
+    {
+      delete sp;
+    }
+    spVec.clear();
   }
 
-  return seedVector;
+  if (Verbosity() > 0)
+  {
+    std::cout << "PHActsSiliconSeeding spacepoint time "
+              << spTime << std::endl;
+    std::cout << "PHActsSiliconSeeding Acts seed time "
+              << seederTime << std::endl;
+    std::cout << "PHActsSiliconSeeding circle fit time "
+              << circleFitTime << std::endl;
+    std::cout << "PHActsSiliconSeeding total event time "
+              << spTime + circleFitTime + seederTime << std::endl;
+  }
+  return;
 }
 
 void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
