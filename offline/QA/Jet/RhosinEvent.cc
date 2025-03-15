@@ -53,7 +53,7 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
 
   // Initialize histograms
   const int N_rho_mult = 320;
-  const double rho_max_mult = 0.16
+  const double rho_max_mult = 0.16;
   Double_t N_rho_mult_bins[N_rho_mult + 1];
   for (int i = 0; i <= N_rho_mult; i++)
   {
