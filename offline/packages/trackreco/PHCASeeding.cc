@@ -184,7 +184,6 @@ namespace
     std::set_intersection(a_lb, a_up, B.begin(), B.end(), std::back_inserter(AandB), CompareKeyPtr());
     return A.size() - AandB.size() <= min_diff;
   }
-
 }  // namespace
 
 
@@ -482,7 +481,7 @@ PHCASeeding::keyPtrList PHCASeeding::FillTree(PHCASeeding::boost_rtree& _rtree, 
   {
     std::cout << "fill time: " << t_fill->get_accumulated_time() / 1000. << " sec" << std::endl;
   }
-  if (Verbosity() > 3)
+  if (Verbosity() > 3) 
   {
     std::cout << "number of duplicates : " << n_dupli << std::endl;
   }
@@ -960,21 +959,21 @@ void PHCASeeding::RemoveDuplicates(PHCASeeding::keyPtrLists& seeds)
   // find all duplicates; any seed marked is removed and never considered again
   int n_duplicates = 0;
   std::vector<bool> is_dup(seeds.size(), false);
+  if (seeds.size() == 0) return; // the comparison to seeds.size()-1 fails or unsigned int 
   for (unsigned int i=0; i<seeds.size()-1; ++i) {
     if (is_dup[i]) { continue; }
     for (unsigned int j=i+1; j<seeds.size(); ++j) {
       if (is_dup[j]) { continue; }
-      if (!is_dup[i] && seedAinB(seeds[i], seeds[j], _differences_to_merge)) {
+      if (seedAinB(seeds[i], seeds[j], _differences_to_merge)) {
         is_dup[i] = true;
         ++n_duplicates;
-        /* break; */
+        break;
       } else if (seedAinB(seeds[j], seeds[i], _differences_to_merge)) {
         is_dup[j] = true;
         ++n_duplicates;
       }
     }
   }
-
   keyPtrLists newseeds;
   newseeds.reserve(seeds.size()-n_duplicates);
   for (unsigned int i=0;i<seeds.size();++i) {

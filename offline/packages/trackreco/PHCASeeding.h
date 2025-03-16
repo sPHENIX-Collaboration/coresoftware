@@ -63,6 +63,7 @@ class PHCASeeding : public PHTrackSeeding
   static const int _NLAYERS_TPC = 48;
   static const int _FIRST_LAYER_TPC = 7;
 
+
   // structure to hold the geometry of each cluster
   // R is calculated on the fly, as needed, and not stored here
   // phi is expensive, and used multiple times per cluster
