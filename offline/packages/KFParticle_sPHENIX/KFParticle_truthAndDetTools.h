@@ -62,6 +62,7 @@ class KFParticle_truthAndDetTools
   void initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number);
   void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
+  int getPVID(PHCompositeNode *topNode, const KFParticle& vertex);
   void allPVInfo(PHCompositeNode *topNode, TTree *m_tree,
                  const KFParticle &motherParticle,
                  std::vector<KFParticle> daughters,
