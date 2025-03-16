@@ -175,6 +175,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   int m_calculated_vertex_nTracks = -1;
   float m_calculated_vertex_chi2 = -1;
   float m_calculated_vertex_ndof = -1;
+  int m_calculated_vertex_ID = -1;
   // float *m_calculated_vertex_cov;
   float m_calculated_vertex_cov[6] = {0};
 

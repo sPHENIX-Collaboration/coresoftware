@@ -109,6 +109,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter);
 
+  bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, KFParticle vertex);
+
  protected:
   std::string m_mother_name_Tools;
   int m_num_intermediate_states {-1};
@@ -189,6 +191,10 @@ class KFParticle_Tools : protected KFParticle_MVA
   bool m_require_bunch_crossing_match {true};
 
   bool m_use_mbd_vertex {false};
+
+  bool m_dont_use_global_vertex {false};
+
+  bool m_require_track_and_vertex_match {false};
 
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
