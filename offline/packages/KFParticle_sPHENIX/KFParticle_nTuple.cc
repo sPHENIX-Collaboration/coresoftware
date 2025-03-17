@@ -272,7 +272,8 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch("primary_vertex_nTracks", &m_calculated_vertex_nTracks, "primary_vertex_nTracks/I");
     m_tree->Branch("primary_vertex_volume", &m_calculated_vertex_v, "primary_vertex_volume/F");
     m_tree->Branch("primary_vertex_chi2", &m_calculated_vertex_chi2, "primary_vertex_chi2/F");
-    m_tree->Branch("primary_vertex_nDoF", &m_calculated_vertex_ndof, "primary_vertex_nDoF/I");
+    m_tree->Branch("primary_vertex_nDoF", &m_calculated_vertex_ndof, "primary_vertex_nDoF/i");
+    m_tree->Branch("primary_vertex_ID", &m_calculated_vertex_ID, "primary_vertex_ID/I");
     // m_tree->Branch( "primary_vertex_Covariance",   m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6 );
     m_tree->Branch("primary_vertex_Covariance", &m_calculated_vertex_cov, "primary_vertex_Covariance[6]/F", 6);
   }
@@ -595,6 +596,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_vertex_v = kfpTupleTools.calculateEllipsoidVolume(vertex_fillbranch);
     m_calculated_vertex_chi2 = vertex_fillbranch.GetChi2();
     m_calculated_vertex_ndof = vertex_fillbranch.GetNDF();
+
+    m_calculated_vertex_ID = getPVID(topNode, vertex_fillbranch);
     // m_calculated_vertex_cov          = &vertex_fillbranch.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j)
     {

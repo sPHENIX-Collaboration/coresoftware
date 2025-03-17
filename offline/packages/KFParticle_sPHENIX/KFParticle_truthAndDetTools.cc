@@ -719,6 +719,42 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
   }
 }
 
+int KFParticle_truthAndDetTools::getPVID(PHCompositeNode *topNode, const KFParticle& kfpvertex)
+{
+  PHNodeIterator nodeIter(topNode);
+
+  if (m_use_mbd_vertex_truth)
+  {
+    PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("MbdVertexMap"));
+    if (findNode)
+    {
+      dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+      MbdVertex* m_dst_vertex = dst_mbdvertexmap->get(kfpvertex.Id());
+      return m_dst_vertex->get_beam_crossing();
+    }
+    else
+    {
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
+  }
+  else
+  {
+    PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_vtx_map_node_name_nTuple));
+    if (findNode)
+    {
+      dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+      SvtxVertex* m_dst_vertex = dst_vertexmap->get(kfpvertex.Id());
+      return m_dst_vertex->get_beam_crossing();
+    }
+    else
+    {
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
+  }
+
+  return -100;
+}
+
 void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
                                             TTree * /*m_tree*/,
                                             const KFParticle &motherParticle,
