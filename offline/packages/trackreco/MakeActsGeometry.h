@@ -279,6 +279,8 @@ class MakeActsGeometry : public SubsysReco
   /// Structs to put on the node tree which carry around ActsGeom info
   ActsGeometry *m_actsGeometry = nullptr;
 
+  std::map<unsigned int, unsigned int> base_layer_map = {{10, 0}, {12, 3}, {14, 7}, {16, 55}};
+  
   /// Verbosity value handed from PHActsSourceLinks
   //  int m_verbosity = 0;
 
