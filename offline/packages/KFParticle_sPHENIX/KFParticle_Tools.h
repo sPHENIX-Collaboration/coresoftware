@@ -41,6 +41,8 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
+class TrkrClusterContainer;
+class PHG4TpcCylinderGeomContainer;
 
 class KFParticle_Tools : protected KFParticle_MVA
 {
@@ -63,7 +65,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   int calcMinIP(const KFParticle &track, const std::vector<KFParticle> &PVs, float &minimumIP, float &minimumIPchi2);
 
-  std::vector<int> findAllGoodTracks(std::vector<KFParticle> daughterParticles, const std::vector<KFParticle> &primaryVertices);
+  std::vector<int> findAllGoodTracks(const std::vector<KFParticle> &daughterParticles, const std::vector<KFParticle> &primaryVertices);
 
   std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks);
 
@@ -72,7 +74,7 @@ class KFParticle_Tools : protected KFParticle_MVA
                                             std::vector<std::vector<int>> goodTracksThatMeet,
                                             int nRequiredTracks, unsigned int nProngs);
 
-  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], std::vector<KFParticle> daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks);
+  std::vector<std::vector<int>> appendTracksToIntermediates(KFParticle intermediateResonances[], const std::vector<KFParticle> &daughterParticles, const std::vector<int> &goodTrackIndex, int num_remaining_tracks);
 
   /// Calculates the cosine of the angle betweent the flight direction and momentum
   float eventDIRA(const KFParticle &particle, const KFParticle &vertex, bool do3D = true);
@@ -104,6 +106,10 @@ class KFParticle_Tools : protected KFParticle_MVA
   float getParticleMass(const int PDGID);
 
   void identify(const KFParticle &particle);
+
+  float get_dEdx(PHCompositeNode *topNode, const KFParticle &daughter);
+
+  bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, KFParticle vertex);
 
  protected:
   std::string m_mother_name_Tools;
@@ -186,6 +192,10 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool m_use_mbd_vertex {false};
 
+  bool m_dont_use_global_vertex {false};
+
+  bool m_require_track_and_vertex_match {false};
+
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
   MbdVertexMap *m_dst_mbdvertexmap {nullptr};
@@ -194,6 +204,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   SvtxTrack *m_dst_track {nullptr};
   SvtxVertexMap *m_dst_vertexmap {nullptr};
   SvtxVertex *m_dst_vertex {nullptr};
+  TrkrClusterContainer *m_cluster_map {nullptr};
+  PHG4TpcCylinderGeomContainer *m_geom_container {nullptr};
 
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);

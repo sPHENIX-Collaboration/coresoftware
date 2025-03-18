@@ -308,7 +308,8 @@ void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTre
 
     if (truePoint == nullptr && isParticleValid)
     {
-      PHG4Particle *g4mother = m_truthinfo->GetPrimaryParticle(g4particle->get_primary_id());
+      //PHG4Particle *g4mother = m_truthinfo->GetParticle(g4particle->get_parent_id());
+      PHG4Particle *g4mother = m_truthinfo->GetPrimaryParticle(g4particle->get_parent_id());
       truePoint = m_truthinfo->GetVtx(g4mother->get_vtx_id());  // Note, this may not be the PV for a decay with tertiaries
     }
 
@@ -716,6 +717,42 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
       residual_z[daughter_id].push_back(global.z() - tstate->get_z()); 
     }
   }
+}
+
+int KFParticle_truthAndDetTools::getPVID(PHCompositeNode *topNode, const KFParticle& kfpvertex)
+{
+  PHNodeIterator nodeIter(topNode);
+
+  if (m_use_mbd_vertex_truth)
+  {
+    PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst("MbdVertexMap"));
+    if (findNode)
+    {
+      dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+      MbdVertex* m_dst_vertex = dst_mbdvertexmap->get(kfpvertex.Id());
+      return m_dst_vertex->get_beam_crossing();
+    }
+    else
+    {
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
+  }
+  else
+  {
+    PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_vtx_map_node_name_nTuple));
+    if (findNode)
+    {
+      dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+      SvtxVertex* m_dst_vertex = dst_vertexmap->get(kfpvertex.Id());
+      return m_dst_vertex->get_beam_crossing();
+    }
+    else
+    {
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
+  }
+
+  return -100;
 }
 
 void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,

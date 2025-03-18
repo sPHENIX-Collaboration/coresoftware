@@ -42,7 +42,7 @@ class PHG4OHCalDetector : public PHG4Detector
   //@}
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
   int get_Layer() const { return m_Layer; }
   int ConsistencyCheck() const;
   std::tuple<int, int, int> GetRowColumnId(G4VPhysicalVolume *volume) const;

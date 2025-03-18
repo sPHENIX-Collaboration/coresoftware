@@ -1806,3 +1806,168 @@ void LiteCaloEval::fit_info(const char * outfile, const int runNum)
 
   std::cout << "Finished fit info" << std::endl;
 }
+
+///used when one already has .root file with histograms fit. Other fit_info to be used at run-time with macro
+void LiteCaloEval::fit_info(const char *infile, const char * outfile, const int runNum)
+{
+
+  TFile *fin = new TFile(infile,"READ");
+  TFile *fout = new TFile(outfile,"UPDATE");
+  
+  int eta;
+  int phi;
+  double towers;
+
+  if (calotype == LiteCaloEval::HCALIN || calotype == LiteCaloEval::HCALOUT)
+  {
+    eta = 24;
+    phi = 64;
+    towers = 1536.0;
+  }
+  else if (calotype == LiteCaloEval::CEMC)
+  {
+    eta = 96;
+    phi = 256;
+    towers = 24576.0;
+  }
+  else
+  {
+    std::cout << "calotype not set. Exiting." << std::endl;
+    exit(-1);
+  }
+
+  TH2F *errMap = new TH2F("errMap", "", eta, 0, eta, phi, 0, phi);
+  errMap->GetXaxis()->SetTitle("#eta Bin");
+  errMap->GetYaxis()->SetTitle("#phi Bin");
+
+  // make chi squared/ndf plots
+  TH1F *chi2 = new TH1F("chi2", "", 500, 0, 50);
+  chi2->GetXaxis()->SetTitle("#chi^{2} / NDF");
+  chi2->GetYaxis()->SetTitle("Counts");
+
+  // make chi squared/ndf map
+  TH2F *chi2Map = new TH2F("chi2Map", "", eta, 0, eta, phi, 0, phi);
+  chi2Map->GetXaxis()->SetTitle("#eta Bin");
+  chi2Map->GetYaxis()->SetTitle("#phi Bin");
+
+  // map of tower with failed fits
+  TH2F *fitFail = new TH2F("fitFail", "", eta, 0, eta, phi, 0, phi);
+  fitFail->GetXaxis()->SetTitle("#eta bin");
+  fitFail->GetYaxis()->SetTitle("#phi bin");
+
+  TString histname;
+  TH1F *htmp = nullptr;
+  TF1 *fn = nullptr;
+
+  //testing stuff
+  TH2F *cp = nullptr; // to hold corrpat 
+  cp = (TH2F *)fin->Get("corrPat");
+
+  if(!cp)
+    {
+      std::cout << "Error! Did not get corrPat histogram. Exiting analysis." << std::endl;
+      exit(-1);
+    }
+
+  TGraphErrors *tmp_avgTSC = new TGraphErrors();
+  tmp_avgTSC->SetName("g_avgTSC");
+  tmp_avgTSC->GetXaxis()->SetTitle("run number");
+  tmp_avgTSC->GetYaxis()->SetTitle("Mean Towerslope Correction"); 
+  tmp_avgTSC->SetMarkerStyle(8);
+  tmp_avgTSC->SetMarkerSize(1);
+    
+
+  double sum4avg = 0.0;
+  double tscAvg = 0.0;
+  double sum4SE = 0.0;
+  double SE = 0.0;
+
+  // phi loop
+  for (int i = 0; i < eta; i++)
+    {
+      // eta loop
+      for (int j = 0; j < phi; j++)
+	{
+	  // for ohcal
+	  if (calotype == LiteCaloEval::HCALOUT)
+	    {
+	      histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
+	    }
+
+	  // ihcal
+	  if (calotype == LiteCaloEval::HCALIN)
+	    {
+	      histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
+	    }
+
+	  // emcal
+	  if (calotype == LiteCaloEval::CEMC)
+	    {
+	      histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
+	    }
+
+	  sum4avg += (cp->GetBinContent(i+1, j+1));
+
+	  htmp = (TH1F *)fin->Get(histname.Data());
+
+	  fn = (TF1 *) htmp->GetFunction("myexpo");
+
+	  errMap->SetBinContent(i + 1, j + 1, fn->GetParError(1));
+
+	  chi2->Fill(fn->GetChisquare() / fn->GetNDF());
+
+	  chi2Map->SetBinContent(i + 1, j + 1, fn->GetChisquare() / fn->GetNDF());
+
+	  if (fn->GetChisquare() / fn->GetNDF() > 5)
+	    {
+	      fitFail->Fill(i, j);
+	    }
+
+	}  // end inner forloop
+
+    }  // end outer forloop
+
+  tscAvg = sum4avg / towers;
+
+  //get standard error of avg TSC
+  for(int i = 0; i < eta; i++)
+    {
+      for(int j = 0; j < phi; j++)
+	{
+	  sum4SE += pow(cp->GetBinContent(i+1, j+1) - tscAvg, 2); //getting part of the std dev
+	}
+    }
+
+  SE = sqrt(sum4SE/towers) / sqrt(towers);
+
+  tmp_avgTSC->SetPoint(0, runNum, tscAvg); 
+  tmp_avgTSC->SetPointError(0, 0.0, SE);
+
+  errMap->Write();
+  chi2->Write();
+  chi2Map->Write();
+  fitFail->Write();
+  tmp_avgTSC->Write();
+
+  errMap = nullptr;
+  delete errMap;
+
+  chi2 = nullptr;
+  delete chi2;
+
+  chi2Map = nullptr;
+  delete chi2Map;
+
+  fitFail = nullptr;
+  delete fitFail;
+
+  fin->Close();
+  delete fin;
+  fin = nullptr;
+
+  fout->Close();
+  fout = nullptr;
+  delete fout;
+
+  std::cout << "Finished fit info" << std::endl;
+}

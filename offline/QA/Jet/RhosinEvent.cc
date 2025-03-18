@@ -52,18 +52,20 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
   }
 
   // Initialize histograms
-  const int N_rho_mult = 200;
+  const int N_rho_mult = 320;
+  const double rho_max_mult = 0.16;
   Double_t N_rho_mult_bins[N_rho_mult + 1];
   for (int i = 0; i <= N_rho_mult; i++)
   {
-    N_rho_mult_bins[i] = (0.3 / 200.0) * i;
+    N_rho_mult_bins[i] = (rho_max_mult / 320.0) * i;
   }
 
-  const int N_rho_area = 200;
+  const int N_rho_area = 400;
+  const double rho_max_area = 200;
   Double_t N_rho_area_bins[N_rho_area + 1];
   for (int i = 0; i <= N_rho_area; i++)
   {
-    N_rho_area_bins[i] = (10.0 / 200.0) * i;
+    N_rho_area_bins[i] = (rho_max_area / 400.0) * i;
   }
 
   // make sure module name is lower case

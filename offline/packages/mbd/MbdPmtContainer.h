@@ -1,7 +1,7 @@
 // virtual Mbd PMT Container class
 
-#ifndef __MBD_MBDPMTCONTAINER_H__
-#define __MBD_MBDPMTCONTAINER_H__
+#ifndef MBD_MBDPMTCONTAINER_H__
+#define MBD_MBDPMTCONTAINER_H__
 
 #include <phool/PHObject.h>
 
@@ -40,7 +40,7 @@ class MbdPmtContainer : public PHObject
   virtual MbdPmtHit *get_pmt(const int ipmt) const;
 
  private:
-  void virtual_warning(const std::string& funcname) const;
+  static void virtual_warning(const std::string& funcsname) ;
 
   ClassDefOverride(MbdPmtContainer, 1)
 };

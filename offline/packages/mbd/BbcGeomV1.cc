@@ -100,6 +100,6 @@ void BbcGeomV1::set_xyz(const unsigned int ipmt, const float x, const float y, c
   pmt_x[ipmt] = x;
   pmt_y[ipmt] = y;
   pmt_z[ipmt] = z;
-  pmt_r[ipmt] = std::sqrt(x * x + y * y);
+  pmt_r[ipmt] = std::sqrt((x * x) + (y * y));
   pmt_phi[ipmt] = std::atan2(y, x);
 }

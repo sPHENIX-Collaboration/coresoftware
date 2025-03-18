@@ -151,8 +151,8 @@ class RawTowerDigitizer : public SubsysReco
     return _tower_params;
   }
 
-  std::string
-  get_raw_tower_node_prefix() const
+  const std::string
+  &get_raw_tower_node_prefix() const
   {
     return m_RawTowerNodePrefix;
   }
@@ -163,8 +163,8 @@ class RawTowerDigitizer : public SubsysReco
     m_RawTowerNodePrefix = rawTowerNodePrefix;
   }
 
-  std::string
-  get_sim_tower_node_prefix() const
+  const std::string
+  &get_sim_tower_node_prefix() const
   {
     return m_SimTowerNodePrefix;
   }

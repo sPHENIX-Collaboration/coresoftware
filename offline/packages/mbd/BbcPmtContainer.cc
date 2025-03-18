@@ -41,7 +41,7 @@ BbcPmtHit *BbcPmtContainer::get_pmt(const int /*iPmt*/) const
   return nullptr;
 }
 
-void BbcPmtContainer::virtual_warning(const std::string& funcsname) const
+void BbcPmtContainer::virtual_warning(const std::string& funcsname) 
 {
   std::cout << "BbcPmtContainer::" << funcsname << " is virtual, doing nothing" << std::endl;
   return;

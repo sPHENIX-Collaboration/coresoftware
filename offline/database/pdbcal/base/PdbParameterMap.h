@@ -23,8 +23,8 @@ class PdbParameterMap : public PdbCalChan
   typedef std::pair<iIter, iIter> iConstRange;
   typedef std::pair<strIter, strIter> strConstRange;
 
-  PdbParameterMap() {}
-  ~PdbParameterMap() override {}
+  PdbParameterMap() = default;
+  ~PdbParameterMap() override = default;
 
   PHObject *CloneMe() const override { return new PdbParameterMap(*this); }
 
@@ -36,17 +36,17 @@ class PdbParameterMap : public PdbCalChan
 
   dConstRange get_dparam_iters() const
   {
-    return make_pair(dparams.begin(), dparams.end());
+    return std::make_pair(dparams.begin(), dparams.end());
   }
 
   iConstRange get_iparam_iters() const
   {
-    return make_pair(iparams.begin(), iparams.end());
+    return std::make_pair(iparams.begin(), iparams.end());
   }
 
   strConstRange get_cparam_iters() const
   {
-    return make_pair(cparams.begin(), cparams.end());
+    return std::make_pair(cparams.begin(), cparams.end());
   }
 
   void set_int_param(const std::string &name, const int ival);

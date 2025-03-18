@@ -1,28 +1,27 @@
 #include "PdbParameterMap.h"
 
 #include <boost/functional/hash.hpp>
-#include <iostream>
 
-using namespace std;
+#include <iostream>
 
 void PdbParameterMap::print() const
 {
-  cout << "PdbParameterMap::print - Hash 0x" << std::hex << get_hash() << std::dec << endl;
+  std::cout << "PdbParameterMap::print - Hash 0x" << std::hex << get_hash() << std::dec << std::endl;
 
-  cout << "double parameters: " << endl;
+  std::cout << "double parameters: " << std::endl;
   for (const auto &dparam : dparams)
   {
-    cout << dparam.first << ": " << dparam.second << endl;
+    std::cout << dparam.first << ": " << dparam.second << std::endl;
   }
-  cout << "integer parameters: " << endl;
+  std::cout << "integer parameters: " << std::endl;
   for (const auto &iparam : iparams)
   {
-    cout << iparam.first << ": " << iparam.second << endl;
+    std::cout << iparam.first << ": " << iparam.second << std::endl;
   }
-  cout << "string parameters: " << endl;
+  std::cout << "string parameters: " << std::endl;
   for (const auto &cparam : cparams)
   {
-    cout << cparam.first << ": " << cparam.second << endl;
+    std::cout << cparam.first << ": " << cparam.second << std::endl;
   }
 }
 
@@ -44,7 +43,7 @@ void PdbParameterMap::set_double_param(const std::string &name, const double dva
   dparams[name] = dval;
 }
 
-void PdbParameterMap::set_string_param(const std::string &name, const string &str)
+void PdbParameterMap::set_string_param(const std::string &name, const std::string &str)
 {
   cparams[name] = str;
 }
@@ -59,7 +58,7 @@ PdbParameterMap::get_hash() const
     //      size_t seed = 0;
     boost::hash_combine(seed, dparam.first);
     boost::hash_combine(seed, dparam.second);
-    //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
   for (const auto &iparam : iparams)
@@ -67,7 +66,7 @@ PdbParameterMap::get_hash() const
     //      size_t seed = 0;
     boost::hash_combine(seed, iparam.first);
     boost::hash_combine(seed, iparam.second);
-    //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
   for (const auto &cparam : cparams)
@@ -75,7 +74,7 @@ PdbParameterMap::get_hash() const
     //      size_t seed = 0;
     boost::hash_combine(seed, cparam.first);
     boost::hash_combine(seed, cparam.second);
-    //      cout << iter->first << ": " << iter->second <<" -> "<<seed<< endl;
+    //      std::cout << iter->first << ": " << iter->second <<" -> "<<seed<< std::endl;
   }
 
   return seed;

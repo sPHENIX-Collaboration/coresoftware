@@ -6,35 +6,37 @@
 #include "MbdPmtHit.h"
 
 #ifndef ONLINE
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/phool.h>
-#include <phool/recoConsts.h>
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/phool.h>
+#include <phool/recoConsts.h>
 #endif
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 
 #include <TCanvas.h>
+#include <TDirectory.h>
 #include <TF1.h>
+#include <TGraphErrors.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TGraphErrors.h>
 #include <TSystem.h>
-#include <TDirectory.h>
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 
 MbdEvent::MbdEvent(const int cal_pass) :
-  _calpass(cal_pass)
+  _nsamples(MbdDefs::MAX_SAMPLES), _calpass(cal_pass)
 {
   // set default values
 
-  _nsamples = MbdDefs::MAX_SAMPLES;  // Set to maximum initially, reset when we get a packet
+   // Set to maximum initially, reset when we get a packet
 
 #ifndef ONLINE
   recoConsts *rc = recoConsts::instance();
@@ -77,10 +79,12 @@ MbdEvent::MbdEvent(const int cal_pass) :
 
   // Debug stuff
   _debugintt = 0;
+/*
   if (_debugintt )
   {
     ReadSyncFile();
   }
+*/
 
   Clear();
 }
@@ -124,10 +128,10 @@ int MbdEvent::InitRun()
   }
 
   // Always reload calibrations on InitRun()
-  if (_mbdcal != nullptr)
-  {
+  
+  
     delete _mbdcal;
-  }
+  
   _mbdcal = new MbdCalib();
   std::cout << "SIMFLAG IS " << _simflag << std::endl;
   if (!_simflag)
@@ -222,7 +226,7 @@ int MbdEvent::InitRun()
     {
       // Reset histograms
       //for (int ich=0; ich<MbdDefs::MBD_N_FEECH; ich++)
-      for (auto h : h_smax )
+      for (auto *h : h_smax )
       {
         h->Reset();
       }
@@ -404,7 +408,7 @@ int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, 
 
       for (int ich = 0; ich < NCHPERPKT; ich++)
       {
-        int feech = ipkt * NCHPERPKT + ich;
+        int feech = (ipkt * NCHPERPKT) + ich;
         for (int isamp = 0; isamp < _nsamples; isamp++)
         {
           m_adc[feech][isamp] = dstp[ipkt]->iValue(isamp, ich);
@@ -506,7 +510,7 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
 
       for (int ich = 0; ich < NCHPERPKT; ich++)
       {
-        int feech = ipkt * NCHPERPKT + ich;
+        int feech = (ipkt * NCHPERPKT) + ich;
         // std::cout << "feech " << feech << std::endl;
         for (int isamp = 0; isamp < _nsamples; isamp++)
         {
@@ -594,7 +598,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     {
       tdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || fabs(_mbdcal->get_tt0(pmtch))>100. )
+      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || std::fabs(_mbdcal->get_tt0(pmtch))>100. )
       {
         m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
@@ -632,7 +636,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
  
-      if ( (m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000) )
+      // why are there bad tq0?
+      if ( ((m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
       {
         // m_t0[ifeech] = -9999.;
         m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -646,7 +651,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
         m_pmttq[pmtch] = m_pmttq[pmtch] - _mbdcal->get_tq0(pmtch);
 
         // if tt is bad, use tq
-        if ( fabs(_mbdcal->get_tt0(pmtch))>100. )
+        if ( std::fabs(_mbdcal->get_tt0(pmtch))>100. )
         {
           m_pmttt[pmtch] = m_pmttq[pmtch];
         }
@@ -661,9 +666,16 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
         }
       }
 
-      m_pmtq[pmtch] = m_ampl[ifeech] / _mbdcal->get_qgain(pmtch);
+      if ( _mbdcal->get_qgain(pmtch) > 0. )
+      {
+        m_pmtq[pmtch] = m_ampl[ifeech] / _mbdcal->get_qgain(pmtch);
+      }
+      else
+      {
+        m_pmtq[pmtch] = 0.;
+      }
 
-      if (m_pmtq[pmtch] < 0.25)
+      if (m_pmtq[pmtch] < 0.25 && (_runnum < 40000) )
       {
         m_pmtq[pmtch] = 0.;
         m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
@@ -676,11 +688,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
       */
     }
-    else  // not a good time hit
-    {
-      m_pmtq[pmtch] = 0.;
-      m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
-    }
+
   }
 
 
@@ -725,7 +733,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
     }
 
-    return -1002;
+    //return -1002;
+    return m_evt;
   }
 
   return m_evt;
@@ -751,11 +760,13 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   }
 
   // Debug stuff
+/*
   if ( _debugintt && (bbevt[_syncevt] != (m_evt - 1)))
   {
     _verbose = 0;
     return 1;
   }
+*/
 
   if (gausfit[0] == nullptr)
   {
@@ -770,7 +781,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     }
   }
 
-  std::vector<float> hit_times[2];  // times of the hits in each [arm]
+  std::array<std::vector<float>,2> hit_times;  // times of the hits in each [arm]
 
   // calculate bbc global variables
   if (_verbose >= 10)
@@ -796,7 +807,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       std::cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << std::endl;
     }
 
-    if (fabs(t_pmt) < 25. && q_pmt > 0.)
+    if (std::fabs(t_pmt) < 25. && q_pmt > 0.)
     {
       hit_times[arm].push_back(t_pmt);
       hevt_bbct[arm]->Fill(t_pmt);
@@ -813,11 +824,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
           epmt[arm] = ipmt;
           tepmt[arm] = t_pmt;
         }
-        if (t_pmt > tlpmt[arm])
-        {
-          // lpmt[arm] = ipmt;
-          tlpmt[arm] = t_pmt;
-        }
+        tlpmt[arm] = std::max<double>(t_pmt, tlpmt[arm]);
       }
     }
   }
@@ -845,7 +852,10 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     // std::cout << "earliest" << iarm << "\t" << earliest << std::endl;
  
     // Cluster earliest hits
-    double mean, rms, rmin, rmax;
+    double mean;
+    double rms;
+    double rmin;
+    double rmax;
     ClusterEarliest( hit_times[iarm], mean, rms, rmin, rmax );
 
     gausfit[iarm]->SetParameter(0, 5);
@@ -868,6 +878,11 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
         ac->Divide(2, 1);
       }
       ac->cd(iarm + 1);
+    }
+
+    if ( hevt_bbct[iarm]->GetEntries()==0 )//chiu
+    {
+      std::cout << PHWHERE << " hevt_bbct EMPTY" << std::endl;
     }
 
     hevt_bbct[iarm]->Fit(gausfit[iarm], "BNQLR");
@@ -905,6 +920,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
         double zearly = (tepmt[0] - tepmt[1]) * MbdDefs::C / 2.0;
         double znew = (m_bbct[0] - m_bbct[1]) * MbdDefs::C / 2.0;
 
+/*
         if (_debugintt)
         {
           double intzdiff = intz[_syncevt] / 10. - mybbz[_syncevt];
@@ -914,6 +930,28 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
             std::cout << "**ERR** " << znew << "\t" << mybbz[_syncevt] << std::endl;
           }
           std::string junk;
+          std::cout << m_evt << "\t" << bbevt[_syncevt] << "\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
+          std::cout << m_evt << " gmean " << gausfit[0]->GetParameter(1) << "\t" << gausfit[1]->GetParameter(1) << std::endl;
+          std::cout << m_evt << " mean " << hevt_bbct[0]->GetMean(1) << "\t" << hevt_bbct[1]->GetMean(1) << std::endl;
+          std::cout << m_evt << " gsigma " << gausfit[0]->GetParameter(2) << "\t" << gausfit[1]->GetParameter(2) << std::endl;
+          std::cout << m_evt << " rms " << hevt_bbct[0]->GetRMS() << "\t" << hevt_bbct[1]->GetRMS() << std::endl;
+          std::cout << m_evt << " te ch " << epmt[0] << "\t" << epmt[1] << "\t" << tepmt[0] << "\t" << tepmt[1] << std::endl;
+          std::cout << m_evt << " tetl " << m_bbcte[0] << "\t" << m_bbctl[0] << "\t" << m_bbcte[1] << "\t" << m_bbctl[1] << std::endl;
+          std::cout << m_evt << " bz intz " << mybbz[_syncevt] << "\t" << intz[_syncevt] / 10. << "\t" << intzdiff << "\t" << intzdiff * 2.0 / MbdDefs::C << std::endl;
+          std::cout << m_evt << " bze " << zearly << "\t" << intzediff << std::endl;
+          std::cout << "? ";
+          //std::cin >> junk;
+        }
+*/
+
+        if (_debugintt)
+        {
+          double intzdiff = (intz[_syncevt] / 10.) - mybbz[_syncevt];
+          double intzediff = (intz[_syncevt] / 10.) - zearly;
+          if (fabs(znew - mybbz[_syncevt]) > 0.1)
+          {
+            std::cout << "**ERR** " << znew << "\t" << mybbz[_syncevt] << std::endl;
+          }
           std::cout << m_evt << "\t" << bbevt[_syncevt] << "\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
           std::cout << m_evt << " gmean " << gausfit[0]->GetParameter(1) << "\t" << gausfit[1]->GetParameter(1) << std::endl;
           std::cout << m_evt << " mean " << hevt_bbct[0]->GetMean(1) << "\t" << hevt_bbct[1]->GetMean(1) << std::endl;
@@ -997,17 +1035,19 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       bbcout->set_t0(get_bbct0(), get_bbct0err());
       bbcout->set_zvtx(get_bbcz(), get_bbczerr());
       
+/*
       if ( _debugintt )
       {
         bbcout->set_t0(intz[_syncevt]/10.);
       }
+*/
 
     }
   }
 
   if ( _debugintt )
   {
-    _syncevt++;
+    //_syncevt++;
     _verbose = 0;
   }
 
@@ -1016,7 +1056,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
 
 // get the values for the earliest cluster
-void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& rms, double& rmin, double& rmax)
+void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& rms, double& rmin, double& rmax) const
 {
   //_verbose = 0;
 
@@ -1050,7 +1090,7 @@ void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& 
 
   if ( npts>1.0 )
   {
-    rms = sqrt( sum2/npts - mean*mean );
+    rms = sqrt( (sum2/npts) - (mean*mean) );
   }
   else
   {
@@ -1084,7 +1124,8 @@ int MbdEvent::FillSampMaxCalib()
       h2_wave[type]->Fill( isamp , pmtch, m_adc[ifeech][isamp] );
     }
 
-    double maxsamp, maxadc;
+    double maxsamp;
+    double maxadc;
     _mbdsig[ifeech].LocMax( maxsamp, maxadc );
 
     if ( maxadc > 20 )
@@ -1131,8 +1172,8 @@ int MbdEvent::CalcSampMaxCalib()
   int feech = 0;
   for (int iboard=0; iboard<16; iboard++)
   {
-    int min_ybin = iboard*8 + 1;
-    int max_ybin = iboard*8 + 8;
+    int min_ybin = (iboard*8) + 1;
+    int max_ybin = (iboard*8) + 8;
 
     // sampmax for time channels
     TString name = "t_sampmax_bd"; name += iboard;
@@ -1188,7 +1229,11 @@ int MbdEvent::CalcPedCalib()
     float sigma = 4.0;
 
     pedgaus->SetParameters(ampl,mean,sigma);
-    pedgaus->SetRange(mean-4*sigma, mean+4*sigma);
+    pedgaus->SetRange(mean-(4*sigma), mean+(4*sigma));
+    if ( hped0->GetEntries()==0 ) //chiu
+    {
+      std::cout << "HPED0 EMPTY" << std::endl;
+    }
     hped0->Fit(pedgaus,"RNQ");
 
     mean = pedgaus->GetParameter(1);
@@ -1214,9 +1259,12 @@ int MbdEvent::Read_Charge_Calib(const std::string &gainfname)
 
   std::cout << "Reading gains from " << gainfname << std::endl;
   int ch;
-  float integ, integerr;
-  float peak, peakerr;
-  float width, widtherr;
+  float integ;
+  float integerr;
+  float peak;
+  float peakerr;
+  float width;
+  float widtherr;
   float chi2ndf;
   while (gainfile >> ch >> integ >> peak >> width >> integerr >> peakerr >> widtherr >> chi2ndf)
   {

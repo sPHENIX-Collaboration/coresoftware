@@ -2,33 +2,20 @@
 
 #include <cmath>
 
-using namespace std;
-
-BbcVertexv1::BbcVertexv1()
-  : _id(0xFFFFFFFF)
-  , _t(NAN)
-  , _t_err(NAN)
-  , _z(NAN)
-  , _z_err(NAN)
+void BbcVertexv1::identify(std::ostream& os) const
 {
-}
-
-BbcVertexv1::~BbcVertexv1() = default;
-
-void BbcVertexv1::identify(ostream& os) const
-{
-  os << "---BbcVertexv1--------------------------------" << endl;
-  os << "vertexid: " << get_id() << endl;
-  os << " t = " << get_t() << " +/- " << get_t_err() << endl;
-  os << " z =  " << get_z() << " +/- " << get_z_err() << endl;
-  os << "-----------------------------------------------" << endl;
+  os << "---BbcVertexv1--------------------------------" << std::endl;
+  os << "vertexid: " << get_id() << std::endl;
+  os << " t = " << get_t() << " +/- " << get_t_err() << std::endl;
+  os << " z =  " << get_z() << " +/- " << get_z_err() << std::endl;
+  os << "-----------------------------------------------" << std::endl;
 
   return;
 }
 
 int BbcVertexv1::isValid() const
 {
-  if (_id == 0xFFFFFFFF)
+  if (_id == std::numeric_limits<unsigned int>::max())
   {
     return 0;
   }

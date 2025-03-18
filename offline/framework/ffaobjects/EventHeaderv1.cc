@@ -43,16 +43,15 @@ void EventHeaderv1::CopyTo(EventHeader *to_copy)
 {
   to_copy->set_RunNumber(get_RunNumber());
   to_copy->set_EvtSequence(get_EvtSequence());
-  for (auto const &it :  m_IntEventProperties)
+  for (auto const &it : m_IntEventProperties)
   {
-    to_copy->set_intval(it.first,it.second);
+    to_copy->set_intval(it.first, it.second);
   }
-  for (auto const &it :  m_FloatEventProperties)
+  for (auto const &it : m_FloatEventProperties)
   {
-    to_copy->set_floatval(it.first,it.second);
+    to_copy->set_floatval(it.first, it.second);
   }
 }
-
 
 void EventHeaderv1::set_floatval(const std::string &name, const float fval)
 {

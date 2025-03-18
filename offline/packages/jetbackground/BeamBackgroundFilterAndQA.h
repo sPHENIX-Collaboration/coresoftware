@@ -86,7 +86,7 @@ class BeamBackgroundFilterAndQA : public SubsysReco
     void SetConfig(const Config& config) {m_config = config;}
 
     // getters
-    Config GetConfig() const {return m_config;}
+    const Config &GetConfig() const {return m_config;}
 
     // f4a methods
     int Init(PHCompositeNode* topNode) override;
