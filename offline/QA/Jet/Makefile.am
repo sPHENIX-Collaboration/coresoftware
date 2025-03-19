@@ -33,7 +33,8 @@ pkginclude_HEADERS = \
   TrksInJetQAJetManager.h \
   RhosinEvent.h \
   JetSeedCount.h \
-  JetKinematicCheck.h
+  JetKinematicCheck.h \
+  PhotonJetsKinematics.h
 
 libjetqa_la_SOURCES = \
   CaloStatusMapper.cc \
@@ -50,7 +51,8 @@ libjetqa_la_SOURCES = \
   TrksInJetQAJetManager.cc \
   RhosinEvent.cc \
   JetSeedCount.cc \
-  JetKinematicCheck.cc
+  JetKinematicCheck.cc \
+  PhotonJetsKinematics.cc
 
 libjetqa_la_LIBADD = \
   -L$(libdir) \
