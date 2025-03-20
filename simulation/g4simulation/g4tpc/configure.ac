@@ -7,17 +7,11 @@ LT_INIT([disable-static])
 
 CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 
-case $CXX in
- *analyzer)
-   CXXFLAGS="$CXXFLAGS -Wno-vla"
- ;;
- clang++)
-   CXXFLAGS="$CXXFLAGS -Wno-vla-extension -Wno-c11-extensions -Wno-deprecated-copy"
- ;;
- *g++)
-   CXXFLAGS="$CXXFLAGS -Wno-vla"
- ;;
-esac
+dnl case $CXX in
+dnl  clang++)
+dnl    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy"
+dnl  ;;
+dnl esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader -Wno-inconsistent-missing-override "
 AC_SUBST(CINTDEFS)
