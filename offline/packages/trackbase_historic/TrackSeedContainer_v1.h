@@ -30,7 +30,6 @@ class TrackSeedContainer_v1 : public TrackSeedContainer
   TrackSeed* insert(const TrackSeed* seed) override;
   void erase(const std::size_t key) override
   {
-    delete m_seeds.at(key);
     m_seeds.at(key) = nullptr;
   }
 

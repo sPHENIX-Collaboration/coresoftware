@@ -46,6 +46,7 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
   void Apply_Misalignment(bool b) { m_ApplyMisalignment = b; }
+  void MisalignmentFile(const std::string& filename) { m_misalignmentFile = filename; }
 
  private:
   void SetDefaultParameters() override;
@@ -72,7 +73,7 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
   std::string detector_type;
   std::string m_HitNodeName;
   std::string m_SupportNodeName;
-
+  std::string m_misalignmentFile = "";
   bool m_ApplyMisalignment{false};
 };
 

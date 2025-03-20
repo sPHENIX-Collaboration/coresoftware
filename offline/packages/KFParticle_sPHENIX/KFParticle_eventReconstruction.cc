@@ -448,7 +448,6 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
         int* PDGIDofFirstParticleInCombination = &uniqueCombination[0];
         std::tie(candidate, isGood) = getCombination(daughterTracks, PDGIDofFirstParticleInCombination, primaryVerticesCand[i_pv], m_constrain_to_vertex,
                                                      isIntermediate, intermediateNumber, nTracks, constrainMass, required_unique_vertexID);
-
         if (isIntermediate && isGood)
         {
           float min_ip = 0;
@@ -538,9 +537,8 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
   int bestCombinationIndex = 0;
   for (unsigned int i = 1; i < possibleCandidates.size(); ++i)
   {
-    if (PVconstraint && !isAnInterMother)
+    if (PVconstraint && !isAnInterMother && !m_require_track_and_vertex_match)
     {
-
       float current_IPchi2 = 0;
       float best_IPchi2 = 0;
    

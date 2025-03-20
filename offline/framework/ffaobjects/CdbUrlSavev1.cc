@@ -22,7 +22,7 @@ void CdbUrlSavev1::Reset()
 void CdbUrlSavev1::identify(std::ostream &os) const
 {
   os << "identify yourself: CdbUrlSavev1 Object" << std::endl;
-  for (auto &iter : m_CdbUrlVector)
+  for (const auto &iter : m_CdbUrlVector)
   {
     os << "domain: " << std::get<0>(iter)
        << ", url: " << std::get<1>(iter)

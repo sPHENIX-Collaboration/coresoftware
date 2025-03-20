@@ -14,7 +14,7 @@
 #include <utility>  // for pair, make_pair
 #include <vector>
 
-PHG4MvtxMisalignment::PHG4MvtxMisalignment() { LoadMvtxStaveAlignmentParameters(); }
+PHG4MvtxMisalignment::PHG4MvtxMisalignment() {}
 
 std::vector<double> PHG4MvtxMisalignment::get_GlobalDisplacement()
 {

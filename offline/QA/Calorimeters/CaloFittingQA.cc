@@ -214,8 +214,11 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         }
         else 
         {
-          zs_energy = cemc_waveforms.at(channel).at(1) - cemc_waveforms.at(channel).at(0);
-          h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_waveforms.at(channel).at(0));
+          if(cemc_waveforms.size() > 0)
+          {
+            zs_energy = cemc_waveforms.at(channel).at(1) - cemc_waveforms.at(channel).at(0);
+            h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_waveforms.at(channel).at(0));
+          }
         }
         if (Verbosity() > 0) 
         {
@@ -248,8 +251,11 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         }
         else 
         {
-          zs_energy = ohcal_waveforms.at(channel).at(1) - ohcal_waveforms.at(channel).at(0);
-          h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_waveforms.at(channel).at(0));
+          if(ohcal_waveforms.size() > 0)
+          {
+            zs_energy = ohcal_waveforms.at(channel).at(1) - ohcal_waveforms.at(channel).at(0);
+            h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_waveforms.at(channel).at(0));
+          }
         }
         if (Verbosity() > 0) 
         {
@@ -282,8 +288,11 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         }
         else 
         {
-          zs_energy = ihcal_waveforms.at(channel).at(1) - ihcal_waveforms.at(channel).at(0);
-          h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_waveforms.at(channel).at(0));
+          if(ihcal_waveforms.size() > 0)
+          {
+            zs_energy = ihcal_waveforms.at(channel).at(1) - ihcal_waveforms.at(channel).at(0);
+            h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_waveforms.at(channel).at(0));
+          }
         }
         if (Verbosity() > 0) 
         {

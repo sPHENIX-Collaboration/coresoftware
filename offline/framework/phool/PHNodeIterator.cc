@@ -64,7 +64,7 @@ PHNode* PHNodeIterator::findFirst(const std::string& requiredType, const std::st
 
     if (thisNode->getType() == "PHCompositeNode")
     {
-      PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
+      PHNodeIterator nodeIter(dynamic_cast<PHCompositeNode*>(thisNode));
       PHNode* nodeFoundInSubTree = nodeIter.findFirst(requiredType, requiredName);
       if (nodeFoundInSubTree)
       {
@@ -89,7 +89,7 @@ PHNode* PHNodeIterator::findFirst(const std::string& requiredName)
 
     if (thisNode->getType() == "PHCompositeNode")
     {
-      PHNodeIterator nodeIter(static_cast<PHCompositeNode*>(thisNode));
+      PHNodeIterator nodeIter(dynamic_cast<PHCompositeNode*>(thisNode));
       PHNode* nodeFoundInSubTree = nodeIter.findFirst(requiredName);
       if (nodeFoundInSubTree)
       {
@@ -107,7 +107,7 @@ bool PHNodeIterator::cd(const std::string& pathString)
   {
     while (currentNode->getParent())
     {
-      currentNode = static_cast<PHCompositeNode*>(currentNode->getParent());
+      currentNode = dynamic_cast<PHCompositeNode*>(currentNode->getParent());
     }
   }
   else
@@ -122,7 +122,7 @@ bool PHNodeIterator::cd(const std::string& pathString)
       {
         if (currentNode->getParent())
         {
-          currentNode = static_cast<PHCompositeNode*>(currentNode->getParent());
+          currentNode = dynamic_cast<PHCompositeNode*>(currentNode->getParent());
         }
         else
         {
@@ -137,7 +137,7 @@ bool PHNodeIterator::cd(const std::string& pathString)
         {
           if (subNode->getType() == "PHCompositeNode" && subNode->getName() == iter)
           {
-            currentNode = static_cast<PHCompositeNode*>(subNode);
+            currentNode = dynamic_cast<PHCompositeNode*>(subNode);
             pathFound = true;
           }
         }
@@ -166,7 +166,7 @@ void PHNodeIterator::forEach(PHNodeOperation& operation)
   {
     if (thisNode->getType() == "PHCompositeNode")
     {
-      PHNodeIterator subNodeIter(static_cast<PHCompositeNode*>(thisNode));
+      PHNodeIterator subNodeIter(dynamic_cast<PHCompositeNode*>(thisNode));
       subNodeIter.forEach(operation);
     }
     else
