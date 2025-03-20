@@ -151,6 +151,7 @@ int TpcCombinedRawDataUnpacker::InitRun(PHCompositeNode* topNode)
     m_ntup_hits = new TNtuple("NTH", "NTH", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width");
     m_ntup_hits_corr = new TNtuple("NTC", "NTC", "event:gtmbco:packid:ep:sector:side:fee:chan:sampadd:sampch:phibin:tbin:layer:adc:ped:width:corr");
     if(m_ChanHitsCut){
+      m_HitChanDis = new TH2F("HitChanDis","HitChanDis",451,-0.5,450.5,256,-0.5,255.5);
       m_HitsinChan = new TH1F("HitsinChan","HitsinChan",451,-0.5,450.5);
     }
   }
@@ -356,9 +357,10 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
 	}
       }
       if(m_writeTree){
+	m_HitChanDis->Fill(nhitschan,channel);
 	m_HitsinChan->Fill(nhitschan);
       }
-      if(nhitschan>100) continue;
+      if(nhitschan>10) continue;
     }
     
     for (std::unique_ptr<TpcRawHit::AdcIterator> adc_iterator(tpchit->CreateAdcIterator());

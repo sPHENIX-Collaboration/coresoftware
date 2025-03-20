@@ -17,6 +17,7 @@ class TH2I;
 class TH2C;
 class TFile;
 class TH1F;
+class TH2F;
 class TNtuple;
 
 class TpcCombinedRawDataUnpacker : public SubsysReco
@@ -108,6 +109,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
   int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
 
+  TH2F *m_HitChanDis{nullptr};
   TH1F *m_HitsinChan{nullptr};
   bool m_ChanHitsCut{false};
 
