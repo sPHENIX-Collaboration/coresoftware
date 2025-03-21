@@ -19,6 +19,7 @@ AM_LDFLAGS = \
 
 libg4tpc_la_LIBADD = \
   -lphool \
+  -lcdbobjects \
   -lg4detectors \
   -lg4tracking_io \
   -lphg4hit \
