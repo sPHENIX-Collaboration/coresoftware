@@ -247,8 +247,8 @@ void PHG4TpcCentralMembrane::CalculateVertices(
 
   double theta = 0.0;
   // center coords
-  double cx[nStripes][nRadii];
-  double cy[nStripes][nRadii];
+  std::vector<std::vector<double>> cx(nStripes,std::vector<double>(nRadii));
+  std::vector<std::vector<double>> cy(nStripes,std::vector<double>(nRadii));
   // corner coords
   /* double tempX1a[nStripes][nRadii], tempY1a[nStripes][nRadii];
   double tempX1b[nStripes][nRadii], tempY1b[nStripes][nRadii];
