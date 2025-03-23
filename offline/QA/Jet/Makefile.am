@@ -17,6 +17,7 @@ pkginclude_HEADERS = \
   CaloStatusMapper.h \
   CaloStatusMapperDefs.h \
   ConstituentsinJets.h \
+  DijetQA.h \
   JetQADefs.h \
   StructureinJets.h \
   TrksInJetQA.h \
@@ -39,6 +40,7 @@ pkginclude_HEADERS = \
 libjetqa_la_SOURCES = \
   CaloStatusMapper.cc \
   ConstituentsinJets.cc \
+  DijetQA.cc \
   StructureinJets.cc \
   TrksInJetQA.cc \
   TrksInJetQABaseFiller.cc \
