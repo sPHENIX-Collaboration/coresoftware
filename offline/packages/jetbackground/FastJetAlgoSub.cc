@@ -15,13 +15,11 @@
 #include <memory>
 #include <vector>
 
-FastJetAlgoSub::FastJetAlgoSub(Jet::ALGO algo, float par, int verbosity)
-  : _verbosity(verbosity)
-  , _algo(algo)
-  , _par(par)
+FastJetAlgoSub::FastJetAlgoSub(const FastJetOptions& options)
+  : m_opt{options}
 {
   fastjet::ClusterSequence clusseq;
-  if (_verbosity > 0)
+  if (m_opt.verbosity > 0)
   {
     clusseq.print_banner();
   }
@@ -37,17 +35,17 @@ FastJetAlgoSub::FastJetAlgoSub(Jet::ALGO algo, float par, int verbosity)
 void FastJetAlgoSub::identify(std::ostream& os)
 {
   os << "   FastJetAlgoSub: ";
-  if (_algo == Jet::ANTIKT)
+  if (m_opt.algo == Jet::ANTIKT)
   {
-    os << "ANTIKT r=" << _par;
+    os << "ANTIKT r=" << m_opt.jet_R;
   }
-  else if (_algo == Jet::KT)
+  else if (m_opt.algo == Jet::KT)
   {
-    os << "KT r=" << _par;
+    os << "KT r=" << m_opt.jet_R;
   }
-  else if (_algo == Jet::CAMBRIDGE)
+  else if (m_opt.algo == Jet::CAMBRIDGE)
   {
-    os << "CAMBRIDGE r=" << _par;
+    os << "CAMBRIDGE r=" << m_opt.jet_R;
   }
   os << std::endl;
 }
@@ -58,7 +56,7 @@ void FastJetAlgoSub::identify(std::ostream& os)
 
 void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont)
 {
-  if (_verbosity > 1)
+  if (m_opt.verbosity > 1)
   {
     std::cout << "FastJetAlgoSub::process_event -- entered" << std::endl;
   }
@@ -88,7 +86,7 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
       this_py = this_py * e_ratio;
       this_pz = this_pz * e_ratio;
 
-      if (_verbosity > 5)
+      if (m_opt.verbosity > 5)
       {
         std::cout << " FastJetAlgoSub input particle with negative-E, original kinematics px / py / pz / E = ";
         std::cout << particles[ipart]->get_px() << " / " << particles[ipart]->get_py() << " / " << particles[ipart]->get_pz() << " / " << particles[ipart]->get_e() << std::endl;
@@ -104,17 +102,17 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
 
   // run fast jet
   fastjet::JetDefinition* jetdef = nullptr;
-  if (_algo == Jet::ANTIKT)
+  if (m_opt.algo == Jet::ANTIKT)
   {
-    jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm, _par, fastjet::E_scheme, fastjet::Best);
+    jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
   }
-  else if (_algo == Jet::KT)
+  else if (m_opt.algo == Jet::KT)
   {
-    jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm, _par, fastjet::E_scheme, fastjet::Best);
+    jetdef = new fastjet::JetDefinition(fastjet::kt_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
   }
-  else if (_algo == Jet::CAMBRIDGE)
+  else if (m_opt.algo == Jet::CAMBRIDGE)
   {
-    jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, _par, fastjet::E_scheme, fastjet::Best);
+    jetdef = new fastjet::JetDefinition(fastjet::cambridge_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
   }
   else
   {
@@ -131,7 +129,7 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
   {
     auto jet = jetcont->add_jet();
 
-    if (_verbosity > 5 && fastjets[ijet].perp() > 15)
+    if (m_opt.verbosity > 5 && fastjets[ijet].perp() > 15)
     {
       std::cout << " FastJetAlgoSub : jet # " << ijet << " comes out of clustering with pt / eta / phi = " << fastjets[ijet].perp() << " / " << fastjets[ijet].eta() << " / " << fastjets[ijet].phi();
       std::cout << ", px / py / pz / e = " << fastjets[ijet].px() << " / " << fastjets[ijet].py() << " / " << fastjets[ijet].pz() << " / " << fastjets[ijet].e() << std::endl;
@@ -164,14 +162,14 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
     jet->set_e(total_e);
     jet->set_id(ijet);
 
-    if (_verbosity > 5 && fastjets[ijet].perp() > 15)
+    if (m_opt.verbosity > 5 && fastjets[ijet].perp() > 15)
     {
       std::cout << " FastJetAlgoSub : jet # " << ijet << " after correcting for proper constituent kinematics, pt / eta / phi = " << jet->get_pt() << " / " << jet->get_eta() << " / " << jet->get_phi();
       std::cout << ", px / py / pz / e = " << jet->get_px() << " / " << jet->get_py() << " / " << jet->get_pz() << " / " << jet->get_e() << std::endl;
     }
   }
 
-  if (_verbosity > 1)
+  if (m_opt.verbosity > 1)
   {
     std::cout << "FastJetAlgoSub::process_event -- exited" << std::endl;
   }
