@@ -1091,19 +1091,39 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       Acts::GeometryIdentifier id = detelement->surface().geometryId();
       unsigned int volume = id.volume();
       unsigned int actslayer = id.layer();
-      unsigned int sphlayer = base_layer_map.find(volume)->second + actslayer / 2 - 1;
+      //unsigned int sphlayer = base_layer_map.find(volume)->second + actslayer / 2 - 1;
       unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1
-	  
-      int stave = sensor / 9;
-      int chip = sensor % 9;	  
+
+      unsigned int sphlayer = 0;
+      unsigned int stave = sensor / mvtx_chips_per_stave;
+      unsigned int chip = sensor % mvtx_chips_per_stave;
+      if(sensor > 107 && sensor < 252)
+	{
+	  sphlayer = 1;
+	  stave = (sensor-108) / mvtx_chips_per_stave;
+	  chip = (sensor-108) % mvtx_chips_per_stave;
+	}
+      else if(sensor > 251)
+	{
+	  sphlayer = 2;
+	  stave = (sensor-252) / mvtx_chips_per_stave;
+	  chip = (sensor-252) % mvtx_chips_per_stave;
+	}
+      
       int dummy_strobe = 0;
       TrkrDefs::hitsetkey hitsetkey= MvtxDefs::genHitSetKey(sphlayer, stave, chip, dummy_strobe);
 
+      if(Verbosity() > 10)
+	{
+	  std::cout << "detelement: volume " << volume << " actslayer " << actslayer << " sphlayer " << sphlayer
+		    << " sensor " << sensor << " stave " << stave << " chip " << chip << std::endl;
+	}
+      
       // Add this surface to the map
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);      
       m_clusterSurfaceMapSilicon.insert(tmp);
 
-      if (Verbosity() == 0)
+      if (Verbosity() > 10)
       {
 	unsigned int stavecheck = MvtxDefs::getStaveId(hitsetkey);
 	unsigned int chipcheck = MvtxDefs::getChipId(hitsetkey);
