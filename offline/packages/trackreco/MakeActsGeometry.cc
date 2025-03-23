@@ -1040,6 +1040,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 
   // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
   // the layer number has to be deduced from the radius
+  std::cout << "Layer vector size " << mvtxLayerVector1.size() << std::endl;
   for (auto &i : mvtxLayerVector1)
   {
     // Get the Acts::SurfaceArray from each MVTX LayerPtr being iterated over
@@ -1052,10 +1053,13 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
     if (m_mvtxapplymisalign)
     {
       std::cout << "MakeActsGeometry::makeMvtxMapPairs - apply misalignment" << std::endl;
-      PHG4MvtxMisalignment *mvtxmisalignmment = new PHG4MvtxMisalignment();
-      v_globaldisplacement = mvtxmisalignmment->get_GlobalDisplacement();
-      
-      delete mvtxmisalignmment;
+      PHG4MvtxMisalignment *mvtxmisalignment = new PHG4MvtxMisalignment();
+      mvtxmisalignment->setAlignmentFile(CDBInterface::instance()->getUrl("MVTX_ALIGNMENT"));
+      mvtxmisalignment->LoadMvtxStaveAlignmentParameters();
+      v_globaldisplacement = mvtxmisalignment->get_GlobalDisplacement();
+
+
+      delete mvtxmisalignment;
     }
 
     std::cout << "MakeActsGeometry::makeMvtxMapPairs - Apply misalignment: " << m_mvtxapplymisalign << "; Global displacement: (" << v_globaldisplacement[0] << ", " << v_globaldisplacement[1] << ", " << v_globaldisplacement[2] << ")" << std::endl;
@@ -1063,6 +1067,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
     // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     // std::vector<const Surface*>
     auto surfaceVector = surfaceArray->surfaces();
+    std::cout << "surface vector size " << surfaceVector.size() << std::endl;
     for (auto &j : surfaceVector)
     {
       auto surf = j->getSharedPtr();
@@ -1070,7 +1075,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       auto vec3d = surf->center(m_geoCtxt);
       std::vector<double> world_center = {(vec3d(0) - v_globaldisplacement[0]) / 10.0, (vec3d(1) - v_globaldisplacement[1]) / 10.0, (vec3d(2) - v_globaldisplacement[2]) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
-      if (Verbosity() > 1)
+      if (Verbosity() == 0)
       {
         std::cout << "[DEBUG] MVTX surface center (before misalignment): (x,y,z)=(" << vec3d(0) / 10. << "," << vec3d(1) / 10. << "," << vec3d(2) / 10. << "), layer_rad=" << sqrt(pow(vec3d(0) / 10., 2) + pow(vec3d(1) / 10., 2)) << std::endl;
         std::cout << "[DEBUG] MVTX surface center: (x,y,z)=(" << world_center[0] << "," << world_center[1] << "," << world_center[2] << "), layer_rad=" << layer_rad << std::endl;
@@ -1098,7 +1103,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);      
       m_clusterSurfaceMapSilicon.insert(tmp);
 
-      if (Verbosity() > 10)
+      if (Verbosity() == 0)
       {
 	unsigned int stavecheck = MvtxDefs::getStaveId(hitsetkey);
 	unsigned int chipcheck = MvtxDefs::getChipId(hitsetkey);
