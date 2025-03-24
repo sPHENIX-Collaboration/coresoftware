@@ -100,11 +100,18 @@ class DijetQA : public SubsysReco
     m_etaRange.second = high;
   }
 
-  /// Set the pt range for the reco jets
-  void setPtRange(double low, double high)
+  /// Set the leading pt range for the reco jets
+  void setPtLeadRange(double low, double high)
   {
-    m_ptRange.first = low;
-    m_ptRange.second = high;
+    m_ptLeadRange.first = low;
+    m_ptLeadRange.second = high;
+  }
+
+  /// Set the sub-leading pt range for the reco jets
+  void setPtSubRange(double low, double high)
+  {
+    m_ptSubRange.first = low;
+    m_ptSubRange.second = high;
   }
 
   /// Specifies a trigger to require
@@ -124,7 +131,8 @@ class DijetQA : public SubsysReco
  private:
   std::string m_moduleName;
   std::pair<float, float> m_etaRange;
-  std::pair<float, float> m_ptRange;
+  std::pair<float, float> m_ptLeadRange;
+  std::pair<float, float> m_ptSubRange;
   float DeltaPhiOne{3.141529694 / 32.};  // cut on the opening angle of phi for the identified jets
                                           // Should set to integer multilple of hcal phi tower size ->Pi/32
   int ntowers_opening{2};
