@@ -7,12 +7,10 @@
 #include <utility>  // for pair
 #include <vector>
 
-class PHCompositeNode;
-
 class OnCal : public SubsysReco
 {
  public:
-  virtual ~OnCal() {}
+  ~OnCal() override = default;
 
   //  These might be overwritten by everyone...
   int process_event(PHCompositeNode *topNode) override;
@@ -50,7 +48,7 @@ class OnCal : public SubsysReco
 
  protected:
   OnCal(const std::string &Name);  // so noone can call it from outside
-  unsigned int alldone {0};
+  unsigned int alldone{0};
   std::string m_Comment;
   std::vector<std::string> pdbcaltables;
   std::vector<std::string> pdbcalclasses;
@@ -58,4 +56,4 @@ class OnCal : public SubsysReco
   std::vector<std::string> localfilelist;
 };
 
-#endif /* __ONCAL_H__ */
+#endif /* ONCAL_ONCAL_H */
