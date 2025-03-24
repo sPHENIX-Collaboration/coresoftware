@@ -1080,25 +1080,34 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       Acts::GeometryIdentifier id = detelement->surface().geometryId();
       unsigned int volume = id.volume();
       unsigned int actslayer = id.layer();
-      //unsigned int sphlayer = base_layer_map.find(volume)->second + actslayer / 2 - 1;
-      unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1
 
       unsigned int sphlayer = 0;
-      unsigned int stave = sensor / mvtx_chips_per_stave;
-      unsigned int chip = sensor % mvtx_chips_per_stave;
-      if(sensor > 107 && sensor < 252)
-	{
-	  sphlayer = 1;
-	  stave = (sensor-108) / mvtx_chips_per_stave;
-	  chip = (sensor-108) % mvtx_chips_per_stave;
-	}
-      else if(sensor > 251)
-	{
-	  sphlayer = 2;
-	  stave = (sensor-252) / mvtx_chips_per_stave;
-	  chip = (sensor-252) % mvtx_chips_per_stave;
-	}
-      
+      unsigned int stave = 0;
+      unsigned int chip = 0;
+      unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1;
+      if (!m_mvtxapplymisalign)
+      {
+        sphlayer = base_layer_map.find(volume)->second + actslayer / 2 - 1;
+        stave = sensor / 9;
+        chip = sensor % 9;
+      }
+      else
+      {
+        stave = sensor / mvtx_chips_per_stave;
+        chip = sensor % mvtx_chips_per_stave;
+        if(sensor > 107 && sensor < 252)
+	      {
+	        sphlayer = 1;
+	        stave = (sensor-108) / mvtx_chips_per_stave;
+	        chip = (sensor-108) % mvtx_chips_per_stave;
+	      }
+        else if(sensor > 251)
+	      {
+	        sphlayer = 2;
+	        stave = (sensor-252) / mvtx_chips_per_stave;
+	        chip = (sensor-252) % mvtx_chips_per_stave;
+	      }
+      }
       int dummy_strobe = 0;
       TrkrDefs::hitsetkey hitsetkey= MvtxDefs::genHitSetKey(sphlayer, stave, chip, dummy_strobe);
 
