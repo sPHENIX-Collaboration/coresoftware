@@ -585,33 +585,24 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
   if (!file.is_open())
   {
     std::cout << responseFile
-              << " not found locally, use repo version"
+              << " not found locally, use CDB version"
               << std::endl;
-    char *offline_main = getenv("OFFLINE_MAIN");
-    assert(offline_main);
-    responseFile = std::string(offline_main) +
-                   ("/share/tgeo-sphenix-mms.json");
+    responseFile = CDBInterface::instance()->getUrl("ACTSGEOMETRYCONFIG");
   }
 
   file.open(materialFile);
   if (!file.is_open())
   {
     std::cout << materialFile
-              << " not found locally, use repo version"
+              << " not found locally, use CDB version"
               << std::endl;
-    const char *calibrationroot = getenv("CALIBRATIONROOT");
-    assert(calibrationroot);
-    materialFile = std::string(calibrationroot) +
-                   ("/ACTS/sphenix-mm-material.json");
+    materialFile = CDBInterface::instance()->getUrl("ACTSMATERIALMAP");
   }
 
-//  if (Verbosity() > -1) // always on with this setting
-  {
     std::cout << "using Acts material file : " << materialFile
               << std::endl;
     std::cout << "Using Acts TGeoResponse file : " << responseFile
               << std::endl;
-  }
 
   return;
 }
