@@ -63,6 +63,10 @@ PHG4TpcDetector::PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, P
 {
 }
 
+PHG4TpcDetector::~PHG4TpcDetector()
+{
+  delete m_cdbttree;
+}
 //_______________________________________________________________
 int PHG4TpcDetector::IsInTpc(G4VPhysicalVolume *volume) const
 {
@@ -99,7 +103,7 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   // 9th layer cu
 
   double steplimits = m_Params->get_double_param("steplimits") * cm;
-  if (std::isfinite(steplimits))
+  if (std::isfinite(steplimits) && steplimits > 0)
   {
     m_G4UserLimits = new G4UserLimits(steplimits);
   }
@@ -522,7 +526,6 @@ void PHG4TpcDetector::CreateCompositeMaterial(
 void PHG4TpcDetector::add_geometry_node()
 {
 
-  std::unique_ptr<CDBTTree> cdbttree; 
   // create PHG4TpcCylinderGeomContainer and put on node tree
   const std::string geonode_name = "CYLINDERCELLGEOM_SVTX";
   auto geonode = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode(), geonode_name);
@@ -534,12 +537,13 @@ void PHG4TpcDetector::add_geometry_node()
     auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
     runNode->addNode(newNode);
   }
+  m_cdb = CDBInterface::instance();
+  std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
 
-  std::string calibdir = CDBInterface::instance()->getUrl("TPC_FEE_CHANNEL_MAP");
   if (! calibdir.empty())
   {
-    cdbttree = std::unique_ptr<CDBTTree>(new CDBTTree(calibdir));
-    cdbttree->LoadCalibrations();
+    m_cdbttree = new CDBTTree(calibdir);
+    m_cdbttree->LoadCalibrations();
   }
   else
   {
@@ -561,10 +565,10 @@ void PHG4TpcDetector::add_geometry_node()
   const std::array<double, 5> Thickness =
       {{
           0.56598621677629212,
-          1.0206889851687158,/*1.012,*/
-          1.0970475085472556,/*1.088,*/
-          0.5630547309825637,/*0.534,*/
-          0.56891770257002054,/*0.595,*/
+          1.0206889851687158,
+          1.0970475085472556,
+          0.5630547309825637,
+          0.56891770257002054,
       }};
 
   const double drift_velocity = m_Params->get_double_param("drift_velocity");
@@ -607,14 +611,14 @@ void PHG4TpcDetector::add_geometry_node()
     {
       unsigned int key = 256 * (f) + ch;
       std::string varname = "layer";
-      int l = cdbttree->GetIntValue(key, varname);
+      int l = m_cdbttree->GetIntValue(key, varname);
       if (l > 6)
       {
         int v_layer = l - 7;
         std::string phiname = "phi";  // + to_string(key);
-        pad_phi[v_layer].push_back( cdbttree->GetDoubleValue(key, phiname) );
+        pad_phi[v_layer].push_back( m_cdbttree->GetDoubleValue(key, phiname) );
         std::string rname = "R";  // + to_string(key);
-        pad_R[v_layer].push_back( cdbttree->GetDoubleValue(key, rname) );
+        pad_R[v_layer].push_back( m_cdbttree->GetDoubleValue(key, rname) );
       }
     }
   }
@@ -702,19 +706,21 @@ void PHG4TpcDetector::add_geometry_node()
           r_length = Thickness[3];
         }
       }
-      layerseggeo->set_thickness(r_length);
-      layerseggeo->set_radius(layer_radius[(int) layer -7]);
-      layerseggeo->set_binning(PHG4CellDefs::sizebinning);
-      layerseggeo->set_zbins(NTBins);
-      layerseggeo->set_zmin(MinT);
-      layerseggeo->set_zstep(TBinWidth);
-      layerseggeo->set_phibins(NPhiBins[iregion]);
-      layerseggeo->set_phistep(phi_bin_width_cdb[(int) layer - 7]);
-      layerseggeo->set_r_bias(sector_R_bias);
-      layerseggeo->set_phi_bias(sector_Phi_bias);
-      layerseggeo->set_sector_min_phi(sector_min_Phi);
-      layerseggeo->set_sector_max_phi(sector_max_Phi);
-
+      int v_layer = layer-7;
+      if (v_layer>=0){
+        layerseggeo->set_thickness(r_length);
+        layerseggeo->set_radius(layer_radius[v_layer]);
+        layerseggeo->set_binning(PHG4CellDefs::sizebinning);
+        layerseggeo->set_zbins(NTBins);
+        layerseggeo->set_zmin(MinT);
+        layerseggeo->set_zstep(TBinWidth);
+        layerseggeo->set_phibins(NPhiBins[iregion]);
+        layerseggeo->set_phistep(phi_bin_width_cdb[v_layer]);
+        layerseggeo->set_r_bias(sector_R_bias);
+        layerseggeo->set_phi_bias(sector_Phi_bias);
+        layerseggeo->set_sector_min_phi(sector_min_Phi);
+        layerseggeo->set_sector_max_phi(sector_max_Phi);
+      }
       // Chris Pinkenburg: greater causes huge memory growth which causes problems
       // on our farm. If you need to increase this - TALK TO ME first
       if (NPhiBins[iregion] * NTBins > 5100000)
