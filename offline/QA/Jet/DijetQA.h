@@ -90,7 +90,30 @@ class DijetQA : public SubsysReco
   /// Reset
   int Reset(PHCompositeNode * /*topNode*/) override;
 
+  /// Print something
   void Print(const std::string &what = "ALL") const override;
+
+  /// Set the eta range for reco jets
+  void setEtaRange(double low, double high)
+  {
+    m_etaRange.first = low;
+    m_etaRange.second = high;
+  }
+
+  /// Set the pt range for the reco jets
+  void setPtRange(double low, double high)
+  {
+    m_ptRange.first = low;
+    m_ptRange.second = high;
+  }
+
+  /// Specifies a trigger to require
+  void setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+  {
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
+  }
+
   //////////////////////////////////////////////////////////////
   //							    //
   //        X_j = (p_(T, 1))/(p_(T,2))			    //
