@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef CALOEMCPI0TBT_CALOCALIBEMC_PI0_H
-#define CALOEMCPI0TBT_CALOCALIBEMC_PI0_H
+#ifndef CALOEMCPI0TBT_CALOCALIBEMCPI0_H
+#define CALOEMCPI0TBT_CALOCALIBEMCPI0_H
 
 #include <fun4all/SubsysReco.h>
 
