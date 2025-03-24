@@ -185,7 +185,7 @@ void DijetQA::FindPairs(JetContainer* jets)
   {
     // assert(j1);
     Jet *jet_pair1 = nullptr, *jet_pair2 = nullptr;
-    if (j1->get_pt() < m_ptRange.first || std::abs(j1->get_eta()) > 1.1 || j1->get_pt() > m_ptRange.second)
+    if (j1->get_pt() < m_ptRange.first || j1->get_eta() < m_etaRange.first || j1->get_pt() > m_ptRange.second || j1->get_eta() > m_etaRange.second)
     {
       continue;  // cut on 1 GeV jets
     }
@@ -201,7 +201,7 @@ void DijetQA::FindPairs(JetContainer* jets)
       {
         continue;
       }
-      if (/*j2 == j1 ||*/ j2->get_pt() < 1 || std::abs(j2->get_eta()) > 1.1 || j2->get_pt() > m_ptRange.second)
+      if (/*j2 == j1 ||*/ j2->get_pt() < 1 || j2->get_eta() < m_etaRange.first || j2->get_pt() > m_ptRange.second || j2->get_eta() > m_etaRange.second)
       {
         continue;
       }
