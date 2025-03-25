@@ -99,8 +99,13 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   //   return Fun4AllReturnCodes::EVENT_OK;
   // }
 
-  GlobalVertex *vtx = m_global_vertex_map->begin()->second;
+  if (m_global_vertex_map->empty())
+  {
+    m_mb_info->setIsAuAuMinimumBias(false);
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
+  GlobalVertex *vtx = m_global_vertex_map->begin()->second;
   if (!vtx)
   {
     m_mb_info->setIsAuAuMinimumBias(false);
