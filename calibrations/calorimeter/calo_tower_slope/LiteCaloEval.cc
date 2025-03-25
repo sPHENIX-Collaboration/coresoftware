@@ -6,7 +6,6 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <ffarawobjects/Gl1Packet.h>
 #include <calotrigger/TriggerAnalyzer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -14,7 +13,6 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
-
 
 #include <RtypesCore.h>  // for Double_t
 #include <TCanvas.h>
@@ -29,32 +27,33 @@
 #include <TLegend.h>
 #include <TStyle.h>
 #include <TSystem.h>
-#include <TTree.h>
 
 #include <boost/format.hpp>
 
+#include <cmath>
 #include <cstdlib>
-#include <fstream>
 #include <iostream>
 #include <map>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
 
 class RawTowerGeom;
 
-/// This function is used for the histo fitting process. x is a 1d array that holds xaxis values.
-/// par is an array of 1d array of parameters we set our fit function to. So p[0] = p[1] = 1 unless otherwise noted
-double LCE_fitf(Double_t *x, Double_t *par)
+namespace
 {
-  return par[0] * LCE_grff->Eval(x[0] * par[1], nullptr, "S");
-}
+  TGraph *LCE_grff{nullptr};
+  /// This function is used for the histo fitting process. x is a 1d array that holds xaxis values.
+  /// par is an array of 1d array of parameters we set our fit function to. So p[0] = p[1] = 1 unless otherwise noted
+  double LCE_fitf(const Double_t *x, const Double_t *par)
+  {
+    return par[0] * LCE_grff->Eval(x[0] * par[1], nullptr, "S");
+  }
+}  // namespace
 
 //____________________________________________________________________________..
 LiteCaloEval::LiteCaloEval(const std::string &name, const std::string &caloname, const std::string &filename)
   : SubsysReco(name)
   , _caloname(caloname)
   , _filename(filename)
-  , _inputnodename("TOWERINFO")
-  , m_UseTowerInfo(1)
 {
 }
 
@@ -76,7 +75,7 @@ int LiteCaloEval::InitRun(PHCompositeNode * /*topNode*/)
 
   cal_output = new TFile(_filename.c_str(), "RECREATE");
 
-  h_event = new TH1F("h_event","",1,0,1);
+  h_event = new TH1F("h_event", "", 1, 0, 1);
 
   if (calotype == LiteCaloEval::HCALIN)
   {
@@ -243,7 +242,7 @@ int LiteCaloEval::process_event(PHCompositeNode *topNode)
   {
     towernode = _inputnodename;
 
-    towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
+    towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towernode);
 
     if (!towerinfos)
     {
@@ -478,7 +477,8 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
     }
 
     /// holds the eta slice of histos
-    TH1F *heta_temp = (TH1F *) f_temp->Get(b.c_str());
+    TH1 *heta_temp{nullptr};
+    f_temp->GetObject(b.c_str(), heta_temp);
 
     if (i == 0)
     {
@@ -531,7 +531,8 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
       }
 
       /// heta_tempp holds tower histogram
-      TH1F *heta_tempp = (TH1F *) f_temp->Get(hist_name_p.c_str());
+      TH1 *heta_tempp{nullptr};
+      f_temp->GetObject(hist_name_p.c_str(), heta_tempp);
 
       if (i == 0 && j == 0)
       {
@@ -562,8 +563,8 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
       {
         hcal_in_eta_phi[i][j] = heta_tempp;
       }
-    }//phi loop
-  }//eta loop
+    }  // phi loop
+  }  // eta loop
 
   /*
   f_temp->Close();
@@ -573,7 +574,7 @@ void LiteCaloEval::Get_Histos(const std::string &infile, const std::string &outf
 
   std::cout << "Grabbed all histograms." << std::endl;
 
-}//end Get_Histos f'n
+}  // end Get_Histos f'n
 
 void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 {
@@ -641,19 +642,19 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   }
 
   /// histo to hold the returned fit parameter value
-  TH2F *corrPat = new TH2F("corrPat", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
+  TH2 *corrPat = new TH2F("corrPat", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
   corrPat->SetXTitle("#eta bin");
   corrPat->SetYTitle("#phi bin");
 
-  TH2F *h2_failQA = new TH2F("h2_failQA", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
+  TH2 *h2_failQA = new TH2F("h2_failQA", "", max_ieta, 0, max_ieta, max_iphi, 0, max_iphi);
 
   // 1d histo for gain shift values
-  TH1F *gainvals = new TH1F("gainvals", "Towerslope Correction Values", 10000, 0, 10);
+  TH1 *gainvals = new TH1F("gainvals", "Towerslope Correction Values", 10000, 0, 10);
   gainvals->SetXTitle("Gain Shift Value");
   gainvals->SetYTitle("Counts");
 
   // 1d histo for gain shift error
-  TH1F *h_gainErr = new TH1F("h_gainErr", "Towerslope Corrections Errors", 1000, 0, 1);
+  TH1 *h_gainErr = new TH1F("h_gainErr", "Towerslope Corrections Errors", 1000, 0, 1);
   h_gainErr->SetXTitle("error");
   h_gainErr->SetYTitle("Counts");
 
@@ -670,7 +671,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   }
 
   /// assign hnewf the eta slice histos when running in Gain Trace mode
-  TH1F *hnewf = nullptr;
+  TH1 *hnewf = nullptr;
 
   /// Start of loop for eta slices
   for (int i = minbin; i < maxbin; i++)
@@ -689,7 +690,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     int iik = i;
 
     /// will hold eta slice histo clone but with current tower being fitted removed from the eta slice
-    TH1F *cleanEtaRef = nullptr;
+    TH1 *cleanEtaRef = nullptr;
     std::string cleanEta = "cleanEtaRef_";
 
     if (calotype == LiteCaloEval::CEMC)
@@ -698,12 +699,12 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       {
         cleanEta += std::to_string(iik);
 
-        cleanEtaRef = (TH1F *) eta_hist[iik]->Clone(cleanEta.c_str());
+        cleanEtaRef = (TH1 *) eta_hist[iik]->Clone(cleanEta.c_str());
       }
 
       else
       {
-        hnewf = (TH1F *) ref_lce->eta_hist[iik]->Clone(myClnm.c_str());
+        hnewf = (TH1 *) ref_lce->eta_hist[iik]->Clone(myClnm.c_str());
       }
     }
 
@@ -713,21 +714,21 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       {
         cleanEta += std::to_string(iik);
 
-        cleanEtaRef = (TH1F *) hcalout_eta[iik]->Clone(cleanEta.c_str());
+        cleanEtaRef = (TH1 *) hcalout_eta[iik]->Clone(cleanEta.c_str());
 
         // remove towers from eta slice reference associated with the chimney (i < 4) and support ring in high eta region(i>19)
         if (i < 4 || i > 19)
         {
           for (int phiCH = 14; phiCH < 20; phiCH++)
           {
-            cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][phiCH], -1.0);
+            cleanEtaRef->Add((TH1 *) hcal_out_eta_phi[i][phiCH], -1.0);
           }
         }
       }
 
       else
       {
-        hnewf = (TH1F *) ref_lce->hcalout_eta[iik]->Clone(myClnm.c_str());
+        hnewf = (TH1 *) ref_lce->hcalout_eta[iik]->Clone(myClnm.c_str());
       }
     }
 
@@ -737,12 +738,12 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
       {
         cleanEta += std::to_string(iik);
 
-        cleanEtaRef = (TH1F *) hcalin_eta[iik]->Clone(cleanEta.c_str());
+        cleanEtaRef = (TH1 *) hcalin_eta[iik]->Clone(cleanEta.c_str());
       }
 
       else
       {
-        hnewf = (TH1F *) ref_lce->hcalin_eta[iik]->Clone(myClnm.c_str());
+        hnewf = (TH1 *) ref_lce->hcalin_eta[iik]->Clone(myClnm.c_str());
       }
     }
 
@@ -773,7 +774,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
       eta_hist[i]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
-      f2f = (TF1 *) eta_hist[i]->GetFunction("myexpo");
+      f2f = eta_hist[i]->GetFunction("myexpo");
     }
 
     else if (calotype == LiteCaloEval::HCALOUT)
@@ -785,7 +786,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
       hcalout_eta[i]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
-      f2f = (TF1 *) hcalout_eta[i]->GetFunction("myexpo");
+      f2f = hcalout_eta[i]->GetFunction("myexpo");
     }
 
     else if (calotype == LiteCaloEval::HCALIN)
@@ -797,18 +798,18 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
       hcalin_eta[i]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
-      f2f = (TF1 *) hcalin_eta[i]->GetFunction("myexpo");
+      f2f = hcalin_eta[i]->GetFunction("myexpo");
     }
 
-    if(!f2f)
-      {
-	std::cout << "Warning, f2f is null!" << std::endl;
-	exit(-1);
-      }
+    if (!f2f)
+    {
+      std::cout << "Warning, f2f is null!" << std::endl;
+      exit(-1);
+    }
     else
-      {
-	ieta_gain = f2f->GetParameter(1);
-      }
+    {
+      ieta_gain = f2f->GetParameter(1);
+    }
 
     ieta_gain_err = f2f->GetParError(1);
 
@@ -833,7 +834,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         {
           for (int j = 0; j < max_iphi; j++)
           {
-            cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], -1.0);
+            cleanEtaRef->Add((TH1 *) cemc_hist_eta_phi[i][j], -1.0);
 
             bool qa_res = spec_QA(cemc_hist_eta_phi[i][j], cleanEtaRef, true);
             if (qa_res == false)
@@ -844,7 +845,7 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
             }
             else
             {
-              cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], 1.0);
+              cleanEtaRef->Add((TH1 *) cemc_hist_eta_phi[i][j], 1.0);
             }
           }
         }
@@ -857,10 +858,10 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
     for (int j = 0; j < max_iphi; j++)
     {
       /// names of tower histo for cloning. used in gain trace mode
-      std::string myClnmp = "newhc_eta" + std::to_string(1000 * (i + 2) + j);
+      std::string myClnmp = "newhc_eta" + std::to_string((1000 * (i + 2)) + j);
 
       /// histo to hold tower clone
-      TH1F *hnewfp = nullptr;
+      TH1 *hnewfp = nullptr;
 
       // check to see if tower in question is part of the chimney/high eta support ring
 
@@ -877,11 +878,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         if (flag_fit_rings == true)
         {
-          cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], -1.0);
+          cleanEtaRef->Add((TH1 *) cemc_hist_eta_phi[i][j], -1.0);
         }
         else
         {
-          hnewfp = (TH1F *) ref_lce->cemc_hist_eta_phi[i][j]->Clone(myClnmp.c_str());
+          hnewfp = (TH1 *) ref_lce->cemc_hist_eta_phi[i][j]->Clone(myClnmp.c_str());
         }
       }
 
@@ -900,13 +901,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
           if (!_isChimney)
           {
-            cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][j], -1.0);
+            cleanEtaRef->Add((TH1 *) hcal_out_eta_phi[i][j], -1.0);
           }
         }
 
         else
         {
-          hnewfp = (TH1F *) ref_lce->hcal_out_eta_phi[i][j]->Clone(myClnmp.c_str());
+          hnewfp = (TH1 *) ref_lce->hcal_out_eta_phi[i][j]->Clone(myClnmp.c_str());
         }
       }
 
@@ -921,11 +922,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         if (flag_fit_rings == true)
         {
-          cleanEtaRef->Add((TH1F *) hcal_in_eta_phi[i][j], -1.0);
+          cleanEtaRef->Add((TH1 *) hcal_in_eta_phi[i][j], -1.0);
         }
         else
         {
-          hnewfp = (TH1F *) ref_lce->hcal_in_eta_phi[i][j]->Clone(myClnmp.c_str());
+          hnewfp = (TH1 *) ref_lce->hcal_in_eta_phi[i][j]->Clone(myClnmp.c_str());
         }
       }
 
@@ -968,12 +969,12 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         cemc_hist_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
-        f2f2 = (TF1 *) cemc_hist_eta_phi[i][j]->GetFunction("myexpo");
+        f2f2 = cemc_hist_eta_phi[i][j]->GetFunction("myexpo");
 
         // add back the just fitted tower to the eta slice reference
         if (flag_fit_rings == true)
         {
-          cleanEtaRef->Add((TH1F *) cemc_hist_eta_phi[i][j], 1.0);
+          cleanEtaRef->Add((TH1 *) cemc_hist_eta_phi[i][j], 1.0);
         }
       }
 
@@ -994,13 +995,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         hcal_out_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
-        f2f2 = (TF1 *) hcal_out_eta_phi[i][j]->GetFunction("myexpo");
+        f2f2 = hcal_out_eta_phi[i][j]->GetFunction("myexpo");
 
         if (flag_fit_rings == true)
         {
           if (!_isChimney)
           {
-            cleanEtaRef->Add((TH1F *) hcal_out_eta_phi[i][j], 1.0);
+            cleanEtaRef->Add((TH1 *) hcal_out_eta_phi[i][j], 1.0);
           }
         }
       }
@@ -1023,11 +1024,11 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
 
         hcal_in_eta_phi[i][j]->Fit("myexpo", "Q", "", fitmin, fitmax);
 
-        f2f2 = (TF1 *) hcal_in_eta_phi[i][j]->GetFunction("myexpo");
+        f2f2 = hcal_in_eta_phi[i][j]->GetFunction("myexpo");
 
         if (flag_fit_rings == true)
         {
-          cleanEtaRef->Add((TH1F *) hcal_in_eta_phi[i][j], 1.0);
+          cleanEtaRef->Add((TH1 *) hcal_in_eta_phi[i][j], 1.0);
         }
       }
 
@@ -1065,8 +1066,6 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
   h2_failQA->Write();
   gainvals->Write();
   h_gainErr->Write();
-
- 
 
   if (f_temp)
   {
@@ -1111,21 +1110,19 @@ bool LiteCaloEval::spec_QA(TH1 *h_spec, TH1 *h_ref)
   {
     return false;
   }
-  else
-  {
-    return true;
-  }
+
+  return true;
 }
 
 void LiteCaloEval::plot_cemc(const std::string &path)
 {
-  TH2F *h_fail = new TH2F("h_fail", "", 96, 0, 96, 256, 0, 256);
-  TH2F *h_corrPat = new TH2F("corrPat", "", 96, 0, 96, 256, 0, 256);
-  TH2F *h_hits = new TH2F("h_hits", "", 96, 0, 96, 256, 0, 256);
-  TH2F *h_expCalib = new TH2F("h_expCalib", "", 96, 0, 96, 256, 0, 256);
+  TH2 *h_fail = new TH2F("h_fail", "", 96, 0, 96, 256, 0, 256);
+  TH2 *h_corrPat = new TH2F("corrPat", "", 96, 0, 96, 256, 0, 256);
+  TH2 *h_hits = new TH2F("h_hits", "", 96, 0, 96, 256, 0, 256);
+  TH2 *h_expCalib = new TH2F("h_expCalib", "", 96, 0, 96, 256, 0, 256);
   h_hits->SetXTitle("#it{#eta}_{i}");
   h_hits->SetYTitle("#it{#phi}_{i}");
-  TH2F *h_hits_clean = new TH2F("h_hits_clean", "", 96, 0, 96, 256, 0, 256);
+  TH2 *h_hits_clean = new TH2F("h_hits_clean", "", 96, 0, 96, 256, 0, 256);
   h_hits_clean->SetXTitle("#it{#eta}_{i}");
   h_hits_clean->SetYTitle("#it{#phi}_{i}");
 
@@ -1140,9 +1137,9 @@ void LiteCaloEval::plot_cemc(const std::string &path)
       int binMax = cemc_hist_eta_phi[ieta][iphi]->GetNbinsX();
       float hits = cemc_hist_eta_phi[ieta][iphi]->Integral(binhit, binMax + 1);
       h_hits->SetBinContent(ieta + 1, iphi + 1, hits);
-      h_hits->SetBinError(ieta + 1, iphi + 1, sqrt(hits));
+      h_hits->SetBinError(ieta + 1, iphi + 1, std::sqrt(hits));
       h_hits_clean->SetBinContent(ieta + 1, iphi + 1, hits);
-      h_hits_clean->SetBinError(ieta + 1, iphi + 1, sqrt(hits));
+      h_hits_clean->SetBinError(ieta + 1, iphi + 1, std::sqrt(hits));
       int bin = cemc_hist_eta_phi[ieta][iphi]->FindBin(0.2);
       if (cemc_hist_eta_phi[ieta][iphi]->GetBinContent(bin) == 0)
       {
@@ -1160,9 +1157,9 @@ void LiteCaloEval::plot_cemc(const std::string &path)
   }
 
   // find hot towers
-  TH2F *h_hot = new TH2F("h_hot", "", 96, 0, 96, 256, 0, 256);
-  TH1F *h1_hits[96];
-  TH1F *h1_hits2[96];
+  TH2 *h_hot = new TH2F("h_hot", "", 96, 0, 96, 256, 0, 256);
+  TH1 *h1_hits[96];
+  TH1 *h1_hits2[96];
   float max = h_hits_clean->GetBinContent(h_hits_clean->GetMaximumBin());
   float min = h_hits_clean->GetMinimum();
   if (min == 0)
@@ -1188,7 +1185,7 @@ void LiteCaloEval::plot_cemc(const std::string &path)
     for (int iphi = 0; iphi < 256; iphi++)
     {
       float val = h_hits_clean->GetBinContent(ie + 1, iphi + 1);
-      if (fabs(mean - val) / std > 3)
+      if (std::fabs(mean - val) / std > 3)
       {
         continue;
       }
@@ -1204,7 +1201,7 @@ void LiteCaloEval::plot_cemc(const std::string &path)
       {
         continue;
       }
-      if (fabs(mean - val) / std > 5)
+      if (std::fabs(mean - val) / std > 5)
       {
         h_hot->SetBinContent(ie + 1, iphi + 1, 1);
         h_corrPat->SetBinContent(ie + 1, iphi + 1, 0);
@@ -1267,7 +1264,7 @@ void LiteCaloEval::plot_cemc(const std::string &path)
         latex.SetTextSize(0.02);
         latex.SetTextColor(kBlack);
         std::string result = "#eta_{" + std::to_string(ieta) + "}#times10^{" + std::to_string(ie) + "}";
-        latex.DrawLatex(0.22 + 0.07 * ie, 0.92, result.c_str());
+        latex.DrawLatex(0.22 + (0.07 * ie), 0.92, result.c_str());
       }
 
       // eta_hist[ieta]->Rebin(5);
@@ -1329,27 +1326,25 @@ void LiteCaloEval::plot_cemc(const std::string &path)
 
 void LiteCaloEval::draw_spectra(const char *outfile)
 {
- 
- if (calotype == LiteCaloEval::NONE)
+  if (calotype == LiteCaloEval::NONE)
   {
     std::cout << "Did not enter correct calotype. Exiting macro..." << std::endl;
     exit(-1);
   }
 
-  TFile *fout = new TFile(outfile,"UPDATE");
+  TFile *fout = new TFile(outfile, "UPDATE");
 
-  TH1F *h = nullptr;
+  TH1 *h = nullptr;
   std::string histName;
 
-  TH1F *h_etaSlice = nullptr;
+  TH1 *h_etaSlice = nullptr;
   std::string etaSliceName;
 
-  TH1F *h_cln = nullptr; //for tower clone
+  TH1 *h_cln = nullptr;  // for tower clone
   std::string h_cln_nm;
 
-  TH1F *h_es_cln = nullptr; //for es clone
+  TH1 *h_es_cln = nullptr;  // for es clone
   std::string h_es_nm;
-
 
   float scale = 1.0;
   float otherscale = 1.0;
@@ -1407,26 +1402,26 @@ void LiteCaloEval::draw_spectra(const char *outfile)
           etaSliceName = "hcalin_eta_" + std::to_string(i);
         }
 
-        h_etaSlice = (TH1F *) fout->Get(etaSliceName.c_str());
+        fout->GetObject(etaSliceName.c_str(), h_etaSlice);
 
         if (!h_etaSlice)
         {
           std::cout << "ERROR! Could not get hcal eta slice histogram " << i << " ." << std::endl;
           gSystem->Exit(1);
+          exit(1);  // cppcheck does not know gSystem->Exit()
         }
 
         if (h_etaSlice->GetEntries() == 0.0)
         {
           std::cout << "WARNING! hcal eta slice " << i << " has no entries!" << std::endl;
-	  continue;
+          continue;
         }
 
-	h_es_cln = (TH1F *)h_etaSlice->Clone();
+        h_es_cln = (TH1 *) h_etaSlice->Clone();
 
-	h_es_nm = "cln_es_" + std::to_string(i);
+        h_es_nm = "cln_es_" + std::to_string(i);
 
-	h_es_cln->SetName(h_es_nm.c_str());
-
+        h_es_cln->SetName(h_es_nm.c_str());
 
         // phi loop
         for (int j = 0; j < 64; j++)
@@ -1440,7 +1435,7 @@ void LiteCaloEval::draw_spectra(const char *outfile)
             histName = "hcal_in_eta_" + std::to_string(i) + "_phi_" + std::to_string(j);
           }
 
-          h = (TH1F *) fout->Get(histName.c_str());
+          fout->GetObject(histName.c_str(), h);
 
           if (!h)
           {
@@ -1454,12 +1449,11 @@ void LiteCaloEval::draw_spectra(const char *outfile)
             continue;
           }
 
-	  h_cln = (TH1F *)h->Clone();
+          h_cln = (TH1 *) h->Clone();
 
-	  h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
+          h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
 
-	  h_cln->SetName(h_cln_nm.c_str());
-
+          h_cln->SetName(h_cln_nm.c_str());
 
           if (i == 0)
           {
@@ -1471,8 +1465,8 @@ void LiteCaloEval::draw_spectra(const char *outfile)
           }
 
           otherscale = h_cln->GetBinContent(1);
-	  
-          h_cln->Scale(h_es_cln->Integral(h_es_cln->FindBin(fitMin), h_es_cln->FindBin(fitMax) ) / h_cln->Integral(h_cln->FindBin(fitMin), h_cln->FindBin(fitMax) ));
+
+          h_cln->Scale(h_es_cln->Integral(h_es_cln->FindBin(fitMin), h_es_cln->FindBin(fitMax)) / h_cln->Integral(h_cln->FindBin(fitMin), h_cln->FindBin(fitMax)));
           h_cln->Scale(scale / otherscale);
           h_cln->GetXaxis()->SetRangeUser(0., xaxisRange);
           h_cln->GetYaxis()->SetRangeUser(0.00001, 1e27);
@@ -1542,7 +1536,7 @@ void LiteCaloEval::draw_spectra(const char *outfile)
       {
         etaSliceName = "eta_" + std::to_string(i);
 
-        h_etaSlice = (TH1F *) fout->Get(etaSliceName.c_str());
+        fout->GetObject(etaSliceName.c_str(), h_etaSlice);
 
         if (!h_etaSlice)
         {
@@ -1553,21 +1547,21 @@ void LiteCaloEval::draw_spectra(const char *outfile)
         if (h_etaSlice->GetEntries() == 0.0)
         {
           std::cout << "WARNING! EMCal eta slice " << i << " has no entries!" << std::endl;
-	  continue;
+          continue;
         }
 
-	h_es_cln = (TH1F *)h_etaSlice->Clone();
+        h_es_cln = (TH1 *) h_etaSlice->Clone();
 
-	h_es_nm = "cln_es_" + std::to_string(i);
+        h_es_nm = "cln_es_" + std::to_string(i);
 
-	h_es_cln->SetName(h_es_nm.c_str());
+        h_es_cln->SetName(h_es_nm.c_str());
 
         // phi loop
         for (int j = 0; j < 256; j++)
         {
           histName = "emc_ieta" + std::to_string(i) + "_phi" + std::to_string(j);
 
-          h = (TH1F *) fout->Get(histName.c_str());
+          fout->GetObject(histName.c_str(), h);
 
           if (!h)
           {
@@ -1580,11 +1574,11 @@ void LiteCaloEval::draw_spectra(const char *outfile)
             continue;
           }
 
-	  h_cln = (TH1F *)h->Clone();
+          h_cln = (TH1 *) h->Clone();
 
-	  h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
+          h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
 
-	  h_cln->SetName(h_cln_nm.c_str());
+          h_cln->SetName(h_cln_nm.c_str());
 
           if (i == 0 || i % 12 == 0)
           {
@@ -1597,15 +1591,15 @@ void LiteCaloEval::draw_spectra(const char *outfile)
 
           otherscale = h_cln->GetMaximum();
 
-          h_cln->Scale(h_es_cln->Integral(h_es_cln->FindBin(fitMin), h_es_cln->FindBin(fitMax) ) / h_cln->Integral(h_cln->FindBin(fitMin), h_cln->FindBin(fitMax)));
+          h_cln->Scale(h_es_cln->Integral(h_es_cln->FindBin(fitMin), h_es_cln->FindBin(fitMax)) / h_cln->Integral(h_cln->FindBin(fitMin), h_cln->FindBin(fitMax)));
           h_cln->Scale(scale / otherscale);
           h_cln->GetXaxis()->SetRangeUser(0., xaxisRange);
           h_cln->GetYaxis()->SetRangeUser(0.00001, 1e40);
           h_cln->Draw("same hist");
 
-	  h_cln = nullptr;
+          h_cln = nullptr;
 
-        }// phi loop
+        }  // phi loop
 
         h_es_cln->Scale(scale / otherscale);
         h_es_cln->GetXaxis()->SetRangeUser(0., xaxisRange);
@@ -1614,14 +1608,14 @@ void LiteCaloEval::draw_spectra(const char *outfile)
         h_es_cln->SetLineWidth(3);
         h_es_cln->Draw("same hist");
 
-	h_es_cln = nullptr;
+        h_es_cln = nullptr;
 
         if (!(i % 12 == 0))
         {
           cntr += 3;  // cntr++ gives separation by 100, +=2 gives 1000
         }
 
-      }// eta loop
+      }  // eta loop
 
       t->Draw("same");
 
@@ -1638,23 +1632,22 @@ void LiteCaloEval::draw_spectra(const char *outfile)
 
   }  // end emcal flag
 
-
   fout->Close();
   fout = nullptr;
   delete fout;
-  
+
   std::cout << "Drawing histos is complete." << std::endl;
 
 }  // end draw spectra f'n
 
-void LiteCaloEval::fit_info(const char * outfile, const int runNum)
+void LiteCaloEval::fit_info(const char *outfile, const int runNum)
 {
-  TFile *fout = new TFile(outfile,"UPDATE");
+  TFile *fout = new TFile(outfile, "UPDATE");
 
   int eta;
   int phi;
   double towers;
-//  int badTowers = 0;
+  //  int badTowers = 0;
 
   if (calotype == LiteCaloEval::HCALIN || calotype == LiteCaloEval::HCALOUT)
   {
@@ -1674,46 +1667,45 @@ void LiteCaloEval::fit_info(const char * outfile, const int runNum)
     exit(-1);
   }
 
-  TH2F *errMap = new TH2F("errMap", "", eta, 0, eta, phi, 0, phi);
+  TH2 *errMap = new TH2F("errMap", "", eta, 0, eta, phi, 0, phi);
   errMap->GetXaxis()->SetTitle("#eta Bin");
   errMap->GetYaxis()->SetTitle("#phi Bin");
 
   // make chi squared/ndf plots
-  TH1F *chi2 = new TH1F("chi2", "", 500, 0, 50);
+  TH1 *chi2 = new TH1F("chi2", "", 500, 0, 50);
   chi2->GetXaxis()->SetTitle("#chi^{2} / NDF");
   chi2->GetYaxis()->SetTitle("Counts");
 
   // make chi squared/ndf map
-  TH2F *chi2Map = new TH2F("chi2Map", "", eta, 0, eta, phi, 0, phi);
+  TH2 *chi2Map = new TH2F("chi2Map", "", eta, 0, eta, phi, 0, phi);
   chi2Map->GetXaxis()->SetTitle("#eta Bin");
   chi2Map->GetYaxis()->SetTitle("#phi Bin");
 
   // map of tower with failed fits
-  TH2F *fitFail = new TH2F("fitFail", "", eta, 0, eta, phi, 0, phi);
+  TH2 *fitFail = new TH2F("fitFail", "", eta, 0, eta, phi, 0, phi);
   fitFail->GetXaxis()->SetTitle("#eta bin");
   fitFail->GetYaxis()->SetTitle("#phi bin");
 
-  TString histname;
-  TH1F *htmp = nullptr;
+  std::string histname;
+  TH1 *htmp = nullptr;
   TF1 *fn = nullptr;
 
-  //testing stuff
-  TH2F *cp = nullptr; // to hold corrpat 
-  cp = (TH2F *)fout->Get("corrPat");
+  // testing stuff
+  TH2 *cp = nullptr;  // to hold corrpat
+  fout->GetObject("corrPat", cp);
 
-  if(!cp)
-    {
-      std::cout << "Error! Did not get corrPat histogram. Exiting analysis." << std::endl;
-      exit(-1);
-    }
+  if (!cp)
+  {
+    std::cout << "Error! Did not get corrPat histogram. Exiting analysis." << std::endl;
+    exit(-1);
+  }
 
   TGraphErrors *tmp_avgTSC = new TGraphErrors();
   tmp_avgTSC->SetName("g_avgTSC");
   tmp_avgTSC->GetXaxis()->SetTitle("run number");
-  tmp_avgTSC->GetYaxis()->SetTitle("Mean Towerslope Correction"); 
+  tmp_avgTSC->GetYaxis()->SetTitle("Mean Towerslope Correction");
   tmp_avgTSC->SetMarkerStyle(8);
   tmp_avgTSC->SetMarkerSize(1);
-    
 
   double sum4avg = 0.0;
   double tscAvg = 0.0;
@@ -1722,64 +1714,64 @@ void LiteCaloEval::fit_info(const char * outfile, const int runNum)
 
   // phi loop
   for (int i = 0; i < eta; i++)
+  {
+    // eta loop
+    for (int j = 0; j < phi; j++)
     {
-      // eta loop
-      for (int j = 0; j < phi; j++)
-	{
-	  // for ohcal
-	  if (calotype == LiteCaloEval::HCALOUT)
-	    {
-	      histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
-	    }
+      // for ohcal
+      if (calotype == LiteCaloEval::HCALOUT)
+      {
+        histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
+      }
 
-	  // ihcal
-	  if (calotype == LiteCaloEval::HCALIN)
-	    {
-	      histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
-	    }
+      // ihcal
+      if (calotype == LiteCaloEval::HCALIN)
+      {
+        histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
+      }
 
-	  // emcal
-	  if (calotype == LiteCaloEval::CEMC)
-	    {
-	      histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
-	    }
+      // emcal
+      if (calotype == LiteCaloEval::CEMC)
+      {
+        histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
+      }
 
-	  sum4avg += (cp->GetBinContent(i+1, j+1));
+      sum4avg += (cp->GetBinContent(i + 1, j + 1));
 
-	  htmp = (TH1F *) fout->Get(histname.Data());
+      fout->GetObject(histname.c_str(), htmp);
 
-	  fn = (TF1 *) htmp->GetFunction("myexpo");
+      fn = htmp->GetFunction("myexpo");
 
-	  errMap->SetBinContent(i + 1, j + 1, fn->GetParError(1));
+      errMap->SetBinContent(i + 1, j + 1, fn->GetParError(1));
 
-	  chi2->Fill(fn->GetChisquare() / fn->GetNDF());
+      chi2->Fill(fn->GetChisquare() / fn->GetNDF());
 
-	  chi2Map->SetBinContent(i + 1, j + 1, fn->GetChisquare() / fn->GetNDF());
+      chi2Map->SetBinContent(i + 1, j + 1, fn->GetChisquare() / fn->GetNDF());
 
-	  if (fn->GetChisquare() / fn->GetNDF() > 5)
-	    {
-	      fitFail->Fill(i, j);
-//	      badTowers++;
-	    }
+      if (fn->GetChisquare() / fn->GetNDF() > 5)
+      {
+        fitFail->Fill(i, j);
+        //	      badTowers++;
+      }
 
-	}  // end inner forloop
+    }  // end inner forloop
 
-    }  // end outer forloop
+  }  // end outer forloop
 
   tscAvg = sum4avg / towers;
 
-  //get standard error of avg TSC
-  for(int i = 0; i < eta; i++)
+  // get standard error of avg TSC
+  for (int i = 0; i < eta; i++)
+  {
+    for (int j = 0; j < phi; j++)
     {
-      for(int j = 0; j < phi; j++)
-	{
-	  sum4SE += pow(cp->GetBinContent(i+1, j+1) - tscAvg, 2); //getting part of the std dev
-	}
+      sum4SE += pow(cp->GetBinContent(i + 1, j + 1) - tscAvg, 2);  // getting part of the std dev
     }
+  }
 
-  SE = sqrt(sum4SE/towers) / sqrt(towers);
+  SE = sqrt(sum4SE / towers) / sqrt(towers);
 
-  tmp_avgTSC->SetPoint(0, runNum, tscAvg); 
+  tmp_avgTSC->SetPoint(0, runNum, tscAvg);
   tmp_avgTSC->SetPointError(0, 0.0, SE);
 
   errMap->Write();
@@ -1807,13 +1799,12 @@ void LiteCaloEval::fit_info(const char * outfile, const int runNum)
   std::cout << "Finished fit info" << std::endl;
 }
 
-///used when one already has .root file with histograms fit. Other fit_info to be used at run-time with macro
-void LiteCaloEval::fit_info(const char *infile, const char * outfile, const int runNum)
+/// used when one already has .root file with histograms fit. Other fit_info to be used at run-time with macro
+void LiteCaloEval::fit_info(const char *infile, const char *outfile, const int runNum)
 {
+  TFile *fin = new TFile(infile, "READ");
+  TFile *fout = new TFile(outfile, "UPDATE");
 
-  TFile *fin = new TFile(infile,"READ");
-  TFile *fout = new TFile(outfile,"UPDATE");
-  
   int eta;
   int phi;
   double towers;
@@ -1836,46 +1827,45 @@ void LiteCaloEval::fit_info(const char *infile, const char * outfile, const int 
     exit(-1);
   }
 
-  TH2F *errMap = new TH2F("errMap", "", eta, 0, eta, phi, 0, phi);
+  TH2 *errMap = new TH2F("errMap", "", eta, 0, eta, phi, 0, phi);
   errMap->GetXaxis()->SetTitle("#eta Bin");
   errMap->GetYaxis()->SetTitle("#phi Bin");
 
   // make chi squared/ndf plots
-  TH1F *chi2 = new TH1F("chi2", "", 500, 0, 50);
+  TH1 *chi2 = new TH1F("chi2", "", 500, 0, 50);
   chi2->GetXaxis()->SetTitle("#chi^{2} / NDF");
   chi2->GetYaxis()->SetTitle("Counts");
 
   // make chi squared/ndf map
-  TH2F *chi2Map = new TH2F("chi2Map", "", eta, 0, eta, phi, 0, phi);
+  TH2 *chi2Map = new TH2F("chi2Map", "", eta, 0, eta, phi, 0, phi);
   chi2Map->GetXaxis()->SetTitle("#eta Bin");
   chi2Map->GetYaxis()->SetTitle("#phi Bin");
 
   // map of tower with failed fits
-  TH2F *fitFail = new TH2F("fitFail", "", eta, 0, eta, phi, 0, phi);
+  TH2 *fitFail = new TH2F("fitFail", "", eta, 0, eta, phi, 0, phi);
   fitFail->GetXaxis()->SetTitle("#eta bin");
   fitFail->GetYaxis()->SetTitle("#phi bin");
 
-  TString histname;
-  TH1F *htmp = nullptr;
-  TF1 *fn = nullptr;
+  std::string histname;
+  TH1 *htmp{nullptr};
+  TF1 *fn{nullptr};
 
-  //testing stuff
-  TH2F *cp = nullptr; // to hold corrpat 
-  cp = (TH2F *)fin->Get("corrPat");
+  // testing stuff
+  TH2 *cp{nullptr};  // to hold corrpat
+  fin->GetObject("corrPat", cp);
 
-  if(!cp)
-    {
-      std::cout << "Error! Did not get corrPat histogram. Exiting analysis." << std::endl;
-      exit(-1);
-    }
+  if (!cp)
+  {
+    std::cout << "Error! Did not get corrPat histogram. Exiting analysis." << std::endl;
+    exit(-1);
+  }
 
   TGraphErrors *tmp_avgTSC = new TGraphErrors();
   tmp_avgTSC->SetName("g_avgTSC");
   tmp_avgTSC->GetXaxis()->SetTitle("run number");
-  tmp_avgTSC->GetYaxis()->SetTitle("Mean Towerslope Correction"); 
+  tmp_avgTSC->GetYaxis()->SetTitle("Mean Towerslope Correction");
   tmp_avgTSC->SetMarkerStyle(8);
   tmp_avgTSC->SetMarkerSize(1);
-    
 
   double sum4avg = 0.0;
   double tscAvg = 0.0;
@@ -1884,63 +1874,63 @@ void LiteCaloEval::fit_info(const char *infile, const char * outfile, const int 
 
   // phi loop
   for (int i = 0; i < eta; i++)
+  {
+    // eta loop
+    for (int j = 0; j < phi; j++)
     {
-      // eta loop
-      for (int j = 0; j < phi; j++)
-	{
-	  // for ohcal
-	  if (calotype == LiteCaloEval::HCALOUT)
-	    {
-	      histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
-	    }
+      // for ohcal
+      if (calotype == LiteCaloEval::HCALOUT)
+      {
+        histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
+      }
 
-	  // ihcal
-	  if (calotype == LiteCaloEval::HCALIN)
-	    {
-	      histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
-	    }
+      // ihcal
+      if (calotype == LiteCaloEval::HCALIN)
+      {
+        histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
+      }
 
-	  // emcal
-	  if (calotype == LiteCaloEval::CEMC)
-	    {
-	      histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
-	    }
+      // emcal
+      if (calotype == LiteCaloEval::CEMC)
+      {
+        histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
+      }
 
-	  sum4avg += (cp->GetBinContent(i+1, j+1));
+      sum4avg += (cp->GetBinContent(i + 1, j + 1));
 
-	  htmp = (TH1F *)fin->Get(histname.Data());
+      fin->GetObject(histname.c_str(), htmp);
 
-	  fn = (TF1 *) htmp->GetFunction("myexpo");
+      fn = htmp->GetFunction("myexpo");
 
-	  errMap->SetBinContent(i + 1, j + 1, fn->GetParError(1));
+      errMap->SetBinContent(i + 1, j + 1, fn->GetParError(1));
 
-	  chi2->Fill(fn->GetChisquare() / fn->GetNDF());
+      chi2->Fill(fn->GetChisquare() / fn->GetNDF());
 
-	  chi2Map->SetBinContent(i + 1, j + 1, fn->GetChisquare() / fn->GetNDF());
+      chi2Map->SetBinContent(i + 1, j + 1, fn->GetChisquare() / fn->GetNDF());
 
-	  if (fn->GetChisquare() / fn->GetNDF() > 5)
-	    {
-	      fitFail->Fill(i, j);
-	    }
+      if (fn->GetChisquare() / fn->GetNDF() > 5)
+      {
+        fitFail->Fill(i, j);
+      }
 
-	}  // end inner forloop
+    }  // end inner forloop
 
-    }  // end outer forloop
+  }  // end outer forloop
 
   tscAvg = sum4avg / towers;
 
-  //get standard error of avg TSC
-  for(int i = 0; i < eta; i++)
+  // get standard error of avg TSC
+  for (int i = 0; i < eta; i++)
+  {
+    for (int j = 0; j < phi; j++)
     {
-      for(int j = 0; j < phi; j++)
-	{
-	  sum4SE += pow(cp->GetBinContent(i+1, j+1) - tscAvg, 2); //getting part of the std dev
-	}
+      sum4SE += pow(cp->GetBinContent(i + 1, j + 1) - tscAvg, 2);  // getting part of the std dev
     }
+  }
 
-  SE = sqrt(sum4SE/towers) / sqrt(towers);
+  SE = sqrt(sum4SE / towers) / sqrt(towers);
 
-  tmp_avgTSC->SetPoint(0, runNum, tscAvg); 
+  tmp_avgTSC->SetPoint(0, runNum, tscAvg);
   tmp_avgTSC->SetPointError(0, 0.0, SE);
 
   errMap->Write();

@@ -4,24 +4,19 @@
 #include <calobase/TowerInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
 
-#include <Event/Event.h>
-#include <Event/packet.h>
-
 #include <Math/SpecFuncMathCore.h>
-#include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TMath.h>
 
-#include <cassert>
-#include <sstream>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
 
 HCalCosmics::HCalCosmics(const std::string &name, const std::string &fname)
   : SubsysReco(name)
@@ -44,19 +39,19 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
     for (int iphi = 0; iphi < n_phibin; ++iphi)
     {
       std::string channel_histname = "h_channel_" + std::to_string(ieta) + "_" + std::to_string(iphi);
-      h_channel_hist[ieta][iphi] = new TH1F(channel_histname.c_str(), "", 500, 0, 500*bin_width);
+      h_channel_hist[ieta][iphi] = new TH1F(channel_histname.c_str(), "", 500, 0, 500 * bin_width);
     }
   }
-  h_waveformchi2 = new TH2F("h_waveformchi2", "", 1000, 0, 500*bin_width, 1000, 0, 1000000);
+  h_waveformchi2 = new TH2F("h_waveformchi2", "", 1000, 0, 500 * bin_width, 1000, 0, 1000000);
   h_waveformchi2->GetXaxis()->SetTitle("peak (ADC)");
   h_waveformchi2->GetYaxis()->SetTitle("chi2");
-  h_waveformchi2_aftercut = new TH2F("h_waveformchi2_aftercut", "", 1000, 0, 500*bin_width, 1000, 0, 1000000);
+  h_waveformchi2_aftercut = new TH2F("h_waveformchi2_aftercut", "", 1000, 0, 500 * bin_width, 1000, 0, 1000000);
   h_waveformchi2_aftercut->GetXaxis()->SetTitle("peak (ADC)");
   h_waveformchi2_aftercut->GetYaxis()->SetTitle("chi2");
-  h_mip = new TH1F("h_mip", "", 500, 0, 500*bin_width);
+  h_mip = new TH1F("h_mip", "", 500, 0, 500 * bin_width);
   h_event = new TH1F("h_event", "", 1, 0, 1);
 
-  h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -10*bin_width, 90*bin_width);
+  h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -10 * bin_width, 90 * bin_width);
 
   event = 0;
   return 0;
@@ -145,11 +140,6 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int HCalCosmics::ResetEvent(PHCompositeNode * /*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int HCalCosmics::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "HCalCosmics::End" << std::endl;
@@ -173,7 +163,7 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
   return 0;
 }
 
-double HCalCosmics::gamma_function(double *x, double *par)
+double HCalCosmics::gamma_function(const double *x, const double *par)
 {
   double peak = par[0];
   double shift = par[1];
@@ -186,12 +176,10 @@ double HCalCosmics::gamma_function(double *x, double *par)
   }
 
   double arg_para = (x[0] - shift) / scale;
-  if (arg_para < 0)
-  {
-    arg_para = 0;
-  }
+  arg_para = std::max<double>(arg_para, 0);
   double peak_para = (peak - shift) / scale;
-  double numerator = N * pow(arg_para, peak_para) * TMath::Exp(-arg_para);
+  //  double numerator = N * pow(arg_para, peak_para) * TMath::Exp(-arg_para);
+  double numerator = N * pow(arg_para, peak_para) * std::exp(-arg_para);
   double denominator = ROOT::Math::tgamma(peak_para + 1) * scale;
 
   if (denominator == 0)
