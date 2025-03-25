@@ -1,11 +1,11 @@
-#ifndef PIEbyE_H__
-#define PIEbyE_H__
+#ifndef CALOEMCPI0TBT_PI0ETABYETA_H
+#define CALOEMCPI0TBT_PI0ETABYETA_H
 
 #include <globalvertex/GlobalVertex.h>
 
 #include <fun4all/SubsysReco.h>
 
-//#include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
+// #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 #include <array>
 #include <string>  // for string
 #include <vector>
@@ -31,7 +31,7 @@ class pi0EtaByEta : public SubsysReco
 {
  public:
   //! constructor
-  pi0EtaByEta(const std::string& name = "pi0EtaByEta", const std::string& fname = "MyNtuple.root");
+  pi0EtaByEta(const std::string& name = "pi0EtaByEta", const std::string& filename = "MyNtuple.root");
 
   //! destructor
   virtual ~pi0EtaByEta();
@@ -55,14 +55,14 @@ class pi0EtaByEta : public SubsysReco
   void set_vertex_cut(const float v) { _vz = v; }
   void apply_vertex_cut(bool Vtx_cut) { doVtxCut = Vtx_cut; }
 
-  TF1* fitHistogram(TH1* h);
+  static TF1* fitHistogram(TH1* h);
   void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
 
-	void fitEtaPhiTowers(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile); // for tbt pi0 fit
+  void fitEtaPhiTowers(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile);  // for tbt pi0 fit
 
-  void Split3DHist(const std::string& infile, const std::string& outfile);
+  void Split3DHist(const std::string& infile, const std::string& out_file);
 
-	void set_use_pdc(bool state)
+  void set_use_pdc(bool state)
   {
     use_pdc = state;
     return;
@@ -89,21 +89,20 @@ class pi0EtaByEta : public SubsysReco
   }
   void set_calibConvLev(float val)
   {
-    convLev=val;
+    convLev = val;
     return;
   }
-  void set_RunTowByTow(bool state) // to decide if we want to run tbt (default is true)
+  void set_RunTowByTow(bool state)  // to decide if we want to run tbt (default is true)
   {
-    runTowByTow=state;
+    runTowByTow = state;
     return;
   }
 
-	void set_RunTBTCompactMode(bool state) // to decide if we want to run in TBT in compact mode (default is true)
+  void set_RunTBTCompactMode(bool state)  // to decide if we want to run in TBT in compact mode (default is true)
   {
-    runTBTCompactMode=state;
+    runTBTCompactMode = state;
     return;
   }
-
 
   void set_massTargetHistFile(const std::string& file);
   bool checkOutput(const std::string& file);
@@ -113,7 +112,7 @@ class pi0EtaByEta : public SubsysReco
     return;
   }
 
-  void set_GlobalVertexType(GlobalVertex::VTXTYPE type) 
+  void set_GlobalVertexType(GlobalVertex::VTXTYPE type)
   {
     m_use_vertextype = true;
     m_vertex_type = type;
@@ -130,17 +129,17 @@ class pi0EtaByEta : public SubsysReco
   std::string detector;
   std::string outfilename;
 
-  bool reqMinBias = true;
-  bool reqVertex = false;
+  bool reqMinBias{true};
+  bool reqVertex{false};
 
-  bool doVtxCut = true;
-  float vtx_z_cut = 20;
-  bool m_use_vertextype {false};
-  GlobalVertex::VTXTYPE m_vertex_type = GlobalVertex::UNDEFINED;
+  bool doVtxCut{true};
+  float vtx_z_cut{20};
+  bool m_use_vertextype{false};
+  GlobalVertex::VTXTYPE m_vertex_type{GlobalVertex::UNDEFINED};
 
-  float pt1BaseClusCut = 1.3;
-  float pt2BaseClusCut = 0.7;
-  float NclusDeptFac = 1.4;
+  float pt1BaseClusCut{1.3};
+  float pt2BaseClusCut{0.7};
+  float NclusDeptFac{1.4};
 
   std::vector<float> m_energy;
   std::vector<int> m_etabin;
@@ -166,7 +165,7 @@ class pi0EtaByEta : public SubsysReco
   std::vector<int> m_bbc_side;
 
   std::array<TH1*, 96> h_mass_eta_lt{};
-	std::array<std::array<TH1*, 256>, 96> h_mass_tbt_lt{};
+  std::array<std::array<TH1*, 256>, 96> h_mass_tbt_lt{};
 
   int _eventcounter{0};
   int _range{1};
@@ -177,19 +176,19 @@ class pi0EtaByEta : public SubsysReco
   bool dynMaskClus{false};
   bool doMix{false};
   bool use_pdc{false};
-  bool runTowByTow{true}; // default set not to run tbt
-  bool runTBTCompactMode{true}; // default set to run in compact mode 
+  bool runTowByTow{true};        // default set not to run tbt
+  bool runTBTCompactMode{true};  // default set to run in compact mode
 
   std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>* clusMix;
-  const int NBinsClus = 10;
+  const int NBinsClus{10};
   TH1* h_vtx_bin{nullptr};
-  int NBinsVtx = 30;
+  int NBinsVtx{30};
   TH1* h_event{nullptr};
 
   TFile* outfile{nullptr};
   Fun4AllHistoManager* hm{nullptr};
-  
-	TH2* h_emcal_mbd_correlation{nullptr};
+
+  TH2* h_emcal_mbd_correlation{nullptr};
   TH2* h_ohcal_mbd_correlation{nullptr};
   TH2* h_ihcal_mbd_correlation{nullptr};
   TH2* h_emcal_hcal_correlation{nullptr};
@@ -252,9 +251,7 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_nclusters{nullptr};
   TH1* h_emcal_e_eta{nullptr};
 
-  float convLev = 0.005;
-
-
+  float convLev{0.005};
 };
 
 #endif

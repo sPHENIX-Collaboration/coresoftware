@@ -1,25 +1,24 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef CALOEMCPI0TBT_CALOCALIBEMC_PI0_H
-#define CALOEMCPI0TBT_CALOCALIBEMC_PI0_H
+#ifndef CALOEMCPI0TBT_CALOCALIBEMCPI0_H
+#define CALOEMCPI0TBT_CALOCALIBEMCPI0_H
 
 #include <fun4all/SubsysReco.h>
 
 #include <array>
 #include <string>
 
-class PHCompositeNode;
 class TFile;
-class TH1F;
-class TH2F;
-class TH3F;
+class TH1;
+class TH2;
+class TH3;
 class TH1;
 class TTree;
 
 class CaloCalibEmc_Pi0 : public SubsysReco
 {
  public:
-  CaloCalibEmc_Pi0(const std::string &name = "CaloCalibEmc_Pi0", const std::string &fnm = "outJF");
+  CaloCalibEmc_Pi0(const std::string &name = "CaloCalibEmc_Pi0", const std::string &filename = "outJF");
 
   ~CaloCalibEmc_Pi0() override = default;
 
@@ -38,13 +37,13 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
 
-  void Loop(int nevts, const std::string &filename, TTree *intree = nullptr, const std::string &ifileCorr = "");
-  void Loop_for_eta_slices(int nevts, const std::string &filename, TTree *intree = nullptr, const std::string &ifileCorr = "");
+  void Loop(int nevts, const std::string &filename, TTree *intree = nullptr, const std::string &incorrFile = "");
+  void Loop_for_eta_slices(int nevts, const std::string &filename, TTree *intree = nullptr, const std::string &incorrFile = "");
 
-  void Fit_Histos_Etas96(const std::string &infilent);
-  void Fit_Histos(const std::string &infilent);
-  void Fit_Histos_Eta_Phi_Add96(const std::string &infilent);
-  void Fit_Histos_Eta_Phi_Add32(const std::string &infilent);
+  void Fit_Histos_Etas96(const std::string &incorrFile);
+  void Fit_Histos(const std::string &incorrFile);
+  void Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile);
+  void Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile);
 
   void set_centrality_nclusters_cut(int n) { m_cent_nclus_cut = n; }
 
@@ -91,12 +90,12 @@ class CaloCalibEmc_Pi0 : public SubsysReco
   //  std::arrays have their indices backward, this is the old TH1 *cemc_hist_eta_phi[96][258];
   std::array<std::array<TH1 *, 258>, 96> cemc_hist_eta_phi{};
   std::array<TH1 *, 96> eta_hist{};
-  TH2F *mass_eta{nullptr};
-  TH3F *mass_eta_phi{nullptr};
-  TH1F *h_totalClusters{nullptr};
-  TH3F *pt1_ptpi0_alpha{nullptr};
-  TH2F *fitp1_eta_phi2d{nullptr};
-  TH1F *pairInvMassTotal{nullptr};
+  TH2 *mass_eta{nullptr};
+  TH3 *mass_eta_phi{nullptr};
+  TH1 *h_totalClusters{nullptr};
+  TH3 *pt1_ptpi0_alpha{nullptr};
+  TH2 *fitp1_eta_phi2d{nullptr};
+  TH1 *pairInvMassTotal{nullptr};
 
   TTree *_eventTree{nullptr};
   // TTree variables

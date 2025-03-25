@@ -12,10 +12,10 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
   -lcalo_io \
-  -lffarawobjects \
-  -lfun4all \
   -lcalotrigger \
   -lcalotrigger_io \
+  -lffarawobjects \
+  -lfun4all \
   -lSubsysReco
 
 libLiteCaloEvalTowSlope_la_SOURCES = \
