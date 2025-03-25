@@ -8,7 +8,7 @@
 #include "BEmcCluster.h"
 
 #include <algorithm>  // for max
-#include <cmath>      // for NAN
+#include <limits>
 #include <map>
 #include <string>
 #include <vector>
@@ -76,16 +76,16 @@ class BEmcRec
   std::vector<EmcModule> *GetModules() { return fModules; }
   std::vector<EmcCluster> *GetClusters() { return fClusters; }
 
-  int iTowerDist(int ix1, int ix2);
-  float fTowerDist(float x1, float x2);
+  int iTowerDist(int ix1, int ix2) const;
+  float fTowerDist(float x1, float x2) const;
 
   int FindClusters();
 
   void Momenta(std::vector<EmcModule> *, float &, float &, float &, float &, float &,
-               float &, float thresh = 0);
+               float &, float thresh = 0) const;
 
   void Tower2Global(float E, float xC, float yC, float &xA, float &yA, float &zA);
-  float GetTowerEnergy(int iy, int iz, std::vector<EmcModule> *plist);
+  float GetTowerEnergy(int iy, int iz, std::vector<EmcModule> *plist) const;
 
   float PredictEnergy(float, float, float, int, int);
   float PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy);
@@ -130,29 +130,29 @@ class BEmcRec
 
  protected:
   // Geometry
-  bool bCYL = true;  // Cylindrical?
-  bool bProfileProb = false;
-  int fNx = -1;  // length in X direction
-  int fNy = -1;  // length in Y direction
+  bool bCYL {true};  // Cylindrical?
+  bool bProfileProb {false};
+  int fNx {-1};  // length in X direction
+  int fNy {-1};  // length in Y direction
   std::map<int, TowerGeom> fTowerGeom;
-  float fVx = 0.;  // vertex position (cm)
-  float fVy = 0.;
-  float fVz = 0.;
+  float fVx {0.};  // vertex position (cm)
+  float fVy {0.};
+  float fVz {0.};
 
   std::vector<EmcModule> *fModules;
   std::vector<EmcCluster> *fClusters;
 
-  float fgProbNoiseParam = 0.04;
-  float fgTowerThresh = 0.01;
-  float fgMinPeakEnergy = 0.08;
-  static int const fgMaxLen = 1000;
+  float fgProbNoiseParam {0.04};
+  float fgTowerThresh {0.01};
+  float fgMinPeakEnergy {0.08};
+  static int const fgMaxLen {1000};
 
-  BEmcProfile *_emcprof = nullptr;
+  BEmcProfile *_emcprof {nullptr};
 
  private:
-  std::string m_ThisName = "NOTSET";
-  int Calorimeter_ID = 0;
-  float Scin_size = NAN;
+  std::string m_ThisName {"NOTSET"};
+  int Calorimeter_ID {0};
+  float Scin_size {std::numeric_limits<float>::quiet_NaN()};
   // the default copy ctor will not work
   // we do not use a copy ctor, so just delete it
   BEmcRec(const BEmcRec &) = delete;
