@@ -33,6 +33,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <algorithm>
 #include <cmath>
 #include <exception>
 #include <fstream>
@@ -150,22 +151,10 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     RawTowerDefs::keytype towerid = towerg->get_id();
     int ix = RawTowerDefs::decode_index2(towerid);  // index2 is phi in CYL
     int iy = RawTowerDefs::decode_index1(towerid);  // index1 is eta in CYL
-    if (ixmin > ix)
-    {
-      ixmin = ix;
-    }
-    if (ixmax < ix)
-    {
-      ixmax = ix;
-    }
-    if (iymin > iy)
-    {
-      iymin = iy;
-    }
-    if (iymax < iy)
-    {
-      iymax = iy;
-    }
+    ixmin = std::min(ixmin, ix);
+    ixmax = std::max(ixmax, ix);
+    iymin = std::min(iymin, iy);
+    iymax = std::max(iymax, iy);
     ngeom++;
   }
   if (Verbosity() > 1)
@@ -227,7 +216,7 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void RawClusterBuilderTemplate::PrintCylGeom(RawTowerGeomContainer *towergeom, const std::string &fname)
+void RawClusterBuilderTemplate::PrintCylGeom(RawTowerGeomContainer *towergeom, const std::string &fname) const
 {
   std::ofstream outfile(fname);
   if (!outfile.is_open())
@@ -453,7 +442,13 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   std::vector<EmcCluster>::iterator pc;
 
   std::vector<EmcCluster>::iterator pp;
-  float ecl, ecore, xcg, ycg, xx, xy, yy;
+  float ecl;
+  float ecore;
+  float xcg;
+  float ycg;
+  float xx;
+  float xy;
+  float yy;
   //  float xcorr, ycorr;
   EmcModule hmax;
   RawCluster *cluster;
@@ -461,9 +456,12 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   std::vector<EmcCluster> PList;
   std::vector<EmcModule> Peaks;
 
-  float prob, chi2;
+  float prob;
+  float chi2;
   int ndf;
-  float xg, yg, zg;
+  float xg;
+  float yg;
+  float zg;
 
   std::vector<EmcModule>::iterator ph;
   std::vector<EmcModule> hlist;
@@ -536,7 +534,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
 
-      cluster->set_r(std::sqrt(xg * xg + yg * yg));
+      cluster->set_r(std::sqrt((xg * xg) + (yg * yg)));
       cluster->set_phi(std::atan2(yg, xg));
       cluster->set_z(zg);
 
@@ -614,7 +612,7 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
 
   // Grab the cEMC node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
@@ -649,7 +647,7 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
   cemcNode->addNode(clusterNode);
 }
 
-bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower)
+bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower) const
 {
   if (tower->get_energy() < _min_tower_e)
   {
@@ -667,7 +665,7 @@ bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower)
   return true;
 }
 
-bool RawClusterBuilderTemplate::IsAcceptableTower(RawTower *tower)
+bool RawClusterBuilderTemplate::IsAcceptableTower(RawTower *tower) const
 {
   if (tower->get_energy() < _min_tower_e)
   {

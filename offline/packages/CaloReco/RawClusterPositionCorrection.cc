@@ -92,7 +92,7 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
     std::vector<float> dumvec2;
     for (int j = 0; j < bins_eta; ++j)
     {
-      int key = i * bins_eta + j;
+      int key = (i * bins_eta) + j;
       calib_constant = cdbttree->GetFloatValue(key, m_fieldname);
       dumvec.push_back(calib_constant);
       calib_constant = cdbttree->GetFloatValue(key, m_fieldname_ecore);
@@ -112,7 +112,7 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
     std::vector<float> dumvec2;
     for (int j = 0; j < bins_eta; ++j)
     {
-      int key = i * bins_eta + j;
+      int key = (i * bins_eta) + j;
       calib_constant = cdbttree->GetFloatValue(key, m_fieldname);
       dumvec.push_back(calib_constant);
       calib_constant = cdbttree->GetFloatValue(key, m_fieldname_ecore);
@@ -126,7 +126,7 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
   calibdir = CDBInterface::instance()->getUrl("cemc_PDC_ResidualCorr");
   if (!calibdir.empty())
   {
-    cdbHisto = new CDBHistos(calibdir.c_str());
+    cdbHisto = new CDBHistos(calibdir);
     cdbHisto->LoadCalibrations();
     //pdcCorrFlat = cdbHisto->getHisto("h1_res_p");
     pdcCorrFlat = cdbHisto->getHisto("h_res_E_eta");
@@ -159,7 +159,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     rawClusNodeName = "CLUSTERINFO_" + _det_name;
   }
 
-  RawClusterContainer *rawclusters = findNode::getClass<RawClusterContainer>(topNode, rawClusNodeName.c_str());
+  RawClusterContainer *rawclusters = findNode::getClass<RawClusterContainer>(topNode, rawClusNodeName);
   if (!rawclusters)
   {
     std::cout << "No " << _det_name << " Cluster Container found while in RawClusterPositionCorrection, can't proceed!!!" << std::endl;

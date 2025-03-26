@@ -43,7 +43,7 @@ class twrs
  public:
   explicit twrs(RawTower * /*rt*/);
   virtual ~twrs() = default;
-  bool is_adjacent(const twrs & /*tower*/);
+  bool is_adjacent(const twrs & /*tower*/) const;
   void set_id(const int i)
   {
     id = i;
@@ -77,14 +77,12 @@ class twrs
 };
 
 twrs::twrs(RawTower *rt)
-  : maxphibin(-10)
+  : bineta(rt->get_bineta()), binphi(rt->get_binphi()), maxphibin(-10)
   , id(-1)
 {
-  bineta = rt->get_bineta();
-  binphi = rt->get_binphi();
 }
 
-bool twrs::is_adjacent(const twrs &tower)
+bool twrs::is_adjacent(const twrs &tower) const
 {
   if (bineta - 1 <= tower.get_bineta() && tower.get_bineta() <= bineta + 1)
   {
@@ -94,7 +92,7 @@ bool twrs::is_adjacent(const twrs &tower)
       return true;
     }
     // cluster through the phi-wraparound
-    else if (((tower.get_binphi() == maxphibin - 1) && (binphi == 0)) ||
+    if (((tower.get_binphi() == maxphibin - 1) && (binphi == 0)) ||
              ((tower.get_binphi() == 0) && (binphi == maxphibin - 1)))
     {
       return true;
@@ -104,7 +102,7 @@ bool twrs::is_adjacent(const twrs &tower)
   return false;
 }
 
-bool operator<(const twrs &a, const twrs &b)
+static bool operator<(const twrs &a, const twrs &b)// NOLINT(misc-use-anonymous-namespace)
 {
   if (a.get_bineta() != b.get_bineta())
   {
@@ -115,10 +113,6 @@ bool operator<(const twrs &a, const twrs &b)
 
 RawClusterBuilderGraph::RawClusterBuilderGraph(const std::string &name)
   : SubsysReco(name)
-  , _clusters(nullptr)
-  , _min_tower_e(0.0)
-  , chkenergyconservation(0)
-  , detector("NONE")
 {
 }
 
@@ -240,7 +234,7 @@ int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
       sum_y /= sum_e;
       sum_z /= sum_e;
 
-      clusterA->set_r(sqrt(sum_y * sum_y + sum_x * sum_x));
+      clusterA->set_r(sqrt((sum_y * sum_y) + (sum_x * sum_x)));
       clusterA->set_phi(atan2(sum_y, sum_x));
       clusterA->set_z(sum_z);
     }
@@ -287,7 +281,7 @@ void RawClusterBuilderGraph::CreateNodes(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
 
   // Grab the cEMC node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;

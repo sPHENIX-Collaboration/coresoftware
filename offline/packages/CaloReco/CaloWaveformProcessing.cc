@@ -84,7 +84,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
   }
   if (m_processingtype == CaloWaveformProcessing::FAST)
   {
-    fitresults = m_Fitter->calo_processing_fast(waveformvector);
+    fitresults = CaloWaveformFitting::calo_processing_fast(waveformvector);
   }
   if (m_processingtype == CaloWaveformProcessing::NYQUIST)
   {

@@ -29,13 +29,13 @@ class CaloRecoUtility
 
   //! corrects cluster Z (implicitly also eta) for updated z vertex
   // assuming
-  void ShowerDepthCorrZVertex(RawCluster* clus, float zvtx);
-  void ProbCorrsZVertex(RawCluster* clus, float zvtx);
+  static void ShowerDepthCorrZVertex(RawCluster* clus, float vz);
+  void ProbCorrsZVertex(RawCluster* clus, float vz);
   void LoadProfile();
 
  private:
-  bool _profLoaded;
-  BEmcRec* _bemc = nullptr;
+  bool _profLoaded {false};
+  BEmcRec* _bemc {nullptr};
 };
 
 #endif

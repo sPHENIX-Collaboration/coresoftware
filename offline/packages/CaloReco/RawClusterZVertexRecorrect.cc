@@ -55,7 +55,7 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
     rawClusNodeName = "CLUSTERINFO_" + _det_name;
   }
 
-  RawClusterContainer *rawclusters = findNode::getClass<RawClusterContainer>(topNode, rawClusNodeName.c_str());
+  RawClusterContainer *rawclusters = findNode::getClass<RawClusterContainer>(topNode, rawClusNodeName);
   if (!rawclusters)
   {
     std::cout << "No " << _det_name << " Cluster Container found while in RawClusterZVertexRecorrect, can't proceed!!!" << std::endl;
@@ -120,7 +120,7 @@ int RawClusterZVertexRecorrect::process_event(PHCompositeNode *topNode)
     float clus_savz = cluster->get_z();
     float clus_chi2 = cluster->get_chi2();
 
-    m_calrecoUtilInstance.ShowerDepthCorrZVertex(cluster, vz);
+    CaloRecoUtility::ShowerDepthCorrZVertex(cluster, vz);
     m_calrecoUtilInstance.ProbCorrsZVertex(cluster, vz);
 
 

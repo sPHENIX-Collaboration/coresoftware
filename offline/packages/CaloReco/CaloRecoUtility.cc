@@ -39,7 +39,7 @@ void CaloRecoUtility::ShowerDepthCorrZVertex(RawCluster* clus, float vz)
     logE = std::log(clus->get_energy());
   }
 
-  float rA = std::sqrt(xA * xA + yA * yA);
+  float rA = std::sqrt((xA * xA) + (yA * yA));
   //  float theta_twr = GetTowerTheta(xA,yA,zA);
   float theta_twr;
   if (std::fabs(zA) <= 15)
@@ -58,7 +58,7 @@ void CaloRecoUtility::ShowerDepthCorrZVertex(RawCluster* clus, float vz)
   //  fVz = 0;
 
   float theta_tr = std::atan2(zA - vz, rA);
-  float L = -1.3 + 0.7 * logE;  // Shower CG in long. direction
+  float L = -1.3 + (0.7 * logE);  // Shower CG in long. direction
   float dz = L * std::sin(theta_tr - theta_twr) / std::cos(theta_twr);
 
   dz -= vz * 0.10;
@@ -153,9 +153,9 @@ void CaloRecoUtility::LoadProfile()
 }
 
 CaloRecoUtility::CaloRecoUtility()
-  : _profLoaded(false)
+  : _bemc(new BEmcRecCEMC())
 {
-  _bemc = new BEmcRecCEMC();
+  
 
   _bemc->SetDim(256, 96);
 
@@ -171,6 +171,7 @@ CaloRecoUtility::CaloRecoUtility()
 //  dynamic alloc resource"
 CaloRecoUtility::CaloRecoUtility(CaloRecoUtility& cru)
 {
+  
   _profLoaded = false;
 
   if (cru._bemc == nullptr)

@@ -2,7 +2,6 @@
 #include "CaloTowerDefs.h"
 
 #include <calobase/TowerInfo.h>  // for TowerInfo
-#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoContainerv2.h>

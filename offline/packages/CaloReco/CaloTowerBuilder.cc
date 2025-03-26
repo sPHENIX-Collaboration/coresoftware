@@ -48,9 +48,9 @@ static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
     {CaloTowerDefs::SEPD, "SEPDPackets"}};
 //____________________________________________________________________________..
 CaloTowerBuilder::CaloTowerBuilder(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name), WaveformProcessing(new CaloWaveformProcessing())
 {
-  WaveformProcessing = new CaloWaveformProcessing();
+  
 }
 
 //____________________________________________________________________________..
@@ -101,7 +101,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       std::cout << PHWHERE << "ADC Skip mask not found in CDB, not even in the default... " << std::endl;
       exit(1);
     }
-    cdbttree = new CDBTTree(calibdir.c_str());
+    cdbttree = new CDBTTree(calibdir);
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
   {
@@ -152,7 +152,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
   WaveformProcessing->initialize_processing();
   if(m_dotbtszs)
   {
-    cdbttree_tbt_zs = new CDBTTree(m_zsURL.c_str());
+    cdbttree_tbt_zs = new CDBTTree(m_zsURL);
   }
 
   CreateNodeTree(topNode);
@@ -378,7 +378,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
 
   for (int pid = m_packet_low; pid <= m_packet_high; pid++)
   {
-    if (auto hcalcont = std::get_if<CaloPacketContainer *>(&event))
+    if (auto *hcalcont = std::get_if<CaloPacketContainer *>(&event))
     {
       CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
       if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
@@ -386,7 +386,7 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
         return Fun4AllReturnCodes::ABORTEVENT;
       }
     }
-    else if (auto _event = std::get_if<Event *>(&event))
+    else if (auto *_event = std::get_if<Event *>(&event))
     {
       Packet *packet = (*_event)->getPacket(pid);
       if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
@@ -395,10 +395,9 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
         delete packet;
         return Fun4AllReturnCodes::ABORTEVENT;
       }
-      else
-      {
-      delete packet;
-      }
+      
+            delete packet;
+     
     }
   }
 
