@@ -4,14 +4,12 @@
 #include "TriggerRunInfo.h"
 
 #include <ffarawobjects/Gl1Packet.h>
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 #include <iostream>
 
 int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
 {
-
   if (m_useEmulator)
   {
     ll1out_photon = findNode::getClass<LL1Out>(topNode, "LL1OUT_PHOTON");
@@ -20,22 +18,22 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
       std::cout << " no trigger emulator" << std::endl;
       return 1;
     }
-  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-  if (!gl1packet)
-  {
-    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT"); //Different term used in track production
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     if (!gl1packet)
     {
-      std::cout << "no gl1 packet" << std::endl;
+      gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");  // Different term used in track production
+      if (!gl1packet)
+      {
+        std::cout << "no gl1 packet" << std::endl;
+        return 1;
+      }
+    }
+    triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+    if (!triggerruninfo)
+    {
+      std::cout << " no triggerruninfo" << std::endl;
       return 1;
     }
-  }
-  triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
-  if (!triggerruninfo)
-  {
-    std::cout << " no triggerruninfo" << std::endl;
-    return 1;
-  }
 
     fillTriggerVector();
 
@@ -44,7 +42,7 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
   gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
   if (!gl1packet)
   {
-    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT"); //Different term used in track production
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");  // Different term used in track production
     if (!gl1packet)
     {
       std::cout << "no gl1 packet" << std::endl;
@@ -52,7 +50,7 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
     }
   }
   triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
-  if (!triggerruninfo) 
+  if (!triggerruninfo)
   {
     std::cout << " no triggerruninfo" << std::endl;
     return 1;
@@ -71,18 +69,18 @@ void TriggerAnalyzer::fillTriggerVector()
   gl1_livevec = 0x000000000000;
   gl1_bco = 0x000000000000;
 
-  for (int i = 0 ; i < 4; i++)
+  for (int i = 0; i < 4; i++)
   {
-    if (ll1out_photon->passesThreshold(i+1))
+    if (ll1out_photon->passesThreshold(i + 1))
     {
       unsigned int bit = i + 28;
       gl1_scaledvec |= (0x1U << bit);
     }
   }
-  for (int i = 0 ; i < 4; i++)
+  for (int i = 0; i < 4; i++)
   {
-    if (ll1out_jet->passesThreshold(i+1))
-    {	  
+    if (ll1out_jet->passesThreshold(i + 1))
+    {
       unsigned int bit = i + 20;
       gl1_scaledvec |= (0x1U << bit);
     }
@@ -97,7 +95,7 @@ bool TriggerAnalyzer::didTriggerFire(const std::string& triggername)
   return (((gl1_scaledvec >> bit) & 0x1U) == 0x1U);
 }
 
-bool TriggerAnalyzer::didTriggerFire(int triggerbit)
+bool TriggerAnalyzer::didTriggerFire(int triggerbit) const
 {
   uint32_t bit = (uint32_t) triggerbit;
   return (((gl1_scaledvec >> bit) & 0x1U) == 0x1U);
@@ -119,7 +117,7 @@ bool TriggerAnalyzer::checkRawTrigger(const std::string& triggername)
   return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
 }
 
-bool TriggerAnalyzer::checkRawTrigger(int triggerbit)
+bool TriggerAnalyzer::checkRawTrigger(int triggerbit) const
 {
   uint32_t bit = (uint32_t) triggerbit;
   return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
@@ -160,15 +158,13 @@ uint64_t TriggerAnalyzer::getTriggerRawScalers(int triggerbit)
   return triggerruninfo->getRawScalersByBit(triggerbit);
 }
 
-void TriggerAnalyzer::Print()
+void TriggerAnalyzer::Print() const
 {
-
   for (int i = 0; i < 64; i++)
   {
     if (didTriggerFire(i))
     {
-      std::cout << " Trigger " << i << " fired" <<std::endl;
+      std::cout << " Trigger " << i << " fired" << std::endl;
     }
   }
 }
-

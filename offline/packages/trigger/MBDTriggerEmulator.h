@@ -59,7 +59,7 @@ class MBDTriggerEmulator : public SubsysReco
 
   int Download_Calibrations();
 
-  void useMax(bool max) { m_use_max= max; }
+  void useMax(bool max) { m_use_max = max; }
 
   void setTriggerSample(int s) { m_trig_sample = s; }
   void setTriggerDelay(int d) { m_trig_sub_delay = d + 1; }
@@ -78,17 +78,17 @@ class MBDTriggerEmulator : public SubsysReco
   std::string m_waveform_nodename;
 
   std::string m_mbd_charge_lutname;
-  std::string m_mbd_time_lutname;  
+  std::string m_mbd_time_lutname;
   std::string m_mbd_slewing_lutname;
 
-  TriggerDefs::TriggerId m_triggerid {TriggerDefs::TriggerId::mbdTId};
+  TriggerDefs::TriggerId m_triggerid{TriggerDefs::TriggerId::mbdTId};
 
   bool m_use_max{true};
 
   bool m_default_lut_mbd{false};
 
   CaloPacketContainer *m_waveforms_mbd{nullptr};
-  
+
   Event *m_event{nullptr};
   //! LL1 Out
   LL1Out *m_ll1out_mbd{nullptr};
@@ -99,9 +99,9 @@ class MBDTriggerEmulator : public SubsysReco
   /* std::map<unsigned int, TH1> h_mbd_time_lut; */
   /* std::map<unsigned int, TH1> h_mbd_slewing_lut; */
 
-  std::map<unsigned int, TH1*> h_mbd_charge_lut{};
-  std::map<unsigned int, TH1*> h_mbd_time_lut{};
-  std::map<unsigned int, TH1*> h_mbd_slewing_lut{};
+  std::map<unsigned int, TH1 *> h_mbd_charge_lut{};
+  std::map<unsigned int, TH1 *> h_mbd_time_lut{};
+  std::map<unsigned int, TH1 *> h_mbd_slewing_lut{};
 
   CDBHistos *cdbttree_mbd_charge{nullptr};
   CDBHistos *cdbttree_mbd_time{nullptr};
@@ -144,7 +144,6 @@ class MBDTriggerEmulator : public SubsysReco
   int m_useoffline{false};
   int m_nsamples = 16;
   int m_idx{8};
-
 };
 
 #endif
