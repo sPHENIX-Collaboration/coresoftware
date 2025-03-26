@@ -228,7 +228,7 @@ class CaloTriggerEmulator : public SubsysReco
   int m_useoffline{false};
   // default nsamples is 16 for mbd, 12 for calos
   int m_nsamples{16};
-  int m_idx{12};
+  // int m_idx{12};
 
   int m_packet_low_hcalout = 8001;
   int m_packet_high_hcalout = 8008;
