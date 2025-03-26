@@ -380,7 +380,7 @@ std::pair<double, double> ClusterCDFCalculator::GetCDF(const std::vector<double>
   std::vector<double> inputenergies;
   for (int is = 0; is < towersize; ++is)
   {
-    if (indices.contains(is))
+    if (indices.count(is)) //NOLINT(readability-container-contains)
     {
       inputenergies.push_back(energies.at(is));
     }

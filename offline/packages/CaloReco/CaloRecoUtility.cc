@@ -172,6 +172,7 @@ CaloRecoUtility::CaloRecoUtility()
 CaloRecoUtility::CaloRecoUtility(CaloRecoUtility& cru)
 {
   
+  _profLoaded = false;
 
   if (cru._bemc == nullptr)
   {
