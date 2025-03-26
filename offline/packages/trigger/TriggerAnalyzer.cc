@@ -4,7 +4,6 @@
 #include "TriggerRunInfo.h"
 
 #include <ffarawobjects/Gl1Packet.h>
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 #include <iostream>
@@ -97,7 +96,7 @@ bool TriggerAnalyzer::didTriggerFire(const std::string& triggername)
   return (((gl1_scaledvec >> bit) & 0x1U) == 0x1U);
 }
 
-bool TriggerAnalyzer::didTriggerFire(int triggerbit)
+bool TriggerAnalyzer::didTriggerFire(int triggerbit) const
 {
   uint32_t bit = (uint32_t) triggerbit;
   return (((gl1_scaledvec >> bit) & 0x1U) == 0x1U);
@@ -119,7 +118,7 @@ bool TriggerAnalyzer::checkRawTrigger(const std::string& triggername)
   return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
 }
 
-bool TriggerAnalyzer::checkRawTrigger(int triggerbit)
+bool TriggerAnalyzer::checkRawTrigger(int triggerbit) const
 {
   uint32_t bit = (uint32_t) triggerbit;
   return (((gl1_livevec >> bit) & 0x1U) == 0x1U);
@@ -160,7 +159,7 @@ uint64_t TriggerAnalyzer::getTriggerRawScalers(int triggerbit)
   return triggerruninfo->getRawScalersByBit(triggerbit);
 }
 
-void TriggerAnalyzer::Print()
+void TriggerAnalyzer::Print() const
 {
 
   for (int i = 0; i < 64; i++)

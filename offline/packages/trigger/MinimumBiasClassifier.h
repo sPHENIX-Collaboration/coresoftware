@@ -28,7 +28,7 @@ class MinimumBiasClassifier : public SubsysReco
   ~MinimumBiasClassifier() override = default;
 
   int InitRun(PHCompositeNode *) override;
-  void CreateNodes(PHCompositeNode *);
+  static void CreateNodes(PHCompositeNode *);
   int GetNodes(PHCompositeNode *);
 
   //! event processing method
@@ -39,7 +39,7 @@ class MinimumBiasClassifier : public SubsysReco
 
   int FillMinimumBiasInfo();
 
-  bool passesHitCut(MbdPmtHit *hit);
+  bool passesHitCut(MbdPmtHit *hit) const;
 
   int Download_centralityScale(const std::string &dbfile);
   int Download_centralityVertexScales(const std::string &dbfile);

@@ -5,7 +5,6 @@
 
 #include <string>
 
-class PHCompositeNode;
 class TriggerRunInfo;
 
 class TriggerRunInfoReco : public SubsysReco
@@ -22,10 +21,10 @@ class TriggerRunInfoReco : public SubsysReco
  private:
   bool m_useEmulator{false};
   
-  void SetTriggerEmulator(TriggerRunInfo *triggerRunInfo);
+  static void SetTriggerEmulator(TriggerRunInfo *triggerRunInfo);
 
-  int fetchTriggerPrescales(int runnumber, TriggerRunInfo *triggerRunInfo);
-  int fetchTriggerScalers(int runnumber, TriggerRunInfo *triggerRunInfo);
+  static int fetchTriggerPrescales(int runnumber, TriggerRunInfo *triggerRunInfo);
+  static int fetchTriggerScalers(int runnumber, TriggerRunInfo *triggerRunInfo);
 
 };
 

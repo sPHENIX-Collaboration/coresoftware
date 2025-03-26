@@ -1,6 +1,5 @@
 #include "MBDTriggerEmulator.h"
 
-#include "LL1Defs.h"
 #include "LL1Outv1.h"
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerPrimitive.h"
@@ -33,23 +32,22 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <utility>
 
 // constructor
 MBDTriggerEmulator::MBDTriggerEmulator(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name), m_nevent(0), m_mbd_npassed(0), m_isdata(false), m_nsamples(16), m_idx(8)
 {
   // initialize all important counters
 
-  m_nevent = 0;
-  m_mbd_npassed = 0;
-  m_isdata = false;
+  
+  
+  
   // default nsamples is 16 for mbd, 12 for calos
-  m_nsamples = 16;
+  
 
-  m_idx = 8;
+  
   // reset variables
   for (int j = 0; j < 8; j++)
   {
@@ -163,7 +161,7 @@ int MBDTriggerEmulator::Download_Calibrations()
 	{
 	  std::string histoname = "h_mbd_charge_lut_" + std::to_string(i);
 	  uint16_t key = (i & 0x7fffU);
-	  h_mbd_charge_lut[key] = (TH1I*) cdbttree_mbd_charge->getHisto(histoname.c_str());
+	  h_mbd_charge_lut[key] = (TH1I*) cdbttree_mbd_charge->getHisto(histoname);
 	}
     }
   else
@@ -196,7 +194,7 @@ int MBDTriggerEmulator::Download_Calibrations()
 	{
 	  std::string histoname = "h_mbd_time_lut_" + std::to_string(i);
 	  uint16_t key = (i&0x7fffU) + (0x1U << 0xfU);
-	  h_mbd_time_lut[key] = (TH1I*) cdbttree_mbd_time->getHisto(histoname.c_str());
+	  h_mbd_time_lut[key] = (TH1I*) cdbttree_mbd_time->getHisto(histoname);
 	}
     }
   else
@@ -229,7 +227,7 @@ int MBDTriggerEmulator::Download_Calibrations()
 	{
 	  std::string histoname = "h_mbd_slewing_lut_" + std::to_string(i);
 	  uint16_t key = (i&0x7fffU) + (0x1U << 0xfU);
-	  h_mbd_slewing_lut[key] = (TH1I*) cdbttree_mbd_slewing->getHisto(histoname.c_str());
+	  h_mbd_slewing_lut[key] = (TH1I*) cdbttree_mbd_slewing->getHisto(histoname);
 	}
     }
   else
@@ -338,7 +336,7 @@ int MBDTriggerEmulator::process_waveforms()
 	      //	      int feech = ipkt * 128 + ich;
 	      uint16_t isTime = (ich%16 < 8 ? 1 : 0);
 	      
-	      uint16_t ipmt = ipkt * 64 + (ich/16) * 8 + (ich%8);
+	      uint16_t ipmt = (ipkt * 64) + ((ich/16) * 8) + (ich%8);
 	      uint16_t key = ((isTime & 0x1U) << 0xfU) + (ipmt & 0x7fffU);
 
 	      std::vector<unsigned int> v_peak_sub_ped;
@@ -356,10 +354,7 @@ int MBDTriggerEmulator::process_waveforms()
 
 		  int subtraction = maxim - dstp[ipkt]->iValue(((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)), ich);
 
-		  if (subtraction < 0)
-		    {
-		      subtraction = 0;
-		    }
+		  subtraction = std::max(subtraction, 0);
 		    
 		  peak_sub_ped = (((unsigned int) subtraction) & 0x3fffU);
 		  v_peak_sub_ped.push_back(peak_sub_ped);
@@ -436,8 +431,8 @@ int MBDTriggerEmulator::process_raw()
 	      //	      int feech = ipkt * 128 + ich;
 	      uint16_t isTime = (ich%16 < 8 ? 1 : 0);
 	      
-	      uint16_t ipmt = ipkt * 64 + (ich/16) * 8 + (ich%8);
-	      uint16_t key = ((isTime & 0x1U) << 0xfU) + (static_cast<uint16_t>(ipmt) & 0x7fffU);
+	      uint16_t ipmt = (ipkt * 64) + ((ich/16) * 8) + (ich%8);
+	      uint16_t key = ((isTime & 0x1U) << 0xfU) + (ipmt & 0x7fffU);
 
 	      std::vector<unsigned int> v_peak_sub_ped;
 	      unsigned int peak_sub_ped = 0;
@@ -450,10 +445,7 @@ int MBDTriggerEmulator::process_raw()
 
 		  int subtraction = maxim - dstp[ipkt]->iValue(((i - m_trig_sub_delay > 0 ? i - m_trig_sub_delay : 0)), ich);
 
-		  if (subtraction < 0)
-		    {
-		      subtraction = 0;
-		    }
+		  subtraction = std::max(subtraction, 0);
 		    
 		  peak_sub_ped = (((unsigned int) subtraction) & 0x3fffU);
 		  v_peak_sub_ped.push_back(peak_sub_ped);
@@ -506,7 +498,8 @@ int MBDTriggerEmulator::process_primitives()
           j = 0;
         }
 
-        unsigned int tmp, tmp2;
+        unsigned int tmp;
+        unsigned int tmp2;
         unsigned int qadd[32];
 
         // for each section of the board (4 sections of 8 time and 8 charge
@@ -515,7 +508,7 @@ int MBDTriggerEmulator::process_primitives()
           {
             // pass upper 10 bits of charge to get 10 bit LUt outcome
             // tmp = m_l1_adc_table[m_peak_sub_ped_mbd[i * 64 + 8 + isec * 16 + j].at(is) >> 4U];
-	    uint16_t key = static_cast<uint16_t>(i*32 + j) & 0x7fffU;
+	    uint16_t key = static_cast<uint16_t>((i*32) + j) & 0x7fffU;
 	    unsigned int peak_minus_ped = m_peak_sub_ped_mbd[key].at(is) >> 0x4U;
 	    tmp = h_mbd_charge_lut[key]->GetBinContent(peak_minus_ped + 1);
 
@@ -532,7 +525,7 @@ int MBDTriggerEmulator::process_primitives()
 
             // pass upper 10 bits of charge to get 10 bit LUt outcome
             // tmp = m_l1_adc_table[m_peak_sub_ped_mbd[i * 64 + 8 + isec * 16 + j].at(is) >> 4U];
-	    uint16_t key = (static_cast<uint16_t>(i*32 + j) & 0x7fffU) + (0x1U << 0xfU);
+	    uint16_t key = (static_cast<uint16_t>((i*32) + j) & 0x7fffU) + (0x1U << 0xfU);
 	    unsigned int peak_minus_ped = m_peak_sub_ped_mbd[key].at(is) >> 0x4U;
 	    tmp = h_mbd_time_lut[key]->GetBinContent(peak_minus_ped + 1);
 
@@ -601,7 +594,8 @@ int MBDTriggerEmulator::process_trigger()
     }
 
   TriggerPrimitive::Range sumrange;
-  int ip, isum;
+  int ip;
+  int isum;
 
   TriggerPrimitiveContainer::Range range = m_primitives_mbd->getTriggerPrimitives();
 

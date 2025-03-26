@@ -308,7 +308,7 @@ void MinimumBiasClassifier::CreateNodes(PHCompositeNode *topNode)
   return;
 }
 
-bool MinimumBiasClassifier::passesHitCut(MbdPmtHit *hit)
+bool MinimumBiasClassifier::passesHitCut(MbdPmtHit *hit) const
 {
   if (fabs(hit->get_time()) >= m_mbd_time_cut)
     {

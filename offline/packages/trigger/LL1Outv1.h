@@ -30,7 +30,7 @@ class LL1Outv1 : public LL1Out
   /// Clear Event from memory
   void Reset() override;
 
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;

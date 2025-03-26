@@ -16,9 +16,9 @@
 #include <odbc++/statement.h>
 #include <odbc++/types.h>
 
+#include <array>
 #include <cstdint>
 #include <iostream>
-#include <sstream>
 
 TriggerRunInfoReco::TriggerRunInfoReco(const std::string &name)
   : SubsysReco(name)
@@ -141,7 +141,7 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
     for (int bit = 0; bit < 64; ++bit)
     {
       std::string columnName = std::string("scaledown") + (bit < 10 ? "0" : "") + std::to_string(bit);
-      prescales[bit] = (int) resultSet->getInt(columnName);
+      prescales[bit] = resultSet->getInt(columnName);
     }
   }
   else
@@ -202,7 +202,7 @@ int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *trigg
 
   while (resultSet->next())
     {
-      int index = (int) resultSet->getInt("index");
+      int index = resultSet->getInt("index");
       // Iterate over the columns and fill the TriggerRunInfo object
       scalers[index][0] = resultSet->getLong("scaled");
       scalers[index][1] = resultSet->getLong("live");

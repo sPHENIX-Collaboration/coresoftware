@@ -5,9 +5,9 @@
 #include <map>
 #include <utility>
 
-TriggerPrimitivev1::TriggerPrimitivev1(TriggerDefs::TriggerPrimKey key)
+TriggerPrimitivev1::TriggerPrimitivev1(TriggerDefs::TriggerPrimKey key) : m_triggerprimkey(key)
 {
-  m_triggerprimkey = key;
+  
 }
 
 //______________________________________

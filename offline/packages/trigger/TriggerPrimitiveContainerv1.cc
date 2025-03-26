@@ -4,11 +4,12 @@
 #include "TriggerDefs.h"
 
 #include <iostream>
+#include <vector>                // for vector
 
-TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::TriggerId tid, const TriggerDefs::DetectorId did)
+TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::TriggerId tid, const TriggerDefs::DetectorId did) : m_triggerid(tid), m_detectorid(did)
 {
-  m_triggerid = tid;
-  m_detectorid = did;
+  
+  
 
   // Make the primitives.
   int nprimitives = 0;
@@ -62,8 +63,6 @@ TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::Trig
   }
   return;
 }
-
-TriggerPrimitiveContainerv1::~TriggerPrimitiveContainerv1() = default;
 
 //______________________________________
 void TriggerPrimitiveContainerv1::Reset()

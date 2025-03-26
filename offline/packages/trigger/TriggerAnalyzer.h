@@ -18,10 +18,10 @@ class TriggerAnalyzer
   int decodeTriggers(PHCompositeNode* topNode);
 
   bool didTriggerFire(const std::string& triggername);
-  bool didTriggerFire(int triggerbit);
+  bool didTriggerFire(int triggerbit) const;
 
   bool checkRawTrigger(const std::string& triggername);
-  bool checkRawTrigger(int triggerbit);
+  bool checkRawTrigger(int triggerbit) const;
 
   int getTriggerPrescale(const std::string& triggername);
   int getTriggerPrescale(int triggerbit);
@@ -39,7 +39,7 @@ class TriggerAnalyzer
 
   void UseEmulator(bool use) { m_useEmulator = use;}
 
-  void Print();
+  void Print() const;
 
  private:
 
