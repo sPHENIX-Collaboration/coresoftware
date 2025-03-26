@@ -17,15 +17,13 @@ class TriggerRunInfoReco : public SubsysReco
 
   void UseEmulator(bool use) { m_useEmulator = use; }
 
-  
  private:
   bool m_useEmulator{false};
-  
+
   static void SetTriggerEmulator(TriggerRunInfo *triggerRunInfo);
 
   static int fetchTriggerPrescales(int runnumber, TriggerRunInfo *triggerRunInfo);
   static int fetchTriggerScalers(int runnumber, TriggerRunInfo *triggerRunInfo);
-
 };
 
 #endif /* TRIGGER_TRIGGERRUNINFORECO_H */

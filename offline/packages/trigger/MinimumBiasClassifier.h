@@ -2,11 +2,11 @@
 #define TRIGGER_MINBIASCLASSIFIER_H
 
 #include <fun4all/SubsysReco.h>
-#include <vector>
 #include <array>
 #include <limits>
 #include <string>  // for allocator, string
 #include <utility>
+#include <vector>
 
 // Forward declarations
 
@@ -47,12 +47,12 @@ class MinimumBiasClassifier : public SubsysReco
   void setOverwriteScale(const std::string &url)
   {
     m_overwrite_url_scale = url;
-    m_overwrite_scale = true;    
+    m_overwrite_scale = true;
   }
   void setOverwriteVtx(const std::string &url)
   {
     m_overwrite_url_vtx = url;
-    m_overwrite_vtx = true;    
+    m_overwrite_vtx = true;
   }
   void setIsSim(const bool sim) { m_issim = sim; }
 
@@ -71,7 +71,7 @@ class MinimumBiasClassifier : public SubsysReco
   const float m_mbd_south_cut{150};
   const float m_mbd_charge_cut{0.5};
   const float m_mbd_time_cut{25.};
-//  const int m_mbd_tube_cut{2};
+  //  const int m_mbd_tube_cut{2};
   const float m_zdc_cut{60.};
 
   MinimumBiasInfo *m_mb_info{nullptr};
@@ -87,8 +87,7 @@ class MinimumBiasClassifier : public SubsysReco
   double m_centrality_scale{std::numeric_limits<double>::quiet_NaN()};
   double m_vertex_scale{std::numeric_limits<double>::quiet_NaN()};
   float m_vertex{std::numeric_limits<float>::quiet_NaN()};
-  std::vector<std::pair<std::pair<float, float>, float>>  m_vertex_scales{};
-
+  std::vector<std::pair<std::pair<float, float>, float>> m_vertex_scales{};
 };
 
 #endif

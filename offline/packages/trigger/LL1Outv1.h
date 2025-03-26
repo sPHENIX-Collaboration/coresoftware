@@ -53,7 +53,7 @@ class LL1Outv1 : public LL1Out
 
   std::vector<std::pair<TriggerDefs::TriggerSumKey, unsigned short>> getTriggeredSums() override;
   std::vector<TriggerDefs::TriggerSumKey> getTriggeredSumKeys(int ith = 0) override;
-  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives;}
+  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives; }
 
   void addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit) override;
   void addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk) override;

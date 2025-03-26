@@ -1,16 +1,15 @@
 #include "TriggerPrimitiveContainerv1.h"
 
-#include "TriggerPrimitivev1.h"
 #include "TriggerDefs.h"
+#include "TriggerPrimitivev1.h"
 
 #include <iostream>
-#include <vector>                // for vector
+#include <vector>  // for vector
 
-TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::TriggerId tid, const TriggerDefs::DetectorId did) : m_triggerid(tid), m_detectorid(did)
+TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::TriggerId tid, const TriggerDefs::DetectorId did)
+  : m_triggerid(tid)
+  , m_detectorid(did)
 {
-  
-  
-
   // Make the primitives.
   int nprimitives = 0;
 
@@ -37,11 +36,11 @@ TriggerPrimitiveContainerv1::TriggerPrimitiveContainerv1(const TriggerDefs::Trig
     nsums = 24;
   }
   else if (tid == TriggerDefs::pairTId)
-    {
-      nprimitives = 32;
-      m_primitiveid = TriggerDefs::PrimitiveId::pairPId;
-      nsums = 3;
-    }
+  {
+    nprimitives = 32;
+    m_primitiveid = TriggerDefs::PrimitiveId::pairPId;
+    nsums = 3;
+  }
   else if (tid == TriggerDefs::mbdTId)
   {
     nprimitives = 4;

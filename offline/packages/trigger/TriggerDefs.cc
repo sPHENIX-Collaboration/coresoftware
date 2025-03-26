@@ -276,8 +276,8 @@ TriggerDefs::GetTowerInfoKey(const TriggerDefs::DetectorId detId, const uint16_t
     ;
   }
   if (detId == TriggerDefs::DetectorId::hcalinDId ||
-           detId == TriggerDefs::DetectorId::hcaloutDId ||
-           detId == TriggerDefs::DetectorId::hcalDId)
+      detId == TriggerDefs::DetectorId::hcaloutDId ||
+      detId == TriggerDefs::DetectorId::hcalDId)
   {
     etabin = (iprim % 3) * 8 + (isum % 4) * 2 + itower % 2;
     phibin = (iprim / 3) * 8 + (isum / 4) * 2 + itower / 2;

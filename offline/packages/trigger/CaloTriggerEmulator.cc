@@ -4,9 +4,9 @@
 #include "TriggerPrimitiveContainerv1.h"
 #include "TriggerPrimitivev1.h"
 
+#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
-#include <calobase/TowerInfo.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -46,12 +46,10 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
   : SubsysReco(name)
 {
   // is data flag is not used right now
-  
+
   // default nsamples is 16 for mbd, 12 for calos
-  
 
   // for MBD, this is the peak sample in run-23 data
-  
 
   // default values for the lookup tables.
   // TODO: to CDB the LUTs from the database
@@ -68,12 +66,12 @@ CaloTriggerEmulator::CaloTriggerEmulator(const std::string &name)
 
   for (unsigned int i = 0; i < 1024; i++)
   {
-    m_l1_adc_table[i] = (i) &0x3ffU;
+    m_l1_adc_table[i] = (i) & 0x3ffU;
   }
 
   for (unsigned int i = 0; i < 4096; i++)
   {
-    m_l1_slewing_table[i] = (i) &0x3ffU;
+    m_l1_slewing_table[i] = (i) & 0x3ffU;
   }
 
   for (int i = 0; i < 24576; i++)
@@ -458,7 +456,7 @@ int CaloTriggerEmulator::Download_Calibrations()
       {
         std::string histoname = "h_emcal_lut_" + std::to_string(i);
         unsigned int key = TowerInfoDefs::encode_emcal(i);
-        h_emcal_lut[key] =  cdbttree_emcal->getHisto(histoname);
+        h_emcal_lut[key] = cdbttree_emcal->getHisto(histoname);
       }
     }
   }
@@ -489,7 +487,7 @@ int CaloTriggerEmulator::Download_Calibrations()
       {
         std::string histoname = "h_hcalin_lut_" + std::to_string(i);
         unsigned int key = TowerInfoDefs::encode_hcal(i);
-        h_hcalin_lut[key] =  cdbttree_hcalin->getHisto(histoname);
+        h_hcalin_lut[key] = cdbttree_hcalin->getHisto(histoname);
       }
     }
   }
@@ -520,7 +518,7 @@ int CaloTriggerEmulator::Download_Calibrations()
       {
         std::string histoname = "h_hcalout_lut_" + std::to_string(i);
         unsigned int key = TowerInfoDefs::encode_hcal(i);
-        h_hcalout_lut[key] =  cdbttree_hcalout->getHisto(histoname);
+        h_hcalout_lut[key] = cdbttree_hcalout->getHisto(histoname);
       }
     }
   }
@@ -1671,7 +1669,7 @@ int CaloTriggerEmulator::process_organizer()
           std::vector<unsigned int> *t_sum = m_primitives_hcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
           for (unsigned int &it_s : *(*iter_sum).second)
           {
-            t_sum->at(i) += ((it_s) &0xffU);
+            t_sum->at(i) += ((it_s) & 0xffU);
             i++;
           }
         }

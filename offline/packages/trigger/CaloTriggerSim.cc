@@ -36,7 +36,7 @@ CaloTriggerSim::CaloTriggerSim(const std::string &name)
   return;
 }
 
-double CaloTriggerSim::truncate_8bit(const double raw_E) 
+double CaloTriggerSim::truncate_8bit(const double raw_E)
 {
   double rawE = std::min(raw_E, 45.0);
   int counts = std::floor(rawE / (45.0 / 256));
@@ -826,39 +826,38 @@ void CaloTriggerSim::FillNode(PHCompositeNode *topNode) const
     std::cout << " ERROR -- can't find CaloTriggerInfo node after it should have been created" << std::endl;
     return;
   }
-  
-      triggerinfo->set_best_EMCal_2x2_E(m_EMCAL_2x2_BEST_E);
-    triggerinfo->set_best_EMCal_2x2_eta(m_EMCAL_2x2_BEST_ETA);
-    triggerinfo->set_best_EMCal_2x2_phi(m_EMCAL_2x2_BEST_PHI);
 
-    triggerinfo->set_best_EMCal_4x4_E(m_EMCAL_4x4_BEST_E);
-    triggerinfo->set_best_EMCal_4x4_eta(m_EMCAL_4x4_BEST_ETA);
-    triggerinfo->set_best_EMCal_4x4_phi(m_EMCAL_4x4_BEST_PHI);
+  triggerinfo->set_best_EMCal_2x2_E(m_EMCAL_2x2_BEST_E);
+  triggerinfo->set_best_EMCal_2x2_eta(m_EMCAL_2x2_BEST_ETA);
+  triggerinfo->set_best_EMCal_2x2_phi(m_EMCAL_2x2_BEST_PHI);
 
-    triggerinfo->set_best2_EMCal_4x4_E(m_EMCAL_4x4_BEST2_E);
-    triggerinfo->set_best2_EMCal_4x4_eta(m_EMCAL_4x4_BEST2_ETA);
-    triggerinfo->set_best2_EMCal_4x4_phi(m_EMCAL_4x4_BEST2_PHI);
+  triggerinfo->set_best_EMCal_4x4_E(m_EMCAL_4x4_BEST_E);
+  triggerinfo->set_best_EMCal_4x4_eta(m_EMCAL_4x4_BEST_ETA);
+  triggerinfo->set_best_EMCal_4x4_phi(m_EMCAL_4x4_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_0p2x0p2_E(m_FULLCALO_0p2x0p2_BEST_E);
-    triggerinfo->set_best_FullCalo_0p2x0p2_eta(m_FULLCALO_0p2x0p2_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p2x0p2_phi(m_FULLCALO_0p2x0p2_BEST_PHI);
+  triggerinfo->set_best2_EMCal_4x4_E(m_EMCAL_4x4_BEST2_E);
+  triggerinfo->set_best2_EMCal_4x4_eta(m_EMCAL_4x4_BEST2_ETA);
+  triggerinfo->set_best2_EMCal_4x4_phi(m_EMCAL_4x4_BEST2_PHI);
 
-    triggerinfo->set_best_FullCalo_0p4x0p4_E(m_FULLCALO_0p4x0p4_BEST_E);
-    triggerinfo->set_best_FullCalo_0p4x0p4_eta(m_FULLCALO_0p4x0p4_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p4x0p4_phi(m_FULLCALO_0p4x0p4_BEST_PHI);
+  triggerinfo->set_best_FullCalo_0p2x0p2_E(m_FULLCALO_0p2x0p2_BEST_E);
+  triggerinfo->set_best_FullCalo_0p2x0p2_eta(m_FULLCALO_0p2x0p2_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p2x0p2_phi(m_FULLCALO_0p2x0p2_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_0p6x0p6_E(m_FULLCALO_0p6x0p6_BEST_E);
-    triggerinfo->set_best_FullCalo_0p6x0p6_eta(m_FULLCALO_0p6x0p6_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p6x0p6_phi(m_FULLCALO_0p6x0p6_BEST_PHI);
+  triggerinfo->set_best_FullCalo_0p4x0p4_E(m_FULLCALO_0p4x0p4_BEST_E);
+  triggerinfo->set_best_FullCalo_0p4x0p4_eta(m_FULLCALO_0p4x0p4_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p4x0p4_phi(m_FULLCALO_0p4x0p4_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_0p8x0p8_E(m_FULLCALO_0p8x0p8_BEST_E);
-    triggerinfo->set_best_FullCalo_0p8x0p8_eta(m_FULLCALO_0p8x0p8_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p8x0p8_phi(m_FULLCALO_0p8x0p8_BEST_PHI);
+  triggerinfo->set_best_FullCalo_0p6x0p6_E(m_FULLCALO_0p6x0p6_BEST_E);
+  triggerinfo->set_best_FullCalo_0p6x0p6_eta(m_FULLCALO_0p6x0p6_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p6x0p6_phi(m_FULLCALO_0p6x0p6_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_1p0x1p0_E(m_FULLCALO_1p0x1p0_BEST_E);
-    triggerinfo->set_best_FullCalo_1p0x1p0_eta(m_FULLCALO_1p0x1p0_BEST_ETA);
-    triggerinfo->set_best_FullCalo_1p0x1p0_phi(m_FULLCALO_1p0x1p0_BEST_PHI);
- 
+  triggerinfo->set_best_FullCalo_0p8x0p8_E(m_FULLCALO_0p8x0p8_BEST_E);
+  triggerinfo->set_best_FullCalo_0p8x0p8_eta(m_FULLCALO_0p8x0p8_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p8x0p8_phi(m_FULLCALO_0p8x0p8_BEST_PHI);
+
+  triggerinfo->set_best_FullCalo_1p0x1p0_E(m_FULLCALO_1p0x1p0_BEST_E);
+  triggerinfo->set_best_FullCalo_1p0x1p0_eta(m_FULLCALO_1p0x1p0_BEST_ETA);
+  triggerinfo->set_best_FullCalo_1p0x1p0_phi(m_FULLCALO_1p0x1p0_BEST_PHI);
 
   return;
 }
