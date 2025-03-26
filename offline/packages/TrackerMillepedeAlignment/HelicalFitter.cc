@@ -131,7 +131,7 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
     fout = new TFile(ntuple_outfilename.c_str(), "recreate");
     if (straight_line_fit)
     {
-      ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:crosshalfmvtx:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:XYs:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:xfitMvtxHalf:yfitMvtxHalf:zfitMvtxHalf:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:fitXMvtxHalf:fitYMvtxHalf:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+      ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:quality:crosshalfmvtx:ntpc:nclus:trkrid:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:XYs:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:xfitMvtxHalf:yfitMvtxHalf:zfitMvtxHalf:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:fitXMvtxHalf:fitYMvtxHalf:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
     }
     else
     {
@@ -140,11 +140,11 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
 
     if (straight_line_fit)
     {
-      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi:track_eta");
+      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:quality:residual_x:residual_y:residualxsigma:residualysigma:dXdXYs:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdXYs:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:track_phi:perigee_phi:track_eta");
     }
     else
     {
-      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:quality:track_phi:perigee_phi:track_eta:track_p:track_pt");
+      track_ntp = new TNtuple("track_ntp", "HF track ntuple", "track_id:quality:residual_x:residual_y:residualxsigma:residualysigma:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdx:dYdy:dYdz:track_xvtx:track_yvtx:track_zvtx:event_xvtx:event_yvtx:event_zvtx:quality:track_phi:perigee_phi:track_eta:track_p:track_pt");
     }
   }
 
@@ -532,8 +532,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     Acts::Vector3 event_vtx(0.0,0.0,0.0);
     bool passed_vtx_flag = false;
-      //std::cout<<"HF trackid: "<<trackid-trkid_correction<<"  ,HF crossing: "<<newTrack.get_crossing()<<std::endl;
-      //std::cout<<" trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
+    unsigned int abs_cross = newTrack.get_crossing();
+    if (newTrack.get_crossing() < 0)
+      abs_cross = INT_MAX;
+    //std::cout<<"HF trackid: "<<trackid-trkid_correction<<"  ,HF crossing: "<<newTrack.get_crossing()<<std::endl;
+    //std::cout<<" trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
     for (const auto& [vtxkey, vertex] : *m_vertexmap)
     {
         //std::cout<<"event: "<<event<<"  , vtx crossing: "<<vertex->get_beam_crossing()<<std::endl;
@@ -545,7 +548,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         //if (vtxtrack)
         //{
           //unsigned int const vtxtrackid = vtxtrack->get_id();
-          if ((trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>2)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
+          if (!m_acts_mode && (trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>5)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
           {
               //std::cout<<"matched"<<std::endl;
             event_vtx(0) = vertex->get_x();
@@ -559,12 +562,26 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
               //std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
             }
           }
+          else if(m_acts_mode && vertex->get_beam_crossing() == abs_cross && vertex->size_tracks()>2)
+          {
+            //std::cout<<"matched"<<std::endl;
+            event_vtx(0) = vertex->get_x();
+            event_vtx(1) = vertex->get_y();
+            event_vtx(2) = vertex->get_z();
+            passed_vtx_flag = true;
+          }
       }
     }
-      //std::cout<<std::endl;
+     // std::cout<<std::endl;
 
+    if(m_fixed_vtx)
+    {
+      event_vtx(0) = m_fixed_vtx_x;
+      event_vtx(1) = m_fixed_vtx_y;
+    }
     if(!passed_vtx_flag)
     {
+      //std::cout<<"test"<<std::endl;
       continue;
     }
 
@@ -961,9 +978,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
         if (straight_line_fit)
         {
-          float ntp_data[78] = {
+          float ntp_data[79] = {
               (float) event, (float) trackid_test,
-              (float) layer, (float) nsilicon, (float) h2h_flag, (float) ntpc, (float) nclus, (float) trkrid, (float) sector, (float) side,
+              (float) layer, (float) nsilicon, (float) pull_cumulative, (float) h2h_flag, (float) ntpc, (float) nclus, (float) trkrid, (float) sector, (float) side,
               (float) subsurf, phi,
               (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
               (float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
@@ -1021,7 +1038,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
       }
 
-      if (!isnan(residual(0)) && clus_sigma(0) < 1.0)  // discards crazy clusters
+      bool pull_cumulative_pass = true;
+      if (pull_cumulative>2000)
+        pull_cumulative_pass = false;
+      if (!isnan(residual(0)) && clus_sigma(0) < 1.0&&pull_cumulative_pass)  // discards crazy clusters
       {
         if (arr_has_nan(lcl_derivativeX))
         {
@@ -1036,7 +1056,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         _mille->mille(AlignmentDefs::NLC, lcl_derivativeX, AlignmentDefs::NGL, glbl_derivativeX, glbl_label, residual(0), errinf * clus_sigma(0));
       }
 
-      if (!isnan(residual(1)) && clus_sigma(1) < 1.0)
+      if (!isnan(residual(1)) && clus_sigma(1) < 1.0&&pull_cumulative_pass)
       {
         if (arr_has_nan(lcl_derivativeY))
         {
@@ -1177,8 +1197,10 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           std::cout << i << ", ";
         }
       }
-
-      if (!isnan(vtx_residual(0)))
+      bool pull_cumulative_pass = true;
+      if (pull_cumulative<2000)
+        pull_cumulative_pass = false;
+      if (!isnan(vtx_residual(0))&&pull_cumulative_pass)
       {
         if (arr_has_nan(lclvtx_derivativeX))
         {
@@ -1192,7 +1214,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         }
         _mille->mille(AlignmentDefs::NLC, lclvtx_derivativeX, AlignmentDefs::NGLVTX, glblvtx_derivativeX, AlignmentDefs::glbl_vtx_label, vtx_residual(0), vtx_sigma(0));
       }
-      if (!isnan(vtx_residual(1)))
+      if (!isnan(vtx_residual(1))&&pull_cumulative_pass)
       {
         if (arr_has_nan(lclvtx_derivativeY))
         {
@@ -1219,7 +1241,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       float const track_pt = newTrack.get_pt();
       if (straight_line_fit)
       {
-        float ntp_data[28] = {(float) trackid_test, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+        float ntp_data[29] = {(float) trackid_test, (float) pull_cumulative, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
                               lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3],
                               glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
                               lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3],
@@ -1231,7 +1253,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-        float ntp_data[33] = {(float) trackid_test, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
+        float ntp_data[34] = {(float) trackid_test, (float) pull_cumulative, (float) vtx_residual(0), (float) vtx_residual(1), (float) vtx_sigma(0), (float) vtx_sigma(1),
                               lclvtx_derivativeX[0], lclvtx_derivativeX[1], lclvtx_derivativeX[2], lclvtx_derivativeX[3], lclvtx_derivativeX[4],
                               glblvtx_derivativeX[0], glblvtx_derivativeX[1], glblvtx_derivativeX[2],
                               lclvtx_derivativeY[0], lclvtx_derivativeY[1], lclvtx_derivativeY[2], lclvtx_derivativeY[3], lclvtx_derivativeY[4],

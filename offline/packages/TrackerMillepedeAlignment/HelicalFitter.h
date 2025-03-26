@@ -77,6 +77,10 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   void set_straight_line_fit(bool flag) {straight_line_fit = flag; }
   void set_eta_cut(double eta_cut) {m_eta_cut = eta_cut;}
   void set_pt_cut(double pt_cut) {m_pt_min = pt_cut;}
+  void set_acts_mode(bool acts_mode) {m_acts_mode = acts_mode;}
+  void set_fixed_vtx(bool fixed_vtx) {m_fixed_vtx = fixed_vtx;}
+  void set_fixed_vtx_x(float fixed_vtx_x) {m_fixed_vtx_x = fixed_vtx_x;}
+  void set_fixed_vtx_y(float fixed_vtx_y) {m_fixed_vtx_y = fixed_vtx_y;}
   //-1 is regular operation, 0 is east fixed, 1 is west fixed
   void set_do_mvtx_half(int half) {do_mvtx_half = half; }
   void set_fitted_subsystems(bool si, bool tpc, bool full)
@@ -201,6 +205,12 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool fitsilicon{true};
   bool fittpc{false};
   bool fitfulltrack{false};
+  bool m_acts_mode{false};
+  bool m_fixed_vtx{false};
+
+  float m_fixed_vtx_x{0.0};
+  float m_fixed_vtx_y{0.0};
+  
 
   float dca_cut{0.19};  // cm
 
