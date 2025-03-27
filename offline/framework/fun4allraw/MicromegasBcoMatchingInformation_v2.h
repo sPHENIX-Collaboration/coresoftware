@@ -93,6 +93,18 @@ class MicromegasBcoMatchingInformation_v2
   //! print gtm bco information
   void print_gtm_bco_information() const;
 
+  //! get first gtm bco
+  unsigned int get_fee_bco_first() const
+  { return m_fee_bco_first; }
+
+  //! get first gtm bco
+  uint64_t get_gtm_bco_first() const
+  { return m_gtm_bco_first; }
+
+  //! get last gtm bco
+  uint64_t get_gtm_bco_last() const
+  { return m_gtm_bco_list.empty() ? 0:*m_gtm_bco_list.rbegin(); }
+
   //@}
 
   //!@name modifiers
