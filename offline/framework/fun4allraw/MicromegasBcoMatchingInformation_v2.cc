@@ -174,7 +174,7 @@ void MicromegasBcoMatchingInformation_v2::print_gtm_bco_information() const
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int packet_id, const MicromegasBcoMatchingInformation_v2::gtm_payload& payload)
+void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int /*packet_id*/, const MicromegasBcoMatchingInformation_v2::gtm_payload& payload)
 {
   if ( payload.is_lvl1)
   {
@@ -182,11 +182,6 @@ void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int packet_id
     // save lvl1 BCO
     const auto& gtm_bco = payload.bco;
     m_gtm_bco_list.push_back(gtm_bco);
-
-    std::cout << "MicromegasBcoMatchingInformation_v2::save_gtm_bco_information -"
-      << " packet_id: " << packet_id
-      << " gtm_bco: 0x" << std::hex << gtm_bco << std::dec
-      << std::endl;
 
   } else if( payload.is_endat ) {
 
