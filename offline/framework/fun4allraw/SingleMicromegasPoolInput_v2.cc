@@ -25,6 +25,7 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TTree.h>
 
 #include <algorithm>
 #include <bitset>
@@ -124,6 +125,7 @@ namespace
 
 }  // namespace
 
+
 //______________________________________________________________
 SingleMicromegasPoolInput_v2::SingleMicromegasPoolInput_v2(const std::string& name)
   : SingleStreamingInput(name)
@@ -136,6 +138,13 @@ SingleMicromegasPoolInput_v2::SingleMicromegasPoolInput_v2(const std::string& na
 SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2()
 {
   std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 - runnumber: " << RunNumber() << std::endl;
+
+  if (m_evaluation_file && m_evaluation_tree)
+  {
+    m_evaluation_file->cd();
+    m_evaluation_tree->Write();
+    m_evaluation_file->Close();
+  }
 
   // timer statistics
   m_timer.print_stat();
@@ -521,6 +530,24 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
     h->SetFillColor(kYellow);
     hm->registerHisto(h);
   }
+
+  // also create evaluation trees
+  if( m_do_evaluation )
+  {
+    m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
+    m_evaluation_tree = new TTree("T", "T");
+    m_evaluation_tree->Branch("packet_id", &m_waveform.packet_id);
+    m_evaluation_tree->Branch("fee_id", &m_waveform.fee_id);
+    m_evaluation_tree->Branch("channel", &m_waveform.channel);
+
+    m_evaluation_tree->Branch("gtm_bco_first", &m_waveform.gtm_bco_first);
+    m_evaluation_tree->Branch("gtm_bco", &m_waveform.gtm_bco);
+
+    m_evaluation_tree->Branch("fee_bco_first", &m_waveform.fee_bco_first);
+    m_evaluation_tree->Branch("fee_bco", &m_waveform.fee_bco);
+    m_evaluation_tree->Branch("fee_bco_predicted", &m_waveform.fee_bco_predicted);
+  }
+
 }
 
 //__________________________________________________________________________________
@@ -638,6 +665,21 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
   * because any BX_COUNTER_SYNC_T event will break past references
   */
   bco_matching_information.find_reference_from_modebits(payload);
+
+  // store in running waveform
+  if( m_do_evaluation )
+  {
+    m_waveform.packet_id = packet_id;
+    m_waveform.gtm_bco_first = bco_matching_information.get_gtm_bco_first();
+    m_waveform.gtm_bco = bco_matching_information.get_gtm_bco_last();
+
+    {
+      const auto predicted = bco_matching_information.get_predicted_fee_bco(m_waveform.gtm_bco);;
+      if( predicted ) m_waveform.fee_bco_predicted = predicted.value();
+    }
+
+    m_waveform.fee_bco_first = bco_matching_information.get_fee_bco_first();
+  }
 }
 
 //____________________________________________________________________
@@ -742,15 +784,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // try get gtm bco matching fee
     const auto& fee_bco = payload.bx_timestamp;
 
-    if( fee_id != 5 && payload.channel == 0 )
-    {
-      std::cout << "SingleMicromegasPoolInput_v2::process_fee_data - "
-        << " packet_id: " << packet_id
-        << " fee_id: " << fee_id
-        << " channel: " << payload.channel
-        << " fee_bco: 0x" << std::hex << fee_bco << std::dec
-        << std::endl;
-    }
     // find matching gtm bco
     uint64_t gtm_bco = 0;
     const auto result = bco_matching_information.find_gtm_bco(packet_id, fee_id, fee_bco);
@@ -768,6 +801,14 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
       // skip the waverform
       continue;
+    }
+
+    if( m_do_evaluation )
+    {
+      m_waveform.fee_id = fee_id;
+      m_waveform.channel = payload.channel;
+      m_waveform.fee_bco = fee_bco;
+      m_evaluation_tree->Fill();
     }
 
     // ignore heartbeat waveforms

@@ -19,6 +19,7 @@ class MicromegasRawHit;
 class Packet;
 
 class TFile;
+class TTree;
 class TH1;
 
 class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
@@ -52,7 +53,13 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   // write the initial histograms for QA manager
   void createQAHistos() override;
 
- private:
+  /// do evalutation
+  void set_do_evaluation( bool value ) { m_do_evaluation = value; }
+
+  /// output file name for evaluation histograms
+  void set_evaluation_outputfile(const std::string& outputfile) { m_evaluation_filename = outputfile; }
+
+  private:
 
   //!@name decoding constants
   //@{
@@ -163,6 +170,59 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   TH1 *h_waveform_count_dropped_pool{nullptr};
 
   //@}
+
+  //!@name evaluation
+  //@{
+
+  //! evaluation
+  bool m_do_evaluation = false;
+
+  //! evaluation output filename
+  std::string m_evaluation_filename = "SingleMicromegasPoolInput.root";
+  std::unique_ptr<TFile> m_evaluation_file;
+
+  /**
+   * waveform is similar to sample except that there is only one of which per waveform,
+   * and that it stores the max adc and corresponding sample_id
+   */
+  class Waveform
+  {
+   public:
+    /// packet
+    unsigned int packet_id = 0;
+
+    /// waveform type
+    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+    unsigned int type = 0;
+
+    /// ll1 bco
+    uint64_t gtm_bco_first = 0;
+
+    /// ll1 bco
+    uint64_t gtm_bco = 0;
+
+    /// fee bco
+    unsigned int fee_bco_first = 0;
+
+    /// fee bco
+    unsigned int fee_bco = 0;
+
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
+
+    /// fee
+    unsigned short fee_id = 0;
+
+    /// channel id
+    unsigned short channel = 0;
+  };
+
+  Waveform m_waveform;
+
+  //! tree
+  TTree* m_evaluation_tree = nullptr;
+
+  //*}
 
 };
 
