@@ -651,7 +651,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
   auto& data_buffer = m_feeData[fee_id];
 
   // process header
-  // while (HEADER_LENGTH <= data_buffer.size())
   while (HEADER_LENGTH <= data_buffer.size())
   {
 
@@ -745,7 +744,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
     // find matching gtm bco
     uint64_t gtm_bco = 0;
-    const auto result = bco_matching_information.find_gtm_bco(fee_bco);
+    const auto result = bco_matching_information.find_gtm_bco(packet_id, fee_id, fee_bco);
     if (result)
     {
       // assign gtm bco

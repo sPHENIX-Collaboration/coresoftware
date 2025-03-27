@@ -133,7 +133,11 @@ class MicromegasBcoMatchingInformation_v2
   void save_gtm_bco_information(const gtm_payload&);
 
   //! find gtm bco matching a given fee
-  std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
+  /**
+   * packet and fee ids are not necessary to the calculation.
+   * They are pased here for the clarity of debugging messages
+   */
+  std::optional<uint64_t> find_gtm_bco(int /*packet_id*/, unsigned int /*fee_id*/, uint32_t /*fee_gtm*/);
 
   //! cleanup
   void cleanup();

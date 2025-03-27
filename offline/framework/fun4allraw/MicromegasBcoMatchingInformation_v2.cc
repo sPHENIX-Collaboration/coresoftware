@@ -322,7 +322,7 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_data(const fee_pay
 }
 
 //___________________________________________________
-std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(uint32_t fee_bco)
+std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(int packet_id, unsigned int fee_id, uint32_t fee_bco)
 {
   // make sure the bco matching is properly initialized
   if (!is_verified())
@@ -359,6 +359,8 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(uint32
         const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
 
         std::cout << "MicromegasBcoMatchingInformation_v2::find_gtm_bco -"
+                  << " packet_id: " << packet_id
+                  << " fee_id: " << fee_id
                   << std::hex
                   << " fee_bco: 0x" << fee_bco
                   << " predicted: 0x" << fee_bco_predicted
@@ -395,6 +397,8 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(uint32
           const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
 
           std::cout << "MicromegasBcoMatchingInformation_v2::find_gtm_bco -"
+                    << " packet_id: " << packet_id
+                    << " fee_id: " << fee_id
                     << std::hex
                     << " fee_bco: 0x" << fee_bco
                     << std::dec
