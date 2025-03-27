@@ -623,7 +623,7 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
 
   // save bco information
   auto& bco_matching_information = m_bco_matching_information_map[packet_id];
-  bco_matching_information.save_gtm_bco_information(payload);
+  bco_matching_information.save_gtm_bco_information(packet_id, payload);
 
   if(payload.is_lvl1||payload.is_endat)
   {
@@ -742,6 +742,15 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // try get gtm bco matching fee
     const auto& fee_bco = payload.bx_timestamp;
 
+    if( fee_id != 5 && payload.channel == 0 )
+    {
+      std::cout << "SingleMicromegasPoolInput_v2::process_fee_data - "
+        << " packet_id: " << packet_id
+        << " fee_id: " << fee_id
+        << " channel: " << payload.channel
+        << " fee_bco: 0x" << std::hex << fee_bco << std::dec
+        << std::endl;
+    }
     // find matching gtm bco
     uint64_t gtm_bco = 0;
     const auto result = bco_matching_information.find_gtm_bco(packet_id, fee_id, fee_bco);

@@ -130,7 +130,7 @@ class MicromegasBcoMatchingInformation_v2
   bool find_reference_from_data(const fee_payload&);
 
   //! save all GTM BCO clocks from packet data
-  void save_gtm_bco_information(const gtm_payload&);
+  void save_gtm_bco_information(int /* packet_id */, const gtm_payload&);
 
   //! find gtm bco matching a given fee
   /**
