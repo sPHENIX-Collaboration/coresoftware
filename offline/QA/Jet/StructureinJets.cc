@@ -142,15 +142,19 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   }
 
   // get event centrality
-  CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
-  if (!cent_node)
+  int cent = -1;
+  if (isAAFlag)
   {
-    std::cout
-        << "StructureinJets::process_event - Error can not find centrality node "
-        << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
+    CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+    if (!cent_node)
+    {
+      std::cout
+          << "StructureinJets::process_event - Error can not find centrality node "
+          << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+    cent = cent_node->get_centile(CentralityInfo::PROP::mbd_NS);
   }
-  int cent = cent_node->get_centile(CentralityInfo::PROP::mbd_NS);
 
   // Loop through jets
   for (auto jet : *jets)
@@ -201,8 +205,9 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     // Fill histogram for the current jet
     assert(m_h_track_vs_calo_pt);
     assert(m_h_track_pt);
+
     // Fill TH3 histogram for Au+Au collisions
-    if (isAA())
+    if (isAAFlag)
     {
       m_h_track_vs_calo_pt->Fill(jet->get_pt(), sumtrk.Perp(), cent);
     }
@@ -212,6 +217,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     {
       m_h_track_pt->Fill(jet->get_pt(), sumtrk.Perp());
     }
+
     // Reset sumtrk for the next jet
     sumtrk.SetXYZ(0, 0, 0);
   }
@@ -247,7 +253,7 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
     std::cout << "StructureinJets::End - Output to histogram manager" << std::endl;
   }
 
-  if (isAA())
+  if (isAAFlag)
   {
     TH2* h_proj;
     for (int i = 0; i < m_h_track_vs_calo_pt->GetNbinsZ(); i++)
