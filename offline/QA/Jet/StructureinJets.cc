@@ -126,7 +126,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     std::cout
         << "StructureInJets::process_event - Error can not find DST Reco JetContainer node "
         << m_recoJetName << std::endl;
-    exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   // get reco tracks
   SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -137,7 +137,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     {
       std::cout
           << "StructureinJets::process_event - Error can not find DST trackmap node SvtxTrackMap" << std::endl;
-      exit(-1);
+      return Fun4AllReturnCodes::EVENT_OK;
     }
   }
 
@@ -148,7 +148,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     std::cout
         << "StructureinJets::process_event - Error can not find centrality node "
         << std::endl;
-    exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   int cent = cent_node->get_centile(CentralityInfo::PROP::mbd_NS);
 
