@@ -42,12 +42,14 @@ class CaloValid : public SubsysReco
   void set_timing_cut_width(const int& t) { _range = t; }
 
   void set_debug(bool debug) { m_debug = debug; }
+  void SetSpecies(const std::string &species) { m_species = species; }
   TH2* LogYHist2D(const std::string& name, const std::string& title, int, double, double, int, double, double);
 
  private:
   void createHistos();
   void MirrorHistogram(TH1* histogram);
   std::string getHistoPrefix() const;
+  std::string m_species = "pp";
 
   TriggerAnalyzer* trigAna{nullptr};
   TH3* h_pi0_trigIB_mass {nullptr};
@@ -64,6 +66,7 @@ class CaloValid : public SubsysReco
   TH1* h_mbd_hits{nullptr};
   TH2* h_ohcal_mbd_correlation{nullptr};
   TH2* h_ihcal_mbd_correlation{nullptr};
+  TH2* h_emcal_hcal_correlation{nullptr};
   TH2* h_emcal_hcal_correlation{nullptr};
   TH2* h_cemc_etaphi{nullptr};
   TH2* h_ihcal_etaphi{nullptr};
