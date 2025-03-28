@@ -67,7 +67,6 @@ class CaloValid : public SubsysReco
   TH2* h_ohcal_mbd_correlation{nullptr};
   TH2* h_ihcal_mbd_correlation{nullptr};
   TH2* h_emcal_hcal_correlation{nullptr};
-  TH2* h_emcal_hcal_correlation{nullptr};
   TH2* h_cemc_etaphi{nullptr};
   TH2* h_ihcal_etaphi{nullptr};
   TH2* h_ohcal_etaphi{nullptr};
