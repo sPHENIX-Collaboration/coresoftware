@@ -42,6 +42,8 @@
 
 #include <phool/getClass.h>
 
+#include <ffamodules/CDBInterface.h>
+
 // KFParticle stuff
 #include <KFParticle.h>
 #include <KFVertex.h>
