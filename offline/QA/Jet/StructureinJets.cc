@@ -43,23 +43,34 @@ StructureinJets::StructureinJets(const std::string& moduleName, const std::strin
   , m_histTag(histTag)
   , m_outputFileName(outputfilename)
 {
-  std::cout << "StructureinJets::StructureinJets(const std::string &name) Calling ctor" << std::endl;
+  if(Verbosity() > 1 )
+  {
+    std::cout << "StructureinJets::StructureinJets(const std::string &name x 4) Calling ctor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
 StructureinJets::~StructureinJets()
 {
-  std::cout << "StructureinJets::~StructureinJets() Calling dtor" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "StructureinJets::~StructureinJets() Calling dtor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
 int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "StructureinJets::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  }
+
   if (writeToOutputFileFlag)
   {
     PHTFileServer::get().open(m_outputFileName, "RECREATE");
   }
+
   delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
   m_manager = QAHistManagerDef::getHistoManager();
@@ -99,14 +110,21 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int StructureinJets::InitRun(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "StructureinJets::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int StructureinJets::process_event(PHCompositeNode* topNode)
 {
-  // std::cout << "StructureinJets::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+
+  if (Verbosity() > 1)
+  {
+    std::cout << "StructureinJets::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  }
 
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
@@ -161,7 +179,10 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   {
     if (!jet)
     {
-      std::cout << "WARNING!!! Jet not found" << std::endl;
+      if (Verbosity() > 2)
+      {
+        std::cout << "WARNING!!! Jet not found" << std::endl;
+      }
       continue;
     }
     // sum up tracks in jet
@@ -227,14 +248,20 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int StructureinJets::ResetEvent(PHCompositeNode* /*topNode*/)
 {
-  // std::cout << "StructureinJets::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "StructureinJets::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int StructureinJets::EndRun(const int runnumber)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "StructureinJets::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -245,12 +272,18 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
   // otherwise rely on histogram manager
   if (writeToOutputFileFlag)
   {
-    std::cout << "StructureinJets::End - Output to " << m_outputFileName << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "StructureinJets::End - Output to " << m_outputFileName << std::endl;
+    }
     PHTFileServer::get().cd(m_outputFileName);
   }
   else
   {
-    std::cout << "StructureinJets::End - Output to histogram manager" << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "StructureinJets::End - Output to histogram manager" << std::endl;
+    }
   }
 
   if (isAAFlag)
@@ -281,14 +314,20 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
       m_h_track_pt->Write();  // if pp, do not project onto centrality bins
     }
   }
-  std::cout << "StructureinJets::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int StructureinJets::Reset(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "StructureinJets::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
