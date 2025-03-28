@@ -37,6 +37,7 @@ class MbdEvent
 #ifndef ONLINE
   int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
 #endif
+  void PostProcessChannels(MbdPmtContainer *bbcpmts);
   int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout);
   int InitRun();
   int End();
@@ -86,6 +87,8 @@ class MbdEvent
   int Read_TQ_CLK_Offsets(const std::string &t0cal_fname);
   int Read_TT_CLK_Offsets(const std::string &t0cal_fname);
   //int DoQuickClockOffsetCalib();
+
+  bool isbadtch(const int ipmtch);
 
   int _debugintt{0};
   void ReadSyncFile(const char *fname = "SYNC_INTTMBD.root");
