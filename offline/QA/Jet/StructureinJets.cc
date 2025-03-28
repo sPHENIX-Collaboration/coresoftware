@@ -15,6 +15,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <qautils/QAHistManagerDef.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
@@ -60,6 +62,7 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
   }
   delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
+  m_manager = QAHistManagerDef::getHistoManager();
 
   // make sure module name is lower case
   std::string smallModuleName = m_moduleName;
