@@ -146,6 +146,10 @@ class KFParticle_truthAndDetTools
   unsigned int detector_nHits_INTT[max_tracks] = {0};
   unsigned int detector_nHits_TPC[max_tracks] =  {0};
   unsigned int detector_nHits_TPOT[max_tracks] = {0};
+  unsigned int detector_nStates_MVTX[max_tracks] = {0};
+  unsigned int detector_nStates_INTT[max_tracks] = {0};
+  unsigned int detector_nStates_TPC[max_tracks] =  {0};
+  unsigned int detector_nStates_TPOT[max_tracks] = {0};
   std::vector<float> residual_x[max_tracks];
   std::vector<float> residual_y[max_tracks];
   std::vector<float> residual_z[max_tracks];

@@ -2,7 +2,8 @@
 
 #include "KFParticle_Tools.h"
 
-#include <ffaobjects/EventHeaderv1.h>
+#include <ffaobjects/EventHeader.h>
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
@@ -106,7 +107,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
   m_tree->Branch(TString(mother_name) + "_phi", &m_calculated_mother_phi, TString(mother_name) + "_phi/F");
   m_tree->Branch(TString(mother_name) + "_vertex_volume", &m_calculated_mother_v, TString(mother_name) + "_vertex_volume/F");
   m_tree->Branch(TString(mother_name) + "_chi2", &m_calculated_mother_chi2, TString(mother_name) + "_chi2/F");
-  m_tree->Branch(TString(mother_name) + "_nDoF", &m_calculated_mother_ndof, TString(mother_name) + "_nDoF/I");
+  m_tree->Branch(TString(mother_name) + "_nDoF", &m_calculated_mother_ndof, TString(mother_name) + "_nDoF/i");
   m_tree->Branch(TString(mother_name) + "_SV_chi2_per_nDoF", &m_calculated_mother_SV_chi2_per_ndof, TString(mother_name) + "_SV_chi2_per_nDoF/F");
   m_tree->Branch(TString(mother_name) + "_PDG_ID", &m_calculated_mother_pdgID, TString(mother_name) + "_PDG_ID/I");
   m_tree->Branch(TString(mother_name) + "_Covariance", &m_calculated_mother_cov, TString(mother_name) + "_Covariance[21]/F", 21);
@@ -165,7 +166,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       m_tree->Branch(TString(intermediate_name) + "_phi", &m_calculated_intermediate_phi[i], TString(intermediate_name) + "_phi/F");
       m_tree->Branch(TString(intermediate_name) + "_vertex_volume", &m_calculated_intermediate_v[i], TString(intermediate_name) + "_vertex_volume/F");
       m_tree->Branch(TString(intermediate_name) + "_chi2", &m_calculated_intermediate_chi2[i], TString(intermediate_name) + "_chi2/F");
-      m_tree->Branch(TString(intermediate_name) + "_nDoF", &m_calculated_intermediate_ndof[i], TString(intermediate_name) + "_nDoF/I");
+      m_tree->Branch(TString(intermediate_name) + "_nDoF", &m_calculated_intermediate_ndof[i], TString(intermediate_name) + "_nDoF/i");
       m_tree->Branch(TString(intermediate_name) + "_SV_chi2_per_nDoF", &m_calculated_intermediate_SV_chi2_per_ndof[i], TString(intermediate_name) + "_SV_chi2_per_nDoF/F");
       m_tree->Branch(TString(intermediate_name) + "_PDG_ID", &m_calculated_intermediate_pdgID[i], TString(intermediate_name) + "_PDG_ID/I");
       m_tree->Branch(TString(intermediate_name) + "_Covariance", &m_calculated_intermediate_cov[i], TString(intermediate_name) + "_Covariance[21]/F", 21);
@@ -224,7 +225,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch(TString(daughter_number) + "_theta", &m_calculated_daughter_theta[i], TString(daughter_number) + "_theta/F");
     m_tree->Branch(TString(daughter_number) + "_phi", &m_calculated_daughter_phi[i], TString(daughter_number) + "_phi/F");
     m_tree->Branch(TString(daughter_number) + "_chi2", &m_calculated_daughter_chi2[i], TString(daughter_number) + "_chi2/F");
-    m_tree->Branch(TString(daughter_number) + "_nDoF", &m_calculated_daughter_ndof[i], TString(daughter_number) + "_nDoF/I");
+    m_tree->Branch(TString(daughter_number) + "_nDoF", &m_calculated_daughter_ndof[i], TString(daughter_number) + "_nDoF/i");
     m_tree->Branch(TString(daughter_number) + "_track_ID", &m_calculated_daughter_trid[i], TString(daughter_number) + "_track_ID/I");
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
@@ -269,7 +270,6 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch("primary_vertex_x", &m_calculated_vertex_x, "primary_vertex_x/F");
     m_tree->Branch("primary_vertex_y", &m_calculated_vertex_y, "primary_vertex_y/F");
     m_tree->Branch("primary_vertex_z", &m_calculated_vertex_z, "primary_vertex_z/F");
-    m_tree->Branch("primary_vertex_nTracks", &m_calculated_vertex_nTracks, "primary_vertex_nTracks/I");
     m_tree->Branch("primary_vertex_volume", &m_calculated_vertex_v, "primary_vertex_volume/F");
     m_tree->Branch("primary_vertex_chi2", &m_calculated_vertex_chi2, "primary_vertex_chi2/F");
     m_tree->Branch("primary_vertex_nDoF", &m_calculated_vertex_ndof, "primary_vertex_nDoF/i");
@@ -291,6 +291,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
+  m_tree->Branch("BCO", &m_bco, "BCO/L");
 
   if (m_get_trigger_info)
   {
@@ -302,8 +303,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
                                    KFParticle motherParticle,
                                    const KFParticle& vertex_fillbranch,
                                    std::vector<KFParticle> daughters,
-                                   std::vector<KFParticle> intermediates,
-                                   int nPVs, int multiplicity)
+                                   std::vector<KFParticle> intermediates)
 {
   const float speedOfLight = 2.99792458e-2;
 
@@ -603,13 +603,15 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     {
       m_calculated_vertex_cov[j] = vertex_fillbranch.GetCovariance(j);
     }
-    m_calculated_vertex_nTracks = m_use_fake_pv_nTuple || m_use_mbd_vertex_truth ? 0 : kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
   }
 
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
 
-  m_nPVs = nPVs;
-  m_multiplicity = multiplicity;
+  kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);  
+  if (m_constrain_to_vertex_nTuple)
+  {
+    m_multiplicity = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
+  }
 
   PHNodeIterator nodeIter(topNode);
 
@@ -617,13 +619,20 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   if (evtNode)
   {
-    EventHeaderv1* evtHeader = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
+    EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
     m_runNumber = evtHeader->get_RunNumber();
     m_evtNumber = evtHeader->get_EvtSequence();
+
+    auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+    if (!gl1packet)
+    {
+      gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    }
+    m_bco = m_trigger_info_available ? gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0] : 0;
   }
   else
   {
-    m_runNumber = m_evtNumber = -1;
+    m_runNumber = m_evtNumber = m_bco = -1;
   }
 
   if (m_trigger_info_available)
