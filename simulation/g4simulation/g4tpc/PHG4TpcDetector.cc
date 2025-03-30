@@ -64,6 +64,7 @@ PHG4TpcDetector::PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, P
 PHG4TpcDetector::~PHG4TpcDetector()
 {
   delete m_cdbttree;
+  delete m_G4UserLimits;
 }
 //_______________________________________________________________
 int PHG4TpcDetector::IsInTpc(G4VPhysicalVolume *volume) const
@@ -648,12 +649,12 @@ void PHG4TpcDetector::add_geometry_node()
         for (int isector = 0; isector < NSectors; isector++)  // 12 sectors
         {
           if (zside ==0){
-                sec_max_phi[zside][isector][(int)layer / 16] = M_PI - 2 * M_PI / 12 * (isector + 1)+(-(max_phi-SectorPhi) + phi_bin_width_cdb[layer]/2. ) ;
                 sec_min_phi[zside][isector][(int)layer / 16] = M_PI - 2 * M_PI / 12 * (isector + 1) +(-(max_phi) - phi_bin_width_cdb[layer]/2. ) ;
+                sec_max_phi[zside][isector][(int)layer / 16] = sec_min_phi[zside][isector][(int)layer / 16] + SectorPhi;
               } 
           if (zside ==1){
-                sec_max_phi[zside][isector][(int)layer / 16] = M_PI - 2 * M_PI / 12 * (isector + 1)+(max_phi + phi_bin_width_cdb[layer]/2. ) ;
-                sec_min_phi[zside][isector][(int)layer / 16] = M_PI - 2 * M_PI / 12 * (isector + 1) +((max_phi - SectorPhi) - phi_bin_width_cdb[layer]/2. ) ;
+                sec_max_phi[zside][isector][(int)layer / 16] = M_PI - 2 * M_PI / 12 * (isector + 1)+ (max_phi + phi_bin_width_cdb[layer]/2. ) ;
+                sec_min_phi[zside][isector][(int)layer / 16] = sec_max_phi[zside][isector][(int)layer / 16] - SectorPhi;
               } 
         }
     }
