@@ -82,6 +82,12 @@ class MicromegasBcoMatchingInformation_v2
   std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
 
   //! multiplier
+  static bool gtm_clock_multiplier_is_set()
+  {
+    return m_multiplier_is_set;
+  }
+
+  //! multiplier
   static double get_gtm_clock_multiplier()
   {
     return m_multiplier;
@@ -92,6 +98,18 @@ class MicromegasBcoMatchingInformation_v2
 
   //! print gtm bco information
   void print_gtm_bco_information() const;
+
+  //! get first gtm bco
+  unsigned int get_fee_bco_first() const
+  { return m_fee_bco_first; }
+
+  //! get first gtm bco
+  uint64_t get_gtm_bco_first() const
+  { return m_gtm_bco_first; }
+
+  //! get last gtm bco
+  uint64_t get_gtm_bco_last() const
+  { return m_gtm_bco_list.empty() ? 0:*m_gtm_bco_list.rbegin(); }
 
   //@}
 
@@ -107,6 +125,7 @@ class MicromegasBcoMatchingInformation_v2
   /// set gtm clock multiplier
   static void set_gtm_clock_multiplier(double value)
   {
+    m_multiplier_is_set = true;
     m_multiplier = value;
   }
 
@@ -130,10 +149,14 @@ class MicromegasBcoMatchingInformation_v2
   bool find_reference_from_data(const fee_payload&);
 
   //! save all GTM BCO clocks from packet data
-  void save_gtm_bco_information(const gtm_payload&);
+  void save_gtm_bco_information(int /* packet_id */, const gtm_payload&);
 
   //! find gtm bco matching a given fee
-  std::optional<uint64_t> find_gtm_bco(uint32_t /*fee_gtm*/);
+  /**
+   * packet and fee ids are not necessary to the calculation.
+   * They are pased here for the clarity of debugging messages
+   */
+  std::optional<uint64_t> find_gtm_bco(int /*packet_id*/, unsigned int /*fee_id*/, uint32_t /*fee_gtm*/);
 
   //! cleanup
   void cleanup();
@@ -176,6 +199,9 @@ class MicromegasBcoMatchingInformation_v2
 
   //! keep track or  fee_bco for which no gtm_bco is found
   std::set<uint32_t> m_orphans;
+
+  //! true if multiplier is set
+  static bool m_multiplier_is_set;
 
   //! gtm clock multiplier
   static double m_multiplier;
