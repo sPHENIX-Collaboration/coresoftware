@@ -167,9 +167,9 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   // float *m_calculated_daughter_cov[max_tracks];
   float m_calculated_daughter_cov[max_tracks][21] = {{0}, {0}};
   float m_calculated_daughter_dedx[max_tracks] = {0};
-  float m_calculated_daughter_expected_dedx_pion[max_tracks] = {0};
-  float m_calculated_daughter_expected_dedx_kaon[max_tracks] = {0};
-  float m_calculated_daughter_expected_dedx_proton[max_tracks] = {0};
+  //float m_calculated_daughter_expected_dedx_pion[max_tracks] = {0};
+  //float m_calculated_daughter_expected_dedx_kaon[max_tracks] = {0};
+  //float m_calculated_daughter_expected_dedx_proton[max_tracks] = {0};
 
   float m_daughter_dca[99] = {0};
   float m_daughter_dca_xy[99] = {0};
