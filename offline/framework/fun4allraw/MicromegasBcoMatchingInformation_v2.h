@@ -82,6 +82,12 @@ class MicromegasBcoMatchingInformation_v2
   std::optional<uint32_t> get_predicted_fee_bco(uint64_t) const;
 
   //! multiplier
+  static bool gtm_clock_multiplier_is_set()
+  {
+    return m_multiplier_is_set;
+  }
+
+  //! multiplier
   static double get_gtm_clock_multiplier()
   {
     return m_multiplier;
@@ -119,6 +125,7 @@ class MicromegasBcoMatchingInformation_v2
   /// set gtm clock multiplier
   static void set_gtm_clock_multiplier(double value)
   {
+    m_multiplier_is_set = true;
     m_multiplier = value;
   }
 
@@ -192,6 +199,9 @@ class MicromegasBcoMatchingInformation_v2
 
   //! keep track or  fee_bco for which no gtm_bco is found
   std::set<uint32_t> m_orphans;
+
+  //! true if multiplier is set
+  static bool m_multiplier_is_set;
 
   //! gtm clock multiplier
   static double m_multiplier;

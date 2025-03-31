@@ -1,8 +1,8 @@
-#ifndef MICROMEGAS_MicromegasBcoMatchingInformation_H
-#define MICROMEGAS_MicromegasBcoMatchingInformation_H
+#ifndef MICROMEGAS_MICROMEGASBCOMATCHINGINFORMATION_V1_H
+#define MICROMEGAS_MICROMEGASBCOMATCHINGINFORMATION_V1_H
 
 /*!
- * \file MicromegasBcoMatchingInformation.h
+ * \file MicromegasBcoMatchingInformation_v1.h
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  * \brief handles matching between GTM and FEE BCO clock
  */
@@ -15,11 +15,11 @@
 
 class Packet;
 
-class MicromegasBcoMatchingInformation
+class MicromegasBcoMatchingInformation_v1
 {
  public:
   //! constructor
-  MicromegasBcoMatchingInformation() = default;
+  MicromegasBcoMatchingInformation_v1() = default;
 
   //!@name accessor
   //@{

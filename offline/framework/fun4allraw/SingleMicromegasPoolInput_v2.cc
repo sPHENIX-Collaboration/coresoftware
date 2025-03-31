@@ -555,8 +555,26 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
 void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 {
   // check hit format
-  if (packet->getHitFormat() != IDTPCFEEV4)
+  const auto hitformat = packet->getHitFormat();
+  if (hitformat != IDTPCFEEV4 && hitformat != IDTPCFEEV5)
   { return; }
+
+  // set clock multipliers if not alsready
+  if( !MicromegasBcoMatchingInformation_v2::gtm_clock_multiplier_is_set() )
+  {
+    switch( hitformat )
+    {
+      case IDTPCFEEV4:
+      MicromegasBcoMatchingInformation_v2::set_gtm_clock_multiplier(4.262916255);
+      break;
+
+      case IDTPCFEEV5:
+      MicromegasBcoMatchingInformation_v2::set_gtm_clock_multiplier(30./8);
+      break;
+
+      default: break;
+    }
+  }
 
   // get packet id
   const int packet_id = packet->getIdentifier();

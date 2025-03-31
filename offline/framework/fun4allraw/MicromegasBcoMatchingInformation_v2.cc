@@ -118,7 +118,8 @@ namespace
 }  // namespace
 
 // this is the clock multiplier from lvl1 to fee clock
-double MicromegasBcoMatchingInformation_v2::m_multiplier = 4.262916255;
+bool MicromegasBcoMatchingInformation_v2::m_multiplier_is_set = false;
+double MicromegasBcoMatchingInformation_v2::m_multiplier = 0;
 
 // muliplier adjustment count
 /* controls how often the gtm multiplier is automatically adjusted */
