@@ -536,6 +536,7 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
   {
     m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
     m_evaluation_tree = new TTree("T", "T");
+    m_evaluation_tree->Branch("is_heartbeat", &m_waveform.is_heartbeat);
     m_evaluation_tree->Branch("packet_id", &m_waveform.packet_id);
     m_evaluation_tree->Branch("fee_id", &m_waveform.fee_id);
     m_evaluation_tree->Branch("channel", &m_waveform.channel);
@@ -805,6 +806,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
     if( m_do_evaluation )
     {
+      m_waveform.is_heartbeat = (payload.type == HEARTBEAT_T);
       m_waveform.fee_id = fee_id;
       m_waveform.channel = payload.channel;
       m_waveform.fee_bco = fee_bco;

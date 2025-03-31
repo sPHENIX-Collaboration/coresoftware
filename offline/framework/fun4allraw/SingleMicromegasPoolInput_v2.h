@@ -188,6 +188,10 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   class Waveform
   {
    public:
+
+    /// true if measurement is hearbeat
+    bool is_heartbeat = false;
+
     /// packet
     unsigned int packet_id = 0;
 
