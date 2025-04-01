@@ -12,7 +12,6 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
-#include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
@@ -31,6 +30,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TFile.h>
+#include <TTree.h>
 #include <TF1.h>
 
 #include <cmath>
@@ -39,6 +40,8 @@
 #include <map>
 #include <set>
 #include <utility>
+
+#include <boost/format.hpp>
 
 namespace
 {
@@ -87,6 +90,27 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   }
   // print grouping setup to log file:
   std::cout << "MakeMilleFiles::InitRun: Surface groupings are mvtx " << mvtx_group << " intt " << intt_group << " tpc " << tpc_group << " mms " << mms_group << std::endl;
+
+  // Make TTree for cross check
+  if (!m_tfile_name.empty())
+  {
+    m_file = TFile::Open(m_tfile_name.c_str(), "RECREATE");
+    m_tree = new TTree("make_mille_tree", "make_mille_tree");
+    m_tree->SetDirectory(m_file);
+    for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
+    {
+      // Add local derivatives
+      for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
+      {
+        m_tree->Branch((boost::format("lcl_derivative_%d_%d") % i % j).str().c_str(), &m_lcl_derivative[i][j]);
+      }
+      // Add local derivatives
+      for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
+      {
+        m_tree->Branch((boost::format("glbl_derivative_%d_%d") % i % j).str().c_str(), &m_glbl_derivative[i][j]);
+      }
+    }
+  }
 
   return ret;
 }
@@ -200,6 +224,7 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
                           AlignmentDefs::NGLVTX, glblvtx_derivative[i],
                           AlignmentDefs::glbl_vtx_label, vtx_residual(i),
                           m_vtxSigma(i));
+
           }
         }
       }
@@ -222,6 +247,13 @@ int MakeMilleFiles::End(PHCompositeNode* /*unused*/)
   delete _mille;
   m_constraintFile.close();
 
+  if (m_file && m_tree)
+  {
+    m_tree->Write();
+    m_file->Write();
+    m_file->Close();
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -234,10 +266,15 @@ int MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, m_track_map_name);
   if (!_track_map)
   {
-    std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << std::endl;
+    std::cout
+        << PHWHERE << "\n"
+        << "\tCan't find track map:\n"
+        << "\t" << m_track_map_name << "\n"
+        << "\tAborting\n"
+        << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -248,10 +285,15 @@ int MakeMilleFiles::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _state_map = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+  _state_map = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_state_map_name);
   if (!_state_map)
   {
-    std::cout << PHWHERE << "Error, can't find alignment state map" << std::endl;
+    std::cout
+        << PHWHERE << "\n"
+        << "\tCan't find state map:\n"
+        << "\t" << m_state_map_name << "\n"
+        << "\tAborting\n"
+        << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -534,6 +576,9 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
             glbl_derivative[j] = 0.0;
           }
         }
+
+        // After loop over j, copy value to member for filling
+        m_glbl_derivative[i][j] = glbl_derivative[j];
       }
 
       float lcl_derivative[SvtxAlignmentState::NLOC];
@@ -545,6 +590,9 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         {
           lcl_derivative[j] = 0.;
         }
+
+        // After loop over j, copy value to member for filling
+        m_lcl_derivative[i][j] = lcl_derivative[j];
       }
       if (Verbosity() > 2)
       {
@@ -584,6 +632,9 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
       }
     }
+
+    // Fill Tree
+    m_tree->Fill();
   }
 
   return;
