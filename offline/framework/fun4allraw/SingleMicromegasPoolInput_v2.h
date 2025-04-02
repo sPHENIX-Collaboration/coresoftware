@@ -171,6 +171,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   //! keeps track of how often a given (or all) packets are found for a given BCO
   TH1 *h_packet_stat{nullptr};
 
+  //! keep track of how many heartbeats are found per FEE sampa
+  TH1 *h_heartbeat_stat{nullptr};
+
   //! keeps track of how many packets are found for a given BCO
   TH1 *h_packet{nullptr};
 

@@ -35,6 +35,12 @@ namespace
   // maximum number of packets
   static constexpr int m_npackets_active = 2;
 
+  //! number of sampa chips per fee board
+  static constexpr int m_nsampa_fee = 8;
+
+  //! number of fee boards
+  static constexpr int m_nfee_max = 26;
+
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
   {
@@ -45,6 +51,16 @@ namespace
     LARGE_DATA_T = 0b101,
     TRIG_EARLY_DATA_T = 0b110,
     TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum ModeBitType
+  {
+    BX_COUNTER_SYNC_T = 0,
+    ELINK_HEARTBEAT_T = 1,
+    SAMPA_EVENT_TRIGGER_T = 2,
+    CLEAR_LV1_LAST_T = 6,
+    CLEAR_LV1_ENDAT_T = 7
   };
 
   static constexpr uint16_t FEE_PACKET_MAGIC_KEY_1 = 0xfe;
@@ -525,7 +541,16 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
   h_packet_stat->GetXaxis()->SetBinLabel(2, "5001" );
   h_packet_stat->GetXaxis()->SetBinLabel(3, "5002" );
   h_packet_stat->GetXaxis()->SetBinLabel(4, "All" );
-  h_packet_stat->GetYaxis()->SetTitle( "trigger count" );
+
+  /*
+   * first two bins is the number of heartbeat MODEBITS are received from the GTM, per packet
+   * next bins are how many heartbeat packets are recieved from the FEEs on a per sampa basis
+   */
+  h_heartbeat_stat = new TH1I(
+    "h_MicromegasBCOQA_heartbeat_stat", "Heartbeat count per SAMPA; sampa id; heartbeat count",
+    m_npackets_active+m_nfee_max*m_nsampa_fee, 0, m_npackets_active+m_nfee_max*m_nsampa_fee );
+  h_heartbeat_stat->GetXaxis()->SetBinLabel(1, "5001" );
+  h_heartbeat_stat->GetXaxis()->SetBinLabel(2, "5002" );
 
   // total number of waveform per packet
   h_waveform_count_total = new TH1I( "h_MicromegasBCOQA_waveform_count_total", "Total number of waveforms per packet", m_npackets_active, 0, m_npackets_active );
@@ -546,7 +571,10 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
   }
 
   // register all histograms to histogram manager
-  for( const auto& h:std::initializer_list<TH1*>{h_packet, h_waveform, h_packet_stat, h_waveform_count_total, h_waveform_count_dropped_bco, h_waveform_count_dropped_pool} )
+  for( const auto& h:std::initializer_list<TH1*>{
+    h_packet, h_waveform, h_packet_stat, h_heartbeat_stat,
+    h_waveform_count_total, h_waveform_count_dropped_bco,
+    h_waveform_count_dropped_pool} )
   {
     h->SetFillStyle(1001);
     h->SetFillColor(kYellow);
@@ -691,6 +719,11 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
 
+  // fill per packet heartbeat statistics
+  const bool is_heartbeat=payload.modebits&(1U<<ELINK_HEARTBEAT_T);
+  if( is_heartbeat )
+  { h_heartbeat_stat->Fill(std::to_string(packet_id).c_str(),1); }
+
   // save bco information
   auto& bco_matching_information = m_bco_matching_information_map[packet_id];
   bco_matching_information.save_gtm_bco_information(packet_id, payload);
@@ -794,12 +827,18 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     payload.user_word = data_buffer[3] & 0x7fU;
     payload.bx_timestamp = (uint32_t)((data_buffer[6] & 0x3ffU) << 10U)|(data_buffer[5] & 0x3ffU);
 
-    const bool is_heartbeat( payload.type == HEARTBEAT_T );
+    // fill heartbeat statistics
+    const bool is_heartbeat(payload.type==HEARTBEAT_T);
+    if( is_heartbeat )
+    {
+      const int sampa_id = payload.sampa_address + fee_id*m_nsampa_fee;
+      h_heartbeat_stat->Fill(sampa_id + 2);
+    }
 
     // increment number of waveforms
     ++m_waveform_counters[packet_id].total;
     ++m_fee_waveform_counters[fee_id].total;
-    h_waveform_count_total->Fill( std::to_string(packet_id).c_str(), 1 );
+    h_waveform_count_total->Fill(std::to_string(packet_id).c_str(),1);
 
     if( is_heartbeat )
     {
