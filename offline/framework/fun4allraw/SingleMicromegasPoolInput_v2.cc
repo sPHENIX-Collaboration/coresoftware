@@ -150,30 +150,28 @@ SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2()
   m_timer.print_stat();
 
   // dropped waveforms
-  for( const auto& [packet,counts]:m_waveform_count_total )
+  for( const auto& [packet,counter]:m_waveform_counters )
   {
-    const auto dropped_bco =  m_waveform_count_dropped_bco[packet];
-    const auto dropped_pool =  m_waveform_count_dropped_pool[packet];
     std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 -"
       << " packet: " << packet
-      << " wf_total: " << counts
-      << " wf_dropped_bco: " << dropped_bco
-      << " wf_dropped_pool: " << dropped_pool
-      << " ratio_bco: " << double(dropped_bco)/counts
-      << " ratio_pool: " << double(dropped_pool)/counts
+      << " wf_total: " << counter.total
+      << " wf_dropped_bco: " << counter.dropped_bco
+      << " wf_dropped_pool: " << counter.dropped_pool
+      << " ratio_bco: " << counter.dropped_fraction_bco()
+      << " ratio_pool: " << counter.dropped_fraction_pool()
       << std::endl;
   }
   std::cout << std::endl;
 
   // drop per fee statistics
-  for( const auto& [fee,counts]:m_fee_waveform_count_total )
+  for( const auto& [fee,counter]:m_fee_waveform_counters )
   {
-    const auto dropped_bco =  m_fee_waveform_count_dropped_bco[fee];
     std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 -"
       << " fee: " << fee
-      << " wf_total: " << counts
-      << " wf_dropped_bco: " << dropped_bco
-      << " ratio_bco: " << double(dropped_bco)/counts
+      << " wf_total: " << counter.total
+      << " wf_dropped_bco: " << counter.dropped_bco
+      << " ratio_bco: " << counter.dropped_fraction_bco()
+      << " ratio_pool: " << counter.dropped_fraction_pool()
       << std::endl;
   }
   std::cout << std::endl;
@@ -334,7 +332,8 @@ void SingleMicromegasPoolInput_v2::CleanupUsedPackets(const uint64_t bclk, bool 
       if( dropped )
       {
         // increment dropped waveform counter and histogram
-        ++m_waveform_count_dropped_pool[rawhit->get_packetid()];
+        ++m_waveform_counters[rawhit->get_packetid()].dropped_pool;
+        ++m_fee_waveform_counters[rawhit->get_fee()].dropped_pool;
         h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
       }
       delete rawhit;
@@ -565,10 +564,12 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
     switch( hitformat )
     {
       case IDTPCFEEV4:
+      std::cout << "SingleMicromegasPoolInput_v2::process_packet - hitformat: IDTPCFEEV4" << std::endl;
       MicromegasBcoMatchingInformation_v2::set_gtm_clock_multiplier(4.262916255);
       break;
 
       case IDTPCFEEV5:
+      std::cout << "SingleMicromegasPoolInput_v2::process_packet - hitformat: IDTPCFEEV5" << std::endl;
       MicromegasBcoMatchingInformation_v2::set_gtm_clock_multiplier(30./8);
       break;
 
@@ -758,8 +759,8 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     }
 
     // increment number of waveforms
-    ++m_waveform_count_total[packet_id];
-    ++m_fee_waveform_count_total[fee_id];
+    ++m_waveform_counters[packet_id].total;
+    ++m_fee_waveform_counters[fee_id].total;
     h_waveform_count_total->Fill( std::to_string(packet_id).c_str(), 1 );
 
     // create payload
@@ -795,7 +796,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // if bco matching information is still not verified, drop the packet
     if (!bco_matching_information.is_verified())
     {
-      ++m_waveform_count_dropped_bco[packet_id];
+      ++m_waveform_counters[packet_id].dropped_bco;
       h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1);
       continue;
     }
@@ -814,8 +815,8 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     } else {
 
       // increment counter and histogram
-      ++m_waveform_count_dropped_bco[packet_id];
-      ++m_fee_waveform_count_dropped_bco[fee_id];
+      ++m_waveform_counters[packet_id].dropped_bco;
+      ++m_fee_waveform_counters[fee_id].dropped_bco;
       h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1 );
 
       // skip the waverform

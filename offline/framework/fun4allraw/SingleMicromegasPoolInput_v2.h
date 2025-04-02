@@ -129,20 +129,32 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation_v2>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
-  // keep track of total number of waveforms per fee
-  std::map<int,uint64_t> m_fee_waveform_count_total{};
+  class counter_t
+  {
+    public:
 
-  // keep track of dropped waveforms per fee, due to BCO mismatched
-  std::map<int,uint64_t> m_fee_waveform_count_dropped_bco{};
+    //! total count
+    uint64_t total = 0;
 
-  // keep track of total number of waveforms per packet
-  std::map<int,uint64_t> m_waveform_count_total{};
+    //! drop count due to unmatched bco
+    uint64_t dropped_bco = 0;
 
-  // keep track of dropped waveforms per packet, due to BCO mismatched
-  std::map<int,uint64_t> m_waveform_count_dropped_bco{};
+    //! drop count due to pools
+    uint64_t dropped_pool = 0;
 
-  // keep track of dropped waveforms per packet, due to fun4all pool mismatch
-  std::map<int,uint64_t> m_waveform_count_dropped_pool{};
+    //! dropped fraction (bco)
+    double dropped_fraction_bco() const { return double(dropped_bco)/total; }
+
+    //! dropped fraction (pool)
+    double dropped_fraction_pool() const { return double(dropped_pool)/total; }
+
+  };
+
+  // keep track of waveform statistics per fee
+  std::map<int,counter_t> m_fee_waveform_counters{};
+
+  // keep track of waveform statistics per packet
+  std::map<int,counter_t> m_waveform_counters{};
 
   // timer
   PHTimer m_timer{ "SingleMicromegasPoolInput_v2" };
