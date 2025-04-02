@@ -156,6 +156,12 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   // keep track of waveform statistics per packet
   std::map<int,counter_t> m_waveform_counters{};
 
+  // keep track of heartbeat statistics per fee
+  std::map<int,counter_t> m_fee_heartbeat_counters{};
+
+  // keep track of heartbeat statistics per packet
+  std::map<int,counter_t> m_heartbeat_counters{};
+
   // timer
   PHTimer m_timer{ "SingleMicromegasPoolInput_v2" };
 
@@ -201,21 +207,26 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   {
    public:
 
-    /// true if measurement is hearbeat
-    bool is_heartbeat = false;
-
     /// packet
     unsigned int packet_id = 0;
 
-    /// waveform type
-    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
-    unsigned int type = 0;
+    /// fee
+    unsigned short fee_id = 0;
+
+    /// channel id
+    unsigned short channel = 0;
+
+    /// true if measurement is hearbeat
+    bool is_heartbeat = false;
 
     /// ll1 bco
     uint64_t gtm_bco_first = 0;
 
     /// ll1 bco
     uint64_t gtm_bco = 0;
+
+    /// ll1 bco
+    uint64_t gtm_bco_matched = 0;
 
     /// fee bco
     unsigned int fee_bco_first = 0;
@@ -226,11 +237,8 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
     /// fee bco predicted (from gtm)
     unsigned int fee_bco_predicted = 0;
 
-    /// fee
-    unsigned short fee_id = 0;
-
-    /// channel id
-    unsigned short channel = 0;
+    /// fee bco match (from gtm)
+    unsigned int fee_bco_predicted_matched = 0;
   };
 
   Waveform m_waveform;
