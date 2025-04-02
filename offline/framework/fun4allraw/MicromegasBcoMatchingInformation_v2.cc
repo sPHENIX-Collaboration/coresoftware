@@ -121,6 +121,9 @@ namespace
 bool MicromegasBcoMatchingInformation_v2::m_multiplier_is_set = false;
 double MicromegasBcoMatchingInformation_v2::m_multiplier = 0;
 
+// true if on-fly multiplier adjustment is enabled
+bool MicromegasBcoMatchingInformation_v2::m_multiplier_adjustment_enabled = true;
+
 // muliplier adjustment count
 /* controls how often the gtm multiplier is automatically adjusted */
 unsigned int MicromegasBcoMatchingInformation_v2::m_max_multiplier_adjustment_count = 200;
@@ -379,7 +382,8 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v2::find_gtm_bco(int pa
       m_gtm_bco_list.erase(iter);
 
       // update clock adjustment
-      update_multiplier_adjustment(gtm_bco, fee_bco);
+      if( m_multiplier_adjustment_enabled )
+      { update_multiplier_adjustment(gtm_bco, fee_bco); }
 
       return gtm_bco;
     }

@@ -595,6 +595,7 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 
       case IDTPCFEEV5:
       std::cout << "SingleMicromegasPoolInput_v2::process_packet - hitformat: IDTPCFEEV5" << std::endl;
+      MicromegasBcoMatchingInformation_v2::set_enable_multiplier_adjustment(false);
       MicromegasBcoMatchingInformation_v2::set_gtm_clock_multiplier(30./8);
       break;
 
