@@ -111,10 +111,16 @@ class StructureinJets : public SubsysReco
     m_trk_qual_cut = cut;
   }
 
-  /// set min no. of mvtx hits
-  void setTrkNMVtxCut(const int cut)
+  /// set min no. of silicon clusters
+  void setTrkNSilCut(const int cut)
   {
-    m_trk_nmvtx_cut = cut;
+    m_trk_nsil_cut = cut;
+  }
+
+  /// set min no. of tpc clusters
+  void setTrkNTPCCut(const int cut)
+  {
+    m_trk_ntpc_cut = cut;
   }
 
   /// set jet radius
@@ -149,7 +155,8 @@ class StructureinJets : public SubsysReco
   /// track cuts
   float m_trk_pt_cut{1.0};
   float m_trk_qual_cut{6.0};
-  int m_trk_nmvtx_cut{2};
+  int m_trk_nsil_cut{4};
+  int m_trk_ntpc_cut{32};
   float m_jetRadius{0.4};
 
   /// jet kinematic cuts

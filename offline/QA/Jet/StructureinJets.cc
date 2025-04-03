@@ -220,17 +220,28 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
       SvtxTrack* track = iter.second;
       float quality = track->get_quality();
       auto silicon_seed = track->get_silicon_seed();
-      int nmvtxhits = 0;
+      auto tpc_seed = track->get_tpc_seed();
+
+      // get no. of clusters in silicon seed
+      int nsiliconclusts = 0;
       if (silicon_seed)
       {
-        nmvtxhits = silicon_seed->size_cluster_keys();
+        nsiliconclusts = silicon_seed->size_cluster_keys();
+      }
+
+      // get no. of clusters in tpc seed
+      int ntpcclusts = 0;
+      if (tpc_seed)
+      {
+        ntpcclusts = tpc_seed->size_cluster_keys();
       }
 
       // do some basic quality selection on tracks
       const bool inTrkPtCut = (track->get_pt() >= m_trk_pt_cut);
       const bool inTrkQualCut = (quality <= m_trk_qual_cut);
-      const bool inTrkNMVtxCut = (nmvtxhits >= m_trk_nmvtx_cut);
-      if (!inTrkPtCut || !inTrkQualCut || !inTrkNMVtxCut)
+      const bool inTrkNSilCut = (nsiliconclusts >= m_trk_nsil_cut);
+      const bool inTrkNTPCCut = (ntpcclusts >= m_trk_ntpc_cut);
+      if (!inTrkPtCut || !inTrkQualCut || !inTrkNSilCut || !inTrkNTPCCut)
       {
         continue;
       }
