@@ -153,10 +153,10 @@ class StructureinJets : public SubsysReco
   std::string m_outputFileName;
 
   /// track cuts
-  float m_trk_pt_cut{1.0};
+  float m_trk_pt_cut{0.1};
   float m_trk_qual_cut{6.0};
   int m_trk_nsil_cut{4};
-  int m_trk_ntpc_cut{32};
+  int m_trk_ntpc_cut{25};
   float m_jetRadius{0.4};
 
   /// jet kinematic cuts
