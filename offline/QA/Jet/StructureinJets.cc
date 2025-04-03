@@ -110,7 +110,11 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
   m_hSumTrkOverJetPt->GetXaxis()->SetTitle("Sum track p_{T} / Jet p_{T}");
   m_hSumTrkOverJetPt->GetYaxis()->SetTitle("Counts");
   m_hSumTrkPt = new TH1F(vecHistNames[3].data(), "", 200, 0, 100);
-  m_manager->registerHisto(m_hSumTrkVsJetPtVsCent);
+
+  if (m_isAAFlag)
+  {
+    m_manager->registerHisto(m_hSumTrkVsJetPtVsCent);
+  }
   m_manager->registerHisto(m_hSumTrkVsJetPt);
   m_manager->registerHisto(m_hSumTrkOverJetPt);
   m_manager->registerHisto(m_hSumTrkPt);
@@ -335,17 +339,18 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
     {
       // construct histogram name for projection
       std::string name = m_hSumTrkVsJetPtVsCent->GetName();
+      name.append("_centbin" + std::to_string(i + 1));
 
       m_hSumTrkVsJetPtVsCent->GetZaxis()->SetRange(i + 1, i + 1);
       h_proj = (TH2*) m_hSumTrkVsJetPtVsCent->Project3D("yx");
-      h_proj->SetName(
-          (
-              boost::format(name + "_%1.0f") % m_hSumTrkVsJetPtVsCent->GetZaxis()->GetBinLowEdge(i + 1))
-              .str()
-              .c_str());
+      h_proj->SetName(name.data());
       if (m_writeToOutputFileFlag)
       {
         h_proj->Write();
+      }
+      else
+      {
+        m_manager->registerHisto(h_proj);
       }
     }
   }
