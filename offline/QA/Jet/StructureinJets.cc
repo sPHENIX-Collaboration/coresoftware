@@ -110,6 +110,8 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
   m_hSumTrkOverJetPt->GetXaxis()->SetTitle("Sum track p_{T} / Jet p_{T}");
   m_hSumTrkOverJetPt->GetYaxis()->SetTitle("Counts");
   m_hSumTrkPt = new TH1F(vecHistNames[3].data(), "", 200, 0, 100);
+  m_hSumTrkPt->GetXaxis()->SetTitle("Sum track p_{T}");
+  m_hSumTrkPt->GetYaxis()->SetTitle("Counts");
 
   if (m_isAAFlag)
   {
