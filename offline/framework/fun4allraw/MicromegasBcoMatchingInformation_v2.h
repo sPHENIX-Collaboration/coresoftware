@@ -51,8 +51,6 @@ class MicromegasBcoMatchingInformation_v2
     uint16_t type = 0;
     uint16_t user_word = 0;
     uint32_t bx_timestamp = 0;
-    // uint64_t gtm_bco = 0;
-
     uint16_t data_crc = 0;
     uint16_t calc_crc = 0;
 
@@ -128,6 +126,10 @@ class MicromegasBcoMatchingInformation_v2
     m_multiplier_is_set = true;
     m_multiplier = value;
   }
+
+  /// enable multiplier adjustment
+  static void set_enable_multiplier_adjustment( bool value )
+  { m_multiplier_adjustment_enabled = value; }
 
   /// muliplier adjustment count
   /** controls how often the gtm multiplier is automatically adjusted */
@@ -205,6 +207,9 @@ class MicromegasBcoMatchingInformation_v2
 
   //! gtm clock multiplier
   static double m_multiplier;
+
+  //! true if multiplier adjustment is enabled
+  static bool m_multiplier_adjustment_enabled;
 
   //! multiplier adjustment count
   /* controls how often the gtm multiplier is automatically adjusted */
