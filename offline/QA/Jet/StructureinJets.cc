@@ -21,6 +21,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
 
+#include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
 #include <TVector3.h>
@@ -86,8 +87,10 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 
   // construct histogram names
   std::vector<std::string> vecHistNames = {
-      "trackvscalopt",
-      "trackpt"};
+      "sumtrkvsjetptvscent",
+      "sumtrkvsjetpt",
+      "sumtrkoverjtpt",
+      "sumtrkpt"};
   for (auto& vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
@@ -97,14 +100,20 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
     }
   }
 
-  m_h_track_vs_calo_pt = new TH3F(vecHistNames[0].data(), "", 100, 0, 100, 500, 0, 100, 10, 0, 100);
-  m_h_track_vs_calo_pt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
-  m_h_track_vs_calo_pt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
-  m_h_track_pt = new TH2F(vecHistNames[1].data(), "", 100, 0, 100, 100, 0, 100);
-  m_h_track_pt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
-  m_h_track_pt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
-  m_manager->registerHisto(m_h_track_vs_calo_pt);
-  m_manager->registerHisto(m_h_track_pt);
+  m_hSumTrkVsJetPtVsCent = new TH3F(vecHistNames[0].data(), "", 100, 0, 100, 200, 0, 100, 10, 0, 100);
+  m_hSumTrkVsJetPtVsCent->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
+  m_hSumTrkVsJetPtVsCent->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
+  m_hSumTrkVsJetPt = new TH2F(vecHistNames[1].data(), "", 100, 0, 100, 200, 0, 100);
+  m_hSumTrkVsJetPt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
+  m_hSumTrkVsJetPt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
+  m_hSumTrkOverJetPt = new TH1F(vecHistNames[2].data(), "", 50, 0, 5);
+  m_hSumTrkOverJetPt->GetXaxis()->SetTitle("Sum track p_{T} / Jet p_{T}");
+  m_hSumTrkOverJetPt->GetYaxis()->SetTitle("Counts");
+  m_hSumTrkPt = new TH1F(vecHistNames[3].data(), "", 200, 0, 100);
+  m_manager->registerHisto(m_hSumTrkVsJetPtVsCent);
+  m_manager->registerHisto(m_hSumTrkVsJetPt);
+  m_manager->registerHisto(m_hSumTrkOverJetPt);
+  m_manager->registerHisto(m_hSumTrkPt);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -147,6 +156,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
         << m_recoJetName << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
+
   // get reco tracks
   SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trkNodeName);
   if (!trackmap)
@@ -247,20 +257,21 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     }
 
     // Fill histogram for the current jet
-    assert(m_h_track_vs_calo_pt);
-    assert(m_h_track_pt);
+    assert(m_hSumTrkVsJetPtVsCent);
+    assert(m_hSumTrkVsJetPt);
+    assert(m_hSumTrkOverJetPt);
+    assert(m_hSumTrkPt);
 
     // Fill TH3 histogram for Au+Au collisions
     if (m_isAAFlag)
     {
-      m_h_track_vs_calo_pt->Fill(jet->get_pt(), sumtrk.Perp(), cent);
+      m_hSumTrkVsJetPtVsCent->Fill(jet->get_pt(), sumtrk.Perp(), cent);
     }
 
-    // Fill TH2 histogram for pp collisions
-    else
-    {
-      m_h_track_pt->Fill(jet->get_pt(), sumtrk.Perp());
-    }
+    // Always fill others
+    m_hSumTrkVsJetPt->Fill(jet->get_pt(), sumtrk.Perp());
+    m_hSumTrkOverJetPt->Fill(sumtrk.Perp()/jet->get_pt());
+    m_hSumTrkPt->Fill(sumtrk.Perp());
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -309,16 +320,16 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
   if (m_isAAFlag)
   {
     TH2* h_proj;
-    for (int i = 0; i < m_h_track_vs_calo_pt->GetNbinsZ(); i++)
+    for (int i = 0; i < m_hSumTrkVsJetPtVsCent->GetNbinsZ(); i++)
     {
       // construct histogram name for projection
-      std::string name = m_h_track_vs_calo_pt->GetName();
+      std::string name = m_hSumTrkVsJetPtVsCent->GetName();
 
-      m_h_track_vs_calo_pt->GetZaxis()->SetRange(i + 1, i + 1);
-      h_proj = (TH2*) m_h_track_vs_calo_pt->Project3D("yx");
+      m_hSumTrkVsJetPtVsCent->GetZaxis()->SetRange(i + 1, i + 1);
+      h_proj = (TH2*) m_hSumTrkVsJetPtVsCent->Project3D("yx");
       h_proj->SetName(
           (
-              boost::format(name + "_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1))
+              boost::format(name + "_%1.0f") % m_hSumTrkVsJetPtVsCent->GetZaxis()->GetBinLowEdge(i + 1))
               .str()
               .c_str());
       if (m_writeToOutputFileFlag)
@@ -331,7 +342,7 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
   {
     if (m_writeToOutputFileFlag)
     {
-      m_h_track_pt->Write();  // if pp, do not project onto centrality bins
+      m_hSumTrkVsJetPt->Write();  // if pp, do not project onto centrality bins
     }
   }
   if (Verbosity() > 0)

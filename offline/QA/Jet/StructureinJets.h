@@ -13,6 +13,7 @@
 
 class Fun4AllHistoManager;
 class PHCompositeNode;
+class TH1;
 class TH2;
 class TH3;
 class TriggerAnalyzer;
@@ -164,8 +165,10 @@ class StructureinJets : public SubsysReco
   uint32_t m_trgToSelect{JetQADefs::GL1::MBDNSJet1};
 
   /// output histograms
-  TH3 *m_h_track_vs_calo_pt{nullptr};
-  TH2 *m_h_track_pt{nullptr};
+  TH3 *m_hSumTrkVsJetPtVsCent{nullptr};
+  TH2 *m_hSumTrkVsJetPt{nullptr};
+  TH1 *m_hSumTrkOverJetPt{nullptr};
+  TH1 *m_hSumTrkPt{nullptr};
 
   /// fun4all members
   Fun4AllHistoManager *m_manager{nullptr};
