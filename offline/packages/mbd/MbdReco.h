@@ -15,6 +15,7 @@ class MbdGeom;
 class Event;
 class CaloPacketContainer;
 class Gl1Packet;
+class EventHeader;
 class TF1;
 class TH1;
 
@@ -51,6 +52,7 @@ class MbdReco : public SubsysReco
   MbdPmtContainer *m_mbdpmts{nullptr};
   MbdGeom *m_mbdgeom{nullptr};
   MbdVertexMap *m_mbdvtxmap{nullptr};
+  EventHeader *m_evtheader{nullptr};
 };
 
 #endif  // __MBDRECO_H__
