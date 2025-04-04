@@ -597,7 +597,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_vertex_chi2 = vertex_fillbranch.GetChi2();
     m_calculated_vertex_ndof = vertex_fillbranch.GetNDF();
 
-    m_calculated_vertex_ID = getPVID(topNode, vertex_fillbranch);
+    // it only makes sense to calculate PVID for non-fake vertex
+    // (this otherwise crashes if m_use_fake_pv_nTuple is true in an event with no real vertices)
+    if(m_use_fake_pv_nTuple) m_calculated_vertex_ID = -100; // error value returned by getPVID
+    else m_calculated_vertex_ID = getPVID(topNode, vertex_fillbranch);
     // m_calculated_vertex_cov          = &vertex_fillbranch.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j)
     {
@@ -608,7 +611,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
 
   kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);  
-  if (m_constrain_to_vertex_nTuple)
+  // cannot retrieve vertex map info from fake PV, hence the second condition
+  if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple)
   {
     m_multiplicity = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
   }
