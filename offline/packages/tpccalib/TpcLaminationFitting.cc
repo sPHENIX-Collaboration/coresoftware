@@ -99,6 +99,9 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
   m_run_ZDC_map.insert(std::pair<int, float>(53877, 4758.5));
   m_run_ZDC_map.insert(std::pair<int, float>(53879, 4315.0));
 
+  m_run_ZDC_map.insert(std::pair<int, float>(53098, 0.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53271, 0.0));
+
   int ret = GetNodes(topNode);
   return ret;
 }
@@ -123,12 +126,6 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   if (m_dcc_in_static)
   {
     std::cout << "TpcLaminationFitting::GetNodes - found TPC distortion correction container static" << std::endl;
-  }
-
-  m_dcc_in_average = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, "TpcDistortionCorrectionContainerAverage");
-  if (m_dcc_in_average)
-  {
-    std::cout << "TpcLaminationFitting::GetNodes - found TPC distortion correction container average" << std::endl;
   }
 
   PHNodeIterator iter(topNode);
@@ -268,49 +265,14 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 
     //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
     Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
-    std::cout << "Original coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
     if (m_dcc_in_module_edge)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_module_edge);
     }
-    std::cout << "module edge coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
     if (m_dcc_in_static)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_static);
     }
-    std::cout << "static coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
-    if (m_dcc_in_average)
-    {
-      std::cout << "doing average" << std::endl;
-      std::cout << "is radians: " << m_dcc_in_average->m_phi_hist_in_radians << std::endl;
-      std::cout << "interpolate z: " << m_dcc_in_average->m_interpolate_z << std::endl;
-      std::cout << "dimension: " << m_dcc_in_average->m_dimensions << std::endl;
-
-      int sIndex = (side ? 1 : 0);
-      
-      std::cout << "r map: " << m_dcc_in_average->m_hDRint[sIndex] << "   name: " << m_dcc_in_average->m_hDRint[sIndex]->GetName() << "   title: " << m_dcc_in_average->m_hDRint[sIndex]->GetTitle() << "   entries: " << m_dcc_in_average->m_hDRint[sIndex]->GetEntries() << std::endl;
-      std::cout << "phi map: " << m_dcc_in_average->m_hDPint[sIndex] << "   name: " << m_dcc_in_average->m_hDPint[sIndex]->GetName() << "   title: " << m_dcc_in_average->m_hDPint[sIndex]->GetTitle() << "   entries: " << m_dcc_in_average->m_hDPint[sIndex]->GetEntries() << std::endl;
-      double tmpR = sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
-      double tmpPhi = atan2(pos[1], pos[0]);
-      if(tmpPhi < 0)
-      {
-	tmpPhi += 2 * M_PI;
-
-      }
-      auto binP = m_dcc_in_average->m_hDRint[sIndex]->GetXaxis()->FindBin(tmpPhi);
-      auto binR = m_dcc_in_average->m_hDRint[sIndex]->GetYaxis()->FindBin(tmpR);
-      std::cout << "in R: " << tmpR << "   out R: " << tmpR - m_dcc_in_average->m_hDRint[sIndex]->Interpolate(tmpPhi, tmpR) << std::endl;
-      std::cout << "R distiortion: " << m_dcc_in_average->m_hDRint[sIndex]->Interpolate(tmpPhi, tmpR) << std::endl;
-      std::cout << "R distortion bin content: " << m_dcc_in_average->m_hDRint[sIndex]->GetBinContent(binP, binR) << std::endl;
-      
-      binP = m_dcc_in_average->m_hDPint[sIndex]->GetXaxis()->FindBin(tmpPhi);
-      binR = m_dcc_in_average->m_hDPint[sIndex]->GetYaxis()->FindBin(tmpR);
-      std::cout << "in phi: " << tmpPhi << "   out phi: " << tmpPhi - (m_dcc_in_average->m_hDPint[sIndex]->Interpolate(tmpPhi, tmpR)/tmpR) << std::endl;
-      std::cout << "phi distortion: " << (m_dcc_in_average->m_hDPint[sIndex]->Interpolate(tmpPhi, tmpR)/tmpR) << std::endl;
-      std::cout << "phi distortion bin content: " << m_dcc_in_average->m_hDPint[sIndex]->GetBinContent(binP, binR) << std::endl;
-      pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_average);
-    }
-    std::cout << "average coortinates: (" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl << std::endl;
 
     TVector3 tmp_pos(pos[0], pos[1], pos[2]);
 
@@ -369,11 +331,6 @@ int TpcLaminationFitting::fitLaminations()
   else
   {
     std::cout << "runnumber " << m_runnumber << " not found. Using default value of 4500" << std::endl;
-  }
-
-  if(m_dcc_in_average)
-  {
-    ZDC = 0.0;
   }
   
 
@@ -565,14 +522,17 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
         }
         int phiBin = phiDistortionLamination[s]->GetXaxis()->FindBin(phi);
         //m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) - m_laminationCenter[l][s]);
-        if(s==0)
+	m_fLamination[l][s]->SetParameter(3, m_laminationOffset[l][s]);
+	/*
+	if(s==0)
 	{
-	  m_fLamination[l][s]->SetParameter(3, 0.011);
+	  m_fLamination[l][s]->SetParameter(3, 0.0);
 	}
         else
 	{
-	  m_fLamination[l][s]->SetParameter(3, 0.008);
+	  m_fLamination[l][s]->SetParameter(3, 0.0);
 	}
+	*/
 	//m_fLamination[l][s]->SetParameter(3, 0.0);
         double phiDistortion = R * m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1)) / (phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1) - phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i));
         //m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) + m_laminationCenter[l][s]);

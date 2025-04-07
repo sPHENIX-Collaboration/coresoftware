@@ -70,7 +70,6 @@ class TpcLaminationFitting : public SubsysReco
 
   TpcDistortionCorrectionContainer *m_dcc_in_module_edge{nullptr};
   TpcDistortionCorrectionContainer *m_dcc_in_static{nullptr};
-  TpcDistortionCorrectionContainer *m_dcc_in_average{nullptr};
 
   TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
 
@@ -80,6 +79,7 @@ class TpcLaminationFitting : public SubsysReco
   TH2 *m_hLamination[18][2]{{nullptr}};
   TF1 *m_fLamination[18][2]{{nullptr}};
   double m_laminationCenter[18][2]{{0.0}};
+  double m_laminationOffset[18][2]{{0.0}};
   bool m_laminationGoodFit[18][2]{{false}};
   double m_distanceToFit[18][2]{{0.0}};
   int m_nBinsFit[18][2]{{0}};
