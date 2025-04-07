@@ -29,7 +29,7 @@ class PHIOManager
 
  protected:
   PHIOManager() = default;
-  size_t eventNumber {0};
+  size_t eventNumber{0};
   std::string filename;
 };
 

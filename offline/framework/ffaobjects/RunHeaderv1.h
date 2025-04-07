@@ -16,9 +16,9 @@ class RunHeaderv1 : public RunHeader
   ~RunHeaderv1() override = default;
 
   void Reset() override { return; }
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &oout = std::cout) const override;
   int isValid() const override;
-  PHObject* CloneMe() const override { return new RunHeaderv1(*this);}
+  PHObject *CloneMe() const override { return new RunHeaderv1(*this); }
   int get_RunNumber() const override { return RunNumber; }
   void set_RunNumber(const int run) override
   {

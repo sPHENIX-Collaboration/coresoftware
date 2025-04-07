@@ -5,22 +5,19 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-using namespace fastjet;
-
 bool enablep = false;
 struct algo_info
 {
-  JetAlgorithm algorithm;
+  fastjet::JetAlgorithm algorithm;
   double R;
   int PID;
   double EtaMin;
   double EtaMax;
   double EtMin;
 };
-vector<algo_info> algo_info_vec;
+std::vector<algo_info> algo_info_vec;
 
-std::map<std::string, JetAlgorithm> algorithms;
+std::map<std::string, fastjet::JetAlgorithm> algorithms;
 
 struct loaderObj
 {
@@ -28,15 +25,15 @@ struct loaderObj
     static bool init = false;
     if (!init)
       {
-	algorithms["KT"] = kt_algorithm;
-	algorithms["CAMBRIDGE"] = cambridge_algorithm;
-	algorithms["ANTIKT"] = antikt_algorithm;
-	algorithms["GENKT"] = genkt_algorithm;
-	algorithms["CAMBRIDGE_FOR_PASSIVE"] = cambridge_for_passive_algorithm;
-	algorithms["GENKT_FOR_PASSIVE"] = genkt_for_passive_algorithm;
-	algorithms["EE_KT"] = ee_kt_algorithm;
-	algorithms["EE_GENKT"] = ee_genkt_algorithm;
-	algorithms["PLUGIN"] = plugin_algorithm ;
+	algorithms["KT"] = fastjet::kt_algorithm;
+	algorithms["CAMBRIDGE"] = fastjet::cambridge_algorithm;
+	algorithms["ANTIKT"] = fastjet::antikt_algorithm;
+	algorithms["GENKT"] = fastjet::genkt_algorithm;
+	algorithms["CAMBRIDGE_FOR_PASSIVE"] = fastjet::cambridge_for_passive_algorithm;
+	algorithms["GENKT_FOR_PASSIVE"] = fastjet::genkt_for_passive_algorithm;
+	algorithms["EE_KT"] = fastjet::ee_kt_algorithm;
+	algorithms["EE_GENKT"] = fastjet::ee_genkt_algorithm;
+	algorithms["PLUGIN"] = fastjet::plugin_algorithm ;
       }
   }
 };
@@ -44,17 +41,17 @@ struct loaderObj
 loaderObj loader;
 
 void
-hijfst_control(int enable, vector<string> valgorithm, vector<float> vR, vector<int> vPID, vector<float> vEtaMin, vector<float> vEtaMax, vector<float> vEtMin)
+hijfst_control(int enable, const std::vector<std::string> &valgorithm, const std::vector<float> &vR, const std::vector<int> &vPID, const std::vector<float> &vEtaMin, const std::vector<float> &vEtaMax, const std::vector<float> &vEtMin)
 {
   enablep = (enable==1) ? true: false;
   
   algo_info_vec.clear();
   for (unsigned int i = 0; i < valgorithm.size(); ++i)
     {
-      string algorithmName = valgorithm[i];
-      transform(algorithmName.begin(), algorithmName.end(), algorithmName.begin(), ::toupper);
+      std::string algorithmName = valgorithm[i];
+      std::transform(algorithmName.begin(), algorithmName.end(), algorithmName.begin(), ::toupper);
       algo_info algo;
-      algo.algorithm = ((algorithms.find(algorithmName) == algorithms.end()) ? antikt_algorithm : algorithms[algorithmName]);
+      algo.algorithm = ((algorithms.find(algorithmName) == algorithms.end()) ? fastjet::antikt_algorithm : algorithms[algorithmName]);
       algo.R = vR[i];
       algo.PID = vPID[i];
       algo.EtaMin = vEtaMin[i];
@@ -89,7 +86,7 @@ hijfst_(int *n, int *N, int *K, float *P, float *V)
   float *V4 = new(V+3*M) float[M];
   float *V5 = new(V+4*M) float[M];
 
-  std::vector<PseudoJet> particles;
+  std::vector<fastjet::PseudoJet> particles;
     
   for (int i = 0; i < *n; i++)
     {
@@ -97,19 +94,19 @@ hijfst_(int *n, int *N, int *K, float *P, float *V)
  // cppcheck-suppress uninitdata
       if (K1[i] == 1)
 	{
-	  particles.push_back(PseudoJet(px[i], py[i], pz[i], E[i]));
+	  particles.push_back(fastjet::PseudoJet(px[i], py[i], pz[i], E[i]));
 	}
     }
 
-  for (vector<algo_info>::iterator it = algo_info_vec.begin(); it != algo_info_vec.end(); ++it)
+  for (std::vector<algo_info>::iterator it = algo_info_vec.begin(); it != algo_info_vec.end(); ++it)
     {
       algo_info a = *it;
 
       // Set the algorithm and R value
-      JetDefinition jet_def(a.algorithm, a.R);
+      fastjet::JetDefinition jet_def(a.algorithm, a.R);
       
-      ClusterSequence cs(particles, jet_def);
-      std::vector<PseudoJet> jets = cs.inclusive_jets();
+      fastjet::ClusterSequence cs(particles, jet_def);
+      std::vector<fastjet::PseudoJet> jets = cs.inclusive_jets();
     
       // Loop over all the "jets" and add their kinematic properties to
       // the LUJET common block.  Set their status to 103 to distinguish

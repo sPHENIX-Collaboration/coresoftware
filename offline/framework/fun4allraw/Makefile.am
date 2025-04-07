@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   intt_pool.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
+  MicromegasBcoMatchingInformation_v1.h\
   MicromegasBcoMatchingInformation_v2.h\
   MvtxRawDefs.h \
   SingleCemcTriggerInput.h \
@@ -85,7 +86,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
   intt_pool.cc \
-  MicromegasBcoMatchingInformation.cc\
+  MicromegasBcoMatchingInformation_v1.cc\
   MicromegasBcoMatchingInformation_v2.cc\
   mvtx_pool.cc \
   MvtxRawDefs.cc \

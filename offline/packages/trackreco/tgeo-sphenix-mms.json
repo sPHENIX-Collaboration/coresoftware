@@ -76,7 +76,7 @@
       },
       "geo-tgeo-layer-r-split": {
 	"negative": 0.0,
-        "central": 1.0,
+        "central": 0.0,
         "positive": 0.0
       },
       "geo-tgeo-layer-z-split": {

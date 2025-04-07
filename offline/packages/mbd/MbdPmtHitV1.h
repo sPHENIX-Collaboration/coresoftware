@@ -10,7 +10,7 @@
 class MbdPmtHitV1 : public MbdPmtHit
 {
  public:
-  MbdPmtHitV1() {}
+  MbdPmtHitV1() = default;
   ~MbdPmtHitV1() override = default;
 
   //! Just does a clear
@@ -41,7 +41,7 @@ class MbdPmtHitV1 : public MbdPmtHit
   }
 
   //! Prints out exact identity of object
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   //! isValid returns non zero if object contains valid data
   virtual int isValid() const override
@@ -51,10 +51,14 @@ class MbdPmtHitV1 : public MbdPmtHit
   }
 
  private:
-  Short_t bpmt{-1};
-  Float_t bq{std::numeric_limits<float>::quiet_NaN()};
-  Float_t btt{std::numeric_limits<float>::quiet_NaN()};
-  Float_t btq{std::numeric_limits<float>::quiet_NaN()};
+  //Short_t bpmt{-1};
+  //Float_t bq{std::numeric_limits<float>::quiet_NaN()};
+  //Float_t btt{std::numeric_limits<float>::quiet_NaN()};
+  //Float_t btq{std::numeric_limits<float>::quiet_NaN()};
+  Short_t bpmt;
+  Float_t bq;
+  Float_t btt;
+  Float_t btq;
 
   ClassDefOverride(MbdPmtHitV1, 1)
 };

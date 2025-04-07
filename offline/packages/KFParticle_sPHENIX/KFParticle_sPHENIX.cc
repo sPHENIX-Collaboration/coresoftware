@@ -110,6 +110,16 @@ int KFParticle_sPHENIX::Init(PHCompositeNode *topNode)
     returnCode = parseDecayDescriptor();
   }
 
+  if (m_get_trigger_info)
+  {
+    triggeranalyzer = new TriggerAnalyzer();
+  }
+
+  if (m_use_PID)
+  {
+    init_dEdx_fits();
+  }
+
   return returnCode;
 }
 
@@ -128,6 +138,18 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
   std::vector<KFParticle> mother, vertex_kfparticle;
   std::vector<std::vector<KFParticle>> daughters, intermediates;
   int nPVs, multiplicity;
+
+  SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
+  multiplicity = check_trackmap->size();
+
+  if (check_trackmap->size() == 0)
+  {
+    if (Verbosity() >= VERBOSITY_SOME)
+    {
+      std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
+    }
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   if (!m_use_fake_pv)
   {
@@ -158,17 +180,6 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
   }
   
-  SvtxTrackMap *check_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name);
-  if (check_trackmap->size() == 0)
-  {
-    if (Verbosity() >= VERBOSITY_SOME)
-    {
-      std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
-    }
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  multiplicity = check_trackmap->size();
-
   createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs);
   if (!m_has_intermediates_sPHENIX)
   {
@@ -187,7 +198,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
       if (m_save_output && getCandidateCounter() == 0)
       {
         m_outfile = new TFile(m_outfile_name.c_str(), "RECREATE");
-        initializeBranches();
+        initializeBranches(topNode);
       }
 
       //candidateCounter += 1;
@@ -195,7 +206,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
 
       if (m_save_output)
       {
-        fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i], nPVs, multiplicity);
+        fillBranch(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
       }
       if (m_save_dst)
       {

@@ -15,6 +15,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
+#include <trackbase/TrkrCluster.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -92,6 +93,9 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
     {
       const auto ckey = citer->first;
       const auto cluster = citer->second;
+      if(cluster->getMaxAdc() < m_adcCut){
+        continue;
+      }
       const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
       clusterPositions.insert(std::make_pair(ckey, global));
     }

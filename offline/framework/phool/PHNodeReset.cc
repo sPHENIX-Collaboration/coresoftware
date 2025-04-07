@@ -24,6 +24,7 @@ void PHNodeReset::perform(PHNode* node)
   {
     if (node->getObjectType() == "PHObject")
     {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
       (static_cast<PHDataNode<PHObject>*>(node))->getData()->Reset();
     }
   }

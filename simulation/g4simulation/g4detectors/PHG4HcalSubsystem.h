@@ -23,9 +23,7 @@ class PHG4HcalSubsystem : public PHG4Subsystem
   PHG4HcalSubsystem(const std::string &name = "HCALCYLINDER", const int layer = 0);
 
   //! destructor
-  ~PHG4HcalSubsystem(void) override
-  {
-  }
+  ~PHG4HcalSubsystem(void) override = default;
 
   //! init
   /*!
@@ -65,7 +63,7 @@ class PHG4HcalSubsystem : public PHG4Subsystem
   void SetActive(const int i = 1) { active = i; }
   void SetAbsorberActive(const int i = 1) { absorberactive = i; }
   void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() { return superdetector; }
+  const std::string &SuperDetector() { return superdetector; }
 
   void SetLightCorrection(float inner_radius, float inner_corr,
                           float outer_radius, float outer_corr)

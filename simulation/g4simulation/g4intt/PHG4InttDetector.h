@@ -26,7 +26,7 @@ class PHG4InttDetector : public PHG4Detector
   PHG4InttDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
-  ~PHG4InttDetector() override {}
+  ~PHG4InttDetector() override = default;
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
 
@@ -39,7 +39,7 @@ class PHG4InttDetector : public PHG4Detector
   {
     m_SuperDetector = name;
   }
-  const std::string SuperDetector() const
+  const std::string &SuperDetector() const
   {
     return m_SuperDetector;
   }
@@ -47,7 +47,7 @@ class PHG4InttDetector : public PHG4Detector
   {
     m_DetectorType = name;
   }
-  const std::string Detector() const
+  const std::string &Detector() const
   {
     return m_DetectorType;
   }

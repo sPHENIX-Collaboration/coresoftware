@@ -1842,7 +1842,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
-  auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   std::set<unsigned int> tpc_seed_ids;
@@ -1902,6 +1902,11 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     m_tpcseedeta = std::numeric_limits<float>::quiet_NaN();
     m_tpcseedcharge = std::numeric_limits<int>::quiet_NaN();
 
+    m_pcax = track->get_x();
+    m_pcay = track->get_y();
+    m_pcaz = track->get_z();
+    m_dcaxy = std::numeric_limits<float>::quiet_NaN();
+    m_dcaz = std::numeric_limits<float>::quiet_NaN();
     m_vertexid = track->get_vertex_id();
     if (vertexmap)
     {
@@ -1912,15 +1917,12 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         m_vx = vertex->get_x();
         m_vy = vertex->get_y();
         m_vz = vertex->get_z();
+        Acts::Vector3 v(m_vx, m_vy, m_vz);
+        auto dcapair = TrackAnalysisUtils::get_dca(track, v);
+        m_dcaxy = dcapair.first.first;
+        m_dcaz = dcapair.second.first;
       }
     }
-    m_pcax = track->get_x();
-    m_pcay = track->get_y();
-    m_pcaz = track->get_z();
-    Acts::Vector3 zero = Acts::Vector3::Zero();
-    auto dcapair = TrackAnalysisUtils::get_dca(track, zero);
-    m_dcaxy = dcapair.first.first;
-    m_dcaz = dcapair.second.first;
 
     auto tpcseed = track->get_tpc_seed();
     if (tpcseed)
@@ -2167,7 +2169,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
-  auto vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
 
   std::set<unsigned int> tpc_seed_ids;
@@ -2230,6 +2232,12 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     m_tpcseedcharge = std::numeric_limits<int>::quiet_NaN();
 
     m_vertexid = track->get_vertex_id();
+
+    m_pcax = track->get_x();
+    m_pcay = track->get_y();
+    m_pcaz = track->get_z();
+    m_dcaxy = std::numeric_limits<float>::quiet_NaN();
+    m_dcaz = std::numeric_limits<float>::quiet_NaN();
     if (vertexmap)
     {
       auto vertexit = vertexmap->find(m_vertexid);
@@ -2239,15 +2247,12 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
         m_vx = vertex->get_x();
         m_vy = vertex->get_y();
         m_vz = vertex->get_z();
+        Acts::Vector3 vert(m_vx, m_vy, m_vz);
+        auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
+        m_dcaxy = dcapair.first.first;
+        m_dcaz = dcapair.second.first;
       }
     }
-    m_pcax = track->get_x();
-    m_pcay = track->get_y();
-    m_pcaz = track->get_z();
-    Acts::Vector3 zero = Acts::Vector3::Zero();
-    auto dcapair = TrackAnalysisUtils::get_dca(track, zero);
-    m_dcaxy = dcapair.first.first;
-    m_dcaz = dcapair.second.first;
 
     auto tpcseed = track->get_tpc_seed();
     if (tpcseed)

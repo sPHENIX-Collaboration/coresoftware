@@ -9,10 +9,10 @@
 static const int NPMTBBCV1 = 128;
 
 BbcPmtContainerV1::BbcPmtContainerV1()
+  : BbcPmtHits(new TClonesArray("BbcPmtHitV1", NPMTBBCV1))
 {
   // BbcPmtHit is class for single hit (members: pmt,adc,tdc0,tdc1), do not mix
   // with TClonesArray *BbcPmtHits
-  BbcPmtHits = new TClonesArray("BbcPmtHitV1", NPMTBBCV1);
 }
 
 BbcPmtContainerV1::~BbcPmtContainerV1()

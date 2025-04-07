@@ -65,6 +65,18 @@ class CaloFittingQA : public SubsysReco
   {
     m_hcal_high_adc_threshold = hath;
   }
+  void set_cemc_hit_threshold(int hthres)
+  {
+    m_cemc_hit_threshold = hthres;
+  }
+  void set_ihcal_hit_threshold(int hthres)
+  {
+    m_ihcal_hit_threshold = hthres;
+  }
+  void set_ohcal_hit_threshold(int hthres)
+  {
+    m_ohcal_hit_threshold = hthres;
+  }
 
  private:
   void createHistos();
@@ -75,6 +87,9 @@ class CaloFittingQA : public SubsysReco
   TProfile2D* h_cemc_etaphi_pedestal{nullptr};
   TProfile2D* h_ihcal_etaphi_pedestal{nullptr};
   TProfile2D* h_ohcal_etaphi_pedestal{nullptr};
+  TH2* h_cemc_zs_frac_vs_multiplicity{nullptr};
+  TH2* h_ihcal_zs_frac_vs_multiplicity{nullptr};
+  TH2* h_ohcal_zs_frac_vs_multiplicity{nullptr};
   TH1* h_packet_events{nullptr};
 
   CDBTTree *cdbttree = nullptr;
@@ -88,6 +103,10 @@ class CaloFittingQA : public SubsysReco
   float m_cemc_high_adc_threshold = 2000.;
   float m_hcal_adc_threshold = 100.;
   float m_hcal_high_adc_threshold = 2000.;
+
+  float m_cemc_hit_threshold = 200; // ~ 300 MeV
+  float m_ihcal_hit_threshold = 600; // ~ 300 MeV
+  float m_ohcal_hit_threshold = 100; // ~ 300 MeV
 
   std::string m_calibName;
   std::string m_fieldname;

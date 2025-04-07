@@ -44,7 +44,7 @@ DeadHotMapLoader::DeadHotMapLoader(const std::string &detector)
 int DeadHotMapLoader::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst(
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst(
       "PHCompositeNode", "RUN"));
   if (!runNode)
   {

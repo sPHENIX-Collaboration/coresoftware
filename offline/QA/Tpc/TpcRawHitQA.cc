@@ -5,6 +5,7 @@
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <ffarawobjects/TpcRawHit.h>
 #include <ffarawobjects/TpcRawHitContainer.h>
@@ -38,8 +39,9 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
   if (!tpc_node)
   {
     std::cout << __PRETTY_FUNCTION__ << " : ERROR : "
-              << "No TPC node found, exit" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+              << "No TPC node found, unregistering module" << std::endl;
+    Fun4AllServer::instance()->unregisterSubsystem(this);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   PHNodeIterator tpc_itr(tpc_node);

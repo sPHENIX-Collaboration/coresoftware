@@ -7,7 +7,7 @@ void MbdPmtHitV1::Reset()
 
 void MbdPmtHitV1::Clear(Option_t* /*unused*/)
 {
-  // std::cout << "clearing " << bpmt << std::endl;
+  std::cout << "clearing " << bpmt << std::endl;
   bpmt = -1;
   bq = std::numeric_limits<float>::quiet_NaN();
   btt = std::numeric_limits<float>::quiet_NaN();

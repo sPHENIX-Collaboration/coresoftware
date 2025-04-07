@@ -27,9 +27,9 @@ class EventHeaderv1 : public EventHeader
   void Reset() override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &out = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
@@ -53,8 +53,8 @@ class EventHeaderv1 : public EventHeader
   int64_t get_intval(const std::string &name) const override;
 
  private:
-  int RunNumber {0};    // Run number
-  int EvtSequence {0};  // Event number
+  int RunNumber{0};    // Run number
+  int EvtSequence{0};  // Event number
   std::map<std::string, int64_t> m_IntEventProperties;
   std::map<std::string, float> m_FloatEventProperties;
 

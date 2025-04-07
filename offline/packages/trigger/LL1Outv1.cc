@@ -6,8 +6,8 @@
 
 LL1Outv1::LL1Outv1()
   : m_trigger_key(TriggerDefs::getTriggerKey(TriggerDefs::GetTriggerId(m_trigger_type)))
+  , m_trigger_bits(new std::vector<unsigned int>())
 {
-  m_trigger_bits = new std::vector<unsigned int>();
 }
 
 LL1Outv1::LL1Outv1(const std::string& triggertype, const std::string& ll1type)
@@ -15,9 +15,8 @@ LL1Outv1::LL1Outv1(const std::string& triggertype, const std::string& ll1type)
   , m_triggerid(TriggerDefs::GetTriggerId(triggertype))
   , m_ll1_type(ll1type)
   , m_trigger_type(triggertype)
+  , m_trigger_bits(new std::vector<unsigned int>())
 {
-  m_trigger_bits = new std::vector<unsigned int>();
-
   int ntriggerwords = 0;
   if (m_triggerid == TriggerDefs::TriggerId::jetTId || m_triggerid == TriggerDefs::TriggerId::photonTId)
   {
@@ -150,7 +149,7 @@ void LL1Outv1::addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit
 void LL1Outv1::addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk)
 {
   unsigned int primk = pk;
-  if (!m_triggered_primitives.size())
+  if (m_triggered_primitives.empty())
   {
     m_triggered_primitives.push_back(primk);
   }

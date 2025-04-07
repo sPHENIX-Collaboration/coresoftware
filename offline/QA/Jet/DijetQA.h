@@ -90,7 +90,37 @@ class DijetQA : public SubsysReco
   /// Reset
   int Reset(PHCompositeNode * /*topNode*/) override;
 
+  /// Print something
   void Print(const std::string &what = "ALL") const override;
+
+  /// Set the eta range for reco jets
+  void setEtaRange(double low, double high)
+  {
+    m_etaRange.first = low;
+    m_etaRange.second = high;
+  }
+
+  /// Set the leading pt range for the reco jets
+  void setPtLeadRange(double low, double high)
+  {
+    m_ptLeadRange.first = low;
+    m_ptLeadRange.second = high;
+  }
+
+  /// Set the sub-leading pt range for the reco jets
+  void setPtSubRange(double low, double high)
+  {
+    m_ptSubRange.first = low;
+    m_ptSubRange.second = high;
+  }
+
+  /// Specifies a trigger to require
+  void setTrgToSelect(const uint32_t trig = JetQADefs::GL1::MBDNSJet1)
+  {
+    m_doTrgSelect = true;
+    m_trgToSelect = trig;
+  }
+
   //////////////////////////////////////////////////////////////
   //							    //
   //        X_j = (p_(T, 1))/(p_(T,2))			    //
@@ -101,7 +131,8 @@ class DijetQA : public SubsysReco
  private:
   std::string m_moduleName;
   std::pair<float, float> m_etaRange;
-  std::pair<float, float> m_ptRange;
+  std::pair<float, float> m_ptLeadRange;
+  std::pair<float, float> m_ptSubRange;
   float DeltaPhiOne{3.141529694 / 32.};  // cut on the opening angle of phi for the identified jets
                                           // Should set to integer multilple of hcal phi tower size ->Pi/32
   int ntowers_opening{2};

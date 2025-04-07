@@ -25,6 +25,7 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TTree.h>
 
 #include <algorithm>
 #include <bitset>
@@ -33,6 +34,12 @@ namespace
 {
   // maximum number of packets
   static constexpr int m_npackets_active = 2;
+
+  //! number of sampa chips per fee board
+  static constexpr int m_nsampa_fee = 8;
+
+  //! number of fee boards
+  static constexpr int m_nfee_max = 26;
 
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
@@ -44,6 +51,16 @@ namespace
     LARGE_DATA_T = 0b101,
     TRIG_EARLY_DATA_T = 0b110,
     TRIG_EARLY_LARGE_DATA_T = 0b111,
+  };
+
+  /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
+  enum ModeBitType
+  {
+    BX_COUNTER_SYNC_T = 0,
+    ELINK_HEARTBEAT_T = 1,
+    SAMPA_EVENT_TRIGGER_T = 2,
+    CLEAR_LV1_LAST_T = 6,
+    CLEAR_LV1_ENDAT_T = 7
   };
 
   static constexpr uint16_t FEE_PACKET_MAGIC_KEY_1 = 0xfe;
@@ -124,6 +141,7 @@ namespace
 
 }  // namespace
 
+
 //______________________________________________________________
 SingleMicromegasPoolInput_v2::SingleMicromegasPoolInput_v2(const std::string& name)
   : SingleStreamingInput(name)
@@ -137,34 +155,63 @@ SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2()
 {
   std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 - runnumber: " << RunNumber() << std::endl;
 
+  if (m_evaluation_file && m_evaluation_tree)
+  {
+    m_evaluation_file->cd();
+    m_evaluation_tree->Write();
+    m_evaluation_file->Close();
+  }
+
   // timer statistics
   m_timer.print_stat();
 
   // dropped waveforms
-  for( const auto& [packet,counts]:m_waveform_count_total )
+  for( const auto& [packet,counter]:m_waveform_counters )
   {
-    const auto dropped_bco =  m_waveform_count_dropped_bco[packet];
-    const auto dropped_pool =  m_waveform_count_dropped_pool[packet];
     std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 -"
       << " packet: " << packet
-      << " wf_total: " << counts
-      << " wf_dropped_bco: " << dropped_bco
-      << " wf_dropped_pool: " << dropped_pool
-      << " ratio_bco: " << double(dropped_bco)/counts
-      << " ratio_pool: " << double(dropped_pool)/counts
+      << " wf_total: " << counter.total
+      << " wf_dropped_bco: " << counter.dropped_bco
+      << " wf_dropped_pool: " << counter.dropped_pool
+      << " ratio_bco: " << counter.dropped_fraction_bco()
+      << " ratio_pool: " << counter.dropped_fraction_pool()
+      << std::endl;
+  }
+  std::cout << std::endl;
+
+  // dropped heartbeats
+  for( const auto& [packet,counter]:m_heartbeat_counters )
+  {
+    std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 -"
+      << " packet: " << packet
+      << " hb_total: " << counter.total
+      << " hb_dropped_bco: " << counter.dropped_bco
+      << " ratio_bco: " << counter.dropped_fraction_bco()
       << std::endl;
   }
   std::cout << std::endl;
 
   // drop per fee statistics
-  for( const auto& [fee,counts]:m_fee_waveform_count_total )
+  for( const auto& [fee,counter]:m_fee_waveform_counters )
   {
-    const auto dropped_bco =  m_fee_waveform_count_dropped_bco[fee];
     std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 -"
       << " fee: " << fee
-      << " wf_total: " << counts
-      << " wf_dropped_bco: " << dropped_bco
-      << " ratio_bco: " << double(dropped_bco)/counts
+      << " wf_total: " << counter.total
+      << " wf_dropped_bco: " << counter.dropped_bco
+      << " ratio_bco: " << counter.dropped_fraction_bco()
+      << " ratio_pool: " << counter.dropped_fraction_pool()
+      << std::endl;
+  }
+  std::cout << std::endl;
+
+  // drop per fee statistics
+  for( const auto& [fee,counter]:m_fee_heartbeat_counters )
+  {
+    std::cout << "SingleMicromegasPoolInput_v2::~SingleMicromegasPoolInput_v2 -"
+      << " fee: " << fee
+      << " hb_total: " << counter.total
+      << " hb_dropped_bco: " << counter.dropped_bco
+      << " ratio_bco: " << counter.dropped_fraction_bco()
       << std::endl;
   }
   std::cout << std::endl;
@@ -325,7 +372,8 @@ void SingleMicromegasPoolInput_v2::CleanupUsedPackets(const uint64_t bclk, bool 
       if( dropped )
       {
         // increment dropped waveform counter and histogram
-        ++m_waveform_count_dropped_pool[rawhit->get_packetid()];
+        ++m_waveform_counters[rawhit->get_packetid()].dropped_pool;
+        ++m_fee_waveform_counters[rawhit->get_fee()].dropped_pool;
         h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
       }
       delete rawhit;
@@ -341,7 +389,6 @@ void SingleMicromegasPoolInput_v2::CleanupUsedPackets(const uint64_t bclk, bool 
   // cleanup matching information
   for( auto&& bco_matching:m_bco_matching_information_map )
   { bco_matching.second.cleanup(bclk); }
-
 }
 
 //_______________________________________________________
@@ -494,7 +541,16 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
   h_packet_stat->GetXaxis()->SetBinLabel(2, "5001" );
   h_packet_stat->GetXaxis()->SetBinLabel(3, "5002" );
   h_packet_stat->GetXaxis()->SetBinLabel(4, "All" );
-  h_packet_stat->GetYaxis()->SetTitle( "trigger count" );
+
+  /*
+   * first two bins is the number of heartbeat MODEBITS are received from the GTM, per packet
+   * next bins are how many heartbeat packets are recieved from the FEEs on a per sampa basis
+   */
+  h_heartbeat_stat = new TH1I(
+    "h_MicromegasBCOQA_heartbeat_stat", "Heartbeat count per SAMPA; sampa id; heartbeat count",
+    m_npackets_active+m_nfee_max*m_nsampa_fee, 0, m_npackets_active+m_nfee_max*m_nsampa_fee );
+  h_heartbeat_stat->GetXaxis()->SetBinLabel(1, "5001" );
+  h_heartbeat_stat->GetXaxis()->SetBinLabel(2, "5002" );
 
   // total number of waveform per packet
   h_waveform_count_total = new TH1I( "h_MicromegasBCOQA_waveform_count_total", "Total number of waveforms per packet", m_npackets_active, 0, m_npackets_active );
@@ -515,20 +571,65 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
   }
 
   // register all histograms to histogram manager
-  for( const auto& h:std::initializer_list<TH1*>{h_packet, h_waveform, h_packet_stat, h_waveform_count_total, h_waveform_count_dropped_bco, h_waveform_count_dropped_pool} )
+  for( const auto& h:std::initializer_list<TH1*>{
+    h_packet, h_waveform, h_packet_stat, h_heartbeat_stat,
+    h_waveform_count_total, h_waveform_count_dropped_bco,
+    h_waveform_count_dropped_pool} )
   {
     h->SetFillStyle(1001);
     h->SetFillColor(kYellow);
     hm->registerHisto(h);
   }
+
+  // also create evaluation trees
+  if( m_do_evaluation )
+  {
+    m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
+    m_evaluation_tree = new TTree("T", "T");
+    m_evaluation_tree->Branch("is_heartbeat", &m_waveform.is_heartbeat);
+    m_evaluation_tree->Branch("packet_id", &m_waveform.packet_id);
+    m_evaluation_tree->Branch("fee_id", &m_waveform.fee_id);
+    m_evaluation_tree->Branch("channel", &m_waveform.channel);
+
+    m_evaluation_tree->Branch("gtm_bco_first", &m_waveform.gtm_bco_first);
+    m_evaluation_tree->Branch("gtm_bco", &m_waveform.gtm_bco);
+    m_evaluation_tree->Branch("gtm_bco_matched", &m_waveform.gtm_bco_matched);
+
+    m_evaluation_tree->Branch("fee_bco_first", &m_waveform.fee_bco_first);
+    m_evaluation_tree->Branch("fee_bco", &m_waveform.fee_bco);
+    m_evaluation_tree->Branch("fee_bco_predicted", &m_waveform.fee_bco_predicted);
+    m_evaluation_tree->Branch("fee_bco_predicted_matched", &m_waveform.fee_bco_predicted_matched);
+  }
+
 }
 
 //__________________________________________________________________________________
 void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
 {
   // check hit format
-  if (packet->getHitFormat() != IDTPCFEEV4)
+  const auto hitformat = packet->getHitFormat();
+  if (hitformat != IDTPCFEEV4 && hitformat != IDTPCFEEV5)
   { return; }
+
+  // set clock multipliers if not alsready
+  if( !MicromegasBcoMatchingInformation_v2::gtm_clock_multiplier_is_set() )
+  {
+    switch( hitformat )
+    {
+      case IDTPCFEEV4:
+      std::cout << "SingleMicromegasPoolInput_v2::process_packet - hitformat: IDTPCFEEV4" << std::endl;
+      MicromegasBcoMatchingInformation_v2::set_gtm_clock_multiplier(4.262916255);
+      break;
+
+      case IDTPCFEEV5:
+      std::cout << "SingleMicromegasPoolInput_v2::process_packet - hitformat: IDTPCFEEV5" << std::endl;
+      MicromegasBcoMatchingInformation_v2::set_enable_multiplier_adjustment(false);
+      MicromegasBcoMatchingInformation_v2::set_gtm_clock_multiplier(30./8);
+      break;
+
+      default: break;
+    }
+  }
 
   // get packet id
   const int packet_id = packet->getIdentifier();
@@ -560,9 +661,6 @@ void SingleMicromegasPoolInput_v2::process_packet(Packet* packet )
   // actual number of dma words
   const size_t dma_words =  static_cast<unsigned long>(l2) * 2 / DAM_DMA_WORD_LENGTH;
   assert(dma_words <= buffer.size());
-
-//   // residual data (dropped)
-//   const size_t dma_residual = (l2 * 2) % DAM_DMA_WORD_LENGTH;
 
   // demultiplexer
   for (size_t index = 0; index < dma_words; ++index)
@@ -621,9 +719,14 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
 
+  // fill per packet heartbeat statistics
+  const bool is_heartbeat=payload.modebits&(1U<<ELINK_HEARTBEAT_T);
+  if( is_heartbeat )
+  { h_heartbeat_stat->Fill(std::to_string(packet_id).c_str(),1); }
+
   // save bco information
   auto& bco_matching_information = m_bco_matching_information_map[packet_id];
-  bco_matching_information.save_gtm_bco_information(payload);
+  bco_matching_information.save_gtm_bco_information(packet_id, payload);
 
   if(payload.is_lvl1||payload.is_endat)
   {
@@ -638,6 +741,21 @@ void SingleMicromegasPoolInput_v2::decode_gtm_data( int packet_id, const SingleM
   * because any BX_COUNTER_SYNC_T event will break past references
   */
   bco_matching_information.find_reference_from_modebits(payload);
+
+  // store in running waveform
+  if( m_do_evaluation )
+  {
+    m_waveform.packet_id = packet_id;
+    m_waveform.gtm_bco_first = bco_matching_information.get_gtm_bco_first();
+    m_waveform.gtm_bco = bco_matching_information.get_gtm_bco_last();
+
+    {
+      const auto predicted = bco_matching_information.get_predicted_fee_bco(m_waveform.gtm_bco);;
+      if( predicted ) m_waveform.fee_bco_predicted = predicted.value();
+    }
+
+    m_waveform.fee_bco_first = bco_matching_information.get_fee_bco_first();
+  }
 }
 
 //____________________________________________________________________
@@ -651,7 +769,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
   auto& data_buffer = m_feeData[fee_id];
 
   // process header
-  // while (HEADER_LENGTH <= data_buffer.size())
   while (HEADER_LENGTH <= data_buffer.size())
   {
 
@@ -697,11 +814,6 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
       break;
     }
 
-    // increment number of waveforms
-    ++m_waveform_count_total[packet_id];
-    ++m_fee_waveform_count_total[fee_id];
-    h_waveform_count_total->Fill( std::to_string(packet_id).c_str(), 1 );
-
     // create payload
     MicromegasBcoMatchingInformation_v2::fee_payload payload;
 
@@ -714,6 +826,25 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     payload.type = (uint16_t)(data_buffer[3] >> 7U) & 0x7U;
     payload.user_word = data_buffer[3] & 0x7fU;
     payload.bx_timestamp = (uint32_t)((data_buffer[6] & 0x3ffU) << 10U)|(data_buffer[5] & 0x3ffU);
+
+    // fill heartbeat statistics
+    const bool is_heartbeat(payload.type==HEARTBEAT_T);
+    if( is_heartbeat )
+    {
+      const int sampa_id = payload.sampa_address + fee_id*m_nsampa_fee;
+      h_heartbeat_stat->Fill(sampa_id + 2);
+    }
+
+    // increment number of waveforms
+    ++m_waveform_counters[packet_id].total;
+    ++m_fee_waveform_counters[fee_id].total;
+    h_waveform_count_total->Fill(std::to_string(packet_id).c_str(),1);
+
+    if( is_heartbeat )
+    {
+      ++m_heartbeat_counters[packet_id].total;
+      ++m_fee_heartbeat_counters[fee_id].total;
+    }
 
     // crc
     payload.data_crc = data_buffer[pkt_length];
@@ -735,8 +866,16 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     // if bco matching information is still not verified, drop the packet
     if (!bco_matching_information.is_verified())
     {
-      ++m_waveform_count_dropped_bco[packet_id];
+      ++m_waveform_counters[packet_id].dropped_bco;
+      ++m_fee_waveform_counters[fee_id].dropped_bco;
       h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1);
+
+      if( is_heartbeat )
+      {
+        ++m_heartbeat_counters[packet_id].dropped_bco;
+        ++m_fee_heartbeat_counters[fee_id].dropped_bco;
+      }
+
       continue;
     }
 
@@ -745,37 +884,55 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
 
     // find matching gtm bco
     uint64_t gtm_bco = 0;
-    const auto result = bco_matching_information.find_gtm_bco(fee_bco);
+    const auto result = bco_matching_information.find_gtm_bco(packet_id, fee_id, fee_bco);
     if (result)
     {
       // assign gtm bco
       gtm_bco = result.value();
-
     } else {
 
       // increment counter and histogram
-      ++m_waveform_count_dropped_bco[packet_id];
-      ++m_fee_waveform_count_dropped_bco[fee_id];
+      ++m_waveform_counters[packet_id].dropped_bco;
+      ++m_fee_waveform_counters[fee_id].dropped_bco;
       h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1 );
+
+      if( is_heartbeat )
+      {
+        ++m_heartbeat_counters[packet_id].dropped_bco;
+        ++m_fee_heartbeat_counters[fee_id].dropped_bco;
+      }
 
       // skip the waverform
       continue;
     }
 
+    if( m_do_evaluation )
+    {
+      m_waveform.is_heartbeat = (payload.type == HEARTBEAT_T);
+      m_waveform.fee_id = fee_id;
+      m_waveform.channel = payload.channel;
+      m_waveform.fee_bco = fee_bco;
+
+      m_waveform.gtm_bco_matched = gtm_bco;
+      {
+        const auto predicted = bco_matching_information.get_predicted_fee_bco(gtm_bco);;
+        if( predicted ) m_waveform.fee_bco_predicted_matched = predicted.value();
+      }
+
+      m_evaluation_tree->Fill();
+    }
+
     // ignore heartbeat waveforms
-    if( payload.type == HEARTBEAT_T )
-    { continue; }
+    if( is_heartbeat ) { continue; }
 
     // store data from string
     // Format is (N sample) (start time), (1st sample)... (Nth sample)
     size_t pos = HEADER_LENGTH;
-    // while (pos < pkt_length )
-    while (pos < size_t(pkt_length+2) )
+    while (pos < pkt_length )
     {
       const uint16_t& samples = data_buffer[pos++];
       const uint16_t& start_t = data_buffer[pos++];
-      if (pos + samples > size_t(pkt_length+1) )
-      // if (pos + samples > size_t(pkt_length) )
+      if (pos + samples > size_t(pkt_length) )
       {
         if (Verbosity())
         {

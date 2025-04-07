@@ -193,6 +193,12 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
     }
   }
 
+  //-------------------------- ZS and multiplicity variables ------------------------------//
+  float event_multiplicity = 0;
+  float cemc_zs_frac = 0;
+  float ihcal_zs_frac = 0;
+  float ohcal_zs_frac = 0;
+
   //-------------------------- raw towers ------------------------------//
   {
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
@@ -206,16 +212,42 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
         float raw_energy = tower->get_energy();
+        if (raw_energy > m_cemc_hit_threshold) 
+        {
+          event_multiplicity += 1;
+        }
         float zs_energy = -9999;
         if (m_SimFlag)
         {
-          zs_energy = cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
-          h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+          if (cemc_sim_waveforms->size() > 0) 
+          {
+            zs_energy = cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
+            h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+          }
         }
         else 
         {
-          zs_energy = cemc_waveforms.at(channel).at(1) - cemc_waveforms.at(channel).at(0);
-          h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_waveforms.at(channel).at(0));
+          if (cemc_waveforms.size() > 0)
+          {
+            if (Verbosity() > 5) 
+            {
+              for (int i = 0; i < (int)cemc_waveforms.at(channel).size(); i++) 
+              {
+                std::cout << cemc_waveforms.at(channel).at(i) << " ";
+              }
+              std::cout << std::endl;
+            }
+            if (cemc_waveforms.at(channel).size() == 2) 
+            {
+              zs_energy = cemc_waveforms.at(channel).at(1) - cemc_waveforms.at(channel).at(0);
+              cemc_zs_frac += 1;
+            }
+            else 
+            {
+              zs_energy = cemc_waveforms.at(channel).at(6) - cemc_waveforms.at(channel).at(0);
+            }
+            h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_waveforms.at(channel).at(0));
+          }
         }
         if (Verbosity() > 0) 
         {
@@ -240,16 +272,34 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
         float raw_energy = tower->get_energy();
+        if (raw_energy > m_ohcal_hit_threshold) 
+        {
+          event_multiplicity += 1;
+        }
         float zs_energy = -9999;
         if (m_SimFlag)
         {
-          zs_energy = ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
-          h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+          if (ohcal_sim_waveforms->size() > 0) 
+          {
+            zs_energy = ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
+            h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+          }
         }
         else 
         {
-          zs_energy = ohcal_waveforms.at(channel).at(1) - ohcal_waveforms.at(channel).at(0);
-          h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_waveforms.at(channel).at(0));
+          if (ohcal_waveforms.size() > 0)
+          {
+            if (ohcal_waveforms.at(channel).size() == 2) 
+            {
+              zs_energy = ohcal_waveforms.at(channel).at(1) - ohcal_waveforms.at(channel).at(0);
+              ohcal_zs_frac += 1;
+            }
+            else
+            {
+              zs_energy = ohcal_waveforms.at(channel).at(6) - ohcal_waveforms.at(channel).at(0);
+            }
+            h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_waveforms.at(channel).at(0));
+          }
         }
         if (Verbosity() > 0) 
         {
@@ -274,16 +324,34 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
         float raw_energy = tower->get_energy();
+        if (raw_energy > m_ihcal_hit_threshold) 
+        {
+          event_multiplicity += 1;
+        }
         float zs_energy = -9999;
         if (m_SimFlag)
         {
-          zs_energy = ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
-          h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+          if (ihcal_sim_waveforms->size() > 0) 
+          {
+            zs_energy = ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
+            h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
+          }
         }
         else 
         {
-          zs_energy = ihcal_waveforms.at(channel).at(1) - ihcal_waveforms.at(channel).at(0);
-          h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_waveforms.at(channel).at(0));
+          if (ihcal_waveforms.size() > 0)
+          {
+            if (ihcal_waveforms.at(channel).size() == 2) 
+            {
+              zs_energy = ihcal_waveforms.at(channel).at(1) - ihcal_waveforms.at(channel).at(0);
+              ihcal_zs_frac += 1;
+            }
+            else 
+            {
+              zs_energy = ihcal_waveforms.at(channel).at(6) - ihcal_waveforms.at(channel).at(0);
+            }
+            h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_waveforms.at(channel).at(0));
+          }
         }
         if (Verbosity() > 0) 
         {
@@ -297,6 +365,10 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
     }
   }
 
+  h_cemc_zs_frac_vs_multiplicity->Fill(event_multiplicity, cemc_zs_frac/24576.0);
+  h_ihcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ihcal_zs_frac/1536.0);
+  h_ohcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ohcal_zs_frac/1536.0);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -305,7 +377,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
 
   int packet_low = std::numeric_limits<int>::min();
   int packet_high = std::numeric_limits<int>::min();
-  int m_nsamples = 2;
+  int m_nsamples = 12;
   int m_nchannels = 192;
 
   if (dettype == CaloTowerDefs::CEMC)
@@ -423,8 +495,10 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
         }
         else
         {
-          waveform.push_back(packet->iValue(0, channel));
-          waveform.push_back(packet->iValue(6, channel));
+          for (int samp = 0; samp < m_nsamples; samp++)
+          {
+            waveform.push_back(packet->iValue(samp, channel));
+          }
         }
         waveforms.push_back(waveform);
         waveform.clear();
@@ -572,6 +646,18 @@ void CaloFittingQA::createHistos()
   h_ohcal_etaphi_pedestal->SetErrorOption("G");
   h_ohcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_pedestal);
+
+  h_cemc_zs_frac_vs_multiplicity = new TH2F(boost::str(boost::format("%scemc_zs_frac_vs_multiplicity") % getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_cemc_zs_frac_vs_multiplicity->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_zs_frac_vs_multiplicity);
+
+  h_ihcal_zs_frac_vs_multiplicity = new TH2F(boost::str(boost::format("%sihcal_zs_frac_vs_multiplicity") % getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_ihcal_zs_frac_vs_multiplicity->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_zs_frac_vs_multiplicity);
+
+  h_ohcal_zs_frac_vs_multiplicity = new TH2F(boost::str(boost::format("%sohcal_zs_frac_vs_multiplicity") % getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_ohcal_zs_frac_vs_multiplicity->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_zs_frac_vs_multiplicity);
 
   h_packet_events = new TH1I(boost::str(boost::format("%spacket_events") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
   h_packet_events->SetDirectory(nullptr);

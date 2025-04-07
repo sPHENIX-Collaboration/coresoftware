@@ -26,7 +26,7 @@ class CdbUrlSavev1 : public CdbUrlSave
   void Reset() override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
   void identify(std::ostream &os = std::cout) const override;
 

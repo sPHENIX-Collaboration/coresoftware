@@ -1,5 +1,5 @@
-#ifndef __BBC_BBCPMTHITV1_H__
-#define __BBC_BBCPMTHITV1_H__
+#ifndef MBD_BBCPMTHITV1_H
+#define MBD_BBCPMTHITV1_H
 
 #include "BbcPmtHit.h"
 
@@ -9,7 +9,7 @@
 class BbcPmtHitV1 : public BbcPmtHit
 {
  public:
-  BbcPmtHitV1() {}
+  BbcPmtHitV1() = default;
   ~BbcPmtHitV1() override = default;
 
   //! Just does a clear
@@ -40,7 +40,7 @@ class BbcPmtHitV1 : public BbcPmtHit
   }
 
   //! Prints out exact identity of object
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   //! isValid returns non zero if object contains valid data
   virtual int isValid() const override

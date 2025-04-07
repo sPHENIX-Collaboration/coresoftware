@@ -28,7 +28,8 @@ class PHG4MvtxDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam);
+  PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam,
+                   const bool applyMisalignment, const std::string& misalignmentfile);
 
   //! destructor
   ~PHG4MvtxDetector() override {}
@@ -97,6 +98,7 @@ class PHG4MvtxDetector : public PHG4Detector
 
   // For modified geometry
   bool apply_misalignment {false};
+  std::string m_misalignmentFile="";
   double m_GlobalDisplacementX = 0.0;
   double m_GlobalDisplacementY = 0.0;
   double m_GlobalDisplacementZ = 0.0;

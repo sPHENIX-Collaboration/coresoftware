@@ -32,9 +32,12 @@
 #include <utility>
 #include <vector>
 
-static bool sort_by_pair_second(const std::pair<int, float> &a, const std::pair<int, float> &b)
+namespace
+{
+bool sort_by_pair_second(const std::pair<int, float> &a, const std::pair<int, float> &b)
 {
   return (a.second > b.second);
+}
 }
 
 int RawClusterBuilderTopo::RawClusterBuilderTopo_constants_EMCal_eta_start_given_IHCal[24] =

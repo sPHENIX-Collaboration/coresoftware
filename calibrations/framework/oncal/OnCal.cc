@@ -28,7 +28,7 @@ int OnCal::End(PHCompositeNode * /*topNode*/)
 
 void OnCal::AddComment(const std::string &adcom)
 {
-  if (m_Comment.size() == 0)
+  if (m_Comment.empty())
   {
     m_Comment = adcom;
   }
