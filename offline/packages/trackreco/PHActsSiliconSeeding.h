@@ -11,7 +11,7 @@
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Seeding/SeedFinder.hpp>
 
-#include <Acts/Seeding/BinFinder.hpp>
+#include <Acts/Utilities/GridBinFinder.hpp>
 #include <Acts/Seeding/SpacePointGrid.hpp>
 
 #include <trackbase/SpacePoint.h>
@@ -240,8 +240,8 @@ class PHActsSiliconSeeding : public SubsysReco
   int m_highStrobeIndex = 1;
   /// Configuration classes for Acts seeding
   Acts::SeedFinderConfig<SpacePoint> m_seedFinderCfg;
-  Acts::SpacePointGridConfig m_gridCfg;
-  Acts::SpacePointGridOptions m_gridOptions;
+  Acts::CylindricalSpacePointGridConfig m_gridCfg;
+  Acts::CylindricalSpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
 
   /// boolean whether or not to include the intt in the acts search windows
@@ -294,13 +294,14 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<std::pair<int, int>> zBinNeighborsTop;
   std::vector<std::pair<int, int>> zBinNeighborsBottom;
   int nphineighbors = 1;
-  std::shared_ptr<const Acts::BinFinder<SpacePoint>>
-      m_bottomBinFinder, m_topBinFinder;
+ std::unique_ptr<const Acts::GridBinFinder<2ul>> m_bottomBinFinder;
+ std::unique_ptr<const Acts::GridBinFinder<2ul>> m_topBinFinder;
 
-  int m_event = 0;
+ int m_event = 0;
 
-  /// Maximum allowed transverse PCA for seed, cm
-  double m_maxSeedPCA = 2.;
+ /// Maximum allowed transverse PCA for seed, cm
+ double m_maxSeedPCA = 2.;
+
 
   /// Search window for phi to match intt clusters in cm
   double m_inttrPhiSearchWin = 0.1;
@@ -310,33 +311,33 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
-  bool m_cleanSeeds = false;
+ bool m_cleanSeeds = false;
 
-  int m_nBadUpdates = 0;
-  int m_nBadInitialFits = 0;
-  TrkrClusterIterationMapv1 *_iteration_map = nullptr;
-  int m_nIteration = 0;
-  std::string _track_map_name = "SiliconTrackSeedContainer";
-  ClusterErrorPara _ClusErrPara;
+ int m_nBadUpdates = 0;
+ int m_nBadInitialFits = 0;
+ TrkrClusterIterationMapv1 *_iteration_map = nullptr;
+ int m_nIteration = 0;
+ std::string _track_map_name = "SiliconTrackSeedContainer";
+ ClusterErrorPara _ClusErrPara;
 
-  bool m_seedAnalysis = false;
-  TFile *m_file = nullptr;
-  TH2 *h_nInttProj = nullptr;
-  TH1 *h_nMvtxHits = nullptr;
-  TH1 *h_nInttHits = nullptr;
-  TH1 *h_nMatchedClusters = nullptr;
-  TH2 *h_nHits = nullptr;
-  TH1 *h_nSeeds = nullptr;
-  TH1 *h_nActsSeeds = nullptr;
-  TH1 *h_nTotSeeds = nullptr;
-  TH1 *h_nInputMeas = nullptr;
-  TH1 *h_nInputMvtxMeas = nullptr;
-  TH1 *h_nInputInttMeas = nullptr;
-  TH2 *h_hits = nullptr;
-  TH2 *h_zhits = nullptr;
-  TH2 *h_projHits = nullptr;
-  TH2 *h_zprojHits = nullptr;
-  TH2 *h_resids = nullptr;
+ bool m_seedAnalysis = false;
+ TFile *m_file = nullptr;
+ TH2 *h_nInttProj = nullptr;
+ TH1 *h_nMvtxHits = nullptr;
+ TH1 *h_nInttHits = nullptr;
+ TH1 *h_nMatchedClusters = nullptr;
+ TH2 *h_nHits = nullptr;
+ TH1 *h_nSeeds = nullptr;
+ TH1 *h_nActsSeeds = nullptr;
+ TH1 *h_nTotSeeds = nullptr;
+ TH1 *h_nInputMeas = nullptr;
+ TH1 *h_nInputMvtxMeas = nullptr;
+ TH1 *h_nInputInttMeas = nullptr;
+ TH2 *h_hits = nullptr;
+ TH2 *h_zhits = nullptr;
+ TH2 *h_projHits = nullptr;
+ TH2 *h_zprojHits = nullptr;
+ TH2 *h_resids = nullptr;
 };
 
 #endif

@@ -5,7 +5,6 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libtrack_reco_io.la \
   libtrack_reco.la
 
 AM_CPPFLAGS = \
@@ -90,12 +89,6 @@ ROOTDICTS = \
   AssocInfoContainer_Dict_rdict.pcm \
   AssocInfoContainerv1_Dict_rdict.pcm
 
-libtrack_reco_io_la_SOURCES = \
-  $(ROOTDICTS) \
-  AssocInfoContainerv1.cc \
-  AssocInfoContainer.cc \
-  GPUTPCTrackParam.cxx
-
 ACTS_SOURCES = \
   ActsAlignmentStates.cc \
   ActsEvaluator.cc \
@@ -121,7 +114,6 @@ AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
 ACTS_LIBS = \
   -lActsCore \
   -lActsPluginTGeo \
-  -lActsExamplesCommon \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework
 
@@ -132,6 +124,7 @@ libtrack_reco_la_SOURCES = \
   PH3DVertexing.cc \
   PHCASeeding.cc \
   AzimuthalSeeder.cc \
+  GPUTPCTrackParam.cxx \
   PHCosmicsFilter.cc \
   PHCosmicSeedCombiner.cc \
   PHCosmicSeeder.cc \
@@ -168,12 +161,11 @@ libtrack_reco_la_SOURCES = \
   TrackingIterationCounter.cc \
   TpcSeedFilter.cc
 
-libtrack_reco_io_la_LIBADD = \
-  -lphool
-
 libtrack_reco_la_LIBADD = \
-  libtrack_reco_io.la \
-  $(ACTS_LIBS) \
+  -lActsCore \
+  -lActsPluginTGeo \
+  -lActsExamplesDetectorTGeo \
+  -lActsExamplesFramework \
   -lcalo_io \
   -lg4eval \
   -lg4testbench \
@@ -214,15 +206,11 @@ BUILT_SOURCES = \
   testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_track_reco \
-  testexternals_track_reco_io
+  testexternals_track_reco
 
 
 testexternals_track_reco_SOURCES = testexternals.cc
 testexternals_track_reco_LDADD = libtrack_reco.la
-
-testexternals_track_reco_io_SOURCES = testexternals.cc
-testexternals_track_reco_io_LDADD = libtrack_reco_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

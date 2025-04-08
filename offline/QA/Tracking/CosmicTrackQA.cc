@@ -131,7 +131,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
 
       auto surf = geometry->maps().getSurface(ckey, cluster);
 
-      Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext());
+      Acts::Vector3 surfnorm = surf->normal(geometry->geometry().getGeoContext(),Acts::Vector3(0,0,0), Acts::Vector3(0,0,0));
       float statelx = std::numeric_limits<float>::quiet_NaN();
       float statelz = std::numeric_limits<float>::quiet_NaN();
       if (!std::isnan(intersection.x()))
@@ -178,7 +178,7 @@ int CosmicTrackQA::process_event(PHCompositeNode* topNode)
       auto surf = geometry->maps().getSurface(cluskey, cluster);
       auto stateloc = surf->globalToLocal(geometry->geometry().getGeoContext(),
                                           stateglob * Acts::UnitConstants::cm,
-                                          surf->normal(geometry->geometry().getGeoContext()));
+                                          surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(0,0,0), Acts::Vector3(0,0,0)));
       float statelx = NAN;
       float statelz = NAN;
       if (stateloc.ok())

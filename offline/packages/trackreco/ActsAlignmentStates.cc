@@ -150,7 +150,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     // get cluster global position, in acts units
     const Acts::Vector3 clusGlobal = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, clus, crossing)*Acts::UnitConstants::cm;
 
-    const Acts::FreeVector globalStateParams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), state.smoothed());
+    const Acts::FreeVector globalStateParams = Acts::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), state.smoothed());
     const Acts::Vector3 stateGlobal = globalStateParams.segment<3>(Acts::eFreePos0);
 
     const Acts::Vector3 clus_sigma =
@@ -269,7 +269,8 @@ std::pair<Acts::Vector3, Acts::Vector3> ActsAlignmentStates::get_projectionXY(co
   // get the plane of the surface
   Acts::Vector3 sensorCenter = surface.center(m_tGeometry->geometry().getGeoContext());
   // sensorNormal is the Z vector
-  Acts::Vector3 Z = -surface.normal(m_tGeometry->geometry().getGeoContext());
+  Acts::Vector3 Z = -surface.normal(m_tGeometry->geometry().getGeoContext(),
+    Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
 
   // get surface X and Y unit vectors in global frame
   // transform Xlocal = 1.0 to global, subtract the surface center, normalize to 1
