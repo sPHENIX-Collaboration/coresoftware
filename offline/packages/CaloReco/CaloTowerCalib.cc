@@ -2,7 +2,6 @@
 #include "CaloTowerDefs.h"
 
 #include <calobase/TowerInfo.h>  // for TowerInfo
-#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/TowerInfoContainerv2.h>
@@ -40,8 +39,8 @@ CaloTowerCalib::CaloTowerCalib(const std::string &name)
   , m_dettype(CaloTowerDefs::HCALOUT)
   , m_detector("HCALOUT")
   , m_DETECTOR(TowerInfoContainer::HCAL)
-  , m_fieldname("")
-  , m_runNumber(-1)
+  , 
+   m_runNumber(-1)
 {
   if (Verbosity() > 0)
   {
@@ -224,7 +223,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   //time calibration getting the CDB
   m_calibName_time = m_detector + "_meanTime";
   m_fieldname_time = "time";
-  std::string calibdir = "";
+  std::string calibdir;
 
   if (m_giveDirectURL_time)
   {

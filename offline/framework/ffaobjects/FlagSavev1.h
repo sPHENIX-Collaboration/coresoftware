@@ -29,9 +29,9 @@ class FlagSavev1 : public FlagSave
   int isValid() const override;
 
   /** identify Function from PHObject
-      @param os Output Stream 
+      @param os Output Stream
    */
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &out = std::cout) const override;
 
   int FillFromPHFlag(const PHFlag *flags, const bool clearold) override;
   int PutFlagsBack(PHFlag *flags, const bool overwrite) override;

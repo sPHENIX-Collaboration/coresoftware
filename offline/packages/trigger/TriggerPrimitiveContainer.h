@@ -27,7 +27,7 @@ class TriggerPrimitiveContainer : public PHObject
 
   /// Clear Event from memory
   virtual void Reset() override { return; };
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
   int isValid() const override { return 1; }
 
   virtual void setTriggerId(TriggerDefs::TriggerId /*triggerid*/) { return; }

@@ -21,7 +21,7 @@
 #include <limits>
 #include <string>
 
-static ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);
+static ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);// NOLINT(misc-use-anonymous-namespace)
 double CaloWaveformFitting::template_function(double *x, double *par)
 {
   Double_t v1 = (par[0] * h_template->Interpolate(x[0] - par[1])) + par[2];
@@ -126,7 +126,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_templatefit
         int ndata = 0;
         for (int i = 0; i < size1; ++i)
         {
-          if (v.at(i) == 16383)
+          if ((v.at(i) == 16383) && _handleSaturation)
           {
             continue;
           }

@@ -62,6 +62,7 @@ class KFParticle_truthAndDetTools
   void initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number);
   void fillDetectorBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
+  int getPVID(PHCompositeNode *topNode, const KFParticle& vertex);
   void allPVInfo(PHCompositeNode *topNode, TTree *m_tree,
                  const KFParticle &motherParticle,
                  std::vector<KFParticle> daughters,
@@ -145,6 +146,10 @@ class KFParticle_truthAndDetTools
   unsigned int detector_nHits_INTT[max_tracks] = {0};
   unsigned int detector_nHits_TPC[max_tracks] =  {0};
   unsigned int detector_nHits_TPOT[max_tracks] = {0};
+  unsigned int detector_nStates_MVTX[max_tracks] = {0};
+  unsigned int detector_nStates_INTT[max_tracks] = {0};
+  unsigned int detector_nStates_TPC[max_tracks] =  {0};
+  unsigned int detector_nStates_TPOT[max_tracks] = {0};
   std::vector<float> residual_x[max_tracks];
   std::vector<float> residual_y[max_tracks];
   std::vector<float> residual_z[max_tracks];

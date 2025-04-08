@@ -205,6 +205,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_use_mbd_vertex_truth = use;
   }
 
+  void dontUseGlobalVertex(bool dont = true) { m_dont_use_global_vertex = dont; }
+
   void useFakePrimaryVertex(bool use_fake = true)
   {
     m_use_fake_pv = use_fake;
@@ -305,6 +307,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void doTruthMatching(bool truth = true) { m_truth_matching = truth; }
 
+  void getTriggerInfo(bool get = true) { m_get_trigger_info = get; }
+
   void getDetectorInfo(bool detinfo = true) { m_detector_info = detinfo; }
 
   void getCaloInfo(bool caloinfo = true) { m_calo_info = caloinfo; }
@@ -314,6 +318,12 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
 
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
+
+  void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
+
+  void usePID(bool use = true){ m_use_PID = use; }
+ 
+  void setPIDacceptFraction(float frac = 0.2){ m_dEdx_band_width = frac; }
 
   /// Use alternate vertex and track fitters
   void setVertexMapNodeName(const std::string &vtx_map_node_name) { m_vtx_map_node_name = m_vtx_map_node_name_nTuple = vtx_map_node_name; }

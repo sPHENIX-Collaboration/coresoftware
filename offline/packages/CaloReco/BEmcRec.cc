@@ -12,6 +12,7 @@
 
 #include <TMath.h>
 
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -20,11 +21,11 @@
 // ///////////////////////////////////////////////////////////////////////////
 // BEmcRec member functions
 
-BEmcRec::BEmcRec()
+BEmcRec::BEmcRec() : fModules(new std::vector<EmcModule>), fClusters(new std::vector<EmcCluster>)
 {
   fTowerGeom.clear();
-  fModules = new std::vector<EmcModule>;
-  fClusters = new std::vector<EmcCluster>;
+  
+  
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -94,7 +95,7 @@ bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
     return false;
   }
 
-  int ich = iy * fNx + ix;
+  int ich = (iy * fNx) + ix;
   std::map<int, TowerGeom>::iterator it = fTowerGeom.find(ich);
   if (it == fTowerGeom.end())
   {
@@ -120,7 +121,7 @@ bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
   geom.dY[0] = geom.dY[1] = 0;
   geom.dZ[0] = geom.dZ[1] = 0;
 
-  int ich = iy * fNx + ix;
+  int ich = (iy * fNx) + ix;
   fTowerGeom[ich] = geom;
   return true;
 }
@@ -242,17 +243,17 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
                 << ix << "," << iy << ")" << std::endl;
       return;
     }
-    float Xc = geom0.Xcenter - idx[ii] * geom0.dX[0] - idy[ii] * geom0.dX[1];
-    float Yc = geom0.Ycenter - idx[ii] * geom0.dY[0] - idy[ii] * geom0.dY[1];
-    float Zc = geom0.Zcenter - idx[ii] * geom0.dZ[0] - idy[ii] * geom0.dZ[1];
+    float Xc = geom0.Xcenter - (idx[ii] * geom0.dX[0]) - (idy[ii] * geom0.dX[1]);
+    float Yc = geom0.Ycenter - (idx[ii] * geom0.dY[0]) - (idy[ii] * geom0.dY[1]);
+    float Zc = geom0.Zcenter - (idx[ii] * geom0.dZ[0]) - (idy[ii] * geom0.dZ[1]);
     geom0.Xcenter = Xc;
     geom0.Ycenter = Yc;
     geom0.Zcenter = Zc;
   }
 
-  float xt = geom0.Xcenter + (xC - ix) * geom0.dX[0] + (yC - iy) * geom0.dX[1];
-  float yt = geom0.Ycenter + (xC - ix) * geom0.dY[0] + (yC - iy) * geom0.dY[1];
-  float zt = geom0.Zcenter + (xC - ix) * geom0.dZ[0] + (yC - iy) * geom0.dZ[1];
+  float xt = geom0.Xcenter + ((xC - ix) * geom0.dX[0]) + ((yC - iy) * geom0.dX[1]);
+  float yt = geom0.Ycenter + ((xC - ix) * geom0.dY[0]) + ((yC - iy) * geom0.dY[1]);
+  float zt = geom0.Zcenter + ((xC - ix) * geom0.dZ[0]) + ((yC - iy) * geom0.dZ[1]);
 
   if (flagDoSD)
     {
@@ -270,7 +271,7 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
 
 // ///////////////////////////////////////////////////////////////////////////
 
-int BEmcRec::iTowerDist(int ix1, int ix2)
+int BEmcRec::iTowerDist(int ix1, int ix2) const
 // Distrance in tower units
 {
   int idist = ix2 - ix1;
@@ -293,12 +294,12 @@ int BEmcRec::iTowerDist(int ix1, int ix2)
   return idist;
 }
 
-float BEmcRec::fTowerDist(float x1, float x2)
+float BEmcRec::fTowerDist(float x1, float x2) const
 {
   float dist = x2 - x1;
   if (bCYL)
   {
-    float distr = fNx - fabs(dist);  // Always >0
+    float distr = fNx - std::fabs(dist);  // Always >0
     if (distr < std::abs(dist))
     {  // Then count in opposite direction
       if (dist < 0)
@@ -320,14 +321,24 @@ int BEmcRec::FindClusters()
 // Cluster search algorithm based on Lednev's one developed for GAMS.
 // Returns number of clusters found
 {
-  int nhit, nCl;
+  int nhit;
+  int nCl;
   //  int LenCl[fgMaxLen];
   int* LenCl;
-  int next, ib, ie, iab, iae, last, LastCl, leng, ich;
+  int next;
+  int ib;
+  int ie;
+  int iab;
+  int iae;
+  int last;
+  int LastCl;
+  int leng;
+  int ich;
   int ia = 0;
 
   EmcModule* vv;
-  EmcModule *vhit, *vt;
+  EmcModule *vhit;
+  EmcModule *vt;
   EmcCluster Clt(this);
   std::vector<EmcModule>::iterator ph;
   std::vector<EmcModule> hl;
@@ -357,7 +368,7 @@ int BEmcRec::FindClusters()
   vv = vhit;
   while (ph != (*fModules).end())
   {
-    *vv++ = *ph++;
+    *vv++ = *ph++;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
   }
 
   qsort(vhit, nhit, sizeof(EmcModule), HitNCompare);
@@ -368,11 +379,11 @@ int BEmcRec::FindClusters()
   {
     if (ich < nhit)
     {
-      ia = vhit[ich].ich;
+      ia = vhit[ich].ich; // NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
     }
 
     // New subcluster
-    //
+    // NOLINTNEXTLINE(bugprone-pointer-arithmetic-on-polymorphic-object)
     if ((ia - vhit[ich - 1].ich > 1)  // the beginning of new subcluster
         || (ich >= nhit)              // just finish defining last sub-cluster
         || (ia - ia / fNx * fNx == 0))
@@ -403,15 +414,15 @@ int BEmcRec::FindClusters()
       {
         // Job to glue the subclusters with common edge
         //
-        iab = vhit[ib].ich;  // The last subcl begin
-        iae = vhit[ie].ich;  // The last subcl end
+        iab = vhit[ib].ich;  // NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object) // The last subcl begin
+        iae = vhit[ie].ich;  // NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object) // The last subcl end
         last = ib - 1;       // The prelast subcl end
         LastCl = nCl - 2;
         for (int iCl = LastCl; iCl >= 0; iCl--)
         {
           leng = LenCl[iCl];
 
-          if (iab - vhit[last].ich > fNx)
+          if (iab - vhit[last].ich > fNx)// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
           {
             goto new_ich;
           }
@@ -420,13 +431,14 @@ int BEmcRec::FindClusters()
             //	    if( iab-vhit[ichc].ich >  fNx ) goto new_icl; // From PHENIX version !!! This may be not right for complicated clusters, where tower ordering is not conserved
 
             //	    if( iae-vhit[ichc].ich >= fNx // From PHENIX version
+	    // NOLINTNEXTLINE(bugprone-pointer-arithmetic-on-polymorphic-object)
             if ((vhit[ichc].ich + fNx <= iae && vhit[ichc].ich + fNx >= iab) || (bCYL && (iae % fNx == fNx - 1) && (iae - vhit[ichc].ich == fNx - 1))  // Only for CYLinder geom !!!!
             )
             {
               // Swap iCl-cluster towers (of length "leng") with whatever was between it and the last subcluster (of length "ib-1-last") - to make it adjecent to the last subcluster
-              CopyVector(&vhit[last + 1 - leng], vt, leng);
-              CopyVector(&vhit[last + 1], &vhit[last + 1 - leng], ib - 1 - last);
-              CopyVector(vt, &vhit[ib - leng], leng);
+              CopyVector(&vhit[last + 1 - leng], vt, leng);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+              CopyVector(&vhit[last + 1], &vhit[last + 1 - leng], ib - 1 - last);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+              CopyVector(vt, &vhit[ib - leng], leng);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
 
               // Now the number of clusters is reduced by 1 and the length of the last one increased by iCl-cluster length "leng"
               for (int i = iCl; i < nCl - 2; i++)
@@ -461,7 +473,7 @@ int BEmcRec::FindClusters()
       hl.clear();
       for (ich = 0; ich < leng; ich++)
       {
-        hl.push_back(vhit[ib + ich]);
+        hl.push_back(vhit[ib + ich]);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
       }
       Clt.ReInitialize(hl);
       ib += LenCl[iCl];
@@ -479,11 +491,17 @@ int BEmcRec::FindClusters()
 
 void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
                       float& py, float& pxx, float& pyy, float& pyx,
-                      float thresh)
+                      float thresh) const
 {
   // First and second momenta calculation
 
-  float a, x, y, e, xx, yy, yx;
+  float a;
+  float x;
+  float y;
+  float e;
+  float xx;
+  float yy;
+  float yx;
   std::vector<EmcModule>::iterator ph;
 
   pe = 0;
@@ -520,7 +538,7 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
   }
 
   int iymax = ichmax / fNx;
-  int ixmax = ichmax - iymax * fNx;
+  int ixmax = ichmax - (iymax * fNx);
 
   // Calculate CG relative to max energy tower
 
@@ -538,7 +556,7 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
     if (a > thresh)
     {
       int iy = ph->ich / fNx;
-      int ix = ph->ich - iy * fNx;
+      int ix = ph->ich - (iy * fNx);
       int idx = iTowerDist(ixmax, ix);
       int idy = iy - iymax;
       e += a;
@@ -590,7 +608,7 @@ float BEmcRec::PredictEnergy(float en, float xcg, float ycg, int ix, int iy)
     return PredictEnergyProb(en, xcg, ycg, ix, iy);
   }
 
-  float dx = fabs(fTowerDist(float(ix), xcg));
+  float dx = std::fabs(fTowerDist(float(ix), xcg));
   float dy = ycg - iy;
   return PredictEnergyParam(en, dx, dy);
 }
@@ -601,8 +619,15 @@ float BEmcRec::PredictEnergyParam(float /*en*/, float xc, float yc)
   // its center and shower Center of Gravity being (xc,yc)
   // en - shower energy
 
-  float dx, dy, r1, r2, r3;
-  float fPpar1, fPpar2, fPpar3, fPpar4;
+  float dx;
+  float dy;
+  float r1;
+  float r2;
+  float r3;
+  float fPpar1;
+  float fPpar2;
+  float fPpar3;
+  float fPpar4;
 
   float fPshiftx = 0;  // !!!!! Untill tuned ... may not be necessary
   float fPshifty = 0;  // !!!!! Untill tuned ... may not be necessary
@@ -637,12 +662,12 @@ float BEmcRec::PredictEnergyParam(float /*en*/, float xc, float yc)
 
   //  if (en > 0) SetProfileParameters(-1, en, xc, yc);
 
-  dx = fabs(xc - fPshiftx);
-  dy = fabs(yc - fPshifty);
+  dx = std::fabs(xc - fPshiftx);
+  dy = std::fabs(yc - fPshifty);
   r2 = dx * dx + dy * dy;
-  r1 = sqrt(r2);
+  r1 = std::sqrt(r2);
   r3 = r2 * r1;
-  double e = fPpar1 * exp(-r3 / fPpar2) + fPpar3 * exp(-r1 / fPpar4);
+  double e = (fPpar1 * std::exp(-r3 / fPpar2)) + (fPpar3 * std::exp(-r1 / fPpar4));
 
   return e;
 }
@@ -669,13 +694,16 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
   int ixcg = int(xcg + 0.5);
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iycg = int(ycg + 0.5);
-  float ddx = fabs(xcg - ixcg);
-  float ddy = fabs(ycg - iycg);
+  float ddx = std::fabs(xcg - ixcg);
+  float ddy = std::fabs(ycg - iycg);
 
-  float xg=0, yg=0, zg=0;
+  float xg=0;
+  float yg=0;
+  float zg=0;
   Tower2Global(en, xcg, ycg, xg, yg, zg);
 
-  float theta, phi;
+  float theta;
+  float phi;
   GetImpactThetaPhi(xg, yg, zg, theta, phi);
 
   int isx = 1;
@@ -712,14 +740,15 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
 
   if (id < 0)
   {
-    float dx = fabs(fTowerDist(xcg, float(ix)));
-    float dy = fabs(iy - ycg);
-    float rr = sqrt(dx * dx + dy * dy);
+    float dx = std::fabs(fTowerDist(xcg, float(ix)));
+    float dy = std::fabs(iy - ycg);
+    float rr = std::sqrt((dx * dx) + (dy * dy));
     //    return PredictEnergyParam(en, dx, dy);
     return _emcprof->PredictEnergyR(en, theta, phi, rr);
   }
 
-  float ep[4], err[4];
+  float ep[4];
+  float err[4];
   for (int ip = 0; ip < 4; ip++)
   {
     _emcprof->PredictEnergy(ip, en, theta, phi, ddx, ddy, ep[ip], err[ip]);
@@ -755,7 +784,7 @@ float BEmcRec::PredictEnergyProb(float en, float xcg, float ycg, int ix, int iy)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-float BEmcRec::GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist)
+float BEmcRec::GetTowerEnergy(int iy, int iz, std::vector<EmcModule>* plist) const
 {
   int nn = plist->size();
   if (nn <= 0)
@@ -803,22 +832,26 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
     return -1;
   }
 
-  float theta, phi;
+  float theta;
+  float phi;
   GetImpactThetaPhi(xg, yg, zg, theta, phi);
 
   // z coordinate below means x coordinate
 
   float etot;
-  float zcg, ycg;
-  float zz, yy, yz;
+  float zcg;
+  float ycg;
+  float zz;
+  float yy;
+  float yz;
   Momenta(&HitList, etot, zcg, ycg, zz, yy, yz, thresh);
 
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iz0cg = int(zcg + 0.5);
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iy0cg = int(ycg + 0.5);
-  float ddz = fabs(zcg - iz0cg);
-  float ddy = fabs(ycg - iy0cg);
+  float ddz = std::fabs(zcg - iz0cg);
+  float ddy = std::fabs(ycg - iy0cg);
 
   int isz = 1;
   if (zcg - iz0cg < 0)
@@ -834,7 +867,10 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
   // 4 central towers: 43
   //                   12
   // Tower 1 - central one
-  float e1, e2, e3, e4;
+  float e1;
+  float e2;
+  float e3;
+  float e4;
   e1 = GetTowerEnergy(iy0cg, iz0cg, &HitList);
   e2 = GetTowerEnergy(iy0cg, iz0cg + isz, &HitList);
   e3 = GetTowerEnergy(iy0cg + isy, iz0cg + isz, &HitList);
@@ -876,11 +912,11 @@ float BEmcRec::GetProb(std::vector<EmcModule> HitList, float en, float xg, float
     }
     if (ip < 3)
     {
-      err[ip] = sqrt(err[ip] * err[ip] + 4 * enoise * enoise / etot / etot);
+      err[ip] = std::sqrt((err[ip] * err[ip]) + (4 * enoise * enoise / etot / etot));
     }
     else
     {
-      err[ip] = sqrt(err[ip] * err[ip] + 1 * enoise * enoise / etot / etot);
+      err[ip] = std::sqrt((err[ip] * err[ip]) + (1 * enoise * enoise / etot / etot));
     }
   }
 
@@ -912,8 +948,7 @@ int BEmcRec::HitACompare(const void* h1, const void* h2)
 {
   float amp1 = static_cast<const EmcModule*>(h1)->amp;
   float amp2 = static_cast<const EmcModule*>(h2)->amp;
-  return (amp1 < amp2) ? 1 : (amp1 > amp2) ? -1
-                                           : 0;
+  return (amp1 < amp2) ? 1 : (amp1 > amp2) ? -1 : 0; // NOLINT(readability-avoid-nested-conditional-operator)
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -945,9 +980,9 @@ void BEmcRec::ZeroVector(EmcModule* v, int N)
   //  memset(v, 0, N*sizeof(EmcModule));
   for (int i = 0; i < N; i++)
   {
-    v[i].ich = 0;
-    v[i].amp = 0;
-    v[i].tof = 0;
+    v[i].ich = 0;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+    v[i].amp = 0;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+    v[i].tof = 0;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
   }
 }
 
@@ -975,7 +1010,7 @@ void BEmcRec::CopyVector(const EmcModule* from, EmcModule* to, int N)
   }
   for (int i = 0; i < N; i++)
   {
-    to[i] = from[i];
+    to[i] = from[i]; // NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
   }
 }
 

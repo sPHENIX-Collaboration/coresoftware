@@ -25,12 +25,12 @@ class RawClusterBuilderGraph : public SubsysReco
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
-  RawClusterContainer *_clusters;
+  RawClusterContainer *_clusters {nullptr};
 
-  float _min_tower_e;
-  int chkenergyconservation;
+  float _min_tower_e {0.};
+  int chkenergyconservation {0};
 
-  std::string detector;
+  std::string detector {"NONE"};
   std::string ClusterNodeName;
 };
 

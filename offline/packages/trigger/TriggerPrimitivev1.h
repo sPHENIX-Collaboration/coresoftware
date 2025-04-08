@@ -18,7 +18,7 @@ class TriggerPrimitivev1 : public TriggerPrimitive
 
   /// Clear Event from memory
   void Reset() override;
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
   int isValid() const override;
 
   std::vector<unsigned int>* get_sum_at_key(TriggerDefs::TriggerSumKey) override;

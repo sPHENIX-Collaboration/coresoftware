@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef CALOTOWERBUILDER_H
-#define CALOTOWERBUILDER_H
+#ifndef CALORECO_CALOTOWERBUILDER_H
+#define CALORECO_CALOTOWERBUILDER_H
 
 #include "CaloTowerDefs.h"
 #include "CaloWaveformProcessing.h"
@@ -29,7 +29,7 @@ class CaloTowerBuilder : public SubsysReco
 
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &wv);
+  int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms);
   
 
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
@@ -111,7 +111,7 @@ class CaloTowerBuilder : public SubsysReco
  private:
   int process_sim();
   bool skipChannel(int ich, int pid);
-  bool isSZS(float time, float chi2);
+  static bool isSZS(float time, float chi2);
   CaloWaveformProcessing *WaveformProcessing{nullptr};
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation

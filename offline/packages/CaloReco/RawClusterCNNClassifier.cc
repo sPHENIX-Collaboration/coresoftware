@@ -155,8 +155,8 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
 
     if (maxtowerE > 0)
     {
-      int xlength = int((inputDimx - 1) / 2);
-      int ylength = int((inputDimy - 1) / 2);
+      int xlength = ((inputDimx - 1) / 2);
+      int ylength = ((inputDimy - 1) / 2);
       if (maxtowerieta - ylength < 0 || maxtowerieta + ylength >= 96)
       {
         continue;
@@ -184,7 +184,7 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
             std::cout << "ieta: " << ieta << " iphi: " << mappediphi << std::endl;
             continue;
           }
-          int index = (ieta - maxtowerieta + ylength) * inputDimx + iphi - maxtoweriphi + xlength;
+          int index = ((ieta - maxtowerieta + ylength) * inputDimx) + iphi - maxtoweriphi + xlength;
           input.at(index) = towerinfo->get_energy();
         }
       }
@@ -215,7 +215,7 @@ void RawClusterCNNClassifier::CreateNodes(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
 
   // Grab the CEMC node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;

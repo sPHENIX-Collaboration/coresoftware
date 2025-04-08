@@ -76,12 +76,12 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   {
     std::cout << "    create Mvtx detector with " << n_layers << " layers." << std::endl;
   }
-  m_Detector = new PHG4MvtxDetector(this, topNode, GetParamsContainer(), Name());
+  m_Detector = new PHG4MvtxDetector(this, topNode, GetParamsContainer(), Name(), m_ApplyMisalignment, m_misalignmentFile);
   m_Detector->Verbosity(Verbosity());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(detector_type);
   m_Detector->OverlapCheck(CheckOverlap());
-  m_Detector->ApplyMisalignment(m_ApplyMisalignment);
+
   if (Verbosity())
   {
     std::cout << "    ------ created detector " << Name() << std::endl;

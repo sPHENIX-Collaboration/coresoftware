@@ -7,6 +7,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <limits>
 #include <map>
 #include <string>
 #include <utility>
@@ -52,21 +53,21 @@ class LL1PacketGetter : public SubsysReco
   std::map<unsigned int, std::pair<int, int>> m_prim_sum_map{};
   std::map<unsigned int, std::pair<int, int>> m_packet_map{};
   std::map<unsigned int, int> m_word_map{};
-  TriggerDefs::TriggerId m_triggerid;
+  TriggerDefs::TriggerId m_triggerid{TriggerDefs::TriggerId::noneTId};
   unsigned int m_triggerkey{0};
-  TriggerDefs::DetectorId m_detectorid;
-  TriggerDefs::PrimitiveId m_primitiveid;
+  TriggerDefs::DetectorId m_detectorid{TriggerDefs::DetectorId::noneDId};
+  TriggerDefs::PrimitiveId m_primitiveid{TriggerDefs::PrimitiveId::nonePId};
   std::vector<unsigned int> *_sum{nullptr};
 
-  int m_packet_low{0};
-  int m_packet_high{0};
+  int m_packet_low{std::numeric_limits<int>::min()};
+  int m_packet_high{std::numeric_limits<int>::min()};
 
   int m_nchannels{256};
   int m_nchannels_per_primitive{0};
   int m_nprimitives{0};
   int m_ntriggerwords{0};
-  bool m_isdata{0};
-  bool m_no_ll1out{0};
+  bool m_isdata{true};
+  bool m_no_ll1out{false};
 };
 
 #endif  // TRIGGER_LL1PACKETGETTER_H

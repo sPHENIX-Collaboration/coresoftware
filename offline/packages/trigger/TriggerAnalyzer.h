@@ -18,10 +18,10 @@ class TriggerAnalyzer
   int decodeTriggers(PHCompositeNode* topNode);
 
   bool didTriggerFire(const std::string& triggername);
-  bool didTriggerFire(int triggerbit);
+  bool didTriggerFire(int triggerbit) const;
 
   bool checkRawTrigger(const std::string& triggername);
-  bool checkRawTrigger(int triggerbit);
+  bool checkRawTrigger(int triggerbit) const;
 
   int getTriggerPrescale(const std::string& triggername);
   int getTriggerPrescale(int triggerbit);
@@ -37,17 +37,16 @@ class TriggerAnalyzer
   uint64_t getTriggerScalers(const std::string& triggername);
   uint64_t getTriggerScalers(int triggerbit);
 
-  void UseEmulator(bool use) { m_useEmulator = use;}
+  void UseEmulator(bool use) { m_useEmulator = use; }
 
-  void Print();
+  void Print() const;
 
  private:
-
   bool m_useEmulator{false};
-  Gl1Packet *gl1packet{nullptr};
-  TriggerRunInfo *triggerruninfo{nullptr};
-  LL1Out *ll1out_photon{nullptr};
-  LL1Out *ll1out_jet{nullptr};
+  Gl1Packet* gl1packet{nullptr};
+  TriggerRunInfo* triggerruninfo{nullptr};
+  LL1Out* ll1out_photon{nullptr};
+  LL1Out* ll1out_jet{nullptr};
   uint64_t gl1_scaledvec{0};
   uint64_t gl1_livevec{0};
   uint64_t gl1_bco{0};

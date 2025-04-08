@@ -114,6 +114,7 @@ class MbdSig
 
   void WritePedHist();
 
+  void DrawWaveform();      /// Draw Subtracted Waveform
   void PadUpdate() const;
   void Print();
   void Verbose(const int v) { _verbose = v; }

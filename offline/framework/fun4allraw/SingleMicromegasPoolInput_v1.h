@@ -1,7 +1,7 @@
 #ifndef FUN4ALLRAW_SINGLEMICROMEGASPOOLINPUT_V1_H
 #define FUN4ALLRAW_SINGLEMICROMEGASPOOLINPUT_V1_H
 
-#include "MicromegasBcoMatchingInformation.h"
+#include "MicromegasBcoMatchingInformation_v1.h"
 #include "SingleStreamingInput.h"
 
 #include <phool/PHTimer.h>
@@ -86,7 +86,7 @@ class SingleMicromegasPoolInput_v1 : public SingleStreamingInput
   std::set<uint64_t> m_BclkStack;
 
   //! map bco_information_t to packet id
-  using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation>;
+  using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation_v1>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
   // keep track of total number of waveforms per fee

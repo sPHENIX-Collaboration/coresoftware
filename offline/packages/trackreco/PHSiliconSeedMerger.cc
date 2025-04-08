@@ -89,6 +89,8 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode *)
 	    { continue; }
 
 	  TrackSeed* track2 = m_siliconTracks->get(track2ID);
+	  if(track2 == nullptr)
+	    { continue; }
 	  std::set<TrkrDefs::cluskey> mvtx2Keys;
 	  for (TrackSeed::ConstClusterKeyIter iter = track2->begin_cluster_keys();
 	       iter != track2->end_cluster_keys();

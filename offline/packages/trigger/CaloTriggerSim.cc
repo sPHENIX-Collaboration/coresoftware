@@ -36,7 +36,7 @@ CaloTriggerSim::CaloTriggerSim(const std::string &name)
   return;
 }
 
-double CaloTriggerSim::truncate_8bit(const double raw_E) const
+double CaloTriggerSim::truncate_8bit(const double raw_E)
 {
   double rawE = std::min(raw_E, 45.0);
   int counts = std::floor(rawE / (45.0 / 256));
@@ -146,9 +146,9 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       double this_sum = 0;
 
       this_sum += m_EMCAL_1x1_MAP[2 * ieta][2 * iphi];
-      this_sum += m_EMCAL_1x1_MAP[2 * ieta][2 * iphi + 1];  // 2 * iphi + 1 is safe, since m_EMCAL_2x2_NPHI = m_EMCAL_1x1_NPHI / 2
-      this_sum += m_EMCAL_1x1_MAP[2 * ieta + 1][2 * iphi];  // 2 * ieta + 1 is safe, since m_EMCAL_2x2_NETA = m_EMCAL_1x1_NETA / 2
-      this_sum += m_EMCAL_1x1_MAP[2 * ieta + 1][2 * iphi + 1];
+      this_sum += m_EMCAL_1x1_MAP[2 * ieta][(2 * iphi) + 1];  // 2 * iphi + 1 is safe, since m_EMCAL_2x2_NPHI = m_EMCAL_1x1_NPHI / 2
+      this_sum += m_EMCAL_1x1_MAP[(2 * ieta) + 1][2 * iphi];  // 2 * ieta + 1 is safe, since m_EMCAL_2x2_NETA = m_EMCAL_1x1_NETA / 2
+      this_sum += m_EMCAL_1x1_MAP[(2 * ieta) + 1][(2 * iphi) + 1];
 
       if (m_EmulateTruncationFlag)
       {
@@ -159,8 +159,8 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       m_EMCAL_2x2_MAP[ieta][iphi] = this_sum;
 
       // to calculate the eta, phi position, take the average of that of the 1x1's
-      double this_eta = 0.5 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter(2 * ieta + 1));
-      double this_phi = 0.5 * (geomEM->get_phicenter(2 * iphi) + geomEM->get_phicenter(2 * iphi + 1));
+      double this_eta = 0.5 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter((2 * ieta) + 1));
+      double this_phi = 0.5 * (geomEM->get_phicenter(2 * iphi) + geomEM->get_phicenter((2 * iphi) + 1));
       // wrap-around phi (apparently needed for 2D geometry?)
       if (this_phi > M_PI)
       {
@@ -207,10 +207,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation (since eta distribution is potentially
       // non-uniform), average positions of all four towers
-      double this_eta = 0.25 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter(2 * ieta + 1) + geomEM->get_etacenter(2 * ieta + 2) + geomEM->get_etacenter(2 * ieta + 3));
+      double this_eta = 0.25 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter((2 * ieta) + 1) + geomEM->get_etacenter((2 * ieta) + 2) + geomEM->get_etacenter((2 * ieta) + 3));
       // for phi calculation (since phi distribution is uniform), take
       // first tower and add 1.5 tower widths
-      double this_phi = geomEM->get_phicenter(2 * iphi) + 1.5 * (geomEM->get_phicenter(2 * iphi + 1) - geomEM->get_phicenter(2 * iphi));
+      double this_phi = geomEM->get_phicenter(2 * iphi) + (1.5 * (geomEM->get_phicenter((2 * iphi) + 1) - geomEM->get_phicenter(2 * iphi)));
       // wrap-around phi (apparently needed for 2D geometry?)
       if (this_phi > M_PI)
       {
@@ -275,8 +275,8 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      double this_eta = 0.25 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter(2 * ieta + 1) + geomEM->get_etacenter(2 * ieta + 2) + geomEM->get_etacenter(2 * ieta + 3));
-      double this_phi = geomEM->get_phicenter(2 * iphi) + 1.5 * (geomEM->get_phicenter(2 * iphi + 1) - geomEM->get_phicenter(2 * iphi));
+      double this_eta = 0.25 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter((2 * ieta) + 1) + geomEM->get_etacenter((2 * ieta) + 2) + geomEM->get_etacenter((2 * ieta) + 3));
+      double this_phi = geomEM->get_phicenter(2 * iphi) + (1.5 * (geomEM->get_phicenter((2 * iphi) + 1) - geomEM->get_phicenter(2 * iphi)));
 
       if (this_phi > M_PI)
       {
@@ -490,17 +490,17 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       double this_sum = 0;
 
       this_sum += m_FULLCALO_0p1x0p1_MAP[2 * ieta][2 * iphi];
-      this_sum += m_FULLCALO_0p1x0p1_MAP[2 * ieta][2 * iphi + 1];  // 2 * iphi + 1 is safe, since m_FULLCALO_0p2x0p2_NPHI = m_FULLCALO_0p1x0p1_NPHI / 2
-      this_sum += m_FULLCALO_0p1x0p1_MAP[2 * ieta + 1][2 * iphi];  // 2 * ieta + 1 is safe, since m_FULLCALO_0p2x0p2_NETA = m_FULLCALO_0p1x0p1_NETA / 2
-      this_sum += m_FULLCALO_0p1x0p1_MAP[2 * ieta + 1][2 * iphi + 1];
+      this_sum += m_FULLCALO_0p1x0p1_MAP[2 * ieta][(2 * iphi) + 1];  // 2 * iphi + 1 is safe, since m_FULLCALO_0p2x0p2_NPHI = m_FULLCALO_0p1x0p1_NPHI / 2
+      this_sum += m_FULLCALO_0p1x0p1_MAP[(2 * ieta) + 1][2 * iphi];  // 2 * ieta + 1 is safe, since m_FULLCALO_0p2x0p2_NETA = m_FULLCALO_0p1x0p1_NETA / 2
+      this_sum += m_FULLCALO_0p1x0p1_MAP[(2 * ieta) + 1][(2 * iphi) + 1];
 
       // populate 0.2x0.2 map
       m_FULLCALO_0p2x0p2_MAP[ieta][iphi] = this_sum;
 
       // to calculate the eta, phi position, take the average of that
       // of the contributing 0.1x0.1's (which are defined by the OHCal geometry)
-      double this_eta = 0.5 * (geomOH->get_etacenter(2 * ieta) + geomOH->get_etacenter(2 * ieta + 1));
-      double this_phi = 0.5 * (geomOH->get_phicenter(2 * iphi) + geomOH->get_phicenter(2 * iphi + 1));
+      double this_eta = 0.5 * (geomOH->get_etacenter(2 * ieta) + geomOH->get_etacenter((2 * ieta) + 1));
+      double this_phi = 0.5 * (geomOH->get_phicenter(2 * iphi) + geomOH->get_phicenter((2 * iphi) + 1));
 
       if (Verbosity() > 1 && this_sum > 1)
       {
@@ -535,10 +535,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 1.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 1.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
+      double this_eta = geomOH->get_etacenter(2 * ieta) + (1.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0)));
       // for phi calculation, use position of corner tower and add 1.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 1.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
+      double this_phi = geomOH->get_phicenter(2 * iphi) + (1.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0)));
 
       double this_sum = 0;
 
@@ -585,10 +585,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 2.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 2.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
+      double this_eta = geomOH->get_etacenter(2 * ieta) + (2.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0)));
       // for phi calculation, use position of corner tower and add 2.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 2.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
+      double this_phi = geomOH->get_phicenter(2 * iphi) + (2.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0)));
 
       double this_sum = 0;
 
@@ -642,10 +642,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 3.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 3.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
+      double this_eta = geomOH->get_etacenter(2 * ieta) + (3.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0)));
       // for phi calculation, use position of corner tower and add 3.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 3.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
+      double this_phi = geomOH->get_phicenter(2 * iphi) + (3.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0)));
 
       double this_sum = 0;
 
@@ -708,10 +708,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 4.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 4.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
+      double this_eta = geomOH->get_etacenter(2 * ieta) + (4.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0)));
       // for phi calculation, use position of corner tower and add 4.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 4.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
+      double this_phi = geomOH->get_phicenter(2 * iphi) + (4.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0)));
 
       double this_sum = 0;
 
@@ -781,7 +781,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
+int CaloTriggerSim::CreateNode(PHCompositeNode *topNode) const
 {
   PHNodeIterator iter(topNode);
 
@@ -818,7 +818,7 @@ int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloTriggerSim::FillNode(PHCompositeNode *topNode)
+void CaloTriggerSim::FillNode(PHCompositeNode *topNode) const
 {
   CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !m_EmulateTruncationFlag ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate");
   if (!triggerinfo)
@@ -826,40 +826,38 @@ void CaloTriggerSim::FillNode(PHCompositeNode *topNode)
     std::cout << " ERROR -- can't find CaloTriggerInfo node after it should have been created" << std::endl;
     return;
   }
-  else
-  {
-    triggerinfo->set_best_EMCal_2x2_E(m_EMCAL_2x2_BEST_E);
-    triggerinfo->set_best_EMCal_2x2_eta(m_EMCAL_2x2_BEST_ETA);
-    triggerinfo->set_best_EMCal_2x2_phi(m_EMCAL_2x2_BEST_PHI);
 
-    triggerinfo->set_best_EMCal_4x4_E(m_EMCAL_4x4_BEST_E);
-    triggerinfo->set_best_EMCal_4x4_eta(m_EMCAL_4x4_BEST_ETA);
-    triggerinfo->set_best_EMCal_4x4_phi(m_EMCAL_4x4_BEST_PHI);
+  triggerinfo->set_best_EMCal_2x2_E(m_EMCAL_2x2_BEST_E);
+  triggerinfo->set_best_EMCal_2x2_eta(m_EMCAL_2x2_BEST_ETA);
+  triggerinfo->set_best_EMCal_2x2_phi(m_EMCAL_2x2_BEST_PHI);
 
-    triggerinfo->set_best2_EMCal_4x4_E(m_EMCAL_4x4_BEST2_E);
-    triggerinfo->set_best2_EMCal_4x4_eta(m_EMCAL_4x4_BEST2_ETA);
-    triggerinfo->set_best2_EMCal_4x4_phi(m_EMCAL_4x4_BEST2_PHI);
+  triggerinfo->set_best_EMCal_4x4_E(m_EMCAL_4x4_BEST_E);
+  triggerinfo->set_best_EMCal_4x4_eta(m_EMCAL_4x4_BEST_ETA);
+  triggerinfo->set_best_EMCal_4x4_phi(m_EMCAL_4x4_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_0p2x0p2_E(m_FULLCALO_0p2x0p2_BEST_E);
-    triggerinfo->set_best_FullCalo_0p2x0p2_eta(m_FULLCALO_0p2x0p2_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p2x0p2_phi(m_FULLCALO_0p2x0p2_BEST_PHI);
+  triggerinfo->set_best2_EMCal_4x4_E(m_EMCAL_4x4_BEST2_E);
+  triggerinfo->set_best2_EMCal_4x4_eta(m_EMCAL_4x4_BEST2_ETA);
+  triggerinfo->set_best2_EMCal_4x4_phi(m_EMCAL_4x4_BEST2_PHI);
 
-    triggerinfo->set_best_FullCalo_0p4x0p4_E(m_FULLCALO_0p4x0p4_BEST_E);
-    triggerinfo->set_best_FullCalo_0p4x0p4_eta(m_FULLCALO_0p4x0p4_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p4x0p4_phi(m_FULLCALO_0p4x0p4_BEST_PHI);
+  triggerinfo->set_best_FullCalo_0p2x0p2_E(m_FULLCALO_0p2x0p2_BEST_E);
+  triggerinfo->set_best_FullCalo_0p2x0p2_eta(m_FULLCALO_0p2x0p2_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p2x0p2_phi(m_FULLCALO_0p2x0p2_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_0p6x0p6_E(m_FULLCALO_0p6x0p6_BEST_E);
-    triggerinfo->set_best_FullCalo_0p6x0p6_eta(m_FULLCALO_0p6x0p6_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p6x0p6_phi(m_FULLCALO_0p6x0p6_BEST_PHI);
+  triggerinfo->set_best_FullCalo_0p4x0p4_E(m_FULLCALO_0p4x0p4_BEST_E);
+  triggerinfo->set_best_FullCalo_0p4x0p4_eta(m_FULLCALO_0p4x0p4_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p4x0p4_phi(m_FULLCALO_0p4x0p4_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_0p8x0p8_E(m_FULLCALO_0p8x0p8_BEST_E);
-    triggerinfo->set_best_FullCalo_0p8x0p8_eta(m_FULLCALO_0p8x0p8_BEST_ETA);
-    triggerinfo->set_best_FullCalo_0p8x0p8_phi(m_FULLCALO_0p8x0p8_BEST_PHI);
+  triggerinfo->set_best_FullCalo_0p6x0p6_E(m_FULLCALO_0p6x0p6_BEST_E);
+  triggerinfo->set_best_FullCalo_0p6x0p6_eta(m_FULLCALO_0p6x0p6_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p6x0p6_phi(m_FULLCALO_0p6x0p6_BEST_PHI);
 
-    triggerinfo->set_best_FullCalo_1p0x1p0_E(m_FULLCALO_1p0x1p0_BEST_E);
-    triggerinfo->set_best_FullCalo_1p0x1p0_eta(m_FULLCALO_1p0x1p0_BEST_ETA);
-    triggerinfo->set_best_FullCalo_1p0x1p0_phi(m_FULLCALO_1p0x1p0_BEST_PHI);
-  }
+  triggerinfo->set_best_FullCalo_0p8x0p8_E(m_FULLCALO_0p8x0p8_BEST_E);
+  triggerinfo->set_best_FullCalo_0p8x0p8_eta(m_FULLCALO_0p8x0p8_BEST_ETA);
+  triggerinfo->set_best_FullCalo_0p8x0p8_phi(m_FULLCALO_0p8x0p8_BEST_PHI);
+
+  triggerinfo->set_best_FullCalo_1p0x1p0_E(m_FULLCALO_1p0x1p0_BEST_E);
+  triggerinfo->set_best_FullCalo_1p0x1p0_eta(m_FULLCALO_1p0x1p0_BEST_ETA);
+  triggerinfo->set_best_FullCalo_1p0x1p0_phi(m_FULLCALO_1p0x1p0_BEST_PHI);
 
   return;
 }

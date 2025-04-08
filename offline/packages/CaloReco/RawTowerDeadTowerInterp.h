@@ -15,13 +15,10 @@ class RawTowerDeadTowerInterp : public SubsysReco
 {
  public:
   RawTowerDeadTowerInterp(const std::string &name = "RawTowerDeadTowerInterp");
-  ~RawTowerDeadTowerInterp() override
-  {
-  }
+  ~RawTowerDeadTowerInterp() override = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void
   detector(const std::string &d)
@@ -30,16 +27,15 @@ class RawTowerDeadTowerInterp : public SubsysReco
   }
 
  protected:
-  void
-  CreateNodes(PHCompositeNode *topNode);
+  void CreateNodes(PHCompositeNode *topNode);
 
-  TowerInfoContainer *m_calibTowers = nullptr;
-  RawTowerGeomContainer *m_geometry = nullptr;
-  RawTowerDeadMap *m_deadTowerMap = nullptr;
+  TowerInfoContainer *m_calibTowers {nullptr};
+  RawTowerGeomContainer *m_geometry {nullptr};
+  RawTowerDeadMap *m_deadTowerMap {nullptr};
 
-  std::string m_detector = "NONE";
+  std::string m_detector {"NONE"};
 
-  std::string _calib_tower_node_prefix = "CALIB";
+  std::string _calib_tower_node_prefix {"CALIB"};
 };
 
 #endif
