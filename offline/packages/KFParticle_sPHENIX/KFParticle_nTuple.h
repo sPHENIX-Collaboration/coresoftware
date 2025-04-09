@@ -64,6 +64,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   float m_calculated_mother_decaytime_err = -1;
   float m_calculated_mother_decaylength = -1;
   float m_calculated_mother_decaylength_err = -1;
+  float m_calculated_mother_decaylength_xy = -1;
+  float m_calculated_mother_decaylength_xy_err = -1;
   float m_calculated_mother_dira = -1;
   float m_calculated_mother_dira_xy = -1;
   float m_calculated_mother_fdchi2 = -1;
@@ -102,6 +104,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   float m_calculated_intermediate_decaytime_err[max_intermediates] = {0};
   float m_calculated_intermediate_decaylength[max_intermediates] = {0};
   float m_calculated_intermediate_decaylength_err[max_intermediates] = {0};
+  float m_calculated_intermediate_decaylength_xy[max_intermediates] = {0};
+  float m_calculated_intermediate_decaylength_xy_err[max_intermediates] = {0};
   float m_calculated_intermediate_dira[max_intermediates] = {0};
   float m_calculated_intermediate_fdchi2[max_intermediates] = {0};
   float m_calculated_intermediate_ip[max_intermediates] = {0};
@@ -163,6 +167,9 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   // float *m_calculated_daughter_cov[max_tracks];
   float m_calculated_daughter_cov[max_tracks][21] = {{0}, {0}};
   float m_calculated_daughter_dedx[max_tracks] = {0};
+  //float m_calculated_daughter_expected_dedx_pion[max_tracks] = {0};
+  //float m_calculated_daughter_expected_dedx_kaon[max_tracks] = {0};
+  //float m_calculated_daughter_expected_dedx_proton[max_tracks] = {0};
 
   float m_daughter_dca[99] = {0};
   float m_daughter_dca_xy[99] = {0};
