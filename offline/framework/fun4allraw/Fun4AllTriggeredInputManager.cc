@@ -51,38 +51,37 @@ Fun4AllTriggeredInputManager::~Fun4AllTriggeredInputManager()
   delete m_SyncObject;
   for (auto iter : m_TriggeredInputVector)
   {
-     if (Verbosity() > 1)
-     {
-       std::cout << PHWHERE << " deleting " << iter->Name() << std::endl;
-     }
-     delete iter;
-   }
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << " deleting " << iter->Name() << std::endl;
+    }
+    delete iter;
+  }
 }
 
 int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
 {
   m_Gl1TriggeredInput->FillPool(1);
-    if (m_RunNumber == 0)
-    {
-      m_RunNumber = m_Gl1TriggeredInput->RunNumber();
-      SetRunNumber(m_RunNumber);
-    }
-    if (m_Gl1TriggeredInput->AllDone())
-    {
-      return -1;
-    }
-      
-  
-    for (auto *iter : m_TriggeredInputVector)
+  if (m_RunNumber == 0)
   {
-//    std::cout << "prdf input: " << iter->Name() << std::endl;
+    m_RunNumber = m_Gl1TriggeredInput->RunNumber();
+    SetRunNumber(m_RunNumber);
+  }
+  if (m_Gl1TriggeredInput->AllDone())
+  {
+    return -1;
+  }
+
+  for (auto *iter : m_TriggeredInputVector)
+  {
+    //    std::cout << "prdf input: " << iter->Name() << std::endl;
     iter->FillPool(1);
     if (iter->AllDone())
     {
       return -1;
     }
   }
-//    std::cout << "saving event on dst" << std::endl;
+  //    std::cout << "saving event on dst" << std::endl;
   return 0;
 }
 
@@ -92,7 +91,7 @@ int Fun4AllTriggeredInputManager::fileclose()
   // {
   //   delete iter;
   // }
-//  m_TriggerInputVector.clear();
+  //  m_TriggerInputVector.clear();
   return 0;
 }
 
@@ -101,10 +100,10 @@ void Fun4AllTriggeredInputManager::Print(const std::string &what) const
   std::cout << "Triggered Inputs" << std::endl;
   if (what == "ALL" || what == "INPUT")
   {
-  for (auto *iter : m_TriggeredInputVector)
-  {
-    std::cout << "prdf input: " << iter->Name() << std::endl;
-  }
+    for (auto *iter : m_TriggeredInputVector)
+    {
+      std::cout << "prdf input: " << iter->Name() << std::endl;
+    }
   }
   return;
 }
@@ -186,7 +185,7 @@ void Fun4AllTriggeredInputManager::registerTriggeredInput(SingleTriggeredInput *
   prdfin->Gl1Input(m_Gl1TriggeredInput);
   prdfin->CreateDSTNode(m_topNode);
   std::cout << "registering " << prdfin->Name() << std::endl;
-//  prdfin->CreateDSTNode(m_topNode);
-//  prdfin->TriggerInputManager(this);
+  //  prdfin->CreateDSTNode(m_topNode);
+  //  prdfin->TriggerInputManager(this);
   return;
 }

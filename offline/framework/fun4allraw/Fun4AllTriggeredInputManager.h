@@ -47,7 +47,6 @@ class Fun4AllTriggeredInputManager : public Fun4AllInputManager
   void registerGl1TriggeredInput(SingleTriggeredInput *prdfin);
 
  private:
- 
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};
   bool m_gl1_registered_flag{false};
