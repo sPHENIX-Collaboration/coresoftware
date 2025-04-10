@@ -195,7 +195,7 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   {
     return;
   }
-  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(m_topNode, m_OutNodeName);
+//  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(m_topNode, m_OutNodeName);
   if (!FilesDone())
   {
     if (FillEventVector() != 0)
@@ -318,7 +318,7 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
         }
       }
     }
-    packetcont->AddPacket(newhit);
+    AddPacket(m_topNode,newhit);
     delete packet;
   }
   delete newhit;
@@ -363,4 +363,24 @@ void SingleTriggeredInput::Detector(const std::string &name)
   m_Detector = name;
   m_OutNodeName = m_Detector + "Packets";
   return;
+}
+
+void SingleTriggeredInput::AddPacket(PHCompositeNode *topNode, OfflinePacket *newhit)
+{
+  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(topNode, m_OutNodeName);
+  if (! packetcont)
+  {
+    std::cout << PHWHERE << " Could not locate " << m_OutNodeName << ", or type mismatch" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  CaloPacket *calopacket = dynamic_cast<CaloPacket *> (newhit);
+  if (! calopacket)
+  {
+    std::cout << PHWHERE << " dynamic cast to CaloPacket failed for " << std::endl;
+    newhit->identify();
+    gSystem->Exit(1);
+    exit(1);
+  }
+  packetcont->AddPacket(calopacket);
 }
