@@ -17,7 +17,7 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
 {
  public:
   explicit SingleGl1TriggeredInput(const std::string &name);
-  ~SingleGl1TriggeredInput() override;
+  ~SingleGl1TriggeredInput() override = default;;
   void FillPool(const unsigned int) override;
   // void CleanupUsedPackets(const int eventno);
   // void ClearCurrentEvent();
@@ -26,8 +26,7 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   uint64_t GetClock(Event *evt) override;
 
  private:
-  int filldepth{10};
-  PHCompositeNode *m_topNode{nullptr};
+
 };
 
 #endif

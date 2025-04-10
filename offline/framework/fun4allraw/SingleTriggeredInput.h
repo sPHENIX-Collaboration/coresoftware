@@ -67,12 +67,7 @@ protected:
   int m_EventsThisFile{0};
   int m_AllDone{0};
   int m_FilesDone{0};
-  int m_SubsystemEnum{0};
-  int m_DefaultEventNumberOffset{0};
-  int m_FEMEventRefPacketId{0};
-  int m_SkipToEvent{0};  // we may have negative event numbers but lets not go there right now
   int m_LastEvent{std::numeric_limits<int>::max()};
-  unsigned int m_LocalPoolDepth{0};
   std::string m_OutNodeName;
   std::string m_Detector;
 };

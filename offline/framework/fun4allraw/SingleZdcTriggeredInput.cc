@@ -31,11 +31,6 @@ SingleZdcTriggeredInput::SingleZdcTriggeredInput(const std::string &name)
 {
 }
 
-SingleZdcTriggeredInput::~SingleZdcTriggeredInput()
-{
-}
-
-
 void SingleZdcTriggeredInput::CreateDSTNode(PHCompositeNode *my_topNode)
 {
   std::array<std::string,2> detname {"ZDC", "SEPD"};
@@ -47,7 +42,7 @@ void SingleZdcTriggeredInput::CreateDSTNode(PHCompositeNode *my_topNode)
     dstNode = new PHCompositeNode("DST");
     topNode()->addNode(dstNode);
   }
-  for (auto striter :  detname)
+  for (const auto& striter :  detname)
   {
   PHNodeIterator iterDst(dstNode);
   PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", striter));

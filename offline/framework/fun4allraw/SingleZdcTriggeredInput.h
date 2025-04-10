@@ -24,7 +24,7 @@ class SingleZdcTriggeredInput : public SingleTriggeredInput
 {
  public:
   explicit SingleZdcTriggeredInput(const std::string &name);
-  ~SingleZdcTriggeredInput() override;
+  ~SingleZdcTriggeredInput() override = default;
   void CreateDSTNode(PHCompositeNode *topNode) override;
   void AddPacket(PHCompositeNode *topNode, OfflinePacket *newhit) override;
 

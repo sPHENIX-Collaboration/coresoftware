@@ -33,17 +33,12 @@ SingleGl1TriggeredInput::SingleGl1TriggeredInput(const std::string &name)
 {
 }
 
-SingleGl1TriggeredInput::~SingleGl1TriggeredInput()
-{
-}
-
 void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
 {
   if (AllDone())  // no more files and all events read
   {
     return;
   }
-  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1Packet");
   if (!FilesDone())
   {
     FillEventVector();
@@ -61,6 +56,7 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), "GL1Packet");
   int EventSequence = evt->getEvtSequence();
 //  evt->identify();
   Packet *packet = evt->getPacket(14001);
@@ -116,15 +112,15 @@ void SingleGl1TriggeredInput::Print(const std::string &what) const
   std::cout << "what: " << what << std::endl;
 }
 
-void SingleGl1TriggeredInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleGl1TriggeredInput::CreateDSTNode(PHCompositeNode *my_topNode)
 {
-  m_topNode = topNode;
-  PHNodeIterator iter(topNode);
+  topNode(my_topNode);
+  PHNodeIterator iter(topNode());
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
-    topNode->addNode(dstNode);
+    topNode()->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
   PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "GL1"));

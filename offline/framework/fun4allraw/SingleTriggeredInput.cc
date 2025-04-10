@@ -177,12 +177,12 @@ int SingleTriggeredInput::FillEventVector()
 uint64_t SingleTriggeredInput::GetClock(Event *evt)
 {
   std::vector<Packet *> pktvec = evt->getPacketVector();
-  uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF);
+  uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF); //NOLINT (hicpp-signed-bitwise)
   //     uint64_t clock = pktvec[0]->lValue(0, "CLOCK");
   //     pktvec[0]->identify();
   // std::cout << "pkt event: " << pktvec[0]->iValue(0, "EVTNR") << ", clock: 0x"
   // 	       << std::hex << pktvec[0]->lValue(0, "CLOCK") << std::dec << std::endl;
-  for (auto iter : pktvec)
+  for (auto *iter : pktvec)
   {
     delete iter;
   }
@@ -203,12 +203,12 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
       bool isequal = std::equal(begin(), end(), Gl1Input()->begin());
       if (!isequal)
       {
-        auto iter1 = begin();
-        auto iter2 = Gl1Input()->begin();
-        auto iter3 = beginclock();
-        auto iter4 = Gl1Input()->beginclock();
+        const auto *iter1 = begin();
+        const auto *iter2 = Gl1Input()->begin();
+//        auto iter3 = beginclock();
+//        auto iter4 = Gl1Input()->beginclock();
         int position = 0;
-        int ifirst = 1;
+//        int ifirst = 1;
         while (iter1 != end())
         {
           // std::cout << "position " << position << " test 0x" << std::hex
@@ -233,31 +233,29 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
             m_EventDeque.erase(m_EventDeque.begin() + (position), m_EventDeque.end());
             break;
           }
-          else
-          {
-            // std::cout <<  "good Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
-          }
+          
+                      // std::cout <<  "good Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
+         
           ++position;
           ++iter1;
           ++iter2;
-          if (ifirst)
-          {
-            ifirst = 0;
-          }
-          else
-          {
-            ++iter3;
-            ++iter4;
-          }
+          // if (ifirst)
+          // {
+          //   ifirst = 0;
+          // }
+          // else
+          // {
+          //   ++iter3;
+          //   ++iter4;
+          // }
         }
         // std::cout << "Aborting event loop after processing remaining good events" << std::endl;
         FilesDone(1);
         return;
       }
-      else
-      {
-        //	std::cout << "we are good" << std::endl;
-      }
+      
+              //	std::cout << "we are good" << std::endl;
+     
     }
   }
   if (keep > 100000000)
@@ -277,7 +275,7 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   //  std::cout << "Saving event " << evt->getEvtSequence();
   CaloPacket *newhit = new CaloPacketv1();
   std::vector<Packet *> pktvec = evt->getPacketVector();
-  for (auto packet : pktvec)
+  for (auto *packet : pktvec)
   {
     int packet_id = packet->getIdentifier();
     int nr_modules = packet->iValue(0, "NRMODULES");
