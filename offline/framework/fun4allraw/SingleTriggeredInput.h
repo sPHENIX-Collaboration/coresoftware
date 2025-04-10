@@ -54,10 +54,15 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   PHCompositeNode *topNode() { return m_topNode; }
 
  protected:
+// lined up like this:
+  // Event * | previous event beam clock | clock diff to previous event
+  // keeping previous beam clock just eases the looping, we want to be able to have
+  // the accompanying diff to the previous beam clock with this event, so any mismatch
+  // gives us the event index in the deque which is off
   std::deque<Event *> m_EventDeque;
   std::array<uint64_t, pooldepth + 1> m_bclkarray{};  // keep the last bco from previous loop
   std::array<uint64_t, pooldepth> m_bclkdiffarray{};
-  // we have accessors for these here
+
  private:
   Eventiterator *m_EventIterator{nullptr};
   SingleTriggeredInput *m_Gl1Input{nullptr};
