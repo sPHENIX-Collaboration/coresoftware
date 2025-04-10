@@ -43,10 +43,10 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   {
     return;
   }
-//  OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(m_topNode, "GL1Packet");
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1Packet");
   if (!FilesDone())
   {
-  FillEventVector();
+    FillEventVector();
   }
   if (keep > 100000000)
   {
@@ -61,41 +61,37 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
-    int EventSequence = evt->getEvtSequence();
-    if (keep > 100000000)
-    {
-    std::cout << "run: " << RunNumber() << ", evt: " << EventSequence << std::endl;
-    }
-    Packet *packet = evt->getPacket(14001);
-    if (packet)
-    {
-    Gl1Packet *newhit = new Gl1Packetv2();
+  int EventSequence = evt->getEvtSequence();
+//  evt->identify();
+  Packet *packet = evt->getPacket(14001);
+  if (packet)
+  {
     uint64_t gtm_bco = packet->lValue(0, "BCO");
-//    std::cout << "saving bco 0x" << std::hex << gtm_bco << std::dec << std::endl;
+    //    std::cout << "saving bco 0x" << std::hex << gtm_bco << std::dec << std::endl;
     unsigned int packetnumber = packet->iValue(0);
-    newhit->setBCO(packet->lValue(0, "BCO"));
-    newhit->setHitFormat(packet->getHitFormat());
-    newhit->setIdentifier(packet->getIdentifier());
-    newhit->setEvtSequence(EventSequence);
-    newhit->setPacketNumber(packetnumber);
+    gl1packet->setBCO(packet->lValue(0, "BCO"));
+    gl1packet->setHitFormat(packet->getHitFormat());
+    gl1packet->setIdentifier(packet->getIdentifier());
+    gl1packet->setEvtSequence(EventSequence);
+    gl1packet->setPacketNumber(packetnumber);
 
-    newhit->setBunchNumber(packet->lValue(0, "BunchNumber"));
-    newhit->setTriggerInput(packet->lValue(0, "TriggerInput"));
-    newhit->setLiveVector(packet->lValue(0, "LiveVector"));
-    newhit->setScaledVector(packet->lValue(0, "ScaledVector"));
-    newhit->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
+    gl1packet->setBunchNumber(packet->lValue(0, "BunchNumber"));
+    gl1packet->setTriggerInput(packet->lValue(0, "TriggerInput"));
+    gl1packet->setLiveVector(packet->lValue(0, "LiveVector"));
+    gl1packet->setScaledVector(packet->lValue(0, "ScaledVector"));
+    gl1packet->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
     for (int i = 0; i < 64; i++)
     {
       for (int j = 0; j < 3; j++)
       {
-        newhit->setScaler(i, j, packet->lValue(i, j));
+        gl1packet->setScaler(i, j, packet->lValue(i, j));
       }
     }
     for (int i = 0; i < 12; i++)
     {
-      newhit->setGl1pScaler(i, 0, packet->lValue(i, "GL1PRAW"));
-      newhit->setGl1pScaler(i, 1, packet->lValue(i, "GL1PLIVE"));
-      newhit->setGl1pScaler(i, 2, packet->lValue(i, "GL1PSCALED"));
+      gl1packet->setGl1pScaler(i, 0, packet->lValue(i, "GL1PRAW"));
+      gl1packet->setGl1pScaler(i, 1, packet->lValue(i, "GL1PLIVE"));
+      gl1packet->setGl1pScaler(i, 2, packet->lValue(i, "GL1PSCALED"));
     }
     if (Verbosity() > 2)
     {
@@ -104,19 +100,16 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
                 << ", bco: 0x" << std::hex << gtm_bco << std::dec
                 << ", bunch no: " << packet->lValue(0, "BunchNumber")
                 << std::endl;
-      std::cout << PHWHERE << " RB Packet: " << newhit->getIdentifier()
-                << " evtno: " << newhit->getEvtSequence()
-                << ", bco: 0x" << std::hex << newhit->getBCO() << std::dec
-                << ", bunch no: " << +newhit->getBunchNumber()
+      std::cout << PHWHERE << " RB Packet: " << gl1packet->getIdentifier()
+                << " evtno: " << gl1packet->getEvtSequence()
+                << ", bco: 0x" << std::hex << gl1packet->getBCO() << std::dec
+                << ", bunch no: " << +gl1packet->getBunchNumber()
                 << std::endl;
     }
     delete packet;
-       delete newhit;
-    }
-       delete evt;
-    
+  }
+  delete evt;
 }
-
 
 void SingleGl1TriggeredInput::Print(const std::string &what) const
 {
@@ -152,7 +145,13 @@ void SingleGl1TriggeredInput::CreateDSTNode(PHCompositeNode *topNode)
 uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
 {
   Packet *packet = evt->getPacket(14001);
-uint64_t clock = packet->lValue(0, "BCO");
-delete packet;
-return clock;
+  if (!packet)
+  {
+    std::cout << "no packet 14001 for event" << std::endl;
+    evt->identify();
+    return std::numeric_limits<uint64_t>::max();
+  }
+  uint64_t clock = packet->lValue(0, "BCO");
+  delete packet;
+  return clock;
 }

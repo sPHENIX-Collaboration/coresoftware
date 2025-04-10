@@ -26,7 +26,7 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   uint64_t GetClock(Event *evt) override;
 
  private:
-  int filldepth {10};
+  int filldepth{10};
   PHCompositeNode *m_topNode{nullptr};
 };
 

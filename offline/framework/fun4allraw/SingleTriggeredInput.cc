@@ -13,8 +13,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <Event/Eventiterator.h>
 #include <Event/EventTypes.h>
+#include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 #include <Event/packet.h>
 
@@ -35,7 +35,7 @@ SingleTriggeredInput::SingleTriggeredInput(const std::string &name)
 
 SingleTriggeredInput::~SingleTriggeredInput()
 {
-  while(m_EventDeque.begin() !=  m_EventDeque.end())
+  while (m_EventDeque.begin() != m_EventDeque.end())
   {
     delete m_EventDeque.front();
     m_EventDeque.pop_front();
@@ -101,18 +101,18 @@ int SingleTriggeredInput::FillEventVector()
       return -1;
     }
   }
-  if (! m_EventDeque.empty())
+  if (!m_EventDeque.empty())
   {
     return 0;
   }
-  size_t i {0};
+  size_t i{0};
   uint64_t tmp = m_bclkarray[pooldepth];
   m_bclkarray.fill(std::numeric_limits<uint64_t>::max());
   m_bclkdiffarray.fill(std::numeric_limits<uint64_t>::max());
   m_bclkarray[0] = tmp;
   // std::cout << std::hex << "m_bclkarray[0]: 0x" << m_bclkarray[0] << ", ind " << pooldepth
   // 	    << ", 0x" << m_bclkarray[pooldepth] << std::endl;
-  while(i < pooldepth)
+  while (i < pooldepth)
   {
     Event *evt = GetEventIterator()->getNextEvent();
     while (!evt)
@@ -130,33 +130,40 @@ int SingleTriggeredInput::FillEventVector()
       delete evt;
       continue;
     }
-//    std::cout << Name() << std::endl;
-//    evt->identify();
+    //    std::cout << Name() << std::endl;
+    //    evt->identify();
     evt->convert();
-    uint64_t bla = GetClock(evt);
-//    std::cout << Name() << ":filling index " << i+1 << " with " << std::hex << bla << std::dec << std::endl;
-    m_bclkarray[i+1] = bla;
+    //    std::cout << Name() << ":filling index " << i+1 << " with " << std::hex << bla << std::dec << std::endl;
+    uint64_t myClock = GetClock(evt);
+    if (myClock == std::numeric_limits<uint64_t>::max())
+    {
+      delete evt;
+      continue;
+    }
+    m_bclkarray[i + 1] = GetClock(evt);
     if (m_Event == 0)
     {
       m_bclkdiffarray[i] = 0;
     }
     else
     {
-      if (m_bclkarray[i+1] < m_bclkarray[i])
+      if (m_bclkarray[i + 1] < m_bclkarray[i])
       {
-	m_bclkdiffarray[i] = (m_bclkarray[i+1] + 0x100000000) - m_bclkarray[i]; // handle rollover
+        m_bclkdiffarray[i] = (m_bclkarray[i + 1] + 0x100000000) - m_bclkarray[i];  // handle rollover
       }
       else
       {
-	m_bclkdiffarray[i] = m_bclkarray[i+1] - m_bclkarray[i];
+        m_bclkdiffarray[i] = m_bclkarray[i + 1] - m_bclkarray[i];
       }
     }
+    //    std::cout << "Event " << evt->getEvtSequence() << "bclk: " << m_bclkarray[i+1] << std::endl;
+
     m_Event++;
-     // std::cout << "m_bclkarray[" << i<< "]: 0x" << std::hex << m_bclkarray[i] << std::dec
-     // 	      << ", m_bclkarray[" << i << "+1]: 0x" << std::hex << m_bclkarray[i+1] << std::dec
-     // 	      << ", m_bclkdiffarray[" << i << "]: 0x" << std::hex << m_bclkdiffarray[i] << std::dec << std::endl;
+    // std::cout << "m_bclkarray[" << i<< "]: 0x" << std::hex << m_bclkarray[i] << std::dec
+    // 	      << ", m_bclkarray[" << i << "+1]: 0x" << std::hex << m_bclkarray[i+1] << std::dec
+    // 	      << ", m_bclkdiffarray[" << i << "]: 0x" << std::hex << m_bclkdiffarray[i] << std::dec << std::endl;
     m_EventDeque.push_back(evt);
-      
+
     i++;
   }
   // std::cout << Name() << std::endl;
@@ -169,17 +176,17 @@ int SingleTriggeredInput::FillEventVector()
 
 uint64_t SingleTriggeredInput::GetClock(Event *evt)
 {
-     std::vector<Packet *> pktvec = evt->getPacketVector();
-     uint64_t clock = static_cast<uint64_t> (pktvec[0]->lValue(0, "CLOCK") &0xFFFFFFFF);
-//     uint64_t clock = pktvec[0]->lValue(0, "CLOCK");
-//     pktvec[0]->identify();
-     // std::cout << "pkt event: " << pktvec[0]->iValue(0, "EVTNR") << ", clock: 0x"
-     // 	       << std::hex << pktvec[0]->lValue(0, "CLOCK") << std::dec << std::endl;
-     for (auto iter : pktvec)
-     {
-       delete iter;
-     }
-     return clock;
+  std::vector<Packet *> pktvec = evt->getPacketVector();
+  uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF);
+  //     uint64_t clock = pktvec[0]->lValue(0, "CLOCK");
+  //     pktvec[0]->identify();
+  // std::cout << "pkt event: " << pktvec[0]->iValue(0, "EVTNR") << ", clock: 0x"
+  // 	       << std::hex << pktvec[0]->lValue(0, "CLOCK") << std::dec << std::endl;
+  for (auto iter : pktvec)
+  {
+    delete iter;
+  }
+  return clock;
 }
 
 void SingleTriggeredInput::FillPool(const unsigned int keep)
@@ -194,36 +201,62 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
     if (FillEventVector() != 0)
     {
       bool isequal = std::equal(begin(), end(), Gl1Input()->begin());
-      if (! isequal)
+      if (!isequal)
       {
-	auto iter1 = begin();
-	auto iter2 = Gl1Input()->begin();
-	int position = 0;
-	while (iter1 != end())
-	{
-	  if (*iter1 != *iter2)
-	  {
-	    if (*iter1 == std::numeric_limits<uint64_t>::max())
-	    {
-	      std::cout << Name() << " No more events found uint64_t max" << std::endl;
-	      	FilesDone(1);
-	      return;
-	    }
-	    std::cout << "position " << position << " mismatch 0x" << std::hex
-		      << *iter1 << " versus 0x" << *iter2 << std::dec << std::endl;
-	    break;
-	  }
-	  ++position;
-	  ++iter1;
-	  ++iter2;
-	}
-	std::cout << "Aborting event loop after processing remaining good events" << std::endl;
-	FilesDone(1);
-	return;
+        auto iter1 = begin();
+        auto iter2 = Gl1Input()->begin();
+        auto iter3 = beginclock();
+        auto iter4 = Gl1Input()->beginclock();
+        int position = 0;
+        int ifirst = 1;
+        while (iter1 != end())
+        {
+          // std::cout << "position " << position << " test 0x" << std::hex
+          //  	      << *iter1 << " versus 0x" << *iter2 << std::dec << std::endl;
+          //  std::cout  << "bclk1: 0x" << *iter3 << ", gl1bclk: 0x" << *iter4 << std::dec << std::endl;
+          //	    m_EventDeque[position]->identify();
+          if (*iter1 != *iter2)
+          {
+            if (*iter1 == std::numeric_limits<uint64_t>::max())
+            {
+              std::cout << Name() << " No more events found uint64_t max" << std::endl;
+              FilesDone(1);
+              return;
+            }
+            //	    std::cout << "and booom" << std::endl;
+            //	    std::cout <<  "remove Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
+            // position is the first bad index,
+            for (size_t i = position; i < m_EventDeque.size(); ++i)
+            {
+              delete m_EventDeque[i];
+            }
+            m_EventDeque.erase(m_EventDeque.begin() + (position), m_EventDeque.end());
+            break;
+          }
+          else
+          {
+            // std::cout <<  "good Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
+          }
+          ++position;
+          ++iter1;
+          ++iter2;
+          if (ifirst)
+          {
+            ifirst = 0;
+          }
+          else
+          {
+            ++iter3;
+            ++iter4;
+          }
+        }
+        // std::cout << "Aborting event loop after processing remaining good events" << std::endl;
+        FilesDone(1);
+        return;
       }
       else
       {
-//	std::cout << "we are good" << std::endl;
+        //	std::cout << "we are good" << std::endl;
       }
     }
   }
@@ -240,56 +273,56 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
-//    int EventSequence = evt->getEvtSequence();
-//  std::cout << "Saving event " << evt->getEvtSequence() << std::endl;
-      CaloPacket *newhit = new CaloPacketv1();
-    std::vector<Packet *> pktvec = evt->getPacketVector();
-    for (auto packet : pktvec)
+  //    int EventSequence = evt->getEvtSequence();
+  //  std::cout << "Saving event " << evt->getEvtSequence();
+  CaloPacket *newhit = new CaloPacketv1();
+  std::vector<Packet *> pktvec = evt->getPacketVector();
+  for (auto packet : pktvec)
+  {
+    int packet_id = packet->getIdentifier();
+    int nr_modules = packet->iValue(0, "NRMODULES");
+    int nr_channels = packet->iValue(0, "CHANNELS");
+    int nr_samples = packet->iValue(0, "SAMPLES");
+    newhit->setNrModules(nr_modules);
+    newhit->setNrChannels(nr_channels);
+    newhit->setNrSamples(nr_samples);
+    newhit->setIdentifier(packet_id);
+    newhit->setBCO(packet->lValue(0, "CLOCK"));
+    //     std::cout << ", clock :" << packet->lValue(0, "CLOCK") << std::endl;
+    for (int ifem = 0; ifem < nr_modules; ifem++)
     {
-      int packet_id = packet->getIdentifier();
-      int nr_modules = packet->iValue(0, "NRMODULES");
-      int nr_channels = packet->iValue(0, "CHANNELS");
-      int nr_samples = packet->iValue(0, "SAMPLES");
-      newhit->setNrModules(nr_modules);
-      newhit->setNrChannels(nr_channels);
-      newhit->setNrSamples(nr_samples);
-     newhit->setIdentifier(packet_id);
-     newhit->setBCO(packet->lValue(0, "CLOCK"));
-      for (int ifem = 0; ifem < nr_modules; ifem++)
-      {
-        newhit->setFemClock(ifem, packet->iValue(ifem, "FEMCLOCK"));
-        newhit->setFemEvtSequence(ifem, packet->iValue(ifem, "FEMEVTNR"));
-        newhit->setFemSlot(ifem, packet->iValue(ifem, "FEMSLOT"));
-        newhit->setChecksumLsb(ifem, packet->iValue(ifem, "CHECKSUMLSB"));
-        newhit->setChecksumMsb(ifem, packet->iValue(ifem, "CHECKSUMMSB"));
-        newhit->setCalcChecksumLsb(ifem, packet->iValue(ifem, "CALCCHECKSUMLSB"));
-        newhit->setCalcChecksumMsb(ifem, packet->iValue(ifem, "CALCCHECKSUMMSB"));
-      }
-      for (int ipmt = 0; ipmt < nr_channels; ipmt++)
-      {
-        // store pre/post only for suppressed channels, the array in the packet routines is not
-        // initialized so reading pre/post for not zero suppressed channels returns garbage
-        bool isSuppressed = packet->iValue(ipmt, "SUPPRESSED");
-        newhit->setSuppressed(ipmt, isSuppressed);
-        if (isSuppressed)
-        {
-          newhit->setPre(ipmt, packet->iValue(ipmt, "PRE"));
-          newhit->setPost(ipmt, packet->iValue(ipmt, "POST"));
-        }
-        else
-        {
-          for (int isamp = 0; isamp < nr_samples; isamp++)
-          {
-            newhit->setSample(ipmt, isamp, packet->iValue(isamp, ipmt));
-          }
-        }
-      }
-       packetcont->AddPacket(newhit);
-      delete packet;
+      newhit->setFemClock(ifem, packet->iValue(ifem, "FEMCLOCK"));
+      newhit->setFemEvtSequence(ifem, packet->iValue(ifem, "FEMEVTNR"));
+      newhit->setFemSlot(ifem, packet->iValue(ifem, "FEMSLOT"));
+      newhit->setChecksumLsb(ifem, packet->iValue(ifem, "CHECKSUMLSB"));
+      newhit->setChecksumMsb(ifem, packet->iValue(ifem, "CHECKSUMMSB"));
+      newhit->setCalcChecksumLsb(ifem, packet->iValue(ifem, "CALCCHECKSUMLSB"));
+      newhit->setCalcChecksumMsb(ifem, packet->iValue(ifem, "CALCCHECKSUMMSB"));
     }
-       delete newhit;
-    delete evt;
-    
+    for (int ipmt = 0; ipmt < nr_channels; ipmt++)
+    {
+      // store pre/post only for suppressed channels, the array in the packet routines is not
+      // initialized so reading pre/post for not zero suppressed channels returns garbage
+      bool isSuppressed = packet->iValue(ipmt, "SUPPRESSED");
+      newhit->setSuppressed(ipmt, isSuppressed);
+      if (isSuppressed)
+      {
+        newhit->setPre(ipmt, packet->iValue(ipmt, "PRE"));
+        newhit->setPost(ipmt, packet->iValue(ipmt, "POST"));
+      }
+      else
+      {
+        for (int isamp = 0; isamp < nr_samples; isamp++)
+        {
+          newhit->setSample(ipmt, isamp, packet->iValue(isamp, ipmt));
+        }
+      }
+    }
+    packetcont->AddPacket(newhit);
+    delete packet;
+  }
+  delete newhit;
+  delete evt;
 }
 
 void SingleTriggeredInput::CreateDSTNode(PHCompositeNode *topNode)

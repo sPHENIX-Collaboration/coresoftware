@@ -6,10 +6,10 @@
 
 #include <array>
 #include <cstdint>  // for uint64_t
+#include <deque>
 #include <fstream>
 #include <limits>
 #include <map>
-#include <deque>
 #include <set>
 #include <string>
 #include <vector>
@@ -24,7 +24,7 @@ class PHCompositeNode;
 class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
 {
  public:
-  static constexpr size_t pooldepth {10}; 
+  static constexpr size_t pooldepth{10};
   explicit SingleTriggeredInput(const std::string &name);
   ~SingleTriggeredInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
@@ -35,40 +35,40 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
   virtual void AllDone(const int i) { m_AllDone = i; }
-  virtual int FilesDone() const {return m_FilesDone;}
-  virtual void FilesDone(const int i) {m_FilesDone = i;}
+  virtual int FilesDone() const { return m_FilesDone; }
+  virtual void FilesDone(const int i) { m_FilesDone = i; }
   virtual void CreateDSTNode(PHCompositeNode *topNode);
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
   virtual int FillEventVector();
 
-  virtual SingleTriggeredInput *Gl1Input() {return m_Gl1Input;}
-  virtual void Gl1Input(SingleTriggeredInput *input) {m_Gl1Input = input;}
+  virtual SingleTriggeredInput *Gl1Input() { return m_Gl1Input; }
+  virtual void Gl1Input(SingleTriggeredInput *input) { m_Gl1Input = input; }
   virtual uint64_t GetClock(Event *evt);
-  virtual std::array<uint64_t,pooldepth>::const_iterator begin() {return m_bclkdiffarray.begin();}
-  virtual std::array<uint64_t,pooldepth>::const_iterator end() {return m_bclkdiffarray.end();}
-  virtual std::array<uint64_t,pooldepth>::const_iterator beginclock() {return m_bclkarray.begin();}
+  virtual std::array<uint64_t, pooldepth>::const_iterator begin() { return m_bclkdiffarray.begin(); }
+  virtual std::array<uint64_t, pooldepth>::const_iterator end() { return m_bclkdiffarray.end(); }
+  virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
   void Detector(const std::string &name);
-  void topNode(PHCompositeNode *topNode) {m_topNode = topNode;}
-  PHCompositeNode *topNode() {return m_topNode;}
+  void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
+  PHCompositeNode *topNode() { return m_topNode; }
 
-protected:
+ protected:
   std::deque<Event *> m_EventDeque;
-  std::array<uint64_t,pooldepth+1>  m_bclkarray {}; // keep the last bco from previous loop
-  std::array<uint64_t,pooldepth>  m_bclkdiffarray{};
+  std::array<uint64_t, pooldepth + 1> m_bclkarray{};  // keep the last bco from previous loop
+  std::array<uint64_t, pooldepth> m_bclkdiffarray{};
   // we have accessors for these here
  private:
   Eventiterator *m_EventIterator{nullptr};
-  SingleTriggeredInput *m_Gl1Input {nullptr};
+  SingleTriggeredInput *m_Gl1Input{nullptr};
   PHCompositeNode *m_topNode{nullptr};
-  uint64_t m_Event {0};
+  uint64_t m_Event{0};
   int m_RunNumber{0};
   int m_EventsThisFile{0};
   int m_AllDone{0};
   int m_FilesDone{0};
   int m_SubsystemEnum{0};
   int m_DefaultEventNumberOffset{0};
-  int m_FEMEventRefPacketId {0};
+  int m_FEMEventRefPacketId{0};
   int m_SkipToEvent{0};  // we may have negative event numbers but lets not go there right now
   int m_LastEvent{std::numeric_limits<int>::max()};
   unsigned int m_LocalPoolDepth{0};
