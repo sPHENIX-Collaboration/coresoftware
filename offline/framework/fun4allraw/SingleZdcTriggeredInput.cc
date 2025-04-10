@@ -33,7 +33,7 @@ SingleZdcTriggeredInput::SingleZdcTriggeredInput(const std::string &name)
 
 void SingleZdcTriggeredInput::CreateDSTNode(PHCompositeNode *my_topNode)
 {
-  std::array<std::string,2> detname {"ZDC", "SEPD"};
+  std::array<std::string, 2> detname{"ZDC", "SEPD"};
   topNode(my_topNode);
   PHNodeIterator iter(topNode());
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
@@ -42,47 +42,47 @@ void SingleZdcTriggeredInput::CreateDSTNode(PHCompositeNode *my_topNode)
     dstNode = new PHCompositeNode("DST");
     topNode()->addNode(dstNode);
   }
-  for (const auto& striter :  detname)
+  for (const auto &striter : detname)
   {
-  PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", striter));
-  if (!detNode)
-  {
-    detNode = new PHCompositeNode(striter);
-    dstNode->addNode(detNode);
-  }
-  std::string OutNodeName = striter + std::string("Packets");
-  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(detNode, OutNodeName);
-  if (!packetcont)
-  {
-    packetcont = new CaloPacketContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(packetcont, OutNodeName, "PHObject");
-    detNode->addNode(newNode);
-  }
+    PHNodeIterator iterDst(dstNode);
+    PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", striter));
+    if (!detNode)
+    {
+      detNode = new PHCompositeNode(striter);
+      dstNode->addNode(detNode);
+    }
+    std::string OutNodeName = striter + std::string("Packets");
+    CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(detNode, OutNodeName);
+    if (!packetcont)
+    {
+      packetcont = new CaloPacketContainerv1();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(packetcont, OutNodeName, "PHObject");
+      detNode->addNode(newNode);
+    }
   }
 }
 
 void SingleZdcTriggeredInput::AddPacket(PHCompositeNode *topNode, OfflinePacket *newhit)
 {
   std::string OutNodeName;
-  if (std::clamp(newhit->getIdentifier(),9000, 9999)) // sepd packet?
-    {
-      OutNodeName = "SEPD";
-    }
+  if (std::clamp(newhit->getIdentifier(), 9000, 9999))  // sepd packet?
+  {
+    OutNodeName = "SEPD";
+  }
   else
-    {
-      OutNodeName = "ZDC";
-    }
+  {
+    OutNodeName = "ZDC";
+  }
   OutNodeName = OutNodeName + "Packets";
-      CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(topNode, OutNodeName);
-  if (! packetcont)
+  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(topNode, OutNodeName);
+  if (!packetcont)
   {
     std::cout << PHWHERE << " Could not locate " << OutNodeName << ", or type mismatch" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
-  CaloPacket *calopacket = dynamic_cast<CaloPacket *> (newhit);
-  if (! calopacket)
+  CaloPacket *calopacket = dynamic_cast<CaloPacket *>(newhit);
+  if (!calopacket)
   {
     std::cout << PHWHERE << " dynamic cast to CaloPacket failed for " << std::endl;
     newhit->identify();

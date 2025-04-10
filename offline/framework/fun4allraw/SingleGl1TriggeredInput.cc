@@ -58,7 +58,7 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   RunNumber(evt->getRunNumber());
   Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), "GL1Packet");
   int EventSequence = evt->getEvtSequence();
-//  evt->identify();
+  //  evt->identify();
   Packet *packet = evt->getPacket(14001);
   if (packet)
   {

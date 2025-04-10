@@ -53,7 +53,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
 
-protected:
+ protected:
   std::deque<Event *> m_EventDeque;
   std::array<uint64_t, pooldepth + 1> m_bclkarray{};  // keep the last bco from previous loop
   std::array<uint64_t, pooldepth> m_bclkdiffarray{};

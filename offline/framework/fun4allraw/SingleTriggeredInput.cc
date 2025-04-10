@@ -177,7 +177,7 @@ int SingleTriggeredInput::FillEventVector()
 uint64_t SingleTriggeredInput::GetClock(Event *evt)
 {
   std::vector<Packet *> pktvec = evt->getPacketVector();
-  uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF); //NOLINT (hicpp-signed-bitwise)
+  uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF);  // NOLINT (hicpp-signed-bitwise)
   //     uint64_t clock = pktvec[0]->lValue(0, "CLOCK");
   //     pktvec[0]->identify();
   // std::cout << "pkt event: " << pktvec[0]->iValue(0, "EVTNR") << ", clock: 0x"
@@ -195,7 +195,6 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   {
     return;
   }
-//  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(m_topNode, m_OutNodeName);
   if (!FilesDone())
   {
     if (FillEventVector() != 0)
@@ -205,10 +204,10 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
       {
         const auto *iter1 = begin();
         const auto *iter2 = Gl1Input()->begin();
-//        auto iter3 = beginclock();
-//        auto iter4 = Gl1Input()->beginclock();
+        //        auto iter3 = beginclock();
+        //        auto iter4 = Gl1Input()->beginclock();
         int position = 0;
-//        int ifirst = 1;
+        //        int ifirst = 1;
         while (iter1 != end())
         {
           // std::cout << "position " << position << " test 0x" << std::hex
@@ -233,9 +232,9 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
             m_EventDeque.erase(m_EventDeque.begin() + (position), m_EventDeque.end());
             break;
           }
-          
-                      // std::cout <<  "good Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
-         
+
+          // std::cout <<  "good Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
+
           ++position;
           ++iter1;
           ++iter2;
@@ -253,9 +252,8 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
         FilesDone(1);
         return;
       }
-      
-              //	std::cout << "we are good" << std::endl;
-     
+
+      //	std::cout << "we are good" << std::endl;
     }
   }
   if (keep > 100000000)
@@ -316,7 +314,7 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
         }
       }
     }
-    AddPacket(m_topNode,newhit);
+    AddPacket(m_topNode, newhit);
     delete packet;
   }
   delete newhit;
@@ -366,14 +364,14 @@ void SingleTriggeredInput::Detector(const std::string &name)
 void SingleTriggeredInput::AddPacket(PHCompositeNode *topNode, OfflinePacket *newhit)
 {
   CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(topNode, m_OutNodeName);
-  if (! packetcont)
+  if (!packetcont)
   {
     std::cout << PHWHERE << " Could not locate " << m_OutNodeName << ", or type mismatch" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
-  CaloPacket *calopacket = dynamic_cast<CaloPacket *> (newhit);
-  if (! calopacket)
+  CaloPacket *calopacket = dynamic_cast<CaloPacket *>(newhit);
+  if (!calopacket)
   {
     std::cout << PHWHERE << " dynamic cast to CaloPacket failed for " << std::endl;
     newhit->identify();
