@@ -60,6 +60,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       FillCaloClockDiff(cemccont);
     }
   }
+
   std::vector<unsigned int> badPackets;
   uint64_t refdiff = std::numeric_limits<uint64_t>::max();
   auto itergl1 = m_PacketStuffMap.find(14001);
@@ -234,7 +235,7 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
         auto &pktiter = m_PacketStuffMap[packetid];
         std::cout << PHWHERE << "packet init " << packetid << std::hex
                   << ", clk: " << std::get<1>(pktiter)
-                  << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", tag: " << std::get<4>(pktiter)
+                  << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
                   << std::endl;
       }
     }
@@ -258,10 +259,10 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
       }
       if (Verbosity() > 2)
       {
-        std::cout << PHWHERE << "packet " << packetid << ", clk: " << std::hex << clk
-                  << ", tup: " << std::get<1>(pktiter) << ", diff: " << clkdiff
-                  << ", tup: " << std::get<2>(pktiter) << std::dec << ", tag: " << std::get<4>(pktiter)
-                  << std::endl;
+	std::cout << "packet " << packetid << ", clk: " << std::hex << clk
+		  << ", clk(tup): " << std::get<1>(pktiter) << ", diff: " << clkdiff
+		  << ", diff(tup): " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
+		  << std::endl;
       }
     }
   }
@@ -300,8 +301,8 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
     if (Verbosity() > 2)
     {
       std::cout << "packet " << packetid << ", clk: " << std::hex << clk
-                << ", tup: " << std::get<1>(pktiter) << ", diff: " << clkdiff
-                << ", tup: " << std::get<2>(pktiter) << std::dec << ", tag: " << std::get<4>(pktiter)
+                << ", clk(tup): " << std::get<1>(pktiter) << ", diff: " << clkdiff
+                << ", diff(tup): " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
                 << std::endl;
     }
   }
