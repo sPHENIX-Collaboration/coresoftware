@@ -121,6 +121,10 @@ int SingleTriggeredInput::FillEventVector()
       if (!OpenNextFile())
       {
         FilesDone(1);
+        if (Verbosity() > 0)
+        {
+          std::cout << "no more events to read, deque depth: " << m_EventDeque.size() << std::endl;
+        }
         return -1;
       }
       evt = GetEventIterator()->getNextEvent();
@@ -178,6 +182,10 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
 {
   std::vector<Packet *> pktvec = evt->getPacketVector();
   uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF);  // NOLINT (hicpp-signed-bitwise)
+  if (Verbosity() > 0)
+  {
+    std::cout << "Getting clock from packet " << pktvec[0]->getIdentifier() << std::endl;
+  }
   //     uint64_t clock = pktvec[0]->lValue(0, "CLOCK");
   //     pktvec[0]->identify();
   // std::cout << "pkt event: " << pktvec[0]->iValue(0, "EVTNR") << ", clock: 0x"
@@ -222,6 +230,13 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
               FilesDone(1);
               return;
             }
+            if (Verbosity() > 0)
+            {
+              std::cout << "remove Event " << m_EventDeque[position]->getEvtSequence() << " clock: 0x"
+                        << std::hex << GetClock(m_EventDeque[position]) << ", clkdiff(me) 0x"
+                        << *iter1 << ", clkdiff(gl1) 0x" << *iter2
+                        << std::dec << std::endl;
+            }
             //	    std::cout << "and booom" << std::endl;
             //	    std::cout <<  "remove Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
             // position is the first bad index,
@@ -265,6 +280,10 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
     std::cout << Name() << ":all events done" << std::endl;
     AllDone(1);
     return;
+  }
+  if (Verbosity() > 1)
+  {
+    std::cout << "deque size: " << m_EventDeque.size() << std::endl;
   }
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();

@@ -49,7 +49,7 @@ Fun4AllTriggeredInputManager::~Fun4AllTriggeredInputManager()
     fileclose();
   }
   delete m_SyncObject;
-  for (auto iter : m_TriggeredInputVector)
+  for (auto *iter : m_TriggeredInputVector)
   {
     if (Verbosity() > 1)
     {
