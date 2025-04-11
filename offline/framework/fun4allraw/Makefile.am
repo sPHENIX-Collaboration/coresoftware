@@ -20,6 +20,7 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
+  Fun4AllTriggeredInputManager.h \
   intt_pool.h \
   InputManagerType.h \
   MicromegasBcoMatchingInformation.h\
@@ -29,6 +30,7 @@ pkginclude_HEADERS = \
   SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
   SingleGl1TriggerInput.h \
+  SingleGl1TriggeredInput.h \
   SingleHcalTriggerInput.h \
   SingleLL1TriggerInput.h \
   SingleMbdTriggerInput.h \
@@ -42,8 +44,10 @@ pkginclude_HEADERS = \
   SingleStreamingInput.h \
   SingleTpcPoolInput.h \
   SingleTriggerInput.h \
+  SingleTriggeredInput.h \
   SingleZdcInput.h \
   SingleZdcTriggerInput.h \
+  SingleZdcTriggeredInput.h \
   SingleTpcTimeFrameInput.h \
   TpcTimeFrameBuilder.h
 
@@ -85,6 +89,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
+  Fun4AllTriggeredInputManager.cc \
   intt_pool.cc \
   MicromegasBcoMatchingInformation_v1.cc\
   MicromegasBcoMatchingInformation_v2.cc\
@@ -93,6 +98,7 @@ libfun4allraw_la_SOURCES = \
   SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
   SingleGl1TriggerInput.cc \
+  SingleGl1TriggeredInput.cc \
   SingleHcalTriggerInput.cc \
   SingleInttEventInput.cc \
   SingleInttPoolInput.cc \
@@ -105,8 +111,10 @@ libfun4allraw_la_SOURCES = \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
   SingleTriggerInput.cc \
+  SingleTriggeredInput.cc \
   SingleZdcInput.cc \
   SingleZdcTriggerInput.cc \
+  SingleZdcTriggeredInput.cc \
   SingleTpcTimeFrameInput.cc \
   TpcTimeFrameBuilder.cc
 
