@@ -3,8 +3,6 @@
 #ifndef FUN4ALLRAW_FUN4ALLTRIGGEREDINPUTMANAGER_H
 #define FUN4ALLRAW_FUN4ALLTRIGGEREDINPUTMANAGER_H
 
-#include "InputManagerType.h"
-
 #include <fun4all/Fun4AllInputManager.h>
 
 #include <Event/phenixTypes.h>
@@ -49,16 +47,6 @@ class Fun4AllTriggeredInputManager : public Fun4AllInputManager
  private:
   int m_RunNumber{0};
   int m_RefEventNo{std::numeric_limits<int>::min()};
-  bool m_gl1_registered_flag{false};
-  bool m_mbd_registered_flag{false};
-  bool m_cemc_registered_flag{false};
-  bool m_hcal_registered_flag{false};
-  bool m_ll1_registered_flag{false};
-  bool m_zdc_registered_flag{false};
-  bool m_resync_flag{false};
-  unsigned int m_InitialPoolDepth = 10;
-  unsigned int m_DefaultPoolDepth = 10;
-  unsigned int m_PoolDepth{m_InitialPoolDepth};
   std::set<int> m_Gl1DroppedEvent;
   SingleTriggeredInput *m_Gl1TriggeredInput{nullptr};
   std::vector<SingleTriggeredInput *> m_TriggeredInputVector;

@@ -54,7 +54,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   PHCompositeNode *topNode() { return m_topNode; }
 
  protected:
-// lined up like this:
+  // lined up like this:
   // Event * | previous event beam clock | clock diff to previous event
   // keeping previous beam clock just eases the looping, we want to be able to have
   // the accompanying diff to the previous beam clock with this event, so any mismatch
