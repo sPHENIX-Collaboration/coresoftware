@@ -22,7 +22,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <ffaobjects/EventHeaderv1.h>
+#include <ffaobjects/EventHeader.h>
 #include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
 
