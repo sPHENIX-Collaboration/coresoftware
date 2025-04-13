@@ -182,7 +182,7 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
 {
   std::vector<Packet *> pktvec = evt->getPacketVector();
   uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF);  // NOLINT (hicpp-signed-bitwise)
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     std::cout << "Getting clock from packet " << pktvec[0]->getIdentifier() << std::endl;
   }
@@ -226,9 +226,9 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
           {
             if (*iter1 == std::numeric_limits<uint64_t>::max())
             {
-              std::cout << Name() << " No more events found uint64_t max" << std::endl;
+              std::cout << Name() << " No more events found marked by uint64_t max clock" << std::endl;
               FilesDone(1);
-              return;
+              break;
             }
             if (Verbosity() > 0)
             {
@@ -263,9 +263,8 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
           //   ++iter4;
           // }
         }
-        // std::cout << "Aborting event loop after processing remaining good events" << std::endl;
+        std::cout << "Aborting event loop after processing remaining good events" << std::endl;
         FilesDone(1);
-        return;
       }
 
       //	std::cout << "we are good" << std::endl;
@@ -288,13 +287,13 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
-  //    int EventSequence = evt->getEvtSequence();
-  //  std::cout << "Saving event " << evt->getEvtSequence();
+  //  std::cout << "Handling event " << evt->getEvtSequence();
   CaloPacket *newhit = new CaloPacketv1();
   std::vector<Packet *> pktvec = evt->getPacketVector();
   for (auto *packet : pktvec)
   {
     int packet_id = packet->getIdentifier();
+    newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
     int nr_modules = packet->iValue(0, "NRMODULES");
     int nr_channels = packet->iValue(0, "CHANNELS");
     int nr_samples = packet->iValue(0, "SAMPLES");
