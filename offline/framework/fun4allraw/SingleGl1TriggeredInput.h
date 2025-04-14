@@ -23,7 +23,7 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   // void CleanupUsedPackets(const int eventno);
   // void ClearCurrentEvent();
   void Print(const std::string &what = "ALL") const override;
-  void CreateDSTNode(PHCompositeNode *topNode) override;
+  void CreateDSTNodes(Event *evt) override;
   uint64_t GetClock(Event *evt) override;
 
  private:

@@ -112,29 +112,36 @@ void SingleGl1TriggeredInput::Print(const std::string &what) const
   std::cout << "what: " << what << std::endl;
 }
 
-void SingleGl1TriggeredInput::CreateDSTNode(PHCompositeNode *my_topNode)
+void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
 {
-  topNode(my_topNode);
-  PHNodeIterator iter(topNode());
+  PHNodeIterator iter(m_topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
-    topNode()->addNode(dstNode);
+    m_topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "GL1"));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "Packets"));
   if (!detNode)
   {
-    detNode = new PHCompositeNode("GL1");
+    detNode = new PHCompositeNode("Packets");
     dstNode->addNode(detNode);
   }
-  OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, "GL1Packet");
-  if (!gl1hitcont)
+  std::vector<Packet *> pktvec = evt->getPacketVector();
+  for (auto *piter : pktvec)
   {
-    gl1hitcont = new Gl1Packetv2();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1Packet", "PHObject");
-    detNode->addNode(newNode);
+    int packet_id = piter->getIdentifier();
+    m_PacketSet.insert(packet_id);
+    std::string PacketNodeName = std::to_string(packet_id);
+    OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, PacketNodeName);
+    if (!gl1hitcont)
+    {
+      gl1hitcont = new Gl1Packetv2();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1Packet", "PHObject");
+      detNode->addNode(newNode);
+    }
+    delete piter;
   }
 }
 

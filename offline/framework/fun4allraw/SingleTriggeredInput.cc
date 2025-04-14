@@ -137,6 +137,11 @@ int SingleTriggeredInput::FillEventVector()
     //    std::cout << Name() << std::endl;
     //    evt->identify();
     evt->convert();
+    if (firstcall)
+    {
+      CreateDSTNodes(evt);
+      firstcall = false;
+    }
     //    std::cout << Name() << ":filling index " << i+1 << " with " << std::hex << bla << std::dec << std::endl;
     uint64_t myClock = GetClock(evt);
     if (myClock == std::numeric_limits<uint64_t>::max())
@@ -339,36 +344,36 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   delete evt;
 }
 
-void SingleTriggeredInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleTriggeredInput::CreateDSTNodes(Event *evt)
 {
-  if (m_Detector.empty())
-  {
-    std::cout << PHWHERE << " You forgot to set the detector name" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  m_topNode = topNode;
-  PHNodeIterator iter(topNode);
+  PHNodeIterator iter(m_topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
-    topNode->addNode(dstNode);
+    m_topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", m_Detector));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "Packets"));
   if (!detNode)
   {
     detNode = new PHCompositeNode(m_Detector);
     dstNode->addNode(detNode);
   }
-  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(detNode, m_OutNodeName);
-  if (!packetcont)
+ std::vector<Packet *> pktvec = evt->getPacketVector();
+ for (auto *piter : pktvec)
   {
-    packetcont = new CaloPacketContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(packetcont, m_OutNodeName, "PHObject");
+    int packet_id = piter->getIdentifier();
+    m_PacketSet.insert(packet_id);
+    std::string PacketNodeName = std::to_string(packet_id);
+  CaloPacket *calopacket = findNode::getClass<CaloPacket>(detNode, PacketNodeName);
+    if (!calopacket)
+    {
+      calopacket = new CaloPacketv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(calopacket, PacketNodeName, "PHObject");
     detNode->addNode(newNode);
+  }
+    delete piter;
   }
 }
 
