@@ -781,6 +781,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
     }
 
     mother.AddDaughter(inputTracks[i]);
+    mother.AddDaughterId(vDaughters[i].Id());
     unique_vertexID += (Int_t) vDaughters[i].GetQ() * getParticleMass(daughterOrder[i]);
   }
 

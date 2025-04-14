@@ -24,17 +24,19 @@ class KFParticle_DST
   int createParticleNode(PHCompositeNode* topNode);
 
   /// Simultaneously fills a KFParticle_Container and SvtxTrackMap if they are enabled
-  void fillParticleNode(PHCompositeNode* topNode, const KFParticle& motherParticle,
+  void fillParticleNode(PHCompositeNode* topNode, KFParticle& motherParticle,
+                        KFParticle& PV,
                         const std::vector<KFParticle>& daughters,
                         const std::vector<KFParticle>& intermediates);
 
   /// Called by fillParticleNode, fills an SvtxTrackMap
-  void fillParticleNode_Track(PHCompositeNode* topNode, const KFParticle& motherParticle,
+  void fillParticleNode_Track(PHCompositeNode* topNode, KFParticle& motherParticle,
                               std::vector<KFParticle> daughters,
                               std::vector<KFParticle> intermediates);
 
   /// Called by fillParticleNode, fills a KFParitcle_Container
-  void fillParticleNode_Particle(PHCompositeNode* topNode, const KFParticle& motherParticle,
+  void fillParticleNode_Particle(PHCompositeNode* topNode, KFParticle& motherParticle,
+                                 KFParticle& PV,
                                  std::vector<KFParticle> daughters,
                                  std::vector<KFParticle> intermediates);
 
