@@ -15,20 +15,12 @@
 #include "PHPointerListIterator.h"
 #include "phooldefs.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
-#pragma GCC diagnostic pop
 
 #include <vector>
 
 PHNodeIterator::PHNodeIterator(PHCompositeNode* node)
   : currentNode(node)
-{
-}
-
-PHNodeIterator::PHNodeIterator()
-  : currentNode(nullptr)
 {
 }
 
@@ -40,6 +32,7 @@ PHNodeIterator::ls()
   PHNode* thisNode;
   while ((thisNode = iter()))
   {
+    std::cout << "node name " <<  thisNode->getName() << std::endl;
     subNodeList.append(thisNode);
   }
   return subNodeList;

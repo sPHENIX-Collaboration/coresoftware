@@ -20,8 +20,8 @@
 class PHFlag
 {
  public:
-  PHFlag() {}
-  virtual ~PHFlag() {}
+  PHFlag() = default;
+  virtual ~PHFlag() = default;
 
   virtual double get_DoubleFlag(const std::string &name) const;
   virtual double get_DoubleFlag(const std::string &name, const double defaultval);
