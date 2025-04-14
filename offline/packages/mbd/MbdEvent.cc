@@ -130,7 +130,7 @@ int MbdEvent::InitRun()
   // Always reload calibrations on InitRun()
   
   
-    delete _mbdcal;
+  delete _mbdcal;
   
   _mbdcal = new MbdCalib();
   std::cout << "SIMFLAG IS " << _simflag << std::endl;
@@ -270,6 +270,18 @@ int MbdEvent::InitRun()
     orig_dir->cd();
   }
 
+  // Create TCanvas for debugging if requested
+  //_verbose = 5;
+  if (_verbose)
+  {
+    std::cout << "Creating canvas" << std::endl;
+    if (ac == nullptr)
+    {
+      ac = new TCanvas("ac", "ac", 550 * 1.5, 425 * 1.5);
+      ac->Divide(2, 1);
+    }
+  }
+
   return 0;
 }
 
@@ -349,6 +361,13 @@ void MbdEvent::Clear()
   m_bbct0 = std::numeric_limits<Float_t>::quiet_NaN();
   m_bbct0err = std::numeric_limits<Float_t>::quiet_NaN();
 }
+
+
+bool MbdEvent::isbadtch(const int ipmtch)
+{
+  return std::fabs(_mbdcal->get_tt0(ipmtch))>100.;
+}
+
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
@@ -576,6 +595,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
   m_clk = m_xmitclocks[0];
   m_femclk = m_femclocks[0][0];
 
+  Clear();
+
   // We get SAMPMAX on this pass
   if ( _calpass == 1 || _no_sampmax > 0 )
   {
@@ -598,7 +619,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     {
       tdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || std::fabs(_mbdcal->get_tt0(pmtch))>100. )
+      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || isbadtch(pmtch) )
       {
         m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
@@ -611,8 +632,9 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
 
     }
-    //else if ( type == 1 && !std::isnan(m_pmttt[pmtch]) ) // process charge channels which have good time hit
-    else if ( type == 1 ) // process charge channels which have good time hit
+    //else if ( type == 1 ) // process all charge channels, no matter what
+    else if ( type == 1 && (!std::isnan(m_pmttt[pmtch]) || isbadtch(pmtch)) ) // process charge channels which have good time hit
+                                                                              // or have been marked as bad
     {
 
       // Use dCFD method to seed time in charge channels (or as primary if not fitting template)
@@ -691,7 +713,6 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
 
   }
 
-
   // bbcpmts->Reset();
   //std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
 
@@ -701,6 +722,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
   }
   bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
+
+  PostProcessChannels(bbcpmts);
 
   m_evt++;
 
@@ -738,6 +761,33 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
   }
 
   return m_evt;
+}
+
+/// Processing after all channels have been calibrated, to remove outliers, etc
+void MbdEvent::PostProcessChannels(MbdPmtContainer *bbcpmts)
+{
+  for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
+  {
+    MbdPmtHit *bbcpmt = bbcpmts->get_pmt(ipmt);
+
+    float tt = bbcpmt->get_tt();    // hit time of pmt from time channel
+    float tq = bbcpmt->get_tq();    // hit time of pmt from charge channel
+    float q  = bbcpmt->get_q();     // charge in pmt
+
+    if ( _verbose>0 && std::isnan(tt) && q>0. )
+    {
+      std::cout << "bad tt, good q\t" << ipmt << "\t" << tt << "\t" << tq << "\t" << q << std::endl;
+      int t_feech = _mbdgeom->get_feech(ipmt,0);
+      int q_feech = _mbdgeom->get_feech(ipmt,1);
+      ac->cd(1);
+      _mbdsig[t_feech].DrawWaveform();
+      ac->cd(2);
+      _mbdsig[q_feech].DrawWaveform();
+      std::string junk;
+      std::cout << "? " << std::endl;
+      std::cin >> junk;
+    }
+  }
 }
 
 ///
@@ -797,7 +847,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
   {
     MbdPmtHit *bbcpmt = bbcpmts->get_pmt(ipmt);
-    int arm = ipmt / 64;
+    int arm = _mbdgeom->get_arm( ipmt );
 
     float t_pmt = bbcpmt->get_time();  // hit time of pmt
     float q_pmt = bbcpmt->get_q();     // charge in pmt
@@ -870,16 +920,6 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     gausfit[iarm]->SetRange(hevt_bbct[iarm]->GetMean() - 5, hevt_bbct[iarm]->GetMean() + 5);
     */
 
-    if (_verbose)
-    {
-      if (ac == nullptr)
-      {
-        ac = new TCanvas("ac", "ac", 550 * 1.5, 425 * 1.5);
-        ac->Divide(2, 1);
-      }
-      ac->cd(iarm + 1);
-    }
-
     if ( hevt_bbct[iarm]->GetEntries()==0 )//chiu
     {
       std::cout << PHWHERE << " hevt_bbct EMPTY" << std::endl;
@@ -906,6 +946,8 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     // if ( _verbose && mybbz[_syncevt]< -40. )
     if (_verbose)
     {
+      ac->cd(iarm + 1);
+
       hevt_bbct[iarm]->GetXaxis()->SetRangeUser(tepmt[iarm] - 3., tlpmt[iarm] + 3.);
       // hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-20,20);
       hevt_bbct[iarm]->Draw();

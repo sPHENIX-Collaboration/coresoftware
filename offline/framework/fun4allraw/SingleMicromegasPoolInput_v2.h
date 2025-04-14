@@ -19,6 +19,7 @@ class MicromegasRawHit;
 class Packet;
 
 class TFile;
+class TTree;
 class TH1;
 
 class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
@@ -52,7 +53,13 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   // write the initial histograms for QA manager
   void createQAHistos() override;
 
- private:
+  /// do evalutation
+  void set_do_evaluation( bool value ) { m_do_evaluation = value; }
+
+  /// output file name for evaluation histograms
+  void set_evaluation_outputfile(const std::string& outputfile) { m_evaluation_filename = outputfile; }
+
+  private:
 
   //!@name decoding constants
   //@{
@@ -122,20 +129,38 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   using bco_matching_information_map_t = std::map<unsigned int, MicromegasBcoMatchingInformation_v2>;
   bco_matching_information_map_t m_bco_matching_information_map;
 
-  // keep track of total number of waveforms per fee
-  std::map<int,uint64_t> m_fee_waveform_count_total{};
+  class counter_t
+  {
+    public:
 
-  // keep track of dropped waveforms per fee, due to BCO mismatched
-  std::map<int,uint64_t> m_fee_waveform_count_dropped_bco{};
+    //! total count
+    uint64_t total = 0;
 
-  // keep track of total number of waveforms per packet
-  std::map<int,uint64_t> m_waveform_count_total{};
+    //! drop count due to unmatched bco
+    uint64_t dropped_bco = 0;
 
-  // keep track of dropped waveforms per packet, due to BCO mismatched
-  std::map<int,uint64_t> m_waveform_count_dropped_bco{};
+    //! drop count due to pools
+    uint64_t dropped_pool = 0;
 
-  // keep track of dropped waveforms per packet, due to fun4all pool mismatch
-  std::map<int,uint64_t> m_waveform_count_dropped_pool{};
+    //! dropped fraction (bco)
+    double dropped_fraction_bco() const { return double(dropped_bco)/total; }
+
+    //! dropped fraction (pool)
+    double dropped_fraction_pool() const { return double(dropped_pool)/total; }
+
+  };
+
+  // keep track of waveform statistics per fee
+  std::map<int,counter_t> m_fee_waveform_counters{};
+
+  // keep track of waveform statistics per packet
+  std::map<int,counter_t> m_waveform_counters{};
+
+  // keep track of heartbeat statistics per fee
+  std::map<int,counter_t> m_fee_heartbeat_counters{};
+
+  // keep track of heartbeat statistics per packet
+  std::map<int,counter_t> m_heartbeat_counters{};
 
   // timer
   PHTimer m_timer{ "SingleMicromegasPoolInput_v2" };
@@ -145,6 +170,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   //! keeps track of how often a given (or all) packets are found for a given BCO
   TH1 *h_packet_stat{nullptr};
+
+  //! keep track of how many heartbeats are found per FEE sampa
+  TH1 *h_heartbeat_stat{nullptr};
 
   //! keeps track of how many packets are found for a given BCO
   TH1 *h_packet{nullptr};
@@ -163,6 +191,65 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   TH1 *h_waveform_count_dropped_pool{nullptr};
 
   //@}
+
+  //!@name evaluation
+  //@{
+
+  //! evaluation
+  bool m_do_evaluation = false;
+
+  //! evaluation output filename
+  std::string m_evaluation_filename = "SingleMicromegasPoolInput.root";
+  std::unique_ptr<TFile> m_evaluation_file;
+
+  /**
+   * waveform is similar to sample except that there is only one of which per waveform,
+   * and that it stores the max adc and corresponding sample_id
+   */
+  class Waveform
+  {
+   public:
+
+    /// packet
+    unsigned int packet_id = 0;
+
+    /// fee
+    unsigned short fee_id = 0;
+
+    /// channel id
+    unsigned short channel = 0;
+
+    /// true if measurement is hearbeat
+    bool is_heartbeat = false;
+
+    /// ll1 bco
+    uint64_t gtm_bco_first = 0;
+
+    /// ll1 bco
+    uint64_t gtm_bco = 0;
+
+    /// ll1 bco
+    uint64_t gtm_bco_matched = 0;
+
+    /// fee bco
+    unsigned int fee_bco_first = 0;
+
+    /// fee bco
+    unsigned int fee_bco = 0;
+
+    /// fee bco predicted (from gtm)
+    unsigned int fee_bco_predicted = 0;
+
+    /// fee bco match (from gtm)
+    unsigned int fee_bco_predicted_matched = 0;
+  };
+
+  Waveform m_waveform;
+
+  //! tree
+  TTree* m_evaluation_tree = nullptr;
+
+  //*}
 
 };
 

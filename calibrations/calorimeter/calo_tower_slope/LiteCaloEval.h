@@ -99,6 +99,8 @@ class LiteCaloEval : public SubsysReco
 
   void draw_spectra(const char *);
 
+  void draw_spectra(const char *, const char *);
+
   void fit_info(const char *, const int);
 
   void fit_info(const char *, const char *, const int);
