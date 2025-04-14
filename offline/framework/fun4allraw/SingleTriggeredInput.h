@@ -48,8 +48,6 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual std::array<uint64_t, pooldepth>::const_iterator begin() { return m_bclkdiffarray.begin(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator end() { return m_bclkdiffarray.end(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
-  virtual void AddPacket(PHCompositeNode *topNode, OfflinePacket *newhit);
-  void Detector(const std::string &name);
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
 
@@ -75,8 +73,6 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   int m_FilesDone{0};
   int m_LastEvent{std::numeric_limits<int>::max()};
   bool firstcall {true};
-  std::string m_OutNodeName;
-  std::string m_Detector;
 };
 
 #endif

@@ -18,7 +18,6 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
  public:
   explicit SingleGl1TriggeredInput(const std::string &name);
   ~SingleGl1TriggeredInput() override = default;
-  ;
   void FillPool(const unsigned int) override;
   // void CleanupUsedPackets(const int eventno);
   // void ClearCurrentEvent();

@@ -56,15 +56,15 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
-  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), "GL1Packet");
   int EventSequence = evt->getEvtSequence();
   //  evt->identify();
   Packet *packet = evt->getPacket(14001);
   if (packet)
   {
+  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), 14001);
+    int packetnumber = packet->iValue(0);
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     //    std::cout << "saving bco 0x" << std::hex << gtm_bco << std::dec << std::endl;
-    unsigned int packetnumber = packet->iValue(0);
     gl1packet->setBCO(packet->lValue(0, "BCO"));
     gl1packet->setHitFormat(packet->getHitFormat());
     gl1packet->setIdentifier(packet->getIdentifier());
@@ -138,7 +138,7 @@ void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
     if (!gl1hitcont)
     {
       gl1hitcont = new Gl1Packetv2();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1Packet", "PHObject");
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, PacketNodeName, "PHObject");
       detNode->addNode(newNode);
     }
     delete piter;
