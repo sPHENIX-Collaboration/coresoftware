@@ -28,7 +28,7 @@ class PHTimeStamp : public PHObject
   PHTimeStamp(const time_t);
   void setBinTics(const phtime_t t);
 
-  ~PHTimeStamp() override {}
+  ~PHTimeStamp() override = default;
 
  public:
   void set(const int, const int, const int, const int, const int, const int, const int = 0);

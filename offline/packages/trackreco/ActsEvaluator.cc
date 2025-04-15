@@ -263,7 +263,6 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     m_volumeID.push_back(geoID.volume());
     m_layerID.push_back(geoID.layer());
     m_moduleID.push_back(geoID.sensitive());
-
     if(m_verbosity > 3)
       {
       std::cout << "Cluster volume : layer : sensitive " << geoID.volume()
@@ -273,6 +272,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
     auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
     const auto& cluskey = sourceLink.cluskey();
 
+    m_sphenixlayer.push_back(TrkrDefs::getLayer(cluskey));
     Acts::Vector2 local = Acts::Vector2::Zero();
 
     /// get the local measurement that acts used
@@ -1113,6 +1113,7 @@ void ActsEvaluator::clearTrackVariables()
   m_volumeID.clear();
   m_layerID.clear();
   m_moduleID.clear();
+  m_sphenixlayer.clear();
   m_lx_hit.clear();
   m_ly_hit.clear();
   m_x_hit.clear();
@@ -1351,6 +1352,7 @@ void ActsEvaluator::initializeTree()
   m_trackTree->Branch("volume_id", &m_volumeID);
   m_trackTree->Branch("layer_id", &m_layerID);
   m_trackTree->Branch("module_id", &m_moduleID);
+  m_trackTree->Branch("sphenixlayer",&m_sphenixlayer);
   m_trackTree->Branch("l_x_hit", &m_lx_hit);
   m_trackTree->Branch("l_y_hit", &m_ly_hit);
   m_trackTree->Branch("g_x_hit", &m_x_hit);

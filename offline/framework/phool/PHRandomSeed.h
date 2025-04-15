@@ -9,8 +9,8 @@
 class PHRandomSeed
 {
  public:
-  PHRandomSeed() {}
-  virtual ~PHRandomSeed() {}
+  PHRandomSeed() = default;
+  virtual ~PHRandomSeed() = default;
   //! conversion operator for `unsigned int seed = PHRandomSeed();`
   operator unsigned int() const
   {

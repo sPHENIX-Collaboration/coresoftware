@@ -14,10 +14,10 @@ class PHObject : public TObject
 {
  public:
   /// ctor
-  PHObject() {}
+  PHObject() = default;
 
   /// dtor
-  ~PHObject() override {}
+  ~PHObject() override = default;
   /// Virtual copy constructor.
   virtual PHObject* CloneMe() const;
 

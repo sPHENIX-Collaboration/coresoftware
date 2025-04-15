@@ -269,7 +269,10 @@ int PHActsTrkFitter::End(PHCompositeNode* /*topNode*/)
   {
     m_evaluator->End();
   }
-
+  if(m_useOutlierFinder)
+  {
+    m_outlierFinder.Write();
+  }
   if (Verbosity() > 0)
   {
     std::cout << "Finished PHActsTrkFitter" << std::endl;
