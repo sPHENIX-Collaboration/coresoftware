@@ -12,6 +12,7 @@
 #include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
@@ -31,7 +32,7 @@
 #include <phool/phool.h>
 
 #include <TFile.h>
-#include <TTree.h>
+#include <TNtuple.h>
 #include <TF1.h>
 
 #include <cmath>
@@ -40,8 +41,6 @@
 #include <map>
 #include <set>
 #include <utility>
-
-#include <boost/format.hpp>
 
 namespace
 {
@@ -95,21 +94,14 @@ int MakeMilleFiles::InitRun(PHCompositeNode* topNode)
   if (!m_tfile_name.empty())
   {
     m_file = TFile::Open(m_tfile_name.c_str(), "RECREATE");
-    m_tree = new TTree("make_mille_tree", "make_mille_tree");
-    m_tree->SetDirectory(m_file);
-    for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
-    {
-      // Add local derivatives
-      for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
-      {
-        m_tree->Branch((boost::format("lcl_derivative_%d_%d") % i % j).str().c_str(), &m_lcl_derivative[i][j]);
-      }
-      // Add local derivatives
-      for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
-      {
-        m_tree->Branch((boost::format("glbl_derivative_%d_%d") % i % j).str().c_str(), &m_glbl_derivative[i][j]);
-      }
-    }
+    m_ntuple = new TNtuple (
+      "ntp", "ntp",
+      "dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:"
+      "dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:"
+      "dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:"
+      "dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz"
+    );
+    m_ntuple->SetDirectory(m_file);
   }
 
   return ret;
@@ -247,9 +239,9 @@ int MakeMilleFiles::End(PHCompositeNode* /*unused*/)
   delete _mille;
   m_constraintFile.close();
 
-  if (m_file && m_tree)
+  if (m_file && m_ntuple)
   {
-    m_tree->Write();
+    m_ntuple->Write();
     m_file->Write();
     m_file->Close();
   }
@@ -531,19 +523,21 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
       std::cout << std::endl;
     }
 
+    float glbl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NGL]{};
+    float lcl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]{};
+
     /// For N residual local coordinates x, z
     for (int i = 0; i < SvtxAlignmentState::NRES; ++i)
     {
       // Add the measurement separately for each coordinate direction to Mille
-      float glbl_derivative[SvtxAlignmentState::NGL];
       for (int j = 0; j < SvtxAlignmentState::NGL; ++j)
       {
-        glbl_derivative[j] = state->get_global_derivative_matrix()(i, j);
+        glbl_derivative[i][j] = state->get_global_derivative_matrix()(i, j);
 
         if (is_layer_fixed(layer) ||
             is_layer_param_fixed(layer, j, fixed_layer_gparams))
         {
-          glbl_derivative[j] = 0.;
+          glbl_derivative[i][j] = 0.;
         }
 
         if (trkrid == TrkrDefs::mvtxId)
@@ -554,7 +548,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
           if (is_layer_param_fixed(layer, j, fixed_layer_gparams) ||
               is_mvtx_layer_fixed(layer, clamshell))
           {
-            glbl_derivative[j] = 0;
+            glbl_derivative[i][j] = 0;
           }
         }
         else if (trkrid == TrkrDefs::inttId)
@@ -562,7 +556,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
           if (is_layer_param_fixed(layer, j, fixed_layer_gparams) ||
               is_layer_fixed(layer))
           {
-            glbl_derivative[j] = 0;
+            glbl_derivative[i][j] = 0;
           }
         }
         if (trkrid == TrkrDefs::tpcId)
@@ -573,33 +567,26 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
               is_tpc_sector_fixed(layer, sector, side) ||
               is_layer_fixed(layer))
           {
-            glbl_derivative[j] = 0.0;
+            glbl_derivative[i][j] = 0.0;
           }
         }
-
-        // After loop over j, copy value to member for filling
-        m_glbl_derivative[i][j] = glbl_derivative[j];
       }
 
-      float lcl_derivative[SvtxAlignmentState::NLOC];
       for (int j = 0; j < SvtxAlignmentState::NLOC; ++j)
       {
-        lcl_derivative[j] = state->get_local_derivative_matrix()(i, j);
+        lcl_derivative[i][j] = state->get_local_derivative_matrix()(i, j);
 
         if (is_layer_param_fixed(layer, j, fixed_layer_lparams))
         {
-          lcl_derivative[j] = 0.;
+          lcl_derivative[i][j] = 0.;
         }
-
-        // After loop over j, copy value to member for filling
-        m_lcl_derivative[i][j] = lcl_derivative[j];
       }
       if (Verbosity() > 2)
       {
         std::cout << "coordinate " << i << " has residual " << residual(i) << " and clus_sigma " << clus_sigma(i) << std::endl
                   << "global deriv " << std::endl;
 
-        for (float k : glbl_derivative)
+        for (float k : glbl_derivative[i])
         {
           if (k > 0 || k < 0)
           {
@@ -609,7 +596,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         }
         std::cout << std::endl
                   << "local deriv " << std::endl;
-        for (float k : lcl_derivative)
+        for (float k : lcl_derivative[i])
         {
           std::cout << k << ", ";
         }
@@ -621,7 +608,7 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
         if (Verbosity() > 3)
         {
           std::cout << "ckey " << ckey << " and layer " << layer << " buffers:" << std::endl;
-          AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative, glbl_derivative, glbl_label);
+          AlignmentDefs::printBuffers(i, residual, clus_sigma, lcl_derivative[i], glbl_derivative[i], glbl_label);
         }
         float errinf = 1.0;
         if (m_layerMisalignment.find(layer) != m_layerMisalignment.end())
@@ -629,12 +616,18 @@ void MakeMilleFiles::addTrackToMilleFile(SvtxAlignmentStateMap::StateVec& statev
           errinf = m_layerMisalignment.find(layer)->second;
         }
 
-        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative, SvtxAlignmentState::NGL, glbl_derivative, glbl_label, residual(i), errinf * clus_sigma(i));
+        _mille->mille(SvtxAlignmentState::NLOC, lcl_derivative[i], SvtxAlignmentState::NGL, glbl_derivative[i], glbl_label, residual(i), errinf * clus_sigma(i));
       }
     }
 
-    // Fill Tree
-    m_tree->Fill();
+    float ntp_data[] = {
+      lcl_derivative[0][0], lcl_derivative[0][1], lcl_derivative[0][2], lcl_derivative[0][3], lcl_derivative[0][4],
+      glbl_derivative[0][0], glbl_derivative[0][1], glbl_derivative[0][2], glbl_derivative[0][3], glbl_derivative[0][4], glbl_derivative[0][5],
+      lcl_derivative[1][0], lcl_derivative[1][1], lcl_derivative[1][2], lcl_derivative[1][3], lcl_derivative[1][4],
+      glbl_derivative[1][0], glbl_derivative[1][1], glbl_derivative[1][2], glbl_derivative[1][3], glbl_derivative[1][4], glbl_derivative[1][5],
+    };
+
+    if (m_ntuple) m_ntuple->Fill(ntp_data);
   }
 
   return;

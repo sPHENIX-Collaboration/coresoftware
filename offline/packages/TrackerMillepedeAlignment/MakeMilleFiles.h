@@ -36,7 +36,7 @@ class Mille;
 class ActsPropagator;
 
 class TFile;
-class TTree;
+class TNtuple;
 
 using Trajectory = ActsExamples::Trajectories;
 
@@ -147,10 +147,7 @@ class MakeMilleFiles : public SubsysReco
 
   std::string m_tfile_name;
   TFile* m_file{nullptr};
-  TTree* m_tree{nullptr};
-
-  float m_glbl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NGL]{};
-  float m_lcl_derivative[SvtxAlignmentState::NRES][SvtxAlignmentState::NLOC]{};
+  TNtuple* m_ntuple{nullptr};
 };
 
 #endif  // MAKEMILLEFILES_H
