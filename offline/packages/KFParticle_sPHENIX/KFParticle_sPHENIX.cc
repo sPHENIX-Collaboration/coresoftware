@@ -210,7 +210,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
       }
       if (m_save_dst)
       {
-        fillParticleNode(topNode, mother[i], daughters[i], intermediates[i]);
+        fillParticleNode(topNode, mother[i], vertex_kfparticle[i], daughters[i], intermediates[i]);
       }
 
       if (Verbosity() >= VERBOSITY_SOME)

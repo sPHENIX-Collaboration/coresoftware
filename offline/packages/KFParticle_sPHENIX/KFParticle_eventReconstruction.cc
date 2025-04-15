@@ -537,7 +537,7 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
   int bestCombinationIndex = 0;
   for (unsigned int i = 1; i < possibleCandidates.size(); ++i)
   {
-    if (PVconstraint && !isAnInterMother)
+    if (PVconstraint && !isAnInterMother)// && !m_require_track_and_vertex_match)
     {
       float current_IPchi2 = 0;
       float best_IPchi2 = 0;

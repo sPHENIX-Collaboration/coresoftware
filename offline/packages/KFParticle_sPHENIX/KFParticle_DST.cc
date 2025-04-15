@@ -112,7 +112,8 @@ int KFParticle_DST::createParticleNode(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, const KFParticle& motherParticle,
+void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, KFParticle& motherParticle,
+                                      KFParticle& PV,
                                       const std::vector<KFParticle>& daughters,
                                       const std::vector<KFParticle>& intermediates)
 {
@@ -122,11 +123,11 @@ void KFParticle_DST::fillParticleNode(PHCompositeNode* topNode, const KFParticle
   }
   if (m_write_particle_container)
   {
-    fillParticleNode_Particle(topNode, motherParticle, daughters, intermediates);
+    fillParticleNode_Particle(topNode, motherParticle, PV, daughters, intermediates);
   }
 }
 
-void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFParticle& motherParticle,
+void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle& motherParticle,
                                             std::vector<KFParticle> daughters,
                                             std::vector<KFParticle> intermediates)
 {
@@ -202,7 +203,8 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, const KFPa
   }
 }
 
-void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const KFParticle& motherParticle,
+void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParticle& motherParticle,
+                                               KFParticle& PV,
                                                std::vector<KFParticle> daughters,
                                                std::vector<KFParticle> intermediates)
 {
@@ -241,23 +243,53 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, const K
 
   m_recoParticleMap = findNode::getClass<KFParticle_Container>(topNode, particleNodeName.c_str());
 
-  m_recoParticleMap->insert(&motherParticle);
+  motherParticle.SetProductionVertex(PV);
+  motherParticle.TransportToDecayVertex();
 
-  if (m_has_intermediates_DST)
-  {
+  //if (m_has_intermediates_DST)
+  //{
+
     KFParticle* intermediateArray = &intermediates[0];
-
     for (unsigned int k = 0; k < intermediates.size(); ++k)
     {
-      m_recoParticleMap->insert(&intermediateArray[k]);
+      intermediateArray[k].SetProductionVertex(motherParticle);
+      intermediateArray[k].TransportToDecayVertex();
     }
-  }
+  //}
 
   KFParticle* daughterArray = &daughters[0];
   for (unsigned int k = 0; k < daughters.size(); ++k)
   {
+      bool didntSetTrackToIntermediate = true;
+      for (auto& intermediate : intermediates)
+      {
+        const std::vector<int> daughterIDs = intermediate.DaughterIds();
+        for (auto& id : daughterIDs) 
+        {
+          if (daughterArray[k].Id() == id)
+          {
+            didntSetTrackToIntermediate = false;
+            daughterArray[k].SetProductionVertex(intermediate);
+          }
+        }
+      }
+
+      if (didntSetTrackToIntermediate)
+      {
+        daughterArray[k].SetProductionVertex(motherParticle);
+      }
+
     m_recoParticleMap->insert(&daughterArray[k]);
   }
+
+  for (unsigned int k = 0; k < intermediates.size(); ++k)
+  {
+    intermediateArray[k].TransportToProductionVertex();
+    m_recoParticleMap->insert(&intermediateArray[k]);
+  }
+
+  motherParticle.TransportToProductionVertex();
+  m_recoParticleMap->insert(&motherParticle);
 }
 
 SvtxTrack* KFParticle_DST::buildSvtxTrack(const KFParticle& particle)
