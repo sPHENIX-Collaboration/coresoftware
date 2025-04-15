@@ -137,6 +137,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   m_outlierFinder.chi2Cuts = chi2Cuts;
   if (m_useOutlierFinder)
   {
+    m_outlierFinder.m_tGeometry = m_tGeometry;
     m_fitCfg.fit->outlierFinder(m_outlierFinder);
   }
 
