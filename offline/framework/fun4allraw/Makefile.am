@@ -47,7 +47,6 @@ pkginclude_HEADERS = \
   SingleTriggeredInput.h \
   SingleZdcInput.h \
   SingleZdcTriggerInput.h \
-  SingleZdcTriggeredInput.h \
   SingleTpcTimeFrameInput.h \
   TpcTimeFrameBuilder.h
 
@@ -114,7 +113,6 @@ libfun4allraw_la_SOURCES = \
   SingleTriggeredInput.cc \
   SingleZdcInput.cc \
   SingleZdcTriggerInput.cc \
-  SingleZdcTriggeredInput.cc \
   SingleTpcTimeFrameInput.cc \
   TpcTimeFrameBuilder.cc
 

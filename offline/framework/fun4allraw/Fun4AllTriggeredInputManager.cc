@@ -169,7 +169,7 @@ std::string Fun4AllTriggeredInputManager::GetString(const std::string &what) con
 void Fun4AllTriggeredInputManager::registerGl1TriggeredInput(SingleTriggeredInput *prdfin)
 {
   m_Gl1TriggeredInput = prdfin;
-  prdfin->CreateDSTNode(m_topNode);
+  prdfin->topNode(m_topNode);
   std::cout << "registering " << prdfin->Name() << std::endl;
 }
 
@@ -183,7 +183,7 @@ void Fun4AllTriggeredInputManager::registerTriggeredInput(SingleTriggeredInput *
   }
   m_TriggeredInputVector.push_back(prdfin);
   prdfin->Gl1Input(m_Gl1TriggeredInput);
-  prdfin->CreateDSTNode(m_topNode);
+  prdfin->topNode(m_topNode);
   std::cout << "registering " << prdfin->Name() << std::endl;
   //  prdfin->CreateDSTNode(m_topNode);
   //  prdfin->TriggerInputManager(this);

@@ -13,7 +13,7 @@ class PHCompositeNode;
 class PHIOManager
 {
  public:
-  virtual ~PHIOManager() {}
+  virtual ~PHIOManager() = default;
 
  public:
   const std::string &getFilename() const { return filename; }
