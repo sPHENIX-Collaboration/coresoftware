@@ -4,13 +4,17 @@
 #include <TFile.h>
 #include <TH2.h>
 #include <TNtuple.h>
+#include <phool/phool.h>
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/EventData/Measurement.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
+
+#include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 struct ResidualOutlierFinder
 {
+  ActsGeometry* m_tGeometry = nullptr;
   int verbosity = 0;
   std::map<long unsigned int, float> chi2Cuts;
   std::string outfilename = "OutlierFinder.root";
@@ -99,10 +103,18 @@ struct ResidualOutlierFinder
     int sphenixlayer = TrkrDefs::getLayer(cluskey);
     hChi2->Fill(sphenixlayer, chi2);
     hDistance->Fill(sphenixlayer, distance);
-
+    if(!m_tGeometry)
+    {
+      std::cout << PHWHERE << "no geometry set in residual outlier finder" << std::endl;
+      exit(1);
+    }
+    Acts::FreeVector freeParams =
+        Acts::detail::transformBoundToFreeParameters(state.referenceSurface(),
+                                                     m_tGeometry->geometry().getGeoContext(),
+                                                     predicted);
     float data[] = {
         (float) sphenixlayer, (float) layer, (float) volume, distance, chi2,
-        (float) predicted[Acts::eFreePos0], (float) predicted[Acts::eFreePos1], (float) predicted[Acts::eFreePos2],
+        (float) freeParams[Acts::eFreePos0], (float) freeParams[Acts::eFreePos1], (float) freeParams[Acts::eFreePos2],
         (float) predicted[Acts::eBoundLoc0], (float) predicted[Acts::eBoundLoc1],
         (float) fullCalibrated[Acts::eFreePos0], (float) fullCalibrated[Acts::eFreePos1], (float) fullCalibrated[Acts::eFreePos2],
         (float) fullCalibrated[Acts::eBoundLoc0], (float) fullCalibrated[Acts::eBoundLoc1]};
