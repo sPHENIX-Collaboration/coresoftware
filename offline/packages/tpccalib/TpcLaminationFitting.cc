@@ -62,11 +62,15 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
       }
 
       m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{expected}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %shift).str().c_str(), 200, 30, 80, 200, shift - 0.2, shift + 0.2);
-      m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[0]+[1]*exp(-[2]*x)", 30, 80);
-      m_fLamination[l][s]->SetParameters(-0.022 + shift, 3.0, 0.12);
-      m_fLamination[l][s]->SetParLimits(0, -0.12 + shift, shift);
-      m_fLamination[l][s]->SetParLimits(1, 0, 10);
+      //m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[0]+[1]*exp(-[2]*x)", 30, 80);
+      //m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[0]*(1+exp(-[2]*(x-[1])))", 30, 80);
+      m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[3]+[0]*(1-exp(-[2]*(x-[1])))", 30, 80);
+      //m_fLamination[l][s]->SetParameters(-0.022 + shift, log(3.0/(-0.22 + shift)), 0.12);
+      m_fLamination[l][s]->SetParameters(-0.011, 30, 0.16, 0.0);
+      m_fLamination[l][s]->SetParLimits(0, -0.22, 0.0);
+      m_fLamination[l][s]->SetParLimits(1, 0, 80);
       m_fLamination[l][s]->SetParLimits(2, 0.0, 3);
+      m_fLamination[l][s]->FixParameter(3, shift);
       m_laminationCenter[l][s] = shift;
     }
   }
@@ -172,9 +176,13 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   m_laminationTree->Branch("side",&m_side);
   m_laminationTree->Branch("lamIndex",&m_lamIndex);
   m_laminationTree->Branch("lamPhi",&m_lamPhi);
+  m_laminationTree->Branch("goodFit",&m_goodFit);
   m_laminationTree->Branch("A",&m_A);
   m_laminationTree->Branch("B",&m_B);
   m_laminationTree->Branch("C",&m_C);
+  m_laminationTree->Branch("A_err",&m_A_err);
+  m_laminationTree->Branch("B_err",&m_B_err);
+  m_laminationTree->Branch("C_err",&m_C_err);
   m_laminationTree->Branch("distanceToFit",&m_dist);
   m_laminationTree->Branch("nBinsFit",&m_nBins);
 
@@ -192,6 +200,8 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  m_runnumber = eventHeader->get_RunNumber();
+  
   if (m_useHeader && eventHeader->get_EvtSequence() == 0)
   {
     m_useHeader = false;
@@ -265,7 +275,8 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
 //____________________________________
 int TpcLaminationFitting::fitLaminations()
 {
-  int nBinAvg = 6;
+  //int nBinAvg = 6;
+  int nBinAvg = 4;
   // double contentCut = 0.0;
 
   /*
@@ -280,8 +291,45 @@ int TpcLaminationFitting::fitLaminations()
           }
   }
   */
-  double seedScale = (m_nClusters / m_nEvents) / 3718.8030;
+  //double seedScale = (m_nClusters / m_nEvents) / 3718.8030;
 
+  double ZDC[6] = {3013.5, 3581.9, 4431.4, 4758.5, 5082.3, 6849.3};
+  int ZDCindex = 0;
+  if(m_runnumber == 53534)
+  {
+    ZDCindex = 0;
+  }
+  else if(m_runnumber == 53744)
+  {
+    ZDCindex = 1;
+  }
+  else if(m_runnumber == 53756)
+  {
+    ZDCindex = 2;
+  }
+  else if(m_runnumber == 53877)
+  {
+    ZDCindex = 3;
+  }
+  else if(m_runnumber == 53876)
+  {
+    ZDCindex = 4;
+  }
+  else if(m_runnumber == 53630)
+  {
+    ZDCindex = 5;
+  }
+
+  TF1 *Af[2] = {new TF1("AN","pol1",0,100000), new TF1("AS","pol1",0,100000)};
+  Af[0]->SetParameters(-0.007999,-1.783e-6);
+  Af[1]->SetParameters(-0.003288,-2.297e-6);
+
+  TF1 *Bf[2] = {new TF1("BN","pol1",0,100000), new TF1("BS","pol1",0,100000)};
+  Bf[0]->SetParameters(31.55,0.0006141);
+  Bf[1]->SetParameters(34.7,0.0005226);
+
+  double Cseed[2] = {0.16, 0.125};
+  
   for (int s = 0; s < 2; s++)
   {
     for (int l = 0; l < 18; l++)
@@ -297,8 +345,13 @@ int TpcLaminationFitting::fitLaminations()
       TGraph *gr = new TGraph();
       TGraph *proj = new TGraph();
 
-      m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s], 4.595 * seedScale, 0.138);
-
+      //m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s], 4.595 * seedScale, 0.138);
+      //m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s], log(4.595 * seedScale/(-0.022 + m_laminationCenter[l][s])), 0.138);
+      //m_fLamination[l][s]->SetParameters(-0.011 + m_laminationCenter[l][s], 0.025, 0.16);
+      //m_fLamination[l][s]->SetParameters(-0.011, 30, 0.16, m_laminationCenter[l][s]);
+      m_fLamination[l][s]->SetParameters(Af[s]->Eval(ZDC[ZDCindex]), Bf[s]->Eval(ZDC[ZDCindex]), Cseed[s], m_laminationCenter[l][s]);
+      m_fLamination[l][s]->FixParameter(3, m_laminationCenter[l][s]);
+      
       TF1 *fitSeed = (TF1 *) m_fLamination[l][s]->Clone();
       fitSeed->SetName((boost::format("fitSeed%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str());
 
@@ -454,9 +507,19 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
           phi -= 2 * M_PI;
         }
         int phiBin = phiDistortionLamination[s]->GetXaxis()->FindBin(phi);
-        m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) - m_laminationCenter[l][s]);
-        double phiDistortion = R * m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1));
-        m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) + m_laminationCenter[l][s]);
+        //m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) - m_laminationCenter[l][s]);
+        if(s==0)
+	{
+	  m_fLamination[l][s]->SetParameter(3, 0.011);
+	}
+        else
+	{
+	  m_fLamination[l][s]->SetParameter(3, 0.008);
+	}
+	//m_fLamination[l][s]->SetParameter(3, 0.0);
+        double phiDistortion = R * m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1)) / (phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1) - phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i));
+        //m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) + m_laminationCenter[l][s]);
+        m_fLamination[l][s]->SetParameter(3, m_laminationCenter[l][s]);
         phiDistortionLamination[s]->SetBinContent(phiBin, i, phiDistortion);
       }
     }
@@ -584,8 +647,9 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 	line->Draw("same");
 	
 	TPaveText *pars = new TPaveText(0.6, 0.55, 0.85, 0.85, "NDC");
-	pars->AddText("#phi = A + B#times e^{-C#times R}");
+	pars->AddText("#phi = #phi_{ideal} + A#times (1 - e^{-C#times (R - B)})");
 	pars->AddText((boost::format("A=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
+	pars->AddText((boost::format("#phi_{ideal}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(3) %m_fLamination[l][s]->GetParError(3)).str().c_str());
 	pars->AddText((boost::format("B=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(1) %m_fLamination[l][s]->GetParError(1)).str().c_str());
 	pars->AddText((boost::format("C=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(2) %m_fLamination[l][s]->GetParError(2)).str().c_str());
 	pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
@@ -658,9 +722,13 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
       m_side = s;
       m_lamIndex = s*18 + l;
       m_lamPhi = m_laminationCenter[l][s];
-      m_A = m_fLamination[l][s]->GetParameter(0) - m_laminationCenter[l][s];
+      m_goodFit = m_laminationGoodFit[l][s];
+      m_A = m_fLamination[l][s]->GetParameter(0);
       m_B = m_fLamination[l][s]->GetParameter(1);
       m_C = m_fLamination[l][s]->GetParameter(2);
+      m_A_err = m_fLamination[l][s]->GetParError(0);
+      m_B_err = m_fLamination[l][s]->GetParError(1);
+      m_C_err = m_fLamination[l][s]->GetParError(2);
       m_dist = m_distanceToFit[l][s];
       m_nBins = m_nBinsFit[l][s];
       m_laminationTree->Fill();
@@ -683,6 +751,11 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   }
   m_laminationTree->Write();
 
+  m_hLamination[13][0]->Write();
+  m_hLamination[13][1]->Write();
+  m_hLamination[14][1]->Write();
+
+  
   outputfile->Close();
 
   return Fun4AllReturnCodes::EVENT_OK;
