@@ -158,6 +158,7 @@ class ActsEvaluator
   std::vector<int> m_volumeID;      /// volume identifier
   std::vector<int> m_layerID;       /// layer identifier
   std::vector<int> m_moduleID;      /// surface identifier
+  std::vector<int> m_sphenixlayer;  /// sPHENIX layer identifier
   std::vector<float> m_lx_hit;      /// uncalibrated measurement local x
   std::vector<float> m_ly_hit;      /// uncalibrated measurement local y
   std::vector<float> m_x_hit;       /// uncalibrated measurement global x

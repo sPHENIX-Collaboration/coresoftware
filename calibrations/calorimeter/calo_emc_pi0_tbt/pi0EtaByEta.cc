@@ -2,12 +2,12 @@
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/Vertex.h>
 
 // Tower includes
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -32,6 +32,7 @@
 #include <TH3.h>
 #include <TLorentzVector.h>
 #include <TNtuple.h>
+#include <TSystem.h>
 #include <TTree.h>
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
@@ -41,12 +42,12 @@
 
 #include <TStyle.h>
 #include <TSystem.h>
+
 #include <cmath>    // for fabs, isnan, M_PI
+#include <cstdint>  // for exit
 #include <cstdlib>  // for exit
 #include <iostream>
-#include <map>     // for operator!=, _Rb_tree_con...
-#include <memory>  // for allocator_traits<>::valu...
-#include <sstream>
+#include <map>        // for operator!=, _Rb_tree_con...
 #include <stdexcept>  // for runtime_error
 #include <string>
 #include <utility>
@@ -125,8 +126,6 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   h_nclusters = new TH1F("h_nclusters", "", 1000, 0, 1000);
 
-
-
   h_event = new TH1F("h_event", "", 1, 0, 1);
 
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
@@ -198,31 +197,37 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     std::cout << "pi0EtaByEta GlobalVertexMap node is missing" << std::endl;
     // return Fun4AllReturnCodes::ABORTRUN;
   }
-  
+
   float vtx_z = 0;
   bool found_vertex = false;
-  if (vertexmap && !vertexmap->empty()) 
+  if (vertexmap && !vertexmap->empty())
   {
-    GlobalVertex *vtx = vertexmap->begin()->second;
+    GlobalVertex* vtx = vertexmap->begin()->second;
     if (vtx)
     {
-      if (m_use_vertextype) 
+      if (m_use_vertextype)
       {
         auto typeStartIter = vtx->find_vertexes(m_vertex_type);
         auto typeEndIter = vtx->end_vertexes();
         for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
         {
-          const auto &[type, vertexVec] = *iter;
-          if (type != m_vertex_type) { continue; }
-          for (const auto *vertex : vertexVec)
+          const auto& [type, vertexVec] = *iter;
+          if (type != m_vertex_type)
           {
-            if (!vertex) { continue; }
+            continue;
+          }
+          for (const auto* vertex : vertexVec)
+          {
+            if (!vertex)
+            {
+              continue;
+            }
             vtx_z = vertex->get_z();
             found_vertex = true;
           }
         }
-      } 
-      else 
+      }
+      else
       {
         vtx_z = vtx->get_z();
         found_vertex = true;
@@ -337,7 +342,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   }
 
   h_nclusters->Fill(nClusCount);
-  
+
   if (nClusCount > max_nClusCount)
   {
     return Fun4AllReturnCodes::EVENT_OK;
@@ -353,6 +358,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   float ptClusMax = 4;
   float pt1ClusCut = pt1BaseClusCut;  
   float pt2ClusCut = pt2BaseClusCut;  
+
 
   if (nClusCount > 30)
   {
@@ -381,8 +387,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
     h_clus_pt->Fill(clus_pt);
 
-    unsigned int lt_eta =  recoCluster->get_lead_tower().first; 
-    unsigned int lt_phi =  recoCluster->get_lead_tower().second;
+    unsigned int lt_eta = recoCluster->get_lead_tower().first;
+    unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
     h_etaphi_clus->Fill(clus_eta, clus_phi);
 
@@ -464,7 +470,6 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       {
         h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());
       }  // fill 1D inv mass hist for all towers
-
     }
   }  // clus1 loop
 

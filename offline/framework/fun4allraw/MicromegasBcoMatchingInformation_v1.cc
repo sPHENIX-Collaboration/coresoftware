@@ -1,11 +1,11 @@
 
 /*!
- * \file MicromegasBcoMatchingInformation.cc
+ * \file MicromegasBcoMatchingInformation_v1.cc
  * \author Hugo Pereira Da Costa <hugo.pereira-da-costa@cea.fr>
  * \brief handles matching between GTM and FEE BCO clock
  */
 
-#include "MicromegasBcoMatchingInformation.h"
+#include "MicromegasBcoMatchingInformation_v1.h"
 
 #include <Event/packet.h>
 
@@ -123,10 +123,10 @@ namespace
 
 // this is the clock multiplier from lvl1 to fee clock
 /* todo: should replace with actual rational number for John K. */
-double MicromegasBcoMatchingInformation::m_multiplier = 4.262916255;
+double MicromegasBcoMatchingInformation_v1::m_multiplier = 4.262916255;
 
 //___________________________________________________
-std::optional<uint32_t> MicromegasBcoMatchingInformation::get_predicted_fee_bco(uint64_t gtm_bco) const
+std::optional<uint32_t> MicromegasBcoMatchingInformation_v1::get_predicted_fee_bco(uint64_t gtm_bco) const
 {
   // check proper initialization
   if (!is_verified())
@@ -143,12 +143,12 @@ std::optional<uint32_t> MicromegasBcoMatchingInformation::get_predicted_fee_bco(
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
+void MicromegasBcoMatchingInformation_v1::print_gtm_bco_information() const
 {
   if (!m_gtm_bco_list.empty())
   {
     std::cout
-        << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
+        << "MicromegasBcoMatchingInformation_v1::print_gtm_bco_information -"
         << " gtm_bco: " << std::hex << m_gtm_bco_list << std::dec
         << std::endl;
 
@@ -164,7 +164,7 @@ void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
           { return get_predicted_fee_bco(gtm_bco).value(); });
 
       std::cout
-          << "MicromegasBcoMatchingInformation::save_gtm_bco_information -"
+          << "MicromegasBcoMatchingInformation_v1::print_gtm_bco_information -"
           << " fee_bco_predicted: " << std::hex << fee_bco_predicted_list << std::dec
           << std::endl;
     }
@@ -172,7 +172,7 @@ void MicromegasBcoMatchingInformation::print_gtm_bco_information() const
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::save_gtm_bco_information(Packet* packet)
+void MicromegasBcoMatchingInformation_v1::save_gtm_bco_information(Packet* packet)
 {
   // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
   const int n_tagger = packet->lValue(0, "N_TAGGER");
@@ -217,7 +217,7 @@ void MicromegasBcoMatchingInformation::save_gtm_bco_information(Packet* packet)
 }
 
 //___________________________________________________
-bool MicromegasBcoMatchingInformation::find_reference_from_modebits(Packet* packet)
+bool MicromegasBcoMatchingInformation_v1::find_reference_from_modebits(Packet* packet)
 {
   // append gtm_bco from taggers in this event to packet-specific list of available lv1_bco
   const int n_tagger = packet->lValue(0, "N_TAGGER");
@@ -230,7 +230,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_modebits(Packet* pack
       uint64_t modebits = static_cast<uint8_t>(packet->lValue(t, "MODEBITS"));
       if (modebits & (1U << BX_COUNTER_SYNC_T))
       {
-        std::cout << "MicromegasBcoMatchingInformation::find_reference_from_modebits"
+        std::cout << "MicromegasBcoMatchingInformation_v1::find_reference_from_modebits"
                   << " - packet: " << packet->getIdentifier()
                   << " found reference from modebits"
                   << std::endl;
@@ -249,7 +249,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_modebits(Packet* pack
 }
 
 //___________________________________________________
-bool MicromegasBcoMatchingInformation::find_reference_from_data(Packet* packet)
+bool MicromegasBcoMatchingInformation_v1::find_reference_from_data(Packet* packet)
 {
   // store gtm bco and diff to previous in an array
   std::vector<uint64_t> gtm_bco_list;
@@ -272,7 +272,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data(Packet* packet)
   // print all differences
   if (verbosity())
   {
-    std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - gtm_bco_diff_list: " << gtm_bco_diff_list << std::endl;
+    std::cout << "MicromegasBcoMatchingInformation_v1::find_reference_from_data - gtm_bco_diff_list: " << gtm_bco_diff_list << std::endl;
   }
 
   uint32_t fee_bco_prev = 0;
@@ -316,7 +316,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data(Packet* packet)
       continue;
     }
 
-    std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - fee_bco_diff: " << fee_bco_diff << std::endl;
+    std::cout << "MicromegasBcoMatchingInformation_v1::find_reference_from_data - fee_bco_diff: " << fee_bco_diff << std::endl;
 
     // look for matching diff in gtm_bco array
     for (size_t i = 0; i < gtm_bco_diff_list.size(); ++i)
@@ -333,13 +333,13 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data(Packet* packet)
 
           if (verbosity())
           {
-            std::cout << "MicromegasBcoMatchingInformation::find_reference_from_data - matching is verified" << std::endl;
+            std::cout << "MicromegasBcoMatchingInformation_v1::find_reference_from_data - matching is verified" << std::endl;
             std::cout
-                << "MicromegasBcoMatchingInformation::find_reference_from_data -"
+                << "MicromegasBcoMatchingInformation_v1::find_reference_from_data -"
                 << " m_gtm_bco_first: " << std::hex << m_gtm_bco_first << std::dec
                 << std::endl;
             std::cout
-                << "MicromegasBcoMatchingInformation::find_reference_from_data -"
+                << "MicromegasBcoMatchingInformation_v1::find_reference_from_data -"
                 << " m_fee_bco_first: " << std::hex << m_fee_bco_first << std::dec
                 << std::endl;
           }
@@ -355,7 +355,7 @@ bool MicromegasBcoMatchingInformation::find_reference_from_data(Packet* packet)
 }
 
 //___________________________________________________
-std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco(uint32_t fee_bco)
+std::optional<uint64_t> MicromegasBcoMatchingInformation_v1::find_gtm_bco(uint32_t fee_bco)
 {
   // make sure the bco matching is properly initialized
   if (!is_verified())
@@ -391,7 +391,7 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco(uint32_t 
         const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
         const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
 
-        std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco -"
+        std::cout << "MicromegasBcoMatchingInformation_v1::find_gtm_bco -"
                   << std::hex
                   << " fee_bco: 0x" << fee_bco
                   << " predicted: 0x" << fee_bco_predicted
@@ -427,7 +427,7 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco(uint32_t 
 
           const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
 
-          std::cout << "MicromegasBcoMatchingInformation::find_gtm_bco -"
+          std::cout << "MicromegasBcoMatchingInformation_v1::find_gtm_bco -"
                     << std::hex
                     << " fee_bco: 0x" << fee_bco
                     << std::dec
@@ -445,7 +445,7 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation::find_gtm_bco(uint32_t 
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::cleanup()
+void MicromegasBcoMatchingInformation_v1::cleanup()
 {
   // remove old gtm_bco and matching
   while (m_gtm_bco_list.size() > m_max_matching_data_size)
@@ -462,7 +462,7 @@ void MicromegasBcoMatchingInformation::cleanup()
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::cleanup(uint64_t ref_bco)
+void MicromegasBcoMatchingInformation_v1::cleanup(uint64_t ref_bco)
 {
   // erase all elements from bco_list that are less than or equal to ref_bco
   m_gtm_bco_list.erase( std::remove_if( m_gtm_bco_list.begin(), m_gtm_bco_list.end(), [ref_bco](const uint64_t& bco) { return bco<=ref_bco; }), m_gtm_bco_list.end() );
@@ -475,13 +475,13 @@ void MicromegasBcoMatchingInformation::cleanup(uint64_t ref_bco)
 }
 
 //___________________________________________________
-double MicromegasBcoMatchingInformation::get_adjusted_multiplier() const
+double MicromegasBcoMatchingInformation_v1::get_adjusted_multiplier() const
 {
   return m_multiplier + m_multiplier_adjustment;
 }
 
 //___________________________________________________
-void MicromegasBcoMatchingInformation::update_multiplier_adjustment(uint64_t gtm_bco, uint32_t fee_bco)
+void MicromegasBcoMatchingInformation_v1::update_multiplier_adjustment(uint64_t gtm_bco, uint32_t fee_bco)
 {
   // check that references are valid
   if (!is_verified())
@@ -506,7 +506,7 @@ void MicromegasBcoMatchingInformation::update_multiplier_adjustment(uint64_t gtm
   if (verbosity())
   {
     const auto default_precision{std::cout.precision()};
-    std::cout << "MicromegasBcoMatchingInformation::update_multiplier_adjustment -"
+    std::cout << "MicromegasBcoMatchingInformation_v1::update_multiplier_adjustment -"
               << " m_multiplier_adjustment_count: " << m_multiplier_adjustment_count
               << std::setprecision(10)
               << " m_multiplier: " << get_adjusted_multiplier()

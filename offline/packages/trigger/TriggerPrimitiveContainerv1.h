@@ -27,11 +27,11 @@ class TriggerPrimitiveContainerv1 : public TriggerPrimitiveContainer
 
   TriggerPrimitiveContainerv1(TriggerDefs::TriggerId tid, TriggerDefs::DetectorId did);
   ///
-  ~TriggerPrimitiveContainerv1() override;
+  ~TriggerPrimitiveContainerv1() override = default;
 
   /// Clear Event from memory
   void Reset() override;
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
   int isValid() const override;
 
   void setTriggerId(TriggerDefs::TriggerId triggerid) override { m_triggerid = triggerid; };

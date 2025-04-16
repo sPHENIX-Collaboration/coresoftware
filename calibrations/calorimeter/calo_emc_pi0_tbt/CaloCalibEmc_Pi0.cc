@@ -205,7 +205,7 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
 
   RawCluster *savCs[10000];  // savingClusters that has 1 GeV or more
   int iCs = 0;
-//  int inCs = 0;
+  //  int inCs = 0;
 
   // saving the clusters
   for (t_rclusiter = t_rbegin_end.first; t_rclusiter != t_rbegin_end.second; ++t_rclusiter)
@@ -347,7 +347,9 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
             float tt2_clus_pt = E_vec_cluster2.perp();
             float tt2_clus_phi = E_vec_cluster2.getPhi();
 
-            TLorentzVector pho1, pho2, pi0lv;
+            TLorentzVector pho1;
+            TLorentzVector pho2;
+            TLorentzVector pi0lv;
 
             pho1.SetPtEtaPhiE(tt_clus_pt, tt_clus_eta, tt_clus_phi, tt_clus_energy);
             pho2.SetPtEtaPhiE(tt2_clus_pt, tt2_clus_eta, tt2_clus_phi, tt2_clus_energy);
@@ -361,10 +363,10 @@ int CaloCalibEmc_Pi0::process_event(PHCompositeNode *topNode)
             pi0lv = pho1 + pho2;
             float pairInvMass = pi0lv.M();
 
-            pt1_ptpi0_alpha->Fill(tt_clus_pt, fabs(pi0lv.Pt()), alphaCut);
+            pt1_ptpi0_alpha->Fill(tt_clus_pt, std::abs(pi0lv.Pt()), alphaCut);
 
-            //		      if (tt_clus_energy > 1.3 && tt2_clus_energy > 1.0 && fabs(pi0lv.Pt()) > 1.8)
-            if (fabs(pi0lv.Pt()) > 1.0)
+            //		      if (tt_clus_energy > 1.3 && tt2_clus_energy > 1.0 && std::abs(pi0lv.Pt()) > 1.8)
+            if (std::abs(pi0lv.Pt()) > 1.0)
             {
               pairInvMassTotal->Fill(pairInvMass);
               mass_eta->Fill(pairInvMass, tt_clus_eta);
@@ -524,12 +526,17 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
       continue;
     }
 
-    float pt1cut = 0, pt2cut = 0;
+    float pt1cut = 0;
+    float pt2cut = 0;
 
     for (int j = 0; j < nClusters; j++)
     {
       // float px, py, pz;
-      float pt, eta, phi, E, aggcv;
+      float pt;
+      float eta;
+      float phi;
+      float E;
+      float aggcv;
       pt = _clusterPts[j];
       eta = _clusterEtas[j];
       phi = _clusterPhis[j];
@@ -557,7 +564,8 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
       savClusLV[j]->SetPtEtaPhiE(pt, eta, phi, E);
     }
 
-    TLorentzVector *pho1, *pho2;
+    TLorentzVector *pho1;
+    TLorentzVector *pho2;
     int iCs = nClusters;
     for (int jCs = 0; jCs < iCs; jCs++)
     {
@@ -614,7 +622,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
       ///////////////////////////////////////
       /////////////////////////////////////
 
-      if (fabs(pho1->Pt()) < pt1cut)
+      if (std::abs(pho1->Pt()) < pt1cut)
       {
         continue;
       }
@@ -629,12 +637,12 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
 
         pho2 = savClusLV[kCs];
 
-        if (fabs(pho2->Pt()) < pt2cut)
+        if (std::abs(pho2->Pt()) < pt2cut)
         {
           continue;
         }
 
-        alphaCut = fabs((pho1->E() - pho2->E()) / (pho1->E() + pho2->E()));
+        alphaCut = std::abs((pho1->E() - pho2->E()) / (pho1->E() + pho2->E()));
 
         if (alphaCut > alphacutval)
         {
@@ -649,7 +657,7 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
         }
 
         pi0lv = *pho1 + *pho2;
-        if (fabs(pi0lv.Pt()) > pi0ptcut)
+        if (std::abs(pi0lv.Pt()) > pi0ptcut)
         {
           float pairInvMass = pi0lv.M();
 
@@ -770,7 +778,11 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
     for (int j = 0; j < nClusters; j++)
     {
       // float px, py, pz;
-      float pt, eta, phi, E, aggcv;
+      float pt;
+      float eta;
+      float phi;
+      float E;
+      float aggcv;
       pt = _clusterPts[j];
       eta = _clusterEtas[j];
       phi = _clusterPhis[j];
@@ -784,13 +796,14 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
       savClusLV.at(j)->SetPtEtaPhiE(pt, eta, phi, E);
     }
 
-    TLorentzVector *pho1, *pho2;
+    TLorentzVector *pho1;
+    TLorentzVector *pho2;
     int iCs = nClusters;
     for (int jCs = 0; jCs < iCs; jCs++)
     {
       pho1 = savClusLV.at(jCs);
 
-      if (fabs(pho1->Pt()) < 1.0)
+      if (std::abs(pho1->Pt()) < 1.0)
       {
         continue;
       }
@@ -805,7 +818,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
 
         pho2 = savClusLV.at(kCs);
 
-        if (fabs(pho2->Pt()) < 0.6)
+        if (std::abs(pho2->Pt()) < 0.6)
         {
           continue;
         }
@@ -830,7 +843,7 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
         }
         */
 
-        alphaCut = fabs((pho1->E() - pho2->E()) / (pho1->E() + pho2->E()));
+        alphaCut = std::abs((pho1->E() - pho2->E()) / (pho1->E() + pho2->E()));
         if (alphaCut > 0.50)
         {
           continue;  // 0.50 to begin with
@@ -968,7 +981,7 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
         if ((binc > 0.06 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.22 * fpkloc2 / 0.145 && binc < 0.35 * fpkloc2 / 0.145))
         {
           grtemp->SetPoint(ingr, binc, cntc);
-          grtemp->SetPointError(ingr++, 0.001, sqrt(cntc));
+          grtemp->SetPointError(ingr++, 0.001, std::sqrt(cntc));
         }
       }
 
@@ -1163,7 +1176,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
         if ((binc > 0.06 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.22 * fpkloc2 / 0.145 && binc < 0.35 * fpkloc2 / 0.145))
         {
           grtemp->SetPoint(ingr, binc, cntc);
-          grtemp->SetPointError(ingr++, 0.001, sqrt(cntc));
+          grtemp->SetPointError(ingr++, 0.001, std::sqrt(cntc));
         }
       }
 
@@ -1209,7 +1222,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
         {
           // if ((ipatt_eta>0) || (ipatt_phi>0))
           //{
-          nt_corrVals->Fill(ieta + ipatt_eta * 16, iphi + ipatt_phi * 16, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr.at(ieta).at(iphi));
+          nt_corrVals->Fill(ieta + (ipatt_eta * 16), iphi + (ipatt_phi * 16), 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr.at(ieta).at(iphi));
           //}
         }
       }
@@ -1314,7 +1327,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
 
   for (int ithirds = 0; ithirds < 3; ithirds++)
   {
-    for (int ieta = 0 + ithirds * 32; ieta < (ithirds * 32 + 16); ieta++)
+    for (int ieta = 0 + (ithirds * 32); ieta < (ithirds * 32 + 16); ieta++)
     {
       for (int iphi = 0; iphi < 16; iphi++)
       {
@@ -1351,7 +1364,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
           if ((binc > 0.06 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.22 * fpkloc2 / 0.145 && binc < 0.35 * fpkloc2 / 0.145))
           {
             grtemp->SetPoint(ingr, binc, cntc);
-            grtemp->SetPointError(ingr++, 0.001, sqrt(cntc));
+            grtemp->SetPointError(ingr++, 0.001, std::sqrt(cntc));
           }
         }
 
@@ -1397,7 +1410,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
           {
             // if ((ipatt_eta>0) || (ipatt_phi>0))
             //{
-            nt_corrVals->Fill(ieta + ipatt_eta * 16, iphi + ipatt_phi * 16, 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr.at(ieta).at(iphi));
+            nt_corrVals->Fill(ieta + (ipatt_eta * 16), iphi + (ipatt_phi * 16), 0.135 / cemc_par1_values[ieta][iphi], 0.135 / cemc_par1_values[ieta][iphi] * myaggcorr.at(ieta).at(iphi));
             //}
           }
         }
@@ -1535,7 +1548,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
           ((binc > 0.03 * fpkloc2 / 0.145 && binc < 0.09 * fpkloc2 / 0.145) || (binc > 0.265 * fpkloc2 / 0.145 && binc < 0.31 * fpkloc2 / 0.145)) && (cntc > 0 || firstnonzbin > 0))
       {
         grtemp->SetPoint(ingr, binc, cntc);
-        grtemp->SetPointError(ingr++, 0.001, sqrt(cntc));
+        grtemp->SetPointError(ingr++, 0.001, std::sqrt(cntc));
       }
       if (cntc && firstnonzbin < 0)
       {
@@ -1602,7 +1615,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     if (kj2 < 6 && iijk < 88)
     {
       locavg = (eta_par1_value[iijk + 3] + eta_par1_value[iijk + 4] + eta_par1_value[iijk + 5] + eta_par1_value[iijk + 6] + eta_par1_value[iijk + 7]) / 5.0;
-      if (fabs(locavg - avgmean) > 0.2 * avgmean)
+      if (std::abs(locavg - avgmean) > 0.2 * avgmean)
       {
         locavg = avgmean;
       }
@@ -1610,7 +1623,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     else if (iijk > 90)
     {
       locavg = (eta_par1_value[iijk - 3] + eta_par1_value[iijk - 4] + eta_par1_value[iijk - 5] + eta_par1_value[iijk - 6] + eta_par1_value[iijk - 7]) / 5.0;
-      if (fabs(locavg - avgmean) > 0.2 * avgmean)
+      if (std::abs(locavg - avgmean) > 0.2 * avgmean)
       {
         locavg = avgmean;
       }
@@ -1618,7 +1631,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     else
     {
       locavg = (eta_par1_value[iijk - 3] + eta_par1_value[iijk - 2] + eta_par1_value[iijk - 1] + eta_par1_value[iijk + 1] + eta_par1_value[iijk + 2] + eta_par1_value[iijk + 3]) / 6.0;
-      if (fabs(locavg - avgmean) > 0.2 * avgmean)
+      if (std::abs(locavg - avgmean) > 0.2 * avgmean)
       {
         locavg = avgmean;
       }
@@ -1628,7 +1641,7 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     if (fit_fn[kj2])
     {
       thisfitp1 = fit_fn[kj2]->GetParameter(1);
-      if (fabs(thisfitp1 - locavg) > 0.12 * locavg)
+      if (std::abs(thisfitp1 - locavg) > 0.12 * locavg)
       {
         std::cout << "redoing  fit for eta" << iijk << " " << fit_fn[kj2] << std::endl;
         fit_fn[kj2]->SetParameter(1, locavg);
@@ -1724,7 +1737,7 @@ void CaloCalibEmc_Pi0::Add_32()
 {
   for (int ithirds = 0; ithirds < 3; ithirds++)
   {
-    for (int ieta = 0 + ithirds * 32; ieta < (ithirds * 32 + 16); ieta++)
+    for (int ieta = 0 + (ithirds * 32); ieta < (ithirds * 32 + 16); ieta++)
     {
       for (int iphi = 0; iphi < 16; iphi++)
       {
@@ -1734,7 +1747,7 @@ void CaloCalibEmc_Pi0::Add_32()
           {
             if ((ipatt_eta > 0) || (ipatt_phi > 0))
             {
-              cemc_hist_eta_phi.at(ieta).at(iphi)->Add(cemc_hist_eta_phi.at(ieta + ipatt_eta * 16).at(iphi + ipatt_phi * 16));
+              cemc_hist_eta_phi.at(ieta).at(iphi)->Add(cemc_hist_eta_phi.at(ieta + (ipatt_eta * 16)).at(iphi + (ipatt_phi * 16)));
             }
           }
         }
@@ -1757,7 +1770,7 @@ void CaloCalibEmc_Pi0::Add_96()
         {
           if ((ipatt_eta > 0) || (ipatt_phi > 0))
           {
-            cemc_hist_eta_phi.at(ieta).at(iphi)->Add(cemc_hist_eta_phi.at(ieta + ipatt_eta * 16).at(iphi + ipatt_phi * 16));
+            cemc_hist_eta_phi.at(ieta).at(iphi)->Add(cemc_hist_eta_phi.at(ieta + (ipatt_eta * 16)).at(iphi + (ipatt_phi * 16)));
           }
         }
       }

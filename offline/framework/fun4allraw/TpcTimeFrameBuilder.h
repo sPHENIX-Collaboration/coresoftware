@@ -62,6 +62,8 @@ class TpcTimeFrameBuilder
 
   static const uint16_t GL1_BCO_MATCH_WINDOW = 256;  // BCOs
 
+  int m_hitFormat = -1;
+
   uint16_t reverseBits(const uint16_t x) const;
   std::pair<uint16_t, uint16_t> crc16_parity(const uint32_t fee, const uint16_t l) const;
 
@@ -302,9 +304,7 @@ class TpcTimeFrameBuilder
     static constexpr unsigned int m_FEE_CLOCK_BITS = 20;
     static constexpr unsigned int m_GTM_CLOCK_BITS = 40;
 
-    // this is the clock multiplier from lvl1 to fee clock
-    // Tested with Run24 data. Could be changable in future runs
-    double m_multiplier = 4.262916255;
+    double m_multiplier = 0;
 
     TH1 *m_hNorm = nullptr;
     TH1 *m_hFEEClockAdjustment_MatchedReference = nullptr;

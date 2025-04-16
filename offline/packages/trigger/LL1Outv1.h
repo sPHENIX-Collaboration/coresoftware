@@ -30,7 +30,7 @@ class LL1Outv1 : public LL1Out
   /// Clear Event from memory
   void Reset() override;
 
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;
@@ -53,7 +53,7 @@ class LL1Outv1 : public LL1Out
 
   std::vector<std::pair<TriggerDefs::TriggerSumKey, unsigned short>> getTriggeredSums() override;
   std::vector<TriggerDefs::TriggerSumKey> getTriggeredSumKeys(int ith = 0) override;
-  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives;}
+  std::vector<TriggerDefs::TriggerPrimKey> getTriggeredPrimitives() override { return m_triggered_primitives; }
 
   void addTriggeredSum(TriggerDefs::TriggerSumKey sk, unsigned short bit) override;
   void addTriggeredPrimitive(TriggerDefs::TriggerPrimKey pk) override;

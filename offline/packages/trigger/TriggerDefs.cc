@@ -2,8 +2,6 @@
 
 #include <calobase/TowerInfoDefs.h>
 
-#include <cstring>
-
 uint32_t
 TriggerDefs::getTriggerKey(const TriggerDefs::TriggerId triggerId)
 {
@@ -127,12 +125,12 @@ TriggerDefs::getPrimitivePhiId_from_TriggerPrimKey(const TriggerDefs::TriggerPri
     {
       return tmp / 3;
     }
-    else if (detId == TriggerDefs::DetectorId::emcalDId)
+    if (detId == TriggerDefs::DetectorId::emcalDId)
     {
       return tmp / 12;
     }
   }
-  else if (primId == TriggerDefs::PrimitiveId::jetPId)
+  if (primId == TriggerDefs::PrimitiveId::jetPId)
   {
     return tmp;
   }
@@ -155,12 +153,12 @@ TriggerDefs::getPrimitivePhiId_from_TriggerSumKey(const TriggerDefs::TriggerSumK
     {
       return tmp / 3;
     }
-    else if (detId == TriggerDefs::DetectorId::emcalDId)
+    if (detId == TriggerDefs::DetectorId::emcalDId)
     {
       return tmp / 12;
     }
   }
-  else if (primId == TriggerDefs::PrimitiveId::jetPId)
+  if (primId == TriggerDefs::PrimitiveId::jetPId)
   {
     return tmp;
   }
@@ -183,12 +181,12 @@ TriggerDefs::getPrimitiveEtaId_from_TriggerPrimKey(const TriggerDefs::TriggerPri
     {
       return tmp % 3;
     }
-    else if (detId == TriggerDefs::DetectorId::emcalDId)
+    if (detId == TriggerDefs::DetectorId::emcalDId)
     {
       return tmp % 12;
     }
   }
-  else if (primId == TriggerDefs::PrimitiveId::jetPId)
+  if (primId == TriggerDefs::PrimitiveId::jetPId)
   {
     return 0;
   }
@@ -211,12 +209,12 @@ TriggerDefs::getPrimitiveEtaId_from_TriggerSumKey(const TriggerDefs::TriggerSumK
     {
       return tmp % 3;
     }
-    else if (detId == TriggerDefs::DetectorId::emcalDId)
+    if (detId == TriggerDefs::DetectorId::emcalDId)
     {
       return tmp % 12;
     }
   }
-  else if (primId == TriggerDefs::PrimitiveId::jetPId)
+  if (primId == TriggerDefs::PrimitiveId::jetPId)
   {
     return 0;
   }
@@ -240,7 +238,7 @@ TriggerDefs::getSumPhiId(const TriggerDefs::TriggerSumKey triggersumkey)
   {
     return tmp / 4;
   }
-  else if (primId == TriggerDefs::PrimitiveId::jetPId)
+  if (primId == TriggerDefs::PrimitiveId::jetPId)
   {
     return tmp / 12;
   }
@@ -257,7 +255,7 @@ TriggerDefs::getSumEtaId(const TriggerDefs::TriggerSumKey triggersumkey)
   {
     return tmp % 4;
   }
-  else if (primId == TriggerDefs::PrimitiveId::jetPId)
+  if (primId == TriggerDefs::PrimitiveId::jetPId)
   {
     return tmp % 12;
   }
@@ -277,9 +275,9 @@ TriggerDefs::GetTowerInfoKey(const TriggerDefs::DetectorId detId, const uint16_t
     return TowerInfoDefs::encode_emcal(etabin, phibin);
     ;
   }
-  else if (detId == TriggerDefs::DetectorId::hcalinDId ||
-           detId == TriggerDefs::DetectorId::hcaloutDId ||
-           detId == TriggerDefs::DetectorId::hcalDId)
+  if (detId == TriggerDefs::DetectorId::hcalinDId ||
+      detId == TriggerDefs::DetectorId::hcaloutDId ||
+      detId == TriggerDefs::DetectorId::hcalDId)
   {
     etabin = (iprim % 3) * 8 + (isum % 4) * 2 + itower % 2;
     phibin = (iprim / 3) * 8 + (isum / 4) * 2 + itower / 2;
@@ -290,35 +288,35 @@ TriggerDefs::GetTowerInfoKey(const TriggerDefs::DetectorId detId, const uint16_t
 }
 TriggerDefs::TriggerId TriggerDefs::GetTriggerId(const std::string& trigger)
 {
-  if (strcmp(trigger.c_str(), "NONE") == 0)
+  if (trigger == "NONE")
   {
     return TriggerDefs::TriggerId::noneTId;
   }
-  else if (strcmp(trigger.c_str(), "MBD") == 0)
+  if (trigger == "MBD")
   {
     return TriggerDefs::TriggerId::mbdTId;
   }
-  else if (strcmp(trigger.c_str(), "JET") == 0)
+  if (trigger == "JET")
   {
     return TriggerDefs::TriggerId::jetTId;
   }
-  else if (strcmp(trigger.c_str(), "PHOTON") == 0)
+  if (trigger == "PHOTON")
   {
     return TriggerDefs::TriggerId::photonTId;
   }
-  else if (strcmp(trigger.c_str(), "PAIR") == 0)
+  if (trigger == "PAIR")
   {
     return TriggerDefs::TriggerId::pairTId;
   }
-  else if (strcmp(trigger.c_str(), "COSMIC") == 0)
+  if (trigger == "COSMIC")
   {
     return TriggerDefs::TriggerId::cosmicTId;
   }
-  else if (strcmp(trigger.c_str(), "COSMIC_COIN") == 0)
+  if (trigger == "COSMIC_COIN")
   {
     return TriggerDefs::TriggerId::cosmic_coinTId;
   }
-  else if (strcmp(trigger.c_str(), "PHYSICS") == 0)
+  if (trigger == "PHYSICS")
   {
     return TriggerDefs::TriggerId::physicsTId;
   }
@@ -328,31 +326,31 @@ TriggerDefs::TriggerId TriggerDefs::GetTriggerId(const std::string& trigger)
 
 TriggerDefs::DetectorId TriggerDefs::GetDetectorId(const std::string& detector)
 {
-  if (strcmp(detector.c_str(), "NONE") == 0)
+  if (detector == "NONE")
   {
     return TriggerDefs::DetectorId::noneDId;
   }
-  else if (strcmp(detector.c_str(), "MBD") == 0)
+  if (detector == "MBD")
   {
     return TriggerDefs::DetectorId::mbdDId;
   }
-  else if (strcmp(detector.c_str(), "HCALIN") == 0)
+  if (detector == "HCALIN")
   {
     return TriggerDefs::DetectorId::hcalinDId;
   }
-  else if (strcmp(detector.c_str(), "HCALOUT") == 0)
+  if (detector == "HCALOUT")
   {
     return TriggerDefs::DetectorId::hcaloutDId;
   }
-  else if (strcmp(detector.c_str(), "EMCAL") == 0)
+  if (detector == "EMCAL")
   {
     return TriggerDefs::DetectorId::emcalDId;
   }
-  else if (strcmp(detector.c_str(), "CAL") == 0)
+  if (detector == "CAL")
   {
     return TriggerDefs::DetectorId::calDId;
   }
-  else if (strcmp(detector.c_str(), "HCAL") == 0)
+  if (detector == "HCAL")
   {
     return TriggerDefs::DetectorId::hcalDId;
   }
@@ -361,26 +359,26 @@ TriggerDefs::DetectorId TriggerDefs::GetDetectorId(const std::string& detector)
 }
 TriggerDefs::PrimitiveId TriggerDefs::GetPrimitiveId(const std::string& primitive)
 {
-  if (strcmp(primitive.c_str(), "NONE") == 0)
+  if (primitive == "NONE")
   {
     return TriggerDefs::PrimitiveId::nonePId;
   }
-  else if (strcmp(primitive.c_str(), "MBD") == 0)
+  if (primitive == "MBD")
   {
     return TriggerDefs::PrimitiveId::mbdPId;
   }
-  else if (strcmp(primitive.c_str(), "HCALIN") == 0 ||
-           strcmp(primitive.c_str(), "HCALOUT") == 0 ||
-           strcmp(primitive.c_str(), "HCAL") == 0 ||
-           strcmp(primitive.c_str(), "EMCAL") == 0)
+  if (primitive == "HCALIN" ||
+      primitive == "HCALOUT" ||
+      primitive == "HCAL" ||
+      primitive == "EMCAL")
   {
     return TriggerDefs::PrimitiveId::calPId;
   }
-  else if (strcmp(primitive.c_str(), "JET") == 0)
+  if (primitive == "JET")
   {
     return TriggerDefs::PrimitiveId::jetPId;
   }
-  else if (strcmp(primitive.c_str(), "PAIR") == 0)
+  if (primitive == "PAIR")
   {
     return TriggerDefs::PrimitiveId::pairPId;
   }

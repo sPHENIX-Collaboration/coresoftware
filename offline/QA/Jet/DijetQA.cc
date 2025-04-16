@@ -21,7 +21,8 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
   , m_moduleName(name)
   , m_etaRange(-1.1, 1.1)
-  , m_ptRange(1, 100)
+  , m_ptLeadRange(1, 100)
+  , m_ptSubRange(1, 100)
   , m_nJet(-1)
   , m_nJetPair(-1)
   /*, m_centrality(-1)*/
@@ -185,7 +186,7 @@ void DijetQA::FindPairs(JetContainer* jets)
   {
     // assert(j1);
     Jet *jet_pair1 = nullptr, *jet_pair2 = nullptr;
-    if (j1->get_pt() < m_ptRange.first || std::abs(j1->get_eta()) > 1.1 || j1->get_pt() > m_ptRange.second)
+    if (j1->get_pt() < m_ptLeadRange.first || j1->get_eta() < m_etaRange.first || j1->get_pt() > m_ptLeadRange.second || j1->get_eta() > m_etaRange.second)
     {
       continue;  // cut on 1 GeV jets
     }
@@ -201,7 +202,7 @@ void DijetQA::FindPairs(JetContainer* jets)
       {
         continue;
       }
-      if (/*j2 == j1 ||*/ j2->get_pt() < 1 || std::abs(j2->get_eta()) > 1.1 || j2->get_pt() > m_ptRange.second)
+      if (/*j2 == j1 ||*/ j2->get_pt() < m_ptSubRange.first || j2->get_eta() < m_etaRange.first || j2->get_pt() > m_ptSubRange.second || j2->get_eta() > m_etaRange.second)
       {
         continue;
       }
@@ -343,7 +344,7 @@ int DijetQA::End(PHCompositeNode* /*topNode*/)
   l1->SetFillStyle(0);
   l1->SetBorderSize(0);
   l1->SetTextSize(0.06f);
-  l1->AddEntry((TObject*) nullptr, boost::str(boost::format("A_{jj} dijet pairs with pt_{l} #geq %d", m_ptRange.first),"");
+  l1->AddEntry((TObject*) nullptr, boost::str(boost::format("A_{jj} dijet pairs with pt_{l} #geq %d", m_ptLeadRange.first),"");
   h_Ajj->GetListOfFunctions()->Add(l1);*/
 
   m_manager->registerHisto(h_Ajj);

@@ -35,11 +35,11 @@ class CaloTriggerSim : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
 
   void set_truncation(const int emulate_truncation) { m_EmulateTruncationFlag = emulate_truncation; }
-  double truncate_8bit(const double raw_E) const;
+  static double truncate_8bit(const double raw_E);
 
  private:
-  int CreateNode(PHCompositeNode *topNode);
-  void FillNode(PHCompositeNode *topNode);
+  int CreateNode(PHCompositeNode *topNode) const;
+  void FillNode(PHCompositeNode *topNode) const;
 
   int m_EmulateTruncationFlag{0};
 

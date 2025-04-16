@@ -2,8 +2,8 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I$(OPT_SPHENIX)/include \
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(OPT_SPHENIX)/include \
   -isystem$(ROOTSYS)/include 
 
 lib_LTLIBRARIES = \

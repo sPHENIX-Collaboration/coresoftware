@@ -7,7 +7,10 @@
 
 class PHObject;
 
-static std::vector<std::tuple<std::string, std::string, uint64_t>> dummy;
+namespace
+{
+  std::vector<std::tuple<std::string, std::string, uint64_t>> dummy;
+}
 
 PHObject*
 CdbUrlSave::CloneMe() const

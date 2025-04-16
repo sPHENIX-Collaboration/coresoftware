@@ -23,14 +23,14 @@ class EventHeader : public PHObject
 
   /*
    * identify Function from PHObject
-   * @param os Output Stream 
+   * @param os Output Stream
    */
   void identify(std::ostream &os = std::cout) const override;
 
   /// isValid returns non zero if object contains valid data
   int isValid() const override;
 
-  virtual void CopyTo(EventHeader *) {return;}
+  virtual void CopyTo(EventHeader *) { return; }
 
   /// get Run Number
   virtual int get_RunNumber() const { return 0; }

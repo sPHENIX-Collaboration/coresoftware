@@ -24,6 +24,12 @@ class PHG4MvtxMisalignment
   virtual ~PHG4MvtxMisalignment() = default;
 
   std::vector<double> get_GlobalDisplacement();
+  void setAlignmentFile(const std::string &filename)
+  {
+    mvtxStaveAlignParamsFile = filename;
+  }
+
+  void LoadMvtxStaveAlignmentParameters();
 
  private:
   std::string mvtxStaveAlignParamsFile = "./MvtxStaveAlignmentParameters_Run2024.txt";  // TODO: either put this text file in CDB or create CDBTree)
@@ -31,7 +37,6 @@ class PHG4MvtxMisalignment
   double m_GlobalDisplacementY = 0.;
   double m_GlobalDisplacementZ = 0.;
 
-  void LoadMvtxStaveAlignmentParameters();
 };
 
 #endif

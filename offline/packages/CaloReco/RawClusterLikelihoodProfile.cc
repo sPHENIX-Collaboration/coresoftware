@@ -131,8 +131,8 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
     int vectorSize = inputDimx * inputDimy;
     input.resize(vectorSize, 0);
 
-    int xlength = int((inputDimx - 1) / 2);
-    int ylength = int((inputDimy - 1) / 2);
+    int xlength = ((inputDimx - 1) / 2);
+    int ylength = ((inputDimy - 1) / 2);
     if (ieta_center_of_gravity - ylength < 0 || ieta_center_of_gravity + ylength >= 96)
     {
       continue;
@@ -159,7 +159,7 @@ int RawClusterLikelihoodProfile::process_event(PHCompositeNode *topNode)
           std::cout << "ieta: " << ieta << " iphi: " << mappediphi << std::endl;
           continue;
         }
-        int index = (ieta - ieta_center_of_gravity + ylength) * inputDimx + iphi - iphi_center_of_gravity + xlength;
+        int index = ((ieta - ieta_center_of_gravity + ylength) * inputDimx) + iphi - iphi_center_of_gravity + xlength;
         input.at(index) = towerinfo->get_energy();
       }
     }
@@ -189,7 +189,7 @@ void RawClusterLikelihoodProfile::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
