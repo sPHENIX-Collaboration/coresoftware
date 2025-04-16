@@ -21,6 +21,7 @@ class TH1;
 class TF1;
 class TProfile2D;
 class TH3;
+class TriggerAnalyzer;
 
 namespace CLHEP
 {
@@ -31,7 +32,7 @@ class pi0EtaByEta : public SubsysReco
 {
  public:
   //! constructor
-  pi0EtaByEta(const std::string& name = "pi0EtaByEta", const std::string& fname = "MyNtuple.root");
+  pi0EtaByEta(const std::string& name = "pi0EtaByEta", const std::string& filename = "MyNtuple.root");
 
   //! destructor
   virtual ~pi0EtaByEta();
@@ -55,12 +56,12 @@ class pi0EtaByEta : public SubsysReco
   void set_vertex_cut(const float v) { _vz = v; }
   void apply_vertex_cut(bool Vtx_cut) { doVtxCut = Vtx_cut; }
 
-  TF1* fitHistogram(TH1* h);
+  static TF1* fitHistogram(TH1* h);
   void fitEtaSlices(const std::string& infile, const std::string& outfile, const std::string& cdbFile);
 
 	void fitEtaPhiTowers(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile); // for tbt pi0 fit
 
-  void Split3DHist(const std::string& infile, const std::string& outfile);
+  void Split3DHist(const std::string& infile, const std::string& out_file);
 
 	void set_use_pdc(bool state)
   {
@@ -97,6 +98,10 @@ class pi0EtaByEta : public SubsysReco
     runTowByTow=state;
     return;
   }
+  void SetTargetMass(float mass) 
+  {
+    target_pi0_mass = mass; 
+  }
 
 	void set_RunTBTCompactMode(bool state) // to decide if we want to run in TBT in compact mode (default is true)
   {
@@ -107,10 +112,14 @@ class pi0EtaByEta : public SubsysReco
 
   void set_massTargetHistFile(const std::string& file);
   bool checkOutput(const std::string& file);
-  void set_reqMinBias(bool status)
+  void set_reqTrig(bool status, const std::vector<int>& list)
   {
-    reqMinBias = status;
-    return;
+      reqTrig = status;
+      triggerList = list;
+  }
+  void set_reqTrig(bool status )
+  {
+     reqTrig = status;
   }
 
   void set_GlobalVertexType(GlobalVertex::VTXTYPE type) 
@@ -125,12 +134,18 @@ class pi0EtaByEta : public SubsysReco
     return;
   }
 
+  void set_useVertexTruth(bool state) 
+  {
+     useVertexTruth = state;
+  }
+
  protected:
   int Getpeaktime(TH1* h);
   std::string detector;
   std::string outfilename;
 
-  bool reqMinBias = true;
+  bool reqTrig = true;
+  std::vector<int> triggerList;
   bool reqVertex = false;
 
   bool doVtxCut = true;
@@ -210,6 +225,9 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_totalzdc_e{nullptr};
   TH3* h_ieta_iphi_invmass{nullptr};
 
+
+  bool useVertexTruth = false;
+
   TProfile2D* h_cemc_etaphi_time{nullptr};
   TProfile2D* h_hcalin_etaphi_time{nullptr};
   TProfile2D* h_hcalout_etaphi_time{nullptr};
@@ -251,6 +269,8 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_pt2{nullptr};
   TH1* h_nclusters{nullptr};
   TH1* h_emcal_e_eta{nullptr};
+
+  TriggerAnalyzer* trigAna{nullptr};
 
   float convLev = 0.005;
 
