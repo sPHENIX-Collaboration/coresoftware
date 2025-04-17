@@ -400,14 +400,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       continue;
     }
 
-    //for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
     for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterIter; clusterIter2++)
     {
-      if (clusterIter2 == clusterIter)
-      {
-        continue;
-      }
-
       RawCluster* recoCluster2 = clusterIter2->second;
 
       CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex);
