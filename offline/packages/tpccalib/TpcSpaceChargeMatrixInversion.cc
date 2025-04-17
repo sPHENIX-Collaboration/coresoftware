@@ -164,6 +164,12 @@ bool TpcSpaceChargeMatrixInversion::add(const TpcSpaceChargeMatrixContainer& sou
 //_____________________________________________________________________
 void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections()
 {
+  if (!m_matrix_container)
+  {
+    std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - no distortion matrices loaded. Aborting" << std::endl;
+    exit(1);
+  }
+
   // get grid dimensions from matrix container
   int phibins = 0;
   int rbins = 0;
