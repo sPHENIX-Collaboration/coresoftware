@@ -15,6 +15,8 @@ AM_LDFLAGS = \
   -lfun4all \
   -lglobalvertex_io \
   -lcalo_io \
+  -lcalotrigger_io \
+  -lcalotrigger \
   -lcdbobjects \
   -lffarawobjects \
   -lSubsysReco
