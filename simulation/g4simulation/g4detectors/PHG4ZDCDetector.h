@@ -26,7 +26,7 @@ class PHG4ZDCDetector : public PHG4Detector
   explicit PHG4ZDCDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int detid);
 
   //! destructor
-  ~PHG4ZDCDetector() override {}
+  ~PHG4ZDCDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -35,7 +35,7 @@ class PHG4ZDCDetector : public PHG4Detector
   int IsInZDC(G4VPhysicalVolume *) const;
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
 
   int get_Layer() const { return m_Layer; }
 

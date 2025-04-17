@@ -16,6 +16,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <array>
 #include <map>
 #include <set>
 #include <sstream>
@@ -136,8 +137,8 @@ for(auto& rawhitmap : m_rawhit_containers)
 
   h_bunch_gl1->Fill(bunch_gl1);
 
-  std::set<uint> vUnique[8];
-  std::map<uint, int> vchipbco[8];  // key, ihit
+  std::array<std::set<uint>,8> vUnique;
+  std::array<std::map<uint, int>,8> vchipbco;  // key, ihit
 
   // loop rawhits to remove copy hit
   uint nhit = rawhitmap->get_nhits();
@@ -177,7 +178,7 @@ for(auto& rawhitmap : m_rawhit_containers)
 
   ////////////////////////////
   // felix by felix analysis
-  std::map<int, int> vbcodiff_felix[8];
+  std::array<std::map<int, int>,8> vbcodiff_felix;
   for (int ifelix = 0; ifelix < 8; ifelix++)
   {
     for (auto val : vchipbco[ifelix])

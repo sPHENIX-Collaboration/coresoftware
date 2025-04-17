@@ -3,8 +3,6 @@
 
 #include "MvtxPixelDefs.h"
 
-#include <climits>
-#include <memory>
 #include <vector>
 
 class MvtxRawHit;
@@ -12,7 +10,7 @@ class MvtxRawHit;
 class MvtxPixelMask
 {
  public:
-  MvtxPixelMask() {}
+  MvtxPixelMask() = default;
   ~MvtxPixelMask() { clear(); }
 
   typedef std::vector<MvtxPixelDefs::pixelkey> hot_pixel_map_t;
@@ -26,7 +24,7 @@ class MvtxPixelMask
 
   bool is_masked(MvtxRawHit* hit) const;
 
-  hot_pixel_map_t get_hot_pixel_map() const { return m_hot_pixel_map; }
+  const hot_pixel_map_t &get_hot_pixel_map() const { return m_hot_pixel_map; }
 
  private:
   hot_pixel_map_t m_hot_pixel_map{};

@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 {
   if (argc != 3)
   {
-    std::cerr << "Usage: " << argv[0] << " <HepMC_output_file>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << "<starlight_file> <HepMC_output_file>" << std::endl;
     return 1;
   }
 

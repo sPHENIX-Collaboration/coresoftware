@@ -1,17 +1,17 @@
 #ifndef GLOBALQA_GLOBALQA_H
 #define GLOBALQA_GLOBALQA_H
 
-#include <cdbobjects/CDBTTree.h>
 #include <fun4all/SubsysReco.h>
 
+#include <limits>  // for numeric_limits
 #include <string>
 #include <vector>
 
 // Forward declarations
+class CDBTTree;
 class PHCompositeNode;
 class TH1;
 class TH2;
-class TProfile;
 class TProfile2D;
 
 class GlobalQA : public SubsysReco
@@ -30,9 +30,6 @@ class GlobalQA : public SubsysReco
 
   //! event processing method
   int process_event(PHCompositeNode *) override;
-
-  //! end of run method
-  int End(PHCompositeNode *) override;
 
   int process_g4hits(PHCompositeNode *);
   int process_g4cells(PHCompositeNode *);

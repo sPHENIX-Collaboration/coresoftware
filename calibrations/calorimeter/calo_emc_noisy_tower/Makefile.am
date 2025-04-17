@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -10,12 +10,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
   -lcalo_io \
-  -lCLHEP \
-  -lglobalvertex \
-  -lglobalvertex_io \
   -lcdbobjects \
-  -lcalotrigger \
-  -lcentrality
+  -lffamodules
 
 pkginclude_HEADERS = \
   emcNoisyTowerFinder.h

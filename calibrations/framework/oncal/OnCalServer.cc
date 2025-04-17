@@ -15,8 +15,6 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/RunToTime.h>
 
 #include <RtypesCore.h>  // for Stat_t
@@ -28,9 +26,6 @@
 #include <TString.h>  // for TString
 
 // odbc++ classes
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/preparedstatement.h>
@@ -38,15 +33,12 @@
 #include <odbc++/resultsetmetadata.h>
 #include <odbc++/statement.h>  // for Statement
 #include <odbc++/types.h>      // for SQLException, Timestamp
-#pragma GCC diagnostic pop
 
 #include <unistd.h>
 #include <algorithm>
-#include <cassert>  // for assert
-#include <cctype>   // for tolower
+#include <cctype>  // for tolower
 #include <cstdlib>
 #include <cstring>  // for strcmp
-#include <fstream>
 #include <iostream>
 #include <iterator>  // for reverse_iterator
 #include <list>
@@ -54,9 +46,12 @@
 #include <sstream>
 #include <utility>  // for pair
 
-const static std::string cvstag = "OnCalv86";
+namespace
+{
+  const std::string cvstag = "OnCalv86";
 
-odbc::Connection *DBconnection = nullptr;
+  odbc::Connection *DBconnection{nullptr};
+}  // namespace
 
 OnCalServer *OnCalServer::instance()
 {
@@ -74,20 +69,11 @@ OnCalServer *OnCalServer::instance()
 
 OnCalServer::OnCalServer(const std::string &name)
   : Fun4AllServer(name)
-  , testmode(0)
-  , recordDB(false)
-  , SetEndTimeStampByHand(false)
-  , SetBeginTimeStampByHand(false)
-  , successTable("OnCal_status")
-  , runNum(0)
-  , nEvents(0)
-  , eventcheckfrequency(1000)
-  , database("calBookKeep")
+  , OnCalServerVars(new TH1D("OnCalServerVars", "OnCalServerVars", OnCalHistoBinDefs::LASTBINPLUSONE, -0.5, (int) (OnCalHistoBinDefs::LASTBINPLUSONE) -0.5))
 {
   beginTimeStamp.setTics(0);
   endTimeStamp.setTics(0);
 
-  OnCalServerVars = new TH1D("OnCalServerVars", "OnCalServerVars", OnCalHistoBinDefs::LASTBINPLUSONE, -0.5, (int)(OnCalHistoBinDefs::LASTBINPLUSONE) - 0.5);
   Fun4AllServer::registerHisto(OnCalServerVars);
   return;
 }
@@ -108,11 +94,9 @@ OnCalServer::GetEndValidityTS()
     PHTimeStamp *ts = new PHTimeStamp(endTimeStamp);
     return ts;
   }
-  else
-  {
-    std::cout << PHWHERE << "Screwup - the end validity time is not set" << std::endl;
-    exit(1);
-  }
+
+  std::cout << PHWHERE << "Screwup - the end validity time is not set" << std::endl;
+  exit(1);
 }
 //---------------------------------------------------------------------
 
@@ -123,11 +107,9 @@ PHTimeStamp *OnCalServer::GetBeginValidityTS()
     PHTimeStamp *ts = new PHTimeStamp(beginTimeStamp);
     return ts;
   }
-  else
-  {
-    std::cout << PHWHERE << "Screwup - the begin validity time is not set" << std::endl;
-    exit(1);
-  }
+
+  std::cout << PHWHERE << "Screwup - the begin validity time is not set" << std::endl;
+  exit(1);
 }
 //---------------------------------------------------------------------
 
@@ -283,7 +265,7 @@ int OnCalServer::BeginRun(const int runno)
   PHTimeStamp OnCalBORTimeStamp = *ts;
   PHTimeStamp Fun4AllBORTimeStamp(OnCalBORTimeStamp);
   delete ts;
-  if (requiredCalibrators.size() > 0)
+  if (!requiredCalibrators.empty())
   {
     fun4allrun = FindClosestCalibratedRun(runno);
     ts = runTime->getBeginTime(fun4allrun);
@@ -490,7 +472,7 @@ int OnCalServer::End()
       stp.setTime(endticks);
       updateDB(table, "endtime", stp.toString(), RunNumber());
 
-      std::string filelist = "";
+      std::string filelist;
       for (Fun4AllSyncManager *sync : SyncManagers)
       {
         for (Fun4AllInputManager *inmgr : sync->GetInputManagers())
@@ -650,7 +632,7 @@ void OnCalServer::RunNumber(const int runnum)
       updateDB(successTable, "endrun", stp.toString(), *runiter);
     }
   }
-  if (runlist.size() > 0)
+  if (!runlist.empty())
   {
     SetEorTime(*runlist.rbegin());
   }
@@ -674,7 +656,7 @@ bool OnCalServer::connectDB()
     try
     {
       DBconnection =
-          odbc::DriverManager::getConnection(database.c_str(), "phnxrc", "");
+          odbc::DriverManager::getConnection(database, "phnxrc", "");
     }
     catch (odbc::SQLException &e)
     {
@@ -972,7 +954,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column,
 
   statement = DBconnection->createStatement();
 
-  std::string comment = "";
+  std::string comment;
   std::ostringstream cmd;
   if (append)
   {
@@ -1363,7 +1345,7 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::
   std::ostringstream cmd;
   try
   {
-    con = odbc::DriverManager::getConnection(database.c_str(), "phnxrc", "");
+    con = odbc::DriverManager::getConnection(database, "phnxrc", "");
   }
   catch (odbc::SQLException &e)
   {
@@ -1525,7 +1507,7 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
   std::ostringstream cmd;
   try
   {
-    con = odbc::DriverManager::getConnection(database.c_str(), "phnxrc", "");
+    con = odbc::DriverManager::getConnection(database, "phnxrc", "");
   }
   catch (odbc::SQLException &e)
   {
@@ -1654,7 +1636,7 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
   return 0;
 }
 
-int OnCalServer::CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit) const
+int OnCalServer::CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit)
 {
   int iret = calibrator->CopyTables(FromRun, ToRun, commit);
   return iret;
@@ -1743,7 +1725,7 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
 
 void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode)
 {
-  updateDB(successTable.c_str(), calibrator->Name(), dbcode);
+  updateDB(successTable, calibrator->Name(), dbcode);
   insertRunNumInDB(table, RunNumber());
   updateDB(table, "comment", tablecomment, RunNumber(), true);
   std::ostringstream stringarg;
@@ -1769,9 +1751,9 @@ void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const std::st
   updateDB(table, "endtime", stp.toString(), RunNumber());
   updateDB(table, "cvstag", cvstag, RunNumber());
   std::vector<std::string> flist = calibrator->GetLocalFileList();
-  if (flist.size())
+  if (!flist.empty())
   {
-    std::string filelist = "";
+    std::string filelist;
     for (const std::string &infile : flist)
     {
       filelist += infile;
@@ -2018,7 +2000,7 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
       std::cout << "updating oncal status tables for " << runno << std::endl;
       if (commit)
       {
-        updateDB(successTable.c_str(), calibrator->Name(), newstatus);
+        updateDB(successTable, calibrator->Name(), newstatus);
         insertRunNumInDB(table, runNum);
         updateDB(table, "comment", comment.str(), runNum, true);
         updateDB(table, "committed", true);
@@ -2151,7 +2133,7 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
     std::cout << PHWHERE << "Unknown Run " << irun << std::endl;
     return -1;
   }
-  if (requiredCalibrators.size() == 0)
+  if (requiredCalibrators.empty())
   {
     std::cout << PHWHERE << "No required calibrations given" << std::endl;
     return irun;
@@ -2424,7 +2406,7 @@ int OnCalServer::GetCalibStatus(const std::string &calibname, const int runno)
   }
   if (rs->next())
   {
-    iret = rs->getInt(calibname.c_str());
+    iret = rs->getInt(calibname);
   }
   else
   {

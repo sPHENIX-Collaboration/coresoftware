@@ -123,17 +123,35 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   float totalihcal = 0.;
   float totalohcal = 0.;
   float totalmbd = 0.;
+    
+  float emcaldownscale, ihcaldownscale, ohcaldownscale, mbddownscale;
+  float adc_threshold;
+  float emcal_hit_threshold, ohcal_hit_threshold, ihcal_hit_threshold;
+    
+  if (m_species == "AuAu")
+  {
+    emcaldownscale = 1350000. / 800.;
+    ihcaldownscale = 55000. / 300.;
+    ohcaldownscale = 265000. / 600.;
+    mbddownscale = 2800.0;
+    adc_threshold = 15.;
 
-  float emcaldownscale = 100000. / 800.;
-  float ihcaldownscale = 4000. / 300.;
-  float ohcaldownscale = 25000. / 600.;
-  float mbddownscale = 200.0;
+    emcal_hit_threshold = 0.5;  // GeV
+    ohcal_hit_threshold = 0.5;
+    ihcal_hit_threshold = 0.25;
+  }
+  else
+  {
+    emcaldownscale = 100000. / 800.;
+    ihcaldownscale = 4000. / 300.;
+    ohcaldownscale = 25000. / 600.;
+    mbddownscale = 200.0;
+    adc_threshold = 100.;
 
-  float adc_threshold = 100.;
-
-  float emcal_hit_threshold = 0.5;  // GeV
-  float ohcal_hit_threshold = 0.5;
-  float ihcal_hit_threshold = 0.25;
+    emcal_hit_threshold = 0.5;  // GeV
+    ohcal_hit_threshold = 0.5;
+    ihcal_hit_threshold = 0.25;
+  }
 
   //----------------------------------vertex------------------------------------------------------//
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
@@ -613,9 +631,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int lt_eta = recoCluster->get_lead_tower().first;
         unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
-        int ld_ib_eta = lt_eta / 8;
-        int ld_ib_phi = lt_phi / 8;
-        int IB_num    = ld_ib_eta * 12 + ld_ib_phi;
+        int IB_num = (lt_eta / 8)*32 + (lt_phi / 8);
 
         for (int bit : scaledActiveBits)
         {

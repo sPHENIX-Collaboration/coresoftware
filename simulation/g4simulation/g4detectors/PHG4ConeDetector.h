@@ -21,9 +21,7 @@ class PHG4ConeDetector : public PHG4Detector
   PHG4ConeDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr = 0);
 
   //! destructor
-  ~PHG4ConeDetector(void) override
-  {
-  }
+  ~PHG4ConeDetector(void) override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume* world) override;
@@ -34,7 +32,7 @@ class PHG4ConeDetector : public PHG4Detector
   //@}
 
   void SuperDetector(const std::string& name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
+  const std::string &SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }
 
  private:

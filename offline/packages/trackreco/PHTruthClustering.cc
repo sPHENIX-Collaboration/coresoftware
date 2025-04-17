@@ -428,7 +428,7 @@ std::map<TrkrDefs::cluskey, TrkrCluster* > PHTruthClustering::all_truth_clusters
   return truth_clusters;
 }
 
-void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
+void PHTruthClustering::LayerClusterG4Hits(const std::set<PHG4Hit*> &truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
 {
   bool use_geo = true;
 
@@ -711,7 +711,7 @@ void PHTruthClustering::LayerClusterG4Hits(std::set<PHG4Hit*> truth_hits, std::v
   return;
 }
 
-void PHTruthClustering::G4ClusterSize(TrkrDefs::cluskey& ckey,unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
+void PHTruthClustering::G4ClusterSize(TrkrDefs::cluskey& ckey,unsigned int layer, const std::vector<std::vector<double>> &contributing_hits_entry, const std::vector<std::vector<double>> &contributing_hits_exit, float &g4phisize, float &g4zsize)
 {
 
   // sort the contributing g4hits in radius

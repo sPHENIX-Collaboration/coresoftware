@@ -3,13 +3,13 @@
 
 #include <phool/PHObject.h>
 
-#include <cmath>
 #include <iostream>
+#include <limits>
 
 class BbcVertex : public PHObject
 {
  public:
-  ~BbcVertex() override {}
+  ~BbcVertex() override = default;
 
   // PHObject virtual overloads
 
@@ -22,22 +22,22 @@ class BbcVertex : public PHObject
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int) {}
 
-  virtual float get_t() const { return NAN; }
+  virtual float get_t() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_t(float) {}
 
-  virtual float get_t_err() const { return NAN; }
+  virtual float get_t_err() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_t_err(float) {}
 
-  virtual float get_z() const { return NAN; }
+  virtual float get_z() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_z(float) {}
 
-  virtual float get_z_err() const { return NAN; }
+  virtual float get_z_err() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_z_err(float) {}
 
   virtual void set_bbc_ns(int, int, float, float) {}
   virtual int get_bbc_npmt(int) const { return std::numeric_limits<int>::max(); }
-  virtual float get_bbc_q(int) const { return NAN; }
-  virtual float get_bbc_t(int) const { return NAN; }
+  virtual float get_bbc_q(int) const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_bbc_t(int) const { return std::numeric_limits<float>::quiet_NaN(); }
 
  protected:
   BbcVertex() {}

@@ -15,9 +15,9 @@ class BbcOutV2 : public BbcOut
 {
  public:
   ///
-  BbcOutV2();
+  BbcOutV2() = default;
   ///
-  ~BbcOutV2() override;
+  ~BbcOutV2() override = default;
 
   /// Clear Event from memory
   void Reset() override;
@@ -25,7 +25,7 @@ class BbcOutV2 : public BbcOut
   /** identify Function from PHObject
       @param os Output Stream
    */
-  void identify(std::ostream &os = std::cout) const override;
+  void identify(std::ostream &out = std::cout) const override;
 
   /// isValid returns non zero if object contains vailid data
   int isValid() const override;

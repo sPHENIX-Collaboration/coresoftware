@@ -67,7 +67,7 @@ class MbdPmtHit : public PHObject
     PHOOL_VIRTUAL_WARNING;
   }
 
-  virtual void identify(std::ostream& os = std::cout) const override;
+  virtual void identify(std::ostream& out = std::cout) const override;
 
   virtual int isValid() const override { return 0; }
 

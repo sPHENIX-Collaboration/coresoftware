@@ -35,7 +35,7 @@ void MbdRunningStats::Push(double x)
 
 double MbdRunningStats::Mean() const
 {
-  if ( values.size()==0 ) 
+  if ( values.empty() ) 
   {
     //return std::numeric_limits<double>::infinity();
     //return std::numeric_limits<float>::quiet_NaN();
@@ -47,14 +47,14 @@ double MbdRunningStats::Mean() const
 
 double MbdRunningStats::Variance() const
 {
-  if ( values.size()==0 ) 
+  if ( values.empty() ) 
   {
     //return std::numeric_limits<double>::infinity();
     //return std::numeric_limits<float>::quiet_NaN();
     return 0.;
   }
 
-  double var = S2/values.size() - Mean()*Mean();
+  double var = (S2/values.size()) - (Mean()*Mean());
   /*
   std::cout << "RMS " << S2 << "\t" << values.size() << "\t" << Mean() << "\t" << Mean()*Mean() << "\t" << var << std::endl;
   */

@@ -53,7 +53,7 @@ class PHG4InnerHcalDetector : public PHG4Detector
   //@}
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
-  const std::string SuperDetector() const { return m_SuperDetector; }
+  const std::string &SuperDetector() const { return m_SuperDetector; }
   int get_Layer() const { return m_Layer; }
   G4VSolid *ConstructSteelPlate(G4LogicalVolume *hcalenvelope);
   G4VSolid *ConstructScintillatorBox(G4LogicalVolume *hcalenvelope);

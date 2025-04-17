@@ -6,7 +6,7 @@
 class CaloTriggerInfo : public PHObject
 {
  public:
-  ~CaloTriggerInfo() override{};
+  ~CaloTriggerInfo() override {};
 
   void identify(std::ostream &os = std::cout) const override { os << "CaloTriggerInfo base class" << std::endl; };
   int isValid() const override { return 0; }

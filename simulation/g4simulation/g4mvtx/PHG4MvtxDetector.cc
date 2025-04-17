@@ -62,12 +62,13 @@ namespace mvtxGeomDef
   const double wrap_SBCyl_Z = -1800 * mm;  // SB Cyl (1650 mm + 15 cm Margin)
 }  // namespace mvtxGeomDef
 
-PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const PHParametersContainer *_paramsContainer, const std::string &dnam)
+PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const PHParametersContainer *_paramsContainer, const std::string &dnam, const bool applyMisalignment, const std::string& misalignmentfile)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4MvtxDisplayAction *>(subsys->GetDisplayAction()))
   , m_ParamsContainer(_paramsContainer)
   , m_StaveGeometryFile(_paramsContainer->GetParameters(PHG4MvtxDefs::GLOBAL)->get_string_param("stave_geometry_file"))
-
+  , apply_misalignment(applyMisalignment)
+  , m_misalignmentFile(misalignmentfile)
 {
   if (Verbosity() > 0)
   {
@@ -81,16 +82,22 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
     m_IsLayerSupportActive[ilayer] = params->get_int_param("supportactive");
     m_IsBlackHole[ilayer] = params->get_int_param("blackhole");
     m_N_staves[ilayer] = params->get_int_param("N_staves");
-    m_nominal_radius[ilayer] = params->get_double_param("layer_nominal_radius");
+    m_nominal_radius[ilayer] = params->get_double_param("layer_nominal_radius");  
     m_nominal_phitilt[ilayer] = params->get_double_param("phitilt");
     m_nominal_phi0[ilayer] = params->get_double_param("phi0");
     m_SupportActiveFlag += m_IsLayerSupportActive[ilayer];
   }
-
   if (apply_misalignment)
   {
     std::cout << "PHG4MvtxDetector constructor: Apply Misalignment, get global displacement" << std::endl;
     PHG4MvtxMisalignment *m_MvtxMisalignment = new PHG4MvtxMisalignment();
+    if(!m_misalignmentFile.empty())
+    {
+      std::cout << "loading mvtx survey geometry from " << m_misalignmentFile << std::endl;
+      m_MvtxMisalignment->setAlignmentFile(m_misalignmentFile);
+    }
+    m_MvtxMisalignment->LoadMvtxStaveAlignmentParameters();
+
     std::vector<double> v_globaldisplacement = m_MvtxMisalignment->get_GlobalDisplacement();
     m_GlobalDisplacementX = v_globaldisplacement[0];
     m_GlobalDisplacementY = v_globaldisplacement[1];

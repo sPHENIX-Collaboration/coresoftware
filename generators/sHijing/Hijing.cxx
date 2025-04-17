@@ -45,6 +45,8 @@
 // cppcheck-suppress *
 #include <cfortran.h>
 
+// This prevents cppcheck to flag the next line as error
+// cppcheck-suppress *
 PROTOCCALLSFSUB3(HIJING, hijing, STRING, FLOAT, FLOAT)
 #define HIJING(FRAME, BMIN0, BMAX0) \
   CCALLSFSUB3(HIJING, hijing, STRING, FLOAT, FLOAT, FRAME, BMIN0, BMAX0)
@@ -54,11 +56,7 @@ PROTOCCALLSFSUB8(HIJSET, hijset, FLOAT, STRING, STRING, STRING, INT, INT, INT, I
   CCALLSFSUB8(HIJSET, hijset, FLOAT, STRING, STRING, STRING, INT, INT, INT, INT, \
               EFRM, FRAME, PROJ, TARG, IAP, IZP, IAT, IZT)
 
-using namespace std;
-using namespace boost;
-using namespace boost::property_tree;
-
-void hijfst_control(int, vector<string>, vector<float>, vector<int>, vector<float>, vector<float>, vector<float>);
+void hijfst_control(int, const std::vector<std::string>&, const std::vector<float>&,const std::vector<int>&, const std::vector<float>&, const std::vector<float>&, const std::vector<float>&);
 
 CLHEP::HepRandomEngine *engine;
 
@@ -104,8 +102,8 @@ bool keepSpectators;
 
 int main(int argc, char **argv)
 {
-  string config_filename = "sHijing.xml";
-  string output;
+  std::string config_filename = "sHijing.xml";
+  std::string output;
   long randomSeed = 0;
   bool randomseed_set = false;
   unsigned int N = 1;
@@ -115,13 +113,13 @@ int main(int argc, char **argv)
     std::string optionstring = argv[i];
     if (optionstring == "-h")
     {
-      cout << endl
-           << "Usage: sHijing <config xmlfile [sHijing.xml]>" << endl;
-      cout << endl;
-      cout << "Parameters:" << endl;
-      cout << "-n <number of events [1]>" << endl;
-      cout << "-o <outputfile [sHijing.dat]>" << endl;
-      cout << "-s <random seet [std::random_device]>" << endl;
+      std::cout << std::endl
+           << "Usage: sHijing <config xmlfile [sHijing.xml]>" << std::endl;
+      std::cout << std::endl;
+      std::cout << "Parameters:" << std::endl;
+      std::cout << "-n <number of events [1]>" << std::endl;
+      std::cout << "-o <outputfile [sHijing.dat]>" << std::endl;
+      std::cout << "-s <random seet [std::random_device]>" << std::endl;
       exit(0);
     }
     else if (optionstring == "-o")
@@ -132,7 +130,7 @@ int main(int argc, char **argv)
       }
       else
       {  // Uh-oh, there was no argument to the destination option.
-        std::cerr << "-o option requires one argument." << std::endl;
+        std::cout << "-o option requires one argument." << std::endl;
         exit(1);
       }
       continue;
@@ -146,7 +144,7 @@ int main(int argc, char **argv)
       }
       else
       {  // Uh-oh, there was no argument to the destination option.
-        std::cerr << "-s option requires one argument." << std::endl;
+        std::cout << "-s option requires one argument." << std::endl;
         exit(1);
       }
       continue;
@@ -160,7 +158,7 @@ int main(int argc, char **argv)
       }
       else
       {  // Uh-oh, there was no argument to the destination option.
-        std::cerr << "-s option requires one argument." << std::endl;
+        std::cout << "-s option requires one argument." << std::endl;
         exit(1);
       }
       continue;
@@ -175,18 +173,18 @@ int main(int argc, char **argv)
   char targ[] = "        ";
 
   using boost::property_tree::ptree;
-  iptree pt, null;
+  boost::property_tree::iptree pt, null;
   std::ifstream config_file(config_filename);
 
   if (config_file)
   {
     // Read XML configuration file.
     read_xml(config_file, pt);
-    cout << "using config file: " << config_filename << endl;
+    std::cout << "using config file: " << config_filename << std::endl;
   }
   else
   {
-    cout << "no xml config file - using internal values" << endl;
+    std::cout << "no xml config file - using internal values" << std::endl;
   }
   efrm = pt.get("HIJING.EFRM", 200.0);
   m_frame = pt.get("HIJING.FRAME", "CMS");
@@ -215,15 +213,15 @@ int main(int argc, char **argv)
   engine = new CLHEP::MTwistEngine(randomSeed);
 
   // See if there are any sections for HIPR1, IHPR2
-  iptree &pr1 = pt.get_child("HIJING.HIPR1", null);
-  BOOST_FOREACH (iptree::value_type &v, pr1)
+  boost::property_tree::iptree &pr1 = pt.get_child("HIJING.HIPR1", null);
+  BOOST_FOREACH (boost::property_tree::iptree::value_type &v, pr1)
   {
     int key = boost::lexical_cast<int>(v.first.data());
     float value = boost::lexical_cast<float>(v.second.data());
     m_hiparnt.hipr1(key) = value;
   }
-  iptree &pr2 = pt.get_child("HIJING.IHPR2", null);
-  BOOST_FOREACH (iptree::value_type &v, pr2)
+  boost::property_tree::iptree &pr2 = pt.get_child("HIJING.IHPR2", null);
+  BOOST_FOREACH (boost::property_tree::iptree::value_type &v, pr2)
   {
     int key = boost::lexical_cast<int>(v.first.data());
     int value = boost::lexical_cast<int>(v.second.data());
@@ -231,18 +229,18 @@ int main(int argc, char **argv)
   }
 
   int fastjet_enable_p = 0;
-  std::vector<string> algorithm_v;
+  std::vector<std::string> algorithm_v;
   std::vector<float> R_v;
   std::vector<int> PID_v;
   std::vector<float> EtaMin_v;
   std::vector<float> EtaMax_v;
   std::vector<float> EtMin_v;
 
-  iptree &it = pt.get_child("HIJING.FASTJET", null);
-  BOOST_FOREACH (iptree::value_type &v, it)
+  boost::property_tree::iptree &it = pt.get_child("HIJING.FASTJET", null);
+  BOOST_FOREACH (boost::property_tree::iptree::value_type &v, it)
   {
-    if (to_upper_copy(v.first) != "ALGORITHM") continue;
-    algorithm_v.push_back(to_upper_copy(v.second.get("NAME", "ANTIKT")));
+    if (boost::to_upper_copy(v.first) != "ALGORITHM") continue;
+    algorithm_v.push_back(boost::to_upper_copy(v.second.get("NAME", "ANTIKT")));
     R_v.push_back(v.second.get("R", 0.2));
     PID_v.push_back(v.second.get("PID", 2000000));
 
@@ -252,9 +250,9 @@ int main(int argc, char **argv)
 
     fastjet_enable_p = 1;
   }
-  cout << "seed: " << randomSeed << endl;
-  cout << "output: " << output << endl;
-  cout << "Number of Events: " << N << endl;
+  std::cout << "seed: " << randomSeed << std::endl;
+  std::cout << "output: " << output << std::endl;
+  std::cout << "Number of Events: " << N << std::endl;
 
   hijfst_control(fastjet_enable_p, algorithm_v, R_v, PID_v, EtaMin_v, EtaMax_v, EtMin_v);
 

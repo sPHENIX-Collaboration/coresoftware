@@ -13,7 +13,7 @@ class MinimumBiasInfov1 : public MinimumBiasInfo
 
   void identify(std::ostream &os = std::cout) const override;
 
-  void Reset() override {_isMinBias = false;}
+  void Reset() override { _isMinBias = false; }
 
   int isValid() const override { return 1; }
 

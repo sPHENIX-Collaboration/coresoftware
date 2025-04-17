@@ -27,7 +27,12 @@ void EmcCluster::GetCorrPos(float& xc, float& yc)
 // Corrected for S-oscilations, not for shower depth
 // Shower depth (z-coord) is defined in fOwner->Tower2Global()
 {
-  float e, x, y, xx, yy, xy;
+  float e;
+  float x;
+  float y;
+  float xx;
+  float yy;
+  float xy;
 
   fOwner->Momenta(&fHitList, e, x, y, xx, yy, xy);
   fOwner->CorrectPosition(e, x, y, xc, yc);
@@ -38,7 +43,8 @@ void EmcCluster::GetCorrPos(float& xc, float& yc)
 void EmcCluster::GetGlobalPos(float& xA, float& yA, float& zA)
 // Returns the cluster position in PHENIX global coord system
 {
-  float xc, yc;
+  float xc;
+  float yc;
   float e = GetTotalEnergy();
   GetCorrPos(xc, yc);
   fOwner->Tower2Global(e, xc, yc, xA, yA, zA);
@@ -78,7 +84,7 @@ float EmcCluster::GetTowerEnergy(int ix, int iy)
     return 0;
   }
   ph = fHitList.begin();
-  int ich = iy * fOwner->GetNx() + ix;
+  int ich = (iy * fOwner->GetNx()) + ix;
   return GetTowerEnergy(ich);
 }
 
@@ -130,8 +136,14 @@ float EmcCluster::GetECoreCorrected()
 // Returns the energy in core towers around the cluster Center of Gravity
 // Corrected for energy leak sidewise from core towers
 {
-  float e, x, y, xx, yy, xy;
-  float ecore, ecorecorr;
+  float e;
+  float x;
+  float y;
+  float xx;
+  float yy;
+  float xy;
+  float ecore;
+  float ecorecorr;
   ecore = GetECore();
   fOwner->Momenta(&fHitList, e, x, y, xx, yy, xy);
   fOwner->CorrectECore(ecore, x, y, ecorecorr);
@@ -144,8 +156,13 @@ float EmcCluster::GetECore()
   const float thresh = 0.01;
 
   std::vector<EmcModule>::iterator ph;
-  float xcg, ycg, xx, xy, yy;
-  float energy, es;
+  float xcg;
+  float ycg;
+  float xx;
+  float xy;
+  float yy;
+  float energy;
+  float es;
 
   fOwner->Momenta(&fHitList, energy, xcg, ycg, xx, yy, xy);
   //  fOwner->SetProfileParameters(0, energy, xcg, ycg);
@@ -160,7 +177,7 @@ float EmcCluster::GetECore()
   {
     int ixy = (*ph).ich;
     int iy = ixy / fOwner->GetNx();
-    int ix = ixy - iy * fOwner->GetNx();
+    int ix = ixy - (iy * fOwner->GetNx());
     //      dx = xcg - ix;
     //    float dx = fOwner->fTowerDist(float(ix), xcg);
     //    float dy = ycg - iy;
@@ -180,9 +197,20 @@ float EmcCluster::GetECore()
 float EmcCluster::GetE4()
 // Returns the energy in 2x2 towers around the cluster Center of Gravity
 {
-  float et, xcg, ycg, xx, xy, yy;
-  float e1, e2, e3, e4;
-  int ix0, iy0, isx, isy;
+  float et;
+  float xcg;
+  float ycg;
+  float xx;
+  float xy;
+  float yy;
+  float e1;
+  float e2;
+  float e3;
+  float e4;
+  int ix0;
+  int iy0;
+  int isx;
+  int isy;
 
   fOwner->Momenta(&fHitList, et, xcg, ycg, xx, yy, xy);
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
@@ -213,8 +241,16 @@ float EmcCluster::GetE4()
 float EmcCluster::GetE9()
 // Returns the energy in 3x3 towers around the cluster Center of Gravity
 {
-  float et, xcg, ycg, xx, xy, yy;
-  int ich, ix0, iy0, nhit;
+  float et;
+  float xcg;
+  float ycg;
+  float xx;
+  float xy;
+  float yy;
+  int ich;
+  int ix0;
+  int iy0;
+  int nhit;
 
   nhit = fHitList.size();
 
@@ -241,7 +277,7 @@ float EmcCluster::GetE9(int ich)
   std::vector<EmcModule>::iterator ph;
 
   int iy0 = ich / fOwner->GetNx();
-  int ix0 = ich - iy0 * fOwner->GetNx();
+  int ix0 = ich - (iy0 * fOwner->GetNx());
 
   float es = 0;
   if (fHitList.empty())
@@ -253,7 +289,7 @@ float EmcCluster::GetE9(int ich)
   {
     int ixy = (*ph).ich;
     int iy = ixy / fOwner->GetNx();
-    int ix = ixy - iy * fOwner->GetNx();
+    int ix = ixy - (iy * fOwner->GetNx());
     int idx = fOwner->iTowerDist(ix0, ix);
     int idy = iy - iy0;
     if (abs(idx) <= 1 && abs(idy) <= 1)
@@ -308,7 +344,10 @@ void EmcCluster::GetMoments(float& x, float& y, float& xx, float& xy, float& yy)
 
 float EmcCluster::GetProb(float& chi2, int& ndf)
 {
-  float e, xg, yg, zg;
+  float e;
+  float xg;
+  float yg;
+  float zg;
   e = GetTotalEnergy();
   xg = 0; 
   GetGlobalPos(xg, yg, zg);
@@ -331,16 +370,40 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   //	      -1 The number of Peaks is greater then fgMaxNofPeaks;
   //		 (just increase parameter fgMaxNofPeaks)
 
-  int npk, ipk, nhit;
-  int ixypk, ixpk, iypk, in, nh, ic;
-  int ixy, ix, iy, nn;
-  int idx, idy;
-  int ig, ng, igmpk1[fgMaxNofPeaks], igmpk2[fgMaxNofPeaks];
+  int npk;
+  int ipk;
+  int nhit;
+  int ixypk;
+  int ixpk;
+  int iypk;
+  int in;
+  int nh;
+  int ic;
+  int ixy;
+  int ix;
+  int iy;
+  int nn;
+  int idx;
+  int idy;
+  int ig;
+  int ng;
+  int igmpk1[fgMaxNofPeaks];
+  int igmpk2[fgMaxNofPeaks];
   int PeakCh[fgMaxNofPeaks];
-  float epk[fgMaxNofPeaks * 2], xpk[fgMaxNofPeaks * 2], ypk[fgMaxNofPeaks * 2];
-  float ratio, eg, dx, dy, a;
-  float *Energy[fgMaxNofPeaks], *totEnergy, *tmpEnergy;
-  EmcModule *phit, *hlist, *vv;
+  float epk[fgMaxNofPeaks * 2];
+  float xpk[fgMaxNofPeaks * 2];
+  float ypk[fgMaxNofPeaks * 2];
+  float ratio;
+  float eg;
+  float dx;
+  float dy;
+  float a;
+  float *Energy[fgMaxNofPeaks];
+  float *totEnergy;
+  float *tmpEnergy;
+  EmcModule *phit;
+  EmcModule *hlist;
+  EmcModule *vv;
   EmcCluster peak(fOwner);
   std::vector<EmcModule>::iterator ph;
   std::vector<EmcModule> hl;
@@ -361,11 +424,11 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   vv = hlist;
   while (ph != fHitList.end())
   {
-    *vv++ = *ph++;
+    *vv++ = *ph++;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
   }
 
   // sort by linear channel number
-  qsort(hlist, nhit, sizeof(EmcModule), fOwner->HitNCompare);
+  qsort(hlist, nhit, sizeof(EmcModule), BEmcRec::HitNCompare);
 
   //
   //  Find peak (maximum) position (towers with local maximum amp)
@@ -377,23 +440,23 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   npk = 0;
   for (ic = 0; ic < nhit; ic++)
   {
-    float amp = hlist[ic].amp;
+    float amp = hlist[ic].amp;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
     if (amp > fOwner->GetPeakThreshold())
     {
-      int ich = hlist[ic].ich;
+      int ich = hlist[ic].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
       // old      int ichmax = ich + fOwner->GetNx() + 1;
       // old      int ichmin = ich - fOwner->GetNx() - 1;
       //  Look into three raws only
-      int ichmax = (ich / fOwner->GetNx() + 2) * fOwner->GetNx() - 1;
+      int ichmax = ((ich / fOwner->GetNx() + 2) * fOwner->GetNx()) - 1;
       int ichmin = (ich / fOwner->GetNx() - 1) * fOwner->GetNx();
-      int ixc = ich - ich / fOwner->GetNx() * fOwner->GetNx();
+      int ixc = ich - (ich / fOwner->GetNx() * fOwner->GetNx());
       int inA = ic + 1;
       // check right, and 3 towers above if there is another max
-      while ((inA < nhit) && (hlist[inA].ich <= ichmax))
+      while ((inA < nhit) && (hlist[inA].ich <= ichmax))// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
       {
-        int ixA = hlist[inA].ich - hlist[inA].ich / fOwner->GetNx() * fOwner->GetNx();
+        int ixA = hlist[inA].ich - (hlist[inA].ich / fOwner->GetNx() * fOwner->GetNx());// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
         // old	if( (abs(ixc-ixA) <= 1) && (hlist[inA].amp >= amp) ) goto new_ic;
-        if ((abs(fOwner->iTowerDist(ixA, ixc)) <= 1) && (hlist[inA].amp >= amp))
+        if ((std::abs(fOwner->iTowerDist(ixA, ixc)) <= 1) && (hlist[inA].amp >= amp))// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
         {
           goto new_ic;
         }
@@ -401,11 +464,11 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
       }
       inA = ic - 1;
       // check left, and 3 towers below if there is another max
-      while ((inA >= 0) && (hlist[inA].ich >= ichmin))
+      while ((inA >= 0) && (hlist[inA].ich >= ichmin))// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
       {
-        int ixA = hlist[inA].ich - hlist[inA].ich / fOwner->GetNx() * fOwner->GetNx();
+        int ixA = hlist[inA].ich - (hlist[inA].ich / fOwner->GetNx() * fOwner->GetNx());// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
         // old	if( (abs(ixc-ixA) <= 1) && (hlist[inA].amp > amp) ) goto new_ic;
-        if ((abs(fOwner->iTowerDist(ixA, ixc)) <= 1) && (hlist[inA].amp > amp))
+        if ((std::abs(fOwner->iTowerDist(ixA, ixc)) <= 1) && (hlist[inA].amp > amp))// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
         {
           goto new_ic;
         }
@@ -442,14 +505,14 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
     hl.clear();
     for (int ich = 0; ich < nhit; ich++)
     {
-      hl.push_back(hlist[ich]);
+      hl.push_back(hlist[ich]);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
     }
     peak.ReInitialize(hl);
     PkList.push_back(peak);
 
     if (npk > 0)
     {
-      ppeaks.push_back(hlist[PeakCh[maxc]]);
+      ppeaks.push_back(hlist[PeakCh[maxc]]);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
     }
     else
     {
@@ -466,14 +529,14 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
     hl.clear();
     for (int ich = 0; ich < nhit; ich++)
     {
-      hl.push_back(hlist[ich]);
+      hl.push_back(hlist[ich]);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
     }
     peak.ReInitialize(hl);
     PkList.push_back(peak);
 
     if (npk == 1)
     {
-      ppeaks.push_back(hlist[PeakCh[0]]);
+      ppeaks.push_back(hlist[PeakCh[0]]);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
     }
     else
     {
@@ -503,7 +566,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
   ratio = 1.;
   for (int iter = 0; iter < fgPeakIter; iter++)
   {
-    fOwner->ZeroVector(tmpEnergy, nhit);
+    BEmcRec::ZeroVector(tmpEnergy, nhit);
     for (ipk = 0; ipk < npk; ipk++)
     {
       ic = PeakCh[ipk];
@@ -511,15 +574,15 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
       {
         ratio = Energy[ipk][ic] / totEnergy[ic];
       }
-      eg = hlist[ic].amp * ratio;
-      ixypk = hlist[ic].ich;
+      eg = hlist[ic].amp * ratio;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+      ixypk = hlist[ic].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
       iypk = ixypk / fOwner->GetNx();
       ixpk = ixypk - iypk * fOwner->GetNx();
       epk[ipk] = eg;
       xpk[ipk] = 0.;  // CoG from the peak tower
       ypk[ipk] = 0.;  // CoG from the peak tower
 
-      int ichmax = (iypk + 2) * fOwner->GetNx() - 1;
+      int ichmax = ((iypk + 2) * fOwner->GetNx()) - 1;
       int ichmin = (iypk - 1) * fOwner->GetNx();
 
       // add up energies of tower to the right and up
@@ -527,7 +590,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
       {
         for (in = ic + 1; in < nhit; in++)
         {
-          ixy = hlist[in].ich;
+          ixy = hlist[in].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
           iy = ixy / fOwner->GetNx();
           ix = ixy - iy * fOwner->GetNx();
 
@@ -545,7 +608,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
             {
               ratio = Energy[ipk][in] / totEnergy[in];
             }
-            eg = hlist[in].amp * ratio;
+            eg = hlist[in].amp * ratio;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
             epk[ipk] += eg;
             xpk[ipk] += eg * idx;
             ypk[ipk] += eg * idy;
@@ -558,7 +621,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
       {
         for (in = ic - 1; in >= 0; in--)
         {
-          ixy = hlist[in].ich;
+          ixy = hlist[in].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
           iy = ixy / fOwner->GetNx();
           ix = ixy - iy * fOwner->GetNx();
 
@@ -576,7 +639,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
             {
               ratio = Energy[ipk][in] / totEnergy[in];
             }
-            eg = hlist[in].amp * ratio;
+            eg = hlist[in].amp * ratio;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
             epk[ipk] += eg;
             xpk[ipk] += eg * idx;
             ypk[ipk] += eg * idy;
@@ -590,7 +653,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
 
       for (in = 0; in < nhit; in++)
       {
-        ixy = hlist[in].ich;
+        ixy = hlist[in].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
         iy = ixy / fOwner->GetNx();
         ix = ixy - iy * fOwner->GetNx();
         dx = fOwner->fTowerDist(float(ix), xpk[ipk]);
@@ -635,13 +698,13 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
     {
       if (tmpEnergy[in] > 0)
       {
-        ixy = hlist[in].ich;
-        a = hlist[in].amp * Energy[ipk][in] / tmpEnergy[in];
+        ixy = hlist[in].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+        a = hlist[in].amp * Energy[ipk][in] / tmpEnergy[in];// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
         if (a > fgEmin)
         {
-          phit[nh].ich = ixy;
-          phit[nh].amp = a;
-          phit[nh].tof = hlist[in].tof;  // Not necessary here
+          phit[nh].ich = ixy;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+          phit[nh].amp = a;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+          phit[nh].tof = hlist[in].tof; // NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object) // Not necessary here
 
           nh++;
         }
@@ -675,7 +738,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
     }
   }  // for( ipk=
 
-  fOwner->ZeroVector(tmpEnergy, nhit);
+  BEmcRec::ZeroVector(tmpEnergy, nhit);
   for (ipk = 0; ipk < npk; ipk++)
   {
     ig = igmpk1[ipk];
@@ -689,7 +752,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
         Energy[ipk][in] = 0;
         for (ig = igmpk1[ipk]; ig <= igmpk2[ipk]; ig++)
         {
-          ixy = hlist[in].ich;
+          ixy = hlist[in].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
           iy = ixy / fOwner->GetNx();
           ix = ixy - iy * fOwner->GetNx();
           dx = fOwner->fTowerDist(float(ix), xpk[ig]);
@@ -711,13 +774,13 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
     {
       if (tmpEnergy[in] > 0)
       {
-        ixy = hlist[in].ich;
-        a = hlist[in].amp * Energy[ipk][in] / tmpEnergy[in];
+        ixy = hlist[in].ich;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+        a = hlist[in].amp * Energy[ipk][in] / tmpEnergy[in];// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
         if (a > fgEmin)
         {
-          phit[nh].ich = ixy;
-          phit[nh].amp = a;
-          phit[nh].tof = hlist[in].tof;
+          phit[nh].ich = ixy;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+          phit[nh].amp = a;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
+          phit[nh].tof = hlist[in].tof;// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
 
           nh++;
         }
@@ -726,11 +789,11 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
     if (nh > 0)
     {
       //      *ip++ = hlist[PeakCh[ipk]];
-      ppeaks.push_back(hlist[PeakCh[ipk]]);
+      ppeaks.push_back(hlist[PeakCh[ipk]]);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
       hl.clear();
       for (in = 0; in < nh; in++)
       {
-        hl.push_back(phit[in]);
+        hl.push_back(phit[in]);// NOLINT(bugprone-pointer-arithmetic-on-polymorphic-object)
       }
       peak.ReInitialize(hl);
       PkList.push_back(peak);

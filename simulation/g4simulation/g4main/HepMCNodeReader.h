@@ -84,6 +84,9 @@ class HepMCNodeReader : public SubsysReco
   std::vector<std::pair<int, std::pair<double, double>>> list_strangePID_probrange{};  // list of strange particles and their probability ranges
   float addfraction{0.0};                                                              // additional strangeness particles, in percent; default 0
   int Nstrange_add{0};                                                                 // number of strange particles to be added; default 0
+  float sel_eta{1.0};                                                                  // |eta| selection for additional strangeness particles; default 1
+  float sel_ptmin{0.0};                                                                // min pT selection for additional strangeness particles; default 0
+  float sel_ptmax{std::numeric_limits<float>::max()};                                  // max pT selection for additional strangeness particles; default infinity
   TF1 *fpt{nullptr};
   TF1 *feta{nullptr};
 };

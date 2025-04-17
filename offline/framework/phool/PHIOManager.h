@@ -13,7 +13,7 @@ class PHCompositeNode;
 class PHIOManager
 {
  public:
-  virtual ~PHIOManager() {}
+  virtual ~PHIOManager() = default;
 
  public:
   const std::string &getFilename() const { return filename; }
@@ -29,7 +29,7 @@ class PHIOManager
 
  protected:
   PHIOManager() = default;
-  size_t eventNumber {0};
+  size_t eventNumber{0};
   std::string filename;
 };
 

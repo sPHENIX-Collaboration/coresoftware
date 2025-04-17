@@ -23,9 +23,7 @@ class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
   PHG4CEmcTestBeamSubsystem(const std::string& name = "BLOCK", const int layer = 0);
 
   //! destructor
-  ~PHG4CEmcTestBeamSubsystem(void) override
-  {
-  }
+  ~PHG4CEmcTestBeamSubsystem() override = default;
 
   //! init
   /*!
@@ -61,7 +59,7 @@ class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
   void SetActive(const int i = 1) { active = i; }
   void SetAbsorberActive(const int i = 1) { absorberactive = i; }
   void SuperDetector(const std::string& name) { superdetector = name; }
-  const std::string SuperDetector() { return superdetector; }
+  const std::string &SuperDetector() { return superdetector; }
 
   void BlackHole(const int i = 1) { blackhole = i; }
 

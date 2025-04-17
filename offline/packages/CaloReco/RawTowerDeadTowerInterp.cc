@@ -242,16 +242,10 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawTowerDeadTowerInterp::End(PHCompositeNode * /*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 void RawTowerDeadTowerInterp::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
     std::cout << Name() << "::" << m_detector << "::"

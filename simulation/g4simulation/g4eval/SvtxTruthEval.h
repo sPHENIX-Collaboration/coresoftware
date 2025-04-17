@@ -73,7 +73,7 @@ class SvtxTruthEval
 
   float line_circle_intersection(float x[], float y[], float z[], float radius);
 
-  void G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry, std::vector<std::vector<double>> contributing_hits_exit, float& g4phisize, float& g4zsize);
+  void G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, const std::vector<std::vector<double>> &contributing_hits_entry, const std::vector<std::vector<double>> &contributing_hits_exit, float& g4phisize, float& g4zsize);
 
   unsigned int getAdcValue(double gedep);
 

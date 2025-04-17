@@ -16,7 +16,7 @@ class RawTowerBuilder : public SubsysReco
 {
  public:
   RawTowerBuilder(const std::string &name = "RawTowerBuilder");
-  ~RawTowerBuilder() override {}
+  ~RawTowerBuilder() override = default;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   void Detector(const std::string &d) { m_Detector = d; }
@@ -49,8 +49,8 @@ class RawTowerBuilder : public SubsysReco
     m_TowerEnergySrcEnum = towerEnergySrc;
   }
 
-  std::string
-  get_sim_tower_node_prefix() const
+  const std::string
+  &get_sim_tower_node_prefix() const
   {
     return m_SimTowerNodePrefix;
   }

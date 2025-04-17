@@ -27,17 +27,17 @@ class OnCalServer : public Fun4AllServer
 {
  public:
   static OnCalServer *instance();
-  virtual ~OnCalServer();
+  ~OnCalServer() override;
   using Fun4AllServer::registerHisto;
   void registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace = 0);
-  void unregisterHisto(const std::string &calibname);
-  void Print(const std::string &what = "ALL") const;
+  void unregisterHisto(const std::string &calibratorname);
+  void Print(const std::string &what = "ALL") const override;
 
   void dumpHistos();
-  int process_event();
-  int BeginRun(const int runno);
-  int EndRun(const int /*runno*/) { return 0; }  // do not execute EndRun
-  int End();
+  int process_event() override;
+  int BeginRun(const int runno) override;
+  int EndRun(const int /*runno*/) override { return 0; }  // do not execute EndRun
+  int End() override;
 
   PHTimeStamp *GetEndValidityTS();
 
@@ -63,9 +63,9 @@ class OnCalServer : public Fun4AllServer
   int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::string &table, const int commit = 0);
   int SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int commit = 0);
   int SyncOncalTimeStampsToRunDB(const int commit = 0);
-  int ClosestGoodRun(OnCal *calibrator, const int runno, const int previous = fetchrun::CLOSEST);
-  int CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit = 0) const;
-  int OverwriteCalibration(OnCal *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
+  int ClosestGoodRun(OnCal *calibrator, const int irun, const int previous = fetchrun::CLOSEST);
+  static int CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit = 0);
+  static int OverwriteCalibration(OnCal *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
   int FixMissingCalibration(OnCal *calibrator, const int runno, const int commit = 0, const int fromrun = -1);
 
   int SetBorTime(const int runno);
@@ -76,10 +76,10 @@ class OnCalServer : public Fun4AllServer
   int AdjustRichTimeStampForMultipleRuns();
   int CreateCalibration(OnCal *calibrator, const int myrunnumber, const std::string &what, const int commit = 0);
   int GetCalibStatus(const std::string &calibname, const int runno);
-  int DisconnectDB();
+  static int DisconnectDB();
   void TestMode(const int i = 1);
   // need to be able to call this from the outside
-  bool updateDBRunRange(const std::string &table, const std::string &column, const int value, const int firstrun, const int lastrun);
+  bool updateDBRunRange(const std::string &table, const std::string &column, const int entry, const int firstrun, const int lastrun);
   void EventCheckFrequency(const unsigned int i) { eventcheckfrequency = i; }
 
  protected:
@@ -95,42 +95,42 @@ class OnCalServer : public Fun4AllServer
   // All other updates are made to rows in the database containing the runNum.
   // This function should be called before any updates are made.
   // Returns true on successful DB insert.
-  bool insertRunNumInDB(const std::string &tableName, const int runno);
+  bool insertRunNumInDB(const std::string &DBtable, const int runno);
 
-  bool findRunNumInDB(const std::string &tableName, const int runno);
+  bool findRunNumInDB(const std::string &DBtable, const int runno);
 
   // these functions update different columns in the success database tables.
   // Ony the row with the run number set by setRunNum() is updated.
 
-  bool updateDB(const std::string &table, const std::string &column, int value);
-  bool updateDB(const std::string &table, const std::string &column, bool value);
-  bool updateDB(const std::string &table, const std::string &column, const std::string &value,
+  bool updateDB(const std::string &table, const std::string &column, int entry);
+  bool updateDB(const std::string &table, const std::string &column, bool entry);
+  bool updateDB(const std::string &table, const std::string &column, const std::string &entry,
                 const int runno, const bool append = false);
   int updateDB(const std::string &table, const std::string &column, const time_t ticks);
 
-  int check_create_subsystable(const std::string &DBTable);
-  int check_create_successtable(const std::string &DBTable);
-  int add_calibrator_to_statustable(const std::string &calibname);
-  int check_calibrator_in_statustable(const std::string &calibname);
-  int GetRunTimeTicks(const int runno, time_t &borticks, time_t &eorticks);
+  int check_create_subsystable(const std::string &tablename);
+  int check_create_successtable(const std::string &tablename);
+  int add_calibrator_to_statustable(const std::string &calibratorname);
+  int check_calibrator_in_statustable(const std::string &calibratorname);
+  static int GetRunTimeTicks(const int runno, time_t &borticks, time_t &eorticks);
   void CreateCalibrationUpdateStatus(OnCal *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode);
   OnCalServer(const std::string &name = "OnCalServer");
   PHTimeStamp beginTimeStamp;  // begin run timestamp of run analysing
   PHTimeStamp endTimeStamp;    // end run timestamp of run analysing
-  int testmode;
-  bool recordDB;
-  TH1 *OnCalServerVars;
+  int testmode{0};
+  bool recordDB{false};
+  TH1 *OnCalServerVars{nullptr};
   std::map<std::string, TH1 *> Histo;
   std::map<std::string, std::set<std::string> > calibratorhistomap;
-  bool SetEndTimeStampByHand;
-  bool SetBeginTimeStampByHand;
+  bool SetEndTimeStampByHand{false};
+  bool SetBeginTimeStampByHand{false};
 
   std::string successTable;
-  unsigned int runNum;
-  unsigned int nEvents;
-  unsigned int eventcheckfrequency;
-  std::string database;  // this holds the name of the database
-                         // should be set to calibrations for normal running
+  unsigned int runNum{0};
+  unsigned int nEvents{0};
+  unsigned int eventcheckfrequency{1000};
+  std::string database{"calBookKeep"};  // this holds the name of the database
+                                        // should be set to calibrations for normal running
   std::map<std::string, std::set<SubsysReco *> > requiredCalibrators;
   std::vector<int> analysed_runs;
   std::vector<std::string> inputfilelist;
