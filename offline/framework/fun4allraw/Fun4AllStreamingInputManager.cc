@@ -712,7 +712,6 @@ int Fun4AllStreamingInputManager::FillIntt()
   int allpacketsallfees = 0;
   for (auto &p : m_InttInputVector)
   {
-    
     // this is on a per packet basis
     auto bcl_stack = p->BclkStackMap();
     auto feebclstack = p->getFeeGTML1BCOMap();
@@ -726,7 +725,8 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &bcl : gtmbcoset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 120) { // diff is 1 strobe length of 120 crossings
+        if (diff <= m_intt_bco_range)
+        {  // diff is whatever the bco range is set as (2 for triggered, 120 for strobe)
           h_gl1taggedfee_intt[histo_to_fill][fee]->Fill(refbcobitshift);
           feeidset.insert(feeid);
           // this fee was tagged, go to the next one
@@ -749,7 +749,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-        if (diff < 120)  //diff is 1 strobe length of 120 crossings
+        if (diff < m_intt_bco_range)  
         {
           thispacket = true;
           h_gl1tagged_intt[histo_to_fill]->Fill(refbcobitshift);
