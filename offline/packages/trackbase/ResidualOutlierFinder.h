@@ -112,11 +112,15 @@ struct ResidualOutlierFinder
         Acts::detail::transformBoundToFreeParameters(state.referenceSurface(),
                                                      m_tGeometry->geometry().getGeoContext(),
                                                      predicted);
+    Acts::Vector2 local(fullCalibrated[Acts::eBoundLoc0], fullCalibrated[Acts::eBoundLoc1]);
+    Acts::Vector3 global = state.referenceSurface().localToGlobal(
+        m_tGeometry->geometry().getGeoContext(), local,
+        Acts::Vector3(1, 1, 1));
     float data[] = {
         (float) sphenixlayer, (float) layer, (float) volume, distance, chi2,
         (float) freeParams[Acts::eFreePos0], (float) freeParams[Acts::eFreePos1], (float) freeParams[Acts::eFreePos2],
         (float) predicted[Acts::eBoundLoc0], (float) predicted[Acts::eBoundLoc1],
-        (float) fullCalibrated[Acts::eFreePos0], (float) fullCalibrated[Acts::eFreePos1], (float) fullCalibrated[Acts::eFreePos2],
+        (float) global[Acts::eFreePos0], (float) global[Acts::eFreePos1], (float) global[Acts::eFreePos2],
         (float) fullCalibrated[Acts::eBoundLoc0], (float) fullCalibrated[Acts::eBoundLoc1]};
     tree->Fill(data);
 
