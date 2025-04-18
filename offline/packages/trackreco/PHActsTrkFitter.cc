@@ -1080,6 +1080,10 @@ Acts::BoundSquareMatrix PHActsTrkFitter::setDefaultCovariance() const
     cov(Acts::eBoundTheta, Acts::eBoundTheta) = sigmaTheta * sigmaTheta;
     /// Acts takes this value very seriously - tuned to be in a "sweet spot"
     cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.0001;
+
+    // testing
+    cov(Acts::eBoundQOverP, Acts::eBoundQOverP) = 0.01;
+
   }
 
   return cov;
