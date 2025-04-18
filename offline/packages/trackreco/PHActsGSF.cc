@@ -101,7 +101,8 @@ int PHActsGSF::InitRun(PHCompositeNode* topNode)
       m_tGeometry->geometry().tGeometry,
       m_tGeometry->geometry().magField,
       bha,
-      12, 1e-4, Acts::MixtureReductionMethod::eMaxWeight, false, false);
+      12, 1e-4, 
+      MixtureReductionAlgorithm::KLDistance, false, false);
 
   if (m_actsEvaluator)
   {

@@ -10,12 +10,11 @@
 
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
-
+#include <Acts/Propagator/VoidNavigator.hpp>
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
 #include <Acts/MagneticField/MagneticFieldProvider.hpp>
-#include <Acts/Propagator/detail/VoidPropagatorComponents.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
 ActsPropagator::SurfacePtr
@@ -218,7 +217,7 @@ ActsPropagator::FastPropagator ActsPropagator::makeFastPropagator()
 
   std::shared_ptr<const Acts::Logger> logger = Acts::getDefaultLogger("ActsPropagator", logLevel);
 
-  return ActsPropagator::FastPropagator(stepper, Acts::detail::VoidNavigator(),
+  return ActsPropagator::FastPropagator(stepper, Acts::VoidNavigator(),
                                         logger);
 }
 ActsPropagator::SphenixPropagator ActsPropagator::makePropagator()
