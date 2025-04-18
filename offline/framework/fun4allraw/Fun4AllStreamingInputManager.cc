@@ -917,7 +917,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
       int packetid = felix * 2 + endpoint;
       h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
-      h_tagStBcoFEE_mvtx->Fill(feeId);
+      h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
     }
     break;
   }
@@ -937,10 +937,10 @@ int Fun4AllStreamingInputManager::FillMvtx()
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
 
         h_bcoGL1LL1diff[packetid]->Fill(diff);
-
-        if (diff < 3)
+        if (diff <= 3)
         {
           taggedPacketsFEEs[packetid].insert(feeid);
+          h_tagL1BcoFEE_mvtx[packetid]->Fill(feeid);
           break;
         }
       }
@@ -1525,9 +1525,14 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h);
   }
-  h_tagStBcoFEE_mvtx = new TH1I("h_MvtxPoolQA_TagStBcoFEEs", "", 10000, 0, 10000);
-  hm->registerHisto(h_tagStBcoFEE_mvtx);
 
+  for (int i = 0; i < 12; i++)
+  {
+    h_tagStBcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagStBcoFEEsPacket%i")% i).str().c_str(), "", 10000, 0, 10000);
+    hm->registerHisto(h_tagStBcoFEE_mvtx[i]);
+    h_tagL1BcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagL1BcoFEEsPacket%i")% i).str().c_str(), "", 10000, 0, 10000);
+    hm->registerHisto(h_tagL1BcoFEE_mvtx[i]);
+  }
   // intt has 8 prdfs, one per felix
   for (int i = 0; i < 8; i++)
   {
