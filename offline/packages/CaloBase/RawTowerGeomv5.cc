@@ -101,6 +101,7 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
   _center_high_phi.y = 0;
   _center_high_phi.z = 0;
   _vertices.resize(_nVtx);
+
   for (int i = 0; i < _nVtx; i++)
   {
     _vertices[i].x = vertices[i * 3 + 0];
