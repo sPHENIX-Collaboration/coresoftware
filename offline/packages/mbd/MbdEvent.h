@@ -186,7 +186,6 @@ class MbdEvent
   void PlotDebug();
   std::unique_ptr<TFile> _synctfile{nullptr};
   TTree *_syncttree{nullptr};
-  int _syncevt{0};
   Double_t _refz{ std::numeric_limits<double>::quiet_NaN() };
   std::vector<Int_t> bbevt;
   std::vector<UShort_t> bbclk;
