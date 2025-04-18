@@ -470,7 +470,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
           std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
       Acts::FreeVector freeParams =
-	Acts::detail::transformBoundToFreeParameters(state.referenceSurface(),
+	Acts::transformBoundToFreeParameters(state.referenceSurface(),
 						     m_tGeometry->geometry().getGeoContext(),
 						     parameters);
 
@@ -593,7 +593,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
           (parameter[Acts::eBoundTime] - truthTIME) /
           std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), parameter);
+      Acts::FreeVector freeparams = Acts::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), parameter);
 
       /// Other filtered parameter info
       m_x_flt.push_back(freeparams[Acts::eFreePos0]);
@@ -709,7 +709,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
           (parameter[Acts::eBoundTime] - truthTIME) /
           std::sqrt(covariance(Acts::eBoundTime, Acts::eBoundTime)));
 
-      Acts::FreeVector freeparams = Acts::detail::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), parameter);
+      Acts::FreeVector freeparams = Acts::transformBoundToFreeParameters(surface, m_tGeometry->geometry().getGeoContext(), parameter);
 
       /// Other smoothed parameter info
       m_x_smt.push_back(freeparams[Acts::eFreePos0]);

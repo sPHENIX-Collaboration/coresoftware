@@ -75,6 +75,33 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  //Make map for run and ZDC rate
+  m_run_ZDC_map.insert(std::pair<int, float>(49709, 555.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(52077, 0.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(52078, 0.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53534, 3013.5));
+  m_run_ZDC_map.insert(std::pair<int, float>(53630, 6849.3));
+  m_run_ZDC_map.insert(std::pair<int, float>(53631, 5577.8));
+  m_run_ZDC_map.insert(std::pair<int, float>(53632, 5151.2));
+  m_run_ZDC_map.insert(std::pair<int, float>(53652, 4600.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53687, 3967.2));
+  m_run_ZDC_map.insert(std::pair<int, float>(53716, 3070.1));
+  m_run_ZDC_map.insert(std::pair<int, float>(53738, 4510.7));
+  m_run_ZDC_map.insert(std::pair<int, float>(53739, 4165.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53741, 3738.1));
+  m_run_ZDC_map.insert(std::pair<int, float>(53742, 3721.4));
+  m_run_ZDC_map.insert(std::pair<int, float>(53743, 3693.4));
+  m_run_ZDC_map.insert(std::pair<int, float>(53744, 3581.9));
+  m_run_ZDC_map.insert(std::pair<int, float>(53756, 4471.4));
+  m_run_ZDC_map.insert(std::pair<int, float>(53783, 4825.7));
+  m_run_ZDC_map.insert(std::pair<int, float>(53871, 6871.5));
+  m_run_ZDC_map.insert(std::pair<int, float>(53876, 5082.3));
+  m_run_ZDC_map.insert(std::pair<int, float>(53877, 4758.5));
+  m_run_ZDC_map.insert(std::pair<int, float>(53879, 4315.0));
+
+  m_run_ZDC_map.insert(std::pair<int, float>(53098, 0.0));
+  m_run_ZDC_map.insert(std::pair<int, float>(53271, 0.0));
+
   int ret = GetNodes(topNode);
   return ret;
 }
@@ -236,7 +263,8 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
       continue;
     }
 
-    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+    //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
     if (m_dcc_in_module_edge)
     {
       pos = m_distortionCorrection.get_corrected_position(pos, m_dcc_in_module_edge);
@@ -293,32 +321,18 @@ int TpcLaminationFitting::fitLaminations()
   */
   //double seedScale = (m_nClusters / m_nEvents) / 3718.8030;
 
-  double ZDC[6] = {3013.5, 3581.9, 4431.4, 4758.5, 5082.3, 6849.3};
-  int ZDCindex = 0;
-  if(m_runnumber == 53534)
+  float ZDC = 4500.0;
+  auto it = m_run_ZDC_map.find(m_runnumber);
+  if( it != m_run_ZDC_map.end() )
   {
-    ZDCindex = 0;
+    std::cout << "runnumber " << m_runnumber << " found. It has ZDC NS rate of " << it->second << std::endl;
+    ZDC = it->second;
   }
-  else if(m_runnumber == 53744)
+  else
   {
-    ZDCindex = 1;
+    std::cout << "runnumber " << m_runnumber << " not found. Using default value of 4500" << std::endl;
   }
-  else if(m_runnumber == 53756)
-  {
-    ZDCindex = 2;
-  }
-  else if(m_runnumber == 53877)
-  {
-    ZDCindex = 3;
-  }
-  else if(m_runnumber == 53876)
-  {
-    ZDCindex = 4;
-  }
-  else if(m_runnumber == 53630)
-  {
-    ZDCindex = 5;
-  }
+  
 
   TF1 *Af[2] = {new TF1("AN","pol1",0,100000), new TF1("AS","pol1",0,100000)};
   Af[0]->SetParameters(-0.007999,-1.783e-6);
@@ -349,7 +363,7 @@ int TpcLaminationFitting::fitLaminations()
       //m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s], log(4.595 * seedScale/(-0.022 + m_laminationCenter[l][s])), 0.138);
       //m_fLamination[l][s]->SetParameters(-0.011 + m_laminationCenter[l][s], 0.025, 0.16);
       //m_fLamination[l][s]->SetParameters(-0.011, 30, 0.16, m_laminationCenter[l][s]);
-      m_fLamination[l][s]->SetParameters(Af[s]->Eval(ZDC[ZDCindex]), Bf[s]->Eval(ZDC[ZDCindex]), Cseed[s], m_laminationCenter[l][s]);
+      m_fLamination[l][s]->SetParameters(Af[s]->Eval(ZDC), Bf[s]->Eval(ZDC), Cseed[s], m_laminationCenter[l][s]);
       m_fLamination[l][s]->FixParameter(3, m_laminationCenter[l][s]);
       
       TF1 *fitSeed = (TF1 *) m_fLamination[l][s]->Clone();
@@ -508,14 +522,17 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
         }
         int phiBin = phiDistortionLamination[s]->GetXaxis()->FindBin(phi);
         //m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) - m_laminationCenter[l][s]);
-        if(s==0)
+	m_fLamination[l][s]->SetParameter(3, m_laminationOffset[l][s]);
+	/*
+	if(s==0)
 	{
-	  m_fLamination[l][s]->SetParameter(3, 0.011);
+	  m_fLamination[l][s]->SetParameter(3, 0.0);
 	}
         else
 	{
-	  m_fLamination[l][s]->SetParameter(3, 0.008);
+	  m_fLamination[l][s]->SetParameter(3, 0.0);
 	}
+	*/
 	//m_fLamination[l][s]->SetParameter(3, 0.0);
         double phiDistortion = R * m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1)) / (phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1) - phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i));
         //m_fLamination[l][s]->SetParameter(0, m_fLamination[l][s]->GetParameter(0) + m_laminationCenter[l][s]);

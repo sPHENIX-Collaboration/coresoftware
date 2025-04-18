@@ -332,10 +332,12 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       if (m_verbosity > 1)
       {
         const Acts::Vector3 global_in =  tGeometry->getGlobalPosition(key, cluster);
-        std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2)
+     
+        std::cout << " ckey " << key << "global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2)
           << " corr glob (unmoved) " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
           << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2)
           << std::endl;
+        
       }
     }
 
@@ -367,10 +369,11 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
 
     auto cluster = clusterContainer->findCluster(cluskey);
     Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
-
+    if(std::isnan(global.x()) || std::isnan(global.y()))
+    std::cout << " ckey moved " << cluskey << " and global moved " << global.transpose() << std::endl;
     //    std::cout << " Initial surface " <<  std::endl;
-    //surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
-    //std::cout << std::endl;
+    // surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+    // std::cout << std::endl;
 
     // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
     auto trkrid = TrkrDefs::getTrkrId(cluskey);
@@ -395,7 +398,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     Acts::Vector2 localPos;
     global *= Acts::UnitConstants::cm;  // we want mm for transformations
 
-    Acts::Vector3 normal = surf->normal(tGeometry->geometry().getGeoContext());
+    Acts::Vector3 normal = surf->normal(tGeometry->geometry().getGeoContext(),Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
     auto local = surf->globalToLocal(tGeometry->geometry().getGeoContext(),
                                      global, normal);
 
