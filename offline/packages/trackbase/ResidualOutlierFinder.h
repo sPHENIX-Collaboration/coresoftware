@@ -109,7 +109,7 @@ struct ResidualOutlierFinder
       exit(1);
     }
     Acts::FreeVector freeParams =
-        Acts::detail::transformBoundToFreeParameters(state.referenceSurface(),
+        Acts::transformBoundToFreeParameters(state.referenceSurface(),
                                                      m_tGeometry->geometry().getGeoContext(),
                                                      predicted);
     Acts::Vector2 local(fullCalibrated[Acts::eBoundLoc0], fullCalibrated[Acts::eBoundLoc1]);
