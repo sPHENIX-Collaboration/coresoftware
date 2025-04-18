@@ -71,7 +71,6 @@ pkginclude_HEADERS =  \
   PHFlag.h \
   PHIODataNode.h \
   PHIOManager.h \
-  PHLog.h \
   PHNode.h \
   PHNodeIOManager.h \
   PHNodeIntegrate.h \

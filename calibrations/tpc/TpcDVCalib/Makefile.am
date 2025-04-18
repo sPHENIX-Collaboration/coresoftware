@@ -26,7 +26,6 @@ libTpcDVCalib_la_LDFLAGS = \
 libTpcDVCalib_la_LIBADD = \
   -lActsCore \
   -lActsPluginTGeo \
-  -lActsExamplesCommon \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
   -lSubsysReco \

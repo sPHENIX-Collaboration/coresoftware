@@ -21,6 +21,7 @@ class TH1;
 class TF1;
 class TProfile2D;
 class TH3;
+class TriggerAnalyzer;
 
 namespace CLHEP
 {
@@ -97,6 +98,10 @@ class pi0EtaByEta : public SubsysReco
     runTowByTow = state;
     return;
   }
+  void SetTargetMass(float mass) 
+  {
+    target_pi0_mass = mass; 
+  }
 
   void set_RunTBTCompactMode(bool state)  // to decide if we want to run in TBT in compact mode (default is true)
   {
@@ -106,10 +111,14 @@ class pi0EtaByEta : public SubsysReco
 
   void set_massTargetHistFile(const std::string& file);
   bool checkOutput(const std::string& file);
-  void set_reqMinBias(bool status)
+  void set_reqTrig(bool status, const std::vector<int>& list)
   {
-    reqMinBias = status;
-    return;
+      reqTrig = status;
+      triggerList = list;
+  }
+  void set_reqTrig(bool status )
+  {
+     reqTrig = status;
   }
 
   void set_GlobalVertexType(GlobalVertex::VTXTYPE type)
@@ -124,13 +133,21 @@ class pi0EtaByEta : public SubsysReco
     return;
   }
 
+  void set_useVertexTruth(bool state) 
+  {
+     useVertexTruth = state;
+  }
+
  protected:
   int Getpeaktime(TH1* h);
   std::string detector;
   std::string outfilename;
 
-  bool reqMinBias{true};
-  bool reqVertex{false};
+
+  bool reqTrig = true;
+  std::vector<int> triggerList;
+  bool reqVertex = false;
+
 
   bool doVtxCut{true};
   float vtx_z_cut{20};
@@ -209,6 +226,9 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_totalzdc_e{nullptr};
   TH3* h_ieta_iphi_invmass{nullptr};
 
+
+  bool useVertexTruth = false;
+
   TProfile2D* h_cemc_etaphi_time{nullptr};
   TProfile2D* h_hcalin_etaphi_time{nullptr};
   TProfile2D* h_hcalout_etaphi_time{nullptr};
@@ -251,7 +271,10 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_nclusters{nullptr};
   TH1* h_emcal_e_eta{nullptr};
 
-  float convLev{0.005};
+  TriggerAnalyzer* trigAna{nullptr};
+
+  float convLev = {0.005};
+
 };
 
 #endif

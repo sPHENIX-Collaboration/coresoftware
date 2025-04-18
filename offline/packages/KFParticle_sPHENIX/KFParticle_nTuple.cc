@@ -35,6 +35,8 @@ void KFParticle_nTuple::initializeVariables()
 
 void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 {
+  //kfpTupleTools.init_dEdx_fits(); //Cant do this! Two trees open at once!
+
   delete m_tree;
   m_tree = new TTree("DecayTree", "DecayTree");
   m_tree->OptimizeBaskets();
@@ -76,6 +78,8 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch(TString(mother_name) + "_decayTimeErr", &m_calculated_mother_decaytime_err, TString(mother_name) + "_decayTimeErr/F");
     m_tree->Branch(TString(mother_name) + "_decayLength", &m_calculated_mother_decaylength, TString(mother_name) + "_decayLength/F");
     m_tree->Branch(TString(mother_name) + "_decayLengthErr", &m_calculated_mother_decaylength_err, TString(mother_name) + "_decayLengthErr/F");
+    m_tree->Branch(TString(mother_name) + "_decayLength_xy", &m_calculated_mother_decaylength_xy, TString(mother_name) + "_decayLength_xy/F");
+    m_tree->Branch(TString(mother_name) + "_decayLengthErr_xy", &m_calculated_mother_decaylength_xy_err, TString(mother_name) + "_decayLengthErr_xy/F");
     m_tree->Branch(TString(mother_name) + "_DIRA", &m_calculated_mother_dira, TString(mother_name) + "_DIRA/F");
     m_tree->Branch(TString(mother_name) + "_DIRA_xy", &m_calculated_mother_dira_xy, TString(mother_name) + "_DIRA_xy/F");
     m_tree->Branch(TString(mother_name) + "_FDchi2", &m_calculated_mother_fdchi2, TString(mother_name) + "_FDchi2/F");
@@ -134,6 +138,8 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
       m_tree->Branch(TString(intermediate_name) + "_decayTimeErr", &m_calculated_intermediate_decaytime_err[i], TString(intermediate_name) + "_decayTimeErr/F");
       m_tree->Branch(TString(intermediate_name) + "_decayLength", &m_calculated_intermediate_decaylength[i], TString(intermediate_name) + "_decayLength/F");
       m_tree->Branch(TString(intermediate_name) + "_decayLengthErr", &m_calculated_intermediate_decaylength_err[i], TString(intermediate_name) + "_decayLengthErr/F");
+      m_tree->Branch(TString(intermediate_name) + "_decayLength_xy", &m_calculated_intermediate_decaylength_xy[i], TString(intermediate_name) + "_decayLength_xy/F");
+      m_tree->Branch(TString(intermediate_name) + "_decayLengthErr_xy", &m_calculated_intermediate_decaylength_xy_err[i], TString(intermediate_name) + "_decayLengthErr_xy/F");
       m_tree->Branch(TString(intermediate_name) + "_DIRA", &m_calculated_intermediate_dira[i], TString(intermediate_name) + "_DIRA/F");
       m_tree->Branch(TString(intermediate_name) + "_FDchi2", &m_calculated_intermediate_fdchi2[i], TString(intermediate_name) + "_FDchi2/F");
       if (m_constrain_to_vertex_nTuple)
@@ -229,7 +235,10 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch(TString(daughter_number) + "_track_ID", &m_calculated_daughter_trid[i], TString(daughter_number) + "_track_ID/I");
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
-    m_tree->Branch(TString(daughter_number) + "_dEdx", &m_calculated_daughter_dedx[i], TString(daughter_number) + "_dEdx/F");
+    m_tree->Branch(TString(daughter_number) + "_calculated_dEdx", &m_calculated_daughter_dedx[i], TString(daughter_number) + "_calculated_dEdx/F");
+    //m_tree->Branch(TString(daughter_number) + "_expected_pion_dEdx", &m_calculated_daughter_expected_dedx_pion[i], TString(daughter_number) + "_expected_pion_dEdx/F");
+    //m_tree->Branch(TString(daughter_number) + "_expected_kaon_dEdx", &m_calculated_daughter_expected_dedx_kaon[i], TString(daughter_number) + "_expected_kaon_dEdx/F");
+    //m_tree->Branch(TString(daughter_number) + "_expected_proton_dEdx", &m_calculated_daughter_expected_dedx_proton[i], TString(daughter_number) + "_expected_proton_dEdx/F");
 
     if (m_calo_info)
     {
@@ -465,6 +474,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       intermediateArray[i].SetProductionVertex(motherParticle);
       intermediateArray[i].GetLifeTime(m_calculated_intermediate_decaytime[i], m_calculated_intermediate_decaytime_err[i]);
       intermediateArray[i].GetDecayLength(m_calculated_intermediate_decaylength[i], m_calculated_intermediate_decaylength_err[i]);
+      intermediateArray[i].GetDecayLengthXY(m_calculated_intermediate_decaylength_xy[i], m_calculated_intermediate_decaylength_xy_err[i]);
 
       m_calculated_intermediate_decaytime[i] /= speedOfLight;
       m_calculated_intermediate_decaytime_err[i] /= speedOfLight;
@@ -512,6 +522,9 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     SvtxTrack *thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
     m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing(); 
     m_calculated_daughter_dedx[i] = kfpTupleTools.get_dEdx(topNode, daughterArray[i]);
+    //m_calculated_daughter_expected_dedx_pion[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 211);
+    //m_calculated_daughter_expected_dedx_kaon[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 321);
+    //m_calculated_daughter_expected_dedx_proton[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 2212);
 
     if (m_calo_info)
     {
@@ -586,6 +599,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     motherParticle.SetProductionVertex(vertex_fillbranch);
     motherParticle.GetLifeTime(m_calculated_mother_decaytime, m_calculated_mother_decaytime_err);
     motherParticle.GetDecayLength(m_calculated_mother_decaylength, m_calculated_mother_decaylength_err);
+    motherParticle.GetDecayLengthXY(m_calculated_mother_decaylength_xy, m_calculated_mother_decaylength_xy_err);
 
     m_calculated_mother_decaytime /= speedOfLight;
     m_calculated_mother_decaytime_err /= speedOfLight;

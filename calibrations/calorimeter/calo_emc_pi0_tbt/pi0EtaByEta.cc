@@ -14,6 +14,7 @@
 #include <calobase/TowerInfoDefs.h>
 
 #include <ffarawobjects/Gl1Packet.h>
+#include <calotrigger/TriggerAnalyzer.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -35,6 +36,12 @@
 #include <TTree.h>
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
+
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
+#include <TStyle.h>
+#include <TSystem.h>
 
 #include <cmath>    // for fabs, isnan, M_PI
 #include <cstdint>  // for exit
@@ -105,7 +112,7 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   h_cemc_etaphi_noCalib = new TH2F("h_cemc_etaphi_noCalib", "", 96, 0, 96, 256, 0, 256);
 
   // 1D distributions
-  h_InvMass = new TH1F("h_InvMass", "Invariant Mass", 120, 0, 1.2);
+  h_InvMass = new TH1F("h_InvMass", "Invariant Mass", 240, 0, 1.2);
   h_InvMassMix = new TH1F("h_InvMassMix", "Invariant Mass", 120, 0, 1.2);
 
   // cluster QA
@@ -131,6 +138,8 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   {
     clusMix->push_back(temp2);
   }
+
+  trigAna = new TriggerAnalyzer();
 
   return 0;
 }
@@ -158,30 +167,26 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   // cuts
   float maxDr = 1.1;
   float maxAlpha = 0.6;
-  float clus_chisq_cut = 10;
+  float clus_chisq_cut = 0.05;
   float nClus_ptCut = 0.5;
   int max_nClusCount = 300;
 
   //--------------------------- trigger and GL1-------------------------------//
-  bool isMinBias = false;
-  Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-  if (!gl1PacketInfo)
-  {
-    std::cout << PHWHERE << "CaloValid::process_event: GL1Packet node is missing" << std::endl;
-  }
 
-  if (gl1PacketInfo)
+  if (reqTrig) 
   {
-    uint64_t triggervec = gl1PacketInfo->getScaledVector();
-    if ((triggervec >> 10U) & 0x1U || (triggervec >> 11U) & 0x1U || (triggervec >> 12U) & 0x1U)
+    trigAna->decodeTriggers(topNode);
+    bool fireTrig = false;
+    for(auto bit : triggerList)
     {
-      isMinBias = true;
+      if (trigAna->didTriggerFire(bit) == true){
+         fireTrig = true;
+      }
     }
-  }
-
-  if (reqMinBias && isMinBias != true)
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
+    if (!fireTrig)
+    {
+       return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   //----------------------------------get vertex------------------------------------------------------//
@@ -230,7 +235,33 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  if (!found_vertex && reqVertex)
+  //////////////////////////////                                                                  // truth vertex    
+   PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  float vtx_z_tr = -999;
+  if (truthinfo)
+  {
+    PHG4TruthInfoContainer::VtxRange vtxrange = truthinfo->GetVtxRange();
+    for (PHG4TruthInfoContainer::ConstVtxIterator iter = vtxrange.first; iter != vtxrange.second; ++iter) 
+    {
+       PHG4VtxPoint *vtx_tr = iter->second;
+       if ( vtx_tr->get_id() == 1 )
+       { 
+         vtx_z_tr = vtx_tr->get_z();
+       }
+    }
+    if (vtx_z_tr != -999) 
+    {
+      vtx_z = vtx_z_tr;
+    }
+  }
+
+  if (useVertexTruth==true)  
+  {
+    vtx_z = vtx_z_tr;
+  }
+
+
+  if (!found_vertex && reqVertex) 
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -247,7 +278,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       int ieta = towers->getTowerEtaBin(towerkey);
       int iphi = towers->getTowerPhiBin(towerkey);
       bool isGood = tower->get_isGood();
-      if (offlineenergy > emcal_hit_threshold && isGood && isMinBias)
+      if (offlineenergy > emcal_hit_threshold && isGood )
       {
         h_cemc_etaphi->Fill(ieta, iphi);
       }
@@ -297,13 +328,13 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
 
     float clus_pt = E_vec_cluster.perp();
-    float clus_chisq = recoCluster->get_chi2();
+    float clus_chisq = recoCluster->get_prob();
 
     if (clus_pt < nClus_ptCut)
     {
       continue;
     }
-    if (clus_chisq > clus_chisq_cut)
+    if (clus_chisq < clus_chisq_cut)
     {
       continue;
     }
@@ -324,9 +355,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
   h_event->Fill(0);
 
-  float ptClusMax = 7;
-  float pt1ClusCut = pt1BaseClusCut;
-  float pt2ClusCut = pt2BaseClusCut;
+  float ptClusMax = 4;
+  float pt1ClusCut = pt1BaseClusCut;  
+  float pt2ClusCut = pt2BaseClusCut;  
+
 
   if (nClusCount > 30)
   {
@@ -347,9 +379,9 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
     float clus_eta = E_vec_cluster.pseudoRapidity();
     float clus_phi = E_vec_cluster.phi();
     float clus_pt = E_vec_cluster.perp();
-    float clus_chisq = recoCluster->get_chi2();
+    float clus_chisq = recoCluster->get_prob();
 
-    if (clus_chisq > clus_chisq_cut)
+    if (clus_chisq < clus_chisq_cut)
     {
       continue;
     }
@@ -368,13 +400,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       continue;
     }
 
-    for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
+    for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterIter; clusterIter2++)
     {
-      if (clusterIter2 == clusterIter)
-      {
-        continue;
-      }
-
       RawCluster* recoCluster2 = clusterIter2->second;
 
       CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex);
@@ -383,13 +410,13 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       float clus2_eta = E_vec_cluster2.pseudoRapidity();
       float clus2_phi = E_vec_cluster2.phi();
       float clus2_pt = E_vec_cluster2.perp();
-      float clus2_chisq = recoCluster2->get_chi2();
+      float clus2_chisq = recoCluster2->get_prob();
 
       if (clus2_pt < pt2ClusCut || clus_pt > ptClusMax)
       {
         continue;
       }
-      if (clus2_chisq > clus_chisq_cut)
+      if (clus2_chisq < clus_chisq_cut)
       {
         continue;
       }
@@ -782,7 +809,6 @@ bool pi0EtaByEta::checkOutput(const std::string& file)
 
   float final_mass_target = target_pi0_mass;
 
-  //  int numConv = 0;
   int numNotConv = 0;
 
   for (int i = 0; i < 96; i++)
@@ -797,11 +823,7 @@ bool pi0EtaByEta::checkOutput(const std::string& file)
       corr = 0;
     }
     std::cout << "err " << corr << std::endl;
-    if (std::fabs(corr) < convLev)
-    {
-      //      numConv++;
-    }
-    else
+    if (std::fabs(corr) > convLev)
     {
       numNotConv++;
     }
@@ -813,9 +835,9 @@ bool pi0EtaByEta::checkOutput(const std::string& file)
   {
     return true;
   }
-
   return false;
 }
+
 
 void pi0EtaByEta::set_massTargetHistFile(const std::string& file)
 {

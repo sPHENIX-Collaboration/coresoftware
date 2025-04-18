@@ -37,7 +37,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual void AllDone(const int i) { m_AllDone = i; }
   virtual int FilesDone() const { return m_FilesDone; }
   virtual void FilesDone(const int i) { m_FilesDone = i; }
-  virtual void CreateDSTNode(PHCompositeNode *topNode);
+  virtual void CreateDSTNodes(Event *evt);
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
   virtual int FillEventVector();
@@ -48,12 +48,11 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual std::array<uint64_t, pooldepth>::const_iterator begin() { return m_bclkdiffarray.begin(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator end() { return m_bclkdiffarray.end(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
-  virtual void AddPacket(PHCompositeNode *topNode, OfflinePacket *newhit);
-  void Detector(const std::string &name);
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
 
  protected:
+  PHCompositeNode *m_topNode{nullptr};
   // lined up like this:
   // Event * | previous event beam clock | clock diff to previous event
   // keeping previous beam clock just eases the looping, we want to be able to have
@@ -62,19 +61,18 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   std::deque<Event *> m_EventDeque;
   std::array<uint64_t, pooldepth + 1> m_bclkarray{};  // keep the last bco from previous loop
   std::array<uint64_t, pooldepth> m_bclkdiffarray{};
+  std::set<int> m_PacketSet;
 
  private:
   Eventiterator *m_EventIterator{nullptr};
   SingleTriggeredInput *m_Gl1Input{nullptr};
-  PHCompositeNode *m_topNode{nullptr};
   uint64_t m_Event{0};
   int m_RunNumber{0};
   int m_EventsThisFile{0};
   int m_AllDone{0};
   int m_FilesDone{0};
   int m_LastEvent{std::numeric_limits<int>::max()};
-  std::string m_OutNodeName;
-  std::string m_Detector;
+  bool firstcall {true};
 };
 
 #endif

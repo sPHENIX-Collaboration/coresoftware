@@ -137,6 +137,11 @@ int SingleTriggeredInput::FillEventVector()
     //    std::cout << Name() << std::endl;
     //    evt->identify();
     evt->convert();
+    if (firstcall)
+    {
+      CreateDSTNodes(evt);
+      firstcall = false;
+    }
     //    std::cout << Name() << ":filling index " << i+1 << " with " << std::hex << bla << std::dec << std::endl;
     uint64_t myClock = GetClock(evt);
     if (myClock == std::numeric_limits<uint64_t>::max())
@@ -288,11 +293,12 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
   //  std::cout << "Handling event " << evt->getEvtSequence();
-  CaloPacket *newhit = new CaloPacketv1();
+//  CaloPacket *newhit = new CaloPacketv1();
   std::vector<Packet *> pktvec = evt->getPacketVector();
   for (auto *packet : pktvec)
   {
     int packet_id = packet->getIdentifier();
+    CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode,packet_id);
     newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
     int nr_modules = packet->iValue(0, "NRMODULES");
     int nr_channels = packet->iValue(0, "CHANNELS");
@@ -332,69 +338,41 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
         }
       }
     }
-    AddPacket(m_topNode, newhit);
     delete packet;
   }
-  delete newhit;
   delete evt;
 }
 
-void SingleTriggeredInput::CreateDSTNode(PHCompositeNode *topNode)
+void SingleTriggeredInput::CreateDSTNodes(Event *evt)
 {
-  if (m_Detector.empty())
-  {
-    std::cout << PHWHERE << " You forgot to set the detector name" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
-
-  m_topNode = topNode;
-  PHNodeIterator iter(topNode);
+  static std::string CompositeNodeName = "Packets";
+  PHNodeIterator iter(m_topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     dstNode = new PHCompositeNode("DST");
-    topNode->addNode(dstNode);
+    m_topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", m_Detector));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
   if (!detNode)
   {
-    detNode = new PHCompositeNode(m_Detector);
+    detNode = new PHCompositeNode(CompositeNodeName);
     dstNode->addNode(detNode);
   }
-  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(detNode, m_OutNodeName);
-  if (!packetcont)
+ std::vector<Packet *> pktvec = evt->getPacketVector();
+ for (auto *piter : pktvec)
   {
-    packetcont = new CaloPacketContainerv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(packetcont, m_OutNodeName, "PHObject");
+    int packet_id = piter->getIdentifier();
+    m_PacketSet.insert(packet_id);
+    std::string PacketNodeName = std::to_string(packet_id);
+  CaloPacket *calopacket = findNode::getClass<CaloPacket>(detNode, PacketNodeName);
+    if (!calopacket)
+    {
+      calopacket = new CaloPacketv1();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(calopacket, PacketNodeName, "PHObject");
     detNode->addNode(newNode);
   }
-}
-
-void SingleTriggeredInput::Detector(const std::string &name)
-{
-  m_Detector = name;
-  m_OutNodeName = m_Detector + "Packets";
-  return;
-}
-
-void SingleTriggeredInput::AddPacket(PHCompositeNode *topNode, OfflinePacket *newhit)
-{
-  CaloPacketContainer *packetcont = findNode::getClass<CaloPacketContainer>(topNode, m_OutNodeName);
-  if (!packetcont)
-  {
-    std::cout << PHWHERE << " Could not locate " << m_OutNodeName << ", or type mismatch" << std::endl;
-    gSystem->Exit(1);
-    exit(1);
+    delete piter;
   }
-  CaloPacket *calopacket = dynamic_cast<CaloPacket *>(newhit);
-  if (!calopacket)
-  {
-    std::cout << PHWHERE << " dynamic cast to CaloPacket failed for " << std::endl;
-    newhit->identify();
-    gSystem->Exit(1);
-    exit(1);
-  }
-  packetcont->AddPacket(calopacket);
 }

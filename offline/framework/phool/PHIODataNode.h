@@ -23,7 +23,7 @@ class PHIODataNode : public PHDataNode<T>
   T *operator*() { return this->getData(); }
   PHIODataNode(T *, const std::string &);
   PHIODataNode(T *, const std::string &, const std::string &);
-  virtual ~PHIODataNode() {}
+  virtual ~PHIODataNode() = default;
   typedef PHTypedNodeIterator<T> iterator;
   void BufferSize(int size) { buffersize = size; }
   void SplitLevel(int split) { splitlevel = split; }

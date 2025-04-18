@@ -16,6 +16,7 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
+#include <trackbase_historic/SvtxAlignmentState.h>
 #include <trackbase_historic/SvtxAlignmentStateMap.h>
 
 #include <fun4all/SubsysReco.h>
@@ -34,6 +35,9 @@ class TrkrClusterContainer;
 class Mille;
 class ActsPropagator;
 
+class TFile;
+class TNtuple;
+
 using Trajectory = ActsExamples::Trajectories;
 
 class MakeMilleFiles : public SubsysReco
@@ -46,9 +50,14 @@ class MakeMilleFiles : public SubsysReco
   int End(PHCompositeNode* topNode) override;
 
   void set_binary(bool bin) { _binary = bin; }
+
+  void set_track_map_name(const std::string& name) {m_track_map_name = name;}
+  void set_state_map_name(const std::string& name) {m_state_map_name = name;}
   void set_constraintfile_name(const std::string& file) { m_constraintFileName = file; }
   void set_datafile_name(const std::string& file) { data_outfilename = file; }
   void set_steeringfile_name(const std::string& file) { steering_outfilename = file; }
+  void set_tfile_name(const std::string& file) { m_tfile_name = file; }
+
   void set_mvtx_grouping(int group) { mvtx_group = (AlignmentDefs::mvtxGrp) group; }
   void set_intt_grouping(int group) { intt_group = (AlignmentDefs::inttGrp) group; }
   void set_tpc_grouping(int group) { tpc_group = (AlignmentDefs::tpcGrp) group; }
@@ -126,11 +135,19 @@ class MakeMilleFiles : public SubsysReco
   std::string m_constraintFileName = "mp2con.txt";
   std::ofstream m_constraintFile;
 
+  std::string m_track_map_name{"SvtxTrackMap"};
   SvtxTrackMap* _track_map{nullptr};
+
+  std::string m_state_map_name{"SvtxAlignmentStateMap"};
   SvtxAlignmentStateMap* _state_map{nullptr};
+
   ActsGeometry* _tGeometry{nullptr};
   TrkrClusterContainer* _cluster_map{nullptr};
   ClusterErrorPara _ClusErrPara;
+
+  std::string m_tfile_name;
+  TFile* m_file{nullptr};
+  TNtuple* m_ntuple{nullptr};
 };
 
 #endif  // MAKEMILLEFILES_H
