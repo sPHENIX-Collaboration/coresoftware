@@ -10,6 +10,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+
 #include <Event/Event.h>
 
 #include <phool/PHCompositeNode.h>
@@ -21,6 +22,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <ffaobjects/EventHeader.h>
 #include <ffarawobjects/CaloPacketContainer.h>
 #include <ffarawobjects/Gl1Packet.h>
 
@@ -79,6 +81,10 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   if ( m_mbdevent!=nullptr || m_mbdraw!=nullptr )
   {
     int status = Fun4AllReturnCodes::EVENT_OK;
+    if ( m_evtheader!=nullptr )
+    {
+      m_mbdevent->set_EventNumber( m_evtheader->get_EvtSequence() );
+    }
     if ( m_event!=nullptr )
     {
       status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
@@ -125,7 +131,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     m_mbdevent->ProcessRawPackets( m_mbdpmts );
   }
 
-  m_mbdevent->Calculate(m_mbdpmts, m_mbdout);
+  m_mbdevent->Calculate(m_mbdpmts, m_mbdout, topNode);
 
   // For multiple global vertex
   if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0 && _calpass==0 )
@@ -279,6 +285,17 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
   {
     std::cout << PHWHERE << "MbdVertexMap node not found on node tree" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_evtheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (!m_evtheader )
+  {
+    static int ctr = 0;
+    if ( ctr<4 )
+    {
+      std::cout << PHWHERE << " EventHeader node not found on node tree" << std::endl;
+      ctr++;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
