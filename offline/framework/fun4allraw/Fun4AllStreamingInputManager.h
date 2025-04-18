@@ -21,6 +21,7 @@ class PHCompositeNode;
 class SyncObject;
 class TpcRawHit;
 class TH1;
+class TH2;
 class Fun4AllStreamingInputManager : public Fun4AllInputManager
 {
  public:
@@ -156,6 +157,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   TH1 *h_gl1tagged_intt[8]{nullptr};
   TH1 *h_taggedAllFees_intt[8]{nullptr};
   TH1 *h_gl1taggedfee_intt[8][14]{{nullptr}};
+  TH2 *h_bcodiff_intt[8]{nullptr};
 
   TH1 *h_gl1tagged_tpc[24][2]{{nullptr}};
   TH1 *h_refbco_tpc{nullptr};

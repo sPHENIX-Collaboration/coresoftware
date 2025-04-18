@@ -38,6 +38,7 @@
 #include <boost/format.hpp>
 
 #include <TH1.h>
+#include <TH2.h>
 #include <TSystem.h>
 
 #include <algorithm>  // for max
@@ -725,6 +726,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &bcl : gtmbcoset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
+        h_bcodiff_intt[histo_to_fill]->Fill(feeid, diff);
         if (diff <= m_intt_bco_range)
         {  // diff is whatever the bco range is set as (2 for triggered, 120 for strobe)
           h_gl1taggedfee_intt[histo_to_fill][fee]->Fill(refbcobitshift);
@@ -1599,6 +1601,8 @@ void Fun4AllStreamingInputManager::createQAHistos()
   for (int i = 0; i < 8; i++)
   {
     h_gl1tagged_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str()));
+    h_bcodiff_intt[i] = new TH2I((boost::format("h_InttPoolQA_BCODiff_server%i") % i).str().c_str(), ";FEE ID;|GL1 BCO - GTM BCO|", 14, 0, 14, 10000, 0, 10000);
+    hm->registerHisto(h_bcodiff_intt[i]);
     for (int j = 0; j < 14; j++)
     {
       h_gl1taggedfee_intt[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str()));
