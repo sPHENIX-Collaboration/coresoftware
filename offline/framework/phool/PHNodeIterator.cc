@@ -32,7 +32,6 @@ PHNodeIterator::ls()
   PHNode* thisNode;
   while ((thisNode = iter()))
   {
-    std::cout << "node name " <<  thisNode->getName() << std::endl;
     subNodeList.append(thisNode);
   }
   return subNodeList;
