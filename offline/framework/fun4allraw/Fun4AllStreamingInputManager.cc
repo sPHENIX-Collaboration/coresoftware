@@ -38,6 +38,7 @@
 #include <boost/format.hpp>
 
 #include <TH1.h>
+#include <TH2.h>
 #include <TSystem.h>
 
 #include <algorithm>  // for max
@@ -712,7 +713,6 @@ int Fun4AllStreamingInputManager::FillIntt()
   int allpacketsallfees = 0;
   for (auto &p : m_InttInputVector)
   {
-    
     // this is on a per packet basis
     auto bcl_stack = p->BclkStackMap();
     auto feebclstack = p->getFeeGTML1BCOMap();
@@ -726,7 +726,9 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &bcl : gtmbcoset)
       {
         auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 120) { // diff is 1 strobe length of 120 crossings
+        h_bcodiff_intt[histo_to_fill]->Fill(feeid, diff);
+        if (diff <= m_intt_bco_range)
+        {  // diff is whatever the bco range is set as (2 for triggered, 120 for strobe)
           h_gl1taggedfee_intt[histo_to_fill][fee]->Fill(refbcobitshift);
           feeidset.insert(feeid);
           // this fee was tagged, go to the next one
@@ -749,7 +751,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-        if (diff < 120)  //diff is 1 strobe length of 120 crossings
+        if (diff < m_intt_bco_range)  
         {
           thispacket = true;
           h_gl1tagged_intt[histo_to_fill]->Fill(refbcobitshift);
@@ -917,7 +919,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
       int packetid = felix * 2 + endpoint;
       h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
-      h_tagStBcoFEE_mvtx->Fill(feeId);
+      h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
     }
     break;
   }
@@ -937,10 +939,10 @@ int Fun4AllStreamingInputManager::FillMvtx()
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
 
         h_bcoGL1LL1diff[packetid]->Fill(diff);
-
-        if (diff < 3)
+        if (diff <= 3)
         {
           taggedPacketsFEEs[packetid].insert(feeid);
+          h_tagL1BcoFEE_mvtx[packetid]->Fill(feeid);
           break;
         }
       }
@@ -1525,9 +1527,14 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h);
   }
-  h_tagStBcoFEE_mvtx = new TH1I("h_MvtxPoolQA_TagStBcoFEEs", "", 10000, 0, 10000);
-  hm->registerHisto(h_tagStBcoFEE_mvtx);
 
+  for (int i = 0; i < 12; i++)
+  {
+    h_tagStBcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagStBcoFEEsPacket%i")% i).str().c_str(), "", 10000, 0, 10000);
+    hm->registerHisto(h_tagStBcoFEE_mvtx[i]);
+    h_tagL1BcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagL1BcoFEEsPacket%i")% i).str().c_str(), "", 10000, 0, 10000);
+    hm->registerHisto(h_tagL1BcoFEE_mvtx[i]);
+  }
   // intt has 8 prdfs, one per felix
   for (int i = 0; i < 8; i++)
   {
@@ -1594,6 +1601,8 @@ void Fun4AllStreamingInputManager::createQAHistos()
   for (int i = 0; i < 8; i++)
   {
     h_gl1tagged_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str()));
+    h_bcodiff_intt[i] = new TH2I((boost::format("h_InttPoolQA_BCODiff_server%i") % i).str().c_str(), ";FEE ID;|GL1 BCO - GTM BCO|", 14, 0, 14, 10000, 0, 10000);
+    hm->registerHisto(h_bcodiff_intt[i]);
     for (int j = 0; j < 14; j++)
     {
       h_gl1taggedfee_intt[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i_fee%i") % i % j).str().c_str()));
