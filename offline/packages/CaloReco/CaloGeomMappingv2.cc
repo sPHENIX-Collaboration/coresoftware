@@ -273,7 +273,7 @@ void CaloGeomMappingv2::setTowerGeomNodeName(const std::string &name)
   m_TowerGeomNodeName = name;
 }
 
-std::string CaloGeomMappingv2::get_detector_name()
+const std::string CaloGeomMappingv2::get_detector_name()
 {
   return m_Detector;
 }

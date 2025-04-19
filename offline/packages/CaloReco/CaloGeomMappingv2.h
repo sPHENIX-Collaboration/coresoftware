@@ -56,7 +56,7 @@ class CaloGeomMappingv2 : public SubsysReco
   void setTowerGeomNodeName(const std::string& name);
 
   void set_detector_name(const std::string& name);
-  std::string get_detector_name();
+  const std::string get_detector_name();
 
  protected:
   std::string m_Detector;  // CEMC, HCALIN or HCALOUT
