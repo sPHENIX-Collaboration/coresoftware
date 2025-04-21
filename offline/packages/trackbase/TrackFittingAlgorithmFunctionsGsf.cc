@@ -8,7 +8,7 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
     std::shared_ptr<const Acts::MagneticFieldProvider> magneticField,
     BetheHeitlerApprox betheHeitlerApprox, std::size_t maxComponents,
     double weightCutoff,
-    Acts::MixtureReductionMethod finalReductionMethod, bool abortOnError,
+    MixtureReductionAlgorithm finalReductionMethod, bool abortOnError,
     bool disableAllMaterialHandling, const Acts::Logger& logger)
 {
   MultiStepper stepper(std::move(magneticField),
@@ -34,7 +34,7 @@ ActsGsfTrackFittingAlgorithm::makeGsfFitterFunction(
   fitterFunction->weightCutoff = weightCutoff;
   fitterFunction->abortOnError = abortOnError;
   fitterFunction->disableAllMaterialHandling = disableAllMaterialHandling;
-  fitterFunction->reductionMethod = finalReductionMethod;
+  fitterFunction->reductionAlg = finalReductionMethod;
 
   return fitterFunction;
 }

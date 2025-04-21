@@ -114,7 +114,10 @@ class PHActsTrkFitter : public SubsysReco
   void commissioning(bool com) { m_commissioning = com; }
 
   void useOutlierFinder(bool outlier) { m_useOutlierFinder = outlier; }
-
+  void setOutlierFinderOutfile(const std::string& outfilename)
+  {
+    m_outlierFinder.outfileName(outfilename);
+  }
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
 

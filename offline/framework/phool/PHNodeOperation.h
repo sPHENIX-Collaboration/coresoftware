@@ -10,18 +10,16 @@ class PHNode;
 class PHNodeOperation
 {
  public:
-  PHNodeOperation()
-    : verbosity(0)
-  {
-  }
-  virtual ~PHNodeOperation() {}
-  void
-  operator()(PHNode& o)
+  PHNodeOperation() = default;
+
+  virtual ~PHNodeOperation() = default;
+
+  void operator()(PHNode& o)
   {
     perform(&o);
   }
-  void
-  operator()(PHNode* o)
+
+  void operator()(PHNode* o)
   {
     perform(o);
   }
@@ -31,7 +29,7 @@ class PHNodeOperation
 
  protected:
   virtual void perform(PHNode*) = 0;
-  int verbosity;
+  int verbosity {0};
 };
 
 #endif

@@ -293,7 +293,7 @@ int PHG4TpcCylinderGeom::find_phibin(const double phi, int side) const
   // if (phi < phimin){
   //   norm_phi = phi + 2* M_PI;
   // }
-  side = 0;
+  //side = 0;
 
   int phi_bin = -1;
 
@@ -338,7 +338,7 @@ float PHG4TpcCylinderGeom::get_pad_float(const double phi, int side) const
   // if (phi < phimin){
   //   norm_phi = phi + 2* M_PI;
   // }
-  side = 0;
+  //side = 0;
 
   float phi_bin = -1;
 
@@ -393,9 +393,9 @@ int PHG4TpcCylinderGeom::get_phibin(const double phi, int side) const
     new_phi = phi + 2 * M_PI;
   }
   // Get phi-bin number
-  int phi_bin = find_phibin(new_phi);
+  int phi_bin = find_phibin(new_phi, side);
 
-  side = 0;
+  //side = 0;
   // If phi-bin is not defined, check that it is in the dead area and put it to the edge of sector
   if (phi_bin < 0)
   {
@@ -428,7 +428,7 @@ int PHG4TpcCylinderGeom::get_phibin(const double phi, int side) const
     }
     // exit(1);
 
-    phi_bin = find_phibin(new_phi);
+    phi_bin = find_phibin(new_phi, side);
     if (phi_bin < 0)
     {
       std::cout << PHWHERE << "Asking for bin for phi outside of phi range: " << phi << std::endl;
@@ -479,7 +479,7 @@ PHG4TpcCylinderGeom::get_phicenter_new(const int ibin) const
 }
 
 double
-PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
+PHG4TpcCylinderGeom::get_phicenter(const int ibin, const int side) const
 {
   // double phi_center = -999;
   if (ibin < 0 || ibin > nphibins)
@@ -490,7 +490,7 @@ PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
 
   check_binning_method_phi();
 
-  const int side = 0;
+  //const int side = 0;
   unsigned int pads_per_sector = nphibins / 12;
   unsigned int sector = ibin / pads_per_sector;
   double phi_center = (sector_max_Phi[side][sector] - (ibin + 0.5 - sector * pads_per_sector) * phistep);
@@ -502,7 +502,7 @@ PHG4TpcCylinderGeom::get_phicenter(const int ibin) const
 }
 
 double
-PHG4TpcCylinderGeom::get_phi(const float ibin) const
+PHG4TpcCylinderGeom::get_phi(const float ibin, const int side) const
 {
   // double phi_center = -999;
   if (ibin < 0 || ibin > nphibins)
@@ -513,7 +513,7 @@ PHG4TpcCylinderGeom::get_phi(const float ibin) const
 
   check_binning_method_phi();
 
-  const int side = 0;
+  //const int side = 0;
   unsigned int pads_per_sector = nphibins / 12;
   unsigned int sector = ibin / pads_per_sector;
   double phi = (sector_max_Phi[side][sector] - (ibin + 0.5 - sector * pads_per_sector) * phistep);

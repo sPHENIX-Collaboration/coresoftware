@@ -420,14 +420,59 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
     return 0;
   }
 
-  if (packet->getHitFormat() != IDTPCFEEV4)
+  if (m_hitFormat <0 )
   {
-    cout << __PRETTY_FUNCTION__ << "\t- Error : expect packet format " << IDTPCFEEV4
-         << "\t- but received packet format " << packet->getHitFormat() << ":" << endl;
-    packet->identify();
-    assert(packet->getHitFormat() == IDTPCFEEV4);
-    return 0;
+    if (packet->getHitFormat() != IDTPCFEEV4 and packet->getHitFormat() != IDTPCFEEV5 )
+    {
+      cout << __PRETTY_FUNCTION__ << "\t- Error : expect packet format " << IDTPCFEEV4 
+          << " or "<< IDTPCFEEV5
+          << "\t- but received packet format " << packet->getHitFormat() << ":" << endl;
+      packet->identify();
+      assert(packet->getHitFormat() == IDTPCFEEV4 or packet->getHitFormat() == IDTPCFEEV5);
+      return 0;
+    }
+
+    m_hitFormat = packet->getHitFormat();
+
+    double clock_multiplier (0);
+    if (m_hitFormat == IDTPCFEEV4)
+    {
+      // this is the clock multiplier from lvl1 to fee clock
+      // Tested with Run24 data. Could be changable in future runs
+      clock_multiplier = 4.262916255;
+    }
+    else if (m_hitFormat == IDTPCFEEV5)
+    {
+      // version 46 FEE firmware 
+      clock_multiplier = 30./8.;
+    }
+    else
+    {
+      assert(clock_multiplier>0);
+    }
+
+    if (m_verbosity >= 1)
+    {
+      cout << __PRETTY_FUNCTION__ << " set clock sync for hit format " << m_hitFormat 
+      <<" with clock_multiplier = "<< clock_multiplier << endl;
+    }
+    for (BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
+    {
+      bcoMatchingInformation.set_gtm_clock_multiplier(clock_multiplier);
+    }
   }
+  else
+  {
+    if (packet->getHitFormat() != m_hitFormat)
+    {
+      cout << __PRETTY_FUNCTION__ << "\t- Error : expect the last packet format " << m_hitFormat
+          << "\t- but received packet format " << packet->getHitFormat() << ":" << endl;
+      packet->identify();
+      assert((packet->getHitFormat() == m_hitFormat));
+      return 0;
+    }
+  }
+  assert((packet->getHitFormat() == m_hitFormat));
 
   if (m_packet_id != packet->getIdentifier())
   {
@@ -1251,6 +1296,8 @@ std::optional<uint32_t> TpcTimeFrameBuilder::BcoMatchingInformation::get_predict
 
   // get gtm bco difference with proper rollover accounting
   const int64_t gtm_bco_difference = int64_t(gtm_bco) - int64_t(m_bco_reference.value().first);
+
+  assert(m_multiplier>0);
 
   // convert to fee bco, and truncate to 20 bits
   const int64_t fee_bco_predicted = int64_t(m_bco_reference.value().second) + int64_t(m_multiplier * gtm_bco_difference);

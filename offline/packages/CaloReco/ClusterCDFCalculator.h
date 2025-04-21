@@ -55,7 +55,7 @@ private:
                                     double meanD2);
 
     virtual std::unordered_set<int> getSubsetIndices(int gridSize, int subsetSize);
-    double GetCDFValue(double jointDeviation, TH1* hD2);
+    static double GetCDFValue(double jointDeviation, TH1* hD2);
 
     static const int NMATRIX_3x3 {9};
     static const int NMATRIX_5x5 {25};

@@ -14,8 +14,7 @@ class PHCompositeNode;
 
 namespace findNode
 {
-  template <class T>
-  T *getClass(PHCompositeNode *top, const std::string &name)
+  template <class T> T *getClass(PHCompositeNode *top, const std::string &name)
   {
     PHNodeIterator iter(top);
     PHNode *FoundNode = iter.findFirst(name);  // returns pointer to PHNode
@@ -55,6 +54,13 @@ namespace findNode
 
     return nullptr;
   }
+
+  template <class T> T *getClass(PHCompositeNode *top, const int packetid)
+  {
+    std::string name = std::to_string(packetid);
+    return findNode::getClass<T>(top,name);
+  }
+
 }  // namespace findNode
 
 #endif

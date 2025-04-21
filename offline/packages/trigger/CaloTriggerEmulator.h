@@ -117,7 +117,6 @@ class CaloTriggerEmulator : public SubsysReco
     return;
   }
 
-
   bool CheckFiberMasks(TriggerDefs::TriggerPrimKey key);
   void LoadFiberMasks();
   void SetIsData(bool isd) { m_isdata = isd; }
@@ -146,7 +145,6 @@ class CaloTriggerEmulator : public SubsysReco
   bool m_do_hcalout{false};
   bool m_do_emcal{false};
 
-
   bool m_default_lut_hcalin{false};
   bool m_default_lut_hcalout{false};
   bool m_default_lut_emcal{false};
@@ -163,7 +161,6 @@ class CaloTriggerEmulator : public SubsysReco
   CaloPacketContainer *m_hcal_packets{nullptr};
   CaloPacketContainer *m_emcal_packets{nullptr};
 
-  
   //! LL1 Out
   LL1Out *m_ll1out_photon{nullptr};
 
@@ -198,24 +195,24 @@ class CaloTriggerEmulator : public SubsysReco
   unsigned int m_l1_8x8_table[1024]{};
   unsigned int m_l1_slewing_table[4096]{};
 
-  std::map<unsigned int, TH1*> h_emcal_lut{};
-  std::map<unsigned int, TH1*> h_hcalin_lut{};
-  std::map<unsigned int, TH1*> h_hcalout_lut{};
+  std::map<unsigned int, TH1 *> h_emcal_lut{};
+  std::map<unsigned int, TH1 *> h_hcalin_lut{};
+  std::map<unsigned int, TH1 *> h_hcalout_lut{};
 
   CDBTTree *cdbttree_adcmask{nullptr};
   CDBHistos *cdbttree_emcal{nullptr};
   CDBHistos *cdbttree_hcalin{nullptr};
   CDBHistos *cdbttree_hcalout{nullptr};
 
-  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_emcal{};
-  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalin{};
-  std::map<unsigned int, std::vector<unsigned int> > m_peak_sub_ped_hcalout{};
+  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_emcal{};
+  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_hcalin{};
+  std::map<unsigned int, std::vector<unsigned int>> m_peak_sub_ped_hcalout{};
 
   //! Verbosity.
-  int m_nevent;
-  int m_photon_npassed;
-  int m_jet_npassed;
-  int m_pair_npassed;
+  int m_nevent{0};
+  int m_photon_npassed{0};
+  int m_jet_npassed{0};
+  int m_pair_npassed{0};
 
   int m_n_sums;
   int m_n_primitives;
@@ -229,8 +226,9 @@ class CaloTriggerEmulator : public SubsysReco
 
   int m_isdata{1};
   int m_useoffline{false};
-  int m_nsamples = 16;
-  int m_idx{8};
+  // default nsamples is 16 for mbd, 12 for calos
+  int m_nsamples{16};
+  // int m_idx{12};
 
   int m_packet_low_hcalout = 8001;
   int m_packet_high_hcalout = 8008;

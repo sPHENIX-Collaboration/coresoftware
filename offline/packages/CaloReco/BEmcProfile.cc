@@ -6,6 +6,7 @@
 #include <TMath.h>
 #include <TROOT.h>
 
+#include <algorithm>
 #include <boost/format.hpp>
 
 #include <cmath>    // for sqrt, log, pow, fabs
@@ -35,7 +36,7 @@ BEmcProfile::BEmcProfile(const std::string& fname)
 
   gROOT->cd();
 
-  TH1F* hen = static_cast<TH1F*>(f->Get("hen"));
+  TH1F* hen = dynamic_cast<TH1F*>(f->Get("hen"));
   if (!hen)
   {
     std::cout << "BEmcProfile: Error when loading profile data: hen" << std::endl;
@@ -43,7 +44,7 @@ BEmcProfile::BEmcProfile(const std::string& fname)
     return;
   }
 
-  TH1F* hth = static_cast<TH1F*>(f->Get("hth"));
+  TH1F* hth = dynamic_cast<TH1F*>(f->Get("hth"));
   if (!hth)
   {
     std::cout << "BEmcProfile: Error when loading profile data: hth" << std::endl;
@@ -101,7 +102,7 @@ BEmcProfile::BEmcProfile(const std::string& fname)
       for (int ip = 0; ip < NP; ip++)
       {
         hname = boost::str(boost::format("hmean%d_en%d_t%d") % (ip + 1) % ie % it);
-        hh = static_cast<TH1F*>(f->Get(hname.c_str()));
+        hh = dynamic_cast<TH1F*>(f->Get(hname.c_str()));
         if (!hh)
         {
           std::cout << "BEmcProfile: Could not load histogram " << hname
@@ -110,10 +111,10 @@ BEmcProfile::BEmcProfile(const std::string& fname)
           f->Close();
           return;
         }
-        hmean[ii] = static_cast<TH1F*>(hh->Clone());
+        hmean[ii] = dynamic_cast<TH1F*>(hh->Clone());
 
         hname = boost::str(boost::format("hsigma%d_en%d_t%d") % (ip + 1) % ie % it);
-        hh = static_cast<TH1F*>(f->Get(hname.c_str()));
+        hh = dynamic_cast<TH1F*>(f->Get(hname.c_str()));
         if (!hh)
         {
           std::cout << "BEmcProfile: Could not load histogram " << hname
@@ -122,13 +123,13 @@ BEmcProfile::BEmcProfile(const std::string& fname)
           f->Close();
           return;
         }
-        hsigma[ii] = static_cast<TH1F*>(hh->Clone());
+        hsigma[ii] = dynamic_cast<TH1F*>(hh->Clone());
 
         ii++;
       }
 
       hname = boost::str(boost::format("hr4_en%d_t%d") % ie % it);
-      hh = static_cast<TH1F*>(f->Get(hname.c_str()));
+      hh = dynamic_cast<TH1F*>(f->Get(hname.c_str()));
 
       if (!hh)
       {
@@ -137,7 +138,7 @@ BEmcProfile::BEmcProfile(const std::string& fname)
         f->Close();
         return;
       }
-      hr4[ii2] = static_cast<TH1F*>(hh->Clone());
+      hr4[ii2] = dynamic_cast<TH1F*>(hh->Clone());
       ii2++;
     }
   }
@@ -189,7 +190,8 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   float ee;
   int ich;  // iy, iz;
 
-  int iy0 = -1, iz0 = -1;
+  int iy0 = -1;
+  int iz0 = -1;
   float emax = 0;
   for (int i = 0; i < nn; i++)
   {
@@ -229,8 +231,8 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   int iz0cg = int(zcg + 0.5);
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int iy0cg = int(ycg + 0.5);
-  float ddz = fabs(zcg - iz0cg);
-  float ddy = fabs(ycg - iy0cg);
+  float ddz = std::fabs(zcg - iz0cg);
+  float ddy = std::fabs(ycg - iy0cg);
 
   int isz = 1;
   if (zcg - iz0cg < 0)
@@ -246,7 +248,10 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   // 4 central towers: 43
   //                   12
   // Tower 1 - central one
-  float e1, e2, e3, e4;
+  float e1;
+  float e2;
+  float e3;
+  float e4;
   e1 = GetTowerEnergy(iy0cg, iz0cg, plist, NX);
   e2 = GetTowerEnergy(iy0cg, iz0cg + isz, plist, NX);
   e3 = GetTowerEnergy(iy0cg + isy, iz0cg + isz, plist, NX);
@@ -286,11 +291,11 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
     }
     if (ip < 3)
     {
-      err[ip] = sqrt(err[ip] * err[ip] + 4 * enoise * enoise / etot / etot);
+      err[ip] = std::sqrt((err[ip] * err[ip]) + (4 * enoise * enoise / etot / etot));
     }
     else
     {
-      err[ip] = sqrt(err[ip] * err[ip] + 1 * enoise * enoise / etot / etot);
+      err[ip] = std::sqrt((err[ip] * err[ip]) + (1 * enoise * enoise / etot / etot));
     }
   }
 
@@ -488,7 +493,7 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   //       << energy << ")  Theta bin= " << it1 << " " << it2
   //       << " (" << theta << ")" << std::endl;
 
-  float rr = sqrt((0.5 - ddz) * (0.5 - ddz) + (0.5 - ddy) * (0.5 - ddy));
+  float rr = sqrt(((0.5 - ddz) * (0.5 - ddz)) + ((0.5 - ddy) * (0.5 - ddy)));
 
   float xx = rr;
   if (ip == 1)
@@ -506,10 +511,10 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   float th2 = theta_array[it2];
 
   // 1st index - ie, second index - it
-  int ii11 = ip + ie1 * NP + it1 * nen * NP;
-  int ii21 = ip + ie2 * NP + it1 * nen * NP;
-  int ii12 = ip + ie1 * NP + it2 * nen * NP;
-  int ii22 = ip + ie2 * NP + it2 * nen * NP;
+  int ii11 = ip + (ie1 * NP) + (it1 * nen * NP);
+  int ii21 = ip + (ie2 * NP) + (it1 * nen * NP);
+  int ii12 = ip + (ie1 * NP) + (it2 * nen * NP);
+  int ii22 = ip + (ie2 * NP) + (it2 * nen * NP);
 
   int ibin = hmean[ii11]->FindBin(xx);
 
@@ -517,48 +522,30 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   //
   float pr11 = hmean[ii11]->GetBinContent(ibin);
   float pr21 = hmean[ii21]->GetBinContent(ibin);
-  float prt1 = pr11 + (pr21 - pr11) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt1 < 0)
-  {
-    prt1 = 0;
-  }
+  float prt1 = pr11 + ((pr21 - pr11) / (std::log(en2) - std::log(en1)) * (std::log(energy) - std::log(en1)));
+  prt1 = std::max<float>(prt1, 0);
 
   float er11 = hsigma[ii11]->GetBinContent(ibin);
   float er21 = hsigma[ii21]->GetBinContent(ibin);
-  float ert1 = er11 + (er21 - er11) / (1. / sqrt(en2) - 1. / sqrt(en1)) * (1. / sqrt(energy) - 1. / sqrt(en1));
-  if (ert1 < 0)
-  {
-    ert1 = 0;
-  }
+  float ert1 = er11 + ((er21 - er11) / (1. / std::sqrt(en2) - 1. / std::sqrt(en1)) * (1. / std::sqrt(energy) - 1. / std::sqrt(en1)));
+  ert1 = std::max<float>(ert1, 0);
 
   float pr12 = hmean[ii12]->GetBinContent(ibin);
   float pr22 = hmean[ii22]->GetBinContent(ibin);
-  float prt2 = pr12 + (pr22 - pr12) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt2 < 0)
-  {
-    prt2 = 0;
-  }
+  float prt2 = pr12 + ((pr22 - pr12) / (std::log(en2) - std::log(en1)) * (std::log(energy) - std::log(en1)));
+  prt2 = std::max<float>(prt2, 0);
 
   float er12 = hsigma[ii12]->GetBinContent(ibin);
   float er22 = hsigma[ii22]->GetBinContent(ibin);
-  float ert2 = er12 + (er22 - er12) / (1. / sqrt(en2) - 1. / sqrt(en1)) * (1. / sqrt(energy) - 1. / sqrt(en1));
-  if (ert2 < 0)
-  {
-    ert2 = 0;
-  }
+  float ert2 = er12 + ((er22 - er12) / (1. / std::sqrt(en2) - 1. / std::sqrt(en1)) * (1. / std::sqrt(energy) - 1. / std::sqrt(en1)));
+  ert2 = std::max<float>(ert2, 0);
 
   // Quadratic theta dependence of mean and sigma
   //
-  float pr = prt1 + (prt2 - prt1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2));
-  if (pr < 0)
-  {
-    pr = 0;
-  }
-  float er = ert1 + (ert2 - ert1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2));
-  if (er < 0)
-  {
-    er = 0;
-  }
+  float pr = prt1 + ((prt2 - prt1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2)));
+  pr = std::max<float>(pr, 0);
+  float er = ert1 + ((ert2 - ert1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2)));
+  er = std::max<float>(er, 0);
 
   // Additional error due to binning in xx
   //
@@ -583,7 +570,7 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float /*phi*/
   //   std::cout << "ie = " << ie1 << ", it = " << it1 << ", bin = "
   // 	 << ibin << ": " << er << " " << dd << std::endl;
   // }
-  er = sqrt(er * er + dd * dd);
+  er = std::sqrt((er * er) + (dd * dd));
 
   ep = pr;
   err = er;
@@ -658,10 +645,10 @@ float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, floa
   float th2 = theta_array[it2];
 
   // 1st index - ie, second index - it
-  int ii11 = ie1 + it1 * nen;
-  int ii21 = ie2 + it1 * nen;
-  int ii12 = ie1 + it2 * nen;
-  int ii22 = ie2 + it2 * nen;
+  int ii11 = ie1 + (it1 * nen);
+  int ii21 = ie2 + (it1 * nen);
+  int ii12 = ie1 + (it2 * nen);
+  int ii22 = ie2 + (it2 * nen);
 
   int ibin = hr4[ii11]->FindBin(rr);
 
@@ -669,27 +656,18 @@ float BEmcProfile::PredictEnergyR(float energy, float theta, float /*phi*/, floa
   //
   float pr11 = hr4[ii11]->GetBinContent(ibin);
   float pr21 = hr4[ii21]->GetBinContent(ibin);
-  float prt1 = pr11 + (pr21 - pr11) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt1 < 0)
-  {
-    prt1 = 0;
-  }
+  float prt1 = pr11 + ((pr21 - pr11) / (std::log(en2) - std::log(en1)) * (std::log(energy) - std::log(en1)));
+  prt1 = std::max<float>(prt1, 0);
 
   float pr12 = hr4[ii12]->GetBinContent(ibin);
   float pr22 = hr4[ii22]->GetBinContent(ibin);
-  float prt2 = pr12 + (pr22 - pr12) / (log(en2) - log(en1)) * (log(energy) - log(en1));
-  if (prt2 < 0)
-  {
-    prt2 = 0;
-  }
+  float prt2 = pr12 + ((pr22 - pr12) / (std::log(en2) - std::log(en1)) * (std::log(energy) - std::log(en1)));
+  prt2 = std::max<float>(prt2, 0);
 
   // Quadratic theta dependence of mean and sigma
   //
-  float pr = prt1 + (prt2 - prt1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2));
-  if (pr < 0)
-  {
-    pr = 0;
-  }
+  float pr = prt1 + ((prt2 - prt1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2)));
+  pr = std::max<float>(pr, 0);
 
   return pr;
 }

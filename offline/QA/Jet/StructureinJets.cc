@@ -15,10 +15,13 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <qautils/QAHistManagerDef.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
 
+#include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
 #include <TVector3.h>
@@ -34,32 +37,45 @@
 #include <utility>
 
 //____________________________________________________________________________..
-StructureinJets::StructureinJets(const std::string& moduleName, const std::string& recojetname, const std::string& histTag, const std::string& outputfilename)
+StructureinJets::StructureinJets(const std::string& moduleName, const std::string& recoJetName, const std::string& trkNodeName, const std::string& histTag, const std::string& outputfilename)
   : SubsysReco(moduleName)
   , m_moduleName(moduleName)
-  , m_recoJetName(recojetname)
+  , m_recoJetName(recoJetName)
+  , m_trkNodeName(trkNodeName)
   , m_histTag(histTag)
   , m_outputFileName(outputfilename)
 {
-  std::cout << "StructureinJets::StructureinJets(const std::string &name) Calling ctor" << std::endl;
+  if(Verbosity() > 1 )
+  {
+    std::cout << "StructureinJets::StructureinJets(const std::string& x 5) Calling ctor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
 StructureinJets::~StructureinJets()
 {
-  std::cout << "StructureinJets::~StructureinJets() Calling dtor" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "StructureinJets::~StructureinJets() Calling dtor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
 int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "StructureinJets::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  if (writeToOutputFileFlag)
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  }
+
+  if (m_writeToOutputFileFlag)
   {
     PHTFileServer::get().open(m_outputFileName, "RECREATE");
   }
+
   delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
+  m_manager = QAHistManagerDef::getHistoManager();
 
   // make sure module name is lower case
   std::string smallModuleName = m_moduleName;
@@ -71,8 +87,10 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 
   // construct histogram names
   std::vector<std::string> vecHistNames = {
-      "trackvscalopt",
-      "trackpt"};
+      "sumtrkvsjetptvscent",
+      "sumtrkvsjetpt",
+      "sumtrkoverjtpt",
+      "sumtrkpt"};
   for (auto& vecHistName : vecHistNames)
   {
     vecHistName.insert(0, "h_" + smallModuleName + "_");
@@ -82,28 +100,47 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
     }
   }
 
-  m_h_track_vs_calo_pt = new TH3F(vecHistNames[0].data(), "", 100, 0, 100, 500, 0, 100, 10, 0, 100);
-  m_h_track_vs_calo_pt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
-  m_h_track_vs_calo_pt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
-  m_h_track_pt = new TH2F(vecHistNames[1].data(), "", 100, 0, 100, 100, 0, 100);
-  m_h_track_pt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
-  m_h_track_pt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
-  m_manager->registerHisto(m_h_track_vs_calo_pt);
-  m_manager->registerHisto(m_h_track_pt);
+  m_hSumTrkVsJetPtVsCent = new TH3F(vecHistNames[0].data(), "", 100, 0, 100, 200, 0, 100, 10, 0, 100);
+  m_hSumTrkVsJetPtVsCent->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
+  m_hSumTrkVsJetPtVsCent->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
+  m_hSumTrkVsJetPt = new TH2F(vecHistNames[1].data(), "", 100, 0, 100, 200, 0, 100);
+  m_hSumTrkVsJetPt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
+  m_hSumTrkVsJetPt->GetYaxis()->SetTitle("Sum track p_{T} [GeV]");
+  m_hSumTrkOverJetPt = new TH1F(vecHistNames[2].data(), "", 50, 0, 5);
+  m_hSumTrkOverJetPt->GetXaxis()->SetTitle("Sum track p_{T} / Jet p_{T}");
+  m_hSumTrkOverJetPt->GetYaxis()->SetTitle("Counts");
+  m_hSumTrkPt = new TH1F(vecHistNames[3].data(), "", 200, 0, 100);
+  m_hSumTrkPt->GetXaxis()->SetTitle("Sum track p_{T}");
+  m_hSumTrkPt->GetYaxis()->SetTitle("Counts");
+
+  if (m_isAAFlag)
+  {
+    m_manager->registerHisto(m_hSumTrkVsJetPtVsCent);
+  }
+  m_manager->registerHisto(m_hSumTrkVsJetPt);
+  m_manager->registerHisto(m_hSumTrkOverJetPt);
+  m_manager->registerHisto(m_hSumTrkPt);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int StructureinJets::InitRun(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "StructureinJets::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int StructureinJets::process_event(PHCompositeNode* topNode)
 {
-  // std::cout << "StructureinJets::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+
+  if (Verbosity() > 1)
+  {
+    std::cout << "StructureinJets::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  }
 
   // if needed, check if selected trigger fired
   if (m_doTrgSelect)
@@ -123,40 +160,65 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     std::cout
         << "StructureInJets::process_event - Error can not find DST Reco JetContainer node "
         << m_recoJetName << std::endl;
-    exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
+
   // get reco tracks
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trkNodeName);
   if (!trackmap)
   {
+    // if specified node name not found, try looking for this node;
+    // and if that's not found, exit
     trackmap = findNode::getClass<SvtxTrackMap>(topNode, "TrackMap");
     if (!trackmap)
     {
       std::cout
           << "StructureinJets::process_event - Error can not find DST trackmap node SvtxTrackMap" << std::endl;
-      exit(-1);
+      return Fun4AllReturnCodes::EVENT_OK;
     }
   }
 
   // get event centrality
-  CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
-  if (!cent_node)
+  int cent = -1;
+  if (m_isAAFlag)
   {
-    std::cout
-        << "StructureinJets::process_event - Error can not find centrality node "
-        << std::endl;
-    exit(-1);
+    CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+    if (!cent_node)
+    {
+      std::cout
+          << "StructureinJets::process_event - Error can not find centrality node "
+          << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+    cent = cent_node->get_centile(CentralityInfo::PROP::mbd_NS);
   }
-  int cent = cent_node->get_centile(CentralityInfo::PROP::mbd_NS);
 
   // Loop through jets
   for (auto jet : *jets)
   {
     if (!jet)
     {
-      std::cout << "WARNING!!! Jet not found" << std::endl;
+      if (Verbosity() > 2)
+      {
+        std::cout << "WARNING!!! Jet not found" << std::endl;
+      }
       continue;
     }
+
+    // remove noise
+    if (jet->get_pt() < m_ptJetRange.first)
+    {
+      continue;
+    }
+
+    // apply jet kinematic cuts
+    const bool inJetEtaCut = (jet->get_eta() >= m_etaJetRange.first) && (jet->get_eta() <= m_etaJetRange.second);
+    const bool inJetPtCut = (jet->get_pt() >= m_ptJetRange.first) && (jet->get_pt() <= m_ptJetRange.second);
+    if (!inJetEtaCut || !inJetPtCut)
+    {
+      continue;
+    }
+
     // sum up tracks in jet
     TVector3 sumtrk(0, 0, 0);
     for (auto& iter : *trackmap)
@@ -164,12 +226,28 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
       SvtxTrack* track = iter.second;
       float quality = track->get_quality();
       auto silicon_seed = track->get_silicon_seed();
-      int nmvtxhits = 0;
+      auto tpc_seed = track->get_tpc_seed();
+
+      // get no. of clusters in silicon seed
+      int nsiliconclusts = 0;
       if (silicon_seed)
       {
-        nmvtxhits = silicon_seed->size_cluster_keys();
+        nsiliconclusts = silicon_seed->size_cluster_keys();
       }
-      if (track->get_pt() < m_trk_pt_cut || quality > 6 || nmvtxhits < 4)  // do some basic quality selections on tracks
+
+      // get no. of clusters in tpc seed
+      int ntpcclusts = 0;
+      if (tpc_seed)
+      {
+        ntpcclusts = tpc_seed->size_cluster_keys();
+      }
+
+      // do some basic quality selection on tracks
+      const bool inTrkPtCut = (track->get_pt() >= m_trk_pt_cut);
+      const bool inTrkQualCut = (quality <= m_trk_qual_cut);
+      const bool inTrkNSilCut = (nsiliconclusts >= m_trk_nsil_cut);
+      const bool inTrkNTPCCut = (ntpcclusts >= m_trk_ntpc_cut);
+      if (!inTrkPtCut || !inTrkQualCut || !inTrkNSilCut || !inTrkNTPCCut)
       {
         continue;
       }
@@ -196,21 +274,21 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     }
 
     // Fill histogram for the current jet
-    assert(m_h_track_vs_calo_pt);
-    assert(m_h_track_pt);
+    assert(m_hSumTrkVsJetPtVsCent);
+    assert(m_hSumTrkVsJetPt);
+    assert(m_hSumTrkOverJetPt);
+    assert(m_hSumTrkPt);
+
     // Fill TH3 histogram for Au+Au collisions
-    if (isAA())
+    if (m_isAAFlag)
     {
-      m_h_track_vs_calo_pt->Fill(jet->get_pt(), sumtrk.Perp(), cent);
+      m_hSumTrkVsJetPtVsCent->Fill(jet->get_pt(), sumtrk.Perp(), cent);
     }
 
-    // Fill TH2 histogram for pp collisions
-    else
-    {
-      m_h_track_pt->Fill(jet->get_pt(), sumtrk.Perp());
-    }
-    // Reset sumtrk for the next jet
-    sumtrk.SetXYZ(0, 0, 0);
+    // Always fill others
+    m_hSumTrkVsJetPt->Fill(jet->get_pt(), sumtrk.Perp());
+    m_hSumTrkOverJetPt->Fill(sumtrk.Perp()/jet->get_pt());
+    m_hSumTrkPt->Fill(sumtrk.Perp());
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -218,14 +296,20 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int StructureinJets::ResetEvent(PHCompositeNode* /*topNode*/)
 {
-  // std::cout << "StructureinJets::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "StructureinJets::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int StructureinJets::EndRun(const int runnumber)
 {
+  if (Verbosity() > 0)
+  {
   std::cout << "StructureinJets::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -234,52 +318,65 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
 {
   // if flag is true, write to output file
   // otherwise rely on histogram manager
-  if (writeToOutputFileFlag)
+  if (m_writeToOutputFileFlag)
   {
-    std::cout << "StructureinJets::End - Output to " << m_outputFileName << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "StructureinJets::End - Output to " << m_outputFileName << std::endl;
+    }
     PHTFileServer::get().cd(m_outputFileName);
   }
   else
   {
-    std::cout << "StructureinJets::End - Output to histogram manager" << std::endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "StructureinJets::End - Output to histogram manager" << std::endl;
+    }
   }
 
-  if (isAA())
+  if (m_isAAFlag)
   {
     TH2* h_proj;
-    for (int i = 0; i < m_h_track_vs_calo_pt->GetNbinsZ(); i++)
+    for (int i = 0; i < m_hSumTrkVsJetPtVsCent->GetNbinsZ(); i++)
     {
       // construct histogram name for projection
-      std::string name = m_h_track_vs_calo_pt->GetName();
+      std::string name = m_hSumTrkVsJetPtVsCent->GetName();
+      name.append("_centbin" + std::to_string(i + 1));
 
-      m_h_track_vs_calo_pt->GetZaxis()->SetRange(i + 1, i + 1);
-      h_proj = (TH2*) m_h_track_vs_calo_pt->Project3D("yx");
-      h_proj->SetName(
-          (
-              boost::format(name + "_%1.0f") % m_h_track_vs_calo_pt->GetZaxis()->GetBinLowEdge(i + 1))
-              .str()
-              .c_str());
-      if (writeToOutputFileFlag)
+      m_hSumTrkVsJetPtVsCent->GetZaxis()->SetRange(i + 1, i + 1);
+      h_proj = (TH2*) m_hSumTrkVsJetPtVsCent->Project3D("yx");
+      h_proj->SetName(name.data());
+      if (m_writeToOutputFileFlag)
       {
         h_proj->Write();
+      }
+      else
+      {
+        m_manager->registerHisto(h_proj);
       }
     }
   }
   else
   {
-    if (writeToOutputFileFlag)
+    if (m_writeToOutputFileFlag)
     {
-      m_h_track_pt->Write();  // if pp, do not project onto centrality bins
+      m_hSumTrkVsJetPt->Write();  // if pp, do not project onto centrality bins
     }
   }
-  std::cout << "StructureinJets::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int StructureinJets::Reset(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "StructureinJets::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "StructureinJets::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

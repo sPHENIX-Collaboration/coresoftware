@@ -16,26 +16,17 @@
 #include <Event/Event.h>
 #include <Event/packet.h>
 
+#include <cstdlib>
 #include <iostream>  // for operator<<, endl, basic...
-#include <limits>
-#include <vector>  // for vector
+#include <vector>    // for vector
 
 //____________________________________________________________________________..
 LL1PacketGetter::LL1PacketGetter(const std::string &name, const std::string &trigger, const std::string &ll1)
   : SubsysReco(name)
   , m_trigger(trigger)
   , m_ll1(ll1)
-  , m_ll1out(nullptr)
-  , m_packet_low(std::numeric_limits<int>::min())
-  , m_packet_high(std::numeric_limits<int>::min())
   , m_nchannels(60)
-  , m_isdata(true)
-  , m_no_ll1out(false)
 {
-  m_triggerid = TriggerDefs::TriggerId::noneTId;
-  m_primitiveid = TriggerDefs::PrimitiveId::nonePId;
-  m_detectorid = TriggerDefs::DetectorId::noneDId;
-
   m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::noneTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(0, 0);
   m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::noneDId)] = std::make_pair(13002, 13002);
   m_packet_map[TriggerDefs::getTriggerKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::DetectorId::hcalDId)] = std::make_pair(13002, 13002);
@@ -79,7 +70,7 @@ int LL1PacketGetter::InitRun(PHCompositeNode *topNode)
   m_triggerkey = TriggerDefs::getTriggerKey(m_triggerid, m_detectorid);
   m_primitiveid = TriggerDefs::GetPrimitiveId(m_ll1);
 
-  if (strcmp(m_trigger.c_str(), "NONE") == 0)
+  if (m_trigger == "NONE")
   {
     m_triggerprimitive_nodename = "TRIGGERPRIMITIVES_RAW_" + m_ll1;
     m_triggerprimitive_ll1_nodename = "TRIGGERPRIMITIVES_RAW_" + m_ll1 + "_LL1";
@@ -187,24 +178,24 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 
         for (int iprim = 0; iprim < m_nprimitives; iprim++)
         {
-          primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim);
+          primkey = TriggerDefs::getTriggerPrimKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, (m_nprimitives * (pid - m_packet_low)) + iprim);
 
           _trigger_primitive = m_trigger_primitives->get_primitive_at_key(primkey);
 
           for (int channel = 0; channel < m_nchannels_per_primitive; channel++)
           {
-            sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, m_nprimitives * (pid - m_packet_low) + iprim, channel);
+            sumkey = TriggerDefs::getTriggerSumKey(TriggerDefs::GetTriggerId(m_trigger), TriggerDefs::GetDetectorId(m_ll1), primid, (m_nprimitives * (pid - m_packet_low)) + iprim, channel);
 
             _sum = _trigger_primitive->get_sum_at_key(sumkey);
             for (int samp = 0; samp < nsamples; samp++)
             {
               if (pid == 13002)
               {
-                _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim * 2 + channel / 12 + 32 * (channel % 12))));
+                _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, (iprim * 2) + (channel / 12) + (32 * (channel % 12)))));
               }
               else
               {
-                _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, iprim * m_nchannels_per_primitive + channel)));
+                _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, (iprim * m_nchannels_per_primitive) + channel)));
               }
             }
           }
@@ -218,7 +209,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 
             for (int samp = 0; samp < nsamples; samp++)
             {
-              sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives * m_nchannels_per_primitive + channel)));
+              sum->push_back(static_cast<unsigned int>(packet->iValue(samp, (m_nprimitives * m_nchannels_per_primitive) + channel)));
             }
           }
         }
@@ -240,7 +231,7 @@ int LL1PacketGetter::process_event(PHCompositeNode *topNode)
 
             for (int samp = 0; samp < nsamples; samp++)
             {
-              _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, m_nprimitives * m_nchannels_per_primitive + channel)));
+              _sum->push_back(static_cast<unsigned int>(packet->iValue(samp, (m_nprimitives * m_nchannels_per_primitive) + channel)));
             }
             _trigger_primitive->add_sum(sumkey, _sum);
           }

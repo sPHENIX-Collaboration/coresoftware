@@ -93,13 +93,10 @@ void MbdSig::SetTemplateSize(const Int_t nptsx, const Int_t nptsy, const Double_
   Double_t ybinwid = (1.1 + 0.1) / template_npointsy;  // yscale... should we vary this?
   
   
-    delete h2Template;
+  delete h2Template;
   
+  delete h2Residuals;
   
-  
-    delete h2Residuals;
-  
-
   TString name = "h2Template";
   name += _ch;
   h2Template = new TH2F(name, name, template_npointsx, template_begintime - (xbinwid / 2.), template_endtime + (xbinwid / 2),
@@ -918,6 +915,23 @@ void MbdSig::Print()
     gpulse->GetPoint(isamp, x, y);
     std::cout << isamp << "\t" << x << "\t" << y << std::endl;
   }
+}
+
+void MbdSig::DrawWaveform()
+{
+  int orig_verbose = _verbose;
+  if ( _verbose <= 5 )
+  {
+    _verbose = 6;
+  }
+
+  gSubPulse->Draw("ap");
+  gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+  gPad->SetGridy(1);
+  if ( template_fcn!=nullptr ) template_fcn->Draw("same");  // should check if fit was made
+  PadUpdate();
+
+  _verbose = orig_verbose;
 }
 
 void MbdSig::PadUpdate() const

@@ -12,6 +12,9 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
+#include <phool/getClass.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 #endif
 
 #include <Event/Event.h>
@@ -78,13 +81,11 @@ MbdEvent::MbdEvent(const int cal_pass) :
   }
 
   // Debug stuff
-  _debugintt = 0;
-/*
-  if (_debugintt )
+  _debug = 0;
+  if (_debug )
   {
-    ReadSyncFile();
+    //ReadSyncFile();
   }
-*/
 
   Clear();
 }
@@ -130,7 +131,7 @@ int MbdEvent::InitRun()
   // Always reload calibrations on InitRun()
   
   
-    delete _mbdcal;
+  delete _mbdcal;
   
   _mbdcal = new MbdCalib();
   std::cout << "SIMFLAG IS " << _simflag << std::endl;
@@ -270,6 +271,18 @@ int MbdEvent::InitRun()
     orig_dir->cd();
   }
 
+  // Create TCanvas for debugging if requested
+  _verbose = 5;
+  if (_verbose)
+  {
+    std::cout << "Creating canvas" << std::endl;
+    if (ac == nullptr)
+    {
+      ac = new TCanvas("ac", "ac", 550 * 1.5, 425 * 1.5);
+      ac->Divide(2, 1);
+    }
+  }
+
   return 0;
 }
 
@@ -349,6 +362,13 @@ void MbdEvent::Clear()
   m_bbct0 = std::numeric_limits<Float_t>::quiet_NaN();
   m_bbct0err = std::numeric_limits<Float_t>::quiet_NaN();
 }
+
+
+bool MbdEvent::isbadtch(const int ipmtch)
+{
+  return std::fabs(_mbdcal->get_tt0(ipmtch))>100.;
+}
+
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
@@ -576,6 +596,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
   m_clk = m_xmitclocks[0];
   m_femclk = m_femclocks[0][0];
 
+  Clear();
+
   // We get SAMPMAX on this pass
   if ( _calpass == 1 || _no_sampmax > 0 )
   {
@@ -598,7 +620,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     {
       tdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || std::fabs(_mbdcal->get_tt0(pmtch))>100. )
+      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || isbadtch(pmtch) )
       {
         m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
@@ -611,8 +633,9 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
 
     }
-    //else if ( type == 1 && !std::isnan(m_pmttt[pmtch]) ) // process charge channels which have good time hit
-    else if ( type == 1 ) // process charge channels which have good time hit
+    //else if ( type == 1 ) // process all charge channels, no matter what
+    else if ( type == 1 && (!std::isnan(m_pmttt[pmtch]) || isbadtch(pmtch)) ) // process charge channels which have good time hit
+                                                                              // or have been marked as bad
     {
 
       // Use dCFD method to seed time in charge channels (or as primary if not fitting template)
@@ -691,7 +714,6 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
 
   }
 
-
   // bbcpmts->Reset();
   //std::cout << "q10 " << bbcpmts->get_tower_at_channel(10)->get_q() << std::endl;
 
@@ -701,6 +723,8 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
   }
   bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
+
+  PostProcessChannels(bbcpmts);
 
   m_evt++;
 
@@ -740,12 +764,48 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
   return m_evt;
 }
 
-///
-int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
+/// Processing after all channels have been calibrated, to remove outliers, etc
+void MbdEvent::PostProcessChannels(MbdPmtContainer *bbcpmts)
 {
-  if ( _debugintt )
+  int orig_verbose = _verbose;
+  _verbose = 0;
+
+  for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
+  {
+    MbdPmtHit *bbcpmt = bbcpmts->get_pmt(ipmt);
+
+    float tt = bbcpmt->get_tt();    // hit time of pmt from time channel
+    float tq = bbcpmt->get_tq();    // hit time of pmt from charge channel
+    float q  = bbcpmt->get_q();     // charge in pmt
+
+    if ( _verbose>0 && std::isnan(tt) && q>0. )
+    {
+      std::cout << "bad tt, good q\t" << ipmt << "\t" << tt << "\t" << tq << "\t" << q << std::endl;
+      int t_feech = _mbdgeom->get_feech(ipmt,0);
+      int q_feech = _mbdgeom->get_feech(ipmt,1);
+      ac->cd(1);
+      _mbdsig[t_feech].DrawWaveform();
+      ac->cd(2);
+      _mbdsig[q_feech].DrawWaveform();
+      std::string junk;
+      std::cout << "? " << std::endl;
+      std::cin >> junk;
+    }
+  }
+
+  _verbose = orig_verbose;
+}
+
+///
+int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNode *topNode)
+{
+  if ( _debug )
   {
     _verbose = 100;
+    GetPrimaryVtx(topNode);
+
+    // use intt vertex
+    //_refz = intz[_syncevt]/10.;
   }
   //_verbose = 100;
  
@@ -761,7 +821,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
   // Debug stuff
 /*
-  if ( _debugintt && (bbevt[_syncevt] != (m_evt - 1)))
+  if ( _debug && (bbevt[_syncevt] != (m_evt - 1)))
   {
     _verbose = 0;
     return 1;
@@ -789,20 +849,23 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     std::cout << "Hit PMT info " << std::endl;
   }
 
-  int epmt[2]{-1, -1};  // pmt of earliest time
-  // int lpmt[2] {-1,-1};        // pmt of latest time
-  double tepmt[2]{1e9, 1e9};    // earliest time
-  double tlpmt[2]{-1e9, -1e9};  // latest time
+  for (int iarm=0; iarm<2; iarm++)
+  {
+    epmt[iarm] = -1;       // pmt of earliest time
+    //lpmt[iarm] -1;   // pmt of latest time
+    tepmt[iarm] = 1e9;    // earliest time
+    tlpmt[iarm] = -1e9;  // latest time
+  }
 
   for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
   {
     MbdPmtHit *bbcpmt = bbcpmts->get_pmt(ipmt);
-    int arm = ipmt / 64;
+    int arm = _mbdgeom->get_arm( ipmt );
 
     float t_pmt = bbcpmt->get_time();  // hit time of pmt
     float q_pmt = bbcpmt->get_q();     // charge in pmt
 
-    if (_verbose >= 10 && !std::isnan(t_pmt) )
+    if (_verbose >= 2000 && !std::isnan(t_pmt) )
     {
       std::cout << ipmt << "\t" << t_pmt << "\t" << q_pmt << std::endl;
     }
@@ -870,16 +933,6 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     gausfit[iarm]->SetRange(hevt_bbct[iarm]->GetMean() - 5, hevt_bbct[iarm]->GetMean() + 5);
     */
 
-    if (_verbose)
-    {
-      if (ac == nullptr)
-      {
-        ac = new TCanvas("ac", "ac", 550 * 1.5, 425 * 1.5);
-        ac->Divide(2, 1);
-      }
-      ac->cd(iarm + 1);
-    }
-
     if ( hevt_bbct[iarm]->GetEntries()==0 )//chiu
     {
       std::cout << PHWHERE << " hevt_bbct EMPTY" << std::endl;
@@ -903,69 +956,6 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
     //_bbcout->set_arm(iarm, m_bbcn[iarm], m_bbcq[iarm], m_bbct[iarm]);
 
-    // if ( _verbose && mybbz[_syncevt]< -40. )
-    if (_verbose)
-    {
-      hevt_bbct[iarm]->GetXaxis()->SetRangeUser(tepmt[iarm] - 3., tlpmt[iarm] + 3.);
-      // hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-20,20);
-      hevt_bbct[iarm]->Draw();
-      if ( m_bbcn[iarm]>1 )
-      {
-        gausfit[iarm]->Draw("same");
-      }
-      gPad->Modified();
-      gPad->Update();
-      if (iarm == 1)
-      {
-        double zearly = (tepmt[0] - tepmt[1]) * MbdDefs::C / 2.0;
-        double znew = (m_bbct[0] - m_bbct[1]) * MbdDefs::C / 2.0;
-
-/*
-        if (_debugintt)
-        {
-          double intzdiff = intz[_syncevt] / 10. - mybbz[_syncevt];
-          double intzediff = intz[_syncevt] / 10. - zearly;
-          if (fabs(znew - mybbz[_syncevt]) > 0.1)
-          {
-            std::cout << "**ERR** " << znew << "\t" << mybbz[_syncevt] << std::endl;
-          }
-          std::string junk;
-          std::cout << m_evt << "\t" << bbevt[_syncevt] << "\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
-          std::cout << m_evt << " gmean " << gausfit[0]->GetParameter(1) << "\t" << gausfit[1]->GetParameter(1) << std::endl;
-          std::cout << m_evt << " mean " << hevt_bbct[0]->GetMean(1) << "\t" << hevt_bbct[1]->GetMean(1) << std::endl;
-          std::cout << m_evt << " gsigma " << gausfit[0]->GetParameter(2) << "\t" << gausfit[1]->GetParameter(2) << std::endl;
-          std::cout << m_evt << " rms " << hevt_bbct[0]->GetRMS() << "\t" << hevt_bbct[1]->GetRMS() << std::endl;
-          std::cout << m_evt << " te ch " << epmt[0] << "\t" << epmt[1] << "\t" << tepmt[0] << "\t" << tepmt[1] << std::endl;
-          std::cout << m_evt << " tetl " << m_bbcte[0] << "\t" << m_bbctl[0] << "\t" << m_bbcte[1] << "\t" << m_bbctl[1] << std::endl;
-          std::cout << m_evt << " bz intz " << mybbz[_syncevt] << "\t" << intz[_syncevt] / 10. << "\t" << intzdiff << "\t" << intzdiff * 2.0 / MbdDefs::C << std::endl;
-          std::cout << m_evt << " bze " << zearly << "\t" << intzediff << std::endl;
-          std::cout << "? ";
-          //std::cin >> junk;
-        }
-*/
-
-        if (_debugintt)
-        {
-          double intzdiff = (intz[_syncevt] / 10.) - mybbz[_syncevt];
-          double intzediff = (intz[_syncevt] / 10.) - zearly;
-          if (fabs(znew - mybbz[_syncevt]) > 0.1)
-          {
-            std::cout << "**ERR** " << znew << "\t" << mybbz[_syncevt] << std::endl;
-          }
-          std::cout << m_evt << "\t" << bbevt[_syncevt] << "\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
-          std::cout << m_evt << " gmean " << gausfit[0]->GetParameter(1) << "\t" << gausfit[1]->GetParameter(1) << std::endl;
-          std::cout << m_evt << " mean " << hevt_bbct[0]->GetMean(1) << "\t" << hevt_bbct[1]->GetMean(1) << std::endl;
-          std::cout << m_evt << " gsigma " << gausfit[0]->GetParameter(2) << "\t" << gausfit[1]->GetParameter(2) << std::endl;
-          std::cout << m_evt << " rms " << hevt_bbct[0]->GetRMS() << "\t" << hevt_bbct[1]->GetRMS() << std::endl;
-          std::cout << m_evt << " te ch " << epmt[0] << "\t" << epmt[1] << "\t" << tepmt[0] << "\t" << tepmt[1] << std::endl;
-          std::cout << m_evt << " tetl " << m_bbcte[0] << "\t" << m_bbctl[0] << "\t" << m_bbcte[1] << "\t" << m_bbctl[1] << std::endl;
-          std::cout << m_evt << " bz intz " << mybbz[_syncevt] << "\t" << intz[_syncevt] / 10. << "\t" << intzdiff << "\t" << intzdiff * 2.0 / MbdDefs::C << std::endl;
-          std::cout << m_evt << " bze " << zearly << "\t" << intzediff << std::endl;
-          std::cout << "? ";
-          //std::cin >> junk;
-        }
-      }
-    }
   }
 
   // Get Zvertex, T0
@@ -1005,7 +995,6 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     m_bbct0 = (m_bbcte[0] + m_bbcte[1]) / 2.0;
     */
 
-    // if (_verbose > 10)
     // if ( _verbose && mybbz[_syncevt]< -40. )
     if (_verbose>20)
     {
@@ -1036,7 +1025,7 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
       bbcout->set_zvtx(get_bbcz(), get_bbczerr());
       
 /*
-      if ( _debugintt )
+      if ( _debug )
       {
         bbcout->set_t0(intz[_syncevt]/10.);
       }
@@ -1045,8 +1034,11 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
     }
   }
 
-  if ( _debugintt )
+  // if ( _verbose && mybbz[_syncevt]< -40. )
+  if ( _debug && fabs(m_bbcz - _refz)>5.0 )
   {
+    PlotDebug();
+
     //_syncevt++;
     _verbose = 0;
   }
@@ -1056,9 +1048,9 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout)
 
 
 // get the values for the earliest cluster
-void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& rms, double& rmin, double& rmax) const
+void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& rms, double& rmin, double& rmax)
 {
-  //_verbose = 0;
+  _verbose = 0;
 
   rmin = times[0];
   rmax = times[0];
@@ -1101,6 +1093,52 @@ void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& 
   {
     std::cout << "CLUSTER " << mean << "\t" << rms << "\t" << npts << "\t" << rmin << "\t" << rmax << std::endl;
   }
+}
+
+void MbdEvent::PlotDebug()
+{
+  for (int iarm=0; iarm<2; iarm++)
+  {
+    ac->cd(iarm + 1);
+
+    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(tepmt[iarm] - 3., tlpmt[iarm] + 3.);
+    // hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-20,20);
+    hevt_bbct[iarm]->Draw();
+    if ( m_bbcn[iarm]>1 )
+    {
+      gausfit[iarm]->Draw("same");
+    }
+    gPad->Modified();
+    gPad->Update();
+    if (iarm == 1)
+    {
+      double zearly = (tepmt[0] - tepmt[1]) * MbdDefs::C / 2.0;
+      double znew = (m_bbct[0] - m_bbct[1]) * MbdDefs::C / 2.0;
+
+      if (_debug)
+      {
+        double refzdiff = _refz - m_bbcz;
+        double refzediff = _refz - zearly;
+        if (fabs(znew - m_bbcz) > 0.1)
+        {
+          std::cout << "**ERR** " << znew << "\t" << m_bbcz << std::endl;
+        }
+        std::cout << m_evt << "\t" << m_bbct[0] << "\t" << m_bbct[1] << std::endl;
+        std::cout << m_evt << " gmean " << gausfit[0]->GetParameter(1) << "\t" << gausfit[1]->GetParameter(1) << std::endl;
+        std::cout << m_evt << " mean " << hevt_bbct[0]->GetMean(1) << "\t" << hevt_bbct[1]->GetMean(1) << std::endl;
+        std::cout << m_evt << " gsigma " << gausfit[0]->GetParameter(2) << "\t" << gausfit[1]->GetParameter(2) << std::endl;
+        std::cout << m_evt << " rms " << hevt_bbct[0]->GetRMS() << "\t" << hevt_bbct[1]->GetRMS() << std::endl;
+        //std::cout << m_evt << " te ch " << epmt[0] << "\t" << epmt[1] << "\t" << tepmt[0] << "\t" << tepmt[1] << std::endl;
+        std::cout << m_evt << " tetl " << m_bbcte[0] << "\t" << m_bbctl[0] << "\t" << m_bbcte[1] << "\t" << m_bbctl[1] << std::endl;
+        std::cout << m_evt << " bz refz " << m_bbcz << "\t" << _refz << "\t" << refzdiff << "\t" << refzdiff * 2.0 / MbdDefs::C << std::endl;
+        std::cout << m_evt << " bze " << zearly << "\t" << refzediff << std::endl;
+      }
+    }
+  }
+
+  std::string junk;
+  std::cout << "? ";
+  std::cin >> junk;
 }
 
 // Store data for sampmax calibration (to correct ADC sample offsets by channel)
@@ -1380,3 +1418,29 @@ void MbdEvent::ReadSyncFile(const char *fname)
 
   std::cout << "Read in " << bbevt.size() << " INTT sync events" << std::endl;
 }
+
+
+#ifndef ONLINE
+PHG4VtxPoint *MbdEvent::GetPrimaryVtx(PHCompositeNode *topNode)
+{
+  // Get True Vertex from TruthInfoContainer
+  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if(_truth_container == nullptr)
+  {
+    static int ctr = 0;
+    if ( ctr<4 )
+    {
+      std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree" << std::endl;
+      ctr++;
+    }
+    _vtxp = nullptr;
+    return nullptr;
+  }
+
+  _vtxp = _truth_container->GetPrimaryVtx( _truth_container->GetPrimaryVertexIndex() );
+  _refz = _vtxp->get_z();
+
+  return _vtxp;
+
+}
+#endif

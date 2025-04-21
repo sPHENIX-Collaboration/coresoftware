@@ -25,7 +25,7 @@ void BEmcRecCEMC::GetImpactThetaPhi(float xg, float yg, float zg, float& theta, 
   phi = 0;
 
   //  float theta = atan(sqrt(xg*xg + yg*yg)/fabs(zg-fVz));
-  float rg = std::sqrt(xg * xg + yg * yg);
+  float rg = std::sqrt((xg * xg) + (yg * yg));
   float theta_twr;
   if (std::fabs(zg) <= 15)
   {
@@ -251,13 +251,13 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
 
   // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
   // Just tuned from sim data
-  float phi = 0.002 - 0.001 * logE;
+  float phi = 0.002 - (0.001 * logE);
   xC = xA * std::cos(phi) - yA * std::sin(phi);
   yC = xA * std::sin(phi) + yA * std::cos(phi);
 
   // Correction in z
   // Just tuned for sim data ... don't fully understand why it works like that
-  float rA = std::sqrt(xA * xA + yA * yA);
+  float rA = std::sqrt((xA * xA) + (yA * yA));
   //  float theta_twr = GetTowerTheta(xA,yA,zA);
   float theta_twr;
   if (std::fabs(zA) <= 15)
@@ -274,7 +274,7 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
   }
 
   float theta_tr = std::atan2(zA - fVz, rA);
-  float L = -1.3 + 0.7 * logE;  // Shower CG in long. direction
+  float L = -1.3 + (0.7 * logE);  // Shower CG in long. direction
   float dz = L * std::sin(theta_tr - theta_twr) / std::cos(theta_twr);
 
   dz -= fVz * 0.10;
@@ -330,9 +330,15 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   // Everything here is in tower units.
   // (x,y) - CG position, (xc,yc) - corrected position
 
-  float xZero, yZero, bx, by;
-  float t, x0, y0;
-  int ix0, iy0;
+  float xZero;
+  float yZero;
+  float bx;
+  float by;
+  float t;
+  float x0;
+  float y0;
+  int ix0;
+  int iy0;
 
   xc = x;
   yc = y;
@@ -393,7 +399,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   // Correct for phi bias within module of 8 towers
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int ix8 = int(x + 0.5) / 8;
-  float x8 = x + 0.5 - ix8 * 8 - 4;  // from -4 to +4
+  float x8 = x + 0.5 - (ix8 * 8) - 4;  // from -4 to +4
   float dx = 0.10 * x8 / 4.;
   if (std::fabs(x8) > 3.3)
   {

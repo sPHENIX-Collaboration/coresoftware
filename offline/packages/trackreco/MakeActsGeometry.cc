@@ -56,15 +56,14 @@
 #include <Acts/Utilities/CalibrationContext.hpp>
 
 #include <ActsExamples/Framework/IContextDecorator.hpp>
-#include <ActsExamples/Geometry/CommonGeometry.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wuninitialized"
-#include <ActsExamples/Options/CommonOptions.hpp>
+#include <trackbase/CommonOptions.h>
 #pragma GCC diagnostic pop
 
-#include <ActsExamples/Options/MagneticFieldOptions.hpp>
+#include <trackbase/MagneticFieldOptions.h>
 #include <ActsExamples/Utilities/Options.hpp>
 
 #include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>
@@ -72,7 +71,7 @@
 #include <Acts/Material/IMaterialDecorator.hpp>
 #include <Acts/Plugins/Json/JsonMaterialDecorator.hpp>
 #include <Acts/Plugins/Json/MaterialMapJsonConverter.hpp>
-#include <ActsExamples/Geometry/MaterialWiper.hpp>
+#include <trackbase/MaterialWiper.h>
 
 #include <TGeoManager.h>
 #include <TMatrixT.h>
@@ -585,33 +584,24 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
   if (!file.is_open())
   {
     std::cout << responseFile
-              << " not found locally, use repo version"
+              << " not found locally, use CDB version"
               << std::endl;
-    char *offline_main = getenv("OFFLINE_MAIN");
-    assert(offline_main);
-    responseFile = std::string(offline_main) +
-                   ("/share/tgeo-sphenix-mms.json");
+    responseFile = CDBInterface::instance()->getUrl("ACTSGEOMETRYCONFIG");
   }
 
   file.open(materialFile);
   if (!file.is_open())
   {
     std::cout << materialFile
-              << " not found locally, use repo version"
+              << " not found locally, use CDB version"
               << std::endl;
-    const char *calibrationroot = getenv("CALIBRATIONROOT");
-    assert(calibrationroot);
-    materialFile = std::string(calibrationroot) +
-                   ("/ACTS/sphenix-mm-material.json");
+    materialFile = CDBInterface::instance()->getUrl("ACTSMATERIALMAP");
   }
 
-//  if (Verbosity() > -1) // always on with this setting
-  {
     std::cout << "using Acts material file : " << materialFile
               << std::endl;
     std::cout << "Using Acts TGeoResponse file : " << responseFile
               << std::endl;
-  }
 
   return;
 }
@@ -1052,10 +1042,13 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
     if (m_mvtxapplymisalign)
     {
       std::cout << "MakeActsGeometry::makeMvtxMapPairs - apply misalignment" << std::endl;
-      PHG4MvtxMisalignment *mvtxmisalignmment = new PHG4MvtxMisalignment();
-      v_globaldisplacement = mvtxmisalignmment->get_GlobalDisplacement();
-      
-      delete mvtxmisalignmment;
+      PHG4MvtxMisalignment *mvtxmisalignment = new PHG4MvtxMisalignment();
+      mvtxmisalignment->setAlignmentFile(CDBInterface::instance()->getUrl("MVTX_ALIGNMENT"));
+      mvtxmisalignment->LoadMvtxStaveAlignmentParameters();
+      v_globaldisplacement = mvtxmisalignment->get_GlobalDisplacement();
+
+
+      delete mvtxmisalignment;
     }
 
     std::cout << "MakeActsGeometry::makeMvtxMapPairs - Apply misalignment: " << m_mvtxapplymisalign << "; Global displacement: (" << v_globaldisplacement[0] << ", " << v_globaldisplacement[1] << ", " << v_globaldisplacement[2] << ")" << std::endl;
@@ -1070,7 +1063,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       auto vec3d = surf->center(m_geoCtxt);
       std::vector<double> world_center = {(vec3d(0) - v_globaldisplacement[0]) / 10.0, (vec3d(1) - v_globaldisplacement[1]) / 10.0, (vec3d(2) - v_globaldisplacement[2]) / 10.0};  // convert from mm to cm
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
-      if (Verbosity() > 1)
+      if (Verbosity() > 0)
       {
         std::cout << "[DEBUG] MVTX surface center (before misalignment): (x,y,z)=(" << vec3d(0) / 10. << "," << vec3d(1) / 10. << "," << vec3d(2) / 10. << "), layer_rad=" << sqrt(pow(vec3d(0) / 10., 2) + pow(vec3d(1) / 10., 2)) << std::endl;
         std::cout << "[DEBUG] MVTX surface center: (x,y,z)=(" << world_center[0] << "," << world_center[1] << "," << world_center[2] << "), layer_rad=" << layer_rad << std::endl;
@@ -1086,14 +1079,43 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       Acts::GeometryIdentifier id = detelement->surface().geometryId();
       unsigned int volume = id.volume();
       unsigned int actslayer = id.layer();
-      unsigned int sphlayer = base_layer_map.find(volume)->second + actslayer / 2 - 1;
-      unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1
-	  
-      int stave = sensor / 9;
-      int chip = sensor % 9;	  
+
+      unsigned int sphlayer = 0;
+      unsigned int stave = 0;
+      unsigned int chip = 0;
+      unsigned int sensor = id.sensitive() - 1;  // Acts sensor ID starts at 1;
+      if (!m_mvtxapplymisalign)
+      {
+        sphlayer = base_layer_map.find(volume)->second + actslayer / 2 - 1;
+        stave = sensor / 9;
+        chip = sensor % 9;
+      }
+      else
+      {
+        stave = sensor / mvtx_chips_per_stave;
+        chip = sensor % mvtx_chips_per_stave;
+        if(sensor > 107 && sensor < 252)
+	      {
+	        sphlayer = 1;
+	        stave = (sensor-108) / mvtx_chips_per_stave;
+	        chip = (sensor-108) % mvtx_chips_per_stave;
+	      }
+        else if(sensor > 251)
+	      {
+	        sphlayer = 2;
+	        stave = (sensor-252) / mvtx_chips_per_stave;
+	        chip = (sensor-252) % mvtx_chips_per_stave;
+	      }
+      }
       int dummy_strobe = 0;
       TrkrDefs::hitsetkey hitsetkey= MvtxDefs::genHitSetKey(sphlayer, stave, chip, dummy_strobe);
 
+      if(Verbosity() > 10)
+	{
+	  std::cout << "detelement: volume " << volume << " actslayer " << actslayer << " sphlayer " << sphlayer
+		    << " sensor " << sensor << " stave " << stave << " chip " << chip << std::endl;
+	}
+      
       // Add this surface to the map
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);      
       m_clusterSurfaceMapSilicon.insert(tmp);
