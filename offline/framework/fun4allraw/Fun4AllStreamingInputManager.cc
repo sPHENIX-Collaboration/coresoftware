@@ -903,14 +903,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
   for (auto &[strbbco, mvtxrawhitinfo] : m_MvtxRawHitMap)
   {
     auto diff = (m_RefBCO > strbbco) ? m_RefBCO - strbbco : strbbco - m_RefBCO;
-    if (diff > m_mvtx_bco_range)
-    {
-      continue;
-    }
-    if (diff > (m_RefBCO + m_mvtx_bco_range))
-    {
-      break;
-    }
     for (auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
     {
       auto feeId = feeidinfo->get_feeId();
@@ -918,11 +910,29 @@ int Fun4AllStreamingInputManager::FillMvtx()
       auto link = MvtxRawDefs::decode_feeid(feeId);
       auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
       int packetid = felix * 2 + endpoint;
-      h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
-      h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
+      h_bcoLL1Strobediff[packetid]->Fill(diff);
+      break;
     }
-    break;
-  }
+      if (diff > m_mvtx_bco_range)
+      {
+        continue;
+      }
+      if (diff > (m_RefBCO + m_mvtx_bco_range))
+      {
+        break;
+      }
+      for (auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
+      {
+        auto feeId = feeidinfo->get_feeId();
+
+        auto link = MvtxRawDefs::decode_feeid(feeId);
+        auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
+        int packetid = felix * 2 + endpoint;
+        h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
+        h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
+      }
+      break;
+    }
 
   std::map<int, std::set<int>> taggedPacketsFEEs;
   for (auto &p : m_MvtxInputVector)
@@ -1572,6 +1582,11 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_all->GetXaxis()->SetTitle("GL1 BCO");
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
+
+  h_tagStBcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagStBcoFEEs_packet%i") % i).str().c_str(), "", 10000, 0, 10000);
+  hm->registerHisto(h_tagStBcoFEE_mvtx[i]);
+
+
   }
   for (int i = 0; i < 24; i++)
   {
