@@ -57,11 +57,12 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
   int EventSequence = evt->getEvtSequence();
+  EventNumber(evt->getEvtSequence());
   //  evt->identify();
   Packet *packet = evt->getPacket(14001);
   if (packet)
   {
-  Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), 14001);
+    Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), 14001);
     int packetnumber = packet->iValue(0);
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     //    std::cout << "saving bco 0x" << std::hex << gtm_bco << std::dec << std::endl;

@@ -31,12 +31,16 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual void FillPool(const unsigned int = 1);
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
+  virtual void EventNumber(const int i) { m_EventNumber = i; }
+  virtual int EventNumber() const { return m_EventNumber; }
   virtual int fileopen(const std::string &filename) override;
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
   virtual void AllDone(const int i) { m_AllDone = i; }
   virtual int FilesDone() const { return m_FilesDone; }
   virtual void FilesDone(const int i) { m_FilesDone = i; }
+  virtual void EventAlignmentProblem(const int i) { m_EventAlignmentProblem = i; }
+  virtual int EventAlignmentProblem() const { return m_EventAlignmentProblem; }
   virtual void CreateDSTNodes(Event *evt);
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
@@ -50,6 +54,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
+  virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
 
  protected:
   PHCompositeNode *m_topNode{nullptr};
@@ -68,11 +73,14 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   SingleTriggeredInput *m_Gl1Input{nullptr};
   uint64_t m_Event{0};
   int m_RunNumber{0};
+  int m_EventNumber{0};
   int m_EventsThisFile{0};
   int m_AllDone{0};
   int m_FilesDone{0};
+  int m_EventAlignmentProblem{0};
+  int m_ProblemEvent{-1};
   int m_LastEvent{std::numeric_limits<int>::max()};
-  bool firstcall {true};
+  bool firstcall{true};
 };
 
 #endif
