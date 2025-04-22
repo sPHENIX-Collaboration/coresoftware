@@ -30,7 +30,10 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int process_event(PHCompositeNode *) override;
   int End(PHCompositeNode *topNode) override;
   void writeTree() { m_writeTree = true; }
-  void doChanHitsCut(bool cut){m_ChanHitsCut=cut;};
+  void doChanHitsCut(bool do_cut,int cut=9999){
+    m_doChanHitsCut=do_cut;
+    m_ChanHitsCut=cut;
+  };
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
   void doZSEmulation(bool val) { m_do_zs_emulation = val; }
   void ReadZeroSuppressedData() { 
@@ -111,7 +114,8 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
 
   TH2F *m_HitChanDis{nullptr};
   TH1F *m_HitsinChan{nullptr};
-  bool m_ChanHitsCut{false};
+  bool m_doChanHitsCut{false};
+  int m_ChanHitsCut{9999};
 
   float m_ped_sig_cut{4.0};
 
