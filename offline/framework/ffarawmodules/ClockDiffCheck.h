@@ -9,7 +9,9 @@
 
 #include <set>
 #include <string>
+#include <vector>
 
+class CaloPacket;
 class CaloPacketContainer;
 class Fun4AllInputManager;
 class PHCompositeNode;
@@ -20,13 +22,14 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
  public:
   ClockDiffCheck(const std::string &name = "ClockDiffCheck");
 
-  ~ClockDiffCheck() override {}
+  ~ClockDiffCheck() override = default;
 
-  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *topNode) override;
 
   void FillCaloClockDiff(CaloPacketContainer *pktcont);
+  void FillCaloClockDiffSngl(CaloPacket *calopkt);
   void FillPacketDiff(OfflinePacket *pkt);
 
   void set_delBadPkts(bool newDelBadPkts)
@@ -42,6 +45,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
  private:
   bool delBadPkts = false;
   std::map<unsigned int, std::tuple<uint64_t, uint64_t, uint64_t, TH1 *, bool>> m_PacketStuffMap;
+  std::vector<std::string> m_PacketNodeNames;
   /* std::string m_EvtNodeName = "CLOCKDIFFRAWHIT"; */
   /* std::set<uint64_t> bclk_seen; */
 };

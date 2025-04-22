@@ -12,7 +12,7 @@ class PHPointerListIterator
 {
  public:
   explicit PHPointerListIterator(const PHPointerList<T>&);
-  virtual ~PHPointerListIterator() {}
+  virtual ~PHPointerListIterator() = default;
   T* operator()();
   void operator--();
   void reset();
