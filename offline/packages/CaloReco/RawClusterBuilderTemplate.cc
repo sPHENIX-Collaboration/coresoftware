@@ -4,7 +4,6 @@
 #include "BEmcRec.h"
 #include "BEmcRecCEMC.h"
 
-#include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
@@ -19,6 +18,9 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
+
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -300,12 +302,29 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 
   if (vertexmap && m_UseAltZVertex == 0)  // default
   {
-    if (!vertexmap->empty())
+    GlobalVertex* vtx = vertexmap->begin()->second;
+    if (vtx)
     {
-      GlobalVertex *vertex = (vertexmap->begin()->second);
-      vx = vertex->get_x();
-      vy = vertex->get_y();
-      vz = vertex->get_z();
+      auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+      auto typeEndIter = vtx->end_vertexes();
+      for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+      {
+        const auto& [type, vertexVec] = *iter;
+        if (type != m_vertex_type)
+        {
+          continue;
+        }
+        for (const auto* vertex : vertexVec)
+        {
+          if (!vertex)
+          {
+            continue;
+          }
+          vx = vertex->get_x();
+          vy = vertex->get_y();
+          vz = vertex->get_z();
+        }
+      }
     }
   }
 
@@ -313,8 +332,6 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 
   if (mbdmap && m_UseAltZVertex == 1)
   {
-    std::cout << " in mbdmap " << std::endl;
-
     MbdVertex *bvertex = nullptr;
     for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
          mbditer != mbdmap->end();
@@ -331,6 +348,31 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 
     vz = bvertex->get_z();
   }
+
+  
+  if (m_UseAltZVertex == 3)
+  {
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    if (truthinfo)
+    {
+      PHG4TruthInfoContainer::VtxRange vtxrange = truthinfo->GetVtxRange();
+      for (PHG4TruthInfoContainer::ConstVtxIterator iter = vtxrange.first; iter != vtxrange.second; ++iter) 
+      {
+         PHG4VtxPoint *vtx_tr = iter->second;
+         if ( vtx_tr->get_id() == 1 )
+         { 
+           vz = vtx_tr->get_z();
+           vy = vtx_tr->get_y();
+           vx = vtx_tr->get_x();
+         }
+      }
+    }
+    else {
+      std::cout << "RawClusterBuilderTemplate: Error requiring truth vertex but non was found. Exiting" << std::endl;  
+      return Fun4AllReturnCodes::ABORTEVENT;
+    } 
+  }
+  
 
   // Set vertex
   float vertex[3] = {vx, vy, vz};
