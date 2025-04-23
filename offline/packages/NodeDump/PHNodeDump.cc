@@ -3,6 +3,7 @@
 
 #include "DumpBbcPmtInfoContainer.h"
 #include "DumpBbcVertexMap.h"
+#include "DumpCaloPacket.h"
 #include "DumpCaloPacketContainer.h"
 #include "DumpCaloTriggerInfo.h"
 #include "DumpCdbUrlSave.h"
@@ -202,6 +203,10 @@ int PHNodeDump::AddDumpObject(const std::string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("BbcVertexMap"))
       {
         newdump = new DumpBbcVertexMap(NodeName);
+      }
+      else if (tmp->InheritsFrom("CaloPacket"))
+      {
+        newdump = new DumpCaloPacket(NodeName);
       }
       else if (tmp->InheritsFrom("CaloPacketContainer"))
       {
