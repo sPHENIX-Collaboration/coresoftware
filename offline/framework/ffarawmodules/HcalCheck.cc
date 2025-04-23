@@ -45,7 +45,7 @@ int HcalCheck::process_event(PHCompositeNode *topNode)
     {
       if (ddump_enabled())
       {
-	ddumppacket(hcalcont->getPacket(i));
+        ddumppacket(hcalcont->getPacket(i));
       }
     }
   }

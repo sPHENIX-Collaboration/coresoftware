@@ -45,14 +45,14 @@ int SEpdCheck::process_event(PHCompositeNode *topNode)
     {
       if (ddump_enabled())
       {
-	ddumppacket(sepdcont->getPacket(i));
+        ddumppacket(sepdcont->getPacket(i));
       }
     }
-    std::cout << "SEPD Evt no: " <<  sepdcont->getEvtSequence() << std::endl;
+    std::cout << "SEPD Evt no: " << sepdcont->getEvtSequence() << std::endl;
     for (unsigned int i = 0; i < sepdcont->get_npackets(); i++)
     {
       std::cout << "Packet " << sepdcont->getPacket(i)->getIdentifier()
-		<< " Evt no: " << sepdcont->getPacket(i)->getEvtSequence() << std::endl;
+                << " Evt no: " << sepdcont->getPacket(i)->getEvtSequence() << std::endl;
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
