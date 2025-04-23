@@ -71,7 +71,8 @@ int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
   {
     return -1;
   }
-
+  EventNumber(m_Gl1TriggeredInput->EventNumber());
+  MySyncManager()->CurrentEvent(EventNumber());
   for (auto *iter : m_TriggeredInputVector)
   {
     //    std::cout << "prdf input: " << iter->Name() << std::endl;

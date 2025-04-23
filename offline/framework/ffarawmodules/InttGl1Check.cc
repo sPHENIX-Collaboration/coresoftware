@@ -20,6 +20,7 @@
 
 #include <bitset>
 #include <iostream>  // for operator<<, endl, basic_ost...
+#include <ranges>
 #include <set>
 #include <utility>  // for pair
 #include <vector>   // for vector
@@ -91,10 +92,10 @@ int InttGl1Check::process_event(PHCompositeNode *topNode)
   //   std::cout << "diff with gl1: 0x" << std::hex << iter << std::dec << std::endl;
   // }
   std::set<uint64_t> diffs;
-  for (auto &iter : inttbcoset)
+  for (const auto &iter : inttbcoset)
   {
     uint64_t refbco = iter;
-    for (auto &iter1 : inttbcoset)
+    for (const auto &iter1 : inttbcoset)
     {
       if (iter1 <= refbco)
       {
@@ -123,9 +124,9 @@ int InttGl1Check::End(PHCompositeNode * /*topNode*/)
     scoremap.insert(std::make_pair(iter.second, iter.first));
   }
   int i = 0;
-  for (auto iter = scoremap.rbegin(); iter != scoremap.rend(); ++iter)
+  for (auto &iter : std::ranges::reverse_view(scoremap))
   {
-    std::cout << "high score " << iter->first << " for diff " << iter->second
+    std::cout << "high score " << iter.first << " for diff " << iter.second
               << std::endl;
     i++;
     if (i > 3)

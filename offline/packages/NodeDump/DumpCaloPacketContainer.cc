@@ -19,7 +19,7 @@ DumpCaloPacketContainer::DumpCaloPacketContainer(const std::string &NodeName)
 int DumpCaloPacketContainer::process_Node(PHNode *myNode)
 {
   CaloPacketContainer *calocont = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     calocont = thisNode->getData();
@@ -30,7 +30,7 @@ int DumpCaloPacketContainer::process_Node(PHNode *myNode)
     {
       CaloPacket *calopacket = calocont->getPacket(i);
       *fout << "packet_nr: " << calopacket->getIdentifier() << std::endl;
-      //if (calopacket->getIdentifier() != 9002) continue;
+      // if (calopacket->getIdentifier() != 9002) continue;
       *fout << "EventNr: " << calopacket->iValue(0, "EVTNR") << std::endl;
       *fout << "Clock: 0x" << std::hex << calopacket->iValue(0, "CLOCK") << std::dec << std::endl;
       *fout << "Modules: " << calopacket->iValue(0, "NRMODULES") << std::endl;

@@ -60,7 +60,7 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
   int EventSequence = evt->getEvtSequence();
   std::vector<Packet *> pktvec = evt->getPacketVector();
   std::map<int, std::set<uint64_t>> bcoset;
-  for (auto packet : pktvec)
+  for (auto *packet : pktvec)
   {
     int packetid = packet->getIdentifier();
     lastbco.insert(std::make_pair(packetid, 0));
@@ -81,7 +81,7 @@ int TpcBcoDump::process_event(PHCompositeNode *topNode)
   {
     if (!mapiter.second.empty())
     {
-      for (auto &bco : mapiter.second)
+      for (const auto &bco : mapiter.second)
       {
         uint64_t prevbco = lastbco[mapiter.first];
         if (prevbco > 0 && prevbco != bco)

@@ -22,7 +22,7 @@ DumpPHG4BlockCellGeomContainer::DumpPHG4BlockCellGeomContainer(const std::string
 int DumpPHG4BlockCellGeomContainer::process_Node(PHNode *myNode)
 {
   PHG4BlockCellGeomContainer *phg4geomcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     phg4geomcontainer = thisNode->getData();

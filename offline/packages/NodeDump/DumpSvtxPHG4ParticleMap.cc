@@ -21,7 +21,7 @@ DumpSvtxPHG4ParticleMap::DumpSvtxPHG4ParticleMap(const std::string &NodeName)
 int DumpSvtxPHG4ParticleMap::process_Node(PHNode *myNode)
 {
   SvtxPHG4ParticleMap *svtxphg4particlemap = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     svtxphg4particlemap = thisNode->getData();

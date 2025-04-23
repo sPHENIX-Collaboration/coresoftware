@@ -21,7 +21,7 @@ DumpBbcVertexMap::DumpBbcVertexMap(const std::string &NodeName)
 int DumpBbcVertexMap::process_Node(PHNode *myNode)
 {
   BbcVertexMap *bbcvertexmap = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     bbcvertexmap = thisNode->getData();

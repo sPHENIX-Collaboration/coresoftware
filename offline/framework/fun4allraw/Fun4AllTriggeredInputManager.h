@@ -43,10 +43,12 @@ class Fun4AllTriggeredInputManager : public Fun4AllInputManager
   std::string GetString(const std::string &what) const override;
   void registerTriggeredInput(SingleTriggeredInput *prdfin);
   void registerGl1TriggeredInput(SingleTriggeredInput *prdfin);
+  void EventNumber(const int i) { m_EventNumber = i; }
+  int EventNumber() const { return m_EventNumber; }
 
  private:
   int m_RunNumber{0};
-  int m_RefEventNo{std::numeric_limits<int>::min()};
+  int m_EventNumber{0};
   std::set<int> m_Gl1DroppedEvent;
   SingleTriggeredInput *m_Gl1TriggeredInput{nullptr};
   std::vector<SingleTriggeredInput *> m_TriggeredInputVector;

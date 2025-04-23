@@ -19,7 +19,7 @@ DumpMvtxRawHitContainer::DumpMvtxRawHitContainer(const std::string &NodeName)
 int DumpMvtxRawHitContainer::process_Node(PHNode *myNode)
 {
   MvtxRawHitContainer *mvtxrawhitcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     mvtxrawhitcontainer = thisNode->getData();

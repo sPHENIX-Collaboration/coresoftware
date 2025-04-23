@@ -20,7 +20,7 @@ DumpTpcSeedTrackMap::DumpTpcSeedTrackMap(const std::string &NodeName)
 int DumpTpcSeedTrackMap::process_Node(PHNode *myNode)
 {
   TpcSeedTrackMap *tpcseedtrackmap = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     tpcseedtrackmap = thisNode->getData();

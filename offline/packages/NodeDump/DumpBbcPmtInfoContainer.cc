@@ -18,7 +18,7 @@ DumpBbcPmtInfoContainer::DumpBbcPmtInfoContainer(const std::string &NodeName)
 int DumpBbcPmtInfoContainer::process_Node(PHNode *myNode)
 {
   BbcPmtInfoContainerV1 *bbcpmtinfocontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     bbcpmtinfocontainer = thisNode->getData();

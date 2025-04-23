@@ -19,7 +19,7 @@ DumpMbdPmtContainer::DumpMbdPmtContainer(const std::string &NodeName)
 int DumpMbdPmtContainer::process_Node(PHNode *myNode)
 {
   MbdPmtContainer *mbdpmts = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     mbdpmts = thisNode->getData();

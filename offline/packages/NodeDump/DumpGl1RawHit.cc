@@ -18,7 +18,7 @@ DumpGl1RawHit::DumpGl1RawHit(const std::string &NodeName)
 int DumpGl1RawHit::process_Node(PHNode *myNode)
 {
   Gl1RawHit *gl1rawhit = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     gl1rawhit = thisNode->getData();

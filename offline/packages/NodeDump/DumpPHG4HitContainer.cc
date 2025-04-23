@@ -22,7 +22,7 @@ DumpPHG4HitContainer::DumpPHG4HitContainer(const std::string &NodeName)
 int DumpPHG4HitContainer::process_Node(PHNode *myNode)
 {
   PHG4HitContainer *phg4hitcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     phg4hitcontainer = thisNode->getData();
