@@ -18,7 +18,7 @@ DumpCaloPacket::DumpCaloPacket(const std::string &NodeName)
 int DumpCaloPacket::process_Node(PHNode *myNode)
 {
   CaloPacket *calopacket = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     calopacket = thisNode->getData();
@@ -26,7 +26,7 @@ int DumpCaloPacket::process_Node(PHNode *myNode)
   if (calopacket)
   {
     *fout << "packet_nr: " << calopacket->getIdentifier() << std::endl;
-    //if (calopacket->getIdentifier() != 9002) continue;
+    // if (calopacket->getIdentifier() != 9002) continue;
     *fout << "EventNr: " << calopacket->iValue(0, "EVTNR") << std::endl;
     *fout << "Clock: 0x" << std::hex << calopacket->iValue(0, "CLOCK") << std::dec << std::endl;
     *fout << "Modules: " << calopacket->iValue(0, "NRMODULES") << std::endl;
@@ -51,7 +51,7 @@ int DumpCaloPacket::process_Node(PHNode *myNode)
       *fout << "POST: 0x" << std::hex << calopacket->iValue(k, "POST") << std::dec << std::endl;
       for (int j = 0; j < calopacket->iValue(0, "SAMPLES"); j++)
       {
-	*fout << "iValue(" << j << ", " << k << "): " << calopacket->iValue(j, k) << std::endl;
+        *fout << "iValue(" << j << ", " << k << "): " << calopacket->iValue(j, k) << std::endl;
       }
     }
   }
