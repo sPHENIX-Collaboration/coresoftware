@@ -19,7 +19,7 @@ DumpMicromegasRawHitContainer::DumpMicromegasRawHitContainer(const std::string &
 int DumpMicromegasRawHitContainer::process_Node(PHNode *myNode)
 {
   MicromegasRawHitContainer *micromegasrawhitcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     micromegasrawhitcontainer = thisNode->getData();

@@ -18,7 +18,7 @@ DumpZdcinfo::DumpZdcinfo(const std::string &NodeName)
 int DumpZdcinfo::process_Node(PHNode *myNode)
 {
   Zdcinfo *zdcinfo = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     zdcinfo = thisNode->getData();
