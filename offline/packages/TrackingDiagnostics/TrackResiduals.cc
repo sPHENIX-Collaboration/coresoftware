@@ -1602,7 +1602,7 @@ void TrackResiduals::createBranches()
   m_vertextree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
   m_vertextree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_vertextree->Branch("trbco", &m_bcotr, "m_bcotr/l");
-  m_vertextree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
+  m_vertextree->Branch("vertexid", &m_vertexid);
   m_vertextree->Branch("vertex_crossing", &m_vertex_crossing, "m_vertex_crossing/I");
   m_vertextree->Branch("vx", &m_vx, "m_vx/F");
   m_vertextree->Branch("vy", &m_vy, "m_vy/F");
@@ -1731,7 +1731,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("nmms", &m_nmms, "m_nmms/I");
   m_tree->Branch("nmmsstate", &m_nmmsstate, "m_nmmsstate/I");
   m_tree->Branch("tile", &m_tileid, "m_tileid/I");
-  m_tree->Branch("vertexid", &m_vertexid, "m_vertexid/I");
+  m_tree->Branch("vertexid", &m_vertexid);
   m_tree->Branch("vertex_crossing", &m_vertex_crossing, "m_vertex_crossing/I");
   m_tree->Branch("vx", &m_vx, "m_vx/F");
   m_tree->Branch("vy", &m_vy, "m_vy/F");
