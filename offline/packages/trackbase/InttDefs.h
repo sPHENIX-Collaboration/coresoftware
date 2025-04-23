@@ -19,26 +19,6 @@
  */
 namespace InttDefs
 {
-  // hitsetkey layout:
-  //  Intt specific lower 16 bits
-  //   24 - 31  tracker id  // 8 bits
-  //   16 - 23  layer       // 8 bits
-  //   14 - 15  ladder z id   // 2 bits
-  //   10 - 13       ladder phi id  // 4 bits
-  //   0 - 9     time bucket  // 10 bits
-
-  static const unsigned int kBitShiftTimeBucketIdOffset __attribute__((unused)) = 0;
-  static const unsigned int kBitShiftTimeBucketIdWidth __attribute__((unused)) = 10;
-  static const unsigned int kBitShiftLadderPhiIdOffset __attribute__((unused)) = 10;
-  static const unsigned int kBitShiftLadderPhiIdWidth __attribute__((unused)) = 4;
-  static const unsigned int kBitShiftLadderZIdOffset __attribute__((unused)) = 14;
-  static const unsigned int kBitShiftLadderZIdWidth __attribute__((unused)) = 2;
-  static const int crossingOffset __attribute__((unused)) = 512;
-
-  // bit shift for hitkey
-  static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
-  static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
-
   /**
    * @brief Get the ladder id from hitsetkey
    * @param[in] hitsetkey

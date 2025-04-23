@@ -17,35 +17,35 @@
  */
 namespace TrkrDefs
 {
-  static double EdepScaleFactor __attribute__((unused)) = 0.25;
-  static double MvtxEnergyScaleup __attribute__((unused)) = 5.0e8;
-  static double InttEnergyScaleup __attribute__((unused)) = 5.0e7;
+  [[maybe_unused]] static constexpr double EdepScaleFactor = 0.25;
+  [[maybe_unused]] static constexpr double MvtxEnergyScaleup = 5.0e8;
+  [[maybe_unused]] static constexpr double InttEnergyScaleup = 5.0e7;
 
   /// Key types
-  typedef uint32_t hitkey;      // 32 bit TrkrHit key type
-  typedef uint32_t hitsetkey;   // 32 bit TrkrHitSet key type
-  typedef uint64_t cluskey;     // 64 but TrkrCluster id type
-  typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
-  typedef uint16_t subsurfkey;  // 16 bit sub surface key type
+  using hitkey = uint32_t;      // 32 bit TrkrHit key type
+  using hitsetkey = uint32_t;   // 32 bit TrkrHitSet key type
+  using cluskey = uint64_t;     // 64 but TrkrCluster id type
+  using clushitkey = uint32_t;  // 32 bit hit id type in TrkrCluster
+  using subsurfkey = uint16_t;  // 16 bit sub surface key type
 
   /// Max values for keys (used as defaults or invalid values)
-  static hitkey HITKEYMAX __attribute__((unused)) = UINT32_MAX;
-  static hitsetkey HITSETKEYMAX __attribute__((unused)) = UINT32_MAX;
-  static cluskey CLUSKEYMAX __attribute__((unused)) = UINT64_MAX;
-  static clushitkey CLUSHITKEYMAX __attribute__((unused)) = UINT32_MAX;
-  static subsurfkey SUBSURFKEYMAX __attribute__((unused)) = UINT16_MAX;
+  [[maybe_unused]] static constexpr hitkey HITKEYMAX = UINT32_MAX;
+  [[maybe_unused]] static constexpr hitsetkey HITSETKEYMAX = UINT32_MAX;
+  [[maybe_unused]] static constexpr cluskey CLUSKEYMAX = UINT64_MAX;
+  [[maybe_unused]] static constexpr clushitkey CLUSHITKEYMAX = UINT32_MAX;
+  [[maybe_unused]] static constexpr subsurfkey SUBSURFKEYMAX = UINT16_MAX;
 
   // hitsetkey layout:
   //  common upper 16 bits
   //   24 - 32  tracker id
   //   16 - 24  layer
-  static const unsigned int kBitShiftTrkrId __attribute__((unused)) = 24;  // 32 - 8
-  static const unsigned int kBitShiftLayer __attribute__((unused)) = 16;   // bitshift_trackerid - 8
+  [[maybe_unused]] static constexpr unsigned int kBitShiftTrkrId = 24;  // 32 - 8
+  [[maybe_unused]] static constexpr unsigned int kBitShiftLayer = 16;   // bitshift_trackerid - 8
 
   // cluskey layour
   //  hitsetkey upper 32 bits
   //  cluster id lower 32 bits
-  static const unsigned int kBitShiftClusId __attribute__((unused)) = 32;
+  [[maybe_unused]] static constexpr unsigned int kBitShiftClusId = 32;
 
   /// Enumeration for tracker id to easily maintain consistency
   enum TrkrId
@@ -102,8 +102,8 @@ namespace TrkrDefs
   TrkrDefs::cluskey getClusKeyLo(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
   TrkrDefs::cluskey getClusKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
 
-  static const unsigned int kBitShiftPhiElement __attribute__((unused)) = 8;  // sector
-  static const unsigned int kBitShiftZElement __attribute__((unused)) = 0;    // side
+  [[maybe_unused]] static constexpr unsigned int kBitShiftPhiElement = 8;  // sector
+  [[maybe_unused]] static constexpr unsigned int kBitShiftZElement = 0;    // side
 
   uint8_t getPhiElement(TrkrDefs::hitsetkey key);  // sector
   uint8_t getZElement(TrkrDefs::hitsetkey key);    // side

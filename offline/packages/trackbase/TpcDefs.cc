@@ -8,10 +8,29 @@
 
 #include "TrkrDefs.h"  // for hitsetkey, cluskey, hitkey, kBitShif...
 
+namespace
+{
+
+  // hitsetkey layout:
+  //  Tpc specific lower 16 bits
+  //   24 - 32  tracker id
+  //   16 - 24  layer
+  //   8  - 16  sector id
+  //   0  -  8  side
+  static constexpr unsigned int kBitShiftSectorId = 8;
+  static constexpr unsigned int kBitShiftSide = 0;
+
+  // bit shift for hitkey
+  //  16 - 32 pad id
+  //  0  - 16 time bin
+  static constexpr unsigned int kBitShiftPad = 16;
+  static constexpr unsigned int kBitShiftTBin = 0;
+}
+
 uint8_t
 TpcDefs::getSectorId(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TpcDefs::kBitShiftSectorId);
+  TrkrDefs::hitsetkey tmp = (key >> kBitShiftSectorId);
   return tmp;
 }
 
@@ -25,7 +44,7 @@ TpcDefs::getSectorId(TrkrDefs::cluskey key)
 uint8_t
 TpcDefs::getSide(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TpcDefs::kBitShiftSide);
+  TrkrDefs::hitsetkey tmp = (key >> kBitShiftSide);
   return tmp;
 }
 
@@ -39,22 +58,22 @@ TpcDefs::getSide(TrkrDefs::cluskey key)
 uint16_t
 TpcDefs::getPad(TrkrDefs::hitkey key)
 {
-  TrkrDefs::hitkey tmp = (key >> TpcDefs::kBitShiftPad);
+  TrkrDefs::hitkey tmp = (key >> kBitShiftPad);
   return tmp;
 }
 
 uint16_t
 TpcDefs::getTBin(TrkrDefs::hitkey key)
 {
-  TrkrDefs::hitkey tmp = (key >> TpcDefs::kBitShiftTBin);
+  TrkrDefs::hitkey tmp = (key >> kBitShiftTBin);
   return tmp;
 }
 
 TrkrDefs::hitkey
 TpcDefs::genHitKey(const uint16_t pad, const uint16_t tbin)
 {
-  TrkrDefs::hitkey key = (pad << TpcDefs::kBitShiftPad);
-  TrkrDefs::hitkey tmp = (tbin << TpcDefs::kBitShiftTBin);
+  TrkrDefs::hitkey key = (pad << kBitShiftPad);
+  TrkrDefs::hitkey tmp = (tbin << kBitShiftTBin);
   key |= tmp;
   return key;
 }
@@ -64,9 +83,9 @@ TpcDefs::genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t sid
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::tpcId, lyr);
   TrkrDefs::hitsetkey tmp = sector;
-  key |= (tmp << TpcDefs::kBitShiftSectorId);
+  key |= (tmp << kBitShiftSectorId);
   tmp = side;
-  key |= (tmp << TpcDefs::kBitShiftSide);
+  key |= (tmp << kBitShiftSide);
   return key;
 }
 

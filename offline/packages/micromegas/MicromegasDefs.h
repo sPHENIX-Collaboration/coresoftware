@@ -33,20 +33,6 @@ namespace MicromegasDefs
   };
 
   /*!
-   * hitsetkey layout:
-   * Micromegas specific lower 16 bits
-   * 24 - 32  tracker id
-   * 16 - 24  layer
-   * 8 - 16 segmentation type
-   * 0 - 8 tile id
-   */
-  static constexpr unsigned int kBitShiftSegmentation __attribute__((unused)) = 8;
-  static constexpr unsigned int kBitShiftTileId __attribute__((unused)) = 0;
-
-  //! bit shift for hit key
-  static constexpr unsigned int kBitShiftStrip __attribute__((unused)) = 0;
-
-  /*!
    * @brief Generate a hitsetkey for the micromegas
    * @param[in] layer Layer index
    * @param[in] tile tile index

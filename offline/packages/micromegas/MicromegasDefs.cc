@@ -16,7 +16,21 @@ namespace
     constexpr underlying_type_t<T>
     to_underlying_type(T value) noexcept
   { return static_cast<underlying_type_t<T>>(value);}
- 
+
+  /*!
+   * hitsetkey layout:
+   * Micromegas specific lower 16 bits
+   * 24 - 32  tracker id
+   * 16 - 24  layer
+   * 8 - 16 segmentation type
+   * 0 - 8 tile id
+   */
+  static constexpr unsigned int kBitShiftSegmentation = 8;
+  static constexpr unsigned int kBitShiftTileId = 0;
+
+  //! bit shift for hit key
+  static constexpr unsigned int kBitShiftStrip = 0;
+
 }
 
 namespace MicromegasDefs
@@ -26,13 +40,13 @@ namespace MicromegasDefs
   TrkrDefs::hitsetkey genHitSetKey(uint8_t layer, SegmentationType type, uint8_t tile )
   {
     TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::micromegasId, layer);
-    
+
     TrkrDefs::hitsetkey tmp = to_underlying_type(type);
     key |= (tmp << kBitShiftSegmentation);
 
     tmp = tile;
     key |= (tmp << kBitShiftTileId);
-        
+
     return key;
   }
 
