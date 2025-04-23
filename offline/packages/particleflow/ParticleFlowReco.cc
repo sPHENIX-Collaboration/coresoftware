@@ -64,8 +64,8 @@ std::pair<float, float> ParticleFlowReco::get_expected_signature(int trk)
 //____________________________________________________________________________..
 ParticleFlowReco::ParticleFlowReco(const std::string &name)
   : SubsysReco(name)
-  , _energy_match_Nsigma(1.5)
   , _only_crossing_zero(true)
+  , _energy_match_Nsigma(1.5)
 {
 }
 
