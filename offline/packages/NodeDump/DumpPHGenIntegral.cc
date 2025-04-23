@@ -18,7 +18,7 @@ DumpPHGenIntegral::DumpPHGenIntegral(const std::string &NodeName)
 int DumpPHGenIntegral::process_Node(PHNode *myNode)
 {
   PHGenIntegral *phgenintegral = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     phgenintegral = thisNode->getData();

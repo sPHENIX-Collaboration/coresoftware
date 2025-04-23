@@ -18,7 +18,7 @@ DumpCaloTriggerInfo::DumpCaloTriggerInfo(const std::string &NodeName)
 int DumpCaloTriggerInfo::process_Node(PHNode *myNode)
 {
   CaloTriggerInfo *calotriggerinfo = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     calotriggerinfo = thisNode->getData();

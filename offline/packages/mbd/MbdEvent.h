@@ -12,6 +12,7 @@
 #endif
 
 #include <vector>
+#include <limits>
 
 class PHCompositeNode;
 class Event;
@@ -25,6 +26,8 @@ class TCanvas;
 #ifndef ONLINE
 class CaloPacketContainer;
 class Gl1Packet;
+class PHG4TruthInfoContainer;
+class PHG4VtxPoint;
 #endif
 
 class MbdEvent
@@ -38,7 +41,7 @@ class MbdEvent
   int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
 #endif
   void PostProcessChannels(MbdPmtContainer *bbcpmts);
-  int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout);
+  int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNode *topNode = nullptr);
   int InitRun();
   int End();
   void Clear();
@@ -50,18 +53,19 @@ class MbdEvent
   float get_bbct0() { return m_bbct0; }
   float get_bbct0err() { return m_bbct0err; }
 
-  int get_bbcn(const int iarm) { return m_bbcn[iarm]; }
+  int   get_bbcn(const int iarm) { return m_bbcn[iarm]; }
   float get_bbcq(const int iarm) { return m_bbcq[iarm]; }
   float get_bbct(const int iarm) { return m_bbct[iarm]; }
   float get_bbcte(const int iarm) { return m_bbcte[iarm]; }
 
-  int get_pmtq(const int ipmt) { return m_pmtq[ipmt]; }
+  int   get_pmtq(const int ipmt) { return m_pmtq[ipmt]; }
   float get_pmttt(const int ipmt) { return m_pmttt[ipmt]; }
   float get_pmttq(const int ipmt) { return m_pmttq[ipmt]; }
 
-  int get_EventNumber(void) const { return m_evt; }
+  int  get_EventNumber(void) const { return m_evt; }
+  void set_EventNumber(int ievt) { m_evt = ievt; }
 
-  void set_debugintt(const int d) { _debugintt = d; }
+  void set_debug(const int d) { _debug = d; }
 
   MbdSig *GetSig(const int ipmt) { return &_mbdsig[ipmt]; }
 
@@ -90,7 +94,17 @@ class MbdEvent
 
   bool isbadtch(const int ipmtch);
 
-  int _debugintt{0};
+  // Debugging variables
+  int _debug{0};
+#ifndef ONLINE
+  PHG4TruthInfoContainer* _truth_container {nullptr};
+  PHG4VtxPoint* _vtxp {nullptr};
+  PHG4VtxPoint* GetPrimaryVtx(PHCompositeNode *topNode);
+#endif
+  int epmt[2]{-1, -1};  // pmt of earliest time
+  // int lpmt[2] {-1,-1};        // pmt of latest time
+  double tepmt[2]{1e9, 1e9};    // earliest time
+  double tlpmt[2]{-1e9, -1e9};  // latest time
   void ReadSyncFile(const char *fname = "SYNC_INTTMBD.root");
 
   float gaincorr[MbdDefs::MBD_N_PMT]{};       // gain corrections
@@ -165,14 +179,14 @@ class MbdEvent
   int CalcPedCalib();
 
   //
-  void ClusterEarliest(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax) const;
+  void ClusterEarliest(std::vector<float> &times, double& mean, double& rms, double& rmin, double& rmax);
  
-  TCanvas *ac{nullptr};  // for plots used during debugging
-
   // debug stuff
+  TCanvas *ac{nullptr};  // for plots used during debugging
+  void PlotDebug();
   std::unique_ptr<TFile> _synctfile{nullptr};
   TTree *_syncttree{nullptr};
-  int _syncevt{0};
+  Double_t _refz{ std::numeric_limits<double>::quiet_NaN() };
   std::vector<Int_t> bbevt;
   std::vector<UShort_t> bbclk;
   std::vector<Float_t> mybbz;

@@ -21,7 +21,7 @@ DumpRunHeader::DumpRunHeader(const std::string &NodeName)
 int DumpRunHeader::process_Node(PHNode *myNode)
 {
   RunHeader *runheader = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     runheader = thisNode->getData();

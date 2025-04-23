@@ -21,7 +21,7 @@ DumpParticleFlowElementContainer::DumpParticleFlowElementContainer(const std::st
 int DumpParticleFlowElementContainer::process_Node(PHNode *myNode)
 {
   ParticleFlowElementContainer *particleflowelementcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     particleflowelementcontainer = thisNode->getData();

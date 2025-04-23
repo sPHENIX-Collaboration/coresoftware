@@ -18,7 +18,7 @@ DumpMbdGeom::DumpMbdGeom(const std::string &NodeName)
 int DumpMbdGeom::process_Node(PHNode *myNode)
 {
   MbdGeom *mbdgeom = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     mbdgeom = thisNode->getData();

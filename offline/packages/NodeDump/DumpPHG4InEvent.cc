@@ -22,7 +22,7 @@ DumpPHG4InEvent::DumpPHG4InEvent(const std::string &NodeName)
 int DumpPHG4InEvent::process_Node(PHNode *myNode)
 {
   PHG4InEvent *phg4inevent = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     phg4inevent = thisNode->getData();

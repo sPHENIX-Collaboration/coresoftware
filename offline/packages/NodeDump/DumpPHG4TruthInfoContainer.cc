@@ -23,7 +23,7 @@ DumpPHG4TruthInfoContainer::DumpPHG4TruthInfoContainer(const std::string &NodeNa
 int DumpPHG4TruthInfoContainer::process_Node(PHNode *myNode)
 {
   PHG4TruthInfoContainer *truthcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     truthcontainer = thisNode->getData();

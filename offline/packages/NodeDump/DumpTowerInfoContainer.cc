@@ -19,7 +19,7 @@ DumpTowerInfoContainer::DumpTowerInfoContainer(const std::string &NodeName)
 int DumpTowerInfoContainer::process_Node(PHNode *myNode)
 {
   TowerInfoContainer *towerinfocontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     towerinfocontainer = thisNode->getData();

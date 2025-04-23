@@ -1364,12 +1364,11 @@ int Fun4AllStreamingInputManager::FillInttPool()
       }
     }
   }
-  if (m_InttRawHitMap.empty() && m_Gl1RawHitMap.empty())
+  if (m_InttRawHitMap.empty())
   {
-    std::cout << "InttRawHitMap and Gl1RawHitMap are empty - we are done" << std::endl;
+    std::cout << "InttRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
-
   return 0;
 }
 
@@ -1443,12 +1442,11 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
       }
     }
   }
-  if (m_MicromegasRawHitMap.empty() && m_Gl1RawHitMap.empty())
+  if (m_MicromegasRawHitMap.empty())
   {
-    std::cout << "MicromegasRawHitMap and Gl1RawHitMap are empty - we are done" << std::endl;
+    std::cout << "MicromegasRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
-
   return 0;
 }
 
@@ -1481,10 +1479,10 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
       }
     }
   }
-  if (m_MvtxRawHitMap.empty() && m_Gl1RawHitMap.empty())
+  if (m_MvtxRawHitMap.empty())
   {
     
-    std::cout << "MvtxRawHitMap and Gl1RawHitMap are empty - we are done" << std::endl;
+    std::cout << "MvtxRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
   return 0;

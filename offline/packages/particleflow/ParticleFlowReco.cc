@@ -64,6 +64,7 @@ std::pair<float, float> ParticleFlowReco::get_expected_signature(int trk)
 //____________________________________________________________________________..
 ParticleFlowReco::ParticleFlowReco(const std::string &name)
   : SubsysReco(name)
+  , _only_crossing_zero(true)
   , _energy_match_Nsigma(1.5)
 {
 }
@@ -175,6 +176,11 @@ int ParticleFlowReco::process_event(PHCompositeNode *topNode)
     for (auto &iter : *trackmap)
     {
       SvtxTrack *track = iter.second;
+
+      if(_only_crossing_zero && (track->get_crossing() != 0))
+      {
+        continue;
+      }
 
       if (track->get_pt() < 0.5)
       {
