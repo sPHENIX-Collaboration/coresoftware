@@ -268,7 +268,7 @@ int ResonanceJetTagging::tagHFHadronic(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<int> TagDecays)
+void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<int> &TagDecays)
 {
   std::unique_ptr<fastjet::JetDefinition> jetdef(new fastjet::JetDefinition(m_jetalgo, m_jetr, m_recomb_scheme, fastjet::Best));
   std::vector<fastjet::PseudoJet> particles;
@@ -330,7 +330,7 @@ void ResonanceJetTagging::findTaggedJets(PHCompositeNode *topNode, PHG4Particlev
   return;
 }
 
-void ResonanceJetTagging::addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
+void ResonanceJetTagging::addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
 {
   ParticleFlowElementContainer *pflowContainer = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
 
@@ -392,7 +392,7 @@ bool ResonanceJetTagging::isAcceptableParticleFlow(ParticleFlowElement *pfPart)
 
   return true;
 }
-void ResonanceJetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
+void ResonanceJetTagging::addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap)
 {
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
@@ -647,7 +647,7 @@ bool ResonanceJetTagging::isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_clust
   return true;
 }
 
-bool ResonanceJetTagging::isDecay(SvtxTrack *track,  const std::vector<int> decays)
+bool ResonanceJetTagging::isDecay(SvtxTrack *track,  const std::vector<int> &decays)
 {
   for (long unsigned int idecay = 0; idecay < decays.size(); idecay++)
   {
