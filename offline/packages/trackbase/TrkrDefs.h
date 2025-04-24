@@ -35,13 +35,6 @@ namespace TrkrDefs
   [[maybe_unused]] static constexpr clushitkey CLUSHITKEYMAX = UINT32_MAX;
   [[maybe_unused]] static constexpr subsurfkey SUBSURFKEYMAX = UINT16_MAX;
 
-  // hitsetkey layout:
-  //  common upper 16 bits
-  //   24 - 32  tracker id
-  //   16 - 24  layer
-  [[maybe_unused]] static constexpr unsigned int kBitShiftTrkrId = 24;  // 32 - 8
-  [[maybe_unused]] static constexpr unsigned int kBitShiftLayer = 16;   // bitshift_trackerid - 8
-
   /// Enumeration for tracker id to easily maintain consistency
   enum TrkrId
   {
