@@ -115,7 +115,7 @@ namespace MvtxDefs
    * @param[in] hskey cluskey
    * @param[out] cluskey with strobe bits set to zero
    */
-  TrkrDefs::cluskey resetStrobe(const TrkrDefs::cluskey /*ckey*/);
+  TrkrDefs::cluskey resetStrobe(const TrkrDefs::cluskey /*key*/);
 
   /**
    * @brief Zero the strobe bits in the hitsetkey
