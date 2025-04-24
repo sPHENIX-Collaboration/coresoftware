@@ -53,6 +53,7 @@ class PHSimpleVertexFinder : public SubsysReco
   void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
   void zeroField(const bool flag) { _zero_field = flag; }
   void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
+  void set_pp_mode(bool mode) { _pp_mode = mode; }
 
  private:
   int GetNodes(PHCompositeNode *topNode);
@@ -105,6 +106,8 @@ class PHSimpleVertexFinder : public SubsysReco
   std::set<unsigned int> _vertex_set;
 
   TrackVertexCrossingAssoc *_track_vertex_crossing_map{nullptr};
+
+  bool _pp_mode = true;  // default to pp mode
 };
 
 #endif  // PHSIMPLEVERTEXFINDER_H
