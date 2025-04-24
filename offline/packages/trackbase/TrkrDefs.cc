@@ -126,7 +126,7 @@ TrkrDefs::cluskey
 TrkrDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
 {
   const TrkrDefs::cluskey tmp = hskey;
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
+  TrkrDefs::cluskey key = (tmp << kBitShiftClusId);
   key |= clusid;
   return key;
 }
@@ -145,12 +145,12 @@ uint8_t TrkrDefs::getZElement(TrkrDefs::hitsetkey key)
 
 uint8_t TrkrDefs::getPhiElement(TrkrDefs::cluskey key)
 {
-  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
   return getPhiElement(tmp);
 }
 
 uint8_t TrkrDefs::getZElement(TrkrDefs::cluskey key)  // side
 {
-  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
   return getZElement(tmp);
 }

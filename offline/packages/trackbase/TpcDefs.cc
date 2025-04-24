@@ -37,7 +37,7 @@ TpcDefs::getSectorId(TrkrDefs::hitsetkey key)
 uint8_t
 TpcDefs::getSectorId(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getSectorId(tmp);
 }
 
@@ -51,7 +51,7 @@ TpcDefs::getSide(TrkrDefs::hitsetkey key)
 uint8_t
 TpcDefs::getSide(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getSide(tmp);
 }
 
