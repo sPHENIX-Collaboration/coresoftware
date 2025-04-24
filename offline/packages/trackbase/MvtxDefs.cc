@@ -146,18 +146,9 @@ MvtxDefs::resetStrobe(const TrkrDefs::hitsetkey hitsetkey)
   return tmp;
 }
 
-// this is broken
 TrkrDefs::cluskey
 MvtxDefs::resetStrobe(const TrkrDefs::cluskey ckey)
 {
-  // Note: this method uses the fact that the crossing is in the first 5 bits
-  TrkrDefs::cluskey tmp = ckey;
-
-  // zero the crossing bits by shifting them out of the word, then shift back
-  tmp = (tmp >> kBitShiftStrobeIdWidth);
-  tmp = (tmp << kBitShiftStrobeIdWidth);
-  unsigned int zero_strobe = strobeOffset;
-  tmp |= (zero_strobe << kBitShiftStrobeIdOffset);
-
-  return tmp;
+  TrkrDefs::hitsetkey tmp =  TrkrDefs::getHitSetKeyFromClusKey(key);
+  return TrkrDefs::genClusKey(resetStrobe(tmp), ckey);
 }
