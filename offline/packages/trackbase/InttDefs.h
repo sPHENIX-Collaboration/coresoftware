@@ -114,7 +114,7 @@ namespace InttDefs
    * @param[in] hitsetkey
    * @param[out] hitsetkey
    */
-  TrkrDefs::hitsetkey resetCrossingHitSetKey(const TrkrDefs::hitsetkey hitsetkey);
+  TrkrDefs::hitsetkey resetCrossing(const TrkrDefs::hitsetkey hitsetkey);
 
 }  // namespace InttDefs
 

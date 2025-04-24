@@ -37,7 +37,7 @@ MvtxDefs::getStaveId(TrkrDefs::hitsetkey key)
 uint8_t
 MvtxDefs::getStaveId(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getStaveId(tmp);
 }
 
@@ -54,7 +54,7 @@ MvtxDefs::getChipId(TrkrDefs::hitsetkey key)
 uint8_t
 MvtxDefs::getChipId(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getChipId(tmp);
 }
 
@@ -72,7 +72,7 @@ int MvtxDefs::getStrobeId(TrkrDefs::hitsetkey key)
 
 int MvtxDefs::getStrobeId(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getStrobeId(tmp);
 }
 
@@ -129,15 +129,30 @@ TrkrDefs::cluskey
 MvtxDefs::genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe, const uint32_t clusid)
 {
   TrkrDefs::hitsetkey key = genHitSetKey(lyr, stave, chip, strobe);
-  // return TrkrDefs::genClusKey( key, clusid );
   return TrkrDefs::genClusKey(key, clusid);
 }
 
 TrkrDefs::hitsetkey
-MvtxDefs::resetStrobeHitSetKey(const TrkrDefs::hitsetkey hitsetkey)
+MvtxDefs::resetStrobe(const TrkrDefs::hitsetkey hitsetkey)
 {
   // Note: this method uses the fact that the crossing is in the first 5 bits
   TrkrDefs::hitsetkey tmp = hitsetkey;
+  // zero the crossing bits by shifting them out of the word, then shift back
+  tmp = (tmp >> kBitShiftStrobeIdWidth);
+  tmp = (tmp << kBitShiftStrobeIdWidth);
+  unsigned int zero_strobe = strobeOffset;
+  tmp |= (zero_strobe << kBitShiftStrobeIdOffset);
+
+  return tmp;
+}
+
+// this is broken
+TrkrDefs::cluskey
+MvtxDefs::resetStrobe(const TrkrDefs::cluskey ckey)
+{
+  // Note: this method uses the fact that the crossing is in the first 5 bits
+  TrkrDefs::cluskey tmp = ckey;
+
   // zero the crossing bits by shifting them out of the word, then shift back
   tmp = (tmp >> kBitShiftStrobeIdWidth);
   tmp = (tmp << kBitShiftStrobeIdWidth);

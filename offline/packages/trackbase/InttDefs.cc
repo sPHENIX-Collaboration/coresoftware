@@ -43,7 +43,7 @@ InttDefs::getLadderZId(TrkrDefs::hitsetkey key)
 uint8_t
 InttDefs::getLadderZId(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getLadderZId(tmp);
 }
 
@@ -61,7 +61,7 @@ InttDefs::getLadderPhiId(TrkrDefs::hitsetkey key)
 uint8_t
 InttDefs::getLadderPhiId(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getLadderPhiId(tmp);
 }
 
@@ -80,7 +80,7 @@ int InttDefs::getTimeBucketId(TrkrDefs::hitsetkey key)
 
 int InttDefs::getTimeBucketId(TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
   return getTimeBucketId(tmp);
 }
 
@@ -142,7 +142,7 @@ InttDefs::genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint
 }
 
 TrkrDefs::hitsetkey
-InttDefs::resetCrossingHitSetKey(const TrkrDefs::hitsetkey hitsetkey)
+InttDefs::resetCrossing(const TrkrDefs::hitsetkey hitsetkey)
 {
   // Note: this method uses the fact that the crossing is in the first 10 bits
   TrkrDefs::hitsetkey tmp = hitsetkey;

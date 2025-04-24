@@ -81,14 +81,14 @@ namespace MicromegasDefs
   //________________________________________________________________
   SegmentationType getSegmentationType(TrkrDefs::cluskey key)
   {
-    TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+    const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
     return getSegmentationType( tmp );
   }
 
   //________________________________________________________________
   uint8_t getTileId(TrkrDefs::cluskey key)
   {
-    TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+    const TrkrDefs::hitsetkey tmp = TrkrDefs::getHitSetKeyFromClusKey(key);
     return getTileId( tmp );
   }
 

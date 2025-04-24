@@ -42,11 +42,6 @@ namespace TrkrDefs
   [[maybe_unused]] static constexpr unsigned int kBitShiftTrkrId = 24;  // 32 - 8
   [[maybe_unused]] static constexpr unsigned int kBitShiftLayer = 16;   // bitshift_trackerid - 8
 
-  // cluskey layour
-  //  hitsetkey upper 32 bits
-  //  cluster id lower 32 bits
-  [[maybe_unused]] static constexpr unsigned int kBitShiftClusId = 32;
-
   /// Enumeration for tracker id to easily maintain consistency
   enum TrkrId
   {

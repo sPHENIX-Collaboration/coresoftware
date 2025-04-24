@@ -2,6 +2,14 @@
 
 #include <bitset>
 
+namespace
+{
+  // cluskey layour
+  //  hitsetkey upper 32 bits
+  //  cluster id lower 32 bits
+  [[maybe_unused]] static constexpr unsigned int kBitShiftClusId = 32;
+}
+
 void TrkrDefs::printBits(const TrkrDefs::hitsetkey key, std::ostream& os)
 {
   os << "key: " << std::bitset<32>(key) << std::endl;
