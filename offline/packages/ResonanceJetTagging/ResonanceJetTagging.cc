@@ -122,9 +122,9 @@ ResonanceJetTagging::ResonanceJetTagging(const std::string &name, const TAG tag,
       m_tag_pdg = 413;
       m_nDaughters = 0;
       break;
-    case ResonanceJetTagging::TAG::JPSY:
+    case ResonanceJetTagging::TAG::JPSI:
       m_tag_pdg = 433;
-      m_nDaughters = 0;
+      m_nDaughters = 2;
       break;
     case ResonanceJetTagging::TAG::K0:
       m_tag_pdg = 310;
@@ -197,6 +197,8 @@ int ResonanceJetTagging::process_event(PHCompositeNode *topNode)
     case ResonanceJetTagging::TAG::LAMBDAS:
       [[fallthrough]];
     case ResonanceJetTagging::TAG::K0:
+      [[fallthrough]];
+    case ResonanceJetTagging::TAG::JPSI:
       return tagHFHadronic(topNode);
       break;
     default:

@@ -59,7 +59,7 @@ class ResonanceJetTagging : public SubsysReco
     D0TOK3PI = 1,
     DPLUS = 2,
     DSTAR = 3,
-    JPSY = 4,
+    JPSI = 4,
     K0 = 5,
     GAMMA = 6,
     ELECTRON = 7,
