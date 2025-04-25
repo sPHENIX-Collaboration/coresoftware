@@ -622,8 +622,8 @@ int Fun4AllStreamingInputManager::FillGl1()
     {
       delete iter;
     }
-      m_gl1_registered_flag = false;
-      m_Gl1InputVector.clear();
+    m_gl1_registered_flag = false;
+    m_Gl1InputVector.clear();
   }
   else
   {
@@ -696,10 +696,10 @@ int Fun4AllStreamingInputManager::FillIntt()
       iter->clearPacketBClkStackMap(m_InttRawHitMap.begin()->first);
       iter->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
     }
-   
+
     m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
     m_InttRawHitMap.erase(m_InttRawHitMap.begin());
-    
+
     iret = FillInttPool();
     if (iret)
     {
@@ -718,7 +718,7 @@ int Fun4AllStreamingInputManager::FillIntt()
     auto feebclstack = p->getFeeGTML1BCOMap();
     int packet_id = bcl_stack.begin()->first;
     int histo_to_fill = (packet_id % 10) - 1;
-  
+
     std::set<int> feeidset;
     int fee = 0;
     for (auto &[feeid, gtmbcoset] : feebclstack)
@@ -737,7 +737,7 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       fee++;
     }
-    
+
     if (feeidset.size() == 14)
     {
       allpacketsallfees++;
@@ -745,13 +745,13 @@ int Fun4AllStreamingInputManager::FillIntt()
     }
     feeidset.clear();
     bool thispacket = false;
-        
+
     for (auto &[packetid, gtmbcoset] : bcl_stack)
     {
       for (auto &gtmbco : gtmbcoset)
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
-        if (diff < m_intt_bco_range)  
+        if (diff < m_intt_bco_range)
         {
           thispacket = true;
           h_gl1tagged_intt[histo_to_fill]->Fill(refbcobitshift);
@@ -759,7 +759,7 @@ int Fun4AllStreamingInputManager::FillIntt()
         }
       }
     }
-    
+
     if (thispacket == false)
     {
       allpackets = false;
@@ -790,7 +790,7 @@ int Fun4AllStreamingInputManager::FillIntt()
     for (auto iter : m_InttInputVector)
     {
       iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
-      if(m_intt_negative_bco < 2) //triggered mode
+      if (m_intt_negative_bco < 2)  // triggered mode
       {
         iter->clearPacketBClkStackMap(m_InttRawHitMap.begin()->first);
         iter->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
@@ -803,12 +803,11 @@ int Fun4AllStreamingInputManager::FillIntt()
       break;
     }
   }
- return 0;
+  return 0;
 }
 
 int Fun4AllStreamingInputManager::FillMvtx()
 {
-
   int iret = FillMvtxPool();
   if (iret)
   {
@@ -859,7 +858,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
   // All three values used in the while loop evaluation are unsigned ints. If m_RefBCO is < m_mvtx_bco_range then we will overflow and delete all hits
   while (m_MvtxRawHitMap.begin()->first < ref_bco_minus_range)
   {
- 
     if (Verbosity() > 2)
     {
       std::cout << "ditching mvtx bco 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO << std::dec << std::endl;
@@ -877,18 +875,17 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
       delete mvtxFeeIdInfo;
     }
-    
+
     m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
     m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
     m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
     m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
-    
+
     iret = FillMvtxPool();
     if (iret)
     {
       return iret;
     }
-
   }
   // again m_MvtxRawHitMap.empty() is handled by return of FillMvtxPool()
   if (Verbosity() > 2)
@@ -896,7 +893,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
     std::cout << "after ditching, mvtx bco: 0x" << std::hex << m_MvtxRawHitMap.begin()->first << ", ref: 0x" << m_RefBCO
               << std::dec << std::endl;
   }
-  
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
   h_refbco_mvtx->Fill(refbcobitshift);
@@ -913,32 +909,29 @@ int Fun4AllStreamingInputManager::FillMvtx()
       h_bcoLL1Strobediff[packetid]->Fill(diff);
       break;
     }
-      if (diff > m_mvtx_bco_range)
-      {
-        continue;
-      }
-      if (diff > (m_RefBCO + m_mvtx_bco_range))
-      {
-        break;
-      }
-      for (auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
-      {
-        auto feeId = feeidinfo->get_feeId();
-
-        auto link = MvtxRawDefs::decode_feeid(feeId);
-        auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
-        int packetid = felix * 2 + endpoint;
-        h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
-        h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
-      }
-      break;
+    if (diff > m_mvtx_bco_range)
+    {
+      continue;
     }
+
+    for (auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
+    {
+      auto feeId = feeidinfo->get_feeId();
+
+      auto link = MvtxRawDefs::decode_feeid(feeId);
+      auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
+      int packetid = felix * 2 + endpoint;
+      h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
+      h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
+    }
+    break;
+  }
 
   std::map<int, std::set<int>> taggedPacketsFEEs;
   for (auto &p : m_MvtxInputVector)
   {
     auto gtml1bcoset_perfee = p->getFeeGTML1BCOMap();
-//    int feecounter = 0;
+    //    int feecounter = 0;
     for (auto &[feeid, gtmbcoset] : gtml1bcoset_perfee)
     {
       auto link = MvtxRawDefs::decode_feeid(feeid);
@@ -956,9 +949,8 @@ int Fun4AllStreamingInputManager::FillMvtx()
           break;
         }
       }
-//      feecounter++;
+      //      feecounter++;
     }
-
   }
   int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
@@ -980,10 +972,10 @@ int Fun4AllStreamingInputManager::FillMvtx()
     h_taggedAllFelixes_mvtx->Fill(refbcobitshift);
   }
   taggedPacketsFEEs.clear();
-  
+
   if (m_mvtx_is_triggered)
   {
-    while (select_crossings <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings + m_mvtx_bco_range) //triggered
+    while (select_crossings <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings + m_mvtx_bco_range)  // triggered
     {
       if (Verbosity() > 2)
       {
@@ -1026,7 +1018,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   else
   {
-    while (select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings) //streamed
+    while (select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings)  // streamed
     {
       if (Verbosity() > 2)
       {
@@ -1067,7 +1059,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
     }
   }
-  
+
   return 0;
 }
 
@@ -1104,11 +1096,11 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   if (Verbosity() > 2)
   {
     std::cout
-      << "Fun4AllStreamingInputManager::FillMicromegas - select Micromegas crossings"
-      << " from 0x" << std::hex << first_bco
-      << " to 0x" << last_bco
-      << " for ref BCO " << m_RefBCO
-      << std::dec << std::endl;
+        << "Fun4AllStreamingInputManager::FillMicromegas - select Micromegas crossings"
+        << " from 0x" << std::hex << first_bco
+        << " to 0x" << last_bco
+        << " for ref BCO " << m_RefBCO
+        << std::dec << std::endl;
   }
 
   // cleanup all data that correspond to too early BCO. Said data is effectively dropped
@@ -1117,13 +1109,15 @@ int Fun4AllStreamingInputManager::FillMicromegas()
     if (Verbosity() > 2)
     {
       std::cout
-        << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
-        << " smaller than GL1 BCO: 0x" << first_bco
-        << ", ditching this bco" << std::dec << std::endl;
+          << "Micromegas BCO: 0x" << std::hex << m_MicromegasRawHitMap.begin()->first
+          << " smaller than GL1 BCO: 0x" << first_bco
+          << ", ditching this bco" << std::dec << std::endl;
     }
 
-    for (const auto& poolinput : m_MicromegasInputVector)
-    { poolinput->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first, true); }
+    for (const auto &poolinput : m_MicromegasInputVector)
+    {
+      poolinput->CleanupUsedPackets(m_MicromegasRawHitMap.begin()->first, true);
+    }
 
     // remove
     m_MicromegasRawHitMap.erase(m_MicromegasRawHitMap.begin());
@@ -1143,7 +1137,7 @@ int Fun4AllStreamingInputManager::FillMicromegas()
   }
 
   // store hits relevant for this trigger and cleanup
-  for( auto iter = m_MicromegasRawHitMap.begin(); iter != m_MicromegasRawHitMap.end() && iter->first <= last_bco;  iter = m_MicromegasRawHitMap.erase(iter))
+  for (auto iter = m_MicromegasRawHitMap.begin(); iter != m_MicromegasRawHitMap.end() && iter->first <= last_bco; iter = m_MicromegasRawHitMap.erase(iter))
   {
     for (const auto &hititer : iter->second.MicromegasRawHitVector)
     {
@@ -1187,17 +1181,15 @@ int Fun4AllStreamingInputManager::FillTpc()
   select_crossings += m_RefBCO;
   if (Verbosity() > 2)
   {
-
     std::cout << "select TPC crossings"
               << " from 0x" << std::hex << m_RefBCO - m_tpc_negative_bco
               << " to 0x" << select_crossings - m_tpc_negative_bco
               << std::dec << std::endl;
-
   }
   // m_TpcRawHitMap.empty() does not need to be checked here, FillTpcPool returns non zero
   // if this map is empty which is handled above
 
-  if (m_TpcRawHitMap.size()>0)
+  if (m_TpcRawHitMap.size() > 0)
   {
     while (m_TpcRawHitMap.begin()->first < m_RefBCO - m_tpc_negative_bco)
     {
@@ -1205,8 +1197,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       {
         iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
         iter->clearPacketBClkStackMap(m_TpcRawHitMap.begin()->first);
-
-    }
+      }
       m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
       m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
       iret = FillTpcPool();
@@ -1241,7 +1232,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       {
         allpackets = false;
       }
-    
+
       packetnum++;
     }
   }
@@ -1250,7 +1241,7 @@ int Fun4AllStreamingInputManager::FillTpc()
     h_taggedAll_tpc->Fill(refbcobitshift);
   }
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
-  if (m_TpcRawHitMap.size()>0)
+  if (m_TpcRawHitMap.size() > 0)
   {
     while (m_TpcRawHitMap.begin()->first <= select_crossings - m_tpc_negative_bco)
     {
@@ -1265,9 +1256,8 @@ int Fun4AllStreamingInputManager::FillTpc()
       for (auto iter : m_TpcInputVector)
       {
         iter->CleanupUsedPackets(m_TpcRawHitMap.begin()->first);
-          // we just want to erase anything that is well away from the current GL1
-  
-    }
+        // we just want to erase anything that is well away from the current GL1
+      }
       m_TpcRawHitMap.begin()->second.TpcRawHitVector.clear();
       m_TpcRawHitMap.erase(m_TpcRawHitMap.begin());
       if (m_TpcRawHitMap.empty())
@@ -1375,7 +1365,7 @@ int Fun4AllStreamingInputManager::FillInttPool()
 int Fun4AllStreamingInputManager::FillTpcPool()
 {
   uint64_t ref_bco_minus_range = 0;
-  if(m_RefBCO > m_tpc_negative_bco)
+  if (m_RefBCO > m_tpc_negative_bco)
   {
     ref_bco_minus_range = m_RefBCO - m_tpc_negative_bco;
   }
@@ -1409,7 +1399,7 @@ int Fun4AllStreamingInputManager::FillTpcPool()
   // if (m_TpcRawHitMap.empty())
   // {
   //   std::cout << "TpcRawHitMap is empty - we are done" << std::endl;
-    // return -1;
+  // return -1;
   // }
   return 0;
 }
@@ -1481,7 +1471,6 @@ int Fun4AllStreamingInputManager::FillMvtxPool()
   }
   if (m_MvtxRawHitMap.empty())
   {
-    
     std::cout << "MvtxRawHitMap is empty - we are done" << std::endl;
     return -1;
   }
@@ -1538,9 +1527,9 @@ void Fun4AllStreamingInputManager::createQAHistos()
 
   for (int i = 0; i < 12; i++)
   {
-    h_tagStBcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagStBcoFEEsPacket%i")% i).str().c_str(), "", 10000, 0, 10000);
+    h_tagStBcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagStBcoFEEsPacket%i") % i).str().c_str(), "", 10000, 0, 10000);
     hm->registerHisto(h_tagStBcoFEE_mvtx[i]);
-    h_tagL1BcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagL1BcoFEEsPacket%i")% i).str().c_str(), "", 10000, 0, 10000);
+    h_tagL1BcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagL1BcoFEEsPacket%i") % i).str().c_str(), "", 10000, 0, 10000);
     hm->registerHisto(h_tagL1BcoFEE_mvtx[i]);
   }
   // intt has 8 prdfs, one per felix
@@ -1580,7 +1569,6 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_all->GetXaxis()->SetTitle("GL1 BCO");
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
-
   }
   for (int i = 0; i < 24; i++)
   {
