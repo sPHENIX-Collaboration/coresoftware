@@ -1581,10 +1581,6 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
 
-  h_tagStBcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagStBcoFEEs_packet%i") % i).str().c_str(), "", 10000, 0, 10000);
-  hm->registerHisto(h_tagStBcoFEE_mvtx[i]);
-
-
   }
   for (int i = 0; i < 24; i++)
   {
