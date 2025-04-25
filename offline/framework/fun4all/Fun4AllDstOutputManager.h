@@ -22,6 +22,7 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
   Fun4AllDstOutputManager &operator=(Fun4AllDstOutputManager const &) = delete;
   int AddNode(const std::string &nodename) override;
   int AddRunNode(const std::string &nodename) override;
+  int StripCompositeNode(const std::string &nodename) override;
   int StripNode(const std::string &nodename) override;
   int StripRunNode(const std::string &nodename) override;
   void SaveRunNode(const int i) override { m_SaveRunNodeFlag = i; }
@@ -45,6 +46,7 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
   std::string m_UsedOutFileName;
   std::set<std::string> savenodes;
   std::set<std::string> saverunnodes;
+  std::set<std::string> m_StripCompositeNodes;
   std::set<std::string> stripnodes;
   std::set<std::string> striprunnodes;
 };
