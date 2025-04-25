@@ -16,13 +16,13 @@ class Timing : public SubsysReco
   ~Timing() override {}
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  void SetCallCounter(unsigned int i) { calls = i;}
- private:
+  void SetCallCounter(unsigned int i) { calls = i; }
 
-  unsigned int call_counter {0};
-  unsigned int calls {10000};
-  unsigned int counter {0};
-  time_t starttime {0};
+ private:
+  unsigned int call_counter{0};
+  unsigned int calls{10000};
+  unsigned int counter{0};
+  time_t starttime{0};
 };
 
 #endif
