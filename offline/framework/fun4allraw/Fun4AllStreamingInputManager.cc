@@ -899,6 +899,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   for (auto &[strbbco, mvtxrawhitinfo] : m_MvtxRawHitMap)
   {
     auto diff = (m_RefBCO > strbbco) ? m_RefBCO - strbbco : strbbco - m_RefBCO;
+    bool match = false;
     for (auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
     {
       auto feeId = feeidinfo->get_feeId();
@@ -907,24 +908,19 @@ int Fun4AllStreamingInputManager::FillMvtx()
       auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
       int packetid = felix * 2 + endpoint;
       h_bcoLL1Strobediff[packetid]->Fill(diff);
+      if(diff < m_mvtx_bco_range)
+      {
+        h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
+        h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
+        match = true;
+      }
+    }
+    
+    if(match)
+    {
+      // break because we found a match for this GL1, so we are done
       break;
     }
-    if (diff > m_mvtx_bco_range)
-    {
-      continue;
-    }
-
-    for (auto feeidinfo : mvtxrawhitinfo.MvtxFeeIdInfoVector)
-    {
-      auto feeId = feeidinfo->get_feeId();
-
-      auto link = MvtxRawDefs::decode_feeid(feeId);
-      auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
-      int packetid = felix * 2 + endpoint;
-      h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
-      h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
-    }
-    break;
   }
 
   std::map<int, std::set<int>> taggedPacketsFEEs;
