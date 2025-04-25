@@ -142,10 +142,8 @@ int SingleTriggeredInput::FillEventVector()
         delete evt;
         continue;
       }
-      else
-      {
-        m_ProblemEvent--;
-      }
+
+      m_ProblemEvent--;
     }
     //    std::cout << Name() << std::endl;
     //    evt->identify();
