@@ -122,6 +122,7 @@ class CaloTowerBuilder : public SubsysReco
   bool m_bdosoftwarezerosuppression{false};
   bool m_UseOfflinePacketFlag{false};
   bool m_dotbtszs{false};
+  bool m_PacketNodesFlag{false};
   int m_packet_low{std::numeric_limits<int>::min()};
   int m_packet_high{std::numeric_limits<int>::min()};
   int m_nsamples{16};

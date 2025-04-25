@@ -245,12 +245,26 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
   std::variant<CaloPacketContainer*, Event*> event;
   if (m_UseOfflinePacketFlag)
   {
-    CaloPacketContainer *hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
-    if (!hcalcont)
+    CaloPacketContainer *calopacketcontainer = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(m_dettype)->second);
+    if (!calopacketcontainer)
     {
-      return Fun4AllReturnCodes::EVENT_OK;
+      for (int pid = m_packet_low; pid <= m_packet_high; pid++)
+      {
+	if (findNode::getClass<CaloPacket>(topNode,pid))
+	{
+	  m_PacketNodesFlag = true;
+	  break;
+	}
+      }
+      if (!m_PacketNodesFlag)
+      {
+	return Fun4AllReturnCodes::EVENT_OK;
+      }
     }
-    event = hcalcont;
+    else
+    {
+      event = calopacketcontainer;
+    }
   }
   else
   {
@@ -378,26 +392,35 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
 
   for (int pid = m_packet_low; pid <= m_packet_high; pid++)
   {
-    if (auto *hcalcont = std::get_if<CaloPacketContainer *>(&event))
+    if (!m_PacketNodesFlag)
     {
-      CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
-      if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      if (auto *hcalcont = std::get_if<CaloPacketContainer *>(&event))
       {
-        return Fun4AllReturnCodes::ABORTEVENT;
+	CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
+	if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+	{
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+      }
+      else if (auto *_event = std::get_if<Event *>(&event))
+      {
+	Packet *packet = (*_event)->getPacket(pid);
+	if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+	{
+	  //I think it is safe to delete a nullptr...
+	  delete packet;
+	  return Fun4AllReturnCodes::ABORTEVENT;
+	}
+	delete packet;
       }
     }
-    else if (auto *_event = std::get_if<Event *>(&event))
+    else
     {
-      Packet *packet = (*_event)->getPacket(pid);
-      if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode,pid);
+      if (calopacket)
       {
-        //I think it is safe to delete a nullptr...
-        delete packet;
-        return Fun4AllReturnCodes::ABORTEVENT;
+	process_packet(calopacket, pid);
       }
-      
-            delete packet;
-     
     }
   }
 
@@ -416,6 +439,11 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  if (waveforms.empty())
+  {
+    std::cout << Name() << ": empty waveform" << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
   // waveform vector is filled here, now fill our output. methods from the base class make sure
   // we only fill what the chosen container version supports
   std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
@@ -427,15 +455,19 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     towerinfo->set_energy(processed_waveforms.at(i).at(0));
     towerinfo->set_time_float(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
-    towerinfo->set_chi2(processed_waveforms.at(i).at(3));
-    bool SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
-    if (processed_waveforms.at(i).at(4) == 0) 
+    bool SZS = false;
+    if (processed_waveforms.at(i).size() > 3)
     {
-      towerinfo->set_isRecovered(false);
-    }
-    else
-    {
-      towerinfo->set_isRecovered(true);
+      towerinfo->set_chi2(processed_waveforms.at(i).at(3));
+      SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
+      if (processed_waveforms.at(i).at(4) == 0) 
+      {
+	towerinfo->set_isRecovered(false);
+      }
+      else
+      {
+	towerinfo->set_isRecovered(true);
+      }
     }
     int n_samples = waveforms.at(i).size();
     if (n_samples == m_nzerosuppsamples || SZS)
