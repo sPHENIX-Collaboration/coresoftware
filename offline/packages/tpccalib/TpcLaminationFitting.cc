@@ -75,33 +75,39 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  //Make map for run and ZDC rate
-  m_run_ZDC_map.insert(std::pair<int, float>(49709, 555.0));
-  m_run_ZDC_map.insert(std::pair<int, float>(52077, 0.0));
-  m_run_ZDC_map.insert(std::pair<int, float>(52078, 0.0));
-  m_run_ZDC_map.insert(std::pair<int, float>(53534, 3013.5));
-  m_run_ZDC_map.insert(std::pair<int, float>(53630, 6849.3));
-  m_run_ZDC_map.insert(std::pair<int, float>(53631, 5577.8));
-  m_run_ZDC_map.insert(std::pair<int, float>(53632, 5151.2));
-  m_run_ZDC_map.insert(std::pair<int, float>(53652, 4600.0));
-  m_run_ZDC_map.insert(std::pair<int, float>(53687, 3967.2));
-  m_run_ZDC_map.insert(std::pair<int, float>(53716, 3070.1));
-  m_run_ZDC_map.insert(std::pair<int, float>(53738, 4510.7));
-  m_run_ZDC_map.insert(std::pair<int, float>(53739, 4165.0));
-  m_run_ZDC_map.insert(std::pair<int, float>(53741, 3738.1));
-  m_run_ZDC_map.insert(std::pair<int, float>(53742, 3721.4));
-  m_run_ZDC_map.insert(std::pair<int, float>(53743, 3693.4));
-  m_run_ZDC_map.insert(std::pair<int, float>(53744, 3581.9));
-  m_run_ZDC_map.insert(std::pair<int, float>(53756, 4471.4));
-  m_run_ZDC_map.insert(std::pair<int, float>(53783, 4825.7));
-  m_run_ZDC_map.insert(std::pair<int, float>(53871, 6871.5));
-  m_run_ZDC_map.insert(std::pair<int, float>(53876, 5082.3));
-  m_run_ZDC_map.insert(std::pair<int, float>(53877, 4758.5));
-  m_run_ZDC_map.insert(std::pair<int, float>(53879, 4315.0));
+  //Make map for run and ZDC rate for pp mode
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(49709, 555.0));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(52077, 0.0));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(52078, 0.0));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53534, 3013.5));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53630, 6849.3));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53631, 5577.8));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53632, 5151.2));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53652, 4600.0));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53687, 3967.2));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53716, 3070.1));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53738, 4510.7));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53739, 4165.0));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53741, 3738.1));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53742, 3721.4));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53743, 3693.4));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53744, 3581.9));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53756, 4471.4));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53783, 4825.7));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53871, 6871.5));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53876, 5082.3));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53877, 4758.5));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53879, 4315.0));
 
-  m_run_ZDC_map.insert(std::pair<int, float>(53098, 0.0));
-  m_run_ZDC_map.insert(std::pair<int, float>(53271, 0.0));
+  //beam off go into pp
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53098, 0.0));
+  m_run_ZDC_map_pp.insert(std::pair<int, float>(53271, 0.0));
 
+  m_run_ZDC_map_auau.insert(std::pair<int, float>(54966, 12400.));
+  m_run_ZDC_map_auau.insert(std::pair<int, float>(54967, 11600.));
+  m_run_ZDC_map_auau.insert(std::pair<int, float>(54968, 10500.));
+  m_run_ZDC_map_auau.insert(std::pair<int, float>(54969, 9680.));
+  
   int ret = GetNodes(topNode);
   return ret;
 }
@@ -322,27 +328,55 @@ int TpcLaminationFitting::fitLaminations()
   //double seedScale = (m_nClusters / m_nEvents) / 3718.8030;
 
   float ZDC = 4500.0;
-  auto it = m_run_ZDC_map.find(m_runnumber);
-  if( it != m_run_ZDC_map.end() )
+  TF1 *Af[2] = {new TF1("AN","pol1",0,100000), new TF1("AS","pol1",0,100000)};
+  TF1 *Bf[2] = {new TF1("BN","pol1",0,100000), new TF1("BS","pol1",0,100000)};
+  double Cseed[2] = {0.16, 0.125};
+
+  if(ppMode)
   {
-    std::cout << "runnumber " << m_runnumber << " found. It has ZDC NS rate of " << it->second << std::endl;
-    ZDC = it->second;
+    auto it = m_run_ZDC_map_pp.find(m_runnumber);
+    if( it != m_run_ZDC_map_pp.end() )
+    {
+      std::cout << "pp runnumber " << m_runnumber << " found. It has ZDC NS rate of " << it->second << std::endl;
+      ZDC = it->second;
+    }
+    else
+    {
+      std::cout << "pp runnumber " << m_runnumber << " not found. Using default value of " << ZDC << std::endl;
+    }
+
+    Af[0]->SetParameters(-0.007999,-1.783e-6);
+    Af[1]->SetParameters(-0.003288,-2.297e-6);
+    
+    Bf[0]->SetParameters(31.55,0.0006141);
+    Bf[1]->SetParameters(34.7,0.0005226);
   }
   else
   {
-    std::cout << "runnumber " << m_runnumber << " not found. Using default value of 4500" << std::endl;
+    ZDC = 10000.0;
+    
+    auto it = m_run_ZDC_map_auau.find(m_runnumber);
+    if( it != m_run_ZDC_map_auau.end() )
+    {
+      std::cout << "AuAu runnumber " << m_runnumber << " found. It has ZDC NS rate of " << it->second << std::endl;
+      ZDC = it->second;
+    }
+    else
+    {
+      std::cout << "AuAu runnumber " << m_runnumber << " not found. Using default value of " << ZDC << std::endl;
+    }
+
+    Af[0]->SetParameters(-0.003836,-1.025e-6);
+    Af[1]->SetParameters(-0.003283,-8.176e-7);
+    
+    Bf[0]->SetParameters(32.96,0.0002997);
+    Bf[1]->SetParameters(31.19,0.0005622);
+
+    Cseed[0] = 0.125;
+    Cseed[1] = 0.122;
   }
   
 
-  TF1 *Af[2] = {new TF1("AN","pol1",0,100000), new TF1("AS","pol1",0,100000)};
-  Af[0]->SetParameters(-0.007999,-1.783e-6);
-  Af[1]->SetParameters(-0.003288,-2.297e-6);
-
-  TF1 *Bf[2] = {new TF1("BN","pol1",0,100000), new TF1("BS","pol1",0,100000)};
-  Bf[0]->SetParameters(31.55,0.0006141);
-  Bf[1]->SetParameters(34.7,0.0005226);
-
-  double Cseed[2] = {0.16, 0.125};
   
   for (int s = 0; s < 2; s++)
   {
