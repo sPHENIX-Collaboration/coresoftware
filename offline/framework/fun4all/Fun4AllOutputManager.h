@@ -44,6 +44,8 @@ class Fun4AllOutputManager : public Fun4AllBase
     return 0;
   }
 
+  virtual int StripCompositeNode(const std::string & /*nodename*/) {return 0;}
+
   virtual void SaveRunNode(const int) { return; }
   virtual void SaveDstNode(const int) { return; }
 
