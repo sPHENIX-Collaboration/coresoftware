@@ -76,29 +76,28 @@ void TrksInJetQAInclusiveFiller::FillHitQAHists()
 void TrksInJetQAInclusiveFiller::FillClustQAHists()
 {
   // loop over hit sets
-  TrkrHitSetContainer::ConstRange hitSets = m_hitMap->getHitSets();
-  for (
-      TrkrHitSetContainer::ConstIterator itSet = hitSets.first;
-      itSet != hitSets.second;
-      ++itSet)
+  for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
+                  TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
-    // loop over clusters associated w/ hit set
-    TrkrDefs::hitsetkey setKey = itSet->first;
-    TrkrClusterContainer::ConstRange clusters = m_clustMap->getClusters(setKey);
-    for (
-        TrkrClusterContainer::ConstIterator itClust = clusters.first;
-        itClust != clusters.second;
-        ++itClust)
-    {
-      // grab cluster
-      TrkrDefs::cluskey clustKey = itClust->first;
-      TrkrCluster* cluster = m_clustMap->findCluster(clustKey);
+      for (const auto& hitsetkey : m_clustMap->getHitSetKeys(det))
+      {
+      // loop over clusters associated w/ hit set
+          TrkrClusterContainer::ConstRange clusters = m_clustMap->getClusters(hitsetkey);
+          for (
+              TrkrClusterContainer::ConstIterator itClust = clusters.first;
+              itClust != clusters.second;
+              ++itClust)
+          {
+            // grab cluster
+            TrkrDefs::cluskey clustKey = itClust->first;
+            TrkrCluster* cluster = m_clustMap->findCluster(clustKey);
 
-      // grab cluster info
-      m_clustManager->GetInfo(cluster, clustKey, m_actsGeom);
+            // grab cluster info
+            m_clustManager->GetInfo(cluster, clustKey, m_actsGeom);
 
-    }  // end cluster loop
-  }    // end hit set loop
+          }  // end cluster loop
+      } // end hit set loop
+  }
   return;
 
 }  // end 'Process()'
