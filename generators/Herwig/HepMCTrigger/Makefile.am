@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -23,11 +23,7 @@ libHepMCJetTrigger_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lfun4all \
-  -lg4dst \
-  -lg4eval \
-  -lphhepmc \
-  -lPHPythia8
-  
+  -lphhepmc
 
 BUILT_SOURCES = testexternals.cc
 
