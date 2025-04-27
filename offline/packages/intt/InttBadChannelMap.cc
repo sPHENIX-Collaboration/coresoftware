@@ -119,6 +119,40 @@ void InttBadChannelMap::identify(std::ostream& out) const
     << std::flush;
 }
 
+void InttBadChannelMap::Print(std::ostream& out) const
+{
+  if (!m_offline_loaded && !m_rawdata_loaded)
+  {
+    out
+      << PHWHERE << "\n"
+      << "\tNo channels loaded\n"
+      << std::flush;
+    return;
+  }
+
+  out
+    << PHWHERE << "\n";
+  if (m_rawdata_loaded)
+  {
+    out << "\tmasked channels (rawdata convention): " << m_rawdata_set.size() << "\n";
+    for (auto const& raw : m_rawdata_set)
+    {
+      out << "\t" << raw.felix_server << " " << raw.felix_channel << " " << raw.chip << " " << raw.channel << "\n";
+    }
+    out << std::flush;
+  }
+
+  if (m_offline_loaded)
+  {
+    out << "\tmasked channels (offline convention): " << m_offline_set.size() << "\n";
+    for (auto const& ofl : m_offline_set)
+    {
+      out << "\t" << ofl.layer << " " << ofl.ladder_phi << " " << ofl.ladder_z << " " << ofl.strip_y << " " << ofl.strip_x << "\n";
+    }
+    out << std::flush;
+  }
+}
+
 bool InttBadChannelMap::IsBad(InttNameSpace::Online_s const& /*unused*/) const
 {
   std::cout

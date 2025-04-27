@@ -43,8 +43,10 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
 {
   if (!topNode)
   {
-    std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    std::cout << "\tCould not retrieve topNode; doing nothing" << std::endl;
+    std::cout
+      << PHWHERE "\n"
+      << "\tCould not retrieve topNode; doing nothing\n"
+	  << std::flush;
     exit(1);
     gSystem->Exit(1);
 
@@ -55,14 +57,10 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   PHCompositeNode* dst_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("PHCompositeNode", "DST"));
   if (!dst_node)
   {
-    if (Verbosity())
-    {
-      std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    }
-    if (Verbosity())
-    {
-      std::cout << "\tCould not retrieve dst_node; doing nothing" << std::endl;
-    }
+    std::cout
+      << PHWHERE << "\n"
+      << "\tCould not retrieve dst_node; doing nothing\n"
+      << std::flush;
     exit(1);
     gSystem->Exit(1);
 
@@ -82,11 +80,10 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   {
     if (Verbosity())
     {
-      std::cout << "InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)" << std::endl;
-    }
-    if (Verbosity())
-    {
-      std::cout << "\tMaking TrkrHitSetContainer" << std::endl;
+      std::cout
+        << PHWHERE << "\n"
+        << "\tMaking TrkrHitSetContainer\n"
+        << std::flush;
     }
 
     trkr_hit_set_container = new TrkrHitSetContainerv1;
@@ -116,9 +113,11 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   InttRawHitContainer* inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
   if (!inttcont)
   {
-    std::cout << PHWHERE << std::endl;
-    std::cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << std::endl;
-    std::cout << "removing module" << std::endl;
+    std::cout
+      << PHWHERE << "\n"
+      << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree\n"
+      << "removing module\n"
+      << std::flush;
 
     Fun4AllServer* se = Fun4AllServer::instance();
     se->unregisterSubsystem(this);
@@ -163,6 +162,10 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   {
     std::cout << "InttBadChannelMap size: " << m_badmap.size() << std::endl;
   }
+  if (1 < Verbosity())
+  {
+    m_badmap.Print();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -172,10 +175,11 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkr_hit_set_container)
   {
-    std::cout << PHWHERE << std::endl;
-    std::cout << "InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)" << std::endl;
-    std::cout << "Could not get \"TRKR_HITSET\" from Node Tree" << std::endl;
-    std::cout << "Exiting" << std::endl;
+    std::cout
+      << PHWHERE << "\n"
+      << "\tCould not get \"TRKR_HITSET\" from Node Tree\n"
+      << "\tExiting\n"
+      << std::flush;
     gSystem->Exit(1);
     exit(1);
 
@@ -261,11 +265,27 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     // bad channel filter
     if (m_badmap.OfflineLoaded() && m_badmap.IsBad(ofl))
     {
+      if (1 < Verbosity())
+      {
+        std::cout
+          << PHWHERE << "\n"
+          << "\tMasking channel:\n"
+          << "\t" << ofl.layer << " " << ofl.ladder_phi << " " << ofl.ladder_z << " " << ofl.strip_y << " " << ofl.strip_x << "\n"
+          << std::endl;
+      }
       continue;
     }
 
     if (m_badmap.RawDataLoaded() && m_badmap.IsBad(raw))
     {
+      if (1 < Verbosity())
+      {
+        std::cout
+          << PHWHERE << "\n"
+          << "\tMasking (raw) channel:\n"
+          << "\t" << raw.felix_server << " " << raw.felix_channel << " " << raw.chip << " " << raw.channel << "\n"
+          << std::endl;
+      }
       continue;
     }
 
