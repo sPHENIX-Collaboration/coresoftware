@@ -91,12 +91,13 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     {
       status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
     }
-    else if ( m_mbdraw!=nullptr )
+    else if ( m_mbdraw!=nullptr || m_mbdpacket[0]!=nullptr || m_mbdpacket[1]!=nullptr)
     {
-      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts,m_gl1raw);
-    }
-    else if ( m_mbdpacket[0]!=nullptr || m_mbdpacket[1]!=nullptr )
-    {
+      if (m_mbdraw)
+      {
+	m_mbdpacket[0] = m_mbdraw->getPacketbyId(1001);
+	m_mbdpacket[1] = m_mbdraw->getPacketbyId(1002);
+      }
       status = m_mbdevent->SetRawData(m_mbdpacket, m_mbdpmts,m_gl1raw);
     }
 

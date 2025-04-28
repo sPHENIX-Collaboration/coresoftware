@@ -40,7 +40,6 @@ class MbdEvent
 
   int SetRawData(Event *event, MbdPmtContainer *bbcpmts);
 #ifndef ONLINE
-  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
   int SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
 #endif
   void PostProcessChannels(MbdPmtContainer *bbcpmts);
