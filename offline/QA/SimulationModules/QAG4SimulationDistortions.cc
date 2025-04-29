@@ -92,7 +92,16 @@ QAG4SimulationDistortions::~QAG4SimulationDistortions() = default;
 //____________________________________________________________________________..
 int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 {
-  Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
+
+  // reset counters
+  m_total_tracks = 0;
+  m_accepted_tracks = 0;
+
+  m_total_states = 0;
+  m_accepted_states = 0;
+
+  // histogram manager
+  auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   TH1* h(nullptr);
@@ -242,6 +251,9 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
   for (const auto& [key, track] : *m_trackMap)
   {
 
+    // total track counter
+    ++m_total_tracks;
+
     // get track crossing and check
     const auto crossing = track->get_crossing();
     if(crossing == SHRT_MAX)
@@ -266,18 +278,22 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
       continue;
     }
 
+    // accepted track counter
+    ++m_accepted_tracks;
+
     for (auto iter = track->begin_states(); iter != track->end_states(); ++iter)
     {
-      auto state = iter->second;
 
-      /// If the state name wasn't set to the ckey, it wasn't analyzed
-      /// in PHTpcResiduals (i.e. it isn't in the tpc)
-      if ((state->get_name()).find("UNKNOWN") != std::string::npos)
-      {
-        continue;
-      }
+      ++m_total_states;
 
-      TrkrDefs::cluskey const ckey = std::stoll(state->get_name());
+      auto& state = iter->second;
+      const auto ckey = state->get_cluskey();
+      const auto trkrId = TrkrDefs::getTrkrId(ckey);
+
+      if( trkrId != TrkrDefs::tpcId )
+      { continue; }
+
+      ++m_accepted_states;
 
       auto cluster = m_clusterContainer->findCluster(ckey);
 
@@ -369,6 +385,28 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//___________________________________________________________________________________
+int QAG4SimulationDistortions::End(PHCompositeNode* /*topNode*/)
+{
+  // print counters
+  std::cout
+      << "QAG4SimulationDistortions::End -"
+      << " track statistics total: " << m_total_tracks
+      << " accepted: " << m_accepted_tracks
+      << " fraction: " << 100. * m_accepted_tracks / m_total_tracks << "%"
+      << std::endl;
+
+  std::cout
+      << "QAG4SimulationDistortions::End -"
+      << " state statistics total: " << m_total_states
+      << " accepted: " << m_accepted_states << " fraction: "
+      << 100. * m_accepted_states / m_total_states << "%"
+      << std::endl;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//_____________________________________________________________________________
 bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 {
 
