@@ -129,6 +129,7 @@ int SingleTriggeredInput::FillEventVector()
       }
       evt = GetEventIterator()->getNextEvent();
     }
+    m_EventsThisFile++;
     if (evt->getEvtType() != DATAEVENT)
     {
       delete evt;
@@ -360,7 +361,11 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
 
 void SingleTriggeredInput::CreateDSTNodes(Event *evt)
 {
-  static std::string CompositeNodeName = "Packets";
+  std::string CompositeNodeName = "Packets";
+  if (KeepMyPackets())
+  {
+    CompositeNodeName = "PacketsKeep";
+  }
   PHNodeIterator iter(m_topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)

@@ -372,11 +372,11 @@ bool MbdEvent::isbadtch(const int ipmtch)
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
-int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
+int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
 {
   //Verbosity(100);
   // First check if there is any event (ie, reading from PRDF)
-  if (mbdraw == nullptr || bbcpmts == nullptr)
+  if ((dstp[0] == nullptr && dstp[1] == nullptr) || bbcpmts == nullptr)
   {
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
@@ -394,11 +394,11 @@ int MbdEvent::SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, 
   }
 
   // Get Packets
-  CaloPacket *dstp[2]{nullptr};
+//  CaloPacket *dstp[2]{nullptr};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
-    dstp[ipkt] = mbdraw->getPacketbyId(pktid);
+//    dstp[ipkt] = mbdraw->getPacketbyId(pktid);
 
     if (Verbosity() > 0)
     {

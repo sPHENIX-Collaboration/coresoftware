@@ -199,12 +199,15 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   long long int raw[64] = {0};
   long long int live[64] = {0};
   // long long int scaled[64] = { 0 };
-  Gl1Packet* gl1PacketInfo =
-      findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, 14001);
   if (!gl1PacketInfo)
   {
-    std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"
-              << std::endl;
+    gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+    if (!gl1PacketInfo)
+    {
+      std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"
+		<< std::endl;
+    }
   }
   uint64_t triggervec = 0;
   if (gl1PacketInfo)
