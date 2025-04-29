@@ -1,9 +1,8 @@
 // This is the new trackbase container version
 
 #include "PHG4InttDigitizer.h"
-#include "InttDeadMap.h"
 
-#include <intt/InttBadChannelMap.h>
+#include <intt/InttMapping.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -56,7 +55,6 @@ PHG4InttDigitizer::PHG4InttDigitizer(const std::string &name)
 PHG4InttDigitizer::~PHG4InttDigitizer()
 {
   gsl_rng_free(RandomGenerator);
-  delete m_bad_channel_map;
 }
 
 int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
@@ -109,25 +107,18 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   mNoiseSigma = get_double_param("NoiseSigma");
   mEnergyPerPair = get_double_param("EnergyPerPair");
 
-  // Load InttBadChannelMap at SOR
-  int load_rv = 0;
-  delete m_bad_channel_map;
-  m_bad_channel_map = new InttBadChannelMap;
-  if (m_which_bad_channel_map.empty())
+  /// If user hasn't called with custom calibration, load default
+  if (!m_badmap.OfflineLoaded())
   {
-    // Use default tag name
-    load_rv = m_bad_channel_map->Load();
+    m_badmap.Load(); // Method loads with default tag
   }
-  else
+  if (Verbosity())
   {
-    // User redirected callibration
-    load_rv = m_bad_channel_map->Load(m_which_bad_channel_map);
+    std::cout << "InttBadChannelMap size: " << m_badmap.size() << std::endl;
   }
-
-  // Delete and nullify pointer load fails (effectively no mask)
-  if (load_rv != 0) {
-    delete m_bad_channel_map;
-    m_bad_channel_map = nullptr;
+  if (VERBOSITY_MORE <= Verbosity())
+  {
+    m_badmap.Print();
   }
 
   //----------------
@@ -137,7 +128,7 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "====================== PHG4InttDigitizer::InitRun() =====================" << std::endl;
-    std::cout << " Masking " << (m_bad_channel_map ? m_bad_channel_map->size() : 0) << " channels" << std::endl;
+    std::cout << " Masking " << m_badmap.size() << " channels" << std::endl;
     for (auto &iter1 : _max_adc)
     {
       std::cout << " Max ADC in Layer #" << iter1.first << " = " << iter1.second << std::endl;
@@ -252,13 +243,13 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       ofl.strip_y = strip_col;
 
       // Apply deadmap here if desired
-      if (m_bad_channel_map && m_bad_channel_map->IsBad(ofl))
+      if (m_badmap.OfflineLoaded() && m_badmap.IsBad(ofl))
       {
         ++m_nDeadCells;
       
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          std::cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
+          std::cout << PHWHERE << " - dead strip at layer " << layer << ": ";
           hit->identify();
         }
       
@@ -386,7 +377,6 @@ void PHG4InttDigitizer::SetDefaultParameters()
   set_default_double_param("NoiseMean", 457.2);
   set_default_double_param("NoiseSigma", 166.6);
   set_default_double_param("EnergyPerPair", 3.62e-9);  // GeV/e-h
-  m_which_bad_channel_map = "";
   return;
 }
 

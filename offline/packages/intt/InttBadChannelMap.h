@@ -20,7 +20,7 @@ class InttBadChannelMap
   /// Depreciated; use int Load(const& std::string)
   int LoadFromFile(std::string const& s = "InttBadChannelMap.root") {return Load(s);}
   /// Depreciated; use int Load(const& std::string)
-  int LoadFromCDB(std::string const& s =  "INTT_Hotmap") {return Load(s);}
+  int LoadFromCDB(std::string const& s =  "INTT_HotMap") {return Load(s);}
 
   void identify(std::ostream& = std::cout) const;
   void Print(std::ostream& = std::cout) const;

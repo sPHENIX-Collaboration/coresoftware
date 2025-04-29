@@ -156,7 +156,7 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   /// If user hasn't called with custom calibration, load default
   if (!m_badmap.OfflineLoaded() && !m_badmap.RawDataLoaded())
   {
-    m_badmap.Load(); // Methods loads with default tag
+    m_badmap.Load(); // Method loads with default tag
   }
   if (Verbosity())
   {

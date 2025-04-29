@@ -29,6 +29,8 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
 
+  /// Overloaded; no arguments loads with default tag
+  int LoadBadChannelMap() {return m_badmap.Load();}
   int LoadBadChannelMap(std::string const& s) {return m_badmap.Load(s);}
 
   /// Depreciated; use LoadHotChannelMap(const std::string&);
