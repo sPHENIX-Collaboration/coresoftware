@@ -33,6 +33,7 @@
 
 #include <TH1.h>
 #include <TH2.h>
+#include <TStyle.h>
 
 #include <algorithm>
 #include <cassert>
@@ -58,6 +59,8 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
   // create output file
   delete m_analyzer; // make cppcheck happy
   m_analyzer = new TriggerAnalyzer();
+
+  gStyle->SetOptTitle(0);
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -112,39 +115,39 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
   }
 
   // declare histograms and include x and y axis labels in the constructor
-  h1_ConstituentsinJets_total = new TH1D(vecHistNames[0].data(), "Jet N constituents", N_const, N_const_bins);
+  h1_ConstituentsinJets_total = new TH1D(vecHistNames[0].data(), "", N_const, N_const_bins);
   h1_ConstituentsinJets_total->GetXaxis()->SetTitle("N constituents");
   h1_ConstituentsinJets_total->GetYaxis()->SetTitle("Counts");
 
-  h1_ConstituentsinJets_IHCAL = new TH1D(vecHistNames[1].data(), "Jet N constituents in IHCal", N_const, N_const_bins);
+  h1_ConstituentsinJets_IHCAL = new TH1D(vecHistNames[1].data(), "", N_const, N_const_bins);
   h1_ConstituentsinJets_IHCAL->GetXaxis()->SetTitle("N constituents");
   h1_ConstituentsinJets_IHCAL->GetYaxis()->SetTitle("Counts");
 
-  h1_ConstituentsinJets_OHCAL = new TH1D(vecHistNames[2].data(), "Jet N constituents in OHCal", N_const, N_const_bins);
+  h1_ConstituentsinJets_OHCAL = new TH1D(vecHistNames[2].data(), "", N_const, N_const_bins);
   h1_ConstituentsinJets_OHCAL->GetXaxis()->SetTitle("N constituents");
   h1_ConstituentsinJets_OHCAL->GetYaxis()->SetTitle("Counts");
 
-  h1_ConstituentsinJets_CEMC = new TH1D(vecHistNames[3].data(), "Jet N constituents in CEMC", N_const, N_const_bins);
+  h1_ConstituentsinJets_CEMC = new TH1D(vecHistNames[3].data(), "", N_const, N_const_bins);
   h1_ConstituentsinJets_CEMC->GetXaxis()->SetTitle("N constituents");
   h1_ConstituentsinJets_CEMC->GetYaxis()->SetTitle("Counts");
 
-  h2_ConstituentsinJets_vs_caloLayer = new TH2D(vecHistNames[4].data(), "Jet N constituents vs Calo Layer", N_calo_layers, calo_layers_bins, N_const, N_const_bins);
+  h2_ConstituentsinJets_vs_caloLayer = new TH2D(vecHistNames[4].data(), "", N_calo_layers, calo_layers_bins, N_const, N_const_bins);
   h2_ConstituentsinJets_vs_caloLayer->GetXaxis()->SetTitle("Calo Layer");
   h2_ConstituentsinJets_vs_caloLayer->GetYaxis()->SetTitle("N constituents");
 
-  h1_jetFracE_IHCAL = new TH1D(vecHistNames[5].data(), "Jet E fraction in IHCal", N_frac, frac_bins);
+  h1_jetFracE_IHCAL = new TH1D(vecHistNames[5].data(), "", N_frac, frac_bins);
   h1_jetFracE_IHCAL->GetXaxis()->SetTitle("E fraction");
   h1_jetFracE_IHCAL->GetYaxis()->SetTitle("Counts");
 
-  h1_jetFracE_OHCAL = new TH1D(vecHistNames[6].data(), "Jet E fraction in OHCal", N_frac, frac_bins);
+  h1_jetFracE_OHCAL = new TH1D(vecHistNames[6].data(), "", N_frac, frac_bins);
   h1_jetFracE_OHCAL->GetXaxis()->SetTitle("E fraction");
   h1_jetFracE_OHCAL->GetYaxis()->SetTitle("Counts");
 
-  h1_jetFracE_CEMC = new TH1D(vecHistNames[7].data(), "Jet E fraction in CEMC", N_frac, frac_bins);
+  h1_jetFracE_CEMC = new TH1D(vecHistNames[7].data(), "", N_frac, frac_bins);
   h1_jetFracE_CEMC->GetXaxis()->SetTitle("E fraction");
   h1_jetFracE_CEMC->GetYaxis()->SetTitle("Counts");
 
-  h2_jetFracE_vs_caloLayer = new TH2D(vecHistNames[8].data(), "Jet E fraction vs Calo Layer", N_calo_layers, calo_layers_bins, N_frac, frac_bins);
+  h2_jetFracE_vs_caloLayer = new TH2D(vecHistNames[8].data(), "", N_calo_layers, calo_layers_bins, N_frac, frac_bins);
   h2_jetFracE_vs_caloLayer->GetXaxis()->SetTitle("Calo Layer");
   h2_jetFracE_vs_caloLayer->GetYaxis()->SetTitle("E fraction");
 
@@ -190,17 +193,17 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   if (!jets)
   {
     std::cout << "ConstituentsinJets::process_event - Error can not find jet node " << m_recoJetName << std::endl;
-    exit(-1);  // fatal
+    //exit(-1);  // fatal
   }
 
   // get unsub towers
-  TowerInfoContainer *towersEM3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-  TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
-  TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+  TowerInfoContainer *towersEM3 = findNode::getClass<TowerInfoContainer>(topNode, m_towCEMCName);
+  TowerInfoContainer *towersIH3 = findNode::getClass<TowerInfoContainer>(topNode, m_towIHCALName);
+  TowerInfoContainer *towersOH3 = findNode::getClass<TowerInfoContainer>(topNode, m_towOHCALName);
   if (!towersEM3 || !towersIH3 || !towersOH3)
   {
     std::cout << "ConstituentsinJets::process_event - Error can not find tower node " << std::endl;
-    exit(-1);  // fatal
+    //exit(-1);  // fatal
   }
 
   // get tower geometry
@@ -209,7 +212,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   if (!tower_geomIH || !tower_geomOH)
   {
     std::cout << "ConstituentsinJets::process_event - Error can not find tower geometry node " << std::endl;
-    exit(-1);  // fatal
+    //exit(-1);  // fatal
   }
 
   // get underlying event
@@ -232,7 +235,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   for (auto jet : *jets)
   {
     // remove noise
-    if (jet->get_pt() < 1)
+    if (jet->get_pt() < m_ptRange.first)//change from <1 to <m_ptRange.first
     {
       continue;
     }

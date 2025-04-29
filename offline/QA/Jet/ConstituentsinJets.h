@@ -53,6 +53,27 @@ class ConstituentsinJets : public SubsysReco
     m_trgToSelect = trig;
   }
 
+  void setTowBkgdNodeName(const std::string &name)
+  { // set the name of the node containing the subtracted background towers
+    m_towBkgdName = name;
+  }
+
+  void setTowNodeNameCEMC(const std::string &name)
+  {//set the name of the node containing raw towers from EMCAL
+    m_towCEMCName = name;
+  }
+
+  void setTowNodeNameIHCAL(const std::string &name)
+  {
+    m_towIHCALName = name;  
+  }
+
+  void setTowNodeNameOHCAL(const std::string &name)
+  {
+    m_towOHCALName = name;
+  }
+
+
   // standard Fun4All functions
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -64,6 +85,9 @@ class ConstituentsinJets : public SubsysReco
   std::string m_recoJetName;
   std::string m_towBkgdName;
   std::string m_histTag;
+  std::string m_towCEMCName = {"TOWERINFO_CALIB_CEMC_RETOWER"};//input node string for EMCAL
+  std::string m_towIHCALName = {"TOWERINFO_CALIB_IHCAL"};//input node string for IHCAL
+  std::string m_towOHCALName = {"TOWERINFO_CALIB_OHCAL"};//input node string for OHCAL
   // std::string m_outputFileName{ "ConstituentsinJets.root"};
 
   //! Trigger selection
