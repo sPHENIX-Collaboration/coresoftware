@@ -139,6 +139,7 @@ int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 
   TTree* t(nullptr);
 
+
   t = new TTree(TString(get_histo_prefix()) + "residTree", "tpc residual info");
   t->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/F");
   t->Branch("tanBeta", &m_tanBeta, "tanBeta/F");
@@ -166,7 +167,7 @@ int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 int QAG4SimulationDistortions::InitRun(PHCompositeNode* topNode)
 {
   // track map
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxSiliconMMTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackmapname);
 
   // cluster map
   m_clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
