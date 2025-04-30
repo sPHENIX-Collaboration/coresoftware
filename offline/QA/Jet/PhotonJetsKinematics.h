@@ -96,6 +96,7 @@ class PhotonJetsKinematics : public SubsysReco
  TH2 *h_emcal_cluster_energy_phi {nullptr};
  TH2 *h_emcal_cluster_chi2_phi {nullptr};
  TH1 *h_emcal_cluster_eta_with_energy_cut{nullptr};
+ TH2 *h_emcal_cluster_chi2_energy{nullptr};
 };
 
 #endif // PHOTONJETSKINEMATICS_H
