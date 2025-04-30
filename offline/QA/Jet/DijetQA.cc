@@ -17,6 +17,7 @@
 #include <phool/PHCompositeNode.h>
 
 #include <TStyle.h>
+
 //____________________________________________________________________________..
 DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
