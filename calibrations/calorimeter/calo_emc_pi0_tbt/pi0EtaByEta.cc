@@ -1,5 +1,8 @@
 #include "pi0EtaByEta.h"
 
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/Vertex.h>
@@ -13,8 +16,8 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
-#include <ffarawobjects/Gl1Packet.h>
 #include <calotrigger/TriggerAnalyzer.h>
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -32,20 +35,16 @@
 #include <TH3.h>
 #include <TLorentzVector.h>
 #include <TNtuple.h>
+#include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-
-#include <TStyle.h>
-#include <TSystem.h>
-
 #include <cmath>    // for fabs, isnan, M_PI
 #include <cstdint>  // for exit
 #include <cstdlib>  // for exit
+#include <filesystem>
 #include <iostream>
 #include <map>        // for operator!=, _Rb_tree_con...
 #include <stdexcept>  // for runtime_error
@@ -60,12 +59,12 @@ pi0EtaByEta::pi0EtaByEta(const std::string& name, const std::string& filename)
   h_mass_eta_lt.fill(nullptr);
 
   if (runTowByTow)
+  {
+    for (auto& row : h_mass_tbt_lt)
     {
-      for (auto& row : h_mass_tbt_lt)
-	{
-	  row.fill(nullptr);
-	}
+      row.fill(nullptr);
     }
+  }
 
   clusMix = new std::vector<std::vector<std::vector<CLHEP::Hep3Vector>>>();
 }
@@ -88,25 +87,25 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
 
   // correlation plots
   for (int i = 0; i < 96; i++)
-    {
-      std::string histoname = "h_mass_eta_lt" + std::to_string(i);
-      h_mass_eta_lt[i] = new TH1F(histoname.c_str(), "", 50, 0, 0.5);
+  {
+    std::string histoname = "h_mass_eta_lt" + std::to_string(i);
+    h_mass_eta_lt[i] = new TH1F(histoname.c_str(), "", 50, 0, 0.5);
 
-      if (runTowByTow)
-	{
-	  for (int j = 0; j < 256; j++)
-	    {
-	      std::string histoname_tbt = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
-	      h_mass_tbt_lt[i][j] = new TH1F(histoname_tbt.c_str(), "", 50, 0, 0.5);
-	    }
-	}
+    if (runTowByTow)
+    {
+      for (int j = 0; j < 256; j++)
+      {
+        std::string histoname_tbt = "h_mass_tbt_lt_" + std::to_string(i) + "_" + std::to_string(j);
+        h_mass_tbt_lt[i][j] = new TH1F(histoname_tbt.c_str(), "", 50, 0, 0.5);
+      }
     }
+  }
 
   // 3D hist to save inv mass for all towers
   if (runTBTCompactMode)
-    {
-      h_ieta_iphi_invmass = new TH3F("h_ieta_iphi_invmass", "", 96, 0, 96, 256, 0, 256, 50, 0.0, 0.5);
-    }
+  {
+    h_ieta_iphi_invmass = new TH3F("h_ieta_iphi_invmass", "", 96, 0, 96, 256, 0, 256, 50, 0.0, 0.5);
+  }
 
   h_cemc_etaphi = new TH2F("h_cemc_etaphi", "", 96, 0, 96, 256, 0, 256);
   h_cemc_etaphi_noCalib = new TH2F("h_cemc_etaphi_noCalib", "", 96, 0, 96, 256, 0, 256);
@@ -131,13 +130,13 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
   for (int i = 0; i < NBinsVtx; i++)
-    {
-      temp2.push_back(temp);
-    }
+  {
+    temp2.push_back(temp);
+  }
   for (int i = 0; i < NBinsClus; i++)
-    {
-      clusMix->push_back(temp2);
-    }
+  {
+    clusMix->push_back(temp2);
+  }
 
   trigAna = new TriggerAnalyzer();
 
@@ -156,9 +155,9 @@ int pi0EtaByEta::process_event(PHCompositeNode* topNode)
 int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 {
   if ((_eventcounter % 1000) == 0)
-    {
-      std::cout << _eventcounter << std::endl;
-    }
+  {
+    std::cout << _eventcounter << std::endl;
+  }
 
   // float emcaldownscale = 1000000 / 800;
 
@@ -173,146 +172,146 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
   //--------------------------- trigger and GL1-------------------------------//
 
-  if (reqTrig) 
+  if (reqTrig)
+  {
+    trigAna->decodeTriggers(topNode);
+    bool fireTrig = false;
+    for (auto bit : triggerList)
     {
-      trigAna->decodeTriggers(topNode);
-      bool fireTrig = false;
-      for(auto bit : triggerList)
-	{
-	  if (trigAna->didTriggerFire(bit) == true){
-	    fireTrig = true;
-	  }
-	}
-      if (!fireTrig)
-	{
-	  return Fun4AllReturnCodes::EVENT_OK;
-	}
+      if (trigAna->didTriggerFire(bit) == true)
+      {
+        fireTrig = true;
+      }
     }
+    if (!fireTrig)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+  }
 
   //----------------------------------get vertex------------------------------------------------------//
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
-    {
-      // std::cout << PHWHERE << " Fatal Error - GlobalVertexMap node is missing"<< std::endl;
-      std::cout << "pi0EtaByEta GlobalVertexMap node is missing" << std::endl;
-      // return Fun4AllReturnCodes::ABORTRUN;
-    }
+  {
+    // std::cout << PHWHERE << " Fatal Error - GlobalVertexMap node is missing"<< std::endl;
+    std::cout << "pi0EtaByEta GlobalVertexMap node is missing" << std::endl;
+    // return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   float vtx_z = 0;
   bool found_vertex = false;
   if (vertexmap && !vertexmap->empty())
+  {
+    GlobalVertex* vtx = vertexmap->begin()->second;
+    if (vtx)
     {
-      GlobalVertex* vtx = vertexmap->begin()->second;
-      if (vtx)
-	{
-	  if (m_use_vertextype)
-	    {
-	      auto typeStartIter = vtx->find_vertexes(m_vertex_type);
-	      auto typeEndIter = vtx->end_vertexes();
-	      for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
-		{
-		  const auto& [type, vertexVec] = *iter;
-		  if (type != m_vertex_type)
-		    {
-		      continue;
-		    }
-		  for (const auto* vertex : vertexVec)
-		    {
-		      if (!vertex)
-			{
-			  continue;
-			}
-		      vtx_z = vertex->get_z();
-		      found_vertex = true;
-		    }
-		}
-	    }
-	  else
-	    {
-	      vtx_z = vtx->get_z();
-	      found_vertex = true;
-	    }
-	}
+      if (m_use_vertextype)
+      {
+        auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+        auto typeEndIter = vtx->end_vertexes();
+        for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+        {
+          const auto& [type, vertexVec] = *iter;
+          if (type != m_vertex_type)
+          {
+            continue;
+          }
+          for (const auto* vertex : vertexVec)
+          {
+            if (!vertex)
+            {
+              continue;
+            }
+            vtx_z = vertex->get_z();
+            found_vertex = true;
+          }
+        }
+      }
+      else
+      {
+        vtx_z = vtx->get_z();
+        found_vertex = true;
+      }
     }
+  }
 
-  //////////////////////////////                                                                  // truth vertex    
+  //////////////////////////////                                                                  // truth vertex
   PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   float vtx_z_tr = -999;
   if (truthinfo)
+  {
+    PHG4TruthInfoContainer::VtxRange vtxrange = truthinfo->GetVtxRange();
+    for (PHG4TruthInfoContainer::ConstVtxIterator iter = vtxrange.first; iter != vtxrange.second; ++iter)
     {
-      PHG4TruthInfoContainer::VtxRange vtxrange = truthinfo->GetVtxRange();
-      for (PHG4TruthInfoContainer::ConstVtxIterator iter = vtxrange.first; iter != vtxrange.second; ++iter) 
-	{
-	  PHG4VtxPoint *vtx_tr = iter->second;
-	  if ( vtx_tr->get_id() == 1 )
-	    { 
-	      vtx_z_tr = vtx_tr->get_z();
-	    }
-	}
-      if (vtx_z_tr != -999) 
-	{
-	  vtx_z = vtx_z_tr;
-	}
+      PHG4VtxPoint* vtx_tr = iter->second;
+      if (vtx_tr->get_id() == 1)
+      {
+        vtx_z_tr = vtx_tr->get_z();
+      }
     }
-
-  if (useVertexTruth==true)  
+    if (vtx_z_tr != -999)
     {
       vtx_z = vtx_z_tr;
     }
+  }
 
+  if (useVertexTruth == true)
+  {
+    vtx_z = vtx_z_tr;
+  }
 
-  if (!found_vertex && reqVertex) 
-    {
-      return Fun4AllReturnCodes::EVENT_OK;
-    }
+  if (!found_vertex && reqVertex)
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
   if (towers)
+  {
+    int size = towers->size();
+    for (int channel = 0; channel < size; channel++)
     {
-      int size = towers->size();
-      for (int channel = 0; channel < size; channel++)
-	{
-	  TowerInfo* tower = towers->get_tower_at_channel(channel);
-	  float offlineenergy = tower->get_energy();
-	  unsigned int towerkey = towers->encode_key(channel);
-	  int ieta = towers->getTowerEtaBin(towerkey);
-	  int iphi = towers->getTowerPhiBin(towerkey);
-	  bool isGood = tower->get_isGood();
-	  if (offlineenergy > emcal_hit_threshold && isGood )
-	    {
-	      h_cemc_etaphi->Fill(ieta, iphi);
-	    }
-	  if (tower->get_isNoCalib())
-	    {
-	      h_cemc_etaphi_noCalib->Fill(ieta, iphi);
-	    }
-	}
+      TowerInfo* tower = towers->get_tower_at_channel(channel);
+      float offlineenergy = tower->get_energy();
+      unsigned int towerkey = towers->encode_key(channel);
+      int ieta = towers->getTowerEtaBin(towerkey);
+      int iphi = towers->getTowerPhiBin(towerkey);
+      bool isGood = tower->get_isGood();
+      if (offlineenergy > emcal_hit_threshold && isGood)
+      {
+        h_cemc_etaphi->Fill(ieta, iphi);
+      }
+      if (tower->get_isNoCalib())
+      {
+        h_cemc_etaphi_noCalib->Fill(ieta, iphi);
+      }
     }
+  }
 
   std::string cluster_node_name = "CLUSTERINFO_CEMC";
 
   if (use_pdc)
-    {
-      cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
-    }
+  {
+    cluster_node_name = "CLUSTERINFO_POS_COR_CEMC";
+  }
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, cluster_node_name);
   if (!clusterContainer)
-    {
-      std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
-      return 0;
-    }
+  {
+    std::cout << PHWHERE << "funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
+    return 0;
+  }
 
   //////////////////////////////////////////
   // geometry for hot tower/cluster masking
   std::string towergeomnodename = "TOWERGEOM_CEMC";
   RawTowerGeomContainer* m_geometry = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!m_geometry)
-    {
-      std::cout << Name() << "::"
-		<< "CreateNodeTree"
-		<< ": Could not find node " << towergeomnodename << std::endl;
-      throw std::runtime_error("failed to find TOWERGEOM node in RawClusterDeadHotMask::CreateNodeTree");
-    }
+  {
+    std::cout << Name() << "::"
+              << "CreateNodeTree"
+              << ": Could not find node " << towergeomnodename << std::endl;
+    throw std::runtime_error("failed to find TOWERGEOM node in RawClusterDeadHotMask::CreateNodeTree");
+  }
 
   /////////////////////////////
   // clusters
@@ -321,151 +320,150 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   RawClusterContainer::ConstIterator clusterIter2;
   int nClusCount = 0;
   for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
+  {
+    RawCluster* recoCluster = clusterIter->second;
+
+    CLHEP::Hep3Vector vertex(0, 0, vtx_z);
+    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+
+    float clus_pt = E_vec_cluster.perp();
+    float clus_chisq = recoCluster->get_prob();
+
+    if (clus_pt < nClus_ptCut)
     {
-      RawCluster* recoCluster = clusterIter->second;
-
-      CLHEP::Hep3Vector vertex(0, 0, vtx_z);
-      CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
-
-      float clus_pt = E_vec_cluster.perp();
-      float clus_chisq = recoCluster->get_prob();
-
-      if (clus_pt < nClus_ptCut)
-	{
-	  continue;
-	}
-      if (clus_chisq < clus_chisq_cut)
-	{
-	  continue;
-	}
-      nClusCount++;
+      continue;
     }
+    if (clus_chisq < clus_chisq_cut)
+    {
+      continue;
+    }
+    nClusCount++;
+  }
 
   h_nclusters->Fill(nClusCount);
 
   if (nClusCount > max_nClusCount)
-    {
-      return Fun4AllReturnCodes::EVENT_OK;
-    }
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   if (std::fabs(vtx_z) > vtx_z_cut && doVtxCut)
-    {
-      return Fun4AllReturnCodes::EVENT_OK;
-    }
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   h_event->Fill(0);
 
   float ptClusMax = 4;
-  float pt1ClusCut = pt1BaseClusCut;  
-  float pt2ClusCut = pt2BaseClusCut;  
-
+  float pt1ClusCut = pt1BaseClusCut;
+  float pt2ClusCut = pt2BaseClusCut;
 
   if (nClusCount > 30)
-    {
-      pt1ClusCut += NclusDeptFac * (nClusCount - 29) / 200.0;
-      pt2ClusCut += NclusDeptFac * (nClusCount - 29) / 200.0;
-    }
+  {
+    pt1ClusCut += NclusDeptFac * (nClusCount - 29) / 200.0;
+    pt2ClusCut += NclusDeptFac * (nClusCount - 29) / 200.0;
+  }
 
   float pi0ptcut = 1.22 * (pt1ClusCut + pt2ClusCut);
 
   for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
+  {
+    RawCluster* recoCluster = clusterIter->second;
+
+    CLHEP::Hep3Vector vertex(0, 0, vtx_z);
+    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+
+    float clusE = E_vec_cluster.mag();
+    float clus_eta = E_vec_cluster.pseudoRapidity();
+    float clus_phi = E_vec_cluster.phi();
+    float clus_pt = E_vec_cluster.perp();
+    float clus_chisq = recoCluster->get_prob();
+
+    if (clus_chisq < clus_chisq_cut)
     {
-      RawCluster* recoCluster = clusterIter->second;
+      continue;
+    }
+    h_clus_pt->Fill(clus_pt);
 
-      CLHEP::Hep3Vector vertex(0, 0, vtx_z);
-      CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+    unsigned int lt_eta = recoCluster->get_lead_tower().first;
+    unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
-      float clusE = E_vec_cluster.mag();
-      float clus_eta = E_vec_cluster.pseudoRapidity();
-      float clus_phi = E_vec_cluster.phi();
-      float clus_pt = E_vec_cluster.perp();
-      float clus_chisq = recoCluster->get_prob();
+    h_etaphi_clus->Fill(clus_eta, clus_phi);
 
-      if (clus_chisq < clus_chisq_cut)
-	{
-	  continue;
-	}
-      h_clus_pt->Fill(clus_pt);
+    TLorentzVector photon1;
+    photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
 
-      unsigned int lt_eta = recoCluster->get_lead_tower().first;
-      unsigned int lt_phi = recoCluster->get_lead_tower().second;
+    if (clus_pt < pt1ClusCut || clus_pt > ptClusMax)
+    {
+      continue;
+    }
 
-      h_etaphi_clus->Fill(clus_eta, clus_phi);
+    for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterIter; clusterIter2++)
+    {
+      RawCluster* recoCluster2 = clusterIter2->second;
 
-      TLorentzVector photon1;
-      photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
+      CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex);
 
-      if (clus_pt < pt1ClusCut || clus_pt > ptClusMax)
-	{
-	  continue;
-	}
+      float clus2E = E_vec_cluster2.mag();
+      float clus2_eta = E_vec_cluster2.pseudoRapidity();
+      float clus2_phi = E_vec_cluster2.phi();
+      float clus2_pt = E_vec_cluster2.perp();
+      float clus2_chisq = recoCluster2->get_prob();
 
-      for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterIter; clusterIter2++)
-	{
-	  RawCluster* recoCluster2 = clusterIter2->second;
+      if (clus2_pt < pt2ClusCut || clus_pt > ptClusMax)
+      {
+        continue;
+      }
+      if (clus2_chisq < clus_chisq_cut)
+      {
+        continue;
+      }
 
-	  CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex);
+      TLorentzVector photon2;
+      photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
 
-	  float clus2E = E_vec_cluster2.mag();
-	  float clus2_eta = E_vec_cluster2.pseudoRapidity();
-	  float clus2_phi = E_vec_cluster2.phi();
-	  float clus2_pt = E_vec_cluster2.perp();
-	  float clus2_chisq = recoCluster2->get_prob();
+      if (std::fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha)
+      {
+        continue;
+      }
 
-	  if (clus2_pt < pt2ClusCut || clus_pt > ptClusMax)
-	    {
-	      continue;
-	    }
-	  if (clus2_chisq < clus_chisq_cut)
-	    {
-	      continue;
-	    }
+      if (photon1.DeltaR(photon2) > maxDr)
+      {
+        continue;
+      }
 
-	  TLorentzVector photon2;
-	  photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
+      TLorentzVector pi0 = photon1 + photon2;
+      if (pi0.Pt() < pi0ptcut)
+      {
+        continue;
+      }
 
-	  if (std::fabs(clusE - clus2E) / (clusE + clus2E) > maxAlpha)
-	    {
-	      continue;
-	    }
+      h_pt1->Fill(photon1.Pt());
+      h_pt2->Fill(photon2.Pt());
 
-	  if (photon1.DeltaR(photon2) > maxDr)
-	    {
-	      continue;
-	    }
+      h_InvMass->Fill(pi0.M());
+      if (clus2_pt < pt1ClusCut)
+      {
+        h_InvMass->Fill(pi0.M());
+      }
 
-	  TLorentzVector pi0 = photon1 + photon2;
-	  if (pi0.Pt() < pi0ptcut)
-	    {
-	      continue;
-	    }
+      if (lt_eta > 95)
+      {
+        continue;
+      }
+      h_mass_eta_lt[lt_eta]->Fill(pi0.M());
 
-	  h_pt1->Fill(photon1.Pt());
-	  h_pt2->Fill(photon2.Pt());
+      if (runTBTCompactMode)
+      {
+        h_ieta_iphi_invmass->Fill(lt_eta, lt_phi, pi0.M());
+      }  // fill 3D hist for inv mass
 
-	  h_InvMass->Fill(pi0.M());
-	  if (clus2_pt < pt1ClusCut)
-	    {
-	      h_InvMass->Fill(pi0.M());
-	    }
-
-	  if (lt_eta > 95)
-	    {
-	      continue;
-	    }
-	  h_mass_eta_lt[lt_eta]->Fill(pi0.M());
-
-	  if (runTBTCompactMode)
-	    {
-	      h_ieta_iphi_invmass->Fill(lt_eta, lt_phi, pi0.M());
-	    }  // fill 3D hist for inv mass
-
-	  if (runTowByTow)
-	    {
-	      h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());
-	    }  // fill 1D inv mass hist for all towers
-	}
-    }  // clus1 loop
+      if (runTowByTow)
+      {
+        h_mass_tbt_lt[lt_eta][lt_phi]->Fill(pi0.M());
+      }  // fill 1D inv mass hist for all towers
+    }
+  }  // clus1 loop
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -526,63 +524,63 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
 {
   TFile* fin = new TFile(infile.c_str());
   std::cout << "getting hists" << std::endl;
-  TH1F* h_peak_eta = new TH1F("h_peak_eta", "", 96, 0, 96);
-  TH1F* h_sigma_eta = new TH1F("h_sigma_eta", "", 96, 0, 96);
-  TH1F* h_p3_eta = new TH1F("h_p3_eta", "", 96, 0, 96);
-  TH1F* h_p4_eta = new TH1F("h_p4_eta", "", 96, 0, 96);
-  TH1F* h_p5_eta = new TH1F("h_p5_eta", "", 96, 0, 96);
-  TH1F* h_p6_eta = new TH1F("h_p6_eta", "", 96, 0, 96);
-  TH1F* h_p0_eta = new TH1F("h_p0_eta", "", 96, 0, 96);
+  TH1* h_peak_eta = new TH1F("h_peak_eta", "", 96, 0, 96);
+  TH1* h_sigma_eta = new TH1F("h_sigma_eta", "", 96, 0, 96);
+  TH1* h_p3_eta = new TH1F("h_p3_eta", "", 96, 0, 96);
+  TH1* h_p4_eta = new TH1F("h_p4_eta", "", 96, 0, 96);
+  TH1* h_p5_eta = new TH1F("h_p5_eta", "", 96, 0, 96);
+  TH1* h_p6_eta = new TH1F("h_p6_eta", "", 96, 0, 96);
+  TH1* h_p0_eta = new TH1F("h_p0_eta", "", 96, 0, 96);
   if (!fin)
-    {
-      std::cout << "pi0EtaByEta::fitEtaSlices null fin" << std::endl;
-      exit(1);
-    }
-  TH1F* h_M_eta[96];
+  {
+    std::cout << "pi0EtaByEta::fitEtaSlices null fin" << std::endl;
+    exit(1);
+  }
+  TH1* h_M_eta[96];
   for (int i = 0; i < 96; i++)
-    {
-      std::string histoname = "h_mass_eta_lt" + std::to_string(i);
-      h_M_eta[i] = (TH1F*) fin->Get(histoname.c_str());
-      h_M_eta[i]->Scale(1. / h_M_eta[i]->Integral(), "width");
-    }
+  {
+    std::string histoname = "h_mass_eta_lt" + std::to_string(i);
+    fin->GetObject(histoname.c_str(), h_M_eta[i]);
+    h_M_eta[i]->Scale(1. / h_M_eta[i]->Integral(), "width");
+  }
 
   TF1* fitFunOut[96];
   for (int i = 0; i < 96; i++)
+  {
+    if (!h_M_eta[i])
     {
-      if (!h_M_eta[i])
-	{
-	  std::cout << "pi0EtaByEta::fitEtaSlices null hist" << std::endl;
-	}
-      if (h_M_eta[i]->GetEntries() == 0)
-	{
-	  continue;
-	}
-
-      fitFunOut[i] = fitHistogram(h_M_eta[i]);
-      std::string funcname = "f_pi0_eta" + std::to_string(i);
-      fitFunOut[i]->SetName(funcname.c_str());
-      float mass_val_out = fitFunOut[i]->GetParameter(1);
-      float mass_err_out = fitFunOut[i]->GetParError(1);
-      h_peak_eta->SetBinContent(i + 1, mass_val_out);
-      if (std::isnan(h_M_eta[i]->GetEntries()))
-	{
-	  h_peak_eta->SetBinError(i + 1, 0);
-	  continue;
-	}
-      h_peak_eta->SetBinError(i + 1, mass_err_out);
-      h_sigma_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(2));
-      h_sigma_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(2));
-      h_p3_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(3));
-      h_p3_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(3));
-      h_p4_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(4));
-      h_p4_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(4));
-      h_p5_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(5));
-      h_p5_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(5));
-      h_p6_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(6));
-      h_p6_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(6));
-      h_p0_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(0));
-      h_p0_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(0));
+      std::cout << "pi0EtaByEta::fitEtaSlices null hist" << std::endl;
     }
+    if (h_M_eta[i]->GetEntries() == 0)
+    {
+      continue;
+    }
+
+    fitFunOut[i] = fitHistogram(h_M_eta[i]);
+    std::string funcname = "f_pi0_eta" + std::to_string(i);
+    fitFunOut[i]->SetName(funcname.c_str());
+    float mass_val_out = fitFunOut[i]->GetParameter(1);
+    float mass_err_out = fitFunOut[i]->GetParError(1);
+    h_peak_eta->SetBinContent(i + 1, mass_val_out);
+    if (std::isnan(h_M_eta[i]->GetEntries()))
+    {
+      h_peak_eta->SetBinError(i + 1, 0);
+      continue;
+    }
+    h_peak_eta->SetBinError(i + 1, mass_err_out);
+    h_sigma_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(2));
+    h_sigma_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(2));
+    h_p3_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(3));
+    h_p3_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(3));
+    h_p4_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(4));
+    h_p4_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(4));
+    h_p5_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(5));
+    h_p5_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(5));
+    h_p6_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(6));
+    h_p6_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(6));
+    h_p0_eta->SetBinContent(i + 1, fitFunOut[i]->GetParameter(0));
+    h_p0_eta->SetBinError(i + 1, fitFunOut[i]->GetParError(0));
+  }
 
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile);
   CDBTTree* cdbttree2 = new CDBTTree(cdbFile);
@@ -592,23 +590,23 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   float final_mass_target = target_pi0_mass;
 
   for (int i = 0; i < 96; i++)
+  {
+    for (int j = 0; j < 256; j++)
     {
-      for (int j = 0; j < 256; j++)
-	{
-	  if (use_h_target_mass)
-	    {
-	      final_mass_target = h_target_mass->GetBinContent(i + 1);
-	    }
-	  float correction = final_mass_target / h_peak_eta->GetBinContent(i + 1);
-	  if (h_peak_eta->GetBinContent(i + 1) == 0)
-	    {
-	      correction = 0;
-	    }
-	  unsigned int key = TowerInfoDefs::encode_emcal(i, j);
-	  float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
-	  cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);
-	}
+      if (use_h_target_mass)
+      {
+        final_mass_target = h_target_mass->GetBinContent(i + 1);
+      }
+      float correction = final_mass_target / h_peak_eta->GetBinContent(i + 1);
+      if (h_peak_eta->GetBinContent(i + 1) == 0)
+      {
+        correction = 0;
+      }
+      unsigned int key = TowerInfoDefs::encode_emcal(i, j);
+      float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
+      cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);
     }
+  }
 
   cdbttree2->Commit();
   cdbttree2->WriteCDBTTree();
@@ -618,15 +616,15 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   TFile* fit_out = new TFile(fitOutFile.c_str(), "recreate");
   fit_out->cd();
   for (auto& i : h_M_eta)
-    {
-      i->Write();
-      delete i;
-    }
+  {
+    i->Write();
+    delete i;
+  }
   for (auto& i : fitFunOut)
-    {
-      i->Write();
-      delete i;
-    }
+  {
+    i->Write();
+    delete i;
+  }
 
   h_p3_eta->Write();
   h_p4_eta->Write();
@@ -646,105 +644,109 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
 void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& fitOutFile, const std::string& cdbFile)
 {
   TFile* fin = new TFile(infile.c_str());
-  
+
   std::cout << "getting hists" << std::endl;
-	
-  TH2F* h_peak_tbt = new TH2F("h_peak_tbt", "", 96, 0, 96, 256, 0 , 256);
-  TH2F* h_sigma_tbt = new TH2F("h_sigma_tbt", "", 96, 0, 96, 256, 0, 256);
-  TH2F* h_p3_tbt = new TH2F("h_p3_tbt", "", 96, 0, 96, 256, 0, 256);
-  TH2F* h_p4_tbt = new TH2F("h_p4_tbt", "", 96, 0, 96, 256, 0, 256);
-  TH2F* h_p5_tbt = new TH2F("h_p5_tbt", "", 96, 0, 96, 256, 0, 256);
-  TH2F* h_p6_tbt = new TH2F("h_p6_tbt", "", 96, 0, 96, 256, 0, 256);
-  TH2F* h_p0_tbt = new TH2F("h_p0_tbt", "", 96, 0, 96, 256, 0, 256);
-  TH1F* h_peak_tbt_1D = new TH1F("h_peak_tbt_1D", "", 24576, 0, 24576);
+
+  TH2* h_peak_tbt = new TH2F("h_peak_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2* h_sigma_tbt = new TH2F("h_sigma_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2* h_p3_tbt = new TH2F("h_p3_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2* h_p4_tbt = new TH2F("h_p4_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2* h_p5_tbt = new TH2F("h_p5_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2* h_p6_tbt = new TH2F("h_p6_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH2* h_p0_tbt = new TH2F("h_p0_tbt", "", 96, 0, 96, 256, 0, 256);
+  TH1* h_peak_tbt_1D = new TH1F("h_peak_tbt_1D", "", 24576, 0, 24576);
 
   if (!fin)
-    {
-      std::cout << "pi0EtaByEta::fitEtaPhiTowers null fin" << std::endl;
-      exit(1);
-    }
+  {
+    std::cout << "pi0EtaByEta::fitEtaPhiTowers null fin" << std::endl;
+    exit(1);
+  }
 
-  TH2F* h_M_tbt[96][256];
+  TH2* h_M_tbt[96][256];
   TF1* fitFunOut[96][256];
 
   // creating output file
   TFile* fit_out = new TFile(fitOutFile.c_str(), "recreate");
-	
+
   // we will load, fit and update one eta-bin a time and get into next eta-bin
   for (int ieta = 0; ieta < 96; ieta++)
+  {
+    std::cout << "fitting in etabin = " << ieta << std::endl;
+    for (int j = 0; j < 256; j++)
     {
-      std::cout << "fitting in etabin = " << ieta << std::endl;
-      for (int j = 0; j < 256; j++)
-	{
-	  std::string histoname = "h_mass_tbt_lt_" + std::to_string(ieta) + "_" + std::to_string(j);
-	  h_M_tbt[ieta][j] = (TH2F*) fin->Get(histoname.c_str());
-	  h_M_tbt[ieta][j]->Scale(1. / h_M_tbt[ieta][j]->Integral(), "width");
-	
-	  if (!h_M_tbt[ieta][j])
-	    {
-	      std::cout << "pi0EtaByEta::fitEtaPhiTowers null hist" << std::endl;
-	    }
-			
-	  if (h_M_tbt[ieta][j]->GetEntries() == 0) continue;
-					
-	  fitFunOut[ieta][j] = fitHistogram(h_M_tbt[ieta][j]);
-	  std::string funcname = "f_pi0_tbt_" + std::to_string(ieta) + "_" + std::to_string(j);
-	  fitFunOut[ieta][j]->SetName(funcname.c_str());
-      
-	  float mass_val_out = fitFunOut[ieta][j]->GetParameter(1);
-	  float mass_err_out = fitFunOut[ieta][j]->GetParError(1);
-	
-	  if (std::isnan(h_M_tbt[ieta][j]->GetEntries()))
-	    {
-	      h_peak_tbt->SetBinContent(ieta + 1, j + 1, 0);
-	      h_peak_tbt->SetBinError(ieta + 1, j + 1, 0);
-	      continue;
-	    }
-	
-	  h_peak_tbt->SetBinContent(ieta + 1, j + 1, mass_val_out);
-	  h_peak_tbt->SetBinError(ieta + 1, j + 1, mass_err_out);
+      std::string histoname = "h_mass_tbt_lt_" + std::to_string(ieta) + "_" + std::to_string(j);
+      fin->GetObject(histoname.c_str(), h_M_tbt[ieta][j]);
 
-	  int towerID = TowerInfoDefs::decode_emcal(TowerInfoDefs::encode_emcal(ieta, j));
-	  h_peak_tbt_1D->SetBinContent(towerID + 1, mass_val_out);
-	  h_peak_tbt_1D->SetBinError(towerID + 1, mass_err_out);
+      if (!h_M_tbt[ieta][j])
+      {
+        std::cout << "pi0EtaByEta::fitEtaPhiTowers null hist" << std::endl;
+        gSystem->Exit(1);
+        exit(1);
+      }
+      h_M_tbt[ieta][j]->Scale(1. / h_M_tbt[ieta][j]->Integral(), "width");
 
-	  h_sigma_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(2));
-	  h_sigma_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(2));
-			
-	  h_p3_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(3));
-	  h_p3_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(3));
-			
-	  h_p4_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(4));
-	  h_p4_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(4));
-			
-	  h_p5_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(5));
-	  h_p5_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(5));
-			
-	  h_p6_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(6));
-	  h_p6_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(6));
-			
-	  h_p0_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(0));
-	  h_p0_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(0));
-				
-	} // fitting for all phi-towers in eta-bin
-	  
-      fit_out->cd();
+      if (h_M_tbt[ieta][j]->GetEntries() == 0)
+      {
+        continue;
+      }
 
-      // writing all towers and fit function in given etabin
-      for (auto& _hist : h_M_tbt[ieta]) 
-	{
-	  _hist->Write();
-	  delete _hist;
-	}
+      fitFunOut[ieta][j] = fitHistogram(h_M_tbt[ieta][j]);
+      std::string funcname = "f_pi0_tbt_" + std::to_string(ieta) + "_" + std::to_string(j);
+      fitFunOut[ieta][j]->SetName(funcname.c_str());
 
-      for (auto& _hist : fitFunOut[ieta]) 
-	{
-	  _hist->Write();
-	  delete _hist;
-	}
-    
-    } // closing eta-bin loop
+      float mass_val_out = fitFunOut[ieta][j]->GetParameter(1);
+      float mass_err_out = fitFunOut[ieta][j]->GetParError(1);
 
+      if (std::isnan(h_M_tbt[ieta][j]->GetEntries()))
+      {
+        h_peak_tbt->SetBinContent(ieta + 1, j + 1, 0);
+        h_peak_tbt->SetBinError(ieta + 1, j + 1, 0);
+        continue;
+      }
+
+      h_peak_tbt->SetBinContent(ieta + 1, j + 1, mass_val_out);
+      h_peak_tbt->SetBinError(ieta + 1, j + 1, mass_err_out);
+
+      int towerID = TowerInfoDefs::decode_emcal(TowerInfoDefs::encode_emcal(ieta, j));
+      h_peak_tbt_1D->SetBinContent(towerID + 1, mass_val_out);
+      h_peak_tbt_1D->SetBinError(towerID + 1, mass_err_out);
+
+      h_sigma_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(2));
+      h_sigma_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(2));
+
+      h_p3_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(3));
+      h_p3_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(3));
+
+      h_p4_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(4));
+      h_p4_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(4));
+
+      h_p5_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(5));
+      h_p5_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(5));
+
+      h_p6_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(6));
+      h_p6_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(6));
+
+      h_p0_tbt->SetBinContent(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParameter(0));
+      h_p0_tbt->SetBinError(ieta + 1, j + 1, fitFunOut[ieta][j]->GetParError(0));
+
+    }  // fitting for all phi-towers in eta-bin
+
+    fit_out->cd();
+
+    // writing all towers and fit function in given etabin
+    for (auto& _hist : h_M_tbt[ieta])
+    {
+      _hist->Write();
+      delete _hist;
+    }
+
+    for (auto& _hist : fitFunOut[ieta])
+    {
+      _hist->Write();
+      delete _hist;
+    }
+
+  }  // closing eta-bin loop
 
   // CDBTtree
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile);
@@ -754,28 +756,27 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
   float final_mass_target = target_pi0_mass;
 
   for (int i = 0; i < 96; i++)
+  {
+    for (int j = 0; j < 256; j++)
     {
-      for (int j = 0; j < 256; j++)
-	{
-	  if (use_h_target_mass)
-	    {
-	      final_mass_target = h_target_mass->GetBinContent(i + 1, j + 1);
-	    }
-	  float correction = final_mass_target / h_peak_tbt->GetBinContent(i + 1, j + 1);
-	  if (h_peak_tbt->GetBinContent(i + 1, j + 1) == 0)
-	    {
-	      correction = 0;
-	    }
-	  if (h_sigma_tbt->GetBinContent(i + 1, j + 1) > 0.040)
-	    {
-	      correction = 1;
-	    }
-	  unsigned int key = TowerInfoDefs::encode_emcal(i, j);
-	  float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
-	  cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);	
-			
-	}
+      if (use_h_target_mass)
+      {
+        final_mass_target = h_target_mass->GetBinContent(i + 1, j + 1);
+      }
+      float correction = final_mass_target / h_peak_tbt->GetBinContent(i + 1, j + 1);
+      if (h_peak_tbt->GetBinContent(i + 1, j + 1) == 0)
+      {
+        correction = 0;
+      }
+      if (h_sigma_tbt->GetBinContent(i + 1, j + 1) > 0.040)
+      {
+        correction = 1;
+      }
+      unsigned int key = TowerInfoDefs::encode_emcal(i, j);
+      float val1 = cdbttree1->GetFloatValue(key, m_fieldname);
+      cdbttree2->SetFloatValue(key, m_fieldname, val1 * correction);
     }
+  }
 
   // writing out CDBTtree
   cdbttree2->Commit();
@@ -801,68 +802,66 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
   std::cout << "finish fitting suc" << std::endl;
 
   return;
-
 }
-
 
 bool pi0EtaByEta::checkOutput(const std::string& file)
 {
   TFile* fin = new TFile(file.c_str());
-  TH1F* h_peak_eta = (TH1F*) fin->Get("h_peak_eta");
+  TH1* h_peak_eta{nullptr};
+  fin->GetObject("h_peak_eta", h_peak_eta);
 
   float final_mass_target = target_pi0_mass;
 
   int numNotConv = 0;
 
   for (int i = 0; i < 96; i++)
+  {
+    if (use_h_target_mass)
     {
-      if (use_h_target_mass)
-	{
-	  final_mass_target = h_target_mass->GetBinContent(i + 1);
-	}
-      float corr = 1.0 - (final_mass_target / h_peak_eta->GetBinContent(i + 1));
-      if (h_peak_eta->GetBinContent(i + 1) == 0)
-	{
-	  corr = 0;
-	}
-      std::cout << "err " << corr << std::endl;
-      if (std::fabs(corr) > convLev)
-	{
-	  numNotConv++;
-	}
+      final_mass_target = h_target_mass->GetBinContent(i + 1);
     }
+    float corr = 1.0 - (final_mass_target / h_peak_eta->GetBinContent(i + 1));
+    if (h_peak_eta->GetBinContent(i + 1) == 0)
+    {
+      corr = 0;
+    }
+    std::cout << "err " << corr << std::endl;
+    if (std::fabs(corr) > convLev)
+    {
+      numNotConv++;
+    }
+  }
 
   delete fin;
 
   if (numNotConv <= 1)
-    {
-      return true;
-    }
+  {
+    return true;
+  }
   return false;
 }
-
 
 void pi0EtaByEta::set_massTargetHistFile(const std::string& file)
 {
   TFile* fin = new TFile(file.c_str());
   if (fin)
-    {
-      h_target_mass = (TH1F*) fin->Get("h_massTargetHist");
-    }
+  {
+    fin->GetObject("h_massTargetHist", h_target_mass);
+  }
   else
-    {
-      std::cout << "pi0EtaByEta::set_massTargetHistFile  No mass file found" << std::endl;
-      return;
-    }
+  {
+    std::cout << "pi0EtaByEta::set_massTargetHistFile  No mass file found" << std::endl;
+    return;
+  }
   if (h_target_mass)
-    {
-      use_h_target_mass = true;
-      std::cout << "using target mass histogram" << std::endl;
-    }
+  {
+    use_h_target_mass = true;
+    std::cout << "using target mass histogram" << std::endl;
+  }
   else
-    {
-      std::cout << "pi0EtaByEta::set_massTargetHistFile  No mass hist found" << std::endl;
-    }
+  {
+    std::cout << "pi0EtaByEta::set_massTargetHistFile  No mass hist found" << std::endl;
+  }
   return;
 }
 
@@ -870,54 +869,56 @@ void pi0EtaByEta::set_massTargetHistFile(const std::string& file)
 void pi0EtaByEta::Split3DHist(const std::string& infile, const std::string& out_file)
 {
   // First we will copy all the content of input file to output file
-  if (gSystem->CopyFile(infile.c_str(), out_file.c_str(), kTRUE) != 0)
-    {
-      std::cerr << "Error copying file from " << infile << " to " << out_file << std::endl;
-      return;
-    }
+  std::error_code ec;
+  std::filesystem::copy(infile, out_file, ec);
+  if (ec)
+  {
+    std::cout << "Error copying file from " << infile << " to " << out_file << std::endl;
+    return;
+  }
 
   // Then, we will open the output file after update
   TFile* ofile = new TFile(out_file.c_str(), "UPDATE");
   if (!ofile)
-    {
-      std::cerr << "Error opening file: " << out_file << std::endl;
-      return;
-    }
+  {
+    std::cout << "Error opening file: " << out_file << std::endl;
+    return;
+  }
 
   // We will extract 3D hist from updated output file
-  h_ieta_iphi_invmass = (TH3F*) ofile->Get("h_ieta_iphi_invmass");
+  ofile->GetObject("h_ieta_iphi_invmass", h_ieta_iphi_invmass);
   if (!h_ieta_iphi_invmass)
-    {
-      std::cerr << "Error: 3D Histogram not found in file: " << out_file << std::endl;
-      ofile->Close();
-      return;
-    }
+  {
+    std::cout << "Error: 3D Histogram not found in file: " << out_file << std::endl;
+    ofile->Close();
+    return;
+  }
 
   // Loop over ieta and iphi ranges (x and y axis)
   for (int bineta = 1; bineta <= 96; ++bineta)
+  {
+    for (int binphi = 1; binphi <= 256; ++binphi)
     {
-      for (int binphi = 1; binphi <= 256; ++binphi)
-	{
-	  // Loop over third axis in 3D Hist and then fill it into 1D hist
-	  for (int binz = 1; binz <= h_ieta_iphi_invmass->GetNbinsZ(); ++binz)
-	    {
-	      float content = h_ieta_iphi_invmass->GetBinContent(bineta, binphi, binz);
-	      h_mass_tbt_lt[bineta - 1][binphi - 1]->SetBinContent(binz, content);
-	    }
-	}
+      // Loop over third axis in 3D Hist and then fill it into 1D hist
+      for (int binz = 1; binz <= h_ieta_iphi_invmass->GetNbinsZ(); ++binz)
+      {
+        float content = h_ieta_iphi_invmass->GetBinContent(bineta, binphi, binz);
+        h_mass_tbt_lt[bineta - 1][binphi - 1]->SetBinContent(binz, content);
+      }
     }
+  }
 
   // Now we will update all the histogram in the output file
   ofile->cd();
 
   for (auto& i : h_mass_tbt_lt)
+  {
+    for (auto& j : i)
     {
-      for (auto& j : i)
-	{
-	  j->Write();
-	  delete j;
-	}
+      j->Write();
+      delete j;
     }
+  }
 
   ofile->Close();
 
