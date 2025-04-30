@@ -142,7 +142,7 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
     if (!towerrho)
     {
       std::cout << "RhosinEvent::process_event - Error can not find towerrho " << m_area_rho_node << std::endl;
-      //exit(-1);
+      return Fun4AllReturnCodes::EVENT_OK;
     }
     h1_area_rho->Fill(towerrho->get_rho());
     h1_area_rho_sigma->Fill(towerrho->get_sigma());
@@ -154,7 +154,7 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
     if (!towerrho)
     {
       std::cout << "RhosinEvent::process_event - Error can not find towerrho " << m_mult_rho_node << std::endl;
-      //exit(-1);
+      return Fun4AllReturnCodes::EVENT_OK;
     }
     h1_mult_rho->Fill(towerrho->get_rho());
     h1_mult_rho_sigma->Fill(towerrho->get_sigma());

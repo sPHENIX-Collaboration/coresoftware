@@ -193,7 +193,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   if (!seedjetsraw)
   {
     std::cout << "JetSeedCount::process_event - Error can not find DST raw seed jets" << std::endl;
-    //exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // Calling Sub jet seeds
@@ -201,7 +201,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   if (!seedjetssub)
   {
     std::cout << "JetSeedCount::process_event - Error can not find DST sub seed jets" << std::endl;
-    //exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // If not in pp mode, call Centrality Info
@@ -212,7 +212,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
     if (!cent_node)
     {
       std::cout << "JetSeedCount::process_event - Error can not find CentralityInfo" << std::endl;
-      //exit(-1);
+      return Fun4AllReturnCodes::EVENT_OK;
     }
   }
 
@@ -223,7 +223,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
     std::cout
         << "JetSeedCount::process_event - Error can not find global vertex  node "
         << std::endl;
-    //exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   if (vertexmap->empty())
   {
