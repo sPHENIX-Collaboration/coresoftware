@@ -1343,7 +1343,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     nClus_gtMin++;
 
     // Do the static + average distortion corrections if the container was found
-    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+    //since incorrect z values are in cluster do to wrong t0 of laser flash, fixing based on the side for now
+    //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+    Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
     TVector3 tmp_raw(pos[0], pos[1], pos[2]);
     if (m_dcc_in_module_edge)
     {
