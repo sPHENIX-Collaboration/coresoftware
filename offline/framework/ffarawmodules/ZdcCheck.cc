@@ -45,14 +45,14 @@ int ZdcCheck::process_event(PHCompositeNode *topNode)
     {
       if (ddump_enabled())
       {
-	ddumppacket(zdccont->getPacket(i));
+        ddumppacket(zdccont->getPacket(i));
       }
     }
-    std::cout << "ZDC Evt no: " <<  zdccont->getEvtSequence() << std::endl;
+    std::cout << "ZDC Evt no: " << zdccont->getEvtSequence() << std::endl;
     for (unsigned int i = 0; i < zdccont->get_npackets(); i++)
     {
       std::cout << "Packet " << zdccont->getPacket(i)->getIdentifier()
-		<< " Evt no: " << zdccont->getPacket(i)->getEvtSequence() << std::endl;
+                << " Evt no: " << zdccont->getPacket(i)->getEvtSequence() << std::endl;
       zdccont->identify();
     }
   }

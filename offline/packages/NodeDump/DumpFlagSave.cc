@@ -20,7 +20,7 @@ DumpFlagSave::DumpFlagSave(const std::string &NodeName)
 int DumpFlagSave::process_Node(PHNode *myNode)
 {
   FlagSave *flagsave = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     flagsave = thisNode->getData();

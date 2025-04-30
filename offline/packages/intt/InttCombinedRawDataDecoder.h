@@ -1,9 +1,9 @@
 #ifndef INTT_COMBINEDRAWDATADECODER_H
 #define INTT_COMBINEDRAWDATADECODER_H
 
+#include "InttBadChannelMap.h"
 #include "InttBCOMap.h"
 #include "InttDacMap.h"
-#include "InttMapping.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
@@ -29,8 +29,14 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int InitRun(PHCompositeNode*) override;
   int process_event(PHCompositeNode*) override;
 
-  int LoadHotChannelMapLocal(std::string const& = "INTT_HotChannelMap.root");
-  int LoadHotChannelMapRemote(std::string const& = "INTT_HotChannelMap");
+  /// Overloaded; no arguments loads with default tag
+  int LoadBadChannelMap() {return m_badmap.Load();}
+  int LoadBadChannelMap(std::string const& s) {return m_badmap.Load(s);}
+
+  /// Depreciated; use LoadHotChannelMap(const std::string&);
+  int LoadHotChannelMapLocal(std::string const& s = "INTT_HotChannelMap.root") {return LoadBadChannelMap(s);}
+  /// Depreciated; use LoadHotChannelMap(const std::string&);
+  int LoadHotChannelMapRemote(std::string const& s = "INTT_HotChannelMap") {return LoadBadChannelMap(s);}
 
   void SetCalibDAC(std::string const& calibname = "INTT_DACMAP", const CalibRef& calibref = CDB)
   {
@@ -53,14 +59,13 @@ class InttCombinedRawDataDecoder : public SubsysReco
  private:
   InttEventInfo* intt_event_header = nullptr;
   std::string m_InttRawNodeName = "INTTRAWHIT";
-  typedef std::set<InttNameSpace::RawData_s, InttNameSpace::RawDataComparator> Set_t;
-  Set_t m_HotChannelSet;
   bool m_runStandAlone = false;
   bool m_writeInttEventHeader = false;
   bool m_bcoFilter = false;
   std::pair<std::string, CalibRef> m_calibinfoDAC;
   std::pair<std::string, CalibRef> m_calibinfoBCO;
 
+  InttBadChannelMap m_badmap;
   InttDacMap m_dacmap;
   InttBCOMap m_bcomap;
 

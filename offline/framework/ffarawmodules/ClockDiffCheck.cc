@@ -11,6 +11,7 @@
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHPointerListIterator.h>
 #include <phool/getClass.h>
 
 #include <TH1.h>
@@ -28,18 +29,68 @@ ClockDiffCheck::ClockDiffCheck(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int ClockDiffCheck::Init(PHCompositeNode * /*topNode*/)
+int ClockDiffCheck::InitRun(PHCompositeNode *topNode)
 {
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cout << "Could not find DST Node" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  PHNodeIterator iterDst(dstNode);
+  PHCompositeNode *pktNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "Packets"));
+  if (!pktNode)  // old combined packet containers
+  {
+    std::cout << "Could not find Packets Node" << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+  PHNodeIterator iterPkt(pktNode);
+  PHPointerListIterator<PHNode> nodeIter(iterPkt.ls());
+  PHNode *thisNode;
+  while ((thisNode = nodeIter()))
+  {
+    m_PacketNodeNames.push_back(thisNode->getName());
+  }
+  //  topNode->print();
+  // PHNodeIterator iterPkt(pktNode);
+  // PHPointerList<PHNode> myList = iterPkt.ls();
+  //  PHPointerListIterator<PHNode> pktiter(myList);
+  // pktiter.Begin();
+  //   PHNode* thisNode;
+  // while ((thisNode = iterPkt()))
+  // {
+  //   std::cout << "node " << thisNode->getName() << std::endl;
+  // }
+  //  PHPointerList<PHNode> myNodes = iterPkt.ls();
+
+  // for (auto iter : m_PacketNodeNames)
+  // {
+  //   std::cout << "node: " << iter << std::endl;
+  // }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 {
+  //  PHNodeIterator
+  PHNodeIterator topnodeiter(topNode);
+  PHCompositeNode *pktNode = dynamic_cast<PHCompositeNode *>(topnodeiter.findFirst("PHCompositeNode", "Packets"));
+
   for (auto &iter : m_PacketStuffMap)
   {
     std::get<0>(iter.second) = std::get<1>(iter.second);
     std::get<4>(iter.second) = false;
+  }
+  if (pktNode)
+  {
+    OfflinePacket *pkt = findNode::getClass<OfflinePacket>(pktNode, 14001);
+    if (pkt)
+    {
+      FillPacketDiff(pkt);
+    }
   }
   OfflinePacket *pkt = findNode::getClass<OfflinePacket>(topNode, "GL1Packet");
   if (pkt)
@@ -58,6 +109,19 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     else
     {
       FillCaloClockDiff(cemccont);
+    }
+  }
+
+  for (const auto &iter : m_PacketNodeNames)
+  {
+    CaloPacket *calopacket = findNode::getClass<CaloPacket>(pktNode, iter);
+    if (!calopacket)
+    {
+      //      std::cout << "could not find " << iter << " node" << std::endl;
+    }
+    else
+    {
+      FillCaloClockDiffSngl(calopacket);
     }
   }
 
@@ -216,6 +280,90 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       }
     }
   }
+  for (const auto &iter : m_PacketNodeNames)
+  {
+    CaloPacket *calopacket = findNode::getClass<CaloPacket>(pktNode, iter);
+    if (!calopacket)
+    {
+      continue;
+    }
+    if (delBadPkts)
+    {
+      unsigned int packetID = calopacket->getIdentifier();
+      for (unsigned int badPacket : badPackets)
+      {
+        if (badPacket == packetID)
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "Dropping packet " << calopacket->getIdentifier() << " for XMIT clock mismatch" << std::endl;
+          }
+          calopacket->Reset();
+          break;
+        }
+      }
+    }
+
+    std::vector<std::vector<int>> EvtCounts;
+    std::vector<int> NrAndCount(2);
+    NrAndCount[1] = 1;
+    int counter = 0;
+    int bestEvt = -1;
+    int bestEvtCnt = 0;
+    int nrModules = calopacket->iValue(0, "NRMODULES");
+    for (int j = 0; j < nrModules; j++)
+    {
+      int k;
+      for (k = 0; k < counter; k++)
+      {
+        if (EvtCounts[k][0] == calopacket->iValue(j, "FEMEVTNR"))
+        {
+          EvtCounts[k][1]++;
+          break;
+        }
+      }
+      if (k >= counter)
+      {
+        NrAndCount[0] = calopacket->iValue(j, "FEMEVTNR");
+        EvtCounts.push_back(NrAndCount);
+        counter++;
+      }
+    }
+    if (counter > 1)
+    {
+      for (int i = 0; i < counter; i++)
+      {
+        if (bestEvtCnt < EvtCounts[i][1])
+        {
+          bestEvtCnt = EvtCounts[i][1];
+          bestEvt = EvtCounts[i][0];
+        }
+      }
+      for (int j = 0; j < calopacket->iValue(0, "NRMODULES"); j++)
+      {
+        if (calopacket->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1)
+        {
+          static int icnt = 0;
+          if (icnt < 1000)
+          {
+            std::cout << "found different FEM clock for packet " << calopacket->getIdentifier() << std::endl;
+            icnt++;
+          }
+          if (delBadPkts)
+          {
+            if (Verbosity() > 1)
+            {
+              std::cout << "deleting packet " << calopacket->getIdentifier()
+                        << " with fem clock mismatch" << std::endl;
+            }
+            calopacket->Reset();
+          }
+          break;
+        }
+      }
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -223,47 +371,53 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
 {
   for (unsigned int i = 0; i < pktcont->get_npackets(); i++)
   {
-    unsigned int packetid = pktcont->getPacket(i)->getIdentifier();
-    if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
+    FillCaloClockDiffSngl(pktcont->getPacket(i));
+  }
+  return;
+}
+
+void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
+{
+  unsigned int packetid = calopkt->getIdentifier();
+  if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
+  {
+    std::string hname = "clkdiff" + std::to_string(packetid);
+    TH1 *h1 = new TH1F(hname.c_str(), hname.c_str(), 100, 0, 99);
+    m_PacketStuffMap[packetid] = std::make_tuple(std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), h1, false);
+    if (Verbosity() > 3)
     {
-      std::string hname = "clkdiff" + std::to_string(packetid);
-      TH1 *h1 = new TH1F(hname.c_str(), hname.c_str(), 100, 0, 99);
-      m_PacketStuffMap[packetid] = std::make_tuple(std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), h1, false);
-      if (Verbosity() > 3)
-      {
-        std::cout << "Add tuple for " << packetid << std::endl;
-        auto &pktiter = m_PacketStuffMap[packetid];
-        std::cout << PHWHERE << "packet init " << packetid << std::hex
-                  << ", clk: " << std::get<1>(pktiter)
-                  << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
-                  << std::endl;
-      }
-    }
-    else
-    {
+      std::cout << "Add tuple for " << packetid << std::endl;
       auto &pktiter = m_PacketStuffMap[packetid];
-      uint64_t clk = pktcont->getPacket(i)->getBCO();
-      uint64_t clkdiff = std::numeric_limits<uint64_t>::max();
-      std::get<1>(pktiter) = clk;
-      // only calculate clk diff and correct clock for rollover if previous clk is set (default is max uint64)
-      if (std::get<0>(pktiter) < std::numeric_limits<uint64_t>::max())
+      std::cout << PHWHERE << "packet init " << packetid << std::hex
+                << ", clk: " << std::get<1>(pktiter)
+                << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
+                << std::endl;
+    }
+  }
+  else
+  {
+    auto &pktiter = m_PacketStuffMap[packetid];
+    uint64_t clk = calopkt->getBCO();
+    uint64_t clkdiff = std::numeric_limits<uint64_t>::max();
+    std::get<1>(pktiter) = clk;
+    // only calculate clk diff and correct clock for rollover if previous clk is set (default is max uint64)
+    if (std::get<0>(pktiter) < std::numeric_limits<uint64_t>::max())
+    {
+      if (clk < std::get<0>(pktiter))
       {
-        if (clk < std::get<0>(pktiter))
-        {
-          clk |= 0x100000000U;
-        }
-        clkdiff = clk - std::get<0>(pktiter);
-        clk &= 0xFFFFFFFF;
-        std::get<2>(pktiter) = clkdiff;
-        std::get<4>(pktiter) = true;
+        clk |= 0x100000000U;
       }
-      if (Verbosity() > 2)
-      {
-	std::cout << "packet " << packetid << ", clk: " << std::hex << clk
-		  << ", clk(tup): " << std::get<1>(pktiter) << ", diff: " << clkdiff
-		  << ", diff(tup): " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
-		  << std::endl;
-      }
+      clkdiff = clk - std::get<0>(pktiter);
+      clk &= 0xFFFFFFFF;
+      std::get<2>(pktiter) = clkdiff;
+      std::get<4>(pktiter) = true;
+    }
+    if (Verbosity() > 2)
+    {
+      std::cout << "packet " << packetid << ", clk: " << std::hex << clk
+                << ", clk(tup): " << std::get<1>(pktiter) << ", diff: " << clkdiff
+                << ", diff(tup): " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
+                << std::endl;
     }
   }
 }

@@ -20,7 +20,7 @@ DumpEpdGeom::DumpEpdGeom(const std::string &NodeName)
 int DumpEpdGeom::process_Node(PHNode *myNode)
 {
   EpdGeom *epdgeom = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     epdgeom = thisNode->getData();

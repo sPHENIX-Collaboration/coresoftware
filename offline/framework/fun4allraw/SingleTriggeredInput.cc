@@ -129,10 +129,22 @@ int SingleTriggeredInput::FillEventVector()
       }
       evt = GetEventIterator()->getNextEvent();
     }
+    m_EventsThisFile++;
     if (evt->getEvtType() != DATAEVENT)
     {
       delete evt;
       continue;
+    }
+    if (m_ProblemEvent >= 0)
+    {
+      if (m_ProblemEvent == 0)
+      {
+        m_ProblemEvent--;
+        delete evt;
+        continue;
+      }
+
+      m_ProblemEvent--;
     }
     //    std::cout << Name() << std::endl;
     //    evt->identify();
@@ -204,7 +216,7 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
 
 void SingleTriggeredInput::FillPool(const unsigned int keep)
 {
-  if (AllDone())  // no more files and all events read
+  if (AllDone() || EventAlignmentProblem())  // no more files and all events read or alignment problem
   {
     return;
   }
@@ -268,8 +280,9 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
           //   ++iter4;
           // }
         }
-        std::cout << "Aborting event loop after processing remaining good events" << std::endl;
-        FilesDone(1);
+        std::cout << "Event Misalignment, processing remaining good events" << std::endl;
+        EventAlignmentProblem(1);
+        //        FilesDone(1);
       }
 
       //	std::cout << "we are good" << std::endl;
@@ -282,7 +295,10 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   if (m_EventDeque.empty())
   {
     std::cout << Name() << ":all events done" << std::endl;
-    AllDone(1);
+    if (!EventAlignmentProblem())
+    {
+      AllDone(1);
+    }
     return;
   }
   if (Verbosity() > 1)
@@ -293,12 +309,12 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
   //  std::cout << "Handling event " << evt->getEvtSequence();
-//  CaloPacket *newhit = new CaloPacketv1();
+  //  CaloPacket *newhit = new CaloPacketv1();
   std::vector<Packet *> pktvec = evt->getPacketVector();
   for (auto *packet : pktvec)
   {
     int packet_id = packet->getIdentifier();
-    CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode,packet_id);
+    CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
     newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
     int nr_modules = packet->iValue(0, "NRMODULES");
     int nr_channels = packet->iValue(0, "CHANNELS");
@@ -345,7 +361,11 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
 
 void SingleTriggeredInput::CreateDSTNodes(Event *evt)
 {
-  static std::string CompositeNodeName = "Packets";
+  std::string CompositeNodeName = "Packets";
+  if (KeepMyPackets())
+  {
+    CompositeNodeName = "PacketsKeep";
+  }
   PHNodeIterator iter(m_topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
@@ -360,19 +380,19 @@ void SingleTriggeredInput::CreateDSTNodes(Event *evt)
     detNode = new PHCompositeNode(CompositeNodeName);
     dstNode->addNode(detNode);
   }
- std::vector<Packet *> pktvec = evt->getPacketVector();
- for (auto *piter : pktvec)
+  std::vector<Packet *> pktvec = evt->getPacketVector();
+  for (auto *piter : pktvec)
   {
     int packet_id = piter->getIdentifier();
     m_PacketSet.insert(packet_id);
     std::string PacketNodeName = std::to_string(packet_id);
-  CaloPacket *calopacket = findNode::getClass<CaloPacket>(detNode, PacketNodeName);
+    CaloPacket *calopacket = findNode::getClass<CaloPacket>(detNode, PacketNodeName);
     if (!calopacket)
     {
       calopacket = new CaloPacketv1();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(calopacket, PacketNodeName, "PHObject");
-    detNode->addNode(newNode);
-  }
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(calopacket, PacketNodeName, "PHObject");
+      detNode->addNode(newNode);
+    }
     delete piter;
   }
 }

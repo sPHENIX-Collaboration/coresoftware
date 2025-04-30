@@ -439,10 +439,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     for (int clusid : cluster_ids)
     {
       // std::cout << " intt clustering: add cluster number " << clusid << std::endl;
-      // get all hits for this cluster ID only
-      std::pair<std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,
-                std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator>
-          clusrange = clusters.equal_range(clusid);
 
       // make the cluster directly in the node tree
       TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
@@ -454,6 +450,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
       // get the bunch crossing number from the hitsetkey
       short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey());
+
+      // Add clusterkey/bunch crossing to mmap
+      m_clustercrossingassoc->addAssoc(ckey, crossing);
 
       // determine the size of the cluster in phi and z, useful for track fitting the cluster
       std::set<int> phibins;
@@ -467,7 +466,10 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       unsigned int clus_maxadc = 0.0;
       unsigned nhits = 0;
       // std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;
-      for (std::multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
+
+      // get all hits for this cluster ID only
+      const auto clusrange = clusters.equal_range(clusid);
+      for (auto mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
       {
         // mapiter->second.first  is the hit key
         // std::cout << " adding hitkey " << mapiter->second.first << std::endl;
@@ -478,9 +480,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
         // mapiter->second.second is the hit
         unsigned int hit_adc = (mapiter->second).second->getAdc();
-
-        // Add clusterkey/bunch crossing to mmap
-        m_clustercrossingassoc->addAssoc(ckey, crossing);
 
         // now get the positions from the geometry
         double local_hit_location[3] = {0., 0., 0.};
@@ -710,9 +709,6 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
     for (int clusid : cluster_ids)
     {
       // std::cout << " intt clustering: add cluster number " << clusid << std::endl;
-      // get all hits for this cluster ID only
-      auto clusrange = clusters.equal_range(clusid);
-
       // make the cluster directly in the node tree
       TrkrDefs::cluskey ckey = TrkrDefs::genClusKey(hitset->getHitSetKey(), clusid);
 
@@ -723,6 +719,9 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 
       // get the bunch crossing number from the hitsetkey
       short int crossing = InttDefs::getTimeBucketId(hitset->getHitSetKey());
+
+      // Add clusterkey/bunch crossing to mmap
+      m_clustercrossingassoc->addAssoc(ckey, crossing);
 
       // determine the size of the cluster in phi and z, useful for track fitting the cluster
       std::set<int> phibins;
@@ -736,8 +735,10 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       unsigned nhits = 0;
 
       // std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;
-
       std::map<int, unsigned int> m_phi, m_z;  // hold data for
+
+      // get all hits for this cluster ID only
+      const auto clusrange = clusters.equal_range(clusid);
       for (auto mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
       {
         // mapiter->second.first  is the hit key
@@ -766,9 +767,6 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 
         // mapiter->second.second is the hit
         unsigned int hit_adc = (mapiter->second)->getAdc();
-
-        // Add clusterkey/bunch crossing to mmap
-        m_clustercrossingassoc->addAssoc(ckey, crossing);
 
         // now get the positions from the geometry
         double local_hit_location[3] = {0., 0., 0.};

@@ -8,6 +8,8 @@
 #include <globalvertex/MbdVertexMapv1.h>
 #include <globalvertex/MbdVertexv2.h>
 
+#include <ffarawobjects/CaloPacket.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 
@@ -66,7 +68,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 {
   getNodes(topNode);
 
-  if ( (m_mbdevent==nullptr && m_mbdraw==nullptr) || m_mbdpmts==nullptr )
+  if ( (m_mbdevent==nullptr && m_mbdraw==nullptr && m_mbdpacket[0]==nullptr && m_mbdpacket[1]==nullptr) || m_mbdpmts==nullptr )
   {
     static int counter = 0;
     if ( counter<2 )
@@ -78,7 +80,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   }
 
   // Process raw waveforms from real data
-  if ( m_mbdevent!=nullptr || m_mbdraw!=nullptr )
+  if ( m_mbdevent!=nullptr || m_mbdraw!=nullptr || m_mbdpacket[0]==nullptr || m_mbdpacket[1]==nullptr)
   {
     int status = Fun4AllReturnCodes::EVENT_OK;
     if ( m_evtheader!=nullptr )
@@ -89,9 +91,14 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     {
       status = m_mbdevent->SetRawData(m_event, m_mbdpmts);
     }
-    else if ( m_mbdraw!=nullptr )
+    else if ( m_mbdraw!=nullptr || m_mbdpacket[0]!=nullptr || m_mbdpacket[1]!=nullptr)
     {
-      status = m_mbdevent->SetRawData(m_mbdraw, m_mbdpmts,m_gl1raw);
+      if (m_mbdraw)
+      {
+	m_mbdpacket[0] = m_mbdraw->getPacketbyId(1001);
+	m_mbdpacket[1] = m_mbdraw->getPacketbyId(1002);
+      }
+      status = m_mbdevent->SetRawData(m_mbdpacket, m_mbdpmts,m_gl1raw);
     }
 
     if (status == Fun4AllReturnCodes::DISCARDEVENT )
@@ -248,8 +255,10 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
 
   // Get the raw data from event combined DST
   m_mbdraw = findNode::getClass<CaloPacketContainer>(topNode, "MBDPackets");
-  
-  if (!m_event && !m_mbdraw)
+
+  m_mbdpacket[0] = findNode::getClass<CaloPacket>(topNode,1001);
+  m_mbdpacket[1] = findNode::getClass<CaloPacket>(topNode,1002);
+  if (!m_event && !m_mbdraw && !m_mbdpacket[0] && !m_mbdpacket[1])
   {
     // not PRDF and not event combined DST, so we assume this is a sim file
     _simflag = 1;
@@ -263,7 +272,11 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
   }
 
   // Get the raw gl1 data from event combined DST
-  m_gl1raw = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  m_gl1raw = findNode::getClass<Gl1Packet>(topNode,14001);
+  if (!m_gl1raw)
+  {
+    m_gl1raw = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+  }
   /*
   if ( !m_gl1raw )
   {

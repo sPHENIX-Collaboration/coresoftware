@@ -22,7 +22,7 @@ DumpSvtxTrackMap::DumpSvtxTrackMap(const std::string &NodeName)
 int DumpSvtxTrackMap::process_Node(PHNode *myNode)
 {
   SvtxTrackMap *svtxtrackmap = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     svtxtrackmap = thisNode->getData();

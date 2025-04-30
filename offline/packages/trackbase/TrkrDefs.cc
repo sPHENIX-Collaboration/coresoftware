@@ -2,6 +2,21 @@
 
 #include <bitset>
 
+namespace
+{
+  // hitsetkey layout:
+  //  common upper 16 bits
+  //   24 - 32  tracker id
+  //   16 - 24  layer
+  static constexpr unsigned int kBitShiftTrkrId = 24;  // 32 - 8
+  static constexpr unsigned int kBitShiftLayer = 16;   // bitshift_trackerid - 8
+
+  // cluskey layour
+  //  hitsetkey upper 32 bits
+  //  cluster id lower 32 bits
+  static constexpr unsigned int kBitShiftClusId = 32;
+}
+
 void TrkrDefs::printBits(const TrkrDefs::hitsetkey key, std::ostream& os)
 {
   os << "key: " << std::bitset<32>(key) << std::endl;
@@ -118,7 +133,7 @@ TrkrDefs::cluskey
 TrkrDefs::genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
 {
   const TrkrDefs::cluskey tmp = hskey;
-  TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
+  TrkrDefs::cluskey key = (tmp << kBitShiftClusId);
   key |= clusid;
   return key;
 }
@@ -137,12 +152,12 @@ uint8_t TrkrDefs::getZElement(TrkrDefs::hitsetkey key)
 
 uint8_t TrkrDefs::getPhiElement(TrkrDefs::cluskey key)
 {
-  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
   return getPhiElement(tmp);
 }
 
 uint8_t TrkrDefs::getZElement(TrkrDefs::cluskey key)  // side
 {
-  const TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
+  const TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
   return getZElement(tmp);
 }

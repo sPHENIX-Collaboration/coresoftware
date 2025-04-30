@@ -56,8 +56,10 @@ int EventNumberCheck::process_event(PHCompositeNode *topNode)
 
 void EventNumberCheck::CheckFem(int nw)
 {
-  std::set<int> femclkcemc, clkcemc;
-  std::set<int> femclkmbd, clkmbd;
+  std::set<int> femclkcemc;
+  std::set<int> clkcemc;
+  std::set<int> femclkmbd;
+  std::set<int> clkmbd;
   static int ifirst = 1;
   for (int i = 0; i < nw; i++)
   {

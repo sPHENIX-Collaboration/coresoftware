@@ -35,11 +35,15 @@ class ParticleFlowReco : public SubsysReco
   }
   void set_track_map_name(std::string &name) { _track_map_name = name; }
 
+  void set_only_crossing_zero(bool b) { _only_crossing_zero = b; }
+
  private:
   int CreateNode(PHCompositeNode *topNode);
 
   float calculate_dR(float, float, float, float);
   std::pair<float, float> get_expected_signature(int);
+
+  bool _only_crossing_zero = true;
 
   float _energy_match_Nsigma;
 

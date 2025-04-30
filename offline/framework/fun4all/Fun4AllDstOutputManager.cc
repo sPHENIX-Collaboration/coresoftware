@@ -2,6 +2,7 @@
 
 #include "Fun4AllServer.h"
 
+#include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIterator.h>
@@ -10,10 +11,9 @@
 
 #include <TSystem.h>
 
-#include <boost/format.hpp>
-
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <string>
 
@@ -38,6 +38,12 @@ int Fun4AllDstOutputManager::AddNode(const std::string &nodename)
 int Fun4AllDstOutputManager::AddRunNode(const std::string &nodename)
 {
   saverunnodes.insert(nodename);
+  return 0;
+}
+
+int Fun4AllDstOutputManager::StripCompositeNode(const std::string &nodename)
+{
+  m_StripCompositeNodes.insert(nodename);
   return 0;
 }
 
@@ -115,6 +121,17 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
   {
     Fun4AllServer *se = Fun4AllServer::instance();
     se->MakeNodesPersistent(startNode);
+    if (!m_StripCompositeNodes.empty())
+    {
+      for (const auto &compnodename : m_StripCompositeNodes)
+      {
+	PHCompositeNode *stripcomp = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", compnodename));
+	if (stripcomp)
+	{
+	  se->MakeNodesTransient(stripcomp);
+	}
+      }
+    }
     if (!stripnodes.empty())
     {
       for (const auto &nodename : stripnodes)
@@ -283,8 +300,7 @@ int Fun4AllDstOutputManager::outfile_open_first_write()
     {
       fullpath = p.parent_path();
     }
-    std::string runseg = (boost::format("-%08d-%05d") % runnumber % m_CurrentSegment).str();
-    //    std::string runseg = (boost::format(FileRule()) % runnumber % m_CurrentSegment).str();
+    std::string runseg = std::format("-{:08}-{:05}",runnumber,m_CurrentSegment);
     std::string newfile = fullpath + std::string("/") + m_FileNameStem + runseg + std::string(p.extension());
     OutFileName(newfile);
     m_CurrentSegment++;

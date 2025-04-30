@@ -18,7 +18,7 @@ DumpGl1Packet::DumpGl1Packet(const std::string &NodeName)
 int DumpGl1Packet::process_Node(PHNode *myNode)
 {
   Gl1Packet *gl1packet = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     gl1packet = thisNode->getData();
