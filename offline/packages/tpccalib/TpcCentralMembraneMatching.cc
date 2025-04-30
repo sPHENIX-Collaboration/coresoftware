@@ -1292,6 +1292,16 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     m_event_index = eventHeader->get_EvtSequence();
   }
 
+  if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 100)
+  {
+    if(!m_useHeader)
+    {
+      m_event_index++;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+  
+  
   if (Verbosity())
   {
     std::cout << PHWHERE << "   working on event " << m_event_index << std::endl;
@@ -1303,15 +1313,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     for (const auto& h : harray)
     {
       h->Reset();
-    }
-
-    if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 100)
-    {
-      if(!m_useHeader)
-      {
-	m_event_index++;
-      }
-      return Fun4AllReturnCodes::EVENT_OK;
     }
   }
 
@@ -1940,14 +1941,18 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }
 
     const double clus_z = reco_pos[reco_index].z();
-    const bool side = (clus_z < 0) ? false : true;
+    const bool side = reco_side[reco_index];
+    //const bool side = (clus_z < 0) ? false : true;
     // if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
 
     // calculate residuals (cluster - truth)
     const double dr = reco_pos[reco_index].Perp() - m_truth_pos[i].Perp();
     const double dphi = delta_phi(reco_pos[reco_index].Phi() - m_truth_pos[i].Phi());
     const double rdphi = reco_pos[reco_index].Perp() * dphi;
-    const double dz = reco_pos[reco_index].z() - m_truth_pos[i].z();
+    //currently, we cannot get any z distortion since we don't know when the laser actually flashed
+    //so the distortion is set to 0 for now
+    //const double dz = reco_pos[reco_index].z() - m_truth_pos[i].z();
+    const double dz = 0.0;
 
     // fill distortion correction histograms
     /*
@@ -2201,6 +2206,9 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
 
     std::cout << "TpcCentralMembraneMatching::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
     m_dcc_out = new TpcDistortionCorrectionContainer;
+    m_dcc_out->m_dimensions = 2;
+    m_dcc_out->m_phi_hist_in_radians = false;
+    m_dcc_out->m_interpolate_z = true;
     auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
     runNode->addNode(node);
   }
