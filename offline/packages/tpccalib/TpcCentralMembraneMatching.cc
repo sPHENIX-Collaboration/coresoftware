@@ -1942,7 +1942,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       clus_phi += 2 * M_PI;
     }
 
-    const double clus_z = reco_pos[reco_index].z();
+    //const double clus_z = reco_pos[reco_index].z();
     const bool side = reco_side[reco_index];
     //const bool side = (clus_z < 0) ? false : true;
     // if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
