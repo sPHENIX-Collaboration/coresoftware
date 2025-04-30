@@ -45,12 +45,15 @@
 #include <utility>
 #include <vector>
 
-ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std::string &recojetname, const std::string &towBkgdName, const std::string &histTag)
+ConstituentsinJets::ConstituentsinJets(const std::string &moduleName, const std::string &recojetname, const std::string &towBkgdName, const std::string &histTag, const std::string &towCEMCName, const std::string &towIHCALName, const std::string &towOHCALName)
   : SubsysReco(moduleName)
   , m_moduleName(moduleName)
   , m_recoJetName(recojetname)
   , m_towBkgdName(towBkgdName)
   , m_histTag(histTag)
+  , m_towCEMCName(towCEMCName)
+  , m_towIHCALName(towIHCALName)
+  , m_towOHCALName(towOHCALName)	
 {
 }
 
@@ -193,7 +196,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   if (!jets)
   {
     std::cout << "ConstituentsinJets::process_event - Error can not find jet node " << m_recoJetName << std::endl;
-    //exit(-1);  // fatal
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // get unsub towers
@@ -203,7 +206,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   if (!towersEM3 || !towersIH3 || !towersOH3)
   {
     std::cout << "ConstituentsinJets::process_event - Error can not find tower node " << std::endl;
-    //exit(-1);  // fatal
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // get tower geometry
@@ -212,7 +215,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   if (!tower_geomIH || !tower_geomOH)
   {
     std::cout << "ConstituentsinJets::process_event - Error can not find tower geometry node " << std::endl;
-    //exit(-1);  // fatal
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // get underlying event

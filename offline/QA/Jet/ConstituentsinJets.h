@@ -25,7 +25,10 @@ class ConstituentsinJets : public SubsysReco
       const std::string &moduleName = "ConstituentsInJets",
       const std::string &recojetname = "AntiKt_Tower_r04",
       const std::string &towBkgdName = "TowerInfoBackground_Sub2",
-      const std::string &histTag = "AllTrig_AntiKt_Tower_R04");
+      const std::string &histTag = "AllTrig_AntiKt_Tower_R04",
+      const std::string &towCEMCName = "TOWERINFO_CALIB_CEMC_RETOWER",
+      const std::string &towIHCALName = "TOWERINFO_CALIB_IHCAL",      
+      const std::string &towOHCALName = "TOWERINFO_CALIB_OHCAL");
   ~ConstituentsinJets() override{};
 
   void setRecoJetNodeName(const std::string &name)
@@ -85,9 +88,9 @@ class ConstituentsinJets : public SubsysReco
   std::string m_recoJetName;
   std::string m_towBkgdName;
   std::string m_histTag;
-  std::string m_towCEMCName = {"TOWERINFO_CALIB_CEMC_RETOWER"};//input node string for EMCAL
-  std::string m_towIHCALName = {"TOWERINFO_CALIB_IHCAL"};//input node string for IHCAL
-  std::string m_towOHCALName = {"TOWERINFO_CALIB_OHCAL"};//input node string for OHCAL
+  std::string m_towCEMCName;
+  std::string m_towIHCALName;
+  std::string m_towOHCALName;
   // std::string m_outputFileName{ "ConstituentsinJets.root"};
 
   //! Trigger selection
