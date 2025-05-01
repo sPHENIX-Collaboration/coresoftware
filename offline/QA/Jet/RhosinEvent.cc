@@ -7,6 +7,8 @@
 // jetbackground includes
 #include <jetbackground/TowerRho.h>
 #include <jetbackground/TowerRhov1.h>
+#include <jetbackground/EventRho.h>
+#include <jetbackground/EventRhov1.h>
 
 // phool includes
 #include <phool/PHCompositeNode.h>
@@ -138,11 +140,30 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
     TowerRho* towerrho = findNode::getClass<TowerRhov1>(topNode, m_area_rho_node);
     if (!towerrho)
     {
-      std::cout << "RhosinEvent::process_event - Error can not find towerrho " << m_area_rho_node << std::endl;
+      std::cout << "RhosinEvent::process_event - Warning can not find towerrho " << m_area_rho_node << std::endl;
+      //exit(-1);
+    }
+    else{
+      h1_area_rho->Fill(towerrho->get_rho());
+      h1_area_rho_sigma->Fill(towerrho->get_sigma());
+    }
+
+    EventRho* eventrho = findNode::getClass<EventRhov1>(topNode, m_area_rho_node);
+    if (!eventrho)
+    {
+      std::cout << "RhosinEvent::process_event - Warning can not find eventrho " << m_area_rho_node << std::endl;
+      //exit(-1);
+    }
+    else{
+      h1_area_rho->Fill(eventrho->get_rho());
+      h1_area_rho_sigma->Fill(eventrho->get_sigma());
+      std::cout << "RhosinEvent::process_event - Found eventrho " << m_area_rho_node <<". Rho = "<<eventrho->get_rho()<<"  rho_sigma "<<eventrho->get_sigma()<< std::endl;
+    }
+    if (!eventrho && !towerrho)
+    {
+      std::cout << "RhosinEvent::process_event - Error can not find neither towerrho nor eventrho for" << m_area_rho_node << std::endl;
       exit(-1);
     }
-    h1_area_rho->Fill(towerrho->get_rho());
-    h1_area_rho_sigma->Fill(towerrho->get_sigma());
   }
 
   if (m_do_mult_rho)
@@ -150,11 +171,30 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
     TowerRho* towerrho = findNode::getClass<TowerRhov1>(topNode, m_mult_rho_node);
     if (!towerrho)
     {
-      std::cout << "RhosinEvent::process_event - Error can not find towerrho " << m_mult_rho_node << std::endl;
+      std::cout << "RhosinEvent::process_event - Warning can not find towerrho for" << m_mult_rho_node << std::endl;
+      //exit(-1);
+    }
+    else{
+      h1_mult_rho->Fill(towerrho->get_rho());
+      h1_mult_rho_sigma->Fill(towerrho->get_sigma());
+    }
+    EventRho* eventrho = findNode::getClass<EventRhov1>(topNode, m_mult_rho_node);
+    if (!eventrho)
+    {
+      std::cout << "RhosinEvent::process_event - Warning can not find eventrho for" << m_mult_rho_node << std::endl;
+      //exit(-1);
+    }
+    else{
+      std::cout << "RhosinEvent::process_event - Found eventrho " << m_mult_rho_node <<". Rho = "<<eventrho->get_rho()<<"  rho_sigma "<<eventrho->get_sigma()<< std::endl;
+      h1_mult_rho->Fill(eventrho->get_rho());
+      h1_mult_rho_sigma->Fill(eventrho->get_sigma());
+    }
+
+    if (!eventrho && !towerrho)
+    {
+      std::cout << "RhosinEvent::process_event - Error can not find neither towerrho nor eventrho for " << m_mult_rho_node << std::endl;
       exit(-1);
     }
-    h1_mult_rho->Fill(towerrho->get_rho());
-    h1_mult_rho_sigma->Fill(towerrho->get_sigma());
   }
 
   if (Verbosity() > 1)
