@@ -106,7 +106,6 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
     "emcal_cluster_eta_phi_with_cuts",//chi2 < 3, Et > 500 MeV
     "emcal_cluster_eta_with_energy_cut",//Et > 500 MeV
     "emcal_cluster_chi2_energy"
-
   };
 
   for (auto& histName : vecHistNames)
@@ -159,7 +158,6 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
 
   h_emcal_cluster_phi_with_cuts = new TH1D(vecHistNames[10].data(), "", 64,-M_PI, M_PI);
   h_emcal_cluster_phi_with_cuts->GetXaxis()->SetTitle("#phi");
-
 
   h_emcal_cluster_eta_phi_with_cuts = new TH2F(vecHistNames[11].data(), "", 48, -1.2, 1.2, 64, -M_PI, M_PI);
   h_emcal_cluster_eta_phi_with_cuts->GetXaxis()->SetTitle("#eta");
