@@ -739,6 +739,12 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
   {
     TFile *f = new TFile(filename.c_str());
     f->GetObject("_eventTree", t1);
+    if (!t1)
+    {
+      std::cout << PHWHERE << " could not load _eventTree from " << filename << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
   }
 
   // Set Branches
