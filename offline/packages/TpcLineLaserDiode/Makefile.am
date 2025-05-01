@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -20,6 +20,7 @@ libTpcLineLaserDiode_la_SOURCES = \
   DiodeReco.cc
 
 libTpcLineLaserDiode_la_LIBADD = \
+  -lffarawobjects \
   -lphool \
   -lSubsysReco
 
@@ -29,7 +30,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libTpcLineLaserDiode.la  -lNoRootEvent -lffarawobjects
+testexternals_LDADD   = libTpcLineLaserDiode.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
