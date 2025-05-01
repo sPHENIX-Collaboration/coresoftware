@@ -23,9 +23,9 @@
 using namespace std;
 
 DiodeReco::DiodeReco(const std::string& name)
-  : SubsysReco(name)
+  : SubsysReco(name),
+    m_DiodeContainerName("TPCDIODES")
 {
-  m_DiodeContainerName = "TPCDIODES";
   for(int c=0;c<32;c++)
     {
       adc.clear();
