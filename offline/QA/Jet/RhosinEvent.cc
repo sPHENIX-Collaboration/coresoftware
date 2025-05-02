@@ -1,21 +1,19 @@
 #include "RhosinEvent.h"
 
+// jetbackground includes
+#include <jetbackground/TowerRho.h>
+#include <jetbackground/EventRho.h>
+
+// qautils include
+#include <qautils/QAHistManagerDef.h>
+
 // fun4all includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
-// jetbackground includes
-#include <jetbackground/TowerRho.h>
-#include <jetbackground/TowerRhov1.h>
-#include <jetbackground/EventRho.h>
-#include <jetbackground/EventRhov1.h>
-
 // phool includes
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
-
-// qautils include
-#include <qautils/QAHistManagerDef.h>
 
 #include <TH1.h>
 
@@ -137,7 +135,7 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
 
   if (m_do_area_rho)
   {
-    TowerRho* towerrho = findNode::getClass<TowerRhov1>(topNode, m_area_rho_node);
+    TowerRho* towerrho = findNode::getClass<TowerRho>(topNode, m_area_rho_node);
     if (!towerrho)
     {
       std::cout << "RhosinEvent::process_event - Warning can not find towerrho " << m_area_rho_node << std::endl;
@@ -148,7 +146,7 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
       h1_area_rho_sigma->Fill(towerrho->get_sigma());
     }
 
-    EventRho* eventrho = findNode::getClass<EventRhov1>(topNode, m_area_rho_node);
+    EventRho* eventrho = findNode::getClass<EventRho>(topNode, m_area_rho_node);
     if (!eventrho)
     {
       std::cout << "RhosinEvent::process_event - Warning can not find eventrho " << m_area_rho_node << std::endl;
@@ -168,7 +166,7 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
 
   if (m_do_mult_rho)
   {
-    TowerRho* towerrho = findNode::getClass<TowerRhov1>(topNode, m_mult_rho_node);
+    TowerRho* towerrho = findNode::getClass<TowerRho>(topNode, m_mult_rho_node);
     if (!towerrho)
     {
       std::cout << "RhosinEvent::process_event - Warning can not find towerrho for" << m_mult_rho_node << std::endl;
@@ -178,7 +176,7 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
       h1_mult_rho->Fill(towerrho->get_rho());
       h1_mult_rho_sigma->Fill(towerrho->get_sigma());
     }
-    EventRho* eventrho = findNode::getClass<EventRhov1>(topNode, m_mult_rho_node);
+    EventRho* eventrho = findNode::getClass<EventRho>(topNode, m_mult_rho_node);
     if (!eventrho)
     {
       std::cout << "RhosinEvent::process_event - Warning can not find eventrho for" << m_mult_rho_node << std::endl;
