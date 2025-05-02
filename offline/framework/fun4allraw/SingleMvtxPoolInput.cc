@@ -442,7 +442,7 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
   }
   else if (m_strobeWidth < 1) // triggered mode
   {
-    m_BcoRange = 2;
+    m_BcoRange = 3;
     m_NegativeBco = 0;
     if(StreamingInputManager())
     {
@@ -459,6 +459,7 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
     std::cout << "Mvtx strobe length " << m_strobeWidth << std::endl;
     std::cout << "Mvtx BCO range and negative bco range set based on strobe length " << m_BcoRange << ", " << m_NegativeBco << std::endl;
   }
+
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetMvtxBcoRange(m_BcoRange);

@@ -45,7 +45,9 @@ class SingleInttPoolInput : public SingleStreamingInput
 
     SetNegativeBco(1);
     SetBcoRange(2);
-    std::cout << "INTT set to triggered event combining" << std::endl;
+
+    std::cout << "INTT set to triggered event combining with range [-" 
+              << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
   }
 
  private:
