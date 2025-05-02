@@ -133,7 +133,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
   {
     _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth",
                            "event:seed:hitID:e:adc:layer:phielem:zelem:"
-                           "cellID:ecell:phibin:zbin:phi:z:"
+                           "cellID:ecell:phibin:zbin:phi:x:y:z:"
                            "g4hitID:gedep:gx:gy:gz:gt:"
                            "gtrackID:gflavor:"
                            "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
@@ -1688,6 +1688,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float phibin = NAN;
           float zbin = NAN;
           float phi = NAN;
+          float r = NAN;
+          float x = NAN;
+          float y = NAN;
           float z = NAN;
 
           if (local_layer >= _nlayers_maps + _nlayers_intt && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
@@ -1697,6 +1700,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             zbin = (float) TpcDefs::getTBin(hit_key);
             phi = local_GeoLayer->get_phicenter(phibin, side);
             z = local_GeoLayer->get_zcenter(zbin);
+            r = local_GeoLayer->get_radius();
+            x = r*cos(phi);
+            y = r*sin(phi);
           }
 
           float g4hitID = NAN;
@@ -1798,6 +1804,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               (float) phibin,
               (float) zbin,
               phi,
+              x,
+              y,
               z,
               g4hitID,
               gedep,
