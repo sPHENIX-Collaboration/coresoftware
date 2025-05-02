@@ -67,6 +67,10 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 
   CreateNodes(topNode);
 
+  m_zdc_energy_sum.fill(0);
+  m_mbd_charge_sum.fill(0);
+  m_mbd_hit.fill(0);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
