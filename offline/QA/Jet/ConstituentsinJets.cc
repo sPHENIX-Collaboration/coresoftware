@@ -229,7 +229,7 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
   }
 
   // loop over jets
-  for (auto jet : *jets)
+  for (auto *jet : *jets)
   {
     // remove noise
     if (jet->get_pt() < 1)

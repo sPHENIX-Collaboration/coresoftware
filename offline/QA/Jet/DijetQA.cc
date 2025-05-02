@@ -160,10 +160,9 @@ int DijetQA::process_event(PHCompositeNode* topNode)
     }
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  else
-  {
-    FindPairs(jets);
-  }
+  
+      FindPairs(jets);
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //____________________________________________________________________________..
@@ -175,17 +174,20 @@ void DijetQA::FindPairs(JetContainer* jets)
     std::cout << "JetKinematicCheck::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   }
   Jet* jet_leading = nullptr;
-  float pt_leading = 0, pt1 = 0, pt2 = 0;
+  float pt_leading = 0;
+  float pt1 = 0;
+  float pt2 = 0;
   m_nJet = jets->size();
   if( Verbosity() > 2 ){
 	std::cout << "number of jets is" << m_nJet << std::endl;
   }
   std::vector<std::pair<Jet*, Jet*> > jet_pairs;
   bool set_leading = false;
-  for (auto j1 : *jets)
+  for (auto *j1 : *jets)
   {
     // assert(j1);
-    Jet *jet_pair1 = nullptr, *jet_pair2 = nullptr;
+    Jet *jet_pair1 = nullptr;
+    Jet *jet_pair2 = nullptr;
     if (j1->get_pt() < m_ptLeadRange.first || j1->get_eta() < m_etaRange.first || j1->get_pt() > m_ptLeadRange.second || j1->get_eta() > m_etaRange.second)
     {
       continue;  // cut on 1 GeV jets
@@ -196,7 +198,7 @@ void DijetQA::FindPairs(JetContainer* jets)
       pt_leading = j1->get_pt();
       jet_leading = j1;
     }
-    for (auto j2 : (*jets))
+    for (auto *j2 : (*jets))
     {
       if (j2 < j1)
       {
@@ -251,12 +253,14 @@ void DijetQA::FindPairs(JetContainer* jets)
 	std::cout << "Finished search for pairs" << std::endl;
   }
   m_nJetPair = jet_pairs.size();
-  float Ajj = 0., xj = 0.;
-  if (jet_pairs.size() > 0)
+  float Ajj = 0.;
+  float xj = 0.;
+  if (!jet_pairs.empty())
   {
     for (auto js : jet_pairs)
     {
-      Jet *jet_pair1 = js.first, *jet_pair2 = js.second;
+      Jet *jet_pair1 = js.first;
+      Jet *jet_pair2 = js.second;
       if (!jet_pair1 || !jet_pair2)
       {
         continue;
@@ -269,7 +273,7 @@ void DijetQA::FindPairs(JetContainer* jets)
       pt2 = jet_pair2->get_pt();
       if (pt1 < pt2)
       {
-        auto j = jet_pair1;
+        auto *j = jet_pair1;
         jet_pair1 = jet_pair2;
         jet_pair2 = j;
         pt1 = jet_pair1->get_pt();

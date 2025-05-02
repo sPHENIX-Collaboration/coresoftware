@@ -44,7 +44,7 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
   if (m_writeToOutputFile)
   {
     std::cout << "Opening output file named " << m_outputFileName << std::endl;
-    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+    PHTFileServer::open(m_outputFileName, "RECREATE");
   }
   delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
@@ -245,7 +245,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   uint64_t n_seed_raw = 0;
   //  float Counter = 0;
   // for (JetMap::Iter iter = seedjetsraw->begin(); iter != seedjetsraw->end(); ++iter){
-  for (auto jet : *seedjetsraw)
+  for (auto *jet : *seedjetsraw)
   {
     // Jet* jet = iter->second;
     int passesCut = jet->get_property(seedjetsraw->property_index(Jet::PROPERTY::prop_SeedItr));
@@ -273,7 +273,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   //  Counter = 0;
   // for (unsigned int iter = 0; iter < seedjetssub->size(); ++iter){
   // Jet* jet = seedjetsub->get_jet(iter);
-  for (auto jet : *seedjetssub)
+  for (auto *jet : *seedjetssub)
   {
     // Jet* jet = iter->second;
     int passesCut = jet->get_property(seedjetssub->property_index(Jet::PROPERTY::prop_SeedItr));
@@ -307,7 +307,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   }
   if (m_writeToOutputFile)
   {
-    PHTFileServer::get().cd(m_outputFileName);
+    PHTFileServer::cd(m_outputFileName);
     m_hRawSeedCount->Write();
     m_hRawPt->Write();
     m_hRawPt_All->Write();

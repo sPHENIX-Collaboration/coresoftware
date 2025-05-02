@@ -16,13 +16,13 @@
 
 TrksInJetQABaseManager::TrksInJetQABaseManager(
     TrksInJetQAConfig& config,
-    TrksInJetQAHist& hist)
+    TrksInJetQAHist& hist) : m_config(config), m_hist(hist)
 {
   ResetVectors();
 
   // grab vectors
-  m_config = config;
-  m_hist = hist;
+  
+  
 
 }  // end ctor(TrksInJetQAConfig&, TrksInJetQAHist&)
 
@@ -173,13 +173,13 @@ void TrksInJetQABaseManager::ResetVectors()
 
 // private helper methods -----------------------------------------------------
 
-bool TrksInJetQABaseManager::IsInMvtx(const uint16_t layer)
+bool TrksInJetQABaseManager::IsInMvtx(const uint16_t layer) const
 {
   return (layer < m_config.nMvtxLayer);
 
 }  // end 'IsInMvtx(uint16_t)'
 
-bool TrksInJetQABaseManager::IsInIntt(const uint16_t layer)
+bool TrksInJetQABaseManager::IsInIntt(const uint16_t layer) const
 {
   return (
       (layer >= m_config.nMvtxLayer) &&
@@ -187,7 +187,7 @@ bool TrksInJetQABaseManager::IsInIntt(const uint16_t layer)
 
 }  // end 'IsInIntt(uint16_t)'
 
-bool TrksInJetQABaseManager::IsInTpc(const uint16_t layer)
+bool TrksInJetQABaseManager::IsInTpc(const uint16_t layer) const
 {
   return (layer >= m_config.nMvtxLayer + m_config.nInttLayer);
 
