@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   CylinderGeom_MvtxHelper.h \
   MvtxCombinedRawDataDecoder.h \
   MvtxClusterizer.h \
+  MvtxClusterPruner.h \
   MvtxHitPruner.h \
   MvtxNoiseMap.h \
   MvtxPixelDefs.h \
@@ -43,6 +44,7 @@ libmvtx_la_SOURCES = \
   CylinderGeom_MvtxHelper.cc \
   MvtxCombinedRawDataDecoder.cc \
   MvtxClusterizer.cc \
+  MvtxClusterPruner.cc \
   MvtxHitPruner.cc \
   MvtxPixelDefs.cc \
   MvtxPixelMask.cc
