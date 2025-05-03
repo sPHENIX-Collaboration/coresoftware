@@ -197,7 +197,6 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 
 int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 {
-  delete dstOut;
   if (!m_SaveRunNodeFlag)
   {
     dstOut = nullptr;
@@ -208,6 +207,27 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   {
     access_type = PHWrite;
   }
+  else
+  {
+    // This construct prevents a race condition:
+    // files are written every n events, Fun4All closes them and saves the run node but leaves it
+    // up to the DST Output Manager to open the next file on the first write.
+    // The last files is typically closed during the End() which then saves the Run Node. If
+    // the total number of events is a multiple of the number of requested events,
+    // no DST is open (since no events were processed since the last file was closed). Then the End()
+    // will open the last filename again and save the RunNode here. By checking if dstOut is not null
+    // we check if a DST is actually open, but only when m_SaveDstNodeFlag is set (meanes we save the
+    // event wise DST content
+    if (!dstOut)
+    {
+      if (Verbosity() > 0)
+      {
+	std::cout << PHWHERE << " DST file has not been written to yet, not saving the RunNode by itself" << std::endl;
+      }
+      return 0;
+    }
+  }
+  delete dstOut;
 
   if (UsedOutFileName().empty())
   {

@@ -979,6 +979,7 @@ int Fun4AllServer::CountOutNodesRecursive(PHCompositeNode *startNode, const int 
   {
     if ((thisNode->getType() == "PHCompositeNode"))
     {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
       icnt = CountOutNodesRecursive(static_cast<PHCompositeNode *>(thisNode), icnt);  // if this is a CompositeNode do this trick again
     }
     else
@@ -1003,6 +1004,7 @@ int Fun4AllServer::MakeNodesTransient(PHCompositeNode *startNode)
   {
     if ((thisNode->getType() == "PHCompositeNode"))
     {
+      //NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
       MakeNodesTransient(static_cast<PHCompositeNode *>(thisNode));  // if this is a CompositeNode do this trick again
     }
     else
@@ -1013,8 +1015,7 @@ int Fun4AllServer::MakeNodesTransient(PHCompositeNode *startNode)
   return 0;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
-int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode)
+int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode) // NOLINT(misc-no-recursion)
 {
   PHNodeIterator nodeiter(startNode);
   PHPointerListIterator<PHNode> iterat(nodeiter.ls());
@@ -1023,6 +1024,7 @@ int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode)
   {
     if ((thisNode->getType() == "PHCompositeNode"))
     {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
       MakeNodesPersistent(static_cast<PHCompositeNode *>(thisNode));  // if this is a CompositeNode do this trick again
     }
     else

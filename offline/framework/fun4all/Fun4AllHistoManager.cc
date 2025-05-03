@@ -7,19 +7,13 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <THnSparse.h>
 #include <TNamed.h>
 #include <TSystem.h>
 #include <TTree.h>
 
-#include <RVersion.h>
-#if ROOT_VERSION_CODE >= ROOT_VERSION(5, 20, 0)
-#define HAS_THNSPARSE 1
-#include <THnSparse.h>
-#endif
-
-#include <boost/format.hpp>
-
 #include <filesystem>
+#include <format>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -67,7 +61,7 @@ int Fun4AllHistoManager::RunAfterClosing()
     if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
     {
       runnumber = rc->get_IntFlag("RUNNUMBER");
-      runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
+      runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);
     }
     std::string fullcmd = m_RunAfterClosingScript + " " + m_outfilename + runseg + " " + m_ClosingArgs;
     if (Verbosity() > 1)
@@ -116,7 +110,7 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
   if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
   {
     runnumber = rc->get_IntFlag("RUNNUMBER");
-    runseg = (boost::format("-%08d-%05d.root") % runnumber % m_CurrentSegment).str();
+    runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);
   }
 
   std::string theoutfile = m_outfilename + runseg;
@@ -232,13 +226,13 @@ bool Fun4AllHistoManager::registerHisto(const std::string &hname, TNamed *h1d, c
   // reset directory for TTree
   if (h1d->InheritsFrom("TTree"))
   {
-    static_cast<TTree *>(h1d)->SetDirectory(nullptr);
+    static_cast<TTree *>(h1d)->SetDirectory(nullptr); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   }
 
   // For histograms, enforce error calculation and propagation
   if (h1d->InheritsFrom("TH1"))
   {
-    static_cast<TH1 *>(h1d)->Sumw2();
+    static_cast<TH1 *>(h1d)->Sumw2();// NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   }
 
   return true;
