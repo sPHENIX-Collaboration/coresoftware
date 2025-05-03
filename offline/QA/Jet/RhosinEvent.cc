@@ -16,6 +16,7 @@
 #include <phool/getClass.h>
 
 #include <TH1.h>
+#include <TStyle.h>
 
 #include <algorithm>
 #include <cassert>
@@ -52,6 +53,8 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
   delete m_analyzer; // make cppcheck happy
   delete m_manager; // make cppcheck happy
   m_analyzer = new TriggerAnalyzer();
+
+  gStyle->SetOptTitle(0);
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -99,19 +102,19 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
     }
   }
 
-  h1_mult_rho = new TH1D(vecHistNames[0].data(), "h1_mult_rho", N_rho_mult, N_rho_mult_bins);
+  h1_mult_rho = new TH1D(vecHistNames[0].data(), "", N_rho_mult, N_rho_mult_bins);
   h1_mult_rho->GetXaxis()->SetTitle("rho_M");
   h1_mult_rho->GetYaxis()->SetTitle("Counts");
 
-  h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "h1_mult_rho_sigma", N_rho_mult, N_rho_mult_bins);
+  h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "", N_rho_mult, N_rho_mult_bins);
   h1_mult_rho_sigma->GetXaxis()->SetTitle("sigma_M");
   h1_mult_rho_sigma->GetYaxis()->SetTitle("Counts");
 
-  h1_area_rho = new TH1D(vecHistNames[2].data(), "h1_area_rho", N_rho_area, N_rho_area_bins);
+  h1_area_rho = new TH1D(vecHistNames[2].data(), "", N_rho_area, N_rho_area_bins);
   h1_area_rho->GetXaxis()->SetTitle("rho_A");
   h1_area_rho->GetYaxis()->SetTitle("Counts");
 
-  h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "h1_area_rho_sigma", N_rho_area, N_rho_area_bins);
+  h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "", N_rho_area, N_rho_area_bins);
   h1_area_rho_sigma->GetXaxis()->SetTitle("sigma_A");
   h1_area_rho_sigma->GetYaxis()->SetTitle("Counts");
 

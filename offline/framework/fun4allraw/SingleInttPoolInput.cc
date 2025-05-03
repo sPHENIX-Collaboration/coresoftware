@@ -11,6 +11,7 @@
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -461,6 +462,15 @@ void SingleInttPoolInput::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
   {
+    auto rc = recoConsts::instance();
+    // if it is triggered after the gtm firmware change
+    if(rc->get_IntFlag("RUNNUMBER") > 58677 && m_BcoRange < 5)
+    {
+      SetBcoRange(3);
+      std::cout << "INTT changed to triggered event combining with range [-"
+                << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+    }
+
     StreamingInputManager()->SetInttBcoRange(m_BcoRange);
     StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
   }

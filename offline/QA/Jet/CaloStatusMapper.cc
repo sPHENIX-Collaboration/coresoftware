@@ -34,6 +34,7 @@
 // root libraries
 #include <TH1.h>
 #include <TH2.h>
+#include <TStyle.h>
 
 // c++ utiilites
 #include <algorithm>
@@ -247,7 +248,8 @@ void CaloStatusMapper::InitHistManager()
   {
     std::cout << "CaloStatusMapper::InitHistManager() Initializing histogram manager" << std::endl;
   }
-
+  
+  gStyle->SetOptTitle(0);
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
