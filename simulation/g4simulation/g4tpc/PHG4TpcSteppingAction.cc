@@ -270,8 +270,8 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
           m_Shower->add_g4hit_id(m_CurrentHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // promote to double to force double sqrt
-        double rin = sqrt((double) (m_Hit->get_x(0) * m_Hit->get_x(0) + m_Hit->get_y(0) * m_Hit->get_y(0)));
-        double rout = sqrt((double) (m_Hit->get_x(1) * m_Hit->get_x(1) + m_Hit->get_y(1) * m_Hit->get_y(1)));
+        double rin = sqrt((double) ((m_Hit->get_x(0) * m_Hit->get_x(0)) + (m_Hit->get_y(0) * m_Hit->get_y(0))));
+        double rout = sqrt((double) ((m_Hit->get_x(1) * m_Hit->get_x(1)) + (m_Hit->get_y(1) * m_Hit->get_y(1))));
         if (Verbosity() > 10)
         {
           if ((rin > 69.0 && rin < 70.125) || (rout > 69.0 && rout < 70.125))
@@ -311,10 +311,8 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 //____________________________________________________________________________..
@@ -344,7 +342,7 @@ void PHG4TpcSteppingAction::SetHitNodeName(const std::string& type, const std::s
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_ABSORBER")
+  if (type == "G4HIT_ABSORBER")
   {
     m_AbsorberNodeName = name;
     return;
