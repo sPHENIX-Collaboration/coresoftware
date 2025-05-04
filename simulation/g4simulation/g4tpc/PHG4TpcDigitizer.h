@@ -3,17 +3,18 @@
 #ifndef G4TPC_PHG4TPCDIGITIZER_H
 #define G4TPC_PHG4TPCDIGITIZER_H
 
-#include <fun4all/SubsysReco.h>
-
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 
+#include <fun4all/SubsysReco.h>
+
+#include <gsl/gsl_rng.h>
+
+#include <limits>
 #include <map>
 #include <string>   // for string
 #include <utility>  // for pair, make_pair
 #include <vector>
-
-#include <gsl/gsl_rng.h>
 
 class PHCompositeNode;
 
@@ -23,17 +24,11 @@ class PHG4TpcDigitizer : public SubsysReco
   PHG4TpcDigitizer(const std::string &name = "PHG4TpcDigitizer");
   ~PHG4TpcDigitizer() override;
 
-  //! module initialization
-  int Init(PHCompositeNode * /*topNode*/) override { return 0; }
-
   //! run initialization
   int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
   int process_event(PHCompositeNode *topNode) override;
-
-  //! end of process
-  int End(PHCompositeNode * /*topNode*/) override { return 0; };
 
   void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc)
   {
@@ -44,28 +39,28 @@ class PHG4TpcDigitizer : public SubsysReco
   void SetTpcMinLayer(const int minlayer) { TpcMinLayer = minlayer; };
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
   void SetENC(const float enc) { TpcEnc = enc; };
-  void set_drift_velocity(float vd) {_drift_velocity = vd;}
-  void set_skip_noise_flag(const bool skip) {skip_noise = skip;}
+  void set_drift_velocity(float vd) { _drift_velocity = vd; }
+  void set_skip_noise_flag(const bool skip) { skip_noise = skip; }
 
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
   void DigitizeCylinderCells(PHCompositeNode *topNode);
   float added_noise();
   float add_noise_to_bin(float signal);
-  
-  unsigned int TpcMinLayer;
-  unsigned int TpcNLayers;
-  float ADCThreshold;
-  float ADCThreshold_mV = 0;
-  float TpcEnc;
-  float Pedestal;
-  float ChargeToPeakVolts;
-  float _drift_velocity = 8.0e-3;  // override from macro with simulation drift velocity
 
-  float ADCSignalConversionGain;
-  float ADCNoiseConversionGain;
+  unsigned int TpcMinLayer{7};
+  unsigned int TpcNLayers{40};
+  float ADCThreshold{2700.};  // electrons
+  float ADCThreshold_mV{0.};
+  float TpcEnc{670.};             // electrons
+  float Pedestal{5000.};          // electrons
+  float ChargeToPeakVolts{20.};   // mV/fC
+  float _drift_velocity{8.0e-3};  // override from macro with simulation drift velocity
 
-  bool skip_noise = false;
+  float ADCSignalConversionGain{std::numeric_limits<float>::quiet_NaN()};
+  float ADCNoiseConversionGain{std::numeric_limits<float>::quiet_NaN()};
+
+  bool skip_noise{false};
 
   std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
   std::vector<std::vector<TrkrHitSet::ConstIterator> > t_sorted_hits;
@@ -79,7 +74,7 @@ class PHG4TpcDigitizer : public SubsysReco
   std::map<int, float> _energy_scale;
 
   //! random generator that conform with sPHENIX standard
-  gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator{nullptr};
 };
 
 #endif
