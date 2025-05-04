@@ -33,27 +33,27 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   int InitRun(PHCompositeNode *topNode) override;
 
   void UseGain(const int flagToUseGain);
-  void SetUseModuleGainWeights(const int flag) {m_use_module_gain_weights = flag;}
-  void SetModuleGainWeightsFileName(const std::string &name) {m_tpc_module_gain_weights_file = name;}
+  void SetUseModuleGainWeights(const int flag) { m_use_module_gain_weights = flag; }
+  void SetModuleGainWeightsFileName(const std::string &name) { m_tpc_module_gain_weights_file = name; }
   void ReadGain();
-  void SetUsePolyaGEMGain(const int flagPolya) {m_usePolya = flagPolya;}
-  void SetUseLangauGEMGain(const int flagLangau) {m_useLangau = flagLangau;}
-  void SetLangauParsFileName(const std::string &name) {m_tpc_langau_pars_file = name;}
+  void SetUsePolyaGEMGain(const int flagPolya) { m_usePolya = flagPolya; }
+  void SetUseLangauGEMGain(const int flagLangau) { m_useLangau = flagLangau; }
+  void SetLangauParsFileName(const std::string &name) { m_tpc_langau_pars_file = name; }
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
   void SetReadoutTime(float t) override { extended_readout_time = t; }
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
 
-  void MapToPadPlane(TpcClusterBuilder &tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+  void MapToPadPlane(TpcClusterBuilder &tpc_truth_clusterer, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
 
  private:
   //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &adc_tbin, std::vector<double> &adc_tbin_share);
+  void populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &phibin_pad, std::vector<double> &phibin_pad_share);
+  void populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &tbin_adc, std::vector<double> &tbin_adc_share);
 
   double check_phi(const unsigned int side, const double phi, const double radius);
 
@@ -96,7 +96,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   double getSingleEGEMAmplification(double weight);
-  double getSingleEGEMAmplification(TF1 *f);
+  static double getSingleEGEMAmplification(TF1 *f);
   bool m_usePolya = false;
 
   bool m_useLangau = false;
@@ -106,18 +106,15 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   std::array<TH2 *, 2> h_gain{nullptr};
 
-  double m_module_gain_weight[2][3][12] = { 
-    { {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1} },
-    { {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1} } 
-  };
+  double m_module_gain_weight[2][3][12] = {
+      {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
+      {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}};
 
   TF1 *flangau[2][3][12] = {{{nullptr}}};
-
-  
 };
 
 #endif
