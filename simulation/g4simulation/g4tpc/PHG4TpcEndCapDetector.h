@@ -62,7 +62,7 @@ class PHG4TpcEndCapDetector : public PHG4Detector
 
   void
   AddLayer(  //
-      G4AssemblyVolume *assmeblyvol,
+      G4AssemblyVolume *assemblyvol,
       G4double &z_start,
       const std::string &_name,        //! name base for this layer
       const std::string &_material,    //! material name in G4
@@ -70,10 +70,10 @@ class PHG4TpcEndCapDetector : public PHG4Detector
       double _percentage_filled = 100  //! percentage filled//
   );
 
-  void CreateCompositeMaterial(               //
+  static void CreateCompositeMaterial(        //
       const std::string &compositeName,       //! desired name for the new material
       std::vector<std::string> materialName,  //! vector of the names of the component materials in G4
-      const std::vector<double> &thickness           //! thickness of this particular layer (assuming 100 percent filled)
+      const std::vector<double> &thickness    //! thickness of this particular layer (assuming 100 percent filled)
   );
 };
 
