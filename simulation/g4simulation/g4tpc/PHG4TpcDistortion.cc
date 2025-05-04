@@ -21,7 +21,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -98,7 +98,7 @@ void PHG4TpcDistortion::Init()
       exit(1);
     }
 
-    TimeTree = static_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
+    TimeTree = dynamic_cast<TTree*>(m_time_ordered_tfile->Get("TimeDists"));
     if (!TimeTree)
     {
       std::cout << "PHG4TpcDistortion::Init - TimeOrdered distortion tree could not be found!" << std::endl;
@@ -153,7 +153,7 @@ void PHG4TpcDistortion::load_event(int event_num)
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_x_distortion_cartesian(double x, double y, double z) const
 {
-  double r = sqrt(x * x + y * y);
+  double r = sqrt((x * x) + (y * y));
   double phi = std::atan2(y, x);
 
   // get components
@@ -163,14 +163,14 @@ double PHG4TpcDistortion::get_x_distortion_cartesian(double x, double y, double 
   // rotate into cartesian based on local r phi:
   double cosphi = cos(phi);
   double sinphi = sin(phi);
-  double dx = dr * cosphi - dphi * sinphi;
+  double dx = (dr * cosphi) - (dphi * sinphi);
   return dx;
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_y_distortion_cartesian(double x, double y, double z) const
 {
-  double r = sqrt(x * x + y * y);
+  double r = sqrt((x * x) + (y * y));
   double phi = std::atan2(y, x);
 
   // get components
@@ -180,14 +180,14 @@ double PHG4TpcDistortion::get_y_distortion_cartesian(double x, double y, double 
   // rotate into cartesian based on local r phi:
   double cosphi = cos(phi);
   double sinphi = sin(phi);
-  double dy = dphi * cosphi + dr * sinphi;
+  double dy = (dphi * cosphi) + (dr * sinphi);
   return dy;
 }
 
 //__________________________________________________________________________________________________________
 double PHG4TpcDistortion::get_z_distortion_cartesian(double x, double y, double z) const
 {
-  double r = sqrt(x * x + y * y);
+  double r = sqrt((x * x) + (y * y));
   double phi = std::atan2(y, x);
 
   // get components
@@ -225,10 +225,8 @@ double PHG4TpcDistortion::get_reaches_readout(double r, double phi, double z) co
   {
     return get_distortion('R', r, phi, z);
   }
-  else
-  {
-    return 1;
-  }
+
+  return 1;
 }
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const
