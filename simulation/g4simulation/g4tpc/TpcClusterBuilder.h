@@ -43,7 +43,7 @@ class TrkrTruthTrackContainer;
 class TpcClusterBuilder
 {
  public:
-  TpcClusterBuilder(){};
+  TpcClusterBuilder() {};
   ~TpcClusterBuilder()
   {
     delete m_hits;
@@ -57,7 +57,7 @@ class TpcClusterBuilder
   void cluster_hits(TrkrTruthTrack* track);
   void addhitset(TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons);
   void set_current_track(TrkrTruthTrack* _trkrtruthtrack);
-  void print(TrkrTruthTrackContainer*, int nclusprint = -1);
+  void print(TrkrTruthTrackContainer*, int nclusprint = -1) const;
   void print_file(TrkrTruthTrackContainer*, const std::string&);
   void set_verbosity(int verbosity_level) { verbosity = verbosity_level; }
 
