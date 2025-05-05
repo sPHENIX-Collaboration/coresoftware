@@ -314,6 +314,11 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
   int seed_index = 0;
   for(auto& seed: seeds )
   {
+    if(seed.size_cluster_keys() < 3)
+      {
+	continue;   // ALICEKalmanFilter can drop clusters. Seeds require at least 3 clusters for circle fit
+      }
+    
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
     TrackSeedHelper::circleFitByTaubin(&seed,positions, 7, 55);
