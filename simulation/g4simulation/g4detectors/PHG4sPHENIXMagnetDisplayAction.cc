@@ -45,8 +45,8 @@ void PHG4sPHENIXMagnetDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*ph
     }
     else if (it.second == "CRYOINT" || it.second == "THERMVAC")
     {
-      //visatt->SetVisibility(false);
-      //visatt->SetForceSolid(false);
+      // visatt->SetVisibility(false);
+      // visatt->SetForceSolid(false);
       visatt->SetColour(G4Colour::Gray());
     }
     else if (it.second == "BusbarD")

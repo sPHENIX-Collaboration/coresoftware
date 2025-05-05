@@ -1,7 +1,7 @@
 #include "PHG4sPHENIXMagnetSteppingAction.h"
 
-#include "PHG4sPHENIXMagnetDetector.h"
 #include "PHG4StepStatusDecode.h"
+#include "PHG4sPHENIXMagnetDetector.h"
 
 #include <phparameter/PHParameters.h>
 
