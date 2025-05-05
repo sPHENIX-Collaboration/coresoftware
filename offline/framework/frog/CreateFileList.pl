@@ -68,7 +68,9 @@ my %proddesc = (
     "29" => "JS pythia8 Photonjet ptmin = 20GeV",
     "30" => "Herwig MB",
     "31" => "Herwig Jet ptmin = 10 GeV",
-    "32" => "Herwig Jet ptmin = 30 GeV"
+    "32" => "Herwig Jet ptmin = 30 GeV",
+    "33" => "JS pythia8 Jet ptmin = 15GeV",
+    "34" => "JS pythia8 Jet ptmin = 50GeV"
     );
 
 my %pileupdesc = (
@@ -767,6 +769,64 @@ if (defined $prodtype)
     {
         $embedok = 1;
 	$filenamestring = "Herwig_Jet30";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 33)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet15";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 34)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet50";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
