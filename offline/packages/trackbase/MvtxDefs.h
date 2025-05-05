@@ -19,29 +19,9 @@
  */
 namespace MvtxDefs
 {
-  // hitsetkey layout:
-  //  Mvtx specific lower 16 bits
-  //   24 - 31  tracker id  // 8 bits
-  //   16 - 23  layer   // 8 bits
-  //     9 - 15  stave id // 7 bits
-  //     5 - 8     chip  id // 4 bits
-  //     0-4   strobe  id // 5 bits
-
-  static const unsigned int kBitShiftStaveIdOffset __attribute__((unused)) = 9;
-  static const unsigned int kBitShiftStaveIdWidth __attribute__((unused)) = 7;
-  static const unsigned int kBitShiftChipIdOffset __attribute__((unused)) = 5;
-  static const unsigned int kBitShiftChipIdWidth __attribute__((unused)) = 4;
-  static const unsigned int kBitShiftStrobeIdOffset __attribute__((unused)) = 0;
-  static const unsigned int kBitShiftStrobeIdWidth __attribute__((unused)) = 5;
-  static const int strobeOffset __attribute__((unused)) = 16;
-
-  // bit shift for hitkey
-  static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
-  static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
-
   // max values for col and row index in chip
-  static const uint16_t MAXCOL __attribute__((unused)) = 1024;
-  static const uint16_t MAXROW __attribute__((unused)) = 512;
+  static constexpr uint16_t MAXCOL __attribute__((unused)) = 1024;
+  static constexpr uint16_t MAXROW __attribute__((unused)) = 512;
 
   /**
    * @brief Get the stave id from hitsetkey
@@ -131,11 +111,18 @@ namespace MvtxDefs
   TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const int strobe, const uint32_t clusid);
 
   /**
+   * @brief Zero the strobe bits in the cluster key
+   * @param[in] hskey cluskey
+   * @param[out] cluskey with strobe bits set to zero
+   */
+  TrkrDefs::cluskey resetStrobe(const TrkrDefs::cluskey /*key*/);
+
+  /**
    * @brief Zero the strobe bits in the hitsetkey
    * @param[in] hskey hitsetkey
    * @param[out] hitsetkey with strobe bits set to zero
    */
-  TrkrDefs::hitsetkey resetStrobeHitSetKey(const TrkrDefs::hitsetkey hitsetkey);
+  TrkrDefs::hitsetkey resetStrobe(const TrkrDefs::hitsetkey /*hitsetkey*/);
 
 }  // namespace MvtxDefs
 

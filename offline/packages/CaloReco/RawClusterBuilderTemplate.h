@@ -3,6 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <globalvertex/GlobalVertex.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -98,6 +100,8 @@ class RawClusterBuilderTemplate : public SubsysReco
   bool bPrintGeom{false};
   bool bProfProb{false};
   float fProbNoiseParam{0.04};
+
+  GlobalVertex::VTXTYPE m_vertex_type{GlobalVertex::MBD};
 
   int m_UseTowerInfo{0};  // 0 only old tower, 1 only new (TowerInfo based),
 

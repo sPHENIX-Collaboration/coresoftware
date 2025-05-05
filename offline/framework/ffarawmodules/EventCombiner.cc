@@ -46,7 +46,7 @@ int EventCombiner::process_event(PHCompositeNode *topNode)
 {
   std::vector<Event *> subeventeventvec;
   unsigned int total_length = 0;
-  for (auto &nam : m_PrdfInputNodeNameSet)
+  for (const auto &nam : m_PrdfInputNodeNameSet)
   {
     Event *evt = findNode::getClass<Event>(topNode, nam);
     subeventeventvec.push_back(evt);

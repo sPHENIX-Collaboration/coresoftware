@@ -23,7 +23,7 @@ DumpPHG4CylinderGeomContainer::DumpPHG4CylinderGeomContainer(const std::string &
 int DumpPHG4CylinderGeomContainer::process_Node(PHNode *myNode)
 {
   PHG4CylinderGeomContainer *phg4geomcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     phg4geomcontainer = thisNode->getData();

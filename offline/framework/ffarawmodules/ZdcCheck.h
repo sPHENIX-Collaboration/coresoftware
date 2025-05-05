@@ -24,7 +24,6 @@ class ZdcCheck : public SubsysReco, public DumpPacket
 
   int process_event(PHCompositeNode *topNode) override;
 
-
  private:
   /* std::string m_EvtNodeName = "ZDCRAWHIT"; */
   /* std::set<uint64_t> bclk_seen; */

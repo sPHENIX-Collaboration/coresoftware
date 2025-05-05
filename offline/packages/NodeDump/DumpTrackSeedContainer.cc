@@ -22,7 +22,7 @@ DumpTrackSeedContainer::DumpTrackSeedContainer(const std::string &NodeName)
 int DumpTrackSeedContainer::process_Node(PHNode *myNode)
 {
   TrackSeedContainer *trackseedcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     trackseedcontainer = thisNode->getData();

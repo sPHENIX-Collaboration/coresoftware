@@ -1,6 +1,6 @@
 #include "MvtxRawDefs.h"
 
-#include <odbc++/connection.h> // odbc::Connection
+#include <odbc++/connection.h>  // odbc::Connection
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <odbc++/drivermanager.h>
@@ -11,30 +11,30 @@
 
 #include <TRandom3.h>
 
+#include <chrono>
+#include <iostream>
 #include <limits>
-#include <string>
 #include <memory>
 #include <stdexcept>
-#include <iostream>
-#include <chrono>
+#include <string>
 #include <thread>
 
-uint8_t MvtxRawDefs::getStaveIndex( const uint8_t& lyrId, const uint8_t& stvId )
+uint8_t MvtxRawDefs::getStaveIndex(const uint8_t& lyrId, const uint8_t& stvId)
 {
   return firstStaveIndex[lyrId] + stvId;
 };
 
-std::pair<uint8_t, uint8_t> const& MvtxRawDefs::get_flx_endpoint( const uint8_t& lyrId, const uint8_t& stvId )
+std::pair<uint8_t, uint8_t> const& MvtxRawDefs::get_flx_endpoint(const uint8_t& lyrId, const uint8_t& stvId)
 {
-  return stave_felix_map.at( getStaveIndex(lyrId, stvId) );
+  return stave_felix_map.at(getStaveIndex(lyrId, stvId));
 };
 
-MvtxRawDefs::linkId_t MvtxRawDefs::decode_feeid( const uint16_t feeid )
+MvtxRawDefs::linkId_t MvtxRawDefs::decode_feeid(const uint16_t feeid)
 {
   linkId_t ret = {};
-// the static_cast< uint16_t> is needed to because the result of (feeid >> 12U)
-// is promoted to int which then triggers a (correct) clang-tidy warning that
-// a bitwise operation is performed on a signed integer
+  // the static_cast< uint16_t> is needed to because the result of (feeid >> 12U)
+  // is promoted to int which then triggers a (correct) clang-tidy warning that
+  // a bitwise operation is performed on a signed integer
   ret.layer = static_cast<uint16_t>(feeid >> 12U) & 0x7U;
   ret.stave = feeid & 0x1FU;
   ret.gbtid = static_cast<uint16_t>(feeid >> 8U) & 0x3U;
@@ -42,7 +42,8 @@ MvtxRawDefs::linkId_t MvtxRawDefs::decode_feeid( const uint16_t feeid )
 };
 
 // anonymous namespace
-namespace {
+namespace
+{
   float getStrobeLengthFromOCDB(const int& runNumber)
   {
     constexpr uint8_t MAX_NUM_RETRIES = 10;
@@ -53,32 +54,31 @@ namespace {
     {
       try
       {
-        std::unique_ptr<odbc::Connection> temp(odbc::DriverManager::getConnection("mvtx_read","",""));
+        std::unique_ptr<odbc::Connection> temp(odbc::DriverManager::getConnection("mvtx_read", "", ""));
         m_OdbcConnection = std::move(temp);
       }
-      catch (odbc::SQLException &e)
+      catch (odbc::SQLException& e)
       {
         std::cout << " Exception caught during DriverManager::getConnection" << std::endl;
         std::cout << "Message: " << e.getMessage() << std::endl;
       }
       ++num_tries;
-      int wait = (int) 20 + rnd.Uniform()*300;
+      int wait = 20 + (rnd.Uniform() * 300);
       if (!m_OdbcConnection)
       {
         std::this_thread::sleep_for(std::chrono::seconds(wait));  // sleep 30 seconds before retry
       }
-    }
-    while ((! m_OdbcConnection) && (num_tries < MAX_NUM_RETRIES));
+    } while ((!m_OdbcConnection) && (num_tries < MAX_NUM_RETRIES));
 
-    if (! m_OdbcConnection)
+    if (!m_OdbcConnection)
     {
       return std::numeric_limits<float>::quiet_NaN();
     }
 
     std::string sqlcmd = "SELECT strobe FROM mvtx_strobe_offline WHERE runnumber = " + std::to_string(runNumber) + ";";
 
-    std::unique_ptr<odbc::Statement> statement (m_OdbcConnection->createStatement());
-    std::unique_ptr<odbc::ResultSet> resultSet (statement->executeQuery(sqlcmd));
+    std::unique_ptr<odbc::Statement> statement(m_OdbcConnection->createStatement());
+    std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlcmd));
 
     if (resultSet && resultSet->next())
     {
@@ -121,13 +121,12 @@ namespace {
     std::cout << "MVTX strobe read from daq db: " << strobeWidth << std::endl;
     return strobeWidth;
   }
-}
+}  // namespace
 
 float MvtxRawDefs::getStrobeLength(const int& runNumber)
 {
   {
     float strobe_length = getStrobeLengthFromOCDB(runNumber);
-    return (strobe_length != std::numeric_limits<float>::quiet_NaN()) ? \
-            strobe_length : getStrobeLengthFromDAQ(runNumber);
+    return (!std::isnan(strobe_length)) ? strobe_length : getStrobeLengthFromDAQ(runNumber);
   }
 }

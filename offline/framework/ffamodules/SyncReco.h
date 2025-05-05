@@ -20,7 +20,7 @@ class SyncReco : public SubsysReco
   void SegmentNumber(int i) { forced_segment = i; }
 
  private:
-  int CreateNodeTree(PHCompositeNode *topNode);
+  static int CreateNodeTree(PHCompositeNode *topNode);
   // just if we need to override the segment for e.g. embedding
   // where we want to reuse hijing files which normally set
   // the segment number

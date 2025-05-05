@@ -11,8 +11,9 @@
 #include <fun4all/Fun4AllBase.h>
 #endif
 
-#include <vector>
+#include <array>
 #include <limits>
+#include <vector>
 
 class PHCompositeNode;
 class Event;
@@ -24,6 +25,7 @@ class CDBUtils;
 class TF1;
 class TCanvas;
 #ifndef ONLINE
+class CaloPacket;
 class CaloPacketContainer;
 class Gl1Packet;
 class PHG4TruthInfoContainer;
@@ -38,7 +40,7 @@ class MbdEvent
 
   int SetRawData(Event *event, MbdPmtContainer *bbcpmts);
 #ifndef ONLINE
-  int SetRawData(CaloPacketContainer *mbdraw, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
+  int SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
 #endif
   void PostProcessChannels(MbdPmtContainer *bbcpmts);
   int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNode *topNode = nullptr);

@@ -148,6 +148,18 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumMass(float max_mass) { m_max_mass = max_mass; }
 
+  void setDecayTimeRange_XY(float min_decayTime, float max_decayTime)
+  {
+    m_min_decayTime_xy = min_decayTime;
+    m_max_decayTime_xy = max_decayTime;
+  }
+
+  void setDecayLengthRange_XY(float min_decayLength, float max_decayLength)
+  {
+    m_min_decayLength_xy = min_decayLength;
+    m_max_decayLength_xy = max_decayLength;
+  }
+
   void setDecayTimeRange(float min_decayTime, float max_decayTime)
   {
     m_min_decayTime = min_decayTime;
@@ -160,9 +172,19 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_max_decayLength = max_decayLength;
   }
 
+  void setMinDecayTimeSignificance(float min = 0) { m_mother_min_decay_time_significance = min; }
+
+  void setMinDecayLengthSignificance(float min = 0) { m_mother_min_decay_length_significance = min; }
+
+  void setMinDecayLengthSignificance_XY(float min = 0) { m_mother_min_decay_length_xy_significance = min; }
+
   void setMinimumTrackPT(float pt) { m_track_pt = pt; }
 
   void setMaximumTrackPTchi2(float ptchi2) { m_track_ptchi2 = ptchi2; }
+
+  void setMinimumTrackIP_XY(float ip) { m_track_ip_xy = ip; }
+
+  void setMinimumTrackIPchi2_XY(float ipchi2) { m_track_ipchi2_xy = ipchi2; }
 
   void setMinimumTrackIP(float ip) { m_track_ip = ip; }
 
@@ -170,9 +192,15 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaximumTrackchi2nDOF(float trackchi2ndof) { m_track_chi2ndof = trackchi2ndof; }
 
-  void setMinMVTXhits(int nHits) { m_nMVTXHits = nHits; }
+  void setMinMVTXhits(int nHits) { m_nMVTXStates = nHits; } //Actually state counting but use this for backwards compatibility!
 
-  void setMinTPChits(int nHits) { m_nTPCHits = nHits; }
+  void setMinINTThits(int nHits) { m_nINTTStates = nHits; } //Actually state counting but use this for backwards compatibility!
+
+  void setMinTPChits(int nHits) { m_nTPCStates = nHits; } //Actually state counting but use this for backwards compatibility!
+
+  void setMinTPOThits(int nHits) { m_nTPCStates = nHits; } //Actually state counting but use this for backwards compatibility!
+
+  void setMaximumDaughterDCA_XY(float dca) { m_comb_DCA_xy = dca; }
 
   void setMaximumDaughterDCA(float dca) { m_comb_DCA = dca; }
  
@@ -186,9 +214,19 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMaxDIRA(float dira_max) { m_dira_max = dira_max; }
 
+  void setMinDIRA_XY(float dira_min) { m_dira_xy_min = dira_min; }
+
+  void setMaxDIRA_XY(float dira_max) { m_dira_xy_max = dira_max; }
+
   void setMotherPT(float mother_pt) { m_mother_pt = mother_pt; }
 
+  void setMotherIP(float mother_ip) { m_mother_ip = mother_ip; }
+
+  void setMotherIP_XY(float mother_ip) { m_mother_ip_xy = mother_ip; }
+
   void setMotherIPchi2(float mother_ipchi2) { m_mother_ipchi2 = mother_ipchi2; }
+
+  void setMotherIPchi2_XY(float mother_ipchi2) { m_mother_ipchi2_xy = mother_ipchi2; }
 
   void setMaximumMotherVertexVolume(float vertexvol) { m_mother_vertex_volume = vertexvol; }
 
@@ -244,6 +282,20 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     {
       m_intermediate_min_ip.push_back(intermediate_IP_range[i].first);
       m_intermediate_max_ip.push_back(intermediate_IP_range[i].second);
+    }
+  }
+
+  void setIntermediateMinIPchi2_XY(const std::vector<float> &intermediate_min_IPchi2)
+  {
+    for (unsigned int i = 0; i < intermediate_min_IPchi2.size(); ++i) m_intermediate_min_ipchi2_xy.push_back(intermediate_min_IPchi2[i]);
+  }
+
+  void setIntermediateIPchi2Range_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IPchi2_range)
+  {
+    for (unsigned int i = 0; i < intermediate_IPchi2_range.size(); ++i)
+    {
+      m_intermediate_min_ipchi2_xy.push_back(intermediate_IPchi2_range[i].first);
+      m_intermediate_max_ipchi2_xy.push_back(intermediate_IPchi2_range[i].second);
     }
   }
 

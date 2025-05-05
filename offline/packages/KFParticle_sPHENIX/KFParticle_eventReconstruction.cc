@@ -452,8 +452,14 @@ void KFParticle_eventReconstruction::getCandidateDecay(std::vector<KFParticle>& 
         {
           float min_ip = 0;
           float min_ipchi2 = 0;
+          float min_ip_xy = 0;
+          float min_ipchi2_xy  = 0;
           calcMinIP(candidate, primaryVerticesCand, min_ip, min_ipchi2);
-          if (!isInRange(m_intermediate_min_ip[intermediateNumber], min_ip, m_intermediate_max_ip[intermediateNumber]) || !isInRange(m_intermediate_min_ipchi2[intermediateNumber], min_ipchi2, m_intermediate_max_ipchi2[intermediateNumber]))
+          calcMinIP(candidate, primaryVerticesCand, min_ip_xy , min_ipchi2_xy, false);
+          if (!isInRange(m_intermediate_min_ip[intermediateNumber], min_ip, m_intermediate_max_ip[intermediateNumber])
+           || !isInRange(m_intermediate_min_ipchi2[intermediateNumber], min_ipchi2, m_intermediate_max_ipchi2[intermediateNumber])
+           || !isInRange(m_intermediate_min_ip_xy[intermediateNumber], min_ip_xy, m_intermediate_max_ip_xy[intermediateNumber])
+           || !isInRange(m_intermediate_min_ipchi2_xy[intermediateNumber], min_ipchi2_xy, m_intermediate_max_ipchi2_xy[intermediateNumber]))
           {
             isGood = false;
           }

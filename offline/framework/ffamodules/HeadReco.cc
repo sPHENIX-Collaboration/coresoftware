@@ -22,16 +22,13 @@
 
 #include <Event/Event.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#pragma GCC diagnostic pop
-
 #include <HepMC/HeavyIon.h>  // for HeavyIon
 
 #include <iterator>  // for operator!=, reverse_iterator
 #include <map>       // for _Rb_tree_iterator
-#include <utility>   // for pair
+#include <ranges>
+#include <utility>  // for pair
 
 HeadReco::HeadReco(const std::string &name)
   : SubsysReco(name)
@@ -72,9 +69,9 @@ int HeadReco::process_event(PHCompositeNode *topNode)
 
   if (genevtmap)
   {
-    for (PHHepMCGenEventMap::ReverseIter iter = genevtmap->rbegin(); iter != genevtmap->rend(); ++iter)
+    for (auto &iter : std::ranges::reverse_view(*genevtmap))
     {
-      PHHepMCGenEvent *genevt = iter->second;
+      PHHepMCGenEvent *genevt = iter.second;
       int embed_flag = genevt->get_embedding_id();
       if (embed_flag == 0)  // should be foreground event
       {

@@ -59,7 +59,7 @@ class ResonanceJetTagging : public SubsysReco
     D0TOK3PI = 1,
     DPLUS = 2,
     DSTAR = 3,
-    JPSY = 4,
+    JPSI = 4,
     K0 = 5,
     GAMMA = 6,
     ELECTRON = 7,
@@ -271,9 +271,9 @@ class ResonanceJetTagging : public SubsysReco
 
   /// Methods for grabbing the data
   int tagHFHadronic(PHCompositeNode *topNode);
-  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<PHG4Particlev2*> &TagDecays);
-  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
-  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<PHG4Particlev2*> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<int> &TagDecays);
+  void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
+  void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void findMCTaggedJets(PHCompositeNode *topNode);
 
@@ -282,7 +282,7 @@ class ResonanceJetTagging : public SubsysReco
   bool isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
   bool isDecay(HepMC::GenParticle *particle, const std::vector<PHG4Particlev2*> &decays);
-  bool isDecay(SvtxTrack *track, const std::vector<PHG4Particlev2*> &decays);
+  bool isDecay(SvtxTrack *track, const std::vector<int> &decays);
   int createJetNode(PHCompositeNode *topNode);
 };
 

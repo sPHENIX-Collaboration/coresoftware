@@ -18,7 +18,7 @@ DumpSyncObject::DumpSyncObject(const std::string &NodeName)
 int DumpSyncObject::process_Node(PHNode *myNode)
 {
   SyncObject *syncobject = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     syncobject = thisNode->getData();

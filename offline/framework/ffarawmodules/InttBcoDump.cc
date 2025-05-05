@@ -69,7 +69,7 @@ int InttBcoDump::process_event(PHCompositeNode *topNode)
   int EventSequence = evt->getEvtSequence();
   std::vector<Packet *> pktvec = evt->getPacketVector();
   std::map<int, std::set<uint64_t>> bcoset;
-  for (auto packet : pktvec)
+  for (auto *packet : pktvec)
   {
     int nbcos = packet->iValue(0, "NR_BCOS");
     for (int i = 0; i < nbcos; i++)
@@ -94,7 +94,7 @@ int InttBcoDump::process_event(PHCompositeNode *topNode)
   {
     if (!mapiter.second.empty())
     {
-      for (auto &bco : mapiter.second)
+      for (const auto &bco : mapiter.second)
       {
         uint64_t prevbco = lastbco[mapiter.first];
         if (prevbco > 0 && prevbco != bco)
@@ -112,7 +112,7 @@ int InttBcoDump::process_event(PHCompositeNode *topNode)
         lastbco[mapiter.first] = bco;
       }
       mapiter.second.clear();
-    } 
+    }
   }
   bcoset.clear();
   bcoTaggedFees.clear();

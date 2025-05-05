@@ -19,7 +19,7 @@ DumpMicromegasRawHitContainer::DumpMicromegasRawHitContainer(const std::string &
 int DumpMicromegasRawHitContainer::process_Node(PHNode *myNode)
 {
   MicromegasRawHitContainer *micromegasrawhitcontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     micromegasrawhitcontainer = thisNode->getData();
@@ -37,7 +37,7 @@ int DumpMicromegasRawHitContainer::process_Node(PHNode *myNode)
       *fout << "fee: " << rawhit->get_fee() << std::endl;
       *fout << "sampaaddress: " << rawhit->get_sampaaddress() << std::endl;
       *fout << "sampachannel: " << rawhit->get_sampachannel() << std::endl;
-      *fout << "sample range: " << rawhit->get_sample_begin() <<  "," << rawhit->get_sample_end() << std::endl;
+      *fout << "sample range: " << rawhit->get_sample_begin() << "," << rawhit->get_sample_end() << std::endl;
       for (auto isamp = rawhit->get_sample_begin(); isamp < rawhit->get_sample_end(); isamp++)
       {
         *fout << "adc[" << isamp << "] =  " << rawhit->get_adc(isamp) << std::endl;

@@ -443,7 +443,8 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
     float mycorr;
     float myaggcv;
 
-    TNtuple *innt_corrVals = (TNtuple *) infileNt->Get("nt_corrVals");
+    TNtuple *innt_corrVals{nullptr};
+    infileNt->GetObject("nt_corrVals", innt_corrVals);
 
     innt_corrVals->SetBranchAddress("tower_eta", &myieta);
     innt_corrVals->SetBranchAddress("tower_phi", &myiphi);
@@ -475,7 +476,13 @@ void CaloCalibEmc_Pi0::Loop(int nevts, const std::string &filename, TTree *intre
   if (!intree)
   {
     TFile *f = new TFile(filename.c_str());
-    t1 = (TTree *) f->Get("_eventTree");
+    f->GetObject("_eventTree", t1);
+    if (!t1)
+    {
+      std::cout << PHWHERE << " could not load _eventTree from " << filename << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
   }
 
   // Set Branches
@@ -698,7 +705,8 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
     float mycorr;
     float myaggcv;
 
-    TNtuple *innt_corrVals = (TNtuple *) infileNt->Get("nt_corrVals");
+    TNtuple *innt_corrVals{nullptr};
+    infileNt->GetObject("nt_corrVals", innt_corrVals);
 
     innt_corrVals->SetBranchAddress("tower_eta", &myieta);
     innt_corrVals->SetBranchAddress("tower_phi", &myiphi);
@@ -730,7 +738,13 @@ void CaloCalibEmc_Pi0::Loop_for_eta_slices(int nevts, const std::string &filenam
   if (!intree)
   {
     TFile *f = new TFile(filename.c_str());
-    t1 = (TTree *) f->Get("_eventTree");
+    f->GetObject("_eventTree", t1);
+    if (!t1)
+    {
+      std::cout << PHWHERE << " could not load _eventTree from " << filename << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
   }
 
   // Set Branches
@@ -887,7 +901,8 @@ void CaloCalibEmc_Pi0::Fit_Histos(const std::string &incorrFile)
     float mycorr;
     float myaggcv;
 
-    TNtuple *innt_corrVals = (TNtuple *) infileNt->Get("nt_corrVals");
+    TNtuple *innt_corrVals{nullptr};
+    infileNt->GetObject("nt_corrVals", innt_corrVals);
 
     innt_corrVals->SetBranchAddress("tower_eta", &myieta);
     innt_corrVals->SetBranchAddress("tower_phi", &myiphi);
@@ -1077,7 +1092,8 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add96(const std::string &incorrFile)
     float mycorr;
     float myaggcv;
 
-    TNtuple *innt_corrVals = (TNtuple *) infileNt->Get("nt_corrVals");
+    TNtuple *innt_corrVals{nullptr};
+    infileNt->GetObject("nt_corrVals", innt_corrVals);
 
     innt_corrVals->SetBranchAddress("tower_eta", &myieta);
     innt_corrVals->SetBranchAddress("tower_phi", &myiphi);
@@ -1279,7 +1295,8 @@ void CaloCalibEmc_Pi0::Fit_Histos_Eta_Phi_Add32(const std::string &incorrFile)
     float mycorr;
     float myaggcv;
 
-    TNtuple *innt_corrVals = (TNtuple *) infileNt->Get("nt_corrVals");
+    TNtuple *innt_corrVals{nullptr};
+    infileNt->GetObject("nt_corrVals", innt_corrVals);
 
     innt_corrVals->SetBranchAddress("tower_eta", &myieta);
     innt_corrVals->SetBranchAddress("tower_phi", &myiphi);
@@ -1445,7 +1462,8 @@ void CaloCalibEmc_Pi0::Fit_Histos_Etas96(const std::string &incorrFile)
     float mycorr;
     float myaggcv;
 
-    TNtuple *innt_corrVals = (TNtuple *) infileNt->Get("nt_corrVals");
+    TNtuple *innt_corrVals{nullptr};
+    infileNt->GetObject("nt_corrVals", innt_corrVals);
 
     innt_corrVals->SetBranchAddress("tower_eta", &myieta);
     innt_corrVals->SetBranchAddress("tower_phi", &myiphi);
@@ -1716,7 +1734,8 @@ void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &
   {
     // getting eta towers
     std::string b = std::string("eta_") + std::to_string(i);
-    TH1F *heta_temp = (TH1F *) cal_output->Get(b.c_str());
+    TH1 *heta_temp{nullptr};
+    cal_output->GetObject(b.c_str(), heta_temp);
     eta_hist.at(i) = heta_temp;
 
     std::cout << "got " << b << std::endl;
@@ -1725,7 +1744,8 @@ void CaloCalibEmc_Pi0::Get_Histos(const std::string &infile, const std::string &
     for (int j = 0; j < 256; j++)
     {
       std::string hist_name = std::string("emc_ieta") + std::to_string(i) + std::string("_phi") + std::to_string(j);
-      TH1F *h_eta_phi_temp = (TH1F *) cal_output->Get(hist_name.c_str());
+      TH1 *h_eta_phi_temp{nullptr};
+      cal_output->GetObject(hist_name.c_str(), h_eta_phi_temp);
       cemc_hist_eta_phi.at(i).at(j) = h_eta_phi_temp;
     }
   }

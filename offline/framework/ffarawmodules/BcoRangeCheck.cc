@@ -26,6 +26,7 @@
 
 #include <bitset>
 #include <iostream>  // for operator<<, endl, basic_ost...
+#include <ranges>
 #include <set>
 #include <utility>  // for pair
 #include <vector>   // for vector
@@ -138,9 +139,9 @@ int BcoRangeCheck::End(PHCompositeNode * /*topNode*/)
     scoremap.insert(std::make_pair(iter.second, iter.first));
   }
   int i = 0;
-  for (auto iter = scoremap.rbegin(); iter != scoremap.rend(); ++iter)
+  for (auto &iter : std::ranges::reverse_view(scoremap))
   {
-    std::cout << "high score " << iter->first << " for diff " << iter->second
+    std::cout << "high score " << iter.first << " for diff " << iter.second
               << std::endl;
     i++;
     if (i > 3)

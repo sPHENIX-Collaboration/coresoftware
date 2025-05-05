@@ -11,8 +11,8 @@
 
 Dumper::Dumper(const std::string &name)
   : SubsysReco(name)
+  , nodedump(new PHNodeDump())
 {
-  nodedump = new PHNodeDump();
   return;
 }
 

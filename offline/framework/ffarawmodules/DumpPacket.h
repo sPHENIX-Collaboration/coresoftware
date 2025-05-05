@@ -8,15 +8,15 @@ class OfflinePacket;
 
 class DumpPacket
 {
-public:
+ public:
   DumpPacket() = default;
   virtual ~DumpPacket();
   virtual void ddumppacket(OfflinePacket *pkt);
-  virtual void enable_ddump(int b = 1) {m_ddump_flag = b;}
-  virtual bool ddump_enabled() const {return m_ddump_flag;}
+  virtual void enable_ddump(int b = 1) { m_ddump_flag = b; }
+  virtual bool ddump_enabled() const { return m_ddump_flag; }
 
-private:
-  int m_ddump_flag {0};
+ private:
+  int m_ddump_flag{0};
   std::map<int, std::ofstream *> m_PacketDumpFile;
   std::map<int, int> m_PacketDumpCounter;
 };

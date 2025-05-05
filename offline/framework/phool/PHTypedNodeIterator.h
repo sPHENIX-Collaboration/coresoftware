@@ -37,7 +37,7 @@ class PHTypedNodeIterator : public PHNodeIterator
 
   /// Destructor
   //  virtual ~PHTypedNodeIterator();  // Need a virtual ~PHNodeIterator() !
-  ~PHTypedNodeIterator() override {}
+  ~PHTypedNodeIterator() override = default;
   /**
    * Finds an IODataNode of name "name" containing data of type "T".
    * A null pointer will be returned if the node is not found, or if

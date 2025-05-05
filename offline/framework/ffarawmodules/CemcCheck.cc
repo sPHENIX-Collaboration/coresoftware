@@ -45,7 +45,7 @@ int CemcCheck::process_event(PHCompositeNode *topNode)
     {
       if (ddump_enabled())
       {
-	ddumppacket(cemccont->getPacket(i));
+        ddumppacket(cemccont->getPacket(i));
       }
     }
   }

@@ -21,7 +21,7 @@ DumpSvtxVertexMap::DumpSvtxVertexMap(const std::string &NodeName)
 int DumpSvtxVertexMap::process_Node(PHNode *myNode)
 {
   SvtxVertexMap *svtxvertexmap = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     svtxvertexmap = thisNode->getData();

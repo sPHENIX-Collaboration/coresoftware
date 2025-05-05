@@ -16,6 +16,7 @@ libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpBbcPmtInfoContainer.cc \
   DumpBbcVertexMap.cc \
+  DumpCaloPacket.cc \
   DumpCaloPacketContainer.cc \
   DumpCaloTriggerInfo.cc \
   DumpCdbUrlSave.cc \

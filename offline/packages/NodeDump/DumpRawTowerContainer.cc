@@ -21,7 +21,7 @@ DumpRawTowerContainer::DumpRawTowerContainer(const std::string &NodeName)
 int DumpRawTowerContainer::process_Node(PHNode *myNode)
 {
   RawTowerContainer *rawtowercontainer = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     rawtowercontainer = thisNode->getData();

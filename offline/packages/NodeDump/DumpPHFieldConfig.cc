@@ -20,7 +20,7 @@ DumpPHFieldConfig::DumpPHFieldConfig(const std::string &NodeName)
 int DumpPHFieldConfig::process_Node(PHNode *myNode)
 {
   PHFieldConfig *phfieldconfig = nullptr;
-  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
   {
     phfieldconfig = thisNode->getData();

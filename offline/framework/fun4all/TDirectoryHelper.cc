@@ -92,6 +92,7 @@ void TDirectoryHelper::duplicateDir(TDirectory* dest, TDirectory* source)
 
   TDirectory* newdir;
 
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
   newdir = static_cast<TDirectory*>(gDirectory->FindObject(source->GetName()));
 
   if (!newdir)
@@ -168,6 +169,7 @@ TDirectoryHelper::mkdir(TDirectory* topDir,
 
   for (size_t i = 0; i < paths.size(); i++)
   {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
     TDirectory* subdir = static_cast<TDirectory*>(dir->FindObject(paths[i].c_str()));
     if (subdir == nullptr)
     {

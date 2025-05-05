@@ -159,6 +159,23 @@ namespace
     return out;
   }
 
+  TVector3 get_world_from_local_vect( ActsGeometry* geometry, Surface surface, const TVector3& local_vect )
+  {
+
+    // get global vector from local, using ACTS surface
+    Acts::Vector3 local(
+      local_vect.x()*Acts::UnitConstants::cm,
+      local_vect.y()*Acts::UnitConstants::cm,
+      local_vect.z()*Acts::UnitConstants::cm );
+
+    // TODO: check signification of the last two parameters to referenceFrame.
+    const Acts::Vector3 global = surface->referenceFrame(geometry->geometry().getGeoContext(), {0,0,0}, {0,0,0})*local;
+    return TVector3(
+      global.x()/Acts::UnitConstants::cm,
+      global.y()/Acts::UnitConstants::cm,
+      global.z()/Acts::UnitConstants::cm );
+  }
+
 }  // namespace
 
 /*
@@ -533,7 +550,7 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
  * fit track with SvtxTrack as input seed.
  * \param intrack Input SvtxTrack
  */
-std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* topNode, const SvtxTrack* intrack)
+std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* /*topNode*/, const SvtxTrack* intrack)
 {
   // std::shared_ptr<PHGenFit::Track> empty_track(nullptr);
   if (!intrack)
@@ -541,15 +558,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     cerr << PHWHERE << " Input SvtxTrack is nullptr!" << endl;
     return nullptr;
   }
-
-  auto geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  assert(geom_container_intt);
-
-  auto geom_container_mvtx = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-  assert(geom_container_mvtx);
-
-  /* no need to check for the container validity here. The check is done if micromegas clusters are actually found in the track */
-  auto geom_container_micromegas = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
 
   // get crossing from track
   const auto crossing = intrack->get_crossing();
@@ -650,58 +658,48 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     std::unique_ptr<PHGenFit::PlanarMeasurement> meas;
     switch (TrkrDefs::getTrkrId(cluster_key))
-    {
-    case TrkrDefs::mvtxId:
-    {
-      double ladder_location[3] = {0.0, 0.0, 0.0};
-      auto geom = static_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
-      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-      auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-	  CylinderGeom_MvtxHelper::find_sensor_center(surf, m_tgeometry, ladder_location);
+	    {
+	    case TrkrDefs::mvtxId:
+	    {
+	      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	      auto surface = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        const auto u = get_world_from_local_vect(m_tgeometry, surface, {1, 0, 0});
+        const auto v = get_world_from_local_vect(m_tgeometry, surface, {0, 1, 0});
+	      meas.reset( new PHGenFit::PlanarMeasurement(pos, u, v, cluster_rphi_error, cluster_z_error) );
 
-      TVector3 n(ladder_location[0], ladder_location[1], 0);
-      n.RotateZ(geom->get_stave_phi_tilt());
-      meas.reset( new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error) );
+	      break;
+	    }
 
-      break;
-    }
+	    case TrkrDefs::inttId:
+	    {
+	      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	      auto surface = m_tgeometry->maps().getSiliconSurface(hitsetkey);
+        const auto u = get_world_from_local_vect(m_tgeometry, surface, {1, 0, 0});
+        const auto v = get_world_from_local_vect(m_tgeometry, surface, {0, 1, 0});
+	      meas.reset( new PHGenFit::PlanarMeasurement(pos, u, v, cluster_rphi_error, cluster_z_error) );
+	      break;
+	    }
 
-    case TrkrDefs::inttId:
-    {
-      auto geom = static_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
-      double hit_location[3] = {0.0, 0.0, 0.0};
-      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
-      auto surf = m_tgeometry->maps().getSiliconSurface(hitsetkey);
-      CylinderGeomInttHelper::find_segment_center(surf, m_tgeometry, hit_location);
+	    case TrkrDefs::micromegasId:
+	    {
 
-      TVector3 n(hit_location[0], hit_location[1], 0);
-      n.RotateZ(geom->get_strip_phi_tilt());
-      meas.reset( new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error) );
+	      // get geometry
+	      /* a situation where micromegas clusters are found, but not the geometry, should not happen */
+	      auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+	      auto surface = m_tgeometry->maps().getMMSurface(hitsetkey);
+        const auto u = get_world_from_local_vect(m_tgeometry, surface, {1, 0, 0});
+        const auto v = get_world_from_local_vect(m_tgeometry, surface, {0, 1, 0});
+	      meas.reset( new PHGenFit::PlanarMeasurement(pos, u, v, cluster_rphi_error, cluster_z_error) );
+	      break;
+	    }
 
-      break;
-    }
-
-    case TrkrDefs::micromegasId:
-    {
-
-      // get geometry
-      /* a situation where micromegas clusters are found, but not the geometry, should not happen */
-      assert(geom_container_micromegas);
-      auto geom = static_cast<CylinderGeomMicromegas*>(geom_container_micromegas->GetLayerGeom(layer));
-      const auto tileid = MicromegasDefs::getTileId(cluster_key);
-      const auto u = geom->get_world_from_local_vect(tileid, m_tgeometry, TVector3(1, 0, 0));
-      const auto v = geom->get_world_from_local_vect(tileid, m_tgeometry, TVector3(0, 1, 0));
-      meas.reset( new PHGenFit::PlanarMeasurement(pos, u, v, cluster_rphi_error, cluster_z_error) );
-      break;
-    }
-
-    default:
-    {
-      // create measurement
-      const TVector3 n(globalPosition_acts.x(), globalPosition_acts.y(), 0);
-      meas.reset( new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error) );
-      break;
-    }
+	    case TrkrDefs::tpcId:
+	    {
+	      // create measurement
+	      const TVector3 n(globalPosition_acts.x(), globalPosition_acts.y(), 0);
+	      meas.reset( new PHGenFit::PlanarMeasurement(pos, n, cluster_rphi_error, cluster_z_error) );
+	      break;
+	    }
 
     }
 
@@ -968,10 +966,6 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
   const auto gftrack = phgf_track->getGenFitTrack();
   const auto rep = gftrack->getCardinalRep();
-
-  std::cout << "PHGenFitTrkFitter - measurements: " << gftrack->getNumPointsWithMeasurement() << std::endl;
-  std::cout << "PHGenFitTrkFitter - cluster keys: " << phgf_track->get_cluster_keys().size() << std::endl;
-
   for (unsigned int id = 0; id < gftrack->getNumPointsWithMeasurement(); ++id)
   {
     genfit::TrackPoint* trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());

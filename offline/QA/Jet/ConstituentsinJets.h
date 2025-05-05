@@ -25,7 +25,10 @@ class ConstituentsinJets : public SubsysReco
       const std::string &moduleName = "ConstituentsInJets",
       const std::string &recojetname = "AntiKt_Tower_r04",
       const std::string &towBkgdName = "TowerInfoBackground_Sub2",
-      const std::string &histTag = "AllTrig_AntiKt_Tower_R04");
+      const std::string &histTag = "AllTrig_AntiKt_Tower_R04",
+      const std::string &towCEMCName = "TOWERINFO_CALIB_CEMC_RETOWER",
+      const std::string &towIHCALName = "TOWERINFO_CALIB_IHCAL",      
+      const std::string &towOHCALName = "TOWERINFO_CALIB_OHCAL");
   ~ConstituentsinJets() override{};
 
   void setRecoJetNodeName(const std::string &name)
@@ -53,6 +56,27 @@ class ConstituentsinJets : public SubsysReco
     m_trgToSelect = trig;
   }
 
+  void setTowBkgdNodeName(const std::string &name)
+  { // set the name of the node containing the subtracted background towers
+    m_towBkgdName = name;
+  }
+
+  void setTowNodeNameCEMC(const std::string &name)
+  {//set the name of the node containing raw towers from EMCAL
+    m_towCEMCName = name;
+  }
+
+  void setTowNodeNameIHCAL(const std::string &name)
+  {
+    m_towIHCALName = name;  
+  }
+
+  void setTowNodeNameOHCAL(const std::string &name)
+  {
+    m_towOHCALName = name;
+  }
+
+
   // standard Fun4All functions
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -64,6 +88,9 @@ class ConstituentsinJets : public SubsysReco
   std::string m_recoJetName;
   std::string m_towBkgdName;
   std::string m_histTag;
+  std::string m_towCEMCName;
+  std::string m_towIHCALName;
+  std::string m_towOHCALName;
   // std::string m_outputFileName{ "ConstituentsinJets.root"};
 
   //! Trigger selection
