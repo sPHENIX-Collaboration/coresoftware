@@ -85,6 +85,8 @@ class MbdCalib
     return std::numeric_limits<float>::quiet_NaN();
   }
 
+  float get_threshold(const int pmtch, const int rel_or_abs = 0);
+
   void set_sampmax(const int ifeech, const int val) { _sampmax[ifeech] = val; }
   void set_ped(const int ifeech, const float m, const float merr, const float s, const float serr);
   void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
@@ -100,6 +102,7 @@ class MbdCalib
   int Download_TimeCorr(const std::string& dbase_location);
   int Download_SlewCorr(const std::string& dbase_location);
   int Download_Pileup(const std::string& dbase_location);
+  int Download_Thresholds(const std::string& dbase_location);
   int Download_All();
 
 #ifndef ONLINE
@@ -113,6 +116,7 @@ class MbdCalib
   int Write_CDB_SlewCorr(const std::string& dbfile);
   int Write_CDB_Gains(const std::string& dbfile);
   int Write_CDB_Pileup(const std::string& dbfile);
+  int Write_CDB_Thresholds(const std::string& dbfile);
   static int Write_CDB_All();
 #endif
 
@@ -123,6 +127,7 @@ class MbdCalib
   int Write_Ped(const std::string& dbfile);
   int Write_Gains(const std::string& dbfile);
   int Write_Pileup(const std::string& dbfile);
+  int Write_Thresholds(const std::string& dbfile);
 
   void Reset_TQT0();
   void Reset_TTT0();
@@ -130,6 +135,7 @@ class MbdCalib
   void Reset_Ped();
   void Reset_Gains();
   void Reset_Pileup();
+  void Reset_Thresholds();
 
   void Update_TQT0(const float dz, const float dt = 0.); // update with new z-vertex, t0
   void Update_TTT0(const float dz, const float dt = 0.);
@@ -233,6 +239,14 @@ class MbdCalib
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _scorr_y{};
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _scorr_y_interp{}; // interpolated scorr
 
+  // Thresolds
+  std::array<float, MbdDefs::MBD_N_PMT> _thresh_mean{};
+  std::array<float, MbdDefs::MBD_N_PMT> _thresh_meanerr{};
+  std::array<float, MbdDefs::MBD_N_PMT> _thresh_width{};
+  std::array<float, MbdDefs::MBD_N_PMT> _thresh_widtherr{};
+  std::array<float, MbdDefs::MBD_N_PMT> _thresh_eff{};
+  std::array<float, MbdDefs::MBD_N_PMT> _thresh_efferr{};
+  std::array<float, MbdDefs::MBD_N_PMT> _thresh_chi2ndf{};
 };
 
 #endif  // MBD_MBDCALIB_H
