@@ -55,7 +55,7 @@ class ConstituentsinJets : public SubsysReco
     m_doTrgSelect = true;
     m_trgToSelect = trig;
   }
-  setPPMode(const bool pp)
+  void setPPMode(const bool pp)
   {
     m_inPPMode = pp;
   }
