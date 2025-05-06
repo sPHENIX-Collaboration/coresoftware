@@ -52,25 +52,23 @@ void TrksInJetQATrkManager::DefineHistograms()
   std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
 
   // set histogram types
-  m_vecHistTypes.push_back("All");
+  m_vecHistTypes.emplace_back("All");
 
   // define 1d histograms
-  m_vecHistDef1D.push_back(std::make_tuple("TrackEta", vecBins.at(TrksInJetQAHist::Var::Eta)));
-  m_vecHistDef1D.push_back(std::make_tuple("TrackPhi", vecBins.at(TrksInJetQAHist::Var::Phi)));
-  m_vecHistDef1D.push_back(std::make_tuple("TrackPt", vecBins.at(TrksInJetQAHist::Var::Ene)));
-  m_vecHistDef1D.push_back(std::make_tuple("TrackQual", vecBins.at(TrksInJetQAHist::Var::Qual)));
+  m_vecHistDef1D.emplace_back("TrackEta", vecBins.at(TrksInJetQAHist::Var::Eta));
+  m_vecHistDef1D.emplace_back("TrackPhi", vecBins.at(TrksInJetQAHist::Var::Phi));
+  m_vecHistDef1D.emplace_back("TrackPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_vecHistDef1D.emplace_back("TrackQual", vecBins.at(TrksInJetQAHist::Var::Qual));
 
   // define 2d histograms
-  m_vecHistDef2D.push_back(
-      std::make_tuple(
+  m_vecHistDef2D.emplace_back(
           "TrackEtaVsPhi",
           vecBins.at(TrksInJetQAHist::Var::Phi),
-          vecBins.at(TrksInJetQAHist::Var::Eta)));
-  m_vecHistDef2D.push_back(
-      std::make_tuple(
+          vecBins.at(TrksInJetQAHist::Var::Eta));
+  m_vecHistDef2D.emplace_back(
           "TrackPtVsQual",
           vecBins.at(TrksInJetQAHist::Var::Qual),
-          vecBins.at(TrksInJetQAHist::Var::Ene)));
+          vecBins.at(TrksInJetQAHist::Var::Ene));
   return;
 
 }  // end 'BuildHistograms()'

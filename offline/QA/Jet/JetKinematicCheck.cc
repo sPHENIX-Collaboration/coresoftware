@@ -252,7 +252,7 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
       etaRangeUse = {m_etaRange.first, m_etaRange.second};
     }
 
-    std::string recoJetName = m_recoJetName_array[i];
+    const std::string& recoJetName = m_recoJetName_array[i];
 
     JetContainer *jets = findNode::getClass<JetContainer>(topNode, recoJetName);
     if (!jets)
@@ -264,7 +264,7 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
     }
 
     // loop over jets
-    for (auto jet : *jets)
+    for (auto *jet : *jets)
     {
       bool eta_cut = (jet->get_eta() >= etaRangeUse.first) and (jet->get_eta() <= etaRangeUse.second);
       bool pt_cut = (jet->get_pt() >= m_ptRange.first) and (jet->get_pt() <= m_ptRange.second);

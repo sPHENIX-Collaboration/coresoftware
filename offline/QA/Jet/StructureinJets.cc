@@ -4,22 +4,22 @@
 
 #include <centrality/CentralityInfo.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
 #include <jetbase/JetInput.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 
 #include <qautils/QAHistManagerDef.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
 
 #include <TH1.h>
 #include <TH2.h>
@@ -71,7 +71,7 @@ int StructureinJets::Init(PHCompositeNode* /*topNode*/)
 
   if (m_writeToOutputFileFlag)
   {
-    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+    PHTFileServer::open(m_outputFileName, "RECREATE");
   }
 
   delete m_analyzer;
@@ -195,7 +195,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   }
 
   // Loop through jets
-  for (auto jet : *jets)
+  for (auto *jet : *jets)
   {
     if (!jet)
     {
@@ -226,8 +226,8 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
     {
       SvtxTrack* track = iter.second;
       float quality = track->get_quality();
-      auto silicon_seed = track->get_silicon_seed();
-      auto tpc_seed = track->get_tpc_seed();
+      auto *silicon_seed = track->get_silicon_seed();
+      auto *tpc_seed = track->get_tpc_seed();
 
       // get no. of clusters in silicon seed
       int nsiliconclusts = 0;
@@ -265,7 +265,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
       {
         dPhi += 2 * M_PI;
       }
-      double dR = sqrt(dEta * dEta + dPhi * dPhi);
+      double dR = sqrt((dEta * dEta) + (dPhi * dPhi));
 
       // Check if track is within jet radius
       if (dR < m_jetRadius)
@@ -325,7 +325,7 @@ int StructureinJets::End(PHCompositeNode* /*topNode*/)
     {
       std::cout << "StructureinJets::End - Output to " << m_outputFileName << std::endl;
     }
-    PHTFileServer::get().cd(m_outputFileName);
+    PHTFileServer::cd(m_outputFileName);
   }
   else
   {
