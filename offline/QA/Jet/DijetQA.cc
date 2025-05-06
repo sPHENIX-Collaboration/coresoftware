@@ -145,10 +145,16 @@ int DijetQA::process_event(PHCompositeNode* topNode)
   GlobalVertexMap* vtxmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vtxmap || vtxmap->empty())
   {
-	
-    std::cout << "DijetQA::process_event - Error can not find vtxmap node " << "GlobalVertexMap" << std::endl; 
-    if( Verbosity() > 1 ){
-	 std::cout << "No vertex map found, assuming the vertex has z=0" << std::endl;
+    if (!vtxmap)
+    {
+      std::cerr << "DijetQA::process_event - Error can not find vtxmap node " << "GlobalVertexMap" << std::endl;
+    }
+    if(Verbosity() > 1)
+    {
+      if (vtxmap->empty())
+      {
+        std::cerr << "No vertex map found, assuming the vertex has z=0" << std::endl;
+      }
     }
     m_zvtx = 0;
   }
