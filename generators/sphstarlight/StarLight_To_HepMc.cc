@@ -29,14 +29,14 @@ int fillEvent(HepMC::GenEvent* evt, std::ifstream& file)
   int found_event = 0;
   while ( getline( file, line ) )
   {
-    // keep going until 
-    if ( line.find("EVENT") == 0 )
+    // keep going until EVENT line is found
+    if ( line.starts_with("EVENT") )
     {
       found_event = 1;
       break;
     }
   }
-  
+
   if ( found_event == 1 )
   {
     int nevt, ntrk, nvtx;
