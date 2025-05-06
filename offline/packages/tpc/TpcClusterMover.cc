@@ -15,6 +15,15 @@
 #include <cmath>
 #include <iostream>
 
+namespace
+{
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3 v )
+  {
+    out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
+    return out;
+  }
+}
+
 TpcClusterMover::TpcClusterMover()
 {
   // initialize layer radii
@@ -54,8 +63,9 @@ void TpcClusterMover::initialize_geometry(PHG4TpcCylinderGeomContainer *cellgeo)
 }
 
 //____________________________________________________________________________..
-std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::processTrack(std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_in)
+std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in)
 {
+
   // Get the global positions of the TPC clusters for this track, already corrected for distortions, and move them to the surfaces
   // The input object contains all clusters for the track
 
@@ -64,19 +74,18 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
   std::vector<Acts::Vector3> tpc_global_vec;
   std::vector<TrkrDefs::cluskey> tpc_cluskey_vec;
 
-  for (auto &i : global_in)
+  for (const auto& [ckey,global]:global_in)
   {
-    TrkrDefs::cluskey cluskey = i.first;
-    unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+    const auto trkrid = TrkrDefs::getTrkrId(ckey);
     if (trkrid == TrkrDefs::tpcId)
     {
-      tpc_global_vec.push_back(i.second);
-      tpc_cluskey_vec.push_back(i.first);
+      tpc_cluskey_vec.push_back(ckey);
+      tpc_global_vec.push_back(global);
     }
     else
     {
       // si clusters stay where they are
-      global_moved.emplace_back(std::make_pair(cluskey, i.second));
+      global_moved.emplace_back(ckey,global);
     }
   }
 
@@ -134,7 +143,7 @@ std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> TpcClusterMover::proces
     Acts::Vector3 global_new(xnew, ynew, znew);
 
     // add the new position and surface to the return object
-    global_moved.emplace_back(std::make_pair(cluskey, global_new));
+    global_moved.emplace_back(cluskey, global_new);
 
     if (_verbosity > 2)
     {
