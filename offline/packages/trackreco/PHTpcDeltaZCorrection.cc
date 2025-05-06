@@ -34,6 +34,18 @@ namespace
   /// speed of light, in cm per ns
   static constexpr double speed_of_light = GSL_CONST_MKSA_SPEED_OF_LIGHT * 1e-7;
 
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& v )
+  {
+    out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
+    return out;
+  }
+
+
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector2& v )
+  {
+    out << "(" << v.x() << ", " << v.y() << ")";
+    return out;
+  }
 }  // namespace
 
 //____________________________________________________________________________..
@@ -157,6 +169,16 @@ void PHTpcDeltaZCorrection::process_track(unsigned int key, TrackSeed* track)
               << " center: " << center_x << ", " << center_y
               << " radius: " << radius
               << std::endl;
+  }
+
+  // check track seed fit validity
+  if( std::isnan( center_x ) || std::isnan( center_y ) )
+  {
+    if( Verbosity() )
+    {
+      std::cout << "PHTpcDeltaZCorrection::process_track - invalid seed parameters. Skipping" << std::endl;
+    }
+    return;
   }
 
   // loop over clusters. Assume they are ordered by layer
