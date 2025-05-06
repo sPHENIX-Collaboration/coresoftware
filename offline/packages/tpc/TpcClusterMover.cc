@@ -17,7 +17,7 @@
 
 namespace
 {
-  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3 v )
+  [[maybe_unused]] std::ostream& operator << (std::ostream& out, const Acts::Vector3& v )
   {
     out << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
     return out;
