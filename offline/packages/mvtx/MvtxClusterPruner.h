@@ -22,11 +22,10 @@ class PHCompositeNode;
  */
 class MvtxClusterPruner : public SubsysReco
 {
- public:
-  typedef std::pair<unsigned int, unsigned int> pixel;
+  public:
 
+  //! constructor
   MvtxClusterPruner(const std::string &name = "MvtxClusterPruner");
-  ~MvtxClusterPruner() override = default;
 
   //! module initialization
   int Init(PHCompositeNode * /*topNode*/) override { return 0; }
@@ -40,6 +39,20 @@ class MvtxClusterPruner : public SubsysReco
   //! end of process
   int End(PHCompositeNode * /*topNode*/) override;
 
+  //! strict matching
+  void set_use_strict_matching( bool value )
+  { m_use_strict_matching = value; }
+
+  private:
+
+  //! strict matching
+  bool m_use_strict_matching = false;
+
+  //!@name counters
+  //@{
+  uint64_t m_cluster_counter_total = 0;
+  uint64_t m_cluster_counter_deleted = 0;
+  //@}
 };
 
 #endif  // MVTX_MVTXHITPRUNER_H
