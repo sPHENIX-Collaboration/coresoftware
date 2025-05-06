@@ -27,8 +27,8 @@ class ConstituentsinJets : public SubsysReco
       const std::string &towBkgdName = "TowerInfoBackground_Sub2",
       const std::string &histTag = "AllTrig_AntiKt_Tower_R04",
       const std::string &towCEMCName = "TOWERINFO_CALIB_CEMC_RETOWER",
-      const std::string &towIHCALName = "TOWERINFO_CALIB_IHCAL",      
-      const std::string &towOHCALName = "TOWERINFO_CALIB_OHCAL");
+      const std::string &towIHCALName = "TOWERINFO_CALIB_HCALIN",      
+      const std::string &towOHCALName = "TOWERINFO_CALIB_HCALOUT");
   ~ConstituentsinJets() override{};
 
   void setRecoJetNodeName(const std::string &name)
