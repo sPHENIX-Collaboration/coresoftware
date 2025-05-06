@@ -55,6 +55,10 @@ class ConstituentsinJets : public SubsysReco
     m_doTrgSelect = true;
     m_trgToSelect = trig;
   }
+  setPPMode(const bool pp)
+  {
+    m_inPPMode = pp;
+  }
 
   void setTowBkgdNodeName(const std::string &name)
   { // set the name of the node containing the subtracted background towers
@@ -95,6 +99,7 @@ class ConstituentsinJets : public SubsysReco
 
   //! Trigger selection
   bool m_doTrgSelect{false};
+  bool m_inPPMode{false};
   uint32_t m_trgToSelect{JetQADefs::GL1::MBDNSJet1};
 
   // ! Kinematic cuts and reco jet node name
