@@ -116,30 +116,30 @@ class JetKinematicCheck : public SubsysReco
   std::vector<float> m_radii;
 
   // output histograms
-  TH1 *jet_spectra_r02  {nullptr};
-  TH1 *jet_spectra_r03  {nullptr};
-  TH1 *jet_spectra_r04  {nullptr};
-  TH1 *jet_spectra_r05  {nullptr};
-  TH2 *jet_eta_phi_r02  {nullptr};
-  TH2 *jet_eta_phi_r03  {nullptr};
-  TH2 *jet_eta_phi_r04  {nullptr};
-  TH2 *jet_eta_phi_r05  {nullptr};
-  TH2 *jet_mass_pt_r02  {nullptr};
-  TH1 *jet_mass_pt_1D_r02  {nullptr};
-  TH2 *jet_mass_pt_r03  {nullptr};
-  TH1 *jet_mass_pt_1D_r03  {nullptr};
-  TH2 *jet_mass_pt_r04  {nullptr};
-  TH1 *jet_mass_pt_1D_r04  {nullptr};
-  TH2 *jet_mass_pt_r05  {nullptr};
-  TH1 *jet_mass_pt_1D_r05  {nullptr};
-  TH2 *jet_mass_eta_r02  {nullptr};
-  TH1 *jet_mass_eta_1D_r02  {nullptr};
-  TH2 *jet_mass_eta_r03  {nullptr};
-  TH1 *jet_mass_eta_1D_r03  {nullptr};
-  TH2 *jet_mass_eta_r04  {nullptr};
-  TH1 *jet_mass_eta_1D_r04  {nullptr};
-  TH2 *jet_mass_eta_r05  {nullptr};
-  TH1 *jet_mass_eta_1D_r05  {nullptr};
+  TH1 *h_jet_pt_spectra_r02  {nullptr};
+  TH1 *h_jet_pt_spectra_r03  {nullptr};
+  TH1 *h_jet_pt_spectra_r04  {nullptr};
+  TH1 *h_jet_pt_spectra_r05  {nullptr};
+  TH2 *h_jet_eta_phi_r02  {nullptr};
+  TH2 *h_jet_eta_phi_r03  {nullptr};
+  TH2 *h_jet_eta_phi_r04  {nullptr};
+  TH2 *h_jet_eta_phi_r05  {nullptr};
+  TH2 *h_jet_mass_pt_r02  {nullptr};
+  TH1 *h_jet_average_mass_pt_1D_r02  {nullptr};
+  TH2 *h_jet_mass_pt_r03  {nullptr};
+  TH1 *h_jet_average_mass_pt_1D_r03  {nullptr};
+  TH2 *h_jet_mass_pt_r04  {nullptr};
+  TH1 *h_jet_average_mass_pt_1D_r04  {nullptr};
+  TH2 *h_jet_mass_pt_r05  {nullptr};
+  TH1 *h_jet_average_mass_pt_1D_r05  {nullptr};
+  TH2 *h_jet_mass_eta_r02  {nullptr};
+  TH1 *h_jet_average_mass_eta_1D_r02  {nullptr};
+  TH2 *h_jet_mass_eta_r03  {nullptr};
+  TH1 *h_jet_average_mass_eta_1D_r03  {nullptr};
+  TH2 *h_jet_mass_eta_r04  {nullptr};
+  TH1 *h_jet_average_mass_eta_1D_r04  {nullptr};
+  TH2 *h_jet_mass_eta_r05  {nullptr};
+  TH1 *h_jet_average_mass_eta_1D_r05  {nullptr};
 };
 
 #endif  // JETKINEMATICCHECK_H

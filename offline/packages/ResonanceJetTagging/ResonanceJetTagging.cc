@@ -123,7 +123,7 @@ ResonanceJetTagging::ResonanceJetTagging(const std::string &name, const TAG tag,
       m_nDaughters = 0;
       break;
     case ResonanceJetTagging::TAG::JPSI:
-      m_tag_pdg = 433;
+      m_tag_pdg = 443;
       m_nDaughters = 2;
       break;
     case ResonanceJetTagging::TAG::K0:

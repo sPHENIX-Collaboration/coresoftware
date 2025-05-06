@@ -34,6 +34,7 @@
 // root libraries
 #include <TH1.h>
 #include <TH2.h>
+#include <TStyle.h>
 
 // c++ utiilites
 #include <algorithm>
@@ -172,7 +173,7 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
       const int32_t iPhi = towers->getTowerPhiBin(key);
 
       // get status
-      const auto tower = towers->get_tower_at_channel(iTower);
+      auto *const tower = towers->get_tower_at_channel(iTower);
       const auto status = CaloStatusMapperDefs::GetTowerStatus(tower);
       if (status == CaloStatusMapperDefs::Stat::Unknown)
       {
@@ -247,7 +248,8 @@ void CaloStatusMapper::InitHistManager()
   {
     std::cout << "CaloStatusMapper::InitHistManager() Initializing histogram manager" << std::endl;
   }
-
+  
+  gStyle->SetOptTitle(0);
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -346,7 +348,7 @@ void CaloStatusMapper::GrabNodes(PHCompositeNode* topNode)
   m_inNodes.clear();
 
   // loop over nodes to grab
-  for (auto inNodeName : m_config.inNodeNames)
+  for (const auto& inNodeName : m_config.inNodeNames)
   {
     m_inNodes.push_back(
       findNode::getClass<TowerInfoContainer>(topNode, inNodeName.first)

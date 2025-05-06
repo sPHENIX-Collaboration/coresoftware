@@ -32,6 +32,7 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h> 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -80,11 +81,16 @@ KFParticle_Tools::KFParticle_Tools()
   , m_max_decayLength(FLT_MAX)
   , m_track_pt(0.2)
   , m_track_ptchi2(FLT_MAX)
+  , m_track_ip_xy(-1.)
+  , m_track_ipchi2_xy(-1)
   , m_track_ip(-1.)
-  , m_track_ipchi2(0.)
+  , m_track_ipchi2(-1)
   , m_track_chi2ndof(4.)
-  , m_nMVTXHits(3)
-  , m_nTPCHits(20)
+  , m_nMVTXStates(3)
+  , m_nINTTStates(1)
+  , m_nTPCStates(20)
+  , m_nTPOTStates(0)
+  , m_comb_DCA_xy(0.05)
   , m_comb_DCA(0.05)
   , m_vertex_chi2ndof(15.)
   , m_fdchi2(0.)
@@ -266,48 +272,60 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
       continue;
     }
 
-    // First check if we have the required number of MVTX and TPC hits
-    TrackSeed *tpcseed = m_dst_track->get_tpc_seed();
-    TrackSeed *silseed = m_dst_track->get_silicon_seed();
-    int MVTX_hits = 0;
-    int TPC_hits = 0;
+    //Now lets check if we have the right number of tracker states
+    int MVTX_states = 0;
+    int INTT_states = 0;
+    int TPC_states = 0;
+    int TPOT_states = 0;
 
-    if (silseed)
+    for (auto state_iter = m_dst_track->begin_states();
+         state_iter != m_dst_track->end_states();
+         ++state_iter)
     {
-      for (auto cluster_iter = silseed->begin_cluster_keys();
-           cluster_iter != silseed->end_cluster_keys(); ++cluster_iter)
+      SvtxTrackState* tstate = state_iter->second;
+      if (tstate->get_pathlength() != 0) //The first track state is an extrapolation so has no cluster
       {
-        const auto &cluster_key = *cluster_iter;
-        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
-        if (trackerID == TrkrDefs::mvtxId)
+        auto stateckey = tstate->get_cluskey(); 
+        uint8_t id = TrkrDefs::getTrkrId(stateckey);
+      
+        switch (id)
         {
-          ++MVTX_hits;
+          case TrkrDefs::mvtxId:
+            ++MVTX_states;
+            break;
+          case TrkrDefs::inttId:
+            ++INTT_states;
+            break;
+          case TrkrDefs::tpcId:
+            ++TPC_states;
+            break;
+          case TrkrDefs::micromegasId:
+            ++TPOT_states;
+            break;
+          default:
+           std::cout << "Cluster key doesnt match a tracking system, this shouldn't happen" << std::endl;
+           break; 
         }
       }
     }
-    if (MVTX_hits < m_nMVTXHits)
-    {
-      continue;
-    }
-    if (tpcseed)
-    {
-      for (auto cluster_iter = tpcseed->begin_cluster_keys(); cluster_iter != tpcseed->end_cluster_keys(); ++cluster_iter)
-      {
-        const auto &cluster_key = *cluster_iter;
-        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
 
-        if (trackerID == TrkrDefs::tpcId)
-        {
-          ++TPC_hits;
-        }
-      }
-    }
-    if (TPC_hits < m_nTPCHits)
+    if (MVTX_states < m_nMVTXStates)
     {
       continue;
     }
-    
+    if (INTT_states < m_nINTTStates)
+    {
+      continue;
+    }
+    if (TPC_states < m_nTPCStates)
+    {
+      continue;
+    }
+    if (TPOT_states < m_nTPOTStates)
+    {
+      continue;
+    }
+ 
     daughterParticles.push_back(makeParticle(topNode));  /// Turn all dst tracks in KFP tracks
     daughterParticles[trackID].SetId(iter.first);
     ++trackID;
@@ -374,14 +392,23 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
 
   float min_ip = 0;
   float min_ipchi2 = 0;
+  float min_ip_xy = 0;
+  float min_ipchi2_xy = 0;
 
   float pt = particle.GetPt();
   float pterr = particle.GetErrPt();
   float ptchi2 = pow(pterr / pt, 2);
   float trackchi2ndof = particle.GetChi2() / particle.GetNDF();
   calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
+  calcMinIP(particle, primaryVertices, min_ip_xy, min_ipchi2_xy, false);
 
-  if (pt >= m_track_pt && ptchi2 <= m_track_ptchi2 && min_ip >= m_track_ip && min_ipchi2 >= m_track_ipchi2 && trackchi2ndof <= m_track_chi2ndof)
+  if (pt >= m_track_pt
+   && ptchi2 <= m_track_ptchi2
+   && min_ip >= m_track_ip
+   && min_ipchi2 >= m_track_ipchi2 
+   && min_ip_xy >= m_track_ip_xy
+   && min_ipchi2_xy >= m_track_ipchi2_xy 
+   && trackchi2ndof <= m_track_chi2ndof)
   {
     goodTrack = true;
   }
@@ -389,7 +416,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
 }
 
 int KFParticle_Tools::calcMinIP(const KFParticle &track, const std::vector<KFParticle> &PVs,
-                                float &minimumIP, float &minimumIPchi2)
+                                float &minimumIP, float &minimumIPchi2, bool do3D)
 {
   std::vector<float> ip, ipchi2;
 
@@ -397,15 +424,15 @@ int KFParticle_Tools::calcMinIP(const KFParticle &track, const std::vector<KFPar
   {
     float thisIPchi2 = 0;
 
-    if (m_use_2D_matching_tools) 
-    {
-      ip.push_back(abs(track.GetDistanceFromVertexXY(PV)));
-      track.GetDeviationFromVertexXY(PV);
-    }
-    else
+    if (do3D) 
     {
       ip.push_back(track.GetDistanceFromVertex(PV));
       track.GetDeviationFromVertex(PV);
+    }
+    else
+    {
+      ip.push_back(abs(track.GetDistanceFromVertexXY(PV)));
+      track.GetDeviationFromVertexXY(PV);
     }
 
     if (thisIPchi2 < 0)
@@ -450,17 +477,10 @@ std::vector<std::vector<int>> KFParticle_Tools::findTwoProngs(std::vector<KFPart
     {
       if (i_it < j_it)
       {
-        float dca = 0;
-        if (m_use_2D_matching_tools)
-        {
-          dca = daughterParticles[*i_it].GetDistanceFromParticleXY(daughterParticles[*j_it]);
-        }
-        else
-        {
-          dca = daughterParticles[*i_it].GetDistanceFromParticle(daughterParticles[*j_it]);
-        }
+        float dca = daughterParticles[*i_it].GetDistanceFromParticle(daughterParticles[*j_it]);
+        float dca_xy = abs(daughterParticles[*i_it].GetDistanceFromParticleXY(daughterParticles[*j_it]));
 
-        if (dca <= m_comb_DCA)
+        if (dca <= m_comb_DCA && dca_xy <= m_comb_DCA_xy)
         {
           KFVertex twoParticleVertex;
           twoParticleVertex += daughterParticles[*i_it];
@@ -516,17 +536,10 @@ std::vector<std::vector<int>> KFParticle_Tools::findNProngs(std::vector<KFPartic
         bool dcaMet = true;
         for (unsigned int i = 0; i < nProngs - 1; ++i)
         {
-          float dca = 0;
-          if (m_use_2D_matching_tools)
-          {
-            dca = daughterParticles[i_it].GetDistanceFromParticleXY(daughterParticles[goodTracksThatMeet[i_prongs][i]]);
-          }
-          else
-          {
-            dca = daughterParticles[i_it].GetDistanceFromParticle(daughterParticles[goodTracksThatMeet[i_prongs][i]]);          
-          }
+          float dca = daughterParticles[i_it].GetDistanceFromParticle(daughterParticles[goodTracksThatMeet[i_prongs][i]]);
+          float dca_xy = abs(daughterParticles[i_it].GetDistanceFromParticleXY(daughterParticles[goodTracksThatMeet[i_prongs][i]]));
 
-          if (dca > m_comb_DCA)
+          if (dca > m_comb_DCA || dca_xy > m_comb_DCA_xy)
           {
             dcaMet = false;
           }
@@ -715,7 +728,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
   mother.SetConstructMethod(2);
 
   bool daughterMassCheck = true;
-  int particlesWithPID[] = {211, 321, 2212};
+  int particlesWithPID[] = {11, 211, 321, 2212};
   float unique_vertexID = 0;
 
   // Figure out if the decay has reco. tracks mixed with resonances
@@ -886,31 +899,47 @@ void KFParticle_Tools::constrainToVertex(KFParticle &particle, bool &goodCandida
   float calculated_decayTimeErr;
   float calculated_decayLength;
   float calculated_decayLengthErr;
+  float calculated_decayLength_xy;
+  float calculated_decayLengthErr_xy;
 
   particleCopy.GetLifeTime(calculated_decayTime, calculated_decayTimeErr);
   particleCopy.GetDecayLength(calculated_decayLength, calculated_decayLengthErr);
+  particleCopy.GetDecayLengthXY(calculated_decayLength_xy, calculated_decayLengthErr_xy);
+
+  float calculated_decayTime_xy = particleCopy.GetPseudoProperDecayTime(vertex, particleCopy.GetMass());
 
   float calculated_fdchi2 = flightDistanceChi2(particle, vertex);
-  float calculated_dira;
 
-  float calculated_ipchi2;
-  if (m_use_2D_matching_tools)
-  {
-    calculated_ipchi2 = particle.GetDeviationFromVertexXY(vertex);
-    calculated_dira = eventDIRA(particle, vertex, false);
-  }
-  else
-  {
-    calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
-    calculated_dira = eventDIRA(particle, vertex);
-  }
+  float calculated_ip_xy = abs(particle.GetDistanceFromVertexXY(vertex));
+  float calculated_ipchi2_xy = particle.GetDeviationFromVertexXY(vertex);
+  float calculated_dira_xy = eventDIRA(particle, vertex, false);
+  float calculated_ip = particle.GetDistanceFromVertex(vertex);
+  float calculated_ipchi2 = particle.GetDeviationFromVertex(vertex);
+  float calculated_dira = eventDIRA(particle, vertex);
+
+  float calculated_decay_time_significance = calculated_decayTime/calculated_decayTimeErr;
+  float calculated_decay_length_significance = calculated_decayLength/calculated_decayLengthErr;
+  float calculated_decay_length_xy_significance = calculated_decayLength_xy/calculated_decayLengthErr_xy;
 
   goodCandidate = false;
 
   const float speed = 2.99792458e-2;
   calculated_decayTime /= speed;
 
-  if (calculated_fdchi2 >= m_fdchi2 && calculated_ipchi2 <= m_mother_ipchi2 && isInRange(m_dira_min, calculated_dira, m_dira_max) && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength))
+  if (calculated_fdchi2 >= m_fdchi2 
+   && calculated_ip <= m_mother_ip 
+   && calculated_ipchi2 <= m_mother_ipchi2 
+   && calculated_ip_xy <= m_mother_ip_xy
+   && calculated_ipchi2_xy <= m_mother_ipchi2_xy
+   && calculated_decay_time_significance >= m_mother_min_decay_time_significance
+   && calculated_decay_length_significance >= m_mother_min_decay_length_significance
+   && calculated_decay_length_xy_significance >= m_mother_min_decay_length_xy_significance
+   && isInRange(m_dira_min, calculated_dira, m_dira_max) 
+   && isInRange(m_dira_xy_min, calculated_dira_xy, m_dira_xy_max) 
+   && isInRange(m_min_decayTime, calculated_decayTime, m_max_decayTime) 
+   && isInRange(m_min_decayTime_xy, calculated_decayTime_xy, m_max_decayTime_xy) 
+   && isInRange(m_min_decayLength, calculated_decayLength, m_max_decayLength)
+   && isInRange(m_min_decayLength_xy, calculated_decayLength_xy, m_max_decayLength_xy))
   {
     goodCandidate = true;
   }
@@ -1186,9 +1215,11 @@ void KFParticle_Tools::init_dEdx_fits()
   filefit->GetObject("f_Kminus_band", f_kaon_minus);
   filefit->GetObject("f_pbar_band", f_proton_minus);
 
+  pidMap.insert(std::pair<int, TF1*>( -11,  f_pion_plus));
   pidMap.insert(std::pair<int, TF1*>( 211,  f_pion_plus));
   pidMap.insert(std::pair<int, TF1*>( 321,  f_kaon_plus));
   pidMap.insert(std::pair<int, TF1*>( 2212, f_proton_plus));
+  pidMap.insert(std::pair<int, TF1*>(  11,  f_pion_minus));
   pidMap.insert(std::pair<int, TF1*>(-211,  f_pion_minus));
   pidMap.insert(std::pair<int, TF1*>(-321,  f_kaon_minus));
   pidMap.insert(std::pair<int, TF1*>(-2212, f_proton_minus));

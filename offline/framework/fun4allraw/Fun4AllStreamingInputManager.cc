@@ -773,8 +773,6 @@ int Fun4AllStreamingInputManager::FillIntt()
   {
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
-
-  //  std::cout << "Checking diff " << (m_InttRawHitMap.begin()->first - (select_crossings - m_intt_negative_bco)) << std::endl;
   while (m_InttRawHitMap.begin()->first <= select_crossings - m_intt_negative_bco)
   {
     for (auto intthititer : m_InttRawHitMap.begin()->second.InttRawHitVector)
@@ -908,7 +906,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
       int packetid = felix * 2 + endpoint;
       h_bcoLL1Strobediff[packetid]->Fill(diff);
-      if(diff < m_mvtx_bco_range)
+      if(diff <= m_mvtx_bco_range)
       {
         h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
         h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
@@ -1203,39 +1201,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       }
     }
   }
-  unsigned int refbcobitshift = m_RefBCO & 0x3FU;
-  h_refbco_tpc->Fill(refbcobitshift);
-  bool allpackets = true;
-  for (auto &p : m_TpcInputVector)
-  {
-    auto bcl_stack = p->BclkStackMap();
-    int packetnum = 0;
-    int histo_to_fill = (bcl_stack.begin()->first - 4000) / 10;
-
-    for (auto &[packetid, bclset] : bcl_stack)
-    {
-      bool thispacket = false;
-      for (auto &bcl : bclset)
-      {
-        auto diff = (m_RefBCO > bcl) ? m_RefBCO - bcl : bcl - m_RefBCO;
-        if (diff < 256)
-        {
-          thispacket = true;
-          h_gl1tagged_tpc[histo_to_fill][packetnum]->Fill(refbcobitshift);
-        }
-      }
-      if (thispacket == false)
-      {
-        allpackets = false;
-      }
-
-      packetnum++;
-    }
-  }
-  if (allpackets)
-  {
-    h_taggedAll_tpc->Fill(refbcobitshift);
-  }
+  
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
   if (m_TpcRawHitMap.size() > 0)
   {
@@ -1476,12 +1442,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
 {
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  {
-    auto h = new TH1I("h_TpcPoolQA_RefGL1BCO", "TPC ref BCO", 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("GL1 BCO");
-    h->SetTitle("GL1 Reference BCO");
-    hm->registerHisto(h);
-  }
+
   {
     auto h = new TH1I("h_InttPoolQA_RefGL1BCO", "INTT ref BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
@@ -1513,13 +1474,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
     hm->registerHisto(h);
     h_taggedAllFelixesAllFees_mvtx = h;
   }
-  {
-    auto h = new TH1I("h_TpcPoolQA_TagBCOAllPackets", "TPC trigger tagged BCO all servers", 1000,
-                      0, 1000);
-    h->GetXaxis()->SetTitle("GL1 BCO");
-    h->SetTitle("GL1 Reference BCO");
-    hm->registerHisto(h);
-  }
+
 
   for (int i = 0; i < 12; i++)
   {
@@ -1566,18 +1521,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_all->SetTitle("GL1 Reference BCO");
     hm->registerHisto(h_all);
   }
-  for (int i = 0; i < 24; i++)
-  {
-    for (int j = 0; j < 2; j++)
-    {
-      {
-        auto h = new TH1I((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str().c_str(), "TPC trigger tagged BCO", 1000, 0, 1000);
-        h->GetXaxis()->SetTitle("GL1 BCO");
-        h->SetTitle((boost::format("Packet %i and packet %i") % i % j).str().c_str());
-        hm->registerHisto(h);
-      }
-    }
-  }
+
 
   for (int i = 0; i < 12; i++)
   {
@@ -1611,14 +1555,5 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_tagBcoFelixAllFees_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str().c_str()));
   }
 
-  for (int i = 0; i < 24; i++)
-  {
-    for (int j = 0; j < 2; j++)
-    {
-      h_gl1tagged_tpc[i][j] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_TpcPoolQA_TagBCO_ebdc%i_packet%i") % i % j).str()));
-    }
-  }
 
-  h_refbco_tpc = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_RefGL1BCO"));
-  h_taggedAll_tpc = dynamic_cast<TH1 *>(hm->getHisto("h_TpcPoolQA_TagBCOAllPackets"));
 }

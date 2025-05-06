@@ -41,7 +41,7 @@ class TrksInJetQABaseManager
 
   // public methods
   void MakeHistograms(const std::string& prefix = "", const std::string& suffix = "");
-  void SaveHistograms(TDirectory* outFile, const std::string& outDirName);
+  void SaveHistograms(TDirectory* topDir, const std::string& outDirName);
   void GrabHistograms(std::vector<TH1D*>& vecOutHist1D, std::vector<TH2D*>& vecOutHist2D);
 
  protected:
@@ -50,9 +50,9 @@ class TrksInJetQABaseManager
   void ResetVectors();
 
   // private helper methods
-  bool IsInMvtx(const uint16_t layer);
-  bool IsInIntt(const uint16_t layer);
-  bool IsInTpc(const uint16_t layer);
+  bool IsInMvtx(const uint16_t layer) const;
+  bool IsInIntt(const uint16_t layer) const;
+  bool IsInTpc(const uint16_t layer) const;
 
   // virtual private methods
   virtual void DefineHistograms() = 0;

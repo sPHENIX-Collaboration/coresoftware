@@ -11,7 +11,7 @@
 
 // module defintion
 #include "TrksInJetQA.h"
-
+#include <TStyle.h>
 // ctor/dtor ------------------------------------------------------------------
 
 TrksInJetQA::TrksInJetQA(const std::string& name)
@@ -166,6 +166,8 @@ void TrksInJetQA::InitOutput()
 
   case OutMode::QA:
     delete m_manager;
+
+    gStyle->SetOptTitle(0);
     m_manager = QAHistManagerDef::getHistoManager();
     if (!m_manager)
     {

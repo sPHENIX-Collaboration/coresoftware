@@ -159,9 +159,6 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   TH1 *h_gl1taggedfee_intt[8][14]{{nullptr}};
   TH2 *h_bcodiff_intt[8]{nullptr};
 
-  TH1 *h_gl1tagged_tpc[24][2]{{nullptr}};
-  TH1 *h_refbco_tpc{nullptr};
-  TH1 *h_taggedAll_tpc{nullptr};
 };
 
 #endif /* FUN4ALL_FUN4ALLSTREAMINGINPUTMANAGER_H */

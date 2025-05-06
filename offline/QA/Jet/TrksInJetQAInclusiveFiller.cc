@@ -76,7 +76,7 @@ void TrksInJetQAInclusiveFiller::FillHitQAHists()
 void TrksInJetQAInclusiveFiller::FillClustQAHists()
 {
   // loop over hit sets
-  for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
+  for (const auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
                   TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
       for (const auto& hitsetkey : m_clustMap->getHitSetKeys(det))

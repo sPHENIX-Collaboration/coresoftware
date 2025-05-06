@@ -27,8 +27,17 @@ class QAG4SimulationDistortions : public SubsysReco
   int Init(PHCompositeNode*) override;
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode*) override;
+  int End(PHCompositeNode *topNode) override;
+
+  //! track map name
+  void set_trackmap_name( const std::string& value )
+  { m_trackmapname = value; }
 
  private:
+
+  //! track map name
+  std::string m_trackmapname = "SvtxSiliconMMTrackMap";
+
   std::string get_histo_prefix()
   {
     return std::string("h_") + Name() + std::string("_");
@@ -59,6 +68,17 @@ class QAG4SimulationDistortions : public SubsysReco
   float m_clusRPhiErr = NAN;
   float m_clusZErr = NAN;
   TrkrDefs::cluskey m_cluskey = TrkrDefs::CLUSKEYMAX;
+
+  ///@name counters
+  //@{
+  int m_total_tracks = 0;
+  int m_accepted_tracks = 0;
+
+  int m_total_states = 0;
+  int m_accepted_states = 0;
+  //@}
+
+
 };
 
 #endif  // QAG4SIMULATIONDISTORTIONS_H
