@@ -171,13 +171,13 @@ void PHTpcDeltaZCorrection::process_track(unsigned int key, TrackSeed* track)
               << std::endl;
   }
 
-  // check track seed fit validity
+  /*
+   * check track seed fit validity
+   * skip if invalid, otherwise it will result in clusters with NAN coordinates
+   */
   if( std::isnan( center_x ) || std::isnan( center_y ) )
   {
-    if( Verbosity() )
-    {
-      std::cout << "PHTpcDeltaZCorrection::process_track - invalid seed parameters. Skipping" << std::endl;
-    }
+    std::cout << "PHTpcDeltaZCorrection::process_track - invalid seed parameters. Skipping" << std::endl;
     return;
   }
 
