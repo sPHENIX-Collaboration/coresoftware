@@ -67,26 +67,24 @@ void TrksInJetQAJetManager::DefineHistograms()
   std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
 
   // histogram labels
-  m_vecHistTypes.push_back("All");
+  m_vecHistTypes.emplace_back("All");
 
   // 1d histogram definitions
-  m_vecHistDef1D.push_back(std::make_tuple("JetEta", vecBins.at(TrksInJetQAHist::Var::Eta)));
-  m_vecHistDef1D.push_back(std::make_tuple("JetPhi", vecBins.at(TrksInJetQAHist::Var::Phi)));
-  m_vecHistDef1D.push_back(std::make_tuple("JetPt", vecBins.at(TrksInJetQAHist::Var::Ene)));
-  m_vecHistDef1D.push_back(std::make_tuple("JetNTrks", vecBins.at(TrksInJetQAHist::Var::Num)));
-  m_vecHistDef1D.push_back(std::make_tuple("SumTrkPt", vecBins.at(TrksInJetQAHist::Var::Ene)));
+  m_vecHistDef1D.emplace_back("JetEta", vecBins.at(TrksInJetQAHist::Var::Eta));
+  m_vecHistDef1D.emplace_back("JetPhi", vecBins.at(TrksInJetQAHist::Var::Phi));
+  m_vecHistDef1D.emplace_back("JetPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_vecHistDef1D.emplace_back("JetNTrks", vecBins.at(TrksInJetQAHist::Var::Num));
+  m_vecHistDef1D.emplace_back("SumTrkPt", vecBins.at(TrksInJetQAHist::Var::Ene));
 
   // 2d histogram definitions
-  m_vecHistDef2D.push_back(
-      std::make_tuple(
+  m_vecHistDef2D.emplace_back(
           "JetPtVsEta",
           vecBins.at(TrksInJetQAHist::Var::Eta),
-          vecBins.at(TrksInJetQAHist::Var::Ene)));
-  m_vecHistDef2D.push_back(
-      std::make_tuple(
+          vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_vecHistDef2D.emplace_back(
           "SumTrkVsJetPt",
           vecBins.at(TrksInJetQAHist::Var::Ene),
-          vecBins.at(TrksInJetQAHist::Var::Ene)));
+          vecBins.at(TrksInJetQAHist::Var::Ene));
   return;
 
 }  // end 'DefineHistograms()'

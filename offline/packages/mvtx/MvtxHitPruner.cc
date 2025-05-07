@@ -11,10 +11,6 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/MvtxDefs.h>
-#include <trackbase/TrkrClusterContainerv4.h>
-#include <trackbase/TrkrClusterHitAssocv3.h>
-#include <trackbase/TrkrClusterv3.h>
-#include <trackbase/TrkrClusterv4.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -52,12 +48,8 @@
 #include <string>
 #include <vector>  // for vector
 
-using namespace boost;
-using namespace std;
-
-MvtxHitPruner::MvtxHitPruner(const string &name)
+MvtxHitPruner::MvtxHitPruner(const std::string &name)
   : SubsysReco(name)
-  , m_hits(nullptr)
 {
 }
 
@@ -73,9 +65,9 @@ int MvtxHitPruner::InitRun(PHCompositeNode * /*topNode*/)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== MvtxHitPruner::InitRun() "
+    std::cout << "====================== MvtxHitPruner::InitRun() "
             "====================="
-         << endl;
+         << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -87,7 +79,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hits)
   {
-    cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -119,8 +111,8 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
 
     if (Verbosity() > 0)
     {
-      cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey "
-           << bare_hitsetkey << endl;
+      std::cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey "
+           << bare_hitsetkey << std::endl;
     }
   }
 
@@ -148,8 +140,8 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
       {
         if (Verbosity() > 0)
         {
-          cout << "            process hitsetkey " << hitsetkey
-               << " for bare_hitsetkey " << bare_hitsetkey << endl;
+          std::cout << "            process hitsetkey " << hitsetkey
+               << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
         }
 
         // copy all hits to the hitset with strobe 0

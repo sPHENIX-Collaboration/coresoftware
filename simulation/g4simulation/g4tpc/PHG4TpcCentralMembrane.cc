@@ -13,7 +13,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TString.h>
 #include <TVector3.h>
 
 #include <iostream>  // for operator<<, endl, basi...
@@ -23,10 +22,10 @@ class PHCompositeNode;
 namespace
 {
   // unique detector id for all direct lasers
-  static const int detId = PHG4HitDefs::get_volume_id("PHG4TpcCentralMembrane");
+  const int detId = PHG4HitDefs::get_volume_id("PHG4TpcCentralMembrane");
 
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -120,7 +119,7 @@ int PHG4TpcCentralMembrane::InitRun(PHCompositeNode* /* topNode */)
 
     // clone
     // assign to negative side and insert in list
-    auto copy = new PHG4Hitv1(source);
+    auto* copy = new PHG4Hitv1(source);
     copy->set_z(0, -1.);
     copy->set_z(1, -1.);
     PHG4Hits.push_back(copy);
@@ -177,7 +176,7 @@ int PHG4TpcCentralMembrane::process_event(PHCompositeNode* topNode)
   }
 
   // load g4hit container
-  auto g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  auto* g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hitcontainer)
   {
     std::cout << PHWHERE << "Could not locate g4 hit node " << hitnodename << std::endl;
@@ -187,7 +186,7 @@ int PHG4TpcCentralMembrane::process_event(PHCompositeNode* topNode)
   // copy all hits from G4hits vector into container
   for (const auto& hit : PHG4Hits)
   {
-    auto copy = new PHG4Hitv1(hit);
+    auto* copy = new PHG4Hitv1(hit);
     g4hitcontainer->AddHit(detId, copy);
   }
 
@@ -209,8 +208,8 @@ void PHG4TpcCentralMembrane::SetDefaultParameters()
   static constexpr double CF4_dEdx = 7.00;   // keV/cm
   static constexpr double Ne_NTotal = 43;    // Number/cm
   static constexpr double CF4_NTotal = 100;  // Number/cm
-  static constexpr double Tpc_NTot = 0.5 * Ne_NTotal + 0.5 * CF4_NTotal;
-  static constexpr double Tpc_dEdx = 0.5 * Ne_dEdx + 0.5 * CF4_dEdx;
+  static constexpr double Tpc_NTot = (0.5 * Ne_NTotal) + (0.5 * CF4_NTotal);
+  static constexpr double Tpc_dEdx = (0.5 * Ne_dEdx) + (0.5 * CF4_dEdx);
   static constexpr double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
 
   // number of electrons per deposited GeV in TPC gas
@@ -247,8 +246,8 @@ void PHG4TpcCentralMembrane::CalculateVertices(
 
   double theta = 0.0;
   // center coords
-  std::vector<std::vector<double>> cx(nStripes,std::vector<double>(nRadii));
-  std::vector<std::vector<double>> cy(nStripes,std::vector<double>(nRadii));
+  std::vector<std::vector<double>> cx(nStripes, std::vector<double>(nRadii));
+  std::vector<std::vector<double>> cy(nStripes, std::vector<double>(nRadii));
   // corner coords
   /* double tempX1a[nStripes][nRadii], tempY1a[nStripes][nRadii];
   double tempX1b[nStripes][nRadii], tempY1b[nStripes][nRadii];
@@ -374,7 +373,7 @@ int PHG4TpcCentralMembrane::SearchModule(int /*nStripes*/,
                                          const double y2a[][nRadii], const double y2b[][nRadii],
                                          const double x3a[][nRadii], const double y3a[][nRadii],
                                          const double x3b[][nRadii], const double y3b[][nRadii],
-                                         double x, double y, const std::array<int, nRadii>& nGoodStripes) const
+                                         double x, double y, const std::array<int, nRadii>& nGoodStripes)
 {
   int c = 0;
 
@@ -419,9 +418,13 @@ int PHG4TpcCentralMembrane::getSearchResult(double xcheck, double ycheck) const
   const double end_R1 = 408.0 * mm;     // arbitrary radius between R1 and R2
   const double end_R2 = 580.0 * mm;     // arbitrary radius between R2 and R3
 
-  double r, phi, phimod, xmod, ymod;
+  double r;
+  double phi;
+  double phimod;
+  double xmod;
+  double ymod;
 
-  r = sqrt(xcheck * xcheck + ycheck * ycheck);
+  r = sqrt((xcheck * xcheck) + (ycheck * ycheck));
   phi = atan(ycheck / xcheck);
   if ((xcheck < 0.0) && (ycheck > 0.0))
   {
@@ -462,7 +465,8 @@ PHG4Hit* PHG4TpcCentralMembrane::GetPHG4HitFromStripe(int petalID, int moduleID,
 {                                       // this function generates a PHG4 hit using coordinates from a stripe
   const double phi_petal = M_PI / 9.0;  // angle span of one petal
   PHG4Hit* hit;
-  TVector3 dummyPos0, dummyPos1;
+  TVector3 dummyPos0;
+  TVector3 dummyPos1;
 
   // could put in some sanity checks here but probably not necessary since this is only really used within the class
   // petalID ranges 0-17, module ID 0-3, stripeID varies - nGoodStripes for each module
@@ -604,7 +608,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
   {
     // std::cout << "on a stripe" << std::endl;
     // convert coords to radius n angle
-    double r = sqrt(xcheck * xcheck + ycheck * ycheck);
+    double r = sqrt((xcheck * xcheck) + (ycheck * ycheck));
     double phi = atan(ycheck / xcheck);
     if ((xcheck < 0.0) && (ycheck > 0.0))
     {
@@ -647,7 +651,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
     std::cout << "yc: " << ycheck << std::endl;
           std::cout << "m: " << m << std::endl;  */
           // std::cout << fabs((-m)*xcheck + ycheck) << std::endl;
-          double dist = fabs((-m) * xmod + ymod) / sqrt(1 + m * m);
+          double dist = fabs(((-m) * xmod) + ymod) / sqrt(1 + (m * m));
           // std::cout << "dist:" << dist << std::endl;
           if (dist < ((widthmod_R1_e[j] * str_width_R1_e[i][j]) / 2.0))
           {
@@ -667,7 +671,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
         {
           // look at distance from center line of stripe
           double m = (y3b_R1[i][j] - y3a_R1[i][j]) / (x3b_R1[i][j] - x3a_R1[i][j]);
-          double dist = fabs(m * xmod - ymod) / sqrt(1 + m * m);
+          double dist = fabs((m * xmod) - ymod) / sqrt(1 + (m * m));
           if (dist < ((widthmod_R1[j] * str_width_R1[i][j]) / 2.0))
           {
             phiID = i;
@@ -683,7 +687,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
         {
           // look at distance from center line of stripe
           double m = (y3b_R2[i][j] - y3a_R2[i][j]) / (x3b_R2[i][j] - x3a_R2[i][j]);
-          double dist = fabs(m * xmod - ymod) / sqrt(1 + m * m);
+          double dist = fabs((m * xmod) - ymod) / sqrt(1 + (m * m));
           if (dist < ((widthmod_R2[j] * str_width_R2[i][j]) / 2.0))
           {
             phiID = i;
@@ -699,7 +703,7 @@ int PHG4TpcCentralMembrane::getStripeID(double xcheck, double ycheck) const
         {
           // look at distance from center line of stripe
           double m = (y3b_R3[i][j] - y3a_R3[i][j]) / (x3b_R3[i][j] - x3a_R3[i][j]);
-          double dist = fabs(m * xmod - ymod) / sqrt(1 + m * m);
+          double dist = fabs((m * xmod) - ymod) / sqrt(1 + (m * m));
           if (dist < ((widthmod_R3[j] * str_width_R3[i][j]) / 2.0))
           {
             phiID = i;

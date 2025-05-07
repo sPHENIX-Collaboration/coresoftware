@@ -218,24 +218,30 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
+  // for tower background if needed
+  TowerBackground *towBack = nullptr;
+
   // get underlying event
   float background_v2 = 0;
   float background_Psi2 = 0;
   bool has_tower_background = false;
-  TowerBackground *towBack = findNode::getClass<TowerBackground>(topNode, m_towBkgdName);
-  if (!towBack)
+  if (!m_inPPMode)
   {
-    std::cout << "ConstituentsinJets::process_event - Error can not find tower background node " << std::endl;
-  }
-  else
-  {
-    has_tower_background = true;
-    background_v2 = towBack->get_v2();
-    background_Psi2 = towBack->get_Psi2();
+    towBack = findNode::getClass<TowerBackground>(topNode, m_towBkgdName);
+    if (!towBack)
+    {
+      std::cout << "ConstituentsinJets::process_event - Error can not find tower background node " << std::endl;
+    }
+    else
+    {
+      has_tower_background = true;
+      background_v2 = towBack->get_v2();
+      background_Psi2 = towBack->get_Psi2();
+    }
   }
 
   // loop over jets
-  for (auto jet : *jets)
+  for (auto *jet : *jets)
   {
     // remove noise
     if (jet->get_pt() < m_ptRange.first)//change from <1 to <m_ptRange.first
