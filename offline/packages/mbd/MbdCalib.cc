@@ -1270,6 +1270,80 @@ int MbdCalib::Download_Pileup(const std::string& dbase_location)
   return 1;
 }
 
+int MbdCalib::Download_Thresholds(const std::string& dbase_location)
+{
+  // Reset All Values
+  Reset_Thresholds();
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "Opening " << dbase_location << std::endl;
+  }
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
+  {
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    cdbttree->LoadCalibrations();
+
+    for (int ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+    {
+      _thresh_mean[ipmt] = cdbttree->GetFloatValue(ipmt, "thresh_mean");
+      _thresh_meanerr[ipmt] = cdbttree->GetFloatValue(ipmt, "thresh_meanerr");
+      _thresh_width[ipmt] = cdbttree->GetFloatValue(ipmt, "thresh_width");
+      _thresh_widtherr[ipmt] = cdbttree->GetFloatValue(ipmt, "thresh_widtherr");
+      _thresh_eff[ipmt] = cdbttree->GetFloatValue(ipmt, "thresh_eff");
+      _thresh_efferr[ipmt] = cdbttree->GetFloatValue(ipmt, "thresh_efferr");
+      _thresh_chi2ndf[ipmt] = cdbttree->GetFloatValue(ipmt, "thresh_chi2ndf");
+      if (Verbosity() > 0)
+      {
+        if (ipmt < 5)
+        {
+          std::cout << ipmt << "\t" << _thresh_mean[ipmt] << std::endl;
+        }
+      }
+    }
+    delete cdbttree;
+  }
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
+  {
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    int pmt = -1;
+    while (infile >> pmt)
+    {
+      infile >> _thresh_mean[pmt] >> _thresh_meanerr[pmt] >> _thresh_width[pmt] >> _thresh_widtherr[pmt] >> _thresh_eff[pmt] >> _thresh_efferr[pmt] >> _thresh_chi2ndf[pmt];
+      if (Verbosity() > 0)
+      {
+        if (pmt < 5 || pmt >= MbdDefs::MBD_N_PMT - 5)
+        {
+          std::cout << pmt << "\t" << _thresh_mean[pmt] << "\t" << _thresh_meanerr[pmt] << "\t" << _thresh_width[pmt]
+                    << "\t" << _thresh_widtherr[pmt] << "\t" << _thresh_eff[pmt] << "\t" << _thresh_efferr[pmt]
+                    << "\t" << _thresh_chi2ndf[pmt] << std::endl;
+        }
+      }
+    }
+  }
+  
+  if ( std::isnan(_thresh_mean[0]) )
+  {
+    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;
+  }
+
+  return 1;
+}
+
 #ifndef ONLINE
 int MbdCalib::Write_CDB_SampMax(const std::string& dbfile)
 {
@@ -1827,6 +1901,61 @@ int MbdCalib::Write_Pileup(const std::string& dbfile)
 }
 
 #ifndef ONLINE
+int MbdCalib::Write_CDB_Thresholds(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "MBD_THRESHOLDS" << std::endl;
+  for (size_t ipmt = 0; ipmt < MbdDefs::MBD_N_PMT; ipmt++)
+  {
+    // store in a CDBTree
+    cdbttree->SetFloatValue(ipmt, "thresh_mean", _thresh_mean[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "thresh_meanerr", _thresh_meanerr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "thresh_width", _thresh_width[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "thresh_widtherr", _thresh_widtherr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "thresh_eff", _thresh_eff[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "thresh_efferr", _thresh_efferr[ipmt]);
+    cdbttree->SetFloatValue(ipmt, "thresh_chi2ndf", _thresh_chi2ndf[ipmt]);
+
+    if (ipmt < 5 || ipmt >= MbdDefs::MBD_N_PMT - 5)
+    {
+      std::cout << ipmt << "\t" << cdbttree->GetFloatValue(ipmt, "thresh_mpv") << std::endl;
+    }
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+#endif
+
+int MbdCalib::Write_Thresholds(const std::string& dbfile)
+{
+  std::ofstream cal_thresh_file;
+  cal_thresh_file.open(dbfile);
+  for (int ipmtch = 0; ipmtch < MbdDefs::MBD_N_PMT; ipmtch++)
+  {
+    cal_thresh_file << ipmtch << "\t" << _thresh_mean[ipmtch] << "\t" << _thresh_meanerr[ipmtch]
+      << "\t" << _thresh_width[ipmtch] << "\t" << _thresh_widtherr[ipmtch]
+      << "\t" << _thresh_eff[ipmtch] << "\t" << _thresh_efferr[ipmtch]
+      << "\t" << _thresh_chi2ndf[ipmtch] << std::endl;
+  }
+  cal_thresh_file.close();
+
+  return 1;
+}
+
+#ifndef ONLINE
 int MbdCalib::Write_CDB_All()
 {
   return 1;
@@ -1939,6 +2068,18 @@ void MbdCalib::Reset_Pileup()
   _qfit_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
 }
 
+void MbdCalib::Reset_Thresholds()
+{
+  // Set all initial values
+  _thresh_mean.fill(std::numeric_limits<float>::quiet_NaN());
+  _thresh_meanerr.fill(std::numeric_limits<float>::quiet_NaN());
+  _thresh_width.fill(std::numeric_limits<float>::quiet_NaN());
+  _thresh_widtherr.fill(std::numeric_limits<float>::quiet_NaN());
+  _thresh_eff.fill(std::numeric_limits<float>::quiet_NaN());
+  _thresh_efferr.fill(std::numeric_limits<float>::quiet_NaN());
+  _thresh_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
+}
+
 void MbdCalib::Reset()
 {
   Reset_TTT0();
@@ -1947,6 +2088,7 @@ void MbdCalib::Reset()
   Reset_Gains();
   Reset_T0Corr();
   Reset_Pileup();
+  Reset_Thresholds();
 
   _sampmax.fill(-1);
 }
@@ -1960,3 +2102,16 @@ void MbdCalib::set_ped(const int ifeech, const float m, const float merr, const 
 }
 
 
+float MbdCalib::get_threshold(const int pmtch, const int rel_or_abs)
+{
+  if ( rel_or_abs==0 )
+  {
+    return _thresh_mean[pmtch]/_qfit_mpv[pmtch];
+  }
+  else
+  {
+    return _thresh_mean[pmtch];
+  }
+
+  return -1.; // error
+}
