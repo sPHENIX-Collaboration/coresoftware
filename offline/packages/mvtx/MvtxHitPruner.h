@@ -17,15 +17,17 @@ class TrkrHit;
 class TrkrHitSetContainer;
 
 /**
- * @brief Clusterizer for the MVTX
+ * @brief Hit pruner for the MVTX
  */
 class MvtxHitPruner : public SubsysReco
 {
  public:
-  typedef std::pair<unsigned int, unsigned int> pixel;
 
+  //! constructor
   MvtxHitPruner(const std::string &name = "MvtxHitPruner");
-  ~MvtxHitPruner() override {}
+
+  //! destructor
+  ~MvtxHitPruner() override = default;
 
   //! module initialization
   int Init(PHCompositeNode * /*topNode*/) override { return 0; }
@@ -41,9 +43,7 @@ class MvtxHitPruner : public SubsysReco
 
  private:
   // node tree storage pointers
-  TrkrHitSetContainer *m_hits;
-
-  // settings
+  TrkrHitSetContainer *m_hits = nullptr;
 };
 
 #endif  // MVTX_MVTXHITPRUNER_H
