@@ -1152,17 +1152,31 @@ if (defined $nEvents)
 }
 # sort list of segments and write to output file
 my $nSelectedEvents = 0;
-foreach my $seg (sort { $a <=> $b } @segarray)
+my %filesorted = ();
+foreach my $seg (@segarray)
+#foreach my $seg (sort { $a <=> $b } @segarray)
 {
     $nSelectedEvents += $allevthash{$lowtype}{$allfilehash{$lowtype}{$seg}};
 #	print "segment $seg is good\n";
-    foreach my $tp (sort keys %allfilehash)
+#    foreach my $tp (sort keys %allfilehash)
+    foreach my $tp (keys %allfilehash)
     {
 #	    print "using $allfilehash{$tp}{$seg}\n";
-	my $printcmd = sprintf("echo %s >> %s",$allfilehash{$tp}{$seg},$dsttype{$tp});
-	system($printcmd);
+#	my $printcmd = sprintf("echo %s >> %s",$allfilehash{$tp}{$seg},$dsttype{$tp});
+	$filesorted{$dsttype{$tp}}{$allfilehash{$tp}{$seg}} = 1;
+#	print "$printcmd\n";
+#	system($printcmd);
     }
 
+}
+foreach my $listfile (keys %filesorted)
+{
+    open(F3,">$listfile");
+    foreach my $fil (sort keys %{$filesorted{$listfile}})
+    {
+	print F3 "$fil\n";
+    }
+    close(F3);
 }
 print "wrote the following list files containing >= $nSelectedEvents events:\n";
 foreach my $tp (sort { $a <=> $b } keys %allfilehash)
