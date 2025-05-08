@@ -214,7 +214,7 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
-  bool m_directNavigation = true;
+  bool m_directNavigation = false;
   
   // do we have a constant field
   bool m_ConstField{false};
