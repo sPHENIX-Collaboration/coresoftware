@@ -34,6 +34,9 @@ private:
   TH1* m_nLaserEvents{nullptr};
   TH2* m_TPCWheel[2]{nullptr};
 
+  TH1* m_nLaserClusters[2]{nullptr};
+  TH2* m_saturation[2]{nullptr};
+  
 };
 
 #endif
