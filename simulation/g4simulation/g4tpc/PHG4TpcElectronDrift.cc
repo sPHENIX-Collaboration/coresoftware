@@ -56,8 +56,6 @@
 #include <TNtuple.h>
 #include <TSystem.h>
 
-#include <boost/format.hpp>
-
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
@@ -65,6 +63,7 @@
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
+#include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
@@ -72,7 +71,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T &x)
+  constexpr T square(const T &x)
   {
     return x * x;
   }
@@ -109,8 +108,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
-  auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-  auto parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+  auto *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  auto *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   const std::string paramnodename = "G4CELLPARAM_" + detector;
   const std::string geonodename = "G4CELLPAR_" + detector;
   const std::string tpcgeonodename = "G4GEO_" + detector;
@@ -128,7 +127,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -136,7 +135,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
 
     hitsetcontainer = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     DetNode->addNode(newNode);
   }
 
@@ -144,7 +143,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   if (!hittruthassoc)
   {
     PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -152,7 +151,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
 
     hittruthassoc = new TrkrHitTruthAssocv1;
-    auto newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
 
@@ -160,7 +159,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   if (!truthtracks)
   {
     PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -168,7 +167,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
 
     truthtracks = new TrkrTruthTrackContainerv1();
-    auto newNode = new PHIODataNode<PHObject>(truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
 
@@ -176,7 +175,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   if (!truthclustercontainer)
   {
     PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -184,7 +183,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     }
 
     truthclustercontainer = new TrkrClusterContainerv4;
-    auto newNode = new PHIODataNode<PHObject>(truthclustercontainer, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(truthclustercontainer, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
 
@@ -194,7 +193,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
-  auto RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
+  auto *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
   if (!RunDetNode)
   {
     RunDetNode = new PHCompositeNode(detector);
@@ -204,7 +203,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   // save this to the parNode for use
   PHNodeIterator parIter(parNode);
-  auto ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", detector));
+  auto *ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", detector));
   if (!ParDetNode)
   {
     ParDetNode = new PHCompositeNode(detector);
@@ -214,11 +213,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   // find Tpc Geo
   PHNodeIterator tpcpariter(ParDetNode);
-  auto tpcparams = findNode::getClass<PHParametersContainer>(ParDetNode, tpcgeonodename);
+  auto *tpcparams = findNode::getClass<PHParametersContainer>(ParDetNode, tpcgeonodename);
   if (!tpcparams)
   {
     const std::string runparamname = "G4GEOPARAM_" + detector;
-    auto tpcpdbparams = findNode::getClass<PdbParameterMapContainer>(RunDetNode, runparamname);
+    auto *tpcpdbparams = findNode::getClass<PdbParameterMapContainer>(RunDetNode, runparamname);
     if (tpcpdbparams)
     {
       tpcparams = new PHParametersContainer(detector);
@@ -260,24 +259,24 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   // diffusion and drift velocity for 400kV for NeCF4 50/50 from calculations:
   // http://skipper.physics.sunysb.edu/~prakhar/tpc/HTML_Gases/split.html
 
-  double Ne_dEdx = 1.56; // keV/cm
-  double Ne_NTotal = 43; // Number/cm
+  double Ne_dEdx = 1.56;  // keV/cm
+  double Ne_NTotal = 43;  // Number/cm
   double Ne_frac = tpcparam->get_double_param("Ne_frac");
 
-  double Ar_dEdx = 2.44; // keV/cm
-  double Ar_NTotal = 94; // Number/cm
+  double Ar_dEdx = 2.44;  // keV/cm
+  double Ar_NTotal = 94;  // Number/cm
   double Ar_frac = tpcparam->get_double_param("Ar_frac");
 
-  double CF4_dEdx = 7; // keV/cm
-  double CF4_NTotal = 100; // Number/cm
+  double CF4_dEdx = 7;      // keV/cm
+  double CF4_NTotal = 100;  // Number/cm
   double CF4_frac = tpcparam->get_double_param("CF4_frac");
 
-  double N2_dEdx = 2.127;   // keV/cm https://pdg.lbl.gov/2024/AtomicNuclearProperties/HTML/nitrogen_gas.html
-  double N2_NTotal = 25;    // Number/cm (probably not right but has a very small impact)
+  double N2_dEdx = 2.127;  // keV/cm https://pdg.lbl.gov/2024/AtomicNuclearProperties/HTML/nitrogen_gas.html
+  double N2_NTotal = 25;   // Number/cm (probably not right but has a very small impact)
   double N2_frac = tpcparam->get_double_param("N2_frac");
 
   double isobutane_dEdx = 5.93;   // keV/cm
-  double isobutane_NTotal = 195;    // Number/cm
+  double isobutane_NTotal = 195;  // Number/cm
   double isobutane_frac = tpcparam->get_double_param("isobutane_frac");
 
   if (m_use_PDG_gas_params)
@@ -289,22 +288,14 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     Ar_NTotal = 97;
 
     CF4_dEdx = 6.382;
-    CF4_NTotal = 120; 
+    CF4_NTotal = 120;
   }
 
-  double Tpc_NTot = (Ne_NTotal * Ne_frac)
-                  + (Ar_NTotal * Ar_frac)
-                  + (CF4_NTotal * CF4_frac)
-                  + (N2_NTotal * N2_frac)
-                  + (isobutane_NTotal * isobutane_frac);
+  double Tpc_NTot = (Ne_NTotal * Ne_frac) + (Ar_NTotal * Ar_frac) + (CF4_NTotal * CF4_frac) + (N2_NTotal * N2_frac) + (isobutane_NTotal * isobutane_frac);
 
-  double Tpc_dEdx = (Ne_dEdx * Ne_frac)
-                  + (Ar_dEdx * Ar_frac)
-                  + (CF4_dEdx * CF4_frac)
-                  + (N2_dEdx * N2_frac)
-                  + (isobutane_dEdx * isobutane_frac);
+  double Tpc_dEdx = (Ne_dEdx * Ne_frac) + (Ar_dEdx * Ar_frac) + (CF4_dEdx * CF4_frac) + (N2_dEdx * N2_frac) + (isobutane_dEdx * isobutane_frac);
 
-  electrons_per_gev = (Tpc_NTot / Tpc_dEdx) * 1e6; 
+  electrons_per_gev = (Tpc_NTot / Tpc_dEdx) * 1e6;
 
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
@@ -317,10 +308,10 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") << " max time cutoff " << max_time << std::endl;
   }
 
-  auto se = Fun4AllServer::instance();
-  dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - diffusion_long / 2., diffusion_long + diffusion_long / 2.);
+  auto *se = Fun4AllServer::instance();
+  dlong = new TH1F("difflong", "longitudinal diffusion", 100, diffusion_long - (diffusion_long / 2.), diffusion_long + (diffusion_long / 2.));
   se->registerHisto(dlong);
-  dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
+  dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - (diffusion_trans / 2.), diffusion_trans + (diffusion_trans / 2.));
   se->registerHisto(dtrans);
 
   do_ElectronDriftQAHistos = false;  // Whether or not to produce an ElectronDriftQA.root file with useful info
@@ -367,7 +358,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
     {
       const auto radius = layeriter->second->get_radius();
-      std::cout << boost::str(boost::format("%.3f ") % radius);
+      std::cout << std::format("{:.3}", radius);
       if (++counter == 8)
       {
         counter = 0;
@@ -384,14 +375,14 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     if (!mClusHitsVerbose)
     {
       PHNodeIterator dstiter(dstNode);
-      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
       if (!DetNode)
       {
         DetNode = new PHCompositeNode("TRKR");
         dstNode->addNode(DetNode);
       }
       mClusHitsVerbose = new ClusHitsVerbosev1();
-      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
+      auto *newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
       DetNode->addNode(newNode);
     }
   }
@@ -425,7 +416,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   // g4hits
-  auto g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  auto *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
@@ -439,7 +430,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
   //  int count_electrons = 0;
 
   //  double ecollectedhits = 0.0;
-//  int ncollectedhits = 0;
+  //  int ncollectedhits = 0;
   double ihit = 0;
   unsigned int dump_interval = 5000;  // dump temp_hitsetcontainer to the node tree after this many g4hits
   unsigned int dump_counter = 0;
@@ -551,7 +542,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }
 
     int notReachingReadout = 0;
-//    int notInAcceptance = 0;
+    //    int notInAcceptance = 0;
     for (unsigned int i = 0; i < n_electrons; i++)
     {
       // We choose the electron starting position at random from a flat
@@ -560,10 +551,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // values between 0 and 1
       const double f = gsl_ran_flat(RandomGenerator.get(), 0.0, 1.0);
 
-      const double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0));
-      const double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0));
-      const double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0));
-      const double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
+      const double x_start = hiter->second->get_x(0) + (f * (hiter->second->get_x(1) - hiter->second->get_x(0)));
+      const double y_start = hiter->second->get_y(0) + (f * (hiter->second->get_y(1) - hiter->second->get_y(0)));
+      const double z_start = hiter->second->get_z(0) + (f * (hiter->second->get_z(1) - hiter->second->get_z(0)));
+      const double t_start = hiter->second->get_t(0) + (f * (hiter->second->get_t(1) - hiter->second->get_t(0)));
 
       unsigned int side = 0;
       if (z_start > 0)
@@ -571,16 +562,16 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         side = 1;
       }
 
-      const double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - std::abs(z_start));
+      const double r_sigma = diffusion_trans * sqrt((tpc_length / 2.) - std::abs(z_start));
       const double rantrans =
           gsl_ran_gaussian(RandomGenerator.get(), r_sigma) +
           gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
 
       const double t_path = (tpc_length / 2. - std::abs(z_start)) / drift_velocity;
-      const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - std::abs(z_start)) / drift_velocity;
+      const double t_sigma = diffusion_long * sqrt((tpc_length / 2.) - std::abs(z_start)) / drift_velocity;
       const double rantime =
           gsl_ran_gaussian(RandomGenerator.get(), t_sigma) +
-          gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
+          (gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity);
       double t_final = t_start + t_path + rantime;
 
       if (t_final < min_time || t_final > max_time)
@@ -602,8 +593,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       const double phistart = std::atan2(y_start, x_start);
       const double ranphi = gsl_ran_flat(RandomGenerator.get(), -M_PI, M_PI);
 
-      double x_final = x_start + rantrans * std::cos(ranphi);  // Initialize these to be only diffused first, will be overwritten if doing SC distortion
-      double y_final = y_start + rantrans * std::sin(ranphi);
+      double x_final = x_start + (rantrans * std::cos(ranphi));  // Initialize these to be only diffused first, will be overwritten if doing SC distortion
+      double y_final = y_start + (rantrans * std::sin(ranphi));
 
       double rad_final = sqrt(square(x_final) + square(y_final));
       double phi_final = atan2(y_final, x_final);
@@ -654,7 +645,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           deltarnodiff->Fill(radstart, rad_final_nodiff - radstart);    // delta r no diffusion, just distortion
           deltaphinodiff->Fill(phistart, phi_final_nodiff - phistart);  // delta phi no diffusion, just distortion
           deltaphivsRnodiff->Fill(radstart, phi_final_nodiff - phistart);
-          deltaRphinodiff->Fill(radstart, rad_final_nodiff * phi_final_nodiff - radstart * phistart);
+          deltaRphinodiff->Fill(radstart, (rad_final_nodiff * phi_final_nodiff) - (radstart * phistart));
 
           // Fill Diagnostic plots, written into ElectronDriftQA.root
           hitmapstart->Fill(x_start, y_start);  // G4Hit starting positions
@@ -670,7 +661,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
       {
-//        notInAcceptance++;
+        //        notInAcceptance++;
         continue;
       }
 
@@ -784,7 +775,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
             eg4hit += temp_tpchit->getEnergy();
             //            ecollectedhits += temp_tpchit->getEnergy();
-//            ncollectedhits++;
+            //            ncollectedhits++;
           }
 
           // find or add this hit to the node tree
@@ -936,16 +927,16 @@ void PHG4TpcElectronDrift::set_seed(const unsigned int seed)
 
 void PHG4TpcElectronDrift::SetDefaultParameters()
 {
-  //longitudinal diffusion for 50:50 Ne:CF4 is 0.012, transverse is 0.004, drift velocity is 0.008
-  //longitudinal diffusion for 60:40 Ar:CF4 is 0.012, transverse is 0.004, drift velocity is 0.008 (chosen to be the same at 50/50 Ne:CF4)
-  //longitudinal diffusion for 65:25:10 Ar:CF4:N2 is 0.013613, transverse is 0.005487, drift velocity is 0.006965
-  //longitudinal diffusion for 75:20:05 Ar:CF4:i-C4H10 is 0.014596, transverse is 0.005313, drift velocity is 0.007550
+  // longitudinal diffusion for 50:50 Ne:CF4 is 0.012, transverse is 0.004, drift velocity is 0.008
+  // longitudinal diffusion for 60:40 Ar:CF4 is 0.012, transverse is 0.004, drift velocity is 0.008 (chosen to be the same at 50/50 Ne:CF4)
+  // longitudinal diffusion for 65:25:10 Ar:CF4:N2 is 0.013613, transverse is 0.005487, drift velocity is 0.006965
+  // longitudinal diffusion for 75:20:05 Ar:CF4:i-C4H10 is 0.014596, transverse is 0.005313, drift velocity is 0.007550
 
   set_default_double_param("diffusion_long", 0.014596);   // cm/SQRT(cm)
   set_default_double_param("diffusion_trans", 0.005313);  // cm/SQRT(cm)
-  set_default_double_param("drift_velocity", 0.00755);  // cm/ns
-  set_default_double_param("Ne_frac", 0.00); 
-  set_default_double_param("Ar_frac", 0.75); 
+  set_default_double_param("drift_velocity", 0.00755);    // cm/ns
+  set_default_double_param("Ne_frac", 0.00);
+  set_default_double_param("Ar_frac", 0.75);
   set_default_double_param("CF4_frac", 0.20);
   set_default_double_param("N2_frac", 0.00);
   set_default_double_param("isobutane_frac", 0.05);
@@ -986,7 +977,7 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 
 void PHG4TpcElectronDrift::set_flag_threshold_distortion(bool setflag, float setthreshold)
 {
-  std::cout << boost::str(boost::format("The logical status of threshold is now %d! and the value is set to %f") % setflag % setthreshold)
+  std::cout << std::format("The logical status of threshold is now {}! and the value is set to {}", setflag, setthreshold)
             << std::endl
             << std::endl
             << std::endl;

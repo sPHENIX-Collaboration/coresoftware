@@ -1,9 +1,9 @@
 #ifndef G4TPC_PHG4TPCDIRECTLASER_H
 #define G4TPC_PHG4TPCDIRECTLASER_H
 
-#include <fun4all/SubsysReco.h>
-
 #include <phparameter/PHParameterInterface.h>
+
+#include <fun4all/SubsysReco.h>
 
 #include <TNtuple.h>
 #include <TVector3.h>

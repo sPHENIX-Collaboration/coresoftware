@@ -26,9 +26,9 @@
 
 #include <phool/phool.h>  // for PHWHERE
 
+#include <TF1.h>
 #include <TFile.h>
 #include <TH2.h>
-#include <TF1.h>
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
@@ -49,7 +49,7 @@ namespace
 {
   //! convenient square function
   template <class T>
-  inline constexpr T square(const T &x)
+  constexpr T square(const T &x)
   {
     return x * x;
   }
@@ -67,19 +67,19 @@ namespace
     return std::exp(-square(x / sigma) / 2) / (sigma * std::sqrt(2 * M_PI));
   }
 
-  static constexpr unsigned int print_layer = 18;
+  constexpr unsigned int print_layer = 18;
 
 }  // namespace
 
 PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
   : PHG4TpcPadPlane(name)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
   InitializeParameters();
   // if(m_flagToUseGain==1)
   ReadGain();
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
 
+  gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
 
   return;
 }
@@ -87,7 +87,7 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const std::string &name)
 PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
 {
   gsl_rng_free(RandomGenerator);
-  for (auto his : h_gain)
+  for (auto *his : h_gain)
   {
     delete his;
   }
@@ -105,53 +105,60 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
-  if(m_use_module_gain_weights)
+  if (m_use_module_gain_weights)
+  {
+    int side;
+    int region;
+    int sector;
+    double weight;
+    std::ifstream weights_file(m_tpc_module_gain_weights_file);
+    if (!weights_file.is_open())
     {
-      int side, region, sector;
-      double weight;
-      std::ifstream weights_file(m_tpc_module_gain_weights_file);
-      if(!weights_file.is_open()) 
-	{
-	  std::cout << ".In PHG4TpcPadPlaneReadout: Option to use module gain weights enabled, but weights file not found. Aborting." << std::endl;
-	  return Fun4AllReturnCodes::ABORTEVENT;
-	}
+      std::cout << ".In PHG4TpcPadPlaneReadout: Option to use module gain weights enabled, but weights file not found. Aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
-      for(int iside =0; iside < 2; ++iside)
-	{
-	  for(int isec = 0; isec < 12; ++isec)
-	    {
-	      for(int ir = 0; ir < 3; ++ir)
-		{
-		  weights_file >> side >> region >> sector >> weight;
-		  m_module_gain_weight[side][region][sector] = weight;
-		  std::cout << " iside " << iside << " side " << side << " ir " << ir 
-			    << " region " << region << " isec " << isec 
-			    << " sector " << sector << " weight " << weight << std::endl;
-		}
-	    }
-	}
-    }  
-
-  if(m_useLangau)
+    for (int iside = 0; iside < 2; ++iside)
     {
-      int side, region, sector;
-      double par0; double par1; double par2; double par3;
-      std::ifstream pars_file(m_tpc_langau_pars_file);
-      if(!pars_file.is_open()) 
-	{
-	  std::cout << ".In PHG4TpcPadPlaneReadout: Option to use Langau parameters enabled, but parameter file not found. Aborting." << std::endl;
-	  return Fun4AllReturnCodes::ABORTEVENT;
-	}
+      for (int isec = 0; isec < 12; ++isec)
+      {
+        for (int ir = 0; ir < 3; ++ir)
+        {
+          weights_file >> side >> region >> sector >> weight;
+          m_module_gain_weight[side][region][sector] = weight;
+          std::cout << " iside " << iside << " side " << side << " ir " << ir
+                    << " region " << region << " isec " << isec
+                    << " sector " << sector << " weight " << weight << std::endl;
+        }
+      }
+    }
+  }
 
-      for(int iside =0; iside < 2; ++iside)
-	{
-	  for(int isec = 0; isec < 12; ++isec)
-	    {
-	      for(int ir = 0; ir < 3; ++ir)
-		{
-		  pars_file >> side >> region >> sector >> par0 >> par1 >> par2 >> par3;
-		  flangau[side][region][sector] = new TF1((boost::format("flangau_%d_%d_%d") % side % region % sector).str().c_str(), [](double *x, double *par) 
-		  {
+  if (m_useLangau)
+  {
+    int side;
+    int region;
+    int sector;
+    double par0;
+    double par1;
+    double par2;
+    double par3;
+    std::ifstream pars_file(m_tpc_langau_pars_file);
+    if (!pars_file.is_open())
+    {
+      std::cout << ".In PHG4TpcPadPlaneReadout: Option to use Langau parameters enabled, but parameter file not found. Aborting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+    for (int iside = 0; iside < 2; ++iside)
+    {
+      for (int isec = 0; isec < 12; ++isec)
+      {
+        for (int ir = 0; ir < 3; ++ir)
+        {
+          pars_file >> side >> region >> sector >> par0 >> par1 >> par2 >> par3;
+          flangau[side][region][sector] = new TF1((boost::format("flangau_%d_%d_%d") % side % region % sector).str().c_str(), [](double *x, double *par)
+                                                  {
 		    Double_t invsq2pi = 0.3989422804014;
 		    Double_t mpshift  = -0.22278298;
 		    Double_t np = 100.0;
@@ -160,7 +167,8 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 		    Double_t mpc;
 		    Double_t fland;
 		    Double_t sum = 0.0;
-		    Double_t xlow,xupp;
+		    Double_t xlow;
+		    Double_t xupp;
 		    Double_t step;
 		    Double_t i;
 		    mpc = par[1] - mpshift * par[0]; 
@@ -178,20 +186,16 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 		      sum += fland * TMath::Gaus(x[0],xx,par[3]);
 		    }
       
-		    return (par[2] * step * sum * invsq2pi / par[3]);
-		  }, 0, 5000, 4);
+		    return (par[2] * step * sum * invsq2pi / par[3]); }, 0, 5000, 4);
 
-
-		  flangau[side][region][sector]->SetParameters(par0,par1,par2,par3);
-		  //std::cout << " iside " << iside << " side " << side << " ir " << ir 
-		  //	    << " region " << region << " isec " << isec 
-		  //	    << " sector " << sector << " weight " << weight << std::endl;
-		}
-	    }
-	}
-    } 
-
-  
+          flangau[side][region][sector]->SetParameters(par0, par1, par2, par3);
+          // std::cout << " iside " << iside << " side " << side << " ir " << ir
+          //	    << " region " << region << " isec " << isec
+          //	    << " sector " << sector << " weight " << weight << std::endl;
+        }
+      }
+    }
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -209,11 +213,11 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
   //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
   double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain);
   if (m_usePolya)
-  { 
+  {
     double y;
     double xmax = 5000;
     double ymax = 0.376;
-    while (true) 
+    while (true)
     {
       nelec = gsl_ran_flat(RandomGenerator, 0, xmax);
       y = gsl_rng_uniform(RandomGenerator) * ymax;
@@ -246,11 +250,11 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
     double y;
     double xmax = 5000;
     double ymax = 0.376;
-    while (true) 
+    while (true)
     {
       nelec = gsl_ran_flat(RandomGenerator, 0, xmax);
       y = gsl_rng_uniform(RandomGenerator) * ymax;
-      if (y <= pow((1 + polyaTheta) * (nelec / q_bar), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / q_bar))) 
+      if (y <= pow((1 + polyaTheta) * (nelec / q_bar), polyaTheta) * exp(-(1 + polyaTheta) * (nelec / q_bar)))
       {
         break;
       }
@@ -264,13 +268,11 @@ double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(double weight)
 //_________________________________________________________
 double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification(TF1 *f)
 {
-  double nelec = f->GetRandom(0,5000);
+  double nelec = f->GetRandom(0, 5000);
   // Put gain reading here
 
   return nelec;
 }
-
-
 
 void PHG4TpcPadPlaneReadout::MapToPadPlane(
     TpcClusterBuilder &tpc_truth_clusterer,
@@ -321,7 +323,6 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
   }
 
-   
   unsigned int layernum = 0;
   /* TpcClusterBuilder pass_data {}; */
 
@@ -332,8 +333,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
        layeriter != layerrange.second;
        ++layeriter)
   {
-    double rad_low = layeriter->second->get_radius() - layeriter->second->get_thickness() / 2.0;
-    double rad_high = layeriter->second->get_radius() + layeriter->second->get_thickness() / 2.0;
+    double rad_low = layeriter->second->get_radius() - (layeriter->second->get_thickness() / 2.0);
+    double rad_high = layeriter->second->get_radius() + (layeriter->second->get_thickness() / 2.0);
 
     if (rad_gem > rad_low && rad_gem < rad_high)
     {
@@ -393,72 +394,72 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     nelec = nelec * gain_weight;
   }
 
-  if(m_use_module_gain_weights)
-    {
-      double phistep = 30.0;
-      int sector = 0;
-
-      if( (phi_gain*180.0/M_PI) >=15 && (phi_gain*180.0 / M_PI) < 345)
-	{
-	  sector = 1 + (int) ( (phi_gain*180.0/M_PI - 15) / phistep);
-	} 
-      else
-	{
-	  sector = 0;
-	}
-
-      int this_region = -1;
-      for (int iregion = 0; iregion < 3; ++iregion)
-	{
-	  if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion])
-	    {
-	      this_region = iregion;
-	    }
-	}
-      if(this_region > -1) 
-	{
-	  gain_weight = m_module_gain_weight[side][this_region][sector];
-	}
-      // regenerate nelec with the new distribution
-      //    double original_nelec = nelec; 
-      nelec = getSingleEGEMAmplification(gain_weight);
-      //  std::cout << " side " << side << " this_region " << this_region 
-      //	<<  " sector " << sector << " original nelec " 
-      //	<< original_nelec << " new nelec " << nelec << std::endl;
-    }
-
-  if(m_useLangau)
+  if (m_use_module_gain_weights)
   {
     double phistep = 30.0;
     int sector = 0;
-    
-    if( (phi_gain*180.0/M_PI) >=15 && (phi_gain*180.0 / M_PI) < 345)
+
+    if ((phi_gain * 180.0 / M_PI) >= 15 && (phi_gain * 180.0 / M_PI) < 345)
     {
-      sector = 1 + (int) ( (phi_gain*180.0/M_PI - 15) / phistep);
-    } 
+      sector = 1 + (int) ((phi_gain * 180.0 / M_PI - 15) / phistep);
+    }
     else
     {
       sector = 0;
     }
-    
+
     int this_region = -1;
     for (int iregion = 0; iregion < 3; ++iregion)
     {
       if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion])
       {
-	this_region = iregion;
+        this_region = iregion;
       }
     }
-    if(this_region > -1) 
+    if (this_region > -1)
+    {
+      gain_weight = m_module_gain_weight[side][this_region][sector];
+    }
+    // regenerate nelec with the new distribution
+    //    double original_nelec = nelec;
+    nelec = getSingleEGEMAmplification(gain_weight);
+    //  std::cout << " side " << side << " this_region " << this_region
+    //	<<  " sector " << sector << " original nelec "
+    //	<< original_nelec << " new nelec " << nelec << std::endl;
+  }
+
+  if (m_useLangau)
+  {
+    double phistep = 30.0;
+    int sector = 0;
+
+    if ((phi_gain * 180.0 / M_PI) >= 15 && (phi_gain * 180.0 / M_PI) < 345)
+    {
+      sector = 1 + (int) ((phi_gain * 180.0 / M_PI - 15) / phistep);
+    }
+    else
+    {
+      sector = 0;
+    }
+
+    int this_region = -1;
+    for (int iregion = 0; iregion < 3; ++iregion)
+    {
+      if (rad_gem < MaxRadius[iregion] && rad_gem > MinRadius[iregion])
+      {
+        this_region = iregion;
+      }
+    }
+    if (this_region > -1)
     {
       nelec = getSingleEGEMAmplification(flangau[side][this_region][sector]);
     }
-    else 
+    else
     {
       nelec = getSingleEGEMAmplification();
     }
   }
-  
+
   // std::cout<<"PHG4TpcPadPlaneReadout::MapToPadPlane gain_weight = "<<gain_weight<<std::endl;
   /* pass_data.neff_electrons = nelec; */
 
@@ -627,7 +628,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       */
 
     }  // end of loop over adc T bins
-  }    // end of loop over zigzag pads
+  }  // end of loop over zigzag pads
   /* pass_data.phi_integral = phi_integral; */
   /* pass_data.time_integral = t_integral; */
 
@@ -645,8 +646,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     if (layernum == print_layer)
     {
       std::cout << " hit " << m_NHits << " quick centroid for this electron " << std::endl;
-      std::cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << std::endl;
-      std::cout << "      t centroid = " << t_integral / weight << " t in " << t_gem << " t diff " << t_integral / weight - t_gem << std::endl;
+      std::cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << (phi_integral / weight) - phi << std::endl;
+      std::cout << "      t centroid = " << t_integral / weight << " t in " << t_gem << " t diff " << (t_integral / weight) - t_gem << std::endl;
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
       // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
@@ -680,7 +681,7 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
       double daPhi = 0;
       if (s == 0)
       {
-        daPhi = fabs(sector_min_Phi[side][11] + 2 * M_PI - sector_max_Phi[side][s]);
+        daPhi = fabs(sector_min_Phi[side][11] + (2 * M_PI) - sector_max_Phi[side][s]);
       }
       else
       {
@@ -692,7 +693,7 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
       {
         if (fabs(max_phi - new_phi) > fabs(new_phi - min_phi))
         {
-          new_phi = min_phi - phi_bin_width / 5; 
+          new_phi = min_phi - phi_bin_width / 5;
         }
         else
         {
@@ -893,7 +894,7 @@ void PHG4TpcPadPlaneReadout::populate_tbins(const double t, const std::array<dou
     zsect = 1;
   }
 
-  int n_zz = int(3 * (cloud_sig_tt[0] + cloud_sig_tt[1]) / (2.0 * tstepsize) + 1);
+  int n_zz = int((3 * (cloud_sig_tt[0] + cloud_sig_tt[1]) / (2.0 * tstepsize)) + 1);
   if (Verbosity() > 1000)
   {
     std::cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_tt[0] << " cloud_sig_tt[1] " << cloud_sig_tt[1] << std::endl;
@@ -1089,12 +1090,10 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
   const double MaxZ = get_double_param("maxdriftlength");
   const double TBinWidth = tpc_adc_clock;
-  const double MaxT = extended_readout_time + 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
+  const double MaxT = extended_readout_time + (2.0 * MaxZ / drift_velocity);  // allows for extended time readout
   const double MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
-
   averageGEMGain = get_double_param("gem_amplification");
   polyaTheta = get_double_param("polya_theta");
-
 }

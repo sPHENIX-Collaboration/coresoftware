@@ -2,11 +2,8 @@
 
 #include <trackbase/TpcDefs.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <trackbase/ActsSurfaceMaps.h>       // for ActsSurfaceMaps
 #include <trackbase/ActsTrackingGeometry.h>  // for ActsTrackingG...
-#pragma GCC diagnostic pop
 
 #include <trackbase/TrkrClusterContainer.h>  // for TrkrClusterCo...
 #include <trackbase/TrkrClusterHitAssoc.h>   // for TrkrClusterHi...
@@ -42,55 +39,55 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T &x)
+  constexpr T square(const T &x)
   {
     return x * x;
   }
 }  // namespace
 
-int findRBin(float R)
-{
-  // Finding pad number from the center (bin) for hits
-  int binR = -1;
-  // Realistic binning
-  // double r_bins[r_bins_N+1] = {217.83,
-  //                             311.05,317.92,323.31,329.27,334.63,340.59,345.95,351.91,357.27,363.23,368.59,374.55,379.91,385.87,391.23,397.19,402.49,
-  //                             411.53,421.70,431.90,442.11,452.32,462.52,472.73,482.94,493.14,503.35,513.56,523.76,533.97,544.18,554.39,564.59,574.76,
-  //                             583.67,594.59,605.57,616.54,627.51,638.48,649.45,660.42,671.39,682.36,693.33,704.30,715.27,726.24,737.21,748.18,759.11};
-  const int r_bins_N = 53;
-  double r_bins[r_bins_N + 1];
-  r_bins[0] = 30.3125;
-  double bin_width = 0.625;
-  for (int i = 1; i < r_bins_N; i++)
-  {
-    if (i == 16)
-    {
-      bin_width = 0.9375;
-    }
-    if (i > 16)
-    {
-      bin_width = 1.25;
-    }
-    if (i == 31)
-    {
-      bin_width = 1.1562;
-    }
-    if (i > 31)
-    {
-      bin_width = 1.0624;
-    }
+// static int findRBin(float R)
+// {
+//   // Finding pad number from the center (bin) for hits
+//   int binR = -1;
+//   // Realistic binning
+//   // double r_bins[r_bins_N+1] = {217.83,
+//   //                             311.05,317.92,323.31,329.27,334.63,340.59,345.95,351.91,357.27,363.23,368.59,374.55,379.91,385.87,391.23,397.19,402.49,
+//   //                             411.53,421.70,431.90,442.11,452.32,462.52,472.73,482.94,493.14,503.35,513.56,523.76,533.97,544.18,554.39,564.59,574.76,
+//   //                             583.67,594.59,605.57,616.54,627.51,638.48,649.45,660.42,671.39,682.36,693.33,704.30,715.27,726.24,737.21,748.18,759.11};
+//   const int r_bins_N = 53;
+//   double r_bins[r_bins_N + 1];
+//   r_bins[0] = 30.3125;
+//   double bin_width = 0.625;
+//   for (int i = 1; i < r_bins_N; i++)
+//   {
+//     if (i == 16)
+//     {
+//       bin_width = 0.9375;
+//     }
+//     if (i > 16)
+//     {
+//       bin_width = 1.25;
+//     }
+//     if (i == 31)
+//     {
+//       bin_width = 1.1562;
+//     }
+//     if (i > 31)
+//     {
+//       bin_width = 1.0624;
+//     }
 
-    r_bins[i] = r_bins[i - 1] + bin_width;
-  }
+//     r_bins[i] = r_bins[i - 1] + bin_width;
+//   }
 
-  double R_min = 30;
-  while (R > R_min)
-  {
-    binR += 1;
-    R_min = r_bins[binR];
-  }
-  return binR;
-}
+//   double R_min = 30;
+//   while (R > R_min)
+//   {
+//     binR += 1;
+//     R_min = r_bins[binR];
+//   }
+//   return binR;
+// }
 
 //____________________________________________________________________________..
 PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name)
@@ -99,7 +96,7 @@ PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name)
   std::cout << "PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name) Calling ctor" << std::endl;
 }
 
-bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom)
+bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
 {
   bool reject_it = false;
 
@@ -172,14 +169,14 @@ int PHG4TpcPadBaselineShift::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  auto geom =
+  auto *geom =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
+  AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
   std::cout << "PHG4TpcPadBaselineShift::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -196,7 +193,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
   }
 
   PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
@@ -343,7 +340,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
       {
         continue;  // zbin is unsigned int, <0 cannot happen
       }
-      adcval[zbin] = (unsigned short) adc;
+      adcval[zbin] = adc;
       sumADC += adc;
     }
     // Define ion-induced charge

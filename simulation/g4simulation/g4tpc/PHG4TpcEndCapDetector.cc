@@ -189,7 +189,8 @@ void PHG4TpcEndCapDetector::CreateCompositeMaterial(
   assert(materialName.size() == thickness.size());
 
   // sum up the areal density and total thickness so we can divvy it out
-  double totalArealDensity = 0, totalThickness = 0;
+  double totalArealDensity = 0;
+  double totalThickness = 0;
   for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
   {
     tempmat = GetDetectorMaterial(materialName[i]);
@@ -240,7 +241,7 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
       _depth * _percentage_filled / 100. / 2.,
       0, CLHEP::twopi);
 
-  auto material = GetDetectorMaterial(_material);
+  auto *material = GetDetectorMaterial(_material);
   if (material == nullptr)
   {
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << _material << std::endl;
@@ -267,7 +268,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
   assert(n_radial_modules >= 1);
 
   const std::string material_name(m_Params->get_string_param("wagon_wheel_material"));
-  auto material = GetDetectorMaterial(material_name);
+  auto *material = GetDetectorMaterial(material_name);
   if (material == nullptr)
   {
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("wagon_wheel_material") << std::endl;
@@ -345,7 +346,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
             boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_inner") % (ring_id))) *
         cm;
 
-    const G4double reduced_height = sqrt(Rout * Rout - wagon_wheel_front_frame_spoke_width / 2 * wagon_wheel_front_frame_spoke_width / 2);
+    const G4double reduced_height = sqrt((Rout * Rout) - (wagon_wheel_front_frame_spoke_width / 2 * wagon_wheel_front_frame_spoke_width / 2));
 
     std::vector<G4TwoVector> vertexes;
     vertexes.emplace_back(-wagon_wheel_front_frame_spoke_width / 2, Rin);
@@ -368,7 +369,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     const G4double sector_dphi = CLHEP::twopi / n_sectors;
     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
     {
-      G4Transform3D trans_spoke(CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + sector_dphi * sector_id), g4vec_wagon_wheel_front_frame);
+      G4Transform3D trans_spoke(CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + (sector_dphi * sector_id)), g4vec_wagon_wheel_front_frame);
 
       assmeblyvol->AddPlacedVolume(log_solid_wagon_wheel_front_frame_spoke,
                                    trans_spoke);
@@ -392,7 +393,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     const G4double wagon_wheel_rim_outer_Rout = m_Params->get_double_param("wagon_wheel_rim_outer_Rout") * cm;
     const G4double wagon_wheel_rim_outer_thickness = m_Params->get_double_param("wagon_wheel_rim_outer_thickness") * cm;
 
-    G4ThreeVector g4vec_wagon_wheel_rim_outer(0, 0, z_start + wagon_wheel_rim_outer_thickness / 2.);
+    G4ThreeVector g4vec_wagon_wheel_rim_outer(0, 0, z_start + (wagon_wheel_rim_outer_thickness / 2.));
 
     std::string name_base = boost::str(boost::format("%1%_wagon_wheel_rim_outer") % GetName());
 
@@ -441,13 +442,13 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     G4LogicalVolume *log_solid_wagon_wheel_spoke = new G4LogicalVolume(solid_wagon_wheel_spoke, material, name_base);
     m_LogicalVolumesSet.insert(log_solid_wagon_wheel_spoke);
 
-    G4ThreeVector g4vec_wagon_wheel_spoke(0, 0, z_start + wagon_wheel_spoke_width / 2.);
+    G4ThreeVector g4vec_wagon_wheel_spoke(0, 0, z_start + (wagon_wheel_spoke_width / 2.));
 
     const G4double sector_dphi = CLHEP::twopi / n_sectors;
     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
     {
       G4RotateY3D rotm_spoke(-90 * deg);
-      G4Transform3D trans_spoke(CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + sector_dphi * sector_id),
+      G4Transform3D trans_spoke(CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + (sector_dphi * sector_id)),
                                 g4vec_wagon_wheel_spoke);
       G4Transform3D trans_spoke_final = trans_spoke * rotm_spoke;
 
@@ -486,7 +487,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
     }
 
     const std::string electronics_cooling_block_material_name(m_Params->get_string_param("electronics_cooling_block_material"));
-    auto material = GetDetectorMaterial(electronics_cooling_block_material_name);
+    auto *material = GetDetectorMaterial(electronics_cooling_block_material_name);
     if (material == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("electronics_cooling_block_material_name") << std::endl;
@@ -494,7 +495,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       exit(1);
     }
 
-    G4ThreeVector g4vec_electronics_cooling_block(0, 0, z_start + electronics_cooling_block_thickness / 2.);
+    G4ThreeVector g4vec_electronics_cooling_block(0, 0, z_start + (electronics_cooling_block_thickness / 2.));
 
     const G4double electronics_cooling_block_R_inner = m_Params->get_double_param("electronics_cooling_block_R_inner") * cm;
     const G4double electronics_cooling_block_R_outer = m_Params->get_double_param("electronics_cooling_block_R_outer") * cm;
@@ -528,7 +529,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
           Rin,
           Rout,
           electronics_cooling_block_thickness / 2.,
-          spoke_phi, sector_dphi - 2 * spoke_phi);
+          spoke_phi, sector_dphi - (2 * spoke_phi));
 
       if (Verbosity())
       {
@@ -544,7 +545,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
       {
         G4Transform3D trans(
-            CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + sector_dphi * sector_id),
+            CLHEP::HepRotationZ(wagon_wheel_sector_phi_offset + (sector_dphi * sector_id)),
             g4vec_electronics_cooling_block);
         //
         assmeblyvol->AddPlacedVolume(log_vol, trans);
@@ -552,8 +553,8 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
         m_DisplayAction->AddVolume(log_vol, "cooling_block");
 
       }  //     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
-    }    // for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
-  }      // electronics_cooling_block_material  if (electronics_cooling_block_thickness>0)
+    }  // for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
+  }  // electronics_cooling_block_material  if (electronics_cooling_block_thickness>0)
 
   ///////////////////////////////////////////////
   // electronics
@@ -568,13 +569,13 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
   {
     for (int ring_id = 1; ring_id <= n_radial_modules; ++ring_id)
     {
-      const G4double Rout = m_Params->get_double_param(
-                                boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) *
-                                cm -
+      const G4double Rout = (m_Params->get_double_param(
+                                 boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) *
+                             cm) -
                             electronics_assemly_thickness;
-      const G4double Rin = m_Params->get_double_param(
-                               boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id))) *
-                               cm +
+      const G4double Rin = (m_Params->get_double_param(
+                                boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id))) *
+                            cm) +
                            electronics_assemly_thickness;
       const int nFEE = m_Params->get_int_param(boost::str(boost::format("electronics_nFEE_R%1%") % (ring_id)));
 
@@ -597,7 +598,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
       }
       starting_electronics -= electronics_FEE_PCB_thickness / 2.;
       G4ThreeVector g4vec_electronics;
-      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + (electronics_FEE_depth / 2.));
       starting_electronics -= electronics_FEE_PCB_thickness / 2.;
       G4VSolid *solid_electronics = nullptr;
       solid_electronics = new G4Box(name_base + "_PCB",
@@ -618,7 +619,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
                   << " starting_electronics = " << starting_electronics << std::endl;
       }
       starting_electronics -= electronics_FEE_Cu_thickness / 2.;
-      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + (electronics_FEE_depth / 2.));
       starting_electronics -= electronics_FEE_Cu_thickness / 2.;
 
       solid_electronics = new G4Box(name_base + "_Cu",
@@ -638,7 +639,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
                   << " starting_electronics = " << starting_electronics << std::endl;
       }
       starting_electronics -= electronics_FEE_Al_thickness / 2.;
-      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + electronics_FEE_depth / 2.);
+      g4vec_electronics.set(starting_electronics, (Rout + Rin) * .5, z_start + (electronics_FEE_depth / 2.));
       starting_electronics -= electronics_FEE_Al_thickness / 2.;
 
       solid_electronics = new G4Box(name_base + "_Al",
@@ -657,14 +658,14 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
       for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
       {
-        const G4double sector_phi_shift = wagon_wheel_sector_phi_offset + sector_dphi * sector_id;
+        const G4double sector_phi_shift = wagon_wheel_sector_phi_offset + (sector_dphi * sector_id);
         const G4double spoke_phi = atan2(wagon_wheel_spoke_width, Rin);
         const G4double board_dphi = (sector_dphi - 2 * spoke_phi) / (nFEE + 1);
         const G4double board_phi_start = sector_phi_shift + spoke_phi + board_dphi;
 
         for (int board_id = 0; board_id < nFEE; ++board_id)
         {
-          G4Transform3D trans_electronic = G4RotateZ3D(board_phi_start + board_dphi * board_id);
+          G4Transform3D trans_electronic = G4RotateZ3D(board_phi_start + (board_dphi * board_id));
 
           assmeblyvol->AddPlacedAssembly(assmeblyvol_electronics, trans_electronic);
         }
