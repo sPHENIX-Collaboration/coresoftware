@@ -103,9 +103,7 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
     for (HistDef1D histDef1D : m_vecHistDef1D)
     {
       // make name
-      std::string sHistName("h_");
-      sHistName += prefix;
-      sHistName += "_";
+      std::string sHistName(prefix + "_");
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef1D);
       sHistName += "_";
@@ -129,9 +127,7 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
     for (HistDef2D histDef2D : m_vecHistDef2D)
     {
       // make name
-      std::string sHistName("h_");
-      sHistName += prefix;
-      sHistName += "_";
+      std::string sHistName(prefix + "_");
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef2D);
       sHistName += "_";

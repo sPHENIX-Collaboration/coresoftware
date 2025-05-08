@@ -205,7 +205,6 @@ void TrksInJetQA::InitHistograms()
 
   // histograms are always prefixed by the module name
   std::string prefix = "h_";
-  prefix += "_";
   prefix += smallModuleName;
 
   // if additional prefix provided, add it
