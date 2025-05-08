@@ -109,6 +109,12 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
       sHistName += "_";
       sHistName += suffix;
 
+      // make sure histogram name is lower case
+      std::transform(sHistName.begin(),
+                     sHistName.end(),
+                     sHistName.begin(),
+                     ::tolower);
+
       // create histogram
       m_vecHist1D.at(iType).push_back(
           new TH1D(
