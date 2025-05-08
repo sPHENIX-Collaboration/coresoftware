@@ -22,7 +22,6 @@ class TrackSeed;
 class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
 {
  public:
-
   /// constructor
   PHTpcDeltaZCorrection(const std::string &name = "PHTpcDeltaZCorrection");
 
@@ -33,18 +32,17 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void SetDefaultParameters() override;
-  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
+  void setTrkrClusterContainerName(std::string &name) { m_clusterContainerName = name; }
 
-  private:
-
+ private:
   /// load nodes
-  int load_nodes( PHCompositeNode* );
+  int load_nodes(PHCompositeNode *);
 
   /// process tracks
   void process_tracks();
 
   /// process track
-  void process_track( unsigned int, TrackSeed* );
+  void process_track(unsigned int, TrackSeed *);
 
   /// Acts tracking geometry for surface lookup
   ActsGeometry *m_tGeometry = nullptr;
@@ -55,13 +53,12 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   /// cluster map
   TrkrClusterContainer *m_cluster_map = nullptr;
 
-  //cluster container name
+  // cluster container name
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   /// list of corrected cluster keys
   /** needed to prevent clusters to be corrected twice, when same cluster is used for two different tracks */
   std::set<TrkrDefs::cluskey> m_corrected_clusters;
-
 };
 
-#endif // PHTpcDeltaZCorrection_H
+#endif  // PHTpcDeltaZCorrection_H
