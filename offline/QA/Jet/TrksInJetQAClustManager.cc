@@ -34,17 +34,20 @@ void TrksInJetQAClustManager::GetInfo(TrkrCluster* cluster, TrkrDefs::cluskey& c
 
   // fill histograms
   FillHistograms(Type::All, content);
-  if (isMvtx)
+  if (m_config.doSubsysHist)
   {
-    FillHistograms(Type::Mvtx, content);
-  }
-  else if (isIntt)
-  {
-    FillHistograms(Type::Intt, content);
-  }
-  else if (isTpc)
-  {
-    FillHistograms(Type::Tpc, content);
+    if (isMvtx)
+    {
+      FillHistograms(Type::Mvtx, content);
+    }
+    else if (isIntt)
+    {
+      FillHistograms(Type::Intt, content);
+    }
+    else if (isTpc)
+    {
+      FillHistograms(Type::Tpc, content);
+    }
   }
 
 }  // end GetInfo(TrkrCluster*, TrkrDefs::cluskey&, ActsGeometry*)'
@@ -72,10 +75,13 @@ void TrksInJetQAClustManager::DefineHistograms()
   std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
 
   // set histogram types
-  m_vecHistTypes.emplace_back("Mvtx");
-  m_vecHistTypes.emplace_back("Intt");
-  m_vecHistTypes.emplace_back("Tpc");
   m_vecHistTypes.emplace_back("All");
+  if (m_config.doSubsysHist)
+  {
+    m_vecHistTypes.emplace_back("Mvtx");
+    m_vecHistTypes.emplace_back("Intt");
+    m_vecHistTypes.emplace_back("Tpc");
+  }
 
   // define 1d histograms
   m_vecHistDef1D.emplace_back("ClustPosX", vecBins.at(TrksInJetQAHist::Var::PosXY));
