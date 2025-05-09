@@ -55,6 +55,10 @@ ROOTDICTS = \
   MvtxRawEvtHeaderv2_Dict.cc \
   OfflinePacket_Dict.cc \
   OfflinePacketv1_Dict.cc \
+  TpcDiode_Dict.cc \
+  TpcDiodeContainer_Dict.cc \
+  TpcDiodeContainerv1_Dict.cc \
+  TpcDiodev1_Dict.cc \
   TpcRawHit_Dict.cc \
   TpcRawHitContainer_Dict.cc \
   TpcRawHitContainerv1_Dict.cc \
@@ -105,6 +109,10 @@ nobase_dist_pcm_DATA = \
   MvtxRawEvtHeaderv2_Dict_rdict.pcm \
   OfflinePacket_Dict_rdict.pcm \
   OfflinePacketv1_Dict_rdict.pcm \
+  TpcDiode_Dict_rdict.pcm \
+  TpcDiodeContainer_Dict_rdict.pcm \
+  TpcDiodeContainerv1_Dict_rdict.pcm \
+  TpcDiodev1_Dict_rdict.pcm \
   TpcRawHit_Dict_rdict.pcm \
   TpcRawHitContainer_Dict_rdict.pcm \
   TpcRawHitContainerv1_Dict_rdict.pcm \
@@ -154,6 +162,10 @@ pkginclude_HEADERS = \
   MvtxRawEvtHeaderv2.h \
   OfflinePacket.h \
   OfflinePacketv1.h \
+  TpcDiode.h \
+  TpcDiodeContainer.h \
+  TpcDiodeContainerv1.h \
+  TpcDiodev1.h \
   TpcRawHit.h \
   TpcRawHitContainer.h \
   TpcRawHitContainerv1.h \
@@ -191,6 +203,8 @@ libffarawobjects_la_SOURCES = \
   MvtxRawEvtHeaderv2.cc \
   OfflinePacket.cc \
   OfflinePacketv1.cc \
+  TpcDiodeContainerv1.cc \
+  TpcDiodev1.cc \
   TpcRawHitContainerv1.cc \
   TpcRawHitContainerv2.cc \
   TpcRawHitContainerv3.cc \
