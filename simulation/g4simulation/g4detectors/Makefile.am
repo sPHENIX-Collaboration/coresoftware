@@ -94,6 +94,7 @@ pkginclude_HEADERS = \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
   PHG4SpacalSteppingAction.h \
+  PHG4sPHENIXMagnetSubsystem.h \
   PHG4StepStatusDecode.h \
   PHG4TpcCylinderGeom.h \
   PHG4TpcCylinderGeomContainer.h \
@@ -237,6 +238,10 @@ libg4detectors_la_SOURCES = \
   PHG4SpacalDisplayAction.cc \
   PHG4SpacalSteppingAction.cc \
   PHG4SpacalSubsystem.cc \
+  PHG4sPHENIXMagnetDetector.cc \
+  PHG4sPHENIXMagnetDisplayAction.cc \
+  PHG4sPHENIXMagnetSteppingAction.cc \
+  PHG4sPHENIXMagnetSubsystem.cc \
   PHG4StepStatusDecode.cc \
   PHG4TrackStatusDecode.cc \
   PHG4ZDCDetector.cc \
