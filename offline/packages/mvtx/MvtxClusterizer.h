@@ -73,16 +73,16 @@ class MvtxClusterizer : public SubsysReco
   void PrintClusters(PHCompositeNode *topNode);
 
   // node tree storage pointers
-  TrkrHitSetContainer *m_hits;
-  RawHitSetContainer *m_rawhits;
-  TrkrClusterContainer *m_clusterlist;
+  TrkrHitSetContainer *m_hits {nullptr};
+  RawHitSetContainer *m_rawhits {nullptr};
+  TrkrClusterContainer *m_clusterlist {nullptr};
 
-  TrkrClusterHitAssoc *m_clusterhitassoc;
+  TrkrClusterHitAssoc *m_clusterhitassoc {nullptr};
 
   // settings
-  bool m_makeZClustering;  // z_clustering_option
-  bool do_hit_assoc = true;
-  bool do_read_raw = false;
+  bool m_makeZClustering {true};  // z_clustering_option
+  bool do_hit_assoc {true};
+  bool do_read_raw {false};
 };
 
 #endif  // MVTX_MVTXCLUSTERIZER_H
