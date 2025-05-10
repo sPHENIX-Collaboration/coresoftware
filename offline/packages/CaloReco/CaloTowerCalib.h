@@ -128,7 +128,6 @@ class CaloTowerCalib : public SubsysReco
   CDBTTree *cdbttree = nullptr;
   CDBTTree *cdbttree_time = nullptr;
   CDBTTree *cdbttree_ZScrosscalib = nullptr;
-  int m_runNumber;
 };
 
 #endif  // CALOTOWERBUILDER_H
