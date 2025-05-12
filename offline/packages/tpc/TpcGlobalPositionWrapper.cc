@@ -92,7 +92,10 @@ Acts::Vector3 TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected(con
     // verify crossing validity
     if(crossing == SHRT_MAX)
     {
-      std::cout << "TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected - invalid crossing." << std::endl;
+      if(!m_suppressCrossing)
+      {
+        std::cout << "TpcGlobalPositionWrapper::getGlobalPositionDistortionCorrected - invalid crossing." << std::endl;
+      }
       return global;
     }
 
