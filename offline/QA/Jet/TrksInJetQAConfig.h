@@ -27,6 +27,7 @@ struct TrksInJetQAConfig
   bool doClustQA = false;
   bool doTrackQA = true;
   bool doJetQA = true;
+  bool doSubsysHist = false;
 
   // jet options
   double rJet = 0.4;

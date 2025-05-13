@@ -28,6 +28,11 @@ class TpcGlobalPositionWrapper
   {
     m_verbosity = value;
   }
+  
+  void set_suppressCrossing(bool value)
+  {
+    m_suppressCrossing = value;
+  }
 
   //! verbosity
   int verbosity() const
@@ -52,6 +57,8 @@ class TpcGlobalPositionWrapper
 
   //! verbosity
   unsigned int m_verbosity = 0;
+
+  bool m_suppressCrossing = false;
 
   //! distortion correction interface
   TpcDistortionCorrection m_distortionCorrection;

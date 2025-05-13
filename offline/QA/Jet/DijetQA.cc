@@ -71,7 +71,7 @@ int DijetQA::Init(PHCompositeNode* /*topNode*/)
   m_manager = QAHistManagerDef::getHistoManager();  // get the histogram anager
 
 	if(!m_manager){
-		std::cerr<<PHWHERE <<": PANIC: couldn't grab histogram manager!" <<std::endl;
+		std::cout<<PHWHERE <<": PANIC: couldn't grab histogram manager!" <<std::endl;
 		assert(m_manager);
 	}
 	std::string smallModuleName = m_moduleName; //make sure name is lowercase
@@ -145,10 +145,16 @@ int DijetQA::process_event(PHCompositeNode* topNode)
   GlobalVertexMap* vtxmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vtxmap || vtxmap->empty())
   {
-	
-    std::cout << "DijetQA::process_event - Error can not find vtxmap node " << "GlobalVertexMap" << std::endl; 
-    if( Verbosity() > 1 ){
-	 std::cout << "No vertex map found, assuming the vertex has z=0" << std::endl;
+    if (!vtxmap)
+    {
+      std::cout << "DijetQA::process_event - Error can not find vtxmap node " << "GlobalVertexMap" << std::endl;
+    }
+    if(Verbosity() > 1)
+    {
+      if (vtxmap->empty())
+      {
+        std::cout << "No vertex map found, assuming the vertex has z=0" << std::endl;
+      }
     }
     m_zvtx = 0;
   }
@@ -163,7 +169,7 @@ int DijetQA::process_event(PHCompositeNode* topNode)
     std::cout << "DijetQA::process_event - Error can not find jets node " << m_recoJetName << std::endl;	  
     if (Verbosity() > 1)
     {
-      std::cerr << "No Jet container found" << std::endl;
+      std::cout << "No Jet container found" << std::endl;
     }
     return Fun4AllReturnCodes::EVENT_OK;
   }

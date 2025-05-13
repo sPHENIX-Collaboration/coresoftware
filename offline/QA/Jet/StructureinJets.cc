@@ -170,7 +170,7 @@ int StructureinJets::process_event(PHCompositeNode* topNode)
   {
     // if specified node name not found, try looking for this node;
     // and if that's not found, exit
-    trackmap = findNode::getClass<SvtxTrackMap>(topNode, "TrackMap");
+    trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
     if (!trackmap)
     {
       std::cout

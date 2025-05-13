@@ -128,7 +128,8 @@ class PHActsTrkFitter : public SubsysReco
   void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
-
+  void setDirectNavigation(bool flag) { m_directNavigation = flag; }
+    
  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);
@@ -213,6 +214,8 @@ class PHActsTrkFitter : public SubsysReco
   /// Flag for pp running
   bool m_pp_mode = false;
 
+  bool m_directNavigation = false;
+  
   // do we have a constant field
   bool m_ConstField{false};
   double fieldstrength{std::numeric_limits<double>::quiet_NaN()};

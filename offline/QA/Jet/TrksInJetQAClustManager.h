@@ -36,10 +36,10 @@ class TrksInJetQAClustManager : public TrksInJetQABaseManager
   // histogram accessors
   enum Type
   {
+    All,
     Mvtx,
     Intt,
-    Tpc,
-    All
+    Tpc
   };
   enum H1D
   {

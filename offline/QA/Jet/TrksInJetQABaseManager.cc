@@ -103,13 +103,22 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
     for (HistDef1D histDef1D : m_vecHistDef1D)
     {
       // make name
-      std::string sHistName("h_");
-      sHistName += prefix;
-      sHistName += "_";
+      std::string sHistName(prefix + "_");
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef1D);
       sHistName += "_";
       sHistName += suffix;
+
+      // make sure histogram name is lower case
+      std::transform(sHistName.begin(),
+                     sHistName.end(),
+                     sHistName.begin(),
+                     ::tolower);
+
+      std::regex_replace(
+          sHistName,
+          std::regex("__"),
+          "_");
 
       // create histogram
       m_vecHist1D.at(iType).push_back(
@@ -129,15 +138,18 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
     for (HistDef2D histDef2D : m_vecHistDef2D)
     {
       // make name
-      std::string sHistName("h_");
-      sHistName += prefix;
-      sHistName += "_";
+      std::string sHistName(prefix + "_");
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef2D);
       sHistName += "_";
       sHistName += suffix;
 
-      // const std::string sDoubleUnderscore("__");
+      // make sure histogram name is lower case
+      std::transform(sHistName.begin(),
+                     sHistName.end(),
+                     sHistName.begin(),
+                     ::tolower);
+
       std::regex_replace(
           sHistName,
           std::regex("__"),
