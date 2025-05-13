@@ -150,9 +150,6 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
     const auto cluster_range = m_cluster_map->getClusters(hitsetkey);
     cluster_count[detid] = std::distance( cluster_range.first, cluster_range.second );
 
-    // fill multiplicity histogram
-    m_h_cluster_multiplicity->Fill( detid, cluster_count[detid]);
-
     // loop over clusters
     for( const auto& [ckey,cluster]:range_adaptor(cluster_range))
     {
@@ -204,6 +201,9 @@ int MicromegasClusterQA::process_event(PHCompositeNode *topNode)
     {
       // get detector id
       const int detid = tile+MicromegasDefs::m_ntiles*layer;
+
+      // fill multiplicity histogram
+      m_h_cluster_multiplicity->Fill( detid, cluster_count[detid]);
 
       // get reference detector id. It corresponds to the same tile, but on the other layer
       const int detid_ref = detid >= MicromegasDefs::m_ntiles ?
