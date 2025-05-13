@@ -135,7 +135,7 @@ int HelicalFitter::InitRun(PHCompositeNode* topNode)
     }
     else
     {
-      ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:quality:crossing:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
+      ntp = new TNtuple("ntp", "HF ntuple", "event:trkid:layer:nsilicon:ntpc:nclus:trkrid:quality:charge:crossing:sector:side:subsurf:phi:glbl0:glbl1:glbl2:glbl3:glbl4:glbl5:sensx:sensy:sensz:normx:normy:normz:sensxideal:sensyideal:senszideal:normxideal:normyideal:normzideal:xglobideal:yglobideal:zglobideal:R:X0:Y0:Zs:Z0:xglob:yglob:zglob:xfit:yfit:zfit:pcax:pcay:pcaz:tangx:tangy:tangz:X:Y:errX:errY:fitX:fitY:dXdR:dXdX0:dXdY0:dXdZs:dXdZ0:dXdalpha:dXdbeta:dXdgamma:dXdx:dXdy:dXdz:dYdR:dYdX0:dYdY0:dYdZs:dYdZ0:dYdalpha:dYdbeta:dYdgamma:dYdx:dYdy:dYdz");
     }
 
     if (straight_line_fit)
@@ -1000,13 +1000,13 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
               lcl_derivativeY[0], lcl_derivativeY[1], lcl_derivativeY[2], lcl_derivativeY[3],
               glbl_derivativeY[0], glbl_derivativeY[1], glbl_derivativeY[2], glbl_derivativeY[3], glbl_derivativeY[4], glbl_derivativeY[5]};
 
-          ntp->Fill(ntp_data);
+              ntp->Fill(ntp_data);
         }
         else
         {
-          float ntp_data[77] = {
+          float ntp_data[80] = {
               (float) event, (float) trackid_test,
-              (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) pull_cumulative, (float) newTrack.get_crossing(), (float) sector, (float) side,
+              (float) layer, (float) nsilicon, (float) ntpc, (float) nclus, (float) trkrid, (float) pull_cumulative, (float) newTrack.get_charge(), (float) newTrack.get_crossing(), (float) sector, (float) side,
               (float) subsurf, phi,
               (float) glbl_label[0], (float) glbl_label[1], (float) glbl_label[2], (float) glbl_label[3], (float) glbl_label[4], (float) glbl_label[5],
               (float) sensorCenter(0), (float) sensorCenter(1), (float) sensorCenter(2),
@@ -1019,7 +1019,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
               (float) fitpoint(0), (float) fitpoint(1), (float) fitpoint(2),
               (float) tangent.first.x(), (float) tangent.first.y(), (float) tangent.first.z(),
               (float) tangent.second.x(), (float) tangent.second.y(), (float) tangent.second.z(),
-              xloc, zloc, (float) fitpoint_local(0), (float) fitpoint_local(1),
+              xloc, zloc, (float) clus_sigma(0), (float) clus_sigma(1), (float) fitpoint_local(0), (float) fitpoint_local(1),
               lcl_derivativeX[0], lcl_derivativeX[1], lcl_derivativeX[2], lcl_derivativeX[3], lcl_derivativeX[4],
               glbl_derivativeX[0], glbl_derivativeX[1], glbl_derivativeX[2], glbl_derivativeX[3], glbl_derivativeX[4], glbl_derivativeX[5],
               lcl_derivativeY[0], lcl_derivativeY[1], lcl_derivativeY[2], lcl_derivativeY[3], lcl_derivativeY[4],

@@ -1946,11 +1946,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("vx", &m_vx, "m_vx/F");
   m_tree->Branch("vy", &m_vy, "m_vy/F");
   m_tree->Branch("vz", &m_vz, "m_vz/F");
-<<<<<<< HEAD
   m_tree->Branch("vertex_ntracks", &m_vertex_ntracks, "m_vertex_ntracks/I");
-=======
-  m_tree->Branch("vertex_ntracks",&m_vertex_ntracks, "m_vertex_ntracks/I");
->>>>>>> 10eee9a36 (update to alignment and track residuals output for testing vertex resolution)
   m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
