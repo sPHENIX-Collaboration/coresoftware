@@ -16,6 +16,7 @@ namespace TowerInfoDefs
 
   unsigned int encode_epd(const unsigned int towerIndex);
   unsigned int encode_epd(const unsigned int arm, const unsigned int rbin, const unsigned int phibin);
+  unsigned int encode_epd(const unsigned int arm, const unsigned int rbin, const unsigned int phibin, bool isData);
   unsigned int decode_epd(const unsigned int tower_key);
 
   unsigned int get_epd_arm(unsigned int key);
