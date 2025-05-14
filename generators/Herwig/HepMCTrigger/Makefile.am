@@ -8,7 +8,8 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64
+  -L$(OFFLINE_MAIN)/lib64 \
+  `fastjet-config --libs`
 
 pkginclude_HEADERS = \
   HepMCJetTrigger.h
@@ -23,7 +24,7 @@ libHepMCJetTrigger_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lfun4all \
-  -lphhepmc
+  -lphhepmc 
 
 BUILT_SOURCES = testexternals.cc
 
