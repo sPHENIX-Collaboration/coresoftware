@@ -21,6 +21,7 @@ libTpcLineLaserDiode_la_SOURCES = \
 
 libTpcLineLaserDiode_la_LIBADD = \
   -lffarawobjects \
+  -lNoRootEvent \
   -lphool \
   -lSubsysReco
 
