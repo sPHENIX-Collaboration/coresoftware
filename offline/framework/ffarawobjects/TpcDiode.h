@@ -52,7 +52,7 @@ class TpcDiode : public PHObject
 
   virtual double get_pulsewidth() const { return std::numeric_limits<double>::max(); }
   virtual void set_pulsewidth(const double) { return; }
-  
+
   // virtual uint16_t get_type() const { return std::numeric_limits<uint16_t>::max(); }
   // virtual void set_type(const uint16_t) { return; }
 
@@ -69,7 +69,7 @@ class TpcDiode : public PHObject
   // virtual bool get_checksumerror() const { return false; }
   // virtual void set_checksumerror(const bool /*b*/) { return; }
 
-  // //! SAMPA data payload parity check. If true, data from SAMPA is broken, e.g. from SEU 
+  // //! SAMPA data payload parity check. If true, data from SAMPA is broken, e.g. from SEU
   // virtual bool get_parityerror() const { return false; }
   // virtual void set_parityerror(const bool /*b*/) { return; }
 

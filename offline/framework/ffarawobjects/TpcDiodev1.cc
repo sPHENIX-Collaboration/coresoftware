@@ -15,7 +15,6 @@ TpcDiodev1::TpcDiodev1(TpcDiode *tpcdiode)
   TpcDiodev1::set_integral(tpcdiode->get_integral());
   TpcDiodev1::set_pulsewidth(tpcdiode->get_pulsewidth());
   TpcDiodev1::set_nabovethreshold(tpcdiode->get_nabovethreshold());
-  
 
   for (size_t i = 0; i < tpcdiode->get_samples(); ++i)
   {

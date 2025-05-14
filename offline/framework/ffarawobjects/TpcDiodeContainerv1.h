@@ -28,9 +28,9 @@ class TpcDiodeContainerv1 : public TpcDiodeContainer
   unsigned int get_ndiodes() override;
   TpcDiode *get_diode(unsigned int index) override;
   unsigned int get_Laser() override;
-  std::vector<TpcDiode*> get_PO1() override;
-  std::vector<TpcDiode*> get_PO2() override;
-  std::vector<TpcDiode*> get_EGG() override;
+  std::vector<TpcDiode *> get_PO1() override;
+  std::vector<TpcDiode *> get_PO2() override;
+  std::vector<TpcDiode *> get_EGG() override;
 
  private:
   TClonesArray *TpcDiodesTCArray = nullptr;

@@ -75,13 +75,11 @@ class TpcDiodev1 : public TpcDiode
     return adc[sample];
   }
 
-  // cppcheck-suppress virtualCallInConstructor
   void set_adc(uint16_t sample, uint16_t val) override
   {
     assert(sample < adc.size());
     adc[sample] = val;
   }
-
 
   // class AdcIteratorv1 : public AdcIterator
   //   {
@@ -103,7 +101,7 @@ class TpcDiodev1 : public TpcDiode
 
   //     uint16_t CurrentTimeBin() const override
   //     {
-  //       return m_index;   
+  //       return m_index;
   //     }
   //     uint16_t CurrentAdc() const override
   //     {
@@ -115,27 +113,27 @@ class TpcDiodev1 : public TpcDiode
   //     }
   //   };
 
-    // AdcIterator* CreateAdcIterator() const override { return new AdcIteratorv1(adc); }
+  // AdcIterator* CreateAdcIterator() const override { return new AdcIteratorv1(adc); }
 
-   private:
-    // uint64_t bco = std::numeric_limits<uint64_t>::max();
-    // uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
-    int32_t packetid = std::numeric_limits<int32_t>::max();
-    // uint16_t fee = std::numeric_limits<uint16_t>::max();
-    uint16_t channel = std::numeric_limits<uint16_t>::max();
-    // uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
-    // uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
-    uint16_t samples = std::numeric_limits<uint16_t>::max();
-    uint16_t maxadc = std::numeric_limits<uint16_t>::max();
-    uint16_t maxbin = std::numeric_limits<uint16_t>::max();
-    double integral = std::numeric_limits<uint16_t>::max();
-    double pulsewidth = std::numeric_limits<uint16_t>::max();
-    uint16_t nabovethreshold = std::numeric_limits<uint16_t>::max();
+ private:
+  // uint64_t bco = std::numeric_limits<uint64_t>::max();
+  // uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
+  int32_t packetid = std::numeric_limits<int32_t>::max();
+  // uint16_t fee = std::numeric_limits<uint16_t>::max();
+  uint16_t channel = std::numeric_limits<uint16_t>::max();
+  // uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
+  // uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
+  uint16_t samples = std::numeric_limits<uint16_t>::max();
+  uint16_t maxadc = std::numeric_limits<uint16_t>::max();
+  uint16_t maxbin = std::numeric_limits<uint16_t>::max();
+  double integral = std::numeric_limits<uint16_t>::max();
+  double pulsewidth = std::numeric_limits<uint16_t>::max();
+  uint16_t nabovethreshold = std::numeric_limits<uint16_t>::max();
 
-    //! adc value for each sample
-    std::vector<uint16_t> adc;
+  //! adc value for each sample
+  std::vector<uint16_t> adc;
 
-    ClassDefOverride(TpcDiodev1, 1)
-  };
+  ClassDefOverride(TpcDiodev1, 1)
+};
 
 #endif
