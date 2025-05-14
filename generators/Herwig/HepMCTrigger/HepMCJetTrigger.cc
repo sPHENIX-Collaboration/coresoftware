@@ -85,18 +85,8 @@ HepMCJetTrigger::~HepMCJetTrigger()
 }
 
 //____________________________________________________________________________..
-int HepMCJetTrigger::Init(PHCompositeNode *topNode)
-{
-  std::cout << "HepMCJetTrigger::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
-int HepMCJetTrigger::InitRun(PHCompositeNode *topNode)
-{
-  std::cout << "HepMCJetTrigger::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
 int HepMCJetTrigger::process_event(PHCompositeNode *topNode)
@@ -123,38 +113,15 @@ int HepMCJetTrigger::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int HepMCJetTrigger::ResetEvent(PHCompositeNode *topNode)
-{
-  std::cout << "HepMCJetTrigger::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
-int HepMCJetTrigger::EndRun(const int runnumber)
-{
-  std::cout << "HepMCJetTrigger::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
-int HepMCJetTrigger::End(PHCompositeNode *topNode)
-{
-  std::cout << "HepMCJetTrigger::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
-int HepMCJetTrigger::Reset(PHCompositeNode *topNode)
-{
- std::cout << "HepMCJetTrigger::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 //____________________________________________________________________________..
-void HepMCJetTrigger::Print(const std::string &what) const
-{
-  std::cout << "HepMCJetTrigger::Print(const std::string &what) const Printing info for " << what << std::endl;
-}
+
 bool HepMCJetTrigger::isGoodEvent( HepMC::GenEvent* e1)
 {
 	//this is really just the call to actually evaluate and return the filter
@@ -187,7 +154,7 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
 	}
 	return output;
 }
-int HepMCJetTrigger::jetsAboveThreshold(std::vector<fastjet::PseudoJet> jets)
+int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets)
 {
 	//search through for the number of identified jets above the threshold
 	int n_good_jets=0;
