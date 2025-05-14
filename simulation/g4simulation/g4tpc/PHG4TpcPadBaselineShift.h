@@ -40,7 +40,7 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   void set_drift_velocity(float vd) { _drift_velocity = vd; }
 
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom);
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits{nullptr};
   TrkrClusterContainer *m_clusterlist{nullptr};

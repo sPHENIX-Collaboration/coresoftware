@@ -217,7 +217,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
 
   set_default_double_param("maxdriftlength", 105.5);       // cm
   set_default_double_param("extended_readout_time", 0.0);  // ns
-  set_default_double_param("tpc_adc_clock", 53.326184);         // ns, for 18.8 MHz clock
+  set_default_double_param("tpc_adc_clock", 53.326184);    // ns, for 18.8 MHz clock
 
   set_default_double_param("tpc_sector_phi_inner", 0.5024);  // 2 * M_PI / 12 );//sector size in phi for R1 sector
   set_default_double_param("tpc_sector_phi_mid", 0.5087);    // 2 * M_PI / 12 );//sector size in phi for R2 sector
@@ -227,10 +227,10 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_int_param("ntpc_phibins_mid", 1536);    // 128 * 12
   set_default_int_param("ntpc_phibins_outer", 2304);  // 192 * 12
 
-  set_default_double_param("TPC_gas_temperature", 15.0); //in celcius
-  set_default_double_param("TPC_gas_pressure", 1.0); //in atmospheres
-  set_default_double_param("Ne_frac", 0.00); 
-  set_default_double_param("Ar_frac", 0.75); 
+  set_default_double_param("TPC_gas_temperature", 15.0);  // in celcius
+  set_default_double_param("TPC_gas_pressure", 1.0);      // in atmospheres
+  set_default_double_param("Ne_frac", 0.00);
+  set_default_double_param("Ar_frac", 0.75);
   set_default_double_param("CF4_frac", 0.20);
   set_default_double_param("N2_frac", 0.00);
   set_default_double_param("isobutane_frac", 0.05);
