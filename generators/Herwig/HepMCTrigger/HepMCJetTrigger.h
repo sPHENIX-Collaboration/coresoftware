@@ -2,33 +2,26 @@
 //  -*- C++ -*-.
 #ifndef HEPMCJETTRIGGER_H
 #define HEPMCJETTRIGGER_H
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <string>
-#include <vector>
-#include <fun4all/SubsysReco.h>
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
 
-#include <phool/phool.h>
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHObject.h>
-#include <fastjet/JetDefinition.hh>
+#include <fun4all/SubsysReco.h>
+
 #include <fastjet/PseudoJet.hh>
 
-#include <HepMC/GenEvent.h>
-
+#include <string>
+#include <vector>
 
 class PHCompositeNode;
+namespace HepMC
+{
+  class GenEvent;
+}
 
 class HepMCJetTrigger : public SubsysReco
 {
  public:
+  HepMCJetTrigger(float trigger_thresh = 10., int n_incom = 1000, bool up_lim = false, const std::string& name = "HepMCJetTrigger");
 
-  HepMCJetTrigger(float trigger_thresh=10., int n_incom=1000, bool up_lim=false, const std::string &name = "HepMCJetTrigger");
-
-  ~HepMCJetTrigger() override;
+  ~HepMCJetTrigger() override = default;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
@@ -45,7 +38,7 @@ class HepMCJetTrigger : public SubsysReco
   /** Called for each event.
       This is where you do the real work.
    */
-  int process_event(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode* topNode) override;
 
   /// Clean up internals after each event.
 
@@ -55,15 +48,15 @@ class HepMCJetTrigger : public SubsysReco
 
   /// Reset
 
-  int n_evts=0;
-  int n_good=0;
  private:
-	bool isGoodEvent(HepMC::GenEvent* e1);
-	std::vector<fastjet::PseudoJet> findAllJets(HepMC::GenEvent* e1);
-	int jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets);
-	float threshold=0.;
-	int goal_event_number=1000;
-	bool set_event_limit=false;
+  bool isGoodEvent(HepMC::GenEvent* e1);
+  std::vector<fastjet::PseudoJet> findAllJets(HepMC::GenEvent* e1);
+  int jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets);
+  float threshold{0.};
+  int goal_event_number{1000};
+  int n_evts{0};
+  int n_good{0};
+  bool set_event_limit{false};
 };
 
-#endif // HEPMCJETTRIGGER_H
+#endif  // HEPMCJETTRIGGER_H
