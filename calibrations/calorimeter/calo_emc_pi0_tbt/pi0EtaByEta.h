@@ -137,7 +137,7 @@ class pi0EtaByEta : public SubsysReco
   {
     useVertexTruth = state;
   }
-  void set_calib_fieldname(std::string name)
+  void set_calib_fieldname(std::string &name)
   {
     m_fieldname = name;
   } 
