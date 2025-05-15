@@ -31,10 +31,16 @@ class TrkrClusterHitAssocv3 : public TrkrClusterHitAssoc
 
   void identify(std::ostream& os = std::cout) const override;
 
+  //! remove all associations matching a given hitsetkey
+  void removeAssocs(TrkrDefs::hitsetkey) override;
+
+  //! add cluster to hit association
   void addAssoc(TrkrDefs::cluskey, unsigned int) override;
 
+  //! get all associations matching a given hitsetkey
   Map* getClusterMap(TrkrDefs::hitsetkey) override;
 
+  //! get all hits matching a given cluster key
   ConstRange getHits(TrkrDefs::cluskey) override;
 
   unsigned int size(void) const override;
