@@ -22,6 +22,7 @@
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/Utilities/Helpers.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
@@ -275,6 +276,22 @@ class PHActsTrkFitter : public SubsysReco
   TH1* h_updateTime = nullptr;
   TH1* h_stateTime = nullptr;
   TH1* h_rotTime = nullptr;
+
+  std::vector<const Acts::Surface*> m_materialSurfaces = {};
+
+  struct MaterialSurfaceSelector {
+    std::vector<const Acts::Surface*> surfaces = {};
+  
+    /// @param surface is the test surface
+    void operator()(const Acts::Surface* surface) {
+      if (surface->surfaceMaterial() != nullptr) {
+        if (std::find(surfaces.begin(), surfaces.end(), surface) ==
+            surfaces.end()) {
+          surfaces.push_back(surface);
+        }
+      }
+    }
+  };
 };
 
 #endif
