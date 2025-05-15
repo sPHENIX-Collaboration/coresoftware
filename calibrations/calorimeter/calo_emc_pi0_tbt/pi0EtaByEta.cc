@@ -585,7 +585,6 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile);
   CDBTTree* cdbttree2 = new CDBTTree(cdbFile);
 
-  std::string m_fieldname = "Femc_datadriven_qm1_correction";
 
   float final_mass_target = target_pi0_mass;
 
@@ -752,7 +751,6 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile);
   CDBTTree* cdbttree2 = new CDBTTree(cdbFile);
 
-  std::string m_fieldname = "Femc_datadriven_qm1_correction";
   float final_mass_target = target_pi0_mass;
 
   for (int i = 0; i < 96; i++)
