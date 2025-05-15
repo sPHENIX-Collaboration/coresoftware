@@ -250,6 +250,14 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  // reset MVTX clusters and cluster associations
+  const auto hitsetkeys = m_clusterlist->getHitSetKeys(TrkrDefs::mvtxId);
+  for( const auto& hitsetkey:hitsetkeys)
+  {
+    m_clusterlist->removeClusters(hitsetkey);
+    m_clusterhitassoc->removeAssocs(hitsetkey);
+  }
+
   // run clustering
   if (!do_read_raw)
   {
