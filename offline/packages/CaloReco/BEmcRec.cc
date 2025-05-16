@@ -88,6 +88,40 @@ void BEmcRec::PrintTowerGeometry(const std::string& fname)
   }
 }
 
+void BEmcRec::PrintTowerGeometryDetailed(const std::string& fname)
+{
+  std::ofstream outfile(fname);
+  if (!outfile.is_open())
+  {
+    std::cout << "Error in BEmcRec::PrintTowerGeometry(): Failed to open file "
+              << fname << std::endl;
+    return;
+  }
+  outfile << "Number of bins:" << std::endl;
+  outfile << fNx << " " << fNy << std::endl;
+  outfile << "ieta iphi vtx_1_x vtx_1_y vtx_1_z vtx_2_x vtx_2_y vtx_2_z vtx_3_x vtx_3_y vtx_3_z vtx_4_x vtx_4_y vtx_4_z vtx_5_x vtx_5_y vtx_5_z vtx_6_x vtx_6_y vtx_6_z vtx_7_x vtx_7_y vtx_7_z vtx_8_x vtx_8_y vtx_8_z\n";
+  int ich;
+  RawTowerGeom *geom;
+  std::map<int, RawTowerGeom*>::iterator it;
+  for (int iy = 0; iy < fNy; iy++)
+  {
+    for (int ix = 0; ix < fNx; ix++)
+    {
+      ich = iy * fNx + ix;
+      it = fTowerGeomDetailed.find(ich);
+      if (it != fTowerGeomDetailed.end())
+      {
+        geom = it->second;
+        outfile << ix << " " << iy << " ";
+        for (int ivtx = 0; ivtx < 8; ivtx++) {
+          outfile << geom->get_vertex_x(ivtx) << " " << geom->get_vertex_y(ivtx) << " " << geom->get_vertex_z(ivtx) << " ";
+        }
+        outfile << "\n";
+      }
+    }
+  }
+}
+
 bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
 {
   if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy)
@@ -106,23 +140,56 @@ bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
   return true;
 }
 
-bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
+bool BEmcRec::SetTowerGeometry(int ix, int iy, const RawTowerGeom& raw_geom0)
 {
   if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy)
   {
     return false;
   }
 
-  TowerGeom geom;
-  geom.Xcenter = xx;
-  geom.Ycenter = yy;
-  geom.Zcenter = zz;
-  geom.dX[0] = geom.dX[1] = 0;  // These should be calculated by CompleteTowerGeometry()
-  geom.dY[0] = geom.dY[1] = 0;
-  geom.dZ[0] = geom.dZ[1] = 0;
+  TowerGeom geom; // (intermediate geometry used for S-corrections)
+  geom.Xcenter = raw_geom0.get_center_x();
+  geom.Ycenter = raw_geom0.get_center_y();
+  geom.Zcenter = raw_geom0.get_center_z();
+
+  if (m_UseDetailedGeometry)
+  {
+    geom.rotX = raw_geom0.get_rotx();
+    geom.rotY = raw_geom0.get_roty();
+    geom.rotZ = raw_geom0.get_rotz();
+
+    // Describe the eta and phi direction within the tower
+    geom.dX[0] = raw_geom0.get_center_high_phi_x() - raw_geom0.get_center_low_phi_x();
+    geom.dY[0] = raw_geom0.get_center_high_phi_y() - raw_geom0.get_center_low_phi_y();
+    geom.dZ[0] = raw_geom0.get_center_high_phi_z() - raw_geom0.get_center_low_phi_z();
+    geom.dX[1] = raw_geom0.get_center_high_eta_x() - raw_geom0.get_center_low_eta_x();
+    geom.dY[1] = raw_geom0.get_center_high_eta_y() - raw_geom0.get_center_low_eta_y();
+    geom.dZ[1] = raw_geom0.get_center_high_eta_z() - raw_geom0.get_center_low_eta_z();
+  }
+  else
+  {
+    // By default, an approximate value for the tower rotation will be given
+    geom.rotX = 0;
+    geom.rotY = 0;
+    geom.rotZ = 0;
+
+    // The tower eta and phi directions should be computed 
+    // in the CompleteTowerGeometry method afterwards
+    geom.dX[0] = geom.dX[1] = 0;
+    geom.dY[0] = geom.dY[1] = 0;
+    geom.dZ[0] = geom.dZ[1] = 0;
+  }
 
   int ich = (iy * fNx) + ix;
   fTowerGeom[ich] = geom;
+  
+  if (m_UseDetailedGeometry)
+  {
+    // copy the input geometry inside fTowerGeomDetailed (only for debugging)
+    RawTowerGeomv5 *geom_detailed = new RawTowerGeomv5(raw_geom0); 
+    fTowerGeomDetailed[ich] = geom_detailed;
+  }
+
   return true;
 }
 
@@ -256,17 +323,17 @@ void BEmcRec::Tower2Global(float E, float xC, float yC,
   float zt = geom0.Zcenter + ((xC - ix) * geom0.dZ[0]) + ((yC - iy) * geom0.dZ[1]);
 
   if (flagDoSD)
-    {
-      CorrectShowerDepth(E, xt, yt, zt, xA, yA, zA);
-    }
+  {
+    CorrectShowerDepth(ix, iy, E, xt, yt, zt, xA, yA, zA);
+  }
   else 
-    {
-      float savzt = zt; 
-      CorrectShowerDepth(E,xt,yt, zt, xA, yA, zA);
-      zA = savzt; 
-    }
-  //  rA = sqrt(xA*xA+yA*yA);
-  //  phiA = atan2(yA, xA);
+  {
+    // If zvtx is not used (m_UseAltZvtx = 2 in RawClusterBuilderTemplate)
+    // then there is no correction of z_cluster
+    float savzt = zt;
+    CorrectShowerDepth(ix, iy, E, xt, yt, zt, xA, yA, zA);
+    zA = savzt; 
+  }
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -490,7 +557,7 @@ int BEmcRec::FindClusters()
 // ///////////////////////////////////////////////////////////////////////////
 
 void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
-                      float& py, float& pxx, float& pyy, float& pyx,
+                      float& py, float& pxx, float& pyy, float& pyx, 
                       float thresh) const
 {
   // First and second momenta calculation
@@ -538,7 +605,7 @@ void BEmcRec::Momenta(std::vector<EmcModule>* phit, float& pe, float& px,
   }
 
   int iymax = ichmax / fNx;
-  int ixmax = ichmax - (iymax * fNx);
+  int ixmax = ichmax - iymax * fNx;
 
   // Calculate CG relative to max energy tower
 
