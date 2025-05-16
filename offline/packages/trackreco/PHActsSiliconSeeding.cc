@@ -134,6 +134,9 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
       std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+  } else {
+    // reset seed container on first iteration
+    m_seedContainer->Reset();
   }
 
   if (Verbosity() > 0)
@@ -277,17 +280,17 @@ void PHActsSiliconSeeding::runSeeder()
   return;
 }
 
-void PHActsSiliconSeeding::makeSvtxTracks(GridSeeds& seedVector)
+void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
 {
   int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
   int strobe = m_lowStrobeIndex;
   /// Loop over grid volumes. In our case this will be strobe
-  for (auto& seeds : seedVector)
+  for (const auto& seeds : seedVector)
   {
     /// Loop over actual seeds in this grid volume
-    for (auto& seed : seeds)
+    for (const auto& seed : seeds)
     {
       if (Verbosity() > 1)
       {
@@ -668,7 +671,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
         {
           const auto cluskey = clusIter->first;
-          if (_iteration_map != nullptr && m_nIteration > 0)
+          if (_iteration_map && m_nIteration > 0)
           {
             if (_iteration_map->getIteration(cluskey) < m_nIteration)
             {
@@ -889,7 +892,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
       {
         const auto cluskey = clusIter->first;
         totNumSiliconHits++;
-        if (_iteration_map != nullptr && m_nIteration > 0)
+        if (_iteration_map && m_nIteration > 0)
         {
           if (_iteration_map->getIteration(cluskey) < m_nIteration)
           {
