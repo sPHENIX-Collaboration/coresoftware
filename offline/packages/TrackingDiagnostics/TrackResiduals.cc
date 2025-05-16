@@ -289,8 +289,11 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     fillEventTree(topNode);
   }
+
   m_event++;
   clearClusterStateVectors();
+  std::cout<<"test5"<<std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
