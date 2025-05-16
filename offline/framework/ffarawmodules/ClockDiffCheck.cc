@@ -421,7 +421,10 @@ bool ClockDiffCheck::CheckFemEventNr(CaloPacket *calopkt)
     std::set<int> EventNoSet;
     for (int j = 0; j < nrModules; j++)
     {
-      EventNoSet.insert(calopkt->iValue(j, "FEMEVTNR"));
+      if (calopkt->getFemStatus(j) == CaloPacket::FEM_OK)
+      {
+	EventNoSet.insert(calopkt->iValue(j, "FEMEVTNR"));
+      }
     }
     if (EventNoSet.size() > 1)
     {
@@ -438,7 +441,7 @@ bool ClockDiffCheck::CheckFemEventNr(CaloPacket *calopkt)
 	if (icnt < 100)
 	{
 	  icnt++;
-	  std::cout << "Packet "  << calopkt->getIdentifier() << " has not unique event numbers"
+	  std::cout << "clk check Packet "  << calopkt->getIdentifier() << " has not unique event numbers"
 		    << " but FEM Clock counters are identical" << std::endl;
 	}
       }
