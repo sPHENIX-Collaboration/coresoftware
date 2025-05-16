@@ -58,7 +58,8 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
-
+  virtual int FemEventNrClockCheck(OfflinePacket *calopkt) const;
+  
  protected:
   PHCompositeNode *m_topNode{nullptr};
   // lined up like this:

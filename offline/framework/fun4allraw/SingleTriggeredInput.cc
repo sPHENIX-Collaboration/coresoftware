@@ -358,6 +358,11 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
       }
     }
     delete packet;
+    int iret = FemEventNrClockCheck(newhit);
+    if (iret < 0)
+    {
+      newhit->Reset();
+    }
   }
   delete evt;
 }
@@ -398,4 +403,97 @@ void SingleTriggeredInput::CreateDSTNodes(Event *evt)
     }
     delete piter;
   }
+}
+
+int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt) const
+{
+  CaloPacket *calopkt = dynamic_cast<CaloPacket *> (pkt);
+  if (!calopkt)
+  {
+    return 0;
+  }
+  // make sure all clocks of the FEM are fine, 
+    int nrModules = calopkt->iValue(0, "NRMODULES");
+    std::set<int> EventNoSet;
+    for (int j = 0; j < nrModules; j++)
+    {
+      EventNoSet.insert(calopkt->iValue(j, "FEMEVTNR"));
+    }
+    size_t femeventnumbers = EventNoSet.size();
+    if (femeventnumbers > 1)
+    {
+      if (femeventnumbers == 2)
+      {
+	// find the outlier if we have a 2:1 decision
+	std::map<int, int> EventMap;
+	std::map<int, int> BadModuleMap;
+	for (int j = 0; j < nrModules; j++)
+	{
+	  EventMap[calopkt->iValue(j, "FEMEVTNR")]++;
+	  BadModuleMap[calopkt->iValue(j, "FEMEVTNR")] = j;
+	}
+	size_t index = 0;
+	for (const auto iter : EventMap)
+	{
+	  if (iter.second == 1)
+	  {
+	    calopkt->setFemStatus(BadModuleMap[iter.first],CaloPacket::BAD_EVENTNR);
+	    break;
+	  }
+	  index++;
+	}
+      }
+      else // all event numbers are different - mark all bad
+      {
+	for (int j = 0; j < nrModules; j++)
+	{
+	  calopkt->setFemStatus(j,CaloPacket::BAD_EVENTNR);
+	}
+      }
+      // at least one packet (6024) has a stuck bit in the fem event nr, check fem clock counter in this case
+      // if they are identical FEM is good (not checked if the FEM clock is stuck though)
+      std::set<int> FemClockSet;
+      for (int j = 0; j < nrModules; j++)
+      {
+	FemClockSet.insert(calopkt->iValue(j, "FEMCLOCK"));
+      }
+      if (FemClockSet.size() == 1)
+      {
+	static int icnt = 0;
+	if (icnt < 10)
+	{
+	  icnt++;
+	  std::cout << "Packet "  << calopkt->getIdentifier() << " has not unique event numbers"
+		    << " but FEM Clock counters are identical" << std::endl;
+	}
+	return 1;
+      }
+// now lets find which one is the outlier
+      static int icnt = 0;
+      if (icnt < 1000)
+      {
+	icnt++;
+	std::cout << "resetting packet " << calopkt->getIdentifier()
+		  << " with fem event and clock mismatch" << std::endl;
+	std::map<int, int> ClockMap;
+	std::map<int, int> EventMap;
+	for (int j = 0; j < nrModules; j++)
+	{
+	  EventMap[calopkt->iValue(j, "FEMEVTNR")]++;
+	  ClockMap[calopkt->iValue(j, "FEMCLOCK")]++;
+	}
+	for (const auto iterA : EventMap)
+	{
+	  std::cout << "Event Nr : " << iterA.first << " shows up " << iterA.second << " times"
+		    << std::hex << ", Event Nr 0x" << iterA.first << std::dec << std::endl;
+	}
+	for (const auto iterA : ClockMap)
+	{
+	  std::cout << "Clock : 0x" << std::hex << iterA.first << std::dec
+		    << " shows up " << iterA.second << " times" << std::endl;
+	}
+      }
+      return -1;
+    }
+  return 0;
 }
