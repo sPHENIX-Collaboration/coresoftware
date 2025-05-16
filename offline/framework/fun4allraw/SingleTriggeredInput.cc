@@ -280,8 +280,11 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
           //   ++iter4;
           // }
         }
-        std::cout << "Event Misalignment, processing remaining good events" << std::endl;
-        EventAlignmentProblem(1);
+	if ( FilesDone() == 0)
+	{
+	  std::cout << "Event Misalignment, processing remaining good events" << std::endl;
+	  EventAlignmentProblem(1);
+	}
         //        FilesDone(1);
       }
 
