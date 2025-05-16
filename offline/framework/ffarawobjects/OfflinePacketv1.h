@@ -27,15 +27,18 @@ class OfflinePacketv1 : public OfflinePacket
   uint64_t getBCO() const override { return bco; }
   // cppcheck-suppress virtualCallInConstructor
   void setBCO(const uint64_t ui) override { bco = ui; }
+  uint64_t getStatus() const override { return status; }
+  void setStatus(const uint64_t lval) override { status = lval; }
 
  protected:
   int evtseq{std::numeric_limits<int>::min()};
   int hitformat{std::numeric_limits<int>::min()};
   int packetid{std::numeric_limits<int>::min()};
   uint64_t bco{std::numeric_limits<uint64_t>::max()};
+  uint64_t status{0};
 
  private:
-  ClassDefOverride(OfflinePacketv1, 1)
+  ClassDefOverride(OfflinePacketv1, 2)
 };
 
 #endif
