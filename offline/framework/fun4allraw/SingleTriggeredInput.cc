@@ -308,16 +308,19 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   {
     std::cout << "deque size: " << m_EventDeque.size() << std::endl;
   }
+  m_FEMEventNrSet.clear(); // reset for new event, should be called at event cleanup
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();
   RunNumber(evt->getRunNumber());
   //  std::cout << "Handling event " << evt->getEvtSequence();
   //  CaloPacket *newhit = new CaloPacketv1();
   std::vector<Packet *> pktvec = evt->getPacketVector();
+  std::vector<CaloPacket *> calopacketvector;
   for (auto *packet : pktvec)
   {
     int packet_id = packet->getIdentifier();
     CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
+    calopacketvector.push_back(newhit);
     newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
     int nr_modules = packet->iValue(0, "NRMODULES");
     int nr_channels = packet->iValue(0, "CHANNELS");
@@ -364,6 +367,20 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
       newhit->Reset();
     }
   }
+  if (m_FEMEventNrSet.size() > 1)
+  {
+    std::cout << "FEM event number mismatch among packets, aborting combining, from now on GL1 only" << std::endl;
+    for (auto iter : calopacketvector)
+    {
+      iter->Reset();
+    }
+    EventAlignmentProblem(1);
+    for (auto iter : m_EventDeque)
+    {
+      delete iter;
+    }
+    m_EventDeque.clear();
+  }
   delete evt;
 }
 
@@ -405,7 +422,7 @@ void SingleTriggeredInput::CreateDSTNodes(Event *evt)
   }
 }
 
-int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt) const
+int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
 {
   CaloPacket *calopkt = dynamic_cast<CaloPacket *> (pkt);
   if (!calopkt)
@@ -422,6 +439,7 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt) const
     size_t femeventnumbers = EventNoSet.size();
     if (femeventnumbers > 1)
     {
+      int goodfemevent = 0; // store the good event number so we can insert it in the set, but only if the clock counters agree
       if (femeventnumbers == 2)
       {
 	// find the outlier if we have a 2:1 decision
@@ -438,7 +456,10 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt) const
 	  if (iter.second == 1)
 	  {
 	    calopkt->setFemStatus(BadModuleMap[iter.first],CaloPacket::BAD_EVENTNR);
-	    break;
+	  }
+	  else
+	  {
+	    goodfemevent = iter.first;
 	  }
 	  index++;
 	}
@@ -465,6 +486,10 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt) const
 	  icnt++;
 	  std::cout << "Packet "  << calopkt->getIdentifier() << " has not unique event numbers"
 		    << " but FEM Clock counters are identical" << std::endl;
+	}
+	if (goodfemevent > 0)
+	{
+	  m_FEMEventNrSet.insert(goodfemevent);
 	}
 	return 1;
       }
@@ -495,5 +520,6 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt) const
       }
       return -1;
     }
+    m_FEMEventNrSet.insert(*(EventNoSet.begin()));
   return 0;
 }

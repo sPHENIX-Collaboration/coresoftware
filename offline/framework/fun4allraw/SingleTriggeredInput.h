@@ -16,9 +16,7 @@
 
 class Event;
 class Eventiterator;
-class Fun4AllPrdfInputTriggerManager;
 class OfflinePacket;
-class Packet;
 class PHCompositeNode;
 
 class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
@@ -58,7 +56,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
-  virtual int FemEventNrClockCheck(OfflinePacket *calopkt) const;
+  virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
   
  protected:
   PHCompositeNode *m_topNode{nullptr};
@@ -86,6 +84,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   int m_LastEvent{std::numeric_limits<int>::max()};
   bool firstcall{true};
   bool m_KeepPacketsFlag{false};
+  std::set<int> m_FEMEventNrSet;
 };
 
 #endif
