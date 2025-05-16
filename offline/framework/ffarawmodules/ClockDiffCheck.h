@@ -29,7 +29,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   int process_event(PHCompositeNode *topNode) override;
 
   void FillCaloClockDiff(CaloPacketContainer *pktcont);
-  void FillCaloClockDiffSngl(CaloPacket *calopkt);
+  void FillCaloClockDiffSngl(CaloPacket *calopacket);
   void FillPacketDiff(OfflinePacket *pkt);
 
   bool CheckFemEventNr(CaloPacket *calopkt);

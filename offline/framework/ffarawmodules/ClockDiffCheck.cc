@@ -305,66 +305,15 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
         }
       }
     }
-    int nrModules = calopacket->iValue(0, "NRMODULES");
-    std::set<int> EventNoSet;
-    for (int j = 0; j < nrModules; j++)
+    bool FemClockOk = CheckFemEventNr(calopacket);
+    if (delBadPkts && !FemClockOk)
     {
-      EventNoSet.insert(calopacket->iValue(j, "FEMEVTNR"));
-    }
-    if (EventNoSet.size() > 1)
-    {
-      std::set<int> FemClockSet;
-      for (int j = 0; j < nrModules; j++)
+      if (Verbosity() > 1)
       {
-	FemClockSet.insert(calopacket->iValue(j, "FEMCLOCK"));
+	std::cout << "resetting packet " << calopacket->getIdentifier()
+		  << " with fem event and clock mismatch" << std::endl;
       }
-      if (FemClockSet.size() == 1)
-      {
-	static int icnt = 0;
-	if (icnt < 100)
-	{
-	  icnt++;
-	  std::cout << "Packet "  << calopacket->getIdentifier() << " has not unique event numbers"
-		    << " but FEM Clocks are identical" << std::endl;
-	}
-      }
-      else
-      {
-// now lets find which one is the outlier
-	static int icnt = 0;
-	if (icnt < 1000)
-	{
-	  icnt++;
-	  std::cout << "resetting packet " << calopacket->getIdentifier()
-		    << " with fem event and clock mismatch" << std::endl;
-	  std::map<int, int> EventMap;
-	  std::map<int, int> ClockMap;
-	  for (int j = 0; j < nrModules; j++)
-	  {
-	    EventMap[calopacket->iValue(j, "FEMEVTNR")]++;
-	    ClockMap[calopacket->iValue(j, "FEMCLOCK")]++;
-	  }
-	  for (const auto iterA : EventMap)
-	  {
-	    std::cout << "Event Nr : " << iterA.first << " shows up " << iterA.second << " times"
-		      << std::hex << ", Event Nr 0x" << iterA.first << std::dec << std::endl;
-	  }
-	  for (const auto iterA : ClockMap)
-	  {
-	    std::cout << "Clock : 0x" << std::hex << iterA.first << std::dec
-		      << " shows up " << iterA.second << " times" << std::endl;
-	  }
-	}
-	if (delBadPkts)
-	{
-	  if (Verbosity() > 1)
-	  {
-	    std::cout << "resetting packet " << calopacket->getIdentifier()
-		      << " with fem event and clock mismatch" << std::endl;
-	  }
-	  calopacket->Reset();
-	}
-      }
+      calopacket->Reset();
     }
   }
 
@@ -468,6 +417,61 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
 
 bool ClockDiffCheck::CheckFemEventNr(CaloPacket *calopkt)
 {
+    int nrModules = calopkt->iValue(0, "NRMODULES");
+    std::set<int> EventNoSet;
+    for (int j = 0; j < nrModules; j++)
+    {
+      EventNoSet.insert(calopkt->iValue(j, "FEMEVTNR"));
+    }
+    if (EventNoSet.size() > 1)
+    {
+      // at least one packet (6024) has a stuck bit in the fem event nr, check fem clock counter in this case
+      // if they are identical FEM is good (not checked if the FEM clock is stuck though)
+      std::set<int> FemClockSet;
+      for (int j = 0; j < nrModules; j++)
+      {
+	FemClockSet.insert(calopkt->iValue(j, "FEMCLOCK"));
+      }
+      if (FemClockSet.size() == 1)
+      {
+	static int icnt = 0;
+	if (icnt < 100)
+	{
+	  icnt++;
+	  std::cout << "Packet "  << calopkt->getIdentifier() << " has not unique event numbers"
+		    << " but FEM Clock counters are identical" << std::endl;
+	}
+      }
+      else // event nr and fem clock differ
+      {
+// now lets find which one is the outlier
+	static int icnt = 0;
+	if (icnt < 1000)
+	{
+	  icnt++;
+	  std::cout << "resetting packet " << calopkt->getIdentifier()
+		    << " with fem event and clock mismatch" << std::endl;
+	  std::map<int, int> EventMap;
+	  std::map<int, int> ClockMap;
+	  for (int j = 0; j < nrModules; j++)
+	  {
+	    EventMap[calopkt->iValue(j, "FEMEVTNR")]++;
+	    ClockMap[calopkt->iValue(j, "FEMCLOCK")]++;
+	  }
+	  for (const auto iterA : EventMap)
+	  {
+	    std::cout << "Event Nr : " << iterA.first << " shows up " << iterA.second << " times"
+		      << std::hex << ", Event Nr 0x" << iterA.first << std::dec << std::endl;
+	  }
+	  for (const auto iterA : ClockMap)
+	  {
+	    std::cout << "Clock : 0x" << std::hex << iterA.first << std::dec
+		      << " shows up " << iterA.second << " times" << std::endl;
+	  }
+	}
+	return false;
+      }
+    }
   return true;
 }
 
