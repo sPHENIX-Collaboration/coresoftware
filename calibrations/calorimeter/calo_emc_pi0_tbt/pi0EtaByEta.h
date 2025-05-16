@@ -137,6 +137,10 @@ class pi0EtaByEta : public SubsysReco
   {
     useVertexTruth = state;
   }
+  void set_calib_fieldname(std::string &name)
+  {
+    m_fieldname = name;
+  } 
 
  protected:
   int Getpeaktime(TH1* h);
@@ -146,6 +150,7 @@ class pi0EtaByEta : public SubsysReco
   bool reqTrig = true;
   std::vector<int> triggerList;
   bool reqVertex = false;
+  std::string m_fieldname = "CEMC_calib_ADC_to_ETower";
 
   bool doVtxCut{true};
   float vtx_z_cut{20};
