@@ -62,7 +62,7 @@ int DumpGlobalVertexMap::process_Node(PHNode *myNode)
            vtxiter != viter->second->end_vertexes(); ++vtxiter)
       {
         *fout << "Vertex Type: " << vtxiter->first << std::endl;
-        for (auto iter : vtxiter->second)
+        for (const auto *iter : vtxiter->second)
         {
           *fout << "id: " << iter->get_id() << std::endl;
           *fout << "beam_crossing: " << iter->get_beam_crossing() << std::endl;
