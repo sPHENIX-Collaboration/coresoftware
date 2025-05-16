@@ -75,30 +75,61 @@ bool MvtxClusterizer::are_adjacent(
 {
   if (GetZClustering())
   {
-    if (std::abs(static_cast<int>(MvtxDefs::getCol(lhs.first)) - static_cast<int>(MvtxDefs::getCol(rhs.first))) <= 1)
-    {
-      if (std::abs(static_cast<int>(MvtxDefs::getRow(lhs.first)) - static_cast<int>(MvtxDefs::getRow(rhs.first))) <= 1)
-      {
-	return true;
-      }
-    }
+    return
+
+      // column adjacent
+      ( (MvtxDefs::getCol(lhs.first) > MvtxDefs::getCol(rhs.first)) ?
+      MvtxDefs::getCol(lhs.first)<=MvtxDefs::getCol(rhs.first)+1:
+      MvtxDefs::getCol(rhs.first)<=MvtxDefs::getCol(lhs.first)+1) &&
+
+      // row adjacent
+      ( (MvtxDefs::getRow(lhs.first) > MvtxDefs::getRow(rhs.first)) ?
+      MvtxDefs::getRow(lhs.first)<=MvtxDefs::getRow(rhs.first)+1:
+      MvtxDefs::getRow(rhs.first)<=MvtxDefs::getRow(lhs.first)+1);
+
+  } else {
+
+    return
+      // column identical
+      MvtxDefs::getCol(rhs.first)==MvtxDefs::getCol(lhs.first) &&
+
+      // row adjacent
+      ( (MvtxDefs::getRow(lhs.first) > MvtxDefs::getRow(rhs.first)) ?
+      MvtxDefs::getRow(lhs.first)<=MvtxDefs::getRow(rhs.first)+1:
+      MvtxDefs::getRow(rhs.first)<=MvtxDefs::getRow(lhs.first)+1);
+
   }
-  return false;
 }
 
 bool MvtxClusterizer::are_adjacent(RawHit *lhs, RawHit *rhs)
 {
   if (GetZClustering())
   {
-    if (std::abs(static_cast<int>(lhs->getPhiBin()) - static_cast<int>(rhs->getPhiBin())) <= 1)
-    {
-      if (std::abs(static_cast<int>(lhs->getTBin()) - static_cast<int>(rhs->getTBin())) <= 1)
-      {
-	return true;
-      }
-    }
+    return
+
+      // phi adjacent (== column)
+      ((lhs->getPhiBin() > rhs->getPhiBin()) ?
+      lhs->getPhiBin() <= rhs->getPhiBin()+1:
+      rhs->getPhiBin() <= lhs->getPhiBin()+1) &&
+
+      // time adjacent (== row)
+      ((lhs->getTBin() > rhs->getTBin()) ?
+      lhs->getTBin() <= rhs->getTBin()+1:
+      rhs->getTBin() <= lhs->getTBin()+1);
+
+  } else {
+
+    return
+
+      // phi identical (== column)
+      lhs->getPhiBin() == rhs->getPhiBin() &&
+
+      // time adjacent (== row)
+      ((lhs->getTBin() >  rhs->getTBin()) ?
+      lhs->getTBin() <= rhs->getTBin()+1:
+      rhs->getTBin() <= lhs->getTBin()+1);
+
   }
-  return false;
 }
 
 MvtxClusterizer::MvtxClusterizer(const std::string &name)
