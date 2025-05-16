@@ -294,72 +294,76 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       {
         if (badPacket == packetID)
         {
-          if (Verbosity() > 1)
+          static int icnt = 0;
+          if (icnt < 1000)
           {
             std::cout << "Dropping packet " << calopacket->getIdentifier() << " for XMIT clock mismatch" << std::endl;
+            icnt++;
           }
           calopacket->Reset();
           break;
         }
       }
     }
-
-    std::vector<std::vector<int>> EvtCounts;
-    std::vector<int> NrAndCount(2);
-    NrAndCount[1] = 1;
-    int counter = 0;
-    int bestEvt = -1;
-    int bestEvtCnt = 0;
     int nrModules = calopacket->iValue(0, "NRMODULES");
+    std::set<int> EventNoSet;
     for (int j = 0; j < nrModules; j++)
     {
-      int k;
-      for (k = 0; k < counter; k++)
-      {
-        if (EvtCounts[k][0] == calopacket->iValue(j, "FEMEVTNR"))
-        {
-          EvtCounts[k][1]++;
-          break;
-        }
-      }
-      if (k >= counter)
-      {
-        NrAndCount[0] = calopacket->iValue(j, "FEMEVTNR");
-        EvtCounts.push_back(NrAndCount);
-        counter++;
-      }
+      EventNoSet.insert(calopacket->iValue(j, "FEMEVTNR"));
     }
-    if (counter > 1)
+    if (EventNoSet.size() > 1)
     {
-      for (int i = 0; i < counter; i++)
+      std::set<int> FemClockSet;
+      for (int j = 0; j < nrModules; j++)
       {
-        if (bestEvtCnt < EvtCounts[i][1])
-        {
-          bestEvtCnt = EvtCounts[i][1];
-          bestEvt = EvtCounts[i][0];
-        }
+	FemClockSet.insert(calopacket->iValue(j, "FEMCLOCK"));
       }
-      for (int j = 0; j < calopacket->iValue(0, "NRMODULES"); j++)
+      if (FemClockSet.size() == 1)
       {
-        if (calopacket->iValue(j, "FEMEVTNR") != bestEvt && bestEvt != -1)
-        {
-          static int icnt = 0;
-          if (icnt < 1000)
-          {
-            std::cout << "found different FEM clock for packet " << calopacket->getIdentifier() << std::endl;
-            icnt++;
-          }
-          if (delBadPkts)
-          {
-            if (Verbosity() > 1)
-            {
-              std::cout << "deleting packet " << calopacket->getIdentifier()
-                        << " with fem clock mismatch" << std::endl;
-            }
-            calopacket->Reset();
-          }
-          break;
-        }
+	static int icnt = 0;
+	if (icnt < 100)
+	{
+	  icnt++;
+	  std::cout << "Packet "  << calopacket->getIdentifier() << " has not unique event numbers"
+		    << " but FEM Clocks are identical" << std::endl;
+	}
+      }
+      else
+      {
+// now lets find which one is the outlier
+	static int icnt = 0;
+	if (icnt < 1000)
+	{
+	  icnt++;
+	  std::cout << "resetting packet " << calopacket->getIdentifier()
+		    << " with fem event and clock mismatch" << std::endl;
+	  std::map<int, int> EventMap;
+	  std::map<int, int> ClockMap;
+	  for (int j = 0; j < nrModules; j++)
+	  {
+	    EventMap[calopacket->iValue(j, "FEMEVTNR")]++;
+	    ClockMap[calopacket->iValue(j, "FEMCLOCK")]++;
+	  }
+	  for (const auto iterA : EventMap)
+	  {
+	    std::cout << "Event Nr : " << iterA.first << " shows up " << iterA.second << " times"
+		      << std::hex << ", Event Nr 0x" << iterA.first << std::dec << std::endl;
+	  }
+	  for (const auto iterA : ClockMap)
+	  {
+	    std::cout << "Clock : 0x" << std::hex << iterA.first << std::dec
+		      << " shows up " << iterA.second << " times" << std::endl;
+	  }
+	}
+	if (delBadPkts)
+	{
+	  if (Verbosity() > 1)
+	  {
+	    std::cout << "resetting packet " << calopacket->getIdentifier()
+		      << " with fem event and clock mismatch" << std::endl;
+	  }
+	  calopacket->Reset();
+	}
       }
     }
   }
@@ -461,3 +465,9 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
     }
   }
 }
+
+bool ClockDiffCheck::CheckFemEventNr(CaloPacket *calopkt)
+{
+  return true;
+}
+
