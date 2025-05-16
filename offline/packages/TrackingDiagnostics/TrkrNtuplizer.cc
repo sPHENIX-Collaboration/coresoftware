@@ -268,7 +268,7 @@ TrkrNtuplizer::~TrkrNtuplizer()
   delete _timer;
 }
 
-int TrkrNtuplizer::Init(PHCompositeNode* topNode)
+int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
 {
   _ievent = 0;
 
@@ -331,6 +331,15 @@ int TrkrNtuplizer::Init(PHCompositeNode* topNode)
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
   /**/
+
+
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
+{
+
   auto geom =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom)
@@ -339,13 +348,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int TrkrNtuplizer::InitRun(PHCompositeNode* /*unused*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
+ return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
