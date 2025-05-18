@@ -32,7 +32,7 @@ void MvtxRawEvtHeaderv2::identify(std::ostream &os) const
 
 int MvtxRawEvtHeaderv2::isValid() const
 {
-  return (m_MvtxL1TrgSet.size() || m_MvtxFeeIdInfoTCArray->GetEntriesFast());
+  return (!m_MvtxL1TrgSet.empty() || m_MvtxFeeIdInfoTCArray->GetEntriesFast());
 }
 
 MvtxFeeIdInfo *MvtxRawEvtHeaderv2::AddFeeIdInfo()

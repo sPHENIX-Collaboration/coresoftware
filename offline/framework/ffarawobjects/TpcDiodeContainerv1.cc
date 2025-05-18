@@ -82,9 +82,9 @@ unsigned int TpcDiodeContainerv1::get_Laser()
   if (nlasers.size() > 1)
   {
     std::cout << "More than one laser fired!" << std::endl;
-    for (int l = 0; l < static_cast<int>(nlasers.size()); l++)
+    for (int nlaser : nlasers)
     {
-      std::cout << "Laser " << nlasers[l] << " fired" << std::endl;
+      std::cout << "Laser " << nlaser << " fired" << std::endl;
     }
     return -1;
   }
