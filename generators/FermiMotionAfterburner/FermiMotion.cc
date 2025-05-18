@@ -27,66 +27,68 @@
 // the loss of forward
 // neutrons into the ZDC due to larger fragments
 
-// Assume Au for now
-// make sure b is in fm
-double ploss(double b)
+namespace
 {
-  // para
-  double p0 = 0.3305;
-  double p1 = 0.0127;
-  double p2 = 17.;
-  double p3 = 2.;
-  double ploss = p0 + b * p1 + exp((b - p2) / p3);
-
-  return ploss;
-}
-
-// this method is use to generate and random p_F
-// along a random direction and add it to the momentum
-// assume Au for now
-CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenerator, int id, double pTspec, double bphi)
-{
-  // id should be either 2112 or 2212
-  if (!((id == 2112) || (id == 2212)))
+  // Assume Au for now
+  // make sure b is in fm
+  double ploss(double b)
   {
-    std::cout << "wrong pid" << std::endl;
-    return p;
-  }
-  // find pF max using Thomas-Fermi model, assume using Au.
-  double pFmax = 0.28315;
-  if (id == 2212)
-  {
-    pFmax = 0.23276;
-  }
-  // now generate the random p assuming probability is propotional to p^2dp
-  // CLHEP::RandGeneral seems to be a better way to do it
-  double pF = pFmax * pow(gsl_rng_uniform_pos(RandomGenerator), 1.0 / 3.0);
-  double cotheta = (gsl_rng_uniform_pos(RandomGenerator) - 0.5) * 2;
-  double phi = gsl_rng_uniform_pos(RandomGenerator) * 2 * M_PI;
-  double pFx = pF * sqrt(1 - cotheta * cotheta) * cos(phi);
-  double pFy = pF * sqrt(1 - cotheta * cotheta) * sin(phi);
-  double pFz = pF * cotheta;
-  double pSx = pTspec * cos(bphi);
-  double pSy = pTspec * sin(bphi);
+    // para
+    double p0 = 0.3305;
+    double p1 = 0.0127;
+    double p2 = 17.;
+    double p3 = 2.;
+    double ploss = p0 + (b * p1) + exp((b - p2) / p3);
 
-  if (p.pz() < 0)
-  {
-    pSx *= -1;
-    pSy *= -1;
+    return ploss;
   }
 
-  // now add the pF to p
-  double px = p.px() + pFx + pSx;
-  double py = p.py() + pFy + pSy;
-  double pz = p.pz() + pFz;
-  // calculate the total energy
-  double const nrm = 0.938;
-  double e = sqrt(px * px + py * py + pz * pz + nrm * nrm);
+  // this method is use to generate and random p_F
+  // along a random direction and add it to the momentum
+  // assume Au for now
+  CLHEP::HepLorentzVector pwithpF(CLHEP::HepLorentzVector p, gsl_rng *RandomGenerator, int id, double pTspec, double bphi)
+  {
+    // id should be either 2112 or 2212
+    if (!((id == 2112) || (id == 2212)))
+    {
+      std::cout << "wrong pid" << std::endl;
+      return p;
+    }
+    // find pF max using Thomas-Fermi model, assume using Au.
+    double pFmax = 0.28315;
+    if (id == 2212)
+    {
+      pFmax = 0.23276;
+    }
+    // now generate the random p assuming probability is propotional to p^2dp
+    // CLHEP::RandGeneral seems to be a better way to do it
+    double pF = pFmax * pow(gsl_rng_uniform_pos(RandomGenerator), 1.0 / 3.0);
+    double cotheta = (gsl_rng_uniform_pos(RandomGenerator) - 0.5) * 2;
+    double phi = gsl_rng_uniform_pos(RandomGenerator) * 2 * M_PI;
+    double pFx = pF * sqrt(1 - (cotheta * cotheta)) * cos(phi);
+    double pFy = pF * sqrt(1 - (cotheta * cotheta)) * sin(phi);
+    double pFz = pF * cotheta;
+    double pSx = pTspec * cos(bphi);
+    double pSy = pTspec * sin(bphi);
 
-  CLHEP::HepLorentzVector pwithpF(px, py, pz, e);
-  return pwithpF;
-}
+    if (p.pz() < 0)
+    {
+      pSx *= -1;
+      pSy *= -1;
+    }
 
+    // now add the pF to p
+    double px = p.px() + pFx + pSx;
+    double py = p.py() + pFy + pSy;
+    double pz = p.pz() + pFz;
+    // calculate the total energy
+    double const nrm = 0.938;
+    double e = sqrt((px * px) + (py * py) + (pz * pz) + (nrm * nrm));
+
+    CLHEP::HepLorentzVector pwithpF(px, py, pz, e);
+    return pwithpF;
+  }
+}  // namespace
 int FermiMotion(HepMC::GenEvent *event, gsl_rng *RandomGenerator, double pTspec)
 {
   // find ploss
