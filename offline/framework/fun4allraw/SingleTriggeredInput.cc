@@ -370,12 +370,12 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   if (m_FEMEventNrSet.size() > 1)
   {
     std::cout << "FEM event number mismatch among packets, aborting combining, from now on GL1 only" << std::endl;
-    for (auto iter : calopacketvector)
+    for (auto *iter : calopacketvector)
     {
       iter->Reset();
     }
     EventAlignmentProblem(1);
-    for (auto iter : m_EventDeque)
+    for (auto *iter : m_EventDeque)
     {
       delete iter;
     }
@@ -450,7 +450,6 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
 	  EventMap[calopkt->iValue(j, "FEMEVTNR")]++;
 	  BadModuleMap[calopkt->iValue(j, "FEMEVTNR")] = j;
 	}
-	size_t index = 0;
 	for (const auto iter : EventMap)
 	{
 	  if (iter.second == 1)
@@ -461,7 +460,6 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
 	  {
 	    goodfemevent = iter.first;
 	  }
-	  index++;
 	}
       }
       else // all event numbers are different - mark all bad
