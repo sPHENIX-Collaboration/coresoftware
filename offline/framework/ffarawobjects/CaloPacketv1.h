@@ -68,7 +68,7 @@ class CaloPacketv1 : public CaloPacket
   uint32_t getSample(int ipmt, int isamp) const override { return samples.at(isamp).at(ipmt); }
   void setPacketEvtSequence(int i) override { PacketEvtSequence = i; }
   int getPacketEvtSequence() const override { return PacketEvtSequence; }
-  int iValue(const int i, const std::string &what) const override;
+  int iValue(const int n, const std::string &what) const override;
   int iValue(const int channel, const int sample) const override;
   void dump(std::ostream &os = std::cout) const override;
   void dump_iddigitizer(std::ostream &os = std::cout) const;

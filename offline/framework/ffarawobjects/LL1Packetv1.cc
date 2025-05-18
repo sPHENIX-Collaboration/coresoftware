@@ -100,7 +100,7 @@ void LL1Packetv1::identify(std::ostream &os) const
 
 void LL1Packetv1::dump(std::ostream &os) const
 {
-  os << std::dec << std::setprecision(2) << "Trigger Module = " << iValue(0, "SLOTNR") * 2 + iValue(0, "CARDNR") << std::endl;
+  os << std::dec << std::setprecision(2) << "Trigger Module = " << (iValue(0, "SLOTNR") * 2) + iValue(0, "CARDNR") << std::endl;
   os << std::dec << std::setprecision(4) << "Evt Nr = " << iValue(0, "EVTNR") << std::endl;
   os << std::dec << std::setprecision(4) << "Clock = " << iValue(0, "CLOCK") << std::endl;
   os << std::dec << std::setprecision(4) << "Monitor = " << iValue(0, "MONITOR") << std::endl;
@@ -134,14 +134,14 @@ void LL1Packetv1::dump_idll1_mbd(std::ostream &os) const
       os << std::dec << "Q" << iq << "\t||  \t";
       for (int is = 0; is < iValue(0, "SAMPLES"); is++)
       {
-        os << std::hex << iValue(is, ifem * 13 + iq) << "\t";
+        os << std::hex << iValue(is, (ifem * 13) + iq) << "\t";
       }
       os << " |" << std::endl;
     }
     os << std::dec << "NH \t||  \t";
     for (int is = 0; is < iValue(0, "SAMPLES"); is++)
     {
-      os << std::hex << iValue(is, ifem * 13 + 8) << "\t";
+      os << std::hex << iValue(is, (ifem * 13) + 8) << "\t";
     }
     os << " |" << std::endl;
 
@@ -150,7 +150,7 @@ void LL1Packetv1::dump_idll1_mbd(std::ostream &os) const
       os << std::dec << "T" << iq << "\t||  \t";
       for (int is = 0; is < iValue(0, "SAMPLES"); is++)
       {
-        os << std::hex << iValue(is, ifem * 13 + 9 + iq) << "\t";
+        os << std::hex << iValue(is, (ifem * 13) + 9 + iq) << "\t";
       }
       os << " |" << std::endl;
     }
@@ -180,7 +180,7 @@ void LL1Packetv1::dump_idll1_emcal_mon3(std::ostream &os) const
       os << std::dec << " Sum " << ic << " |";
       for (int is = 0; is < iValue(0, "SAMPLES"); is++)
       {
-        os << std::hex << " " << iValue(is, ch * iValue(0, "SUMS") + ic);
+        os << std::hex << " " << iValue(is, (ch * iValue(0, "SUMS")) + ic);
       }
 
       os << " |" << std::endl;
@@ -218,7 +218,7 @@ void LL1Packetv1::dump_idll1_jet_emcal_mon1(std::ostream &os) const
       os << std::dec << ic << "\t||";
       for (int is = 0; is < 32; is++)
       {
-        os << std::hex << "\t" << iValue(sample, ic * 32 + is);
+        os << std::hex << "\t" << iValue(sample, (ic * 32) + is);
       }
       os << " |" << std::endl;
     }
@@ -232,7 +232,7 @@ void LL1Packetv1::dump_idll1_jet_emcal_mon1(std::ostream &os) const
     {
       for (int ie = 0; ie < 32; ie++)
       {
-        os << std::hex << " " << iValue(is, iValue(0, "FEMWORDS") + ic * 32 + ie);
+        os << std::hex << " " << iValue(is, iValue(0, "FEMWORDS") + (ic * 32) + ie);
       }
 
       os << " |" << std::endl;
