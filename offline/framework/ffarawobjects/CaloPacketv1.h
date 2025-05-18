@@ -73,6 +73,9 @@ class CaloPacketv1 : public CaloPacket
   void dump(std::ostream &os = std::cout) const override;
   void dump_iddigitizer(std::ostream &os = std::cout) const;
 
+  uint32_t getFemStatus(const int i) const override { return femstatus.at(i); }
+  void setFemStatus(const int i, const uint32_t ival) override { femstatus.at(i) = ival; }
+
  protected:
   int PacketEvtSequence{0};
   int NrChannels{0};
@@ -88,6 +91,7 @@ class CaloPacketv1 : public CaloPacket
   std::array<uint32_t, MAX_NUM_MODULES> femclock{};
   std::array<uint32_t, MAX_NUM_MODULES> femevt{};
   std::array<uint32_t, MAX_NUM_MODULES> femslot{};
+  std::array<uint32_t, MAX_NUM_MODULES> femstatus{};
   std::array<uint32_t, MAX_NUM_MODULES> checksumlsb{};
   std::array<uint32_t, MAX_NUM_MODULES> checksummsb{};
   std::array<uint32_t, MAX_NUM_MODULES> calcchecksumlsb{};
@@ -99,7 +103,7 @@ class CaloPacketv1 : public CaloPacket
   std::array<uint32_t, MAX_NUM_CHANNELS> post{};
 
  private:
-  ClassDefOverride(CaloPacketv1, 2)
+  ClassDefOverride(CaloPacketv1, 3)
 };
 
 #endif
