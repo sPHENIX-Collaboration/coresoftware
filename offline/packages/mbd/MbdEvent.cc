@@ -805,7 +805,9 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
   if ( _debug )
   {
     _verbose = 100;
-    GetPrimaryVtx(topNode);
+    std::cout << topNode << std::endl;
+
+   //    GetPrimaryVtx(topNode); // does not build as ONLINE
 
     // use intt vertex
     //_refz = intz[_syncevt]/10.;
