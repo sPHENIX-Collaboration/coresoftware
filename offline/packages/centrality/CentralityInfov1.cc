@@ -2,7 +2,7 @@
 
 #include <limits>
 
-void CentralityInfov1::identify(std::ostream& os) const
+void CentralityInfov1::identify(std::ostream &os) const
 {
   os << "CentralityInfov1: " << std::endl;
   os << "      Centile: " << (has_centile(CentralityInfo::PROP::mbd_NS) ? get_centile(CentralityInfo::PROP::mbd_NS) : -999.99) << std::endl;
@@ -32,10 +32,8 @@ float CentralityInfov1::get_quantity(const PROP prop_id) const
   {
     return std::numeric_limits<float>::quiet_NaN();
   }
-  else
-  {
-    return _quantity_map.at(prop_id);
-  }
+
+  return _quantity_map.at(prop_id);
 }
 
 bool CentralityInfov1::has_centile(const PROP prop_id) const
@@ -54,20 +52,18 @@ float CentralityInfov1::get_centile(const PROP prop_id) const
   {
     return std::numeric_limits<float>::quiet_NaN();
   }
-  else
-  {
-    return _centile_map.at(prop_id);
-  }
+
+  return _centile_map.at(prop_id);
 }
 
 void CentralityInfov1::CopyTo(CentralityInfo *info)
 {
-  for (auto const &it :  _quantity_map)
+  for (auto const &it : _quantity_map)
   {
-    info->set_quantity((CentralityInfo::PROP) (it.first),it.second);
+    info->set_quantity((CentralityInfo::PROP)(it.first), it.second);
   }
-  for (auto const &it :  _centile_map)
+  for (auto const &it : _centile_map)
   {
-    info->set_centile((CentralityInfo::PROP) (it.first),it.second);
+    info->set_centile((CentralityInfo::PROP)(it.first), it.second);
   }
 }
