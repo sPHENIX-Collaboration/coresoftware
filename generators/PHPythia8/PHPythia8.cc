@@ -34,8 +34,6 @@
 #include <cstdlib>
 #include <iostream>  // for operator<<, endl
 
-class PHHepMCGenEvent;
-
 PHPythia8::PHPythia8(const std::string &name)
   : SubsysReco(name)
 {
@@ -185,7 +183,6 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
     }
 
     // test trigger logic
-
     bool andScoreKeeper = true;
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
@@ -228,9 +225,13 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
     passedGen = false;
   }
 
+  // print
+  if( Verbosity() )
+  { m_Pythia8->event.list(); }
+
   // fill HepMC object with event & pass to
 
-  HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
+  auto genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
   m_Pythia8ToHepMC->fill_next_event(*m_Pythia8, genevent, m_EventCount);
   // Enable continuous reweighting by storing additional reweighting factor
   if (m_SaveEventWeightFlag)
@@ -239,7 +240,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   }
 
   /* pass HepMC to PHNode*/
-  PHHepMCGenEvent *success = PHHepMCGenHelper::insert_event(genevent);
+  auto success = PHHepMCGenHelper::insert_event(genevent);
   if (!success)
   {
     std::cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << std::endl;
