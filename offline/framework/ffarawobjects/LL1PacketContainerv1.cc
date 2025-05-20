@@ -5,11 +5,11 @@
 
 #include <TClonesArray.h>
 
-static const int NCALOPACKETS = 18;
+static const int NLL1PACKETS = 18;
 
 LL1PacketContainerv1::LL1PacketContainerv1()
+  : LL1PacketsTCArray(new TClonesArray("LL1Packetv1", NLL1PACKETS))
 {
-  LL1PacketsTCArray = new TClonesArray("LL1Packetv1", NCALOPACKETS);
 }
 
 LL1PacketContainerv1::~LL1PacketContainerv1()
@@ -20,20 +20,20 @@ LL1PacketContainerv1::~LL1PacketContainerv1()
 void LL1PacketContainerv1::Reset()
 {
   LL1PacketsTCArray->Clear();
-  LL1PacketsTCArray->Expand(NCALOPACKETS);
+  LL1PacketsTCArray->Expand(NLL1PACKETS);
 }
 
 void LL1PacketContainerv1::identify(std::ostream &os) const
 {
   os << "LL1PacketContainerv1" << std::endl;
-  os << "containing " << LL1PacketsTCArray->GetEntriesFast() << " Calo Packets" << std::endl;
+  os << "containing " << LL1PacketsTCArray->GetEntriesFast() << " LL1 Packets" << std::endl;
   for (int i = 0; i <= LL1PacketsTCArray->GetLast(); i++)
   {
-    LL1Packet *calopkt = static_cast<LL1Packet *>(LL1PacketsTCArray->At(i));
-    if (calopkt)
+    LL1Packet *ll1pkt = dynamic_cast<LL1Packet *>(LL1PacketsTCArray->At(i));
+    if (ll1pkt)
     {
-      os << "id: " << calopkt->getIdentifier() << std::endl;
-      os << "for beam clock: " << std::hex << calopkt->getBCO() << std::dec << std::endl;
+      os << "id: " << ll1pkt->getIdentifier() << std::endl;
+      os << "for beam clock: " << std::hex << ll1pkt->getBCO() << std::dec << std::endl;
     }
   }
 }
@@ -54,11 +54,11 @@ LL1Packet *LL1PacketContainerv1::AddPacket()
   return newhit;
 }
 
-LL1Packet *LL1PacketContainerv1::AddPacket(LL1Packet *calohit)
+LL1Packet *LL1PacketContainerv1::AddPacket(LL1Packet *ll1packet)
 {
   // need a dynamic cast here to use the default copy ctor for LL1Packetv1
   // which copies the std::arrays
-  LL1Packet *newhit = new ((*LL1PacketsTCArray)[LL1PacketsTCArray->GetLast() + 1]) LL1Packetv1(*(dynamic_cast<LL1Packetv1 *>(calohit)));
+  LL1Packet *newhit = new ((*LL1PacketsTCArray)[LL1PacketsTCArray->GetLast() + 1]) LL1Packetv1(*(dynamic_cast<LL1Packetv1 *>(ll1packet)));
   return newhit;
 }
 

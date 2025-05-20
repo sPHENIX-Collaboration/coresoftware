@@ -91,6 +91,23 @@ void TrkrClusterContainerv4::removeCluster(TrkrDefs::cluskey key)
 }
 
 //_________________________________________________________________
+void TrkrClusterContainerv4::removeClusters(TrkrDefs::hitsetkey hitsetkey)
+{
+  // find matching vector list
+  auto iter = m_clusmap.find(hitsetkey);
+
+  // do nothing if not found
+  if( iter == m_clusmap.end() ) { return; }
+
+  // delete all clusters
+  for( auto&& cluster:iter->second)
+  { delete cluster; }
+
+  // remove from map
+  m_clusmap.erase(iter);
+}
+
+//_________________________________________________________________
 void TrkrClusterContainerv4::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
   // get hitsetkey from cluster

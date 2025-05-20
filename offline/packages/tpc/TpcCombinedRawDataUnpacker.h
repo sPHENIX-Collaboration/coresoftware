@@ -10,13 +10,12 @@
 #include <string>
 #include <vector>
 
-class PHCompositeNode;
-class CDBTTree;
+
 class CDBInterface;
-class TH2I;
-class TH2C;
+class CDBTTree;
 class TFile;
-class TH1F;
+class TH1;
+class TH2;
 class TNtuple;
 
 class TpcCombinedRawDataUnpacker : public SubsysReco
@@ -29,15 +28,20 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int process_event(PHCompositeNode *) override;
   int End(PHCompositeNode *topNode) override;
   void writeTree() { m_writeTree = true; }
-  void doChanHitsCut(bool cut){m_ChanHitsCut=cut;};
+  void doChanHitsCut(bool do_cut, int cut = 9999)
+  {
+    m_doChanHitsCut = do_cut;
+    m_ChanHitsCut = cut;
+  };
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
   void doZSEmulation(bool val) { m_do_zs_emulation = val; }
-  void ReadZeroSuppressedData() { 
+  void ReadZeroSuppressedData()
+  {
     m_do_zs_emulation = true;
     m_zs_threshold = 20;
   }
   void set_presampleShift(int b) { m_presampleShift = b; }
-  void set_t0(int b) { m_t0 = b;}
+  void set_t0(int b) { m_t0 = b; }
   void set_zs_threshold(int b) { m_zs_threshold = b; }
   void set_baseline_nsigma(int b) { m_baseline_nsigma = b; }
   void skipNevent(int b) { startevt = b; }
@@ -48,13 +52,6 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
     startevt = a;
     endevt = b;
   }
-  struct chan_info
-  {
-    unsigned int fee = std::numeric_limits<unsigned int>::max();
-    float ped = -1;
-    float width = -1;
-    int entries = 0;
-  };
   unsigned int get_rx(unsigned int layer)
   {
     return (layer - 7) / 16;
@@ -92,15 +89,22 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   }
 
  private:
+  struct chan_info
+  {
+    unsigned int fee = std::numeric_limits<unsigned int>::max();
+    float ped = -1;
+    float width = -1;
+    int entries = 0;
+  };
   TNtuple *m_ntup{nullptr};
-  TNtuple *m_ntup_hits = nullptr;
-  TNtuple *m_ntup_hits_corr = nullptr;
+  TNtuple *m_ntup_hits{nullptr};
+  TNtuple *m_ntup_hits_corr{nullptr};
   TFile *m_file{nullptr};
   CDBTTree *m_cdbttree{nullptr};
   CDBInterface *m_cdb{nullptr};
 
-  int m_presampleShift = 40;  // number of presamples shifted to line up t0
-  int m_t0 = 0;
+  int m_presampleShift{40};  // number of presamples shifted to line up t0
+  int m_t0{0};
   int _ievent{0};
   int startevt{-1};
   int endevt{9999999};
@@ -108,8 +112,10 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
   int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
 
-  TH1F *m_HitsinChan{nullptr};
-  bool m_ChanHitsCut{false};
+  TH2 *m_HitChanDis{nullptr};
+  TH1 *m_HitsinChan{nullptr};
+  bool m_doChanHitsCut{false};
+  int m_ChanHitsCut{9999};
 
   float m_ped_sig_cut{4.0};
 
@@ -121,10 +127,9 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   std::string m_TpcRawNodeName{"TPCRAWHIT"};
   std::string outfile_name;
   std::map<unsigned int, chan_info> chan_map;                  // stays in place
-  std::map<unsigned int, TH2C *> feeadc_map;                   // histos reset after each event
+  std::map<unsigned int, TH2 *> feeadc_map;                    // histos reset after each event
   std::map<unsigned int, std::vector<int>> feeentries_map;     // cleared after each event
   std::map<unsigned int, std::vector<float>> feebaseline_map;  // cleared after each event
 };
 
 #endif  // TPC_COMBINEDRAWDATAUNPACKER_H
-

@@ -2,6 +2,7 @@
 
 #include <qautils/QAHistManagerDef.h>
 
+#include <tpc/LaserEventInfo.h>
 #include <trackbase/LaserClusterContainerv1.h>
 #include <trackbase/LaserClusterv1.h>
 #include <trackbase/TpcDefs.h>
@@ -40,6 +41,9 @@ int TpcLaserQA::InitRun(PHCompositeNode* /*topNode*/)
   for(int side = 0; side < 2; side++)
   {
     m_TPCWheel[side] = dynamic_cast<TH2 *>(hm->getHisto(boost::str(boost::format("%sTPCWheel_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str()));
+
+    m_nLaserClusters[side] = dynamic_cast<TH1 *>(hm->getHisto(boost::str(boost::format("%snLaserClusters_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str()));
+    m_saturation[side] = dynamic_cast<TH2 *>(hm->getHisto(boost::str(boost::format("%ssaturation_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str()));
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -49,20 +53,38 @@ int TpcLaserQA::InitRun(PHCompositeNode* /*topNode*/)
 
 int TpcLaserQA::process_event(PHCompositeNode* topNode)
 {
-	
+
+  LaserEventInfo *lei = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if (!lei)
+  {
+    std::cout << PHWHERE << "LaserEventInfo Node missing, abort." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+    
+  }
+  
   LaserClusterContainer *lcc = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!lcc)
   {
     std::cout << PHWHERE << "LASER_CLUSTER Node missing, abort." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  if(!lei->isLaserEvent())
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
   
+  /*
   if(lcc->size() < 1000)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
-    
+  */
+
   m_nLaserEvents->Fill(1.0);
+
+  int nN = 0;
+  int nS = 0;
   
   auto clusrange = lcc->getClusters();
   for (auto cmitr = clusrange.first;
@@ -73,6 +95,13 @@ int TpcLaserQA::process_event(PHCompositeNode* topNode)
     LaserCluster* cmclus = cmclus_orig;
     int side = TpcDefs::getSide(cmkey);
 
+    if(side){
+      nN++;
+    }
+    else{
+      nS++;
+    }
+    
     const unsigned int nhits = cmclus->getNhits();
     for (unsigned int i=0; i<nhits; i++){
       float layer = cmclus->getHitLayer(i);
@@ -99,11 +128,15 @@ int TpcLaserQA::process_event(PHCompositeNode* topNode)
       if(mod == -1) continue;
       
       m_TPCWheel[side]->Fill(phi, RValue, hitAdc);
+      if(hitAdc > 900) m_saturation[side]->Fill(phi, RValue);
       
     }
     
     
   }
+
+  m_nLaserClusters[0]->Fill(nS);
+  m_nLaserClusters[1]->Fill(nN);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -128,6 +161,21 @@ void TpcLaserQA::createHistos()
   {
     auto h = new TH2F(boost::str(boost::format("%sTPCWheel_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str(),boost::str(boost::format("Laser Hit ADC per event %s") % (side == 1 ? "North" : "South")).c_str(),12,-M_PI/12.,23.*M_PI/12.,4,rBinEdges);
     hm->registerHisto(h);
+
+    auto h2 = new TH1F(boost::str(boost::format("%snLaserClusters_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str(),boost::str(boost::format("Number of Laser Clusters per Event %s") % (side == 1 ? "North" : "South")).c_str(),81,-50,8050);
+    if(side == 1)
+    {
+      h2->SetLineColor(kRed);
+    }
+    else
+    {
+      h2->SetLineColor(kBlue);
+    }
+    hm->registerHisto(h2);
+
+    
+    auto h3 = new TH2F(boost::str(boost::format("%saturation_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str(),boost::str(boost::format("Number of Saturated Hits per event %s") % (side == 1 ? "North" : "South")).c_str(),12,-M_PI/12.,23.*M_PI/12.,4,rBinEdges);
+    hm->registerHisto(h3);
   }
   
   

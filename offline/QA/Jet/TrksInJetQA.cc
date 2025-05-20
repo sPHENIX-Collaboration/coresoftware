@@ -195,18 +195,9 @@ void TrksInJetQA::InitHistograms()
     std::cout << "TrksInJetQA::InitHistograms() Initializing histograms..." << std::endl;
   }
 
-  // make sure module name is lower case
-  std::string smallModuleName = m_moduleName;
-  std::transform(
-      smallModuleName.begin(),
-      smallModuleName.end(),
-      smallModuleName.begin(),
-      ::tolower);
-
   // histograms are always prefixed by the module name
   std::string prefix = "h_";
-  prefix += "_";
-  prefix += smallModuleName;
+  prefix += m_moduleName;
 
   // if additional prefix provided, add it
   if (m_histPrefix.has_value())

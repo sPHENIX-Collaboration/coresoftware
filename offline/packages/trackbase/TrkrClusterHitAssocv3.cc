@@ -42,6 +42,12 @@ void TrkrClusterHitAssocv3::identify(std::ostream& os) const
 }
 
 //_________________________________________________________________________
+void TrkrClusterHitAssocv3::removeAssocs(TrkrDefs::hitsetkey hitsetkey)
+{
+  m_map.erase(hitsetkey);
+}
+
+//_________________________________________________________________________
 void TrkrClusterHitAssocv3::addAssoc(TrkrDefs::cluskey ckey, unsigned int hidx)
 {
   // get hitset key from cluster

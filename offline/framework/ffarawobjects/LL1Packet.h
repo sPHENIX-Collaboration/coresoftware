@@ -43,7 +43,7 @@ class LL1Packet : public OfflinePacketv1
   virtual int getFibers() const { return 0; }
 
  private:
-  ClassDefOverride(LL1Packet, 1)
+  ClassDefOverride(LL1Packet, 2)
 };
 
 #endif

@@ -22,13 +22,21 @@ class TrkrClusterContainerv4 : public TrkrClusterContainer
  public:
   TrkrClusterContainerv4() = default;
 
+  /**
+   * delete and remove all stored clusters
+   * effectively leaving the container empty
+   */
   void Reset() override;
 
   void identify(std::ostream& os = std::cout) const override;
 
   void addClusterSpecifyKey(const TrkrDefs::cluskey, TrkrCluster*) override;
 
+  //! remove cluster matching a given cluster key
   void removeCluster(TrkrDefs::cluskey) override;
+
+  //! delete and remove all the clusters matching a given key
+  void removeClusters(TrkrDefs::hitsetkey) override;
 
   ConstRange getClusters() const override;  // deprecated
 

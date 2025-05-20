@@ -34,8 +34,10 @@
 #include <iomanip>
 #include <iostream>
 
-MbdEvent::MbdEvent(const int cal_pass) :
-  _nsamples(MbdDefs::MAX_SAMPLES), _calpass(cal_pass)
+MbdEvent::MbdEvent(const int cal_pass, const bool proc_charge) :
+  _nsamples(MbdDefs::MAX_SAMPLES),
+  _calpass(cal_pass),
+  _always_process_charge(proc_charge)
 {
   // set default values
 
@@ -272,7 +274,7 @@ int MbdEvent::InitRun()
   }
 
   // Create TCanvas for debugging if requested
-  _verbose = 5;
+  //_verbose = 5;
   if (_verbose)
   {
     std::cout << "Creating canvas" << std::endl;
@@ -633,10 +635,11 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
 
     }
-    //else if ( type == 1 ) // process all charge channels, no matter what
-    else if ( type == 1 && (!std::isnan(m_pmttt[pmtch]) || isbadtch(pmtch)) ) // process charge channels which have good time hit
-                                                                              // or have been marked as bad
+    else if ( type == 1 && (!std::isnan(m_pmttt[pmtch]) || isbadtch(pmtch) || _always_process_charge ) )
     {
+      // we process charge channels which have good time hit
+      // or have time channels marked as bad
+      // or have always_process_charge set to 1 (useful for threshold studies)
 
       // Use dCFD method to seed time in charge channels (or as primary if not fitting template)
       // std::cout << "getspline " << ifeech << std::endl;
@@ -659,7 +662,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
  
-      // why are there bad tq0?
+      // In Run 1 (runs before 40000), we didn't set hardware thresholds, and instead set a software threshold of 0.25
       if ( ((m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
       {
         // m_t0[ifeech] = -9999.;

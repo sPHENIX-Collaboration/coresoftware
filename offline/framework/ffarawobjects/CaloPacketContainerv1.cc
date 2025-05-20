@@ -8,8 +8,8 @@
 static const int NCALOPACKETS = 128;
 
 CaloPacketContainerv1::CaloPacketContainerv1()
+  : CaloPacketsTCArray(new TClonesArray("CaloPacketv1", NCALOPACKETS))
 {
-  CaloPacketsTCArray = new TClonesArray("CaloPacketv1", NCALOPACKETS);
 }
 
 CaloPacketContainerv1::~CaloPacketContainerv1()
@@ -29,6 +29,8 @@ void CaloPacketContainerv1::identify(std::ostream &os) const
   os << "containing " << CaloPacketsTCArray->GetEntriesFast() << " Calo Packets" << std::endl;
   for (int i = 0; i <= CaloPacketsTCArray->GetLast(); i++)
   {
+    // TClonesArrays need a static cast, dynamic casts do not work
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
     CaloPacket *calopkt = static_cast<CaloPacket *>(CaloPacketsTCArray->At(i));
     if (calopkt)
     {
@@ -54,11 +56,11 @@ CaloPacket *CaloPacketContainerv1::AddPacket()
   return newhit;
 }
 
-CaloPacket *CaloPacketContainerv1::AddPacket(CaloPacket *calohit)
+CaloPacket *CaloPacketContainerv1::AddPacket(CaloPacket *calopacket)
 {
   // need a dynamic cast here to use the default copy ctor for CaloPacketv1
   // which copies the std::arrays
-  CaloPacket *newhit = new ((*CaloPacketsTCArray)[CaloPacketsTCArray->GetLast() + 1]) CaloPacketv1(*(dynamic_cast<CaloPacketv1 *>(calohit)));
+  CaloPacket *newhit = new ((*CaloPacketsTCArray)[CaloPacketsTCArray->GetLast() + 1]) CaloPacketv1(*(dynamic_cast<CaloPacketv1 *>(calopacket)));
   return newhit;
 }
 
