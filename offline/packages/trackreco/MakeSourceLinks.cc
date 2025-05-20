@@ -17,6 +17,7 @@
 #include <trackbase_historic/TrackSeed.h>
 
 #include <tpc/TpcGlobalPositionWrapper.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
@@ -132,6 +133,13 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
           << std::endl;
       }
 
+      // The wrapper returns the global position corrected for distortion and the cluster crossing z offset
+      // We do not want the cluster crossing offset in the transformation, that is handled separately
+      // The cluster z crossing correction is applied to the nominal global position (global_in)
+      double cluster_crossing_corrected_z= TpcClusterZCrossingCorrection::correctZ(global_in.z(), TpcDefs::getSide(key), crossing);
+      double subtract_crossing_diff = cluster_crossing_corrected_z - global_in.z();
+      global.z() -= subtract_crossing_diff;
+      
       // Make an afine transform that implements the correction as a translation
       auto correction_translation = (global - global_in)*Acts::UnitConstants::cm;
       Acts::Vector3 correction_rotation(0,0,0);   // null rotation
@@ -168,10 +176,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
       std::cout << "Check global from transient transform AFTER via surface method " << check_after_pos_surf(0)/10.0 << "  "
 		<< "  " << check_after_pos_surf(1)/10.0 << "  " << check_after_pos_surf(2)/10.0 << std::endl;
 	}
-      //      std::cout << " Print ideal transform matrix from surface object: " << std::endl
-      //	<< surf->transform(tGeometry->geometry().getGeoContext()).matrix() << std::endl;
-      //      std::cout << " Print transient transform matrix from surface object: " << std::endl
-      //	<< surf->transform(temp_transient_geocontext).matrix() << std::endl;
+            std::cout << " Print ideal transform matrix from surface object: " << std::endl
+      	<< surf->transform(tGeometry->geometry().getGeoContext()).matrix() << std::endl;
+            std::cout << " Print transient transform matrix from surface object: " << std::endl
+      	<< surf->transform(temp_transient_geocontext).matrix() << std::endl;
 
     }  // end TPC specific treatment
 
@@ -230,8 +238,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
 		    << loc.transpose() << std::endl
 		    << ", cov : " << cov.transpose() << std::endl
 		    << " geo id " << sl.geometryId() << std::endl;
-	  std::cout << "Surface : " << std::endl;
-	  //surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+	  std::cout << "Surface original transform: " << std::endl;
+	  surf.get()->toStream(tGeometry->geometry().getGeoContext(), std::cout);
+	  std::cout << std::endl << "Surface transient transform: " << std::endl;
 	  surf.get()->toStream(transient_geocontext, std::cout);
 	  std::cout << std::endl;
 	  std::cout << "Corrected surface transform:" << std::endl;
