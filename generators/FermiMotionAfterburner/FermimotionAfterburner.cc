@@ -27,10 +27,10 @@ namespace HepMC
 //____________________________________________________________________________..
 FermimotionAfterburner::FermimotionAfterburner(const std::string &name, const double pTspec)
   : SubsysReco(name)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
+  , m_pTspec(pTspec)
 
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-  m_pTspec = pTspec;
 }
 
 //____________________________________________________________________________..

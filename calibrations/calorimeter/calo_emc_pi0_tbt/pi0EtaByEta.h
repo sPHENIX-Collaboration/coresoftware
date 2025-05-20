@@ -98,9 +98,9 @@ class pi0EtaByEta : public SubsysReco
     runTowByTow = state;
     return;
   }
-  void SetTargetMass(float mass) 
+  void SetTargetMass(float mass)
   {
-    target_pi0_mass = mass; 
+    target_pi0_mass = mass;
   }
 
   void set_RunTBTCompactMode(bool state)  // to decide if we want to run in TBT in compact mode (default is true)
@@ -113,12 +113,12 @@ class pi0EtaByEta : public SubsysReco
   bool checkOutput(const std::string& file);
   void set_reqTrig(bool status, const std::vector<int>& list)
   {
-      reqTrig = status;
-      triggerList = list;
+    reqTrig = status;
+    triggerList = list;
   }
-  void set_reqTrig(bool status )
+  void set_reqTrig(bool status)
   {
-     reqTrig = status;
+    reqTrig = status;
   }
 
   void set_GlobalVertexType(GlobalVertex::VTXTYPE type)
@@ -133,21 +133,24 @@ class pi0EtaByEta : public SubsysReco
     return;
   }
 
-  void set_useVertexTruth(bool state) 
+  void set_useVertexTruth(bool state)
   {
-     useVertexTruth = state;
+    useVertexTruth = state;
   }
+  void set_calib_fieldname(std::string &name)
+  {
+    m_fieldname = name;
+  } 
 
  protected:
   int Getpeaktime(TH1* h);
   std::string detector;
   std::string outfilename;
 
-
   bool reqTrig = true;
   std::vector<int> triggerList;
   bool reqVertex = false;
-
+  std::string m_fieldname = "CEMC_calib_ADC_to_ETower";
 
   bool doVtxCut{true};
   float vtx_z_cut{20};
@@ -226,7 +229,6 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_totalzdc_e{nullptr};
   TH3* h_ieta_iphi_invmass{nullptr};
 
-
   bool useVertexTruth = false;
 
   TProfile2D* h_cemc_etaphi_time{nullptr};
@@ -274,7 +276,6 @@ class pi0EtaByEta : public SubsysReco
   TriggerAnalyzer* trigAna{nullptr};
 
   float convLev = {0.005};
-
 };
 
 #endif

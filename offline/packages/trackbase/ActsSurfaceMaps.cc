@@ -77,13 +77,13 @@ Surface ActsSurfaceMaps::getSiliconSurface(TrkrDefs::hitsetkey hitsetkey) const
   if (trkrid == TrkrDefs::inttId)
   {
     // Set the hitsetkey crossing to zero
-    tmpkey = InttDefs::resetCrossingHitSetKey(hitsetkey);
+    tmpkey = InttDefs::resetCrossing(hitsetkey);
   }
 
   if (trkrid == TrkrDefs::mvtxId)
   {
     // Set the hitsetkey crossing to zero
-    tmpkey = MvtxDefs::resetStrobeHitSetKey(hitsetkey);
+    tmpkey = MvtxDefs::resetStrobe(hitsetkey);
   }
 
   // std::cout << "tmpkey = " << tmpkey << std::endl;

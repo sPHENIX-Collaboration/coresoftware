@@ -5,6 +5,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <intt/InttBadChannelMap.h>
+
 #include <gsl/gsl_rng.h>
 
 #include <map>
@@ -31,17 +33,9 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 
   void SetDefaultParameters() override;
 
-  /// Set the tag or path (if argument contains ".root")
-  /// for the bad/hot/dead calibration to use for channel masking
-  /// 
-  /// The default CDB file will be used if this function has not been called,
-  /// or called with an empty string ""
-  /// 
-  /// To achieve the effect of no channel masking, call with an invalid calibration,
-  /// e.g., SetWhichBadMap("surely_this_calibration_tag_does_not_exist");
-  /// You will see output to stderr, but the module will run
-  /// This convention may change (a valid, empty calibration may be added at some point under a specific tag)
-  void SetWhichBadMap(std::string const&);
+  /// Overloaded; no arguments loads with default tag
+  int LoadBadChannelMap() {return m_badmap.Load();}
+  int LoadBadChannelMap(std::string const& s) {return m_badmap.Load(s);}
 
   void Detector(const std::string &d) { detector = d; }
 
@@ -77,8 +71,7 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator = nullptr;
 
-  std::string m_which_bad_channel_map{};
-  InttBadChannelMap* m_bad_channel_map{nullptr};
+  InttBadChannelMap m_badmap;
 };
 
 #endif

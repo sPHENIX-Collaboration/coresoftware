@@ -17,6 +17,7 @@
 
 #include <TH1.h>
 #include <TH2.h>
+#include <TStyle.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -44,10 +45,12 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
   if (m_writeToOutputFile)
   {
     std::cout << "Opening output file named " << m_outputFileName << std::endl;
-    PHTFileServer::get().open(m_outputFileName, "RECREATE");
+    PHTFileServer::open(m_outputFileName, "RECREATE");
   }
   delete m_analyzer;
   m_analyzer = new TriggerAnalyzer();
+
+  gStyle->SetOptTitle(0);
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -88,42 +91,42 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
   }
 
   // make histograms
-  m_hRawSeedCount = new TH1F(vecHistNames[0].data(), "Raw Seed Count per Event", 100, 0.00, 50.00);
+  m_hRawSeedCount = new TH1F(vecHistNames[0].data(), "", 100, 0.00, 50.00);
   m_hRawSeedCount->GetXaxis()->SetTitle("Raw Seed Count per Event");
   m_hRawSeedCount->GetYaxis()->SetTitle("Number of Entries");
   m_manager->registerHisto(m_hRawSeedCount);
 
-  m_hRawPt = new TH1F(vecHistNames[1].data(), "Raw p_{T}", 1000, 0.00, 50.00);
+  m_hRawPt = new TH1F(vecHistNames[1].data(), "", 1000, 0.00, 50.00);
   m_hRawPt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   m_hRawPt->GetYaxis()->SetTitle("Number of Entries");
   m_manager->registerHisto(m_hRawPt);
 
-  m_hRawPt_All = new TH1F(vecHistNames[2].data(), "Raw p_{T} (all jet seeds)", 1000, 0.00, 50.00);
+  m_hRawPt_All = new TH1F(vecHistNames[2].data(), "", 1000, 0.00, 50.00);
   m_hRawPt_All->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   m_hRawPt_All->GetYaxis()->SetTitle("Number of Entries");
   m_manager->registerHisto(m_hRawPt_All);
 
-  m_hRawEtaVsPhi = new TH2F(vecHistNames[3].data(), "Raw Seed Eta Vs Phi", 220, -1.1, 1.1, 628, -3.14, 3.14);
+  m_hRawEtaVsPhi = new TH2F(vecHistNames[3].data(), "", 220, -1.1, 1.1, 628, -3.14, 3.14);
   m_hRawEtaVsPhi->GetXaxis()->SetTitle("Jet #eta [Rads.]");
   m_hRawEtaVsPhi->GetYaxis()->SetTitle("Jet #phi [Rads.]");
   m_manager->registerHisto(m_hRawEtaVsPhi);
 
-  m_hSubSeedCount = new TH1F(vecHistNames[4].data(), "Sub Seed Count per Event", 100, 0.00, 50.00);
+  m_hSubSeedCount = new TH1F(vecHistNames[4].data(), "", 100, 0.00, 50.00);
   m_hSubSeedCount->GetXaxis()->SetTitle("Sub Seed Count per Event");
   m_hSubSeedCount->GetYaxis()->SetTitle("Number of Entries");
   m_manager->registerHisto(m_hSubSeedCount);
 
-  m_hSubPt = new TH1F(vecHistNames[5].data(), "Sub. p_{T}", 1000, 0.00, 50.00);
+  m_hSubPt = new TH1F(vecHistNames[5].data(), "", 1000, 0.00, 50.00);
   m_hSubPt->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   m_hSubPt->GetYaxis()->SetTitle("Number of Entries");
   m_manager->registerHisto(m_hSubPt);
 
-  m_hSubPt_All = new TH1F(vecHistNames[6].data(), "Sub. p_{T} (all jet seeds)", 1000, 0.00, 50.00);
+  m_hSubPt_All = new TH1F(vecHistNames[6].data(), "", 1000, 0.00, 50.00);
   m_hSubPt_All->GetXaxis()->SetTitle("Jet p_{T} [GeV]");
   m_hSubPt_All->GetYaxis()->SetTitle("Number of Entries");
   m_manager->registerHisto(m_hSubPt_All);
 
-  m_hSubEtaVsPhi = new TH2F(vecHistNames[7].data(), "Sub. Seed Eta Vs Phi", 220, -1.1, 1.1, 628, -3.14, 3.14);
+  m_hSubEtaVsPhi = new TH2F(vecHistNames[7].data(), "", 220, -1.1, 1.1, 628, -3.14, 3.14);
   m_hSubEtaVsPhi->GetXaxis()->SetTitle("Jet #eta [Rads.]");
   m_hSubEtaVsPhi->GetYaxis()->SetTitle("Jet #phi [Rads.]");
   m_manager->registerHisto(m_hSubEtaVsPhi);
@@ -131,27 +134,27 @@ int JetSeedCount::Init(PHCompositeNode * /*topNode*/)
   // If not in pp mode, plot quantities vs. centrality
   if (!m_inPPMode)
   {
-    m_hRawSeedEnergyVsCent = new TH2F(vecHistNames[8].data(), "Raw Seed Energy Vs Centrality", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
+    m_hRawSeedEnergyVsCent = new TH2F(vecHistNames[8].data(), "", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
     m_hRawSeedEnergyVsCent->GetXaxis()->SetTitle("Centrality");
     m_hRawSeedEnergyVsCent->GetYaxis()->SetTitle("RawSeedEnergy");
     m_manager->registerHisto(m_hRawSeedEnergyVsCent);
 
-    m_hSubSeedEnergyVsCent = new TH2F(vecHistNames[9].data(), "Sub Seed Energy Vs Centrality", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
+    m_hSubSeedEnergyVsCent = new TH2F(vecHistNames[9].data(), "", 10.00, 0.00, 100.00, 100, 0.00, 50.00);
     m_hSubSeedEnergyVsCent->GetXaxis()->SetTitle("Centrality");
     m_hSubSeedEnergyVsCent->GetYaxis()->SetTitle("SubSeedEnergy");
     m_manager->registerHisto(m_hSubSeedEnergyVsCent);
 
-    m_hCentMbd = new TH1F(vecHistNames[10].data(), "hCentMbd", 10, 0.00, 100.00);
+    m_hCentMbd = new TH1F(vecHistNames[10].data(), "", 10, 0.00, 100.00);
     m_hCentMbd->GetXaxis()->SetTitle("Centrality (Mbd)");
     m_hCentMbd->GetYaxis()->SetTitle("Number of Entries");
     m_manager->registerHisto(m_hCentMbd);
 
-    m_hRawSeedVsCent = new TH2F(vecHistNames[11].data(), "Raw Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
+    m_hRawSeedVsCent = new TH2F(vecHistNames[11].data(), "", 10, 0.00, 100.00, 101, -0.5, 100.5);
     m_hRawSeedVsCent->GetXaxis()->SetTitle("Centrality");
     m_hRawSeedVsCent->GetYaxis()->SetTitle("Raw Seed Count");
     m_manager->registerHisto(m_hRawSeedVsCent);
 
-    m_hSubSeedVsCent = new TH2F(vecHistNames[12].data(), "Sub Seed Vs Centrality", 10, 0.00, 100.00, 101, -0.5, 100.5);
+    m_hSubSeedVsCent = new TH2F(vecHistNames[12].data(), "", 10, 0.00, 100.00, 101, -0.5, 100.5);
     m_hSubSeedVsCent->GetXaxis()->SetTitle("Centrality");
     m_hSubSeedVsCent->GetYaxis()->SetTitle("Sub Seed Count");
     m_manager->registerHisto(m_hSubSeedVsCent);
@@ -190,7 +193,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   if (!seedjetsraw)
   {
     std::cout << "JetSeedCount::process_event - Error can not find DST raw seed jets" << std::endl;
-    exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // Calling Sub jet seeds
@@ -198,7 +201,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   if (!seedjetssub)
   {
     std::cout << "JetSeedCount::process_event - Error can not find DST sub seed jets" << std::endl;
-    exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   // If not in pp mode, call Centrality Info
@@ -209,7 +212,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
     if (!cent_node)
     {
       std::cout << "JetSeedCount::process_event - Error can not find CentralityInfo" << std::endl;
-      exit(-1);
+      return Fun4AllReturnCodes::EVENT_OK;
     }
   }
 
@@ -220,7 +223,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
     std::cout
         << "JetSeedCount::process_event - Error can not find global vertex  node "
         << std::endl;
-    exit(-1);
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   if (vertexmap->empty())
   {
@@ -245,7 +248,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   uint64_t n_seed_raw = 0;
   //  float Counter = 0;
   // for (JetMap::Iter iter = seedjetsraw->begin(); iter != seedjetsraw->end(); ++iter){
-  for (auto jet : *seedjetsraw)
+  for (auto *jet : *seedjetsraw)
   {
     // Jet* jet = iter->second;
     int passesCut = jet->get_property(seedjetsraw->property_index(Jet::PROPERTY::prop_SeedItr));
@@ -273,7 +276,7 @@ int JetSeedCount::process_event(PHCompositeNode *topNode)
   //  Counter = 0;
   // for (unsigned int iter = 0; iter < seedjetssub->size(); ++iter){
   // Jet* jet = seedjetsub->get_jet(iter);
-  for (auto jet : *seedjetssub)
+  for (auto *jet : *seedjetssub)
   {
     // Jet* jet = iter->second;
     int passesCut = jet->get_property(seedjetssub->property_index(Jet::PROPERTY::prop_SeedItr));
@@ -307,7 +310,7 @@ int JetSeedCount::End(PHCompositeNode * /*topNode*/)
   }
   if (m_writeToOutputFile)
   {
-    PHTFileServer::get().cd(m_outputFileName);
+    PHTFileServer::cd(m_outputFileName);
     m_hRawSeedCount->Write();
     m_hRawPt->Write();
     m_hRawPt_All->Write();

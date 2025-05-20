@@ -72,11 +72,11 @@ class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller
   void FillClustAndHitQAHists(SvtxTrack* track);
   void GetCstTracks(Jet* jet, PHCompositeNode* topNode);
   void GetNonCstTracks(Jet* jet);
-  bool IsCstNotRelevant(const uint32_t type);
+  static bool IsCstNotRelevant(const uint32_t type);
   bool IsTrkInList(const uint32_t id);
-  double GetTrackJetDist(SvtxTrack* track, Jet* jet);
+  static double GetTrackJetDist(SvtxTrack* track, Jet* jet);
   PFObject* GetPFObject(const uint32_t id, PHCompositeNode* topNode);
-  SvtxTrack* GetTrkFromPFO(PFObject* pfo);
+  static SvtxTrack* GetTrkFromPFO(PFObject* pfo);
 
   // additional dst nodes needed
   PFObjectStore* m_flowStore {nullptr};

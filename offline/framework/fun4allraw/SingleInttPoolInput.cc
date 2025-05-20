@@ -11,6 +11,7 @@
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
+#include <phool/recoConsts.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -182,6 +183,10 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           {
             continue;
           }
+          if(bco > minBCO * 2)
+          {
+            continue;
+          }
           skipthis = false;
           m_BclkStack.insert(bco);
           m_BclkStackPacketMap[packet_id].insert(bco);
@@ -189,19 +194,23 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 
         int nFEEs = pool->iValue(0, "UNIQUE_FEES");
         for (int j = 0; j < nFEEs; j++)
-        {
-          int fee = pool->iValue(j, "FEE_ID");
-          int nbcos = pool->iValue(fee, "FEE_BCOS");
-          for (int k = 0; k < nbcos; k++)
-          {
-            uint64_t bco = pool->lValue(fee, k, "BCOVAL");
-            if(bco < minBCO)
-            {
-              continue;
-            }
-            m_FeeGTML1BCOMap[fee].insert(bco);
-          }
-        }
+		{
+		  int fee = pool->iValue(j, "FEE_ID");
+		  int nbcos = pool->iValue(fee, "FEE_BCOS");
+		  for (int k = 0; k < nbcos; k++)
+		  {
+			uint64_t bco = pool->lValue(fee, k, "BCOVAL");
+			if(bco < minBCO)
+			{
+			  continue;
+			}
+			if(bco > minBCO * 2)
+			{
+			  continue;
+			}
+			m_FeeGTML1BCOMap[fee].insert(bco);
+		  }
+		}
         if (skipthis)
         {
           if (Verbosity() > 1)
@@ -213,56 +222,60 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
         else
         {
           for (int j = 0; j < num_hits; j++)
-          {
-            uint64_t gtm_bco = pool->lValue(j, "BCO");
-            if (gtm_bco < minBCO)
-            {
-              // std::cout << "dropping hit with bco 0x" << std::hex
-              // 	      << gtm_bco << ", min bco: 0x" << minBCO
-              // 	      << std::endl;
-              continue;
-            }
-            auto newhit = std::make_unique<InttRawHitv2>();
-            int FEE = pool->iValue(j, "FEE");
-            newhit->set_packetid(pool->getIdentifier());
-            newhit->set_fee(FEE);
-            newhit->set_bco(gtm_bco);
-            newhit->set_adc(pool->iValue(j, "ADC"));
-            newhit->set_amplitude(pool->iValue(j, "AMPLITUDE"));
-            newhit->set_chip_id(pool->iValue(j, "CHIP_ID"));
-            newhit->set_channel_id(pool->iValue(j, "CHANNEL_ID"));
-            newhit->set_word(pool->iValue(j, "DATAWORD"));
-            newhit->set_FPHX_BCO(pool->iValue(j, "FPHX_BCO"));
-            newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
-            newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
-            newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
-            gtm_bco += m_Rollover[FEE];
+		  {
+			uint64_t gtm_bco = pool->lValue(j, "BCO");
+			if (gtm_bco < minBCO)
+			{
+			  // std::cout << "dropping hit with bco 0x" << std::hex
+			  // 	      << gtm_bco << ", min bco: 0x" << minBCO
+			  // 	      << std::endl;
+			  continue;
+			}
+			if(gtm_bco > minBCO * 2)
+			{
+			  continue;
+			}
+			auto newhit = std::make_unique<InttRawHitv2>();
+			int FEE = pool->iValue(j, "FEE");
+			newhit->set_packetid(pool->getIdentifier());
+			newhit->set_fee(FEE);
+			newhit->set_bco(gtm_bco);
+			newhit->set_adc(pool->iValue(j, "ADC"));
+			newhit->set_amplitude(pool->iValue(j, "AMPLITUDE"));
+			newhit->set_chip_id(pool->iValue(j, "CHIP_ID"));
+			newhit->set_channel_id(pool->iValue(j, "CHANNEL_ID"));
+			newhit->set_word(pool->iValue(j, "DATAWORD"));
+			newhit->set_FPHX_BCO(pool->iValue(j, "FPHX_BCO"));
+			newhit->set_full_FPHX(pool->iValue(j, "FULL_FPHX"));
+			newhit->set_full_ROC(pool->iValue(j, "FULL_ROC"));
+			newhit->set_event_counter(pool->iValue(j, "EVENT_COUNTER"));
+			gtm_bco += m_Rollover[FEE];
 
-            if (gtm_bco < m_PreviousClock[FEE])
-            {
-              m_Rollover[FEE] += 0x10000000000;
-              gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
-            }
-            m_PreviousClock[FEE] = gtm_bco;
-            m_BeamClockFEE[gtm_bco].insert(FEE);
-            m_FEEBclkMap[FEE] = gtm_bco;
-            if (Verbosity() > 2)
-            {
-              std::cout << "evtno: " << EventSequence
-                        << ", hits: " << j
-                        << ", nr_hits: " << num_hits
-                        << ", FEE: " << FEE
-                        << ", bco: 0x" << std::hex << gtm_bco << std::dec
-                        << ", min bco: 0x" << std::hex << minBCO << std::dec
-                        << ", channel: " << newhit->get_channel_id()
-                        << ", evt_counter: " << newhit->get_event_counter() << std::endl;
-            }
-            if (StreamingInputManager())
-            {
-              StreamingInputManager()->AddInttRawHit(gtm_bco, newhit.get());
-            }
-            m_InttRawHitMap[gtm_bco].push_back(newhit.release());
-          }
+			if (gtm_bco < m_PreviousClock[FEE])
+			{
+			  m_Rollover[FEE] += 0x10000000000;
+			  gtm_bco += 0x10000000000;  // rollover makes sure our bclks are ascending even if we roll over the 40 bit counter
+			}
+			m_PreviousClock[FEE] = gtm_bco;
+			m_BeamClockFEE[gtm_bco].insert(FEE);
+			m_FEEBclkMap[FEE] = gtm_bco;
+			if (Verbosity() > 2)
+			{
+			  std::cout << "evtno: " << EventSequence
+				<< ", hits: " << j
+				<< ", nr_hits: " << num_hits
+				<< ", FEE: " << FEE
+				<< ", bco: 0x" << std::hex << gtm_bco << std::dec
+				<< ", min bco: 0x" << std::hex << minBCO << std::dec
+				<< ", channel: " << newhit->get_channel_id()
+				<< ", evt_counter: " << newhit->get_event_counter() << std::endl;
+			}
+			if (StreamingInputManager())
+			{
+			  StreamingInputManager()->AddInttRawHit(gtm_bco, newhit.get());
+			}
+			m_InttRawHitMap[gtm_bco].push_back(newhit.release());
+		  }
         }
         //	    Print("FEEBCLK");
       }
@@ -461,6 +474,15 @@ void SingleInttPoolInput::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
   {
+    auto rc = recoConsts::instance();
+    // if it is triggered after the gtm firmware change
+    if(rc->get_IntFlag("RUNNUMBER") > 58677 && m_BcoRange < 5)
+    {
+      SetBcoRange(3);
+      std::cout << "INTT changed to triggered event combining with range [-"
+                << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+    }
+
     StreamingInputManager()->SetInttBcoRange(m_BcoRange);
     StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
   }

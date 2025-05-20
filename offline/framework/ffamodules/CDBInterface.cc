@@ -91,7 +91,7 @@ int CDBInterface::End(PHCompositeNode *topNode)
       }
     }
   }
-  for (auto &tuple : m_UrlVector)
+  for (const auto &tuple : m_UrlVector)
   {
     cdburls->AddUrl(tuple);
   }
@@ -105,7 +105,7 @@ int CDBInterface::End(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 void CDBInterface::Print(const std::string & /* what */) const
 {
-  for (auto &iter : m_UrlVector)
+  for (const auto &iter : m_UrlVector)
   {
     std::cout << "domain: " << std::get<0>(iter)
               << ", url: " << std::get<1>(iter)

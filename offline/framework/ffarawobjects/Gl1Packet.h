@@ -31,7 +31,7 @@ class Gl1Packet : public OfflinePacketv1
   virtual void FillFrom(const Gl1Packet* /*pkt*/) { return; }
 
  private:
-  ClassDefOverride(Gl1Packet, 1)
+  ClassDefOverride(Gl1Packet, 2)
 };
 
 #endif

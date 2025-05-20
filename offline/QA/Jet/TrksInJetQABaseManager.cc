@@ -16,13 +16,13 @@
 
 TrksInJetQABaseManager::TrksInJetQABaseManager(
     TrksInJetQAConfig& config,
-    TrksInJetQAHist& hist)
+    TrksInJetQAHist& hist) : m_config(config), m_hist(hist)
 {
   ResetVectors();
 
   // grab vectors
-  m_config = config;
-  m_hist = hist;
+  
+  
 
 }  // end ctor(TrksInJetQAConfig&, TrksInJetQAHist&)
 
@@ -103,13 +103,22 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
     for (HistDef1D histDef1D : m_vecHistDef1D)
     {
       // make name
-      std::string sHistName("h_");
-      sHistName += prefix;
-      sHistName += "_";
+      std::string sHistName(prefix + "_");
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef1D);
       sHistName += "_";
       sHistName += suffix;
+
+      // make sure histogram name is lower case
+      std::transform(sHistName.begin(),
+                     sHistName.end(),
+                     sHistName.begin(),
+                     ::tolower);
+
+      std::regex_replace(
+          sHistName,
+          std::regex("__"),
+          "_");
 
       // create histogram
       m_vecHist1D.at(iType).push_back(
@@ -129,15 +138,18 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
     for (HistDef2D histDef2D : m_vecHistDef2D)
     {
       // make name
-      std::string sHistName("h_");
-      sHistName += prefix;
-      sHistName += "_";
+      std::string sHistName(prefix + "_");
       sHistName += m_vecHistTypes.at(iType);
       sHistName += std::get<0>(histDef2D);
       sHistName += "_";
       sHistName += suffix;
 
-      // const std::string sDoubleUnderscore("__");
+      // make sure histogram name is lower case
+      std::transform(sHistName.begin(),
+                     sHistName.end(),
+                     sHistName.begin(),
+                     ::tolower);
+
       std::regex_replace(
           sHistName,
           std::regex("__"),
@@ -173,13 +185,13 @@ void TrksInJetQABaseManager::ResetVectors()
 
 // private helper methods -----------------------------------------------------
 
-bool TrksInJetQABaseManager::IsInMvtx(const uint16_t layer)
+bool TrksInJetQABaseManager::IsInMvtx(const uint16_t layer) const
 {
   return (layer < m_config.nMvtxLayer);
 
 }  // end 'IsInMvtx(uint16_t)'
 
-bool TrksInJetQABaseManager::IsInIntt(const uint16_t layer)
+bool TrksInJetQABaseManager::IsInIntt(const uint16_t layer) const
 {
   return (
       (layer >= m_config.nMvtxLayer) &&
@@ -187,7 +199,7 @@ bool TrksInJetQABaseManager::IsInIntt(const uint16_t layer)
 
 }  // end 'IsInIntt(uint16_t)'
 
-bool TrksInJetQABaseManager::IsInTpc(const uint16_t layer)
+bool TrksInJetQABaseManager::IsInTpc(const uint16_t layer) const
 {
   return (layer >= m_config.nMvtxLayer + m_config.nInttLayer);
 

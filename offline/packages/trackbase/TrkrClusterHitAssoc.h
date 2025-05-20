@@ -30,6 +30,10 @@ class TrkrClusterHitAssoc : public PHObject
 
   void Reset() override;
 
+  //! remove all associations matching a given hitsetkey
+  virtual void removeAssocs(TrkrDefs::hitsetkey)
+  {}
+
   /**
    * @brief Add association between cluster and hit
    * @param[in] ckey Cluster key

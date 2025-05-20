@@ -18,20 +18,11 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
       std::cout << " no trigger emulator" << std::endl;
       return 1;
     }
-    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-    if (!gl1packet)
+
+    ll1out_jet = findNode::getClass<LL1Out>(topNode, "LL1OUT_JET");
+    if (!ll1out_jet)
     {
-      gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");  // Different term used in track production
-      if (!gl1packet)
-      {
-        std::cout << "no gl1 packet" << std::endl;
-        return 1;
-      }
-    }
-    triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
-    if (!triggerruninfo)
-    {
-      std::cout << " no triggerruninfo" << std::endl;
+      std::cout << " no trigger emulator" << std::endl;
       return 1;
     }
 
@@ -39,14 +30,19 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
 
     return 0;
   }
-  gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
+
+  gl1packet = findNode::getClass<Gl1Packet>(topNode, 14001);
   if (!gl1packet)
   {
-    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");  // Different term used in track production
+    gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     if (!gl1packet)
     {
-      std::cout << "no gl1 packet" << std::endl;
-      return 1;
+      gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");  // Different term used in track production
+      if (!gl1packet)
+      {
+	std::cout << "no gl1 packet" << std::endl;
+	return 1;
+      }
     }
   }
   triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");

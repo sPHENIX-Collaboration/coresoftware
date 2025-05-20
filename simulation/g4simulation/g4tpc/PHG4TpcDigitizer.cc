@@ -461,7 +461,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
 			      if (input < 0) { adc_output = 0;
 }
-			      if (input > 1023) { adc_output = 1023;
+			      if (adc_output > 1023) { adc_output = 1023;
 }
 			      
 			      // Get the hitkey

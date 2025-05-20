@@ -20,7 +20,7 @@ class TpcClusterMover
 
   void set_verbosity(int verb) { _verbosity = verb; }
 
-  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_in);
+  std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> processTrack(const std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>>& global_in);
 
   //! Updates the assumed default geometry below to that contained in the
   //! cell geo

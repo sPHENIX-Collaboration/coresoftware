@@ -68,7 +68,9 @@ my %proddesc = (
     "29" => "JS pythia8 Photonjet ptmin = 20GeV",
     "30" => "Herwig MB",
     "31" => "Herwig Jet ptmin = 10 GeV",
-    "32" => "Herwig Jet ptmin = 30 GeV"
+    "32" => "Herwig Jet ptmin = 30 GeV",
+    "33" => "JS pythia8 Jet ptmin = 15GeV",
+    "34" => "JS pythia8 Jet ptmin = 50GeV"
     );
 
 my %pileupdesc = (
@@ -792,6 +794,64 @@ if (defined $prodtype)
         $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
     }
+    elsif ($prodtype == 33)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet15";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 34)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet50";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm_%s_bkg_0_10fm",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm_%s_bkg_0_20fm",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s_%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
 
     else
     {
@@ -1092,17 +1152,31 @@ if (defined $nEvents)
 }
 # sort list of segments and write to output file
 my $nSelectedEvents = 0;
-foreach my $seg (sort { $a <=> $b } @segarray)
+my %filesorted = ();
+foreach my $seg (@segarray)
+#foreach my $seg (sort { $a <=> $b } @segarray)
 {
     $nSelectedEvents += $allevthash{$lowtype}{$allfilehash{$lowtype}{$seg}};
 #	print "segment $seg is good\n";
-    foreach my $tp (sort keys %allfilehash)
+#    foreach my $tp (sort keys %allfilehash)
+    foreach my $tp (keys %allfilehash)
     {
 #	    print "using $allfilehash{$tp}{$seg}\n";
-	my $printcmd = sprintf("echo %s >> %s",$allfilehash{$tp}{$seg},$dsttype{$tp});
-	system($printcmd);
+#	my $printcmd = sprintf("echo %s >> %s",$allfilehash{$tp}{$seg},$dsttype{$tp});
+	$filesorted{$dsttype{$tp}}{$allfilehash{$tp}{$seg}} = 1;
+#	print "$printcmd\n";
+#	system($printcmd);
     }
 
+}
+foreach my $listfile (keys %filesorted)
+{
+    open(F3,">$listfile");
+    foreach my $fil (sort keys %{$filesorted{$listfile}})
+    {
+	print F3 "$fil\n";
+    }
+    close(F3);
 }
 print "wrote the following list files containing >= $nSelectedEvents events:\n";
 foreach my $tp (sort { $a <=> $b } keys %allfilehash)

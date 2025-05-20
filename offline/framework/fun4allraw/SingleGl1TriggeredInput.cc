@@ -115,6 +115,11 @@ void SingleGl1TriggeredInput::Print(const std::string &what) const
 
 void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
 {
+  std::string CompositeNodeName = "Packets";
+  if (KeepMyPackets())
+  {
+    CompositeNodeName = "PacketsKeep";
+  }
   PHNodeIterator iter(m_topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
@@ -123,10 +128,10 @@ void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
     m_topNode->addNode(dstNode);
   }
   PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "Packets"));
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
   if (!detNode)
   {
-    detNode = new PHCompositeNode("Packets");
+    detNode = new PHCompositeNode(CompositeNodeName);
     dstNode->addNode(detNode);
   }
   std::vector<Packet *> pktvec = evt->getPacketVector();

@@ -1,21 +1,22 @@
 #include "RhosinEvent.h"
 
+// jetbackground includes
+#include <jetbackground/TowerRho.h>
+#include <jetbackground/EventRho.h>
+
+// qautils include
+#include <qautils/QAHistManagerDef.h>
+
 // fun4all includes
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-
-// jetbackground includes
-#include <jetbackground/TowerRho.h>
-#include <jetbackground/TowerRhov1.h>
 
 // phool includes
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-// qautils include
-#include <qautils/QAHistManagerDef.h>
-
 #include <TH1.h>
+#include <TStyle.h>
 
 #include <algorithm>
 #include <cassert>
@@ -23,6 +24,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+std::string to_lower(const std::string& s)
+{
+  std::string out = s;
+  std::transform(out.begin(), out.end(), out.begin(),
+                 static_cast<int(*)(int)>(std::tolower));
+  return out;
+}
 
 RhosinEvent::RhosinEvent(const std::string& moduleName, const std::string& tag)
   : SubsysReco(moduleName)
@@ -44,6 +53,8 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
   delete m_analyzer; // make cppcheck happy
   delete m_manager; // make cppcheck happy
   m_analyzer = new TriggerAnalyzer();
+
+  gStyle->SetOptTitle(0);
   m_manager = QAHistManagerDef::getHistoManager();
   if (!m_manager)
   {
@@ -91,19 +102,19 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
     }
   }
 
-  h1_mult_rho = new TH1D(vecHistNames[0].data(), "h1_mult_rho", N_rho_mult, N_rho_mult_bins);
+  h1_mult_rho = new TH1D(vecHistNames[0].data(), "", N_rho_mult, N_rho_mult_bins);
   h1_mult_rho->GetXaxis()->SetTitle("rho_M");
   h1_mult_rho->GetYaxis()->SetTitle("Counts");
 
-  h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "h1_mult_rho_sigma", N_rho_mult, N_rho_mult_bins);
+  h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "", N_rho_mult, N_rho_mult_bins);
   h1_mult_rho_sigma->GetXaxis()->SetTitle("sigma_M");
   h1_mult_rho_sigma->GetYaxis()->SetTitle("Counts");
 
-  h1_area_rho = new TH1D(vecHistNames[2].data(), "h1_area_rho", N_rho_area, N_rho_area_bins);
+  h1_area_rho = new TH1D(vecHistNames[2].data(), "", N_rho_area, N_rho_area_bins);
   h1_area_rho->GetXaxis()->SetTitle("rho_A");
   h1_area_rho->GetYaxis()->SetTitle("Counts");
 
-  h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "h1_area_rho_sigma", N_rho_area, N_rho_area_bins);
+  h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "", N_rho_area, N_rho_area_bins);
   h1_area_rho_sigma->GetXaxis()->SetTitle("sigma_A");
   h1_area_rho_sigma->GetYaxis()->SetTitle("Counts");
 
@@ -133,28 +144,95 @@ int RhosinEvent::process_event(PHCompositeNode* topNode)
     }
   }
 
+
   if (m_do_area_rho)
   {
-    TowerRho* towerrho = findNode::getClass<TowerRhov1>(topNode, m_area_rho_node);
-    if (!towerrho)
+    
+    TowerRho* towerrho = findNode::getClass<TowerRho>(topNode, m_area_rho_node);
+    EventRho* eventrho = findNode::getClass<EventRho>(topNode, m_area_rho_node);
+
+    if (to_lower(m_area_rho_node).find("tower") != std::string::npos)
     {
-      std::cout << "RhosinEvent::process_event - Error can not find towerrho " << m_area_rho_node << std::endl;
-      exit(-1);
+        if (!towerrho)
+        {
+          std::cout << "RhosinEvent::process_event - Warning can not find towerrho " << m_area_rho_node << std::endl;
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+              std::cout << "RhosinEvent::process_event - Using towerrho " << m_area_rho_node << std::endl;
+          }
+          h1_area_rho->Fill(towerrho->get_rho());
+          h1_area_rho_sigma->Fill(towerrho->get_sigma());
+        }
     }
-    h1_area_rho->Fill(towerrho->get_rho());
-    h1_area_rho_sigma->Fill(towerrho->get_sigma());
+    else if (to_lower(m_area_rho_node).find("event") != std::string::npos)
+    {
+        if (!eventrho)
+        {
+          std::cout << "RhosinEvent::process_event - Warning can not find eventrho " << m_area_rho_node << std::endl;
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+              std::cout << "RhosinEvent::process_event - Using eventrho " << m_area_rho_node << std::endl;
+          }
+          h1_area_rho->Fill(eventrho->get_rho());
+          h1_area_rho_sigma->Fill(eventrho->get_sigma());
+        }
+    }
+    if (!eventrho && !towerrho)
+    {
+      std::cout << "RhosinEvent::process_event - Error can not find neither towerrho nor eventrho " << m_area_rho_node << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   if (m_do_mult_rho)
   {
-    TowerRho* towerrho = findNode::getClass<TowerRhov1>(topNode, m_mult_rho_node);
-    if (!towerrho)
+    TowerRho* towerrho = findNode::getClass<TowerRho>(topNode, m_mult_rho_node);
+    EventRho* eventrho = findNode::getClass<EventRho>(topNode, m_mult_rho_node);
+
+    if (to_lower(m_area_rho_node).find("tower") != std::string::npos)
     {
-      std::cout << "RhosinEvent::process_event - Error can not find towerrho " << m_mult_rho_node << std::endl;
-      exit(-1);
+        if (!towerrho)
+        {
+          std::cout << "RhosinEvent::process_event - Warning can not find towerrho " << m_mult_rho_node << std::endl;
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+              std::cout << "RhosinEvent::process_event - Using towerrho " << m_mult_rho_node << std::endl;
+          }
+          h1_mult_rho->Fill(towerrho->get_rho());
+          h1_mult_rho_sigma->Fill(towerrho->get_sigma());
+        }
     }
-    h1_mult_rho->Fill(towerrho->get_rho());
-    h1_mult_rho_sigma->Fill(towerrho->get_sigma());
+    else if (to_lower(m_area_rho_node).find("event") != std::string::npos)
+    {
+        if (!eventrho)
+        {
+          std::cout << "RhosinEvent::process_event - Warning can not find eventrho " << m_mult_rho_node << std::endl;
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+              std::cout << "RhosinEvent::process_event - Using eventrho " << m_mult_rho_node << std::endl;
+          }
+          h1_mult_rho->Fill(eventrho->get_rho());
+          h1_mult_rho_sigma->Fill(eventrho->get_sigma());
+        }
+    }
+
+    if (!eventrho && !towerrho)
+    {
+      std::cout << "RhosinEvent::process_event - Error can not find neither towerrho nor eventrho  " << m_mult_rho_node << std::endl;
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
   }
 
   if (Verbosity() > 1)

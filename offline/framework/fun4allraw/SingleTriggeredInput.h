@@ -16,9 +16,7 @@
 
 class Event;
 class Eventiterator;
-class Fun4AllPrdfInputTriggerManager;
 class OfflinePacket;
-class Packet;
 class PHCompositeNode;
 
 class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
@@ -33,6 +31,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual int RunNumber() const { return m_RunNumber; }
   virtual void EventNumber(const int i) { m_EventNumber = i; }
   virtual int EventNumber() const { return m_EventNumber; }
+  virtual int EventsInThisFile() const {return m_EventsThisFile;}
   virtual int fileopen(const std::string &filename) override;
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
@@ -52,10 +51,13 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual std::array<uint64_t, pooldepth>::const_iterator begin() { return m_bclkdiffarray.begin(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator end() { return m_bclkdiffarray.end(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
+  virtual void KeepPackets() {m_KeepPacketsFlag = true;}
+  virtual bool KeepMyPackets() const {return m_KeepPacketsFlag;}
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
-
+  virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
+  
  protected:
   PHCompositeNode *m_topNode{nullptr};
   // lined up like this:
@@ -81,6 +83,8 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   int m_ProblemEvent{-1};
   int m_LastEvent{std::numeric_limits<int>::max()};
   bool firstcall{true};
+  bool m_KeepPacketsFlag{false};
+  std::set<int> m_FEMEventNrSet;
 };
 
 #endif

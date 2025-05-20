@@ -177,7 +177,7 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::SeedFilterConfig configureSeedFilter();
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracks(GridSeeds &seedVector);
+  void makeSvtxTracks(const GridSeeds &seedVector);
 
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(

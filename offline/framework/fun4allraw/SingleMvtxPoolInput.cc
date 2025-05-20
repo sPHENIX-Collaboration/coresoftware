@@ -1,13 +1,13 @@
 #include "SingleMvtxPoolInput.h"
-#include "mvtx_pool.h"
 #include "Fun4AllStreamingInputManager.h"
+#include "mvtx_pool.h"
 
-#include "MvtxRawDefs.h"
-#include <fun4all/Fun4AllUtils.h>
 #include <ffarawobjects/MvtxFeeIdInfov1.h>
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
+#include <fun4all/Fun4AllUtils.h>
+#include "MvtxRawDefs.h"
 
 #include <frog/FROG.h>
 #include <phool/PHCompositeNode.h>
@@ -21,8 +21,8 @@
 #include <Event/Eventiterator.h>
 #include <Event/fileEventiterator.h>
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
 #include <memory>
 #include <set>
 
@@ -128,18 +128,18 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
       {
         for (int i_fee{0}; i_fee < num_feeId; ++i_fee)
         {
-          //auto feeId = pool->iValue(i_fee, "FEEID");
+          // auto feeId = pool->iValue(i_fee, "FEEID");
           auto feeId = pool->get_feeid(i_fee);
           auto link = MvtxRawDefs::decode_feeid(feeId);
 
           //          auto hbfSize = plist[i]->iValue(feeId, "NR_HBF");
           // auto num_strobes_old = pool->iValue(feeId, "NR_STROBES");
-          //auto num_L1Trgs_old = pool->iValue(feeId, "NR_PHYS_TRG");
+          // auto num_L1Trgs_old = pool->iValue(feeId, "NR_PHYS_TRG");
           auto num_strobes = pool->get_strbSet_size(feeId);
           auto num_L1Trgs = pool->get_trgSet_size(feeId);
           for (int iL1 = 0; iL1 < num_L1Trgs; ++iL1)
           {
-          //  auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
+            //  auto l1Trg_bco = pool->lValue(feeId, iL1, "L1_IR_BCO");
             auto l1Trg_bco = pool->get_L1_IR_BCO(feeId, iL1);
             //            auto l1Trg_bc  = plist[i]->iValue(feeId, iL1, "L1_IR_BC");
             m_FeeGTML1BCOMap[feeId].insert(l1Trg_bco);
@@ -189,7 +189,6 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
                 StreamingInputManager()->AddMvtxRawHit(strb_bco, newhit.get());
               }
               m_MvtxRawHitMap[strb_bco].push_back(newhit.release());
-
             }
             if (StreamingInputManager())
             {
@@ -270,20 +269,19 @@ void SingleMvtxPoolInput::Print(const std::string &what) const
 void SingleMvtxPoolInput::CleanupUsedPackets(const uint64_t bclk)
 {
   m_BclkStack.erase(m_BclkStack.begin(), m_BclkStack.upper_bound(bclk));
-  for(auto it = m_MvtxRawHitMap.begin(); it != m_MvtxRawHitMap.end() && (it->first <= bclk); it = m_MvtxRawHitMap.erase(it))
+  for (auto it = m_MvtxRawHitMap.begin(); it != m_MvtxRawHitMap.end() && (it->first <= bclk); it = m_MvtxRawHitMap.erase(it))
   {
-    for( const auto& rawhit : it->second)
+    for (const auto &rawhit : it->second)
     {
       delete rawhit;
     }
   }
   m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin(), m_MvtxRawHitMap.upper_bound(bclk));
   m_FeeStrobeMap.erase(m_FeeStrobeMap.begin(), m_FeeStrobeMap.upper_bound(bclk));
-  for(auto& [feeid, gtmbcoset] : m_FeeGTML1BCOMap)
+  for (auto &[feeid, gtmbcoset] : m_FeeGTML1BCOMap)
   {
     gtmbcoset.erase(gtmbcoset.begin(), gtmbcoset.upper_bound(bclk));
   }
-
 }
 
 bool SingleMvtxPoolInput::CheckPoolDepth(const uint64_t bclk)
@@ -416,21 +414,22 @@ void SingleMvtxPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 
 void SingleMvtxPoolInput::ConfigureStreamingInputManager()
 {
-
   auto [runnumber, segment] = Fun4AllUtils::GetRunSegment(*(GetFileList().begin()));
 
   if (m_readStrWidthFromDB)
   {
     m_strobeWidth = MvtxRawDefs::getStrobeLength(runnumber);
+    if (std::isnan(m_strobeWidth))
+    {
+      std::cout << PHWHERE << "WARNING: Strobe length is not defined for run " << runnumber;
+      std::cout << " neither in the OCDB or DAQ DB. Exiting SingleMvtxPoolInput." << std::endl;
+      // std::cout << "Defaulting to 89 mus strobe length" << std::endl;
+      // m_strobeWidth = 89.;
+      exit(1);
+    }
   }
 
-  if(std::isnan(m_strobeWidth))
-  {
-    std::cout << PHWHERE << "WARNING: Strobe length is not defined for run " << runnumber << std::endl;
-    std::cout << "Defaulting to 89 mus strobe length" << std::endl;
-    m_strobeWidth = 89.;
-  }
-  if(m_strobeWidth > 88.)
+  if (m_strobeWidth > 88.)
   {
     m_BcoRange = 1000;
     m_NegativeBco = 1000;
@@ -440,25 +439,26 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
     m_BcoRange = 500;
     m_NegativeBco = 500;
   }
-  else if (m_strobeWidth < 1) // triggered mode
+  else if (m_strobeWidth < 1)  // triggered mode
   {
-    m_BcoRange = 2;
+    m_BcoRange = 3;
     m_NegativeBco = 0;
-    if(StreamingInputManager())
+    if (StreamingInputManager())
     {
       StreamingInputManager()->runMvtxTriggered(true);
     }
   }
-  else // catchall for anyting else to set to a range based on the rhic clock
+  else  // catchall for anyting else to set to a range based on the rhic clock
   {
     m_BcoRange = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
     m_NegativeBco = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
   }
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
     std::cout << "Mvtx strobe length " << m_strobeWidth << std::endl;
     std::cout << "Mvtx BCO range and negative bco range set based on strobe length " << m_BcoRange << ", " << m_NegativeBco << std::endl;
   }
+
   if (StreamingInputManager())
   {
     StreamingInputManager()->SetMvtxBcoRange(m_BcoRange);

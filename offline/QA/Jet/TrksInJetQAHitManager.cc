@@ -53,17 +53,20 @@ void TrksInJetQAHitManager::GetInfo(TrkrHit* hit, TrkrDefs::hitsetkey& setKey, T
 
   // fill histograms
   FillHistograms(Type::All, content);
-  if (isMvtx)
+  if (m_config.doSubsysHist)
   {
-    FillHistograms(Type::Mvtx, content);
-  }
-  else if (isIntt)
-  {
-    FillHistograms(Type::Intt, content);
-  }
-  else if (isTpc)
-  {
-    FillHistograms(Type::Tpc, content);
+    if (isMvtx)
+    {
+      FillHistograms(Type::Mvtx, content);
+    }
+    else if (isIntt)
+    {
+      FillHistograms(Type::Intt, content);
+    }
+    else if (isTpc)
+    {
+      FillHistograms(Type::Tpc, content);
+    }
   }
   return;
 
@@ -94,34 +97,34 @@ void TrksInJetQAHitManager::DefineHistograms()
   std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
 
   // set histogram types
-  m_vecHistTypes.push_back("Mvtx");
-  m_vecHistTypes.push_back("Intt");
-  m_vecHistTypes.push_back("Tpc");
-  m_vecHistTypes.push_back("All");
+  m_vecHistTypes.emplace_back("All");
+  if (m_config.doSubsysHist)
+  {
+    m_vecHistTypes.emplace_back("Mvtx");
+    m_vecHistTypes.emplace_back("Intt");
+    m_vecHistTypes.emplace_back("Tpc");
+  }
 
   // define 1d histograms
-  m_vecHistDef1D.push_back(std::make_tuple("HitEne", vecBins.at(TrksInJetQAHist::Var::Ene)));
-  m_vecHistDef1D.push_back(std::make_tuple("HitAdc", vecBins.at(TrksInJetQAHist::Var::Adc)));
-  m_vecHistDef1D.push_back(std::make_tuple("HitLayer", vecBins.at(TrksInJetQAHist::Var::Layer)));
-  m_vecHistDef1D.push_back(std::make_tuple("HitPhiBin", vecBins.at(TrksInJetQAHist::Var::PhiBin)));
-  m_vecHistDef1D.push_back(std::make_tuple("HitZBin", vecBins.at(TrksInJetQAHist::Var::ZBin)));
+  m_vecHistDef1D.emplace_back("HitEne", vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_vecHistDef1D.emplace_back("HitAdc", vecBins.at(TrksInJetQAHist::Var::Adc));
+  m_vecHistDef1D.emplace_back("HitLayer", vecBins.at(TrksInJetQAHist::Var::Layer));
+  m_vecHistDef1D.emplace_back("HitPhiBin", vecBins.at(TrksInJetQAHist::Var::PhiBin));
+  m_vecHistDef1D.emplace_back("HitZBin", vecBins.at(TrksInJetQAHist::Var::ZBin));
 
   // define 2d histograms
-  m_vecHistDef2D.push_back(
-      std::make_tuple(
+  m_vecHistDef2D.emplace_back(
           "HitEneVsLayer",
           vecBins.at(TrksInJetQAHist::Var::Layer),
-          vecBins.at(TrksInJetQAHist::Var::Ene)));
-  m_vecHistDef2D.push_back(
-      std::make_tuple(
+          vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_vecHistDef2D.emplace_back(
           "HitEneVsADC",
           vecBins.at(TrksInJetQAHist::Var::Adc),
-          vecBins.at(TrksInJetQAHist::Var::Ene)));
-  m_vecHistDef2D.push_back(
-      std::make_tuple(
+          vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_vecHistDef2D.emplace_back(
           "HitPhiVsZBin",
           vecBins.at(TrksInJetQAHist::Var::ZBin),
-          vecBins.at(TrksInJetQAHist::Var::PhiBin)));
+          vecBins.at(TrksInJetQAHist::Var::PhiBin));
   return;
 
 }  // end 'DefineHistograms()'
