@@ -38,15 +38,6 @@ class PHHepMCGenEvent;
 
 PHPythia8::PHPythia8(const std::string &name)
   : SubsysReco(name)
-  , m_EventCount(0)
-  , m_TriggersOR(true)
-  , m_TriggersAND(false)
-  , m_Pythia8(nullptr)
-  , m_ConfigFileName("phpythia8.cfg")
-  , m_Pythia8ToHepMC(nullptr)
-  , m_SaveEventWeightFlag(true)
-  , m_SaveIntegratedLuminosityFlag(true)
-  , m_IntegralNode(nullptr)
 {
   char *charPath = getenv("PYTHIA8");
   if (!charPath)
@@ -57,20 +48,14 @@ PHPythia8::PHPythia8(const std::string &name)
 
   std::string thePath(charPath);
   thePath += "/xmldoc/";
-  m_Pythia8 = new Pythia8::Pythia(thePath.c_str());
+  m_Pythia8.reset( new Pythia8::Pythia(thePath.c_str()) );
 
-  m_Pythia8ToHepMC = new HepMC::Pythia8ToHepMC();
+  m_Pythia8ToHepMC.reset( new HepMC::Pythia8ToHepMC() );
   m_Pythia8ToHepMC->set_store_proc(true);
   m_Pythia8ToHepMC->set_store_pdf(true);
   m_Pythia8ToHepMC->set_store_xsec(true);
 
   PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
-}
-
-PHPythia8::~PHPythia8()
-{
-  delete m_Pythia8;
-  delete m_Pythia8ToHepMC;
 }
 
 int PHPythia8::Init(PHCompositeNode *topNode)
@@ -209,7 +194,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
 
     for (auto &m_RegisteredTrigger : m_RegisteredTriggers)
     {
-      bool trigResult = m_RegisteredTrigger->Apply(m_Pythia8);
+      bool trigResult = m_RegisteredTrigger->Apply(m_Pythia8.get());
 
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
