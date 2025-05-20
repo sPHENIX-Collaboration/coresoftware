@@ -48,6 +48,20 @@
 #include <string>
 #include <vector>  // for vector
 
+namespace
+{
+  //! range adaptor to be able to use range-based for loop
+  template<class T> class range_adaptor
+  {
+    public:
+    range_adaptor( const T& range ):m_range(range){}
+    const typename T::first_type& begin() {return m_range.first;}
+    const typename T::second_type& end() {return m_range.second;}
+    private:
+    T m_range;
+  };
+}
+
 MvtxHitPruner::MvtxHitPruner(const std::string &name)
   : SubsysReco(name)
 {
@@ -83,117 +97,112 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // We want to combine all strobe values for a given hitset
-  // Start by looping over all MVTX hitsets and making a map of physical sensor
-  // to hitsetkey-with-strobe
-  //=============================================================================
-  std::multimap<TrkrDefs::hitsetkey, TrkrDefs::hitsetkey>
-      hitset_multimap;                            // will map (bare hitset, hitset with strobe)
-  std::set<TrkrDefs::hitsetkey> bare_hitset_set;  // list of all physical sensor
-                                                  // hitsetkeys (i.e. with strobe
-                                                  // set to zero)
+  /*
+   * We want to combine all strobe values for a given hitset
+   * Start by looping over all MVTX hitsets and making a map of physical sensor
+   * to hitsetkey-with-strobe
+   */
 
-  TrkrHitSetContainer::ConstRange hitsetrange =
-      m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
-  for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
-       hitsetitr != hitsetrange.second; ++hitsetitr)
+  // map (bare hitset, hitset with strobe)
+  std::multimap<TrkrDefs::hitsetkey, TrkrDefs::hitsetkey> hitset_multimap;
+
+  // list of all physical sensor hitsetkeys (with strobe set to zero)
+  std::set<TrkrDefs::hitsetkey> bare_hitset_set;
+
+  const auto hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
+  for( const auto& [hitsetkey,hitset]:range_adaptor(hitsetrange) )
   {
-    auto hitsetkey = hitsetitr->first;
+
+    // get strobe, skip if already zero
+    const int strobe = MvtxDefs::getStrobeId(hitsetkey);
+    if( strobe == 0 ) continue;
 
     // get the hitsetkey value for strobe 0
-    unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
-    unsigned int stave = MvtxDefs::getStaveId(hitsetitr->first);
-    unsigned int chip = MvtxDefs::getChipId(hitsetitr->first);
-    auto bare_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
-
-    hitset_multimap.insert(std::make_pair(bare_hitsetkey, hitsetkey));
+    const auto bare_hitsetkey = MvtxDefs::resetStrobe(hitsetkey);
+    hitset_multimap.emplace(bare_hitsetkey, hitsetkey);
     bare_hitset_set.insert(bare_hitsetkey);
 
     if (Verbosity() > 0)
     {
-      std::cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey "
-           << bare_hitsetkey << std::endl;
+      std::cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
     }
   }
 
   // Now consolidate all hits into the hitset with strobe 0, and delete the
   // other hitsets
   //==============================================================
-  for (unsigned int bare_hitsetkey : bare_hitset_set)
+  for (const auto& bare_hitsetkey : bare_hitset_set)
   {
-    TrkrHitSet *bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
+    // find matching hitset of creater
+    auto bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
     if (Verbosity() > 0)
     {
-      std::cout << "         bare_hitset " << bare_hitsetkey
-                << " initially has " << bare_hitset->size() << " hits "
-                << std::endl;
+      std::cout
+        << "MvtxHitPruner::process_event - bare_hitset " << bare_hitsetkey
+        << " initially has " << bare_hitset->size() << " hits "
+        << std::endl;
     }
 
+    // get all hitsets with non-zero strobe that match the bare hitset key
     auto bare_hitsetrange = hitset_multimap.equal_range(bare_hitsetkey);
-    for (auto it = bare_hitsetrange.first; it != bare_hitsetrange.second;
-         ++it)
+    for( const auto& [unused,hitsetkey]:range_adaptor(bare_hitsetrange) )
     {
-      auto hitsetkey = it->second;
+      const int strobe = MvtxDefs::getStrobeId(hitsetkey);
+      if( strobe == 0 ) continue;
 
-      int strobe = MvtxDefs::getStrobeId(hitsetkey);
-      if (strobe != 0)
+      if (Verbosity() > 0)
+      {
+        std::cout << "MvtxHitPruner::process_event - process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
+      }
+
+      // copy all hits to the hitset with strobe 0
+      auto hitset = m_hits->findHitSet(hitsetkey);
+
+      if (Verbosity() > 0)
+      {
+        std::cout << "MvtxHitPruner::process_event - hitsetkey " << hitsetkey
+          << " has strobe " << strobe << " and has " << hitset->size()
+          << " hits,  so copy it" << std::endl;
+      }
+
+      TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+      for( const auto& [hitkey,old_hit]:range_adaptor(hitrangei) )
       {
         if (Verbosity() > 0)
         {
-          std::cout << "            process hitsetkey " << hitsetkey
-               << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
+          std::cout << "MvtxHitPruner::process_event - found hitkey " << hitkey << std::endl;
         }
 
-        // copy all hits to the hitset with strobe 0
-        TrkrHitSet *hitset = m_hits->findHitSet(hitsetkey);
+        // if it is already there, leave it alone, this is a duplicate hit
+        auto tmp_hit = bare_hitset->getHit(hitkey);
+        if (tmp_hit)
+        {
+          if (Verbosity() > 0)
+          {
+            std::cout
+              << "MvtxHitPruner::process_event - hitkey " << hitkey
+              << " is already in bare hitsest, do not copy"
+              << std::endl;
+          }
+          continue;
+        }
 
+        // otherwise copy the hit over
         if (Verbosity() > 0)
         {
-          std::cout << "                hitsetkey " << hitsetkey
-                    << " has strobe " << strobe << " and has " << hitset->size()
-                    << " hits,  so copy it" << std::endl;
+          std::cout
+            << "MvtxHitPruner::process_event - copying over hitkey "
+            << hitkey << std::endl;
         }
 
-        TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-             hitr != hitrangei.second; ++hitr)
-        {
-          auto hitkey = hitr->first;
-          if (Verbosity() > 0)
-          {
-            std::cout << "                 found hitkey " << hitkey
-                      << std::endl;
-          }
-
-          // if it is already there, leave it alone, this is a duplicate hit
-          auto tmp_hit = bare_hitset->getHit(hitkey);
-          if (tmp_hit)
-          {
-            if (Verbosity() > 0)
-            {
-              std::cout << "                          hitkey " << hitkey
-                        << " is already in bare hitsest, do not copy"
-                        << std::endl;
-            }
-            continue;
-          }
-
-          // otherwise copy the hit over
-          if (Verbosity() > 0)
-          {
-            std::cout << "                          copying over hitkey "
-                      << hitkey << std::endl;
-          }
-          auto old_hit = hitr->second;
-          TrkrHit *new_hit = new TrkrHitv2();
-          new_hit->setAdc(old_hit->getAdc());
-          bare_hitset->addHitSpecificKey(hitkey, new_hit);
-        }
-
-        // all hits are copied over to the strobe zero hitset, remove this
-        // hitset
-        m_hits->removeHitSet(hitsetkey);
+        auto new_hit = new TrkrHitv2;
+        new_hit->CopyFrom(old_hit);
+        bare_hitset->addHitSpecificKey(hitkey, new_hit);
       }
+
+      // all hits are copied over to the strobe zero hitset, remove this
+      // hitset
+      m_hits->removeHitSet(hitsetkey);
     }
   }
 
