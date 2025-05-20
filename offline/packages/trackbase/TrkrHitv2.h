@@ -38,6 +38,9 @@ class TrkrHitv2 : public TrkrHit
   void Reset() override {}
   int isValid() const override { return 0; }
 
+  //! import PHObject CopyFrom, in order to avoid clang warning
+  using PHObject::CopyFrom;
+
   //! copy content from base class
   void CopyFrom(const TrkrHit&) override;
 
