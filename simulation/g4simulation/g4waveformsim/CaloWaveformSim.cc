@@ -112,11 +112,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = "cemc_pi0_twrSlope_v1";
+      m_calibName = m_detector+"_calib_ADC_to_ETower_default"; 
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = "Femc_datadriven_qm1_correction";
+      m_fieldname = m_detector+"_calib_ADC_to_ETower";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -147,11 +147,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = "ihcal_abscalib_cosmic";
+      m_calibName = m_detector+"_calib_ADC_to_ETower_default"; 
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = "ihcal_abscalib_mip";
+      m_fieldname = m_detector+"_calib_ADC_to_ETower"; 
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -182,11 +182,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = "ohcal_abscalib_cosmic";
+      m_calibName = m_detector+"_calib_ADC_to_ETower_default"; 
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = "ohcal_abscalib_mip";
+      m_fieldname = m_detector+"_calib_ADC_to_ETower";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
