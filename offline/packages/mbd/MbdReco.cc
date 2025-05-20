@@ -43,6 +43,10 @@ int MbdReco::Init(PHCompositeNode * /*topNode*/)
   m_gaussian->FixParameter(2, m_tres);
 
   m_mbdevent = std::make_unique<MbdEvent>(_calpass,_always_process_charge);
+  if ( Verbosity()>0 )
+  {
+    m_mbdevent->Verbosity( Verbosity() );
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
