@@ -1404,7 +1404,7 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
 
 int Fun4AllStreamingInputManager::FillMvtxPool()
 {
-  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? 0 : m_RefBCO - m_mvtx_bco_range;
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? m_mvtx_bco_range : m_RefBCO - m_mvtx_bco_range;
   for (auto iter : m_MvtxInputVector)
   {
     if (Verbosity() > 3)
