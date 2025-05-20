@@ -25,10 +25,11 @@ class TrkrHitv2 : public TrkrHit
 {
  public:
   //! ctor
-  TrkrHitv2();
+  explicit TrkrHitv2() = default;
 
   //! dtor
-  ~TrkrHitv2() override {}
+  ~TrkrHitv2() override = default;
+
   // PHObject virtual overloads
   void identify(std::ostream& os = std::cout) const override
   {
@@ -37,13 +38,22 @@ class TrkrHitv2 : public TrkrHit
   void Reset() override {}
   int isValid() const override { return 0; }
 
+  //! copy content from base class
+  void CopyFrom(const TrkrHit&) override;
+
+  //! copy content from base class
+  void CopyFrom(TrkrHit* source) override
+  {
+    CopyFrom(*source);
+  }
+
   // these set and get the energy before digitization
   void addEnergy(const double edep) override;
-  double getEnergy() override;
+  double getEnergy() const override;
 
   // after digitization, these are the adc values
   void setAdc(const unsigned int adc) override;
-  unsigned int getAdc() override;
+  unsigned int getAdc() const override;
 
  protected:
   unsigned short m_adc = 0;
