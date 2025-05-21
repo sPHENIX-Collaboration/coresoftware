@@ -68,24 +68,7 @@ MvtxHitPruner::MvtxHitPruner(const std::string &name)
 }
 
 int MvtxHitPruner::InitRun(PHCompositeNode * /*topNode*/)
-{
-  //-----------------
-  // Add Cluster Node
-  //-----------------
-
-  //----------------
-  // Report Settings
-  //----------------
-
-  if (Verbosity() > 0)
-  {
-    std::cout << "====================== MvtxHitPruner::InitRun() "
-            "====================="
-         << std::endl;
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+{ return Fun4AllReturnCodes::EVENT_OK; }
 
 int MvtxHitPruner::process_event(PHCompositeNode *topNode)
 {
@@ -122,7 +105,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
     hitset_multimap.emplace(bare_hitsetkey, hitsetkey);
     bare_hitset_set.insert(bare_hitsetkey);
 
-    if (Verbosity() > 0)
+    if (Verbosity())
     {
       std::cout << " found hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
     }
@@ -135,7 +118,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
   {
     // find matching hitset of creater
     auto bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
-    if (Verbosity() > 0)
+    if (Verbosity())
     {
       std::cout
         << "MvtxHitPruner::process_event - bare_hitset " << bare_hitsetkey
@@ -150,15 +133,19 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
       const int strobe = MvtxDefs::getStrobeId(hitsetkey);
       if( strobe == 0 ) continue;
 
-      if (Verbosity() > 0)
+      if (Verbosity())
       {
-        std::cout << "MvtxHitPruner::process_event - process hitsetkey " << hitsetkey << " for bare_hitsetkey " << bare_hitsetkey << std::endl;
+        std::cout << "MvtxHitPruner::process_event -"
+          << " process hitsetkey " << hitsetkey
+          << " from strobe " << strobe
+          << " for bare_hitsetkey " << bare_hitsetkey
+          << std::endl;
       }
 
       // copy all hits to the hitset with strobe 0
       auto hitset = m_hits->findHitSet(hitsetkey);
 
-      if (Verbosity() > 0)
+      if (Verbosity())
       {
         std::cout << "MvtxHitPruner::process_event - hitsetkey " << hitsetkey
           << " has strobe " << strobe << " and has " << hitset->size()
@@ -168,16 +155,15 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
       TrkrHitSet::ConstRange hitrangei = hitset->getHits();
       for( const auto& [hitkey,old_hit]:range_adaptor(hitrangei) )
       {
-        if (Verbosity() > 0)
+        if (Verbosity())
         {
           std::cout << "MvtxHitPruner::process_event - found hitkey " << hitkey << std::endl;
         }
 
         // if it is already there, leave it alone, this is a duplicate hit
-        auto tmp_hit = bare_hitset->getHit(hitkey);
-        if (tmp_hit)
+        if (bare_hitset->getHit(hitkey))
         {
-          if (Verbosity() > 0)
+          if (Verbosity())
           {
             std::cout
               << "MvtxHitPruner::process_event - hitkey " << hitkey
@@ -188,7 +174,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
         }
 
         // otherwise copy the hit over
-        if (Verbosity() > 0)
+        if (Verbosity())
         {
           std::cout
             << "MvtxHitPruner::process_event - copying over hitkey "
