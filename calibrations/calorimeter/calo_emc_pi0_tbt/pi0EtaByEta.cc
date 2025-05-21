@@ -661,7 +661,7 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
     exit(1);
   }
 
-  TH2* h_M_tbt[96][256];
+  TH1* h_M_tbt[96][256];
   TF1* fitFunOut[96][256];
 
   // creating output file
@@ -682,12 +682,13 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
         gSystem->Exit(1);
         exit(1);
       }
-      h_M_tbt[ieta][j]->Scale(1. / h_M_tbt[ieta][j]->Integral(), "width");
-
+ 
       if (h_M_tbt[ieta][j]->GetEntries() == 0)
       {
         continue;
       }
+
+      h_M_tbt[ieta][j]->Scale(1. / h_M_tbt[ieta][j]->Integral(), "width");
 
       fitFunOut[ieta][j] = fitHistogram(h_M_tbt[ieta][j]);
       std::string funcname = "f_pi0_tbt_" + std::to_string(ieta) + "_" + std::to_string(j);
