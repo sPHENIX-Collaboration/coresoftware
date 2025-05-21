@@ -46,7 +46,10 @@ MbdCalib::MbdCalib()
 
 int MbdCalib::Download_All()
 {
-  //std::cout << PHWHERE << " In MbdCalib::Download_All()" << std::endl;
+  if ( Verbosity()>0 )
+  {
+    std::cout << PHWHERE << " In MbdCalib::Download_All()" << std::endl;
+  }
   _status = 0;
 
   std::string bbc_caldir;
@@ -74,7 +77,6 @@ int MbdCalib::Download_All()
   // if rc flag MBD_CALDIR does not exist, we create it and set it to an empty string
   if (!_rc->FlagExist("MBD_CALDIR"))
   {
-    Verbosity(0);
     std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
     if (Verbosity() > 0)
     {

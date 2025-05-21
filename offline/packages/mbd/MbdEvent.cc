@@ -136,13 +136,35 @@ int MbdEvent::InitRun()
   delete _mbdcal;
   
   _mbdcal = new MbdCalib();
-  std::cout << "SIMFLAG IS " << _simflag << std::endl;
-  if (!_simflag)
+  if ( _simflag )
   {
-    _mbdcal->Download_All();
+    std::cout << PHWHERE << "SIMFLAG IS " << _simflag << std::endl;
+  }
+  if ( _calpass > 0 )
+  {
+    std::cout << PHWHERE << "CALPASS IS " << _calpass << std::endl;
+    _mbdcal->Verbosity(1);
+  }
+
+  _mbdcal->Download_All();
+
+  if ( _simflag == 0 )  // do following for real data
+  {
+    // load pass1 calibs from local file for calpass2+
+    if ( _calpass>1 )
+    {
+      std::string calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_sampmax.calib";
+      std::cout << "Loading local sampmax, " << calfname << std::endl;
+      _mbdcal->Download_SampMax( calfname );
+
+      calfname = "results/"; calfname += std::to_string(_runnum); calfname += "/mbd_ped.calib";
+      std::cout << "Loading local ped, " << calfname << std::endl;
+      _mbdcal->Download_Ped( calfname );
+    }
 
     // check if sampmax and ped calibs exist
     int scheck = _mbdcal->get_sampmax(0);
+
     if ( (scheck<0 || _is_online) && _calpass!=1 )
     {
       _no_sampmax = 1000;    // num events for on the fly calculation
@@ -387,8 +409,18 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbc
   if ( _calpass>0 && gl1raw != nullptr )
   {
     const uint64_t MBDTRIGS = 0x7c00;  // MBDNS trigger bits
-    //uint64_t trigvec = gl1raw->getTriggerVector();  // raw trigger only
+    //uint64_t trigvec = gl1raw->getTriggerVector();  // raw trigger only (obsolete, was only available in run1)
     uint64_t strig = gl1raw->getScaledVector();  // scaled trigger only
+    int evtseq = gl1raw->getEvtSequence();
+    if ( Verbosity() )
+    {
+      static int counter = 0;
+      if ( counter<100 )
+      {
+        std::cout << "evt " << evtseq << ", strig " << std::hex << strig << std::dec << std::endl;
+        counter++;
+      }
+    }
     if ( (strig&MBDTRIGS) == 0 )
     {
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -807,7 +839,9 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
     _verbose = 100;
     std::cout << topNode << std::endl;
 
-   //    GetPrimaryVtx(topNode); // does not build as ONLINE
+#ifndef ONLINE
+    GetPrimaryVtx(topNode);
+#endif
 
     // use intt vertex
     //_refz = intz[_syncevt]/10.;
