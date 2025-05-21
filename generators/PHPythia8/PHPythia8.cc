@@ -34,19 +34,8 @@
 #include <cstdlib>
 #include <iostream>  // for operator<<, endl
 
-class PHHepMCGenEvent;
-
 PHPythia8::PHPythia8(const std::string &name)
   : SubsysReco(name)
-  , m_EventCount(0)
-  , m_TriggersOR(true)
-  , m_TriggersAND(false)
-  , m_Pythia8(nullptr)
-  , m_ConfigFileName("phpythia8.cfg")
-  , m_Pythia8ToHepMC(nullptr)
-  , m_SaveEventWeightFlag(true)
-  , m_SaveIntegratedLuminosityFlag(true)
-  , m_IntegralNode(nullptr)
 {
   char *charPath = getenv("PYTHIA8");
   if (!charPath)
@@ -57,20 +46,14 @@ PHPythia8::PHPythia8(const std::string &name)
 
   std::string thePath(charPath);
   thePath += "/xmldoc/";
-  m_Pythia8 = new Pythia8::Pythia(thePath.c_str());
+  m_Pythia8.reset( new Pythia8::Pythia(thePath.c_str()) );
 
-  m_Pythia8ToHepMC = new HepMC::Pythia8ToHepMC();
+  m_Pythia8ToHepMC.reset( new HepMC::Pythia8ToHepMC() );
   m_Pythia8ToHepMC->set_store_proc(true);
   m_Pythia8ToHepMC->set_store_pdf(true);
   m_Pythia8ToHepMC->set_store_xsec(true);
 
   PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
-}
-
-PHPythia8::~PHPythia8()
-{
-  delete m_Pythia8;
-  delete m_Pythia8ToHepMC;
 }
 
 int PHPythia8::Init(PHCompositeNode *topNode)
@@ -200,7 +183,6 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
     }
 
     // test trigger logic
-
     bool andScoreKeeper = true;
     if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
@@ -209,7 +191,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
 
     for (auto &m_RegisteredTrigger : m_RegisteredTriggers)
     {
-      bool trigResult = m_RegisteredTrigger->Apply(m_Pythia8);
+      bool trigResult = m_RegisteredTrigger->Apply(m_Pythia8.get());
 
       if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
@@ -243,9 +225,13 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
     passedGen = false;
   }
 
+  // print
+  if( Verbosity() )
+  { m_Pythia8->event.list(); }
+
   // fill HepMC object with event & pass to
 
-  HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
+  auto genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
   m_Pythia8ToHepMC->fill_next_event(*m_Pythia8, genevent, m_EventCount);
   // Enable continuous reweighting by storing additional reweighting factor
   if (m_SaveEventWeightFlag)
@@ -254,7 +240,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   }
 
   /* pass HepMC to PHNode*/
-  PHHepMCGenEvent *success = PHHepMCGenHelper::insert_event(genevent);
+  auto success = PHHepMCGenHelper::insert_event(genevent);
   if (!success)
   {
     std::cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << std::endl;
