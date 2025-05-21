@@ -1,7 +1,20 @@
 #include "TrkrHitv2.h"
 #include <climits>
 
-TrkrHitv2::TrkrHitv2() = default;
+void TrkrHitv2::CopyFrom(const TrkrHit& source)
+{
+  // do nothing if copying onto oneself
+  if (this == &source)
+  {
+    return;
+  }
+
+  // parent class method
+  TrkrHit::CopyFrom(source);
+
+  // copy adc
+  setAdc(source.getAdc());
+}
 
 // these set and get the energy before digitization
 void TrkrHitv2::addEnergy(const double edep)
@@ -20,7 +33,7 @@ void TrkrHitv2::addEnergy(const double edep)
   }
 }
 
-double TrkrHitv2::getEnergy()
+double TrkrHitv2::getEnergy() const
 {
   return ((double) m_adc) / TrkrDefs::EdepScaleFactor;
 }
@@ -37,7 +50,7 @@ void TrkrHitv2::setAdc(const unsigned int adc)
   }
 }
 
-unsigned int TrkrHitv2::getAdc()
+unsigned int TrkrHitv2::getAdc() const
 {
   return (unsigned int) m_adc;
 }
