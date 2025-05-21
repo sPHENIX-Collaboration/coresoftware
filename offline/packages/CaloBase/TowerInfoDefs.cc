@@ -26,25 +26,8 @@ static const int hcaladc[8][2] = {
     {12, 13},
     {14, 15}};
   
-static const int epdchnlmap[16][2] = {
-  {0, 0},
-  {1, 2},
-  {3, 4},
-  {5, 6},
-  {7, 8},
-  {9, 10},
-  {11, 12},
-  {13, 14},
-  {15, 16},
-  {17, 18},
-  {19, 20},
-  {21, 22},
-  {23, 24},
-  {25, 26},
-  {27, 28},
-  {29, 30}};
 
-  static constexpr int epdchnlmap_data[2][16][24] = {
+  static constexpr int epdchnlmap[2][16][24] = {
     { // arm 0
       {  618,  432,  401,  556,  525,  711,  463,  494,  649,  680,  742,  587,  999,  999,  999,  999,  999,  999,  999,  999,  999,  999,  999,  999 },
       {  603,  619,  417,  433,  386,  402,  541,  557,  510,  526,  696,  712,  448,  464,  479,  495,  634,  650,  665,  681,  727,  743,  572,  588 },
@@ -286,38 +269,8 @@ unsigned int TowerInfoDefs::encode_epd(const unsigned int towerIndex)  // conver
 }
 
 // convert from arm-rbin-phibin to key
-
-//for simulation only
-unsigned int TowerInfoDefs::encode_epd(const unsigned int arm, const unsigned int rbin, const unsigned int phibin)
-{
-  if (rbin == 0 && phibin > 11)
-  {
-    std::cout << __PRETTY_FUNCTION__ << " encode_epd invalid phibin value: " << phibin << " where max valid phibin is 11" << std::endl;
-    exit(1);
-  }
-
-  unsigned int sector = phibin / 2;
-  if (rbin == 0)
-  {
-    sector = phibin;
-  }
-
-  int channel = 0;
-  if (rbin != 0)
-  {
-    channel = epdchnlmap[rbin][phibin - 2 * sector];
-  }
-
-  unsigned int key = channel + (sector << 5U) + (arm << 9U);
-  return key;
-}
-
-unsigned int TowerInfoDefs::encode_epd(const unsigned int arm, const unsigned int rbin, const unsigned int phibin, bool isData) {
-  int idx = epdchnlmap_data[arm][rbin][phibin];
-
-  if(!isData) {
-    return TowerInfoDefs::encode_epd(arm,rbin,phibin);
-  }
+unsigned int TowerInfoDefs::encode_epd(const unsigned int arm, const unsigned int rbin, const unsigned int phibin) {
+  int idx = epdchnlmap[arm][rbin][phibin];
 
   return TowerInfoDefs::encode_epd(static_cast<unsigned int>(idx));
 
