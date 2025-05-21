@@ -20,6 +20,7 @@ libTpcLineLaserDiode_la_SOURCES = \
   DiodeReco.cc
 
 libTpcLineLaserDiode_la_LIBADD = \
+  -lffamodules \
   -lffarawobjects \
   -lNoRootEvent \
   -lphool \

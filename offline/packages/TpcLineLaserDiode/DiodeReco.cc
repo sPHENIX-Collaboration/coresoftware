@@ -14,6 +14,8 @@
 #include <Event/caen_correction.h>
 #include <Event/packet.h>
 
+#include <ffamodules/CDBInterface.h>
+
 #include <TSystem.h>
 
 #include <algorithm>
@@ -33,6 +35,10 @@ DiodeReco::DiodeReco(const std::string &name)
 
 int DiodeReco::InitRun(PHCompositeNode *topNode)
 {
+   std::cout << "DiodeReco::InitRun(PHCompositeNode *topNode) Initializing" << std::endl;
+
+  m_cdb = CDBInterface::instance();
+  
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
@@ -72,7 +78,6 @@ int DiodeReco::InitRun(PHCompositeNode *topNode)
   //   persistency[c] = new TH2F(name,title,1024,-0.5,1023.5,256,-250,4250);
   // }
   // waveforms = new TH2F("CAEN Waveforms","CAEN Waveforms;time bins [ns];channels",1024,0,1024,32,0,32);
-  // std::cout << "InitRun" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -97,13 +102,16 @@ int DiodeReco::process_event(PHCompositeNode *topNode)
       switch (p->iValue(0, "FREQUENCY"))
       {
       case 0:  // 5GS
-        cc = new caen_correction("/sphenix/user/llegnosky/calib/calib_24974_5G.dat");
+	calibdir = m_cdb->getUrl("TPC_CAEN_CORRECTION_24974_5G");
+        cc = new caen_correction(calibdir.c_str());
         break;
       case 1:  // 2.5GS
-        cc = new caen_correction("/sphenix/user/llegnosky/calib/calib_24974_2G.dat");
+        calibdir = m_cdb->getUrl("TPC_CAEN_CORRECTION_24974_2G");
+        cc = new caen_correction(calibdir.c_str());
         break;
-      case 2:  // 5GS
-        cc = new caen_correction("/sphenix/user/llegnosky/calib/calib_24974_1G.dat");
+      case 2:  // 1GS
+        calibdir = m_cdb->getUrl("TPC_CAEN_CORRECTION_24974_1G");
+        cc = new caen_correction(calibdir.c_str());
         break;
       default:
         std::cout << "Bad selection " << p->iValue(0, "FREQUENCY") << std::endl;
@@ -118,16 +126,7 @@ int DiodeReco::process_event(PHCompositeNode *topNode)
       cc->init(p);
     }
 
-    // auto newdiode = std::make_unique<TpcDiodev1>();
     TpcDiodev1 *newdiode = new TpcDiodev1();
-    // uint16_t packetid;
-    // uint16_t channel;
-    // uint16_t maxadc;
-    // uint16_t maxbin;
-    // double integral;
-    // uint16_t nabovethreshold;
-    // double pulsewidth;
-    // uint16_t samples;
 
     for (int c = 0; c < 32; c++)
     {
@@ -165,32 +164,6 @@ int DiodeReco::process_event(PHCompositeNode *topNode)
       diodes->AddDiode(newdiode);
       adc.clear();
     }
-
-    // int laser=-1;
-    // int nlaser=0;
-
-    // for(int c=0;c<32;c++){
-    // 	for(int t=0;t<1024;t++){
-    // 	  adc.push_back(cc->caen_corrected(t,c));
-    // 	}
-
-    // 	PedestalCorrected(0,200);
-
-    // 	if(c<4||(c>15&&c<20))
-    // 	  {
-    // 	    int max = MaxAdc(2,200,300);
-    // 	    if(max>200)
-    // 	      {
-    // 		laser=c;
-    // 		std::cout << laser << std::endl;
-    // 		std::cout << max << std::endl;
-    // 		nlaser++;
-    // 	      }
-    // 	  }
-    // 	adc.clear();
-    // }
-
-    // std::cout <<  "Laser: " << laser << std::endl;
 
     // if(event==2){
     // 	  for(int c=0;c<32;c++)
@@ -233,20 +206,16 @@ int DiodeReco::process_event(PHCompositeNode *topNode)
     // 	std::cout << diodes->get_diode(c)->get_maxadc() << std::endl;
     // }
     delete p;
-    // newdiode->Clear();
   }
-
-  // diodes->identify();
-  // std::cout << "Hello" << std::endl;
-  // std::cout << diodes->get_ndiodes() << std::endl;
-
-  // std::cout << diodes->get_Laser() << std::endl;
 
   // c_waveforms->cd();
   // waveforms->Draw("LEGO");
 
-  // std::cout << "process_event" << std::endl;
-  //  event++;
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int DiodeReco::End(PHCompositeNode *)
+{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
