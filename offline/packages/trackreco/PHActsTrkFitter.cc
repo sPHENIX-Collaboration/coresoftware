@@ -432,9 +432,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         m_transient_id_set,
         m_tGeometry);
 
-      // make source links using cluster mover
       if (m_use_clustermover)
       {
+	// make source links using cluster mover after making distortion correction
+
         if (siseed && !m_ignoreSilicon)
         {
           // silicon source links
@@ -456,11 +457,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           m_globalPositionWrapper,
           this_crossing);
 
-        // add silicon seeds
-        sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+        // add tpc sourcelinks to silicon source links
+	sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
       else
       {
+	// make source links using transient transforms for distortion corrections
+	
         if (siseed && !m_ignoreSilicon)
         {
           // silicon source links
@@ -486,7 +489,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           m_transient_id_set,
           this_crossing);
 
-        // insert silicons
+        // add tpc sourcelinks to silicon source links
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
 
@@ -645,6 +648,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       ActsTrackFittingAlgorithm::TrackContainer
           tracks(trackContainer, trackStateContainer);
 
+      std::cout << "Calling fitTrack for track with siid " << siid << " and tpcid " << tpcid << std::endl;
+      
       auto result = fitTrack(sourceLinks, seed, kfOptions,
                              surfaces, calibrator, tracks);
       fitTimer.stop();
@@ -865,7 +870,7 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
 	return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions,
 				surfSequence, calibrator, tracks);	
       }
-      else
+    else
       {
         return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions,
 			       calibrator, tracks);

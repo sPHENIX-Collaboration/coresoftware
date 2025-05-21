@@ -129,7 +129,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
       {
         std::cout << " global_in " << global_in(0) << "  " << global_in(1) << "  " << global_in(2)
           << " corr glob " << global(0) << "  " << global(1) << "  " << global(2) << std::endl
-          << " distortion correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2)
+          << " distortion + cluster crossing z correction " << global(0)-global_in(0) << "  " << global(1) - global_in(1) << "  " << global(2) - global_in(2)
           << std::endl;
       }
 
