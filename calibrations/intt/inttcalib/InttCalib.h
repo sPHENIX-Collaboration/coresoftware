@@ -1,8 +1,7 @@
 #ifndef INTTCALIB_H
 #define INTTCALIB_H
 
-#include <intt/InttFeeMap.h>
-#include <intt/InttMap.h>
+#include <intt/InttMapping.h>
 #include <intt/InttSurveyMap.h>
 
 #include <fun4all/SubsysReco.h>
@@ -68,9 +67,9 @@ class InttCalib : public SubsysReco
   int ConfigureHist(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&, std::string const&);
   int ConfigureHist_v2(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&, std::string const&);
   int ConfigureHist_v3(TH1D*&, TF1*&, double, std::map<double, int> const&, std::string const&, std::string const&);
-  int adjust_hitrate(InttMap::Offline_s const&, double&) const;
-  int GetIndex(InttMap::RawData_s const&, InttMap::Offline_s const&) const;
-  int GetFeeIndex(InttMap::RawData_s const&, InttMap::Offline_s const&) const;
+  int adjust_hitrate(InttNameSpace::Offline_s const&, double&) const;
+  int GetIndex(InttNameSpace::RawData_s const&, InttNameSpace::Offline_s const&) const;
+  int GetFeeIndex(InttNameSpace::RawData_s const&, InttNameSpace::Offline_s const&) const;
   void SetColdSigmaCut(double in) {m_NUM_SIGMA_COLD = in;}
   void SetHotSigmaCut(double in) {m_NUM_SIGMA_HOT = in;}
   // For Fee by Fee
@@ -108,14 +107,13 @@ class InttCalib : public SubsysReco
   std::string m_bcomap_cdb_file;
   std::string m_bcomap_png_file;
 
-  InttFeeMap m_feemap;
   InttSurveyMap m_survey;
   Eigen::Vector3d m_vertex{0.0, 0.0, 0.0};
   // int m_hitmap[8][14][26][128][129]
   std::array<std::array<std::array<std::array<std::array<double, 129>, 128>, 26>, 14>, 8> m_hitmap{};
   std::array<std::array<std::array<int, 26>, 14>, 8> m_hitmap_half{};
   
-// TH1D* m_hist[8][14]
+  // TH1D* m_hist[8][14]
   std::array<TH1D*, m_MAX_INDEX> m_hist{};
   std::array<TH1D*, m_MAX_INDEX> m_hist_half{};
   std::array<TF1*, m_MAX_INDEX> m_fit{};
@@ -132,8 +130,8 @@ class InttCalib : public SubsysReco
   std::map<double, double> m_hitrates;
   std::map<double, double> m_invcdf;
 
-  std::map<InttMap::RawData_s, int[128], InttMap::RawDataWildcardComparator> m_bcorates;
-  std::map<InttMap::RawData_s, int, InttMap::RawDataWildcardComparator> m_bcopeaks;
+  std::map<InttNameSpace::RawData_s, int[128]> m_bcorates;
+  std::map<InttNameSpace::RawData_s, int> m_bcopeaks;
 
   bool m_do_nothing = false;
   bool m_streaming = false;

@@ -1,7 +1,7 @@
 #ifndef INTT_ARBORIST_H
 #define INTT_ARBORIST_H
 
-#include "InttMap.h"
+#include "InttMapping.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
@@ -39,7 +39,7 @@ class InttArborist : public SubsysReco
   const std::string m_gl1_raw_node_name = "GL1RAWHIT";
   const std::string m_tree_name = "intt_tree";
 
-  typedef std::map<InttMap::RawData_s, unsigned int, InttMap::RawDataComparator> clone_map_t;
+  typedef std::map<InttNameSpace::RawData_s, unsigned int> clone_map_t;
   clone_map_t m_clone_map;
 
   typedef std::map<std::string, std::vector<small_t>*> small_map_t;
