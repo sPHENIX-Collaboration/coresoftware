@@ -25,6 +25,7 @@ pkginclude_HEADERS = \
   MvtxClusterizer.h \
   MvtxClusterPruner.h \
   MvtxHitPruner.h \
+  MvtxHitMap.h \
   MvtxNoiseMap.h \
   MvtxPixelDefs.h \
   MvtxPixelMask.h \
@@ -46,6 +47,7 @@ libmvtx_la_SOURCES = \
   MvtxClusterizer.cc \
   MvtxClusterPruner.cc \
   MvtxHitPruner.cc \
+  MvtxHitMap.cc \
   MvtxPixelDefs.cc \
   MvtxPixelMask.cc
 
