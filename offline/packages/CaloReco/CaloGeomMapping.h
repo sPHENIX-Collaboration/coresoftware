@@ -4,6 +4,7 @@
 #define CALORECO_CALOGEOMMAPPING_H
 
 #include <fun4all/SubsysReco.h>
+#include <calobase/RawTowerDefs.h>
 
 #include <string>
 
@@ -14,7 +15,6 @@ class CaloGeomMapping : public SubsysReco
 {
  public:
   CaloGeomMapping(const std::string &name = "CaloGeomMapping");
-
   ~CaloGeomMapping() override = default;
 
   /** Called during initialization.
@@ -26,6 +26,8 @@ class CaloGeomMapping : public SubsysReco
 
   // Create tower geometry mapping node
   void CreateGeomNode(PHCompositeNode *topNode);
+  void BuildFormerGeometry();
+  void BuildDetailedGeometry();
 
   void set_detector_name(const std::string &name)
   {
@@ -35,11 +37,20 @@ class CaloGeomMapping : public SubsysReco
   {
     return m_Detector;
   }
+  
+  void set_UseDetailedGeometry(const bool useDetailedGeometry)
+  {
+    m_UseDetailedGeometry = useDetailedGeometry;
+  }
 
  protected:
   std::string m_Detector;  // CEMC, HCALIN or HCALOUT
   std::string m_TowerGeomNodeName;
   RawTowerGeomContainer *m_RawTowerGeomContainer {nullptr};
+  RawTowerDefs::CalorimeterId m_caloid;
+  bool m_UseDetailedGeometry {false};
+  // Use a more detailed calorimeter geometry
+  // Only available for CEMC
 };
 
 #endif  // CALOGEOMMAPPING_H

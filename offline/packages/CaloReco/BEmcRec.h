@@ -6,6 +6,8 @@
 // Modified from EmcSectorRec.h and EmcScSectorRec.h
 
 #include "BEmcCluster.h"
+#include "calobase/RawTowerGeom.h"
+#include "calobase/RawTowerGeomv5.h"
 
 #include <algorithm>  // for max
 #include <limits>
@@ -23,6 +25,9 @@ typedef struct TowerGeom
   float dX[2];  // Tower i-th trans. dimension spread in global coord X
   float dY[2];
   float dZ[2];
+  float rotX; // Tower rotation
+  float rotY;
+  float rotZ; 
 
 } TowerGeom;
 
@@ -47,10 +52,11 @@ class BEmcRec
     fNy = ny;
   }
 
-  bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz);
+  bool SetTowerGeometry(int ix, int iy, const RawTowerGeom& raw_geom0);
   bool GetTowerGeometry(int ix, int iy, TowerGeom &geom);
   bool CompleteTowerGeometry();
   void PrintTowerGeometry(const std::string &fname);
+  void PrintTowerGeometryDetailed(const std::string &fname);
 
   void SetPlanarGeometry() { bCYL = false; }
   void SetCylindricalGeometry() { bCYL = true; }
@@ -99,7 +105,7 @@ class BEmcRec
     xcorr = x;
     ycorr = y;
   }
-  virtual void CorrectShowerDepth(float /*energy*/, float x, float y, float z, float &xc, float &yc, float &zc)
+  virtual void CorrectShowerDepth(int /*ix*/, int /*iy*/, float /*energy*/, float x, float y, float z, float &xc, float &yc, float &zc)
   {
     xc = x;
     yc = y;
@@ -119,6 +125,11 @@ class BEmcRec
   virtual std::string Name() const { return m_ThisName; }
   virtual void Name(const std::string &name) { m_ThisName = name; }
 
+  void set_UseDetailedGeometry(const bool useDetailedGeometry)
+  {
+    m_UseDetailedGeometry = useDetailedGeometry;
+  }
+
   // Auxiliary static functions
   static int HitNCompare(const void *, const void *);
   static int HitACompare(const void *, const void *);
@@ -135,6 +146,7 @@ class BEmcRec
   int fNx {-1};  // length in X direction
   int fNy {-1};  // length in Y direction
   std::map<int, TowerGeom> fTowerGeom;
+  std::map<int, RawTowerGeom*> fTowerGeomDetailed;
   float fVx {0.};  // vertex position (cm)
   float fVy {0.};
   float fVz {0.};
@@ -148,6 +160,11 @@ class BEmcRec
   static int const fgMaxLen {1000};
 
   BEmcProfile *_emcprof {nullptr};
+
+ protected:
+  bool m_UseDetailedGeometry {false};
+  // Use a more detailed calorimeter geometry
+  // Only available for CEMC
 
  private:
   std::string m_ThisName {"NOTSET"};

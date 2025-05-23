@@ -48,13 +48,23 @@ class RawClusterBuilderTemplate : public SubsysReco
   }
 
   void set_UseAltZVertex(const int useAltZMode)
-  {  // 0 use global vtx, 1 only bbcout bbczvtx , 2 use NO zvtx[set to 0]
+  {  // 0 use global vtx, 1 only bbcout bbczvtx, 2 use NO zvtx[set to 0], 3 use MC truth vertex
     m_UseAltZVertex = useAltZMode;
+  }
+
+  void set_UseDetailedGeometry(const bool useDetailedGeometry)
+  {
+    m_UseDetailedGeometry = useDetailedGeometry;
   }
 
   void setOutputClusterNodeName(const std::string& inpNodenm)
   {
     m_outputnodename = inpNodenm;
+  }
+
+  void setTowerGeomNodeName(const std::string& name)
+  {
+    m_TowerGeomNodeName = name;
   }
 
   // !!! note :  next fn NOT implemented for RawTowers
@@ -109,10 +119,16 @@ class RawClusterBuilderTemplate : public SubsysReco
 
   std::string m_towerInfo_nodename;
 
+
+  bool m_UseDetailedGeometry {false};
+  // Use a more detailed calorimeter geometry
+  // Only available for CEMC
+
   int m_UseAltZVertex{2};
   // 0 - use GlobalVtxMap
   // 1 - use BbcReco ZVtx
   // 2 - use NO zvertex (zvtx = 0)
+  // 3 - use truth MC zvertex
 
   float m_min_cluster_e{0.0};
 
@@ -120,6 +136,7 @@ class RawClusterBuilderTemplate : public SubsysReco
 
   std::string m_inputnodename;
   std::string m_outputnodename;
+  std::string m_TowerGeomNodeName;
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */
