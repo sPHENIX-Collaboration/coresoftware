@@ -153,6 +153,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
+  void set_file_name(const std::string &name) { _file_name = name; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
 
@@ -175,7 +176,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
                          std::set<unsigned int> &tpc_unmatched_set,
                          std::multimap<unsigned int, unsigned int> &tpc_matches);
   std::vector<short int> getInttCrossings(TrackSeed *si_track);
-  void checkCrossingMatches(std::multimap<unsigned int, unsigned int> &tpc_matches);
+  void checkZMatches(std::multimap<unsigned int, unsigned int> &tpc_matches,
+		     std::multimap<unsigned int, unsigned int> &bad_map);
   short int getCrossingIntt(TrackSeed *_tracklet_si);
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
   short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
@@ -183,6 +185,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   TFile *_file = nullptr;
   TNtuple *_tree = nullptr;
+
+  std::string _file_name = "track_match.root";
 
   // default values, can be replaced from the macro
   double _phi_search_win = 0.01;
