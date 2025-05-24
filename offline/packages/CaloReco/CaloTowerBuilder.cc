@@ -436,7 +436,6 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   }
   if (waveforms.empty())
   {
-    std::cout << Name() << ": empty waveform" << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
   // waveform vector is filled here, now fill our output. methods from the base class make sure
