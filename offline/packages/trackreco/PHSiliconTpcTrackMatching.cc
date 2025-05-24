@@ -632,6 +632,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         eta_match = true;
       }
+      else if (fabs(tpc_eta-si_eta) < _deltaeta_min)
+      {
+	eta_match = true;
+      }
       if (!eta_match)
       {
         continue;
@@ -775,12 +779,20 @@ void PHSiliconTpcTrackMatching::checkZMatches(
       {
         z_match = true;
       }
+      else if (fabs(z_mismatch_corrected) < _crossing_deltaz_min)
+      {
+	z_match = true;
+      }
     }
     else
     {
       if (window_dz.in_window(is_posQ, tpc_pt, tpc_z, si_z) && (fabs(z_mismatch) < _crossing_deltaz_max))
       {
         z_match = true;
+      }
+      else if (fabs(z_mismatch) < _crossing_deltaz_min)
+      {
+	z_match = true;
       }
     }
 
