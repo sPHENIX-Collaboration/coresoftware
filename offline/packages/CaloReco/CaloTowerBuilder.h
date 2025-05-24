@@ -116,6 +116,7 @@ class CaloTowerBuilder : public SubsysReco
   TowerInfoContainer *m_CaloInfoContainer{nullptr};      //! Calo info
   TowerInfoContainer *m_CalowaveformContainer{nullptr};  // waveform from simulation
   CDBTTree *cdbttree = nullptr;
+  CDBTTree *cdbttree_sepd_map = nullptr;
   CDBTTree *cdbttree_tbt_zs = nullptr;
 
   bool m_isdata{true};
@@ -142,7 +143,7 @@ class CaloTowerBuilder : public SubsysReco
   bool m_dobitfliprecovery{false};
 
   int m_saturation{16383};
-
+  std::string calibdir;
   std::string m_fieldname;
   std::string m_calibName;
   std::string m_directURL;
