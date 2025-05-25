@@ -13,6 +13,7 @@ CaloPacketv1::CaloPacketv1()
   femclock.fill(0);
   femevt.fill(0);
   femslot.fill(0);
+  femstatus.fill(CaloPacket::NOTSET);
   checksumlsb.fill(0);
   checksummsb.fill(0);
   calcchecksumlsb.fill(0);
@@ -44,7 +45,7 @@ void CaloPacketv1::Reset()
   femclock.fill(0);
   femevt.fill(0);
   femslot.fill(0);
-  femstatus.fill(0);
+  femstatus.fill(CaloPacket::NOTSET);
   checksumlsb.fill(0);
   checksummsb.fill(0);
   calcchecksumlsb.fill(0);
