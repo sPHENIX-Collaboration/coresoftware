@@ -6,8 +6,8 @@
 static const int NMVTXHITS = 100;
 
 MvtxRawHitContainerv1::MvtxRawHitContainerv1()
+  : MvtxRawHitsTCArray(new TClonesArray("MvtxRawHitv1", NMVTXHITS))
 {
-  MvtxRawHitsTCArray = new TClonesArray("MvtxRawHitv1", NMVTXHITS);
 }
 
 MvtxRawHitContainerv1::~MvtxRawHitContainerv1()
@@ -25,6 +25,7 @@ void MvtxRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "MvtxRawHitContainerv1" << std::endl;
   os << "containing " << MvtxRawHitsTCArray->GetEntriesFast() << " Mvtx hits" << std::endl;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
   MvtxRawHit *mvtxhit = static_cast<MvtxRawHit *>(MvtxRawHitsTCArray->At(0));
   if (mvtxhit)
   {

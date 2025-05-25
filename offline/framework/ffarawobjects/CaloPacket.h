@@ -13,7 +13,7 @@ class CaloPacket : public OfflinePacketv1
   {
     FEM_OK = 0,
     BAD_EVENTNR = 1,
-    NOTSET =  std::numeric_limits<int>::max()
+    NOTSET = std::numeric_limits<int>::max()
   };
 
   CaloPacket() = default;
