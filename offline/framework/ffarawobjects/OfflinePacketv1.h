@@ -35,7 +35,7 @@ class OfflinePacketv1 : public OfflinePacket
   int hitformat{std::numeric_limits<int>::min()};
   int packetid{std::numeric_limits<int>::min()};
   uint64_t bco{std::numeric_limits<uint64_t>::max()};
-  uint64_t status{0};
+  uint64_t status{OfflinePacket::NOTSET};
 
  private:
   ClassDefOverride(OfflinePacketv1, 2)

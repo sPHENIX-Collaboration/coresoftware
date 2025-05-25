@@ -6,8 +6,8 @@
 static constexpr int NHITS = 100;
 
 MicromegasRawHitContainerv1::MicromegasRawHitContainerv1()
+  : MicromegasRawHitsTCArray(new TClonesArray("MicromegasRawHitv1", NHITS))
 {
-  MicromegasRawHitsTCArray = new TClonesArray("MicromegasRawHitv1", NHITS);
 }
 
 MicromegasRawHitContainerv1::~MicromegasRawHitContainerv1()
@@ -26,7 +26,8 @@ void MicromegasRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "MicromegasRawHitContainerv1" << std::endl;
   os << "containing " << MicromegasRawHitsTCArray->GetEntriesFast() << " Micromegas hits" << std::endl;
-  auto hit = static_cast<MicromegasRawHit *>(MicromegasRawHitsTCArray->At(0));
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
+  auto *hit = static_cast<MicromegasRawHit *>(MicromegasRawHitsTCArray->At(0));
   if (hit)
   {
     os << "for beam clock: " << std::hex << hit->get_bco() << std::dec << std::endl;
@@ -51,11 +52,12 @@ MicromegasRawHit *MicromegasRawHitContainerv1::AddHit()
 
 MicromegasRawHit *MicromegasRawHitContainerv1::AddHit(MicromegasRawHit *source)
 {
-  auto newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv1(source);
+  auto *newhit = new ((*MicromegasRawHitsTCArray)[MicromegasRawHitsTCArray->GetLast() + 1]) MicromegasRawHitv1(source);
   return newhit;
 }
 
 MicromegasRawHit *MicromegasRawHitContainerv1::get_hit(unsigned int index)
 {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
   return static_cast<MicromegasRawHit *>(MicromegasRawHitsTCArray->At(index));
 }

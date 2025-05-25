@@ -10,7 +10,7 @@ class Gl1RawHitv2 : public Gl1RawHitv1
  public:
   Gl1RawHitv2() = default;
   Gl1RawHitv2(Gl1RawHit *gl1hit);
-  ~Gl1RawHitv2() override{};
+  ~Gl1RawHitv2() override {};
 
   void Reset() override;
   /** identify Function from PHObject

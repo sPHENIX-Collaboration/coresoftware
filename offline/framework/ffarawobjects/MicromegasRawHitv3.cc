@@ -28,11 +28,12 @@ MicromegasRawHitv3::MicromegasRawHitv3(MicromegasRawHit *source)
   {
     adc_list_t values;
     for (size_t i = source->get_sample_begin(); i < source->get_sample_end(); ++i)
-    { values.push_back( source->get_adc(i)); }
+    {
+      values.push_back(source->get_adc(i));
+    }
 
-    move_adc_waveform( source->get_sample_begin(), std::move(values) );
+    move_adc_waveform(source->get_sample_begin(), std::move(values));
   }
-
 }
 
 // cppcheck-suppress accessMoved
@@ -43,7 +44,8 @@ MicromegasRawHitv3::MicromegasRawHitv3(MicromegasRawHitv3 &&other) noexcept
   , fee(other.fee)
   , channel(other.channel)
   , m_adcData(std::move(other.m_adcData))
-{}
+{
+}
 
 void MicromegasRawHitv3::identify(std::ostream &os) const
 {
@@ -53,9 +55,9 @@ void MicromegasRawHitv3::identify(std::ostream &os) const
 
 uint16_t MicromegasRawHitv3::get_adc(const uint16_t sample) const
 {
-  auto iter = std::find_if( m_adcData.begin(), m_adcData.end(), [sample](const waveform_pair_t& pair)
-    { return sample >= pair.first && sample < pair.first+pair.second.size(); } );
-  return iter == m_adcData.end() ? 0: iter->second[sample-iter->first];
+  auto iter = std::find_if(m_adcData.begin(), m_adcData.end(), [sample](const waveform_pair_t &pair)
+                           { return sample >= pair.first && sample < pair.first + pair.second.size(); });
+  return iter == m_adcData.end() ? 0 : iter->second[sample - iter->first];
 }
 
 void MicromegasRawHitv3::Clear(Option_t * /*unused*/)
