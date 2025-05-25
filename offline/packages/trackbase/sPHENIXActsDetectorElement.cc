@@ -8,6 +8,18 @@ sPHENIXActsDetectorElement::~sPHENIXActsDetectorElement() = default;
 
 const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::GeometryContext& ctxt) const
 {
+  /*
+  Acts::GeometryIdentifier tid = surface().geometryId();
+  unsigned int tvolume = tid.volume();
+  unsigned int tlayer = tid.layer();
+  unsigned int tsphlayer = base_layer_map.find(tvolume)->second + tlayer / 2 - 1;
+  unsigned int tsensor = tid.sensitive() - 1;  // Acts sensor ID starts at 1
+  if(tsphlayer == 28)
+    {
+      std::cout << "   sphlayer is " << tsphlayer << " sensor " << tsensor << "   use_alignment " << alignmentTransformationContainer::use_alignment << std::endl;
+    }
+  */
+  
   if (alignmentTransformationContainer::use_alignment)
   {
     Acts::GeometryIdentifier id = surface().geometryId();
@@ -24,9 +36,14 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
 
     if (layerVec.size() > sensor)
     {
-      std::cout << "sPHENIXActsDetectorElement: return transform:  volume " << volume <<" Acts  layer " << layer << " sensor " << sensor
-		<< " sphenix layer " << sphlayer << " layerVec size " << layerVec.size() << std::endl
-		<< layerVec[sensor].matrix() << std::endl;
+      /*
+      if(sphlayer == 28)
+	{
+	  std::cout << "sPHENIXActsDetectorElement: return transform:  volume " << volume <<" Acts  layer " << layer << " sensor " << sensor
+		    << " sphenix layer " << sphlayer << " layerVec size " << layerVec.size() << std::endl
+		    << layerVec[sensor].matrix() << std::endl;
+	}
+      */
       
       return layerVec[sensor];
     }
