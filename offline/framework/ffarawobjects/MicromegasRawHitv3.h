@@ -15,7 +15,7 @@ class MicromegasRawHitv3 : public MicromegasRawHit
 {
  public:
   MicromegasRawHitv3() = default;
-  explicit MicromegasRawHitv3(MicromegasRawHit*);
+  explicit MicromegasRawHitv3(MicromegasRawHit *);
   explicit MicromegasRawHitv3(MicromegasRawHitv3 &&other) noexcept;
 
   /** identify Function from PHObject
@@ -23,7 +23,7 @@ class MicromegasRawHitv3 : public MicromegasRawHit
    */
   void identify(std::ostream &os = std::cout) const override;
 
-  void Clear(Option_t */*unused*/) override;
+  void Clear(Option_t * /*unused*/) override;
 
   uint64_t get_bco() const override { return bco; }
   // cppcheck-suppress virtualCallInConstructor
@@ -42,17 +42,23 @@ class MicromegasRawHitv3 : public MicromegasRawHit
   void set_channel(const uint16_t val) override { channel = val; }
 
   uint16_t get_sampaaddress() const override
-  { return static_cast<uint16_t>(channel >> 5U) & 0xfU; }
+  {
+    return static_cast<uint16_t>(channel >> 5U) & 0xfU;
+  }
 
   uint16_t get_sampachannel() const override { return channel & 0x1fU; }
 
   // index of the first sample with data
   uint16_t get_sample_begin() const override
-  { return m_adcData.empty() ? 0:m_adcData.front().first; }
+  {
+    return m_adcData.empty() ? 0 : m_adcData.front().first;
+  }
 
   // index of the next to last sample with data
   uint16_t get_sample_end() const override
-  { return m_adcData.empty() ? 0:m_adcData.back().first+m_adcData.back().second.size(); }
+  {
+    return m_adcData.empty() ? 0 : m_adcData.back().first + m_adcData.back().second.size();
+  }
 
   // get adc value
   uint16_t get_adc(const uint16_t sample) const override;
@@ -77,7 +83,7 @@ class MicromegasRawHitv3 : public MicromegasRawHit
 
   //! list of waveforms
   /** each pair contains the start sample of the waveform and the constituting adc values */
-  using waveform_pair_t = std::pair<uint16_t,adc_list_t>;
+  using waveform_pair_t = std::pair<uint16_t, adc_list_t>;
   std::vector<waveform_pair_t> m_adcData;
 
   ClassDefOverride(MicromegasRawHitv3, 1)

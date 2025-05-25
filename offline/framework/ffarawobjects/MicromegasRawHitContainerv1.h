@@ -8,7 +8,7 @@ class TClonesArray;
 
 class MicromegasRawHitContainerv1 : public MicromegasRawHitContainer
 {
-  public:
+ public:
   explicit MicromegasRawHitContainerv1();
 
   //! destructor

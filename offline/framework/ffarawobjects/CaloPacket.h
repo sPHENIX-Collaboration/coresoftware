@@ -12,7 +12,8 @@ class CaloPacket : public OfflinePacketv1
   enum enu_femstatus
   {
     FEM_OK = 0,
-    BAD_EVENTNR = 1
+    BAD_EVENTNR = 1,
+    NOTSET = std::numeric_limits<int>::max()
   };
 
   CaloPacket() = default;
