@@ -429,30 +429,34 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
     }
   }
 
-  if (m_strobeWidth > 88.)
+  if (!m_mvtx_is_standalone)
   {
-    m_BcoRange = 1000;
-    m_NegativeBco = 1000;
-  }
-  else if (m_strobeWidth > 9 && m_strobeWidth < 11)
-  {
-    m_BcoRange = 500;
-    m_NegativeBco = 500;
-  }
-  else if (m_strobeWidth < 1)  // triggered mode
-  {
-    m_BcoRange = 3;
-    m_NegativeBco = 0;
-    if (StreamingInputManager())
+    if (m_strobeWidth > 88.)
     {
-      StreamingInputManager()->runMvtxTriggered(true);
+      m_BcoRange = 1000;
+      m_NegativeBco = 1000;
+    }
+    else if (m_strobeWidth > 9 && m_strobeWidth < 11)
+    {
+      m_BcoRange = 500;
+      m_NegativeBco = 500;
+    }
+    else if (m_strobeWidth < 1)  // triggered mode
+    {
+      m_BcoRange = 3;
+      m_NegativeBco = 0;
+      if (StreamingInputManager())
+      {
+        StreamingInputManager()->runMvtxTriggered(true);
+      }
+    }
+    else  // catchall for anyting else to set to a range based on the rhic clock
+    {
+      m_BcoRange = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
+      m_NegativeBco = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
     }
   }
-  else  // catchall for anyting else to set to a range based on the rhic clock
-  {
-    m_BcoRange = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
-    m_NegativeBco = std::ceil(m_strobeWidth * 1000. / sphenix_constants::time_between_crossings);
-  }
+
   if (Verbosity() > 1)
   {
     std::cout << "Mvtx strobe length " << m_strobeWidth << std::endl;

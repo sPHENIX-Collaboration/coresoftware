@@ -35,6 +35,8 @@ class SingleMvtxPoolInput : public SingleStreamingInput
   void  SetStrobeWidth(const float val) { m_strobeWidth = val; }
   float GetStrobeWidth() { return m_strobeWidth; }
 
+  void runMVTXstandalone() {m_mvtx_is_standalone = true;}
+
  protected:
  private:
   Packet **plist{nullptr};
@@ -52,6 +54,8 @@ class SingleMvtxPoolInput : public SingleStreamingInput
 
   bool m_readStrWidthFromDB = true;
   float m_strobeWidth = 0;
+
+  bool m_mvtx_is_standalone{false};
 };
 
 #endif

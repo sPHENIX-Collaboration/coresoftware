@@ -6,8 +6,8 @@
 static const int NTPCHITS = 10000;
 
 TpcRawHitContainerv1::TpcRawHitContainerv1()
+  : TpcRawHitsTCArray(new TClonesArray("TpcRawHitv1", NTPCHITS))
 {
-  TpcRawHitsTCArray = new TClonesArray("TpcRawHitv1", NTPCHITS);
 }
 
 TpcRawHitContainerv1::~TpcRawHitContainerv1()
@@ -26,6 +26,7 @@ void TpcRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "TpcRawHitContainerv1" << std::endl;
   os << "containing " << TpcRawHitsTCArray->GetEntriesFast() << " Tpc hits" << std::endl;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
   TpcRawHit *tpchit = static_cast<TpcRawHit *>(TpcRawHitsTCArray->At(0));
   if (tpchit)
   {
