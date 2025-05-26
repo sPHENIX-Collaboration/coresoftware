@@ -191,10 +191,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
 	    {
 	      std::cout << "Check global from transient transform AFTER via surface method " << check_after_pos_surf(0)/10.0 << "  "
 			<< "  " << check_after_pos_surf(1)/10.0 << "  " << check_after_pos_surf(2)/10.0 << std::endl;	 
-	      std::cout << " Print ideal transform matrix from surface object: " << std::endl
-			<< surf->transform(tGeometry->geometry().getGeoContext()).matrix() << std::endl;
-	      std::cout << " Print transient transform matrix from surface object: " << std::endl
-			<< surf->transform(temp_transient_geocontext).matrix() << std::endl;
 	    }
 	}
     }  // end TPC specific treatment
@@ -352,8 +348,6 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
         {std::cout << "PHActsTrkFitter :: Key: " << key << " for track " << track << std::endl;}
       continue;
     }
-
-    //    auto subsurfkey = cluster->getSubSurfKey();
 
     /// Make a safety check for clusters that couldn't be attached
     /// to a surface

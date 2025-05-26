@@ -501,26 +501,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
       // copy transient map for this track into transient geoContext
       m_transient_geocontext = m_alignmentTransformationMapTransient;
-
-      /*
-      std::cout << " transient_id set size " << m_transient_id_set.size() << std::endl;
-      std::cout << "Output souce links returned to track fitter:" << std::endl;
-      for(auto sl : sourceLinks)
-	{
-	  const ActsSourceLink asl = sl.get<ActsSourceLink>();
-	  const auto surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
-	  if (Verbosity() > 1)
-	    {
-	      std::cout << std::endl << "        SL available on : " << asl.geometryId()
-			<< " for cluskey " << asl.cluskey() << std::endl;
-	      std::cout << " with surface " << surf->geometryId() << std::endl;
-	      std::cout << " Print ideal transform matrix from surface object: " << std::endl
-			<< surf->transform(m_tGeometry->geometry().getGeoContext()).matrix();
-		std::cout << " Print transient transform matrix from surface object: " << std::endl
-			  << surf->transform(m_transient_geocontext).matrix();
-	    }
-     	 }
-       */
       
       // position comes from the silicon seed, unless there is no silicon seed
       Acts::Vector3 position(0, 0, 0);
