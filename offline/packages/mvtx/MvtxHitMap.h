@@ -11,40 +11,40 @@
 
 #include "MvtxPixelDefs.h"
 
-#include <vector>
-#include <utility>
 #include <cstdint>
+#include <utility>
+#include <vector>
 
 class MvtxRawHit;
 class MvtxHitMap
 {
-    public:
+ public:
+  MvtxHitMap() = default;
+  ~MvtxHitMap() { clear(); }
 
-        MvtxHitMap(){}
-        ~MvtxHitMap(){ clear();}
+  typedef std::pair<MvtxPixelDefs::pixelkey, uint32_t> pixel_hits_pair_t;
+  typedef std::vector<MvtxHitMap::pixel_hits_pair_t> pixel_hit_vector_t;
 
-        typedef std::pair<MvtxPixelDefs::pixelkey, uint32_t> pixel_hits_pair_t;
-        typedef std::vector<MvtxHitMap::pixel_hits_pair_t> pixel_hit_vector_t;
+  void add_hit(MvtxPixelDefs::pixelkey key, uint32_t nhits = 1);
+  void clear()
+  {
+    m_pixel_hit_vector.clear();
+    is_sorted = false;
+  }
 
-        void add_hit(MvtxPixelDefs::pixelkey key, uint32_t nhits=1);
-        void clear() { m_pixel_hit_vector.clear(); is_sorted = false; }
+  int npixels() const { return m_pixel_hit_vector.size(); }
 
-        int npixels() const { return m_pixel_hit_vector.size(); }
+  uint32_t get_nhits(MvtxPixelDefs::pixelkey key) const;
+  const MvtxHitMap::pixel_hit_vector_t &get_pixel_hit_vector() const { return m_pixel_hit_vector; }
+  MvtxPixelDefs::pixelkey get_most_significant_pixel();
 
-        uint32_t get_nhits(MvtxPixelDefs::pixelkey key) const;
-        MvtxHitMap::pixel_hit_vector_t get_pixel_hit_vector() const { return m_pixel_hit_vector; }
-        MvtxPixelDefs::pixelkey get_most_significant_pixel(); 
+  uint32_t sum_hits(unsigned int nmasked = 0);
 
-        uint32_t sum_hits(unsigned int nmasked = 0); 
+ private:
+  MvtxHitMap::pixel_hit_vector_t m_pixel_hit_vector{};
 
-    private:
-
-        MvtxHitMap::pixel_hit_vector_t m_pixel_hit_vector {};
-
-        void sort_by_hits();
-        bool is_sorted{false};
-       
-
+  void sort_by_hits();
+  bool is_sorted{false};
 };
 
-#endif // MVTX_MVTXHITMAP_H
+#endif  // MVTX_MVTXHITMAP_H
