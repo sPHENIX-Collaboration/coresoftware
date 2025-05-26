@@ -129,5 +129,6 @@ PHG4Detector *PHG4sPHENIXMagnetSubsystem::GetDetector() const
 
 void PHG4sPHENIXMagnetSubsystem::SetDefaultParameters()
 {
+  set_default_int_param("use_g4steps", 0);
   return;
 }
