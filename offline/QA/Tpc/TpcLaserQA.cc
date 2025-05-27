@@ -174,7 +174,7 @@ void TpcLaserQA::createHistos()
     hm->registerHisto(h2);
 
     
-    auto h3 = new TH2F(boost::str(boost::format("%saturation_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str(),boost::str(boost::format("Number of Saturated Hits per event %s") % (side == 1 ? "North" : "South")).c_str(),12,-M_PI/12.,23.*M_PI/12.,4,rBinEdges);
+    auto h3 = new TH2F(boost::str(boost::format("%ssaturation_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str(),boost::str(boost::format("Number of Saturated Hits per event %s") % (side == 1 ? "North" : "South")).c_str(),12,-M_PI/12.,23.*M_PI/12.,4,rBinEdges);
     hm->registerHisto(h3);
   }
   
