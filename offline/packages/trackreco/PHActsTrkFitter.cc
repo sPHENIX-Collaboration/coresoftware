@@ -548,22 +548,54 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           continue;
         }
         //std::cout<<"m_materialSurfaces.size(): "<<m_materialSurfaces.size()<<std::endl; 
+        //uint64_t last_sens_vol = 0;
+        //uint64_t last_sens_lay = 0;
         for (const auto& surface_apr : m_materialSurfaces)
         {
+          bool pop_flag = false;
           if(surface_apr->geometryId().approach() == 1)
           {
             surfaces.push_back(surface_apr);
           }
           else
           {
+            pop_flag = true;
             for (const auto& surface_sns: surfaces_tmp)
             {
-              if (surface_apr->geometryId().volume() == surface_sns->geometryId().volume() && surface_apr->geometryId().layer()==surface_sns->geometryId().layer())
+              if (surface_apr->geometryId().volume() == surface_sns->geometryId().volume())
               {
-                surfaces.push_back(surface_sns);
-              }            
+                // check INTT to only include approach surfaces of layers with SL
+              //  if (surface_apr->geometryId().volume() ==12)
+              //  {
+              //    bool pop_flag_internal = true;
+              //    if (surface_apr->geometryId().layer()==surface_sns->geometryId().layer())
+              //    {
+              //      pop_flag = false;
+              //    }
+              //  }
+              //  else
+              //  {
+              //    pop_flag = false;
+              //  }
+                if ( surface_apr->geometryId().layer()==surface_sns->geometryId().layer())
+                {
+                  pop_flag = false;
+                  surfaces.push_back(surface_sns);
+                  //last_sens_vol = surface_sns->geometryId().volume();
+                  //last_sens_lay = surface_sns->geometryId().layer();
+                }            
+              }
             }
-            surfaces.push_back(surface_apr);
+            if (!pop_flag)
+            {
+              surfaces.push_back(surface_apr);
+            }
+            else
+            {
+              surfaces.pop_back();
+              pop_flag = false;
+            }
+            //surfaces.push_back(surface_apr);
             if (surface_apr->geometryId().volume() == 12&& surface_apr->geometryId().layer()==8)
             {
               for (const auto& surface_sns: surfaces_tmp)
@@ -951,10 +983,10 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
     if (m_fitSiliconMMs)
       {
 	// skip TPC surfaces
-	if (m_tGeometry->maps().isTpcSurface(surf))
-	  {
-	    continue;
-	  }
+	//if (m_tGeometry->maps().isTpcSurface(surf))
+	//  {
+	//    continue;
+	//  }
 	
 	// also skip micromegas surfaces if not used
 	if (m_tGeometry->maps().isMicromegasSurface(surf) && !m_useMicromegas)
@@ -971,10 +1003,10 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   /// Surfaces need to be sorted in order, i.e. from smallest to
   /// largest radius extending from target surface
   /// Add a check to ensure this
-  if (!surfaces.empty())
-  {
-    checkSurfaceVec(surfaces);
-  }
+  //if (!surfaces.empty())
+  //{
+  //  checkSurfaceVec(surfaces);
+  //}
 
   if (Verbosity() > 10)
   {
