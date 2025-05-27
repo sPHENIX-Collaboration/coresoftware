@@ -1052,8 +1052,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       fphival = -fxvalnew * sin(phival) + fyvalnew * cos(phival);  // azimuthal component
 
       }
-
-      htEntries->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+      phival=FilterPhiPos(phival); //make sure we wrap into the expected phi range.
+      htEntries->Fill(FilterPhiPos(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
       htSum[0]->Fill(phival,rval, zval, frval * fieldunit);
       htSum[1]->Fill(phival,rval, zval, fphival * fieldunit);
       htSum[2]->Fill(phival,rval, zval, fzval * fieldunit * zsign);
@@ -1093,6 +1093,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           fphival = -fxvalnew * sin(phival) + fyvalnew * cos(phival);  // azimuthal component
 
         }
+        phival=FilterPhiPos(phival); //make sure we wrap into the expected phi range.
+
         htEntries->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
         htSum[0]->Fill(phival, rval, zval, frval * fieldunit);
         htSum[1]->Fill(phival, rval, zval, fphival * fieldunit);
