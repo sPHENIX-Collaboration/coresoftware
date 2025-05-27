@@ -64,6 +64,8 @@ class TrackResiduals : public SubsysReco
   void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
   void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
 
+  void set_use_clustermover(bool flag) { m_use_clustermover = flag; }
+  
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
                              TrkrCluster *cluster, ActsGeometry *geometry);
@@ -91,6 +93,8 @@ class TrackResiduals : public SubsysReco
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int> &tpc_seed_ids);
   float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clusters, PHG4TpcCylinderGeomContainer *tpcGeom);
 
+  bool m_use_clustermover = true;
+  
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
