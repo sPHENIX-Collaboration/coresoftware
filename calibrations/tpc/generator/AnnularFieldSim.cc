@@ -1147,7 +1147,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
               std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap.  Value near r=%2.2f, phi=%2.2f, z=%2.2f is %f, (with range of %2.3f,%2.3f,%2.3f) Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z()% htEntriesLow->GetBinContent(lowbin) % r_lowres_step % phi_lowres_step % z_lowres_step) << std::endl;
-              printf("Saving fieldmaps to debug.hist.root\n")
+              printf("Saving fieldmaps to debug.hist.root\n");
               TFile *debugfile = new TFile("debug.hist.root", "RECREATE");
               htEntries->Write();
               htEntriesLow->Write();
