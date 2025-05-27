@@ -1061,6 +1061,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       for (int j = 0; j < nphi; j++)
       {
         float phi0=j*step.Phi(); //stand-in for our phi pointer that doesn't exist.
+        phival=phi0;
 
         if(xshift != 0 || yshift != 0)
           {
