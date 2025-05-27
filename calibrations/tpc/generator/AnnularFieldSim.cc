@@ -995,6 +995,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   TH3F *htSum[3];
   TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
   TH3F *htSumLow[3];
+  printf("AnnularFieldSim::loadField:  hires has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", nphi, 0.0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
+  printf("AnnularFieldSim::loadField:  lowres has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", nphi / lowres_factor + 1, 0.0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
   std::string axis[]{"r", "p", "z"};
   for (int i = 0; i < 3; i++)
   {
@@ -1113,11 +1115,12 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
         TVector3 cellcenter = GetCellCenter(j, i, k);
         int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
         TVector3 fieldvec(htSum[0]->GetBinContent(bin), htSum[1]->GetBinContent(bin), htSum[2]->GetBinContent(bin));
-        fieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
         if (htEntries->GetBinContent(bin) < 0.99)
         {
           // no entries here!
           nemptybins++;
+        } else{
+          ieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
         }
         // have to rotate this to the proper direction.
         fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  // rcc caution.  Does this rotation shift the sense of 'up'?
@@ -1140,11 +1143,13 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           {
             int lowbin = htEntriesLow->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
             TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
-            fieldvec = fieldvec * (1.0 / htEntriesLow->GetBinContent(lowbin));
+ 
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
               std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap.  Value near r=%2.2f, phi=%2.2f, z=%2.2f is %f, (with range of %2.3f,%2.3f,%2.3f) Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z()% htEntriesLow->GetBinContent(lowbin) % r_lowres_step % phi_lowres_step % z_lowres_step) << std::endl;
               exit(1);
+            } else {
+              fieldvec = fieldvec * (1.0 / htEntriesLow->GetBinContent(lowbin));
             }
             // have to rotate this to the proper direction.
             fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  // rcc caution.  Does this rotation shift the sense of 'up'?
