@@ -1120,7 +1120,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           // no entries here!
           nemptybins++;
         } else{
-          ieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
+          fieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
         }
         // have to rotate this to the proper direction.
         fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  // rcc caution.  Does this rotation shift the sense of 'up'?
