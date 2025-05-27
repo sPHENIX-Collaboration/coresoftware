@@ -962,7 +962,7 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   return;
 }
 
-void AnnularFieldSim::load3dBfield(const std::string &filename, const std::string &treename, int zsign, float scale, float zshift)
+void AnnularFieldSim::load3dBfield(const std::string &filename, const std::string &treename, int zsign, float scale, float xshift, float yshift, float zshift)
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores field as Tesla.
@@ -978,15 +978,15 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   fTree->SetBranchAddress("bz", &fz);
   fTree->SetBranchAddress("phi", &phi);
   fTree->SetBranchAddress("bphi", &fphi);
-  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla * scale, zsign, zshift);
+  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla * scale, zsign, xshift, yshift, zshift);
   return;
 }
 
-void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float zshift)
+void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float xshift, float yshift, float zshift)
 {
   // we're loading a tree of unknown size and spacing -- and possibly uneven spacing -- into our local data.
   // formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
-  // the z shift moves the detector in the field (hence for a +1 shift in z, the field value at (0,0,0) is recorded at detector coordinate (0,0,-1)
+  // the x,y,z shift moves the detector in the field (hence for a +1 shift in each, the field value at (0,0,0) is recorded at detector coordinate (-1,-1,-1)
 
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
   int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
@@ -1008,31 +1008,91 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     source->GetEntry(i);
     float zval = *zptr * zsign-zshift;  // right now, need the ability to flip the sign of the z coordinate.
     // note that the z sign also needs to affect the field sign in that direction, which is handled outside in the z components of the fills
+    float phival=*phiptr;
+    float rval=*rptr;
+
+    //we have to also carefully transform the field itself:
+    float fzval = *fzptr;  // z component of the field (needed in rotations of the cylinder, but not translations)
+    float fphival = *fphiptr;  // phi component of the field 
+    float frval = *frptr;  // radial component of the field 
+
     // if we aren't asking for phi symmetry, build just the one phi strip
+
     if (!phiSymmetry)
     {
       assert(phiptr);
-      htEntries->Fill(*phiptr, *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSum[0]->Fill(*phiptr, *rptr, zval, *frptr * fieldunit);
-      htSum[1]->Fill(*phiptr, *rptr, zval, *fphiptr * fieldunit);
-      htSum[2]->Fill(*phiptr, *rptr, zval, *fzptr * fieldunit * zsign);
-      htEntriesLow->Fill(*phiptr, *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSumLow[0]->Fill(*phiptr, *rptr, zval, *frptr * fieldunit);
-      htSumLow[1]->Fill(*phiptr, *rptr, zval, *fphiptr * fieldunit);
-      htSumLow[2]->Fill(*phiptr, *rptr, zval, *fzptr * fieldunit * zsign);
+      if(xshift != 0 || yshift != 0)
+      {
+      //convert the coordinate r,phi set into x,y  
+        float xval = rval * cos(phival) - xshift;
+        float yval = rval * sin(phival) - yshift;
+        phival = atan2(yval, xval);  // convert back to phi
+        rval = sqrt(xval * xval + yval * yval);  // and back to r
+        //that gets our coordinate correctly, but we also have to transform the field values into this new coord system.  carefully.
+
+      //convert the field into cartesian in the original system:
+      //our original radial direction is cos(phiptr), sin(phiptr)
+      //and our original phi direction is -sin(phiptr), cos(phiptr)
+      float fxval = *frptr * cos(*phiptr) - *fphiptr * sin(*phiptr);
+      float fyval = *frptr * sin(*phiptr) + *fphiptr * cos(*phiptr);
+      //and then shift it to the new system, which has a new origin and a new rotation.
+      //so the vector that points from our origin to the field point is (xval, yval, zval), and the field vector is (fxval, fyval, fzval).
+    //to express the field vector in the new coordinate system, we have to rotate it by the angle -phival, 
+      float fxvalnew= fxval * cos(-phival) - fyval * sin(-phival);
+      float fyvalnew= fxval * sin(-phival) + fyval * cos(-phival);
+      //and finally, convert into the radial and azimuthal components, instead of cartesian:
+      frval = fxvalnew * cos(phival) + fyvalnew * sin(phival);  // radial component
+      fphival = -fxvalnew * sin(phival) + fyvalnew * cos(phival);  // azimuthal component
+
+      }
+
+      htEntries->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+      htSum[0]->Fill(phival,rval, zval, frval * fieldunit);
+      htSum[1]->Fill(phival,rval, zval, fphival * fieldunit);
+      htSum[2]->Fill(phival,rval, zval, fzval * fieldunit * zsign);
+      htEntriesLow->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+      htSumLow[0]->Fill(phival,rval, zval, frval * fieldunit);
+      htSumLow[1]->Fill(phival,rval, zval, fphival * fieldunit);
+      htSumLow[2]->Fill(phival,rval, zval, fzval * fieldunit * zsign);
     }
     else
     {  // if we do have phi symmetry, build every phi strip using this one.
       for (int j = 0; j < nphi; j++)
       {
-        htEntries->Fill(j * step.Phi(), *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-        htSum[0]->Fill(j * step.Phi(), *rptr, zval, *frptr * fieldunit);
-        htSum[1]->Fill(j * step.Phi(), *rptr, zval, *fphiptr * fieldunit);
-        htSum[2]->Fill(j * step.Phi(), *rptr, zval, *fzptr * fieldunit * zsign);
-        htEntriesLow->Fill(j * step.Phi(), *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-        htSumLow[0]->Fill(j * step.Phi(), *rptr, zval, *frptr * fieldunit);
-        htSumLow[1]->Fill(j * step.Phi(), *rptr, zval, *fphiptr * fieldunit);
-        htSumLow[2]->Fill(j * step.Phi(), *rptr, zval, *fzptr * fieldunit * zsign);
+        float phi0=j*step.Phi();
+
+        if(xshift != 0 || yshift != 0)
+          {
+          //convert the coordinate r,phi set into x,y  
+            float xval = rval * cos(phi0) - xshift;
+            float yval = rval * sin(phi0) - yshift;
+            phival = atan2(yval, xval);  // convert back to phi
+            rval = sqrt(xval * xval + yval * yval);  // and back to r
+            //that gets our coordinate correctly, but we also have to transform the field values into this new coord system.  carefully.
+
+          //convert the field into cartesian in the original system:
+          //our original radial direction is cos(phiptr), sin(phiptr)
+          //and our original phi direction is -sin(phiptr), cos(phiptr)
+          float fxval = *frptr * cos(phi0) - *fphiptr * sin(phi0);
+          float fyval = *frptr * sin(phi0) + *fphiptr * cos(phi0);
+          //and then shift it to the new system, which has a new origin and a new rotation.
+          //so the vector that points from our origin to the field point is (xval, yval, zval), and the field vector is (fxval, fyval, fzval).
+        //to express the field vector in the new coordinate system, we have to rotate it by the angle -phival, 
+          float fxvalnew= fxval * cos(-phival) - fyval * sin(-phival);
+          float fyvalnew= fxval * sin(-phival) + fyval * cos(-phival);
+          //and finally, convert into the radial and azimuthal components, instead of cartesian:
+          frval = fxvalnew * cos(phival) + fyvalnew * sin(phival);  // radial component
+          fphival = -fxvalnew * sin(phival) + fyvalnew * cos(phival);  // azimuthal component
+
+        }
+        htEntries->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+        htSum[0]->Fill(phival, rval, zval, frval * fieldunit);
+        htSum[1]->Fill(phival, rval, zval, fphival * fieldunit);
+        htSum[2]->Fill(phival, rval, zval, fzval * fieldunit * zsign);
+        htEntriesLow->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+        htSumLow[0]->Fill(phival, rval, zval, frval * fieldunit);
+        htSumLow[1]->Fill(phival, rval, zval, fphival * fieldunit);
+        htSumLow[2]->Fill(phival, rval, zval, fzval * fieldunit * zsign);
       }
     }
   }
