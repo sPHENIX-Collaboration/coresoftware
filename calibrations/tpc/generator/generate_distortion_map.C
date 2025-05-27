@@ -10,7 +10,7 @@ R__LOAD_LIBRARY(libfieldsim.so)
 char field_string[200];
 char lookup_string[200];
 
-AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true, float zshift=0);
+AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true, float xshift=0, float yshift=0, float zshift=0);
 AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
 void TestSpotDistortion(AnnularFieldSim *t);
 void SurveyFiles(TFileCollection* filelist);
@@ -35,7 +35,7 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
 
   //now build the time-consuming part:
   AnnularFieldSim *tpc;
-    tpc=SetupDefaultSphenixTpc(hasTwin,hasSpacecharge, zshift, xshift, yshift);//loads the lookup, fields, etc.
+    tpc=SetupDefaultSphenixTpc(hasTwin,hasSpacecharge, xshift, yshift, zshift);//loads the lookup, fields, etc.
  
   //and the location to plot the fieldslices about:
  TVector3 pos=0.5*(tpc->GetOuterEdge()+tpc->GetInnerEdge());;
