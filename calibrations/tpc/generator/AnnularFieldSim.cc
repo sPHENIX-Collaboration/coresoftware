@@ -1001,6 +1001,10 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
     htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
   }
+  //define the lowres stepsizes for sanity:
+  float phi_lowres_step = M_PI * 2.0 / (nphi / lowres_factor + 1);  // the step size in phi for the low-res histogram
+  float r_lowres_step = (rmax - rmin) / (nr / lowres_factor + 1);  // the step size in r for the low-res histogram
+  float z_lowres_step = (zmax - zmin) / (nz / lowres_factor + 1);  // the step size in z for the low-res histogram
 
   int nEntries = source->GetEntries();
   for (int i = 0; i < nEntries; i++)
@@ -1139,7 +1143,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             fieldvec = fieldvec * (1.0 / htEntriesLow->GetBinContent(lowbin));
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
-              std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap.  None near r=%f, phi=%f, z=%f. Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z()) << std::endl;
+              std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap.  Value near r=%2.2f, phi=%2.2f, z=%2.2f is %f, (with range of %2.3f,%2.3f,%2.3f) Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z())% htEntriesLow->GetBinContent(lowbin)% r_lowres_step % phi_lowres_step % z_lowres_step << std::endl;
               exit(1);
             }
             // have to rotate this to the proper direction.
