@@ -1008,9 +1008,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     source->GetEntry(i);
     float zval = *zptr * zsign-zshift;  // right now, need the ability to flip the sign of the z coordinate.
     // note that the z sign also needs to affect the field sign in that direction, which is handled outside in the z components of the fills
-    float phival=*phiptr;
     float rval=*rptr;
-
+    float phival;
     //we have to also carefully transform the field itself:
     float fzval = *fzptr;  // z component of the field (needed in rotations of the cylinder, but not translations)
     float fphival = *fphiptr;  // phi component of the field 
@@ -1021,6 +1020,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     if (!phiSymmetry)
     {
       assert(phiptr);
+      phival=*phiptr;
+
       if(xshift != 0 || yshift != 0)
       {
       //convert the coordinate r,phi set into x,y  
@@ -1059,7 +1060,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     {  // if we do have phi symmetry, build every phi strip using this one.
       for (int j = 0; j < nphi; j++)
       {
-        float phi0=j*step.Phi();
+        float phi0=j*step.Phi(); //stand-in for our phi pointer that doesn't exist.
 
         if(xshift != 0 || yshift != 0)
           {
