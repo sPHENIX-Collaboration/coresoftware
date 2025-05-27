@@ -1261,7 +1261,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   }
 
   // track seeds
-  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, _svtx_seed_map_name);
   if (!m_seedMap)
   {
     std::cout << "No Svtx seed map on node tree. Exiting."
