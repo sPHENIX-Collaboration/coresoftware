@@ -765,7 +765,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 	if(adc>maxAdc){
 	  maxAdc = adc;
 	}
-	printf("test %d %f %f %f %d %d %d %d %f %f %d %f %f\n", _nevent, coords[0],coords[1],coords[2],adc,ilay,iphi,it,interceptxyff,slopexyff,trk_nclus,zfirst,zlast);
+	//	printf("test %d %f %f %f %d %d %d %d %f %f %d %f %f\n", _nevent, coords[0],coords[1],coords[2],adc,ilay,iphi,it,interceptxyff,slopexyff,trk_nclus,zfirst,zlast);
 
 	m_nevent = _nevent;
 	m_hitx = coords[0];
