@@ -2,6 +2,10 @@
 #define KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 
 #include <trackbase/ActsGeometry.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerContainer.h>
 
 #include <limits>
 #include <string>
@@ -70,6 +74,26 @@ class KFParticle_truthAndDetTools
 
   void clearVectors();
 
+  float get_e3x3(RawCluster *cluster, RawTowerContainer *Towers, int layer);
+  float get_e5x5(RawCluster *cluster, RawTowerContainer *Towers, int layer);
+
+  float PiRange(float deltaPhi)
+  {
+    if(deltaPhi > M_PI) deltaPhi -= 2*M_PI;
+    if(deltaPhi < -M_PI) deltaPhi += 2*M_PI;
+    return deltaPhi;
+  }
+
+  //Functions to set cuts 
+  void set_ntpc_low_cut(int set_variable){ m_ntpc_low_cut = set_variable;} //THIS DOESN'T DO ANYTHING!!!! 
+  void set_emcal_radius_user(float set_variable){ m_emcal_radius_user = set_variable ;}
+  void set_track_pt_low_cut(float set_variable){ m_track_pt_low_cut = set_variable ;}
+  void set_emcal_e_low_cut(float set_variable){ m_emcal_e_low_cut = set_variable;}
+  void set_dphi_cut_low(float set_variable){ m_dphi_cut_low = set_variable;}
+  void set_dphi_cut_high(float set_variable){ m_dphi_cut_high = set_variable;}
+  void set_dz_cut_low(float set_variable){ m_dz_cut_low = set_variable;}
+  void set_dz_cut_high(float set_variable){ m_dz_cut_high = set_variable;}
+
  protected:
   bool m_use_mbd_vertex_truth {false};
 
@@ -103,6 +127,20 @@ class KFParticle_truthAndDetTools
 
   static const int max_tracks = 20;
 
+  float m_emcal_radius_user = 100.70;
+  float m_ihcal_radius_user = 117;
+  float m_ohcal_radius_user = 177.423;
+
+  int m_ntpc_low_cut = 20; //THIS DOESNT ACTUALLY DO ANYTHING THO 
+  float m_track_pt_low_cut = 0.5;
+  float m_emcal_e_low_cut = 0.2;
+  float m_ihcal_e_low_cut = 0.01;
+  float m_ohcal_e_low_cut = 0.01;
+  float m_dphi_cut_low = -0.15;
+  float m_dphi_cut_high = 0.15;
+  float m_dz_cut_low = -10;
+  float m_dz_cut_high = 10;
+
   float m_true_daughter_vertex_x[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float m_true_daughter_vertex_y[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float m_true_daughter_vertex_z[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
@@ -128,6 +166,7 @@ class KFParticle_truthAndDetTools
 
   float detector_emcal_deltaphi[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_deltaeta[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
+  float detector_emcal_deltaz[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_energy_3x3[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_energy_5x5[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_cluster_energy[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
@@ -141,6 +180,16 @@ class KFParticle_truthAndDetTools
   float detector_ohcal_energy_3x3[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float detector_ohcal_energy_5x5[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
   float detector_ohcal_cluster_energy[max_tracks] = {std::numeric_limits<float>::quiet_NaN()};
+
+  RawTowerGeomContainer* EMCalGeo = nullptr;
+  RawClusterContainer* clustersEM = nullptr;
+  RawTowerGeomContainer* IHCalGeo = nullptr;
+  RawClusterContainer* clustersIH = nullptr;
+  RawTowerGeomContainer* OHCalGeo = nullptr;
+  RawClusterContainer* clustersOH = nullptr;
+  RawTowerContainer* _towersEM = nullptr;
+  RawTowerContainer* _towersIH = nullptr;
+  RawTowerContainer* _towersOH = nullptr;
 
   unsigned int detector_nHits_MVTX[max_tracks] = {0};
   unsigned int detector_nHits_INTT[max_tracks] = {0};

@@ -507,6 +507,7 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 {
   m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaPhi", &detector_emcal_deltaphi[daughter_id], TString(daughter_number) + "_EMCAL_DeltaPhi/F");
   m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaEta", &detector_emcal_deltaeta[daughter_id], TString(daughter_number) + "_EMCAL_DeltaEta/F");
+  m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaZ", &detector_emcal_deltaz[daughter_id], TString(daughter_number) + "_EMCAL_DeltaZ/F");
   m_tree->Branch(TString(daughter_number) + "_EMCAL_energy_3x3", &detector_emcal_energy_3x3[daughter_id], TString(daughter_number) + "_EMCAL_energy_3x3/F");
   m_tree->Branch(TString(daughter_number) + "_EMCAL_energy_5x5", &detector_emcal_energy_5x5[daughter_id], TString(daughter_number) + "_EMCAL_energy_5x5/F");
   m_tree->Branch(TString(daughter_number) + "_EMCAL_energy_cluster", &detector_emcal_cluster_energy[daughter_id], TString(daughter_number) + "_EMCAL_energy_cluster/F");
@@ -522,39 +523,585 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
   m_tree->Branch(TString(daughter_number) + "_OHCAL_energy_cluster", &detector_ohcal_cluster_energy[daughter_id], TString(daughter_number) + "_OHCAL_energy_cluster/F");
 }
 
+/*
+The following function matches tracks to calo clusters. As of 5/28/2025, this only extends to the EMCal. HCal matching is in development.
+*/
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
-                                                 TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
+  TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
-  PHNodeIterator nodeIter(topNode);
-  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
-  if (findNode)
-  {
-    dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
+PHNodeIterator nodeIter(topNode);
+PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
+if (findNode)
+{
+dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
+}
+else
+{
+std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
+}
+
+track = getTrack(daughter.Id(), dst_trackmap);
+
+if ( !clustersEM ) {
+// clustersEM = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_CEMC");
+clustersEM = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
+if (!clustersEM)
+{
+// std::cout << "TrackCaloMatch::process_event : FATAL ERROR, cannot find cluster container " << "CLUSTER_CEMC" << std::endl;
+std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTER_CEMC" << std::endl;
+//return Fun4AllReturnCodes::ABORTEVENT;
+}
+}
+if(!EMCalGeo)
+{
+EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+if(!EMCalGeo)
+{
+std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
+//return Fun4AllReturnCodes::ABORTEVENT;
+}
+}
+// if(!_towersEM) 
+// {
+//   _towersEM = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
+//   if(!_towersEM) 
+//   {
+//     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_CEMC" << std::endl;
+//     //return Fun4AllReturnCodes::ABORTEVENT;
+//   }
+// }
+if ( !clustersIH ) {
+clustersIH = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_HCALIN");
+// if (!clustersIH)
+// {
+//   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTER_HCALIN" << std::endl;
+//   //return Fun4AllReturnCodes::ABORTEVENT;
+// }
+}
+if(!IHCalGeo)
+{
+IHCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+// if(!IHCalGeo)
+// {
+//   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_HCALIN" << std::endl;
+//   //return Fun4AllReturnCodes::ABORTEVENT;
+// }
+}
+// if(!_towersIH) 
+// {
+//   _towersIH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
+//   if(!_towersIH) 
+//   {
+//     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_HCALIN" << std::endl;
+//     //return Fun4AllReturnCodes::ABORTEVENT;
+//   }
+// }
+if ( !clustersOH ) {
+clustersOH = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_HCALOUT");
+// if (!clustersOH)
+// {
+//   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTER_HCALOUT" << std::endl;
+//   //return Fun4AllReturnCodes::ABORTEVENT;
+// }
+}
+if(!OHCalGeo)
+{
+OHCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+// if(!OHCalGeo)
+// {
+//   std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_HCALOUT" << std::endl;
+//   //return Fun4AllReturnCodes::ABORTEVENT;
+// }
+}
+// if(!_towersOH) 
+// {
+//   _towersOH = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
+//   if(!_towersOH) 
+//   {
+//     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_HCALOUT" << std::endl;
+//     //return Fun4AllReturnCodes::ABORTEVENT;
+//   }
+// }
+
+// Radii for track projections
+double caloRadiusEMCal;
+// double caloRadiusIHCal;
+// double caloRadiusOHCal;
+// caloRadiusEMCal = EMCalGeo->get_radius();
+caloRadiusEMCal = 100.70; //cm 
+// caloRadiusOHCal = OHCalGeo->get_radius();
+// caloRadiusIHCal = IHCalGeo->get_radius();
+
+// Create variables and containers etc.
+bool is_match;
+int index;
+float radius_scale;
+RawCluster *cluster;
+
+
+//EMCAL******************************************************
+// std::cout << "Starting EMCAL-track matching!" << std::endl;
+
+SvtxTrackState *thisState = nullptr;
+thisState = track->get_state(caloRadiusEMCal);
+// thisState->identify();
+// std::cout << "size states " << (size_t)track->size_states() << std::endl;
+// for (auto state_iter = track->begin_states();
+//       state_iter != track->end_states();
+//       ++state_iter)
+//   {
+//     SvtxTrackState* tstate = state_iter->second;
+//     tstate->identify();
+//     std::cout<< "radius " << sqrt((tstate->get_x())*(tstate->get_x()) + (tstate->get_y())*(tstate->get_y())) << std::endl;
+//   }
+
+
+// assert(thisState);
+float _track_phi_emc = NAN;
+float _track_eta_emc = NAN;
+float _track_x_emc = NAN;
+float _track_y_emc = NAN;
+float _track_z_emc = NAN;
+
+// EMCal variables and vectors
+float _emcal_phi = NAN;
+float _emcal_eta = NAN;
+float _emcal_x = NAN;
+float _emcal_y = NAN;
+float _emcal_z = NAN;
+radius_scale = NAN;
+float _emcal_3x3 = NAN;
+float _emcal_5x5 = NAN;
+float _emcal_clusE = NAN;
+std::vector<float> v_emcal_phi;
+std::vector<float> v_emcal_eta;
+std::vector<float> v_emcal_x;
+std::vector<float> v_emcal_y;
+std::vector<float> v_emcal_z;
+std::vector<float> v_emcal_dphi;
+std::vector<float> v_emcal_deta;
+std::vector<float> v_emcal_dr;
+std::vector<float> v_emcal_dz;
+std::vector<float> v_emcal_3x3;
+std::vector<float> v_emcal_5x5;
+std::vector<float> v_emcal_clusE;
+
+// Set variables for matching
+is_match = false;
+index = -1;
+int ijk = 0;
+
+clustersEM->identify();
+
+if(thisState != nullptr){
+
+_track_phi_emc = atan2(thisState->get_y(), thisState->get_x());
+_track_eta_emc = asinh(thisState->get_z()/sqrt(thisState->get_x()*thisState->get_x() + thisState->get_y()*thisState->get_y()));
+_track_x_emc = thisState->get_x();
+_track_y_emc = thisState->get_y();
+_track_z_emc = thisState->get_z();
+
+
+// Create objects, containers, iterators for clusters
+cluster = nullptr;
+RawClusterContainer::Range begin_end_EMC = clustersEM->getClusters();
+RawClusterContainer::Iterator clusIter_EMC;
+
+// Loop over the EMCal clusters
+for (clusIter_EMC = begin_end_EMC.first; clusIter_EMC != begin_end_EMC.second; ++clusIter_EMC)
+{    
+
+//Minimum energy cut
+cluster = clusIter_EMC->second;
+float cluster_energy = cluster->get_energy();
+
+if(cluster_energy < m_emcal_e_low_cut)
+{
+ijk++;
+continue;
+}
+
+// Get cluster information
+_emcal_phi = atan2(cluster->get_y(), cluster->get_x());
+_emcal_eta = asinh(cluster->get_z()/sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y()));
+_emcal_x = cluster->get_x();
+_emcal_y = cluster->get_y();
+radius_scale = m_emcal_radius_user / sqrt(_emcal_x*_emcal_x+_emcal_y*_emcal_y);
+_emcal_z = radius_scale*cluster->get_z();
+// _emcal_3x3 = get_e3x3(cluster, _towersEM, 0); //0 for emcal
+// _emcal_5x5 = get_e5x5(cluster, _towersEM, 0); //0 for emcal
+_emcal_3x3 = NAN;
+_emcal_5x5 = NAN;
+_emcal_clusE = cluster_energy;
+
+//Variables to determine potential matches
+float dphi = PiRange(_track_phi_emc - _emcal_phi);
+float dz = _track_z_emc - _emcal_z;
+float deta = _emcal_eta - _track_eta_emc;
+float tmparg = caloRadiusEMCal*dphi;
+float dr = sqrt(tmparg*tmparg + dz*dz); //sqrt((R*dphi)^2 + (dz)^2
+// float dr = sqrt((dphi*dphi + deta*deta)); //previous version
+
+// Requirements for a possible match
+if(dz>m_dz_cut_high || dz<m_dz_cut_low){continue;}
+if(dphi>m_dphi_cut_high || dphi<m_dphi_cut_low){continue;}
+
+// std::cout << "**********DELTA INFORMATION************" << std::endl;
+// std::cout << "dphi = " << dphi << std::endl;
+// std::cout << "deta = " << deta << std::endl;
+// std::cout << "dz =   " << dz <<   std::endl;
+// std::cout << "dr =   " << dr <<   std::endl;
+// std::cout << "****************************************" << std::endl;
+// Add potential match's information to vectors
+v_emcal_phi.push_back(_emcal_phi);
+v_emcal_eta.push_back(_emcal_eta);
+v_emcal_x.push_back(_emcal_x);
+v_emcal_y.push_back(_emcal_y);
+v_emcal_z.push_back(_emcal_z);
+v_emcal_dphi.push_back(dphi);
+v_emcal_dz.push_back(dz);
+v_emcal_deta.push_back(deta);
+v_emcal_dr.push_back(dr);
+v_emcal_3x3.push_back(_emcal_3x3);
+v_emcal_5x5.push_back(_emcal_5x5);
+v_emcal_clusE.push_back(_emcal_clusE);
+is_match = true;
+ijk++;
+}
+
+// Find the closest match from all potential matches
+if (is_match == true)
+{
+  float tmp = 99999;
+  for(long unsigned int i = 0; i < v_emcal_dr.size(); i++){
+    if(v_emcal_dr[i] < tmp){
+      index = i;
+      tmp = v_emcal_dr[i];
+    }
   }
-  else
-  {
-    std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
-  }
+}
+}
 
-  track = getTrack(daughter.Id(), dst_trackmap);
+// Print out statements
+if(index != -1){
+std::cout<<"matched tracks!!!"<<std::endl;
+std::cout<<"emcal x = "<<v_emcal_x[index]<<" , y = "<<v_emcal_y[index]<<" , z = "<<v_emcal_z[index]<<" , phi = "<<v_emcal_phi[index]<<" , eta = "<<v_emcal_eta[index]<<std::endl;
+std::cout<<"track projected x = "<<_track_x_emc<<" , y = "<<_track_y_emc<<" , z = "<<_track_z_emc<<" , phi = "<<_track_phi_emc<<" , eta = "<<_track_eta_emc<<std::endl;
+std::cout<<"track px = "<<track->get_px()<<" , py = "<<track->get_py()<<" , pz = "<<track->get_pz()<<" , pt = "<<track->get_pt()<<" , p = "<<track->get_p()<<" , charge = "<<track->get_charge()<<std::endl;
+}
 
-  detector_emcal_deltaphi[daughter_id] = track->get_cal_dphi(SvtxTrack::CAL_LAYER(1));
-  detector_emcal_deltaeta[daughter_id] = track->get_cal_deta(SvtxTrack::CAL_LAYER(1));
-  detector_emcal_energy_3x3[daughter_id] = track->get_cal_energy_3x3(SvtxTrack::CAL_LAYER(1));
-  detector_emcal_energy_5x5[daughter_id] = track->get_cal_energy_5x5(SvtxTrack::CAL_LAYER(1));
-  detector_emcal_cluster_energy[daughter_id] = track->get_cal_cluster_e(SvtxTrack::CAL_LAYER(1));
+// Save values to the branches!
+if(index == -1){
+detector_emcal_deltaphi[daughter_id] = NAN;
+detector_emcal_deltaeta[daughter_id] = NAN;
+detector_emcal_deltaeta[daughter_id] = NAN;
+detector_emcal_energy_3x3[daughter_id] = NAN;
+detector_emcal_energy_5x5[daughter_id] = NAN;
+detector_emcal_cluster_energy[daughter_id] = NAN;
+}
+else{
+detector_emcal_deltaphi[daughter_id] = v_emcal_dphi[index];
+detector_emcal_deltaeta[daughter_id] = v_emcal_deta[index];
+detector_emcal_deltaz[daughter_id] = v_emcal_dz[index];
+detector_emcal_energy_3x3[daughter_id] = NAN;
+detector_emcal_energy_5x5[daughter_id] = NAN;
+detector_emcal_cluster_energy[daughter_id] = v_emcal_clusE[index];
+}
 
-  detector_ihcal_deltaphi[daughter_id] = track->get_cal_dphi(SvtxTrack::CAL_LAYER(2));
-  detector_ihcal_deltaeta[daughter_id] = track->get_cal_deta(SvtxTrack::CAL_LAYER(2));
-  detector_ihcal_energy_3x3[daughter_id] = track->get_cal_energy_3x3(SvtxTrack::CAL_LAYER(2));
-  detector_ihcal_energy_5x5[daughter_id] = track->get_cal_energy_5x5(SvtxTrack::CAL_LAYER(2));
-  detector_ihcal_cluster_energy[daughter_id] = track->get_cal_cluster_e(SvtxTrack::CAL_LAYER(2));
+//HCAL*******************************************************
 
-  detector_ohcal_deltaphi[daughter_id] = track->get_cal_dphi(SvtxTrack::CAL_LAYER(3));
-  detector_ohcal_deltaeta[daughter_id] = track->get_cal_deta(SvtxTrack::CAL_LAYER(3));
-  detector_ohcal_energy_3x3[daughter_id] = track->get_cal_energy_3x3(SvtxTrack::CAL_LAYER(3));
-  detector_ohcal_energy_5x5[daughter_id] = track->get_cal_energy_5x5(SvtxTrack::CAL_LAYER(3));
-  detector_ohcal_cluster_energy[daughter_id] = track->get_cal_cluster_e(SvtxTrack::CAL_LAYER(3));
+//INNER
+/*
+std::cout << "Starting IHCAL-track matching!" << std::endl;
+
+// Track projection
+thisState = nullptr;
+thisState = track->get_state(caloRadiusIHCal);
+float _track_phi_ihc = NAN;
+float _track_eta_ihc = NAN;
+float _track_x_ihc = NAN;
+float _track_y_ihc = NAN;
+float _track_z_ihc = NAN;
+
+// IHCal variables and vectors
+float _ihcal_phi = NAN;
+float _ihcal_eta = NAN;
+float _ihcal_x = NAN;
+float _ihcal_y = NAN;
+float _ihcal_z = NAN;
+float _ihcal_3x3 = NAN;
+//float _ihcal_5x5 = NAN;
+float _ihcal_clusE = NAN;
+radius_scale = NAN;
+std::vector<float> v_ihcal_phi;
+std::vector<float> v_ihcal_eta;
+std::vector<float> v_ihcal_x;
+std::vector<float> v_ihcal_y;
+std::vector<float> v_ihcal_z;
+std::vector<float> v_ihcal_dphi;
+std::vector<float> v_ihcal_deta;
+std::vector<float> v_ihcal_dr;
+std::vector<float> v_ihcal_3x3;
+//std::vector<float> v_ihcal_5x5;
+std::vector<float> v_ihcal_clusE;
+
+if(thisState != nullptr){
+
+// Reset variables for matching
+is_match = false;
+index = -1;
+
+_track_phi_ihc = atan2(thisState->get_y(), thisState->get_x());
+_track_eta_ihc = asinh(thisState->get_z()/sqrt(thisState->get_x()*thisState->get_x() + thisState->get_y()*thisState->get_y()));
+_track_x_ihc = thisState->get_x();
+_track_y_ihc = thisState->get_y();
+_track_z_ihc = thisState->get_z();
+
+
+// Create objects, containers, iterators for clusters
+cluster = nullptr;
+RawClusterContainer::Range begin_end_IHC = clustersIH->getClusters();
+RawClusterContainer::Iterator clusIter_IHC;
+
+// Loop over the IHCal clusters
+for (clusIter_IHC = begin_end_IHC.first; clusIter_IHC != begin_end_IHC.second; ++clusIter_IHC)
+{
+
+// Minimum energy cut
+cluster = clusIter_IHC->second;
+if(cluster->get_energy() < m_ihcal_e_low_cut)
+{
+continue;
+}
+
+std::cout << "Found a cluster about threshhold energy!" << std::endl;
+
+// Get cluster information
+_ihcal_phi = atan2(cluster->get_y(), cluster->get_x());
+_ihcal_eta = asinh(cluster->get_z()/sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y()));
+_ihcal_x = cluster->get_x();
+_ihcal_y = cluster->get_y();
+radius_scale = m_ihcal_radius_user / sqrt(_ihcal_x*_ihcal_x+_ihcal_y*_ihcal_y);
+_ihcal_z = radius_scale*cluster->get_z();
+// _ihcal_3x3 = get_e3x3(cluster, _towersIH, 0); //1 for ihcal
+// _ihcal_5x5 = get_e5x5(cluster, _towersIH, 0); //1 for ihcal
+_ihcal_3x3 = NAN;
+_ihcal_5x5 = NAN;
+_ihcal_clusE = cluster->get_energy();
+
+
+// Variables to determine potential matches
+float dphi = abs(PiRange(_track_phi_ihc - _ihcal_phi));
+float dz = abs(_track_z_ihc - _ihcal_z);
+float deta = abs(_ihcal_eta - _track_eta_ihc);
+float dr = sqrt((dphi*dphi + deta*deta));
+
+// Requirements for a possible match
+if(dphi<m_dphi_cut && dz<m_dz_cut)
+{
+//Add potential match's information to vectors
+v_ihcal_phi.push_back(_ihcal_phi);
+v_ihcal_eta.push_back(_ihcal_eta);
+v_ihcal_x.push_back(_ihcal_x);
+v_ihcal_y.push_back(_ihcal_y);
+v_ihcal_z.push_back(_ihcal_z);
+v_ihcal_dphi.push_back(dphi);
+v_ihcal_deta.push_back(deta);
+v_ihcal_dr.push_back(dr);
+v_ihcal_3x3.push_back(_ihcal_3x3);
+v_ihcal_clusE.push_back(_ihcal_clusE);
+
+is_match = true;
+}
+}
+
+// Find the closest match from all potential matches
+if (is_match == true)
+{
+float tmp = 99999;
+for(long unsigned int i = 0; i < v_ihcal_dr.size(); i++){
+if(v_ihcal_dr[i] < tmp){
+index = i;
+tmp = v_ihcal_dr[i];
+}
+}
+}
+}
+
+// Print out statihents
+if(index != -1){
+std::cout<<"matched tracks!!!"<<std::endl;
+std::cout<<"ihcal x = "<<v_ihcal_x[index]<<" , y = "<<v_ihcal_y[index]<<" , z = "<<v_ihcal_z[index]<<" , phi = "<<v_ihcal_phi[index]<<" , eta = "<<v_ihcal_eta[index]<<std::endl;
+std::cout<<"track projected x = "<<_track_x_ihc<<" , y = "<<_track_y_ihc<<" , z = "<<_track_z_ihc<<" , phi = "<<_track_phi_ihc<<" , eta = "<<_track_eta_ihc<<std::endl;
+std::cout<<"track px = "<<track->get_px()<<" , py = "<<track->get_py()<<" , pz = "<<track->get_pz()<<" , pt = "<<track->get_pt()<<" , p = "<<track->get_p()<<" , charge = "<<track->get_charge()<<std::endl;
+}
+*/
+
+// Save values to the branches!
+// if(index == -1){
+detector_ihcal_deltaphi[daughter_id] = NAN;
+detector_ihcal_deltaeta[daughter_id] = NAN;
+detector_ihcal_energy_3x3[daughter_id] = NAN;
+detector_ihcal_energy_5x5[daughter_id] = NAN;
+detector_ihcal_cluster_energy[daughter_id] = NAN;
+// }
+// else{
+// detector_ihcal_deltaphi[daughter_id] = v_ihcal_dphi[index];
+// detector_ihcal_deltaeta[daughter_id] = v_ihcal_deta[index];
+// detector_ihcal_energy_3x3[daughter_id] = NAN;
+// detector_ihcal_energy_5x5[daughter_id] = NAN;
+// detector_ihcal_cluster_energy[daughter_id] = v_ihcal_clusE[index];
+// }
+
+
+// std::cout << "IHCAL CLLUSTERS MATCHED TO TRACK" << std::endl;
+
+//OUTER
+
+// std::cout << "Starting OHCAL-track matching!" << std::endl;
+
+/*
+
+// Track projection
+thisState = nullptr;
+thisState = track->get_state(caloRadiusOHCal);
+float _track_phi_ohc = NAN;
+float _track_eta_ohc = NAN;
+float _track_x_ohc = NAN;
+float _track_y_ohc = NAN;
+float _track_z_ohc = NAN;
+
+// OHCal variables and vectors
+float _ohcal_phi = NAN;
+float _ohcal_eta = NAN;
+float _ohcal_x = NAN;
+float _ohcal_y = NAN;
+float _ohcal_z = NAN;
+float _ohcal_3x3 = NAN;
+//float _ohcal_5x5 = NAN;
+float _ohcal_clusE = NAN;
+radius_scale = NAN;
+std::vector<float> v_ohcal_phi;
+std::vector<float> v_ohcal_eta;
+std::vector<float> v_ohcal_x;
+std::vector<float> v_ohcal_y;
+std::vector<float> v_ohcal_z;
+std::vector<float> v_ohcal_dphi;
+std::vector<float> v_ohcal_deta;
+std::vector<float> v_ohcal_dr;
+std::vector<float> v_ohcal_3x3;
+//std::vector<float> v_ohcal_5x5;
+std::vector<float> v_ohcal_clusE;
+
+// Reset variables for matching
+is_match = false;
+index = -1;
+
+if(thisState != nullptr)
+{
+_track_phi_ohc = atan2(thisState->get_y(), thisState->get_x());
+_track_eta_ohc = asinh(thisState->get_z()/sqrt(thisState->get_x()*thisState->get_x() + thisState->get_y()*thisState->get_y()));
+_track_x_ohc = thisState->get_x();
+_track_y_ohc = thisState->get_y();
+_track_z_ohc = thisState->get_z();
+
+
+// Create objects, containers, iterators for clusters
+cluster = nullptr;
+RawClusterContainer::Range begin_end_OHC = clustersOH->getClusters();
+RawClusterContainer::Iterator clusIter_OHC;
+
+// Loop over the OHCal clusters
+for (clusIter_OHC = begin_end_OHC.first; clusIter_OHC != begin_end_OHC.second; ++clusIter_OHC)
+{
+
+// Minimum energy cut
+cluster = clusIter_OHC->second;
+if(cluster->get_energy() < m_ohcal_e_low_cut)
+{
+continue;
+}
+
+// Get cluster information
+_ohcal_phi = atan2(cluster->get_y(), cluster->get_x());
+_ohcal_eta = asinh(cluster->get_z()/sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y()));
+_ohcal_x = cluster->get_x();
+_ohcal_y = cluster->get_y();
+radius_scale = m_ohcal_radius_user / sqrt(_ohcal_x*_ohcal_x+_ohcal_y*_ohcal_y);
+_ohcal_z = radius_scale*cluster->get_z();
+// _ohcal_3x3 = get_e3x3(cluster, _towersOH, 0); //2 for ohcal
+// _ohcal_5x5 = get_e5x5(cluster, _towersOH, 0); //2 for ohcal
+_ohcal_3x3 = NAN;
+_ohcal_5x5 = NAN;
+_ohcal_clusE = cluster->get_energy();
+
+// Variables to determine potential matches
+float dphi = abs(PiRange(_track_phi_ohc - _ohcal_phi));
+float dz = abs(_track_z_ohc - _ohcal_z);
+float deta = abs(_ohcal_eta - _track_eta_ohc);
+float dr = sqrt((dphi*dphi + deta*deta));
+
+// Requirohents for a possible match
+if(dphi<m_dphi_cut && dz<m_dz_cut)
+{
+//Add potential match's information to vectors
+v_ohcal_phi.push_back(_ohcal_phi);
+v_ohcal_eta.push_back(_ohcal_eta);
+v_ohcal_x.push_back(_ohcal_x);
+v_ohcal_y.push_back(_ohcal_y);
+v_ohcal_z.push_back(_ohcal_z);
+v_ohcal_dphi.push_back(dphi);
+v_ohcal_deta.push_back(deta);
+v_ohcal_dr.push_back(dr);
+v_ohcal_3x3.push_back(_ohcal_3x3);
+v_ohcal_clusE.push_back(_ohcal_clusE);
+
+is_match = true;
+}
+}
+
+
+// Find the closest match from all potential matches
+if (is_match == true)
+{
+float tmp = 99999;
+for(long unsigned int i = 0; i < v_ohcal_dr.size(); i++){
+if(v_ohcal_dr[i] < tmp){
+index = i;
+tmp = v_ohcal_dr[i];
+}
+}
+}
+}
+
+std::cout << "match identified" << std::endl;
+
+// Print out statements
+if(index != -1){
+std::cout<<"matched tracks!!!"<<std::endl;
+std::cout<<"ohcal x = "<<v_ohcal_x[index]<<" , y = "<<v_ohcal_y[index]<<" , z = "<<v_ohcal_z[index]<<" , phi = "<<v_ohcal_phi[index]<<" , eta = "<<v_ohcal_eta[index]<<std::endl;
+std::cout<<"track projected x = "<<_track_x_ohc<<" , y = "<<_track_y_ohc<<" , z = "<<_track_z_ohc<<" , phi = "<<_track_phi_ohc<<" , eta = "<<_track_eta_ohc<<std::endl;
+std::cout<<"track px = "<<track->get_px()<<" , py = "<<track->get_py()<<" , pz = "<<track->get_pz()<<" , pt = "<<track->get_pt()<<" , p = "<<track->get_p()<<" , charge = "<<track->get_charge()<<std::endl;
+}
+*/
+
+// Save values to the branches!
+// if(index == -1){
+detector_ohcal_deltaphi[daughter_id] = NAN;
+detector_ohcal_deltaeta[daughter_id] = NAN;
+detector_ohcal_energy_3x3[daughter_id] = NAN;
+detector_ohcal_energy_5x5[daughter_id] = NAN;
+detector_ohcal_cluster_energy[daughter_id] = NAN;
+// }
+// else{
+// detector_ohcal_deltaphi[daughter_id] = v_ohcal_dphi[index];
+// detector_ohcal_deltaeta[daughter_id] = v_ohcal_deta[index];
+// detector_ohcal_energy_3x3[daughter_id] = NAN;
+// detector_ohcal_energy_5x5[daughter_id] = NAN;
+// detector_ohcal_cluster_energy[daughter_id] = v_ohcal_clusE[index];
+// }
+// std::cout << "OHCAL CLLUSTERS MATCHED TO TRACK" << std::endl;
+
 }
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
@@ -607,6 +1154,8 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
                                                      TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
   PHNodeIterator nodeIter(topNode);
+
+  std::cout << "Starting to run KFParticle_truthAndDetTools::fillDetectorBranch." << std::endl;
 
   PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(m_trk_map_node_name_nTuple));
   if (findNode)
@@ -730,23 +1279,28 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
       residual_z[daughter_id].push_back(global.z() - tstate->get_z());
 
       uint8_t id = TrkrDefs::getTrkrId(stateckey);
-    
+      std::cout << "The ID is " << unsigned(id) << std::endl;
+
       switch (id)
       {
         case TrkrDefs::mvtxId:
           ++detector_nStates_MVTX[daughter_id];
+          // std::cout <<"MVTX is good" << std::endl;
           break;
         case TrkrDefs::inttId:
           ++detector_nStates_INTT[daughter_id];
+          // std::cout <<"INTT is good" << std::endl;
           break;
         case TrkrDefs::tpcId:
           ++detector_nStates_TPC[daughter_id];
+          // std::cout <<"TPC is good" << std::endl;
           break;
         case TrkrDefs::micromegasId:
           ++detector_nStates_TPOT[daughter_id];
+          // std::cout <<"TPOT is good" << std::endl;
           break;
         default:
-         std::cout << "Cluster key doesnt match a tracking system, this shouldn't happen" << std::endl;
+        //  std::cout << "Cluster key doesnt match a tracking system, this shouldn't happen" << std::endl;
          break; 
       }
     }
