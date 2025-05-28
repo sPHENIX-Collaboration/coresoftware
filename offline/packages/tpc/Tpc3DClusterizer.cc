@@ -266,7 +266,23 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
       if (adc <= 0){
 	continue;
       }
-      
+      if(layer>=7+32){
+	if(side==1)continue;
+	if(abs(iphi-0)<=2) continue;
+	if(abs(iphi-191)<=2) continue;
+	if(abs(iphi-206)<=1) continue;
+	if(abs(iphi-383)<=2) continue;
+	if(abs(iphi-576)<=2) continue;
+	if(abs(iphi-767)<=2) continue;
+	if(abs(iphi-960)<=2) continue;
+	if(abs(iphi-1522)<=2) continue;
+	if(abs(iphi-1344)<=2) continue;
+	if(abs(iphi-1536)<=2) continue;
+	if(abs(iphi-1728)<=2) continue;
+	if(abs(iphi-1920)<=2) continue;
+	if(abs(iphi-2111)<=2) continue;
+	if(abs(iphi-2303)<=2) continue;
+      }
 
       /*
       double phi = layergeom->get_phi(iphi);
@@ -380,7 +396,8 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
     std::cout << "erasing time: " << t_erase->get_accumulated_time() / 1000. << " sec" << std::endl;
     std::cout << "total time: " << t_all->get_accumulated_time() / 1000. << " sec" << std::endl;
   }
-  
+
+  std::cout << " not enough clusters in _nevent: " << m_clusterlist->size() << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -545,7 +562,8 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
     m_currentCluster = (LaserCluster *) clus->CloneMe();
     m_eventClusters.push_back((LaserCluster *) m_currentCluster->CloneMe());
   }
-  if(nHits>1&&tsize>5){
+  //  if(nHits>1&&tsize>5){
+  if(nHits>=1){
     const auto ckey = TrkrDefs::genClusKey(maxKey, m_clusterlist->size());
     m_clusterlist->addClusterSpecifyKey(ckey, clus);
   } else {
