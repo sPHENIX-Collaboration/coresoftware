@@ -19,6 +19,7 @@
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TTree.h>
+#include <TTreeCache.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -365,7 +366,6 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
               << TreeName << " not found in file " << file->GetName() << std::endl;
     return nullptr;
   }
-
   // ROOT sucks, we need a unique name for the tree so we can open multiple
   // files. So we take the memory location of the file pointer which
   // should be unique within this process to create it
@@ -603,4 +603,13 @@ bool PHNodeIOManager::NodeExist(const std::string& nodename)
     }
   }
   return false;
+}
+
+void PHNodeIOManager::DisableReadCache()
+{
+  if (file)
+  {
+    file->SetCacheRead(nullptr);
+  }
+  return;
 }
