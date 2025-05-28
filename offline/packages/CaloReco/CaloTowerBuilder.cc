@@ -140,15 +140,15 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
       
     m_calibName = "SEPD_CHANNELMAP2";
     m_fieldname = "epd_channel_map2";
-      
+        
     calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
     if (calibdir.empty())
     {
-       std::cout << PHWHERE << "No sEPD mapping file for domain " << m_calibName << " found" << std::endl;
-       exit(1);
+        std::cout << PHWHERE << "No sEPD mapping file for domain " << m_calibName << " found" << std::endl;
+         exit(1);
     }
-      
+        
     cdbttree_sepd_map = new CDBTTree(calibdir);
 
   }
@@ -450,7 +450,6 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   }
   if (waveforms.empty())
   {
-    std::cout << Name() << ": empty waveform" << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
   // waveform vector is filled here, now fill our output. methods from the base class make sure
@@ -459,89 +458,51 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   int n_channels = processed_waveforms.size();
   for (int i = 0; i < n_channels; i++)
   {
-    TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
-      
-    //for sEPD put processed waveforms as installed
+    int idx = i;
+    //Align sEPD ADC channels to TowerInfoContainer
     if (m_dettype == CaloTowerDefs::SEPD)
     {
-        int idx = cdbttree_sepd_map->GetIntValue(i, m_fieldname);
-        towerinfo->set_time(processed_waveforms.at(idx).at(1));
-        towerinfo->set_energy(processed_waveforms.at(idx).at(0));
-        towerinfo->set_time_float(processed_waveforms.at(idx).at(1));
-        towerinfo->set_pedestal(processed_waveforms.at(idx).at(2));
-        towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
-        bool SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));
-        if (processed_waveforms.at(idx).at(4) == 0)
-        {
-            towerinfo->set_isRecovered(false);
-        }
-        else
-        {
-            towerinfo->set_isRecovered(true);
-        }
-        int n_samples = waveforms.at(idx).size();
-        if (n_samples == m_nzerosuppsamples || SZS)
-        {
-            if (waveforms.at(idx).at(0) == 0)
-            {
-                towerinfo->set_isNotInstr(true);
-            }
-            else
-            {
-                towerinfo->set_isZS(true);
-            }
-        }
-        
-        for (int j = 0; j < n_samples; j++)
-        {
-            if (std::round(waveforms.at(idx).at(j)) >= m_saturation)
-            {
-                towerinfo->set_isSaturated(true);
-            }
-            towerinfo->set_waveform_value(j, waveforms.at(idx).at(j));
-        }
+        idx = cdbttree_sepd_map->GetIntValue(i, m_fieldname);
+    }
+    TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
+    towerinfo->set_time(processed_waveforms.at(idx).at(1));
+    towerinfo->set_energy(processed_waveforms.at(idx).at(0));
+    towerinfo->set_time_float(processed_waveforms.at(idx).at(1));
+    towerinfo->set_pedestal(processed_waveforms.at(idx).at(2));
+    towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
+    bool SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));
+    if (processed_waveforms.at(idx).at(4) == 0)
+    {
+      towerinfo->set_isRecovered(false);
     }
     else
     {
-	    towerinfo->set_time(processed_waveforms.at(i).at(1));
-        towerinfo->set_energy(processed_waveforms.at(i).at(0));
-        towerinfo->set_time_float(processed_waveforms.at(i).at(1));
-        towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
-        towerinfo->set_chi2(processed_waveforms.at(i).at(3));
-        bool SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
-        if (processed_waveforms.at(i).at(4) == 0)
-        {
-          towerinfo->set_isRecovered(false);
-        }
-        else
-        {
-          towerinfo->set_isRecovered(true);
-        }
-        int n_samples = waveforms.at(i).size();
-        if (n_samples == m_nzerosuppsamples || SZS)
-        {
-          if (waveforms.at(i).at(0) == 0)
-          {
-            towerinfo->set_isNotInstr(true);
-          }
-          else
-          {
-            towerinfo->set_isZS(true);
-          }
-        }
+      towerinfo->set_isRecovered(true);
+    }
+    int n_samples = waveforms.at(idx).size();
+    if (n_samples == m_nzerosuppsamples || SZS)
+    {
+      if (waveforms.at(idx).at(0) == 0)
+      {
+        towerinfo->set_isNotInstr(true);
+      }
+      else
+      {
+        towerinfo->set_isZS(true);
+      }
+    }
 
-        for (int j = 0; j < n_samples; j++)
-        {
-          if (std::round(waveforms.at(i).at(j)) >= m_saturation)
-          {
-            towerinfo->set_isSaturated(true);
-          }
-          towerinfo->set_waveform_value(j, waveforms.at(i).at(j));
-        }
+    for (int j = 0; j < n_samples; j++)
+    {
+      if (std::round(waveforms.at(idx).at(j)) >= m_saturation)
+      {
+        towerinfo->set_isSaturated(true);
+      }
+      towerinfo->set_waveform_value(j, waveforms.at(idx).at(j));
     }
   }
- 
   waveforms.clear();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
