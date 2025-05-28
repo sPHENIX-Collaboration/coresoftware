@@ -23,7 +23,8 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
+//#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -1013,7 +1014,10 @@ void PHActsTrkFitter::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::I
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
-  SvtxTrackState_v1 out(pathlength);
+  //  SvtxTrackState_v1 out(pathlength);
+  SvtxTrackState_v3 out(pathlength);
+  out.set_localX(0.0);
+  out.set_localY(0.0);
   out.set_x(0.0);
   out.set_y(0.0);
   out.set_z(0.0);
