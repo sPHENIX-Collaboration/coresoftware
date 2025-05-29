@@ -149,6 +149,13 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_zsURL;
   std::string m_zs_fieldname{"zs_threshold"};
 
+  int m_sepd_channels{744};
+  bool m_sepd_map_initialized{false};
+  std::vector<unsigned int> m_sepd_key_vec;
+  std::vector<int> m_sepd_channel_map;
+  void InitializeSEPDMapping();
+  int GetSEPDChannelNumber(int packet_channel);
+
 
 };
 

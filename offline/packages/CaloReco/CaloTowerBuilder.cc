@@ -2,6 +2,7 @@
 #include "CaloTowerDefs.h"
 
 #include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoDefs.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerSimv1.h>
 #include <calobase/TowerInfoContainerSimv2.h>
@@ -137,6 +138,7 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
     }
+    InitializeSEPDMapping();
   }
   else if (m_dettype == CaloTowerDefs::ZDC)
   {
@@ -277,6 +279,17 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
     }
     event = _event;
   }
+
+  //pre-allocate sEPD waveforms
+  if (m_dettype == CaloTowerDefs::SEPD) {
+    waveforms.resize(m_sepd_channels);
+
+    for (int i = 0; i < m_sepd_channels; i++) {
+      waveforms[i] = std::vector<float>(m_nzerosuppsamples,0);
+    }
+  }
+
+
   // since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
   auto process_packet = [&](auto *packet, int pid)
   {
@@ -341,7 +354,21 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
             waveform.push_back(packet->iValue(samp, channel));
           }
         }
-        waveforms.push_back(waveform);
+
+        //sEPD channel mapping
+        if (m_dettype == CaloTowerDefs::SEPD) {
+          int packet_channel = (pid - m_packet_low) * m_nchannels + channel;
+          int tower_index = GetSEPDChannelNumber(packet_channel);
+
+          if (tower_index >= 0 && tower_index < m_sepd_channels) {
+            waveforms[tower_index] = waveform;
+          } else if (tower_index >= 0) {
+            std::cout << "ERROR: sEPD tower index " << tower_index 
+                      << " out of range [0," << m_sepd_channels << ")" << std::endl;
+          }
+        } else{
+          waveforms.push_back(waveform);
+        }
         waveform.clear();
       }
 
@@ -353,14 +380,19 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
           {
             continue;
           }
-          std::vector<float> waveform;
-          waveform.reserve(m_nsamples);
+          
+          std::vector<float> waveform(m_nzerosuppsamples,0);
 
-          for (int samp = 0; samp < m_nzerosuppsamples; samp++)
-          {
-            waveform.push_back(0);
+          if (m_dettype == CaloTowerDefs::SEPD) {
+            int packet_channel = (pid - m_packet_low) * m_nchannels + channel;
+            int tower_index = GetSEPDChannelNumber(packet_channel);
+
+            if (tower_index >= 0 && tower_index < m_sepd_channels){
+              waveforms[tower_index] = waveform;
+            }
+          } else {
+            waveforms.push_back(waveform);
           }
-          waveforms.push_back(waveform);
           waveform.clear();
         }
       }
@@ -379,7 +411,18 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
         {
           waveform.push_back(0);
         }
-        waveforms.push_back(waveform);
+
+        if (m_dettype == CaloTowerDefs::SEPD){
+          int packet_channel = (pid - m_packet_low) * m_nchannels + channel;
+          int tower_index = GetSEPDChannelNumber(packet_channel);
+          
+          if (tower_index >= 0 && tower_index < m_sepd_channels) 
+          {
+            waveforms[tower_index] = waveform;
+          }
+        } else {
+          waveforms.push_back(waveform);
+        }
         waveform.clear();
       }
     }
@@ -419,6 +462,13 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       }
     }
   }
+
+  if (m_dettype == CaloTowerDefs::SEPD && waveforms.size() != (unsigned int)m_sepd_channels)
+  {
+    std::cout << "WARNING: sEPD waveform count mismatch. Expected " 
+              << m_sepd_channels << ", got " << waveforms.size() << std::endl;
+  }
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -623,4 +673,67 @@ void CaloTowerBuilder::CreateNodeTree(PHCompositeNode *topNode)
   TowerNodeName = m_outputNodePrefix + m_detector;
   PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloInfoContainer, TowerNodeName, "PHObject");
   DetNode->addNode(newTowerNode);
+}
+
+void CaloTowerBuilder::InitializeSEPDMapping() {
+  if (m_sepd_map_initialized) return;
+
+  std::cout << "CaloTowerBuilder::InitializeSEPDMapping - Initializing sEPD mapping" << std::endl;
+
+  static const std::string sEPDMapName = "SEPD_CHANNELMAP";
+  static const std::string sEPDFieldName = "epd_channel_map";
+
+  std::string calibFile = CDBInterface::instance()->getUrl(sEPDMapName);
+  if (calibFile.empty()) {
+    std::cerr << "CaloTowerBuilder::InitializeSEPDMapping - No sEPD mapping file for domain "
+    << sEPDMapName << " found - aborting" << std::endl;
+    exit(1);
+  }
+
+  CDBTTree* sepd_cdbttree = new CDBTTree(calibFile);
+
+  m_sepd_key_vec.clear();
+  m_sepd_channel_map.clear();
+  m_sepd_channel_map.resize(768,-1);
+
+  for (int ch = 0; ch < 768; ch++) {
+    int mapped_idx = sepd_cdbttree->GetIntValue(ch,sEPDFieldName);
+
+    if (mapped_idx == 999) {
+      continue; //24 channels will remain mapped to -1
+    }
+
+    unsigned int key = TowerInfoDefs::encode_epd(mapped_idx);
+
+    m_sepd_key_vec.push_back(key);
+
+    m_sepd_channel_map[ch] = mapped_idx;
+  }
+
+  delete sepd_cdbttree;
+
+  m_sepd_map_initialized = true;
+
+  std::cout << "CaloTowerBuilder::InitializeSEPDMapping - Initialized mapping with " 
+            << m_sepd_key_vec.size() << " channels" << std::endl;
+
+
+
+}
+
+
+int CaloTowerBuilder::GetSEPDChannelNumber(int packet_channel) 
+{
+  if (!m_sepd_map_initialized) 
+  {
+    std::cerr << "ERROR: sEPD mapping not initialized!" << std::endl;
+    return -1;
+  }
+
+  if (packet_channel < 0 || packet_channel >= (int)m_sepd_channel_map.size()) 
+  {
+    return -1;  // Invalid channels are expected (24 unmapped channels)
+  }
+
+  return m_sepd_channel_map[packet_channel];
 }
