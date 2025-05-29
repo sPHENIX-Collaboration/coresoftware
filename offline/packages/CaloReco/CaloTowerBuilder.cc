@@ -694,9 +694,9 @@ void CaloTowerBuilder::InitializeSEPDMapping() {
 
   m_sepd_key_vec.clear();
   m_sepd_channel_map.clear();
-  m_sepd_channel_map.resize(768,-1);
+  m_sepd_channel_map.resize(m_sepd_channels,-1);
 
-  for (int ch = 0; ch < 768; ch++) {
+  for (int ch = 0; ch < m_sepd_channels; ch++) {
     int mapped_idx = sepd_cdbttree->GetIntValue(ch,sEPDFieldName);
 
     if (mapped_idx == 999) {
