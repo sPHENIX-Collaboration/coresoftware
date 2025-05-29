@@ -216,8 +216,8 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
           {
             TowerInfo *_tower = epd_towerinfo->get_tower_at_channel(ch);
             float epd_e = _tower->get_energy();
-            float epd_time = _tower->get_time_float();
-            if (epd_time != 20.) // exclude ZS
+            bool isZS = _tower->get_isZS();
+            if (!isZS) // exclude ZS
             {
                 unsigned int key = TowerInfoDefs::encode_epd(ch);
                 int arm = TowerInfoDefs::get_epd_arm(key);
@@ -242,8 +242,8 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
              for (unsigned int ch = 0; ch < ntowers; ch++) {
                TowerInfo *_tower = epd_towerinfo->get_tower_at_channel(ch);
                float epd_e = _tower->get_energy();
-               float epd_time = _tower->get_time_float();
-               if (epd_time != 20.) // exclude ZS
+               bool isZS = _tower->get_isZS();
+               if (!isZS) // exclude ZS
                {
                  if (epd_e < 0.2) // expecting Nmips
                  {
