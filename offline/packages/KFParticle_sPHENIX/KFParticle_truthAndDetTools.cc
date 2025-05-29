@@ -1,5 +1,4 @@
 #include "KFParticle_truthAndDetTools.h"
-
 #include "KFParticle_Tools.h"  // for KFParticle_Tools
 
 #include <g4eval/SvtxEvalStack.h>   // for SvtxEvalStack
