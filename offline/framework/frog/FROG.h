@@ -18,7 +18,7 @@ class FROG
   virtual ~FROG() = default;
 
   const char *location(const std::string &logical_name);
-  bool localSearch(const std::string &lname);
+  bool localSearch(const std::string &logical_name);
   bool dCacheSearch(const std::string &lname);
   bool XRootDSearch(const std::string &lname);
   bool LustreSearch(const std::string &lname);
