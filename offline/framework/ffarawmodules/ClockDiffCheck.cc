@@ -35,40 +35,33 @@ int ClockDiffCheck::InitRun(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << "Could not find DST Node" << std::endl;
+    std::cout << "ClockDiffCheck: " << "Could not find DST Node" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
   PHNodeIterator iterDst(dstNode);
   PHCompositeNode *pktNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "Packets"));
-  if (!pktNode)  // old combined packet containers
+  PHCompositeNode *pktKeepNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", "PacketsKeep"));
+  if (pktNode)  // old combined packet containers
   {
-    std::cout << "Could not find Packets Node" << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
+    PHNodeIterator iterPkt(pktNode);
+    PHPointerListIterator<PHNode> nodeIter(iterPkt.ls());
+    PHNode *thisNode;
+    while ((thisNode = nodeIter()))
+    {
+      m_PacketNodeNames.push_back(thisNode->getName());
+    }
   }
-  PHNodeIterator iterPkt(pktNode);
-  PHPointerListIterator<PHNode> nodeIter(iterPkt.ls());
-  PHNode *thisNode;
-  while ((thisNode = nodeIter()))
+  if (pktKeepNode)  // old combined packet containers
   {
-    m_PacketNodeNames.push_back(thisNode->getName());
+    PHNodeIterator iterPkt(pktKeepNode);
+    PHPointerListIterator<PHNode> nodeIter(iterPkt.ls());
+    PHNode *thisNode;
+    while ((thisNode = nodeIter()))
+    {
+      m_PacketNodeNames.push_back(thisNode->getName());
+    }
   }
-  //  topNode->print();
-  // PHNodeIterator iterPkt(pktNode);
-  // PHPointerList<PHNode> myList = iterPkt.ls();
-  //  PHPointerListIterator<PHNode> pktiter(myList);
-  // pktiter.Begin();
-  //   PHNode* thisNode;
-  // while ((thisNode = iterPkt()))
-  // {
-  //   std::cout << "node " << thisNode->getName() << std::endl;
-  // }
-  //  PHPointerList<PHNode> myNodes = iterPkt.ls();
-
-  // for (auto iter : m_PacketNodeNames)
-  // {
-  //   std::cout << "node: " << iter << std::endl;
-  // }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -77,22 +70,17 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 {
   //  PHNodeIterator
   PHNodeIterator topnodeiter(topNode);
-  PHCompositeNode *pktNode = dynamic_cast<PHCompositeNode *>(topnodeiter.findFirst("PHCompositeNode", "Packets"));
-
   for (auto &iter : m_PacketStuffMap)
   {
     std::get<0>(iter.second) = std::get<1>(iter.second);
     std::get<4>(iter.second) = false;
   }
-  if (pktNode)
+  OfflinePacket *pkt = findNode::getClass<OfflinePacket>(topNode, 14001);
+  if (pkt)
   {
-    OfflinePacket *pkt = findNode::getClass<OfflinePacket>(pktNode, 14001);
-    if (pkt)
-    {
-      FillPacketDiff(pkt);
-    }
+    FillPacketDiff(pkt);
   }
-  OfflinePacket *pkt = findNode::getClass<OfflinePacket>(topNode, "GL1Packet");
+  pkt = findNode::getClass<OfflinePacket>(topNode, "GL1Packet");
   if (pkt)
   {
     FillPacketDiff(pkt);
@@ -104,7 +92,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     CaloPacketContainer *cemccont = findNode::getClass<CaloPacketContainer>(topNode, iter);
     if (!cemccont)
     {
-      //      std::cout << "could not find " << iter << " node" << std::endl;
+      //      std::cout << "ClockDiffCheck: " << "could not find " << iter << " node" << std::endl;
     }
     else
     {
@@ -114,10 +102,10 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 
   for (const auto &iter : m_PacketNodeNames)
   {
-    CaloPacket *calopacket = findNode::getClass<CaloPacket>(pktNode, iter);
+    CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
     if (!calopacket)
     {
-      //      std::cout << "could not find " << iter << " node" << std::endl;
+      //      std::cout << "ClockDiffCheck: " << "could not find " << iter << " node" << std::endl;
     }
     else
     {
@@ -142,7 +130,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() > 2)
       {
-        std::cout << "looking at " << iter.first
+        std::cout << "ClockDiffCheck: " << "looking at " << iter.first
                   << ", prev bco: " << std::hex << std::get<0>(iter.second)
                   << ", curr bco: " << std::get<1>(iter.second)
                   << ", clkdiff: " << std::get<2>(iter.second) << std::dec
@@ -164,7 +152,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
             std::bitset<32> y0(std::get<0>(iter.second));
             std::bitset<32> y1(std::get<1>(iter.second));
             std::bitset<32> y2(std::get<2>(iter.second));
-            std::cout << "packet " << iter.first << " had different clock diff: 0x" << std::hex
+            std::cout << "ClockDiffCheck: " << "packet " << iter.first << " had different clock diff: 0x" << std::hex
                       << std::get<1>(iter.second) << ", ref diff: 0x" << refdiff << std::dec << std::endl;
 
             std::cout << "reff: " << x << std::endl;
@@ -197,7 +185,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
           {
             if (Verbosity() > 1)
             {
-              std::cout << "Dropping packet " << container->getPacket(i)->getIdentifier() << " for XMIT clock mismatch" << std::endl;
+              std::cout << "ClockDiffCheck: " << "Dropping packet " << container->getPacket(i)->getIdentifier() << " for XMIT clock mismatch" << std::endl;
             }
             container->deletePacket(container->getPacket(i));
             break;
@@ -261,14 +249,14 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
               static int icnt = 0;
               if (icnt < 1000)
               {
-                std::cout << "found different FEM clock for packet " << packet->getIdentifier() << std::endl;
+                std::cout << "ClockDiffCheck: " << "found different FEM clock for packet " << packet->getIdentifier() << std::endl;
                 icnt++;
               }
               if (delBadPkts)
               {
                 if (Verbosity() > 1)
                 {
-                  std::cout << "deleting packet " << packet->getIdentifier()
+                  std::cout << "ClockDiffCheck: " << "deleting packet " << packet->getIdentifier()
                             << " with fem clock mismatch" << std::endl;
                 }
                 container->deletePacket(packet);
@@ -282,7 +270,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
   }
   for (const auto &iter : m_PacketNodeNames)
   {
-    CaloPacket *calopacket = findNode::getClass<CaloPacket>(pktNode, iter);
+    CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
     if (!calopacket)
     {
       continue;
@@ -297,7 +285,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
           static int icnt = 0;
           if (icnt < 1000)
           {
-            std::cout << "Dropping packet " << calopacket->getIdentifier() << " for XMIT clock mismatch" << std::endl;
+            std::cout << "ClockDiffCheck: " << "Dropping packet " << calopacket->getIdentifier() << " for XMIT clock mismatch" << std::endl;
             icnt++;
           }
           calopacket->Reset();
@@ -310,8 +298,8 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() > 1)
       {
-	std::cout << "resetting packet " << calopacket->getIdentifier()
-		  << " with fem event and clock mismatch" << std::endl;
+        std::cout << "ClockDiffCheck: " << "resetting packet " << calopacket->getIdentifier()
+                  << " with fem event and clock mismatch" << std::endl;
       }
       calopacket->Reset();
     }
@@ -339,7 +327,7 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
     m_PacketStuffMap[packetid] = std::make_tuple(std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), h1, false);
     if (Verbosity() > 3)
     {
-      std::cout << "Add tuple for " << packetid << std::endl;
+      std::cout << "ClockDiffCheck: " << "Add tuple for " << packetid << std::endl;
       auto &pktiter = m_PacketStuffMap[packetid];
       std::cout << PHWHERE << "packet init " << packetid << std::hex
                 << ", clk: " << std::get<1>(pktiter)
@@ -367,7 +355,7 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
     }
     if (Verbosity() > 2)
     {
-      std::cout << "packet " << packetid << ", clk: " << std::hex << clk
+      std::cout << "ClockDiffCheck: " << "packet " << packetid << ", clk: " << std::hex << clk
                 << ", clk(tup): " << std::get<1>(pktiter) << ", diff: " << clkdiff
                 << ", diff(tup): " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
                 << std::endl;
@@ -386,7 +374,7 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
     m_PacketStuffMap[packetid] = std::make_tuple(std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), h1, false);
     if (Verbosity() > 3)
     {
-      std::cout << "Add tuple for " << packetid << std::endl;
+      std::cout << "ClockDiffCheck: " << "Add tuple for " << packetid << std::endl;
     }
   }
   else
@@ -407,7 +395,7 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
     std::get<4>(pktiter) = true;
     if (Verbosity() > 2)
     {
-      std::cout << "packet " << packetid << ", clk: " << std::hex << clk
+      std::cout << "ClockDiffCheck: " << "packet " << packetid << ", clk: " << std::hex << clk
                 << ", clk(tup): " << std::get<1>(pktiter) << ", diff: " << clkdiff
                 << ", diff(tup): " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
                 << std::endl;
@@ -417,64 +405,63 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
 
 bool ClockDiffCheck::CheckFemEventNr(CaloPacket *calopkt)
 {
-    int nrModules = calopkt->iValue(0, "NRMODULES");
-    std::set<int> EventNoSet;
+  int nrModules = calopkt->iValue(0, "NRMODULES");
+  std::set<int> EventNoSet;
+  for (int j = 0; j < nrModules; j++)
+  {
+    if (calopkt->getFemStatus(j) == CaloPacket::FEM_OK)
+    {
+      EventNoSet.insert(calopkt->iValue(j, "FEMEVTNR"));
+    }
+  }
+  if (EventNoSet.size() > 1)
+  {
+    // at least one packet (6024) has a stuck bit in the fem event nr, check fem clock counter in this case
+    // if they are identical FEM is good (not checked if the FEM clock is stuck though)
+    std::set<int> FemClockSet;
     for (int j = 0; j < nrModules; j++)
     {
-      if (calopkt->getFemStatus(j) == CaloPacket::FEM_OK)
-      {
-	EventNoSet.insert(calopkt->iValue(j, "FEMEVTNR"));
-      }
+      FemClockSet.insert(calopkt->iValue(j, "FEMCLOCK"));
     }
-    if (EventNoSet.size() > 1)
+    if (FemClockSet.size() == 1)
     {
-      // at least one packet (6024) has a stuck bit in the fem event nr, check fem clock counter in this case
-      // if they are identical FEM is good (not checked if the FEM clock is stuck though)
-      std::set<int> FemClockSet;
-      for (int j = 0; j < nrModules; j++)
+      static int icnt = 0;
+      if (icnt < 100)
       {
-	FemClockSet.insert(calopkt->iValue(j, "FEMCLOCK"));
-      }
-      if (FemClockSet.size() == 1)
-      {
-	static int icnt = 0;
-	if (icnt < 100)
-	{
-	  icnt++;
-	  std::cout << "clk check Packet "  << calopkt->getIdentifier() << " has not unique event numbers"
-		    << " but FEM Clock counters are identical" << std::endl;
-	}
-      }
-      else // event nr and fem clock differ
-      {
-// now lets find which one is the outlier
-	static int icnt = 0;
-	if (icnt < 1000)
-	{
-	  icnt++;
-	  std::cout << "resetting packet " << calopkt->getIdentifier()
-		    << " with fem event and clock mismatch" << std::endl;
-	  std::map<int, int> EventMap;
-	  std::map<int, int> ClockMap;
-	  for (int j = 0; j < nrModules; j++)
-	  {
-	    EventMap[calopkt->iValue(j, "FEMEVTNR")]++;
-	    ClockMap[calopkt->iValue(j, "FEMCLOCK")]++;
-	  }
-	  for (const auto iterA : EventMap)
-	  {
-	    std::cout << "Event Nr : " << iterA.first << " shows up " << iterA.second << " times"
-		      << std::hex << ", Event Nr 0x" << iterA.first << std::dec << std::endl;
-	  }
-	  for (const auto iterA : ClockMap)
-	  {
-	    std::cout << "Clock : 0x" << std::hex << iterA.first << std::dec
-		      << " shows up " << iterA.second << " times" << std::endl;
-	  }
-	}
-	return false;
+        icnt++;
+        std::cout << "ClockDiffCheck: " << "clk check Packet " << calopkt->getIdentifier() << " has not unique event numbers"
+                  << " but FEM Clock counters are identical" << std::endl;
       }
     }
+    else  // event nr and fem clock differ
+    {
+      // now lets find which one is the outlier
+      static int icnt = 0;
+      if (icnt < 1000)
+      {
+        icnt++;
+        std::cout << "ClockDiffCheck: " << "resetting packet " << calopkt->getIdentifier()
+                  << " with fem event and clock mismatch" << std::endl;
+        std::map<int, int> EventMap;
+        std::map<int, int> ClockMap;
+        for (int j = 0; j < nrModules; j++)
+        {
+          EventMap[calopkt->iValue(j, "FEMEVTNR")]++;
+          ClockMap[calopkt->iValue(j, "FEMCLOCK")]++;
+        }
+        for (const auto iterA : EventMap)
+        {
+          std::cout << "ClockDiffCheck: " << "Event Nr : " << iterA.first << " shows up " << iterA.second << " times"
+                    << std::hex << ", Event Nr 0x" << iterA.first << std::dec << std::endl;
+        }
+        for (const auto iterA : ClockMap)
+        {
+          std::cout << "ClockDiffCheck: " << "Clock : 0x" << std::hex << iterA.first << std::dec
+                    << " shows up " << iterA.second << " times" << std::endl;
+        }
+      }
+      return false;
+    }
+  }
   return true;
 }
-
