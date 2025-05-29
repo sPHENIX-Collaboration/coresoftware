@@ -39,6 +39,8 @@ class MbdPmtContainer : public PHObject
   //! get MbdPmtHit Object
   virtual MbdPmtHit *get_pmt(const int ipmt) const;
 
+  virtual void Print(Option_t *option="") const override;
+
  private:
   static void virtual_warning(const std::string& funcsname) ;
 

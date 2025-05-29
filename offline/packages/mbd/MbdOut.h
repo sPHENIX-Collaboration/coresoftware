@@ -110,6 +110,8 @@ class MbdOut : public PHObject
 
   virtual void FillFromClass(const MbdOut& old);
 
+  virtual void Print(Option_t *option = "") const override;
+
  private:
   static void virtual_warning(const std::string& funcsname) ;
 

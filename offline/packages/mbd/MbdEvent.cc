@@ -320,7 +320,7 @@ int MbdEvent::End()
     std::string fname = _caldir.Data(); fname += "mbd_sampmax.calib";
     _mbdcal->Write_SampMax( fname );
 
-    fname = _caldir.Data(); fname += "mbd_sampmax_";
+    fname = _caldir.Data(); fname += "mbd_sampmax-";
     fname += std::to_string(_runnum); fname += ".root";
 #ifndef ONLINE
     _mbdcal->Write_CDB_SampMax( fname );
@@ -339,7 +339,7 @@ int MbdEvent::End()
     std::string pedfname = _caldir.Data(); pedfname += "mbd_ped.calib";
     _mbdcal->Write_Ped( pedfname );
 
-    pedfname = _caldir.Data(); pedfname += "mbd_ped_"; 
+    pedfname = _caldir.Data(); pedfname += "mbd_ped-";
     pedfname += std::to_string(_runnum); pedfname += ".root";
     //std::cout << "PEDFNAME " << pedfname << std::endl;
 #ifndef ONLINE
