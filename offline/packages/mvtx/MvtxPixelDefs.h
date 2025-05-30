@@ -1,3 +1,12 @@
+/*!
+ * \file MvtxPixelDefs.h
+ * \brief Defines pixel ids and keys
+ * \author Tanner Mengel <tmengel@bnl.gov>
+ * \version $Version: 2.0.1 $
+ * \date $Date: 05/23/2025.
+ */
+
+
 #ifndef MVTX_MVTXPIXELDEFS_H
 #define MVTX_MVTXPIXELDEFS_H
 
