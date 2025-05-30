@@ -7,8 +7,8 @@
 static const uint8_t NMVTXFEEID = 48 * 3;
 
 MvtxRawEvtHeaderv2::MvtxRawEvtHeaderv2()
+  : m_MvtxFeeIdInfoTCArray(new TClonesArray("MvtxFeeIdInfov1", NMVTXFEEID))
 {
-  m_MvtxFeeIdInfoTCArray = new TClonesArray("MvtxFeeIdInfov1", NMVTXFEEID);
 }
 
 MvtxRawEvtHeaderv2::~MvtxRawEvtHeaderv2()

@@ -2,6 +2,7 @@
 #include "MbdReturnCodes.h"
 
 #include <iostream>
+#include <iomanip>
 #include <limits>
 
 void MbdOut::identify(std::ostream& os) const
@@ -131,4 +132,14 @@ void MbdOut::FillFromClass(const MbdOut& old)
   }
 
   set_t0zvtx(old.get_t0(), old.get_t0err(), old.get_zvtx(), old.get_zvtxerr());
+}
+
+void MbdOut::Print(Option_t * /*option*/) const
+{
+  std::cout << "MbdOut, evt " << get_evt() << std::endl;
+  std::cout << "clk\t" << std::setw(12) << get_clock() << std::setw(12) << get_femclock() << std::endl;
+  std::cout << "zvtx\t" << std::setw(12) << get_zvtx() << std::setw(12) << get_zvtxerr() << std::endl;
+  std::cout << "t0\t" << std::setw(12) << get_t0() << std::setw(12) << get_t0err() << std::endl;
+  std::cout << "npmt\t" << std::setw(12) << get_npmt(0) << std::setw(12) << get_npmt(1) << std::endl;
+  std::cout << "time\t" << std::setw(12) << get_time(0) << std::setw(12) << get_time(1) << std::endl;
 }

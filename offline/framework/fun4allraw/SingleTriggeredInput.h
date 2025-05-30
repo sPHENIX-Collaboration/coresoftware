@@ -22,7 +22,7 @@ class PHCompositeNode;
 class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
 {
  public:
-  static constexpr size_t pooldepth{10};
+  static constexpr size_t pooldepth{10}; // number of events which are read in in one go
   explicit SingleTriggeredInput(const std::string &name);
   ~SingleTriggeredInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
@@ -84,6 +84,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   int m_LastEvent{std::numeric_limits<int>::max()};
   bool firstcall{true};
   bool m_KeepPacketsFlag{false};
+  bool m_DitchPackets{false};
   std::set<int> m_FEMEventNrSet;
 };
 

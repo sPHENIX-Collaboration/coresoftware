@@ -7,6 +7,7 @@
 
 #include <algorithm>  // for max
 #include <cmath>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,8 +28,12 @@ namespace Pythia8
 class PHPythia8 : public SubsysReco, public PHHepMCGenHelper
 {
  public:
-  PHPythia8(const std::string &name = "PHPythia8");
-  ~PHPythia8() override;
+
+  //! constructor
+  explicit PHPythia8(const std::string &name = "PHPythia8");
+
+  //! destructor
+  ~PHPythia8() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -74,30 +79,30 @@ class PHPythia8 : public SubsysReco, public PHHepMCGenHelper
   int read_config(const std::string &cfg_file);
   int create_node_tree(PHCompositeNode *topNode) final;
   double percent_diff(const double a, const double b) { return fabs((a - b) / a); }
-  int m_EventCount;
+  int m_EventCount = 0;
 
   // event selection
   std::vector<PHPy8GenTrigger *> m_RegisteredTriggers;
-  bool m_TriggersOR;
-  bool m_TriggersAND;
+  bool m_TriggersOR{true};
+  bool m_TriggersAND{false};
 
   // PYTHIA
-  Pythia8::Pythia *m_Pythia8;
+  std::unique_ptr<Pythia8::Pythia> m_Pythia8;
 
-  std::string m_ConfigFileName;
+  std::string m_ConfigFileName{"phpythia8.cfg"};
   std::vector<std::string> m_Commands;
 
   // HepMC
-  HepMC::Pythia8ToHepMC *m_Pythia8ToHepMC;
+  std::unique_ptr<HepMC::Pythia8ToHepMC> m_Pythia8ToHepMC;
 
   //! whether to store the overall event weight into the HepMC weights
-  bool m_SaveEventWeightFlag;
+  bool m_SaveEventWeightFlag{true};
 
   //! whether to store the integrated luminosity and other event statistics to the TOP/RUN/PHGenIntegral node
-  bool m_SaveIntegratedLuminosityFlag;
+  bool m_SaveIntegratedLuminosityFlag{true};
 
   //! pointer to data node saving the integrated luminosity
-  PHGenIntegral *m_IntegralNode;
+  PHGenIntegral *m_IntegralNode{};
 };
 
 #endif /* PHPYTHIA8_PHPYTHIA8_H */

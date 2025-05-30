@@ -67,55 +67,54 @@ class TpcRawHitv1 : public TpcRawHit
     adc[sample] = val;
   }
 
-
   class AdcIteratorv1 : public AdcIterator
-    {
-     private:
-      const std::vector<uint16_t> & m_adc;
-      uint16_t m_index = 0;
-
-     public:
-      explicit AdcIteratorv1(const std::vector<uint16_t> & adc)
-        : m_adc(adc)
-      {
-      }
-
-      void First() override { m_index = 0; }
-
-      void Next() override { ++m_index; }
-
-      bool IsDone() const override { return m_index >= m_adc.size(); }
-
-      uint16_t CurrentTimeBin() const override
-      {
-        return m_index;   
-      }
-      uint16_t CurrentAdc() const override
-      {
-        if (!IsDone())
-        {
-          return m_adc[m_index];
-        }
-        return std::numeric_limits<uint16_t>::max();  // Or throw an exception
-      }
-    };
-
-    AdcIterator* CreateAdcIterator() const override { return new AdcIteratorv1(adc); }
-
+  {
    private:
-    uint64_t bco = std::numeric_limits<uint64_t>::max();
-    uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
-    int32_t packetid = std::numeric_limits<int32_t>::max();
-    uint16_t fee = std::numeric_limits<uint16_t>::max();
-    uint16_t channel = std::numeric_limits<uint16_t>::max();
-    uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
-    uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
-    uint16_t samples = std::numeric_limits<uint16_t>::max();
+    const std::vector<uint16_t>& m_adc;
+    uint16_t m_index = 0;
 
-    //! adc value for each sample
-    std::vector<uint16_t> adc;
+   public:
+    explicit AdcIteratorv1(const std::vector<uint16_t>& adc)
+      : m_adc(adc)
+    {
+    }
 
-    ClassDefOverride(TpcRawHitv1, 1)
+    void First() override { m_index = 0; }
+
+    void Next() override { ++m_index; }
+
+    bool IsDone() const override { return m_index >= m_adc.size(); }
+
+    uint16_t CurrentTimeBin() const override
+    {
+      return m_index;
+    }
+    uint16_t CurrentAdc() const override
+    {
+      if (!IsDone())
+      {
+        return m_adc[m_index];
+      }
+      return std::numeric_limits<uint16_t>::max();  // Or throw an exception
+    }
   };
+
+  AdcIterator* CreateAdcIterator() const override { return new AdcIteratorv1(adc); }
+
+ private:
+  uint64_t bco = std::numeric_limits<uint64_t>::max();
+  uint64_t gtm_bco = std::numeric_limits<uint64_t>::max();
+  int32_t packetid = std::numeric_limits<int32_t>::max();
+  uint16_t fee = std::numeric_limits<uint16_t>::max();
+  uint16_t channel = std::numeric_limits<uint16_t>::max();
+  uint16_t sampaaddress = std::numeric_limits<uint16_t>::max();
+  uint16_t sampachannel = std::numeric_limits<uint16_t>::max();
+  uint16_t samples = std::numeric_limits<uint16_t>::max();
+
+  //! adc value for each sample
+  std::vector<uint16_t> adc;
+
+  ClassDefOverride(TpcRawHitv1, 1)
+};
 
 #endif

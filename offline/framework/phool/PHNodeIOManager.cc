@@ -19,6 +19,7 @@
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TTree.h>
+#include <TTreeCache.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -160,19 +161,21 @@ bool PHNodeIOManager::write(TObject** data, const std::string& path, int nodebuf
     TBranch* thisBranch = tree->GetBranch(path.c_str());
     if (!thisBranch)
     {
+      int use_splitlevel = splitlevel;
+      int use_buffersize = buffersize;
       // the buffersize and splitlevel are set on the first call
       // when the branch is created, the values come from the caller
       // which is the node which writes itself
       if (splitlevel == std::numeric_limits<int>::min())
       {
-        splitlevel = nodesplitlevel;
+        use_splitlevel = nodesplitlevel;
       }
       if (buffersize == std::numeric_limits<int>::min())
       {
-        buffersize = nodebuffersize;
+        use_buffersize = nodebuffersize;
       }
       tree->Branch(path.c_str(), (*data)->ClassName(),
-                   data, buffersize, splitlevel);
+                   data, use_buffersize, use_splitlevel);
     }
     else
     {
@@ -365,7 +368,6 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
               << TreeName << " not found in file " << file->GetName() << std::endl;
     return nullptr;
   }
-
   // ROOT sucks, we need a unique name for the tree so we can open multiple
   // files. So we take the memory location of the file pointer which
   // should be unique within this process to create it
@@ -603,4 +605,13 @@ bool PHNodeIOManager::NodeExist(const std::string& nodename)
     }
   }
   return false;
+}
+
+void PHNodeIOManager::DisableReadCache()
+{
+  if (file)
+  {
+    file->SetCacheRead(nullptr);
+  }
+  return;
 }

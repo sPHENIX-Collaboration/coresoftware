@@ -23,7 +23,8 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
+//#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
@@ -432,9 +433,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         m_transient_id_set,
         m_tGeometry);
 
-      // make source links using cluster mover
       if (m_use_clustermover)
       {
+	// make source links using cluster mover after making distortion correction
+
         if (siseed && !m_ignoreSilicon)
         {
           // silicon source links
@@ -456,11 +458,16 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           m_globalPositionWrapper,
           this_crossing);
 
-        // add silicon seeds
-        sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
+        // add tpc sourcelinks to silicon source links
+	sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
       else
       {
+	// make source links using transient transforms for distortion corrections
+
+	if(Verbosity() > 1)
+	  { std::cout << "Calling getSourceLinks for si seed, siid " << siid << " and tpcid " << tpcid << std::endl; }
+	
         if (siseed && !m_ignoreSilicon)
         {
           // silicon source links
@@ -475,6 +482,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             this_crossing);
         }
 
+	if(Verbosity() > 1)
+	  { std::cout << "Calling getSourceLinks for tpc seed, siid " << siid << " and tpcid " << tpcid << std::endl; }
+	      
         // tpc source links
         const auto tpcSourceLinks = makeSourceLinks.getSourceLinks(
           tpcseed,
@@ -486,13 +496,13 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
           m_transient_id_set,
           this_crossing);
 
-        // insert silicons
+        // add tpc sourcelinks to silicon source links
         sourceLinks.insert(sourceLinks.end(), tpcSourceLinks.begin(), tpcSourceLinks.end());
       }
 
       // copy transient map for this track into transient geoContext
       m_transient_geocontext = m_alignmentTransformationMapTransient;
-
+      
       // position comes from the silicon seed, unless there is no silicon seed
       Acts::Vector3 position(0, 0, 0);
       if (siseed)
@@ -645,6 +655,9 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       ActsTrackFittingAlgorithm::TrackContainer
           tracks(trackContainer, trackStateContainer);
 
+      if(Verbosity() > 1)	
+	{  std::cout << "Calling fitTrack for track with siid " << siid << " tpcid " << tpcid << " crossing " << crossing << std::endl; }
+      
       auto result = fitTrack(sourceLinks, seed, kfOptions,
                              surfaces, calibrator, tracks);
       fitTimer.stop();
@@ -865,7 +878,7 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
 	return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions,
 				surfSequence, calibrator, tracks);	
       }
-      else
+    else
       {
         return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions,
 			       calibrator, tracks);
@@ -1001,7 +1014,10 @@ void PHActsTrkFitter::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::I
   // create a state at pathlength = 0.0
   // This state holds the track parameters, which will be updated below
   float pathlength = 0.0;
-  SvtxTrackState_v1 out(pathlength);
+  //  SvtxTrackState_v1 out(pathlength);
+  SvtxTrackState_v3 out(pathlength);
+  out.set_localX(0.0);
+  out.set_localY(0.0);
   out.set_x(0.0);
   out.set_y(0.0);
   out.set_z(0.0);
@@ -1261,7 +1277,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   }
 
   // track seeds
-  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, _svtx_seed_map_name);
   if (!m_seedMap)
   {
     std::cout << "No Svtx seed map on node tree. Exiting."

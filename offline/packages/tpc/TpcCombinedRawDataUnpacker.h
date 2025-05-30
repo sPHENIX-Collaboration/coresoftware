@@ -39,6 +39,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   {
     m_do_zs_emulation = true;
     m_zs_threshold = 20;
+    m_do_baseline_corr = false;
   }
   void set_presampleShift(int b) { m_presampleShift = b; }
   void set_t0(int b) { m_t0 = b; }

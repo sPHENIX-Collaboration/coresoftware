@@ -56,6 +56,7 @@ pkginclude_HEADERS = \
   SvtxTrackState.h \
   SvtxTrackState_v1.h \
   SvtxTrackState_v2.h \
+  SvtxTrackState_v3.h \
   TrackAnalysisUtils.h \
   SvtxTrackInfo.h \
   SvtxTrackInfo_v1.h \
@@ -88,6 +89,7 @@ ROOTDICTS = \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
   SvtxTrackState_v2_Dict.cc \
+  SvtxTrackState_v3_Dict.cc \
   SvtxTrack_v1_Dict.cc \
   SvtxTrack_v2_Dict.cc \
   SvtxTrack_v3_Dict.cc \
@@ -135,6 +137,7 @@ nobase_dist_pcm_DATA = \
   SvtxTrackState_Dict_rdict.pcm \
   SvtxTrackState_v1_Dict_rdict.pcm \
   SvtxTrackState_v2_Dict_rdict.pcm \
+  SvtxTrackState_v3_Dict_rdict.pcm \
   SvtxTrack_v1_Dict_rdict.pcm \
   SvtxTrack_v2_Dict_rdict.pcm \
   SvtxTrack_v3_Dict_rdict.pcm \
@@ -186,6 +189,7 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxAlignmentState_v1.cc \
   SvtxTrackState_v1.cc \
   SvtxTrackState_v2.cc \
+  SvtxTrackState_v3.cc \
   SvtxTrack.cc \
   SvtxTrack_v1.cc \
   SvtxTrack_v2.cc \

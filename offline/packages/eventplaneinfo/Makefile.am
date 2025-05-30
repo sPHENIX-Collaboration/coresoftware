@@ -14,7 +14,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libeventplaneinfo_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lcentrality_io
 
 libeventplaneinfo_la_LIBADD = \
   libeventplaneinfo_io.la \
@@ -22,6 +23,8 @@ libeventplaneinfo_la_LIBADD = \
   -lmbd_io \
   -lfun4all \
   -lffamodules \
+  -lcalotrigger_io \
+  -lffarawobjects \
   -lcdbobjects \
   -lglobalvertex_io
 

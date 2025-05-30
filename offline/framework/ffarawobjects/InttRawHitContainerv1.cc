@@ -6,8 +6,8 @@
 static const int NINTTHITS = 100;
 
 InttRawHitContainerv1::InttRawHitContainerv1()
+  : InttRawHitsTCArray(new TClonesArray("InttRawHitv1", NINTTHITS))
 {
-  InttRawHitsTCArray = new TClonesArray("InttRawHitv1", NINTTHITS);
 }
 
 InttRawHitContainerv1::~InttRawHitContainerv1()
@@ -25,6 +25,7 @@ void InttRawHitContainerv1::identify(std::ostream &os) const
 {
   os << "InttRawHitContainerv1" << std::endl;
   os << "containing " << InttRawHitsTCArray->GetEntriesFast() << " Intt hits" << std::endl;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
   InttRawHit *intthit = static_cast<InttRawHit *>(InttRawHitsTCArray->At(0));
   if (intthit)
   {

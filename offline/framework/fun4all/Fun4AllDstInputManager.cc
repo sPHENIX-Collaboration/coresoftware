@@ -136,6 +136,10 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
     setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
                                   // check if our input file has a sync object or not
+    if (ReadCacheDisabled())
+    {
+      m_IManager->DisableReadCache();
+    }
     if (m_IManager->NodeExist(syncdefs::SYNCNODENAME))
     {
       m_HaveSyncObject = 1;

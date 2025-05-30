@@ -54,7 +54,7 @@ class TpcRawHit : public PHObject
   virtual bool get_checksumerror() const { return false; }
   virtual void set_checksumerror(const bool /*b*/) { return; }
 
-  //! SAMPA data payload parity check. If true, data from SAMPA is broken, e.g. from SEU 
+  //! SAMPA data payload parity check. If true, data from SAMPA is broken, e.g. from SEU
   virtual bool get_parityerror() const { return false; }
   virtual void set_parityerror(const bool /*b*/) { return; }
 

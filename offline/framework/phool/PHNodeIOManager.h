@@ -24,7 +24,7 @@ class TTree;
 class PHNodeIOManager : public PHIOManager
 {
  public:
-  PHNodeIOManager() {}
+  PHNodeIOManager() = default;
   PHNodeIOManager(const std::string &, const PHAccessType = PHReadOnly);
   PHNodeIOManager(const std::string &, const std::string &, const PHAccessType = PHReadOnly);
   PHNodeIOManager(const std::string &, const PHAccessType, const PHTreeType);
@@ -54,8 +54,9 @@ class PHNodeIOManager : public PHIOManager
   void BufferSize(const int size) { buffersize = size; }
   int SplitLevel() const { return splitlevel; }
   int BufferSize() const { return buffersize; }
+  void DisableReadCache();
 
- private:
+private:
   int FillBranchMap();
   PHCompositeNode *reconstructNodeTree(PHCompositeNode *);
   bool readEventFromFile(size_t requestedEvent);

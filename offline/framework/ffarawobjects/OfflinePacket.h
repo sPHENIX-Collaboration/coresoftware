@@ -9,6 +9,13 @@
 class OfflinePacket : public PHObject
 {
  public:
+  enum enu_packetstatus
+  {
+    PACKET_OK = 0,
+    PACKET_DROPPED = 1,
+    NOTSET = std::numeric_limits<uint64_t>::max()
+  };
+
   OfflinePacket() = default;
   virtual ~OfflinePacket() = default;
   virtual void FillFrom(const OfflinePacket * /*pkt*/) { return; }

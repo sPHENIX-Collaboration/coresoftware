@@ -1,3 +1,11 @@
+/*!
+ * \file MvtxPixelMask.h
+ * \brief Holds pixel ids for hot pixels
+ * \author Tanner Mengel <tmengel@bnl.gov>
+ * \version $Version: 2.0.1 $
+ * \date $Date: 05/23/2025.
+ */
+
 #ifndef MVTX_MVTXPIXELMASK_H
 #define MVTX_MVTXPIXELMASK_H
 

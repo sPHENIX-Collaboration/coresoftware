@@ -43,6 +43,11 @@ class TpcGlobalPositionWrapper
   //! load relevant nodes from tree
   void loadNodes(PHCompositeNode* /*topnode*/);
 
+  void set_enable_module_edge_corr(bool flag) { m_enable_module_edge_corr = flag; }
+  void set_enable_static_corr(bool flag) { m_enable_static_corr = flag; }
+  void set_enable_average_corr(bool flag) { m_enable_average_corr = flag; }
+  void set_enable_fluctuation_corr(bool flag) { m_enable_fluctuation_corr = flag; }
+
   //! apply all loaded distortion corrections to a given position
   Acts::Vector3 applyDistortionCorrections( Acts::Vector3 /*source*/ ) const;
 
@@ -68,15 +73,19 @@ class TpcGlobalPositionWrapper
 
   //! module edge distortion correction container
   TpcDistortionCorrectionContainer* m_dcc_module_edge{nullptr};
+  bool m_enable_module_edge_corr = true;
 
   //! static distortion correction container
   TpcDistortionCorrectionContainer* m_dcc_static{nullptr};
+  bool m_enable_static_corr = true;
 
   //! average distortion correction container
   TpcDistortionCorrectionContainer* m_dcc_average{nullptr};
+  bool m_enable_average_corr = true;
 
   //! fluctuation distortion container
   TpcDistortionCorrectionContainer* m_dcc_fluctuation{nullptr};
+  bool m_enable_fluctuation_corr = true;
 
 };
 
