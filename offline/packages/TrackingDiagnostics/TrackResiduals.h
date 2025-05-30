@@ -236,12 +236,6 @@ class TrackResiduals : public SubsysReco
 
   int m_ntracks = std::numeric_limits<int>::quiet_NaN();
   int m_nvertices = std::numeric_limits<int>::quiet_NaN();
-  std::vector<float> m_pcax_vtx_trk;
-  std::vector<float> m_pcay_vtx_trk;
-  std::vector<float> m_pcaz_vtx_trk;
-  std::vector<float> m_px_vtx_trk;
-  std::vector<float> m_py_vtx_trk;
-  std::vector<float> m_pz_vtx_trk;
 
   //! cluster tree info
   float m_sclusgr = std::numeric_limits<float>::quiet_NaN();

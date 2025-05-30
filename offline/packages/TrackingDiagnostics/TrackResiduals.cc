@@ -289,10 +289,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     fillEventTree(topNode);
   }
-
   m_event++;
   clearClusterStateVectors();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -496,12 +494,6 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
         {
           continue;
         }
-        m_pcax_vtx_trk.push_back(track->get_x());
-        m_pcay_vtx_trk.push_back(track->get_y());
-        m_pcaz_vtx_trk.push_back(track->get_z());
-        m_px_vtx_trk.push_back(track->get_px());
-        m_py_vtx_trk.push_back(track->get_py());
-        m_pz_vtx_trk.push_back(track->get_pz());
         for (const auto& ckey : get_cluster_keys(track))
         {
           TrkrCluster* cluster = clustermap->findCluster(ckey);
@@ -1632,12 +1624,6 @@ void TrackResiduals::createBranches()
   m_vertextree->Branch("gy", &m_clusgy);
   m_vertextree->Branch("gz", &m_clusgz);
   m_vertextree->Branch("gr", &m_clusgr);
-  //m_vertextree->Branch("pcax_vtx_trk", &m_pcax_vtx_trk);
-  //m_vertextree->Branch("pcay_vtx_trk", &m_pcay_vtx_trk);
-  //m_vertextree->Branch("pcaz_vtx_trk", &m_pcaz_vtx_trk);
-  //m_vertextree->Branch("px_vtx_trk", &m_px_vtx_trk);
-  //m_vertextree->Branch("py_vtx_trk", &m_py_vtx_trk);
-  //m_vertextree->Branch("pz_vtx_trk", &m_pz_vtx_trk);
 
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");

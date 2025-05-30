@@ -564,25 +564,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
             {
               if (surface_apr->geometryId().volume() == surface_sns->geometryId().volume())
               {
-                // check INTT to only include approach surfaces of layers with SL
-              //  if (surface_apr->geometryId().volume() ==12)
-              //  {
-              //    bool pop_flag_internal = true;
-              //    if (surface_apr->geometryId().layer()==surface_sns->geometryId().layer())
-              //    {
-              //      pop_flag = false;
-              //    }
-              //  }
-              //  else
-              //  {
-              //    pop_flag = false;
-              //  }
                 if ( surface_apr->geometryId().layer()==surface_sns->geometryId().layer())
                 {
                   pop_flag = false;
                   surfaces.push_back(surface_sns);
-                  //last_sens_vol = surface_sns->geometryId().volume();
-                  //last_sens_lay = surface_sns->geometryId().layer();
                 }            
               }
             }
@@ -595,7 +580,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
               surfaces.pop_back();
               pop_flag = false;
             }
-            //surfaces.push_back(surface_apr);
             if (surface_apr->geometryId().volume() == 12&& surface_apr->geometryId().layer()==8)
             {
               for (const auto& surface_sns: surfaces_tmp)
@@ -983,10 +967,10 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
     if (m_fitSiliconMMs)
       {
 	// skip TPC surfaces
-	//if (m_tGeometry->maps().isTpcSurface(surf))
-	//  {
-	//    continue;
-	//  }
+	if (m_tGeometry->maps().isTpcSurface(surf))
+	  {
+	    continue;
+	  }
 	
 	// also skip micromegas surfaces if not used
 	if (m_tGeometry->maps().isMicromegasSurface(surf) && !m_useMicromegas)
