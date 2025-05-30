@@ -74,6 +74,7 @@ class ActsGeometry
   Acts::Transform3 makeAffineTransform(Acts::Vector3 rotation, Acts::Vector3 translation) const;
 
   Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster) const;
+  Acts::Vector2 getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const;
 
  private:
   ActsTrackingGeometry m_tGeometry;
