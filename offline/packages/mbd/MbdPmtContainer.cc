@@ -1,9 +1,12 @@
 #include "MbdPmtContainer.h"
 #include "MbdReturnCodes.h"
+#include "MbdPmtHit.h"
 
 #include <phool/phool.h>
 
 #include <iostream>
+#include <iomanip>
+#include <cmath>
 
 void MbdPmtContainer::identify(std::ostream& os) const
 {
@@ -39,6 +42,23 @@ MbdPmtHit *MbdPmtContainer::get_pmt(const int /*iPmt*/) const
 {
   virtual_warning("get_pmt(const short iPmt)");
   return nullptr;
+}
+
+void MbdPmtContainer::Print(Option_t * /*option*/) const
+{
+  Short_t npmt = get_npmt();
+  std::cout << "MBDPMT values:" << std::endl;
+  for (Short_t ipmt=0; ipmt<npmt; ipmt++)
+  {
+    Float_t q = get_pmt(ipmt)->get_q();
+    Float_t tt = get_pmt(ipmt)->get_tt();
+    Float_t tq = get_pmt(ipmt)->get_tq();
+
+    if ( std::fabs(tt)<100. )
+    {
+      std::cout << std::setw(8) << ipmt << std::setw(12) << q << "\t" << std::setw(12) << tt <<"\t" << std::setw(12) << tq << std::endl;
+    }
+  }
 }
 
 void MbdPmtContainer::virtual_warning(const std::string& funcsname) 
