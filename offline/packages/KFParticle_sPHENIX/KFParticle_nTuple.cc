@@ -27,6 +27,7 @@ class PHNode;
 
 /// Create necessary objects
 KFParticle_Tools kfpTupleTools;
+float TempError;
 
 void KFParticle_nTuple::initializeVariables()
 {
@@ -414,10 +415,12 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_calculated_mother_pt = motherParticle.GetPt();
   m_calculated_mother_pt_err = motherParticle.GetErrPt();
   m_calculated_mother_q = motherParticle.Q();
-  m_calculated_mother_eta = motherParticle.GetEta();
+  //m_calculated_mother_eta = motherParticle.GetEta();
+  motherParticle.GetEta(m_calculated_mother_eta,TempError);
   m_calculated_mother_rapidity = motherParticle.GetRapidity();
   m_calculated_mother_theta = motherParticle.GetTheta();
-  m_calculated_mother_phi = motherParticle.GetPhi();
+  //m_calculated_mother_phi = motherParticle.GetPhi();
+  motherParticle.GetPhi(m_calculated_mother_phi, TempError);
   m_calculated_mother_v = kfpTupleTools.calculateEllipsoidVolume(motherParticle);
   m_calculated_mother_chi2 = motherParticle.GetChi2();
   m_calculated_mother_ndof = motherParticle.GetNDF();
@@ -456,10 +459,12 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_intermediate_pt[i] = intermediateArray[i].GetPt();
       m_calculated_intermediate_pt_err[i] = intermediateArray[i].GetErrPt();
       m_calculated_intermediate_q[i] = intermediateArray[i].Q();  // I used to cast this as an int. clang-tidy want Uchar_t to Char_t to int
-      m_calculated_intermediate_eta[i] = intermediateArray[i].GetEta();
+      //m_calculated_intermediate_eta[i] = intermediateArray[i].GetEta();
+      intermediateArray[i].GetEta(m_calculated_intermediate_eta[i], TempError);
       m_calculated_intermediate_rapidity[i] = intermediateArray[i].GetRapidity();
       m_calculated_intermediate_theta[i] = intermediateArray[i].GetTheta();
-      m_calculated_intermediate_phi[i] = intermediateArray[i].GetPhi();
+      //m_calculated_intermediate_phi[i] = intermediateArray[i].GetPhi();
+      intermediateArray[i].GetPhi(m_calculated_intermediate_phi[i], TempError);
       m_calculated_intermediate_v[i] = kfpTupleTools.calculateEllipsoidVolume(intermediateArray[i]);
       m_calculated_intermediate_chi2[i] = intermediateArray[i].GetChi2();
       m_calculated_intermediate_ndof[i] = intermediateArray[i].GetNDF();
@@ -503,10 +508,12 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_daughter_pt[i] = daughterArray[i].GetPt();
     m_calculated_daughter_pt_err[i] = daughterArray[i].GetErrPt();
     m_calculated_daughter_q[i] = daughterArray[i].Q();
-    m_calculated_daughter_eta[i] = daughterArray[i].GetEta();
+    //m_calculated_daughter_eta[i] = daughterArray[i].GetEta();
+    daughterArray[i].GetEta(m_calculated_daughter_eta[i], TempError);
     m_calculated_daughter_rapidity[i] = daughterArray[i].GetRapidity();
     m_calculated_daughter_theta[i] = daughterArray[i].GetTheta();
-    m_calculated_daughter_phi[i] = daughterArray[i].GetPhi();
+    //m_calculated_daughter_phi[i] = daughterArray[i].GetPhi();
+    daughterArray[i].GetPhi(m_calculated_daughter_phi[i], TempError);
     m_calculated_daughter_chi2[i] = daughterArray[i].GetChi2();
     m_calculated_daughter_ndof[i] = daughterArray[i].GetNDF();
     m_calculated_daughter_trid[i] = daughterArray[i].Id();
