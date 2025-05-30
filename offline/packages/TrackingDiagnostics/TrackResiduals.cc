@@ -292,7 +292,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
 
   m_event++;
   clearClusterStateVectors();
-  std::cout<<"test5"<<std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -497,6 +496,12 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
         {
           continue;
         }
+        m_pcax_vtx_trk.push_back(track->get_x());
+        m_pcay_vtx_trk.push_back(track->get_y());
+        m_pcaz_vtx_trk.push_back(track->get_z());
+        m_px_vtx_trk.push_back(track->get_px());
+        m_py_vtx_trk.push_back(track->get_py());
+        m_pz_vtx_trk.push_back(track->get_pz());
         for (const auto& ckey : get_cluster_keys(track))
         {
           TrkrCluster* cluster = clustermap->findCluster(ckey);
@@ -1627,6 +1632,12 @@ void TrackResiduals::createBranches()
   m_vertextree->Branch("gy", &m_clusgy);
   m_vertextree->Branch("gz", &m_clusgz);
   m_vertextree->Branch("gr", &m_clusgr);
+  //m_vertextree->Branch("pcax_vtx_trk", &m_pcax_vtx_trk);
+  //m_vertextree->Branch("pcay_vtx_trk", &m_pcay_vtx_trk);
+  //m_vertextree->Branch("pcaz_vtx_trk", &m_pcaz_vtx_trk);
+  //m_vertextree->Branch("px_vtx_trk", &m_px_vtx_trk);
+  //m_vertextree->Branch("py_vtx_trk", &m_py_vtx_trk);
+  //m_vertextree->Branch("pz_vtx_trk", &m_pz_vtx_trk);
 
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");
@@ -1750,6 +1761,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("vx", &m_vx, "m_vx/F");
   m_tree->Branch("vy", &m_vy, "m_vy/F");
   m_tree->Branch("vz", &m_vz, "m_vz/F");
+  m_tree->Branch("vertex_ntracks",&m_vertex_ntracks, "m_vertex_ntracks/I");
   m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
@@ -1932,6 +1944,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         m_vx = vertex->get_x();
         m_vy = vertex->get_y();
         m_vz = vertex->get_z();
+        m_vertex_ntracks = vertex->size_tracks();
         Acts::Vector3 v(m_vx, m_vy, m_vz);
         auto dcapair = TrackAnalysisUtils::get_dca(track, v);
         m_dcaxy = dcapair.first.first;
