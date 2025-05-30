@@ -43,6 +43,7 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   AzimuthalSeeder.h \
   PHCosmicsFilter.h \
+  PHLineLaserReco.h \
   PHCosmicsTrkFitter.h \
   PHCosmicSeeder.h \
   PHCosmicTrackMerger.h \
@@ -126,6 +127,7 @@ libtrack_reco_la_SOURCES = \
   AzimuthalSeeder.cc \
   GPUTPCTrackParam.cxx \
   PHCosmicsFilter.cc \
+  PHLineLaserReco.cc \
   PHCosmicSeedCombiner.cc \
   PHCosmicSeeder.cc \
   PHCosmicTrackMerger.cc \
