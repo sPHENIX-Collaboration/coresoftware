@@ -175,8 +175,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
         float phibin = (float) (TowerInfoDefs::get_epd_phibin(key));
         if (!isZS)
         {
-          h_GlobalQA_sEPD_tile[i]->Fill(_e);
-            
             if (arm == 0)
             {
               sepdsouthadcsum += _e;
@@ -470,14 +468,6 @@ void GlobalQA::createHistos()
                "h2_GlobalQA_sEPD_ADC_channel_north ; #eta; #phi", 16, -0.5,
                15.5, 24, -0.5, 23.5);
 
-  for (int tile = 0; tile < 744; tile++)
-  {
-    h_GlobalQA_sEPD_tile[tile] = new TH1D(
-        boost::str(boost::format("h_GlobalQA_sEPD_tile%d") % tile).c_str(), "",
-        20016, -15.5, 20000.5);
-
-    hm->registerHisto(h_GlobalQA_sEPD_tile[tile]);
-  }
 
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_s);
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_n);
