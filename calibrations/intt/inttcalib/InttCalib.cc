@@ -63,12 +63,11 @@ InttCalib::~InttCalib()
 int InttCalib::InitRun(PHCompositeNode * /*unused*/)
 {
   m_evts = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     for (int bco = 0; bco < 129; ++bco)
     {
-      m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco] = 0;
+      m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][bco] = 0;
     }
   }
 
@@ -78,16 +77,6 @@ int InttCalib::InitRun(PHCompositeNode * /*unused*/)
   {
     std::cout << PHWHERE << "\n"
               << "\tCould not load 'InttSurveyMap' from CDB\n"
-              << "\tModule will do nothing" << std::endl;
-    m_do_nothing = true;
-    // gSystem->Exit(1);
-    // exit(1);
-  }
-
-  if (m_feemap.LoadFromCDB("InttFeeMap"))
-  {
-    std::cout << PHWHERE << "\n"
-              << "\tCould not load 'InttFeeMap' from CDB\n"
               << "\tModule will do nothing" << std::endl;
     m_do_nothing = true;
     // gSystem->Exit(1);
@@ -147,11 +136,11 @@ int InttCalib::process_event(PHCompositeNode *top_node)
       continue;
     }
 
-    InttMap::RawData_s raw{
-        .pid = intt_raw_hit->get_packetid(),             //
-        .fee = intt_raw_hit->get_fee(),                  //
-        .chp = (intt_raw_hit->get_chip_id() + 25) % 26,  //
-        .chn = intt_raw_hit->get_channel_id(),           //
+    InttNameSpace::RawData_s raw{
+        .felix_server = intt_raw_hit->get_packetid() - 3001, //
+        .felix_channel = intt_raw_hit->get_fee(),            //
+        .chip = (intt_raw_hit->get_chip_id() + 25) % 26,     //
+        .channel = intt_raw_hit->get_channel_id(),           //
     };
 
     // Trigger mode BCO Offset
@@ -179,9 +168,9 @@ int InttCalib::process_event(PHCompositeNode *top_node)
 
     if (bco_diff > -1)
     {
-      ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco_diff];
+      ++m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][bco_diff];
     }
-    ++m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128];
+    ++m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128];
   }
 
   ++m_evts;
@@ -242,12 +231,11 @@ int InttCalib::ConfigureHotMap_fee()
     title[i] = name[i];
   }
 
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetFeeIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
@@ -300,12 +288,11 @@ int InttCalib::ConfigureHotMap_v3()
     title[i] = name[i];
   }
 
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
@@ -383,12 +370,11 @@ int InttCalib::ConfigureHotMap_v2()
     // }
   }
 
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
@@ -424,22 +410,21 @@ int InttCalib::MakeHotMapCdb_fee()
 
   CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
   int size = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetFeeIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
   //Example Part How to add channel masking mannually.
-    // if( (raw.pid-3001 == 2) && (raw.fee == 9) && (raw.chp == 15)) 
+    // if( (raw.pid-3001 == 2) && (raw.felix_channel == 9) && (raw.chip == 15)) 
     // {  
-    //   cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-    //   cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-    //   cdbttree->SetIntValue(size, "chip", raw.chp);
-    //   cdbttree->SetIntValue(size, "channel", raw.chn);
+    //   cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+    //   cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+    //   cdbttree->SetIntValue(size, "chip", raw.chip);
+    //   cdbttree->SetIntValue(size, "channel", raw.channel);
     //   cdbttree->SetIntValue(size, "flag", 4);
     //   ++size;
     //   continue;
@@ -447,10 +432,10 @@ int InttCalib::MakeHotMapCdb_fee()
    //End of Example Part 
     if (hitrate == 0)
     {  // dead channel
-      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-      cdbttree->SetIntValue(size, "chip", raw.chp);
-      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+      cdbttree->SetIntValue(size, "chip", raw.chip);
+      cdbttree->SetIntValue(size, "channel", raw.channel);
       cdbttree->SetIntValue(size, "flag", 1);
       ++size;
       continue;
@@ -461,20 +446,20 @@ int InttCalib::MakeHotMapCdb_fee()
     }
     if (hitrate > m_max_fee[index])
     {  // hot channel
-      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-      cdbttree->SetIntValue(size, "chip", raw.chp);
-      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+      cdbttree->SetIntValue(size, "chip", raw.chip);
+      cdbttree->SetIntValue(size, "channel", raw.channel);
       cdbttree->SetIntValue(size, "flag", 8);
       ++size;
       continue;
     }
     if (hitrate < m_min_fee[index])
     {  // cold channel
-      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-      cdbttree->SetIntValue(size, "chip", raw.chp);
-      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+      cdbttree->SetIntValue(size, "chip", raw.chip);
+      cdbttree->SetIntValue(size, "channel", raw.channel);
       cdbttree->SetIntValue(size, "flag", 4);
       ++size;
       continue;
@@ -507,24 +492,23 @@ int InttCalib::MakeHotMapCdb_v3()
 
   CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
   int size = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
     if (m_half_min[index] < hitrate && hitrate < m_half_max[index])
     {
-      m_hitmap_half[raw.pid - 3001][raw.fee][raw.chp]++;
-      // if (m_hitmap_half[raw.pid - 3001][raw.fee][raw.chp] > 100)
+      m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip]++;
+      // if (m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip] > 100)
       // {
-      //   cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-      //   cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-      //   cdbttree->SetIntValue(size, "chip", raw.chp);
-      //   cdbttree->SetIntValue(size, "channel", raw.chn);
+      //   cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+      //   cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+      //   cdbttree->SetIntValue(size, "chip", raw.chip);
+      //   cdbttree->SetIntValue(size, "channel", raw.channel);
       //   cdbttree->SetIntValue(size, "flag", 2);
       //   ++size;
       //   continue;
@@ -533,10 +517,10 @@ int InttCalib::MakeHotMapCdb_v3()
 
     if (hitrate == 0)
     {  // dead channel
-      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-      cdbttree->SetIntValue(size, "chip", raw.chp);
-      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+      cdbttree->SetIntValue(size, "chip", raw.chip);
+      cdbttree->SetIntValue(size, "channel", raw.channel);
       cdbttree->SetIntValue(size, "flag", 1);
       ++size;
       continue;
@@ -547,20 +531,20 @@ int InttCalib::MakeHotMapCdb_v3()
     }
     if (hitrate > m_max[index])
     {  // hot channel
-      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-      cdbttree->SetIntValue(size, "chip", raw.chp);
-      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+      cdbttree->SetIntValue(size, "chip", raw.chip);
+      cdbttree->SetIntValue(size, "channel", raw.channel);
       cdbttree->SetIntValue(size, "flag", 8);
       ++size;
       continue;
     }
     if (hitrate < m_min[index])
     {  // cold channel
-      cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-      cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-      cdbttree->SetIntValue(size, "chip", raw.chp);
-      cdbttree->SetIntValue(size, "channel", raw.chn);
+      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+      cdbttree->SetIntValue(size, "chip", raw.chip);
+      cdbttree->SetIntValue(size, "channel", raw.channel);
       cdbttree->SetIntValue(size, "flag", 4);
       ++size;
       continue;
@@ -592,12 +576,11 @@ int InttCalib::MakeHotMapCdb_v2()
 
   CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
   int size = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
@@ -607,10 +590,10 @@ int InttCalib::MakeHotMapCdb_v2()
       continue;
     }
 
-    cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-    cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-    cdbttree->SetIntValue(size, "chip", raw.chp);
-    cdbttree->SetIntValue(size, "channel", raw.chn);
+    cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+    cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+    cdbttree->SetIntValue(size, "chip", raw.chip);
+    cdbttree->SetIntValue(size, "channel", raw.channel);
     ++size;
   }
   cdbttree->SetSingleIntValue("size", size);
@@ -656,12 +639,11 @@ int InttCalib::MakeHotMapPng_v3()
                               1280, 720        //
   );
   double n_hot = 0, n_cold = 0, n_dead = 0, n_total = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
@@ -679,9 +661,9 @@ int InttCalib::MakeHotMapPng_v3()
       ++n_dead;
     }
     ++n_total;
-    if (m_hitmap_half[raw.pid - 3001][raw.fee][raw.chp] > 100)
+    if (m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip] > 100)
     {
-      m_hist_half[raw.pid - 3001]->Fill(hitrate);
+      m_hist_half[raw.felix_server]->Fill(hitrate);
     }
   }
   for (int j = 0; j < 8; ++j)
@@ -925,12 +907,11 @@ int InttCalib::MakeHotMapPng_v2()
   // count how many are cold/hot
   double n_hot = 0, n_cold = 0, n_total = 0;
   // double n_dead = 0;
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl = m_feemap.ToOffline(raw);
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     int index = GetIndex(raw, ofl);
     adjust_hitrate(ofl, hitrate);
@@ -993,16 +974,11 @@ int InttCalib::MakeHotMapPng_v2()
 int InttCalib::ConfigureHotMap()
 {
   m_hitrates.clear();
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl;
-    if (m_feemap.Convert(ofl, raw))
-    {
-      continue;
-    }
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     if (adjust_hitrate(ofl, hitrate))
     {
@@ -1072,16 +1048,10 @@ int InttCalib::MakeHotMapCdb()
   cdbttree->SetSingleIntValue("size", 1);
 
   // int size = 0;
-  // for(InttMap::RawData_s raw = InttMap::RawDataBegin; raw !=
-  // InttMap::RawDataEnd; ++raw)
+  // for(auto const& raw : InttNameSpace::AllRawDataChannels)
   // {
-  //   double hitrate = (double)m_hitmap[raw.pid -
-  //   3001][raw.fee][raw.chp][raw.chn][128] / (double)m_evts;
-  //   InttMap::Offline_s ofl;
-  //   if(m_feemap.Convert(ofl, raw))
-  //   {
-  //      continue;
-  //   }
+  //   double hitrate = (double)m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / (double)m_evts;
+  //   InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
   //   if(adjust_hitrate(ofl, hitrate))
   //   {
@@ -1093,10 +1063,10 @@ int InttCalib::MakeHotMapCdb()
   //      continue;
   //   }
 
-  //   cdbttree->SetIntValue(size, "felix_server",  raw.pid - 3001);
-  //   cdbttree->SetIntValue(size, "felix_channel", raw.fee);
-  //   cdbttree->SetIntValue(size, "chip",          raw.chp);
-  //   cdbttree->SetIntValue(size, "channel",       raw.chn);
+  //   cdbttree->SetIntValue(size, "felix_server",  raw.felix_server);
+  //   cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+  //   cdbttree->SetIntValue(size, "chip",          raw.chip);
+  //   cdbttree->SetIntValue(size, "channel",       raw.channel);
   //   ++size;
   // }
   // cdbttree->SetSingleIntValue("size", size);
@@ -1164,16 +1134,11 @@ int InttCalib::MakeHotMapPng()
   hitrate_pdf_hist->Draw();
 
   // Fill
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     double hitrate =
-        m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
-    InttMap::Offline_s ofl;
-    if (m_feemap.Convert(ofl, raw))
-    {
-      continue;
-    }
+        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
     if (adjust_hitrate(ofl, hitrate))
     {
@@ -1282,18 +1247,19 @@ int InttCalib::MakeHotMapPng()
 int InttCalib::ConfigureBcoMap()
 {
   m_bcorates.clear();
-  for (InttMap::RawData_s raw{.pid = InttMap::RawDataBegin.pid,
-                          .fee = InttMap::RawDataBegin.fee};
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
+    // Wasteful but readable
+    if (raw.channel != 0) continue;
+    if (raw.chip != 0) continue;
+
     for (auto &bco_count : m_bcorates[raw])
     {
       bco_count = 0;
     }
   }
 
-  for (InttMap::RawData_s raw = InttMap::RawDataBegin;
-       raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
     // Find chip with highest total hits for this pid/fee across all channels
     int chp_most = 0;
@@ -1304,7 +1270,7 @@ int InttCalib::ConfigureBcoMap()
       // Sum hits across all channels for this chip
       for (int chan = 0; chan < 128; chan++)
       {
-        chip_total += m_hitmap[raw.pid - 3001][raw.fee][chp][chan][128];
+        chip_total += m_hitmap[raw.felix_server][raw.felix_channel][chp][chan][128];
       }
       if (chip_total > max_hits)
       {
@@ -1314,12 +1280,12 @@ int InttCalib::ConfigureBcoMap()
     }
 
     // Only add hits if not from the chip with most hits
-    if (raw.chp != chp_most)
+    if (raw.chip != chp_most)
     {
       for (int bco = 0; bco < 128; ++bco)
       {
         m_bcorates[raw][bco] +=
-            m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][bco];
+            m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][bco];
       }
     }
   }
@@ -1361,8 +1327,8 @@ int InttCalib::MakeBcoMapCdb()
   bco_temp_container.clear();
   for (auto const &[raw, bco] : m_bcopeaks)
   {
-    cdbttree->SetIntValue(size, "felix_server", raw.pid - 3001);
-    cdbttree->SetIntValue(size, "felix_channel", raw.fee);
+    cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+    cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
     cdbttree->SetIntValue(size, "bco_diff", bco);
     bco_temp_container.push_back(bco);
     ++size;
@@ -1426,15 +1392,15 @@ int InttCalib::MakeBcoMapPng()
     bco_pdf_pad->Range(0.0, 0.0, 1.0, 1.0);
     bco_pdf_pad->Draw();
 
-    InttMap::RawData_s raw_begin{.pid = (i % 4) + 4 * (i / 8) + 3001,
-                                 .fee = (i / 4) % 2 ? 0 : 7};
-    InttMap::RawData_s raw_end{.pid = (i % 4) + 4 * (i / 8) + 3001,
-                               .fee = (i / 4) % 2 ? 6 : 13};
+    InttNameSpace::RawData_s raw_begin{.felix_server = (i % 4) + 4 * (i / 8),
+                                 .felix_channel = (i / 4) % 2 ? 0 : 7};
+    InttNameSpace::RawData_s raw_end{.felix_server = (i % 4) + 4 * (i / 8),
+                               .felix_channel = (i / 4) % 2 ? 6 : 13};
 
     double max = 0;
-    for (InttMap::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
+    for (InttNameSpace::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
     {
-      int h = (raw.pid - 3001) * 14 + raw.fee;
+      int h = (raw.felix_server) * 14 + raw.felix_channel;
       bco_pdf_pad->cd();
       std::string htitle = (boost::format("bco_hist_%03d") % h).str();
       // float min_bin = (m_streaming) ? -127.5 : -0.5;
@@ -1450,7 +1416,7 @@ int InttCalib::MakeBcoMapPng()
 
       bco_hist[h]->SetTitle(
           (boost::format(";BCO Difference;intt%01d (%01d - %02d)") %
-           (raw_begin.pid - 3001) % raw_begin.fee % raw_end.fee)
+           (raw_begin.felix_server) % raw_begin.felix_channel % raw_end.felix_channel)
               .str()
               .c_str());
       bco_hist[h]->GetYaxis()->CenterTitle();
@@ -1460,7 +1426,7 @@ int InttCalib::MakeBcoMapPng()
       bco_hist[h]->GetXaxis()->SetTitleSize(0.10);
       bco_hist[h]->GetXaxis()->SetTitleOffset(0.6);
       bco_hist[h]->GetXaxis()->SetLabelSize(0.07);
-      bco_hist[h]->SetLineColor(GetFeeColor(raw.fee));
+      bco_hist[h]->SetLineColor(GetFeeColor(raw.felix_channel));
       bco_hist[h]->Draw("same");
 
       for (int bco = 0; bco < 128; ++bco)
@@ -1472,9 +1438,9 @@ int InttCalib::MakeBcoMapPng()
         }
       }
     }
-    for (InttMap::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
+    for (InttNameSpace::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
     {
-      int h = (raw.pid - 3001) * 14 + raw.fee;
+      int h = (raw.felix_server) * 14 + raw.felix_channel;
       bco_hist[h]->GetYaxis()->SetRangeUser(0.1, 10 * max);
     }
   }
@@ -1632,18 +1598,23 @@ int InttCalib::SaveHitrates()
   TTree *tree = new TTree("hitrate_tree", "hitrate_tree");
   tree->SetDirectory(file);
 
-  InttMap::RawData_s raw;
-  tree->Branch("pid", &raw.pid);
-  tree->Branch("fee", &raw.fee);
-  tree->Branch("chp", &raw.chp);
-  tree->Branch("chn", &raw.chn);
+  int pid{0}, fee{0}, chp{0}, chn{0};
+  tree->Branch("pid", &pid);
+  tree->Branch("fee", &fee);
+  tree->Branch("chp", &chp);
+  tree->Branch("chn", &chn);
 
   double hitrate;
   tree->Branch("hitrate", &hitrate);
 
-  for (raw = InttMap::RawDataBegin; raw != InttMap::RawDataEnd; ++raw)
+  for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
-    hitrate = m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] / m_evts;
+    pid = raw.felix_server + 3001;
+    fee = raw.felix_channel;
+    chp = raw.chip;
+    chn = raw.channel;
+
+    hitrate = m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
     tree->Fill();
   }
 
@@ -1674,11 +1645,11 @@ int InttCalib::LoadHitrates()
     return 1;
   }
 
-  InttMap::RawData_s raw;
-  tree->SetBranchAddress("pid", &raw.pid);
-  tree->SetBranchAddress("fee", &raw.fee);
-  tree->SetBranchAddress("chp", &raw.chp);
-  tree->SetBranchAddress("chn", &raw.chn);
+  int pid{0}, fee{0}, chp{0}, chn{0};
+  tree->SetBranchAddress("pid", &pid);
+  tree->SetBranchAddress("fee", &fee);
+  tree->SetBranchAddress("chp", &chp);
+  tree->SetBranchAddress("chn", &chn);
 
   double hitrate;
   tree->SetBranchAddress("hitrate", &hitrate);
@@ -1686,7 +1657,13 @@ int InttCalib::LoadHitrates()
   for (Int_t n = 0, N = tree->GetEntriesFast(); n < N; ++n)
   {
     tree->GetEntry(n);
-    m_hitmap[raw.pid - 3001][raw.fee][raw.chp][raw.chn][128] = hitrate;
+	InttNameSpace::RawData_s raw {
+      .felix_server = pid + 3001,
+	  .felix_channel = fee,
+	  .chip = chp,
+	  .channel = chn,
+	};
+    m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] = hitrate;
   }
 
   m_evts = 1.0;
@@ -1936,7 +1913,7 @@ int InttCalib::ConfigureHist(TH1D *&hist, TF1 *&fit,
   return 0;
 }
 
-int InttCalib::adjust_hitrate(InttMap::Offline_s const &ofl,
+int InttCalib::adjust_hitrate(InttNameSpace::Offline_s const &ofl,
                               double &hitrate) const
 {
   hitrate /= (ofl.ladder_z % 2) ? 2.0 : 1.6;  // normalize by sensor length
@@ -1961,22 +1938,22 @@ int InttCalib::adjust_hitrate(InttMap::Offline_s const &ofl,
   return 0;
 }
 
-int InttCalib::GetIndex(InttMap::RawData_s const &raw,
-                        InttMap::Offline_s const & /*ofl*/) const
+int InttCalib::GetIndex(InttNameSpace::RawData_s const &raw,
+                        InttNameSpace::Offline_s const & /*ofl*/) const
 {
   // int index = 0;
-  // index += (raw.pid - 3001) * 4;
+  // index += (raw.felix_server) * 4;
   // index += (ofl.layer < 5) ? 0 : 2; // +2 for outer
   // index += (ofl.ladder_z % 2) ? 0 : 1; // +1 for type B
   // return index;
-  return raw.pid - 3001;
+  return raw.felix_server;
 }
 
-int InttCalib::GetFeeIndex(InttMap::RawData_s const &raw,
-                         InttMap::Offline_s const & /*ofl*/) const
+int InttCalib::GetFeeIndex(InttNameSpace::RawData_s const &raw,
+                         InttNameSpace::Offline_s const & /*ofl*/) const
 {
   int index = 0;
-  index = (raw.pid - 3001) * 14 + raw.fee;
+  index = (raw.felix_server) * 14 + raw.felix_channel;
   return index;
 }
 std::pair<double, double>

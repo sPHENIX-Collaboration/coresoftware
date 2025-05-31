@@ -180,11 +180,12 @@ int InttArborist::process_event(
       m_large_branches["gtm"] &= (large_t{1} << 40U) - 1;
     }
 
-    InttMap::RawData_s raw{
-        .pid = intt_hit->get_packetid(),
-        .fee = intt_hit->get_fee(),
-        .chp = (intt_hit->get_chip_id() + 25) % 26,
-        .chn = intt_hit->get_channel_id()};
+    InttNameSpace::RawData_s raw {
+        .felix_server = intt_hit->get_packetid() - 3001,
+        .felix_channel = intt_hit->get_fee(),
+        .chip = (intt_hit->get_chip_id() + 25) % 26,
+        .channel = intt_hit->get_channel_id()
+	};
 
     clone_map_t::iterator clone_itr;
     if ((clone_itr = m_clone_map.find(raw)) != m_clone_map.end())
@@ -200,10 +201,10 @@ int InttArborist::process_event(
     m_small_branches["amp"]->push_back(intt_hit->get_amplitude());
     m_small_branches["bco"]->push_back(intt_hit->get_FPHX_BCO());
 
-    m_small_branches["chn"]->push_back(raw.chn);
-    m_small_branches["chp"]->push_back(raw.chp);
-    m_small_branches["fee"]->push_back(raw.fee);
-    m_small_branches["pid"]->push_back(raw.pid);
+    m_small_branches["chn"]->push_back(raw.channel);
+    m_small_branches["chp"]->push_back(raw.chip);
+    m_small_branches["fee"]->push_back(raw.felix_channel);
+    m_small_branches["pid"]->push_back(raw.felix_server + 3001);
 
     m_clone_map.insert({raw, i});
   }

@@ -1,7 +1,7 @@
 #ifndef INTT_SURVEY_MAP_H
 #define INTT_SURVEY_MAP_H
 
-#include "InttMap.h"
+#include "InttMapping.h"
 
 #ifdef __clang__
 #pragma GCC diagnostic push
@@ -22,8 +22,8 @@ class CDBTTree;
 class InttSurveyMap
 {
  public:
-  typedef std::map<InttMap::Offline_s, Eigen::Affine3d, InttMap::OfflineComparator> map_t;
-  typedef InttMap::Offline_s key_t;
+  typedef std::map<InttNameSpace::Offline_s, Eigen::Affine3d> map_t;
+  typedef InttNameSpace::Offline_s key_t;
   typedef Eigen::Affine3d val_t;
 
   InttSurveyMap() = default;
@@ -40,6 +40,7 @@ class InttSurveyMap
   virtual std::size_t size() const;
 
   virtual val_t const* GetAbsoluteTransform(key_t const&) const;
+  int const static Wildcard = 0xffff;
 
  protected:
   virtual int v_LoadFromCDBTTree(CDBTTree&);

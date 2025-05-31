@@ -73,7 +73,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 
   std::string m_hotStripFileName = "INTT_HotMap";
   std::string m_localHotStripFileName = ""; // default to empty: only use local file for testing purpose; if empty, use CDB file
-  typedef std::set<InttNameSpace::RawData_s, InttNameSpace::RawDataComparator> Set_t;
+  typedef std::set<InttNameSpace::RawData_s> Set_t;
   Set_t m_HotChannelSet;
 
   PHG4Hit* prior_g4hit{nullptr};  // used to check for jumps in g4hits for loopers;
