@@ -1747,6 +1747,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("vx", &m_vx, "m_vx/F");
   m_tree->Branch("vy", &m_vy, "m_vy/F");
   m_tree->Branch("vz", &m_vz, "m_vz/F");
+  m_tree->Branch("vertex_ntracks",&m_vertex_ntracks, "m_vertex_ntracks/I");
   m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
@@ -1929,6 +1930,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         m_vx = vertex->get_x();
         m_vy = vertex->get_y();
         m_vz = vertex->get_z();
+        m_vertex_ntracks = vertex->size_tracks();
         Acts::Vector3 v(m_vx, m_vy, m_vz);
         auto dcapair = TrackAnalysisUtils::get_dca(track, v);
         m_dcaxy = dcapair.first.first;

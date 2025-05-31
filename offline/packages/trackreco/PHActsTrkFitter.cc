@@ -130,6 +130,14 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
       m_tGeometry->geometry().tGeometry,
       m_tGeometry->geometry().magField);
 
+  MaterialSurfaceSelector selector;
+  if (m_fitSiliconMMs || m_directNavigation)
+  {
+    m_tGeometry->geometry().tGeometry->visitSurfaces(selector,false);
+    //std::cout<<"selector.surfaces.size() "<<selector.surfaces.size()<<std::endl;
+    m_materialSurfaces = selector.surfaces;
+  }
+
   m_outlierFinder.verbosity = Verbosity();
   std::map<long unsigned int, float> chi2Cuts;
   chi2Cuts.insert(std::make_pair(10, 4));
@@ -528,17 +536,70 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
 
       /// If using directed navigation, collect surface list to navigate
+      SurfacePtrVec surfaces_tmp;
       SurfacePtrVec surfaces;
       if (m_fitSiliconMMs || m_directNavigation)
       {
-        sourceLinks = getSurfaceVector(sourceLinks, surfaces);
+        sourceLinks = getSurfaceVector(sourceLinks, surfaces_tmp);
 
         // skip if there is no surfaces
-        if (surfaces.empty())
+        if (surfaces_tmp.empty())
         {
           continue;
         }
-
+        //std::cout<<"m_materialSurfaces.size(): "<<m_materialSurfaces.size()<<std::endl; 
+        //uint64_t last_sens_vol = 0;
+        //uint64_t last_sens_lay = 0;
+        for (const auto& surface_apr : m_materialSurfaces)
+        {
+          bool pop_flag = false;
+          if(surface_apr->geometryId().approach() == 1)
+          {
+            surfaces.push_back(surface_apr);
+          }
+          else
+          {
+            pop_flag = true;
+            for (const auto& surface_sns: surfaces_tmp)
+            {
+              if (surface_apr->geometryId().volume() == surface_sns->geometryId().volume())
+              {
+                if ( surface_apr->geometryId().layer()==surface_sns->geometryId().layer())
+                {
+                  pop_flag = false;
+                  surfaces.push_back(surface_sns);
+                }            
+              }
+            }
+            if (!pop_flag)
+            {
+              surfaces.push_back(surface_apr);
+            }
+            else
+            {
+              surfaces.pop_back();
+              pop_flag = false;
+            }
+            if (surface_apr->geometryId().volume() == 12&& surface_apr->geometryId().layer()==8)
+            {
+              for (const auto& surface_sns: surfaces_tmp)
+              {
+                if (14 == surface_sns->geometryId().volume())
+                {
+                  surfaces.push_back(surface_sns);
+                }   
+              }
+            }
+          }
+        }
+        checkSurfaceVec(surfaces);
+        if (Verbosity() > 1)
+        {
+          for (const auto& surf : surfaces)
+          {
+            std::cout << "Surface vector : " << surf->geometryId() << std::endl;
+          }
+        }
 	if (m_fitSiliconMMs)
 	  {
 	    // make sure micromegas are in the tracks, if required
@@ -926,12 +987,12 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
   /// Surfaces need to be sorted in order, i.e. from smallest to
   /// largest radius extending from target surface
   /// Add a check to ensure this
-  if (!surfaces.empty())
-  {
-    checkSurfaceVec(surfaces);
-  }
+  //if (!surfaces.empty())
+  //{
+  //  checkSurfaceVec(surfaces);
+  //}
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 10)
   {
     for (const auto& surf : surfaces)
     {
