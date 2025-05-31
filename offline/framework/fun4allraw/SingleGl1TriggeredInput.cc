@@ -156,7 +156,10 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
   Packet *packet = evt->getPacket(14001);
   if (!packet)
   {
-    std::cout << "no packet 14001 for event" << std::endl;
+    std::cout << Name()
+	      <<" no packet 14001 for event, possible corrupt data event before EOR"
+	      << std::endl;
+    std::cout << Name() << ": ";
     evt->identify();
     return std::numeric_limits<uint64_t>::max();
   }

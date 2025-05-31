@@ -278,10 +278,16 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
           //        int ifirst = 1;
           while (iter1 != end())
           {
-            std::cout << "position " << position << " test 0x" << std::hex
+            std::cout << Name() << " Debug output: position " << position << " test 0x" << std::hex
                       << *iter1 << " versus 0x" << *iter2 << std::dec << std::endl;
             //           std::cout  << "bclk1: 0x" << *iter3 << ", gl1bclk: 0x" << *iter4 << std::dec << std::endl;
-            m_EventDeque[position]->identify();
+// this catches the condition where there is no gl1 packet (14001)
+	    // the GL1 data sometimes has a corrupt last data event
+	    if (*iter1 != std::numeric_limits<uint64_t>::max())
+	    {
+	      std::cout << Name() << ": ";
+	      m_EventDeque[position]->identify();
+	    }
             if (*iter1 != *iter2)
             {
               if (*iter1 == std::numeric_limits<uint64_t>::max())
