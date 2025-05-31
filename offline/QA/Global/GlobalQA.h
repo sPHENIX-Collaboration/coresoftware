@@ -63,17 +63,6 @@ class GlobalQA : public SubsysReco
   TH1 *h_GlobalQA_mbd_zvtxq{nullptr};
 
   // sEPD
-  std::string m_sEPDMapName;
-  std::string m_sEPDfieldname;
-  bool m_overrideSEPDMapName{false};
-  bool m_overrideSEPDFieldName{false};
-  std::string m_sEPDADCName;
-  std::string m_sEPDADCfieldname;
-  bool m_overrideSEPDADCName{false};
-  bool m_overrideSEPDADCFieldName{false};
-  CDBTTree *cdbttree2{nullptr};
-  unsigned int key{999};
-  std::vector<unsigned int> v;
   TH1 *h_GlobalQA_sEPD_tile[744] = {nullptr};
   TH1 *h_GlobalQA_sEPD_adcsum_s{nullptr};
   TH1 *h_GlobalQA_sEPD_adcsum_n{nullptr};
