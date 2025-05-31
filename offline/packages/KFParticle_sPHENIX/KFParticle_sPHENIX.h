@@ -271,6 +271,20 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
     m_intermediate_min_pt = intermediate_min_pt;
   }
 
+  void setIntermediateMinIP_XY(const std::vector<float> &intermediate_min_IP)
+  {
+    for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip_xy.push_back(intermediate_min_IP[i]);
+  }
+
+  void setIntermediateIPRange_XY(const std::vector<std::pair<float, float> /*unused*/> &intermediate_IP_range)
+  {
+    for (unsigned int i = 0; i < intermediate_IP_range.size(); ++i)
+    {
+      m_intermediate_min_ip_xy.push_back(intermediate_IP_range[i].first);
+      m_intermediate_max_ip_xy.push_back(intermediate_IP_range[i].second);
+    }
+  }
+
   void setIntermediateMinIP(const std::vector<float> &intermediate_min_IP)
   {
     for (unsigned int i = 0; i < intermediate_min_IP.size(); ++i) m_intermediate_min_ip.push_back(intermediate_min_IP[i]);
