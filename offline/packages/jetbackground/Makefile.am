@@ -25,6 +25,7 @@ libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
   -lcalo_io \
   -lConstituentSubtractor \
+  -leventplaneinfo_io \
   -lglobalvertex \
   -ljetbase \
   -lpdbcalBase \
