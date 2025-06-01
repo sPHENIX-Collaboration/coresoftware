@@ -310,7 +310,7 @@ bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PH
     std::cerr << "PHG4TruthTrackingAction::issPHENIXPrimary - no vertex found for particle with track id " << particle->get_track_id() << std::endl;
     return false;
   }
-  auto process = vtx->getProcess();
+  auto process = vtx->get_process();
   int pdgid = particle->get_pid();
   //if not long-lived, then it is not a primary
   if (!isLongLived(pdgid))
@@ -347,6 +347,12 @@ bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PH
       std::cerr << "PHG4TruthTrackingAction::issPHENIXPrimary - no vertex found for parent particle with track id " << parent->get_track_id() << std::endl;
       return false;
     }
+    process = vtx_parent->get_process();
+    //if parent is not from decay or primary, then it is not a sPHENIX primary
+    if(!( process == PHG4MCProcess::kPPrimary || process == PHG4MCProcess::kPDecay))
+    {
+      return false;
+    }
     //otherwise, go up the tree
     parent = truth.GetParticle(parent->get_parent_id());
   }
@@ -354,7 +360,7 @@ bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PH
   return true;
 }
 
-bool PHG4TruthTrackingAction::isLongLived(int pid)
+bool PHG4TruthTrackingAction::isLongLived(int pid) const
 {
   // see https://inspirehep.net/files/4c26ef5fb432df99bdc1ff847653502f
   // Check nuclus

@@ -49,10 +49,10 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   PHG4VtxPoint* AddVertex(PHG4TruthInfoContainer&, const G4Track&);
 
   //check if track is long-lived
-  bool isLongLived ( int pid );
+  bool isLongLived ( int pid ) const;
 
   //check if track is sPHENIX primary
-  bool issPHENIXPrimary(const G4Track* track) const;
+  bool issPHENIXPrimary(PHG4TruthInfoContainer& truth, PHG4Particle* particle) const;
 
   /// Machinery to keep track of upstream particles while adding Geant4 tracks
   /// to the truth info container
