@@ -182,6 +182,7 @@ class TrackResiduals : public SubsysReco
   float m_vx = std::numeric_limits<float>::quiet_NaN();
   float m_vy = std::numeric_limits<float>::quiet_NaN();
   float m_vz = std::numeric_limits<float>::quiet_NaN();
+  int m_vertex_ntracks = std::numeric_limits<int>::quiet_NaN();
   float m_pcax = std::numeric_limits<float>::quiet_NaN();
   float m_pcay = std::numeric_limits<float>::quiet_NaN();
   float m_pcaz = std::numeric_limits<float>::quiet_NaN();
