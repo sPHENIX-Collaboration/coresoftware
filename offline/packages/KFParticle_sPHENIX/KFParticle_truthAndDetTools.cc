@@ -31,7 +31,8 @@
 #include <phool/getClass.h>  // for getClass
 
 #include <KFParticle.h>  // for KFParticle
-#include <TString.h>     // for TString, operator+
+
+#include <TSystem.h>     // for gSystem->Exit()
 #include <TTree.h>       // for TTree
 
 #include <HepMC/GenEvent.h>       // for GenEvent::particle_con...
@@ -58,13 +59,6 @@ std::map<std::string, int> Use =
         {"EMCAL", 0},
         {"OHCAL", 0},
         {"IHCAL", 0}};
-
-KFParticle_truthAndDetTools::KFParticle_truthAndDetTools()
-  : m_svtx_evalstack(nullptr)
-{
-}  // Constructor
-
-KFParticle_truthAndDetTools::~KFParticle_truthAndDetTools() = default;  // Destructor
 
 SvtxTrack *KFParticle_truthAndDetTools::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
 {
@@ -138,33 +132,33 @@ PHG4Particle *KFParticle_truthAndDetTools::getTruthTrack(SvtxTrack *thisTrack, P
 
 void KFParticle_truthAndDetTools::initializeTruthBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number, bool m_constrain_to_vertex_truthMatch)
 {
-  m_tree->Branch(TString(daughter_number) + "_true_ID", &m_true_daughter_id[daughter_id], TString(daughter_number) + "_true_ID/I");
+  m_tree->Branch((daughter_number + "_true_ID").c_str(), &m_true_daughter_id[daughter_id], (daughter_number + "_true_ID/I").c_str());
   if (m_constrain_to_vertex_truthMatch)
   {
-    m_tree->Branch(TString(daughter_number) + "_true_IP", &m_true_daughter_ip[daughter_id], TString(daughter_number) + "_true_IP/F");
-    m_tree->Branch(TString(daughter_number) + "_true_IP_xy", &m_true_daughter_ip_xy[daughter_id], TString(daughter_number) + "_true_IP_xy/F");
+    m_tree->Branch((daughter_number + "_true_IP").c_str(), &m_true_daughter_ip[daughter_id], (daughter_number + "_true_IP/F").c_str());
+    m_tree->Branch((daughter_number + "_true_IP_xy").c_str(), &m_true_daughter_ip_xy[daughter_id], (daughter_number + "_true_IP_xy/F").c_str());
   }
-  m_tree->Branch(TString(daughter_number) + "_true_px", &m_true_daughter_px[daughter_id], TString(daughter_number) + "_true_px/F");
-  m_tree->Branch(TString(daughter_number) + "_true_py", &m_true_daughter_py[daughter_id], TString(daughter_number) + "_true_py/F");
-  m_tree->Branch(TString(daughter_number) + "_true_pz", &m_true_daughter_pz[daughter_id], TString(daughter_number) + "_true_pz/F");
-  m_tree->Branch(TString(daughter_number) + "_true_p", &m_true_daughter_p[daughter_id], TString(daughter_number) + "_true_p/F");
-  m_tree->Branch(TString(daughter_number) + "_true_pT", &m_true_daughter_pt[daughter_id], TString(daughter_number) + "_true_pT/F");
-  m_tree->Branch(TString(daughter_number) + "_true_EV_x", &m_true_daughter_vertex_x[daughter_id], TString(daughter_number) + "_true_EV_x/F");
-  m_tree->Branch(TString(daughter_number) + "_true_EV_y", &m_true_daughter_vertex_y[daughter_id], TString(daughter_number) + "_true_EV_y/F");
-  m_tree->Branch(TString(daughter_number) + "_true_EV_z", &m_true_daughter_vertex_z[daughter_id], TString(daughter_number) + "_true_EV_z/F");
+  m_tree->Branch((daughter_number + "_true_px").c_str(), &m_true_daughter_px[daughter_id], (daughter_number + "_true_px/F").c_str());
+  m_tree->Branch((daughter_number + "_true_py").c_str(), &m_true_daughter_py[daughter_id], (daughter_number + "_true_py/F").c_str());
+  m_tree->Branch((daughter_number + "_true_pz").c_str(), &m_true_daughter_pz[daughter_id], (daughter_number + "_true_pz/F").c_str());
+  m_tree->Branch((daughter_number + "_true_p").c_str(), &m_true_daughter_p[daughter_id], (daughter_number + "_true_p/F").c_str());
+  m_tree->Branch((daughter_number + "_true_pT").c_str(), &m_true_daughter_pt[daughter_id], (daughter_number + "_true_pT/F").c_str());
+  m_tree->Branch((daughter_number + "_true_EV_x").c_str(), &m_true_daughter_vertex_x[daughter_id], (daughter_number + "_true_EV_x/F").c_str());
+  m_tree->Branch((daughter_number + "_true_EV_y").c_str(), &m_true_daughter_vertex_y[daughter_id], (daughter_number + "_true_EV_y/F").c_str());
+  m_tree->Branch((daughter_number + "_true_EV_z").c_str(), &m_true_daughter_vertex_z[daughter_id], (daughter_number + "_true_EV_z/F").c_str());
   if (m_constrain_to_vertex_truthMatch)
   {
-    m_tree->Branch(TString(daughter_number) + "_true_PV_x", &m_true_daughter_pv_x[daughter_id], TString(daughter_number) + "_true_PV_x/F");
-    m_tree->Branch(TString(daughter_number) + "_true_PV_y", &m_true_daughter_pv_y[daughter_id], TString(daughter_number) + "_true_PV_y/F");
-    m_tree->Branch(TString(daughter_number) + "_true_PV_z", &m_true_daughter_pv_z[daughter_id], TString(daughter_number) + "_true_PV_z/F");
+    m_tree->Branch((daughter_number + "_true_PV_x").c_str(), &m_true_daughter_pv_x[daughter_id], (daughter_number + "_true_PV_x/F").c_str());
+    m_tree->Branch((daughter_number + "_true_PV_y").c_str(), &m_true_daughter_pv_y[daughter_id], (daughter_number + "_true_PV_y/F").c_str());
+    m_tree->Branch((daughter_number + "_true_PV_z").c_str(), &m_true_daughter_pv_z[daughter_id], (daughter_number + "_true_PV_z/F").c_str());
   }
-  m_tree->Branch(TString(daughter_number) + "_true_track_history_PDG_ID", &m_true_daughter_track_history_PDG_ID[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_true_track_history_PDG_mass", &m_true_daughter_track_history_PDG_mass[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_true_track_history_px", &m_true_daughter_track_history_px[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_true_track_history_py", &m_true_daughter_track_history_py[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_true_track_history_pz", &m_true_daughter_track_history_pz[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_true_track_history_pE", &m_true_daughter_track_history_pE[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_true_track_history_pT", &m_true_daughter_track_history_pT[daughter_id]);
+  m_tree->Branch((daughter_number + "_true_track_history_PDG_ID").c_str(), &m_true_daughter_track_history_PDG_ID[daughter_id]);
+  m_tree->Branch((daughter_number + "_true_track_history_PDG_mass").c_str(), &m_true_daughter_track_history_PDG_mass[daughter_id]);
+  m_tree->Branch((daughter_number + "_true_track_history_px").c_str(), &m_true_daughter_track_history_px[daughter_id]);
+  m_tree->Branch((daughter_number + "_true_track_history_py").c_str(), &m_true_daughter_track_history_py[daughter_id]);
+  m_tree->Branch((daughter_number + "_true_track_history_pz").c_str(), &m_true_daughter_track_history_pz[daughter_id]);
+  m_tree->Branch((daughter_number + "_true_track_history_pE").c_str(), &m_true_daughter_track_history_pE[daughter_id]);
+  m_tree->Branch((daughter_number + "_true_track_history_pT").c_str(), &m_true_daughter_track_history_pT[daughter_id]);
 }
 
 void KFParticle_truthAndDetTools::fillTruthBranch(PHCompositeNode *topNode, TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id, const KFParticle &kfvertex, bool m_constrain_to_vertex_truthMatch)
@@ -383,6 +377,8 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
   if (!dst_trackmap)
   {
     std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   track = getTrack(daughter.Id(), dst_trackmap);
@@ -472,22 +468,22 @@ int KFParticle_truthAndDetTools::getHepMCInfo(PHCompositeNode *topNode, TTree * 
 
 void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
-  m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaPhi", &detector_emcal_deltaphi[daughter_id], TString(daughter_number) + "_EMCAL_DeltaPhi/F");
-  m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaEta", &detector_emcal_deltaeta[daughter_id], TString(daughter_number) + "_EMCAL_DeltaEta/F");
-  m_tree->Branch(TString(daughter_number) + "_EMCAL_DeltaZ", &detector_emcal_deltaz[daughter_id], TString(daughter_number) + "_EMCAL_DeltaZ/F");
-  m_tree->Branch(TString(daughter_number) + "_EMCAL_energy_3x3", &detector_emcal_energy_3x3[daughter_id], TString(daughter_number) + "_EMCAL_energy_3x3/F");
-  m_tree->Branch(TString(daughter_number) + "_EMCAL_energy_5x5", &detector_emcal_energy_5x5[daughter_id], TString(daughter_number) + "_EMCAL_energy_5x5/F");
-  m_tree->Branch(TString(daughter_number) + "_EMCAL_energy_cluster", &detector_emcal_cluster_energy[daughter_id], TString(daughter_number) + "_EMCAL_energy_cluster/F");
-  m_tree->Branch(TString(daughter_number) + "_IHCAL_DeltaPhi", &detector_ihcal_deltaphi[daughter_id], TString(daughter_number) + "_IHCAL_DeltaPhi/F");
-  m_tree->Branch(TString(daughter_number) + "_IHCAL_DeltaEta", &detector_ihcal_deltaeta[daughter_id], TString(daughter_number) + "_IHCAL_DeltaEta/F");
-  m_tree->Branch(TString(daughter_number) + "_IHCAL_energy_3x3", &detector_ihcal_energy_3x3[daughter_id], TString(daughter_number) + "_IHCAL_energy_3x3/F");
-  m_tree->Branch(TString(daughter_number) + "_IHCAL_energy_5x5", &detector_ihcal_energy_5x5[daughter_id], TString(daughter_number) + "_IHCAL_energy_5x5/F");
-  m_tree->Branch(TString(daughter_number) + "_IHCAL_energy_cluster", &detector_ihcal_cluster_energy[daughter_id], TString(daughter_number) + "_IHCAL_energy_cluster/F");
-  m_tree->Branch(TString(daughter_number) + "_OHCAL_DeltaPhi", &detector_ohcal_deltaphi[daughter_id], TString(daughter_number) + "_OHCAL_DeltaEta/F");
-  m_tree->Branch(TString(daughter_number) + "_OHCAL_DeltaEta", &detector_ohcal_deltaeta[daughter_id], TString(daughter_number) + "_OHCAL_DeltaEta/F");
-  m_tree->Branch(TString(daughter_number) + "_OHCAL_energy_3x3", &detector_ohcal_energy_3x3[daughter_id], TString(daughter_number) + "_OHCAL_energy_3x3/F");
-  m_tree->Branch(TString(daughter_number) + "_OHCAL_energy_5x5", &detector_ohcal_energy_5x5[daughter_id], TString(daughter_number) + "_OHCAL_energy_5x5/F");
-  m_tree->Branch(TString(daughter_number) + "_OHCAL_energy_cluster", &detector_ohcal_cluster_energy[daughter_id], TString(daughter_number) + "_OHCAL_energy_cluster/F");
+  m_tree->Branch((daughter_number + "_EMCAL_DeltaPhi").c_str(), &detector_emcal_deltaphi[daughter_id], (daughter_number + "_EMCAL_DeltaPhi/F").c_str());
+  m_tree->Branch((daughter_number + "_EMCAL_DeltaEta").c_str(), &detector_emcal_deltaeta[daughter_id], (daughter_number + "_EMCAL_DeltaEta/F").c_str());
+  m_tree->Branch((daughter_number + "_EMCAL_DeltaZ").c_str(), &detector_emcal_deltaz[daughter_id], (daughter_number + "_EMCAL_DeltaZ/F").c_str());
+  m_tree->Branch((daughter_number + "_EMCAL_energy_3x3").c_str(), &detector_emcal_energy_3x3[daughter_id], (daughter_number + "_EMCAL_energy_3x3/F").c_str());
+  m_tree->Branch((daughter_number + "_EMCAL_energy_5x5").c_str(), &detector_emcal_energy_5x5[daughter_id], (daughter_number + "_EMCAL_energy_5x5/F").c_str());
+  m_tree->Branch((daughter_number + "_EMCAL_energy_cluster").c_str(), &detector_emcal_cluster_energy[daughter_id], (daughter_number + "_EMCAL_energy_cluster/F").c_str());
+  m_tree->Branch((daughter_number + "_IHCAL_DeltaPhi").c_str(), &detector_ihcal_deltaphi[daughter_id], (daughter_number + "_IHCAL_DeltaPhi/F").c_str());
+  m_tree->Branch((daughter_number + "_IHCAL_DeltaEta").c_str(), &detector_ihcal_deltaeta[daughter_id], (daughter_number + "_IHCAL_DeltaEta/F").c_str());
+  m_tree->Branch((daughter_number + "_IHCAL_energy_3x3").c_str(), &detector_ihcal_energy_3x3[daughter_id], (daughter_number + "_IHCAL_energy_3x3/F").c_str());
+  m_tree->Branch((daughter_number + "_IHCAL_energy_5x5").c_str(), &detector_ihcal_energy_5x5[daughter_id], (daughter_number + "_IHCAL_energy_5x5/F").c_str());
+  m_tree->Branch((daughter_number + "_IHCAL_energy_cluster").c_str(), &detector_ihcal_cluster_energy[daughter_id], (daughter_number + "_IHCAL_energy_cluster/F").c_str());
+  m_tree->Branch((daughter_number + "_OHCAL_DeltaPhi").c_str(), &detector_ohcal_deltaphi[daughter_id], (daughter_number + "_OHCAL_DeltaEta/F").c_str());
+  m_tree->Branch((daughter_number + "_OHCAL_DeltaEta").c_str(), &detector_ohcal_deltaeta[daughter_id], (daughter_number + "_OHCAL_DeltaEta/F").c_str());
+  m_tree->Branch((daughter_number + "_OHCAL_energy_3x3").c_str(), &detector_ohcal_energy_3x3[daughter_id], (daughter_number + "_OHCAL_energy_3x3/F").c_str());
+  m_tree->Branch((daughter_number + "_OHCAL_energy_5x5").c_str(), &detector_ohcal_energy_5x5[daughter_id], (daughter_number + "_OHCAL_energy_5x5/F").c_str());
+  m_tree->Branch((daughter_number + "_OHCAL_energy_cluster").c_str(), &detector_ohcal_cluster_energy[daughter_id], (daughter_number + "_OHCAL_energy_cluster/F").c_str());
 }
 
 /*
@@ -500,6 +496,8 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   if (!dst_trackmap)
   {
     std::cout << "KFParticle truth matching: " << m_trk_map_node_name_nTuple << " does not exist" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
   }
 
   track = getTrack(daughter.Id(), dst_trackmap);
@@ -1076,10 +1074,10 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
-  m_tree->Branch(TString(daughter_number) + "_residual_x", &residual_x[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_residual_y", &residual_y[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_residual_z", &residual_z[daughter_id]);
-  m_tree->Branch(TString(daughter_number) + "_layer", &detector_layer[daughter_id]);
+  m_tree->Branch((daughter_number + "_residual_x").c_str(), &residual_x[daughter_id]);
+  m_tree->Branch((daughter_number + "_residual_y").c_str(), &residual_y[daughter_id]);
+  m_tree->Branch((daughter_number + "_residual_z").c_str(), &residual_z[daughter_id]);
+  m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
 
   for (auto const &subdetector : Use)
   {
@@ -1094,29 +1092,29 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, c
 {
   if (detectorName == "MVTX")
   {
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_staveID", &mvtx_staveID[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_chipID", &mvtx_chipID[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_MVTX[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nStates", &detector_nStates_MVTX[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
   }
   if (detectorName == "INTT")
   {
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_ladderZID", &intt_ladderZID[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_ladderPhiID", &intt_ladderPhiID[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_INTT[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nStates", &detector_nStates_INTT[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
   }
   if (detectorName == "TPC")
   {
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_sectorID", &tpc_sectorID[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_side", &tpc_side[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_TPC[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nStates", &detector_nStates_TPC[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_side").c_str(), &tpc_side[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
   }
   if (detectorName == "TPOT")
   {
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nHits", &detector_nHits_TPOT[daughter_id]);
-    m_tree->Branch(TString(daughter_number) + "_" + TString(detectorName) + "_nStates", &detector_nStates_TPOT[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPOT[daughter_id]);
+    m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPOT[daughter_id]);
   }
 }
 

@@ -44,9 +44,9 @@ namespace HepMC
 class KFParticle_truthAndDetTools
 {
  public:
-  KFParticle_truthAndDetTools();  // Constructor
+  KFParticle_truthAndDetTools() = default;  // Constructor
 
-  virtual ~KFParticle_truthAndDetTools();  // Destructor
+  virtual ~KFParticle_truthAndDetTools() = default;
 
   static SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
   static GlobalVertex *getVertex(unsigned int vertex_id, GlobalVertexMap *vertexmap);
