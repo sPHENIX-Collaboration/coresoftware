@@ -742,7 +742,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
           if (!epmap)
           {
-             std::cout << PHWHERE << "::ERROR - cannot find EventplaneinfoMap" << std::endl;
+              std::cout << "DetermineTowerBackground::process_event: FATAL, EventplaneinfoMap does not exist, cannot extract sEPD flow with do_flow = " << _do_flow << std::endl;
              exit(-1);
           }
           if(!(epmap->empty()))
