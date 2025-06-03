@@ -64,7 +64,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   {
     std::cout << "TowerJetInput::process_event -- entered" << std::endl;
   }
-
+  float vtxz = 0; //default to 0
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -73,15 +73,62 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 
     return std::vector<Jet *>();
   }
-
   if (vertexmap->empty())
   {
     if (Verbosity() > 0)
     {
-      std::cout << "TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex." << std::endl;
+      std::cout << "TowerJetInput::get_input - empty vertex map, continuing as if zvtx = 0" << endl;
     }
-    return std::vector<Jet *>();
   }
+  else
+  {
+    GlobalVertex *vtx = vertexmap->begin()->second;
+    if (vtx)
+      {
+	if (m_use_vertextype) 
+	  {
+	    auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+	    auto typeEndIter = vtx->end_vertexes();
+	    for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+	      {
+		const auto &[type, vertexVec] = *iter;
+		if (type != m_vertex_type) { continue; }
+		for (const auto *vertex : vertexVec)
+		  {
+		    if (!vertex) { continue; }
+		    vtxz = vertex->get_z();
+		  }
+	      }
+	  } 
+	else 
+	  {
+	    vtxz = vtx->get_z();
+	  }
+      }
+  }
+  if (std::isnan(vtxz))
+  {
+    static bool once = true;
+    if (once)
+    {
+      once = false;
+      std::cout << "TowerJetInput::get_input - WARNING - vertex is NAN. Continue with zvtx = 0 (further vertex warning will be suppressed)." << std::endl;
+    }
+    vtxz = 0;
+  }
+
+  if (std::abs(vtxz) > 1e3)  // code crashes with very large z vertex, so skip these events
+  {
+    static bool once = true;
+    if (once)
+    {
+      once = false;
+
+      std::cout << "TowerJetInput::get_input - WARNING - vertex is " << vtxz << ". Set vtxz = 0 (further vertex warning will be suppressed)." << std::endl;
+    }
+    vtxz = 0;
+  }
+
   m_use_towerinfo = false;
 
   /* std::string name =(m_input == Jet::CEMC_TOWER ? "CEMC_TOWER" */
@@ -404,61 +451,6 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   }
 
   // first grab the event vertex or bail
-  GlobalVertex *vtx = vertexmap->begin()->second;
-  float vtxz = NAN;
-  
-  if (vtx)
-  {
-    if (m_use_vertextype) 
-    {
-      auto typeStartIter = vtx->find_vertexes(m_vertex_type);
-      auto typeEndIter = vtx->end_vertexes();
-      for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
-      {
-        const auto &[type, vertexVec] = *iter;
-        if (type != m_vertex_type) { continue; }
-        for (const auto *vertex : vertexVec)
-        {
-          if (!vertex) { continue; }
-          vtxz = vertex->get_z();
-        }
-      }
-    } 
-    else 
-    {
-      vtxz = vtx->get_z();
-    }
-  }
-  else
-  {
-    return std::vector<Jet *>();
-  }
-
-  if (std::isnan(vtxz))
-  {
-    static bool once = true;
-    if (once)
-    {
-      once = false;
-
-      std::cout << "TowerJetInput::get_input - WARNING - vertex is NAN. Drop all tower inputs (further NAN-vertex warning will be suppressed)." << std::endl;
-    }
-
-    return std::vector<Jet *>();
-  }
-
-  if (std::abs(vtxz) > 1e3)  // code crashes with very large z vertex, so skip these events
-  {
-    static bool once = true;
-    if (once)
-    {
-      once = false;
-
-      std::cout << "TowerJetInput::get_input - WARNING - vertex is " << vtxz << ". Drop all tower inputs (further vertex warning will be suppressed)." << std::endl;
-    }
-
-    return std::vector<Jet *>();
-  }
 
   std::vector<Jet *> pseudojets;
   if (m_use_towerinfo)
