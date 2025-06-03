@@ -77,7 +77,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   {
     if (Verbosity() > 0)
     {
-      std::cout << "TowerJetInput::get_input - empty vertex map, continuing as if zvtx = 0" << endl;
+      std::cout << "TowerJetInput::get_input - empty vertex map, continuing as if zvtx = 0" << std::endl;
     }
   }
   else
