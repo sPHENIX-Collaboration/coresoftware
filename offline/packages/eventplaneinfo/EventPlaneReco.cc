@@ -93,25 +93,22 @@ EventPlaneReco::EventPlaneReco(const std::string &name) : SubsysReco(name) {
 }
 
 int EventPlaneReco::InitRun(PHCompositeNode *topNode) {
-    
+
+    FileName = "EVENTPLANE_CORRECTION_default";
     if(_isSim)
     {
-        m_runNo = 0;
+        FileName = "EVENTPLANE_CORRECTION_SIM_default";
     }
-    if(!_default_calib)
-    {
-        recoConsts *rc = recoConsts::instance();
-        m_runNo = rc->get_IntFlag("RUNNUMBER");
-    }
+    
+    std::string calibdir = CDBInterface::instance()->getUrl(FileName);
 
-    if (Verbosity() > 0)
+    if (calibdir.empty())
     {
-      std::cout << "======================= EventPlaneReco:InitRun() =======================" << std::endl;
-      std::cout << PHWHERE << "RUNNUMBER " << m_runNo << std::endl;
+       std::cout << PHWHERE << "No Eventplane calibration file for domain " << FileName << " found" << std::endl;
+       std::cout << PHWHERE << "Will only produce raw Q vectors and event plane angles " << std::endl;
     }
-
-    OutFileName = boost::str(boost::format("eventplane_correction_histograms_run_%d.root") % m_runNo).c_str();
-    CDBHistos *cdbhistosIn = new CDBHistos(OutFileName);
+ 
+    CDBHistos *cdbhistosIn = new CDBHistos(calibdir);
     cdbhistosIn->LoadCalibrations();
     
       // Get recentering histograms
@@ -139,7 +136,9 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode) {
       }
     }
    
-//  cdbhistosIn->Print();
+    if (Verbosity() > 1) {
+        cdbhistosIn->Print();
+    }
    
   return CreateNodes(topNode);
 }
@@ -277,8 +276,7 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
              }
            
               _totalcharge = _nsum + _ssum;
-   
-                          
+                             
              // Get recentering histograms and do recentering
              // Recentering: subtract Qn,x and Qn,y values averaged over all events
              for (unsigned int order = 0; order < m_MaxOrder; order++)
