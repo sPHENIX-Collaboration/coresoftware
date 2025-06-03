@@ -274,7 +274,11 @@ PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth
   PHG4VtxPoint* vtx = AddVertex(truth, track);
   ti->set_vtx_id(vtx->get_id());
 
-
+  // use a new map to hold the new primary particle list
+  if(issPHENIXPrimary(truth, ti))
+  {
+    truth.AddsPHENIXPrimaryParticle(trackid, ti);
+  }
 
   return truth.AddParticle(trackid, ti)->second;
 }
