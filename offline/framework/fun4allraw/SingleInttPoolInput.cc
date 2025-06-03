@@ -114,7 +114,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
         for (int j = 0; j < numBCOs; j++)
         {
           uint64_t bco = plist[i]->lValue(j, "BCOLIST");
-          if (bco < minBCO)
+		  if (bco < minBCO)
           {
             continue;
           }
@@ -183,7 +183,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           {
             continue;
           }
-          if(bco > minBCO * 2)
+          if(bco > minBCO * 2 && !m_StandaloneMode)
           {
             continue;
           }
@@ -204,7 +204,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 			{
 			  continue;
 			}
-			if(bco > minBCO * 2)
+			if(bco > minBCO * 2 && !m_StandaloneMode)
 			{
 			  continue;
 			}
@@ -231,7 +231,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 			  // 	      << std::endl;
 			  continue;
 			}
-			if(gtm_bco > minBCO * 2)
+			if(gtm_bco > minBCO * 2 && !m_StandaloneMode)
 			{
 			  continue;
 			}
