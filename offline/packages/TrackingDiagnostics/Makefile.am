@@ -37,6 +37,7 @@ libTrackingDiagnostics_la_LIBADD = \
   -lg4eval \
   -lg4eval_io \
   -lphg4hit \
+  -lmbd_io \
   -lg4detectors_io \
   -lmvtx \
   -lmvtx_io \
