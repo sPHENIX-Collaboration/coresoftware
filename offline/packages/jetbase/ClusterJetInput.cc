@@ -68,37 +68,42 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
     std::cout << "ClusterJetInput::get_input - Warning - GlobalVertexMap node is empty. Continue as if vtxz = (0,0,0)." << std::endl;
   }
   else
+  {
+    GlobalVertex *vtx = vertexmap->begin()->second;
+    if (vtx)
     {
-      GlobalVertex *vtx = vertexmap->begin()->second;
-      if (vtx)
-	{
-	  if (m_use_vertextype) 
-	    {
-	      auto typeStartIter = vtx->find_vertexes(m_vertex_type);
-	      auto typeEndIter = vtx->end_vertexes();
-	      for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
-		{
-		  const auto &[type, vertexVec] = *iter;
-		  if (type != m_vertex_type) { continue; }
-		  for (const auto *v : vertexVec)
-		    {
-		      if (!v) { continue; }
-		      vertex.set(v->get_x(), v->get_y(), v->get_z());
-		    }
-		}
-	    } 
-	  else 
-	    {
-	      vertex.set(vtx->get_x(), vtx->get_y(), vtx->get_z());
-	    }
-	}
-      
-      if (std::isnan(vertex.z()))
-	{
-	  vertex.set(0,0,0);
-	}
+      if (m_use_vertextype)
+      {
+        auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+        auto typeEndIter = vtx->end_vertexes();
+        for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+        {
+          const auto &[type, vertexVec] = *iter;
+          if (type != m_vertex_type)
+          {
+            continue;
+          }
+          for (const auto *v : vertexVec)
+          {
+            if (!v)
+            {
+              continue;
+            }
+            vertex.set(v->get_x(), v->get_y(), v->get_z());
+          }
+        }
+      }
+      else
+      {
+        vertex.set(vtx->get_x(), vtx->get_y(), vtx->get_z());
+      }
     }
 
+    if (std::isnan(vertex.z()))
+    {
+      vertex.set(0, 0, 0);
+    }
+  }
 
   RawClusterContainer *clusters = nullptr;
   if (m_Input == Jet::CEMC_CLUSTER)
@@ -177,7 +182,6 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   {
     return std::vector<Jet *>();
   }
-
 
   std::vector<Jet *> pseudojets;
   RawClusterContainer::ConstRange begin_end = clusters->getClusters();
