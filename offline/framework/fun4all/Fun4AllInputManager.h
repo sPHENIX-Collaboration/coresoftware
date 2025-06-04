@@ -68,6 +68,8 @@ class Fun4AllInputManager : public Fun4AllBase
   int OpenNextFile();
   void IsOpen(const int i) { m_IsOpen = i; }
   Fun4AllSyncManager *MySyncManager() { return m_MySyncManager; }
+  void DisableReadCache() { m_disable_read_cache_flag = true; }
+  bool ReadCacheDisabled() const { return m_disable_read_cache_flag; }
 
  private:
   Fun4AllSyncManager *m_MySyncManager {nullptr};
@@ -75,6 +77,7 @@ class Fun4AllInputManager : public Fun4AllBase
   int m_Repeat {0};
   int m_MyRunNumber {0};
   int m_InitRun {0};
+  bool m_disable_read_cache_flag{false};
   std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
   std::string m_FileName;
