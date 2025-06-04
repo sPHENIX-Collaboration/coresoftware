@@ -46,154 +46,153 @@ SingleInttPoolInput::~SingleInttPoolInput()
   }
 }
 
-void SingleInttPoolInput::FillPool(const uint64_t minBCO)
+void SingleInttPoolInput::FillPool(const uint64_t minBCO,bool withGl1)
 {
   if (AllDone())  // no more files and all events read
   {
-    return;
+	return;
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
-    {
-      AllDone(1);
-      return;
-    }
+	if (!OpenNextFile())
+	{
+	  AllDone(1);
+	  return;
+	}
   }
-
   //  std::set<uint64_t> saved_beamclocks;
   while (GetSomeMoreEvents(0))
   {
-    Event *evt = GetEventiterator()->getNextEvent();
-    while (!evt)
-    {
-      fileclose();
-      if (!OpenNextFile())
-      {
-        AllDone(1);
-        return;
-      }
-      evt = GetEventiterator()->getNextEvent();
-    }
-    if (Verbosity() > 2)
-    {
-      std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
-    }
-    RunNumber(evt->getRunNumber());
-    if (GetVerbosity() > 1)
-    {
-      evt->identify();
-    }
-    // not interested in special events, really
-    if (evt->getEvtType() != DATAEVENT)
-    {
-      m_NumSpecialEvents++;
-      if (evt->getEvtType() == ENDRUNEVENT)
-      {
-        std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
-        delete evt;
-        AllDone(1);
-        return;
-      }
-      delete evt;
-      continue;
-    }
+	Event *evt = GetEventiterator()->getNextEvent();
+	while (!evt)
+	{
+	  fileclose();
+	  if (!OpenNextFile())
+	  {
+		AllDone(1);
+		return;
+	  }
+	  evt = GetEventiterator()->getNextEvent();
+	}
+	if (Verbosity() > 2)
+	{
+	  std::cout << "Fetching next Event" << evt->getEvtSequence() << std::endl;
+	}
+	RunNumber(evt->getRunNumber());
+	if (GetVerbosity() > 1)
+	{
+	  evt->identify();
+	}
+	// not interested in special events, really
+	if (evt->getEvtType() != DATAEVENT)
+	{
+	  m_NumSpecialEvents++;
+	  if (evt->getEvtType() == ENDRUNEVENT)
+	  {
+		std::cout << "End run flag for INTT found, remaining INTT data is corrupted" << std::endl;
+		delete evt;
+		AllDone(1);
+		return;
+	  }
+	  delete evt;
+	  continue;
+	}
 
-    int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 1);
+	int EventSequence = evt->getEvtSequence();
+	int npackets = evt->getPacketList(plist, 1);
 
-    if (npackets > 1)
-    {
-      exit(1);
-    }
-    if (m_SkipEarlyEvents)
-    {
-      for (int i = 0; i < npackets; i++)
-      {
-        int numBCOs = plist[i]->iValue(0, "NR_BCOS");
-        for (int j = 0; j < numBCOs; j++)
-        {
-          uint64_t bco = plist[i]->lValue(j, "BCOLIST");
+	if (npackets > 1)
+	{
+	  exit(1);
+	}
+	if (m_SkipEarlyEvents)
+	{
+	  for (int i = 0; i < npackets; i++)
+	  {
+		int numBCOs = plist[i]->iValue(0, "NR_BCOS");
+		for (int j = 0; j < numBCOs; j++)
+		{
+		  uint64_t bco = plist[i]->lValue(j, "BCOLIST");
 		  if (bco < minBCO)
-          {
-            continue;
-          }
-          m_SkipEarlyEvents = false;
-        }
-      }
-    }
-    if (m_SkipEarlyEvents)
-    {
-      for (int i = 0; i < npackets; i++)
-      {
-        delete plist[i];
-      }
-      delete evt;
-      continue;
-    }
-    for (int i = 0; i < npackets; i++)
-    {
-      if (Verbosity() > 2)
-      {
-        plist[i]->identify();
-      }
+		  {
+			continue;
+		  }
+		  m_SkipEarlyEvents = false;
+		}
+	  }
+	}
+	if (m_SkipEarlyEvents)
+	{
+	  for (int i = 0; i < npackets; i++)
+	  {
+		delete plist[i];
+	  }
+	  delete evt;
+	  continue;
+	}
+	for (int i = 0; i < npackets; i++)
+	{
+	  if (Verbosity() > 2)
+	  {
+		plist[i]->identify();
+	  }
 
-      if (poolmap.find(plist[i]->getIdentifier()) == poolmap.end())  // we haven't seen this one yet
-      {
-        if (Verbosity() > 1)
-        {
-          std::cout << "starting new intt pool for packet " << plist[i]->getIdentifier() << std::endl;
-        }
-        poolmap[plist[i]->getIdentifier()] = new intt_pool(1000, 100);
-        poolmap[plist[i]->getIdentifier()]->Verbosity(Verbosity());
-        poolmap[plist[i]->getIdentifier()]->Name(std::to_string(plist[i]->getIdentifier()));
-      }
-      poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
+	  if (poolmap.find(plist[i]->getIdentifier()) == poolmap.end())  // we haven't seen this one yet
+	  {
+		if (Verbosity() > 1)
+		{
+		  std::cout << "starting new intt pool for packet " << plist[i]->getIdentifier() << std::endl;
+		}
+		poolmap[plist[i]->getIdentifier()] = new intt_pool(1000, 100);
+		poolmap[plist[i]->getIdentifier()]->Verbosity(Verbosity());
+		poolmap[plist[i]->getIdentifier()]->Name(std::to_string(plist[i]->getIdentifier()));
+	  }
+	  poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
 
-      delete plist[i];
-    }
+	  delete plist[i];
+	}
 
-    delete evt;
+	delete evt;
 
-    for (auto iter : poolmap)
-    {
-      intt_pool *pool = iter.second;  // less typing
-      auto packet_id = pool->getIdentifier();
-      if (pool->depth_ok())
-      {
-        int num_hits = pool->iValue(0, "NR_HITS");
-        if (Verbosity() > 1)
-        {
-          std::cout << "Number of Hits: " << num_hits << " for packet "
-                    << pool->getIdentifier() << std::endl;
-        }
+	for (auto iter : poolmap)
+	{
+	  intt_pool *pool = iter.second;  // less typing
+	  auto packet_id = pool->getIdentifier();
+	  if (pool->depth_ok())
+	  {
+		int num_hits = pool->iValue(0, "NR_HITS");
+		if (Verbosity() > 1)
+		{
+		  std::cout << "Number of Hits: " << num_hits << " for packet "
+			<< pool->getIdentifier() << std::endl;
+		}
 
-        int numBCOs = pool->iValue(0, "NR_BCOS");
-        uint64_t largest_bco = 0;
-        bool skipthis{true};
+		int numBCOs = pool->iValue(0, "NR_BCOS");
+		uint64_t largest_bco = 0;
+		bool skipthis{true};
 
-        for (int j = 0; j < numBCOs; j++)
-        {
-          uint64_t bco = pool->lValue(j, "BCOLIST");
-          if (largest_bco < bco)
-          {
-            largest_bco = bco;
-          }
-          if (bco < minBCO)
-          {
-            continue;
-          }
-          if(bco > minBCO * 2 && !m_StandaloneMode)
-          {
-            continue;
-          }
-          skipthis = false;
-          m_BclkStack.insert(bco);
-          m_BclkStackPacketMap[packet_id].insert(bco);
-        }
+		for (int j = 0; j < numBCOs; j++)
+		{
+		  uint64_t bco = pool->lValue(j, "BCOLIST");
+		  if (largest_bco < bco)
+		  {
+			largest_bco = bco;
+		  }
+		  if (bco < minBCO)
+		  {
+			continue;
+		  }
+		  if(bco > minBCO * 2 && withGl1)
+		  {
+			continue;
+		  }
+		  skipthis = false;
+		  m_BclkStack.insert(bco);
+		  m_BclkStackPacketMap[packet_id].insert(bco);
+		}
 
-        int nFEEs = pool->iValue(0, "UNIQUE_FEES");
-        for (int j = 0; j < nFEEs; j++)
+		int nFEEs = pool->iValue(0, "UNIQUE_FEES");
+		for (int j = 0; j < nFEEs; j++)
 		{
 		  int fee = pool->iValue(j, "FEE_ID");
 		  int nbcos = pool->iValue(fee, "FEE_BCOS");
@@ -204,24 +203,24 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 			{
 			  continue;
 			}
-			if(bco > minBCO * 2 && !m_StandaloneMode)
+			if(bco > minBCO * 2 && withGl1)
 			{
 			  continue;
 			}
 			m_FeeGTML1BCOMap[fee].insert(bco);
 		  }
 		}
-        if (skipthis)
-        {
-          if (Verbosity() > 1)
-          {
-            std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO
-                      << std::dec << ", evtno: " << EventSequence << std::endl;
-          }
-        }
-        else
-        {
-          for (int j = 0; j < num_hits; j++)
+		if (skipthis)
+		{
+		  if (Verbosity() > 1)
+		  {
+			std::cout << "largest bco: 0x" << std::hex << largest_bco << ", minbco 0x" << minBCO
+			  << std::dec << ", evtno: " << EventSequence << std::endl;
+		  }
+		}
+		else
+		{
+		  for (int j = 0; j < num_hits; j++)
 		  {
 			uint64_t gtm_bco = pool->lValue(j, "BCO");
 			if (gtm_bco < minBCO)
@@ -231,7 +230,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 			  // 	      << std::endl;
 			  continue;
 			}
-			if(gtm_bco > minBCO * 2 && !m_StandaloneMode)
+			if(gtm_bco > minBCO * 2 && withGl1)
 			{
 			  continue;
 			}
@@ -276,11 +275,11 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 			}
 			m_InttRawHitMap[gtm_bco].push_back(newhit.release());
 		  }
-        }
-        //	    Print("FEEBCLK");
-      }
-      pool->next();
-    }
+		}
+		//	    Print("FEEBCLK");
+	  }
+	  pool->next();
+	}
   }
 }
 
