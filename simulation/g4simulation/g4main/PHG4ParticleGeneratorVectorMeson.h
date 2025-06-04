@@ -61,7 +61,7 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
 
   void set_mass(const double mass_in) { mass = mass_in; }
   void set_width(const double width_in) { m_Width = width_in; }
-  void set_decay_types(const std::string &decay1, const std::string &decay2);
+  void set_decay_types(const std::string &name1, const std::string &name2);
   void set_histrand_init(const int initflag) { _histrand_init = initflag; }
   void set_upsilon_1s();
   void set_upsilon_2s();
