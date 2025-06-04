@@ -1,24 +1,11 @@
 #include "PHG4Particlev1.h"
 
-using namespace std;
-
-PHG4Particlev1::PHG4Particlev1()
-  : fname("")
-  , fpid(0)
-  , fpx(0)
-  , fpy(0)
-  , fpz(0)
-  , barcode(-1)
-{
-}
-
-PHG4Particlev1::PHG4Particlev1(const string &name, const int pid, const double px, const double py, const double pz)
+PHG4Particlev1::PHG4Particlev1(const std::string &name, const int pid, const double px, const double py, const double pz)
   : fname(name)
   , fpid(pid)
   , fpx(px)
   , fpy(py)
   , fpz(pz)
-  , barcode(-1)
 {
 }
 
@@ -32,9 +19,9 @@ PHG4Particlev1::PHG4Particlev1(const PHG4Particle *in)
 {
 }
 
-void PHG4Particlev1::identify(ostream &os) const
+void PHG4Particlev1::identify(std::ostream &os) const
 {
-  if (fname.size() > 0)
+  if (!fname.empty())
   {
     os << "PHG4Particlev1 name: " << fname;
   }
@@ -46,6 +33,6 @@ void PHG4Particlev1::identify(ostream &os) const
      << ", px: " << fpx
      << ", py: " << fpy
      << ", pz: " << fpz
-     << ", barcode: " << barcode << endl;
+     << ", barcode: " << barcode << std::endl;
   return;
 }

@@ -3,19 +3,7 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <cmath>
 #include <string>
-
-using namespace std;
-
-PHG4Particlev3::PHG4Particlev3()
-  : PHG4Particlev2()
-  , A(0)
-  , Z(0)
-  , ioncharge(NAN)
-  , excitEnergy(NAN)
-{
-}
 
 PHG4Particlev3::PHG4Particlev3(const PHG4Particle* in)
   : PHG4Particlev2(in)
@@ -33,7 +21,7 @@ void PHG4Particlev3::set_NumCharge(const int c)
 
 void PHG4Particlev3::identify(std::ostream& os) const
 {
-  if (fname.size() > 0)
+  if (!fname.empty())
   {
     os << "PHG4Particlev3 name: " << fname << ", ";
   }
@@ -55,6 +43,6 @@ void PHG4Particlev3::identify(std::ostream& os) const
      << ", Z: " << Z
      << ", Eex: " << excitEnergy
      << ", ioncharge: " << ioncharge
-     << endl;
+     << std::endl;
   return;
 }
