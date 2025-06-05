@@ -558,7 +558,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
     // loop over clusters associated to this G4Particle
     {
-      const auto mapIter = g4particle_map.find(iter->first);
+      const auto mapIter = g4particle_map.find(key);
       if (mapIter != g4particle_map.cend())
       {
         for (const auto &cluster_key : mapIter->second)
@@ -568,7 +568,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
       else if (Verbosity())
       {
-        std::cout << "QAG4SimulationTracking::process_event - could nof find clusters associated to G4Particle " << iter->first << std::endl;
+        std::cout << "QAG4SimulationTracking::process_event - could nof find clusters associated to G4Particle " << key << std::endl;
       }
     }
     // look for best matching track in reco data & get its information
@@ -764,8 +764,8 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
   G4HitSet out;
   const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
-  /* 
-   * also get bare (== strobe 0) hitsetkey, 
+  /*
+   * also get bare (== strobe 0) hitsetkey,
    * since this is the one recorded in the HitTruth association map
    */
   const auto bare_hitset_key = MvtxDefs::resetStrobe(hitset_key);
