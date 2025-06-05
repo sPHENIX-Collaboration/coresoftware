@@ -47,6 +47,21 @@
 #include <string>
 #include <utility>  // for pair
 
+namespace
+{
+
+  //! range adaptor to be able to use range-based for loop
+  template<class T> class range_adaptor
+  {
+    public:
+    range_adaptor( const T& range ):m_range(range){}
+    const typename T::first_type& begin() {return m_range.first;}
+    const typename T::second_type& end() {return m_range.second;}
+    private:
+    T m_range;
+  };
+
+}
 
 QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
   : SubsysReco(name)
@@ -341,10 +356,8 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     for (const auto &hitsetkey : m_cluster_map->getHitSetKeys())
     {
       auto range = m_cluster_map->getClusters(hitsetkey);
-      for (auto clusterIter = range.first; clusterIter != range.second; ++clusterIter)
+      for( const auto& [key,cluster]:range_adaptor(range) )
       {
-        // store cluster key
-        const auto &key = clusterIter->first;
 
         // loop over associated g4hits
         for (const auto &g4hit : find_g4hits(key))
@@ -460,11 +473,8 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   }  // reco track loop
 
   PHG4TruthInfoContainer::ConstRange const range = m_truthContainer->GetPrimaryParticleRange();
-  for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+  for( const auto& [key,g4particle]:range_adaptor(range) )
   {
-    // get the truth particle information
-    PHG4Particle *g4particle = iter->second;
-
     if (Verbosity())
     {
       std::cout << "QAG4SimulationTracking::process_event - processing ";
@@ -754,15 +764,16 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
   G4HitSet out;
   const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
-  // also get bare (== strobe 0) hitsetkey, since this is the one recorded in the HitTruth association map
+  /* 
+   * also get bare (== strobe 0) hitsetkey, 
+   * since this is the one recorded in the HitTruth association map
+   */
   const auto bare_hitset_key = MvtxDefs::resetStrobe(hitset_key);
 
   // loop over hits associated to clusters
   const auto range = m_cluster_hit_map->getHits(cluster_key);
-  for (auto iter = range.first; iter != range.second; ++iter)
+  for( const auto& [ckey,hit_key]:range_adaptor(range) )
   {
-    // hit key
-    const auto &hit_key = iter->second;
 
     // store hits to g4hit associations
     TrkrHitTruthAssoc::MMap g4hit_map;

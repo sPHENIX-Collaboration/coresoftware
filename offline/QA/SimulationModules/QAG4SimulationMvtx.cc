@@ -39,6 +39,22 @@
 #include <string>
 #include <utility>  // for pair, make_pair
 
+namespace
+{
+
+  //! range adaptor to be able to use range-based for loop
+  template<class T> class range_adaptor
+  {
+    public:
+    range_adaptor( const T& range ):m_range(range){}
+    const typename T::first_type& begin() {return m_range.first;}
+    const typename T::second_type& end() {return m_range.second;}
+    private:
+    T m_range;
+  };
+
+}
+
 //________________________________________________________________________
 QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string& name)
   : SubsysReco(name)
@@ -298,8 +314,8 @@ void QAG4SimulationMvtx::evaluate_clusters()
 
       // fill phi residuals, errors and pulls
       auto fill = [](TH1* h, float value)
-      { if( h ) { h->Fill( value ); 
-} };
+      { if( h ) { h->Fill( value ); } };
+
       fill(hiter->second.drphi, r_cluster * dphi);
       fill(hiter->second.rphi_error, r_cluster * phi_error);
       fill(hiter->second.phi_pulls, dphi / phi_error);
@@ -335,16 +351,20 @@ QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits(TrkrDefs::cluskey c
   G4HitSet out;
   const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
+  /*
+   * also get bare (== strobe 0) hitsetkey,
+   * since this is the one recorded in the HitTruth association map
+   */
+  const auto bare_hitset_key = MvtxDefs::resetStrobe(hitset_key);
+
   // loop over hits associated to clusters
   const auto range = m_cluster_hit_map->getHits(cluster_key);
-  for (auto iter = range.first; iter != range.second; ++iter)
+  for( const auto& [ckey,hit_key]:range_adaptor(range) )
   {
-    // hit key
-    const auto& hit_key = iter->second;
 
     // store hits to g4hit associations
     TrkrHitTruthAssoc::MMap g4hit_map;
-    m_hit_truth_map->getG4Hits(hitset_key, hit_key, g4hit_map);
+    m_hit_truth_map->getG4Hits(bare_hitset_key, hit_key, g4hit_map);
 
     // find corresponding g4 hist
     for (auto& truth_iter : g4hit_map)
