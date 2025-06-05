@@ -56,7 +56,6 @@ class TrackResiduals : public SubsysReco
   void zeroField() { m_zeroField = true; }
   void runnumber(const int run) { m_runnumber = run; }
   void segment(const int seg) { m_segment = seg; }
-  void job(const int job) { m_job = job; }
   void linefitAll() { m_linefitTPCOnly = false; }
   void setClusterMinSize(unsigned int size) { m_min_cluster_size = size; }
   void failedTree() { m_doFailedSeeds = true; }
@@ -133,7 +132,6 @@ class TrackResiduals : public SubsysReco
   int m_event = 0;
   int m_segment = std::numeric_limits<int>::quiet_NaN();
   int m_runnumber = std::numeric_limits<int>::quiet_NaN();
-  int m_job = std::numeric_limits<int>::quiet_NaN();
   int m_ntpcclus = std::numeric_limits<int>::quiet_NaN();
 
   std::vector<int> m_firedTriggers;

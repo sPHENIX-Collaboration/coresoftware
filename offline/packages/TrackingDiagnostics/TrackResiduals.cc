@@ -1563,7 +1563,6 @@ void TrackResiduals::createBranches()
     m_eventtree = new TTree("eventtree", "A tree with all hits");
     m_eventtree->Branch("run", &m_runnumber, "m_runnumber/I");
     m_eventtree->Branch("segment", &m_segment, "m_segment/I");
-    m_eventtree->Branch("job", &m_job, "m_job/I");
     m_eventtree->Branch("event", &m_event, "m_event/I");
     m_eventtree->Branch("gl1bco", &m_bco, "m_bco/I");
     m_eventtree->Branch("nmvtx", &m_nmvtx_all, "m_nmvtx_all/I");
@@ -1581,7 +1580,6 @@ void TrackResiduals::createBranches()
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
   m_failedfits->Branch("run", &m_runnumber, "m_runnumber/I");
   m_failedfits->Branch("segment", &m_segment, "m_segment/I");
-  m_failedfits->Branch("job", &m_job, "m_job/I");
   m_failedfits->Branch("trackid", &m_trackid, "m_trackid/I");
   m_failedfits->Branch("event", &m_event, "m_event/I");
   m_failedfits->Branch("silseedx", &m_silseedx, "m_silseedx/F");
@@ -1609,7 +1607,6 @@ void TrackResiduals::createBranches()
   m_vertextree = new TTree("vertextree", "tree with vertices");
   m_vertextree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_vertextree->Branch("segment", &m_segment, "m_segment/I");
-  m_vertextree->Branch("job", &m_job, "m_job/I");
   m_vertextree->Branch("event", &m_event, "m_event/I");
   m_vertextree->Branch("firedTriggers", &m_firedTriggers);
   m_vertextree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
@@ -1630,10 +1627,8 @@ void TrackResiduals::createBranches()
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_hittree->Branch("segment", &m_segment, "m_segment/I");
-  m_hittree->Branch("job", &m_job, "m_job/I");
   m_hittree->Branch("event", &m_event, "m_event/I");
   m_hittree->Branch("gl1bco", &m_bco, "m_bco/l");
-  m_hittree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_hittree->Branch("hitsetkey", &m_hitsetkey, "m_hitsetkey/i");
   m_hittree->Branch("gx", &m_hitgx, "m_hitgx/F");
   m_hittree->Branch("gy", &m_hitgy, "m_hitgy/F");
@@ -1660,40 +1655,26 @@ void TrackResiduals::createBranches()
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_clustree->Branch("segment", &m_segment, "m_segment/I");
-  m_clustree->Branch("job", &m_job, "m_job/I");
   m_clustree->Branch("event", &m_event, "m_event/I");
   m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
-  m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_clustree->Branch("lx", &m_scluslx, "m_scluslx/F");
   m_clustree->Branch("lz", &m_scluslz, "m_scluslz/F");
   m_clustree->Branch("gx", &m_sclusgx, "m_sclusgx/F");
   m_clustree->Branch("gy", &m_sclusgy, "m_sclusgy/F");
   m_clustree->Branch("gz", &m_sclusgz, "m_sclusgz/F");
-  m_clustree->Branch("r", &m_sclusgr, "m_sclusgr/F");
   m_clustree->Branch("phi", &m_sclusphi, "m_sclusphi/F");
   m_clustree->Branch("eta", &m_scluseta, "m_scluseta/F");
   m_clustree->Branch("adc", &m_adc, "m_adc/F");
   m_clustree->Branch("phisize", &m_phisize, "m_phisize/I");
   m_clustree->Branch("zsize", &m_zsize, "m_zsize/I");
-  m_clustree->Branch("layer", &m_scluslayer, "m_scluslayer/I");
   m_clustree->Branch("erphi", &m_scluselx, "m_scluselx/F");
   m_clustree->Branch("ez", &m_scluselz, "m_scluselz/F");
   m_clustree->Branch("maxadc", &m_clusmaxadc, "m_clusmaxadc/F");
-  m_clustree->Branch("sector", &m_clussector, "m_clussector/I");
-  m_clustree->Branch("side", &m_side, "m_side/I");
-  m_clustree->Branch("stave", &m_staveid, "m_staveid/I");
-  m_clustree->Branch("chip", &m_chipid, "m_chipid/I");
-  m_clustree->Branch("strobe", &m_strobeid, "m_strobeid/I");
-  m_clustree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
-  m_clustree->Branch("ladderphi", &m_ladderphiid, "m_ladderphiid/I");
-  m_clustree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
-  m_clustree->Branch("segtype", &m_segtype, "m_segtype/I");
-  m_clustree->Branch("tile", &m_tileid, "m_tileid/I");
-
+  m_clustree->Branch("hitsetkey", &m_hitsetkey, "m_hitsetkey/i");
+  
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
   m_tree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_tree->Branch("segment", &m_segment, "m_segment/I");
-  m_tree->Branch("job", &m_job, "m_job/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("firedTriggers", &m_firedTriggers);
   m_tree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
@@ -1701,7 +1682,6 @@ void TrackResiduals::createBranches()
   m_tree->Branch("tpcid", &m_tpcid, "m_tpcid/I");
   m_tree->Branch("silid", &m_silid, "m_silid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
-  m_tree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("crossing_estimate", &m_crossing_estimate, "m_crossing_estimate/I");
   m_tree->Branch("silseedx", &m_silseedx, "m_silseedx/F");
