@@ -6,7 +6,9 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
-  -isystem$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include \
+  -isystem$(OPT_SPHENIX)/include
+
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -27,6 +29,7 @@ libtpccalib_la_LIBADD = \
   -lFROG \
   -lffaobjects \
   -lphool \
+  -lodbc++ \
   -lSubsysReco \
   -lg4detectors_io \
   -ltrack_io \
