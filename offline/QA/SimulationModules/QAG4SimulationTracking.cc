@@ -764,11 +764,17 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
   G4HitSet out;
   const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
+  // get detector id
+  const auto trkrId = TrkrDefs::getTrkrId(hitset_key);
+
   /*
+   * for MVTX,
    * also get bare (== strobe 0) hitsetkey,
    * since this is the one recorded in the HitTruth association map
    */
-  const auto bare_hitset_key = MvtxDefs::resetStrobe(hitset_key);
+  const auto bare_hitset_key =
+    trkrId ==  TrkrDefs::TrkrId::mvtxId ?
+    MvtxDefs::resetStrobe(hitset_key):hitset_key;
 
   // loop over hits associated to clusters
   const auto range = m_cluster_hit_map->getHits(cluster_key);
