@@ -47,13 +47,18 @@ class PHG4TruthInfoContainer : public PHObject
 
   //! Add a particle that the user has created
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
+  ConstIterator AddsPHENIXPrimaryParticle(const int particleid, PHG4Particle* newparticle);
   void delete_particle(Iterator piter);
   void delete_particle(int trackid);
 
   PHG4Particle* GetParticle(const int trackid);
   PHG4Particle* GetPrimaryParticle(const int trackid);
 
+  PHG4Particle* GetsPHENIXPrimaryParticle(const int trackid);
+
   bool is_primary(const PHG4Particle* p) const;
+
+  bool is_sPHENIX_primary(const PHG4Particle* p) const;
 
   //! Get a range of iterators covering the entire container
   Range GetParticleRange() { return Range(particlemap.begin(), particlemap.end()); }
@@ -61,6 +66,9 @@ class PHG4TruthInfoContainer : public PHObject
 
   Range GetPrimaryParticleRange() { return Range(particlemap.upper_bound(0), particlemap.end()); }
   ConstRange GetPrimaryParticleRange() const { return ConstRange(particlemap.upper_bound(0), particlemap.end()); }
+
+  Range GetSPHENIXPrimaryParticleRange() { return Range(sPHENIXprimaryparticlemap.begin(), sPHENIXprimaryparticlemap.end()); }
+  ConstRange GetSPHENIXPrimaryParticleRange() const { return ConstRange(sPHENIXprimaryparticlemap.begin(), sPHENIXprimaryparticlemap.end());}
 
   Range GetSecondaryParticleRange() { return Range(particlemap.begin(), particlemap.upper_bound(0)); }
   ConstRange GetSecondaryParticleRange() const { return ConstRange(particlemap.begin(), particlemap.upper_bound(0)); }
@@ -74,6 +82,8 @@ class PHG4TruthInfoContainer : public PHObject
 
   //! Get the Particle Map storage
   const Map& GetMap() const { return particlemap; }
+
+  const Map& GetSPHENIXPrimaryParticleMap() const { return sPHENIXprimaryparticlemap; }
 
   int maxtrkindex() const;
   int mintrkindex() const;
@@ -208,6 +218,8 @@ class PHG4TruthInfoContainer : public PHObject
   /// -M   secondary particle id => particle*
   Map particlemap;
 
+  Map sPHENIXprimaryparticlemap;  // for sPHENIX primary particle identification
+
   /// vertex storage map format description:
   /// primary vertexes are appended in the positive direction
   /// secondary vertexes are appended in the negative direction
@@ -230,7 +242,7 @@ class PHG4TruthInfoContainer : public PHObject
   std::map<int, int> particle_embed_flags;  //< trackid => embed flag
   std::map<int, int> vertex_embed_flags;    //< vtxid => embed flag
 
-  ClassDefOverride(PHG4TruthInfoContainer, 1)
+  ClassDefOverride(PHG4TruthInfoContainer, 2)
 };
 
 /**

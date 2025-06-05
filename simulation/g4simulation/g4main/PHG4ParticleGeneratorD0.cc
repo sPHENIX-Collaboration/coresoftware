@@ -106,7 +106,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   {
     if (vtx_zmax != vtx_zmin)
     {
-      set_vtx_z((vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator()) + vtx_zmin);
+      set_vtx_z(((vtx_zmax - vtx_zmin) * gsl_rng_uniform_pos(RandomGenerator())) + vtx_zmin);
     }
     else
     {
@@ -143,7 +143,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
-  double mt = sqrt(mnow * mnow + pt * pt);
+  double mt = sqrt((mnow * mnow) + (pt * pt));
   double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
@@ -162,12 +162,12 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   }
   set_vtx(vd0.Px() / vd0.P() * lifepath,
           vd0.Py() / vd0.P() * lifepath,
-          get_vtx_z() + vd0.Pz() / vd0.P() * lifepath);
+          get_vtx_z() + (vd0.Pz() / vd0.P() * lifepath));
   set_t0(lifetime);
   int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
   if (Verbosity() > 0)
   {
-    std::cout << "  XY vertex: " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) << " " << sqrt(get_vtx_x() * get_vtx_x() + get_vtx_y() * get_vtx_y()) * 1.0e+04 << std::endl;
+    std::cout << "  XY vertex: " << sqrt((get_vtx_x() * get_vtx_x()) + (get_vtx_y() * get_vtx_y())) << " " << sqrt((get_vtx_x() * get_vtx_x()) + (get_vtx_y() * get_vtx_y())) * 1.0e+04 << std::endl;
   }
 
   // Now decay it

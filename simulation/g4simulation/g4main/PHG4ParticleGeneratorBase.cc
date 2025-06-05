@@ -40,8 +40,8 @@
 
 PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const std::string &name)
   : SubsysReco(name)
+  , m_RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(m_RandomGenerator, m_Seed);
   return;
@@ -58,7 +58,7 @@ PHG4ParticleGeneratorBase::~PHG4ParticleGeneratorBase()
   return;
 }
 
-int PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name) const
+int PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name)
 {
   G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition *particledef = particleTable->FindParticle(name);
@@ -70,7 +70,7 @@ int PHG4ParticleGeneratorBase::get_pdgcode(const std::string &name) const
 }
 
 std::string
-PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode) const
+PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode)
 {
   G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition *particledef = particleTable->FindParticle(pdgcode);
@@ -83,7 +83,7 @@ PHG4ParticleGeneratorBase::get_pdgname(const int pdgcode) const
 }
 
 double
-PHG4ParticleGeneratorBase::get_mass(const int pdgcode) const
+PHG4ParticleGeneratorBase::get_mass(const int pdgcode)
 {
   G4ParticleTable *particleTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition *particledef = particleTable->FindParticle(get_pdgname(pdgcode));
@@ -177,7 +177,7 @@ void PHG4ParticleGeneratorBase::AddParticle(const int pid, const double x, const
 
 void PHG4ParticleGeneratorBase::CheckAndCreateParticleVector()
 {
-  if (!particlelist.size())
+  if (particlelist.empty())
   {
     PHG4Particle *part = new PHG4Particlev1();
     particlelist.push_back(part);
@@ -185,9 +185,9 @@ void PHG4ParticleGeneratorBase::CheckAndCreateParticleVector()
   return;
 }
 
-void PHG4ParticleGeneratorBase::SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve)
+void PHG4ParticleGeneratorBase::SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve) const
 {
-  if ((particle->get_name()).size() == 0)  // no size -> empty name string
+  if (particle->get_name().empty())  // no size -> empty name string
   {
     particle->set_name(get_pdgname(particle->get_pid()));
   }

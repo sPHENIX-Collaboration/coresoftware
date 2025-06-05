@@ -114,6 +114,31 @@ PHG4TruthInfoContainer::AddParticle(const int trackid, PHG4Particle* newparticle
   return particlemap.end();
 }
 
+PHG4TruthInfoContainer::ConstIterator
+PHG4TruthInfoContainer::AddsPHENIXPrimaryParticle(const int trackid, PHG4Particle* newparticle)
+{
+  int key = trackid;
+  ConstIterator it;
+  bool added = false;
+
+  boost::tie(it, added) = sPHENIXprimaryparticlemap.insert(std::make_pair(key, newparticle));
+  if (added)
+  {
+    return it;
+  }
+
+  cerr << "PHG4TruthInfoContainer::AddsPHENIXPrimaryParticle"
+       << " - Attempt to add sPHENIX primary particle with existing trackid "
+       << trackid << ": " << newparticle->get_name() << " id "
+       << newparticle->get_track_id()
+       << ", p = [" << newparticle->get_px()
+       << ", " << newparticle->get_py()
+       << ", " << newparticle->get_pz() << "], "
+       << " parent ID " << newparticle->get_parent_id()
+       << std::endl;
+  return sPHENIXprimaryparticlemap.end();
+}
+
 PHG4Particle* PHG4TruthInfoContainer::GetParticle(const int trackid)
 {
   int key = trackid;
@@ -133,6 +158,16 @@ PHG4Particle* PHG4TruthInfoContainer::GetPrimaryParticle(const int trackid)
   }
   Iterator it = particlemap.find(trackid);
   if (it != particlemap.end())
+  {
+    return it->second;
+  }
+  return nullptr;
+}
+
+PHG4Particle* PHG4TruthInfoContainer::GetsPHENIXPrimaryParticle(const int trackid)
+{
+  Iterator it = sPHENIXprimaryparticlemap.find(trackid);
+  if (it != sPHENIXprimaryparticlemap.end())
   {
     return it->second;
   }
@@ -396,6 +431,13 @@ bool PHG4TruthInfoContainer::is_primary_vtx(const PHG4VtxPoint* v) const
 bool PHG4TruthInfoContainer::is_primary(const PHG4Particle* p) const
 {
   return (p->get_track_id() > 0);
+}
+
+// this is O(log N)...
+bool PHG4TruthInfoContainer::is_sPHENIX_primary(const PHG4Particle* p) const
+{
+  // sPHENIX primary particles are in the sPHENIXprimaryparticlemap
+  return (sPHENIXprimaryparticlemap.find(p->get_track_id()) != sPHENIXprimaryparticlemap.end());
 }
 
 int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const

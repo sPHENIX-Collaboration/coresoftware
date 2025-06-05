@@ -21,6 +21,9 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
+#include <eventplaneinfo/Eventplaneinfo.h>
+#include <eventplaneinfo/EventplaneinfoMap.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
@@ -676,7 +679,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
       if (_do_flow == 1)
       {
-        _Psi2 = atan2(Q_y, Q_x) / 2.0;
+          _Psi2 = atan2(Q_y, Q_x) / 2.0;
       }
       else if (_do_flow == 2)
       {
@@ -732,6 +735,21 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         {
           std::cout << "DetermineTowerBackground::process_event: flow extracted from Hijing truth particles, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
         }
+      }
+      else if (_do_flow == 3)
+      {
+    	  //get event plane map
+          EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
+          if (!epmap)
+          {
+              std::cout << "DetermineTowerBackground::process_event: FATAL, EventplaneinfoMap does not exist, cannot extract sEPD flow with do_flow = " << _do_flow << std::endl;
+             exit(-1);
+          }
+          if(!(epmap->empty()))
+          {
+              auto _EPDNS = epmap->get(EventplaneinfoMap::sEPDNS);
+              _Psi2 = _EPDNS->get_shifted_psi(2);
+          }
       }
 
       // determine v2 from calo regardless of origin of Psi2
@@ -872,8 +890,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       std::cout << std::endl;
     }
   }
-
-  //
 
   FillNode(topNode);
 
