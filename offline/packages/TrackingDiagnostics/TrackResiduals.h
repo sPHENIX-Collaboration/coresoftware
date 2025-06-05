@@ -48,8 +48,8 @@ class TrackResiduals : public SubsysReco
   void clusterTree() { m_doClusters = true; }
   void vertexTree() { m_doVertex = true; }
   void hitTree() { m_doHits = true; }
-  void eventTree() {m_doEventTree = true;}
-  void MatchedTracksOnly() {m_doMatchedOnly = true;}
+  void eventTree() { m_doEventTree = true; }
+  void MatchedTracksOnly() { m_doMatchedOnly = true; }
   void ppmode() { m_ppmode = true; }
   void convertSeeds(bool flag) { m_convertSeeds = flag; }
   void dropClustersNoState(bool flag) { m_dropClustersNoState = flag; }
@@ -61,11 +61,11 @@ class TrackResiduals : public SubsysReco
   void failedTree() { m_doFailedSeeds = true; }
   void setSegment(const int segment) { m_segment = segment; }
 
-  void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
-  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
+  void set_doMicromegasOnly(bool value) { m_doMicromegasOnly = value; }
+  void setTrkrClusterContainerName(std::string &name) { m_clusterContainerName = name; }
 
   void set_use_clustermover(bool flag) { m_use_clustermover = flag; }
-  
+
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
                              TrkrCluster *cluster, ActsGeometry *geometry);
@@ -94,7 +94,7 @@ class TrackResiduals : public SubsysReco
   float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clusters, PHG4TpcCylinderGeomContainer *tpcGeom);
 
   bool m_use_clustermover = true;
-  
+
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
@@ -144,9 +144,9 @@ class TrackResiduals : public SubsysReco
   int m_ntpc_hits1 = std::numeric_limits<int>::quiet_NaN();
   int m_ntpc_clus0 = std::numeric_limits<int>::quiet_NaN();
   int m_ntpc_clus1 = std::numeric_limits<int>::quiet_NaN();
-  int m_nmms_all  = std::numeric_limits<int>::quiet_NaN();
-  int m_nsiseed   = std::numeric_limits<int>::quiet_NaN();
-  int m_ntpcseed  = std::numeric_limits<int>::quiet_NaN();
+  int m_nmms_all = std::numeric_limits<int>::quiet_NaN();
+  int m_nsiseed = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpcseed = std::numeric_limits<int>::quiet_NaN();
   int m_ntracks_all = std::numeric_limits<int>::quiet_NaN();
 
   //! Track level quantities
