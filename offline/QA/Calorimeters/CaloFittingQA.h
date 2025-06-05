@@ -91,6 +91,7 @@ class CaloFittingQA : public SubsysReco
   TH2* h_ihcal_zs_frac_vs_multiplicity{nullptr};
   TH2* h_ohcal_zs_frac_vs_multiplicity{nullptr};
   TH1* h_packet_events{nullptr};
+  TH1* h_empty_packets{nullptr};
 
   CDBTTree *cdbttree = nullptr;
 
@@ -107,6 +108,7 @@ class CaloFittingQA : public SubsysReco
   float m_cemc_hit_threshold = 200; // ~ 300 MeV
   float m_ihcal_hit_threshold = 600; // ~ 300 MeV
   float m_ohcal_hit_threshold = 100; // ~ 300 MeV
+  bool m_PacketNodesFlag{false};
 
   std::string m_calibName;
   std::string m_fieldname;
