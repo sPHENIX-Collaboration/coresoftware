@@ -1,12 +1,8 @@
-#ifndef ONNXLIB_H
-#define ONNXLIB_H
+#ifndef PHOOL_ONNXLIB_H
+#define PHOOL_ONNXLIB_H
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wpedantic"
+#include <onnxruntime_c_api.h>
 #include <onnxruntime_cxx_api.h>
-#pragma GCC diagnostic pop
-
 // This is a stub for some ONNX code refactoring
 
 Ort::Session *onnxSession(std::string &modelfile);
