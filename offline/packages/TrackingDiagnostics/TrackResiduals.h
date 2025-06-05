@@ -46,8 +46,9 @@ class TrackResiduals : public SubsysReco
   void alignmentmapName(const std::string &name) { m_alignmentMapName = name; }
   void trackmapName(const std::string &name) { m_trackMapName = name; }
   void clusterTree() { m_doClusters = true; }
+  void vertexTree() { m_doVertex = true; }
   void hitTree() { m_doHits = true; }
-  void noEventTree() {m_doEventTree = false;}
+  void eventTree() {m_doEventTree = true;}
   void MatchedTracksOnly() {m_doMatchedOnly = true;}
   void ppmode() { m_ppmode = true; }
   void convertSeeds(bool flag) { m_convertSeeds = flag; }
@@ -104,9 +105,10 @@ class TrackResiduals : public SubsysReco
   TTree *m_vertextree = nullptr;
   TTree *m_failedfits = nullptr;
 
+  bool m_doVertex = false;
   bool m_doClusters = false;
   bool m_doHits = false;
-  bool m_doEventTree = true;
+  bool m_doEventTree = false;
   bool m_zeroField = false;
   bool m_doFailedSeeds = false;
   bool m_doMatchedOnly = false;
@@ -281,12 +283,10 @@ class TrackResiduals : public SubsysReco
   std::vector<int> m_clsector;
   std::vector<int> m_clside;
   std::vector<int> m_cluslayer;
-  std::vector<int> m_clussize;
   std::vector<int> m_clusphisize;
   std::vector<int> m_cluszsize;
   std::vector<int> m_clusedge;
   std::vector<int> m_clusoverlap;
-  std::vector<uint32_t> m_clushitsetkey;
   std::vector<uint64_t> m_cluskeys;
   std::vector<float> m_idealsurfcenterx;
   std::vector<float> m_idealsurfcentery;

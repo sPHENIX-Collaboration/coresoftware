@@ -186,8 +186,6 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusAdc.clear();
   m_clusMaxAdc.clear();
   m_cluslayer.clear();
-  m_clussize.clear();
-  m_clushitsetkey.clear();
 
   m_statelx.clear();
   m_statelz.clear();
@@ -283,8 +281,10 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     fillResidualTreeKF(topNode);
   }
 
-  fillVertexTree(topNode);
-
+  if(m_doVertex)
+  {
+    fillVertexTree(topNode);
+  }
   if (m_doEventTree)
   {
     fillEventTree(topNode);
@@ -752,8 +752,14 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   {
     m_hittree->Write();
   }
-  m_vertextree->Write();
-  m_failedfits->Write();
+  if(m_doVertex)
+  {
+    m_vertextree->Write();
+  }
+  if(m_doFailedSeeds)
+  {
+    m_failedfits->Write();
+  }
   if (m_doEventTree)
   {
     m_eventtree->Write();
@@ -1149,8 +1155,6 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
-  m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
-  m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
 	
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
@@ -1394,8 +1398,6 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
-  m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
-  m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
   if (Verbosity() > 1)
   {
@@ -1762,7 +1764,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("Y0", &m_Y0, "m_Y0/F");
   m_tree->Branch("dcaxy", &m_dcaxy, "m_dcaxy/F");
   m_tree->Branch("dcaz", &m_dcaz, "m_dcaz/F");
-
+  
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);
   m_tree->Branch("clusoverlap", &m_clusoverlap);
@@ -1774,19 +1776,20 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgy", &m_clusgy);
   m_tree->Branch("clusgz", &m_clusgz);
   m_tree->Branch("clusgr", &m_clusgr);
+  if(m_doAlignment)
+  {
   m_tree->Branch("clusgxunmoved", &m_clusgxunmoved);
   m_tree->Branch("clusgyunmoved", &m_clusgyunmoved);
   m_tree->Branch("clusgzunmoved", &m_clusgzunmoved);
-  m_tree->Branch("clussector", &m_clsector);
-  m_tree->Branch("clusside", &m_clside);
+  }
   m_tree->Branch("clusAdc", &m_clusAdc);
   m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
-  m_tree->Branch("cluslayer", &m_cluslayer);
-  m_tree->Branch("clussize", &m_clussize);
   m_tree->Branch("clusphisize", &m_clusphisize);
   m_tree->Branch("cluszsize", &m_cluszsize);
-  m_tree->Branch("clushitsetkey", &m_clushitsetkey);
-  m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
+  
+  if(m_doAlignment)
+  {
+      m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
   m_tree->Branch("idealsurfcentery", &m_idealsurfcentery);
   m_tree->Branch("idealsurfcenterz", &m_idealsurfcenterz);
   m_tree->Branch("idealsurfnormx", &m_idealsurfnormx);
@@ -1807,6 +1810,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("idealsurfalpha", &m_idealsurfalpha);
   m_tree->Branch("idealsurfbeta", &m_idealsurfbeta);
   m_tree->Branch("idealsurfgamma", &m_idealsurfgamma);
+  }
 
   m_tree->Branch("statelx", &m_statelx);
   m_tree->Branch("statelz", &m_statelz);
@@ -1819,7 +1823,9 @@ void TrackResiduals::createBranches()
   m_tree->Branch("statepy", &m_statepy);
   m_tree->Branch("statepz", &m_statepz);
   m_tree->Branch("statepl", &m_statepl);
-
+  
+  if(m_doAlignment)
+  {
   m_tree->Branch("statelxglobderivdx", &m_statelxglobderivdx);
   m_tree->Branch("statelxglobderivdy", &m_statelxglobderivdy);
   m_tree->Branch("statelxglobderivdz", &m_statelxglobderivdz);
@@ -1845,6 +1851,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("statelzlocderivphi", &m_statelzlocderivphi);
   m_tree->Branch("statelzlocderivtheta", &m_statelzlocderivtheta);
   m_tree->Branch("statelzlocderivqop", &m_statelzlocderivqop);
+  }
 }
 
 void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
