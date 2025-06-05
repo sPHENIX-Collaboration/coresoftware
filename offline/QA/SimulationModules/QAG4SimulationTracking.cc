@@ -10,6 +10,7 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
@@ -45,6 +46,7 @@
 #include <set>
 #include <string>
 #include <utility>  // for pair
+
 
 QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
   : SubsysReco(name)
@@ -313,7 +315,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
   // clusters per layer and per generated track
   auto h_nClus_layerGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layerGen"));
-  assert(h_nClus_layer);
+  assert(h_nClus_layerGen);
 
   // n events and n tracks histogram
   TH1 *h_norm = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "Normalization"));
@@ -752,6 +754,9 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
   G4HitSet out;
   const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
+  // also get bare (== strobe 0) hitsetkey, since this is the one recorded in the HitTruth association map
+  const auto bare_hitset_key = MvtxDefs::resetStrobe(hitset_key);
+
   // loop over hits associated to clusters
   const auto range = m_cluster_hit_map->getHits(cluster_key);
   for (auto iter = range.first; iter != range.second; ++iter)
@@ -761,7 +766,7 @@ QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits(TrkrDefs::c
 
     // store hits to g4hit associations
     TrkrHitTruthAssoc::MMap g4hit_map;
-    m_hit_truth_map->getG4Hits(hitset_key, hit_key, g4hit_map);
+    m_hit_truth_map->getG4Hits(bare_hitset_key, hit_key, g4hit_map);
 
     // find corresponding g4 hist
     for (auto &truth_iter : g4hit_map)
