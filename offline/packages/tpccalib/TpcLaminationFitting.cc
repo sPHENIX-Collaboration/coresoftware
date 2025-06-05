@@ -14,6 +14,12 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <odbc++/connection.h>
+#include <odbc++/drivermanager.h>
+#include <odbc++/resultset.h>
+#include <odbc++/statement.h>
+#include <odbc++/types.h>
+
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
@@ -75,6 +81,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  /*
   //Make map for run and ZDC rate for pp mode
   m_run_ZDC_map_pp.insert(std::pair<int, float>(49709, 555.0));
   m_run_ZDC_map_pp.insert(std::pair<int, float>(52077, 0.0));
@@ -107,7 +114,8 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
   m_run_ZDC_map_auau.insert(std::pair<int, float>(54967, 11600.));
   m_run_ZDC_map_auau.insert(std::pair<int, float>(54968, 10500.));
   m_run_ZDC_map_auau.insert(std::pair<int, float>(54969, 9680.));
-  
+  */
+
   int ret = GetNodes(topNode);
   return ret;
 }
@@ -118,7 +126,7 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
   if (!m_correctedCMcluster_map)
   {
-    std::cout << PHWHERE << "CORRECTED_CM_CLISTER Node missing, abort." << std::endl;
+    std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -327,13 +335,14 @@ int TpcLaminationFitting::fitLaminations()
   */
   //double seedScale = (m_nClusters / m_nEvents) / 3718.8030;
 
-  float ZDC = 4500.0;
+  //float ZDC = 4500.0;
   TF1 *Af[2] = {new TF1("AN","pol1",0,100000), new TF1("AS","pol1",0,100000)};
   TF1 *Bf[2] = {new TF1("BN","pol1",0,100000), new TF1("BS","pol1",0,100000)};
   double Cseed[2] = {0.16, 0.125};
 
   if(ppMode)
   {
+    /*
     auto it = m_run_ZDC_map_pp.find(m_runnumber);
     if( it != m_run_ZDC_map_pp.end() )
     {
@@ -344,6 +353,9 @@ int TpcLaminationFitting::fitLaminations()
     {
       std::cout << "pp runnumber " << m_runnumber << " not found. Using default value of " << ZDC << std::endl;
     }
+    */
+
+    std::cout << "in ppMode with runnumber " << m_runnumber << " which has a ZDC coincidence rate of " << m_ZDC_coincidence << std::endl;
 
     Af[0]->SetParameters(-0.007999,-1.783e-6);
     Af[1]->SetParameters(-0.003288,-2.297e-6);
@@ -353,6 +365,7 @@ int TpcLaminationFitting::fitLaminations()
   }
   else
   {
+    /*
     ZDC = 10000.0;
     
     auto it = m_run_ZDC_map_auau.find(m_runnumber);
@@ -365,6 +378,10 @@ int TpcLaminationFitting::fitLaminations()
     {
       std::cout << "AuAu runnumber " << m_runnumber << " not found. Using default value of " << ZDC << std::endl;
     }
+    */
+
+    std::cout << "in AuAuMode with runnumber " << m_runnumber << " which has a ZDC coincidence rate of " << m_ZDC_coincidence << std::endl;
+
 
     Af[0]->SetParameters(-0.003836,-1.025e-6);
     Af[1]->SetParameters(-0.003283,-8.176e-7);
@@ -397,7 +414,7 @@ int TpcLaminationFitting::fitLaminations()
       //m_fLamination[l][s]->SetParameters(-0.022 + m_laminationCenter[l][s], log(4.595 * seedScale/(-0.022 + m_laminationCenter[l][s])), 0.138);
       //m_fLamination[l][s]->SetParameters(-0.011 + m_laminationCenter[l][s], 0.025, 0.16);
       //m_fLamination[l][s]->SetParameters(-0.011, 30, 0.16, m_laminationCenter[l][s]);
-      m_fLamination[l][s]->SetParameters(Af[s]->Eval(ZDC), Bf[s]->Eval(ZDC), Cseed[s], m_laminationCenter[l][s]);
+      m_fLamination[l][s]->SetParameters(Af[s]->Eval(m_ZDC_coincidence), Bf[s]->Eval(m_ZDC_coincidence), Cseed[s], m_laminationCenter[l][s]);
       m_fLamination[l][s]->FixParameter(3, m_laminationCenter[l][s]);
       
       TF1 *fitSeed = (TF1 *) m_fLamination[l][s]->Clone();
@@ -665,6 +682,38 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
 
 int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 {
+
+  odbc::Connection *dbConnection = odbc::DriverManager::getConnection("daq", "", "");
+  std::string sql = "SELECT * FROM gl1_scalers WHERE runnumber = " + std::to_string(m_runnumber) + ";";
+  odbc::Statement *stmt = dbConnection->createStatement();
+  odbc::ResultSet *resultSet = stmt->executeQuery(sql);
+  std::array<std::array<uint64_t, 3>, 64> scalers{};  // initialize to zero
+  if (!resultSet)
+  {
+    std::cerr << "No db found for run number " << m_runnumber << ". Cannot get ZDC rate so aborting run" << std::endl;
+    delete resultSet;
+    delete stmt;
+    delete dbConnection;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  while (resultSet->next())
+  {
+    int index = resultSet->getInt("index");
+    // Iterate over the columns and fill the TriggerRunInfo object
+    scalers[index][0] = resultSet->getLong("scaled");
+    scalers[index][1] = resultSet->getLong("live");
+    scalers[index][2] = resultSet->getLong("raw");
+  }
+
+  delete resultSet;
+  delete stmt;
+  delete dbConnection;
+
+  m_ZDC_coincidence = (1.0*scalers[3][2]/scalers[0][2])/(106e-9);
+
+  std::cout << "Runnumber: " << m_runnumber << "   ppMode: " << ppMode << "   ZDC coindicence rate: " << m_ZDC_coincidence << std::endl;
+
   int fitSuccess = fitLaminations();
   if (fitSuccess != Fun4AllReturnCodes::EVENT_OK)
   {
