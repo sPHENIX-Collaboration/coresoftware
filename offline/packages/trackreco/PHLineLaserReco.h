@@ -126,7 +126,9 @@ typedef uint64_t cluskey;
 class PHLineLaserReco : public SubsysReco
 {
  public:
-  PHLineLaserReco(const std::string &name = "PHRTreeSeeding");
+  PHLineLaserReco(const std::string &name = "PHLineLaserReco",
+		  const std::string &filename = "lasertuple.root"
+		  );
 
   double chisq(const double *xx);
   //vector<TrkrCluster*> clusterpoints;
@@ -137,7 +139,10 @@ class PHLineLaserReco : public SubsysReco
   void set_create_tracks(bool b){_create_tracks = b;}
   void set_max_distance_to_origin(float val){ _max_dist_to_origin = val;}
   void set_min_nclusters(int n){ _min_nclusters = n;}
-  
+  void segment(const int seg) { m_nseg = seg; }
+  void runnumber(const int run) { m_nrun = run; }
+  void job(const int job) { m_job = job; }
+
  protected:
   int Setup(PHCompositeNode *topNode);
   int GetNodes(PHCompositeNode* topNode);
@@ -148,6 +153,10 @@ class PHLineLaserReco : public SubsysReco
 
 
  private:
+  int m_segment = 0;
+  int m_runnumber = 0;
+  int m_job = 0;
+
   /// fetch node pointers
   // int GetNodes(PHCompositeNode *topNode);
 
@@ -190,10 +199,15 @@ class PHLineLaserReco : public SubsysReco
   TTree *m_hittree = nullptr;
   TTree *m_clustree = nullptr;
   TFile *_tfile = nullptr;
+  std::string _filename;
   //std::vector<float> _radii_all;
   //! hit tree info
 
-  int m_nevent = std::numeric_limits<int>::quiet_NaN(); 
+  int m_nevent = std::numeric_limits<int>::quiet_NaN();
+  int m_nrun = std::numeric_limits<int>::quiet_NaN();
+  int m_nseg = std::numeric_limits<int>::quiet_NaN();
+  int m_njob = std::numeric_limits<int>::quiet_NaN();
+  
   float m_hitx = std::numeric_limits<float>::quiet_NaN();
   float m_hity = std::numeric_limits<float>::quiet_NaN();
   float m_hitz = std::numeric_limits<float>::quiet_NaN();
@@ -201,6 +215,7 @@ class PHLineLaserReco : public SubsysReco
   int m_hitlayer = std::numeric_limits<int>::quiet_NaN();
   int m_hitpad = std::numeric_limits<int>::quiet_NaN();
   int m_hittbin = std::numeric_limits<int>::quiet_NaN();
+  int m_hitside = std::numeric_limits<int>::quiet_NaN();
   float m_slopexy = std::numeric_limits<float>::quiet_NaN();
   float m_interxy = std::numeric_limits<float>::quiet_NaN();
   float m_slopexz = std::numeric_limits<float>::quiet_NaN();
@@ -214,6 +229,7 @@ class PHLineLaserReco : public SubsysReco
   float m_clux = std::numeric_limits<float>::quiet_NaN();
   float m_cluy = std::numeric_limits<float>::quiet_NaN();
   float m_cluz = std::numeric_limits<float>::quiet_NaN();
+  int m_cluside = std::numeric_limits<int>::quiet_NaN();
   int m_cluadc = std::numeric_limits<int>::quiet_NaN();
   int m_clumaxadc = std::numeric_limits<int>::quiet_NaN();
   int m_size = std::numeric_limits<int>::quiet_NaN();

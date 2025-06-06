@@ -23,6 +23,7 @@
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
+#include <trackbase/TpcDefs.h>  // for getLayer, clu...
 #include <trackbase/LaserCluster.h>
 #include <trackbase/LaserClusterContainer.h>
 #include <trackbase/LaserClusterContainerv1.h>
@@ -117,8 +118,9 @@ using namespace std;
 
 vector<LaserCluster*> laserpoints;
 
-PHLineLaserReco::PHLineLaserReco(const std::string& name)
+PHLineLaserReco::PHLineLaserReco(const std::string& name, const string& filename)
   : SubsysReco(name)
+  , _filename(filename)
 {
   
 }
@@ -152,8 +154,8 @@ int PHLineLaserReco::Init(PHCompositeNode* topNode)
   }
   _nevent = 0;
   if(_write_ntp){
-  _tfile = new TFile("./costuple.root", "RECREATE");
-  _ntp_cos = new TNtuple("ntp_cos", "cos event info","ev:x:y:z:adc:maxadc:size:lsize:phisize:tsize");
+  _tfile = new TFile(_filename.c_str(), "RECREATE");
+  _ntp_cos = new TNtuple("ntp_cos", "cos event info","ev:x:y:z:adc:maxadc:size:lsize:phisize:tsize:side");
   _ntp_stub = new TNtuple("ntp_stub", "cos stub info","ev:int:sl:tan:x0:count");
   _ntp_max = new TNtuple("ntp_max", "cos stub info","ev:intmin:intmax:slmin:slmax");
   _ntp_trk = new TNtuple("ntp_trk", "laser track info","ev:int:sl:intfit:slfit:nclus");
@@ -163,6 +165,9 @@ int PHLineLaserReco::Init(PHCompositeNode* topNode)
 
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("event", &m_nevent, "m_nevent/I");
+  m_hittree->Branch("run", &m_nrun, "m_nrun/I");
+  m_hittree->Branch("seg", &m_nseg, "m_nseg/I");
+  m_hittree->Branch("job", &m_njob, "m_njob/I");
   m_hittree->Branch("x", &m_hitx, "m_hitx/F");
   m_hittree->Branch("y", &m_hity, "m_hity/F");
   m_hittree->Branch("z", &m_hitz, "m_hitz/F");
@@ -170,6 +175,7 @@ int PHLineLaserReco::Init(PHCompositeNode* topNode)
   m_hittree->Branch("adc", &m_hitadc, "m_hitadc/I");
   m_hittree->Branch("pad", &m_hitpad, "m_hitpad/I");
   m_hittree->Branch("tbin", &m_hittbin, "m_hittbin/I");
+  m_hittree->Branch("side", &m_hitside, "m_hitside/I");
   m_hittree->Branch("slopexy", &m_slopexy, "m_slopexy/F");
   m_hittree->Branch("interxy", &m_interxy, "m_interxy/F");
   m_hittree->Branch("slopexz", &m_slopexz, "m_slopexz/F");
@@ -182,10 +188,14 @@ int PHLineLaserReco::Init(PHCompositeNode* topNode)
 
   m_clustree = new TTree("clustree", "A tree with all hits");
   m_clustree->Branch("event", &m_nevent, "m_nevent/I");
+  m_clustree->Branch("run", &m_nrun, "m_nrun/I");
+  m_clustree->Branch("seg", &m_nseg, "m_nseg/I");
+  m_clustree->Branch("job", &m_njob, "m_njob/I");
   m_clustree->Branch("x", &m_clux, "m_clux/F");
   m_clustree->Branch("y", &m_cluy, "m_cluy/F");
   m_clustree->Branch("z", &m_cluz, "m_cluz/F");
   m_clustree->Branch("adc", &m_cluadc, "m_cluadc/I");
+  m_clustree->Branch("side", &m_cluside, "m_cluside/I");
   m_clustree->Branch("maxadc", &m_clumaxadc, "m_clumaxadc/I");
   m_clustree->Branch("size", &m_size, "m_size/I");
   m_clustree->Branch("lsize", &m_sizel, "m_sizel/I");
@@ -247,7 +257,7 @@ int PHLineLaserReco::createNodes(PHCompositeNode* topNode)
     svtxNode->addNode(trackNode);
   }
   if (m_seedContainer){
-    cout << "SEED CONTAINER CREATED" << endl;
+    if(Verbosity()>0){ cout << "SEED CONTAINER CREATED" << endl;}
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -304,7 +314,8 @@ void PHLineLaserReco::get_stub(const myrtree &search_rtree, float pointx, float 
 
 int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 {
-  std::cout << "start processing event: " << std::endl;
+  if(Verbosity()>0){std::cout << "start processing event: " << std::endl;}
+  
   if(topNode==nullptr){
     std::cout << PHWHERE << "No topNode, bailing."
 	      << std::endl;
@@ -323,24 +334,26 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 //  int num = 0;
   //  for(const auto& hitsetkey:_cluster_map->getHitSetKeys(TrkrDefs::TrkrId::tpcId)){
   if(_cluster_map->size()<_min_nclusters){
-    std::cout << " not enough clusters in event: " << _cluster_map->size() << " < " << _min_nclusters << endl;
+    if(Verbosity()>0){std::cout << " not enough clusters in event: " << _cluster_map->size() << " < " << _min_nclusters << endl;}
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  int numberofseeds = 0;
+
   auto range = _cluster_map->getClusters();
-  std::cout << "_nevent " << _nevent << "n clusters" << std::distance(range.first,range.second) << std::endl; 
+  if(Verbosity()>0){std::cout << "_nevent " << _nevent << "n clusters" << std::distance(range.first,range.second) << std::endl;}
+  for(unsigned int process_side=0;process_side<2;process_side++){
   for( auto clusIter = range.first; clusIter != range.second; ++clusIter ){
     LaserCluster *cluster = clusIter->second;
     TrkrDefs::cluskey lckey = clusIter->first;
+    unsigned int tpcside = TpcDefs::getSide(lckey);
+    if(tpcside!=process_side){
+      continue;
+    }
+    
     const Acts::Vector3 globalpos_d =  {cluster->getX() , cluster->getY(), cluster->getZ()};
     const Acts::Vector3 globalpos = { globalpos_d.x(), globalpos_d.y(), globalpos_d.z()};
-    //    ev:x:y:z:adc:maxadc:size:lsize:phisize:tsize
-    //    if(_write_ntp)_ntp_cos->Fill(_nevent,globalpos_d.x(), globalpos_d.y(),globalpos_d.z(),);
-    /*
-      const double clus_phi = get_phi( globalpos );      
-      const double clus_eta = get_eta( globalpos );
-      const double clus_l = layer;  
-    */
+    
     //    int side = -1;
     unsigned int adcSum = 0.0;
     unsigned int maxAdc = 0.0;
@@ -348,7 +361,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     int ilaymin = 6666, ilaymax = -1;
     float itmin = 66666666.6, itmax = -6666666666.6;
     unsigned int nHits = cluster->getNhits();
-
+    
     for(unsigned int i  = 0; i< nHits;i++){
       //      float coords[3] = {cluster->getHitX(i), cluster->getHitY(i), cluster->getHitZ(i)};
       int iphi = cluster->getHitIPhi(i);
@@ -372,7 +385,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     
     if(_write_ntp)
       //    ev:x:y:z:adc:maxadc:size:lsize:phisize:tsize
-      _ntp_cos->Fill(_nevent,globalpos_d.x(), globalpos_d.y(),globalpos_d.z(),adcSum,maxAdc,nHits,lsize,phisize,tsize);
+      _ntp_cos->Fill(_nevent,globalpos_d.x(), globalpos_d.y(),globalpos_d.z(),adcSum,maxAdc,nHits,lsize,phisize,tsize,tpcside);
     if(lsize>2||maxAdc<50||tsize<=1)
       continue;
     std::vector<pointInd> testduplicate;
@@ -383,15 +396,15 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     }
     rtree.insert(std::make_pair(point(globalpos.x() , globalpos.y(), 0.0), lckey)); 
   }
-
+  
   //Get all clusters from rtree, fit stubs around clusters, fill stub tree
   vector<pointInd> allclusters;
   
   rtree.query(bgi::intersects(box(point(-80,-80,-1),point(80,80,1))),std::back_inserter(allclusters));
   if(Verbosity()>0) cout << "number clus is " << allclusters.size() << endl;
-
+  
   bgi::rtree<pointInd, bgi::quadratic<16> > rtree_stub;
-
+  
   for(vector<pointInd>::iterator cluster = allclusters.begin();cluster!=allclusters.end();++cluster){
     float pointx = cluster->first.get<0>();
     float pointy = cluster->first.get<1>();
@@ -401,26 +414,26 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     //calc slope and intersect from 5 cluster stubs
     get_stub(rtree, pointx, pointy, fcount, fslope, fintercept);
     if(finite(fslope)&&fcount>5){
-	rtree_stub.insert(std::make_pair(point(fintercept , fslope, 0.0), 0));
-	float tana = atan(fslope);
-	if(_write_ntp)
-	  _ntp_stub->Fill(_nevent,fintercept,fslope,tana,fintercept,fcount);
-	if(fslope>slmax)slmax = fslope;
-	if(fslope<slmin)slmin = fslope;
-	if(fintercept>intmax)intmax = fintercept;
-	if(fintercept<intmin)intmin = fintercept;
-      }
+      rtree_stub.insert(std::make_pair(point(fintercept , fslope, 0.0), 0));
+      float tana = atan(fslope);
+      if(_write_ntp)
+	_ntp_stub->Fill(_nevent,fintercept,fslope,tana,fintercept,fcount);
+      if(fslope>slmax)slmax = fslope;
+      if(fslope<slmin)slmin = fslope;
+      if(fintercept>intmax)intmax = fintercept;
+      if(fintercept<intmin)intmin = fintercept;
+    }
   }
   //  int out = 0;
   // find clusters of slope intectept pairs
   map <int,pair<float,float>> outtrkmap;
   int nout = 0;
-
+  
   while(rtree_stub.size()>3){
     std::vector<pointInd> allstubs;
     rtree_stub.query(bgi::intersects(box(point(intmin,slmin,-1),point(intmax,slmax,1))),std::back_inserter(allstubs));
     map <int,pair<float,float>> trkmap;
-
+    
     float int_width = (intmax - intmin)/10;
     float sl_width = (slmax - slmin)/10;
     for(vector<pointInd>::iterator stub = allstubs.begin();stub!=allstubs.end();++stub){
@@ -450,7 +463,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 	float mint = (intsum/count);
 	float msl  = (slsum/count);
 	trkmap[ntrk] = std::make_pair(mint,msl); 
-      
+	
 	if(Verbosity()>0) cout<< " stub in box " << ntrk
 			      << " int: " << pint 
 			      << " sl: " << psl 
@@ -478,34 +491,33 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 	if(Verbosity()>0) cout<< "    rm " <<  " int: " << rmpint 
 			      << " sl: " << rmpsl 
 			      << endl;
-
+	
 	rtree_stub.remove(*rmstub);
 	/*	if (!rtree_stub.query(bgi::nearest(rmpoint, 1), &match))
-	  continue;
+		continue;
 	*/
 	/*
-	if (bg::distance(rmpoint, match.first) <= 0.5) {
+	  if (bg::distance(rmpoint, match.first) <= 0.5) {
 	  rtree_stub.remove(match);
-	 
-	  */
+	  
+	*/
       }
       int size_after = rtree_stub.size();
       if(size_before == size_after) {break;}
       outtrkmap.insert(std::make_pair(nout,std::make_pair(rmint,rmsl)));
       nout++;
-      cout << " tree sixe after remove: " << rtree_stub.size() << endl;
+      if(Verbosity()>0){cout << " tree sixe after remove: " << rtree_stub.size() << endl;}
     }else{
       break;
     }
     trkmap.clear();
   }
-
-  int numberofseeds = 0;
+  
   //  bool keep_event = false;
   for (const auto& [key, value] : outtrkmap){
     if(Verbosity()>0) std::cout <<" out ev: " << _nevent << '[' << key << "] = " << value.first << " | " << value.second << std::endl;
     //Loop over clusters and pick up clusters compatible with line parameters
-
+    
     float tint = -1*value.first;
     float tsl = -1*value.second;
     
@@ -562,7 +574,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     if(Verbosity()>0)  cout << "number line clus is " << lineclusters.size() << endl;
     
     // Check if track hits MVTX (dist to 0,0 < 2)
-
+    
     //first fit
     int nhitff = 0;
     double xsumff = 0;
@@ -578,7 +590,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     double zlast = -66666666;
     vector<pointInd> trkclusters;
     unsigned int trk_nclus = 0;
-
+    
     //    fitstraight lines first
     for(vector<pointInd>::iterator clustertrk = lineclusters.begin();clustertrk!=lineclusters.end();++clustertrk){
       
@@ -591,57 +603,57 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
       float res =  std::abs(a*ptx+b*pty+c)/sqrt(a*a+b*b);
       //float res = std::abs(tsl*ptx+(-1*pty)+tint)/sqrt((tsl*tsl+1));
       // if(Verbosity()>0)
-      cout << " x: " << ptx << " y: " << pty << " res " << res << endl;
+      if(Verbosity()>0){cout << " x: " << ptx << " y: " << pty << " res " << res << endl;}
       if(res<4){
 	float boxx = ptx;
 	float boxy = pty;
 	float boxz = ptz;
-        std::cout << "fprobe x:"  << boxx << " y: " << boxy <<  " z: " << boxz << std::endl;
+	if(Verbosity()>0){std::cout << "fprobe x:"  << boxx << " y: " << boxy <<  " z: " << boxz << std::endl;}
 	nhitff++;
 	float xff = boxx;
 	float yff = boxy;
 	float zff = boxz;
-
+	
 	xsumff = xsumff + xff;            // calculate sigma(xi)
 	ysumff = ysumff + yff;            // calculate sigma(yi)
 	zsumff = zsumff + zff;            // calculate sigma(yi)
-
+	
 	x2sumff = x2sumff + xff*xff;      // calculate sigma(x^2i)
 	y2sumff = y2sumff + yff*yff;      // calculate sigma(x^2i)
-       	z2sumff = z2sumff + zff*zff;      // calculate sigma(x^2i)
-
+	z2sumff = z2sumff + zff*zff;      // calculate sigma(x^2i)
+	
 	xysumff = xysumff + xff * yff;    // calculate sigma(xi*yi)
 	xzsumff = xzsumff + xff * zff;    // calculate sigma(xi*yi)
 	yzsumff = yzsumff + yff * zff;    // calculate sigma(xi*yi)
-
+	
 	//	trkclusters.push_back(*clustertrk);
 	//trk_nclus++;
 	if(ptz<zfirst){zfirst = ptz;}
 	if(ptz<zlast){zlast = ptz;}
       }
     }
-    cout << "rescheck done " <<  endl;
-    cout << "number trk clus is " << trkclusters.size() << " " << trk_nclus<< endl;
-  
-
-
+    if(Verbosity()>0){
+      cout << "rescheck done " <<  endl;
+      cout << "number trk clus is " << trkclusters.size() << " " << trk_nclus<< endl;
+    }
+    
     double denominatorxff = ((x2sumff * nhitff) - (xsumff*xsumff));
     double slopexyff = (xysumff* nhitff - xsumff * ysumff) / denominatorxff;   // calculate slope
     double interceptxyff = (x2sumff * ysumff - xsumff * xysumff) / denominatorxff;  // calculate intercept
-
+    
     double denominatorxzff = ((z2sumff * nhitff) - (zsumff*zsumff));
     double slopexzff = (xzsumff* nhitff - zsumff * xsumff) / denominatorxzff;   // calculate slope
     double interceptxzff = (z2sumff * xsumff - zsumff * xzsumff) / denominatorxzff;  // calculate intercept
-
+    
     double denominatoryzff = ((z2sumff * nhitff) - (zsumff*zsumff));
     double slopeyzff = (yzsumff* nhitff - zsumff * ysumff) / denominatoryzff;   // calculate slope
     double interceptyzff = (z2sumff * ysumff - zsumff * yzsumff) / denominatoryzff;  // calculate intercept
-
+    
     _ntp_trk->Fill(_nevent,tint,tsl,interceptxyff,slopexyff,trk_nclus);
-
+    
     //  _ntp_trk_clus = new TNtuple("ntp_trk_clus", "laser clus","ev:x:y:z:adc:maxadc:size:lsize:phisize:tsize:intfit:slfit:nclus:zfirst:zlast");
     //_ntp_trk_hit = new TNtuple("ntp_trk_hit", "laser hitinfo","ev:x:y:z:adc:maxadc:lay:phibin:zbin:intfit:slfit:nclus:zfirst:zlast");
-
+    
     //clean based on z position
     xsumff = 0;
     ysumff = 0;
@@ -652,17 +664,17 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     xysumff = 0;
     xzsumff = 0;
     yzsumff = 0;
-
+    
     // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
     
     double axz =  slopexzff;//-slope;
     double bxz = -1.0;
     double cxz =  interceptxzff;//-intercept;
-
+    
     double ayz =  slopeyzff;//-slope;
     double byz = -1.0;
     double cyz =  interceptyzff;//-intercept;
-
+    
     for(vector<pointInd>::iterator clustertrk = lineclusters.begin();clustertrk!=lineclusters.end();++clustertrk){
       
       float ptx = clustertrk->first.get<0>();
@@ -674,54 +686,58 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
       float res_xz =  std::abs(axz*ptz+bxz*ptx+cxz)/sqrt(axz*axz+bxz*bxz);
       float res_yz =  std::abs(ayz*ptz+byz*pty+cyz)/sqrt(ayz*ayz+byz*byz);
       //float res = std::abs(tsl*ptx+(-1*pty)+tint)/sqrt((tsl*tsl+1));
-      // if(Verbosity()>0)
-      cout << " x: " << ptx << " z: " << ptz << " res_xz " << res_xz << endl;
-      cout << " y: " << pty << " z: " << ptz << " res_yz " << res_yz << endl;
+      if(Verbosity()>0){
+	cout << " x: " << ptx << " z: " << ptz << " res_xz " << res_xz << endl;
+	cout << " y: " << pty << " z: " << ptz << " res_yz " << res_yz << endl;
+      }
       if(res_yz<4&&res_xz<4){
 	float boxx = ptx;
 	float boxy = pty;
 	float boxz = ptz;
-        std::cout << "fprobe x:"  << boxx << " y: " << boxy <<  " z: " << boxz << std::endl;
+	if(Verbosity()>0){std::cout << "fprobe x:"  << boxx << " y: " << boxy <<  " z: " << boxz << std::endl;}
+	
 	nhitff++;
 	float xff = boxx;
 	float yff = boxy;
 	float zff = boxz;
-
+	
 	xsumff = xsumff + xff;            // calculate sigma(xi)
 	ysumff = ysumff + yff;            // calculate sigma(yi)
 	zsumff = zsumff + zff;            // calculate sigma(yi)
-
+	
 	x2sumff = x2sumff + xff*xff;      // calculate sigma(x^2i)
 	y2sumff = y2sumff + yff*yff;      // calculate sigma(x^2i)
-       	z2sumff = z2sumff + zff*zff;      // calculate sigma(x^2i)
-
+	z2sumff = z2sumff + zff*zff;      // calculate sigma(x^2i)
+	
 	xysumff = xysumff + xff * yff;    // calculate sigma(xi*yi)
 	xzsumff = xzsumff + xff * zff;    // calculate sigma(xi*yi)
 	yzsumff = yzsumff + yff * zff;    // calculate sigma(xi*yi)
-
+	
 	trkclusters.push_back(*clustertrk);
 	trk_nclus++;
 	if(ptz<zfirst){zfirst = ptz;}
 	if(ptz<zlast){zlast = ptz;}
       }
     }
-    cout << "rescheck done " <<  endl;
-    cout << "number trk clus is " << trkclusters.size() << " " << trk_nclus<< endl;
-  
+    if(Verbosity()>0){
+      cout << "rescheck done " <<  endl;
+      cout << "number trk clus is " << trkclusters.size() << " " << trk_nclus<< endl;
+    }
+    
     denominatorxff = ((x2sumff * nhitff) - (xsumff*xsumff));
     slopexyff = (xysumff* nhitff - xsumff * ysumff) / denominatorxff;   // calculate slope
     interceptxyff = (x2sumff * ysumff - xsumff * xysumff) / denominatorxff;  // calculate intercept
-
+    
     denominatorxzff = ((z2sumff * nhitff) - (zsumff*zsumff));
     slopexzff = (xzsumff* nhitff - xsumff * zsumff) / denominatorxzff;   // calculate slope
     interceptxzff = (z2sumff * xsumff - zsumff * xzsumff) / denominatorxzff;  // calculate intercept
-
+    
     denominatoryzff = ((z2sumff * nhitff) - (zsumff*zsumff));
     slopeyzff = (yzsumff* nhitff - zsumff * ysumff) / denominatoryzff;   // calculate slope
     interceptyzff = (z2sumff * ysumff - zsumff * yzsumff) / denominatoryzff;  // calculate intercept
-
+    
     _ntp_trk->Fill(_nevent,tint,tsl,interceptxyff,slopexyff,trk_nclus);
-
+    
     //  _ntp_trk_clus = new TNtuple("ntp_trk_clus", "laser clus","ev:x:y:z:adc:maxadc:size:lsize:phisize:tsize:intfit:slfit:nclus:zfirst:zlast");
     //_ntp_trk_hit = new TNtuple("ntp_trk_hit", "laser hitinfo","ev:x:y:z:adc:maxadc:lay:phibin:zbin:intfit:slfit:nclus:zfirst:zlast"
     
@@ -735,7 +751,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
       //int ntc = 0;
       // float fXth[20] = {0};
       //float fXtc[20] = {0};
-
+      
       unsigned int adcSum = 0.0;
       
       unsigned int maxAdc = 0.0;
@@ -744,15 +760,15 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
       float itmin = 66666666.6, itmax = -6666666666.6;
       
       unsigned int nHits = las_clus->getNhits();
-      std::cout << "nhits " << nHits << std::endl;
+      if(Verbosity()>0){std::cout << "nhits " << nHits << std::endl;
       if(adcSum>1)
 	puts("strange");
-      
+      }
       for(unsigned int i  = 0; i< nHits;i++){
 	float coords[3] = {las_clus->getHitX(i), las_clus->getHitY(i), las_clus->getHitZ(i)};
 	int iphi = las_clus->getHitIPhi(i);
-	std::cout << " iphi " << iphi << std::endl;
-
+	if(Verbosity()>0){std::cout << " iphi " << iphi << std::endl;
+	}
 	int it = las_clus->getHitIT(i);
 	int ilay = las_clus->getHitLayer(i);
 	unsigned int adc = las_clus->getHitAdc(i);
@@ -767,7 +783,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 	  maxAdc = adc;
 	}
 	//	printf("test %d %f %f %f %d %d %d %d %f %f %d %f %f\n", _nevent, coords[0],coords[1],coords[2],adc,ilay,iphi,it,interceptxyff,slopexyff,trk_nclus,zfirst,zlast);
-
+	
 	m_nevent = _nevent;
 	m_hitx = coords[0];
 	m_hity = coords[1];
@@ -776,6 +792,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 	m_hitlayer = ilay;
 	m_hitpad = iphi;
 	m_hittbin = it;
+	m_hittbin = process_side;
 	m_interxy = interceptxyff;
 	m_slopexy = slopexyff;
 	m_interxz = interceptxzff;
@@ -786,35 +803,9 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
 	m_zfirst = zfirst;
 	m_zlast = zlast;
 	
-	m_hittree->Fill();
-
-	/*
-	//"laser hitinfo";"ev:x:y:z:adc:lay:phibin:zbin:intfit:slfit:nclus:zfirst:zlast");
-	fXth[nth++] = _nevent;
-	
-	fXth[nth++] = las_clus->getHitX(i);
-	fXth[nth++] = las_clus->getHitY(i);
-	fXth[nth++] = las_clus->getHitZ(i);
-	
-	fXth[nth++] = adc;
-	fXth[nth++] = ilay;
-	fXth[nth++] = iphi;
-	fXth[nth++] = it;
-	fXth[nth++] = interceptff;
-	fXth[nth++] = slopeff;
-	
-	fXth[nth++] = trk_nclus;
-	fXth[nth++] = zfirst;
-	fXth[nth++] = zlast;
-	
-	_ntp_trk_hit->Fill(_nevent, las_clus->getHitX(i),las_clus->getHitX(i),las_clus->getHitX(i),adc,ilay,iphi,it,interceptff,slopeff,trk_nclus,zfirst,zlast);
-		if(_nevent>1000000){
-	_ntp_trk_hit->Fill(fXth);
-	*/
-      }
-	
-    
-    
+	m_hittree->Fill(); 
+      }	
+      
       int phisize =  iphimax - iphimin + 1;
       int lsize =  ilaymax - ilaymin + 1;
       int tsize = itmax - itmin +1;
@@ -828,35 +819,27 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
       m_sizel = lsize;
       m_sizephi =  phisize;
       m_sizet = tsize;
-
+      
       m_clustree->Fill();
-      
-      
-      /*
-       */
     }
   }
-  cout << "number of seeds is " << numberofseeds << endl;
+  }
+  if(Verbosity()>0){ cout << "number of seeds is " << numberofseeds << endl;}
   if(_write_ntp){
     _ntp_max->Fill(_nevent,intmin,intmax,slmin,slmax);
-  }
-
-  
-  cout << "return " << numberofseeds << endl;
-      /*
-    if(!keep_event){
-    cout << " ABORT !keep " << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  */
+  }  
+ 
+  if(Verbosity()>0){cout << "return " << numberofseeds << endl;}
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
 int PHLineLaserReco::Setup(PHCompositeNode* topNode)
 {
-  cout << "Called Setup" << endl;
-  cout << "topNode:" << topNode << endl;
+  if(Verbosity()>0){
+    cout << "Called Setup" << endl;
+    cout << "topNode:" << topNode << endl;
+  }
   // PHTrackSeeding::Setup(topNode);
   //  int ret = GetNodes(topNode);
   //return ret;
@@ -881,7 +864,7 @@ int PHLineLaserReco::End(PHCompositeNode* topNode)
     m_hittree->Write();
     m_clustree->Write();
     _tfile->Close();
-    cout << "Called End " << endl;
+    if(Verbosity()>0){ cout << "Called End " << endl;}
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
