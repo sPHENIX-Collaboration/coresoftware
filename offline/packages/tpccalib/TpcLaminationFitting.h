@@ -39,9 +39,9 @@ class TpcLaminationFitting : public SubsysReco
     m_event_index = 100 * seq;
   }
 
-  void set_fitFileName(const std::string &fitFileName)
+  void set_QAFileName(const std::string &QAFileName)
   {
-    m_fitFileName = fitFileName;
+    m_QAFileName = QAFileName;
   }
 
   void set_ppMode(bool mode){ ppMode = mode; }
@@ -76,7 +76,7 @@ class TpcLaminationFitting : public SubsysReco
   TpcDistortionCorrectionContainer *m_dcc_out{nullptr};
 
   std::string m_outputfile{"CMDistortionCorrections.root"};
-  std::string m_fitFileName{""};
+  std::string m_QAFileName{""};
 
   TH2 *m_hLamination[18][2]{{nullptr}};
   TF1 *m_fLamination[18][2]{{nullptr}};
