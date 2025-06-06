@@ -84,7 +84,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
 
   if (gvtxmap)
   {
-    GlobalVertex *gvtx = NULL;
+    GlobalVertex *gvtx = nullptr;
     if (gvtxmap->empty())
     {
       if (_debug > 0)
