@@ -143,6 +143,14 @@ void TpcSpaceChargeMatrixContainerv2::Reset()
   m_entries = std::vector<int>(totalbins, 0);
   m_lhs = std::vector<matrix_t>(totalbins, {{}});
   m_rhs = std::vector<column_t>(totalbins, {{}});
+
+  // rphi reduced arrays
+  m_lhs_rphi = std::vector<reduced_matrix_t>(totalbins, {{}});
+  m_rhs_rphi = std::vector<reduced_column_t>(totalbins, {{}});
+
+  // z reduced arrays
+  m_lhs_z = std::vector<reduced_matrix_t>(totalbins, {{}});
+  m_rhs_z = std::vector<reduced_column_t>(totalbins, {{}});
 }
 
 //___________________________________________________________
@@ -348,7 +356,7 @@ bool TpcSpaceChargeMatrixContainerv2::bound_check(int cell_index, int i, int j) 
 //___________________________________________________________
 bool TpcSpaceChargeMatrixContainerv2::bound_check_reduced(int cell_index, int i) const
 {
-  if (cell_index < 0 || cell_index >= (int) m_rhs.size())
+  if (cell_index < 0 || cell_index >= (int) m_rhs_rphi.size())
   {
     return false;
   }
@@ -362,7 +370,7 @@ bool TpcSpaceChargeMatrixContainerv2::bound_check_reduced(int cell_index, int i)
 //___________________________________________________________
 bool TpcSpaceChargeMatrixContainerv2::bound_check_reduced(int cell_index, int i, int j) const
 {
-  if (cell_index < 0 || cell_index >= (int) m_lhs.size())
+  if (cell_index < 0 || cell_index >= (int) m_lhs_rphi.size())
   {
     return false;
   }
