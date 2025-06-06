@@ -5,7 +5,7 @@
 #include "PHG4InttFPHXParameterisation.h"
 
 #include <intt/CylinderGeomIntt.h>
-#include <intt/InttMap.h>
+#include <intt/InttMapping.h>
 #include <intt/InttSurveyMap.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -1007,7 +1007,7 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
         radius = m_SensorRadius[inttlayer];
         radius += sensor_offset_x_ladder;
 
-        InttMap::Offline_s k_ladder;
+        InttNameSpace::Offline_s k_ladder;
         Eigen::Affine3d const *abs_transform_ladder;
         Eigen::Matrix3d rot_ladder;
         Eigen::Matrix3d sphnx2geant;
@@ -1026,15 +1026,15 @@ int PHG4InttDetector::ConstructIntt(G4LogicalVolume *trackerenvelope)
           // set up the key for the survey map
           k_ladder.layer = inttlayer + 3;
           k_ladder.ladder_phi = icopy;
-          k_ladder.ladder_z = InttMap::Wildcard;  // Note: positive ladder_z = itype + 2, negative ladder_z = itype
-          k_ladder.strip_phi = InttMap::Wildcard;
-          k_ladder.strip_z = InttMap::Wildcard;
+          k_ladder.ladder_z = InttSurveyMap::Wildcard;  // Note: positive ladder_z = itype + 2, negative ladder_z = itype
+          k_ladder.strip_x = InttSurveyMap::Wildcard;
+          k_ladder.strip_y = InttSurveyMap::Wildcard;
 
           abs_transform_ladder = survey->GetAbsoluteTransform(k_ladder);
           if (!abs_transform_ladder)
           {
             std::cout << "Eigen::Affine3d absolute transform for (layer,ladder_phi,ladder_z,strip_phi,strip_z) = (" << k_ladder.layer << "," << k_ladder.ladder_phi << ","
-                      << k_ladder.ladder_z << "," << k_ladder.strip_phi << "," << k_ladder.strip_z << ") not valid" << std::endl;
+                      << k_ladder.ladder_z << "," << k_ladder.strip_x << "," << k_ladder.strip_y << ") not valid" << std::endl;
             continue;
           }
 
