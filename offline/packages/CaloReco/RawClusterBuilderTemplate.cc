@@ -379,14 +379,10 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     {
       bvertex = mbditer->second;
     }
-    //      MbdVertex *bvertex = (mbdmap->begin()->second);
-
-    if (!bvertex)
+    if (bvertex)
     {
-      return Fun4AllReturnCodes::ABORTEVENT;
+      vz = bvertex->get_z();
     }
-
-    vz = bvertex->get_z();
   }
   
   if (m_UseAltZVertex == 3)
