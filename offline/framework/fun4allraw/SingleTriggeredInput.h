@@ -58,6 +58,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
   virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
   void dumpdeque();
+  int checkfirstsebevent();
   
  protected:
   PHCompositeNode *m_topNode{nullptr};

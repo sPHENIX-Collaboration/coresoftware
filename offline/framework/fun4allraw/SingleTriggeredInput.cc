@@ -162,14 +162,6 @@ int SingleTriggeredInput::FillEventVector()
     }
     //    std::cout << Name() << ":filling index " << i+1 << " with " << std::hex << bla << std::dec << std::endl;
     uint64_t myClock = GetClock(evt);
-    if (myClock == 0x8ee944)
-    {
-//      delentry = 0;
-    std::cout << Name() << " bad event " << evt->getEvtSequence() << std::endl;
-      // std::cout << Name() << " dropping bad seb clock event: " << evt->getEvtSequence() << std::endl;
-      // delete evt;
-      // continue;
-    }
     std::cout << Name() << " evt# " << evt->getEvtSequence() << " clock: 0x" << std::hex
 	      << myClock << std::dec << std::endl;
 
@@ -260,13 +252,6 @@ void SingleTriggeredInput::FillPool()
   }
   if (!FilesDone())
   {
-  // if (delentry >= 0)
-  // {
-  //   std::cout << Name() << " deleting " << m_EventDeque[delentry]->getEvtSequence() << std::endl;
-  //   delete m_EventDeque[delentry];
-  //   m_EventDeque.erase(m_EventDeque.begin() + delentry);
-  // }
-
     if (FillEventVector() != 0)
     {
       // for (const auto *itertst = begin(); itertst != end(); ++itertst)
@@ -294,6 +279,18 @@ void SingleTriggeredInput::FillPool()
             std::cout << "subsequent events are good, reset packets from first event" << std::endl;
             m_DitchPackets = true;
           }
+	  else
+	  {
+	    std::cout << "check subsequent events failed, this is not the problem" << std::endl;
+	    if (checkfirstsebevent() == 0)
+	    {
+	      std::cout << Name() << " started with bad event" << std::endl;
+	    }
+	    else
+	    {
+	      std::cout << Name() << " first event in seb is not the problem either" << std::endl;
+	    }
+	  }
         }
         else
         {
@@ -403,10 +400,6 @@ void SingleTriggeredInput::CreateDSTNodes(Event *evt)
     {
       calopacket = new CaloPacketv1();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(calopacket, PacketNodeName, "PHObject");
-      if (packet_id > 6075)
-      {
-        newNode->SplitLevel(67);
-      }
       detNode->addNode(newNode);
     }
     delete piter;
@@ -626,4 +619,92 @@ int SingleTriggeredInput::ReadEvent()
   }
   delete evt;
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int SingleTriggeredInput::checkfirstsebevent()
+{
+// copy arrays into vectors for easier searching
+  std::deque<uint64_t> gl1clkvector;
+  for (auto iter = Gl1Input()->begin(); iter != Gl1Input()->end(); ++iter)
+  {
+    gl1clkvector.push_back(*iter);
+  }
+   std::deque<uint64_t> myclkvector;
+  for (auto iter = begin(); iter != end(); ++iter)
+  {
+    myclkvector.push_back(*iter);
+  }
+  // remove matches from the front of the deques
+  // the tricky part is that if there is a mismatch in clock diffs it is caused by
+  // the previous channel, so we have to subtract the last one where the clock diff matched
+  int badindex = -1;
+  while(*(myclkvector.begin()) == *(gl1clkvector.begin()))
+  {
+    badindex++;
+    std::cout << "removing " << std::hex << *(myclkvector.begin()) << std::dec << std::endl;
+    myclkvector.pop_front();
+    gl1clkvector.pop_front();
+  }
+  while(!myclkvector.empty())
+  {
+    auto it = std::search(gl1clkvector.begin(), gl1clkvector.end(),myclkvector.begin(), myclkvector.end());
+    if (it == gl1clkvector.end())
+    {
+      std::cout << "found no match" << std::endl;
+    }
+    else
+    {
+      std::cout << "found match" << std::endl;
+      break;
+    }
+    myclkvector.pop_front();
+  }
+  if (myclkvector.empty())
+  {
+    std::cout << "cannot recover this problem - it is not a missing first event from the seb" << std::endl;
+    EventAlignmentProblem(1);
+  }
+  // reshuffle clock refs
+  for (unsigned int i = badindex; i < pooldepth-1; i++)
+  {
+    m_bclkarray[i] = m_bclkarray[i+1];
+    m_bclkdiffarray[i] = m_bclkdiffarray[i+1];
+  }
+  m_bclkarray[pooldepth] = std::numeric_limits<uint64_t>::max();
+    std::cout << Name() << " deleting " << m_EventDeque[badindex]->getEvtSequence() << std::endl;
+delete m_EventDeque[badindex];
+m_EventDeque.erase(m_EventDeque.begin() + badindex);
+// read next event to fill our arrays up to pooldepth
+    Event *evt = GetEventIterator()->getNextEvent();
+    while (!evt)
+    {
+      fileclose();
+      if (!OpenNextFile())
+      {
+        FilesDone(1);
+        if (Verbosity() > 0)
+        {
+          std::cout << "no more events to read, deque depth: " << m_EventDeque.size() << std::endl;
+        }
+        return -1;
+      }
+      evt = GetEventIterator()->getNextEvent();
+    }
+    m_EventsThisFile++;
+    if (evt->getEvtType() != DATAEVENT)
+    {
+      std::cout << Name() << " things will crash and burn: non data event: " << evt->getEvtSequence() << std::endl;
+      delete evt;
+    }
+    uint64_t myClock = GetClock(evt);
+    m_bclkarray[pooldepth] = myClock; //GetClock(evt);
+      if (m_bclkarray[pooldepth] < m_bclkarray[pooldepth -1])
+      {
+	m_bclkarray[pooldepth] += 0x100000000;
+      }
+        m_bclkdiffarray[pooldepth-1] = m_bclkarray[pooldepth] - m_bclkarray[pooldepth-1];
+    m_Event++;
+    m_EventDeque.push_back(evt);
+
+return 0;
 }
