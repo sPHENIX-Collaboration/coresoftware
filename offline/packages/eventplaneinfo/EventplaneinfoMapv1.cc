@@ -14,7 +14,7 @@ EventplaneinfoMapv1::~EventplaneinfoMapv1()
 void EventplaneinfoMapv1::identify(std::ostream& os) const
 {
   os << "EventplaneinfoMapv1: size = " << _map.size() << std::endl;
-  for (auto& m : _map)
+  for (const auto& m : _map)
   {
     m.second->identify(os);
   }

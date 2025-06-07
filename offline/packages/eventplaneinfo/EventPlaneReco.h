@@ -28,7 +28,6 @@ public:
 
   void ResetMe();
   void set_sepd_epreco(bool sepdEpReco) { _sepdEpReco = sepdEpReco; }
-  void set_default_calibfile(bool default_calib) { _default_calib = default_calib; }
   void set_mbd_epreco(bool mbdEpReco) { _mbdEpReco = mbdEpReco; }
   void set_isSim(bool isSim) { _isSim = isSim; }
   void set_sEPD_Mip_cut(const float e) { _epd_e = e; }
@@ -40,10 +39,7 @@ public:
 private:
   int CreateNodes(PHCompositeNode *topNode);
   unsigned int m_MaxOrder{3};
-  int m_runNo{54674};
-  std::string OutFileName;
-  CDBHistos *cdbhistosOut{nullptr};
-
+  std::string FileName;
     
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
@@ -67,14 +63,6 @@ private:
  std::vector<double> tmp_northsouth_psi;
 
 // recentering histograms
-    
-TProfile2D *tprof_mean_cos_north_epd[6]{};
-TProfile2D *tprof_mean_sin_north_epd[6]{};
-TProfile2D *tprof_mean_cos_south_epd[6]{};
-TProfile2D *tprof_mean_sin_south_epd[6]{};
-TProfile2D *tprof_mean_cos_northsouth_epd[6]{};
-TProfile2D *tprof_mean_sin_northsouth_epd[6]{};
-    
  TProfile2D *tprof_mean_cos_north_epd_input[6]{};
  TProfile2D *tprof_mean_sin_north_epd_input[6]{};
  TProfile2D *tprof_mean_cos_south_epd_input[6]{};
@@ -84,14 +72,6 @@ TProfile2D *tprof_mean_sin_northsouth_epd[6]{};
     
 // shifting histograms
  const int _imax{12};
-    
-TProfile2D *tprof_cos_north_epd_shift[6][12]{};
-TProfile2D *tprof_sin_north_epd_shift[6][12]{};
-TProfile2D *tprof_cos_south_epd_shift[6][12]{};
-TProfile2D *tprof_sin_south_epd_shift[6][12]{};
-TProfile2D *tprof_cos_northsouth_epd_shift[6][12]{};
-TProfile2D *tprof_sin_northsouth_epd_shift[6][12]{};
-    
  TProfile2D *tprof_cos_north_epd_shift_input[6][12]{};
  TProfile2D *tprof_sin_north_epd_shift_input[6][12]{};
  TProfile2D *tprof_cos_south_epd_shift_input[6][12]{};
@@ -103,7 +83,6 @@ TProfile2D *tprof_sin_northsouth_epd_shift[6][12]{};
   bool _sepdEpReco{false};
   bool _isSim{false};
   bool _do_ep{false};
-  bool _default_calib{true};
 
   float _nsum{0.0};
   float _ssum{0.0};
