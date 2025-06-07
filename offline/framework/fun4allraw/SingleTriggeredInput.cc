@@ -525,9 +525,9 @@ int SingleTriggeredInput::ReadEvent()
 {
   if (m_EventDeque.empty())
   {
-    std::cout << Name() << ":all events done" << std::endl;
     if (!EventAlignmentProblem())
     {
+      std::cout << Name() << ":all events done" << std::endl;
       AllDone(1);
     }
     return -1;
