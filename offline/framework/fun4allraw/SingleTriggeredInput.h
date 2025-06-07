@@ -22,7 +22,7 @@ class PHCompositeNode;
 class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
 {
  public:
-  static constexpr size_t pooldepth{10}; // number of events which are read in in one go
+  static constexpr size_t pooldepth{10};  // number of events which are read in in one go
   explicit SingleTriggeredInput(const std::string &name);
   ~SingleTriggeredInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
@@ -31,7 +31,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual int RunNumber() const { return m_RunNumber; }
   virtual void EventNumber(const int i) { m_EventNumber = i; }
   virtual int EventNumber() const { return m_EventNumber; }
-  virtual int EventsInThisFile() const {return m_EventsThisFile;}
+  virtual int EventsInThisFile() const { return m_EventsThisFile; }
   virtual int fileopen(const std::string &filename) override;
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
@@ -51,15 +51,15 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual std::array<uint64_t, pooldepth>::const_iterator begin() { return m_bclkdiffarray.begin(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator end() { return m_bclkdiffarray.end(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
-  virtual void KeepPackets() {m_KeepPacketsFlag = true;}
-  virtual bool KeepMyPackets() const {return m_KeepPacketsFlag;}
+  virtual void KeepPackets() { m_KeepPacketsFlag = true; }
+  virtual bool KeepMyPackets() const { return m_KeepPacketsFlag; }
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
   virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
   void dumpdeque();
   int checkfirstsebevent();
-  
+
  protected:
   PHCompositeNode *m_topNode{nullptr};
   // lined up like this:
