@@ -5,6 +5,8 @@
 #include <ffarawobjects/CaloPacketContainerv1.h>
 #include <ffarawobjects/CaloPacketv1.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNode.h>          // for PHNode
@@ -247,6 +249,7 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
       // {
       // 	std::cout << std::hex << "blkdiff: 0x" << itertst << std::dec << std::endl;
       // }
+	  dumpdeque();
       bool isequal = std::equal(begin(), end(), Gl1Input()->begin());
       if (!isequal)
       {
@@ -259,7 +262,7 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
           // this flag is sufficient. Subsequent mismatches will show up as the second event mismatching
           // since we leave the last event in the deque
           std::cout << "first event problem, check subsequent events" << std::endl;
-
+//	  dumpdeque();
           iter1++;
           iter2++;
           if (std::equal(iter1, end(), iter2))
@@ -345,102 +348,7 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   {
     std::cout << "huh?" << std::endl;
   }
-  if (m_EventDeque.empty())
-  {
-    std::cout << Name() << ":all events done" << std::endl;
-    if (!EventAlignmentProblem())
-    {
-      AllDone(1);
-    }
-    return;
-  }
-  if (Verbosity() > 1)
-  {
-    std::cout << "deque size: " << m_EventDeque.size() << std::endl;
-  }
-  m_FEMEventNrSet.clear();  // reset for new event, should be called at event cleanup
-  Event *evt = m_EventDeque.front();
-  m_EventDeque.pop_front();
-  RunNumber(evt->getRunNumber());
-  //  std::cout << "Handling event " << evt->getEvtSequence();
-  //  CaloPacket *newhit = new CaloPacketv1();
-  std::vector<Packet *> pktvec = evt->getPacketVector();
-  std::vector<CaloPacket *> calopacketvector;
-  for (auto *packet : pktvec)
-  {
-    int packet_id = packet->getIdentifier();
-    CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
-    calopacketvector.push_back(newhit);
-    if (m_DitchPackets)
-    {
-      newhit->setStatus(OfflinePacket::PACKET_DROPPED);
-      std::cout << "ditching packet " << packet_id << " from prdf event " << evt->getEvtSequence() << std::endl;
-      continue;
-    }
-    newhit->setStatus(OfflinePacket::PACKET_OK);
-    newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
-    int nr_modules = packet->iValue(0, "NRMODULES");
-    int nr_channels = packet->iValue(0, "CHANNELS");
-    int nr_samples = packet->iValue(0, "SAMPLES");
-    newhit->setNrModules(nr_modules);
-    newhit->setNrChannels(nr_channels);
-    newhit->setNrSamples(nr_samples);
-    newhit->setIdentifier(packet_id);
-    newhit->setBCO(packet->lValue(0, "CLOCK"));
-    //     std::cout << ", clock :" << packet->lValue(0, "CLOCK") << std::endl;
-    for (int ifem = 0; ifem < nr_modules; ifem++)
-    {
-      newhit->setFemClock(ifem, packet->iValue(ifem, "FEMCLOCK"));
-      newhit->setFemEvtSequence(ifem, packet->iValue(ifem, "FEMEVTNR"));
-      newhit->setFemSlot(ifem, packet->iValue(ifem, "FEMSLOT"));
-      newhit->setChecksumLsb(ifem, packet->iValue(ifem, "CHECKSUMLSB"));
-      newhit->setChecksumMsb(ifem, packet->iValue(ifem, "CHECKSUMMSB"));
-      newhit->setCalcChecksumLsb(ifem, packet->iValue(ifem, "CALCCHECKSUMLSB"));
-      newhit->setCalcChecksumMsb(ifem, packet->iValue(ifem, "CALCCHECKSUMMSB"));
-      newhit->setFemStatus(ifem, CaloPacket::FEM_OK);
-    }
-    for (int ipmt = 0; ipmt < nr_channels; ipmt++)
-    {
-      // store pre/post only for suppressed channels, the array in the packet routines is not
-      // initialized so reading pre/post for not zero suppressed channels returns garbage
-      bool isSuppressed = packet->iValue(ipmt, "SUPPRESSED");
-      newhit->setSuppressed(ipmt, isSuppressed);
-      if (isSuppressed)
-      {
-        newhit->setPre(ipmt, packet->iValue(ipmt, "PRE"));
-        newhit->setPost(ipmt, packet->iValue(ipmt, "POST"));
-      }
-      else
-      {
-        for (int isamp = 0; isamp < nr_samples; isamp++)
-        {
-          newhit->setSample(ipmt, isamp, packet->iValue(isamp, ipmt));
-        }
-      }
-    }
-    delete packet;
-    int iret = FemEventNrClockCheck(newhit);
-    if (iret < 0)
-    {
-      newhit->Reset();
-    }
-  }
-  m_DitchPackets = false;
-  if (m_FEMEventNrSet.size() > 1)
-  {
-    std::cout << "FEM event number mismatch among packets, aborting combining, from now on GL1 only" << std::endl;
-    for (auto *iter : calopacketvector)
-    {
-      iter->Reset();
-    }
-    EventAlignmentProblem(1);
-    for (auto *iter : m_EventDeque)
-    {
-      delete iter;
-    }
-    m_EventDeque.clear();
-  }
-  delete evt;
+  return;
 }
 
 void SingleTriggeredInput::CreateDSTNodes(Event *evt)
@@ -583,4 +491,119 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
   }
   m_FEMEventNrSet.insert(*(EventNoSet.begin()));
   return 0;
+}
+
+void SingleTriggeredInput::dumpdeque()
+{
+  const auto *iter1 = begin();
+  const auto *iter2 = Gl1Input()->begin();
+  while (iter1 != end())
+  {
+    std::cout << Name() << " clk: 0x" << std::hex << *iter1
+	      << " Gl1 clk: 0x" << *iter2 << std::dec << std::endl;
+    iter1++;
+    iter2++;
+  }
+  return;
+}
+
+int SingleTriggeredInput::ReadEvent()
+{
+  if (m_EventDeque.empty())
+  {
+    std::cout << Name() << ":all events done" << std::endl;
+    if (!EventAlignmentProblem())
+    {
+      AllDone(1);
+    }
+    return -1;
+  }
+  if (Verbosity() > 1)
+  {
+    std::cout << "deque size: " << m_EventDeque.size() << std::endl;
+  }
+  m_FEMEventNrSet.clear();  // reset for new event, should be called at event cleanup
+  Event *evt = m_EventDeque.front();
+  m_EventDeque.pop_front();
+  RunNumber(evt->getRunNumber());
+  //  std::cout << "Handling event " << evt->getEvtSequence();
+  //  CaloPacket *newhit = new CaloPacketv1();
+  std::vector<Packet *> pktvec = evt->getPacketVector();
+  std::vector<CaloPacket *> calopacketvector;
+  for (auto *packet : pktvec)
+  {
+    int packet_id = packet->getIdentifier();
+    CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
+    calopacketvector.push_back(newhit);
+    if (m_DitchPackets)
+    {
+      newhit->setStatus(OfflinePacket::PACKET_DROPPED);
+      std::cout << "ditching packet " << packet_id << " from prdf event " << evt->getEvtSequence() << std::endl;
+      continue;
+    }
+    newhit->setStatus(OfflinePacket::PACKET_OK);
+    newhit->setPacketEvtSequence(packet->iValue(0, "EVTNR"));
+    int nr_modules = packet->iValue(0, "NRMODULES");
+    int nr_channels = packet->iValue(0, "CHANNELS");
+    int nr_samples = packet->iValue(0, "SAMPLES");
+    newhit->setNrModules(nr_modules);
+    newhit->setNrChannels(nr_channels);
+    newhit->setNrSamples(nr_samples);
+    newhit->setIdentifier(packet_id);
+    newhit->setBCO(packet->lValue(0, "CLOCK"));
+    //     std::cout << ", clock :" << packet->lValue(0, "CLOCK") << std::endl;
+    for (int ifem = 0; ifem < nr_modules; ifem++)
+    {
+      newhit->setFemClock(ifem, packet->iValue(ifem, "FEMCLOCK"));
+      newhit->setFemEvtSequence(ifem, packet->iValue(ifem, "FEMEVTNR"));
+      newhit->setFemSlot(ifem, packet->iValue(ifem, "FEMSLOT"));
+      newhit->setChecksumLsb(ifem, packet->iValue(ifem, "CHECKSUMLSB"));
+      newhit->setChecksumMsb(ifem, packet->iValue(ifem, "CHECKSUMMSB"));
+      newhit->setCalcChecksumLsb(ifem, packet->iValue(ifem, "CALCCHECKSUMLSB"));
+      newhit->setCalcChecksumMsb(ifem, packet->iValue(ifem, "CALCCHECKSUMMSB"));
+      newhit->setFemStatus(ifem, CaloPacket::FEM_OK);
+    }
+    for (int ipmt = 0; ipmt < nr_channels; ipmt++)
+    {
+      // store pre/post only for suppressed channels, the array in the packet routines is not
+      // initialized so reading pre/post for not zero suppressed channels returns garbage
+      bool isSuppressed = packet->iValue(ipmt, "SUPPRESSED");
+      newhit->setSuppressed(ipmt, isSuppressed);
+      if (isSuppressed)
+      {
+        newhit->setPre(ipmt, packet->iValue(ipmt, "PRE"));
+        newhit->setPost(ipmt, packet->iValue(ipmt, "POST"));
+      }
+      else
+      {
+        for (int isamp = 0; isamp < nr_samples; isamp++)
+        {
+          newhit->setSample(ipmt, isamp, packet->iValue(isamp, ipmt));
+        }
+      }
+    }
+    delete packet;
+    int iret = FemEventNrClockCheck(newhit);
+    if (iret < 0)
+    {
+      newhit->Reset();
+    }
+  }
+  m_DitchPackets = false;
+  if (m_FEMEventNrSet.size() > 1)
+  {
+    std::cout << "FEM event number mismatch among packets, aborting combining, from now on GL1 only" << std::endl;
+    for (auto *iter : calopacketvector)
+    {
+      iter->Reset();
+    }
+    EventAlignmentProblem(1);
+    for (auto *iter : m_EventDeque)
+    {
+      delete iter;
+    }
+    m_EventDeque.clear();
+  }
+  delete evt;
+  return Fun4AllReturnCodes::EVENT_OK;
 }

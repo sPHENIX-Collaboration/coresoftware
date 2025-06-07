@@ -44,7 +44,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
   virtual int FillEventVector();
-
+  virtual int ReadEvent();
   virtual SingleTriggeredInput *Gl1Input() { return m_Gl1Input; }
   virtual void Gl1Input(SingleTriggeredInput *input) { m_Gl1Input = input; }
   virtual uint64_t GetClock(Event *evt);
@@ -57,6 +57,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
   virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
+  void dumpdeque();
   
  protected:
   PHCompositeNode *m_topNode{nullptr};

@@ -62,6 +62,26 @@ Fun4AllTriggeredInputManager::~Fun4AllTriggeredInputManager()
 int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
 {
   m_Gl1TriggeredInput->FillPool(1);
+  for (auto *iter : m_TriggeredInputVector)
+  {
+    //    std::cout << "prdf input: " << iter->Name() << std::endl;
+    iter->FillPool(1);
+    if (iter->AllDone())
+    {
+      return -1;
+    }
+  }
+  m_Gl1TriggeredInput->ReadEvent();
+  for (auto *iter : m_TriggeredInputVector)
+  {
+    //    std::cout << "prdf input: " << iter->Name() << std::endl;
+    iter->ReadEvent();
+    if (iter->AllDone())
+    {
+      return -1;
+    }
+  }
+
   if (m_RunNumber == 0)
   {
     m_RunNumber = m_Gl1TriggeredInput->RunNumber();
@@ -73,15 +93,6 @@ int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
   }
   EventNumber(m_Gl1TriggeredInput->EventNumber());
   MySyncManager()->CurrentEvent(EventNumber());
-  for (auto *iter : m_TriggeredInputVector)
-  {
-    //    std::cout << "prdf input: " << iter->Name() << std::endl;
-    iter->FillPool(1);
-    if (iter->AllDone())
-    {
-      return -1;
-    }
-  }
   //    std::cout << "saving event on dst" << std::endl;
   return 0;
 }
