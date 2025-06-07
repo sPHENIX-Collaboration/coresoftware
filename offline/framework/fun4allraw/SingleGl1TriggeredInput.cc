@@ -35,7 +35,7 @@ SingleGl1TriggeredInput::SingleGl1TriggeredInput(const std::string &name)
 {
 }
 
-void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
+void SingleGl1TriggeredInput::FillPool()
 {
   if (AllDone())  // no more files and all events read
   {
@@ -44,10 +44,6 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   if (!FilesDone())
   {
     FillEventVector();
-  }
-  if (keep > 100000000)
-  {
-    std::cout << "huh?" << std::endl;
   }
   return;
 }

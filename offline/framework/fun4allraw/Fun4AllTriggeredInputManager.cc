@@ -61,11 +61,11 @@ Fun4AllTriggeredInputManager::~Fun4AllTriggeredInputManager()
 
 int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
 {
-  m_Gl1TriggeredInput->FillPool(1);
+  m_Gl1TriggeredInput->FillPool();
   for (auto *iter : m_TriggeredInputVector)
   {
     //    std::cout << "prdf input: " << iter->Name() << std::endl;
-    iter->FillPool(1);
+    iter->FillPool();
     if (iter->AllDone())
     {
       return -1;

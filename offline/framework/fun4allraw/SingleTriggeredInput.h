@@ -26,7 +26,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   explicit SingleTriggeredInput(const std::string &name);
   ~SingleTriggeredInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
-  virtual void FillPool(const unsigned int = 1);
+  virtual void FillPool();
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
   virtual void EventNumber(const int i) { m_EventNumber = i; }

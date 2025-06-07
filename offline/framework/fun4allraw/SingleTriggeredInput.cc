@@ -133,8 +133,11 @@ int SingleTriggeredInput::FillEventVector()
       evt = GetEventIterator()->getNextEvent();
     }
     m_EventsThisFile++;
+    // std::cout << Name() << ": ";
+    // evt->identify();
     if (evt->getEvtType() != DATAEVENT)
     {
+      std::cout << Name() << " dropping non data event: " << evt->getEvtSequence() << std::endl;
       delete evt;
       continue;
     }
@@ -159,12 +162,24 @@ int SingleTriggeredInput::FillEventVector()
     }
     //    std::cout << Name() << ":filling index " << i+1 << " with " << std::hex << bla << std::dec << std::endl;
     uint64_t myClock = GetClock(evt);
+    if (myClock == 0x8ee944)
+    {
+//      delentry = 0;
+    std::cout << Name() << " bad event " << evt->getEvtSequence() << std::endl;
+      // std::cout << Name() << " dropping bad seb clock event: " << evt->getEvtSequence() << std::endl;
+      // delete evt;
+      // continue;
+    }
+    std::cout << Name() << " evt# " << evt->getEvtSequence() << " clock: 0x" << std::hex
+	      << myClock << std::dec << std::endl;
+
     if (myClock == std::numeric_limits<uint64_t>::max())
     {
+      std::cout << Name() << " dropping bad clock event: " << evt->getEvtSequence() << std::endl;
       delete evt;
       continue;
     }
-    m_bclkarray[i + 1] = GetClock(evt);
+    m_bclkarray[i + 1] = myClock; //GetClock(evt);
     if (m_Event == 0)
     {
       m_bclkdiffarray[i] = 0;
@@ -173,13 +188,15 @@ int SingleTriggeredInput::FillEventVector()
     {
       if (m_bclkarray[i + 1] < m_bclkarray[i])
       {
-        m_bclkdiffarray[i] = (m_bclkarray[i + 1] + 0x100000000) - m_bclkarray[i];  // handle rollover
+	m_bclkarray[i + 1] += 0x100000000;
       }
-      else
-      {
         m_bclkdiffarray[i] = m_bclkarray[i + 1] - m_bclkarray[i];
-      }
     }
+    std::cout << Name() << " evt# " << evt->getEvtSequence() << std::hex
+	      << " prev clk: 0x" << m_bclkarray[i]
+	      << " clock: 0x" << m_bclkarray[i + 1]
+	      << " clock diff: 0x" << m_bclkdiffarray[i]
+	      << std::dec << std::endl;
     //    std::cout << "Event " << evt->getEvtSequence() << "bclk: " << m_bclkarray[i+1] << std::endl;
 
     m_Event++;
@@ -195,7 +212,7 @@ int SingleTriggeredInput::FillEventVector()
   // {
   //   std::cout << "0x" << std::hex << iter << std::dec << std::endl;
   // }
-  return m_EventDeque.size();
+    return m_EventDeque.size();
 }
 
 uint64_t SingleTriggeredInput::GetClock(Event *evt)
@@ -235,7 +252,7 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
   return clock;
 }
 
-void SingleTriggeredInput::FillPool(const unsigned int keep)
+void SingleTriggeredInput::FillPool()
 {
   if (AllDone() || EventAlignmentProblem())  // no more files and all events read or alignment problem
   {
@@ -243,6 +260,13 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
   }
   if (!FilesDone())
   {
+  // if (delentry >= 0)
+  // {
+  //   std::cout << Name() << " deleting " << m_EventDeque[delentry]->getEvtSequence() << std::endl;
+  //   delete m_EventDeque[delentry];
+  //   m_EventDeque.erase(m_EventDeque.begin() + delentry);
+  // }
+
     if (FillEventVector() != 0)
     {
       // for (const auto *itertst = begin(); itertst != end(); ++itertst)
@@ -343,10 +367,6 @@ void SingleTriggeredInput::FillPool(const unsigned int keep)
 
       //	std::cout << "we are good" << std::endl;
     }
-  }
-  if (keep > 100000000)
-  {
-    std::cout << "huh?" << std::endl;
   }
   return;
 }
