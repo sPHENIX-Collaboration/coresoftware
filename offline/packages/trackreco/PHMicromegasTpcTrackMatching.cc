@@ -757,8 +757,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
             << " dz " << dz
             << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z
             << " rphi_proj " << rphi_proj << " z_proj " << z_proj
-            << " pt " << tracklet_si->get_pt()
-            << " charge " << tracklet_si->get_charge()
+            << " pt " << tracklet_tpc->get_pt()
+            << " charge " << tracklet_tpc->get_charge()
             << std::endl;
 		  
         } 
