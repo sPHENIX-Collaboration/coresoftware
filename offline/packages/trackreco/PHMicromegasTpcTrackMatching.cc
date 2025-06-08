@@ -344,7 +344,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::vector<Acts::Vector3> clusGlobPos;
     std::vector<Acts::Vector3> clusGlobPos_silicon;
     std::vector<Acts::Vector3> clusGlobPos_mvtx;
-    std::vector<Acts::Vector3> clusGlobPos_intt;
 
     bool has_micromegas = false;
 
@@ -390,7 +389,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           const auto cluster = _cluster_map->findCluster(cluster_key);
           const auto global_position = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing);
           clusGlobPos_silicon.push_back( global_position );
-	  clusGlobPos_intt.push_back( global_position );
           break;
         }
 
@@ -428,7 +426,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     {
 
       if( clusGlobPos_mvtx.size()<3 ) { continue; }
- //     if( clusGlobPos_intt.size()<2 ) { continue; }
 
     } else {
 
@@ -562,11 +559,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       TVector3 intersection;
       double x;
       double y;
-
-      if( Verbosity() > 0 )
-      {
-        std::cout << "tile " << tileid << " layer " << layer <<  " nx " << nx << " ny " << ny << " nz " << nz << " x0 " << x0 << " y0 " << y0 << " z0 " << z0 << std::endl;
-      }
 
       if(_zero_field) {
 
@@ -760,7 +752,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
            * 2/ drphi also includes SC distortion correction, which the world coordinates don't
           */
 	  std::cout
-            << "layer: " << (int) layer
+            << "  Try_mms: " << (int) layer
             << " drphi " << drphi
             << " dz " << dz
             << " mm_clus_rphi " << mm_clus_rphi << " mm_clus_z " << mm_clus_z
@@ -769,7 +761,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
             << " charge " << tracklet_si->get_charge()
             << std::endl;
 		  
-        }  // if dz and drphi windows
+        } 
       }  // end loop over clusters
 
       // compare to cuts and add to track if matching
