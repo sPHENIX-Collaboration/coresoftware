@@ -55,6 +55,10 @@ ROOTDICTS = \
   MvtxRawEvtHeaderv2_Dict.cc \
   OfflinePacket_Dict.cc \
   OfflinePacketv1_Dict.cc \
+  TpcDiode_Dict.cc \
+  TpcDiodeContainer_Dict.cc \
+  TpcDiodeContainerv1_Dict.cc \
+  TpcDiodev1_Dict.cc \
   TpcRawHit_Dict.cc \
   TpcRawHitContainer_Dict.cc \
   TpcRawHitContainerv1_Dict.cc \
@@ -65,54 +69,8 @@ ROOTDICTS = \
   TpcRawHitv3_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  CaloPacket_Dict_rdict.pcm \
-  CaloPacketv1_Dict_rdict.pcm \
-  CaloPacketContainer_Dict_rdict.pcm \
-  CaloPacketContainerv1_Dict_rdict.pcm \
-  Gl1Packet_Dict_rdict.pcm \
-  Gl1Packetv1_Dict_rdict.pcm \
-  Gl1Packetv2_Dict_rdict.pcm \
-  Gl1RawHit_Dict_rdict.pcm \
-  Gl1RawHitv1_Dict_rdict.pcm \
-  Gl1RawHitv2_Dict_rdict.pcm \
-  InttRawHit_Dict_rdict.pcm \
-  InttRawHitContainer_Dict_rdict.pcm \
-  InttRawHitContainerv1_Dict_rdict.pcm \
-  InttRawHitContainerv2_Dict_rdict.pcm \
-  InttRawHitv1_Dict_rdict.pcm \
-  InttRawHitv2_Dict_rdict.pcm \
-  LL1Packet_Dict_rdict.pcm \
-  LL1Packetv1_Dict_rdict.pcm \
-  LL1PacketContainer_Dict_rdict.pcm \
-  LL1PacketContainerv1_Dict_rdict.pcm \
-  MicromegasRawHit_Dict_rdict.pcm \
-  MicromegasRawHitContainer_Dict_rdict.pcm \
-  MicromegasRawHitContainerv1_Dict_rdict.pcm \
-  MicromegasRawHitContainerv2_Dict_rdict.pcm \
-  MicromegasRawHitContainerv3_Dict_rdict.pcm \
-  MicromegasRawHitv1_Dict_rdict.pcm \
-  MicromegasRawHitv2_Dict_rdict.pcm \
-  MicromegasRawHitv3_Dict_rdict.pcm \
-  MvtxRawHit_Dict_rdict.pcm \
-  MvtxRawHitv1_Dict_rdict.pcm \
-  MvtxRawHitContainer_Dict_rdict.pcm \
-  MvtxRawHitContainerv1_Dict_rdict.pcm \
-  MvtxFeeIdInfo_Dict_rdict.pcm \
-  MvtxFeeIdInfov1_Dict_rdict.pcm \
-  MvtxRawEvtHeader_Dict_rdict.pcm \
-  MvtxRawEvtHeaderv1_Dict_rdict.pcm \
-  MvtxRawEvtHeaderv2_Dict_rdict.pcm \
-  OfflinePacket_Dict_rdict.pcm \
-  OfflinePacketv1_Dict_rdict.pcm \
-  TpcRawHit_Dict_rdict.pcm \
-  TpcRawHitContainer_Dict_rdict.pcm \
-  TpcRawHitContainerv1_Dict_rdict.pcm \
-  TpcRawHitContainerv2_Dict_rdict.pcm \
-  TpcRawHitContainerv3_Dict_rdict.pcm \
-  TpcRawHitv1_Dict_rdict.pcm \
-  TpcRawHitv2_Dict_rdict.pcm \
-  TpcRawHitv3_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 pkginclude_HEADERS = \
   CaloPacket.h \
@@ -154,6 +112,10 @@ pkginclude_HEADERS = \
   MvtxRawEvtHeaderv2.h \
   OfflinePacket.h \
   OfflinePacketv1.h \
+  TpcDiode.h \
+  TpcDiodeContainer.h \
+  TpcDiodeContainerv1.h \
+  TpcDiodev1.h \
   TpcRawHit.h \
   TpcRawHitContainer.h \
   TpcRawHitContainerv1.h \
@@ -191,6 +153,8 @@ libffarawobjects_la_SOURCES = \
   MvtxRawEvtHeaderv2.cc \
   OfflinePacket.cc \
   OfflinePacketv1.cc \
+  TpcDiodeContainerv1.cc \
+  TpcDiodev1.cc \
   TpcRawHitContainerv1.cc \
   TpcRawHitContainerv2.cc \
   TpcRawHitContainerv3.cc \

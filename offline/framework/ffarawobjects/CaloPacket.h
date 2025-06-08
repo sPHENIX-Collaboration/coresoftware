@@ -9,13 +9,19 @@
 class CaloPacket : public OfflinePacketv1
 {
  public:
+  enum enu_femstatus
+  {
+    FEM_OK = 0,
+    BAD_EVENTNR = 1,
+    NOTSET = std::numeric_limits<int>::max()
+  };
+
   CaloPacket() = default;
   CaloPacket(CaloPacket *pkt)
     : OfflinePacketv1(pkt)
   {
   }
   ~CaloPacket() override = default;
-
   virtual int getMaxNumChannels() const { return 0; }
   virtual int getMaxNumSamples() const { return 0; }
   virtual int getMaxNumModules() const { return 0; }
@@ -63,6 +69,8 @@ class CaloPacket : public OfflinePacketv1
   virtual uint32_t getPre(int /*channel*/) const { return std::numeric_limits<uint32_t>::max(); }
   virtual void setPost(int /*channel*/, uint32_t /*ival*/) { return; }
   virtual uint32_t getPost(int /*channel*/) const { return std::numeric_limits<uint32_t>::max(); }
+  virtual uint32_t getFemStatus(const int /*i*/) const { return 0; }
+  virtual void setFemStatus(const int /*i*/, const uint32_t /*ival*/) { return; }
 
  private:
   ClassDefOverride(CaloPacket, 1)

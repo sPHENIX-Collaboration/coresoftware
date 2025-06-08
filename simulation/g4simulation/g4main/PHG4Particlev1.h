@@ -6,17 +6,19 @@
 #include "PHG4Particle.h"
 
 #include <iostream>
+#include <limits>
 #include <string>
 
 class PHG4Particlev1 : public PHG4Particle
 {
  public:
-  PHG4Particlev1();
+  PHG4Particlev1() = default;
   PHG4Particlev1(const std::string &name, const int pid, const double px, const double py, const double pz);
   PHG4Particlev1(const PHG4Particle *in);
 
   ~PHG4Particlev1() override {}
 
+  PHObject *CloneMe() const override { return new PHG4Particlev1(*this); }
   void identify(std::ostream &os = std::cout) const override;
 
   int get_pid() const override { return fpid; }
@@ -37,9 +39,11 @@ class PHG4Particlev1 : public PHG4Particle
 
  protected:
   std::string fname;
-  int fpid;
-  double fpx, fpy, fpz;
-  int barcode;
+  int fpid{0};
+  double fpx{std::numeric_limits<double>::quiet_NaN()};
+  double fpy{std::numeric_limits<double>::quiet_NaN()};
+  double fpz{std::numeric_limits<double>::quiet_NaN()};
+  int barcode{std::numeric_limits<int>::min()};
 
   ClassDefOverride(PHG4Particlev1, 1)
 };

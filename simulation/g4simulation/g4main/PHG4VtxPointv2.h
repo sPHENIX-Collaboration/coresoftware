@@ -29,7 +29,7 @@ class PHG4VtxPointv2 : public PHG4VtxPointv1
                  const PHG4MCProcess process = PHG4MCProcess::kPNoProcess)
     : PHG4VtxPointv1(x, y, z, t, id_value)
   {
-    setProcess(process);
+    set_process(process);
   };
 
   ~PHG4VtxPointv2() override = default;
@@ -38,7 +38,7 @@ class PHG4VtxPointv2 : public PHG4VtxPointv1
   void identify(std::ostream& os = std::cout) const override;
 
   /// set process property
-  void setProcess(int proc)
+  void set_process(int proc) override 
   {
     auto prop = ((PropEncoding) mProp);
     prop.properties.process = proc;
@@ -46,7 +46,7 @@ class PHG4VtxPointv2 : public PHG4VtxPointv1
   }
 
   /// get the production process (id) of this track
-  int getProcess() const { return ((PropEncoding) mProp).properties.process; }
+  int get_process() const override { return ((PropEncoding) mProp).properties.process; }
   std::string_view getProdProcessAsString() const;
 
  protected:
@@ -74,7 +74,7 @@ class PHG4VtxPointv2 : public PHG4VtxPointv1
 
 inline std::string_view PHG4VtxPointv2::getProdProcessAsString() const
 {
-  auto procID = getProcess();
+  auto procID = get_process();
   if (procID >= 0)
   {
     return PHG4MCProcessName[procID];

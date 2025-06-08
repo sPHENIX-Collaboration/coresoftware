@@ -43,7 +43,9 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_x_search_window(const double win) { _x_search_win = win; }
   void set_y_search_window(const double win) { _y_search_win = win; }
   void set_z_search_window(const double win) { _z_search_win = win; }
-  void set_crossing_deltaz_max(const double dz) {_crossing_deltaz_max = dz ;}
+  void set_crossing_deltaz_max(const double dz) {_crossing_deltaz_max = dz;}
+  void set_crossing_deltaz_min(const double dz) {_crossing_deltaz_min = dz;}
+  void set_deltaeta_min(const double deta) {_deltaeta_min = deta;}
 
   float get_phi_search_window() const { return _phi_search_win; }
   float get_eta_search_window() const { return _eta_search_win; }
@@ -153,6 +155,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
+  void set_file_name(const std::string &name) { _file_name = name; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
 
@@ -175,7 +178,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
                          std::set<unsigned int> &tpc_unmatched_set,
                          std::multimap<unsigned int, unsigned int> &tpc_matches);
   std::vector<short int> getInttCrossings(TrackSeed *si_track);
-  void checkCrossingMatches(std::multimap<unsigned int, unsigned int> &tpc_matches);
+  void checkZMatches(std::multimap<unsigned int, unsigned int> &tpc_matches,
+		     std::multimap<unsigned int, unsigned int> &bad_map);
   short int getCrossingIntt(TrackSeed *_tracklet_si);
   // void findCrossingGeometrically(std::multimap<unsigned int, unsigned int> tpc_matches);
   short int findCrossingGeometrically(unsigned int tpc_id, unsigned int si_id);
@@ -183,6 +187,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   TFile *_file = nullptr;
   TNtuple *_tree = nullptr;
+
+  std::string _file_name = "track_match.root";
 
   // default values, can be replaced from the macro
   double _phi_search_win = 0.01;
@@ -208,6 +214,8 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   TpcClusterZCrossingCorrection _clusterCrossingCorrection;
   float _crossing_deltaz_max = 10.0;
+  float _crossing_deltaz_min = 1.5;
+  float _deltaeta_min = 0.03;
 
   //  double _collision_rate = 50e3;  // input rate for phi correction
   //  double _reference_collision_rate = 50e3;  // reference rate for phi correction

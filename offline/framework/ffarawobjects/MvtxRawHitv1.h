@@ -10,7 +10,7 @@ class MvtxRawHitv1 : public MvtxRawHit
  public:
   MvtxRawHitv1() {}
   MvtxRawHitv1(MvtxRawHit *mvtxhit);
-  ~MvtxRawHitv1() override{};
+  ~MvtxRawHitv1() override {};
 
   /** identify Function from PHObject
       @param os Output Stream

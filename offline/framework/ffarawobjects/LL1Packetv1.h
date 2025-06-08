@@ -66,7 +66,7 @@ class LL1Packetv1 : public LL1Packet
   std::array<std::array<uint32_t, MAX_NUM_CHANNELS>, MAX_NUM_SAMPLES> samples{};
 
  private:
-  ClassDefOverride(LL1Packetv1, 1)
+  ClassDefOverride(LL1Packetv1, 2)
 };
 
 #endif

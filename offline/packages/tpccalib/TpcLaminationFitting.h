@@ -101,8 +101,9 @@ class TpcLaminationFitting : public SubsysReco
   int m_runnumber{};
 
   bool ppMode{false};
-  std::map<int, float>  m_run_ZDC_map_pp;
-  std::map<int, float>  m_run_ZDC_map_auau;
+  double m_ZDC_coincidence{0};
+  //std::map<int, float>  m_run_ZDC_map_pp;
+  //std::map<int, float>  m_run_ZDC_map_auau;
   
   TTree *m_laminationTree{nullptr};
   bool m_side{false};

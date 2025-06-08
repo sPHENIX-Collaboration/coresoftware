@@ -55,7 +55,7 @@ class Gl1Packetv2 : public Gl1Packet
   std::array<std::array<uint64_t, 3>, 16> gl1pscaler{{{0}}};
 
  private:
-  ClassDefOverride(Gl1Packetv2, 2)
+  ClassDefOverride(Gl1Packetv2, 3)
 };
 
 #endif

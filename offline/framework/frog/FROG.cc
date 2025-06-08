@@ -51,7 +51,7 @@ FROG::location(const std::string &logical_name)
     }
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tok(gsearchpath, sep);
-    for (auto &iter : tok)
+    for (const auto &iter : tok)
     {
       if (iter == "PG")
       {

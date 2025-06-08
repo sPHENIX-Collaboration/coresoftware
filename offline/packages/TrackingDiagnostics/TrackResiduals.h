@@ -64,6 +64,8 @@ class TrackResiduals : public SubsysReco
   void set_doMicromegasOnly( bool value ) { m_doMicromegasOnly = value; }
   void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
 
+  void set_use_clustermover(bool flag) { m_use_clustermover = flag; }
+  
  private:
   void fillStatesWithLineFit(const TrkrDefs::cluskey &ckey,
                              TrkrCluster *cluster, ActsGeometry *geometry);
@@ -91,6 +93,8 @@ class TrackResiduals : public SubsysReco
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int> &tpc_seed_ids);
   float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clusters, PHG4TpcCylinderGeomContainer *tpcGeom);
 
+  bool m_use_clustermover = true;
+  
   std::string m_outfileName = "";
   TFile *m_outfile = nullptr;
   TTree *m_tree = nullptr;
@@ -178,6 +182,7 @@ class TrackResiduals : public SubsysReco
   float m_vx = std::numeric_limits<float>::quiet_NaN();
   float m_vy = std::numeric_limits<float>::quiet_NaN();
   float m_vz = std::numeric_limits<float>::quiet_NaN();
+  int m_vertex_ntracks = std::numeric_limits<int>::quiet_NaN();
   float m_pcax = std::numeric_limits<float>::quiet_NaN();
   float m_pcay = std::numeric_limits<float>::quiet_NaN();
   float m_pcaz = std::numeric_limits<float>::quiet_NaN();

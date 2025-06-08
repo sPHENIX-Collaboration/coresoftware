@@ -1,7 +1,7 @@
 #include "ActsTransformations.h"
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
-#include "SvtxTrackState_v2.h"
+#include "SvtxTrackState_v3.h"
 
 #include <trackbase/ActsSourceLink.h>
 #include <trackbase/InttDefs.h>
@@ -304,7 +304,7 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajec
 
       // create svtx state vector with relevant pathlength
       const float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
-      SvtxTrackState_v2 out( pathlength );
+      SvtxTrackState_v3 out( pathlength );
     
       // get smoothed fitted parameters
       const Acts::BoundTrackParameters params(
@@ -312,13 +312,19 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajec
         state.smoothed(),
         state.smoothedCovariance(),
         Acts::ParticleHypothesis::pion());
+
+      // local position
+      const auto localX = params.parameters()[Acts::eBoundLoc0];
+      const auto localY = params.parameters()[Acts::eBoundLoc1];
+      out.set_localX(localX / Acts::UnitConstants::cm);
+      out.set_localY(localY / Acts::UnitConstants::cm);
       
-      // position
+      // global position
       const auto global = params.position(geoContext);
       out.set_x(global.x() / Acts::UnitConstants::cm);
       out.set_y(global.y() / Acts::UnitConstants::cm);
       out.set_z(global.z() / Acts::UnitConstants::cm);
-      
+
       // momentum
       const auto momentum = params.momentum();
       out.set_px(momentum.x());
@@ -341,7 +347,10 @@ void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajec
           << " " << global.x() /  Acts::UnitConstants::cm 
           << " " << global.y() /  Acts::UnitConstants::cm 
           << " " << global.z() /  Acts::UnitConstants::cm 
-          << " pathlength " << pathlength
+	  << " " << " localX, localY "
+	  << " " << localX / Acts::UnitConstants::cm
+	  << " " << localY / Acts::UnitConstants::cm
+	  << " pathlength " << pathlength
           << " momentum px,py,pz = " <<  momentum.x() << "  " <<  momentum.y() << "  " << momentum.y()  
 		  << std::endl
           << "covariance " << globalCov << std::endl; 

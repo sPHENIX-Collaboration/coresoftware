@@ -22,6 +22,7 @@
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/Utilities/Helpers.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
@@ -120,6 +121,7 @@ class PHActsTrkFitter : public SubsysReco
   }
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
+  void set_svtx_seed_map_name(const std::string& map_name) { _svtx_seed_map_name = map_name; }
 
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
@@ -253,6 +255,7 @@ class PHActsTrkFitter : public SubsysReco
 
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
+  std::string _svtx_seed_map_name = "SvtxTrackSeedContainer";
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;
@@ -273,6 +276,22 @@ class PHActsTrkFitter : public SubsysReco
   TH1* h_updateTime = nullptr;
   TH1* h_stateTime = nullptr;
   TH1* h_rotTime = nullptr;
+
+  std::vector<const Acts::Surface*> m_materialSurfaces = {};
+
+  struct MaterialSurfaceSelector {
+    std::vector<const Acts::Surface*> surfaces = {};
+  
+    /// @param surface is the test surface
+    void operator()(const Acts::Surface* surface) {
+      if (surface->surfaceMaterial() != nullptr) {
+        if (std::find(surfaces.begin(), surfaces.end(), surface) ==
+            surfaces.end()) {
+          surfaces.push_back(surface);
+        }
+      }
+    }
+  };
 };
 
 #endif

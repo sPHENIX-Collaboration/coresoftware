@@ -4,16 +4,6 @@
 
 #include <cmath>
 
-PHG4Particlev2::PHG4Particlev2()
-  : PHG4Particlev1()
-  , trkid(0)
-  , vtxid(0)
-  , parentid(0)
-  , primaryid(0xFFFFFFFF)
-  , fe(0.0)
-{
-}
-
 PHG4Particlev2::PHG4Particlev2(const std::string &name, const int pid, const double px, const double py, const double pz)
   : PHG4Particlev1(name, pid, px, py, pz)
 {
@@ -31,7 +21,7 @@ PHG4Particlev2::PHG4Particlev2(const PHG4Particle *in)
 
 void PHG4Particlev2::identify(std::ostream &os) const
 {
-  if (fname.size() > 0)
+  if (!fname.empty())
   {
     os << "PHG4Particlev2 name: " << fname << ", ";
   }
@@ -49,7 +39,7 @@ void PHG4Particlev2::identify(std::ostream &os) const
      << ", py: " << fpy
      << ", pz: " << fpz
      << ", phi: " << atan2(fpy, fpx)
-     << ", eta: " << -1 * log(tan(0.5 * acos(fpz / sqrt(fpx * fpx + fpy * fpy + fpz * fpz))))
+     << ", eta: " << -1 * log(tan(0.5 * acos(fpz / sqrt((fpx * fpx) + (fpy * fpy) + (fpz * fpz)))))
      << ", e: " << fe << std::endl;
   return;
 }

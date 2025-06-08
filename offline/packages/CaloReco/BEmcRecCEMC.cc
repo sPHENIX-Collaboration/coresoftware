@@ -235,13 +235,11 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
 }
 */
 
-void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
+void BEmcRecCEMC::CorrectShowerDepth(int ix, int iy, float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
-  /*
   xC = xA;
   yC = yA;
   zC = zA;
-  */
 
   float logE = log(0.1);
   if (E > 0.1)
@@ -249,37 +247,73 @@ void BEmcRecCEMC::CorrectShowerDepth(float E, float xA, float yA, float zA, floa
     logE = std::log(E);
   }
 
-  // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
-  // Just tuned from sim data
-  float phi = 0.002 - (0.001 * logE);
-  xC = xA * std::cos(phi) - yA * std::sin(phi);
-  yC = xA * std::sin(phi) + yA * std::cos(phi);
+  if (!m_UseDetailedGeometry)
+  {
+    // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
+    // Just tuned from sim data
+    float phi = 0.002 - (0.001 * logE);
+    phi = 0;
+    xC = xA * std::cos(phi) - yA * std::sin(phi);
+    yC = xA * std::sin(phi) + yA * std::cos(phi);
+  }
 
   // Correction in z
-  // Just tuned for sim data ... don't fully understand why it works like that
   float rA = std::sqrt((xA * xA) + (yA * yA));
-  //  float theta_twr = GetTowerTheta(xA,yA,zA);
   float theta_twr;
-  if (std::fabs(zA) <= 15)
+  if (m_UseDetailedGeometry)
   {
-    theta_twr = 0;
-  }
-  else if (zA > 15)
-  {
-    theta_twr = std::atan2(zA - 15, rA);
+    // Read the angle right from the detailed RawTowerGeom objects
+    TowerGeom geom0;
+    GetTowerGeometry(ix, iy, geom0);
+    theta_twr = M_PI / 2 + geom0.rotX;
   }
   else
   {
-    theta_twr = std::atan2(zA + 15, rA);
+    // Use the approximate default tower angles array.
+    theta_twr = M_PI / 2 - angles[iy];
   }
 
   float theta_tr = std::atan2(zA - fVz, rA);
-  float L = -1.3 + (0.7 * logE);  // Shower CG in long. direction
+
+  // Shower CG in long. direction
+  // Different tuning for the approximate and detailed geometry
+  float L = 0;
+  if (m_UseDetailedGeometry)
+  {
+    L = -2.67787 + 0.924138 * logE;
+  }
+  else
+  {
+    L = -1.79968 + 0.837322 * logE;
+  }
   float dz = L * std::sin(theta_tr - theta_twr) / std::cos(theta_twr);
 
-  dz -= fVz * 0.10;
+  if (!m_UseDetailedGeometry)
+  {
+    // Not strictly speaking a "shower depth correction" but rather a baseline correction
+    // The factor 0.10 accounts for the fact that the approximate geometry
+    // is projected at 93.5cm, which is roughly 90 % of the actual average EMCal radius (~ 105 cm)
+    dz -= fVz * 0.10;
+  }
 
   zC = zA - dz;
+
+  // zvtx-dependent pseudorapidity-correction
+  // At large zvtx (> 20 cm), the sawtooth shape of the EMCal is no longer projective wrt collision point,
+  // it introduces a bias which can be approximately corrected with the linear formula below
+  if (m_UseDetailedGeometry && std::abs(fVz) > 20)
+  {
+    float eta = std::asinh((zC - fVz) / rA);
+    if (fVz > 0)
+    {
+      eta -= slopes_[iy] * (fVz - 20);
+    }
+    else
+    {
+      eta -= slopes_[fNy - iy - 1] * (fVz + 20);
+    }
+    zC = fVz + rA * std::sinh(eta);
+  }
 
   return;
 }
@@ -330,11 +364,8 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   // Everything here is in tower units.
   // (x,y) - CG position, (xc,yc) - corrected position
 
-  float xZero;
-  float yZero;
   float bx;
   float by;
-  float t;
   float x0;
   float y0;
   int ix0;
@@ -347,47 +378,16 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   {
     return;
   }
-  /*
-  float xA, yA, zA;
-  Tower2Global(Energy, x, y, xA, yA, zA);
-  zA -= fVz;
-  float sinTx = xA / sqrt(xA * xA + zA * zA);
-  float sinTy = yA / sqrt(yA * yA + zA * zA);
-  */
-  float sinTx = 0;
-  float sinTy = 0;
 
-  float sin2Tx = sinTx * sinTx;
-  float sin2Ty = sinTy * sinTy;
+  bx = 0.15;
+  by = 0.15;
 
-  if (sinTx > 0)
-  {
-    xZero = -0.417 * sinTx - 1.500 * sin2Tx;
-  }
-  else
-  {
-    xZero = -0.417 * sinTx + 1.500 * sin2Tx;
-  }
-
-  if (sinTy > 0)
-  {
-    yZero = -0.417 * sinTy - 1.500 * sin2Ty;
-  }
-  else
-  {
-    yZero = -0.417 * sinTy + 1.500 * sin2Ty;
-  }
-
-  t = 0.98 + 0.98 * std::sqrt(Energy);
-  bx = 0.15 + t * sin2Tx;
-  by = 0.15 + t * sin2Ty;
-
-  x0 = x + xZero;
+  x0 = x;
   ix0 = EmcCluster::lowint(x0 + 0.5);
 
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
-    x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
+    x0 = ix0 + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
   }
   else
   {
@@ -400,12 +400,22 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
   int ix8 = int(x + 0.5) / 8;
   float x8 = x + 0.5 - (ix8 * 8) - 4;  // from -4 to +4
-  float dx = 0.10 * x8 / 4.;
-  if (std::fabs(x8) > 3.3)
+  float dx = 0;
+  if (m_UseDetailedGeometry)
   {
-    dx = 0;  // Don't correct near the module edge
+    // Don't know why there is a different factor for each tower of the sector
+    // Just tuned from MC
+    int local_ix8 = int(x+0.5) - ix8 * 8;
+    dx = factor_[local_ix8] * x8 / 4.;
   }
-  //  dx = 0;
+  else
+  {
+    dx = 0.10 * x8 / 4.;
+    if (std::fabs(x8) > 3.3)
+    {
+      dx = 0;  // Don't correct near the module edge
+    }
+  }
 
   xc = x0 - dx;
   while (xc < -0.5)
@@ -417,12 +427,12 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
     xc -= float(fNx);
   }
 
-  y0 = y + yZero;
+  y0 = y;
   iy0 = EmcCluster::lowint(y0 + 0.5);
 
   if (EmcCluster::ABS(y0 - iy0) <= 0.5)
   {
-    y0 = (iy0 - yZero) + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
+    y0 = iy0 + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
   }
   else
   {
@@ -432,74 +442,3 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   }
   yc = y0;
 }
-
-/*
-void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
-                                  float* pxc, float* pyc)
-{
-  // Corrects the Shower Center of Gravity for the systematic error due to
-  // the limited tower size and angle shift
-  //
-  // Everything here is in cell units.
-  // (x,y) - CG position, (*pxc,*pyc) - corrected position
-
-  float xShift, yShift, xZero, yZero, bx, by;
-  float t, x0, y0;
-  int ix0, iy0;
-  //  int signx, signy;
-
-  const float Xrad = 0.3;  // !!!!! Need to put correct value
-  const float Remc = 90.;  // EMCal inner radius. !!!!! Should be obtained from geometry container
-
-  *pxc = x;
-  *pyc = y;
-  //  return;
-
-  SetProfileParameters(0, Energy, x, y);
-  // if( fSinTx >= 0 ) signx =  1;
-  // else 	   signx = -1;
-  // if( fSinTy >= 0 ) signy =  1;
-  // else 	   signy = -1;
-  t = 5.0 + 1.0 * log(Energy);         // In Rad Length units
-  t *= (Xrad / Remc / GetModSizex());  // !!!!!
-  xShift = t * fSinTx;
-  yShift = t * fSinTy;
-  // xZero=xShift-(0.417*EmcCluster::ABS(fSinTx)+1.500*fSinTx*fSinTx)*signx;
-  // yZero=yShift-(0.417*EmcCluster::ABS(fSinTy)+1.500*fSinTy*fSinTy)*signy;
-  xZero = xShift;                  // ...Somehow this works better !!!!!
-  yZero = yShift;                  // ...Somehow this works better !!!!!
-  t = 0.98 + 0.98 * sqrt(Energy);  // !!!!! Still from PHENIX
-  bx = 0.15 + t * fSinTx * fSinTx;
-  by = 0.15 + t * fSinTy * fSinTy;
-
-  x0 = x;
-  x0 = x0 - xShift + xZero;
-  ix0 = EmcCluster::lowint(x0 + 0.5);
-  if (EmcCluster::ABS(x0 - ix0) <= 0.5)
-  {
-    x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
-    *pxc = x0;
-  }
-  else
-  {
-    *pxc = x - xShift;
-    std::cout << "????? Something wrong in CorrectPosition: x = "
-         << x << " dx = " << x0 - ix0 << std::endl;
-  }
-
-  y0 = y;
-  y0 = y0 - yShift + yZero;
-  iy0 = EmcCluster::lowint(y0 + 0.5);
-  if (EmcCluster::ABS(y0 - iy0) <= 0.5)
-  {
-    y0 = (iy0 - yZero) + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
-    *pyc = y0;
-  }
-  else
-  {
-    *pyc = y - yShift;
-    std::cout << "????? Something wrong in CorrectPosition: y = "
-         << y << " dy = " << y0 - iy << std::endl;
-  }
-}
-*/

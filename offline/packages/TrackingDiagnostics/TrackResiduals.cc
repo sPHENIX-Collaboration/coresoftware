@@ -104,7 +104,7 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
 
   // global position wrapper
   m_globalPositionWrapper.loadNodes(topNode);
-
+  m_globalPositionWrapper.set_suppressCrossing(m_convertSeeds);
   // clusterMover needs the correct radii of the TPC layers
   auto tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   m_clusterMover.initialize_geometry(tpccellgeo);
@@ -545,7 +545,7 @@ void TrackResiduals::circleFitClusters(
     const Acts::Vector3 pos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing );
     clusPos.push_back(pos);
   }
-  TrackFitUtils::position_vector_t yzpoints;
+  TrackFitUtils::position_vector_t yzpoints,xypoints;
 
   for (auto& pos : clusPos)
   {
@@ -555,15 +555,17 @@ void TrackResiduals::circleFitClusters(
     {
       continue;
     }
+    xypoints.push_back(std::make_pair(pos.x(), pos.y()));
     yzpoints.push_back(std::make_pair(pos.z(), pos.y()));
     global_vec.push_back(pos);
   }
 
+  auto xyparams = TrackFitUtils::line_fit(xypoints);
   auto yzLineParams = TrackFitUtils::line_fit(yzpoints);
   auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, false);
   // auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
-  m_xyint = std::numeric_limits<float>::quiet_NaN();
-  m_xyslope = std::numeric_limits<float>::quiet_NaN();
+  m_xyint = std::get<1>(xyparams);
+  m_xyslope = std::get<0>(xyparams);
   m_yzint = std::get<1>(yzLineParams);
   m_yzslope = std::get<0>(yzLineParams);
   if (fitpars.size() > 0)
@@ -966,9 +968,13 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  // move the corrected cluster positions back to the original readout surface
-  auto global_moved = m_clusterMover.processTrack(global);
-
+  auto global_moved = global;    // if use transient transforms for distortion correction
+  if(m_use_clustermover)
+    {
+      // move the corrected cluster positions back to the original readout surface
+      global_moved = m_clusterMover.processTrack(global);	 
+    }
+  
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
 
@@ -1091,31 +1097,41 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   // get local coordinates
   Acts::Vector2 loc;
-  clusglob_moved *= Acts::UnitConstants::cm;  // we want mm for transformations
-  Acts::Vector3 normal = surf->normal(geometry->geometry().getGeoContext(),
-  Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
-  auto local = surf->globalToLocal(geometry->geometry().getGeoContext(),
-                                   clusglob_moved, normal);
-  if (local.ok())
-  {
-    loc = local.value() / Acts::UnitConstants::cm;
-  }
-  else
-  {
-    // otherwise take the manual calculation for the TPC
-    // doing it this way just avoids the bounds check that occurs in the surface class method
-    Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
-    loct /= Acts::UnitConstants::cm;
-
-    loc(0) = loct(0);
-    loc(1) = loct(1);
-  }
-
-  clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+  loc = geometry->getLocalCoords(ckey, cluster, m_crossing);
+  if(m_use_clustermover)
+    {
+      // in this case we get local coords from transform of corrected global coords
+      clusglob_moved *= Acts::UnitConstants::cm;  // we want mm for transformations
+      Acts::Vector3 normal = surf->normal(geometry->geometry().getGeoContext(),
+					  Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
+      auto local = surf->globalToLocal(geometry->geometry().getGeoContext(),
+				       clusglob_moved, normal);
+      if (local.ok())
+	{
+	  loc = local.value() / Acts::UnitConstants::cm;
+	}
+      else
+	{
+	  // otherwise take the manual calculation for the TPC
+	  // doing it this way just avoids the bounds check that occurs in the surface class method
+	  Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
+	  loct /= Acts::UnitConstants::cm;
+	  
+	  loc(0) = loct(0);
+	  loc(1) = loct(1);
+	}
+      clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+    }
 
   m_cluslx.push_back(loc.x());
   m_cluslz.push_back(loc.y());
 
+  if(Verbosity() > 2)
+    {
+      std::cout << "Trackresiduals cluster (cm): localX " << loc.x() << " localY " << loc.y() << std::endl
+		<< " global.x " << clusglob_moved(0) << " global.y " << clusglob_moved(1) << " global.z " << clusglob_moved(2) << std::endl;
+    }
+  
   float clusr = r(clusglob_moved.x(), clusglob_moved.y());
   auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
                                                                 clusr, ckey);
@@ -1136,6 +1152,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
   m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
+	
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1 * surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
@@ -1202,24 +1219,14 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   if (state)
   {
     Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
-    Acts::Vector2 stateloc;
-    auto result = surf->globalToLocal(geometry->geometry().getGeoContext(),
-                                      stateglob * Acts::UnitConstants::cm,
-                                      misalignnorm);
-
-    if (result.ok())
-    {
-      stateloc = result.value() / Acts::UnitConstants::cm;
-    }
-    else
-    {
-      //! manual transform for tpc
-      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * (stateglob * Acts::UnitConstants::cm);
-      loct /= Acts::UnitConstants::cm;
-      stateloc(0) = loct(0);
-      stateloc(1) = loct(1);
-    }
-
+    Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
+    
+    if(Verbosity() > 2)
+      {
+	std::cout << "Trackresiduals state (cm): localX " << stateloc(0) << " localY " << stateloc(1) << std::endl
+		  << " stateglobx " << stateglob(0) << " stategloby " << stateglob(1) << " stateglobz " << stateglob(2) << std::endl;
+      }
+    
     const auto actscov =
         transformer.rotateSvtxTrackCovToActs(state);
 
@@ -1297,8 +1304,12 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  // move the cluster positions back to the original readout surface
-  auto global_moved = m_clusterMover.processTrack(global);
+  auto global_moved = global;
+  if(m_use_clustermover)
+    {
+      // move the corrected cluster positions back to the original readout surface
+      global_moved = m_clusterMover.processTrack(global);	 
+    }
 
   TrkrCluster* cluster = clustermap->findCluster(ckey);
 
@@ -1736,6 +1747,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("vx", &m_vx, "m_vx/F");
   m_tree->Branch("vy", &m_vy, "m_vy/F");
   m_tree->Branch("vz", &m_vz, "m_vz/F");
+  m_tree->Branch("vertex_ntracks",&m_vertex_ntracks, "m_vertex_ntracks/I");
   m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
@@ -1918,6 +1930,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
         m_vx = vertex->get_x();
         m_vy = vertex->get_y();
         m_vz = vertex->get_z();
+        m_vertex_ntracks = vertex->size_tracks();
         Acts::Vector3 v(m_vx, m_vy, m_vz);
         auto dcapair = TrackAnalysisUtils::get_dca(track, v);
         m_dcaxy = dcapair.first.first;

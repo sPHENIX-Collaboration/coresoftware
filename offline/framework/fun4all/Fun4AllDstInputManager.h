@@ -44,20 +44,20 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   std::string fullfilename;
 
  private:
-  PHCompositeNode *dstNode {nullptr};
-  PHCompositeNode *m_RunNode {nullptr};
-  PHCompositeNode *m_RunNodeCopy {nullptr};
-  PHCompositeNode *m_RunNodeSum {nullptr};
-  PHNodeIOManager *m_IManager {nullptr};
-  SyncObject *syncobject {nullptr};
-  int m_ReadRunTTree {1};
-  int events_total {0};
-  int events_thisfile {0};
-  int events_skipped_during_sync {0};
-  int m_HaveSyncObject {0};
+  PHCompositeNode *dstNode{nullptr};
+  PHCompositeNode *m_RunNode{nullptr};
+  PHCompositeNode *m_RunNodeCopy{nullptr};
+  PHCompositeNode *m_RunNodeSum{nullptr};
+  PHNodeIOManager *m_IManager{nullptr};
+  SyncObject *syncobject{nullptr};
+  int m_ReadRunTTree{1};
+  int events_total{0};
+  int events_thisfile{0};
+  int events_skipped_during_sync{0};
+  int m_HaveSyncObject{0};
   std::map<const std::string, int> branchread;
   std::string syncbranchname;
-  std::string RunNode {"RUN"};
+  std::string RunNode{"RUN"};
 };
 
 #endif /* __FUN4ALLDSTINPUTMANAGER_H__ */

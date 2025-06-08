@@ -64,7 +64,8 @@ int main()
 
   // Book a GSL histogram
   size_t n = 32;
-  double a, b;
+  double a;
+  double b;
   double w = M_PI / n;
   a = -M_PI / 2.0 - w / 2.0;
   b = M_PI / 2.0 - w / 2.0;
@@ -72,7 +73,8 @@ int main()
   gsl_histogram_set_ranges_uniform(h, a, b);
 
   size_t N = 20;
-  double A = 0.2, B = 5.0;
+  double A = 0.2;
+  double B = 5.0;
   gsl_histogram *v2h = gsl_histogram_alloc(N);
   gsl_histogram_set_ranges_uniform(v2h, A, B);
   gsl_histogram *v2hn = gsl_histogram_alloc(N);
@@ -119,7 +121,8 @@ int main()
 
   std::cout << "pt,v2,v2e" << std::endl;
   gsl_histogram_div(v2h, v2hn);
-  double lower, upper;
+  double lower;
+  double upper;
   for (size_t i = 0; i < N; i++)
   {
     gsl_histogram_get_range(v2h, i, &lower, &upper);

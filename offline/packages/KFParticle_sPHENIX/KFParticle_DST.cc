@@ -267,16 +267,15 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
   motherParticle.SetProductionVertex(PV);
   motherParticle.TransportToDecayVertex();
 
-  //if (m_has_intermediates_DST)
-  //{
-
-    KFParticle* intermediateArray = &intermediates[0];
+  KFParticle* intermediateArray = &intermediates[0];
+  if (m_has_intermediates_DST)
+  {
     for (unsigned int k = 0; k < intermediates.size(); ++k)
     {
       intermediateArray[k].SetProductionVertex(motherParticle);
       intermediateArray[k].TransportToDecayVertex();
     }
-  //}
+  }
 
   KFParticle* daughterArray = &daughters[0];
   for (unsigned int k = 0; k < daughters.size(); ++k)
@@ -303,10 +302,13 @@ void KFParticle_DST::fillParticleNode_Particle(PHCompositeNode* topNode, KFParti
     m_recoParticleMap->insert(&daughterArray[k]);
   }
 
-  for (unsigned int k = 0; k < intermediates.size(); ++k)
+  if (m_has_intermediates_DST)
   {
-    intermediateArray[k].TransportToProductionVertex();
-    m_recoParticleMap->insert(&intermediateArray[k]);
+    for (unsigned int k = 0; k < intermediates.size(); ++k)
+    {
+      intermediateArray[k].TransportToProductionVertex();
+      m_recoParticleMap->insert(&intermediateArray[k]);
+    }
   }
 
   motherParticle.TransportToProductionVertex();

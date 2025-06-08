@@ -44,11 +44,11 @@ PHG4ParticleGeneratorVectorMeson::
 
 void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const unsigned int decay_id)
 {
-  if (name1.compare("e") == 0)
+  if (name1 == "e")
   {
     add_decay_particles("e+", "e-", decay_id);
   }
-  else if (name1.compare("mu") == 0)
+  else if (name1 == "mu")
   {
     add_decay_particles("mu+", "mu-", decay_id);
   }
@@ -63,10 +63,10 @@ void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &na
 void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id)
 {
   // check for valid select ion (e+,e- or mu+,mu-)
-  if ((name1.compare("e-") == 0 && name2.compare("e+") == 0) ||
-      (name1.compare("e+") == 0 && name2.compare("e-") == 0) ||
-      (name1.compare("mu+") == 0 && name2.compare("mu-") == 0) ||
-      (name1.compare("mu-") == 0 && name2.compare("mu+") == 0))
+  if ((name1 == "e-" && name2 == "e+") ||
+      (name1 == "e+" && name2 == "e-") ||
+      (name1 == "mu+" && name2 == "mu-") ||
+      (name1 == "mu-" && name2 == "mu+"))
   {
     decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
     decay2_names.insert(std::pair<unsigned int, std::string>(decay_id, name2));
@@ -168,11 +168,11 @@ void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1,
   static const double melectron = 0.5109989461e-3;  //+-0.0000000031e-3
 
   decay1 = name1;
-  if (decay1.compare("e+") == 0 || decay1.compare("e-") == 0)
+  if (decay1 == "e+" || decay1 == "e-")
   {
     m1 = melectron;
   }
-  else if (decay1.compare("mu+") == 0 || decay1.compare("mu-") == 0)
+  else if (decay1 == "mu+" || decay1 == "mu-")
   {
     m1 = mmuon;
   }
@@ -183,11 +183,11 @@ void PHG4ParticleGeneratorVectorMeson::set_decay_types(const std::string &name1,
   }
 
   decay2 = name2;
-  if (decay2.compare("e+") == 0 || decay2.compare("e-") == 0)
+  if (decay2 == "e+" || decay2 == "e-")
   {
     m2 = melectron;
   }
-  else if (decay2.compare("mu+") == 0 || decay2.compare("mu-") == 0)
+  else if (decay2 == "mu+" || decay2 == "mu-")
   {
     m2 = mmuon;
   }
@@ -289,7 +289,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
-  double mt = sqrt(mnow * mnow + pt * pt);
+  double mt = sqrt((mnow * mnow) + (pt * pt));
   double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
@@ -337,9 +337,9 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     // 3D Randomized vertex
     if ((_vertex_size_width > 0.0) || (_vertex_size_mean != 0.0))
     {
-      _vertex_size_mean = sqrt(get_vtx_x() * get_vtx_x() +
-                               get_vtx_y() * get_vtx_y() +
-                               get_vtx_z() * get_vtx_z());
+      _vertex_size_mean = sqrt((get_vtx_x() * get_vtx_x()) +
+                               (get_vtx_y() * get_vtx_y()) +
+                               (get_vtx_z() * get_vtx_z()));
       double r = smearvtx(_vertex_size_mean, _vertex_size_width, _vertex_size_func_r);
       double x1 = 0.0;
       double y1 = 0.0;

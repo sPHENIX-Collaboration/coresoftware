@@ -26,6 +26,10 @@ class CDBInterface : public SubsysReco
   void Print(const std::string &what = "ALL") const override;
 
   void Disable() { disable = true; }
+  void Enable() { disable = false; }
+
+  void Disable_default() { disable_default = true; }
+  void Enable_default() { disable_default = false; }
 
   std::string getUrl(const std::string &domain, const std::string &filename = "");
 
@@ -35,6 +39,7 @@ class CDBInterface : public SubsysReco
   static CDBInterface *__instance;
   SphenixClient *cdbclient{nullptr};
   bool disable{false};
+  bool disable_default{false};
   std::set<std::tuple<std::string, std::string, uint64_t>> m_UrlVector;
 };
 

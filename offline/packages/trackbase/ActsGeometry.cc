@@ -3,6 +3,7 @@
 #include "TpcDefs.h"
 #include "TrkrCluster.h"
 #include "alignmentTransformationContainer.h"
+#include <phool/sphenix_constants.h>
 
 namespace
 {
@@ -233,14 +234,24 @@ Acts::Transform3 ActsGeometry::makeAffineTransform(Acts::Vector3 rot, Acts::Vect
 //________________________________________________________________________________________________
 Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
+  short int crossing = 0;
+  Acts::Vector2 local = getLocalCoords(key, cluster, crossing);
+  return local;
+}
+
+  
+//________________________________________________________________________________________________
+Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* cluster, short int crossing) const
+{
   Acts::Vector2 local;
 
   const auto trkrid = TrkrDefs::getTrkrId(key);
   if (trkrid == TrkrDefs::tpcId)
   {
+    double crossing_tzero_correction = crossing * sphenix_constants::time_between_crossings;
     double surfaceZCenter = 52.89;                                 // this is where G4 thinks the surface center is in cm
-    double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
-    double zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
+    double zdriftlength = (cluster->getLocalY() - crossing_tzero_correction) * _drift_velocity;  // cm
+    double zloc = surfaceZCenter - zdriftlength;         // local z relative to surface center (for north side):
     unsigned int side = TpcDefs::getSide(key);
     if (side == 0)
     {

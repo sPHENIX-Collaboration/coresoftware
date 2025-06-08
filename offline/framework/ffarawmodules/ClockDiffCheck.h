@@ -32,6 +32,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   void FillCaloClockDiffSngl(CaloPacket *calopkt);
   void FillPacketDiff(OfflinePacket *pkt);
 
+  static bool CheckFemEventNr(CaloPacket *calopkt);
   void set_delBadPkts(bool newDelBadPkts)
   {
     delBadPkts = newDelBadPkts;
@@ -43,11 +44,9 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   }
 
  private:
-  bool delBadPkts = false;
+  bool delBadPkts{false};
   std::map<unsigned int, std::tuple<uint64_t, uint64_t, uint64_t, TH1 *, bool>> m_PacketStuffMap;
   std::vector<std::string> m_PacketNodeNames;
-  /* std::string m_EvtNodeName = "CLOCKDIFFRAWHIT"; */
-  /* std::set<uint64_t> bclk_seen; */
 };
 
 #endif  // FFARAWMODULES_CLOCKDIFFCHECK_H

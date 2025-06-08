@@ -22,6 +22,12 @@ class SvtxTrackState : public PHObject
 
   virtual float get_pathlength() const { return std::numeric_limits<float>::quiet_NaN(); }
 
+  virtual float get_localX() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_localX(float) {}
+
+  virtual float get_localY() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_localY(float) {}
+
   virtual float get_x() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_x(float) {}
 

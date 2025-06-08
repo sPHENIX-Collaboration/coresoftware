@@ -13,7 +13,7 @@ class MicromegasRawHitv2 : public MicromegasRawHit
 {
  public:
   explicit MicromegasRawHitv2() = default;
-  explicit MicromegasRawHitv2(MicromegasRawHit*);
+  explicit MicromegasRawHitv2(MicromegasRawHit *);
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -52,11 +52,15 @@ class MicromegasRawHitv2 : public MicromegasRawHit
 
   // index of the first sample with data
   uint16_t get_sample_begin() const override
-  { return adcmap.empty() ? 0:adcmap.begin()->first; }
+  {
+    return adcmap.empty() ? 0 : adcmap.begin()->first;
+  }
 
   // index of the next to last sample with data
   uint16_t get_sample_end() const override
-  { return adcmap.empty() ? 0:adcmap.rbegin()->first+1; }
+  {
+    return adcmap.empty() ? 0 : adcmap.rbegin()->first + 1;
+  }
 
   // adc value for a given sample index
   uint16_t get_adc(const uint16_t sample) const override;

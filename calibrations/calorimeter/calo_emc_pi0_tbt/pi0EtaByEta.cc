@@ -585,7 +585,6 @@ void pi0EtaByEta::fitEtaSlices(const std::string& infile, const std::string& fit
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile);
   CDBTTree* cdbttree2 = new CDBTTree(cdbFile);
 
-  std::string m_fieldname = "Femc_datadriven_qm1_correction";
 
   float final_mass_target = target_pi0_mass;
 
@@ -662,7 +661,7 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
     exit(1);
   }
 
-  TH2* h_M_tbt[96][256];
+  TH1* h_M_tbt[96][256];
   TF1* fitFunOut[96][256];
 
   // creating output file
@@ -683,12 +682,13 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
         gSystem->Exit(1);
         exit(1);
       }
-      h_M_tbt[ieta][j]->Scale(1. / h_M_tbt[ieta][j]->Integral(), "width");
-
+ 
       if (h_M_tbt[ieta][j]->GetEntries() == 0)
       {
         continue;
       }
+
+      h_M_tbt[ieta][j]->Scale(1. / h_M_tbt[ieta][j]->Integral(), "width");
 
       fitFunOut[ieta][j] = fitHistogram(h_M_tbt[ieta][j]);
       std::string funcname = "f_pi0_tbt_" + std::to_string(ieta) + "_" + std::to_string(j);
@@ -752,7 +752,6 @@ void pi0EtaByEta::fitEtaPhiTowers(const std::string& infile, const std::string& 
   CDBTTree* cdbttree1 = new CDBTTree(cdbFile);
   CDBTTree* cdbttree2 = new CDBTTree(cdbFile);
 
-  std::string m_fieldname = "Femc_datadriven_qm1_correction";
   float final_mass_target = target_pi0_mass;
 
   for (int i = 0; i < 96; i++)
