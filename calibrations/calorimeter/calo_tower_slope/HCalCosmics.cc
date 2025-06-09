@@ -59,10 +59,6 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 
 int HCalCosmics::process_event(PHCompositeNode *topNode)
 {
-  if (event % 100 == 0)
-  {
-    std::cout << "HCalCosmics::process_event " << event << std::endl;
-  }
   process_towers(topNode);
   event++;
   h_event->Fill(0);

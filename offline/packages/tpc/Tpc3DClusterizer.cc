@@ -267,7 +267,7 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
 	continue;
       }
       if(layer>=7+32){
-	if(side==1)continue;
+	//if(side==1)continue;
 	if(abs(iphi-0)<=2) continue;
 	if(abs(iphi-191)<=2) continue;
 	if(abs(iphi-206)<=1) continue;
@@ -397,7 +397,7 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
     std::cout << "total time: " << t_all->get_accumulated_time() / 1000. << " sec" << std::endl;
   }
 
-  std::cout << " not enough clusters in _nevent: " << m_clusterlist->size() << std::endl;
+  //  std::cout << " not enough clusters in _nevent: " << m_clusterlist->size() << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

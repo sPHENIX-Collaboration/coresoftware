@@ -52,6 +52,8 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   {
     std::cout << "ClusterJetInput::process_event -- entered" << std::endl;
   }
+
+  CLHEP::Hep3Vector vertex(0, 0, 0);
   GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -63,8 +65,44 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
 
   if (vertexmap->empty())
   {
-    std::cout << "ClusterJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex." << std::endl;
-    return std::vector<Jet *>();
+    std::cout << "ClusterJetInput::get_input - Warning - GlobalVertexMap node is empty. Continue as if vtxz = (0,0,0)." << std::endl;
+  }
+  else
+  {
+    GlobalVertex *vtx = vertexmap->begin()->second;
+    if (vtx)
+    {
+      if (m_use_vertextype)
+      {
+        auto typeStartIter = vtx->find_vertexes(m_vertex_type);
+        auto typeEndIter = vtx->end_vertexes();
+        for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
+        {
+          const auto &[type, vertexVec] = *iter;
+          if (type != m_vertex_type)
+          {
+            continue;
+          }
+          for (const auto *v : vertexVec)
+          {
+            if (!v)
+            {
+              continue;
+            }
+            vertex.set(v->get_x(), v->get_y(), v->get_z());
+          }
+        }
+      }
+      else
+      {
+        vertex.set(vtx->get_x(), vtx->get_y(), vtx->get_z());
+      }
+    }
+
+    if (std::isnan(vertex.z()))
+    {
+      vertex.set(0, 0, 0);
+    }
   }
 
   RawClusterContainer *clusters = nullptr;
@@ -141,41 +179,6 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
     }
   }
   else
-  {
-    return std::vector<Jet *>();
-  }
-
-  // first grab the event vertex or bail
-  GlobalVertex *vtx = vertexmap->begin()->second;
-  CLHEP::Hep3Vector vertex(0, 0, std::nan(""));
-  if (vtx)
-  {
-    if (m_use_vertextype) 
-    {
-      auto typeStartIter = vtx->find_vertexes(m_vertex_type);
-      auto typeEndIter = vtx->end_vertexes();
-      for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
-      {
-        const auto &[type, vertexVec] = *iter;
-        if (type != m_vertex_type) { continue; }
-        for (const auto *v : vertexVec)
-        {
-          if (!v) { continue; }
-          vertex.set(v->get_x(), v->get_y(), v->get_z());
-        }
-      }
-    } 
-    else 
-    {
-      vertex.set(vtx->get_x(), vtx->get_y(), vtx->get_z());
-    }
-  }
-  else
-  {
-    return std::vector<Jet *>();
-  }
-
-  if (std::isnan(vertex.z()))
   {
     return std::vector<Jet *>();
   }

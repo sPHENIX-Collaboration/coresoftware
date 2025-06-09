@@ -644,9 +644,9 @@ void TpcSpaceChargeReconstruction::process_track(SvtxTrack* track)
 
     // update matrices
     // see https://indico.bnl.gov/event/7440/contributions/43328/attachments/31334/49446/talk.pdf for details
-    m_matrix_container->add_to_lhs(i, 0, 0, cluster_r / erp);
+    m_matrix_container->add_to_lhs(i, 0, 0, square(cluster_r) / erp);
     m_matrix_container->add_to_lhs(i, 0, 1, 0);
-    m_matrix_container->add_to_lhs(i, 0, 2, talpha / erp);
+    m_matrix_container->add_to_lhs(i, 0, 2, cluster_r*talpha / erp);
 
     m_matrix_container->add_to_lhs(i, 1, 0, 0);
     m_matrix_container->add_to_lhs(i, 1, 1, 1. / ez);
@@ -656,7 +656,7 @@ void TpcSpaceChargeReconstruction::process_track(SvtxTrack* track)
     m_matrix_container->add_to_lhs(i, 2, 1, tbeta / ez);
     m_matrix_container->add_to_lhs(i, 2, 2, square(talpha) / erp + square(tbeta) / ez);
 
-    m_matrix_container->add_to_rhs(i, 0, drp / erp);
+    m_matrix_container->add_to_rhs(i, 0, cluster_r*drp / erp);
     m_matrix_container->add_to_rhs(i, 1, dz / ez);
     m_matrix_container->add_to_rhs(i, 2, talpha * drp / erp + tbeta * dz / ez);
 
