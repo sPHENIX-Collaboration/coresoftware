@@ -40,8 +40,8 @@ class InttBadChannelMap
   virtual int v_LoadFromCDBTTree(CDBTTree&);
 
  private:
-  typedef std::set<InttNameSpace::Offline_s, InttNameSpace::OfflineComparator> OfflineSet_t;
-  typedef std::set<InttNameSpace::RawData_s, InttNameSpace::RawDataComparator> RawDataSet_t;
+  typedef std::set<InttNameSpace::Offline_s> OfflineSet_t;
+  typedef std::set<InttNameSpace::RawData_s> RawDataSet_t;
   OfflineSet_t m_offline_set;
   RawDataSet_t m_rawdata_set;
 

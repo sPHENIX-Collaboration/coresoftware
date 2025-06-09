@@ -2,25 +2,41 @@
 #define INTT_MAPPING_H
 
 #include <cstdint>
+#include <iostream>
 #include <map>
 
-class Packet;
 class InttRawHit;
 
 namespace InttNameSpace
 {
-  extern const std::map<int, int> Packet_Id;
-  int FelixFromPacket(int);
-
+  /// RawData_s (kept as aggregate for convenience)
   struct RawData_s
   {
     int felix_server = 0;
     int felix_channel = 0;
     int chip = 0;
     int channel = 0;
+
+	using value_type = RawData_s;
+	using pointer = RawData_s*;
+	using reference = RawData_s&;
+
+	RawData_s& operator*() { return *this; }
+	RawData_s& operator++();
+
+    friend bool operator<(InttNameSpace::RawData_s const&, InttNameSpace::RawData_s const&);
+    friend std::ostream& operator<<(std::ostream&, InttNameSpace::RawData_s const&);
+  };
+  bool operator<(RawData_s const&, RawData_s const&);
+  std::ostream& operator<<(std::ostream&, InttNameSpace::RawData_s const&);
+  class AllRawDataChannels /// For range-based for loops
+  {
+  public:
+	  static const RawData_s begin() { return {.felix_server = 0, .felix_channel = 0, .chip = 0, .channel = 0}; }
+	  static const RawData_s end() { return {.felix_server = 8, .felix_channel = 0, .chip = 0, .channel = 0}; }
   };
 
-  typedef uint32_t OnlineKey_t;
+  /// Online_s (kept as aggregate for convenience)
   struct Online_s
   {
     int lyr = 0;
@@ -28,73 +44,78 @@ namespace InttNameSpace
     int arm = 0;
     int chp = 0;
     int chn = 0;
+
+	using value_type = Online_s;
+	using pointer = Online_s*;
+	using reference = Online_s&;
+
+	Online_s& operator*() { return *this; }
+	Online_s& operator++();
+
+    friend bool operator<(InttNameSpace::Online_s const&, InttNameSpace::Online_s const&);
+    friend std::ostream& operator<<(std::ostream&, InttNameSpace::Online_s const&);
+  };
+  bool operator<(Online_s const&, Online_s const&);
+  std::ostream& operator<<(std::ostream&, InttNameSpace::Online_s const&);
+  class AllOnlineChannels /// For range-based for loops
+  {
+  public:
+	  static const Online_s begin() { return {.lyr = 0, .ldr = 0, .arm = 0, .chp = 0, .chn = 0}; }
+	  static const Online_s end() { return {.lyr = 4, .ldr = 0, .arm = 0, .chp = 0, .chn = 0}; }
   };
 
+  /// Offline_s (kept as aggregate for convenience)
   struct Offline_s
   {
     int layer = 0;
     int ladder_phi = 0;
     int ladder_z = 0;
-    int strip_x = 0;
-    int strip_y = 0;
+    int strip_x = 0; // row, global phi
+    int strip_y = 0; // col, global z
+
+	using value_type = Offline_s;
+	using pointer = Offline_s*;
+	using reference = Offline_s&;
+
+	Offline_s& operator*() { return *this; }
+	Offline_s& operator++();
+
+    friend bool operator<(InttNameSpace::Offline_s const&, InttNameSpace::Offline_s const&);
+    friend std::ostream& operator<<(std::ostream&, InttNameSpace::Online_s const&);
   };
-
-  struct InttNameSpace::RawData_s RawFromPacket(int const, int const, Packet*);
-  void RawFromHit(struct InttNameSpace::RawData_s&, InttRawHit*);
-
-  // nontrivial
-  struct Online_s ToOnline(struct Offline_s const&);
-  struct Offline_s ToOffline(struct Online_s const&);
-
-  struct RawData_s ToRawData(struct Online_s const&);
-  struct Online_s ToOnline(struct RawData_s const&);
-
-  // trivial
-  struct RawData_s ToRawData(struct Offline_s const&);
-  struct Offline_s ToOffline(struct RawData_s const&);
-
-  struct RawDataComparator
+  bool operator<(Offline_s const&, Offline_s const&);
+  std::ostream& operator<<(std::ostream&, InttNameSpace::Offline_s const&);
+  class AllOfflineChannels /// For range-based for loops
   {
-    bool operator()(struct RawData_s const&, struct RawData_s const&) const;
+  public:
+	  static const Offline_s begin() { return {.layer = 3, .ladder_phi = 0, .ladder_z = 0, .strip_x = 0, .strip_y = 0}; }
+	  static const Offline_s end() { return {.layer = 7, .ladder_phi = 0, .ladder_z = 0, .strip_x = 0, .strip_y = 0}; }
   };
 
-  struct OnlineComparator
-  {
-    bool operator()(struct Online_s const&, struct Online_s const&) const;
-  };
+  /// Methods
+  RawData_s RawFromHit(InttRawHit*);
 
-  struct OfflineComparator
-  {
-    bool operator()(struct Offline_s const&, struct Offline_s const&) const;
-  };
+  Online_s ToOnline(Offline_s const&);
+  Offline_s ToOffline(Online_s const&);
 
-  // Eigen::Affine3d GetTransform(TTree*, struct Offline_s const&);
-  // Eigen::Vector4d GetLocalPos(struct Offline_s const&);
-};  // namespace InttNameSpace
+  RawData_s ToRawData(Online_s const&);
+  Online_s ToOnline(RawData_s const&);
 
-bool operator==(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
-bool operator==(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
-bool operator==(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
+  inline RawData_s ToRawData(Offline_s const& offline) { return ToRawData(ToOnline(offline)); }
+  inline Offline_s ToOffline(RawData_s const& rawdata) { return ToOffline(ToOnline(rawdata)); }
+};
 
-bool operator!=(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
-bool operator!=(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
-bool operator!=(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
-
-bool operator<(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
-bool operator<(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
-bool operator<(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
-
-bool operator>(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
-bool operator>(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
-bool operator>(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
-
-bool operator<=(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
-bool operator<=(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
-bool operator<=(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
-
-bool operator>=(struct InttNameSpace::RawData_s const&, struct InttNameSpace::RawData_s const&);
-bool operator>=(struct InttNameSpace::Online_s const&, struct InttNameSpace::Online_s const&);
-bool operator>=(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Offline_s const&);
+/// Relational operators with macro helper
+#define DEFINE_RELATIONAL_OPERATORS(ClassName) \
+	inline bool operator>(InttNameSpace::ClassName const& lhs, InttNameSpace::ClassName const& rhs) { return rhs < lhs; } \
+	inline bool operator<=(InttNameSpace::ClassName const& lhs, InttNameSpace::ClassName const& rhs) { return !(rhs < lhs); } \
+	inline bool operator>=(InttNameSpace::ClassName const& lhs, InttNameSpace::ClassName const& rhs) { return !(lhs < rhs); } \
+	inline bool operator!=(InttNameSpace::ClassName const& lhs, InttNameSpace::ClassName const& rhs) { return (lhs < rhs) || (rhs < lhs); } \
+	inline bool operator==(InttNameSpace::ClassName const& lhs, InttNameSpace::ClassName const& rhs) { return !(lhs < rhs) && !(rhs < lhs); }
+DEFINE_RELATIONAL_OPERATORS(RawData_s)
+DEFINE_RELATIONAL_OPERATORS(Online_s)
+DEFINE_RELATIONAL_OPERATORS(Offline_s)
+#undef DEFINE_RELATIONAL_OPERATORS
 
 #endif  // INTT_MAPPING_H
 
@@ -135,7 +156,7 @@ bool operator>=(struct InttNameSpace::Offline_s const&, struct InttNameSpace::Of
 //|         B      |            A             |             A           |       B        |
 //+----------------+--------------------------+-------------------------+----------------+
 //|         1      |            0             |             2           |       3        | ladder_z  (offline)
-//|  0  1  2  3  4 |  0  1  2  3  4  5  6  7  |  0  1  2  3  4  5  6  7 |  0  1  2  3  4 | strip_x   (offline)
+//|  0  1  2  3  4 |  0  1  2  3  4  5  6  7  |  0  1  2  3  4  5  6  7 |  0  1  2  3  4 | strip_y   (offline)
 //+----------------+--------------------------+-------------------------+----------------+
 //|  0  1  2  3  4 |  5  6  7  8  9 10 11 12  | 25 24 23 22 21 20 19 18 | 17 16 15 14 13 | chp       (online)
 //| 13 14 15 16 17 | 18 19 20 21 22 23 24 25  | 12 11 10  9  8  7  6  5 |  4  3  2  1  0 | chp       (online)

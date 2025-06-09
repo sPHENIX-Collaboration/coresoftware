@@ -48,11 +48,11 @@ class PHG4ParticleGeneratorBase : public SubsysReco
 
  protected:
   PHG4ParticleGeneratorBase(const std::string &name = "GENERATORBASE");
-  int get_pdgcode(const std::string &name) const;
-  std::string get_pdgname(const int pdgcode) const;
-  double get_mass(const int pdgcode) const;
+  static int get_pdgcode(const std::string &name);
+  static std::string get_pdgname(const int pdgcode);
+  static double get_mass(const int pdgcode);
   void CheckAndCreateParticleVector();
-  void SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve);
+  void SetParticleId(PHG4Particle *particle, PHG4InEvent *ineve) const;
   gsl_rng *RandomGenerator() const { return m_RandomGenerator; }
   int EmbedFlag() const { return m_EmbedFlag; }
   std::vector<PHG4Particle *>::iterator particlelist_begin() { return particlelist.begin(); }

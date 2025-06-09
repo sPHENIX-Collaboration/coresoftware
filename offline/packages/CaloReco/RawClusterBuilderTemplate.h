@@ -52,10 +52,7 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_UseAltZVertex = useAltZMode;
   }
 
-  void set_UseDetailedGeometry(const bool useDetailedGeometry)
-  {
-    m_UseDetailedGeometry = useDetailedGeometry;
-  }
+  void set_UseDetailedGeometry(const bool useDetailedGeometry);
 
   void setOutputClusterNodeName(const std::string& inpNodenm)
   {
@@ -124,7 +121,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   // Use a more detailed calorimeter geometry
   // Only available for CEMC
 
-  int m_UseAltZVertex{2};
+  int m_UseAltZVertex{1};
   // 0 - use GlobalVtxMap
   // 1 - use BbcReco ZVtx
   // 2 - use NO zvertex (zvtx = 0)

@@ -186,8 +186,6 @@ void TrackResiduals::clearClusterStateVectors()
   m_clusAdc.clear();
   m_clusMaxAdc.clear();
   m_cluslayer.clear();
-  m_clussize.clear();
-  m_clushitsetkey.clear();
 
   m_statelx.clear();
   m_statelz.clear();
@@ -283,8 +281,10 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     fillResidualTreeKF(topNode);
   }
 
-  fillVertexTree(topNode);
-
+  if (m_doVertex)
+  {
+    fillVertexTree(topNode);
+  }
   if (m_doEventTree)
   {
     fillEventTree(topNode);
@@ -433,7 +433,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       {
         auto ckey = *it;
         auto cluster = clustermap->findCluster(ckey);
-        const Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, crossing );
+        const Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, crossing);
         const auto local = geometry->getLocalCoords(ckey, cluster);
         m_cluslx.push_back(local.x());
         m_cluslz.push_back(local.y());
@@ -498,7 +498,7 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
         {
           TrkrCluster* cluster = clustermap->findCluster(ckey);
 
-          Acts::Vector3 clusglob = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, track->get_crossing() );
+          Acts::Vector3 clusglob = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, track->get_crossing());
 
           m_clusgx.push_back(clusglob.x());
           m_clusgy.push_back(clusglob.y());
@@ -534,18 +534,18 @@ float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey c
   return z;
 }
 void TrackResiduals::circleFitClusters(
-  std::vector<TrkrDefs::cluskey>& keys,
-  TrkrClusterContainer* clusters,
-  const short int& crossing)
+    std::vector<TrkrDefs::cluskey>& keys,
+    TrkrClusterContainer* clusters,
+    const short int& crossing)
 {
   std::vector<Acts::Vector3> clusPos, global_vec;
   for (auto& key : keys)
   {
     auto cluster = clusters->findCluster(key);
-    const Acts::Vector3 pos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing );
+    const Acts::Vector3 pos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing);
     clusPos.push_back(pos);
   }
-  TrackFitUtils::position_vector_t yzpoints,xypoints;
+  TrackFitUtils::position_vector_t yzpoints, xypoints;
 
   for (auto& pos : clusPos)
   {
@@ -594,7 +594,7 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
   for (auto& key : keys)
   {
     auto cluster = clusters->findCluster(key);
-    const Acts::Vector3 pos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing );
+    const Acts::Vector3 pos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(key, cluster, crossing);
     clusPos.push_back(pos);
   }
   TrackFitUtils::position_vector_t xypoints, rzpoints, yzpoints;
@@ -632,7 +632,7 @@ void TrackResiduals::lineFitClusters(std::vector<TrkrDefs::cluskey>& keys,
 void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
                                      ActsGeometry* geometry)
 {
-  if (clusters->size()< m_min_cluster_size)
+  if (clusters->size() < m_min_cluster_size)
   {
     return;
   }
@@ -752,8 +752,14 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
   {
     m_hittree->Write();
   }
-  m_vertextree->Write();
-  m_failedfits->Write();
+  if (m_doVertex)
+  {
+    m_vertextree->Write();
+  }
+  if (m_doFailedSeeds)
+  {
+    m_failedfits->Write();
+  }
   if (m_doEventTree)
   {
     m_eventtree->Write();
@@ -968,13 +974,13 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  auto global_moved = global;    // if use transient transforms for distortion correction
-  if(m_use_clustermover)
-    {
-      // move the corrected cluster positions back to the original readout surface
-      global_moved = m_clusterMover.processTrack(global);	 
-    }
-  
+  auto global_moved = global;  // if use transient transforms for distortion correction
+  if (m_use_clustermover)
+  {
+    // move the corrected cluster positions back to the original readout surface
+    global_moved = m_clusterMover.processTrack(global);
+  }
+
   ActsTransformations transformer;
   TrkrCluster* cluster = clustermap->findCluster(ckey);
 
@@ -1077,7 +1083,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   // get new local coords from moved cluster
   Surface surf = geometry->maps().getSurface(ckey, cluster);
-  Surface surf_ideal = geometry->maps().getSurface(ckey, cluster); //Unchanged by distortion corrections
+  Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);  // Unchanged by distortion corrections
   // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
   auto trkrid = TrkrDefs::getTrkrId(ckey);
   if (trkrid == TrkrDefs::tpcId)
@@ -1098,40 +1104,40 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   // get local coordinates
   Acts::Vector2 loc;
   loc = geometry->getLocalCoords(ckey, cluster, m_crossing);
-  if(m_use_clustermover)
+  if (m_use_clustermover)
+  {
+    // in this case we get local coords from transform of corrected global coords
+    clusglob_moved *= Acts::UnitConstants::cm;  // we want mm for transformations
+    Acts::Vector3 normal = surf->normal(geometry->geometry().getGeoContext(),
+                                        Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
+    auto local = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                     clusglob_moved, normal);
+    if (local.ok())
     {
-      // in this case we get local coords from transform of corrected global coords
-      clusglob_moved *= Acts::UnitConstants::cm;  // we want mm for transformations
-      Acts::Vector3 normal = surf->normal(geometry->geometry().getGeoContext(),
-					  Acts::Vector3(1,1,1), Acts::Vector3(1,1,1));
-      auto local = surf->globalToLocal(geometry->geometry().getGeoContext(),
-				       clusglob_moved, normal);
-      if (local.ok())
-	{
-	  loc = local.value() / Acts::UnitConstants::cm;
-	}
-      else
-	{
-	  // otherwise take the manual calculation for the TPC
-	  // doing it this way just avoids the bounds check that occurs in the surface class method
-	  Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
-	  loct /= Acts::UnitConstants::cm;
-	  
-	  loc(0) = loct(0);
-	  loc(1) = loct(1);
-	}
-      clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+      loc = local.value() / Acts::UnitConstants::cm;
     }
+    else
+    {
+      // otherwise take the manual calculation for the TPC
+      // doing it this way just avoids the bounds check that occurs in the surface class method
+      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
+      loct /= Acts::UnitConstants::cm;
+
+      loc(0) = loct(0);
+      loc(1) = loct(1);
+    }
+    clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+  }
 
   m_cluslx.push_back(loc.x());
   m_cluslz.push_back(loc.y());
 
-  if(Verbosity() > 2)
-    {
-      std::cout << "Trackresiduals cluster (cm): localX " << loc.x() << " localY " << loc.y() << std::endl
-		<< " global.x " << clusglob_moved(0) << " global.y " << clusglob_moved(1) << " global.z " << clusglob_moved(2) << std::endl;
-    }
-  
+  if (Verbosity() > 2)
+  {
+    std::cout << "Trackresiduals cluster (cm): localX " << loc.x() << " localY " << loc.y() << std::endl
+              << " global.x " << clusglob_moved(0) << " global.y " << clusglob_moved(1) << " global.z " << clusglob_moved(2) << std::endl;
+  }
+
   float clusr = r(clusglob_moved.x(), clusglob_moved.y());
   auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
                                                                 clusr, ckey);
@@ -1149,10 +1155,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
-  m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
-  m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
-	
   auto misaligncenter = surf->center(geometry->geometry().getGeoContext());
   auto misalignnorm = -1 * surf->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
   auto misrot = surf->transform(geometry->geometry().getGeoContext()).rotation();
@@ -1220,13 +1223,13 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   {
     Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
     Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
-    
-    if(Verbosity() > 2)
-      {
-	std::cout << "Trackresiduals state (cm): localX " << stateloc(0) << " localY " << stateloc(1) << std::endl
-		  << " stateglobx " << stateglob(0) << " stategloby " << stateglob(1) << " stateglobz " << stateglob(2) << std::endl;
-      }
-    
+
+    if (Verbosity() > 2)
+    {
+      std::cout << "Trackresiduals state (cm): localX " << stateloc(0) << " localY " << stateloc(1) << std::endl
+                << " stateglobx " << stateglob(0) << " stategloby " << stateglob(1) << " stateglobz " << stateglob(2) << std::endl;
+    }
+
     const auto actscov =
         transformer.rotateSvtxTrackCovToActs(state);
 
@@ -1305,11 +1308,11 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
   auto global_moved = global;
-  if(m_use_clustermover)
-    {
-      // move the corrected cluster positions back to the original readout surface
-      global_moved = m_clusterMover.processTrack(global);	 
-    }
+  if (m_use_clustermover)
+  {
+    // move the corrected cluster positions back to the original readout surface
+    global_moved = m_clusterMover.processTrack(global);
+  }
 
   TrkrCluster* cluster = clustermap->findCluster(ckey);
 
@@ -1394,8 +1397,6 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   m_cluslayer.push_back(TrkrDefs::getLayer(ckey));
   m_clusphisize.push_back(cluster->getPhiSize());
   m_cluszsize.push_back(cluster->getZSize());
-  m_clussize.push_back(cluster->getPhiSize() * cluster->getZSize());
-  m_clushitsetkey.push_back(TrkrDefs::getHitSetKeyFromClusKey(ckey));
 
   if (Verbosity() > 1)
   {
@@ -1561,7 +1562,6 @@ void TrackResiduals::createBranches()
     m_eventtree = new TTree("eventtree", "A tree with all hits");
     m_eventtree->Branch("run", &m_runnumber, "m_runnumber/I");
     m_eventtree->Branch("segment", &m_segment, "m_segment/I");
-    m_eventtree->Branch("job", &m_job, "m_job/I");
     m_eventtree->Branch("event", &m_event, "m_event/I");
     m_eventtree->Branch("gl1bco", &m_bco, "m_bco/I");
     m_eventtree->Branch("nmvtx", &m_nmvtx_all, "m_nmvtx_all/I");
@@ -1579,7 +1579,6 @@ void TrackResiduals::createBranches()
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
   m_failedfits->Branch("run", &m_runnumber, "m_runnumber/I");
   m_failedfits->Branch("segment", &m_segment, "m_segment/I");
-  m_failedfits->Branch("job", &m_job, "m_job/I");
   m_failedfits->Branch("trackid", &m_trackid, "m_trackid/I");
   m_failedfits->Branch("event", &m_event, "m_event/I");
   m_failedfits->Branch("silseedx", &m_silseedx, "m_silseedx/F");
@@ -1607,7 +1606,6 @@ void TrackResiduals::createBranches()
   m_vertextree = new TTree("vertextree", "tree with vertices");
   m_vertextree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_vertextree->Branch("segment", &m_segment, "m_segment/I");
-  m_vertextree->Branch("job", &m_job, "m_job/I");
   m_vertextree->Branch("event", &m_event, "m_event/I");
   m_vertextree->Branch("firedTriggers", &m_firedTriggers);
   m_vertextree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
@@ -1628,10 +1626,8 @@ void TrackResiduals::createBranches()
   m_hittree = new TTree("hittree", "A tree with all hits");
   m_hittree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_hittree->Branch("segment", &m_segment, "m_segment/I");
-  m_hittree->Branch("job", &m_job, "m_job/I");
   m_hittree->Branch("event", &m_event, "m_event/I");
   m_hittree->Branch("gl1bco", &m_bco, "m_bco/l");
-  m_hittree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_hittree->Branch("hitsetkey", &m_hitsetkey, "m_hitsetkey/i");
   m_hittree->Branch("gx", &m_hitgx, "m_hitgx/F");
   m_hittree->Branch("gy", &m_hitgy, "m_hitgy/F");
@@ -1658,40 +1654,26 @@ void TrackResiduals::createBranches()
   m_clustree = new TTree("clustertree", "A tree with all clusters");
   m_clustree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_clustree->Branch("segment", &m_segment, "m_segment/I");
-  m_clustree->Branch("job", &m_job, "m_job/I");
   m_clustree->Branch("event", &m_event, "m_event/I");
   m_clustree->Branch("gl1bco", &m_bco, "m_bco/l");
-  m_clustree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_clustree->Branch("lx", &m_scluslx, "m_scluslx/F");
   m_clustree->Branch("lz", &m_scluslz, "m_scluslz/F");
   m_clustree->Branch("gx", &m_sclusgx, "m_sclusgx/F");
   m_clustree->Branch("gy", &m_sclusgy, "m_sclusgy/F");
   m_clustree->Branch("gz", &m_sclusgz, "m_sclusgz/F");
-  m_clustree->Branch("r", &m_sclusgr, "m_sclusgr/F");
   m_clustree->Branch("phi", &m_sclusphi, "m_sclusphi/F");
   m_clustree->Branch("eta", &m_scluseta, "m_scluseta/F");
   m_clustree->Branch("adc", &m_adc, "m_adc/F");
   m_clustree->Branch("phisize", &m_phisize, "m_phisize/I");
   m_clustree->Branch("zsize", &m_zsize, "m_zsize/I");
-  m_clustree->Branch("layer", &m_scluslayer, "m_scluslayer/I");
   m_clustree->Branch("erphi", &m_scluselx, "m_scluselx/F");
   m_clustree->Branch("ez", &m_scluselz, "m_scluselz/F");
   m_clustree->Branch("maxadc", &m_clusmaxadc, "m_clusmaxadc/F");
-  m_clustree->Branch("sector", &m_clussector, "m_clussector/I");
-  m_clustree->Branch("side", &m_side, "m_side/I");
-  m_clustree->Branch("stave", &m_staveid, "m_staveid/I");
-  m_clustree->Branch("chip", &m_chipid, "m_chipid/I");
-  m_clustree->Branch("strobe", &m_strobeid, "m_strobeid/I");
-  m_clustree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
-  m_clustree->Branch("ladderphi", &m_ladderphiid, "m_ladderphiid/I");
-  m_clustree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
-  m_clustree->Branch("segtype", &m_segtype, "m_segtype/I");
-  m_clustree->Branch("tile", &m_tileid, "m_tileid/I");
+  m_clustree->Branch("hitsetkey", &m_hitsetkey, "m_hitsetkey/i");
 
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
   m_tree->Branch("run", &m_runnumber, "m_runnumber/I");
   m_tree->Branch("segment", &m_segment, "m_segment/I");
-  m_tree->Branch("job", &m_job, "m_job/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("firedTriggers", &m_firedTriggers);
   m_tree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
@@ -1699,7 +1681,6 @@ void TrackResiduals::createBranches()
   m_tree->Branch("tpcid", &m_tpcid, "m_tpcid/I");
   m_tree->Branch("silid", &m_silid, "m_silid/I");
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
-  m_tree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("crossing_estimate", &m_crossing_estimate, "m_crossing_estimate/I");
   m_tree->Branch("silseedx", &m_silseedx, "m_silseedx/F");
@@ -1747,7 +1728,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("vx", &m_vx, "m_vx/F");
   m_tree->Branch("vy", &m_vy, "m_vy/F");
   m_tree->Branch("vz", &m_vz, "m_vz/F");
-  m_tree->Branch("vertex_ntracks",&m_vertex_ntracks, "m_vertex_ntracks/I");
+  m_tree->Branch("vertex_ntracks", &m_vertex_ntracks, "m_vertex_ntracks/I");
   m_tree->Branch("pcax", &m_pcax, "m_pcax/F");
   m_tree->Branch("pcay", &m_pcay, "m_pcay/F");
   m_tree->Branch("pcaz", &m_pcaz, "m_pcaz/F");
@@ -1774,39 +1755,41 @@ void TrackResiduals::createBranches()
   m_tree->Branch("clusgy", &m_clusgy);
   m_tree->Branch("clusgz", &m_clusgz);
   m_tree->Branch("clusgr", &m_clusgr);
-  m_tree->Branch("clusgxunmoved", &m_clusgxunmoved);
-  m_tree->Branch("clusgyunmoved", &m_clusgyunmoved);
-  m_tree->Branch("clusgzunmoved", &m_clusgzunmoved);
-  m_tree->Branch("clussector", &m_clsector);
-  m_tree->Branch("clusside", &m_clside);
+  if (m_doAlignment)
+  {
+    m_tree->Branch("clusgxunmoved", &m_clusgxunmoved);
+    m_tree->Branch("clusgyunmoved", &m_clusgyunmoved);
+    m_tree->Branch("clusgzunmoved", &m_clusgzunmoved);
+  }
   m_tree->Branch("clusAdc", &m_clusAdc);
   m_tree->Branch("clusMaxAdc", &m_clusMaxAdc);
-  m_tree->Branch("cluslayer", &m_cluslayer);
-  m_tree->Branch("clussize", &m_clussize);
   m_tree->Branch("clusphisize", &m_clusphisize);
   m_tree->Branch("cluszsize", &m_cluszsize);
-  m_tree->Branch("clushitsetkey", &m_clushitsetkey);
-  m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
-  m_tree->Branch("idealsurfcentery", &m_idealsurfcentery);
-  m_tree->Branch("idealsurfcenterz", &m_idealsurfcenterz);
-  m_tree->Branch("idealsurfnormx", &m_idealsurfnormx);
-  m_tree->Branch("idealsurfnormy", &m_idealsurfnormy);
-  m_tree->Branch("idealsurfnormz", &m_idealsurfnormz);
-  m_tree->Branch("missurfcenterx", &m_missurfcenterx);
-  m_tree->Branch("missurfcentery", &m_missurfcentery);
-  m_tree->Branch("missurfcenterz", &m_missurfcenterz);
-  m_tree->Branch("missurfnormx", &m_missurfnormx);
-  m_tree->Branch("missurfnormy", &m_missurfnormy);
-  m_tree->Branch("missurfnormz", &m_missurfnormz);
-  m_tree->Branch("clusgxideal", &m_clusgxideal);
-  m_tree->Branch("clusgyideal", &m_clusgyideal);
-  m_tree->Branch("clusgzideal", &m_clusgzideal);
-  m_tree->Branch("missurfalpha", &m_missurfalpha);
-  m_tree->Branch("missurfbeta", &m_missurfbeta);
-  m_tree->Branch("missurfgamma", &m_missurfgamma);
-  m_tree->Branch("idealsurfalpha", &m_idealsurfalpha);
-  m_tree->Branch("idealsurfbeta", &m_idealsurfbeta);
-  m_tree->Branch("idealsurfgamma", &m_idealsurfgamma);
+
+  if (m_doAlignment)
+  {
+    m_tree->Branch("idealsurfcenterx", &m_idealsurfcenterx);
+    m_tree->Branch("idealsurfcentery", &m_idealsurfcentery);
+    m_tree->Branch("idealsurfcenterz", &m_idealsurfcenterz);
+    m_tree->Branch("idealsurfnormx", &m_idealsurfnormx);
+    m_tree->Branch("idealsurfnormy", &m_idealsurfnormy);
+    m_tree->Branch("idealsurfnormz", &m_idealsurfnormz);
+    m_tree->Branch("missurfcenterx", &m_missurfcenterx);
+    m_tree->Branch("missurfcentery", &m_missurfcentery);
+    m_tree->Branch("missurfcenterz", &m_missurfcenterz);
+    m_tree->Branch("missurfnormx", &m_missurfnormx);
+    m_tree->Branch("missurfnormy", &m_missurfnormy);
+    m_tree->Branch("missurfnormz", &m_missurfnormz);
+    m_tree->Branch("clusgxideal", &m_clusgxideal);
+    m_tree->Branch("clusgyideal", &m_clusgyideal);
+    m_tree->Branch("clusgzideal", &m_clusgzideal);
+    m_tree->Branch("missurfalpha", &m_missurfalpha);
+    m_tree->Branch("missurfbeta", &m_missurfbeta);
+    m_tree->Branch("missurfgamma", &m_missurfgamma);
+    m_tree->Branch("idealsurfalpha", &m_idealsurfalpha);
+    m_tree->Branch("idealsurfbeta", &m_idealsurfbeta);
+    m_tree->Branch("idealsurfgamma", &m_idealsurfgamma);
+  }
 
   m_tree->Branch("statelx", &m_statelx);
   m_tree->Branch("statelz", &m_statelz);
@@ -1820,31 +1803,34 @@ void TrackResiduals::createBranches()
   m_tree->Branch("statepz", &m_statepz);
   m_tree->Branch("statepl", &m_statepl);
 
-  m_tree->Branch("statelxglobderivdx", &m_statelxglobderivdx);
-  m_tree->Branch("statelxglobderivdy", &m_statelxglobderivdy);
-  m_tree->Branch("statelxglobderivdz", &m_statelxglobderivdz);
-  m_tree->Branch("statelxglobderivdalpha", &m_statelxglobderivdalpha);
-  m_tree->Branch("statelxglobderivdbeta", &m_statelxglobderivdbeta);
-  m_tree->Branch("statelxglobderivdgamma", &m_statelxglobderivdgamma);
+  if (m_doAlignment)
+  {
+    m_tree->Branch("statelxglobderivdx", &m_statelxglobderivdx);
+    m_tree->Branch("statelxglobderivdy", &m_statelxglobderivdy);
+    m_tree->Branch("statelxglobderivdz", &m_statelxglobderivdz);
+    m_tree->Branch("statelxglobderivdalpha", &m_statelxglobderivdalpha);
+    m_tree->Branch("statelxglobderivdbeta", &m_statelxglobderivdbeta);
+    m_tree->Branch("statelxglobderivdgamma", &m_statelxglobderivdgamma);
 
-  m_tree->Branch("statelxlocderivd0", &m_statelxlocderivd0);
-  m_tree->Branch("statelxlocderivz0", &m_statelxlocderivz0);
-  m_tree->Branch("statelxlocderivphi", &m_statelxlocderivphi);
-  m_tree->Branch("statelxlocderivtheta", &m_statelxlocderivtheta);
-  m_tree->Branch("statelxlocderivqop", &m_statelxlocderivqop);
+    m_tree->Branch("statelxlocderivd0", &m_statelxlocderivd0);
+    m_tree->Branch("statelxlocderivz0", &m_statelxlocderivz0);
+    m_tree->Branch("statelxlocderivphi", &m_statelxlocderivphi);
+    m_tree->Branch("statelxlocderivtheta", &m_statelxlocderivtheta);
+    m_tree->Branch("statelxlocderivqop", &m_statelxlocderivqop);
 
-  m_tree->Branch("statelzglobderivdx", &m_statelzglobderivdx);
-  m_tree->Branch("statelzglobderivdy", &m_statelzglobderivdy);
-  m_tree->Branch("statelzglobderivdz", &m_statelzglobderivdz);
-  m_tree->Branch("statelzglobderivdalpha", &m_statelzglobderivdalpha);
-  m_tree->Branch("statelzglobderivdbeta", &m_statelzglobderivdbeta);
-  m_tree->Branch("statelzglobderivdgamma", &m_statelzglobderivdgamma);
+    m_tree->Branch("statelzglobderivdx", &m_statelzglobderivdx);
+    m_tree->Branch("statelzglobderivdy", &m_statelzglobderivdy);
+    m_tree->Branch("statelzglobderivdz", &m_statelzglobderivdz);
+    m_tree->Branch("statelzglobderivdalpha", &m_statelzglobderivdalpha);
+    m_tree->Branch("statelzglobderivdbeta", &m_statelzglobderivdbeta);
+    m_tree->Branch("statelzglobderivdgamma", &m_statelzglobderivdgamma);
 
-  m_tree->Branch("statelzlocderivd0", &m_statelzlocderivd0);
-  m_tree->Branch("statelzlocderivz0", &m_statelzlocderivz0);
-  m_tree->Branch("statelzlocderivphi", &m_statelzlocderivphi);
-  m_tree->Branch("statelzlocderivtheta", &m_statelzlocderivtheta);
-  m_tree->Branch("statelzlocderivqop", &m_statelzlocderivqop);
+    m_tree->Branch("statelzlocderivd0", &m_statelzlocderivd0);
+    m_tree->Branch("statelzlocderivz0", &m_statelzlocderivz0);
+    m_tree->Branch("statelzlocderivphi", &m_statelzlocderivphi);
+    m_tree->Branch("statelzlocderivtheta", &m_statelzlocderivtheta);
+    m_tree->Branch("statelzlocderivqop", &m_statelzlocderivqop);
+  }
 }
 
 void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
@@ -2005,7 +1991,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       auto cluster = clustermap->findCluster(ckey);
 
       // Fully correct the cluster positions for the crossing and all distortions
-      Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, m_crossing );
+      Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, m_crossing);
 
       // add the global positions to a vector to give to the cluster mover
       global_raw.emplace_back(std::make_pair(ckey, global));
@@ -2362,7 +2348,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       auto cluster = clustermap->findCluster(ckey);
 
       // Fully correct the cluster positions for the crossing and all distortions
-      Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, m_crossing );
+      Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, m_crossing);
 
       // add the global positions to a vector to give to the cluster mover
       global_raw.emplace_back(std::make_pair(ckey, global));
@@ -2450,11 +2436,15 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
         }
       }
     }
-    if(!m_doMatchedOnly){
+    if (!m_doMatchedOnly)
+    {
       m_tree->Fill();
-    }else{
-      if(m_nmaps>=3&&m_nintt>=1&&m_ntpc>32&&abs(m_crossing)<5&&m_pt>0.3){
-	m_tree->Fill();
+    }
+    else
+    {
+      if (m_nmaps >= 3 && m_nintt >= 1 && m_ntpc > 32 && abs(m_crossing) < 5 && m_pt > 0.3)
+      {
+        m_tree->Fill();
       }
     }
   }

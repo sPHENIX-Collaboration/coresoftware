@@ -28,8 +28,6 @@
 #include <iostream>  // for operator<<, endl
 #include <utility>   // for pair
 
-using namespace std;
-
 //________________________________________________________
 PHG4TruthTrackingAction::PHG4TruthTrackingAction(PHG4TruthEventAction* eventAction)
   : m_EventAction(eventAction)
@@ -274,7 +272,12 @@ PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth
   PHG4VtxPoint* vtx = AddVertex(truth, track);
   ti->set_vtx_id(vtx->get_id());
 
-
+  // use a new map to hold the new primary particle list
+  if(issPHENIXPrimary(truth, ti))
+  {
+    PHG4Particle *newparticle = dynamic_cast<PHG4Particle *> (ti->CloneMe());
+    truth.AddsPHENIXPrimaryParticle(trackid, newparticle);
+  }
 
   return truth.AddParticle(trackid, ti)->second;
 }
