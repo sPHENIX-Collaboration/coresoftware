@@ -52,10 +52,7 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_UseAltZVertex = useAltZMode;
   }
 
-  void set_UseDetailedGeometry(const bool useDetailedGeometry)
-  {
-    m_UseDetailedGeometry = useDetailedGeometry;
-  }
+  void set_UseDetailedGeometry(const bool useDetailedGeometry);
 
   void setOutputClusterNodeName(const std::string& inpNodenm)
   {
