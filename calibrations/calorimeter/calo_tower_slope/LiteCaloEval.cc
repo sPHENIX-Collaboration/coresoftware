@@ -1032,9 +1032,13 @@ void LiteCaloEval::FitRelativeShifts(LiteCaloEval *ref_lce, int modeFitShifts)
         }
       }
 
-      float correction = f2f2->GetParameter(1);
+      float correction = 1;
+      float corrErr    = 1;
 
-      float corrErr = f2f2->GetParError(1);
+      if(f2f2){
+        correction =  f2f2->GetParameter(1);
+        corrErr = f2f2->GetParError(1);
+      }
 
       double errProp = corrErr / (correction * correction);
 
