@@ -189,6 +189,14 @@ int SingleTriggeredInput::FillEventVector()
         m_bclkarray[i + 1] += 0x100000000;
       }
       m_bclkdiffarray[i] = m_bclkarray[i + 1] - m_bclkarray[i];
+      if (m_bclkdiffarray[i] != (m_bclkdiffarray[i] & 0xFFFFFFFF))
+      {
+        std::cout << Name() << " Found upper 32bits set: 0x" << std::hex << m_bclkdiffarray[i]
+		  << " for event # " << std::dec << evt->getEvtSequence() << std::endl;
+        std::cout << std::hex << "current clk: 0x" << myClock << " corrected: 0x" << m_bclkarray[i + 1]
+		  << ", previous clock : 0x" << m_bclkarray[i] << std::dec << std::endl;
+        m_bclkdiffarray[i] &= 0xFFFFFFFF;
+      }
     }
     // std::cout << Name() << " evt# " << evt->getEvtSequence() << std::hex
     // 	      << " prev clk: 0x" << m_bclkarray[i]
@@ -259,17 +267,17 @@ void SingleTriggeredInput::FillPool()
   {
     if (FillEventVector() != 0)
     {
-      // for (const auto *itertst = begin(); itertst != end(); ++itertst)
+      // for (const auto *itertst = clkdiffbegin(); itertst != clkdiffend(); ++itertst)
       // {
       // 	std::cout << std::hex << "blkdiff: 0x" << itertst << std::dec << std::endl;
       // }
-      bool isequal = std::equal(begin(), end(), Gl1Input()->begin());
+      bool isequal = std::equal(clkdiffbegin(), clkdiffend(), Gl1Input()->clkdiffbegin());
       if (!isequal)
       {
         std::cout << Name() << " and GL1 clock diffs differ, here is the dump:" << std::endl;
         dumpdeque();  // dump the clock diffs so we can see in the log
-        const auto *iter1 = begin();
-        const auto *iter2 = Gl1Input()->begin();
+        const auto *iter1 = clkdiffbegin();
+        const auto *iter2 = Gl1Input()->clkdiffbegin();
         if (*(++iter1) != *(++iter2))
         {
           // this only works for the first event we process,
@@ -279,7 +287,7 @@ void SingleTriggeredInput::FillPool()
           std::cout << Name() << " first event problem, check subsequent events if our first event is off" << std::endl;
           iter1++;
           iter2++;
-          if (std::equal(iter1, end(), iter2))
+          if (std::equal(iter1, clkdiffend(), iter2))
           {
             std::cout << "subsequent events are good, first event is off reset packets from first event" << std::endl;
             m_DitchPackets = true;
@@ -299,13 +307,13 @@ void SingleTriggeredInput::FillPool()
         }
         else
         {
-          iter1 = begin();
-          iter2 = Gl1Input()->begin();
+          iter1 = clkdiffbegin();
+          iter2 = Gl1Input()->clkdiffbegin();
           //        auto iter3 = beginclock();
           //        auto iter4 = Gl1Input()->beginclock();
           int position = 0;
           //        int ifirst = 1;
-          while (iter1 != end())
+          while (iter1 != clkdiffend())
           {
             //           std::cout  << "bclk1: 0x" << *iter3 << ", gl1bclk: 0x" << *iter4 << std::dec << std::endl;
             // this catches the condition where there is no gl1 packet (14001)
@@ -509,9 +517,9 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
 
 void SingleTriggeredInput::dumpdeque()
 {
-  const auto *iter1 = begin();
-  const auto *iter2 = Gl1Input()->begin();
-  while (iter1 != end())
+  const auto *iter1 = clkdiffbegin();
+  const auto *iter2 = Gl1Input()->clkdiffbegin();
+  while (iter1 != clkdiffend())
   {
     std::cout << Name() << " clk: 0x" << std::hex << *iter1
               << " Gl1 clk: 0x" << *iter2 << std::dec << std::endl;
@@ -626,12 +634,12 @@ int SingleTriggeredInput::checkfirstsebevent()
 {
   // copy arrays into vectors for easier searching
   std::deque<uint64_t> gl1clkvector;
-  for (auto iter = Gl1Input()->begin(); iter != Gl1Input()->end(); ++iter)
+  for (auto iter = Gl1Input()->clkdiffbegin(); iter != Gl1Input()->clkdiffend(); ++iter)
   {
     gl1clkvector.push_back(*iter);
   }
   std::deque<uint64_t> myclkvector;
-  for (auto iter = begin(); iter != end(); ++iter)
+  for (auto iter = clkdiffbegin(); iter != clkdiffend(); ++iter)
   {
     myclkvector.push_back(*iter);
   }
