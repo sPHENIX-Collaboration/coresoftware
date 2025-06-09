@@ -721,13 +721,13 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if(m_fitFileName != "")
+  if(m_QAFileName != "")
   {
     TCanvas *c1 = new TCanvas();
     gStyle->SetPalette(56);
     c1->SetLogz();
     gStyle->SetOptStat(0);
-    c1->SaveAs((boost::format("%s[") % m_fitFileName).str().c_str());
+    c1->SaveAs((boost::format("%s[") % m_QAFileName).str().c_str());
     for (int s = 0; s < 2; s++)
     {
       for (int l = 0; l < 18; l++)
@@ -755,10 +755,10 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 	pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
 	pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
 	pars->Draw("same");
-	c1->SaveAs(m_fitFileName.c_str());
+	c1->SaveAs(m_QAFileName.c_str());
       }
     }
-    c1->SaveAs((boost::format("%s]") %m_fitFileName).str().c_str());
+    c1->SaveAs((boost::format("%s]") %m_QAFileName).str().c_str());
   }
   
   TFile *simDistortion = new TFile("/cvmfs/sphenix.sdcc.bnl.gov/gcc-12.1.0/release/release_new/new.10/share/calibrations/distortion_maps/average_minus_static_distortion_inverted_10-new.root", "READ");
