@@ -29,6 +29,12 @@ void PHG4TruthInfoContainer::Reset()
   }
   particlemap.clear();
 
+  for (auto& iter : sPHENIXprimaryparticlemap)
+  {
+    delete iter.second;
+  }
+  sPHENIXprimaryparticlemap.clear();
+
   for (auto& iter : vtxmap)
   {
     delete iter.second;
@@ -143,6 +149,17 @@ PHG4Particle* PHG4TruthInfoContainer::GetParticle(const int trackid)
 {
   int key = trackid;
   Iterator it = particlemap.find(key);
+  if (it != particlemap.end())
+  {
+    return it->second;
+  }
+  return nullptr;
+}
+
+PHG4Particle* PHG4TruthInfoContainer::GetParticle(const int trackid) const
+{
+  int key = trackid;
+  ConstIterator it = particlemap.find(key);
   if (it != particlemap.end())
   {
     return it->second;
@@ -403,7 +420,14 @@ void PHG4TruthInfoContainer::delete_shower(ShowerIterator siter)
 
 int PHG4TruthInfoContainer::isEmbeded(const int trackid) const
 {
-  std::map<int, int>::const_iterator iter = particle_embed_flags.find(trackid);
+  //I think here for G4 secondarys we just check their primary's embedding ID
+  int trackid_embed = trackid;
+  if (trackid_embed <= 0)
+  {
+    const PHG4Particle* p = GetParticle(trackid_embed);
+    if(p) trackid_embed = p->get_primary_id();
+  }
+  std::map<int, int>::const_iterator iter = particle_embed_flags.find(trackid_embed);
   if (iter == particle_embed_flags.end())
   {
     return 0;
