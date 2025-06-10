@@ -1771,6 +1771,9 @@ void TrackResiduals::createBranches()
   m_tree->Branch("dcaxy", &m_dcaxy, "m_dcaxy/F");
   m_tree->Branch("dcaz", &m_dcaz, "m_dcaz/F");
 
+  m_tree->Branch("clussector", &m_clsector);
+  m_tree->Branch("cluslayer", &m_cluslayer);
+  m_tree->Branch("clusside", &m_clside);
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);
   m_tree->Branch("clusoverlap", &m_clusoverlap);
