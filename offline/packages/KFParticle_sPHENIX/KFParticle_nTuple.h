@@ -92,7 +92,6 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   float m_calculated_mother_v = -1;
   float m_calculated_mother_chi2 = -1;
   int m_calculated_mother_ndof = -1;
-  float m_calculated_mother_SV_chi2_per_ndof = -1;
   int m_calculated_mother_pdgID = -1;
   // float *m_calculated_mother_cov;
   float m_calculated_mother_cov[21] = {0};
@@ -131,7 +130,6 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   float m_calculated_intermediate_v[max_intermediates] = {0};
   float m_calculated_intermediate_chi2[max_intermediates] = {0};
   int m_calculated_intermediate_ndof[max_intermediates] = {0};
-  float m_calculated_intermediate_SV_chi2_per_ndof[max_intermediates] = {0};
   int m_calculated_intermediate_pdgID[max_intermediates] = {0};
   // float *m_calculated_intermediate_cov[max_intermediates];
   float m_calculated_intermediate_cov[max_intermediates][21] = {{0}, {0}};
