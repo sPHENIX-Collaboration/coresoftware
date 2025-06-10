@@ -1291,14 +1291,13 @@ int Fun4AllStreamingInputManager::FillInttPool()
   }
   for (auto iter : m_InttInputVector)
   {
+	if(!m_gl1_registered_flag)
+	  iter->SetStandaloneMode(true);
 	if (Verbosity() > 0)
 	{
 	  std::cout << "Fun4AllStreamingInputManager::FillInttPool - fill pool for " << iter->Name() << std::endl;
 	}
-	if(!m_gl1_registered_flag)
-	{
-	}
-	iter->FillPool(ref_bco_minus_range,m_gl1_registered_flag);
+	iter->FillPool(ref_bco_minus_range);
 	// iter->FillPool();
 	if (m_RunNumber == 0)
 	{

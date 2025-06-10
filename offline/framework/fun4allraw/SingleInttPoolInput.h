@@ -20,7 +20,7 @@ class SingleInttPoolInput : public SingleStreamingInput
  public:
   explicit SingleInttPoolInput(const std::string &name);
   ~SingleInttPoolInput() override;
-  void FillPool(const uint64_t minBCO,bool flag) override;
+  void FillPool(const uint64_t minBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
@@ -53,7 +53,7 @@ class SingleInttPoolInput : public SingleStreamingInput
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
-  unsigned int m_BcoRange{0}; 
+  unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
   bool m_SkipEarlyEvents{true};
   std::array<uint64_t, 14> m_PreviousClock{};

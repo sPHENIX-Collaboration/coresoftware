@@ -21,7 +21,6 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   ~SingleStreamingInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
   virtual void FillPool(const uint64_t) { return; }
-  virtual void FillPool(const uint64_t,bool) { return; }
   virtual void FillPool(const unsigned int = 1) { return; }
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
@@ -61,6 +60,8 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   const std::string &getHitContainerName() const { return m_rawHitContainerName; }
   const std::map<int, std::set<uint64_t>> &getFeeGTML1BCOMap() const { return m_FeeGTML1BCOMap; }
 
+  void SetStandaloneMode(bool mode) { m_standalone_mode = mode; }
+  bool IsStandaloneMode() const { return m_standalone_mode; }  
   //! event assembly QA histograms
   virtual void createQAHistos() {}
 
@@ -110,6 +111,7 @@ class SingleStreamingInput : public Fun4AllBase, public InputFileHandler
   std::map<int, std::set<uint64_t>> m_BclkStackPacketMap;
   std::map<int, std::set<uint64_t>> m_FeeGTML1BCOMap;
   std::string m_rawHitContainerName = "";
+  bool m_standalone_mode = false;
 
  private:
   Eventiterator *m_EventIterator{nullptr};
