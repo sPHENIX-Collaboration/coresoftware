@@ -1695,7 +1695,16 @@ void TrackResiduals::createBranches()
   m_clustree->Branch("erphi", &m_scluselx, "m_scluselx/F");
   m_clustree->Branch("ez", &m_scluselz, "m_scluselz/F");
   m_clustree->Branch("maxadc", &m_clusmaxadc, "m_clusmaxadc/F");
-  m_clustree->Branch("hitsetkey", &m_hitsetkey, "m_hitsetkey/i");
+  m_clustree->Branch("sector", &m_clussector, "m_clussector/I");
+  m_clustree->Branch("side", &m_side, "m_side/I");
+  m_clustree->Branch("stave", &m_staveid, "m_staveid/I");
+  m_clustree->Branch("chip", &m_chipid, "m_chipid/I");
+  m_clustree->Branch("strobe", &m_strobeid, "m_strobeid/I");
+  m_clustree->Branch("ladderz", &m_ladderzid, "m_ladderzid/I");
+  m_clustree->Branch("ladderphi", &m_ladderphiid, "m_ladderphiid/I");
+  m_clustree->Branch("timebucket", &m_timebucket, "m_timebucket/I");
+  m_clustree->Branch("segtype", &m_segtype, "m_segtype/I");
+  m_clustree->Branch("tile", &m_tileid, "m_tileid/I");
 
   m_tree = new TTree("residualtree", "A tree with track, cluster, and state info");
   m_tree->Branch("run", &m_runnumber, "m_runnumber/I");
@@ -1771,6 +1780,9 @@ void TrackResiduals::createBranches()
   m_tree->Branch("dcaxy", &m_dcaxy, "m_dcaxy/F");
   m_tree->Branch("dcaz", &m_dcaz, "m_dcaz/F");
 
+  m_tree->Branch("clussector", &m_clsector);
+  m_tree->Branch("cluslayer", &m_cluslayer);
+  m_tree->Branch("clusside", &m_clside);
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);
   m_tree->Branch("clusoverlap", &m_clusoverlap);
