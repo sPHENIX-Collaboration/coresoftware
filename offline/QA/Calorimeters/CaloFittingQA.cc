@@ -596,10 +596,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     else
     {
       CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
-      if (calopacket)
-      {
-        process_packet(calopacket, pid);
-      }
+      process_packet(calopacket, pid);
     } 
   }
 
