@@ -22,16 +22,16 @@ class PHCompositeNode;
 class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
 {
  public:
-  static constexpr size_t pooldepth{10}; // number of events which are read in in one go
+  static constexpr size_t pooldepth{10};  // number of events which are read in in one go
   explicit SingleTriggeredInput(const std::string &name);
   ~SingleTriggeredInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
-  virtual void FillPool(const unsigned int = 1);
+  virtual void FillPool();
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
   virtual void EventNumber(const int i) { m_EventNumber = i; }
   virtual int EventNumber() const { return m_EventNumber; }
-  virtual int EventsInThisFile() const {return m_EventsThisFile;}
+  virtual int EventsInThisFile() const { return m_EventsThisFile; }
   virtual int fileopen(const std::string &filename) override;
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
@@ -44,20 +44,22 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
   virtual int FillEventVector();
-
+  virtual int ReadEvent();
   virtual SingleTriggeredInput *Gl1Input() { return m_Gl1Input; }
   virtual void Gl1Input(SingleTriggeredInput *input) { m_Gl1Input = input; }
   virtual uint64_t GetClock(Event *evt);
-  virtual std::array<uint64_t, pooldepth>::const_iterator begin() { return m_bclkdiffarray.begin(); }
-  virtual std::array<uint64_t, pooldepth>::const_iterator end() { return m_bclkdiffarray.end(); }
+  virtual std::array<uint64_t, pooldepth>::const_iterator clkdiffbegin() { return m_bclkdiffarray.begin(); }
+  virtual std::array<uint64_t, pooldepth>::const_iterator clkdiffend() { return m_bclkdiffarray.end(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
-  virtual void KeepPackets() {m_KeepPacketsFlag = true;}
-  virtual bool KeepMyPackets() const {return m_KeepPacketsFlag;}
+  virtual void KeepPackets() { m_KeepPacketsFlag = true; }
+  virtual bool KeepMyPackets() const { return m_KeepPacketsFlag; }
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
   virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
-  
+  void dumpdeque();
+  int checkfirstsebevent();
+
  protected:
   PHCompositeNode *m_topNode{nullptr};
   // lined up like this:

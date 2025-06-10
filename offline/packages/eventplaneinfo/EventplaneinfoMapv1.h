@@ -24,7 +24,7 @@ class EventplaneinfoMapv1 : public EventplaneinfoMap
 
   const Eventplaneinfo* get(unsigned int idkey) const override;
   Eventplaneinfo* get(unsigned int idkey) override;
-  Eventplaneinfo* insert(Eventplaneinfo* ep, EPTYPE type) override;
+  Eventplaneinfo* insert(Eventplaneinfo* clus, EPTYPE id) override;
 
   ConstIter begin() const override { return _map.begin(); }
   ConstIter find(unsigned int idkey) const override { return _map.find(idkey); }

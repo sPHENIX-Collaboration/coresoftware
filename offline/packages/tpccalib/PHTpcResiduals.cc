@@ -1,5 +1,5 @@
 #include "PHTpcResiduals.h"
-#include "TpcSpaceChargeMatrixContainerv1.h"
+#include "TpcSpaceChargeMatrixContainerv2.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -128,7 +128,7 @@ namespace
 //___________________________________________________________________________________
 PHTpcResiduals::PHTpcResiduals(const std::string& name)
   : SubsysReco(name)
-  , m_matrix_container(new TpcSpaceChargeMatrixContainerv1)
+  , m_matrix_container(new TpcSpaceChargeMatrixContainerv2)
 {
 }
 
@@ -558,9 +558,9 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
 
     // Fill distortion matrices
-    m_matrix_container->add_to_lhs(index, 0, 0, clusR / erp);
+    m_matrix_container->add_to_lhs(index, 0, 0, square(clusR) / erp);
     m_matrix_container->add_to_lhs(index, 0, 1, 0);
-    m_matrix_container->add_to_lhs(index, 0, 2, trackAlpha / erp);
+    m_matrix_container->add_to_lhs(index, 0, 2, clusR*trackAlpha / erp);
 
     m_matrix_container->add_to_lhs(index, 1, 0, 0);
     m_matrix_container->add_to_lhs(index, 1, 1, 1. / ez);
@@ -570,9 +570,27 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     m_matrix_container->add_to_lhs(index, 2, 1, trackBeta / ez);
     m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
 
-    m_matrix_container->add_to_rhs(index, 0, drphi / erp);
+    m_matrix_container->add_to_rhs(index, 0, clusR*drphi / erp);
     m_matrix_container->add_to_rhs(index, 1, dz / ez);
     m_matrix_container->add_to_rhs(index, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
+
+    // also update rphi reduced matrices
+    m_matrix_container->add_to_lhs_rphi(index, 0, 0, square(clusR) / erp);
+    m_matrix_container->add_to_lhs_rphi(index, 0, 1, clusR*trackAlpha / erp);
+    m_matrix_container->add_to_lhs_rphi(index, 1, 0, clusR * trackAlpha / erp);
+    m_matrix_container->add_to_lhs_rphi(index, 1, 1, square(trackAlpha) / erp);
+
+    m_matrix_container->add_to_rhs_rphi(index, 0, clusR*drphi / erp);
+    m_matrix_container->add_to_rhs_rphi(index, 1, trackAlpha * drphi / erp);
+
+    // also update z reduced matrices
+    m_matrix_container->add_to_lhs_z(index, 0, 0, 1. / ez);
+    m_matrix_container->add_to_lhs_z(index, 0, 1, trackBeta / ez);
+    m_matrix_container->add_to_lhs_z(index, 1, 0, trackBeta / ez);
+    m_matrix_container->add_to_lhs_z(index, 1, 1, square(trackBeta) / ez);
+
+    m_matrix_container->add_to_rhs_z(index, 0, dz / ez);
+    m_matrix_container->add_to_rhs_z(index, 1, trackBeta * dz / ez);
 
     // update entries in cell
     m_matrix_container->add_to_entries(index);

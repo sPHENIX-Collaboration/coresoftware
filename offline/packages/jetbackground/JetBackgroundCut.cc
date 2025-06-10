@@ -16,14 +16,14 @@
 //____________________________________________________________________________..
 JetBackgroundCut::JetBackgroundCut(const std::string &jetNodeName, const std::string &name, const int debug, const bool doAbort, GlobalVertex::VTXTYPE vtxtype, int sysvar)
   : SubsysReco(name)
-  , _name(name)
-  , _jetNodeName(jetNodeName)
+  , _doAbort(doAbort), _name(name)
+  , _debug(debug), _jetNodeName(jetNodeName)
   , _vtxtype(vtxtype)
-  , _cutParams(name)
+  , _sysvar(sysvar), _cutParams(name)
 {
-  _debug = debug;
-  _doAbort = doAbort;
-  _sysvar = sysvar;
+  
+  
+  
   SetDefaultParams();
 }
 
@@ -84,15 +84,19 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
 
   if (gvtxmap)
   {
+    GlobalVertex *gvtx = nullptr;
     if (gvtxmap->empty())
     {
       if (_debug > 0)
       {
-        std::cout << "gvtxmap empty - aborting event." << std::endl;
+        std::cout << "gvtxmap empty - set zvtx to 0 and continue." << std::endl;
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      zvtx = 0;
     }
-    GlobalVertex *gvtx = gvtxmap->begin()->second;
+    else
+    {
+      gvtx = gvtxmap->begin()->second;
+    }
     if (gvtx)
     {
       auto startIter = gvtx->find_vertexes(_vtxtype);
@@ -118,19 +122,27 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
     {
       if (_debug > 0)
       {
-        std::cout << "gvtx is NULL! Aborting event." << std::endl;
+        std::cout << "gvtx is NULL! Set zvtx to 0 and continue." << std::endl;
       }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      zvtx = 0;
     }
+  }
+  else
+  {
+    if (_debug > 0)
+    {
+      std::cout << "gvtxmap is NULL! ABORT EVENT!" << std::endl;
+    }
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   if (std::isnan(zvtx))
   {
     if (_debug > 0)
     {
-      std::cout << "zvtx is NAN after attempting to grab it. ABORT EVENT!" << std::endl;
+      std::cout << "zvtx is NAN after attempting to grab it. Set to 0 and continue." << std::endl;
     }
-    return Fun4AllReturnCodes::ABORTEVENT;
+    zvtx = 0;
   }
 
   if (_debug > 1)

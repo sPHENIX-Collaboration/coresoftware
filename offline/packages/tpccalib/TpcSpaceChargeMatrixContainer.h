@@ -57,6 +57,22 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   virtual float get_rhs( int /*cell_index*/, int /*i*/ ) const
   { return 0; }
 
+  /// get reduced rphi left hand side
+  virtual float get_lhs_rphi( int /*cell_index*/, int /*i*/, int /*j*/ ) const
+  { return 0; }
+
+  /// get reduced rphi right hand side
+  virtual float get_rhs_rphi(int /*cell_index*/, int /*i*/ ) const
+  { return 0; }
+
+  /// get reduced z left hand side
+  virtual float get_lhs_z( int /*cell_index*/, int /*i*/, int /*j*/ ) const
+  { return 0; }
+
+  /// get reduced z right hand side
+  virtual float get_rhs_z(int /*cell_index*/, int /*i*/ ) const
+  { return 0; }
+
   //@}
 
   ///@name modifiers
@@ -88,6 +104,22 @@ class TpcSpaceChargeMatrixContainer : public PHObject
 
   /// increment right hand side column
   virtual void add_to_rhs( int /*cell_index*/, int /*i*/, float /*value*/ )
+  {}
+
+  /// increment left hand side reduced rphi matrix
+  virtual void add_to_lhs_rphi( int /*cell_index*/, int /*i*/, int /*j*/, float /*value*/ )
+  {}
+
+  /// increment right hand side reduced rphi column
+  virtual void add_to_rhs_rphi( int /*cell_index*/, int /*i*/, float /*value*/)
+  {}
+
+  /// increment left hand side reduced rphi matrix
+  virtual void add_to_lhs_z( int /*cell_index*/, int /*i*/, int /*j*/, float /*value*/ )
+  {}
+
+  /// increment right hand side reduced rphi column
+  virtual void add_to_rhs_z(int /*cell_index*/, int /*i*/, float /*value*/)
   {}
 
   /// add content from other container, returns true on success

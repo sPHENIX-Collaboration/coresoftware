@@ -417,7 +417,19 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     CaloPacketContainer *hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(dettype)->second);
     if (!hcalcont)
     {
-      return Fun4AllReturnCodes::EVENT_OK;
+      for (int pid = packet_low; pid <= packet_high; pid++)
+      {
+        if (findNode::getClass<CaloPacket>(topNode, pid))
+        {
+          m_PacketNodesFlag = true;
+          break;
+        }
+      }
+      if(!m_PacketNodesFlag)
+      {
+        std::cout << "CaloFittingQA: unable to find node " << nodemap.find(dettype)->second << "  skiping event" << std::endl;
+        return Fun4AllReturnCodes::EVENT_OK;
+      }
     }
     event = hcalcont;
   }
@@ -442,6 +454,10 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     {
       h_packet_events->Fill(pid);
       int nchannels = packet->iValue(0, "CHANNELS");
+      if (nchannels==0) 
+      {
+        h_empty_packets->Fill(pid);
+      }
       unsigned int adc_skip_mask = 0;
 
       if (dettype == CaloTowerDefs::CEMC)
@@ -457,6 +473,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
          return Fun4AllReturnCodes::ABORTEVENT;
       }
       
+      int n_pad_skip_mask = 0;
       for (int channel = 0; channel < nchannels; channel++)
       {
         if (skipChannel(channel, pid, dettype))
@@ -472,6 +489,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
             {
               for (int iskip = 0; iskip < 64; iskip++)
               {
+                n_pad_skip_mask++;
                 std::vector<float> waveform;
                 waveform.reserve(m_nsamples);
 
@@ -504,9 +522,11 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
         waveform.clear();
       }
 
-      if (nchannels < m_nchannels && !(dettype == CaloTowerDefs::CEMC && adc_skip_mask < 4))
+      int nch_padded = nchannels;
+      if (dettype == CaloTowerDefs::CEMC) nch_padded += n_pad_skip_mask;
+      if ( nch_padded  < m_nchannels)
       {
-        for (int channel = 0; channel < m_nchannels - nchannels; channel++)
+        for (int channel = 0; channel < m_nchannels - nch_padded; channel++)
         {
           if (skipChannel(channel, pid, dettype))
           {
@@ -548,28 +568,39 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
 
   for (int pid = packet_low; pid <= packet_high; pid++)
   {
-    if (auto hcalcont = std::get_if<CaloPacketContainer *>(&event))
+    if (!m_PacketNodesFlag)
     {
-      CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
-      if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      if (auto hcalcont = std::get_if<CaloPacketContainer *>(&event))
       {
-        return Fun4AllReturnCodes::ABORTEVENT;
+        CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
+        if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+        {
+          return Fun4AllReturnCodes::ABORTEVENT;
+        }
       }
-    }
-    else if (auto _event = std::get_if<Event *>(&event))
-    {
-      Packet *packet = (*_event)->getPacket(pid);
-      if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      else if (auto _event = std::get_if<Event *>(&event))
       {
-        //I think it is safe to delete a nullptr...
+        Packet *packet = (*_event)->getPacket(pid);
+        if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+        {
+          //I think it is safe to delete a nullptr...
+          delete packet;
+          return Fun4AllReturnCodes::ABORTEVENT;
+        }
+        else
+        {
         delete packet;
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
-      else
-      {
-      delete packet;
+        }
       }
     }
+    else
+    {
+      CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
+      if (calopacket)
+      {
+        process_packet(calopacket, pid);
+      }
+    } 
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -662,5 +693,9 @@ void CaloFittingQA::createHistos()
   h_packet_events = new TH1I(boost::str(boost::format("%spacket_events") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
   h_packet_events->SetDirectory(nullptr);
   hm->registerHisto(h_packet_events);
+
+  h_empty_packets = new TH1I(boost::str(boost::format("%sempty_packets") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
+  h_empty_packets->SetDirectory(nullptr);
+  hm->registerHisto(h_empty_packets);
 
 }

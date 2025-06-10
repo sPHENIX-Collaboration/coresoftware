@@ -6,17 +6,20 @@
 #include "PHG4Particlev2.h"
 
 #include <iostream>
+#include <limits>
 
 class PHG4Particle;
 
 class PHG4Particlev3 : public PHG4Particlev2
 {
  public:
-  PHG4Particlev3();
+  PHG4Particlev3() = default;
   //  PHG4Particlev3(const std::string &name, const int pid, const double px, const double py, const double pz);
   PHG4Particlev3(const PHG4Particle* in);
 
-  ~PHG4Particlev3() override {}
+  ~PHG4Particlev3() override = default;
+
+  PHObject* CloneMe() const override { return new PHG4Particlev3(*this); }
 
   void identify(std::ostream& os = std::cout) const override;
 
@@ -32,10 +35,10 @@ class PHG4Particlev3 : public PHG4Particlev2
   double get_ExcitEnergy() const override { return excitEnergy; }
 
  protected:
-  int A;
-  int Z;
-  double ioncharge;
-  double excitEnergy;
+  int A{0};
+  int Z{0};
+  double ioncharge{std::numeric_limits<double>::quiet_NaN()};
+  double excitEnergy{std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PHG4Particlev3, 1)
 };

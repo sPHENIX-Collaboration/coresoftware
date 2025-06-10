@@ -28,8 +28,8 @@ public:
 
   void ResetMe();
   void set_sepd_epreco(bool sepdEpReco) { _sepdEpReco = sepdEpReco; }
-  void set_default_calibfile(bool default_calib) { _default_calib = default_calib; }
   void set_mbd_epreco(bool mbdEpReco) { _mbdEpReco = mbdEpReco; }
+  void set_isSim(bool isSim) { _isSim = isSim; }
   void set_sEPD_Mip_cut(const float e) { _epd_e = e; }
   void set_sEPD_Charge_cut(const float c) { _epd_charge_min = c; }
   void set_MBD_Min_Qcut(const float f) { _mbd_e = f; }
@@ -38,10 +38,9 @@ public:
 
 private:
   int CreateNodes(PHCompositeNode *topNode);
-
   unsigned int m_MaxOrder{3};
-  int m_runNo{54912};
   std::string FileName;
+    
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
   std::vector<std::vector<double>> northsouth_q;
@@ -53,7 +52,8 @@ private:
  // recentering utility
  std::vector<std::vector<double>> south_q_subtract;
  std::vector<std::vector<double>> north_q_subtract;
-   
+ std::vector<std::vector<double>> northsouth_q_subtract;
+
  // shifting utility
  std::vector<double> shift_north;
  std::vector<double> shift_south;
@@ -67,6 +67,8 @@ private:
  TProfile2D *tprof_mean_sin_north_epd_input[6]{};
  TProfile2D *tprof_mean_cos_south_epd_input[6]{};
  TProfile2D *tprof_mean_sin_south_epd_input[6]{};
+ TProfile2D *tprof_mean_cos_northsouth_epd_input[6]{};
+ TProfile2D *tprof_mean_sin_northsouth_epd_input[6]{};
     
 // shifting histograms
  const int _imax{12};
@@ -79,16 +81,18 @@ private:
 
   bool _mbdEpReco{false};
   bool _sepdEpReco{false};
+  bool _isSim{false};
   bool _do_ep{false};
-  bool _default_calib{true};
-    
+
   float _nsum{0.0};
   float _ssum{0.0};
   float _mbdvtx{999.0};
   float _epd_charge_min{5.0};
+  float _epd_charge_max{10000.0};
   float _epd_e{10.0};
   float _mbd_e{10.0};
   float _mbdQ{0.0};
+  double _totalcharge{0.0};
   float _mbd_vertex_cut{60.0};
 
  
