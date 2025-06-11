@@ -1291,30 +1291,32 @@ int Fun4AllStreamingInputManager::FillInttPool()
   }
   for (auto iter : m_InttInputVector)
   {
-    if (Verbosity() > 0)
-    {
-      std::cout << "Fun4AllStreamingInputManager::FillInttPool - fill pool for " << iter->Name() << std::endl;
-    }
-    iter->FillPool(ref_bco_minus_range);
-    // iter->FillPool();
-    if (m_RunNumber == 0)
-    {
-      m_RunNumber = iter->RunNumber();
-      SetRunNumber(m_RunNumber);
-    }
-    else
-    {
-      if (m_RunNumber != iter->RunNumber())
-      {
-        std::cout << PHWHERE << " Run Number mismatch, run is "
-                  << m_RunNumber << ", " << iter->Name() << " reads "
-                  << iter->RunNumber() << std::endl;
-        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
-        Print("INPUTFILES");
-        gSystem->Exit(1);
-        exit(1);
-      }
-    }
+	if(!m_gl1_registered_flag)
+	  iter->SetStandaloneMode(true);
+	if (Verbosity() > 0)
+	{
+	  std::cout << "Fun4AllStreamingInputManager::FillInttPool - fill pool for " << iter->Name() << std::endl;
+	}
+	iter->FillPool(ref_bco_minus_range);
+	// iter->FillPool();
+	if (m_RunNumber == 0)
+	{
+	  m_RunNumber = iter->RunNumber();
+	  SetRunNumber(m_RunNumber);
+	}
+	else
+	{
+	  if (m_RunNumber != iter->RunNumber())
+	  {
+		std::cout << PHWHERE << " Run Number mismatch, run is "
+		  << m_RunNumber << ", " << iter->Name() << " reads "
+		  << iter->RunNumber() << std::endl;
+		std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+		Print("INPUTFILES");
+		gSystem->Exit(1);
+		exit(1);
+	  }
+	}
   }
   if (m_InttRawHitMap.empty())
   {
