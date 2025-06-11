@@ -52,6 +52,7 @@ class PHG4TruthInfoContainer : public PHObject
   void delete_particle(int trackid);
 
   PHG4Particle* GetParticle(const int trackid);
+  PHG4Particle* GetParticle(const int trackid) const;
   PHG4Particle* GetPrimaryParticle(const int trackid);
 
   PHG4Particle* GetsPHENIXPrimaryParticle(const int trackid);

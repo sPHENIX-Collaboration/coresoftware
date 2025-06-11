@@ -76,7 +76,25 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
   }
 
   int vtxindex = ti->get_vtx_id();
+  
 
+  // maybe we should do the sPHENIX primary tracking here as here is the place where the parent id etc. are finally set
+  
+  if (issPHENIXPrimary(*m_TruthInfoList, ti))
+  {
+
+    //we also want to set keep this track
+    PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
+    if (userinfo)
+    {
+      userinfo->SetKeep(true);
+    }
+
+    PHG4Particle* newparticle = dynamic_cast<PHG4Particle*>(ti->CloneMe());
+
+    m_TruthInfoList->AddsPHENIXPrimaryParticle(trackid, newparticle);
+  }
+  
   m_CurrG4Particle = {track_id_g4, trackid, vtxindex};
 
   // create or add to a new shower object --------------------------------------
@@ -273,12 +291,23 @@ PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth
   ti->set_vtx_id(vtx->get_id());
 
   // use a new map to hold the new primary particle list
-  if(issPHENIXPrimary(truth, ti))
+  // some debug print
+  /*
   {
-    PHG4Particle *newparticle = dynamic_cast<PHG4Particle *> (ti->CloneMe());
-    truth.AddsPHENIXPrimaryParticle(trackid, newparticle);
+    float vtx_x = vtx->get_x() * cm;
+    float vtx_y = vtx->get_y() * cm;
+    float vtx_z = vtx->get_z() * cm;
+    auto process = vtx->get_process();
+    std::cout << "PHG4TruthTrackingAction::AddParticle - Adding particle with track id " << trackid
+              << ", vtx id " << ti->get_vtx_id()
+              << ", vtx position (" << vtx_x << ", " << vtx_y << ", " << vtx_z << ") cm"
+              << ", process: " << process
+              << ", parent id: " << ti->get_parent_id()
+              << ", pid: " << ti->get_pid()
+              << ", name: " << ti->get_name()
+              << std::endl;
   }
-
+  */
   return truth.AddParticle(trackid, ti)->second;
 }
 
@@ -315,32 +344,40 @@ bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PH
   }
   auto process = vtx->get_process();
   int pdgid = particle->get_pid();
-  //if not long-lived, then it is not a primary
+  // if not long-lived, then it is not a primary
   if (!isLongLived(pdgid))
   {
     return false;
   }
-  //check the production process
-  //if not decay or primary, then it is not a primary
-  if(!( process == PHG4MCProcess::kPPrimary || process == PHG4MCProcess::kPDecay))
+  // check the production process
+  // if not decay or primary, then it is not a primary
+  // debug print for pid, track id, parent id, and process
+  /*
+  std::cout << "PHG4TruthTrackingAction::issPHENIXPrimary - checking particle with track id " << particle->get_track_id()
+            << ", pid: " << pdgid
+            << ", parent id: " << particle->get_parent_id()
+            << ", process: " << process
+            << std::endl;
+            */
+  if (!(process == PHG4MCProcess::kPPrimary || process == PHG4MCProcess::kPDecay) && particle->get_parent_id())  // all primary particles seems to have unkown process id
   {
     return false;
   }
   // now we are clear from particle produced from material interactions
-  if(particle->get_parent_id() == 0)
+  if (particle->get_parent_id() == 0)
   {
-    //conditioning on the above, if the track is primary, then it is a sPHENIX primary
+    // conditioning on the above, if the track is primary, then it is a sPHENIX primary
     return true;
   }
-  //not we want to check if their parent is long-lived or primary
-  //in G4 parent should always process before child, so we can just go up the tree
+  // not we want to check if their parent is long-lived or primary
+  // in G4 parent should always process before child, so we can just go up the tree
   PHG4Particle* parent = truth.GetParticle(particle->get_parent_id());
-  //if there is a loop of the parent, then we have a problem lol with this while loop btw
+  // if there is a loop of the parent, then we have a problem lol with this while loop btw
   while (parent)
   {
     if (isLongLived(parent->get_pid()))
     {
-      //if the parent is long-lived or primary, then it is not a sPHENIX primary
+      // if the parent is long-lived or primary, then it is not a sPHENIX primary
       return false;
     }
     PHG4VtxPoint* vtx_parent = truth.GetVtx(parent->get_vtx_id());
@@ -351,12 +388,12 @@ bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PH
       return false;
     }
     process = vtx_parent->get_process();
-    //if parent is not from decay or primary, then it is not a sPHENIX primary
-    if(!( process == PHG4MCProcess::kPPrimary || process == PHG4MCProcess::kPDecay))
+    // if parent is not from decay or primary, then it is not a sPHENIX primary
+    if (!(process == PHG4MCProcess::kPPrimary || process == PHG4MCProcess::kPDecay) && parent->get_parent_id())
     {
       return false;
     }
-    //otherwise, go up the tree
+    // otherwise, go up the tree
     parent = truth.GetParticle(parent->get_parent_id());
   }
 
@@ -367,47 +404,47 @@ bool PHG4TruthTrackingAction::isLongLived(int pid) const
 {
   // see https://inspirehep.net/files/4c26ef5fb432df99bdc1ff847653502f
   // Check nuclus
-  if(pid>1000000000) return true;
-  //this needs to be hardcoded somehow... :(
-  //but in the future we can find a better home for this piece of code
+  if (pid > 1000000000) return true;
+  // this needs to be hardcoded somehow... :(
+  // but in the future we can find a better home for this piece of code
   switch (pid)
   {
-    case 11:  // electron
-    case -11: // positron
-    case 13:  // muon
-    case -13: // antimuon
-    case 22:  // photon
-    case 211: // pi+
-    case -211: // pi-
-    case 321: // K+
-    case -321: // K-
-    case 310: // K0S
-    case 130: // K0L
-    case 2212: // proton
-    case -2212: // antiproton
-    case 2112: // neutron
-    case -2112: // antineutron
-    case 3122: // Lambda
-    case -3122: // anti-Lambda
-    case 3222: // Sigma+
-    case -3222: // anti-Sigma+ ?
-    case 3112: // Sigma-
-    case -3112: // anti-Sigma-
-    case 	3312: // Xi-
-    case -3312: // anti-Xi-
-    case 3322: // Xi0
-    case -3322: // anti-Xi0
-    case 3334: // Omega-
-    case -3334: // anti-Omega-
-    case 12:  // neutrino
-    case -12: // antineutrino
-    case 14:  // muon neutrino
-    case -14: // muon antineutrino
-    case 16:  // tau neutrino
-    case -16: // tau antineutrino
+  case 11:     // electron
+  case -11:    // positron
+  case 13:     // muon
+  case -13:    // antimuon
+  case 22:     // photon
+  case 211:    // pi+
+  case -211:   // pi-
+  case 321:    // K+
+  case -321:   // K-
+  case 310:    // K0S
+  case 130:    // K0L
+  case 2212:   // proton
+  case -2212:  // antiproton
+  case 2112:   // neutron
+  case -2112:  // antineutron
+  case 3122:   // Lambda
+  case -3122:  // anti-Lambda
+  case 3222:   // Sigma+
+  case -3222:  // anti-Sigma+ ?
+  case 3112:   // Sigma-
+  case -3112:  // anti-Sigma-
+  case 3312:   // Xi-
+  case -3312:  // anti-Xi-
+  case 3322:   // Xi0
+  case -3322:  // anti-Xi0
+  case 3334:   // Omega-
+  case -3334:  // anti-Omega-
+  case 12:     // neutrino
+  case -12:    // antineutrino
+  case 14:     // muon neutrino
+  case -14:    // muon antineutrino
+  case 16:     // tau neutrino
+  case -16:    // tau antineutrino
 
-      return true;
-    default:
-      return false;
+    return true;
+  default:
+    return false;
   }
 }
