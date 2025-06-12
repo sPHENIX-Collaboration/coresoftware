@@ -102,7 +102,7 @@ class AnnularFieldSim
   float GetNominalB() { return Bnominal; };
   float GetNominalE() { return Enominal; };
   float GetChargeAt(const TVector3 &pos);
-  TVector3 GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin)
+  TVector3 GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin);
   TVector3 GetFieldAt(const TVector3 &pos);
   TVector3 GetBFieldAt(const TVector3 &pos);
   TVector3 GetFieldStep() { return step; };
