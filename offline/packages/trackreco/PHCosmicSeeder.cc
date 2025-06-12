@@ -100,6 +100,23 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
       clusterPositions.insert(std::make_pair(ckey, global));
     }
   }
+  if(m_trackerId==TrkrDefs::TrkrId::mvtxId)
+  {
+    for (const auto& hitsetkey : m_clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::inttId))
+    {
+      auto range = m_clusterContainer->getClusters(hitsetkey);
+      for (auto citer = range.first; citer != range.second; ++citer)
+      {
+        const auto ckey = citer->first;
+        const auto cluster = citer->second;
+        if(cluster->getMaxAdc() < m_adcCut){
+          continue;
+        }
+        const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
+        clusterPositions.insert(std::make_pair(ckey, global));
+      }
+    }
+  }
   if (Verbosity() > 2)
   {
     std::cout << "cluster map size is " << clusterPositions.size() << std::endl;
@@ -479,10 +496,16 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       // only look at the cluster that is within 2cm of the doublet clusters
       float const dist1 = (pos1 - pos).norm();
       float const dist2 = (pos2 - pos).norm();
+      std::cout<< "layer " << int(TrkrDefs::getLayer(key)) << std::endl;
+      std::cout << "dist1, dist2 " << dist1 << ", " << dist2 << std::endl;
       float dist12_check = 2.;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
         dist12_check = 3.5;
+        if(TrkrDefs::getLayer(key) > 2)
+        {
+          dist12_check = 100000.0;
+        }
       }
       if (dist1 < dist2)
       {
@@ -504,13 +527,18 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       float const predz2 = dub.yzslope * pos.y() + dub.yzintercept;
       if (Verbosity() > 2)
       {
+        std::cout << "testing key with layer "<< int(TrkrDefs::getLayer(key))<<std::endl; 
         std::cout << "testing ckey " << key << " with box dca "
                   << predy << ", " << pos.transpose() << " and " << predz << ", " << pos.z()
                   << std::endl;
       }
       if (fabs(predy - pos.y()) < m_xyTolerance)
       {
-        if (m_trackerId == TrkrDefs::TrkrId::mvtxId && (fabs(predz - pos.z()) > 0.3 || fabs(predz2 - pos.z()) > 0.3))
+        if (m_trackerId == TrkrDefs::TrkrId::mvtxId && TrkrDefs::getLayer(key)<3 && (fabs(predz - pos.z()) > 0.3 || fabs(predz2 - pos.z()) > 0.3))
+        {
+          continue;
+        }
+        else if( m_trackerId == TrkrDefs::TrkrId::mvtxId && TrkrDefs::getLayer(key) >= 3 && (fabs(predz - pos.z()) > 1.1 || fabs(predz2 - pos.z()) > 1.1))
         {
           continue;
         }
