@@ -38,6 +38,7 @@ pkginclude_HEADERS = \
   LaserClusterizer.h \
   LaserEventInfo.h \
   LaserEventInfov1.h \
+  LaserEventInfov2.h \
   LaserEventIdentifier.h \
   LaserEventRejecter.h \
   TrainingHitsContainer.h \
@@ -61,6 +62,7 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   LaserEventInfo_Dict.cc \
   LaserEventInfov1_Dict.cc \
+  LaserEventInfov2_Dict.cc \
   TrainingHitsContainer_Dict.cc \
   TrainingHits_Dict.cc
 
@@ -68,6 +70,7 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   LaserEventInfo_Dict_rdict.pcm \
   LaserEventInfov1_Dict_rdict.pcm \
+  LaserEventInfov2_Dict_rdict.pcm \
   TrainingHitsContainer_Dict_rdict.pcm \
   TrainingHits_Dict_rdict.pcm
 
@@ -79,6 +82,7 @@ dist_mydata_DATA = \
 libtpc_la_SOURCES = \
   LaserClusterizer.cc \
   LaserEventInfov1.cc \
+  LaserEventInfov2.cc \
   LaserEventIdentifier.cc \
   LaserEventRejecter.cc \
   TpcRawDataTree.cc \
@@ -113,6 +117,7 @@ libtpc_la_LIBADD = \
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
   LaserEventInfov1.cc \
+  LaserEventInfov2.cc \
   TrainingHitsContainer.cc \
   TrainingHits.cc
 
