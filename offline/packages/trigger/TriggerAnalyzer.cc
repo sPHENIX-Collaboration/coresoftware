@@ -10,6 +10,13 @@
 
 int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
 {
+  triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+  if (!triggerruninfo)
+  {
+    std::cout << " no triggerruninfo" << std::endl;
+    return 1;
+  }
+
   if (m_useEmulator)
   {
     ll1out_photon = findNode::getClass<LL1Out>(topNode, "LL1OUT_PHOTON");
@@ -44,12 +51,6 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
 	return 1;
       }
     }
-  }
-  triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
-  if (!triggerruninfo)
-  {
-    std::cout << " no triggerruninfo" << std::endl;
-    return 1;
   }
 
   gl1_scaledvec = gl1packet->lValue(0, "ScaledVector");
