@@ -1243,28 +1243,23 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
       residual_z[daughter_id].push_back(global.z() - tstate->get_z());
 
       uint8_t id = TrkrDefs::getTrkrId(stateckey);
-      std::cout << "The ID is " << unsigned(id) << std::endl;
 
       switch (id)
       {
       case TrkrDefs::mvtxId:
         ++detector_nStates_MVTX[daughter_id];
-        // std::cout <<"MVTX is good" << std::endl;
         break;
       case TrkrDefs::inttId:
         ++detector_nStates_INTT[daughter_id];
-        // std::cout <<"INTT is good" << std::endl;
         break;
       case TrkrDefs::tpcId:
         ++detector_nStates_TPC[daughter_id];
-        // std::cout <<"TPC is good" << std::endl;
         break;
       case TrkrDefs::micromegasId:
         ++detector_nStates_TPOT[daughter_id];
-        // std::cout <<"TPOT is good" << std::endl;
         break;
       default:
-        //  std::cout << "Cluster key doesnt match a tracking system, this shouldn't happen" << std::endl;
+        std::cout << "Cluster key doesnt match a tracking system, this shouldn't happen" << std::endl;
         break;
       }
     }

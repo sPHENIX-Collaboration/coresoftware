@@ -163,11 +163,20 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
       {
         int num_hits = pool->iValue(0, "NR_HITS");
         if (Verbosity() > 1)
-        {
-          std::cout << "Number of Hits: " << num_hits << " for packet "
-                    << pool->getIdentifier() << std::endl;
-        }
+		{
+		  std::cout << "Number of Hits: " << num_hits << " for packet "
+			<< pool->getIdentifier() << std::endl;
+		}
+		if (Verbosity() > 2)
+		{
+		  if(IsStandaloneMode())
+		  {
 
+			std::cout<<"INTT Pool in Standalone mode "<<std::endl;
+		  }
+		  else
+			std::cout<<"INTT Pool with GL1 BCO "<<std::endl;
+		}
         int numBCOs = pool->iValue(0, "NR_BCOS");
         uint64_t largest_bco = 0;
         bool skipthis{true};
@@ -183,7 +192,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           {
             continue;
           }
-          if(bco > minBCO * 2)
+          if(!IsStandaloneMode() && bco > minBCO * 2)
           {
             continue;
           }
@@ -204,7 +213,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 			{
 			  continue;
 			}
-			if(bco > minBCO * 2)
+			if(!IsStandaloneMode() && bco > minBCO * 2)
 			{
 			  continue;
 			}
@@ -231,7 +240,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 			  // 	      << std::endl;
 			  continue;
 			}
-			if(gtm_bco > minBCO * 2)
+			if(!IsStandaloneMode() && gtm_bco > minBCO * 2)
 			{
 			  continue;
 			}

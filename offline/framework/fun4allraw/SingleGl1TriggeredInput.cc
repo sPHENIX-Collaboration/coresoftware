@@ -5,6 +5,8 @@
 
 #include <ffarawobjects/Gl1Packetv2.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNode.h>          // for PHNode
@@ -33,7 +35,7 @@ SingleGl1TriggeredInput::SingleGl1TriggeredInput(const std::string &name)
 {
 }
 
-void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
+void SingleGl1TriggeredInput::FillPool()
 {
   if (AllDone())  // no more files and all events read
   {
@@ -43,15 +45,76 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
   {
     FillEventVector();
   }
-  if (keep > 100000000)
+  return;
+}
+
+void SingleGl1TriggeredInput::Print(const std::string &what) const
+{
+  std::cout << "what: " << what << std::endl;
+}
+
+void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
+{
+  std::string CompositeNodeName = "Packets";
+  if (KeepMyPackets())
   {
-    std::cout << "huh?" << std::endl;
+    CompositeNodeName = "PacketsKeep";
   }
+  PHNodeIterator iter(m_topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    dstNode = new PHCompositeNode("DST");
+    m_topNode->addNode(dstNode);
+  }
+  PHNodeIterator iterDst(dstNode);
+  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
+  if (!detNode)
+  {
+    detNode = new PHCompositeNode(CompositeNodeName);
+    dstNode->addNode(detNode);
+  }
+  std::vector<Packet *> pktvec = evt->getPacketVector();
+  for (auto *piter : pktvec)
+  {
+    int packet_id = piter->getIdentifier();
+    m_PacketSet.insert(packet_id);
+    std::string PacketNodeName = std::to_string(packet_id);
+    OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, PacketNodeName);
+    if (!gl1hitcont)
+    {
+      gl1hitcont = new Gl1Packetv2();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, PacketNodeName, "PHObject");
+      detNode->addNode(newNode);
+    }
+    delete piter;
+  }
+}
+
+uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
+{
+  Packet *packet = evt->getPacket(14001);
+  if (!packet)
+  {
+    std::cout << Name()
+              << " no packet 14001 for event, possible corrupt data event before EOR"
+              << std::endl;
+    std::cout << Name() << ": ";
+    evt->identify();
+    return std::numeric_limits<uint64_t>::max();
+  }
+  uint64_t clock = packet->lValue(0, "BCO");
+  delete packet;
+  return clock;
+}
+
+int SingleGl1TriggeredInput::ReadEvent()
+{
   if (m_EventDeque.empty())
   {
     std::cout << Name() << ":all events done" << std::endl;
     AllDone(1);
-    return;
+    return -1;
   }
   Event *evt = m_EventDeque.front();
   m_EventDeque.pop_front();
@@ -106,64 +169,5 @@ void SingleGl1TriggeredInput::FillPool(const unsigned int keep)
     delete packet;
   }
   delete evt;
-}
-
-void SingleGl1TriggeredInput::Print(const std::string &what) const
-{
-  std::cout << "what: " << what << std::endl;
-}
-
-void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
-{
-  std::string CompositeNodeName = "Packets";
-  if (KeepMyPackets())
-  {
-    CompositeNodeName = "PacketsKeep";
-  }
-  PHNodeIterator iter(m_topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
-  {
-    dstNode = new PHCompositeNode("DST");
-    m_topNode->addNode(dstNode);
-  }
-  PHNodeIterator iterDst(dstNode);
-  PHCompositeNode *detNode = dynamic_cast<PHCompositeNode *>(iterDst.findFirst("PHCompositeNode", CompositeNodeName));
-  if (!detNode)
-  {
-    detNode = new PHCompositeNode(CompositeNodeName);
-    dstNode->addNode(detNode);
-  }
-  std::vector<Packet *> pktvec = evt->getPacketVector();
-  for (auto *piter : pktvec)
-  {
-    int packet_id = piter->getIdentifier();
-    m_PacketSet.insert(packet_id);
-    std::string PacketNodeName = std::to_string(packet_id);
-    OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, PacketNodeName);
-    if (!gl1hitcont)
-    {
-      gl1hitcont = new Gl1Packetv2();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, PacketNodeName, "PHObject");
-      detNode->addNode(newNode);
-    }
-    delete piter;
-  }
-}
-
-uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
-{
-  Packet *packet = evt->getPacket(14001);
-  if (!packet)
-  {
-    std::cout << Name()
-	      <<" no packet 14001 for event, possible corrupt data event before EOR"
-	      << std::endl;
-    std::cout << Name() << ": ";
-    evt->identify();
-    return std::numeric_limits<uint64_t>::max();
-  }
-  uint64_t clock = packet->lValue(0, "BCO");
-  delete packet;
-  return clock;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
