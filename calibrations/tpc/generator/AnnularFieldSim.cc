@@ -348,6 +348,30 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   return field;
 }
 
+
+
+TVector3 GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin)
+{
+  // this function returns the components of the field in the local coordinate system, which is in cylindrical coords
+  // and has a specified origin.
+  // it assumes that the field and all coordinates are given in the global coordinate system.
+  // it returns a TVector3 with the radial, azimuthal, and z components of the field in the local coordinate system.
+
+  TVector3 local_pos = pos - origin;  // shift the position to the local coordinate system
+  //get the cylindrical radial vector pointing from the origin to the position:
+  TVector3 radial_vector = local_pos;
+  radial_vector.SetZ(0);  // zero out the z component, so we have a radial vector in the xy plane.
+  radial_vector.SetMag(1);  // normalize it to unit length, so we can use it to rotate the field vector.
+  // get the cylindrical azimuthal vector, which is perpendicular to the radial vector:
+  TVector3 azimuthal_vector = radial_vector;
+  azimuthal_vector.SetXYZ(-radial_vector.Y(), radial_vector.X(), 0);  // rotate by 90 degrees to get the azimuthal vector in the xy plane.
+  // now we can project the field vector onto the radial and azimuthal vectors to get the components in the local coordinate system, and return a TVector3 with those components:
+  TVector3 local_field;
+  local_field.SetXYZ(field.Dot(radial_vector), field.Dot(azimuthal_vector), field.Z());  // radial, azimuthal, and z components
+  return local_field;
+}
+
+
 double AnnularFieldSim::FilterPhiPos(double phi)
 {
   // this primarily takes the region [-pi,0] and maps it to [pi,2pi] by adding 2pi to it.
@@ -987,6 +1011,11 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   // we're loading a tree of unknown size and spacing -- and possibly uneven spacing -- into our local data.
   // formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
   // the x,y,z shift moves the detector in the field (hence for a +1 shift in each, the field value at (0,0,0) is recorded at detector coordinate (-1,-1,-1)
+  TVector3 origin= TVector3(xshift, yshift, zshift);  // the origin of the detector in the field coordinate system.
+  if (debugFlag())
+  {
+    std::cout << boost::str(boost::format("AnnularFieldSim::loadField:  loading field from %s, detector origin at (%f,%f,%f) in the field map, field unit %f, zsign %d") % source->GetName() % origin.X() % origin.Y() % origin.Z() % fieldunit % zsign) << std::endl;
+  }
 
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
   int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
@@ -1008,6 +1037,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   float r_lowres_step = (rmax - rmin) / (nr / lowres_factor + 1);  // the step size in r for the low-res histogram
   float z_lowres_step = (zmax - zmin) / (nz / lowres_factor + 1);  // the step size in z for the low-res histogram
 
+
+  //traverse the field tree and fill the histograms.
   int nEntries = source->GetEntries();
   for (int i = 0; i < nEntries; i++)
   {  // could probably do this with an iterator
@@ -1020,6 +1051,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     float fzval = *fzptr;  // z component of the field (needed in rotations of the cylinder, but not translations)
     float fphival = *fphiptr;  // phi component of the field 
     float frval = *frptr;  // radial component of the field 
+    TVector3 rphizField(frval, fphival, fzval);  
+
 
     // if we aren't asking for phi symmetry, build just the one phi strip
 
@@ -1028,31 +1061,28 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       assert(phiptr);
       phival=*phiptr;
 
-      if(xshift != 0 || yshift != 0)
-      {
-      //convert the coordinate r,phi set into x,y  
-        float xval = rval * cos(phival) - xshift;
-        float yval = rval * sin(phival) - yshift;
-        phival = atan2(yval, xval);  // convert back to phi
-        rval = sqrt(xval * xval + yval * yval);  // and back to r
-        //that gets our coordinate correctly, but we also have to transform the field values into this new coord system.  carefully.
+      //find the vector coordinate of this field position, in the field map coords.
+      TVector3 fieldMapPos(*rptr,0, *zptr);  // the position in the field map, in cylindrical coordinates.
+      fieldMapPos.SetPhi(phival);  // set the phi coordinate in the field map.
 
-      //convert the field into cartesian in the original system:
-      //our original radial direction is cos(phiptr), sin(phiptr)
-      //and our original phi direction is -sin(phiptr), cos(phiptr)
-      float fxval = *frptr * cos(*phiptr) - *fphiptr * sin(*phiptr);
-      float fyval = *frptr * sin(*phiptr) + *fphiptr * cos(*phiptr);
-      //and then shift it to the new system, which has a new origin and a new rotation.
-      //so the vector that points from our origin to the field point is (xval, yval, zval), and the field vector is (fxval, fyval, fzval).
-    //to express the field vector in the new coordinate system, we have to rotate it by the angle -phival, 
-      float fxvalnew= fxval * cos(-phival) - fyval * sin(-phival);
-      float fyvalnew= fxval * sin(-phival) + fyval * cos(-phival);
-      //and finally, convert into the radial and azimuthal components, instead of cartesian:
-      frval = fxvalnew * cos(phival) + fyvalnew * sin(phival);  // radial component
-      fphival = -fxvalnew * sin(phival) + fyvalnew * cos(phival);  // azimuthal component
+      //convert the components of the field into the global coordinate system:
+      TVector3 globalField=rphizField;  // the field vector in the global coordinate system, in cylindrical coordinates.
+      globalField.RotateZ(-phival);  // the rphiz frame is rotated from the global by the phi coordinate, so undo that rotation.
 
-      }
-      phival=FilterPhiPos(phival); //make sure we wrap into the expected phi range.
+      //if our origin is not zero, apply the translation of field and coords:
+      TVector3 tpcPos=fieldMapPos-origin;  // the position of this field datapoint in the tpc coordinate system
+      TVector3 tpcField=GetLocalFieldComponents(globalField,fieldMapPos,origin); //note that this returns the rphiz components at that point, in the tpc coordinate system.
+
+      //get the cylindrical coordinates of our position in the TPC coordinate system:
+      rval= tpcPos.Perp();  // the radial coordinate in the tpc coordinate system
+      phival = FilterPhiPos(tpcPos.Phi());  // the phi coordinate in the tpc coordinate system, wrapped into the expected range.
+      zval = tpcPos.Z();  // the z coordinate in the tpc coordinate system
+
+      //and the field components in the tpc coordinate system:
+      frval = tpcField.X();  // the radial component of the field in the tpc coordinate system
+      fphival = tpcField.Y();  // the azimuthal component of the field in the tpc coordinate system
+      fzval = tpcField.Z();  // the z component of the field in the tpc coordinate system
+
       htEntries->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
       htSum[0]->Fill(phival,rval, zval, frval * fieldunit);
       htSum[1]->Fill(phival,rval, zval, fphival * fieldunit);
@@ -1069,31 +1099,29 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
         float phi0=j*step.Phi(); //stand-in for our phi pointer that doesn't exist.
         phival=phi0;
 
-        if(xshift != 0 || yshift != 0)
-          {
-          //convert the coordinate r,phi set into x,y  
-            float xval = rval * cos(phi0) - xshift;
-            float yval = rval * sin(phi0) - yshift;
-            phival = atan2(yval, xval);  // convert back to phi
-            rval = sqrt(xval * xval + yval * yval);  // and back to r
-            //that gets our coordinate correctly, but we also have to transform the field values into this new coord system.  carefully.
+        //same procedure as in the phi-asymmetric version above.
 
-          //convert the field into cartesian in the original system:
-          //our original radial direction is cos(phiptr), sin(phiptr)
-          //and our original phi direction is -sin(phiptr), cos(phiptr)
-          float fxval = *frptr * cos(phi0) - *fphiptr * sin(phi0);
-          float fyval = *frptr * sin(phi0) + *fphiptr * cos(phi0);
-          //and then shift it to the new system, which has a new origin and a new rotation.
-          //so the vector that points from our origin to the field point is (xval, yval, zval), and the field vector is (fxval, fyval, fzval).
-        //to express the field vector in the new coordinate system, we have to rotate it by the angle -phival, 
-          float fxvalnew= fxval * cos(-phival) - fyval * sin(-phival);
-          float fyvalnew= fxval * sin(-phival) + fyval * cos(-phival);
-          //and finally, convert into the radial and azimuthal components, instead of cartesian:
-          frval = fxvalnew * cos(phival) + fyvalnew * sin(phival);  // radial component
-          fphival = -fxvalnew * sin(phival) + fyvalnew * cos(phival);  // azimuthal component
+        //find the vector coordinate of this field position, in the field map coords.
+        TVector3 fieldMapPos(*rptr,0, *zptr);  // the position in the field map, in cylindrical coordinates.
+        fieldMapPos.SetPhi(phival);  // set the phi coordinate in the field map.
 
-        }
-        phival=FilterPhiPos(phival); //make sure we wrap into the expected phi range.
+        //convert the components of the field into the global coordinate system:
+        TVector3 globalField=rphizField;  // the field vector in the global coordinate system, in cylindrical coordinates.
+        globalField.RotateZ(-phival);  // the rphiz frame is rotated from the global by the phi coordinate, so undo that rotation.
+
+        //if our origin is not zero, apply the translation of field and coords:
+        TVector3 tpcPos=fieldMapPos-origin;  // the position of this field datapoint in the tpc coordinate system
+        TVector3 tpcField=GetLocalFieldComponents(globalField,fieldMapPos,origin); //note that this returns the rphiz components at that point, in the tpc coordinate system.
+
+        //get the cylindrical coordinates of our position in the TPC coordinate system:
+        rval= tpcPos.Perp();  // the radial coordinate in the tpc coordinate system
+        phival = FilterPhiPos(tpcPos.Phi());  // the phi coordinate in the tpc coordinate system, wrapped into the expected range.
+        zval = tpcPos.Z();  // the z coordinate in the tpc coordinate system
+
+        //and the field components in the tpc coordinate system:
+        frval = tpcField.X();  // the radial component of the field in the tpc coordinate system
+        fphival = tpcField.Y();  // the azimuthal component of the field in the tpc coordinate system
+        fzval = tpcField.Z();  // the z component of the field in the tpc coordinate system
 
         htEntries->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
         htSum[0]->Fill(phival, rval, zval, frval * fieldunit);
@@ -1124,8 +1152,10 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
         } else{
           fieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
         }
-        // have to rotate this to the proper direction.
-        fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  // rcc caution.  Does this rotation shift the sense of 'up'?
+        //now we have the rphiz field at this position.  We want to store it, for our own sanity, in cartesian componnets (it makes the intergrals easier in the drift stage)
+        // so we have to rotate this to the proper angle
+        // (if it helps, remember that the x component of the fieldvec is the radial direction, and we need that to point from the origin to the cell center in order for it to be in cartesian coordinates)
+        fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  
         (*field)->Set(j, i, k, fieldvec);
       }
     }
