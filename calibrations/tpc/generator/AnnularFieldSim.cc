@@ -350,7 +350,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
 
 
 
-TVector3 GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin)
+TVector3 AnnularFieldSim::GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin)
 {
   // this function returns the components of the field in the local coordinate system, which is in cylindrical coords
   // and has a specified origin.
