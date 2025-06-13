@@ -1049,6 +1049,19 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   float r_lowres_step = (rmax - rmin) / (nr / lowres_factor + 1);  // the step size in r for the low-res histogram
   float z_lowres_step = (zmax - zmin) / (nz / lowres_factor + 1);  // the step size in z for the low-res histogram
 
+  float phiCoords[nphi];  // the phi coordinates of the bins in our internal rep.
+  int nPhiCoords=1;
+  if(phiSymmetry){
+    //  if we do have phi symmetry, enumerate the phi coordinates we will use:
+    for (int j = 0; j < nphi; j++)
+    {
+      float phi0=j*step.Phi(); //stand-in for our phi pointer that doesn't exist.
+      phiCoords[j]=phi0;
+    }
+    nPhiCoords=nphi;
+  }
+
+
 
   //traverse the field tree and fill the histograms.
   int nEntries = source->GetEntries();
@@ -1060,9 +1073,9 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     float rval=*rptr;
     float phival;
     //we have to also carefully transform the field itself:
-    float fzval = *fzptr;  // z component of the field (needed in rotations of the cylinder, but not translations)
-    float fphival = *fphiptr;  // phi component of the field 
-    float frval = *frptr;  // radial component of the field 
+    float fzval = *fzptr * fieldunit * zsign;  // z component of the field (altered in rotations of the cylinder, but not translations), note that we flip the sign if requested (ie the Efield loader).
+    float fphival = *fphiptr * fieldunit;  // phi component of the field 
+    float frval = *frptr * fieldunit;  // radial component of the field 
     TVector3 rphizField(frval, fphival, fzval);  
 
 
@@ -1071,10 +1084,13 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     if (!phiSymmetry)
     {
       assert(phiptr);
-      phival=*phiptr;
+      phiCoords[0]=*phiptr;
+    }
+    for (int j = 0; j < nPhiCoords; j++)//this is a loop over n=1 if we have no symmetry, or nphi if we do.
+      phival=phiCoords[j];//the input phitr if no symmetry, or precompupted values if symmetry.
 
       //find the vector coordinate of this field position, in the field map coords.
-      TVector3 fieldMapPos(*rptr,0, *zptr);  // the position in the field map, in cylindrical coordinates.
+      TVector3 fieldMapPos(rval,0,zval);// the position in the field map, in cylindrical coordinates.
       fieldMapPos.SetPhi(phival);  // set the phi coordinate in the field map.
 
       //convert the components of the field into the global coordinate system:
@@ -1096,54 +1112,13 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       fzval = tpcField.Z();  // the z component of the field in the tpc coordinate system
 
       htEntries->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSum[0]->Fill(phival,rval, zval, frval * fieldunit);
-      htSum[1]->Fill(phival,rval, zval, fphival * fieldunit);
-      htSum[2]->Fill(phival,rval, zval, fzval * fieldunit * zsign);
+      htSum[0]->Fill(phival,rval, zval, frval );
+      htSum[1]->Fill(phival,rval, zval, fphival );
+      htSum[2]->Fill(phival,rval, zval, fzval );
       htEntriesLow->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSumLow[0]->Fill(phival,rval, zval, frval * fieldunit);
-      htSumLow[1]->Fill(phival,rval, zval, fphival * fieldunit);
-      htSumLow[2]->Fill(phival,rval, zval, fzval * fieldunit * zsign);
-    }
-    else
-    {  // if we do have phi symmetry, build every phi strip using this one.
-      for (int j = 0; j < nphi; j++)
-      {
-        float phi0=j*step.Phi(); //stand-in for our phi pointer that doesn't exist.
-        phival=phi0;
-
-        //same procedure as in the phi-asymmetric version above.
-
-        //find the vector coordinate of this field position, in the field map coords.
-        TVector3 fieldMapPos(*rptr,0, *zptr);  // the position in the field map, in cylindrical coordinates.
-        fieldMapPos.SetPhi(phival);  // set the phi coordinate in the field map.
-
-        //convert the components of the field into the global coordinate system:
-        TVector3 globalField=rphizField;  // the field vector in the global coordinate system, in cylindrical coordinates.
-        globalField.RotateZ(-phival);  // the rphiz frame is rotated from the global by the phi coordinate, so undo that rotation.
-
-        //if our origin is not zero, apply the translation of field and coords:
-        TVector3 tpcPos=fieldMapPos-origin;  // the position of this field datapoint in the tpc coordinate system
-        TVector3 tpcField=GetLocalFieldComponents(globalField,fieldMapPos,origin); //note that this returns the rphiz components at that point, in the tpc coordinate system.
-
-        //get the cylindrical coordinates of our position in the TPC coordinate system:
-        rval= tpcPos.Perp();  // the radial coordinate in the tpc coordinate system
-        phival = FilterPhiPos(tpcPos.Phi());  // the phi coordinate in the tpc coordinate system, wrapped into the expected range.
-        zval = tpcPos.Z();  // the z coordinate in the tpc coordinate system
-
-        //and the field components in the tpc coordinate system:
-        frval = tpcField.X();  // the radial component of the field in the tpc coordinate system
-        fphival = tpcField.Y();  // the azimuthal component of the field in the tpc coordinate system
-        fzval = tpcField.Z();  // the z component of the field in the tpc coordinate system
-
-        htEntries->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-        htSum[0]->Fill(phival, rval, zval, frval * fieldunit);
-        htSum[1]->Fill(phival, rval, zval, fphival * fieldunit);
-        htSum[2]->Fill(phival, rval, zval, fzval * fieldunit * zsign);
-        htEntriesLow->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-        htSumLow[0]->Fill(phival, rval, zval, frval * fieldunit);
-        htSumLow[1]->Fill(phival, rval, zval, fphival * fieldunit);
-        htSumLow[2]->Fill(phival, rval, zval, fzval * fieldunit * zsign);
-      }
+      htSumLow[0]->Fill(phival,rval, zval, frval );
+      htSumLow[1]->Fill(phival,rval, zval, fphival );
+      htSumLow[2]->Fill(phival,rval, zval, fzval );
     }
   }
   // now we just divide and fill our local plots (which should eventually be stored as histograms, probably) with the values from each hist cell:
