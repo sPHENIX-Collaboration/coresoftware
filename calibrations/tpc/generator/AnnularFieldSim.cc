@@ -1036,8 +1036,17 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   TH3F *htSum[3];
   TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor+2,  -phibinsize, M_PI * 2.0+phibinsize, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
   TH3F *htSumLow[3];
-  printf("AnnularFieldSim::loadField:  hires has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", nphi, 0.0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
-  printf("AnnularFieldSim::loadField:  lowres has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", nphi / lowres_factor + 1, 0.0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
+  printf("AnnularFieldSim::loadField:  hires has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", 
+  htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(), 
+  htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(), 
+  htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax());
+  printf("AnnularFieldSim::loadField:  lowres has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", 
+  htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(),
+  htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(),
+  htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax());
+  
+  
+  
   std::string axis[]{"r", "p", "z"};
   for (int i = 0; i < 3; i++)
   {
@@ -1160,6 +1169,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
+            printf("Filling coordinates %f,%f,%f with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
