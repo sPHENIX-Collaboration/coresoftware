@@ -11,8 +11,6 @@
 #include <TH1I.h>
 #include <TTree.h>
 
-#include <limits>
-
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;

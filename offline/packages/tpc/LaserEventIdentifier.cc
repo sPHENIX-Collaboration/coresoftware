@@ -124,32 +124,34 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   if (!gl1pkt)
   {
     std::cout << "no GL1RAWHIT node" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  if ((gl1pkt->getGTMAllBusyVector() & (1<<14)) == 0)
-  {
-    m_laserEventInfo->setIsGl1LaserEvent(true);
-    m_laserEventInfo->setIsGl1LaserPileupEvent(false);
-    isGl1LaserEvent = true;
-    isGl1LaserPileupEvent = false;
-    prev_BCO = gl1pkt->getBCO();
-  }
-  else if ((gl1pkt->getBCO() - prev_BCO) < 350.0/30*16)
-  {
-    m_laserEventInfo->setIsGl1LaserEvent(false);
-    m_laserEventInfo->setIsGl1LaserPileupEvent(true);
-    isGl1LaserEvent = false;
-    isGl1LaserPileupEvent = true;
-    prev_BCO = 0;
+    //return Fun4AllReturnCodes::ABORTRUN;
   }
   else
   {
-    m_laserEventInfo->setIsGl1LaserEvent(false);
-    m_laserEventInfo->setIsGl1LaserPileupEvent(false);
-    isGl1LaserEvent = false;
-    isGl1LaserPileupEvent = false;
-    prev_BCO = 0;
+    if ((gl1pkt->getGTMAllBusyVector() & (1<<14)) == 0)
+    {
+      m_laserEventInfo->setIsGl1LaserEvent(true);
+      m_laserEventInfo->setIsGl1LaserPileupEvent(false);
+      isGl1LaserEvent = true;
+      isGl1LaserPileupEvent = false;
+      prev_BCO = gl1pkt->getBCO();
+    }
+    else if ((gl1pkt->getBCO() - prev_BCO) < 350.0/30*16)
+    {
+      m_laserEventInfo->setIsGl1LaserEvent(false);
+      m_laserEventInfo->setIsGl1LaserPileupEvent(true);
+      isGl1LaserEvent = false;
+      isGl1LaserPileupEvent = true;
+      prev_BCO = 0;
+    }
+    else
+    {
+      m_laserEventInfo->setIsGl1LaserEvent(false);
+      m_laserEventInfo->setIsGl1LaserPileupEvent(false);
+      isGl1LaserEvent = false;
+      isGl1LaserPileupEvent = false;
+      prev_BCO = 0;
+    }
   }
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
