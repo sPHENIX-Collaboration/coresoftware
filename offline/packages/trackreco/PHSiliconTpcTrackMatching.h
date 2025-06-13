@@ -28,16 +28,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   ~PHSiliconTpcTrackMatching() override;
 
   void SetDefaultParameters() override;
-
-  // legacy parameters
-  // The legacy code matched tracks as:
-  //     |dX| < window * (a+b/pow(pT,c))
-  //   for pT < min_pT
-  //   otherwise
-  //     |dX| < window
-  bool _use_legacy_windowing = true;
-  void set_use_legacy_windowing (bool set_par=true) { _use_legacy_windowing=set_par; }
-
+  
   void set_phi_search_window(const double win) { _phi_search_win = win; }
   void set_eta_search_window(const double win) { _eta_search_win = win; }
   void set_x_search_window(const double win) { _x_search_win = win; }
@@ -55,16 +46,6 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   // 2024/01/22 update
   struct WindowMatcher {
-    // --- option to use the legacy method ---
-    bool use_legacy = false;
-    double leg_search_win = 1.; // use if use_legacy == true; set in InitRun
-    /* PHSiliconTpcTrackMatching* parent_ptr {nullptr}; */
-    void set_use_legacy(double _leg_search_win)
-    {
-      use_legacy=true;
-      leg_search_win=_leg_search_win;
-    }
-
     // --- new method, comparing to a+b*exp(c/pT)
     // Each Arr3D object contains a,b,c in order
     // Up to four curved are needed:
@@ -152,7 +133,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
 
   void zeroField(const bool flag) { _zero_field = flag; }
 
-  void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
+  //  void set_use_old_matching(const bool flag) { _use_old_matching = flag; }
 
   void set_test_windows_printout(const bool test) { _test_windows = test; }
   void set_file_name(const std::string &name) { _file_name = name; }
@@ -197,7 +178,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   double _y_search_win = 0.3;
   double _z_search_win = 0.4;
 
-  bool _use_old_matching = false;  // normally false
+  //  bool _use_old_matching = false;  // normally false
 
   bool _zero_field = false;     // fit straight lines if true
 
