@@ -1086,7 +1086,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       assert(phiptr);
       phiCoords[0]=*phiptr;
     }
-    for (int j = 0; j < nPhiCoords; j++)//this is a loop over n=1 if we have no symmetry, or nphi if we do.
+    for (int j = 0; j < nPhiCoords; j++){//this is a loop over n=1 if we have no symmetry, or nphi if we do.
       phival=phiCoords[j];//the input phitr if no symmetry, or precompupted values if symmetry.
 
       //find the vector coordinate of this field position, in the field map coords.
