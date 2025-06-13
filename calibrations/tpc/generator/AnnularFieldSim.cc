@@ -947,6 +947,7 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores fields as V/cm.
+  printf("loading E field from file %s, tree %s\n", filename.c_str(), treename.c_str());
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
