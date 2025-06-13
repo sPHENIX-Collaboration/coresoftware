@@ -6,6 +6,7 @@ void LaserEventInfov2::identify(std::ostream& os) const
 {
   os << "LaserEventInfov2: " << std::endl;
   os << "   isGl1LaserEvent? " << isGl1LaserEvent() << std::endl;
+  os << "   isGl1LaserPileupEvent? " << isGl1LaserPileupEvent() << std::endl;
   os << "   isLaserEvent? " << isLaserEvent() << std::endl;
   if (isLaserEvent())
   {
@@ -33,6 +34,7 @@ void LaserEventInfov2::CopyTo(LaserEventInfo* info)
 {
   info->setIsLaserEvent(isLaserEvent());
   info->setIsGl1LaserEvent(isGl1LaserEvent());
+  info->setIsGl1LaserPileupEvent(isGl1LaserPileupEvent());
 
   for (int side = 0; side <= 1; side++)
   {

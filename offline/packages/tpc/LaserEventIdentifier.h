@@ -50,12 +50,13 @@ class LaserEventIdentifier : public SubsysReco
   TH1I *m_itHist_1 = nullptr;
   bool isLaserEvent = false;
   bool isGl1LaserEvent = false;
+  bool isGl1LaserPileupEvent = false;
   int peakSample0 = -999;
   int peakSample1 = -999;
   float peakWidth0 = -999;
   float peakWidth1 = -999;
 
-  uint64_t prev_BCO = std::numeric_limits<uint64_t>::max();
+  uint64_t prev_BCO = 0;
 };
 
 #endif

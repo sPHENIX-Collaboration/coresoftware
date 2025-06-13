@@ -23,6 +23,9 @@ class LaserEventInfov2 : public LaserEventInfov1
   bool isGl1LaserEvent() const override { return m_isGl1LaserEvent; }
   void setIsGl1LaserEvent(const bool isGl1LaserEvent) override { m_isGl1LaserEvent = isGl1LaserEvent; }
 
+  bool isGl1LaserPileupEvent() const override { return m_isGl1LaserPileupEvent; }
+  void setIsGl1LaserPileupEvent(const bool isGl1LaserPileupEvent) override { m_isGl1LaserPileupEvent = isGl1LaserPileupEvent; }
+
   int getPeakSample(const bool side) const override { return m_peakSample[side]; }
   void setPeakSample(const bool side, const int sample) override { m_peakSample[side] = sample; }
 
@@ -31,10 +34,8 @@ class LaserEventInfov2 : public LaserEventInfov1
 
  protected:
 
-  bool m_isLaserEvent{false};
   bool m_isGl1LaserEvent{false};
-  int m_peakSample[2] = {std::numeric_limits<int>::max(), std::numeric_limits<int>::max()};
-  float m_peakWidth[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
+  bool m_isGl1LaserPileupEvent{false};
 
   ClassDefOverride(LaserEventInfov2, 1);
 };

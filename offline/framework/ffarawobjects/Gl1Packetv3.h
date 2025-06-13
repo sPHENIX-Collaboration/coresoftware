@@ -48,15 +48,7 @@ class Gl1Packetv3 : public Gl1Packetv2
   void dump(std::ostream &os = std::cout) const override;
 
  protected:
-  unsigned int packet_nr{0};
-  uint64_t BunchNumber{std::numeric_limits<uint64_t>::max()};
-  uint64_t TriggerInput{0};
-  uint64_t LiveVector{0};
-  uint64_t ScaledVector{0};
-  uint64_t GTMBusyVector{0};
   uint64_t GTMAllBusyVector{0};
-  std::array<std::array<uint64_t, 3>, 64> scaler{{{0}}};
-  std::array<std::array<uint64_t, 3>, 16> gl1pscaler{{{0}}};
 
  private:
   ClassDefOverride(Gl1Packetv3, 1)
