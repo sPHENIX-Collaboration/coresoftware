@@ -1023,11 +1023,16 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   }
 
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
-  int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
+  int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
+
+  float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
+  float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
+  float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
+
   std::cout << boost::str(boost::format("loading field from %f<z<%f") % zmin % zmax) << std::endl;
   TH3F *htEntries = new TH3F("htentries", "num of entries in the field loading", nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
   TH3F *htSum[3];
-  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
+  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor, 0, M_PI * 2.0, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
   TH3F *htSumLow[3];
   printf("AnnularFieldSim::loadField:  hires has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", nphi, 0.0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
   printf("AnnularFieldSim::loadField:  lowres has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", nphi / lowres_factor + 1, 0.0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
@@ -1035,7 +1040,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   for (int i = 0; i < 3; i++)
   {
     htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
-    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
+    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str() nphi / lowres_factor, 0, M_PI * 2.0, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
   }
   //define the lowres stepsizes for sanity:
   float phi_lowres_step = M_PI * 2.0 / (nphi / lowres_factor + 1);  // the step size in phi for the low-res histogram
