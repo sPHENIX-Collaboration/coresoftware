@@ -361,7 +361,7 @@ TVector3 AnnularFieldSim::GetLocalFieldComponents(const TVector3 &field, const T
   //get the cylindrical radial vector pointing from the origin to the position:
   TVector3 radial_vector = local_pos;
   radial_vector.SetZ(0);  // zero out the z component, so we have a radial vector in the xy plane.
-  if(radial_vactor.Mag()==0){
+  if(radial_vector.Mag()==0){
     //if it's zero, make it arbitrary direction.
     radial_vector.SetXYZ(1, 0, 0);  // set it to point in the x direction.
   }else {
