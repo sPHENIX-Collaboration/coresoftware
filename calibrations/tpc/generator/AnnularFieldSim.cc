@@ -1187,7 +1187,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
-            //int lowbin = htEntriesLow->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
+            int lowbin = htEntriesLow->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
             //TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
  
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
