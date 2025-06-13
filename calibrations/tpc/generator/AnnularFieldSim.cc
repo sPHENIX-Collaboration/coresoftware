@@ -1041,7 +1041,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   for (int i = 0; i < 3; i++)
   {
     htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
-    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str() nphi / lowres_factor, 0, M_PI * 2.0, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
+    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor, 0, M_PI * 2.0, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
   }
   //define the lowres stepsizes for sanity:
   float phi_lowres_step = M_PI * 2.0 / (nphi / lowres_factor + 1);  // the step size in phi for the low-res histogram
