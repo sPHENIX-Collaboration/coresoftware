@@ -126,15 +126,17 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if ((gl1pkt->getGTMAllBusyVector() & (1<<14)) == 0)
+  if ((gl1pkt->getGTMAllBusyVector() & (1<<14)) == 0 || (gl1pkt->getBCO() > prev_BCO && (gl1pkt->getBCO() - prev_BCO) < 350.0/30*16))
   {
     m_laserEventInfo->setIsGl1LaserEvent(true);
     isGl1LaserEvent = true;
+    prev_BCO = gl1pkt->getBCO();
   }
   else
   {
     m_laserEventInfo->setIsGl1LaserEvent(false);
     isGl1LaserEvent = false;
+    prev_BCO = std::numeric_limits<uint64_t>::max();
   }
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -225,6 +227,8 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   {
     m_hitTree->Fill();
   }
+  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -1,11 +1,11 @@
 #ifndef TPC_LASEREVENTINFOV2_H
 #define TPC_LASEREVENTINFOV2_H
 
-#include "LaserEventInfo.h"
+#include "LaserEventInfov1.h"
 
 #include <iostream>
 
-class LaserEventInfov2 : public LaserEventInfo
+class LaserEventInfov2 : public LaserEventInfov1
 {
  public:
   LaserEventInfov2() = default;
@@ -36,7 +36,7 @@ class LaserEventInfov2 : public LaserEventInfo
   int m_peakSample[2] = {std::numeric_limits<int>::max(), std::numeric_limits<int>::max()};
   float m_peakWidth[2] = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
 
-  ClassDefOverride(LaserEventInfov2, 2);
+  ClassDefOverride(LaserEventInfov2, 1);
 };
 
 #endif

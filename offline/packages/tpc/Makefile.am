@@ -67,12 +67,7 @@ ROOTDICTS = \
   TrainingHits_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  LaserEventInfo_Dict_rdict.pcm \
-  LaserEventInfov1_Dict_rdict.pcm \
-  LaserEventInfov2_Dict_rdict.pcm \
-  TrainingHitsContainer_Dict_rdict.pcm \
-  TrainingHits_Dict_rdict.pcm
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 mydatadir = $(datadir)/$(PACKAGE)
 dist_mydata_DATA = \

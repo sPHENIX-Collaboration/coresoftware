@@ -1,12 +1,12 @@
 #ifndef FUN4ALLRAW_GL1PACKETV3_H
 #define FUN4ALLRAW_GL1PACKETV3_H
 
-#include "Gl1Packet.h"
+#include "Gl1Packetv2.h"
 
 #include <array>
 #include <limits>
 
-class Gl1Packetv3 : public Gl1Packet
+class Gl1Packetv3 : public Gl1Packetv2
 {
  public:
   Gl1Packetv3() = default;
@@ -59,7 +59,7 @@ class Gl1Packetv3 : public Gl1Packet
   std::array<std::array<uint64_t, 3>, 16> gl1pscaler{{{0}}};
 
  private:
-  ClassDefOverride(Gl1Packetv3, 4)
+  ClassDefOverride(Gl1Packetv3, 1)
 };
 
 #endif

@@ -11,6 +11,8 @@
 #include <TH1I.h>
 #include <TTree.h>
 
+#include <limits>
+
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
@@ -53,6 +55,7 @@ class LaserEventIdentifier : public SubsysReco
   float peakWidth0 = -999;
   float peakWidth1 = -999;
 
+  uint64_t prev_BCO = std::numeric_limits<uint64_t>::max();
 };
 
 #endif
