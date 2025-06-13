@@ -1026,7 +1026,8 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
 
   float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
-  float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
+  //not needed, since we use cartesian coords and can't overflow phi:
+  //float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
   float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
 
   std::cout << boost::str(boost::format("loading field from %f<z<%f") % zmin % zmax) << std::endl;
