@@ -1023,7 +1023,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   }
 
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
-  int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
+  int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
 
   float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
   //not needed, since we use cartesian coords and can't overflow phi:
@@ -1184,8 +1184,11 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
-            int lowbin = htEntriesLow->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
-            TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
+            TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
+               htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
+               htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
+            //int lowbin = htEntriesLow->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
+            //TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
  
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
