@@ -27,6 +27,8 @@ class Gl1Packet : public OfflinePacketv1
   virtual uint64_t getScaledVector() const { return 0; }
   virtual void setGTMBusyVector(const uint64_t /*i*/) { return; }
   virtual uint64_t getGTMBusyVector() const { return 0; }
+  virtual void setGTMAllBusyVector(const uint64_t /*i*/) { return; }
+  virtual uint64_t getGTMAllBusyVector() const { return 0; }
 
   virtual void FillFrom(const Gl1Packet* /*pkt*/) { return; }
 

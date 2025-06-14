@@ -23,7 +23,7 @@ int LaserEventRejecter::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if(m_laserEventInfo->isLaserEvent())
+  if(m_laserEventInfo->isGl1LaserPileupEvent() || m_laserEventInfo->isLaserEvent())
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
