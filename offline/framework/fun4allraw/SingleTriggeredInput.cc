@@ -186,12 +186,17 @@ int SingleTriggeredInput::FillEventVector()
     {
       if (m_bclkarray[i + 1] < m_bclkarray[i])
       {
-        m_bclkarray[i + 1] += 0x100000000;
+        m_bclkdiffarray[i] = m_bclkarray[i + 1] + 0x100000000 - m_bclkarray[i];
       }
-      m_bclkdiffarray[i] = m_bclkarray[i + 1] - m_bclkarray[i];
+      else
+      {
+	m_bclkdiffarray[i] = m_bclkarray[i + 1] - m_bclkarray[i];
+      }
+// this is just a safeguard addressing the previous wrong handling of the rollover
+// I leave it here just in case this happens again
       if (m_bclkdiffarray[i] != (m_bclkdiffarray[i] & 0xFFFFFFFF))
       {
-        std::cout << Name() << " Found upper 32bits set: 0x" << std::hex << m_bclkdiffarray[i]
+        std::cout << Name() << " This should not happen: Found upper 32bits set: 0x" << std::hex << m_bclkdiffarray[i]
 		  << " for event # " << std::dec << evt->getEvtSequence() << std::endl;
         std::cout << std::hex << "current clk: 0x" << myClock << " corrected: 0x" << m_bclkarray[i + 1]
 		  << ", previous clock : 0x" << m_bclkarray[i] << std::dec << std::endl;
