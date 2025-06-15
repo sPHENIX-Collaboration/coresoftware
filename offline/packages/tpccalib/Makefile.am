@@ -41,6 +41,7 @@ pkginclude_HEADERS = \
   TpcDirectLaserReconstruction.h \
   TpcSpaceChargeMatrixContainer.h \
   TpcSpaceChargeMatrixContainerv1.h \
+  TpcSpaceChargeMatrixContainerv2.h \
   TpcSpaceChargeMatrixInversion.h \
   TpcSpaceChargeReconstruction.h \
   TpcSpaceChargeReconstructionHelper.h \
@@ -51,16 +52,19 @@ pkginclude_HEADERS = \
 
 ROOTDICTS = \
   TpcSpaceChargeMatrixContainer_Dict.cc \
-  TpcSpaceChargeMatrixContainerv1_Dict.cc
+  TpcSpaceChargeMatrixContainerv1_Dict.cc \
+  TpcSpaceChargeMatrixContainerv2_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TpcSpaceChargeMatrixContainer_Dict_rdict.pcm \
-  TpcSpaceChargeMatrixContainerv1_Dict_rdict.pcm
+  TpcSpaceChargeMatrixContainerv1_Dict_rdict.pcm \
+  TpcSpaceChargeMatrixContainerv2_Dict_rdict.pcm
 
 libtpccalib_io_la_SOURCES = \
   $(ROOTDICTS) \
-  TpcSpaceChargeMatrixContainerv1.cc
+  TpcSpaceChargeMatrixContainerv1.cc \
+  TpcSpaceChargeMatrixContainerv2.cc
 
 libtpccalib_la_SOURCES = \
   TpcDirectLaserReconstruction.cc \

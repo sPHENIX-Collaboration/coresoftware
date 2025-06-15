@@ -1,6 +1,7 @@
 #include "LaserEventIdentifier.h"
 
-#include "LaserEventInfov1.h"
+#include "LaserEventInfo.h"
+#include "LaserEventInfov2.h"
 
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, getLayer
@@ -10,6 +11,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
+
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
@@ -77,7 +80,7 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
     dstNode->addNode(DetNode);
   }
 
-  LaserEventInfo *laserEventInfo = new LaserEventInfov1();
+  LaserEventInfo *laserEventInfo = new LaserEventInfov2();
 
   PHIODataNode<PHObject> *laserEventInfoNode = new PHIODataNode<PHObject>(laserEventInfo, "LaserEventInfo", "PHObject");
   DetNode->addNode(laserEventInfoNode);
@@ -97,6 +100,8 @@ int LaserEventIdentifier::InitRun(PHCompositeNode *topNode)
     m_hitTree->Branch("itHist_0", &m_itHist_0);
     m_hitTree->Branch("itHist_1", &m_itHist_1);
     m_hitTree->Branch("isLaserEvent", &isLaserEvent);
+    m_hitTree->Branch("isGl1LaserEvent", &isGl1LaserEvent);
+    m_hitTree->Branch("isGl1LaserPileupEvent", &isGl1LaserPileupEvent);
     m_hitTree->Branch("peakSample_0", &peakSample0);
     m_hitTree->Branch("peakSample_1", &peakSample1);
     m_hitTree->Branch("peakWidth_0", &peakWidth0);
@@ -113,6 +118,40 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   {
     std::cout << "no laser event info node" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  Gl1Packet *gl1pkt = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  if (!gl1pkt)
+  {
+    std::cout << "no GL1RAWHIT node" << std::endl;
+    //return Fun4AllReturnCodes::ABORTRUN;
+  }
+  else
+  {
+    if ((gl1pkt->getGTMAllBusyVector() & (1<<14)) == 0)
+    {
+      m_laserEventInfo->setIsGl1LaserEvent(true);
+      m_laserEventInfo->setIsGl1LaserPileupEvent(false);
+      isGl1LaserEvent = true;
+      isGl1LaserPileupEvent = false;
+      prev_BCO = gl1pkt->getBCO();
+    }
+    else if ((gl1pkt->getBCO() - prev_BCO) < 350.0/30*16)
+    {
+      m_laserEventInfo->setIsGl1LaserEvent(false);
+      m_laserEventInfo->setIsGl1LaserPileupEvent(true);
+      isGl1LaserEvent = false;
+      isGl1LaserPileupEvent = true;
+      prev_BCO = 0;
+    }
+    else
+    {
+      m_laserEventInfo->setIsGl1LaserEvent(false);
+      m_laserEventInfo->setIsGl1LaserPileupEvent(false);
+      isGl1LaserEvent = false;
+      isGl1LaserPileupEvent = false;
+      prev_BCO = 0;
+    }
   }
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -203,6 +242,8 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   {
     m_hitTree->Fill();
   }
+  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

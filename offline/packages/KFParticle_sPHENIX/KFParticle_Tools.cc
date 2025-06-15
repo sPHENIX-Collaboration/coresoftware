@@ -865,7 +865,7 @@ std::tuple<KFParticle, bool> KFParticle_Tools::buildMother(KFParticle vDaughters
 
     removeDuplicates(crossings);
 
-    if (crossings.size() !=1)
+    if (crossings.size() != 1)
     {
       goodCandidate = false;
     }

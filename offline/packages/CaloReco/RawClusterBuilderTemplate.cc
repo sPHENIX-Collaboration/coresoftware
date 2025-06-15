@@ -68,10 +68,6 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   if (detector == "CEMC")
   {
     bemc = new BEmcRecCEMC();
-    if (m_UseDetailedGeometry)
-    {
-      bemc->set_UseDetailedGeometry(true);
-    }
   }
   else
   {
@@ -90,8 +86,25 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   bemc->SetProbNoiseParam(fProbNoiseParam);
 }
 
+void RawClusterBuilderTemplate::set_UseDetailedGeometry(const bool useDetailedGeometry)
+{
+  if (bemc == nullptr)
+  {
+    std::cerr << "Error in RawClusterBuilderTemplate::set_UseDetailedGeometry()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
+    return;
+  }
+
+  m_UseDetailedGeometry = useDetailedGeometry;
+  bemc->set_UseDetailedGeometry(m_UseDetailedGeometry);
+}
+
 void RawClusterBuilderTemplate::LoadProfile(const std::string &fname)
 {
+  if (bemc == nullptr)
+  {
+    std::cerr << "Error in RawClusterBuilderTemplate::LoadProfile()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
+    return;
+  }
   std::string url = CDBInterface::instance()->getUrl("EMCPROFILE", fname);
   bemc->LoadProfile(url);
 }
@@ -100,7 +113,7 @@ void RawClusterBuilderTemplate::SetCylindricalGeometry()
 {
   if (bemc == nullptr)
   {
-    std::cout << "Error in RawClusterBuilderTemplate::SetCylindricalGeometry()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
+    std::cerr << "Error in RawClusterBuilderTemplate::SetCylindricalGeometry()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
     return;
   }
 
@@ -111,7 +124,7 @@ void RawClusterBuilderTemplate::SetPlanarGeometry()
 {
   if (bemc == nullptr)
   {
-    std::cout << "Error in RawClusterBuilderTemplate::SetPlanarGeometry()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
+    std::cerr << "Error in RawClusterBuilderTemplate::SetPlanarGeometry()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
     return;
   }
 
@@ -122,8 +135,17 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
 {
   if (bemc == nullptr)
   {
-    std::cout << "Error in RawClusterBuilderTemplate::InitRun(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
+    std::cerr << "Error in RawClusterBuilderTemplate::InitRun(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // Ensure that the detailed geometry is available if the user requests it.
+  // Otherwise, use the default geometry 
+  if (m_UseDetailedGeometry && detector != "CEMC")
+  {
+    m_UseDetailedGeometry = false;
+    bemc->set_UseDetailedGeometry(false);
+    std::cout << "Warning in RawClusterBuilderTemplate::InitRun()(): No alternative detailed geometry defined for detector " << detector << ". m_UseDetailedGeometry automatically set to false." << std::endl;
   }
 
   try

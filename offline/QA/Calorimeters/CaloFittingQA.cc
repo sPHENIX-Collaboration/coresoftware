@@ -473,6 +473,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
          return Fun4AllReturnCodes::ABORTEVENT;
       }
       
+      int n_pad_skip_mask = 0;
       for (int channel = 0; channel < nchannels; channel++)
       {
         if (skipChannel(channel, pid, dettype))
@@ -488,6 +489,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
             {
               for (int iskip = 0; iskip < 64; iskip++)
               {
+                n_pad_skip_mask++;
                 std::vector<float> waveform;
                 waveform.reserve(m_nsamples);
 
@@ -520,9 +522,11 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
         waveform.clear();
       }
 
-      if (nchannels < m_nchannels && !(dettype == CaloTowerDefs::CEMC && adc_skip_mask < 4))
+      int nch_padded = nchannels;
+      if (dettype == CaloTowerDefs::CEMC) nch_padded += n_pad_skip_mask;
+      if ( nch_padded  < m_nchannels)
       {
-        for (int channel = 0; channel < m_nchannels - nchannels; channel++)
+        for (int channel = 0; channel < m_nchannels - nch_padded; channel++)
         {
           if (skipChannel(channel, pid, dettype))
           {
@@ -592,10 +596,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     else
     {
       CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
-      if (calopacket)
-      {
-        process_packet(calopacket, pid);
-      }
+      process_packet(calopacket, pid);
     } 
   }
 

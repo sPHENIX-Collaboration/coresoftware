@@ -5,7 +5,7 @@
  */
 
 #include "TpcSpaceChargeReconstruction.h"
-#include "TpcSpaceChargeMatrixContainerv1.h"
+#include "TpcSpaceChargeMatrixContainerv2.h"
 #include "TpcSpaceChargeReconstructionHelper.h"
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
@@ -129,7 +129,7 @@ namespace
 TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction(const std::string& name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , m_matrix_container(new TpcSpaceChargeMatrixContainerv1)
+  , m_matrix_container(new TpcSpaceChargeMatrixContainerv2)
 {
   InitializeParameters();
 }
@@ -659,6 +659,24 @@ void TpcSpaceChargeReconstruction::process_track(SvtxTrack* track)
     m_matrix_container->add_to_rhs(i, 0, cluster_r*drp / erp);
     m_matrix_container->add_to_rhs(i, 1, dz / ez);
     m_matrix_container->add_to_rhs(i, 2, talpha * drp / erp + tbeta * dz / ez);
+
+    // also update rphi reduced matrices
+    m_matrix_container->add_to_lhs_rphi(i, 0, 0, square(cluster_r) / erp);
+    m_matrix_container->add_to_lhs_rphi(i, 0, 1, cluster_r*talpha / erp);
+    m_matrix_container->add_to_lhs_rphi(i, 1, 0, cluster_r * talpha / erp);
+    m_matrix_container->add_to_lhs_rphi(i, 1, 1, square(talpha) / erp);
+
+    m_matrix_container->add_to_rhs_rphi(i, 0, cluster_r*drp / erp);
+    m_matrix_container->add_to_rhs_rphi(i, 1, talpha * drp / erp);
+
+    // also update z reduced matrices
+    m_matrix_container->add_to_lhs_z(i, 0, 0, 1. / ez);
+    m_matrix_container->add_to_lhs_z(i, 0, 1, tbeta / ez);
+    m_matrix_container->add_to_lhs_z(i, 1, 0, tbeta / ez);
+    m_matrix_container->add_to_lhs_z(i, 1, 1, square(tbeta) / ez);
+
+    m_matrix_container->add_to_rhs_z(i, 0, dz / ez);
+    m_matrix_container->add_to_rhs_z(i, 1, tbeta * dz / ez);
 
     // update entries in cell
     m_matrix_container->add_to_entries(i);
