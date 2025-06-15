@@ -131,6 +131,7 @@ libffarawobjects_la_SOURCES = \
   $(ROOTDICTS) \
   CaloPacketv1.cc \
   CaloPacketContainerv1.cc \
+  Gl1Packet.cc \
   Gl1Packetv1.cc \
   Gl1Packetv2.cc \
   Gl1Packetv3.cc \
