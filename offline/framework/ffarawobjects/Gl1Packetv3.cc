@@ -14,7 +14,9 @@ void Gl1Packetv3::Reset()
 void Gl1Packetv3::identify(std::ostream &os) const
 {
   os << "Gl1Packetv3: " << std::endl;
-  OfflinePacketv1::identify(os);
+  os << "Id: " << getIdentifier() << std::endl;
+  os << "EvtSeq: " << getEvtSequence() << std::endl;
+  os << "BCO: 0x" << std::hex << getBCO() << std::dec << std::endl;
   os << "bunch number: " << getBunchNumber() << std::endl;
   return;
 }
