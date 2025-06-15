@@ -69,6 +69,24 @@ namespace
     return out;
   }
 
+  // To avoid confusion it is good to wrapp the angle around 2π
+  double normalize_angle(double phi)
+  {
+    while (phi < 0) phi += 2 * M_PI;
+    while (phi >= 2 * M_PI) phi -= 2 * M_PI;
+    return phi;
+  }
+  bool phi_in_range(double phi, double min, double max)
+  {
+    phi = normalize_angle(phi);
+    min = normalize_angle(min);
+    max = normalize_angle(max);
+    if (min < max)
+      return (phi >= min && phi <= max);
+    else
+    return (phi >= min || phi <= max);  // wrapped around 2π
+  }
+
   /// calculate intersection from a line to the tile plane in 3d. return true on success
   /**
    * Plane is defined as (p - ptile).ntile = 0
@@ -92,16 +110,20 @@ namespace
 
   /// calculate intersection from a helix to the tile plane in 3d. return true on success
   /**
-   * Plane is defined as (r(t)-ptile).ntile = 0
-   * Helix is parameterize with r(t) = (x(t), y(t), z(t)) = (X0 + R*cos(t), Y0 + R*sin(t), Z0 + vz*t)
-   * We substitue r(t) and find the root of t using the Newton Raphson method for the equation:
+   * Plane is defined as (p-ptile).ntile = 0
+   * Helix is parameterize with p = (x(t), y(t), z(t)) = (X0 + R*cos(t), Y0 + R*sin(t), slope_rz*R(t) + intersect_rz)
+   * We substitue p and find the root of t using the Newton Raphson method for the equation:
    * nx*R*cos(t) + ny*R*sin(t) + nz*slope_rz*R(t) + C = 0
    * Where C = nx*(X0-x0) + ny*(Y0-y0) + nz*(intersect_rz-z0)
+   * and R(t) = sqrt((X0 + R*cos(t))^2 + (Y0 + R*sin(t))^2)
+   * Finally, the Newton-Raphson method is used to calculate the t parameter
   */
 
   bool helix_plane_intersection(
     double t_min,
     double t_max, 
+    double zmin,
+    double zmax,
     double R,
     double X0, 
     double Y0, 
@@ -111,12 +133,16 @@ namespace
     const TVector3& ntile,
     TVector3& intersect)
   {
-    
+ 
+    // Number of iterations and tolerance for Newton Raphson method	  
+    const int max_iter = 10;
+    const double tol = 1e-6; // microns level precision	  
+
     // Defines C
     double C = ntile.X() * (X0 - ptile.X()) + ntile.Y() * (Y0 - ptile.Y()) + ntile.Z() * (intersect_rz - ptile.Z());
 
     
-    // Defines the function to be used in the Newton Raphson method
+    // Defines the function and the corresponding derivative to be used in the Newton Raphson method
     auto f = [&](double t) {
 
     double xt = X0 + R * cos(t);
@@ -140,37 +166,73 @@ namespace
             ntile.Z() * R * slope_rz * (Y0 * cos(t) - X0 * sin(t))/Rt ;
     };
 
-    double t = -M_PI;
-    const int max_iter = 1000;
-    const double tol = 1e-15;
-
-    for (int i = 0; i < max_iter; ++i)
+    // Start of Newton-Raphson iterations
+    auto solve_from = [&](double t_seed, TVector3& result) -> bool
     {
-      double ft = f(t);
-      double dft = df(t);
-      if (std::abs(dft) < 1e-8) return false; // avoid division by near-zero
-      double t_new = t - ft / dft;
-      if (std::abs(t_new - t) < tol) {
+
+      double t = t_seed;
+
+      for (int i = 0; i < max_iter; ++i)
+      {
+        double ft = f(t);
+        double dft = df(t);
+        if (std::abs(dft) < 1e-8){
+          return false; // avoid division by near-zero
+        }
+        double t_new = t - ft / dft;
+
+        double x = X0 + R * std::cos(t_new);
+        double y = Y0 + R * std::sin(t_new);
+        double Rt_n = std::sqrt(x * x + y * y);
+        double z = slope_rz * Rt_n + intersect_rz;
+        double phi = std::atan2(y, x);
+
+
+        TVector3 candidate_intersect(x, y, z); 
+        //Tolerance in phi
+	bool phi_ok = phi_in_range(phi, t_min - 1e-4, t_max + 1e-4);
+        //Tolerance in z
+        bool z_ok = (z >= zmin - 1e-4 && z <= zmax + 1e-4);
+        bool proj_ok = (std::fabs(ntile.Dot(candidate_intersect - ptile)) <= 0.05);
+
+	// Passes the checks for the projection inside the tile acceptance 
+        if (std::abs(t_new - t) < tol && proj_ok && phi_ok && z_ok) 
+        {
+	  result = candidate_intersect;
+	  return true;
+        }
         t = t_new;
-        break;
       }
-      t = t_new;
+
+      return false;
+
+    };
+
+
+    auto wrap = [&](double t) {
+      while (t > t_max) t -= 2 * M_PI;
+      while (t < t_min) t += 2 * M_PI;
+      return t;
+    };
+
+    std::vector<double> t_seeds;
+    double t_center = 0.5 * (t_min + t_max);
+    double delta = 2.0 * M_PI / 3.0;
+
+    // Wrap the angle
+    for (int i = 0; i < 3; ++i)
+    {
+      double t = wrap(t_center + i * delta);
+      t_seeds.push_back(t);	    
     }
 
-    // Projections coordinates based on the solution for t
-    double x = X0 + R * std::cos(t);
-    double y = Y0 + R * std::sin(t);
-    double phi = std::atan2(y, x);
-    double Rt_n = sqrt( x*x + y*y);
-    
-    double z = slope_rz * Rt_n + intersect_rz;
+    // Looks for the solution within the tile acceptance in three different phi seeds in the Newton-Raphson (helix_plane could have more than one solution)
+    for (double t_seed : t_seeds)
+    {
+      if (solve_from(t_seed, intersect)) return true;
+    }
 
-    intersect.SetXYZ(x, y, z);
-
-    if ( phi < t_min || phi > t_max) return false; // Cannot pass this boundary in phi
-    if ( fabs(ntile.Dot(intersect - ptile)) > 0.05) return false; // Projections outside the tile plane
-
-    return true;
+    return false;
 
   }
 
@@ -344,6 +406,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::vector<Acts::Vector3> clusGlobPos;
     std::vector<Acts::Vector3> clusGlobPos_silicon;
     std::vector<Acts::Vector3> clusGlobPos_mvtx;
+    std::vector<Acts::Vector3> clusGlobPos_intt;
 
     bool has_micromegas = false;
 
@@ -389,6 +452,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           const auto cluster = _cluster_map->findCluster(cluster_key);
           const auto global_position = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing);
           clusGlobPos_silicon.push_back( global_position );
+	  clusGlobPos_intt.push_back( global_position );
           break;
         }
 
@@ -426,6 +490,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     {
 
       if( clusGlobPos_mvtx.size()<3 ) { continue; }
+ //     if( clusGlobPos_intt.size()<2 ) { continue; }
 
     } else {
 
@@ -560,6 +625,11 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       double x;
       double y;
 
+      if( Verbosity() > 0 )
+      {
+        std::cout << "tile " << tileid << " layer " << layer <<  " nx " << nx << " ny " << ny << " nz " << nz << " x0 " << x0 << " y0 " << y0 << " z0 " << z0 << std::endl;
+      }
+
       if(_zero_field) {
 
 	// finds the x,y coordinates in the line fit
@@ -620,15 +690,16 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       } else {
 
-	// gets the tile's phi range      
 	auto phi_range = layergeom->get_phi_range(tileid, _tGeometry);
         double t_min = phi_range.first;
         double t_max = phi_range.second;
+	const double zmin = layergeom->get_zmin();
+        const double zmax = layergeom->get_zmax();
         
         // calculates the real intersection to tile
-	if (!helix_plane_intersection(t_min, t_max, R, X0, Y0, intersect_rz, slope_rz, ptile, ntile, intersection))
+	if (!helix_plane_intersection(t_min, t_max, zmin, zmax, R, X0, Y0, intersect_rz, slope_rz, ptile, ntile, intersection))
 	{
-          if (Verbosity() > 10)
+          if (Verbosity() == 0)
 	  {
 	    std::cout << PHWHERE << "helix_plane_intersection - failed" << std::endl;
 	  }
@@ -639,20 +710,6 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         y = intersection.Y();
         z = intersection.Z();
 
-	// looking for projections outside the tile
-	
-	const double zmin = layergeom->get_zmin();
-        const double zmax = layergeom->get_zmax();
-        if (z < zmin || z > zmax)
-        {
-          if (Verbosity() > 10)
-          {
-            std::cout << PHWHERE << "Intersection outside tile Z bounds: z = " << z
-                  << ", zmin = " << zmin << ", zmax = " << zmax << std::endl;
-          }
-          continue; // reject this projection
-        }
-        
       }
 
       /*
@@ -759,9 +816,8 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
             << " rphi_proj " << rphi_proj << " z_proj " << z_proj
             << " pt " << tracklet_tpc->get_pt()
             << " charge " << tracklet_tpc->get_charge()
-            << std::endl;
-		  
-        } 
+            << std::endl;		 
+        }
       }  // end loop over clusters
 
       // compare to cuts and add to track if matching
