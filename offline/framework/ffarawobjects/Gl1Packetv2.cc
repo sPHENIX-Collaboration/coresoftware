@@ -54,7 +54,6 @@ void Gl1Packetv2::FillFrom(const Gl1Packet *pkt)
   OfflinePacketv1::FillFrom(pkt);
 }
 
-
 void Gl1Packetv2::dump(std::ostream &os) const
 {
   os << "packet nr:       " << iValue(0) << std::endl;

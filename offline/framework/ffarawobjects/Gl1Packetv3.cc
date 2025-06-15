@@ -27,8 +27,6 @@ void Gl1Packetv3::FillFrom(const Gl1Packet *pkt)
   setGTMAllBusyVector(pkt->getGTMAllBusyVector());
 }
 
-
-
 void Gl1Packetv3::dump(std::ostream &os) const
 {
   os << "packet nr:       " << iValue(0) << std::endl;

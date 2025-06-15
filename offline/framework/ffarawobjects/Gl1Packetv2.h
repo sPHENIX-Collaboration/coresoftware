@@ -40,7 +40,7 @@ class Gl1Packetv2 : public Gl1Packet
   void setGl1pScaler(int iscal, int index, uint64_t lval) override { gl1pscaler.at(iscal).at(index) = lval; }
   uint64_t getGl1pScaler(int iscal, int index) const override { return gl1pscaler.at(iscal).at(index); }
 
-//  long long lValue(const int /*i*/, const std::string &what) const override;
+  //  long long lValue(const int /*i*/, const std::string &what) const override;
 
   void dump(std::ostream &os = std::cout) const override;
 

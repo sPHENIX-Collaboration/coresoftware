@@ -34,8 +34,8 @@ class Gl1Packet : public OfflinePacketv1
   virtual void setGTMAllBusyVector(const uint64_t /*i*/) { return; }
   virtual uint64_t getGTMAllBusyVector() const { return 0; }
 
-  virtual void FillFrom(const Gl1Packet* /*pkt*/) { return; }
-// aggregated i/l Values to avoid duplications in the versioned classes
+  virtual void FillFrom(const Gl1Packet * /*pkt*/) { return; }
+  // aggregated i/l Values to avoid duplications in the versioned classes
   int iValue(const int i) const override;
   long long lValue(const int i, const std::string &what) const override;
   long long lValue(const int i, const int j) const override;
