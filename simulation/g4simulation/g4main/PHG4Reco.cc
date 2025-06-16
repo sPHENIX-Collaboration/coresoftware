@@ -583,7 +583,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
     PHGeomUtility::ImportGeomFile(topNode, filename);
 
-    PHGeomUtility::RemoveGeometryFile(filename);
+    //PHGeomUtility::RemoveGeometryFile(filename);
   }
 
   if (Verbosity() > 0)
