@@ -110,7 +110,7 @@ void helixResiduals::fill_residuals(TrackSeed *seed, int seed_id, bool isTpc)
   std::vector<Acts::Vector3> clusterPositions;
   std::vector<TrkrDefs::cluskey> clusterKeys;
   _fitter->getTrackletClusters(seed, clusterPositions, clusterKeys);
-  std::vector<float> fitparams = _fitter->fitClusters(clusterPositions, clusterKeys);
+  std::vector<float> fitparams ;//_fitter->fitClusters(clusterPositions, clusterKeys);
 
   const float pt = seed->get_pt();
   const float px = seed->get_px();

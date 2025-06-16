@@ -610,7 +610,7 @@ Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global_vec,
                                               const std::vector<TrkrDefs::cluskey> &cluskey_vec,
-                                              bool use_intt)
+                                              bool use_intt, bool mvtx_east, bool mvtx_west)
 {
   std::vector<float> fitpars;
 
@@ -619,15 +619,32 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
   {
     return fitpars;
   }
-  std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
+  //std::tuple<double, double, double> circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
+  std::tuple<double, double, double> circle_fit_pars ;
 
+  bool cross_mvtx_half = false;
+  if ((mvtx_east || mvtx_west))
+  {
+    cross_mvtx_half = TrackFitUtils::isTrackCrossMvtxHalf(cluskey_vec);
+  }
+  else
+  {
+    circle_fit_pars = TrackFitUtils::circle_fit_by_taubin(global_vec);
+  }
   // It is problematic that the large errors on the INTT strip z values are not allowed for - drop the INTT from the z line fit
   std::vector<Acts::Vector3> global_vec_noINTT;
   for (unsigned int ivec = 0; ivec < global_vec.size(); ++ivec)
   {
     unsigned int const trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
+    if ((mvtx_east || mvtx_west) && trkrid == TrkrDefs::mvtxId)
+    {
+      if (cross_mvtx_half && TrackFitUtils::includeMvtxHit(cluskey_vec[ivec], mvtx_east, mvtx_west))
+      {
+        global_vec_noINTT.push_back(global_vec[ivec]);
+      }
+    }
 
-    if (trkrid != TrkrDefs::inttId && cluskey_vec[ivec] != 0)
+    else if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
     {
       global_vec_noINTT.push_back(global_vec[ivec]);
     }

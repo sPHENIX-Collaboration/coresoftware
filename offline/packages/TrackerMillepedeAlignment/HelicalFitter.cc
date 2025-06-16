@@ -330,7 +330,11 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
 
       fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
-
+      fitpars_mvtx_half = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
+      if (fitpars_mvtx_half.size() < 3)
+      {
+        fitpars_mvtx_half = fitpars;
+      }
       if (fitpars.size() == 0)
       {
         continue;  // discard this track, not enough clusters to fit
@@ -413,6 +417,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       else
       {
         fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit);  // do helical fit
+        fitpars_mvtx_half = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only);
 
         if (fitpars.size() == 0)
         {
@@ -525,6 +530,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
+        std::cout<<"tracklet eta2: "<<tracklet->get_eta()<<std::endl;
     if(fabs(newTrack.get_eta()) > m_eta_cut || newTrack.get_pt() < m_pt_min)
     {
       continue;
@@ -537,41 +543,49 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       abs_cross = INT_MAX;
     //std::cout<<"HF trackid: "<<trackid-trkid_correction<<"  ,HF crossing: "<<newTrack.get_crossing()<<std::endl;
     //std::cout<<" trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
-    for (const auto& [vtxkey, vertex] : *m_vertexmap)
+    if(use_event_vertex)
     {
-        //std::cout<<"event: "<<event<<"  , vtx crossing: "<<vertex->get_beam_crossing()<<std::endl;
-        //std::cout<< ", vtx position: "<<vertex->get_x()<<" , "<<vertex->get_y()<< " , "<<vertex->get_z()<<std::endl;
-        for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
+      for (const auto& [vtxkey, vertex] : *m_vertexmap)
       {
-        //std::cout<<"vtx: "<<vertex->get_id()<<" , trackiter*: "<<*trackiter<<std::endl;
-        //SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
-        //if (vtxtrack)
-        //{
-          //unsigned int const vtxtrackid = vtxtrack->get_id();
-          if (!m_acts_mode && (trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>5)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
-          {
-              //std::cout<<"matched"<<std::endl;
-            event_vtx(0) = vertex->get_x();
-            event_vtx(1) = vertex->get_y();
-            event_vtx(2) = vertex->get_z();
-            passed_vtx_flag = true;
-            if (Verbosity() > 0)
+          //std::cout<<"event: "<<event<<"  , vtx crossing: "<<vertex->get_beam_crossing()<<std::endl;
+          //std::cout<< ", vtx position: "<<vertex->get_x()<<" , "<<vertex->get_y()<< " , "<<vertex->get_z()<<std::endl;
+          for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
+        {
+          //std::cout<<"vtx: "<<vertex->get_id()<<" , trackiter*: "<<*trackiter<<std::endl;
+          //SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
+          //if (vtxtrack)
+          //{
+            //unsigned int const vtxtrackid = vtxtrack->get_id();
+            if (!m_acts_mode && (trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>5)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
             {
-              //std::cout << "vtx crossing: "<<vertex->get_beam_crossing()<<"setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey<< std::endl;
-              //std::cout  <<"crossing:" << vtxtrack->get_crossing()<<" vtx  " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
-              //std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
+                //std::cout<<"matched"<<std::endl;
+              event_vtx(0) = vertex->get_x();
+              event_vtx(1) = vertex->get_y();
+              event_vtx(2) = vertex->get_z();
+              passed_vtx_flag = true;
+              if (Verbosity() > 0)
+              {
+                //std::cout << "vtx crossing: "<<vertex->get_beam_crossing()<<"setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey<< std::endl;
+                //std::cout  <<"crossing:" << vtxtrack->get_crossing()<<" vtx  " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+                //std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
+              }
             }
-          }
-          else if(m_acts_mode && vertex->get_beam_crossing() == abs_cross && vertex->size_tracks()>2)
-          {
-            //std::cout<<"matched"<<std::endl;
-            event_vtx(0) = vertex->get_x();
-            event_vtx(1) = vertex->get_y();
-            event_vtx(2) = vertex->get_z();
-            passed_vtx_flag = true;
-          }
+            else if(m_acts_mode && vertex->get_beam_crossing() == abs_cross && vertex->size_tracks()>2)
+            {
+              //std::cout<<"matched"<<std::endl;
+              event_vtx(0) = vertex->get_x();
+              event_vtx(1) = vertex->get_y();
+              event_vtx(2) = vertex->get_z();
+              passed_vtx_flag = true;
+            }
+        }
       }
     }
+    else
+    {
+      passed_vtx_flag=true;
+    }
+    
      // std::cout<<std::endl;
 
     if(m_fixed_vtx)
@@ -596,6 +610,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     cumulative_newTrack.push_back(newTrack);
     cumulative_trackid.push_back(trackid-trkid_correction);
     cumulative_event_vertex.push_back(event_vtx);
+
   }
 
   // terminate loop over tracks
@@ -617,6 +632,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
   for (unsigned int trackid = 0; trackid < accepted_tracks; ++trackid)
   {
+
+        std::cout<<"tracklet eta2.5: "<<std::endl;
+
     const auto& global_vec = cumulative_global_vec[trackid];
     const auto& cluskey_vec = cumulative_cluskey_vec[trackid];
     auto fitpars = cumulative_fitpars_vec[trackid];
@@ -657,8 +675,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
+        std::cout<<"tracklet eta3: "<<std::endl;
+
         fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
+        std::cout<<"tracklet eta3.1: "<<fitpars_mvtx_half.size()<<std::endl;
+        fitpoint_mvtx_half = get_helix_surface_intersection(surf, fitpars_mvtx_half, global, helix_pca, helix_tangent);
       }
+
+        std::cout<<"tracklet eta3.2: "<<std::endl;
 
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
@@ -694,6 +718,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         tangent = get_helix_tangent(fitpars, global);
       }
+        std::cout<<"tracklet eta4: "<<std::endl;
 
       svtxstate.set_px(someseed.get_p() * tangent.second.x());
       svtxstate.set_py(someseed.get_p() * tangent.second.y());
@@ -767,6 +792,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       else
       {
         fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
+        fitpoint_mvtx_half = get_line_surface_intersection(surf, fitpars_mvtx_half);
       }
 
       // fitpoint is the point where the helical fit intersects the plane of the surface
@@ -1709,10 +1735,10 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
   }  // end loop over clusters for this track
 }
 
-std::vector<float> HelicalFitter::fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
-{
-  return TrackFitUtils::fitClusters(global_vec, std::move(cluskey_vec), use_intt_zfit);  // do helical fit
-}
+//std::vector<float> HelicalFitter::fitClusters(std::vector<Acts::Vector3>& global_vec, std::vector<TrkrDefs::cluskey> cluskey_vec)
+//{
+//  return TrackFitUtils::fitClusters(global_vec, std::move(cluskey_vec), use_intt_zfit);  // do helical fit
+//}
 
 Acts::Vector2 HelicalFitter::getClusterError(TrkrCluster* cluster, TrkrDefs::cluskey cluskey, Acts::Vector3& global)
 {
