@@ -699,7 +699,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         // calculates the real intersection to tile
 	if (!helix_plane_intersection(t_min, t_max, zmin, zmax, R, X0, Y0, intersect_rz, slope_rz, ptile, ntile, intersection))
 	{
-          if (Verbosity() == 0)
+          if (Verbosity() > 0)
 	  {
 	    std::cout << PHWHERE << "helix_plane_intersection - failed" << std::endl;
 	  }
