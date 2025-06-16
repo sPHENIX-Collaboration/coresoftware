@@ -1051,7 +1051,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   for (int i = 0; i < 3; i++)
   {
     htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
-    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor, -phibinsize, M_PI * 2.0+phibinsize, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
+    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor+2, -phibinsize, M_PI * 2.0+phibinsize, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
   }
   //define the lowres stepsizes for sanity:
   float phi_lowres_step = M_PI * 2.0 / (nphi / lowres_factor +1);  // the step size in phi for the low-res histogram
@@ -1162,6 +1162,29 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   if (nemptybins > 0)
   {
     std::cout << boost::str(boost::format("found %d empty bins when constructing %s.  Filling with lower resolution.") % nemptybins % ((*field == Bfield) ? "Bfield" : "Eexternal")) << std::endl;
+
+    //first, we need to stitch the lowest phibin together with the highest phibin, by setting the lowest phi bin contents and nentries to be the same as the highest-1, and the highest to the lowest+1:
+    for (int j=0; j<htEntriesLow->GetNbinsY(); j++){
+      for (int k=0; k<htEntriesLow->GetNbinsZ(); k++){
+        int lowbin=htEntriesLow->GetBin(1,j,k);
+        int highbin=htEntriesLow->GetBin(htEntriesLow->GetNbinsX()-1,j,k);
+        htEntriesLow->SetBinContent(lowbin,
+          htEntriesLow->GetBinContent(htEntriesLow->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
+        //and the same for the triplet of htSumLow:
+        for (int i=0; i<3; i++){
+          htSumLow[i]->SetBinContent(lowbin,
+            htSumLow[i]->GetBinContent(htSumLow[i]->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
+          }
+        //and then we repeat for the highend stitch:
+        htEntriesLow->SetBinContent(highbin,
+          htEntriesLow->GetBinContent(htEntriesLow->GetBin(2,j,k)));
+        for (int i=0; i<3; i++){
+          htSumLow[i]->SetBinContent(highbin,
+            htSumLow[i]->GetBinContent(htSumLow[i]->GetBin(2,j,k)));
+          }
+        }
+      }
+
     for (int i = 0; i < nphi; i++)
     {
       for (int j = 0; j < nr; j++)
