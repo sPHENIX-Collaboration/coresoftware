@@ -1080,7 +1080,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   for (int i = 0; i < nEntries; i++)
   {  // could probably do this with an iterator
     source->GetEntry(i);
-    float zval = *zptr * zsign-zshift;  // right now, need the ability to flip the sign of the z coordinate.
+    float zval = *zptr * zsign;  // since the field map may assume symmetry wrt z, we  need the ability to flip the sign of the z coordinate.
     // note that the z sign also needs to affect the field sign in that direction, which is handled outside in the z components of the fills
     float rval=*rptr;
     float phival;
@@ -1143,7 +1143,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       {
         TVector3 cellcenter = GetCellCenter(j, i, k);
         int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
-        TVector3 fieldvec(htSum[0]->GetBinContent(bin), htSum[1]->GetBinContent(bin), htSum[2]->GetBinContent(bin));
+        TVector3 fieldvec(htSum[0]->GetBinContent(bin), htSum[1]->GetBinContent(bin), htSum[2]->GetBinContent(bin));//r, phi, z components in that order
         if (htEntries->GetBinContent(bin) < 0.99)
         {
           // no entries here!
@@ -1185,6 +1185,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
         }
       }
 
+      //now that it is stitched, we can interpolate correctly.
     for (int i = 0; i < nphi; i++)
     {
       for (int j = 0; j < nr; j++)
@@ -1195,7 +1196,11 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
-            printf("Filling coordinates %f,%f,%f with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
+            printf("Filling coordinates %f,%f,%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), j,i,k);
+            printf(" sanity: htEntries->FindBins(%2.2f,%2.2f,%2.2f)=(%d,%d,%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
+              htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
+              htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
+              htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
