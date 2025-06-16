@@ -1201,6 +1201,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
               htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
               htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
               htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
+              
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
