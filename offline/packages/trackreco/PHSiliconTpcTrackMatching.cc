@@ -75,19 +75,12 @@ int PHSiliconTpcTrackMatching::InitRun(PHCompositeNode *topNode)
   stringline >> fieldstrength;
 
   // initialize the WindowMatchers
-  if (_use_legacy_windowing) {
-    window_dx.set_use_legacy(_x_search_win);
-    window_dy.set_use_legacy(_y_search_win);
-    window_dz.set_use_legacy(_z_search_win);
-    window_deta.set_use_legacy(_eta_search_win);
-    window_dphi.set_use_legacy(_phi_search_win);
-  } else {
-    window_dx.init_bools("dx", _print_windows || Verbosity()   >0);
-    window_dy.init_bools("dy", _print_windows || Verbosity()   >0);
-    window_dz.init_bools("dz", _print_windows || Verbosity()   >0);
-    window_dphi.init_bools("dphi", _print_windows || Verbosity() >0);
-    window_deta.init_bools("deta", _print_windows || Verbosity() >0);
-  }
+  window_dx.init_bools("dx", _print_windows || Verbosity()   >0);
+  window_dy.init_bools("dy", _print_windows || Verbosity()   >0);
+  window_dz.init_bools("dz", _print_windows || Verbosity()   >0);
+  window_dphi.init_bools("dphi", _print_windows || Verbosity() >0);
+  window_deta.init_bools("deta", _print_windows || Verbosity() >0);
+
 
   return ret;
 }
@@ -161,16 +154,7 @@ bool PHSiliconTpcTrackMatching::WindowMatcher::in_window
 (const bool posQ, const double tpc_pt, const double tpc_X, const double si_X)
 {
   const auto delta = tpc_X-si_X;
-  if (use_legacy) {
-    // legacy functional form: a+b/tpc_pt^c for all tracks > 150 MeV
-    // there were setters for a,b,c and pT_min, but the new form
-    // of a+b*exp(c/pT) works better.
-    double mag = 1.;
-    if (tpc_pt>0.15) {
-      mag = 1.+5./tpc_pt;
-    }
-    return fabs(delta) < mag * leg_search_win;
-  }
+  
   if (posQ) {
     double pt = (tpc_pt<min_pt_posQ) ? min_pt_posQ : tpc_pt;
     if (fabs_max_posQ) {
@@ -535,34 +519,9 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
 
     bool is_posQ = (tpc_q>0.);
 
-    // mag is only used for printouts from legacy code.
-    double mag = 1.+5./tpc_pt;
-
     if (Verbosity() > 8)
     {
       std::cout << " tpc stub: " << tpcid << " eta " << tpc_eta << " phi " << tpc_phi << " pt " << tpc_pt << " tpc z " << TrackSeedHelper::get_z(_tracklet_tpc) << std::endl;
-    }
-
-    // this factor will increase the window size at low pT
-    // otherwise the matching efficiency drops off at low pT
-
-
-    if (_use_old_matching)  // for testing only
-    {
-      mag = 1.0;
-      if (tpc_pt < 6.0)
-      {
-        mag = 2;
-      }
-      if (tpc_pt < 3.0)
-      {
-        mag = 4.0;
-      }
-      if (tpc_pt < 1.5)
-      {
-        mag = 6.0;
-      }
-      mag = 1.0;
     }
 
     if (Verbosity() > 3)
@@ -675,10 +634,10 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
       {
         cout << " testing for a match for TPC track " << tpcid << " with pT " << _tracklet_tpc->get_pt()
              << " and eta " << _tracklet_tpc->get_eta() << " with Si track " << siid << " with crossing " << _tracklet_si->get_crossing() << endl;
-        cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win * mag << " tpc_eta " << tpc_eta
-             << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win * mag << endl;
+        cout << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi << " phi search " << _phi_search_win << " tpc_eta " << tpc_eta
+             << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " eta search " << _eta_search_win  << endl;
         std::cout << "      tpc x " << tpc_pos.x() << " si x " << si_pos.x() << " tpc y " << tpc_pos.y() << " si y " << si_pos.y() << " tpc_z " << tpc_pos.z() << " si z " << si_pos.z() << std::endl;
-        std::cout << "      x search " << _x_search_win * mag << " y search " << _y_search_win * mag << " z search " << _z_search_win * mag << std::endl;
+        std::cout << "      x search " << _x_search_win  << " y search " << _y_search_win << " z search " << _z_search_win << std::endl;
       }
 
       // got a match, add to the list
@@ -701,7 +660,7 @@ void PHSiliconTpcTrackMatching::findEtaPhiMatches(
         cout << " Try_silicon: crossing" << si_crossing <<  "  pt " << tpc_pt << " tpc_phi " << tpc_phi << " si_phi " << si_phi << " dphi " << tpc_phi - si_phi <<  "   si_q" << si_q << "   tpc_q" << tpc_q
              << " tpc_eta " << tpc_eta << " si_eta " << si_eta << " deta " << tpc_eta - si_eta << " tpc_x " << tpc_pos.x() << " tpc_y " << tpc_pos.y() << " tpc_z " << tpc_pos.z()
              << " dx " << tpc_pos.x() - si_pos.x() << " dy " << tpc_pos.y() - si_pos.y() << " dz " << tpc_pos.z() - si_pos.z()
-			 << " mag: " << mag << endl;
+			 << endl;
       }
 
     }
@@ -873,14 +832,6 @@ std::vector<TrkrDefs::cluskey> PHSiliconTpcTrackMatching::getTrackletClusterList
     {
       continue;
     }
-
-    // drop INTT clusters for now  -- TEMPORARY!
-    // Note: the zerofield fit uses the INTT for xy fit but not yz fit
-    /* if (layer > 2 && layer < 7) */
-    /* { */
-      /* continue; */
-    /* } */
-
 
     cluskey_vec.push_back(key);
   }  // end loop over clusters for this track

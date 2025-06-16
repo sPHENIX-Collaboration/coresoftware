@@ -19,14 +19,11 @@ class Gl1Packetv3 : public Gl1Packetv2
   void setGTMAllBusyVector(const uint64_t i) override { GTMAllBusyVector = i; }
   uint64_t getGTMAllBusyVector() const override { return GTMAllBusyVector; }
 
-  long long lValue(const int /*i*/, const std::string &what) const override;
-
   void dump(std::ostream &os = std::cout) const override;
 
- protected:
+ private:
   uint64_t GTMAllBusyVector{0};
 
- private:
   ClassDefOverride(Gl1Packetv3, 1)
 };
 

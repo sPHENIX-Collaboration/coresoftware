@@ -6,70 +6,32 @@
 
 void Gl1Packetv3::Reset()
 {
-  OfflinePacketv1::Reset();
-  packet_nr = 0;
-  BunchNumber = std::numeric_limits<uint64_t>::max();
-  TriggerInput = 0;
-  LiveVector = 0;
-  ScaledVector = 0;
-  GTMBusyVector = 0;
+  Gl1Packetv2::Reset();
   GTMAllBusyVector = 0;
-  for (auto &row : scaler)
-  {
-    row.fill(0);
-  }
   return;
 }
 
 void Gl1Packetv3::identify(std::ostream &os) const
 {
   os << "Gl1Packetv3: " << std::endl;
-  OfflinePacketv1::identify(os);
-  os << "bunch number: " << BunchNumber << std::endl;
+  os << "Id: " << getIdentifier() << std::endl;
+  os << "EvtSeq: " << getEvtSequence() << std::endl;
+  os << "BCO: 0x" << std::hex << getBCO() << std::dec << std::endl;
+  os << "bunch number: " << getBunchNumber() << std::endl;
   return;
 }
 
 void Gl1Packetv3::FillFrom(const Gl1Packet *pkt)
 {
-  setBunchNumber(pkt->getBunchNumber());
-  setPacketNumber(pkt->getPacketNumber());
-  setTriggerInput(pkt->getTriggerInput());
-  setLiveVector(pkt->getLiveVector());
-  setScaledVector(pkt->getScaledVector());
-  setGTMBusyVector(pkt->getGTMBusyVector());
+  Gl1Packetv2::FillFrom(pkt);
   setGTMAllBusyVector(pkt->getGTMAllBusyVector());
-  for (int i = 0; i < 64; i++)
-  {
-    for (int j = 0; j < 3; j++)
-    {
-      setScaler(i, j, pkt->lValue(i, j));
-    }
-  }
-  std::string gl1p_names[3]{"GL1PRAW", "GL1PLIVE", "GL1PSCALED"};
-  for (int i = 0; i < 16; i++)
-  {
-    for (int j = 0; j < 3; j++)
-    {
-      setGl1pScaler(i, j, pkt->lValue(i, gl1p_names[j]));
-    }
-  }
-  OfflinePacketv1::FillFrom(pkt);
-}
-
-long long Gl1Packetv3::lValue(const int i, const std::string &what) const
-{
-  if (what == "GTMAllBusyVector")
-  {
-    return getGTMAllBusyVector();
-  }
-  return Gl1Packetv2::lValue(i, what);
 }
 
 void Gl1Packetv3::dump(std::ostream &os) const
 {
-  os << "packet nr:       " << Gl1Packetv2::iValue(0) << std::endl;
+  os << "packet nr:       " << iValue(0) << std::endl;
   os << "Beam Clock:      "
-     << "0x" << std::hex << lValue(0, "BCO") << std::dec << "   " << lValue(0, "BCO") << std::endl;
+     << "0x" << std::hex << Gl1Packetv2::lValue(0, "BCO") << std::dec << "   " << lValue(0, "BCO") << std::endl;
   os << "Trigger Input:   "
      << "0x" << std::hex << lValue(0, "TriggerInput") << std::dec << "   " << lValue(0, "TriggerInput") << std::endl;
   os << "Live Vector:     "
@@ -89,12 +51,12 @@ void Gl1Packetv3::dump(std::ostream &os) const
 
   for (i = 0; i < 64; i++)
   {
-    if (Gl1Packetv2::lValue(i, 0) || Gl1Packetv2::lValue(i, 1) || Gl1Packetv2::lValue(i, 2))
+    if (lValue(i, 0) || lValue(i, 1) || lValue(i, 2))
     {
       os << std::setw(3) << i << "    ";
-      os << " " << std::setw(18) << Gl1Packetv2::lValue(i, 0)
-         << " " << std::setw(18) << Gl1Packetv2::lValue(i, 1)
-         << " " << std::setw(18) << Gl1Packetv2::lValue(i, 2)
+      os << " " << std::setw(18) << lValue(i, 0)
+         << " " << std::setw(18) << lValue(i, 1)
+         << " " << std::setw(18) << lValue(i, 2)
          << std::endl;
     }
   }

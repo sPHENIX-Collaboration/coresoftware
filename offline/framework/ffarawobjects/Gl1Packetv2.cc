@@ -54,67 +54,6 @@ void Gl1Packetv2::FillFrom(const Gl1Packet *pkt)
   OfflinePacketv1::FillFrom(pkt);
 }
 
-int Gl1Packetv2::iValue(const int i) const
-{
-  if (i == 0)
-  {
-    return packet_nr;
-  }
-  std::cout << PHWHERE << " Bad argument for iValue: " << i << std::endl;
-  return std::numeric_limits<int>::min();
-}
-
-long long Gl1Packetv2::lValue(const int i, const int j) const
-{
-  return scaler.at(i).at(j);
-}
-
-long long Gl1Packetv2::lValue(const int i, const std::string &what) const
-{
-  if (what == "BCO")
-  {
-    return getBCO();
-  }
-  if (what == "TriggerInput")
-  {
-    return getTriggerInput();
-  }
-  if (what == "TriggerVector")
-  {
-    return getTriggerVector();
-  }
-  if (what == "LiveVector")
-  {
-    return getLiveVector();
-  }
-  if (what == "ScaledVector")
-  {
-    return getScaledVector();
-  }
-  if (what == "GTMBusyVector")
-  {
-    return getGTMBusyVector();
-  }
-  if (what == "BunchNumber")
-  {
-    return getBunchNumber();
-  }
-  if (what == "GL1PRAW")
-  {
-    return gl1pscaler.at(i).at(0);
-  }
-  if (what == "GL1PLIVE")
-  {
-    return gl1pscaler.at(i).at(1);
-  }
-  if (what == "GL1PSCALED")
-  {
-    return gl1pscaler.at(i).at(2);
-  }
-  std::cout << "option " << what << " not implemented" << std::endl;
-  return std::numeric_limits<uint64_t>::max();
-}
-
 void Gl1Packetv2::dump(std::ostream &os) const
 {
   os << "packet nr:       " << iValue(0) << std::endl;

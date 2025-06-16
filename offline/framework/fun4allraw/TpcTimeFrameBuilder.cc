@@ -422,13 +422,13 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 
   if (m_hitFormat <0 )
   {
-    if (packet->getHitFormat() != IDTPCFEEV4 and packet->getHitFormat() != IDTPCFEEV5 )
+    if (packet->getHitFormat() != IDTPCFEEV4 and packet->getHitFormat() != IDTPCFEEV5 and packet->getHitFormat() != IDTPCFEEV6 )
     {
       cout << __PRETTY_FUNCTION__ << "\t- Error : expect packet format " << IDTPCFEEV4 
-          << " or "<< IDTPCFEEV5
+          << " or "<< IDTPCFEEV5<< " or "<< IDTPCFEEV6
           << "\t- but received packet format " << packet->getHitFormat() << ":" << endl;
       packet->identify();
-      assert(packet->getHitFormat() == IDTPCFEEV4 or packet->getHitFormat() == IDTPCFEEV5);
+      assert(packet->getHitFormat() == IDTPCFEEV4 or packet->getHitFormat() == IDTPCFEEV5 or packet->getHitFormat() == IDTPCFEEV6);
       return 0;
     }
 
@@ -441,7 +441,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
       // Tested with Run24 data. Could be changable in future runs
       clock_multiplier = 4.262916255;
     }
-    else if (m_hitFormat == IDTPCFEEV5)
+    else if (m_hitFormat == IDTPCFEEV5 or packet->getHitFormat() == IDTPCFEEV6)
     {
       // version 46 FEE firmware 
       clock_multiplier = 30./8.;
