@@ -56,74 +56,18 @@ void Gl1Packetv3::FillFrom(const Gl1Packet *pkt)
   OfflinePacketv1::FillFrom(pkt);
 }
 
-int Gl1Packetv3::iValue(const int i) const
-{
-  if (i == 0)
-  {
-    return packet_nr;
-  }
-  std::cout << PHWHERE << " Bad argument for iValue: " << i << std::endl;
-  return std::numeric_limits<int>::min();
-}
-
-long long Gl1Packetv3::lValue(const int i, const int j) const
-{
-  return scaler.at(i).at(j);
-}
-
 long long Gl1Packetv3::lValue(const int i, const std::string &what) const
 {
-  if (what == "BCO")
-  {
-    return getBCO();
-  }
-  if (what == "TriggerInput")
-  {
-    return getTriggerInput();
-  }
-  if (what == "TriggerVector")
-  {
-    return getTriggerVector();
-  }
-  if (what == "LiveVector")
-  {
-    return getLiveVector();
-  }
-  if (what == "ScaledVector")
-  {
-    return getScaledVector();
-  }
-  if (what == "GTMBusyVector")
-  {
-    return getGTMBusyVector();
-  }
   if (what == "GTMAllBusyVector")
   {
     return getGTMAllBusyVector();
   }
-  if (what == "BunchNumber")
-  {
-    return getBunchNumber();
-  }
-  if (what == "GL1PRAW")
-  {
-    return gl1pscaler.at(i).at(0);
-  }
-  if (what == "GL1PLIVE")
-  {
-    return gl1pscaler.at(i).at(1);
-  }
-  if (what == "GL1PSCALED")
-  {
-    return gl1pscaler.at(i).at(2);
-  }
-  std::cout << "option " << what << " not implemented" << std::endl;
-  return std::numeric_limits<uint64_t>::max();
+  return Gl1Packetv2::lValue(i, what);
 }
 
 void Gl1Packetv3::dump(std::ostream &os) const
 {
-  os << "packet nr:       " << iValue(0) << std::endl;
+  os << "packet nr:       " << Gl1Packetv2::iValue(0) << std::endl;
   os << "Beam Clock:      "
      << "0x" << std::hex << lValue(0, "BCO") << std::dec << "   " << lValue(0, "BCO") << std::endl;
   os << "Trigger Input:   "
@@ -145,12 +89,12 @@ void Gl1Packetv3::dump(std::ostream &os) const
 
   for (i = 0; i < 64; i++)
   {
-    if (lValue(i, 0) || lValue(i, 1) || lValue(i, 2))
+    if (Gl1Packetv2::lValue(i, 0) || Gl1Packetv2::lValue(i, 1) || Gl1Packetv2::lValue(i, 2))
     {
       os << std::setw(3) << i << "    ";
-      os << " " << std::setw(18) << lValue(i, 0)
-         << " " << std::setw(18) << lValue(i, 1)
-         << " " << std::setw(18) << lValue(i, 2)
+      os << " " << std::setw(18) << Gl1Packetv2::lValue(i, 0)
+         << " " << std::setw(18) << Gl1Packetv2::lValue(i, 1)
+         << " " << std::setw(18) << Gl1Packetv2::lValue(i, 2)
          << std::endl;
     }
   }

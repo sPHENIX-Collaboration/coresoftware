@@ -17,20 +17,11 @@ class LaserEventInfov2 : public LaserEventInfov1
   PHObject* CloneMe() const override { return new LaserEventInfov2(*this); }
   void CopyTo(LaserEventInfo *info) override;
 
-  bool isLaserEvent() const override { return m_isLaserEvent; }
-  void setIsLaserEvent(const bool isLaserEvent) override { m_isLaserEvent = isLaserEvent; }
-
   bool isGl1LaserEvent() const override { return m_isGl1LaserEvent; }
   void setIsGl1LaserEvent(const bool isGl1LaserEvent) override { m_isGl1LaserEvent = isGl1LaserEvent; }
 
   bool isGl1LaserPileupEvent() const override { return m_isGl1LaserPileupEvent; }
   void setIsGl1LaserPileupEvent(const bool isGl1LaserPileupEvent) override { m_isGl1LaserPileupEvent = isGl1LaserPileupEvent; }
-
-  int getPeakSample(const bool side) const override { return m_peakSample[side]; }
-  void setPeakSample(const bool side, const int sample) override { m_peakSample[side] = sample; }
-
-  float getPeakWidth(const bool side) const override { return m_peakWidth[side]; }
-  void setPeakWidth(const bool side, const float width) override { m_peakWidth[side] = width; }
 
  protected:
 
