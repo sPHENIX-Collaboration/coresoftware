@@ -1024,17 +1024,26 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   }
 
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
-  int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
+  int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
 
   float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
 //needed, because the interpolation doesn't know that phi should wrap:
   float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
   float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
 
+  //since our lowres_factor may not divide evenly into the number of bins, we need to adjust the number of bins in each dimension:
+  int nlowbins_phi= nphi / lowres_factor + 1;  
+  int nlowbins_r = nr / lowres_factor + 1; 
+  int nlowbins_z = nz / lowres_factor + 1;
+  float phi_lowres_step = M_PI * 2.0 / nlowbins_phi;  // the step size in phi for the low-res histogram
+  float r_lowres_step = (rmax - rmin) / nlowbins_r;  // the step size in r for the low-res histogram
+  float z_lowres_step = (zmax - zmin) / nlowbins_z;  // the step size in z for the low-res histogram
+
+
   std::cout << boost::str(boost::format("loading field from %f<z<%f") % zmin % zmax) << std::endl;
   TH3F *htEntries = new TH3F("htentries", "num of entries in the field loading", nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
   TH3F *htSum[3];
-  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor+2,  -phibinsize, M_PI * 2.0+phibinsize, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
+  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nlowbins_phi+2,  -phi_lowres_step, M_PI * 2.0+phi_lowres_step, nlowbins_r+2, rmin-r_lowres_step, rmax+r_lowres_step, nlowbins_z+2, zmin-z_lowres_step, zmax+z_lowres_step);
   TH3F *htSumLow[3];
   printf("AnnularFieldSim::loadField:  hires has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", 
   htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(), 
@@ -1050,13 +1059,12 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   std::string axis[]{"r", "p", "z"};
   for (int i = 0; i < 3; i++)
   {
-    htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
-    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor+2, -phibinsize, M_PI * 2.0+phibinsize, nr / lowres_factor + 2, rmin-rbinsize*lowres_factor, rmax+rbinsize*lowres_factor, nz / lowres_factor + 2, zmin-zbinsize*lowres_factor, zmax+zbinsize*lowres_factor);
+    //make each htSum inherit its bounds from htEntries:
+    htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(), htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(), htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax());
+    //make each htSumLow inherit its bounds from htEntriesLow:
+    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(), htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(), htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax());
   }
   //define the lowres stepsizes for sanity:
-  float phi_lowres_step = M_PI * 2.0 / (nphi / lowres_factor +1);  // the step size in phi for the low-res histogram
-  float r_lowres_step = (rmax - rmin) / (nr / lowres_factor + 1);  // the step size in r for the low-res histogram
-  float z_lowres_step = (zmax - zmin) / (nz / lowres_factor + 1);  // the step size in z for the low-res histogram
 
   float phiCoords[nphi];  // the phi coordinates of the bins in our internal rep.
   int nPhiCoords=1;
@@ -1201,7 +1209,16 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
               htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
               htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
               htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
-              
+            TVector3 globalPos= GetCellCenter(j, i, k)+origin;  // the position of this field datapoint in the input system
+            //bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
+            float tr_low=htEntries->GetYaxis()->GetBinLowEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+            float tr_high=htEntries->GetYaxis()->GetBinUpEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+            float tz_low=htEntries->GetZaxis()->GetBinLowEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));
+            float tz_high=htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));    
+
+          printf("this corresponds to (r,z)=(%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Z(),tr_low+origin.Perp(),tr_high+origin.Perp(),tz_low+origin.Z(),tz_high+origin.Z());
+
+
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
