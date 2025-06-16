@@ -742,15 +742,11 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
     //_ntp_trk_hit = new TNtuple("ntp_trk_hit", "laser hitinfo","ev:x:y:z:adc:maxadc:lay:phibin:zbin:intfit:slfit:nclus:zfirst:zlast"
     
     for(vector<pointInd>::iterator trkclusiter = trkclusters.begin();trkclusiter!=trkclusters.end();++trkclusiter){
-      float tcx = trkclusiter->first.get<0>();
-      float tcy = trkclusiter->first.get<1>();
-      float tcz = trkclusiter->first.get<2>();
       TrkrDefs::cluskey tcind = trkclusiter->second;
-      LaserCluster *las_clus = _cluster_map->findCluster(tcind);      
-      //int nth = 0;
-      //int ntc = 0;
-      // float fXth[20] = {0};
-      //float fXtc[20] = {0};
+      LaserCluster *las_clus = _cluster_map->findCluster(tcind);
+      float tcx = las_clus->getX();
+      float tcy = las_clus->getY();
+      float tcz = las_clus->getZ();
       
       unsigned int adcSum = 0.0;
       
@@ -813,6 +809,7 @@ int PHLineLaserReco::process_event(PHCompositeNode* topNode)
       m_clux = tcx;
       m_cluy = tcy;
       m_cluz = tcz;
+
       m_cluadc = adcSum;
       m_clumaxadc = maxAdc;
       m_size = nHits;
