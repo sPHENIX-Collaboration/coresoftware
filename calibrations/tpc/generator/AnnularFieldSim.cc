@@ -1226,10 +1226,10 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             tlow=tlow+origin;  // translate to the input coordinate system
             thigh=thigh+origin;  // translate to the input coordinate system
             if (phiSymmetry){
-              printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z());
+              printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z());
             }else{
 
-              printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && phi>%1.1f && phi<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z());
+              printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && phi>%1.1f && phi<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z());
             }
 
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
