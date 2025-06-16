@@ -1062,11 +1062,14 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   int nPhiCoords=1;
   if(phiSymmetry){
     //  if we do have phi symmetry, enumerate the phi coordinates we will use:
+    printf("AnnularFieldSim::loadField:  phi symmetry, using %d phi coordinates:\n", nphi);
     for (int j = 0; j < nphi; j++)
     {
       float phi0=j*step.Phi(); //stand-in for our phi pointer that doesn't exist.
       phiCoords[j]=phi0;
+      printf("%2.2f ", phi0);
     }
+    printf("\n");
     nPhiCoords=nphi;
   }
 
