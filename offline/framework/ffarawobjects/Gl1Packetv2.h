@@ -36,15 +36,15 @@ class Gl1Packetv2 : public Gl1Packet
   uint64_t getGTMBusyVector() const override { return GTMBusyVector; }
 
   void setScaler(int iscal, int index, uint64_t lval) override { scaler.at(iscal).at(index) = lval; }
+  uint64_t getScaler(int iscal, int index) const override { return scaler.at(iscal).at(index); }
   void setGl1pScaler(int iscal, int index, uint64_t lval) override { gl1pscaler.at(iscal).at(index) = lval; }
+  uint64_t getGl1pScaler(int iscal, int index) const override { return gl1pscaler.at(iscal).at(index); }
 
-  int iValue(const int i) const override;
-  long long lValue(const int /*i*/, const std::string &what) const override;
-  long long lValue(const int i, const int j) const override;
+  //  long long lValue(const int /*i*/, const std::string &what) const override;
 
   void dump(std::ostream &os = std::cout) const override;
 
- protected:
+ private:
   unsigned int packet_nr{0};
   uint64_t BunchNumber{std::numeric_limits<uint64_t>::max()};
   uint64_t TriggerInput{0};
@@ -54,7 +54,6 @@ class Gl1Packetv2 : public Gl1Packet
   std::array<std::array<uint64_t, 3>, 64> scaler{{{0}}};
   std::array<std::array<uint64_t, 3>, 16> gl1pscaler{{{0}}};
 
- private:
   ClassDefOverride(Gl1Packetv2, 3)
 };
 
