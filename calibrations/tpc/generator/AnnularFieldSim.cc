@@ -1073,7 +1073,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     printf("AnnularFieldSim::loadField:  phi symmetry, using %d phi coordinates:\n", nphi);
     for (int j = 0; j < nphi; j++)
     {
-      float phi0=j*step.Phi(); //stand-in for our phi pointer that doesn't exist.
+      float phi0=(j+0.5)*step.Phi(); //stand-in for our phi pointer that doesn't exist.
       phiCoords[j]=phi0;
       printf("%2.2f ", phi0);
     }
@@ -1204,12 +1204,12 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
-            printf("Filling coordinates %f,%f,%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), j,i,k);
-            printf(" sanity: htEntries->FindBins(%2.2f,%2.2f,%2.2f)=(%d,%d,%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
+            printf("Filling coordinates p%f,r%f,z%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k);
+            printf(" sanity: htEntries->FindBins(p%2.2f,r%2.2f,z%2.2f)=(p%d,r%d,z%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
               htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
               htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
               htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
-            TVector3 globalPos= GetCellCenter(j, i, k)+origin;  // the position of this field datapoint in the input system
+            TVector3 globalPos= cellcenter+origin;  // the position of this field datapoint in the input system
             //bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
             float tr_low=htEntries->GetYaxis()->GetBinLowEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
             float tr_high=htEntries->GetYaxis()->GetBinUpEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
