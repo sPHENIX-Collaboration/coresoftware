@@ -1219,7 +1219,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             float tz_high=htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));  
             float tphi_low=htEntries->GetXaxis()->GetBinLowEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
             float tphi_high=htEntries->GetXaxis()->GetBinUpEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
-            TVector3 tlow(tr_low, 0tz_low);  // the low edge of the bin in the input system
+            TVector3 tlow(tr_low, 0, tz_low);  // the low edge of the bin in the input system
             tlow->RotateZ(tphi_low);  // rotate to the correct phi
             TVector3 thigh(tr_high, 0, tz_high);  // the high edge of the bin in the input system
             thigh.RotateZ(tphi_high);  // rotate to the correct phi
