@@ -1217,7 +1217,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
             float tz_high=htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));    
 
           printf("this corresponds to (r,z)=(%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Z(),tr_low+origin.Perp(),tr_high+origin.Perp(),tz_low+origin.Z(),tz_high+origin.Z());
-
+exit(1);
 
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
