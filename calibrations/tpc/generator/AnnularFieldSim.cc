@@ -1026,10 +1026,10 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
   int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
 
-  float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
+  //float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
 //needed, because the interpolation doesn't know that phi should wrap:
-  float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
-  float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
+  //float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
+  //float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
 
   //since our lowres_factor may not divide evenly into the number of bins, we need to adjust the number of bins in each dimension:
   int nlowbins_phi= nphi / lowres_factor + 1;  
