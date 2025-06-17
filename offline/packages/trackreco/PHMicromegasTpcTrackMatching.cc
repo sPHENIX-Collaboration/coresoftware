@@ -69,55 +69,171 @@ namespace
     return out;
   }
 
-  /// calculate intersection from circle to line, in 2d. return true on success
-  /**
-  * circle is defined as (x-xc)**2 + (y-yc)**2 = r**2
-  * line is defined as nx(x-x0) + ny(y-y0) = 0
-  * to solve we substitute y by y0 - nx/ny*(x-x0) in the circle equation and solve the 2nd order polynom
-  * there is the extra complication that ny can be 0 (vertical line) to prevent this, we multiply all terms of the polynom by ny**2
-  * and account for this special case when calculating x from y
-  */
-  bool circle_line_intersection(
-      double r, double xc, double yc,
-      double x0, double y0, double nx, double ny,
-      double& xplus, double& yplus, double& xminus, double& yminus)
+  // To avoid confusion it is good to wrapp the angle around 2π
+  double normalize_angle(double phi)
   {
-    if (ny == 0)
-    {
-      // vertical lines are defined by ny=0 and x = x0
-      xplus = xminus = x0;
-
-      // calculate y accordingly
-      const double delta = square(r) - square(x0 - xc);
-      if (delta < 0)
-      {
-        return false;
-      }
-
-      const double sqdelta = std::sqrt(delta);
-      yplus = yc + sqdelta;
-      yminus = yc - sqdelta;
-    }
+    while (phi < 0) phi += 2 * M_PI;
+    while (phi >= 2 * M_PI) phi -= 2 * M_PI;
+    return phi;
+  }
+  bool phi_in_range(double phi, double min, double max)
+  {
+    phi = normalize_angle(phi);
+    min = normalize_angle(min);
+    max = normalize_angle(max);
+    if (min < max)
+      return (phi >= min && phi <= max);
     else
+    return (phi >= min || phi <= max);  // wrapped around 2π
+  }
+
+  /// calculate intersection from a line to the tile plane in 3d. return true on success
+  /**
+   * Plane is defined as (p - ptile).ntile = 0
+   * Line is defined as p = p0 + v*t
+   * We solve for t and then substitute in p to find the line plane intersection
+  */
+  bool line_plane_intersection(
+    const TVector3& p0,
+    const TVector3& v,
+    const TVector3& ptile,
+    const TVector3& ntile,
+    TVector3& intersect)
+  {
+    double denom = ntile.Dot(v);
+    if (std::abs(denom) < 1e-6) return false;  // line and plane are parallel
+
+    double t = ntile.Dot(ptile - p0) / denom;
+    intersect = p0 + t * v;
+    return true;
+  }
+
+  /// calculate intersection from a helix to the tile plane in 3d. return true on success
+  /**
+   * Plane is defined as (p-ptile).ntile = 0
+   * Helix is parameterize with p = (x(t), y(t), z(t)) = (X0 + R*cos(t), Y0 + R*sin(t), slope_rz*R(t) + intersect_rz)
+   * We substitue p and find the root of t using the Newton Raphson method for the equation:
+   * nx*R*cos(t) + ny*R*sin(t) + nz*slope_rz*R(t) + C = 0
+   * Where C = nx*(X0-x0) + ny*(Y0-y0) + nz*(intersect_rz-z0)
+   * and R(t) = sqrt((X0 + R*cos(t))^2 + (Y0 + R*sin(t))^2)
+   * Finally, the Newton-Raphson method is used to calculate the t parameter
+  */
+
+  bool helix_plane_intersection(
+    double t_min,
+    double t_max, 
+    double zmin,
+    double zmax,
+    double R,
+    double X0, 
+    double Y0, 
+    double intersect_rz, 
+    double slope_rz,
+    const TVector3& ptile,
+    const TVector3& ntile,
+    TVector3& intersect)
+  {
+ 
+    // Number of iterations and tolerance for Newton Raphson method	  
+    const int max_iter = 10;
+    const double tol = 1e-6; // microns level precision	  
+
+    // Defines C
+    double C = ntile.X() * (X0 - ptile.X()) + ntile.Y() * (Y0 - ptile.Y()) + ntile.Z() * (intersect_rz - ptile.Z());
+
+    
+    // Defines the function and the corresponding derivative to be used in the Newton Raphson method
+    auto f = [&](double t) {
+
+    double xt = X0 + R * cos(t);
+    double yt = Y0 + R * sin(t);
+    double Rt = sqrt(xt*xt + yt*yt);
+
+    return ntile.X() * R * std::cos(t) +
+           ntile.Y() * R * std::sin(t) +
+           ntile.Z() * slope_rz * Rt  +
+           C;
+    };    
+
+    auto df = [&](double t) {
+
+    double xt = X0 + R * cos(t);
+    double yt = Y0 + R * sin(t);
+    double Rt = sqrt(xt*xt + yt*yt);
+
+    return -ntile.X() * R * sin(t) +
+            ntile.Y() * R * cos(t) +
+            ntile.Z() * R * slope_rz * (Y0 * cos(t) - X0 * sin(t))/Rt ;
+    };
+
+    // Start of Newton-Raphson iterations
+    auto solve_from = [&](double t_seed, TVector3& result) -> bool
     {
-      const double a = square(nx) + square(ny);
-      const double b = -2. * (square(ny) * xc + square(nx) * x0 + nx * ny * (y0 - yc));
-      const double c = square(ny) * (square(xc) - square(r)) + square(ny * (y0 - yc) + nx * x0);
-      const double delta = square(b) - 4. * a * c;
-      if (delta < 0)
+
+      double t = t_seed;
+
+      for (int i = 0; i < max_iter; ++i)
       {
-        return false;
+        double ft = f(t);
+        double dft = df(t);
+        if (std::abs(dft) < 1e-8){
+          return false; // avoid division by near-zero
+        }
+        double t_new = t - ft / dft;
+
+        double x = X0 + R * std::cos(t_new);
+        double y = Y0 + R * std::sin(t_new);
+        double Rt_n = std::sqrt(x * x + y * y);
+        double z = slope_rz * Rt_n + intersect_rz;
+        double phi = std::atan2(y, x);
+
+
+        TVector3 candidate_intersect(x, y, z); 
+        //Tolerance in phi
+	bool phi_ok = phi_in_range(phi, t_min - 1e-4, t_max + 1e-4);
+        //Tolerance in z
+        bool z_ok = (z >= zmin - 1e-4 && z <= zmax + 1e-4);
+        bool proj_ok = (std::fabs(ntile.Dot(candidate_intersect - ptile)) <= 0.05);
+
+	// Passes the checks for the projection inside the tile acceptance 
+        if (std::abs(t_new - t) < tol && proj_ok && phi_ok && z_ok) 
+        {
+	  result = candidate_intersect;
+	  return true;
+        }
+        t = t_new;
       }
 
-      const double sqdelta = std::sqrt(delta);
-      xplus = (-b + sqdelta) / (2. * a);
-      xminus = (-b - sqdelta) / (2. * a);
+      return false;
 
-      yplus = y0 - (nx / ny) * (xplus - x0);
-      yminus = y0 - (nx / ny) * (xminus - x0);
+    };
+
+
+    auto wrap = [&](double t) {
+      while (t > t_max) t -= 2 * M_PI;
+      while (t < t_min) t += 2 * M_PI;
+      return t;
+    };
+
+    std::vector<double> t_seeds;
+    double t_center = 0.5 * (t_min + t_max);
+    double delta = 2.0 * M_PI / 3.0;
+
+    // Wrap the angle
+    for (int i = 0; i < 3; ++i)
+    {
+      double t = wrap(t_center + i * delta);
+      t_seeds.push_back(t);	    
     }
 
-    return true;
+    // Looks for the solution within the tile acceptance in three different phi seeds in the Newton-Raphson (helix_plane could have more than one solution)
+    for (double t_seed : t_seeds)
+    {
+      if (solve_from(t_seed, intersect)) return true;
+    }
+
+    return false;
+
   }
 
   bool line_line_intersection(
@@ -151,7 +267,8 @@ namespace
 
     return true;
   }
-
+  
+ 
   // streamer of TVector3
   [[maybe_unused]] inline std::ostream& operator<<(std::ostream& out, const TVector3& vector)
   {
@@ -289,6 +406,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     std::vector<Acts::Vector3> clusGlobPos;
     std::vector<Acts::Vector3> clusGlobPos_silicon;
     std::vector<Acts::Vector3> clusGlobPos_mvtx;
+    std::vector<Acts::Vector3> clusGlobPos_intt;
 
     bool has_micromegas = false;
 
@@ -334,6 +452,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           const auto cluster = _cluster_map->findCluster(cluster_key);
           const auto global_position = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, crossing);
           clusGlobPos_silicon.push_back( global_position );
+	  clusGlobPos_intt.push_back( global_position );
           break;
         }
 
@@ -371,6 +490,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
     {
 
       if( clusGlobPos_mvtx.size()<3 ) { continue; }
+ //     if( clusGlobPos_intt.size()<2 ) { continue; }
 
     } else {
 
@@ -490,15 +610,31 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
       const auto tile_center = layergeom->get_world_from_local_coords(tileid, _tGeometry, {0, 0});
       const double x0 = tile_center.x();
       const double y0 = tile_center.y();
+      const double z0 = tile_center.z();
+
+      TVector3 ptile(x0, y0, z0);
 
       const auto tile_norm = layergeom->get_world_from_local_vect(tileid, _tGeometry, {0, 0, 1});
       const double nx = tile_norm.x();
       const double ny = tile_norm.y();
+      const double nz = tile_norm.z();
+
+      TVector3 ntile(nx, ny, nz);
+
+      TVector3 intersection;
+      double x;
+      double y;
+
+      if( Verbosity() > 0 )
+      {
+        std::cout << "tile " << tileid << " layer " << layer <<  " nx " << nx << " ny " << ny << " nz " << nz << " x0 " << x0 << " y0 " << y0 << " z0 " << z0 << std::endl;
+      }
 
       if(_zero_field) {
 
-        // calculate intersection to tile
-        if (!line_line_intersection(slope_xy, intersect_xy, x0, y0, nx, ny, xplus, yplus, xminus, yminus))
+	// finds the x,y coordinates in the line fit
+	
+	if (!line_line_intersection(slope_xy, intersect_xy, x0, y0, nx, ny, xplus, yplus, xminus, yminus))
         {
           if (Verbosity() > 10)
           {
@@ -507,30 +643,74 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
           continue;
         }
 
-      } else {
+	// calculates z0_line with these coordinates (this is not the real intersection in z) and asigns a p0 vector in the line (consider that xplus = xminus and yplus = yminus)
+	double x0_line = xplus;
+	double y0_line = yplus;
+        double r0 = get_r(x0_line, y0_line);
+        double z0_line = slope_rz * r0 + intersect_rz;
+        
+        TVector3 p0(x0_line, y0_line, z0_line);
 
-        // calculate intersection to tile
-        if (!circle_line_intersection(R, X0, Y0, x0, y0, nx, ny, xplus, yplus, xminus, yminus))
+	// calculates a unit vector in the direction of the line with the slope_xy and intersect_xy considering that dx/dx=1
+        double dy_dx = slope_xy;
+        double y_line = slope_xy * x0_line + intersect_xy;
+        double r_line = std::sqrt(x0_line * x0_line + y_line * y_line);
+        double dr_dx = (x0_line + y_line * dy_dx) / r_line;
+        double dz_dx = slope_rz * dr_dx;
+
+        TVector3 v(1.0, dy_dx, dz_dx);
+        v = v.Unit();
+
+        // calculates the real intersection to the tile
+	if (!line_plane_intersection(p0, v, ptile, ntile, intersection))
         {
           if (Verbosity() > 10)
           {
-            std::cout << PHWHERE << "circle_line_intersection - failed" << std::endl;
+            std::cout << PHWHERE << "line_plane_intersection - failed" << std::endl;
           }
           continue;
         }
 
+	x = intersection.X();
+        y = intersection.Y();
+        z = intersection.Z();
+        
+	// looking for projections outside the tile
+	const double zmin = layergeom->get_zmin();
+        const double zmax = layergeom->get_zmax();
+	if (z < zmin || z > zmax)
+        {
+          if (Verbosity() > 10)
+          {
+            std::cout << PHWHERE << "Intersection outside tile Z bounds: z = " << z
+                  << ", zmin = " << zmin << ", zmax = " << zmax << std::endl;
+          }
+          continue; // reject this projection
+        }
+
+      } else {
+
+	auto phi_range = layergeom->get_phi_range(tileid, _tGeometry);
+        double t_min = phi_range.first;
+        double t_max = phi_range.second;
+	const double zmin = layergeom->get_zmin();
+        const double zmax = layergeom->get_zmax();
+        
+        // calculates the real intersection to tile
+	if (!helix_plane_intersection(t_min, t_max, zmin, zmax, R, X0, Y0, intersect_rz, slope_rz, ptile, ntile, intersection))
+	{
+          if (Verbosity() > 0)
+	  {
+	    std::cout << PHWHERE << "helix_plane_intersection - failed" << std::endl;
+	  }
+	  continue;
+	}
+
+	x = intersection.X();
+        y = intersection.Y();
+        z = intersection.Z();
+
       }
-
-      // select again angle closest to last cluster
-      phi_plus = std::atan2(yplus, xplus);
-      phi_minus = std::atan2(yminus, xminus);
-      const bool is_plus = (std::abs(last_clus_phi - phi_plus) < std::abs(last_clus_phi - phi_minus));
-
-      // calculate x, y and z
-      const double x = (is_plus ? xplus : xminus);
-      const double y = (is_plus ? yplus : yminus);
-      r = get_r(x, y);
-      z = intersect_rz + slope_rz * r;
 
       /*
        * create planar intersection point in world coordinates
@@ -569,7 +749,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         }
 
         // compute residuals and store
-        /* in local tile coordinate, x is along rphi, and z is along y) */
+	/* in local tile coordinate, x is along rphi, and z is along y) */
         const double drphi = local_intersection_planar.x() - cluster->getLocalX();
         const double dz = local_intersection_planar.y() - cluster->getLocalY();
         switch( segmentation_type )
@@ -613,8 +793,9 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
         // compare to cuts and add to track if matching
         if( _test_windows && std::abs(drphi) < _rphi_search_win[imm] && std::abs(dz) < _z_search_win[imm])
         {
+
           // cluster rphi and z
-          const auto glob = _tGeometry->getGlobalPosition(ckey, cluster);
+	  const auto glob = _tGeometry->getGlobalPosition(ckey, cluster);
           const double mm_clus_rphi = get_r(glob.x(), glob.y()) * std::atan2(glob.y(), glob.x());
           const double mm_clus_z = glob.z();
 
@@ -627,7 +808,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
            * 1/ drphi and dz are actually calculated in Tile's local reference frame, not in world coordinates
            * 2/ drphi also includes SC distortion correction, which the world coordinates don't
           */
-          std::cout
+	  std::cout
             << "  Try_mms: " << (int) layer
             << " drphi " << drphi
             << " dz " << dz
@@ -635,7 +816,7 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
             << " rphi_proj " << rphi_proj << " z_proj " << z_proj
             << " pt " << tracklet_tpc->get_pt()
             << " charge " << tracklet_tpc->get_charge()
-            << std::endl;
+            << std::endl;		 
         }
       }  // end loop over clusters
 
