@@ -354,7 +354,7 @@ TVector3 AnnularFieldSim::GetLocalFieldComponents(const TVector3 &field, const T
 {
   // this function returns the components of the field in the local coordinate system, which is in cylindrical coords
   // and has a specified origin.
-  // it assumes that the field and all coordinates are given in the global coordinate system.
+  // it assumes that the field and all coordinates are given in the global, cartesian coordinate system.
   // it returns a TVector3 with the radial, azimuthal, and z components of the field in the local coordinate system.
 
   TVector3 local_pos = pos - origin;  // shift the position to the local coordinate system
@@ -1020,12 +1020,11 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   // formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
   // the x,y,z shift moves the detector in the field (hence for a +1 shift in each, the field value at (0,0,0) is recorded at detector coordinate (-1,-1,-1)
   TVector3 origin= TVector3(xshift, yshift, zshift);  // the origin of the detector in the field coordinate system.
-  if (debugFlag())
-  {
-    std::cout << boost::str(boost::format("AnnularFieldSim::loadField:  loading field from %s, detector origin at (%f,%f,%f) in the field map, field unit %f, zsign %d") % source->GetName() % origin.X() % origin.Y() % origin.Z() % fieldunit % zsign) << std::endl;
-  }
-
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
+
+  printf("AnnularFieldSim::loadField:  loading field from %s, detector origin at (%f,%f,%f) in the field map, field unit %f, zsign %d, handling=%s\n", source->GetName(), origin.X(), origin.Y(), origin.Z(), fieldunit, zsign, (phiSymmetry ? "phi-symmetric" : "not phi-symmetric"));
+
+
   int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
 
   //float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
@@ -1115,9 +1114,9 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       TVector3 fieldMapPos(rval,0,zval);// the position in the field map, in cylindrical coordinates.
       fieldMapPos.SetPhi(phival);  // set the phi coordinate in the field map.
 
-      //convert the components of the field into the global coordinate system:
+      //convert the components of the field into the global cartesian system:
       TVector3 globalField=rphizField;  // the field vector in the global coordinate system, in cylindrical coordinates.
-      globalField.RotateZ(-phival);  // the rphiz frame is rotated from the global by the phi coordinate, so undo that rotation.
+      globalField.RotateZ(phival);  // the rphiz frame is rotated from the global by the phi coordinate, so to make these match the cartesian system, we must rotate the field to the local rphiz frame
 
       //if our origin is not zero, apply the translation of field and coords:
       TVector3 tpcPos=fieldMapPos-origin;  // the position of this field datapoint in the tpc coordinate system
