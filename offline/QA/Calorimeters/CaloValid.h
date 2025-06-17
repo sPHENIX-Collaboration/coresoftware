@@ -44,6 +44,7 @@ class CaloValid : public SubsysReco
   void set_debug(bool debug) { m_debug = debug; }
   void SetSpecies(const std::string &species) { m_species = species; }
   TH2* LogYHist2D(const std::string& name, const std::string& title, int, double, double, int, double, double);
+  void Verbosity(const int i) { m_Verbosity = i; }
 
  private:
   void createHistos();
@@ -133,6 +134,7 @@ class CaloValid : public SubsysReco
 
   int _eventcounter{0};
   int _range{1};
+  int m_Verbosity{0};
 
   bool m_debug{false};
 

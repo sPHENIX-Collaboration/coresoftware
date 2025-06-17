@@ -81,24 +81,24 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   if (runnumber >= RunnumberRange::RUN2PP_FIRST && runnumber <= RunnumberRange::RUN2PP_LAST)
   {
     m_species = "pp";
-    if (Verbosity > 0)
+    if (m_Verbosity > 0)
       std::cout << "This run is in Run-2 p+p.\n";
   }
   else if (runnumber >= RunnumberRange::RUN2AUAU_FIRST && runnumber <= RunnumberRange::RUN2AUAU_LAST)
   {
     m_species = "AuAu";
-    if (Verbosity > 0)
+    if (m_Verbosity > 0)
       std::cout << "This run is in Run-2 Au+Au.\n";
   }
   else if (runnumber >= RunnumberRange::RUN3AUAU_FIRST && runnumber <= RunnumberRange::RUN3AUAU_LAST)
   {
     m_species = "AuAu";
-    if (Verbosity > 0)
+    if (m_Verbosity > 0)
       std::cout << "This run is in Run-3 Au+Au.\n";
   }
   else
   {
-    if (Verbosity > 0)
+    if (m_Verbosity > 0)
       std::cout << "Run number is out of known range. Using pp as default. \n";
   }
 
