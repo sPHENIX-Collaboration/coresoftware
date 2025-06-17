@@ -3,7 +3,7 @@
 #include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
-#include <ffarawobjects/Gl1Packetv2.h>
+#include <ffarawobjects/Gl1Packetv3.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -83,7 +83,7 @@ void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
     OfflinePacket *gl1hitcont = findNode::getClass<OfflinePacket>(detNode, PacketNodeName);
     if (!gl1hitcont)
     {
-      gl1hitcont = new Gl1Packetv2();
+      gl1hitcont = new Gl1Packetv3();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, PacketNodeName, "PHObject");
       detNode->addNode(newNode);
     }
@@ -140,6 +140,7 @@ int SingleGl1TriggeredInput::ReadEvent()
     gl1packet->setLiveVector(packet->lValue(0, "LiveVector"));
     gl1packet->setScaledVector(packet->lValue(0, "ScaledVector"));
     gl1packet->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
+    gl1packet->setGTMAllBusyVector(packet->lValue(0, "GTMAllBusyVector"));
     for (int i = 0; i < 64; i++)
     {
       for (int j = 0; j < 3; j++)
