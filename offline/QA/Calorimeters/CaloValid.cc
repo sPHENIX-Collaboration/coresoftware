@@ -17,15 +17,16 @@
 #include <qautils/QAHistManagerDef.h>
 
 #include <ffaobjects/EventHeader.h>
+#include <ffaobjects/RunHeader.h>  // for runnumber
 
 #include <ffarawobjects/Gl1Packet.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <phool/RunnumberRange.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-
 
 #include <TH1.h>
 #include <TH2.h>
@@ -73,6 +74,32 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   if (m_debug)
   {
     std::cout << "In CaloValid::Init" << std::endl;
+  }
+
+  int runnumber = RunHeader::get_RunNumber();
+
+  if (runnumber >= RunnumberRange::RUN2PP_FIRST && runnumber <= RunnumberRange::RUN2PP_LAST)
+  {
+    m_species = "pp";
+    if (Verbosity > 0)
+      std::cout << "This run is in Run-2 p+p.\n";
+  }
+  else if (runnumber >= RunnumberRange::RUN2AUAU_FIRST && runnumber <= RunnumberRange::RUN2AUAU_LAST)
+  {
+    m_species = "AuAu";
+    if (Verbosity > 0)
+      std::cout << "This run is in Run-2 Au+Au.\n";
+  }
+  else if (runnumber >= RunnumberRange::RUN3AUAU_FIRST && runnumber <= RunnumberRange::RUN3AUAU_LAST)
+  {
+    m_species = "AuAu";
+    if (Verbosity > 0)
+      std::cout << "This run is in Run-3 Au+Au.\n";
+  }
+  else
+  {
+    if (Verbosity > 0)
+      std::cout << "Run number is out of known range. Using pp as default. \n";
   }
 
   createHistos();
@@ -123,11 +150,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   float totalihcal = 0.;
   float totalohcal = 0.;
   float totalmbd = 0.;
-    
+
   float emcaldownscale, ihcaldownscale, ohcaldownscale, mbddownscale;
   float adc_threshold;
   float emcal_hit_threshold, ohcal_hit_threshold, ihcal_hit_threshold;
-    
+
   if (m_species == "AuAu")
   {
     emcaldownscale = 1350000. / 800.;
@@ -180,7 +207,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   {
     if (m_debug)
     {
-    std::cout << "[ERROR] No TriggerAnalyzer pointer!\n";
+      std::cout << "[ERROR] No TriggerAnalyzer pointer!\n";
     }
   }
 
@@ -191,10 +218,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   {
     if (trigAna->didTriggerFire(bit))
     {
-    scaledActiveBits.push_back(bit);
+      scaledActiveBits.push_back(bit);
     }
   }
-    
+
   bool scaledBits[64] = {false};
   long long int raw[64] = {0};
   long long int live[64] = {0};
@@ -206,7 +233,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     if (!gl1PacketInfo)
     {
       std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"
-		<< std::endl;
+                << std::endl;
     }
   }
   uint64_t triggervec = 0;
@@ -228,7 +255,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       }
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
-    //triggervec = gl1PacketInfo->getScaledVector(); commented out to get rid of never used warning using clang -tidy
+    // triggervec = gl1PacketInfo->getScaledVector(); commented out to get rid of never used warning using clang -tidy
   }
 
   //---------------------------calibrated towers-------------------------------//
@@ -634,23 +661,22 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int lt_eta = recoCluster->get_lead_tower().first;
         unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
-        int IB_num = (lt_eta / 8)*32 + (lt_phi / 8);
+        int IB_num = (lt_eta / 8) * 32 + (lt_phi / 8);
 
         for (int bit : scaledActiveBits)
         {
-          if (std::find(triggerIndices.begin(), triggerIndices.end(), bit)
-              == triggerIndices.end())
+          if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
           {
             continue;
           }
           h_pi0_trigIB_mass->Fill(
-            static_cast<double>(bit),
-            static_cast<double>(IB_num),
-            static_cast<double>(pi0Mass));
+              static_cast<double>(bit),
+              static_cast<double>(IB_num),
+              static_cast<double>(pi0Mass));
         }
         h_InvMass->Fill(pi0Mass);
       }
-    } // end cluster loop
+    }  // end cluster loop
   }
 
   //----------------- Trigger / alignment ----------------------------//
@@ -809,7 +835,7 @@ TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, in
   Double_t logymin = std::log10(ymin);
   Double_t logymax = std::log10(ymax);
   Double_t binwidth = (logymax - logymin) / ybins_in;
-  Double_t *ybins = new Double_t[ybins_in + 2]; //allocate 1 extra bin to fix "malloc()L memory corruption crash
+  Double_t* ybins = new Double_t[ybins_in + 2];  // allocate 1 extra bin to fix "malloc()L memory corruption crash
 
   for (Int_t i = 0; i <= ybins_in + 1; i++)
   {
@@ -817,7 +843,7 @@ TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, in
   }
 
   TH2F* h = new TH2F(name.c_str(), title.c_str(), xbins_in, xmin, xmax, ybins_in, ybins);
-  delete [] ybins;
+  delete[] ybins;
   return h;
 }
 std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
@@ -1109,15 +1135,15 @@ void CaloValid::createHistos()
     }
   }
   h_pi0_trigIB_mass = new TH3F(
-    "h_pi0_trigIB_mass",
-    ";Trigger Bit; iIB (eta*32 + phi); #pi^{0} Mass (GeV/c^{2})",
-    64, -0.5, 63.5,    // triggers
-    384, -0.5, 383.5,  // IB index
-    120, 0.0, 1.2      // mass range
+      "h_pi0_trigIB_mass",
+      ";Trigger Bit; iIB (eta*32 + phi); #pi^{0} Mass (GeV/c^{2})",
+      64, -0.5, 63.5,    // triggers
+      384, -0.5, 383.5,  // IB index
+      120, 0.0, 1.2      // mass range
   );
   h_pi0_trigIB_mass->SetDirectory(nullptr);
   hm->registerHisto(h_pi0_trigIB_mass);
-    
+
   // Trigger QA
   // h_triggerVec = new TH1F("h_CaloValid_triggerVec", "", 64, 0, 64); commented out due to memory allocation issue w/ redef from line 1009
   pr_ldClus_trig =
@@ -1154,4 +1180,3 @@ void CaloValid::createHistos()
   hm->registerHisto(h_triggerVec);
   hm->registerHisto(pr_ldClus_trig);
 }
-
