@@ -159,12 +159,14 @@ class AnnularFieldSim
   {
     green = ross;
     green_shift = zshift;
+    printf("AnnularFieldSim::borrow_rossegger:  borrowed Rossegger table with zshift %f\n", zshift);
     return;
   };  // get an already-existing rossegger table instead of loading it ourselves.
   void borrow_epartial_from(AnnularFieldSim *sim, float zshift)
   {
     Epartial_phislice = sim->Epartial_phislice;
     green_shift = zshift;
+    printf("AnnularFieldSim::borrow_epartial_from:  borrowed Epartial_phislice table with zshift %f\n", zshift);
     return;
   };  // get an already-existing rossegger table instead of loading it ourselves.
   void set_twin(AnnularFieldSim *sim)
