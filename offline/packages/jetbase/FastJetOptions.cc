@@ -152,11 +152,23 @@ void FastJetOptions::print(std::ostream& os)
   os << " FastJet input options: " << std::endl
      << " - R: " << jet_R << std::endl;
   // if you insist on doing it this way - it is in one line
-  // NOLINTNEXTLINE(readability-avoid-nested-conditional-operator)
-  os << " - algorithm: " << (algo == Jet::ALGO::ANTIKT ? "ANTIKT" : algo == Jet::ALGO::KT      ? "KT"
-                                                                : algo == Jet::ALGO::CAMBRIDGE ? "CAMBRIDGE"
-                                                                                               : "none")
-     << std::endl
+    os << " - algorithm: ";
+    switch(algo)
+    {
+    case Jet::ALGO::ANTIKT:
+      os << "ANTIKT";
+	break;
+    case Jet::ALGO::KT:
+      os << "KT";
+      break;
+    case Jet::ALGO::CAMBRIDGE:
+      os << "CAMBRIDGE";
+      break;
+    default:
+      os << "none";
+      break;
+    }
+    os << std::endl
      << " - save jet components ids: " << (save_jet_components ? "yes" : "no") << std::endl
      << " - verbosity: " << verbosity << std::endl;
   if (use_constituent_min_pt)

@@ -1,5 +1,8 @@
 #include "JetContainer.h"
+
 #include <ostream>  // for operator<<, endl, ostream, basic_ostream
+
+#include <TClonesArray.h>
 
 class Jet;
 

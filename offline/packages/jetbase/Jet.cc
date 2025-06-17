@@ -97,4 +97,4 @@ Jet::IterJetTCA::IterJetTCA(TClonesArray* _tca)
 {
 }
 
-Jet* Jet::IterJetTCA::operator*() { return (Jet*) tca->UncheckedAt(index); }
+Jet* Jet::IterJetTCA::operator*() const { return (Jet*) tca->UncheckedAt(index); }

@@ -5,11 +5,12 @@
 
 #include <boost/format.hpp>
 
+#include <limits>
 #include <string>
 
-JetContainerv1::JetContainerv1()
+JetContainerv1::JetContainerv1() : m_clones(new TClonesArray("Jetv2", 50))
 {
-  m_clones = new TClonesArray("Jetv2", 50);
+  
 }
 
 void JetContainerv1::identify(std::ostream& os) const
@@ -21,12 +22,12 @@ void JetContainerv1::identify(std::ostream& os) const
 }
 
 JetContainerv1::JetContainerv1(const JetContainer& rhs)
-  : m_njets{rhs.size()}
+  : m_clones(rhs.clone_data()), m_njets{rhs.size()}
   , m_pindex{rhs.property_indices()}
   , m_psize{rhs.size_properties()}
   , m_RhoMedian{rhs.get_rho_median()}
 {
-  m_clones = rhs.clone_data();
+  
 
   for (auto src = rhs.begin_src(); src != rhs.end_src(); ++src)
   {
@@ -46,12 +47,12 @@ void JetContainerv1::Reset()
 {
   m_clones->Clear("C");
   m_njets = 0;
-  m_RhoMedian = NAN;
+  m_RhoMedian = std::numeric_limits<float>::quiet_NaN();
 }
 
 Jet* JetContainerv1::add_jet()
 {
-  auto jet = (Jet*) m_clones->ConstructedAt(m_njets++, "C");
+  auto *jet = (Jet*) m_clones->ConstructedAt(m_njets++, "C");
   jet->resize_properties(m_psize);
   return jet;
 }
@@ -62,10 +63,9 @@ Jet* JetContainerv1::get_jet(unsigned int ijet)
   {
     return (Jet*) m_clones->At(ijet);
   }
-  else
-  {
-    return nullptr;
-  }
+  
+      return nullptr;
+ 
 }
 
 Jet* JetContainerv1::get_UncheckedAt(unsigned int index)
@@ -87,7 +87,7 @@ void JetContainerv1::print_jets(std::ostream& os)
   os << std::endl;
 
   int ijet = 0;
-  for (auto jet : *this)
+  for (auto *jet : *this)
   {
     os << (boost::format("  jet(%2i) : pT(%6.2f)  eta(%6.2f)  phi(%6.2f)") % ijet % jet->get_pt() % jet->get_eta() % jet->get_phi()).str();
     ++ijet;
@@ -168,14 +168,14 @@ Jet::IterJetTCA JetContainerv1::end()  // dummy implementation -- don't anticipa
 
 void JetContainerv1::resize_jet_pvecs()
 {
-  for (auto jet : *this)
+  for (auto *jet : *this)
   {
     jet->resize_properties(m_psize);
   }
   return;
 }
 
-std::string JetContainerv1::str_Jet_PROPERTY(Jet::PROPERTY prop) const
+std::string JetContainerv1::str_Jet_PROPERTY(Jet::PROPERTY prop) 
 {
   switch (prop)
   {

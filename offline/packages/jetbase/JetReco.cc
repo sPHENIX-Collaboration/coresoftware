@@ -142,7 +142,7 @@ int JetReco::process_event(PHCompositeNode *topNode)
         int ifixme = 0;
         for (auto &_jet : *jetmap)
         {
-          auto jet = _jet.second;
+          auto *jet = _jet.second;
           fout << (boost::format(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]") % (++ifixme) % ((int) jet->size_comp()) % jet->get_pt() % jet->get_eta() % jet->get_phi()).str() << std::endl;
           std::vector<std::pair<int, int>> vconst;
           /*legacy*/ for (auto _comp = jet->begin_comp(); _comp != jet->end_comp(); ++_comp)
@@ -152,8 +152,7 @@ int JetReco::process_event(PHCompositeNode *topNode)
           std::sort(vconst.begin(), vconst.end(), [](std::pair<int, int> a, std::pair<int, int> b)
                     { 
               if      (a.first == b.first) { return a.second < b.second;
-              } else { return a.first < b.first;
-} });
+              } return a.first < b.first; });
           fout << " constituents: ";
           int iconst = 0;
           for (const auto &p : vconst)
@@ -172,7 +171,7 @@ int JetReco::process_event(PHCompositeNode *topNode)
         int ifixme = 0;
 
         /* for (auto jet = jet_cont->begin(); jet != jet_cont->end(); ++jet) { */
-        for (auto jet : *jet_cont)
+        for (auto *jet : *jet_cont)
         {
           fout << (boost::format(" jet[%2i] ncon:pt:eta:phi [%6i,%6.3f,%6.3f,%6.3f]") % (++ifixme) % ((int) jet->size_comp()) % jet->get_pt() % jet->get_eta() % jet->get_phi()).str() << std::endl;
 
@@ -276,7 +275,7 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, const std::vector<
     jetmap->insert_src(_input->get_src());
   }
 
-  for (auto &jet : jets)
+  for (const auto &jet : jets)
   {
     jetmap->insert(jet);  // map takes ownership, sets unique id
   }
@@ -310,7 +309,7 @@ void JetReco::FillJetContainer(PHCompositeNode *topNode, int ipos, std::vector<J
 
 JetAlgo *JetReco::get_algo(unsigned int which_algo)
 {
-  if (_algos.size() == 0)
+  if (_algos.empty())
   {
     std::cout << PHWHERE << std::endl
               << " JetReco has only " << _algos.size() << " JetAlgos; cannot get the one indexed " << which_algo << std::endl;

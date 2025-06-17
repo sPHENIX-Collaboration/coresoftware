@@ -62,8 +62,8 @@ class FastJetAlgo : public JetAlgo
   // Internal processes
   std::vector<fastjet::PseudoJet> jets_to_pseudojets(std::vector<Jet*>& particles) const;
   std::vector<fastjet::PseudoJet> cluster_jets(std::vector<fastjet::PseudoJet>& pseudojets);
-  std::vector<fastjet::PseudoJet> cluster_area_jets(std::vector<fastjet::PseudoJet>& constituents);
-  float calc_rhomeddens(std::vector<fastjet::PseudoJet>& pseudojets) const;
+  std::vector<fastjet::PseudoJet> cluster_area_jets(std::vector<fastjet::PseudoJet>& pseudojets);
+  float calc_rhomeddens(std::vector<fastjet::PseudoJet>& constituents) const;
   fastjet::JetDefinition get_fastjet_definition() const;
   fastjet::Selector get_selector() const;
   void first_call_init(JetContainer* jetcont = nullptr);
