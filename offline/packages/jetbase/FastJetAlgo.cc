@@ -43,14 +43,14 @@ FastJetAlgo::FastJetAlgo(const FastJetOptions& options)
   fastjet::ClusterSequence clusseq;
   if (m_opt.verbosity > 0)
   {
-    clusseq.print_banner();
+    fastjet::ClusterSequence::print_banner();
   }
   else
   {
     std::ostringstream nullstream;
-    clusseq.set_fastjet_banner_stream(&nullstream);
-    clusseq.print_banner();
-    clusseq.set_fastjet_banner_stream(&std::cout);
+    fastjet::ClusterSequence::set_fastjet_banner_stream(&nullstream);
+    fastjet::ClusterSequence::print_banner();
+    fastjet::ClusterSequence::set_fastjet_banner_stream(&std::cout);
   }
 }
 
@@ -74,45 +74,41 @@ void FastJetAlgo::identify(std::ostream& os)
   m_opt.print(os);
 }
 
-fastjet::JetDefinition FastJetAlgo::get_fastjet_definition()
+fastjet::JetDefinition FastJetAlgo::get_fastjet_definition() const
 {
   if (m_opt.algo == Jet::ANTIKT)
   {
     return fastjet::JetDefinition(fastjet::antikt_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
   }
-  else if (m_opt.algo == Jet::KT)
+  if (m_opt.algo == Jet::KT)
   {
     return fastjet::JetDefinition(fastjet::kt_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
   }
-  else if (m_opt.algo == Jet::CAMBRIDGE)
+  if (m_opt.algo == Jet::CAMBRIDGE)
   {
     return fastjet::JetDefinition(fastjet::cambridge_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
   }
-  else
-  {
-    std::cout << PHWHERE << std::endl;
-    std::cout << "Warning, no recognized jet clustering algorithm provided in FastJetAlgo" << std::endl
-              << "defaulting to antikt_algorithm" << std::endl;
-    // return a dummy definition
-    return fastjet::JetDefinition(fastjet::antikt_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
-  }
+
+  std::cout << PHWHERE << std::endl;
+  std::cout << "Warning, no recognized jet clustering algorithm provided in FastJetAlgo" << std::endl
+            << "defaulting to antikt_algorithm" << std::endl;
+  // return a dummy definition
+  return fastjet::JetDefinition(fastjet::antikt_algorithm, m_opt.jet_R, fastjet::E_scheme, fastjet::Best);
 }
 
-fastjet::Selector FastJetAlgo::get_selector()
+fastjet::Selector FastJetAlgo::get_selector() const
 {
   // only selectors available are jet_min_pt and jet_max_eta
   if (m_opt.use_jet_max_eta && m_opt.use_jet_min_pt)
   {
     return fastjet::SelectorAbsRapMax(m_opt.jet_max_eta) && fastjet::SelectorPtMin(m_opt.jet_min_pt);
   }
-  else if (m_opt.use_jet_max_eta)
+  if (m_opt.use_jet_max_eta)
   {
     return fastjet::SelectorAbsRapMax(m_opt.jet_max_eta);
   }
-  else
-  {
-    return fastjet::SelectorPtMin(m_opt.jet_min_pt);
-  }
+
+  return fastjet::SelectorPtMin(m_opt.jet_min_pt);
 }
 
 std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_jets(
@@ -126,10 +122,8 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_jets(
     auto selector = get_selector();
     return fastjet::sorted_by_pt(selector(m_cluseq->inclusive_jets()));
   }
-  else
-  {
-    return fastjet::sorted_by_pt(m_cluseq->inclusive_jets());
-  }
+
+  return fastjet::sorted_by_pt(m_cluseq->inclusive_jets());
 }
 
 std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_area_jets(
@@ -150,7 +144,7 @@ std::vector<fastjet::PseudoJet> FastJetAlgo::cluster_area_jets(
   return fastjet::sorted_by_pt(selector(m_cluseqarea->inclusive_jets()));
 }
 
-float FastJetAlgo::calc_rhomeddens(std::vector<fastjet::PseudoJet>& constituents)
+float FastJetAlgo::calc_rhomeddens(std::vector<fastjet::PseudoJet>& constituents) const
 {
   fastjet::AreaDefinition area_def(
       fastjet::active_area_explicit_ghosts,
@@ -165,7 +159,7 @@ float FastJetAlgo::calc_rhomeddens(std::vector<fastjet::PseudoJet>& constituents
 }
 
 std::vector<fastjet::PseudoJet>
-FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles)
+FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles) const
 {
   std::vector<fastjet::PseudoJet> pseudojets;
   for (unsigned int ipart = 0; ipart < particles.size(); ++ipart)
@@ -175,7 +169,7 @@ FastJetAlgo::jets_to_pseudojets(std::vector<Jet*>& particles)
     // zero'd out energy after CS. this catch also in FastJetAlgoSub
 
     // Ignore particles with negative/small energies
-    
+
     if (particles[ipart]->get_e() < m_opt.constituent_min_E)
     {
       continue;
@@ -350,7 +344,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
 
     // if SoftDrop enabled, and jets have > 5 GeV (do not waste time
     // on very low-pT jets), run SD and pack output into jet properties
-    // remove jets that have negative energies 
+    // remove jets that have negative energies
     if (m_opt.doSoftDrop && fastjets[ijet].perp() > 5)
     {
       fastjet::contrib::SoftDrop sd(m_opt.SD_beta, m_opt.SD_zcut);
@@ -382,7 +376,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
     }
 
     // Count clustered components. If desired, put original components into the output jet.
-//    int n_clustered = 0;
+    //    int n_clustered = 0;
     std::vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
     if (m_opt.calc_area)
     {
@@ -392,7 +386,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
         {
           continue;
         }
-//        ++n_clustered;
+        //        ++n_clustered;
         if (m_opt.save_jet_components)
         {
           jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
@@ -401,7 +395,7 @@ void FastJetAlgo::cluster_and_fill(std::vector<Jet*>& particles, JetContainer* j
     }
     else
     {  // didn't calculate jet area
-//      n_clustered += constituents.size();
+       //      n_clustered += constituents.size();
       if (m_opt.save_jet_components)
       {
         for (auto& comp : constituents)
@@ -465,7 +459,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     }
 
     // Count clustered components. If desired, put original components into the output jet.
-//    int n_clustered = 0;
+    //    int n_clustered = 0;
     std::vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
     if (m_opt.calc_area)
     {
@@ -475,7 +469,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
         {
           continue;
         }
-//        ++n_clustered;
+        //        ++n_clustered;
         if (m_opt.save_jet_components)
         {
           jet->insert_comp(particles[comp.user_index()]->get_comp_vec(), true);
@@ -484,7 +478,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
     }
     else
     {  // didn't save jet area
-//      n_clustered += constituents.size();
+       //      n_clustered += constituents.size();
       if (m_opt.save_jet_components)
       {
         for (auto& comp : constituents)
