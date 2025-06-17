@@ -92,6 +92,11 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_doHadd = hadd;
   }
 
+  void set_averageMode(bool averageMode)
+  {
+    m_averageMode = averageMode;
+  }
+
   void set_event_sequence(int seq)
   {
     m_event_sequence = seq;
@@ -186,6 +191,7 @@ class TpcCentralMembraneMatching : public SubsysReco
   TTree *match_tree{nullptr};
 
   bool m_useHeader{true};
+  bool m_averageMode{false};
 
   int m_event_index{0};
   int m_event_sequence{0};

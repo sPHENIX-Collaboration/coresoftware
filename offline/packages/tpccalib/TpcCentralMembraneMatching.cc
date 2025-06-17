@@ -1922,10 +1922,20 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     cmdiff->setTruthR(m_truth_pos[i].Perp());
     cmdiff->setTruthZ(m_truth_pos[i].Z());
 
-    cmdiff->setRecoPhi(reco_pos[reco_index].Phi());
-    cmdiff->setRecoR(reco_pos[reco_index].Perp());
-    cmdiff->setRecoZ(reco_pos[reco_index].Z());
-    cmdiff->setNclusters(reco_nhits[reco_index]);
+    if (m_averageMode)
+    {
+      cmdiff->setRecoPhi(static_pos[reco_index].Phi());
+      cmdiff->setRecoR(static_pos[reco_index].Perp());
+      cmdiff->setRecoZ(static_pos[reco_index].Z());
+      cmdiff->setNclusters(reco_nhits[reco_index]);
+    }
+    else
+    {
+      cmdiff->setRecoPhi(reco_pos[reco_index].Phi());
+      cmdiff->setRecoR(reco_pos[reco_index].Perp());
+      cmdiff->setRecoZ(reco_pos[reco_index].Z());
+      cmdiff->setNclusters(reco_nhits[reco_index]);
+    }
 
     if (Verbosity() > 1)
     {
@@ -1948,9 +1958,15 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     // if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
 
     // calculate residuals (cluster - truth)
-    const double dr = reco_pos[reco_index].Perp() - m_truth_pos[i].Perp();
-    const double dphi = delta_phi(reco_pos[reco_index].Phi() - m_truth_pos[i].Phi());
-    const double rdphi = reco_pos[reco_index].Perp() * dphi;
+    double dr = reco_pos[reco_index].Perp() - m_truth_pos[i].Perp();
+    double dphi = delta_phi(reco_pos[reco_index].Phi() - m_truth_pos[i].Phi());
+    double rdphi = reco_pos[reco_index].Perp() * dphi;
+    if (m_averageMode)
+    {
+      dr = static_pos[reco_index].Perp() - m_truth_pos[i].Perp();
+      dphi = delta_phi(static_pos[reco_index].Phi() - m_truth_pos[i].Phi());
+      rdphi = static_pos[reco_index].Perp() * dphi;
+    }
     //currently, we cannot get any z distortion since we don't know when the laser actually flashed
     //so the distortion is set to 0 for now
     //const double dz = reco_pos[reco_index].z() - m_truth_pos[i].z();
