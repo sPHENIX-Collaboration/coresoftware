@@ -964,6 +964,7 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
   loadField(&Eexternal, fTree, &r, nullptr, &z, &fr, &fphi, &fz, V / cm, zsign);
+  printf("AnnularFieldSim::loadEfield:  finished loading E field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(), zsign);
   fieldFile.Close();
   return;
 }
@@ -987,6 +988,7 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
   loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla, 1);
+  printf("AnnularFieldSim::loadBfield:  finished loading B field from file %s, tree %s\n", filename.c_str(), treename.c_str());
   fieldFile.Close();
 
   return;
@@ -1011,6 +1013,8 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   fTree->SetBranchAddress("phi", &phi);
   fTree->SetBranchAddress("bphi", &fphi);
   loadField(&Bfield, fTree, &r, &phi, &z, &fr, &fphi, &fz, Tesla * scale, zsign, xshift, yshift, zshift);
+  printf("AnnularFieldSim::load3dBfield:  finished loading B field from file %s, tree %s (sign=%d) with scale %f\n", filename.c_str(), treename.c_str(), zsign, scale);
+  fieldFile.Close();
   return;
 }
 
@@ -1088,6 +1092,15 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   int nEntries = source->GetEntries();
   for (int i = 0; i < nEntries; i++)
   {  // could probably do this with an iterator
+
+    //keep track of progress:
+    mod=i%(source->GetEntries()/10;
+    div=i/(source->GetEntries()/10);
+    if(mod==0 && div>0){
+      printf("loadField:  %d0%%\n", div);
+    }
+
+
     source->GetEntry(i);
     float zval = *zptr * zsign;  // since the field map may assume symmetry wrt z, we  need the ability to flip the sign of the z coordinate.
     // note that the z sign also needs to affect the field sign in that direction, which is handled outside in the z components of the fills
@@ -1095,7 +1108,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
     float phival;
     //we have to also carefully transform the field itself:
     float fzval = *fzptr * fieldunit * zsign;  // z component of the field (altered in rotations of the cylinder, but not translations), note that we flip the sign if requested (ie the Efield loader).
-    float fphival = *fphiptr * fieldunit;  // phi component of the field 
+    float fphival = *fphiptr * fieldunit*zsign;  // phi component of the field 
     float frval = *frptr * fieldunit;  // radial component of the field 
     TVector3 rphizField(frval, fphival, fzval);  
 
@@ -1120,6 +1133,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
 
       //if our origin is not zero, apply the translation of field and coords:
       TVector3 tpcPos=fieldMapPos-origin;  // the position of this field datapoint in the tpc coordinate system
+      //I think this could just be a rotation by -tpcPos.Phi()...
       TVector3 tpcField=GetLocalFieldComponents(globalField,fieldMapPos,origin); //note that this returns the rphiz components at that point, in the tpc coordinate system.
 
       //get the cylindrical coordinates of our position in the TPC coordinate system:
