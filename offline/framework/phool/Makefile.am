@@ -88,6 +88,7 @@ pkginclude_HEADERS =  \
   PHTimeStamp.h \
   PHTypedNodeIterator.h \
   recoConsts.h \
+  RunnumberRange.h \
   sphenix_constants.h
 
 noinst_PROGRAMS = \
