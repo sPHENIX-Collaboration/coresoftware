@@ -947,7 +947,7 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores fields as V/cm.
-  printf("loading E field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(),zsign);
+  printf("AnnularFieldSim::loadEfield:  loading E field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(),zsign);
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
@@ -998,7 +998,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores field as Tesla.
-  printf("loading B field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(),zsign);
+  printf("AnnularFieldSim::load3dBfield:  loading B field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(),zsign);
 
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
@@ -1075,7 +1075,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   int nPhiCoords=1;
   if(phiSymmetry){
     //  if we do have phi symmetry, enumerate the phi coordinates we will use:
-    printf("AnnularFieldSim::loadField:  phi symmetry, using %d phi coordinates:\n", nphi);
+   // printf("AnnularFieldSim::loadField:  phi symmetry, using %d phi coordinates:\n", nphi);
     for (int j = 0; j < nphi; j++)
     {
       float phi0=(j+0.5)*step.Phi(); //stand-in for our phi pointer that doesn't exist.
@@ -1219,31 +1219,34 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
-            printf("Filling coordinates p%f,r%f,z%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k);
-            printf(" sanity: htEntries->FindBins(p%2.2f,r%2.2f,z%2.2f)=(p%d,r%d,z%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
-              htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
-              htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
-              htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
-            TVector3 globalPos= cellcenter+origin;  // the position of this field datapoint in the input system
-            //bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
-            float tr_low=htEntries->GetYaxis()->GetBinLowEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
-            float tr_high=htEntries->GetYaxis()->GetBinUpEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
-            float tz_low=htEntries->GetZaxis()->GetBinLowEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));
-            float tz_high=htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));  
-            float tphi_low=htEntries->GetXaxis()->GetBinLowEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
-            float tphi_high=htEntries->GetXaxis()->GetBinUpEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
-            TVector3 tlow(tr_low, 0, tz_low);  // the low edge of the bin in the input system
-            tlow.RotateZ(tphi_low);  // rotate to the correct phi
-            TVector3 thigh(tr_high, 0, tz_high);  // the high edge of the bin in the input system
-            thigh.RotateZ(tphi_high);  // rotate to the correct phi
-            tlow=tlow+origin;  // translate to the input coordinate system
-            thigh=thigh+origin;  // translate to the input coordinate system
-            if (phiSymmetry){
-              printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z());
-            }else{
+            if(0){//long debug check.
+              printf("Filling coordinates p%f,r%f,z%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k);
+              printf(" sanity: htEntries->FindBins(p%2.2f,r%2.2f,z%2.2f)=(p%d,r%d,z%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
+                htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
+                htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
+                htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
+            
+              TVector3 globalPos= cellcenter+origin;  // the position of this field datapoint in the input system
+              //bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
+              float tr_low=htEntries->GetYaxis()->GetBinLowEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+              float tr_high=htEntries->GetYaxis()->GetBinUpEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+              float tz_low=htEntries->GetZaxis()->GetBinLowEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));
+              float tz_high=htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));  
+              float tphi_low=htEntries->GetXaxis()->GetBinLowEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
+              float tphi_high=htEntries->GetXaxis()->GetBinUpEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
+              TVector3 tlow(tr_low, 0, tz_low);  // the low edge of the bin in the input system
+              tlow.RotateZ(tphi_low);  // rotate to the correct phi
+              TVector3 thigh(tr_high, 0, tz_high);  // the high edge of the bin in the input system
+              thigh.RotateZ(tphi_high);  // rotate to the correct phi
+              tlow=tlow+origin;  // translate to the input coordinate system
+              thigh=thigh+origin;  // translate to the input coordinate system
+              if (phiSymmetry){
+                printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z());
+              }else{
 
-              printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && phi>%1.1f && phi<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z());
-            }
+                printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && phi>%1.1f && phi<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z());
+              }
+            } 
 
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
                htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
@@ -1253,7 +1256,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
  
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
-              std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap.  Value near r=%2.2f, phi=%2.2f, z=%2.2f is %f, (with range of %2.3f,%2.3f,%2.3f) Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z()% htEntriesLow->GetBinContent(lowbin) % r_lowres_step % phi_lowres_step % z_lowres_step) << std::endl;
+              std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap, even using the lower res fall-back.  Value near r=%2.2f, phi=%2.2f, z=%2.2f is %f, (with range of %2.3f,%2.3f,%2.3f) Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z()% htEntriesLow->GetBinContent(lowbin) % r_lowres_step % phi_lowres_step % z_lowres_step) << std::endl;
               printf("Saving fieldmaps to debug.hist.root\n");
               TFile *debugfile = new TFile("debug.hist.root", "RECREATE");
               htEntries->Write();
@@ -1276,7 +1279,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       }
     }
   }
-  printf("Field loaded.\n");
+  //printf("Field loaded.\n");
   return;
 }
 
