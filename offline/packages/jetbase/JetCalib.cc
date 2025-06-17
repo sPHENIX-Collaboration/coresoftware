@@ -27,6 +27,7 @@
 
 #include <boost/format.hpp>
 
+#include <cmath>
 #include <cstdlib>    // for exit
 #include <exception>  // for exception
 #include <iostream>   // for operator<<, basic_ostream
@@ -68,13 +69,14 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
       std::string JetCalibFunc_name = "JES_Calib_Func_R0" + std::to_string(jet_radius * 10);
       if (!ApplyZvrtxDependentCalib && !ApplyEtaDependentCalib)
       {
-        int nZvrtxBins = 1, nEtaBins = 1;
+        int nZvrtxBins = 1;
+        int nEtaBins = 1;
         m_JetCalibFunc.resize(nZvrtxBins);
-        for (auto& row : m_JetCalibFunc)
+        for (auto &row : m_JetCalibFunc)
         {
           row.resize(nEtaBins, nullptr);
         }
-        TF1 *func_temp = m_JetCalibFile->getTF((JetCalibFunc_name + "_Default").c_str());
+        TF1 *func_temp = m_JetCalibFile->getTF(JetCalibFunc_name + "_Default");
         if (!func_temp)
         {
           std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not find calibration function: " << JetCalibFunc_name << "_Default" << std::endl;
@@ -84,15 +86,16 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
       }
       else if (ApplyZvrtxDependentCalib && !ApplyEtaDependentCalib)
       {
-        int nZvrtxBins = 3, nEtaBins = 1;
+        int nZvrtxBins = 3;
+        int nEtaBins = 1;
         m_JetCalibFunc.resize(nZvrtxBins);
-        for (auto& row : m_JetCalibFunc)
+        for (auto &row : m_JetCalibFunc)
         {
           row.resize(nEtaBins, nullptr);
         }
         for (int iz = 0; iz < nZvrtxBins; ++iz)
         {
-          TF1 *func_temp = m_JetCalibFile->getTF((JetCalibFunc_name + "_Zvrtx" + std::to_string(iz)).c_str());
+          TF1 *func_temp = m_JetCalibFile->getTF(JetCalibFunc_name + "_Zvrtx" + std::to_string(iz));
           if (!func_temp)
           {
             std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not find calibration function: " << JetCalibFunc_name << "_Zvrtx" << iz << std::endl;
@@ -107,9 +110,10 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
         {
           std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Must apply Zvrtx dependent calibration to apply eta dependent calibration. Applying Zvrtx + eta dependent calibration." << std::endl;
         }
-        int nZvrtxBins = 3, nEtaBins = 4;
+        int nZvrtxBins = 3;
+        int nEtaBins = 4;
         m_JetCalibFunc.resize(nZvrtxBins);
-        for (auto& row : m_JetCalibFunc)
+        for (auto &row : m_JetCalibFunc)
         {
           row.resize(nEtaBins, nullptr);
         }
@@ -117,7 +121,7 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
         {
           for (int ieta = 0; ieta < nEtaBins; ++ieta)
           {
-            TF1 *func_temp = m_JetCalibFile->getTF((JetCalibFunc_name + "_Zvrtx" + std::to_string(iz) + "_Eta" + std::to_string(ieta)).c_str());
+            TF1 *func_temp = m_JetCalibFile->getTF(JetCalibFunc_name + "_Zvrtx" + std::to_string(iz) + "_Eta" + std::to_string(ieta));
             if (!func_temp)
             {
               std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not find calibration function: " << JetCalibFunc_name << "_Zvrtx" << iz << "_Eta" << ieta << std::endl;
@@ -168,7 +172,7 @@ int JetCalib::process_event(PHCompositeNode *topNode)
   }
   // Apply calibration to jets and add to calib jet node.
   int ijet = 0;
-  for (auto jet : *_raw_jets)
+  for (auto *jet : *_raw_jets)
   {
     float pt = jet->get_pt();
     float eta = jet->get_eta();
@@ -190,10 +194,10 @@ int JetCalib::process_event(PHCompositeNode *topNode)
       }
     }
     float calib_pt = doCalibration(m_JetCalibFunc, pt, zvertex, eta);
-    auto calib_jet = _calib_jets->add_jet();
-    calib_jet->set_px(calib_pt * cos(phi));
-    calib_jet->set_py(calib_pt * sin(phi));
-    calib_jet->set_pz(calib_pt * sinh(eta));
+    auto *calib_jet = _calib_jets->add_jet();
+    calib_jet->set_px(calib_pt * std::cos(phi));
+    calib_jet->set_py(calib_pt * std::sin(phi));
+    calib_jet->set_pz(calib_pt * std::sinh(eta));
     calib_jet->set_id(ijet);
     calib_jet->set_isCalib(1);
     ijet++;
@@ -267,14 +271,12 @@ int getZvrtxBin(float zvrtx)
   {
     return 1;  // -inf to -30
   }
-  else if (zvrtx < 30.0)
+  if (zvrtx < 30.0)
   {
     return 0;  // -30 to 30
   }
-  else
-  {
-    return 2;  // 30 to inf
-  }
+
+  return 2;  // 30 to inf
 }
 
 int getEtaBin(int zvrtxbin, float eta, float jet_radius)
@@ -297,29 +299,27 @@ int getEtaBin(int zvrtxbin, float eta, float jet_radius)
     eta_high = 0.95 - jet_radius;
   }
 
-  float threshold1 = eta_low + ( eta_high - eta_low ) / 4.0;
-  float threshold2 = eta_low + ( eta_high - eta_low ) / 2.0;
-  float threshold3 = eta_low + 3.0 * ( eta_high - eta_low ) / 4.0;
+  float threshold1 = eta_low + ((eta_high - eta_low) / 4.0);
+  float threshold2 = eta_low + ((eta_high - eta_low) / 2.0);
+  float threshold3 = eta_low + (3.0 * (eta_high - eta_low) / 4.0);
 
   if (eta < threshold1)
   {
     return 0;  // -inf to threshold1
   }
-  else if (eta < threshold2)
+  if (eta < threshold2)
   {
     return 1;  // threshold1 to threshold2
   }
-  else if (eta < threshold3)
+  if (eta < threshold3)
   {
     return 2;  // threshold2 to threshold3
   }
-  else
-  {
-    return 3;  // threshold3 to inf
-  }
+
+  return 3;  // threshold3 to inf
 }
 
-float JetCalib::doCalibration(const std::vector<std::vector<TF1*>> &JetCalibFunc, float jetPt, float zvrtx, float eta)
+float JetCalib::doCalibration(const std::vector<std::vector<TF1 *>> &JetCalibFunc, float jetPt, float zvrtx, float eta) const
 {
   float calib = 1;
   int zvrtxbin = 0;
