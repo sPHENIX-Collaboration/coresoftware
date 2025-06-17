@@ -1262,7 +1262,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       }
     }
   }
-  printf("Field loaded.\n")
+  printf("Field loaded.\n");
   return;
 }
 
