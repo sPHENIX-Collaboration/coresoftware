@@ -69,6 +69,7 @@ class TrkrNtuplizer : public SubsysReco
   void do_cluster_eval(bool b) { _do_cluster_eval = b; }
   void do_clus_trk_eval(bool b) { _do_clus_trk_eval = b; }
   void do_track_eval(bool b) { _do_track_eval = b; }
+  void do_dedx_calib(bool b) { _do_dedx_calib = b; }
   void do_tpcseed_eval(bool b) { _do_tpcseed_eval = b; }
   void do_siseed_eval(bool b) { _do_siseed_eval = b; }
   void set_first_event(int value) { _ievent = value; }
@@ -95,6 +96,13 @@ class TrkrNtuplizer : public SubsysReco
   // eval stack
 
   float calc_dedx(TrackSeed *tpcseed);
+  TF1 *f_pion_plus{nullptr};
+  TF1 *f_kaon_plus{nullptr};
+  TF1 *f_proton_plus{nullptr};
+  TF1 *f_pion_minus{nullptr};
+  TF1 *f_kaon_minus{nullptr};
+  TF1 *f_proton_minus{nullptr};
+  float  dedxcorr[2][12][3];
   float get_n1pix(TrackSeed *tpcseed);
 
   TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
@@ -114,6 +122,7 @@ class TrkrNtuplizer : public SubsysReco
   bool _do_cluster_eval{true};
   bool _do_clus_trk_eval{true};
   bool _do_track_eval{true};
+  bool _do_dedx_calib{false};
   bool _do_tpcseed_eval{false};
   bool _do_siseed_eval{false};
 

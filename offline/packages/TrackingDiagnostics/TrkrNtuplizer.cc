@@ -38,6 +38,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
+#include <ffamodules/CDBInterface.h>
 
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
@@ -135,6 +136,7 @@ enum n_seed
   nseedtrackID,
   nseedniter,
   nseedpt,
+  nseedptot,
   nseedeta,
   nseedphi,
   nseedsyxint,
@@ -147,6 +149,9 @@ enum n_seed
   nseedR0,
   nseedcharge,
   nseeddedx,
+  nseedpidedx,
+  nseedkdedx,
+  nseedprdedx,
   nseedn1pix,
   nseednhits,
   seedsize = nseednhits + 1
@@ -189,6 +194,9 @@ enum n_track
   ntrkntpc2,
   ntrkntpc3,
   ntrkndedx,
+  ntrknpidedx,
+  ntrknkdedx,
+  ntrknprdedx,
   ntrkvertexID,
   ntrkvx,
   ntrkvy,
@@ -234,6 +242,10 @@ enum n_cluster
   nclue,
   ncluadc,
   nclumaxadc,
+  ncluthick,
+  ncluafac,
+  nclubfac,
+  ncludcal,
   nclulayer,
   ncluphielem,
   ncluzelem,
@@ -277,10 +289,10 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
   string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
   string str_event = {"event:seed:run:seg:job"};
   string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
-  string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
-  string str_seed = {"seedID:siter:spt:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:sn1pix:snhits"};
+  string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:thick:afac:bfac:dcal:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
+  string str_seed = {"seedID:siter:spt:sptot:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:spidedx:skdedx:sprdedx:sn1pix:snhits"};
   string str_residual = {"alpha:beta:resphio:resphi:resz"};
-  string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:dedx:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:hlxpt:hlxeta:hlxphi:hlxX0:hlxY0:hlxZ0:hlxcharge"};
+  string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:dedx:pidedx:kdedx:prdedx:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:hlxpt:hlxeta:hlxphi:hlxX0:hlxY0:hlxZ0:hlxcharge"};
   string str_info = {"occ11:occ116:occ21:occ216:occ31:occ316:ntrk:ntpcseed:nsiseed:nhitmvtx:nhitintt:nhittpot:nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclustpcpos:nclustpcneg:nclusintt:nclusmaps:nclusmms"};
 
   if (_do_info_eval)
@@ -328,10 +340,171 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
     string ntp_varlist_ssee = str_event + ":" + str_seed + ":" + str_info;
     _ntp_siseed = new TNtuple("ntp_siseed", "seeds from truth", ntp_varlist_ssee.c_str());
   }
+
+  std::string dedx_fitparams = CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
+  TFile *filefit = TFile::Open(dedx_fitparams.c_str());
+
+  if (!filefit->IsOpen())
+  {
+      std::cerr << "Error opening filefit!" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  filefit->GetObject("f_piband", f_pion_plus);
+  filefit->GetObject("f_Kband", f_kaon_plus);
+  filefit->GetObject("f_pband", f_proton_plus);
+  filefit->GetObject("f_piminus_band", f_pion_minus);
+  filefit->GetObject("f_Kminus_band", f_kaon_minus);
+  filefit->GetObject("f_pbar_band", f_proton_minus);
+  
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
   /**/
 
+  dedxcorr[0][0][0] = 0.54; 
+  dedxcorr[0][0][1] = 0.90; 
+  dedxcorr[0][0][2] = 1.11; 
+  dedxcorr[0][1][0] = 0.72; 
+  dedxcorr[0][1][1] = 0.98; 
+  dedxcorr[0][1][2] = 0.99; 
+  dedxcorr[0][2][0] = 0.83; 
+  dedxcorr[0][2][1] = 0.81; 
+  dedxcorr[0][2][2] = 1.03; 
+  dedxcorr[0][3][0] = 0.82; 
+  dedxcorr[0][3][1] = 0.52; 
+  dedxcorr[0][3][2] = 1.02; 
+  dedxcorr[0][4][0] = 0.85; 
+  dedxcorr[0][4][1] = 0.78; 
+  dedxcorr[0][4][2] = 0.82; 
+  dedxcorr[0][5][0] = 0.85; 
+  dedxcorr[0][5][1] = 0.70; 
+  dedxcorr[0][5][2] = 0.92; 
+  dedxcorr[0][6][0] = 0.78; 
+  dedxcorr[0][6][1] = 0.94; 
+  dedxcorr[0][6][2] = 1.03; 
+  dedxcorr[0][7][0] = 0.64; 
+  dedxcorr[0][7][1] = 0.94; 
+  dedxcorr[0][7][2] = 1.19; 
+  dedxcorr[0][8][0] = 0.95; 
+  dedxcorr[0][8][1] = 0.47; 
+  dedxcorr[0][8][2] = 1.12; 
+  dedxcorr[0][9][0] = 0.74; 
+  dedxcorr[0][9][1] = 1.07; 
+  dedxcorr[0][9][2] = 0.85; 
+  dedxcorr[0][10][0] = 0.86; 
+  dedxcorr[0][10][1] = 0.74; 
+  dedxcorr[0][10][2] = 1.08; 
+  dedxcorr[0][11][0] = 0.60; 
+  dedxcorr[0][11][1] = 1.03; 
+  dedxcorr[0][11][2] = 0.89; 
+  dedxcorr[1][0][0] = 0.74; 
+  dedxcorr[1][0][1] = 0.76; 
+  dedxcorr[1][0][2] = 0.89; 
+  dedxcorr[1][1][0] = 0.61; 
+  dedxcorr[1][1][1] = 0.87; 
+  dedxcorr[1][1][2] = 1.10; 
+  dedxcorr[1][2][0] = 0.73; 
+  dedxcorr[1][2][1] = 0.86; 
+  dedxcorr[1][2][2] = 1.70; 
+  dedxcorr[1][3][0] = 0.40; 
+  dedxcorr[1][3][1] = 0.76; 
+  dedxcorr[1][3][2] = 0.99; 
+  dedxcorr[1][4][0] = 0.82; 
+  dedxcorr[1][4][1] = 0.71; 
+  dedxcorr[1][4][2] = 0.86; 
+  dedxcorr[1][5][0] = 0.65; 
+  dedxcorr[1][5][1] = 1.00; 
+  dedxcorr[1][5][2] = 0.79; 
+  dedxcorr[1][6][0] = 0.75; 
+  dedxcorr[1][6][1] = 0.84; 
+  dedxcorr[1][6][2] = 0.40; 
+  dedxcorr[1][7][0] = 0.95; 
+  dedxcorr[1][7][1] = 0.81; 
+  dedxcorr[1][7][2] = 0.85; 
+  dedxcorr[1][8][0] = 0.79; 
+  dedxcorr[1][8][1] = 0.67; 
+  dedxcorr[1][8][2] = 1.17; 
+  dedxcorr[1][9][0] = 0.73; 
+  dedxcorr[1][9][1] = 0.94; 
+  dedxcorr[1][9][2] = 0.95; 
+  dedxcorr[1][10][0] = 0.40; 
+  dedxcorr[1][10][1] = 0.83; 
+  dedxcorr[1][10][2] = 0.87; 
+  dedxcorr[1][11][0] = 0.80; 
+  dedxcorr[1][11][1] = 0.63; 
+  dedxcorr[1][11][2] = 0.68;
+  dedxcorr[0][0][1] *= 0.88 ;
+  dedxcorr[0][0][2] *= 0.92 ;
+  dedxcorr[0][1][0] *= 0.90 ;
+  dedxcorr[0][1][1] *= 0.92 ;
+  dedxcorr[0][1][2] *= 0.94 ;
+  dedxcorr[0][2][0] *= 0.80 ;
+  dedxcorr[0][2][1] *= 0.81 ;
+  dedxcorr[0][2][2] *= 0.88 ;
+  dedxcorr[0][3][0] *= 0.76 ;
+  dedxcorr[0][3][1] *= 0.76 ;
+  dedxcorr[0][3][2] *= 0.77 ;
+  dedxcorr[0][4][0] *= 0.87 ;
+  dedxcorr[0][4][1] *= 0.88 ;
+  dedxcorr[0][4][2] *= 0.85 ;
+  dedxcorr[0][5][0] *= 0.86 ;
+  dedxcorr[0][5][1] *= 0.87 ;
+  dedxcorr[0][5][2] *= 0.92 ;
+  dedxcorr[0][6][0] *= 0.89 ;
+  dedxcorr[0][6][1] *= 0.91 ;
+  dedxcorr[0][6][2] *= 0.91 ;
+  dedxcorr[0][7][0] *= 0.90 ;
+  dedxcorr[0][7][1] *= 0.90 ;
+  dedxcorr[0][7][2] *= 0.94 ;
+  dedxcorr[0][8][0] *= 0.87 ;
+  dedxcorr[0][8][1] *= 0.90 ;
+  dedxcorr[0][8][2] *= 0.91 ;
+  dedxcorr[0][9][0] *= 0.92 ;
+  dedxcorr[0][9][1] *= 0.92 ;
+  dedxcorr[0][9][2] *= 0.94 ;
+  dedxcorr[0][10][0] *= 0.91 ;
+  dedxcorr[0][10][1] *= 0.92 ;
+  dedxcorr[0][10][2] *= 0.93 ;
+  dedxcorr[0][11][0] *= 0.87 ;
+  dedxcorr[0][11][1] *= 0.88 ;
+  dedxcorr[0][11][2] *= 0.91 ;
+  dedxcorr[1][0][0] *= 0.91 ;
+  dedxcorr[1][0][1] *= 0.92 ;
+  dedxcorr[1][0][2] *= 0.92 ;
+  dedxcorr[1][1][0] *= 0.92 ;
+  dedxcorr[1][1][1] *= 0.89 ;
+  dedxcorr[1][1][2] *= 0.91 ;
+  dedxcorr[1][2][0] *= 0.84 ;
+  dedxcorr[1][2][1] *= 0.87 ;
+  dedxcorr[1][2][2] *= 1.05 ;
+  dedxcorr[1][3][0] *= 0.83 ;
+  dedxcorr[1][3][1] *= 0.89 ;
+  dedxcorr[1][3][2] *= 0.90 ;
+  dedxcorr[1][4][0] *= 0.90 ;
+  dedxcorr[1][4][1] *= 0.91 ;
+  dedxcorr[1][4][2] *= 0.91 ;
+  dedxcorr[1][5][0] *= 0.92 ;
+  dedxcorr[1][5][1] *= 0.93 ;
+  dedxcorr[1][5][2] *= 0.93 ;
+  dedxcorr[1][6][0] *= 0.87 ;
+  dedxcorr[1][6][1] *= 0.85 ;
+  dedxcorr[1][6][2] *= 0.99 ;
+  dedxcorr[1][7][0] *= 0.92 ;
+  dedxcorr[1][7][1] *= 0.89 ;
+  dedxcorr[1][7][2] *= 0.89 ;
+  dedxcorr[1][8][0] *= 0.88 ;
+  dedxcorr[1][8][1] *= 0.89 ;
+  dedxcorr[1][8][2] *= 0.95 ;
+  dedxcorr[1][9][0] *= 0.89 ;
+  dedxcorr[1][9][1] *= 0.90 ;
+  dedxcorr[1][9][2] *= 0.91 ;
+  dedxcorr[1][10][0] *= 0.86 ;
+  dedxcorr[1][10][1] *= 0.92 ;
+  dedxcorr[1][10][2] *= 0.95 ;
+  dedxcorr[1][11][0] *= 0.85 ;
+  dedxcorr[1][11][1] *= 0.85 ;
+  dedxcorr[1][11][2] *= 0.88 ;
+  
 
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1187,6 +1360,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
         //	      "pt:eta:phi:X0:Y0:charge:nhits:"
         float tpt = tpcseed->get_pt();
+	float tptot = tpcseed->get_p();
         float teta = tpcseed->get_eta();
         float tphi = tpcseed->get_phi();
 	auto xyparams = TrackFitUtils::line_fit(xypoints);
@@ -1214,8 +1388,20 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         // fill the Gseed NTuple
         //---------------------
 	float dedx = calc_dedx(tpcseed);
+	float pidedx = 0;
+	float kdedx = 0;
+	float prdedx = 0;
+	if(charge>0){
+	  pidedx = f_pion_plus->Eval(tptot);
+	  kdedx = f_kaon_plus->Eval(tptot);
+	  prdedx = f_proton_plus->Eval(tptot);
+	}else{
+	  pidedx = f_pion_minus->Eval(tptot);
+	  kdedx = f_kaon_minus->Eval(tptot);
+	  prdedx = f_proton_plus->Eval(tptot);
+	}
 	float n1pix = get_n1pix(tpcseed);
-        float fx_seed[n_seed::seedsize] = {(float) trackID, 0, tpt, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, n1pix, nhits_local};
+        float fx_seed[n_seed::seedsize] = {(float) trackID, 0, tpt, tptot, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, pidedx, kdedx, prdedx, n1pix, nhits_local};
 
         if (_ntp_tpcseed)
         {
@@ -1229,7 +1415,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         for (unsigned int i = 0; i < clusterPositions.size(); i++)
         {
           TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
-
+	  unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
 	  Acts::Vector3 position = clusterPositions[i];
           Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams, position);
 
@@ -1251,14 +1437,32 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  float seedR = TMath::Abs(1.0 / tpcseed->get_qOverR());
 	  float alpha = (resr * resr) / (2 * resr * seedR);
 	  float beta = TMath::Abs(atan(tpcseed->get_slope()));
-
-          float fx_res[n_residual::ressize] = {alpha,beta,dphi,dphi, dz};
-          // sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0
-
           float fx_cluster[n_cluster::clusize];
-          //
-          FillCluster(&fx_cluster[0], cluster_key);
 
+	  if(layer_local>=7&&layer_local<55){
+	    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+	    float thick = GeoLayer_local->get_thickness();
+	    
+	    float alphacorr = cos(alpha);
+	    if(alphacorr<0||alphacorr>4){
+	      alphacorr=4;
+	    }
+	    float betacorr = cos(beta);
+	    if(betacorr<0||betacorr>4){
+	      betacorr=4;
+	    }
+	    fx_cluster[ncluthick] = thick;
+	    fx_cluster[ncluafac] = alphacorr;
+	    fx_cluster[nclubfac] =betacorr;
+	  }
+	  else{
+	    fx_cluster[ncluthick] = 0;
+	    fx_cluster[ncluafac] = 0;
+	    fx_cluster[nclubfac] = 0;
+	  }
+	  float fx_res[n_residual::ressize] = {alpha,beta,dphi,dphi,dz};
+          // sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0
+          FillCluster(&fx_cluster[0], cluster_key);
           std::copy(fx_event, fx_event + n_event::evsize, clus_trk_data);
           std::copy(fx_cluster, fx_cluster + n_cluster::clusize, clus_trk_data + n_event::evsize);
           std::copy(fx_res, fx_res + n_residual::ressize, clus_trk_data + n_event::evsize + n_cluster::clusize);
@@ -1363,9 +1567,23 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   fX[n_track::ntrkntpc2] = 0;
   fX[n_track::ntrkntpc3] = 0;
   fX[n_track::ntrkndedx] = 0;
+  fX[n_track::ntrknpidedx] = 0;
+  fX[n_track::ntrknkdedx] = 0;
+  fX[n_track::ntrknprdedx] = 0;
   if (tpcseed)
   {
     fX[n_track::ntrkndedx] = calc_dedx(tpcseed);
+    float trptot = track->get_p(); 
+    if(track->get_charge()>0){
+      fX[n_track::ntrknpidedx] = f_pion_plus->Eval(trptot);
+      fX[n_track::ntrknkdedx] = f_kaon_plus->Eval(trptot);
+      fX[n_track::ntrknprdedx] = f_proton_plus->Eval(trptot);
+    }else{
+      fX[n_track::ntrknpidedx] = f_pion_minus->Eval(trptot);
+      fX[n_track::ntrknkdedx] = f_kaon_minus->Eval(trptot);
+      fX[n_track::ntrknprdedx] = f_proton_minus->Eval(trptot);
+    }
+	
     for (SvtxTrack::ConstClusterKeyIter iter_local = tpcseed->begin_cluster_keys();
          iter_local != tpcseed->end_cluster_keys();
          ++iter_local)
@@ -1532,8 +1750,20 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
 	  continue;
       }
       TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-
+      int cside = TpcDefs::getSide(cluster_key);
+      int csector = TpcDefs::getSectorId(cluster_key);
+      int csegment = 0;
+      if(layer_local >= 7+32){
+	csegment = 2;
+      }else if(layer_local >=7+16){
+	csegment = 1;
+      }
       float adc = cluster->getAdc();
+      if(_do_dedx_calib==true){
+	if(dedxcorr[cside][csector][csegment]!=0){
+	  adc/=dedxcorr[cside][csector][csegment];
+	}
+      }
       PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
       float thick = GeoLayer_local->get_thickness();
       
@@ -1582,7 +1812,7 @@ float TrkrNtuplizer::get_n1pix(TrackSeed *tpcseed){
     return n1pix;
 }
 
-void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_key)
+void TrkrNtuplizer::FillCluster(float fXcluster[n_cluster::clusize], TrkrDefs::cluskey cluster_key)
 {
   unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
   TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
@@ -1600,13 +1830,26 @@ void TrkrNtuplizer::FillCluster(float fXcluster[49], TrkrDefs::cluskey cluster_k
   float tbin = std::numeric_limits<float>::quiet_NaN();
   float locx = cluster->getLocalX();
   float locy = cluster->getLocalY();
-
+  fXcluster[n_cluster::ncludcal] = 1;
   if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
   {
     int side_tpc = TpcDefs::getSide(cluster_key);
     PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
     phibin = GeoLayer_local->get_pad_float(phi, side_tpc);
     tbin = GeoLayer_local->get_tbin_float(locy - 39.6);
+    int cside = TpcDefs::getSide(cluster_key);
+    int csector = TpcDefs::getSectorId(cluster_key);
+    int csegment = 0;
+    if(layer_local >= 7+32){
+      csegment = 2;
+    }else if(layer_local >=7+16){
+      csegment = 1;
+    }
+    if(_do_dedx_calib==true){
+      fXcluster[n_cluster::ncludcal] = dedxcorr[cside][csector][csegment];
+    }else{
+      fXcluster[n_cluster::ncludcal] = 1;
+    }
   }
   else
   {
