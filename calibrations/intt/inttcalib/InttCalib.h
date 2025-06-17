@@ -39,6 +39,11 @@ class InttCalib : public SubsysReco
   void SetppMode(bool mode) { m_ppmode = mode; }
   void SetBcoMaximumEvent(int mext) {m_evts_bco = mext; }
   void SetRunNumber(int runnum) { m_run_num = runnum; }
+  void SetRawHitContainerName(const std::string& name)
+  {
+    m_rawhit_container_name = name;
+  }
+  void SetOneFelixServer(int in) {m_FELIX_TARGET = in;}
   void SetDoFeebyFee(bool in) {m_do_fee = in;}
   int SaveHitrates();
   int LoadHitrates();
@@ -83,6 +88,7 @@ class InttCalib : public SubsysReco
 
   int m_evts{0};
   int m_run_num{0};
+  std::string m_rawhit_container_name = "INTTRAWHIT";
   double m_bco_stdDev{0};  
   double m_bco_mean{0};  
   double m_mean[8] = {0.};
@@ -96,7 +102,7 @@ class InttCalib : public SubsysReco
   double static constexpr m_NUM_CHANNELS = 8 * 14 * 26 * 128;
   double  m_NUM_SIGMA_HOT = 5.0;
   double  m_NUM_SIGMA_COLD = 3.0;
-
+  int m_FELIX_TARGET = -1;
   double m_min_hitrate{0.0};
   double m_min_fraction{0.0};
   double m_max_hitrate{0.0};
@@ -130,8 +136,8 @@ class InttCalib : public SubsysReco
   std::map<double, double> m_hitrates;
   std::map<double, double> m_invcdf;
 
-  std::map<InttNameSpace::RawData_s, int[128]> m_bcorates;
-  std::map<InttNameSpace::RawData_s, int> m_bcopeaks;
+  int m_bcorates_fee[8][14][128];
+  int m_bcopeaks_fee[8][14];
 
   bool m_do_nothing = false;
   bool m_streaming = false;
