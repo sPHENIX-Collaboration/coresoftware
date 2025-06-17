@@ -333,7 +333,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
     at.SetZ(at.Z() + green_shift);
     from.SetZ(from.Z() + green_shift);
     double Er = green->Er(at.Perp(), atphi, at.Z(), from.Perp(), fromphi, from.Z());
-    // RCC manually disabled phi component of green -- actually, a correction to disallow trying to compute phi terms when at the same phi:
+    // don't try to compute Ephi if the delta phi is too small, since it will be zero (and will have a div0 somewhere):
     double Ephi = 0;
     if (delphi > ALMOST_ZERO)
     {
@@ -1094,7 +1094,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   {  // could probably do this with an iterator
 
     //keep track of progress:
-    int rem=i%(source->GetEntries()/10;
+    int rem=i%(source->GetEntries()/10);
     int quo=i/(source->GetEntries()/10);
     if(rem==0 && quo>0){
       printf("loadField:  %d0%%\n", quo);
