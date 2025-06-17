@@ -1094,10 +1094,10 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   {  // could probably do this with an iterator
 
     //keep track of progress:
-    mod=i%(source->GetEntries()/10;
-    div=i/(source->GetEntries()/10);
-    if(mod==0 && div>0){
-      printf("loadField:  %d0%%\n", div);
+    int rem=i%(source->GetEntries()/10;
+    int quo=i/(source->GetEntries()/10);
+    if(rem==0 && quo>0){
+      printf("loadField:  %d0%%\n", quo);
     }
 
 
