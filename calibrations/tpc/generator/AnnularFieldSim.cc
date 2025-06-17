@@ -1010,7 +1010,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   fTree->SetBranchAddress("bz", &fz);
   fTree->SetBranchAddress("phi", &phi);
   fTree->SetBranchAddress("bphi", &fphi);
-  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla * scale, zsign, xshift, yshift, zshift);
+  loadField(&Bfield, fTree, &r, &phi, &z, &fr, &fphi, &fz, Tesla * scale, zsign, xshift, yshift, zshift);
   return;
 }
 
