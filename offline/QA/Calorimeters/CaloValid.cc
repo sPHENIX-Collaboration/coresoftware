@@ -85,9 +85,9 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CaloValid::InitRun(PHCompositeNode *topNode)
+int CaloValid::InitRun(PHCompositeNode* topNode)
 {
-  RunHeader *runhdr = findNode::getClass<RunHeader>(topNode, "RunHeader");
+  RunHeader* runhdr = findNode::getClass<RunHeader>(topNode, "RunHeader");
 
   if (runhdr)
   {
@@ -121,7 +121,7 @@ int CaloValid::InitRun(PHCompositeNode *topNode)
   {
     std::cout << "No RunHeader node found. Using pp as default species.\n";
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
