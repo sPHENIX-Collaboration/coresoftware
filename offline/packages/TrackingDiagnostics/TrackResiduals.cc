@@ -262,6 +262,8 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       }
     }
   }
+  
+  m_mbdvtxz = std::numeric_limits<float>::quiet_NaN();
 
   MbdVertexMap *mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   if(mbdvertexmap)
