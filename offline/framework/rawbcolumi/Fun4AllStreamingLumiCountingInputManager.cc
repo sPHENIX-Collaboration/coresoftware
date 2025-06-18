@@ -4,7 +4,6 @@
 #include "SingleStreamingInputv2.h"
 
 #include <ffarawobjects/Gl1Packet.h>
-#include <ffarawobjects/Gl1Packetv2.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
@@ -374,10 +373,10 @@ int Fun4AllStreamingLumiCountingInputManager::FillGl1()
   }
 
   // add for mbd p_gl1
-  Gl1Packet *p_gl1 = findNode::getClass<Gl1Packetv2>(m_topNode, "GL1RAWHIT");  //"GL1Packet");
+  Gl1Packet *p_gl1 = findNode::getClass<Gl1Packet>(m_topNode, "GL1RAWHIT");  //"GL1Packet");
   if (!p_gl1)
   {
-    std::cout << "CAN not find this Gl1Packetv2" << std::endl;
+    std::cout << "CAN not find this Gl1Packet" << std::endl;
   }
   else
   {

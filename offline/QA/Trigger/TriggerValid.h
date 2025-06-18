@@ -2,8 +2,6 @@
 #define TRIGGERVALID_TRIGGERVALID_H
 
 #include <ffarawobjects/Gl1Packet.h>
-#include <ffarawobjects/Gl1Packetv1.h>
-#include <ffarawobjects/Gl1Packetv2.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string>

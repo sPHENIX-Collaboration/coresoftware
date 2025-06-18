@@ -3,7 +3,7 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerv1.h>
-#include <ffarawobjects/Gl1Packetv2.h>
+#include <ffarawobjects/Gl1Packet.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <globalvertex/GlobalVertexMapv1.h>
 #include <jetbase/Jet.h>
