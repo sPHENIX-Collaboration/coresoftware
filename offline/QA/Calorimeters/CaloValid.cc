@@ -76,38 +76,52 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
     std::cout << "In CaloValid::Init" << std::endl;
   }
 
-  int runnumber = RunHeader::get_RunNumber();
-
-  if (runnumber >= RunnumberRange::RUN2PP_FIRST && runnumber <= RunnumberRange::RUN2PP_LAST)
-  {
-    m_species = "pp";
-    if (m_Verbosity > 0)
-      std::cout << "This run is in Run-2 p+p.\n";
-  }
-  else if (runnumber >= RunnumberRange::RUN2AUAU_FIRST && runnumber <= RunnumberRange::RUN2AUAU_LAST)
-  {
-    m_species = "AuAu";
-    if (m_Verbosity > 0)
-      std::cout << "This run is in Run-2 Au+Au.\n";
-  }
-  else if (runnumber >= RunnumberRange::RUN3AUAU_FIRST && runnumber <= RunnumberRange::RUN3AUAU_LAST)
-  {
-    m_species = "AuAu";
-    if (m_Verbosity > 0)
-      std::cout << "This run is in Run-3 Au+Au.\n";
-  }
-  else
-  {
-    if (m_Verbosity > 0)
-      std::cout << "Run number is out of known range. Using pp as default. \n";
-  }
-
   createHistos();
   trigAna = new TriggerAnalyzer();
   if (m_debug)
   {
     std::cout << "Leaving CaloValid::Init" << std::endl;
   }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int CaloValid::InitRun(PHCompositeNode *topNode)
+{
+  RunHeader *runhdr = findNode::getClass<RunHeader>(topNode, "RunHeader");
+
+  if (runhdr)
+  {
+    int runnumber = runhdr->get_RunNumber();
+
+    if (runnumber >= RunnumberRange::RUN2PP_FIRST && runnumber <= RunnumberRange::RUN2PP_LAST)
+    {
+      m_species = "pp";
+      if (m_Verbosity > 0)
+        std::cout << "This run is from Run-2 p+p.\n";
+    }
+    else if (runnumber >= RunnumberRange::RUN2AUAU_FIRST && runnumber <= RunnumberRange::RUN2AUAU_LAST)
+    {
+      m_species = "AuAu";
+      if (m_Verbosity > 0)
+        std::cout << "This run is from Run-2 Au+Au.\n";
+    }
+    else if (runnumber >= RunnumberRange::RUN3AUAU_FIRST && runnumber <= RunnumberRange::RUN3AUAU_LAST)
+    {
+      m_species = "AuAu";
+      if (m_Verbosity > 0)
+        std::cout << "This run is from Run-3 Au+Au.\n";
+    }
+    else
+    {
+      if (m_Verbosity > 0)
+        std::cout << "Run number is out of range. Check RunnumberRange.h .Using pp as default. \n";
+    }
+  }
+  else if (m_Verbosity > 0)
+  {
+    std::cout << "No RunHeader node found. Using pp as default species.\n";
+  }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
