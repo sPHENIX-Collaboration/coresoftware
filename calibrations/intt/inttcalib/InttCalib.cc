@@ -73,16 +73,6 @@ int InttCalib::InitRun(PHCompositeNode * /*unused*/)
 
   m_do_nothing = false;
 
-  if (m_survey.LoadFromCDB("InttSurveyMap"))
-  {
-    std::cout << PHWHERE << "\n"
-              << "\tCould not load 'InttSurveyMap' from CDB\n"
-              << "\tModule will do nothing" << std::endl;
-    m_do_nothing = true;
-    // gSystem->Exit(1);
-    // exit(1);
-  }
-
   std::cout<<"INITRUNEND"<<std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -116,7 +106,7 @@ int InttCalib::process_event(PHCompositeNode *top_node)
     }
   }
   InttRawHitContainer *intt_raw_hit_container =
-      findNode::getClass<InttRawHitContainer>(top_node, "INTTRAWHIT");
+      findNode::getClass<InttRawHitContainer>(top_node, m_rawhit_container_name.c_str());
   if (!intt_raw_hit_container)
   {
     std::cout << PHWHERE << "\n"
@@ -182,7 +172,7 @@ int InttCalib::process_event(PHCompositeNode *top_node)
   {
     ConfigureBcoMap();
     MakeBcoMapCdb();
-    MakeBcoMapPng();
+//    MakeBcoMapPng();
     m_do_make_bco = false;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -192,30 +182,30 @@ int InttCalib::EndRun(int const run_number)
 {
   if (m_do_nothing)
   {
-    std::cout << PHWHERE << "\n"
-              << "\tMember 'm_do_nothing' set\n"
-              << "\tDoing nothing" << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
+	std::cout << PHWHERE << "\n"
+	  << "\tMember 'm_do_nothing' set\n"
+	  << "\tDoing nothing" << std::endl;
+	return Fun4AllReturnCodes::EVENT_OK;
   }
 
   m_run_num = run_number;
   if(m_do_fee)
   {
-   ConfigureHotMap_fee();
-   MakeHotMapCdb_fee();
-   MakeHotMapROOT_fee();
+	ConfigureHotMap_fee();
+	MakeHotMapCdb_fee();
+	MakeHotMapROOT_fee();
   }
   else
   {
-    ConfigureHotMap_v3();
-    MakeHotMapCdb_v3();
-    MakeHotMapPng_v3();
+	ConfigureHotMap_v3();
+	MakeHotMapCdb_v3();
+//	MakeHotMapPng_v3();
   }
   if (m_do_make_bco)
   {
-    ConfigureBcoMap();
-    MakeBcoMapCdb();
-    MakeBcoMapPng();
+	ConfigureBcoMap();
+	MakeBcoMapCdb();
+	//MakeBcoMapPng();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -290,32 +280,41 @@ int InttCalib::ConfigureHotMap_v3()
 
   for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
-    double hitrate =
-        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
-    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
+	if(m_FELIX_TARGET!=-1 && m_FELIX_TARGET!=raw.felix_server)
+	  continue;
+	double hitrate =
+	  m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+	InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
-    int index = GetIndex(raw, ofl);
-    adjust_hitrate(ofl, hitrate);
+	int index = GetIndex(raw, ofl);
+	adjust_hitrate(ofl, hitrate);
 
-    ++hitrate_pdf[index][hitrate];
+	++hitrate_pdf[index][hitrate];
   }
   std::vector<double> middle_keys(8);
+  double global_maxbin = 0;
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
-    size_t map_size = hitrate_pdf[i].size();
+	if(m_FELIX_TARGET!=-1 && m_FELIX_TARGET!=i)
+	  continue;
+	size_t map_size = hitrate_pdf[i].size();
 
-    size_t mid_index = map_size / 2;
-    double middle_key = 0.;
+	size_t mid_index = map_size / 2;
+	double middle_key = 0.;
 
-    auto it = hitrate_pdf[i].begin();
-    std::advance(it, mid_index);
-    middle_key = it->first;
-    middle_keys[i] = middle_key;
+	auto it = hitrate_pdf[i].begin();
+	std::advance(it, mid_index);
+	middle_key = it->first;
+	middle_keys[i] = middle_key;
+	global_maxbin = 5*middle_key;
   }
   std::sort(middle_keys.begin(), middle_keys.end());
-  double global_maxbin = 5 * (middle_keys[3] + middle_keys[4]) / 2.0;
+  if(m_FELIX_TARGET==-1)
+	global_maxbin = 5 * (middle_keys[3] + middle_keys[4]) / 2.0;
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
+	if(m_FELIX_TARGET!=-1 && m_FELIX_TARGET!=i)
+	  continue;
     // ConfigureHist_v2(m_hist[i], m_fit[i], hitrate_pdf[i], name[i], title[i]);
     ConfigureHist_v3(m_hist[i], m_fit[i], global_maxbin, hitrate_pdf[i], name[i], title[i]);
 
@@ -494,61 +493,63 @@ int InttCalib::MakeHotMapCdb_v3()
   int size = 0;
   for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
-    double hitrate =
-        m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
-    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
+	if(m_FELIX_TARGET!=-1 && m_FELIX_TARGET!=raw.felix_server)
+	  continue;
+	double hitrate =
+	  m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][128] / m_evts;
+	InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
 
-    int index = GetIndex(raw, ofl);
-    adjust_hitrate(ofl, hitrate);
-    if (m_half_min[index] < hitrate && hitrate < m_half_max[index])
-    {
-      m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip]++;
-      // if (m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip] > 100)
-      // {
-      //   cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
-      //   cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
-      //   cdbttree->SetIntValue(size, "chip", raw.chip);
-      //   cdbttree->SetIntValue(size, "channel", raw.channel);
-      //   cdbttree->SetIntValue(size, "flag", 2);
-      //   ++size;
-      //   continue;
-      // }
-    }
+	int index = GetIndex(raw, ofl);
+	adjust_hitrate(ofl, hitrate);
+	if (m_half_min[index] < hitrate && hitrate < m_half_max[index])
+	{
+	  m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip]++;
+	  // if (m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip] > 100)
+	  // {
+	  //   cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+	  //   cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+	  //   cdbttree->SetIntValue(size, "chip", raw.chip);
+	  //   cdbttree->SetIntValue(size, "channel", raw.channel);
+	  //   cdbttree->SetIntValue(size, "flag", 2);
+	  //   ++size;
+	  //   continue;
+	  // }
+	}
 
-    if (hitrate == 0)
-    {  // dead channel
-      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
-      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
-      cdbttree->SetIntValue(size, "chip", raw.chip);
-      cdbttree->SetIntValue(size, "channel", raw.channel);
-      cdbttree->SetIntValue(size, "flag", 1);
-      ++size;
-      continue;
-    }
-    if (m_min[index] < hitrate && hitrate < m_max[index])
-    {  // good channel
-      continue;
-    }
-    if (hitrate > m_max[index])
-    {  // hot channel
-      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
-      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
-      cdbttree->SetIntValue(size, "chip", raw.chip);
-      cdbttree->SetIntValue(size, "channel", raw.channel);
-      cdbttree->SetIntValue(size, "flag", 8);
-      ++size;
-      continue;
-    }
-    if (hitrate < m_min[index])
-    {  // cold channel
-      cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
-      cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
-      cdbttree->SetIntValue(size, "chip", raw.chip);
-      cdbttree->SetIntValue(size, "channel", raw.channel);
-      cdbttree->SetIntValue(size, "flag", 4);
-      ++size;
-      continue;
-    }
+	if (hitrate == 0)
+	{  // dead channel
+	  cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+	  cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+	  cdbttree->SetIntValue(size, "chip", raw.chip);
+	  cdbttree->SetIntValue(size, "channel", raw.channel);
+	  cdbttree->SetIntValue(size, "flag", 1);
+	  ++size;
+	  continue;
+	}
+	if (m_min[index] < hitrate && hitrate < m_max[index])
+	{  // good channel
+	  continue;
+	}
+	if (hitrate > m_max[index])
+	{  // hot channel
+	  cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+	  cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+	  cdbttree->SetIntValue(size, "chip", raw.chip);
+	  cdbttree->SetIntValue(size, "channel", raw.channel);
+	  cdbttree->SetIntValue(size, "flag", 8);
+	  ++size;
+	  continue;
+	}
+	if (hitrate < m_min[index])
+	{  // cold channel
+	  cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
+	  cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
+	  cdbttree->SetIntValue(size, "chip", raw.chip);
+	  cdbttree->SetIntValue(size, "channel", raw.channel);
+	  cdbttree->SetIntValue(size, "flag", 4);
+	  ++size;
+	  continue;
+	}
   }
   cdbttree->SetSingleIntValue("size", size);
   cdbttree->SetSingleIntValue("event", m_evts);
@@ -1246,68 +1247,71 @@ int InttCalib::MakeHotMapPng()
 
 int InttCalib::ConfigureBcoMap()
 {
-  m_bcorates.clear();
-  for (auto const& raw : InttNameSpace::AllRawDataChannels())
-  {
-    // Wasteful but readable
-    if (raw.channel != 0) continue;
-    if (raw.chip != 0) continue;
 
-    for (auto &bco_count : m_bcorates[raw])
-    {
-      bco_count = 0;
-    }
+  for(int felix = 0; felix < 8; felix++)
+  {
+	for(int fee = 0; fee<14;fee++)
+	{
+	  if(m_FELIX_TARGET!=-1 && m_FELIX_TARGET!=felix)
+		continue;
+	  // Find chip with highest total hits for this pid/fee across all channels
+	  int chp_most = 0;
+	  int max_hits = 0;
+	  for (int chp = 0; chp < 26; chp++)
+	  {
+		int chip_total = 0;
+		// Sum hits across all channels for this chip
+		for (int chan = 0; chan < 128; chan++)
+		{
+		  chip_total += m_hitmap[felix][fee][chp][chan][128];
+		}
+		if (chip_total > max_hits)
+		{
+		  max_hits = chip_total;
+		  chp_most = chp;
+		}
+	  }
+	  for (int chp = 0; chp < 26; chp++)
+	  {
+		// Sum hits across all channels for this chip
+		for (int chan = 0; chan < 128; chan++)
+		{
+		  if (chp != chp_most)
+		  {
+			for (int bco = 0; bco < 128; ++bco)
+			{
+			  m_bcorates_fee[felix][fee][bco] +=
+				m_hitmap[felix][fee][chp][chan][bco];
+			}
+		  }
+		}
+	  }
+	}
   }
 
-  for (auto const& raw : InttNameSpace::AllRawDataChannels())
+  for(int felix=0;felix<8;felix++)
   {
-    // Find chip with highest total hits for this pid/fee across all channels
-    int chp_most = 0;
-    int max_hits = 0;
-    for (int chp = 0; chp < 26; chp++)
-    {
-      int chip_total = 0;
-      // Sum hits across all channels for this chip
-      for (int chan = 0; chan < 128; chan++)
-      {
-        chip_total += m_hitmap[raw.felix_server][raw.felix_channel][chp][chan][128];
-      }
-      if (chip_total > max_hits)
-      {
-        max_hits = chip_total;
-        chp_most = chp;
-      }
-    }
+	if(m_FELIX_TARGET!=-1 && m_FELIX_TARGET!=felix)
+	  continue;
+	for(int fee=0;fee<14;fee++)
+	{
+	  int max_counts = 0, bco_peak = 0;
+	  for(int bco=0;bco<128;bco++)
+	  {
+		if (max_counts < m_bcorates_fee[felix][fee][bco])
+		{
+		  bco_peak = bco;
+		  max_counts = m_bcorates_fee[felix][fee][bco];
+		}
+	  }
 
-    // Only add hits if not from the chip with most hits
-    if (raw.chip != chp_most)
-    {
-      for (int bco = 0; bco < 128; ++bco)
-      {
-        m_bcorates[raw][bco] +=
-            m_hitmap[raw.felix_server][raw.felix_channel][raw.chip][raw.channel][bco];
-      }
-    }
-  }
-
-  m_bcopeaks.clear();
-  for (auto const &[raw, bco_arr] : m_bcorates)
-  {
-    int max_counts = 0, bco_peak = 0;
-    for (int bco = 0; bco < 128; ++bco)
-    {
-      if (max_counts < bco_arr[bco])
-      {
-        bco_peak = bco;
-        max_counts = bco_arr[bco];
-      }
-    }
-    if (max_counts < 50)  // if max_count is less than 50(masked ladder but
-                          // somethimes it has few hits), set bco_peak as -1
-    {
-      bco_peak = -1;
-    }
-    m_bcopeaks[raw] = bco_peak;
+	  if (max_counts < 50)  // if max_count is less than 50(masked ladder but
+		// somethimes it has few hits), set bco_peak as -1
+	  {
+		bco_peak = -1;
+	  }
+	  m_bcopeaks_fee[felix][fee] = bco_peak;
+	}
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1325,14 +1329,21 @@ int InttCalib::MakeBcoMapCdb()
   int size = 0;
   std::vector<int> bco_temp_container;
   bco_temp_container.clear();
-  for (auto const &[raw, bco] : m_bcopeaks)
+  for (int felix = 0; felix < 8; felix++)
   {
-    cdbttree->SetIntValue(size, "felix_server", raw.felix_server);
-    cdbttree->SetIntValue(size, "felix_channel", raw.felix_channel);
-    cdbttree->SetIntValue(size, "bco_diff", bco);
-    bco_temp_container.push_back(bco);
-    ++size;
+	if(m_FELIX_TARGET!=-1 && m_FELIX_TARGET!=felix)
+	  continue;
+	for(int fee = 0; fee<14;fee++)
+	{
+	  int bco = m_bcopeaks_fee[felix][fee];
+	  cdbttree->SetIntValue(size, "felix_server", felix);
+	  cdbttree->SetIntValue(size, "felix_channel", fee);
+	  cdbttree->SetIntValue(size, "bco_diff", bco);
+	  bco_temp_container.push_back(bco);
+	  ++size;
+	}
   }
+  
   cdbttree->SetSingleIntValue("size", size);
   std::pair<double, double> stats =
       CalculateStandardDeviation(bco_temp_container);
@@ -1367,82 +1378,80 @@ int InttCalib::MakeBcoMapPng()
   TH1D *bco_hist[112] = {};
   for (int i = 0; i < 16; ++i)
   {
-    std::string tpadtitle = (boost::format("bco_pad_%02d") % i).str();
-    bco_cnvs->cd();
-    TPad *bco_pdf_pad = new TPad(  //
-        tpadtitle.c_str(), tpadtitle.c_str(),
-        // NOLINTNEXTLINE(bugprone-integer-division)
-        (i % 4 + 0.0) / 4.0 * 0.9 + 0.0, (3.0 - i / 4) / 4.0 * 0.9 + 0.1,
-        // NOLINTNEXTLINE(bugprone-integer-division)
-        (i % 4 + 1.0) / 4.0 * 0.9 + 0.0, (4.0 - i / 4) / 4.0 * 0.9 + 0.1);
-    bco_pdf_pad->SetFillStyle(4000);  // transparent
-    bco_pdf_pad->SetLogy();
-    bco_pdf_pad->SetLeftMargin(0.15);
-    bco_pdf_pad->SetRightMargin(0.05);
-    if ((i / 4) % 2)
-    {
-      bco_pdf_pad->SetTopMargin(0.0);
-      bco_pdf_pad->SetBottomMargin(0.15);
-    }
-    else
-    {
-      bco_pdf_pad->SetTopMargin(0.15);
-      bco_pdf_pad->SetBottomMargin(0.0);
-    }
-    bco_pdf_pad->Range(0.0, 0.0, 1.0, 1.0);
-    bco_pdf_pad->Draw();
+	std::string tpadtitle = (boost::format("bco_pad_%02d") % i).str();
+	bco_cnvs->cd();
+	TPad *bco_pdf_pad = new TPad(  //
+		tpadtitle.c_str(), tpadtitle.c_str(),
+		// NOLINTNEXTLINE(bugprone-integer-division)
+		(i % 4 + 0.0) / 4.0 * 0.9 + 0.0, (3.0 - i / 4) / 4.0 * 0.9 + 0.1,
+		// NOLINTNEXTLINE(bugprone-integer-division)
+		(i % 4 + 1.0) / 4.0 * 0.9 + 0.0, (4.0 - i / 4) / 4.0 * 0.9 + 0.1);
+	bco_pdf_pad->SetFillStyle(4000);  // transparent
+	bco_pdf_pad->SetLogy();
+	bco_pdf_pad->SetLeftMargin(0.15);
+	bco_pdf_pad->SetRightMargin(0.05);
+	if ((i / 4) % 2)
+	{
+	  bco_pdf_pad->SetTopMargin(0.0);
+	  bco_pdf_pad->SetBottomMargin(0.15);
+	}
+	else
+	{
+	  bco_pdf_pad->SetTopMargin(0.15);
+	  bco_pdf_pad->SetBottomMargin(0.0);
+	}
+	bco_pdf_pad->Range(0.0, 0.0, 1.0, 1.0);
+	bco_pdf_pad->Draw();
 
-    InttNameSpace::RawData_s raw_begin{.felix_server = (i % 4) + 4 * (i / 8),
-                                 .felix_channel = (i / 4) % 2 ? 0 : 7};
-    InttNameSpace::RawData_s raw_end{.felix_server = (i % 4) + 4 * (i / 8),
-                               .felix_channel = (i / 4) % 2 ? 6 : 13};
+	int felix = (i % 4) + 4 * (i / 8);
+	int fee_index_start = (i / 4) % 2 ? 0 : 7;
+	int fee_index_end = (i / 4) % 2 ? 7 : 14;
+	double max = 0;
+	for(int fee=fee_index_start;fee<fee_index_end;fee++)
+	{
+	  int h = felix * 14 + fee;
+	  bco_pdf_pad->cd();
+	  std::string htitle = (boost::format("bco_hist_%03d") % h).str();
+	  // float min_bin = (m_streaming) ? -127.5 : -0.5;
+	  float min_bin = -0.5;
+	  float max_bin = 127.5;
+	  // int nbins = (m_streaming) ? 256 : 128;
+	  int nbins = 128;
+	  bco_hist[h] = new TH1D(              //
+		  htitle.c_str(), htitle.c_str(),  //
+		  nbins, min_bin, max_bin          //
+		  // 128, -0.5, 127.5                //
+		  );
 
-    double max = 0;
-    for (InttNameSpace::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
-    {
-      int h = (raw.felix_server) * 14 + raw.felix_channel;
-      bco_pdf_pad->cd();
-      std::string htitle = (boost::format("bco_hist_%03d") % h).str();
-      // float min_bin = (m_streaming) ? -127.5 : -0.5;
-      float min_bin = -0.5;
-      float max_bin = 127.5;
-      // int nbins = (m_streaming) ? 256 : 128;
-      int nbins = 128;
-      bco_hist[h] = new TH1D(              //
-          htitle.c_str(), htitle.c_str(),  //
-          nbins, min_bin, max_bin          //
-                                           // 128, -0.5, 127.5                //
-      );
+	  bco_hist[h]->SetTitle(
+		  (boost::format(";BCO Difference;intt%01d (%01d - %02d)") %
+		   (felix) % fee % fee)
+		  .str()
+		  .c_str());
+	  bco_hist[h]->GetYaxis()->CenterTitle();
+	  bco_hist[h]->GetYaxis()->SetTitleSize(0.12);
+	  bco_hist[h]->GetYaxis()->SetTitleOffset(0.6);
+	  bco_hist[h]->GetYaxis()->SetLabelSize(0.07);
+	  bco_hist[h]->GetXaxis()->SetTitleSize(0.10);
+	  bco_hist[h]->GetXaxis()->SetTitleOffset(0.6);
+	  bco_hist[h]->GetXaxis()->SetLabelSize(0.07);
+	  bco_hist[h]->SetLineColor(GetFeeColor(fee));
+	  bco_hist[h]->Draw("same");
 
-      bco_hist[h]->SetTitle(
-          (boost::format(";BCO Difference;intt%01d (%01d - %02d)") %
-           (raw_begin.felix_server) % raw_begin.felix_channel % raw_end.felix_channel)
-              .str()
-              .c_str());
-      bco_hist[h]->GetYaxis()->CenterTitle();
-      bco_hist[h]->GetYaxis()->SetTitleSize(0.12);
-      bco_hist[h]->GetYaxis()->SetTitleOffset(0.6);
-      bco_hist[h]->GetYaxis()->SetLabelSize(0.07);
-      bco_hist[h]->GetXaxis()->SetTitleSize(0.10);
-      bco_hist[h]->GetXaxis()->SetTitleOffset(0.6);
-      bco_hist[h]->GetXaxis()->SetLabelSize(0.07);
-      bco_hist[h]->SetLineColor(GetFeeColor(raw.felix_channel));
-      bco_hist[h]->Draw("same");
-
-      for (int bco = 0; bco < 128; ++bco)
-      {
-        bco_hist[h]->SetBinContent(bco + 1, m_bcorates[raw][bco]);
-        if (max < m_bcorates[raw][bco])
-        {
-          max = m_bcorates[raw][bco];
-        }
-      }
-    }
-    for (InttNameSpace::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
-    {
-      int h = (raw.felix_server) * 14 + raw.felix_channel;
-      bco_hist[h]->GetYaxis()->SetRangeUser(0.1, 10 * max);
-    }
+	  for (int bco = 0; bco < 128; ++bco)
+	  {
+		bco_hist[h]->SetBinContent(bco + 1, m_bcorates_fee[felix][fee][bco]);
+		if (max < m_bcorates_fee[felix][fee][bco])
+		{
+		  max = m_bcorates_fee[felix][fee][bco];
+		}
+	  }
+	}
+	//	for (InttNameSpace::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
+	//	{
+	//	  int h = (raw.felix_server) * 14 + raw.felix_channel;
+	//	  bco_hist[h]->GetYaxis()->SetRangeUser(0.1, 10 * max);
+	//	}
   }
 
   // Legend
