@@ -16,7 +16,7 @@
 class PHObject;
 
 Jetv2::Jetv2(unsigned int n_prop)
-  : _properties(n_prop, NAN)
+  : _properties(n_prop, std::numeric_limits<float>::quiet_NaN())
 {
 }
 
@@ -28,7 +28,7 @@ void Jetv2::identify(std::ostream& os) const
   os << get_pz() << ", " << get_e() << ") GeV" << std::endl;
 
   os << " Jet Properties:";
-  for (auto& val : _properties)
+  for (const auto& val : _properties)
   {
     os << " " << val;
   }
@@ -95,8 +95,8 @@ std::map<Jet::SRC, size_t> Jetv2::comp_src_sizemap()
 void Jetv2::Reset()
 {
   _id = 0xFFFFFFFF;
-  std::fill(std::begin(_mom), std::end(_mom), NAN);
-  _e = NAN;
+  std::fill(std::begin(_mom), std::end(_mom), std::numeric_limits<float>::quiet_NaN());
+  _e = std::numeric_limits<float>::quiet_NaN();
   _comp_ids.clear();
   _properties.clear();
 }
@@ -133,12 +133,12 @@ PHObject* Jetv2::CloneMe() const
 
 float Jetv2::get_p() const
 {
-  return std::sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
+  return std::sqrt((get_px() * get_px()) + (get_py() * get_py()) + (get_pz() * get_pz()));
 }
 
 float Jetv2::get_pt() const
 {
-  return std::sqrt(get_px() * get_px() + get_py() * get_py());
+  return std::sqrt((get_px() * get_px()) + (get_py() * get_py()));
 }
 
 float Jetv2::get_et() const
@@ -169,8 +169,8 @@ float Jetv2::get_mass() const
 
 float Jetv2::get_mass2() const
 {
-  float p2 = get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz();
-  return get_e() * get_e() - p2;
+  float p2 = (get_px() * get_px()) + (get_py() * get_py()) + (get_pz() * get_pz());
+  return (get_e() * get_e()) - p2;
 }
 
 size_t Jetv2::num_comp(Jet::SRC iSRC)
@@ -224,7 +224,7 @@ Jetv2::ITER_comp_vec Jetv2::comp_end(Jet::SRC iSRC)
   return std::upper_bound(_comp_ids.begin(), _comp_ids.end(), iSRC, CompareSRC());
 }
 
-void Jetv2::msg_dep_fn(const std::string& fn_name) const
+void Jetv2::msg_dep_fn(const std::string& fn_name) 
 {
   std::cout << " warning: Method Jet::" << fn_name << "() deprecated in Jetv2" << std::endl;
 }
@@ -237,7 +237,7 @@ bool Jetv2::has_property(Jet::PROPERTY /*prop_id*/) const
 
 // float Jetv2::get_property(Jet::PROPERTY /*prop_id*/) const {
 //     msg_dep_fn("get_property");
-//     return NAN;
+//     return std::numeric_limits<float>::quiet_NaN();
 // }
 
 // void Jetv2::set_property(Jet::PROPERTY /**/, float /**/) {

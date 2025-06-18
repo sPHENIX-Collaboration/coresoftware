@@ -3,13 +3,13 @@
 
 #include "Jet.h"
 
-#include <cmath>
+#include <limits>
 
 class JetContainer;
 class JetAlgo
 {
  public:
-  virtual ~JetAlgo() {}
+  virtual ~JetAlgo() = default;
 
   virtual void identify(std::ostream& os = std::cout)
   {
@@ -17,7 +17,7 @@ class JetAlgo
   }
 
   virtual Jet::ALGO get_algo() { return Jet::NONE; }
-  virtual float get_par() { return NAN; }
+  virtual float get_par() { return std::numeric_limits<float>::quiet_NaN(); }
 
   // old version -- get jets to fill into JetMap
   virtual std::vector<Jet*> get_jets(std::vector<Jet*> /* particles*/)  // ? Why isn't this passed as a reference?
@@ -33,9 +33,7 @@ class JetAlgo
   virtual std::map<Jet::PROPERTY, unsigned int>& property_indices();
 
  protected:
-  JetAlgo() {}
-
- private:
+  JetAlgo() = default;
 };
 
 #endif

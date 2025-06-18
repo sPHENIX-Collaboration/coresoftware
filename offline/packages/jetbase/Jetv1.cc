@@ -17,7 +17,7 @@ std::vector<float> DummyJetPropVecv1;
 
 Jetv1::Jetv1()
 {
-  std::fill(std::begin(_mom), std::end(_mom), NAN);
+  std::fill(std::begin(_mom), std::end(_mom), std::numeric_limits<float>::quiet_NaN());
 }
 
 void Jetv1::identify(std::ostream& os) const
@@ -39,8 +39,8 @@ void Jetv1::identify(std::ostream& os) const
 void Jetv1::Reset()
 {
   _id = 0xFFFFFFFF;
-  std::fill(std::begin(_mom), std::end(_mom), NAN);
-  _e = NAN;
+  std::fill(std::begin(_mom), std::end(_mom), std::numeric_limits<float>::quiet_NaN());
+  _e = std::numeric_limits<float>::quiet_NaN();
   _comp_ids.clear();
   _property_map.clear();
 }
@@ -77,12 +77,12 @@ PHObject* Jetv1::CloneMe() const
 
 float Jetv1::get_p() const
 {
-  return std::sqrt(get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz());
+  return std::sqrt((get_px() * get_px()) + (get_py() * get_py()) + (get_pz() * get_pz()));
 }
 
 float Jetv1::get_pt() const
 {
-  return std::sqrt(get_px() * get_px() + get_py() * get_py());
+  return std::sqrt((get_px() * get_px()) + (get_py() * get_py()));
 }
 
 float Jetv1::get_et() const
@@ -113,8 +113,8 @@ float Jetv1::get_mass() const
 
 float Jetv1::get_mass2() const
 {
-  float p2 = get_px() * get_px() + get_py() * get_py() + get_pz() * get_pz();
-  return get_e() * get_e() - p2;
+  float p2 = (get_px() * get_px()) + (get_py() * get_py()) + (get_pz() * get_pz());
+  return (get_e() * get_e()) - p2;
 }
 
 bool Jetv1::has_property(Jet::PROPERTY prop_id) const
@@ -132,7 +132,7 @@ float Jetv1::get_property(Jet::PROPERTY prop_id) const
   typ_property_map::const_iterator citer = _property_map.find(prop_id);
   if (citer == _property_map.end())
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
   return citer->second;
 }
@@ -165,7 +165,7 @@ void Jetv1::print_property(std::ostream& os) const
   }
 }
 
-void Jetv1::not_in_v1_msg(const std::string& method_name, std::ostream& os) const
+void Jetv1::not_in_v1_msg(const std::string& method_name, std::ostream& os) 
 {
   os << " warning: Method Jet::" << method_name << "() not implemented in Jetv1" << std::endl;
 }
@@ -179,7 +179,7 @@ std::vector<float>& Jetv1::get_property_vec()
 // inline float Jetv1::get_prop_by_index(unsigned int /*index*/) const
 // {
 //   not_in_v1_msg("get_prop_by_index()");
-//   return NAN;
+//   return std::numeric_limits<float>::quiet_NaN();
 // }
 
 // inline void Jetv1::set_prop_by_index(unsigned int /*index*/, float /*value*/)

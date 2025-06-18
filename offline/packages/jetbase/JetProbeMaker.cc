@@ -21,10 +21,10 @@ int JetProbeMaker::process_event(PHCompositeNode * /*topNode*/)
 {
   // update the jet probe
   float phi = M_PI * (1. - 2. * gsl_rng_uniform(m_rng.get()));
-  float eta = _eta_min + gsl_rng_uniform(m_rng.get()) * _eta_range;
+  float eta = _eta_min + (gsl_rng_uniform(m_rng.get()) * _eta_range);
   float pt = (_pt_range == 0.
                   ? _pt_min
-                  : _pt_min + gsl_rng_uniform(m_rng.get()) * _pt_range);
+                  : _pt_min + (gsl_rng_uniform(m_rng.get()) * _pt_range));
 
   fastjet::PseudoJet fjet{};
   fjet.reset_PtYPhiM(pt, eta, phi);
