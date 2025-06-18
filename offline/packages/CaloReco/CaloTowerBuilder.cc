@@ -133,9 +133,10 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     m_packet_low = 9001;
     m_packet_high = 9006;
     m_nchannels = 128;
+    WaveformProcessing->set_template_name("SEPD_TEMPLATE");
     if (_processingtype == CaloWaveformProcessing::NONE)
     {
-      WaveformProcessing->set_processing_type(CaloWaveformProcessing::FAST);  // default the EPD to fast processing
+      WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);  // default the EPD to fast processing
     }
       
     m_calibName = "SEPD_CHANNELMAP2";
