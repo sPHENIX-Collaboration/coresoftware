@@ -266,15 +266,12 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   MbdVertexMap *mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   if(mbdvertexmap)
   {
-    int nvtxs=0;
     for (auto it = mbdvertexmap->begin(); it != mbdvertexmap->end(); ++it)
     {
       MbdVertex* mbdvertex = it->second;
       if (mbdvertex)
       {
-        nvtxs++;
         m_mbdvtxz = mbdvertex->get_z();
-      std::cout << "nvtx " << nvtxs<< " and mbd z " << m_mbdvtxz << std::endl;
       }
     }
   }
