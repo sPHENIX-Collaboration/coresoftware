@@ -1405,7 +1405,7 @@ int InttCalib::MakeBcoMapPng()
 
 	int felix = (i % 4) + 4 * (i / 8);
 	int fee_index_start = (i / 4) % 2 ? 0 : 7;
-	int fee_index_end =  (i / 4) % 2 ? 6 : 13;
+	int fee_index_end = (i / 4) % 2 ? 7 : 14;
 	double max = 0;
 	for(int fee=fee_index_start;fee<fee_index_end;fee++)
 	{
