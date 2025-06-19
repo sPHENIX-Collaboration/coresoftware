@@ -92,6 +92,7 @@ class CaloFittingQA : public SubsysReco
   TH2* h_ohcal_zs_frac_vs_multiplicity{nullptr};
   TH1* h_packet_events{nullptr};
   TH1* h_empty_packets{nullptr};
+  TH1* h_missing_packets{nullptr};
 
   CDBTTree *cdbttree = nullptr;
 

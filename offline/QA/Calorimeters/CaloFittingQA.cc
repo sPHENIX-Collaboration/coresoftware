@@ -546,6 +546,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     }
     else  // if the packet is missing treat constitutent channels as zero suppressed
     {
+      h_missing_packets->Fill(pid);
       for (int channel = 0; channel < m_nchannels; channel++)
       {
         if (skipChannel(channel, pid, dettype))
@@ -694,5 +695,9 @@ void CaloFittingQA::createHistos()
   h_empty_packets = new TH1I(boost::str(boost::format("%sempty_packets") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
   h_empty_packets->SetDirectory(nullptr);
   hm->registerHisto(h_empty_packets);
+
+  h_missing_packets = new TH1I(boost::str(boost::format("%smissing_packets") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
+  h_missing_packets->SetDirectory(nullptr);
+  hm->registerHisto(h_missing_packets);
 
 }
