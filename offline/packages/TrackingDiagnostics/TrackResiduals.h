@@ -233,6 +233,8 @@ class TrackResiduals : public SubsysReco
   int m_row = std::numeric_limits<int>::quiet_NaN();
   int m_strip = std::numeric_limits<int>::quiet_NaN();
   float m_zdriftlength = std::numeric_limits<float>::quiet_NaN();
+  
+  float m_mbdvtxz = std::numeric_limits<float>::quiet_NaN();
 
   int m_ntracks = std::numeric_limits<int>::quiet_NaN();
   int m_nvertices = std::numeric_limits<int>::quiet_NaN();
