@@ -75,6 +75,12 @@ namespace
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
   {
     std::vector<TrkrDefs::cluskey> out;
+
+    if(!track)
+      {
+	return out;
+      }
+    
     for (const auto& seed : {track->get_silicon_seed(), track->get_tpc_seed()})
     {
       if (seed)
@@ -525,6 +531,7 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
       m_vy = vertex->get_y();
       m_vz = vertex->get_z();
       m_ntracks = vertex->size_tracks();
+
       for (auto it = vertex->begin_tracks(); it != vertex->end_tracks(); ++it)
       {
         auto id = *it;
