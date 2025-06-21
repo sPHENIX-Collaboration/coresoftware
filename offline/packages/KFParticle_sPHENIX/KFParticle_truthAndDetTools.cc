@@ -1259,7 +1259,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ++detector_nStates_TPOT[daughter_id];
         break;
       default:
-        std::cout << "Cluster key doesnt match a tracking system, this shouldn't happen" << std::endl;
+        //std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
         break;
       }
     }
