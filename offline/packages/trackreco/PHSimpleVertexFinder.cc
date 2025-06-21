@@ -76,10 +76,9 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 
   _active_dcacut = _base_dcacut;
 
-  if (_vertex_track_map.size() > 0)
-  {
-    _svtx_vertex_map->clear();
-  }
+  // in case these objects are in the input file, we clear the nodes and replace them
+    _svtx_vertex_map->Reset();
+    _track_vertex_crossing_map->Reset();
 
   // Write to a new map on the node tree that contains (crossing, trackid) pairs for all tracks
   // Later, will add to it a map  containing (crossing, vertexid)

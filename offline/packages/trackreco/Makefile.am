@@ -76,6 +76,7 @@ pkginclude_HEADERS = \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   PrelimDistortionCorrection.h \
+  PrelimDistortionCorrectionAuAu.h \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h \
@@ -158,6 +159,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
   PrelimDistortionCorrection.cc \
+  PrelimDistortionCorrectionAuAu.cc \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc \
