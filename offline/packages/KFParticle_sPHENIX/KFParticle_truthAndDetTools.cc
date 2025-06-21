@@ -1259,10 +1259,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ++detector_nStates_TPOT[daughter_id];
         break;
       default:
-        if (Verbosity() >= VERBOSITY_SOME)
-        {
-          std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
-        }
+        //std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
         break;
       }
     }

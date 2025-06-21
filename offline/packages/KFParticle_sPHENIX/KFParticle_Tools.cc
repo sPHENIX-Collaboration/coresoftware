@@ -303,10 +303,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllDaughterParticles(PHCompositeNo
             ++TPOT_states;
             break;
           default:
-	    if (Verbosity() >= VERBOSITY_SOME)
-	    {
-              std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
-	    }
+            //std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
             break; 
         }
       }
