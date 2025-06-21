@@ -513,15 +513,15 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       // return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  if (!EMCalGeo)
-  {
-    EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
-    if (!EMCalGeo)
-    {
-      std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
-      // return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  }
+  // if (!EMCalGeo)
+  // {
+  //   EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+  //   if (!EMCalGeo)
+  //   {
+  //     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
+  //     // return Fun4AllReturnCodes::ABORTEVENT;
+  //   }
+  // }
   // if(!_towersEM)
   // {
   //   _towersEM = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
@@ -590,7 +590,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   double caloRadiusEMCal;
   // double caloRadiusIHCal;
   // double caloRadiusOHCal;
-  // caloRadiusEMCal = EMCalGeo->get_radius();
+  // caloRadiusEMCal = EMCalGeo->get_radius(); //This requires DST_CALOFITTING 
   caloRadiusEMCal = 100.70;  // cm
   // caloRadiusOHCal = OHCalGeo->get_radius();
   // caloRadiusIHCal = IHCalGeo->get_radius();
