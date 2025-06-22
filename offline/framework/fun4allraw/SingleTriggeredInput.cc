@@ -283,7 +283,7 @@ void SingleTriggeredInput::FillPool()
         dumpdeque();  // dump the clock diffs so we can see in the log
         const auto *iter1 = clkdiffbegin();
         const auto *iter2 = Gl1Input()->clkdiffbegin();
-        if (*(++iter1) != *(++iter2))
+        if (*(++iter1) != *(++iter2) && firstclockcheck)
         {
           // this only works for the first event we process,
           // we know it is the first event we handle so setting
@@ -375,7 +375,7 @@ void SingleTriggeredInput::FillPool()
           //        FilesDone(1);
         }  // test for first event
       }  // end test for equality
-
+      firstclockcheck = false;
       //	std::cout << "we are good" << std::endl;
     }
   }
