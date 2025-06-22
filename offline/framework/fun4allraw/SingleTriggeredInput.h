@@ -85,6 +85,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   int m_ProblemEvent{-1};
   int m_LastEvent{std::numeric_limits<int>::max()};
   bool firstcall{true};
+  bool firstclockcheck{true};
   bool m_KeepPacketsFlag{false};
   bool m_DitchPackets{false};
   std::set<int> m_FEMEventNrSet;
