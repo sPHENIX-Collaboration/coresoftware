@@ -24,7 +24,6 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   void Print(const std::string &what = "ALL") const override;
   void CreateDSTNodes(Event *evt) override;
   uint64_t GetClock(Event *evt) override;
-  uint64_t GetPacketNr(Event *evt) override;
   int ReadEvent() override;
 
  private:

@@ -43,20 +43,14 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual void CreateDSTNodes(Event *evt);
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
-  virtual int SkipEventVector(int skip, int location);
   virtual int FillEventVector();
   virtual int ReadEvent();
   virtual SingleTriggeredInput *Gl1Input() { return m_Gl1Input; }
   virtual void Gl1Input(SingleTriggeredInput *input) { m_Gl1Input = input; }
   virtual uint64_t GetClock(Event *evt);
-  virtual uint64_t GetPacketNr(Event *evt);
   virtual std::array<uint64_t, pooldepth>::const_iterator clkdiffbegin() { return m_bclkdiffarray.begin(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator clkdiffend() { return m_bclkdiffarray.end(); }
   virtual std::array<uint64_t, pooldepth>::const_iterator beginclock() { return m_bclkarray.begin(); }
-  virtual std::array<uint64_t, pooldepth>::const_iterator evtdiffbegin() { return m_bevtdiffarray.begin(); }
-  virtual std::array<uint64_t, pooldepth>::const_iterator evtdiffend() { return m_bevtdiffarray.end(); }
-  virtual std::array<uint64_t, pooldepth>::const_iterator beginevent() { return m_bevtarray.begin(); }
-
   virtual void KeepPackets() { m_KeepPacketsFlag = true; }
   virtual bool KeepMyPackets() const { return m_KeepPacketsFlag; }
   void topNode(PHCompositeNode *topNode) { m_topNode = topNode; }
@@ -76,8 +70,6 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   std::deque<Event *> m_EventDeque;
   std::array<uint64_t, pooldepth + 1> m_bclkarray{};  // keep the last bco from previous loop
   std::array<uint64_t, pooldepth> m_bclkdiffarray{};
-  std::array<uint64_t, pooldepth + 1> m_bevtarray{};  // keep the last bco from previous loop
-  std::array<uint64_t, pooldepth> m_bevtdiffarray{};
   std::set<int> m_PacketSet;
 
  private:
