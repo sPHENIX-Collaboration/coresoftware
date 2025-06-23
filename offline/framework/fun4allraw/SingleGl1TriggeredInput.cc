@@ -108,24 +108,6 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
   return clock;
 }
 
-uint64_t SingleGl1TriggeredInput::GetPacketNr(Event *evt)
-{
-  Packet *packet = evt->getPacket(14001);
-  if (!packet)
-  {
-    std::cout << Name()
-              << " no packet 14001 for event, possible corrupt data event before EOR"
-              << std::endl;
-    std::cout << Name() << ": ";
-    evt->identify();
-    return std::numeric_limits<uint64_t>::max();
-  }
-  uint64_t eventnr = (static_cast<uint64_t>(packet->iValue(0)) & 0xFFFFFFFF);
-
-  delete packet;
-  return eventnr;
-}
-
 int SingleGl1TriggeredInput::ReadEvent()
 {
   if (m_EventDeque.empty())
