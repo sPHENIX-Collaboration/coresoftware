@@ -14,6 +14,8 @@
 #include <string>  // for string
 #include <vector>
 
+typedef std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> hitMask;
+
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
 class PHG4TpcCylinderGeom;
@@ -50,12 +52,25 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
 
+  void SetDeadChannelMapName(std::string dcmap) 
+  {
+    m_maskDeadChannels = true;
+    m_deadChannelMapName = dcmap;
+  }
+  void SetHotChannelMapName(std::string hmap) 
+  {
+    m_maskHotChannels = true;
+    m_hotChannelMapName = hmap;
+  }
+
  private:
   //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &adc_tbin, std::vector<double> &adc_tbin_share);
 
   double check_phi(const unsigned int side, const double phi, const double radius);
+
+  void makeChannelMask(hitMask& aMask, const std::string& dbName, const std::string& totalChannelsToMask);
 
   PHG4TpcCylinderGeomContainer *GeomContainer = nullptr;
   PHG4TpcCylinderGeom *LayerGeom = nullptr;
@@ -117,7 +132,13 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   TF1 *flangau[2][3][12] = {{{nullptr}}};
 
-  
+  hitMask m_deadChannelMap;
+  hitMask m_hotChannelMap; 
+
+  bool m_maskDeadChannels = false;
+  bool m_maskHotChannels = false;
+  std::string m_deadChannelMapName; 
+  std::string m_hotChannelMapName; 
 };
 
 #endif
