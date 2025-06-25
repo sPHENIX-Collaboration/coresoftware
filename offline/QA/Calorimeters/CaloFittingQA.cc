@@ -650,17 +650,17 @@ void CaloFittingQA::createHistos()
   hm->registerHisto(h_ohcal_etaphi_ZScrosscalib);
 
   h_cemc_etaphi_pedestal = new TProfile2D(std::format("{}cemc_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 16400);
-  h_cemc_etaphi_pedestal->SetErrorOption("G");
+  h_cemc_etaphi_pedestal->SetErrorOption("s");
   h_cemc_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_pedestal);
 
   h_ihcal_etaphi_pedestal = new TProfile2D(std::format("{}ihcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
-  h_ihcal_etaphi_pedestal->SetErrorOption("G");
+  h_ihcal_etaphi_pedestal->SetErrorOption("s");
   h_ihcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_pedestal);
 
   h_ohcal_etaphi_pedestal = new TProfile2D(std::format("{}ohcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
-  h_ohcal_etaphi_pedestal->SetErrorOption("G");
+  h_ohcal_etaphi_pedestal->SetErrorOption("s");
   h_ohcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_pedestal);
 
