@@ -162,7 +162,7 @@ bool TpcSpaceChargeMatrixInversion::add(const TpcSpaceChargeMatrixContainer& sou
 }
 
 //_____________________________________________________________________
-void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections()
+void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections(const InversionMode inversionMode )
 {
   if (!m_matrix_container)
   {
@@ -190,12 +190,6 @@ void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections()
     h->GetZaxis()->SetTitle("z (cm)");
   }
 
-  // matrix convenience definition
-  /* number of coordinates must match that of the matrix container */
-  static constexpr int ncoord = 3;
-  using matrix_t = Eigen::Matrix<float, ncoord, ncoord>;
-  using column_t = Eigen::Matrix<float, ncoord, 1>;
-
   // loop over bins
   for (int iphi = 0; iphi < phibins; ++iphi)
   {
@@ -214,60 +208,140 @@ void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections()
           continue;
         }
 
-        // build eigen matrices from container
-        matrix_t lhs;
-        for (int i = 0; i < ncoord; ++i)
+        switch( inversionMode )
         {
-          for (int j = 0; j < ncoord; ++j)
+          case InversionMode::FullInversion:
           {
-            lhs(i, j) = m_matrix_container->get_lhs(icell, i, j);
+            /* number of coordinates must match that of the matrix container */
+            static constexpr int ncoord = 3;
+            using matrix_t = Eigen::Matrix<float, ncoord, ncoord>;
+            using column_t = Eigen::Matrix<float, ncoord, 1>;
+
+            // build eigen matrices from container
+            matrix_t lhs;
+            for (int i = 0; i < ncoord; ++i)
+            {
+              for (int j = 0; j < ncoord; ++j)
+              {
+                lhs(i, j) = m_matrix_container->get_lhs(icell, i, j);
+              }
+            }
+
+            column_t rhs;
+            for (int i = 0; i < ncoord; ++i)
+            {
+              rhs(i) = m_matrix_container->get_rhs(icell, i);
+            }
+
+            if (Verbosity())
+            {
+              // print matrices and entries
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - inverting bin " << iz << ", " << ir << ", " << iphi << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - entries: " << cell_entries << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - lhs: \n"
+                << lhs << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - rhs: \n"
+                << rhs << std::endl;
+            }
+
+            // calculate result using linear solving
+            const auto cov = lhs.inverse();
+            auto partialLu = lhs.partialPivLu();
+            const auto result = partialLu.solve(rhs);
+
+            // fill histograms
+            hentries->SetBinContent(iphi + 1, ir + 1, iz + 1, cell_entries);
+
+            hphi->SetBinContent(iphi + 1, ir + 1, iz + 1, result(0));
+            hphi->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov(0, 0)));
+
+            hz->SetBinContent(iphi + 1, ir + 1, iz + 1, result(1));
+            hz->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov(1, 1)));
+
+            hr->SetBinContent(iphi + 1, ir + 1, iz + 1, result(2));
+            hr->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov(2, 2)));
+
+            if (Verbosity())
+            {
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dphi: " << result(0) << " +/- " << std::sqrt(cov(0, 0)) << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dz: " << result(1) << " +/- " << std::sqrt(cov(1, 1)) << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dr: " << result(2) << " +/- " << std::sqrt(cov(2, 2)) << std::endl;
+              std::cout << std::endl;
+            }
+            break;
+          }
+
+          case InversionMode::ReducedInversion_phi:
+          case InversionMode::ReducedInversion_z:
+          {
+            /* number of coordinates must match that of the matrix container */
+            static constexpr int ncoord = 3;
+            using matrix_t = Eigen::Matrix<float, ncoord, ncoord>;
+            using column_t = Eigen::Matrix<float, ncoord, 1>;
+
+            // build eigen matrices from container
+            matrix_t lhs_rphi;
+            matrix_t lhs_z;
+            for (int i = 0; i < ncoord; ++i)
+            {
+              for (int j = 0; j < ncoord; ++j)
+              {
+                lhs_rphi(i, j) = m_matrix_container->get_lhs_rphi(icell, i, j);
+                lhs_rphi(i, j) = m_matrix_container->get_lhs_z(icell, i, j);
+              }
+            }
+
+            column_t rhs_rphi;
+            column_t rhs_z;
+            for (int i = 0; i < ncoord; ++i)
+            {
+              rhs_rphi(i) = m_matrix_container->get_rhs_rphi(icell, i);
+              rhs_z(i) = m_matrix_container->get_rhs_z(icell, i);
+            }
+
+            // calculate result using linear solving
+            const auto cov_rphi = lhs_rphi.inverse();
+            auto partialLu_rphi = lhs_rphi.partialPivLu();
+            const auto result_rphi = partialLu_rphi.solve(rhs_rphi);
+
+            const auto cov_z = lhs_z.inverse();
+            auto partialLu_z = lhs_z.partialPivLu();
+            const auto result_z = partialLu_z.solve(rhs_rphi);
+
+            // fill histograms
+            hentries->SetBinContent(iphi + 1, ir + 1, iz + 1, cell_entries);
+
+            hphi->SetBinContent(iphi + 1, ir + 1, iz + 1, result_rphi(0));
+            hphi->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov_rphi(0, 0)));
+
+            hz->SetBinContent(iphi + 1, ir + 1, iz + 1, result_z(0));
+            hz->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov_z(0, 0)));
+
+            if( inversionMode == InversionMode::ReducedInversion_phi )
+            {
+              hr->SetBinContent(iphi + 1, ir + 1, iz + 1, result_rphi(1));
+              hr->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov_rphi(1, 1)));
+            } else if( inversionMode == InversionMode::ReducedInversion_z ) {
+              hr->SetBinContent(iphi + 1, ir + 1, iz + 1, result_z(1));
+              hr->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov_z(1, 1)));
+            }
+
+
+            if (Verbosity())
+            {
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dphi: " << result_rphi(0) << " +/- " << std::sqrt(cov_rphi(0, 0)) << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dz: " << result_z(0) << " +/- " << std::sqrt(cov_z(0, 0)) << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dr (rphi): " << result_rphi(1) << " +/- " << std::sqrt(cov_rphi(1, 1)) << std::endl;
+              std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dr (z): " << result_z(1) << " +/- " << std::sqrt(cov_z(1, 1)) << std::endl;
+              std::cout << std::endl;
+            }
+            break;
           }
         }
 
-        column_t rhs;
-        for (int i = 0; i < ncoord; ++i)
-        {
-          rhs(i) = m_matrix_container->get_rhs(icell, i);
-        }
-
-        if (Verbosity())
-        {
-          // print matrices and entries
-          std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - inverting bin " << iz << ", " << ir << ", " << iphi << std::endl;
-          std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - entries: " << cell_entries << std::endl;
-          std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - lhs: \n"
-                    << lhs << std::endl;
-          std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - rhs: \n"
-                    << rhs << std::endl;
-        }
-
-        // calculate result using linear solving
-        const auto cov = lhs.inverse();
-        auto partialLu = lhs.partialPivLu();
-        const auto result = partialLu.solve(rhs);
-
-        // fill histograms
-        hentries->SetBinContent(iphi + 1, ir + 1, iz + 1, cell_entries);
-
-        hphi->SetBinContent(iphi + 1, ir + 1, iz + 1, result(0));
-        hphi->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov(0, 0)));
-
-        hz->SetBinContent(iphi + 1, ir + 1, iz + 1, result(1));
-        hz->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov(1, 1)));
-
-        hr->SetBinContent(iphi + 1, ir + 1, iz + 1, result(2));
-        hr->SetBinError(iphi + 1, ir + 1, iz + 1, std::sqrt(cov(2, 2)));
-
-        if (Verbosity())
-        {
-          std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - drphi: " << result(0) << " +/- " << std::sqrt(cov(0, 0)) << std::endl;
-          std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dz: " << result(1) << " +/- " << std::sqrt(cov(1, 1)) << std::endl;
-          std::cout << "TpcSpaceChargeMatrixInversion::calculate_distortion_corrections - dr: " << result(2) << " +/- " << std::sqrt(cov(2, 2)) << std::endl;
-          std::cout << std::endl;
-        }
-      }
-    }
-  }
+      } // z-loop
+    } // r-loop
+  } // phi-loop
 
   // split histograms in two along z axis and write
   // also write histograms suitable for space charge reconstruction
