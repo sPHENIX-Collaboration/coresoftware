@@ -66,7 +66,8 @@ namespace JetQADefs
     Photon1         = 28, /*!< Photon 2 GeV (no MBD coincidence) */
     Photon2         = 29, /*!< Photon 3 GeV (no MBD coincidence) */
     Photon3         = 30, /*!< Photon 4 GeV (no MBD coincidence) */
-    Photon4         = 31  /*!< Photon 5 GeV (no MBD coincidence) */
+    Photon4         = 31, /*!< Photon 5 GeV (no MBD coincidence) */
+    Inclusive       = 32  /*!< inclusive (i.e. NO trigger selection) */
   };
 
   // constants ----------------------------------------------------------------
@@ -112,7 +113,8 @@ namespace JetQADefs
       {Photon1         , "Photon 2 GeV"},
       {Photon2         , "Photon 3 GeV"},
       {Photon3         , "Photon 4 GeV"},
-      {Photon4         , "Photon 5 GeV"}
+      {Photon4         , "Photon 5 GeV"},
+      {Inclusive       , "Inclusive"}
     };
     return mapFlagToName;
   }
