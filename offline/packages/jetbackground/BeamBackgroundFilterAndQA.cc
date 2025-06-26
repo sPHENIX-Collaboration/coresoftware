@@ -15,13 +15,16 @@
 #include "BeamBackgroundFilterAndQA.h"
 #include "BeamBackgroundFilterAndQADefs.h"
 
-// calo base
+// calobase libraries
 #include <calobase/TowerInfoContainer.h>
 
 // f4a libraries
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <ffaobjects/FlagSavev1.h>
+
+// jetqa libraries
+#include <jetqa/JetQADefs.h>
 
 // phool libraries
 #include <phool/getClass.h>
@@ -286,7 +289,7 @@ void BeamBackgroundFilterAndQA::BuildHistograms()
   }
 
   // get module-wide histogram names
-  std::vector<std::string> histNames = BeamBackgroundFilterAndQADefs::MakeQAHistNames(varNames, m_config.moduleName, m_config.histTag);
+  std::vector<std::string> histNames = JetQADefs::MakeQAHistNames(varNames, m_config.moduleName, m_config.histTag);
 
   // create module-wide histograms
   for (std::size_t iVar = 0; iVar < varNames.size(); ++iVar)
