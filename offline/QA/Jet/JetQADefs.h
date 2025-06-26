@@ -20,6 +20,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 
 // ----------------------------------------------------------------------------
 //! Namespace to hold misc. definitions for the Jet QA
