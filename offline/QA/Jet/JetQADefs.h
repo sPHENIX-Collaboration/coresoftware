@@ -16,6 +16,7 @@
 
 #include <phool/phool.h>
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
@@ -143,6 +144,43 @@ namespace JetQADefs
     return analyzer->didTriggerFire( MapTriggerFlagToName()[trg] );
 
   }  // end 'DidTriggerFire(uint32_t, TriggerAnalyzer*)'
+
+  // ==========================================================================
+  //! Make QA-compliant histogram names
+  // ==========================================================================
+  /*! This helper method takes in a list of base names (e.g.
+   *  some variable you want to histogram like "JetEne") and
+   *  produces a list of histogram names compliant w/ the
+   *  rest of the jet QA.
+   *
+   *  The format should always be:
+   *    h_<module name>_<trigger tag>_<jet tag>_<base name> + <tag>
+   */
+  inline std::vector<std::string> MakeQAHistNames(
+      const std::vector<std::string>& bases,
+      const std::string& module,
+      const std::string& tag = "")
+  {
+    // copy base names to list of hist names
+    std::vector<std::string> names = bases;
+
+    // inject module names, tags, etc.
+    for (auto& name : names)
+    {
+      name.insert(0, "h_" + module + "_");
+      if (!tag.empty())
+      {
+        name.append("_" + tag);
+      }
+      std::transform(
+          name.begin(),
+          name.end(),
+          name.begin(),
+          ::tolower);
+    }
+    return names;
+
+  }  // end 'MakeQAHistNames(
 
 }  // namespace JetQADefs
 

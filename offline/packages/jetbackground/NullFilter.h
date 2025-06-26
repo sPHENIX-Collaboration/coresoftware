@@ -15,7 +15,7 @@
 // module components
 #include "BaseBeamBackgroundFilter.h"
 
-// c++ includes
+// c++ utilities
 #include <string>
 
 // forward declarations

@@ -12,13 +12,12 @@
 #ifndef BEAMBACKGROUNDFILTERANDQADEFS_H
 #define BEAMBACKGROUNDFILTERANDQADEFS_H
 
-// c++ utilities
-#include <algorithm>
-#include <array>
-
-// calo base
+// calobase libraries
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
+
+// c++ utilities
+#include <array>
 
 // ============================================================================
 //! Misc beam background filter and QA definitions
@@ -123,45 +122,6 @@ namespace BeamBackgroundFilterAndQADefs
   typedef TowerMap<96, 256> EMCalMap;
   typedef TowerMap<24, 64> IHCalMap;
   typedef TowerMap<24, 64> OHCalMap;
-
-  // ==========================================================================
-  //! Make QA-compliant histogram names
-  // ==========================================================================
-  /*! This helper method takes in a list of base names (e.g.
-   *  some variable you want to histogram like "JetEne") and
-   *  produces a list of histogram names compliant w/ the
-   *  rest of the jet QA.
-   *
-   *  The format should always be:
-   *    h_<module name>_<trigger tag>_<jet tag>_<base name> + <tag>
-   *
-   *  FIXME this should get moved into JetQADefs.h
-   */
-  inline std::vector<std::string> MakeQAHistNames(
-      const std::vector<std::string>& bases,
-      const std::string& module,
-      const std::string& tag = "")
-  {
-    // copy base names to list of hist names
-    std::vector<std::string> names = bases;
-
-    // inject module names, tags, etc.
-    for (auto& name : names)
-    {
-      name.insert(0, "h_" + module + "_");
-      if (!tag.empty())
-      {
-        name.append("_" + tag);
-      }
-      std::transform(
-          name.begin(),
-          name.end(),
-          name.begin(),
-          ::tolower);
-    }
-    return names;
-
-  }  // end 'MakeQAHistNames(
 
 }  // namespace BeamBackgroundFilterAndQADefs
 
