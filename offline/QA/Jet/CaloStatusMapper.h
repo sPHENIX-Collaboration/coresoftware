@@ -56,6 +56,9 @@ class CaloStatusMapper : public SubsysReco
       ///! turn debug messages on/off
       bool debug {true};
 
+      ///! turn normalizing histograms on/off
+      bool doNorm {false};
+
       ///! turn optional histograms on/off
       bool doOptHist {false};
 

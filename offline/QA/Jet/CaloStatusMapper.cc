@@ -219,10 +219,13 @@ int CaloStatusMapper::End(PHCompositeNode* /*topNode*/)
   }
 
   // normalize avg. status no.s
-  for (const auto& nodeName : m_config.inNodeNames)
+  if (m_config.doNorm)
   {
-    const std::string statBase = MakeBaseName("Status", nodeName.first);
-    m_hists[statBase]->Scale(1. / (double) m_nEvent);
+    for (const auto& nodeName : m_config.inNodeNames)
+    {
+      const std::string statBase = MakeBaseName("Status", nodeName.first);
+      m_hists[statBase]->Scale(1. / (double) m_nEvent);
+    }
   }
 
   // register hists and exit
