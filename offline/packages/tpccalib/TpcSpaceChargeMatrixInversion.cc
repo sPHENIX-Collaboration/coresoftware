@@ -34,6 +34,36 @@ namespace
   // z range
   static constexpr float m_zmin = -105.5;
   static constexpr float m_zmax = 105.5;
+
+  // convert internal data from TpcSpaceChargeMatrixContainer to 2D Eighen::Matrix
+  template<float (TpcSpaceChargeMatrixContainer::*accessor)(int /*cell*/, int /*row*/, int /*column*/) const, int N>
+    Eigen::Matrix<float, N, N> get_matrix( const TpcSpaceChargeMatrixContainer* container, int icell )
+  {
+    Eigen::Matrix<float, N, N> out;
+    for( int i = 0; i < N; ++i )
+    {
+      for( int j = 0; j < N; ++j )
+      {
+        out(i, j) = (container->*accessor)(icell, i, j);
+      }
+    }
+
+    return out;
+  }
+
+  // convert internal data from TpcSpaceChargeMatrixContainer to 1D Eighen::Matrix
+  template<float (TpcSpaceChargeMatrixContainer::*accessor)(int /*cell*/,int /*row*/) const, int N>
+    Eigen::Matrix<float, N, 1> get_column( const TpcSpaceChargeMatrixContainer* container, int icell )
+  {
+    Eigen::Matrix<float, N, 1> out;
+    for( int i = 0; i < N; ++i )
+    {
+      out(i) = (container->*accessor)(icell, i);
+    }
+
+    return out;
+  }
+
 }  // namespace
 
 //_____________________________________________________________________
@@ -218,20 +248,8 @@ void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections(const Inver
             using column_t = Eigen::Matrix<float, ncoord, 1>;
 
             // build eigen matrices from container
-            matrix_t lhs;
-            for (int i = 0; i < ncoord; ++i)
-            {
-              for (int j = 0; j < ncoord; ++j)
-              {
-                lhs(i, j) = m_matrix_container->get_lhs(icell, i, j);
-              }
-            }
-
-            column_t rhs;
-            for (int i = 0; i < ncoord; ++i)
-            {
-              rhs(i) = m_matrix_container->get_rhs(icell, i);
-            }
+            matrix_t lhs = get_matrix<&TpcSpaceChargeMatrixContainer::get_lhs,ncoord>(m_matrix_container.get(),icell);
+            column_t rhs = get_column<&TpcSpaceChargeMatrixContainer::get_rhs,ncoord>(m_matrix_container.get(),icell);
 
             if (Verbosity())
             {
@@ -279,34 +297,19 @@ void TpcSpaceChargeMatrixInversion::calculate_distortion_corrections(const Inver
             using matrix_t = Eigen::Matrix<float, ncoord, ncoord>;
             using column_t = Eigen::Matrix<float, ncoord, 1>;
 
-            // build eigen matrices from container
-            matrix_t lhs_rphi;
-            matrix_t lhs_z;
-            for (int i = 0; i < ncoord; ++i)
-            {
-              for (int j = 0; j < ncoord; ++j)
-              {
-                lhs_rphi(i, j) = m_matrix_container->get_lhs_rphi(icell, i, j);
-                lhs_rphi(i, j) = m_matrix_container->get_lhs_z(icell, i, j);
-              }
-            }
-
-            column_t rhs_rphi;
-            column_t rhs_z;
-            for (int i = 0; i < ncoord; ++i)
-            {
-              rhs_rphi(i) = m_matrix_container->get_rhs_rphi(icell, i);
-              rhs_z(i) = m_matrix_container->get_rhs_z(icell, i);
-            }
-
-            // calculate result using linear solving
+            // build rphi eigen matrices from container and invert
+            matrix_t lhs_rphi = get_matrix<&TpcSpaceChargeMatrixContainer::get_lhs_rphi,ncoord>(m_matrix_container.get(),icell);
+            column_t rhs_rphi = get_column<&TpcSpaceChargeMatrixContainer::get_rhs_rphi,ncoord>(m_matrix_container.get(),icell);
             const auto cov_rphi = lhs_rphi.inverse();
             auto partialLu_rphi = lhs_rphi.partialPivLu();
             const auto result_rphi = partialLu_rphi.solve(rhs_rphi);
 
+            // build z eigen matrices from container and invert
+            matrix_t lhs_z = get_matrix<&TpcSpaceChargeMatrixContainer::get_lhs_z,ncoord>(m_matrix_container.get(),icell);
+            column_t rhs_z = get_column<&TpcSpaceChargeMatrixContainer::get_rhs_z,ncoord>(m_matrix_container.get(),icell);
             const auto cov_z = lhs_z.inverse();
             auto partialLu_z = lhs_z.partialPivLu();
-            const auto result_z = partialLu_z.solve(rhs_rphi);
+            const auto result_z = partialLu_z.solve(rhs_z);
 
             // fill histograms
             hentries->SetBinContent(iphi + 1, ir + 1, iz + 1, cell_entries);
