@@ -69,6 +69,12 @@ class PhotonJetsKinematics : public SubsysReco
     m_histtag = tag;
   }
 
+  /// turn on/off optional histograms
+  void SetDoOptHist(const bool opt)
+  {
+    m_doOptHist = opt;
+  }
+
  private:
   // std::string outfilename;
   // TFile *outfile;
@@ -81,6 +87,7 @@ class PhotonJetsKinematics : public SubsysReco
  std::string m_histtag;
  uint32_t m_trgToSelect;
  bool m_doTrgSelect;
+ bool m_doOptHist;
 
  ///Output histograms
  TH1 *h_emcal_cluster_chi2 {nullptr};
