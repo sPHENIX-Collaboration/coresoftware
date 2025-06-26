@@ -96,6 +96,7 @@ class KFParticle_truthAndDetTools
 
  protected:
   bool m_use_mbd_vertex_truth{false};
+  bool m_dont_use_global_vertex_truth{false};
 
   std::string m_trk_map_node_name_nTuple{"SvtxTrackMap"};
   std::string m_vtx_map_node_name_nTuple{"SvtxVertexMap"};

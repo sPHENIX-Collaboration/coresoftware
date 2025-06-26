@@ -28,7 +28,7 @@ KFParticle_Container::KFParticle_Container(const KFParticle_Container& kfparticl
   for (auto& iter : kfparticlemap)
   {
     KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
-    m_kfpmap.insert(std::make_pair(particle->Id(), particle));
+    m_kfpmap.insert(std::make_pair(iter.first, particle));
   }
 }
 
@@ -38,7 +38,7 @@ KFParticle_Container& KFParticle_Container::operator=(const KFParticle_Container
   for (auto& iter : kfparticlemap)
   {
     KFParticle* particle = dynamic_cast<KFParticle*>(iter.second->Clone());
-    m_kfpmap.insert(std::make_pair(particle->Id(), particle));
+    m_kfpmap.insert(std::make_pair(iter.first, particle));
   }
   return *this;
 }

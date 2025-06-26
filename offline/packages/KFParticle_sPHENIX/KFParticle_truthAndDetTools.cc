@@ -1121,8 +1121,6 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, c
 void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
                                                      TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
-  std::cout << "Starting to run KFParticle_truthAndDetTools::fillDetectorBranch." << std::endl;
-
   dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   if (!dst_trackmap)
   {
@@ -1268,27 +1266,41 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 
 int KFParticle_truthAndDetTools::getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex)
 {
-  if (m_use_mbd_vertex_truth)
+  if (m_dont_use_global_vertex_truth)
   {
-    dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-    if (dst_mbdvertexmap)
+    if (m_use_mbd_vertex_truth)
     {
-      MbdVertex *m_dst_vertex = dst_mbdvertexmap->get(kfpvertex.Id());
-      return m_dst_vertex->get_beam_crossing();
-    }
+      dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+      if (dst_mbdvertexmap)
+      {
+        MbdVertex *m_dst_vertex = dst_mbdvertexmap->get(kfpvertex.Id());
+        return m_dst_vertex->get_beam_crossing();
+      }
 
-    std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
+    else
+    {
+      dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+      if (dst_vertexmap)
+      {
+        SvtxVertex *m_dst_vertex = dst_vertexmap->get(kfpvertex.Id());
+        return m_dst_vertex->get_beam_crossing();
+      }
+
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
   }
   else
   {
-    dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
-    if (dst_vertexmap)
+    auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+    if (!globalvertexmap)
     {
-      SvtxVertex *m_dst_vertex = dst_vertexmap->get(kfpvertex.Id());
-      return m_dst_vertex->get_beam_crossing();
+      return -100;
     }
 
-    std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    GlobalVertex *gvertex = globalvertexmap->get(kfpvertex.Id());
+    return gvertex->get_beam_crossing();
   }
 
   return -100;
