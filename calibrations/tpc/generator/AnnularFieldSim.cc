@@ -333,7 +333,7 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
     at.SetZ(at.Z() + green_shift);
     from.SetZ(from.Z() + green_shift);
     double Er = green->Er(at.Perp(), atphi, at.Z(), from.Perp(), fromphi, from.Z());
-    // RCC manually disabled phi component of green -- actually, a correction to disallow trying to compute phi terms when at the same phi:
+    // don't try to compute Ephi if the delta phi is too small, since it will be zero (and will have a div0 somewhere):
     double Ephi = 0;
     if (delphi > ALMOST_ZERO)
     {
@@ -347,6 +347,35 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   }
   return field;
 }
+
+
+
+TVector3 AnnularFieldSim::GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin)
+{
+  // this function returns the components of the field in the local coordinate system, which is in cylindrical coords
+  // and has a specified origin.
+  // it assumes that the field and all coordinates are given in the global, cartesian coordinate system.
+  // it returns a TVector3 with the radial, azimuthal, and z components of the field in the local coordinate system.
+
+  TVector3 local_pos = pos - origin;  // shift the position to the local coordinate system
+  //get the cylindrical radial vector pointing from the origin to the position:
+  TVector3 radial_vector = local_pos;
+  radial_vector.SetZ(0);  // zero out the z component, so we have a radial vector in the xy plane.
+  if(radial_vector.Mag()==0){
+    //if it's zero, make it arbitrary direction.
+    radial_vector.SetXYZ(1, 0, 0);  // set it to point in the x direction.
+  }else {
+  radial_vector.SetMag(1);  // normalize it to unit length, so we can use it to rotate the field vector.
+  }
+  // get the cylindrical azimuthal vector, which is perpendicular to the radial vector:
+  TVector3 azimuthal_vector = radial_vector;
+  azimuthal_vector.SetXYZ(-radial_vector.Y(), radial_vector.X(), 0);  // rotate by 90 degrees to get the azimuthal vector in the xy plane.
+  // now we can project the field vector onto the radial and azimuthal vectors to get the components in the local coordinate system, and return a TVector3 with those components:
+  TVector3 local_field;
+  local_field.SetXYZ(field.Dot(radial_vector), field.Dot(azimuthal_vector), field.Z());  // radial, azimuthal, and z components
+  return local_field;
+}
+
 
 double AnnularFieldSim::FilterPhiPos(double phi)
 {
@@ -918,6 +947,7 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores fields as V/cm.
+  printf("AnnularFieldSim::loadEfield:  loading E field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(),zsign);
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
@@ -934,6 +964,7 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
   loadField(&Eexternal, fTree, &r, nullptr, &z, &fr, &fphi, &fz, V / cm, zsign);
+  printf("AnnularFieldSim::loadEfield:  finished loading E field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(), zsign);
   fieldFile.Close();
   return;
 }
@@ -957,15 +988,18 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
   loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla, 1);
+  printf("AnnularFieldSim::loadBfield:  finished loading B field from file %s, tree %s\n", filename.c_str(), treename.c_str());
   fieldFile.Close();
 
   return;
 }
 
-void AnnularFieldSim::load3dBfield(const std::string &filename, const std::string &treename, int zsign, float scale, float zshift)
+void AnnularFieldSim::load3dBfield(const std::string &filename, const std::string &treename, int zsign, float scale, float xshift, float yshift, float zshift)
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores field as Tesla.
+  printf("AnnularFieldSim::load3dBfield:  loading B field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(),zsign);
+
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
@@ -978,62 +1012,148 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   fTree->SetBranchAddress("bz", &fz);
   fTree->SetBranchAddress("phi", &phi);
   fTree->SetBranchAddress("bphi", &fphi);
-  loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla * scale, zsign, zshift);
+  loadField(&Bfield, fTree, &r, &phi, &z, &fr, &fphi, &fz, Tesla * scale, zsign, xshift, yshift, zshift);
+  printf("AnnularFieldSim::load3dBfield:  finished loading B field from file %s, tree %s (sign=%d) with scale %f\n", filename.c_str(), treename.c_str(), zsign, scale);
+  fieldFile.Close();
   return;
 }
 
-void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float zshift)
+void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float xshift, float yshift, float zshift)
 {
   // we're loading a tree of unknown size and spacing -- and possibly uneven spacing -- into our local data.
   // formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
-  // the z shift moves the detector in the field (hence for a +1 shift in z, the field value at (0,0,0) is recorded at detector coordinate (0,0,-1)
-
+  // the x,y,z shift moves the detector in the field (hence for a +1 shift in each, the field value at (0,0,0) is recorded at detector coordinate (-1,-1,-1)
+  TVector3 origin= TVector3(xshift, yshift, zshift);  // the origin of the detector in the field coordinate system.
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
-  int lowres_factor = 10;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
+
+  printf("AnnularFieldSim::loadField:  loading field from %s, detector origin at (%f,%f,%f) in the field map, field unit %f, zsign %d, handling=%s\n", source->GetName(), origin.X(), origin.Y(), origin.Z(), fieldunit, zsign, (phiSymmetry ? "phi-symmetric" : "not phi-symmetric"));
+
+
+  int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
+
+  //float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
+//needed, because the interpolation doesn't know that phi should wrap:
+  //float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
+  //float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
+
+  //since our lowres_factor may not divide evenly into the number of bins, we need to adjust the number of bins in each dimension:
+  int nlowbins_phi= nphi / lowres_factor + 1;  
+  int nlowbins_r = nr / lowres_factor + 1; 
+  int nlowbins_z = nz / lowres_factor + 1;
+  float phi_lowres_step = M_PI * 2.0 / nlowbins_phi;  // the step size in phi for the low-res histogram
+  float r_lowres_step = (rmax - rmin) / nlowbins_r;  // the step size in r for the low-res histogram
+  float z_lowres_step = (zmax - zmin) / nlowbins_z;  // the step size in z for the low-res histogram
+
+
   std::cout << boost::str(boost::format("loading field from %f<z<%f") % zmin % zmax) << std::endl;
   TH3F *htEntries = new TH3F("htentries", "num of entries in the field loading", nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
   TH3F *htSum[3];
-  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
+  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nlowbins_phi+2,  -phi_lowres_step, M_PI * 2.0+phi_lowres_step, nlowbins_r+2, rmin-r_lowres_step, rmax+r_lowres_step, nlowbins_z+2, zmin-z_lowres_step, zmax+z_lowres_step);
   TH3F *htSumLow[3];
+  printf("AnnularFieldSim::loadField:  hires has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", 
+  htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(), 
+  htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(), 
+  htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax());
+  printf("AnnularFieldSim::loadField:  lowres has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", 
+  htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(),
+  htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(),
+  htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax());
+  
+  
+  
   std::string axis[]{"r", "p", "z"};
   for (int i = 0; i < 3; i++)
   {
-    htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
-    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), nphi / lowres_factor + 1, 0, M_PI * 2.0, nr / lowres_factor + 1, rmin, rmax, nz / lowres_factor + 1, zmin, zmax);
+    //make each htSum inherit its bounds from htEntries:
+    htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(), htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(), htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax());
+    //make each htSumLow inherit its bounds from htEntriesLow:
+    htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(), htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(), htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax());
+  }
+  //define the lowres stepsizes for sanity:
+
+  float phiCoords[nphi];  // the phi coordinates of the bins in our internal rep.
+  int nPhiCoords=1;
+  if(phiSymmetry){
+    //  if we do have phi symmetry, enumerate the phi coordinates we will use:
+   // printf("AnnularFieldSim::loadField:  phi symmetry, using %d phi coordinates:\n", nphi);
+    for (int j = 0; j < nphi; j++)
+    {
+      float phi0=(j+0.5)*step.Phi(); //stand-in for our phi pointer that doesn't exist.
+      phiCoords[j]=phi0;
+      printf("%2.2f ", phi0);
+    }
+    printf("\n");
+    nPhiCoords=nphi;
   }
 
+
+
+  //traverse the field tree and fill the histograms.
   int nEntries = source->GetEntries();
   for (int i = 0; i < nEntries; i++)
   {  // could probably do this with an iterator
+
+    //keep track of progress:
+    int rem=i%(source->GetEntries()/10);
+    int quo=i/(source->GetEntries()/10);
+    if(rem==0 && quo>0){
+      printf("loadField:  %d0%%\n", quo);
+    }
+
+
     source->GetEntry(i);
-    float zval = *zptr * zsign-zshift;  // right now, need the ability to flip the sign of the z coordinate.
+    float zval = *zptr * zsign;  // since the field map may assume symmetry wrt z, we  need the ability to flip the sign of the z coordinate.
     // note that the z sign also needs to affect the field sign in that direction, which is handled outside in the z components of the fills
+    float rval=*rptr;
+    float phival;
+    //we have to also carefully transform the field itself:
+    float fzval = *fzptr * fieldunit * zsign;  // z component of the field (altered in rotations of the cylinder, but not translations), note that we flip the sign if requested (ie the Efield loader).
+    float fphival = *fphiptr * fieldunit*zsign;  // phi component of the field 
+    float frval = *frptr * fieldunit;  // radial component of the field 
+    TVector3 rphizField(frval, fphival, fzval);  
+
+
     // if we aren't asking for phi symmetry, build just the one phi strip
+
     if (!phiSymmetry)
     {
       assert(phiptr);
-      htEntries->Fill(*phiptr, *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSum[0]->Fill(*phiptr, *rptr, zval, *frptr * fieldunit);
-      htSum[1]->Fill(*phiptr, *rptr, zval, *fphiptr * fieldunit);
-      htSum[2]->Fill(*phiptr, *rptr, zval, *fzptr * fieldunit * zsign);
-      htEntriesLow->Fill(*phiptr, *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSumLow[0]->Fill(*phiptr, *rptr, zval, *frptr * fieldunit);
-      htSumLow[1]->Fill(*phiptr, *rptr, zval, *fphiptr * fieldunit);
-      htSumLow[2]->Fill(*phiptr, *rptr, zval, *fzptr * fieldunit * zsign);
+      phiCoords[0]=*phiptr;
     }
-    else
-    {  // if we do have phi symmetry, build every phi strip using this one.
-      for (int j = 0; j < nphi; j++)
-      {
-        htEntries->Fill(j * step.Phi(), *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-        htSum[0]->Fill(j * step.Phi(), *rptr, zval, *frptr * fieldunit);
-        htSum[1]->Fill(j * step.Phi(), *rptr, zval, *fphiptr * fieldunit);
-        htSum[2]->Fill(j * step.Phi(), *rptr, zval, *fzptr * fieldunit * zsign);
-        htEntriesLow->Fill(j * step.Phi(), *rptr, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-        htSumLow[0]->Fill(j * step.Phi(), *rptr, zval, *frptr * fieldunit);
-        htSumLow[1]->Fill(j * step.Phi(), *rptr, zval, *fphiptr * fieldunit);
-        htSumLow[2]->Fill(j * step.Phi(), *rptr, zval, *fzptr * fieldunit * zsign);
-      }
+    for (int j = 0; j < nPhiCoords; j++){//this is a loop over n=1 if we have no symmetry, or nphi if we do.
+      phival=phiCoords[j];//the input phitr if no symmetry, or precompupted values if symmetry.
+
+      //find the vector coordinate of this field position, in the field map coords.
+      TVector3 fieldMapPos(rval,0,zval);// the position in the field map, in cylindrical coordinates.
+      fieldMapPos.SetPhi(phival);  // set the phi coordinate in the field map.
+
+      //convert the components of the field into the global cartesian system:
+      TVector3 globalField=rphizField;  // the field vector in the global coordinate system, in cylindrical coordinates.
+      globalField.RotateZ(phival);  // the rphiz frame is rotated from the global by the phi coordinate, so to make these match the cartesian system, we must rotate the field to the local rphiz frame
+
+      //if our origin is not zero, apply the translation of field and coords:
+      TVector3 tpcPos=fieldMapPos-origin;  // the position of this field datapoint in the tpc coordinate system
+      //I think this could just be a rotation by -tpcPos.Phi()...
+      TVector3 tpcField=GetLocalFieldComponents(globalField,fieldMapPos,origin); //note that this returns the rphiz components at that point, in the tpc coordinate system.
+
+      //get the cylindrical coordinates of our position in the TPC coordinate system:
+      rval= tpcPos.Perp();  // the radial coordinate in the tpc coordinate system
+      phival = FilterPhiPos(tpcPos.Phi());  // the phi coordinate in the tpc coordinate system, wrapped into the expected range.
+      zval = tpcPos.Z();  // the z coordinate in the tpc coordinate system
+
+      //and the field components in the tpc coordinate system:
+      frval = tpcField.X();  // the radial component of the field in the tpc coordinate system
+      fphival = tpcField.Y();  // the azimuthal component of the field in the tpc coordinate system
+      fzval = tpcField.Z();  // the z component of the field in the tpc coordinate system
+
+      htEntries->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+      htSum[0]->Fill(phival,rval, zval, frval );
+      htSum[1]->Fill(phival,rval, zval, fphival );
+      htSum[2]->Fill(phival,rval, zval, fzval );
+      htEntriesLow->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+      htSumLow[0]->Fill(phival,rval, zval, frval );
+      htSumLow[1]->Fill(phival,rval, zval, fphival );
+      htSumLow[2]->Fill(phival,rval, zval, fzval );
     }
   }
   // now we just divide and fill our local plots (which should eventually be stored as histograms, probably) with the values from each hist cell:
@@ -1046,15 +1166,18 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       {
         TVector3 cellcenter = GetCellCenter(j, i, k);
         int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
-        TVector3 fieldvec(htSum[0]->GetBinContent(bin), htSum[1]->GetBinContent(bin), htSum[2]->GetBinContent(bin));
-        fieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
+        TVector3 fieldvec(htSum[0]->GetBinContent(bin), htSum[1]->GetBinContent(bin), htSum[2]->GetBinContent(bin));//r, phi, z components in that order
         if (htEntries->GetBinContent(bin) < 0.99)
         {
           // no entries here!
           nemptybins++;
+        } else{
+          fieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
         }
-        // have to rotate this to the proper direction.
-        fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  // rcc caution.  Does this rotation shift the sense of 'up'?
+        //now we have the rphiz field at this position.  We want to store it, for our own sanity, in cartesian componnets (it makes the intergrals easier in the drift stage)
+        // so we have to rotate this to the proper angle
+        // (if it helps, remember that the x component of the fieldvec is the radial direction, and we need that to point from the origin to the cell center in order for it to be in cartesian coordinates)
+        fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  
         (*field)->Set(j, i, k, fieldvec);
       }
     }
@@ -1062,6 +1185,30 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   if (nemptybins > 0)
   {
     std::cout << boost::str(boost::format("found %d empty bins when constructing %s.  Filling with lower resolution.") % nemptybins % ((*field == Bfield) ? "Bfield" : "Eexternal")) << std::endl;
+
+    //first, we need to stitch the lowest phibin together with the highest phibin, by setting the lowest phi bin contents and nentries to be the same as the highest-1, and the highest to the lowest+1:
+    for (int j=0; j<htEntriesLow->GetNbinsY(); j++){
+      for (int k=0; k<htEntriesLow->GetNbinsZ(); k++){
+        int lowbin=htEntriesLow->GetBin(1,j,k);
+        int highbin=htEntriesLow->GetBin(htEntriesLow->GetNbinsX()-1,j,k);
+        htEntriesLow->SetBinContent(lowbin,
+          htEntriesLow->GetBinContent(htEntriesLow->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
+        //and the same for the triplet of htSumLow:
+        for (int i=0; i<3; i++){
+          htSumLow[i]->SetBinContent(lowbin,
+            htSumLow[i]->GetBinContent(htSumLow[i]->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
+          }
+        //and then we repeat for the highend stitch:
+        htEntriesLow->SetBinContent(highbin,
+          htEntriesLow->GetBinContent(htEntriesLow->GetBin(2,j,k)));
+        for (int i=0; i<3; i++){
+          htSumLow[i]->SetBinContent(highbin,
+            htSumLow[i]->GetBinContent(htSumLow[i]->GetBin(2,j,k)));
+          }
+        }
+      }
+
+      //now that it is stitched, we can interpolate correctly.
     for (int i = 0; i < nphi; i++)
     {
       for (int j = 0; j < nr; j++)
@@ -1072,13 +1219,57 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
+            if(0){//long debug check.
+              printf("Filling coordinates p%f,r%f,z%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k);
+              printf(" sanity: htEntries->FindBins(p%2.2f,r%2.2f,z%2.2f)=(p%d,r%d,z%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
+                htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
+                htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
+                htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
+            
+              TVector3 globalPos= cellcenter+origin;  // the position of this field datapoint in the input system
+              //bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
+              float tr_low=htEntries->GetYaxis()->GetBinLowEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+              float tr_high=htEntries->GetYaxis()->GetBinUpEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+              float tz_low=htEntries->GetZaxis()->GetBinLowEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));
+              float tz_high=htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));  
+              float tphi_low=htEntries->GetXaxis()->GetBinLowEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
+              float tphi_high=htEntries->GetXaxis()->GetBinUpEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
+              TVector3 tlow(tr_low, 0, tz_low);  // the low edge of the bin in the input system
+              tlow.RotateZ(tphi_low);  // rotate to the correct phi
+              TVector3 thigh(tr_high, 0, tz_high);  // the high edge of the bin in the input system
+              thigh.RotateZ(tphi_high);  // rotate to the correct phi
+              tlow=tlow+origin;  // translate to the input coordinate system
+              thigh=thigh+origin;  // translate to the input coordinate system
+              if (phiSymmetry){
+                printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z());
+              }else{
+
+                printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && phi>%1.1f && phi<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z());
+              }
+            } 
+
+            TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
+               htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
+               htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
             int lowbin = htEntriesLow->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
-            TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
-            fieldvec = fieldvec * (1.0 / htEntriesLow->GetBinContent(lowbin));
+            //TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
+ 
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
-              std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap.  None near r=%f, phi=%f, z=%f. Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z()) << std::endl;
+              std::cout << boost::str(boost::format("not enough entries in source to fill fieldmap, even using the lower res fall-back.  Value near r=%2.2f, phi=%2.2f, z=%2.2f is %f, (with range of %2.3f,%2.3f,%2.3f) Pick lower granularity!") % cellcenter.Perp() % FilterPhiPos(cellcenter.Phi()) % cellcenter.Z()% htEntriesLow->GetBinContent(lowbin) % r_lowres_step % phi_lowres_step % z_lowres_step) << std::endl;
+              printf("Saving fieldmaps to debug.hist.root\n");
+              TFile *debugfile = new TFile("debug.hist.root", "RECREATE");
+              htEntries->Write();
+              htEntriesLow->Write();
+              for (int ii = 0; ii < 3; ii++)
+              {
+                htSum[ii]->Write();
+                htSumLow[ii]->Write();
+              }
+              debugfile->Close();
               exit(1);
+            } else {
+              fieldvec = fieldvec * (1.0 / htEntriesLow->GetBinContent(lowbin));
             }
             // have to rotate this to the proper direction.
             fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  // rcc caution.  Does this rotation shift the sense of 'up'?
@@ -1088,6 +1279,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
       }
     }
   }
+  //printf("Field loaded.\n");
   return;
 }
 
