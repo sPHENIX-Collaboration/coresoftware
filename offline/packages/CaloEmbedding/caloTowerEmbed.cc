@@ -80,7 +80,7 @@ int caloTowerEmbed::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int caloTowerEmbed::process_event(PHCompositeNode * /*topNode*/)
+int caloTowerEmbed::process_event(PHCompositeNode * topNode)
 {
   ++m_eventNumber;
 
@@ -88,77 +88,82 @@ int caloTowerEmbed::process_event(PHCompositeNode * /*topNode*/)
   {
     std::cout << "event " << m_eventNumber << " working on " << m_detector << std::endl;
   }
-  RawTowerDefs::keytype keyData = 0;
-  RawTowerDefs::keytype keySim = 0;
+
+  if (m_embedwaveform)
+  {
+    std::string ped_nodename = "PEDESTAL_" + m_detector;
+    m_PedestalContainer = findNode::getClass<TowerInfoContainer>(topNode, ped_nodename);
+
+    if (!m_PedestalContainer)
+    {
+      std::cout << PHWHERE << " " << ped_nodename << " Node missing, doing nothing." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+
 
   unsigned int ntowers = _data_towers->size();
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
-    unsigned int data_key = _data_towers->encode_key(channel);
-    unsigned int sim_key = _sim_towers->encode_key(channel);
 
-    int ieta_data = _data_towers->getTowerEtaBin(data_key);
-    int iphi_data = _data_towers->getTowerPhiBin(data_key);
-    int ieta_sim = _sim_towers->getTowerEtaBin(sim_key);
-    int iphi_sim = _sim_towers->getTowerPhiBin(sim_key);
-
-    if (m_dettype == CaloTowerDefs::CEMC)
-    {
-      if (!m_useRetower)
-      {
-        keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta_data, iphi_data);
-        keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta_sim, iphi_sim);
-      }
-      else
-      {
-        keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_data, iphi_data);
-        keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_sim, iphi_sim);
-      }
-    }
-    else if (m_dettype == CaloTowerDefs::HCALIN)
-    {
-      keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_data, iphi_data);
-      keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta_sim, iphi_sim);
-    }
-    else if (m_dettype == CaloTowerDefs::HCALOUT)
-    {
-      keyData = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta_data, iphi_data);
-      keySim = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta_sim, iphi_sim);
-    }
-
+    
     _sim_towers->get_tower_at_channel(channel)->set_status(_data_towers->get_tower_at_channel(channel)->get_status());
 
     TowerInfo *caloinfo_data = _data_towers->get_tower_at_channel(channel);
     TowerInfo *caloinfo_sim = _sim_towers->get_tower_at_channel(channel);
 
-    float data_E = caloinfo_data->get_energy();
-    float sim_E = caloinfo_sim->get_energy();
-    float embed_E = data_E + sim_E;
-
-    float data_phi = 0.0;
-    float sim_phi = 0.0;
-
-    float data_eta = 0.0;
-    float sim_eta = 0.0;
-
-    data_phi = tower_geom->get_tower_geometry(keyData)->get_phi();
-    data_eta = tower_geom->get_tower_geometry(keyData)->get_eta();
-
-    sim_phi = tower_geom->get_tower_geometry(keySim)->get_phi();
-    sim_eta = tower_geom->get_tower_geometry(keySim)->get_eta();
-
-    if (data_phi == sim_phi && data_eta == sim_eta)
+    if (m_embedwaveform)
     {
-      _sim_towers->get_tower_at_channel(channel)->set_energy(embed_E);
-      _sim_towers->get_tower_at_channel(channel)->set_time(caloinfo_data->get_time());
+      // when the data is not ZS-ed
+      if (!(caloinfo_data->get_isZS() || caloinfo_data->get_isNotInstr()))
+      {
+        // here we really don't want the m_samples being greater than what data has!
+        for (int j = 0; j < m_nsamples; j++)
+        {
+          // superpose the waveforms
+          caloinfo_sim->set_waveform_value(j, caloinfo_data->get_waveform_value(j) + caloinfo_sim->get_waveform_value(j));
+        }
+      }
+      else
+      {
+        // if this is ZS-ed or empty(like the packet is gone)
+        // we add the noise pedestal and add the post - pre to sample 6
+        TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(channel);
+        float pedestal_mean = 0;
+        std::vector<float> m_waveform_pedestal;
+        m_waveform_pedestal.resize(m_nsamples);
+        // this is for pedestal scaling setting
+        for (int j = 0; j < m_nsamples; j++)
+        {
+          m_waveform_pedestal.at(j) = (j < m_datasamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_datasamples - 1);
+          pedestal_mean += m_waveform_pedestal.at(j);
+        }
+        pedestal_mean /= m_nsamples;
+        for (int j = 0; j < m_nsamples; j++)
+        {
+          m_waveform_pedestal.at(j) = (m_waveform_pedestal.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
+        }
+        // add the pedestal
+        for (int j = 0; j < m_nsamples; j++)
+        {
+          // superpose the waveforms
+
+          caloinfo_sim->set_waveform_value(j, caloinfo_sim->get_waveform_value(j) + m_waveform_pedestal.at(j));
+        }
+        // add the post - pre to sample 6
+        int post_pre = caloinfo_data->get_waveform_value(1) - caloinfo_data->get_waveform_value(0);
+
+        caloinfo_sim->set_waveform_value(6, caloinfo_sim->get_waveform_value(6) + post_pre);
+      }
     }
     else
     {
-      if (Verbosity())
-      {
-        std::cout << "eta and phi values in " << m_detector << " do not match between data and simulation, removing this event" << std::endl;
-      }
-      return Fun4AllReturnCodes::ABORTEVENT;
+      float data_E = caloinfo_data->get_energy();
+      float sim_E = caloinfo_sim->get_energy();
+      float embed_E = data_E + sim_E;
+
+      _sim_towers->get_tower_at_channel(channel)->set_energy(embed_E);
+      _sim_towers->get_tower_at_channel(channel)->set_time(caloinfo_data->get_time());
     }
 
   }  // end loop over channels
@@ -174,8 +179,13 @@ int caloTowerEmbed::End(PHCompositeNode * /*topNode*/)
 void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
 {
   std::cout << "creating node" << std::endl;
-
+  
   std::string TowerNodeName = m_inputNodePrefix + m_detector;
+  std::string SimTowerNodeName = TowerNodeName;
+  if (m_embedwaveform)
+  {
+    SimTowerNodeName = m_waveformNodePrefix + m_detector;
+  }
   std::string GeomNodeName = "TOWERGEOM_" + m_detector;
   if (m_useRetower && m_detector == "CEMC")
   {
@@ -185,7 +195,7 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
 
   Fun4AllServer *se = Fun4AllServer::instance();
   PHCompositeNode *dataTopNode = se->topNode("TOPData");
-  
+
   tower_geom = findNode::getClass<RawTowerGeomContainer>(topNode, GeomNodeName);
   if (!tower_geom)
   {
@@ -196,12 +206,11 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
 
   PHNodeIterator simIter(topNode);
   PHNodeIterator dataIter(dataTopNode);
-  
 
   // data top node first
 
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(dataIter.findFirst(
-										"PHCompositeNode", "DST"));
+      "PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
@@ -211,7 +220,7 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
   }
 
   PHCompositeNode *dstNodeSim = dynamic_cast<PHCompositeNode *>(simIter.findFirst(
-										  "PHCompositeNode", "DST"));
+      "PHCompositeNode", "DST"));
   if (!dstNodeSim)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
@@ -231,7 +240,7 @@ void caloTowerEmbed::CreateNodeTree(PHCompositeNode *topNode)
   }
 
   // sim
-  _sim_towers = findNode::getClass<TowerInfoContainer>(dstNodeSim, TowerNodeName);
+  _sim_towers = findNode::getClass<TowerInfoContainer>(dstNodeSim, SimTowerNodeName);
   if (!_sim_towers)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
