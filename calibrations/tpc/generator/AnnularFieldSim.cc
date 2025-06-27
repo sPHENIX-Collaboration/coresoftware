@@ -425,14 +425,14 @@ int AnnularFieldSim::FilterPhiIndex(int phi, int range = -1)
 int AnnularFieldSim::GetRindex(float pos)
 {
   float r0f = (pos - rmin) / step.Perp();  // the position in r, in units of step, starting from the low edge of the 0th bin.
-  int r0 = floor(r0f);
+  int r0 = std::floor(r0f);
   return r0;
 }
 
 int AnnularFieldSim::GetPhiIndex(float pos)
 {
   float p0f = (pos) / step.Phi();  // the position in phi, in units of step, starting from the low edge of the 0th bin.
-  int phitemp = floor(p0f);
+  int phitemp = std::floor(p0f);
   int p0 = FilterPhiIndex(phitemp);
   return p0;
 }
@@ -440,7 +440,7 @@ int AnnularFieldSim::GetPhiIndex(float pos)
 int AnnularFieldSim::GetZindex(float pos)
 {
   float z0f = (pos - zmin) / step.Z();  // the position in z, in units of step, starting from the low edge of the 0th bin.
-  int z0 = floor(z0f);
+  int z0 = std::floor(z0f);
   return z0;
 }
 
@@ -449,11 +449,11 @@ AnnularFieldSim::BoundsCase AnnularFieldSim::GetRindexAndCheckBounds(float pos, 
   // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::GetRindexAndCheckBounds(r=%f)\n",__LINE__,pos);
 
   float r0f = (pos - rmin) / step.Perp();  // the position in r, in units of step, starting from the low edge of the 0th bin.
-  int r0 = floor(r0f);
+  int r0 = std::floor(r0f);
   *r = r0;
 
-  int r0lowered_slightly = floor(r0f - ALMOST_ZERO);
-  int r0raised_slightly = floor(r0f + ALMOST_ZERO);
+  int r0lowered_slightly = std::floor(r0f - ALMOST_ZERO);
+  int r0raised_slightly = std::floor(r0f + ALMOST_ZERO);
   if (r0lowered_slightly >= rmax_roi || r0raised_slightly < rmin_roi)
   {
     return OutOfBounds;
@@ -475,13 +475,13 @@ AnnularFieldSim::BoundsCase AnnularFieldSim::GetPhiIndexAndCheckBounds(float pos
 {
   // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::GetPhiIndexAndCheckBounds(phi=%f)\n\n",__LINE__,pos);
   float p0f = (pos) / step.Phi();  // the position in phi, in units of step, starting from the low edge of the 0th bin.
-  int phitemp = floor(p0f);
+  int phitemp = std::floor(p0f);
   int p0 = FilterPhiIndex(phitemp);
   *phi = p0;
 
-  phitemp = floor(p0f - ALMOST_ZERO);
+  phitemp = std::floor(p0f - ALMOST_ZERO);
   int p0lowered_slightly = FilterPhiIndex(phitemp);
-  phitemp = floor(p0f + ALMOST_ZERO);
+  phitemp = std::floor(p0f + ALMOST_ZERO);
   int p0raised_slightly = FilterPhiIndex(phitemp);
   // annoying detail:  if we are at index 0, we might go above pmax by going down.
   //  and if we are at nphi-1, we might go below pmin by going up.
@@ -509,11 +509,11 @@ AnnularFieldSim::BoundsCase AnnularFieldSim::GetZindexAndCheckBounds(float pos, 
 {
   // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::GetZindexAndCheckBounds(z=%f)\n\n",__LINE__,pos);
   float z0f = (pos - zmin) / step.Z();  // the position in z, in units of step, starting from the low edge of the 0th bin.
-  int z0 = floor(z0f);
+  int z0 = std::floor(z0f);
   *z = z0;
 
-  int z0lowered_slightly = floor(z0f - ALMOST_ZERO);
-  int z0raised_slightly = floor(z0f + ALMOST_ZERO);
+  int z0lowered_slightly = std::floor(z0f - ALMOST_ZERO);
+  int z0raised_slightly = std::floor(z0f + ALMOST_ZERO);
 
   if (z0lowered_slightly >= zmax_roi || z0raised_slightly < zmin_roi)
   {
@@ -749,7 +749,7 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3 
   // print_need_cout("AnnularFieldSim::interpolatedFieldIntegral(x=%f,y=%f, z=%f)\n",start.X(),start.Y(),start.Z());
 
   float r0 = (start.Perp() - rmin) / step.Perp() - 0.5;  // the position in r, in units of step, starting from the center of the 0th bin.
-  int r0i = floor(r0);                                   // the integer portion of the position. -- what center is below our position?
+  int r0i = std::floor(r0);                                   // the integer portion of the position. -- what center is below our position?
   float r0d = r0 - r0i;                                  // the decimal portion of the position. -- how far past center are we?
   int ri[4];                                             // the r position of the four cell centers to consider
   ri[0] = ri[1] = r0i;
@@ -774,7 +774,7 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3 
 
   // now repeat that structure for phi:
   float p0 = (start.Phi()) / step.Phi() - 0.5;  // the position in phi, in units of step, starting from the center of the 0th bin.
-  int p0i = floor(p0);                          // the integer portion of the position. -- what center is below our position?
+  int p0i = std::floor(p0);                          // the integer portion of the position. -- what center is below our position?
   float p0d = p0 - p0i;                         // the decimal portion of the position. -- how far past center are we?
   int pi[4];                                    // the phi position of the four cell centers to consider
   pi[0] = pi[2] = FilterPhiIndex(p0i);
@@ -1071,7 +1071,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
   }
   //define the lowres stepsizes for sanity:
 
-  float phiCoords[nphi];  // the phi coordinates of the bins in our internal rep.
+  std::vector<float> phiCoords(nphi);  // the phi coordinates of the bins in our internal rep.
   int nPhiCoords=1;
   if(phiSymmetry){
     //  if we do have phi symmetry, enumerate the phi coordinates we will use:
@@ -1675,14 +1675,14 @@ void AnnularFieldSim::populate_highres_lookup()
   TVector3 currentf, newf;  // the averaged field vector without, and then with the new contribution from the f-bin being considered.
   for (int ifr = rmin_roi; ifr < rmax_roi; ifr++)
   {
-    int r_parentlow = floor((ifr - r_highres_dist) / (r_spacing * 1.0));       // l-bin partly enclosed in our high-res region
-    int r_parenthigh = floor((ifr + r_highres_dist) / (r_spacing * 1.0)) + 1;  // definitely not enclosed in our high-res region
+    int r_parentlow = std::floor((ifr - r_highres_dist) / (r_spacing * 1.0));       // l-bin partly enclosed in our high-res region
+    int r_parenthigh = std::floor((ifr + r_highres_dist) / (r_spacing * 1.0)) + 1;  // definitely not enclosed in our high-res region
     int r_startpoint = r_parentlow * r_spacing;                                // the first f-bin of the lowest-r f-bin that our h-region touches.  COuld be less than zero.
     int r_endpoint = r_parenthigh * r_spacing;                                 // the first f-bin of the lowest-r l-bin after that that our h-region does not touch.  could be larger than max.
 
     for (int ifphi = phimin_roi; ifphi < phimax_roi; ifphi++)
     {
-      int phi_parentlow = floor(FilterPhiIndex(ifphi - phi_highres_dist) / (phi_spacing * 1.0));  // note this may have wrapped around
+      int phi_parentlow = std::floor(FilterPhiIndex(ifphi - phi_highres_dist) / (phi_spacing * 1.0));  // note this may have wrapped around
       bool phi_parentlow_wrapped = (ifphi - phi_highres_dist < 0);
       int phi_startpoint = phi_parentlow * phi_spacing;  // the first f-bin of the lowest-z f-bin that our h-region touches.
       if (phi_parentlow_wrapped)
@@ -1690,7 +1690,7 @@ void AnnularFieldSim::populate_highres_lookup()
         phi_startpoint -= nphi;  // if we wrapped, re-wrap us so we're negative again
       }
 
-      int phi_parenthigh = floor(FilterPhiIndex(ifphi + phi_highres_dist) / (phi_spacing * 1.0)) + 1;  // note that this may have wrapped around
+      int phi_parenthigh = std::floor(FilterPhiIndex(ifphi + phi_highres_dist) / (phi_spacing * 1.0)) + 1;  // note that this may have wrapped around
       bool phi_parenthigh_wrapped = (ifphi + phi_highres_dist >= nphi);
       int phi_endpoint = phi_parenthigh * phi_spacing;
       if (phi_parenthigh_wrapped)
@@ -1702,8 +1702,8 @@ void AnnularFieldSim::populate_highres_lookup()
       {
         // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::populate_highres_lookup icell=(%d,%d,%d)\n",__LINE__,ifr,ifphi,ifz);
 
-        int z_parentlow = floor((ifz - z_highres_dist) / (z_spacing * 1.0));
-        int z_parenthigh = floor((ifz + z_highres_dist) / (z_spacing * 1.0)) + 1;
+        int z_parentlow = std::floor((ifz - z_highres_dist) / (z_spacing * 1.0));
+        int z_parenthigh = std::floor((ifz + z_highres_dist) / (z_spacing * 1.0)) + 1;
         int z_startpoint = z_parentlow * z_spacing;  // the first f-bin of the lowest-z f-bin that our h-region touches.
         int z_endpoint = z_parenthigh * z_spacing;   // the first f-bin of the lowest-z l-bin after that that our h-region does not touch.
 
@@ -2293,12 +2293,12 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
   int phi_highres_dist = (nphi_high - 1) / 2;
   int z_highres_dist = (nz_high - 1) / 2;
 
-  int r_parentlow = floor((r - r_highres_dist) / (r_spacing * 1.0));       // partly enclosed in our high-res region
-  int r_parenthigh = floor((r + r_highres_dist) / (r_spacing * 1.0)) + 1;  // definitely not enclosed in our high-res region
-  int phi_parentlow = floor((phi - phi_highres_dist) / (phi_spacing * 1.0));
-  int phi_parenthigh = floor((phi + phi_highres_dist) / (phi_spacing * 1.0)) + 1;  // note that this can be bigger than nphi!  We keep track of that.
-  int z_parentlow = floor((z - z_highres_dist) / (z_spacing * 1.0));
-  int z_parenthigh = floor((z + z_highres_dist) / (z_spacing * 1.0)) + 1;
+  int r_parentlow = std::floor((r - r_highres_dist) / (r_spacing * 1.0));       // partly enclosed in our high-res region
+  int r_parenthigh = std::floor((r + r_highres_dist) / (r_spacing * 1.0)) + 1;  // definitely not enclosed in our high-res region
+  int phi_parentlow = std::floor((phi - phi_highres_dist) / (phi_spacing * 1.0));
+  int phi_parenthigh = std::floor((phi + phi_highres_dist) / (phi_spacing * 1.0)) + 1;  // note that this can be bigger than nphi!  We keep track of that.
+  int z_parentlow = std::floor((z - z_highres_dist) / (z_spacing * 1.0));
+  int z_parenthigh = std::floor((z + z_highres_dist) / (z_spacing * 1.0)) + 1;
   std::cout << boost::str(boost::format("AnnularFieldSim::sum_local_field_at parents: rlow=%d,philow=%d,zlow=%d,rhigh=%d,phihigh=%d,zhigh=%d") % r_parentlow % phi_parentlow % z_parentlow % r_parenthigh % phi_parenthigh % z_parenthigh) << std::endl;
 
   // zero our current qlocal holder:
@@ -2409,7 +2409,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   bool skip[] = {false, false, false, false, false, false, false, false};
 
   float r0 = r / (1.0 * r_spacing) - 0.5 - rmin_roi_low;  // the position in r, in units of r_spacing, starting from the center of the 0th l-bin in the roi.
-  int r0i = floor(r0);                                    // the integer portion of the position. -- what center is below our position?
+  int r0i = std::floor(r0);                                    // the integer portion of the position. -- what center is below our position?
   float r0d = r0 - r0i;                                   // the decimal portion of the position. -- how far past center are we?
   // instead of listing all eight, I'll address these as i%2, (i/2)%2 and (i/4)%2 to avoid typos
   int ri[2];  // the r position of the eight cell centers to consider.
@@ -2448,7 +2448,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   float p0 = phi / (1.0 * phi_spacing) - 0.5 - phimin_roi_low;  // the position 'phi' in  units of phi_spacing, starting from the center of the 0th bin.
   // print_need_cout("prepping to filter low, p0=%f, phi=%d, phi_spacing=%d, phimin_roi_low=%d\n",p0,phi,phi_spacing,phimin_roi_low);
 
-  int p0i = floor(p0);   // the integer portion of the position. -- what center is below our position?
+  int p0i = std::floor(p0);   // the integer portion of the position. -- what center is below our position?
   float p0d = p0 - p0i;  // the decimal portion of the position. -- how far past center are we?
   int pi[4];             // the local phi position of the four l-bin centers to consider
   // print_need_cout("filtering low, p0i=%d, nphi_low=%d\n",p0i,nphi_low);
@@ -2492,7 +2492,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   // and once more for z.  ooph.
 
   float z0 = z / (1.0 * z_spacing) - 0.5 - zmin_roi_low;  // the position in r, in units of r_spacing, starting from the center of the 0th bin.
-  int z0i = floor(z0);                                    // the integer portion of the position. -- what center is below our position?
+  int z0i = std::floor(z0);                                    // the integer portion of the position. -- what center is below our position?
   float z0d = z0 - z0i;                                   // the decimal portion of the position. -- how far past center are we?
   // instead of listing all eight, I'll address these as i%2, (i/2)%2 and (i/4)%2 to avoid typos
   int zi[2];  // the r position of the eight cell centers to consider.
@@ -3110,7 +3110,7 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   float posphi = ((int) (nph / 2) + 0.5) * steplocal.Phi() + pih;
   pos.SetPhi(posphi);
   // int xi[3]={nrh/2,nph/2,nzh/2};
-  int xi[3] = {(int) floor((pos.Perp() - rih) / steplocal.Perp()), (int) floor((posphi - pih) / steplocal.Phi()), (int) floor((pos.Z() - zih) / steplocal.Z())};
+  int xi[3] = {(int) std::floor((pos.Perp() - rih) / steplocal.Perp()), (int) std::floor((posphi - pih) / steplocal.Phi()), (int) std::floor((pos.Z() - zih) / steplocal.Z())};
   if (!hasTwin)
   {
     std::cout << boost::str(boost::format("rpz slice indices= (%d,%d,%d) (no twin)") % xi[0] % xi[1] % xi[2]) << std::endl;
@@ -3648,7 +3648,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   float posphi = ((int) (nph / 2) + 0.5) * steplocal.Phi() + pih;
   pos.SetPhi(posphi);
   // int xi[3]={nrh/2,nph/2,nzh/2};
-  int xi[3] = {(int) floor((pos.Perp() - rih) / steplocal.Perp()), (int) floor((posphi - pih) / steplocal.Phi()), (int) floor((pos.Z() - zih) / steplocal.Z())};
+  int xi[3] = {(int) std::floor((pos.Perp() - rih) / steplocal.Perp()), (int) std::floor((posphi - pih) / steplocal.Phi()), (int) std::floor((pos.Z() - zih) / steplocal.Z())};
   if (!hasTwin)
   {
     std::cout << boost::str(boost::format("rpz slice indices= (%d,%d,%d) (no twin)") % xi[0] % xi[1] % xi[2]) << std::endl;
