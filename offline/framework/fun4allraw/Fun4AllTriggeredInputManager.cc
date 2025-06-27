@@ -61,15 +61,10 @@ Fun4AllTriggeredInputManager::~Fun4AllTriggeredInputManager()
 
 int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
 {
-  m_Gl1TriggeredInput->FillPool();
-  for (auto *iter : m_TriggeredInputVector)
+  int iret = FillPools();
+    if (iret)
   {
-    //    std::cout << "prdf input: " << iter->Name() << std::endl;
-    iter->FillPool();
-    if (iter->AllDone())
-    {
-      return -1;
-    }
+    return iret;
   }
   m_Gl1TriggeredInput->ReadEvent();
   for (auto *iter : m_TriggeredInputVector)
@@ -200,4 +195,28 @@ void Fun4AllTriggeredInputManager::registerTriggeredInput(SingleTriggeredInput *
   //  prdfin->CreateDSTNode(m_topNode);
   //  prdfin->TriggerInputManager(this);
   return;
+}
+
+int Fun4AllTriggeredInputManager::FillPools()
+{
+  if (m_Gl1TriggeredInput->NeedsRefill())
+  {
+    std::cout << "calling fillpool" << std::endl;
+    m_Gl1TriggeredInput->FillPool();
+    for (auto *iter : m_TriggeredInputVector)
+    {
+      //    std::cout << "prdf input: " << iter->Name() << std::endl;
+      iter->FillPool();
+    }
+    for (auto *iter : m_TriggeredInputVector)
+    {
+      iter->RunCheck();
+      if (iter->AllDone())
+      {
+	return -1;
+      }
+    }
+
+  }
+  return 0;
 }

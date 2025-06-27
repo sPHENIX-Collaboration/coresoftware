@@ -43,6 +43,8 @@ void SingleGl1TriggeredInput::FillPool()
   }
   if (!FilesDone())
   {
+    m_SkipEvents = 0;
+    m_SkipOffset = 0;
     FillEventVector();
   }
   return;
@@ -104,6 +106,23 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
     return std::numeric_limits<uint64_t>::max();
   }
   uint64_t clock = packet->lValue(0, "BCO");
+  m_LastPacketNumber = m_PacketNumber;
+  m_PacketNumber = packet->iValue(0); // just fill this here while we are at it
+    std::cout << Name() << " Event " << evt->getEvtSequence() << " packet nr: "
+	      << m_PacketNumber << std::endl;
+ if (m_PacketNumber - m_LastPacketNumber == 1 || m_LastPacketNumber == 0)
+ {
+      std::cout << "All is good" << std::endl;
+    }
+    else
+    {
+      std::cout << "awooga - problem, gl1 skipped " << m_PacketNumber - m_LastPacketNumber
+		<< " Events" << std::endl;
+      m_SkipEvents = m_PacketNumber - m_LastPacketNumber;
+      m_SkipOffset = m_EventDeque.size();
+      std::cout << "current size of m_EventDeque: " << m_EventDeque.size() << std::endl;
+    }
+   
   delete packet;
   return clock;
 }
@@ -126,7 +145,7 @@ int SingleGl1TriggeredInput::ReadEvent()
   if (packet)
   {
     Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), 14001);
-    int packetnumber = packet->iValue(0);
+    unsigned int packetnumber = packet->iValue(0);
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     //    std::cout << "saving bco 0x" << std::hex << gtm_bco << std::dec << std::endl;
     gl1packet->setBCO(packet->lValue(0, "BCO"));
@@ -161,14 +180,15 @@ int SingleGl1TriggeredInput::ReadEvent()
                 << ", bco: 0x" << std::hex << gtm_bco << std::dec
                 << ", bunch no: " << packet->lValue(0, "BunchNumber")
                 << std::endl;
-      std::cout << PHWHERE << " RB Packet: " << gl1packet->getIdentifier()
-                << " evtno: " << gl1packet->getEvtSequence()
-                << ", bco: 0x" << std::hex << gl1packet->getBCO() << std::dec
-                << ", bunch no: " << +gl1packet->getBunchNumber()
-                << std::endl;
+      // std::cout << PHWHERE << " RB Packet: " << gl1packet->getIdentifier()
+      //           << " evtno: " << gl1packet->getEvtSequence()
+      //           << ", bco: 0x" << std::hex << gl1packet->getBCO() << std::dec
+      //           << ", bunch no: " << +gl1packet->getBunchNumber()
+      //           << std::endl;
     }
     delete packet;
   }
   delete evt;
   return Fun4AllReturnCodes::EVENT_OK;
 }
+

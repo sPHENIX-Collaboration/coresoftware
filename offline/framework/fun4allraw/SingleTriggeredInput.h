@@ -59,6 +59,8 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
   void dumpdeque();
   int checkfirstsebevent();
+  bool NeedsRefill() const {return m_EventDeque.empty();}
+  void RunCheck();
 
  protected:
   PHCompositeNode *m_topNode{nullptr};
