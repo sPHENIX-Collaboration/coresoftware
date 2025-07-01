@@ -63,7 +63,7 @@ JetMapv1::~JetMapv1()
 void JetMapv1::Reset()
 {
   _algo = Jet::NONE;
-  _par = NAN;
+  _par = std::numeric_limits<float>::quiet_NaN();
   _src.clear();
 
   while (_map.begin() != _map.end())

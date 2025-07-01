@@ -137,6 +137,14 @@ class PHGenFitTrkFitter : public SubsysReco
     m_use_micromegas = value;
   }
 
+  void set_svtx_seed_map_name(std::string name) {_seedMap_name = name;}
+  void set_svtx_track_map_name(std::string name) {_trackMap_name = name;}
+
+  void disableModuleEdgeCorr() { m_disable_module_edge_corr = true; }
+  void disableStaticCorr() { m_disable_static_corr = true; }
+  void disableAverageCorr() { m_disable_average_corr = true; }
+  void disableFluctuationCorr() { m_disable_fluctuation_corr = true; }
+
  private:
   //! Event counter
   int _event = 0;
@@ -204,6 +212,15 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //! tpc global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
+
+  std::string _seedMap_name = "SvtxTrackSeedContainer";
+  std::string _trackMap_name = "SvtxTrackMap";
+
+  /// disable distortion correction
+  bool m_disable_module_edge_corr = false;
+  bool m_disable_static_corr = false;
+  bool m_disable_average_corr = false;
+  bool m_disable_fluctuation_corr = false;
 };
 
 #endif

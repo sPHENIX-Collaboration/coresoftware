@@ -214,6 +214,9 @@ int PHActsTrkFitter::process_event(PHCompositeNode* topNode)
     }
   }
 
+  // in case the track map already exist in the file, we want to replace it
+  m_trackMap->Reset(); 
+     
   loopTracks(logLevel);
 
   eventTimer.stop();
@@ -407,7 +410,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 	// non pp mode, we want only crossing zero, veto others
 	if(siseed && silicon_crossing != 0)
 	  {
-	    continue;
+	    crossing = 0;
+	    //continue;
 	  }
 	crossing_estimate = crossing;
       }
@@ -433,7 +437,10 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       makeSourceLinks.initialize(_tpccellgeo);
       makeSourceLinks.setVerbosity(Verbosity());
       makeSourceLinks.set_pp_mode(m_pp_mode);
-
+      for(const auto& layer : m_ignoreLayer)
+      {
+        makeSourceLinks.ignoreLayer(layer);
+      }
       // loop over modifiedTransformSet and replace transient elements modified for the previous track with the default transforms
       // does nothing if m_transient_id_set is empty
       makeSourceLinks.resetTransientTransformMap(

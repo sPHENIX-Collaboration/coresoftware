@@ -410,11 +410,11 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   }
 
   // default track map
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _trackMap_name);
   if (!m_trackMap)
   {
     m_trackMap = new SvtxTrackMap_v2;
-    auto node = new PHIODataNode<PHObject>(m_trackMap, "SvtxTrackMap", "PHObject");
+    auto node = new PHIODataNode<PHObject>(m_trackMap, _trackMap_name, "PHObject");
     svtx_node->addNode(node);
   }
 
@@ -509,7 +509,7 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   }
 
   // seeds
-  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
+  m_seedMap = findNode::getClass<TrackSeedContainer>(topNode, _seedMap_name);
   if (!m_seedMap)
   {
     std::cout << "PHGenFitTrkFitter::GetNodes - No Svtx seed map on node tree. Exiting." << std::endl;
@@ -533,7 +533,7 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   }
 
   // Svtx Tracks
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _trackMap_name);
   if (!m_trackMap && _event < 2)
   {
     cout << "PHGenFitTrkFitter::GetNodes - SvtxTrackMap node not found on node tree" << endl;
@@ -542,6 +542,10 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
 
   // global position wrapper
   m_globalPositionWrapper.loadNodes(topNode);
+  if (m_disable_module_edge_corr) { m_globalPositionWrapper.set_enable_module_edge_corr(false); }
+  if (m_disable_static_corr) { m_globalPositionWrapper.set_enable_static_corr(false); }
+  if (m_disable_average_corr) { m_globalPositionWrapper.set_enable_average_corr(false); }
+  if (m_disable_fluctuation_corr) { m_globalPositionWrapper.set_enable_fluctuation_corr(false); }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

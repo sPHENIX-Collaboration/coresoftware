@@ -102,6 +102,7 @@ class AnnularFieldSim
   float GetNominalB() { return Bnominal; };
   float GetNominalE() { return Enominal; };
   float GetChargeAt(const TVector3 &pos);
+  TVector3 GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin);
   TVector3 GetFieldAt(const TVector3 &pos);
   TVector3 GetBFieldAt(const TVector3 &pos);
   TVector3 GetFieldStep() { return step; };
@@ -145,9 +146,9 @@ class AnnularFieldSim
   void setFlatFields(float B, float E);
   void loadEfield(const std::string &filename, const std::string &treename, int zsign = 1);
   void loadBfield(const std::string &filename, const std::string &treename);
-  void load3dBfield(const std::string &filename, const std::string &treename, int zsign = 1, float scale = 1.0, float zshift=0);
+  void load3dBfield(const std::string &filename, const std::string &treename, int zsign = 1, float scale = 1.0, float xshift=0, float yshift=0, float zshift=0);
 
-  void loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float zshift=0);
+  void loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float xshift=0, float yshift=0, float zshift=0);
 
   void load_rossegger(double epsilon = 1E-4)
   {
@@ -158,12 +159,14 @@ class AnnularFieldSim
   {
     green = ross;
     green_shift = zshift;
+    printf("AnnularFieldSim::borrow_rossegger:  borrowed Rossegger table with zshift %f\n", zshift);
     return;
   };  // get an already-existing rossegger table instead of loading it ourselves.
   void borrow_epartial_from(AnnularFieldSim *sim, float zshift)
   {
     Epartial_phislice = sim->Epartial_phislice;
     green_shift = zshift;
+    printf("AnnularFieldSim::borrow_epartial_from:  borrowed Epartial_phislice table with zshift %f\n", zshift);
     return;
   };  // get an already-existing rossegger table instead of loading it ourselves.
   void set_twin(AnnularFieldSim *sim)

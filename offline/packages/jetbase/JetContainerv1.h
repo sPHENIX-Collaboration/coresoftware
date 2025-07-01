@@ -4,6 +4,8 @@
 
 #include "Jet.h"
 
+#include <TClonesArray.h>
+
 class JetContainerv1 : public JetContainer
 {
  public:
@@ -11,7 +13,7 @@ class JetContainerv1 : public JetContainer
   JetContainerv1();
   ~JetContainerv1() override;
   void identify(std::ostream& os = std::cout) const override;
-  explicit JetContainerv1(const JetContainer& jets);
+  explicit JetContainerv1(const JetContainer& rhs);
   JetContainerv1& operator=(const JetContainer& jets);
   void Reset() override;
   TClonesArray* clone_data() const override
@@ -25,7 +27,7 @@ class JetContainerv1 : public JetContainer
 
   // adding/access jets
   Jet* add_jet() override;                            // Add a new jet to the TClonesArray and return the pointer
-  Jet* get_jet(unsigned int index) override;          // Get get at location.
+  Jet* get_jet(unsigned int ijet) override;          // Get get at location.
   Jet* get_UncheckedAt(unsigned int index) override;  // Get get at location.
 
   // convenience shortcuts of get_{jet,UncheckedAt}
@@ -90,7 +92,7 @@ class JetContainerv1 : public JetContainer
   float get_rho_median() const override { return m_RhoMedian; };
 
  private:
-  std::string str_Jet_PROPERTY(Jet::PROPERTY) const;
+  static std::string str_Jet_PROPERTY(Jet::PROPERTY) ;
 
   TClonesArray* m_clones{nullptr};  // TClonesArray of Jet objects
   size_t m_njets{0};                // size of jet_array

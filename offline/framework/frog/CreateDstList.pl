@@ -11,22 +11,19 @@ sub creatfilelists;
 sub printtags;
 sub printruns;
 
-my $buildtag;
-my $cdbtag;
-my $version;
+my $tag;
 my $verbose;
 my $runnumber;
 my $runlist;
 my $printruns;
 my $printtags;
-
+my $hpss;
 my $noprint;
 
-GetOptions('build:s' => \$buildtag, 'cdb:s' => \$cdbtag, 'list:s' => \$runlist, 'printruns' => \$printruns, 'printtags' => \$printtags, 'run:i' => \$runnumber, "verbose" =>\$verbose, 'version:s' => \$version);
+GetOptions('hpss' =>\$hpss, 'list:s' => \$runlist, 'printruns' => \$printruns, 'printtags' => \$printtags, 'run:i' => \$runnumber, 'tag:s' => \$tag, "verbose" =>\$verbose);
 
 my %ignore_datasets = (
     "mdc2" => 1,
-    "rawdata" => 1
     );
 
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog_read") || die $DBI::error;
@@ -48,8 +45,8 @@ if ($#ARGV < 0)
 	print "usage:\n";
 	print "CreateDstList.pl <dsttype1> <dsttype2> ...\n";
 	print "parameters:\n";
-	print "--build <build tag> (mandatory)\n";
-	print "--cdb <cdb tag> (mandatory)\n";
+	print "--tag <tag (build_cdb_version)> (mandatory)\n";
+	print "--hpss <print files in hpss>\n";
 	print "--list <file with list of runs>\n";
 	print "--printruns: print existing runs (for piping into a runlist)\n";
 	print "--printtags: print existing tags\n";
@@ -62,74 +59,31 @@ if ($#ARGV < 0)
 my %dsttype = ();
 while($#ARGV >= 0)
 {
-  $dsttype{$ARGV[0]} = 1;
-  shift (@ARGV);
+    $dsttype{$ARGV[0]} = 1;
+    shift (@ARGV);
 }
 
-if (! defined $buildtag)
+if (! defined $tag)
 {
-    print "set build tag with --build <tag>\n";
-    exit(1);
-}
-if (! defined $cdbtag)
-{
-    print "set cdb tag with --cdb <tag>\n";
+    print "set tag with --tag <tag>\n";
     exit(1);
 }
 if (! defined $runnumber && ! defined $runlist)
 {
- print "set run number with --run <run number>\n";
- exit(1);
-}
- 
-
-$buildtag =~ s/\.//g;
-
-my $dataset = sprintf("%s_%s",$buildtag,$cdbtag);
-if (defined $version)
-{
-    $dataset = sprintf("%s_%s",$dataset,$version);
-}
-
-my %dataset_exists = ();
-my $getdatasettypes = $dbh->prepare("select distinct(dataset) from datasets");
-$getdatasettypes->execute();
-while (my @res = $getdatasettypes->fetchrow_array())
-{
-    $dataset_exists{$res[0]} = 1;
-}
-if (! exists $dataset_exists{$dataset})
-{
-    print "dataset $dataset does not exist, here is a list of our datasets\n";
-    print "datasets are named buildtag_cdbtag_version\n";
-    foreach my $ds (sort keys %dataset_exists)
-    {
-	print "$ds\n";
-    }
+    print "set run number with --run <run number>\n";
     exit(1);
 }
-#$getdatasettypes->close();
-my %dsttype_exists = ();
-my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dataset = '$dataset'");
-$getdsttypes->execute();
-while (my @res = $getdsttypes->fetchrow_array())
-{
-    $dsttype_exists{$res[0]} = 1;
-}
-foreach my $ds (sort keys %dsttype)
-{
-    if (! exists $dsttype_exists{$ds})
-    {
-	print "dst type $ds does not exist, here is a list of our dst types for dataset $dataset\n";
-	foreach my $dstt (sort keys %dsttype_exists)
-	{
-	    print "$dstt\n";
-	}
-	exit(1);
-    }
-}
 
-my $getfiles =  $dbh->prepare("select filename from datasets where runnumber=? and dsttype=? and dataset = '$dataset' order by segment\n");
+my $sqlcmd = sprintf("select filename,dsttype,segment from datasets where runnumber=? and tag = '$tag'");
+if (defined $hpss)
+{
+    $sqlcmd = sprintf("%s and status = 0",$sqlcmd)
+}
+else
+{
+    $sqlcmd = sprintf("%s and status > 0",$sqlcmd)
+}
+my $getfiles =  $dbh->prepare($sqlcmd);
 if (defined $runlist)
 {
     if (! -f $runlist)
@@ -152,108 +106,85 @@ else
 
 sub creatfilelists
 {
+    my %files = ();
     my $run = shift;
-    foreach my $ds (sort keys %dsttype)
+    $getfiles->execute($run);
+    while(my @res = $getfiles->fetchrow_array)
     {
-	$getfiles->execute($run,$ds);
-	if ($getfiles->rows == 0)
-	{
-	    print "no run $run for dst type $ds and dataset $dataset\n";
-	    next;
-	}
-	my $filename = sprintf("%s-%08d.list",lc $ds, $run);
-	print "creating list for run $run --> $filename\n";
+	$files{$res[2]}{$res[1]}{$res[0]} = $res[1];
+    }
+    foreach my $dsttyp (keys %dsttype)
+    {
+	my $filename = sprintf("%s-%08d.list",lc $dsttyp, $run);
 	open(F,">$filename");
-	while (my @res = $getfiles->fetchrow_array())
+	my $fcnt = 0;
+	foreach my $segment (sort { $a <=> $b } keys %files)
 	{
-	    print F "$res[0]\n";
+	    foreach my $file (keys %{$files{$segment}{$dsttyp}})
+	    {
+		print F "$file\n";
+		$fcnt++;
+	    }
 	}
 	close(F);
+	if ($fcnt == 0)
+	{
+	    print "no dsts for type $dsttyp for run $run\n";
+	    unlink $filename;
+	}
     }
+    #x	print Dumper(\%files);
 }
 
 sub printtags
 {
-    my %dataset_exists = ();
-    my $getdatasettypes = $dbh->prepare("select distinct(dataset) from datasets");
-    $getdatasettypes->execute();
-    while (my @res = $getdatasettypes->fetchrow_array())
+    my $sqlcmd = sprintf("select distinct(tag) from datasets where ");
+    my $icnt = 0;
+    foreach my $ignore (sort keys %ignore_datasets)
     {
-	if (! exists $ignore_datasets{$res[0]})
+	if ($icnt > 0)
 	{
-	    $dataset_exists{$res[0]} = 1;
+	    $sqlcmd = sprintf("%s and ",$sqlcmd);
 	}
+	$sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
+	$icnt++;
     }
-    foreach my $ds (sort keys %dataset_exists)
+    $sqlcmd = sprintf("%s and tag is not null order by tag",$sqlcmd);
+    my $gettags = $dbh->prepare($sqlcmd);
+    $gettags->execute();
+    while (my @res = $gettags->fetchrow_array)
     {
-	my @sp1 = split(/_/,$ds);
-	print "build tag: $sp1[0], cdb tag: $sp1[1]";
-	if ($#sp1 > 2)
-	{
-	    print "version: $sp1[2]";
-	}
-	print "\n";
+	print "$res[0]\n";
     }
     exit(0);
 }
 
 sub printruns
 {
-    my $dataset;
-    if (defined $buildtag && defined $cdbtag)
+    my $sqlcmd = sprintf("select distinct(runnumber) from datasets where ");
+    my $icnt = 0;
+    foreach my $ignore (sort keys %ignore_datasets)
     {
-	$buildtag =~ s/\.//g;
-	$dataset = sprintf("%s_%s",$buildtag,$cdbtag);
-	if (defined $version)
+	if ($icnt > 0)
 	{
-	    $dataset = sprintf("%s_%s",$dataset,$version);
+	    $sqlcmd = sprintf("%s and ",$sqlcmd);
 	}
+	$sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
+	$icnt++;
     }
-    if (defined $dataset)
+    $sqlcmd = sprintf("%s and tag = '$tag' and dsttype='$ARGV[0]'order by runnumber",$sqlcmd);
+    my $getruns =  $dbh->prepare($sqlcmd);
+    $getruns->execute();
+    if ($getruns->rows == 0)
     {
-	my $getruns =  $dbh->prepare("select distinct(runnumber) from datasets where dataset = '$dataset' and dsttype='$ARGV[0]' order by runnumber\n");
-	$getruns->execute();
-#	print "cmd: select distinct(runnumber) from datasets where dataset = '$dataset' and dsttype='$ARGV[0]' order by runnumber\n";
-	if ($getruns->rows == 0)
-	{
-	    print "no run found for dataset $dataset\n";
-	}
-	else
-	{
-	    while (my @res = $getruns->fetchrow_array())
-	    {
-		print "$res[0]\n";
-	    }
-	}
+	print "no run found for tag $tag and dst type $ARGV[0]\n";
     }
     else
     {
-	my $sqlcmd = sprintf("select distinct(runnumber) from datasets where ");
-	my $icnt = 0;
-	foreach my $ignore (sort keys %ignore_datasets)
+	while (my @res = $getruns->fetchrow_array())
 	{
-	    if ($icnt > 0)
-	    {
-		$sqlcmd = sprintf("%s and ",$sqlcmd);
-	    }
-	    $sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
-	    $icnt++;
+	    print "$res[0]\n";
 	}
-	$sqlcmd = sprintf("%s order by runnumber",$sqlcmd);
-	my $getruns =  $dbh->prepare($sqlcmd);
-	$getruns->execute();
-	if ($getruns->rows == 0)
-	{
-	    print "no runs found\n";
-	}
-	else
-	{
-	    while (my @res = $getruns->fetchrow_array())
-	    {
-		print "$res[0]\n";
-	    }
-	}
-
     }
     exit(0);
 }

@@ -60,8 +60,8 @@ class JetReco : public SubsysReco
 
  private:
   int CreateNodes(PHCompositeNode *topNode);
-  void FillJetNode(PHCompositeNode *topNode, int ialgo, const std::vector<Jet *> &jets);
-  void FillJetContainer(PHCompositeNode *topNode, int ialgo, std::vector<Jet *> &jets);
+  void FillJetNode(PHCompositeNode *topNode, int ipos, const std::vector<Jet *> &jets);
+  void FillJetContainer(PHCompositeNode *topNode, int ipos, std::vector<Jet *> &inputs);
 
   std::vector<JetInput *> _inputs;
   std::vector<JetAlgo *> _algos;

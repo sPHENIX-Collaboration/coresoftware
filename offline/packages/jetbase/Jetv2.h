@@ -6,8 +6,8 @@
  * \date    $Date: $
  */
 
-#ifndef G4JET_JETV2_H
-#define G4JET_JETV2_H
+#ifndef JETBASE_JETV2_H
+#define JETBASE_JETV2_H
 
 #include "Jet.h"
 
@@ -88,7 +88,7 @@ class Jetv2 : public Jet
   float get_mass2() const override;
 
   // Jet properties
-  void resize_properties(size_t size) override { _properties.resize(size, NAN); };
+  void resize_properties(size_t size) override { _properties.resize(size, std::numeric_limits<float>::quiet_NaN()); };
   std::vector<float>& get_property_vec() override { return _properties; }  // new in v2
   size_t size_properties() const override { return _properties.size(); }   // implemented in v1 and v2
 
@@ -128,10 +128,10 @@ class Jetv2 : public Jet
   bool _is_sorted{false};
 
   /// jet momentum vector (px,py,pz)
-  std::array<float, 3> _mom{{NAN, NAN, NAN}};
+  std::array<float, 3> _mom{{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}};
 
   /// jet energy
-  float _e = NAN;
+  float _e {std::numeric_limits<float>::quiet_NaN()};
 
   /// calibration flag
   int _isCalib{0};
@@ -145,7 +145,7 @@ class Jetv2 : public Jet
   size_t count_comp(SRC source /**/) const override;
 
   // only in v1 msg
-  void msg_dep_fn(const std::string& method_name) const;
+  static void msg_dep_fn(const std::string& fn_name) ;
 
   // functions deprecated in this Jet Version
   bool has_property(Jet::PROPERTY /*prop_id*/) const override;
@@ -169,4 +169,4 @@ class Jetv2 : public Jet
   ClassDefOverride(Jetv2, 1);
 };
 
-#endif  // G4JET_JETV2_H
+#endif  // JETBASE_JETV2_H

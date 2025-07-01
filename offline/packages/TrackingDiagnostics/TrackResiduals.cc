@@ -16,6 +16,9 @@
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
+#include <globalvertex/MbdVertex.h>
+#include <globalvertex/MbdVertexMap.h>
+
 #include <intt/CylinderGeomIntt.h>
 #include <intt/CylinderGeomInttHelper.h>
 
@@ -72,6 +75,12 @@ namespace
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
   {
     std::vector<TrkrDefs::cluskey> out;
+
+    if(!track)
+      {
+	return out;
+      }
+    
     for (const auto& seed : {track->get_silicon_seed(), track->get_tpc_seed()})
     {
       if (seed)
@@ -244,7 +253,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     if (gl1PacketInfo)
     {
       m_gl1BunchCrossing = gl1PacketInfo->getBunchNumber();
-      uint64_t triggervec = gl1PacketInfo->getTriggerVector();
+      uint64_t triggervec = gl1PacketInfo->getScaledVector();
       m_bco = gl1PacketInfo->getBCO();
       auto lbshift = m_bco << 24U;
       m_bcotr = lbshift >> 24U;
@@ -259,8 +268,21 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
       }
     }
   }
+  
+  m_mbdvtxz = std::numeric_limits<float>::quiet_NaN();
 
-
+  MbdVertexMap *mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+  if(mbdvertexmap)
+  {
+    for (auto it = mbdvertexmap->begin(); it != mbdvertexmap->end(); ++it)
+    {
+      MbdVertex* mbdvertex = it->second;
+      if (mbdvertex)
+      {
+        m_mbdvtxz = mbdvertex->get_z();
+      }
+    }
+  }
   MbdPmtContainer* bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
   m_totalmbd = 0;
   if (bbcpmts)
@@ -509,6 +531,7 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
       m_vy = vertex->get_y();
       m_vz = vertex->get_z();
       m_ntracks = vertex->size_tracks();
+
       for (auto it = vertex->begin_tracks(); it != vertex->end_tracks(); ++it)
       {
         auto id = *it;
@@ -1637,6 +1660,7 @@ void TrackResiduals::createBranches()
   m_vertextree->Branch("trbco", &m_bcotr, "m_bcotr/l");
   m_vertextree->Branch("vertexid", &m_vertexid);
   m_vertextree->Branch("vertex_crossing", &m_vertex_crossing, "m_vertex_crossing/I");
+  m_vertextree->Branch("mbdzvtx", &m_mbdvtxz, "m_mbdvtxz/F");
   m_vertextree->Branch("vx", &m_vx, "m_vx/F");
   m_vertextree->Branch("vy", &m_vy, "m_vy/F");
   m_vertextree->Branch("vz", &m_vz, "m_vz/F");
@@ -1711,6 +1735,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("segment", &m_segment, "m_segment/I");
   m_tree->Branch("event", &m_event, "m_event/I");
   m_tree->Branch("mbdcharge",&m_totalmbd, "m_totalmbd/F");
+  m_tree->Branch("mbdzvtx", &m_mbdvtxz, "m_mbdvtxz/F");
   m_tree->Branch("firedTriggers", &m_firedTriggers);
   m_tree->Branch("gl1BunchCrossing", &m_gl1BunchCrossing, "m_gl1BunchCrossing/l");
   m_tree->Branch("trackid", &m_trackid, "m_trackid/I");

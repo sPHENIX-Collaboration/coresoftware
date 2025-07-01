@@ -330,10 +330,7 @@ CylinderGeomMicromegas::range_t CylinderGeomMicromegas::get_theta_range(uint til
       const auto strip_count = get_strip_count(tileid, geometry);
       const auto strip_length = get_strip_length(tileid, geometry);
       const auto mid_strip_center_local = get_local_coordinates(tileid, geometry, strip_count/2);
-      // need to add special care for tile 0, whose half detector is disconnected
-      const auto mid_strip_begin = tileid == 0 ?
-        get_world_from_local_coords(tileid, geometry, mid_strip_center_local):
-        get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(0,-strip_length/2));
+      const auto mid_strip_begin = get_world_from_local_coords(tileid, geometry, mid_strip_center_local + TVector2(0,-strip_length/2));
       const auto mid_strip_end = get_world_from_local_coords( tileid, geometry, mid_strip_center_local + TVector2(0,strip_length/2));
       return {
         std::atan2(mid_strip_begin.z(), get_r(mid_strip_begin.x(), mid_strip_begin.y())),

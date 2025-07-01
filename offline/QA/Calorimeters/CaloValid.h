@@ -28,6 +28,8 @@ class CaloValid : public SubsysReco
   //! full initialization
   int Init(PHCompositeNode*) override;
 
+  int InitRun(PHCompositeNode*) override;
+
   //! event processing method
   int process_event(PHCompositeNode*) override;
 
@@ -42,19 +44,19 @@ class CaloValid : public SubsysReco
   void set_timing_cut_width(const int& t) { _range = t; }
 
   void set_debug(bool debug) { m_debug = debug; }
-  void SetSpecies(const std::string &species) { m_species = species; }
-  TH2* LogYHist2D(const std::string& name, const std::string& title, int, double, double, int, double, double);
+  void SetSpecies(const std::string& species) { m_species = species; }
+  static TH2* LogYHist2D(const std::string& name, const std::string& title, int, double, double, int, double, double);
 
  private:
   void createHistos();
-  void MirrorHistogram(TH1* histogram);
+  static void MirrorHistogram(TH1* histogram);
   std::string getHistoPrefix() const;
   std::string m_species = "pp";
 
   TriggerAnalyzer* trigAna{nullptr};
-  TH3* h_pi0_trigIB_mass {nullptr};
-  std::vector<int> triggerIndices {10, 28, 29, 30, 31}; //MBD NS>=1, Photon Triggers
-    
+  TH3* h_pi0_trigIB_mass{nullptr};
+  std::vector<int> triggerIndices{10, 28, 29, 30, 31};  // MBD NS>=1, Photon Triggers
+
   TH1* h_cemc_channel_pedestal[128 * 192]{nullptr};
   TH1* h_ihcal_channel_pedestal[32 * 48]{nullptr};
   TH1* h_ohcal_channel_pedestal[32 * 48]{nullptr};
@@ -122,14 +124,14 @@ class CaloValid : public SubsysReco
   TProfile2D* h_ihcal_etaphi_time_raw{nullptr};
 
   // Trigger histos
-  TH1 *h_triggerVec{nullptr};
-  TH2 *h_edist[64] = {nullptr};
-  TH1 *h_ldClus_trig[64] = {nullptr};
-  TProfile *pr_evtNum_ldClus_trig[64] = {nullptr};
-  TProfile *pr_rejection[64] = {nullptr};
-  TProfile *pr_livetime[64] = {nullptr};
-  TProfile *pr_ldClus_trig{nullptr};
-  std::vector<int> trigOfInterest = {3,10,11,21,22,23,25,26,27};
+  TH1* h_triggerVec{nullptr};
+  TH2* h_edist[64] = {nullptr};
+  TH1* h_ldClus_trig[64] = {nullptr};
+  TProfile* pr_evtNum_ldClus_trig[64] = {nullptr};
+  TProfile* pr_rejection[64] = {nullptr};
+  TProfile* pr_livetime[64] = {nullptr};
+  TProfile* pr_ldClus_trig{nullptr};
+  std::vector<int> trigOfInterest = {3, 10, 11, 21, 22, 23, 25, 26, 27};
 
   int _eventcounter{0};
   int _range{1};
@@ -141,4 +143,3 @@ class CaloValid : public SubsysReco
 };
 
 #endif
-

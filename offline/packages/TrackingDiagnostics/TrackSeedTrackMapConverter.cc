@@ -494,21 +494,52 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
         std::cout << PHWHERE << "SVTX node added" << std::endl;
       }
     }
-
-    m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
-    if (!m_trackMap)
-    {
-      m_trackMap = new SvtxTrackMap_v1;
-      PHIODataNode<PHObject>* tracks_node =
-          new PHIODataNode<PHObject>(m_trackMap, m_trackMapName, "PHObject");
-      tb_node->addNode(tracks_node);
-      if (Verbosity() > 0)
-      {
-        std::cout << PHWHERE << "Svtx/" << m_trackMapName << " node added" << std::endl;
-      }
-    }
+    m_trackMap = new SvtxTrackMap_v1;
+    PHIODataNode<PHObject>* tracks_node =
+        new PHIODataNode<PHObject>(m_trackMap, "SvtxTrackMap", "PHObject");
+    tb_node->addNode(tracks_node);
   }
 
+  if(m_trackMapName != "SvtxTrackMap")
+  {
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+  if (!m_trackMap)
+  {
+    PHNodeIterator iter(topNode);
+
+    PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst(
+        "PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    PHNodeIterator iter_dst(dstNode);
+
+    // Create the SVTX node
+    PHCompositeNode* tb_node =
+        dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode",
+                                                          "SVTX"));
+    if (!tb_node)
+    {
+      tb_node = new PHCompositeNode("SVTX");
+      dstNode->addNode(tb_node);
+      if (Verbosity() > 0)
+      {
+        std::cout << PHWHERE << "SVTX node added" << std::endl;
+      }
+    }
+
+    m_trackMap = new SvtxTrackMap_v1;
+    PHIODataNode<PHObject>* tracks_node =
+        new PHIODataNode<PHObject>(m_trackMap, m_trackMapName, "PHObject");
+    tb_node->addNode(tracks_node);
+    if (Verbosity() > 0)
+    {
+      std::cout << PHWHERE << "Svtx/" << m_trackMapName << " node added" << std::endl;
+    }
+  }
+  }
   m_seedContainer = findNode::getClass<TrackSeedContainer>(topNode, m_trackSeedName);
   if (!m_seedContainer)
   {

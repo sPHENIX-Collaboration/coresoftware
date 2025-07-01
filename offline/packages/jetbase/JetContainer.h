@@ -5,20 +5,18 @@
 
 #include <phool/PHObject.h>
 
-#include <TClonesArray.h>
-
 #include <cfloat>
-#include <climits>
 #include <cmath>
 #include <cstddef>  // for size_t
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <set>
 #include <vector>
 
 class Jet;
-
+class TClonesArray;
 // ---------------------------------------------------------------------------------------
 // JetContainer class -- used to fill, update, and access TClonesArray of jets
 // ---------------------------------------------------------------------------------------
@@ -55,10 +53,10 @@ class JetContainer : public PHObject
   virtual Jet::ALGO get_algo() const { return Jet::ALGO::NONE; }
 
   virtual void set_par(float) { return; }
-  virtual float get_par() const { return NAN; }
+  virtual float get_par() const { return std::numeric_limits<float>::quiet_NaN(); }
 
   virtual void set_jetpar_R(float) { return; }
-  virtual float get_jetpar_R() const { return NAN; }
+  virtual float get_jetpar_R() const { return std::numeric_limits<float>::quiet_NaN(); }
 
   // ---------------------------------------------------------------------------
   //  Sources "src":
@@ -91,7 +89,7 @@ class JetContainer : public PHObject
   // Get and queary the map of indices of the vector<properties> in the jets
   virtual std::map<Jet::PROPERTY, Jet::PROPERTY /*really this is an index*/> property_indices() const { return {}; };
   virtual bool has_property(Jet::PROPERTY /*-*/) const { return false; };
-  virtual size_t size_properties() const { return UINT_MAX; };
+  virtual size_t size_properties() const { return std::numeric_limits<unsigned int>::max(); };
   virtual size_t add_property(Jet::PROPERTY /**/) { return 0; };
   virtual size_t add_property(std::set<Jet::PROPERTY> /**/) { return 0; };
   virtual Jet::PROPERTY property_index(Jet::PROPERTY) { return static_cast<Jet::PROPERTY>(1000); };  // get the propery index
@@ -119,11 +117,11 @@ class JetContainer : public PHObject
   virtual Jet::IterJetTCA end();
   // ---------------------------------------------------------------------------------------
 
-  virtual unsigned int get_index_single() const { return UINT_MAX; };
+  virtual unsigned int get_index_single() const { return std::numeric_limits<unsigned int>::max(); };
   virtual std::vector<unsigned int> get_index_vec() const { return {}; };
 
   virtual void set_rho_median(float /**/){};
-  virtual float get_rho_median() const { return NAN; };
+  virtual float get_rho_median() const { return std::numeric_limits<float>::quiet_NaN(); };
 
  private:
   ClassDefOverride(JetContainer, 1);

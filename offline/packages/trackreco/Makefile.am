@@ -56,6 +56,7 @@ pkginclude_HEADERS = \
   PHSiliconTpcTrackMatching.h \
   PHSiliconCosmicSeeding.h \
   PHSimpleVertexFinder.h \
+  PHTrackPruner.h \
   PHTrackCleaner.h \
   PHTrackSelector.h \
   PHRaveVertexing.h \
@@ -76,6 +77,7 @@ pkginclude_HEADERS = \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   PrelimDistortionCorrection.h \
+  PrelimDistortionCorrectionAuAu.h \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h \
@@ -146,6 +148,7 @@ libtrack_reco_la_SOURCES = \
   PHStreakFinder.cc \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
+  PHTrackPruner.cc \
   PHTrackCleaner.cc \
   PHTrackClusterAssociator.cc \
   PHTrackSeeding.cc \
@@ -158,6 +161,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
   PrelimDistortionCorrection.cc \
+  PrelimDistortionCorrectionAuAu.cc \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc \
