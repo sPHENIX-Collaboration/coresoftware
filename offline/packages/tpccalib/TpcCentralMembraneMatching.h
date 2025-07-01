@@ -176,9 +176,9 @@ class TpcCentralMembraneMatching : public SubsysReco
   TH1 *hdr3_double{nullptr};
   TH1 *hnclus{nullptr};
 
-  std::unique_ptr<TFile> fout;
+  TFile *fout;
 
-  std::unique_ptr<TFile> m_debugfile;
+  TFile *m_debugfile;
   std::string m_debugfilename{"CMMatcher.root"};
 
   TH2 *truth_r_phi[2]{nullptr};
@@ -204,6 +204,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   float m_recoZ{0.0};
   float m_rawR{0.0};
   float m_rawPhi{0.0};
+  float m_staticR{0.0};
+  float m_staticPhi{0.0};
   bool m_side{false};
   unsigned int m_adc{0};
   unsigned int m_nhits{0};
