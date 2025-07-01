@@ -7,7 +7,6 @@ bin_PROGRAMS = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(OFFLINE_MAIN)/rootmacros \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
