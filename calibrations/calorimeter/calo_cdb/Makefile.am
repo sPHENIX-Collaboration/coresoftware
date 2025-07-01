@@ -1,10 +1,13 @@
 AUTOMAKE_OPTIONS = foreign
 
-bin_PROGRAMS = testGenStatus
+bin_PROGRAMS = \
+  CaloCDB-GenStatus \
+  CaloCDB-FilterDatasets
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
+  -I$(OFFLINE_MAIN)/rootmacros \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
@@ -15,13 +18,17 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
 	genStatus.h \
-  geometry_constants.h
+	filter-datasets.h \
+  geometry_constants.h \
+  myUtils.h
 
 lib_LTLIBRARIES = \
   libcalo_cdb.la
 
 libcalo_cdb_la_SOURCES = \
-	genStatus.cc
+	genStatus.cc \
+  filter-datasets.cc \
+	myUtils.cc
 
 libcalo_cdb_la_LIBADD = \
   -lphool \
@@ -31,9 +38,13 @@ libcalo_cdb_la_LIBADD = \
   -lsphenixnpc \
   -lemcNoisyTowerFinder
 
-testGenStatus_SOURCES = testGenStatus.cc
-testGenStatus_CXXFLAGS = -fsanitize=address
-testGenStatus_LDADD = libcalo_cdb.la
+CaloCDB_GenStatus_SOURCES = CaloCDB-GenStatus.cc
+# CaloCDB_GenStatus_CXXFLAGS = -fsanitize=address
+CaloCDB_GenStatus_LDADD = libcalo_cdb.la
+
+CaloCDB_FilterDatasets_SOURCES = CaloCDB-FilterDatasets.cc
+# CaloCDB_FilterDatasets_CXXFLAGS = -fsanitize=address
+CaloCDB_FilterDatasets_LDADD = libcalo_cdb.la
 
 BUILT_SOURCES = testexternals.cc
 
