@@ -47,6 +47,7 @@ PhotonJetsKinematics::PhotonJetsKinematics(const std::string &modulename, const 
   , m_histtag(histtag)
   , m_trgToSelect(JetQADefs::GL1::MBDNSJet1)
   , m_doTrgSelect(false)
+  , m_doOptHist(false)
 {
   if (Verbosity() > 1)
     {
@@ -94,17 +95,17 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
   std::vector<std::string> vecHistNames = {
     "emcal_cluster_chi2",
     "emcal_cluster_energy",
-    "emcal_cluster_eta_phi",
-    "emcal_cluster_eta",
-    "emcal_cluster_phi",
-    "emcal_cluster_energy_eta",//see what eta distribution looks like with different energy
-    "emcal_cluster_chi2_eta",//see what eta distribution looks like with different chi2
+    "emcal_cluster_eta_phi", // optional
+    "emcal_cluster_eta", // optional
+    "emcal_cluster_phi", // optional
+    "emcal_cluster_energy_eta", //see what eta distribution looks like with different energy
+    "emcal_cluster_chi2_eta", //see what eta distribution looks like with different chi2
     "emcal_cluster_eta_with_cuts",//chi2<3,Et>500 MeV
     "emcal_cluster_energy_phi",
     "emcal_cluster_chi2_phi",
     "emcal_cluster_phi_with_cuts",//chi2 < 3, Et > 500 MeV
     "emcal_cluster_eta_phi_with_cuts",//chi2 < 3, Et > 500 MeV
-    "emcal_cluster_eta_with_energy_cut",//Et > 500 MeV
+    "emcal_cluster_eta_with_energy_cut",//optional: Et > 500 MeV only
     "emcal_cluster_chi2_energy"
   };
 
@@ -118,23 +119,27 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
     }
 
   //initializing histograms
+  if (m_doOptHist)
+  {
+    h_emcal_cluster_eta_phi = new TH2F(vecHistNames[2].data(), "", 48, -1.2, 1.2, 64, -M_PI, M_PI);
+    h_emcal_cluster_eta_phi->GetXaxis()->SetTitle("#eta");
+    h_emcal_cluster_eta_phi->GetYaxis()->SetTitle("#Phi");
+    h_emcal_cluster_eta_phi->SetOption("COLZ");
 
+    h_emcal_cluster_eta = new TH1D(vecHistNames[3].data(), "", 48, -1.2, 1.2);
+    h_emcal_cluster_eta->GetXaxis()->SetTitle("#eta");
+
+    h_emcal_cluster_phi = new TH1D(vecHistNames[4].data(), "", 64, -M_PI, M_PI);
+    h_emcal_cluster_phi->GetXaxis()->SetTitle("#phi");
+
+    h_emcal_cluster_eta_with_energy_cut = new TH1D(vecHistNames[12].data(), "", 48, -1.2, 1.2);
+    h_emcal_cluster_eta_with_energy_cut->GetXaxis()->SetTitle("#eta");
+  }
   h_emcal_cluster_chi2 = new TH1D(vecHistNames[0].data(), "", 30, 0, 150);
   h_emcal_cluster_chi2->GetXaxis()->SetTitle("#chi^{2}");
  
   h_emcal_cluster_energy = new TH1D(vecHistNames[1].data(), "", 100, 0, 10);
   h_emcal_cluster_energy->GetXaxis()->SetTitle("E_{T} [GeV]");
-
-  h_emcal_cluster_eta_phi = new TH2F(vecHistNames[2].data(), "", 48, -1.2, 1.2, 64, -M_PI, M_PI);
-  h_emcal_cluster_eta_phi->GetXaxis()->SetTitle("#eta");
-  h_emcal_cluster_eta_phi->GetYaxis()->SetTitle("#Phi");
-  h_emcal_cluster_eta_phi->SetOption("COLZ");
-
-  h_emcal_cluster_eta = new TH1D(vecHistNames[3].data(), "", 48, -1.2, 1.2);
-  h_emcal_cluster_eta->GetXaxis()->SetTitle("#eta");
-
-  h_emcal_cluster_phi = new TH1D(vecHistNames[4].data(), "", 64, -M_PI, M_PI);
-  h_emcal_cluster_phi->GetXaxis()->SetTitle("#phi");
 
   h_emcal_cluster_energy_eta = new TH2D(vecHistNames[5].data(), "",48,-1.2,1.2,100,0,10);
   h_emcal_cluster_energy_eta->GetXaxis()->SetTitle("#eta");
@@ -143,7 +148,6 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
   h_emcal_cluster_chi2_eta = new TH2D(vecHistNames[6].data(), "",48,-1.2,1.2,150,0,150);
   h_emcal_cluster_chi2_eta->GetXaxis()->SetTitle("#eta");
   h_emcal_cluster_chi2_eta->GetYaxis()->SetTitle("#chi^{2}");
-
 
   h_emcal_cluster_eta_with_cuts = new TH1D(vecHistNames[7].data(), "", 48, -1.2, 1.2);
   h_emcal_cluster_eta_with_cuts->GetXaxis()->SetTitle("#eta");
@@ -163,9 +167,6 @@ int PhotonJetsKinematics::Init(PHCompositeNode* /*topNode*/)
   h_emcal_cluster_eta_phi_with_cuts->GetXaxis()->SetTitle("#eta");
   h_emcal_cluster_eta_phi_with_cuts->GetYaxis()->SetTitle("#phi");
   h_emcal_cluster_eta_phi_with_cuts->SetOption("COLZ");
-
-  h_emcal_cluster_eta_with_energy_cut = new TH1D(vecHistNames[12].data(), "", 48, -1.2, 1.2);
-  h_emcal_cluster_eta_with_energy_cut->GetXaxis()->SetTitle("#eta");
 
   h_emcal_cluster_chi2_energy = new TH2F(vecHistNames[13].data(),"",100,0,10,150,0,150);
   h_emcal_cluster_chi2_energy->GetXaxis()->SetTitle("E_{T} [GeV]");
@@ -227,9 +228,12 @@ int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
 
        h_emcal_cluster_chi2->Fill(clus_chisq);
        h_emcal_cluster_energy->Fill(clusEt);
-       h_emcal_cluster_eta_phi->Fill(clus_eta, clus_phi);
-       h_emcal_cluster_eta->Fill(clus_eta);  // 1D eta plot
-       h_emcal_cluster_phi->Fill(clus_phi);  // 1D phi plot
+       if (m_doOptHist)
+       {
+         h_emcal_cluster_eta_phi->Fill(clus_eta, clus_phi);
+         h_emcal_cluster_eta->Fill(clus_eta);  // 1D eta plot
+         h_emcal_cluster_phi->Fill(clus_phi);  // 1D phi plot
+       }
        h_emcal_cluster_energy_eta->Fill(clus_eta, clusEt);//2D energy eta plot
        h_emcal_cluster_chi2_eta->Fill(clus_eta,clus_chisq);//2D chi2 eta plot
        h_emcal_cluster_energy_phi->Fill(clus_phi, clusEt);//2D energy phi plot
@@ -240,11 +244,14 @@ int PhotonJetsKinematics::process_event(PHCompositeNode *topNode)
        h_emcal_cluster_phi_with_cuts->Fill(clus_phi);
        h_emcal_cluster_eta_phi_with_cuts->Fill(clus_eta, clus_phi);
        }
-       if(clusEt>0.5){
-       
-       h_emcal_cluster_eta_with_energy_cut->Fill(clus_eta);
+       if (m_doOptHist)
+       {
+         if (clusEt>0.5)
+         {
+           h_emcal_cluster_eta_with_energy_cut->Fill(clus_eta);
+         }
        }
-    }
+     }
 
   if (Verbosity() > 1)
     {
@@ -280,19 +287,22 @@ int PhotonJetsKinematics::End(PHCompositeNode* /*topNode*/)
   // if (Verbosity() > 1) std::cout << "PhotonJetsKinematics::End - Output to " << outfilename << std::endl;
   
   //Outputting the histograms
-  m_manager->registerHisto(h_emcal_cluster_eta_phi);
+  if (m_doOptHist)
+  {
+    m_manager->registerHisto(h_emcal_cluster_eta_phi);
+    m_manager->registerHisto(h_emcal_cluster_eta);  
+    m_manager->registerHisto(h_emcal_cluster_phi);
+    m_manager->registerHisto(h_emcal_cluster_eta_with_energy_cut);
+  }
   m_manager->registerHisto(h_emcal_cluster_energy);
-  m_manager->registerHisto(h_emcal_cluster_chi2);
-  m_manager->registerHisto(h_emcal_cluster_eta);  
-  m_manager->registerHisto(h_emcal_cluster_phi);
   m_manager->registerHisto(h_emcal_cluster_energy_eta);
+  m_manager->registerHisto(h_emcal_cluster_chi2);
   m_manager->registerHisto(h_emcal_cluster_chi2_eta);  
   m_manager->registerHisto(h_emcal_cluster_eta_with_cuts);
   m_manager->registerHisto(h_emcal_cluster_phi_with_cuts);
   m_manager->registerHisto(h_emcal_cluster_energy_phi);
   m_manager->registerHisto(h_emcal_cluster_chi2_phi);
   m_manager->registerHisto(h_emcal_cluster_eta_phi_with_cuts);
-  m_manager->registerHisto(h_emcal_cluster_eta_with_energy_cut);
   m_manager->registerHisto(h_emcal_cluster_chi2_energy);
 
   if (Verbosity() > 1)
