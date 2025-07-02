@@ -74,7 +74,7 @@ class KFParticle_truthAndDetTools
 
   void clearVectors();
 
-  float get_e3x3(RawCluster *cluster, RawTowerContainer *Towers, int layer);
+  float get_e3x3(RawCluster *cluster, RawTowerContainer *Towers, int layer); //Nonfunctional; for now, tree fills with NAN
   float get_e5x5(RawCluster *cluster, RawTowerContainer *Towers, int layer);
 
   float PiRange(float deltaPhi)
@@ -85,9 +85,7 @@ class KFParticle_truthAndDetTools
   }
 
   // Functions to set cuts
-  void set_ntpc_low_cut(int set_variable) { m_ntpc_low_cut = set_variable; }  // THIS DOESN'T DO ANYTHING!!!!
   void set_emcal_radius_user(float set_variable) { m_emcal_radius_user = set_variable; }
-  void set_track_pt_low_cut(float set_variable) { m_track_pt_low_cut = set_variable; }
   void set_emcal_e_low_cut(float set_variable) { m_emcal_e_low_cut = set_variable; }
   void set_dphi_cut_low(float set_variable) { m_dphi_cut_low = set_variable; }
   void set_dphi_cut_high(float set_variable) { m_dphi_cut_high = set_variable; }
@@ -132,8 +130,6 @@ class KFParticle_truthAndDetTools
   float m_ihcal_radius_user{117};
   float m_ohcal_radius_user{177.423};
 
-  int m_ntpc_low_cut{20};  // THIS DOESNT ACTUALLY DO ANYTHING THO
-  float m_track_pt_low_cut{0.5};
   float m_emcal_e_low_cut{0.2};
   float m_ihcal_e_low_cut{0.01};
   float m_ohcal_e_low_cut{0.01};

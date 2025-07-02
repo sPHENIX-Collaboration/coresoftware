@@ -487,7 +487,9 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 }
 
 /*
-The following function matches tracks to calo clusters. As of 5/28/2025, this only extends to the EMCal. HCal matching is in development.
+The following function matches tracks to calo clusters. As of 7/1/2025, this only extends to the EMCal. HCal matching is in development.
+
+To run EMCal matching, DST_CALO files must be read into the Fun4All server. 
 */
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
                                                  TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
@@ -588,10 +590,11 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
   // Radii for track projections
   double caloRadiusEMCal;
+  caloRadiusEMCal = m_emcal_radius_user;  //Use function set_emcal_radius_user(float set_variable) to set this in your Fun4All macro
   // double caloRadiusIHCal;
   // double caloRadiusOHCal;
+  // caloRadiusEMCal = 100.70;
   // caloRadiusEMCal = EMCalGeo->get_radius(); //This requires DST_CALOFITTING 
-  caloRadiusEMCal = 100.70;  // cm
   // caloRadiusOHCal = OHCalGeo->get_radius();
   // caloRadiusIHCal = IHCalGeo->get_radius();
 
