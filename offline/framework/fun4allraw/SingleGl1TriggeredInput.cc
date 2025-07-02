@@ -35,7 +35,7 @@ SingleGl1TriggeredInput::SingleGl1TriggeredInput(const std::string &name)
 {
 }
 
-void SingleGl1TriggeredInput::FillPool()
+void SingleGl1TriggeredInput::FillPool(int index)
 {
   if (AllDone())  // no more files and all events read
   {
@@ -45,7 +45,7 @@ void SingleGl1TriggeredInput::FillPool()
   {
     m_SkipEvents = 0;
     m_SkipOffset = 0;
-    FillEventVector();
+    FillEventVector(index);
   }
   return;
 }

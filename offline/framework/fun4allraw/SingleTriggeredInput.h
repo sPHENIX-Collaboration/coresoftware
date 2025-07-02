@@ -26,7 +26,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   explicit SingleTriggeredInput(const std::string &name);
   ~SingleTriggeredInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
-  virtual void FillPool();
+  virtual void FillPool(int index);
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
   virtual void EventNumber(const int i) { m_EventNumber = i; }
@@ -43,7 +43,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual void CreateDSTNodes(Event *evt);
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
-  virtual int FillEventVector();
+  virtual int FillEventVector(int index);
   virtual int ReadEvent();
   virtual SingleTriggeredInput *Gl1Input() { return m_Gl1Input; }
   virtual void Gl1Input(SingleTriggeredInput *input) { m_Gl1Input = input; }
@@ -60,7 +60,9 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   void dumpdeque();
   int checkfirstsebevent();
   bool NeedsRefill() const {return m_EventDeque.empty();}
+  bool DoneFilling() const;
   void RunCheck();
+  void ResetClockDiffCounters();
 
  protected:
   PHCompositeNode *m_topNode{nullptr};

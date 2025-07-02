@@ -94,7 +94,7 @@ int SingleTriggeredInput::fileclose()
   return 0;
 }
 
-int SingleTriggeredInput::FillEventVector()
+int SingleTriggeredInput::FillEventVector(int index)
 {
   while (GetEventIterator() == nullptr)  // at startup this is a null pointer
   {
@@ -104,19 +104,21 @@ int SingleTriggeredInput::FillEventVector()
       return -1;
     }
   }
+  std::cout << "index: " << index << std::endl;
 //  if (!m_EventDeque.empty())
-  if (!NeedsRefill())
-  {
-    return 0;
-  }
-  size_t i{0};
-  uint64_t tmp = m_bclkarray[pooldepth];
-  m_bclkarray.fill(std::numeric_limits<uint64_t>::max());
-  m_bclkdiffarray.fill(std::numeric_limits<uint64_t>::max());
-  m_bclkarray[0] = tmp;
+  // if (!NeedsRefill())
+  // {
+  //   return 0;
+  // }
+  int i = index;
+  // uint64_t tmp = m_bclkarray[pooldepth];
+  // m_bclkarray.fill(std::numeric_limits<uint64_t>::max());
+  // m_bclkdiffarray.fill(std::numeric_limits<uint64_t>::max());
+  // m_bclkarray[0] = tmp;
   // std::cout << std::hex << "m_bclkarray[0]: 0x" << m_bclkarray[0] << ", ind " << std::dec << pooldepth
   //  	    << std::hex << ", 0x" << m_bclkarray[pooldepth] << std::dec << std::endl;
-  while (i < pooldepth)
+  size_t loopcount {0};
+  while (loopcount < 1)
   {
     Event *evt = GetEventIterator()->getNextEvent();
     while (!evt)
@@ -133,6 +135,7 @@ int SingleTriggeredInput::FillEventVector()
       }
       evt = GetEventIterator()->getNextEvent();
     }
+    std::cout << "donefillig: " << DoneFilling() << std::endl;
     m_EventsThisFile++;
     // std::cout << Name() << ": ";
     // evt->identify();
@@ -216,7 +219,7 @@ int SingleTriggeredInput::FillEventVector()
     // 	      << ", m_bclkdiffarray[" << i << "]: 0x" << std::hex << m_bclkdiffarray[i] << std::dec << std::endl;
     m_EventDeque.push_back(evt);
 
-    i++;
+    loopcount++;
   }
   // std::cout << Name() << std::endl;
   // for (auto iter : m_bclkdiffarray)
@@ -263,7 +266,7 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
   return clock;
 }
 
-void SingleTriggeredInput::FillPool()
+void SingleTriggeredInput::FillPool(int index)
 {
   if (AllDone() || EventAlignmentProblem())  // no more files and all events read or alignment problem
   {
@@ -271,14 +274,16 @@ void SingleTriggeredInput::FillPool()
   }
   if (!FilesDone())
   {
-    if (FillEventVector() != 0)
-    {
-      // for (const auto *itertst = clkdiffbegin(); itertst != clkdiffend(); ++itertst)
-      // {
-      // 	std::cout << std::hex << "blkdiff: 0x" << itertst << std::dec << std::endl;
-      // }
-//RunCheck();
-    }
+    int iret = FillEventVector(index);
+    std::cout << Name() << " return fill event: " << iret << std::endl;
+//     // if (iret != 0)
+//     // {
+//       // for (const auto *itertst = clkdiffbegin(); itertst != clkdiffend(); ++itertst)
+//       // {
+//       // 	std::cout << std::hex << "blkdiff: 0x" << itertst << std::dec << std::endl;
+//       // }
+// //RunCheck();
+//    }
   }
   return;
 }
@@ -737,5 +742,24 @@ void SingleTriggeredInput::RunCheck()
   }
   firstclockcheck = false;
   //	std::cout << "we are good" << std::endl;
+  return;
+}
+
+bool SingleTriggeredInput::DoneFilling() const
+{
+  std::cout << Name() << " deq size: " << m_EventDeque.size() << std::endl;
+  if (FilesDone() || m_EventDeque.size() >= pooldepth)
+  {
+    return true;
+  }
+  return false;
+}
+
+void SingleTriggeredInput::ResetClockDiffCounters()
+{
+    uint64_t tmp = m_bclkarray[pooldepth];
+  m_bclkarray.fill(std::numeric_limits<uint64_t>::max());
+  m_bclkdiffarray.fill(std::numeric_limits<uint64_t>::max());
+  m_bclkarray[0] = tmp;
   return;
 }

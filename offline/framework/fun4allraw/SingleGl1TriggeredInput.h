@@ -18,7 +18,7 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
  public:
   explicit SingleGl1TriggeredInput(const std::string &name);
   ~SingleGl1TriggeredInput() override = default;
-  void FillPool() override;
+  void FillPool(int index) override;
   // void CleanupUsedPackets(const int eventno);
   // void ClearCurrentEvent();
   void Print(const std::string &what = "ALL") const override;
@@ -27,7 +27,8 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   int ReadEvent() override;
   unsigned int SkipEvents () const {return m_SkipEvents;}
   unsigned int SkipOffset() const {return m_SkipOffset;}
-
+  SingleTriggeredInput *Gl1Input() override {return this;}
+  
  private:
   unsigned int m_PacketNumber {0};
   unsigned int m_LastPacketNumber {0};
