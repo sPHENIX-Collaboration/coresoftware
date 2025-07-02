@@ -126,27 +126,27 @@ int SingleTriggeredInput::FillEventVector(int index)
       evt = GetEventIterator()->getNextEvent();
       while (!evt)
       {
-	fileclose();
-	if (!OpenNextFile())
-	{
-	  FilesDone(1);
-	  if (Verbosity() > 0)
-	  {
-	    std::cout << "no more events to read, deque depth: " << m_EventDeque.size() << std::endl;
-	  }
-	  return -1;
-	}
-	evt = GetEventIterator()->getNextEvent();
+        fileclose();
+        if (!OpenNextFile())
+        {
+          FilesDone(1);
+          if (Verbosity() > 0)
+          {
+            std::cout << "no more events to read, deque depth: " << m_EventDeque.size() << std::endl;
+          }
+          return -1;
+        }
+        evt = GetEventIterator()->getNextEvent();
       }
-      m_Gl1_SkipEvents --;
+      m_Gl1_SkipEvents--;
       if (Verbosity() > 0)
       {
-	if (m_Gl1_SkipEvents > 0)
-	{
-	  std::cout << Name() << " Skipping Event " << evt->getEvtSequence() << std::endl;
-	}
+        if (m_Gl1_SkipEvents > 0)
+        {
+          std::cout << Name() << " Skipping Event " << evt->getEvtSequence() << std::endl;
+        }
       }
-    } while(m_Gl1_SkipEvents > 0);
+    } while (m_Gl1_SkipEvents > 0);
     //    std::cout << "donefillig: " << DoneFilling() << std::endl;
     m_EventsThisFile++;
     // std::cout << Name() << ": ";
@@ -286,7 +286,7 @@ void SingleTriggeredInput::FillPool(int index)
   }
   if (!FilesDone())
   {
-//    std::cout << "need to skip " << Gl1Input()->SkipEvents() << std::endl;
+    //    std::cout << "need to skip " << Gl1Input()->SkipEvents() << std::endl;
     m_Gl1_SkipEvents = Gl1Input()->SkipEvents();
     int iret = FillEventVector(index);
     if (Verbosity() > 0)

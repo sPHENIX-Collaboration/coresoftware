@@ -57,7 +57,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   PHCompositeNode *topNode() { return m_topNode; }
   virtual void FakeProblemEvent(const int ievent) { m_ProblemEvent = ievent; }
   virtual int FemEventNrClockCheck(OfflinePacket *calopkt);
-  virtual unsigned int SkipEvents() const {return 0;}
+  virtual unsigned int SkipEvents() const { return 0; }
   void dumpdeque();
   int checkfirstsebevent();
   bool NeedsRefill() const { return m_EventDeque.empty(); }
