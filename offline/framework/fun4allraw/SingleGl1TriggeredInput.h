@@ -25,15 +25,15 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   void CreateDSTNodes(Event *evt) override;
   uint64_t GetClock(Event *evt) override;
   int ReadEvent() override;
-  unsigned int SkipEvents () const {return m_SkipEvents;}
-  unsigned int SkipOffset() const {return m_SkipOffset;}
-  SingleTriggeredInput *Gl1Input() override {return this;}
-  
+  unsigned int SkipEvents() const { return m_SkipEvents; }
+  unsigned int SkipOffset() const { return m_SkipOffset; }
+  SingleTriggeredInput *Gl1Input() override { return this; }
+
  private:
-  unsigned int m_PacketNumber {0};
-  unsigned int m_LastPacketNumber {0};
-  unsigned int m_SkipEvents {0};
-  unsigned int m_SkipOffset {0};
+  unsigned int m_PacketNumber{0};
+  unsigned int m_LastPacketNumber{0};
+  unsigned int m_SkipEvents{0};
+  unsigned int m_SkipOffset{0};
 };
 
 #endif

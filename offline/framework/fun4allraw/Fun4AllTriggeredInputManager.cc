@@ -62,12 +62,12 @@ Fun4AllTriggeredInputManager::~Fun4AllTriggeredInputManager()
 int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
 {
   int iret = FillPools();
-    if (iret)
+  if (iret)
   {
     return iret;
   }
   m_Gl1TriggeredInput->ReadEvent();
-  if (! m_OnlyGl1Flag)
+  if (!m_OnlyGl1Flag)
   {
     for (auto *iter : m_TriggeredInputVector)
     {
@@ -75,11 +75,11 @@ int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
       iter->ReadEvent();
       if (iter->AllDone())
       {
-	return -1;
+        return -1;
       }
     }
   }
-  
+
   if (m_RunNumber == 0)
   {
     m_RunNumber = m_Gl1TriggeredInput->RunNumber();
@@ -205,44 +205,44 @@ int Fun4AllTriggeredInputManager::FillPools()
   if (m_Gl1TriggeredInput->NeedsRefill())
   {
     m_Gl1TriggeredInput->ResetClockDiffCounters();
-    std::cout << "After reset: " << std::endl;
-    m_Gl1TriggeredInput->dumpdeque();
-    if (! m_OnlyGl1Flag)
-    {
-      for (auto *iter : m_TriggeredInputVector)
-      {
-	//    std::cout << "prdf input: " << iter->Name() << std::endl;
-	iter->ResetClockDiffCounters();
-      }
-    }
-    int index = 0;
-    while(! m_Gl1TriggeredInput->DoneFilling())
-    {
-      std::cout << "calling fillpool" << std::endl;
-      m_Gl1TriggeredInput->FillPool(index);
-      m_Gl1TriggeredInput->dumpdeque();
-
-      if (! m_OnlyGl1Flag)
-      {
-	for (auto *iter : m_TriggeredInputVector)
-	{
-	  //    std::cout << "prdf input: " << iter->Name() << std::endl;
-	  iter->FillPool(index);
-	}
-      }
-      index++;
-    }
-    std::cout << "should be full now" << std::endl;
-      m_Gl1TriggeredInput->dumpdeque();
+    // std::cout << "After reset: " << std::endl;
+    // m_Gl1TriggeredInput->dumpdeque();
     if (!m_OnlyGl1Flag)
     {
       for (auto *iter : m_TriggeredInputVector)
       {
-	iter->RunCheck();
-	if (iter->AllDone())
-	{
-	  return -1;
-	}
+        //    std::cout << "prdf input: " << iter->Name() << std::endl;
+        iter->ResetClockDiffCounters();
+      }
+    }
+    int index = 0;
+    while (!m_Gl1TriggeredInput->DoneFilling())
+    {
+      //      std::cout << "calling fillpool" << std::endl;
+      m_Gl1TriggeredInput->FillPool(index);
+      //      m_Gl1TriggeredInput->dumpdeque();
+
+      if (!m_OnlyGl1Flag)
+      {
+        for (auto *iter : m_TriggeredInputVector)
+        {
+          //    std::cout << "prdf input: " << iter->Name() << std::endl;
+          iter->FillPool(index);
+        }
+      }
+      index++;
+    }
+    // std::cout << "should be full now" << std::endl;
+    //   m_Gl1TriggeredInput->dumpdeque();
+    if (!m_OnlyGl1Flag)
+    {
+      for (auto *iter : m_TriggeredInputVector)
+      {
+        iter->RunCheck();
+        if (iter->AllDone())
+        {
+          return -1;
+        }
       }
     }
   }

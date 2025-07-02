@@ -104,8 +104,8 @@ int SingleTriggeredInput::FillEventVector(int index)
       return -1;
     }
   }
-  std::cout << "index: " << index << std::endl;
-//  if (!m_EventDeque.empty())
+  //  std::cout << "index: " << index << std::endl;
+  //  if (!m_EventDeque.empty())
   // if (!NeedsRefill())
   // {
   //   return 0;
@@ -117,7 +117,7 @@ int SingleTriggeredInput::FillEventVector(int index)
   // m_bclkarray[0] = tmp;
   // std::cout << std::hex << "m_bclkarray[0]: 0x" << m_bclkarray[0] << ", ind " << std::dec << pooldepth
   //  	    << std::hex << ", 0x" << m_bclkarray[pooldepth] << std::dec << std::endl;
-  size_t loopcount {0};
+  size_t loopcount{0};
   while (loopcount < 1)
   {
     Event *evt = GetEventIterator()->getNextEvent();
@@ -135,7 +135,7 @@ int SingleTriggeredInput::FillEventVector(int index)
       }
       evt = GetEventIterator()->getNextEvent();
     }
-    std::cout << "donefillig: " << DoneFilling() << std::endl;
+    //    std::cout << "donefillig: " << DoneFilling() << std::endl;
     m_EventsThisFile++;
     // std::cout << Name() << ": ";
     // evt->identify();
@@ -275,15 +275,18 @@ void SingleTriggeredInput::FillPool(int index)
   if (!FilesDone())
   {
     int iret = FillEventVector(index);
-    std::cout << Name() << " return fill event: " << iret << std::endl;
-//     // if (iret != 0)
-//     // {
-//       // for (const auto *itertst = clkdiffbegin(); itertst != clkdiffend(); ++itertst)
-//       // {
-//       // 	std::cout << std::hex << "blkdiff: 0x" << itertst << std::dec << std::endl;
-//       // }
-// //RunCheck();
-//    }
+    if (Verbosity() > 0)
+    {
+      std::cout << Name() << " return FillEventVector( " << index << "): " << iret << std::endl;
+    }
+    //     // if (iret != 0)
+    //     // {
+    //       // for (const auto *itertst = clkdiffbegin(); itertst != clkdiffend(); ++itertst)
+    //       // {
+    //       // 	std::cout << std::hex << "blkdiff: 0x" << itertst << std::dec << std::endl;
+    //       // }
+    // //RunCheck();
+    //    }
   }
   return;
 }
@@ -655,20 +658,20 @@ void SingleTriggeredInput::RunCheck()
       iter2++;
       if (std::equal(iter1, clkdiffend(), iter2))
       {
-	std::cout << "subsequent events are good, first event is off reset packets from first event" << std::endl;
-	m_DitchPackets = true;
+        std::cout << "subsequent events are good, first event is off reset packets from first event" << std::endl;
+        m_DitchPackets = true;
       }
       else
       {
-	std::cout << "check subsequent events failed, this is not the problem" << std::endl;
-	if (checkfirstsebevent() == 0)
-	{
-	  std::cout << Name() << " started with bad event" << std::endl;
-	}
-	else
-	{
-	  std::cout << Name() << " first event in seb is not the problem either" << std::endl;
-	}
+        std::cout << "check subsequent events failed, this is not the problem" << std::endl;
+        if (checkfirstsebevent() == 0)
+        {
+          std::cout << Name() << " started with bad event" << std::endl;
+        }
+        else
+        {
+          std::cout << Name() << " first event in seb is not the problem either" << std::endl;
+        }
       }
     }
     else
@@ -681,64 +684,64 @@ void SingleTriggeredInput::RunCheck()
       //        int ifirst = 1;
       while (iter1 != clkdiffend())
       {
-	//           std::cout  << "bclk1: 0x" << *iter3 << ", gl1bclk: 0x" << *iter4 << std::dec << std::endl;
-	// this catches the condition where there is no gl1 packet (14001)
-	// the GL1 data sometimes has a corrupt last data event
-	if (*iter1 != std::numeric_limits<uint64_t>::max())
-	{
-	  std::cout << Name() << ": ";
-	  m_EventDeque[position]->identify();
-	}
-	if (*iter1 != *iter2)
-	{
-	  if (*iter1 == std::numeric_limits<uint64_t>::max())
-	  {
-	    std::cout << Name() << " No more events found marked by uint64_t max clock" << std::endl;
-	    FilesDone(1);
-	    break;
-	  }
-	  if (Verbosity() > 0)
-	  {
-	    std::cout << "remove Event " << m_EventDeque[position]->getEvtSequence() << " clock: 0x"
-		      << std::hex << GetClock(m_EventDeque[position]) << ", clkdiff(me) 0x"
-		      << *iter1 << ", clkdiff(gl1) 0x" << *iter2
-		      << std::dec << std::endl;
-	  }
-	  // position is the first bad index,
-	  for (size_t i = position; i < m_EventDeque.size(); ++i)
-	  {
-	    delete m_EventDeque[i];
-	  }
-	  m_EventDeque.erase(m_EventDeque.begin() + (position), m_EventDeque.end());
-	  break;
-	}
+        //           std::cout  << "bclk1: 0x" << *iter3 << ", gl1bclk: 0x" << *iter4 << std::dec << std::endl;
+        // this catches the condition where there is no gl1 packet (14001)
+        // the GL1 data sometimes has a corrupt last data event
+        if (*iter1 != std::numeric_limits<uint64_t>::max())
+        {
+          std::cout << Name() << ": ";
+          m_EventDeque[position]->identify();
+        }
+        if (*iter1 != *iter2)
+        {
+          if (*iter1 == std::numeric_limits<uint64_t>::max())
+          {
+            std::cout << Name() << " No more events found marked by uint64_t max clock" << std::endl;
+            FilesDone(1);
+            break;
+          }
+          if (Verbosity() > 0)
+          {
+            std::cout << "remove Event " << m_EventDeque[position]->getEvtSequence() << " clock: 0x"
+                      << std::hex << GetClock(m_EventDeque[position]) << ", clkdiff(me) 0x"
+                      << *iter1 << ", clkdiff(gl1) 0x" << *iter2
+                      << std::dec << std::endl;
+          }
+          // position is the first bad index,
+          for (size_t i = position; i < m_EventDeque.size(); ++i)
+          {
+            delete m_EventDeque[i];
+          }
+          m_EventDeque.erase(m_EventDeque.begin() + (position), m_EventDeque.end());
+          break;
+        }
 
-	// std::cout <<  "good Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
+        // std::cout <<  "good Event " << m_EventDeque[position]->getEvtSequence() << " clock: " << m_EventDeque[position]->getPacket(6067)->lValue(0, "CLOCK")<< std::endl ;
 
-	++position;
-	++iter1;
-	++iter2;
-	// if (ifirst)
-	// {
-	//   ifirst = 0;
-	// }
-	// else
-	// {
-	//   ++iter3;
-	//   ++iter4;
-	// }
+        ++position;
+        ++iter1;
+        ++iter2;
+        // if (ifirst)
+        // {
+        //   ifirst = 0;
+        // }
+        // else
+        // {
+        //   ++iter3;
+        //   ++iter4;
+        // }
       }
       if (FilesDone() == 0)
       {
-	std::cout << "Event Misalignment, processing remaining good events" << std::endl;
-	EventAlignmentProblem(1);
+        std::cout << "Event Misalignment, processing remaining good events" << std::endl;
+        EventAlignmentProblem(1);
       }
       //        FilesDone(1);
     }  // test for first event
   }  // end test for equality
   else
   {
-//	dumpdeque();
+    //	dumpdeque();
   }
   firstclockcheck = false;
   //	std::cout << "we are good" << std::endl;
@@ -747,7 +750,7 @@ void SingleTriggeredInput::RunCheck()
 
 bool SingleTriggeredInput::DoneFilling() const
 {
-  std::cout << Name() << " deq size: " << m_EventDeque.size() << std::endl;
+  //  std::cout << Name() << " deq size: " << m_EventDeque.size() << std::endl;
   if (FilesDone() || m_EventDeque.size() >= pooldepth)
   {
     return true;
@@ -757,7 +760,7 @@ bool SingleTriggeredInput::DoneFilling() const
 
 void SingleTriggeredInput::ResetClockDiffCounters()
 {
-    uint64_t tmp = m_bclkarray[pooldepth];
+  uint64_t tmp = m_bclkarray[pooldepth];
   m_bclkarray.fill(std::numeric_limits<uint64_t>::max());
   m_bclkdiffarray.fill(std::numeric_limits<uint64_t>::max());
   m_bclkarray[0] = tmp;

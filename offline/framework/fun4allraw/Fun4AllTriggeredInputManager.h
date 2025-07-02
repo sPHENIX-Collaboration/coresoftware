@@ -46,11 +46,11 @@ class Fun4AllTriggeredInputManager : public Fun4AllInputManager
   void EventNumber(const int i) { m_EventNumber = i; }
   int EventNumber() const { return m_EventNumber; }
   int FillPools();
-  
+
  private:
   int m_RunNumber{0};
   int m_EventNumber{0};
-  bool m_OnlyGl1Flag {false};
+  bool m_OnlyGl1Flag{false};
   std::set<int> m_Gl1DroppedEvent;
   SingleTriggeredInput *m_Gl1TriggeredInput{nullptr};
   std::vector<SingleTriggeredInput *> m_TriggeredInputVector;

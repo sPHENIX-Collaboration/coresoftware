@@ -107,22 +107,28 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
   }
   uint64_t clock = packet->lValue(0, "BCO");
   m_LastPacketNumber = m_PacketNumber;
-  m_PacketNumber = packet->iValue(0); // just fill this here while we are at it
+  m_PacketNumber = packet->iValue(0);  // just fill this here while we are at it
+  if (Verbosity() > 0)
+  {
     std::cout << Name() << " Event " << evt->getEvtSequence() << " packet nr: "
-	      << m_PacketNumber << std::endl;
- if (m_PacketNumber - m_LastPacketNumber == 1 || m_LastPacketNumber == 0)
- {
-      std::cout << "All is good" << std::endl;
-    }
-    else
+              << m_PacketNumber << std::endl;
+  }
+  if (m_PacketNumber - m_LastPacketNumber == 1 || m_LastPacketNumber == 0)
+  {
+    if (Verbosity() > 0)
     {
-      std::cout << "awooga - problem, gl1 skipped " << m_PacketNumber - m_LastPacketNumber
-		<< " Events" << std::endl;
-      m_SkipEvents = m_PacketNumber - m_LastPacketNumber;
-      m_SkipOffset = m_EventDeque.size();
-      std::cout << "current size of m_EventDeque: " << m_EventDeque.size() << std::endl;
+      std::cout << "GL1 is in order" << std::endl;
     }
-   
+  }
+  else
+  {
+    std::cout << "awooga - problem, gl1 skipped " << m_PacketNumber - m_LastPacketNumber
+              << " Events" << std::endl;
+    m_SkipEvents = m_PacketNumber - m_LastPacketNumber;
+    m_SkipOffset = m_EventDeque.size();
+    std::cout << "current size of m_EventDeque: " << m_EventDeque.size() << std::endl;
+  }
+
   delete packet;
   return clock;
 }
@@ -191,4 +197,3 @@ int SingleGl1TriggeredInput::ReadEvent()
   delete evt;
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
