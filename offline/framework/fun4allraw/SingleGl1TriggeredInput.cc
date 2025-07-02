@@ -122,7 +122,7 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
   }
   else
   {
-    std::cout << "awooga - problem, gl1 skipped " << m_PacketNumber - m_LastPacketNumber
+    std::cout << "GL1 problem, gl1 skipped " << m_PacketNumber - m_LastPacketNumber
               << " Events" << std::endl;
     m_SkipEvents = m_PacketNumber - m_LastPacketNumber;
     m_SkipOffset = m_EventDeque.size();
