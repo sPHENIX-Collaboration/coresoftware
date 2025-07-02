@@ -120,21 +120,33 @@ int SingleTriggeredInput::FillEventVector(int index)
   size_t loopcount{0};
   while (loopcount < 1)
   {
-    Event *evt = GetEventIterator()->getNextEvent();
-    while (!evt)
+    Event *evt{nullptr};
+    do
     {
-      fileclose();
-      if (!OpenNextFile())
-      {
-        FilesDone(1);
-        if (Verbosity() > 0)
-        {
-          std::cout << "no more events to read, deque depth: " << m_EventDeque.size() << std::endl;
-        }
-        return -1;
-      }
       evt = GetEventIterator()->getNextEvent();
-    }
+      while (!evt)
+      {
+	fileclose();
+	if (!OpenNextFile())
+	{
+	  FilesDone(1);
+	  if (Verbosity() > 0)
+	  {
+	    std::cout << "no more events to read, deque depth: " << m_EventDeque.size() << std::endl;
+	  }
+	  return -1;
+	}
+	evt = GetEventIterator()->getNextEvent();
+      }
+      m_Gl1_SkipEvents --;
+      if (Verbosity() > 0)
+      {
+	if (m_Gl1_SkipEvents > 0)
+	{
+	  std::cout << Name() << " Skipping Event " << evt->getEvtSequence() << std::endl;
+	}
+      }
+    } while(m_Gl1_SkipEvents > 0);
     //    std::cout << "donefillig: " << DoneFilling() << std::endl;
     m_EventsThisFile++;
     // std::cout << Name() << ": ";
@@ -274,6 +286,8 @@ void SingleTriggeredInput::FillPool(int index)
   }
   if (!FilesDone())
   {
+//    std::cout << "need to skip " << Gl1Input()->SkipEvents() << std::endl;
+    m_Gl1_SkipEvents = Gl1Input()->SkipEvents();
     int iret = FillEventVector(index);
     if (Verbosity() > 0)
     {
@@ -643,7 +657,7 @@ void SingleTriggeredInput::RunCheck()
   bool isequal = std::equal(clkdiffbegin(), clkdiffend(), Gl1Input()->clkdiffbegin());
   if (!isequal)
   {
-    std::cout << Name() << " and GL1 clock diffs differ, here is the dump:" << std::endl;
+    std::cout << Name() << " and GL1 clock diffs differ (may be false positive at end of run), here is the dump:" << std::endl;
     dumpdeque();  // dump the clock diffs so we can see in the log
     const auto *iter1 = clkdiffbegin();
     const auto *iter2 = Gl1Input()->clkdiffbegin();

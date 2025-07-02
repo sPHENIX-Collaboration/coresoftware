@@ -44,7 +44,6 @@ void SingleGl1TriggeredInput::FillPool(int index)
   if (!FilesDone())
   {
     m_SkipEvents = 0;
-    m_SkipOffset = 0;
     FillEventVector(index);
   }
   return;
@@ -113,6 +112,7 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
     std::cout << Name() << " Event " << evt->getEvtSequence() << " packet nr: "
               << m_PacketNumber << std::endl;
   }
+
   if (m_PacketNumber - m_LastPacketNumber == 1 || m_LastPacketNumber == 0)
   {
     if (Verbosity() > 0)
@@ -125,8 +125,6 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
     std::cout << "GL1 problem, gl1 skipped " << m_PacketNumber - m_LastPacketNumber
               << " Events" << std::endl;
     m_SkipEvents = m_PacketNumber - m_LastPacketNumber;
-    m_SkipOffset = m_EventDeque.size();
-    std::cout << "current size of m_EventDeque: " << m_EventDeque.size() << std::endl;
   }
 
   delete packet;
