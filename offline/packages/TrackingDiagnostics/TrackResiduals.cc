@@ -253,7 +253,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
     if (gl1PacketInfo)
     {
       m_gl1BunchCrossing = gl1PacketInfo->getBunchNumber();
-      uint64_t triggervec = gl1PacketInfo->getTriggerVector();
+      uint64_t triggervec = gl1PacketInfo->getScaledVector();
       m_bco = gl1PacketInfo->getBCO();
       auto lbshift = m_bco << 24U;
       m_bcotr = lbshift >> 24U;
