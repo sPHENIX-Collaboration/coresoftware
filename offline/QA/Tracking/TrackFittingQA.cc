@@ -83,7 +83,7 @@ TrackFittingQA::Init (
 		m_quality_hist[charge] = new TH1F (
 			(boost::format("h_%s_quality_%s_charged_tracks") % Name() % charge_str).str().c_str(),
 			(boost::format("quality distribution (%s charged tracks);quality;Counts") % charge_str).str().c_str(),
-			50, 0.0, 8.0
+			50, 0.0, 100.0
 		);
 		hm->registerHisto(m_quality_hist[charge]);
 		m_quality_hist[charge]->SetMarkerColor(color);
