@@ -30,7 +30,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
-#include <boost/format.hpp>
+#include <format>
 
 //____________________________________________________________________________..
 TpcClusterQA::TpcClusterQA(const std::string &name)
@@ -284,80 +284,80 @@ void TpcClusterQA::createHistos()
   for (auto &region : {0, 1, 2})
   {
     {
-      h_phisize_side0[region] = new TH1F((boost::format("%sphisize_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                         (boost::format("TPC (side 0) cluster #phi size region_%i") % region).str().c_str(), 10, 0, 10);
+      h_phisize_side0[region] = new TH1F(std::format("{}phisize_side0_{}", getHistoPrefix(), region).c_str(),
+                                         std::format("TPC (side 0) cluster #phi size region_{}", region).c_str(), 10, 0, 10);
       h_phisize_side0[region]->GetXaxis()->SetTitle("Cluster #phi_{size}");
       hm->registerHisto(h_phisize_side0[region]);
     }
     {
-      h_phisize_side1[region] = new TH1F((boost::format("%sphisize_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                         (boost::format("TPC (side 1) cluster #phi size region_%i") % region).str().c_str(), 10, 0, 10);
+      h_phisize_side1[region] = new TH1F(std::format("{}phisize_side1_{}", getHistoPrefix(), region).c_str(),
+                                         std::format("TPC (side 1) cluster #phi size region_{}", region).c_str(), 10, 0, 10);
       h_phisize_side1[region]->GetXaxis()->SetTitle("Cluster #phi_{size}");
       hm->registerHisto(h_phisize_side1[region]);
     }
     {
-      h_zsize[region] = new TH1F((boost::format("%szsize_%i") % getHistoPrefix() % region).str().c_str(),
-                                 (boost::format("TPC cluster z size region_%i") % region).str().c_str(), 10, 0, 10);
+      h_zsize[region] = new TH1F(std::format("{}zsize_{}", getHistoPrefix(), region).c_str(),
+                                 std::format("TPC cluster z size region_{}", region).c_str(), 10, 0, 10);
       h_zsize[region]->GetXaxis()->SetTitle("Cluster z_{size}");
       hm->registerHisto(h_zsize[region]);
     }
     {
-      h_rphierror[region] = new TH1F((boost::format("%srphi_error_%i") % getHistoPrefix() % region).str().c_str(),
-                                     (boost::format("TPC r#Delta#phi error region_%i") % region).str().c_str(), 100, 0, 0.075);
+      h_rphierror[region] = new TH1F(std::format("{}rphi_error_{}", getHistoPrefix(), region).c_str(),
+                                     std::format("TPC r#Delta#phi error region_{}", region).c_str(), 100, 0, 0.075);
       h_rphierror[region]->GetXaxis()->SetTitle("r#Delta#phi error [cm]");
       hm->registerHisto(h_rphierror[region]);
     }
     {
-      h_zerror[region] = new TH1F((boost::format("%sz_error_%i") % getHistoPrefix() % region).str().c_str(),
-                                  (boost::format("TPC z error region_%i") % region).str().c_str(), 100, 0, 0.18);
+      h_zerror[region] = new TH1F(std::format("{}z_error_{}", getHistoPrefix(), region).c_str(),
+                                  std::format("TPC z error region_{}", region).c_str(), 100, 0, 0.18);
       h_zerror[region]->GetXaxis()->SetTitle("z error [cm]");
       hm->registerHisto(h_zerror[region]);
     }
     {
-      h_clusedge[region] = new TH1F((boost::format("%sclusedge_%i") % getHistoPrefix() % region).str().c_str(),
-                                    (boost::format("TPC hits on edge region_%i") % region).str().c_str(), 30, 0, 30);
+      h_clusedge[region] = new TH1F(std::format("{}clusedge_{}", getHistoPrefix(), region).c_str(),
+                                    std::format("TPC hits on edge region_{}", region).c_str(), 30, 0, 30);
       h_clusedge[region]->GetXaxis()->SetTitle("Cluster edge");
       hm->registerHisto(h_clusedge[region]);
     }
     {
-      h_clusoverlap[region] = new TH1F((boost::format("%sclusoverlap_%i") % getHistoPrefix() % region).str().c_str(),
-                                       (boost::format("TPC clus overlap region_%i") % region).str().c_str(), 30, 0, 30);
+      h_clusoverlap[region] = new TH1F(std::format("{}clusoverlap_{}", getHistoPrefix(), region).c_str(),
+                                       std::format("TPC clus overlap region_{}", region).c_str(), 30, 0, 30);
       h_clusoverlap[region]->GetXaxis()->SetTitle("Cluster overlap");
       hm->registerHisto(h_clusoverlap[region]);
     }
     {
-      h_clusxposition_side0[region] = new TH1F((boost::format("%sclusxposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                               (boost::format("TPC cluster x position side 0 region_%i") % region).str().c_str(), 210 * 2, -105, 105);
+      h_clusxposition_side0[region] = new TH1F(std::format("{}clusxposition_side0_{}", getHistoPrefix(), region).c_str(),
+                                               std::format("TPC cluster x position side 0 region_{}", region).c_str(), 210 * 2, -105, 105);
       h_clusxposition_side0[region]->GetXaxis()->SetTitle("x (cm)");
       hm->registerHisto(h_clusxposition_side0[region]);
     }
     {
-      h_clusxposition_side1[region] = new TH1F((boost::format("%sclusxposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                               (boost::format("TPC cluster x position side 1 region_%i") % region).str().c_str(), 210 * 2, -105, 105);
+      h_clusxposition_side1[region] = new TH1F(std::format("{}clusxposition_side1_{}", getHistoPrefix(), region).c_str(),
+                                               std::format("TPC cluster x position side 1 region_{}", region).c_str(), 210 * 2, -105, 105);
       h_clusxposition_side1[region]->GetXaxis()->SetTitle("x (cm)");
       hm->registerHisto(h_clusxposition_side1[region]);
     }
     {
-      h_clusyposition_side0[region] = new TH1F((boost::format("%sclusyposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                               (boost::format("TPC cluster y position side 0 region_%i") % region).str().c_str(), 210 * 2, -105, 105);
+      h_clusyposition_side0[region] = new TH1F(std::format("{}clusyposition_side0_{}", getHistoPrefix(), region).c_str(),
+                                               std::format("TPC cluster y position side 0 region_{}", region).c_str(), 210 * 2, -105, 105);
       h_clusyposition_side0[region]->GetXaxis()->SetTitle("y (cm)");
       hm->registerHisto(h_clusyposition_side0[region]);
     }
     {
-      h_clusyposition_side1[region] = new TH1F((boost::format("%sclusyposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                               (boost::format("TPC cluster y position side 1 region_%i") % region).str().c_str(), 210 * 2, -105, 105);
+      h_clusyposition_side1[region] = new TH1F(std::format("{}clusyposition_side1_{}", getHistoPrefix(), region).c_str(),
+                                               std::format("TPC cluster y position side 1 region_{}", region).c_str(), 210 * 2, -105, 105);
       h_clusyposition_side1[region]->GetXaxis()->SetTitle("y (cm)");
       hm->registerHisto(h_clusyposition_side1[region]);
     }
     {
-      h_cluszposition_side0[region] = new TH1F((boost::format("%scluszposition_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                               (boost::format("TPC cluster z position side 0 region_%i") % region).str().c_str(), 210 * 2, -105, 105);
+      h_cluszposition_side0[region] = new TH1F(std::format("{}cluszposition_side0_{}", getHistoPrefix(), region).c_str(),
+                                               std::format("TPC cluster z position side 0 region_{}", region).c_str(), 210 * 2, -105, 105);
       h_cluszposition_side0[region]->GetXaxis()->SetTitle("z (cm)");
       hm->registerHisto(h_cluszposition_side0[region]);
     }
     {
-      h_cluszposition_side1[region] = new TH1F((boost::format("%scluszposition_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                               (boost::format("TPC cluster z position side 1 region_%i") % region).str().c_str(), 210 * 2, -105, 105);
+      h_cluszposition_side1[region] = new TH1F(std::format("{}cluszposition_side1_{}", getHistoPrefix(), region).c_str(),
+                                               std::format("TPC cluster z position side 1 region_{}", region).c_str(), 210 * 2, -105, 105);
       h_cluszposition_side1[region]->GetXaxis()->SetTitle("z (cm)");
       hm->registerHisto(h_cluszposition_side1[region]);
     }

@@ -13,8 +13,8 @@
 #include <phool/getClass.h>
 #include <qautils/QAHistManagerDef.h>
 
-#include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrackFitUtils.h>
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -76,8 +76,8 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
 
     int nmaps = 0;
     int nintt = 0;
-//    int ntpc = 0;
-//    int nmms = 0;
+    //    int ntpc = 0;
+    //    int nmms = 0;
 
     for (auto &ckey : ckeys)
     {
@@ -96,7 +96,7 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
       //   nmms++;
       //   break;
       default:
-	break;
+        break;
       }
     }
 

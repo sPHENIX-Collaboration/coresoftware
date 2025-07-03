@@ -20,8 +20,8 @@
 #include <TH1.h>
 #include <TH2.h>
 
-#include <iomanip>
 #include <boost/format.hpp>
+#include <iomanip>
 
 //____________________________________________________________________________..
 TpcSiliconQA::TpcSiliconQA(const std::string& name)
@@ -191,13 +191,13 @@ void TpcSiliconQA::createHistos()
 
   std::vector<std::string> cutNames = {"", "_xyCut", "_etaCut", "_phiCut", "North", "South", "NorthAllCuts", "SouthAllCuts"};
   std::vector<std::string> cutVals = {"All Track Seeds",
-                         std::string("|xdiff| < " + stream1.str() + "cm , |ydiff| < " + stream2.str() + "cm"),
-                         std::string("xy cuts and |etadiff| < " + stream3.str()),
-                         std::string("xy, eta cuts and |phidiff| < " + stream4.str()),
-                         "All Track Seeds (North Only)",
-                         "All Track Seeds (South Only)",
-                         "North All Cuts (x,y,eta,phi)",
-                         "South All Cuts (x,y,eta,phi)"};
+                                      std::string("|xdiff| < " + stream1.str() + "cm , |ydiff| < " + stream2.str() + "cm"),
+                                      std::string("xy cuts and |etadiff| < " + stream3.str()),
+                                      std::string("xy, eta cuts and |phidiff| < " + stream4.str()),
+                                      "All Track Seeds (North Only)",
+                                      "All Track Seeds (South Only)",
+                                      "North All Cuts (x,y,eta,phi)",
+                                      "South All Cuts (x,y,eta,phi)"};
 
   {
     h_crossing = new TH1F(std::string(getHistoPrefix() + "crossing").c_str(),
