@@ -238,7 +238,12 @@ int Fun4AllTriggeredInputManager::FillPools()
     {
       for (auto *iter : m_TriggeredInputVector)
       {
-        iter->RunCheck();
+        // the reading has stopped already and all seb clock diffs are 0xFFFF....
+        // and the RunCheck() will just keep repeating that the clock diffs are different
+        if (!iter->FilesDone())
+        {
+          iter->RunCheck();
+        }
         if (iter->AllDone())
         {
           return -1;
