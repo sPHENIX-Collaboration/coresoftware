@@ -151,27 +151,30 @@ void DSTClusterPruning::prune_clusters()
   // use this to create object that looks through both tracks and clusters and saves into new object
   // make sure clusters exist
   // make sure tracks exist
-  std::cout << "In Prune clusters" << std::endl;
-  if(!m_cluster_map){
-    std::cout << "No cluster map" << std::endl;
+  if (Verbosity() > 1){
+    std::cout << "In Prune clusters" << std::endl;
+    if(!m_cluster_map){
+      std::cout << "No cluster map" << std::endl;
+    }
+    if(!m_reduced_cluster_map){
+      std::cout << "No reduced cluster map" << std::endl;
+    }
+    if(!m_track_seed_container){
+      std::cout << "No track seed container" << std::endl;
+    }
+    if(!m_silicon_track_seed_container){
+      std::cout << "No silicon track seed container" << std::endl;
+    }
+    if(!m_tpc_track_seed_container){
+      std::cout << "No tpc track seed container" << std::endl;
+    }
   }
-  if(!m_reduced_cluster_map){
-    std::cout << "No reduced cluster map" << std::endl;
-  }
-  if(!m_track_seed_container){
-    std::cout << "No track seed container" << std::endl;
-  }
-  if(!m_silicon_track_seed_container){
-    std::cout << "No silicon track seed container" << std::endl;
-  }
-  if(!m_tpc_track_seed_container){
-    std::cout << "No tpc track seed container" << std::endl;
-  }
-
-
+  
   if (!(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_silicon_track_seed_container && m_tpc_track_seed_container))
   {
-    std::cout << "Missing container" << std::endl;
+    if (Verbosity() > 1){
+      std::cout << "Missing container" << std::endl;
+    }
     return;
   }
   for (const auto& trackseed : *m_track_seed_container)
