@@ -19,7 +19,7 @@ public:
 	void set_track_map_name (std::string const& track_map_node_name) {m_track_map_node_name = track_map_node_name;}
 
 	/// sets the name of node to retrieve the state map from (default member value is "SvtxAlignmentStateMap")
-	void set_state_map_name (std::string const& state_map_node_name) {m_state_map_node_name = state_map_node_name;}
+//	void set_state_map_name (std::string const& state_map_node_name) {m_state_map_node_name = state_map_node_name;}
 
 	int Init(PHCompositeNode*) override;
 	int InitRun(PHCompositeNode*) override;
@@ -48,7 +48,6 @@ private:
 	// residual plots as a function of tpc sector (Mariia)
 
 	std::string m_track_map_node_name = "SvtxTrackMap";
-
 };
 
 #endif // TRACKFITTINGQA_H
