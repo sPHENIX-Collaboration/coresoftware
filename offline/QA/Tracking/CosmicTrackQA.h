@@ -29,10 +29,10 @@ class CosmicTrackQA : public SubsysReco
   void endRun(const int run) { m_endRun = run; }
 
  private:
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack *track);
+  static std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack *track);
   void createHistos();
   // xy slope, xy int, zr slope, zr int
-  std::tuple<float, float, float, float> lineFitClusters(std::vector<Acts::Vector3> &positions) const;
+  static std::tuple<float, float, float, float> lineFitClusters(std::vector<Acts::Vector3> &positions);
   std::string getHistoPrefix() const;
 
   int m_event = 0;

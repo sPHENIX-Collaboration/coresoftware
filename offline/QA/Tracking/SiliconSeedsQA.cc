@@ -11,7 +11,6 @@
 #include <globalvertex/SvtxVertexMap.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
-#include <qautils/QAHistManagerDef.h>
 
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrClusterContainer.h>
@@ -41,10 +40,10 @@ int SiliconSeedsQA::InitRun(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
 {
-  auto clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
-  auto geometry = findNode::getClass<ActsGeometry>(topNode, m_actsgeometryName);
-  auto trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
-  auto vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
+  auto *clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
+  auto *geometry = findNode::getClass<ActsGeometry>(topNode, m_actsgeometryName);
+  auto *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+  auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
   if (!trackmap or !clustermap or !geometry or !vertexmap)
   {
@@ -103,7 +102,7 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
     Acts::Vector3 zero = Acts::Vector3::Zero();
     auto dcapair_origin = TrackAnalysisUtils::get_dca(track, zero);
 
-    auto trackvtx = vertexmap->get(track->get_vertex_id());
+    auto *trackvtx = vertexmap->get(track->get_vertex_id());
     if (!trackvtx)
     {
       ntrack_isfromvtx.first++;
@@ -215,7 +214,7 @@ std::string SiliconSeedsQA::getHistoPrefix() const
 
 void SiliconSeedsQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   {

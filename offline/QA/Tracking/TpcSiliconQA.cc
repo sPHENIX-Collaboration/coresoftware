@@ -40,16 +40,16 @@ int TpcSiliconQA::InitRun(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int TpcSiliconQA::process_event(PHCompositeNode* topNode)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  auto* silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   if (!silseedmap)
   {
     std::cout << "Silicon seed map not found, aborting event" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  auto* tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!tpcseedmap)
   {
     std::cout << "TPC seed map not found, aborting event" << std::endl;
@@ -180,10 +180,13 @@ std::string TpcSiliconQA::getHistoPrefix() const
 
 void TpcSiliconQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  std::stringstream stream1, stream2, stream3, stream4;
+  std::stringstream stream1;
+  std::stringstream stream2;
+  std::stringstream stream3;
+  std::stringstream stream4;
   stream1 << std::fixed << std::setprecision(2) << m_xcut;
   stream2 << std::fixed << std::setprecision(2) << m_ycut;
   stream3 << std::fixed << std::setprecision(2) << m_etacut;

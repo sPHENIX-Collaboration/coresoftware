@@ -56,13 +56,13 @@ class TpcSeedsQA : public SubsysReco
   void setruntype(bool type) { collision_or_cosmics = type; }
 
  private:
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
+  static std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
   void createHistos();
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
-  std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
-  float eta_to_theta(float eta);
+  static std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
+  static float eta_to_theta(float eta);
   float* cal_dedx_cluster(SvtxTrack* track);
   float cal_track_length(SvtxTrack* track);
 

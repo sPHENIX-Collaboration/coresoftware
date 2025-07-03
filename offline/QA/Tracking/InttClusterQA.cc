@@ -38,7 +38,7 @@ InttClusterQA::InttClusterQA(const std::string &name)
 //____________________________________________________________________________..
 int InttClusterQA::InitRun(PHCompositeNode * /*unused*/)
 {
-  for (auto &layer : {0, 1, 2, 3})
+  for (const auto &layer : {0, 1, 2, 3})
   {
     if (layer < 2)
     {
@@ -57,21 +57,21 @@ int InttClusterQA::InitRun(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int InttClusterQA::process_event(PHCompositeNode *topNode)
 {
-  auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  auto *clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
   {
     std::cout << PHWHERE << "No cluster container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
+  auto *trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
   if (!trkrHitSetContainer)
   {
     std::cout << PHWHERE << "No trkrhitset container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  auto *tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
   {
     std::cout << PHWHERE << "No acts geometry on node tree, bailing" << std::endl;
@@ -91,7 +91,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto cluskey = iter->first;
-        const auto cluster = iter->second;
+        auto *const cluster = iter->second;
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
@@ -118,7 +118,7 @@ int InttClusterQA::process_event(PHCompositeNode *topNode)
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto cluskey = iter->first;
-        const auto cluster = iter->second;
+        auto *const cluster = iter->second;
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
@@ -163,7 +163,7 @@ std::string InttClusterQA::getHistoPrefix() const
 
 void InttClusterQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   h_occupancy = new TH1F(std::format("{}sensorOccupancy", getHistoPrefix()).c_str(), "INTT Sensor Occupancy", 100, 0, 5);

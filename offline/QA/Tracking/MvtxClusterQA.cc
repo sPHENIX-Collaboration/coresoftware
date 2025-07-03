@@ -39,7 +39,7 @@ MvtxClusterQA::MvtxClusterQA(const std::string &name)
 //____________________________________________________________________________..
 int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
 {
-  auto geomContainer = findNode::getClass<
+  auto *geomContainer = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!geomContainer)
   {
@@ -48,9 +48,9 @@ int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  for (auto &layer : {0, 1, 2})
+  for (const auto &layer : {0, 1, 2})
   {
-    auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geomContainer->GetLayerGeom(layer));
+    auto *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geomContainer->GetLayerGeom(layer));
     if (!layergeom)
     {
       std::cout << PHWHERE << "Did not get layergeom for layer "
@@ -68,21 +68,21 @@ int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int MvtxClusterQA::process_event(PHCompositeNode *topNode)
 {
-  auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  auto *clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
   {
     std::cout << PHWHERE << "No cluster container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
+  auto *trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
   if (!trkrHitSetContainer)
   {
     std::cout << PHWHERE << "No trkrhitset container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  auto *tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
   {
     std::cout << PHWHERE << "No acts geometry on node tree, bailing" << std::endl;
@@ -112,7 +112,7 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto cluskey = iter->first;
-        const auto cluster = iter->second;
+        auto *const cluster = iter->second;
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
@@ -146,7 +146,7 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto cluskey = iter->first;
-        const auto cluster = iter->second;
+        auto *const cluster = iter->second;
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
@@ -203,7 +203,7 @@ std::string MvtxClusterQA::getHistoPrefix() const
 
 void MvtxClusterQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   h_occupancy = new TH1F(std::format("{}chipOccupancy", getHistoPrefix()).c_str(), "MVTX Chip Occupancy", 60, 0, 0.6);

@@ -49,9 +49,9 @@ TrackFittingQA::TrackFittingQA(const std::string& name)
   // ...
 }
 
-int TrackFittingQA::Init(PHCompositeNode*)
+int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   if (!hm)
   {
     std::cout
@@ -166,7 +166,7 @@ int TrackFittingQA::InitRun(
     PHCompositeNode* top_node)
 {
   // F4A will not actually ABORTRUN unless that return code is issued here
-  auto track_map = findNode::getClass<SvtxTrackMap>(top_node, m_track_map_node_name);
+  auto* track_map = findNode::getClass<SvtxTrackMap>(top_node, m_track_map_node_name);
   if (!track_map)
   {
     std::cout
@@ -184,7 +184,7 @@ int TrackFittingQA::InitRun(
 int TrackFittingQA::process_event(
     PHCompositeNode* top_node)
 {
-  auto track_map = findNode::getClass<SvtxTrackMap>(top_node, m_track_map_node_name);
+  auto* track_map = findNode::getClass<SvtxTrackMap>(top_node, m_track_map_node_name);
   if (!track_map)
   {
     std::cout
@@ -218,7 +218,10 @@ int TrackFittingQA::process_event(
     {
       auto trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(state->get_cluskey()));
       auto itr = counters.find(trkr_id);
-      if (itr == counters.end()) continue;
+      if (itr == counters.end())
+      {
+        continue;
+      }
       ++itr->second;
     }
 
@@ -232,31 +235,31 @@ int TrackFittingQA::process_event(
 }
 
 int TrackFittingQA::ResetEvent(
-    PHCompositeNode*)
+    PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TrackFittingQA::EndRun(
-    int const)
+    int const /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TrackFittingQA::End(
-    PHCompositeNode*)
+    PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TrackFittingQA::Reset(
-    PHCompositeNode*)
+    PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void TrackFittingQA::Print(
-    std::string const&) const
+    std::string const& /*unused*/) const
 {
   // ...
 }

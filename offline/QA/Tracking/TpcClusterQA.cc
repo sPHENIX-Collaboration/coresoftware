@@ -42,7 +42,7 @@ TpcClusterQA::TpcClusterQA(const std::string &name)
 int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 {
   // find tpc geometry
-  auto geomContainer =
+  auto *geomContainer =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geomContainer)
   {
@@ -76,20 +76,20 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int TpcClusterQA::process_event(PHCompositeNode *topNode)
 {
-  auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  auto *clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  auto geomContainer =
+  auto *geomContainer =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  auto hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitmap)
   {
     std::cout << PHWHERE << "No hitmap found, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  auto *tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
   {
     std::cout << PHWHERE << "No acts geometry on node tree, bailing" << std::endl;
@@ -117,7 +117,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
   using HistoMap = std::map<int, HistoList>;
   HistoMap histos;
 
-  for (auto &region : {0, 1, 2})
+  for (const auto &region : {0, 1, 2})
   {
     HistoList hist;
     hist.crphisize_side0 = h_phisize_side0[region];
@@ -168,7 +168,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
       auto hitpad = TpcDefs::getPad(hitkey);
       auto m_hittbin = TpcDefs::getTBin(hitkey);
       // Check TrackResiduals.cc
-      auto geoLayer = geomContainer->GetLayerCellGeom(hitlayer);
+      auto *geoLayer = geomContainer->GetLayerCellGeom(hitlayer);
       auto phi = geoLayer->get_phicenter(hitpad, m_side);
       auto radius = geoLayer->get_radius();
       auto m_hitgx = radius * std::cos(phi);
@@ -208,7 +208,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     for (auto iter = range.first; iter != range.second; ++iter)
     {
       const auto cluskey = iter->first;
-      const auto cluster = iter->second;  // auto cluster = clusters->findCluster(key);
+      auto *const cluster = iter->second;  // auto cluster = clusters->findCluster(key);
       auto glob = tGeometry->getGlobalPosition(cluskey, cluster);
       auto sclusgx = glob.x();
       auto sclusgy = glob.y();
@@ -271,7 +271,7 @@ std::string TpcClusterQA::getHistoPrefix() const
 }
 void TpcClusterQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   {
@@ -281,7 +281,7 @@ void TpcClusterQA::createHistos()
     h_clusterssector->GetYaxis()->SetTitle("Clusters per event");
     hm->registerHisto(h_clusterssector);
   }
-  for (auto &region : {0, 1, 2})
+  for (const auto &region : {0, 1, 2})
   {
     {
       h_phisize_side0[region] = new TH1F(std::format("{}phisize_side0_{}", getHistoPrefix(), region).c_str(),

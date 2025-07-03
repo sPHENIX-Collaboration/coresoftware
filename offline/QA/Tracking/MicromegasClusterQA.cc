@@ -49,9 +49,9 @@ namespace
     T m_range;
   };
 
-  static constexpr int m_max_cluster_count = 10;
-  static constexpr int m_max_cluster_size = 15;
-  static constexpr double m_max_cluster_charge = 5e3;
+  constexpr int m_max_cluster_count = 10;
+  constexpr int m_max_cluster_size = 15;
+  constexpr double m_max_cluster_charge = 5e3;
 
 }  // namespace
 
@@ -80,7 +80,7 @@ int MicromegasClusterQA::InitRun(PHCompositeNode* topNode)
   }
 
   // get geometry and keep track of tiles per layer
-  auto geomContainer = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+  auto* geomContainer = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
   assert(geomContainer);
 
   // get number of layers
@@ -91,7 +91,7 @@ int MicromegasClusterQA::InitRun(PHCompositeNode* topNode)
   const auto range = geomContainer->get_begin_end();
   for (const auto& [layer, layergeom] : range_adaptor(range))
   {
-    const auto layergeom_mm = static_cast<CylinderGeomMicromegas*>(layergeom);
+    auto* const layergeom_mm = dynamic_cast<CylinderGeomMicromegas*>(layergeom);
     const int ntiles = layergeom_mm->get_tiles_count();
     const auto segmentation = layergeom_mm->get_segmentation_type();
 
@@ -134,7 +134,7 @@ int MicromegasClusterQA::process_event(PHCompositeNode* topNode)
   m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   assert(m_cluster_hit_map);
 
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // keep track of how many good clusters per detector
@@ -147,10 +147,10 @@ int MicromegasClusterQA::process_event(PHCompositeNode* topNode)
     // get detector name, layer and tile associated to this hitset key
     const int layer = TrkrDefs::getLayer(hitsetkey);
     const int tile = MicromegasDefs::getTileId(hitsetkey);
-    const auto detector_name = m_mapping.get_detname_sphenix_from_hitsetkey(hitsetkey);
+    //    const auto detector_name = m_mapping.get_detname_sphenix_from_hitsetkey(hitsetkey);
 
     // detector id
-    const int detid = tile + MicromegasDefs::m_ntiles * (layer - m_firstlayer);
+    const int detid = tile + (MicromegasDefs::m_ntiles * (layer - m_firstlayer));
 
     // get clusters
     const auto cluster_range = m_cluster_map->getClusters(hitsetkey);
@@ -174,7 +174,7 @@ int MicromegasClusterQA::process_event(PHCompositeNode* topNode)
         const auto strip = MicromegasDefs::getStrip(hitkey);
 
         // get associated hit
-        const auto hit = hitset->getHit(hitkey);
+        auto* const hit = hitset->getHit(hitkey);
         assert(hit);
 
         // get adc, remove pedestal, increment total charge
@@ -205,7 +205,7 @@ int MicromegasClusterQA::process_event(PHCompositeNode* topNode)
     for (int tile = 0; tile < MicromegasDefs::m_ntiles; ++tile)
     {
       // get detector id
-      const int detid = tile + MicromegasDefs::m_ntiles * layer;
+      const int detid = tile + (MicromegasDefs::m_ntiles * layer);
 
       // fill multiplicity histogram
       m_h_cluster_multiplicity->Fill(detid, cluster_count[detid]);
@@ -240,7 +240,7 @@ std::string MicromegasClusterQA::get_histogram_prefix() const
 //____________________________________________________________________________..
 void MicromegasClusterQA::create_histograms()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // cluster count histograms
