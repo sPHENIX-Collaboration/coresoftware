@@ -320,6 +320,10 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
 void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
 {
   unsigned int packetid = calopkt->getIdentifier();
+  if (packetid > 1000000)
+  {
+    return;
+  }
   if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
   {
     std::string hname = "clkdiff" + std::to_string(packetid);
@@ -366,6 +370,10 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
 void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
 {
   unsigned int packetid = pkt->getIdentifier();
+  if (packetid > 1000000)
+  {
+    return;
+  }
   uint64_t clk = (pkt->getBCO() & 0xFFFFFFFF);
   if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
   {
