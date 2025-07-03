@@ -243,8 +243,10 @@ int SingleTriggeredInput::FillEventVector(int index)
 
 uint64_t SingleTriggeredInput::GetClock(Event *evt)
 {
+  int refclockset = false;
+  uint64_t clock = std::numeric_limits<uint64_t>::max();
   std::vector<Packet *> pktvec = evt->getPacketVector();
-  uint64_t clock = static_cast<uint64_t>(pktvec[0]->lValue(0, "CLOCK") & 0xFFFFFFFF);  // NOLINT (hicpp-signed-bitwise)
+
   size_t offset = 1;
   for (auto *iter : pktvec | std::views::drop(offset))
   {
@@ -252,12 +254,29 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
     {
       std::cout << "checking packet " << iter->getIdentifier() << std::endl;
     }
-    if (clock != static_cast<uint64_t>(iter->lValue(0, "CLOCK") & 0xFFFFFFFF))  // NOLINT (hicpp-signed-bitwise)
+    uint64_t pktclock = static_cast<uint64_t>(iter->lValue(0, "CLOCK") & 0xFFFFFFFF); // NOLINT (hicpp-signed-bitwise)
+    if (iter->getStatus())
+    {
+      std::cout << "Event " << evt->getEvtSequence() << " Packet " << iter->getIdentifier()
+		<< " has non zero status: " << iter->getStatus()
+		<< " dropping it from clock check" << std::endl;
+      continue;
+    }
+    if (! refclockset)
+    {
+      clock = pktclock;
+      refclockset = true;
+      continue;
+    }
+    if (clock != pktclock)  // NOLINT (hicpp-signed-bitwise)
     {
       static int icnt = 0;
       if (icnt < 100)
       {
-        std::cout << "clock problem for packet " << iter->getIdentifier() << std::endl;
+        std::cout << "clock problem for packet " << iter->getIdentifier() << std::hex
+		  << " clock value: 0x" << pktclock << std::dec
+		  << " ref clock: 0x" << clock << std::dec
+		  << ", status: " << iter->getStatus() << std::endl;
         icnt++;
       }
     }
@@ -346,9 +365,14 @@ void SingleTriggeredInput::CreateDSTNodes(Event *evt)
 int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
 {
   CaloPacket *calopkt = dynamic_cast<CaloPacket *>(pkt);
-  if (!calopkt)
+  if (!calopkt) // this is a dumb check, should really segfault
   {
+    std::cout << PHWHERE << ": packet null pointer, returning zero" << std::endl;
     return 0;
+  }
+  if (calopkt->getStatus())
+  {
+    return -1;
   }
   // make sure all clocks of the FEM are fine,
   int nrModules = calopkt->iValue(0, "NRMODULES");
@@ -485,10 +509,17 @@ int SingleTriggeredInput::ReadEvent()
     int packet_id = packet->getIdentifier();
     CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
     calopacketvector.push_back(newhit);
+    uint64_t packetbco = packet->lValue(0, "CLOCK");
     if (m_DitchPackets)
     {
       newhit->setStatus(OfflinePacket::PACKET_DROPPED);
-      std::cout << "ditching packet " << packet_id << " from prdf event " << evt->getEvtSequence() << std::endl;
+      std::cout << Name() << " ditching packet " << packet_id << " from event " << evt->getEvtSequence() << std::endl;
+      continue;
+    }
+    if (packet->getStatus())
+    {
+      newhit->setStatus(OfflinePacket::PACKET_CORRUPT);
+      std::cout << Name() << " ditching corrupt packet " << packet_id << " from event " << evt->getEvtSequence() << std::endl;
       continue;
     }
     newhit->setStatus(OfflinePacket::PACKET_OK);
@@ -500,7 +531,7 @@ int SingleTriggeredInput::ReadEvent()
     newhit->setNrChannels(nr_channels);
     newhit->setNrSamples(nr_samples);
     newhit->setIdentifier(packet_id);
-    newhit->setBCO(packet->lValue(0, "CLOCK"));
+    newhit->setBCO(packetbco);
     //     std::cout << ", clock :" << packet->lValue(0, "CLOCK") << std::endl;
     for (int ifem = 0; ifem < nr_modules; ifem++)
     {
