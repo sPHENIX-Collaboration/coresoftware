@@ -46,18 +46,14 @@ DSTClusterPruning::DSTClusterPruning(const std::string& name)
 }
 
 //_____________________________________________________________________
-int DSTClusterPruning::Init(PHCompositeNode* topNode)
+int DSTClusterPruning::InitRun(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 0)
-  {
-    std::cout << "Writer Init end" << std::endl;
-  }
   // find DST node
   PHNodeIterator iter(topNode);
   auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << "DSTClusterPruning::Init - DST Node missing" << std::endl;
+    std::cout << "DSTClusterPruning::InitRun - DST Node missing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -67,7 +63,7 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode)
   if (!evalNode)
   {
     // create
-    std::cout << "DSTClusterPruning::Init - EVAL node missing - creating" << std::endl;
+    std::cout << "DSTClusterPruning::InitRun - EVAL node missing - creating" << std::endl;
     evalNode = new PHCompositeNode("EVAL");
     dstNode->addNode(evalNode);
   }
@@ -76,7 +72,7 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode)
   if (!svtxNode)
   {
     // create
-    std::cout << "DSTTrackArrayReader::Init - SVTX node missing - creating" << std::endl;
+    std::cout << "DSTClusterPruning::InitRun - SVTX node missing - creating" << std::endl;
     svtxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svtxNode);
   }
@@ -85,7 +81,7 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode)
   if (!trkrNode)
   {
     // create
-    std::cout << "DSTTrackArrayReader::Init - TRKR node missing - creating" << std::endl;
+    std::cout << "DSTClusterPruning::InitRun - TRKR node missing - creating" << std::endl;
     trkrNode = new PHCompositeNode("TRKR");
     dstNode->addNode(trkrNode);
   }
@@ -105,7 +101,7 @@ int DSTClusterPruning::Init(PHCompositeNode* topNode)
   }
   if (Verbosity() > 0)
   {
-    std::cout << "Writer Init end" << std::endl;
+    std::cout << "Pruner InitRun end" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -155,14 +151,37 @@ void DSTClusterPruning::prune_clusters()
   // use this to create object that looks through both tracks and clusters and saves into new object
   // make sure clusters exist
   // make sure tracks exist
+  if (Verbosity() > 1){
+    std::cout << "In Prune clusters" << std::endl;
+    if(!m_cluster_map){
+      std::cout << "No cluster map" << std::endl;
+    }
+    if(!m_reduced_cluster_map){
+      std::cout << "No reduced cluster map" << std::endl;
+    }
+    if(!m_track_seed_container){
+      std::cout << "No track seed container" << std::endl;
+    }
+    if(!m_silicon_track_seed_container){
+      std::cout << "No silicon track seed container" << std::endl;
+    }
+    if(!m_tpc_track_seed_container){
+      std::cout << "No tpc track seed container" << std::endl;
+    }
+  }
+  
   if (!(m_cluster_map && m_reduced_cluster_map && m_track_seed_container && m_silicon_track_seed_container && m_tpc_track_seed_container))
   {
+    if (Verbosity() > 1){
+      std::cout << "Missing container" << std::endl;
+    }
     return;
   }
   for (const auto& trackseed : *m_track_seed_container)
   {
     if (!trackseed)
     {
+      std::cout << "No TrackSeed" << std::endl;
       continue;
     }
 
@@ -179,7 +198,6 @@ void DSTClusterPruning::prune_clusters()
     {
       SiliconSeed = *(m_silicon_track_seed_container->begin() + siliconIndex);
     }
-
     if (TPCSeed)
     {
       if (Verbosity() > 1)
