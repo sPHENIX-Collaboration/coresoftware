@@ -48,7 +48,7 @@ private:
 	// residual plots as a function of tpc sector (Mariia)
 
 	std::string m_track_map_node_name = "SvtxTrackMap";
-
+        std::string m_state_map_node_name;
 };
 
 #endif // TRACKFITTINGQA_H
