@@ -83,6 +83,18 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;  // missing an essential object in BBC/MBD
   }
 
+  if (m_mbdpacket[0] && m_mbdpacket[1] &&
+      (m_mbdpacket[0]->getIdentifier() != 1001 || m_mbdpacket[1]->getIdentifier() != 1002))
+  {
+    static int counter = 0;
+    if (counter < 100)
+    {
+      std::cout << PHWHERE << "packet 1001 and/or packet 1002 missing, bailing out" << std::endl;
+      counter++;
+    }
+    return Fun4AllReturnCodes::EVENT_OK; // no mbd packets here
+  }
+
   // Process raw waveforms from real data
   if ( m_mbdevent!=nullptr || m_mbdraw!=nullptr || m_mbdpacket[0]==nullptr || m_mbdpacket[1]==nullptr)
   {
