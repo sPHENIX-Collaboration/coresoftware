@@ -544,9 +544,14 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   }
   // first, calculate flow: Psi2 & v2, if enabled
 
+  //_Psi2 is left as 0
+  //since _v2 is derived from _Psi2, initializing _Psi2 to NAN will set _v2 = NAN
+  //_is_flow_failure tags events where _Psi2 & _v2 are set to 0 because there are no strips for flow
+  //and when sEPD _Psi2 has no determined _Psi2 because the event is outside +/- z = 60cm
   _Psi2 = 0;
   _v2 = 0;
   _nStrips = 0;
+  _is_flow_failure = false;
 
   if (_do_flow == 0)
   {
@@ -750,6 +755,10 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
               auto _EPDNS = epmap->get(EventplaneinfoMap::sEPDNS);
               _Psi2 = _EPDNS->get_shifted_psi(2);
           }
+          else
+          {
+            _is_flow_failure = true;
+          }
       }
 
       // determine v2 from calo regardless of origin of Psi2
@@ -768,6 +777,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       _Psi2 = 0;
       _v2 = 0;
       _nStrips = 0;
+      _is_flow_failure = true;
       if (Verbosity() > 0)
       {
         std::cout << "DetermineTowerBackground::process_event: no full strips available for flow modulation, setting v2 and Psi = 0" << std::endl;
@@ -959,6 +969,8 @@ void DetermineTowerBackground::FillNode(PHCompositeNode *topNode)
     towerbackground->set_nStripsUsedForFlow(_nStrips);
 
     towerbackground->set_nTowersUsedForBkg(_nTowers);
+
+    towerbackground->set_flow_failure_flag(_is_flow_failure);
   }
 
   return;
