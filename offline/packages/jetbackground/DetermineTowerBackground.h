@@ -90,6 +90,7 @@ class DetermineTowerBackground : public SubsysReco
   Jet::PROPERTY _index_SeedItr{};
 
   bool m_use_towerinfo{false};
+  bool _is_flow_failure{false};
 
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
   std::string EMTowerName;
