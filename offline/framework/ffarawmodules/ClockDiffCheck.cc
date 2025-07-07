@@ -28,6 +28,15 @@ ClockDiffCheck::ClockDiffCheck(const std::string &name)
 {
 }
 
+ClockDiffCheck::~ClockDiffCheck()
+{
+  for (auto &[packetid, tup] : m_PacketStuffMap)
+  {
+    delete std::get<3>(tup);
+    std::get<3>(tup) = nullptr;
+  }
+}
+
 //____________________________________________________________________________..
 int ClockDiffCheck::InitRun(PHCompositeNode *topNode)
 {
@@ -68,6 +77,7 @@ int ClockDiffCheck::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 {
+  count++;
   //  PHNodeIterator
   PHNodeIterator topnodeiter(topNode);
   for (auto &iter : m_PacketStuffMap)
@@ -102,13 +112,20 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 
   for (const auto &iter : m_PacketNodeNames)
   {
+    if (iter == "14001") continue;
     CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
     if (!calopacket)
     {
-      //      std::cout << "ClockDiffCheck: " << "could not find " << iter << " node" << std::endl;
+      std::cout << "ClockDiffCheck: " << "could not find " << iter << " node" << std::endl;
     }
     else
     {
+      if (calopacket->getStatus() != OfflinePacket::PACKET_OK)
+      {
+        std::cout << "ClockDiffCheck: packet " << iter << " marked as dropped. Skipping diff check " << count << std::endl;
+        std::get<1>(m_PacketStuffMap[std::stoi(iter)]) = std::numeric_limits<uint64_t>::max();
+        continue;
+      }
       FillCaloClockDiffSngl(calopacket);
     }
   }
@@ -320,10 +337,6 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
 void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
 {
   unsigned int packetid = calopkt->getIdentifier();
-  if (packetid > 1000000)
-  {
-    return;
-  }
   if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
   {
     std::string hname = "clkdiff" + std::to_string(packetid);
@@ -357,6 +370,7 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
       std::get<2>(pktiter) = clkdiff;
       std::get<4>(pktiter) = true;
     }
+
     if (Verbosity() > 2)
     {
       std::cout << "ClockDiffCheck: " << "packet " << packetid << ", clk: " << std::hex << clk
@@ -370,10 +384,6 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
 void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
 {
   unsigned int packetid = pkt->getIdentifier();
-  if (packetid > 1000000)
-  {
-    return;
-  }
   uint64_t clk = (pkt->getBCO() & 0xFFFFFFFF);
   if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
   {
