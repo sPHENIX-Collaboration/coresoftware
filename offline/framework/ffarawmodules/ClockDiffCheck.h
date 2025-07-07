@@ -22,7 +22,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
  public:
   ClockDiffCheck(const std::string &name = "ClockDiffCheck");
 
-  ~ClockDiffCheck() override = default;
+  ~ClockDiffCheck() override;
 
   int InitRun(PHCompositeNode *topNode) override;
 
@@ -42,6 +42,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   {
     return delBadPkts;
   }
+  int count{0};
 
  private:
   bool delBadPkts{false};
