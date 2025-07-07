@@ -139,11 +139,29 @@ int SingleTriggeredInput::FillEventVector(int index)
         evt = GetEventIterator()->getNextEvent();
       }
       m_Gl1_SkipEvents--;
-      if (Verbosity() > 0)
+      // in run2pp up to run 48706 (first ok physics run with our seletcion) the gl1 packet numbers
+      // are off (each by 2?) which triggers the gl1 skip event
+      // This patch calculates the current clock diffand compares to the gl1. If they match - the gl1
+      // must not be skipped. Chances of a random match are low - this would require a 32 bit rollover which
+      // at 10MHz is > 400 sec between events and you have to hit the exact bunch crossing
+      // even if this happens - the next even will just fail the clock check
+      if (m_Gl1_SkipEvents > 0 && Gl1Input() != this)
       {
-        if (m_Gl1_SkipEvents > 0)
+        uint64_t tmpclkdiff = calccurrentclockdiff(index, evt);
+        if (tmpclkdiff == Gl1Input()->get_clkdiff(index))
         {
-          std::cout << Name() << " Skipping Event " << evt->getEvtSequence() << std::endl;
+          if (Verbosity() > 0)
+          {
+            std::cout << Name() << " clock diff works out, not skipping " << evt->getEvtSequence() << std::endl;
+          }
+          m_Gl1_SkipEvents = 0;
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+            std::cout << Name() << " Skipping Event " << evt->getEvtSequence() << std::endl;
+          }
         }
       }
     } while (m_Gl1_SkipEvents > 0);
@@ -254,15 +272,15 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
     {
       std::cout << "checking packet " << iter->getIdentifier() << std::endl;
     }
-    uint64_t pktclock = static_cast<uint64_t>(iter->lValue(0, "CLOCK") & 0xFFFFFFFF); // NOLINT (hicpp-signed-bitwise)
+    uint64_t pktclock = static_cast<uint64_t>(iter->lValue(0, "CLOCK") & 0xFFFFFFFF);  // NOLINT (hicpp-signed-bitwise)
     if (iter->getStatus())
     {
       std::cout << "Event " << evt->getEvtSequence() << " Packet " << iter->getIdentifier()
-		<< " has non zero status: " << iter->getStatus()
-		<< " dropping it from clock check" << std::endl;
+                << " has non zero status: " << iter->getStatus()
+                << " dropping it from clock check" << std::endl;
       continue;
     }
-    if (! refclockset)
+    if (!refclockset)
     {
       clock = pktclock;
       refclockset = true;
@@ -274,9 +292,9 @@ uint64_t SingleTriggeredInput::GetClock(Event *evt)
       if (icnt < 100)
       {
         std::cout << "clock problem for packet " << iter->getIdentifier() << std::hex
-		  << " clock value: 0x" << pktclock << std::dec
-		  << " ref clock: 0x" << clock << std::dec
-		  << ", status: " << iter->getStatus() << std::endl;
+                  << " clock value: 0x" << pktclock << std::dec
+                  << " ref clock: 0x" << clock << std::dec
+                  << ", status: " << iter->getStatus() << std::endl;
         icnt++;
       }
     }
@@ -365,7 +383,7 @@ void SingleTriggeredInput::CreateDSTNodes(Event *evt)
 int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
 {
   CaloPacket *calopkt = dynamic_cast<CaloPacket *>(pkt);
-  if (!calopkt) // this is a dumb check, should really segfault
+  if (!calopkt)  // this is a dumb check, should really segfault
   {
     std::cout << PHWHERE << ": packet null pointer, returning zero" << std::endl;
     return 0;
@@ -810,4 +828,24 @@ void SingleTriggeredInput::ResetClockDiffCounters()
   m_bclkdiffarray.fill(std::numeric_limits<uint64_t>::max());
   m_bclkarray[0] = tmp;
   return;
+}
+
+uint64_t SingleTriggeredInput::calccurrentclockdiff(const int index, Event *evt)
+{
+  uint64_t myClock = GetClock(evt);
+  uint64_t currentclockdiff{0};
+  if (myClock < m_bclkarray[index])
+  {
+    currentclockdiff = myClock + 0x100000000 - m_bclkarray[index];
+  }
+  else
+  {
+    currentclockdiff = myClock - m_bclkarray[index];
+  }
+  if (Verbosity() > 1)
+  {
+    std::cout << Name() << " calc clkdiff: 0x" << std::hex << currentclockdiff
+              << " gl1: 0x" << Gl1Input()->get_clkdiff(index) << std::dec << std::endl;
+  }
+  return currentclockdiff;
 }
