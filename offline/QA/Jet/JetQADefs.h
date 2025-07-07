@@ -32,8 +32,8 @@ namespace JetQADefs
   //! Trigger flags
   // -------------------------------------------------------------------------
   /*! Enumerates possible triggers for easy reference in QA modules
-   *  and Fun4all macros. Note that any missing indices (e.g. 6, 7)
-   *  correspond to trigger bits that are currently unused.
+   *  and Fun4all macros. Note that these numbers ARE NOT necessarily 
+   *  matched to the trigger bit numbers
    */
   enum GL1
   {
@@ -66,7 +66,19 @@ namespace JetQADefs
     Photon1         = 28, /*!< Photon 2 GeV (no MBD coincidence) */
     Photon2         = 29, /*!< Photon 3 GeV (no MBD coincidence) */
     Photon3         = 30, /*!< Photon 4 GeV (no MBD coincidence) */
-    Photon4         = 31  /*!< Photon 5 GeV (no MBD coincidence) */
+    Photon4         = 31, /*!< Photon 5 GeV (no MBD coincidence) */
+    MBDNS2Vtx10     = 32, /*!< MBD N&S >= 2, vtx < 10 cm */
+    MBDNS2Vtx30     = 33, /*!< MBD N&S >= 2, vtx < 30 cm */
+    MBDNS2Vtx60     = 34, /*!< MBD N&S >= 2, vtx < 60 cm */
+    MBDNS2Vtx150    = 35, /*!< MBD N&S >= 2, vtx < 150 cm */
+    MBDNS2Photon6Vtx10  = 36, /*!< Photon 6 GeV + MBD NS >= 2, vtx < 10 cm */
+    MBDNS2Photon8Vtx10  = 37, /*!< Photon 8 GeV + MBD NS >= 2, vtx < 10 cm */
+    MBDNS2Photon10Vtx10 = 38, /*!< Photon 10 GeV + MBD NS >= 2, vtx < 10 cm */
+    MBDNS2Photon12Vtx10 = 39, /*!< Photon 12 GeV + MBD NS >= 2, vtx < 10 cm */
+    MBDNS2Photon6Vtx150 = 40, /*!< Photon 6 GeV + MBD NS >= 2, vtx < 150 cm */
+    MBDNS2Photon8Vtx150 = 41, /*!< Photon 8 GeV + MBD NS >= 2, vtx < 150 cm */
+    MBDNS2Photon10Vtx150 = 42, /*!< Photon 10 GeV + MBD NS >= 2, vtx < 150 cm */
+    MBDNS2Photon12Vtx150 = 43 /*!< Photon 12 GeV + MBD NS >= 2, vtx < 150 cm */
   };
 
   // constants ----------------------------------------------------------------
@@ -96,6 +108,10 @@ namespace JetQADefs
       {MBDNSVtx10      , "MBD N&S >= 1, vtx < 10 cm"},
       {MBDNSVtx30      , "MBD N&S >= 1, vtx < 30 cm"},
       {MBDNSVtx60      , "MBD N&S >= 1, vtx < 60 cm"},
+      {MBDNS2Vtx10     , "MBD N&S >= 2, vtx < 10 cm"},
+      {MBDNS2Vtx30     , "MBD N&S >= 2, vtx < 30 cm"},
+      {MBDNS2Vtx60     , "MBD N&S >= 2, vtx < 60 cm"},
+      {MBDNS2Vtx150    , "MBD N&S >= 2, vtx < 150 cm"},
       {MBDNSHCalSingle , "HCAL Singles + MBD NS >= 1"},
       {MBDNSJet1       , "Jet 6 GeV + MBD NS >= 1"},
       {MBDNSJet2       , "Jet 8 GeV + MBD NS >= 1"},
@@ -109,6 +125,14 @@ namespace JetQADefs
       {MBDNSPhoton2    , "Photon 3 GeV + MBD NS >= 1"},
       {MBDNSPhoton3    , "Photon 4 GeV + MBD NS >= 1"},
       {MBDNSPhoton4    , "Photon 5 GeV + MBD NS >= 1"},
+      {MBDNS2Photon6Vtx10   , "Photon 6 GeV + MBD NS >= 2, vtx < 10 cm"},
+      {MBDNS2Photon8Vtx10   , "Photon 8 GeV + MBD NS >= 2, vtx < 10 cm"},
+      {MBDNS2Photon10Vtx10  , "Photon 10 GeV + MBD NS >= 2, vtx < 10 cm"},
+      {MBDNS2Photon12Vtx10  , "Photon 12 GeV + MBD NS >= 2, vtx < 10 cm"},
+      {MBDNS2Photon6Vtx150   , "Photon 6 GeV + MBD NS >= 2, vtx < 150 cm"},
+      {MBDNS2Photon8Vtx150   , "Photon 8 GeV + MBD NS >= 2, vtx < 150 cm"},
+      {MBDNS2Photon10Vtx150  , "Photon 10 GeV + MBD NS >= 2, vtx < 150 cm"},
+      {MBDNS2Photon12Vtx150  , "Photon 12 GeV + MBD NS >= 2, vtx < 150 cm"},
       {Photon1         , "Photon 2 GeV"},
       {Photon2         , "Photon 3 GeV"},
       {Photon3         , "Photon 4 GeV"},
