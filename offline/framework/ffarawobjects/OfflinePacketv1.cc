@@ -21,6 +21,16 @@ void OfflinePacketv1::Reset()
 void OfflinePacketv1::identify(std::ostream &os) const
 {
   os << "Id: " << getIdentifier() << std::endl;
+  os << "Status: " << getStatus();
+  if (getStatus())
+  {
+    std::cout << " --> Bad";
+  }
+  else
+  {
+    std::cout << " --> Good";
+  }
+  std::cout << std::endl;
   os << "EvtSeq: " << getEvtSequence() << std::endl;
   os << "BCO: 0x" << std::hex << getBCO() << std::dec << std::endl;
   return;

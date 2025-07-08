@@ -61,24 +61,22 @@ Fun4AllTriggeredInputManager::~Fun4AllTriggeredInputManager()
 
 int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
 {
-  m_Gl1TriggeredInput->FillPool();
-  for (auto *iter : m_TriggeredInputVector)
+  int iret = FillPools();
+  if (iret)
   {
-    //    std::cout << "prdf input: " << iter->Name() << std::endl;
-    iter->FillPool();
-    if (iter->AllDone())
-    {
-      return -1;
-    }
+    return iret;
   }
   m_Gl1TriggeredInput->ReadEvent();
-  for (auto *iter : m_TriggeredInputVector)
+  if (!m_OnlyGl1Flag)
   {
-    //    std::cout << "prdf input: " << iter->Name() << std::endl;
-    iter->ReadEvent();
-    if (iter->AllDone())
+    for (auto *iter : m_TriggeredInputVector)
     {
-      return -1;
+      //    std::cout << "prdf input: " << iter->Name() << std::endl;
+      iter->ReadEvent();
+      if (iter->AllDone())
+      {
+        return -1;
+      }
     }
   }
 
@@ -200,4 +198,58 @@ void Fun4AllTriggeredInputManager::registerTriggeredInput(SingleTriggeredInput *
   //  prdfin->CreateDSTNode(m_topNode);
   //  prdfin->TriggerInputManager(this);
   return;
+}
+
+int Fun4AllTriggeredInputManager::FillPools()
+{
+  if (m_Gl1TriggeredInput->NeedsRefill())
+  {
+    m_Gl1TriggeredInput->ResetClockDiffCounters();
+    // std::cout << "After reset: " << std::endl;
+    // m_Gl1TriggeredInput->dumpdeque();
+    if (!m_OnlyGl1Flag)
+    {
+      for (auto *iter : m_TriggeredInputVector)
+      {
+        //    std::cout << "prdf input: " << iter->Name() << std::endl;
+        iter->ResetClockDiffCounters();
+      }
+    }
+    int index = 0;
+    while (!m_Gl1TriggeredInput->DoneFilling())
+    {
+      //      std::cout << "calling fillpool" << std::endl;
+      m_Gl1TriggeredInput->FillPool(index);
+      //      m_Gl1TriggeredInput->dumpdeque();
+
+      if (!m_OnlyGl1Flag)
+      {
+        for (auto *iter : m_TriggeredInputVector)
+        {
+          //    std::cout << "prdf input: " << iter->Name() << std::endl;
+          iter->FillPool(index);
+        }
+      }
+      index++;
+    }
+    // std::cout << "should be full now" << std::endl;
+    //   m_Gl1TriggeredInput->dumpdeque();
+    if (!m_OnlyGl1Flag)
+    {
+      for (auto *iter : m_TriggeredInputVector)
+      {
+        // the reading has stopped already and all seb clock diffs are 0xFFFF....
+        // and the RunCheck() will just keep repeating that the clock diffs are different
+        if (!iter->FilesDone())
+        {
+          iter->RunCheck();
+        }
+        if (iter->AllDone())
+        {
+          return -1;
+        }
+      }
+    }
+  }
+  return 0;
 }

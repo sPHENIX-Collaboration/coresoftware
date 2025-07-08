@@ -39,8 +39,15 @@ class TpcSpaceChargeMatrixInversion : public Fun4AllBase
   /// add space charge correction matrix, loaded from file, to current. Returns true on success
   bool add_from_file(const std::string& /*filename*/, const std::string& /*objectname*/ = "TpcSpaceChargeMatrixContainer");
 
+  enum class InversionMode
+  {
+    FullInversion,        // use 3D matrices (phi,z,r)
+    ReducedInversion_phi, // use 3D reduced matrices, use phi residuals to get delta_r
+    ReducedInversion_z    // use 3D reduced matrices, use z residuals to get delta_r
+  };
+
   /// calculate distortions by inverting stored matrices, and save relevant histograms
-  void calculate_distortion_corrections();
+  void calculate_distortion_corrections(const InversionMode = InversionMode::FullInversion);
 
   /// extrapolate distortions
   void extrapolate_distortion_corrections();

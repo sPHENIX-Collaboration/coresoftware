@@ -31,7 +31,7 @@ class SiliconSeedsQA : public SubsysReco
   void setVertexMapName(const std::string &name) { m_vertexMapName = name; }
 
  private:
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack *track);
+  static std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack *track);
   void createHistos();
   std::string getHistoPrefix() const;
 

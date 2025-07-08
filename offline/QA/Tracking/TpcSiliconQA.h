@@ -25,10 +25,10 @@ class TpcSiliconQA : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int EndRun(const int runnumber) override;
 
-  void setXCut(float cutVal) {m_xcut = cutVal;}
-  void setYCut(float cutVal) {m_ycut = cutVal;}
-  void setEtaCut(float cutVal) {m_etacut = cutVal;}
-  void setPhiCut(float cutVal) {m_phicut = cutVal;}
+  void setXCut(float cutVal) { m_xcut = cutVal; }
+  void setYCut(float cutVal) { m_ycut = cutVal; }
+  void setEtaCut(float cutVal) { m_etacut = cutVal; }
+  void setPhiCut(float cutVal) { m_phicut = cutVal; }
 
  private:
   void createHistos();
@@ -58,7 +58,7 @@ class TpcSiliconQA : public SubsysReco
   TH1 *h_etaDiff[8] = {nullptr};
   TH1 *h_xDiff[8] = {nullptr};
   TH1 *h_yDiff[8] = {nullptr};
-  TH1 *h_zDiff[8] = {nullptr}; 
+  TH1 *h_zDiff[8] = {nullptr};
 };
 
 #endif  // QA_TRACKING_TPCSILICONQA_H

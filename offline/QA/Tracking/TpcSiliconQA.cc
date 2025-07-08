@@ -20,8 +20,8 @@
 #include <TH1.h>
 #include <TH2.h>
 
-#include <iomanip>
 #include <boost/format.hpp>
+#include <iomanip>
 
 //____________________________________________________________________________..
 TpcSiliconQA::TpcSiliconQA(const std::string& name)
@@ -40,16 +40,16 @@ int TpcSiliconQA::InitRun(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int TpcSiliconQA::process_event(PHCompositeNode* topNode)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+  auto* silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   if (!silseedmap)
   {
     std::cout << "Silicon seed map not found, aborting event" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+  auto* tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   if (!tpcseedmap)
   {
     std::cout << "TPC seed map not found, aborting event" << std::endl;
@@ -180,10 +180,13 @@ std::string TpcSiliconQA::getHistoPrefix() const
 
 void TpcSiliconQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  std::stringstream stream1, stream2, stream3, stream4;
+  std::stringstream stream1;
+  std::stringstream stream2;
+  std::stringstream stream3;
+  std::stringstream stream4;
   stream1 << std::fixed << std::setprecision(2) << m_xcut;
   stream2 << std::fixed << std::setprecision(2) << m_ycut;
   stream3 << std::fixed << std::setprecision(2) << m_etacut;
@@ -191,13 +194,13 @@ void TpcSiliconQA::createHistos()
 
   std::vector<std::string> cutNames = {"", "_xyCut", "_etaCut", "_phiCut", "North", "South", "NorthAllCuts", "SouthAllCuts"};
   std::vector<std::string> cutVals = {"All Track Seeds",
-                         std::string("|xdiff| < " + stream1.str() + "cm , |ydiff| < " + stream2.str() + "cm"),
-                         std::string("xy cuts and |etadiff| < " + stream3.str()),
-                         std::string("xy, eta cuts and |phidiff| < " + stream4.str()),
-                         "All Track Seeds (North Only)",
-                         "All Track Seeds (South Only)",
-                         "North All Cuts (x,y,eta,phi)",
-                         "South All Cuts (x,y,eta,phi)"};
+                                      std::string("|xdiff| < " + stream1.str() + "cm , |ydiff| < " + stream2.str() + "cm"),
+                                      std::string("xy cuts and |etadiff| < " + stream3.str()),
+                                      std::string("xy, eta cuts and |phidiff| < " + stream4.str()),
+                                      "All Track Seeds (North Only)",
+                                      "All Track Seeds (South Only)",
+                                      "North All Cuts (x,y,eta,phi)",
+                                      "South All Cuts (x,y,eta,phi)"};
 
   {
     h_crossing = new TH1F(std::string(getHistoPrefix() + "crossing").c_str(),
