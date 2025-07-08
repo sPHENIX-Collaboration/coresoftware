@@ -35,13 +35,14 @@ namespace TrksInJetQADefs
   typedef std::tuple<std::string, BinDef, BinDef> HistDef2D;
   typedef std::vector<HistDef1D> VecHistDef1D;
   typedef std::vector<HistDef2D> VecHistDef2D;
-  typedef std::map<std::string, HistDef1D> MapHistDef1D;
-  typedef std::map<std::string, HistDef2D> MapHistDef2D;
   typedef std::vector<std::vector<TH1D*>> VecHist1D;
   typedef std::vector<std::vector<TH2D*>> VecHist2D;
-  typedef std::map<std::string, TH1D*> MapHist1D;
-  typedef std::map<std::string, TH2D*> MapHist2D;
   typedef std::vector<std::string> VecHistTypes;
+  typedef std::map<int, HistDef1D> MapHistDef1D;
+  typedef std::map<int, HistDef2D> MapHistDef2D;
+  typedef std::map<int, TH1D*> MapHist1D;
+  typedef std::map<int, TH2D*> MapHist2D;
+  typedef std::map<int, std::string> MapHistTypes;
   typedef ParticleFlowElement PFObject;
   typedef ParticleFlowElementContainer PFObjectStore;
 }

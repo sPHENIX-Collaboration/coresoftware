@@ -62,53 +62,49 @@ void TrksInJetQAClustManager::GetInfo(TrkrCluster* cluster,
 // ----------------------------------------------------------------------------
 //! Fill tracker cluster histograms
 // ----------------------------------------------------------------------------
-/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAClustManager::FillHistograms(const int type, ClustQAContent& content)
 {
   // fill 1d histograms
-  m_vecHist1D.at(type).at(H1D::PosX)->Fill(content.x);
-  m_vecHist1D.at(type).at(H1D::PosY)->Fill(content.y);
-  m_vecHist1D.at(type).at(H1D::PosZ)->Fill(content.z);
-  m_vecHist1D.at(type).at(H1D::PosR)->Fill(content.r);
+  m_mapHist1D[Index(type, H1D::PosX)]->Fill(content.x);
+  m_mapHist1D[Index(type, H1D::PosY)]->Fill(content.y);
+  m_mapHist1D[Index(type, H1D::PosZ)]->Fill(content.z);
+  m_mapHist1D[Index(type, H1D::PosR)]->Fill(content.r);
 
   // fill 2d histograms
-  m_vecHist2D.at(type).at(H2D::PosYvsX)->Fill(content.x, content.y);
-  m_vecHist2D.at(type).at(H2D::PosRvsZ)->Fill(content.z, content.r);
+  m_mapHist2D[Index(type, H2D::PosYvsX)]->Fill(content.x, content.y);
+  m_mapHist2D[Index(type, H2D::PosRvsZ)]->Fill(content.z, content.r);
 }  //  end 'FillHistograms(int, ClustQAContent&)'
 
 // ----------------------------------------------------------------------------
 //! Define tracker cluster histograms
 // ----------------------------------------------------------------------------
-/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAClustManager::DefineHistograms()
 {
   // grab binning schemes
   std::vector<TrksInJetQADefs::BinDef> vecBins = m_hist.GetVecHistBins();
 
   // set histogram types
-  m_vecHistTypes.emplace_back("All");
+  m_mapHistTypes[Type::All] = "All";
   if (m_config.doSubsysHist)
   {
-    m_vecHistTypes.emplace_back("Mvtx");
-    m_vecHistTypes.emplace_back("Intt");
-    m_vecHistTypes.emplace_back("Tpc");
+    m_mapHistTypes[Type::Mvtx] = "Mvtx";
+    m_mapHistTypes[Type::Intt] = "Intt";
+    m_mapHistTypes[Type::Tpc] = "Tpc";
   }
 
   // define 1d histograms
-  m_vecHistDef1D.emplace_back("ClustPosX", vecBins.at(TrksInJetQAHist::Var::PosXY));
-  m_vecHistDef1D.emplace_back("ClustPosY", vecBins.at(TrksInJetQAHist::Var::PosXY));
-  m_vecHistDef1D.emplace_back("ClustPosZ", vecBins.at(TrksInJetQAHist::Var::PosZ));
-  m_vecHistDef1D.emplace_back("ClustPosR", vecBins.at(TrksInJetQAHist::Var::PosR));
+  m_mapHistDef1D[H1D::PosX] = std::tuple("ClustPosX", vecBins.at(TrksInJetQAHist::Var::PosXY));
+  m_mapHistDef1D[H1D::PosY] = std::tuple("ClustPosY", vecBins.at(TrksInJetQAHist::Var::PosXY));
+  m_mapHistDef1D[H1D::PosZ] = std::tuple("ClustPosZ", vecBins.at(TrksInJetQAHist::Var::PosZ));
+  m_mapHistDef1D[H1D::PosR] = std::tuple("ClustPosR", vecBins.at(TrksInJetQAHist::Var::PosR));
 
   // define 2d histograms
-  m_vecHistDef2D.emplace_back(
-          "ClustPosYvsX",
-          vecBins.at(TrksInJetQAHist::Var::PosXY),
-          vecBins.at(TrksInJetQAHist::Var::PosXY));
-  m_vecHistDef2D.emplace_back(
-          "ClustPosRvsZ",
-          vecBins.at(TrksInJetQAHist::Var::PosZ),
-          vecBins.at(TrksInJetQAHist::Var::PosR));
+  m_mapHistDef2D[H2D::PosYvsX] = std::tuple("ClustPosYvsX",
+                                            vecBins.at(TrksInJetQAHist::Var::PosXY),
+                                            vecBins.at(TrksInJetQAHist::Var::PosXY));
+  m_mapHistDef2D[H2D::PosRvsZ] = std::tuple("ClustPosRvsZ",
+                                            vecBins.at(TrksInJetQAHist::Var::PosZ),
+                                            vecBins.at(TrksInJetQAHist::Var::PosR));
 }  // end 'BuildHistograms()'
 
 // end ========================================================================

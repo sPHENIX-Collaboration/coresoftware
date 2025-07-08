@@ -56,26 +56,24 @@ class TrksInJetQABaseManager
  protected:
   // private methods
   void BuildHistograms(const std::string& prefix = "", const std::string& suffix = "");
-  void ResetVectors();
 
   // private helper methods
   bool IsInMvtx(const uint16_t layer) const;
   bool IsInIntt(const uint16_t layer) const;
   bool IsInTpc(const uint16_t layer) const;
+  int Index(const int type, const int hist) const;
 
   // virtual private methods
   virtual void DefineHistograms() = 0;
 
   // histograms
-  // FIXME THIS IS WHAT I NEED TO CHANGE
-  TrksInJetQADefs::VecHist1D m_vecHist1D;
-  TrksInJetQADefs::VecHist2D m_vecHist2D;
+  TrksInJetQADefs::MapHist1D m_mapHist1D;
+  TrksInJetQADefs::MapHist2D m_mapHist2D;
 
   // histogram definitions
-  // FIXME THIS IS WHAT I NEED TO CHANGE
-  TrksInJetQADefs::VecHistTypes m_vecHistTypes;
-  TrksInJetQADefs::VecHistDef1D m_vecHistDef1D;
-  TrksInJetQADefs::VecHistDef2D m_vecHistDef2D;
+  TrksInJetQADefs::MapHistTypes m_mapHistTypes;
+  TrksInJetQADefs::MapHistDef1D m_mapHistDef1D;
+  TrksInJetQADefs::MapHistDef2D m_mapHistDef2D;
 
   // module utilities
   TrksInJetQAConfig m_config;

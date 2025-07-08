@@ -68,7 +68,7 @@ class TrksInJetQAClustManager : public TrksInJetQABaseManager
   // --------------------------------------------------------------------------
   /*! A small struct to consolidate what variables
    *  to histogram for clusters.
-   */
+   */ 
   struct ClustQAContent
   {
     double x = std::numeric_limits<double>::max();
