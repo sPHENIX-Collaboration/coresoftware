@@ -12,7 +12,8 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
   -isystem${G4_MAIN}/include \
-  -isystem$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include \
+  -fopenmp
 
 AM_LDFLAGS = \
   -L$(libdir) \
