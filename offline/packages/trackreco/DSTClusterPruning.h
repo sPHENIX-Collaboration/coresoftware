@@ -43,8 +43,8 @@ class DSTClusterPruning : public SubsysReco
   DSTClusterPruning(const std::string& = "DSTClusterPruning");
 
   //! run initialization
-  int Init(PHCompositeNode*) override;
-  //int InitRun(PHCompositeNode*) override;
+  //int Init(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode*) override;
 
   //! event processing
   int process_event(PHCompositeNode*) override;
