@@ -1,47 +1,56 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQABaseManager.cc'
-// Derek Anderson
-// 04.03.2024
-//
-// Base hist manager submodule for the TrksInJetQA module which
-// consolidates methods/data common to all of the hist managers
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQABaseManager.cc
+ *  \author Derek Anderson
+ *  \date   04.03.2024
+ *
+ *  Base hist manager submodule for the TrksInJetQA module which
+ *  consolidates methods/data common to all of the hist managers
+ */
+/// ===========================================================================
 
 #define TRKSINJETQABASEMANAGER_CC
 
-// submodule definition
 #include "TrksInJetQABaseManager.h"
 
-// ctor/dtor ------------------------------------------------------------------
+// ctor/dtor ==================================================================
 
-TrksInJetQABaseManager::TrksInJetQABaseManager(
-    TrksInJetQAConfig& config,
-    TrksInJetQAHist& hist) : m_config(config), m_hist(hist)
+// ----------------------------------------------------------------------------
+//! Default ctor
+// ----------------------------------------------------------------------------
+TrksInJetQABaseManager::TrksInJetQABaseManager(TrksInJetQAConfig& config,
+                                               TrksInJetQAHist& hist)
+  : m_config(config)
+  , m_hist(hist)
 {
   ResetVectors();
-
-  // grab vectors
-  
-  
-
 }  // end ctor(TrksInJetQAConfig&, TrksInJetQAHist&)
 
+// ----------------------------------------------------------------------------
+//! Default dtor
+// ----------------------------------------------------------------------------
 TrksInJetQABaseManager::~TrksInJetQABaseManager()
 {
   ResetVectors();
-
 }  // end dtor
 
-// public methods -------------------------------------------------------------
+// public methods =============================================================
 
-void TrksInJetQABaseManager::MakeHistograms(const std::string& prefix, const std::string& suffix)
+// ----------------------------------------------------------------------------
+//! Define and generate histograms for manager
+// ----------------------------------------------------------------------------
+void TrksInJetQABaseManager::MakeHistograms(const std::string& prefix,
+                                            const std::string& suffix)
 {
   DefineHistograms();
   BuildHistograms(prefix, suffix);
-  return;
-
 }  // end 'MakeHistograms(std::string)'
 
+// ----------------------------------------------------------------------------
+//! Save histograms to output file
+// ----------------------------------------------------------------------------
+/*! Note that this only relevant if output
+ *  mode is OutMode::File.
+ */
 void TrksInJetQABaseManager::SaveHistograms(TDirectory* topDir, const std::string& outDirName)
 {
   TDirectory* outDir = topDir->mkdir(outDirName.c_str());
@@ -66,10 +75,12 @@ void TrksInJetQABaseManager::SaveHistograms(TDirectory* topDir, const std::strin
       hist2D->Write();
     }
   }
-  return;
-
 }  // end 'SaveHistograms(TDirectory*, std::string)'
 
+// ----------------------------------------------------------------------------
+//! Grab histograms from manager
+// ----------------------------------------------------------------------------
+/*! FIXME THIS WILL NEED TO CHANGE */
 void TrksInJetQABaseManager::GrabHistograms(
     std::vector<TH1D*>& vecOutHist1D,
     std::vector<TH2D*>& vecOutHist2D)
@@ -88,19 +99,26 @@ void TrksInJetQABaseManager::GrabHistograms(
       vecOutHist2D.push_back(hist2D);
     }
   }
-  return;
-
 }  // end 'GrabHistograms(std::vector<TH1D*>&, std::vector<TH2D*>&)'
 
-// private methods ------------------------------------------------------------
+// private methods ============================================================
 
-void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const std::string& suffix)
+// ----------------------------------------------------------------------------
+//! Build histograms from definitions
+// ----------------------------------------------------------------------------
+/*! Note that the specific histogram definitions are
+ *  implemented in the derived classes.
+ *
+ *  FIXME THIS WILL NEED TO CHANGE
+ */
+void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix,
+                                             const std::string& suffix)
 {
   // build 1d histograms
   m_vecHist1D.resize(m_vecHistTypes.size());
   for (size_t iType = 0; iType < m_vecHistTypes.size(); iType++)
   {
-    for (HistDef1D histDef1D : m_vecHistDef1D)
+    for (const TrksInJetQADefs::HistDef1D& histDef1D : m_vecHistDef1D)
     {
       // make name
       std::string sHistName(prefix + "_");
@@ -129,13 +147,13 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
               std::get<1>(histDef1D).second.first,
               std::get<1>(histDef1D).second.second));
     }  // end hist loop
-  }    // end type loop
+  }  // end type loop
 
   // build 2d histograms
   m_vecHist2D.resize(m_vecHistTypes.size());
   for (size_t iType = 0; iType < m_vecHistTypes.size(); iType++)
   {
-    for (HistDef2D histDef2D : m_vecHistDef2D)
+    for (const TrksInJetQADefs::HistDef2D& histDef2D : m_vecHistDef2D)
     {
       // make name
       std::string sHistName(prefix + "_");
@@ -167,11 +185,13 @@ void TrksInJetQABaseManager::BuildHistograms(const std::string& prefix, const st
               std::get<2>(histDef2D).second.first,
               std::get<2>(histDef2D).second.second));
     }  // end hist loop
-  }    // end type loop
-  return;
-
+  }  // end type loop
 }  // end 'BuildHistograms(std::string)'
 
+// ----------------------------------------------------------------------------
+//! Reset histogram vectors
+// ----------------------------------------------------------------------------
+/*! FIXME THIS WILL NEED TO CHANGE */
 void TrksInJetQABaseManager::ResetVectors()
 {
   m_vecHist1D.clear();
@@ -183,26 +203,31 @@ void TrksInJetQABaseManager::ResetVectors()
 
 }  // end 'ResetVectors()'
 
-// private helper methods -----------------------------------------------------
+// private helper methods =====================================================
 
+// ----------------------------------------------------------------------------
+//! Check if a layer is in the MVTX
+// ----------------------------------------------------------------------------
 bool TrksInJetQABaseManager::IsInMvtx(const uint16_t layer) const
 {
   return (layer < m_config.nMvtxLayer);
-
 }  // end 'IsInMvtx(uint16_t)'
 
+// ----------------------------------------------------------------------------
+//! Check if a layer is in the INTT
+// ----------------------------------------------------------------------------
 bool TrksInJetQABaseManager::IsInIntt(const uint16_t layer) const
 {
-  return (
-      (layer >= m_config.nMvtxLayer) &&
-      (layer < m_config.nInttLayer + m_config.nMvtxLayer));
-
+  return ((layer >= m_config.nMvtxLayer) &&
+          (layer < m_config.nInttLayer + m_config.nMvtxLayer));
 }  // end 'IsInIntt(uint16_t)'
 
+// ----------------------------------------------------------------------------
+//! Check if a layer is in the TPC
+// ----------------------------------------------------------------------------
 bool TrksInJetQABaseManager::IsInTpc(const uint16_t layer) const
 {
   return (layer >= m_config.nMvtxLayer + m_config.nInttLayer);
-
 }  // end 'IsInTpc(uint16_t)'
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

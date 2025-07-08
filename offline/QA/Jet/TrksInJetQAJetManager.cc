@@ -1,22 +1,25 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAJetManager.cc'
-// Derek Anderson
-// 03.25.2024
-//
-// A submodule for the TrksInJetQA module
-// to generate QA plots for jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAJetManager.cc
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A submodule for the TrksInJetQA module
+ *  to generate QA plots for jets
+ */
+/// ===========================================================================
 
 #define TRKSINJETQAJETMANAGER_CC
 
 // submodule definition
 #include "TrksInJetQAJetManager.h"
 
-// public methods -------------------------------------------------------------
+// public methods =============================================================
 
-void TrksInJetQAJetManager::GetInfo(
-    Jet* jet,
-    std::optional<std::vector<SvtxTrack*>> tracks)
+// ----------------------------------------------------------------------------
+//! Get information from a jet
+// ----------------------------------------------------------------------------
+void TrksInJetQAJetManager::GetInfo(Jet* jet,
+                                    std::optional<std::vector<SvtxTrack*>> tracks)
 {
   // collect jet info
   JetQAContent jetContent{
@@ -35,16 +38,18 @@ void TrksInJetQAJetManager::GetInfo(
       jetContent.ptSum += track->get_pt();
 
     }  // end track loop
-  }    // end if tracks.has_value
+  }  // end if tracks.has_value
 
   // fill histograms
   FillHistograms(Type::All, jetContent);
-  return;
+}  // end 'GetInfo(Jet*, std::optional<std::vector<SvtxTrack*>>)'
 
-}  // end 'Process(PHCompositeNode*)'
+// private methods ============================================================
 
-// private methods ------------------------------------------------------------
-
+// ----------------------------------------------------------------------------
+//! Fill jet histograms
+// ----------------------------------------------------------------------------
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAJetManager::FillHistograms(const int type, JetQAContent& content)
 {
   // fill 1d histograms
@@ -57,14 +62,16 @@ void TrksInJetQAJetManager::FillHistograms(const int type, JetQAContent& content
   // fill 2d histograms
   m_vecHist2D.at(type).at(H2D::PtVsEta)->Fill(content.eta, content.pt);
   m_vecHist2D.at(type).at(H2D::PtSumVsPt)->Fill(content.pt, content.ptSum);
-  return;
-
 }  //  end 'FillHistograms(Type, JetQAContent&)'
 
+// ----------------------------------------------------------------------------
+//! Define jet histograms
+// ----------------------------------------------------------------------------
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAJetManager::DefineHistograms()
 {
   // grab binning schemes
-  std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
+  std::vector<TrksInJetQADefs::BinDef> vecBins = m_hist.GetVecHistBins();
 
   // histogram labels
   m_vecHistTypes.emplace_back("All");
@@ -85,8 +92,6 @@ void TrksInJetQAJetManager::DefineHistograms()
           "SumTrkVsJetPt",
           vecBins.at(TrksInJetQAHist::Var::Ene),
           vecBins.at(TrksInJetQAHist::Var::Ene));
-  return;
-
 }  // end 'DefineHistograms()'
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

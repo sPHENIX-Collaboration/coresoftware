@@ -26,7 +26,7 @@ pkginclude_HEADERS = \
   StructureinJets.h \
   TrksInJetQA.h \
   TrksInJetQAHist.h \
-  TrksInJetQATypes.h \
+  TrksInJetQADefs.h \
   TrksInJetQAConfig.h \
   TrksInJetQABaseFiller.h \
   TrksInJetQAInJetFiller.h \

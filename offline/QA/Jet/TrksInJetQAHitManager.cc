@@ -1,20 +1,26 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAHitManager.cc'
-// Derek Anderson
-// 03.25.2024
-//
-// A submodule for the TrksInJetQA module
-// to generate QA plots for track hits
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAHitManager.cc
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A submodule for the TrksInJetQA module
+ *  to generate QA plots for track hits
+ */
+/// ===========================================================================
 
 #define TRKSINJETQAHITMANAGER_CC
 
 // submodule definition
 #include "TrksInJetQAHitManager.h"
 
-// public methods -------------------------------------------------------------
+// public methods =============================================================
 
-void TrksInJetQAHitManager::GetInfo(TrkrHit* hit, TrkrDefs::hitsetkey& setKey, TrkrDefs::hitkey& hitKey)
+// ----------------------------------------------------------------------------
+//! Get information from a tracker hit
+// ----------------------------------------------------------------------------
+void TrksInJetQAHitManager::GetInfo(TrkrHit* hit,
+                                    TrkrDefs::hitsetkey& setKey,
+                                    TrkrDefs::hitkey& hitKey)
 {
   // check which subsystem hit is in
   const uint16_t layer = TrkrDefs::getLayer(setKey);
@@ -68,12 +74,14 @@ void TrksInJetQAHitManager::GetInfo(TrkrHit* hit, TrkrDefs::hitsetkey& setKey, T
       FillHistograms(Type::Tpc, content);
     }
   }
-  return;
-
 }  // end 'GetInfo(TrkrHit*, TrkrDefs::hitsetkey&, TrkrDefs::hitkey&)'
 
-// private methods ------------------------------------------------------------
+// private methods ============================================================
 
+// ----------------------------------------------------------------------------
+//! Fill tracker hit histograms
+// ----------------------------------------------------------------------------
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAHitManager::FillHistograms(const int type, HitQAContent& content)
 {
   // fill 1d histograms
@@ -87,14 +95,16 @@ void TrksInJetQAHitManager::FillHistograms(const int type, HitQAContent& content
   m_vecHist2D.at(type).at(H2D::EneVsLayer)->Fill(content.layer, content.ene);
   m_vecHist2D.at(type).at(H2D::EneVsADC)->Fill(content.adc, content.ene);
   m_vecHist2D.at(type).at(H2D::PhiVsZBin)->Fill(content.zBin, content.phiBin);
-  return;
-
 }  //  end 'FillHistograms(Type, HitQAContent&)'
 
+// ----------------------------------------------------------------------------
+//! Define tracker hit histograms
+// ----------------------------------------------------------------------------
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAHitManager::DefineHistograms()
 {
   // grab binning schemes
-  std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
+  std::vector<TrksInJetQADefs::BinDef> vecBins = m_hist.GetVecHistBins();
 
   // set histogram types
   m_vecHistTypes.emplace_back("All");
@@ -125,8 +135,6 @@ void TrksInJetQAHitManager::DefineHistograms()
           "HitPhiVsZBin",
           vecBins.at(TrksInJetQAHist::Var::ZBin),
           vecBins.at(TrksInJetQAHist::Var::PhiBin));
-  return;
-
 }  // end 'DefineHistograms()'
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

@@ -1,20 +1,19 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAInJetFiller.h'
-// Derek Anderson
-// 04.03.2024
-//
-// A submodule for the TrksInJetsQA F4A module to produce
-// QA histograms for tracks and more in jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAInJetFiller.h
+ *  \author Derek Anderson
+ *  \date   04.03.2024
+ *
+ *  A submodule for the TrksInJetsQA F4A module to produce
+ *  QA histograms for tracks and more in jets
+ */
+/// ===========================================================================
 
 #ifndef TRKSINJETQAINJETFILLER_H
 #define TRKSINJETQAINJETFILLER_H
 
 // module utilities
-#include "TrksInJetQATypes.h"
-
-// submodule definitions
 #include "TrksInJetQABaseFiller.h"
+#include "TrksInJetQADefs.h"
 
 // g4eval includes
 #include <g4eval/ClusKeyIter.h>
@@ -47,12 +46,16 @@
 #include <cassert>
 #include <vector>
 
-// TrksInJetQAInJetFiller -----------------------------------------------------
-
+// ============================================================================
+//! In-jet histogram filler for TrksInJetQA module
+// ============================================================================
+/*! This histogram filler defines how to fill histograms
+ *  for in-jet populations.
+ */
 class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller
 {
  public:
-  // additional nodes to grab
+  ///! enumerates additional nodes to grab
   enum Node
   {
     Flow
@@ -75,11 +78,11 @@ class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller
   static bool IsCstNotRelevant(const uint32_t type);
   bool IsTrkInList(const uint32_t id);
   static double GetTrackJetDist(SvtxTrack* track, Jet* jet);
-  PFObject* GetPFObject(const uint32_t id, PHCompositeNode* topNode);
-  static SvtxTrack* GetTrkFromPFO(PFObject* pfo);
+  TrksInJetQADefs::PFObject* GetPFObject(const uint32_t id, PHCompositeNode* topNode);
+  static SvtxTrack* GetTrkFromPFO(TrksInJetQADefs::PFObject* pfo);
 
-  // additional dst nodes needed
-  PFObjectStore* m_flowStore {nullptr};
+  ///! node of particle flow elements
+  TrksInJetQADefs::PFObjectStore* m_flowStore {nullptr};
 
   // for tracks in jet
   std::vector<SvtxTrack*> m_trksInJet;
@@ -88,4 +91,4 @@ class TrksInJetQAInJetFiller : public TrksInJetQABaseFiller
 
 #endif
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

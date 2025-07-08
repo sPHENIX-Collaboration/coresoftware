@@ -1,19 +1,23 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQATrkManager.cc'
-// Derek Anderson
-// 03.25.2024
-//
-// A submodule for the TrksInJetQA module to generate
-// QA plots for tracks
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQATrkManager.cc
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A submodule for the TrksInJetQA module to generate
+ *  QA plots for tracks
+ */
+/// ===========================================================================
 
 #define TRKSINJETQATRKMANAGER_CC
 
 // submodule definition
 #include "TrksInJetQATrkManager.h"
 
-// public methods -------------------------------------------------------------
+// public methods =============================================================
 
+// ----------------------------------------------------------------------------
+//! Get information from a track
+// ----------------------------------------------------------------------------
 void TrksInJetQATrkManager::GetInfo(SvtxTrack* track)
 {
   // collect track info
@@ -25,12 +29,14 @@ void TrksInJetQATrkManager::GetInfo(SvtxTrack* track)
 
   // fill histograms
   FillHistograms(Type::All, content);
-  return;
-
 }  // end 'GetInfo(SvtxTrack*)'
 
-// private methods ------------------------------------------------------------
+// private methods ============================================================
 
+// ----------------------------------------------------------------------------
+//! Fill track histograms
+// ---------------------------------------------------------------------------- 
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQATrkManager::FillHistograms(const int type, TrackQAContent& content)
 {
   // fill 1d histograms
@@ -42,14 +48,16 @@ void TrksInJetQATrkManager::FillHistograms(const int type, TrackQAContent& conte
   // fill 2d histograms
   m_vecHist2D.at(type).at(H2D::EtaVsPhi)->Fill(content.phi, content.eta);
   m_vecHist2D.at(type).at(H2D::PtVsQual)->Fill(content.qual, content.pt);
-  return;
-
 }  //  end 'FillHistograms(Type, TrackQAContent&)'
 
+// ----------------------------------------------------------------------------
+//! Define track histograms
+// ----------------------------------------------------------------------------
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQATrkManager::DefineHistograms()
 {
   // grab binning schemes
-  std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
+  std::vector<TrksInJetQADefs::BinDef> vecBins = m_hist.GetVecHistBins();
 
   // set histogram types
   m_vecHistTypes.emplace_back("All");
@@ -69,8 +77,6 @@ void TrksInJetQATrkManager::DefineHistograms()
           "TrackPtVsQual",
           vecBins.at(TrksInJetQAHist::Var::Qual),
           vecBins.at(TrksInJetQAHist::Var::Ene));
-  return;
+}  // end 'DefineHistograms()'
 
-}  // end 'BuildHistograms()'
-
-// end ------------------------------------------------------------------------
+// end ========================================================================

@@ -1,20 +1,26 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAClustManager.cc'
-// Derek Anderson
-// 03.25.2024
-//
-// A submodule for the TrksInJetQA module to generate
-// QA plots for track clusters
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAClustManager.cc
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A submodule for the TrksInJetQA module to generate
+ *  QA plots for track clusters
+ */
+/// ============================================================================
 
 #define TRKSINJETQACLUSTMANAGER_CC
 
 // submodule definition
 #include "TrksInJetQAClustManager.h"
 
-// public methods -------------------------------------------------------------
+// public methods =============================================================
 
-void TrksInJetQAClustManager::GetInfo(TrkrCluster* cluster, TrkrDefs::cluskey& clustKey, ActsGeometry* actsGeom)
+// ----------------------------------------------------------------------------
+//! Grab information from a tracker cluster
+// ----------------------------------------------------------------------------
+void TrksInJetQAClustManager::GetInfo(TrkrCluster* cluster,
+                                      TrkrDefs::cluskey& clustKey,
+                                      ActsGeometry* actsGeom)
 {
   // check which subsystem cluster is in
   const uint16_t layer = TrkrDefs::getLayer(clustKey);
@@ -49,11 +55,14 @@ void TrksInJetQAClustManager::GetInfo(TrkrCluster* cluster, TrkrDefs::cluskey& c
       FillHistograms(Type::Tpc, content);
     }
   }
-
 }  // end GetInfo(TrkrCluster*, TrkrDefs::cluskey&, ActsGeometry*)'
 
-// private methods ------------------------------------------------------------
+// private methods ============================================================
 
+// ----------------------------------------------------------------------------
+//! Fill tracker cluster histograms
+// ----------------------------------------------------------------------------
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAClustManager::FillHistograms(const int type, ClustQAContent& content)
 {
   // fill 1d histograms
@@ -65,14 +74,16 @@ void TrksInJetQAClustManager::FillHistograms(const int type, ClustQAContent& con
   // fill 2d histograms
   m_vecHist2D.at(type).at(H2D::PosYvsX)->Fill(content.x, content.y);
   m_vecHist2D.at(type).at(H2D::PosRvsZ)->Fill(content.z, content.r);
-  return;
-
 }  //  end 'FillHistograms(int, ClustQAContent&)'
 
+// ----------------------------------------------------------------------------
+//! Define tracker cluster histograms
+// ----------------------------------------------------------------------------
+/*! FIXME THIS NEEDS TO CHANGE */
 void TrksInJetQAClustManager::DefineHistograms()
 {
   // grab binning schemes
-  std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
+  std::vector<TrksInJetQADefs::BinDef> vecBins = m_hist.GetVecHistBins();
 
   // set histogram types
   m_vecHistTypes.emplace_back("All");
@@ -98,8 +109,6 @@ void TrksInJetQAClustManager::DefineHistograms()
           "ClustPosRvsZ",
           vecBins.at(TrksInJetQAHist::Var::PosZ),
           vecBins.at(TrksInJetQAHist::Var::PosR));
-  return;
-
 }  // end 'BuildHistograms()'
 
-// end ------------------------------------------------------------------------
+// end ========================================================================
