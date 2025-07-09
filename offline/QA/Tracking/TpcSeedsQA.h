@@ -4,10 +4,10 @@
 #define TPCSEEDSQA_H
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TpcDefs.h>
-#include <tpc/TpcGlobalPositionWrapper.h>
 #include <tpc/TpcClusterMover.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
+#include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <set>
 #include <string>
@@ -41,30 +41,30 @@ class TpcSeedsQA : public SubsysReco
   int End(PHCompositeNode* topNode) override;
 
   void setClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
-  const std::string &getClusterContainerName() { return m_clusterContainerName; }
+  const std::string& getClusterContainerName() { return m_clusterContainerName; }
   void setActsGeomName(const std::string& name) { m_actsGeomName = name; }
-  const std::string &getActsGeomName() { return m_actsGeomName; }
+  const std::string& getActsGeomName() { return m_actsGeomName; }
   void setG4GeomName(const std::string& name) { m_g4GeomName = name; }
-  const std::string &getG4GeomName() { return m_g4GeomName; }
+  const std::string& getG4GeomName() { return m_g4GeomName; }
   void setTrackMapName(const std::string& name) { m_trackMapName = name; }
-  const std::string &getTrackMapName() { return m_trackMapName; }
+  const std::string& getTrackMapName() { return m_trackMapName; }
   void setVertexMapName(const std::string& name) { m_vertexMapName = name; }
-  const std::string &gettVertexMapName() { return m_vertexMapName; }
+  const std::string& gettVertexMapName() { return m_vertexMapName; }
   float calc_dedx(TrackSeed* tpcseed);
   void setSegment(const int segment) { m_segment = segment; }
   void segment(const int seg) { m_segment = seg; }
   void setruntype(bool type) { collision_or_cosmics = type; }
 
  private:
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
+  static std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
   void createHistos();
   std::string getHistoPrefix() const;
   std::set<int> m_layers;
   std::multimap<int, int> m_layerRegionMap;
-  std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
-  float eta_to_theta(float eta);
-  float* cal_dedx_cluster(SvtxTrack *track);
-  float cal_track_length(SvtxTrack *track);
+  static std::pair<float, float> cal_tpc_eta_min_max(float vtxz);
+  static float eta_to_theta(float eta);
+  float* cal_dedx_cluster(SvtxTrack* track);
+  float cal_track_length(SvtxTrack* track);
 
   std::string m_clusterContainerName{"TRKR_CLUSTER"};
   std::string m_actsGeomName{"ActsGeometry"};
@@ -129,57 +129,57 @@ class TpcSeedsQA : public SubsysReco
   TH2* h_dedx{nullptr};
   TH1* h_mip_dedx{nullptr};
 
-  TH2* h_dedx_pq_z[10] = {nullptr};
+  TH2* h_dedx_pq_z[10]{nullptr};
   TH2* h_dedx_pcaz{nullptr};
 
-  TH2* h_adc_sector[3] = {nullptr};
-  TProfile* h_onepad_frac[3] = {nullptr};
+  TH2* h_adc_sector[3]{nullptr};
+  TProfile* h_onepad_frac[3]{nullptr};
 
-  TH1* h_cluster_phisize1_fraction_side0[3] = {nullptr};
-  TH1* h_cluster_phisize1_fraction_side1[3] = {nullptr};
+  TH1* h_cluster_phisize1_fraction_side0[3]{nullptr};
+  TH1* h_cluster_phisize1_fraction_side1[3]{nullptr};
 
-  TH1* h_clusphisize1pt_side0[3] = {nullptr};
-  TH1* h_clusphisize1pt_side1[3] = {nullptr};
-  TH1* h_clusphisizegeq1pt_side0[3] = {nullptr};
-  TH1* h_clusphisizegeq1pt_side1[3] = {nullptr};
+  TH1* h_clusphisize1pt_side0[3]{nullptr};
+  TH1* h_clusphisize1pt_side1[3]{nullptr};
+  TH1* h_clusphisizegeq1pt_side0[3]{nullptr};
+  TH1* h_clusphisizegeq1pt_side1[3]{nullptr};
 
-  TH2* h_cluster_phisize1_fraction_pt_side0[3] = {nullptr};
-  TH2* h_cluster_phisize1_fraction_pt_side1[3] = {nullptr};
+  TH2* h_cluster_phisize1_fraction_pt_side0[3]{nullptr};
+  TH2* h_cluster_phisize1_fraction_pt_side1[3]{nullptr};
 
-  TH1* h_cluster_phisize1_fraction_mean_side0[3] = {nullptr};
-  TH1* h_cluster_phisize1_fraction_mean_side1[3] = {nullptr};
+  TH1* h_cluster_phisize1_fraction_mean_side0[3]{nullptr};
+  TH1* h_cluster_phisize1_fraction_mean_side1[3]{nullptr};
 
-  TH1* h_cluster_phisize1_fraction_mean_numerator_side0[3] = {nullptr};
-  TH1* h_cluster_phisize1_fraction_mean_numerator_side1[3] = {nullptr};
+  TH1* h_cluster_phisize1_fraction_mean_numerator_side0[3]{nullptr};
+  TH1* h_cluster_phisize1_fraction_mean_numerator_side1[3]{nullptr};
 
-  TH1* h_cluster_phisize1_fraction_mean_denominator_side0[3] = {nullptr};
-  TH1* h_cluster_phisize1_fraction_mean_denominator_side1[3] = {nullptr};
+  TH1* h_cluster_phisize1_fraction_mean_denominator_side0[3]{nullptr};
+  TH1* h_cluster_phisize1_fraction_mean_denominator_side1[3]{nullptr};
 
-  TNtuple* nt_sector_event_summary = {nullptr};
+  TNtuple* nt_sector_event_summary{nullptr};
 
-  int m_bco = 0;;
-  int m_event = 0;
-  int m_segment = 0;
+  int m_bco{0};
+  int m_event{0};
+  int m_segment{0};
 
-  double frac_side0_pt[3][4] = {{0}};
-  double frac_side1_pt[3][4] = {{0}};
+  double frac_side0_pt[3][4]{{0}};
+  double frac_side1_pt[3][4]{{0}};
 
-  double num_track_side0_pt[3][4] = {{0}};
-  double num_track_side1_pt[3][4] = {{0}};
+  double num_track_side0_pt[3][4]{{0}};
+  double num_track_side1_pt[3][4]{{0}};
 
   //! global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
   TpcClusterMover m_clusterMover;
 
-  float m_px = std::numeric_limits<float>::quiet_NaN();
-  float m_py = std::numeric_limits<float>::quiet_NaN();
-  float m_pz = std::numeric_limits<float>::quiet_NaN();
-  float m_pt = std::numeric_limits<float>::quiet_NaN();
-  float m_ptot = std::numeric_limits<float>::quiet_NaN();
-  float m_charge = std::numeric_limits<float>::quiet_NaN();
-  float m_dedx = std::numeric_limits<float>::quiet_NaN();
+  float m_px{std::numeric_limits<float>::quiet_NaN()};
+  float m_py{std::numeric_limits<float>::quiet_NaN()};
+  float m_pz{std::numeric_limits<float>::quiet_NaN()};
+  float m_pt{std::numeric_limits<float>::quiet_NaN()};
+  float m_ptot{std::numeric_limits<float>::quiet_NaN()};
+  float m_charge{std::numeric_limits<float>::quiet_NaN()};
+  float m_dedx{std::numeric_limits<float>::quiet_NaN()};
 
-  int m_ntpc = std::numeric_limits<int>::quiet_NaN();
+  int m_ntpc{std::numeric_limits<int>::min()};
   std::vector<float> m_clusgz;
   std::vector<int> m_cluslayer;
   std::vector<int> m_clusphisize;
@@ -188,14 +188,14 @@ class TpcSeedsQA : public SubsysReco
 
   struct PhiHistoList
   {
-    TH1* cphisize1pT_side0 = nullptr;
-    TH1* cphisize1pT_side1 = nullptr;
-    TH1* cphisizegeq1pT_side0 = nullptr;
-    TH1* cphisizegeq1pT_side1 = nullptr;
-    int ntpc_side0 = 0;
-    int ntpc_side0_phisize1 = 0;
-    int ntpc_side1 = 0;
-    int ntpc_side1_phisize1 = 0;
+    TH1* cphisize1pT_side0{nullptr};
+    TH1* cphisize1pT_side1{nullptr};
+    TH1* cphisizegeq1pT_side0{nullptr};
+    TH1* cphisizegeq1pT_side1{nullptr};
+    int ntpc_side0{0};
+    int ntpc_side0_phisize1{0};
+    int ntpc_side1{0};
+    int ntpc_side1_phisize1{0};
 
     void Clear()
     {
@@ -209,7 +209,7 @@ class TpcSeedsQA : public SubsysReco
   using PhiHistoMap = std::map<int, PhiHistoList>;
   PhiHistoMap phihistos;
 
-  bool collision_or_cosmics = false; // false: collision, true: cosmics
+  bool collision_or_cosmics{false};  // false: collision, true: cosmics
 };
 
 #endif  // TPCSEEDSQA_H

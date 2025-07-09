@@ -55,22 +55,38 @@ class caloTowerEmbed : public SubsysReco
     m_removeBadTowers = a;
     return;
   }
+  void set_nsamples(int _nsamples)
+  {
+    m_nsamples = _nsamples;
+    return;
+  }
+  void set_embedwaveform(bool embed = true)
+  {
+    m_embedwaveform = embed;
+    return;
+  }
 
  private:
   TowerInfoContainer *_data_towers{nullptr};
   TowerInfoContainer *_sim_towers{nullptr};
+  TowerInfoContainer *m_PedestalContainer{nullptr};
 
   RawTowerGeomContainer *tower_geom{nullptr};
 
   bool m_useRetower{false};
   bool m_removeBadTowers{false};
+  bool m_embedwaveform{false};
 
   CaloTowerDefs::DetectorSystem m_dettype{CaloTowerDefs::DETECTOR_INVALID};
 
   std::string m_detector;
   std::string m_inputNodePrefix{"TOWERINFO_CALIB_"};
+  std::string m_waveformNodePrefix{"WAVEFORM_"};
 
   int m_eventNumber{-1};
+  int m_nsamples{31};
+  int m_datasamples{12};
+  float m_pedestal_scale{1.};
 };
 
 #endif  // CALOTOWEREMBED_H

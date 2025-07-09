@@ -447,12 +447,12 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbc
     {
       _nsamples = dstp[ipkt]->iValue(0, "SAMPLES");
       {
-        static int counter = 0;
-        if ( counter<1 )
+        static bool printcount{true};
+        if ( printcount && Verbosity() > 0)
         {
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
+	  printcount = false;
         }
-        counter++;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "CLOCK"));

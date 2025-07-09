@@ -37,8 +37,9 @@
 #include <TProfile.h>
 #include <TProfile2D.h>
 
-#include <boost/format.hpp>
+#include <algorithm>
 #include <cmath>
+#include <format>
 
 //____________________________________________________________________________..
 TpcSeedsQA::TpcSeedsQA(const std::string &name)
@@ -75,64 +76,64 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   m_clusterMover.initialize_geometry(g4geom);
   m_clusterMover.set_verbosity(0);
 
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // tracks with TPC clusters/tracklets
-  h_ntrack1d = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d").c_str()));
-  h_ntrack1d_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_pos").c_str()));
-  h_ntrack1d_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_neg").c_str()));
-  h_ntrack1d_ptg1 = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1").c_str()));
-  h_ntrack1d_ptg1_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_pos").c_str()));
-  h_ntrack1d_ptg1_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_neg").c_str()));
-  h_pt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt").c_str()));
-  h_pt_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt_pos").c_str()));
-  h_pt_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt_neg").c_str()));
-  h_ntrack_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_pos").c_str()));
-  h_ntrack_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_neg").c_str()));
+  h_ntrack1d = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d")));
+  h_ntrack1d_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_pos")));
+  h_ntrack1d_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_neg")));
+  h_ntrack1d_ptg1 = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1")));
+  h_ntrack1d_ptg1_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_pos")));
+  h_ntrack1d_ptg1_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_neg")));
+  h_pt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt")));
+  h_pt_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt_pos")));
+  h_pt_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "pt_neg")));
+  h_ntrack_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_pos")));
+  h_ntrack_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecotracks_neg")));
 
-  h_ntpc_fullpt_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_fullpt_pos").c_str()));
-  h_ntpc_fullpt_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_fullpt_neg").c_str()));
-  h_ntpc_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_pos").c_str()));
-  h_ntpc_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_neg").c_str()));
-  h_ntpc_quality_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_quality_pos").c_str()));
-  h_ntpc_quality_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_quality_neg").c_str()));
-  h_ntpot_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_pos").c_str()));
-  h_ntpot_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_neg").c_str()));
-  h_avgnclus_eta_phi_pos = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str()));
-  h_avgnclus_eta_phi_neg = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str()));
+  h_ntpc_fullpt_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_fullpt_pos")));
+  h_ntpc_fullpt_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_fullpt_neg")));
+  h_ntpc_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_pos")));
+  h_ntpc_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_neg")));
+  h_ntpc_quality_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_quality_pos")));
+  h_ntpc_quality_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpc_quality_neg")));
+  h_ntpot_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_pos")));
+  h_ntpot_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntpot_neg")));
+  h_avgnclus_eta_phi_pos = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos")));
+  h_avgnclus_eta_phi_neg = dynamic_cast<TProfile2D *>(hm->getHisto(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg")));
   // h_trackcrossing_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_pos").c_str()));
   // h_trackcrossing_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "trackcrossing_neg").c_str()));
-  h_dcaxyorigin_phi_north_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_pos").c_str()));
-  h_dcaxyorigin_phi_south_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_pos").c_str()));
-  h_dcaxyorigin_phi_north_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_neg").c_str()));
-  h_dcaxyorigin_phi_south_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_neg").c_str()));
-  h_dcaxyvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos").c_str()));
-  h_dcaxyvtx_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_neg").c_str()));
-  h_dcazorigin_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi_pos").c_str()));
-  h_dcazorigin_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi_neg").c_str()));
-  h_dcazvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi_pos").c_str()));
-  h_dcazvtx_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi_neg").c_str()));
-  h_ntrack_isfromvtx_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx_pos").c_str()));
-  h_ntrack_isfromvtx_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx_neg").c_str()));
-  h_cluster_phisize1_fraction_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos").c_str()));
-  h_cluster_phisize1_fraction_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg").c_str()));
+  h_dcaxyorigin_phi_north_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_pos")));
+  h_dcaxyorigin_phi_south_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_pos")));
+  h_dcaxyorigin_phi_north_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_neg")));
+  h_dcaxyorigin_phi_south_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_neg")));
+  h_dcaxyvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos")));
+  h_dcaxyvtx_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcaxyvtx_phi_neg")));
+  h_dcazorigin_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi_pos")));
+  h_dcazorigin_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazorigin_phi_neg")));
+  h_dcazvtx_phi_pos = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi_pos")));
+  h_dcazvtx_phi_neg = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dcazvtx_phi_neg")));
+  h_ntrack_isfromvtx_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx_pos")));
+  h_ntrack_isfromvtx_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrack_isfromvtx_neg")));
+  h_cluster_phisize1_fraction_pos = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos")));
+  h_cluster_phisize1_fraction_neg = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg")));
 
   // vertex
-  h_nvertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecovertices").c_str()));
-  h_vx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vx").c_str()));
-  h_vy = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vy").c_str()));
-  h_vx_vy = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "vx_vy").c_str()));
-  h_vz = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vz").c_str()));
-  h_vt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vt").c_str()));
+  h_nvertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nrecovertices")));
+  h_vx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vx")));
+  h_vy = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vy")));
+  h_vx_vy = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "vx_vy")));
+  h_vz = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vz")));
+  h_vt = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vt")));
   // h_vcrossing = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexcrossing").c_str()));
-  h_vchi2dof = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexchi2dof").c_str()));
-  h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex").c_str()));
-  h_dedx = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx").c_str()));
-  h_mip_dedx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "mip_dedx").c_str()));
-  h_dedx_pcaz = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx_pcaz").c_str()));
+  h_vchi2dof = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "vertexchi2dof")));
+  h_ntrackpervertex = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "ntrackspervertex")));
+  h_dedx = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx")));
+  h_mip_dedx = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "mip_dedx")));
+  h_dedx_pcaz = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "dedx_pcaz")));
 
-  nt_sector_event_summary = dynamic_cast<TNtuple *>(hm->getHisto(std::string(getHistoPrefix() + "sector_event_summary").c_str()));
+  nt_sector_event_summary = dynamic_cast<TNtuple *>(hm->getHisto(std::string(getHistoPrefix() + "sector_event_summary")));
 
   // TPC has 3 regions, inner, mid and outer
   std::vector<int> region_layer_low = {7, 23, 39};
@@ -153,7 +154,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  for (auto &region : {0, 1, 2})
+  for (const auto &region : {0, 1, 2})
   {
     PhiHistoList phihist;
 
@@ -210,7 +211,7 @@ float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
     sort(dedxlist.begin(), dedxlist.end());
   }
   int trunc_min = 0;
-  if (dedxlist.size() < 1)
+  if (dedxlist.empty())
   {
     return std::numeric_limits<float>::quiet_NaN();
   }
@@ -230,61 +231,49 @@ float TpcSeedsQA::cal_track_length(SvtxTrack *track)
 {
   float minR = std::numeric_limits<float>::max();
   float maxR = 0;
-  for (const auto& ckey : get_cluster_keys(track))
+  for (const auto &ckey : get_cluster_keys(track))
   {
-    auto cluster = clustermap->findCluster(ckey);
+    auto *cluster = clustermap->findCluster(ckey);
 
     // Fully correct the cluster positions for the crossing and all distortions
-    Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing() );
+    Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing());
 
     // add the global positions to a vector to give to the cluster mover
-    float R = std::sqrt(pow(global.x(),2) + pow(global.y(),2));
-    if (R < minR)
-    {
-      minR = R;
-    }
-    if (R > maxR)
-    {
-      maxR = R;
-    }
+    float R = std::sqrt(pow(global.x(), 2) + pow(global.y(), 2));
+    minR = std::min(R, minR);
+    maxR = std::max(R, maxR);
   }
   float tracklength = maxR - minR;
   return tracklength;
 }
 
-float* TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
+float *TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
 {
   // get the fully corrected cluster global positions
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
   std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_moved;
   float minR = std::numeric_limits<float>::max();
   float maxR = 0;
-  for (const auto& ckey : get_cluster_keys(track))
+  for (const auto &ckey : get_cluster_keys(track))
   {
-    auto cluster = clustermap->findCluster(ckey);
+    auto *cluster = clustermap->findCluster(ckey);
 
     // Fully correct the cluster positions for the crossing and all distortions
-    Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing() );
+    Acts::Vector3 global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing());
 
     // add the global positions to a vector to give to the cluster mover
-    global_raw.emplace_back(std::make_pair(ckey, global));
-    float R = std::sqrt(pow(global.x(),2) + pow(global.y(),2));
-    if (R < minR)
-    {
-      minR = R;
-    }
-    if (R > maxR)
-    {
-      maxR = R;
-    }
+    global_raw.emplace_back(ckey, global);
+    float R = std::sqrt(pow(global.x(), 2) + pow(global.y(), 2));
+    minR = std::min(R, minR);
+    maxR = std::max(R, maxR);
   }
   float tracklength = maxR - minR;
   if (collision_or_cosmics == true && tracklength < 25)
   {
-    float* dedxarray = new float[10];
+    float *dedxarray = new float[10];
     for (int i = 0; i < 10; ++i)
     {
-        dedxarray[i] = -1;
+      dedxarray[i] = -1;
     }
     return dedxarray;
   }
@@ -294,20 +283,30 @@ float* TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
 
   float fcorr = std::fabs(std::sin(eta_to_theta(track->get_eta())));
   Acts::Vector3 clusglob_moved(0, 0, 0);
-  float adc_z0=0; int nclus_z0=0;
-  float adc_z1=0; int nclus_z1=0;
-  float adc_z2=0; int nclus_z2=0;
-  float adc_z3=0; int nclus_z3=0;
-  float adc_z4=0; int nclus_z4=0;
-  float adc_z5=0; int nclus_z5=0;
-  float adc_z6=0; int nclus_z6=0;
-  float adc_z7=0; int nclus_z7=0;
-  float adc_z8=0; int nclus_z8=0;
-  float adc_z9=0; int nclus_z9=0;
-  for (const auto& pair : global_moved)
+  float adc_z0 = 0;
+  int nclus_z0 = 0;
+  float adc_z1 = 0;
+  int nclus_z1 = 0;
+  float adc_z2 = 0;
+  int nclus_z2 = 0;
+  float adc_z3 = 0;
+  int nclus_z3 = 0;
+  float adc_z4 = 0;
+  int nclus_z4 = 0;
+  float adc_z5 = 0;
+  int nclus_z5 = 0;
+  float adc_z6 = 0;
+  int nclus_z6 = 0;
+  float adc_z7 = 0;
+  int nclus_z7 = 0;
+  float adc_z8 = 0;
+  int nclus_z8 = 0;
+  float adc_z9 = 0;
+  int nclus_z9 = 0;
+  for (const auto &pair : global_moved)
   {
     auto ckey = pair.first;
-    auto cluster = clustermap->findCluster(ckey);
+    auto *cluster = clustermap->findCluster(ckey);
     clusglob_moved = pair.second;
 
     auto detid = TrkrDefs::getTrkrId(ckey);
@@ -318,60 +317,60 @@ float* TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
 
     // only counts TPC R2 and R3
     auto layer = TrkrDefs::getLayer(ckey);
-    if (layer<23)
+    if (layer < 23)
     {
       continue;
     }
 
     float clusgz = clusglob_moved.z();
-    if (clusgz>-100 && clusgz<=-80)
+    if (clusgz > -100 && clusgz <= -80)
     {
-      adc_z0+=cluster->getAdc() * fcorr;
+      adc_z0 += cluster->getAdc() * fcorr;
       nclus_z0++;
     }
-    else if (clusgz>-80 && clusgz<=-60)
+    else if (clusgz > -80 && clusgz <= -60)
     {
-      adc_z1+=cluster->getAdc() * fcorr;
+      adc_z1 += cluster->getAdc() * fcorr;
       nclus_z1++;
     }
-    else if (clusgz>-60 && clusgz<=-40)
+    else if (clusgz > -60 && clusgz <= -40)
     {
-      adc_z2+=cluster->getAdc() * fcorr;
+      adc_z2 += cluster->getAdc() * fcorr;
       nclus_z2++;
     }
-    else if (clusgz>-40 && clusgz<=-20)
+    else if (clusgz > -40 && clusgz <= -20)
     {
-      adc_z3+=cluster->getAdc() * fcorr;
+      adc_z3 += cluster->getAdc() * fcorr;
       nclus_z3++;
     }
-    else if (clusgz>-20 && clusgz<=0)
+    else if (clusgz > -20 && clusgz <= 0)
     {
-      adc_z4+=cluster->getAdc() * fcorr;
+      adc_z4 += cluster->getAdc() * fcorr;
       nclus_z4++;
     }
-    else if (clusgz>0 && clusgz<=20)
+    else if (clusgz > 0 && clusgz <= 20)
     {
-      adc_z5+=cluster->getAdc() * fcorr;
+      adc_z5 += cluster->getAdc() * fcorr;
       nclus_z5++;
     }
-    else if (clusgz>20 && clusgz<=40)
+    else if (clusgz > 20 && clusgz <= 40)
     {
-      adc_z6+=cluster->getAdc() * fcorr;
+      adc_z6 += cluster->getAdc() * fcorr;
       nclus_z6++;
     }
-    else if (clusgz>40 && clusgz<=60)
+    else if (clusgz > 40 && clusgz <= 60)
     {
-      adc_z7+=cluster->getAdc() * fcorr;
+      adc_z7 += cluster->getAdc() * fcorr;
       nclus_z7++;
     }
-    else if (clusgz>60 && clusgz<=80)
+    else if (clusgz > 60 && clusgz <= 80)
     {
-      adc_z8+=cluster->getAdc() * fcorr;
+      adc_z8 += cluster->getAdc() * fcorr;
       nclus_z8++;
     }
-    else if (clusgz>80 && clusgz<=100)
+    else if (clusgz > 80 && clusgz <= 100)
     {
-      adc_z9+=cluster->getAdc() * fcorr;
+      adc_z9 += cluster->getAdc() * fcorr;
       nclus_z9++;
     }
   }
@@ -387,7 +386,7 @@ float* TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
   adc_z8 /= nclus_z8;
   adc_z9 /= nclus_z9;
 
-  float* dedxarray = new float[10];
+  float *dedxarray = new float[10];
   dedxarray[0] = adc_z0;
   dedxarray[1] = adc_z1;
   dedxarray[2] = adc_z2;
@@ -405,7 +404,7 @@ float* TpcSeedsQA::cal_dedx_cluster(SvtxTrack *track)
 //____________________________________________________________________________..
 int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 {
-  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  auto *gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
   if (gl1)
   {
     m_bco = gl1->get_bco();
@@ -474,8 +473,8 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
 
     // int trkcrossing = track->get_crossing();
 
-//    int nmaps = 0;
-//    int nintt = 0;
+    //    int nmaps = 0;
+    //    int nintt = 0;
     int ntpc = 0;
     int ntpc_phisize1 = 0;
     int nmms = 0;
@@ -505,14 +504,14 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
         nmms++;
         break;
       default:
-	break;
+        break;
       }
     }
 
     Acts::Vector3 zero = Acts::Vector3::Zero();
     auto dcapair_origin = TrackAnalysisUtils::get_dca(track, zero);
 
-    auto trackvtx = vertexmap->get(track->get_vertex_id());
+    auto *trackvtx = vertexmap->get(track->get_vertex_id());
     if (!trackvtx)
     {
       // std::cout << "No vertex found for track " << track->get_id() << std::std::endl;
@@ -662,8 +661,8 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
     m_px = track->get_px();
     m_py = track->get_py();
     m_pz = track->get_pz();
-    m_pt = std::sqrt(m_px * m_px + m_py * m_py);
-    m_ptot = std::sqrt(m_px * m_px + m_py * m_py + m_pz * m_pz);
+    m_pt = std::sqrt((m_px * m_px) + (m_py * m_py));
+    m_ptot = std::sqrt((m_px * m_px) + (m_py * m_py) + (m_pz * m_pz));
     TrackSeed *tpcseed = track->get_tpc_seed();
     m_charge = track->get_charge();
     m_dedx = calc_dedx(tpcseed);
@@ -688,7 +687,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       TrkrCluster *cluster = clustermap->findCluster(ckey);
       const Acts::Vector3 clusglob = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, track->get_crossing());
 
-      switch (TrkrDefs::getTrkrId(ckey))
+      switch (TrkrDefs::getTrkrId(ckey))  // NOLINT(bugprone-switch-missing-default-case
       {
       case TrkrDefs::tpcId:
         const auto it = m_layerRegionMap.find(TrkrDefs::getLayer(ckey));
@@ -841,7 +840,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       }
     }
 
-    for (auto &region : {0, 1, 2})
+    for (const auto &region : {0, 1, 2})
     {
       if (phihistos[region].ntpc_side0 > 0)
       {
@@ -884,7 +883,7 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
         float meanAdc = 0;
         if (nCluster > 0)
         {
-          meanAdc = madc[iside][iregion][isector] / (nCluster*1.);
+          meanAdc = madc[iside][iregion][isector] / (nCluster * 1.);
         }
         nt_sector_event_summary->Fill(m_event, m_segment, m_bco, iside, iregion, isector, nCluster, meanAdc);
       }
@@ -910,9 +909,9 @@ std::vector<TrkrDefs::cluskey> TpcSeedsQA::get_cluster_keys(SvtxTrack *track)
 //____________________________________________________________________________..
 int TpcSeedsQA::EndRun(const int /*runnumber*/)
 {
-  for (auto &region : {0, 1, 2})
+  for (const auto &region : {0, 1, 2})
   {
-    for (auto &index_pt : {0, 1, 2, 3})
+    for (const auto &index_pt : {0, 1, 2, 3})
     {
       if (num_track_side0_pt[region][index_pt] > 0)
       {
@@ -929,7 +928,7 @@ int TpcSeedsQA::EndRun(const int /*runnumber*/)
     }
   }
 
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -948,111 +947,111 @@ std::string TpcSeedsQA::getHistoPrefix() const
 
 void TpcSeedsQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_fullpt_pos").c_str(), "TPC clusters per positive track;Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntpc_fullpt_pos").c_str(), "TPC clusters per positive track;Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_fullpt_neg").c_str(), "TPC clusters per negative track;Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntpc_fullpt_neg").c_str(), "TPC clusters per negative track;Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_pos").c_str(), "TPC clusters per positive track (pT>1GeV,eta cut);Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntpc_pos").c_str(), "TPC clusters per positive track (pT>1GeV,eta cut);Number of TPC clusters per positive track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpc_neg").c_str(), "TPC clusters per negative track (pT>1GeV,eta cut);Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntpc_neg").c_str(), "TPC clusters per negative track (pT>1GeV,eta cut);Number of TPC clusters per negative track;Entries", 55, -0.5, 54.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_pos").c_str(), "TPOT clusters per positive track (pT>1GeV);Number of TPOT clusters per positive track;Entries", 2, -0.5, 1.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntpot_pos").c_str(), "TPOT clusters per positive track (pT>1GeV);Number of TPOT clusters per positive track;Entries", 2, -0.5, 1.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntpot_neg").c_str(), "TPOT clusters per negative track (pT>1GeV);Number of TPOT clusters per negative track;Entries", 2, -0.5, 1.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntpot_neg").c_str(), "TPOT clusters per negative track (pT>1GeV);Number of TPOT clusters per negative track;Entries", 2, -0.5, 1.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "ntpc_quality_pos").c_str(), "Number of TPC clusters per positive track (pT>1GeV);Number of TPC clusters per positive track;Quality", 55, -0.5, 54.5, 100, 0, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "ntpc_quality_pos").c_str(), "Number of TPC clusters per positive track (pT>1GeV);Number of TPC clusters per positive track;Quality", 55, -0.5, 54.5, 100, 0, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "ntpc_quality_neg").c_str(), "Number of TPC clusters per negative track (pT>1GeV);Number of TPC clusters per negative track;Quality", 55, -0.5, 54.5, 100, 0, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "ntpc_quality_neg").c_str(), "Number of TPC clusters per negative track (pT>1GeV);Number of TPC clusters per negative track;Quality", 55, -0.5, 54.5, 100, 0, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d").c_str(), "Number of reconstructed tracks;Number of TPC tracklets;Entries", 50, 0, 200);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d").c_str(), "Number of reconstructed tracks;Number of TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_pos").c_str(), "Number of reconstructed positive tracks;Number of positive TPC tracklets;Entries", 50, 0, 200);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_pos").c_str(), "Number of reconstructed positive tracks;Number of positive TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_neg").c_str(), "Number of reconstructed negative tracks;Number of negative TPC tracklets;Entries", 50, 0, 200);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_neg").c_str(), "Number of reconstructed negative tracks;Number of negative TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1").c_str(), "Number of reconstructed tracks (pT>1GeV);Number of TPC tracklets;Entries", 50, 0, 200);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1").c_str(), "Number of reconstructed tracks (pT>1GeV);Number of TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_pos").c_str(), "Number of reconstructed positive tracks (pT>1GeV);Number of positive TPC tracklets;Entries", 50, 0, 200);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_pos").c_str(), "Number of reconstructed positive tracks (pT>1GeV);Number of positive TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_neg").c_str(), "Number of reconstructed negative tracks (pT>1GeV);Number of negative TPC tracklets;Entries", 50, 0, 200);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "nrecotracks1d_ptg1_neg").c_str(), "Number of reconstructed negative tracks (pT>1GeV);Number of negative TPC tracklets;Entries", 50, 0, 200);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "pt").c_str(), "p_{T} distribution of reconstructed tracks;Track p_{T};Entries", 100, 0, 10);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "pt").c_str(), "p_{T} distribution of reconstructed tracks;Track p_{T};Entries", 100, 0, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "pt_pos").c_str(), "p_{T} distribution of reconstructed positive tracks;Track p_{T};Entries", 100, 0, 10);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "pt_pos").c_str(), "p_{T} distribution of reconstructed positive tracks;Track p_{T};Entries", 100, 0, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "pt_neg").c_str(), "p_{T} distribution of reconstructed negative tracks;Track p_{T};Entries", 100, 0, 10);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "pt_neg").c_str(), "p_{T} distribution of reconstructed negative tracks;Track p_{T};Entries", 100, 0, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_pos").c_str(), "Number of reconstructed positive tracks (pT>1GeV);#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_pos").c_str(), "Number of reconstructed positive tracks (pT>1GeV);#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_neg").c_str(), "Number of reconstructed negative tracks (pT>1GeV);#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "nrecotracks_neg").c_str(), "Number of reconstructed negative tracks (pT>1GeV);#eta;#phi [rad];Entries", 100, -1.1, 1.1, 300, -3.14159, 3.1459);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str(), "Average number of clusters per positive track (pT>1GeV);#eta;#phi [rad];Average number of clusters per positive track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
+    auto *h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_pos").c_str(), "Average number of clusters per positive track (pT>1GeV);#eta;#phi [rad];Average number of clusters per positive track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str(), "Average number of clusters per negative track (pT>1GeV);#eta;#phi [rad];Average number of clusters per negative track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
+    auto *h = new TProfile2D(std::string(getHistoPrefix() + "avgnclus_eta_phi_neg").c_str(), "Average number of clusters per negative track (pT>1GeV);#eta;#phi [rad];Average number of clusters per negative track", 100, -1.1, 1.1, 300, -3.14159, 3.1459, 0, 55);
     hm->registerHisto(h);
   }
 
@@ -1067,103 +1066,103 @@ void TpcSeedsQA::createHistos()
   //  }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_pos").c_str(), "DCA xy origin vs phi for positive track (dcaz>0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_pos").c_str(), "DCA xy origin vs phi for positive track (dcaz>0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_pos").c_str(), "DCA xy origin vs phi for positive track (dcaz<0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_pos").c_str(), "DCA xy origin vs phi for positive track (dcaz<0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_neg").c_str(), "DCA xy origin vs phi for negative track (dcaz>0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_north_neg").c_str(), "DCA xy origin vs phi for negative track (dcaz>0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_neg").c_str(), "DCA xy origin vs phi for negative track (dcaz<0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi_south_neg").c_str(), "DCA xy origin vs phi for negative track (dcaz<0);#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos").c_str(), "DCA xy vertex vs phi for positive track;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi_pos").c_str(), "DCA xy vertex vs phi for positive track;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi_neg").c_str(), "DCA xy vertex vs phi for negative track;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi_neg").c_str(), "DCA xy vertex vs phi for negative track;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi_pos").c_str(), "DCA z origin vs phi for positive track;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi_pos").c_str(), "DCA z origin vs phi for positive track;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi_neg").c_str(), "DCA z origin vs phi for negative track;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi_neg").c_str(), "DCA z origin vs phi for negative track;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi_pos").c_str(), "DCA z vertex vs phi for positive track;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi_pos").c_str(), "DCA z vertex vs phi for positive track;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi_neg").c_str(), "DCA z vertex vs phi for negative track;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi_neg").c_str(), "DCA z vertex vs phi for negative track;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 100, -10, 10);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx_pos").c_str(), "Num of positive tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx_pos").c_str(), "Num of positive tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx_neg").c_str(), "Num of negative tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntrack_isfromvtx_neg").c_str(), "Num of negative tracks associated to a vertex;Is track associated to a vertex;Entries", 2, -0.5, 1.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos").c_str(), "Fraction of TPC clusters per positive track with phi size of 1 (pT>1GeV);Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_pos").c_str(), "Fraction of TPC clusters per positive track with phi size of 1 (pT>1GeV);Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg").c_str(), "Fraction of TPC clusters per negative track with phi size of 1 (pT>1GeV);Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "cluster_phisize1_fraction_neg").c_str(), "Fraction of TPC clusters per negative track with phi size of 1 (pT>1GeV);Fraction of TPC clusters phi size of 1;Entries", 100, 0, 1);
     hm->registerHisto(h);
   }
 
   // vertex
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nrecovertices").c_str(), "Num of reco vertices per event;Number of vertices;Entries", 20, 0, 20);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "nrecovertices").c_str(), "Num of reco vertices per event;Number of vertices;Entries", 20, 0, 20);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "vx").c_str(), "Vertex x;Vertex x [cm];Entries", 100, -2.5, 2.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "vx").c_str(), "Vertex x;Vertex x [cm];Entries", 100, -2.5, 2.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "vy").c_str(), "Vertex y;Vertex y [cm];Entries", 100, -2.5, 2.5);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "vy").c_str(), "Vertex y;Vertex y [cm];Entries", 100, -2.5, 2.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y;Vertex x [cm];Vertex y [cm];Entries", 100, -2.5, 2.5, 100, -2.5, 2.5);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y;Vertex x [cm];Vertex y [cm];Entries", 100, -2.5, 2.5, 100, -2.5, 2.5);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "vz").c_str(), "Vertex z;Vertex z [cm];Entries", 50, -25, 25);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "vz").c_str(), "Vertex z;Vertex z [cm];Entries", 50, -25, 25);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "vt").c_str(), "Vertex t;Vertex t [ns];Entries", 100, -1000, 20000);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "vt").c_str(), "Vertex t;Vertex t [ns];Entries", 100, -1000, 20000);
     hm->registerHisto(h);
   }
 
@@ -1173,132 +1172,132 @@ void TpcSeedsQA::createHistos()
   //  }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "vertexchi2dof").c_str(), "Vertex chi2/ndof;Vertex #chi2/ndof;Entries", 100, 0, 20);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "vertexchi2dof").c_str(), "Vertex chi2/ndof;Vertex #chi2/ndof;Entries", 100, 0, 20);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "ntrackspervertex").c_str(), "Num of tracks per vertex;Number of tracks per vertex;Entries", 50, 0, 50);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "ntrackspervertex").c_str(), "Num of tracks per vertex;Number of tracks per vertex;Entries", 50, 0, 50);
     hm->registerHisto(h);
   }
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dedx").c_str(),
-                      "Num of tracks per vertex;Number of tracks per vertex;Entries",
-                      500, -2, 2, 500, 0, 3000);
-    hm->registerHisto(h);
-  }
-
-  {
-    auto h = new TH1F(std::string(getHistoPrefix() + "mip_dedx").c_str(),
-                      "dEdx of MIPs",
-                      100, 0, 1000);
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dedx").c_str(),
+                       "Num of tracks per vertex;Number of tracks per vertex;Entries",
+                       500, -2, 2, 500, 0, 3000);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::string(getHistoPrefix() + "dedx_pcaz").c_str(),
-                      "track dEdx vs pcaz",
-                      100, -100, 100, 50, 0, 2000);
+    auto *h = new TH1F(std::string(getHistoPrefix() + "mip_dedx").c_str(),
+                       "dEdx of MIPs",
+                       100, 0, 1000);
+    hm->registerHisto(h);
+  }
+
+  {
+    auto *h = new TH2F(std::string(getHistoPrefix() + "dedx_pcaz").c_str(),
+                       "track dEdx vs pcaz",
+                       100, -100, 100, 50, 0, 2000);
     hm->registerHisto(h);
   }
 
   for (int i = 0; i < 10; i++)
   {
-    h_dedx_pq_z[i] = new TH2F((boost::format("%sdedx_pq_%i") % getHistoPrefix() % i).str().c_str(),
-                              (boost::format("mean cluster dEdx at R2 & R3 corrected by path length according to track eta in z-region %i") % i).str().c_str(), 100, -3, 3, 100, 0, 10000);
+    h_dedx_pq_z[i] = new TH2F(std::format("{}dedx_pq_{}", getHistoPrefix(), i).c_str(),
+                              std::format("mean cluster dEdx at R2 & R3 corrected by path length according to track eta in z-region {}", i).c_str(), 100, -3, 3, 100, 0, 10000);
     hm->registerHisto(h_dedx_pq_z[i]);
   }
 
   {
-    auto nt = new TNtuple(std::string(getHistoPrefix() + "sector_event_summary").c_str(),
-		      "sector_event_summary","event:segment:bco:side:region:sector:ncluster:meanadc");
+    auto *nt = new TNtuple(std::string(getHistoPrefix() + "sector_event_summary").c_str(),
+                           "sector_event_summary", "event:segment:bco:side:region:sector:ncluster:meanadc");
     hm->registerHisto(nt);
   }
 
-  for (auto &region : {0, 1, 2})
+  for (const auto &region : {0, 1, 2})
   {
-    h_adc_sector[region] = new TH2F((boost::format("%sadc_sector_%i") % getHistoPrefix() % region).str().c_str(),
-                                    (boost::format("ADC spectrum per, region_%i") % region).str().c_str(), 25, -12.5, 12.5, 50, 0, 1500);
+    h_adc_sector[region] = new TH2F(std::format("{}adc_sector_{}", getHistoPrefix(), region).c_str(),
+                                    std::format("ADC spectrum per, region_{}", region).c_str(), 25, -12.5, 12.5, 50, 0, 1500);
     hm->registerHisto(h_adc_sector[region]);
 
-    h_onepad_frac[region] = new TProfile((boost::format("%sonepad_frac_%i") % getHistoPrefix() % region).str().c_str(),
-                                         (boost::format("TPC Cluster Phi Size == 1 fraction per sector, region_%i") % region).str().c_str(), 25, -12.5, 12.5);
+    h_onepad_frac[region] = new TProfile(std::format("{}onepad_frac_{}", getHistoPrefix(), region).c_str(),
+                                         std::format("TPC Cluster Phi Size == 1 fraction per sector, region_{}", region).c_str(), 25, -12.5, 12.5);
     hm->registerHisto(h_onepad_frac[region]);
 
-    h_clusphisize1pt_side0[region] = new TH1F((boost::format("%sclusphisize1pT_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                              (boost::format("TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_clusphisize1pt_side0[region] = new TH1F(std::format("{}clusphisize1pT_side0_{}", getHistoPrefix(), region).c_str(),
+                                              std::format("TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 4, 1, 3.2);
     h_clusphisize1pt_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     hm->registerHisto(h_clusphisize1pt_side0[region]);
 
-    h_clusphisize1pt_side1[region] = new TH1F((boost::format("%sclusphisize1pT_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                              (boost::format("TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_clusphisize1pt_side1[region] = new TH1F(std::format("{}clusphisize1pT_side1_{}", getHistoPrefix(), region).c_str(),
+                                              std::format("TPC Cluster Phi Size == 1, side 1, region_{}", region).c_str(), 4, 1, 3.2);
     h_clusphisize1pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     hm->registerHisto(h_clusphisize1pt_side1[region]);
 
-    h_clusphisizegeq1pt_side0[region] = new TH1F((boost::format("%sclusphisizegeq1pT_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                 (boost::format("TPC Cluster Phi Size >= 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_clusphisizegeq1pt_side0[region] = new TH1F(std::format("{}clusphisizegeq1pT_side0_{}", getHistoPrefix(), region).c_str(),
+                                                 std::format("TPC Cluster Phi Size >= 1, side 0, region_{}", region).c_str(), 4, 1, 3.2);
     h_clusphisizegeq1pt_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     hm->registerHisto(h_clusphisizegeq1pt_side0[region]);
 
-    h_clusphisizegeq1pt_side1[region] = new TH1F((boost::format("%sclusphisizegeq1pT_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                 (boost::format("TPC Cluster Phi Size >= 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_clusphisizegeq1pt_side1[region] = new TH1F(std::format("{}clusphisizegeq1pT_side1_{}", getHistoPrefix(), region).c_str(),
+                                                 std::format("TPC Cluster Phi Size >= 1, side 1, region_{}", region).c_str(), 4, 1, 3.2);
     h_clusphisizegeq1pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     hm->registerHisto(h_clusphisizegeq1pt_side1[region]);
 
-    h_cluster_phisize1_fraction_side0[region] = new TH1F((boost::format("%sclusphisize1frac_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 100, 0, 1);
+    h_cluster_phisize1_fraction_side0[region] = new TH1F(std::format("{}sclusphisize1frac_side0_{}", getHistoPrefix(), region).c_str(),
+                                                         std::format("Fraction of TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 100, 0, 1);
     h_cluster_phisize1_fraction_side0[region]->GetXaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_side0[region]);
 
-    h_cluster_phisize1_fraction_side1[region] = new TH1F((boost::format("%sclusphisize1frac_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                         (boost::format("Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 100, 0, 1);
+    h_cluster_phisize1_fraction_side1[region] = new TH1F(std::format("{}clusphisize1frac_side1_{}", getHistoPrefix(), region).c_str(),
+                                                         std::format("Fraction of TPC Cluster Phi Size == 1, side 1, region_{}", region).c_str(), 100, 0, 1);
     h_cluster_phisize1_fraction_side1[region]->GetXaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_side1[region]);
 
-    h_cluster_phisize1_fraction_pt_side0[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                            (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+    h_cluster_phisize1_fraction_pt_side0[region] = new TH2F(std::format("{}clusphisize1frac_pt_side0_{}", getHistoPrefix(), region).c_str(),
+                                                            std::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 4, 1, 3.2, 100, 0, 1);
     h_cluster_phisize1_fraction_pt_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_pt_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_pt_side0[region]);
 
-    h_cluster_phisize1_fraction_pt_side1[region] = new TH2F((boost::format("%sclusphisize1frac_pt_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                            (boost::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2, 100, 0, 1);
+    h_cluster_phisize1_fraction_pt_side1[region] = new TH2F(std::format("{}clusphisize1frac_pt_side1_{}", getHistoPrefix(), region).c_str(),
+                                                            std::format("Pt vs. Fraction of TPC Cluster Phi Size == 1, side 1, region_{}", region).c_str(), 4, 1, 3.2, 100, 0, 1);
     h_cluster_phisize1_fraction_pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_pt_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_pt_side1[region]);
 
-    h_cluster_phisize1_fraction_mean_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                              (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_side0[region] = new TH1F(std::format("{}clusphisize1frac_mean_side0_{}", getHistoPrefix(), region).c_str(),
+                                                              std::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_side0[region]);
 
-    h_cluster_phisize1_fraction_mean_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                              (boost::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_side1[region] = new TH1F(std::format("{}clusphisize1frac_mean_side1_{}", getHistoPrefix(), region).c_str(),
+                                                              std::format("Pt vs. Average fraction of TPC Cluster Phi Size == 1, side 1, region_{}", region).c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_side1[region]);
 
-    h_cluster_phisize1_fraction_mean_numerator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                                        (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_numerator_side0[region] = new TH1F(std::format("{}clusphisize1frac_mean_numerator_side0_{}", getHistoPrefix(), region).c_str(),
+                                                                        std::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_numerator_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side0[region]);
 
-    h_cluster_phisize1_fraction_mean_numerator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_numerator_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                                        (boost::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_numerator_side1[region] = new TH1F(std::format("{}clusphisize1frac_mean_numerator_side1_{}", getHistoPrefix(), region).c_str(),
+                                                                        std::format("Pt vs. Average fraction mean_numerator (sum of fraction) of TPC Cluster Phi Size == 1, side 1, region_{}", region).c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_numerator_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_numerator_side1[region]);
 
-    h_cluster_phisize1_fraction_mean_denominator_side0[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side0_%i") % getHistoPrefix() % region).str().c_str(),
-                                                                          (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 0, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_denominator_side0[region] = new TH1F(std::format("{}clusphisize1frac_mean_denominator_side0_{}", getHistoPrefix(), region).c_str(),
+                                                                          std::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_denominator_side0[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side0[region]);
 
-    h_cluster_phisize1_fraction_mean_denominator_side1[region] = new TH1F((boost::format("%sclusphisize1frac_mean_denominator_side1_%i") % getHistoPrefix() % region).str().c_str(),
-                                                                          (boost::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 1, region_%i") % region).str().c_str(), 4, 1, 3.2);
+    h_cluster_phisize1_fraction_mean_denominator_side1[region] = new TH1F(std::format("{}clusphisize1frac_mean_denominator_side1_{}", getHistoPrefix(), region).c_str(),
+                                                                          std::format("Pt vs. Average fraction mean_denominator (sum of track) of TPC Cluster Phi Size == 1, side 1, region_{}", region).c_str(), 4, 1, 3.2);
     h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     h_cluster_phisize1_fraction_mean_denominator_side1[region]->GetYaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_mean_denominator_side1[region]);
@@ -1319,5 +1318,5 @@ std::pair<float, float> TpcSeedsQA::cal_tpc_eta_min_max(float vtxz)
 
 float TpcSeedsQA::eta_to_theta(float eta)
 {
-  return 2*std::atan(std::exp(-eta));
+  return 2 * std::atan(std::exp(-eta));
 }

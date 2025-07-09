@@ -19,8 +19,9 @@ my $printruns;
 my $printtags;
 my $hpss;
 my $noprint;
+my $dataset;
 
-GetOptions('hpss' =>\$hpss, 'list:s' => \$runlist, 'printruns' => \$printruns, 'printtags' => \$printtags, 'run:i' => \$runnumber, 'tag:s' => \$tag, "verbose" =>\$verbose);
+GetOptions('dataset:s' => \$dataset, 'hpss' =>\$hpss, 'list:s' => \$runlist, 'printruns' => \$printruns, 'printtags' => \$printtags, 'run:i' => \$runnumber, 'tag:s' => \$tag, "verbose" =>\$verbose);
 
 my %ignore_datasets = (
     "mdc2" => 1,
@@ -45,14 +46,16 @@ if ($#ARGV < 0)
 	print "usage:\n";
 	print "CreateDstList.pl <dsttype1> <dsttype2> ...\n";
 	print "parameters:\n";
-	print "--tag <tag (build_cdb_version)> (mandatory)\n";
 	print "--hpss <print files in hpss>\n";
 	print "--list <file with list of runs>\n";
 	print "--printruns: print existing runs (for piping into a runlist)\n";
 	print "--printtags: print existing tags\n";
 	print "--run <run number>\n";
+	print "--tag <tag (build_cdb_version)> (mandatory)\n";
 	print "--version <version> (only if we have multiple versions for same build/cdb tag)\n";
 	print "--verbose print stuff\n";
+	print "\nfor use with --printruns or --printtags\n";
+        print "--dataset <dataset (run2pp, run2auau, run3auau, run3cosmics,...)\n"; 
     }
     exit(0);
 }
@@ -140,16 +143,27 @@ sub printtags
 {
     my $sqlcmd = sprintf("select distinct(tag) from datasets where ");
     my $icnt = 0;
-    foreach my $ignore (sort keys %ignore_datasets)
+    if (defined $dataset)
     {
-	if ($icnt > 0)
+	$sqlcmd = sprintf("%s dataset = \'\%s\'",$sqlcmd,$dataset);
+    }
+    else
+    {
+	foreach my $ignore (sort keys %ignore_datasets)
 	{
-	    $sqlcmd = sprintf("%s and ",$sqlcmd);
+	    if ($icnt > 0)
+	    {
+		$sqlcmd = sprintf("%s and ",$sqlcmd);
+	    }
+	    $sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
+	    $icnt++;
 	}
-	$sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
-	$icnt++;
     }
     $sqlcmd = sprintf("%s and tag is not null order by tag",$sqlcmd);
+    if (defined $verbose)
+    {
+	print "sql cmd: $sqlcmd\n";
+    }
     my $gettags = $dbh->prepare($sqlcmd);
     $gettags->execute();
     while (my @res = $gettags->fetchrow_array)
@@ -163,14 +177,21 @@ sub printruns
 {
     my $sqlcmd = sprintf("select distinct(runnumber) from datasets where ");
     my $icnt = 0;
-    foreach my $ignore (sort keys %ignore_datasets)
+    if (defined $dataset)
     {
-	if ($icnt > 0)
+	$sqlcmd = sprintf("%s dataset = \'\%s\'",$sqlcmd,$dataset);
+    }
+    else
+    {
+	foreach my $ignore (sort keys %ignore_datasets)
 	{
-	    $sqlcmd = sprintf("%s and ",$sqlcmd);
+	    if ($icnt > 0)
+	    {
+		$sqlcmd = sprintf("%s and ",$sqlcmd);
+	    }
+	    $sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
+	    $icnt++;
 	}
-	$sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
-	$icnt++;
     }
     $sqlcmd = sprintf("%s and tag = '$tag' and dsttype='$ARGV[0]'order by runnumber",$sqlcmd);
     my $getruns =  $dbh->prepare($sqlcmd);
