@@ -53,7 +53,6 @@ pkginclude_HEADERS = \
   SubtractTowersCS.h \
   TowerBackground.h \
   TowerBackgroundv1.h \
-  TowerBackgroundv2.h \
   TowerRho.h \
   TowerRhov1.h
 
@@ -74,7 +73,6 @@ libjetbackground_io_la_SOURCES = \
   $(ROOTDICTS) \
   EventRhov1.cc \
   TowerBackgroundv1.cc \
-  TowerBackgroundv2.cc \
   TowerRhov1.cc
 
 libjetbackground_la_SOURCES = \
