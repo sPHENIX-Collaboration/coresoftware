@@ -301,7 +301,7 @@ void CaloStatusMapper::BuildHistograms()
       m_hists[statBase]->GetXaxis()->SetBinLabel(statLabel.first + 1, statLabel.second.data());
 
       // if not doing optional histograms, skip these status
-      if (m_config.doOptHist && CaloStatusMapperDefs::IsStatusSkippable(statLabel.second))
+      if (!m_config.doOptHist && CaloStatusMapperDefs::IsStatusSkippable(statLabel.second))
       {
         continue;
       }
