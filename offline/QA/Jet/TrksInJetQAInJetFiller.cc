@@ -1,53 +1,69 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAInJetFiller.cc'
-// Derek Anderson
-// 04.03.2024
-//
-// A submodule for the TrksInJetsQAM F4A module to produce
-// QA histograms for tracks and more in jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAInJetFiller.cc
+ *  \author Derek Anderson
+ *  \date   04.03.2024
+ *
+ *  A submodule for the TrksInJetsQAM F4A module to produce
+ *  QA histograms for tracks and more in jets
+ */
+/// ===========================================================================
 
 #define TRKSINJETQAINJETFILLER_CC
 
 // submodule definition
 #include "TrksInJetQAInJetFiller.h"
 
-// inherited public methods ---------------------------------------------------
+// inherited public methods ===================================================
 
+// ----------------------------------------------------------------------------
+//! Run fill for relevant histograms
+// ----------------------------------------------------------------------------
 void TrksInJetQAInJetFiller::Fill(PHCompositeNode* topNode)
 {
   GetNodes(topNode);
 
   FillJetAndTrackQAHists(topNode);
-  return;
-
 }  // end 'Fill(PHCompositeNode* topNode)'
 
-// private methods ------------------------------------------------------------
+// private methods ============================================================
 
+// ----------------------------------------------------------------------------
+//! Grab additional input nodes
+// ----------------------------------------------------------------------------
 void TrksInJetQAInJetFiller::GetNode(const int node, PHCompositeNode* topNode)
 {
   // jump to relevant node
   // NOLINTNEXTLINE(hicpp-multiway-paths-covered)
   switch (node)
   {
-  case Node::Flow:
-    m_flowStore = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
-    if (!m_flowStore)
-    {
-      std::cerr << PHWHERE << ": PANIC: Couldn't grab particle flow container from node tree!" << std::endl;
-      assert(m_flowStore);
-    }
-    break;
-
-  default:
-    std::cerr << PHWHERE << ": WARNING: trying to grab unkown additional node..." << std::endl;
-    break;
+    case Node::Flow:
+      m_flowStore = findNode::getClass<ParticleFlowElementContainer>(topNode, "ParticleFlowElements");
+      if (!m_flowStore)
+      {
+        std::cerr << PHWHERE << ": PANIC: Couldn't grab particle flow container from node tree!" << std::endl;
+        assert(m_flowStore);
+      }
+      break;
+    default:
+      std::cerr << PHWHERE << ": WARNING: trying to grab unkown additional node..." << std::endl;
+      break;
   }
-  return;
-
 }  // end 'GetNode(int, PHCompositeNode*)'
 
+// ----------------------------------------------------------------------------
+//! Fill histograms for jet and in-jet track histograms
+// ----------------------------------------------------------------------------
+/*! This defines how to (1) loop over jets, and (2) extract
+ *  tracks inside them. Some care is required here since
+ *  jets can be made
+ *    a. completely without tracks (e.g. from calo towers),
+ *    b. completely with tracks (i.e. track jets),
+ *    c. or with a mix of tracks and other objects (e.g.
+ *       particle flow jets).
+ *  Once tracks have been identified, the relevant hit and
+ *  cluster populations are extracted from the tracks, and
+ *  their histograms are filled.
+ */
 void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode)
 {
   // loop over jets
@@ -76,7 +92,7 @@ void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode)
       // grab track info and fill histograms
       if (m_config.doTrackQA)
       {
-        m_trackManager->GetInfo(track);
+        m_trackManager->GetInfo(track, jet);
       }
 
       // fill cluster and hit histograms as needed
@@ -85,11 +101,12 @@ void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode)
         FillClustAndHitQAHists(track);
       }
     }  // end track loop
-  }    // end jet loop
-  return;
-
+  }  // end jet loop
 }  // end 'FillJetAndTrackQAHists(PHCompositeNode*)'
 
+// ----------------------------------------------------------------------------
+//! Fill histograms for in-jet track hits and clusters
+// ----------------------------------------------------------------------------
 void TrksInJetQAInJetFiller::FillClustAndHitQAHists(SvtxTrack* track)
 {
   // get cluster keys
@@ -132,10 +149,11 @@ void TrksInJetQAInJetFiller::FillClustAndHitQAHists(SvtxTrack* track)
       }  // end hit loop
     }
   }  // end cluster key loop
-  return;
-
 }  // end 'FillClustQAHists(SvtxTrack*)'
 
+// ----------------------------------------------------------------------------
+//! Identify constituent tracks in a jet
+// ----------------------------------------------------------------------------
 void TrksInJetQAInJetFiller::GetCstTracks(Jet* jet, PHCompositeNode* topNode)
 {
   // loop over consituents
@@ -158,7 +176,7 @@ void TrksInJetQAInJetFiller::GetCstTracks(Jet* jet, PHCompositeNode* topNode)
     // if pfo, grab track if needed
     if (src == Jet::SRC::PARTICLE)
     {
-      PFObject* pfo = GetPFObject(cst.second, topNode);
+      TrksInJetQADefs::PFObject* pfo = GetPFObject(cst.second, topNode);
       SvtxTrack* track = GetTrkFromPFO(pfo);
       if (track)
       {
@@ -166,10 +184,17 @@ void TrksInJetQAInJetFiller::GetCstTracks(Jet* jet, PHCompositeNode* topNode)
       }
     }
   }  // end cst loop
-  return;
-
 }  // end 'GetCstTracks(Jet* jet, PHCompositeNode* topNode)'
 
+// ----------------------------------------------------------------------------
+//! Identify tracks in jet cone that are NOT constituents
+// ----------------------------------------------------------------------------
+/*! This method comes into play if, e.g., the jets being
+ *  analyzed were made with calorimeter information only.
+ *  In this case you can still have tracks lying inside
+ *  the jet cone despite them not being consituents of
+ *  the constructed jet.
+ */
 void TrksInJetQAInJetFiller::GetNonCstTracks(Jet* jet)
 {
   // loop over tracks
@@ -199,19 +224,22 @@ void TrksInJetQAInJetFiller::GetNonCstTracks(Jet* jet)
       m_trksInJet.push_back(track);
     }
   }  // end track loop
-  return;
-
 }  // end 'GetNonCstTracks(Jet* jet)'
 
+// ----------------------------------------------------------------------------
+//! Check if a consituent is not a relevant type
+// ----------------------------------------------------------------------------
 bool TrksInJetQAInJetFiller::IsCstNotRelevant(const uint32_t type)
 {
   const bool isVoid = (type == Jet::SRC::VOID);
   const bool isImport = (type == Jet::SRC::HEPMC_IMPORT);
   const bool isProbe = (type == Jet::SRC::JET_PROBE);
   return (isVoid || isImport || isProbe);
-
 }  // end 'IsCstNotRelevant(uint32_t)'
 
+// ----------------------------------------------------------------------------
+//! Check if a track has already been added to the list of tracks in the jet
+// ----------------------------------------------------------------------------
 bool TrksInJetQAInJetFiller::IsTrkInList(const uint32_t id)
 {
   bool isAdded = false;
@@ -224,9 +252,11 @@ bool TrksInJetQAInJetFiller::IsTrkInList(const uint32_t id)
     }
   }
   return isAdded;
-
 }  // end 'IsTrkInList(uint32_t)'
 
+// ----------------------------------------------------------------------------
+//! Get eta-phi distance between track & jet axis
+// ----------------------------------------------------------------------------
 double TrksInJetQAInJetFiller::GetTrackJetDist(SvtxTrack* track, Jet* jet)
 {
   // get delta eta
@@ -248,10 +278,14 @@ double TrksInJetQAInJetFiller::GetTrackJetDist(SvtxTrack* track, Jet* jet)
 
 }  // end 'GetTrackJetDist(SvtxTrack*, Jet*)'
 
-PFObject* TrksInJetQAInJetFiller::GetPFObject(const uint32_t id, PHCompositeNode* topNode)
+// ----------------------------------------------------------------------------
+//! Find a particle flow element in node
+// ----------------------------------------------------------------------------
+TrksInJetQADefs::PFObject* TrksInJetQAInJetFiller::GetPFObject(const uint32_t id,
+                                                               PHCompositeNode* topNode)
 {
   // pointer to pfo
-  PFObject* pfoToFind = nullptr;
+  TrksInJetQADefs::PFObject* pfoToFind = nullptr;
 
   // grab pf node if needed
   if (!m_flowStore)
@@ -266,7 +300,7 @@ PFObject* TrksInJetQAInJetFiller::GetPFObject(const uint32_t id, PHCompositeNode
       ++itFlow)
   {
     // get pfo
-    PFObject* pfo = itFlow->second;
+    TrksInJetQADefs::PFObject* pfo = itFlow->second;
 
     // if has provided id, set pointer and exit
     if (id == pfo->get_id())
@@ -276,10 +310,12 @@ PFObject* TrksInJetQAInJetFiller::GetPFObject(const uint32_t id, PHCompositeNode
     }
   }  // end pfo loop
   return pfoToFind;
-
 }  // end 'GetPFObject(uint32_t, PHCompositeNode*)'
 
-SvtxTrack* TrksInJetQAInJetFiller::GetTrkFromPFO(PFObject* pfo)
+// ----------------------------------------------------------------------------
+//! Get track from a particle flow element
+// ----------------------------------------------------------------------------
+SvtxTrack* TrksInJetQAInJetFiller::GetTrkFromPFO(TrksInJetQADefs::PFObject* pfo)
 {
   // pointer to track
   SvtxTrack* track = nullptr;
@@ -293,7 +329,6 @@ SvtxTrack* TrksInJetQAInJetFiller::GetTrkFromPFO(PFObject* pfo)
     track = pfo->get_track();
   }
   return track;
+}  // end 'GetTrkFromPFO(TrksInJetQADefs::PFObject*)'
 
-}  // end 'GetTrkFromPFO(PFObject*)'
-
-// end ------------------------------------------------------------------------
+// end ========================================================================

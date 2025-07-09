@@ -16,9 +16,11 @@
 
 #include <phool/phool.h>
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 
 // ----------------------------------------------------------------------------
 //! Namespace to hold misc. definitions for the Jet QA
@@ -78,7 +80,8 @@ namespace JetQADefs
     MBDNS2Photon6Vtx150 = 40, /*!< Photon 6 GeV + MBD NS >= 2, vtx < 150 cm */
     MBDNS2Photon8Vtx150 = 41, /*!< Photon 8 GeV + MBD NS >= 2, vtx < 150 cm */
     MBDNS2Photon10Vtx150 = 42, /*!< Photon 10 GeV + MBD NS >= 2, vtx < 150 cm */
-    MBDNS2Photon12Vtx150 = 43 /*!< Photon 12 GeV + MBD NS >= 2, vtx < 150 cm */
+    MBDNS2Photon12Vtx150 = 43, /*!< Photon 12 GeV + MBD NS >= 2, vtx < 150 cm */
+    Inclusive = 44  /*!< inclusive (i.e. NO trigger selection) */
   };
 
   // constants ----------------------------------------------------------------
@@ -136,7 +139,8 @@ namespace JetQADefs
       {Photon1         , "Photon 2 GeV"},
       {Photon2         , "Photon 3 GeV"},
       {Photon3         , "Photon 4 GeV"},
-      {Photon4         , "Photon 5 GeV"}
+      {Photon4         , "Photon 5 GeV"},
+      {Inclusive       , "Inclusive"}
     };
     return mapFlagToName;
   }
@@ -165,6 +169,78 @@ namespace JetQADefs
     return analyzer->didTriggerFire( MapTriggerFlagToName()[trg] );
 
   }  // end 'DidTriggerFire(uint32_t, TriggerAnalyzer*)'
+
+  // ==========================================================================
+  //! Make a single QA-compliant histogram name
+  // ==========================================================================
+  /*! This helper method takes in a base name (e.g. some variable you want
+   *  to histogram like "JetEne") and produces a histogram name compliant
+   *  w/ the rest of the jet QA.
+   *
+   *  The format should always be:
+   *      h_<module name>_<trigger tag>_<jet tag>_<base name> + <tag>
+   */
+  inline std::string MakeQAHistName(
+    const std::string& base,
+    const std::string& module,
+    const std::string& tag = "")
+  {
+
+    // set name to base
+    std::string name = base;
+
+    // inject module names, tags, etc.
+    name.insert(0, "h_" + module + "_");
+    if (!tag.empty())
+    {
+      name.append("_" + tag);
+    }
+    std::transform(
+      name.begin(),
+      name.end(),
+      name.begin(),
+      ::tolower
+    );
+    return name;
+
+  }  // end 'MakeQAHistName(std::string& x 3)'
+
+  // ==========================================================================
+  //! Make multiple QA-compliant histogram names
+  // ==========================================================================
+  /*! This helper method takes in a list of base names (e.g.
+   *  some variable you want to histogram like "JetEne") and
+   *  produces a list of histogram names compliant w/ the
+   *  rest of the jet QA.
+   *
+   *  The format should always be:
+   *    h_<module name>_<trigger tag>_<jet tag>_<base name> + <tag>
+   */
+  inline std::vector<std::string> MakeQAHistNames(
+      const std::vector<std::string>& bases,
+      const std::string& module,
+      const std::string& tag = "")
+  {
+    // copy base names to list of hist names
+    std::vector<std::string> names = bases;
+
+    // inject module names, tags, etc.
+    for (auto& name : names)
+    {
+      name.insert(0, "h_" + module + "_");
+      if (!tag.empty())
+      {
+        name.append("_" + tag);
+      }
+      std::transform(
+          name.begin(),
+          name.end(),
+          name.begin(),
+          ::tolower);
+    }
+    return names;
+
+  }  // end 'MakeQAHistNames(std::vector<std::string>&, std::string& x 2)'
 
 }  // namespace JetQADefs
 

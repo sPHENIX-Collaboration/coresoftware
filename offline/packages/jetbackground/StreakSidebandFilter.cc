@@ -13,17 +13,20 @@
 // module components
 #include "StreakSidebandFilter.h"
 
-// calo base
+// calobase libraries
 #include <calobase/TowerInfoContainer.h>
 
-// phool libraries
+// jetqa libraries
+#include <jetqa/JetQADefs.h>
+
+// phool utilities
 #include <phool/getClass.h>
 
 // root libraries
 #include <TH1.h>
 #include <TH2.h>
 
-// c++ utiilites
+// c++ utilities
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -147,7 +150,7 @@ void StreakSidebandFilter::BuildHistograms(const std::string& module, const std:
       "nstreaktwretavsphi"};
 
   // make qa-compliant hist names
-  std::vector<std::string> histNames = BeamBackgroundFilterAndQADefs::MakeQAHistNames(varNames, moduleAndFilterName, tag);
+  std::vector<std::string> histNames = JetQADefs::MakeQAHistNames(varNames, moduleAndFilterName, tag);
 
   // construct histograms
   //   - n.b. reminder that there are

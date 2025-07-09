@@ -1,19 +1,23 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAInclusiveFiller.cc'
-// Derek Anderson
-// 04.03.2024
-//
-// A submodule for the TrksInJetQA F4A module to produce
-// QA histograms for tracks and more in jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAInclusiveFiller.cc
+ *  \author Derek Anderson
+ *  \date   04.03.2024
+ *
+ *  A submodule for the TrksInJetQA F4A module to produce
+ *  QA histograms for tracks and more in jets
+ */
+/// ===========================================================================
 
 #define TRKSINJETQAINCLUSIVEFILLER_CC
 
 // submodule definition
 #include "TrksInJetQAInclusiveFiller.h"
 
-// inherited public methods ---------------------------------------------------
+// inherited public methods ===================================================
 
+// ----------------------------------------------------------------------------
+//! Run fill routines for relevant histograms
+// ----------------------------------------------------------------------------
 void TrksInJetQAInclusiveFiller::Fill(PHCompositeNode* topNode)
 {
   GetNodes(topNode);
@@ -34,12 +38,13 @@ void TrksInJetQAInclusiveFiller::Fill(PHCompositeNode* topNode)
   {
     FillJetQAHists();
   }
-  return;
-
 }  // end 'Fill(PHCompositeNode* topNode)'
 
-// private methods ------------------------------------------------------------
+// private methods ============================================================
 
+// ----------------------------------------------------------------------------
+//! Fill histograms for inclusive tracker hits
+// ----------------------------------------------------------------------------
 void TrksInJetQAInclusiveFiller::FillHitQAHists()
 {
   // loop over hit sets
@@ -68,40 +73,41 @@ void TrksInJetQAInclusiveFiller::FillHitQAHists()
       m_hitManager->GetInfo(hit, setKey, hitKey);
 
     }  // end hit loop
-  }    // end hit set loop
-  return;
-
+  }  // end hit set loop
 }  // end 'FillHitQAHists()'
 
+// ----------------------------------------------------------------------------
+//! Fill histograms for inclusive track clusters
+// ----------------------------------------------------------------------------
 void TrksInJetQAInclusiveFiller::FillClustQAHists()
 {
   // loop over hit sets
   for (const auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId,
                   TrkrDefs::TrkrId::tpcId, TrkrDefs::TrkrId::micromegasId})
   {
-      for (const auto& hitsetkey : m_clustMap->getHitSetKeys(det))
-      {
+    for (const auto& hitsetkey : m_clustMap->getHitSetKeys(det))
+    {
       // loop over clusters associated w/ hit set
-          TrkrClusterContainer::ConstRange clusters = m_clustMap->getClusters(hitsetkey);
-          for (
-              TrkrClusterContainer::ConstIterator itClust = clusters.first;
-              itClust != clusters.second;
-              ++itClust)
-          {
-            // grab cluster
-            TrkrDefs::cluskey clustKey = itClust->first;
-            TrkrCluster* cluster = m_clustMap->findCluster(clustKey);
+      TrkrClusterContainer::ConstRange clusters = m_clustMap->getClusters(hitsetkey);
+      for (
+          TrkrClusterContainer::ConstIterator itClust = clusters.first;
+          itClust != clusters.second;
+          ++itClust)
+      {
+        // grab cluster
+        TrkrDefs::cluskey clustKey = itClust->first;
+        TrkrCluster* cluster = m_clustMap->findCluster(clustKey);
 
-            // grab cluster info
-            m_clustManager->GetInfo(cluster, clustKey, m_actsGeom);
-
-          }  // end cluster loop
-      } // end hit set loop
+        // grab cluster info
+        m_clustManager->GetInfo(cluster, clustKey, m_actsGeom);
+      }  // end cluster loop
+    } // end hit set loop
   }
-  return;
+}  // end 'FillClustQAHists()'
 
-}  // end 'Process()'
-
+// ----------------------------------------------------------------------------
+//! Fill histograms for inclusive tracks
+// ----------------------------------------------------------------------------
 void TrksInJetQAInclusiveFiller::FillTrackQAHists()
 {
   // loop over tracks
@@ -114,10 +120,11 @@ void TrksInJetQAInclusiveFiller::FillTrackQAHists()
     m_trackManager->GetInfo(track);
 
   }  // end track loop
-  return;
+}  // end 'FillTrackQAHists()'
 
-}  // end 'Process()'
-
+// ----------------------------------------------------------------------------
+//! Fill histograms for inclusive jets
+// ----------------------------------------------------------------------------
 void TrksInJetQAInclusiveFiller::FillJetQAHists()
 {
   // loop over jets
@@ -133,8 +140,6 @@ void TrksInJetQAInclusiveFiller::FillJetQAHists()
     m_jetManager->GetInfo(jet);
 
   }  // end jet loop
-  return;
-
 }  // end 'FillJetQAHists()'
 
-// end ------------------------------------------------------------------------
+// end ========================================================================
