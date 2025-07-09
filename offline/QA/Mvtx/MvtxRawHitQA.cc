@@ -203,17 +203,17 @@ void MvtxRawHitQA::createHistos()
   assert(hm);
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer0").c_str(), "Number of hits in layer 0;Number of hits;Entries",100,0,15000);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer0").c_str(), "Number of hits in layer 0;Number of hits;Entries",100,0,25000);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer1").c_str(), "Number of hits in layer 1;Number of hits;Entries",100,0,15000);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer1").c_str(), "Number of hits in layer 1;Number of hits;Entries",100,0,25000);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer2").c_str(), "Number of hits in layer 2;Number of hits;Entries",100,0,15000);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer2").c_str(), "Number of hits in layer 2;Number of hits;Entries",100,0,25000);
     hm->registerHisto(h);
   }
 
