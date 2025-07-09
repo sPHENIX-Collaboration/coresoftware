@@ -58,7 +58,7 @@ std::vector<Jet *> TruthJetInput::get_input(PHCompositeNode *topNode)
   //     (1) Loop on GetPrimaryParticleRange
   //     (2) Or add a loop on GetSecondaryParticleRange
   std::vector<Jet *> pseudojets;
-  PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+  PHG4TruthInfoContainer::ConstRange range = truthinfo->GetSPHENIXPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
        iter != range.second;
        ++iter)

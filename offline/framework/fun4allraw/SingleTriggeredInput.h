@@ -64,6 +64,8 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   bool DoneFilling() const;
   void RunCheck();
   void ResetClockDiffCounters();
+  uint64_t get_clkdiff(const int index) const { return m_bclkdiffarray.at(index); }
+  uint64_t calccurrentclockdiff(const int index, Event *evt);
 
  protected:
   PHCompositeNode *m_topNode{nullptr};
