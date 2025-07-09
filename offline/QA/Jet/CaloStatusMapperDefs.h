@@ -206,45 +206,27 @@ namespace CaloStatusMapperDefs
 
 
   // ==========================================================================
-  //! Make QA-compliant histogram name
+  //! Checks if a status code is optional for histogramming
   // ==========================================================================
-  /*! This helper method takes in a base name (e.g. some variable you want
-   *  to histogram like "JetEne") and produces a histogram name compliant
-   *  w/ the rest of the jet QA.
-   *
-   *  The format should always be:
-   *      h_<module name>_<trigger tag>_<jet tag>_<base name> + <tag>
-   *
-   *  FIXME this should get moved into JetQADefs.h
-   */
-  inline std::string MakeQAHistName(
-    const std::string& base,
-    const std::string& module,
-    const std::string& tag = "")
+  bool IsStatusSkippable(const std::string& label)
   {
 
-    // set name to base
-    std::string name = base;
-
-    // inject module names, tags, etc.
-    name.insert(0, "h_" + module + "_");
-    if (!tag.empty())
+    bool skip = false;
+    if ((label == "Hot")      ||
+        (label == "BadTime")  ||
+        (label == "BadChi")   ||
+        (label == "NoCalib")  ||
+        (label == "NotInstr") ||
+        (label == "Unknown"))
     {
-      name.append("_" + tag);
+      skip = true;
     }
-    std::transform(
-      name.begin(),
-      name.end(),
-      name.begin(),
-      ::tolower
-    );
-    return name;
+    return skip;
 
-  }  // end 'MakeQAHistNames(std::string& x 3)'
+  }  // end 'IsStatusSkippable(std::string&)'
 
 }  // end CaloStatusMapperDefs namespace
 
 #endif
 
 // end ========================================================================
-

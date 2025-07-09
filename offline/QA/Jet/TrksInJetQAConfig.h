@@ -1,10 +1,11 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAConfig.h'
-// Derek Anderson
-// 03.25.2024
-//
-// Configurable parameters for the TrksInJetQA module.
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAConfig.h
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  Configurable parameters for the TrksInJetQA module.
+ */
+/// ===========================================================================
 
 #ifndef TRKSINJETQACONFIG_H
 #define TRKSINJETQACONFIG_H
@@ -13,8 +14,9 @@
 #include <cstdint>
 #include <string>
 
-// TrksInJetQAConfig definition -----------------------------------------------
-
+// ============================================================================
+//! Options for TrksInJetQA module
+// ============================================================================
 struct TrksInJetQAConfig
 {
   // system options
@@ -28,6 +30,7 @@ struct TrksInJetQAConfig
   bool doTrackQA = true;
   bool doJetQA = true;
   bool doSubsysHist = false;
+  bool doOptHist = false;
 
   // jet options
   double rJet = 0.4;
@@ -55,4 +58,4 @@ struct TrksInJetQAConfig
 
 #endif
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

@@ -1,11 +1,12 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAClustManager.h'
-// Derek Anderson
-// 03.25.2024
-//
-// A submodule for the TrksInJetQA module to generate
-// QA plots for track clusters
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAClustManager.h
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A submodule for the TrksInJetQA module to generate
+ *  QA plots for track clusters
+ */
+/// ===========================================================================
 
 #ifndef TRKSINJETQACLUSTMANAGER_H
 #define TRKSINJETQACLUSTMANAGER_H
@@ -28,12 +29,16 @@
 #include <utility>
 #include <vector>
 
-// TrksInJetQAClustManager definition -----------------------------------------
-
+// ============================================================================
+//! Tracker cluster histogram manager for TrksInJetQA module
+// ============================================================================
+/*! This histogram manager defines what to histogram
+ *  from tracker clusters.
+ */
 class TrksInJetQAClustManager : public TrksInJetQABaseManager
 {
  public:
-  // histogram accessors
+  ///! enumerate cluster subsystems
   enum Type
   {
     All,
@@ -41,6 +46,8 @@ class TrksInJetQAClustManager : public TrksInJetQABaseManager
     Intt,
     Tpc
   };
+
+  ///! enumerate 1D histograms
   enum H1D
   {
     PosX,
@@ -48,13 +55,20 @@ class TrksInJetQAClustManager : public TrksInJetQABaseManager
     PosZ,
     PosR
   };
+
+  ///! enumerate 2D histograms
   enum H2D
   {
     PosYvsX,
     PosRvsZ
   };
 
-  // histogram content
+  // --------------------------------------------------------------------------
+  // Cluster histogram content
+  // --------------------------------------------------------------------------
+  /*! A small struct to consolidate what variables
+   *  to histogram for clusters.
+   */ 
   struct ClustQAContent
   {
     double x = std::numeric_limits<double>::max();
@@ -81,4 +95,4 @@ class TrksInJetQAClustManager : public TrksInJetQABaseManager
 
 #endif
 
-// end ------------------------------------------------------------------------
+// end ========================================================================
