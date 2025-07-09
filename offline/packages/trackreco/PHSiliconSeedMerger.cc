@@ -8,6 +8,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <trackbase/MvtxDefs.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <trackbase_historic/TrackSeed.h>
@@ -62,7 +63,8 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
     }
 
     std::set<TrkrDefs::cluskey> mvtx1Keys;
-    for (TrackSeed::ConstClusterKeyIter iter = track1->begin_cluster_keys();
+    int track1Strobe = std::numeric_limits<int>::quiet_NaN();
+    for (auto iter = track1->begin_cluster_keys();
          iter != track1->end_cluster_keys();
          ++iter)
     {
@@ -72,7 +74,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
       {
         continue;
       }
-
+      track1Strobe = MvtxDefs::getStrobeId(ckey);
       mvtx1Keys.insert(ckey);
     }
 
@@ -94,6 +96,8 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
       {
         continue;
       }
+      int track2Strobe = std::numeric_limits<int>::quiet_NaN();
+
       std::set<TrkrDefs::cluskey> mvtx2Keys;
       for (TrackSeed::ConstClusterKeyIter iter = track2->begin_cluster_keys();
            iter != track2->end_cluster_keys();
@@ -106,6 +110,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
           continue;
         }
         mvtx2Keys.insert(ckey);
+        track2Strobe = MvtxDefs::getStrobeId(ckey);
       }
 
       std::vector<TrkrDefs::cluskey> intersection;
@@ -117,7 +122,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
 
       /// If we have two clusters in common in the triplet, it is likely
       /// from the same track
-      if (intersection.size() > m_clusterOverlap)
+      if (intersection.size() > m_clusterOverlap && track1Strobe == track2Strobe)
       {
         if (Verbosity() > 2)
         {
