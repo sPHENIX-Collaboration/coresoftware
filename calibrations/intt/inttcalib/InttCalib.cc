@@ -11,6 +11,10 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
+#include <qautils/QAHistManagerDef.h>
+#include <qautils/QAUtil.h>
+#include <fun4all/Fun4AllHistoManager.h>
+
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
@@ -172,7 +176,7 @@ int InttCalib::process_event(PHCompositeNode *top_node)
   {
     ConfigureBcoMap();
     MakeBcoMapCdb();
-//    MakeBcoMapPng();
+    MakeBcoMapPng();
     m_do_make_bco = false;
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -198,14 +202,14 @@ int InttCalib::EndRun(int const run_number)
   else
   {
 	ConfigureHotMap_v3();
-	MakeHotMapCdb_v3();
-//	MakeHotMapPng_v3();
+  MakeHotMapCdb_v3();
+	MakeHotMapPng_v3();
   }
   if (m_do_make_bco)
   {
 	ConfigureBcoMap();
 	MakeBcoMapCdb();
-	//MakeBcoMapPng();
+	MakeBcoMapPng();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -217,7 +221,7 @@ int InttCalib::ConfigureHotMap_fee()
   for (int i = 0; i < m_MAX_LADDER; ++i)
   {
     // name[i] = (boost::format("intt%01d") % (i / 4)).str();
-    name[i] = (boost::format("intt%01d fee%d") % (i / 14) % (i % 14) ).str();
+    name[i] = (boost::format("h_InttCalib_intt%01d_fee%d") % (i / 14) % (i % 14) ).str();
     title[i] = name[i];
   }
 
@@ -274,7 +278,7 @@ int InttCalib::ConfigureHotMap_v3()
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
     // name[i] = (boost::format("intt%01d") % (i / 4)).str();
-    name[i] = (boost::format("intt%01d") % i).str();
+    name[i] = (boost::format("h_InttCalib_intt%01d") % i).str();
     title[i] = name[i];
   }
 
@@ -317,13 +321,18 @@ int InttCalib::ConfigureHotMap_v3()
 	  continue;
     // ConfigureHist_v2(m_hist[i], m_fit[i], hitrate_pdf[i], name[i], title[i]);
     ConfigureHist_v3(m_hist[i], m_fit[i], global_maxbin, hitrate_pdf[i], name[i], title[i]);
-
+    QAHistManagerDef::getHistoManager()->registerHisto(m_hist[i]);
+    QAHistManagerDef::getHistoManager()->registerHisto(m_fit[i]);
     int nBins = m_hist[i]->GetNbinsX();
     double xMin = m_hist[i]->GetXaxis()->GetXmin();
     double xMax = m_hist[i]->GetXaxis()->GetXmax();
+    
+    auto hm = QAHistManagerDef::getHistoManager();
+
     m_hist_half[i] =
-        new TH1D((boost::format("half_hist_%d") % i).str().c_str(),
+        new TH1D((boost::format("h_InttCalib_half_hist_%d") % i).str().c_str(),
                  "New Histogram with Same Binning", nBins, xMin, xMax);
+    hm->registerHisto(m_hist_half[i]);
 
     double mean = m_fit[i]->GetParameter(1);
     double sigma = m_fit[i]->GetParameter(2);
@@ -349,7 +358,7 @@ int InttCalib::ConfigureHotMap_v2()
   for (int i = 0; i < m_MAX_INDEX; ++i)
   {
     // name[i] = (boost::format("intt%01d") % (i / 4)).str();
-    name[i] = (boost::format("intt%01d") % i).str();
+    name[i] = (boost::format("h_InttCalib_intt%01d") % i).str();
     title[i] = name[i];
 
     // switch(i % 4)
@@ -625,9 +634,10 @@ int InttCalib::MakeHotMapROOT_fee()
     m_hist_fee[i]->Draw();      
     m_fit_fee[i]->Draw("same"); 
   }
-
-  c1->SaveAs(m_hotmap_png_file.c_str());
-
+  if(!m_hotmap_png_file.empty())
+  {
+    c1->SaveAs(m_hotmap_png_file.c_str());
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -695,11 +705,14 @@ int InttCalib::MakeHotMapPng_v3()
 
     hist_pad->cd();
     double x_max = 0, y_max = 0;
-
     // for(int i = j * 4; i < (j + 1) * 4; ++i)
     for (int i = j; i < j + 1; ++i)
     {
       // m_hist[i]->SetLineColor(GetFeeColor(i - j * 4));
+      if(!m_hist[i])
+      {
+        continue;
+      }
       m_hist[i]->SetLineColor(kBlack);
       m_hist[i]->SetLineWidth(2);
       m_hist_half[i]->SetLineColor(kRed);
@@ -730,6 +743,10 @@ int InttCalib::MakeHotMapPng_v3()
 
     for (int i = j; i < j + 1; ++i)
     {
+      if(!m_hist[i])
+      {
+        continue;
+      }
       m_hist[i]->GetXaxis()->SetRangeUser(0, x_max);
       m_hist[i]->GetYaxis()->SetRangeUser(1, y_max);
       m_hist[i]->Draw("same");
@@ -747,7 +764,6 @@ int InttCalib::MakeHotMapPng_v3()
       line2.DrawLine(m_min[i], 0, m_min[i], y_max);
     }
   }
-
   cnvs->cd();
   TPad *legend_pad = new TPad("legend_pad", "legend_pad", 0.9, 0.1, 1.0, 1.0);
   legend_pad->SetFillStyle(4000);
@@ -760,6 +776,10 @@ int InttCalib::MakeHotMapPng_v3()
     text.SetTextColor(GetFeeColor(i));
     text.SetTextAlign(22);
     text.SetTextSize(0.15);
+    if(!m_hist[i])
+    {
+      continue;
+    }
     std::string title = m_hist[i]->GetName();
     text.DrawText(0.5, (2.0 * i + 1.0) / (2.0 * 4), title.substr(6, 7).c_str());
   }
@@ -793,14 +813,12 @@ int InttCalib::MakeHotMapPng_v3()
 
   cnvs->Update();
   cnvs->Show();
-
   if (!m_hotmap_png_file.empty())
   {
     cnvs->SaveAs(m_hotmap_png_file.c_str());
   }
 
   delete cnvs;
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1134,6 +1152,8 @@ int InttCalib::MakeHotMapPng()
   hitrate_pdf_hist->SetTitle("Hitrate PDF;Adjusted Hitrate;Count");
   hitrate_pdf_hist->Draw();
 
+  QAHistManagerDef::getHistoManager()->registerHisto(hitrate_pdf_hist);
+   
   // Fill
   for (auto const& raw : InttNameSpace::AllRawDataChannels())
   {
@@ -1197,6 +1217,8 @@ int InttCalib::MakeHotMapPng()
   line.DrawLine(0, m_min_hitrate, 100, m_min_hitrate);
   line.DrawLine(0, m_max_hitrate, 100, m_max_hitrate);
 
+  QAHistManagerDef::getHistoManager()->registerHisto(hitrate_cdf_hist);
+
   // Caption
   hitrate_cnvs->cd();
   TPad *caption_pad = new TPad("caption_pad", "caption_pad",  //
@@ -1236,10 +1258,11 @@ int InttCalib::MakeHotMapPng()
 
   hitrate_cnvs->Update();
   hitrate_cnvs->Show();
-  hitrate_cnvs->SaveAs(m_hotmap_png_file.c_str());
+  if(!m_hotmap_png_file.empty())
+  {
+    hitrate_cnvs->SaveAs(m_hotmap_png_file.c_str());
+  }
 
-  delete hitrate_pdf_hist;
-  delete hitrate_cdf_hist;
   delete hitrate_cnvs;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1362,10 +1385,7 @@ int InttCalib::MakeBcoMapCdb()
 
 int InttCalib::MakeBcoMapPng()
 {
-  if (m_bcomap_png_file.empty())
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
+ 
 
   // Canvas
   gStyle->SetOptStat(0);
@@ -1411,7 +1431,7 @@ int InttCalib::MakeBcoMapPng()
 	{
 	  int h = felix * 14 + fee;
 	  bco_pdf_pad->cd();
-	  std::string htitle = (boost::format("bco_hist_%03d") % h).str();
+	  std::string htitle = (boost::format("h_InttCalib_bco_hist_%03d") % h).str();
 	  // float min_bin = (m_streaming) ? -127.5 : -0.5;
 	  float min_bin = -0.5;
 	  float max_bin = 127.5;
@@ -1422,7 +1442,6 @@ int InttCalib::MakeBcoMapPng()
 		  nbins, min_bin, max_bin          //
 		  // 128, -0.5, 127.5                //
 		  );
-
 	  bco_hist[h]->SetTitle(
 		  (boost::format(";BCO Difference;intt%01d (%01d - %02d)") %
 		   (felix) % fee % fee)
@@ -1446,6 +1465,8 @@ int InttCalib::MakeBcoMapPng()
 		  max = m_bcorates_fee[felix][fee][bco];
 		}
 	  }
+      QAHistManagerDef::getHistoManager()->registerHisto(bco_hist[h]);
+
 	}
 	//	for (InttNameSpace::RawData_s raw = raw_begin; raw <= raw_end; ++raw)
 	//	{
@@ -1572,12 +1593,11 @@ int InttCalib::MakeBcoMapPng()
   caption_masked.DrawText(0.9, 0.3, maskedText.str().c_str());
   bco_cnvs->Update();
   bco_cnvs->Show();
-  bco_cnvs->SaveAs(m_bcomap_png_file.c_str());
-
-  for (auto &hist : bco_hist)
+  if(!m_bcomap_png_file.empty())
   {
-    delete hist;
+    bco_cnvs->SaveAs(m_bcomap_png_file.c_str());
   }
+
   delete bco_cnvs;
 
   return Fun4AllReturnCodes::EVENT_OK;
