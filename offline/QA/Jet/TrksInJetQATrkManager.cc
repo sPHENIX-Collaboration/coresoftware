@@ -13,23 +13,39 @@
 // submodule definition
 #include "TrksInJetQATrkManager.h"
 
+// root libraries
+#include <TVector3.h>
+
 // public methods =============================================================
 
 // ----------------------------------------------------------------------------
 //! Get information from a track
 // ----------------------------------------------------------------------------
-void TrksInJetQATrkManager::GetInfo(SvtxTrack* track)
+void TrksInJetQATrkManager::GetInfo(SvtxTrack* track,
+                                    std::optional<Jet*> jet)
 {
-  // collect track info
+  // collect track-only info
   TrackQAContent content = {
       .eta = track->get_eta(),
       .phi = track->get_phi(),
       .pt = track->get_pt(),
       .qual = track->get_quality()};
 
+  // if a jet was provided, calculate z and jt
+  if (jet.has_value())
+  {
+    // grab track & jet momenta
+    TVector3 pTrk(track->get_px(), track->get_py(), track->get_pz());
+    TVector3 pJet(jet.value()->get_px(), jet.value()->get_py(), jet.value()->get_pz());
+
+    // now calculate z & jt
+    content.z = pJet.Dot(pTrk) / pJet.Mag2();
+    content.jt = pJet.Cross(pTrk).Mag() / pJet.Mag2();
+  }
+
   // fill histograms
   FillHistograms(Type::All, content);
-}  // end 'GetInfo(SvtxTrack*)'
+}  // end 'GetInfo(SvtxTrack*, std::optional<Jet*>)'
 
 // private methods ============================================================
 
@@ -42,6 +58,8 @@ void TrksInJetQATrkManager::FillHistograms(const int type, TrackQAContent& conte
   m_mapHist1D[Index(type, H1D::Eta)]->Fill(content.eta);
   m_mapHist1D[Index(type, H1D::Phi)]->Fill(content.phi);
   m_mapHist1D[Index(type, H1D::Pt)]->Fill(content.pt);
+  m_mapHist1D[Index(type, H1D::Z)]->Fill(content.z);
+  m_mapHist1D[Index(type, H1D::Jt)]->Fill(content.jt);
   m_mapHist1D[Index(type, H1D::Qual)]->Fill(content.qual);
 
   // fill 2d histograms
@@ -64,6 +82,8 @@ void TrksInJetQATrkManager::DefineHistograms()
   m_mapHistDef1D[H1D::Eta] = std::tuple("TrackEta", vecBins.at(TrksInJetQAHist::Var::Eta));
   m_mapHistDef1D[H1D::Phi] = std::tuple("TrackPhi", vecBins.at(TrksInJetQAHist::Var::Phi));
   m_mapHistDef1D[H1D::Pt] = std::tuple("TrackPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_mapHistDef1D[H1D::Z] = std::tuple("TrackZ", vecBins.at(TrksInJetQAHist::Var::Frac));
+  m_mapHistDef1D[H1D::Jt] = std::tuple("TrackJt", vecBins.at(TrksInJetQAHist::Var::Frac));
   m_mapHistDef1D[H1D::Qual] = std::tuple("TrackQual", vecBins.at(TrksInJetQAHist::Var::Qual));
 
   // define 2d histograms

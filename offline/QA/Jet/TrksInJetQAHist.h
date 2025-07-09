@@ -37,7 +37,8 @@ struct TrksInJetQAHist
     Phi,
     Eta,
     Ene,
-    Qual
+    Qual,
+    Frac
   };
 
   // no. of bins
@@ -56,6 +57,7 @@ struct TrksInJetQAHist
   uint32_t nEtaBins = 180;
   uint32_t nEneBins = 505;
   uint32_t nQualBins = 22;
+  uint32_t nFracBins = 44;
 
   // bin ranges
   TrksInJetQADefs::BinRange rNumBins = {-0.5, (float) nNumBins + 0.5};
@@ -70,6 +72,7 @@ struct TrksInJetQAHist
   TrksInJetQADefs::BinRange rEtaBins = {-4.0, 4.0};
   TrksInJetQADefs::BinRange rEneBins = {-0.5, 100.5};
   TrksInJetQADefs::BinRange rQualBins = {-0.5, 10.5};
+  TrksInJetQADefs::BinRange rFracBins = {-0.1, 2.1};
 
   // construct list of binnings
   std::vector<TrksInJetQADefs::BinDef> GetVecHistBins()
@@ -86,9 +89,9 @@ struct TrksInJetQAHist
         std::make_pair(nPhiBins, rPhiBins),
         std::make_pair(nEtaBins, rEtaBins),
         std::make_pair(nEneBins, rEneBins),
-        std::make_pair(nQualBins, rQualBins)};
+        std::make_pair(nQualBins, rQualBins),
+        std::make_pair(nFracBins, rFracBins)};
     return vecHistBins;
-
   }  // end 'GetVecHistBins()'
 };  // end TrksInJetQAHist
 

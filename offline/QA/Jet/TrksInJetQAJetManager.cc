@@ -52,15 +52,23 @@ void TrksInJetQAJetManager::GetInfo(Jet* jet,
 void TrksInJetQAJetManager::FillHistograms(const int type, JetQAContent& content)
 {
   // fill 1d histograms
-  m_mapHist1D[Index(type, H1D::Eta)]->Fill(content.eta);
+  if (m_config.doOptHist)
+  {
+    m_mapHist1D[Index(type, H1D::Eta)]->Fill(content.eta);
+    m_mapHist1D[Index(type, H1D::Pt)]->Fill(content.pt);
+    m_mapHist1D[Index(type, H1D::PtSum)]->Fill(content.ptSum);
+  }
   m_mapHist1D[Index(type, H1D::Phi)]->Fill(content.phi);
-  m_mapHist1D[Index(type, H1D::Pt)]->Fill(content.pt);
   m_mapHist1D[Index(type, H1D::NTrk)]->Fill(content.nTrk);
-  m_mapHist1D[Index(type, H1D::PtSum)]->Fill(content.ptSum);
 
   // fill 2d histograms
+  if (m_config.doOptHist)
+  {
+    m_mapHist2D[Index(type, H2D::PtSumVsPt)]->Fill(content.pt, content.ptSum);
+  }
   m_mapHist2D[Index(type, H2D::PtVsEta)]->Fill(content.eta, content.pt);
-  m_mapHist2D[Index(type, H2D::PtSumVsPt)]->Fill(content.pt, content.ptSum);
+  m_mapHist2D[Index(type, H2D::NTrkVsEta)]->Fill(content.eta, content.nTrk);
+  m_mapHist2D[Index(type, H2D::NTrkVsPt)]->Fill(content.pt, content.nTrk);
 }  //  end 'FillHistograms(Type, JetQAContent&)'
 
 // ----------------------------------------------------------------------------
@@ -75,19 +83,31 @@ void TrksInJetQAJetManager::DefineHistograms()
   m_mapHistTypes[Type::All] = "All";
 
   // 1d histogram definitions
-  m_mapHistDef1D[H1D::Eta] = std::tuple("JetEta", vecBins.at(TrksInJetQAHist::Var::Eta));
+  if (m_config.doOptHist)
+  {
+    m_mapHistDef1D[H1D::Eta] = std::tuple("JetEta", vecBins.at(TrksInJetQAHist::Var::Eta));
+    m_mapHistDef1D[H1D::Pt] = std::tuple("JetPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+    m_mapHistDef1D[H1D::PtSum] = std::tuple("SumTrkPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+  }
   m_mapHistDef1D[H1D::Phi] = std::tuple("JetPhi", vecBins.at(TrksInJetQAHist::Var::Phi));
-  m_mapHistDef1D[H1D::Pt] = std::tuple("JetPt", vecBins.at(TrksInJetQAHist::Var::Ene));
   m_mapHistDef1D[H1D::NTrk] = std::tuple("JetNTrks", vecBins.at(TrksInJetQAHist::Var::Num));
-  m_mapHistDef1D[H1D::PtSum] = std::tuple("SumTrkPt", vecBins.at(TrksInJetQAHist::Var::Ene));
 
   // 2d histogram definitions
+  if (m_config.doOptHist)
+  {
+    m_mapHistDef2D[H2D::PtSumVsPt] = std::tuple("SumTrkVsJetPt",
+                                                vecBins.at(TrksInJetQAHist::Var::Ene),
+                                                vecBins.at(TrksInJetQAHist::Var::Ene));
+  }
   m_mapHistDef2D[H2D::PtVsEta] = std::tuple("JetPtVsEta",
                                             vecBins.at(TrksInJetQAHist::Var::Eta),
                                             vecBins.at(TrksInJetQAHist::Var::Ene));
-  m_mapHistDef2D[H2D::PtSumVsPt] = std::tuple("SumTrkVsJetPt",
-                                              vecBins.at(TrksInJetQAHist::Var::Ene),
-                                              vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_mapHistDef2D[H2D::NTrkVsEta] = std::tuple("JetNTrkVsEta",
+                                              vecBins.at(TrksInJetQAHist::Var::Eta),
+                                              vecBins.at(TrksInJetQAHist::Var::Num));
+  m_mapHistDef2D[H2D::NTrkVsPt] = std::tuple("JetNTrkVsPt",
+                                             vecBins.at(TrksInJetQAHist::Var::Ene),
+                                             vecBins.at(TrksInJetQAHist::Var::Num));
 }  // end 'DefineHistograms()'
 
 // end ========================================================================

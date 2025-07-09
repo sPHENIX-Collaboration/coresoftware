@@ -92,7 +92,7 @@ void TrksInJetQAInJetFiller::FillJetAndTrackQAHists(PHCompositeNode* topNode)
       // grab track info and fill histograms
       if (m_config.doTrackQA)
       {
-        m_trackManager->GetInfo(track);
+        m_trackManager->GetInfo(track, jet);
       }
 
       // fill cluster and hit histograms as needed

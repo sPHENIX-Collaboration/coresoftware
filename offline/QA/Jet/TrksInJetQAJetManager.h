@@ -59,7 +59,9 @@ class TrksInJetQAJetManager : public TrksInJetQABaseManager
   enum H2D
   {
     PtVsEta,
-    PtSumVsPt
+    PtSumVsPt,
+    NTrkVsEta,
+    NTrkVsPt
   };
 
   // --------------------------------------------------------------------------

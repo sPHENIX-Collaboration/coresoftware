@@ -14,6 +14,9 @@
 // submodule definitions
 #include "TrksInJetQABaseManager.h"
 
+// jet includes
+#include <jetbase/Jet.h>
+
 // tracking includes
 #include <trackbase_historic/SvtxTrack.h>
 
@@ -23,6 +26,7 @@
 
 // c++ utilities
 #include <limits>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -48,6 +52,8 @@ class TrksInJetQATrkManager : public TrksInJetQABaseManager
     Eta,
     Phi,
     Pt,
+    Z,
+    Jt,
     Qual
   };
 
@@ -69,6 +75,8 @@ class TrksInJetQATrkManager : public TrksInJetQABaseManager
     double eta = std::numeric_limits<double>::max();
     double phi = std::numeric_limits<double>::max();
     double pt = std::numeric_limits<double>::max();
+    double z = std::numeric_limits<double>::max();
+    double jt = std::numeric_limits<double>::max();
     double qual = std::numeric_limits<double>::max();
   };
 
@@ -77,7 +85,7 @@ class TrksInJetQATrkManager : public TrksInJetQABaseManager
   ~TrksInJetQATrkManager(){};
 
   // public methods
-  void GetInfo(SvtxTrack* track);
+  void GetInfo(SvtxTrack* track, std::optional<Jet*> jet = std::nullopt);
 
  private:
   // private methods
