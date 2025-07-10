@@ -61,7 +61,6 @@ ROOTDICTS = \
   EventRhov1_Dict.cc \
   TowerBackground_Dict.cc \
   TowerBackgroundv1_Dict.cc \
-  TowerBackgroundv2_Dict.cc \
   TowerRho_Dict.cc \
   TowerRhov1_Dict.cc
 
