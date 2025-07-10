@@ -49,6 +49,7 @@ class HCalCosmics : public SubsysReco
   TH1 *h_channel_hist[n_etabin][n_phibin]{{nullptr}};
   TH2 *h_waveformchi2{nullptr};
   TH2 *h_waveformchi2_aftercut{nullptr};
+  TH1 *h_towertime_hist[n_etabin][n_phibin]{{nullptr}}; // distribution of tower time of muons
   TH2 *h_time_energy{nullptr};
   TH1 *h_mip{nullptr};
   TH1 *h_event{nullptr};
@@ -63,6 +64,7 @@ class HCalCosmics : public SubsysReco
 
   float m_peak[n_etabin][n_phibin]{};
   float m_chi2[n_etabin][n_phibin]{};
+  float m_time[n_etabin][n_phibin]{};
 
   //  bool debug {false};
 

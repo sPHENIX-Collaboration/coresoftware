@@ -40,6 +40,10 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
     {
       std::string channel_histname = "h_channel_" + std::to_string(ieta) + "_" + std::to_string(iphi);
       h_channel_hist[ieta][iphi] = new TH1F(channel_histname.c_str(), "", 500, 0, 500 * bin_width);
+      
+      std::string time_histname = "h_towertime_" + std::to_string(ieta) + "_" + std::to_string(iphi);
+      h_towertime_hist[ieta][iphi] = new TH1F(time_histname.c_str(), "", 100, -10, 10);
+   
     }
   }
   h_waveformchi2 = new TH2F("h_waveformchi2", "", 1000, 0, 500 * bin_width, 1000, 0, 1000000);
@@ -90,6 +94,7 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
     int iphi = towers->getTowerPhiBin(towerkey);
     m_peak[ieta][iphi] = energy;
     m_chi2[ieta][iphi] = chi2;
+    m_time[ieta][iphi] = time;
     h_waveformchi2->Fill(m_peak[ieta][iphi], m_chi2[ieta][iphi]);
     if (tower->get_isBadChi2())
     {
@@ -130,6 +135,7 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
         continue;  // right veto cut
       }
       h_channel_hist[ieta][iphi]->Fill(m_peak[ieta][iphi]);
+      h_towertime_hist[ieta][iphi]->Fill(m_time[ieta][iphi]);
       h_mip->Fill(m_peak[ieta][iphi]);
     }
   }
@@ -148,6 +154,16 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
       delete iphi;
     }
   }
+
+  for (auto &ieta : h_towertime_hist)
+  {
+    for (auto &iphi : ieta)
+    {
+      iphi->Write();
+      delete iphi;
+    }
+  }
+  	
   h_mip->Write();
   h_waveformchi2->Write();
   h_waveformchi2_aftercut->Write();
