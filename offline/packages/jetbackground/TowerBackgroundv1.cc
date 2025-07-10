@@ -21,7 +21,10 @@ void TowerBackgroundv1::identify(std::ostream& os) const
     os << std::endl;
   }
 
-  os << " v2 = " << _v2 << ", Psi2 = " << _Psi2 << ", # towers used for bkg = " << _nTowers << " , # strips used for flow = " << _nStrips << std::endl;
+  os << " v2 = " << _v2 << ", Psi2 = " << _Psi2
+     << ", # towers used for bkg = " << _nTowers
+     << " , # strips used for flow = " << _nStrips
+     << " , flow failure flag " << _flow_failure_flag<< std::endl;
 
   return;
 }
