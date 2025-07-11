@@ -385,32 +385,46 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     }
   }
 
+  // sort seeds and remove duplicates
+  if( Verbosity() )
+  { std::cout << "PHSimpleKFProp::process_event - new_chains size before cleanup: " << new_chains.size() << std::endl; }
+
+  std::sort(new_chains.begin(),new_chains.end());
+  new_chains.erase(std::unique(new_chains.begin(),new_chains.end()),new_chains.end());
+
+  if( Verbosity() )
+  { std::cout << "PHSimpleKFProp::process_event - new_chains size after cleanup: " << new_chains.size() << std::endl; }
+
+  // reset track map
   _track_map->Reset();
   timer.stop();
-  timer.restart();
 
-  const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
-  if (Verbosity() > 1)
-  {
-    std::cout << "clean_chains size: " << clean_chains.size() << std::endl;
-  }
-  timer.stop();
+  /*
+   * presently RemoveBadClusters does nothing. It just removes seeds of size less than 3, which don't make it through the main loop anyway
+   * so we just comment out the call, to prevent unnecessary data copy
+   */
+//   timer.restart();
+//   const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
+//   if (Verbosity() > 1)
+//   { std::cout << "PHSimpleKFProp::process_event - clean_chains size: " << clean_chains.size() << std::endl; }
+//   timer.stop();
 
-  timer.stop();
+  const auto& clean_chains = new_chains;
+
   timer.restart();
   std::vector<float> trackChi2;
-  auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions,
-                                         trackChi2);
+  auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions, trackChi2);
   timer.stop();
-  auto alicekftime = timer.elapsed();
+
   if (Verbosity() > 0)
   {
+    const auto alicekftime = timer.elapsed();
     std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
   }
   timer.stop();
+
+  //  Move ghost rejection into publishSeeds, so that we don't publish rejected seeds
   timer.restart();
-  //  Move ghost rejection into publishSeeds, so that we don't publish
-  //  rejected seeds
   if (m_ghostrejection)
   {
     rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2, timer);
@@ -420,6 +434,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     publishSeeds(seeds.first);
   }
 
+  // also publish unused seeds (not TPC)
   publishSeeds(unused_tracks);
 
   return Fun4AllReturnCodes::EVENT_OK;
