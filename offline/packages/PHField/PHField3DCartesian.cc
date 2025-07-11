@@ -127,6 +127,11 @@ PHField3DCartesian::~PHField3DCartesian()
 
 void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) const
 {
+
+  /*
+   * note: this is not thread safe, but used only for diagnostic
+   * so ignore for now
+   */
   static double xsav = -1000000.;
   static double ysav = -1000000.;
   static double zsav = -1000000.;
@@ -144,17 +149,17 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     if (ifirst < 10)
     {
       std::cout << "PHField3DCartesian::GetFieldValue: "
-                << "Invalid coordinates: "
-                << "x: " << x / cm
-                << ", y: " << y / cm
-                << ", z: " << z / cm
-                << " bailing out returning zero bfield"
-                << std::endl;
+        << "Invalid coordinates: "
+        << "x: " << x / cm
+        << ", y: " << y / cm
+        << ", z: " << z / cm
+        << " bailing out returning zero bfield"
+        << std::endl;
       std::cout << "previous point: "
-                << "x: " << xsav / cm
-                << ", y: " << ysav / cm
-                << ", z: " << zsav / cm
-                << std::endl;
+        << "x: " << xsav / cm
+        << ", y: " << ysav / cm
+        << ", z: " << zsav / cm
+        << std::endl;
       std::cout << "Here is the stacktrace: " << std::endl;
       std::cout << boost::stacktrace::stacktrace();
       std::cout << "This is not a segfault. Check the stacktrace for the guilty party (typically #2)" << std::endl;
@@ -162,16 +167,18 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     }
     return;
   }
+  
   xsav = x;
   ysav = y;
   zsav = z;
-
+  
   if (point[0] < xmin || point[0] > xmax ||
       point[1] < ymin || point[1] > ymax ||
       point[2] < zmin || point[2] > zmax)
   {
     return;
   }
+
   double xkey[2];
   std::set<float>::const_iterator it = xvals.lower_bound(x);
   xkey[0] = *it;
@@ -224,6 +231,10 @@ void PHField3DCartesian::GetFieldValue(const double point[4], double *Bfield) co
     --it;
     zkey[1] = *it;
   }
+
+  // mutex lock to prevent data race when accessing the cache from multiple threads
+  std::lock_guard<std::mutex> guard(m_cache_mutex);
+
   if (xkey_save != xkey[0] ||
       ykey_save != ykey[0] ||
       zkey_save != zkey[0])
