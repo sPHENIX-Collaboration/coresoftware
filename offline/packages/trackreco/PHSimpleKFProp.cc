@@ -244,7 +244,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
 
-  #pragma omp parallel num_threads(2)
+  #pragma omp parallel num_threads(4)
   {
     std::vector<std::vector<TrkrDefs::cluskey>> local_chains;
     std::vector<TrackSeed_v2> local_unused;
