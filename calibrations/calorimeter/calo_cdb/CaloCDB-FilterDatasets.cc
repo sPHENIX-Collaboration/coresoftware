@@ -1,8 +1,8 @@
-#include <iostream>
-
 #include "filter-datasets.h"
 
-Int_t main(Int_t argc, const char* const argv[])
+#include <iostream>
+
+int main(int argc, const char* const argv[])
 {
   const std::vector<std::string> args(argv, argv + argc);
 
@@ -25,7 +25,7 @@ Int_t main(Int_t argc, const char* const argv[])
   }
   if (args.size() >= 4)
   {
-     debug = std::stoi(args[3]);
+    debug = std::stoi(args[3]);
   }
 
   FilterDatasets filter(debug);

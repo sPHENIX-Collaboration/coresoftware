@@ -1,9 +1,9 @@
+#include "genStatus.h"
+
 #include <iostream>
 #include <vector>
 
-#include "genStatus.h"
-
-Int_t main(Int_t argc, const char* const argv[])
+int main(int argc, const char* const argv[])
 {
   const std::vector<std::string> args(argv, argv + argc);
 
