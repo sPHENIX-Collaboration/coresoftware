@@ -60,7 +60,6 @@ class InttCalib : public SubsysReco
   int MakeBcoMapCdb();
   int MakeBcoMapPng();
 
-  int ConfigureHist(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&, std::string const&);
   int ConfigureHist_v3(TH1D*&, TF1*&, double, std::map<double, int> const&, std::string const&, std::string const&);
   int adjust_hitrate(InttNameSpace::Offline_s const&, double&) const;
   int GetIndex(InttNameSpace::RawData_s const&, InttNameSpace::Offline_s const&) const;
