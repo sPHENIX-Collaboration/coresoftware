@@ -79,14 +79,14 @@ class PHSimpleVertexFinder : public SubsysReco
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   ActsGeometry* _tGeometry{nullptr};
 
-  double _base_dcacut = 0.0080;  // 80 microns
+  double _base_dcacut = 0.080;  // 800 microns
   double _active_dcacut = 0.080;
   double _beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
-  double _qual_cut = 10.0;
+  double _qual_cut = 300.0;
   bool _require_mvtx = true;
-  unsigned int _nmvtx_required = 3;
-  double _track_pt_cut = 0.0;
-  double _outlier_cut = 0.015;
+  unsigned int _nmvtx_required = 2;
+  double _track_pt_cut = 0.2;
+  double _outlier_cut = 0.05;
   //name of TRKR_CLUSTER Container
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
