@@ -208,6 +208,12 @@ int TrackFittingQA::process_event(
 
     for (auto const& [path_length, state] : range_adaptor(track->begin_states(), track->end_states()))
     {
+      // There is an additional state representing the vertex at the beginning of the map,
+      // but getTrkrId will return 0 for its corresponding cluster
+      // Skip this one based on its radius
+      float radius = std::sqrt(state->get_x() * state->get_x() + state->get_y() * state->get_y());
+      if (radius < 1.5) continue; // This cut doesn't have to be particularly precise
+
       auto trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(state->get_cluskey()));
       auto itr = counters.find(trkr_id);
       if (itr == counters.end())
