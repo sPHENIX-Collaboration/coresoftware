@@ -67,11 +67,6 @@ namespace
   }
 }  // namespace
 
-/*namespace {
-  std::mutex bz_mutex;
-  std::mutex pos_mutex;
-}*/
-
 using keylist = std::vector<TrkrDefs::cluskey>;
 
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
@@ -506,7 +501,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 Acts::Vector3 PHSimpleKFProp::getGlobalPosition(TrkrDefs::cluskey key, TrkrCluster* cluster) const
 {
   // get global position from Acts transform
-  //std::lock_guard<std::mutex> lock(pos_mutex);
   return _pp_mode ?
     m_tgeometry->getGlobalPosition(key, cluster):
     m_globalPositionWrapper.getGlobalPositionDistortionCorrected( key, cluster, 0 );
