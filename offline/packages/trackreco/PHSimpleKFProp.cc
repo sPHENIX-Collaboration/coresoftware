@@ -198,8 +198,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   }
 
   // tpc grometry
-  PHG4TpcCylinderGeomContainer* geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cerr << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
