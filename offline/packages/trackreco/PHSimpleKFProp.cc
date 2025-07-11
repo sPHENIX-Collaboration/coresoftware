@@ -994,21 +994,21 @@ bool PHSimpleKFProp::PropagateStep(
   return true;
 }
 
+//_________________________________________________________________
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const
 {
   // extract cluster list
-
   std::vector<TrkrDefs::cluskey> ckeys;
-  std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(ckeys));
-
   if (direction == PropagationDirection::Inward)
   {
-    std::reverse(ckeys.begin(), ckeys.end());
+    std::reverse_copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(ckeys));
+  } else {
+    std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(ckeys));
   }
-
   return PropagateTrack(track, ckeys, direction, aliceSeed, globalPositions);
 }
 
+//_________________________________________________________________
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, std::vector<TrkrDefs::cluskey>& ckeys, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const
 {
   if (direction == PropagationDirection::Inward)
