@@ -249,35 +249,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     std::vector<std::vector<TrkrDefs::cluskey>> local_chains;
     std::vector<TrackSeed_v2> local_unused;
 
-    // --- build a thread-local copy of the field map ---
-    PHFieldConfigv1 fcfg_loc;
-    if (!_use_const_field)
-    {
-      fcfg_loc.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-      fcfg_loc.set_filename(m_magField);
-    }
-    else
-    {
-      fcfg_loc.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
-      fcfg_loc.set_magfield_rescale(_const_field);
-    }
-    auto thread_field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg_loc));
-
-    //auto thread_field_map = std::make_unique<PHField>(*(_field_map));
-    std::unique_ptr<ALICEKF> fitter_loc = std::make_unique<ALICEKF>(topNode, _cluster_map, thread_field_map.get(), _fieldDir,
-      _min_clusters_per_track, _max_sin_phi, Verbosity());
-    fitter_loc->setNeonFraction(Ne_frac);
-    fitter_loc->setArgonFraction(Ar_frac);
-    fitter_loc->setCF4Fraction(CF4_frac);
-    fitter_loc->setNitrogenFraction(N2_frac);
-    fitter_loc->setIsobutaneFraction(isobutane_frac);
-    fitter_loc->useConstBField(_use_const_field);
-    fitter_loc->setConstBField(_const_field);
-    fitter_loc->useFixedClusterError(_use_fixed_clus_err);
-    fitter_loc->setFixedClusterError(0, _fixed_clus_err.at(0));
-    fitter_loc->setFixedClusterError(1, _fixed_clus_err.at(1));
-    fitter_loc->setFixedClusterError(2, _fixed_clus_err.at(2));
-
     #pragma omp for schedule(static)
     for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
     {
@@ -319,7 +290,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         //timer.stop();
         //timer.restart();
 
-        auto seedpair = fitter_loc->ALICEKalmanFilter(keylist_A, false, trackClusPositions, trackChi2);
+        auto seedpair = fitter->ALICEKalmanFilter(keylist_A, false, trackClusPositions, trackChi2);
 
         //timer.stop();
         if (Verbosity() > 3)
@@ -368,7 +339,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         }
         std::vector<float> pretrackChi2;
 
-        auto prepair = fitter_loc->ALICEKalmanFilter(kl, false, globalPositions, pretrackChi2);
+        auto prepair = fitter->ALICEKalmanFilter(kl, false, globalPositions, pretrackChi2);
         if (prepair.first.empty() || prepair.second.empty())
         {
           continue;
