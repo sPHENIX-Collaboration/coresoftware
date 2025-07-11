@@ -36,8 +36,9 @@ class TowerBackgroundv1 : public TowerBackground
   float _Psi2{0};
   int _nStrips{0};
   int _nTowers{0};
+  bool _flow_failure_flag{false};
 
-  ClassDefOverride(TowerBackgroundv1, 1);
+  ClassDefOverride(TowerBackgroundv1, 2);
 };
 
 #endif
