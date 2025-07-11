@@ -17,7 +17,7 @@ class PHCompositeNode;
 class TF1;
 class TH1D;
 class TH2D;
-
+class TH1I;
 class InttCalib : public SubsysReco
 {
  public:
@@ -49,28 +49,17 @@ class InttCalib : public SubsysReco
   int LoadHitrates();
 
   /// For debugging
-  void Debug();
  private:
 
   int ConfigureHotMap_v3();
   int MakeHotMapCdb_v3();
   int MakeHotMapPng_v3();
 
-  
-  int ConfigureHotMap_v2();
-  int MakeHotMapCdb_v2();
-  int MakeHotMapPng_v2();
-
-  int ConfigureHotMap();
-  int MakeHotMapCdb();
-  int MakeHotMapPng();
 
   int ConfigureBcoMap();
   int MakeBcoMapCdb();
   int MakeBcoMapPng();
 
-  int ConfigureHist(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&, std::string const&);
-  int ConfigureHist_v2(TH1D*&, TF1*&, std::map<double, int> const&, std::string const&, std::string const&);
   int ConfigureHist_v3(TH1D*&, TF1*&, double, std::map<double, int> const&, std::string const&, std::string const&);
   int adjust_hitrate(InttNameSpace::Offline_s const&, double&) const;
   int GetIndex(InttNameSpace::RawData_s const&, InttNameSpace::Offline_s const&) const;
@@ -121,6 +110,7 @@ class InttCalib : public SubsysReco
   
   // TH1D* m_hist[8][14]
   std::array<TH1D*, m_MAX_INDEX> m_hist{};
+  std::array<TH1I*, m_MAX_INDEX> m_bco_peak{};
   std::array<TH1D*, m_MAX_INDEX> m_hist_half{};
   std::array<TF1*, m_MAX_INDEX> m_fit{};
   std::array<double, m_MAX_INDEX> m_min{};
