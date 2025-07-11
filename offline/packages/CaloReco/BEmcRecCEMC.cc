@@ -237,9 +237,13 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
 
 void BEmcRecCEMC::CorrectShowerDepth(int ix, int iy, float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
-  xC = xA;
-  yC = yA;
-  zC = zA;
+  if (!m_UseCorrectShowerDepth)
+  {
+    xC = xA;
+    yC = yA;
+    zC = zA;
+    return;
+  }
 
   float logE = log(0.1);
   if (E > 0.1)
@@ -375,8 +379,12 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   int ix0;
   int iy0;
 
-  xc = x;
-  yc = y;
+  if (!m_UseCorrectPosition)
+  {
+    xc = x;
+    yc = y;
+    return;
+  }
 
   if (Energy < 0.01)
   {
