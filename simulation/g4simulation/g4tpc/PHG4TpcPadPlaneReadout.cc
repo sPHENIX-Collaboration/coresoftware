@@ -11,6 +11,9 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
+
 // Move to new storage containers
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrDefs.h>  // for hitkey, hitse...
@@ -190,8 +193,14 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
 	    }
 	}
     } 
-
-  
+  if (m_maskDeadChannels)
+  {
+    makeChannelMask(m_deadChannelMap, m_deadChannelMapName, "TotalDeadChannels");
+  } 
+  if (m_maskHotChannels)
+  {
+    makeChannelMask(m_hotChannelMap, m_hotChannelMapName, "TotalHotChannels");
+  } 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -588,9 +597,27 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
       TrkrHitSetContainer::Iterator single_hitsetit = single_hitsetcontainer->findOrAddHitSet(hitsetkey);
-
+      TrkrDefs::hitkey hitkey;
+     
+      if (m_maskDeadChannels)
+      {
+        hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
+        if (!(std::find(m_deadChannelMap.begin(), m_deadChannelMap.end(), std::make_pair(hitsetkey, hitkey)) == m_deadChannelMap.end()))
+        {
+          continue;
+        }
+      }
+      if (m_maskHotChannels)
+      {
+        hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
+        if (!(std::find(m_hotChannelMap.begin(), m_hotChannelMap.end(), std::make_pair(hitsetkey, hitkey)) == m_hotChannelMap.end()))
+        {
+          continue;
+        }
+      }
       // generate the key for this hit, requires tbin and phibin
-      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) tbin_num);
+      hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) tbin_num);
+
       // See if this hit already exists
       TrkrHit *hit = nullptr;
       hit = hitsetit->second->getHit(hitkey);
@@ -1097,4 +1124,32 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   averageGEMGain = get_double_param("gem_amplification");
   polyaTheta = get_double_param("polya_theta");
 
+}
+
+void PHG4TpcPadPlaneReadout::makeChannelMask(hitMask& aMask, const std::string& dbName, const std::string& totalChannelsToMask)
+{
+  std::string database = CDBInterface::instance()->getUrl(dbName);
+  CDBTTree* cdbttree = new CDBTTree(database);
+
+  int NChan = -1;
+  NChan = cdbttree->GetSingleIntValue(totalChannelsToMask);
+
+  for (int i = 0; i < NChan; i++)
+  {
+    int Layer = cdbttree->GetIntValue(i, "layer");
+    int Sector = cdbttree->GetIntValue(i, "sector");
+    int Side = cdbttree->GetIntValue(i, "side");
+    int Pad = cdbttree->GetIntValue(i, "pad");
+    //if (Verbosity() > VERBOSITY_A_LOT)
+    if (true)
+    {
+      std::cout << dbName << ": Will mask layer: " << Layer << ", sector: " << Sector << ", side: " << Side << ", Pad: " << Pad << std::endl;
+    }
+
+    TrkrDefs::hitsetkey DeadChannelHitKey = TpcDefs::genHitSetKey(Layer, Sector, Side);
+    TrkrDefs::hitkey DeadHitKey = TpcDefs::genHitKey((unsigned int) Pad, 0);
+    aMask.push_back({std::make_pair(DeadChannelHitKey, DeadHitKey)});
+  }
+
+  delete cdbttree;
 }
