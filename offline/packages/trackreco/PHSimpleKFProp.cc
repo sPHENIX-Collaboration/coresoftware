@@ -392,8 +392,11 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     // Critical sections to merge thread-local results
     #pragma omp critical
     {
-      new_chains.insert(new_chains.end(), local_chains.begin(), local_chains.end());
-      unused_tracks.insert(unused_tracks.end(), local_unused.begin(), local_unused.end());
+      new_chains.reserve(new_chains.size()+local_chains.size());
+      new_chains.insert(new_chains.end(), std::make_move_iterator(local_chains.begin()), std::make_move_iterator(local_chains.end()));
+
+      unused_tracks.reserve(unused_tracks.size()+local_unused.size());
+      unused_tracks.insert(unused_tracks.end(), std::make_move_iterator(local_unused.begin()), std::make_move_iterator(local_unused.end()));
     }
   }
 
