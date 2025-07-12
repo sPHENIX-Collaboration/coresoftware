@@ -118,7 +118,7 @@ bool StreakSidebandFilter::ApplyFilter(PHCompositeNode* topNode)
       m_hists["nstreaktwretavsphi"]->Fill(iEta, iUp);
 
     }  // end eta loop
-  }    // end phi loop
+  }  // end phi loop
 
   // now find longest streak
   const uint32_t nMaxStreak = *std::max_element(m_ohNumStreak.begin(), m_ohNumStreak.end());
@@ -184,7 +184,7 @@ void StreakSidebandFilter::GrabNodes(PHCompositeNode* topNode)
 // ----------------------------------------------------------------------------
 //! Check if tower not consistent w/ being in a streak
 // ----------------------------------------------------------------------------
-bool StreakSidebandFilter::IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower)
+bool StreakSidebandFilter::IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower) const
 {
   // print debug message
   if (m_config.debug && (m_config.verbosity > 2))
@@ -201,7 +201,7 @@ bool StreakSidebandFilter::IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs
 // ----------------------------------------------------------------------------
 //! Check if a neighboring tower consistent w/ a streak
 // ----------------------------------------------------------------------------
-bool StreakSidebandFilter::IsNeighborNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower)
+bool StreakSidebandFilter::IsNeighborNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower) const
 {
   // print debug message
   if (m_config.debug && (m_config.verbosity > 2))

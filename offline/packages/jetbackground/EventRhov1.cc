@@ -1,9 +1,6 @@
 #include "EventRhov1.h"
 
-#include <jetbase/Jet.h>
-
-#include <cstdlib> 
-
+#include <cstdlib>
 
 EventRhov1::EventRhov1()
   : m_tower_rho(0)
@@ -17,15 +14,15 @@ void EventRhov1::identify(std::ostream& os) const
   os << "EventRhov1: " << std::endl;
   os << "\t method: " << get_method_string(m_rho_method_type) << std::endl;
   os << "\trho = " << m_tower_rho << ", sigma(rho) = " << m_tower_sigma << std::endl;
-  os << "===============================";  
-  return ;
+  os << "===============================";
+  return;
 }
 
 void EventRhov1::set_method(EventRho::Method method)
 {
   get_method_string(method);
   m_rho_method_type = method;
-  return ;
+  return;
 }
 
 std::string EventRhov1::get_method_string(EventRho::Method method)
