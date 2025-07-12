@@ -1,4 +1,5 @@
 #include "InttBadChannelMap.h"
+#include "InttMapping.h"
 
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
@@ -54,7 +55,7 @@ int InttBadChannelMap::v_LoadFromCDBTTree(CDBTTree& cdbttree)
   m_rawdata_loaded = true;
   m_size = cdbttree.GetSingleIntValue("size");
 
-  if (m_size == 0)
+  if (m_size == 0) // Nothing to load, and we have loaded "nothing" successfully
   {
     return 0;
   }
@@ -137,7 +138,7 @@ void InttBadChannelMap::Print(std::ostream& out) const
     out << "\tmasked channels (rawdata convention): " << m_rawdata_set.size() << "\n";
     for (auto const& raw : m_rawdata_set)
     {
-      out << "\t" << raw.felix_server << " " << raw.felix_channel << " " << raw.chip << " " << raw.channel << "\n";
+      out << "\t" << raw << "\n";
     }
     out << std::flush;
   }
@@ -147,7 +148,7 @@ void InttBadChannelMap::Print(std::ostream& out) const
     out << "\tmasked channels (offline convention): " << m_offline_set.size() << "\n";
     for (auto const& ofl : m_offline_set)
     {
-      out << "\t" << ofl.layer << " " << ofl.ladder_phi << " " << ofl.ladder_z << " " << ofl.strip_y << " " << ofl.strip_x << "\n";
+      out << "\t" << ofl << "\n";
     }
     out << std::flush;
   }
@@ -169,10 +170,18 @@ bool InttBadChannelMap::IsBad(InttNameSpace::Offline_s const& ofl) const
     return m_offline_set.find(ofl) != m_offline_set.end();
   }
 
+  if (m_rawdata_loaded)
+  {
+    auto raw = InttNameSpace::ToRawData(ofl);
+    return m_rawdata_set.find(raw) != m_rawdata_set.end();
+  }
+
   std::cout
     << PHWHERE << "\n"
     << "\tMap was not loaded with offline indexing convention\n"
-    << "\t(layer, ladder_phi/z, strip_z/phi)\n"
+    << "\t\t(layer, ladder_phi/z, strip_z/phi)\n"
+    << "\tNor was it loaded with rawdata indexing convention\n"
+    << "\t\t(felix_server/channel, chip, channel)\n"
     << "\tUse a different overload\n"
     << std::flush;
   return false;
@@ -180,15 +189,23 @@ bool InttBadChannelMap::IsBad(InttNameSpace::Offline_s const& ofl) const
 
 bool InttBadChannelMap::IsBad(InttNameSpace::RawData_s const& raw) const
 {
-  if(m_rawdata_loaded)
+  if (m_rawdata_loaded)
   {
     return m_rawdata_set.find(raw) != m_rawdata_set.end();
+  }
+
+  if (m_offline_loaded)
+  {
+    auto ofl = InttNameSpace::ToOffline(raw);
+    return m_offline_set.find(ofl) != m_offline_set.end();
   }
 
   std::cout
     << PHWHERE << "\n"
     << "\tMap was not loaded with rawdata indexing convention\n"
-    << "\t(felix_server/channel, chip, channel)\n"
+    << "\t\t(felix_server/channel, chip, channel)\n"
+    << "\tNor was it loaded with offline indexing convention\n"
+    << "\t\t(layer, ladder_phi/z, strip_z/phi)\n"
     << "\tUse a different overload\n"
     << std::flush;
   return false;

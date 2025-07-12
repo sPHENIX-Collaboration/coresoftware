@@ -1,22 +1,25 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAJetManager.cc'
-// Derek Anderson
-// 03.25.2024
-//
-// A submodule for the TrksInJetQA module
-// to generate QA plots for jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAJetManager.cc
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A submodule for the TrksInJetQA module
+ *  to generate QA plots for jets
+ */
+/// ===========================================================================
 
 #define TRKSINJETQAJETMANAGER_CC
 
 // submodule definition
 #include "TrksInJetQAJetManager.h"
 
-// public methods -------------------------------------------------------------
+// public methods =============================================================
 
-void TrksInJetQAJetManager::GetInfo(
-    Jet* jet,
-    std::optional<std::vector<SvtxTrack*>> tracks)
+// ----------------------------------------------------------------------------
+//! Get information from a jet
+// ----------------------------------------------------------------------------
+void TrksInJetQAJetManager::GetInfo(Jet* jet,
+                                    std::optional<std::vector<SvtxTrack*>> tracks)
 {
   // collect jet info
   JetQAContent jetContent{
@@ -35,58 +38,76 @@ void TrksInJetQAJetManager::GetInfo(
       jetContent.ptSum += track->get_pt();
 
     }  // end track loop
-  }    // end if tracks.has_value
+  }  // end if tracks.has_value
 
   // fill histograms
   FillHistograms(Type::All, jetContent);
-  return;
+}  // end 'GetInfo(Jet*, std::optional<std::vector<SvtxTrack*>>)'
 
-}  // end 'Process(PHCompositeNode*)'
+// private methods ============================================================
 
-// private methods ------------------------------------------------------------
-
+// ----------------------------------------------------------------------------
+//! Fill jet histograms
+// ----------------------------------------------------------------------------
 void TrksInJetQAJetManager::FillHistograms(const int type, JetQAContent& content)
 {
   // fill 1d histograms
-  m_vecHist1D.at(type).at(H1D::Eta)->Fill(content.eta);
-  m_vecHist1D.at(type).at(H1D::Phi)->Fill(content.phi);
-  m_vecHist1D.at(type).at(H1D::Pt)->Fill(content.pt);
-  m_vecHist1D.at(type).at(H1D::NTrk)->Fill(content.nTrk);
-  m_vecHist1D.at(type).at(H1D::PtSum)->Fill(content.ptSum);
+  if (m_config.doOptHist)
+  {
+    m_mapHist1D[Index(type, H1D::Eta)]->Fill(content.eta);
+    m_mapHist1D[Index(type, H1D::Pt)]->Fill(content.pt);
+    m_mapHist1D[Index(type, H1D::PtSum)]->Fill(content.ptSum);
+  }
+  m_mapHist1D[Index(type, H1D::Phi)]->Fill(content.phi);
+  m_mapHist1D[Index(type, H1D::NTrk)]->Fill(content.nTrk);
 
   // fill 2d histograms
-  m_vecHist2D.at(type).at(H2D::PtVsEta)->Fill(content.eta, content.pt);
-  m_vecHist2D.at(type).at(H2D::PtSumVsPt)->Fill(content.pt, content.ptSum);
-  return;
-
+  if (m_config.doOptHist)
+  {
+    m_mapHist2D[Index(type, H2D::PtSumVsPt)]->Fill(content.pt, content.ptSum);
+  }
+  m_mapHist2D[Index(type, H2D::PtVsEta)]->Fill(content.eta, content.pt);
+  m_mapHist2D[Index(type, H2D::NTrkVsEta)]->Fill(content.eta, content.nTrk);
+  m_mapHist2D[Index(type, H2D::NTrkVsPt)]->Fill(content.pt, content.nTrk);
 }  //  end 'FillHistograms(Type, JetQAContent&)'
 
+// ----------------------------------------------------------------------------
+//! Define jet histograms
+// ----------------------------------------------------------------------------
 void TrksInJetQAJetManager::DefineHistograms()
 {
   // grab binning schemes
-  std::vector<BinDef> vecBins = m_hist.GetVecHistBins();
+  std::vector<TrksInJetQADefs::BinDef> vecBins = m_hist.GetVecHistBins();
 
   // histogram labels
-  m_vecHistTypes.emplace_back("All");
+  m_mapHistTypes[Type::All] = "All";
 
   // 1d histogram definitions
-  m_vecHistDef1D.emplace_back("JetEta", vecBins.at(TrksInJetQAHist::Var::Eta));
-  m_vecHistDef1D.emplace_back("JetPhi", vecBins.at(TrksInJetQAHist::Var::Phi));
-  m_vecHistDef1D.emplace_back("JetPt", vecBins.at(TrksInJetQAHist::Var::Ene));
-  m_vecHistDef1D.emplace_back("JetNTrks", vecBins.at(TrksInJetQAHist::Var::Num));
-  m_vecHistDef1D.emplace_back("SumTrkPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+  if (m_config.doOptHist)
+  {
+    m_mapHistDef1D[H1D::Eta] = std::tuple("JetEta", vecBins.at(TrksInJetQAHist::Var::Eta));
+    m_mapHistDef1D[H1D::Pt] = std::tuple("JetPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+    m_mapHistDef1D[H1D::PtSum] = std::tuple("SumTrkPt", vecBins.at(TrksInJetQAHist::Var::Ene));
+  }
+  m_mapHistDef1D[H1D::Phi] = std::tuple("JetPhi", vecBins.at(TrksInJetQAHist::Var::Phi));
+  m_mapHistDef1D[H1D::NTrk] = std::tuple("JetNTrks", vecBins.at(TrksInJetQAHist::Var::Num));
 
   // 2d histogram definitions
-  m_vecHistDef2D.emplace_back(
-          "JetPtVsEta",
-          vecBins.at(TrksInJetQAHist::Var::Eta),
-          vecBins.at(TrksInJetQAHist::Var::Ene));
-  m_vecHistDef2D.emplace_back(
-          "SumTrkVsJetPt",
-          vecBins.at(TrksInJetQAHist::Var::Ene),
-          vecBins.at(TrksInJetQAHist::Var::Ene));
-  return;
-
+  if (m_config.doOptHist)
+  {
+    m_mapHistDef2D[H2D::PtSumVsPt] = std::tuple("SumTrkVsJetPt",
+                                                vecBins.at(TrksInJetQAHist::Var::Ene),
+                                                vecBins.at(TrksInJetQAHist::Var::Ene));
+  }
+  m_mapHistDef2D[H2D::PtVsEta] = std::tuple("JetPtVsEta",
+                                            vecBins.at(TrksInJetQAHist::Var::Eta),
+                                            vecBins.at(TrksInJetQAHist::Var::Ene));
+  m_mapHistDef2D[H2D::NTrkVsEta] = std::tuple("JetNTrkVsEta",
+                                              vecBins.at(TrksInJetQAHist::Var::Eta),
+                                              vecBins.at(TrksInJetQAHist::Var::Num));
+  m_mapHistDef2D[H2D::NTrkVsPt] = std::tuple("JetNTrkVsPt",
+                                             vecBins.at(TrksInJetQAHist::Var::Ene),
+                                             vecBins.at(TrksInJetQAHist::Var::Num));
 }  // end 'DefineHistograms()'
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

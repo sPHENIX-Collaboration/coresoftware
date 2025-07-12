@@ -10,7 +10,7 @@
 
 #define CLUSTERSTATUSMAPPER_CC
 
-// module definition
+// module definitions
 #include "CaloStatusMapper.h"
 
 // calo base
@@ -219,10 +219,13 @@ int CaloStatusMapper::End(PHCompositeNode* /*topNode*/)
   }
 
   // normalize avg. status no.s
-  for (const auto& nodeName : m_config.inNodeNames)
+  if (m_config.doNorm)
   {
-    const std::string statBase = MakeBaseName("Status", nodeName.first);
-    m_hists[statBase]->Scale(1. / (double) m_nEvent);
+    for (const auto& nodeName : m_config.inNodeNames)
+    {
+      const std::string statBase = MakeBaseName("Status", nodeName.first);
+      m_hists[statBase]->Scale(1. / (double) m_nEvent);
+    }
   }
 
   // register hists and exit
@@ -284,7 +287,7 @@ void CaloStatusMapper::BuildHistograms()
 
     // make status hist name
     const std::string statBase = MakeBaseName("Status", nodeName.first);
-    const std::string statName = CaloStatusMapperDefs::MakeQAHistName(statBase, m_config.moduleName, m_config.histTag);
+    const std::string statName = JetQADefs::MakeQAHistName(statBase, m_config.moduleName, m_config.histTag);
 
     // create status hist
     //   - n.b. calo type doesn't matter here
@@ -297,15 +300,21 @@ void CaloStatusMapper::BuildHistograms()
       // set relevant bin label for status histogram
       m_hists[statBase]->GetXaxis()->SetBinLabel(statLabel.first + 1, statLabel.second.data());
 
+      // if not doing optional histograms, skip these status
+      if (!m_config.doOptHist && CaloStatusMapperDefs::IsStatusSkippable(statLabel.second))
+      {
+        continue;
+      }
+
       // make base eta/phi hist name
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName.first, statLabel.second);
       const std::string perPhiBase = MakeBaseName("NPerPhi", nodeName.first, statLabel.second);
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName.first, statLabel.second);
 
       // make full eta/phi hist name
-      const std::string namePerEta = CaloStatusMapperDefs::MakeQAHistName(perEtaBase, m_config.moduleName, m_config.histTag);
-      const std::string namePerPhi = CaloStatusMapperDefs::MakeQAHistName(perPhiBase, m_config.moduleName, m_config.histTag);
-      const std::string namePhiEta = CaloStatusMapperDefs::MakeQAHistName(phiEtaBase, m_config.moduleName, m_config.histTag);
+      const std::string namePerEta = JetQADefs::MakeQAHistName(perEtaBase, m_config.moduleName, m_config.histTag);
+      const std::string namePerPhi = JetQADefs::MakeQAHistName(perPhiBase, m_config.moduleName, m_config.histTag);
+      const std::string namePhiEta = JetQADefs::MakeQAHistName(phiEtaBase, m_config.moduleName, m_config.histTag);
 
       // make eta/phi hists
       switch (nodeName.second)

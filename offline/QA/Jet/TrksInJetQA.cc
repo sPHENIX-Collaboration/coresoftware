@@ -1,25 +1,34 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQA.cc'
-// Derek Anderson
-// 03.25.2024
-//
-// A "small" Fun4All module to produce QA plots for tracks,
-// hits, and more.
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQA.cc
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A "small" Fun4All module to produce QA plots for tracks,
+ *  hits, and more.
+ */
+/// ===========================================================================
 
 #define TRKSINJETQA_CC
 
 // module defintion
 #include "TrksInJetQA.h"
-#include <TStyle.h>
-// ctor/dtor ------------------------------------------------------------------
 
+// root libraries
+#include <TStyle.h>
+
+// ctor/dtor ==================================================================
+
+// ----------------------------------------------------------------------------
+//! Default ctor
+// ----------------------------------------------------------------------------
 TrksInJetQA::TrksInJetQA(const std::string& name)
   : SubsysReco(name)
   , m_moduleName(name)
-{
-}
+{};
 
+// ----------------------------------------------------------------------------
+//! Default dtor
+// ----------------------------------------------------------------------------
 TrksInJetQA::~TrksInJetQA()
 {
   // print debug messages
@@ -29,33 +38,37 @@ TrksInJetQA::~TrksInJetQA()
   }
 
   // clean up any dangling pointers
-  // deleting null ptrs is legal, setting it to null is not needed in the dtor
+  // - n.b. deleting null ptrs is legal, setting it to null is not
+  //   needed in the dtor
   delete m_outFile;
 }  // end dtor
 
-// public methods -------------------------------------------------------------
+// public methods =============================================================
 
-void TrksInJetQA::Configure(
-    const TrksInJetQAConfig& config,
-    std::optional<TrksInJetQAHist> hist)
+// ----------------------------------------------------------------------------
+//! Configure module and all submodules
+// ----------------------------------------------------------------------------
+void TrksInJetQA::Configure(const TrksInJetQAConfig& config,
+                            std::optional<TrksInJetQAHist> hist)
 {
-  m_config = config;
   // print debug messages
-  if (m_config.doDebug && (m_config.verbose > 3))
+  if (config.doDebug && (config.verbose > 3))
   {
     std::cout << "TrksInJetQA::~TrksInJetQA() Calling dtor" << std::endl;
   }
+  m_config = config;
 
   if (hist.has_value())
   {
     m_hist = hist.value();
   }
-  return;
-
 }  // end 'Configure(TrksInJetQAConfig, std::optional<TrksInJetQAHist>)'
 
-// fun4all methods ------------------------------------------------------------
+// fun4all methods ============================================================
 
+// ----------------------------------------------------------------------------
+//! Initialize module
+// ----------------------------------------------------------------------------
 int TrksInJetQA::Init(PHCompositeNode* /*topNode*/)
 {
   // print debug message
@@ -78,9 +91,11 @@ int TrksInJetQA::Init(PHCompositeNode* /*topNode*/)
   delete m_analyzer; // make cppcheck happy
   m_analyzer = new TriggerAnalyzer();
   return Fun4AllReturnCodes::EVENT_OK;
-
 }  // end 'Init(PHCompositeNode*)'
 
+// ----------------------------------------------------------------------------
+//! Run sub-modules and fill histograms
+// ----------------------------------------------------------------------------
 int TrksInJetQA::process_event(PHCompositeNode* topNode)
 {
   // print debug message
@@ -110,9 +125,11 @@ int TrksInJetQA::process_event(PHCompositeNode* topNode)
     m_inclusive->Fill(topNode);
   }
   return Fun4AllReturnCodes::EVENT_OK;
-
 }  // end 'process_event(PHCompositeNode*)'
 
+// ----------------------------------------------------------------------------
+//! Run final calculations
+// ----------------------------------------------------------------------------
 int TrksInJetQA::End(PHCompositeNode* /*topNode*/)
 {
   // print debug message
@@ -139,11 +156,16 @@ int TrksInJetQA::End(PHCompositeNode* /*topNode*/)
     m_outFile->Close();
   }
   return Fun4AllReturnCodes::EVENT_OK;
-
 }  // end 'End(PHCompositeNode*)'
 
-// private methods ------------------------------------------------------------
+// private methods ============================================================
 
+// ----------------------------------------------------------------------------
+//! Initialize outputs
+// ----------------------------------------------------------------------------
+/*! Will initialize either output file to write to
+ *  (OutMode::File) or QAHistManager (OutMode::QA).
+ */
 void TrksInJetQA::InitOutput()
 {
   // print debug message
@@ -183,10 +205,11 @@ void TrksInJetQA::InitOutput()
     assert((m_config.outMode == OutMode::File) || (m_config.outMode == OutMode::QA));
     break;
   }
-  return;
-
 }  // end 'InitOutput()'
 
+// ----------------------------------------------------------------------------
+//! Initialize histograms
+// ----------------------------------------------------------------------------
 void TrksInJetQA::InitHistograms()
 {
   // print debug message
@@ -228,10 +251,11 @@ void TrksInJetQA::InitHistograms()
     m_inclusive = std::make_unique<TrksInJetQAInclusiveFiller>(m_config, m_hist);
     m_inclusive->MakeHistograms(prefix, inclusiveSuffix);
   }
-  return;
-
 }  // end 'InitHistograms()'
 
+// ----------------------------------------------------------------------------
+//! Register histograms with QAHistManager
+// ----------------------------------------------------------------------------
 void TrksInJetQA::RegisterHistograms()
 {
   // print debug message
@@ -260,8 +284,6 @@ void TrksInJetQA::RegisterHistograms()
   {
     m_manager->registerHisto(hist2D);
   }
-  return;
-
 }  // end 'RegisterHistograms()'
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

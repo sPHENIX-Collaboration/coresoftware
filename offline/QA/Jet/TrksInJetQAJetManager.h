@@ -1,14 +1,15 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAJetManager.h'
-// Derek Anderson
-// 03.26.2024
-//
-// A submodule for the TrksInJetQA module
-// to generate QA plots for jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAJetManager.h
+ *  \author Derek Anderson
+ *  \date   03.26.2024
+ *
+ *  A submodule for the TrksInJetQA module
+ *  to generate QA plots for jets
+ */
+/// ===========================================================================
 
-#ifndef TRACKSINJETSQAMAKER_JETQAHISTMANAGER_H
-#define TRACKSINJETSQAMAKER_JETQAHISTMANAGER_H
+#ifndef TRKSINJETQAJETMANAGER_H
+#define TRKSINJETQAJETMANAGER_H
 
 // submodule definitions
 #include "TrksInJetQABaseManager.h"
@@ -29,16 +30,22 @@
 #include <utility>
 #include <vector>
 
-// TrksInJetQAJetManager definition -------------------------------------------
-
+// ============================================================================
+//! Jet histogram manager for TrksInJetQA module
+// ============================================================================
+/*! This histogram manager defines what to histogram
+ *  from jets.
+ */
 class TrksInJetQAJetManager : public TrksInJetQABaseManager
 {
  public:
-  // histogram accessors
+  ///! enumerate jet types 
   enum Type
   {
     All
   };
+
+  ///! enumerate 1D histograms
   enum H1D
   {
     Eta,
@@ -47,13 +54,22 @@ class TrksInJetQAJetManager : public TrksInJetQABaseManager
     NTrk,
     PtSum
   };
+
+  ///! enumerate 2D histograms
   enum H2D
   {
     PtVsEta,
-    PtSumVsPt
+    PtSumVsPt,
+    NTrkVsEta,
+    NTrkVsPt
   };
 
-  // histogram content
+  // --------------------------------------------------------------------------
+  //! Jet histogram content
+  // --------------------------------------------------------------------------
+  /*! A small struct to consolidate what variables
+   *  to histogram for jets.
+   */
   struct JetQAContent
   {
     double eta = std::numeric_limits<double>::max();
@@ -81,4 +97,4 @@ class TrksInJetQAJetManager : public TrksInJetQABaseManager
 
 #endif
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

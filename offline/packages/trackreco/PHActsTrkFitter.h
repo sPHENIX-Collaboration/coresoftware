@@ -78,6 +78,12 @@ class PHActsTrkFitter : public SubsysReco
     m_fitSiliconMMs = fitSiliconMMs;
   }
 
+  /// with direct navigation, force a fit with only silicon hits
+  void forceSiOnlyFit(bool forceSiOnlyFit)
+  {
+    m_forceSiOnlyFit = forceSiOnlyFit;
+  }
+
   /// require micromegas in SiliconMM fits
   void setUseMicromegas(bool value)
   {
@@ -122,6 +128,7 @@ class PHActsTrkFitter : public SubsysReco
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
   void set_svtx_seed_map_name(const std::string& map_name) { _svtx_seed_map_name = map_name; }
+  void set_trajctories_name(const std::string& map_name) {m_trajectories_name = map_name; }
 
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
@@ -200,6 +207,8 @@ class PHActsTrkFitter : public SubsysReco
   /// Acts::DirectedNavigator with a list of sorted silicon+MM surfaces
   bool m_fitSiliconMMs = false;
 
+  bool m_forceSiOnlyFit = false;
+
   /// requires micromegas present when fitting silicon-MM surfaces
   bool m_useMicromegas = true;
 
@@ -239,6 +248,7 @@ class PHActsTrkFitter : public SubsysReco
 
   //! acts trajectories
   std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
+  std::string m_trajectories_name = "ActsTrajectories";
 
   //! tracks
 //  SvtxTrackMap* m_seedTracks = nullptr;
