@@ -399,6 +399,21 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   _track_map->Reset();
   timer.stop();
 
+  // if( Verbosity() )
+  {
+    // print all seeds
+    std::cout << "PHSimpleKFProp::process_event - new_chains size: " << new_chains.size() << std::endl;
+    for( const auto& chain:new_chains )
+    {
+      std::cout << "PHSimpleKFProp::process_event - { ";
+      for( const auto& key:chain )
+      {
+        std::cout << key << " ";
+      }
+      std::cout << "}" << std::endl << std::endl;
+    }
+  }
+
   /*
    * presently RemoveBadClusters does nothing. It just removes seeds of size less than 3, which don't make it through the main loop anyway
    * so we just comment out the call, to prevent unnecessary data copy
