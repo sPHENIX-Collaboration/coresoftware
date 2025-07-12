@@ -239,7 +239,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
 
-  #pragma omp parallel num_threads(4)
+  #pragma omp parallel num_threads(2)
   {
 
     PHTimer timer("KFPropTimer");
@@ -359,15 +359,15 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         pretrack.set_phi(TrackSeedHelper::get_phi(&pretrack, pretrackClusPositions));
 
         prepair.second.at(0).SetDzDs(-prepair.second.at(0).GetDzDs());
-        auto finalchain = PropagateTrack(&pretrack, kl.at(0), PropagationDirection::Outward, prepair.second.at(0), globalPositions);
+        const auto finalchain = PropagateTrack(&pretrack, kl.at(0), PropagationDirection::Outward, prepair.second.at(0), globalPositions);
 
         if (finalchain.size() > kl.at(0).size())
         {
-          local_chains.push_back(finalchain);
+          local_chains.push_back(std::move(finalchain));
         }
         else
         {
-          local_chains.push_back(kl.at(0));
+          local_chains.push_back(std::move(kl.at(0)));
         }
 
         timer.stop();
