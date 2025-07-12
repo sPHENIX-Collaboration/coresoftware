@@ -18,6 +18,8 @@
 #include <cmath>
 #include <iostream>
 
+using namespace std;
+
 HCalCosmics::HCalCosmics(const std::string &name, const std::string &fname)
   : SubsysReco(name)
   , outfilename(fname)
@@ -28,7 +30,8 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
 {
   std::cout << std::endl
             << "HCalCosmics::Init" << std::endl;
-  std::cout << "Node: " << prefix + detector << std::endl;
+  std::cout << "Node with raw ADC: " << rawprefix + rawdetector << std::endl;
+  std::cout << "Node with calibrated Energy in eV: " << prefix + detector << std::endl;
   std::cout << "Threshold: " << tower_threshold << " " << vert_threshold << " " << veto_threshold << std::endl;
   std::cout << "Bin width: " << bin_width << std::endl;
 
@@ -39,7 +42,10 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
     for (int iphi = 0; iphi < n_phibin; ++iphi)
     {
       std::string channel_histname = "h_channel_" + std::to_string(ieta) + "_" + std::to_string(iphi);
-      h_channel_hist[ieta][iphi] = new TH1F(channel_histname.c_str(), "", 500, 0, 500 * bin_width);
+      h_channel_hist[ieta][iphi] = new TH1F(channel_histname.c_str(), "", 500, 0, 500 * bin_width); 
+
+      std::string adc_histname = "h_adc_" + std::to_string(ieta) + "_" + std::to_string(iphi);
+      h_adc_hist[ieta][iphi] = new TH1F(adc_histname.c_str(), "", 500, 0, 16000 * rawbin_width);
       
       std::string time_histname = "h_towertime_" + std::to_string(ieta) + "_" + std::to_string(iphi);
       h_towertime_hist[ieta][iphi] = new TH1F(time_histname.c_str(), "", 100, -10, 10);
@@ -53,6 +59,7 @@ int HCalCosmics::Init(PHCompositeNode * /*topNode*/)
   h_waveformchi2_aftercut->GetXaxis()->SetTitle("peak (ADC)");
   h_waveformchi2_aftercut->GetYaxis()->SetTitle("chi2");
   h_mip = new TH1F("h_mip", "", 500, 0, 500 * bin_width);
+  h_adc = new TH1F("h_adc", "", 500, 0, 16000 * rawbin_width);
   h_event = new TH1F("h_event", "", 1, 0, 1);
 
   h_time_energy = new TH2F("h_time_energy", "", 100, -10, 10, 100, -10 * bin_width, 90 * bin_width);
@@ -72,20 +79,38 @@ int HCalCosmics::process_event(PHCompositeNode *topNode)
 
 int HCalCosmics::process_towers(PHCompositeNode *topNode)
 {
-  std::string nodenamev2 = prefix + detector;
 
-  TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, nodenamev2);
-  if (!towers)
+  //***************** Raw tower ADC (uncalibrated) info *****************
+
+  std::string rawnode_name = rawprefix + rawdetector;
+
+  TowerInfoContainer *rawtowers = findNode::getClass<TowerInfoContainer>(topNode, rawnode_name);
+  if (!rawtowers)
   {
     std::cout << std::endl
-              << "Didn't find node " << nodenamev2 << std::endl;
+              << "Didn't find node " << rawnode_name << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  int size = towers->size();
+  //*****************  tower energy in eV (calibrated) info ***************
+
+  std::string calibnode_name = prefix + detector;
+
+  TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, calibnode_name);
+  if (!towers)
+  {
+    std::cout << std::endl
+              << "Didn't find node " << calibnode_name << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+  int size = towers->size(); // 1536 towers
+
   for (int channel = 0; channel < size; channel++)
   {
     TowerInfo *tower = towers->get_tower_at_channel(channel);
+    TowerInfo *rawtower = rawtowers->get_tower_at_channel(channel);
+    float adc = rawtower->get_energy();
     float energy = tower->get_energy();
     float chi2 = tower->get_chi2();
     float time = tower->get_time_float();
@@ -93,6 +118,7 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
     int ieta = towers->getTowerEtaBin(towerkey);
     int iphi = towers->getTowerPhiBin(towerkey);
     m_peak[ieta][iphi] = energy;
+    m_adc[ieta][iphi] = adc;
     m_chi2[ieta][iphi] = chi2;
     m_time[ieta][iphi] = time;
     h_waveformchi2->Fill(m_peak[ieta][iphi], m_chi2[ieta][iphi]);
@@ -103,34 +129,32 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
     h_waveformchi2_aftercut->Fill(m_peak[ieta][iphi], m_chi2[ieta][iphi]);
     h_time_energy->Fill(time, energy);
   }
-  // Apply cut
+  // Apply cuts based on calibrated energy
   for (int ieta = 0; ieta < n_etabin; ++ieta)
   {
     for (int iphi = 0; iphi < n_phibin; ++iphi)
     {
-      if (m_peak[ieta][iphi] < tower_threshold)
+      if (m_peak[ieta][iphi] < tower_threshold) 
       {
-        continue;  // tower cut
+        continue;  // target tower cut
       }
       int up = iphi + 1;
       int down = iphi - 1;
-      if (up > 63)
-      {
-        up -= 64;
-      }
-      if (down < 0)
-      {
-        down += 64;
-      }
+      if (up > 63) { up -= 64; }
+      if (down < 0) { down += 64; }
       if (m_peak[ieta][up] < vert_threshold || m_peak[ieta][down] < vert_threshold)
       {
-        continue;
+        continue;  // vertical neighbor cut
       }
-      if (ieta != 0 && (m_peak[ieta - 1][up] > veto_threshold || m_peak[ieta - 1][iphi] > veto_threshold || m_peak[ieta - 1][down] > veto_threshold))
+      if (ieta != 0 && (m_peak[ieta - 1][up] > veto_threshold || 
+                        m_peak[ieta - 1][iphi] > veto_threshold || 
+                        m_peak[ieta - 1][down] > veto_threshold))
       {
         continue;  // left veto cut
       }
-      if (ieta != 23 && (m_peak[ieta + 1][up] > veto_threshold || m_peak[ieta + 1][iphi] > veto_threshold || m_peak[ieta + 1][down] > veto_threshold))
+      if (ieta != 23 && (m_peak[ieta + 1][up] > veto_threshold || 
+                         m_peak[ieta + 1][iphi] > veto_threshold || 
+                         m_peak[ieta + 1][down] > veto_threshold))
       {
         continue;  // right veto cut
       }
@@ -139,6 +163,42 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
       h_mip->Fill(m_peak[ieta][iphi]);
     }
   }
+
+  // Apply cuts based on raw tower ADC
+  for (int ieta = 0; ieta < n_etabin; ++ieta)
+  {
+    for (int iphi = 0; iphi < n_phibin; ++iphi)
+    {
+      if (m_adc[ieta][iphi] < adc_tower_threshold)  
+      {
+        continue;   // target tower cut
+      }
+      int up = iphi + 1;
+      int down = iphi - 1;
+      if (up > 63) { up -= 64; }
+      if (down < 0) { down += 64; }
+
+      if (m_adc[ieta][up] < adc_vert_threshold || m_adc[ieta][down] < adc_vert_threshold)
+        {
+          continue;  // vertical neighbor cut
+        }
+      if (ieta != 0 && (m_adc[ieta - 1][up] > adc_veto_threshold ||
+                        m_adc[ieta - 1][iphi] > adc_veto_threshold ||
+                        m_adc[ieta - 1][down] > adc_veto_threshold))
+        {
+          continue;  // left veto cut
+        }
+      if (ieta != 23 && (m_adc[ieta + 1][up] > adc_veto_threshold ||
+                         m_adc[ieta + 1][iphi] > adc_veto_threshold ||
+                         m_adc[ieta + 1][down] > adc_veto_threshold))
+        {
+          continue;  // right veto cut
+        }
+        h_adc_hist[ieta][iphi]->Fill(m_adc[ieta][iphi]);
+        h_adc->Fill(m_adc[ieta][iphi]);
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -163,8 +223,18 @@ int HCalCosmics::End(PHCompositeNode * /*topNode*/)
       delete iphi;
     }
   }
+
+  for (auto &ieta : h_adc_hist)
+  {
+    for (auto &iphi : ieta)
+    {
+      iphi->Write();
+      delete iphi;
+    }
+  }
   	
   h_mip->Write();
+  h_adc->Write();
   h_waveformchi2->Write();
   h_waveformchi2_aftercut->Write();
   h_time_energy->Write();
@@ -281,3 +351,5 @@ void HCalCosmics::fitChannels(const std::string &infile, const std::string &outf
   outfileFit->Close();
   fin->Close();
 }
+
+
