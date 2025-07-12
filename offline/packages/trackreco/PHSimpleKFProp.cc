@@ -410,9 +410,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   if( Verbosity() )
   { std::cout << "PHSimpleKFProp::process_event - new_chains size after cleanup: " << new_chains.size() << std::endl; }
 
-  // reset track map
-  _track_map->Reset();
-
   if( Verbosity() )
   {
     // print all seeds
@@ -438,6 +435,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   const auto& clean_chains = new_chains;
 
+  /*
+   * TODO: in principle this could also move to a thread
+   * need to pay attention to duplicated seeds though
+   */
   PHTimer timer("KFPropTimer");
   timer.restart();
   std::vector<float> trackChi2;
@@ -449,6 +450,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     const auto alicekftime = timer.elapsed();
     std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
   }
+
+  // reset track map
+  _track_map->Reset();
 
   //  Move ghost rejection into publishSeeds, so that we don't publish rejected seeds
   if (m_ghostrejection)
