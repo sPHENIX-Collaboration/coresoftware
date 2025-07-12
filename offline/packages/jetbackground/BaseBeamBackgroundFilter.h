@@ -64,11 +64,11 @@ class BaseBeamBackgroundFilter
   void SetName(const std::string& name) { m_name = name; }
 
   ///! Get filter name
-  const std::string &GetName() { return m_name; }
+  const std::string& GetName() { return m_name; }
 
   ///! default ctor/dtor
   BaseBeamBackgroundFilter(const std::string& name)
-    : m_name(name){};
+    : m_name(name) {};
   virtual ~BaseBeamBackgroundFilter() = default;
 
  protected:

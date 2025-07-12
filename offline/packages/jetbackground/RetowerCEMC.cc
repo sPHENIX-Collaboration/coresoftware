@@ -103,7 +103,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         double retower_badarea = 0;
         for (int ieta_emcal = retower_lowerbound_originaltower_ieta[ieta_ihcal]; ieta_emcal <= retower_upperbound_originaltower_ieta[ieta_ihcal]; ++ieta_emcal)
         {
-          for (int iphi_emcal = retower_first_lowerbound_originaltower_iphi + iphi_ihcal * 4; iphi_emcal < retower_first_lowerbound_originaltower_iphi + iphi_ihcal * 4 + 4; ++iphi_emcal)
+          for (int iphi_emcal = retower_first_lowerbound_originaltower_iphi + (iphi_ihcal * 4); iphi_emcal < retower_first_lowerbound_originaltower_iphi + iphi_ihcal * 4 + 4; ++iphi_emcal)
           {
             int iphi_emcal_wrap = iphi_emcal;
             if (iphi_emcal > nphi_emcal - 1)
@@ -137,7 +137,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
         unsigned int towerkey = TowerInfoDefs::encode_hcal(ieta_ihcal, iphi_ihcal);
         unsigned int towerindex = emcal_retower->decode_key(towerkey);
         TowerInfo *towerinfo = emcal_retower->get_tower_at_channel(towerindex);
-        double scalefactor = retower_badarea / (double) retower_totalarea[ieta_ihcal];
+        double scalefactor = retower_badarea / retower_totalarea[ieta_ihcal];
         if (scalefactor > _frac_cut)
         {
           towerinfo->set_energy(0);
@@ -152,7 +152,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
           }
           else
           {
-            towerinfo->set_time_float((retower_time_temp / (double)retower_e_temp));
+            towerinfo->set_time_float((retower_time_temp / retower_e_temp));
           }
           towerinfo->set_chi2(scalefactor);
         }
@@ -244,7 +244,7 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
     }
     else
     {
-      if(Verbosity() > 0) 
+      if (Verbosity() > 0)
       {
         std::cout << "RetowerCEMC::CreateNode : " << EMRetowerName << " already exists! " << std::endl;
       }
@@ -265,7 +265,7 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
     }
     else
     {
-      if (Verbosity() > 0) 
+      if (Verbosity() > 0)
       {
         std::cout << "RetowerCEMC::CreateNode : TOWER_CALIB_CEMC_RETOWER already exists! " << std::endl;
       }
@@ -408,7 +408,7 @@ void RetowerCEMC::get_weighted_fraction(PHCompositeNode *topNode)
         if (emcal_upperbound > ihcal_lowerbound && emcal_lowerbound <= ihcal_lowerbound)
         {
           retower_lowerbound_originaltower_ieta[ieta_ihcal] = ieta_emcal;
-          retower_lowerbound_originaltower_fraction[ieta_ihcal] = (emcal_upperbound - ihcal_lowerbound) / (double) (emcal_upperbound - emcal_lowerbound);
+          retower_lowerbound_originaltower_fraction[ieta_ihcal] = (emcal_upperbound - ihcal_lowerbound) / (emcal_upperbound - emcal_lowerbound);
           found_lowerbound = true;
         }
         if (emcal_upperbound > ihcal_lowerbound && emcal_lowerbound > ihcal_lowerbound)
@@ -423,7 +423,7 @@ void RetowerCEMC::get_weighted_fraction(PHCompositeNode *topNode)
         if (emcal_upperbound >= ihcal_upperbound && emcal_lowerbound < ihcal_upperbound)
         {
           retower_upperbound_originaltower_ieta[ieta_ihcal] = ieta_emcal;
-          retower_upperbound_originaltower_fraction[ieta_ihcal] = (ihcal_upperbound - emcal_lowerbound) / (double) (emcal_upperbound - emcal_lowerbound);
+          retower_upperbound_originaltower_fraction[ieta_ihcal] = (ihcal_upperbound - emcal_lowerbound) / (emcal_upperbound - emcal_lowerbound);
           found_upperbound = true;
         }
         if (emcal_upperbound > ihcal_upperbound && emcal_lowerbound > ihcal_upperbound)

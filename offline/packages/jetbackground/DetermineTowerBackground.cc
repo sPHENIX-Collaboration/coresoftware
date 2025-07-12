@@ -8,9 +8,11 @@
 #include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
+
+#include <eventplaneinfo/Eventplaneinfo.h>
+#include <eventplaneinfo/EventplaneinfoMap.h>
 
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
@@ -20,9 +22,6 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-
-#include <eventplaneinfo/Eventplaneinfo.h>
-#include <eventplaneinfo/EventplaneinfoMap.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -41,7 +40,6 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
-#include <memory>
 #include <utility>
 #include <vector>
 
@@ -146,7 +144,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
     _index_SeedD = reco2_jets->property_index(Jet::PROPERTY::prop_SeedD);
     _index_SeedItr = reco2_jets->property_index(Jet::PROPERTY::prop_SeedItr);
-    for (auto this_jet : *reco2_jets)
+    for (auto *this_jet : *reco2_jets)
     {
       float this_pt = this_jet->get_pt();
       float this_phi = this_jet->get_phi();
@@ -253,7 +251,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           }
           continue;
         }
-        int comp_ikey = 1000 * comp_ieta + comp_iphi;
+        int comp_ikey = (1000 * comp_ieta) + comp_iphi;
 
         if (Verbosity() > 4)
         {
@@ -285,10 +283,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         }
         nconstituents++;
         constituent_sum_ET += map_iter.second;
-        if (map_iter.second > constituent_max_ET)
-        {
-          constituent_max_ET = map_iter.second;
-        }
+        constituent_max_ET = std::max<double>(map_iter.second, constituent_max_ET);
       }
 
       float mean_constituent_ET = constituent_sum_ET / nconstituents;
@@ -349,7 +344,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
     _index_SeedD = reco2_jets->property_index(Jet::PROPERTY::prop_SeedD);
     _index_SeedItr = reco2_jets->property_index(Jet::PROPERTY::prop_SeedItr);
-    for (auto this_jet : *reco2_jets)
+    for (auto *this_jet : *reco2_jets)
     {
       float this_pt = this_jet->get_pt();
       float this_phi = this_jet->get_phi();
@@ -545,9 +540,9 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // first, calculate flow: Psi2 & v2, if enabled
 
   //_Psi2 is left as 0
-  //since _v2 is derived from _Psi2, initializing _Psi2 to NAN will set _v2 = NAN
+  // since _v2 is derived from _Psi2, initializing _Psi2 to NAN will set _v2 = NAN
   //_is_flow_failure tags events where _Psi2 & _v2 are set to 0 because there are no strips for flow
-  //and when sEPD _Psi2 has no determined _Psi2 because the event is outside +/- z = 60cm
+  // and when sEPD _Psi2 has no determined _Psi2 because the event is outside +/- z = 60cm
   _Psi2 = 0;
   _v2 = 0;
   _nStrips = 0;
@@ -584,7 +579,22 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           bool isExcluded = false;
 
           // if the tower is masked, exclude it
-          int this_isBad = (layer == 0 ? _EMCAL_ISBAD[eta][phi] : (layer == 1 ? _IHCAL_ISBAD[eta][phi] : _OHCAL_ISBAD[eta][phi]));
+          // nobody can understand these nested ?s, which just makes this error prone and a maintenance headache
+          //          int this_isBad = (layer == 0 ? _EMCAL_ISBAD[eta][phi] : (layer == 1 ? _IHCAL_ISBAD[eta][phi] : _OHCAL_ISBAD[eta][phi]));
+
+          int this_isBad;
+          if (layer == 0)
+          {
+            this_isBad = _EMCAL_ISBAD[eta][phi];
+          }
+          else if (layer == 1)
+          {
+            this_isBad = _IHCAL_ISBAD[eta][phi];
+          }
+          else
+          {
+            this_isBad = _OHCAL_ISBAD[eta][phi];
+          }
           if (this_isBad)
           {
             isExcluded = true;
@@ -607,7 +617,21 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
               isExcluded = true;
               if (Verbosity() > 10)
               {
-                float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
+                // please do not use these kind of nested ?'s - really hard to understand
+                // float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
+                float my_E;
+                if (layer == 0)
+                {
+                  my_E = _EMCAL_E[eta][phi];
+                }
+                else if (layer == 1)
+                {
+                  my_E = _IHCAL_E[eta][phi];
+                }
+                else
+                {
+                  my_E = _OHCAL_E[eta][phi];
+                }
                 std::cout << " setting excluded mark for tower with E / eta / phi = " << my_E << " / " << this_eta << " / " << this_phi << " from seed at eta / phi = " << _seed_eta[iseed] << " / " << _seed_phi[iseed] << std::endl;
               }
             }
@@ -660,7 +684,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         }
 
       }  // close eta loop
-    }    // close layer loop
+    }  // close layer loop
 
     // flow determination
 
@@ -684,7 +708,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
       if (_do_flow == 1)
       {
-          _Psi2 = atan2(Q_y, Q_x) / 2.0;
+        _Psi2 = std::atan2(Q_y, Q_x) / 2.0;
       }
       else if (_do_flow == 2)
       {
@@ -698,7 +722,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
         PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
 
-        float Hijing_Qx = 0, Hijing_Qy = 0;
+        float Hijing_Qx = 0;
+        float Hijing_Qy = 0;
 
         for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
         {
@@ -718,7 +743,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
             continue;
           }
           float truth_eta = t.Eta();
-          if (fabs(truth_eta) > 1.1)
+          if (std::fabs(truth_eta) > 1.1)
           {
             continue;
           }
@@ -730,11 +755,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
             std::cout << "DetermineTowerBackground::process_event: determining truth flow, using particle w/ pt / eta / phi " << truth_pt << " / " << truth_eta << " / " << truth_phi << " , embed / PID = " << truthinfo->isEmbeded(g4particle->get_track_id()) << " / " << truth_pid << std::endl;
           }
 
-          Hijing_Qx += truth_pt * cos(2 * truth_phi);
-          Hijing_Qy += truth_pt * sin(2 * truth_phi);
+          Hijing_Qx += truth_pt * std::cos(2 * truth_phi);
+          Hijing_Qy += truth_pt * std::sin(2 * truth_phi);
         }
 
-        _Psi2 = atan2(Hijing_Qy, Hijing_Qx) / 2.0;
+        _Psi2 = std::atan2(Hijing_Qy, Hijing_Qx) / 2.0;
 
         if (Verbosity() > 0)
         {
@@ -743,29 +768,29 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       }
       else if (_do_flow == 3)
       {
-    	  //get event plane map
-          EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
-          if (!epmap)
-          {
-              std::cout << "DetermineTowerBackground::process_event: FATAL, EventplaneinfoMap does not exist, cannot extract sEPD flow with do_flow = " << _do_flow << std::endl;
-             exit(-1);
-          }
-          if(!(epmap->empty()))
-          {
-              auto _EPDNS = epmap->get(EventplaneinfoMap::sEPDNS);
-              _Psi2 = _EPDNS->get_shifted_psi(2);
-          }
-          else
-          {
-            _is_flow_failure = true;
-          }
+        // get event plane map
+        EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
+        if (!epmap)
+        {
+          std::cout << "DetermineTowerBackground::process_event: FATAL, EventplaneinfoMap does not exist, cannot extract sEPD flow with do_flow = " << _do_flow << std::endl;
+          exit(-1);
+        }
+        if (!(epmap->empty()))
+        {
+          auto *EPDNS = epmap->get(EventplaneinfoMap::sEPDNS);
+          _Psi2 = EPDNS->get_shifted_psi(2);
+        }
+        else
+        {
+          _is_flow_failure = true;
+        }
       }
 
       // determine v2 from calo regardless of origin of Psi2
       double sum_cos2dphi = 0;
       for (int iphi = 0; iphi < _HCAL_NPHI; iphi++)
       {
-        sum_cos2dphi += _FULLCALOFLOW_PHI_E[iphi] * cos(2 * (_FULLCALOFLOW_PHI_VAL[iphi] - _Psi2));
+        sum_cos2dphi += _FULLCALOFLOW_PHI_E[iphi] * std::cos(2 * (_FULLCALOFLOW_PHI_VAL[iphi] - _Psi2));
       }
 
       _v2 = sum_cos2dphi / E;
@@ -812,8 +837,27 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
         bool isExcluded = false;
 
-        float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
-        int this_isBad = (layer == 0 ? _EMCAL_ISBAD[eta][phi] : (layer == 1 ? _IHCAL_ISBAD[eta][phi] : _OHCAL_ISBAD[eta][phi]));
+        // nobody can understand these nested ?s, which just makes this error prone and a maintenance headache
+        //        float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
+        //        int this_isBad = (layer == 0 ? _EMCAL_ISBAD[eta][phi] : (layer == 1 ? _IHCAL_ISBAD[eta][phi] : _OHCAL_ISBAD[eta][phi]));
+        //	please use the following if/else if/else
+        float my_E;
+        int this_isBad;
+        if (layer == 0)
+        {
+          my_E = _EMCAL_E[eta][phi];
+          this_isBad = _EMCAL_ISBAD[eta][phi];
+        }
+        else if (layer == 1)
+        {
+          my_E = _IHCAL_E[eta][phi];
+          this_isBad = _IHCAL_ISBAD[eta][phi];
+        }
+        else
+        {
+          my_E = _OHCAL_E[eta][phi];
+          this_isBad = _OHCAL_ISBAD[eta][phi];
+        }
         // if the tower is masked (energy identically zero), exclude it
         if (this_isBad)
         {
@@ -850,15 +894,15 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         {
           if (layer == 0)
           {
-            total_E += _EMCAL_E[eta][phi] / (1 + 2 * _v2 * cos(2 * (this_phi - _Psi2)));
+            total_E += _EMCAL_E[eta][phi] / (1 + 2 * _v2 * std::cos(2 * (this_phi - _Psi2)));
           }
           if (layer == 1)
           {
-            total_E += _IHCAL_E[eta][phi] / (1 + 2 * _v2 * cos(2 * (this_phi - _Psi2)));
+            total_E += _IHCAL_E[eta][phi] / (1 + 2 * _v2 * std::cos(2 * (this_phi - _Psi2)));
           }
           if (layer == 2)
           {
-            total_E += _OHCAL_E[eta][phi] / (1 + 2 * _v2 * cos(2 * (this_phi - _Psi2)));
+            total_E += _OHCAL_E[eta][phi] / (1 + 2 * _v2 * std::cos(2 * (this_phi - _Psi2)));
           }
           total_tower++;  // towers in this eta range & layer
           _nTowers++;     // towers in entire calorimeter
@@ -956,22 +1000,20 @@ void DetermineTowerBackground::FillNode(PHCompositeNode *topNode)
     std::cout << " ERROR -- can't find TowerBackground node after it should have been created" << std::endl;
     return;
   }
-  else
-  {
-    towerbackground->set_UE(0, _UE[0]);
-    towerbackground->set_UE(1, _UE[1]);
-    towerbackground->set_UE(2, _UE[2]);
 
-    towerbackground->set_v2(_v2);
+  towerbackground->set_UE(0, _UE[0]);
+  towerbackground->set_UE(1, _UE[1]);
+  towerbackground->set_UE(2, _UE[2]);
 
-    towerbackground->set_Psi2(_Psi2);
+  towerbackground->set_v2(_v2);
 
-    towerbackground->set_nStripsUsedForFlow(_nStrips);
+  towerbackground->set_Psi2(_Psi2);
 
-    towerbackground->set_nTowersUsedForBkg(_nTowers);
+  towerbackground->set_nStripsUsedForFlow(_nStrips);
 
-    towerbackground->set_flow_failure_flag(_is_flow_failure);
-  }
+  towerbackground->set_nTowersUsedForBkg(_nTowers);
+
+  towerbackground->set_flow_failure_flag(_is_flow_failure);
 
   return;
 }

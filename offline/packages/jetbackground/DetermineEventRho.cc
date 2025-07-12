@@ -4,34 +4,34 @@
 
 #include <fun4all/SubsysReco.h>
 #include <jetbase/JetInput.h>
-#include <jetbase/Jetv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
-#include <phool/PHNode.h>                  // for PHNode
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
 // fastjet includes
-#include <fastjet/GhostedAreaSpec.hh>      // for GhostedAreaSpec
 #include <fastjet/AreaDefinition.hh>
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/ClusterSequenceArea.hh>
+#include <fastjet/GhostedAreaSpec.hh>  // for GhostedAreaSpec
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 #include <fastjet/Selector.hh>
 
 // standard includes
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>  // for basic_ostringstream
 #include <string>
 #include <vector>
-#include <cmath>
 
 DetermineEventRho::DetermineEventRho(const std::string &name)
   : SubsysReco(name)
@@ -40,14 +40,14 @@ DetermineEventRho::DetermineEventRho(const std::string &name)
   fastjet::ClusterSequence const clusseq;
   if (Verbosity() > 0)
   {
-    clusseq.print_banner();
+    fastjet::ClusterSequence::print_banner();
   }
   else
   {
     std::ostringstream nullstream;
-    clusseq.set_fastjet_banner_stream(&nullstream);
-    clusseq.print_banner();
-    clusseq.set_fastjet_banner_stream(&std::cout);
+    fastjet::ClusterSequence::set_fastjet_banner_stream(&nullstream);
+    fastjet::ClusterSequence::print_banner();
+    fastjet::ClusterSequence::set_fastjet_banner_stream(&std::cout);
   }
 }
 
@@ -89,7 +89,7 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
   for (auto &input : m_inputs)
   {
     std::vector<Jet *> const parts = input->get_input(topNode);
-    for (auto &part : parts)
+    for (const auto &part : parts)
     {
       particles.push_back(part);
       particles.back()->set_id(particles.size() - 1);  // unique ids ensured
@@ -155,7 +155,7 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
     float sigma = 0;
     auto rho_method = m_rho_methods.at(ipos);
 
-    auto m_eventbackground = findNode::getClass<EventRho>(topNode, m_output_nodes.at(ipos));
+    auto *m_eventbackground = findNode::getClass<EventRho>(topNode, m_output_nodes.at(ipos));
     if (!m_eventbackground)
     {
       std::cout << PHWHERE << " EventRho node " << m_output_nodes.at(ipos) << " not found" << std::endl;
@@ -172,7 +172,7 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
     {
       fastjet::AreaDefinition const area_def(fastjet::active_area_explicit_ghosts,
                                              fastjet::GhostedAreaSpec(m_abs_input_eta_range, 1, m_ghost_area));
-      auto m_cluseq = new fastjet::ClusterSequenceArea(calo_pseudojets, *m_jet_def, area_def);
+      auto *m_cluseq = new fastjet::ClusterSequenceArea(calo_pseudojets, *m_jet_def, area_def);
       auto fastjets = jet_selector(m_cluseq->inclusive_jets());
 
       std::vector<float> pT_over_X{};
@@ -185,7 +185,7 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
       {
         float const this_X = fastjet.area();
         // if (this_X <= 0 || this_X != this_X || fastjet.is_pure_ghost())
-        if (this_X <= 0 || this_X != this_X )
+        if (this_X <= 0 || this_X != this_X)
         {
           if (Verbosity() > 2)
           {
@@ -199,7 +199,8 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
         }  // end of check on X
 
         // add back the truth comp pT
-        float px_sum = 0, py_sum = 0;
+        float px_sum = 0;
+        float py_sum = 0;
         for (auto &comp : fastjet.constituents())
         {
           if (comp.is_pure_ghost())
@@ -207,7 +208,7 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
             continue;
           }
 
-          auto p = particles[comp.user_index()];  // get original particle
+          auto *p = particles[comp.user_index()];  // get original particle
           px_sum += p->get_px();
           py_sum += p->get_py();
 
@@ -222,12 +223,13 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
 
       if (empty_X != 0.0)
       {
-        if ( Verbosity() > 0 ){
+        if (Verbosity() > 0)
+        {
           std::cerr << PHWHERE << " ::WARNING: Found " << empty_X << " empty jets with zero area. This may be due to (i) too large a ghost area (ii) a jet being outside the ghost range (iii) the computation not being done using an appropriate algorithm (kt;C/A)." << std::endl;
         }
-          total_X += empty_X;
+        total_X += empty_X;
       }
-      
+
       float const n_empty_jets = njets_total - njets_used;
       float mean_X = (1.0 * total_X) / (njets_total);
       if (mean_X < 0)
@@ -236,7 +238,8 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
         mean_X = 0;
       }
 
-      float tmp_med, tmp_std;
+      float tmp_med;
+      float tmp_std;
       CalcMedianStd(pT_over_X, n_empty_jets, tmp_med, tmp_std);
 
       sigma = std::sqrt(mean_X) * tmp_std;
@@ -250,7 +253,7 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
     else if (rho_method == EventRho::Method::MULT)
     {
       // reconstruct the background jets
-      auto m_cluseq = new fastjet::ClusterSequence(calo_pseudojets, *m_jet_def);
+      auto *m_cluseq = new fastjet::ClusterSequence(calo_pseudojets, *m_jet_def);
       auto fastjets = jet_selector(m_cluseq->inclusive_jets());
 
       std::vector<float> pt_over_nconst{};
@@ -259,13 +262,13 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
       for (auto &fastjet : fastjets)
       {
         auto comps = fastjet.constituents();
-        if (comps.size() > 0)
+        if (!comps.empty())
         {
           float total_px = 0;
           float total_py = 0;
           for (auto &comp : comps)
           {
-            auto particle = particles[comp.user_index()];
+            auto *particle = particles[comp.user_index()];
             total_px += particle->get_px();
             total_py += particle->get_py();
             total_constituents++;
@@ -284,7 +287,8 @@ int DetermineEventRho::process_event(PHCompositeNode *topNode)
         mean_N = 0;
       }
 
-      float tmp_med, tmp_std;
+      float tmp_med;
+      float tmp_std;
       CalcMedianStd(pt_over_nconst, 1.0 * n_empty_jets, tmp_med, tmp_std);
 
       sigma = std::sqrt(mean_N) * tmp_std;
@@ -340,7 +344,7 @@ void DetermineEventRho::add_method(EventRho::Method rho_method, std::string outp
   m_rho_methods.push_back(rho_method);
 
   // if no output name is specified, use default
-  if (output_node == "")
+  if (output_node.empty())
   {
     output_node = "EventRho_" + method_name;
   }
@@ -351,46 +355,42 @@ void DetermineEventRho::add_method(EventRho::Method rho_method, std::string outp
 int DetermineEventRho::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);  // Looking for the DST node
-  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  auto *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  else
+  auto *bkgNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "JETBACKGROUND"));
+  if (!bkgNode)
+  {  // create the node if it does not exist
+    bkgNode = new PHCompositeNode("JETBACKGROUND");
+    dstNode->addNode(bkgNode);
+  }
+
+  // create the EventRho nodes
+  for (auto &output : m_output_nodes)
   {
-    auto bkgNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "JETBACKGROUND"));
-    if (!bkgNode)
-    {  // create the node if it does not exist
-      bkgNode = new PHCompositeNode("JETBACKGROUND");
-      dstNode->addNode(bkgNode);
-    }
-
-    // create the EventRho nodes
-    for (auto &output : m_output_nodes)
+    auto *eventrho = findNode::getClass<EventRho>(topNode, output);
+    if (!eventrho)
     {
-      auto eventrho = findNode::getClass<EventRho>(topNode, output);
-      if (!eventrho)
-      {
-        eventrho = new EventRhov1();
-        auto rhoDataNode = new PHIODataNode<PHObject>(eventrho, output, "PHObject");
-        bkgNode->addNode(rhoDataNode);
-      }  // end of if eventrho
-    }  // end of loop over output nodes
-
-  }  // end of if dstNode
+      eventrho = new EventRhov1();
+      auto *rhoDataNode = new PHIODataNode<PHObject>(eventrho, output, "PHObject");
+      bkgNode->addNode(rhoDataNode);
+    }  // end of if eventrho
+  }  // end of loop over output nodes
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-float DetermineEventRho::CalcPercentile(const std::vector<float> &sorted_vec, const float percentile, const float nempty) const
+float DetermineEventRho::CalcPercentile(const std::vector<float> &sorted_vec, const float percentile, const float nempty)
 {
   float result = 0;
-  if (sorted_vec.size() > 0)
+  if (!sorted_vec.empty())
   {
     int const njets = sorted_vec.size();
     float const total_njets = njets + nempty;
-    float perc_pos = (total_njets) *percentile - nempty - 0.5;
+    float perc_pos = ((total_njets) *percentile) - nempty - 0.5;
 
     if (perc_pos >= 0 && njets > 1)
     {
@@ -416,11 +416,11 @@ float DetermineEventRho::CalcPercentile(const std::vector<float> &sorted_vec, co
   return result;
 }
 
-void DetermineEventRho::CalcMedianStd(const std::vector<float> &vec, float n_empty_jets, float &median, float &std_dev) const
+void DetermineEventRho::CalcMedianStd(const std::vector<float> &vec, float n_empty_jets, float &median, float &std_dev)
 {
   median = 0;
   std_dev = 0;
-  if (vec.size() > 0)
+  if (!vec.empty())
   {
     // sort the vector
     std::vector<float> sorted_vec = vec;
@@ -448,7 +448,7 @@ void DetermineEventRho::CalcMedianStd(const std::vector<float> &vec, float n_emp
   return;
 }
 
-fastjet::Selector DetermineEventRho::get_jet_selector()
+fastjet::Selector DetermineEventRho::get_jet_selector() const
 {
   if (m_jet_min_pT != VOID_CUT)
   {

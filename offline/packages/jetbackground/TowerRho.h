@@ -24,7 +24,7 @@ class TowerRho : public PHObject
     MULT = 2
   };
 
-  ~TowerRho() override{};
+  ~TowerRho() override {};
 
   void identify(std::ostream &os = std::cout) const override { os << "TowerRho base class" << std::endl; };
   int isValid() const override { return 0; }

@@ -105,13 +105,13 @@ class DetermineTowerRho : public SubsysReco
   // internal methods
   int CreateNodes(PHCompositeNode *topNode);
 
-  float CalcPercentile(const std::vector<float> &sorted_vec,
-                       const float percentile, const float nempty) const;
+  static float CalcPercentile(const std::vector<float> &sorted_vec,
+                              const float percentile, const float nempty);
 
-  void CalcMedianStd(const std::vector<float> &vec,
-                     float n_empty_jets, float &median, float &std_dev) const;
+  static void CalcMedianStd(const std::vector<float> &vec,
+                            float n_empty_jets, float &median, float &std_dev);
 
-  fastjet::Selector get_jet_selector();
+  fastjet::Selector get_jet_selector() const;
 };
 
 #endif  // JETBACKGROUND_DETERMINETOWERHO_H

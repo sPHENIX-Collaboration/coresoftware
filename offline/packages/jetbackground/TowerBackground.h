@@ -8,7 +8,7 @@
 class TowerBackground : public PHObject
 {
  public:
-  ~TowerBackground() override{};
+  ~TowerBackground() override {};
 
   void identify(std::ostream &os = std::cout) const override { os << "TowerBackground base class" << std::endl; };
   int isValid() const override { return 0; }

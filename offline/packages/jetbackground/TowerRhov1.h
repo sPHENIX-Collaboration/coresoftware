@@ -33,10 +33,9 @@ class TowerRhov1 : public TowerRho
   static std::string get_method_string(TowerRho::Method method);  // new in v1
 
  private:
-
   float m_tower_rho{0};                                        // momentum density
   float m_tower_sigma{0};                                      // sigma of momentum density
-  TowerRho::Method m_rho_method_type{ TowerRho::Method::NONE };  // method of rho calculation
+  TowerRho::Method m_rho_method_type{TowerRho::Method::NONE};  // method of rho calculation
 
   ClassDefOverride(TowerRhov1, 1);
 };

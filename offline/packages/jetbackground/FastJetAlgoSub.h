@@ -8,8 +8,6 @@
 #include <iostream>
 #include <vector>
 
-class JetContainer;
-
 class FastJetAlgoSub : public JetAlgo
 {
  public:
@@ -31,7 +29,7 @@ class FastJetAlgoSub : public JetAlgo
   float get_par() override { return m_opt.jet_R; }
 
   /* std::vector<Jet*> get_jets(std::vector<Jet*> particles) override; */
-  void cluster_and_fill(std::vector<Jet*>& part_in, JetContainer* jets_out) override;
+  void cluster_and_fill(std::vector<Jet*>& particles, JetContainer* jetcont) override;
 
  private:
   FastJetOptions m_opt{};

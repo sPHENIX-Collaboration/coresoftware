@@ -123,7 +123,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
   // iterate over old jets
   int ijet = 0;
-  for (auto this_jet : *unsub_jets)
+  for (auto *this_jet : *unsub_jets)
   {
     float this_pt = this_jet->get_pt();
     float this_phi = this_jet->get_phi();
@@ -262,7 +262,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
       new_total_e += comp_sub_e;
     }
 
-    auto new_jet = sub_jets->add_jet();  // returns a new Jet_v2
+    auto *new_jet = sub_jets->add_jet();  // returns a new Jet_v2
 
     new_jet->set_px(new_total_px);
     new_jet->set_py(new_total_py);

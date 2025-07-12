@@ -26,7 +26,7 @@ class EventRho : public PHObject
     MULT = 2
   };
 
-  ~EventRho() override{};
+  ~EventRho() override {};
 
   void identify(std::ostream &os = std::cout) const override { os << "EventRho base class" << std::endl; };
   int isValid() const override { return 0; }
