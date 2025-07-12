@@ -200,7 +200,7 @@ class PHSimpleKFProp : public SubsysReco
 
   double get_Bz(double x, double y, double z) const;
 
-  void rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer);
+  void rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2);
 
   void publishSeeds(const std::vector<TrackSeed_v2>&);
 

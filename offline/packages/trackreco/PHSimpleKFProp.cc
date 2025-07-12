@@ -225,11 +225,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     }
   }
 
-  PHTimer timer("KFPropTimer");
-
-  timer.stop();
-  timer.restart();
-
   const auto globalPositions = PrepareKDTrees();
 
   // check number of seeds against maximum
@@ -246,6 +241,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   #pragma omp parallel num_threads(4)
   {
+
+    PHTimer timer("KFPropTimer");
+
     std::vector<std::vector<TrkrDefs::cluskey>> local_chains;
     std::vector<TrackSeed_v2> local_unused;
 
@@ -287,27 +285,28 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         /// This will by definition return a single pair with each vector
         /// in the pair length 1 corresponding to the seed info
         std::vector<float> trackChi2;
-        //timer.stop();
-        //timer.restart();
+        timer.restart();
 
         auto seedpair = fitter->ALICEKalmanFilter(keylist_A, false, trackClusPositions, trackChi2);
 
-        //timer.stop();
+        timer.stop();
         if (Verbosity() > 3)
         {
           std::cout << "single track ALICEKF time " << timer.elapsed() << std::endl;
         }
-        //timer.restart();
+
+        timer.restart();
 
         /// circle fit back to update track parameters
         TrackSeedHelper::circleFitByTaubin(track, trackClusPositions, 7, 55);
         TrackSeedHelper::lineFit(track, trackClusPositions, 7, 55);
         track->set_phi(TrackSeedHelper::get_phi(track, trackClusPositions));
-        //timer.stop();
+        timer.stop();
         if (Verbosity() > 3)
         {
           std::cout << "single track circle fit time " << timer.elapsed() << std::endl;
         }
+
         if (seedpair.first.empty()|| seedpair.second.empty())
         {
           continue;
@@ -318,8 +317,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
           std::cout << "is tpc track" << std::endl;
         }
 
-        //timer.stop();
-        //timer.restart();
+        timer.restart();
 
         if (Verbosity())
         {
@@ -372,7 +370,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
           local_chains.push_back(kl.at(0));
         }
 
-        //timer.stop();
+        timer.stop();
 
         if (Verbosity() > 3)
         {
@@ -411,7 +409,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   // reset track map
   _track_map->Reset();
-  timer.stop();
 
   if( Verbosity() )
   {
@@ -432,31 +429,28 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
    * presently RemoveBadClusters does nothing. It just removes seeds of size less than 3, which don't make it through the main loop anyway
    * so we just comment out the call, to prevent unnecessary data copy
    */
-//   timer.restart();
 //   const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
 //   if (Verbosity() > 1)
 //   { std::cout << "PHSimpleKFProp::process_event - clean_chains size: " << clean_chains.size() << std::endl; }
-//   timer.stop();
 
   const auto& clean_chains = new_chains;
 
+  PHTimer timer("KFPropTimer");
   timer.restart();
   std::vector<float> trackChi2;
   auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions, trackChi2);
   timer.stop();
 
-  if (Verbosity() > 0)
+  if (Verbosity())
   {
     const auto alicekftime = timer.elapsed();
     std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
   }
-  timer.stop();
 
   //  Move ghost rejection into publishSeeds, so that we don't publish rejected seeds
-  timer.restart();
   if (m_ghostrejection)
   {
-    rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2, timer);
+    rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2);
   }
   else
   {
@@ -1396,8 +1390,11 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
   return clean_chains;
 }
 
-void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer)
+void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2)
 {
+
+  PHTimer timer("KFPropTimer");
+
   // testing with presets for rejection
   PHGhostRejection rejector(Verbosity(), seeds);
   rejector.set_phi_cut(_ghost_phi_cut);
@@ -1433,9 +1430,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
   }
 
   // now do the ghost rejection *before* publishing the seeds to the _track_map
-  timer.stop();
   timer.restart();
-
   rejector.find_ghosts(trackChi2);
   if (Verbosity() > 2)
   {
