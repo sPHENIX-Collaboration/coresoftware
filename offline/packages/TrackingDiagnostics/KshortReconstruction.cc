@@ -4,34 +4,50 @@
 
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 
+#include <trackreco/ActsPropagator.h>
+
+#include <globalvertex/SvtxVertexMap.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <trackreco/ActsPropagator.h>
+#include <Acts/Surfaces/CylinderSurface.hpp>
 
-#include <utility>
-
-#include <TLorentzVector.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#include <ActsExamples/EventData/Trajectories.hpp>
+#pragma GCC diagnostic pop
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TLorentzVector.h>
 #include <TNtuple.h>
+#include <TSystem.h>
+
+#include <cmath>
+#include <utility>
+
+using BoundTrackParam = const Acts::BoundTrackParameters;
+using BoundTrackParamResult = Acts::Result<BoundTrackParam>;
+using SurfacePtr = std::shared_ptr<const Acts::Surface>;
+using Trajectory = ActsExamples::Trajectories;
+
 
 int KshortReconstruction::process_event(PHCompositeNode* topNode)
 {
 
-  PHNodeIterator nodeIter(topNode);
+  EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
 
-  PHNode* evtNode = dynamic_cast<PHNode*>(nodeIter.findFirst("EventHeader"));
-
-  int m_runNumber, m_evtNumber;
-  if (evtNode)
+  int m_runNumber;
+  int m_evtNumber;
+  if (evtHeader)
   {
-    EventHeader* evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
     m_runNumber = evtHeader->get_RunNumber();
     m_evtNumber = evtHeader->get_EvtSequence();
   }
@@ -44,7 +60,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
   for (auto tr1_it = m_svtxTrackMap->begin(); tr1_it != m_svtxTrackMap->end(); ++tr1_it)
   {
     auto id1 = tr1_it->first;
-    auto tr1 = tr1_it->second;
+    auto *tr1 = tr1_it->second;
     if (tr1->get_quality() > _qual_cut)
     {
       continue;
@@ -119,7 +135,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     for (auto tr2_it = std::next(tr1_it); tr2_it != m_svtxTrackMap->end(); ++tr2_it)
     {
       auto id2 = tr2_it->first;
-      auto tr2 = tr2_it->second;
+      auto *tr2 = tr2_it->second;
       if (tr2->get_quality() > _qual_cut)
       {
         continue;
@@ -269,7 +285,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
 
         if (m_save_tracks)
         {
-          m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_output_trackMap_node_name.c_str());
+          m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_output_trackMap_node_name);
           m_output_trackMap->insertWithKey(tr1, tr1->get_id());
           m_output_trackMap->insertWithKey(tr2, tr2->get_id());
         }
@@ -310,6 +326,10 @@ std::vector<unsigned int> KshortReconstruction::getTrackStates(SvtxTrack *track)
 	case TrkrDefs::micromegasId:
 	  nmmsstate++;
 	  break;
+	default:
+	  std::cout << PHWHERE << " unknown key " << stateckey << std::endl;
+	  gSystem->Exit(1);
+	  exit(1);
 	}
     }
   nstates.push_back(nmapsstate);
@@ -325,21 +345,21 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::V
   double px1 = track1->get_px();
   double py1 = track1->get_py();
   double pz1 = track1->get_pz();
-  auto tpcSeed1 = track1->get_tpc_seed();
+  auto *tpcSeed1 = track1->get_tpc_seed();
   size_t tpcClusters1 = tpcSeed1->size_cluster_keys();
   double eta1 = asinh(pz1 / sqrt(pow(px1, 2) + pow(py1, 2)));
 
   double px2 = track2->get_px();
   double py2 = track2->get_py();
   double pz2 = track2->get_pz();
-  auto tpcSeed2 = track2->get_tpc_seed();
+  auto *tpcSeed2 = track2->get_tpc_seed();
   size_t tpcClusters2 = tpcSeed2->size_cluster_keys();
   double eta2 = asinh(pz2 / sqrt(pow(px2, 2) + pow(py2, 2)));
 
   auto vtxid = track1->get_vertex_id();
 
   Acts::Vector3 vertex(0, 0, track1->get_z());  // fake primary vertex
-  auto svtxVertex = m_vertexMap->get(vtxid);
+  auto *svtxVertex = m_vertexMap->get(vtxid);
   if (svtxVertex)
   {
     vertex(0) = svtxVertex->get_x();
@@ -362,7 +382,7 @@ void KshortReconstruction::fillNtp(SvtxTrack* track1, SvtxTrack* track2, Acts::V
   ntp_reco_info->Fill(reco_info);
 }
 
-void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1D* massreco, double& invariantMass, double& invariantPt, float& invariantPhi, float& rapidity, float& pseudorapidity)
+void KshortReconstruction::fillHistogram(Eigen::Vector3d mom1, Eigen::Vector3d mom2, TH1* massreco, double& invariantMass, double& invariantPt, float& invariantPhi, float& rapidity, float& pseudorapidity)
 {
   double E1 = sqrt(pow(mom1(0), 2) + pow(mom1(1), 2) + pow(mom1(2), 2) + pow(decaymass, 2));
   double E2 = sqrt(pow(mom2(0), 2) + pow(mom2(1), 2) + pow(mom2(2), 2) + pow(decaymass, 2));
@@ -509,7 +529,7 @@ Acts::Vector3 KshortReconstruction::getVertex(SvtxTrack* track)
   return vertex;
 }
 
-void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Acts::Vector3& pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca)
+void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Acts::Vector3& pos2, Acts::Vector3 mom1, Acts::Vector3 mom2, Acts::Vector3& pca1, Acts::Vector3& pca2, double& dca) const
 {
   TLorentzVector v1;
   TLorentzVector v2;
@@ -559,13 +579,13 @@ void KshortReconstruction::findPcaTwoTracks(const Acts::Vector3& pos1, const Act
   }
 
   // get the points at which the normal to the lines intersect the lines, where the lines are perpendicular
-  double X = b1.dot(b2) - b1.dot(b1) * b2.dot(b2) / b2.dot(b1);
-  double Y = (a2.dot(b2) - a1.dot(b2)) - (a2.dot(b1) - a1.dot(b1)) * b2.dot(b2) / b2.dot(b1);
+  double X = b1.dot(b2) - (b1.dot(b1) * b2.dot(b2) / b2.dot(b1));
+  double Y = (a2.dot(b2) - a1.dot(b2)) - ((a2.dot(b1) - a1.dot(b1)) * b2.dot(b2) / b2.dot(b1));
   double c = Y / X;
 
   double F = b1.dot(b1) / b2.dot(b1);
   double G = -(a2.dot(b1) - a1.dot(b1)) / b2.dot(b1);
-  double d = c * F + G;
+  double d = (c * F) + G;
 
   // then the points of closest approach are:
   pca1 = a1 + c * b1;
@@ -591,7 +611,7 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
     //std::cout << "Could not find m_vertexmap " << std::endl;
     return outVals;
   }
-  auto svtxVertex = m_vertexMap->get(vtxid);
+  auto *svtxVertex = m_vertexMap->get(vtxid);
   if (!svtxVertex)
   {
     //std::cout << "Could not find vtxid in m_vertexMap " << vtxid << std::endl;
@@ -601,11 +621,11 @@ Acts::Vector3 KshortReconstruction::calculateDca(SvtxTrack* track, const Acts::V
   position -= vertex;
 
   Acts::RotationMatrix3 rot;
-  rot(0, 0) = cos(phi);
-  rot(0, 1) = -sin(phi);
+  rot(0, 0) = std::cos(phi);
+  rot(0, 1) = -std::sin(phi);
   rot(0, 2) = 0;
-  rot(1, 0) = sin(phi);
-  rot(1, 1) = cos(phi);
+  rot(1, 0) = std::sin(phi);
+  rot(1, 1) = std::cos(phi);
   rot(1, 2) = 0;
   rot(2, 0) = 0;
   rot(2, 1) = 0;
@@ -653,7 +673,7 @@ int KshortReconstruction::InitRun(PHCompositeNode* topNode)
     }
 
     m_output_trackMap = new SvtxTrackMap_v2();
-    PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, m_output_trackMap_node_name.c_str(), "PHObject");
+    PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, m_output_trackMap_node_name, "PHObject");
     dstNode->addNode(outputTrackNode);
     if (Verbosity() > 1) { std::cout << m_output_trackMap_node_name << " node added" << std::endl; }
   }

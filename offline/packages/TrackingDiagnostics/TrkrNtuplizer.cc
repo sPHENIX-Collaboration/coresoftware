@@ -60,7 +60,7 @@
 #include <utility>
 #include <vector>
 
-enum n_event
+enum n_event // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   evnev,
   evnseed,
@@ -70,7 +70,7 @@ enum n_event
   evsize = evnjob + 1,
 };
 
-enum n_info
+enum n_info // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   infonocc11,
   infonocc116,
@@ -98,7 +98,7 @@ enum n_info
   infosize = infonclustpot + 1
 };
 
-enum n_vertex
+enum n_vertex // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   vtxnvertexID,
   vtxnvx,
@@ -110,7 +110,7 @@ enum n_vertex
   vtxsize = vtxnndof + 1
 };
 
-enum n_hit
+enum n_hit // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nhitID,
   nhite,
@@ -130,7 +130,7 @@ enum n_hit
   hitsize = nhitz + 1
 };
 
-enum n_seed
+enum n_seed // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nseedtrackID,
   nseedniter,
@@ -156,7 +156,7 @@ enum n_seed
   seedsize = nseednhits + 1
 };
 
-enum n_residual
+enum n_residual // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nresalpha,
   nresbeta,
@@ -166,7 +166,7 @@ enum n_residual
   ressize = nresz + 1
 };
 
-enum n_track
+enum n_track // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   ntrktrackID,
   ntrkcrossing,
@@ -219,7 +219,7 @@ enum n_track
   trksize = ntrkhlxcharge + 1
 };
 
-enum n_cluster
+enum n_cluster // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nclulocx,
   nclulocy,

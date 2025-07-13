@@ -1,8 +1,10 @@
 #include "ClusterErrorPara.h"
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterv4.h>
+
+#include "TrkrCluster.h"
 
 #include <TF1.h>
+
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -12,7 +14,7 @@ namespace
 
   //! convenience square method
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -502,10 +504,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
       phierror *= 10;
     }
 
-    if (phierror > 0.1)
-    {
-      phierror = 0.1;
-    }
+    phierror = std::min(phierror, 0.1);
     if (phierror < 0.0005)
     {
       phierror = 0.1;
@@ -518,9 +517,9 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 ClusterErrorPara::error_t ClusterErrorPara::get_cluster_error(TrkrCluster* cluster, double cluster_r, TrkrDefs::cluskey key, float qOverR, float slope)
 {
   float r = cluster_r;
-  float R = TMath::Abs(1.0 / qOverR);
+  float R = std::abs(1.0 / qOverR);
   double alpha = (r * r) / (2 * r * R);
-  double beta = TMath::Abs(atan(slope));
+  double beta = std::abs(std::atan(slope));
   return get_cluster_error(cluster, key, alpha, beta);
 }
 
@@ -682,10 +681,7 @@ double ClusterErrorPara::tpc_phi_error(int layer, double alpha, TrkrCluster* clu
     phierror *= (3 * 1.05);
   }
 
-  if (phierror > 0.1)
-  {
-    phierror = 0.1;
-  }
+  phierror = std::min(phierror, 0.1);
   if (phierror < 0.0005)
   {
     phierror = 0.1;
@@ -778,10 +774,7 @@ double ClusterErrorPara::tpc_z_error(int layer, double beta, TrkrCluster* cluste
     zerror *= (3.5 * 0.85);
   }
 
-  if (zerror > 0.2)
-  {
-    zerror = 0.2;
-  }
+  zerror = std::min(zerror, 0.2);
   if (zerror < 0.0002)
   {
     zerror = 0.2;
@@ -842,7 +835,7 @@ double ClusterErrorPara::mm_z_error(int layer, double beta, TrkrCluster* cluster
   return zerror;
 }
 
-double ClusterErrorPara::mvtx_phi_error(TrkrCluster* cluster)
+double ClusterErrorPara::mvtx_phi_error(TrkrCluster* cluster) const
 {
   double phierror = 0;
   static constexpr std::array<double, 7> scalefactors_mvtx_phi = {{0.36, 0.6, 0.37, 0.49, 0.4, 0.37, 0.33}};
@@ -887,7 +880,7 @@ double ClusterErrorPara::mvtx_phi_error(TrkrCluster* cluster)
   return phierror;
 }
 
-double ClusterErrorPara::mvtx_phi_error(const TrkrCluster* cluster)
+double ClusterErrorPara::mvtx_phi_error(const TrkrCluster* cluster) const
 {
   double phierror = 0;
   static constexpr std::array<double, 7> scalefactors_mvtx_phi = {{0.36, 0.6, 0.37, 0.49, 0.4, 0.37, 0.33}};
@@ -932,7 +925,7 @@ double ClusterErrorPara::mvtx_phi_error(const TrkrCluster* cluster)
   return phierror;
 }
 
-double ClusterErrorPara::mvtx_z_error(TrkrCluster* cluster)
+double ClusterErrorPara::mvtx_z_error(TrkrCluster* cluster) const
 {
   double zerror = 0;
 
@@ -957,7 +950,7 @@ double ClusterErrorPara::mvtx_z_error(TrkrCluster* cluster)
   zerror *= scale_mvtx_z;
   return zerror;
 }
-double ClusterErrorPara::mvtx_z_error(const TrkrCluster* cluster)
+double ClusterErrorPara::mvtx_z_error(const TrkrCluster* cluster) const
 {
   double zerror = 0;
 
@@ -983,7 +976,7 @@ double ClusterErrorPara::mvtx_z_error(const TrkrCluster* cluster)
   return zerror;
 }
 
-double ClusterErrorPara::intt_phi_error(int layer, TrkrCluster* cluster)
+double ClusterErrorPara::intt_phi_error(int layer, TrkrCluster* cluster) const
 {
   double phierror = 0;
   static constexpr std::array<double, 3> scalefactors_intt_phi = {{0.85, 0.4, 0.33}};
@@ -1024,13 +1017,13 @@ double ClusterErrorPara::intt_phi_error(int layer, TrkrCluster* cluster)
   return phierror;
 }
 
-double ClusterErrorPara::intt_z_error(TrkrCluster* cluster)
+double ClusterErrorPara::intt_z_error(TrkrCluster* cluster) const
 {
   double zerror = 0;
   zerror = pitcherr_z_intt * cluster->getZSize();
   return zerror;
 }
-double ClusterErrorPara::intt_phi_error(int layer, const TrkrCluster* cluster)
+double ClusterErrorPara::intt_phi_error(int layer, const TrkrCluster* cluster) const
 {
   double phierror = 0;
   static constexpr std::array<double, 3> scalefactors_intt_phi = {{0.85, 0.4, 0.33}};
@@ -1071,7 +1064,7 @@ double ClusterErrorPara::intt_phi_error(int layer, const TrkrCluster* cluster)
   return phierror;
 }
 
-double ClusterErrorPara::intt_z_error(const TrkrCluster* cluster)
+double ClusterErrorPara::intt_z_error(const TrkrCluster* cluster) const
 {
   double zerror = 0;
   zerror = pitcherr_z_intt * cluster->getZSize();

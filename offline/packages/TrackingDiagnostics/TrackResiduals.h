@@ -35,9 +35,8 @@ class TrackResiduals : public SubsysReco
  public:
   TrackResiduals(const std::string &name = "TrackResiduals");
 
-  ~TrackResiduals() override;
+  ~TrackResiduals() override = default;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
@@ -71,7 +70,7 @@ class TrackResiduals : public SubsysReco
                              TrkrCluster *cluster, ActsGeometry *geometry);
   void clearClusterStateVectors();
   void createBranches();
-  float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
+  static float convertTimeToZ(ActsGeometry *geometry, TrkrDefs::cluskey cluster_key, TrkrCluster *cluster);
   void fillEventTree(PHCompositeNode *topNode);
   void fillClusterTree(TrkrClusterContainer *clusters, ActsGeometry *geometry);
   void fillHitTree(TrkrHitSetContainer *hitmap, ActsGeometry *geometry,
@@ -91,7 +90,7 @@ class TrackResiduals : public SubsysReco
                                Acts::Vector3 &glob, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int> &tpc_seed_ids);
-  float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clusters, PHG4TpcCylinderGeomContainer *tpcGeom);
+  static float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clustermap, PHG4TpcCylinderGeomContainer *tpcGeom);
 
   bool m_use_clustermover = true;
 
