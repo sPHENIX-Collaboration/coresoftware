@@ -105,15 +105,6 @@ TrackResiduals::TrackResiduals(const std::string& name)
 }
 
 //____________________________________________________________________________..
-TrackResiduals::~TrackResiduals() = default;
-
-//____________________________________________________________________________..
-int TrackResiduals::Init(PHCompositeNode* /*unused*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
 int TrackResiduals::InitRun(PHCompositeNode* topNode)
 {
   m_outfile = new TFile(m_outfileName.c_str(), "RECREATE");
