@@ -137,8 +137,8 @@ class PHGenFitTrkFitter : public SubsysReco
     m_use_micromegas = value;
   }
 
-  void set_svtx_seed_map_name(std::string name) {_seedMap_name = name;}
-  void set_svtx_track_map_name(std::string name) {_trackMap_name = name;}
+  void set_svtx_seed_map_name(const std::string &name) {_seedMap_name = name;}
+  void set_svtx_track_map_name(const std::string &name) {_trackMap_name = name;}
 
   void disableModuleEdgeCorr() { m_disable_module_edge_corr = true; }
   void disableStaticCorr() { m_disable_static_corr = true; }
