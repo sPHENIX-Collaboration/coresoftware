@@ -7,13 +7,13 @@
 #include <cmath>
 #include <string>
 class PHCompositeNode;
-class CentralityInfo;
+
 class JetBackgroundCut : public SubsysReco
 {
  public:
   explicit JetBackgroundCut(const std::string &jetNodeName, const std::string &name = "JetBackgroundCutModule", int debug = 0, bool doAbort = false, GlobalVertex::VTXTYPE vtxtype = GlobalVertex::MBD, int sysvar = 0);
 
-  ~JetBackgroundCut() override;
+  ~JetBackgroundCut() override = default;
 
   bool failsLoEmFracETCut(float emFrac, float ET, bool dPhiCut, bool isDijet) const
   {

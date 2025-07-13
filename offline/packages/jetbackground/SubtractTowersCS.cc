@@ -177,7 +177,10 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
   {
     std::cout << " SubtractTowersCS::process_event : vector lengths fullEvent_EM = " << fullEvent_EM.size() << " , backgroundProxies_EM = " << backgroundProxies_EM.size() << " , correctedEvent_EM = " << correctedEvent_EM.size() << ", backgroundProxies_EM_remaining = " << backgroundProxies_EM_remaining->size() << std::endl;
 
-    double E_0 = 0, E_1 = 0, E_2 = 0, E_3 = 0;
+    double E_0 = 0;
+    double E_1 = 0;
+    double E_2 = 0;
+    double E_3 = 0;
 
     for (auto &n : fullEvent_EM)
     {
@@ -293,7 +296,10 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
   {
     std::cout << " SubtractTowersCS::process_event : vector lengths fullEvent_IH = " << fullEvent_IH.size() << " , backgroundProxies_IH = " << backgroundProxies_IH.size() << " , correctedEvent_IH = " << correctedEvent_IH.size() << ", backgroundProxies_IH_remaining = " << backgroundProxies_IH_remaining->size() << std::endl;
 
-    double E_0 = 0, E_1 = 0, E_2 = 0, E_3 = 0;
+    double E_0 = 0;
+    double E_1 = 0;
+    double E_2 = 0;
+    double E_3 = 0;
 
     for (auto &n : fullEvent_IH)
     {
@@ -409,7 +415,10 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
   {
     std::cout << " SubtractTowersCS::process_event : vector lengths fullEvent_OH = " << fullEvent_OH.size() << " , backgroundProxies_OH = " << backgroundProxies_OH.size() << " , correctedEvent_OH = " << correctedEvent_OH.size() << ", backgroundProxies_OH_remaining = " << backgroundProxies_OH_remaining->size() << std::endl;
 
-    double E_0 = 0, E_1 = 0, E_2 = 0, E_3 = 0;
+    double E_0 = 0;
+    double E_1 = 0;
+    double E_2 = 0;
+    double E_3 = 0;
 
     for (auto &n : fullEvent_OH)
     {
