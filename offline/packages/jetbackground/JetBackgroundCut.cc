@@ -4,7 +4,6 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>  // for TowerInfo
-#include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
 #include <globalvertex/GlobalVertexMap.h>
