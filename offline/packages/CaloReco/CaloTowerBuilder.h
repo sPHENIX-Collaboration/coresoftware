@@ -107,7 +107,9 @@ class CaloTowerBuilder : public SubsysReco
     m_zs_fieldname = fieldname;
     return;
   }
-
+  
+  CaloWaveformProcessing *get_WaveformProcessing() {return WaveformProcessing;}
+  
  private:
   int process_sim();
   bool skipChannel(int ich, int pid);
@@ -149,7 +151,6 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_directURL;
   std::string m_zsURL;
   std::string m_zs_fieldname{"zs_threshold"};
-
 
 };
 
