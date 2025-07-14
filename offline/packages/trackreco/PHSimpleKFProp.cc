@@ -380,7 +380,6 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       }
       else
       {
-        // this is bad: it copies the track to its base class, which is essentially empty
         if (Verbosity())
         {
           std::cout << "is NOT tpc track" << std::endl;
@@ -388,6 +387,10 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         local_unused.emplace_back(*track);
       }
     }
+
+    // sort list and remove duplicates
+    std::sort(local_chains.begin(),local_chains.end());
+    local_chains.erase(std::unique(local_chains.begin(),local_chains.end()),local_chains.end());
 
     // Critical sections to merge thread-local results
     #pragma omp critical
@@ -400,15 +403,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     }
   }
 
-  // sort seeds and remove duplicates
-  if( Verbosity() )
-  { std::cout << "PHSimpleKFProp::process_event - new_chains size before cleanup: " << new_chains.size() << std::endl; }
-
+  // sort merged list and remove duplicates
   std::sort(new_chains.begin(),new_chains.end());
   new_chains.erase(std::unique(new_chains.begin(),new_chains.end()),new_chains.end());
-
-  if( Verbosity() )
-  { std::cout << "PHSimpleKFProp::process_event - new_chains size after cleanup: " << new_chains.size() << std::endl; }
 
   if( Verbosity() )
   {
@@ -495,8 +492,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
     auto range = _cluster_map->getClusters(hitsetkey);
     for (TrkrClusterContainer::ConstIterator it = range.first; it != range.second; ++it)
     {
-      TrkrDefs::cluskey cluskey = it->first;
-      TrkrCluster* cluster = it->second;
+      const auto& [cluskey,cluster] = *it;
       if (!cluster)
       {
         continue;
@@ -509,14 +505,11 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       }
 
       const auto globalpos = getGlobalPosition(cluskey, cluster);
-      globalPositions.insert(std::make_pair(cluskey, globalpos));
+      globalPositions.emplace(cluskey, globalpos);
 
-      int layer = TrkrDefs::getLayer(cluskey);
-      std::vector<double> kdhit(4);
-      kdhit[0] = globalpos.x();
-      kdhit[1] = globalpos.y();
-      kdhit[2] = globalpos.z();
-      uint64_t key = cluskey;
+      const int layer = TrkrDefs::getLayer(cluskey);
+      std::vector<double> kdhit{ globalpos.x(), globalpos.y(),  globalpos.z(), 0 };
+      const uint64_t key = cluskey;
       std::memcpy(&kdhit[3], &key, sizeof(key));
 
       //      HINT: way to get original uint64_t value from double:
@@ -524,7 +517,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       //      LOG_DEBUG("tracking.PHTpcTrackerUtil.convert_clusters_to_hits")
       //        << "orig: " << cluster->getClusKey() << ", readback: " << (*((int64_t*)&kdhit[3]));
 
-      kdhits[layer].push_back(kdhit);
+      kdhits[layer].push_back(std::move(kdhit));
     }
   }
   _ptclouds.resize(kdhits.size());
@@ -536,15 +529,8 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       std::cout << "l: " << l << std::endl;
     }
     _ptclouds[l] = std::make_shared<KDPointCloud<double>>();
-    _ptclouds[l]->pts.resize(kdhits[l].size());
-    if (Verbosity() > 1)
-    {
-      std::cout << "resized to " << kdhits[l].size() << std::endl;
-    }
-    for (size_t i = 0; i < kdhits[l].size(); ++i)
-    {
-      _ptclouds[l]->pts[i] = kdhits[l][i];
-    }
+    _ptclouds[l]->pts = std::move(kdhits[l]);
+
     _kdtrees[l] = std::make_shared<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>(3, *(_ptclouds[l]), nanoflann::KDTreeSingleIndexAdaptorParams(10));
     _kdtrees[l]->buildIndex();
   }
