@@ -55,8 +55,7 @@ void CaloWaveformProcessing::initialize_processing()
   {
     //std::string calibrations_repo_model = m_model_name;
     //url_onnx = CDBInterface::instance()->getUrl("CEMC_ONNX", m_model_name);
-    std::string mod = "model_1.onnx";
-    onnxmodule = onnxSession(mod);//m_model_name);
+    onnxmodule = onnxSession(m_model_name);
   }
   else if (m_processingtype == CaloWaveformProcessing::NYQUIST)
   {
