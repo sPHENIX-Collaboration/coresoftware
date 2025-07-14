@@ -399,7 +399,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   _track_map->Reset();
   timer.stop();
 
-  // if( Verbosity() )
+  if( Verbosity() )
   {
     // print all seeds
     std::cout << "PHSimpleKFProp::process_event - new_chains size: " << new_chains.size() << std::endl;
