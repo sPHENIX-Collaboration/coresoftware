@@ -20,12 +20,12 @@ class TowerBackground : public PHObject
   virtual void set_nTowersUsedForBkg(int) {}
   virtual void set_flow_failure_flag(bool) {}
 
-  virtual std::vector<float> get_UE(int /*layer*/) { return std::vector<float>(); };
-  virtual float get_v2() { return 0; }
-  virtual float get_Psi2() { return 0; }
-  virtual int get_nStripsUsedForFlow() { return 0; }
-  virtual int get_nTowersUsedForBkg() { return 0; }
-  virtual bool get_flow_failure_flag() { return false; }
+  virtual std::vector<float> get_UE(int /*layer*/) const { return std::vector<float>(); };
+  virtual float get_v2() const { return 0; }
+  virtual float get_Psi2() const { return 0; }
+  virtual int get_nStripsUsedForFlow() const { return 0; }
+  virtual int get_nTowersUsedForBkg() const { return 0; }
+  virtual bool get_flow_failure_flag() const { return false; }
 
  protected:
   TowerBackground() {}
