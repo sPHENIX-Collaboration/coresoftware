@@ -52,8 +52,11 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <omp.h>
+
 #include <filesystem>
-#include <iostream>  // for operator<<, basic_ostream
+#include <iostream>
+#include <syncstream>
 #include <vector>
 
 // anonymous namespace for local functions
@@ -130,8 +133,11 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(0, _fixed_clus_err.at(0));
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
-  //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+  // _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
+
+  // assign number of threads
+  omp_set_num_threads( m_num_threads );
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -239,7 +245,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
 
-  #pragma omp parallel num_threads(2)
+  #pragma omp parallel
   {
 
     PHTimer timer("KFPropTimer");
@@ -252,7 +258,11 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     {
       if (Verbosity())
       {
-        std::cout << "TPC seed " << track_it << std::endl;
+        std::osyncstream(std::cout)
+          << "PHSimpleKFProp -"
+          << " num_threads: " << omp_get_num_threads()
+          << " this thread: " << omp_get_thread_num()
+          << " processing seed " << track_it << std::endl;
       }
 
       // if not a TPC track, ignore

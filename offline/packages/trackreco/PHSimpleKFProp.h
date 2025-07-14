@@ -90,6 +90,9 @@ class PHSimpleKFProp : public SubsysReco
   void set_ghost_y_cut(double d) { _ghost_y_cut = d; }
   void set_ghost_z_cut(double d) { _ghost_z_cut = d; }
 
+  // number of threads
+  void set_num_threads(int value) { m_num_threads = value; }
+
  private:
   bool _use_truth_clusters = false;
   bool m_ghostrejection = true;
@@ -224,6 +227,10 @@ class PHSimpleKFProp : public SubsysReco
   double _ghost_x_cut = std::numeric_limits<double>::max();
   double _ghost_y_cut = std::numeric_limits<double>::max();
   double _ghost_z_cut = std::numeric_limits<double>::max();
+
+  // number of threads
+  int m_num_threads = 2;
+
 };
 
 #endif
