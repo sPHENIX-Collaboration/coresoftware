@@ -137,6 +137,7 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
 
   // assign number of threads
+  std::cout << "PHSimpleKFProp::InitRun - m_num_threads: " << m_num_threads << std::endl;
   omp_set_num_threads( m_num_threads );
 
   return Fun4AllReturnCodes::EVENT_OK;
