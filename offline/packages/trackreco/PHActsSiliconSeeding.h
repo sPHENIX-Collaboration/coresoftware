@@ -76,10 +76,7 @@ class PHActsSiliconSeeding : public SubsysReco
   {
     m_inttzSearchWin = win;
   }
-  void setinttPhiSearchWindow(const float &win)
-  {
-    m_inttPhiSearchWin = win;
-  }
+
   void setmvtxRPhiSearchWindow(const float win)
   {
     m_mvtxrPhiSearchWin = win;
@@ -312,10 +309,9 @@ class PHActsSiliconSeeding : public SubsysReco
  double m_maxSeedPCA = 2.;
 
 
-  /// Search window for phi to match intt clusters in cm
-  double m_inttrPhiSearchWin = 0.1;
+  /// Search window for phi to match intt clusters in rad
+  double m_inttrPhiSearchWin = 0.06;
   float m_inttzSearchWin = 0.8;  // default to a half strip width
-  float m_inttPhiSearchWin = 0.06;  // phi search to account for MVTX/INTT offsets
   double m_mvtxrPhiSearchWin = 0.2;
   float m_mvtxzSearchWin = 0.5;
   /// Whether or not to use truth clusters in hit lookup

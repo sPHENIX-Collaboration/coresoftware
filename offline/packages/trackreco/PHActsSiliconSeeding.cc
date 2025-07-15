@@ -787,7 +787,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           //Lets try a phi search instead of rphi
           if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
                zresid < m_mvtxzSearchWin) ||
-              (det == TrkrDefs::TrkrId::inttId && segment_phi < m_inttPhiSearchWin && zresid < m_inttzSearchWin)) //0.112 is about 4mm, 0.06 is about 1mm
+              (det == TrkrDefs::TrkrId::inttId && segment_phi < m_inttrPhiSearchWin && zresid < m_inttzSearchWin)) //0.112 is about 4mm, 0.06 is about 1mm
 
           {
             r_prev = potential_cluster_radius; //Update the radius of the previous cluster
