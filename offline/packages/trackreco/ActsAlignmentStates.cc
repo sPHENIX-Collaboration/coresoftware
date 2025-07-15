@@ -49,7 +49,7 @@ void ActsAlignmentStates::loadNodes( PHCompositeNode* topNode )
   m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
   // state map
-  m_alignmentStateMap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+  m_alignmentStateMap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentStateMapName);
 
 }
 
