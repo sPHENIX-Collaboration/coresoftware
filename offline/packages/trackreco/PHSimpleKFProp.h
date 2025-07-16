@@ -229,7 +229,13 @@ class PHSimpleKFProp : public SubsysReco
   double _ghost_z_cut = std::numeric_limits<double>::max();
 
   // number of threads
-  int m_num_threads = 2;
+  /*
+   * default is 0. This corresponds to allocating as many threads as available on the host
+   * on CONDOR, by default, this results in only one thread allocated
+   * being allocated unless several cores are allocated to the job
+   * via request_cpus directive in the jdf
+   */
+  int m_num_threads = 0;
 
 };
 
