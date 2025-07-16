@@ -1,10 +1,6 @@
 #include "CaloFittingQA.h"
 
 // Calo includes
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
-#include <calobase/RawClusterUtility.h>
-#include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <caloreco/CaloTowerDefs.h>
@@ -26,23 +22,17 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
 
 #include <TH1.h>
 #include <TH2.h>
-#include <TLorentzVector.h>
-#include <TProfile.h>
 #include <TProfile2D.h>
-#include <TSystem.h>
-
-#include <boost/format.hpp>
 
 #include <cassert>
-#include <cmath>  // for log10, pow, sqrt, abs, M_PI
-#include <cstdint>
+#include <cstdlib>
+#include <format>
 #include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
 #include <map>  // for operator!=, _Rb_tree_con...
@@ -101,7 +91,7 @@ int CaloFittingQA::InitRun(PHCompositeNode* /*unused*/)
     std::cout << PHWHERE << "ADC Skip mask not found in CDB, not even in the default... " << std::endl;
     exit(1);
   }
-  cdbttree = new CDBTTree(calibdir.c_str());
+  cdbttree = new CDBTTree(calibdir);
 
   if (Verbosity() > 0)
   {
@@ -143,7 +133,7 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
     std::cout << "Event header evtsequence " << event_number << std::endl;
   }
   //  std::cout << "In process_towers" << std::endl;
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   //-------------------------- raw waveforms ------------------------------//
@@ -153,40 +143,40 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
   TowerInfoContainer* cemc_sim_waveforms = nullptr;
   TowerInfoContainer* ihcal_sim_waveforms = nullptr;
   TowerInfoContainer* ohcal_sim_waveforms = nullptr;
-  if (m_SimFlag) 
+  if (m_SimFlag)
   {
     cemc_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_CEMC");
-    if (!cemc_sim_waveforms) 
+    if (!cemc_sim_waveforms)
     {
       std::cout << PHWHERE << "WAVEFORM_CEMC node missing. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     ihcal_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALIN");
-    if (!ihcal_sim_waveforms) 
+    if (!ihcal_sim_waveforms)
     {
       std::cout << PHWHERE << "WAVEFORM_HCALIN node missing. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     ohcal_sim_waveforms = findNode::getClass<TowerInfoContainer>(topNode, "WAVEFORM_HCALOUT");
-    if (!ohcal_sim_waveforms) 
+    if (!ohcal_sim_waveforms)
     {
       std::cout << PHWHERE << "WAVEFORM_HCALOUT node missing. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  else 
+  else
   {
-    if(process_data(topNode, CaloTowerDefs::CEMC, cemc_waveforms) == Fun4AllReturnCodes::ABORTEVENT)
+    if (process_data(topNode, CaloTowerDefs::CEMC, cemc_waveforms) == Fun4AllReturnCodes::ABORTEVENT)
     {
       std::cout << PHWHERE << "CEMCPackets node failed unpacking. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    if(process_data(topNode, CaloTowerDefs::HCALIN, ihcal_waveforms) == Fun4AllReturnCodes::ABORTEVENT)
+    if (process_data(topNode, CaloTowerDefs::HCALIN, ihcal_waveforms) == Fun4AllReturnCodes::ABORTEVENT)
     {
       std::cout << PHWHERE << "HCALPackets node failed unpacking. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    if(process_data(topNode, CaloTowerDefs::HCALOUT, ohcal_waveforms) == Fun4AllReturnCodes::ABORTEVENT)
+    if (process_data(topNode, CaloTowerDefs::HCALOUT, ohcal_waveforms) == Fun4AllReturnCodes::ABORTEVENT)
     {
       std::cout << PHWHERE << "HCALPackets node failed unpacking. Skipping event." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -212,50 +202,50 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
         float raw_energy = tower->get_energy();
-        if (raw_energy > m_cemc_hit_threshold) 
+        if (raw_energy > m_cemc_hit_threshold)
         {
           event_multiplicity += 1;
         }
         float zs_energy = -9999;
         if (m_SimFlag)
         {
-          if (cemc_sim_waveforms->size() > 0) 
+          if (cemc_sim_waveforms->size() > 0)
           {
             zs_energy = cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
             h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
           }
         }
-        else 
+        else
         {
-          if (cemc_waveforms.size() > 0)
+          if (!cemc_waveforms.empty())
           {
-            if (Verbosity() > 5) 
+            if (Verbosity() > 5)
             {
-              for (int i = 0; i < (int)cemc_waveforms.at(channel).size(); i++) 
+              for (float i : cemc_waveforms.at(channel))
               {
-                std::cout << cemc_waveforms.at(channel).at(i) << " ";
+                std::cout << i << " ";
               }
               std::cout << std::endl;
             }
-            if (cemc_waveforms.at(channel).size() == 2) 
+            if (cemc_waveforms.at(channel).size() == 2)
             {
               zs_energy = cemc_waveforms.at(channel).at(1) - cemc_waveforms.at(channel).at(0);
               cemc_zs_frac += 1;
             }
-            else 
+            else
             {
               zs_energy = cemc_waveforms.at(channel).at(6) - cemc_waveforms.at(channel).at(0);
             }
             h_cemc_etaphi_pedestal->Fill(ieta, iphi, cemc_waveforms.at(channel).at(0));
           }
         }
-        if (Verbosity() > 0) 
+        if (Verbosity() > 0)
         {
           std::cout << "EMCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
-        if (raw_energy > m_cemc_adc_threshold && raw_energy < m_cemc_high_adc_threshold) 
+        if (raw_energy > m_cemc_adc_threshold && raw_energy < m_cemc_high_adc_threshold)
         {
-          h_cemc_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
+          h_cemc_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy / raw_energy);
         }
       }
     }
@@ -272,24 +262,24 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
         float raw_energy = tower->get_energy();
-        if (raw_energy > m_ohcal_hit_threshold) 
+        if (raw_energy > m_ohcal_hit_threshold)
         {
           event_multiplicity += 1;
         }
         float zs_energy = -9999;
         if (m_SimFlag)
         {
-          if (ohcal_sim_waveforms->size() > 0) 
+          if (ohcal_sim_waveforms->size() > 0)
           {
             zs_energy = ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
             h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
           }
         }
-        else 
+        else
         {
-          if (ohcal_waveforms.size() > 0)
+          if (!ohcal_waveforms.empty())
           {
-            if (ohcal_waveforms.at(channel).size() == 2) 
+            if (ohcal_waveforms.at(channel).size() == 2)
             {
               zs_energy = ohcal_waveforms.at(channel).at(1) - ohcal_waveforms.at(channel).at(0);
               ohcal_zs_frac += 1;
@@ -301,13 +291,13 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
             h_ohcal_etaphi_pedestal->Fill(ieta, iphi, ohcal_waveforms.at(channel).at(0));
           }
         }
-        if (Verbosity() > 0) 
+        if (Verbosity() > 0)
         {
           std::cout << "OHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
         if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
-          h_ohcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
+          h_ohcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy / raw_energy);
         }
       }
     }
@@ -324,57 +314,56 @@ int CaloFittingQA::process_towers(PHCompositeNode* topNode)
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
         float raw_energy = tower->get_energy();
-        if (raw_energy > m_ihcal_hit_threshold) 
+        if (raw_energy > m_ihcal_hit_threshold)
         {
           event_multiplicity += 1;
         }
         float zs_energy = -9999;
         if (m_SimFlag)
         {
-          if (ihcal_sim_waveforms->size() > 0) 
+          if (ihcal_sim_waveforms->size() > 0)
           {
             zs_energy = ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(6) - ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0);
             h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_sim_waveforms->get_tower_at_channel(channel)->get_waveform_value(0));
           }
         }
-        else 
+        else
         {
-          if (ihcal_waveforms.size() > 0)
+          if (!ihcal_waveforms.empty())
           {
-            if (ihcal_waveforms.at(channel).size() == 2) 
+            if (ihcal_waveforms.at(channel).size() == 2)
             {
               zs_energy = ihcal_waveforms.at(channel).at(1) - ihcal_waveforms.at(channel).at(0);
               ihcal_zs_frac += 1;
             }
-            else 
+            else
             {
               zs_energy = ihcal_waveforms.at(channel).at(6) - ihcal_waveforms.at(channel).at(0);
             }
             h_ihcal_etaphi_pedestal->Fill(ieta, iphi, ihcal_waveforms.at(channel).at(0));
           }
         }
-        if (Verbosity() > 0) 
+        if (Verbosity() > 0)
         {
           std::cout << "IHCal channel " << channel << " ieta " << ieta << " iphi " << iphi << " template E " << raw_energy << " ZS E " << zs_energy << std::endl;
         }
         if (raw_energy > m_hcal_adc_threshold && raw_energy < m_hcal_high_adc_threshold)
         {
-          h_ihcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy/raw_energy);
+          h_ihcal_etaphi_ZScrosscalib->Fill(ieta, iphi, zs_energy / raw_energy);
         }
       }
     }
   }
 
-  h_cemc_zs_frac_vs_multiplicity->Fill(event_multiplicity, cemc_zs_frac/24576.0);
-  h_ihcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ihcal_zs_frac/1536.0);
-  h_ohcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ohcal_zs_frac/1536.0);
+  h_cemc_zs_frac_vs_multiplicity->Fill(event_multiplicity, cemc_zs_frac / 24576.0);
+  h_ihcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ihcal_zs_frac / 1536.0);
+  h_ohcal_zs_frac_vs_multiplicity->Fill(event_multiplicity, ohcal_zs_frac / 1536.0);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::DetectorSystem dettype, std::vector<std::vector<float>> &waveforms)
+int CaloFittingQA::process_data(PHCompositeNode* topNode, CaloTowerDefs::DetectorSystem dettype, std::vector<std::vector<float>>& waveforms)
 {
-
   int packet_low = std::numeric_limits<int>::min();
   int packet_high = std::numeric_limits<int>::min();
   int m_nsamples = 12;
@@ -414,7 +403,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
   std::variant<CaloPacketContainer*, Event*> event;
   if (m_UseOfflinePacketFlag)
   {
-    CaloPacketContainer *hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(dettype)->second);
+    CaloPacketContainer* hcalcont = findNode::getClass<CaloPacketContainer>(topNode, nodemap.find(dettype)->second);
     if (!hcalcont)
     {
       for (int pid = packet_low; pid <= packet_high; pid++)
@@ -425,7 +414,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
           break;
         }
       }
-      if(!m_PacketNodesFlag)
+      if (!m_PacketNodesFlag)
       {
         std::cout << "CaloFittingQA: unable to find node " << nodemap.find(dettype)->second << "  skiping event" << std::endl;
         return Fun4AllReturnCodes::EVENT_OK;
@@ -435,7 +424,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
   }
   else
   {
-    Event *_event = findNode::getClass<Event>(topNode, "PRDF");
+    Event* _event = findNode::getClass<Event>(topNode, "PRDF");
     if (_event == nullptr)
     {
       std::cout << PHWHERE << " Event not found" << std::endl;
@@ -447,14 +436,14 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     }
     event = _event;
   }
-  //since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
-  auto process_packet = [&](auto *packet, int pid)
+  // since the function call on Packet and CaloPacket is the same, maybe we can use lambda?
+  auto process_packet = [&](auto* packet, int pid)
   {
     if (packet)
     {
       h_packet_events->Fill(pid);
       int nchannels = packet->iValue(0, "CHANNELS");
-      if (nchannels==0) 
+      if (nchannels == 0)
       {
         h_empty_packets->Fill(pid);
       }
@@ -470,15 +459,15 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
       }
       if (nchannels > m_nchannels)  // packet is corrupted and reports too many channels
       {
-         return Fun4AllReturnCodes::ABORTEVENT;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
-      
+
       int n_pad_skip_mask = 0;
       for (int channel = 0; channel < nchannels; channel++)
       {
         if (skipChannel(channel, pid, dettype))
         {
-           continue;
+          continue;
         }
         if (dettype == CaloTowerDefs::CEMC)
         {
@@ -523,8 +512,11 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
       }
 
       int nch_padded = nchannels;
-      if (dettype == CaloTowerDefs::CEMC) nch_padded += n_pad_skip_mask;
-      if ( nch_padded  < m_nchannels)
+      if (dettype == CaloTowerDefs::CEMC)
+      {
+        nch_padded += n_pad_skip_mask;
+      }
+      if (nch_padded < m_nchannels)
       {
         for (int channel = 0; channel < m_nchannels - nch_padded; channel++)
         {
@@ -546,6 +538,7 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     }
     else  // if the packet is missing treat constitutent channels as zero suppressed
     {
+      h_missing_packets->Fill(pid);
       for (int channel = 0; channel < m_nchannels; channel++)
       {
         if (skipChannel(channel, pid, dettype))
@@ -565,43 +558,39 @@ int CaloFittingQA::process_data(PHCompositeNode *topNode, CaloTowerDefs::Detecto
     return Fun4AllReturnCodes::EVENT_OK;
   };
 
-
   for (int pid = packet_low; pid <= packet_high; pid++)
   {
     if (!m_PacketNodesFlag)
     {
-      if (auto hcalcont = std::get_if<CaloPacketContainer *>(&event))
+      if (auto* hcalcont = std::get_if<CaloPacketContainer*>(&event))
       {
-        CaloPacket *packet = (*hcalcont)->getPacketbyId(pid);
-        if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+        CaloPacket* packet = (*hcalcont)->getPacketbyId(pid);
+        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
         {
           return Fun4AllReturnCodes::ABORTEVENT;
         }
       }
-      else if (auto _event = std::get_if<Event *>(&event))
+      else if (auto* _event = std::get_if<Event*>(&event))
       {
-        Packet *packet = (*_event)->getPacket(pid);
-        if(process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+        Packet* packet = (*_event)->getPacket(pid);
+        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
         {
-          //I think it is safe to delete a nullptr...
+          // I think it is safe to delete a nullptr...
           delete packet;
           return Fun4AllReturnCodes::ABORTEVENT;
         }
-        else
-        {
+
         delete packet;
-        }
       }
     }
     else
     {
-      CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
+      CaloPacket* calopacket = findNode::getClass<CaloPacket>(topNode, pid);
       process_packet(calopacket, pid);
-    } 
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-
 }
 
 bool CaloFittingQA::skipChannel(int ich, int pid, CaloTowerDefs::DetectorSystem dettype)
@@ -623,15 +612,15 @@ bool CaloFittingQA::skipChannel(int ich, int pid, CaloTowerDefs::DetectorSystem 
       return true;
     }
   }
-    
+
   if (dettype == CaloTowerDefs::ZDC)
   {
-     if(((ich > 17) && (ich < 48)) || ((ich > 63) && (ich < 80)) || ((ich > 81) && (ich < 112)))
-     {
-        return true;
-     }
+    if (((ich > 17) && (ich < 48)) || ((ich > 63) && (ich < 80)) || ((ich > 81) && (ich < 112)))
+    {
+      return true;
+    }
   }
-    
+
   return false;
 }
 
@@ -644,55 +633,58 @@ std::string CaloFittingQA::getHistoPrefix() const { return std::string("h_") + N
 
 void CaloFittingQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // create and register your histos (all types) here
-  h_cemc_etaphi_ZScrosscalib = new TProfile2D(boost::str(boost::format("%scemc_etaphi_ZScrosscalib") % getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+  h_cemc_etaphi_ZScrosscalib = new TProfile2D(std::format("{}cemc_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
   h_cemc_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_ZScrosscalib);
 
-  h_ihcal_etaphi_ZScrosscalib = new TProfile2D(boost::str(boost::format("%sihcal_etaphi_ZScrosscalib") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ihcal_etaphi_ZScrosscalib = new TProfile2D(std::format("{}ihcal_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ihcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_ZScrosscalib);
 
-  h_ohcal_etaphi_ZScrosscalib = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_ZScrosscalib") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ohcal_etaphi_ZScrosscalib = new TProfile2D(std::format("{}ohcal_etaphi_ZScrosscalib", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ohcal_etaphi_ZScrosscalib->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_ZScrosscalib);
 
-  h_cemc_etaphi_pedestal = new TProfile2D(boost::str(boost::format("%scemc_etaphi_pedestal") % getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 16400);
-  h_cemc_etaphi_pedestal->SetErrorOption("G");
+  h_cemc_etaphi_pedestal = new TProfile2D(std::format("{}cemc_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 16400);
+  h_cemc_etaphi_pedestal->SetErrorOption("s");
   h_cemc_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_pedestal);
 
-  h_ihcal_etaphi_pedestal = new TProfile2D(boost::str(boost::format("%sihcal_etaphi_pedestal") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
-  h_ihcal_etaphi_pedestal->SetErrorOption("G");
+  h_ihcal_etaphi_pedestal = new TProfile2D(std::format("{}ihcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
+  h_ihcal_etaphi_pedestal->SetErrorOption("s");
   h_ihcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_pedestal);
 
-  h_ohcal_etaphi_pedestal = new TProfile2D(boost::str(boost::format("%sohcal_etaphi_pedestal") % getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
-  h_ohcal_etaphi_pedestal->SetErrorOption("G");
+  h_ohcal_etaphi_pedestal = new TProfile2D(std::format("{}ohcal_etaphi_pedestal", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 16400);
+  h_ohcal_etaphi_pedestal->SetErrorOption("s");
   h_ohcal_etaphi_pedestal->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_pedestal);
 
-  h_cemc_zs_frac_vs_multiplicity = new TH2F(boost::str(boost::format("%scemc_zs_frac_vs_multiplicity") % getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_cemc_zs_frac_vs_multiplicity = new TH2F(std::format("{}cemc_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
   h_cemc_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_zs_frac_vs_multiplicity);
 
-  h_ihcal_zs_frac_vs_multiplicity = new TH2F(boost::str(boost::format("%sihcal_zs_frac_vs_multiplicity") % getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_ihcal_zs_frac_vs_multiplicity = new TH2F(std::format("{}ihcal_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
   h_ihcal_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_zs_frac_vs_multiplicity);
 
-  h_ohcal_zs_frac_vs_multiplicity = new TH2F(boost::str(boost::format("%sohcal_zs_frac_vs_multiplicity") % getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
+  h_ohcal_zs_frac_vs_multiplicity = new TH2F(std::format("{}ohcal_zs_frac_vs_multiplicity", getHistoPrefix()).c_str(), ";Nhit > 0.3 GeV;ZS fraction (%)", 2700, 0, 27648, 100, 0, 1);
   h_ohcal_zs_frac_vs_multiplicity->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_zs_frac_vs_multiplicity);
 
-  h_packet_events = new TH1I(boost::str(boost::format("%spacket_events") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
+  h_packet_events = new TH1I(std::format("{}packet_events", getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
   h_packet_events->SetDirectory(nullptr);
   hm->registerHisto(h_packet_events);
 
-  h_empty_packets = new TH1I(boost::str(boost::format("%sempty_packets") % getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
+  h_empty_packets = new TH1I(std::format("{}empty_packets", getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
   h_empty_packets->SetDirectory(nullptr);
   hm->registerHisto(h_empty_packets);
 
+  h_missing_packets = new TH1I(std::format("{}missing_packets", getHistoPrefix()).c_str(), ";packet id", 6010, 6000, 12010);
+  h_missing_packets->SetDirectory(nullptr);
+  hm->registerHisto(h_missing_packets);
 }

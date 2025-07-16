@@ -380,49 +380,21 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
-  h_GlobalQA_mbd_zvtxq =
-      new TH1D("h_GlobalQA_mbd_zvtxq",
-               ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2,
-               -0.5, 1.5);
-  h_GlobalQA_mbd_zvtx = new TH1D(
-      "h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]",
-      100, -50, 50);
-  h_GlobalQA_mbd_zvtx_wide = new TH1D(
-      "h_GlobalQA_mbd_zvtx_wide",
-      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_calc_zvtx = new TH1D(
-      "h_GlobalQA_calc_zvtx",
-      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_calc_zvtx_wide = new TH1D(
-      "h_GlobalQA_calc_zvtx_wide",
-      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_mbd_charge_s =
-      new TH1D("h_GlobalQA_mbd_charge_s",
-               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
-  h_GlobalQA_mbd_charge_n =
-      new TH1D("h_GlobalQA_mbd_charge_n",
-               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
-  h_GlobalQA_mbd_nhit_s =
-      new TH1D("h_GlobalQA_mbd_nhit_s",
-               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
-  h_GlobalQA_mbd_nhit_n =
-      new TH1D("h_GlobalQA_mbd_nhit_n",
-               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2, -0.5, 1.5);
+  h_GlobalQA_mbd_zvtx = new TH1D( "h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_mbd_zvtx_wide = new TH1D( "h_GlobalQA_mbd_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_calc_zvtx_wide = new TH1D("h_GlobalQA_calc_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_mbd_charge_s = new TH1D("h_GlobalQA_mbd_charge_s", ";Scaled Trigger 10: MBD Coincidence    charge", 1500, 0, 1500);
+  h_GlobalQA_mbd_charge_n = new TH1D("h_GlobalQA_mbd_charge_n", ";Scaled Trigger 10: MBD Coincidence    charge", 1500, 0, 1500);
+  h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";Scaled Trigger 10: MBD Coincidence    nhit", 65, -0.5, 64.5);
+  h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";Scaled Trigger 10: MBD Coincidence    nhit", 65, -0.5, 64.5);
+  h_GlobalQA_mbd_charge_sum = new TH1F("h_GlobalQA_mbd_charge_sum", " ; MBD Total Charge ; Counts", 2500, 0., 2500);
 
-  h_GlobalQA_mbd_charge_sum =
-      new TH1F("h_GlobalQA_mbd_charge_sum", " ; MBD Total Charge ; Counts",
-               100, 0., 20);
-
-  h2_GlobalQA_mbd_charge_NS_correlation = new TH2F(
-      "h2_GlobalQA_mbd_charge_NS_correlation",
-      "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
+  h2_GlobalQA_mbd_charge_NS_correlation = new TH2F( "h2_GlobalQA_mbd_charge_NS_correlation", "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
       150, 0, 1500, 150, 0, 1500);
-
-  h2_GlobalQA_mbd_nhits_NS_correlation =
-      new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
-               "MBD Number Of Hits Correlation ; Number Of Hits (South); "
-               "Number Of Hits (North)",
-               70, 0., 70, 70, 0., 70);
+  h2_GlobalQA_mbd_nhits_NS_correlation = new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation", "MBD Number Of Hits Correlation ; Number Of Hits (South); " "Number Of Hits (North)",
+      65, -0.5, 64.5, 65, -0.5, 64.5);
 
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
   hm->registerHisto(h_GlobalQA_mbd_zvtxq);

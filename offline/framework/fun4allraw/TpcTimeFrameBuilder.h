@@ -215,22 +215,23 @@ class TpcTimeFrameBuilder
       TRIG_EARLY_LARGE_DATA_T = 0b111,
     };
 
-    /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
-    // Standard scheduler /home/phnxrc/operations/TPC/schedulers/standard_beam.scheduler
-    // 0        100    0    0
-    // 1          0    0    0     0:0x01 # FEE SAMPA BX Counter Sync
-    // 2          0    0    0     0:0x40 # DAM    Clear GTM Last Level-1
-    // 3          0    0    0     0:0x80 # DAM    Clear GTM Level-1 and Endat Counters
-    // 4          0    0    0
-    // 5        256    0    0
-    // 6          0    1    5     0:0x02 #FEE    SAMPA E-Link Heartbeat
+    // Command   | OLD Mode-Bit | New Mode-Number | Function
+    // ======================================================
+    // NOP       |     0b000    |             0x0 | No Operation
+    // BX_SYNC   |     0b001    |             0x1 | SAMPA Beam-crossing sync
+    // H_BEAT    |     0b010    |             0x2 | Generates Heartbeat frame
+    // TRIG      |     0b100    |             0x3 | Trigger data when FEM user bit is 0b01, otherwise the level 1 accept is used when FEM user bit is 0b00
+    // CLK_SYNC  |     N/A      |             0x4 | Reset and align 40 MHz and 20 MHz clocks to SAMPA
+    // SAMPA_RST |     N/A      |             0x5 | Hard reset SAMPA
+    // DC_START  |     N/A      |             0x6 | Start digital current reading
+    // DC_STOP   |     N/A      |             0x7 | Stop and send digital current packet
     enum ModeBitType
     {
-      BX_COUNTER_SYNC_T = 0,
-      ELINK_HEARTBEAT_T = 1,
-      SAMPA_EVENT_TRIGGER_T = 2,
-      CLEAR_LV1_LAST_T = 6,
-      CLEAR_LV1_ENDAT_T = 7
+      BX_COUNTER_SYNC_T = 0x1,
+      ELINK_HEARTBEAT_T = 0x2
+      // SAMPA_EVENT_TRIGGER_T = 2,
+      // CLEAR_LV1_LAST_T = 6,
+      // CLEAR_LV1_ENDAT_T = 7
     };
 
     // get the difference between two BCO WITHOUT rollover corrections

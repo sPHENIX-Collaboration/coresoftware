@@ -11,3 +11,5 @@ namespace RunnumberRange
   static const int RUN3AUAU_FIRST = 66457;
   static const int RUN3AUAU_LAST = 20000000;
 }
+
+#endif

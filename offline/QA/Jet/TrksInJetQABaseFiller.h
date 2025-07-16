@@ -1,11 +1,12 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQABaseFiller.h'
-// Derek Anderson
-// 04.11.2024
-//
-// A submodule for the TrksInJetQA F4A module to produce
-// QA histograms for tracks and more in jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQABaseFiller.h
+ *  \author Derek Anderson
+ *  \date   04.11.2024
+ *
+ *  A submodule for the TrksInJetQA F4A module to produce
+ *  QA histograms for tracks and more in jets
+ */
+/// ===========================================================================
 
 #ifndef TRKSINJETQABASEFILLER_H
 #define TRKSINJETQABASEFILLER_H
@@ -40,8 +41,17 @@
 // c++ includes
 #include <string>
 
-// TrksInJetQABaseFiller ------------------------------------------------------
-
+// ============================================================================
+//! Base histogram filler for TrksInJetQA module
+// ============================================================================
+/*! This class consolidates all common functionality
+ *  for Histogram Fillers deployed in the TrksInJetQA
+ *  module. The histogram fillers (as the name implies)
+ *  define how to fill histograms for a specific
+ *  population of objects:
+ *    - Either those in-jets,
+ *    - Or all of them ("inclusive"). 
+ */
 class TrksInJetQABaseFiller
 {
  public:
@@ -82,4 +92,4 @@ class TrksInJetQABaseFiller
 
 #endif
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

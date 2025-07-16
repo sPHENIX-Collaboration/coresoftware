@@ -1,11 +1,12 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQA.h'
-// Derek Anderson
-// 03.25.2024
-//
-// A "small" Fun4All module to produce QA plots for tracks,
-// hits, and more.
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQA.h
+ *  \author Derek Anderson
+ *  \date   03.25.2024
+ *
+ *  A "small" Fun4All module to produce QA plots for tracks,
+ *  hits, and more.
+ */
+/// ============================================================================
 
 #ifndef TRKSINJETQA_H
 #define TRKSINJETQA_H
@@ -44,12 +45,18 @@
 #include <utility>
 #include <vector>
 
-// TrksInJetQA definition -----------------------------------------------------
-
+// ============================================================================
+//! Tracks-in-jet QA
+// ============================================================================
+/*! This Fun4All module generates histograms to QA low-level
+ *  info of tracks found inside a jet, as well as some
+ *  kinematic information.
+ */ 
 class TrksInJetQA : public SubsysReco
 {
  public:
-  //  output modes
+
+  ///! enumerates possibe output modes
   enum OutMode
   {
     File,
@@ -71,9 +78,8 @@ class TrksInJetQA : public SubsysReco
   }
 
   // public methods
-  void Configure(
-      const TrksInJetQAConfig& config,
-      std::optional<TrksInJetQAHist> hist = std::nullopt);
+  void Configure(const TrksInJetQAConfig& config,
+                 std::optional<TrksInJetQAHist> hist = std::nullopt);
 
   // f4a methods
   int Init(PHCompositeNode* /*topNode*/) override;
@@ -81,6 +87,7 @@ class TrksInJetQA : public SubsysReco
   int End(PHCompositeNode* /*topNode*/) override;
 
  private:
+
   // private methods
   void InitOutput();
   void InitHistograms();
@@ -113,4 +120,4 @@ class TrksInJetQA : public SubsysReco
 
 #endif
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

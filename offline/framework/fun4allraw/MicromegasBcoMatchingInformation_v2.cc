@@ -109,11 +109,8 @@ namespace
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum ModeBitType
   {
-    BX_COUNTER_SYNC_T = 0,
-    ELINK_HEARTBEAT_T = 1,
-    SAMPA_EVENT_TRIGGER_T = 2,
-    CLEAR_LV1_LAST_T = 6,
-    CLEAR_LV1_ENDAT_T = 7
+    BX_COUNTER_SYNC_T = 0b001,
+    ELINK_HEARTBEAT_T = 0b010
   };
 }  // namespace
 
@@ -200,7 +197,7 @@ void MicromegasBcoMatchingInformation_v2::save_gtm_bco_information(int /*packet_
 
     // also save hearbeats BCO
     const auto& modebits = payload.modebits;
-    if (modebits & (1U << ELINK_HEARTBEAT_T))
+    if (modebits == ELINK_HEARTBEAT_T)
     {
       const auto& gtm_bco = payload.bco;
       m_gtm_bco_list.push_back(gtm_bco);
@@ -215,7 +212,7 @@ bool MicromegasBcoMatchingInformation_v2::find_reference_from_modebits(const Mic
   {
     // get modebits
     const auto& modebits = payload.modebits;
-    if (modebits & (1U << BX_COUNTER_SYNC_T))
+    if (modebits == BX_COUNTER_SYNC_T)
     {
       std::cout << "MicromegasBcoMatchingInformation_v2::find_reference_from_modebits"
         << " found reference from modebits"

@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <map>
+#include <mutex>
 #include <set>
 #include <string>
 #include <tuple>
@@ -32,6 +33,10 @@ class PHField3DCartesian : public PHField
   double xstepsize = NAN;
   double ystepsize = NAN;
   double zstepsize = NAN;
+
+  // needed to prevent data race when accessing cache
+  mutable std::mutex m_cache_mutex;
+
   // these are updated in a const method
   // to cache previous values
   mutable double xyz[2][2][2][3]{};

@@ -186,6 +186,9 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
   // _track_map_silicon contains the silicon seed track stubs
   // _svtx_seed_map contains the combined silicon and tpc track seeds
 
+    // in case these objects are in the input file, we clear the nodes and replace them
+  _svtx_seed_map->Reset(); 
+  
   if (Verbosity() > 0)
   {
     cout << PHWHERE << " TPC track map size " << _track_map->size() << " Silicon track map size " << _track_map_silicon->size() << endl;
@@ -288,6 +291,7 @@ int PHSiliconTpcTrackMatching::process_event(PHCompositeNode * /*unused*/)
     for (const auto &seed : *_svtx_seed_map)
     {
       seed->identify();
+      std::cout << std::endl;
     }
 
     cout << "PHSiliconTpcTrackMatching::process_event(PHCompositeNode *topNode) Leaving process_event" << endl;
@@ -392,7 +396,7 @@ int PHSiliconTpcTrackMatching::GetNodes(PHCompositeNode *topNode)
   _cluster_crossing_map = findNode::getClass<TrkrClusterCrossingAssoc>(topNode, "TRKR_CLUSTERCROSSINGASSOC");
   if (!_cluster_crossing_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSSINGASSOC " << endl;
+    //cerr << PHWHERE << " ERROR: Can't find TRKR_CLUSTERCROSSINGASSOC " << endl;
     // return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -711,14 +715,15 @@ void PHSiliconTpcTrackMatching::checkZMatches(
       tpc_q = _tracklet_tpc->get_charge();
       si_z = TrackSeedHelper::get_z(si_track);
     }
-    bool is_posQ = (tpc_q>0.);
-    float z_mismatch = tpc_z - si_z;
 
     // get TPC side from one of the TPC clusters
     std::vector<TrkrDefs::cluskey> temp_clusters = getTrackletClusterList(tpc_track);
     if(temp_clusters.size() == 0) { continue; }
     unsigned int this_side = TpcDefs::getSide(temp_clusters[0]);
 
+    bool is_posQ = (tpc_q>0.);
+
+    float z_mismatch = tpc_z - si_z;
     float tpc_z_corrected = _clusterCrossingCorrection.correctZ(tpc_z, this_side, crossing);
     float z_mismatch_corrected = tpc_z_corrected - si_z;
 

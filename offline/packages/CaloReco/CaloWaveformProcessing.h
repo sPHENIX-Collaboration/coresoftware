@@ -3,6 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -75,28 +76,34 @@ class CaloWaveformProcessing : public SubsysReco
   }
 
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
-  static std::vector<std::vector<float>> calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector);
+  std::vector<std::vector<float>> calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector);
 
   void initialize_processing();
+
+  void set_onnx_factor(const int i, const double val) {m_Onnx_factor.at(i) = val;}
+  void set_onnx_offset(const int i, const double val) {m_Onnx_offset.at(i) = val;}
 
  private:
   CaloWaveformFitting *m_Fitter = nullptr;
 
-  CaloWaveformProcessing::process m_processingtype = CaloWaveformProcessing::TEMPLATE;
-  int _nthreads = 1;
-  int _nsoftwarezerosuppression = 40;
-  bool _bdosoftwarezerosuppression = false;
-  bool _dobitfliprecovery = false;
+  CaloWaveformProcessing::process m_processingtype {CaloWaveformProcessing::TEMPLATE};
+  int _nthreads {1};
+  int _nsoftwarezerosuppression {40};
+  bool _bdosoftwarezerosuppression {false};
+  bool _dobitfliprecovery {false};
 
   std::string m_template_input_file;
   std::string url_template;
-  std::string m_template_name = "NONE";
+  std::string m_template_name {"NONE"};
 
   bool m_setTimeLim{false};
   float m_timeLim_low{-3.0};
   float m_timeLim_high{4.0};
 
   std::string url_onnx;
-  std::string m_model_name = "CEMC_ONNX";
+  std::string m_model_name {"CEMC_ONNX"};
+  std::array<double,3> m_Onnx_factor{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  std::array<double,3> m_Onnx_offset {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 };
+
 #endif

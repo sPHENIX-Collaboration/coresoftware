@@ -17,6 +17,8 @@
 #include <TProfile2D.h>
 #include <cassert>
 
+#include "TGaxis.h"
+
 //____________________________________________________________________________..
 MvtxRawHitQA::MvtxRawHitQA(const std::string &name)
   : SubsysReco(name)
@@ -27,6 +29,8 @@ MvtxRawHitQA::MvtxRawHitQA(const std::string &name)
 int MvtxRawHitQA::InitRun(PHCompositeNode *topNode)
 {
   createHistos();
+
+  TGaxis::SetMaxDigits(3);
 
  PHNodeIterator trkr_itr(topNode);
   PHCompositeNode *mvtx_node = dynamic_cast<PHCompositeNode *>(
@@ -106,58 +110,68 @@ int MvtxRawHitQA::process_event(PHCompositeNode * /*unused*/)
   cols.clear();
 
   unsigned int raw_hit_num = 0;
-  for(auto& rawhitcont : m_rawhit_containers)
-  {
-  if (rawhitcont)
-  {
-    raw_hit_num = rawhitcont->get_nhits();
-    for (unsigned int i = 0; i < raw_hit_num; i++)
-    {
-      auto hit = rawhitcont->get_hit(i);
-      auto bco = hit->get_bco();
-      auto strobe_bc = hit->get_strobe_bc();
-      auto chip_bc = hit->get_chip_bc();
-      auto layer = hit->get_layer_id();
-      auto stave = hit->get_stave_id();
-      auto chip = hit->get_chip_id();
-      auto row = hit->get_row();
-      auto col = hit->get_col();
-      hits.push_back( hit );
-      bcos.push_back( bco );
-      strobe_bcs.push_back( strobe_bc );
-      chip_bcs.push_back( chip_bc );
-      layers.push_back( layer );
-      staves.push_back( stave );
-      chips.push_back( chip );
-      rows.push_back( row );
-      cols.push_back( col );
-    }
-  }
-
-  // if no raw hit is found, skip this event
-  if( raw_hit_num == 0 ) 
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
+  unsigned int total_raw_hit_num = 0;
   int nhit_layer0=0;
   int nhit_layer1=0;
   int nhit_layer2=0;
-  for (int i=0; i<(int)raw_hit_num; i++)
+
+  for(auto& rawhitcont : m_rawhit_containers)
+  {
+    if (rawhitcont)
+    {
+      raw_hit_num = rawhitcont->get_nhits();
+      total_raw_hit_num += raw_hit_num;
+
+      for (unsigned int i = 0; i < raw_hit_num; i++)
+      {
+        auto hit = rawhitcont->get_hit(i);
+        auto bco = hit->get_bco();
+        auto strobe_bc = hit->get_strobe_bc();
+        auto chip_bc = hit->get_chip_bc();
+        auto layer = hit->get_layer_id();
+        auto stave = hit->get_stave_id();
+        auto chip = hit->get_chip_id();
+        auto row = hit->get_row();
+        auto col = hit->get_col();
+        hits.push_back( hit );
+        bcos.push_back( bco );
+        strobe_bcs.push_back( strobe_bc );
+        chip_bcs.push_back( chip_bc );
+        layers.push_back( layer );
+        staves.push_back( stave );
+        chips.push_back( chip );
+        rows.push_back( row );
+        cols.push_back( col );
+      }
+    }
+
+  }
+
+  // if no raw hit is found, skip this event
+  if( total_raw_hit_num == 0 ) 
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+ 
+  for (int i=0; i<(int)total_raw_hit_num; i++)
   {
     if (layers[i]==0)
     {
       nhit_layer0++;
+      h_nhits_stave_chip_layer0->Fill(chips[i],staves[i]);
     }
     if (layers[i]==1)
     {
       nhit_layer1++;
+      h_nhits_stave_chip_layer1->Fill(chips[i],staves[i]);
     }
     if (layers[i]==2)
     {
       nhit_layer2++;
+      h_nhits_stave_chip_layer2->Fill(chips[i],staves[i]);
     }
   }
+
   h_nhits_layer0->Fill(nhit_layer0);
   h_nhits_layer1->Fill(nhit_layer1);
   h_nhits_layer2->Fill(nhit_layer2);
@@ -166,22 +180,6 @@ int MvtxRawHitQA::process_event(PHCompositeNode * /*unused*/)
   h_strobe_bc->Fill(strobe_bcs[0]);
   h_chip_bc->Fill(chip_bcs[0]);
 
-  for (int i=0; i<(int)raw_hit_num; i++)
-  {
-    if (layers[i]==0)
-    {
-      h_nhits_stave_chip_layer0->Fill(chips[i],staves[i]);
-    }
-    if (layers[i]==1)
-    {
-      h_nhits_stave_chip_layer1->Fill(chips[i],staves[i]);
-    }
-    if (layers[i]==2)
-    {
-      h_nhits_stave_chip_layer2->Fill(chips[i],staves[i]);
-    }
-  }
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -205,17 +203,17 @@ void MvtxRawHitQA::createHistos()
   assert(hm);
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer0").c_str(), "Number of hits in layer 0;Number of hits;Entries",100,0,10000);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer0").c_str(), "Number of hits in layer 0;Number of hits;Entries",100,0,25000);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer1").c_str(), "Number of hits in layer 1;Number of hits;Entries",100,0,10000);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer1").c_str(), "Number of hits in layer 1;Number of hits;Entries",100,0,25000);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer2").c_str(), "Number of hits in layer 2;Number of hits;Entries",100,0,10000);
+    auto h = new TH1F(std::string(getHistoPrefix() + "nhits_layer2").c_str(), "Number of hits in layer 2;Number of hits;Entries",100,0,25000);
     hm->registerHisto(h);
   }
 

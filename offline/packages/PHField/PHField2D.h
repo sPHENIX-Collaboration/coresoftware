@@ -5,6 +5,7 @@
 #include "PHField.h"
 
 #include <map>
+#include <mutex>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -46,6 +47,10 @@ class PHField2D : public PHField
   // I want them to be data members so we can run 2 fieldmaps in parallel
   // and still have caching. Putting those as static variables into
   // the implementation will prevent this
+
+  // needed to prevent data race when accessing cache
+  mutable std::mutex m_cache_mutex;
+
   mutable unsigned int r_index0_cache;
   mutable unsigned int r_index1_cache;
   mutable unsigned int z_index0_cache;

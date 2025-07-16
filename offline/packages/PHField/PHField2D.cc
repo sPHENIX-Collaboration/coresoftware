@@ -310,6 +310,9 @@ void PHField2D::GetFieldCyl(const double CylPoint[4], double *BfieldCyl) const
   // between subsequent calls, we can save on the expense of the upper_bound
   // lookup (~10-15% of central event run time) with some caching between calls
 
+  // mutex lock to prevent data race when accessing the cache from multiple threads
+  std::lock_guard<std::mutex> guard(m_cache_mutex);
+
   unsigned int r_index0 = r_index0_cache;
   unsigned int r_index1 = r_index1_cache;
 

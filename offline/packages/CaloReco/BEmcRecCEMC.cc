@@ -237,9 +237,13 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
 
 void BEmcRecCEMC::CorrectShowerDepth(int ix, int iy, float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {
-  xC = xA;
-  yC = yA;
-  zC = zA;
+  if (!m_UseCorrectShowerDepth)
+  {
+    xC = xA;
+    yC = yA;
+    zC = zA;
+    return;
+  }
 
   float logE = log(0.1);
   if (E > 0.1)
@@ -247,15 +251,19 @@ void BEmcRecCEMC::CorrectShowerDepth(int ix, int iy, float E, float xA, float yA
     logE = std::log(E);
   }
 
-  if (!m_UseDetailedGeometry)
+  float phi = 0;
+  // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
+  // Just tuned from sim data
+  if (m_UseDetailedGeometry)
   {
-    // Rotate by phi (towers are tilted by a fixed angle in phi by ~9 deg?)
-    // Just tuned from sim data
-    float phi = 0.002 - (0.001 * logE);
-    phi = 0;
-    xC = xA * std::cos(phi) - yA * std::sin(phi);
-    yC = xA * std::sin(phi) + yA * std::cos(phi);
+    phi = 0.0033 - 0.0010 * logE;
   }
+  else
+  {
+    phi = 0.0016 - 0.0010 * logE;
+  }
+  xC = xA * std::cos(phi) - yA * std::sin(phi);
+  yC = xA * std::sin(phi) + yA * std::cos(phi);
 
   // Correction in z
   float rA = std::sqrt((xA * xA) + (yA * yA));
@@ -371,8 +379,12 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   int ix0;
   int iy0;
 
-  xc = x;
-  yc = y;
+  if (!m_UseCorrectPosition)
+  {
+    xc = x;
+    yc = y;
+    return;
+  }
 
   if (Energy < 0.01)
   {

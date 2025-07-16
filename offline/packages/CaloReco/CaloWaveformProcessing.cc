@@ -53,9 +53,9 @@ void CaloWaveformProcessing::initialize_processing()
   }
   else if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
-    std::string calibrations_repo_model = std::string(calibrationsroot) + "/WaveformProcessing/models/" + m_model_name;
-    url_onnx = CDBInterface::instance()->getUrl(m_model_name, calibrations_repo_model);
-    onnxmodule = onnxSession(url_onnx);
+    //std::string calibrations_repo_model = m_model_name;
+    //url_onnx = CDBInterface::instance()->getUrl("CEMC_ONNX", m_model_name);
+    onnxmodule = onnxSession(m_model_name);
   }
   else if (m_processingtype == CaloWaveformProcessing::NYQUIST)
   {
@@ -103,18 +103,15 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
     unsigned int nsamples = v.size() - 1;
     std::vector<float> vtmp;
     vtmp.reserve(nsamples);
-    for (unsigned int k = 0; k < nsamples; k++)
+    for (unsigned int k = 0; k < v.size(); k++)
     {
-      vtmp.push_back((float) (v.at(k) / 1000.0));
+      vtmp.push_back((float) (v.at(k)));
     }
-    std::vector<float> val = onnxInference(onnxmodule, vtmp, 1, 31, 3);
+    std::vector<float> val = onnxInference(onnxmodule, vtmp, 1, 12, 3);
     unsigned int nvals = val.size();
     for (unsigned int i = 0; i < nvals; i++)
     {
-      if (i == 0 || i == 2)
-      {
-        val.at(i) = val.at(i) * 1000;
-      }
+      val.at(i) = val.at(i) * m_Onnx_factor[i] + m_Onnx_offset[i];
     }
     fit_values.push_back(val);
     val.clear();

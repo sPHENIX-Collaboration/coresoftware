@@ -994,7 +994,7 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
 
   if (payload.is_modebit)
   {
-    if (payload.modebits & (1U << BcoMatchingInformation::ELINK_HEARTBEAT_T))
+    if (payload.modebits == BcoMatchingInformation::ELINK_HEARTBEAT_T)
     {
       if (m_verbosity > 2)
       {
@@ -1410,12 +1410,25 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
   {
     // get modebits
     const uint64_t& modebits = gtm_tagger.modebits;
-    if (modebits & (1U << ELINK_HEARTBEAT_T))
+    if (modebits == ELINK_HEARTBEAT_T)
     {
       assert(m_hNorm);
       m_hNorm->Fill("HeartBeatGTM", 1);
 
-      m_bco_reference_candidate_list.emplace_back(gtm_bco, get_predicted_fee_bco(gtm_bco).value());
+      auto predicted_fee_bco = get_predicted_fee_bco(gtm_bco);
+      if (predicted_fee_bco)
+      {
+        m_bco_reference_candidate_list.emplace_back(gtm_bco, predicted_fee_bco.value());
+      }
+      else
+      {
+        if (m_verbosity > 1)
+        {
+          std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::save_gtm_bco_information"
+                    << "\t- Warning: predicted_fee_bco is not available for gtm_bco = 0x" << hex << gtm_bco << dec
+                    << ". Skipping heartbeat candidate." << std::endl;
+        }
+      }
 
       if (m_verbosity > 1)
       {
@@ -1452,7 +1465,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
 
     }  //     if (modebits & (1U << ELINK_HEARTBEAT_T))
 
-    if (modebits & (1U << BX_COUNTER_SYNC_T))  // initiate synchronization of clock sync
+    if (modebits == BX_COUNTER_SYNC_T)  // initiate synchronization of clock sync
     {
       assert(m_hNorm);
       m_hNorm->Fill("SyncGTM", 1);

@@ -19,6 +19,7 @@ pkginclude_HEADERS = \
   SiliconSeedsQA.h \
   MicromegasClusterQA.h \
   CosmicTrackQA.h \
+  TrackFittingQA.h \
   VertexQA.h
 
 lib_LTLIBRARIES = \
@@ -33,6 +34,7 @@ libtrackingqa_la_SOURCES = \
   SiliconSeedsQA.cc \
   MicromegasClusterQA.cc \
   CosmicTrackQA.cc \
+  TrackFittingQA.cc \
   VertexQA.cc
 
 libtrackingqa_la_LIBADD = \

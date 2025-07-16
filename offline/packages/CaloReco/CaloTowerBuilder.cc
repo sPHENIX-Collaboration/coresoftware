@@ -457,6 +457,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   // waveform vector is filled here, now fill our output. methods from the base class make sure
   // we only fill what the chosen container version supports
   std::vector<std::vector<float>> processed_waveforms = WaveformProcessing->process_waveform(waveforms);
+
   int n_channels = processed_waveforms.size();
   for (int i = 0; i < n_channels; i++)
   {
@@ -471,16 +472,21 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     towerinfo->set_energy(processed_waveforms.at(idx).at(0));
     towerinfo->set_time_float(processed_waveforms.at(idx).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(idx).at(2));
-    towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
-    bool SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));
-    if (processed_waveforms.at(idx).at(4) == 0)
-    {
-      towerinfo->set_isRecovered(false);
-    }
-    else
-    {
-      towerinfo->set_isRecovered(true);
-    }
+    bool SZS{true};
+    
+    if (_processingtype != CaloWaveformProcessing::ONNX)
+     {
+       towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
+       SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));
+       if (processed_waveforms.at(idx).at(4) == 0)
+       {
+     	towerinfo->set_isRecovered(false);
+       }
+       else
+       {
+     	towerinfo->set_isRecovered(true);
+       }
+     }
     int n_samples = waveforms.at(idx).size();
     if (n_samples == m_nzerosuppsamples || SZS)
     {

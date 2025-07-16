@@ -4,7 +4,7 @@
 #include <fun4allraw/InputManagerType.h>
 #include "Fun4AllStreamingLumiCountingInputManager.h"
 
-#include <ffarawobjects/Gl1Packetv2.h>
+#include <ffarawobjects/Gl1Packetv3.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -135,7 +135,7 @@ void SingleGl1PoolInputv2::FillPool(const unsigned int /*nbclks*/)
       packet->identify();
     }
 
-    Gl1Packet *newhit = new Gl1Packetv2();
+    Gl1Packet *newhit = new Gl1Packetv3();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     uint64_t bco_trim = gtm_bco & 0xFFFFFFFFFFU;
     //	std::cout<<bco_trim<<std::endl;
@@ -169,6 +169,7 @@ void SingleGl1PoolInputv2::FillPool(const unsigned int /*nbclks*/)
     newhit->setLiveVector(packet->lValue(0, "LiveVector"));
     newhit->setScaledVector(packet->lValue(0, "ScaledVector"));
     newhit->setGTMBusyVector(packet->lValue(0, "GTMBusyVector"));
+    newhit->setGTMAllBusyVector(packet->lValue(0, "GTMAllBusyVector"));
     for (int i = 0; i < 64; i++)
     {
       for (int j = 0; j < 3; j++)
@@ -354,7 +355,7 @@ void SingleGl1PoolInputv2::CreateDSTNode(PHCompositeNode *topNode)
   Gl1Packet *gl1hitcont = findNode::getClass<Gl1Packet>(detNode, "GL1RAWHIT");
   if (!gl1hitcont)
   {
-    gl1hitcont = new Gl1Packetv2();
+    gl1hitcont = new Gl1Packetv3();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(gl1hitcont, "GL1RAWHIT", "PHObject");
     detNode->addNode(newNode);
   }
