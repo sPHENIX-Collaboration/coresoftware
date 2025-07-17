@@ -96,6 +96,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   i = 1;
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "WordValid");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "WordSkipped");
+  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "WordDigitalCurrentKeyWord");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "InvalidLength");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "RawHit");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatErrorOverLength");
@@ -645,29 +646,49 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
   while (HEADER_LENGTH <= data_buffer.size())
   {
     // packet loop
-    if (data_buffer[1] != FEE_PACKET_MAGIC_KEY_1)
-    {
-      if (m_verbosity > 1)
-      {
-        cout << __PRETTY_FUNCTION__ << "\t- : Error : Invalid FEE magic key at position 1 0x" << hex << data_buffer[1] << dec << endl;
-      }
-      m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
-      data_buffer.pop_front();
-      continue;
-    }
-    assert(data_buffer[1] == FEE_PACKET_MAGIC_KEY_1);
 
-    if (data_buffer[2] != FEE_PACKET_MAGIC_KEY_2)
+    bool is_digital_current = false;
+    // test if digital current packet
+    if (data_buffer[3] == FEE_PACKET_MAGIC_KEY_3_DC)
     {
-      if (m_verbosity > 1)
+      if (m_verbosity > 2)
       {
-        cout << __PRETTY_FUNCTION__ << "\t- : Error : Invalid FEE magic key at position 2 0x" << hex << data_buffer[2] << dec << endl;
+        cout << __PRETTY_FUNCTION__ 
+        << "\t- : processing FEE " << fee 
+        << "\t- with digital packet" << endl;
       }
-      m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
-      data_buffer.pop_front();
-      continue;
+      
+      m_hFEEDataStream->Fill(fee, "WordDigitalCurrentKeyWord", 1);
+      is_digital_current = true;
+    } //     if (data_buffer[3] == FEE_PACKET_MAGIC_KEY_3)
+    else
+    {
+
+      if (data_buffer[1] != FEE_PACKET_MAGIC_KEY_1)
+      {
+        if (m_verbosity > 1)
+        {
+          cout << __PRETTY_FUNCTION__ << "\t- : Error : Invalid FEE magic key at position 1 0x" << hex << data_buffer[1] << dec << endl;
+        }
+        m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
+        data_buffer.pop_front();
+        continue;
+      }
+      assert(data_buffer[1] == FEE_PACKET_MAGIC_KEY_1);
+
+      if (data_buffer[2] != FEE_PACKET_MAGIC_KEY_2)
+      {
+        if (m_verbosity > 1)
+        {
+          cout << __PRETTY_FUNCTION__ << "\t- : Error : Invalid FEE magic key at position 2 0x" << hex << data_buffer[2] << dec << endl;
+        }
+        m_hFEEDataStream->Fill(fee, "WordSkipped", 1);
+        data_buffer.pop_front();
+        continue;
+      }
+      assert(data_buffer[2] == FEE_PACKET_MAGIC_KEY_2);
+
     }
-    assert(data_buffer[2] == FEE_PACKET_MAGIC_KEY_2);
 
     // valid packet
     const uint16_t & pkt_length = data_buffer[0];  // this is indeed the number of 10-bit words + 5 in this packet
@@ -694,7 +715,15 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
       }
       break;
     }
-    process_fee_data_waveform(fee, data_buffer);
+
+    if (is_digital_current)
+    {
+      process_fee_data_digital_current(fee, data_buffer);
+    }
+    else
+    {
+      process_fee_data_waveform(fee, data_buffer);
+    }
 
   }  //     while (HEADER_LENGTH < data_buffer.size())
 
