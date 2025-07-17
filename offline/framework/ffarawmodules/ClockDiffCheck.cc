@@ -30,7 +30,7 @@ ClockDiffCheck::ClockDiffCheck(const std::string &name)
 
 ClockDiffCheck::~ClockDiffCheck()
 {
-  for (auto& [packetid, tup] : m_PacketStuffMap)
+  for (auto &[packetid, tup] : m_PacketStuffMap)
   {
     delete std::get<3>(tup);
     std::get<3>(tup) = nullptr;
@@ -112,15 +112,15 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 
   for (const auto &iter : m_PacketNodeNames)
   {
-    if(iter=="14001") continue;
+    if(iter == "14001") continue;
     CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
     if (!calopacket)
     {
-        std::cout << "ClockDiffCheck: " << "could not find " << iter << " node" << std::endl;
+      std::cout << "ClockDiffCheck: " << "could not find " << iter << " node" << std::endl;
     }
     else
     {
-      if (calopacket->getStatus() == OfflinePacket::PACKET_DROPPED || calopacket->getStatus() == OfflinePacket::PACKET_CORRUPT)
+      if (calopacket->getStatus() != OfflinePacket::PACKET_OK)
       {
         static int npacketprnt = 0;
         if ( npacketprnt < 100)
@@ -351,12 +351,12 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
     m_PacketStuffMap[packetid] = std::make_tuple(std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), std::numeric_limits<uint64_t>::max(), h1, false);
     if (Verbosity() > 3)
     {
-    std::cout << "ClockDiffCheck: " << "Add tuple for " << packetid << std::endl;
-    auto &pktiter = m_PacketStuffMap[packetid];
-    std::cout << PHWHERE << "packet init " << packetid << std::hex
-              << ", clk: " << std::get<1>(pktiter)
-              << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
-              << std::endl;
+      std::cout << "ClockDiffCheck: " << "Add tuple for " << packetid << std::endl;
+      auto &pktiter = m_PacketStuffMap[packetid];
+      std::cout << PHWHERE << "packet init " << packetid << std::hex
+        << ", clk: " << std::get<1>(pktiter)
+        << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
+        << std::endl;
     }
   }
   else
