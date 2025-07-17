@@ -248,6 +248,14 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   #pragma omp parallel
   {
+    if (Verbosity())
+    {
+      std::osyncstream(std::cout)
+        << "PHSimpleKFProp -"
+        << " num_threads: " << omp_get_num_threads()
+        << " this thread: " << omp_get_thread_num()
+        << std::endl;
+    }
 
     PHTimer timer("KFPropTimer");
 
