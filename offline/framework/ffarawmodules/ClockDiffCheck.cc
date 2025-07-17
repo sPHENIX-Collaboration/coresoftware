@@ -112,7 +112,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 
   for (const auto &iter : m_PacketNodeNames)
   {
-    if(iter == "14001") continue;
+    if (iter == "14001") continue;
     CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
     if (!calopacket)
     {
