@@ -92,7 +92,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   m_hFEEDataStream = new TH2I(TString(m_HistoPrefix.c_str()) + "_FEE_DataStream_WordCount",  //
                               TString(m_HistoPrefix.c_str()) +
                                   " FEE Data Stream Word Count;FEE ID;Type;Count",
-                              MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5, 20, .5, 20.5);
+                              MAX_FEECOUNT, -.5, MAX_FEECOUNT - .5, 25, .5, 25.5);
   i = 1;
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "WordValid");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "WordSkipped");
@@ -102,6 +102,9 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatErrorOverLength");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitFormatErrorMismatchedLength");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitCRCError");
+  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "DigitalCurrent");
+  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "DigitalCurrentFormatErrorMismatchedLength");
+  m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "DigitalCurrentCRCError");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "ParityError");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "HitUnusedBeforeCleanup");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketHeartBeat");
@@ -111,7 +114,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketClockSyncUnavailable");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketClockSyncError");
   m_hFEEDataStream->GetYaxis()->SetBinLabel(i++, "PacketClockSyncOK");
-  assert(i <= 20);
+  assert(i <= 25);
   hm->registerHisto(m_hFEEDataStream);
 
   m_hFEEChannelPacketCount = new TH1I(TString(m_HistoPrefix.c_str()) + "_FEEChannelPacketCount",  //
@@ -724,6 +727,8 @@ int TpcTimeFrameBuilder::process_fee_data(unsigned int fee)
     {
       process_fee_data_waveform(fee, data_buffer);
     }
+    data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length + 1);
+    m_hFEEDataStream->Fill(fee, "WordValid", pkt_length + 1);
 
   }  //     while (HEADER_LENGTH < data_buffer.size())
 
@@ -979,13 +984,100 @@ void TpcTimeFrameBuilder::process_fee_data_waveform(const unsigned int & fee, st
     }
   }  //     if (not m_fastBCOSkip)
 
-  data_buffer.erase(data_buffer.begin(), data_buffer.begin() + pkt_length + 1);
-  m_hFEEDataStream->Fill(fee, "WordValid", pkt_length + 1);
   return  ;
 }
 
 void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int & fee, std::deque<uint16_t>& data_buffer)
 {
+  if (m_verbosity > 2)
+  {
+    cout << __PRETTY_FUNCTION__ << "\t- : processing digital_current data " << endl;
+  }
+  m_hFEEDataStream->Fill(fee, "DigitalCurrent", 1);
+  const uint16_t & pkt_length = data_buffer[0];
+
+  if (pkt_length != HEADER_LENGTH + digital_current_payload::MAX_CHANNELS * 2 * 2)
+  {
+    if (m_verbosity > 1)
+    {
+      cout << __PRETTY_FUNCTION__ << "\t- : Error : Invalid FEE pkt_length " << pkt_length
+           << ", expected at least " << HEADER_LENGTH + digital_current_payload::MAX_CHANNELS * 2 * 2
+           << endl;
+    }
+    m_hFEEDataStream->Fill(fee, "DigitalCurrentFormatErrorMismatchedLength", 1);
+    return;
+  }
+
+  digital_current_payload payload;
+
+  payload.fee           = fee;
+  payload.pkt_length    = pkt_length;
+  payload.sampa_address = (data_buffer[4] >> 5U) & 0xfU;
+  // payload.sampa_max_channel = data_buffer[4] & 0x1fU;
+  payload.channel       = data_buffer[4] & 0x1ffU;
+  // payload.type          = data_buffer[3];
+  payload.bx_timestamp  = ((data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ff);
+
+  uint16_t  pos = HEADER_LENGTH;
+  for(int ich = 0; ich<digital_current_payload::MAX_CHANNELS; ich++)
+  {
+    payload.current[ich] = ((unsigned int)data_buffer[pos])<<16U | ((unsigned int)data_buffer[pos+1U]);
+    pos++; pos++;
+    payload.nsamples[ich] = ((unsigned int)data_buffer[pos])<<16U | ((unsigned int)data_buffer[pos+1U]);
+    pos++; pos++;
+  }
+
+  if (pos != pkt_length)
+  {
+    if (m_verbosity> 1)
+    {
+      cout << __PRETTY_FUNCTION__ << "\t- : Warning : residual data at the end of decoding:"
+           << " pos: " << pos
+           << " <pkt_length: " << pkt_length << ", format error under length" << endl;
+    }
+  }
+
+  payload.data_crc = data_buffer[pkt_length];
+  auto crc_parity = crc16_parity(fee, pkt_length);
+  payload.calc_crc = crc_parity.first;
+  // payload.calc_parity = crc_parity.second;
+
+  if (payload.data_crc != payload.calc_crc)
+  {
+    if (m_verbosity > 2)
+    {
+      cout << __PRETTY_FUNCTION__ << "\t- : CRC error in FEE "
+           << fee << "\t- at position " << pkt_length - 1
+           << ": data_crc = " << payload.data_crc
+           << "\t- calc_crc = " << payload.calc_crc << endl;
+    }
+    m_hFEEDataStream->Fill(fee, "DigitalCurrentCRCError", 1);
+    // continue;
+  }
+
+  if (m_verbosity>2)
+  {
+    cout << __PRETTY_FUNCTION__ << "\t- : received digital current packet "
+         << "\t- from FEE " << fee << endl
+         << "\t- pkt_length = " << pkt_length << endl
+         << "\t- sampa_address = " << payload.sampa_address << endl
+         << "\t- channel = " << payload.channel << endl
+         << "\t- bx_timestamp = 0x" << hex << payload.bx_timestamp << dec << endl;
+    cout << "\t- current:" ;
+    for (int ich = 0; ich < digital_current_payload::MAX_CHANNELS; ich++)
+    {
+      cout << "\t[" << ich << "] = " << payload.current[ich]  ;
+    }
+    cout   << endl;
+    cout << "\t- nsamples:" ;
+    for (int ich = 0; ich < digital_current_payload::MAX_CHANNELS; ich++)
+    {
+      cout << "\t[" << ich << "] = " << payload.nsamples[ich] ;
+    }
+    cout   << endl;
+    cout<< "\t- data_crc = 0x" << hex << payload.data_crc << dec << endl
+       << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
+  }
 
   return  ;
 }

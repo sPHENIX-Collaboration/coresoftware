@@ -117,17 +117,19 @@ class TpcTimeFrameBuilder
 
   struct digital_current_payload
   {
+    static const int MAX_CHANNELS = 8;
+
     uint16_t fee {std::numeric_limits<uint16_t>::max()};
     uint16_t pkt_length {std::numeric_limits<uint16_t>::max()};
     uint16_t channel {std::numeric_limits<uint16_t>::max()};
     // uint16_t sampa_max_channel {std::numeric_limits<uint16_t>::max()};
     uint16_t sampa_address {std::numeric_limits<uint16_t>::max()};
     uint32_t bx_timestamp {0};
-    uint32_t current[8] {0};
-    uint32_t nsamples[8] {0};
-    uint16_t checksum {std::numeric_limits<uint16_t>::max()};
-    uint16_t type {std::numeric_limits<uint16_t>::max()};
-    bool     valid {false};
+    uint32_t current[MAX_CHANNELS] {0};
+    uint32_t nsamples[MAX_CHANNELS] {0};
+    uint16_t data_crc {std::numeric_limits<uint16_t>::max()};
+    uint16_t calc_crc = {std::numeric_limits<uint16_t>::max()};
+    // uint16_t type {std::numeric_limits<uint16_t>::max()};
   };
 
   // -------------------------
