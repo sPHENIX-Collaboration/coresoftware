@@ -64,18 +64,17 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   // get the template
   const char *calibroot = getenv("CALIBRATIONROOT");
   if (!calibroot)
-    {
-      std::cout<<"CaloWaveformSim::Init  missing CALIBRATIONROOT" << std::endl;
-      exit(1);
-    }
-  std::string templatefilename = std::string(calibroot) + "/CaloWaveSim/" + m_templatefile;  
-    
- 
+  {
+    std::cout << "CaloWaveformSim::Init  missing CALIBRATIONROOT" << std::endl;
+    exit(1);
+  }
+  std::string templatefilename = std::string(calibroot) + "/CaloWaveSim/" + m_templatefile;
+
   TFile *ft = new TFile(templatefilename.c_str());
   assert(ft);
   assert(ft->IsOpen());
   h_template = (TProfile *) ft->Get("hpwaveform");
-  
+
   // get the decalibration from the CDB
   PHNodeIterator nodeIter(topNode);
 
@@ -101,7 +100,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_emcal;
     m_sampling_fraction = 2e-02;
     m_nchannels = 24576;
-    if(m_highgain)
+    if (m_highgain)
     {
       m_gain = 16;
     }
@@ -112,11 +111,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = m_detector+"_calib_ADC_to_ETower_default"; 
+      m_calibName = m_detector + "_calib_ADC_to_ETower_default";
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = m_detector+"_calib_ADC_to_ETower";
+      m_fieldname = m_detector + "_calib_ADC_to_ETower";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -136,7 +135,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_hcal;
     m_sampling_fraction = 0.162166;
     m_nchannels = 1536;
-    if(m_highgain)
+    if (m_highgain)
     {
       m_gain = 32;
     }
@@ -147,11 +146,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = m_detector+"_calib_ADC_to_ETower_default"; 
+      m_calibName = m_detector + "_calib_ADC_to_ETower_default";
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = m_detector+"_calib_ADC_to_ETower"; 
+      m_fieldname = m_detector + "_calib_ADC_to_ETower";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -171,7 +170,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_hcal;
     m_sampling_fraction = 3.38021e-02;
     m_nchannels = 1536;
-    if(m_highgain)
+    if (m_highgain)
     {
       m_gain = 32;
     }
@@ -182,11 +181,11 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
     if (!m_overrideCalibName)
     {
-      m_calibName = m_detector+"_calib_ADC_to_ETower_default"; 
+      m_calibName = m_detector + "_calib_ADC_to_ETower_default";
     }
     if (!m_overrideFieldName)
     {
-      m_fieldname = m_detector+"_calib_ADC_to_ETower";
+      m_fieldname = m_detector + "_calib_ADC_to_ETower";
     }
     std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
     if (!calibdir.empty())
@@ -197,6 +196,39 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     {
       std::cout << "CaloWaveformSim:::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
       exit(1);
+    }
+  }
+  // timing de-calibration
+  //////////////////////////////////
+  // time calibration getting the CDB
+  m_calibName_time = m_detector + "_meanTime";
+  m_fieldname_time = "time";
+  std::string calibdir;
+
+  if (m_giveDirectURL_time)
+  {
+    calibdir = m_directURL_time;
+    std::cout << "CaloTowerCalib::InitRun: Using setted url " << calibdir << std::endl;
+    cdbttree_time = new CDBTTree(calibdir);
+  }
+  else
+  {
+    calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
+    if (!calibdir.empty())
+    {
+      cdbttree_time = new CDBTTree(calibdir);
+      if (Verbosity() > 0)
+      {
+        std::cout << "CaloTowerCalib:InitRun Found " << m_calibName_time << " doing time calibration" << std::endl;
+      }
+    }
+    else
+    {
+      m_dotimecalib = false;
+      if (Verbosity() > 0)
+      {
+        std::cout << "CaloTowerCalib::InitRun no timing info, " << m_calibName_time << " not found, not doing time calibration" << std::endl;
+      }
     }
   }
   m_waveforms.resize(m_nchannels);
@@ -260,6 +292,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   float shift_of_shift = m_timeshiftwidth * gsl_rng_uniform(m_RandomGenerator);
 
   float _shiftval = m_peakpos + shift_of_shift - f_fit->GetMaximumX();
+
   f_fit->SetParameters(1, _shiftval, 0);
 
   // get G4Hits
@@ -296,13 +329,20 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
     ADC *= m_gain;
 
+    float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
+    // if we have a tower by tower mean time, we shift the simulated waveform peak to that accordingly
+    if (m_dotimecalib)
+    {
+      _shiftval = meantime + shift_of_shift;
+    }
+
     float t0 = hit->get_t(0) / m_sampletime;
     unsigned int tower_index = decode_tower(key);
-    //here I will add the truth matching part
-    // for the cell reco, the truth matching info relys on edep not light yield, I will be consistent here :)
-    TowerInfo* tower = m_CaloWaveformContainer->get_tower_at_channel(tower_index);
-    TowerInfo::EdepMap& edepMap = tower->get_hitEdepMap();
-    TowerInfo::ShowerEdepMap& showerMap = tower->get_showerEdepMap();
+    // here I will add the truth matching part
+    //  for the cell reco, the truth matching info relys on edep not light yield, I will be consistent here :)
+    TowerInfo *tower = m_CaloWaveformContainer->get_tower_at_channel(tower_index);
+    TowerInfo::EdepMap &edepMap = tower->get_hitEdepMap();
+    TowerInfo::ShowerEdepMap &showerMap = tower->get_showerEdepMap();
 
     int showerID = hit->get_shower_id();
     float hitEdep = hit->get_edep();
@@ -318,187 +358,187 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
   }
 
   // do noise here and add to waveform
-   
+
+  if (m_noiseType == NoiseType::NOISE_TREE)
+  {
+    std::string ped_nodename = "PEDESTAL_" + m_detector;
+    m_PedestalContainer = findNode::getClass<TowerInfoContainer>(topNode, ped_nodename);
+
+    if (!m_PedestalContainer)
+    {
+      std::cout << PHWHERE << " " << ped_nodename << " Node missing, doing nothing." << std::endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+  }
+
+  for (int i = 0; i < m_nchannels; i++)
+  {
+    std::vector<float> m_waveform_pedestal;
+    m_waveform_pedestal.resize(m_nsamples);
     if (m_noiseType == NoiseType::NOISE_TREE)
     {
-      std::string ped_nodename = "PEDESTAL_" + m_detector;
-      m_PedestalContainer = findNode::getClass<TowerInfoContainer>(topNode, ped_nodename);
-
-      if (!m_PedestalContainer)
-      {
-        std::cout << PHWHERE << " " << ped_nodename << " Node missing, doing nothing." << std::endl;
-        gSystem->Exit(1);
-        exit(1);
-      }
-    }
-
-    for (int i = 0; i < m_nchannels; i++)
-    {
-      std::vector<float> m_waveform_pedestal;
-      m_waveform_pedestal.resize(m_nsamples);
-      if(m_noiseType == NoiseType::NOISE_TREE)
-      {
-        TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
-        float pedestal_mean = 0;
-        for(int j = 0; j < m_nsamples; j++)
-        {
-          m_waveform_pedestal.at(j) = (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
-          pedestal_mean += m_waveform_pedestal.at(j);
-        }
-        pedestal_mean /= m_nsamples;
-        for(int j = 0; j < m_nsamples; j++)
-        {
-          m_waveform_pedestal.at(j)  = (m_waveform_pedestal.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
-        }
-      }
+      TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
+      float pedestal_mean = 0;
       for (int j = 0; j < m_nsamples; j++)
       {
-        if (m_noiseType == NoiseType::NOISE_TREE)
-        {
-          //TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
-          //m_waveforms.at(i).at(j) += (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
-          m_waveforms.at(i).at(j) += m_waveform_pedestal.at(j);
-        }
-        if (m_noiseType == NoiseType::NOISE_GAUSSIAN)
-        {
-          m_waveforms.at(i).at(j) += gsl_ran_gaussian(m_RandomGenerator, m_gaussian_noise);
-        }
-        if (m_noiseType == NoiseType::NOISE_NONE)
-        {
-          m_waveforms.at(i).at(j) += m_fixpedestal;
-        }
-        // saturate at 2^14 - 1
-        if(m_waveforms.at(i).at(j) > 16383)
-        {
-          m_waveforms.at(i).at(j) = 16383;
-        }
-        if(m_waveforms.at(i).at(j) < 0)
-	      {
-	        m_waveforms.at(i).at(j) = 0;
-	      }
-        
-        m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
+        m_waveform_pedestal.at(j) = (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
+        pedestal_mean += m_waveform_pedestal.at(j);
       }
-    }
-    delete f_fit;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
-
-  void CaloWaveformSim::maphitetaphi(PHG4Hit * g4hit, unsigned short &etabin, unsigned short &phibin, float &correction)
-  {
-    if (m_dettype == CaloTowerDefs::CEMC)
-    {
-      int scint_id = g4hit->get_scint_id();
-      PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
-      std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(decoder.tower_ID, decoder.sector_ID);
-      const int &tower_ID_z = tower_z_phi_ID.first;
-      const int &tower_ID_phi = tower_z_phi_ID.second;
-      PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
-          layergeom->get_sector_tower_map().find(decoder.tower_ID);
-      assert(it_tower != layergeom->get_sector_tower_map().end());
-
-      const int etabin_cell = geo->get_etabin_block(tower_ID_z);  // block eta bin
-      const int sub_tower_ID_x = it_tower->second.get_sub_tower_ID_x(decoder.fiber_ID);
-      const int sub_tower_ID_y = it_tower->second.get_sub_tower_ID_y(decoder.fiber_ID);
-      unsigned short etabinshort = etabin_cell * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
-      unsigned short phibin_cell = tower_ID_phi * layergeom->get_n_subtower_phi() + sub_tower_ID_x;
-      etabin = etabinshort;
-      phibin = phibin_cell;
-
-      // correction for emcal fiber
-      if (light_collection_model.use_fiber_model())
+      pedestal_mean /= m_nsamples;
+      for (int j = 0; j < m_nsamples; j++)
       {
-        const double z = 0.5 * (g4hit->get_local_z(0) + g4hit->get_local_z(1));
-        assert(not std::isnan(z));
-        correction *= light_collection_model.get_fiber_transmission(z);
+        m_waveform_pedestal.at(j) = (m_waveform_pedestal.at(j) - pedestal_mean) * m_pedestal_scale + pedestal_mean;
       }
-
-      if (light_collection_model.use_fiber_model())
+    }
+    for (int j = 0; j < m_nsamples; j++)
+    {
+      if (m_noiseType == NoiseType::NOISE_TREE)
       {
-        const double x = it_tower->second.get_position_fraction_x_in_sub_tower(decoder.fiber_ID);
-        const double y = it_tower->second.get_position_fraction_y_in_sub_tower(decoder.fiber_ID);
-        correction *= light_collection_model.get_light_guide_efficiency(x, y);
+        // TowerInfo *pedestal_tower = m_PedestalContainer->get_tower_at_channel(i);
+        // m_waveforms.at(i).at(j) += (j < m_pedestalsamples) ? pedestal_tower->get_waveform_value(j) : pedestal_tower->get_waveform_value(m_pedestalsamples - 1);
+        m_waveforms.at(i).at(j) += m_waveform_pedestal.at(j);
       }
-    }
-    else if (m_dettype == CaloTowerDefs::HCALIN)
-    {
-      // int layer = (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits);
-      unsigned int iphi = (unsigned int) (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits) / 4;
-      unsigned int ieta = g4hit->get_scint_id();
+      if (m_noiseType == NoiseType::NOISE_GAUSSIAN)
+      {
+        m_waveforms.at(i).at(j) += gsl_ran_gaussian(m_RandomGenerator, m_gaussian_noise);
+      }
+      if (m_noiseType == NoiseType::NOISE_NONE)
+      {
+        m_waveforms.at(i).at(j) += m_fixpedestal;
+      }
+      // saturate at 2^14 - 1
+      if (m_waveforms.at(i).at(j) > 16383)
+      {
+        m_waveforms.at(i).at(j) = 16383;
+      }
+      if (m_waveforms.at(i).at(j) < 0)
+      {
+        m_waveforms.at(i).at(j) = 0;
+      }
 
-      etabin = ieta;
-      phibin = iphi;
-    }
-    else if (m_dettype == CaloTowerDefs::HCALOUT)
-    {
-      // int layer = (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits);
-      unsigned int iphi = (unsigned int) (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits) / 5;
-      unsigned int ieta = g4hit->get_scint_id();
-
-      etabin = ieta;
-      phibin = iphi;
-    }
-    else
-    {
-      std::cout << PHWHERE << " Invalid detector type " << m_dettype << std::endl;
-      gSystem->Exit(1);
-      exit(1);
+      m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
     }
   }
+  delete f_fit;
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
-  //____________________________________________________________________________..
-  int CaloWaveformSim::End(PHCompositeNode * /*topNode*/)
+void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsigned short &phibin, float &correction)
+{
+  if (m_dettype == CaloTowerDefs::CEMC)
   {
-    std::cout << "CaloWaveformSim::End(PHCompositeNode *topNode) This is the End..." << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
+    int scint_id = g4hit->get_scint_id();
+    PHG4CylinderGeom_Spacalv3::scint_id_coder decoder(scint_id);
+    std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(decoder.tower_ID, decoder.sector_ID);
+    const int &tower_ID_z = tower_z_phi_ID.first;
+    const int &tower_ID_phi = tower_z_phi_ID.second;
+    PHG4CylinderGeom_Spacalv3::tower_map_t::const_iterator it_tower =
+        layergeom->get_sector_tower_map().find(decoder.tower_ID);
+    assert(it_tower != layergeom->get_sector_tower_map().end());
 
-  void CaloWaveformSim::CreateNodeTree(PHCompositeNode * topNode)
+    const int etabin_cell = geo->get_etabin_block(tower_ID_z);  // block eta bin
+    const int sub_tower_ID_x = it_tower->second.get_sub_tower_ID_x(decoder.fiber_ID);
+    const int sub_tower_ID_y = it_tower->second.get_sub_tower_ID_y(decoder.fiber_ID);
+    unsigned short etabinshort = etabin_cell * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
+    unsigned short phibin_cell = tower_ID_phi * layergeom->get_n_subtower_phi() + sub_tower_ID_x;
+    etabin = etabinshort;
+    phibin = phibin_cell;
+
+    // correction for emcal fiber
+    if (light_collection_model.use_fiber_model())
+    {
+      const double z = 0.5 * (g4hit->get_local_z(0) + g4hit->get_local_z(1));
+      assert(not std::isnan(z));
+      correction *= light_collection_model.get_fiber_transmission(z);
+    }
+
+    if (light_collection_model.use_fiber_model())
+    {
+      const double x = it_tower->second.get_position_fraction_x_in_sub_tower(decoder.fiber_ID);
+      const double y = it_tower->second.get_position_fraction_y_in_sub_tower(decoder.fiber_ID);
+      correction *= light_collection_model.get_light_guide_efficiency(x, y);
+    }
+  }
+  else if (m_dettype == CaloTowerDefs::HCALIN)
   {
-    PHNodeIterator topNodeItr(topNode);
-    // DST node
-    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(topNodeItr.findFirst("PHCompositeNode", "DST"));
-    if (!dstNode)
-    {
-      std::cout << "PHComposite node created: DST" << std::endl;
-      dstNode = new PHCompositeNode("DST");
-      topNode->addNode(dstNode);
-    }
-    PHNodeIterator nodeItr(dstNode);
-    PHCompositeNode *DetNode;
-    // enum CaloTowerDefs::DetectorSystem and TowerInfoContainer::DETECTOR are different!!!!
-    TowerInfoContainer::DETECTOR DetectorEnum = TowerInfoContainer::DETECTOR::DETECTOR_INVALID;
-    std::string DetectorNodeName;
+    // int layer = (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits);
+    unsigned int iphi = (unsigned int) (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits) / 4;
+    unsigned int ieta = g4hit->get_scint_id();
 
-    if (m_dettype == CaloTowerDefs::CEMC)
-    {
-      DetectorEnum = TowerInfoContainer::DETECTOR::EMCAL;
-      DetectorNodeName = "CEMC";
-    }
-    else if (m_dettype == CaloTowerDefs::HCALIN)
-    {
-      DetectorEnum = TowerInfoContainer::DETECTOR::HCAL;
-      DetectorNodeName = "HCALIN";
-    }
-    else if (m_dettype == CaloTowerDefs::HCALOUT)
-    {
-      DetectorEnum = TowerInfoContainer::DETECTOR::HCAL;
-      DetectorNodeName = "HCALOUT";
-    }
-    else
-    {
-      std::cout << PHWHERE << " Invalid detector type " << m_dettype << std::endl;
-      gSystem->Exit(1);
-      exit(1);
-    }
-    DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", DetectorNodeName));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(DetectorNodeName);
-      dstNode->addNode(DetNode);
-    }
-    m_CaloWaveformContainer = new TowerInfoContainerSimv2(DetectorEnum);
-
-    PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloWaveformContainer, "WAVEFORM_" + m_detector, "PHObject");
-    DetNode->addNode(newTowerNode);
+    etabin = ieta;
+    phibin = iphi;
   }
+  else if (m_dettype == CaloTowerDefs::HCALOUT)
+  {
+    // int layer = (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits);
+    unsigned int iphi = (unsigned int) (g4hit->get_hit_id() >> PHG4HitDefs::hit_idbits) / 5;
+    unsigned int ieta = g4hit->get_scint_id();
+
+    etabin = ieta;
+    phibin = iphi;
+  }
+  else
+  {
+    std::cout << PHWHERE << " Invalid detector type " << m_dettype << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+}
+
+//____________________________________________________________________________..
+int CaloWaveformSim::End(PHCompositeNode * /*topNode*/)
+{
+  std::cout << "CaloWaveformSim::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void CaloWaveformSim::CreateNodeTree(PHCompositeNode *topNode)
+{
+  PHNodeIterator topNodeItr(topNode);
+  // DST node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(topNodeItr.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    std::cout << "PHComposite node created: DST" << std::endl;
+    dstNode = new PHCompositeNode("DST");
+    topNode->addNode(dstNode);
+  }
+  PHNodeIterator nodeItr(dstNode);
+  PHCompositeNode *DetNode;
+  // enum CaloTowerDefs::DetectorSystem and TowerInfoContainer::DETECTOR are different!!!!
+  TowerInfoContainer::DETECTOR DetectorEnum = TowerInfoContainer::DETECTOR::DETECTOR_INVALID;
+  std::string DetectorNodeName;
+
+  if (m_dettype == CaloTowerDefs::CEMC)
+  {
+    DetectorEnum = TowerInfoContainer::DETECTOR::EMCAL;
+    DetectorNodeName = "CEMC";
+  }
+  else if (m_dettype == CaloTowerDefs::HCALIN)
+  {
+    DetectorEnum = TowerInfoContainer::DETECTOR::HCAL;
+    DetectorNodeName = "HCALIN";
+  }
+  else if (m_dettype == CaloTowerDefs::HCALOUT)
+  {
+    DetectorEnum = TowerInfoContainer::DETECTOR::HCAL;
+    DetectorNodeName = "HCALOUT";
+  }
+  else
+  {
+    std::cout << PHWHERE << " Invalid detector type " << m_dettype << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  DetNode = dynamic_cast<PHCompositeNode *>(nodeItr.findFirst("PHCompositeNode", DetectorNodeName));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(DetectorNodeName);
+    dstNode->addNode(DetNode);
+  }
+  m_CaloWaveformContainer = new TowerInfoContainerSimv2(DetectorEnum);
+
+  PHIODataNode<PHObject> *newTowerNode = new PHIODataNode<PHObject>(m_CaloWaveformContainer, "WAVEFORM_" + m_detector, "PHObject");
+  DetNode->addNode(newTowerNode);
+}

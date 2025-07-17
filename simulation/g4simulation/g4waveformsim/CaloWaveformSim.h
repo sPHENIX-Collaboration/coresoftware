@@ -142,6 +142,17 @@ class CaloWaveformSim : public SubsysReco
     m_pedestal_scale = _pedestal_scale;
     return;
   }
+
+  void set_directURL_timecalib(const std::string &url)
+  {
+    m_giveDirectURL_time = true;
+    m_directURL_time = url;
+  }
+
+  void set_dotimecalib(bool dotimecalib)
+  {
+    m_dotimecalib = dotimecalib;
+  }
   // for CEMC light yield correction
   LightCollectionModel &get_light_collection_model() { return light_collection_model; }
 
@@ -150,9 +161,15 @@ class CaloWaveformSim : public SubsysReco
   std::string m_detector{"CEMC"};
   std::string m_fieldname{"Femc_datadriven_qm1_correction"};
   std::string m_calibName{"cemc_pi0_twrSlope_v1"};
+  std::string m_fieldname_time{"time"};
+  std::string m_calibName_time{"CEMC_meanTime"};
+  std::string m_directURL_time{""};
+  bool m_dotimecalib{true};
+  bool m_giveDirectURL_time{false};
   bool m_overrideCalibName{false};
   bool m_overrideFieldName{false};
   CDBTTree *cdbttree{nullptr};
+  CDBTTree *cdbttree_time = nullptr;
   std::string m_templatefile{"waveformtemptempohcalcosmic.root"};
   TProfile *h_template{nullptr};
   TowerInfoContainer *m_CaloWaveformContainer{nullptr};
