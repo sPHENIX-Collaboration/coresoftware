@@ -140,6 +140,7 @@ class TpcTimeFrameBuilder
   {
    public:
     explicit DigitalCurrentDebugTTree(const std::string &name);
+    virtual ~DigitalCurrentDebugTTree();
 
     void fill(const digital_current_payload &payload);
 
@@ -149,7 +150,7 @@ class TpcTimeFrameBuilder
     std::string m_name;
     TTree *m_tDigitalCurrent = nullptr;
   };
-  DigitalCurrentDebugTTree * m_digitalCurrentDebugTTree;
+  DigitalCurrentDebugTTree * m_digitalCurrentDebugTTree = nullptr;
 
   // -------------------------
   // GTM Matcher

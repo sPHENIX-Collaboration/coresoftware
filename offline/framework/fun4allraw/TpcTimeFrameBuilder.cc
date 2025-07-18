@@ -1096,21 +1096,37 @@ void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int & 
 
 void TpcTimeFrameBuilder::SaveDigitalCurrentDebugTTree(const std::string &name)
 {
+  if (m_verbosity >= 1)
+  {
+    cout << __PRETTY_FUNCTION__ << "\t- : Saving digital current debug TTree to " << name << endl;
+  }
+
   m_digitalCurrentDebugTTree = new TpcTimeFrameBuilder::DigitalCurrentDebugTTree(name); 
 }
 
 TpcTimeFrameBuilder::DigitalCurrentDebugTTree::DigitalCurrentDebugTTree(const std::string &name)
+: m_name(name) 
 {  
   // open TFile
-  PHTFileServer::get().open(name, "RECREATE");
+  PHTFileServer::get().open(m_name, "RECREATE");
 
   m_tDigitalCurrent = new TTree("T_DigitalCurrent", "DigitalCurrent Debug TTree");
+  assert(m_tDigitalCurrent);
+  
+  m_tDigitalCurrent->Branch("dc", &m_payload, 
+    "fee/s:channel/s:sampa_address/s:bx_timestamp/i:pkt_length/s:current[8]/i:nsamples[8]/i:data_crc/s:calc_crc/s");
+}
 
-  m_tDigitalCurrent->Branch("payload", &m_payload);
+TpcTimeFrameBuilder::DigitalCurrentDebugTTree::~DigitalCurrentDebugTTree()
+{  
+  // open TFile
+  PHTFileServer::get().write(m_name);
 }
 
 void TpcTimeFrameBuilder::DigitalCurrentDebugTTree::fill(const TpcTimeFrameBuilder::digital_current_payload &payload)
 {
+  assert(m_tDigitalCurrent);
+
   m_payload = payload;
   m_tDigitalCurrent->Fill();
 }
