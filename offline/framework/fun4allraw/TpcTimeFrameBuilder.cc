@@ -1110,6 +1110,8 @@ TpcTimeFrameBuilder::DigitalCurrentDebugTTree::DigitalCurrentDebugTTree(const st
   // open TFile
   PHTFileServer::get().open(m_name, "RECREATE");
 
+  // cppcheck-suppress noCopyConstructor
+  // cppcheck-suppress noOperatorEq
   m_tDigitalCurrent = new TTree("T_DigitalCurrent", "DigitalCurrent Debug TTree");
   assert(m_tDigitalCurrent);
   
