@@ -375,6 +375,7 @@ void SingleMicromegasPoolInput_v2::CleanupUsedPackets(const uint64_t bclk, bool 
         ++m_waveform_counters[rawhit->get_packetid()].dropped_pool;
         ++m_fee_waveform_counters[rawhit->get_fee()].dropped_pool;
         h_waveform_count_dropped_pool->Fill( std::to_string(rawhit->get_packetid()).c_str(), 1 );
+        h_fee_waveform_count_dropped_pool->Fill( rawhit->get_fee(), 1 );
       }
       delete rawhit;
     }
@@ -561,6 +562,15 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
   // number of dropped waveform per packet due to fun4all pool mismatch
   h_waveform_count_dropped_pool = new TH1D( "h_MicromegasBCOQA_waveform_count_dropped_pool", "Number of dropped waveforms per packet (pool)", m_npackets_active, 0, m_npackets_active );
 
+  // total number of waveform per packet
+  h_fee_waveform_count_total = new TH1D( "h_MicromegasBCOQA_fee_waveform_count_total", "Total number of waveforms per fee", m_nfee_max, 0, m_nfee_max );
+
+  // number of dropped waveform per fee due to bco mismatch
+  h_fee_waveform_count_dropped_bco = new TH1D( "h_MicromegasBCOQA_fee_waveform_count_dropped_bco", "Number of dropped waveforms per fee (bco)", m_nfee_max, 0, m_nfee_max );
+
+  // number of dropped waveform per fee due to fun4all pool mismatch
+  h_fee_waveform_count_dropped_pool = new TH1D( "h_MicromegasBCOQA_fee_waveform_count_dropped_pool", "Number of dropped waveforms per fee (pool)", m_nfee_max, 0, m_nfee_max );
+
   // define axis
   for( const auto& h:std::initializer_list<TH1*>{h_waveform_count_total, h_waveform_count_dropped_bco, h_waveform_count_dropped_pool} )
   {
@@ -570,11 +580,17 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
     h->GetXaxis()->SetTitle( "packet id" );
   }
 
+  for( const auto& h:std::initializer_list<TH1*>{h_fee_waveform_count_total, h_fee_waveform_count_dropped_bco, h_fee_waveform_count_dropped_pool})
+  {
+    h->GetYaxis()->SetTitle( "waveform count" );
+    h->GetXaxis()->SetTitle( "FEE id" );
+  }
+
   // register all histograms to histogram manager
   for( const auto& h:std::initializer_list<TH1*>{
     h_packet, h_waveform, h_packet_stat, h_heartbeat_stat,
-    h_waveform_count_total, h_waveform_count_dropped_bco,
-    h_waveform_count_dropped_pool} )
+    h_waveform_count_total, h_waveform_count_dropped_bco, h_waveform_count_dropped_pool,
+    h_fee_waveform_count_total, h_fee_waveform_count_dropped_bco, h_fee_waveform_count_dropped_pool} )
   {
     h->SetFillStyle(1001);
     h->SetFillColor(kYellow);
@@ -839,6 +855,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     ++m_waveform_counters[packet_id].total;
     ++m_fee_waveform_counters[fee_id].total;
     h_waveform_count_total->Fill(std::to_string(packet_id).c_str(),1);
+    h_fee_waveform_count_total->Fill(fee_id,1);
 
     if( is_heartbeat )
     {
@@ -868,7 +885,8 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
     {
       ++m_waveform_counters[packet_id].dropped_bco;
       ++m_fee_waveform_counters[fee_id].dropped_bco;
-      h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1);
+      h_waveform_count_dropped_bco->Fill(std::to_string(packet_id).c_str(), 1);
+      h_fee_waveform_count_dropped_bco->Fill(fee_id, 1);
 
       if( is_heartbeat )
       {
@@ -895,6 +913,7 @@ void SingleMicromegasPoolInput_v2::process_fee_data( int packet_id, unsigned int
       ++m_waveform_counters[packet_id].dropped_bco;
       ++m_fee_waveform_counters[fee_id].dropped_bco;
       h_waveform_count_dropped_bco->Fill( std::to_string(packet_id).c_str(), 1 );
+      h_fee_waveform_count_dropped_bco->Fill(fee_id, 1);
 
       if( is_heartbeat )
       {
