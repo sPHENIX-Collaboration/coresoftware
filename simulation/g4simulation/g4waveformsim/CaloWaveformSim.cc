@@ -127,7 +127,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
   // MC energy calibration (optional)
   if (!m_overrideMCCalibName) m_MC_calibName = m_detector + "_MC_RECALIB";
-  if (!m_overrideMCFieldName) m_MC_fieldname = m_detector + "_MC_calib_ADC_to_ETower";
+  if (!m_overrideMCFieldName) m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
   url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
   if (!url.empty())
     cdbttree_MC = new CDBTTree(url);
