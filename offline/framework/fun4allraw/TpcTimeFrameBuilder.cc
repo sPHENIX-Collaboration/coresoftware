@@ -10,11 +10,13 @@
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <qautils/QAHistManagerDef.h>
+#include <fun4all/PHTFileServer.h>
 
 #include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
+#include <TTree.h>
 #include <TString.h>
 #include <TVector3.h>
 
@@ -178,6 +180,11 @@ TpcTimeFrameBuilder::~TpcTimeFrameBuilder()
   if (m_packetTimer)
   {
     delete m_packetTimer;
+  }
+
+  if (m_digitalCurrentDebugTTree)
+  {
+    delete m_digitalCurrentDebugTTree;
   }
 }
 
@@ -1079,9 +1086,34 @@ void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int & 
        << "\t- calc_crc = 0x" << hex << payload.calc_crc << dec << endl;
   }
 
+  if (m_digitalCurrentDebugTTree)
+  {
+    m_digitalCurrentDebugTTree->fill(payload);
+  }
+
   return  ;
 }
 
+void TpcTimeFrameBuilder::SaveDigitalCurrentDebugTTree(const std::string &name)
+{
+  m_digitalCurrentDebugTTree = new TpcTimeFrameBuilder::DigitalCurrentDebugTTree(name); 
+}
+
+TpcTimeFrameBuilder::DigitalCurrentDebugTTree::DigitalCurrentDebugTTree(const std::string &name)
+{  
+  // open TFile
+  PHTFileServer::get().open(name, "RECREATE");
+
+  m_tDigitalCurrent = new TTree("T_DigitalCurrent", "DigitalCurrent Debug TTree");
+
+  m_tDigitalCurrent->Branch("payload", &m_payload);
+}
+
+void TpcTimeFrameBuilder::DigitalCurrentDebugTTree::fill(const TpcTimeFrameBuilder::digital_current_payload &payload)
+{
+  m_payload = payload;
+  m_tDigitalCurrent->Fill();
+}
 
 int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gtm_word)
 {

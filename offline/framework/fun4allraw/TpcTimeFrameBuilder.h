@@ -21,6 +21,7 @@ class TpcRawHit;
 class PHTimer;
 class TH1;
 class TH2;
+class TTree;
 
 // NOLINTNEXTLINE(hicpp-special-member-functions)
 class TpcTimeFrameBuilder
@@ -39,6 +40,9 @@ class TpcTimeFrameBuilder
   {
     m_fastBCOSkip = fastBCOSkip;
   }
+
+  // enable saving of digital current debug TTree with file name `name`
+  void SaveDigitalCurrentDebugTTree(const std::string &name);
 
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
@@ -131,6 +135,21 @@ class TpcTimeFrameBuilder
     uint16_t calc_crc = {std::numeric_limits<uint16_t>::max()};
     // uint16_t type {std::numeric_limits<uint16_t>::max()};
   };
+
+  class DigitalCurrentDebugTTree
+  {
+   public:
+    explicit DigitalCurrentDebugTTree(const std::string &name);
+
+    void fill(const digital_current_payload &payload);
+
+   private:
+    digital_current_payload m_payload;
+
+    std::string m_name;
+    TTree *m_tDigitalCurrent = nullptr;
+  };
+  DigitalCurrentDebugTTree * m_digitalCurrentDebugTTree;
 
   // -------------------------
   // GTM Matcher
