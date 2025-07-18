@@ -58,41 +58,33 @@ CaloWaveformSim::~CaloWaveformSim()
 
 int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 {
+  // Initialize random generator
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
   gsl_rng_set(m_RandomGenerator, seed);
-  // get the template
+
+  // Load waveform template
   const char *calibroot = getenv("CALIBRATIONROOT");
   if (!calibroot)
   {
-    std::cout << "CaloWaveformSim::Init  missing CALIBRATIONROOT" << std::endl;
+    std::cerr << "CaloWaveformSim::InitRun missing CALIBRATIONROOT" << std::endl;
     exit(1);
   }
   std::string templatefilename = std::string(calibroot) + "/CaloWaveSim/" + m_templatefile;
+  TFile *ft = TFile::Open(templatefilename.c_str());
+  assert(ft && ft->IsOpen());
+  h_template = static_cast<TProfile *>(ft->Get("hpwaveform"));
 
-  TFile *ft = new TFile(templatefilename.c_str());
-  assert(ft);
-  assert(ft->IsOpen());
-  h_template = (TProfile *) ft->Get("hpwaveform");
-
-  // get the decalibration from the CDB
-  PHNodeIterator nodeIter(topNode);
-
+  // Determine run number
   EventHeader *evtHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-
-  if (evtHeader)
-  {
-    m_runNumber = evtHeader->get_RunNumber();
-  }
-  else
-  {
-    m_runNumber = -1;
-  }
+  m_runNumber = evtHeader ? evtHeader->get_RunNumber() : -1;
   if (Verbosity() > 0)
   {
-    std::cout << "CaloWaveformSim::Init(PHCompositeNode *topNode) Run Number: " << m_runNumber << std::endl;
-    std::cout << "CaloWaveformSim getting calibration" << std::endl;
+    std::cout << "CaloWaveformSim::InitRun Run Number: " << m_runNumber << std::endl;
   }
+
+  // Detector-specific setup
+  std::string url;
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
@@ -100,33 +92,6 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_emcal;
     m_sampling_fraction = 2e-02;
     m_nchannels = 24576;
-    if (m_highgain)
-    {
-      m_gain = 16;
-    }
-    else
-    {
-      m_gain = 1;
-    }
-
-    if (!m_overrideCalibName)
-    {
-      m_calibName = m_detector + "_calib_ADC_to_ETower_default";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = m_detector + "_calib_ADC_to_ETower";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloWaveformSim::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
-      exit(1);
-    }
   }
   else if (m_dettype == CaloTowerDefs::HCALIN)
   {
@@ -135,108 +100,89 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
     decode_tower = TowerInfoDefs::decode_hcal;
     m_sampling_fraction = 0.162166;
     m_nchannels = 1536;
-    if (m_highgain)
-    {
-      m_gain = 32;
-    }
-    else
-    {
-      m_gain = 1;
-    }
-
-    if (!m_overrideCalibName)
-    {
-      m_calibName = m_detector + "_calib_ADC_to_ETower_default";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = m_detector + "_calib_ADC_to_ETower";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloWaveformSim::::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
-      exit(1);
-    }
   }
-  else if (m_dettype == CaloTowerDefs::HCALOUT)
+  else  // HCALOUT
   {
     m_detector = "HCALOUT";
     encode_tower = TowerInfoDefs::encode_hcal;
     decode_tower = TowerInfoDefs::decode_hcal;
     m_sampling_fraction = 3.38021e-02;
     m_nchannels = 1536;
-    if (m_highgain)
-    {
-      m_gain = 32;
-    }
-    else
-    {
-      m_gain = 1;
-    }
-
-    if (!m_overrideCalibName)
-    {
-      m_calibName = m_detector + "_calib_ADC_to_ETower_default";
-    }
-    if (!m_overrideFieldName)
-    {
-      m_fieldname = m_detector + "_calib_ADC_to_ETower";
-    }
-    std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    if (!calibdir.empty())
-    {
-      cdbttree = new CDBTTree(calibdir);
-    }
-    else
-    {
-      std::cout << "CaloWaveformSim:::InitRun No calibration file for domain " << m_calibName << " found" << std::endl;
-      exit(1);
-    }
   }
-  // timing de-calibration
-  //////////////////////////////////
-  // time calibration getting the CDB
-  m_calibName_time = m_detector + "_meanTime";
-  m_fieldname_time = "time";
-  std::string calibdir;
 
+  // Gain settings
+  m_gain = m_highgain ? ((m_detector == "CEMC") ? 16 : 32) : 1;
+
+  // Data energy calibration
+  if (!m_overrideCalibName) m_calibName = m_detector + "_calib_ADC_to_ETower_default";
+  if (!m_overrideFieldName) m_fieldname = m_detector + "_calib_ADC_to_ETower";
+  url = m_giveDirectURL ? m_directURL : CDBInterface::instance()->getUrl(m_calibName);
+  if (!url.empty())
+    cdbttree = new CDBTTree(url);
+  else
+  {
+    std::cerr << "CaloWaveformSim::InitRun No data calibration for " << m_calibName << std::endl;
+    exit(1);
+  }
+
+  // MC energy calibration (optional)
+  if (!m_overrideMCCalibName) m_MC_calibName = m_detector + "_MC_RECALIB";
+  if (!m_overrideMCFieldName) m_MC_fieldname = m_detector + "_MC_calib_ADC_to_ETower";
+  url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
+  if (!url.empty())
+    cdbttree_MC = new CDBTTree(url);
+  else if (Verbosity() > 0)
+  {
+    std::cout << "CaloWaveformSim::InitRun No MC calibration for " << m_MC_calibName << std::endl;
+  }
+
+  // Time calibration (data)
+  if (!m_overrideTimeCalibName) m_calibName_time = m_detector + "_meanTime";
   if (m_giveDirectURL_time)
   {
-    calibdir = m_directURL_time;
-    std::cout << "CaloTowerCalib::InitRun: Using setted url " << calibdir << std::endl;
-    cdbttree_time = new CDBTTree(calibdir);
+    url = m_directURL_time;
   }
   else
   {
-    calibdir = CDBInterface::instance()->getUrl(m_calibName_time);
-    if (!calibdir.empty())
+    url = CDBInterface::instance()->getUrl(m_calibName_time);
+    if (url.empty())
     {
-      cdbttree_time = new CDBTTree(calibdir);
-      if (Verbosity() > 0)
+      if (m_dotimecalib)
       {
-        std::cout << "CaloTowerCalib:InitRun Found " << m_calibName_time << " doing time calibration" << std::endl;
-      }
-    }
-    else
-    {
-      m_dotimecalib = false;
-      if (Verbosity() > 0)
-      {
-        std::cout << "CaloTowerCalib::InitRun no timing info, " << m_calibName_time << " not found, not doing time calibration" << std::endl;
+        std::cerr << "CaloWaveformSim::InitRun No time calibration for " << m_calibName_time << std::endl;
+        exit(1);
       }
     }
   }
-  m_waveforms.resize(m_nchannels);
-  for (auto &waveform : m_waveforms)
+  if (m_dotimecalib) cdbttree_time = new CDBTTree(url);
+  if (Verbosity() > 0 && m_dotimecalib)
+    std::cout << "CaloWaveformSim::InitRun Time calibration from " << url << std::endl;
+
+  // Time calibration (MC)
+  if (!m_overrideMCTimeCalibName) m_MC_calibName_time = m_detector + "_MC_meanTime";
+  if (m_giveDirectURL_MC_time)
   {
-    waveform.resize(m_nsamples);
+    url = m_directURL_MC_time;
+    cdbttree_MC_time = new CDBTTree(url);
+  }
+  else
+  {
+    url = CDBInterface::instance()->getUrl(m_MC_calibName_time);
+    if (!url.empty())
+    {
+      cdbttree_MC_time = new CDBTTree(url);
+    }
+    else if (m_dotimecalib)
+    {
+      std::cerr << "CaloWaveformSim::InitRun No MC time calibration for " << m_MC_calibName_time << std::endl;
+      exit(1);
+    }
   }
 
+  // Prepare waveform buffers
+  m_waveforms.assign(m_nchannels, std::vector<float>(m_nsamples));
+
+  // Create node tree and finish
   CreateNodeTree(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -329,11 +275,19 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
     ADC *= m_gain;
 
-    float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
+    if(cdbttree_MC)
+    {
+      float MC_calibconst = cdbttree_MC->GetFloatValue(key, m_MC_fieldname);
+      ADC *= MC_calibconst;
+    }
+
     // if we have a tower by tower mean time, we shift the simulated waveform peak to that accordingly
     if (m_dotimecalib)
-    {
-      _shiftval = meantime + shift_of_shift;
+    { 
+      float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
+      float MCmeantime = cdbttree_MC_time->GetFloatValue(key, m_MC_fieldname_time);
+      assert(m_peakpos == 6); // the MC mean time is derived when m_peakpos is set to 6
+      _shiftval = m_peakpos + shift_of_shift - f_fit->GetMaximumX() + meantime - MCmeantime;
     }
 
     float t0 = hit->get_t(0) / m_sampletime;
