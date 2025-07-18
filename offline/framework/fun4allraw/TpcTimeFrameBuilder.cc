@@ -1114,7 +1114,7 @@ TpcTimeFrameBuilder::DigitalCurrentDebugTTree::DigitalCurrentDebugTTree(const st
   assert(m_tDigitalCurrent);
   
   m_tDigitalCurrent->Branch("dc", &m_payload, 
-    "fee/s:channel/s:sampa_address/s:bx_timestamp/i:pkt_length/s:current[8]/i:nsamples[8]/i:data_crc/s:calc_crc/s");
+    "fee/s:pkt_length/s:channel/s:sampa_address/s:bx_timestamp/i:current[8]/i:nsamples[8]/i:data_crc/s:calc_crc/s");
 }
 
 TpcTimeFrameBuilder::DigitalCurrentDebugTTree::~DigitalCurrentDebugTTree()
