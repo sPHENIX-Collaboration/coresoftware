@@ -122,8 +122,13 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
     {
       if (calopacket->getStatus() != OfflinePacket::PACKET_OK)
       {
-        std::cout << "ClockDiffCheck: packet " << iter << " marked as dropped. Skipping diff check " << count << std::endl;
-        std::get<1>(m_PacketStuffMap[std::stoi(iter)]) = std::numeric_limits<uint64_t>::max();
+        static int npacketprnt = 0;
+        if ( npacketprnt < 100)
+        {
+          std::cout << "packet " << calopacket->getIdentifier() << " status marked as " << calopacket->getStatus() << ". Skipping diff check " << count << std::endl;
+          npacketprnt++;
+        }
+        std::get<1>(m_PacketStuffMap[calopacket->getIdentifier()]) = std::numeric_limits<uint64_t>::max();
         continue;
       }
       FillCaloClockDiffSngl(calopacket);
@@ -311,12 +316,14 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
       }
     }
     bool FemClockOk = CheckFemEventNr(calopacket);
-    if (delBadPkts && !FemClockOk)
+    if (!FemClockOk)
     {
-      if (Verbosity() > 1)
+      static int icnt = 0;
+      if (icnt < 100)
       {
-        std::cout << "ClockDiffCheck: " << "resetting packet " << calopacket->getIdentifier()
-                  << " with fem event and clock mismatch" << std::endl;
+        std::cout << "FemClockOk failed. Resetting packet " << calopacket->getIdentifier()
+          << " with fem event and clock mismatch" << std::endl;
+        icnt++;
       }
       calopacket->Reset();
     }
@@ -347,9 +354,9 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
       std::cout << "ClockDiffCheck: " << "Add tuple for " << packetid << std::endl;
       auto &pktiter = m_PacketStuffMap[packetid];
       std::cout << PHWHERE << "packet init " << packetid << std::hex
-                << ", clk: " << std::get<1>(pktiter)
-                << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
-                << std::endl;
+        << ", clk: " << std::get<1>(pktiter)
+        << ", clkdiff: " << std::get<2>(pktiter) << std::dec << ", valid: " << std::get<4>(pktiter)
+        << std::endl;
     }
   }
   else
@@ -370,7 +377,7 @@ void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
       std::get<2>(pktiter) = clkdiff;
       std::get<4>(pktiter) = true;
     }
-
+    
     if (Verbosity() > 2)
     {
       std::cout << "ClockDiffCheck: " << "packet " << packetid << ", clk: " << std::hex << clk
