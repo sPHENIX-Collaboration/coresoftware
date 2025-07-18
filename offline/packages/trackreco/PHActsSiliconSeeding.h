@@ -76,6 +76,7 @@ class PHActsSiliconSeeding : public SubsysReco
   {
     m_inttzSearchWin = win;
   }
+
   void setmvtxRPhiSearchWindow(const float win)
   {
     m_mvtxrPhiSearchWin = win;
@@ -154,6 +155,11 @@ class PHActsSiliconSeeding : public SubsysReco
   void minpt(const float pt)
   {
     m_minSeedPt = pt;
+  }
+
+  void removeMVTXdisplacement(bool decision = true)
+  {
+    m_removeMVTXdisplacement = decision;
   }
 
   /// A function to run the seeder with large (true)
@@ -303,8 +309,8 @@ class PHActsSiliconSeeding : public SubsysReco
  double m_maxSeedPCA = 2.;
 
 
-  /// Search window for phi to match intt clusters in cm
-  double m_inttrPhiSearchWin = 0.1;
+  /// Search window for phi to match intt clusters in rad
+  double m_inttrPhiSearchWin = 0.06;
   float m_inttzSearchWin = 0.8;  // default to a half strip width
   double m_mvtxrPhiSearchWin = 0.2;
   float m_mvtxzSearchWin = 0.5;
@@ -319,6 +325,9 @@ class PHActsSiliconSeeding : public SubsysReco
  int m_nIteration = 0;
  std::string _track_map_name = "SiliconTrackSeedContainer";
  ClusterErrorPara _ClusErrPara;
+
+ //Remove the MVTX offset for the triplet finding in ACTS
+ bool m_removeMVTXdisplacement = false;
 
  bool m_seedAnalysis = false;
  TFile *m_file = nullptr;
