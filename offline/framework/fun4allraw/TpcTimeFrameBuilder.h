@@ -123,6 +123,9 @@ class TpcTimeFrameBuilder
   {
     static const int MAX_CHANNELS = 8;
 
+    uint64_t gtm_bco {std::numeric_limits<uint64_t>::max()};
+    uint32_t bx_timestamp_predicted {std::numeric_limits<uint32_t>::max()};
+
     uint16_t fee {std::numeric_limits<uint16_t>::max()};
     uint16_t pkt_length {std::numeric_limits<uint16_t>::max()};
     uint16_t channel {std::numeric_limits<uint16_t>::max()};
@@ -241,6 +244,10 @@ class TpcTimeFrameBuilder
     //! cleanup
     void cleanup(uint64_t /*ref_bco*/);
 
+    m_gtm_fee_bco_matching_pair_t find_dc_read_bco() const
+    {
+      return m_gtm_bco_dc_read;
+    }
     //@}
 
     /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
@@ -268,7 +275,8 @@ class TpcTimeFrameBuilder
     enum ModeBitType
     {
       BX_COUNTER_SYNC_T = 0x1,
-      ELINK_HEARTBEAT_T = 0x2
+      ELINK_HEARTBEAT_T = 0x2,
+      DC_STOP_SEND_T = 0x7
       // SAMPA_EVENT_TRIGGER_T = 2,
       // CLEAR_LV1_LAST_T = 6,
       // CLEAR_LV1_ENDAT_T = 7
@@ -304,6 +312,9 @@ class TpcTimeFrameBuilder
 
     //! list of available bco, sorted in time with rollover corrected
     std::list<uint64_t> m_gtm_bco_trig_list;
+
+    //! last digital current readout GTM BCO
+    m_gtm_fee_bco_matching_pair_t m_gtm_bco_dc_read = {0, 0};
 
     //! list of available GTM -> FEE bco mapping for synchronization
     std::optional<m_gtm_fee_bco_matching_pair_t> m_bco_reference = std::nullopt;

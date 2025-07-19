@@ -63,6 +63,7 @@ TpcTimeFrameBuilder::TpcTimeFrameBuilder(const int packet_id)
   m_hNorm->GetXaxis()->SetBinLabel(i++, "DMA_WORD_INVALID");
 
   m_hNorm->GetXaxis()->SetBinLabel(i++, "DMA_WORD_GTM_HEARTBEAT");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "DMA_WORD_GTM_DC_STOP_SEND");
 
   m_hNorm->GetXaxis()->SetBinLabel(i++, "TimeFrameSizeLimitError");
 
@@ -1062,6 +1063,10 @@ void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int & 
     // continue;
   }
 
+  assert(fee < m_bcoMatchingInformation_vec.size());
+  BcoMatchingInformation& m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
+  {payload.gtm_bco, payload.bx_timestamp_predicted } = m_bcoMatchingInformation.find_dc_read_bco();
+
   if (m_verbosity>2)
   {
     cout << __PRETTY_FUNCTION__ << "\t- : received digital current packet "
@@ -1069,7 +1074,9 @@ void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int & 
          << "\t- pkt_length = " << pkt_length << endl
          << "\t- sampa_address = " << payload.sampa_address << endl
          << "\t- channel = " << payload.channel << endl
-         << "\t- bx_timestamp = 0x" << hex << payload.bx_timestamp << dec << endl;
+         << "\t- bx_timestamp = 0x" << hex << payload.bx_timestamp << dec << endl
+         << "\t- gtm_bco = 0x" << hex << payload.gtm_bco << dec << endl
+         << "\t- bx_timestamp_predicted = 0x" << hex << payload.bx_timestamp_predicted << dec << endl;
     cout << "\t- current:" ;
     for (int ich = 0; ich < digital_current_payload::MAX_CHANNELS; ich++)
     {
@@ -1116,7 +1123,7 @@ TpcTimeFrameBuilder::DigitalCurrentDebugTTree::DigitalCurrentDebugTTree(const st
   assert(m_tDigitalCurrent);
   
   m_tDigitalCurrent->Branch("dc", &m_payload, 
-    "fee/s:pkt_length/s:channel/s:sampa_address/s:bx_timestamp/i:current[8]/i:nsamples[8]/i:data_crc/s:calc_crc/s");
+    "gtm_bco/l:bx_timestamp_predicted/i:fee/s:pkt_length/s:channel/s:sampa_address/s:bx_timestamp/i:current[8]/i:nsamples[8]/i:data_crc/s:calc_crc/s");
 }
 
 TpcTimeFrameBuilder::DigitalCurrentDebugTTree::~DigitalCurrentDebugTTree()
@@ -1188,6 +1195,16 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
       assert(m_hNorm);
       m_hNorm->Fill("DMA_WORD_GTM_HEARTBEAT", 1);
     }
+
+    if (payload.modebits == BcoMatchingInformation::DC_STOP_SEND_T)
+    {
+      if (m_verbosity > 2)
+      {
+        cout << "\t- (DC stop send modebit)" << endl;
+      }
+      assert(m_hNorm);
+      m_hNorm->Fill("DMA_WORD_GTM_DC_STOP_SEND", 1);
+    }
   }
 
   if (not(m_fastBCOSkip and (payload.is_lvl1 or payload.is_endat)))
@@ -1213,11 +1230,6 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
 
   return 0;
 }
-
-
-
-
-
 
 uint16_t TpcTimeFrameBuilder::reverseBits(const uint16_t x) const
 {
@@ -1344,6 +1356,7 @@ TpcTimeFrameBuilder::BcoMatchingInformation::BcoMatchingInformation(const std::s
                      20, .5, 20.5);
   int i = 1;
   m_hNorm->GetXaxis()->SetBinLabel(i++, "SyncGTM");
+  m_hNorm->GetXaxis()->SetBinLabel(i++, "DC_STOP_SEND_GTM");
   m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatGTM");
   m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatFEE");
   m_hNorm->GetXaxis()->SetBinLabel(i++, "HeartBeatFEEMatchedReference");
@@ -1520,6 +1533,10 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::print_gtm_bco_information() co
           << std::endl;
     }
   }
+
+  std::cout <<"\t m_gtm_bco_dc_read = " << std::hex 
+    << m_gtm_bco_dc_read.first <<" -> 0x" << m_gtm_bco_dc_read.second 
+    << std::dec << std::endl;
 }
 
 uint64_t TpcTimeFrameBuilder::BcoMatchingInformation::
@@ -1669,6 +1686,31 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
       {
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_reference_from_modebits"
                   << "\t- found reference from modebits BX_COUNTER_SYNC_T "
+                  << "at gtm_bco = 0x" << hex << gtm_bco << dec
+                  << std::endl;
+      }
+    } //     if (modebits == BX_COUNTER_SYNC_T)  // initiate synchronization of clock sync
+
+    if (modebits == DC_STOP_SEND_T)
+    {
+      assert(m_hNorm);
+      m_hNorm->Fill("DC_STOP_SEND_GTM", 1);
+
+      // save the gtm_bco for the digital current readout
+      m_gtm_bco_dc_read.first = gtm_bco;
+      if (is_verified())
+      {
+        m_gtm_bco_dc_read.second = get_predicted_fee_bco(gtm_bco).value();
+      }
+      else
+      {
+        m_gtm_bco_dc_read.second = 0;  // not verified, so no reference clock sync available
+      }
+
+      if (m_verbosity > 2)
+      {
+        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::save_gtm_bco_information"
+                  << "\t- found DC stop send modebit "
                   << "at gtm_bco = 0x" << hex << gtm_bco << dec
                   << std::endl;
       }
