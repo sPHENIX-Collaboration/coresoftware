@@ -30,7 +30,6 @@ class CaloTowerBuilder : public SubsysReco
   void CreateNodeTree(PHCompositeNode *topNode);
 
   int process_data(PHCompositeNode *topNode, std::vector<std::vector<float>> &waveforms);
-  
 
   void set_detector_type(CaloTowerDefs::DetectorSystem dettype)
   {
@@ -82,7 +81,7 @@ class CaloTowerBuilder : public SubsysReco
   {
     m_UseOfflinePacketFlag = f;
   }
-  void set_timeFitLim(float low,float high)
+  void set_timeFitLim(float low, float high)
   {
     m_setTimeLim = true;
     m_timeLim_low = low;
@@ -107,9 +106,9 @@ class CaloTowerBuilder : public SubsysReco
     m_zs_fieldname = fieldname;
     return;
   }
-  
-  CaloWaveformProcessing *get_WaveformProcessing() {return WaveformProcessing;}
-  
+
+  CaloWaveformProcessing *get_WaveformProcessing() { return WaveformProcessing; }
+
  private:
   int process_sim();
   bool skipChannel(int ich, int pid);
@@ -151,7 +150,6 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_directURL;
   std::string m_zsURL;
   std::string m_zs_fieldname{"zs_threshold"};
-
 };
 
 #endif  // CALOTOWERBUILDER_H

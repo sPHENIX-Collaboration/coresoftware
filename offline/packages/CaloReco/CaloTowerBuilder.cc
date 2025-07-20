@@ -138,20 +138,19 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     {
       WaveformProcessing->set_processing_type(CaloWaveformProcessing::TEMPLATE);  // default the EPD to fast processing
     }
-      
+
     m_calibName = "SEPD_CHANNELMAP2";
     m_fieldname = "epd_channel_map2";
-        
+
     calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
     if (calibdir.empty())
     {
-        std::cout << PHWHERE << "No sEPD mapping file for domain " << m_calibName << " found" << std::endl;
-         exit(1);
+      std::cout << PHWHERE << "No sEPD mapping file for domain " << m_calibName << " found" << std::endl;
+      exit(1);
     }
-        
-    cdbttree_sepd_map = new CDBTTree(calibdir);
 
+    cdbttree_sepd_map = new CDBTTree(calibdir);
   }
   else if (m_dettype == CaloTowerDefs::ZDC)
   {
@@ -363,8 +362,11 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode, std::vector<std::ve
       }
 
       int nch_padded = nchannels;
-      if (m_dettype == CaloTowerDefs::CEMC) nch_padded += n_pad_skip_mask;
-      if ( nch_padded  < m_nchannels)
+      if (m_dettype == CaloTowerDefs::CEMC)
+      {
+        nch_padded += n_pad_skip_mask;
+      }
+      if (nch_padded < m_nchannels)
       {
         for (int channel = 0; channel < m_nchannels - nch_padded; channel++)
         {
@@ -462,31 +464,26 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
   for (int i = 0; i < n_channels; i++)
   {
     int idx = i;
-    //Align sEPD ADC channels to TowerInfoContainer
+    // Align sEPD ADC channels to TowerInfoContainer
     if (m_dettype == CaloTowerDefs::SEPD)
     {
-        idx = cdbttree_sepd_map->GetIntValue(i, m_fieldname);
+      idx = cdbttree_sepd_map->GetIntValue(i, m_fieldname);
     }
     TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
     towerinfo->set_time(processed_waveforms.at(idx).at(1));
     towerinfo->set_energy(processed_waveforms.at(idx).at(0));
     towerinfo->set_time_float(processed_waveforms.at(idx).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(idx).at(2));
-    bool SZS{true};
-    
-    if (_processingtype != CaloWaveformProcessing::ONNX)
-     {
-       towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
-       SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));
-       if (processed_waveforms.at(idx).at(4) == 0)
-       {
-     	towerinfo->set_isRecovered(false);
-       }
-       else
-       {
-     	towerinfo->set_isRecovered(true);
-       }
-     }
+    towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
+    bool SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));
+    if (processed_waveforms.at(idx).at(4) == 0)
+    {
+      towerinfo->set_isRecovered(false);
+    }
+    else
+    {
+      towerinfo->set_isRecovered(true);
+    }
     int n_samples = waveforms.at(idx).size();
     if (n_samples == m_nzerosuppsamples || SZS)
     {
