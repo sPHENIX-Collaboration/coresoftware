@@ -25,6 +25,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <tuple>   // For std::tie
 
 using namespace std;
 
@@ -1065,7 +1066,7 @@ void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int & 
 
   assert(fee < m_bcoMatchingInformation_vec.size());
   BcoMatchingInformation& m_bcoMatchingInformation = m_bcoMatchingInformation_vec[fee];
-  {payload.gtm_bco, payload.bx_timestamp_predicted } = m_bcoMatchingInformation.find_dc_read_bco();
+  std::tie(payload.gtm_bco, payload.bx_timestamp_predicted) = m_bcoMatchingInformation.find_dc_read_bco();
 
   if (m_verbosity>2)
   {
@@ -1077,6 +1078,7 @@ void TpcTimeFrameBuilder::process_fee_data_digital_current(const unsigned int & 
          << "\t- bx_timestamp = 0x" << hex << payload.bx_timestamp << dec << endl
          << "\t- gtm_bco = 0x" << hex << payload.gtm_bco << dec << endl
          << "\t- bx_timestamp_predicted = 0x" << hex << payload.bx_timestamp_predicted << dec << endl;
+
     cout << "\t- current:" ;
     for (int ich = 0; ich < digital_current_payload::MAX_CHANNELS; ich++)
     {
