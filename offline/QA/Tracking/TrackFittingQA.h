@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <limits>
 
 class TH1;
 class PHCompositeNode;
@@ -19,6 +20,7 @@ class TrackFittingQA : public SubsysReco
   /// Cuts (bounds are inclusive, e.g. set_min_intt_states(2) means 1 state tracks are ignored, while 2 state tracks are kept)
   /// Defaults are all-inclusive
   void set_min_quality ( float const& min_quality ) { m_min_quality = min_quality; }
+  void set_max_quality ( float const& max_quality ) { m_max_quality = max_quality; }
   void set_min_p ( float const& min_p ) { m_min_p = min_p; }
   void set_min_pt ( float const& min_pt ) { m_min_pt = min_pt; }
   void set_max_abs_eta ( float const& max_abs_eta ) { m_max_abs_eta = max_abs_eta; }
@@ -26,6 +28,8 @@ class TrackFittingQA : public SubsysReco
   void set_min_mvtx_states ( int const& min_mvtx_states ) { m_min_mvtx_states = min_mvtx_states; }
   void set_min_tpc_states ( int const& min_tpc_states ) { m_min_tpc_states = min_tpc_states; }
   void set_min_tpot_states ( int const& min_tpot_states ) { m_min_tpot_states = min_tpot_states; }
+  void set_min_crossing ( short const& min_crossing ) { m_min_crossing = min_crossing; }
+  void set_max_crossing ( short const& max_crossing ) { m_max_crossing = max_crossing; }
 
   /// sets the name of node to retrieve the track map from (default member value is "SvtxTrackMap")
   void set_track_map_name(std::string const& track_map_node_name) { m_track_map_node_name = track_map_node_name; }
@@ -63,13 +67,16 @@ class TrackFittingQA : public SubsysReco
 
   /// Cuts
   float m_min_quality{0};
+  float m_max_quality{std::numeric_limits<float>::max()};
   float m_min_p{0};
   float m_min_pt{0};
-  float m_max_abs_eta{1.2};
+  float m_max_abs_eta{std::numeric_limits<float>::max()};
   int m_min_intt_states{0};
   int m_min_mvtx_states{0};
   int m_min_tpc_states{0};
   int m_min_tpot_states{0};
+  short m_min_crossing{0};
+  short m_max_crossing{std::numeric_limits<short>::max()};
 };
 
 #endif  // TRACKFITTINGQA_H
