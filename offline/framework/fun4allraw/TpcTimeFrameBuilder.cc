@@ -1963,14 +1963,16 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
 
         const int fee_bco_diff = (iter2 != m_gtm_bco_trig_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
 
-        std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - match failed!"
-                  << std::hex
-                  << "\t- fee_bco: 0x" << fee_bco
-                  << std::dec
-                  << "\t- gtm_bco: 0x" << *iter2
-                  << "\t- difference: " << fee_bco_diff
-                  << std::endl;
-
+        if (m_verbosity >=2)
+        {
+          std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::find_gtm_bco - match failed!"
+                    << std::hex
+                    << "\t- fee_bco: 0x" << fee_bco
+                    << std::dec
+                    << "\t- gtm_bco: 0x" << *iter2
+                    << "\t- difference: " << fee_bco_diff
+                    << std::endl;
+        }
       }  //       if ((new_orphan and verbosity()) or (verbosity()>3))
 
       if (verbosity() > 3)
