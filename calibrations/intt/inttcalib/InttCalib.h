@@ -89,10 +89,10 @@ class InttCalib : public SubsysReco
   double m_NUM_SIGMA_HOT{5.0};
   double m_NUM_SIGMA_COLD{3.0};
   int m_FELIX_TARGET{-1};
-  double m_min_hitrate{0.0};
-  double m_min_fraction{0.0};
-  double m_max_hitrate{0.0};
-  double m_max_fraction{0.0};
+  // double m_min_hitrate{0.0};
+  // double m_min_fraction{0.0};
+  // double m_max_hitrate{0.0};
+  // double m_max_fraction{0.0};
 
   std::string m_hotmap_cdb_file;
   std::string m_hotmap_png_file;
