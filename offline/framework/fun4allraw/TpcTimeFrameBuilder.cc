@@ -204,10 +204,10 @@ bool TpcTimeFrameBuilder::isMoreDataRequired(const uint64_t& gtm_bco) const
 {
   for (const BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
   {
-    if (not bcoMatchingInformation.is_verified())
-    {
-      continue;
-    }
+    // if (not bcoMatchingInformation.is_verified())
+    // {
+    //   continue;
+    // }
 
     if (bcoMatchingInformation.isMoreDataRequired(gtm_bco))
     {
@@ -1171,9 +1171,9 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
   payload.modebits = gtm[22];
   payload.userbits = gtm[23];
 
-  if (m_verbosity > 2)
+  if (m_verbosity >= 2)
   {
-    cout << "\t- GTM data : "
+    cout << __PRETTY_FUNCTION__ << "\t- GTM data : "
          << "\t- pkt_type = " << payload.pkt_type << endl
          << "\t- is_lvl1 = " << payload.is_lvl1 << endl
          << "\t- is_endat = " << payload.is_endat << endl
@@ -1419,11 +1419,19 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
 {
   const uint64_t bco_correction = get_gtm_rollover_correction(gtm_bco);
 
+  if (m_verbosity>=2)
+  {
+    std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired entry"
+              << " at gtm_bco = 0x" << hex << gtm_bco << dec
+              << " bco_correction = 0x" << hex << bco_correction << dec
+              << std::endl;
+  }
+
   if (m_bco_reference)
   {
     if (m_bco_reference.value().first > bco_correction + m_max_fee_sync_time)
     {
-      if (m_verbosity > 2)
+      if (m_verbosity >= 2)
       {
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
                   << " at gtm_bco = 0x" << hex << gtm_bco << dec
@@ -1441,7 +1449,7 @@ bool TpcTimeFrameBuilder::BcoMatchingInformation::isMoreDataRequired(const uint6
   {
     if (m_bco_reference_candidate_list.back().first > bco_correction + m_max_fee_sync_time)
     {
-      if (m_verbosity > 2)
+      if (m_verbosity >= 2)
       {
         std::cout << "TpcTimeFrameBuilder[" << m_name << "]::BcoMatchingInformation::isMoreDataRequired"
                   << "at gtm_bco = 0x" << hex << gtm_bco << dec
