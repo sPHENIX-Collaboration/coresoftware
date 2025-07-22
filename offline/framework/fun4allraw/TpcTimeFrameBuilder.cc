@@ -550,7 +550,6 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
          << "\t- in packet " << m_packet_id << ". Data length: " << data_length
          << ", data padding: " << data_padding <<". Ignore this packet: "<< endl;
     packet->identify();
-    assert(l2 >= 0);
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
   l2 -= data_padding;
