@@ -17,7 +17,7 @@ dnl  ;;
 dnl esac
 
 if test $ac_cv_prog_gxx = yes; then
-     CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wextra -Werror"
+     CXXFLAGS="$CXXFLAGS -fopenmp -Wall -Wshadow -Wextra -Werror"
 fi
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
