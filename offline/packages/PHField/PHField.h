@@ -10,9 +10,11 @@ class PHField
   //! constructor
   explicit PHField(const int verb = 0)
     : m_Verbosity(verb)
-  {
-  }
-  virtual ~PHField() {}
+  {}
+
+  //! destructor
+  virtual ~PHField() = default;
+
   //! access field value
   //! Follow the convention of G4ElectroMagneticField
   //! @param[in]  Point   space time coordinate. x, y, z, t in Geant4/CLHEP units
@@ -21,11 +23,23 @@ class PHField
       const double Point[4],
       double *Bfield) const = 0;
 
+  //! un-cached version of field accessor.
+  /* used for multi-threading. By default, the same as GetFieldValue */
+  virtual void GetFieldValue_nocache(
+      const double Point[4],
+      double *Bfield) const
+  { return GetFieldValue( Point, Bfield ); }
+
+  //! verbosity
   void Verbosity(const int i) { m_Verbosity = i; }
+
+  //! verbosity
   int Verbosity() const { return m_Verbosity; }
 
  protected:
-  int m_Verbosity;
+
+  //! verbosity
+  int m_Verbosity = 0;
 };
 
 #endif
