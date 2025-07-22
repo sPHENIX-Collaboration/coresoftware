@@ -525,7 +525,9 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   if (data_padding != 0)
   {
     cout << __PRETTY_FUNCTION__ << "\t- : Warning : suspecious padding "
-         << data_padding << "\t- in packet " << m_packet_id << endl;
+         << data_padding << "\t- in packet " << m_packet_id <<":" << endl;
+    packet->identify();
+    // packet->dump();
   }
 
   size_t dma_words_buffer = static_cast<size_t>(data_length) * 2 / DAM_DMA_WORD_LENGTH + 1;
@@ -533,8 +535,26 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 
   int l2 = 0;
   packet->fillIntArray(reinterpret_cast<int*>(buffer.data()), data_length + DAM_DMA_WORD_LENGTH / 2, &l2, "DATA");
+  
+  if (data_padding != 0)
+  {
+    cout << __PRETTY_FUNCTION__ << "\t- :  data_length = " << data_length
+         << "\t- data_padding = " << data_padding <<"\t l2 = "<<l2 << "\t- in packet " << m_packet_id <<":" << endl;
+  }
+
   assert(l2 <= data_length);
+
+  if(l2 < data_padding)
+  {
+    cout << __PRETTY_FUNCTION__ << "\t- : Error : l2 from fillIntArray() is smaller than padding suggesting an invalid data: " << l2
+         << "\t- in packet " << m_packet_id << ". Data length: " << data_length
+         << ", data padding: " << data_padding <<". Ignore this packet: "<< endl;
+    packet->identify();
+    assert(l2 >= 0);
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
   l2 -= data_padding;
+
   assert(l2 >= 0);
 
   size_t dma_words = static_cast<size_t>(l2) * 2 / DAM_DMA_WORD_LENGTH;
