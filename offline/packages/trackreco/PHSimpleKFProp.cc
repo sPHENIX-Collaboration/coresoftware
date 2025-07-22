@@ -151,7 +151,15 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z) const
   }
   double p[4] = {x * cm, y * cm, z * cm, 0. * cm};
   double bfield[3];
-  _field_map->GetFieldValue(p, bfield);
+
+  // check thread number. Use uncached field accessor for all but thread 0.
+  if( omp_get_thread_num() == 0 )
+  {
+    _field_map->GetFieldValue(p, bfield);
+  } else {
+    _field_map->GetFieldValue_nocache(p, bfield);
+  }
+
   /*  Acts::Vector3 loc(0,0,0);
   int mfex = (magField != nullptr);
   int tgex = (m_tGeometry != nullptr);
