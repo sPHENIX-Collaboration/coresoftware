@@ -56,7 +56,7 @@ class HCalCosmics : public SubsysReco
   TFile *outfile{nullptr};
   TH1 *h_channel_hist[n_etabin][n_phibin]{{nullptr}};   // distribution of tower energy
   TH1 *h_adc_hist[n_etabin][n_phibin]{{nullptr}};       // distribuiton of raw tower ADC with topo cuts in ADC
-  TH1 *h_adc_ecut_hist[n_etabin][n_phibin]{nullptr};    // distribution of raw tower ADC with topo cuts in energy
+  TH1 *h_adc_ecut_hist[n_etabin][n_phibin]{{nullptr}};    // distribution of raw tower ADC with topo cuts in energy
   TH1 *h_gain_hist[n_etabin][n_phibin]{{nullptr}}; // distribution of gain per tower
   TH2 *h_waveformchi2{nullptr}; 
   TH2 *h_waveformchi2_aftercut{nullptr};
