@@ -8,6 +8,8 @@
 
 #include "ALICEKF.h"
 
+#include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
@@ -72,12 +74,8 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
   PHFieldConfigv1 fcfg;
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
 
-  char *calibrationsroot = getenv("CALIBRATIONROOT");
-  assert(calibrationsroot);
-
-  auto magField = std::string(calibrationsroot) +
-    std::string("/Field/Map/sphenix3dtrackingmapxyz.root");
-
+  // load magnetic field map from CDB
+  auto magField = CDBInterface::instance()->getUrl("FIELDMAP_TRACKING");
   fcfg.set_filename(magField);
 
   // compare field config from that on node tree
