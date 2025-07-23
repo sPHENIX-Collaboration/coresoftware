@@ -49,6 +49,13 @@ PrelimDistortionCorrection::PrelimDistortionCorrection(const std::string& name)
   : SubsysReco(name)
 {}
 
+//______________________________________________________
+PrelimDistortionCorrection::~PrelimDistortionCorrection()
+{
+  if( m_own_fieldmap )
+  { delete _field_map; }
+}
+
 //___________________________________________________________________________________________
 int PrelimDistortionCorrection::End(PHCompositeNode* /*unused*/)
 {
@@ -73,10 +80,25 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
 
   fcfg.set_filename(magField);
 
-  //  fcfg.set_rescale(1);
-  _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
+  // compare field config from that on node tree
+  /*
+   * if the magnetic field is already on the node tree PHFieldUtility::GetFieldConfigNode returns the existing configuration.
+   * One must then check wheter the two configurations are identical, to decide whether one must use the field from node tree or create our own.
+   * Otherwise the configuration passed as argument is stored on the node tree.
+   */
+  const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
+  if( fcfg == *node_fcfg )
+  {
+    // both configurations are identical, use field map from node tree
+    std::cout << "PrelimDistortionCorrection::InitRun - using field map found from node tree" << std::endl;
+    _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+  } else {
+    // both configurations differ. Use our own field map
+    std::cout << "PrelimDistortionCorrection::InitRun - using own field map" << std::endl;
+    _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+  }
 
-  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map.get(), _fieldDir,
+  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map, _fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
@@ -318,7 +340,7 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
       {
 	continue;   // ALICEKalmanFilter can drop clusters. Seeds require at least 3 clusters for circle fit
       }
-    
+
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
     TrackSeedHelper::circleFitByTaubin(&seed,positions, 7, 55);
