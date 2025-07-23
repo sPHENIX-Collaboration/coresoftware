@@ -133,11 +133,12 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
     // both configurations are identical, use field map from node tree
     std::cout << "PHSimpleKFProp::InitRun - using node tree field map" << std::endl;
     _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+    m_own_fieldmap = false;
   } else {
     // both configurations differ. Use our own field map
     std::cout << "PHSimpleKFProp::InitRun - using own field map" << std::endl;
     _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
-
+    m_own_fieldmap = true;
   }
 
   // alice kalman filter
