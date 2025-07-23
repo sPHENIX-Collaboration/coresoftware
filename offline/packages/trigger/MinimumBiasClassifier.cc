@@ -114,6 +114,13 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     std::cout << "Getting Vertex" << std::endl;
   }
 
+  // set defaults
+  m_MinBiasParams.set_int_param("minbias_background_cut_fail", false);
+  m_MinBiasParams.set_int_param("minbias_two_hit_min_fail", false);
+  m_MinBiasParams.set_int_param("minbias_zdc_energy_min_fail", false);
+  m_MinBiasParams.set_int_param("minbias_mbd_total_energy_max_fail", false);
+  m_MinBiasParams.UpdateNodeTree(m_parNode, "MinBiasParams");
+
   // if (!m_global_vertex_map)
   // {
   //   m_mb_info->setIsAuAuMinimumBias(false);
@@ -164,12 +171,6 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       return Fun4AllReturnCodes::EVENT_OK;
     }
   }
-
-  // set defaults
-  m_MinBiasParams.set_int_param("minbias_background_cut_fail", false);
-  m_MinBiasParams.set_int_param("minbias_two_hit_min_fail", false);
-  m_MinBiasParams.set_int_param("minbias_zdc_energy_min_fail", false);
-  m_MinBiasParams.set_int_param("minbias_mbd_total_energy_max_fail", false);
 
   //  Z vertex is within range
   if (std::fabs(m_vertex) > m_z_vtx_cut && minbiascheck)
