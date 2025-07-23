@@ -128,11 +128,10 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
    * Otherwise the configuration passed as argument is stored on the node tree.
    */
   const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
-
   if( fcfg == *node_fcfg )
   {
     // both configurations are identical, use field map from node tree
-    std::cout << "PHSimpleKFProp::InitRun - using field map found from node tree" << std::endl;
+    std::cout << "PHSimpleKFProp::InitRun - using node tree field map" << std::endl;
     _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
   } else {
     // both configurations differ. Use our own field map

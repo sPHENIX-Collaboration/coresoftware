@@ -119,6 +119,7 @@ class PHSimpleKFProp : public SubsysReco
 
   TrackSeedContainer* _track_map = nullptr;
 
+  //! magnetic field map
   PHField* _field_map = nullptr;
   bool m_own_fieldmap = false;
 
