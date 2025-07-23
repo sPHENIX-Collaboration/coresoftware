@@ -13,12 +13,12 @@
 /* #define _PHCASEEDING_CHAIN_FORKS_ */
 /* #define _PHCASEEDING_TIMER_OUT_ */
 
-#include "ALICEKF.h"
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
 
 #include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <phool/PHTimer.h>  // for PHTimer
 
@@ -266,8 +266,6 @@ class PHCASeeding : public PHTrackSeeding
 
   /// global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
-
-  std::unique_ptr<ALICEKF> fitter;
 
   std::unique_ptr<PHTimer> t_seed;
   std::unique_ptr<PHTimer> t_fill;
