@@ -147,7 +147,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
   std::pair<PositionMap, keyListPerLayer> FillGlobalPositions();
 
   std::vector<std::vector<Triplet>> CreateLinks(const PHCASiliconSeeding::PositionMap& globalPositions, const PHCASiliconSeeding::keyListPerLayer& ckeys);
-  std::vector<keyList> FollowLinks(std::vector<std::vector<Triplet>> triplets);
+  std::vector<keyList> FollowLinks(const std::vector<std::vector<Triplet>>& triplets);
   std::vector<coordKey> FillTree(bgi::rtree<pointKey, bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
   int FindSeeds(const PositionMap&, const keyListPerLayer&);
 
@@ -168,7 +168,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
   /// acts geometry
   ActsGeometry* m_tGeometry{nullptr};
 
-  std::string _track_map_name = "SiliconTrackSeedContainer"; 
+  std::string trackmapname = "SiliconTrackSeedContainer"; 
   TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   TrkrClusterCrossingAssoc *m_clusterCrossingMap = nullptr;

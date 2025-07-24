@@ -632,7 +632,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
   return triplets;
 }
 
-std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(std::vector<std::vector<PHCASiliconSeeding::Triplet>> triplets)
+std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const std::vector<std::vector<PHCASiliconSeeding::Triplet>>& triplets)
 {
   std::vector<keyList> finishedSeeds;
   std::vector<keyList> growingSeeds;
@@ -1164,7 +1164,7 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
   {
     std::cout << "topNode:" << topNode << std::endl;
   }
-  PHTrackSeeding::set_track_map_name(_track_map_name);
+  PHTrackSeeding::set_track_map_name(trackmapname);
   PHTrackSeeding::Setup(topNode);
 
   // geometry initialization
