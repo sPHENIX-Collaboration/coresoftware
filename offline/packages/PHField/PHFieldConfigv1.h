@@ -81,7 +81,7 @@ class PHFieldConfigv1 : public PHFieldConfig
   }
 
   //! equal to operator, to base class
-  bool operator == (const PHFieldConfig& ) const;
+  bool operator == (const PHFieldConfig& ) const override;
 
  protected:
   FieldConfigTypes field_config_;
