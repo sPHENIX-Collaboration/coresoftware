@@ -6,7 +6,6 @@
  */
 
 #include "PHCASeeding.h"
-#include "ALICEKF.h"
 #include "GPUTPCTrackLinearisation.h"
 #include "GPUTPCTrackParam.h"
 
@@ -22,8 +21,6 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
-#include <phfield/PHFieldConfigv2.h>
-
 #include <ffamodules/CDBInterface.h>
 
 // trackbase_historic includes
@@ -35,7 +32,6 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/TrackSeed_v2.h>
 
 // ROOT includes for debugging
 #include <TFile.h>
@@ -137,7 +133,7 @@ namespace
   }
 
   // note: assumes that a and b are in same range of phi;
-  // this will fail if a\in[-2 pi,0] and b\in[0,2 pi] 
+  // this will fail if a\in[-2 pi,0] and b\in[0,2 pi]
   // in this case is ok, as all are atan2 which [-pi,pi]
   inline float wrap_dphi(float a, float b) {
     float   _dphi = b-a;
@@ -955,7 +951,7 @@ void PHCASeeding::publishSeeds(const std::vector<TrackSeed_v2>& seeds) const
 int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
 {
   //  if(Verbosity()>0)
-  std::cout << "Called Setup" << std::endl;
+  std::cout << "PHCASeeding::Setup" << std::endl;
   if (Verbosity() > 0)
   {
     std::cout << "topNode:" << topNode << std::endl;
@@ -982,39 +978,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   t_makeseeds = std::make_unique<PHTimer>("t_makeseeds");
   t_makeseeds->stop();
 
-  //  fcfg.set_rescale(1);
-  std::unique_ptr<PHField> field_map;
-  if (_use_const_field)
-  {
-    PHFieldConfigv2 fcfg(0, 0, _const_field);
-    field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
-  }
-  else
-  {
-    PHFieldConfigv1 fcfg;
-    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
-    if (std::filesystem::path(m_magField).extension() != ".root")
-    {
-      m_magField = CDBInterface::instance()->getUrl(m_magField);
-    }
-    fcfg.set_filename(m_magField);
-    field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
-  }
-
-  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, field_map.get(), _fieldDir, _min_clusters_per_track, _max_sin_phi, Verbosity());
-  fitter->setNeonFraction(Ne_frac);
-  fitter->setArgonFraction(Ar_frac);
-  fitter->setCF4Fraction(CF4_frac);
-  fitter->setNitrogenFraction(N2_frac);
-  fitter->setIsobutaneFraction(isobutane_frac);
-  fitter->useConstBField(_use_const_field);
-  fitter->setConstBField(_const_field);
-  fitter->useFixedClusterError(_use_fixed_clus_err);
-  fitter->setFixedClusterError(0, _fixed_clus_err.at(0));
-  fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
-  fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
-
-  PHG4TpcCylinderGeomContainer* geom_container =
+  auto geom_container =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
@@ -1054,6 +1018,7 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   _tup_chainbody = new TNtuple("chainbody", "chain body with multiple link options", "event:nchain:layer:x:y:z:dzdr:d2phidr2:nlink:nlinks");        // nlinks in chain being added to will be 0, 1, 2 ... working backward from the fork -- dZ and dphi are dropped for final links as necessary
 #endif
 
+  std::cout << "PHCASeeding::Setup - done" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

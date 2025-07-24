@@ -44,7 +44,7 @@ class PHSimpleKFProp : public SubsysReco
 {
  public:
   PHSimpleKFProp(const std::string& name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() override = default;
+  ~PHSimpleKFProp() override;
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
@@ -119,7 +119,9 @@ class PHSimpleKFProp : public SubsysReco
 
   TrackSeedContainer* _track_map = nullptr;
 
-  std::unique_ptr<PHField> _field_map = nullptr;
+  //! magnetic field map
+  PHField* _field_map = nullptr;
+  bool m_own_fieldmap = false;
 
   /// acts geometry
   ActsGeometry* m_tgeometry = nullptr;

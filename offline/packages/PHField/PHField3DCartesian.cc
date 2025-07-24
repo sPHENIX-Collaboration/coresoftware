@@ -26,6 +26,8 @@
 PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float magfield_rescale, const float innerradius, const float outerradius, const float size_z)
   : filename(fname)
 {
+  std::cout << "PHField3DCartesian::PHField3DCartesian" << std::endl;
+
   for (int i = 0; i < 2; i++)
   {
     for (int j = 0; j < 2; j++)
@@ -116,6 +118,7 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
 
 PHField3DCartesian::~PHField3DCartesian()
 {
+  std::cout << "PHField3DCartesian::~PHField3DCartesian" << std::endl;
   if (Verbosity() > 0)
   {
     std::cout << "PHField3DCartesian: cache hits: " << cache_hits

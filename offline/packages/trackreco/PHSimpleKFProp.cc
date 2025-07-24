@@ -74,9 +74,16 @@ using keylist = std::vector<TrkrDefs::cluskey>;
 
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
   : SubsysReco(name)
+{}
+
+//______________________________________________________
+PHSimpleKFProp::~PHSimpleKFProp()
 {
+  if( m_own_fieldmap )
+  { delete _field_map; }
 }
 
+//______________________________________________________
 int PHSimpleKFProp::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -91,22 +98,18 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   }
 
   PHFieldConfigv1 fcfg;
-
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+
   if (std::filesystem::path(m_magField).extension() != ".root")
-  {
-    m_magField = CDBInterface::instance()->getUrl(m_magField);
-  }
+  { m_magField = CDBInterface::instance()->getUrl(m_magField); }
+
   if (!_use_const_field)
   {
     if (!std::filesystem::exists(m_magField))
     {
       if (m_magField.empty())
-      {
-        m_magField = "empty string";
-      }
-      std::cout << PHWHERE << "Fieldmap " << m_magField
-                << " does not exist" << std::endl;
+      { m_magField = "empty string"; }
+      std::cout << PHWHERE << "Fieldmap " << m_magField << " does not exist" << std::endl;
       gSystem->Exit(1);
     }
 
@@ -117,11 +120,29 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
     fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
     fcfg.set_magfield_rescale(_const_field);
   }
-  //  fcfg.set_rescale(1);
-  _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
 
-  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map.get(), _fieldDir,
-                                     _min_clusters_per_track, _max_sin_phi, Verbosity());
+  // compare field config from that on node tree
+  /*
+   * if the magnetic field is already on the node tree PHFieldUtility::GetFieldConfigNode returns the existing configuration.
+   * One must then check wheter the two configurations are identical, to decide whether one must use the field from node tree or create our own.
+   * Otherwise the configuration passed as argument is stored on the node tree.
+   */
+  const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
+  if( fcfg == *node_fcfg )
+  {
+    // both configurations are identical, use field map from node tree
+    std::cout << "PHSimpleKFProp::InitRun - using node tree field map" << std::endl;
+    _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+    m_own_fieldmap = false;
+  } else {
+    // both configurations differ. Use our own field map
+    std::cout << "PHSimpleKFProp::InitRun - using own field map" << std::endl;
+    _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+    m_own_fieldmap = true;
+  }
+
+  // alice kalman filter
+  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map, _fieldDir, _min_clusters_per_track, _max_sin_phi, Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
