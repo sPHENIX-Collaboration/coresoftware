@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <g4eval/SvtxEvalStack.h>
+#include <calotrigger/TriggerAnalyzer.h>
 
 #include <TH1.h>
 #include <TH2.h>
@@ -53,9 +54,22 @@ class QAKFParticle : public SubsysReco
   TH2F *h_mass_KFP_eta = nullptr;
   TH2F *h_mass_KFP_phi = nullptr;
   TH2F *h_mass_KFP_pt = nullptr;
+  TH1F *h_mass_KFP_crossing0 = nullptr;
+  TH1F *h_mass_KFP_non_crossing0 = nullptr;
+  TH1F *h_mass_KFP_ZDC_Coincidence = nullptr;
+  TH1F *h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm = nullptr;
+  TH1F *h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm = nullptr;  
+
+  TriggerAnalyzer *triggeranalyzer{nullptr};
+
+  int m_ZDC_Coincidence_bit = INT_MAX;
+  int m_MBD_NandS_geq_1_vtx_l_30_cm_bit = INT_MAX;
+  int m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit = INT_MAX; 
 
  private:
   int load_nodes(PHCompositeNode *);
+
+  void initializeTriggerInfo(PHCompositeNode *);
 
   // SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
   // PHG4Particle *getTruthTrack(SvtxTrack *thisTrack);
@@ -70,6 +84,9 @@ class QAKFParticle : public SubsysReco
   KFParticle_Container *m_kfpContainer = nullptr;
   std::map<std::string, std::pair<int, float>> particleMasses;
   std::string m_trackMapName = "SvtxTrackMap";
+
+  static const int nTriggerBits = 64;
+  int counter = 0;
 };
 
 #endif  // QAKFPARTICLE_H

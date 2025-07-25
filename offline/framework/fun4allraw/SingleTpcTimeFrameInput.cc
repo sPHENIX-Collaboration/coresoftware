@@ -292,6 +292,10 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
         m_TpcTimeFrameBuilderMap[packet_id] = new TpcTimeFrameBuilder(packet_id);
         m_TpcTimeFrameBuilderMap[packet_id]->setVerbosity(Verbosity());
+        if (m_digitalCurrentDebugTTreeName.size())
+        {
+          m_TpcTimeFrameBuilderMap[packet_id]->SaveDigitalCurrentDebugTTree(m_digitalCurrentDebugTTreeName);
+        }
       }
 
       if (Verbosity() > 1)

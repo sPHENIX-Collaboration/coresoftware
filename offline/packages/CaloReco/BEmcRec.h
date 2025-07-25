@@ -139,6 +139,9 @@ class BEmcRec
   static void ZeroVector(float *, int);
   static void ZeroVector(EmcModule *, int);
 
+  void set_UseCorrectPosition(bool useCorrectPosition) { m_UseCorrectPosition = useCorrectPosition; }
+  void set_UseCorrectShowerDepth(bool useCorrectShowerDepth) { m_UseCorrectShowerDepth = useCorrectShowerDepth; }
+
  protected:
   // Geometry
   bool bCYL {true};  // Cylindrical?
@@ -165,6 +168,9 @@ class BEmcRec
   bool m_UseDetailedGeometry {false};
   // Use a more detailed calorimeter geometry
   // Only available for CEMC
+
+  bool m_UseCorrectPosition = true;
+  bool m_UseCorrectShowerDepth = true;
 
  private:
   std::string m_ThisName {"NOTSET"};

@@ -44,7 +44,7 @@ class PHSimpleKFProp : public SubsysReco
 {
  public:
   PHSimpleKFProp(const std::string& name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() override = default;
+  ~PHSimpleKFProp() override;
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
@@ -90,6 +90,9 @@ class PHSimpleKFProp : public SubsysReco
   void set_ghost_y_cut(double d) { _ghost_y_cut = d; }
   void set_ghost_z_cut(double d) { _ghost_z_cut = d; }
 
+  // number of threads
+  void set_num_threads(int value) { m_num_threads = value; }
+
  private:
   bool _use_truth_clusters = false;
   bool m_ghostrejection = true;
@@ -116,7 +119,9 @@ class PHSimpleKFProp : public SubsysReco
 
   TrackSeedContainer* _track_map = nullptr;
 
-  std::unique_ptr<PHField> _field_map = nullptr;
+  //! magnetic field map
+  PHField* _field_map = nullptr;
+  bool m_own_fieldmap = false;
 
   /// acts geometry
   ActsGeometry* m_tgeometry = nullptr;
@@ -133,24 +138,41 @@ class PHSimpleKFProp : public SubsysReco
 
   PositionMap PrepareKDTrees();
 
-  bool TransportAndRotate(double old_layer, double new_layer, double& phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const;
+  bool TransportAndRotate(
+    double old_layer,
+    double new_layer,
+    double& phi,
+    GPUTPCTrackParam& kftrack,
+    GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const;
 
-  bool PropagateStep(unsigned int& current_layer, double& current_phi, PropagationDirection& direction, std::vector<TrkrDefs::cluskey>& propagated_track, std::vector<TrkrDefs::cluskey>& ckeys, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp, const PositionMap& globalPositions) const;
+  bool PropagateStep(
+    unsigned int& current_layer,
+    double& current_phi,
+    PropagationDirection& direction,
+    std::vector<TrkrDefs::cluskey>& propagated_track,
+    const std::vector<TrkrDefs::cluskey>& ckeys,
+    GPUTPCTrackParam& kftrack,
+    GPUTPCTrackParam::GPUTPCTrackFitParam& fp,
+    const PositionMap& globalPositions) const;
 
   // TrackSeed objects store clusters in order of increasing cluster key (std::set<TrkrDefs::cluskey>),
   // which means we have to have a way to directly pass a list of clusters in order to extend looping tracks
   std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const;
   std::vector<TrkrDefs::cluskey> PropagateTrack(TrackSeed* track, std::vector<TrkrDefs::cluskey>& ckeys, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const;
   std::vector<std::vector<TrkrDefs::cluskey>> RemoveBadClusters(const std::vector<std::vector<TrkrDefs::cluskey>>& seeds, const PositionMap& globalPositions) const;
+
   template <typename T>
   struct KDPointCloud
   {
-    KDPointCloud() {}
+    KDPointCloud() = default;
+
     std::vector<std::vector<T>> pts;
+
     inline size_t kdtree_get_point_count() const
     {
       return pts.size();
     }
+
     inline T kdtree_distance(const T* p1, const size_t idx_p2, size_t /*size*/) const
     {
       const T d0 = p1[0] - pts[idx_p2][0];
@@ -158,6 +180,7 @@ class PHSimpleKFProp : public SubsysReco
       const T d2 = p1[2] - pts[idx_p2][2];
       return d0 * d0 + d1 * d1 + d2 * d2;
     }
+
     inline T kdtree_get_pt(const size_t idx, int dim) const
     {
       if (dim == 0)
@@ -167,17 +190,23 @@ class PHSimpleKFProp : public SubsysReco
       else
         return pts[idx][2];
     }
+
     template <class BBOX>
     bool kdtree_get_bbox(BBOX& /*bb*/) const
-    {
-      return false;
-    }
+    { return false; }
+
   };
+
   std::vector<std::shared_ptr<KDPointCloud<double>>> _ptclouds;
+
   std::vector<std::shared_ptr<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>> _kdtrees;
+
   std::unique_ptr<ALICEKF> fitter;
+
   double get_Bz(double x, double y, double z) const;
-  void rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer);
+
+  void rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2);
+
   void publishSeeds(const std::vector<TrackSeed_v2>&);
 
   int _max_propagation_steps = 200;
@@ -200,6 +229,16 @@ class PHSimpleKFProp : public SubsysReco
   double _ghost_x_cut = std::numeric_limits<double>::max();
   double _ghost_y_cut = std::numeric_limits<double>::max();
   double _ghost_z_cut = std::numeric_limits<double>::max();
+
+  // number of threads
+  /*
+   * default is 0. This corresponds to allocating as many threads as available on the host
+   * on CONDOR, by default, this results in only one thread allocated
+   * being allocated unless several cores are allocated to the job
+   * via request_cpus directive in the jdf
+   */
+  int m_num_threads = 0;
+
 };
 
 #endif

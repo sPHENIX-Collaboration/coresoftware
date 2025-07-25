@@ -24,7 +24,13 @@ class EventplaneinfoMapv1 : public EventplaneinfoMap
 
   const Eventplaneinfo* get(unsigned int idkey) const override;
   Eventplaneinfo* get(unsigned int idkey) override;
+
   Eventplaneinfo* insert(Eventplaneinfo* clus, EPTYPE id) override;
+
+  // Ring-by-ring support
+  Eventplaneinfo* insert_ring(Eventplaneinfo* clus, unsigned int ring_index) override;
+  const Eventplaneinfo* get_ring(unsigned int ring_index) const override;
+  Eventplaneinfo* get_ring(unsigned int ring_index) override;
 
   ConstIter begin() const override { return _map.begin(); }
   ConstIter find(unsigned int idkey) const override { return _map.find(idkey); }

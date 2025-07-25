@@ -90,6 +90,11 @@ class CaloTowerStatus : public SubsysReco
     m_doAbortNoHotMap = status;
     return;
   }
+  void set_isSim(bool isSim = true)
+  {
+    m_isSim = isSim;
+    return;
+  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
@@ -121,6 +126,7 @@ class CaloTowerStatus : public SubsysReco
   bool use_directURL_time{false};
   bool use_directURL_hotMap{false};
   bool use_directURL_chi2{false};
+  bool m_isSim{false};
 
   float badChi2_treshold_const = {1e4};
   float badChi2_treshold_quadratic = {1./100};

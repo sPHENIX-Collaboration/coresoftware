@@ -21,14 +21,13 @@ class TowerBackgroundv1 : public TowerBackground
   void set_Psi2(float Psi2) override { _Psi2 = Psi2; }
   void set_nStripsUsedForFlow(int nStrips) override { _nStrips = nStrips; }
   void set_nTowersUsedForBkg(int nTowers) override { _nTowers = nTowers; }
+  void set_flow_failure_flag(bool b) override {_flow_failure_flag = b;}
 
-  std::vector<float> get_UE(int layer) override { return _UE[layer]; }
-  float get_v2() override { return _v2; }
-  float get_Psi2() override { return _Psi2; }
-  int get_nStripsUsedForFlow() override { return _nStrips; }
-
-  // our own - not from parent class
-  virtual int get_nTowersUsedForFlow() { return _nTowers; }
+  std::vector<float> get_UE(int layer) const override { return _UE[layer]; }
+  float get_v2() const override { return _v2; }
+  float get_Psi2() const override { return _Psi2; }
+  int get_nStripsUsedForFlow() const override { return _nStrips; }
+  bool get_flow_failure_flag() const override { return _flow_failure_flag; }
 
  private:
   std::vector<std::vector<float> > _UE;

@@ -40,44 +40,48 @@ private:
   int CreateNodes(PHCompositeNode *topNode);
   unsigned int m_MaxOrder{3};
   std::string FileName;
-    
+
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
   std::vector<std::vector<double>> northsouth_q;
+  static const int nRings = 16;
+  std::vector<std::vector<std::vector<double>>>
+      ring_q; // [nRings][order][2] //3rd dimension is for Qn_x and Qn_y
 
   std::vector<std::pair<double, double>> south_Qvec;
   std::vector<std::pair<double, double>> north_Qvec;
   std::vector<std::pair<double, double>> northsouth_Qvec;
+  std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs;
 
- // recentering utility
- std::vector<std::vector<double>> south_q_subtract;
- std::vector<std::vector<double>> north_q_subtract;
- std::vector<std::vector<double>> northsouth_q_subtract;
+  // recentering utility
+  std::vector<std::vector<double>> south_q_subtract;
+  std::vector<std::vector<double>> north_q_subtract;
+  std::vector<std::vector<double>> northsouth_q_subtract;
 
- // shifting utility
- std::vector<double> shift_north;
- std::vector<double> shift_south;
- std::vector<double> shift_northsouth;
- std::vector<double> tmp_south_psi;
- std::vector<double> tmp_north_psi;
- std::vector<double> tmp_northsouth_psi;
+  // shifting utility
+  std::vector<double> shift_north;
+  std::vector<double> shift_south;
+  std::vector<double> shift_northsouth;
+  std::vector<double> tmp_south_psi;
+  std::vector<double> tmp_north_psi;
+  std::vector<double> tmp_northsouth_psi;
 
-// recentering histograms
- TProfile2D *tprof_mean_cos_north_epd_input[6]{};
- TProfile2D *tprof_mean_sin_north_epd_input[6]{};
- TProfile2D *tprof_mean_cos_south_epd_input[6]{};
- TProfile2D *tprof_mean_sin_south_epd_input[6]{};
- TProfile2D *tprof_mean_cos_northsouth_epd_input[6]{};
- TProfile2D *tprof_mean_sin_northsouth_epd_input[6]{};
-    
-// shifting histograms
- const int _imax{12};
- TProfile2D *tprof_cos_north_epd_shift_input[6][12]{};
- TProfile2D *tprof_sin_north_epd_shift_input[6][12]{};
- TProfile2D *tprof_cos_south_epd_shift_input[6][12]{};
- TProfile2D *tprof_sin_south_epd_shift_input[6][12]{};
- TProfile2D *tprof_cos_northsouth_epd_shift_input[6][12]{};
- TProfile2D *tprof_sin_northsouth_epd_shift_input[6][12]{};
+  // recentering histograms
+  TProfile2D *tprof_mean_cos_north_epd_input[6]{};
+  TProfile2D *tprof_mean_sin_north_epd_input[6]{};
+  TProfile2D *tprof_mean_cos_south_epd_input[6]{};
+  TProfile2D *tprof_mean_sin_south_epd_input[6]{};
+  TProfile2D *tprof_mean_cos_northsouth_epd_input[6]{};
+  TProfile2D *tprof_mean_sin_northsouth_epd_input[6]{};
+
+  // shifting histograms
+  const int _imax{12};
+  TProfile2D *tprof_cos_north_epd_shift_input[6][12]{};
+  TProfile2D *tprof_sin_north_epd_shift_input[6][12]{};
+  TProfile2D *tprof_cos_south_epd_shift_input[6][12]{};
+  TProfile2D *tprof_sin_south_epd_shift_input[6][12]{};
+  TProfile2D *tprof_cos_northsouth_epd_shift_input[6][12]{};
+  TProfile2D *tprof_sin_northsouth_epd_shift_input[6][12]{};
 
   bool _mbdEpReco{false};
   bool _sepdEpReco{false};
@@ -94,8 +98,6 @@ private:
   float _mbdQ{0.0};
   double _totalcharge{0.0};
   float _mbd_vertex_cut{60.0};
-
- 
 };
 
 #endif // EVENTPLANERECO_H

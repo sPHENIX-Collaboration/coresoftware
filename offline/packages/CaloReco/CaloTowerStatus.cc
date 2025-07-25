@@ -242,7 +242,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     if (m_doHotMap)
     {
       hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
-      z_score = m_cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
+      if(!m_isSim)
+      {
+        z_score = m_cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
+      }
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
     float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
@@ -256,10 +259,16 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }
-    if (( hotMap_val == 1 || // dead
-          std::fabs(z_score) > z_score_threshold || // hot or cold
-          (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default)) // cold part 2
-          && m_doHotMap)
+
+    bool is_bad_tower_data = hotMap_val == 1 ||                                              // dead
+                             std::fabs(z_score) > z_score_threshold ||                       // hot or cold
+                             (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default); // cold part 2
+
+    bool is_bad_tower_sim = hotMap_val != 0;
+
+    bool is_bad_tower = (!m_isSim && is_bad_tower_data) || (m_isSim && is_bad_tower_sim);
+
+    if (is_bad_tower && m_doHotMap)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }

@@ -36,7 +36,6 @@ class ALICEKF
   {
     if (!topNode) std::cout << "no topnode, too bad..." << std::endl;
     _B = B;
-    //    _B = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
     _cluster_map = cmap;
     _fieldDir = fieldDir;
     _max_sin_phi = max_sin_phi;

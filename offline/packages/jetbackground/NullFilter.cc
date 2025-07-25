@@ -12,8 +12,6 @@
 // module components
 #include "NullFilter.h"
 
-#include "BeamBackgroundFilterAndQADefs.h"
-
 // jetqa utilities
 #include <jetqa/JetQADefs.h>
 
@@ -23,7 +21,6 @@
 // c++ utilities
 #include <iostream>
 #include <map>
-#include <memory>
 #include <vector>
 
 // ctor/dtor ==================================================================

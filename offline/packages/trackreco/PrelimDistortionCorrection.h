@@ -39,7 +39,7 @@ class PrelimDistortionCorrection : public SubsysReco
 {
  public:
   PrelimDistortionCorrection(const std::string &name = "PrelimDistortionCorrection");
-  ~PrelimDistortionCorrection() override = default;
+  ~PrelimDistortionCorrection() override;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
@@ -96,7 +96,9 @@ class PrelimDistortionCorrection : public SubsysReco
 
   TrackSeedContainer *_track_map = nullptr;
 
-  std::unique_ptr<PHField> _field_map = nullptr;
+  //! magnetic field map
+  PHField* _field_map = nullptr;
+  bool m_own_fieldmap = false;
 
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;

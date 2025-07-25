@@ -1,34 +1,43 @@
 #include "JetBackgroundCut.h"
+
+#include <calobase/RawTowerDefs.h>  // for CalorimeterId, encode_to...
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/TowerInfo.h>  // for TowerInfo
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <ffarawobjects/Gl1Packet.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <globalvertex/GlobalVertexMapv1.h>
+
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/Vertex.h>  // for Vertex
+
 #include <jetbase/Jet.h>
-#include <jetbase/JetContainerv1.h>
+#include <jetbase/JetContainer.h>
+
+#include <phparameter/PHParameters.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
-#include <phparameter/PHParameters.h>
+
 #include <cmath>
+#include <iostream>  // for basic_ostream, operator<<
+#include <map>       // for _Rb_tree_iterator, opera...
+#include <utility>   // for pair
+#include <vector>    // for vector
 
 //____________________________________________________________________________..
 JetBackgroundCut::JetBackgroundCut(const std::string &jetNodeName, const std::string &name, const int debug, const bool doAbort, GlobalVertex::VTXTYPE vtxtype, int sysvar)
   : SubsysReco(name)
-  , _doAbort(doAbort), _name(name)
-  , _debug(debug), _jetNodeName(jetNodeName)
+  , _doAbort(doAbort)
+  , _name(name)
+  , _debug(debug)
+  , _jetNodeName(jetNodeName)
   , _vtxtype(vtxtype)
-  , _sysvar(sysvar), _cutParams(name)
+  , _sysvar(sysvar)
+  , _cutParams(name)
 {
-  
-  
-  
   SetDefaultParams();
 }
-
-//____________________________________________________________________________..
-JetBackgroundCut::~JetBackgroundCut() = default;
 
 //____________________________________________________________________________..
 int JetBackgroundCut::Init(PHCompositeNode *topNode)
@@ -56,8 +65,8 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
 {
   TowerInfoContainer *towersEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
   TowerInfoContainer *towersOH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
-  JetContainer *jets = findNode::getClass<JetContainerv1>(topNode, _jetNodeName);
-  GlobalVertexMap *gvtxmap = findNode::getClass<GlobalVertexMapv1>(topNode, "GlobalVertexMap");
+  JetContainer *jets = findNode::getClass<JetContainer>(topNode, _jetNodeName);
+  GlobalVertexMap *gvtxmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
   RawTowerGeomContainer *geom[2];
   geom[0] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");

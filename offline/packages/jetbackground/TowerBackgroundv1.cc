@@ -1,7 +1,6 @@
 #include "TowerBackgroundv1.h"
 
 #include <iostream>
-#include <memory>
 
 TowerBackgroundv1::TowerBackgroundv1()
 {
@@ -24,7 +23,7 @@ void TowerBackgroundv1::identify(std::ostream& os) const
   os << " v2 = " << _v2 << ", Psi2 = " << _Psi2
      << ", # towers used for bkg = " << _nTowers
      << " , # strips used for flow = " << _nStrips
-     << " , flow failure flag " << _flow_failure_flag<< std::endl;
+     << " , flow failure flag " << _flow_failure_flag << std::endl;
 
   return;
 }

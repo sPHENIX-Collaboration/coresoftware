@@ -35,7 +35,7 @@ SingleGl1TriggeredInput::SingleGl1TriggeredInput(const std::string &name)
 {
 }
 
-void SingleGl1TriggeredInput::FillPool(int index)
+void SingleGl1TriggeredInput::FillPool()
 {
   if (AllDone())  // no more files and all events read
   {
@@ -43,8 +43,7 @@ void SingleGl1TriggeredInput::FillPool(int index)
   }
   if (!FilesDone())
   {
-    m_SkipEvents = 0;
-    FillEventVector(index);
+    FillEventVector();
   }
   return;
 }
@@ -92,9 +91,9 @@ void SingleGl1TriggeredInput::CreateDSTNodes(Event *evt)
   }
 }
 
-uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
+uint64_t SingleGl1TriggeredInput::GetClock(Event *evt, int pid)
 {
-  Packet *packet = evt->getPacket(14001);
+  Packet *packet = evt->getPacket(pid);
   if (!packet)
   {
     std::cout << Name()
@@ -105,27 +104,6 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
     return std::numeric_limits<uint64_t>::max();
   }
   uint64_t clock = packet->lValue(0, "BCO");
-  m_LastPacketNumber = m_PacketNumber;
-  m_PacketNumber = packet->iValue(0);  // just fill this here while we are at it
-  if (Verbosity() > 0)
-  {
-    std::cout << Name() << " Event " << evt->getEvtSequence() << " packet nr: "
-              << m_PacketNumber << std::endl;
-  }
-
-  if (m_PacketNumber - m_LastPacketNumber == 1 || m_LastPacketNumber == 0)
-  {
-    if (Verbosity() > 0)
-    {
-      std::cout << "GL1 is in order" << std::endl;
-    }
-  }
-  else
-  {
-    std::cout << "GL1 problem, gl1 skipped " << m_PacketNumber - m_LastPacketNumber
-              << " Events" << std::endl;
-    m_SkipEvents = m_PacketNumber - m_LastPacketNumber;
-  }
 
   delete packet;
   return clock;
@@ -133,23 +111,25 @@ uint64_t SingleGl1TriggeredInput::GetClock(Event *evt)
 
 int SingleGl1TriggeredInput::ReadEvent()
 {
-  if (m_EventDeque.empty())
+  int gl1pid = 14001;
+  if (m_PacketEventDeque[gl1pid].empty())
   {
-    std::cout << Name() << ":all events done" << std::endl;
+    std::cout << Name() << ": GL1 deque is empty — all events done" << std::endl;
     AllDone(1);
     return -1;
   }
-  Event *evt = m_EventDeque.front();
-  m_EventDeque.pop_front();
-  RunNumber(evt->getRunNumber());
-  int EventSequence = evt->getEvtSequence();
-  EventNumber(evt->getEvtSequence());
+
+  Event* gl1evt = m_PacketEventDeque[gl1pid].front();
+  m_PacketEventDeque[gl1pid].pop_front();
+  RunNumber(gl1evt->getRunNumber());
+  int EventSequence = gl1evt->getEvtSequence();
+  EventNumber(gl1evt->getEvtSequence());
   //  evt->identify();
-  Packet *packet = evt->getPacket(14001);
+  Packet *packet = gl1evt->getPacket(gl1pid);
   if (packet)
   {
-    Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), 14001);
-    unsigned int packetnumber = packet->iValue(0);
+    Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(topNode(), gl1pid);
+    int packetnumber = packet->iValue(0);
     uint64_t gtm_bco = packet->lValue(0, "BCO");
     //    std::cout << "saving bco 0x" << std::hex << gtm_bco << std::dec << std::endl;
     gl1packet->setBCO(packet->lValue(0, "BCO"));
@@ -184,14 +164,14 @@ int SingleGl1TriggeredInput::ReadEvent()
                 << ", bco: 0x" << std::hex << gtm_bco << std::dec
                 << ", bunch no: " << packet->lValue(0, "BunchNumber")
                 << std::endl;
-      // std::cout << PHWHERE << " RB Packet: " << gl1packet->getIdentifier()
-      //           << " evtno: " << gl1packet->getEvtSequence()
-      //           << ", bco: 0x" << std::hex << gl1packet->getBCO() << std::dec
-      //           << ", bunch no: " << +gl1packet->getBunchNumber()
-      //           << std::endl;
+      std::cout << PHWHERE << " RB Packet: " << gl1packet->getIdentifier()
+                << " evtno: " << gl1packet->getEvtSequence()
+                << ", bco: 0x" << std::hex << gl1packet->getBCO() << std::dec
+                << ", bunch no: " << +gl1packet->getBunchNumber()
+                << std::endl;
     }
     delete packet;
   }
-  delete evt;
+  delete gl1evt;
   return Fun4AllReturnCodes::EVENT_OK;
 }
