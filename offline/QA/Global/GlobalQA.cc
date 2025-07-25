@@ -214,6 +214,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     }
   }
 
+  if ((triggervec >> 0xAU) & 0x1U)
   {
     //--------------------------- MBD ----------------------------------------//
     MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
