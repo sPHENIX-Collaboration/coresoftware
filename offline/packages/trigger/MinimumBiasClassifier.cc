@@ -195,6 +195,12 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
     m_mbd_hit[side]++;
     m_mbd_charge_sum[side] += m_mbd_pmt->get_q() * m_vertex_scale * m_centrality_scale;
   }
+
+  m_MinBiasParams.set_double_param("minbias_mbd_total_charge_south", m_mbd_charge_sum[0]);
+  m_MinBiasParams.set_double_param("minbias_mbd_total_charge_north", m_mbd_charge_sum[1]);
+  m_MinBiasParams.set_double_param("minbias_vertex_scale", m_vertex_scale);
+  m_MinBiasParams.set_double_param("minbias_centrality_scale", m_centrality_scale);
+
   if (Verbosity())
   {
     std::cout << m_mbd_charge_sum[0] << " " << m_mbd_charge_sum[1] << std::endl;
