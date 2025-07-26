@@ -59,6 +59,7 @@ class MinimumBiasClassifier : public SubsysReco
     m_overwrite_vtx = true;
   }
   void setIsSim(const bool sim) { m_issim = sim; }
+  void set_mbd_total_charge_cut(const double max_charge_cut) { m_max_charge_cut = max_charge_cut; }
 
   void setSpecies(MinimumBiasInfo::SPECIES spec) { m_species = spec; };
   
