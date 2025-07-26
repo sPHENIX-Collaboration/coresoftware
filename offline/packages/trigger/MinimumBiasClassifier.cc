@@ -213,9 +213,9 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       }
     }
   }
-  if ((m_mbd_charge_sum[0] + m_mbd_charge_sum[1]) > 2100 && minbiascheck)
+  if ((m_mbd_charge_sum[0] + m_mbd_charge_sum[1]) > m_mbd_total_charge_cut && minbiascheck)
   {
-    // minbiascheck = false;
+    minbiascheck = false;
     m_MinBiasParams.set_int_param("minbias_mbd_total_energy_max_fail", true);
     // m_mb_info->setIsAuAuMinimumBias(false);
     // return Fun4AllReturnCodes::EVENT_OK;
