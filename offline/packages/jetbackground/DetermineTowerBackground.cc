@@ -923,7 +923,19 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float dphi = phibounds.second - phibounds.first;
       float total_area = total_tower * deta * dphi;
 
-      _UE[layer].at(eta) = total_E / total_tower;
+      if ( total_tower > 0 )
+      {
+        _UE[layer].at(eta) = total_E / total_tower; // calculate the UE density
+      } 
+      else 
+      {
+        if (Verbosity() > 0)
+        {
+          std::cout << "DetermineTowerBackground::process_event: WARNING, no towers in layer " << layer << " / eta " << eta << ", setting UE density to 0" << std::endl;
+        }
+      
+        _UE[layer].at(eta) = 0; // no towers, no UE
+      }
 
       if (Verbosity() > 3)
       {
