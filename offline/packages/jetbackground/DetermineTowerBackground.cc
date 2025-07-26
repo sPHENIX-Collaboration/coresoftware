@@ -923,7 +923,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float dphi = phibounds.second - phibounds.first;
       float total_area = total_tower * deta * dphi;
 
-      if ( total_towers > 0 )
+      if ( total_tower > 0 )
       {
         _UE[layer].at(eta) = total_E / total_tower; // calculate the UE density
       } 
