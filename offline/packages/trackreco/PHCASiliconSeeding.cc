@@ -64,12 +64,12 @@ namespace
   // note: assumes that a and b are in same range of phi;
   // this will fail if a\in[-2 pi,0] and b\in[0,2 pi] 
   // in this case is ok, as all are atan2 which [-pi,pi]
-  inline float wrap_dphi(float a, float b) {
-    float   _dphi = b-a;
-    return (_dphi < -M_PI) ? _dphi += 2*M_PI
-         : (_dphi >  M_PI) ? _dphi -= 2*M_PI
-         : _dphi;
-  }
+  // inline float wrap_dphi(float a, float b) {
+  //   float   _dphi = b-a;
+  //   return (_dphi < -M_PI) ? _dphi += 2*M_PI
+  //        : (_dphi >  M_PI) ? _dphi -= 2*M_PI
+  //        : _dphi;
+  // }
 
   /// pseudo rapidity of Acts::Vector3
   /* inline double get_eta(const Acts::Vector3& position) */
@@ -266,8 +266,8 @@ int PHCASiliconSeeding::Process(PHCompositeNode* /*topNode*/)
   keyListPerLayer ckeys;
   std::tie(globalPositions, ckeys) = FillGlobalPositions();
 
-  int numberofseeds = 0;
-  numberofseeds += FindSeeds(globalPositions, ckeys);
+  //  int numberofseeds = 0;
+  // numberofseeds += FindSeeds(globalPositions, ckeys);
 
   for(auto& rtree : _rtrees)
   {
