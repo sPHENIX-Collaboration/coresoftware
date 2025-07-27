@@ -8,6 +8,8 @@
 #include "MbdVertexMap.h"
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
+#include "TruthVertex.h"
+#include "TruthVertexMap.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -66,8 +68,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   SvtxVertexMap *svtxmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-  // we will make 3 different kinds of global vertexes
+  // we will make 4 different kinds of global vertexes
   //  (1) SVTX+MBD vertexes - we match SVTX vertex to the nearest MBD vertex within 3 sigma in zvertex
   //      the spatial point comes from the SVTX, the timing from the MBD
   //      number of SVTX+MBD vertexes <= number of SVTX vertexes
@@ -78,6 +81,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
   //  (3) MBD only vertexes - use the default x,y positions on this module and
   //      pull in the mbd z and mbd t
+
+  //  (4) Truth vertexes - if the truth vertex map is present(should be for simulation only), we will
+  //      create a GlobalVertex from the truth vertices
 
   // there may be some quirks as we get to large luminosity and the MBD becomes
   // untrust worthy, I'm guessing analyzers would resort exclusively to (1) or (2)
@@ -237,6 +243,26 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         vertex->identify();
       }
     }
+  }
+
+  // okay now add the truth vertex (4th class)...
+
+  if (truthinfo)
+  {
+    PHG4VtxPoint *vtxp = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+    float truth_z_vertex = std::numeric_limits<float>::quiet_NaN();
+    if (vtxp)
+    {
+      truth_z_vertex = vtxp->get_z();
+    }
+    else if (Verbosity())
+    {
+      std::cout << "PHG4TruthInfoContainer has no primary vertex" << std::endl;
+    }
+  }
+  else if (Verbosity())
+  {
+    std::cout << "PHG4TruthInfoContainer is missing" << std::endl;
   }
 
   /// Associate any tracks that were not assigned a track-vertex
