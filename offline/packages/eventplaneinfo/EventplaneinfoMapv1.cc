@@ -53,6 +53,27 @@ Eventplaneinfo* EventplaneinfoMapv1::get(unsigned int id)
 
 Eventplaneinfo* EventplaneinfoMapv1::insert(Eventplaneinfo* clus, const EventplaneinfoMap::EPTYPE id)
 {
-  auto ret = _map.insert(std::make_pair(id, clus));
-  return ret.first->second;
+  auto [iter, inserted] = _map.insert(std::make_pair(id, clus));
+  if (!inserted)
+  {
+    delete iter->second;
+    iter->second = clus;
+  }
+  return iter->second;
+}
+
+
+Eventplaneinfo* EventplaneinfoMapv1::insert_ring(Eventplaneinfo* ep, unsigned int ring_index)
+{
+  return insert(ep, static_cast<EPTYPE>(sEPDRING_BASE + ring_index));
+}
+
+const Eventplaneinfo* EventplaneinfoMapv1::get_ring(unsigned int ring_index) const
+{
+  return get(sEPDRING_BASE + ring_index);
+}
+
+Eventplaneinfo* EventplaneinfoMapv1::get_ring(unsigned int ring_index)
+{
+  return get(sEPDRING_BASE + ring_index);
 }

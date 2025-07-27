@@ -21,6 +21,7 @@ class TpcRawHit;
 class PHTimer;
 class TH1;
 class TH2;
+class TTree;
 
 // NOLINTNEXTLINE(hicpp-special-member-functions)
 class TpcTimeFrameBuilder
@@ -40,12 +41,16 @@ class TpcTimeFrameBuilder
     m_fastBCOSkip = fastBCOSkip;
   }
 
+  // enable saving of digital current debug TTree with file name `name`
+  void SaveDigitalCurrentDebugTTree(const std::string &name);
+
  protected:
   // Length for the 256-bit wide Round Robin Multiplexer for the data stream
   static const size_t DAM_DMA_WORD_LENGTH = 16;
 
   static const uint16_t FEE_PACKET_MAGIC_KEY_1 = 0xfe;
   static const uint16_t FEE_PACKET_MAGIC_KEY_2 = 0xed;
+  static const uint16_t FEE_PACKET_MAGIC_KEY_3_DC = 0xdcdc; // Digital Current word[3]
 
   static const uint16_t FEE_MAGIC_KEY = 0xba00;
   static const uint16_t GTM_MAGIC_KEY = 0xbb00;
@@ -76,6 +81,8 @@ class TpcTimeFrameBuilder
 
   int decode_gtm_data(const dma_word &gtm_word);
   int process_fee_data(unsigned int fee_id);
+  void process_fee_data_waveform(const unsigned int & fee_id, std::deque<uint16_t>& data_buffer);
+  void process_fee_data_digital_current(const unsigned int & fee_id, std::deque<uint16_t>& data_buffer);
 
   struct gtm_payload
   {
@@ -111,6 +118,42 @@ class TpcTimeFrameBuilder
 
     std::vector<std::pair<uint16_t, std::vector<uint16_t>>> waveforms;
   };
+
+  struct digital_current_payload
+  {
+    static const int MAX_CHANNELS = 8;
+
+    uint64_t gtm_bco {std::numeric_limits<uint64_t>::max()};
+    uint32_t bx_timestamp_predicted {std::numeric_limits<uint32_t>::max()};
+
+    uint16_t fee {std::numeric_limits<uint16_t>::max()};
+    uint16_t pkt_length {std::numeric_limits<uint16_t>::max()};
+    uint16_t channel {std::numeric_limits<uint16_t>::max()};
+    // uint16_t sampa_max_channel {std::numeric_limits<uint16_t>::max()};
+    uint16_t sampa_address {std::numeric_limits<uint16_t>::max()};
+    uint32_t bx_timestamp {0};
+    uint32_t current[MAX_CHANNELS] {0};
+    uint32_t nsamples[MAX_CHANNELS] {0};
+    uint16_t data_crc {std::numeric_limits<uint16_t>::max()};
+    uint16_t calc_crc = {std::numeric_limits<uint16_t>::max()};
+    // uint16_t type {std::numeric_limits<uint16_t>::max()};
+  };
+
+  class DigitalCurrentDebugTTree
+  {
+   public:
+    explicit DigitalCurrentDebugTTree(const std::string &name);
+    virtual ~DigitalCurrentDebugTTree();
+
+    void fill(const digital_current_payload &payload);
+
+   private:
+    digital_current_payload m_payload;
+
+    std::string m_name;
+    TTree *m_tDigitalCurrent = nullptr;
+  };
+  DigitalCurrentDebugTTree * m_digitalCurrentDebugTTree = nullptr;
 
   // -------------------------
   // GTM Matcher
@@ -201,6 +244,10 @@ class TpcTimeFrameBuilder
     //! cleanup
     void cleanup(uint64_t /*ref_bco*/);
 
+    m_gtm_fee_bco_matching_pair_t find_dc_read_bco() const
+    {
+      return m_gtm_bco_dc_read;
+    }
     //@}
 
     /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
@@ -228,7 +275,8 @@ class TpcTimeFrameBuilder
     enum ModeBitType
     {
       BX_COUNTER_SYNC_T = 0x1,
-      ELINK_HEARTBEAT_T = 0x2
+      ELINK_HEARTBEAT_T = 0x2,
+      DC_STOP_SEND_T = 0x7
       // SAMPA_EVENT_TRIGGER_T = 2,
       // CLEAR_LV1_LAST_T = 6,
       // CLEAR_LV1_ENDAT_T = 7
@@ -264,6 +312,9 @@ class TpcTimeFrameBuilder
 
     //! list of available bco, sorted in time with rollover corrected
     std::list<uint64_t> m_gtm_bco_trig_list;
+
+    //! last digital current readout GTM BCO
+    m_gtm_fee_bco_matching_pair_t m_gtm_bco_dc_read = {0, 0};
 
     //! list of available GTM -> FEE bco mapping for synchronization
     std::optional<m_gtm_fee_bco_matching_pair_t> m_bco_reference = std::nullopt;

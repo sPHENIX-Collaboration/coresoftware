@@ -92,6 +92,9 @@ class PHFieldConfigv2 : public PHFieldConfig
     field_mag_z_ = fieldMagZ;
   }
 
+  //! equal to operator, to base class
+  bool operator == (const PHFieldConfig& ) const override;
+
  protected:
   double field_mag_x_;
   double field_mag_y_;

@@ -20,7 +20,8 @@ class EventplaneinfoMap : public PHObject
     MBDS = 2,
     MBDN = 3,
     sEPDNS = 4,
-    MBDNS = 5
+    MBDNS = 5,
+    sEPDRING_BASE = 100  // base offset for ring-by-ring IDs
   };
 
   typedef std::map<unsigned int, Eventplaneinfo*>::const_iterator ConstIter;
@@ -35,6 +36,11 @@ class EventplaneinfoMap : public PHObject
   virtual const Eventplaneinfo* get(unsigned int /*idkey*/) const { return nullptr; }
   virtual Eventplaneinfo* get(unsigned int /*idkey*/) { return nullptr; }
   virtual Eventplaneinfo* insert(Eventplaneinfo* /*ep*/, EPTYPE /*type*/) { return nullptr; }
+
+  // // New: Insert/get for specific ring index
+  virtual Eventplaneinfo* insert_ring(Eventplaneinfo* /*ep*/, unsigned int /*ring_index*/) { return nullptr; }
+  virtual const Eventplaneinfo* get_ring(unsigned int /*ring_index*/) const { return nullptr; }
+  virtual Eventplaneinfo* get_ring(unsigned int /*ring_index*/) { return nullptr; }
 
   virtual ConstIter begin() const;
   virtual ConstIter find(unsigned int idkey) const;

@@ -52,8 +52,11 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <omp.h>
+
 #include <filesystem>
-#include <iostream>  // for operator<<, basic_ostream
+#include <iostream>
+#include <syncstream>
 #include <vector>
 
 // anonymous namespace for local functions
@@ -71,9 +74,16 @@ using keylist = std::vector<TrkrDefs::cluskey>;
 
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
   : SubsysReco(name)
+{}
+
+//______________________________________________________
+PHSimpleKFProp::~PHSimpleKFProp()
 {
+  if( m_own_fieldmap )
+  { delete _field_map; }
 }
 
+//______________________________________________________
 int PHSimpleKFProp::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -88,22 +98,18 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   }
 
   PHFieldConfigv1 fcfg;
-
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+
   if (std::filesystem::path(m_magField).extension() != ".root")
-  {
-    m_magField = CDBInterface::instance()->getUrl(m_magField);
-  }
+  { m_magField = CDBInterface::instance()->getUrl(m_magField); }
+
   if (!_use_const_field)
   {
     if (!std::filesystem::exists(m_magField))
     {
       if (m_magField.empty())
-      {
-        m_magField = "empty string";
-      }
-      std::cout << PHWHERE << "Fieldmap " << m_magField
-                << " does not exist" << std::endl;
+      { m_magField = "empty string"; }
+      std::cout << PHWHERE << "Fieldmap " << m_magField << " does not exist" << std::endl;
       gSystem->Exit(1);
     }
 
@@ -114,11 +120,29 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
     fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
     fcfg.set_magfield_rescale(_const_field);
   }
-  //  fcfg.set_rescale(1);
-  _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
 
-  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map.get(), _fieldDir,
-                                     _min_clusters_per_track, _max_sin_phi, Verbosity());
+  // compare field config from that on node tree
+  /*
+   * if the magnetic field is already on the node tree PHFieldUtility::GetFieldConfigNode returns the existing configuration.
+   * One must then check wheter the two configurations are identical, to decide whether one must use the field from node tree or create our own.
+   * Otherwise the configuration passed as argument is stored on the node tree.
+   */
+  const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
+  if( fcfg == *node_fcfg )
+  {
+    // both configurations are identical, use field map from node tree
+    std::cout << "PHSimpleKFProp::InitRun - using node tree field map" << std::endl;
+    _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+    m_own_fieldmap = false;
+  } else {
+    // both configurations differ. Use our own field map
+    std::cout << "PHSimpleKFProp::InitRun - using own field map" << std::endl;
+    _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+    m_own_fieldmap = true;
+  }
+
+  // alice kalman filter
+  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map, _fieldDir, _min_clusters_per_track, _max_sin_phi, Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
@@ -130,21 +154,33 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(0, _fixed_clus_err.at(0));
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
-  //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+  // _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
   // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
+
+  // assign number of threads
+  std::cout << "PHSimpleKFProp::InitRun - m_num_threads: " << m_num_threads << std::endl;
+  if( m_num_threads >= 1 ) { omp_set_num_threads( m_num_threads ); }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 {
-  if (_use_const_field || fabs(z) > 105.5)
+  if (_use_const_field || std::abs(z) > 105.5)
   {
     return _const_field;
   }
   double p[4] = {x * cm, y * cm, z * cm, 0. * cm};
   double bfield[3];
-  _field_map->GetFieldValue(p, bfield);
+
+  // check thread number. Use uncached field accessor for all but thread 0.
+  if( omp_get_thread_num() == 0 )
+  {
+    _field_map->GetFieldValue(p, bfield);
+  } else {
+    _field_map->GetFieldValue_nocache(p, bfield);
+  }
+
   /*  Acts::Vector3 loc(0,0,0);
   int mfex = (magField != nullptr);
   int tgex = (m_tGeometry != nullptr);
@@ -198,8 +234,7 @@ int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
   }
 
   // tpc grometry
-  PHG4TpcCylinderGeomContainer* geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cerr << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -226,210 +261,255 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     }
   }
 
-  PHTimer timer("KFPropTimer");
+  const auto globalPositions = PrepareKDTrees();
 
-  timer.stop();
-  timer.restart();
-
-  if (Verbosity())
-  {
-    std::cout << "starting Process" << std::endl;
-  }
-  const PositionMap globalPositions = PrepareKDTrees();
-  if (Verbosity())
-  {
-    std::cout << "prepared KD trees" << std::endl;
-  }
-
-  if (Verbosity())
+  // check number of seeds against maximum
+  if(_max_seeds > 0 && _track_map->size() > _max_seeds)
   {
     std::cout << "number of TPC seeds: " << _track_map->size() << std::endl;
+    std::cout << PHWHERE << "number of TPC seeds > " << _max_seeds << " aborting event." << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
-  if(_max_seeds > 0)
-  {
-    if(_track_map->size() > _max_seeds){
-      std::cout << PHWHERE << "number of TPC seeds > " << _max_seeds << " aborting event." << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  }
+
+  // list of cluster chains
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
-  for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
+
+  #pragma omp parallel
   {
     if (Verbosity())
     {
-      std::cout << "TPC seed " << track_it << std::endl;
+      std::osyncstream(std::cout)
+        << "PHSimpleKFProp -"
+        << " num_threads: " << omp_get_num_threads()
+        << " this thread: " << omp_get_thread_num()
+        << std::endl;
     }
-    // if not a TPC track, ignore
-    auto track = _track_map->get(track_it);
-    const bool is_tpc = std::any_of(
+
+    PHTimer timer("KFPropTimer");
+
+    std::vector<std::vector<TrkrDefs::cluskey>> local_chains;
+    std::vector<TrackSeed_v2> local_unused;
+
+    #pragma omp for schedule(static)
+    for (size_t track_it = 0; track_it != _track_map->size(); ++track_it)
+    {
+      if (Verbosity())
+      {
+        std::osyncstream(std::cout)
+          << "PHSimpleKFProp -"
+          << " num_threads: " << omp_get_num_threads()
+          << " this thread: " << omp_get_thread_num()
+          << " processing seed " << track_it << std::endl;
+      }
+
+      // if not a TPC track, ignore
+      auto track = _track_map->get(track_it);
+      const bool is_tpc = std::any_of(
         track->begin_cluster_keys(),
         track->end_cluster_keys(),
         [](const TrkrDefs::cluskey& key)
-        { return TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId; });
+      { return TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId; });
 
-    if (is_tpc)
-    {
+      if (is_tpc)
+      {
 
-      // copy list of seed cluster keys
-      std::vector<std::vector<TrkrDefs::cluskey>> keylist_A(1);
-      std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(keylist_A[0]));
+        // copy list of seed cluster keys
+        std::vector<std::vector<TrkrDefs::cluskey>> keylist_A(1);
+        std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(keylist_A[0]));
 
-      // copy seed clusters position into local map
-      std::map<TrkrDefs::cluskey, Acts::Vector3> trackClusPositions;
-      std::transform(track->begin_cluster_keys(), track->end_cluster_keys(), std::inserter(trackClusPositions, trackClusPositions.end()),
-        [globalPositions](const auto& key)
+        // copy seed clusters position into local map
+        std::map<TrkrDefs::cluskey, Acts::Vector3> trackClusPositions;
+        std::transform(track->begin_cluster_keys(), track->end_cluster_keys(), std::inserter(trackClusPositions, trackClusPositions.end()),
+          [globalPositions](const auto& key)
         { return std::make_pair(key, globalPositions.at(key)); });
 
-      /// Can't circle fit a seed with less than 3 clusters, skip it
-      if (keylist_A[0].size() < 3)
-      {
-        continue;
-      }
+        /// Can't circle fit a seed with less than 3 clusters, skip it
+        if (keylist_A[0].size() < 3)
+        {
+          continue;
+        }
 
-      /// This will by definition return a single pair with each vector
-      /// in the pair length 1 corresponding to the seed info
-      std::vector<float> trackChi2;
-      timer.stop();
-      timer.restart();
+        /// This will by definition return a single pair with each vector
+        /// in the pair length 1 corresponding to the seed info
+        std::vector<float> trackChi2;
+        timer.restart();
 
-      auto seedpair = fitter->ALICEKalmanFilter(keylist_A, false,
-                                                trackClusPositions, trackChi2);
+        auto seedpair = fitter->ALICEKalmanFilter(keylist_A, false, trackClusPositions, trackChi2);
 
-      timer.stop();
-      if (Verbosity() > 3)
-      {
-        std::cout << "single track ALICEKF time " << timer.elapsed()
-                  << std::endl;
-      }
-      timer.restart();
+        timer.stop();
+        if (Verbosity() > 3)
+        {
+          std::cout << "single track ALICEKF time " << timer.elapsed() << std::endl;
+        }
 
-      /// circle fit back to update track parameters
-      TrackSeedHelper::circleFitByTaubin(track, trackClusPositions, 7, 55);
-      TrackSeedHelper::lineFit(track, trackClusPositions, 7, 55);
-      track->set_phi(TrackSeedHelper::get_phi(track, trackClusPositions));
-      timer.stop();
-      if (Verbosity() > 3)
-      {
-        std::cout << "single track circle fit time " << timer.elapsed() << std::endl;
-      }
-      if (seedpair.first.empty()|| seedpair.second.empty())
-      {
-        continue;
-      }
+        timer.restart();
 
-      if (Verbosity())
-      {
-        std::cout << "is tpc track" << std::endl;
-      }
+        /// circle fit back to update track parameters
+        TrackSeedHelper::circleFitByTaubin(track, trackClusPositions, 7, 55);
+        TrackSeedHelper::lineFit(track, trackClusPositions, 7, 55);
+        track->set_phi(TrackSeedHelper::get_phi(track, trackClusPositions));
+        timer.stop();
+        if (Verbosity() > 3)
+        {
+          std::cout << "single track circle fit time " << timer.elapsed() << std::endl;
+        }
 
-      timer.stop();
-      timer.restart();
+        if (seedpair.first.empty()|| seedpair.second.empty())
+        {
+          continue;
+        }
 
-      if (Verbosity())
-      {
-        std::cout << "propagate first round" << std::endl;
-      }
+        if (Verbosity())
+        {
+          std::cout << "is tpc track" << std::endl;
+        }
 
-      auto preseed = PropagateTrack(track, PropagationDirection::Inward, seedpair.second.at(0), globalPositions);
-      if (Verbosity())
-      {
-        std::cout << "preseed size " << preseed.size() << std::endl;
-      }
+        timer.restart();
 
-      std::vector<std::vector<TrkrDefs::cluskey>> kl = {preseed};
-      if (Verbosity())
-      {
-        std::cout << "kl size " << kl.size() << std::endl;
-      }
-      std::vector<float> pretrackChi2;
-      auto prepair = fitter->ALICEKalmanFilter(kl, false, globalPositions, pretrackChi2);
-      if (prepair.first.empty() || prepair.second.empty())
-      {
-        continue;
-      }
+        if (Verbosity())
+        {
+          std::cout << "propagate first round" << std::endl;
+        }
 
-      std::reverse(kl.at(0).begin(), kl.at(0).end());
+        auto preseed = PropagateTrack(track, PropagationDirection::Inward, seedpair.second.at(0), globalPositions);
+        if (Verbosity())
+        {
+          std::cout << "preseed size " << preseed.size() << std::endl;
+        }
 
-      auto pretrack = prepair.first.at(0);
+        std::vector<std::vector<TrkrDefs::cluskey>> kl = {preseed};
+        if (Verbosity())
+        {
+          std::cout << "kl size " << kl.size() << std::endl;
+        }
+        std::vector<float> pretrackChi2;
 
-      // copy seed clusters position into local map
-      std::map<TrkrDefs::cluskey, Acts::Vector3> pretrackClusPositions;
-      std::transform(pretrack.begin_cluster_keys(), pretrack.end_cluster_keys(), std::inserter(pretrackClusPositions, pretrackClusPositions.end()),
-        [globalPositions](const auto& key)
-        { return std::make_pair(key, globalPositions.at(key)); });
+        auto prepair = fitter->ALICEKalmanFilter(kl, false, globalPositions, pretrackChi2);
+        if (prepair.first.empty() || prepair.second.empty())
+        {
+          continue;
+        }
 
-      // fit seed
-      TrackSeedHelper::circleFitByTaubin(&pretrack,pretrackClusPositions, 7, 55);
-      TrackSeedHelper::lineFit(&pretrack, pretrackClusPositions, 7, 55);
-      pretrack.set_phi(TrackSeedHelper::get_phi(&pretrack, pretrackClusPositions));
+        std::reverse(kl.at(0).begin(), kl.at(0).end());
 
-      prepair.second.at(0).SetDzDs(-prepair.second.at(0).GetDzDs());
-      auto finalchain = PropagateTrack(&pretrack, kl.at(0), PropagationDirection::Outward, prepair.second.at(0), globalPositions);
+        auto pretrack = prepair.first.at(0);
 
-      if (finalchain.size() > kl.at(0).size())
-      {
-        new_chains.push_back(finalchain);
+        // copy seed clusters position into local map
+        std::map<TrkrDefs::cluskey, Acts::Vector3> pretrackClusPositions;
+        std::transform(pretrack.begin_cluster_keys(), pretrack.end_cluster_keys(), std::inserter(pretrackClusPositions, pretrackClusPositions.end()),
+          [globalPositions](const auto& key)
+          { return std::make_pair(key, globalPositions.at(key)); });
+
+        // fit seed
+        TrackSeedHelper::circleFitByTaubin(&pretrack,pretrackClusPositions, 7, 55);
+        TrackSeedHelper::lineFit(&pretrack, pretrackClusPositions, 7, 55);
+        pretrack.set_phi(TrackSeedHelper::get_phi(&pretrack, pretrackClusPositions));
+
+        prepair.second.at(0).SetDzDs(-prepair.second.at(0).GetDzDs());
+        const auto finalchain = PropagateTrack(&pretrack, kl.at(0), PropagationDirection::Outward, prepair.second.at(0), globalPositions);
+
+        if (finalchain.size() > kl.at(0).size())
+        {
+          local_chains.push_back(std::move(finalchain));
+        }
+        else
+        {
+          local_chains.push_back(std::move(kl.at(0)));
+        }
+
+        timer.stop();
+
+        if (Verbosity() > 3)
+        {
+          const auto propagatetime = timer.elapsed();
+          std::cout << "propagate track time " << propagatetime << std::endl;
+        }
       }
       else
       {
-        new_chains.push_back(kl.at(0));
-      }
-
-      timer.stop();
-
-      if (Verbosity() > 3)
-      {
-        const auto propagatetime = timer.elapsed();
-        std::cout << "propagate track time " << propagatetime << std::endl;
+        if (Verbosity())
+        {
+          std::cout << "is NOT tpc track" << std::endl;
+        }
+        local_unused.emplace_back(*track);
       }
     }
-    else
+
+    // sort list and remove duplicates
+    std::sort(local_chains.begin(),local_chains.end());
+    local_chains.erase(std::unique(local_chains.begin(),local_chains.end()),local_chains.end());
+
+    // Critical sections to merge thread-local results
+    #pragma omp critical
     {
-      // this is bad: it copies the track to its base class, which is essentially empty
-      if (Verbosity())
-      {
-        std::cout << "is NOT tpc track" << std::endl;
-      }
-      unused_tracks.emplace_back(*track);
+      new_chains.reserve(new_chains.size()+local_chains.size());
+      new_chains.insert(new_chains.end(), std::make_move_iterator(local_chains.begin()), std::make_move_iterator(local_chains.end()));
+
+      unused_tracks.reserve(unused_tracks.size()+local_unused.size());
+      unused_tracks.insert(unused_tracks.end(), std::make_move_iterator(local_unused.begin()), std::make_move_iterator(local_unused.end()));
     }
   }
 
-  _track_map->Reset();
-  timer.stop();
-  timer.restart();
+  // sort merged list and remove duplicates
+  std::sort(new_chains.begin(),new_chains.end());
+  new_chains.erase(std::unique(new_chains.begin(),new_chains.end()),new_chains.end());
 
-  const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
-  if (Verbosity() > 1)
+  if( Verbosity() )
   {
-    std::cout << "clean_chains size: " << clean_chains.size() << std::endl;
+    // print all seeds
+    std::cout << "PHSimpleKFProp::process_event - new_chains size: " << new_chains.size() << std::endl;
+    for( const auto& chain:new_chains )
+    {
+      std::cout << "PHSimpleKFProp::process_event - { ";
+      for( const auto& key:chain )
+      {
+        std::cout << key << " ";
+      }
+      std::cout << "}" << std::endl << std::endl;
+    }
   }
-  timer.stop();
 
-  timer.stop();
+  /*
+   * presently RemoveBadClusters does nothing. It just removes seeds of size less than 3, which don't make it through the main loop anyway
+   * so we just comment out the call, to prevent unnecessary data copy
+   */
+//   const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
+//   if (Verbosity() > 1)
+//   { std::cout << "PHSimpleKFProp::process_event - clean_chains size: " << clean_chains.size() << std::endl; }
+
+  const auto& clean_chains = new_chains;
+
+  /*
+   * TODO: in principle this could also move to a thread
+   * need to pay attention to duplicated seeds though
+   */
+  PHTimer timer("KFPropTimer");
   timer.restart();
   std::vector<float> trackChi2;
-  auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions,
-                                         trackChi2);
+  auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions, trackChi2);
   timer.stop();
-  auto alicekftime = timer.elapsed();
-  if (Verbosity() > 0)
+
+  if (Verbosity())
   {
+    const auto alicekftime = timer.elapsed();
     std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
   }
-  timer.stop();
-  timer.restart();
-  //  Move ghost rejection into publishSeeds, so that we don't publish
-  //  rejected seeds
+
+  // reset track map
+  _track_map->Reset();
+
+  //  Move ghost rejection into publishSeeds, so that we don't publish rejected seeds
   if (m_ghostrejection)
   {
-    rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2, timer);
+    rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2);
   }
   else
   {
     publishSeeds(seeds.first);
   }
 
+  // also publish unused seeds (not TPC)
   publishSeeds(unused_tracks);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -460,8 +540,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
     auto range = _cluster_map->getClusters(hitsetkey);
     for (TrkrClusterContainer::ConstIterator it = range.first; it != range.second; ++it)
     {
-      TrkrDefs::cluskey cluskey = it->first;
-      TrkrCluster* cluster = it->second;
+      const auto& [cluskey,cluster] = *it;
       if (!cluster)
       {
         continue;
@@ -474,14 +553,11 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       }
 
       const auto globalpos = getGlobalPosition(cluskey, cluster);
-      globalPositions.insert(std::make_pair(cluskey, globalpos));
+      globalPositions.emplace(cluskey, globalpos);
 
-      int layer = TrkrDefs::getLayer(cluskey);
-      std::vector<double> kdhit(4);
-      kdhit[0] = globalpos.x();
-      kdhit[1] = globalpos.y();
-      kdhit[2] = globalpos.z();
-      uint64_t key = cluskey;
+      const int layer = TrkrDefs::getLayer(cluskey);
+      std::vector<double> kdhit{ globalpos.x(), globalpos.y(),  globalpos.z(), 0 };
+      const uint64_t key = cluskey;
       std::memcpy(&kdhit[3], &key, sizeof(key));
 
       //      HINT: way to get original uint64_t value from double:
@@ -489,7 +565,7 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       //      LOG_DEBUG("tracking.PHTpcTrackerUtil.convert_clusters_to_hits")
       //        << "orig: " << cluster->getClusKey() << ", readback: " << (*((int64_t*)&kdhit[3]));
 
-      kdhits[layer].push_back(kdhit);
+      kdhits[layer].push_back(std::move(kdhit));
     }
   }
   _ptclouds.resize(kdhits.size());
@@ -501,15 +577,8 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
       std::cout << "l: " << l << std::endl;
     }
     _ptclouds[l] = std::make_shared<KDPointCloud<double>>();
-    _ptclouds[l]->pts.resize(kdhits[l].size());
-    if (Verbosity() > 1)
-    {
-      std::cout << "resized to " << kdhits[l].size() << std::endl;
-    }
-    for (size_t i = 0; i < kdhits[l].size(); ++i)
-    {
-      _ptclouds[l]->pts[i] = kdhits[l][i];
-    }
+    _ptclouds[l]->pts = std::move(kdhits[l]);
+
     _kdtrees[l] = std::make_shared<nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, KDPointCloud<double>>, KDPointCloud<double>, 3>>(3, *(_ptclouds[l]), nanoflann::KDTreeSingleIndexAdaptorParams(10));
     _kdtrees[l]->buildIndex();
   }
@@ -517,14 +586,19 @@ PositionMap PHSimpleKFProp::PrepareKDTrees()
   return globalPositions;
 }
 
-bool PHSimpleKFProp::TransportAndRotate(double old_radius, double new_radius, double& phi, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const
+bool PHSimpleKFProp::TransportAndRotate(
+  double old_radius,
+  double new_radius,
+  double& phi,
+  GPUTPCTrackParam& kftrack,
+  GPUTPCTrackParam::GPUTPCTrackFitParam& fp) const
 {
   if (Verbosity() > 2)
   {
     std::cout << "old_radius " << old_radius << ", new_radius " << new_radius << std::endl;
   }
   const float transport_spacing = .05;  // max radial distance between transport points
-  const int Ndivisions = floor(fabs(new_radius - old_radius) / transport_spacing);
+  const int Ndivisions = floor(std::abs(new_radius - old_radius) / transport_spacing);
   if (Verbosity() > 2)
   {
     std::cout << "Ndivisions: " << Ndivisions << std::endl;
@@ -612,20 +686,28 @@ bool PHSimpleKFProp::TransportAndRotate(double old_radius, double new_radius, do
     phi = new_phi;
   }
 
-  const double final_tX = kftrack.GetX();
-  const double final_tY = kftrack.GetY();
-  const double final_tx = final_tX * cos(phi) - final_tY * sin(phi);
-  const double final_ty = final_tX * sin(phi) + final_tY * cos(phi);
-  const double final_tz = kftrack.GetZ();
-
   if (Verbosity() > 1)
   {
+    const double final_tX = kftrack.GetX();
+    const double final_tY = kftrack.GetY();
+    const double final_tx = final_tX * cos(phi) - final_tY * sin(phi);
+    const double final_ty = final_tX * sin(phi) + final_tY * cos(phi);
+    const double final_tz = kftrack.GetZ();
     std::cout << "track position after transport: (" << final_tx << ", " << final_ty << ", " << final_tz << ")" << std::endl;
   }
   return true;
 }
 
-bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_phi, PropagationDirection& direction, std::vector<TrkrDefs::cluskey>& propagated_track, std::vector<TrkrDefs::cluskey>& ckeys, GPUTPCTrackParam& kftrack, GPUTPCTrackParam::GPUTPCTrackFitParam& fp, const PositionMap& globalPositions) const
+//___________________________________________________________________________________________
+bool PHSimpleKFProp::PropagateStep(
+  unsigned int& current_layer,
+  double& current_phi,
+  PropagationDirection& direction,
+  std::vector<TrkrDefs::cluskey>& propagated_track,
+  const std::vector<TrkrDefs::cluskey>& ckeys,
+  GPUTPCTrackParam& kftrack,
+  GPUTPCTrackParam::GPUTPCTrackFitParam& fp,
+  const PositionMap& globalPositions) const
 {
   // give up if position vector is NaN (propagation failed)
   if (std::isnan(kftrack.GetX()) ||
@@ -714,7 +796,7 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     // So, first, we turn the track around ourselves, setting it to its next intersection at its current radius
 
     // basically circle project in xy, linear project in z
-    double pt = 1. / fabs(kftrack.GetQPt());
+    double pt = 1. / std::abs(kftrack.GetQPt());
     double end_tx = kftrack.GetX() * cos(current_phi) - kftrack.GetY() * sin(current_phi);
     double end_ty = kftrack.GetX() * sin(current_phi) + kftrack.GetY() * cos(current_phi);
     double end_tz = kftrack.GetZ();
@@ -736,8 +818,8 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     }
     double px = pX * cos(current_phi) - pY * sin(current_phi);
     double py = pX * sin(current_phi) + pY * cos(current_phi);
-    double tangent_phi = atan2(py, px);
-    double center_phi;
+    double tangent_phi = std::atan2(py, px);
+    double center_phi = 0;
     if (kftrack.GetQPt() > 0)
     {
       center_phi = tangent_phi + M_PI / 2.;
@@ -760,7 +842,8 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     {
       std::cout << "(xc, yc) = (" << xc << ", " << yc << ")" << std::endl;
     }
-    auto circle_output = TrackFitUtils::circle_circle_intersection(sqrt(pow(kftrack.GetX(), 2.) + pow(kftrack.GetY(), 2.)), R, xc, yc);
+    auto circle_output = TrackFitUtils::circle_circle_intersection(
+      std::sqrt(square(kftrack.GetX()) + square(kftrack.GetY())), R, xc, yc);
     // pick the furthest point from current track position
     double new_tx;
     double new_ty;
@@ -773,7 +856,7 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
       std::cout << "circle-circle intersection: (" << xplus << ", " << yplus << "), (" << xminus << ", " << yminus << ")" << std::endl;
     }
 
-    if (sqrt(pow(end_tx - xplus, 2.) + pow(end_ty - yplus, 2.)) > sqrt(pow(end_tx - xminus, 2.) + pow(end_ty - yminus, 2.)))
+    if (std::sqrt(square(end_tx - xplus) + square(end_ty - yplus)) > std::sqrt(square(end_tx - xminus) + square(end_ty - yminus)))
     {
       new_tx = xplus;
       new_ty = yplus;
@@ -788,13 +871,13 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     {
       std::cout << "track now at (" << new_tx << ", " << new_ty << ")" << std::endl;
     }
-    double rot_phi = atan2(new_ty, new_tx);
+    const double rot_phi = atan2(new_ty, new_tx);
     // double rot_alpha = rot_phi - current_phi;
 
     // new track point is existing track point rotated by alpha
-    double new_tX = new_tx * cos(rot_phi) + new_ty * sin(rot_phi);
-    double new_tY = -new_tx * sin(rot_phi) + new_ty * cos(rot_phi);
-    double new_centerphi = atan2(new_ty - yc, new_tx - xc);
+    const double new_tX = new_tx * cos(rot_phi) + new_ty * sin(rot_phi);
+    const double new_tY = -new_tx * sin(rot_phi) + new_ty * cos(rot_phi);
+    const double new_centerphi = atan2(new_ty - yc, new_tx - xc);
     double dcenterphi = new_centerphi - center_phi;
     if (dcenterphi > M_PI)
     {
@@ -804,8 +887,8 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     {
       dcenterphi = 2. * M_PI + dcenterphi;
     }
-    double ds = R * fabs(dcenterphi);
-    double dz = kftrack.GetDzDs() * ds;
+    const double ds = R * std::abs(dcenterphi);
+    const double dz = kftrack.GetDzDs() * ds;
 
     current_phi = rot_phi;
     kftrack.SetX(new_tX);
@@ -900,6 +983,7 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   std::vector<long unsigned int> index_out(1);
   std::vector<double> distance_out(1);
   int n_results = _kdtrees[next_layer]->knnSearch(&query_pt[0], 1, &index_out[0], &distance_out[0]);
+
   // if no results, then no cluster to add, but propagation is not necessarily done
   if (!n_results)
   {
@@ -913,7 +997,7 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   const std::vector<double>& point = _ptclouds[next_layer]->pts[index_out[0]];
   TrkrDefs::cluskey closest_ckey = (*((int64_t*) &point[3]));
   TrkrCluster* clusterCandidate = _cluster_map->findCluster(closest_ckey);
-  auto candidate_globalpos = globalPositions.at(closest_ckey);
+  const auto candidate_globalpos = globalPositions.at(closest_ckey);
   const double cand_x = candidate_globalpos(0);
   const double cand_y = candidate_globalpos(1);
   const double cand_z = candidate_globalpos(2);
@@ -924,9 +1008,9 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   }
 
   // get cluster and track state position errors
-  const double tYerr = sqrt(kftrack.GetCov(0));
-  const double txerr = fabs(tYerr * sin(current_phi));
-  const double tyerr = fabs(tYerr * cos(current_phi));
+  const double tYerr = std::sqrt(kftrack.GetCov(0));
+  const double txerr = std::abs(tYerr * sin(current_phi));
+  const double tyerr = std::abs(tYerr * cos(current_phi));
   const double tzerr = sqrt(kftrack.GetCov(5));
 
   if (Verbosity() > 1)
@@ -944,9 +1028,9 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   }
 
   // add cluster if its position is within error-based window
-  if (fabs(new_tx - cand_x) < _max_dist * sqrt(txerr * txerr + cand_xerr * cand_xerr) &&
-      fabs(new_ty - cand_y) < _max_dist * sqrt(tyerr * tyerr + cand_yerr * cand_yerr) &&
-      fabs(new_tz - cand_z) < _max_dist * sqrt(tzerr * tzerr + cand_zerr * cand_zerr))
+  if (std::abs(new_tx - cand_x) < _max_dist * std::sqrt(square(txerr) + square(cand_xerr)) &&
+      std::abs(new_ty - cand_y) < _max_dist * std::sqrt(square(tyerr) + square(cand_yerr)) &&
+      std::abs(new_tz - cand_z) < _max_dist * std::sqrt(square(tzerr) + square(cand_zerr)))
   {
     if (Verbosity() > 1)
     {
@@ -957,7 +1041,7 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
     // don't re-filter clusters that are already in original seed
     if (std::find(ckeys.begin(), ckeys.end(), closest_ckey) == ckeys.end())
     {
-      const double cand_Y = -cand_x * sin(current_phi) + cand_y * cos(current_phi);
+      const double cand_Y = -cand_x * std::sin(current_phi) + cand_y * std::cos(current_phi);
       const double cand_xycov2 = fitter->getClusterError(clusterCandidate, closest_ckey, candidate_globalpos, 0, 1);
       const double cand_Yerr2 = cand_xerr * cand_xerr * sin(current_phi) * sin(current_phi) + cand_xycov2 * sin(current_phi) * cos(current_phi) + cand_yerr * cand_yerr * cos(current_phi) * cos(current_phi);
       const double cand_zerr2 = cand_zerr * cand_zerr;
@@ -969,12 +1053,6 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
 
       kftrack.Filter(cand_Y, cand_z, cand_Yerr2, cand_zerr2, _max_sin_phi);
     }
-    //    else
-    //    {
-    //      kftrack.SetX(cand_x*cos(current_phi)+cand_y*sin(current_phi));
-    //      kftrack.SetY(-cand_x*sin(current_phi)+cand_y*cos(current_phi));
-    //      kftrack.SetZ(cand_z);
-    //    }
   }
 
   // update layer
@@ -994,21 +1072,21 @@ bool PHSimpleKFProp::PropagateStep(unsigned int& current_layer, double& current_
   return true;
 }
 
+//_________________________________________________________________
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const
 {
   // extract cluster list
-
   std::vector<TrkrDefs::cluskey> ckeys;
-  std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(ckeys));
-
   if (direction == PropagationDirection::Inward)
   {
-    std::reverse(ckeys.begin(), ckeys.end());
+    std::reverse_copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(ckeys));
+  } else {
+    std::copy(track->begin_cluster_keys(), track->end_cluster_keys(), std::back_inserter(ckeys));
   }
-
   return PropagateTrack(track, ckeys, direction, aliceSeed, globalPositions);
 }
 
+//_________________________________________________________________
 std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, std::vector<TrkrDefs::cluskey>& ckeys, PropagationDirection direction, GPUTPCTrackParam& aliceSeed, const PositionMap& globalPositions) const
 {
   if (direction == PropagationDirection::Inward)
@@ -1353,8 +1431,11 @@ std::vector<keylist> PHSimpleKFProp::RemoveBadClusters(const std::vector<keylist
   return clean_chains;
 }
 
-void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2, PHTimer& timer)
+void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, const PositionMap& positions, std::vector<float>& trackChi2)
 {
+
+  PHTimer timer("KFPropTimer");
+
   // testing with presets for rejection
   PHGhostRejection rejector(Verbosity(), seeds);
   rejector.set_phi_cut(_ghost_phi_cut);
@@ -1390,9 +1471,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
   }
 
   // now do the ghost rejection *before* publishing the seeds to the _track_map
-  timer.stop();
   timer.restart();
-
   rejector.find_ghosts(trackChi2);
   if (Verbosity() > 2)
   {

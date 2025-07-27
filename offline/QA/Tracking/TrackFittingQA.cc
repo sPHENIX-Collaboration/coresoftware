@@ -198,14 +198,7 @@ int TrackFittingQA::process_event(
 
   for (auto const& [idkey, track] : *track_map)
   {
-    int charge = (0 < track->get_charge()) ? 1 : 0;
-
-    m_quality_hist[charge]->Fill(track->get_quality());
-    m_p_hist[charge]->Fill(track->get_p());
-    m_pt_hist[charge]->Fill(track->get_pt());
-    m_eta_hist[charge]->Fill(track->get_eta());
-    m_phi_eta_hist[charge]->Fill(track->get_phi(), track->get_eta());
-
+    // count states
     std::map<TrkrDefs::TrkrId, int> counters = {
         {TrkrDefs::mvtxId, 0},
         {TrkrDefs::inttId, 0},
@@ -213,17 +206,40 @@ int TrackFittingQA::process_event(
         {TrkrDefs::micromegasId, 0},
     };
 
-    // count states
     for (auto const& [path_length, state] : range_adaptor(track->begin_states(), track->end_states()))
     {
+      // There is an additional state representing the vertex at the beginning of the map,
+      // but getTrkrId will return 0 for its corresponding cluster
+      // Identify it as having path_length identically equal to 0
+      if (path_length == 0) continue;
+
       auto trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(state->get_cluskey()));
       auto itr = counters.find(trkr_id);
-      if (itr == counters.end())
-      {
-        continue;
-      }
+      if (itr == counters.end()) continue;
       ++itr->second;
     }
+
+    // Cuts
+    if ( track->get_quality() < m_min_quality ) continue;
+    if ( m_max_quality < track->get_quality() ) continue;
+    if ( track->get_p() < m_min_p ) continue;
+    if ( track->get_pt() < m_min_pt ) continue;
+    if ( m_max_abs_eta < std::abs(track->get_eta()) ) continue;
+    if ( counters[TrkrDefs::inttId] < m_min_intt_states ) continue;
+    if ( counters[TrkrDefs::mvtxId] < m_min_mvtx_states ) continue;
+    if ( counters[TrkrDefs::tpcId] < m_min_tpc_states ) continue;
+    if ( counters[TrkrDefs::micromegasId] < m_min_tpot_states ) continue;
+    if ( track->get_crossing() < m_min_crossing ) continue;
+    if ( m_max_crossing < track->get_crossing() ) continue;
+
+    // Fill histograms if passing
+    int charge = (0 < track->get_charge()) ? 1 : 0;
+
+    m_quality_hist[charge]->Fill(track->get_quality());
+    m_p_hist[charge]->Fill(track->get_p());
+    m_pt_hist[charge]->Fill(track->get_pt());
+    m_eta_hist[charge]->Fill(track->get_eta());
+    m_phi_eta_hist[charge]->Fill(track->get_phi(), track->get_eta());
 
     m_mvtx_states_hist[charge]->Fill(counters[TrkrDefs::mvtxId]);
     m_intt_states_hist[charge]->Fill(counters[TrkrDefs::inttId]);

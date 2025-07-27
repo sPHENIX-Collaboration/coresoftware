@@ -39,6 +39,11 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
 
   void AddPacketID(const int packetID) { m_SelectedPacketIDs.insert(packetID); }
 
+  void setDigitalCurrentDebugTTreeName(const std::string &name)
+  {
+    m_digitalCurrentDebugTTreeName = name;
+  }
+
  private:
   const int NTPCPACKETS = 3;
 
@@ -73,6 +78,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
     bool stopped = false;
   };
 
+  std::string m_digitalCurrentDebugTTreeName;
 };
 
 #endif

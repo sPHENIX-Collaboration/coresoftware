@@ -52,7 +52,7 @@ class StreakSidebandFilter : public BaseBeamBackgroundFilter
 
   // ctor/dtor
   StreakSidebandFilter(const std::string& name = "StreakSideband");
-  StreakSidebandFilter(const Config& cfg, const std::string& name = "StreakSideband");
+  StreakSidebandFilter(const Config& config, const std::string& name = "StreakSideband");
   virtual ~StreakSidebandFilter() = default;
 
   // inherited methods
@@ -64,8 +64,8 @@ class StreakSidebandFilter : public BaseBeamBackgroundFilter
   void GrabNodes(PHCompositeNode* topNode) override;
 
   // filter-specific methods
-  bool IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower);
-  bool IsNeighborNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower);
+  bool IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower) const;
+  bool IsNeighborNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower) const;
 
   ///! input node
   TowerInfoContainer* m_ohContainer{nullptr};

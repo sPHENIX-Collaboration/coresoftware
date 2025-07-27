@@ -7,38 +7,39 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrackFitUtils.h>
-
-#include <trackbase_historic/TrackSeedContainer_v1.h>
-
-#include <micromegas/MicromegasDefs.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
-
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrHitSet.h>
 
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
-#include <globalvertex/SvtxVertex.h>
-#include <globalvertex/SvtxVertexMap.h>
-
+#include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
 #include <trackbase_historic/TrackSeed.h>
 
+#include <micromegas/MicromegasDefs.h>
+
+
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
+
+
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <trackermillepedealignment/HelicalFitter.h>
+
+#include <ffamodules/CDBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <ffamodules/CDBInterface.h>
 
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
@@ -59,9 +60,7 @@
 #include <utility>
 #include <vector>
 
-using namespace std;
-
-enum n_event
+enum n_event // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   evnev,
   evnseed,
@@ -71,7 +70,7 @@ enum n_event
   evsize = evnjob + 1,
 };
 
-enum n_info
+enum n_info // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   infonocc11,
   infonocc116,
@@ -99,7 +98,7 @@ enum n_info
   infosize = infonclustpot + 1
 };
 
-enum n_vertex
+enum n_vertex // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   vtxnvertexID,
   vtxnvx,
@@ -111,7 +110,7 @@ enum n_vertex
   vtxsize = vtxnndof + 1
 };
 
-enum n_hit
+enum n_hit // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nhitID,
   nhite,
@@ -131,7 +130,7 @@ enum n_hit
   hitsize = nhitz + 1
 };
 
-enum n_seed
+enum n_seed // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nseedtrackID,
   nseedniter,
@@ -157,7 +156,7 @@ enum n_seed
   seedsize = nseednhits + 1
 };
 
-enum n_residual
+enum n_residual // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nresalpha,
   nresbeta,
@@ -167,7 +166,7 @@ enum n_residual
   ressize = nresz + 1
 };
 
-enum n_track
+enum n_track // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   ntrktrackID,
   ntrkcrossing,
@@ -220,7 +219,7 @@ enum n_track
   trksize = ntrkhlxcharge + 1
 };
 
-enum n_cluster
+enum n_cluster // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nclulocx,
   nclulocy,
@@ -260,7 +259,7 @@ enum n_cluster
   clusize = ncluniter + 1
 };
 
-TrkrNtuplizer::TrkrNtuplizer(const string& /*name*/, const string& filename, const string& trackmapname,
+TrkrNtuplizer::TrkrNtuplizer(const std::string& /*name*/, const std::string& filename, const std::string& trackmapname,
                              unsigned int nlayers_maps,
                              unsigned int nlayers_intt,
                              unsigned int nlayers_tpc,
@@ -286,58 +285,58 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
   _tfile->SetCompressionLevel(7);
-  string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
-  string str_event = {"event:seed:run:seg:job"};
-  string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
-  string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:thick:afac:bfac:dcal:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
-  string str_seed = {"seedID:siter:spt:sptot:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:spidedx:skdedx:sprdedx:sn1pix:snhits"};
-  string str_residual = {"alpha:beta:resphio:resphi:resz"};
-  string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:dedx:pidedx:kdedx:prdedx:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:hlxpt:hlxeta:hlxphi:hlxX0:hlxY0:hlxZ0:hlxcharge"};
-  string str_info = {"occ11:occ116:occ21:occ216:occ31:occ316:ntrk:ntpcseed:nsiseed:nhitmvtx:nhitintt:nhittpot:nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclustpcpos:nclustpcneg:nclusintt:nclusmaps:nclusmms"};
+  std::string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
+  std::string str_event = {"event:seed:run:seg:job"};
+  std::string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
+  std::string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:thick:afac:bfac:dcal:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
+  std::string str_seed = {"seedID:siter:spt:sptot:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:spidedx:skdedx:sprdedx:sn1pix:snhits"};
+  std::string str_residual = {"alpha:beta:resphio:resphi:resz"};
+  std::string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:dedx:pidedx:kdedx:prdedx:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:hlxpt:hlxeta:hlxphi:hlxX0:hlxY0:hlxZ0:hlxcharge"};
+  std::string str_info = {"occ11:occ116:occ21:occ216:occ31:occ316:ntrk:ntpcseed:nsiseed:nhitmvtx:nhitintt:nhittpot:nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclustpcpos:nclustpcneg:nclusintt:nclusmaps:nclusmms"};
 
   if (_do_info_eval)
   {
-    string ntp_varlist_info = str_event + ":" + str_info;
+    std::string ntp_varlist_info = str_event + ":" + str_info;
     _ntp_info = new TNtuple("ntp_info", "event info", ntp_varlist_info.c_str());
   }
 
   if (_do_vertex_eval)
   {
-    string ntp_varlist_vtx = str_event + ":" + str_vertex + ":" + str_info;
+    std::string ntp_varlist_vtx = str_event + ":" + str_vertex + ":" + str_info;
     _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth", ntp_varlist_vtx.c_str());
   }
 
   if (_do_hit_eval)
   {
-    string ntp_varlist_ev = str_event + ":" + str_hit + ":" + str_info;
+    std::string ntp_varlist_ev = str_event + ":" + str_hit + ":" + str_info;
     _ntp_hit = new TNtuple("ntp_hit", "svtxhit => max truth", ntp_varlist_ev.c_str());
   }
 
   if (_do_cluster_eval)
   {
-    string ntp_varlist_clu = str_event + ":" + str_cluster + ":" + str_info;
+    std::string ntp_varlist_clu = str_event + ":" + str_cluster + ":" + str_info;
     _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth", ntp_varlist_clu.c_str());
   }
   if (_do_clus_trk_eval)
   {
-    string ntp_varlist_clut = str_event + ":" + str_cluster + ":" + str_residual + ":" + str_seed + ":" + str_info;
+    std::string ntp_varlist_clut = str_event + ":" + str_cluster + ":" + str_residual + ":" + str_seed + ":" + str_info;
     _ntp_clus_trk = new TNtuple("ntp_clus_trk", "cluster on track", ntp_varlist_clut.c_str());
   }
 
   if (_do_track_eval)
   {
-    string ntp_varlist_trk = str_event + ":" + str_track + ":" + str_info;
+    std::string ntp_varlist_trk = str_event + ":" + str_track + ":" + str_info;
     _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth", ntp_varlist_trk.c_str());
   }
 
   if (_do_tpcseed_eval)
   {
-    string ntp_varlist_tsee = str_event + ":" + str_seed + ":" + str_info;
+    std::string ntp_varlist_tsee = str_event + ":" + str_seed + ":" + str_info;
     _ntp_tpcseed = new TNtuple("ntp_tpcseed", "seeds from truth", ntp_varlist_tsee.c_str());
   }
   if (_do_siseed_eval)
   {
-    string ntp_varlist_ssee = str_event + ":" + str_seed + ":" + str_info;
+    std::string ntp_varlist_ssee = str_event + ":" + str_seed + ":" + str_info;
     _ntp_siseed = new TNtuple("ntp_siseed", "seeds from truth", ntp_varlist_ssee.c_str());
   }
 
@@ -346,7 +345,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
 
   if (!filefit->IsOpen())
   {
-      std::cerr << "Error opening filefit!" << std::endl;
+      std::cout << "Error opening filefit!" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -513,7 +512,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
 int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
 {
 
-  auto geom =
+  auto *geom =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom)
   {
@@ -528,7 +527,7 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
 {
   if ((Verbosity() > 1) && (_ievent % 100 == 0))
   {
-    cout << "TrkrNtuplizer::process_event - Event = " << _ievent << endl;
+    std::cout << "TrkrNtuplizer::process_event - Event = " << _ievent << std::endl;
   }
 
   recoConsts* rc = recoConsts::instance();
@@ -544,7 +543,7 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
   }
   if (_trackmap == nullptr)
   {
-    _trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+    _trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname);
   }
 
   _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
@@ -572,7 +571,7 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
 
   if (Verbosity() > 1)
   {
-    cout << "TrkrNtuplizer::process_event - Seed = " << _iseed << endl;
+    std::cout << "TrkrNtuplizer::process_event - Seed = " << _iseed << std::endl;
   }
   //-----------------------------------
   // print what is coming into the code
@@ -639,9 +638,9 @@ int TrkrNtuplizer::End(PHCompositeNode* /*topNode*/)
 
   if (Verbosity() > 1)
   {
-    cout << "========================= TrkrNtuplizer::End() ============================" << endl;
-    cout << " " << _ievent << " events of output written to: " << _filename << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "========================= TrkrNtuplizer::End() ============================" << std::endl;
+    std::cout << " " << _ievent << " events of output written to: " << _filename << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -651,18 +650,18 @@ void TrkrNtuplizer::printInputInfo(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "TrkrNtuplizer::printInputInfo() entered" << endl;
+    std::cout << "TrkrNtuplizer::printInputInfo() entered" << std::endl;
   }
 
   if (Verbosity() > 3)
   {
     // event information
-    cout << endl;
-    cout << PHWHERE << "   INPUT FOR EVENT " << _ievent << endl;
+    std::cout << std::endl;
+    std::cout << PHWHERE << "   INPUT FOR EVENT " << _ievent << std::endl;
 
-    cout << endl;
+    std::cout << std::endl;
 
-    cout << "---SVTXCLUSTERS-------------" << endl;
+    std::cout << "---SVTXCLUSTERS-------------" << std::endl;
 
     if (_cluster_map != nullptr)
     {
@@ -673,31 +672,31 @@ void TrkrNtuplizer::printInputInfo(PHCompositeNode* topNode)
         for (auto iter = range.first; iter != range.second; ++iter)
         {
           TrkrDefs::cluskey cluster_key = iter->first;
-          cout << icluster << " with key " << cluster_key << " of " << _cluster_map->size();
-          cout << ": SvtxCluster: " << endl;
+          std::cout << icluster << " with key " << cluster_key << " of " << _cluster_map->size();
+          std::cout << ": SvtxCluster: " << std::endl;
           iter->second->identify();
           ++icluster;
         }
       }
     }
 
-    cout << "---SVXTRACKS-------------" << endl;
+    std::cout << "---SVXTRACKS-------------" << std::endl;
 
     if (_trackmap)
     {
       unsigned int itrack = 0;
       for (auto& iter : *_trackmap)
       {
-        cout << itrack << " of " << _trackmap->size();
+        std::cout << itrack << " of " << _trackmap->size();
         SvtxTrack* track = iter.second;
-        cout << " : SvtxTrack:" << endl;
+        std::cout << " : SvtxTrack:" << std::endl;
         track->identify();
-        cout << endl;
+        std::cout << std::endl;
         ++itrack;
       }
     }
 
-    cout << "---SVXVERTEXES-------------" << endl;
+    std::cout << "---SVXVERTEXES-------------" << std::endl;
     SvtxVertexMap* vertexmap = nullptr;
     vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapActs");  // Acts vertices
 
@@ -708,11 +707,11 @@ void TrkrNtuplizer::printInputInfo(PHCompositeNode* topNode)
            iter != vertexmap->end();
            ++iter)
       {
-        cout << ivertex << " of " << vertexmap->size();
+        std::cout << ivertex << " of " << vertexmap->size();
         SvtxVertex* vertex = iter->second;
-        cout << " : SvtxVertex:" << endl;
+        std::cout << " : SvtxVertex:" << std::endl;
         vertex->identify();
-        cout << endl;
+        std::cout << std::endl;
       }
     }
   }
@@ -724,7 +723,7 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "TrkrNtuplizer::printOutputInfo() entered" << endl;
+    std::cout << "TrkrNtuplizer::printOutputInfo() entered" << std::endl;
   }
 
   //==========================================
@@ -734,9 +733,9 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
   if (Verbosity() > 100)
   {
     // event information
-    cout << endl;
-    cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
-    cout << endl;
+    std::cout << std::endl;
+    std::cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << std::endl;
+    std::cout << std::endl;
 
     float vx = std::numeric_limits<float>::quiet_NaN();
     float vy = std::numeric_limits<float>::quiet_NaN();
@@ -758,11 +757,11 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
       }
     }
 
-    cout << "===Vertex Reconstruction=======================" << endl;
-    cout << "vreco = (" << vx << "," << vy << "," << vz << ")" << endl;
-    cout << endl;
+    std::cout << "===Vertex Reconstruction=======================" << std::endl;
+    std::cout << "vreco = (" << vx << "," << vy << "," << vz << ")" << std::endl;
+    std::cout << std::endl;
 
-    cout << "===Tracking Summary============================" << endl;
+    std::cout << "===Tracking Summary============================" << std::endl;
 
     TrkrHitSetContainer* hitsetmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
 
@@ -808,30 +807,30 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
     {
       PHG4TpcCylinderGeom* GeoLayer = _geom_container->GetLayerCellGeom(ilayer);
 
-      cout << "layer " << ilayer
+      std::cout << "layer " << ilayer
            << " => nHits = " << nhits[ilayer]
-           << " => nClusters = " << nclusters[ilayer] << endl;
+           << " => nClusters = " << nclusters[ilayer] << std::endl;
       if (ilayer >= _nlayers_maps + _nlayers_intt && ilayer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
       {
-        cout << "layer " << ilayer
+        std::cout << "layer " << ilayer
              << " => nphi = " << GeoLayer->get_phibins()
              << " => nz   = " << GeoLayer->get_zbins()
              << " => ntot = " << GeoLayer->get_phibins() * GeoLayer->get_zbins()
-             << endl;
+             << std::endl;
       }
     }
 
-    cout << " => nTracks = ";
+    std::cout << " => nTracks = ";
     if (_trackmap)
     {
-      cout << _trackmap->size() << endl;
+      std::cout << _trackmap->size() << std::endl;
     }
     else
     {
-      cout << 0 << endl;
+      std::cout << 0 << std::endl;
     }
 
-    cout << endl;
+    std::cout << std::endl;
 
   }  // if Verbosity()
 
@@ -842,7 +841,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "TrkrNtuplizer::fillOutputNtuples() entered" << endl;
+    std::cout << "TrkrNtuplizer::fillOutputNtuples() entered" << std::endl;
   }
 
   float fx_event[n_event::evsize]{(float) _ievent, (float) _iseed, (float) m_runnumber,(float) m_segment, (float) m_job};
@@ -949,13 +948,13 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     
     if (Verbosity() > 1)
       {
-	cout << " occ11 = " << fx_info[n_info::infonocc11]
+	std::cout << " occ11 = " << fx_info[n_info::infonocc11]
 	     << " occ116 = " << fx_info[n_info::infonocc116]
 	     << " occ21 = " << fx_info[n_info::infonocc21]
 	     << " occ216 = " << fx_info[n_info::infonocc216]
 	     << " occ31 = " << fx_info[n_info::infonocc31]
 	     << " occ316 = " << fx_info[n_info::infonocc316]
-	     << endl;
+	     << std::endl;
       }
     
     if (_cluster_map)
@@ -1015,15 +1014,15 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << "Filling ntp_info " << endl;
+      std::cout << "Filling ntp_info " << std::endl;
     }
 
     if (_trackmap)
     {
       fx_info[n_info::infontrk] = (float) _trackmap->size();
     }
-    auto siseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
-    auto tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+    auto *siseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+    auto *tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
     if (tpcseedmap){
       fx_info[n_info::infonntpcseed] = tpcseedmap->size();
     }else{
@@ -1036,10 +1035,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
     if (Verbosity() > 0)
     {
-      cout << "EVENTINFO SEED: " << m_fSeed << endl;
-      cout << "EVENTINFO NHIT: " << setprecision(9) << fx_info[n_info::infonclusall] << endl;
-      cout << "EVENTINFO CLUSTPC: " << fx_info[n_info::infonclustpc] << endl;
-      cout << "EVENTINFO NTRKREC: " << fx_info[n_info::infontrk] << endl;
+      std::cout << "EVENTINFO SEED: " << m_fSeed << std::endl;
+      std::cout << "EVENTINFO NHIT: " << std::setprecision(9) << fx_info[n_info::infonclusall] << std::endl;
+      std::cout << "EVENTINFO CLUSTPC: " << fx_info[n_info::infonclustpc] << std::endl;
+      std::cout << "EVENTINFO NTRKREC: " << fx_info[n_info::infontrk] << std::endl;
     }
 
     float* info_data = new float[((int) (n_info::infosize)) + n_event::evsize];
@@ -1057,8 +1056,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << "Filling ntp_vertex " << endl;
-      cout << "start vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+      std::cout << "Filling ntp_vertex " << std::endl;
+      std::cout << "start vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
       _timer->restart();
     }
     float fx_vertex[n_vertex::vtxsize];
@@ -1093,7 +1092,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   if (Verbosity() > 1)
   {
     _timer->stop();
-    cout << "vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+    std::cout << "vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
   }
   //--------------------
   // fill the Hit NTuple
@@ -1104,11 +1103,11 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     float* hit_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_hit::hitsize];
     float fx_hit_0[((int) (n_info::infosize)) + n_event::evsize +n_hit::hitsize] = {0};
     float fx_hit[((int) (n_hit::hitsize))] = {0};
-    auto m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    auto *m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
     if (Verbosity() >= 1)
     {
-      cout << "Filling ntp_hit " << endl;
+      std::cout << "Filling ntp_hit " << std::endl;
       _timer->restart();
     }
     // need things off of the DST...
@@ -1204,7 +1203,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     if (Verbosity() >= 1)
     {
       _timer->stop();
-      cout << "hit time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+      std::cout << "hit time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
     }
   }
 
@@ -1214,7 +1213,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (Verbosity() >= 1)
   {
-    cout << "check for ntp_cluster" << endl;
+    std::cout << "check for ntp_cluster" << std::endl;
     _timer->restart();
   }
 
@@ -1222,7 +1221,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << "Filling ntp_cluster (all of them) " << endl;
+      std::cout << "Filling ntp_cluster (all of them) " << std::endl;
     }
 
     TrkrHitSetContainer* hitsets = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -1233,20 +1232,20 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       if (_cluster_map != nullptr)
       {
-        cout << "got clustermap" << endl;
+        std::cout << "got clustermap" << std::endl;
       }
       else
       {
-        cout << "no clustermap" << endl;
+        std::cout << "no clustermap" << std::endl;
       }
 
       if (hitsets != nullptr)
       {
-        cout << "got hitsets" << endl;
+        std::cout << "got hitsets" << std::endl;
       }
       else
       {
-        cout << "no hitsets" << endl;
+        std::cout << "no hitsets" << std::endl;
       }
     }
 
@@ -1276,7 +1275,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   if (Verbosity() >= 1)
   {
     _timer->stop();
-    cout << "cluster time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+    std::cout << "cluster time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
   }
   if (_ntp_clus_trk)
   {
@@ -1284,22 +1283,22 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     
     if (Verbosity() > 1)
     {
-      cout << "Filling ntp_clus_trk " << endl;
+      std::cout << "Filling ntp_clus_trk " << std::endl;
       if (_cluster_map != nullptr)
       {
-        cout << "got clustermap" << endl;
+        std::cout << "got clustermap" << std::endl;
       }
       else
       {
-        cout << "no clustermap" << endl;
+        std::cout << "no clustermap" << std::endl;
       }
     }
 
     TrackSeedContainer* _tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
     if (!_tpc_seeds)
     {
-      cerr << PHWHERE << " ERROR: Can't find "
-           << "TpcTrackSeedContainer" << endl;
+      std::cout << PHWHERE << " ERROR: Can't find "
+           << "TpcTrackSeedContainer" << std::endl;
       return;
     }
 
@@ -1317,7 +1316,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         std::vector<Acts::Vector3> clusterPositions;
         std::vector<TrkrDefs::cluskey> clusterKeys;
 
-        TrackFitUtils::position_vector_t xypoints, rzpoints;
+        TrackFitUtils::position_vector_t xypoints;
+        TrackFitUtils::position_vector_t rzpoints;
 
         clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
                            tpcseed->end_cluster_keys());
@@ -1326,25 +1326,25 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
                                            clusterPositions, clusterKeys);
         for (auto& pos : clusterPositions)
         {
-          float clusr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+          float clusr = sqrt((pos.x() * pos.x()) + (pos.y() * pos.y()));
           if (pos.y() < 0)
           {
             clusr *= -1;
           }
 
           // exclude silicon and tpot clusters for now
-          if (fabs(clusr) > 80 || fabs(clusr) < 30)
+          if (std::fabs(clusr) > 80 || std::fabs(clusr) < 30)
           {
             continue;
           }
-          rzpoints.push_back(std::make_pair(pos.z(), clusr));
-          xypoints.push_back(std::make_pair(pos.x(), pos.y()));
+          rzpoints.emplace_back(pos.z(), clusr);
+          xypoints.emplace_back(pos.x(), pos.y());
         }
 
         std::vector<float> fitparams = TrackFitUtils::fitClusters(clusterPositions, clusterKeys);
-        if (fitparams.size() == 0)
+        if (fitparams.empty())
         {
-          cout << "fit failed bailing...." << endl;
+          std::cout << "fit failed bailing...." << std::endl;
           continue;
         }
 
@@ -1369,7 +1369,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         float xyslope = std::get<0>(xyparams);
         float rzint = std::get<1>(rzparams);
         float rzslope = std::get<0>(rzparams);
-        float R0 = abs(-1 * xyint) / sqrt((xyslope * xyslope) + 1);
+        float R0 = abs(-1 * xyint) / std::sqrt((xyslope * xyslope) + 1);
         float tX0 = tpcseed->get_X0();
         float tY0 = tpcseed->get_Y0();
         float tZ0 = tpcseed->get_Z0();
@@ -1377,12 +1377,12 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         float nhits_local = clusterPositions.size();
         if (Verbosity() > 1)
         {
-          cout << " tpc: " << tpcseed->size_cluster_keys() << endl;
+          std::cout << " tpc: " << tpcseed->size_cluster_keys() << std::endl;
           if (siseed)
           {
-            cout << " si " << siseed->size_cluster_keys() << endl;
+            std::cout << " si " << siseed->size_cluster_keys() << std::endl;
           }
-          cout << "done seedsize" << endl;
+          std::cout << "done seedsize" << std::endl;
         }
         //      nhits_local += tpcseed->size_cluster_keys();
         // fill the Gseed NTuple
@@ -1433,21 +1433,21 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
           float dz = position(2) - pca(2);
 
-	  float resr = sqrt(position(0)*position(0)+position(1)*position(1)+position(2)*position(2));
-	  float seedR = TMath::Abs(1.0 / tpcseed->get_qOverR());
+	  float resr = sqrt((position(0)*position(0))+(position(1)*position(1))+(position(2)*position(2)));
+	  float seedR = std::abs(1.0 / tpcseed->get_qOverR());
 	  float alpha = (resr * resr) / (2 * resr * seedR);
-	  float beta = TMath::Abs(atan(tpcseed->get_slope()));
+	  float beta = std::abs(std::atan(tpcseed->get_slope()));
           float fx_cluster[n_cluster::clusize];
 
 	  if(layer_local>=7&&layer_local<55){
 	    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
 	    float thick = GeoLayer_local->get_thickness();
 	    
-	    float alphacorr = cos(alpha);
+	    float alphacorr = std::cos(alpha);
 	    if(alphacorr<0||alphacorr>4){
 	      alphacorr=4;
 	    }
-	    float betacorr = cos(beta);
+	    float betacorr = std::cos(beta);
 	    if(betacorr<0||betacorr>4){
 	      betacorr=4;
 	    }
@@ -1485,7 +1485,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (Verbosity() >= 1)
     {
-      cout << "Filling ntp_track " << endl;
+      std::cout << "Filling ntp_track " << std::endl;
       _timer->restart();
     }
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
@@ -1507,7 +1507,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     if (Verbosity() > 1)
     {
       _timer->stop();
-      cout << "track time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+      std::cout << "track time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
     }
   }
 
@@ -1515,14 +1515,14 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << "Filling ntp_tpcseed " << endl;
+      std::cout << "Filling ntp_tpcseed " << std::endl;
       _timer->restart();
     }
 
     if (Verbosity() > 1)
     {
       _timer->stop();
-      cout << "tpcseed time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+      std::cout << "tpcseed time:                " << _timer->get_accumulated_time() / 1000. << " sec" << std::endl;
     }
   }
   return;
@@ -1684,7 +1684,7 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   if (vertexID >= 0&& vertexmap !=nullptr)
   {
     if(vertexmap->size()>100000){
-      cout << "too many vtx's" << endl;
+      std::cout << "too many vtx's" << std::endl;
     }
     /*
     auto vertexit = vertexmap->find(vertexID);
@@ -1728,9 +1728,9 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   float CVyy = track->get_error(4, 4);
   float CVyz = track->get_error(4, 5);
   float CVzz = track->get_error(5, 5);
-  fX[n_track::ntrkdeltapt] = sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
-  fX[n_track::ntrkdeltaeta] = sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
-  fX[n_track::ntrkdeltaphi] = sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
+  fX[n_track::ntrkdeltapt] = std::sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
+  fX[n_track::ntrkdeltaeta] = std::sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
+  fX[n_track::ntrkdeltaphi] = std::sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
 
   fX[n_track::ntrkpcax] = track->get_x();
   fX[n_track::ntrkpcay] = track->get_y();
@@ -1768,13 +1768,13 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
       float thick = GeoLayer_local->get_thickness();
       
       float r = GeoLayer_local->get_radius();
-      float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
-      float beta = atan(tpcseed->get_slope());
-      float alphacorr = cos(alpha);
+      float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
+      float beta = std::atan(tpcseed->get_slope());
+      float alphacorr = std::cos(alpha);
       if(alphacorr<0||alphacorr>4){
 	alphacorr=4;
       }
-      float betacorr = cos(beta);
+      float betacorr = std::cos(beta);
       if(betacorr<0||betacorr>4){
 	betacorr=4;
       }
@@ -1964,7 +1964,7 @@ SvtxTrack* TrkrNtuplizer::best_track_from(TrkrDefs::cluskey cluster_key)
 
   std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
   // loop over all SvtxTracks
-  for (auto candidate : tracks)
+  for (auto *candidate : tracks)
   {
     if (candidate->get_quality() < best_quality)
     {
@@ -1973,7 +1973,7 @@ SvtxTrack* TrkrNtuplizer::best_track_from(TrkrDefs::cluskey cluster_key)
     }
   }
 
-  _cache_best_track_from_cluster.insert(make_pair(cluster_key, best_track));
+  _cache_best_track_from_cluster.insert(std::make_pair(cluster_key, best_track));
   return best_track;
 }
 
@@ -1991,10 +1991,9 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
   {
     return find_iter->second;
   }
-  else
-  {
-    return tracks;
-  }
+  
+      return tracks;
+ 
 
   // loop over all SvtxTracks
   for (auto& iter : *_trackmap)
@@ -2022,7 +2021,7 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
     }
   }
 
-  _cache_all_tracks_from_cluster.insert(make_pair(cluster_key, tracks));
+  _cache_all_tracks_from_cluster.insert(std::make_pair(cluster_key, tracks));
 
   return tracks;
 }
@@ -2054,7 +2053,7 @@ void TrkrNtuplizer::create_cache_track_from_cluster()
       {
         std::set<SvtxTrack*> tracks;
         tracks.insert(track);
-        _cache_all_tracks_from_cluster.insert(make_pair(candidate_key, tracks));
+        _cache_all_tracks_from_cluster.insert(std::make_pair(candidate_key, tracks));
       }
     }
   }
@@ -2077,11 +2076,11 @@ TMatrixF TrkrNtuplizer::calculateClusterError(TrkrCluster* c, float& clusphi)
   localErr[2][2] = c->getActsLocalError(1, 1);
 
   TMatrixF ROT(3, 3);
-  ROT[0][0] = cos(clusphi);
-  ROT[0][1] = -sin(clusphi);
+  ROT[0][0] = std::cos(clusphi);
+  ROT[0][1] = -std::sin(clusphi);
   ROT[0][2] = 0.0;
-  ROT[1][0] = sin(clusphi);
-  ROT[1][1] = cos(clusphi);
+  ROT[1][0] = std::sin(clusphi);
+  ROT[1][1] = std::cos(clusphi);
   ROT[1][2] = 0.0;
   ROT[2][0] = 0.0;
   ROT[2][1] = 0.0;

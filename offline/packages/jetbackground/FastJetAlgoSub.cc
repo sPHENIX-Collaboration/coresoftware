@@ -10,9 +10,8 @@
 #include <fastjet/PseudoJet.hh>
 
 // standard includes
-#include <algorithm>
 #include <iostream>
-#include <memory>
+#include <sstream>  // for basic_ostringstream
 #include <vector>
 
 FastJetAlgoSub::FastJetAlgoSub(const FastJetOptions& options)
@@ -21,14 +20,14 @@ FastJetAlgoSub::FastJetAlgoSub(const FastJetOptions& options)
   fastjet::ClusterSequence clusseq;
   if (m_opt.verbosity > 0)
   {
-    clusseq.print_banner();
+    fastjet::ClusterSequence::print_banner();
   }
   else
   {
     std::ostringstream nullstream;
-    clusseq.set_fastjet_banner_stream(&nullstream);
-    clusseq.print_banner();
-    clusseq.set_fastjet_banner_stream(&std::cout);
+    fastjet::ClusterSequence::set_fastjet_banner_stream(&nullstream);
+    fastjet::ClusterSequence::print_banner();
+    fastjet::ClusterSequence::set_fastjet_banner_stream(&std::cout);
   }
 }
 
@@ -127,7 +126,7 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet)
   {
-    auto jet = jetcont->add_jet();
+    auto* jet = jetcont->add_jet();
 
     if (m_opt.verbosity > 5 && fastjets[ijet].perp() > 15)
     {

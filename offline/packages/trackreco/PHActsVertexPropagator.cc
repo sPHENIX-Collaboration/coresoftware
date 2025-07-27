@@ -150,6 +150,9 @@ void PHActsVertexPropagator::updateSvtxTrack(SvtxTrack* track,
               << ", " << track->get_y() << ", " << track->get_z() << " to "
               << position.transpose() / 10.
               << std::endl;
+    std::cout << "Updating momentum track parameters from " << track->get_px()
+              << ", " << track->get_py() << ", " << track->get_pz()
+              << " to " << params.momentum().transpose() << std::endl; 
   }
 
   track->set_x(position(0) / Acts::UnitConstants::cm);
@@ -230,7 +233,7 @@ int PHActsVertexPropagator::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, "ActsTrajectories");
+  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, m_trajectories_name);
 
   if (!m_trajectories)
   {

@@ -28,7 +28,7 @@ class JetCalib : public SubsysReco
   void set_InputNode(const std::string &inputNode) { m_inputNode = inputNode; }
   void set_OutputNode(const std::string &outputNode) { m_outputNode = outputNode; }
   void set_JetRadius(float radius) { jet_radius = radius; }
-  void set_ZvrtxNode(const std::string &zvrtxNode) { m_inputNode = zvrtxNode; }
+  void set_ZvrtxNode(const std::string &zvrtxNode) { m_zvrtxNode = zvrtxNode; }
   void set_ApplyZvrtxDependentCalib(bool apply) { ApplyZvrtxDependentCalib = apply; }
   void set_ApplyEtaDependentCalib(bool apply) { ApplyEtaDependentCalib = apply; }
 
