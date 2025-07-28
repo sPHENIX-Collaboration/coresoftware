@@ -43,6 +43,8 @@ class PHG4TpcDigitizer : public SubsysReco
 
   void SetTpcMinLayer(const int minlayer) { TpcMinLayer = minlayer; };
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
+  void SetZSThreshold(const float zsthresh) { ZSThreshold = zsthresh; };
+  void SetPedestal(const float ped) { Pedestal = ped; };
   void SetENC(const float enc) { TpcEnc = enc; };
   void set_drift_velocity(float vd) {_drift_velocity = vd;}
   void set_skip_noise_flag(const bool skip) {skip_noise = skip;}
@@ -59,11 +61,15 @@ class PHG4TpcDigitizer : public SubsysReco
   float ADCThreshold_mV = 0;
   float TpcEnc;
   float Pedestal;
+  float ZSThreshold;
   float ChargeToPeakVolts;
   float _drift_velocity = 8.0e-3;  // override from macro with simulation drift velocity
 
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
+
+  unsigned int pedestal_adc;
+  unsigned int zsthreshold_adc;
 
   bool skip_noise = false;
 

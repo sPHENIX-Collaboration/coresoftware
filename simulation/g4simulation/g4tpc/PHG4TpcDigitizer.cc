@@ -35,7 +35,8 @@ PHG4TpcDigitizer::PHG4TpcDigitizer(const std::string &name)
   , TpcNLayers(48)
   , ADCThreshold(2700)                                                    // electrons
   , TpcEnc(670)                                                           // electrons
-  , Pedestal(50000)                                                       // electrons
+  , Pedestal(40540)                                                       // electrons
+  , ZSThreshold(13440)														  // electrons
   , ChargeToPeakVolts(20)                                                 // mV/fC
   , ADCSignalConversionGain(std::numeric_limits<float>::signaling_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
   , ADCNoiseConversionGain(std::numeric_limits<float>::signaling_NaN())   // will be assigned in PHG4TpcDigitizer::InitRun
@@ -69,6 +70,8 @@ int PHG4TpcDigitizer::InitRun(PHCompositeNode *topNode)
 
   ADCThreshold_mV = ADCThreshold *  ADCNoiseConversionGain;
 
+  pedestal_adc = (unsigned int) (Pedestal * ADCNoiseConversionGain) * (1024.0 / 2200.0);
+  zsthreshold_adc = (unsigned int) (ZSThreshold * ADCNoiseConversionGain) * (1024.0 / 2200.0);
   //-------------
   // Add Hit Node
   //-------------
@@ -513,8 +516,15 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 				  
 				}
 			      
-			      hit->setAdc(adc_output);
-			      
+				if (adc_output - pedestal_adc > zsthreshold_adc)
+				{
+					hit->setAdc(adc_output  - pedestal_adc);
+				}
+				else
+				{
+					hit->setAdc(0);
+				}
+
 			    }              // end boundary check
 			  binpointer++;  // skip this bin in future
 			}                // end itup loop
