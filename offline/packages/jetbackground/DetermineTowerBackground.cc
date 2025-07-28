@@ -953,13 +953,42 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         else
         {
           _is_flow_failure = true;
+          _Psi2 = std::atan2(Q_y, Q_x) / 2.0; // fall back to the calo event plane (better than nothing?)
+        }
+    
+        if (Verbosity() > 0)
+        {
+          std::cout << "DetermineTowerBackground::process_event: flow extracted from sEPD, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
+        }
+
+      }
+
+      if (std::isnan(_Psi2) || std::isinf(_Psi2))
+      {
+        _Psi2 = 0;
+        _is_flow_failure = true;
+        if (Verbosity() > 0)
+        {
+          std::cout << "DetermineTowerBackground::process_event: sEPD event plane extraction failed, setting Psi2 = 0" << std::endl;
         }
       }
 
-      
+  
+      _v2 = 0;
       for (int phi = 0; phi < _HCAL_NPHI; phi++)
       {
-        _v2 += ( _FULLCALOFLOW_PHI_E[phi] * std::cos(2 * (_FULLCALOFLOW_PHI_VAL[phi] - _Psi2)) )/ sum_E;
+        _v2 += ( _FULLCALOFLOW_PHI_E[phi] * std::cos(2 * (_FULLCALOFLOW_PHI_VAL[phi] - _Psi2)) );
+      }
+      
+
+      // avoid nans in v2
+      if (sum_E > 0)
+      {
+        _v2 /= sum_E;
+      }
+      else
+      {
+        _v2 = 0;
       }
       
       if (Verbosity() > 0)
@@ -980,6 +1009,25 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       }
       
     }
+
+
+    // if ( _is_flow_failure )
+    // {
+    //   _Psi2 = 0;
+    //   _v2 = 0;
+    //   _nStrips = 0;
+    //   if (Verbosity() > 0)
+    //   {
+    //     std::cout << "DetermineTowerBackground::process_event: flow extraction failed, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
+    //   }
+    // }
+    // else
+    // {
+      if (Verbosity() > 0)
+      {
+        std::cout << "DetermineTowerBackground::process_event: flow extraction successful, Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
+      }
+    // }
   }  // if do flow
 
 
