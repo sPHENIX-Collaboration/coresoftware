@@ -68,8 +68,8 @@ class PHG4TpcDigitizer : public SubsysReco
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
 
-  unsigned int pedestal_adc;
-  unsigned int zsthreshold_adc;
+  unsigned int pedestal_adc = 0;
+  unsigned int zsthreshold_adc = 0;
 
   bool skip_noise = false;
 
