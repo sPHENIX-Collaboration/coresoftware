@@ -477,23 +477,15 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     }
   }
 
-  /*
-   * presently RemoveBadClusters does nothing. It just removes seeds of size less than 3, which don't make it through the main loop anyway
-   * so we just comment out the call, to prevent unnecessary data copy
-   */
-//   const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
-//   if (Verbosity() > 1)
-//   { std::cout << "PHSimpleKFProp::process_event - clean_chains size: " << clean_chains.size() << std::endl; }
+  // erase all seeds for size 2 or less
+  new_chains.erase( std::remove_if( new_chains.begin(), new_chains.end(),
+    [](const auto& chain) { return chain.size()<3; } ),
+    new_chains.end() );
 
-  const auto& clean_chains = new_chains;
-
-  /*
-   * TODO: in principle this could also move to a thread
-   * need to pay attention to duplicated seeds though
-   */
+  // re-run ALICE Kalman Filter on completed chains
   timer.restart();
   std::vector<float> trackChi2;
-  auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions, trackChi2);
+  auto seeds = fitter->ALICEKalmanFilter(new_chains, true, globalPositions, trackChi2);
   if (Verbosity())
   {  std::cout << "PHSimpleKFProp::process_event - ALICEKalmanFilter time: " << timer.elapsed() << " ms" << std::endl; }
 
