@@ -1447,6 +1447,11 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
   // rejector.set_min_pt_cut(0.2);
   // rejector.set_must_span_sectors(true);
   // rejector.set_min_clusters(8);
+
+  // first path over seeds to marks those to be removed due to cluster size
+  for (unsigned int itrack = 0; itrack < seeds.size(); ++itrack)
+  { rejector.cut_from_clusters(itrack); }
+
   #pragma omp parallel
   {
 
@@ -1454,10 +1459,8 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
     for (unsigned int itrack = 0; itrack < seeds.size(); ++itrack)
     {
       // cut tracks with too-few clusters (or that don;t span a sector boundary, if desired)
-      if (rejector.cut_from_clusters(itrack))
-      {
-        continue;
-      }
+      if (rejector.is_rejected(itrack))
+      { continue; }
 
       auto& seed = seeds[itrack];
       /// The ALICEKF gives a better charge determination at high pT
