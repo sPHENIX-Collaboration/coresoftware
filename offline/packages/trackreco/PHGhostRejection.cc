@@ -85,7 +85,7 @@ bool PHGhostRejection::cut_from_clusters(int itrack) {
   return false;
 }
 
-void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
+void PHGhostRejection::find_ghosts(const std::vector<float>& trackChi2)
 {
   if (m_verbosity > 0)
   {
@@ -235,7 +235,7 @@ void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
 }
 
 // there is no check, at this point, about which is the best chi2 track
-bool PHGhostRejection::checkClusterSharing(TrackSeed& tr1, TrackSeed& tr2)
+bool PHGhostRejection::checkClusterSharing(const TrackSeed& tr1, const TrackSeed& tr2) const
 {
   // count shared clusters that tr1 and tr2 share many clusters
   size_t nclus_tr1 = tr1.size_cluster_keys();
