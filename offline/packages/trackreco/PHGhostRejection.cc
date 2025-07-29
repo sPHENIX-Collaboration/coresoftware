@@ -105,9 +105,9 @@ void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
   std::set<unsigned int> matches_set;
   std::multimap<unsigned int, unsigned int> matches;
 
-  for (unsigned int trid1 = 0;
-       trid1 != seeds.size();
-       ++trid1)
+  // TODO: this can be parallelized
+  // there is no modification in here
+  for (size_t trid1 = 0; trid1 < seeds.size(); ++trid1)
   {
     if (m_rejected[trid1]) { continue; }
     const auto& track1 = seeds[trid1];
@@ -115,9 +115,9 @@ void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
 
     const auto track1_pos = TrackSeedHelper::get_xyz(&track1);
     const float track1eta = track1.get_eta();
-    for (unsigned int trid2 = trid1; trid2 != seeds.size(); ++trid2)
+    for (size_t trid2 = trid1+1; trid2 < seeds.size(); ++trid2)
     {
-      if (m_rejected[trid2] ||  (trid1 == trid2))
+      if (m_rejected[trid2])
       {
         continue;
       }
