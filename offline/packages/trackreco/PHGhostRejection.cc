@@ -104,9 +104,6 @@ void PHGhostRejection::find_ghosts(std::vector<float>& trackChi2)
   // Elimate low-interest track, and try to eliminate repeated tracks
   std::set<unsigned int> matches_set;
   std::multimap<unsigned int, unsigned int> matches;
-
-  // TODO: this can be parallelized
-  // there is no modification in here
   for (size_t trid1 = 0; trid1 < seeds.size(); ++trid1)
   {
     if (m_rejected[trid1]) { continue; }
