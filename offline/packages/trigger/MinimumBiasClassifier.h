@@ -72,7 +72,7 @@ class MinimumBiasClassifier : public SubsysReco
   const float m_mbd_north_cut{10.};
   const float m_mbd_south_cut{150};
   const float m_mbd_charge_cut{0.5};
-  float m_mbd_total_charge_cut{2700};
+  float m_mbd_total_charge_cut{2100};
   const float m_mbd_time_cut{25.};
   //  const int m_mbd_tube_cut{2};
   const float m_zdc_cut{60.};
