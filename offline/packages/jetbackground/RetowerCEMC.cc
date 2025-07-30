@@ -238,6 +238,11 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
       {
         std::cout << "RetowerCEMC::CreateNode : creating " << EMRetowerName << " node " << std::endl;
       }
+      if (!hcal_towers)
+      {
+        std::cout << PHWHERE << " Could not find input HCAL tower node: " << IHTowerName << std::endl;
+        exit(1);
+      }
       TowerInfoContainer *emcal_retower = dynamic_cast<TowerInfoContainer *>(hcal_towers->CloneMe());
       PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>(emcal_retower, EMRetowerName, "PHObject");
       emcalNode->addNode(emcalTowerNode);
