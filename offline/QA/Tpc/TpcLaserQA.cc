@@ -44,6 +44,14 @@ int TpcLaserQA::InitRun(PHCompositeNode* /*topNode*/)
 
     m_nLaserClusters[side] = dynamic_cast<TH1 *>(hm->getHisto(boost::str(boost::format("%snLaserClusters_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str()));
     m_saturation[side] = dynamic_cast<TH2 *>(hm->getHisto(boost::str(boost::format("%ssaturation_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str()));
+
+    for(int sec = 0; sec < 12; sec++)
+    {
+      m_sample_R1[side][sec] = dynamic_cast<TH1 *>(hm->getHisto(boost::str(boost::format("%ssample_R1_%s_%d") % getHistoPrefix() % (side == 1 ? "North" : "South") % sec).c_str()));
+      m_sample_R2[side][sec] = dynamic_cast<TH1 *>(hm->getHisto(boost::str(boost::format("%ssample_R2_%s_%d") % getHistoPrefix() % (side == 1 ? "North" : "South") % sec).c_str()));
+      m_sample_R3[side][sec] = dynamic_cast<TH1 *>(hm->getHisto(boost::str(boost::format("%ssample_R3_%s_%d") % getHistoPrefix() % (side == 1 ? "North" : "South") % sec).c_str()));
+    }
+    
   }
   
   return Fun4AllReturnCodes::EVENT_OK;
@@ -106,7 +114,8 @@ int TpcLaserQA::process_event(PHCompositeNode* topNode)
     for (unsigned int i=0; i<nhits; i++){
       float layer = cmclus->getHitLayer(i);
       float hitAdc = cmclus->getHitAdc(i);
-
+      float hitIT = cmclus->getHitIT(i);
+      
       double phi = atan2(cmclus->getHitY(i), cmclus->getHitX(i));
       if(phi < -M_PI/12.) phi += 2*M_PI;
       
@@ -125,10 +134,36 @@ int TpcLaserQA::process_event(PHCompositeNode* topNode)
 	RValue = 0.8;
       }
 
+      int sector = -1;
+      for(int sec = 0; sec<12; sec++)
+      {
+	if(phi >= sec*M_PI/6.0 - M_PI/12 && phi < sec*M_PI/6.0 + M_PI/12)
+	{
+	  sector = sec;
+	  break;
+	}
+      }
+      
       if(mod == -1) continue;
       
       m_TPCWheel[side]->Fill(phi, RValue, hitAdc);
       if(hitAdc > 900) m_saturation[side]->Fill(phi, RValue);
+
+      if(hitAdc > 100)
+      {
+	if(mod == 0)
+	{
+	  m_sample_R1[side][sector]->Fill(hitIT);
+	}
+	else if(mod == 1)
+	{
+	  m_sample_R2[side][sector]->Fill(hitIT);
+	}
+	if(mod == 2)
+	{
+	  m_sample_R3[side][sector]->Fill(hitIT);
+	}
+      }
       
     }
     
@@ -176,6 +211,20 @@ void TpcLaserQA::createHistos()
     
     auto h3 = new TH2F(boost::str(boost::format("%ssaturation_%s") % getHistoPrefix() % (side == 1 ? "North" : "South")).c_str(),boost::str(boost::format("Number of Saturated Hits per event %s") % (side == 1 ? "North" : "South")).c_str(),12,-M_PI/12.,23.*M_PI/12.,4,rBinEdges);
     hm->registerHisto(h3);
+
+    for(int sec = 0; sec<12; sec++)
+    {
+      auto h4 = new TH1F(boost::str(boost::format("%ssample_R1_%s_%d") % getHistoPrefix() % (side == 1 ? "North" : "South") % sec).c_str(),boost::str(boost::format("Diffuse Laser Time Sample Sector %d R1 %s") % sec % (side == 1 ? "North" : "South")).c_str(),51,305.5,356.5);
+      h4->SetLineColor(kRed);
+      auto h5 = new TH1F(boost::str(boost::format("%ssample_R2_%s_%d") % getHistoPrefix() % (side == 1 ? "North" : "South") % sec).c_str(),boost::str(boost::format("Diffuse Laser Time Sample Sector %d R2 %s") % sec % (side == 1 ? "North" : "South")).c_str(),51,305.5,356.5);
+      h5->SetLineColor(kBlue);
+      auto h6 = new TH1F(boost::str(boost::format("%ssample_R3_%s_%d") % getHistoPrefix() % (side == 1 ? "North" : "South") % sec).c_str(),boost::str(boost::format("Diffuse Laser Time Sample Sector %d R3 %s") % sec % (side == 1 ? "North" : "South")).c_str(),51,305.5,356.5);
+      h6->SetLineColor(kGreen+2);
+      
+      hm->registerHisto(h4);
+      hm->registerHisto(h5);
+      hm->registerHisto(h6);
+    }
   }
   
   
