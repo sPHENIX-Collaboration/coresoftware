@@ -54,7 +54,7 @@ private:
   std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs_north;
   std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs_south;
     
-  const int phibins{24};
+  //  const int phibins{24};
   TH1* h_phi_weight_south_input{nullptr};
   TH1* h_phi_weight_north_input{nullptr};
     
