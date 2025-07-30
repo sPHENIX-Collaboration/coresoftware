@@ -906,29 +906,31 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
 
-    for (const auto& [vtxkey, vertex] : *m_vertexmap)
+    if (m_vertexmap)
     {
-      for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
+      for (const auto& [vtxkey, vertex] : *m_vertexmap)
       {
-        SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
-        if (vtxtrack)
+        for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
         {
-          unsigned int const vtxtrackid = vtxtrack->get_id();
-          if (trackid == vtxtrackid)
+          SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
+          if (vtxtrack)
           {
-            event_vtx(0) = vertex->get_x();
-            event_vtx(1) = vertex->get_y();
-            event_vtx(2) = vertex->get_z();
-            if (Verbosity() > 0)
+            unsigned int const vtxtrackid = vtxtrack->get_id();
+            if (trackid == vtxtrackid)
             {
-              std::cout << "     setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey
-                        << " vtx " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+              event_vtx(0) = vertex->get_x();
+              event_vtx(1) = vertex->get_y();
+              event_vtx(2) = vertex->get_z();
+              if (Verbosity() > 0)
+              {
+                std::cout << "     setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey
+                          << " vtx " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+              }
             }
           }
         }
       }
     }
-
 
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
