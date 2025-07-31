@@ -31,7 +31,7 @@ int TriggerRunInfoReco::Init(PHCompositeNode *topNode)
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    std::cerr << "RUN node not found!" << std::endl;
+    std::cout << "RUN node not found!" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -52,7 +52,7 @@ int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
   TriggerRunInfo *triggerRunInfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
   if (!triggerRunInfo)
   {
-    std::cerr << "TriggerRunInfo object not found!" << std::endl;
+    std::cout << "TriggerRunInfo object not found!" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -69,14 +69,14 @@ int TriggerRunInfoReco::InitRun(PHCompositeNode *topNode)
   // Fetch trigger prescales and fill the TriggerRunInfo object
   if (fetchTriggerPrescales(runnumber, triggerRunInfo) != 0)
   {
-    std::cerr << "Failed to fetch trigger prescales for run number " << runnumber << std::endl;
+    std::cout << "Failed to fetch trigger prescales for run number " << runnumber << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   // Fetch trigger scalers and fill the TriggerRunInfo object
   if (fetchTriggerScalers(runnumber, triggerRunInfo) != 0)
   {
-    std::cerr << "Failed to fetch trigger prescales for run number " << runnumber << std::endl;
+    std::cout << "Failed to fetch trigger prescales for run number " << runnumber << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -119,7 +119,7 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << "Database connection failed: " << e.getMessage() << std::endl;
+    std::cout << "Database connection failed: " << e.getMessage() << std::endl;
     return 1;
   }
 
@@ -144,7 +144,7 @@ int TriggerRunInfoReco::fetchTriggerPrescales(int runnumber, TriggerRunInfo *tri
   }
   else
   {
-    std::cerr << "No data found for run number " << runnumber << std::endl;
+    std::cout << "No data found for run number " << runnumber << std::endl;
     delete resultSet;
     delete stmt;
     delete dbConnection;
@@ -181,7 +181,7 @@ int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *trigg
   }
   catch (odbc::SQLException &e)
   {
-    std::cerr << "Database connection failed: " << e.getMessage() << std::endl;
+    std::cout << "Database connection failed: " << e.getMessage() << std::endl;
     return 1;
   }
 
@@ -191,7 +191,7 @@ int TriggerRunInfoReco::fetchTriggerScalers(int runnumber, TriggerRunInfo *trigg
   std::array<std::array<uint64_t, 3>, 64> scalers{};  // initialize to zero
   if (!resultSet)
   {
-    std::cerr << "No data found for run number " << runnumber << std::endl;
+    std::cout << "No data found for run number " << runnumber << std::endl;
     delete resultSet;
     delete stmt;
     delete dbConnection;

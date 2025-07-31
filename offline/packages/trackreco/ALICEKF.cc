@@ -13,6 +13,9 @@
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
 #include <TMatrixTUtils.h>
+
+#include <omp.h>
+
 //#define _DEBUG_
 
 #if defined(_DEBUG_)
@@ -60,7 +63,15 @@ double ALICEKF::get_Bz(double x, double y, double z) const
   }
   double p[4] = {x * cm, y * cm, z * cm, 0. * cm};
   double bfield[3];
-  _B->GetFieldValue(p, bfield);
+
+  // check thread number. Use uncached field accessor for all but thread 0.
+  if( omp_get_thread_num() == 0 )
+  {
+    _B->GetFieldValue(p, bfield);
+  } else {
+    _B->GetFieldValue_nocache(p, bfield);
+  }
+
   return bfield[2] / tesla;
 }
 
@@ -990,9 +1001,9 @@ std::vector<double> ALICEKF::GetLineClusterResiduals(const std::vector<std::pair
                  {
     double r = point.first;
     double z = point.second;
-    
+
     // The shortest distance of a point from a circle is along the radial; line from the circle center to the point
-    
+
     double a = -A;
     double b = 1.0;
     double c = -B;

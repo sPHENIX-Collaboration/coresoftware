@@ -4,6 +4,7 @@
 #include "TriggerRunInfo.h"
 
 #include <ffarawobjects/Gl1Packet.h>
+
 #include <phool/getClass.h>
 
 #include <iostream>
@@ -13,7 +14,7 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
   triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
   if (!triggerruninfo)
   {
-    std::cout << " no triggerruninfo" << std::endl;
+    std::cout << PHWHERE << " no triggerruninfo" << std::endl;
     return 1;
   }
 
@@ -22,14 +23,14 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
     ll1out_photon = findNode::getClass<LL1Out>(topNode, "LL1OUT_PHOTON");
     if (!ll1out_photon)
     {
-      std::cout << " no trigger emulator" << std::endl;
+      std::cout << PHWHERE << " no trigger emulator" << std::endl;
       return 1;
     }
 
     ll1out_jet = findNode::getClass<LL1Out>(topNode, "LL1OUT_JET");
     if (!ll1out_jet)
     {
-      std::cout << " no trigger emulator" << std::endl;
+      std::cout << PHWHERE << " no trigger emulator" << std::endl;
       return 1;
     }
 
@@ -47,7 +48,7 @@ int TriggerAnalyzer::decodeTriggers(PHCompositeNode* topNode)
       gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");  // Different term used in track production
       if (!gl1packet)
       {
-	std::cout << "no gl1 packet" << std::endl;
+	std::cout << PHWHERE << "no gl1 packet" << std::endl;
 	return 1;
       }
     }

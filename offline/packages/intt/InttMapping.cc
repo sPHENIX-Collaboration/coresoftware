@@ -102,7 +102,7 @@ bool InttNameSpace::operator<(Offline_s const& lhs, Offline_s const& rhs)
 std::ostream& InttNameSpace::operator<<(std::ostream& out, Offline_s const& offline)
 {
   return out << (boost::format (
-    "Online_s { .layer = %1d, .ladder_phi = %2d, .ladder_z = %2d, .strip_x = %2d, .strip_y = %3d }")
+    "Offline_s { .layer = %1d, .ladder_phi = %2d, .ladder_z = %2d, .strip_x = %2d, .strip_y = %3d }")
     % offline.layer % offline.ladder_phi % offline.ladder_z % offline.strip_x % offline.strip_y).str();
 }
 

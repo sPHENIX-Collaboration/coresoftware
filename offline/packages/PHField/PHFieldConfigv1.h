@@ -80,6 +80,9 @@ class PHFieldConfigv1 : public PHFieldConfig
     magfield_rescale_ = magfieldRescale;
   }
 
+  //! equal to operator, to base class
+  bool operator == (const PHFieldConfig& ) const override;
+
  protected:
   FieldConfigTypes field_config_;
   std::string filename_;

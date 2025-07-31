@@ -13,12 +13,12 @@
 /* #define _PHCASEEDING_CHAIN_FORKS_ */
 /* #define _PHCASEEDING_TIMER_OUT_ */
 
-#include "ALICEKF.h"
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
 
 #include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
+#include <trackbase_historic/TrackSeed_v2.h>
 
 #include <phool/PHTimer.h>  // for PHTimer
 
@@ -129,17 +129,12 @@ class PHCASeeding : public PHTrackSeeding
     }
   }
 
-  void set_field_dir(const double rescale)
-  {
-    std::cout << "PHCASeeding::set_field_dir rescale: " << rescale << std::endl;
-    _fieldDir = 1;
-    if (rescale > 0)
-      _fieldDir = -1;
-  }
+  // obsolete
+  void set_field_dir(const double) {}
+  void magFieldFile(const std::string&) {}
+  void useConstBField(bool) {}
+  void constBField(float) {}
 
-  void magFieldFile(const std::string& fname) { m_magField = fname; }
-  void useConstBField(bool opt) { _use_const_field = opt; }
-  void constBField(float b) { _const_field = b; }
   void useFixedClusterError(bool opt) { _use_fixed_clus_err = opt; }
   void setFixedClusterError(int i, double val) { _fixed_clus_err.at(i) = val; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
@@ -250,24 +245,17 @@ class PHCASeeding : public PHTrackSeeding
   /* float _cosTheta_limit; */
   double _rz_outlier_threshold = 0.1;
   double _xy_outlier_threshold = 0.1;
-  double _fieldDir = -1;
-  bool _use_const_field = false;
   bool _split_seeds = true;
   bool _reject_zsize1 = false;
-  float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   bool _pp_mode = false;
   std::array<double, 3> _fixed_clus_err = {.1, .1, .1};
-
-  std::string m_magField;
 
   /// acts geometry
   ActsGeometry* m_tGeometry{nullptr};
 
   /// global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
-
-  std::unique_ptr<ALICEKF> fitter;
 
   std::unique_ptr<PHTimer> t_seed;
   std::unique_ptr<PHTimer> t_fill;

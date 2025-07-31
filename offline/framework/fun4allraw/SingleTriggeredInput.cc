@@ -178,7 +178,7 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
       return false;
     }
 
-    if(start==bad_diff_indices[n-1])
+    if(start==static_cast<int>(pooldepth - 1))
     {
       bad_indices.push_back(start);
       CurrentPoolLastDiffBad= true;
@@ -205,7 +205,7 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
         }
       }
     }
-    else if (start <bad_diff_indices[n-1] && start >0)
+    else if (start < static_cast<int>(pooldepth - 1) && start >0)
     {
       if(length==1)
       {
@@ -1100,7 +1100,7 @@ int SingleTriggeredInput::ReadEvent()
   RunNumber(ref_evt->getRunNumber());
 
   uint64_t event_number = ref_evt->getEvtSequence();
-  if(event_number % 2000==0)
+  if(event_number % 10000==0)
   {
     std::cout << "processed events : " << event_number << std::endl;
   }

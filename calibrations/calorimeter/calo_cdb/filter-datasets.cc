@@ -89,11 +89,11 @@ void FilterDatasets::analyze(const std::string &input, const std::string &output
       std::stringstream ss;
       if (cdbName == "CEMC_BadTowerMap")
       {
-        ss << "EMCalHotMap_" << dataset << "-" << run << "cdb.root";
+        ss << "EMCalHotMap_" << dataset << "_" << run << "cdb.root";
       }
       else
       {
-        ss << cdbName << "_" << dataset << "-" << run << ".root";
+        ss << cdbName << "_" << dataset << "_" << run << ".root";
       }
 
       std::string suffix = ss.str();

@@ -8,6 +8,8 @@
 
 #include "ALICEKF.h"
 
+#include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <g4detectors/PHG4TpcCylinderGeom.h>
@@ -49,6 +51,13 @@ PrelimDistortionCorrectionAuAu::PrelimDistortionCorrectionAuAu(const std::string
   : SubsysReco(name)
 {}
 
+//______________________________________________________
+PrelimDistortionCorrectionAuAu::~PrelimDistortionCorrectionAuAu()
+{
+  if( m_own_fieldmap )
+  { delete _field_map; }
+}
+
 //___________________________________________________________________________________________
 int PrelimDistortionCorrectionAuAu::End(PHCompositeNode* /*unused*/)
 {
@@ -65,18 +74,31 @@ int PrelimDistortionCorrectionAuAu::InitRun(PHCompositeNode* topNode)
   PHFieldConfigv1 fcfg;
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
 
-  char *calibrationsroot = getenv("CALIBRATIONROOT");
-  assert(calibrationsroot);
-
-  auto magField = std::string(calibrationsroot) +
-    std::string("/Field/Map/sphenix3dtrackingmapxyz.root");
-
+  // load magnetic field map from CDB
+  auto magField = CDBInterface::instance()->getUrl("FIELDMAP_TRACKING");
   fcfg.set_filename(magField);
 
-  //  fcfg.set_rescale(1);
-  _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
+  // compare field config from that on node tree
+  /*
+   * if the magnetic field is already on the node tree PHFieldUtility::GetFieldConfigNode returns the existing configuration.
+   * One must then check wheter the two configurations are identical, to decide whether one must use the field from node tree or create our own.
+   * Otherwise the configuration passed as argument is stored on the node tree.
+   */
+  const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
+  if( fcfg == *node_fcfg )
+  {
+    // both configurations are identical, use field map from node tree
+    std::cout << "PrelimDistortionCorrectionAuAu::InitRun - using field map found from node tree" << std::endl;
+    _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+    m_own_fieldmap = false;
+  } else {
+    // both configurations differ. Use our own field map
+    std::cout << "PrelimDistortionCorrectionAuAu::InitRun - using own field map" << std::endl;
+    _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+    m_own_fieldmap = true;
+  }
 
-  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map.get(), _fieldDir,
+  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map, _fieldDir,
 				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
@@ -319,7 +341,7 @@ void PrelimDistortionCorrectionAuAu::publishSeeds(std::vector<TrackSeed_v2>& see
       {
 	continue;   // ALICEKalmanFilter can drop clusters. Seeds require at least 3 clusters for circle fit
       }
-    
+
     /// The ALICEKF gives a better charge determination at high pT
     int q = seed.get_charge();
     TrackSeedHelper::circleFitByTaubin(&seed,positions, 7, 55);

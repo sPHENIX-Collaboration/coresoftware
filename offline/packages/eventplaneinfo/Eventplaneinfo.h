@@ -7,6 +7,8 @@
 
 #include <cmath>
 #include <iostream>
+#include <vector>
+#include <utility>
 
 class Eventplaneinfo : public PHObject
 {
@@ -26,7 +28,9 @@ class Eventplaneinfo : public PHObject
   virtual double get_psi(int /*order*/) const { return NAN; }
   virtual double get_shifted_psi(int /*order*/) const { return NAN; }
   virtual double GetPsi(const double /*Qx*/, const double /*Qy*/, const unsigned int /*order*/) const { return NAN; }
-
+  virtual void set_ring_qvector(std::vector<std::vector<std::pair<double, double>>> /*RingQvecs*/) { return; }
+  virtual std::pair<double, double> get_ring_qvector(int /*rbin*/, int /*order*/) const { return std::make_pair(NAN, NAN); }
+  virtual double get_ring_psi(int /*rbin*/, int /*order*/) const { return NAN; }
 
  protected:
   Eventplaneinfo() {}

@@ -25,7 +25,7 @@ class TriggerRunInfo : public PHObject
     }
     else
     {
-      std::cerr << "Index out of bounds: " << index << std::endl;
+      std::cout << "Index out of bounds: " << index << std::endl;
     }
   }
 
@@ -38,7 +38,7 @@ class TriggerRunInfo : public PHObject
         return trigger_prescales[i];
       }
     }
-    std::cerr << "Trigger name not found: " << name << std::endl;
+    std::cout << "Trigger name not found: " << name << std::endl;
     return 0;
   }
 

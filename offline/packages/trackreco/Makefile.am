@@ -42,6 +42,7 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
+  PHCASiliconSeeding.h \
   AzimuthalSeeder.h \
   PHCosmicsFilter.h \
   PHLineLaserReco.h \
@@ -127,6 +128,7 @@ libtrack_reco_la_SOURCES = \
   DSTClusterPruning.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
+  PHCASiliconSeeding.cc \
   AzimuthalSeeder.cc \
   GPUTPCTrackParam.cxx \
   PHCosmicsFilter.cc \

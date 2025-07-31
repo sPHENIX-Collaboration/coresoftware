@@ -74,9 +74,16 @@ using keylist = std::vector<TrkrDefs::cluskey>;
 
 PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
   : SubsysReco(name)
+{}
+
+//______________________________________________________
+PHSimpleKFProp::~PHSimpleKFProp()
 {
+  if( m_own_fieldmap )
+  { delete _field_map; }
 }
 
+//______________________________________________________
 int PHSimpleKFProp::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -91,22 +98,18 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   }
 
   PHFieldConfigv1 fcfg;
-
   fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+
   if (std::filesystem::path(m_magField).extension() != ".root")
-  {
-    m_magField = CDBInterface::instance()->getUrl(m_magField);
-  }
+  { m_magField = CDBInterface::instance()->getUrl(m_magField); }
+
   if (!_use_const_field)
   {
     if (!std::filesystem::exists(m_magField))
     {
       if (m_magField.empty())
-      {
-        m_magField = "empty string";
-      }
-      std::cout << PHWHERE << "Fieldmap " << m_magField
-                << " does not exist" << std::endl;
+      { m_magField = "empty string"; }
+      std::cout << PHWHERE << "Fieldmap " << m_magField << " does not exist" << std::endl;
       gSystem->Exit(1);
     }
 
@@ -117,11 +120,29 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
     fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
     fcfg.set_magfield_rescale(_const_field);
   }
-  //  fcfg.set_rescale(1);
-  _field_map = std::unique_ptr<PHField>(PHFieldUtility::BuildFieldMap(&fcfg));
 
-  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map.get(), _fieldDir,
-                                     _min_clusters_per_track, _max_sin_phi, Verbosity());
+  // compare field config from that on node tree
+  /*
+   * if the magnetic field is already on the node tree PHFieldUtility::GetFieldConfigNode returns the existing configuration.
+   * One must then check wheter the two configurations are identical, to decide whether one must use the field from node tree or create our own.
+   * Otherwise the configuration passed as argument is stored on the node tree.
+   */
+  const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
+  if( fcfg == *node_fcfg )
+  {
+    // both configurations are identical, use field map from node tree
+    std::cout << "PHSimpleKFProp::InitRun - using node tree field map" << std::endl;
+    _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+    m_own_fieldmap = false;
+  } else {
+    // both configurations differ. Use our own field map
+    std::cout << "PHSimpleKFProp::InitRun - using own field map" << std::endl;
+    _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+    m_own_fieldmap = true;
+  }
+
+  // alice kalman filter
+  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map, _fieldDir, _min_clusters_per_track, _max_sin_phi, Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
@@ -151,7 +172,15 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z) const
   }
   double p[4] = {x * cm, y * cm, z * cm, 0. * cm};
   double bfield[3];
-  _field_map->GetFieldValue(p, bfield);
+
+  // check thread number. Use uncached field accessor for all but thread 0.
+  if( omp_get_thread_num() == 0 )
+  {
+    _field_map->GetFieldValue(p, bfield);
+  } else {
+    _field_map->GetFieldValue_nocache(p, bfield);
+  }
+
   /*  Acts::Vector3 loc(0,0,0);
   int mfex = (magField != nullptr);
   int tgex = (m_tGeometry != nullptr);
@@ -232,7 +261,8 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     }
   }
 
-  const auto globalPositions = PrepareKDTrees();
+  PHTimer timer("KFPropTimer");
+  timer.restart();
 
   // check number of seeds against maximum
   if(_max_seeds > 0 && _track_map->size() > _max_seeds)
@@ -242,10 +272,15 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  const auto globalPositions = PrepareKDTrees();
+  if (Verbosity())
+  { std::cout << "PHSimpleKFProp::process_event - PrepareKDTrees time: " << timer.elapsed() << " ms" << std::endl; }
+
   // list of cluster chains
   std::vector<std::vector<TrkrDefs::cluskey>> new_chains;
   std::vector<TrackSeed_v2> unused_tracks;
 
+  timer.restart();
   #pragma omp parallel
   {
     if (Verbosity())
@@ -257,7 +292,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         << std::endl;
     }
 
-    PHTimer timer("KFPropTimer");
+    PHTimer timer_mp("KFPropTimer_parallel");
 
     std::vector<std::vector<TrkrDefs::cluskey>> local_chains;
     std::vector<TrackSeed_v2> local_unused;
@@ -304,26 +339,24 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
         /// This will by definition return a single pair with each vector
         /// in the pair length 1 corresponding to the seed info
         std::vector<float> trackChi2;
-        timer.restart();
 
+        timer_mp.restart();
         auto seedpair = fitter->ALICEKalmanFilter(keylist_A, false, trackClusPositions, trackChi2);
 
-        timer.stop();
         if (Verbosity() > 3)
         {
-          std::cout << "single track ALICEKF time " << timer.elapsed() << std::endl;
+          std::cout << "PHSimpleKFProp::process_event - single track ALICEKF time " << timer_mp.elapsed() << " ms" << std::endl;
         }
 
-        timer.restart();
+        timer_mp.restart();
 
         /// circle fit back to update track parameters
         TrackSeedHelper::circleFitByTaubin(track, trackClusPositions, 7, 55);
         TrackSeedHelper::lineFit(track, trackClusPositions, 7, 55);
         track->set_phi(TrackSeedHelper::get_phi(track, trackClusPositions));
-        timer.stop();
         if (Verbosity() > 3)
         {
-          std::cout << "single track circle fit time " << timer.elapsed() << std::endl;
+          std::cout << "PHSimpleKFProp::process_event - single track circle fit time " << timer_mp.elapsed() << " ms" << std::endl;
         }
 
         if (seedpair.first.empty()|| seedpair.second.empty())
@@ -336,7 +369,7 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
           std::cout << "is tpc track" << std::endl;
         }
 
-        timer.restart();
+        timer_mp.restart();
 
         if (Verbosity())
         {
@@ -389,12 +422,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
           local_chains.push_back(std::move(kl.at(0)));
         }
 
-        timer.stop();
-
         if (Verbosity() > 3)
         {
-          const auto propagatetime = timer.elapsed();
-          std::cout << "propagate track time " << propagatetime << std::endl;
+          std::cout << "PHSimpleKFProp::process_event - propagate track time " << timer_mp.elapsed() << " ms" << std::endl;
         }
       }
       else
@@ -421,10 +451,16 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
       unused_tracks.insert(unused_tracks.end(), std::make_move_iterator(local_unused.begin()), std::make_move_iterator(local_unused.end()));
     }
   }
+  if (Verbosity())
+  { std::cout << "PHSimpleKFProp::process_event - first seed loop time: " << timer.elapsed() << " ms" << std::endl; }
 
   // sort merged list and remove duplicates
+  timer.restart();
   std::sort(new_chains.begin(),new_chains.end());
   new_chains.erase(std::unique(new_chains.begin(),new_chains.end()),new_chains.end());
+
+  if (Verbosity())
+  { std::cout << "PHSimpleKFProp::process_event - first cleanup time: " << timer.elapsed() << " ms" << std::endl; }
 
   if( Verbosity() )
   {
@@ -441,36 +477,23 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
     }
   }
 
-  /*
-   * presently RemoveBadClusters does nothing. It just removes seeds of size less than 3, which don't make it through the main loop anyway
-   * so we just comment out the call, to prevent unnecessary data copy
-   */
-//   const auto clean_chains = RemoveBadClusters(new_chains, globalPositions);
-//   if (Verbosity() > 1)
-//   { std::cout << "PHSimpleKFProp::process_event - clean_chains size: " << clean_chains.size() << std::endl; }
+  // erase all seeds for size 2 or less
+  new_chains.erase( std::remove_if( new_chains.begin(), new_chains.end(),
+    [](const auto& chain) { return chain.size()<3; } ),
+    new_chains.end() );
 
-  const auto& clean_chains = new_chains;
-
-  /*
-   * TODO: in principle this could also move to a thread
-   * need to pay attention to duplicated seeds though
-   */
-  PHTimer timer("KFPropTimer");
+  // re-run ALICE Kalman Filter on completed chains
   timer.restart();
   std::vector<float> trackChi2;
-  auto seeds = fitter->ALICEKalmanFilter(clean_chains, true, globalPositions, trackChi2);
-  timer.stop();
-
+  auto seeds = fitter->ALICEKalmanFilter(new_chains, true, globalPositions, trackChi2);
   if (Verbosity())
-  {
-    const auto alicekftime = timer.elapsed();
-    std::cout << "full alice kf time all tracks " << alicekftime << std::endl;
-  }
+  {  std::cout << "PHSimpleKFProp::process_event - ALICEKalmanFilter time: " << timer.elapsed() << " ms" << std::endl; }
 
   // reset track map
   _track_map->Reset();
 
   //  Move ghost rejection into publishSeeds, so that we don't publish rejected seeds
+  timer.restart();
   if (m_ghostrejection)
   {
     rejectAndPublishSeeds(seeds.first, globalPositions, trackChi2);
@@ -482,6 +505,9 @@ int PHSimpleKFProp::process_event(PHCompositeNode* topNode)
 
   // also publish unused seeds (not TPC)
   publishSeeds(unused_tracks);
+
+  if (Verbosity())
+  { std::cout << "PHSimpleKFProp::process_event - publishSeeds time: " << timer.elapsed() << " ms" << std::endl; }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1407,6 +1433,9 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
 
   PHTimer timer("KFPropTimer");
 
+  // now do the ghost rejection *before* publishing the seeds to the _track_map
+  timer.restart();
+
   // testing with presets for rejection
   PHGhostRejection rejector(Verbosity(), seeds);
   rejector.set_phi_cut(_ghost_phi_cut);
@@ -1419,36 +1448,46 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
   // rejector.set_must_span_sectors(true);
   // rejector.set_min_clusters(8);
 
+  // first path over seeds to marks those to be removed due to cluster size
   for (unsigned int itrack = 0; itrack < seeds.size(); ++itrack)
+  { rejector.cut_from_clusters(itrack); }
+
+  #pragma omp parallel
   {
-    // cut tracks with too-few clusters (or that don;t span a sector boundary, if desired)
-    if (rejector.cut_from_clusters(itrack))
+
+    #pragma omp for schedule(static)
+    for (unsigned int itrack = 0; itrack < seeds.size(); ++itrack)
     {
-      continue;
+      // cut tracks with too-few clusters (or that don;t span a sector boundary, if desired)
+      if (rejector.is_rejected(itrack))
+      { continue; }
+
+      auto& seed = seeds[itrack];
+      /// The ALICEKF gives a better charge determination at high pT
+      const int q = seed.get_charge();
+
+      PositionMap local;
+      std::transform(seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter(local, local.end()),
+        [positions](const auto& key)
+        { return std::make_pair(key, positions.at(key)); });
+      TrackSeedHelper::circleFitByTaubin(&seed,local, 7, 55);
+      TrackSeedHelper::lineFit(&seed,local, 7, 55);
+      seed.set_phi(TrackSeedHelper::get_phi(&seed,local));
+      seed.set_qOverR(fabs(seed.get_qOverR()) * q);
     }
 
-    auto& seed = seeds[itrack];
-    /// The ALICEKF gives a better charge determination at high pT
-    const int q = seed.get_charge();
-
-    PositionMap local;
-    std::transform(seed.begin_cluster_keys(), seed.end_cluster_keys(), std::inserter(local, local.end()),
-                   [positions](const auto& key)
-                   { return std::make_pair(key, positions.at(key)); });
-    TrackSeedHelper::circleFitByTaubin(&seed,local, 7, 55);
-    TrackSeedHelper::lineFit(&seed,local, 7, 55);
-    seed.set_phi(TrackSeedHelper::get_phi(&seed,local));
-    seed.set_qOverR(fabs(seed.get_qOverR()) * q);
   }
+
+  if (Verbosity())
+  { std::cout << "PHSimpleKFProp::rejectAndPublishSeeds - circle fit: " << timer.elapsed() << " ms" << std::endl; }
 
   // now do the ghost rejection *before* publishing the seeds to the _track_map
   timer.restart();
   rejector.find_ghosts(trackChi2);
-  if (Verbosity() > 2)
-  {
-    std::cout << "ghost rejection find time " << timer.elapsed() << std::endl;
-  }
+  if (Verbosity())
+  { std::cout << "PHSimpleKFProp::rejectAndPublishSeeds - ghost rejection: " << timer.elapsed() << " ms" << std::endl; }
 
+  timer.restart();
   for (unsigned int itrack = 0; itrack < seeds.size(); ++itrack)
   {
     if (rejector.is_rejected(itrack))
@@ -1477,6 +1516,9 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
                 << std::endl;
     }
   }
+  if (Verbosity())
+  { std::cout << "PHSimpleKFProp::rejectAndPublishSeeds - publication: " << timer.elapsed() << " ms" << std::endl; }
+
 }
 
 void PHSimpleKFProp::publishSeeds(const std::vector<TrackSeed_v2>& seeds)

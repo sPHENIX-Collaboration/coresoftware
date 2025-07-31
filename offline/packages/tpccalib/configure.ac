@@ -12,7 +12,7 @@ fi
 
 case $CXX in
  clang++)
-   CXXFLAGS="$CXXFLAGS -Wno-dangling"
+   CXXFLAGS="$CXXFLAGS -Wno-dangling -fopenmp"
  ;;
 esac
 

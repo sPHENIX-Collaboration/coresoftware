@@ -114,8 +114,8 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     triggervec = gl1PacketInfo->getScaledVector();
   }
 
- // if ((triggervec >> 0xAU) & 0x1U)
-  //{
+  if ((triggervec >> 0xAU) & 0x1U)
+  {
     //--------------------------- MBD vertex------------------------------//
     MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
     MbdVertex *bvertex = nullptr;
@@ -141,12 +141,12 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     {
       h_GlobalQA_mbd_zvtxq->SetBinContent(2, h_GlobalQA_mbd_zvtxq->GetBinContent(2) + 1);
     }
-  //}
+  }
 
   //--------------------------- sEPD ------------------------------//
   
-//  if ((triggervec >> 0xAU) & 0x1U)
-//  {
+  if (triggervec & mbdtrig)  // Any MBD trigger (bits 10-15)
+  {
     //--------------------------- sEPD ------------------------------//
     TowerInfoContainer *_sepd_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
     unsigned int ntowers = 0;
@@ -192,10 +192,10 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       h_GlobalQA_sEPD_adcsum_n->Fill(sepdnorthadcsum);
       h2_GlobalQA_sEPD_adcsum_ns->Fill(sepdsouthadcsum, sepdnorthadcsum);
     }
-  //}
+  }
 
-//  if ((triggervec >> 0x3U) & 0x1U)
-//  {
+  if ((triggervec >> 0x3U) & 0x1U)
+  {
     // ------------------------------------- ZDC
     // -----------------------------------------//
 
@@ -212,10 +212,10 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
       h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
     }
-//  }
+  }
 
-//  if ((triggervec >> 0xAU) & 0x1U)
-//  {
+  if ((triggervec >> 0xAU) & 0x1U)
+  {
     //--------------------------- MBD ----------------------------------------//
     MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
     if (!bbcpmts)
@@ -369,7 +369,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s + tot_charge_n);
     h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_s, tot_charge_n);
     h2_GlobalQA_mbd_nhits_NS_correlation->Fill(hits_s, hits_n);
-  //}
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -380,21 +380,49 @@ void GlobalQA::createHistos()
   assert(hm);
 
   // MBD QA
-  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2, -0.5, 1.5);
-  h_GlobalQA_mbd_zvtx = new TH1D( "h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_mbd_zvtx_wide = new TH1D( "h_GlobalQA_mbd_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_calc_zvtx_wide = new TH1D("h_GlobalQA_calc_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_mbd_charge_s = new TH1D("h_GlobalQA_mbd_charge_s", ";Scaled Trigger 10: MBD Coincidence    charge", 1500, 0, 1500);
-  h_GlobalQA_mbd_charge_n = new TH1D("h_GlobalQA_mbd_charge_n", ";Scaled Trigger 10: MBD Coincidence    charge", 1500, 0, 1500);
-  h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";Scaled Trigger 10: MBD Coincidence    nhit", 65, -0.5, 64.5);
-  h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";Scaled Trigger 10: MBD Coincidence    nhit", 65, -0.5, 64.5);
-  h_GlobalQA_mbd_charge_sum = new TH1F("h_GlobalQA_mbd_charge_sum", " ; MBD Total Charge ; Counts", 2500, 0., 2500);
+  h_GlobalQA_mbd_zvtxq =
+      new TH1D("h_GlobalQA_mbd_zvtxq",
+               ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2,
+               -0.5, 1.5);
+  h_GlobalQA_mbd_zvtx = new TH1D(
+      "h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]",
+      100, -50, 50);
+  h_GlobalQA_mbd_zvtx_wide = new TH1D(
+      "h_GlobalQA_mbd_zvtx_wide",
+      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_calc_zvtx = new TH1D(
+      "h_GlobalQA_calc_zvtx",
+      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
+  h_GlobalQA_calc_zvtx_wide = new TH1D(
+      "h_GlobalQA_calc_zvtx_wide",
+      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+  h_GlobalQA_mbd_charge_s =
+      new TH1D("h_GlobalQA_mbd_charge_s",
+               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
+  h_GlobalQA_mbd_charge_n =
+      new TH1D("h_GlobalQA_mbd_charge_n",
+               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
+  h_GlobalQA_mbd_nhit_s =
+      new TH1D("h_GlobalQA_mbd_nhit_s",
+               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_nhit_n =
+      new TH1D("h_GlobalQA_mbd_nhit_n",
+               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
 
-  h2_GlobalQA_mbd_charge_NS_correlation = new TH2F( "h2_GlobalQA_mbd_charge_NS_correlation", "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
+  h_GlobalQA_mbd_charge_sum =
+      new TH1F("h_GlobalQA_mbd_charge_sum", " ; MBD Total Charge ; Counts",
+               100, 0., 20);
+
+  h2_GlobalQA_mbd_charge_NS_correlation = new TH2F(
+      "h2_GlobalQA_mbd_charge_NS_correlation",
+      "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
       150, 0, 1500, 150, 0, 1500);
-  h2_GlobalQA_mbd_nhits_NS_correlation = new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation", "MBD Number Of Hits Correlation ; Number Of Hits (South); " "Number Of Hits (North)",
-      65, -0.5, 64.5, 65, -0.5, 64.5);
+
+  h2_GlobalQA_mbd_nhits_NS_correlation =
+      new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
+               "MBD Number Of Hits Correlation ; Number Of Hits (South); "
+               "Number Of Hits (North)",
+               70, 0., 70, 70, 0., 70);
 
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
   hm->registerHisto(h_GlobalQA_mbd_zvtxq);
@@ -411,15 +439,15 @@ void GlobalQA::createHistos()
 
   // sEPD QA
   h_GlobalQA_sEPD_adcsum_s = new TH1D(
-      "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; Counts", 100, -10, 50000);
+      "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; Counts", 200, 0, 6e6);
 
   h_GlobalQA_sEPD_adcsum_n = new TH1D(
-      "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; Counts", 100, -10, 50000);
+      "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; Counts", 200, 0, 6e6);
 
   h2_GlobalQA_sEPD_adcsum_ns =
       new TH2D("h2_GlobalQA_sEPD_adcsum_ns",
                "sEPD NS ADC sum correlation ; ADC sum (south); ADC sum (north)",
-               100, -10, 50000, 100, -10, 50000);
+               500, 0, 6e6, 500, 0, 6e6);
 
   h2Profile_GlobalQA_sEPD_tiles_north =
       new TProfile2D("h2Profile_GlobalQA_sEPD_tiles_north",

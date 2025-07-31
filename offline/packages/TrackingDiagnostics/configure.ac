@@ -20,6 +20,12 @@ if test $ac_cv_prog_gxx = yes; then
      CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wshadow -Werror"
 fi
 
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -fopenmp"
+ ;;
+esac
+
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

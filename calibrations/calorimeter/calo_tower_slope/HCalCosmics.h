@@ -55,13 +55,17 @@ class HCalCosmics : public SubsysReco
 
   TFile *outfile{nullptr};
   TH1 *h_channel_hist[n_etabin][n_phibin]{{nullptr}};   // distribution of tower energy
-  TH1 *h_adc_hist[n_etabin][n_phibin]{{nullptr}};       // distribuiton of raw tower ADC
+  TH1 *h_adc_hist[n_etabin][n_phibin]{{nullptr}};       // distribuiton of raw tower ADC with topo cuts in ADC
+  TH1 *h_adc_ecut_hist[n_etabin][n_phibin]{{nullptr}};    // distribution of raw tower ADC with topo cuts in energy
+  TH1 *h_gain_hist[n_etabin][n_phibin]{{nullptr}}; // distribution of gain per tower
   TH2 *h_waveformchi2{nullptr}; 
   TH2 *h_waveformchi2_aftercut{nullptr};
   TH1 *h_towertime_hist[n_etabin][n_phibin]{{nullptr}}; // distribution of tower time of muons
   TH2 *h_time_energy{nullptr};
   TH1 *h_mip{nullptr};
   TH1 *h_adc{nullptr};
+  TH1 *h_adc_ecut{nullptr};
+  TH1 *h_gain{nullptr};
   TH1 *h_event{nullptr};
 
   // Cut threshold in GeV
@@ -86,10 +90,10 @@ class HCalCosmics : public SubsysReco
   //  bool debug {false};
 
   std::string prefix{"TOWERINFO_CALIB_"}; // for calibrated tower energy 
-  std::string detector{"HCALIN"};
+  std::string detector{"HCALOUT"};
 
   std::string rawprefix{"TOWERS_"}; // for raw tower ADC 
-  std::string rawdetector{"HCALIN"};
+  std::string rawdetector{"HCALOUT"};
   
   std::string outfilename;
 };

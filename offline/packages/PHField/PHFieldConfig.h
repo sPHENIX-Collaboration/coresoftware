@@ -74,8 +74,13 @@ class PHFieldConfig : public PHObject
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual double get_field_mag_z() const { return std::numeric_limits<double>::signaling_NaN(); }
+
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual void set_field_mag_z(double /*fieldMagZ*/) { return; }
+
+  //! equal to operator, to base class
+  virtual bool operator == (const PHFieldConfig& ) const
+  { return false; }
 
  protected:
   //! pure virtual interface class. not for direct use

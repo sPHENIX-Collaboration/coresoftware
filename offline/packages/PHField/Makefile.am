@@ -26,6 +26,7 @@ pkginclude_HEADERS = \
   PHFieldConfig.h \
   PHFieldConfigv1.h \
   PHFieldConfigv2.h \
+  PHFieldInterpolated.h \
   PHFieldUtility.h \
   PHField.h
 
@@ -51,6 +52,7 @@ libphfield_la_SOURCES = \
   PHField2D.cc \
   PHField3DCylindrical.cc \
   PHField3DCartesian.cc \
+  PHFieldInterpolated.cc \
   PHFieldUtility.cc 
 
 # Rule for generating table CINT dictionaries.

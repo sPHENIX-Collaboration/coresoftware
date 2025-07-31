@@ -355,7 +355,7 @@ float JetCalib::doCalibration(const std::vector<std::vector<TF1 *>> &JetCalibFun
   float calib = 1;
   int zvrtxbin = 0;
   int etabin = 0;
-  if (ApplyZvrtxDependentCalib)
+  if (ApplyZvrtxDependentCalib || ApplyEtaDependentCalib)
   {
     zvrtxbin = getZvrtxBin(zvrtx);
     if (ApplyEtaDependentCalib)
