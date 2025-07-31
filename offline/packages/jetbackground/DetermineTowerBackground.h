@@ -83,7 +83,7 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<float> _FULLCALOFLOW_PHI_E;
   std::vector<float> _FULLCALOFLOW_PHI_VAL;
 
-  bool _do_reweight{false}; // flag to indicate if reweighting is used
+  bool _do_reweight{true}; // flag to indicate if reweighting is used
   std::vector<float> _EMCAL_PHI_WEIGHTS;
   std::vector<float> _IHCAL_PHI_WEIGHTS;
   std::vector<float> _OHCAL_PHI_WEIGHTS;
@@ -92,7 +92,7 @@ class DetermineTowerBackground : public SubsysReco
 
   int _seed_type{0};
   float _seed_jet_D{4.0};
-  float _seed_max_const{2.0};
+  float _seed_max_const{3.0};
   float _seed_jet_pt{7.0};
 
   std::vector<float> _seed_eta;
