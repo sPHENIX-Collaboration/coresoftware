@@ -953,7 +953,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         else
         {
           _is_flow_failure = true;
-          _Psi2 = std::atan2(Q_y, Q_x) / 2.0; // fall back to the calo event plane (better than nothing?)
+          _Psi2 = 0; 
         }
     
         if (Verbosity() > 0)
