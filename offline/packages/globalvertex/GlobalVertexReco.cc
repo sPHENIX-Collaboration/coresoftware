@@ -255,25 +255,28 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     if (vtxp)
     {
       truth_z_vertex = vtxp->get_z();
-      std::shared_ptr<TruthVertex> Truth_vtx(new SvtxVertex_v1());
-      TruthVertex *tvertex = new TruthVertex();
+      TruthVertex *tvertex = new TruthVertex_v1();
       tvertex->set_id(0);
       tvertex->set_z(truth_z_vertex);
-      tvertex->set_z_err(0);//0.6?
+      tvertex->set_z_err(0);  // 0.6?
       tvertex->set_t(0);
-      tvertex->set_t_err(0);//0.1
+      tvertex->set_t_err(0);  // 0.1
       globalmap->insert(tvertex);
       if (!truthmap)
       {
-        truthmap = new TruthVertexMapv1();
+        truthmap = new TruthVertexMap_v1();
         PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
         topNode->addNode(TruthVertexMapNode);
-        TruthVertexMapNode->Insert(tvertex);
         if (Verbosity())
         {
           std::cout << "Created TruthVertexMap node" << std::endl;
           std::cout << "TruthVertexMap node contains Tzvertex: " << TruthVertexMapNode->begin()->second->get_z() << std::endl;
         }
+      }
+      truthmap->Insert(tvertex);
+      if (Verbosity())
+      {
+        std::cout << "TruthVertexMap node contains Tzvertex: " << truthmap->begin()->second->get_z() << std::endl;
       }
     }
     else if (Verbosity())
