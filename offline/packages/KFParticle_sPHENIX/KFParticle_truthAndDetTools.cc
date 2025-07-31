@@ -1316,6 +1316,7 @@ void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
                                             std::vector<KFParticle> intermediates)
 {
   KFParticle_Tools kfpTupleTools;
+  kfpTupleTools.set_dont_use_global_vertex(m_dont_use_global_vertex_truth);
   std::vector<KFParticle> primaryVertices = kfpTupleTools.makeAllPrimaryVertices(topNode, m_vtx_map_node_name_nTuple);
 
   for (auto &primaryVertice : primaryVertices)
