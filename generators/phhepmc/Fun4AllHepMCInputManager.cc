@@ -45,8 +45,6 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const std::string &name, cons
   : Fun4AllInputManager(name, nodename, topnodename)
   , topNodeName(topnodename)
 {
-  set_embedding_id(0);  // default embedding ID. Welcome to change via macro
-
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName);
   PHNodeIterator iter(topNode);
