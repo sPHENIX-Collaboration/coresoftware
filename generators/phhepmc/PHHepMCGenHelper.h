@@ -2,7 +2,7 @@
 
 /*!
  * \file PHHepMCGenHelper.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -80,7 +80,7 @@ class PHHepMCGenHelper
   virtual int create_node_tree(PHCompositeNode *topNode);
 
   //! choice of reference version of the PHHepMCGenEvent
-  const PHHepMCGenEvent *get_PHHepMCGenEvent_template() const;
+  static const PHHepMCGenEvent *get_PHHepMCGenEvent_template();
 
   //! send HepMC::GenEvent to DST tree. This function takes ownership of evt
   PHHepMCGenEvent *insert_event(HepMC::GenEvent *evt);
@@ -183,27 +183,27 @@ class PHHepMCGenHelper
   std::pair<double, double> generate_vertx_with_bunch_interaction(PHHepMCGenEvent *genevent);
 
  private:
-  gsl_rng *RandomGenerator;
+  gsl_rng *RandomGenerator{nullptr};
 
   double smear(const double position, const double width, VTXFUNC dist) const;
 
   //! function to convert spherical coordinate to Hep3Vector in x-y-z
   static CLHEP::Hep3Vector pair2Hep3Vector(const std::pair<double, double> &theta_phi);
 
-  VTXFUNC _vertex_func_x;
-  VTXFUNC _vertex_func_y;
-  VTXFUNC _vertex_func_z;
-  VTXFUNC _vertex_func_t;
+  VTXFUNC _vertex_func_x{Gaus};
+  VTXFUNC _vertex_func_y{Gaus};
+  VTXFUNC _vertex_func_z{Gaus};
+  VTXFUNC _vertex_func_t{Gaus};
 
-  double _vertex_x;
-  double _vertex_y;
-  double _vertex_z;
-  double _vertex_t;
+  double _vertex_x{0.};
+  double _vertex_y{0.};
+  double _vertex_z{0.};
+  double _vertex_t{0.};
 
-  double _vertex_width_x;
-  double _vertex_width_y;
-  double _vertex_width_z;
-  double _vertex_width_t;
+  double _vertex_width_x{0.};
+  double _vertex_width_y{0.};
+  double _vertex_width_z{0.};
+  double _vertex_width_t{0.};
 
   //! Beam angle in lab polar coordinate.
   //! First element is beamA, in pair of Theta-Phi. BeamA is aimed to +z direction in the HepMC event generator's coordinate
@@ -233,22 +233,22 @@ class PHHepMCGenHelper
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
-  int _embedding_id;
+  int _embedding_id{0};
 
   //! whether reuse vertex from another PHHepMCGenEvent
-  bool _reuse_vertex;
+  bool _reuse_vertex{false};
 
   //! if _reuse_vertex, which embedding_id provide the source vertex. Additional smearing and shift possible with set_vertex_distribution_*()
-  int _reuse_vertex_embedding_id;
+  int _reuse_vertex_embedding_id{std::numeric_limits<int>::min()};
 
   //! pointer to the output container
-  PHHepMCGenEventMap *_geneventmap;
+  PHHepMCGenEventMap *_geneventmap{nullptr};
 
-  //!verbosity
-  int m_verbosity = 0;
+  //! verbosity
+  int m_verbosity{0};
 
   //! simulate bunch interaction instead of applying vertex distributions
-  bool m_use_beam_bunch_sim = false;
+  bool m_use_beam_bunch_sim{false};
 
   //! Beam bunch geometry as 3D Gauss width
   //! First element is beamA, in vector of Gaussian Sigma H,V,Longitudinal
@@ -261,7 +261,6 @@ class PHHepMCGenHelper
   //! use m_beam_bunch_width to calculate horizontal and vertical collision width
   //! \param[in] hv_index 0: horizontal. 1: vertical
   double get_collision_width(unsigned int hv_index);
-
 };
 
 #endif /* PHHEPMC_PHHEPMCGENHELPER_H */

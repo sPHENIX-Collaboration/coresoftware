@@ -2,7 +2,7 @@
 
 /*!
  * \file PHHepMCGenHelper.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -43,27 +43,9 @@
 #include <iostream>
 #include <limits>
 
-using namespace std;
-
 PHHepMCGenHelper::PHHepMCGenHelper()
-  : _vertex_func_x(Gaus)
-  , _vertex_func_y(Gaus)
-  , _vertex_func_z(Gaus)
-  , _vertex_func_t(Gaus)
-  , _vertex_x(0)
-  , _vertex_y(0)
-  , _vertex_z(0)
-  , _vertex_t(0)
-  , _vertex_width_x(0)
-  , _vertex_width_y(0)
-  , _vertex_width_z(0)
-  , _vertex_width_t(0)
-  , _embedding_id(0)
-  , _reuse_vertex(false)
-  , _reuse_vertex_embedding_id(numeric_limits<int>::min())
-  , _geneventmap(nullptr)
+  : RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this function
   gsl_rng_set(RandomGenerator, seed);
 }
@@ -80,7 +62,7 @@ int PHHepMCGenHelper::create_node_tree(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing doing nothing" << endl;
+    std::cout << PHWHERE << "DST Node missing doing nothing" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -98,7 +80,7 @@ int PHHepMCGenHelper::create_node_tree(PHCompositeNode *topNode)
 }
 
 //! choice of reference version of the PHHepMCGenEvent
-const PHHepMCGenEvent *PHHepMCGenHelper::get_PHHepMCGenEvent_template() const
+const PHHepMCGenEvent *PHHepMCGenHelper::get_PHHepMCGenEvent_template()
 {
   // choice of version of PHHepMCGenEvent
   const static PHHepMCGenEventv1 mc_evnet_template;
@@ -149,15 +131,15 @@ double PHHepMCGenHelper::get_collision_width(unsigned int hv_index)
   const double widthA = m_beam_bunch_width.first[hv_index];
   const double widthB = m_beam_bunch_width.second[hv_index];
 
-  return widthA * widthB / sqrt(widthA * widthA + widthB * widthB);
+  return widthA * widthB / sqrt((widthA * widthA) + (widthB * widthB));
 }
 
 //! generate vertx with bunch interaction according to
 //! https://github.com/eic/documents/blob/d06b5597a0a89dcad215bab50fe3eefa17a097a5/reports/general/Note-Simulations-BeamEffects.pdf
 //! \return pair of bunch local z position for beam A and beam B
-pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHHepMCGenEvent *genevent)
+std::pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHHepMCGenEvent *genevent)
 {
-  const pair<double, double> bunch_zs(
+  const std::pair<double, double> bunch_zs(
       smear(
           0,                            //  central vertical angle shift
           m_beam_bunch_width.first[2],  // vertical angle smear
@@ -216,26 +198,26 @@ pair<double, double> PHHepMCGenHelper::generate_vertx_with_bunch_interaction(PHH
 
   if (m_verbosity)
   {
-    cout << __PRETTY_FUNCTION__
-         << ":"
-         << "bunch_zs.first  = " << bunch_zs.first << ", "
-         << "bunch_zs.second = " << bunch_zs.second << ", "
-         << "cos(theta/2) = " << beamCenterDiffAxis.dot(beamA_center) << ", " << endl
+    std::cout << __PRETTY_FUNCTION__
+              << ":"
+              << "bunch_zs.first  = " << bunch_zs.first << ", "
+              << "bunch_zs.second = " << bunch_zs.second << ", "
+              << "cos(theta/2) = " << beamCenterDiffAxis.dot(beamA_center) << ", " << std::endl
 
-         << "beamCenterDiffAxis = " << beamCenterDiffAxis << ", "
-         << "vec_crossing = " << vec_crossing << ", "
-         << "horizontal_axis = " << horizontal_axis << ", "
-         << "vertical_axis = " << vertical_axis << ", " << endl
+              << "beamCenterDiffAxis = " << beamCenterDiffAxis << ", "
+              << "vec_crossing = " << vec_crossing << ", "
+              << "horizontal_axis = " << horizontal_axis << ", "
+              << "vertical_axis = " << vertical_axis << ", " << std::endl
 
-         << "vec_longitudinal_collision = " << vec_longitudinal_collision << ", "
-         << "vec_crossing_collision = " << vec_crossing_collision << ", "
-         << "vec_vertical_collision_vertex_smear = " << vec_vertical_collision_vertex_smear << ", "
-         << "vec_horizontal_collision_vertex_smear = " << vec_horizontal_collision_vertex_smear << ", " << endl
-         << "vec_collision_vertex = " << vec_collision_vertex << ", " << endl
+              << "vec_longitudinal_collision = " << vec_longitudinal_collision << ", "
+              << "vec_crossing_collision = " << vec_crossing_collision << ", "
+              << "vec_vertical_collision_vertex_smear = " << vec_vertical_collision_vertex_smear << ", "
+              << "vec_horizontal_collision_vertex_smear = " << vec_horizontal_collision_vertex_smear << ", " << std::endl
+              << "vec_collision_vertex = " << vec_collision_vertex << ", " << std::endl
 
-         << "ct_collision = " << ct_collision << ", "
-         << "t_collision = " << t_collision << ", "
-         << endl;
+              << "ct_collision = " << ct_collision << ", "
+              << "t_collision = " << t_collision << ", "
+              << std::endl;
   }
 
   return bunch_zs;
@@ -273,13 +255,13 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
     if (!vtx_evt)
     {
-      cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - Fatal Error - the requested source subevent with embedding ID "
-           << _reuse_vertex_embedding_id << " does not exist. Current HepMCEventMap:";
+      std::cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - Fatal Error - the requested source subevent with embedding ID "
+                << _reuse_vertex_embedding_id << " does not exist. Current HepMCEventMap:";
       _geneventmap->identify();
       exit(1);
     }
 
-    //copy boost_rotation_translation
+    // copy boost_rotation_translation
 
     genevent->moveVertex(
         vtx_evt->get_collision_vertex().x(),
@@ -293,7 +275,7 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
     if (m_verbosity)
     {
-      cout << __PRETTY_FUNCTION__ << ": copied boost rotation shift of the collision" << endl;
+      std::cout << __PRETTY_FUNCTION__ << ": copied boost rotation shift of the collision" << std::endl;
       genevent->identify();
     }
     return;
@@ -301,7 +283,7 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   // now handle the collision vertex first, in the head-on collision frame
   // this is used as input to the Crab angle correction
-  pair<double, double> beam_bunch_zs;
+  std::pair<double, double> beam_bunch_zs;
   if (m_use_beam_bunch_sim)
   {
     // bunch interaction simulation
@@ -324,9 +306,9 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   if (m_verbosity)
   {
-    cout << __PRETTY_FUNCTION__ << ": " << endl;
-    cout << "beamA_center = " << beamA_center << endl;
-    cout << "beamB_center = " << beamB_center << endl;
+    std::cout << __PRETTY_FUNCTION__ << ": " << std::endl;
+    std::cout << "beamA_center = " << beamA_center << std::endl;
+    std::cout << "beamB_center = " << beamB_center << std::endl;
   }
 
   assert(fabs(beamB_center.mag2() - 1) < CLHEP::Hep3Vector::getTolerance());
@@ -334,12 +316,12 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   if (beamA_center.dot(beamB_center) > -0.5)
   {
-    cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - WARNING -"
-         << "Beam A and Beam B are not near back to back. "
-         << "Please double check beam direction setting at set_beam_direction_theta_phi()."
-         << "beamA_center = " << beamA_center << ","
-         << "beamB_center = " << beamB_center << ","
-         << " Current setting:";
+    std::cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - WARNING -"
+              << "Beam A and Beam B are not near back to back. "
+              << "Please double check beam direction setting at set_beam_direction_theta_phi()."
+              << "beamA_center = " << beamA_center << ","
+              << "beamB_center = " << beamB_center << ","
+              << " Current setting:";
 
     Print();
   }
@@ -348,14 +330,15 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   auto smear_beam_divergence = [&, this](
                                    const CLHEP::Hep3Vector &beam_center,
                                    const std::pair<double, double> &divergence_hv,
-                                   const std::pair<double, double> &beam_angular_z_coefficient_hv) {
+                                   const std::pair<double, double> &beam_angular_z_coefficient_hv)
+  {
     const double &x_divergence = divergence_hv.first;
     const double &y_divergence = divergence_hv.second;
 
     // y direction in accelerator
     static const CLHEP::Hep3Vector accelerator_plane(0, 1, 0);
 
-    CLHEP::Hep3Vector beam_direction(beam_center);
+    //    CLHEP::Hep3Vector beam_direction(beam_center);
     CLHEP::HepRotation x_smear_in_accelerator_plane(
         accelerator_plane,
         smear(
@@ -381,9 +364,9 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
   if (m_verbosity)
   {
-    cout << __PRETTY_FUNCTION__ << ": " << endl;
-    cout << "beamA_vec = " << beamA_vec << endl;
-    cout << "beamB_vec = " << beamB_vec << endl;
+    std::cout << __PRETTY_FUNCTION__ << ": " << std::endl;
+    std::cout << "beamA_vec = " << beamA_vec << std::endl;
+    std::cout << "beamB_vec = " << beamB_vec << std::endl;
   }
 
   assert(fabs(beamA_vec.mag2() - 1) < CLHEP::Hep3Vector::getTolerance());
@@ -393,14 +376,14 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   CLHEP::Hep3Vector boost_axis = beamA_vec + beamB_vec;
   if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
   {
-    //non-zero boost
+    // non-zero boost
 
     // split the boost to half for each beam for minimal beam  energy shift
     genevent->set_boost_beta_vector(0.5 * boost_axis);
 
     if (m_verbosity)
     {
-      cout << __PRETTY_FUNCTION__ << ": non-zero boost " << endl;
+      std::cout << __PRETTY_FUNCTION__ << ": non-zero boost " << std::endl;
     }
   }  //    if (cos_rotation_angle> CLHEP::Hep3Vector::getTolerance())
   else
@@ -408,20 +391,20 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     genevent->set_boost_beta_vector(CLHEP::Hep3Vector(0, 0, 0));
     if (m_verbosity)
     {
-      cout << __PRETTY_FUNCTION__ << ": zero boost " << endl;
+      std::cout << __PRETTY_FUNCTION__ << ": zero boost " << std::endl;
     }
   }
 
-  //rotation to collision to along z-axis with beamA pointing to +z
+  // rotation to collision to along z-axis with beamA pointing to +z
   CLHEP::Hep3Vector beamDiffAxis = (beamA_vec - beamB_vec);
   if (beamDiffAxis.mag2() < CLHEP::Hep3Vector::getTolerance())
   {
-    cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - Fatal error -"
-         << "Beam A and Beam B are too close to each other in direction "
-         << "Please double check beam direction and divergence setting. "
-         << "beamA_vec = " << beamA_vec << ","
-         << "beamB_vec = " << beamB_vec << ","
-         << " Current setting:";
+    std::cout << "PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation - Fatal error -"
+              << "Beam A and Beam B are too close to each other in direction "
+              << "Please double check beam direction and divergence setting. "
+              << "beamA_vec = " << beamA_vec << ","
+              << "beamB_vec = " << beamB_vec << ","
+              << " Current setting:";
 
     Print();
 
@@ -432,19 +415,19 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
   double cos_rotation_angle_to_z = beamDiffAxis.dot(z_axis);
   if (m_verbosity)
   {
-    cout << __PRETTY_FUNCTION__ << ": check rotation ";
-    cout << "cos_rotation_angle_to_z= " << cos_rotation_angle_to_z << endl;
+    std::cout << __PRETTY_FUNCTION__ << ": check rotation ";
+    std::cout << "cos_rotation_angle_to_z= " << cos_rotation_angle_to_z << std::endl;
   }
 
   if (1 - cos_rotation_angle_to_z < CLHEP::Hep3Vector::getTolerance())
   {
-    //no rotation
+    // no rotation
     genevent->set_rotation_vector(z_axis);
     genevent->set_rotation_angle(0);
 
     if (m_verbosity)
     {
-      cout << __PRETTY_FUNCTION__ << ": no rotation " << endl;
+      std::cout << __PRETTY_FUNCTION__ << ": no rotation " << std::endl;
     }
   }
   else if (cos_rotation_angle_to_z + 1 < CLHEP::Hep3Vector::getTolerance())
@@ -454,7 +437,7 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
     genevent->set_rotation_angle(M_PI);
     if (m_verbosity)
     {
-      cout << __PRETTY_FUNCTION__ << ": reverse beam direction " << endl;
+      std::cout << __PRETTY_FUNCTION__ << ": reverse beam direction " << std::endl;
     }
   }
   else
@@ -468,13 +451,13 @@ void PHHepMCGenHelper::HepMC2Lab_boost_rotation_translation(PHHepMCGenEvent *gen
 
     if (m_verbosity)
     {
-      cout << __PRETTY_FUNCTION__ << ": has rotation " << endl;
+      std::cout << __PRETTY_FUNCTION__ << ": has rotation " << std::endl;
     }
   }  //  if (boost_axis.mag2() > CLHEP::Hep3Vector::getTolerance())
 
   if (m_verbosity)
   {
-    cout << __PRETTY_FUNCTION__ << ": final boost rotation shift of the collision" << endl;
+    std::cout << __PRETTY_FUNCTION__ << ": final boost rotation shift of the collision" << std::endl;
     genevent->identify();
   }
 }
@@ -483,9 +466,9 @@ void PHHepMCGenHelper::set_vertex_distribution_function(VTXFUNC x, VTXFUNC y, VT
 {
   if (m_use_beam_bunch_sim)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
-         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+              << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
+              << std::endl;
     exit(1);
   }
   _vertex_func_x = x;
@@ -499,9 +482,9 @@ void PHHepMCGenHelper::set_vertex_distribution_mean(const double x, const double
 {
   if (m_use_beam_bunch_sim)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
-         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+              << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
+              << std::endl;
     exit(1);
   }
 
@@ -516,9 +499,9 @@ void PHHepMCGenHelper::set_vertex_distribution_width(const double x, const doubl
 {
   if (m_use_beam_bunch_sim)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
-         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+              << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect to simulate bunch interaction instead of applying vertex distributions"
+              << std::endl;
     exit(1);
   }
 
@@ -533,9 +516,9 @@ void PHHepMCGenHelper::set_beam_bunch_width(const std::vector<double> &beamA, co
 {
   if (not m_use_beam_bunch_sim)
   {
-    cout << __PRETTY_FUNCTION__ << " Fatal Error: "
-         << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect not to simulate bunch interaction but applying vertex distributions"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__ << " Fatal Error: "
+              << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect not to simulate bunch interaction but applying vertex distributions"
+              << std::endl;
     exit(1);
   }
 
@@ -552,7 +535,9 @@ double PHHepMCGenHelper::smear(const double position,
   double res = position;
 
   if (width == 0)
+  {
     return res;
+  }
 
   if (dist == Uniform)
   {
@@ -564,7 +549,7 @@ double PHHepMCGenHelper::smear(const double position,
   }
   else
   {
-    cout << "PHHepMCGenHelper::smear - FATAL Error - unknown vertex function " << dist << endl;
+    std::cout << "PHHepMCGenHelper::smear - FATAL Error - unknown vertex function " << dist << std::endl;
     exit(10);
   }
   return res;
@@ -572,17 +557,17 @@ double PHHepMCGenHelper::smear(const double position,
 
 void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper_dest)
 {
-  //allow copy of vertex distributions
+  // allow copy of vertex distributions
   helper_dest.use_beam_bunch_sim(false);
   helper_dest.set_vertex_distribution_width(_vertex_width_x, _vertex_width_y, _vertex_width_z, _vertex_width_t);
   helper_dest.set_vertex_distribution_function(_vertex_func_x, _vertex_func_y, _vertex_func_z, _vertex_func_t);
   helper_dest.set_vertex_distribution_mean(_vertex_x, _vertex_y, _vertex_z, _vertex_t);
 
-  //allow copy of bunch distributions
+  // allow copy of bunch distributions
   helper_dest.use_beam_bunch_sim(true);
   helper_dest.set_beam_bunch_width(m_beam_bunch_width.first, m_beam_bunch_width.second);
 
-  //final bunch settings
+  // final bunch settings
   helper_dest.use_beam_bunch_sim(m_use_beam_bunch_sim);
 
   helper_dest.set_beam_direction_theta_phi(
@@ -613,10 +598,12 @@ void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper &helper_dest)
 void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper *helper_dest)
 {
   if (helper_dest)
+  {
     CopySettings(*helper_dest);
+  }
   else
   {
-    cout << "PHHepMCGenHelper::CopySettings - fatal error - invalid input class helper_dest which is nullptr!" << endl;
+    std::cout << "PHHepMCGenHelper::CopySettings - fatal error - invalid input class helper_dest which is nullptr!" << std::endl;
     exit(1);
   }
 }
@@ -624,51 +611,53 @@ void PHHepMCGenHelper::CopySettings(PHHepMCGenHelper *helper_dest)
 void PHHepMCGenHelper::CopyHelperSettings(PHHepMCGenHelper *helper_src)
 {
   if (helper_src)
+  {
     helper_src->CopySettings(this);
+  }
   else
   {
-    cout << "PHHepMCGenHelper::CopyHelperSettings - fatal error - invalid input class helper_src which is nullptr!" << endl;
+    std::cout << "PHHepMCGenHelper::CopyHelperSettings - fatal error - invalid input class helper_src which is nullptr!" << std::endl;
     exit(1);
   }
 }
 
-void PHHepMCGenHelper::Print(const std::string &/*what*/) const
+void PHHepMCGenHelper::Print(const std::string & /*what*/) const
 {
-  static map<VTXFUNC, string> vtxfunc = {{VTXFUNC::Uniform, "Uniform"}, {VTXFUNC::Gaus, "Gaus"}};
+  static std::map<VTXFUNC, std::string> vtxfunc = {{VTXFUNC::Uniform, "Uniform"}, {VTXFUNC::Gaus, "Gaus"}};
 
-  cout << "Vertex distribution width x: " << _vertex_width_x
-       << ", y: " << _vertex_width_y
-       << ", z: " << _vertex_width_z
-       << ", t: " << _vertex_width_t
-       << endl;
+  std::cout << "Vertex distribution width x: " << _vertex_width_x
+            << ", y: " << _vertex_width_y
+            << ", z: " << _vertex_width_z
+            << ", t: " << _vertex_width_t
+            << std::endl;
 
-  cout << "Vertex distribution function x: " << vtxfunc[_vertex_func_x]
-       << ", y: " << vtxfunc[_vertex_func_y]
-       << ", z: " << vtxfunc[_vertex_func_z]
-       << ", t: " << vtxfunc[_vertex_func_t]
-       << endl;
+  std::cout << "Vertex distribution function x: " << vtxfunc[_vertex_func_x]
+            << ", y: " << vtxfunc[_vertex_func_y]
+            << ", z: " << vtxfunc[_vertex_func_z]
+            << ", t: " << vtxfunc[_vertex_func_t]
+            << std::endl;
 
-  cout << "Beam direction: A  theta-phi = " << m_beam_direction_theta_phi.first.first
-       << ", " << m_beam_direction_theta_phi.first.second << endl;
-  cout << "Beam direction: B  theta-phi = " << m_beam_direction_theta_phi.second.first
-       << ", " << m_beam_direction_theta_phi.second.second << endl;
+  std::cout << "Beam direction: A  theta-phi = " << m_beam_direction_theta_phi.first.first
+            << ", " << m_beam_direction_theta_phi.first.second << std::endl;
+  std::cout << "Beam direction: B  theta-phi = " << m_beam_direction_theta_phi.second.first
+            << ", " << m_beam_direction_theta_phi.second.second << std::endl;
 
-  cout << "Beam divergence: A X-Y = " << m_beam_angular_divergence_hv.first.first
-       << ", " << m_beam_angular_divergence_hv.first.second << endl;
-  cout << "Beam divergence: B X-Y = " << m_beam_angular_divergence_hv.second.first
-       << ", " << m_beam_angular_divergence_hv.second.second << endl;
+  std::cout << "Beam divergence: A X-Y = " << m_beam_angular_divergence_hv.first.first
+            << ", " << m_beam_angular_divergence_hv.first.second << std::endl;
+  std::cout << "Beam divergence: B X-Y = " << m_beam_angular_divergence_hv.second.first
+            << ", " << m_beam_angular_divergence_hv.second.second << std::endl;
 
-  cout << "Beam angle shift as linear function of longitudinal vertex position : A X-Y = " << m_beam_angular_z_coefficient_hv.first.first
-       << ", " << m_beam_angular_z_coefficient_hv.first.second << endl;
-  cout << "Beam angle shift as linear function of longitudinal vertex position: B X-Y = " << m_beam_angular_z_coefficient_hv.second.first
-       << ", " << m_beam_angular_z_coefficient_hv.second.second << endl;
+  std::cout << "Beam angle shift as linear function of longitudinal vertex position : A X-Y = " << m_beam_angular_z_coefficient_hv.first.first
+            << ", " << m_beam_angular_z_coefficient_hv.first.second << std::endl;
+  std::cout << "Beam angle shift as linear function of longitudinal vertex position: B X-Y = " << m_beam_angular_z_coefficient_hv.second.first
+            << ", " << m_beam_angular_z_coefficient_hv.second.second << std::endl;
 
-  cout << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << endl;
+  std::cout << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << std::endl;
 
-  cout << "Beam bunch A width = ["
-       << m_beam_bunch_width.first[0] << ", " << m_beam_bunch_width.first[1] << ", " << m_beam_bunch_width.first[2] << "] cm" << endl;
-  cout << "Beam bunch B width = ["
-       << m_beam_bunch_width.second[0] << ", " << m_beam_bunch_width.second[1] << ", " << m_beam_bunch_width.second[2] << "] cm" << endl;
+  std::cout << "Beam bunch A width = ["
+            << m_beam_bunch_width.first[0] << ", " << m_beam_bunch_width.first[1] << ", " << m_beam_bunch_width.first[2] << "] cm" << std::endl;
+  std::cout << "Beam bunch B width = ["
+            << m_beam_bunch_width.second[0] << ", " << m_beam_bunch_width.second[1] << ", " << m_beam_bunch_width.second[2] << "] cm" << std::endl;
 
   return;
 }
