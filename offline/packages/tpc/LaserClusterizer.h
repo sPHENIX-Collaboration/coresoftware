@@ -31,11 +31,6 @@ class PHG4TpcCylinderGeomContainer;
 class LaserClusterizer : public SubsysReco
 {
  public:
-  typedef boost::geometry::model::point<float, 3, boost::geometry::cs::cartesian> point;
-  typedef boost::geometry::model::box<point> box;
-  typedef std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> specHitKey;
-  typedef std::pair<point, specHitKey> pointKeyLaser;
-
   LaserClusterizer(const std::string &name = "LaserClusterizer");
   ~LaserClusterizer() override = default;
 
