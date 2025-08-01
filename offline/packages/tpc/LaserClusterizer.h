@@ -46,6 +46,7 @@ class LaserClusterizer : public SubsysReco
   void set_max_time_samples(int val) { m_time_samples_max = val; }
   void set_lamination(bool val) { m_lamination = val; }
   void set_do_sequential(bool val) { m_do_sequential = val; }
+  void set_do_fitting(bool val) { m_do_fitting = val; }
 
  private:
   int m_event {-1};
@@ -66,6 +67,8 @@ class LaserClusterizer : public SubsysReco
   bool m_lamination {false};
 
   bool m_do_sequential {false};
+
+  bool m_do_fitting {true};
   
   double m_tdriftmax {0};
   double AdcClockPeriod {53.0};  // ns

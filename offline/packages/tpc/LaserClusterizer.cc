@@ -95,6 +95,7 @@ namespace
     int eventNum = 0;
     int Verbosity = 0;
     TH3D *hitHist = nullptr;
+    bool doFitting = false;
   };
 
   pthread_mutex_t mythreadlock;
@@ -447,118 +448,115 @@ namespace
       sigmaWeightedIT += clus->getHitAdc(i) * pow(clus->getHitIT(i) - (itSum / adcSum), 2);
     }
 
+    bool fitSuccess = false;
+    ROOT::Fit::Fitter *fit3D = new ROOT::Fit::Fitter;
 
-
-    double par_init[7] = {
-      maxAdc,
-      meanLayer,
-      meanIPhi, 0.75,
-      meanIT, 0.5, 1
-    };
-
-    double satThreshold = 900.0;
-    double sigma_ADC = 20.0;
-
-    auto nll = [&](const double* par)
+    if(my_data.doFitting)
     {
-      double nll_val = 0.0;
 
-      int nx = my_data.hitHist->GetNbinsX();
-      int ny = my_data.hitHist->GetNbinsY();
-      int nz = my_data.hitHist->GetNbinsZ();
+      double par_init[7] = {
+        maxAdc,
+        meanLayer,
+        meanIPhi, 0.75,
+        meanIT, 0.5, 1
+      };
 
-      double parLayer[2] = {1.0,par[1]};
-      double parPhi[4] = {1.0,par[2],par[3]};
-      double parTime[4] = {1.0,par[4],par[5],par[6]};
+      double satThreshold = 900.0;
+      double sigma_ADC = 20.0;
 
-      double xyz[3];
-
-      for (int i = 1; i <= nx; ++i)
+      auto nll = [&](const double* par)
       {
-        xyz[0] = my_data.hitHist->GetXaxis()->GetBinCenter(i);  
-        for (int j = 1; j <= ny; ++j)
+        double nll_val = 0.0;
+
+        int nx = my_data.hitHist->GetNbinsX();
+        int ny = my_data.hitHist->GetNbinsY();
+        int nz = my_data.hitHist->GetNbinsZ();
+
+        double parLayer[2] = {1.0,par[1]};
+        double parPhi[4] = {1.0,par[2],par[3]};
+        double parTime[4] = {1.0,par[4],par[5],par[6]};
+
+        double xyz[3];
+
+        for (int i = 1; i <= nx; ++i)
         {
-          xyz[1] = my_data.hitHist->GetYaxis()->GetBinCenter(j);    
-          for (int k = 1; k <= nz; ++k)
+          xyz[0] = my_data.hitHist->GetXaxis()->GetBinCenter(i);  
+          for (int j = 1; j <= ny; ++j)
           {
-            xyz[2] = my_data.hitHist->GetZaxis()->GetBinCenter(k);
-            double observed = my_data.hitHist->GetBinContent(i, j, k);
+            xyz[1] = my_data.hitHist->GetYaxis()->GetBinCenter(j);    
+            for (int k = 1; k <= nz; ++k)
+            {
+              xyz[2] = my_data.hitHist->GetZaxis()->GetBinCenter(k);
+              double observed = my_data.hitHist->GetBinContent(i, j, k);
 
-            double expected = par[0]*layerFunction(&xyz[0], parLayer)*phiFunction(&xyz[1], parPhi)*timeFunction(&xyz[2], parTime);
+              double expected = par[0]*layerFunction(&xyz[0], parLayer)*phiFunction(&xyz[1], parPhi)*timeFunction(&xyz[2], parTime);
 
-            if(observed <= my_data.adc_threshold)
-            {
-              double arg = (expected - my_data.adc_threshold) / (sqrt(2.0) * sigma_ADC);
-              double tail_prob = 0.5 * TMath::Erfc(arg);
-              nll_val -= log(tail_prob + 1e-12);
-            }
-            else if(observed < satThreshold)
-            {
-              double resid = (observed - expected) / sigma_ADC;
-              nll_val += 0.5 * (resid * resid + log(2 * TMath::Pi() * sigma_ADC * sigma_ADC));
-            }
-            else if(observed >= satThreshold)
-            {
-              double arg = (satThreshold - expected) / (sqrt(2.0) * sigma_ADC);
-              double tail_prob = 0.5 * TMath::Erfc(arg);
-              nll_val -= log(tail_prob + 1e-12);
+              if(observed <= my_data.adc_threshold)
+              {
+                double arg = (expected - my_data.adc_threshold) / (sqrt(2.0) * sigma_ADC);
+                double tail_prob = 0.5 * TMath::Erfc(arg);
+                nll_val -= log(tail_prob + 1e-12);
+              }
+              else if(observed < satThreshold)
+              {
+                double resid = (observed - expected) / sigma_ADC;
+                nll_val += 0.5 * (resid * resid + log(2 * TMath::Pi() * sigma_ADC * sigma_ADC));
+              }
+              else if(observed >= satThreshold)
+              {
+                double arg = (satThreshold - expected) / (sqrt(2.0) * sigma_ADC);
+                double tail_prob = 0.5 * TMath::Erfc(arg);
+                nll_val -= log(tail_prob + 1e-12);
+              }
             }
           }
         }
-      }
-      return nll_val;
-    };
+        return nll_val;
+      };
 
-    ROOT::Fit::Fitter *fit3D = new ROOT::Fit::Fitter;
-    //ROOT::Math::Functor fcn(nll, 7);
-    fit3D->SetFCN(7, nll, par_init);
+      fit3D->SetFCN(7, nll, par_init);
 
-    fit3D->Config().ParSettings(0).SetName("amp");
-    fit3D->Config().ParSettings(0).SetStepSize(10);
-    fit3D->Config().ParSettings(0).SetLimits(0,5000);
-    fit3D->Config().ParSettings(1).SetName("mu_layer");
-    fit3D->Config().ParSettings(1).SetStepSize(0.1);
-    fit3D->Config().ParSettings(1).SetLimits(usedLayer[0],*usedLayer.rbegin());
-    fit3D->Config().ParSettings(2).SetName("mu_phi");
-    fit3D->Config().ParSettings(2).SetStepSize(0.1);
-    fit3D->Config().ParSettings(2).SetLimits(usedIPhi[0],*usedIPhi.rbegin());
-    fit3D->Config().ParSettings(3).SetName("sig_phi");
-    fit3D->Config().ParSettings(3).SetStepSize(0.1);
-    fit3D->Config().ParSettings(3).SetLimits(0.01,2);
-    fit3D->Config().ParSettings(4).SetName("mu_t");
-    fit3D->Config().ParSettings(4).SetStepSize(0.1);
-    fit3D->Config().ParSettings(4).SetLimits(usedIT[0],*usedIT.rbegin());
-    fit3D->Config().ParSettings(5).SetName("sig_t");
-    fit3D->Config().ParSettings(5).SetStepSize(0.1);
-    fit3D->Config().ParSettings(5).SetLimits(0.01,10);
-    fit3D->Config().ParSettings(6).SetName("lambda_t");
-    fit3D->Config().ParSettings(6).SetStepSize(0.01);
-    fit3D->Config().ParSettings(6).SetLimits(0,5);
+      fit3D->Config().ParSettings(0).SetName("amp");
+      fit3D->Config().ParSettings(0).SetStepSize(10);
+      fit3D->Config().ParSettings(0).SetLimits(0,5000);
+      fit3D->Config().ParSettings(1).SetName("mu_layer");
+      fit3D->Config().ParSettings(1).SetStepSize(0.1);
+      fit3D->Config().ParSettings(1).SetLimits(usedLayer[0],*usedLayer.rbegin());
+      fit3D->Config().ParSettings(2).SetName("mu_phi");
+      fit3D->Config().ParSettings(2).SetStepSize(0.1);
+      fit3D->Config().ParSettings(2).SetLimits(usedIPhi[0],*usedIPhi.rbegin());
+      fit3D->Config().ParSettings(3).SetName("sig_phi");
+      fit3D->Config().ParSettings(3).SetStepSize(0.1);
+      fit3D->Config().ParSettings(3).SetLimits(0.01,2);
+      fit3D->Config().ParSettings(4).SetName("mu_t");
+      fit3D->Config().ParSettings(4).SetStepSize(0.1);
+      fit3D->Config().ParSettings(4).SetLimits(usedIT[0],*usedIT.rbegin());
+      fit3D->Config().ParSettings(5).SetName("sig_t");
+      fit3D->Config().ParSettings(5).SetStepSize(0.1);
+      fit3D->Config().ParSettings(5).SetLimits(0.01,10);
+      fit3D->Config().ParSettings(6).SetName("lambda_t");
+      fit3D->Config().ParSettings(6).SetStepSize(0.01);
+      fit3D->Config().ParSettings(6).SetLimits(0,5);
 
  
-    if(usedLayer.size() == 1)
-    {
-      fit3D->Config().ParSettings(1).Fix();
-    }
-    /*
-    if(usedIPhi.size() <= 2)
-    {
-      fit3D->Config().ParSettings(2).Fix();
-    }
-    */
+      if(usedLayer.size() == 1)
+      {
+        fit3D->Config().ParSettings(1).Fix();
+      }
 
-    bool fitSuccess = fit3D->FitFCN();
+      fitSuccess = fit3D->FitFCN();
 
 
-    if (my_data.Verbosity > 2)
-    {
-      std::cout << "fit success: " << fitSuccess << std::endl;
+      if (my_data.Verbosity > 2)
+      {
+        std::cout << "fit success: " << fitSuccess << std::endl;
+      }
     }
     pthread_mutex_unlock(&mythreadlock);
 
 
 
-    if(fitSuccess)
+    if(my_data.doFitting && fitSuccess)
     {
 
       const ROOT::Fit::FitResult& result = fit3D->Result();
@@ -599,13 +597,6 @@ namespace
         meanPhi = meanPhi_RLow;
       }
       
-      /*
-      pthread_mutex_lock(&mythreadlock);
-      std::cout << "phiHigh_RLow: " << phiHigh_RLow << "   phiHigh_RHigh: " << phiHigh_RHigh << std::endl;
-      std::cout << "meanPhi: " << meanPhi << std::endl;
-      std::cout << "fit mode is " << (meanPhi != -999.0 ? "on" : "off") << std::endl;
-      pthread_mutex_unlock(&mythreadlock);
-      */
 
       if(phiHigh_RLow == -999.0 && phiHigh_RHigh == -999.0)
       {
@@ -673,12 +664,11 @@ namespace
     my_data.cluster_vector.push_back(clus);
     my_data.cluster_key_vector.push_back(ckey);
     
-
     if(fit3D)
     {
       delete fit3D;
     }
-    
+
     if(my_data.hitHist)
     {
       delete my_data.hitHist;
@@ -1012,6 +1002,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
         thread_pair.data.eventNum = m_event;
         thread_pair.data.Verbosity = Verbosity();
         thread_pair.data.hitHist = nullptr;
+        thread_pair.data.doFitting = m_do_fitting;
 
 	      int rc;
 	      rc = pthread_create(&thread_pair.thread, &attr, ProcessModule, (void *) &thread_pair.data);
