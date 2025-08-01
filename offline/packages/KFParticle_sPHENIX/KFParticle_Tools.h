@@ -119,6 +119,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, KFParticle vertex);
 
+  void set_dont_use_global_vertex(bool set_variable){ m_dont_use_global_vertex = set_variable; }
+
  protected:
   std::string m_mother_name_Tools;
   int m_num_intermediate_states {-1};
