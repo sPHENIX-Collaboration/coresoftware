@@ -563,11 +563,6 @@ namespace
 
       const ROOT::Fit::FitResult& result = fit3D->Result();
 
-      clus->setAdc(adcSum);
-      clus->setLayer(result.Parameter(1));
-      clus->setIPhi(result.Parameter(2));
-      clus->setIT(result.Parameter(4));
-
 
       PHG4TpcCylinderGeom *layergeomLow = my_data.geom_container->GetLayerCellGeom((int) floor(result.Parameter(1)));
       PHG4TpcCylinderGeom *layergeomHigh = my_data.geom_container->GetLayerCellGeom((int) ceil(result.Parameter(1)));
@@ -633,13 +628,15 @@ namespace
         clus->setSDWeightedIT(sqrt(sigmaWeightedIT / adcSum));
       }
       else
-      {
-
+      { 
         clus->setAdc(adcSum);
         clus->setX(meanR*cos(meanPhi));
         clus->setY(meanR*sin(meanPhi));
         clus->setZ(clusZ);
         clus->setFitMode(true);
+        clus->setLayer(result.Parameter(1));
+        clus->setIPhi(result.Parameter(2));
+        clus->setIT(result.Parameter(4));
         clus->setNLayers(usedLayer.size());
         clus->setNIPhi(usedIPhi.size());
         clus->setNIT(usedIT.size());
