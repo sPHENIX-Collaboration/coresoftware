@@ -93,10 +93,12 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   SingleTriggeredInput *m_Gl1Input{nullptr};
   int m_AllDone{0};
   uint64_t m_Event{0};
+  uint64_t m_Gl1PacketNumberOneSkip{0};
   int m_EventNumber{0};
   int m_EventsThisFile{0};
   int m_EventAlignmentProblem{0};
   int m_FilesDone{0};
+  int m_Gl1PacketOneSkipCount{5};
   int m_LastEvent{std::numeric_limits<int>::max()};
   int m_ProblemEvent{-1};
   int m_RepresPacket{-1};
@@ -104,6 +106,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   int m_max_alignment_retries{3};
   bool firstcall{true};
   bool firstclockcheck{true};
+  bool m_Gl1PacketOneSkipActiveTrace{false};
   bool m_KeepPacketsFlag{false};
   bool m_packetclk_copy_runs{false};
   std::set<int> m_CorrectCopiedClockPackets;

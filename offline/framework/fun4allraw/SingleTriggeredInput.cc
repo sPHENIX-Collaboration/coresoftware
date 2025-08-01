@@ -352,7 +352,7 @@ int SingleTriggeredInput::FillEventVector()
   int representative_pid = -1;
   for (int pid : m_PacketSet)
   {
-    if (!m_PacketEventDeque[pid].empty())
+    if ( !m_PacketEventDeque[pid].empty() )
     {
       allPacketEventDequeEmpty = false;
       break;
@@ -362,12 +362,12 @@ int SingleTriggeredInput::FillEventVector()
     m_bclkarray_map[pid][0] = tmp;
     m_bclkdiffarray_map[pid].fill(std::numeric_limits<uint64_t>::max());
 
-    if (representative_pid == -1 && m_PacketShiftOffset[pid] == 0)
+    if ( representative_pid == -1 ) 
     {
       representative_pid = pid;
     }
   }
-  if (!allPacketEventDequeEmpty)
+  if ( !allPacketEventDequeEmpty )
   {
     return 0;
   }
@@ -384,6 +384,48 @@ int SingleTriggeredInput::FillEventVector()
       if (gl1)
       {
         int nskip = gl1->GetGl1SkipArray()[i];
+        if (m_Gl1PacketOneSkipActiveTrace)
+        {
+          int gl1packetcountdiff = static_cast<int>(gl1->GetPacketNumbers()[i] - m_Gl1PacketNumberOneSkip);
+          if ( nskip == -1 && gl1packetcountdiff < m_Gl1PacketOneSkipCount )
+          {
+            m_Gl1PacketOneSkipActiveTrace = false;
+            if (Verbosity() > 0)
+            {
+              std::cout << Name() << ": GL1 stuck detected at " << gl1->GetPacketNumbers()[i] << " after skipping " << gl1packetcountdiff << ". Clearing trace." << std::endl;
+            }
+          }
+          else if ( gl1packetcountdiff >= m_Gl1PacketOneSkipCount )
+          {
+            m_Gl1PacketOneSkipActiveTrace = false;
+            if (Verbosity() > 0)
+            {
+              std::cout <<  Name() << ": No stuck found before " << m_Gl1PacketOneSkipCount << " events. Skipping one SEB event now." << std::endl;
+            }
+            Event* skip_evt = GetEventIterator()->getNextEvent();
+            while (!skip_evt)
+            {
+              fileclose();
+              if (!OpenNextFile())
+              {
+                FilesDone(1);
+                return -1;
+              }
+              skip_evt = GetEventIterator()->getNextEvent();
+            }
+          }
+        }
+        if (nskip == 1 && m_packetclk_copy_runs == true)
+        {
+          m_Gl1PacketOneSkipActiveTrace = true;
+          m_Gl1PacketNumberOneSkip = gl1->GetPacketNumbers()[i];
+          if (Verbosity() > 0)
+          {
+            std::cout << Name() << ": GL1 packet skip for " << m_Gl1PacketNumberOneSkip << ". Start tracing Gl1 packet number." << std::endl;
+          }
+          nskip = 0;
+        }
+
         while (nskip > 0)
         {
           Event* skip_evt = GetEventIterator()->getNextEvent();
@@ -608,15 +650,16 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
   {
     int packet_number = pkt->iValue(0);
     gl1->SetPacketNumbers(gl1->GetCurrentPacketNumber(), packet_number);
+    if ( event_index < pooldepth )
+    {
+      gl1->SetGl1PacketNumber(event_index, packet_number);
+    }
 
     int skip_count = 0;
     if (gl1->GetLastPacketNumber() != 0)
     {
       int diff = gl1->GetCurrentPacketNumber() - gl1->GetLastPacketNumber() ;
-      if (diff > 1)
-      {
-        skip_count = diff - 1;
-      }
+      skip_count = diff - 1;
     }
 
     if (event_index < pooldepth)
@@ -632,6 +675,15 @@ void SingleTriggeredInput::FillPool()
   {
     return;
   }
+
+  bool all_packets_bad = !m_PacketAlignmentProblem.empty() && std::all_of(m_PacketAlignmentProblem.begin(), m_PacketAlignmentProblem.end(), [](const std::pair<const int, bool> &entry) -> bool { return entry.second;});
+  if (all_packets_bad)
+  {
+    std::cout << Name() << ": ALL packets are marked as bad. Stop combining for this SEB." << std::endl;
+    EventAlignmentProblem(1);
+    return;
+  }
+
   if (!FilesDone())
   {
     int eventvectorsize = FillEventVector();
@@ -782,7 +834,7 @@ void SingleTriggeredInput::FillPool()
                 m_bclkarray_map[pid][pooldepth] = m_bclkarray_map[pid][pooldepth - 1];
                 continue;
               }
-              std::cout << Name() << " : Packet identified as misaligned also with FEMs. Master packet pass over for normal recovery process" << std::endl;
+              std::cout << Name() << " : Packet identified as misaligned also with FEMs. Do normal recovery process" << std::endl;
             }
 
             if(m_PacketShiftOffset[pid] == 1)
@@ -1234,7 +1286,7 @@ int SingleTriggeredInput::ReadEvent()
       dq.pop_front();
     }
   }
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
