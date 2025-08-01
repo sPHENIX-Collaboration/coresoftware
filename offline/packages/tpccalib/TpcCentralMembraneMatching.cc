@@ -1802,7 +1802,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         while(lowRMatch <= highRMatch)
         {
           int mid = lowRMatch + (highRMatch - lowRMatch)/2;
-          if(m_truth_RPeaks[mid] >= reco_pos[recoIndex].Perp())])
+          if(m_truth_RPeaks[mid] >= reco_pos[recoIndex].Perp())
           {
             upperBound = mid;
             highRMatch = mid - 1;
