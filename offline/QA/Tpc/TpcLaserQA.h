@@ -36,6 +36,10 @@ private:
 
   TH1* m_nLaserClusters[2]{nullptr};
   TH2* m_saturation[2]{nullptr};
+
+  TH1* m_sample_R1[2][12]{nullptr};
+  TH1* m_sample_R2[2][12]{nullptr};
+  TH1* m_sample_R3[2][12]{nullptr};
   
 };
 
