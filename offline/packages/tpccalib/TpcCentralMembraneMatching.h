@@ -207,6 +207,7 @@ class TpcCentralMembraneMatching : public SubsysReco
   float m_staticR{0.0};
   float m_staticPhi{0.0};
   bool m_side{false};
+  bool m_fitMode{false};
   unsigned int m_adc{0};
   unsigned int m_nhits{0};
   unsigned int m_nLayers{0};
@@ -329,6 +330,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   std::vector<double> m_truth_RPeaks{22.709, 23.841, 24.973, 26.1049, 27.2369, 28.3689, 29.5009, 30.6328, 31.7648, 32.8968, 34.0288, 35.1607, 36.2927, 37.4247, 38.5566, 39.6886, 42.1706, 44.2119, 46.2533, 48.2947, 50.3361, 52.3774, 54.4188, 56.4602, 59.4605, 61.6546, 63.8487, 66.0428, 68.2369, 70.431, 72.6251, 74.8192};
 
   //@}
+
+  std::vector<double> phiSpacing = {0.0749989, 0.0729917, 0.0711665, 0.0694996, 0.0679712, 0.0665648, 0.0652663, 0.0640638, 0.062947, 0.0619071, 0.0609364, 0.0600281, 0.0591765, 0.0583765, 0.0576234, 0.0569132, 0.0473084, 0.0462573, 0.045299, 0.0444217, 0.0436155, 0.0428722, 0.0421847, 0.0415468, 0.0325076, 0.0319331, 0.031398, 0.0308985, 0.0304311, 0.0299928, 0.029581, 0.0291934};
 
   bool m_fixShifts{false};
   bool m_fieldOn{true};
