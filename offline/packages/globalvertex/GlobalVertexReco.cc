@@ -276,7 +276,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       tvertex->set_t(0);
       tvertex->set_t_err(0);  // 0.1
-      globalmap->insert(GlobalVertex::TRUTH, tvertex);
+      GlobalVertex *vertex = new GlobalVertexv2();
+      vertex->clone_insert_vtx(GlobalVertex::TRUTH, tvertex);
+      globalmap->insert(vertex);
       if (!truthmap)
       {
         truthmap = new TruthVertexMap_v1();

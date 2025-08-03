@@ -39,14 +39,14 @@ class TruthVertex : public Vertex
   virtual float get_x() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_x(float) override {}
 
-  virtual float get_x_err() const override { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_x_err(float) override {}
+  virtual float get_x_err() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_x_err(float) {}
 
   virtual float get_y() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_y(float) override {}
 
-  virtual float get_y_err() const override { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void set_y_err(float) override {}
+  virtual float get_y_err() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual void set_y_err(float) {}
 
  protected:
   TruthVertex() {}
