@@ -9,7 +9,9 @@
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
 #include "TruthVertex.h"
+#include "TruthVertex_v1.h"
 #include "TruthVertexMap.h"
+#include "TruthVertexMap_v1.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
