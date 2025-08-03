@@ -258,15 +258,20 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   {
     PHG4VtxPoint *vtxp = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
     float truth_z_vertex = std::numeric_limits<float>::quiet_NaN();
+    float truth_x_vertex = std::numeric_limits<float>::quiet_NaN();
+    float truth_y_vertex = std::numeric_limits<float>::quiet_NaN();
     if (vtxp)
     {
+      truth_z_vertex = vtxp->get_z();
+      truth_x_vertex = vtxp->get_x();
+      truth_y_vertex = vtxp->get_y();
       TruthVertex *tvertex = new TruthVertex_v1();
       tvertex->set_id(0);
-      tvertex->set_z(vtxp->get_z());
+      tvertex->set_z(truth_z_vertex);
       tvertex->set_z_err(0);
-      tvertex->set_x(vtxp->get_x());
+      tvertex->set_x(truth_x_vertex);
       tvertex->set_x_err(0);
-      tvertex->set_y(vtxp->get_y());
+      tvertex->set_y(truth_y_vertex);
       tvertex->set_y_err(0);
 
       tvertex->set_t(0);
