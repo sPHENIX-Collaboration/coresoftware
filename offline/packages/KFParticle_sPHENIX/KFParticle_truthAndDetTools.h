@@ -60,7 +60,7 @@ class KFParticle_truthAndDetTools
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
   void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
+  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
   void initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number);

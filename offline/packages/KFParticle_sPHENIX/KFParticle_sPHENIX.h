@@ -379,6 +379,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void getCaloInfo(bool caloinfo = true) { m_calo_info = caloinfo; }
 
+  void requireTrackEMCalMatch(bool require = true) { m_require_track_emcal_match = require; }
+
   void getAllPVInfo(bool pvinfo = true) { m_get_all_PVs = pvinfo; }
 
   void bunchCrossingZeroOnly(bool bcZeroOnly = true) { m_bunch_crossing_zero_only = bcZeroOnly; }
