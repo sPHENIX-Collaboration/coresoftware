@@ -27,6 +27,10 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+//truth info, for truth z vertex
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
 #include <cmath>
 #include <cstdlib>  // for exit
 #include <iostream>
@@ -256,14 +260,18 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     float truth_z_vertex = std::numeric_limits<float>::quiet_NaN();
     if (vtxp)
     {
-      truth_z_vertex = vtxp->get_z();
       TruthVertex *tvertex = new TruthVertex_v1();
       tvertex->set_id(0);
-      tvertex->set_z(truth_z_vertex);
-      tvertex->set_z_err(0);  // 0.6?
+      tvertex->set_z(vtxp->get_z());
+      tvertex->set_z_err(0);
+      tvertex->set_x(vtxp->get_x());
+      tvertex->set_x_err(0);
+      tvertex->set_y(vtxp->get_y());
+      tvertex->set_y_err(0);
+
       tvertex->set_t(0);
       tvertex->set_t_err(0);  // 0.1
-      globalmap->insert(tvertex);
+      globalmap->insert(GlobalVertex::TRUTH, tvertex);
       if (!truthmap)
       {
         truthmap = new TruthVertexMap_v1();
@@ -272,7 +280,6 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         if (Verbosity())
         {
           std::cout << "Created TruthVertexMap node" << std::endl;
-          std::cout << "TruthVertexMap node contains Tzvertex: " << TruthVertexMapNode->begin()->second->get_z() << std::endl;
         }
       }
       truthmap->insert(tvertex);
