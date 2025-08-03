@@ -36,6 +36,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
 
   float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
 
+  bool fillConditionMet();
+
  protected:
   bool m_has_intermediates_nTuple {false};
   bool m_extrapolateTracksToSV_nTuple{true};

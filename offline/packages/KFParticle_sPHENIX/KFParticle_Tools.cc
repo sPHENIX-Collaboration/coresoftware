@@ -203,6 +203,7 @@ std::vector<KFParticle> KFParticle_Tools::makeAllPrimaryVertices(PHCompositeNode
   if (!m_dst_globalvertexmap)
   {
     std::cout << "Can't continue in KFParticle_Tools::makeAllPrimaryVertices" << std::endl;
+    return primaryVertices;
   }
 
   for (GlobalVertexMap::ConstIter iter = m_dst_globalvertexmap->begin(); iter != m_dst_globalvertexmap->end(); ++iter)
@@ -407,6 +408,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
     if (!m_dst_globalvertexmap)
     {
       std::cout << "Can't continue in KFParticle_Tools::makeAllPrimaryVertices" << std::endl;
+      return 0;
     }
     auto associated_gvertex = m_dst_globalvertexmap->get(vertex.Id());
 

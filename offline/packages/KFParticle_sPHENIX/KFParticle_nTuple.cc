@@ -672,7 +672,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     fillTriggerBranches(topNode);
   }
 
-  if (isTrackEMCalmatch)
+  if (fillConditionMet())
   {
     m_tree->Fill();
   }
@@ -710,4 +710,22 @@ float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle
   }
 
   return mother_noPID.GetMass();
+}
+
+bool KFParticle_nTuple::fillConditionMet()
+{
+  // return true if this is a track-only analysis
+  if (!m_calo_info)
+  {
+    return true;
+  }
+
+  // return true if do not require track-calo matching
+  if (!m_require_track_emcal_match)
+  {
+    return true;
+  }
+
+  // if requiring track-calo matching, the match result is returned
+  return isTrackEMCalmatch;
 }
