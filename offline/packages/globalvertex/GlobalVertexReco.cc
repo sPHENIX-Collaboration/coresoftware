@@ -9,9 +9,9 @@
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
 #include "TruthVertex.h"
-#include "TruthVertex_v1.h"
 #include "TruthVertexMap.h"
 #include "TruthVertexMap_v1.h"
+#include "TruthVertex_v1.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -27,7 +27,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-//truth info, for truth z vertex
+// truth info, for truth z vertex
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
@@ -376,14 +376,18 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
     globalNode->addNode(VertexMapNode);
   }
 
-  
   TruthVertexMap *truthmap = findNode::getClass<TruthVertexMap>(topNode, "TruthVertexMap");
-  if (!truthmap)
+  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  // Create the TruthVertexMap only if the PHG4TruthInfoContainer is present
+  if (!truthmap && truthinfo)
   {
-    truthmap = new TruthVertexMap_v1();
-    PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
-    globalNode->addNode(TruthVertexMapNode);
-  }
+    if (Verbosity())
+      std::cout << "Creating TruthVertexMap node" << std::endl;
+    {
+      truthmap = new TruthVertexMap_v1();
+      PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
+      globalNode->addNode(TruthVertexMapNode);
+    }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
