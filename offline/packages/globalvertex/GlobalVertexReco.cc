@@ -383,11 +383,10 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
   {
     if (Verbosity())
       std::cout << "Creating TruthVertexMap node" << std::endl;
-    {
-      truthmap = new TruthVertexMap_v1();
-      PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
-      globalNode->addNode(TruthVertexMapNode);
-    }
-
-    return Fun4AllReturnCodes::EVENT_OK;
+    truthmap = new TruthVertexMap_v1();
+    PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
+    globalNode->addNode(TruthVertexMapNode);
   }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
