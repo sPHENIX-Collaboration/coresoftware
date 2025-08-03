@@ -2,8 +2,6 @@
 
 class TruthVertex;
 
-TruthVertexMap::~TruthVertexMap() = default;
-
 TruthVertexMap::ConstIter TruthVertexMap::begin() const { return ConstIter(); }
 TruthVertexMap::ConstIter TruthVertexMap::find(unsigned int) const { return ConstIter(); }
 TruthVertexMap::ConstIter TruthVertexMap::end() const { return ConstIter(); }
