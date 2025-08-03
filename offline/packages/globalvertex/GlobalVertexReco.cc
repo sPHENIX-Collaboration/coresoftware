@@ -275,7 +275,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
           std::cout << "TruthVertexMap node contains Tzvertex: " << TruthVertexMapNode->begin()->second->get_z() << std::endl;
         }
       }
-      truthmap->Insert(tvertex);
+      truthmap->insert(tvertex);
       if (Verbosity())
       {
         std::cout << "TruthVertexMap node contains Tzvertex: " << truthmap->begin()->second->get_z() << std::endl;
