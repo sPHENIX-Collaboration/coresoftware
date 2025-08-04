@@ -26,15 +26,7 @@ public:
 	typedef Eigen::Vector3f Point_t;
 	typedef Eigen::Vector3f Field_t;
 
-	//! There is only one fieldmap, and all points lie on a perfect grid
-	static int const GRID_COUNT = 111;
-	static float constexpr GRID_STEP = 20;
-	static float constexpr GRID_MIN = - GRID_STEP * (GRID_COUNT / 2);
-	static float constexpr GRID_MAX = + GRID_STEP * (GRID_COUNT / 2);
-
 	//! constructor
-	//! @param[in] path to calibration file
-	//! @param[in] magnetic field scaling factor (default 1.0)
 	explicit PHFieldInterpolated () = default;
 
 	//! destructor
@@ -60,14 +52,14 @@ public:
 	Field_t get_interpolated (Point_t const&) const;
 
 	//! Gets the 3D grid indices from a 1D deque index
-	static Indices_t get_indices (std::size_t const&);
+	Indices_t get_indices (std::size_t const&) const;
 	//! Gets the 1D deque index from 3D grid indices
-	static std::size_t get_index (Indices_t const&);
+	std::size_t get_index (Indices_t const&) const;
 
 	//! return the 3D grid indices of the left-down-back corner of the grid cell containing point
-	static Indices_t get_indices (Point_t const&);
+	Indices_t get_indices (Point_t const&) const;
 	//! return point at the left-down-back corner of the grid cell at the given 3D grid indices
-	static Point_t get_point (Indices_t const&);
+	Point_t get_point (Indices_t const&) const;
 
 	//! return field at given 1D deque index
 	Field_t get_field (std::size_t const& index) const { return m_field.at(index); }
@@ -77,12 +69,12 @@ public:
 	Field_t get_field (Point_t const& point) const { return get_field(get_indices(point)); }
 
 	//! throw if the 3D grid indices are not in the grid and would give an invalid index
-	static void validate_indices (Indices_t const&);
+	void validate_indices (Indices_t const&) const;
 	//! throw if the point lies outside the grid and would give an invalid index
-	static void validate_point (Point_t const&);
+	void validate_point (Point_t const&) const;
 
-	//! prints the contents of the loaded map to std::cout
-	void print_map() const;
+	//! prints class info based on verbosity level
+	void print() const;
 
 	//! prints the cached Taylor coefficients used for interpolation to std::cout
 	void print_coefficients() const;
@@ -90,6 +82,11 @@ public:
 private:
 	//! The entire fieldmap, loaded into memory (yikes)
 	//! deque for O(1) access, without requiring contiguous allocation
+
+	Indices_t m_N; // Number of points along the along an axis
+	Point_t m_D; // Grid spacing along an axis direction
+	Point_t m_min; // Minimum value of a component
+	Point_t m_max; // Maximum value of a component
 	std::deque<Field_t> m_field;
 
 	// the following should be wrapped in a class
