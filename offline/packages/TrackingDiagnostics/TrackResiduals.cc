@@ -1633,6 +1633,7 @@ void TrackResiduals::createBranches()
     m_eventtree->Branch("ntpcseed", &m_ntpcseed, "m_ntpcseed/I");
     m_eventtree->Branch("ntracks", &m_ntracks_all, "m_ntracks_all/I");
     m_eventtree->Branch("mbdcharge",&m_totalmbd, "m_totalmbd/F");
+    m_eventtree->Branch("ntpcClusSector", &m_ntpc_clus_sector);
   }
 
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
@@ -2161,7 +2162,7 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
   m_nmms_all = 0;
   m_nsiseed = 0;
   m_ntpcseed = 0;
-
+  m_ntpc_clus_sector.resize(24, 0);
   m_nsiseed = silseedmap->size();
   m_ntpcseed = tpcseedmap->size();
   m_ntracks_all = trackmap->size();
@@ -2196,6 +2197,8 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
       auto range = clustermap->getClusters(hitsetkey);
       int nclus = std::distance(range.first, range.second);
       int tpcside = TrkrDefs::getZElement(hitsetkey);
+      int sector = TpcDefs::getSectorId(hitsetkey);
+
       switch (det)
       {
       case TrkrDefs::TrkrId::mvtxId:
@@ -2205,6 +2208,11 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
         m_nintt_all += nclus;
         break;
       case TrkrDefs::TrkrId::tpcId:
+        if(tpcside == 1)
+        {
+          sector += 12;
+        }
+        m_ntpc_clus_sector[sector] += nclus;
         if (tpcside == 0)
         {
           m_ntpc_clus0 += nclus;
