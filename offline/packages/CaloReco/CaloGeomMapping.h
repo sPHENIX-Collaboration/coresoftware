@@ -48,7 +48,7 @@ class CaloGeomMapping : public SubsysReco
   std::string m_TowerGeomNodeName;
   RawTowerGeomContainer *m_RawTowerGeomContainer {nullptr};
   RawTowerDefs::CalorimeterId m_caloid;
-  bool m_UseDetailedGeometry {false};
+  bool m_UseDetailedGeometry {true};
   // Use a more detailed calorimeter geometry
   // Only available for CEMC
 };

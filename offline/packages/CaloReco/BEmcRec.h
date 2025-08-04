@@ -165,8 +165,8 @@ class BEmcRec
   BEmcProfile *_emcprof {nullptr};
 
  protected:
-  bool m_UseDetailedGeometry {false};
-  // Use a more detailed calorimeter geometry
+  bool m_UseDetailedGeometry {true};
+  // Use a more detailed calorimeter geometry (default)
   // Only available for CEMC
 
   bool m_UseCorrectPosition = true;
