@@ -41,6 +41,8 @@ class PHFieldConfig : public PHObject
     kFieldCleo = 5,
     //! 3D field map expressed in Cartesian coordinates
     Field3DCartesian = 1,
+    //! Interpolation of the 3D field map (Cartesian coordinates)
+    FieldInterpolated = 6,
 
     //! invalid value
     kFieldInvalid = 9999
