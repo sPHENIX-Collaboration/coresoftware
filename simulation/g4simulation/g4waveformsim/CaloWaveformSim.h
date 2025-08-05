@@ -121,7 +121,7 @@ private:
   std::string m_calibName_time{"CEMC_meanTime"};
   bool        m_overrideTimeFieldName{false};
   bool        m_overrideTimeCalibName{false};
-  bool        m_dotimecalib{false};
+  bool        m_dotimecalib{true};
   bool        m_giveDirectURL_time{false};
   std::string m_directURL_time{""};
   // MC time calibration

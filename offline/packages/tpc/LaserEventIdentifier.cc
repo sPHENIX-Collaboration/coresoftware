@@ -124,9 +124,11 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   if (!gl1pkt)
   {
     std::cout << "no GL1RAWHIT node" << std::endl;
+    m_laserEventInfo->setIsGl1LaserEvent(false);
+    m_laserEventInfo->setIsGl1LaserPileupEvent(false);
     //return Fun4AllReturnCodes::ABORTRUN;
   }
-  else
+  else if(m_runnumber > 66153)
   {
     if ((gl1pkt->getGTMAllBusyVector() & (1<<14)) == 0)
     {
@@ -152,6 +154,11 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
       isGl1LaserPileupEvent = false;
       prev_BCO = 0;
     }
+  }
+  else
+  {
+    m_laserEventInfo->setIsGl1LaserEvent(false);
+    m_laserEventInfo->setIsGl1LaserPileupEvent(false);
   }
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);

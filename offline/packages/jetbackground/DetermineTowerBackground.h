@@ -40,6 +40,10 @@ class DetermineTowerBackground : public SubsysReco
 
   void SetSeedJetD(float D) { _seed_jet_D = D; };
   void SetSeedJetPt(float pt) { _seed_jet_pt = pt; };
+  void SetSeedMaxConst(float max_const) { _seed_max_const = max_const; };
+
+  void UseReweighting(bool do_reweight ) {  _do_reweight = do_reweight; }
+
   void set_towerinfo(bool use_towerinfo)
   {
     m_use_towerinfo = use_towerinfo;
@@ -51,6 +55,7 @@ class DetermineTowerBackground : public SubsysReco
   }
 
  private:
+
   int CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
 
@@ -64,6 +69,7 @@ class DetermineTowerBackground : public SubsysReco
   int _HCAL_NETA{-1};
   int _HCAL_NPHI{-1};
 
+  
   std::vector<std::vector<float> > _EMCAL_E;
   std::vector<std::vector<float> > _IHCAL_E;
   std::vector<std::vector<float> > _OHCAL_E;
@@ -77,10 +83,16 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<float> _FULLCALOFLOW_PHI_E;
   std::vector<float> _FULLCALOFLOW_PHI_VAL;
 
+  bool _do_reweight{true}; // flag to indicate if reweighting is used
+  std::vector<float> _EMCAL_PHI_WEIGHTS;
+  std::vector<float> _IHCAL_PHI_WEIGHTS;
+  std::vector<float> _OHCAL_PHI_WEIGHTS;
+
   std::string _backgroundName{"TestTowerBackground"};
 
   int _seed_type{0};
-  float _seed_jet_D{3.0};
+  float _seed_jet_D{4.0};
+  float _seed_max_const{3.0};
   float _seed_jet_pt{7.0};
 
   std::vector<float> _seed_eta;
@@ -91,6 +103,7 @@ class DetermineTowerBackground : public SubsysReco
 
   bool m_use_towerinfo{false};
   bool _is_flow_failure{false};
+  bool _reweight_failed{false};
 
   std::string m_towerNodePrefix{"TOWERINFO_CALIB"};
   std::string EMTowerName;

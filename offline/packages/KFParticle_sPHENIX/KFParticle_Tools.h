@@ -43,6 +43,8 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class SvtxVertex;
 class SvtxTrack;
+class GlobalVertexMap;
+class GlobalVertex;
 class TrkrClusterContainer;
 class PHG4TpcCylinderGeomContainer;
 
@@ -118,6 +120,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   double get_dEdx_fitValue(float momentum, int PID);
 
   bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, KFParticle vertex);
+
+  void set_dont_use_global_vertex(bool set_variable){ m_dont_use_global_vertex = set_variable; }
 
  protected:
   std::string m_mother_name_Tools;
@@ -256,6 +260,8 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
+  GlobalVertexMap *m_dst_globalvertexmap {nullptr};
+  GlobalVertex *m_dst_globalvertex {nullptr};
   MbdVertexMap *m_dst_mbdvertexmap {nullptr};
   MbdVertex *m_dst_mbdvertex {nullptr};
   SvtxTrackMap *m_dst_trackmap {nullptr};

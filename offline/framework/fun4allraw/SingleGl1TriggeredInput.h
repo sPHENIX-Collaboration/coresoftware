@@ -27,6 +27,7 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   int GetCurrentPacketNumber() const { return m_PacketNumber; }
   int GetLastPacketNumber() const { return m_LastPacketNumber; }
   const std::array<int, pooldepth>& GetGl1SkipArray() const { return m_Gl1SkipPerIndex; }
+  const std::array<uint64_t, pooldepth>& GetPacketNumbers() const { return m_Gl1PacketNumbers; }
   int ReadEvent() override;
   void SetPacketNumbers(int last, int current)
   {
@@ -36,13 +37,24 @@ class SingleGl1TriggeredInput : public SingleTriggeredInput
   void SetGl1SkipAtIndex(size_t index, int value)
   {
     if (index < pooldepth)
+    {
       m_Gl1SkipPerIndex[index] = value;
+    }
   }
+  void SetGl1PacketNumber(size_t index, uint64_t value)
+  {
+    if (index < pooldepth)
+    {
+      m_Gl1PacketNumbers[index] = value;
+    }
+  }
+
 
  protected:
   int m_LastPacketNumber{0};
   int m_PacketNumber{0};
   std::array<int, pooldepth> m_Gl1SkipPerIndex{};
+  std::array<uint64_t, pooldepth> m_Gl1PacketNumbers{};
 
  private:
 };

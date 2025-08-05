@@ -29,13 +29,13 @@ class PHGhostRejection
 {
  public:
   /* PHGhostRejection() {} */
-  PHGhostRejection(unsigned int verbosity, std::vector<TrackSeed_v2>& _seeds)
+  PHGhostRejection(unsigned int verbosity, const std::vector<TrackSeed_v2>& _seeds)
     : m_verbosity { verbosity }
     , seeds { _seeds }
     , m_rejected { std::vector<bool> (seeds.size(), false) }
   {};
 
-  std::vector<bool> rejectGhostTracks(std::vector<float> &trackChi2, std::vector<TrackSeed_v2>& seeds);
+  // cerbosity
   void verbosity(int verb) { m_verbosity = verb; }
 
   // cut because too few clusters or not spanning sector boundary
@@ -44,10 +44,10 @@ class PHGhostRejection
 
   // cut on the ghosts: note that this also ignores all seeds failing
   // ``cut_from_clusters'' and uses the pt_cut
-  void find_ghosts(std::vector<float>& trackChi2);
-  bool is_rejected(int itrack) { return m_rejected[itrack]; };
+  void find_ghosts(const std::vector<float>& trackChi2);
+  bool is_rejected(int itrack) const { return m_rejected[itrack]; };
 
-  bool checkClusterSharing(TrackSeed& tr1, TrackSeed& tr2);
+  bool checkClusterSharing(const TrackSeed& tr1, const TrackSeed& tr2) const;
 
   void set_min_pt_cut(float _ptmin) { _min_pt= _ptmin; }
   void set_must_span_sectors(bool _setting) { _must_span_sectors = _setting; }
@@ -60,7 +60,7 @@ class PHGhostRejection
 
  private:
   unsigned int m_verbosity;
-  std::vector<TrackSeed_v2>& seeds;
+  const std::vector<TrackSeed_v2>& seeds;
   std::vector<bool> m_rejected {}; // id
   double _phi_cut = std::numeric_limits<double>::max();
   double _eta_cut = std::numeric_limits<double>::max();

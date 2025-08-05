@@ -18,10 +18,9 @@
 #include <TH1.h>
 #include <TH2.h>
 
-#include <boost/format.hpp>
-
 #include <cassert>
 #include <cstddef>
+#include <format>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -86,8 +85,8 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
   assert(hm);
 
   // Reference histograms initialized in header file to histos in HistoManager
-  h_channel_hits = dynamic_cast<TH1 *>(hm->getHisto(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
-  h_channel_ADCs = dynamic_cast<TH2 *>(hm->getHisto(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str()));
+  h_channel_hits = dynamic_cast<TH1 *>(hm->getHisto(std::format("{}channel_hits_sec{}", getHistoPrefix(), sectorNum)));
+  h_channel_ADCs = dynamic_cast<TH2 *>(hm->getHisto(std::format("{}channel_ADCs_sec{}", getHistoPrefix(), sectorNum)));
   //
 
   // Loop over packets in event
@@ -160,12 +159,12 @@ void TpcChanQA::createHistos()
 
   // Create and register histos in HistoManager
   {
-    auto h = new TH1F(boost::str(boost::format("%schannel_hits_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";Channels;hits", 256, 0, 256);
+    auto h = new TH1F(std::format("{}channel_hits_sec{}", getHistoPrefix(), sectorNum).c_str(), ";Channels;hits", 256, 0, 256);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(boost::str(boost::format("%schannel_ADCs_sec%s") % getHistoPrefix() % sectorNum.c_str()).c_str(), ";Channels;ADCs", 256, 0, 256, 1024, 0, 1024);
+    auto h = new TH2F(std::format("{}channel_ADCs_sec{}", getHistoPrefix(), sectorNum).c_str(), ";Channels;ADCs", 256, 0, 256, 1024, 0, 1024);
     hm->registerHisto(h);
   }
 }

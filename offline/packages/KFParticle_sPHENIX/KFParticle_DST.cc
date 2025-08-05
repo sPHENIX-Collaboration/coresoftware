@@ -177,7 +177,10 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
   SvtxTrack *dummyMother = nullptr;  
   while (!dummyMother)
   {
-    dummyMother = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
+    if (!m_recoTrackMap->get(resonanceCounter))
+    {
+      dummyMother = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
+    }
     --resonanceCounter;
   }
   m_recoTrack->Reset();
@@ -192,7 +195,10 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
       SvtxTrack *dummyIntermediate = nullptr;  
       while (!dummyIntermediate)
       {
-	dummyIntermediate = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
+        if (!m_recoTrackMap->get(resonanceCounter))
+	{
+	  dummyIntermediate = m_recoTrackMap->insertWithKey(m_recoTrack, resonanceCounter);
+	}
         --resonanceCounter;
       }
       m_recoTrack->Reset();
@@ -212,14 +218,20 @@ void KFParticle_DST::fillParticleNode_Track(PHCompositeNode* topNode, KFParticle
       SvtxTrack *dummyDaughter = nullptr;  
       while (!dummyDaughter)
       {
-        dummyDaughter = m_recoTrackMap->insertWithKey(m_recoTrack, daughterCounter);
+        if (!m_recoTrackMap->get(daughterCounter))
+	{
+          dummyDaughter = m_recoTrackMap->insertWithKey(m_recoTrack, daughterCounter);
+	}
         ++daughterCounter;
       }
     }
     else
     {
       m_recoTrack = kfpTruthTools_DST.getTrack(daughterArray[k].Id(), originalTrackMap);
-      m_recoTrackMap->insertWithKey(m_recoTrack, daughterArray[k].Id());
+      if (!m_recoTrackMap->get(daughterArray[k].Id()))
+      {
+        m_recoTrackMap->insertWithKey(m_recoTrack, daughterArray[k].Id());
+      }
     }
   }
 }

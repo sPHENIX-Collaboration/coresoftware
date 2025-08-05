@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = `geant4-config --cflags`
+AM_CXXFLAGS = `geant4-config --cflags | sed 's/-I/-isystem/g'`
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
