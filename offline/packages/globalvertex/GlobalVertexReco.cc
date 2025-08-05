@@ -89,8 +89,8 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   //  (3) MBD only vertexes - use the default x,y positions on this module and
   //      pull in the mbd z and mbd t
 
-  //  (4) Truth vertexes - if the truth vertex map is present(should be for simulation only), we will
-  //      create a GlobalVertex from the truth vertices
+  //  (4) Truth vertexes - if the G4TruthInfo node is present (should be for simulation only), we will
+  //      create a GlobalVertex from the primary truth vertex, and create+fill a TruthVertexMap node
 
   // there may be some quirks as we get to large luminosity and the MBD becomes
   // untrust worthy, I'm guessing analyzers would resort exclusively to (1) or (2)
