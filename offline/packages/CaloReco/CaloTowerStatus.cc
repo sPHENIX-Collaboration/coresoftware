@@ -216,7 +216,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloTowerStatus::emcal_propogate_isBadChi2(const std::vector<std::vector<int>> &badChi2_IB_vec)
+void CaloTowerStatus::emcal_propogate_isBadChi2(const std::vector<std::vector<int>> &badChi2_IB_vec, const std::vector<std::vector<int>> &towers_IB_vec)
 {
   unsigned int ntowers = m_raw_towers->size();
   for (unsigned int channel = 0; channel < ntowers; channel++)
@@ -225,7 +225,8 @@ void CaloTowerStatus::emcal_propogate_isBadChi2(const std::vector<std::vector<in
     int sector = sector_ib.first;
     int ib = sector_ib.second;
     int badChi2_towers = badChi2_IB_vec[sector][ib];
-    float badChi2_IB_frac = badChi2_towers * 1. / emcal_channel_per_ib;
+    int towers = towers_IB_vec[sector][ib];
+    float badChi2_IB_frac = badChi2_towers * 1. / towers;
     if(badChi2_IB_frac > m_badChi2_IB_threshold)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
@@ -243,10 +244,20 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   float z_score = 0;
 
   std::vector<std::vector<int>> badChi2_IB_vec(emcal_sector, std::vector<int>(emcal_ib_per_sector, 0));
+  std::vector<std::vector<int>> towers_IB_vec(emcal_sector, std::vector<int>(emcal_ib_per_sector, 0));
 
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
     unsigned int key = m_raw_towers->encode_key(channel);
+    int sector = -1;
+    int ib = -1;
+
+    if(m_dettype == CaloTowerDefs::CEMC)
+    {
+      std::pair<int, int> sector_ib = TowerInfoDefs::getEMCalSectorIB(channel);
+      sector = sector_ib.first;
+      ib = sector_ib.second;
+    }
     // only reset what we will set
     m_raw_towers->get_tower_at_channel(channel)->set_isHot(false);
     m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false);
@@ -293,15 +304,18 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }
+
+    if(m_dettype == CaloTowerDefs::CEMC && m_raw_towers->get_tower_at_channel(channel)->get_isGood())
+    {
+      ++towers_IB_vec[sector][ib];
+    }
+
     if (chi2 > std::min(std::max(badChi2_treshold_const, adc * adc * badChi2_treshold_quadratic),badChi2_treshold_max))
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadChi2(true);
 
       if(m_dettype == CaloTowerDefs::CEMC)
       {
-        std::pair<int, int> sector_ib = TowerInfoDefs::getEMCalSectorIB(channel);
-        int sector = sector_ib.first;
-        int ib = sector_ib.second;
         ++badChi2_IB_vec[sector][ib];
       }
     }
@@ -310,7 +324,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   // propagate the isBadChi2 status to entire interface board if threshold is exceeded
   if (m_dettype == CaloTowerDefs::CEMC)
   {
-    emcal_propogate_isBadChi2(badChi2_IB_vec);
+    emcal_propogate_isBadChi2(badChi2_IB_vec, towers_IB_vec);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -103,7 +103,7 @@ class CaloTowerStatus : public SubsysReco
 
  private:
 
-  void emcal_propogate_isBadChi2(const std::vector<std::vector<int>> &badChi2_IB_vec);
+  void emcal_propogate_isBadChi2(const std::vector<std::vector<int>> &badChi2_IB_vec, const std::vector<std::vector<int>> &towers_IB_vec);
 
   TowerInfoContainer *m_raw_towers{nullptr};
 
@@ -146,7 +146,6 @@ class CaloTowerStatus : public SubsysReco
 
   int emcal_sector = {64};
   int emcal_ib_per_sector = {6};
-  int emcal_channel_per_ib = {64};
   float m_badChi2_IB_threshold = {0.5};
 };
 
