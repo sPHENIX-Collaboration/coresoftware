@@ -1,4 +1,4 @@
 #include "TruthVertex.h"
 
 #include <cmath>
-//placeholder for the actual implementation of TruthVertex
+// placeholder for the actual implementation of TruthVertex

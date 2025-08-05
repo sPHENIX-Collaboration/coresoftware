@@ -46,7 +46,6 @@ class TruthVertex_v1 : public TruthVertex
   float get_y_err() const override { return _y_err; }
   void set_y_err(float y_err) override { _y_err = y_err; }
 
-
  private:
   unsigned int _id{std::numeric_limits<unsigned int>::max()};
   float _t{std::numeric_limits<float>::quiet_NaN()};

@@ -1,11 +1,11 @@
 #ifndef GLOBALVERTEX_TRUTHVERTEXMAPV1_H
 #define GLOBALVERTEX_TRUTHVERTEXMAPV1_H
 
-#include "TruthVertexMap.h"
 #include "TruthVertex.h"
+#include "TruthVertexMap.h"
 
-#include <map>
 #include <iostream>
+#include <map>
 
 class TruthVertexMap_v1 : public TruthVertexMap
 {

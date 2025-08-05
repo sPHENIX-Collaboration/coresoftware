@@ -280,7 +280,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       vertex->clone_insert_vtx(GlobalVertex::TRUTH, tvertex);
       globalmap->insert(vertex);
       if (truthmap) truthmap->insert(tvertex);
-      if (Verbosity()>1)
+      if (Verbosity() > 1)
       {
         std::cout << "TruthVertexMap node contains Tzvertex: " << truthmap->begin()->second->get_z() << std::endl;
       }
