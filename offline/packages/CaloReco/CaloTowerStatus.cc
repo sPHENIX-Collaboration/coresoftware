@@ -226,6 +226,11 @@ void CaloTowerStatus::emcal_propogate_isBadChi2(const std::vector<std::vector<in
     int ib = sector_ib.second;
     int badChi2_towers = badChi2_IB_vec[sector][ib];
     int towers = towers_IB_vec[sector][ib];
+    // if entire IB is bad then skip
+    if (towers == 0)
+    {
+      continue;
+    }
     float badChi2_IB_frac = badChi2_towers * 1. / towers;
     if(badChi2_IB_frac > m_badChi2_IB_threshold)
     {
