@@ -233,6 +233,20 @@ unsigned int TowerInfoDefs::getCaloTowerEtaBin(const unsigned int key)
   return etabin;
 }
 
+// convert from emcal tower index to (sector, interface board)
+std::pair<int, int> TowerInfoDefs::getEMCalSectorIB(const unsigned int towerIndex)
+{
+  constexpr int channels_per_sector = 384;
+  constexpr int channels_per_ib = 64;
+
+  int k = towerIndex / channels_per_sector;
+
+  int sector = (k % 2) ? (k - 1) / 2 : (k / 2) + 32;
+  int ib = (towerIndex % channels_per_sector) / channels_per_ib;
+
+  return std::make_pair(sector, ib);
+}
+
 unsigned int TowerInfoDefs::encode_epd(const unsigned int towerIndex)  // convert from tower index to key
 {
   constexpr unsigned int channels_per_sector = 31;
