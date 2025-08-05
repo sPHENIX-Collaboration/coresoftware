@@ -95,8 +95,16 @@ class CaloTowerStatus : public SubsysReco
     m_isSim = isSim;
     return;
   }
+  void set_badChi2_IB_threshold(float badChi2_IB_threshold)
+  {
+    m_badChi2_IB_threshold = badChi2_IB_threshold;
+    return;
+  }
 
  private:
+
+  void emcal_propogate_isBadChi2(const std::vector<std::vector<int>> &badChi2_IB_vec);
+
   TowerInfoContainer *m_raw_towers{nullptr};
 
   CDBTTree *m_cdbttree_chi2{nullptr};
@@ -135,6 +143,11 @@ class CaloTowerStatus : public SubsysReco
   float z_score_threshold = {5};
   float z_score_threshold_default = {5};
   float time_cut = 2;  // number of samples from the mean time for the channel in the run
+
+  int emcal_sector = {64};
+  int emcal_ib_per_sector = {6};
+  int emcal_channel_per_ib = {64};
+  float m_badChi2_IB_threshold = {0.5};
 };
 
 #endif  // CALOTOWERBUILDER_H
