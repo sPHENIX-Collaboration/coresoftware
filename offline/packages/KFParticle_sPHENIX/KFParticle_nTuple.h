@@ -36,6 +36,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
 
   float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
 
+  bool fillConditionMet();
+
  protected:
   bool m_has_intermediates_nTuple {false};
   bool m_extrapolateTracksToSV_nTuple{true};
@@ -48,6 +50,8 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   bool m_get_trigger_info {false};
   bool m_detector_info {false};
   bool m_calo_info {false};
+  bool m_require_track_emcal_match {false};
+  bool isTrackEMCalmatch {true};
   std::string m_mother_name;
   // std::string m_vtx_map_node_name_nTuple;
   bool m_use_intermediate_name {false};
@@ -186,6 +190,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
 
   int m_nPVs = -1;
   int m_multiplicity = -1;
+  int m_nTracksOfVertex = -1;
 
   int m_runNumber = -1;
   int m_evtNumber = -1;

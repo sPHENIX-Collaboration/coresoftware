@@ -294,8 +294,9 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   m_tree->Branch("secondary_vertex_mass_pionPID", &m_sv_mass, "secondary_vertex_mass_pionPID/F");
 
-  m_tree->Branch("nPrimaryVertices", &m_nPVs, "nPrimaryVertices/I");
-  m_tree->Branch("nEventTracks", &m_multiplicity, "nEventTracks/I");
+  m_tree->Branch("nPrimaryVerticesOfBC", &m_nPVs, "nPrimaryVerticesOfBC/I");
+  m_tree->Branch("nTracksOfBC", &m_multiplicity, "nTracksOfBC/I");
+  m_tree->Branch("nTracksOfVertex", &m_nTracksOfVertex, "nTracksOfVertex/I");
 
   m_tree->Branch("runNumber", &m_runNumber, "runNumber/I");
   m_tree->Branch("eventNumber", &m_evtNumber, "eventNumber/I");
@@ -480,6 +481,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     }
   }
 
+  isTrackEMCalmatch = true;
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     m_calculated_daughter_mass[i] = daughterArray[i].GetMass();
@@ -527,9 +529,14 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     //m_calculated_daughter_expected_dedx_kaon[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 321);
     //m_calculated_daughter_expected_dedx_proton[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 2212);
 
+    bool tempEMCalmatch = false;
     if (m_calo_info)
     {
-      fillCaloBranch(topNode, m_tree, daughterArray[i], i);
+      fillCaloBranch(topNode, m_tree, daughterArray[i], i, tempEMCalmatch);
+      if (m_require_track_emcal_match && !tempEMCalmatch)
+      {
+        isTrackEMCalmatch = false;
+      }
     }
     if (m_truth_matching)
     {
@@ -631,7 +638,11 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   // cannot retrieve vertex map info from fake PV, hence the second condition
   if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple)
   {
-    m_multiplicity = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
+    m_nTracksOfVertex = kfpTupleTools.getTracksFromVertex(topNode, vertex_fillbranch, m_vtx_map_node_name_nTuple);
+  }
+  else
+  {
+    m_nTracksOfVertex = 0;
   }
 
   PHNodeIterator nodeIter(topNode);
@@ -661,7 +672,10 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     fillTriggerBranches(topNode);
   }
 
-  m_tree->Fill();
+  if (fillConditionMet())
+  {
+    m_tree->Fill();
+  }
 
   if (m_truth_matching || m_detector_info)
   {
@@ -696,4 +710,22 @@ float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle
   }
 
   return mother_noPID.GetMass();
+}
+
+bool KFParticle_nTuple::fillConditionMet()
+{
+  // return true if this is a track-only analysis
+  if (!m_calo_info)
+  {
+    return true;
+  }
+
+  // return true if do not require track-calo matching
+  if (!m_require_track_emcal_match)
+  {
+    return true;
+  }
+
+  // if requiring track-calo matching, the match result is returned
+  return isTrackEMCalmatch;
 }
