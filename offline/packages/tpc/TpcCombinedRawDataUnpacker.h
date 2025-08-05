@@ -35,15 +35,10 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   };
   void doBaselineCorr(bool val) { m_do_baseline_corr = val; }
   void doZSEmulation(bool val) { m_do_zs_emulation = val; }
-  void ReadZeroSuppressedData()
-  {
-    m_do_zs_emulation = true;
-    m_zs_threshold = 20;
-    m_do_baseline_corr = false;
-  }
+  void ReadZeroSuppressedData();
   void set_presampleShift(int b) { m_presampleShift = b; }
   void set_t0(int b) { m_t0 = b; }
-  void set_zs_threshold(int b) { m_zs_threshold = b; }
+  void set_zs_threshold(int threshold, int region) { m_zs_threshold[region] = threshold; }
   void set_baseline_nsigma(int b) { m_baseline_nsigma = b; }
   void skipNevent(int b) { startevt = b; }
   void useRawHitNodeName(const std::string &name) { m_TpcRawNodeName = name; }
@@ -124,7 +119,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   bool m_do_baseline_corr{false};
   int m_baseline_nsigma{2};
   bool m_do_zs_emulation{false};
-  int m_zs_threshold{20};
+  int m_zs_threshold[3] = {20}; // zs per TPC region
   std::string m_TpcRawNodeName{"TPCRAWHIT"};
   std::string outfile_name;
   std::map<unsigned int, chan_info> chan_map;                  // stays in place
