@@ -56,7 +56,7 @@ namespace
 
 
 //____________________________________________________________________________..
-MvtxMatchingEfficiencyWithShapes::MvtxMatchingEfficiencyWithShapes(const std::string &name,const std::string outputfilename)
+MvtxMatchingEfficiencyWithShapes::MvtxMatchingEfficiencyWithShapes(const std::string &name,const std::string &outputfilename)
   : SubsysReco(name), m_outputFileName(outputfilename)
 {
 }

@@ -35,7 +35,7 @@ class PHCompositeNode;
 class MvtxMatchingEfficiencyWithShapes : public SubsysReco
 {
  public:
- MvtxMatchingEfficiencyWithShapes(const std::string &name = "MvtxMatchingEfficiencyWithShapes",const std::string outputfilename = "out.root");
+ MvtxMatchingEfficiencyWithShapes(const std::string &name = "MvtxMatchingEfficiencyWithShapes",const std::string &outputfilename = "out.root");
 
   ~MvtxMatchingEfficiencyWithShapes() override = default;
 
@@ -50,8 +50,9 @@ class MvtxMatchingEfficiencyWithShapes : public SubsysReco
 
   std::string m_outputFileName;
 
-  float pt, eta, phi, frac_p_z, dEdx;
-  int layers, states,nTPC;
+  float pt{}, eta{}, phi{}, frac_p_z{}, dEdx{};
+  int layers{}, states{}, nTPC{};
+
 
   int ievent = 0;
   TH1I *h_status = nullptr;
