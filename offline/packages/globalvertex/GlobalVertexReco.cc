@@ -232,6 +232,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
+      
       if (std::isnan(mbd->get_z()))
       {
         continue;
@@ -266,7 +267,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       truth_x_vertex = vtxp->get_x();
       truth_y_vertex = vtxp->get_y();
       TruthVertex *tvertex = new TruthVertex_v1();
-      tvertex->set_id(0);
+      tvertex->set_id(globalmap->size());
       tvertex->set_z(truth_z_vertex);
       tvertex->set_z_err(0);
       tvertex->set_x(truth_x_vertex);
@@ -282,7 +283,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       if (truthmap) truthmap->insert(tvertex);
       if (Verbosity() > 1)
       {
-        std::cout << "TruthVertexMap node contains Tzvertex: " << truthmap->begin()->second->get_z() << std::endl;
+        vertex->identify();
       }
     }
     else if (Verbosity())
@@ -332,6 +333,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   {
     globalmap->identify();
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
