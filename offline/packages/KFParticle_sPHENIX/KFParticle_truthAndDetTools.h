@@ -84,17 +84,19 @@ class KFParticle_truthAndDetTools
     return deltaPhi;
   }
 
-  // Functions to set cuts
+  // Functions to set selections
   void set_emcal_radius_user(float set_variable) { m_emcal_radius_user = set_variable; }
   void set_emcal_e_low_cut(float set_variable) { m_emcal_e_low_cut = set_variable; }
   void set_dphi_cut_low(float set_variable) { m_dphi_cut_low = set_variable; }
   void set_dphi_cut_high(float set_variable) { m_dphi_cut_high = set_variable; }
   void set_dz_cut_low(float set_variable) { m_dz_cut_low = set_variable; }
   void set_dz_cut_high(float set_variable) { m_dz_cut_high = set_variable; }
+  void get_detailed_tracking(bool set_variable) { m_get_detailed_tracking = set_variable; }
 
  protected:
   bool m_use_mbd_vertex_truth{false};
   bool m_dont_use_global_vertex_truth{false};
+  bool m_get_detailed_tracking{true};
 
   std::string m_trk_map_node_name_nTuple{"SvtxTrackMap"};
   std::string m_vtx_map_node_name_nTuple{"SvtxVertexMap"};
