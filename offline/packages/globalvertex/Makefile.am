@@ -40,6 +40,10 @@ pkginclude_HEADERS = \
   SvtxVertex_v2.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
+  TruthVertex.h \
+  TruthVertex_v1.h \
+  TruthVertexMap.h \
+  TruthVertexMap_v1.h \
   Vertex.h
 
 ROOTDICTS = \
@@ -58,6 +62,10 @@ ROOTDICTS = \
   SvtxVertex_v2_Dict.cc \
   SvtxVertexMap_Dict.cc \
   SvtxVertexMap_v1_Dict.cc \
+  TruthVertex_Dict.cc \
+  TruthVertex_v1_Dict.cc \
+  TruthVertexMap_Dict.cc \
+  TruthVertexMap_v1_Dict.cc \
   Vertex_Dict.cc
 
 pcmdir = $(libdir)
@@ -80,6 +88,10 @@ libglobalvertex_io_la_SOURCES = \
   SvtxVertex_v2.cc \
   SvtxVertexMap.cc \
   SvtxVertexMap_v1.cc \
+  TruthVertex.cc \
+  TruthVertex_v1.cc \
+  TruthVertexMap.cc \
+  TruthVertexMap_v1.cc \
   Vertex.cc
 
 libglobalvertex_la_SOURCES = \
