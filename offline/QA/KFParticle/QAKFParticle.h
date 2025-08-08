@@ -43,6 +43,8 @@ class QAKFParticle : public SubsysReco
 
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
 
+  void setKFParticleNodeName(const std::string &name) { m_KFParticleNodeName = name; }
+
  protected:
   // SvtxClusterEval *clustereval = nullptr;
   int m_mother_id = 0;
@@ -84,7 +86,9 @@ class QAKFParticle : public SubsysReco
   KFParticle_Container *m_kfpContainer = nullptr;
   std::map<std::string, std::pair<int, float>> particleMasses;
   std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_KFParticleNodeName = "reconstructedParticles";
 
+  bool hasTriggerInfo = true;
   static const int nTriggerBits = 64;
   int counter = 0;
 };
