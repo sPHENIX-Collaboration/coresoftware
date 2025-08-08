@@ -42,6 +42,7 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <set>
 
 DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   : SubsysReco(name)
@@ -73,10 +74,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // clear seed eta/phi positions
-  _seed_eta.resize(0);
-  _seed_phi.resize(0);
-
+  
   // pull out the tower containers and geometry objects at the start
   RawTowerContainer *towersEM3 = nullptr;
   RawTowerContainer *towersIH3 = nullptr;
@@ -124,8 +122,73 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+  if (!geomIH)
+  {
+    std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALIN, exiting" << std::endl;
+    exit(1);
+  }
+  if (!geomOH)
+  {
+    std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALOUT, exiting" << std::endl;
+    exit(1);
+  }
 
-  // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
+  // clear seed eta/phi positions
+  _seed_eta.resize(0);
+  _seed_phi.resize(0);
+  
+  // get the binning from the geometry (different for 1D vs 2D...)
+  if ( _HCAL_NETA < 0 ) // fisrt event
+  {
+    _HCAL_NETA = geomIH->get_etabins();
+    _HCAL_NPHI = geomIH->get_phibins();
+    
+    // resize UE density and energy vectors
+    _UE.resize(3 , std::vector<float>(_HCAL_NETA, 0));
+
+    _EMCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
+    _IHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
+    _OHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
+
+    _EMCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+    _IHCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+    _OHCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+
+    // for flow determination, build up a 1-D phi distribution of
+    // energies from all layers summed together, populated only from eta
+    // strips which do not have any excluded phi towers
+    _FULLCALOFLOW_PHI_E.resize(_HCAL_NPHI, 0);
+    _FULLCALOFLOW_PHI_VAL.resize(_HCAL_NPHI, 0);
+
+    // defualt set weights to 1.0 for all phi bins
+    _EMCAL_PHI_WEIGHTS.resize(_HCAL_NPHI, 1.0);
+    _IHCAL_PHI_WEIGHTS.resize(_HCAL_NPHI, 1.0);
+    _OHCAL_PHI_WEIGHTS.resize(_HCAL_NPHI, 1.0);
+    
+    if (Verbosity() > 0)
+    {
+      std::cout << "DetermineTowerBackground::process_event: setting number of towers in eta / phi: " << _HCAL_NETA << " / " << _HCAL_NPHI << std::endl;
+    }
+  }
+
+  // reset all maps map
+  _UE.assign(3, std::vector<float>(_HCAL_NETA, 0));
+
+  // reset all energy vectors
+  _EMCAL_E.assign(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
+  _IHCAL_E.assign(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
+  _OHCAL_E.assign(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
+
+  // reset bad tower masks
+  _EMCAL_ISBAD.assign(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+  _IHCAL_ISBAD.assign(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+  _OHCAL_ISBAD.assign(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
+
+  // create a set for all eta strips to be updated
+  std::set<int> EtaStripsAvailbleForFlow = {};
+  for ( int eta = 0; eta < _HCAL_NETA; eta++) { EtaStripsAvailbleForFlow.insert(eta); }
+
+   // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
   if (_seed_type == 0)
   {
     JetContainer *reco2_jets;
@@ -297,10 +360,15 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         std::cout << "DetermineTowerBackground::process_event: --> jet has < ET > = " << constituent_sum_ET << " / " << nconstituents << " = " << mean_constituent_ET << ", max-ET = " << constituent_max_ET << ", and D = " << seed_D << std::endl;
       }
 
-      if (seed_D > _seed_jet_D)
+      if (seed_D > _seed_jet_D && constituent_max_ET > _seed_max_const)  // this will be constituent_max_ET > 0 if not set
       {
         _seed_eta.push_back(this_eta);
         _seed_phi.push_back(this_phi);
+        int seed_ieta = geomIH->get_etabin(this_eta);
+        
+        // remove eta-4 to eta+4 from the set of all eta strips
+        // dont need to worry about bounds since itsa set
+        for ( int ieta = -4; ieta <= 4; ieta++ ) { EtaStripsAvailbleForFlow.erase(seed_ieta + ieta); } 
 
         // set first iteration seed property
         this_jet->set_property(_index_SeedItr, 1.0);
@@ -361,6 +429,13 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       _seed_eta.push_back(this_eta);
       _seed_phi.push_back(this_phi);
 
+      int seed_ieta = geomIH->get_etabin(this_eta);
+        
+      // remove eta-4 to eta+4 from the set of all eta strips
+      // dont need to worry about bounds since itsa set
+      for ( int ieta = -4; ieta <= 4; ieta++ ) { EtaStripsAvailbleForFlow.erase(seed_ieta + ieta); } 
+
+
       // set second iteration seed property
       this_jet->set_property(_index_SeedItr, 2.0);
 
@@ -371,57 +446,18 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // get the binning from the geometry (different for 1D vs 2D...)
-  if (_HCAL_NETA < 0)
+
+  int MaxEtaBinsWithoutSeeds = EtaStripsAvailbleForFlow.size();
+  if (Verbosity() > 1)
   {
-    _HCAL_NETA = geomIH->get_etabins();
-    _HCAL_NPHI = geomIH->get_phibins();
-
-    // resize UE density and energy vectors
-    _UE[0].resize(_HCAL_NETA, 0);
-    _UE[1].resize(_HCAL_NETA, 0);
-    _UE[2].resize(_HCAL_NETA, 0);
-
-    _EMCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
-    _IHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
-    _OHCAL_E.resize(_HCAL_NETA, std::vector<float>(_HCAL_NPHI, 0));
-
-    _EMCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
-    _IHCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
-    _OHCAL_ISBAD.resize(_HCAL_NETA, std::vector<int>(_HCAL_NPHI, 0));
-
-    // for flow determination, build up a 1-D phi distribution of
-    // energies from all layers summed together, populated only from eta
-    // strips which do not have any excluded phi towers
-    _FULLCALOFLOW_PHI_E.resize(_HCAL_NPHI, 0);
-    _FULLCALOFLOW_PHI_VAL.resize(_HCAL_NPHI, 0);
-
-    if (Verbosity() > 0)
+    for (const auto &eta : EtaStripsAvailbleForFlow)
     {
-      std::cout << "DetermineTowerBackground::process_event: setting number of towers in eta / phi: " << _HCAL_NETA << " / " << _HCAL_NPHI << std::endl;
+      std::cout << "DetermineTowerBackground::process_event: Remaining eta strip for background determination: " << eta << std::endl;
     }
+    std::cout << "DetermineTowerBackground::process_event: Finished processing seeds. Remaining avilable eta strips for background determination: " << MaxEtaBinsWithoutSeeds << std::endl;
   }
 
-  // reset all maps map
-  for (int ieta = 0; ieta < _HCAL_NETA; ieta++)
-  {
-    for (int iphi = 0; iphi < _HCAL_NPHI; iphi++)
-    {
-      _EMCAL_E[ieta][iphi] = 0;
-      _IHCAL_E[ieta][iphi] = 0;
-      _OHCAL_E[ieta][iphi] = 0;
-      _EMCAL_ISBAD[ieta][iphi] = 0;
-      _IHCAL_ISBAD[ieta][iphi] = 0;
-      _OHCAL_ISBAD[ieta][iphi] = 0;
-    }
-  }
-
-  for (int iphi = 0; iphi < _HCAL_NPHI; iphi++)
-  {
-    _FULLCALOFLOW_PHI_E[iphi] = 0;
-    _FULLCALOFLOW_PHI_VAL[iphi] = 0;
-  }
-
+  // fill energy and status vectors
   if (m_use_towerinfo)
   {
     // iterate over EMCal towerinfos
@@ -439,8 +475,12 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
       float this_E = tower->get_energy();
       int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
-      _EMCAL_E[this_etabin][this_phibin] += this_E;
       _EMCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
+      if (!this_isBad)
+      { // just in case since all energy is summed
+        _EMCAL_E[this_etabin][this_phibin] += this_E;
+      }
+      
     }
 
     // iterate over IHCal towerinfos
@@ -453,8 +493,12 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       TowerInfo *tower = towerinfosIH3->get_tower_at_channel(channel);
       float this_E = tower->get_energy();
       int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
-      _IHCAL_E[this_etabin][this_phibin] += this_E;
       _IHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
+      if (!this_isBad)
+      { // just in case since all energy is summed
+        _IHCAL_E[this_etabin][this_phibin] += this_E;
+      }
+     
     }
 
     // iterate over OHCal towerinfos
@@ -467,8 +511,12 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       TowerInfo *tower = towerinfosOH3->get_tower_at_channel(channel);
       float this_E = tower->get_energy();
       int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
-      _OHCAL_E[this_etabin][this_phibin] += this_E;
       _OHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
+      if (!this_isBad)
+      { // just in case since all energy is summed
+        _OHCAL_E[this_etabin][this_phibin] += this_E;
+      }
+      
     }
   }
   else
@@ -537,6 +585,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       }
     }
   }
+  
+  
   // first, calculate flow: Psi2 & v2, if enabled
 
   //_Psi2 is left as 0
@@ -548,6 +598,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   _nStrips = 0;
   _is_flow_failure = false;
 
+
   if (_do_flow == 0)
   {
     if (Verbosity() > 0)
@@ -556,162 +607,281 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (_do_flow >= 1)
+  if ( _do_flow >= 1 )
   {
-    // check for the case when every tower is excluded
-    int nStripsAvailableForFlow = 0;
-    int nStripsUnavailableForFlow = 0;
 
-    for (int layer = 0; layer < 3; layer++)
+    if (Verbosity() > 0)
     {
-      int local_max_eta = _HCAL_NETA;
-      int local_max_phi = _HCAL_NPHI;
+      std::cout << "DetermineTowerBackground::process_event: flow enabled, calculating flow..." << std::endl;
+    }
 
-      for (int eta = 0; eta < local_max_eta; eta++)
+    // phi weights are set to 1.0 by default
+    _EMCAL_PHI_WEIGHTS.assign(_HCAL_NPHI, 1.0);
+    _IHCAL_PHI_WEIGHTS.assign(_HCAL_NPHI, 1.0);
+    _OHCAL_PHI_WEIGHTS.assign(_HCAL_NPHI, 1.0);
+
+    // copy the set of included eta strips to a new set for exclusion
+    std::set<int> AVAILIBLE_ETA_STRIPS_CEMC = EtaStripsAvailbleForFlow; 
+    std::set<int> AVAILIBLE_ETA_STRIPS_IHCAL = EtaStripsAvailbleForFlow;
+    std::set<int> AVAILIBLE_ETA_STRIPS_OHCAL = EtaStripsAvailbleForFlow;
+    
+    
+    if ( _do_reweight )
+    {
+
+      _reweight_failed = false; // flag to indicate if reweighting failed, i.e. all eta strips for a phi bin are excluded
+      // rather than excluding full eta strips, we will reweight the phi bins according to the number of available eta strips
+      // this is done by counting the number of eta strips which are still available for flow determination
+      if (Verbosity() > 0)
       {
-        bool isAnyTowerExcluded = false;
+        std::cout << "DetermineTowerBackground::process_event: reweighting enabled, checking for bad towers in avialible eta strips..." << std::endl;
+      }
+      
+      // initialize the maximum number of eta bins per phi bin to be the total number of eta strips available (after removing the seeds)
+      // loop over all phi bins
+      for ( int phi = 0; phi < _HCAL_NPHI; phi++ )
+      {
 
-        for (int phi = 0; phi < local_max_phi; phi++)
+        // initialize the maximum number of eta bins for this phi bin
+        //  to be the total number of eta strips available (after removing the seeds)
+        int EMCAL_MAX_TOWERS_THIS_PHI = MaxEtaBinsWithoutSeeds;
+        int IHCAL_MAX_TOWERS_THIS_PHI = MaxEtaBinsWithoutSeeds;
+        int OHCAL_MAX_TOWERS_THIS_PHI = MaxEtaBinsWithoutSeeds;
+
+        // loop over only the eta strips which are still available for flow determination
+        // already exclude strips don't get checked since they are not in the set EtaStripsAvailbleForFlow
+        for ( const auto &eta : EtaStripsAvailbleForFlow )
         {
-          float this_eta = geomIH->get_etacenter(eta);
-          float this_phi = geomIH->get_phicenter(phi);
-
-          bool isExcluded = false;
-
-          // if the tower is masked, exclude it
-          // nobody can understand these nested ?s, which just makes this error prone and a maintenance headache
-          //          int this_isBad = (layer == 0 ? _EMCAL_ISBAD[eta][phi] : (layer == 1 ? _IHCAL_ISBAD[eta][phi] : _OHCAL_ISBAD[eta][phi]));
-
-          int this_isBad;
-          if (layer == 0)
+ 
+          EMCAL_MAX_TOWERS_THIS_PHI-= _EMCAL_ISBAD[eta][phi]; // decrement the possible count for this phi bin
+          IHCAL_MAX_TOWERS_THIS_PHI-= _IHCAL_ISBAD[eta][phi]; // decrement the possible count for this phi bin
+          OHCAL_MAX_TOWERS_THIS_PHI-= _OHCAL_ISBAD[eta][phi]; // decrement the possible count for this phi bin        
+          if ( Verbosity() > 10 )
           {
-            this_isBad = _EMCAL_ISBAD[eta][phi];
-          }
-          else if (layer == 1)
-          {
-            this_isBad = _IHCAL_ISBAD[eta][phi];
-          }
-          else
-          {
-            this_isBad = _OHCAL_ISBAD[eta][phi];
-          }
-          if (this_isBad)
-          {
-            isExcluded = true;
-          }
-          for (unsigned int iseed = 0; iseed < _seed_eta.size(); iseed++)
-          {
-            float deta = this_eta - _seed_eta[iseed];
-            float dphi = this_phi - _seed_phi[iseed];
-            if (dphi > M_PI)
+            if ( _EMCAL_ISBAD[eta][phi] )
             {
-              dphi -= 2 * M_PI;
+              std::cout << "DetermineTowerBackground::process_event: --> found bad tower in EMCAL at ieta / iphi = " << eta << " / " << phi << std::endl;
             }
-            if (dphi < -M_PI)
+            if ( _IHCAL_ISBAD[eta][phi] )
             {
-              dphi += 2 * M_PI;
+              std::cout << "DetermineTowerBackground::process_event: --> found bad tower in IHCAL at ieta / iphi = " << eta << " / " << phi << std::endl;
             }
-            float dR = sqrt(pow(deta, 2) + pow(dphi, 2));
-            if (dR < 0.4)
+            if ( _OHCAL_ISBAD[eta][phi] )
             {
-              isExcluded = true;
-              if (Verbosity() > 10)
-              {
-                // please do not use these kind of nested ?'s - really hard to understand
-                // float my_E = (layer == 0 ? _EMCAL_E[eta][phi] : (layer == 1 ? _IHCAL_E[eta][phi] : _OHCAL_E[eta][phi]));
-                float my_E;
-                if (layer == 0)
-                {
-                  my_E = _EMCAL_E[eta][phi];
-                }
-                else if (layer == 1)
-                {
-                  my_E = _IHCAL_E[eta][phi];
-                }
-                else
-                {
-                  my_E = _OHCAL_E[eta][phi];
-                }
-                std::cout << " setting excluded mark for tower with E / eta / phi = " << my_E << " / " << this_eta << " / " << this_phi << " from seed at eta / phi = " << _seed_eta[iseed] << " / " << _seed_phi[iseed] << std::endl;
-              }
+              std::cout << "DetermineTowerBackground::process_event: --> found bad tower in OHCAL at ieta / iphi = " << eta << " / " << phi << std::endl;
             }
           }
+        
+        } // end loop over eta strips
 
-          // if even a single tower in this eta strip is excluded, we
-          // can't use the strip for flow determination
-          if (isExcluded)
-          {
-            isAnyTowerExcluded = true;
-          }
-        }  // close phi loop
-
-        // if this eta strip can be used for flow determination, fill it now
-        if (!isAnyTowerExcluded)
+        if (Verbosity() > 1 )
         {
-          if (Verbosity() > 4)
+          std::cout << "DetermineTowerBackground::process_event: --> after checking for bad towers, EMCAL / IHCAL / OHCAL max eta strips for phi = " 
+            << phi << " are: " << EMCAL_MAX_TOWERS_THIS_PHI << " / " << IHCAL_MAX_TOWERS_THIS_PHI << " / " << OHCAL_MAX_TOWERS_THIS_PHI << std::endl;
+        }
+
+        // update the phi weights for this phi bin
+        if ( EMCAL_MAX_TOWERS_THIS_PHI > 0 )
+        {
+          _EMCAL_PHI_WEIGHTS[phi] = static_cast<float>(MaxEtaBinsWithoutSeeds) / static_cast<float>(EMCAL_MAX_TOWERS_THIS_PHI);
+          if (Verbosity() > 0)
           {
-            std::cout << " strip at layer " << layer << ", eta " << eta << " has no excluded towers and can be used for flow determination " << std::endl;
-          }
-          nStripsAvailableForFlow++;
-
-          for (int phi = 0; phi < local_max_phi; phi++)
-          {
-            float this_phi = geomIH->get_phicenter(phi);
-
-            if (layer == 0)
-            {
-              _FULLCALOFLOW_PHI_E[phi] += _EMCAL_E[eta][phi];
-            }
-            if (layer == 1)
-            {
-              _FULLCALOFLOW_PHI_E[phi] += _IHCAL_E[eta][phi];
-            }
-            if (layer == 2)
-            {
-              _FULLCALOFLOW_PHI_E[phi] += _OHCAL_E[eta][phi];
-            }
-
-            _FULLCALOFLOW_PHI_VAL[phi] = this_phi;  // should really set this globally only one time
+            std::cout << "DetermineTowerBackground::process_event: --> setting EMCAL phi weight for phi = " << phi << " to " << _EMCAL_PHI_WEIGHTS[phi] << std::endl;
           }
         }
         else
         {
+          // all the eta strips for this phi bin are excluded (this shouldn't happen)
+          _EMCAL_PHI_WEIGHTS[phi] = 1.0;
+          if (Verbosity() > 0)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> WARNING: all eta strips for EMCAL phi = " << phi << " are excluded, setting weight to 1.0" << std::endl;
+            std::cout << "DeterminingTowerBackground::process_event: --> Defaulting to unweighted flow determination for this event." << std::endl;
+          }
+          _reweight_failed = true;
+        }
+        if ( IHCAL_MAX_TOWERS_THIS_PHI > 0 )
+        {
+          _IHCAL_PHI_WEIGHTS[phi] = static_cast<float>(MaxEtaBinsWithoutSeeds) / static_cast<float>(IHCAL_MAX_TOWERS_THIS_PHI);
+          if (Verbosity() > 0)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> setting IHCAL phi weight for phi = " << phi << " to " << _IHCAL_PHI_WEIGHTS[phi] << std::endl;
+          }
+        }
+        else
+        {
+          // all the eta strips for this phi bin are excluded (this shouldn't happen)
+          _IHCAL_PHI_WEIGHTS[phi] = 1.0;
+          if (Verbosity() > 0)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> WARNING: all eta strips for IHCAL phi = " << phi << " are excluded, setting weight to 1.0" << std::endl;
+            std::cout << "DeterminingTowerBackground::process_event: --> Defaulting to unweighted flow determination for this event." << std::endl;
+          }
+          _reweight_failed = true;
+
+        }
+        if ( OHCAL_MAX_TOWERS_THIS_PHI > 0 )
+        {
+          _OHCAL_PHI_WEIGHTS[phi] = static_cast<float>(MaxEtaBinsWithoutSeeds) / OHCAL_MAX_TOWERS_THIS_PHI;
+          if (Verbosity() > 0)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> setting OHCAL phi weight for phi = " << phi << " to " << _OHCAL_PHI_WEIGHTS[phi] << std::endl;
+          } 
+        }
+        else
+        {
+          // all the eta strips for this phi bin are excluded (this shouldn't happen)
+          _OHCAL_PHI_WEIGHTS[phi] = 1.0;
+          if (Verbosity() > 0)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> WARNING: all eta strips for OHCAL phi = " << phi << " are excluded, setting weight to 1.0" << std::endl;
+            std::cout << "DeterminingTowerBackground::process_event: --> Defaulting to unweighted flow determination for this event." << std::endl;
+          }
+          _reweight_failed = true;
+
+        }
+      } // end loop over phi bins
+
+    }
+
+    if  (!_do_reweight || _reweight_failed )
+    { 
+      // if reweighting is not enabled, we will exclude the eta strips which have bad towers in them
+      if (Verbosity() > 0)
+      {
+        std::cout << "DetermineTowerBackground::process_event: reweighting not enabled, checking for bad towers in avialible eta strips..." << std::endl;
+      }
+      // loop over all available eta strips
+      for ( const auto &eta : EtaStripsAvailbleForFlow )
+      {
+        if (Verbosity() > 2)
+        {
+          std::cout << "DetermineTowerBackground::process_event: checking for bad towers in eta strip " << eta << std::endl;
+        }
+        // get the number of bad phi towers within this eta strip
+        // only look at the eta strips which are still available for flow determination which are in the
+        // set EtaStripsAvailbleForFlow
+        int bad_phis_int_this_eta_EMCAL = std::count(_EMCAL_ISBAD[eta].begin(), _EMCAL_ISBAD[eta].end(), 1); // count bad towers in this eta strip
+        int bad_phis_int_this_eta_IHCAL = std::count(_IHCAL_ISBAD[eta].begin(), _IHCAL_ISBAD[eta].end(), 1); // count bad towers in this eta strip
+        int bad_phis_int_this_eta_OHCAL = std::count(_OHCAL_ISBAD[eta].begin(), _OHCAL_ISBAD[eta].end(), 1); // count bad towers in this eta strip
+        if (Verbosity() > 3)
+        {
+          std::cout << "DetermineTowerBackground::process_event: --> found " << bad_phis_int_this_eta_EMCAL << " bad towers in EMCAL, " 
+            << bad_phis_int_this_eta_IHCAL << " in IHCAL, and " << bad_phis_int_this_eta_OHCAL << " in OHCAL for eta strip " << eta << std::endl;
+        }
+        // we will exclude this eta strip if there are any bad towers in it
+        if ( bad_phis_int_this_eta_EMCAL > 0 )
+        {
+          if (Verbosity() > 2)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> excluding EMCAL eta strip " << eta << " due to " << bad_phis_int_this_eta_EMCAL << " bad towers" << std::endl;
+          }
+          // remove this eta strip from the set of available eta strips
+          AVAILIBLE_ETA_STRIPS_CEMC.erase(eta);
+        }
+        else 
+        {
           if (Verbosity() > 4)
           {
-            std::cout << " strip at layer " << layer << ", eta " << eta << " DOES have excluded towers and CANNOT be used for flow determination " << std::endl;
+            std::cout << "DetermineTowerBackground::process_event: --> EMCAL eta strip " << eta << " has no excluded towers and can be used for flow determination " << std::endl;
           }
-          nStripsUnavailableForFlow++;
         }
 
-      }  // close eta loop
-    }  // close layer loop
+        if ( bad_phis_int_this_eta_IHCAL > 0 )
+        {
+          if (Verbosity() > 2)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> excluding IHCAL eta strip " << eta << " due to " << bad_phis_int_this_eta_IHCAL << " bad towers" << std::endl;
+          }
+          // remove this eta strip from the set of available eta strips
+          AVAILIBLE_ETA_STRIPS_IHCAL.erase(eta);
+        }
+        else 
+        {
+          if (Verbosity() > 4)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> IHCAL eta strip " << eta << " has no excluded towers and can be used for flow determination " << std::endl;
+          }
+        }
 
-    // flow determination
+        if ( bad_phis_int_this_eta_OHCAL > 0 )
+        {
+          if (Verbosity() > 2)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> excluding OHCAL eta strip " << eta << " due to " << bad_phis_int_this_eta_OHCAL << " bad towers" << std::endl;
+          }
+          // remove this eta strip from the set of available eta strips
+          AVAILIBLE_ETA_STRIPS_OHCAL.erase(eta);
+        }
+        else 
+        {
+          if (Verbosity() > 4)
+          {
+            std::cout << "DetermineTowerBackground::process_event: --> OHCAL eta strip " << eta << " has no excluded towers and can be used for flow determination " << std::endl;
+          }
+        }
 
-    float Q_x = 0;
-    float Q_y = 0;
-    float E = 0;
-
+      } // end loop over eta strips
+      if (Verbosity() > 0)
+      {
+        std::cout << "DetermineTowerBackground::process_event: after checking for bad towers, available EMCAL eta strips = " << AVAILIBLE_ETA_STRIPS_CEMC.size() 
+          << ", IHCAL eta strips = " << AVAILIBLE_ETA_STRIPS_IHCAL.size() 
+          << ", OHCAL eta strips = " << AVAILIBLE_ETA_STRIPS_OHCAL.size() << std::endl;
+      }
+    }
+    
+    int nStripsAvailableForFlow = AVAILIBLE_ETA_STRIPS_CEMC.size() + AVAILIBLE_ETA_STRIPS_IHCAL.size() + AVAILIBLE_ETA_STRIPS_OHCAL.size();
+    int nStripsUnavailableForFlow = (_HCAL_NETA*3) - nStripsAvailableForFlow;
     if (Verbosity() > 0)
     {
       std::cout << "DetermineTowerBackground::process_event: # of strips (summed over layers) available / unavailable for flow determination: " << nStripsAvailableForFlow << " / " << nStripsUnavailableForFlow << std::endl;
     }
 
-    if (nStripsAvailableForFlow > 0)
+    if ( nStripsAvailableForFlow > 0 )
     {
-      for (int iphi = 0; iphi < _HCAL_NPHI; iphi++)
+      
+
+      _nStrips = nStripsAvailableForFlow;
+      
+      // update the full calorimeter flow vectors
+      _FULLCALOFLOW_PHI_E.assign(_HCAL_NPHI, 0.0);
+      _FULLCALOFLOW_PHI_VAL.assign(_HCAL_NPHI, 0.0);
+
+      // flow determination
+      float Q_x = 0;
+      float Q_y = 0;
+      float sum_E = 0;
+      for (int phi = 0; phi < _HCAL_NPHI; phi++)
       {
-        E += _FULLCALOFLOW_PHI_E[iphi];
-        Q_x += _FULLCALOFLOW_PHI_E[iphi] * cos(2 * _FULLCALOFLOW_PHI_VAL[iphi]);
-        Q_y += _FULLCALOFLOW_PHI_E[iphi] * sin(2 * _FULLCALOFLOW_PHI_VAL[iphi]);
-      }
+        _FULLCALOFLOW_PHI_VAL[phi] = geomIH->get_phicenter(phi);
+        // loop over the available eta strips for each layer
+      
+        for (const auto &eta : AVAILIBLE_ETA_STRIPS_CEMC)
+        {
+          _FULLCALOFLOW_PHI_E[phi] += _EMCAL_E[eta][phi] * _EMCAL_PHI_WEIGHTS[phi]; // if reweighting is enabled, the weights are applied, if not, they are 1.0
+        }
+        for (const auto &eta : AVAILIBLE_ETA_STRIPS_IHCAL)
+        {
+          _FULLCALOFLOW_PHI_E[phi] += _IHCAL_E[eta][phi] * _IHCAL_PHI_WEIGHTS[phi]; // if reweighting is enabled, the weights are applied, if not, they are 1.0
+        }
+        for (const auto &eta : AVAILIBLE_ETA_STRIPS_OHCAL)
+        {
+          _FULLCALOFLOW_PHI_E[phi] += _OHCAL_E[eta][phi] * _OHCAL_PHI_WEIGHTS[phi]; // if reweighting is enabled, the weights are applied, if not, they are 1.0
+        }
+
+        // sum up the energy in this phi bin
+        Q_x += _FULLCALOFLOW_PHI_E[phi] * cos(2 * _FULLCALOFLOW_PHI_VAL[phi]);
+        Q_y += _FULLCALOFLOW_PHI_E[phi] * sin(2 * _FULLCALOFLOW_PHI_VAL[phi]);
+        sum_E += _FULLCALOFLOW_PHI_E[phi];
+
+      } 
 
       if (_do_flow == 1)
-      {
+      { // Calo event plane
         _Psi2 = std::atan2(Q_y, Q_x) / 2.0;
       }
       else if (_do_flow == 2)
-      {
+      { // HIJING truth flow extraction
         PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
         if (!truthinfo)
@@ -726,7 +896,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         float Hijing_Qy = 0;
 
         for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
-        {
+        { 
           PHG4Particle *g4particle = iter->second;
 
           if (truthinfo->isEmbeded(g4particle->get_track_id()) != 0)
@@ -767,7 +937,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         }
       }
       else if (_do_flow == 3)
-      {
+      { // sEPD event plane extraction
         // get event plane map
         EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
         if (!epmap)
@@ -783,21 +953,51 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         else
         {
           _is_flow_failure = true;
+          _Psi2 = 0; 
+        }
+    
+        if (Verbosity() > 0)
+        {
+          std::cout << "DetermineTowerBackground::process_event: flow extracted from sEPD, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
+        }
+
+      }
+
+      if (std::isnan(_Psi2) || std::isinf(_Psi2))
+      {
+        _Psi2 = 0;
+        _is_flow_failure = true;
+        if (Verbosity() > 0)
+        {
+          std::cout << "DetermineTowerBackground::process_event: sEPD event plane extraction failed, setting Psi2 = 0" << std::endl;
         }
       }
 
-      // determine v2 from calo regardless of origin of Psi2
-      double sum_cos2dphi = 0;
-      for (int iphi = 0; iphi < _HCAL_NPHI; iphi++)
+  
+      _v2 = 0;
+      for (int phi = 0; phi < _HCAL_NPHI; phi++)
       {
-        sum_cos2dphi += _FULLCALOFLOW_PHI_E[iphi] * std::cos(2 * (_FULLCALOFLOW_PHI_VAL[iphi] - _Psi2));
+        _v2 += ( _FULLCALOFLOW_PHI_E[phi] * std::cos(2 * (_FULLCALOFLOW_PHI_VAL[phi] - _Psi2)) );
       }
+      
 
-      _v2 = sum_cos2dphi / E;
-
-      _nStrips = nStripsAvailableForFlow;
-    }
-    else
+      // avoid nans in v2
+      if (sum_E > 0)
+      {
+        _v2 /= sum_E;
+      }
+      else
+      {
+        _v2 = 0;
+      }
+      
+      if (Verbosity() > 0)
+      {
+        std::cout << "DetermineTowerBackground::process_event: unnormalized Q vector (Qx, Qy) = ( " << Q_x << ", " << Q_y << " ) with Sum E_i = " << sum_E << std::endl;
+        std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi " << (_do_flow == 2 ? "from Hijing " : "") << ") , v2 = " << _v2 << " ( using " << _nStrips << " ) " << std::endl;
+      }
+    } 
+    else 
     {
       _Psi2 = 0;
       _v2 = 0;
@@ -807,14 +1007,29 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       {
         std::cout << "DetermineTowerBackground::process_event: no full strips available for flow modulation, setting v2 and Psi = 0" << std::endl;
       }
+      
     }
 
-    if (Verbosity() > 0)
-    {
-      std::cout << "DetermineTowerBackground::process_event: unnormalized Q vector (Qx, Qy) = ( " << Q_x << ", " << Q_y << " ) with Sum E_i = " << E << std::endl;
-      std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi " << (_do_flow == 2 ? "from Hijing " : "") << ") , v2 = " << _v2 << " ( using " << _nStrips << " ) " << std::endl;
-    }
+
+    // if ( _is_flow_failure )
+    // {
+    //   _Psi2 = 0;
+    //   _v2 = 0;
+    //   _nStrips = 0;
+    //   if (Verbosity() > 0)
+    //   {
+    //     std::cout << "DetermineTowerBackground::process_event: flow extraction failed, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
+    //   }
+    // }
+    // else
+    // {
+      if (Verbosity() > 0)
+      {
+        std::cout << "DetermineTowerBackground::process_event: flow extraction successful, Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
+      }
+    // }
   }  // if do flow
+
 
   // now calculate energy densities...
   _nTowers = 0;  // store how many towers were used to determine bkg
@@ -1029,3 +1244,8 @@ void DetermineTowerBackground::FillNode(PHCompositeNode *topNode)
 
   return;
 }
+
+
+
+
+

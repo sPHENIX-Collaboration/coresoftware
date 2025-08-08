@@ -30,6 +30,8 @@ class LaserEventIdentifier : public SubsysReco
 
   void set_max_time_samples(int val) { m_time_samples_max = val; }
 
+  void set_runnumber(int runnum) { m_runnumber = runnum; }
+
   void set_debug(bool debug) { m_debug = debug; }
   void set_debug_name(const std::string &name) { m_debugFileName = name; }
  private:
@@ -53,6 +55,7 @@ class LaserEventIdentifier : public SubsysReco
   int peakSample1 = -999;
   float peakWidth0 = -999;
   float peakWidth1 = -999;
+  int m_runnumber = 0;
 
   uint64_t prev_BCO = 0;
 };

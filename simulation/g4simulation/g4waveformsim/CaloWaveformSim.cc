@@ -114,7 +114,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   m_gain = m_highgain ? ((m_detector == "CEMC") ? 16 : 32) : 1;
 
   // Data energy calibration
-  if (!m_overrideCalibName) m_calibName = m_detector + "_calib_ADC_to_ETower_default";
+  if (!m_overrideCalibName) m_calibName = m_detector + "_calib_ADC_to_ETower";
   if (!m_overrideFieldName) m_fieldname = m_detector + "_calib_ADC_to_ETower";
   url = m_giveDirectURL ? m_directURL : CDBInterface::instance()->getUrl(m_calibName);
   if (!url.empty())
@@ -127,7 +127,7 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
 
   // MC energy calibration (optional)
   if (!m_overrideMCCalibName) m_MC_calibName = m_detector + "_MC_RECALIB";
-  if (!m_overrideMCFieldName) m_MC_fieldname = m_detector + "_MC_calib_ADC_to_ETower";
+  if (!m_overrideMCFieldName) m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
   url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
   if (!url.empty())
     cdbttree_MC = new CDBTTree(url);
@@ -235,9 +235,11 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       { return this->template_function(x, par); },
       0, m_nsamples, 3);
   f_fit->SetParameter(0, 1.0);
+  f_fit->SetParameter(1, 0.0);
+  float template_peak = f_fit->GetMaximumX();
   float shift_of_shift = m_timeshiftwidth * gsl_rng_uniform(m_RandomGenerator);
 
-  float _shiftval = m_peakpos + shift_of_shift - f_fit->GetMaximumX();
+  float _shiftval = m_peakpos + shift_of_shift - template_peak;
 
   f_fit->SetParameters(1, _shiftval, 0);
 
@@ -287,7 +289,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
       float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
       float MCmeantime = cdbttree_MC_time->GetFloatValue(key, m_MC_fieldname_time);
       assert(m_peakpos == 6); // the MC mean time is derived when m_peakpos is set to 6
-      _shiftval = m_peakpos + shift_of_shift - f_fit->GetMaximumX() + meantime - MCmeantime;
+      _shiftval = m_peakpos + shift_of_shift - template_peak + meantime - MCmeantime;
     }
 
     float t0 = hit->get_t(0) / m_sampletime;

@@ -15,6 +15,7 @@
 
 class CDBHistos;
 class TProfile2D;
+class TH1;
 
 class PHCompositeNode;
 
@@ -40,19 +41,23 @@ private:
   int CreateNodes(PHCompositeNode *topNode);
   unsigned int m_MaxOrder{3};
   std::string FileName;
-
+    
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
   std::vector<std::vector<double>> northsouth_q;
   static const int nRings = 16;
-  std::vector<std::vector<std::vector<double>>>
-      ring_q; // [nRings][order][2] //3rd dimension is for Qn_x and Qn_y
-
+  std::vector<std::vector<std::vector<double>>> ring_q_north;
+  std::vector<std::vector<std::vector<double>>> ring_q_south;
   std::vector<std::pair<double, double>> south_Qvec;
   std::vector<std::pair<double, double>> north_Qvec;
   std::vector<std::pair<double, double>> northsouth_Qvec;
-  std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs;
-
+  std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs_north;
+  std::vector<std::vector<std::pair<double, double>>> all_ring_Qvecs_south;
+    
+  //  const int phibins{24};
+  TH1* h_phi_weight_south_input{nullptr};
+  TH1* h_phi_weight_north_input{nullptr};
+    
   // recentering utility
   std::vector<std::vector<double>> south_q_subtract;
   std::vector<std::vector<double>> north_q_subtract;
