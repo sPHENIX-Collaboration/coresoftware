@@ -563,7 +563,7 @@ void TpcDirectLaserReconstruction::process_track(SvtxTrack* track)
       const unsigned short phibin = TpcDefs::getPad(hitr->first);
       const unsigned short zbin = TpcDefs::getTBin(hitr->first);
 
-      const double phi = layergeom->get_phicenter(phibin, side);
+      const double phi = layergeom->get_phicenter(phibin);
       const double x = layer_center_radius * cos(phi);
       const double y = layer_center_radius * sin(phi);
 
@@ -1052,7 +1052,7 @@ void TpcDirectLaserReconstruction::process_track(SvtxTrack* track)
       const unsigned short phibin_2 = TpcDefs::getPad(hitr->first);
       const unsigned short zbin_2 = TpcDefs::getTBin(hitr->first);
 
-      const double phi_2 = layergeom_2->get_phicenter(phibin_2, side_2);
+      const double phi_2 = layergeom_2->get_phicenter(phibin_2);
       const double x_2 = layer_center_radius_2 * cos(phi_2);
       const double y_2 = layer_center_radius_2 * sin(phi_2);
 

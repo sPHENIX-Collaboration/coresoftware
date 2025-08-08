@@ -976,8 +976,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_hitpad = TpcDefs::getPad(hitkey);
         m_hittbin = TpcDefs::getTBin(hitkey);
 
-        auto *geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
-        auto phi = geoLayer->get_phicenter(m_hitpad, m_side);
+        auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
+        auto phi = geoLayer->get_phicenter(m_hitpad);
         auto radius = geoLayer->get_radius();
         float AdcClockPeriod = geoLayer->get_zstep();
         auto glob = geometry->getGlobalPositionTpc(m_hitsetkey, hitkey, phi, radius, AdcClockPeriod);

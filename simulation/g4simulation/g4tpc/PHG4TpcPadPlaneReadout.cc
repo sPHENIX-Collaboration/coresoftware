@@ -321,7 +321,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
   }
 
-   
+  phi = check_phi(side, phi, rad_gem);
   unsigned int layernum = 0;
   /* TpcClusterBuilder pass_data {}; */
 
@@ -362,12 +362,6 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   /* pass_data.nphibins = phibins; */
 
   const auto tbins = LayerGeom->get_zbins();
-
-  sector_min_Phi = LayerGeom->get_sector_min_phi();
-  sector_max_Phi = LayerGeom->get_sector_max_phi();
-  phi_bin_width = LayerGeom->get_phistep();
-
-  phi = check_phi(side, phi, rad_gem);
 
   // Create the distribution function of charge on the pad plane around the electron position
 
@@ -563,7 +557,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
       // The only information written to the cell other than neffelectrons is tbin and pad number, so get those from geometry
       double tcenter = LayerGeom->get_zcenter(tbin_num);
-      double phicenter = LayerGeom->get_phicenter(pad_num, side);
+      double phicenter = LayerGeom->get_phicenter(pad_num);
       phi_integral += phicenter * neffelectrons;
       t_integral += tcenter * neffelectrons;
       weight += neffelectrons;
@@ -673,34 +667,34 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
     }
   }
 
-  if (p_region >= 0)
+  if (p_region > 0)
   {
     for (int s = 0; s < 12; s++)
     {
       double daPhi = 0;
       if (s == 0)
       {
-        daPhi = fabs(sector_min_Phi[side][11] + 2 * M_PI - sector_max_Phi[side][s]);
+        daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] + 2 * M_PI - sector_max_Phi_sectors[side][p_region][s]);
       }
       else
       {
-        daPhi = fabs(sector_min_Phi[side][s - 1] - sector_max_Phi[side][s]);
+        daPhi = fabs(sector_min_Phi_sectors[side][p_region][s - 1] - sector_max_Phi_sectors[side][p_region][s]);
       }
-      double min_phi = sector_max_Phi[side][s];
-      double max_phi = sector_max_Phi[side][s] + daPhi;
+      double min_phi = sector_max_Phi_sectors[side][p_region][s];
+      double max_phi = sector_max_Phi_sectors[side][p_region][s] + daPhi;
       if (new_phi <= max_phi && new_phi >= min_phi)
       {
         if (fabs(max_phi - new_phi) > fabs(new_phi - min_phi))
         {
-          new_phi = min_phi - phi_bin_width / 5; 
+          new_phi = min_phi - PhiBinWidth[p_region] / 5;  // to be changed
         }
         else
         {
-          new_phi = max_phi + phi_bin_width / 5;
+          new_phi = max_phi + PhiBinWidth[p_region] / 5;
         }
       }
     }
-    if (new_phi < sector_min_Phi[side][11] && new_phi >= -M_PI)
+    if (new_phi < sector_min_Phi_sectors[side][p_region][11] && new_phi >= -M_PI)
     {
       new_phi += 2 * M_PI;
     }
@@ -735,8 +729,8 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   const double philim_low = check_phi(side, philim_low_calc, radius);
   const double philim_high = check_phi(side, philim_high_calc, radius);
 
-  int phibin_low = LayerGeom->get_phibin(philim_high, side);
-  int phibin_high = LayerGeom->get_phibin(philim_low, side);
+  int phibin_low = LayerGeom->get_phibin(philim_high);
+  int phibin_high = LayerGeom->get_phibin(philim_low);
   int npads = phibin_high - phibin_low;
 
   if (Verbosity() > 1000)
@@ -773,7 +767,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     {
       pad_now -= phibins;
     }
-    pads_phi[ipad] = LayerGeom->get_phicenter(pad_now, side);
+    pads_phi[ipad] = LayerGeom->get_phicenter(pad_now);
     sum_of_pads_phi += pads_phi[ipad];
     sum_of_pads_absphi += fabs(pads_phi[ipad]);
   }
@@ -1093,8 +1087,38 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   const double MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
+  const std::array<double, 3> SectorPhi =
+      {{get_double_param("tpc_sector_phi_inner"),
+        get_double_param("tpc_sector_phi_mid"),
+        get_double_param("tpc_sector_phi_outer")}};
+
+  const std::array<int, 3> NPhiBins =
+      {{get_int_param("ntpc_phibins_inner"),
+        get_int_param("ntpc_phibins_mid"),
+        get_int_param("ntpc_phibins_outer")}};
+
+  PhiBinWidth =
+      {{SectorPhi[0] * 12 / (double) NPhiBins[0],
+        SectorPhi[1] * 12 / (double) NPhiBins[1],
+        SectorPhi[2] * 12 / (double) NPhiBins[2]}};
 
   averageGEMGain = get_double_param("gem_amplification");
   polyaTheta = get_double_param("polya_theta");
 
+  for (int iregion = 0; iregion < 3; ++iregion)
+  {
+    for (int zside = 0; zside < 2; zside++)
+    {
+      sector_min_Phi_sectors[zside][iregion].clear();
+      sector_max_Phi_sectors[zside][iregion].clear();
+      for (int isector = 0; isector < NSectors; ++isector)
+      {
+        double sec_gap = (2 * M_PI - SectorPhi[iregion] * 12) / 12;
+        double sec_max_phi = M_PI - SectorPhi[iregion] / 2 - sec_gap - 2 * M_PI / 12 * isector;  // * (isector+1) ;
+        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
+        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
+        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
+      }
+    }
+  }
 }

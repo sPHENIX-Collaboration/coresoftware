@@ -459,13 +459,13 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
     float coords[3] = {clusHit.first.get<0>(), clusHit.first.get<1>(), clusHit.first.get<2>()};
     std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> spechitkey = clusHit.second;
 
-    int side = TpcDefs::getSide(spechitkey.second);
+    //    int side = TpcDefs::getSide(spechitkey.second);
     // unsigned int sector= TpcDefs::getSectorId(spechitkey.second);
 
     PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom((int) coords[0]);
 
     double r = layergeom->get_radius();
-    double phi = layergeom->get_phi(coords[1], side);
+    double phi = layergeom->get_phi(coords[1]);
     double t = layergeom->get_zcenter(fabs(coords[2]));
     int tbin = coords[2];
     int lay = coords[0];//TrkrDefs::getLayer(spechitkey.second);
