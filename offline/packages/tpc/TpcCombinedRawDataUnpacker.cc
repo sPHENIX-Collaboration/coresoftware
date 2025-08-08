@@ -309,7 +309,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     //    uint16_t sam = tpchit->get_samples();
     max_time_range = tpchit->get_samples();
     varname = "phi";  // + std::to_string(key);
-
+    int region = 0;
     if(layer > 15)
     {
       region = 1;
