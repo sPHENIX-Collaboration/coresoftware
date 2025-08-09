@@ -51,10 +51,14 @@
 #ifndef USPIN_SPINDBCONTENT_H
 #define USPIN_SPINDBCONTENT_H
 
+#include <phool/PHObject.h>
+
 //#include <stdio.h>
 //#include <iostream>
 
-class SpinDBContent
+class PHCompositeNode;
+
+class SpinDBContent : public PHObject
 {
  public:
   SpinDBContent() { Initialize(); }

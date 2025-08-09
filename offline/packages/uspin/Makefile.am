@@ -6,28 +6,36 @@ lib_LTLIBRARIES = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OPT_SPHENIX)/lib
+  -L$(OPT_SPHENIX)/lib \
+  `root-config --libs`
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include \
   -isystem$(OPT_SPHENIX)/include
 
 pkginclude_HEADERS = \
   SpinDBInput.h \
   SpinDBContent.h \
-  SpinDBOutput.h
+  SpinDBOutput.h \
+  SpinDBNode.h
 
 libuspin_la_SOURCES = \
   SpinDBInput.cc \
   SpinDBContent.cc \
-  SpinDBOutput.cc
+  SpinDBOutput.cc \
+  SpinDBNode.cc
 
 libuspin_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OPT_SPHENIX)/lib \
-  -lodbc++
+  -lodbc++ \
+  -lphool \
+  -lfun4all \
+  -lffaobjects \
+  -lffarawobjects
 
 # linking tests
 BUILT_SOURCES = testexternals.cc
