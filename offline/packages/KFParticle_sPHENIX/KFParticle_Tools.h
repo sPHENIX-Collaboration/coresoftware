@@ -186,13 +186,15 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float m_mother_min_decay_length_xy_significance {-1};
 
-  float m_track_pt {-1};
+  float m_track_min_pt {-1};
+
+  float m_track_max_pt {5e3};
 
   float m_track_ptchi2 {std::numeric_limits<float>::max()};
 
-  float m_track_ip_xy {-1};
+  float m_track_ip_xy {-100};
 
-  float m_track_ipchi2_xy {-1};
+  float m_track_ipchi2_xy {-1000};
 
   float m_track_ip {-1};
 
