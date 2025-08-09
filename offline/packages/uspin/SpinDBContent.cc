@@ -1,5 +1,7 @@
 #include "SpinDBContent.h"
 
+#include <phool/PHObject.h>
+
 #include <boost/format.hpp>
 
 #include <iostream>
