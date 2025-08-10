@@ -18,12 +18,15 @@ AM_CPPFLAGS = \
 pkginclude_HEADERS = \
   SpinDBInput.h \
   SpinDBContent.h \
+  SpinDBContentv1.h \
   SpinDBOutput.h \
   SpinDBNode.h
 
 libuspin_la_SOURCES = \
+  $(ROOTDICTS) \
   SpinDBInput.cc \
   SpinDBContent.cc \
+  SpinDBContentv1.cc \
   SpinDBOutput.cc \
   SpinDBNode.cc
 
@@ -36,6 +39,21 @@ libuspin_la_LDFLAGS = \
   -lfun4all \
   -lffaobjects \
   -lffarawobjects
+
+ROOTDICTS = \
+  SpinDBContent_Dict.cc \
+  SpinDBContentv1_Dict.cc 
+
+pcmdir = $(libdir)
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 # linking tests
 BUILT_SOURCES = testexternals.cc
