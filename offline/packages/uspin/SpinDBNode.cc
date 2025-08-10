@@ -15,6 +15,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include "SpinDBContent.h"
+#include "SpinDBContentv1.h" 
 #include "SpinDBOutput.h"
 
 SpinDBNode::SpinDBNode(const std::string &name):
@@ -40,11 +41,6 @@ int SpinDBNode::InitRun(PHCompositeNode *topNode)
     std::cout << PHWHERE << ":: RunHeader node missing! Skipping run XXX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  int runnumber = runHeader->get_RunNumber();
-  SpinDBContent spin_cont;
-  SpinDBOutput spin_out("phnxrc");
-  spin_out.StoreDBContent(runnumber, runnumber);
-  spin_out.GetDBContentStore(spin_cont, runnumber);
 
   PHNodeIterator iter(topNode);
 
@@ -55,8 +51,18 @@ int SpinDBNode::InitRun(PHCompositeNode *topNode)
     topNode->addNode(lowerNode);
   }
 
-  PHIODataNode<SpinDBContent>* spindbcontentNode = new PHIODataNode<SpinDBContent>(&spin_cont, "SpinDBContent");
-  lowerNode->addNode(spindbcontentNode);
+  SpinDBContent *spin_cont = findNode::getClass<SpinDBContent>(topNode, "SpinDBContent");
+  if (!spin_cont)
+  {
+    int runnumber = runHeader->get_RunNumber();
+    spin_cont = new SpinDBContentv1;
+    SpinDBOutput spin_out("phnxrc");
+    spin_out.StoreDBContent(runnumber, runnumber);
+    spin_out.GetDBContentStore(spin_cont, runnumber);
+    PHIODataNode<PHObject>* spindbcontentNode = new PHIODataNode<PHObject>(spin_cont, "SpinDBContent", "PHObject");
+    lowerNode->addNode(spindbcontentNode);
+  }
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -1,4 +1,6 @@
 #include "SpinDBOutput.h"
+#include "SpinDBContent.h"
+#include "SpinDBContentv1.h"
 
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
@@ -175,9 +177,6 @@ int SpinDBOutput::PrintDBRawContent(int runnum)
 }
 
 
-
-
-
 int SpinDBOutput::PrintDBRawContent(int runnum, int qa_level)
 {
   odbc::Connection *con = ConnectDB();
@@ -229,10 +228,7 @@ int SpinDBOutput::PrintDBRawContent(int runnum, int qa_level)
 ///////////////////////////////////////////////////////////
 int SpinDBOutput::CheckRunRow(int runnum)
 {
-  if (spin_cont_store1.GetRunNumber() == runnum)
-  {
-    return (1);
-  }
+   
   if (CheckRunRowStore(runnum) == 1)
   {
     return (1);
@@ -270,8 +266,6 @@ int SpinDBOutput::CheckRunRow(int runnum)
     return (0);
   }
 
-  GetDBContent(spin_cont_store1, rs);
-
   delete rs;
   delete stmt;
   delete con;
@@ -283,10 +277,6 @@ int SpinDBOutput::CheckRunRow(int runnum)
 
 int SpinDBOutput::CheckRunRow(int runnum, int qa_level)
 {
-  if (spin_cont_store1.GetRunNumber() == runnum)
-  {
-    return (1);
-  }
   if (CheckRunRowStore(runnum) == 1)
   {
     return (1);
@@ -324,8 +314,6 @@ int SpinDBOutput::CheckRunRow(int runnum, int qa_level)
     return (0);
   }
 
-  GetDBContent(spin_cont_store1, rs);
-
   delete rs;
   delete stmt;
   delete con;
@@ -337,12 +325,11 @@ int SpinDBOutput::CheckRunRow(int runnum, int qa_level)
 
 int SpinDBOutput::CheckRunRowStore(int runnum)
 {
-  std::map<int, SpinDBContent>::iterator it = spin_cont_store.find(runnum);
+  std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it == spin_cont_store.end())
   {
     return 0;
   }
-  spin_cont_store1 = it->second;
   return 1;
 }
 
@@ -375,24 +362,20 @@ int SpinDBOutput::StoreDBContent(int run1, int run2)
     return (ERROR_VALUE);
   }
 
-  while (true)
+  while (rs->next() != 0)
   {
-    SpinDBContent spin_cont;
-    if (rs->next() == 0)
-    {
-      break;
-    }
-    GetDBContent(spin_cont, rs);
+    std::unique_ptr<SpinDBContent> spin_cont(new SpinDBContentv1());
+    GetDBContent(*spin_cont, rs);
 
-    int runnum = spin_cont.GetRunNumber();
-    std::map<int, SpinDBContent>::iterator it = spin_cont_store.find(runnum);
+    int runnum = spin_cont->GetRunNumber();
+    std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
     if (it != spin_cont_store.end())
     {
-      (it->second) = spin_cont;
+      it->second = std::move(spin_cont);
     }
     else
     {
-      spin_cont_store.insert(std::make_pair(runnum, spin_cont));
+      spin_cont_store.insert(std::make_pair(runnum, std::move(spin_cont)));
     }
   }
 
@@ -433,24 +416,20 @@ int SpinDBOutput::StoreDBContent(int run1, int run2, int qa_level)
     return (ERROR_VALUE);
   }
 
-  while (true)
+  while (rs->next() != 0)
   {
-    SpinDBContent spin_cont;
-    if (rs->next() == 0)
-    {
-      break;
-    }
-    GetDBContent(spin_cont, rs);
+    std::unique_ptr<SpinDBContent> spin_cont(new SpinDBContentv1());
+    GetDBContent(*spin_cont, rs);
 
-    int runnum = spin_cont.GetRunNumber();
-    std::map<int, SpinDBContent>::iterator it = spin_cont_store.find(runnum);
+    int runnum = spin_cont->GetRunNumber();
+    std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
     if (it != spin_cont_store.end())
     {
-      (it->second) = spin_cont;
+      it->second = std::move(spin_cont);
     }
     else
     {
-      spin_cont_store.insert(std::make_pair(runnum, spin_cont));
+      spin_cont_store.insert(std::make_pair(runnum, std::move(spin_cont)));
     }
   }
 
@@ -470,18 +449,13 @@ void SpinDBOutput::ClearDBContent()
 }
 
 //////////////////////////////////////////////////////////////
-int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum)
+int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum)
 {
-  if (spin_cont_store1.GetRunNumber() == runnum)
-  {
-    spin_cont = spin_cont_store1;
-    return 1;
-  }
 
-  std::map<int, SpinDBContent>::iterator it = spin_cont_store.find(runnum);
+  std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it != spin_cont_store.end())
   {
-    spin_cont = it->second;
+    spin_cont = it->second.get();
     return 1;
   }
 
@@ -517,7 +491,10 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum)
     return (0);
   }
 
-  GetDBContent(spin_cont, rs);
+  std::unique_ptr<SpinDBContent> spin_cont_ptr(new SpinDBContentv1());
+  GetDBContent(*spin_cont_ptr, rs);
+  spin_cont_store[runnum] = std::move(spin_cont_ptr);
+  CopyDBContent(*spin_cont_store[runnum],*spin_cont);
 
   delete rs;
   delete stmt;
@@ -528,18 +505,13 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum)
 
 
 
-int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_level)
+int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum, int qa_level)
 {
-  if (spin_cont_store1.GetRunNumber() == runnum)
-  {
-    spin_cont = spin_cont_store1;
-    return 1;
-  }
 
-  std::map<int, SpinDBContent>::iterator it = spin_cont_store.find(runnum);
+  std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it != spin_cont_store.end())
   {
-    spin_cont = it->second;
+    spin_cont = it->second.get();
     return 1;
   }
 
@@ -575,7 +547,10 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_leve
     return (0);
   }
 
-  GetDBContent(spin_cont, rs);
+  std::unique_ptr<SpinDBContent> spin_cont_ptr(new SpinDBContentv1());
+  GetDBContent(*spin_cont_ptr, rs);
+  spin_cont_store[runnum] = std::move(spin_cont_ptr);
+  CopyDBContent(*spin_cont_store[runnum],*spin_cont);
 
   delete rs;
   delete stmt;
@@ -586,18 +561,13 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_leve
 
 /////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetDBContentStore(SpinDBContent &spin_cont, int runnum)
+int SpinDBOutput::GetDBContentStore(SpinDBContent*& spin_cont, int runnum)
 {
-  if (spin_cont_store1.GetRunNumber() == runnum)
-  {
-    spin_cont = spin_cont_store1;
-    return 1;
-  }
 
-  std::map<int, SpinDBContent>::iterator it = spin_cont_store.find(runnum);
+  std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it != spin_cont_store.end())
   {
-    spin_cont = it->second;
+    CopyDBContent(*it->second.get(),*spin_cont);
     return 1;
   }
 
@@ -607,6 +577,66 @@ int SpinDBOutput::GetDBContentStore(SpinDBContent &spin_cont, int runnum)
 }
 
 //////////////////////////////////////////////////////////////
+int SpinDBOutput::CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_cont_copy)
+{
+  int ncross = spin_cont.GetNCrossing();
+  spin_cont_copy.SetRunNumber(spin_cont.GetRunNumber());
+  spin_cont_copy.SetQALevel(spin_cont.GetQALevel());
+  spin_cont_copy.SetFillNumber(spin_cont.GetFillNumber());
+  spin_cont_copy.SetBadRunFlag(spin_cont.GetBadRunFlag());
+  spin_cont_copy.SetCrossingShift(spin_cont.GetCrossingShift());
+
+  for (int i = 0; i < ncross; i++)
+  {
+    float b_pol, b_pol_err, b_pol_sys;
+    float y_pol, y_pol_err, y_pol_sys;
+    spin_cont.GetPolarizationBlue(i, b_pol, b_pol_err, b_pol_sys);
+    spin_cont.GetPolarizationYellow(i, y_pol, y_pol_err, y_pol_sys);
+    spin_cont_copy.SetPolarizationBlue(i, b_pol, b_pol_err, b_pol_sys);
+    spin_cont_copy.SetPolarizationYellow(i, y_pol, y_pol_err, y_pol_sys);
+    spin_cont_copy.SetSpinPatternBlue(i, spin_cont.GetSpinPatternBlue(i));
+    spin_cont_copy.SetSpinPatternYellow(i, spin_cont.GetSpinPatternYellow(i));
+    spin_cont_copy.SetScalerMbdVertexCut(i, spin_cont.GetScalerMbdVertexCut(i));
+    spin_cont_copy.SetScalerMbdNoCut(i, spin_cont.GetScalerMbdNoCut(i));
+    spin_cont_copy.SetScalerZdcNoCut(i, spin_cont.GetScalerZdcNoCut(i));
+    spin_cont_copy.SetBadBunchFlag(i, spin_cont.GetBadBunchFlag(i));
+  }
+
+  float asym_bf, asymerr_bf;
+  float asym_bb, asymerr_bb;
+  float asym_yf, asymerr_yf;
+  float asym_yb, asymerr_yb;
+  float phase_bf, phaseerr_bf;
+  float phase_bb, phaseerr_bb;
+  float phase_yf, phaseerr_yf;
+  float phase_yb, phaseerr_yb;
+  spin_cont.GetAsymBlueForward(asym_bf, asymerr_bf);
+  spin_cont.GetAsymBlueBackward(asym_bb, asymerr_bb);
+  spin_cont.GetAsymYellowForward(asym_yf, asymerr_yf);
+  spin_cont.GetAsymYellowBackward(asym_yb, asymerr_yb);
+  spin_cont.GetPhaseBlueForward(phase_bf, phaseerr_bf);
+  spin_cont.GetPhaseBlueBackward(phase_bb, phaseerr_bb);
+  spin_cont.GetPhaseYellowForward(phase_yf, phaseerr_yf);
+  spin_cont.GetPhaseYellowBackward(phase_yb, phaseerr_yb);
+
+  spin_cont_copy.SetAsymBlueForward(asym_bf, asymerr_bf);
+  spin_cont_copy.SetAsymBlueBackward(asym_bb, asymerr_bb);
+  spin_cont_copy.SetAsymYellowForward(asym_yf, asymerr_yf);
+  spin_cont_copy.SetAsymYellowBackward(asym_yb, asymerr_yb);
+  spin_cont_copy.SetPhaseBlueForward(phase_bf, phaseerr_bf);
+  spin_cont_copy.SetPhaseBlueBackward(phase_bb, phaseerr_bb);
+  spin_cont_copy.SetPhaseYellowForward(phase_yf, phaseerr_yf);
+  spin_cont_copy.SetPhaseYellowBackward(phase_yb, phaseerr_yb);
+
+  spin_cont_copy.SetCrossAngle(spin_cont.GetCrossAngle());
+  spin_cont_copy.SetCrossAngleStd(spin_cont.GetCrossAngleStd());
+  spin_cont_copy.SetCrossAngleMin(spin_cont.GetCrossAngleMin());
+  spin_cont_copy.SetCrossAngleMax(spin_cont.GetCrossAngleMax());
+
+  return (1);
+}
+
+
 
 int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
 {

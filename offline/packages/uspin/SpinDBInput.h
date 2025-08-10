@@ -10,8 +10,6 @@
 #ifndef USPIN_SPINDBINPUT_H
 #define USPIN_SPINDBINPUT_H
 
-#include "SpinDBContent.h"
-
 #include <stdio.h>
 #include <sstream>
 
@@ -21,6 +19,8 @@ namespace odbc
   class Statement;
   class ResultSet;
 };  // namespace odbc
+
+class SpinDBContent;
 
 class SpinDBInput
 {
@@ -32,9 +32,9 @@ class SpinDBInput
   int CheckRunRow(int runnum, int qa_level, const char *opt = "");
   int CreateRunRow(int runnum, int qa_level);
   int DeleteRunRow(int runnum, int qa_level);
-  int InitializeRunRow(SpinDBContent spin_cont);
-  int UpdateDBContent(SpinDBContent spin_cont);
-  int SetDefaultQA(SpinDBContent spin_cont);
+  int InitializeRunRow(SpinDBContent& spin_cont);
+  int UpdateDBContent(SpinDBContent& spin_cont);
+  int SetDefaultQA(SpinDBContent& spin_cont);
   int UpdateValue(int runnum, int qa_level, const char *name, int value);
   int UpdateValue(int runnum, int qa_level, const char *name, float value);
   int UpdateValue(int runnum, int qa_level, const char *name, double value);

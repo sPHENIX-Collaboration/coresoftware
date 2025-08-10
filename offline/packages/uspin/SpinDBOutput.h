@@ -11,11 +11,10 @@
 #ifndef USPIN_SPINDBOUTPUT_H
 #define USPIN_SPINDBOUTPUT_H
 
-#include "SpinDBContent.h"
-
 #include <map>
 #include <string>
 #include <vector>
+#include <memory> // for unique_ptr
 
 #define QA_ERROR_VALUE -999
 
@@ -25,6 +24,8 @@ namespace odbc
   class Statement;
   class ResultSet;
 };  // namespace odbc
+
+class SpinDBContent;
 
 class SpinDBOutput
 {
@@ -53,9 +54,10 @@ class SpinDBOutput
   int StoreDBContent(int run1, int run2);
   int StoreDBContent(int run1, int run2, int qa_level);
   void ClearDBContent();
-  int GetDBContent(SpinDBContent &spin_cont, int runnum);
-  int GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_level);
-  int GetDBContentStore(SpinDBContent &spin_cont, int runnum);
+  int GetDBContent(SpinDBContent*& spin_cont, int runnum);
+  int GetDBContent(SpinDBContent*& spin_cont, int runnum, int qa_level);
+  int GetDBContentStore(SpinDBContent*& spin_cont, int runnum);
+  int CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_cont_copy);
   int GetDefaultQA(int runnum);
   void Verbosity(int verbose = 0){verbosity=verbose;}
 
@@ -68,8 +70,7 @@ class SpinDBOutput
   std::string user_name;
   std::string table_name;
 
-  SpinDBContent spin_cont_store1;
-  std::map<int, SpinDBContent> spin_cont_store;
+  std::map<int, std::unique_ptr<SpinDBContent>> spin_cont_store;
 
   odbc::Connection *ConnectDB(void);
   int GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs);

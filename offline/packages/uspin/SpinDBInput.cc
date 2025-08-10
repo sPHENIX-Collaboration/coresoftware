@@ -1,4 +1,6 @@
 #include "SpinDBInput.h"
+#include "SpinDBContent.h"
+#include "SpinDBContentv1.h"
 
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
@@ -125,7 +127,7 @@ int SpinDBInput::CreateRunRow(int runnum, int qa_level)
   }
   delete stmt;
 
-  SpinDBContent spin_cont_temp;
+  SpinDBContentv1 spin_cont_temp;
   spin_cont_temp.SetRunNumber(runnum);
   spin_cont_temp.SetQALevel(qa_level);
   InitializeRunRow(spin_cont_temp);
@@ -170,7 +172,7 @@ int SpinDBInput::DeleteRunRow(int runnum, int qa_level)
 
 ///////////////////////////////////////////////////////////
 
-int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
+int SpinDBInput::InitializeRunRow(SpinDBContent& spin_cont)
 {
   if (IsConnected() != 1)
   {
@@ -233,7 +235,7 @@ int SpinDBInput::InitializeRunRow(SpinDBContent spin_cont)
 
 ///////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
+int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
 {
   if (IsConnected() != 1)
   {
@@ -250,7 +252,7 @@ int SpinDBInput::UpdateDBContent(SpinDBContent spin_cont)
 
   if (qa_level == ERROR_VALUE)
   {
-    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
+    std::cout << "You did not set a qa_level.  Please do so with SpinDBContentv1::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
     return (0);
   }
 
@@ -678,7 +680,7 @@ int SpinDBInput::InitializeArray(int runnum, int qa_level, const char *name, int
 }
 
 ////////////////////////////////////////////////////////////
-int SpinDBInput::SetDefaultQA(SpinDBContent spin_cont)
+int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
 {
   if (IsConnected() != 1)
   {
@@ -690,7 +692,7 @@ int SpinDBInput::SetDefaultQA(SpinDBContent spin_cont)
 
   if (qa_level == ERROR_VALUE)
   {
-    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
+    std::cout << "You did not set a qa_level.  Please do so with SpinDBContentv1::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
     return (0);
   }
 
