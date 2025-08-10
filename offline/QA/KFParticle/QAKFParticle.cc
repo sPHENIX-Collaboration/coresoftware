@@ -62,19 +62,10 @@ QAKFParticle::QAKFParticle(const std::string &name, const std::string &mother_na
   m_min_mass = min_m;
   m_max_mass = max_m;
   m_mother_id = kfpTools.getParticleID(mother_name);
-  // m_mother_name = mother_name;
 }
 
 int QAKFParticle::InitRun(PHCompositeNode *topNode)
 {
-  /*
-if (!m_svtxEvalStack)
-{
-  m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
-  m_svtxEvalStack->set_strict(false);
-  m_svtxEvalStack->set_verbosity(Verbosity());
-}
-*/
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
@@ -98,8 +89,8 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
                ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
 
-  float eta_min = 0.;
-  float eta_max = 1.1;
+  float eta_min = -1.3;
+  float eta_max = 1.3;
   float phi_min = -3.14;
   float phi_max = 3.14;
   float pt_min = 0;
@@ -114,7 +105,7 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
   hm->registerHisto(h2);
 
   h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_pT",  //
-                ";pT [GeV]; mass [GeV/c^{2}] ", 100, pt_min, pt_max, 100, m_min_mass, m_max_mass);
+                ";mass [GeV/c^{2}]; pT [GeV]", 100, m_min_mass, m_max_mass, 100, pt_min, pt_max);
   hm->registerHisto(h2);
   
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_crossing0",  //
@@ -183,83 +174,31 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
   }
   // histogram manager
 
-  /*
-  if (m_svtxEvalStack)
-    m_svtxEvalStack->next_event(topNode);
-
-  std::vector<CLHEP::HepLorentzVector> daughters;
-  for (auto &[key, track] : *m_trackMap)
+  if (hasTriggerInfo) 
   {
-    SvtxTrack *thisTrack = getTrack(key, m_trackMap);
-    CLHEP::HepLorentzVector *theVector = makeHepLV(topNode, thisTrack->get_id());
-    if (theVector) daughters.push_back(*theVector);
+    triggeranalyzer->decodeTriggers(topNode);
   }
-
-  CLHEP::HepLorentzVector mother;
-  if (daughters.size() >= 2)
-  {
-    for (CLHEP::HepLorentzVector daughter : daughters)
-    {
-      mother += daughter;
-    }
-  }
-
-  //h_mass->Fill(mother.m());
-
-  daughters.clear();
-  */
-
-  // float m_calculated_mother_decaytime = -1;
-  // float m_calculated_mother_decaytime_err = -1;
-  // const float speedOfLight = 2.99792458e-1;
-
-  // std::map<unsigned int, KFParticle*> Map = m_kfpContainer->returnParticlesByPDGid(m_mother_id);
-
-  /*
-  std::vector<int> d_id;
-  std::vector<KFParticle> vertex_vec = kfpTools.makeAllPrimaryVertices(topNode, "SvtxVertexMap");
-
-  for (KFParticle_Container::Iter iter = m_kfpContainer->begin(); iter != m_kfpContainer->end(); ++iter)
-  {
-    if (iter->second->GetPDG() != m_mother_id)
-    {
-      if (d_id.size() == 0)
-      {
-        d_id.push_back(abs(iter->second->GetPDG()));
-      }
-      else
-      {
-        for (unsigned int j = 0; j < d_id.size(); ++j)
-        {
-          if (abs(iter->second->GetPDG()) == d_id[j])
-          {
-            continue;
-          }
-          else if (j == d_id.size() - 1)
-          {
-            d_id.push_back(abs(iter->second->GetPDG()));
-          }
-        }
-      }
-    }
-  }
-  */
-
-  triggeranalyzer->decodeTriggers(topNode);
   
   for (auto &iter : *m_kfpContainer)
   {
     if (iter.second->GetPDG() == m_mother_id)
     {
       // filling mother histogram information
+      float eta = 0;
+      float etaErr = 0;
+      float phi = 0;
+      float phiErr = 0;
+
+      iter.second->GetEta(eta, etaErr);
+      iter.second->GetPhi(phi, phiErr);
+
       h_mass_KFP->Fill(iter.second->GetMass());
 
-      h_mass_KFP_eta->Fill(iter.second->GetMass(), iter.second->GetEta());
+      h_mass_KFP_eta->Fill(iter.second->GetMass(), eta);
 
-      h_mass_KFP_phi->Fill(iter.second->GetMass(), iter.second->GetPhi());
+      h_mass_KFP_phi->Fill(iter.second->GetMass(), phi);
 
-      h_mass_KFP_pt->Fill(iter.second->GetPt(), iter.second->GetMass());
-      // h_DecayTime->Fill(part->GetLifeTime());
+      h_mass_KFP_pt->Fill(iter.second->GetMass(), iter.second->GetPt());
      
       const std::vector<int> track_ids = iter.second->DaughterIds(); 
       SvtxTrack *kfpTrack = nullptr;
@@ -284,19 +223,22 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
         }
       }
 
-      for (int i = 0; i < nTriggerBits; ++i)
+      if (hasTriggerInfo)
       {
-        if (m_ZDC_Coincidence_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
+        for (int i = 0; i < nTriggerBits; ++i)
         {
-          h_mass_KFP_ZDC_Coincidence->Fill(iter.second->GetMass());
-        }
-        else if (m_MBD_NandS_geq_1_vtx_l_30_cm_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
-        {
-          h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm->Fill(iter.second->GetMass());
-        }
-        else if (m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
-        {
-          h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm->Fill(iter.second->GetMass());
+          if (m_ZDC_Coincidence_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
+          {
+            h_mass_KFP_ZDC_Coincidence->Fill(iter.second->GetMass());
+          }
+          else if (m_MBD_NandS_geq_1_vtx_l_30_cm_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
+          {
+            h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm->Fill(iter.second->GetMass());
+          }
+          else if (m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
+          {
+            h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm->Fill(iter.second->GetMass());
+          }
         }
       }
     }
@@ -307,95 +249,14 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-/*
-SvtxTrack *QAKFParticle::getTrack(unsigned int track_id, SvtxTrackMap *trackmap)
-{
-  SvtxTrack *matched_track = NULL;
-
-  for (SvtxTrackMap::Iter iter = trackmap->begin();
-       iter != trackmap->end();
-       ++iter)
-  {
-    if (iter->first == track_id) matched_track = iter->second;
-  }
-
-  return matched_track;
-}
-*/
-
-/*
-PHG4Particle *QAKFParticle::getTruthTrack(SvtxTrack *thisTrack)
-{
-  if (!clustereval)
-  {
-    clustereval = m_svtxEvalStack->get_cluster_eval();
-  }
-
-  TrkrDefs::cluskey clusKey = *thisTrack->begin_cluster_keys();
-  PHG4Particle *particle = clustereval->max_truth_particle_by_cluster_energy(clusKey);
-
-  return particle;
-}
-*/
-
-/*
-CLHEP::HepLorentzVector *QAKFParticle::makeHepLV(PHCompositeNode *topNode, int track_number)
-{
-  SvtxTrack *track = getTrack(track_number, m_trackMap);
-  PHG4Particle *g4particle = getTruthTrack(track);
-  CLHEP::HepLorentzVector *lvParticle = NULL;
-
-  PHHepMCGenEventMap *m_geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
-  if (!m_geneventmap)
-  {
-    std::cout << "Missing node PHHepMCGenEventMap" << std::endl;
-    std::cout << "You will have no mother information" << std::endl;
-    return NULL;
-  }
-
-  PHHepMCGenEvent *m_genevt = m_geneventmap->get(1);
-  if (!m_genevt)
-  {
-    std::cout << "Missing node PHHepMCGenEvent" << std::endl;
-    std::cout << "You will have no mother information" << std::endl;
-    return nullptr;
-  }
-
-  HepMC::GenEvent *theEvent = m_genevt->getEvent();
-
-  bool breakOut = false;
-  for (HepMC::GenEvent::particle_const_iterator p = theEvent->particles_begin(); p != theEvent->particles_end(); ++p)
-  {
-    assert((*p));
-    if ((*p)->barcode() == g4particle->get_barcode())
-    {
-      for (HepMC::GenVertex::particle_iterator mother = (*p)->production_vertex()->particles_begin(HepMC::parents);
-           mother != (*p)->production_vertex()->particles_end(HepMC::parents); ++mother)
-      {
-        if (abs((*mother)->pdg_id()) == m_mother_id)
-        {
-          lvParticle = new CLHEP::HepLorentzVector();
-          lvParticle->setVectM(CLHEP::Hep3Vector(track->get_px(), track->get_py(), track->get_pz()), kfpTools.getParticleMass((*p)->pdg_id()));
-        }
-        else
-          continue;
-        break;
-      }
-      breakOut = true;
-    }
-    if (breakOut) break;
-  }
-
-  return lvParticle;
-}
-*/
-
 int QAKFParticle::load_nodes(PHCompositeNode *topNode)
 {
-  m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, "reconstructedParticles_KFParticle_Container");
+
+  std::string kfpContainerNodeName = m_KFParticleNodeName + "_KFParticle_Container";
+  m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, kfpContainerNodeName.c_str());
   if (!m_kfpContainer)
   {
-    std::cout << "reconstructedParticles_KFParticle_Container - Fatal Error - "
+    std::cout << kfpContainerNodeName << " - Fatal Error - "
               << "unable to find DST node "
               << "KFParticle_QA" << std::endl;
     assert(m_kfpContainer);
@@ -428,6 +289,7 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
   auto triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
   if (!triggerruninfo)
   {
+    hasTriggerInfo = false;
     //std::cout << "No triggerRunInfo" << std::endl;
     return;
   }
@@ -451,7 +313,6 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
 
   for (int i = 0; i < nTriggerBits; ++i)
   {
-    //std::cout << "in loop" << std::endl;
     std::string triggerName = triggeranalyzer->getTriggerName(i);
 
     if (triggerName.find("unknown") != std::string::npos)
