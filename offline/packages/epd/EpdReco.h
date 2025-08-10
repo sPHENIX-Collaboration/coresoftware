@@ -43,6 +43,7 @@ class EpdReco : public SubsysReco
 
   std::array<float, 24> tilephi{};
   std::array<float, 12> tilephi0{};
+  std::array<float, 744> m_calibration_constants{};
 };
 
 #endif  // EPD_EPDRECO_H

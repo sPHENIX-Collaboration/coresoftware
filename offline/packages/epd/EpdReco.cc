@@ -48,7 +48,7 @@ int EpdReco::InitRun(PHCompositeNode *topNode)
   }
   if (!m_overrideFieldName)
   {
-    m_fieldname = "sepd_calib";
+    m_fieldname = "mip_calib";
   }
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
   if (!calibdir.empty())
@@ -60,6 +60,12 @@ int EpdReco::InitRun(PHCompositeNode *topNode)
     std::cout << "EpdReco::::InitRun No calibration file for domain "
               << m_calibName << " found" << std::endl;
     exit(1);
+  }
+
+  for (unsigned int ch = 0; ch < 744; ch++)
+  {
+    unsigned int key = TowerInfoDefs::encode_epd(ch);
+    m_calibration_constants[ch] = cdbttree->GetFloatValue(key, m_fieldname);
   }
 
   CreateNodes(topNode);
@@ -141,8 +147,21 @@ int EpdReco::process_event(PHCompositeNode *topNode)
   {
     float ch_time = _sepd_towerinfo->get_tower_at_channel(ch)->get_time_float();
     float ch_adc = _sepd_towerinfo->get_tower_at_channel(ch)->get_energy();
-    float ch_mpv = cdbttree->GetFloatValue(ch, m_fieldname);
-    double ch_nmip = ch_adc / ch_mpv;
+    float ch_mpv = m_calibration_constants[ch];
+    double ch_nmip;
+    
+    // Check for bad channel calibration constant
+    if (ch_mpv <= 0)
+    {
+      // Bad channel marker (-999) or invalid calibration
+      ch_nmip = 0.0;
+      m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_isNoCalib(true);
+    }
+    else
+    {
+      ch_nmip = ch_adc / ch_mpv;
+    }
+    
     m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_energy(ch_nmip);
     m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_time_float(ch_time);
   }
