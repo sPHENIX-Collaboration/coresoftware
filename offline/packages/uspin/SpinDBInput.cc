@@ -252,7 +252,7 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
 
   if (qa_level == ERROR_VALUE)
   {
-    std::cout << "You did not set a qa_level.  Please do so with SpinDBContentv1::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
+    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
     return (0);
   }
 
@@ -692,7 +692,7 @@ int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
 
   if (qa_level == ERROR_VALUE)
   {
-    std::cout << "You did not set a qa_level.  Please do so with SpinDBContentv1::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
+    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
     return (0);
   }
 
