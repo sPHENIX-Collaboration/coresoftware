@@ -16,6 +16,15 @@
 #include <trackbase/TrkrHitSet.h>
 
 #include <trackbase_historic/TrackSeedContainer_v1.h>
+
+#include <globalvertex/GlobalVertex.h>
+#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
+
+#include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/Gl1RawHit.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -37,6 +46,17 @@
 #include <trackermillepedealignment/HelicalFitter.h>
 
 #include <ffamodules/CDBInterface.h>
+#include <cdbobjects/CDBTTree.h>
+#include <ffamodules/CDBInterface.h>
+
+/*#include <odbc++/connection.h>
+#include <odbc++/drivermanager.h>
+#include <odbc++/resultset.h>
+#include <odbc++/statement.h>
+#include <odbc++/types.h>
+*/
+#include <mbd/MbdPmtContainer.h>
+#include <mbd/MbdPmtHit.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -78,6 +98,31 @@ enum n_info // NOLINT(readability-enum-initial-value, performance-enum-size)
   infonocc216,
   infonocc31,
   infonocc316,
+  infonrawzdc,
+  infonlivezdc,
+  infonscaledzdc,
+  infonrawmbd,
+  infonlivembd,
+  infonscaledmbd,
+  infonrawmbdv10,
+  infonlivembdv10,
+  infonscaledmbdv10,
+  infonrawzdc1,
+  infonlivezdc1,
+  infonscaledzdc1,
+  infonrawmbd1,
+  infonlivembd1,
+  infonscaledmbd1,
+  infonrawmbdv101,
+  infonlivembdv101,
+  infonscaledmbdv101,
+  inforzdc,
+  informbd,
+  informbdv10,
+  infonbco1,
+  infonbco,
+  infonbcotr,
+  infonbcotr1,
   infontrk,
   infonntpcseed,
   infonnsiseed,
@@ -152,6 +197,8 @@ enum n_seed // NOLINT(readability-enum-initial-value, performance-enum-size)
   nseedkdedx,
   nseedprdedx,
   nseedn1pix,
+  nseednsil,
+  nseedntpc,
   nseednhits,
   seedsize = nseednhits + 1
 };
@@ -232,6 +279,9 @@ enum n_cluster // NOLINT(readability-enum-initial-value, performance-enum-size)
   nclutheta,
   ncluphibin,
   nclutbin,
+  nclufee,
+  ncluchan,
+  nclusampa,
   ncluex,
   ncluey,
   ncluez,
@@ -282,18 +332,18 @@ TrkrNtuplizer::~TrkrNtuplizer()
 int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
 {
   _ievent = 0;
-
+  
   _tfile = new TFile(_filename.c_str(), "RECREATE");
   _tfile->SetCompressionLevel(7);
+  
   std::string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
   std::string str_event = {"event:seed:run:seg:job"};
   std::string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
-  std::string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:thick:afac:bfac:dcal:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
-  std::string str_seed = {"seedID:siter:spt:sptot:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:spidedx:skdedx:sprdedx:sn1pix:snhits"};
+  std::string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:fee:chan:sampa:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:thick:afac:bfac:dcal:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
+  std::string str_seed = {"seedID:siter:spt:sptot:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:spidedx:skdedx:sprdedx:sn1pix:snsil:sntpc:snhits"};
   std::string str_residual = {"alpha:beta:resphio:resphi:resz"};
   std::string str_track = {"trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:dedx:pidedx:kdedx:prdedx:nlmaps:nlintt:nltpc:nlmms:layers:vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:hlxpt:hlxeta:hlxphi:hlxX0:hlxY0:hlxZ0:hlxcharge"};
-  std::string str_info = {"occ11:occ116:occ21:occ216:occ31:occ316:ntrk:ntpcseed:nsiseed:nhitmvtx:nhitintt:nhittpot:nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclustpcpos:nclustpcneg:nclusintt:nclusmaps:nclusmms"};
-
+  std::string str_info = {"occ11:occ116:occ21:occ216:occ31:occ316:rawzdc:livezdc:scaledzdc:rawmbd:livembd:scaledmbd:rawmbdv10:livembdv10:scaledmbdv10:rawzdc1:livezdc1:scaledzdc1:rawmbd1:livembd1:scaledmbd1:rawmbdv101:livembdv101:scaledmbdv101:rzdc:rmbd:rmbdv10:bco1:bco:bcotr:bcotr1:ntrk:ntpcseed:nsiseed:nhitmvtx:nhitintt:nhittpot:nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclustpcpos:nclustpcneg:nclusintt:nclusmaps:nclusmms"};
   if (_do_info_eval)
   {
     std::string ntp_varlist_info = str_event + ":" + str_info;
@@ -503,9 +553,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
   dedxcorr[1][11][0] *= 0.85 ;
   dedxcorr[1][11][1] *= 0.85 ;
   dedxcorr[1][11][2] *= 0.88 ;
-  
-
-
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -520,11 +568,219 @@ int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
- return Fun4AllReturnCodes::EVENT_OK;
+
+ // Create Fee Map
+  auto geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  {
+    if (!geom_container)
+    {
+      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+  m_cdb = CDBInterface::instance();
+  std::string calibdir = m_cdb->getUrl("TPC_FEE_CHANNEL_MAP");
+
+  if (calibdir[0] == '/')
+  {
+    // use generic CDBTree to load
+    m_cdbttree = new CDBTTree(calibdir);
+    m_cdbttree->LoadCalibrations();
+  }
+  else
+  {
+    std::cout << "TrkrNtuplizer::::InitRun No calibration file found" << std::endl;
+    exit(1);
+  }
+  //  for(unsigned int side = 0; side <=1;side++){
+
+  for(unsigned int sector = 0; sector <24;sector++){
+    int side = 1;
+    if (sector > 11){
+      side = 0;
+    }
+    for(unsigned int fee = 0; fee <= 25; fee++){
+      for(unsigned int channel = 0; channel <= 255; channel++){
+	int feeM = FEE_map[fee];
+	if (FEE_R[fee] == 2){
+	  feeM += 6;
+	}
+	if (FEE_R[fee] == 3){
+	  feeM += 14;
+	}
+	unsigned int key = (256 * (feeM)) + channel;
+	std::string varname = "layer";
+	unsigned int layer = m_cdbttree->GetIntValue(key, varname);
+	// antenna pads will be in 0 layer
+	if (layer <= 6){
+	  continue;
+	}
+	varname = "phi";  // + std::to_string(key);
+	double phi = ((side == 1 ? 1 : -1) * (m_cdbttree->GetDoubleValue(key, varname) - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
+	PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
+	unsigned int phibin = layergeom->get_phibin(phi, side);
+	//get global coords
+	double radius = layergeom->get_radius();  // returns center of layer
+	double chanphi = layergeom->get_phi(phibin, side);
+	float chanx = radius * cos(chanphi);
+	float chany = radius * sin(chanphi);
+    
+	TrkrDefs::cluskey dummykey  = TpcDefs::genClusKey(layer, (mc_sectors[sector % 12]), side, phibin);
+	fee_info nufeeinfo;
+	nufeeinfo.fee = fee;
+	nufeeinfo.channel = channel;
+	nufeeinfo.sampa = channel%32;
+	fee_map.insert(std::make_pair(dummykey, nufeeinfo));
+	if (Verbosity() > 0){
+	  std::cout << "side sec lay phibin " << side
+		  << " | hw " << sector
+		  << " | mc " <<  (mc_sectors[sector % 12])
+		  << " | " << layer
+		  << " | " << phibin
+		  << " => fee, channel " 
+		  << fee << " | " << channel
+		  << " x | y " << chanx << " | " <<chany 
+		  << std::endl;
+	}
+	//have side, sector, layer, phibin -> fee, channel
+	//	  hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
+	//  hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+	
+      }
+    }
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
 {
+  /*
+  cout << "HELLO" << endl;
+  //get ZDC rate
+  odbc::Connection *dbConnection = odbc::DriverManager::getConnection("daq", "", "");
+  std::string sql = "SELECT * FROM gl1_scalers WHERE runnumber = " + std::to_string(m_runnumber) + ";";
+  odbc::Statement *stmt = dbConnection->createStatement();
+  odbc::ResultSet *resultSet = stmt->executeQuery(sql);
+  std::array<std::array<uint64_t, 3>, 64> scalers{};  // initialize to zero
+  if (!resultSet)
+  {
+    std::cerr << "No db found for run number " << m_runnumber << ". Cannot get ZDC rate so aborting run" << std
+::endl;
+    delete resultSet;
+    delete stmt;
+    delete dbConnection;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  while (resultSet->next())
+  {
+    int index = resultSet->getInt("index");
+    // Iterate over the columns and fill the TriggerRunInfo object
+    scalers[index][0] = resultSet->getLong("scaled");
+    scalers[index][1] = resultSet->getLong("live");
+    scalers[index][2] = resultSet->getLong("raw");
+  }
+
+  delete resultSet;
+  delete stmt;
+  delete dbConnection;
+  m_ZDC_coincidence = (1.0*scalers[3][2]/scalers[0][2])/(106e-9);
+  
+  MbdPmtContainer* bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+  m_mbd_rate = 0;
+  if (bbcpmts)
+  {
+    int nPMTs = bbcpmts->get_npmt();
+    for (int i = 0; i < nPMTs; i++)
+    {
+      m_mbd_rate += bbcpmts->get_pmt(i)->get_q();
+    }
+  }
+  else
+  {
+    if (Verbosity() > 0)
+    {
+      std::cout << "TrackResiduals::process_event: Could not find MbdPmtContainer," << std::endl;
+    }
+  }
+  */
+  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  if (gl1)
+  {
+    m_bco = gl1->get_bco();
+    auto lbshift = m_bco << 24U;
+    m_bcotr = lbshift >> 24U;
+  }
+  else
+  {
+    Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+    if (!gl1PacketInfo)
+    {
+      m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
+      m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
+    }
+    m_firedTriggers.clear();
+
+    if (gl1PacketInfo)
+    {
+      /*      uint64_t raw_scalers[64] = {0};
+      uint64_t live_scalers[64] = {0};
+      uint64_t scaled_scalers[64] = {0};
+      */
+      m_gl1BunchCrossing = gl1PacketInfo->getBunchNumber();
+      uint64_t triggervec = gl1PacketInfo->getTriggerVector();
+      m_bco = gl1PacketInfo->getBCO();
+      auto lbshift = m_bco << 24U;
+      m_bcotr = lbshift >> 24U;
+      for (int i = 0; i < 64; i++)
+      {
+	/*
+	raw_scalers[i] =  gl1PacketInfo->lValue(0, i); 
+	live_scalers[i] =   gl1PacketInfo->lValue(1, i);
+	scaled_scalers[i] =  gl1PacketInfo->lValue(2, i);
+	*/
+        bool trig_decision = ((triggervec & 0x1U) == 0x1U);
+        if (trig_decision)
+        {
+          m_firedTriggers.push_back(i);
+        }
+        triggervec = (triggervec >> 1U) & 0xffffffffU;
+      }
+      for(int i1 = 0;i1<=12;i1++){
+	for(int i2 = 0;i2<3;i2++){
+	  //	  if (i1>=3&&i1<=9) continue;
+	  //if (i1==11) continue;
+	  //if (i1==10&&i2==2) continue;
+	  /*
+	  std::cout << " index 1: " << i1
+		    << " index 2: " << i2
+		    << " scaler: " << gl1PacketInfo->lValue(i1, i2)
+		    << std::endl;
+	  */
+	}
+      }
+      m_rawzdc = gl1PacketInfo->lValue(2, 0);//raw_scalers[1];
+      m_livezdc = gl1PacketInfo->lValue(2, 1);//live_scalers[1];
+      m_scaledzdc = gl1PacketInfo->lValue(2, 2);//scaled_scalers[1];
+      m_rawmbd = gl1PacketInfo->lValue(10, 0);//raw_scalers[10];
+      m_livembd = gl1PacketInfo->lValue(10, 1);//live_scalers[10];
+      m_scaledmbd = gl1PacketInfo->lValue(10, 2);//scaled_scalers[10];
+      m_rawmbdv10 = gl1PacketInfo->lValue(12, 0);//raw_scalers[12];
+      m_livembdv10 = gl1PacketInfo->lValue(12, 1);//live_scalers[12];
+      m_scaledmbdv10 = gl1PacketInfo->lValue(12, 2);// scaled_scalers[12];
+
+      m_rawzdc_hist.push(m_rawzdc);
+      m_rawmbd_hist.push(m_rawmbd);
+      m_rawmbdv10_hist.push(m_rawmbdv10);
+      m_bco_hist.push(m_bco);
+      
+      /*    MBD NS >= 2 is trigger bit 10
+	    MBD NS >=2 w/ vtx < 10 cm is trigger bit 12
+	    ZDC is trigger bit 1
+      */
+    }
+  }
+
   if ((Verbosity() > 1) && (_ievent % 100 == 0))
   {
     std::cout << "TrkrNtuplizer::process_event - Event = " << _ievent << std::endl;
@@ -590,8 +846,19 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
   //--------------------------------------------------
 
   // printOutputInfo(topNode);
-
+  /*
   ++_ievent;
+  if(m_rawzdc_hist.size()==50){
+    m_rawzdc_hist.pop();
+    m_rawmbd_hist.pop();
+    m_rawmbdv10_hist.pop();
+    m_bco_hist.pop();
+  }
+  m_rawzdclast = m_rawzdc;
+  m_rawmbdlast = m_rawmbd;
+  m_rawmbdv10last = m_rawmbdv10;
+  m_bcolast =m_bco;
+  */
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -956,7 +1223,59 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	     << " occ316 = " << fx_info[n_info::infonocc316]
 	     << std::endl;
       }
-    
+    /*
+    std::cout << " bco = " << m_bco << " " << m_bcolast
+	 << " zdc = " << m_rawzdc << " " << m_rawzdclast
+	 << " mbd = " << m_rawmbd << " " << m_rawmbdlast
+	 << std::endl;
+
+    std::cout << " zdc rate = "    << (m_rawzdc_hist.back()   -m_rawzdc_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
+	 << " mbd rate = "    << (m_rawmbd_hist.back()   -m_rawmbd_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
+	 << " mbdv10 rate = " << (m_rawmbdv10_hist.back()-m_rawmbdv10_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
+	 << std::endl;
+    */
+    fx_info[n_info::inforzdc] = (m_rawzdc_hist.back()-m_rawzdc_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9);
+    fx_info[n_info::informbd] = (m_rawmbd_hist.back()-m_rawmbd_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9);
+    fx_info[n_info::informbdv10] = (m_rawmbd_hist.back()-m_rawmbd_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9);
+    if(_ievent==0){
+      m_bco1 = m_bco;
+      m_bcotr1 = m_bcotr;
+      m_mbd_rate1 = m_mbd_rate;
+      m_rawzdc1 = m_rawzdc;
+      m_livezdc1 = m_livezdc;
+      m_scaledzdc1 = m_scaledzdc;
+      m_rawmbd1 = m_rawmbd;
+      m_livembd1 = m_livembd;
+      m_scaledmbd1 = m_scaledmbd;
+      m_rawmbdv101 = m_rawmbdv10;
+      m_livembdv101 = m_livembdv10;
+      m_scaledmbdv101 = m_scaledmbdv10;
+    }
+    fx_info[n_info::infonbco] = m_bco - m_bco1;
+    fx_info[n_info::infonbcotr] = m_bcotr - m_bcotr1;
+    fx_info[n_info::infonbco1] = m_bco1;
+    fx_info[n_info::infonbcotr1] = m_bcotr1;
+
+    fx_info[n_info::infonrawzdc] =  m_rawzdc;
+    fx_info[n_info::infonlivezdc] =  m_livezdc;
+    fx_info[n_info::infonscaledzdc] =  m_scaledzdc;
+    fx_info[n_info::infonrawmbd ] =  m_rawmbd;
+    fx_info[n_info::infonlivembd] =  m_livembd;
+    fx_info[n_info::infonscaledmbd] =  m_scaledmbd;
+    fx_info[n_info::infonrawmbdv10] =  m_rawmbdv10;
+    fx_info[n_info::infonlivembdv10] =  m_livembdv10;
+    fx_info[n_info::infonscaledmbdv10] =  m_scaledmbdv10;
+
+    fx_info[n_info::infonrawzdc1] =  m_rawzdc1;
+    fx_info[n_info::infonlivezdc1] =  m_livezdc1;
+    fx_info[n_info::infonscaledzdc1] =  m_scaledzdc1;
+    fx_info[n_info::infonrawmbd1] =  m_rawmbd1;
+    fx_info[n_info::infonlivembd1] =  m_livembd1;
+    fx_info[n_info::infonscaledmbd1] =  m_scaledmbd1;
+    fx_info[n_info::infonrawmbdv101] =  m_rawmbdv101;
+    fx_info[n_info::infonlivembdv101] =  m_livembdv101;
+    fx_info[n_info::infonscaledmbdv101] =  m_scaledmbdv101;
+  
     if (_cluster_map)
       {
 	fx_info[n_info::infonclusall] = _cluster_map->size();
@@ -1279,8 +1598,6 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   }
   if (_ntp_clus_trk)
   {
-    
-    
     if (Verbosity() > 1)
     {
       std::cout << "Filling ntp_clus_trk " << std::endl;
@@ -1374,7 +1691,15 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         float tY0 = tpcseed->get_Y0();
         float tZ0 = tpcseed->get_Z0();
 
-        float nhits_local = clusterPositions.size();
+        float nsil_local = 0;
+	float ntpc_local = 0;
+	if (siseed){
+	  nsil_local = siseed->size_cluster_keys();
+	}
+	if (tpcseed){
+	  ntpc_local = tpcseed->size_cluster_keys();
+	}
+	float nhits_local = clusterPositions.size();
         if (Verbosity() > 1)
         {
           std::cout << " tpc: " << tpcseed->size_cluster_keys() << std::endl;
@@ -1382,7 +1707,6 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           {
             std::cout << " si " << siseed->size_cluster_keys() << std::endl;
           }
-          std::cout << "done seedsize" << std::endl;
         }
         //      nhits_local += tpcseed->size_cluster_keys();
         // fill the Gseed NTuple
@@ -1401,8 +1725,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  prdedx = f_proton_plus->Eval(tptot);
 	}
 	float n1pix = get_n1pix(tpcseed);
-        float fx_seed[n_seed::seedsize] = {(float) trackID, 0, tpt, tptot, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, pidedx, kdedx, prdedx, n1pix, nhits_local};
-
+        float fx_seed[n_seed::seedsize] = {(float) trackID, 0, tpt, tptot, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, pidedx, kdedx, prdedx, n1pix, nsil_local, ntpc_local, nhits_local};
         if (_ntp_tpcseed)
         {
           float* tpcseed_data = new float[((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize];
@@ -1412,13 +1735,13 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           _ntp_tpcseed->Fill(tpcseed_data);
 	  delete[] tpcseed_data;
         }
+	
         for (unsigned int i = 0; i < clusterPositions.size(); i++)
         {
           TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
 	  unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
 	  Acts::Vector3 position = clusterPositions[i];
           Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams, position);
-
           float cluster_phi = atan2(position(1), position(0));
           float pca_phi = atan2(pca(1), pca(0));
           float dphi = cluster_phi - pca_phi;
@@ -1438,7 +1761,6 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 	  float alpha = (resr * resr) / (2 * resr * seedR);
 	  float beta = std::abs(std::atan(tpcseed->get_slope()));
           float fx_cluster[n_cluster::clusize];
-
 	  if(layer_local>=7&&layer_local<55){
 	    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
 	    float thick = GeoLayer_local->get_thickness();
@@ -1750,6 +2072,11 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
 	  continue;
       }
       TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+      Acts::Vector3 cglob;
+      cglob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+      //      float x = cglob(0);
+      // float y = cglob(1);
+      float z = cglob(2);
       int cside = TpcDefs::getSide(cluster_key);
       int csector = TpcDefs::getSectorId(cluster_key);
       int csegment = 0;
@@ -1778,6 +2105,7 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
       if(betacorr<0||betacorr>4){
 	betacorr=4;
       }
+      adc /= (1-((105-abs(z))*0.50/105));
       adc/=thick;
       adc*=alphacorr;
       adc*=betacorr;
@@ -1826,7 +2154,7 @@ void TrkrNtuplizer::FillCluster(float fXcluster[n_cluster::clusize], TrkrDefs::c
   float r = pos.Perp();
   float phi = pos.Phi();
   auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
-  float phibin = std::numeric_limits<float>::quiet_NaN();
+  unsigned int phibin = std::numeric_limits<unsigned int>::quiet_NaN();
   float tbin = std::numeric_limits<float>::quiet_NaN();
   float locx = cluster->getLocalX();
   float locy = cluster->getLocalY();
@@ -1835,11 +2163,23 @@ void TrkrNtuplizer::FillCluster(float fXcluster[n_cluster::clusize], TrkrDefs::c
   {
     int side_tpc = TpcDefs::getSide(cluster_key);
     PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
-    phibin = GeoLayer_local->get_pad_float(phi, side_tpc);
+    phibin = (unsigned int) GeoLayer_local->get_pad_float(phi, side_tpc)+0.5;
     tbin = GeoLayer_local->get_tbin_float(locy - 39.6);
-    int cside = TpcDefs::getSide(cluster_key);
-    int csector = TpcDefs::getSectorId(cluster_key);
-    int csegment = 0;
+    unsigned int cside = TpcDefs::getSide(cluster_key);
+    unsigned int csector = TpcDefs::getSectorId(cluster_key);
+    unsigned int csegment = 0;
+    TrkrDefs::cluskey dummykey  = TpcDefs::genClusKey(layer_local, csector, cside, phibin);
+    std::map<TrkrDefs::cluskey, fee_info>::iterator fee_it =  fee_map.find(dummykey);
+    if (fee_it != fee_map.end())
+    {
+      fXcluster[n_cluster::nclufee] = (*fee_it).second.fee;
+      fXcluster[n_cluster::ncluchan] = (*fee_it).second.channel;
+      fXcluster[n_cluster::nclusampa] = (*fee_it).second.sampa;
+
+    }else{
+      fXcluster[n_cluster::nclufee] = 0;
+      fXcluster[n_cluster::ncluchan] = 0;
+    }
     if(layer_local >= 7+32){
       csegment = 2;
     }else if(layer_local >=7+16){
