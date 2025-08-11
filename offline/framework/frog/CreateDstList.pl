@@ -65,8 +65,10 @@ if ($#ARGV < 0)
 	print "--list <file with list of runs>\n";
 	print "--printdatasets: print existing datasets\n";
 	print "--printdsttypes: print existing dst types\n";
+        print "             needs --dataset <dataset> flag\n";
 	print "--printruns: print existing runs (for piping into a runlist)\n";
         print "             needs --dataset <dataset> flag\n";
+        print "             needs --tag <tag> flag\n";
 	print "--printtags: print existing tags\n";
 	print "--run <run number>\n";
 	print "--tag <tag (build_cdb_version)> (mandatory)\n";
@@ -153,6 +155,10 @@ sub creatfilelists
 	    print "no dsts for type $dsttyp for run $run\n";
 	    unlink $filename;
 	}
+	else
+	{
+	    print "wrote $filename\n";
+	}
     }
     #x	print Dumper(\%files);
 }
@@ -208,24 +214,55 @@ sub printtags
 
 sub printruns
 {
-if (!defined $dataset)
-{
-    print "printruns needs dataset\n";
-}
-    my $sqlcmd = sprintf("select datasets.runnumber,datasets.dsttype from datasets where dataset = '%s' group by runnumber,dsttype",$dataset);
-    my $icnt = 0;
-    $sqlcmd = sprintf("%s and tag = '$tag' and dsttype='$ARGV[0]'order by runnumber",$sqlcmd);
+    my %dsttype = ();
+    while($#ARGV >= 0)
+    {
+	$dsttype{$ARGV[0]} = 1;
+	shift (@ARGV);
+    }
+    my $isgood = 1;
+    if (!defined $dataset)
+    {
+	print "printruns needs --dataset <dataset>\n";
+	$isgood = 0;
+    }
+    if (! defined $tag)
+    {
+	print "printruns needs --tag <tag>\n";
+	$isgood = 0;
+    }
+    if ($isgood == 0)
+    {
+	exit 1;
+    }
+    my $sqlcmd = sprintf("select datasets.runnumber,datasets.dsttype from datasets where dataset = '%s' and tag = '%s' group by runnumber,dsttype",$dataset,$tag);
     my $getruns =  $dbh->prepare($sqlcmd);
     $getruns->execute();
+    my %selruns = ();
     if ($getruns->rows == 0)
     {
-	print "no run found for tag $tag and dst type $ARGV[0]\n";
+	print "no run found for tag $tag and dataset $dataset\n";
     }
     else
     {
+	my $icnt = 0;
 	while (my @res = $getruns->fetchrow_array())
 	{
-	    print "$res[0]\n";
+	    if (keys %dsttype > 0 && !exists $dsttype{$res[1]})
+	    {
+		next;
+	    }
+	    $selruns{$res[0]} = 1;
+	    $icnt++;
+	}
+	if ($icnt == 0)
+	{
+	    print "no run for selected dst types\n";
+	    exit 1;
+	}
+	foreach my $rn (sort keys %selruns)
+	{
+	    print "$rn\n";
 	}
     }
     exit(0);
@@ -239,19 +276,19 @@ sub printdatasets
     my %ds = ();
     while (my @res = $getdatasets->fetchrow_array())
     {
-	    my $addthis = 1;
-	    foreach my $ignore (keys %ignore_datasets)
+	my $addthis = 1;
+	foreach my $ignore (keys %ignore_datasets)
+	{
+	    if ($res[0] eq $ignore)
 	    {
-		if ($res[0] eq $ignore)
-		{
-		    $addthis = 0;
-		    last;
-		}
+		$addthis = 0;
+		last;
 	    }
-	    if ($addthis == 1)
-	    {
-		$ds{$res[0]} = 1;
-	    }
+	}
+	if ($addthis == 1)
+	{
+	    $ds{$res[0]} = 1;
+	}
     }
     foreach my $dd (sort keys %ds)
     {
@@ -262,10 +299,10 @@ sub printdatasets
 
 sub printdsttypes
 {
-if (!defined $dataset)
- {
-    print "printruns needs dataset\n";
-}
+    if (!defined $dataset)
+    {
+	print "printruns needs dataset\n";
+    }
     my $sqlcmd = sprintf("select datasets.dsttype,datasets.tag from datasets where dataset = '%s' group by dsttype,tag",$dataset);
     my $getdsttypes = $dbh->prepare($sqlcmd);
     $getdsttypes->execute();
