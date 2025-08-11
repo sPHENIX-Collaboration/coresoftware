@@ -3,17 +3,18 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libuspin.la
 
-AM_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L$(OPT_SPHENIX)/lib \
-  `root-config --libs`
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
   -isystem$(OPT_SPHENIX)/include
+
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
+  -L$(OPT_SPHENIX)/lib \
+  -L$(ROOTSYS)/lib
 
 pkginclude_HEADERS = \
   SpinDBInput.h \
@@ -21,6 +22,14 @@ pkginclude_HEADERS = \
   SpinDBContentv1.h \
   SpinDBOutput.h \
   SpinDBNode.h
+
+ROOTDICTS = \
+  SpinDBContent_Dict.cc \
+  SpinDBContentv1_Dict.cc
+
+pcmdir = $(libdir)
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libuspin_la_SOURCES = \
   $(ROOTDICTS) \
@@ -30,23 +39,13 @@ libuspin_la_SOURCES = \
   SpinDBOutput.cc \
   SpinDBNode.cc
 
-libuspin_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L$(OPT_SPHENIX)/lib \
+libuspin_la_LIBADD = \
   -lodbc++ \
   -lphool \
   -lfun4all \
   -lffaobjects \
   -lffarawobjects
 
-ROOTDICTS = \
-  SpinDBContent_Dict.cc \
-  SpinDBContentv1_Dict.cc 
-
-pcmdir = $(libdir)
-# more elegant way to create pcm files (without listing them)
-nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
