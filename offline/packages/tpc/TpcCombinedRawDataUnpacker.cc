@@ -300,6 +300,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
+    varname = "phi";
     double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
     PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned int phibin = layergeom->get_phibin(phi);
@@ -308,7 +309,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     uint16_t sampch = tpchit->get_sampachannel();
     //    uint16_t sam = tpchit->get_samples();
     max_time_range = tpchit->get_samples();
-    varname = "phi";  // + std::to_string(key);
+     
     int region = 0;
     if(layer > 15)
     {
