@@ -14,11 +14,8 @@ class SpinDBNode : public SubsysReco
  public:
   SpinDBNode(const std::string &name = "SpinDBNode");
 
-  ~SpinDBNode() override;
-  int Init(PHCompositeNode *topNode) override;
+  ~SpinDBNode() override = default;
   int InitRun(PHCompositeNode *topNode) override;
-  int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
  private:
 };

@@ -23,13 +23,6 @@ SpinDBNode::SpinDBNode(const std::string &name)
 {
 }
 
-SpinDBNode::~SpinDBNode() = default;
-
-int SpinDBNode::Init(PHCompositeNode * /*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int SpinDBNode::InitRun(PHCompositeNode *topNode)
 {
   RunHeader *runHeader = findNode::getClass<RunHeader>(topNode, "RunHeader");
@@ -61,15 +54,5 @@ int SpinDBNode::InitRun(PHCompositeNode *topNode)
     lowerNode->addNode(spindbcontentNode);
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int SpinDBNode::process_event(PHCompositeNode * /*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int SpinDBNode::End(PHCompositeNode * /*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
