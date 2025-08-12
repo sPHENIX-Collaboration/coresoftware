@@ -69,7 +69,7 @@ class CaloPacketv1 : public CaloPacket
   void setPacketEvtSequence(int i) override { PacketEvtSequence = i; }
   int getPacketEvtSequence() const override { return PacketEvtSequence; }
   int iValue(const int n, const std::string &what) const override;
-  int iValue(const int channel, const int sample) const override;
+  int iValue(const int sample, const int channel) const override;
   void dump(std::ostream &os = std::cout) const override;
   void dump_iddigitizer(std::ostream &os = std::cout) const;
 
