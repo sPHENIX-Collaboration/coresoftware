@@ -117,7 +117,6 @@ class PHSimpleKFProp : public SubsysReco
   size_t _min_clusters_per_track = 3;
 
   //! internal field conversion to get the right particle sign
-  double _fieldDir = -1;
 
   double _max_sin_phi = 1.;
   bool _pp_mode = false;

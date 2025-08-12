@@ -83,10 +83,6 @@ class PrelimDistortionCorrectionAuAu : public SubsysReco
   int get_nodes(PHCompositeNode *topNode);
 
   size_t _min_clusters_per_track = 3;
-
-  //! internal sign flip for field direction to get the correct charge from kalman filter
-  double _fieldDir = -1;
-
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
 
