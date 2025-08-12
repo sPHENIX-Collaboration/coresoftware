@@ -623,7 +623,7 @@ void MakeActsGeometry::buildActsSurfaces()
   assert(argstr.size()<argc);
 
   // print arguments
-  // if (Verbosity() > 1)
+  if (Verbosity() > 1)
   {
     std::cout << "MakeActsGeometry::buildActsSurfaces - arguments: " << std::endl;
     for( const auto& arg:argstr ) { std::cout << arg << ", "; }
