@@ -2,8 +2,7 @@
 
 #include <phool/PHObject.h>
 
-#include <boost/format.hpp>
-
+#include <format>
 #include <iostream>
 
 //////////////////////////////////////////////////////////
@@ -64,7 +63,7 @@ int SpinDBContentv1::CheckBunchNumber(int bunch) const
 {
   if (bunch < 0 || bunch >= GetNCrossing())
   {
-    std::cout << (boost::format("Error : bunch number (%d) is out of range (0-119).") % bunch).str();
+    std::cout << std::format("Error : bunch number ({}) is out of range (0-119).", bunch) << std::endl;
     return (GetErrorValue());
   }
 
@@ -75,17 +74,17 @@ int SpinDBContentv1::CheckBunchNumber(int bunch) const
 
 void SpinDBContentv1::Print() const
 {
-  std::cout << (boost::format("Run number = %d\n") % runnum).str();
-  std::cout << (boost::format("QA Level = %d\n") % qa_level).str();
-  std::cout << (boost::format("Fill number = %d\n") % fillnum).str();
-  std::cout << (boost::format("Bad run QA = %d\n") % badrun).str();
-  std::cout << (boost::format("Crossing shift = %d\n") % cross_shift).str();
+  std::cout << std::format("Run number = {}", runnum) << std::endl;
+  std::cout << std::format("QA Level = {}", qa_level) << std::endl;
+  std::cout << std::format("Fill number = {}", fillnum) << std::endl;
+  std::cout << std::format("Bad run QA = {}", badrun) << std::endl;
+  std::cout << std::format("Crossing shift = {}", cross_shift) << std::endl;
 
   for (int i = 0; i < GetNCrossing(); i++)
   {
-    std::cout << (boost::format("%3d : %12lld %12lld %12lld : %3d %3d : %d") % i % scaler_mbd_vtxcut[i] % scaler_mbd_nocut[i] % scaler_zdc_nocut[i] % bpat[i] % ypat[i] % bad_bunch[i]).str();
+    std::cout << std::format("{:3} : {:12} {:12} {:12} : {:3} {:3} : {}", i, scaler_mbd_vtxcut[i], scaler_mbd_nocut[i], scaler_zdc_nocut[i], bpat[i], ypat[i], bad_bunch[i]) << std::endl;
 
-    std::cout << (boost::format(" : %6.3f +- %6.3f +- %6.3f %6.3f +- %6.3f +- %6.3f\n") % bpol[i] % bpolerr[i] % bpolsys[i] % ypol[i] % ypolerr[i] % ypolsys[i]).str();
+    std::cout << std::format(" : {:6.3f} +- {:6.3f} +- {:6.3f} {:6.3f} +- {:6.3} +- {:6.3f}", bpol[i], bpolerr[i], bpolsys[i], ypol[i], ypolerr[i], ypolsys[i]) << std::endl;
   }
 
   return;

@@ -42,9 +42,8 @@ libuspin_la_SOURCES = \
 libuspin_la_LIBADD = \
   -lodbc++ \
   -lphool \
-  -lfun4all \
-  -lffaobjects \
-  -lffarawobjects
+  -lSubsysReco \
+  -lffaobjects
 
 
 # Rule for generating table CINT dictionaries.

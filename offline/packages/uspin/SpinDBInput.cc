@@ -7,9 +7,8 @@
 #include <odbc++/resultset.h>
 #include <odbc++/resultsetmetadata.h>
 
-#include <boost/format.hpp>
-
 #include <cstdlib>
+#include <format>
 #include <iostream>
 
 const std::string SpinDBInput::DB_NAME = "spinDB_write";
@@ -35,13 +34,13 @@ void SpinDBInput::Initialize()
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     exit(1);
   }
 
   if (con != nullptr)
   {
-    std::cout << (boost::format("Connected to %s DB.\n") % TABLE_NAME).str();
+    std::cout << std::format("Connected to {} DB.", TABLE_NAME) << std::endl;
   }
 
   return;
@@ -53,7 +52,7 @@ int SpinDBInput::IsConnected()
 {
   if (con == nullptr)
   {
-    std::cout << "Error : No connection to the DB.\n";
+    std::cout << "Error : No connection to the DB.";
     return (0);
   }
 
@@ -84,7 +83,7 @@ int SpinDBInput::CheckRunRow(int runnum, int qa_level, const char *opt)
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     delete rs;
     delete stmt;
     return (ERROR_VALUE);
@@ -109,7 +108,7 @@ int SpinDBInput::CreateRunRow(int runnum, int qa_level)
 {
   if (CheckRunRow(runnum, qa_level, "simple") == 1)
   {
-    std::cout << (boost::format("SpinDBInput::CreateRunRow() Error : Row for run %1% with qa level %2% seems to exist, check again.\n") % runnum % qa_level).str();
+    std::cout << std::format("SpinDBInput::CreateRunRow() Error : Row for run {} with qa level {} seems to exist, check again.", runnum, qa_level) << std::endl;
     return (0);
   }
 
@@ -122,7 +121,7 @@ int SpinDBInput::CreateRunRow(int runnum, int qa_level)
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     return (ERROR_VALUE);
   }
   delete stmt;
@@ -146,7 +145,7 @@ int SpinDBInput::DeleteRunRow(int runnum, int qa_level)
 
   if (CheckRunRow(runnum, qa_level, "simple") != 1)
   {
-    std::cout << (boost::format("SpinDBInput::DeleteRunRow() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % runnum % qa_level).str();
+    std::cout << std::format("SpinDBInput::DeleteRunRow() Error : Row for run {} with qa level {} seems not to exist, check again.", runnum, qa_level) << std::endl;
     return (0);
   }
 
@@ -159,7 +158,7 @@ int SpinDBInput::DeleteRunRow(int runnum, int qa_level)
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     delete stmt;
     return (ERROR_VALUE);
   }
@@ -181,7 +180,7 @@ int SpinDBInput::InitializeRunRow(SpinDBContent& spin_cont)
 
   if (CheckRunRow(spin_cont.GetRunNumber(), spin_cont.GetQALevel(), "simple") != 1)
   {
-    std::cout << (boost::format("SpinDBInput::UpdateDBContent() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % spin_cont.GetRunNumber() % spin_cont.GetQALevel()).str();
+    std::cout << std::format("SpinDBInput::UpdateDBContent() Error : Row for run {} with qa level {} seems not to exist, check again.", spin_cont.GetRunNumber(), spin_cont.GetQALevel()) << std::endl;
     return (0);
   }
 
@@ -244,7 +243,7 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
 
   if (CheckRunRow(spin_cont.GetRunNumber(), spin_cont.GetQALevel(), "simple") != 1)
   {
-    std::cout << (boost::format("SpinDBInput::UpdateDBContent() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % spin_cont.GetRunNumber() % spin_cont.GetQALevel()).str();
+    std::cout << std::format("SpinDBInput::UpdateDBContent() Error : Row for run {} with qa level {} seems not to exist, check again.", spin_cont.GetRunNumber(), spin_cont.GetQALevel()) << std::endl;
     return (0);
   }
 
@@ -252,7 +251,7 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
 
   if (qa_level == ERROR_VALUE)
   {
-    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
+    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.";
     return (0);
   }
 
@@ -551,7 +550,7 @@ int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *cmd)
 
   if (CheckRunRow(runnum, qa_level, "simple") != 1)
   {
-    std::cout << (boost::format("SpinDBInput::UpdateDBContent() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % runnum % qa_level).str();
+    std::cout << std::format("SpinDBInput::UpdateDBContent() Error : Row for run {} with qa level {} seems not to exist, check again.", runnum, qa_level) << std::endl;
     return (0);
   }
 
@@ -562,7 +561,7 @@ int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *cmd)
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     delete stmt;
     return (ERROR_VALUE);
   }
@@ -692,7 +691,7 @@ int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
 
   if (qa_level == ERROR_VALUE)
   {
-    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.\n";
+    std::cout << "You did not set a qa_level.  Please do so with SpinDBContent::SetQALevel(int qa_level).  Check that the qa level you set does not exist for this run before trying again.";
     return (0);
   }
 
@@ -700,7 +699,7 @@ int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
 
   if (CheckRunRow(runnum, qa_level, "simple") != 1)
   {
-    std::cout << (boost::format("SpinDBInput::DeleteRunRow() Error : Row for run %1% with qa level %2% seems not to exist, check again.\n") % runnum % qa_level).str();
+    std::cout << std::format("SpinDBInput::DeleteRunRow() Error : Row for run {} with qa level {} seems not to exist, check again.", runnum, qa_level) << std::endl;
     return (0);
   }
 
@@ -713,7 +712,7 @@ int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     delete stmt1;
     return (ERROR_VALUE);
   }
@@ -728,7 +727,7 @@ int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
   }
   catch (odbc::SQLException &e)
   {
-    std::cout << (boost::format("Error: %s.\n") % e.getMessage().c_str()).str();
+    std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     delete stmt2;
     return (ERROR_VALUE);
   }
