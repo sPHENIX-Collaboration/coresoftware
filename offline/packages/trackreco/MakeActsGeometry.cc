@@ -520,7 +520,7 @@ void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
   static constexpr int argc = 20;
-  char *arg[argc];
+  char *argv[argc];
   m_magFieldRescale = 1;
 
   // if(Verbosity() > 0)
@@ -578,27 +578,32 @@ void MakeActsGeometry::buildActsSurfaces()
   // convert arguments to char**
   assert(argstr.size()<argc);
 
+  // print arguments
+  // if (Verbosity() > 1)
+  {
+    std::cout << "MakeActsGeometry::buildActsSurfaces - arguments: " << std::endl;
+    for( const auto& arg:argstr ) { std::cout << arg << ", "; }
+    std::cout << std::endl;
+  }
+
+
   // Set vector of chars to arguments needed
   for (size_t i = 0; i < argstr.size(); ++i)
   {
-    if (Verbosity() > 1)
-    {
-      std::cout << argstr[i] << ", ";
-    }
     // need a copy, since .c_str() returns a const char * and process geometry will not take a const
-    arg[i] = strdup(argstr[i].c_str());
+    argv[i] = strdup(argstr[i].c_str());
   }
 
   // We replicate the relevant functionality of
   // acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
-  makeGeometry(argstr.size(), arg, m_detector);
+  makeGeometry(argstr.size(), argv, m_detector);
 
   for (size_t i = 0; i < argstr.size(); ++i)
   {
     // NOLINTNEXTLINE(hicpp-no-malloc)
-    free(arg[i]);
+    free(argv[i]);
   }
 }
 
