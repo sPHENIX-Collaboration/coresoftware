@@ -12,9 +12,6 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
-
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
 #include <phfield/PHFieldConfig.h>
@@ -50,13 +47,6 @@
 PrelimDistortionCorrection::PrelimDistortionCorrection(const std::string& name)
   : SubsysReco(name)
 {}
-
-//______________________________________________________
-PrelimDistortionCorrection::~PrelimDistortionCorrection()
-{
-  if( m_own_fieldmap )
-  { delete _field_map; }
-}
 
 //___________________________________________________________________________________________
 int PrelimDistortionCorrection::End(PHCompositeNode* /*unused*/)
@@ -171,19 +161,6 @@ int PrelimDistortionCorrection::get_nodes(PHCompositeNode* topNode)
   {
     std::cerr << PHWHERE << "PrelimDistortionCorrection::get_nodes - ERROR: Can't find TrackSeedContainer " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  PHG4TpcCylinderGeomContainer *geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!geom_container)
-  {
-    std::cerr << PHWHERE << "PrelimDistortionCorrection::get_nodes - ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  for(int i=7;i<=54;i++)
-  {
-    radii.push_back(geom_container->GetLayerCellGeom(i)->get_radius());
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -331,7 +308,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 }
 
 //____________________________________________________________________________________________________________
-void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& positions)
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, const PrelimDistortionCorrection::PositionMap& positions) const
 {
   int seed_index = 0;
   for(auto& seed: seeds )
