@@ -4,7 +4,7 @@
 /*!
  *  \file RPHLinelaserreco.h
  *  \RTree based hough tracking for cosmics
- *  \author Christof Roland 
+ *  \author Christof Roland
  */
 
 
@@ -77,7 +77,6 @@
 #include <vector>
 
 
-class PHField;
 class TGeoManager;
 
 
@@ -207,7 +206,7 @@ class PHLineLaserReco : public SubsysReco
   int m_nrun = std::numeric_limits<int>::quiet_NaN();
   int m_nseg = std::numeric_limits<int>::quiet_NaN();
   int m_njob = std::numeric_limits<int>::quiet_NaN();
-  
+
   float m_hitx = std::numeric_limits<float>::quiet_NaN();
   float m_hity = std::numeric_limits<float>::quiet_NaN();
   float m_hitz = std::numeric_limits<float>::quiet_NaN();
