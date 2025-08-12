@@ -12,7 +12,6 @@ class PHCompositeNode;
 class SpinDBNode : public SubsysReco
 {
  public:
-
   SpinDBNode(const std::string &name = "SpinDBNode");
 
   ~SpinDBNode() override;
@@ -24,4 +23,4 @@ class SpinDBNode : public SubsysReco
  private:
 };
 
-#endif // SPINDBNODE_H
+#endif  // SPINDBNODE_H

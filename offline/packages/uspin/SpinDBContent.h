@@ -27,22 +27,21 @@
 // cross_angle_min   : Minimum value of relative crossing angle in mrad
 // cross_angle_max   : Maximum value of relative crossing angle in mrad
 // asym_bf           : very forward neutron TSSA magnitude in blue beam
-// asym_bb           : very backward neutron TSSA magnitude in blue beam 
+// asym_bb           : very backward neutron TSSA magnitude in blue beam
 // asym_yf           : very forward neutron TSSA magnitude in yellow beam
-// asym_yb           : very backward neutron TSSA magnitude in yellow beam 
+// asym_yb           : very backward neutron TSSA magnitude in yellow beam
 // asymerr_bf        : very forward neutron TSSA magnitude uncertainty in blue beam
-// asymerr_bb        : very backward neutron TSSA magnitude uncertainty in blue beam 
+// asymerr_bb        : very backward neutron TSSA magnitude uncertainty in blue beam
 // asymerr_yf        : very forward neutron TSSA magnitude uncertainty in yellow beam
-// asymerr_yb        : very backward neutron TSSA magnitude uncertainty in yellow beam 
+// asymerr_yb        : very backward neutron TSSA magnitude uncertainty in yellow beam
 // phase_bf          : very forward neutron TSSA phase offset in blue beam
-// phase_bb          : very backward neutron TSSA phase offset in blue beam 
+// phase_bb          : very backward neutron TSSA phase offset in blue beam
 // phase_yf          : very forward neutron TSSA phase offset in yellow beam
-// phase_yb          : very backward neutron TSSA phase offset in yellow beam 
+// phase_yb          : very backward neutron TSSA phase offset in yellow beam
 // phaseerr_bf       : very forward neutron TSSA phase offset uncertainty in blue beam
-// phaseerr_bb       : very backward neutron TSSA phase offset uncertainty in blue beam 
+// phaseerr_bb       : very backward neutron TSSA phase offset uncertainty in blue beam
 // phaseerr_yf       : very forward neutron TSSA phase offset uncertainty in yellow beam
-// phaseerr_yb       : very backward neutron TSSA phase offset uncertainty in yellow beam 
-
+// phaseerr_yb       : very backward neutron TSSA phase offset uncertainty in yellow beam
 
 ////////////////////////////////////////////////////////////////
 
@@ -61,7 +60,7 @@ class SpinDBContent : public PHObject
 
   void identify(std::ostream& os = std::cout) const override;
 
-  static constexpr int GetNCrossing()  { return 120; }
+  static constexpr int GetNCrossing() { return 120; }
   static constexpr int GetErrorValue() { return -999; }
 
   virtual int CheckBunchNumber(int) const { return 0; }
@@ -81,7 +80,7 @@ class SpinDBContent : public PHObject
   virtual int GetPolarizationYellow(int, double&, double&) const { return -1; }
   virtual int GetPolarizationYellow(int, double&, double&, double&) const { return -1; }
 
-  virtual int GetSpinPatternBlue (int) const { return -1; }
+  virtual int GetSpinPatternBlue(int) const { return -1; }
   virtual int GetSpinPatternYellow(int) const { return -1; }
   virtual long long GetScalerMbdVertexCut(int) const { return 0; }
   virtual long long GetScalerMbdNoCut(int) const { return 0; }
@@ -89,14 +88,46 @@ class SpinDBContent : public PHObject
   virtual long long GetScaler(int, int) const { return 0; }
   virtual int GetBadBunchFlag(int) const { return 0; }
 
-  virtual void GetAsymBlueForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
-  virtual void GetAsymBlueBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
-  virtual void GetAsymYellowForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
-  virtual void GetAsymYellowBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
-  virtual void GetPhaseBlueForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
-  virtual void GetPhaseBlueBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
-  virtual void GetPhaseYellowForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
-  virtual void GetPhaseYellowBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetAsymBlueForward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetAsymBlueBackward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetAsymYellowForward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetAsymYellowBackward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetPhaseBlueForward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetPhaseBlueBackward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetPhaseYellowForward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetPhaseYellowBackward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
 
   virtual float GetCrossAngle() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float GetCrossAngleStd() const { return std::numeric_limits<float>::quiet_NaN(); }
@@ -136,7 +167,6 @@ class SpinDBContent : public PHObject
   virtual void SetCrossAngleStd(float) {}
   virtual void SetCrossAngleMin(float) {}
   virtual void SetCrossAngleMax(float) {}
-
 
  private:
   ClassDefOverride(SpinDBContent, 1);

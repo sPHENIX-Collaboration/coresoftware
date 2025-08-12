@@ -167,7 +167,7 @@ int SpinDBInput::DeleteRunRow(int runnum, int qa_level)
 
 ///////////////////////////////////////////////////////////
 
-int SpinDBInput::InitializeRunRow(SpinDBContent& spin_cont)
+int SpinDBInput::InitializeRunRow(SpinDBContent &spin_cont)
 {
   if (IsConnected() != 1)
   {
@@ -230,7 +230,7 @@ int SpinDBInput::InitializeRunRow(SpinDBContent& spin_cont)
 
 ///////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
+int SpinDBInput::UpdateDBContent(SpinDBContent &spin_cont)
 {
   if (IsConnected() != 1)
   {
@@ -287,7 +287,7 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
   long long *mbd_vtxcut = new long long[ncross];
   long long *mbd_nocut = new long long[ncross];
   long long *zdc_nocut = new long long[ncross];
-  
+
   for (int i = 0; i < ncross; i++)
   {
     spin_cont.GetPolarizationBlue(i, bpol[i], bpolerr[i], bpolsys[i]);
@@ -472,7 +472,6 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
     UpdateValue(runnum, qa_level, "asymerryb", a_yb_err);
   }
 
-  
   if (p_bf != ERROR_VALUE)
   {
     UpdateValue(runnum, qa_level, "phasebf", p_bf);
@@ -506,8 +505,6 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
     UpdateValue(runnum, qa_level, "phaseerryb", p_yb_err);
   }
 
-
-
   float cross_angle = spin_cont.GetCrossAngle();
   float cross_angle_std = spin_cont.GetCrossAngleStd();
   float cross_angle_min = spin_cont.GetCrossAngleMin();
@@ -529,20 +526,20 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
   {
     UpdateValue(runnum, qa_level, "crossanglemax", cross_angle_max);
   }
-  delete [] bpol;
-  delete [] bpolerr;
-  delete [] bpolsys;
-  delete [] ypol;
-  delete [] ypolerr;
-  delete [] ypolsys;
+  delete[] bpol;
+  delete[] bpolerr;
+  delete[] bpolsys;
+  delete[] ypol;
+  delete[] ypolerr;
+  delete[] ypolsys;
 
-  delete [] bpat;
-  delete [] ypat;
-  delete [] bad_bunch;
+  delete[] bpat;
+  delete[] ypat;
+  delete[] bad_bunch;
 
-  delete [] mbd_vtxcut;
-  delete [] mbd_nocut;
-  delete [] zdc_nocut;
+  delete[] mbd_vtxcut;
+  delete[] mbd_nocut;
+  delete[] zdc_nocut;
 
   return (1);
 }
@@ -682,18 +679,17 @@ int SpinDBInput::InitializeArray(int runnum, int qa_level, const std::string &na
     ERROR_ARRAY[i] = ERROR_VALUE;
   }
   int iret = UpdateArray(runnum, qa_level, name, ERROR_ARRAY, nvalue);
-  delete [] ERROR_ARRAY;
+  delete[] ERROR_ARRAY;
   return (iret);
 }
 
 ////////////////////////////////////////////////////////////
-int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
+int SpinDBInput::SetDefaultQA(SpinDBContent &spin_cont)
 {
   if (IsConnected() != 1)
   {
     return (0);
   }
-
 
   int qa_level = spin_cont.GetQALevel();
 
@@ -724,7 +720,6 @@ int SpinDBInput::SetDefaultQA(SpinDBContent& spin_cont)
     delete stmt1;
     return (ERROR_VALUE);
   }
-
 
   std::stringstream cmd2;
   cmd2 << " update spin set is_default = TRUE where runnumber=" << runnum << " and qa_level = " << qa_level << ";";

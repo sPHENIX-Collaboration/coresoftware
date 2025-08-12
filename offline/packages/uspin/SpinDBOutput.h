@@ -12,10 +12,9 @@
 #define USPIN_SPINDBOUTPUT_H
 
 #include <map>
+#include <memory>  // for unique_ptr
 #include <string>
 #include <vector>
-#include <memory> // for unique_ptr
-
 
 namespace odbc
 {
@@ -53,15 +52,15 @@ class SpinDBOutput
   int StoreDBContent(int run1, int run2);
   int StoreDBContent(int run1, int run2, int qa_level);
   void ClearDBContent();
-  int GetDBContent(SpinDBContent*& spin_cont, int runnum);
-  int GetDBContent(SpinDBContent*& spin_cont, int runnum, int qa_level);
-  int GetDBContentStore(SpinDBContent*& spin_cont, int runnum);
+  int GetDBContent(SpinDBContent *&spin_cont, int runnum);
+  int GetDBContent(SpinDBContent *&spin_cont, int runnum, int qa_level);
+  int GetDBContentStore(SpinDBContent *&spin_cont, int runnum);
   static int CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_cont_copy);
   int GetDefaultQA(int runnum);
-  void Verbosity(int verbose = 0){verbosity=verbose;}
+  void Verbosity(int verbose = 0) { verbosity = verbose; }
 
  private:
-  static constexpr int ERROR_VALUE {-999};
+  static constexpr int ERROR_VALUE{-999};
 
   int verbosity{0};
 
@@ -78,8 +77,6 @@ class SpinDBOutput
   int GetArray(odbc::ResultSet *rs, const std::string &name, unsigned int *value, int nvalue);
   int GetArray(odbc::ResultSet *rs, const std::string &name, int *value, int nvalue);
   int GetArray(odbc::ResultSet *rs, const std::string &name, long long *value, int nvalue);
-
-  
 };
 
 #endif /* USPIN_SPINDBOUTPUT_H */

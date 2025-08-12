@@ -57,7 +57,7 @@ void SpinDBOutput::SetTableName(const std::string &tname)
   }
   else
   {
-    std::cout << std::format(" Your input table name, {}, is invalid",tname) << std::endl;
+    std::cout << std::format(" Your input table name, {}, is invalid", tname) << std::endl;
     std::cout << std::format(" No change, try it as default, {}", db_name) << std::endl;
   }
   return;
@@ -172,7 +172,6 @@ int SpinDBOutput::PrintDBRawContent(int runnum)
   return (1);
 }
 
-
 int SpinDBOutput::PrintDBRawContent(int runnum, int qa_level)
 {
   odbc::Connection *con = ConnectDB();
@@ -224,7 +223,6 @@ int SpinDBOutput::PrintDBRawContent(int runnum, int qa_level)
 ///////////////////////////////////////////////////////////
 int SpinDBOutput::CheckRunRow(int runnum)
 {
-   
   if (CheckRunRowStore(runnum) == 1)
   {
     return (1);
@@ -268,8 +266,6 @@ int SpinDBOutput::CheckRunRow(int runnum)
 
   return (1);
 }
-
-
 
 int SpinDBOutput::CheckRunRow(int runnum, int qa_level)
 {
@@ -342,7 +338,6 @@ int SpinDBOutput::StoreDBContent(int run1, int run2)
   cmd << "select * from " << table_name << " where runnumber>" << run1 - 1;
   cmd << " and runnumber<" << run2 + 1 << " and is_default=TRUE;";
 
-
   odbc::Statement *stmt = con->createStatement();
   odbc::ResultSet *rs = nullptr;
   try
@@ -382,8 +377,6 @@ int SpinDBOutput::StoreDBContent(int run1, int run2)
   return (1);
 }
 
-
-
 int SpinDBOutput::StoreDBContent(int run1, int run2, int qa_level)
 {
   odbc::Connection *con = ConnectDB();
@@ -395,7 +388,6 @@ int SpinDBOutput::StoreDBContent(int run1, int run2, int qa_level)
   std::stringstream cmd;
   cmd << "select * from " << table_name << " where runnumber>" << run1 - 1;
   cmd << " and runnumber<" << run2 + 1 << " and qa_level=" << qa_level << ";";
-
 
   odbc::Statement *stmt = con->createStatement();
   odbc::ResultSet *rs = nullptr;
@@ -445,9 +437,8 @@ void SpinDBOutput::ClearDBContent()
 }
 
 //////////////////////////////////////////////////////////////
-int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum)
+int SpinDBOutput::GetDBContent(SpinDBContent *&spin_cont, int runnum)
 {
-
   std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it != spin_cont_store.end())
   {
@@ -490,7 +481,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum)
   std::unique_ptr<SpinDBContent> spin_cont_ptr(new SpinDBContentv1());
   GetDBContent(*spin_cont_ptr, rs);
   spin_cont_store[runnum] = std::move(spin_cont_ptr);
-  CopyDBContent(*spin_cont_store[runnum],*spin_cont);
+  CopyDBContent(*spin_cont_store[runnum], *spin_cont);
 
   delete rs;
   delete stmt;
@@ -499,11 +490,8 @@ int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum)
   return (1);
 }
 
-
-
-int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum, int qa_level)
+int SpinDBOutput::GetDBContent(SpinDBContent *&spin_cont, int runnum, int qa_level)
 {
-
   std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it != spin_cont_store.end())
   {
@@ -546,7 +534,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum, int qa_lev
   std::unique_ptr<SpinDBContent> spin_cont_ptr(new SpinDBContentv1());
   GetDBContent(*spin_cont_ptr, rs);
   spin_cont_store[runnum] = std::move(spin_cont_ptr);
-  CopyDBContent(*spin_cont_store[runnum],*spin_cont);
+  CopyDBContent(*spin_cont_store[runnum], *spin_cont);
 
   delete rs;
   delete stmt;
@@ -557,13 +545,12 @@ int SpinDBOutput::GetDBContent(SpinDBContent*& spin_cont, int runnum, int qa_lev
 
 /////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetDBContentStore(SpinDBContent*& spin_cont, int runnum)
+int SpinDBOutput::GetDBContentStore(SpinDBContent *&spin_cont, int runnum)
 {
-
   std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it != spin_cont_store.end())
   {
-    CopyDBContent(*it->second,*spin_cont);
+    CopyDBContent(*it->second, *spin_cont);
     return 1;
   }
 
@@ -644,8 +631,6 @@ int SpinDBOutput::CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_co
   return (1);
 }
 
-
-
 int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
 {
   int ncross = SpinDBContent::GetNCrossing();
@@ -682,7 +667,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   {
     GetArray(rs, "polarblueerrorsys", bpolsys, ncross);
   }
-      
+
   GetArray(rs, "polaryellow", ypol, ncross);
   GetArray(rs, "polaryellowerror", ypolerr, ncross);
   if (table_name == "spin")
@@ -691,7 +676,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   }
   else
   {
-    for (int i=0; i<ncross; i++)
+    for (int i = 0; i < ncross; i++)
     {
       ypolsys[i] = std::numeric_limits<float>::quiet_NaN();
     }
@@ -729,20 +714,20 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
   spin_cont.SetCrossAngleMin(rs->getFloat("crossanglemin"));
   spin_cont.SetCrossAngleMax(rs->getFloat("crossanglemax"));
 
-  delete [] bpol;
-  delete [] bpolerr;
-  delete [] bpolsys;
-  delete [] ypol;
-  delete [] ypolerr;
-  delete [] ypolsys;
+  delete[] bpol;
+  delete[] bpolerr;
+  delete[] bpolsys;
+  delete[] ypol;
+  delete[] ypolerr;
+  delete[] ypolsys;
 
-  delete [] bpat;
-  delete [] ypat;
-  delete [] bad_bunch;
+  delete[] bpat;
+  delete[] ypat;
+  delete[] bad_bunch;
 
-  delete [] mbd_vtxcut;
-  delete [] mbd_nocut;
-  delete [] zdc_nocut;
+  delete[] mbd_vtxcut;
+  delete[] mbd_nocut;
+  delete[] zdc_nocut;
   return (1);
 }
 
@@ -784,7 +769,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, std::ve
 
   cvalue = cvalue.substr(1, cvalue.size() - 1) + ",";
 
-//  int nvalue = 0;
+  //  int nvalue = 0;
   std::vector<std::string> value1;
   while (true)
   {
@@ -796,7 +781,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, std::ve
 
     value1.push_back(cvalue.substr(0, pos));
     cvalue.erase(0, pos + 1);
-//    nvalue++;
+    //    nvalue++;
   }
 
   std::stringstream cerror;
@@ -883,35 +868,38 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, long lo
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetDefaultQA(int runnum){
-
-  odbc::Connection *con=ConnectDB();
-  if(con==nullptr){return(0);}
+int SpinDBOutput::GetDefaultQA(int runnum)
+{
+  odbc::Connection *con = ConnectDB();
+  if (con == nullptr)
+  {
+    return (0);
+  }
 
   std::stringstream cmd;
   cmd << "select qa_level from " << table_name << " where runnumber=" << runnum << " and is_default=TRUE;";
-  odbc::Statement *stmt=con->createStatement();
-  odbc::ResultSet *rs=nullptr;
+  odbc::Statement *stmt = con->createStatement();
+  odbc::ResultSet *rs = nullptr;
   try
   {
-    rs=stmt->executeQuery(cmd.str());
+    rs = stmt->executeQuery(cmd.str());
   }
-  catch(odbc::SQLException& e)
+  catch (odbc::SQLException &e)
   {
     std::cout << std::format("Error: {}.", e.getMessage()) << std::endl;
     delete rs;
     delete stmt;
     delete con;
-    return(ERROR_VALUE);
+    return (ERROR_VALUE);
   }
 
-  if(rs->next()==0)
+  if (rs->next() == 0)
   {
     std::cout << std::format("Error : Can't find data for run {}", runnum) << std::endl;
     delete rs;
     delete stmt;
     delete con;
-    return(0);
+    return (0);
   }
 
   int default_qa_level = rs->getInt("qa_level");
@@ -919,8 +907,6 @@ int SpinDBOutput::GetDefaultQA(int runnum){
   delete rs;
   delete stmt;
   delete con;
-  
-  return(default_qa_level);
 
+  return (default_qa_level);
 }
-

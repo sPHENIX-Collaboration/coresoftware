@@ -32,9 +32,9 @@ class SpinDBInput
   int CheckRunRow(int runnum, int qa_level, const std::string &opt = "");
   int CreateRunRow(int runnum, int qa_level);
   int DeleteRunRow(int runnum, int qa_level);
-  int InitializeRunRow(SpinDBContent& spin_cont);
-  int UpdateDBContent(SpinDBContent& spin_cont);
-  int SetDefaultQA(SpinDBContent& spin_cont);
+  int InitializeRunRow(SpinDBContent &spin_cont);
+  int UpdateDBContent(SpinDBContent &spin_cont);
+  int SetDefaultQA(SpinDBContent &spin_cont);
   int UpdateValue(int runnum, int qa_level, const std::string &name, int value);
   int UpdateValue(int runnum, int qa_level, const std::string &name, float value);
   int UpdateValue(int runnum, int qa_level, const std::string &name, double value);
@@ -47,9 +47,9 @@ class SpinDBInput
   int InitializeArray(int runnum, int qa_level, const std::string &name, int nvalue);
 
  private:
-  static constexpr std::string DB_NAME {"spinDB_write"};
-  static constexpr std::string TABLE_NAME {"spin"};
-  static constexpr int ERROR_VALUE {-999};
+  static constexpr std::string DB_NAME{"spinDB_write"};
+  static constexpr std::string TABLE_NAME{"spin"};
+  static constexpr int ERROR_VALUE{-999};
 
   odbc::Connection *con{nullptr};
   int run_check;

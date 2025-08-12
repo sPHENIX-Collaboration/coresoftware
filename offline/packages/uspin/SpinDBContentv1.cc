@@ -52,9 +52,6 @@ void SpinDBContentv1::InitializeV1()
   phaseerr_bb = (float) GetErrorValue();
   phaseerr_yf = (float) GetErrorValue();
   phaseerr_yb = (float) GetErrorValue();
-
-
-
 }
 
 /////////////////////////////////////////////////////////////////
@@ -72,7 +69,7 @@ int SpinDBContentv1::CheckBunchNumber(int bunch) const
 
 ///////////////////////////////////////////////////////////////
 
-void SpinDBContentv1::identify(std::ostream& os) const
+void SpinDBContentv1::identify(std::ostream &os) const
 {
   os << std::format("Run number = {}", runnum) << std::endl;
   os << std::format("QA Level = {}", qa_level) << std::endl;
@@ -267,7 +264,6 @@ void SpinDBContentv1::SetAsymYellowBackward(float value, float error)
   asymerr_yb = error;
   return;
 }
-
 
 //////////////////////////////////////////////////////
 

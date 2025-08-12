@@ -27,22 +27,21 @@
 // cross_angle_min   : Minimum value of relative crossing angle in mrad
 // cross_angle_max   : Maximum value of relative crossing angle in mrad
 // asym_bf           : very forward neutron TSSA magnitude in blue beam
-// asym_bb           : very backward neutron TSSA magnitude in blue beam 
+// asym_bb           : very backward neutron TSSA magnitude in blue beam
 // asym_yf           : very forward neutron TSSA magnitude in yellow beam
-// asym_yb           : very backward neutron TSSA magnitude in yellow beam 
+// asym_yb           : very backward neutron TSSA magnitude in yellow beam
 // asymerr_bf        : very forward neutron TSSA magnitude uncertainty in blue beam
-// asymerr_bb        : very backward neutron TSSA magnitude uncertainty in blue beam 
+// asymerr_bb        : very backward neutron TSSA magnitude uncertainty in blue beam
 // asymerr_yf        : very forward neutron TSSA magnitude uncertainty in yellow beam
-// asymerr_yb        : very backward neutron TSSA magnitude uncertainty in yellow beam 
+// asymerr_yb        : very backward neutron TSSA magnitude uncertainty in yellow beam
 // phase_bf          : very forward neutron TSSA phase offset in blue beam
-// phase_bb          : very backward neutron TSSA phase offset in blue beam 
+// phase_bb          : very backward neutron TSSA phase offset in blue beam
 // phase_yf          : very forward neutron TSSA phase offset in yellow beam
-// phase_yb          : very backward neutron TSSA phase offset in yellow beam 
+// phase_yb          : very backward neutron TSSA phase offset in yellow beam
 // phaseerr_bf       : very forward neutron TSSA phase offset uncertainty in blue beam
-// phaseerr_bb       : very backward neutron TSSA phase offset uncertainty in blue beam 
+// phaseerr_bb       : very backward neutron TSSA phase offset uncertainty in blue beam
 // phaseerr_yf       : very forward neutron TSSA phase offset uncertainty in yellow beam
-// phaseerr_yb       : very backward neutron TSSA phase offset uncertainty in yellow beam 
-
+// phaseerr_yb       : very backward neutron TSSA phase offset uncertainty in yellow beam
 
 ////////////////////////////////////////////////////////////////
 
@@ -51,9 +50,8 @@
 
 #include "SpinDBContent.h"
 
-//#include <stdio.h>
-//#include <iostream>
-
+// #include <stdio.h>
+// #include <iostream>
 
 class SpinDBContentv1 : public SpinDBContent
 {
@@ -66,61 +64,61 @@ class SpinDBContentv1 : public SpinDBContent
 
   int CheckBunchNumber(int bunch) const override;
 
-  int GetRunNumber()     const override { return runnum; }
-  int GetQALevel()       const override { return qa_level; }
-  int GetFillNumber()    const override { return fillnum; }
-  int GetBadRunFlag()    const override { return badrun; }
+  int GetRunNumber() const override { return runnum; }
+  int GetQALevel() const override { return qa_level; }
+  int GetFillNumber() const override { return fillnum; }
+  int GetBadRunFlag() const override { return badrun; }
   int GetCrossingShift() const override { return cross_shift; }
 
-  int GetPolarizationBlue  (int, float&,  float&)  const override;
-  int GetPolarizationBlue  (int, float&,  float&, float&) const override;
-  int GetPolarizationBlue  (int, double&, double&) const override;
-  int GetPolarizationBlue  (int, double&, double&, double&) const override;
-  int GetPolarizationYellow(int, float&,  float&)  const override;
-  int GetPolarizationYellow(int, float&,  float&, float&) const override;
+  int GetPolarizationBlue(int, float&, float&) const override;
+  int GetPolarizationBlue(int, float&, float&, float&) const override;
+  int GetPolarizationBlue(int, double&, double&) const override;
+  int GetPolarizationBlue(int, double&, double&, double&) const override;
+  int GetPolarizationYellow(int, float&, float&) const override;
+  int GetPolarizationYellow(int, float&, float&, float&) const override;
   int GetPolarizationYellow(int, double&, double&) const override;
   int GetPolarizationYellow(int, double&, double&, double&) const override;
 
-  int       GetSpinPatternBlue (int)      const override;
-  int       GetSpinPatternYellow(int)     const override;
-  long long GetScalerMbdVertexCut(int)    const override;
-  long long GetScalerMbdNoCut(int)        const override;
-  long long GetScalerZdcNoCut(int)        const override;
-  long long GetScaler(int, int)           const override;
-  int       GetBadBunchFlag(int)          const override;
+  int GetSpinPatternBlue(int) const override;
+  int GetSpinPatternYellow(int) const override;
+  long long GetScalerMbdVertexCut(int) const override;
+  long long GetScalerMbdNoCut(int) const override;
+  long long GetScalerZdcNoCut(int) const override;
+  long long GetScaler(int, int) const override;
+  int GetBadBunchFlag(int) const override;
 
-  void GetAsymBlueForward    (float&, float&) const override;
-  void GetAsymBlueBackward   (float&, float&) const override;
-  void GetAsymYellowForward  (float&, float&) const override;
-  void GetAsymYellowBackward (float&, float&) const override;
-  void GetPhaseBlueForward   (float&, float&) const override;
-  void GetPhaseBlueBackward  (float&, float&) const override;
-  void GetPhaseYellowForward (float&, float&) const override;
+  void GetAsymBlueForward(float&, float&) const override;
+  void GetAsymBlueBackward(float&, float&) const override;
+  void GetAsymYellowForward(float&, float&) const override;
+  void GetAsymYellowBackward(float&, float&) const override;
+  void GetPhaseBlueForward(float&, float&) const override;
+  void GetPhaseBlueBackward(float&, float&) const override;
+  void GetPhaseYellowForward(float&, float&) const override;
   void GetPhaseYellowBackward(float&, float&) const override;
 
-  float GetCrossAngle()     const override { return cross_angle; }
-  float GetCrossAngleStd()  const override { return cross_angle_std; }
-  float GetCrossAngleMin()  const override { return cross_angle_min; }
-  float GetCrossAngleMax()  const override { return cross_angle_max; }
+  float GetCrossAngle() const override { return cross_angle; }
+  float GetCrossAngleStd() const override { return cross_angle_std; }
+  float GetCrossAngleMin() const override { return cross_angle_min; }
+  float GetCrossAngleMax() const override { return cross_angle_max; }
 
-  void SetRunNumber(int run)        override { runnum = run; }
-  void SetQALevel(int qa)          override { qa_level = qa; }
-  void SetFillNumber(int fill)       override { fillnum = fill; }
-  void SetBadRunFlag(int flag)       override { badrun = flag; }
-  void SetCrossingShift(int shift)    override { cross_shift = shift; }
+  void SetRunNumber(int run) override { runnum = run; }
+  void SetQALevel(int qa) override { qa_level = qa; }
+  void SetFillNumber(int fill) override { fillnum = fill; }
+  void SetBadRunFlag(int flag) override { badrun = flag; }
+  void SetCrossingShift(int shift) override { cross_shift = shift; }
 
-  int SetPolarizationBlue  (int, float, float)               override;
-  int SetPolarizationYellow(int, float, float)               override;
-  int SetPolarizationBlue  (int, float, float, float)       override;
-  int SetPolarizationYellow(int, float, float, float)       override;
+  int SetPolarizationBlue(int, float, float) override;
+  int SetPolarizationYellow(int, float, float) override;
+  int SetPolarizationBlue(int, float, float, float) override;
+  int SetPolarizationYellow(int, float, float, float) override;
 
-  int SetSpinPatternBlue (int, int)            override;
-  int SetSpinPatternYellow(int, int)           override;
-  int SetScalerMbdVertexCut(int, long long)    override;
-  int SetScalerMbdNoCut(int, long long)        override;
-  int SetScalerZdcNoCut(int, long long)        override;
-  int SetScaler(int, int, long long)           override;
-  int SetBadBunchFlag(int, int)                override;
+  int SetSpinPatternBlue(int, int) override;
+  int SetSpinPatternYellow(int, int) override;
+  int SetScalerMbdVertexCut(int, long long) override;
+  int SetScalerMbdNoCut(int, long long) override;
+  int SetScalerZdcNoCut(int, long long) override;
+  int SetScaler(int, int, long long) override;
+  int SetBadBunchFlag(int, int) override;
 
   void SetAsymBlueForward(float value, float error) override;
   void SetAsymBlueBackward(float value, float error) override;
@@ -131,13 +129,12 @@ class SpinDBContentv1 : public SpinDBContent
   void SetPhaseYellowForward(float value, float error) override;
   void SetPhaseYellowBackward(float value, float error) override;
 
-  void SetCrossAngle   (float value) override { cross_angle = value; }
+  void SetCrossAngle(float value) override { cross_angle = value; }
   void SetCrossAngleStd(float value) override { cross_angle_std = value; }
   void SetCrossAngleMin(float value) override { cross_angle_min = value; }
   void SetCrossAngleMax(float value) override { cross_angle_max = value; }
 
  private:
-
   int runnum;
   int qa_level;
   int fillnum;
