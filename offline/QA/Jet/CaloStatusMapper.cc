@@ -186,6 +186,13 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
 
       // make base eta/phi hist name
       const std::string statLabel = CaloStatusMapperDefs::StatLabels().at(status);
+
+      // if not doing optional histograms, skip these status
+      if (!m_config.doOptHist && CaloStatusMapperDefs::IsStatusSkippable(statLabel))
+      {
+        continue;
+      }
+
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName, statLabel);
       const std::string perPhiBase = MakeBaseName("NPerPhi", nodeName, statLabel);
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName, statLabel);
