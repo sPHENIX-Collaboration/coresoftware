@@ -88,10 +88,10 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 
   // load magnetic field from node tree
   /* note: if field is not found it is created with default configuration, as defined in PHFieldUtility */
-  _field_map = PHFieldUtility::GetFieldMapNode();
+  _field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
   // alice kalman filter
-  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map, _fieldDir, _min_clusters_per_track, _max_sin_phi, Verbosity());
+  fitter = std::make_unique<ALICEKF>(_cluster_map, _field_map, _min_clusters_per_track, _max_sin_phi, Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);

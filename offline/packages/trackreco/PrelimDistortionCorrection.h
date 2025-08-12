@@ -82,9 +82,6 @@ class PrelimDistortionCorrection : public SubsysReco
   int get_nodes(PHCompositeNode *topNode);
 
   size_t _min_clusters_per_track = 3;
-
-  //! internal conversion factor
-  double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
 
@@ -94,7 +91,6 @@ class PrelimDistortionCorrection : public SubsysReco
 
   //! magnetic field map
   PHField* _field_map = nullptr;
-  bool m_own_fieldmap = false;
 
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;
@@ -109,8 +105,6 @@ class PrelimDistortionCorrection : public SubsysReco
 
   std::unique_ptr<ALICEKF> fitter;
 
-  bool _use_const_field = false;
-  float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
   std::array<double,3> _fixed_clus_err = {.1,.1,.1};
 

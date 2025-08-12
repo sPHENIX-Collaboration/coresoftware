@@ -61,10 +61,9 @@ int PrelimDistortionCorrectionAuAu::InitRun(PHCompositeNode* topNode)
   if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret; }
 
   // load magnetic field from node tree
-  _field_map = PHFieldUtility::GetFieldMapNode();
+  _field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map, _fieldDir,
-				     _min_clusters_per_track,_max_sin_phi,Verbosity());
+  fitter = std::make_unique<ALICEKF>(_cluster_map,_field_map, _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
