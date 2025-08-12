@@ -576,10 +576,7 @@ void MakeActsGeometry::buildActsSurfaces()
   std::cout << "Mag field now " << m_magField << " with rescale " << m_magFieldRescale << std::endl;
 
   // convert arguments to char**
-  if( argstr.size() > argc )
-  {
-    std::cout << "MakeActsGeometry::buildActsSurfaces - there are too many arguments to be passed to makeGeometry" << std::endl;
-  }
+  assert(argstr.size()<argc);
 
   // Set vector of chars to arguments needed
   for (size_t i = 0; i < argstr.size(); ++i)
