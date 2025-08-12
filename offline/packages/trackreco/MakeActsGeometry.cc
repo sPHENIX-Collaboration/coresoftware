@@ -39,6 +39,11 @@
 
 #include <ffamodules/CDBInterface.h>
 
+#include <phfield/PHField.h>
+#include <phfield/PHFieldConfig.h>
+#include <phfield/PHFieldConfigv1.h>
+#include <phfield/PHFieldUtility.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>
@@ -197,7 +202,46 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   }
 
   // load relevant magnetic field map on the node tree
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  if( isConstantField( m_magField, fieldstrength ) )
+  {
+    // create uniform field
+    PHFieldConfigv1 fcfg;
+    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
+    fcfg.set_field_mag_x(0);
+    fcfg.set_field_mag_y(0);
+    fcfg.set_field_mag_z(fieldstrength);
 
+    /*
+     * also apply rescale, consistent with magnetic field used by ACTS
+     * as defined in MakeActsGeometry::buildActsSurfaces
+     */
+    fcfg.set_magfield_rescale( m_magFieldRescale );
+
+    // create corresponding map and store on node tree
+    PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+
+  } else {
+
+    if (std::filesystem::path(m_magField).extension() != ".root")
+    { m_magField = CDBInterface::instance()->getUrl(m_magField); }
+
+    if (!std::filesystem::exists(m_magField))
+    {
+      if (m_magField.empty())
+      { m_magField = "empty string"; }
+      std::cout << "MakeActsGeometry::InitRun - Fieldmap " << m_magField << " does not exist" << std::endl;
+      gSystem->Exit(1);
+    }
+
+    PHFieldConfigv1 fcfg;
+    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+    fcfg.set_filename(m_magField);
+    fcfg.set_magfield_rescale( m_magFieldRescale );
+
+    // create corresponding map and store on node tree
+    PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+  }
 
   // Set the actsGeometry struct to be put on the node tree
   ActsTrackingGeometry trackingGeometry;
