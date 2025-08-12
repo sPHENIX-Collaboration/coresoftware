@@ -594,7 +594,7 @@ void MakeActsGeometry::buildActsSurfaces()
     argstr.insert( argstr.end(),
     {
       "--bf-constant-tesla", fld.str().c_str(),
-      "--bf-bscalor", std::to_string(m_magFieldRescale)
+      "--bf-map-fieldscale-tesla", std::to_string(m_magFieldRescale)
     });
 
   } else {
