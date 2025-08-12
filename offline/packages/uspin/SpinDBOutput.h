@@ -16,7 +16,6 @@
 #include <vector>
 #include <memory> // for unique_ptr
 
-#define QA_ERROR_VALUE -999
 
 namespace odbc
 {
@@ -38,13 +37,13 @@ class SpinDBOutput
   }
   virtual ~SpinDBOutput() = default;
   void Initialize();
-  void SetUserName(const char *user)
+  void SetUserName(const std::string &user)
   {
     user_name = user;
     return;
   }
-  void SetDBName(const char *dbname);
-  void SetTableName(const char *tname);
+  void SetDBName(const std::string &dbname);
+  void SetTableName(const std::string &tname);
   int PrintDBColumn();
   int PrintDBRawContent(int runnum);
   int PrintDBRawContent(int runnum, int qa_level);
@@ -62,9 +61,9 @@ class SpinDBOutput
   void Verbosity(int verbose = 0){verbosity=verbose;}
 
  private:
-  static const int ERROR_VALUE;
+  static constexpr int ERROR_VALUE {-999};
 
-  int verbosity = 0;
+  int verbosity{0};
 
   std::string db_name;
   std::string user_name;
@@ -74,11 +73,11 @@ class SpinDBOutput
 
   odbc::Connection *ConnectDB(void);
   int GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs);
-  int GetArray(odbc::ResultSet *rs, const char *name, std::vector<std::string> &value);
-  int GetArray(odbc::ResultSet *rs, const char *name, float *value, int nvalue);
-  int GetArray(odbc::ResultSet *rs, const char *name, unsigned int *value, int nvalue);
-  int GetArray(odbc::ResultSet *rs, const char *name, int *value, int nvalue);
-  int GetArray(odbc::ResultSet *rs, const char *name, long long *value, int nvalue);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, std::vector<std::string> &value);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, float *value, int nvalue);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, unsigned int *value, int nvalue);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, int *value, int nvalue);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, long long *value, int nvalue);
 
   
 };

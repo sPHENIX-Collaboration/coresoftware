@@ -13,8 +13,6 @@
 #include <limits>
 #include <sstream>
 
-const int SpinDBOutput::ERROR_VALUE = -999;
-
 //////////////////////////////////////////////////////////
 
 void SpinDBOutput::Initialize()
@@ -30,10 +28,10 @@ void SpinDBOutput::Initialize()
 
 //////////////////////////////////////////////////////////
 
-void SpinDBOutput::SetDBName(const char *dbname)
+void SpinDBOutput::SetDBName(const std::string &dbname)
 {
   // Only DB to read from is "spinDB"
-  if (strcmp(dbname, "spinDB") == 0)
+  if (dbname == "spinDB")
   {
     std::cout << std::format(" Database name is changed from {} to {}", db_name, dbname) << std::endl;
     db_name = dbname;
@@ -49,10 +47,10 @@ void SpinDBOutput::SetDBName(const char *dbname)
 
 //////////////////////////////////////////////////////////
 
-void SpinDBOutput::SetTableName(const char *tname)
+void SpinDBOutput::SetTableName(const std::string &tname)
 {
   // Only table is "spin"
-  if (!strcmp(tname, "spin"))
+  if (tname == "spin")
   {
     std::cout << std::format(" Table_name is changed from {} to {}", table_name, tname) << std::endl;
     table_name = tname;
@@ -60,9 +58,8 @@ void SpinDBOutput::SetTableName(const char *tname)
   else
   {
     std::cout << std::format(" Your input table name, {}, is invalid",tname) << std::endl;
-  std::cout << std::format(" No change, try it as default, {}", db_name) << std::endl;
+    std::cout << std::format(" No change, try it as default, {}", db_name) << std::endl;
   }
-
   return;
 }
 
@@ -739,7 +736,7 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
 
 ///////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<std::string> &value)
+int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, std::vector<std::string> &value)
 {
   std::string cvalue = "";
   try
@@ -816,7 +813,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, std::vector<st
 
 //////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, float *value, int nvalue)
+int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, float *value, int nvalue)
 {
   std::vector<std::string> svalue(nvalue, "");
   int ret = GetArray(rs, name, svalue);
@@ -829,7 +826,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, float *value, 
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, unsigned int *value, int nvalue)
+int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, unsigned int *value, int nvalue)
 {
   std::vector<std::string> svalue(nvalue, "");
   int ret = GetArray(rs, name, svalue);
@@ -842,7 +839,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, unsigned int *
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, int *value, int nvalue)
+int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, int *value, int nvalue)
 {
   std::vector<std::string> svalue(nvalue, "");
   int ret = GetArray(rs, name, svalue);
@@ -855,7 +852,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, int *value, in
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetArray(odbc::ResultSet *rs, const char *name, long long *value, int nvalue)
+int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, long long *value, int nvalue)
 {
   std::vector<std::string> svalue(nvalue, "");
   int ret = GetArray(rs, name, svalue);

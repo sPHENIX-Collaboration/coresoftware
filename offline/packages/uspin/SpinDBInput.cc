@@ -11,10 +11,6 @@
 #include <format>
 #include <iostream>
 
-const std::string SpinDBInput::DB_NAME = "spinDB_write";
-const std::string SpinDBInput::TABLE_NAME = "spin";
-const int SpinDBInput::ERROR_VALUE = -999;
-
 SpinDBInput::~SpinDBInput()
 {
   delete con;
@@ -61,9 +57,9 @@ int SpinDBInput::IsConnected()
 
 ////////////////////////////////////////////////////////////
 
-int SpinDBInput::CheckRunRow(int runnum, int qa_level, const char *opt)
+int SpinDBInput::CheckRunRow(int runnum, int qa_level, const std::string &opt)
 {
-  if (std::string("simple") == opt && run_check == runnum && qa_check == qa_level)
+  if ("simple" == opt && run_check == runnum && qa_check == qa_level)
   {
     return (1);
   }
@@ -541,7 +537,7 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
 
 /////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *cmd)
+int SpinDBInput::UpdateValue(int runnum, int qa_level, const std::string &cmd)
 {
   if (IsConnected() != 1)
   {
@@ -574,7 +570,7 @@ int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *cmd)
 ////////////////////////////////////////////////////////
 
 template <class T>
-int SpinDBInput::UpdateValueTemp(int runnum, int qa_level, const char *name, T value)
+int SpinDBInput::UpdateValueTemp(int runnum, int qa_level, const std::string &name, T value)
 {
   std::stringstream cmd;
   cmd << "update " << TABLE_NAME << " set " << name << "=" << value;
@@ -584,21 +580,21 @@ int SpinDBInput::UpdateValueTemp(int runnum, int qa_level, const char *name, T v
 
 //////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *name, int value)
+int SpinDBInput::UpdateValue(int runnum, int qa_level, const std::string &name, int value)
 {
   return (UpdateValueTemp(runnum, qa_level, name, value));
 }
 
 //////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *name, float value)
+int SpinDBInput::UpdateValue(int runnum, int qa_level, const std::string &name, float value)
 {
   return (UpdateValueTemp(runnum, qa_level, name, value));
 }
 
 //////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *name, double value)
+int SpinDBInput::UpdateValue(int runnum, int qa_level, const std::string &name, double value)
 {
   return (UpdateValueTemp(runnum, qa_level, name, value));
 }
@@ -606,7 +602,7 @@ int SpinDBInput::UpdateValue(int runnum, int qa_level, const char *name, double 
 //////////////////////////////////////////////////////////
 
 template <class T>
-int SpinDBInput::UpdateArrayTemp(int runnum, int qa_level, const char *name, T *value, int nvalue)
+int SpinDBInput::UpdateArrayTemp(int runnum, int qa_level, const std::string &name, T *value, int nvalue)
 {
   std::stringstream cmd;
   cmd << "update " << TABLE_NAME << " set " << name << "='{";
@@ -624,49 +620,49 @@ int SpinDBInput::UpdateArrayTemp(int runnum, int qa_level, const char *name, T *
 
 /////////////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateArray(int runnum, int qa_level, const char *name, int *value, int nvalue)
+int SpinDBInput::UpdateArray(int runnum, int qa_level, const std::string &name, int *value, int nvalue)
 {
   return (UpdateArrayTemp(runnum, qa_level, name, value, nvalue));
 }
 
 /////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateArray(int runnum, int qa_level, const char *name, float *value, int nvalue)
+int SpinDBInput::UpdateArray(int runnum, int qa_level, const std::string &name, float *value, int nvalue)
 {
   return (UpdateArrayTemp(runnum, qa_level, name, value, nvalue));
 }
 
 /////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateArray(int runnum, int qa_level, const char *name, double *value, int nvalue)
+int SpinDBInput::UpdateArray(int runnum, int qa_level, const std::string &name, double *value, int nvalue)
 {
   return (UpdateArrayTemp(runnum, qa_level, name, value, nvalue));
 }
 
 /////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateArray(int runnum, int qa_level, const char *name, unsigned int *value, int nvalue)
+int SpinDBInput::UpdateArray(int runnum, int qa_level, const std::string &name, unsigned int *value, int nvalue)
 {
   return (UpdateArrayTemp(runnum, qa_level, name, value, nvalue));
 }
 
 /////////////////////////////////////////////////////////
 
-int SpinDBInput::UpdateArray(int runnum, int qa_level, const char *name, long long *value, int nvalue)
+int SpinDBInput::UpdateArray(int runnum, int qa_level, const std::string &name, long long *value, int nvalue)
 {
   return (UpdateArrayTemp(runnum, qa_level, name, value, nvalue));
 }
 
 //////////////////////////////////////////////////////////
 
-int SpinDBInput::InitializeValue(int runnum, int qa_level, const char *name)
+int SpinDBInput::InitializeValue(int runnum, int qa_level, const std::string &name)
 {
   return (UpdateValue(runnum, qa_level, name, ERROR_VALUE));
 }
 
 //////////////////////////////////////////////////////////
 
-int SpinDBInput::InitializeArray(int runnum, int qa_level, const char *name, int nvalue)
+int SpinDBInput::InitializeArray(int runnum, int qa_level, const std::string &name, int nvalue)
 {
   int *ERROR_ARRAY = new int[nvalue];
   for (int i = 0; i < nvalue; i++)
