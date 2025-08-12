@@ -51,9 +51,7 @@
 
 #include <phool/PHObject.h>
 
-#include <math.h>
-//#include <stdio.h>
-//#include <iostream>
+#include <limits>
 
 class SpinDBContent : public PHObject
 {
@@ -67,7 +65,6 @@ class SpinDBContent : public PHObject
   static constexpr int GetErrorValue() { return -999; }
 
   virtual int CheckBunchNumber(int) const { return 0; }
-  virtual void Print() const { return; }
 
   virtual int GetRunNumber() const = 0;
   virtual int GetQALevel() const = 0;
@@ -92,19 +89,19 @@ class SpinDBContent : public PHObject
   virtual long long GetScaler(int, int) const { return 0; }
   virtual int GetBadBunchFlag(int) const { return 0; }
 
-  virtual void GetAsymBlueForward(float& v, float& e) const { v=NAN; e=NAN; }
-  virtual void GetAsymBlueBackward(float& v, float& e) const { v=NAN; e=NAN; }
-  virtual void GetAsymYellowForward(float& v, float& e) const { v=NAN; e=NAN; }
-  virtual void GetAsymYellowBackward(float& v, float& e) const { v=NAN; e=NAN; }
-  virtual void GetPhaseBlueForward(float& v, float& e) const { v=NAN; e=NAN; }
-  virtual void GetPhaseBlueBackward(float& v, float& e) const { v=NAN; e=NAN; }
-  virtual void GetPhaseYellowForward(float& v, float& e) const { v=NAN; e=NAN; }
-  virtual void GetPhaseYellowBackward(float& v, float& e) const { v=NAN; e=NAN; }
+  virtual void GetAsymBlueForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetAsymBlueBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetAsymYellowForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetAsymYellowBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetPhaseBlueForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetPhaseBlueBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetPhaseYellowForward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
+  virtual void GetPhaseYellowBackward(float& v, float& e) const { v=std::numeric_limits<float>::quiet_NaN(); e=std::numeric_limits<float>::quiet_NaN(); }
 
-  virtual float GetCrossAngle() const { return NAN; }
-  virtual float GetCrossAngleStd() const { return NAN; }
-  virtual float GetCrossAngleMin() const { return NAN; }
-  virtual float GetCrossAngleMax() const { return NAN; }
+  virtual float GetCrossAngle() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float GetCrossAngleStd() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float GetCrossAngleMin() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float GetCrossAngleMax() const { return std::numeric_limits<float>::quiet_NaN(); }
 
   virtual void SetRunNumber(int) {}
   virtual void SetQALevel(int) {}

@@ -72,19 +72,19 @@ int SpinDBContentv1::CheckBunchNumber(int bunch) const
 
 ///////////////////////////////////////////////////////////////
 
-void SpinDBContentv1::Print() const
+void SpinDBContentv1::identify(std::ostream& os) const
 {
-  std::cout << std::format("Run number = {}", runnum) << std::endl;
-  std::cout << std::format("QA Level = {}", qa_level) << std::endl;
-  std::cout << std::format("Fill number = {}", fillnum) << std::endl;
-  std::cout << std::format("Bad run QA = {}", badrun) << std::endl;
-  std::cout << std::format("Crossing shift = {}", cross_shift) << std::endl;
+  os << std::format("Run number = {}", runnum) << std::endl;
+  os << std::format("QA Level = {}", qa_level) << std::endl;
+  os << std::format("Fill number = {}", fillnum) << std::endl;
+  os << std::format("Bad run QA = {}", badrun) << std::endl;
+  os << std::format("Crossing shift = {}", cross_shift) << std::endl;
 
   for (int i = 0; i < GetNCrossing(); i++)
   {
-    std::cout << std::format("{:3} : {:12} {:12} {:12} : {:3} {:3} : {}", i, scaler_mbd_vtxcut[i], scaler_mbd_nocut[i], scaler_zdc_nocut[i], bpat[i], ypat[i], bad_bunch[i]) << std::endl;
+    os << std::format("{:3} : {:12} {:12} {:12} : {:3} {:3} : {}", i, scaler_mbd_vtxcut[i], scaler_mbd_nocut[i], scaler_zdc_nocut[i], bpat[i], ypat[i], bad_bunch[i]) << std::endl;
 
-    std::cout << std::format(" : {:6.3f} +- {:6.3f} +- {:6.3f} {:6.3f} +- {:6.3} +- {:6.3f}", bpol[i], bpolerr[i], bpolsys[i], ypol[i], ypolerr[i], ypolsys[i]) << std::endl;
+    os << std::format(" : {:6.3f} +- {:6.3f} +- {:6.3f} {:6.3f} +- {:6.3} +- {:6.3f}", bpol[i], bpolerr[i], bpolsys[i], ypol[i], ypolerr[i], ypolsys[i]) << std::endl;
   }
 
   return;

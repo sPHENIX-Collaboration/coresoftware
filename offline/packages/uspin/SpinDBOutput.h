@@ -56,7 +56,7 @@ class SpinDBOutput
   int GetDBContent(SpinDBContent*& spin_cont, int runnum);
   int GetDBContent(SpinDBContent*& spin_cont, int runnum, int qa_level);
   int GetDBContentStore(SpinDBContent*& spin_cont, int runnum);
-  int CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_cont_copy);
+  static int CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_cont_copy);
   int GetDefaultQA(int runnum);
   void Verbosity(int verbose = 0){verbosity=verbose;}
 
@@ -73,7 +73,7 @@ class SpinDBOutput
 
   odbc::Connection *ConnectDB(void);
   int GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs);
-  int GetArray(odbc::ResultSet *rs, const std::string &name, std::vector<std::string> &value);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, std::vector<std::string> &value) const;
   int GetArray(odbc::ResultSet *rs, const std::string &name, float *value, int nvalue);
   int GetArray(odbc::ResultSet *rs, const std::string &name, unsigned int *value, int nvalue);
   int GetArray(odbc::ResultSet *rs, const std::string &name, int *value, int nvalue);

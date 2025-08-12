@@ -183,7 +183,7 @@ int SpinDBInput::InitializeRunRow(SpinDBContent& spin_cont)
   int runnum = spin_cont.GetRunNumber();
   int qa_level = spin_cont.GetQALevel();
 
-  int ncross = spin_cont.GetNCrossing();
+  int ncross = SpinDBContent::GetNCrossing();
 
   InitializeValue(runnum, qa_level, "fillnumber");
   InitializeValue(runnum, qa_level, "badrunqa");
@@ -252,7 +252,7 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
   }
 
   int runnum = spin_cont.GetRunNumber();
-  int ncross = spin_cont.GetNCrossing();
+  int ncross = SpinDBContent::GetNCrossing();
   int fillnum = spin_cont.GetFillNumber();
   int badrun = spin_cont.GetBadRunFlag();
   int xingshift = spin_cont.GetCrossingShift();
@@ -414,10 +414,22 @@ int SpinDBInput::UpdateDBContent(SpinDBContent& spin_cont)
     UpdateArray(runnum, qa_level, "badbunchqa", bad_bunch, ncross);
   }
 
-  float a_bf, a_bb, a_yf, a_yb;
-  float a_bf_err, a_bb_err, a_yf_err, a_yb_err;
-  float p_bf, p_bb, p_yf, p_yb;
-  float p_bf_err, p_bb_err, p_yf_err, p_yb_err;
+  float a_bf;
+  float a_bb;
+  float a_yf;
+  float a_yb;
+  float a_bf_err;
+  float a_bb_err;
+  float a_yf_err;
+  float a_yb_err;
+  float p_bf;
+  float p_bb;
+  float p_yf;
+  float p_yb;
+  float p_bf_err;
+  float p_bb_err;
+  float p_yf_err;
+  float p_yb_err;
   spin_cont.GetAsymBlueForward(a_bf, a_bf_err);
   spin_cont.GetAsymBlueBackward(a_bb, a_bb_err);
   spin_cont.GetAsymYellowForward(a_yf, a_yf_err);
@@ -575,7 +587,7 @@ int SpinDBInput::UpdateValueTemp(int runnum, int qa_level, const std::string &na
   std::stringstream cmd;
   cmd << "update " << TABLE_NAME << " set " << name << "=" << value;
   cmd << " where runnumber=" << runnum << " and qa_level=" << qa_level << ";";
-  return (UpdateValue(runnum, qa_level, cmd.str().c_str()));
+  return (UpdateValue(runnum, qa_level, cmd.str()));
 }
 
 //////////////////////////////////////////////////////////
@@ -615,7 +627,7 @@ int SpinDBInput::UpdateArrayTemp(int runnum, int qa_level, const std::string &na
     }
   }
   cmd << "}' where runnumber=" << runnum << " and qa_level=" << qa_level << ";";
-  return (UpdateValue(runnum, qa_level, cmd.str().c_str()));
+  return (UpdateValue(runnum, qa_level, cmd.str()));
 }
 
 /////////////////////////////////////////////////////////////////

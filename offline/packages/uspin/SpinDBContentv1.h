@@ -61,12 +61,10 @@ class SpinDBContentv1 : public SpinDBContent
   SpinDBContentv1() { InitializeV1(); }
   ~SpinDBContentv1() override = default;
 
-  void identify(std::ostream& os = std::cout) const override { os << "SpinDBContentV1\n"; }
+  void identify(std::ostream& os = std::cout) const override;
   void InitializeV1();
 
   int CheckBunchNumber(int bunch) const override;
-
-  void Print() const override;
 
   int GetRunNumber()     const override { return runnum; }
   int GetQALevel()       const override { return qa_level; }

@@ -563,7 +563,7 @@ int SpinDBOutput::GetDBContentStore(SpinDBContent*& spin_cont, int runnum)
   std::map<int, std::unique_ptr<SpinDBContent>>::iterator it = spin_cont_store.find(runnum);
   if (it != spin_cont_store.end())
   {
-    CopyDBContent(*it->second.get(),*spin_cont);
+    CopyDBContent(*it->second,*spin_cont);
     return 1;
   }
 
@@ -575,7 +575,7 @@ int SpinDBOutput::GetDBContentStore(SpinDBContent*& spin_cont, int runnum)
 //////////////////////////////////////////////////////////////
 int SpinDBOutput::CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_cont_copy)
 {
-  int ncross = spin_cont.GetNCrossing();
+  int ncross = SpinDBContent::GetNCrossing();
   spin_cont_copy.SetRunNumber(spin_cont.GetRunNumber());
   spin_cont_copy.SetQALevel(spin_cont.GetQALevel());
   spin_cont_copy.SetFillNumber(spin_cont.GetFillNumber());
@@ -584,8 +584,12 @@ int SpinDBOutput::CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_co
 
   for (int i = 0; i < ncross; i++)
   {
-    float b_pol, b_pol_err, b_pol_sys;
-    float y_pol, y_pol_err, y_pol_sys;
+    float b_pol;
+    float b_pol_err;
+    float b_pol_sys;
+    float y_pol;
+    float y_pol_err;
+    float y_pol_sys;
     spin_cont.GetPolarizationBlue(i, b_pol, b_pol_err, b_pol_sys);
     spin_cont.GetPolarizationYellow(i, y_pol, y_pol_err, y_pol_sys);
     spin_cont_copy.SetPolarizationBlue(i, b_pol, b_pol_err, b_pol_sys);
@@ -598,14 +602,22 @@ int SpinDBOutput::CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_co
     spin_cont_copy.SetBadBunchFlag(i, spin_cont.GetBadBunchFlag(i));
   }
 
-  float asym_bf, asymerr_bf;
-  float asym_bb, asymerr_bb;
-  float asym_yf, asymerr_yf;
-  float asym_yb, asymerr_yb;
-  float phase_bf, phaseerr_bf;
-  float phase_bb, phaseerr_bb;
-  float phase_yf, phaseerr_yf;
-  float phase_yb, phaseerr_yb;
+  float asym_bf;
+  float asymerr_bf;
+  float asym_bb;
+  float asymerr_bb;
+  float asym_yf;
+  float asymerr_yf;
+  float asym_yb;
+  float asymerr_yb;
+  float phase_bf;
+  float phaseerr_bf;
+  float phase_bb;
+  float phaseerr_bb;
+  float phase_yf;
+  float phaseerr_yf;
+  float phase_yb;
+  float phaseerr_yb;
   spin_cont.GetAsymBlueForward(asym_bf, asymerr_bf);
   spin_cont.GetAsymBlueBackward(asym_bb, asymerr_bb);
   spin_cont.GetAsymYellowForward(asym_yf, asymerr_yf);
@@ -636,7 +648,7 @@ int SpinDBOutput::CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_co
 
 int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
 {
-  int ncross = spin_cont.GetNCrossing();
+  int ncross = SpinDBContent::GetNCrossing();
 
   spin_cont.SetRunNumber(rs->getInt("runnumber"));
   spin_cont.SetQALevel(rs->getInt("qa_level"));
@@ -736,9 +748,9 @@ int SpinDBOutput::GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs)
 
 ///////////////////////////////////////////////////////////////
 
-int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, std::vector<std::string> &value)
+int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, std::vector<std::string> &value) const
 {
-  std::string cvalue = "";
+  std::string cvalue;
   try
   {
     cvalue = rs->getString(name);
@@ -777,7 +789,7 @@ int SpinDBOutput::GetArray(odbc::ResultSet *rs, const std::string &name, std::ve
   while (true)
   {
     size_t pos = cvalue.find(std::string(","));
-    if (pos == cvalue.npos)
+    if (pos == std::string::npos)
     {
       break;
     }

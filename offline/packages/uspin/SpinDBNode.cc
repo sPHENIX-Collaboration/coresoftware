@@ -24,8 +24,7 @@ SpinDBNode::SpinDBNode(const std::string &name):
 }
 
 SpinDBNode::~SpinDBNode()
-{
-}
+= default;
 
 int SpinDBNode::Init(PHCompositeNode */*topNode*/)
 {
