@@ -3,13 +3,12 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-
-#include <variant>
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
 #include <ffarawobjects/CaloPacket.h>
 #include <ffarawobjects/CaloPacketContainer.h>
+#include <variant>
 
 #include <phool/getClass.h>
 
@@ -30,7 +29,7 @@ CaloPacketSkimmer::CaloPacketSkimmer(const std::string &name)
 {
 }
 
-int CaloPacketSkimmer::InitRun(PHCompositeNode* /*topNode*/)
+int CaloPacketSkimmer::InitRun(PHCompositeNode * /*topNode*/)
 {
   // Initialize the detector systems to be used
   if (Verbosity() > 0)
@@ -67,7 +66,6 @@ int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
     }
   }
 
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -99,7 +97,10 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
       }
       if (!m_PacketNodesFlag)
       {
-        std::cout << "CaloPacketSkimmer: unable to find node " << nodemap.find(dettype)->second << "  skiping event" << std::endl;
+        if (Verbosity() > 0)
+        {
+          std::cout << "CaloPacketSkimmer: unable to find node " << nodemap.find(dettype)->second << "  skiping event" << std::endl;
+        }
         return Fun4AllReturnCodes::EVENT_OK;
       }
     }
@@ -110,7 +111,10 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
     Event *_event = findNode::getClass<Event>(topNode, "PRDF");
     if (_event == nullptr)
     {
-      std::cout << PHWHERE << " Event not found" << std::endl;
+      if (Verbosity() > 0)
+      {
+        std::cout << PHWHERE << " Event node not found, skipping event" << std::endl;
+      }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     if (_event->getEvtType() != DATAEVENT)
@@ -154,7 +158,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
         if (!*cont)
         {
           std::cout << PHWHERE << " CaloPacketContainer not found: " << nodemap.find(dettype)->second << std::endl;
-           return Fun4AllReturnCodes::ABORTEVENT;
+          return Fun4AllReturnCodes::ABORTEVENT;
         }
         CaloPacket *packet = (*cont)->getPacketbyId(pid);
         if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
@@ -182,7 +186,6 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
       {
         return Fun4AllReturnCodes::ABORTEVENT;
       }
-      
     }
   }
 
