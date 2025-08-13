@@ -39,6 +39,11 @@
 
 #include <ffamodules/CDBInterface.h>
 
+#include <phfield/PHField.h>
+#include <phfield/PHFieldConfig.h>
+#include <phfield/PHFieldConfigv1.h>
+#include <phfield/PHFieldUtility.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>
@@ -91,7 +96,7 @@
 
 namespace
 {
-  /// navigate Acts volumes to find one matching a given name (recursive)
+  // navigate Acts volumes to find one matching a given name (recursive)
   // NOLINTNEXTLINE(misc-no-recursion)
   TrackingVolumePtr find_volume_by_name(const Acts::TrackingVolume *master, const std::string &name)
   {
@@ -128,6 +133,24 @@ namespace
   inline T get_r(const T &x, const T &y)
   {
     return std::sqrt(square(x) + square(y));
+  }
+
+  // returns true if magnetic field string corresponds to constant value
+  bool isConstantField(const std::string &name, double &fieldstrength)
+  {
+
+    std::istringstream stringline(name);
+    stringline >> fieldstrength;
+    if (stringline.fail())
+    {
+      // conversion to double fails -> we have a string (means fieldmap)
+      fieldstrength = std::numeric_limits<double>::quiet_NaN();
+      return false;
+    }
+    else
+    {
+      return true;
+    }
   }
 
 }  // namespace
@@ -178,7 +201,49 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  /// Set the actsGeometry struct to be put on the node tree
+  // load relevant magnetic field map on the node tree
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  if( isConstantField( m_magField, fieldstrength ) )
+  {
+    // create uniform field
+    PHFieldConfigv1 fcfg;
+    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
+    fcfg.set_field_mag_x(0);
+    fcfg.set_field_mag_y(0);
+    fcfg.set_field_mag_z(fieldstrength);
+
+    /*
+     * also apply rescale, consistent with magnetic field used by ACTS
+     * as defined in MakeActsGeometry::buildActsSurfaces
+     */
+    fcfg.set_magfield_rescale( m_magFieldRescale );
+
+    // create corresponding map and store on node tree
+    PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+
+  } else {
+
+    if (std::filesystem::path(m_magField).extension() != ".root")
+    { m_magField = CDBInterface::instance()->getUrl(m_magField); }
+
+    if (!std::filesystem::exists(m_magField))
+    {
+      if (m_magField.empty())
+      { m_magField = "empty string"; }
+      std::cout << "MakeActsGeometry::InitRun - Fieldmap " << m_magField << " does not exist" << std::endl;
+      gSystem->Exit(1);
+    }
+
+    PHFieldConfigv1 fcfg;
+    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+    fcfg.set_filename(m_magField);
+    fcfg.set_magfield_rescale( m_magFieldRescale );
+
+    // create corresponding map and store on node tree
+    PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+  }
+
+  // Set the actsGeometry struct to be put on the node tree
   ActsTrackingGeometry trackingGeometry;
   trackingGeometry.tGeometry = m_tGeometry;
   trackingGeometry.magField = m_magneticField;
@@ -243,7 +308,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 
 int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 {
-  /// Add the TPC surfaces to the copy of the TGeoManager.
+  // Add the TPC surfaces to the copy of the TGeoManager.
   // this also adds the micromegas surfaces
   // Do this before anything else, so that the geometry is finalized
 
@@ -257,7 +322,7 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   // There is a check for existing acts fake surfaces in editTPCGeometry
   editTPCGeometry(topNode);
 
-  /// Export the new geometry to a root file for examination
+  // Export the new geometry to a root file for examination
   if (Verbosity() > 3)
   {
     PHGeomUtility::ExportGeomtry(topNode, "sPHENIXActsGeom.root");
@@ -269,10 +334,10 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  /// Run Acts layer builder
+  // Run Acts layer builder
   buildActsSurfaces();
 
-  /// Create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
+  // Create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   // makeTGeoNodeMap(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -285,7 +350,7 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   PHGeomTGeo *geomNode = PHGeomUtility::GetGeomTGeoNode(topNode, true);
   assert(geomNode);
 
-  /// Reset the geometry node, which we will recreate with the TPC edits
+  // Reset the geometry node, which we will recreate with the TPC edits
   if (geomNode->isValid())
   {
     geomNode->Reset();
@@ -377,8 +442,8 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
     }
   }
 
-  /// Make a check for the fake surfaces. If we have more than 0
-  /// then we've built the fake surfaces and we should not do it again
+  // Make a check for the fake surfaces. If we have more than 0
+  // then we've built the fake surfaces and we should not do it again
   if (nfakesurfaces > 0)
   {
     return;
@@ -498,9 +563,10 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
-  const int argc = 20;
-  char *arg[argc];
+  static constexpr int argc = 20;
+  char *argv[argc];
   m_magFieldRescale = 1;
+
   // if(Verbosity() > 0)
   std::cout << PHWHERE << "Magnetic field " << m_magField
             << " with rescale " << m_magFieldRescale << std::endl;
@@ -508,76 +574,90 @@ void MakeActsGeometry::buildActsSurfaces()
   std::string responseFile, materialFile;
   setMaterialResponseFile(responseFile, materialFile);
 
-  // Response file contains arguments necessary for geometry building
-  std::istringstream stringline(m_magField);
-  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
-  stringline >> fieldstrength;
-
-  std::ostringstream fld;
-  fld.str("");
-  fld << "0:0:" << m_magField;
-  std::string argstr[argc]{
-      "-n1",
-      "--geo-tgeo-jsonconfig", responseFile,
-      "--mat-input-type", "file",
-      "--mat-input-file", materialFile,
-      "--bf-constant-tesla", fld.str().c_str(),
-      "--bf-bscalor"};
-
-  argstr[9] = std::to_string(m_magFieldRescale);
-
-  /// Alter args if using field map
-  if (stringline.fail())
+  // arguments
+  // material and response file contains arguments necessary for geometry building
+  std::vector<std::string> argstr =
   {
-    if (std::filesystem::path(m_magField).extension() != ".root")
+    "-n1",
+    "--geo-tgeo-jsonconfig", responseFile,
+    "--mat-input-type", "file",
+    "--mat-input-file", materialFile
+  };
+
+  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  if( isConstantField( m_magField, fieldstrength ) )
+  {
+    std::ostringstream fld;
+    fld.str("");
+    fld << "0:0:" << fieldstrength;
+
+    argstr.insert( argstr.end(),
     {
-      m_magField = CDBInterface::instance()->getUrl(m_magField);
-    }
+      "--bf-constant-tesla", fld.str().c_str(),
+      "--bf-map-fieldscale-tesla", std::to_string(m_magFieldRescale)
+    });
+
+  } else {
+
+    // get field from cdb
+    if (std::filesystem::path(m_magField).extension() != ".root")
+    { m_magField = CDBInterface::instance()->getUrl(m_magField); }
+
+    // update arguments
     if (std::filesystem::exists(m_magField))
     {
-      argstr[7] = "--bf-map-file";
-      argstr[8] = m_magField;
-      argstr[9] = "--bf-map-tree";
-      argstr[10] = "fieldmap";
-      argstr[11] = "--bf-map-lengthscale-mm";
-      argstr[12] = "10";
-      argstr[13] = "--bf-map-fieldscale-tesla";
-      argstr[14] = std::to_string(m_magFieldRescale);
+      argstr.insert( argstr.end(),
+      {
+        "--bf-map-file", m_magField,
+        "--bf-map-tree", "fieldmap",
+        "--bf-map-lengthscale-mm", "10",
+        "--bf-map-fieldscale-tesla", std::to_string(m_magFieldRescale)
+      });
     }
   }
+
   //  if(Verbosity() > 0)
-  std::cout << "Mag field now " << m_magField << " with rescale "
-            << m_magFieldRescale << std::endl;
+  std::cout << "Mag field now " << m_magField << " with rescale " << m_magFieldRescale << std::endl;
+
+  // convert arguments to char**
+  assert(argstr.size()<argc);
+
+  // print arguments
+  if (Verbosity() > 1)
+  {
+    std::cout << "MakeActsGeometry::buildActsSurfaces - arguments: " << std::endl;
+    for( const auto& arg:argstr ) { std::cout << arg << ", "; }
+    std::cout << std::endl;
+  }
+
 
   // Set vector of chars to arguments needed
-  for (int i = 0; i < argc; ++i)
+  for (size_t i = 0; i < argstr.size(); ++i)
   {
-    if (Verbosity() > 1)
-    {
-      std::cout << argstr[i] << ", ";
-    }
     // need a copy, since .c_str() returns a const char * and process geometry will not take a const
-    arg[i] = strdup(argstr[i].c_str());
+    argv[i] = strdup(argstr[i].c_str());
   }
 
   // We replicate the relevant functionality of
   // acts/Examples/Run/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
-  makeGeometry(argc, arg, m_detector);
+  makeGeometry(argstr.size(), argv, m_detector);
 
-  for (auto &i : arg)
+  for (size_t i = 0; i < argstr.size(); ++i)
   {
     // NOLINTNEXTLINE(hicpp-no-malloc)
-    free(i);
+    free(argv[i]);
   }
 }
+
+
 void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
                                                std::string &materialFile)
 {
   responseFile = "tgeo-sphenix-mms.json";
   materialFile = "sphenix-mm-material.json";
-  /// Check to see if files exist locally - if not, use defaults
+  // Check to see if files exist locally - if not, use defaults
   std::ifstream file;
 
   file.open(responseFile);
@@ -608,19 +688,19 @@ void MakeActsGeometry::setMaterialResponseFile(std::string &responseFile,
 void MakeActsGeometry::makeGeometry(int argc, char *argv[],
                                     ActsExamples::TGeoDetectorWithOptions &detector)
 {
-  /// setup and parse options
+  // setup and parse options
   boost::program_options::options_description desc;
   ActsExamples::Options::addGeometryOptions(desc);
   ActsExamples::Options::addMaterialOptions(desc);
   ActsExamples::Options::addMagneticFieldOptions(desc);
 
-  /// Add specific options for this geometry
+  // Add specific options for this geometry
   detector.addOptions(desc);
   auto vm = ActsExamples::Options::parse(desc, argc, argv);
 
-  /// The geometry, material and decoration
+  // The geometry, material and decoration
   auto geometry = build(vm, detector);
-  /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
+  // Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
 
   m_tGeometry = geometry.first;
   if (m_useField)
@@ -678,7 +758,7 @@ MakeActsGeometry::build(const boost::program_options::variables_map &vm,
 
   readTGeoLayerBuilderConfigsFile(path, config);
 
-  /// Return the geometry and context decorators
+  // Return the geometry and context decorators
   return detector.m_detector.finalize(config, matDeco);
 }
 
@@ -718,8 +798,8 @@ void MakeActsGeometry::readTGeoLayerBuilderConfigsFile(const std::string &path,
 
 void MakeActsGeometry::unpackVolumes()
 {
-  /// m_tGeometry is a TrackingGeometry pointer
-  /// vol is a TrackingVolume pointer
+  // m_tGeometry is a TrackingGeometry pointer
+  // vol is a TrackingVolume pointer
   auto vol = m_tGeometry->highestTrackingVolume();
 
   if (Verbosity() > 3)
@@ -784,7 +864,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
   auto tpcLayerArray = tpcVolume->confinedLayers();
   auto tpcLayerVector = tpcLayerArray->arrayObjects();
 
-  /// Need to unfold each layer that Acts builds
+  // Need to unfold each layer that Acts builds
   for (auto &i : tpcLayerVector)
   {
     auto surfaceArray = i->surfaceArray();
@@ -792,15 +872,15 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
     {
       continue;
     }
-    /// surfaceVector is a vector of surfaces corresponding to the tpc layer
-    /// that acts builds
+    // surfaceVector is a vector of surfaces corresponding to the tpc layer
+    // that acts builds
     auto surfaceVector = surfaceArray->surfaces();
     for (auto &j : surfaceVector)
     {
       auto surf = j->getSharedPtr();
       auto vec3d = surf->center(m_geoCtxt);
 
-      /// convert to cm
+      // convert to cm
       std::vector<double> world_center = {vec3d(0) / 10.0,
                                           vec3d(1) / 10.0,
                                           vec3d(2) / 10.0};
@@ -808,8 +888,8 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
       TrkrDefs::hitsetkey hitsetkey = getTpcHitSetKeyFromCoords(world_center);
       unsigned int layer = TrkrDefs::getLayer(hitsetkey);
 
-      /// If there is already an entry for this hitsetkey, add the surface
-      /// to its corresponding vector
+      // If there is already an entry for this hitsetkey, add the surface
+      // to its corresponding vector
       // std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
       std::map<unsigned int, std::vector<Surface>>::iterator mapIter;
       // mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
@@ -821,7 +901,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
       }
       else
       {
-        /// Otherwise make a new map entry
+        // Otherwise make a new map entry
         std::vector<Surface> dumvec;
         dumvec.push_back(surf);
         std::pair<unsigned int, std::vector<Surface>> tmp =
@@ -842,7 +922,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
   const auto mmLayerArray = mmVolume->confinedLayers();
   const auto mmLayerVector = mmLayerArray->arrayObjects();
 
-  /// Need to unfold each layer that Acts builds
+  // Need to unfold each layer that Acts builds
   for (const auto &i : mmLayerVector)
   {
     auto surfaceArray = i->surfaceArray();
@@ -851,8 +931,8 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       continue;
     }
 
-    /// surfaceVector is a vector of surfaces corresponding to the micromegas layer
-    /// that acts builds
+    // surfaceVector is a vector of surfaces corresponding to the micromegas layer
+    // that acts builds
     const auto surfaceVector = surfaceArray->surfaces();
 
     for (auto j : surfaceVector)
@@ -860,7 +940,7 @@ void MakeActsGeometry::makeMmMapPairs(TrackingVolumePtr &mmVolume)
       auto surface = j->getSharedPtr();
       auto vec3d = surface->center(m_geoCtxt);
 
-      /// convert to cm
+      // convert to cm
       TVector3 world_center(
           vec3d(0) / Acts::UnitConstants::cm,
           vec3d(1) / Acts::UnitConstants::cm,
@@ -963,9 +1043,9 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
 
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
 
-      /// The Acts geometry builder combines layers 4 and 5 together,
-      /// and layers 6 and 7 together. We need to use the radius to figure
-      /// out which layer to use to get the layergeom
+      // The Acts geometry builder combines layers 4 and 5 together,
+      // and layers 6 and 7 together. We need to use the radius to figure
+      // out which layer to use to get the layergeom
       double layer_rad = (m_inttSurvey) ? sqrt(pow(world_center[0] - m_inttbarrelcenter_survey_x, 2) + pow(world_center[1] - m_inttbarrelcenter_survey_y, 2)) : sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
 
       unsigned int layer = 0;
@@ -1075,7 +1155,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 	  std::cout << PHWHERE << " Did not find associatedDetectorElement, have to quit! " << std::endl;
 	  exit(1);
 	}
-      
+
       Acts::GeometryIdentifier id = detelement->surface().geometryId();
       unsigned int volume = id.volume();
       unsigned int actslayer = id.layer();
@@ -1115,9 +1195,9 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 	  std::cout << "detelement: volume " << volume << " actslayer " << actslayer << " sphlayer " << sphlayer
 		    << " sensor " << sensor << " stave " << stave << " chip " << chip << std::endl;
 	}
-      
+
       // Add this surface to the map
-      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);      
+      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
       m_clusterSurfaceMapSilicon.insert(tmp);
 
       if (Verbosity() > 10)
@@ -1316,7 +1396,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
 // 	std::cout << " node " << node->GetName() << " is the MVTX wrapper"
 // 		  << std::endl;
 //
-//       /// The Mvtx has an additional wrapper that needs to be unpacked
+//       // The Mvtx has an additional wrapper that needs to be unpacked
 //       TObjArray *mvtxArray = node->GetNodes();
 //       TIter mvtxObj(mvtxArray);
 //       while(TObject *mvtx = mvtxObj())
@@ -1328,7 +1408,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
 // 	  std::string mvtxav1("av_1");
 // 	  std::string mvtxNodeName = mvtxNode->GetName();
 //
-// 	  /// We only want the av_1 nodes
+// 	  // We only want the av_1 nodes
 // 	  if(mvtxNodeName.compare(0, mvtxav1.length(), mvtxav1) == 0)
 // 	    getMvtxKeyFromNode(mvtxNode);
 // 	}
@@ -1344,8 +1424,8 @@ TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int la
 // 		  << std::endl;
 //       getInttKeyFromNode(node);
 //     }
-//     /// Put placeholders for the TPC and MMs. Because we modify the geometry
-//     /// within TGeoVolume, we don't need a mapping to the TGeoNode
+//     // Put placeholders for the TPC and MMs. Because we modify the geometry
+//     // within TGeoVolume, we don't need a mapping to the TGeoNode
 //     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?
 //       {
 // 	if(Verbosity() > 2)
@@ -1631,8 +1711,8 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 
 void MakeActsGeometry::setPlanarSurfaceDivisions()
 {
-  /// These are arbitrary tpc subdivisions, and may change
-  /// Setup how TPC boxes will be built for Acts::Surfaces
+  // These are arbitrary tpc subdivisions, and may change
+  // Setup how TPC boxes will be built for Acts::Surfaces
   m_surfStepZ = (m_maxSurfZ - m_minSurfZ) / (double) m_nSurfZ;
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
@@ -1653,10 +1733,10 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
 int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  /// Get the DST Node
+  // Get the DST Node
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
 
-  /// Check that it is there
+  // Check that it is there
   if (!parNode)
   {
     std::cout << "PAR Node missing, creating it" << std::endl;
@@ -1665,10 +1745,10 @@ int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
   }
 
   PHNodeIterator pariter(parNode);
-  /// Get the tracking subnode
+  // Get the tracking subnode
   PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(pariter.findFirst("PHCompositeNode", "SVTX"));
 
-  /// Check that it is there
+  // Check that it is there
   if (!svtxNode)
   {
     svtxNode = new PHCompositeNode("SVTX");
