@@ -8,6 +8,8 @@ use Getopt::Long;
 use Data::Dumper;
 
 sub creatfilelists;
+sub printdatasets;
+sub printdsttypes;
 sub printtags;
 sub printruns;
 
@@ -15,13 +17,15 @@ my $tag;
 my $verbose;
 my $runnumber;
 my $runlist;
+my $printdatasets;
+my $printdsttypes;
 my $printruns;
 my $printtags;
 my $hpss;
 my $noprint;
 my $dataset;
 
-GetOptions('dataset:s' => \$dataset, 'hpss' =>\$hpss, 'list:s' => \$runlist, 'printruns' => \$printruns, 'printtags' => \$printtags, 'run:i' => \$runnumber, 'tag:s' => \$tag, "verbose" =>\$verbose);
+GetOptions('dataset:s' => \$dataset, 'hpss' =>\$hpss, 'list:s' => \$runlist, 'printdatasets' => \$printdatasets, 'printdsttypes' => \$printdsttypes, 'printruns' => \$printruns, 'printtags' => \$printtags, 'run:i' => \$runnumber, 'tag:s' => \$tag, "verbose" =>\$verbose);
 
 my %ignore_datasets = (
     "mdc2" => 1,
@@ -29,6 +33,16 @@ my %ignore_datasets = (
 
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog_read") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
+
+if (defined $printdatasets)
+{
+    printdatasets();
+}
+
+if (defined $printdsttypes)
+{
+    printdsttypes();
+}
 
 if (defined $printtags)
 {
@@ -39,6 +53,7 @@ if (defined $printruns)
 {
     printruns();
 }
+
 if ($#ARGV < 0)
 {
     if (! defined $noprint)
@@ -48,7 +63,12 @@ if ($#ARGV < 0)
 	print "parameters:\n";
 	print "--hpss <print files in hpss>\n";
 	print "--list <file with list of runs>\n";
+	print "--printdatasets: print existing datasets\n";
+	print "--printdsttypes: print existing dst types\n";
+        print "             needs --dataset <dataset> flag\n";
 	print "--printruns: print existing runs (for piping into a runlist)\n";
+        print "             needs --dataset <dataset> flag\n";
+        print "             needs --tag <tag> flag\n";
 	print "--printtags: print existing tags\n";
 	print "--run <run number>\n";
 	print "--tag <tag (build_cdb_version)> (mandatory)\n";
@@ -135,77 +155,172 @@ sub creatfilelists
 	    print "no dsts for type $dsttyp for run $run\n";
 	    unlink $filename;
 	}
+	else
+	{
+	    print "wrote $filename\n";
+	}
     }
     #x	print Dumper(\%files);
 }
 
 sub printtags
 {
-    my $sqlcmd = sprintf("select distinct(tag) from datasets where ");
+    my $sqlcmd = sprintf("select datasets.tag,datasets.dataset from datasets group by tag,dataset");
     my $icnt = 0;
-    if (defined $dataset)
-    {
-	$sqlcmd = sprintf("%s dataset = \'\%s\'",$sqlcmd,$dataset);
-    }
-    else
-    {
-	foreach my $ignore (sort keys %ignore_datasets)
-	{
-	    if ($icnt > 0)
-	    {
-		$sqlcmd = sprintf("%s and ",$sqlcmd);
-	    }
-	    $sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
-	    $icnt++;
-	}
-    }
-    $sqlcmd = sprintf("%s and tag is not null order by tag",$sqlcmd);
+    $sqlcmd = sprintf("%s",$sqlcmd);
     if (defined $verbose)
     {
 	print "sql cmd: $sqlcmd\n";
     }
     my $gettags = $dbh->prepare($sqlcmd);
     $gettags->execute();
+    my %tags = ();
     while (my @res = $gettags->fetchrow_array)
     {
-	print "$res[0]\n";
+	if (defined $dataset)
+	{
+	    if ($res[1] eq $dataset)
+	    {
+		$tags{$res[0]} = $res[1];
+	    }
+	}
+	else
+	{
+	    my $addthis = 1;
+	    foreach my $ignore (keys %ignore_datasets)
+	    {
+		if ($res[1] eq $ignore)
+		{
+		    $addthis = 0;
+		    last;
+		}
+	    }
+	    if (! defined $res[0])
+	    {
+		next;
+	    }
+	    if ($addthis == 1)
+	    {
+		$tags{$res[0]} = $res[1];
+	    }
+	}
+    }
+    foreach my $tg (sort keys %tags)
+    {
+	print "$tg\n";
     }
     exit(0);
 }
 
 sub printruns
 {
-    my $sqlcmd = sprintf("select distinct(runnumber) from datasets where ");
-    my $icnt = 0;
-    if (defined $dataset)
+    my %dsttype = ();
+    while($#ARGV >= 0)
     {
-	$sqlcmd = sprintf("%s dataset = \'\%s\'",$sqlcmd,$dataset);
+	$dsttype{$ARGV[0]} = 1;
+	shift (@ARGV);
     }
-    else
+    my $isgood = 1;
+    if (!defined $dataset)
     {
-	foreach my $ignore (sort keys %ignore_datasets)
-	{
-	    if ($icnt > 0)
-	    {
-		$sqlcmd = sprintf("%s and ",$sqlcmd);
-	    }
-	    $sqlcmd = sprintf("%s dataset <> \'\%s\'",$sqlcmd,$ignore);
-	    $icnt++;
-	}
+	print "printruns needs --dataset <dataset>\n";
+	$isgood = 0;
     }
-    $sqlcmd = sprintf("%s and tag = '$tag' and dsttype='$ARGV[0]'order by runnumber",$sqlcmd);
+    if (! defined $tag)
+    {
+	print "printruns needs --tag <tag>\n";
+	$isgood = 0;
+    }
+    if ($isgood == 0)
+    {
+	exit 1;
+    }
+    my $sqlcmd = sprintf("select datasets.runnumber,datasets.dsttype from datasets where dataset = '%s' and tag = '%s' group by runnumber,dsttype",$dataset,$tag);
     my $getruns =  $dbh->prepare($sqlcmd);
     $getruns->execute();
+    my %selruns = ();
     if ($getruns->rows == 0)
     {
-	print "no run found for tag $tag and dst type $ARGV[0]\n";
+	print "no run found for tag $tag and dataset $dataset\n";
     }
     else
     {
+	my $icnt = 0;
 	while (my @res = $getruns->fetchrow_array())
 	{
-	    print "$res[0]\n";
+	    if (keys %dsttype > 0 && !exists $dsttype{$res[1]})
+	    {
+		next;
+	    }
+	    $selruns{$res[0]} = 1;
+	    $icnt++;
 	}
+	if ($icnt == 0)
+	{
+	    print "no run for selected dst types\n";
+	    exit 1;
+	}
+	foreach my $rn (sort keys %selruns)
+	{
+	    print "$rn\n";
+	}
+    }
+    exit(0);
+}
+
+sub printdatasets
+{
+    my $sqlcmd = sprintf("select datasets.dataset from datasets group by dataset");
+    my $getdatasets = $dbh->prepare($sqlcmd);
+    $getdatasets->execute();
+    my %ds = ();
+    while (my @res = $getdatasets->fetchrow_array())
+    {
+	my $addthis = 1;
+	foreach my $ignore (keys %ignore_datasets)
+	{
+	    if ($res[0] eq $ignore)
+	    {
+		$addthis = 0;
+		last;
+	    }
+	}
+	if ($addthis == 1)
+	{
+	    $ds{$res[0]} = 1;
+	}
+    }
+    foreach my $dd (sort keys %ds)
+    {
+	print "$dd\n";
+    }
+    exit(0);
+}
+
+sub printdsttypes
+{
+    if (!defined $dataset)
+    {
+	print "printruns needs dataset\n";
+    }
+    my $sqlcmd = sprintf("select datasets.dsttype,datasets.tag from datasets where dataset = '%s' group by dsttype,tag",$dataset);
+    my $getdsttypes = $dbh->prepare($sqlcmd);
+    $getdsttypes->execute();
+    my %dsts = ();
+    while (my @res = $getdsttypes->fetchrow_array())
+    {
+	if (defined $tag)
+	{
+	    if ($res[1] ne $tag)
+	    {
+		next;
+	    }
+	}
+	$dsts{$res[0]} = 1;
+    }
+    foreach my $dd (sort keys %dsts)
+    {
+	print "$dd\n";
     }
     exit(0);
 }

@@ -79,22 +79,23 @@ KFParticle_Tools::KFParticle_Tools()
   , m_max_decayTime(FLT_MAX)
   , m_min_decayLength(-1 * FLT_MAX)
   , m_max_decayLength(FLT_MAX)
-  , m_track_pt(0.2)
+  , m_track_min_pt(0.)
+  , m_track_max_pt(5e3)
   , m_track_ptchi2(FLT_MAX)
-  , m_track_ip_xy(-1.)
+  , m_track_ip_xy(-100.)
   , m_track_ipchi2_xy(-1)
   , m_track_ip(-1.)
   , m_track_ipchi2(-1)
-  , m_track_chi2ndof(4.)
+  , m_track_chi2ndof(100.)
   , m_nMVTXStates(3)
   , m_nINTTStates(1)
   , m_nTPCStates(20)
   , m_nTPOTStates(0)
-  , m_comb_DCA_xy(0.05)
-  , m_comb_DCA(0.05)
-  , m_vertex_chi2ndof(15.)
+  , m_comb_DCA_xy(1)
+  , m_comb_DCA(0.5)
+  , m_vertex_chi2ndof(20.)
   , m_fdchi2(0.)
-  , m_dira_min(0.90)
+  , m_dira_min(-1.01)
   , m_dira_max(1.01)
   , m_mother_pt(0.)
   , m_mother_ipchi2(FLT_MAX)
@@ -446,7 +447,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
   calcMinIP(particle, primaryVertices, min_ip_xy, min_ipchi2_xy, false);
 
-  if (pt >= m_track_pt
+  if (isInRange(m_track_min_pt, pt, m_track_max_pt)
    && ptchi2 <= m_track_ptchi2
    && min_ip >= m_track_ip
    && min_ipchi2 >= m_track_ipchi2 
