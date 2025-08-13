@@ -616,12 +616,12 @@ AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 	  continue;
 	}
 	varname = "phi";  // + std::to_string(key);
-	double phi = ((side == 1 ? 1 : -1) * (m_cdbttree->GetDoubleValue(key, varname) - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
+      double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
 	PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
-	unsigned int phibin = layergeom->get_phibin(phi, side);
+	unsigned int phibin = layergeom->get_phibin(phi);
 	//get global coords
 	double radius = layergeom->get_radius();  // returns center of layer
-	double chanphi = layergeom->get_phi(phibin, side);
+	double chanphi = layergeom->get_phi(phibin);
 	float chanx = radius * cos(chanphi);
 	float chany = radius * sin(chanphi);
     
