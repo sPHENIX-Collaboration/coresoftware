@@ -63,6 +63,8 @@ class CaloPacketSkimmer : public SubsysReco
       return "SEPD";
     case CaloTowerDefs::ZDC:
       return "ZDC";
+    case CaloTowerDefs::MBD:
+      return "MBD";
     default:
       return "UNKNOWN";
     }
@@ -82,6 +84,8 @@ class CaloPacketSkimmer : public SubsysReco
       return {9001, 9006};
     case CaloTowerDefs::ZDC:
       return {12001, 12001};
+    case CaloTowerDefs::MBD:
+      return {1001, 1002};
     default:
       return {0, 0};  // Invalid range
     }

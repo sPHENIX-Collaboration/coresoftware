@@ -21,7 +21,8 @@ static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
     {CaloTowerDefs::HCALIN, "HCALPackets"},
     {CaloTowerDefs::HCALOUT, "HCALPackets"},
     {CaloTowerDefs::ZDC, "ZDCPackets"},
-    {CaloTowerDefs::SEPD, "SEPDPackets"}};
+    {CaloTowerDefs::SEPD, "SEPDPackets"},
+    {CaloTowerDefs::MBD, "MBDPackets"}};
 
 //____________________________________________________________________________..
 CaloPacketSkimmer::CaloPacketSkimmer(const std::string &name)
