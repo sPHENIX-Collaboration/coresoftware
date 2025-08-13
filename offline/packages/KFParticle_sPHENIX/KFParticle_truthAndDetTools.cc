@@ -1081,11 +1081,14 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
-  m_tree->Branch((daughter_number + "_residual_x").c_str(), &residual_x[daughter_id]);
-  m_tree->Branch((daughter_number + "_residual_y").c_str(), &residual_y[daughter_id]);
-  m_tree->Branch((daughter_number + "_residual_z").c_str(), &residual_z[daughter_id]);
-  m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
 
+  if(m_get_detailed_tracking){
+    m_tree->Branch((daughter_number + "_residual_x").c_str(), &residual_x[daughter_id]);
+    m_tree->Branch((daughter_number + "_residual_y").c_str(), &residual_y[daughter_id]);
+    m_tree->Branch((daughter_number + "_residual_z").c_str(), &residual_z[daughter_id]);
+    m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
+  }
+  
   for (auto const &subdetector : Use)
   {
     if (subdetector.second)
@@ -1094,27 +1097,32 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
     }
   }
 }
-
 void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number)
 {
   if (detectorName == "MVTX")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
   }
   if (detectorName == "INTT")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
   }
   if (detectorName == "TPC")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_side").c_str(), &tpc_side[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
   }
@@ -1185,13 +1193,15 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ladderPhiId = InttDefs::getLadderPhiId(cluster_key);
         ++detector_nHits_INTT[daughter_id];
       }
-
+      
+      if(m_get_detailed_tracking){
       mvtx_staveID[daughter_id].push_back(staveId);
       mvtx_chipID[daughter_id].push_back(chipId);
       intt_ladderZID[daughter_id].push_back(ladderZId);
       intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
       tpc_sectorID[daughter_id].push_back(sectorId);
       tpc_side[daughter_id].push_back(side);
+      }
     }
   }
 
@@ -1223,12 +1233,14 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ++detector_nHits_TPOT[daughter_id];
       }
 
+      if(m_get_detailed_tracking){
       mvtx_staveID[daughter_id].push_back(staveId);
       mvtx_chipID[daughter_id].push_back(chipId);
       intt_ladderZID[daughter_id].push_back(ladderZId);
       intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
       tpc_sectorID[daughter_id].push_back(sectorId);
       tpc_side[daughter_id].push_back(side);
+      }
     }
   }
 
@@ -1247,10 +1259,12 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         continue;
       }
       auto global = geometry->getGlobalPosition(stateckey, cluster);
-
+      
+      if(m_get_detailed_tracking){
       residual_x[daughter_id].push_back(global.x() - tstate->get_x());
       residual_y[daughter_id].push_back(global.y() - tstate->get_y());
       residual_z[daughter_id].push_back(global.z() - tstate->get_z());
+      }
 
       uint8_t id = TrkrDefs::getTrkrId(stateckey);
 
