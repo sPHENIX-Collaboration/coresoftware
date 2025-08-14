@@ -420,12 +420,12 @@ void PHG4TruthInfoContainer::delete_shower(ShowerIterator siter)
 
 int PHG4TruthInfoContainer::isEmbeded(const int trackid) const
 {
-  //I think here for G4 secondarys we just check their primary's embedding ID
+  // I think here for G4 secondarys we just check their primary's embedding ID
   int trackid_embed = trackid;
   if (trackid_embed <= 0)
   {
     const PHG4Particle* p = GetParticle(trackid_embed);
-    if(p) trackid_embed = p->get_primary_id();
+    if (p) trackid_embed = p->get_primary_id();
   }
   std::map<int, int>::const_iterator iter = particle_embed_flags.find(trackid_embed);
   if (iter == particle_embed_flags.end())

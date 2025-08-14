@@ -38,7 +38,7 @@ class PHG4VtxPointv2 : public PHG4VtxPointv1
   void identify(std::ostream& os = std::cout) const override;
 
   /// set process property
-  void set_process(int proc) override 
+  void set_process(int proc) override
   {
     auto prop = ((PropEncoding) mProp);
     prop.properties.process = proc;

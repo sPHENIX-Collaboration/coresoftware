@@ -20,10 +20,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.          //
 /////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef EcoMug_H
-#define EcoMug_H
+#ifndef G4MAIN_ECOMUG_H
+#define G4MAIN_ECOMUG_H
 
-//#include <math.h>
 #include <array>
 #include <functional>
 #include <random>
