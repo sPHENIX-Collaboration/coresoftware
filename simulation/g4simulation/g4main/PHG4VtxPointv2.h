@@ -7,8 +7,6 @@
 
 #include "PHG4MCProcessDefs.h"
 
-#include <climits>   // for INT_MIN
-#include <cmath>     // def of NAN
 #include <iostream>  // for cout, ostream
 
 class PHG4VtxPointv2 : public PHG4VtxPointv1
