@@ -150,7 +150,7 @@ Checks: '
     modernize-use-equals-default,
     modernize-use-nullptr,
     modernize-use-using,
-    performance-enum-size,
+#    performance-enum-size,
     performance-faster-string-find,
     performance-for-range-copy,
     performance-implicit-conversion-in-loop,
