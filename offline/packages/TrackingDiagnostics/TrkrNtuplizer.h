@@ -17,9 +17,9 @@
 
 #include <limits>
 #include <map>
+#include <queue>
 #include <set>
 #include <string>
-#include <queue>
 
 class CDBInterface;
 class CDBTTree;
@@ -111,7 +111,7 @@ class TrkrNtuplizer : public SubsysReco
   TF1 *f_pion_minus{nullptr};
   TF1 *f_kaon_minus{nullptr};
   TF1 *f_proton_minus{nullptr};
-  float  dedxcorr[2][12][3]{};
+  float dedxcorr[2][12][3]{};
   float get_n1pix(TrackSeed *tpcseed);
 
   static TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
@@ -214,7 +214,7 @@ class TrkrNtuplizer : public SubsysReco
 
   CDBTTree *m_cdbttree{nullptr};
   CDBInterface *m_cdb{nullptr};
-  
+
   int mc_sectors[12]{5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
   int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
   int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
