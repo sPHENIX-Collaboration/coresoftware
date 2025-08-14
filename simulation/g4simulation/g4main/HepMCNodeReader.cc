@@ -176,7 +176,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   {
     static bool once = true;
 
-    if (once and Verbosity())
+    if (once && Verbosity())
     {
       once = false;
 
