@@ -7,12 +7,6 @@
 #include <Geant4/G4UIcmdWithAnInteger.hh>
 #include <Geant4/G4UIdirectory.hh>  // for G4UIdirectory
 
-#include <iosfwd>  // for std
-
-class G4UIcommand;
-
-using namespace std;
-
 Fun4AllMessenger::Fun4AllMessenger(Fun4AllServer* ffa)
   : se(ffa)
 {

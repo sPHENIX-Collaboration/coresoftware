@@ -15,6 +15,8 @@
 
 #include "PHG4Hitv1.h"
 
+#include <limits>
+
 class PHG4Hit;
 class PHObject;
 
@@ -24,21 +26,20 @@ class PHObject;
 class PHG4HitEval : public PHG4Hitv1
 {
  public:
-  PHG4HitEval();
+  PHG4HitEval() = default;
 
   PHG4HitEval(const PHG4Hit *g4hit);
 
-  ~PHG4HitEval() override {}
+  ~PHG4HitEval() override = default;
 
   void CopyFrom(const PHObject *phobj) override;
 
-  float
-  get_eion() const override
+  float get_eion() const override
   {
     return eion;
   }
-  void
-  set_eion(const float f) override
+  
+  void set_eion(const float f) override
   {
     eion = f;
   }
@@ -48,46 +49,41 @@ class PHG4HitEval : public PHG4Hitv1
     return scint_id;
   }
 
-  void
-  set_scint_id(const int i) override
+  void set_scint_id(const int i) override
   {
     scint_id = i;
   }
 
-  float
-  get_light_yield() const override
+  float get_light_yield() const override
   {
     return light_yield;
   }
 
-  void
-  set_light_yield(float lightYield) override
+  void set_light_yield(float lightYield) override
   {
     light_yield = lightYield;
   }
 
-  float
-  get_path_length() const override
+  float get_path_length() const override
   {
     return path_length;
   }
 
-  void
-  set_path_length(float pathLength) override
+  void set_path_length(float pathLength) override
   {
     path_length = pathLength;
   }
 
  protected:
-  float eion;
+  float eion {std::numeric_limits<float>::quiet_NaN()};
 
-  int scint_id;
+  int scint_id {std::numeric_limits<int>::min()};
 
   //! a number proportional to the scintillation light yield.
-  float light_yield;
+  float light_yield {std::numeric_limits<float>::quiet_NaN()};
 
   //! path length of the track to the hit
-  float path_length;
+  float path_length {std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(PHG4HitEval, 1)
 };
