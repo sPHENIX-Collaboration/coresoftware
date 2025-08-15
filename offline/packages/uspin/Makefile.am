@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
+  libuspin_io.la \
   libuspin.la
 
 AM_CPPFLAGS = \
@@ -32,18 +33,25 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libuspin_la_SOURCES = \
-  $(ROOTDICTS) \
   SpinDBInput.cc \
-  SpinDBContent.cc \
-  SpinDBContentv1.cc \
   SpinDBOutput.cc \
   SpinDBNode.cc
 
 libuspin_la_LIBADD = \
+  libuspin_io.la \
   -lodbc++ \
   -lphool \
   -lSubsysReco \
   -lffaobjects
+
+libuspin_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  SpinDBContent.cc \
+  SpinDBContentv1.cc
+
+libuspin_io_la_LIBADD = \
+  -lphool
+
 
 
 # Rule for generating table CINT dictionaries.
@@ -57,10 +65,14 @@ libuspin_la_LIBADD = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals \
+  testexternals_io
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD = libuspin.la
+
+testexternals_io_SOURCES = testexternals.cc
+testexternals_io_LDADD = libuspin_io.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
