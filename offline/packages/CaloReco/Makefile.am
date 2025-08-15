@@ -57,6 +57,7 @@ pkginclude_HEADERS = \
   RawClusterBuilderTemplate.h \
   RawClusterCNNClassifier.h \
   RawClusterLikelihoodProfile.h \
+  sEPDGeomMapping.h \
   ClusterCDFCalculator.h \
   RawClusterPositionCorrection.h \
   RawClusterZVertexRecorrect.h \
@@ -97,7 +98,8 @@ libcalo_reco_la_SOURCES = \
   RawTowerDeadTowerInterp.cc \
   DeadHotMapLoader.cc \
   RawClusterDeadHotMask.cc \
-  TowerInfoDeadHotMask.cc
+  TowerInfoDeadHotMask.cc \
+  sEPDGeomMapping.cc
 endif
 
 ################################################

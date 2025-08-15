@@ -92,13 +92,28 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   ///////////////////////////////////////
   // energy calibration getting from CDB
   std::string default_time_independent_calib = m_detector+"_calib_ADC_to_ETower_default"; 
-  if (!m_overrideCalibName)
+  
+  if (m_dettype == CaloTowerDefs::SEPD)
   {
-    m_calibName = m_detector+"_calib_ADC_to_ETower";
+    if (!m_overrideCalibName)
+    {
+      m_calibName = "SEPD_NMIP_CALIB";
+    }
+    if (!m_overrideFieldName)
+    {
+      m_fieldname = "mip_calib";  
+    }
   }
-  if (!m_overrideFieldName)
+  else
   {
-    m_fieldname = m_detector+"_calib_ADC_to_ETower"; 
+    if (!m_overrideCalibName)
+    {
+      m_calibName = m_detector+"_calib_ADC_to_ETower";
+    }
+    if (!m_overrideFieldName)
+    {
+      m_fieldname = m_detector+"_calib_ADC_to_ETower"; 
+    }
   }
 
   if (m_giveDirectURL)
@@ -237,23 +252,38 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     bool isZS = caloinfo_raw->get_isZS();
 
-    if (isZS && m_doZScrosscalib)
+    if (m_dettype == CaloTowerDefs::SEPD)
     {
-      float crosscalibconst = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib);
-      if (crosscalibconst == 0) 
-      { 
-        crosscalibconst = 1; 
+      if (calibconst > 0)
+      {
+        _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude / calibconst);
       }
-      _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst * crosscalibconst);
+      else
+      {
+        _calib_towers->get_tower_at_channel(channel)->set_energy(0.0);
+        _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+      }
     }
     else
     {
-      _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
-    }
+      if (isZS && m_doZScrosscalib)
+      {
+        float crosscalibconst = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib);
+        if (crosscalibconst == 0) 
+        { 
+          crosscalibconst = 1; 
+        }
+        _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst * crosscalibconst);
+      }
+      else
+      {
+        _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
+      }
    
-    if (calibconst == 0)
-    {
-      _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+      if (calibconst == 0)
+      {
+        _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+      }
     }
     if(m_dotimecalib)
     {
