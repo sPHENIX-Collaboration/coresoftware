@@ -94,7 +94,7 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
   float phi_min = -3.14;
   float phi_max = 3.14;
   float pt_min = 0;
-  float pt_max = 10;
+  float pt_max = 5;
 
   h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_Eta",  //
                 ";mass [GeV/c^{2}]; Eta", 100, m_min_mass, m_max_mass, 100, eta_min, eta_max);
