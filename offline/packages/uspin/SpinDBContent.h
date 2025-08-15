@@ -5,8 +5,6 @@
 // Description : Content of spin database
 // Created     : 2024-05-12
 //
-// ERROR_VALUE       : Error value
-// NCROSS            : Number of crossing (120)
 // runnum            : Run number
 // qa_level          : Level of QA for stored data.
 // fillnum           : Fill number
@@ -29,175 +27,149 @@
 // cross_angle_min   : Minimum value of relative crossing angle in mrad
 // cross_angle_max   : Maximum value of relative crossing angle in mrad
 // asym_bf           : very forward neutron TSSA magnitude in blue beam
-// asym_bb           : very backward neutron TSSA magnitude in blue beam 
+// asym_bb           : very backward neutron TSSA magnitude in blue beam
 // asym_yf           : very forward neutron TSSA magnitude in yellow beam
-// asym_yb           : very backward neutron TSSA magnitude in yellow beam 
+// asym_yb           : very backward neutron TSSA magnitude in yellow beam
 // asymerr_bf        : very forward neutron TSSA magnitude uncertainty in blue beam
-// asymerr_bb        : very backward neutron TSSA magnitude uncertainty in blue beam 
+// asymerr_bb        : very backward neutron TSSA magnitude uncertainty in blue beam
 // asymerr_yf        : very forward neutron TSSA magnitude uncertainty in yellow beam
-// asymerr_yb        : very backward neutron TSSA magnitude uncertainty in yellow beam 
+// asymerr_yb        : very backward neutron TSSA magnitude uncertainty in yellow beam
 // phase_bf          : very forward neutron TSSA phase offset in blue beam
-// phase_bb          : very backward neutron TSSA phase offset in blue beam 
+// phase_bb          : very backward neutron TSSA phase offset in blue beam
 // phase_yf          : very forward neutron TSSA phase offset in yellow beam
-// phase_yb          : very backward neutron TSSA phase offset in yellow beam 
+// phase_yb          : very backward neutron TSSA phase offset in yellow beam
 // phaseerr_bf       : very forward neutron TSSA phase offset uncertainty in blue beam
-// phaseerr_bb       : very backward neutron TSSA phase offset uncertainty in blue beam 
+// phaseerr_bb       : very backward neutron TSSA phase offset uncertainty in blue beam
 // phaseerr_yf       : very forward neutron TSSA phase offset uncertainty in yellow beam
-// phaseerr_yb       : very backward neutron TSSA phase offset uncertainty in yellow beam 
-
+// phaseerr_yb       : very backward neutron TSSA phase offset uncertainty in yellow beam
 
 ////////////////////////////////////////////////////////////////
 
 #ifndef USPIN_SPINDBCONTENT_H
 #define USPIN_SPINDBCONTENT_H
 
-//#include <stdio.h>
-//#include <iostream>
+#include <phool/PHObject.h>
 
-class SpinDBContent
+#include <limits>
+
+class SpinDBContent : public PHObject
 {
  public:
-  SpinDBContent() { Initialize(); }
-  virtual ~SpinDBContent() { ; }
-  void Initialize();
-  static int GetNCrossing() { return (NCROSS); }
-  static int GetErrorValue() { return (ERROR_VALUE); }
-  int CheckBunchNumber(int bunch);
-  void Print() const;
+  SpinDBContent() = default;
+  virtual ~SpinDBContent() override = default;
 
-  int GetRunNumber() { return (runnum); }
-  int GetQALevel() { return (qa_level); }
-  int GetFillNumber() { return (fillnum); }
-  int GetBadRunFlag() { return (badrun); }
-  int GetCrossingShift() { return (cross_shift); }
+  void identify(std::ostream& os = std::cout) const override;
 
-  int GetPolarizationBlue(int bunch, float &value, float &error);
-  int GetPolarizationBlue(int bunch, float &value, float &error, float &syserr);
-  int GetPolarizationBlue(int bunch, double &value, double &error);
-  int GetPolarizationBlue(int bunch, double &value, double &error, double &syserr);
-  int GetPolarizationYellow(int bunch, float &value, float &error);
-  int GetPolarizationYellow(int bunch, float &value, float &error, float &syserr);
-  int GetPolarizationYellow(int bunch, double &value, double &error);
-  int GetPolarizationYellow(int bunch, double &value, double &error, double &syserr);
-  int GetSpinPatternBlue(int bunch);
-  int GetSpinPatternYellow(int bunch);
-  long long GetScalerMbdVertexCut(int bunch);
-  long long GetScalerMbdNoCut(int bunch);
-  long long GetScalerZdcNoCut(int bunch);
-  long long GetScaler(int channel, int bunch);
-  int GetBadBunchFlag(int bunch);
+  static constexpr int GetNCrossing() { return 120; }
+  static constexpr int GetErrorValue() { return -999; }
 
-  void GetAsymBlueForward(float &value, float &error);
-  void GetAsymBlueBackward(float &value, float &error);
-  void GetAsymYellowForward(float &value, float &error);
-  void GetAsymYellowBackward(float &value, float &error);
-  void GetPhaseBlueForward(float &value, float &error);
-  void GetPhaseBlueBackward(float &value, float &error);
-  void GetPhaseYellowForward(float &value, float &error);
-  void GetPhaseYellowBackward(float &value, float &error);
+  virtual int CheckBunchNumber(int) const { return 0; }
 
-  float GetCrossAngle() { return cross_angle; }
-  float GetCrossAngleStd() { return cross_angle_std; }
-  float GetCrossAngleMin() { return cross_angle_min; }
-  float GetCrossAngleMax() { return cross_angle_max; }
+  virtual int GetRunNumber() const = 0;
+  virtual int GetQALevel() const = 0;
+  virtual int GetFillNumber() const = 0;
+  virtual int GetBadRunFlag() const = 0;
+  virtual int GetCrossingShift() const = 0;
 
-  void SetRunNumber(int run)
+  virtual int GetPolarizationBlue(int, float&, float&) const { return -1; }
+  virtual int GetPolarizationBlue(int, float&, float&, float&) const { return -1; }
+  virtual int GetPolarizationBlue(int, double&, double&) const { return -1; }
+  virtual int GetPolarizationBlue(int, double&, double&, double&) const { return -1; }
+  virtual int GetPolarizationYellow(int, float&, float&) const { return -1; }
+  virtual int GetPolarizationYellow(int, float&, float&, float&) const { return -1; }
+  virtual int GetPolarizationYellow(int, double&, double&) const { return -1; }
+  virtual int GetPolarizationYellow(int, double&, double&, double&) const { return -1; }
+
+  virtual int GetSpinPatternBlue(int) const { return -1; }
+  virtual int GetSpinPatternYellow(int) const { return -1; }
+  virtual long long GetScalerMbdVertexCut(int) const { return 0; }
+  virtual long long GetScalerMbdNoCut(int) const { return 0; }
+  virtual long long GetScalerZdcNoCut(int) const { return 0; }
+  virtual long long GetScaler(int, int) const { return 0; }
+  virtual int GetBadBunchFlag(int) const { return 0; }
+
+  virtual void GetAsymBlueForward(float& v, float& e) const
   {
-    runnum = run;
-    return;
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
   }
-  void SetQALevel(int qa)
+  virtual void GetAsymBlueBackward(float& v, float& e) const
   {
-    qa_level = qa;
-    return;
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
   }
-  void SetFillNumber(int fill)
+  virtual void GetAsymYellowForward(float& v, float& e) const
   {
-    fillnum = fill;
-    return;
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
   }
-  void SetBadRunFlag(int flag)
+  virtual void GetAsymYellowBackward(float& v, float& e) const
   {
-    badrun = flag;
-    return;
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
   }
-  void SetCrossingShift(int shift)
+  virtual void GetPhaseBlueForward(float& v, float& e) const
   {
-    cross_shift = shift;
-    return;
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
   }
-  int SetPolarizationBlue(int bunch, float value, float error);
-  int SetPolarizationYellow(int bunch, float value, float error);
-  int SetPolarizationBlue(int bunch, float value, float error, float syserr);
-  int SetPolarizationYellow(int bunch, float value, float error, float syserr);
-  int SetSpinPatternBlue(int bunch, int value);
-  int SetSpinPatternYellow(int bunch, int value);
-  int SetScalerMbdVertexCut(int bunch, long long value);
-  int SetScalerMbdNoCut(int bunch, long long value);
-  int SetScalerZdcNoCut(int bunch, long long value);
-  int SetScaler(int channel, int bunch, long long value);
-  int SetBadBunchFlag(int bunch, int value);
+  virtual void GetPhaseBlueBackward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetPhaseYellowForward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
+  virtual void GetPhaseYellowBackward(float& v, float& e) const
+  {
+    v = std::numeric_limits<float>::quiet_NaN();
+    e = std::numeric_limits<float>::quiet_NaN();
+  }
 
-  void SetAsymBlueForward(float value, float error);
-  void SetAsymBlueBackward(float value, float error);
-  void SetAsymYellowForward(float value, float error);
-  void SetAsymYellowBackward(float value, float error);
-  void SetPhaseBlueForward(float value, float error);
-  void SetPhaseBlueBackward(float value, float error);
-  void SetPhaseYellowForward(float value, float error);
-  void SetPhaseYellowBackward(float value, float error);
+  virtual float GetCrossAngle() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float GetCrossAngleStd() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float GetCrossAngleMin() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float GetCrossAngleMax() const { return std::numeric_limits<float>::quiet_NaN(); }
 
-  void SetCrossAngle(float value) { cross_angle = value; }
-  void SetCrossAngleStd(float value) { cross_angle_std = value; }
-  void SetCrossAngleMin(float value) { cross_angle_min = value; }
-  void SetCrossAngleMax(float value) { cross_angle_max = value; }
+  virtual void SetRunNumber(int) {}
+  virtual void SetQALevel(int) {}
+  virtual void SetFillNumber(int) {}
+  virtual void SetBadRunFlag(int) {}
+  virtual void SetCrossingShift(int) {}
 
+  virtual int SetPolarizationBlue(int, float, float) { return -1; }
+  virtual int SetPolarizationYellow(int, float, float) { return -1; }
+  virtual int SetPolarizationBlue(int, float, float, float) { return -1; }
+  virtual int SetPolarizationYellow(int, float, float, float) { return -1; }
 
-  
+  virtual int SetSpinPatternBlue(int, int) { return -1; }
+  virtual int SetSpinPatternYellow(int, int) { return -1; }
 
+  virtual int SetScalerMbdVertexCut(int, long long) { return -1; }
+  virtual int SetScalerMbdNoCut(int, long long) { return -1; }
+  virtual int SetScalerZdcNoCut(int, long long) { return -1; }
+  virtual int SetScaler(int, int, long long) { return -1; }
+  virtual int SetBadBunchFlag(int, int) { return -1; }
 
+  virtual void SetAsymBlueForward(float, float) {}
+  virtual void SetAsymBlueBackward(float, float) {}
+  virtual void SetAsymYellowForward(float, float) {}
+  virtual void SetAsymYellowBackward(float, float) {}
+  virtual void SetPhaseBlueForward(float, float) {}
+  virtual void SetPhaseBlueBackward(float, float) {}
+  virtual void SetPhaseYellowForward(float, float) {}
+  virtual void SetPhaseYellowBackward(float, float) {}
+
+  virtual void SetCrossAngle(float) {}
+  virtual void SetCrossAngleStd(float) {}
+  virtual void SetCrossAngleMin(float) {}
+  virtual void SetCrossAngleMax(float) {}
 
  private:
-  static const int NCROSS;
-  static const int ERROR_VALUE;
-
-  int runnum;
-  int qa_level;
-  int fillnum;
-  int badrun;
-  int cross_shift;
-  float bpol[120];
-  float bpolerr[120];
-  float bpolsys[120];
-  float ypol[120];
-  float ypolerr[120];
-  float ypolsys[120];
-  int bpat[120];
-  int ypat[120];
-  long long scaler_mbd_vtxcut[120];
-  long long scaler_mbd_nocut[120];
-  long long scaler_zdc_nocut[120];
-  int bad_bunch[120];
-  float cross_angle;
-  float cross_angle_std;
-  float cross_angle_min;
-  float cross_angle_max;
-  float asym_bf;
-  float asym_bb;
-  float asym_yf;
-  float asym_yb;
-  float asymerr_bf;
-  float asymerr_bb;
-  float asymerr_yf;
-  float asymerr_yb;
-  float phase_bf;
-  float phase_bb;
-  float phase_yf;
-  float phase_yb;
-  float phaseerr_bf;
-  float phaseerr_bb;
-  float phaseerr_yf;
-  float phaseerr_yb;
+  ClassDefOverride(SpinDBContent, 1);
 };
 
 #endif /* USPIN_SPINDBCONTENT_H */
