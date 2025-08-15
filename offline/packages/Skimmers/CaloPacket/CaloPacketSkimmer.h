@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <TH1D.h>
 
 class PHCompositeNode;
 
@@ -90,6 +91,8 @@ class CaloPacketSkimmer : public SubsysReco
       return {0, 0};  // Invalid range
     }
   }
+
+  TH1D* h_aborted_events{nullptr};
 };
 
 #endif
