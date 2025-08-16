@@ -503,4 +503,14 @@ RawTowerDefs::keytype TowerInfoDefs::get_hcalout_geokey_at_channel(const unsigne
   return key;
 }
 
+RawTowerDefs::keytype TowerInfoDefs::get_sepd_geokey_at_channel(const unsigned int towerIndex)
+{
+  unsigned int towerkey = encode_epd(towerIndex);
+  unsigned int arm = get_epd_arm(towerkey);
+  unsigned int rbin = get_epd_rbin(towerkey);
+  unsigned int phibin = get_epd_phibin(towerkey);
+  const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::SEPD, phibin, rbin, arm);
+  return key;
+}
+
 #pragma GCC diagnostic pop

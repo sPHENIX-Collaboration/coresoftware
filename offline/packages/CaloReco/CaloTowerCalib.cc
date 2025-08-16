@@ -237,6 +237,13 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     bool isZS = caloinfo_raw->get_isZS();
 
+    if (calibconst <= 0)
+    {
+      _calib_towers->get_tower_at_channel(channel)->set_energy(0.0);
+      _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+      continue;
+    }
+
     if (isZS && m_doZScrosscalib)
     {
       float crosscalibconst = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib);
@@ -249,11 +256,6 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     else
     {
       _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
-    }
-   
-    if (calibconst == 0)
-    {
-      _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
     }
     if(m_dotimecalib)
     {
