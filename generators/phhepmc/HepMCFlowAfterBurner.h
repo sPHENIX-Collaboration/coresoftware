@@ -8,6 +8,15 @@
 
 #include <string>
 
+#include <flowafterburner/AfterburnerAlgo.h>
+
+class Afterburner;
+class AfterburnerAlgo;
+namespace CLHEP 
+{
+  class HepRandomEngine;
+}
+
 class PHCompositeNode;
 
 class HepMCFlowAfterBurner : public SubsysReco
@@ -47,6 +56,7 @@ class HepMCFlowAfterBurner : public SubsysReco
  protected:
   std::string config_filename;
   std::string algorithmName = "MINBIAS";
+  AfterburnerAlgo::flowAfterburnerAlgorithm m_flowalgorithm = AfterburnerAlgo::minbias_algorithm;
 
   float mineta = -5.;
   float maxeta = 5.;
@@ -57,6 +67,11 @@ class HepMCFlowAfterBurner : public SubsysReco
   int seedset = 0;
   long seed = 0;
   long randomSeed = 11793;
+
+  Afterburner *m_afterburner = nullptr;
+  AfterburnerAlgo *m_flowalgo = nullptr;
+  CLHEP::HepRandomEngine *m_engine = nullptr;
+
 };
 
 #endif
