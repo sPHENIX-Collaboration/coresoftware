@@ -110,9 +110,9 @@ class PHHepMCGenEvent : public PHObject
 
 
   //! reaction plane angles thrown by hijing flowAfterburner
-  virtual float get_flow_psi(unsigned int n) const 
+  virtual float get_flow_psi(unsigned int /* n */) const
   {
-    PHOOL_VIRTUAL_WARNING
+    PHOOL_VIRTUAL_WARNING;
     return 0.0f;
   }
 
@@ -125,9 +125,12 @@ class PHHepMCGenEvent : public PHObject
   }
 
   //! set the reaction plane angle psi_n[n]
-  virtual void set_flow_psi(unsigned int n, float psi) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_flow_psi(unsigned int /*n*/, float /*psi*/) { PHOOL_VIRTUAL_WARNING; }
 
-  virtual void set_flow_psi_map(const FlowAfterburner_PsiMap& psi_map) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_flow_psi_map(const FlowAfterburner_PsiMap& /*psi_map*/)
+  {
+    PHOOL_VIRTUAL_WARNING;
+  }
 
 
   //! host an HepMC event
