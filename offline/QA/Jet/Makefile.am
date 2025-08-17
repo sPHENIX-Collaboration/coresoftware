@@ -35,7 +35,8 @@ pkginclude_HEADERS = \
   TrksInJetQAHitManager.h \
   TrksInJetQAClustManager.h \
   TrksInJetQATrkManager.h \
-  TrksInJetQAJetManager.h
+  TrksInJetQAJetManager.h \
+  UEvsEtaCentrality.h
 
 libjetqa_la_SOURCES = \
   CaloStatusMapper.cc \
@@ -54,7 +55,8 @@ libjetqa_la_SOURCES = \
   TrksInJetQAHitManager.cc \
   TrksInJetQAClustManager.cc \
   TrksInJetQATrkManager.cc \
-  TrksInJetQAJetManager.cc
+  TrksInJetQAJetManager.cc \
+  UEvsEtaCentrality.cc
 
 libjetqa_la_LIBADD = \
   -L$(libdir) \
