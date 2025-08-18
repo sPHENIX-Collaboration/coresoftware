@@ -126,7 +126,14 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     std::cout << "no GL1RAWHIT node" << std::endl;
     m_laserEventInfo->setIsGl1LaserEvent(false);
     m_laserEventInfo->setIsGl1LaserPileupEvent(false);
-    m_laserEventInfo->setCanHaveGl1Data(true);
+    if(m_runnumber > 66153)
+    {
+      m_laserEventInfo->setCanHaveGl1Data(true);
+    }
+    else
+    {
+      m_laserEventInfo->setCanHaveGl1Data(false);
+    }
     //return Fun4AllReturnCodes::ABORTRUN;
   }
   else if(m_runnumber > 66153)

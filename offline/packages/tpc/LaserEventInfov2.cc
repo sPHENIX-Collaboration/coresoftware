@@ -5,6 +5,7 @@ LaserEventInfov2::~LaserEventInfov2() = default;
 void LaserEventInfov2::identify(std::ostream& os) const
 {
   os << "LaserEventInfov2: " << std::endl;
+  os << "   canHaveGl1Data? " << canHaveGl1Data() << std::endl;
   os << "   isGl1LaserEvent? " << isGl1LaserEvent() << std::endl;
   os << "   isGl1LaserPileupEvent? " << isGl1LaserPileupEvent() << std::endl;
   os << "   isLaserEvent? " << isLaserEvent() << std::endl;
