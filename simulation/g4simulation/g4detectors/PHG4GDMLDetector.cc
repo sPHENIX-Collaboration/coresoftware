@@ -103,7 +103,7 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4LogicalVolume* vol = reader->GetVolume(m_TopVolName);
 
-  if (not vol)
+  if (! vol)
   {
     std::cout << "PHG4GDMLDetector::Construct - Fatal Error - failed to find G4LogicalVolume " << m_TopVolName << " - Print: ";
     Print();

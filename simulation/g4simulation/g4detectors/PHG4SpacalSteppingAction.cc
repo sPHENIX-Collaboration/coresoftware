@@ -279,7 +279,7 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
       const double localz1 = localPosition.z();
 
       const double z = 0.5 * (localz0 + localz1);
-      assert(not std::isnan(z));
+      assert(! std::isnan(z));
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
@@ -513,7 +513,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool /*wa
       double light_yield = GetVisibleEnergyDeposition(aStep);
 
       static bool once = true;
-      if (once and edep > 0)
+      if (once && edep > 0)
       {
         once = false;
 

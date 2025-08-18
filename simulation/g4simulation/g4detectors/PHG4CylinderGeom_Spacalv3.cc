@@ -353,17 +353,17 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 
   int phi_bin_in_sec = -1;
 
-  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper)
+  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower || get_config() == kFullProjective_2DTaper)
   {
     // colume ID is from -x to +x at the top of the detector, which is reverse of the phi bin direction.
     phi_bin_in_sec = max_phi_bin_in_sec - (tower_ID % 10);
   }
-  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
+  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower || get_config() == kFullProjective_2DTaper_Tilted)
   {
     phi_bin_in_sec = (tower_ID % 10);
   }
 
-  if (!(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec >= 0))
+  if (!(phi_bin_in_sec < max_phi_bin_in_sec && phi_bin_in_sec >= 0))
   {
     std::cout
         << "PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID - Fatal Error - invalid in put with "
@@ -372,7 +372,7 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
     Print();
   }
 
-  assert(phi_bin_in_sec < max_phi_bin_in_sec and phi_bin_in_sec >= 0);
+  assert(phi_bin_in_sec < max_phi_bin_in_sec && phi_bin_in_sec >= 0);
 
   int phi_bin = sector_ID * max_phi_bin_in_sec + phi_bin_in_sec;
 
@@ -383,11 +383,11 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
 double PHG4CylinderGeom_Spacalv3::
     get_tower_radial_position(const PHG4CylinderGeom_Spacalv3::geom_tower& tower) const
 {
-  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper)
+  if (get_config() == kFullProjective_2DTaper_SameLengthFiberPerTower || get_config() == kFullProjective_2DTaper)
   {
     return tower.centralY;
   }
-  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower or get_config() == kFullProjective_2DTaper_Tilted)
+  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower || get_config() == kFullProjective_2DTaper_Tilted)
   {
     const double outter_wall_shift = get_sidewall_thickness() + get_sidewall_outer_torr() + get_assembly_spacing();
     assert(outter_wall_shift >= 0);
