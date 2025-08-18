@@ -55,6 +55,10 @@ int HepMCFlowAfterBurner::Init(PHCompositeNode */*topNode*/)
   m_afterburner = new Afterburner(algorithmName, m_engine, mineta, maxeta, minpt, maxpt);
   m_flowalgo = m_afterburner->getAlgo();
   // you can set other algo parameters here if needed
+  if (enableFlucuations)
+  {
+    m_flowalgo->enable_fluctuations();
+  }
   
   return 0;
 }

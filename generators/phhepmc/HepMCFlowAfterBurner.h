@@ -50,6 +50,11 @@ class HepMCFlowAfterBurner : public SubsysReco
   }
   void setSeed(const long il);
 
+  void enableFluctuations(const bool enable)
+  {
+    enableFlucuations = enable;
+  }
+
   void SaveRandomState(const std::string &savefile = "HepMCFlowAfterBurner.ransave");
   void RestoreRandomState(const std::string &savefile = "HepMCFlowAfterBurner.ransave");
 
@@ -67,6 +72,8 @@ class HepMCFlowAfterBurner : public SubsysReco
   int seedset = 0;
   long seed = 0;
   long randomSeed = 11793;
+
+  bool enableFlucuations = true; //  turns on/off the fluctuations in the afterburner 
 
   Afterburner *m_afterburner = nullptr;
   AfterburnerAlgo *m_flowalgo = nullptr;
