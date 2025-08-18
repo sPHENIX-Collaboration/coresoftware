@@ -2093,7 +2093,7 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
       }
       PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
       float thick = GeoLayer_local->get_thickness();
-      
+      std::cout << "thickness : " << thick << " for layer " << layer_local << std::endl;
       float r = GeoLayer_local->get_radius();
       float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
       float beta = std::atan(tpcseed->get_slope());
