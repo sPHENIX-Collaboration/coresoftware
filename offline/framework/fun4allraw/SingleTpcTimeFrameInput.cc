@@ -132,7 +132,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
   TimeTracker fillPoolTimer(m_FillPoolTimer, "FillPool", m_hNorm);
 
-  if ((Verbosity() >= 1 and targetBCO % 941 == 10) or Verbosity() >= 2)
+  if ((Verbosity() >= 1 && targetBCO % 941 == 10) || Verbosity() >= 2)
   {
     std::cout << "SingleTpcTimeFrameInput::FillPool: " << Name()
               << " Entry with targetBCO = 0x" << std::hex << targetBCO
@@ -192,7 +192,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
       {
         require_more_data |= map_builder.second->isMoreDataRequired(targetBCO);
       }
-      if (not require_more_data)
+      if (! require_more_data)
       {
         if (Verbosity() > 1)
         {
@@ -271,7 +271,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
       // get packet id
       const auto packet_id = packet->getIdentifier();
 
-      if (m_SelectedPacketIDs.size() > 0 and m_SelectedPacketIDs.find(packet_id) == m_SelectedPacketIDs.end())
+      if (m_SelectedPacketIDs.size() > 0 && m_SelectedPacketIDs.find(packet_id) == m_SelectedPacketIDs.end())
       {
         if (Verbosity() > 1)
         {
@@ -317,7 +317,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
   // output the time frame
   for (auto &map_builder : m_TpcTimeFrameBuilderMap)
   {
-    assert(not map_builder.second->isMoreDataRequired(targetBCO));
+    assert(! map_builder.second->isMoreDataRequired(targetBCO));
     auto &timeframe = map_builder.second->getTimeFrame(targetBCO);
 
     for (auto newhit : timeframe)
