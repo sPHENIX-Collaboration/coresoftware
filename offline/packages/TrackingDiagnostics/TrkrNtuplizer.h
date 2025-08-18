@@ -104,7 +104,6 @@ class TrkrNtuplizer : public SubsysReco
   float m_fSeed{std::numeric_limits<float>::quiet_NaN()};
   // eval stack
 
-  float calc_dedx(TrackSeed *tpcseed);
   TF1 *f_pion_plus{nullptr};
   TF1 *f_kaon_plus{nullptr};
   TF1 *f_proton_plus{nullptr};
