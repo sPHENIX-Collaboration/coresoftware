@@ -54,13 +54,18 @@ bool ALICEKF::checknan(double val, const std::string& name, int num) const
   return std::isnan(val);
 }
 
+
+ALICEKF::ALICEKF( TrkrClusterContainer* cmap, PHField* B, unsigned int min_clusters, double max_sin_phi, int verbosity):
+  _B(B),
+  _min_clusters_per_track(min_clusters),
+  _cluster_map(cmap),
+  _v(verbosity),
+  _max_sin_phi(max_sin_phi),
+  _ClusErrPara(new ClusterErrorPara)
+{}
+
 double ALICEKF::get_Bz(double x, double y, double z) const
 {
-  //  if(_use_const_field) return _const_field;
-  if (_use_const_field || fabs(z) > 105.5)
-  {
-    return _const_field;
-  }
   double p[4] = {x * cm, y * cm, z * cm, 0. * cm};
   double bfield[3];
 
@@ -732,11 +737,11 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     int track_charge = 0;
     if (trackSeed.GetQPt() < 0)
     {
-      track_charge = -1 * trackSeed.GetSignCosPhi();  // * _fieldDir;
+      track_charge = -1 * trackSeed.GetSignCosPhi();
     }
     else
     {
-      track_charge = 1 * trackSeed.GetSignCosPhi();  // * _fieldDir;
+      track_charge = 1 * trackSeed.GetSignCosPhi();
     }
 
     double sinphi = sin(track_phi);  // who had the idea to use s here?????

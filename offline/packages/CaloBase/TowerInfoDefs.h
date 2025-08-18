@@ -24,6 +24,7 @@ namespace TowerInfoDefs
   unsigned int get_epd_phibin(unsigned int key);
   unsigned int getCaloTowerPhiBin(const unsigned int key);
   unsigned int getCaloTowerEtaBin(const unsigned int key);
+  std::pair<int, int> getEMCalSectorIB(unsigned int towerIndex);
 
   unsigned int get_mbd_arm(const unsigned int key);
   unsigned int get_mbd_side(const unsigned int key);  // side is same as arm

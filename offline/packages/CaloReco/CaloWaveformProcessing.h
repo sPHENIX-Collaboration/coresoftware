@@ -80,14 +80,17 @@ class CaloWaveformProcessing : public SubsysReco
 
   void initialize_processing();
 
+  // onnx options
   void set_onnx_factor(const int i, const double val) { m_Onnx_factor.at(i) = val; }
   void set_onnx_offset(const int i, const double val) { m_Onnx_offset.at(i) = val; }
 
  private:
-  CaloWaveformFitting *m_Fitter = nullptr;
+  CaloWaveformFitting *m_Fitter{nullptr};
 
   CaloWaveformProcessing::process m_processingtype{CaloWaveformProcessing::TEMPLATE};
   int _nthreads{1};
+  int _nzerosuppresssamples{2};
+
   int _nsoftwarezerosuppression{40};
   bool _bdosoftwarezerosuppression{false};
   bool _dobitfliprecovery{false};
@@ -97,6 +100,7 @@ class CaloWaveformProcessing : public SubsysReco
   std::string m_template_name{"NONE"};
 
   bool m_setTimeLim{false};
+  bool _maxsoftwarezerosuppression{false};
   float m_timeLim_low{-3.0};
   float m_timeLim_high{4.0};
 

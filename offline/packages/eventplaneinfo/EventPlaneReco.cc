@@ -50,15 +50,15 @@
 #include <vector>  // for vector
 
 EventPlaneReco::EventPlaneReco(const std::string &name) : SubsysReco(name) {
-  
+
   south_q.resize(m_MaxOrder);
   north_q.resize(m_MaxOrder);
   northsouth_q.resize(m_MaxOrder);
-    
+
   south_q_subtract.resize(m_MaxOrder);
   north_q_subtract.resize(m_MaxOrder);
   northsouth_q_subtract.resize(m_MaxOrder);
-    
+
   shift_north.resize(m_MaxOrder);
   shift_south.resize(m_MaxOrder);
   shift_northsouth.resize(m_MaxOrder);
@@ -66,7 +66,6 @@ EventPlaneReco::EventPlaneReco(const std::string &name) : SubsysReco(name) {
   tmp_north_psi.resize(m_MaxOrder);
   tmp_northsouth_psi.resize(m_MaxOrder);
 
-    
   for (auto &vec : south_q) {
     vec.resize(2);
   }
@@ -91,21 +90,20 @@ EventPlaneReco::EventPlaneReco(const std::string &name) : SubsysReco(name) {
     vec.resize(2);
   }
 
- 
   ring_q_north.resize(nRings);
   ring_q_south.resize(nRings);
-    
-  for (auto& rq : ring_q_north) {
-      rq.resize(m_MaxOrder, std::vector<double>(2, 0.0));
-    }
-    for (auto& rq : ring_q_south) {
-      rq.resize(m_MaxOrder, std::vector<double>(2, 0.0));
-    }
-    
-    all_ring_Qvecs_north.assign(
-        nRings, std::vector<std::pair<double, double>>(m_MaxOrder, {0.0, 0.0}));
-    
-    all_ring_Qvecs_south.assign(
+
+  for (auto &rq : ring_q_north) {
+    rq.resize(m_MaxOrder, std::vector<double>(2, 0.0));
+  }
+  for (auto &rq : ring_q_south) {
+    rq.resize(m_MaxOrder, std::vector<double>(2, 0.0));
+  }
+
+  all_ring_Qvecs_north.assign(
+      nRings, std::vector<std::pair<double, double>>(m_MaxOrder, {0.0, 0.0}));
+
+  all_ring_Qvecs_south.assign(
       nRings, std::vector<std::pair<double, double>>(m_MaxOrder, {0.0, 0.0}));
 }
 
@@ -128,10 +126,12 @@ int EventPlaneReco::InitRun(PHCompositeNode *topNode) {
 
   CDBHistos *cdbhistosIn = new CDBHistos(calibdir);
   cdbhistosIn->LoadCalibrations();
-    
- //Get phiweights
- h_phi_weight_south_input = dynamic_cast<TH1F *>(cdbhistosIn->getHisto("h_phi_weight_south", false));
- h_phi_weight_north_input = dynamic_cast<TH1F *>(cdbhistosIn->getHisto("h_phi_weight_north", false));
+
+  // Get phiweights
+  h_phi_weight_south_input =
+      dynamic_cast<TH1F *>(cdbhistosIn->getHisto("h_phi_weight_south", false));
+  h_phi_weight_north_input =
+      dynamic_cast<TH1F *>(cdbhistosIn->getHisto("h_phi_weight_north", false));
 
   // Get recentering histograms
   for (unsigned int order = 0; order < m_MaxOrder; order++) {
@@ -205,21 +205,40 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  MbdVertexMap *mbdvtxmap =
-      findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-  if (!mbdvtxmap) {
-    std::cout << PHWHERE << "::ERROR - cannot find MbdVertexMap" << std::endl;
-    exit(-1);
-  }
-
-  MbdVertex *mvertex = nullptr;
-  if (mbdvtxmap) {
-    for (MbdVertexMap::ConstIter mbditer = mbdvtxmap->begin();
-         mbditer != mbdvtxmap->end(); ++mbditer) {
-      mvertex = mbditer->second;
+  if (_isSim) {
+    // Use GlobalVertexMap for simulation
+    GlobalVertexMap *vertexmap =
+        findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+    if (!vertexmap) {
+      std::cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap"
+                << std::endl;
+      exit(-1);
     }
-    if (mvertex) {
-      _mbdvtx = mvertex->get_z();
+
+    if (!vertexmap->empty()) {
+      GlobalVertex *vtx = vertexmap->begin()->second;
+      if (vtx) {
+        _mbdvtx = vtx->get_z();
+      }
+    }
+  } else {
+    // Use MbdVertexMap for data
+    MbdVertexMap *mbdvtxmap =
+        findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+    if (!mbdvtxmap) {
+      std::cout << PHWHERE << "::ERROR - cannot find MbdVertexMap" << std::endl;
+      exit(-1);
+    }
+
+    MbdVertex *mvertex = nullptr;
+    if (mbdvtxmap) {
+      for (MbdVertexMap::ConstIter mbditer = mbdvtxmap->begin();
+           mbditer != mbdvtxmap->end(); ++mbditer) {
+        mvertex = mbditer->second;
+      }
+      if (mvertex) {
+        _mbdvtx = mvertex->get_z();
+      }
     }
   }
 
@@ -280,10 +299,9 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
       }
 
       if (_do_ep) {
-                 
-          
-          //Apply phi weights in builiding ring Q-vectors
-          for (unsigned int ch = 0; ch < ntowers; ch++) {
+
+        // Apply phi weights in builiding ring Q-vectors
+        for (unsigned int ch = 0; ch < ntowers; ch++) {
           TowerInfo *_tower = epd_towerinfo->get_tower_at_channel(ch);
           float epd_e = _tower->get_energy();
           bool isZS = _tower->get_isZS();
@@ -301,42 +319,45 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
 
             float truncated_e =
                 (epd_e < _epd_e) ? epd_e : _epd_e; // set cutoff at _epd_e
-               
-            float TileWeight = truncated_e;  // default
+
+            float TileWeight = truncated_e; // default
 
             if (h_phi_weight_south_input && h_phi_weight_north_input) {
-                if (arm == 0) {
-                  TileWeight = truncated_e * h_phi_weight_south_input->GetBinContent(phibin + 1); //scale by 1/<N(φ_{i})>
-                } else if (arm == 1) {
-                  TileWeight = truncated_e * h_phi_weight_north_input->GetBinContent(phibin + 1); //scale by 1/<N(φ_{i})>
-                }
+              if (arm == 0) {
+                TileWeight =
+                    truncated_e * h_phi_weight_south_input->GetBinContent(
+                                      phibin + 1); // scale by 1/<N(φ_{i})>
+              } else if (arm == 1) {
+                TileWeight =
+                    truncated_e * h_phi_weight_north_input->GetBinContent(
+                                      phibin + 1); // scale by 1/<N(φ_{i})>
               }
-              
-                for (unsigned int order = 0; order < m_MaxOrder; ++order) {
-                  double Cosine = cos(tile_phi * (double)(order + 1));
-                  double Sine   = sin(tile_phi * (double)(order + 1));
-                    
-                 // Arm-specific Q-vectors
-                  if (arm == 0) {
-                    south_q[order][0] += truncated_e * Cosine;
-                    south_q[order][1] += truncated_e * Sine;
-                    ring_q_south[rbin][order][0] += TileWeight * Cosine;
-                    ring_q_south[rbin][order][1] += TileWeight * Sine;
-                      
-                  } else if (arm == 1) {
-                    north_q[order][0] += truncated_e * Cosine;
-                    north_q[order][1] += truncated_e * Sine;
-                    ring_q_north[rbin][order][0] += TileWeight * Cosine;
-                    ring_q_north[rbin][order][1] += TileWeight * Sine;
-                  }
-    
-                  // Combined Q-vectors
-                  northsouth_q[order][0] += truncated_e * Cosine;
-                  northsouth_q[order][1] += truncated_e * Sine;
+            }
+
+            for (unsigned int order = 0; order < m_MaxOrder; ++order) {
+              double Cosine = cos(tile_phi * (double)(order + 1));
+              double Sine = sin(tile_phi * (double)(order + 1));
+
+              // Arm-specific Q-vectors
+              if (arm == 0) {
+                south_q[order][0] += truncated_e * Cosine;
+                south_q[order][1] += truncated_e * Sine;
+                ring_q_south[rbin][order][0] += TileWeight * Cosine;
+                ring_q_south[rbin][order][1] += TileWeight * Sine;
+
+              } else if (arm == 1) {
+                north_q[order][0] += truncated_e * Cosine;
+                north_q[order][1] += truncated_e * Sine;
+                ring_q_north[rbin][order][0] += TileWeight * Cosine;
+                ring_q_north[rbin][order][1] += TileWeight * Sine;
+              }
+
+              // Combined Q-vectors
+              northsouth_q[order][0] += truncated_e * Cosine;
+              northsouth_q[order][1] += truncated_e * Sine;
             }
           }
         }
-
 
         _totalcharge = _nsum + _ssum;
 
@@ -550,15 +571,14 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
                                        northsouth_q[order][1]);
         }
 
-          for (int rbin = 0; rbin < nRings; ++rbin) {
-            for (unsigned int order = 0; order < m_MaxOrder; ++order) {
-              all_ring_Qvecs_north[rbin][order] =
-                  std::make_pair(ring_q_north[rbin][order][0], ring_q_north[rbin][order][1]);
-              all_ring_Qvecs_south[rbin][order] =
-                  std::make_pair(ring_q_south[rbin][order][0], ring_q_south[rbin][order][1]);
-            }
+        for (int rbin = 0; rbin < nRings; ++rbin) {
+          for (unsigned int order = 0; order < m_MaxOrder; ++order) {
+            all_ring_Qvecs_north[rbin][order] = std::make_pair(
+                ring_q_north[rbin][order][0], ring_q_north[rbin][order][1]);
+            all_ring_Qvecs_south[rbin][order] = std::make_pair(
+                ring_q_south[rbin][order][0], ring_q_south[rbin][order][1]);
           }
-          
+        }
 
         if (epd_towerinfo) {
           Eventplaneinfo *sepds = new Eventplaneinfov1();
@@ -575,15 +595,14 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
           sepdns->set_qvector(northsouth_Qvec);
           sepdns->set_shifted_psi(tmp_northsouth_psi);
           epmap->insert(sepdns, EventplaneinfoMap::sEPDNS);
-            
+
           Eventplaneinfo *epring_south = new Eventplaneinfov1();
           epring_south->set_ring_qvector(all_ring_Qvecs_south);
           epmap->insert(epring_south, EventplaneinfoMap::sEPDRING_SOUTH);
-            
+
           Eventplaneinfo *epring_north = new Eventplaneinfov1();
           epring_north->set_ring_qvector(all_ring_Qvecs_north);
           epmap->insert(epring_north, EventplaneinfoMap::sEPDRING_NORTH);
-    
 
           if (Verbosity() > 1) {
             sepds->identify();
@@ -727,13 +746,13 @@ void EventPlaneReco::ResetMe() {
       std::fill(xy_vec.begin(), xy_vec.end(), 0.0);
     }
   }
-    
-    for (auto &order_vec : ring_q_south) {
-      for (auto &xy_vec : order_vec) {
-        std::fill(xy_vec.begin(), xy_vec.end(), 0.0);
-      }
+
+  for (auto &order_vec : ring_q_south) {
+    for (auto &xy_vec : order_vec) {
+      std::fill(xy_vec.begin(), xy_vec.end(), 0.0);
     }
-    
+  }
+
   south_Qvec.clear();
   north_Qvec.clear();
   northsouth_Qvec.clear();
@@ -743,13 +762,13 @@ void EventPlaneReco::ResetMe() {
       q = {0.0, 0.0};
     }
   }
-    
-    for (auto &ring : all_ring_Qvecs_south) {
-      for (auto &q : ring) {
-        q = {0.0, 0.0};
-      }
+
+  for (auto &ring : all_ring_Qvecs_south) {
+    for (auto &q : ring) {
+      q = {0.0, 0.0};
     }
-    
+  }
+
   for (auto &vec : south_q_subtract) {
     std::fill(vec.begin(), vec.end(), 0.);
   }
@@ -778,7 +797,7 @@ void EventPlaneReco::ResetMe() {
 }
 
 int EventPlaneReco::End(PHCompositeNode * /*topNode*/) {
-        
+
   std::cout << " EventPlaneReco::End() " << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }

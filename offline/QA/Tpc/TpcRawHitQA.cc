@@ -1,7 +1,6 @@
 #include "TpcRawHitQA.h"
 
 #include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -9,17 +8,23 @@
 
 #include <ffarawobjects/TpcRawHit.h>
 #include <ffarawobjects/TpcRawHitContainer.h>
-#include <ffarawobjects/TpcRawHitContainerv3.h>
-#include <phool/PHPointerListIterator.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHPointerListIterator.h>
 
+#include <TH1.h>
 #include <TH2.h>
-#include <TProfile.h>
-#include <TProfile2D.h>
+
+#include <stddef.h>   // for size_t
+#include <stdint.h>   // for uint16_t, int32_t
+#include <algorithm>  // for max, sort
 #include <cassert>
 #include <cmath>
+#include <iostream>  // for basic_ostream, operator<<
+#include <memory>    // for unique_ptr
 
 //____________________________________________________________________________..
 TpcRawHitQA::TpcRawHitQA(const std::string &name)
@@ -34,8 +39,7 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
   createHistos();
 
   PHNodeIterator trkr_itr(topNode);
-  PHCompositeNode *tpc_node = dynamic_cast<PHCompositeNode *>(
-      trkr_itr.findFirst("PHCompositeNode", "TPC"));
+  PHCompositeNode *tpc_node = dynamic_cast<PHCompositeNode *>(trkr_itr.findFirst("PHCompositeNode", "TPC"));
   if (!tpc_node)
   {
     std::cout << __PRETTY_FUNCTION__ << " : ERROR : "
@@ -257,7 +261,6 @@ int TpcRawHitQA::EndRun(const int /*runnumber*/)
 }
 
 //____________________________________________________________________________..
-int TpcRawHitQA::End(PHCompositeNode * /*unused*/) { return Fun4AllReturnCodes::EVENT_OK; }
 
 std::string TpcRawHitQA::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
 
@@ -268,43 +271,23 @@ void TpcRawHitQA::createHistos()
 
   for (int s = 0; s < 24; s++)
   {
-    {
-      auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s)).c_str(),
-                        std::string("Number of Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 30000);
-      hm->registerHisto(h);
-    }
-    {
-      auto h = new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees").c_str(),
-                        std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 3000);
-      hm->registerHisto(h);
-    }
-    {
-      auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_laser").c_str(),
-                        std::string("Laser Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 1000);
-      hm->registerHisto(h);
-    }
-    {
-      auto h = new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees_laser").c_str(),
-                        std::string("Sector " + std::to_string(s) + " Fee Laser Hits;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 500);
-      hm->registerHisto(h);
-    }
+      hm->registerHisto(new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s)).c_str(),
+					  std::string("Number of Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 30000));
+      hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees").c_str(),
+				 std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 3000));
+      hm->registerHisto(new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_laser").c_str(),
+				 std::string("Laser Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 1000));
+      hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees_laser").c_str(),
+				 std::string("Sector " + std::to_string(s) + " Fee Laser Hits;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 500));
     for (int r = 0; r < 3; r++)
     {
-      auto h = new TH1F(std::string(getHistoPrefix() + "nhits_sample_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
-                        std::string("Sector " + std::to_string(s) + " Sample Time Distribution;Time Bin [1/20 MHz];Number of Total Hits").c_str(), 1051, -0.5, 1050.5);
-      hm->registerHisto(h);
-      auto h2 = new TH1F(std::string(getHistoPrefix() + "adc_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
-                         std::string("Sector " + std::to_string(s) + " ADC Distribution;ADC-pedestal [ADU];Entries").c_str(), 281, -100, 1024);
-      hm->registerHisto(h2);
+      hm->registerHisto(new TH1F(std::string(getHistoPrefix() + "nhits_sample_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
+				 std::string("Sector " + std::to_string(s) + " Sample Time Distribution;Time Bin [1/20 MHz];Number of Total Hits").c_str(), 1051, -0.5, 1050.5));
+      hm->registerHisto(new TH1F(std::string(getHistoPrefix() + "adc_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str(),
+				 std::string("Sector " + std::to_string(s) + " ADC Distribution;ADC-pedestal [ADU];Entries").c_str(), 281, -100, 1024));
     }
   }
 
-  {
-    auto h = new TH2F(std::string(getHistoPrefix() + "xyPos_North").c_str(), "Hit XY distribution (North);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800);
-    hm->registerHisto(h);
-  }
-  {
-    auto h = new TH2F(std::string(getHistoPrefix() + "xyPos_South").c_str(), "Hit XY distribution (South);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800);
-    hm->registerHisto(h);
-  }
+    hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "xyPos_North").c_str(), "Hit XY distribution (North);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800));
+    hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "xyPos_South").c_str(), "Hit XY distribution (South);X [mm];Y [mm]", 400, -800, 800, 400, -800, 800));
 }

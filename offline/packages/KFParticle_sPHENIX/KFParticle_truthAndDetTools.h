@@ -60,7 +60,7 @@ class KFParticle_truthAndDetTools
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
   void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
+  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
   void initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number);
@@ -83,7 +83,7 @@ class KFParticle_truthAndDetTools
     if (deltaPhi < -M_PI) deltaPhi += 2 * M_PI;
     return deltaPhi;
   }
-
+  
   // Functions to set cuts
   void set_emcal_radius_user(float set_variable) { m_emcal_radius_user = set_variable; }
   void set_emcal_e_low_cut(float set_variable) { m_emcal_e_low_cut = set_variable; }
@@ -91,8 +91,10 @@ class KFParticle_truthAndDetTools
   void set_dphi_cut_high(float set_variable) { m_dphi_cut_high = set_variable; }
   void set_dz_cut_low(float set_variable) { m_dz_cut_low = set_variable; }
   void set_dz_cut_high(float set_variable) { m_dz_cut_high = set_variable; }
-
- protected:
+  
+  
+  protected:
+  bool m_get_detailed_tracking{true};
   bool m_use_mbd_vertex_truth{false};
   bool m_dont_use_global_vertex_truth{false};
 

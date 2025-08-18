@@ -41,7 +41,7 @@ void PHG4TpcEndCapDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvo
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
                                     // cppcheck-suppress internalAstError
-    if (it.second == "G10" or it.second == "FR4")
+    if (it.second == "G10" || it.second == "FR4")
     {
       visatt->SetColour(G4Colour(0.0, .5, 0.0));
     }

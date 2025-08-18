@@ -69,7 +69,7 @@ class PHG4TruthInfoContainer : public PHObject
   ConstRange GetPrimaryParticleRange() const { return ConstRange(particlemap.upper_bound(0), particlemap.end()); }
 
   Range GetSPHENIXPrimaryParticleRange() { return Range(sPHENIXprimaryparticlemap.begin(), sPHENIXprimaryparticlemap.end()); }
-  ConstRange GetSPHENIXPrimaryParticleRange() const { return ConstRange(sPHENIXprimaryparticlemap.begin(), sPHENIXprimaryparticlemap.end());}
+  ConstRange GetSPHENIXPrimaryParticleRange() const { return ConstRange(sPHENIXprimaryparticlemap.begin(), sPHENIXprimaryparticlemap.end()); }
 
   Range GetSecondaryParticleRange() { return Range(particlemap.begin(), particlemap.upper_bound(0)); }
   ConstRange GetSecondaryParticleRange() const { return ConstRange(particlemap.begin(), particlemap.upper_bound(0)); }

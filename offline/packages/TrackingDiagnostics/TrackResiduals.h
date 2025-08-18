@@ -147,6 +147,7 @@ class TrackResiduals : public SubsysReco
   int m_nsiseed = std::numeric_limits<int>::quiet_NaN();
   int m_ntpcseed = std::numeric_limits<int>::quiet_NaN();
   int m_ntracks_all = std::numeric_limits<int>::quiet_NaN();
+  std::vector<int> m_ntpc_clus_sector;
 
   //! Track level quantities
   uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();

@@ -97,32 +97,96 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
 std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
+  std::vector<float> val;  // single row to return
   unsigned int nchnls = chnlvector.size();
   for (unsigned int m = 0; m < nchnls; m++)
   {
+    val.clear();
     const std::vector<float> &v = chnlvector.at(m);
-    unsigned int nsamples = v.size();
-    if (nsamples == 12)
+    int size1 = v.size();
+    if (size1 == _nzerosuppresssamples)
     {
-      // downstream onnx does not have a static input vector API,
-      // so we need to make a copy
-      std::vector<float> vtmp(v);
-      std::vector<float> val = onnxInference(onnxmodule, vtmp, 1, 12, 3);
-      unsigned int nvals = val.size();
-      for (unsigned int i = 0; i < nvals; i++)
+      val.push_back(v.at(1) - v.at(0));
+      val.push_back(std::numeric_limits<float>::quiet_NaN());
+      val.push_back(v.at(0));
+      if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
       {
-        val.at(i) = val.at(i) * m_Onnx_factor[i] + m_Onnx_offset[i];
+        val.push_back(1000000);
       }
-      val.push_back(2000);
+      else
+      {
+        val.push_back(std::numeric_limits<float>::quiet_NaN());
+      }
       val.push_back(0);
       fit_values.push_back(val);
-      val.clear();
     }
     else
     {
-      float v_diff = v[1] - v[0];
-      std::vector<float> val{v_diff, std::numeric_limits<float>::quiet_NaN(), v[1], std::numeric_limits<float>::quiet_NaN(), 0};
-      fit_values.push_back(val);
+      float maxheight = 0;
+      int maxbin = 0;
+      for (int i = 0; i < size1; i++)
+      {
+        if (v.at(i) > maxheight)
+        {
+          maxheight = v.at(i);
+          maxbin = i;
+        }
+      }
+      float pedestal = 1500;
+      if (maxbin > 4)
+      {
+        pedestal = 0.5 * (v.at(maxbin - 4) + v.at(maxbin - 5));
+      }
+      else if (maxbin > 3)
+      {
+        pedestal = (v.at(maxbin - 4));
+      }
+      else
+      {
+        pedestal = 0.5 * (v.at(size1 - 3) + v.at(size1 - 2));
+      }
+
+      if ((_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression))
+      {
+        val.push_back(v.at(6) - v.at(0));
+        val.push_back(std::numeric_limits<float>::quiet_NaN());
+        val.push_back(v.at(0));
+        if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
+        {
+          val.push_back(1000000);
+        }
+        else
+        {
+          val.push_back(std::numeric_limits<float>::quiet_NaN());
+        }
+        val.push_back(0);
+        fit_values.push_back(val);
+      }
+      else
+      {
+        unsigned int nsamples = v.size();
+        if (nsamples == 12)
+        {
+          // downstream onnx does not have a static input vector API,
+          // so we need to make a copy
+          std::vector<float> vtmp(v);
+          val = onnxInference(onnxmodule, vtmp, 1, 12, 3);
+          unsigned int nvals = val.size();
+          for (unsigned int i = 0; i < nvals; i++)
+          {
+            val.at(i) = val.at(i) * m_Onnx_factor[i] + m_Onnx_offset[i];
+          }
+          val.push_back(2000);
+          val.push_back(0);
+          fit_values.push_back(val);
+        }
+        else
+        {
+          float v_diff = v[1] - v[0];
+          std::vector<float> val1{v_diff, std::numeric_limits<float>::quiet_NaN(), v[1], std::numeric_limits<float>::quiet_NaN(), 0};
+          fit_values.push_back(val1);
+        }
+      }
     }
   }
   return fit_values;

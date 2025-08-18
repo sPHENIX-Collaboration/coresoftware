@@ -36,7 +36,7 @@ int CosmicTrackQA::process_event(PHCompositeNode *topNode)
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
   auto *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
-  if (!trackmap or !clustermap or !geometry)
+  if (!trackmap || !clustermap || !geometry)
   {
     std::cout << PHWHERE << "Missing node(s), can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;

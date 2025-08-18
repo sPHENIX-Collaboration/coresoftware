@@ -224,7 +224,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
   }
-  if (!trackmap or !clustermap or !geometry or (!hitmap && m_doHits))
+  if (!trackmap || !clustermap || !geometry || (!hitmap && m_doHits))
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -400,7 +400,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
   auto *svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
   auto *tpcGeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
-  if (!tpcseedmap or !trackmap or !clustermap or !silseedmap or !svtxseedmap or !geometry)
+  if (!tpcseedmap || !trackmap || !clustermap || !silseedmap || !svtxseedmap || !geometry)
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return;
@@ -821,7 +821,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
                                  PHG4CylinderGeomContainer* inttGeom,
                                  PHG4CylinderGeomContainer* mmGeom)
 {
-  if (!tpcGeom or !mvtxGeom or !inttGeom or !mmGeom)
+  if (!tpcGeom || !mvtxGeom || !inttGeom || !mmGeom)
   {
     std::cout << PHWHERE << "missing hit map, can't continue with hit tree"
               << std::endl;
@@ -976,8 +976,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_hitpad = TpcDefs::getPad(hitkey);
         m_hittbin = TpcDefs::getTBin(hitkey);
 
-        auto *geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
-        auto phi = geoLayer->get_phicenter(m_hitpad, m_side);
+        auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
+        auto phi = geoLayer->get_phicenter(m_hitpad);
         auto radius = geoLayer->get_radius();
         float AdcClockPeriod = geoLayer->get_zstep();
         auto glob = geometry->getGlobalPositionTpc(m_hitsetkey, hitkey, phi, radius, AdcClockPeriod);
@@ -1633,6 +1633,7 @@ void TrackResiduals::createBranches()
     m_eventtree->Branch("ntpcseed", &m_ntpcseed, "m_ntpcseed/I");
     m_eventtree->Branch("ntracks", &m_ntracks_all, "m_ntracks_all/I");
     m_eventtree->Branch("mbdcharge",&m_totalmbd, "m_totalmbd/F");
+    m_eventtree->Branch("ntpcClusSector", &m_ntpc_clus_sector);
   }
 
   m_failedfits = new TTree("failedfits", "tree with seeds from failed Acts fits");
@@ -2090,7 +2091,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       /// repopulate with info that is going into alignment
       clearClusterStateVectors();
 
-      if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
+      if (alignmentmap && alignmentmap->find(key) != alignmentmap->end())
       {
         auto& statevec = alignmentmap->find(key)->second;
 
@@ -2161,7 +2162,7 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
   m_nmms_all = 0;
   m_nsiseed = 0;
   m_ntpcseed = 0;
-
+  m_ntpc_clus_sector.resize(24, 0);
   m_nsiseed = silseedmap->size();
   m_ntpcseed = tpcseedmap->size();
   m_ntracks_all = trackmap->size();
@@ -2196,6 +2197,8 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
       auto range = clustermap->getClusters(hitsetkey);
       int nclus = std::distance(range.first, range.second);
       int tpcside = TrkrDefs::getZElement(hitsetkey);
+      int sector = TpcDefs::getSectorId(hitsetkey);
+
       switch (det)
       {
       case TrkrDefs::TrkrId::mvtxId:
@@ -2205,6 +2208,11 @@ void TrackResiduals::fillEventTree(PHCompositeNode* topNode)
         m_nintt_all += nclus;
         break;
       case TrkrDefs::TrkrId::tpcId:
+        if(tpcside == 1)
+        {
+          sector += 12;
+        }
+        m_ntpc_clus_sector[sector] += nclus;
         if (tpcside == 0)
         {
           m_ntpc_clus0 += nclus;
@@ -2465,7 +2473,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       /// repopulate with info that is going into alignment
       clearClusterStateVectors();
 
-      if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
+      if (alignmentmap && alignmentmap->find(key) != alignmentmap->end())
       {
         auto& statevec = alignmentmap->find(key)->second;
 

@@ -53,6 +53,36 @@ TpcCombinedRawDataUnpacker::~TpcCombinedRawDataUnpacker()
 {
   delete m_cdbttree;
 }
+void TpcCombinedRawDataUnpacker::ReadZeroSuppressedData()
+{
+  m_do_zs_emulation = true;
+  m_do_baseline_corr = false;
+  auto cdb = CDBInterface::instance();
+  std::string dir = cdb->getUrl("TPC_ZS_THRESHOLDS");
+
+  auto cdbtree = std::make_unique<CDBTTree>(dir);
+  std::ostringstream name;
+  if(dir.empty())
+ {
+  if(Verbosity() > 1)
+  {
+    std::cout << "use default tpc zs threshold of 20" << std::endl;
+  }
+  return;
+ }
+ 
+  for(int i=0; i<3; i++)
+  {
+    name.str("");
+    name << "R"<<i+1<<"ADUThreshold";
+    m_zs_threshold[i] = cdbtree->GetSingleFloatValue(name.str().c_str());
+    if(Verbosity() > 1)
+    {
+      std::cout << "Loading ADU threshold of " << m_zs_threshold[i] << " for region " << i << std::endl;
+    }
+  }
+
+}
 int TpcCombinedRawDataUnpacker::Init(PHCompositeNode* /*topNode*/)
 {
   std::cout << "TpcCombinedRawDataUnpacker::Init(PHCompositeNode *topNode) Initializing" << std::endl;
@@ -266,19 +296,29 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     std::string varname = "layer";
     int layer = m_cdbttree->GetIntValue(key, varname);
     // antenna pads will be in 0 layer
-    if (layer <= 6)
+    if (layer <= 0)
     {
       continue;
     }
+    varname = "phi";
+    double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
+    PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
+    unsigned int phibin = layergeom->get_phibin(phi);
 
     uint16_t sampadd = tpchit->get_sampaaddress();
     uint16_t sampch = tpchit->get_sampachannel();
     //    uint16_t sam = tpchit->get_samples();
     max_time_range = tpchit->get_samples();
-    varname = "phi";  // + std::to_string(key);
-    double phi = ((side == 1 ? 1 : -1) * (m_cdbttree->GetDoubleValue(key, varname) - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
-    PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
-    unsigned int phibin = layergeom->get_phibin(phi, side);
+     
+    int region = 0;
+    if(layer > 15)
+    {
+      region = 1;
+    }
+    if( layer > 31)
+    {
+      region = 2;
+    }
 
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
@@ -292,7 +332,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     }
     TH2* feehist = nullptr;
     hpedestal = 60;
-    hpedwidth = m_zs_threshold;
+    hpedwidth = m_zs_threshold[region];
 
     unsigned int pad_key = create_pad_key(side, layer, phibin);
 
@@ -331,7 +371,7 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     auto fee_entries_it = feeentries_map.find(fee_key);
     std::vector<int>& fee_entries_vec = (*fee_entries_it).second;
 
-    float threshold_cut = m_zs_threshold;
+    float threshold_cut = m_zs_threshold[region];
 
     int nhitschan = 0;
 

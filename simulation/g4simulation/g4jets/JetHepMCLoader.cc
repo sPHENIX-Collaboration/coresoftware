@@ -93,7 +93,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
   {
     static bool once = true;
 
-    if (once and Verbosity())
+    if (once && Verbosity())
     {
       once = false;
 
@@ -166,7 +166,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
         part->print();
       }
 
-      if (part->status() == src.m_tagStatus and part->pdg_id() == src.m_tagPID)
+      if (part->status() == src.m_tagStatus && part->pdg_id() == src.m_tagPID)
       {
         Jet *jet = jets->add_jet();  // returns a new Jetv2
 
@@ -286,7 +286,7 @@ JetHepMCLoader::getHistoManager()
   Fun4AllServer *se = Fun4AllServer::instance();
   Fun4AllHistoManager *hm = se->getHistoManager(histname);
 
-  if (not hm)
+  if (! hm)
   {
     std::cout
         << "TPCDataStreamEmulator::get_HistoManager - Making Fun4AllHistoManager " << histname

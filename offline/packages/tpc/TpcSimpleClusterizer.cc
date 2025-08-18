@@ -160,7 +160,7 @@ namespace
       }
 
       // update phi sums
-      double phi_center = my_data.layergeom->get_phicenter(iphi, my_data.side);
+      double phi_center = my_data.layergeom->get_phicenter(iphi);
       phi_sum += phi_center * adc;
       phi2_sum += square(phi_center) * adc;
 

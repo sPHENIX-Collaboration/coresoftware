@@ -41,7 +41,7 @@ PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
     return nullptr;
   }
 
-  if (not dst_geom->isValid())
+  if (! dst_geom->isValid())
   {
     // try to construct the geometry node
     dst_geom = LoadFromIONode(topNode);
@@ -112,7 +112,7 @@ int PHGeomUtility::ImportCurrentTGeoManager(PHCompositeNode *topNode)
   if (dst_geom->GetGeometry() == gGeoManager)
     return Fun4AllReturnCodes::EVENT_OK;  // noting to be done
 
-  assert(not dst_geom->isValid());  // check that it is uninitialized
+  assert(! dst_geom->isValid());  // check that it is uninitialized
   dst_geom->SetGeometry(gGeoManager);
   TGeoManager::SetVerboseLevel(GetVerbosity());
 
@@ -141,7 +141,7 @@ PHGeomUtility::GetGeomTGeoNode(PHCompositeNode *topNode, bool build_new)
 
   PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(parNode,
                                                         GetDSTNodeName());
-  if (!dst_geom and build_new)
+  if (!dst_geom && build_new)
   {
     dst_geom = new PHGeomTGeo();
     PHDataNode<PHObject> *GeomNode = new PHDataNode<PHObject>(dst_geom,
@@ -174,7 +174,7 @@ PHGeomUtility::GetGeomIOTGeoNode(PHCompositeNode *topNode, bool build_new)
 
   PHGeomIOTGeo *dst_geom = findNode::getClass<PHGeomIOTGeo>(runNode,
                                                             GetDSTIONodeName());
-  if (!dst_geom and build_new)
+  if (!dst_geom && build_new)
   {
     dst_geom = new PHGeomIOTGeo();
     PHIODataNode<PHObject> *GeomNode = new PHIODataNode<PHObject>(dst_geom,
@@ -232,14 +232,14 @@ PHGeomUtility::UpdateIONode(PHCompositeNode *topNode)
 {
   PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode, false);
 
-  if (not dst_geom)
+  if (! dst_geom)
   {
     cout << __PRETTY_FUNCTION__
          << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to missing PHGeomTGeo node at RUN/GEOMETRY"
          << endl;
     return nullptr;
   }
-  if (not dst_geom->isValid())
+  if (! dst_geom->isValid())
   {
     cout << __PRETTY_FUNCTION__
          << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to invalid PHGeomTGeo node at RUN/GEOMETRY"
@@ -262,14 +262,14 @@ PHGeomUtility::LoadFromIONode(PHCompositeNode *topNode)
 {
   PHGeomIOTGeo *dst_geom_io = GetGeomIOTGeoNode(topNode, false);
 
-  if (not dst_geom_io)
+  if (! dst_geom_io)
   {
     cout << __PRETTY_FUNCTION__
          << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to missing PHGeomIOTGeo node at RUN/GEOMETRY_IO"
          << endl;
     return nullptr;
   }
-  if (not dst_geom_io->isValid())
+  if (! dst_geom_io->isValid())
   {
     cout << __PRETTY_FUNCTION__
          << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to invalid PHGeomIOTGeo node at RUN/GEOMETRY_IO"
