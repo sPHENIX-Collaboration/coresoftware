@@ -23,7 +23,7 @@ Checks: '
     bugprone-fold-init-type,
     bugprone-forward-declaration-namespace,
     bugprone-forwarding-reference-overload,
-    bugprone-implicit-widening-of-multiplication-result,
+#    bugprone-implicit-widening-of-multiplication-result,
     bugprone-inaccurate-erase,
     bugprone-inc-dec-in-conditions,
     bugprone-incorrect-enable-if,

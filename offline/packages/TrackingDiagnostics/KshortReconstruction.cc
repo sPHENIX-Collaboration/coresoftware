@@ -126,7 +126,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
     Acts::Vector3 mom1(tr1->get_px(), tr1->get_py(), tr1->get_pz());
     Acts::Vector3 dcaVals1 = calculateDca(tr1, mom1, pos1);
     // first dca cuts
-    if (fabs(dcaVals1(0)) < this_dca_cut or fabs(dcaVals1(1)) < this_dca_cut)
+    if (fabs(dcaVals1(0)) < this_dca_cut || fabs(dcaVals1(1)) < this_dca_cut)
     {
       continue;
     }
@@ -203,7 +203,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
       Acts::Vector3 mom2(tr2->get_px(), tr2->get_py(), tr2->get_pz());
       Acts::Vector3 dcaVals2 = calculateDca(tr2, mom2, pos2);
 
-      if (fabs(dcaVals2(0)) < this_dca_cut2 or fabs(dcaVals2(1)) < this_dca_cut2)
+      if (fabs(dcaVals2(0)) < this_dca_cut2 || fabs(dcaVals2(1)) < this_dca_cut2)
       {
         continue;
       }
@@ -247,7 +247,7 @@ int KshortReconstruction::process_event(PHCompositeNode* topNode)
         bool ret1 = projectTrackToPoint(tr1, pca_rel1, projected_pos1, projected_mom1);
         bool ret2 = projectTrackToPoint(tr2, pca_rel2, projected_pos2, projected_mom2);
 
-        if (!ret1 or !ret2)
+        if (!ret1 || !ret2)
         {
           continue;
         }

@@ -116,7 +116,7 @@ void TrackSeedHelper::circleFitByTaubin(
   {
     const auto& key(*key_iter);
     const auto layer = TrkrDefs::getLayer(key);
-    if (layer < startLayer or layer > endLayer)
+    if (layer < startLayer || layer > endLayer)
     {
       continue;
     }
@@ -180,7 +180,7 @@ void TrackSeedHelper::lineFit(
   {
     const auto& key(*key_iter);
     const auto layer = TrkrDefs::getLayer(key);
-    if (layer < startLayer or layer > endLayer)
+    if (layer < startLayer || layer > endLayer)
     {
       continue;
     }

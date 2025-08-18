@@ -250,9 +250,9 @@ int ConstituentsinJets::process_event(PHCompositeNode *topNode)
     }
 
     // apply eta and pt cuts
-    bool eta_cut = (jet->get_eta() >= m_etaRange.first) and (jet->get_eta() <= m_etaRange.second);
-    bool pt_cut = (jet->get_pt() >= m_ptRange.first) and (jet->get_pt() <= m_ptRange.second);
-    if ((not eta_cut) or (not pt_cut))
+    bool eta_cut = (jet->get_eta() >= m_etaRange.first) && (jet->get_eta() <= m_etaRange.second);
+    bool pt_cut = (jet->get_pt() >= m_ptRange.first) && (jet->get_pt() <= m_ptRange.second);
+    if ((! eta_cut) || (! pt_cut))
     {
       continue;
     }

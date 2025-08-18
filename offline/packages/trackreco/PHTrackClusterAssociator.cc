@@ -218,14 +218,14 @@ int PHTrackClusterAssociator::getCaloNodes(PHCompositeNode* topNode,
 
   m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName.c_str());
 
-  if (m_useCemcPosRecalib and
+  if (m_useCemcPosRecalib &&
       m_caloNames.at(caloLayer).compare("CEMC") == 0)
   {
     std::string nodeName = "CLUSTER_POS_COR_" + m_caloNames.at(caloLayer);
     m_clusterContainer = findNode::getClass<RawClusterContainer>(topNode, nodeName.c_str());
   }
 
-  if (!m_towerGeomContainer or !m_towerContainer or !m_clusterContainer)
+  if (!m_towerGeomContainer || !m_towerContainer || !m_clusterContainer)
   {
     std::cout << PHWHERE
               << "Calo geometry and/or cluster container not found on node tree. Track-Calo cluster map won't be filled."

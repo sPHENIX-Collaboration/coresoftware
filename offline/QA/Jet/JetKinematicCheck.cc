@@ -266,9 +266,9 @@ int JetKinematicCheck::process_event(PHCompositeNode *topNode)
     // loop over jets
     for (auto *jet : *jets)
     {
-      bool eta_cut = (jet->get_eta() >= etaRangeUse.first) and (jet->get_eta() <= etaRangeUse.second);
-      bool pt_cut = (jet->get_pt() >= m_ptRange.first) and (jet->get_pt() <= m_ptRange.second);
-      if ((not eta_cut) or (not pt_cut))
+      bool eta_cut = (jet->get_eta() >= etaRangeUse.first) && (jet->get_eta() <= etaRangeUse.second);
+      bool pt_cut = (jet->get_pt() >= m_ptRange.first) && (jet->get_pt() <= m_ptRange.second);
+      if ((! eta_cut) || (! pt_cut))
       {
         continue;
       }

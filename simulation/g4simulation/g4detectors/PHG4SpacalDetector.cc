@@ -376,7 +376,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const std::string &id
     GetDisplayAction()->AddVolume(core_logic, "FiberCore");
   }
 
-  const bool overlapcheck_fiber = OverlapCheck() and (Verbosity() >= 3);
+  const bool overlapcheck_fiber = OverlapCheck() && (Verbosity() >= 3);
   G4PVPlacement *core_physi = new G4PVPlacement(nullptr, G4ThreeVector(), core_logic,
                                                 G4String(G4String(GetName() + std::string("_fiber_core") + id)), fiber_logic,
                                                 false, 0, overlapcheck_fiber);

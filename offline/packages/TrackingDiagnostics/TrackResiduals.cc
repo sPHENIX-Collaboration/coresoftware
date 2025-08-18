@@ -224,7 +224,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
   }
-  if (!trackmap or !clustermap or !geometry or (!hitmap && m_doHits))
+  if (!trackmap || !clustermap || !geometry || (!hitmap && m_doHits))
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -400,7 +400,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
   auto *svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
   auto *tpcGeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
-  if (!tpcseedmap or !trackmap or !clustermap or !silseedmap or !svtxseedmap or !geometry)
+  if (!tpcseedmap || !trackmap || !clustermap || !silseedmap || !svtxseedmap || !geometry)
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return;
@@ -821,7 +821,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
                                  PHG4CylinderGeomContainer* inttGeom,
                                  PHG4CylinderGeomContainer* mmGeom)
 {
-  if (!tpcGeom or !mvtxGeom or !inttGeom or !mmGeom)
+  if (!tpcGeom || !mvtxGeom || !inttGeom || !mmGeom)
   {
     std::cout << PHWHERE << "missing hit map, can't continue with hit tree"
               << std::endl;
@@ -2091,7 +2091,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       /// repopulate with info that is going into alignment
       clearClusterStateVectors();
 
-      if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
+      if (alignmentmap && alignmentmap->find(key) != alignmentmap->end())
       {
         auto& statevec = alignmentmap->find(key)->second;
 
@@ -2473,7 +2473,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       /// repopulate with info that is going into alignment
       clearClusterStateVectors();
 
-      if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
+      if (alignmentmap && alignmentmap->find(key) != alignmentmap->end())
       {
         auto& statevec = alignmentmap->find(key)->second;
 

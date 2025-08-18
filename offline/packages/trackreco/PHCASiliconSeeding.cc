@@ -1019,7 +1019,7 @@ std::vector<TrackSeed_v2> PHCASiliconSeeding::FitSeeds(const std::vector<PHCASil
     }
 
     TrackSeedHelper::circleFitByTaubin(&trackseed,positions,_start_layer,_end_layer);
-    if(not(positions.size()==3 && nintt==2))
+    if(!(positions.size()==3 && nintt==2))
     {
       TrackSeedHelper::lineFit(&trackseed,positions,_start_layer,2); // don't use INTT for line fit
     }
@@ -1094,7 +1094,7 @@ void PHCASiliconSeeding::FitSeed(TrackSeed_v2& seed, const PositionMap& globalPo
   }
 
   TrackSeedHelper::circleFitByTaubin(&seed,positions,_start_layer,_end_layer);
-  if(not(positions.size()==3 && nintt==2))
+  if(!(positions.size()==3 && nintt==2))
   {
     TrackSeedHelper::lineFit(&seed,positions,_start_layer,2); // don't use INTT for line fit
   }
