@@ -3,6 +3,11 @@
 
 #include <string>
 
+namespace CLHEP
+{
+  class HepRandomEngine;
+}
+
 class AfterburnerAlgo
 {
  public:
@@ -35,7 +40,8 @@ class AfterburnerAlgo
     
     void enable_fluctuations(bool enable = true) { _do_fluctuations = enable; }
 
-    void calc_flow(double eta, double pt); 
+    void calc_flow(double eta, double pt, CLHEP::HepRandomEngine* engine = nullptr);
+    void flucatate( CLHEP::HepRandomEngine* engine, float &v1, float &v2, float &v3, float &v4, float &v5, float &v6); // implements event-by-event fluctuations flow
 
     // getter
     float get_vn(unsigned int n) const;
@@ -43,7 +49,7 @@ class AfterburnerAlgo
     static std::string getAlgoName(flowAfterburnerAlgorithm algo);
     static flowAfterburnerAlgorithm getAlgoFromName(const std::string &name);
 
-private:
+ private:
 
     flowAfterburnerAlgorithm m_algorithm = minbias_algorithm; // flowAfterburner algorithm
     double m_impact_parameter = 0.0; // impact parameter in fm
@@ -52,6 +58,8 @@ private:
     bool _do_fluctuations = false; // enable or disable event-by-event fluctuations flow
 
     static float calc_v2(double b, double eta, double pt);
+
+
 };
 
 #endif // FLOWAFTERBURNER_AFTERBURNERALGO_H

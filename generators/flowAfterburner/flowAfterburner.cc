@@ -258,7 +258,7 @@ void Afterburner::AddFlowToParentAndMoveDescendants(HepMC::GenEvent *event, HepM
   }
 
   m_algo->set_impact_parameter(hi->impact_parameter());
-  m_algo->calc_flow(eta, pt);
+  m_algo->calc_flow(eta, pt, m_engine); // add engine for fluctuations (if enabled)
 
   const gsl_root_fsolver_type *T = gsl_root_fsolver_brent;
   gsl_root_fsolver *s = gsl_root_fsolver_alloc(T);

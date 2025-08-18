@@ -3,7 +3,10 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>  // for exit
+#include <algorithm>
+#include <array>
 
+#include <CLHEP/Random/RandomEngine.h>
 
 AfterburnerAlgo::AfterburnerAlgo( flowAfterburnerAlgorithm algorithm)
     : m_algorithm(algorithm)
@@ -63,7 +66,7 @@ float AfterburnerAlgo::calc_v2(double b, double eta, double pt)
     return val;
 }
 
-void AfterburnerAlgo::calc_flow(double eta, double pt)
+void AfterburnerAlgo::calc_flow(double eta, double pt, CLHEP::HepRandomEngine* engine)
 {
     
     float v1 = 0, v2 = 0, v3 = 0, v4 = 0, v5 = 0, v6 = 0;
@@ -79,7 +82,7 @@ void AfterburnerAlgo::calc_flow(double eta, double pt)
     else if (m_algorithm == minbias_algorithm)
     { // all other algorithms need to calculate the flow
         v1 = 0;
-        v2 = AfterburnerAlgo::calc_v2(m_impact_parameter, eta, pt);
+        v2 = AfterburnerAlgo::calc_v2(m_impact_parameter, eta, pt); 
         
         float fb = (
             0.97 
@@ -105,6 +108,11 @@ void AfterburnerAlgo::calc_flow(double eta, double pt)
         v6 = 0;
     }
 
+    if ( _do_fluctuations )
+    {
+      flucatate(engine, v1, v2, v3, v4, v5, v6);
+    }
+
     m_vn[0] = v1 * m_vn_scalefactors[0];
     m_vn[1] = v2 * m_vn_scalefactors[1];
     m_vn[2] = v3 * m_vn_scalefactors[2];
@@ -112,13 +120,97 @@ void AfterburnerAlgo::calc_flow(double eta, double pt)
     m_vn[4] = v5 * m_vn_scalefactors[4];
     m_vn[5] = v6 * m_vn_scalefactors[5];
 
-    if ( _do_fluctuations )
-    {
-        // not implemented yet
-    }
+    
+    
 
     return;
 }
+
+void AfterburnerAlgo::flucatate(CLHEP::HepRandomEngine* engine, float &v1, float &v2, float &v3, float &v4, float &v5, float &v6)
+{
+  // calc polynomial
+  // parameters are from fit of sigma to centrality, sampled over HIJING b
+  const std::array<float, 8> coeffs = {
+      -7.00411e-09, 4.24567e-07, 
+      -9.87748e-06, 0.000112689,
+      -0.000694686, 0.002413930, 
+      -0.00324709, 0.0107906};
+  float sigma = 0.0;
+  for (size_t i = 0; i < coeffs.size(); ++i) 
+  {
+      sigma = sigma * m_impact_parameter + coeffs[i];
+  }
+  if (sigma <= 0.0)
+  {
+      sigma = 0.0;    
+  }
+  const float fb = (
+          0.97 
+          + (1.06 * exp(-0.5 * m_impact_parameter * m_impact_parameter / 3.2 / 3.2))
+        ) * sqrt(v2);
+  const float gb = (
+      1.096 
+      + (1.36 * exp(-0.5 * m_impact_parameter * m_impact_parameter / 3.0 / 3.0))
+    ) * sqrt(v2);
+
+  const float s1 = 0; // Not implemented, v1 is always 0
+  const float s2 = sigma;
+  const float s3 = 1.5*std::pow(fb,3) * std::sqrt(v2) * sigma;
+  const float s4 = 2.0*std::pow(gb,4) * v2 * sigma;
+  const float s5 = 2.5*std::pow(gb,5) * std::sqrt(v2*v2*v2) * sigma;
+  const float s6 = 3.0*std::pow(gb,6) * v2*v2 * sigma;
+
+  // Marsaglia polar: two N(0,1) 
+  float u, v, s;
+  do 
+  {
+      u = 2.0*engine->flat() - 1.0;
+      v = 2.0*engine->flat() - 1.0;
+      s = u*u + v*v;
+  } while (s >= 1.0 || s == 0.0);
+
+  const float mul = std::sqrt(-2.0*std::log(s)/s);
+  const float z0  = u*mul;
+  const float z1  = v*mul;
+
+
+  if ( v1 != 0.0 )
+  {
+    float _v1 = std::hypot(v1 + s1*z0,  s1*z1);
+    v1 = std::clamp(_v1, 0.0f, 1.0f);
+  }
+  if ( v2 != 0.0 )
+  {
+    float _v2 = std::hypot(v2 + s2*z0,  s2*z1);
+    v2 = std::clamp(_v2, 0.0f, 1.0f);
+  }
+  if ( v3 != 0.0 )
+  {
+    float _v3 = std::hypot(v3 + s3*z0,  s3*z1);
+    v3 = std::clamp(_v3, 0.0f, 1.0f);
+  }
+  if ( v4 != 0.0 )
+  {
+    float _v4 = std::hypot(v4 + s4*z0,  s4*z1);
+    v4 = std::clamp(_v4, 0.0f, 1.0f);
+  }
+  if ( v5 != 0.0 )
+  {
+    float _v5 = std::hypot(v5 + s5*z0,  s5*z1);
+    v5 = std::clamp(_v5, 0.0f, 1.0f);
+  }
+  if ( v6 != 0.0 )
+  {
+    float _v6 = std::hypot(v6 + s6*z0,  s6*z1);
+    v6 = std::clamp(_v6, 0.0f, 1.0f);
+  }
+  
+  
+
+  return;
+
+}  
+
 
 std::string AfterburnerAlgo::getAlgoName(flowAfterburnerAlgorithm algo)
 {
