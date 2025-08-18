@@ -73,7 +73,7 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
   PHHepMCGenEvent::FlowAfterburner_PsiMap m_psi_n;  // only will be filled if the flowAfterburner enabled and input HepMC is from hijing
   // it is a map of n to psi_n[n]
 
-  ClassDefOverride(PHHepMCGenEventv1, 1)
+  ClassDefOverride(PHHepMCGenEventv1, 2)
 };
 
 #endif  // PHHEPMC_PHHEPMCEVENTv1_H
