@@ -33,6 +33,7 @@ void LaserEventInfov2::Reset()
 void LaserEventInfov2::CopyTo(LaserEventInfo* info)
 {
   info->setIsLaserEvent(isLaserEvent());
+  info->setCanHaveGl1Data(canHaveGl1Data());
   info->setIsGl1LaserEvent(isGl1LaserEvent());
   info->setIsGl1LaserPileupEvent(isGl1LaserPileupEvent());
 

@@ -17,6 +17,9 @@ class LaserEventInfov2 : public LaserEventInfov1
   PHObject* CloneMe() const override { return new LaserEventInfov2(*this); }
   void CopyTo(LaserEventInfo *info) override;
 
+  bool canHaveGl1Data() const override { return m_canHaveGl1Data; }
+  void setCanHaveGl1Data(const bool canHaveGl1DataVal) { m_canHaveGl1Data = canHaveGl1DataVal; }
+
   bool isGl1LaserEvent() const override { return m_isGl1LaserEvent; }
   void setIsGl1LaserEvent(const bool isGl1LaserEvent) override { m_isGl1LaserEvent = isGl1LaserEvent; }
 
@@ -25,6 +28,7 @@ class LaserEventInfov2 : public LaserEventInfov1
 
  protected:
 
+  bool m_canHaveGl1Data{false};
   bool m_isGl1LaserEvent{false};
   bool m_isGl1LaserPileupEvent{false};
 

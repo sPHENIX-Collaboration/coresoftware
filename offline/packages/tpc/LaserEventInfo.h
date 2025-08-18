@@ -23,6 +23,9 @@ class LaserEventInfo : public PHObject
   virtual bool isLaserEvent() const { return false; }
   virtual void setIsLaserEvent(const bool /*isLaserEvent*/) {}
 
+  virtual bool canHaveGl1Data() const { return false; }
+  virtual void setCanHaveGl1Data(const bool /*canHaveGl1Data*/) {}
+
   virtual bool isGl1LaserEvent() const { return false; }
   virtual void setIsGl1LaserEvent(const bool /*isLaserEvent*/) {}
 

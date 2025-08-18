@@ -11,6 +11,7 @@
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/LaserClusterContainerv1.h>
 #include <trackbase/LaserCluster.h>
+#include <tpc/LaserEventInfo.h>
 #include <trackbase/TpcDefs.h>
 
 #include <ffaobjects/EventHeader.h>
@@ -1301,7 +1302,15 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     m_event_index = eventHeader->get_EvtSequence();
   }
 
-  if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
+  LaserEventInfo *lasereventinfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if(!lasereventinfo)
+  {
+    std::cout << PHWHERE << " LaserEvetnInfo Node missing, abort" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if(!lasereventinfo->isGl1LaserEvent() || !m_corrected_CMcluster_map)
+  //if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
   {
     if(!m_useHeader)
     {
