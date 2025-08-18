@@ -372,7 +372,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       auto trackseed = std::make_unique<TrackSeed_v2>();
       for (auto& ckey : cluskey_vec)
       {
-        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId or
+        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId ||
             TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::inttId)
         {
           trackseed->insert_cluster_key(ckey);
