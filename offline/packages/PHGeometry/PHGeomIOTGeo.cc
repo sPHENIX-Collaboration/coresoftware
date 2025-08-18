@@ -55,7 +55,7 @@ void PHGeomIOTGeo::SetGeometry(const TGeoVolume* g)
 TGeoVolume*
 PHGeomIOTGeo::GetGeometryCopy()
 {
-  if (not isValid()) return nullptr;
+  if (! isValid()) return nullptr;
 
   TMemFile f2("mem2", Data.data(), Data.size(), "READ");
   TGeoVolume* vol = dynamic_cast<TGeoVolume*>(f2.Get("TOP"));
@@ -69,7 +69,7 @@ TGeoManager*
 PHGeomIOTGeo::
     ConstructTGeoManager()
 {
-  if (not isValid()) return nullptr;
+  if (! isValid()) return nullptr;
 
   // force TGeoManager to use the Fun4All unit of cm
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,2)
