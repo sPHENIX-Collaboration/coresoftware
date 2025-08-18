@@ -114,8 +114,6 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     triggervec = gl1PacketInfo->getScaledVector();
   }
 
-  if ((triggervec >> 0xAU) & 0x1U)
-  {
     //--------------------------- MBD vertex------------------------------//
     MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
     MbdVertex *bvertex = nullptr;
@@ -141,7 +139,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     {
       h_GlobalQA_mbd_zvtxq->SetBinContent(2, h_GlobalQA_mbd_zvtxq->GetBinContent(2) + 1);
     }
-  }
+  
 
   //--------------------------- sEPD ------------------------------//
   
@@ -194,8 +192,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     }
   }
 
-  if ((triggervec >> 0x3U) & 0x1U)
-  {
+
     // ------------------------------------- ZDC
     // -----------------------------------------//
 
@@ -212,10 +209,9 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
       h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
       h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
     }
-  }
+  
 
-  if ((triggervec >> 0xAU) & 0x1U)
-  {
+
     //--------------------------- MBD ----------------------------------------//
     MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
     if (!bbcpmts)
@@ -369,7 +365,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s + tot_charge_n);
     h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_s, tot_charge_n);
     h2_GlobalQA_mbd_nhits_NS_correlation->Fill(hits_s, hits_n);
-  }
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
