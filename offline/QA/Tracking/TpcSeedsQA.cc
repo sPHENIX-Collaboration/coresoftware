@@ -58,7 +58,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
-  if (!trackmap or !clustermap or !actsgeom or !vertexmap)
+  if (!trackmap || !clustermap || !actsgeom || !vertexmap)
   {
     std::cout << PHWHERE << "Missing node(s), can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
