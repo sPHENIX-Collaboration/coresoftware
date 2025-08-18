@@ -59,7 +59,7 @@ int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
 
     const auto& trackTips = trajectory.tips();
 
-    if (trackTips.size() > 1 and Verbosity() > 0)
+    if (trackTips.size() > 1 && Verbosity() > 0)
     {
       std::cout << PHWHERE
                 << "More than 1 track tip per track. Should never happen..."

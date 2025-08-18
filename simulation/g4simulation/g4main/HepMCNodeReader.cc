@@ -19,10 +19,7 @@
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#pragma GCC diagnostic pop
 #include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>
 #include <HepMC/IteratorRange.h>
@@ -45,6 +42,7 @@
 #include <iostream>
 #include <iterator>
 #include <list>
+#include <ranges>
 #include <utility>
 
 //// All length Units are in cm, no conversion to G4 internal units since
@@ -71,12 +69,15 @@ class IsStateFinal
   }
 };
 
-static IsStateFinal isfinal;
+namespace
+{
+  IsStateFinal isfinal;
+}
 
 HepMCNodeReader::HepMCNodeReader(const std::string &name)
   : SubsysReco(name)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   return;
 }
 
@@ -122,13 +123,14 @@ int HepMCNodeReader::Init(PHCompositeNode *topNode)
     fpt->SetParameter(3, 2.26981e+00);  // lambda
 
     std::cout << "[INFO] eta is sampled between [" << -1 * sel_eta << "," << sel_eta << "]" << std::endl;
-    feta = new TF1("feta", DBGFunction, -1*sel_eta, sel_eta, 4);
+    feta = new TF1("feta", DBGFunction, -1 * sel_eta, sel_eta, 4);
     feta->SetParameter(0, 1);             // normalization
     feta->SetParameter(1, -4.08301e-01);  // mu1
     feta->SetParameter(2, 4.11930e-01);   // mu2
     feta->SetParameter(3, 3.59063e-01);   // sigma
 
     std::vector<std::pair<int, double>> l_PIDProb;
+    l_PIDProb.reserve(list_strangePID.size());
     for (size_t i = 0; i < list_strangePID.size(); i++)
     {
       l_PIDProb.emplace_back(list_strangePID[i], list_strangePIDprob[i]);
@@ -176,7 +178,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
   {
     static bool once = true;
 
-    if (once and Verbosity())
+    if (once && Verbosity())
     {
       once = false;
 
@@ -233,9 +235,9 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     genevtmap->erase(PHHepMCDefs::DataVertexIndex);
     use_embedding_vertex = true;
   }
-  for (PHHepMCGenEventMap::ReverseIter iter = genevtmap->rbegin(); iter != genevtmap->rend(); ++iter)
+  for (auto &iter : std::ranges::reverse_view(*genevtmap))
   {
-    PHHepMCGenEvent *genevt = iter->second;
+    PHHepMCGenEvent *genevt = iter.second;
     assert(genevt);
 
     if (genevt->is_simulated())
@@ -356,8 +358,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
           {
             // count number of strange particles with PID in list_strangePID within the kinematic selection (sPHNEIX acceptance)
             // |eta|<=1 and momentum within sel_ptmin and sel_ptmax
-            if ((fabs((*p)->momentum().eta()) <= sel_eta) && //
-                ((*p)->momentum().perp() >= sel_ptmin && (*p)->momentum().perp() <= sel_ptmax) //
+            if ((fabs((*p)->momentum().eta()) <= sel_eta) &&                                    //
+                ((*p)->momentum().perp() >= sel_ptmin && (*p)->momentum().perp() <= sel_ptmax)  //
             )
             {
               Nstrange++;
@@ -536,8 +538,8 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
         }
 
       }  // if (!finalstateparticles.empty())
-    }    // for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
-  }      // For pile-up simulation: loop end for PHHepMC event map
+    }  // for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
+  }  // For pile-up simulation: loop end for PHHepMC event map
   if (Verbosity() > 0)
   {
     ineve->identify();
@@ -594,6 +596,8 @@ void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
   return;
 }
 
+// root prevents declaring this const
+// NOLINTNEXTLINE(readability-non-const-parameter)
 double HepMCNodeReader::EMGFunction(double *x, double *par)
 {
   // parameterization: https://en.wikipedia.org/wiki/Exponentially_modified_Gaussian_distribution
@@ -613,6 +617,8 @@ double HepMCNodeReader::EMGFunction(double *x, double *par)
   return N * prefactor * exp_part * erfc_part;
 }
 
+// root prevents declaring this const
+// NOLINTNEXTLINE(readability-non-const-parameter)
 double HepMCNodeReader::DBGFunction(double *x, double *par)
 {
   double N = par[0];      // Normalization
@@ -621,13 +627,4 @@ double HepMCNodeReader::DBGFunction(double *x, double *par)
   double sigma = par[3];  // Width of the Gaussian
 
   return N * (TMath::Gaus(x[0], mu1, sigma) + TMath::Gaus(x[0], mu2, sigma));
-}
-
-void HepMCNodeReader::Embed(const int /*unused*/)
-{
-  std::cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
-            << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-            << std::endl;
-
-  return;
 }

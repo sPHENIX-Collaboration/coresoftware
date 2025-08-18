@@ -45,7 +45,7 @@ int SiliconSeedsQA::process_event(PHCompositeNode *topNode)
   auto *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
-  if (!trackmap or !clustermap or !geometry or !vertexmap)
+  if (!trackmap || !clustermap || !geometry || !vertexmap)
   {
     std::cout << PHWHERE << "Missing node(s), can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;

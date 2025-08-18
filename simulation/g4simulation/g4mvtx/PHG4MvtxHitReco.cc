@@ -309,7 +309,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
       }
 
       // check that the signal occurred witin the time window 0 to extended_readout_time, discard if not
-      if (lead_edge > m_tmax or fall_edge < m_tmin)
+      if (lead_edge > m_tmax || fall_edge < m_tmin)
       {
         continue;
       }

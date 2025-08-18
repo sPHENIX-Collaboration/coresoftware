@@ -58,7 +58,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
   trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
-  if (!trackmap or !clustermap or !actsgeom or !vertexmap)
+  if (!trackmap || !clustermap || !actsgeom || !vertexmap)
   {
     std::cout << PHWHERE << "Missing node(s), can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -1244,7 +1244,7 @@ void TpcSeedsQA::createHistos()
     h_clusphisizegeq1pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     hm->registerHisto(h_clusphisizegeq1pt_side1[region]);
 
-    h_cluster_phisize1_fraction_side0[region] = new TH1F(std::format("{}sclusphisize1frac_side0_{}", getHistoPrefix(), region).c_str(),
+    h_cluster_phisize1_fraction_side0[region] = new TH1F(std::format("{}clusphisize1frac_side0_{}", getHistoPrefix(), region).c_str(),
                                                          std::format("Fraction of TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 100, 0, 1);
     h_cluster_phisize1_fraction_side0[region]->GetXaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_side0[region]);

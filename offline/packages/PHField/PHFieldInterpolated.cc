@@ -8,6 +8,8 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <iostream>
+
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -75,6 +77,44 @@ PHFieldInterpolated::load_fieldmap (
 			<< std::endl;
 	}
 
+	// The unique values taken on coordinate axes
+	// used to check that the tree is a perfect grid
+	std::array<std::set<float>, 3> points;
+
+	for (std::size_t n = 0, N = tree->GetEntriesFast(); n < N; ++n) {
+		tree->GetEntry(n);
+
+		// Unit conversions
+		point *= cm;
+		for (int i = 0; i < 3; ++i) {
+			points[i].insert(point(i));
+		}
+	}
+
+	for (int i = 0; i < 3; ++i) {
+		if (points[i].size() < 2) {
+			std::stringstream what;
+			what
+				<< PHWHERE
+				<< " not enough points";
+			throw std::runtime_error(what.str());
+		}
+		m_N(i) = points[i].size();
+		m_min(i) = *points[i].begin();
+		m_max(i) = *points[i].rbegin();
+		m_D(i) = (m_max(i) - m_min(i)) / (m_N(i) - 1);
+	}
+
+	if (static_cast<Long64_t>(m_N(0)) * static_cast<Long64_t>(m_N(1)) * static_cast<Long64_t>(m_N(2)) != tree->GetEntriesFast()) {
+		std::stringstream what;
+		what
+			<< PHWHERE
+			<< " tree is not a grid";
+		throw std::runtime_error(what.str());
+	}
+
+	std::lock_guard lock(m_mutex);
+	m_field.resize(tree->GetEntriesFast());
 	for (std::size_t n = 0, N = tree->GetEntriesFast(); n < N; ++n) {
 		tree->GetEntry(n);
 
@@ -82,59 +122,20 @@ PHFieldInterpolated::load_fieldmap (
 		point *= cm;
 		field *= tesla * magfield_rescale;
 
-		// Check if what we read in is consistent with our deterministic computations of the domain
-		Point_t expected = get_point(get_indices(n));
-		if (1.0E-4 < (point - expected).norm()) {
+		// Check that the deterministic computation
+		// actually matches what we're reading in
+		Indices_t indices = get_indices(point);
+		if (!point.isApprox(get_point(indices))) {
 			std::stringstream what;
 			what
 				<< PHWHERE
-				<< " Read point from file which is dissimilar to calculated value"
-				<< " entry: " << n
-				<< " expected: " << expected.transpose()
-				<< " read: " << point.transpose();
+				<< " point does not round trip,"
+				<< " tree is not a grid"
+				<< " (with " << point.transpose() << ")";
 			throw std::runtime_error(what.str());
-		};
-
-		m_field.push_back(field);
-
-		// Print information when < 5 and an ellipsis when == 5
-		int print_index{6};
-		switch (Verbosity()) {
-			case 0:
-			case 1:
-				// Left at 6 and will print nothing
-				break;
-			case 2:
-				// Prints the next 5 terms after every x coordinate roll over
-				print_index = (int)n % (GRID_COUNT * GRID_COUNT * GRID_COUNT);
-				break;
-			case 3:
-				// Prints the next 5 terms after every y coordinate roll over
-				print_index = (int)n % (GRID_COUNT * GRID_COUNT);
-				break;
-			case 4:
-				// Prints the next 5 terms after every z coordinate roll over
-				print_index = (int)n % (GRID_COUNT);
-				break;
-			default:
-				// Prints the whole map
-				print_index = 0;
-				break;
 		}
 
-		if (print_index < 5) {
-			std::cout
-				<< " index: " << n
-				<< " point: " << point.transpose()
-				<< " field: " << field.transpose()
-				<< std::endl;
-		}
-
-		if (print_index == 5) {
-			std::cout
-				<< " ... "
-				<< std::endl;
-		}
+		m_field[get_index(indices)] = field;
 	}
 
 	file->Close();
@@ -155,9 +156,6 @@ PHFieldInterpolated::GetFieldValue (
 			field_as_arr[i] = field(i);
 		}
 	} catch (std::exception const& e) {
-		// If you're from a printout,
-		// you'll need to look around this file
-		// for the literal "e.what()"
 		std::cout
 			<< PHWHERE << "\n"
 			<< "\t" << e.what() << "\n"
@@ -167,11 +165,12 @@ PHFieldInterpolated::GetFieldValue (
 
 Eigen::VectorXf
 PHFieldInterpolated::get_design_vector (
-	Point_t const& point
-) const {
-	float x = point(0) - m_center(0);
-	float y = point(1) - m_center(1);
-	float z = point(2) - m_center(2);
+	Point_t const& point,
+	InterpolationCache const& cache
+) {
+	float x = point(0) - cache.m_center(0);
+	float y = point(1) - cache.m_center(1);
+	float z = point(2) - cache.m_center(2);
 
 	Eigen::VectorXf design_vector(20);
 	design_vector <<
@@ -196,17 +195,19 @@ PHFieldInterpolated::get_design_vector (
 
 void
 PHFieldInterpolated::cache_interpolation (
-	Point_t const& point
+	Point_t const& point,
+	InterpolationCache& cache
 ) const {
+
 	Indices_t indices = get_indices(point);
-	if ((indices - m_buffered_indices).norm() == 0) { return; }
-	m_buffered_indices = indices;
+	if ((indices - cache.m_buffered_indices).norm() == 0) { return; }
+	cache.m_buffered_indices = indices;
 
 	// The point at the the center of the cell
 	// get_point gets the left-down-back corner
-	m_center = get_point(indices);
+	cache.m_center = get_point(indices);
 	for (int i = 0; i < 3; ++i) {
-		m_center(i) += GRID_STEP / 2;
+		cache.m_center(i) += m_D(i) / 2;
 	}
 
 	// Effectively we are solving three scalar interpolation problems
@@ -222,9 +223,9 @@ PHFieldInterpolated::cache_interpolation (
 	// Note that the indices are of the left-down-back corner of this cell
 	for (int row = 0; row < 64; ++row) {
 		indices = {
-			m_buffered_indices(0) + (row / 16) - 1,
-			m_buffered_indices(1) + ((row / 4) % 4) - 1,
-			m_buffered_indices(2) + (row % 4) - 1,
+			cache.m_buffered_indices(0) + (row / 16) - 1,
+			cache.m_buffered_indices(1) + ((row / 4) % 4) - 1,
+			cache.m_buffered_indices(2) + (row % 4) - 1,
 		};
 
 		// Possible to throw while searching neighbors
@@ -232,23 +233,24 @@ PHFieldInterpolated::cache_interpolation (
 		try {
 			validate_indices(indices);
 		} catch (std::exception const&) {
-			m_buffered_indices = {-1, -1, -1};
+			cache.m_buffered_indices = {-1, -1, -1};
 			std::stringstream what;
 			what
 				<< PHWHERE
 				<< " Point too close to edge of fieldmap "
-				<< " (at " << point << ")";
+				<< " (at " << point.transpose() << ")";
 			throw std::runtime_error(what.str());
 		}
 
-		M.row(row) = get_design_vector(get_point(indices));
+		M.row(row) = get_design_vector(get_point(indices), cache);
 		for (int i = 0; i < 3; ++i) {
 			solution_vectors[i](row) = get_field(indices)(i);
 		}
 	}
 
+	// Use Eigen to solve the least squares problem we've set up
 	for (int i = 0; i < 3; ++i) {
-		m_coefficients[i] = M.bdcSvd (
+		cache.m_coefficients[i] = M.bdcSvd (
 			Eigen::ComputeThinU | Eigen::ComputeThinV
 		).solve (solution_vectors[i]);
 	}
@@ -258,69 +260,93 @@ PHFieldInterpolated::Field_t
 PHFieldInterpolated::get_interpolated (
 	Point_t const& point
 ) const {
-	cache_interpolation(point);
+	// Because a separate access can change the map,
+	// this must be locked from the top
+	std::lock_guard lock(m_mutex);
+
+	// Update the access counts
+	InterpolationCache& this_cache = m_caches[std::this_thread::get_id()];
+	for (auto& [thread_id, cache] : m_caches) {
+		if (cache.m_queue_index < this_cache.m_queue_index) { ++cache.m_queue_index; }
+	}
+	this_cache.m_queue_index = 0;
+
+	// // Since c++20
+	// std::erase_if (m_caches, [](auto const& key_val_pair) {
+	// 	return MAX_THREADS <= key_val_pair.second.m_queue_index;
+	// });
+
+	// Manual loop for c++17 compatability
+	for (auto itr = m_caches.begin(); itr != m_caches.end();) {
+		if (MAX_THREADS <= itr->second.m_queue_index) {
+			itr = m_caches.erase(itr);
+		} else {
+			++itr;
+		}
+	}
+
+	// Reference could be dangling after erase, erase_if
+	this_cache = m_caches[std::this_thread::get_id()];
+	cache_interpolation(point, this_cache);
 	return {
-		get_design_vector(point).dot(m_coefficients[0]),
-		get_design_vector(point).dot(m_coefficients[1]),
-		get_design_vector(point).dot(m_coefficients[2]),
+		get_design_vector(point, this_cache).dot(this_cache.m_coefficients[0]),
+		get_design_vector(point, this_cache).dot(this_cache.m_coefficients[1]),
+		get_design_vector(point, this_cache).dot(this_cache.m_coefficients[2]),
 	};
 }
 
 PHFieldInterpolated::Indices_t
 PHFieldInterpolated::get_indices (
 	std::size_t const& index
-) {
+) const {
 	return {
-		((int)index / (GRID_COUNT * GRID_COUNT)),
-		((int)index / GRID_COUNT) % GRID_COUNT,
-		((int)index) % GRID_COUNT,
+		((int)index / (m_N(1) * m_N(2))) % m_N(0),
+		((int)index / m_N(2)) % m_N(1),
+		(int)index % m_N(2),
 	};
 }
 
 std::size_t
 PHFieldInterpolated::get_index (
 	Indices_t const& indices
-) {
+) const {
 	validate_indices(indices);
 	return
-		(indices(0) * GRID_COUNT * GRID_COUNT) +
-		(indices(1) * GRID_COUNT) +
+		(indices(0) * m_N(1) * m_N(2)) +
+		(indices(1) * m_N(2)) +
 		indices(2);
 }
 
 PHFieldInterpolated::Indices_t
 PHFieldInterpolated::get_indices (
 	Point_t const& point
-) {
+) const {
 	validate_point(point);
 	return {
-		(int)std::floor(point(0) / GRID_STEP) + (GRID_COUNT / 2),
-		(int)std::floor(point(1) / GRID_STEP) + (GRID_COUNT / 2),
-		(int)std::floor(point(2) / GRID_STEP) + (GRID_COUNT / 2),
+		(int)std::floor(point(0) / m_D(0)) + (m_N(0) / 2),
+		(int)std::floor(point(1) / m_D(1)) + (m_N(1) / 2),
+		(int)std::floor(point(2) / m_D(2)) + (m_N(2) / 2),
 	};
 }
 
 PHFieldInterpolated::Point_t
 PHFieldInterpolated::get_point (
 	Indices_t const& indices
-) {
+) const {
 	validate_indices(indices);
 	return {
-		// NOLINTNEXTLINE(bugprone-integer-division)
-		(indices(0) - (GRID_COUNT / 2)) * GRID_STEP,
-		// NOLINTNEXTLINE(bugprone-integer-division)
-		(indices(1) - (GRID_COUNT / 2)) * GRID_STEP,
-		// NOLINTNEXTLINE(bugprone-integer-division)
-		(indices(2) - (GRID_COUNT / 2)) * GRID_STEP,
+		static_cast<float>(indices(0) - ((m_N(0) - 1.0) / 2.0)) * m_D(0),
+		static_cast<float>(indices(1) - ((m_N(1) - 1.0) / 2.0)) * m_D(1),
+		static_cast<float>(indices(2) - ((m_N(2) - 1.0) / 2.0)) * m_D(2),
 	};
 }
 
 void
 PHFieldInterpolated::validate_indices (
 	Indices_t const& indices
-) {
+) const {
 	for (int i = 0; i < 3; ++i) {
-		if (indices(i) < 0 || indices(i) >= GRID_COUNT) {
+		if (indices(i) < 0 || indices(i) >= m_N(i)) {
 			std::stringstream what;
 			what
 				<< PHWHERE
@@ -334,9 +360,9 @@ PHFieldInterpolated::validate_indices (
 void
 PHFieldInterpolated::validate_point (
 	Point_t const& point 
-) {
+) const {
 	for (int i = 0; i < 3; ++i) {
-		if (GRID_MAX < point(i) || point(i) < GRID_MIN) {
+		if (m_max(i) < point(i) || point(i) < m_min(i)) {
 			std::stringstream what;
 			what
 				<< PHWHERE
@@ -348,24 +374,62 @@ PHFieldInterpolated::validate_point (
 }
 
 void
-PHFieldInterpolated::print_map (
+PHFieldInterpolated::print (
+	std::ostream& stream
 ) const {
+	std::lock_guard lock(m_mutex);
+
+	stream
+		<< PHWHERE << "\n"
+		<< " size: " << m_field.size()
+		<< " num caches: " << m_caches.size()
+		<< std::endl;
+
+	if (Verbosity() < 1) { return; }
+
+	for (int i = 0; i < 3; ++i) {
+		stream
+			<< " component: " << i
+			<< " min: " << m_min(i)
+			<< " max: " << m_max(i)
+			<< " step: " << m_D(i)
+			<< " count: " << m_N(i)
+			<< std::endl;
+	}
+
+	for (auto const& [thread_id, cache] : m_caches) {
+		stream
+			<< " thread id: " << thread_id
+			<< " queue index: " << cache.m_queue_index
+			<< std::endl;
+	}
+
+	if (Verbosity() < 2) { return; }
+
 	for (std::size_t index = 0; index < m_field.size(); ++index) {
 		Indices_t indices = get_indices(index);
-		std::cout
+		stream
 			<< " indices: " << indices.transpose()
 			<< " point: " << get_point(indices).transpose()
 			<< " field: " << get_field(indices).transpose()
 			<< std::endl;
+
+		if (Verbosity() < 3 && index == 10) {
+			stream << " ..." << std::endl;
+			return;
+		}
 	}
 }
 
 void
 PHFieldInterpolated::print_coefficients (
+	std::ostream& stream
 ) const {
+	std::lock_guard lock(m_mutex);
+	InterpolationCache const& cache = m_caches[std::this_thread::get_id()];
 	for (int i = 0; i < 3; ++i) {
-		std::cout
-			<< m_coefficients[i].transpose()
+		stream
+			<< cache.m_coefficients[i].transpose()
 			<< std::endl;
 	}
 }

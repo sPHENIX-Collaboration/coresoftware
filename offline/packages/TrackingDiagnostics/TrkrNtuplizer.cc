@@ -2,18 +2,18 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
-#include <trackbase/TrackFitUtils.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
+#include <trackbase/TrackFitUtils.h>
+#include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
 
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 
@@ -33,19 +33,11 @@
 
 #include <micromegas/MicromegasDefs.h>
 
-
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
-#include <globalvertex/SvtxVertex.h>
-#include <globalvertex/SvtxVertexMap.h>
-
-
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <trackermillepedealignment/HelicalFitter.h>
 
-#include <ffamodules/CDBInterface.h>
 #include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 
@@ -80,7 +72,7 @@
 #include <utility>
 #include <vector>
 
-enum n_event // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_event  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   evnev,
   evnseed,
@@ -90,7 +82,7 @@ enum n_event // NOLINT(readability-enum-initial-value, performance-enum-size)
   evsize = evnjob + 1,
 };
 
-enum n_info // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_info  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   infonocc11,
   infonocc116,
@@ -143,7 +135,7 @@ enum n_info // NOLINT(readability-enum-initial-value, performance-enum-size)
   infosize = infonclustpot + 1
 };
 
-enum n_vertex // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_vertex  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   vtxnvertexID,
   vtxnvx,
@@ -155,7 +147,7 @@ enum n_vertex // NOLINT(readability-enum-initial-value, performance-enum-size)
   vtxsize = vtxnndof + 1
 };
 
-enum n_hit // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_hit  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nhitID,
   nhite,
@@ -175,7 +167,7 @@ enum n_hit // NOLINT(readability-enum-initial-value, performance-enum-size)
   hitsize = nhitz + 1
 };
 
-enum n_seed // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_seed  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nseedtrackID,
   nseedniter,
@@ -203,7 +195,7 @@ enum n_seed // NOLINT(readability-enum-initial-value, performance-enum-size)
   seedsize = nseednhits + 1
 };
 
-enum n_residual // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_residual  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nresalpha,
   nresbeta,
@@ -213,7 +205,7 @@ enum n_residual // NOLINT(readability-enum-initial-value, performance-enum-size)
   ressize = nresz + 1
 };
 
-enum n_track // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_track  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   ntrktrackID,
   ntrkcrossing,
@@ -266,7 +258,7 @@ enum n_track // NOLINT(readability-enum-initial-value, performance-enum-size)
   trksize = ntrkhlxcharge + 1
 };
 
-enum n_cluster // NOLINT(readability-enum-initial-value, performance-enum-size)
+enum n_cluster  // NOLINT(readability-enum-initial-value, performance-enum-size)
 {
   nclulocx,
   nclulocy,
@@ -332,10 +324,10 @@ TrkrNtuplizer::~TrkrNtuplizer()
 int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
 {
   _ievent = 0;
-  
+
   _tfile = new TFile(_filename.c_str(), "RECREATE");
   _tfile->SetCompressionLevel(7);
-  
+
   std::string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
   std::string str_event = {"event:seed:run:seg:job"};
   std::string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
@@ -391,12 +383,12 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
   }
 
   std::string dedx_fitparams = CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
-  TFile *filefit = TFile::Open(dedx_fitparams.c_str());
+  TFile* filefit = TFile::Open(dedx_fitparams.c_str());
 
   if (!filefit->IsOpen())
   {
-      std::cout << "Error opening filefit!" << std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
+    std::cout << "Error opening filefit!" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   filefit->GetObject("f_piband", f_pion_plus);
@@ -405,172 +397,171 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
   filefit->GetObject("f_piminus_band", f_pion_minus);
   filefit->GetObject("f_Kminus_band", f_kaon_minus);
   filefit->GetObject("f_pbar_band", f_proton_minus);
-  
+
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
   /**/
 
-  dedxcorr[0][0][0] = 0.54; 
-  dedxcorr[0][0][1] = 0.90; 
-  dedxcorr[0][0][2] = 1.11; 
-  dedxcorr[0][1][0] = 0.72; 
-  dedxcorr[0][1][1] = 0.98; 
-  dedxcorr[0][1][2] = 0.99; 
-  dedxcorr[0][2][0] = 0.83; 
-  dedxcorr[0][2][1] = 0.81; 
-  dedxcorr[0][2][2] = 1.03; 
-  dedxcorr[0][3][0] = 0.82; 
-  dedxcorr[0][3][1] = 0.52; 
-  dedxcorr[0][3][2] = 1.02; 
-  dedxcorr[0][4][0] = 0.85; 
-  dedxcorr[0][4][1] = 0.78; 
-  dedxcorr[0][4][2] = 0.82; 
-  dedxcorr[0][5][0] = 0.85; 
-  dedxcorr[0][5][1] = 0.70; 
-  dedxcorr[0][5][2] = 0.92; 
-  dedxcorr[0][6][0] = 0.78; 
-  dedxcorr[0][6][1] = 0.94; 
-  dedxcorr[0][6][2] = 1.03; 
-  dedxcorr[0][7][0] = 0.64; 
-  dedxcorr[0][7][1] = 0.94; 
-  dedxcorr[0][7][2] = 1.19; 
-  dedxcorr[0][8][0] = 0.95; 
-  dedxcorr[0][8][1] = 0.47; 
-  dedxcorr[0][8][2] = 1.12; 
-  dedxcorr[0][9][0] = 0.74; 
-  dedxcorr[0][9][1] = 1.07; 
-  dedxcorr[0][9][2] = 0.85; 
-  dedxcorr[0][10][0] = 0.86; 
-  dedxcorr[0][10][1] = 0.74; 
-  dedxcorr[0][10][2] = 1.08; 
-  dedxcorr[0][11][0] = 0.60; 
-  dedxcorr[0][11][1] = 1.03; 
-  dedxcorr[0][11][2] = 0.89; 
-  dedxcorr[1][0][0] = 0.74; 
-  dedxcorr[1][0][1] = 0.76; 
-  dedxcorr[1][0][2] = 0.89; 
-  dedxcorr[1][1][0] = 0.61; 
-  dedxcorr[1][1][1] = 0.87; 
-  dedxcorr[1][1][2] = 1.10; 
-  dedxcorr[1][2][0] = 0.73; 
-  dedxcorr[1][2][1] = 0.86; 
-  dedxcorr[1][2][2] = 1.70; 
-  dedxcorr[1][3][0] = 0.40; 
-  dedxcorr[1][3][1] = 0.76; 
-  dedxcorr[1][3][2] = 0.99; 
-  dedxcorr[1][4][0] = 0.82; 
-  dedxcorr[1][4][1] = 0.71; 
-  dedxcorr[1][4][2] = 0.86; 
-  dedxcorr[1][5][0] = 0.65; 
-  dedxcorr[1][5][1] = 1.00; 
-  dedxcorr[1][5][2] = 0.79; 
-  dedxcorr[1][6][0] = 0.75; 
-  dedxcorr[1][6][1] = 0.84; 
-  dedxcorr[1][6][2] = 0.40; 
-  dedxcorr[1][7][0] = 0.95; 
-  dedxcorr[1][7][1] = 0.81; 
-  dedxcorr[1][7][2] = 0.85; 
-  dedxcorr[1][8][0] = 0.79; 
-  dedxcorr[1][8][1] = 0.67; 
-  dedxcorr[1][8][2] = 1.17; 
-  dedxcorr[1][9][0] = 0.73; 
-  dedxcorr[1][9][1] = 0.94; 
-  dedxcorr[1][9][2] = 0.95; 
-  dedxcorr[1][10][0] = 0.40; 
-  dedxcorr[1][10][1] = 0.83; 
-  dedxcorr[1][10][2] = 0.87; 
-  dedxcorr[1][11][0] = 0.80; 
-  dedxcorr[1][11][1] = 0.63; 
+  dedxcorr[0][0][0] = 0.54;
+  dedxcorr[0][0][1] = 0.90;
+  dedxcorr[0][0][2] = 1.11;
+  dedxcorr[0][1][0] = 0.72;
+  dedxcorr[0][1][1] = 0.98;
+  dedxcorr[0][1][2] = 0.99;
+  dedxcorr[0][2][0] = 0.83;
+  dedxcorr[0][2][1] = 0.81;
+  dedxcorr[0][2][2] = 1.03;
+  dedxcorr[0][3][0] = 0.82;
+  dedxcorr[0][3][1] = 0.52;
+  dedxcorr[0][3][2] = 1.02;
+  dedxcorr[0][4][0] = 0.85;
+  dedxcorr[0][4][1] = 0.78;
+  dedxcorr[0][4][2] = 0.82;
+  dedxcorr[0][5][0] = 0.85;
+  dedxcorr[0][5][1] = 0.70;
+  dedxcorr[0][5][2] = 0.92;
+  dedxcorr[0][6][0] = 0.78;
+  dedxcorr[0][6][1] = 0.94;
+  dedxcorr[0][6][2] = 1.03;
+  dedxcorr[0][7][0] = 0.64;
+  dedxcorr[0][7][1] = 0.94;
+  dedxcorr[0][7][2] = 1.19;
+  dedxcorr[0][8][0] = 0.95;
+  dedxcorr[0][8][1] = 0.47;
+  dedxcorr[0][8][2] = 1.12;
+  dedxcorr[0][9][0] = 0.74;
+  dedxcorr[0][9][1] = 1.07;
+  dedxcorr[0][9][2] = 0.85;
+  dedxcorr[0][10][0] = 0.86;
+  dedxcorr[0][10][1] = 0.74;
+  dedxcorr[0][10][2] = 1.08;
+  dedxcorr[0][11][0] = 0.60;
+  dedxcorr[0][11][1] = 1.03;
+  dedxcorr[0][11][2] = 0.89;
+  dedxcorr[1][0][0] = 0.74;
+  dedxcorr[1][0][1] = 0.76;
+  dedxcorr[1][0][2] = 0.89;
+  dedxcorr[1][1][0] = 0.61;
+  dedxcorr[1][1][1] = 0.87;
+  dedxcorr[1][1][2] = 1.10;
+  dedxcorr[1][2][0] = 0.73;
+  dedxcorr[1][2][1] = 0.86;
+  dedxcorr[1][2][2] = 1.70;
+  dedxcorr[1][3][0] = 0.40;
+  dedxcorr[1][3][1] = 0.76;
+  dedxcorr[1][3][2] = 0.99;
+  dedxcorr[1][4][0] = 0.82;
+  dedxcorr[1][4][1] = 0.71;
+  dedxcorr[1][4][2] = 0.86;
+  dedxcorr[1][5][0] = 0.65;
+  dedxcorr[1][5][1] = 1.00;
+  dedxcorr[1][5][2] = 0.79;
+  dedxcorr[1][6][0] = 0.75;
+  dedxcorr[1][6][1] = 0.84;
+  dedxcorr[1][6][2] = 0.40;
+  dedxcorr[1][7][0] = 0.95;
+  dedxcorr[1][7][1] = 0.81;
+  dedxcorr[1][7][2] = 0.85;
+  dedxcorr[1][8][0] = 0.79;
+  dedxcorr[1][8][1] = 0.67;
+  dedxcorr[1][8][2] = 1.17;
+  dedxcorr[1][9][0] = 0.73;
+  dedxcorr[1][9][1] = 0.94;
+  dedxcorr[1][9][2] = 0.95;
+  dedxcorr[1][10][0] = 0.40;
+  dedxcorr[1][10][1] = 0.83;
+  dedxcorr[1][10][2] = 0.87;
+  dedxcorr[1][11][0] = 0.80;
+  dedxcorr[1][11][1] = 0.63;
   dedxcorr[1][11][2] = 0.68;
-  dedxcorr[0][0][1] *= 0.88 ;
-  dedxcorr[0][0][2] *= 0.92 ;
-  dedxcorr[0][1][0] *= 0.90 ;
-  dedxcorr[0][1][1] *= 0.92 ;
-  dedxcorr[0][1][2] *= 0.94 ;
-  dedxcorr[0][2][0] *= 0.80 ;
-  dedxcorr[0][2][1] *= 0.81 ;
-  dedxcorr[0][2][2] *= 0.88 ;
-  dedxcorr[0][3][0] *= 0.76 ;
-  dedxcorr[0][3][1] *= 0.76 ;
-  dedxcorr[0][3][2] *= 0.77 ;
-  dedxcorr[0][4][0] *= 0.87 ;
-  dedxcorr[0][4][1] *= 0.88 ;
-  dedxcorr[0][4][2] *= 0.85 ;
-  dedxcorr[0][5][0] *= 0.86 ;
-  dedxcorr[0][5][1] *= 0.87 ;
-  dedxcorr[0][5][2] *= 0.92 ;
-  dedxcorr[0][6][0] *= 0.89 ;
-  dedxcorr[0][6][1] *= 0.91 ;
-  dedxcorr[0][6][2] *= 0.91 ;
-  dedxcorr[0][7][0] *= 0.90 ;
-  dedxcorr[0][7][1] *= 0.90 ;
-  dedxcorr[0][7][2] *= 0.94 ;
-  dedxcorr[0][8][0] *= 0.87 ;
-  dedxcorr[0][8][1] *= 0.90 ;
-  dedxcorr[0][8][2] *= 0.91 ;
-  dedxcorr[0][9][0] *= 0.92 ;
-  dedxcorr[0][9][1] *= 0.92 ;
-  dedxcorr[0][9][2] *= 0.94 ;
-  dedxcorr[0][10][0] *= 0.91 ;
-  dedxcorr[0][10][1] *= 0.92 ;
-  dedxcorr[0][10][2] *= 0.93 ;
-  dedxcorr[0][11][0] *= 0.87 ;
-  dedxcorr[0][11][1] *= 0.88 ;
-  dedxcorr[0][11][2] *= 0.91 ;
-  dedxcorr[1][0][0] *= 0.91 ;
-  dedxcorr[1][0][1] *= 0.92 ;
-  dedxcorr[1][0][2] *= 0.92 ;
-  dedxcorr[1][1][0] *= 0.92 ;
-  dedxcorr[1][1][1] *= 0.89 ;
-  dedxcorr[1][1][2] *= 0.91 ;
-  dedxcorr[1][2][0] *= 0.84 ;
-  dedxcorr[1][2][1] *= 0.87 ;
-  dedxcorr[1][2][2] *= 1.05 ;
-  dedxcorr[1][3][0] *= 0.83 ;
-  dedxcorr[1][3][1] *= 0.89 ;
-  dedxcorr[1][3][2] *= 0.90 ;
-  dedxcorr[1][4][0] *= 0.90 ;
-  dedxcorr[1][4][1] *= 0.91 ;
-  dedxcorr[1][4][2] *= 0.91 ;
-  dedxcorr[1][5][0] *= 0.92 ;
-  dedxcorr[1][5][1] *= 0.93 ;
-  dedxcorr[1][5][2] *= 0.93 ;
-  dedxcorr[1][6][0] *= 0.87 ;
-  dedxcorr[1][6][1] *= 0.85 ;
-  dedxcorr[1][6][2] *= 0.99 ;
-  dedxcorr[1][7][0] *= 0.92 ;
-  dedxcorr[1][7][1] *= 0.89 ;
-  dedxcorr[1][7][2] *= 0.89 ;
-  dedxcorr[1][8][0] *= 0.88 ;
-  dedxcorr[1][8][1] *= 0.89 ;
-  dedxcorr[1][8][2] *= 0.95 ;
-  dedxcorr[1][9][0] *= 0.89 ;
-  dedxcorr[1][9][1] *= 0.90 ;
-  dedxcorr[1][9][2] *= 0.91 ;
-  dedxcorr[1][10][0] *= 0.86 ;
-  dedxcorr[1][10][1] *= 0.92 ;
-  dedxcorr[1][10][2] *= 0.95 ;
-  dedxcorr[1][11][0] *= 0.85 ;
-  dedxcorr[1][11][1] *= 0.85 ;
-  dedxcorr[1][11][2] *= 0.88 ;
- 
+  dedxcorr[0][0][1] *= 0.88;
+  dedxcorr[0][0][2] *= 0.92;
+  dedxcorr[0][1][0] *= 0.90;
+  dedxcorr[0][1][1] *= 0.92;
+  dedxcorr[0][1][2] *= 0.94;
+  dedxcorr[0][2][0] *= 0.80;
+  dedxcorr[0][2][1] *= 0.81;
+  dedxcorr[0][2][2] *= 0.88;
+  dedxcorr[0][3][0] *= 0.76;
+  dedxcorr[0][3][1] *= 0.76;
+  dedxcorr[0][3][2] *= 0.77;
+  dedxcorr[0][4][0] *= 0.87;
+  dedxcorr[0][4][1] *= 0.88;
+  dedxcorr[0][4][2] *= 0.85;
+  dedxcorr[0][5][0] *= 0.86;
+  dedxcorr[0][5][1] *= 0.87;
+  dedxcorr[0][5][2] *= 0.92;
+  dedxcorr[0][6][0] *= 0.89;
+  dedxcorr[0][6][1] *= 0.91;
+  dedxcorr[0][6][2] *= 0.91;
+  dedxcorr[0][7][0] *= 0.90;
+  dedxcorr[0][7][1] *= 0.90;
+  dedxcorr[0][7][2] *= 0.94;
+  dedxcorr[0][8][0] *= 0.87;
+  dedxcorr[0][8][1] *= 0.90;
+  dedxcorr[0][8][2] *= 0.91;
+  dedxcorr[0][9][0] *= 0.92;
+  dedxcorr[0][9][1] *= 0.92;
+  dedxcorr[0][9][2] *= 0.94;
+  dedxcorr[0][10][0] *= 0.91;
+  dedxcorr[0][10][1] *= 0.92;
+  dedxcorr[0][10][2] *= 0.93;
+  dedxcorr[0][11][0] *= 0.87;
+  dedxcorr[0][11][1] *= 0.88;
+  dedxcorr[0][11][2] *= 0.91;
+  dedxcorr[1][0][0] *= 0.91;
+  dedxcorr[1][0][1] *= 0.92;
+  dedxcorr[1][0][2] *= 0.92;
+  dedxcorr[1][1][0] *= 0.92;
+  dedxcorr[1][1][1] *= 0.89;
+  dedxcorr[1][1][2] *= 0.91;
+  dedxcorr[1][2][0] *= 0.84;
+  dedxcorr[1][2][1] *= 0.87;
+  dedxcorr[1][2][2] *= 1.05;
+  dedxcorr[1][3][0] *= 0.83;
+  dedxcorr[1][3][1] *= 0.89;
+  dedxcorr[1][3][2] *= 0.90;
+  dedxcorr[1][4][0] *= 0.90;
+  dedxcorr[1][4][1] *= 0.91;
+  dedxcorr[1][4][2] *= 0.91;
+  dedxcorr[1][5][0] *= 0.92;
+  dedxcorr[1][5][1] *= 0.93;
+  dedxcorr[1][5][2] *= 0.93;
+  dedxcorr[1][6][0] *= 0.87;
+  dedxcorr[1][6][1] *= 0.85;
+  dedxcorr[1][6][2] *= 0.99;
+  dedxcorr[1][7][0] *= 0.92;
+  dedxcorr[1][7][1] *= 0.89;
+  dedxcorr[1][7][2] *= 0.89;
+  dedxcorr[1][8][0] *= 0.88;
+  dedxcorr[1][8][1] *= 0.89;
+  dedxcorr[1][8][2] *= 0.95;
+  dedxcorr[1][9][0] *= 0.89;
+  dedxcorr[1][9][1] *= 0.90;
+  dedxcorr[1][9][2] *= 0.91;
+  dedxcorr[1][10][0] *= 0.86;
+  dedxcorr[1][10][1] *= 0.92;
+  dedxcorr[1][10][2] *= 0.95;
+  dedxcorr[1][11][0] *= 0.85;
+  dedxcorr[1][11][1] *= 0.85;
+  dedxcorr[1][11][2] *= 0.88;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
 {
-
-  auto *geom =
+  auto* geom =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
+  AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
- // Create Fee Map
-  auto geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  // Create Fee Map
+  auto* geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   {
     if (!geom_container)
     {
@@ -594,58 +585,65 @@ AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
   }
   //  for(unsigned int side = 0; side <=1;side++){
 
-  for(unsigned int sector = 0; sector <24;sector++){
+  for (unsigned int sector = 0; sector < 24; sector++)
+  {
     int side = 1;
-    if (sector > 11){
+    if (sector > 11)
+    {
       side = 0;
     }
-    for(unsigned int fee = 0; fee <= 25; fee++){
-      for(unsigned int channel = 0; channel <= 255; channel++){
-	int feeM = FEE_map[fee];
-	if (FEE_R[fee] == 2){
-	  feeM += 6;
-	}
-	if (FEE_R[fee] == 3){
-	  feeM += 14;
-	}
-	unsigned int key = (256 * (feeM)) + channel;
-	std::string varname = "layer";
-	unsigned int layer = m_cdbttree->GetIntValue(key, varname);
-	// antenna pads will be in 0 layer
-	if (layer <= 6){
-	  continue;
-	}
-	varname = "phi";  // + std::to_string(key);
-      double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
-	PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
-	unsigned int phibin = layergeom->get_phibin(phi);
-	//get global coords
-	double radius = layergeom->get_radius();  // returns center of layer
-	double chanphi = layergeom->get_phi(phibin);
-	float chanx = radius * cos(chanphi);
-	float chany = radius * sin(chanphi);
-    
-	TrkrDefs::cluskey dummykey  = TpcDefs::genClusKey(layer, (mc_sectors[sector % 12]), side, phibin);
-	fee_info nufeeinfo;
-	nufeeinfo.fee = fee;
-	nufeeinfo.channel = channel;
-	nufeeinfo.sampa = channel%32;
-	fee_map.insert(std::make_pair(dummykey, nufeeinfo));
-	if (Verbosity() > 0){
-	  std::cout << "side sec lay phibin " << side
-		  << " | hw " << sector
-		  << " | mc " <<  (mc_sectors[sector % 12])
-		  << " | " << layer
-		  << " | " << phibin
-		  << " => fee, channel " 
-		  << fee << " | " << channel
-		  << " x | y " << chanx << " | " <<chany 
-		  << std::endl;
-	}
-	//have side, sector, layer, phibin -> fee, channel
-	//	  hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
-	//  hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-	
+    for (unsigned int fee = 0; fee <= 25; fee++)
+    {
+      for (unsigned int channel = 0; channel <= 255; channel++)
+      {
+        int feeM = FEE_map[fee];
+        if (FEE_R[fee] == 2)
+        {
+          feeM += 6;
+        }
+        if (FEE_R[fee] == 3)
+        {
+          feeM += 14;
+        }
+        unsigned int key = (256 * (feeM)) + channel;
+        std::string varname = "layer";
+        unsigned int layer = m_cdbttree->GetIntValue(key, varname);
+        // antenna pads will be in 0 layer
+        if (layer <= 6)
+        {
+          continue;
+        }
+        varname = "phi";  // + std::to_string(key);
+        double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
+        PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
+        unsigned int phibin = layergeom->get_phibin(phi);
+        // get global coords
+        double radius = layergeom->get_radius();  // returns center of layer
+        double chanphi = layergeom->get_phi(phibin);
+        float chanx = radius * cos(chanphi);
+        float chany = radius * sin(chanphi);
+
+        TrkrDefs::cluskey dummykey = TpcDefs::genClusKey(layer, (mc_sectors[sector % 12]), side, phibin);
+        fee_info nufeeinfo;
+        nufeeinfo.fee = fee;
+        nufeeinfo.channel = channel;
+        nufeeinfo.sampa = channel % 32;
+        fee_map.insert(std::make_pair(dummykey, nufeeinfo));
+        if (Verbosity() > 0)
+        {
+          std::cout << "side sec lay phibin " << side
+                    << " | hw " << sector
+                    << " | mc " << (mc_sectors[sector % 12])
+                    << " | " << layer
+                    << " | " << phibin
+                    << " => fee, channel "
+                    << fee << " | " << channel
+                    << " x | y " << chanx << " | " << chany
+                    << std::endl;
+        }
+        // have side, sector, layer, phibin -> fee, channel
+        //	  hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
+        //   hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
       }
     }
   }
@@ -685,7 +683,7 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
   delete stmt;
   delete dbConnection;
   m_ZDC_coincidence = (1.0*scalers[3][2]/scalers[0][2])/(106e-9);
-  
+
   MbdPmtContainer* bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
   m_mbd_rate = 0;
   if (bbcpmts)
@@ -704,7 +702,7 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
     }
   }
   */
-  auto gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+  auto* gl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
   if (gl1)
   {
     m_bco = gl1->get_bco();
@@ -734,11 +732,11 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
       m_bcotr = lbshift >> 24U;
       for (int i = 0; i < 64; i++)
       {
-	/*
-	raw_scalers[i] =  gl1PacketInfo->lValue(0, i); 
-	live_scalers[i] =   gl1PacketInfo->lValue(1, i);
-	scaled_scalers[i] =  gl1PacketInfo->lValue(2, i);
-	*/
+        /*
+        raw_scalers[i] =  gl1PacketInfo->lValue(0, i);
+        live_scalers[i] =   gl1PacketInfo->lValue(1, i);
+        scaled_scalers[i] =  gl1PacketInfo->lValue(2, i);
+        */
         bool trig_decision = ((triggervec & 0x1U) == 0x1U);
         if (trig_decision)
         {
@@ -746,37 +744,39 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
         }
         triggervec = (triggervec >> 1U) & 0xffffffffU;
       }
-      for(int i1 = 0;i1<=12;i1++){
-	for(int i2 = 0;i2<3;i2++){
-	  //	  if (i1>=3&&i1<=9) continue;
-	  //if (i1==11) continue;
-	  //if (i1==10&&i2==2) continue;
-	  /*
-	  std::cout << " index 1: " << i1
-		    << " index 2: " << i2
-		    << " scaler: " << gl1PacketInfo->lValue(i1, i2)
-		    << std::endl;
-	  */
-	}
+      for (int i1 = 0; i1 <= 12; i1++)
+      {
+        for (int i2 = 0; i2 < 3; i2++)
+        {
+          //	  if (i1>=3&&i1<=9) continue;
+          // if (i1==11) continue;
+          // if (i1==10&&i2==2) continue;
+          /*
+          std::cout << " index 1: " << i1
+                    << " index 2: " << i2
+                    << " scaler: " << gl1PacketInfo->lValue(i1, i2)
+                    << std::endl;
+          */
+        }
       }
-      m_rawzdc = gl1PacketInfo->lValue(2, 0);//raw_scalers[1];
-      m_livezdc = gl1PacketInfo->lValue(2, 1);//live_scalers[1];
-      m_scaledzdc = gl1PacketInfo->lValue(2, 2);//scaled_scalers[1];
-      m_rawmbd = gl1PacketInfo->lValue(10, 0);//raw_scalers[10];
-      m_livembd = gl1PacketInfo->lValue(10, 1);//live_scalers[10];
-      m_scaledmbd = gl1PacketInfo->lValue(10, 2);//scaled_scalers[10];
-      m_rawmbdv10 = gl1PacketInfo->lValue(12, 0);//raw_scalers[12];
-      m_livembdv10 = gl1PacketInfo->lValue(12, 1);//live_scalers[12];
-      m_scaledmbdv10 = gl1PacketInfo->lValue(12, 2);// scaled_scalers[12];
+      m_rawzdc = gl1PacketInfo->lValue(2, 0);         // raw_scalers[1];
+      m_livezdc = gl1PacketInfo->lValue(2, 1);        // live_scalers[1];
+      m_scaledzdc = gl1PacketInfo->lValue(2, 2);      // scaled_scalers[1];
+      m_rawmbd = gl1PacketInfo->lValue(10, 0);        // raw_scalers[10];
+      m_livembd = gl1PacketInfo->lValue(10, 1);       // live_scalers[10];
+      m_scaledmbd = gl1PacketInfo->lValue(10, 2);     // scaled_scalers[10];
+      m_rawmbdv10 = gl1PacketInfo->lValue(12, 0);     // raw_scalers[12];
+      m_livembdv10 = gl1PacketInfo->lValue(12, 1);    // live_scalers[12];
+      m_scaledmbdv10 = gl1PacketInfo->lValue(12, 2);  // scaled_scalers[12];
 
       m_rawzdc_hist.push(m_rawzdc);
       m_rawmbd_hist.push(m_rawmbd);
       m_rawmbdv10_hist.push(m_rawmbdv10);
       m_bco_hist.push(m_bco);
-      
+
       /*    MBD NS >= 2 is trigger bit 10
-	    MBD NS >=2 w/ vtx < 10 cm is trigger bit 12
-	    ZDC is trigger bit 1
+            MBD NS >=2 w/ vtx < 10 cm is trigger bit 12
+            ZDC is trigger bit 1
       */
     }
   }
@@ -1075,15 +1075,15 @@ void TrkrNtuplizer::printOutputInfo(PHCompositeNode* topNode)
       PHG4TpcCylinderGeom* GeoLayer = _geom_container->GetLayerCellGeom(ilayer);
 
       std::cout << "layer " << ilayer
-           << " => nHits = " << nhits[ilayer]
-           << " => nClusters = " << nclusters[ilayer] << std::endl;
+                << " => nHits = " << nhits[ilayer]
+                << " => nClusters = " << nclusters[ilayer] << std::endl;
       if (ilayer >= _nlayers_maps + _nlayers_intt && ilayer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
       {
         std::cout << "layer " << ilayer
-             << " => nphi = " << GeoLayer->get_phibins()
-             << " => nz   = " << GeoLayer->get_zbins()
-             << " => ntot = " << GeoLayer->get_phibins() * GeoLayer->get_zbins()
-             << std::endl;
+                  << " => nphi = " << GeoLayer->get_phibins()
+                  << " => nz   = " << GeoLayer->get_zbins()
+                  << " => ntot = " << GeoLayer->get_phibins() * GeoLayer->get_zbins()
+                  << std::endl;
       }
     }
 
@@ -1111,7 +1111,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     std::cout << "TrkrNtuplizer::fillOutputNtuples() entered" << std::endl;
   }
 
-  float fx_event[n_event::evsize]{(float) _ievent, (float) _iseed, (float) m_runnumber,(float) m_segment, (float) m_job};
+  float fx_event[n_event::evsize]{(float) _ievent, (float) _iseed, (float) m_runnumber, (float) m_segment, (float) m_job};
   float fx_info[((int) (n_info::infosize))] = {0};
 
   float nhit[100];
@@ -1120,78 +1120,79 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     i = 0;
   }
 
-  if (_ntp_info){
+  if (_ntp_info)
+  {
     TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     if (hitmap_in)
+    {
+      TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
+      for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+           hitsetiter != all_hitsets.second;
+           ++hitsetiter)
       {
-	TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
-	for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
-	     hitsetiter != all_hitsets.second;
-	     ++hitsetiter)
-	  {
-	    // we have a single hitset, get the layer
-	    unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
-	    
-	    TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
-	    for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
-		 hitr != hitrangei.second;
-		 ++hitr)
-	      {
-		nhit[layer]++;
-		
-		if (layer < _nlayers_maps)
-		  {
-		    fx_info[n_info::infonhitmvtx]++;
-		  }
-		if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
-		  {
-		    fx_info[n_info::infonhitintt]++;
-		  }
-		if ((float) layer >= _nlayers_maps + _nlayers_intt &&
-		    (float) layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
-		  {
-		    fx_info[n_info::infonhittpcall]++;
-		  }
-		if ((float) layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
-		  {
-		    fx_info[n_info::infonhittpot]++;
-		  }
-		if ((float) layer == _nlayers_maps + _nlayers_intt)
-		  {
-		    fx_info[n_info::infonhittpcin]++;
-		  }
-		if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1)
-		  {
-		    fx_info[n_info::infonhittpcout]++;
-		  }
-		// NOLINTNEXTLINE(bugprone-integer-division)
-		if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
-		  {
-		    fx_info[n_info::infonhittpcmid]++;
-		  }
-	      }
-	  }
+        // we have a single hitset, get the layer
+        unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+
+        TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+        for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+             hitr != hitrangei.second;
+             ++hitr)
+        {
+          nhit[layer]++;
+
+          if (layer < _nlayers_maps)
+          {
+            fx_info[n_info::infonhitmvtx]++;
+          }
+          if (layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+          {
+            fx_info[n_info::infonhitintt]++;
+          }
+          if ((float) layer >= _nlayers_maps + _nlayers_intt &&
+              (float) layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          {
+            fx_info[n_info::infonhittpcall]++;
+          }
+          if ((float) layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+          {
+            fx_info[n_info::infonhittpot]++;
+          }
+          if ((float) layer == _nlayers_maps + _nlayers_intt)
+          {
+            fx_info[n_info::infonhittpcin]++;
+          }
+          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1)
+          {
+            fx_info[n_info::infonhittpcout]++;
+          }
+          // NOLINTNEXTLINE(bugprone-integer-division)
+          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
+          {
+            fx_info[n_info::infonhittpcmid]++;
+          }
+        }
       }
-    
+    }
+
     _geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
     if (!_geom_container)
-      {
-	std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-	return;
-      }
+    {
+      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+      return;
+    }
     PHG4TpcCylinderGeom* GeoLayer;
     int layer = _nlayers_maps + _nlayers_intt;
     GeoLayer = _geom_container->GetLayerCellGeom(layer);
     int nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
     float nhits = nhit[layer];
     fx_info[n_info::infonocc11] = nhits / nbins;
-    
+
     layer = _nlayers_maps + _nlayers_intt + 15;
     GeoLayer = _geom_container->GetLayerCellGeom(layer);
     nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
     nhits = nhit[layer];
     fx_info[n_info::infonocc116] = nhits / nbins;
-    
+
     layer = _nlayers_maps + _nlayers_intt + 16;
     GeoLayer = _geom_container->GetLayerCellGeom(layer);
     nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
@@ -1212,32 +1213,33 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     nbins = GeoLayer->get_phibins() * GeoLayer->get_zbins();
     nhits = nhit[layer];
     fx_info[n_info::infonocc316] = nhits / nbins;
-    
+
     if (Verbosity() > 1)
-      {
-	std::cout << " occ11 = " << fx_info[n_info::infonocc11]
-	     << " occ116 = " << fx_info[n_info::infonocc116]
-	     << " occ21 = " << fx_info[n_info::infonocc21]
-	     << " occ216 = " << fx_info[n_info::infonocc216]
-	     << " occ31 = " << fx_info[n_info::infonocc31]
-	     << " occ316 = " << fx_info[n_info::infonocc316]
-	     << std::endl;
-      }
+    {
+      std::cout << " occ11 = " << fx_info[n_info::infonocc11]
+                << " occ116 = " << fx_info[n_info::infonocc116]
+                << " occ21 = " << fx_info[n_info::infonocc21]
+                << " occ216 = " << fx_info[n_info::infonocc216]
+                << " occ31 = " << fx_info[n_info::infonocc31]
+                << " occ316 = " << fx_info[n_info::infonocc316]
+                << std::endl;
+    }
     /*
     std::cout << " bco = " << m_bco << " " << m_bcolast
-	 << " zdc = " << m_rawzdc << " " << m_rawzdclast
-	 << " mbd = " << m_rawmbd << " " << m_rawmbdlast
-	 << std::endl;
+         << " zdc = " << m_rawzdc << " " << m_rawzdclast
+         << " mbd = " << m_rawmbd << " " << m_rawmbdlast
+         << std::endl;
 
     std::cout << " zdc rate = "    << (m_rawzdc_hist.back()   -m_rawzdc_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
-	 << " mbd rate = "    << (m_rawmbd_hist.back()   -m_rawmbd_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
-	 << " mbdv10 rate = " << (m_rawmbdv10_hist.back()-m_rawmbdv10_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
-	 << std::endl;
+         << " mbd rate = "    << (m_rawmbd_hist.back()   -m_rawmbd_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
+         << " mbdv10 rate = " << (m_rawmbdv10_hist.back()-m_rawmbdv10_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9)
+         << std::endl;
     */
-    fx_info[n_info::inforzdc] = (m_rawzdc_hist.back()-m_rawzdc_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9);
-    fx_info[n_info::informbd] = (m_rawmbd_hist.back()-m_rawmbd_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9);
-    fx_info[n_info::informbdv10] = (m_rawmbd_hist.back()-m_rawmbd_hist.front())/((m_bco_hist.back() - m_bco_hist.front())*106e-9);
-    if(_ievent==0){
+    fx_info[n_info::inforzdc] = (m_rawzdc_hist.back() - m_rawzdc_hist.front()) / ((m_bco_hist.back() - m_bco_hist.front()) * 106e-9);
+    fx_info[n_info::informbd] = (m_rawmbd_hist.back() - m_rawmbd_hist.front()) / ((m_bco_hist.back() - m_bco_hist.front()) * 106e-9);
+    fx_info[n_info::informbdv10] = (m_rawmbd_hist.back() - m_rawmbd_hist.front()) / ((m_bco_hist.back() - m_bco_hist.front()) * 106e-9);
+    if (_ievent == 0)
+    {
       m_bco1 = m_bco;
       m_bcotr1 = m_bcotr;
       m_mbd_rate1 = m_mbd_rate;
@@ -1256,75 +1258,77 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     fx_info[n_info::infonbco1] = m_bco1;
     fx_info[n_info::infonbcotr1] = m_bcotr1;
 
-    fx_info[n_info::infonrawzdc] =  m_rawzdc;
-    fx_info[n_info::infonlivezdc] =  m_livezdc;
-    fx_info[n_info::infonscaledzdc] =  m_scaledzdc;
-    fx_info[n_info::infonrawmbd ] =  m_rawmbd;
-    fx_info[n_info::infonlivembd] =  m_livembd;
-    fx_info[n_info::infonscaledmbd] =  m_scaledmbd;
-    fx_info[n_info::infonrawmbdv10] =  m_rawmbdv10;
-    fx_info[n_info::infonlivembdv10] =  m_livembdv10;
-    fx_info[n_info::infonscaledmbdv10] =  m_scaledmbdv10;
+    fx_info[n_info::infonrawzdc] = m_rawzdc;
+    fx_info[n_info::infonlivezdc] = m_livezdc;
+    fx_info[n_info::infonscaledzdc] = m_scaledzdc;
+    fx_info[n_info::infonrawmbd] = m_rawmbd;
+    fx_info[n_info::infonlivembd] = m_livembd;
+    fx_info[n_info::infonscaledmbd] = m_scaledmbd;
+    fx_info[n_info::infonrawmbdv10] = m_rawmbdv10;
+    fx_info[n_info::infonlivembdv10] = m_livembdv10;
+    fx_info[n_info::infonscaledmbdv10] = m_scaledmbdv10;
 
-    fx_info[n_info::infonrawzdc1] =  m_rawzdc1;
-    fx_info[n_info::infonlivezdc1] =  m_livezdc1;
-    fx_info[n_info::infonscaledzdc1] =  m_scaledzdc1;
-    fx_info[n_info::infonrawmbd1] =  m_rawmbd1;
-    fx_info[n_info::infonlivembd1] =  m_livembd1;
-    fx_info[n_info::infonscaledmbd1] =  m_scaledmbd1;
-    fx_info[n_info::infonrawmbdv101] =  m_rawmbdv101;
-    fx_info[n_info::infonlivembdv101] =  m_livembdv101;
-    fx_info[n_info::infonscaledmbdv101] =  m_scaledmbdv101;
-  
+    fx_info[n_info::infonrawzdc1] = m_rawzdc1;
+    fx_info[n_info::infonlivezdc1] = m_livezdc1;
+    fx_info[n_info::infonscaledzdc1] = m_scaledzdc1;
+    fx_info[n_info::infonrawmbd1] = m_rawmbd1;
+    fx_info[n_info::infonlivembd1] = m_livembd1;
+    fx_info[n_info::infonscaledmbd1] = m_scaledmbd1;
+    fx_info[n_info::infonrawmbdv101] = m_rawmbdv101;
+    fx_info[n_info::infonlivembdv101] = m_livembdv101;
+    fx_info[n_info::infonscaledmbdv101] = m_scaledmbdv101;
+
     if (_cluster_map)
+    {
+      fx_info[n_info::infonclusall] = _cluster_map->size();
+
+      for (const auto& hitsetkey : _cluster_map->getHitSetKeys())
       {
-	fx_info[n_info::infonclusall] = _cluster_map->size();
-	
-	for (const auto& hitsetkey : _cluster_map->getHitSetKeys())
-	  {
-	    auto range = _cluster_map->getClusters(hitsetkey);
-	    for (auto iter_cin = range.first; iter_cin != range.second; ++iter_cin)
-	      {
-		TrkrDefs::cluskey cluster_key = iter_cin->first;
-		unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-		unsigned int side_local = TpcDefs::getSide(cluster_key);
-		if (_nlayers_maps > 0)
-		  {
-		    if (layer_local < _nlayers_maps)
-		      {
-			fx_info[n_info::infonclusmvtx]++;
-		      }
-		  }
-		if (_nlayers_intt > 0)
-		  {
-		    if ((layer_local >= _nlayers_maps) && (layer_local < (_nlayers_maps + _nlayers_intt)))
-		      {
-			fx_info[n_info::infonclusintt]++;
-		      }
-		  }
-		if (_nlayers_tpc > 0)
-		  {
-		    if (layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
-		      {
-			fx_info[n_info::infonclustpc]++;
-			if(side_local==0){
-			  fx_info[n_info::infonclustpcneg]++;
-			}
-			if(side_local==1){
-			  fx_info[n_info::infonclustpcpos]++;
-			}
-		      }
-		  }
-		if (_nlayers_mms > 0)
-		  {
-		    if (layer_local >= (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
-		      {
-			fx_info[n_info::infonclustpot]++;
-		      }
-		  }
-	      }
-	  }
+        auto range = _cluster_map->getClusters(hitsetkey);
+        for (auto iter_cin = range.first; iter_cin != range.second; ++iter_cin)
+        {
+          TrkrDefs::cluskey cluster_key = iter_cin->first;
+          unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+          unsigned int side_local = TpcDefs::getSide(cluster_key);
+          if (_nlayers_maps > 0)
+          {
+            if (layer_local < _nlayers_maps)
+            {
+              fx_info[n_info::infonclusmvtx]++;
+            }
+          }
+          if (_nlayers_intt > 0)
+          {
+            if ((layer_local >= _nlayers_maps) && (layer_local < (_nlayers_maps + _nlayers_intt)))
+            {
+              fx_info[n_info::infonclusintt]++;
+            }
+          }
+          if (_nlayers_tpc > 0)
+          {
+            if (layer_local >= (_nlayers_maps + _nlayers_intt) && layer_local < (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+            {
+              fx_info[n_info::infonclustpc]++;
+              if (side_local == 0)
+              {
+                fx_info[n_info::infonclustpcneg]++;
+              }
+              if (side_local == 1)
+              {
+                fx_info[n_info::infonclustpcpos]++;
+              }
+            }
+          }
+          if (_nlayers_mms > 0)
+          {
+            if (layer_local >= (_nlayers_maps + _nlayers_intt + _nlayers_tpc))
+            {
+              fx_info[n_info::infonclustpot]++;
+            }
+          }
+        }
       }
+    }
   }
   //-----------------------
   // fill the info NTuple
@@ -1340,16 +1344,22 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     {
       fx_info[n_info::infontrk] = (float) _trackmap->size();
     }
-    auto *siseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
-    auto *tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
-    if (tpcseedmap){
+    auto* siseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
+    auto* tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
+    if (tpcseedmap)
+    {
       fx_info[n_info::infonntpcseed] = tpcseedmap->size();
-    }else{
+    }
+    else
+    {
       fx_info[n_info::infonntpcseed] = 0;
     }
-    if (siseedmap){
+    if (siseedmap)
+    {
       fx_info[n_info::infonnsiseed] = siseedmap->size();
-    }else{
+    }
+    else
+    {
       fx_info[n_info::infonnsiseed] = 0;
     }
     if (Verbosity() > 0)
@@ -1420,9 +1430,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
   if (_ntp_hit)
   {
     float* hit_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_hit::hitsize];
-    float fx_hit_0[((int) (n_info::infosize)) + n_event::evsize +n_hit::hitsize] = {0};
+    float fx_hit_0[((int) (n_info::infosize)) + n_event::evsize + n_hit::hitsize] = {0};
     float fx_hit[((int) (n_hit::hitsize))] = {0};
-    auto *m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    auto* m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
     if (Verbosity() >= 1)
     {
@@ -1502,7 +1512,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             float phi = GeoLayer_local->get_phicenter(TpcDefs::getPad(hit_key));
             float clockperiod = GeoLayer_local->get_zstep();
             auto glob = m_tGeometry->getGlobalPositionTpc(hitset_key, hit_key, phi, radius, clockperiod);
-            
+
             fx_hit[n_hit::nhitz] = glob.z();
             fx_hit[n_hit::nhitr] = radius;
             fx_hit[n_hit::nhitx] = glob.x();
@@ -1513,8 +1523,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           std::copy(fx_hit, fx_hit + n_hit::hitsize, hit_data + n_event::evsize);
           std::copy(fx_info, fx_info + ((int) (n_info::infosize)), hit_data + n_event::evsize + n_hit::hitsize);
           _ntp_hit->Fill(hit_data);
-	  // erase hit data
-	  std::copy(fx_hit_0, fx_hit_0 + ((int) (n_info::infosize)) + n_event::evsize + n_hit::hitsize, hit_data);
+          // erase hit data
+          std::copy(fx_hit_0, fx_hit_0 + ((int) (n_info::infosize)) + n_event::evsize + n_hit::hitsize, hit_data);
         }
       }
       delete[] hit_data;
@@ -1568,7 +1578,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       }
     }
 
-    if (_cluster_map && hitsets){
+    if (_cluster_map && hitsets)
+    {
       float* cluster_data = new float[((int) (n_info::infosize)) + n_event::evsize + n_cluster::clusize];
       Float_t fx_cluster_0[((int) (n_info::infosize)) + n_event::evsize + n_cluster::clusize] = {0};
       for (const auto& hitsetkey : _cluster_map->getHitSetKeys())
@@ -1584,7 +1595,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           std::copy(fx_cluster, fx_cluster + n_cluster::clusize, cluster_data + n_event::evsize);
           std::copy(fx_info, fx_info + ((int) (n_info::infosize)), cluster_data + n_event::evsize + n_cluster::clusize);
           _ntp_cluster->Fill(cluster_data);
-	  std::copy(fx_cluster_0, fx_cluster_0 + ((int) (n_info::infosize)) + n_event::evsize + n_cluster::clusize, cluster_data);
+          std::copy(fx_cluster_0, fx_cluster_0 + ((int) (n_info::infosize)) + n_event::evsize + n_cluster::clusize, cluster_data);
         }
       }
       delete[] cluster_data;
@@ -1615,7 +1626,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     if (!_tpc_seeds)
     {
       std::cout << PHWHERE << " ERROR: Can't find "
-           << "TpcTrackSeedContainer" << std::endl;
+                << "TpcTrackSeedContainer" << std::endl;
       return;
     }
 
@@ -1626,7 +1637,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
       float fx_clus_trk_0[((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize] = {0};
       for (auto& iter : *_trackmap)
       {
-	trackID++;
+        trackID++;
         SvtxTrack* track = iter.second;
         TrackSeed* tpcseed = track->get_tpc_seed();
         TrackSeed* siseed = track->get_silicon_seed();
@@ -1677,10 +1688,10 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
         //	      "pt:eta:phi:X0:Y0:charge:nhits:"
         float tpt = tpcseed->get_pt();
-	float tptot = tpcseed->get_p();
+        float tptot = tpcseed->get_p();
         float teta = tpcseed->get_eta();
         float tphi = tpcseed->get_phi();
-	auto xyparams = TrackFitUtils::line_fit(xypoints);
+        auto xyparams = TrackFitUtils::line_fit(xypoints);
         auto rzparams = TrackFitUtils::line_fit(rzpoints);
         float xyint = std::get<1>(xyparams);
         float xyslope = std::get<0>(xyparams);
@@ -1692,14 +1703,13 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         float tZ0 = tpcseed->get_Z0();
 
         float nsil_local = 0;
-	float ntpc_local = 0;
-	if (siseed){
-	  nsil_local = siseed->size_cluster_keys();
-	}
-	if (tpcseed){
-	  ntpc_local = tpcseed->size_cluster_keys();
-	}
-	float nhits_local = clusterPositions.size();
+        float ntpc_local = 0;
+        if (siseed)
+        {
+          nsil_local = siseed->size_cluster_keys();
+        }
+        ntpc_local = tpcseed->size_cluster_keys();
+        float nhits_local = clusterPositions.size();
         if (Verbosity() > 1)
         {
           std::cout << " tpc: " << tpcseed->size_cluster_keys() << std::endl;
@@ -1711,20 +1721,23 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         //      nhits_local += tpcseed->size_cluster_keys();
         // fill the Gseed NTuple
         //---------------------
-	float dedx = calc_dedx(tpcseed);
-	float pidedx = 0;
-	float kdedx = 0;
-	float prdedx = 0;
-	if(charge>0){
-	  pidedx = f_pion_plus->Eval(tptot);
-	  kdedx = f_kaon_plus->Eval(tptot);
-	  prdedx = f_proton_plus->Eval(tptot);
-	}else{
-	  pidedx = f_pion_minus->Eval(tptot);
-	  kdedx = f_kaon_minus->Eval(tptot);
-	  prdedx = f_proton_plus->Eval(tptot);
-	}
-	float n1pix = get_n1pix(tpcseed);
+        float dedx = calc_dedx(tpcseed);
+        float pidedx = 0;
+        float kdedx = 0;
+        float prdedx = 0;
+        if (charge > 0)
+        {
+          pidedx = f_pion_plus->Eval(tptot);
+          kdedx = f_kaon_plus->Eval(tptot);
+          prdedx = f_proton_plus->Eval(tptot);
+        }
+        else
+        {
+          pidedx = f_pion_minus->Eval(tptot);
+          kdedx = f_kaon_minus->Eval(tptot);
+          prdedx = f_proton_plus->Eval(tptot);
+        }
+        float n1pix = get_n1pix(tpcseed);
         float fx_seed[n_seed::seedsize] = {(float) trackID, 0, tpt, tptot, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, pidedx, kdedx, prdedx, n1pix, nsil_local, ntpc_local, nhits_local};
         if (_ntp_tpcseed)
         {
@@ -1733,19 +1746,19 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           std::copy(fx_seed, fx_seed + n_seed::seedsize, tpcseed_data + n_event::evsize);
           std::copy(fx_info, fx_info + ((int) (n_info::infosize)), tpcseed_data + n_event::evsize + n_seed::seedsize);
           _ntp_tpcseed->Fill(tpcseed_data);
-	  delete[] tpcseed_data;
+          delete[] tpcseed_data;
         }
-	
+
         for (unsigned int i = 0; i < clusterPositions.size(); i++)
         {
           TrkrDefs::cluskey cluster_key = clusterKeys.at(i);
-	  unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-	  Acts::Vector3 position = clusterPositions[i];
+          unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+          Acts::Vector3 position = clusterPositions[i];
           Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitparams, position);
           float cluster_phi = atan2(position(1), position(0));
           float pca_phi = atan2(pca(1), pca(0));
           float dphi = cluster_phi - pca_phi;
-	  if (dphi > M_PI)
+          if (dphi > M_PI)
           {
             dphi = 2 * M_PI - dphi;
           }
@@ -1756,33 +1769,37 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
 
           float dz = position(2) - pca(2);
 
-	  float resr = sqrt((position(0)*position(0))+(position(1)*position(1))+(position(2)*position(2)));
-	  float seedR = std::abs(1.0 / tpcseed->get_qOverR());
-	  float alpha = (resr * resr) / (2 * resr * seedR);
-	  float beta = std::abs(std::atan(tpcseed->get_slope()));
+          float resr = sqrt((position(0) * position(0)) + (position(1) * position(1)) + (position(2) * position(2)));
+          float seedR = std::abs(1.0 / tpcseed->get_qOverR());
+          float alpha = (resr * resr) / (2 * resr * seedR);
+          float beta = std::abs(std::atan(tpcseed->get_slope()));
           float fx_cluster[n_cluster::clusize];
-	  if(layer_local>=7&&layer_local<55){
-	    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
-	    float thick = GeoLayer_local->get_thickness();
-	    
-	    float alphacorr = std::cos(alpha);
-	    if(alphacorr<0||alphacorr>4){
-	      alphacorr=4;
-	    }
-	    float betacorr = std::cos(beta);
-	    if(betacorr<0||betacorr>4){
-	      betacorr=4;
-	    }
-	    fx_cluster[ncluthick] = thick;
-	    fx_cluster[ncluafac] = alphacorr;
-	    fx_cluster[nclubfac] =betacorr;
-	  }
-	  else{
-	    fx_cluster[ncluthick] = 0;
-	    fx_cluster[ncluafac] = 0;
-	    fx_cluster[nclubfac] = 0;
-	  }
-	  float fx_res[n_residual::ressize] = {alpha,beta,dphi,dphi,dz};
+          if (layer_local >= 7 && layer_local < 55)
+          {
+            PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+            float thick = GeoLayer_local->get_thickness();
+
+            float alphacorr = std::cos(alpha);
+            if (alphacorr < 0 || alphacorr > 4)
+            {
+              alphacorr = 4;
+            }
+            float betacorr = std::cos(beta);
+            if (betacorr < 0 || betacorr > 4)
+            {
+              betacorr = 4;
+            }
+            fx_cluster[ncluthick] = thick;
+            fx_cluster[ncluafac] = alphacorr;
+            fx_cluster[nclubfac] = betacorr;
+          }
+          else
+          {
+            fx_cluster[ncluthick] = 0;
+            fx_cluster[ncluafac] = 0;
+            fx_cluster[nclubfac] = 0;
+          }
+          float fx_res[n_residual::ressize] = {alpha, beta, dphi, dphi, dz};
           // sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0
           FillCluster(&fx_cluster[0], cluster_key);
           std::copy(fx_event, fx_event + n_event::evsize, clus_trk_data);
@@ -1791,8 +1808,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           std::copy(fx_seed, fx_seed + n_seed::seedsize, clus_trk_data + n_event::evsize + n_cluster::clusize + n_residual::ressize);
           std::copy(fx_info, fx_info + ((int) (n_info::infosize)), clus_trk_data + n_event::evsize + n_cluster::clusize + n_residual::ressize + n_seed::seedsize);
           _ntp_clus_trk->Fill(clus_trk_data);
-	  std::copy(fx_clus_trk_0, fx_clus_trk_0 + ((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize,clus_trk_data);
-
+          std::copy(fx_clus_trk_0, fx_clus_trk_0 + ((int) (n_info::infosize)) + n_cluster::clusize + n_residual::ressize + n_seed::seedsize + n_event::evsize, clus_trk_data);
         }
       }
       delete[] clus_trk_data;
@@ -1823,7 +1839,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         std::copy(fx_track, fx_track + n_track::trksize, track_data + n_event::evsize);
         std::copy(fx_info, fx_info + ((int) (n_info::infosize)), track_data + n_event::evsize + n_track::trksize);
         _ntp_track->Fill(track_data);
-	delete[] track_data;
+        delete[] track_data;
       }
     }
     if (Verbosity() > 1)
@@ -1895,17 +1911,20 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   if (tpcseed)
   {
     fX[n_track::ntrkndedx] = calc_dedx(tpcseed);
-    float trptot = track->get_p(); 
-    if(track->get_charge()>0){
+    float trptot = track->get_p();
+    if (track->get_charge() > 0)
+    {
       fX[n_track::ntrknpidedx] = f_pion_plus->Eval(trptot);
       fX[n_track::ntrknkdedx] = f_kaon_plus->Eval(trptot);
       fX[n_track::ntrknprdedx] = f_proton_plus->Eval(trptot);
-    }else{
+    }
+    else
+    {
       fX[n_track::ntrknpidedx] = f_pion_minus->Eval(trptot);
       fX[n_track::ntrknkdedx] = f_kaon_minus->Eval(trptot);
       fX[n_track::ntrknprdedx] = f_proton_minus->Eval(trptot);
     }
-	
+
     for (SvtxTrack::ConstClusterKeyIter iter_local = tpcseed->begin_cluster_keys();
          iter_local != tpcseed->end_cluster_keys();
          ++iter_local)
@@ -2002,10 +2021,11 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
 
   int vertexID = track->get_vertex_id();
   fX[n_track::ntrkvertexID] = vertexID;
-  
-  if (vertexID >= 0&& vertexmap !=nullptr)
+
+  if (vertexID >= 0 && vertexmap != nullptr)
   {
-    if(vertexmap->size()>100000){
+    if (vertexmap->size() > 100000)
+    {
       std::cout << "too many vtx's" << std::endl;
     }
     /*
@@ -2014,25 +2034,24 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
       {
         auto vertex = vertexit->second;
 
-	float vx = vertex->get_x();
-	float vy = vertex->get_y();
-	float vz = vertex->get_z();
-	fX[n_track::ntrkvx] = vx;
-	fX[n_track::ntrkvy] = vy;
-	fX[n_track::ntrkvz] = vz;
-	Acts::Vector3 vert(vx, vy, vz);
-	Acts::Vector3 zero = Acts::Vector3::Zero();
-	auto dcapair = TrackAnalysisUtils::get_dca(track, zero);
-	fX[n_track::ntrkdca3dxy] = dcapair.first.first;
-	fX[n_track::ntrkdca3dxysigma] = dcapair.first.second;
-	fX[n_track::ntrkdca3dz] = dcapair.second.first;
-	fX[n_track::ntrkdca3dzsigma] = dcapair.second.second;
-	
+        float vx = vertex->get_x();
+        float vy = vertex->get_y();
+        float vz = vertex->get_z();
+        fX[n_track::ntrkvx] = vx;
+        fX[n_track::ntrkvy] = vy;
+        fX[n_track::ntrkvz] = vz;
+        Acts::Vector3 vert(vx, vy, vz);
+        Acts::Vector3 zero = Acts::Vector3::Zero();
+        auto dcapair = TrackAnalysisUtils::get_dca(track, zero);
+        fX[n_track::ntrkdca3dxy] = dcapair.first.first;
+        fX[n_track::ntrkdca3dxysigma] = dcapair.first.second;
+        fX[n_track::ntrkdca3dz] = dcapair.second.first;
+        fX[n_track::ntrkdca3dzsigma] = dcapair.second.second;
+
       }
     */
-
   }
-  
+
   fX[n_track::ntrkcharge] = track->get_charge();
   float px = track->get_px();
   float py = track->get_py();
@@ -2059,11 +2078,47 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   fX[n_track::ntrkpcaz] = track->get_z();
 }
 
-float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
+float TrkrNtuplizer::calc_dedx(TrackSeed* tpcseed)
+{
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                     tpcseed->end_cluster_keys());
 
-    std::vector<TrkrDefs::cluskey> clusterKeys;
-    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-		       tpcseed->end_cluster_keys());
+  std::vector<float> dedxlist;
+  for (unsigned long cluster_key : clusterKeys)
+  {
+    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+    if (TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId)
+    {
+      continue;
+    }
+    TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    Acts::Vector3 cglob;
+    cglob = _tgeometry->getGlobalPosition(cluster_key, cluster);
+    //      float x = cglob(0);
+    // float y = cglob(1);
+    float z = cglob(2);
+    int cside = TpcDefs::getSide(cluster_key);
+    int csector = TpcDefs::getSectorId(cluster_key);
+    int csegment = 0;
+    if (layer_local >= 7 + 32)
+    {
+      csegment = 2;
+    }
+    else if (layer_local >= 7 + 16)
+    {
+      csegment = 1;
+    }
+    float adc = cluster->getAdc();
+    if (_do_dedx_calib == true)
+    {
+      if (dedxcorr[cside][csector][csegment] != 0)
+      {
+        adc /= dedxcorr[cside][csector][csegment];
+      }
+    }
+    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+    float thick = GeoLayer_local->get_thickness();
 
     std::vector<float> dedxlist;
     for (unsigned long cluster_key : clusterKeys){
@@ -2112,32 +2167,47 @@ float TrkrNtuplizer::calc_dedx(TrackSeed *tpcseed){
       dedxlist.push_back(adc);
       sort(dedxlist.begin(), dedxlist.end());
     }
-    int trunc_min = 0;
-    int trunc_max = (int)dedxlist.size()*0.7;
-    float sumdedx = 0;
-    int ndedx = 0;
-    for(int j = trunc_min; j<=trunc_max;j++){
-      sumdedx+=dedxlist.at(j);
-      ndedx++;
+    float betacorr = std::cos(beta);
+    if (betacorr < 0 || betacorr > 4)
+    {
+      betacorr = 4;
     }
-    sumdedx/=ndedx;
-    return sumdedx;
+    adc /= (1 - ((105 - abs(z)) * 0.50 / 105));
+    adc /= thick;
+    adc *= alphacorr;
+    adc *= betacorr;
+    dedxlist.push_back(adc);
+    sort(dedxlist.begin(), dedxlist.end());
+  }
+  int trunc_min = 0;
+  int trunc_max = (int) dedxlist.size() * 0.7;
+  float sumdedx = 0;
+  int ndedx = 0;
+  for (int j = trunc_min; j <= trunc_max; j++)
+  {
+    sumdedx += dedxlist.at(j);
+    ndedx++;
+  }
+  sumdedx /= ndedx;
+  return sumdedx;
 }
 
-float TrkrNtuplizer::get_n1pix(TrackSeed *tpcseed){
+float TrkrNtuplizer::get_n1pix(TrackSeed* tpcseed)
+{
+  std::vector<TrkrDefs::cluskey> clusterKeys;
+  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                     tpcseed->end_cluster_keys());
 
-    std::vector<TrkrDefs::cluskey> clusterKeys;
-    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-		       tpcseed->end_cluster_keys());
-
-    float n1pix = 0;
-    for (unsigned long cluster_key : clusterKeys){
-      TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-      if(cluster->getPhiSize()==1){
-	n1pix++;
-      }
+  float n1pix = 0;
+  for (unsigned long cluster_key : clusterKeys)
+  {
+    TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+    if (cluster->getPhiSize() == 1)
+    {
+      n1pix++;
     }
-    return n1pix;
+  }
+  return n1pix;
 }
 
 void TrkrNtuplizer::FillCluster(float fXcluster[n_cluster::clusize], TrkrDefs::cluskey cluster_key)
@@ -2153,7 +2223,7 @@ void TrkrNtuplizer::FillCluster(float fXcluster[n_cluster::clusize], TrkrDefs::c
   TVector3 pos(x, y, z);
   float r = pos.Perp();
   float phi = pos.Phi();
-  auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
+  auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, cluster_key);
   unsigned int phibin = std::numeric_limits<unsigned int>::quiet_NaN();
   float tbin = std::numeric_limits<float>::quiet_NaN();
   float locx = cluster->getLocalX();
@@ -2163,31 +2233,39 @@ void TrkrNtuplizer::FillCluster(float fXcluster[n_cluster::clusize], TrkrDefs::c
   {
     int side_tpc = TpcDefs::getSide(cluster_key);
     PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
-    phibin = (unsigned int) GeoLayer_local->get_pad_float(phi, side_tpc)+0.5;
+    // NOLINTNEXTLINE(bugprone-incorrect-roundings)
+    phibin = (unsigned int) GeoLayer_local->get_pad_float(phi, side_tpc) + 0.5;
     tbin = GeoLayer_local->get_tbin_float(locy - 39.6);
     unsigned int cside = TpcDefs::getSide(cluster_key);
     unsigned int csector = TpcDefs::getSectorId(cluster_key);
     unsigned int csegment = 0;
-    TrkrDefs::cluskey dummykey  = TpcDefs::genClusKey(layer_local, csector, cside, phibin);
-    std::map<TrkrDefs::cluskey, fee_info>::iterator fee_it =  fee_map.find(dummykey);
+    TrkrDefs::cluskey dummykey = TpcDefs::genClusKey(layer_local, csector, cside, phibin);
+    std::map<TrkrDefs::cluskey, fee_info>::iterator fee_it = fee_map.find(dummykey);
     if (fee_it != fee_map.end())
     {
       fXcluster[n_cluster::nclufee] = (*fee_it).second.fee;
       fXcluster[n_cluster::ncluchan] = (*fee_it).second.channel;
       fXcluster[n_cluster::nclusampa] = (*fee_it).second.sampa;
-
-    }else{
+    }
+    else
+    {
       fXcluster[n_cluster::nclufee] = 0;
       fXcluster[n_cluster::ncluchan] = 0;
     }
-    if(layer_local >= 7+32){
+    if (layer_local >= 7 + 32)
+    {
       csegment = 2;
-    }else if(layer_local >=7+16){
+    }
+    else if (layer_local >= 7 + 16)
+    {
       csegment = 1;
     }
-    if(_do_dedx_calib==true){
+    if (_do_dedx_calib == true)
+    {
       fXcluster[n_cluster::ncludcal] = dedxcorr[cside][csector][csegment];
-    }else{
+    }
+    else
+    {
       fXcluster[n_cluster::ncludcal] = 1;
     }
   }
@@ -2304,7 +2382,7 @@ SvtxTrack* TrkrNtuplizer::best_track_from(TrkrDefs::cluskey cluster_key)
 
   std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
   // loop over all SvtxTracks
-  for (auto *candidate : tracks)
+  for (auto* candidate : tracks)
   {
     if (candidate->get_quality() < best_quality)
     {
@@ -2331,9 +2409,8 @@ std::set<SvtxTrack*> TrkrNtuplizer::all_tracks_from(TrkrDefs::cluskey cluster_ke
   {
     return find_iter->second;
   }
-  
-      return tracks;
- 
+
+  return tracks;
 
   // loop over all SvtxTracks
   for (auto& iter : *_trackmap)

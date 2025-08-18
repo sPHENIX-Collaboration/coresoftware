@@ -56,7 +56,7 @@ int PHCosmicTrackMerger::InitRun(PHCompositeNode *topNode)
 
   m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
-  if (!m_siliconSeeds or !m_tpcSeeds)
+  if (!m_siliconSeeds || !m_tpcSeeds)
   {
     std::cout << PHWHERE << "Missing seed container, exiting." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -193,9 +193,9 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode * /*unused*/)
 
       if (
           //! check on common cluskeys
-          (ckeyUnion.size() > 10) or
-          (m_zeroField and std::fabs(tr1xyslope - tr2xyslope) < 0.5 and std::fabs(tr1rzslope - tr2rzslope * -1) < 0.5) or
-          (!m_zeroField and std::fabs(tr1xyslope - tr2xyslope) < 0.03 and (std::fabs(tr1rzslope - tr2rzslope * -1) < 1)))
+          (ckeyUnion.size() > 10) ||
+          (m_zeroField && std::fabs(tr1xyslope - tr2xyslope) < 0.5 && std::fabs(tr1rzslope - tr2rzslope * -1) < 0.5) ||
+          (!m_zeroField && std::fabs(tr1xyslope - tr2xyslope) < 0.03 && (std::fabs(tr1rzslope - tr2rzslope * -1) < 1)))
       {
         if (Verbosity() > 3)
         {

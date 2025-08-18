@@ -83,7 +83,7 @@ PHG4GDMLConfig *PHG4GDMLUtility::GetOrMakeConfigNode(PHCompositeNode *topNode, b
 
   PHG4GDMLConfig *config = findNode::getClass<PHG4GDMLConfig>(parNode,
                                                               getDSTNodeName());
-  if (!config and build_new)
+  if (!config && build_new)
   {
     config = new PHG4GDMLConfig();
     PHDataNode<PHObject> *node = new PHDataNode<PHObject>(config,

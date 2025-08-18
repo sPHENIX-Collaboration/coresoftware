@@ -30,7 +30,7 @@ namespace QAHistManagerDef
     Fun4AllServer *se = Fun4AllServer::instance();
     Fun4AllHistoManager *hm = se->getHistoManager(HistoManagerName);
 
-    if (not hm)
+    if (! hm)
     {
       //        std::cout
       //            << "QAHistManagerDef::get_HistoManager - Making Fun4AllHistoManager EMCalAna_HISTOS"

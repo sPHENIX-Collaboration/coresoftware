@@ -296,7 +296,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
     total_primary_energy += particle->get_e();
   }
 
-  assert(not _truth_container->GetMap().empty());
+  assert(! _truth_container->GetMap().empty());
   const PHG4Particle *last_primary =
       _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
@@ -593,7 +593,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
       for (int size = 1; size <= max_size; ++size)
       {
         // for 2x2 and 4x4 use slide-2 window as implemented in DAQ
-        if ((size == 2 or size == 4) and ((binphi % 2 != 0) and (bineta % 2 != 0)))
+        if ((size == 2 || size == 4) && ((binphi % 2 != 0) && (bineta % 2 != 0)))
         {
           continue;
         }
@@ -707,7 +707,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
   // get primary
   assert(_truth_container);
-  assert(not _truth_container->GetMap().empty());
+  assert(! _truth_container->GetMap().empty());
   PHG4Particle *last_primary = _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
 

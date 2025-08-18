@@ -417,7 +417,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (not m_disableUserActions)
+  if (!m_disableUserActions)
   {
     m_RunManager->SetUserAction(m_EventAction);
   }
@@ -437,7 +437,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (not m_disableUserActions)
+  if (!m_disableUserActions)
   {
     m_RunManager->SetUserAction(m_StackingAction);
   }
@@ -458,7 +458,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (not m_disableUserActions)
+  if (!m_disableUserActions)
   {
     m_RunManager->SetUserAction(m_SteppingAction);
   }
@@ -480,7 +480,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (not m_disableUserActions)
+  if (!m_disableUserActions)
   {
     m_RunManager->SetUserAction(m_TrackingAction);
   }
