@@ -405,7 +405,7 @@ void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsig
     if (light_collection_model.use_fiber_model())
     {
       const double z = 0.5 * (g4hit->get_local_z(0) + g4hit->get_local_z(1));
-      assert(not std::isnan(z));
+      assert(! std::isnan(z));
       correction *= light_collection_model.get_fiber_transmission(z);
     }
 
