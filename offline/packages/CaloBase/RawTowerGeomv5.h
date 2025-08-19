@@ -6,6 +6,7 @@
 #include "RawTowerDefs.h"
 
 #include <iostream>
+#include <array>
 #include <limits>
 
 class RawTowerGeomv5 : public RawTowerGeom
@@ -29,64 +30,64 @@ class RawTowerGeomv5 : public RawTowerGeom
 
   void set_center_x(double x) override
   {
-    _center_x = x;
+    _center[0] = x;
     return;
   }
   void set_center_y(double y) override
   {
-    _center_y = y;
+    _center[1] = y;
     return;
   }
   void set_center_z(double z) override
   {
-    _center_z = z;
+    _center[2] = z;
     return;
   }
   void set_rotx(double rotx) override
   {
-    _rotx = rotx;
+    _rot[0] = rotx;
     return;
   }
   void set_roty(double roty) override
   {
-    _roty = roty;
+    _rot[1] = roty;
     return;
   }
   void set_rotz(double rotz) override
   {
-    _rotz = rotz;
+    _rot[2] = rotz;
     return;
   }
 
   void set_vertices(const std::vector<double>&) override;
 
-  double get_center_x() const override { return _center_x; }
-  double get_center_y() const override { return _center_y; }
-  double get_center_z() const override { return _center_z; }
-  double get_center_int_x() const override { return _center_int_x; }
-  double get_center_int_y() const override { return _center_int_y; }
-  double get_center_int_z() const override { return _center_int_z; }
-  double get_center_ext_x() const override { return _center_ext_x; }
-  double get_center_ext_y() const override { return _center_ext_y; }
-  double get_center_ext_z() const override { return _center_ext_z; }
-  double get_center_low_eta_x() const override { return _center_low_eta_x; }
-  double get_center_low_eta_y() const override { return _center_low_eta_y; }
-  double get_center_low_eta_z() const override { return _center_low_eta_z; }
-  double get_center_high_eta_x() const override { return _center_high_eta_x; }
-  double get_center_high_eta_y() const override { return _center_high_eta_y; }
-  double get_center_high_eta_z() const override { return _center_high_eta_z; }
-  double get_center_low_phi_x() const override { return _center_low_phi_x; }
-  double get_center_low_phi_y() const override { return _center_low_phi_y; }
-  double get_center_low_phi_z() const override { return _center_low_phi_z; }
-  double get_center_high_phi_x() const override { return _center_high_phi_x; }
-  double get_center_high_phi_y() const override { return _center_high_phi_y; }
-  double get_center_high_phi_z() const override { return _center_high_phi_z; }
-  double get_rotx() const override { return _rotx; }
-  double get_roty() const override { return _roty; }
-  double get_rotz() const override { return _rotz; }
-  double get_vertex_x(int i) const override { return _vertices_x[i]; }
-  double get_vertex_y(int i) const override { return _vertices_y[i]; }
-  double get_vertex_z(int i) const override { return _vertices_z[i]; }
+  double get_center_x() const override { return _center[0]; }
+  double get_center_y() const override { return _center[1]; }
+  double get_center_z() const override { return _center[2]; }
+  double get_center_int_x() const override { return _center_int[0]; }
+  double get_center_int_y() const override { return _center_int[1]; }
+  double get_center_int_z() const override { return _center_int[2]; }
+  double get_center_ext_x() const override { return _center_ext[0]; }
+  double get_center_ext_y() const override { return _center_ext[1]; }
+  double get_center_ext_z() const override { return _center_ext[2]; }
+  double get_center_low_eta_x() const override { return _center_low_eta[0]; }
+  double get_center_low_eta_y() const override { return _center_low_eta[1]; }
+  double get_center_low_eta_z() const override { return _center_low_eta[2]; }
+  double get_center_high_eta_x() const override { return _center_high_eta[0]; }
+  double get_center_high_eta_y() const override { return _center_high_eta[1]; }
+  double get_center_high_eta_z() const override { return _center_high_eta[2]; }
+  double get_center_low_phi_x() const override { return _center_low_phi[0]; }
+  double get_center_low_phi_y() const override { return _center_low_phi[1]; }
+  double get_center_low_phi_z() const override { return _center_low_phi[2]; }
+  double get_center_high_phi_x() const override { return _center_high_phi[0]; }
+  double get_center_high_phi_y() const override { return _center_high_phi[1]; }
+  double get_center_high_phi_z() const override { return _center_high_phi[2]; }
+  double get_rotx() const override { return _rot[0]; }
+  double get_roty() const override { return _rot[1]; }
+  double get_rotz() const override { return _rot[2]; }
+  double get_vertex_x(int i) const override;
+  double get_vertex_y(int i) const override;
+  double get_vertex_z(int i) const override;
   double get_center_radius() const override;
   double get_eta() const override;
   double get_phi() const override;
@@ -97,35 +98,83 @@ class RawTowerGeomv5 : public RawTowerGeom
   RawTowerDefs::keytype _towerid{std::numeric_limits<RawTowerDefs::keytype>::max()};
 
   static constexpr int _nVtx = 8;
-  double _center_x{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_y{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_z{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_int_x{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_int_y{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_int_z{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_ext_x{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_ext_y{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_ext_z{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_low_eta_x{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_low_eta_y{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_low_eta_z{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_high_eta_x{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_high_eta_y{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_high_eta_z{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_low_phi_x{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_low_phi_y{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_low_phi_z{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_high_phi_x{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_high_phi_y{std::numeric_limits<double>:: quiet_NaN()};
-  double _center_high_phi_z{std::numeric_limits<double>:: quiet_NaN()};
+  static constexpr int _nDim = 3;
 
-  double _vertices_x[_nVtx] = {std::numeric_limits<double>:: quiet_NaN()};
-  double _vertices_y[_nVtx] = {std::numeric_limits<double>:: quiet_NaN()};
-  double _vertices_z[_nVtx] = {std::numeric_limits<double>:: quiet_NaN()};
+  std::array<double, _nDim> _center{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
+  std::array<double, _nDim> _center_int{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
+  std::array<double, _nDim> _center_ext{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
+  std::array<double, _nDim> _center_low_eta{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
+  std::array<double, _nDim> _center_high_eta{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
+  std::array<double, _nDim> _center_low_phi{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
+  std::array<double, _nDim> _center_high_phi{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
 
-  double _rotx{std::numeric_limits<double>:: quiet_NaN()};
-  double _roty{std::numeric_limits<double>:: quiet_NaN()};
-  double _rotz{std::numeric_limits<double>:: quiet_NaN()};
+  std::array<double, _nVtx * _nDim> _vertices{
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(), // vertex 1 (new line for readability)
+
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(), // vertex 2 
+
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(), // etc.
+
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>:: quiet_NaN()
+  };
+
+  std::array<double, _nDim> _rot{
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN(),
+    std::numeric_limits<double>:: quiet_NaN()
+  };
   
   ClassDefOverride(RawTowerGeomv5, 4)
 };
