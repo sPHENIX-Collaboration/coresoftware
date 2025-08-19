@@ -60,16 +60,22 @@ void useFixedClusterError(bool opt) { _use_fixed_clus_error = opt; }
   int Verbosity() const
   { return _v; }
 
+  //! magnetic field map
   PHField* _B = nullptr;
+
+  //! constant magnetic field
+  /**
+   * it is used for fast momentum calculation, or when positions are outside the field map boundaries along z
+   * specifically, the latter happens in extended readout mode for pp collisions, for out-of-time TPC clusters
+   */
+  float _const_field = 1.4;
+
   size_t _min_clusters_per_track = 20;
   TrkrClusterContainer* _cluster_map = nullptr;
 
   int _v = 0;
   static constexpr double _Bzconst = 10. * 0.000299792458f;
   double _max_sin_phi = 1.;
-
-  //! used for fast momentum calculation
-  float _const_field = 1.4;
 
   // cluster error parametrization
   std::unique_ptr<ClusterErrorPara> _ClusErrPara;
