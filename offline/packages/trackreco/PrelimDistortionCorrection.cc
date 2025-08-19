@@ -12,8 +12,13 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
+#include <phfield/PHFieldConfigv1.h>
 
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
@@ -46,6 +51,13 @@ PrelimDistortionCorrection::PrelimDistortionCorrection(const std::string& name)
   : SubsysReco(name)
 {}
 
+//______________________________________________________
+PrelimDistortionCorrection::~PrelimDistortionCorrection()
+{
+  if( m_own_fieldmap )
+  { delete _field_map; }
+}
+
 //___________________________________________________________________________________________
 int PrelimDistortionCorrection::End(PHCompositeNode* /*unused*/)
 {
@@ -59,15 +71,42 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret; }
 
-  // both configurations are identical, use field map from node tree
-  _field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  PHFieldConfigv1 fcfg;
+  fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
 
-  fitter = std::make_unique<ALICEKF>(_cluster_map,_field_map, _min_clusters_per_track,_max_sin_phi,Verbosity());
+  // load magnetic field map from CDB
+  auto magField = CDBInterface::instance()->getUrl("FIELDMAP_TRACKING");
+  fcfg.set_filename(magField);
+
+  // compare field config from that on node tree
+  /*
+   * if the magnetic field is already on the node tree PHFieldUtility::GetFieldConfigNode returns the existing configuration.
+   * One must then check wheter the two configurations are identical, to decide whether one must use the field from node tree or create our own.
+   * Otherwise the configuration passed as argument is stored on the node tree.
+   */
+  const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
+  if( fcfg == *node_fcfg )
+  {
+    // both configurations are identical, use field map from node tree
+    std::cout << "PrelimDistortionCorrection::InitRun - using field map found from node tree" << std::endl;
+    _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+    m_own_fieldmap = false;
+  } else {
+    // both configurations differ. Use our own field map
+    std::cout << "PrelimDistortionCorrection::InitRun - using own field map" << std::endl;
+    _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+    m_own_fieldmap = true;
+  }
+
+  fitter = std::make_unique<ALICEKF>(topNode,_cluster_map,_field_map, _fieldDir,
+				     _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
   fitter->setNitrogenFraction(N2_frac);
   fitter->setIsobutaneFraction(isobutane_frac);
+  fitter->useConstBField(_use_const_field);
+  fitter->setConstBField(_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
@@ -132,6 +171,19 @@ int PrelimDistortionCorrection::get_nodes(PHCompositeNode* topNode)
   {
     std::cerr << PHWHERE << "PrelimDistortionCorrection::get_nodes - ERROR: Can't find TrackSeedContainer " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  PHG4TpcCylinderGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom_container)
+  {
+    std::cerr << PHWHERE << "PrelimDistortionCorrection::get_nodes - ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  for(int i=7;i<=54;i++)
+  {
+    radii.push_back(geom_container->GetLayerCellGeom(i)->get_radius());
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -279,7 +331,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
 }
 
 //____________________________________________________________________________________________________________
-void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, const PrelimDistortionCorrection::PositionMap& positions) const
+void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, PositionMap& positions)
 {
   int seed_index = 0;
   for(auto& seed: seeds )

@@ -4,7 +4,7 @@
 /*!
  *  \file RPHCosmicsFilter.h
  *  \RTree based hough tracking for cosmics
- *  \author Christof Roland
+ *  \author Christof Roland 
  */
 
 
@@ -75,6 +75,8 @@
 #include <tuple>
 #include <vector>
 
+
+class PHField;
 class TGeoManager;
 
 
@@ -134,7 +136,7 @@ class PHCosmicsFilter : public SubsysReco
   void set_create_tracks(bool b){_create_tracks = b;}
   void set_max_distance_to_origin(float val){ _max_dist_to_origin = val;}
   void set_min_nclusters(int n){ _min_nclusters = n;}
-
+  
  protected:
   int Setup(PHCompositeNode *topNode);
   int GetNodes(PHCompositeNode* topNode);
