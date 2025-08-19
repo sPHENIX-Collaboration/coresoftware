@@ -1,12 +1,97 @@
 #include "TrackAnalysisUtils.h"
 
 #include "SvtxTrack.h"
+#include "TrackSeed.h"
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TpcDefs.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <cmath>
 
 namespace TrackAnalysisUtils
 {
+  float calc_dedx(TrackSeed* tpcseed, 
+                  TrkrClusterContainer *cluster_map,
+                  ActsGeometry* tgeometry,
+                  float thickness_per_region[4])
+  {
 
+    std::vector<TrkrDefs::cluskey> clusterKeys;
+    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                       tpcseed->end_cluster_keys());
+
+    std::vector<float> dedxlist;
+    for (unsigned long cluster_key : clusterKeys)
+    {
+      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+      if (TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId)
+      {
+        continue;
+      }
+      TrkrCluster* cluster = cluster_map->findCluster(cluster_key);
+      Acts::Vector3 cglob;
+      cglob = tgeometry->getGlobalPosition(cluster_key, cluster);
+      //      float x = cglob(0);
+      // float y = cglob(1);
+      float z = cglob(2);
+      int csegment = 0;
+      float thickness = 0;
+      if (layer_local >= 7 + 32)
+      {
+        csegment = 2;
+        thickness = thickness_per_region[3];
+      }
+      else if (layer_local >= 7 + 16)
+      {
+        csegment = 1;
+        thickness = thickness_per_region[2];
+      }
+      if(csegment == 0)
+      {
+        if (layer_local % 2 == 0)
+        {
+          thickness = thickness_per_region[1];
+        }
+        else
+        {
+          thickness = thickness_per_region[0];
+        }
+      }
+      float adc = cluster->getAdc();
+
+      float r = std::sqrt(cglob(0) * cglob(0) + cglob(1) * cglob(1));
+      float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
+      float beta = std::atan(tpcseed->get_slope());
+      float alphacorr = std::cos(alpha);
+      if (alphacorr < 0 || alphacorr > 4)
+      {
+        alphacorr = 4;
+      }
+      float betacorr = std::cos(beta);
+      if (betacorr < 0 || betacorr > 4)
+      {
+        betacorr = 4;
+      }
+      adc /= (1 - ((105 - abs(z)) * 0.50 / 105));
+      adc /= thickness;
+      adc *= alphacorr;
+      adc *= betacorr;
+      dedxlist.push_back(adc);
+      sort(dedxlist.begin(), dedxlist.end());
+    }
+    int trunc_min = 0;
+    int trunc_max = (int) dedxlist.size() * 0.7;
+    float sumdedx = 0;
+    int ndedx = 0;
+    for (int j = trunc_min; j <= trunc_max; j++)
+    {
+      sumdedx += dedxlist.at(j);
+      ndedx++;
+    }
+    sumdedx /= ndedx;
+    return sumdedx;
+  }
   TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
                                       Acts::Vector3& vertex)
   {

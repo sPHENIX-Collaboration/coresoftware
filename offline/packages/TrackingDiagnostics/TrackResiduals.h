@@ -90,7 +90,6 @@ class TrackResiduals : public SubsysReco
                                Acts::Vector3 &glob, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int> &tpc_seed_ids);
-  static float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clustermap, PHG4TpcCylinderGeomContainer *tpcGeom);
 
   bool m_use_clustermover = true;
 
