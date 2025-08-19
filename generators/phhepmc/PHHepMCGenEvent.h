@@ -166,7 +166,7 @@ class PHHepMCGenEvent : public PHObject
   //! The HEP MC record from event generator. Note the units are recorded in GenEvent
   HepMC::GenEvent* _theEvt;
 
-  ClassDefOverride(PHHepMCGenEvent, 6)
+  ClassDefOverride(PHHepMCGenEvent, 5)
 };
 
 #endif  // PHHEPMC_PHHEPMCEVENT_H
