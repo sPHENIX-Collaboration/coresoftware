@@ -17,6 +17,7 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
 
 // tpc distortion correction
 #include <tpc/TpcDistortionCorrectionContainer.h>
@@ -101,7 +102,10 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
 
-  // TODO: properly set constField in ALICEKF, based on PHFieldConfig
+  // properly set constField in ALICEKF, based on PHFieldConfig
+  const auto field_config = PHFieldUtility::GetFieldConfigNode(nullptr, topNode);
+  if( field_config->get_field_config() == PHFieldConfig::kFieldUniform )
+  { fitter->setConstBField(field_config->get_field_mag_z()); }
 
   // assign number of threads
   std::cout << "PHSimpleKFProp::InitRun - m_num_threads: " << m_num_threads << std::endl;

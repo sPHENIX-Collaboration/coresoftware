@@ -24,7 +24,6 @@
 
 class ActsGeometry;
 class PHCompositeNode;
-class PHField;
 class TpcDistortionCorrectionContainer;
 class TrkrClusterContainer;
 class SvtxTrackMap;
@@ -89,9 +88,6 @@ class PrelimDistortionCorrectionAuAu : public SubsysReco
   TrkrClusterContainer *_cluster_map = nullptr;
 
   TrackSeedContainer *_track_map = nullptr;
-
-  //! magnetic field map
-  PHField* _field_map = nullptr;
 
   /// acts geometry
   ActsGeometry *_tgeometry = nullptr;
