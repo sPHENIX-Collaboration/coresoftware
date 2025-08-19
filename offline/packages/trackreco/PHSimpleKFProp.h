@@ -44,30 +44,25 @@ class PHSimpleKFProp : public SubsysReco
 {
  public:
   PHSimpleKFProp(const std::string& name = "PHSimpleKFProp");
-  ~PHSimpleKFProp() override = default;
+  ~PHSimpleKFProp() override;
 
   int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
   int End(PHCompositeNode* topNode) override;
 
-  // noop
-  void set_field_dir(const double)
-  {}
-
-  // noop
-  void magFieldFile(const std::string&)
-  {}
-
-  // noop
-  void useConstBField(bool)
-  {}
-
-  // noop
-  void setConstBField(float)
-  {}
-
+  void set_field_dir(const double rescale)
+  {
+    _fieldDir = 1;
+    if (rescale > 0)
+    {
+      _fieldDir = -1;
+    }
+  }
   void ghostRejection(bool set_value = true) { m_ghostrejection = set_value; }
+  void magFieldFile(const std::string& fname) { m_magField = fname; }
   void set_max_window(double s) { _max_dist = s; }
+  void useConstBField(bool opt) { _use_const_field = opt; }
+  void setConstBField(float b) { _const_field = b; }
   void useFixedClusterError(bool opt) { _use_fixed_clus_err = opt; }
   void setFixedClusterError(int i, double val) { _fixed_clus_err.at(i) = val; }
   void use_truth_clusters(bool truth)
@@ -115,9 +110,7 @@ class PHSimpleKFProp : public SubsysReco
   // double _Bz = 1.4*_Bzconst;
   double _max_dist = .05;
   size_t _min_clusters_per_track = 3;
-
-  //! internal field conversion to get the right particle sign
-
+  double _fieldDir = -1;
   double _max_sin_phi = 1.;
   bool _pp_mode = false;
   unsigned int _max_seeds = 0;
@@ -128,6 +121,7 @@ class PHSimpleKFProp : public SubsysReco
 
   //! magnetic field map
   PHField* _field_map = nullptr;
+  bool m_own_fieldmap = false;
 
   /// acts geometry
   ActsGeometry* m_tgeometry = nullptr;
@@ -216,39 +210,28 @@ class PHSimpleKFProp : public SubsysReco
   void publishSeeds(const std::vector<TrackSeed_v2>&);
 
   int _max_propagation_steps = 200;
-
-  //! fixed cluster errors
+  std::string m_magField;
+  bool _use_const_field = false;
+  float _const_field = 1.4;
   bool _use_fixed_clus_err = false;
-
-  //! fixed cluster errors
   std::array<double, 3> _fixed_clus_err = {.2, .2, .5};
-
-  //! keep track of used clusters in previous iteration for iterative tracking
   TrkrClusterIterationMapv1* _iteration_map = nullptr;
-
-  //! iteration number
   int _n_iteration = 0;
 
-  //!@name TPC gas. Needed for Kalman Filter
-  //@{
   double Ne_frac = 0.00;
   double Ar_frac = 0.75;
   double CF4_frac = 0.20;
   double N2_frac = 0.00;
   double isobutane_frac = 0.05;
-  //@}
 
-  //!@name ghost rejection cuts
-  //@{
   double _ghost_phi_cut = std::numeric_limits<double>::max();
   double _ghost_eta_cut = std::numeric_limits<double>::max();
   double _ghost_x_cut = std::numeric_limits<double>::max();
   double _ghost_y_cut = std::numeric_limits<double>::max();
   double _ghost_z_cut = std::numeric_limits<double>::max();
-  //@}
 
-  //! number of threads
-  /**
+  // number of threads
+  /*
    * default is 0. This corresponds to allocating as many threads as available on the host
    * on CONDOR, by default, this results in only one thread allocated
    * being allocated unless several cores are allocated to the job

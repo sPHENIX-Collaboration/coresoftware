@@ -55,6 +55,7 @@
 #include <utility>
 #include <vector>
 
+class PHField;
 class TGeoManager;
 namespace genfit { class AbsTrackRep; }
 
@@ -104,8 +105,8 @@ int PHRaveVertexing::InitRun(PHCompositeNode* topNode)
 {
   CreateNodes(topNode);
 
-  auto tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
-  auto field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+  PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
   //_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
   _fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
@@ -113,7 +114,7 @@ int PHRaveVertexing::InitRun(PHCompositeNode* topNode)
                                           "RKTrackRep", false);
   if (!_fitter)
   {
-    std::cout << PHWHERE << " PHGenFit::Fitter::getInstance returned nullptr"
+    std::cout << PHWHERE << " PHGenFit::Fitter::getInstance returned nullptr" 
 	      << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
@@ -186,8 +187,8 @@ int PHRaveVertexing::process_event(PHCompositeNode* topNode)
 	  }
 	if(nmvtx < _nmvtx_required) continue;
 	if(Verbosity() > 1) std::cout << " track " << iter->first << "  has nmvtx at least " << nmvtx << std::endl;
-      }
-
+      } 
+    
     //auto genfit_track = shared_ptr<genfit::Track> (TranslateSvtxToGenFitTrack(svtx_track));
     auto genfit_track = TranslateSvtxToGenFitTrack(svtx_track);
     if (!genfit_track)

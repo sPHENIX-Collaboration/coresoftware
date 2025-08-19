@@ -17,6 +17,8 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <phfield/PHField.h>
+#include <phfield/PHFieldConfig.h>
+#include <phfield/PHFieldConfigv1.h>
 #include <phfield/PHFieldUtility.h>
 
 // tpc distortion correction
@@ -39,6 +41,9 @@
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+
+#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
+#include <Acts/MagneticField/MagneticFieldProvider.hpp>
 
 #include <TSystem.h>
 
@@ -72,12 +77,18 @@ PHSimpleKFProp::PHSimpleKFProp(const std::string& name)
 {}
 
 //______________________________________________________
+PHSimpleKFProp::~PHSimpleKFProp()
+{
+  if( m_own_fieldmap )
+  { delete _field_map; }
+}
+
+//______________________________________________________
 int PHSimpleKFProp::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//______________________________________________________
 int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 {
   int ret = get_nodes(topNode);
@@ -86,21 +97,65 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
     return ret;
   }
 
-  // load magnetic field from node tree
-  /* note: if field is not found it is created with default configuration, as defined in PHFieldUtility */
-  _field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  PHFieldConfigv1 fcfg;
+  fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::Field3DCartesian);
+
+  if (std::filesystem::path(m_magField).extension() != ".root")
+  { m_magField = CDBInterface::instance()->getUrl(m_magField); }
+
+  if (!_use_const_field)
+  {
+    if (!std::filesystem::exists(m_magField))
+    {
+      if (m_magField.empty())
+      { m_magField = "empty string"; }
+      std::cout << PHWHERE << "Fieldmap " << m_magField << " does not exist" << std::endl;
+      gSystem->Exit(1);
+    }
+
+    fcfg.set_filename(m_magField);
+  }
+  else
+  {
+    fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
+    fcfg.set_magfield_rescale(_const_field);
+  }
+
+  // compare field config from that on node tree
+  /*
+   * if the magnetic field is already on the node tree PHFieldUtility::GetFieldConfigNode returns the existing configuration.
+   * One must then check wheter the two configurations are identical, to decide whether one must use the field from node tree or create our own.
+   * Otherwise the configuration passed as argument is stored on the node tree.
+   */
+  const auto node_fcfg = PHFieldUtility::GetFieldConfigNode(&fcfg, topNode);
+  if( fcfg == *node_fcfg )
+  {
+    // both configurations are identical, use field map from node tree
+    std::cout << "PHSimpleKFProp::InitRun - using node tree field map" << std::endl;
+    _field_map = PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
+    m_own_fieldmap = false;
+  } else {
+    // both configurations differ. Use our own field map
+    std::cout << "PHSimpleKFProp::InitRun - using own field map" << std::endl;
+    _field_map = PHFieldUtility::BuildFieldMap(&fcfg);
+    m_own_fieldmap = true;
+  }
 
   // alice kalman filter
-  fitter = std::make_unique<ALICEKF>(_cluster_map, _field_map, _min_clusters_per_track, _max_sin_phi, Verbosity());
+  fitter = std::make_unique<ALICEKF>(topNode, _cluster_map, _field_map, _fieldDir, _min_clusters_per_track, _max_sin_phi, Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
   fitter->setNitrogenFraction(N2_frac);
   fitter->setIsobutaneFraction(isobutane_frac);
+  fitter->useConstBField(_use_const_field);
+  fitter->setConstBField(_const_field);
   fitter->useFixedClusterError(_use_fixed_clus_err);
   fitter->setFixedClusterError(0, _fixed_clus_err.at(0));
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
+  // _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
+  // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
 
   // assign number of threads
   std::cout << "PHSimpleKFProp::InitRun - m_num_threads: " << m_num_threads << std::endl;
@@ -109,10 +164,13 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//___________________________________________________________________________
 double PHSimpleKFProp::get_Bz(double x, double y, double z) const
 {
-  double p[4] = {x*cm, y*cm, z*cm, 0.};
+  if (_use_const_field || std::abs(z) > 105.5)
+  {
+    return _const_field;
+  }
+  double p[4] = {x * cm, y * cm, z * cm, 0. * cm};
   double bfield[3];
 
   // check thread number. Use uncached field accessor for all but thread 0.
@@ -123,10 +181,21 @@ double PHSimpleKFProp::get_Bz(double x, double y, double z) const
     _field_map->GetFieldValue_nocache(p, bfield);
   }
 
+  /*  Acts::Vector3 loc(0,0,0);
+  int mfex = (magField != nullptr);
+  int tgex = (m_tGeometry != nullptr);
+  std::cout << " getting acts field " << mfex << " " << tgex << std::endl;
+  auto Cache =  m_tGeometry->magField->makeCache(m_tGeometry->magFieldContext);
+  auto bf = m_tGeometry->magField->getField(loc,Cache);
+  if(bf.ok())
+    {
+      Acts::Vector3 val = bf.value();
+      std::cout << "bz big: " <<  bfield[2]/tesla << " bz acts: " << val(2) << std::endl;
+    }
+  */
   return bfield[2] / tesla;
 }
 
-//___________________________________________________________________________
 int PHSimpleKFProp::get_nodes(PHCompositeNode* topNode)
 {
 
@@ -1042,9 +1111,23 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     std::cout << "track (x,y,z) = (" << track_x << ", " << track_y << ", " << track_z << ")" << std::endl;
   }
 
-  double track_px = track->get_px();
-  double track_py = track->get_py();
-  double track_pz = track->get_pz();
+  double track_px = NAN;
+  double track_py = NAN;
+  double track_pz = NAN;
+  if (_use_const_field)
+  {
+    float pt = fabs(1. / track->get_qOverR()) * (0.3 / 100) * _const_field;
+    float phi = track->get_phi();
+    track_px = pt * std::cos(phi);
+    track_py = pt * std::sin(phi);
+    track_pz = pt * std::cosh(track->get_eta()) * std::cos(track->get_theta());
+  }
+  else
+  {
+    track_px = track->get_px();
+    track_py = track->get_py();
+    track_pz = track->get_pz();
+  }
 
   if (Verbosity() > 1)
   {
@@ -1074,18 +1157,17 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     second_index = 1;
   }
 
-  const double xc = track->get_X0();
-  const double yc = track->get_Y0();
-  const double cluster_x = trkGlobPos.at(inner_index)(0);
-  const double cluster_y = trkGlobPos.at(inner_index)(1);
-  const double dy = cluster_y - yc;
-  const double dx = cluster_x - xc;
-
-  double phi = std::atan2(dy, dx);
-  const double second_dx = trkGlobPos.at(second_index)(0) - xc;
-  const double second_dy = trkGlobPos.at(second_index)(1) - yc;
-  const double second_phi = std::atan2(second_dy, second_dx);
-  const double dphi = second_phi - phi;
+  double xc = track->get_X0();
+  double yc = track->get_Y0();
+  double cluster_x = trkGlobPos.at(inner_index)(0);
+  double cluster_y = trkGlobPos.at(inner_index)(1);
+  double dy = cluster_y - yc;
+  double dx = cluster_x - xc;
+  double phi = atan2(dy, dx);
+  double second_dx = trkGlobPos.at(second_index)(0) - xc;
+  double second_dy = trkGlobPos.at(second_index)(1) - yc;
+  double second_phi = atan2(second_dy, second_dx);
+  double dphi = second_phi - phi;
 
   if (dphi > 0)
   {
@@ -1096,8 +1178,7 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
     phi -= M_PI / 2.0;
   }
 
-  const double pt = std::sqrt(square(track_px)+square(track_py));
-
+  double pt = sqrt(track_px * track_px + track_py * track_py);
   // rotate track momentum vector (pz stays the same)
   track_px = pt * cos(phi);
   track_py = pt * sin(phi);
