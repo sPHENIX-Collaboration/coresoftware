@@ -18,6 +18,7 @@
 class PHCompositeNode;
 class TH1F;
 class TH2F;
+class TriggerAnalyzer;
 
 class UEvsEtaCentrality : public SubsysReco
 {
@@ -29,6 +30,12 @@ class UEvsEtaCentrality : public SubsysReco
     ///! turn debug messages on/off
     bool debug {true};
 
+    ///! turn trigger selection on/off
+    bool doTrgSelect {false};
+
+    ///! trigger to select
+    uint32_t trgToSelect {JetQADefs::GL1::MBDNSJet1};
+
     ///! histogram tag
     std::string histTag {""};
 
@@ -36,7 +43,7 @@ class UEvsEtaCentrality : public SubsysReco
     std::string moduleName {"UEvsEtaCentrality"};
   };
 
-  UEvsEtaCentrality(const std::string &moduleName = "UEvsEtaCentrality" /*, const std::string &outputfilename = "UEvsEtaCentrality.root"*/);
+  UEvsEtaCentrality(const std::string &moduleName = "UEvsEtaCentrality"/*, const std::string &recojetname="AntiKt_Tower_r04"*/);
   UEvsEtaCentrality(const Config& config);
   ~UEvsEtaCentrality() override;
 
@@ -94,6 +101,8 @@ class UEvsEtaCentrality : public SubsysReco
 
   ///! histogram manager
   Fun4AllHistoManager* m_manager {nullptr};
+
+  TriggerAnalyzer* m_analyzer {nullptr};
 
   TH2F *hv2_cent = nullptr;
   TH2F *hPsi2_cent = nullptr;

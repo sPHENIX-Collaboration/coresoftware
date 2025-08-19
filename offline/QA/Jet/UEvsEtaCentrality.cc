@@ -2,7 +2,8 @@
 /*!Migrated from analysis/JS-Jet/JetUESize-v2Psi2Centrality 
  * Original Author: Micah Meskowitz
  * Author: Jinglin Liu
- * Date: 08.16.2025
+ * First Commit Date: 08.17.2025
+ *
  *
  * Underlying event QA module
  */ 
@@ -30,6 +31,8 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfo.h>
 
+#include <calotrigger/TriggerAnalyzer.h>
+
 #include <jetbackground/TowerBackground.h>
 
 #include <qautils/QAHistManagerDef.h>
@@ -40,11 +43,12 @@
 #include <TH2F.h>
 
 //____________________________________________________________________________..
-UEvsEtaCentrality::UEvsEtaCentrality(const std::string& moduleName  /*, const std::string& outputfilename*/)
-  : SubsysReco(moduleName)
-  //, m_outputFileName(outputfilename)
+UEvsEtaCentrality::UEvsEtaCentrality(const std::string& modulename/*, const std::string& recojetname*/)
+  : SubsysReco(modulename)
+  , m_moduleName(modulename)
 {
   std::cout << "UEvsEtaCentrality::UEvsEtaCentrality(const std::string &moduleName) Calling ctor" << std::endl;
+  //m_config.moduleName = modulename;
 }
 
 //____________________________________________________________________________..
@@ -75,18 +79,15 @@ UEvsEtaCentrality::~UEvsEtaCentrality()
 int UEvsEtaCentrality::Init(PHCompositeNode* /*topNode*/)
 {
   std::cout << "UEvsEtaCentrality::Init(PHCompositeNode *topNode) Initializing" << std::endl;
- 
-  /* 
-  if (Verbosity() >=  UEvsEtaCentrality::VERBOSITY_SOME)
-    std::cout << "UEvsEtaCentrality::Init - Outoput to " << m_outputFileName << std::endl;
 
-  PHTFileServer::get().open(m_outputFileName, "RECREATE");
-  */
+  // initialize trigger analyzer
+  delete m_analyzer;
+  m_analyzer = new TriggerAnalyzer();
 
   InitHistManager();
 
   // make sure module name is lower case
-  std::string smallModuleName = m_config.moduleName;
+  std::string smallModuleName = m_moduleName;
   std::transform(
       smallModuleName.begin(),
       smallModuleName.end(),
@@ -144,6 +145,22 @@ int UEvsEtaCentrality::InitRun(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int UEvsEtaCentrality::process_event(PHCompositeNode *topNode)
 { 
+
+  if (m_config.debug && (Verbosity() > 1))
+  {
+    std::cout << "UEvsEtaCentrality::process_event(PHCompositeNode* topNode) Processing Event" << std::endl;
+  }
+
+  // if needed, check if selected trigger fired
+  if (m_config.doTrgSelect)
+  {
+    m_analyzer->decodeTriggers(topNode);
+    bool hasTrigger = JetQADefs::DidTriggerFire(m_config.trgToSelect, m_analyzer);
+    if (!hasTrigger)
+    {
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
+  }
 
   //centrality
   CentralityInfo* cent_node = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
@@ -296,7 +313,7 @@ void UEvsEtaCentrality::InitHistManager()
 {
 
   // print debug message
-  if (m_config.debug && (Verbosity() > 0))
+  if (m_config.debug && (Verbosity() > 1))
   {
     std::cout << "UEvsEtaCentrality::InitHistManager() Initializing histogram manager" << std::endl;
   }
