@@ -42,6 +42,7 @@
 #include <phfield/PHField.h>
 #include <phfield/PHFieldConfig.h>
 #include <phfield/PHFieldConfigv1.h>
+#include <phfield/PHFieldConfigv2.h>
 #include <phfield/PHFieldUtility.h>
 
 #include <phool/PHCompositeNode.h>
@@ -149,6 +150,7 @@ namespace
     }
     else
     {
+      std::cout << "isConstantField - name: " << name << " field strength: " << fieldstrength << std::endl;
       return true;
     }
   }
@@ -205,8 +207,9 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   double fieldstrength = std::numeric_limits<double>::quiet_NaN();
   if( isConstantField( m_magField, fieldstrength ) )
   {
+
     // create uniform field
-    PHFieldConfigv1 fcfg;
+    PHFieldConfigv2 fcfg;
     fcfg.set_field_config(PHFieldConfig::FieldConfigTypes::kFieldUniform);
     fcfg.set_field_mag_x(0);
     fcfg.set_field_mag_y(0);
@@ -217,6 +220,9 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
      * as defined in MakeActsGeometry::buildActsSurfaces
      */
     fcfg.set_magfield_rescale( m_magFieldRescale );
+
+    std::cout << "MakeActsGeometry::InitRun - field config: " << std::endl;
+    fcfg.identify();
 
     // create corresponding map and store on node tree
     PHFieldUtility::GetFieldMapNode(&fcfg, topNode);
