@@ -49,7 +49,8 @@ Afterburner::Afterburner( const std::string &algorithmName,
                           CLHEP::HepRandomEngine *engine,
                           float mineta, float maxeta,
                           float minpt, float maxpt )
-  : m_engine(engine)
+  : m_algo(new AfterburnerAlgo(AfterburnerAlgo::getAlgoFromName(algorithmName)))
+  , m_engine(engine)
   , m_ownAlgo(true)
   , m_ownEngine(engine == nullptr)
   , m_mineta(mineta)
@@ -58,7 +59,7 @@ Afterburner::Afterburner( const std::string &algorithmName,
   , m_maxpt(maxpt)
   , m_phishift(0.0)
 {
-    m_algo = new AfterburnerAlgo(AfterburnerAlgo::getAlgoFromName(algorithmName));
+    
     if (!m_engine)
     {
       // seed with time if no engine is provided
@@ -190,7 +191,7 @@ float Afterburner::getPsiN(unsigned int n) const
   if (n < 1 || n > 6)
   {
     std::cout << PHWHERE << ": Flow Afterburner requested reaction plane angle psi_n for n=" << n << " which is out of range. Returning 0.0" << std::endl;
-    return 0.0f;
+    return 0.0;
   }
   return m_psi_n[n - 1];
 
@@ -218,7 +219,7 @@ void Afterburner::throw_psi_n(HepMC::GenEvent *event)
     std::cout << PHWHERE << ": Flow Afterburner needs the Heavy Ion Event Info, GenEvent::heavy_ion() returns NULL" << std::endl;
     exit(1);
   }
-  float psi_n[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}; // reaction plane angles
+  float psi_n[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // reaction plane angles
   for (int i = 0; i < 6; i++)
   {
     // Principal value must be within -PI/n to PI/n
@@ -230,7 +231,7 @@ void Afterburner::throw_psi_n(HepMC::GenEvent *event)
   psi_n[1] = hi->event_plane_angle();
 
   // Ensure that Psi2 is within [-PI/2,PI/2]
-  psi_n[1] = std::atan2(std::sin(2.0f * psi_n[1]), std::cos(2.0f * psi_n[1])) / 2.0f;
+  psi_n[1] = std::atan2(std::sin(2.0 * psi_n[1]), std::cos(2.0 * psi_n[1])) / 2.0;
 
 
   for (unsigned int i = 1; i <= 6; ++i)
@@ -277,7 +278,8 @@ void Afterburner::AddFlowToParentAndMoveDescendants(HepMC::GenEvent *event, HepM
   F.params = params;
   gsl_root_fsolver_set(s, &F, x_lo, x_hi);
 
-  int status, iter = 0;
+  int status;
+  int iter = 0;
   double phi = 0;
   do
   {
@@ -363,11 +365,11 @@ void Afterburner::readLegacyArguments(
   {
     setAlgo(algorithmName);
   }
-  if (mineta != -5.0f || maxeta != 5.0f)
+  if (mineta != -5.0 || maxeta != 5.0)
   {
     setEtaRange(mineta, maxeta);
   }
-  if (minpt != 0.0f || maxpt != 100.0f)
+  if (minpt != 0.0 || maxpt != 100.0)
   {
     setPtRange(minpt, maxpt);
   }
