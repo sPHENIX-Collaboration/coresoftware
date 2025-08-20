@@ -57,6 +57,7 @@ class BEmcRec
   bool CompleteTowerGeometry();
   void PrintTowerGeometry(const std::string &fname);
   void PrintTowerGeometryDetailed(const std::string &fname);
+  void ClearInitialDetailedGeometry();
 
   void SetPlanarGeometry() { bCYL = false; }
   void SetCylindricalGeometry() { bCYL = true; }

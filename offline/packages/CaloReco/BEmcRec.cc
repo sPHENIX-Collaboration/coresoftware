@@ -122,6 +122,19 @@ void BEmcRec::PrintTowerGeometryDetailed(const std::string& fname)
   outfile.close();
 }
 
+void BEmcRec::ClearInitialDetailedGeometry()
+{
+  // Contrary to the fTowerGeom node,
+  // fTowerGeomDetailed is only used optionally for PrintTowerGeomDetailed()
+  // Memory should be released once it becomes irrelevant.
+
+  for (int ich = 0; ich < (int) fTowerGeomDetailed.size(); ich++)
+  {
+    delete fTowerGeomDetailed[ich];
+  }
+  fTowerGeomDetailed.clear();
+}
+
 bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
 {
   if (ix < 0 || ix >= fNx || iy < 0 || iy >= fNy)

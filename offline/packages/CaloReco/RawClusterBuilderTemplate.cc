@@ -310,6 +310,10 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
       bemc->PrintTowerGeometry(fname);
     }
   }
+
+  // Release memory taken by the RawTowerGeom objects in BEmcRec
+  // Does nothing if the former geometry is used
+  bemc->ClearInitialDetailedGeometry();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
