@@ -192,10 +192,23 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
       else
       {
         std::cout << "RawClusterBuilderTemplate::InitRun - Detailed geometry not implemented for detector " << detector << ". The former geometry is used instead" << std::endl;
+        m_UseDetailedGeometry = false;
+        bemc->set_UseDetailedGeometry(false);
       }
     }
   }
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
+
+  if (!towergeom && m_UseDetailedGeometry)
+  {
+    std::cout << "RawClusterBuilderTemplate::InitRun - Detailed geometry node " << m_TowerGeomNodeName << " is not available. "
+              << "Switching to the former geometry node TOWERGEOM_" << detector << "." << std::endl;
+    m_UseDetailedGeometry = false;
+    m_TowerGeomNodeName = "TOWERGEOM_" + detector;
+    bemc->set_UseDetailedGeometry(false);
+    towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
+  }
+  
   if (!towergeom)
   {
     std::cout << PHWHERE << ": Could not find node " << m_TowerGeomNodeName << std::endl;
@@ -297,7 +310,7 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
       bemc->PrintTowerGeometry(fname);
     }
   }
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -350,6 +363,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     }
   }
 
+  // At this stage, it is more efficient to read the simple geometry node in any case
+  // Indeed, we only need to read the calorimeter ID
   m_TowerGeomNodeName = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
   if (!towergeom)
