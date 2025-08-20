@@ -176,7 +176,7 @@ class RawTowerGeomv5 : public RawTowerGeom
     std::numeric_limits<double>:: quiet_NaN()
   };
   
-  ClassDefOverride(RawTowerGeomv5, 4)
+  ClassDefOverride(RawTowerGeomv5, 1)
 };
 
 #endif
