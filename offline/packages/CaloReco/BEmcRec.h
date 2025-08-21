@@ -6,8 +6,9 @@
 // Modified from EmcSectorRec.h and EmcScSectorRec.h
 
 #include "BEmcCluster.h"
-#include "calobase/RawTowerGeom.h"
-#include "calobase/RawTowerGeomv5.h"
+
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomv5.h>
 
 #include <algorithm>  // for max
 #include <limits>

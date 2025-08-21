@@ -130,7 +130,7 @@ void BEmcRec::ClearInitialDetailedGeometry()
 
   for (auto & ich : fTowerGeomDetailed)
   {
-    delete ich;
+    delete ich.second;
   }
   fTowerGeomDetailed.clear();
 }
