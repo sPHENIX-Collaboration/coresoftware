@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>                            // for pair
 
+
 using namespace std;
 
 class PHCompositeNode;
@@ -92,6 +93,7 @@ int HepMCFlowAfterBurner::process_event(PHCompositeNode *topNode)
            << ", maxpt: " << maxpt << endl;
     }
 
+
     m_afterburner->flowAfterburner(evt);
 
     for ( unsigned int i=1; i<=6; ++i)
@@ -101,6 +103,11 @@ int HepMCFlowAfterBurner::process_event(PHCompositeNode *topNode)
       {
         cout << "  set reaction plane angle psi_" << i << " = " << genevt->get_flow_psi(i) << endl;
       }
+    }
+
+    if (Verbosity() > 1)
+    {
+      m_afterburner->getAlgo()->print();
     }
 
     // flowAfterburner(evt, engine, algorithmName, mineta, maxeta, minpt, maxpt);
