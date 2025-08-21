@@ -93,6 +93,7 @@ class CaloPacketSkimmer : public SubsysReco
   }
 
   TH1D* h_aborted_events{nullptr};
+  TH1D* h_kept_events{nullptr};
 };
 
 #endif

@@ -55,6 +55,10 @@ int CaloPacketSkimmer::InitRun(PHCompositeNode * /*topNode*/)
   h_aborted_events->SetDirectory(nullptr);
   hm->registerHisto(h_aborted_events);
 
+  h_kept_events = new TH1D("h_caloskimmer_kept_events", "Kept Events", 1, 0, 1);
+  h_kept_events->SetDirectory(nullptr);
+  hm->registerHisto(h_kept_events);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -80,6 +84,7 @@ int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
     }
   }
 
+  h_kept_events->Fill(1); // Increment histogram for kept events
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
