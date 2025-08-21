@@ -128,9 +128,9 @@ void BEmcRec::ClearInitialDetailedGeometry()
   // fTowerGeomDetailed is only used optionally for PrintTowerGeomDetailed()
   // Memory should be released once it becomes irrelevant.
 
-  for (int ich = 0; ich < (int) fTowerGeomDetailed.size(); ich++)
+  for (auto & ich : fTowerGeomDetailed)
   {
-    delete fTowerGeomDetailed[ich];
+    delete ich;
   }
   fTowerGeomDetailed.clear();
 }
