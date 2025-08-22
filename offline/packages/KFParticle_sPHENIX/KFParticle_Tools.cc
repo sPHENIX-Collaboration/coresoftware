@@ -1183,21 +1183,20 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   m_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-  if(!m_cluster_map || !m_geom_container)
+  if(!m_cluster_map || !m_geom_container || !geometry)
   {
-    std::cout << "Can't continue in KFParticle_Tools::get_dEdx, returning -1" << std::endl;
     return -1.0;
   }
 
   SvtxTrack *daughter_track = toolSet.getTrack(daughter.Id(), m_dst_trackmap);
   TrackSeed *tpcseed = daughter_track->get_tpc_seed();
   float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
-      // These are randomly chosen layer thicknesses for the TPC, to get the
-      // correct region thicknesses in an easy to pass way to the helper fxn
-      layerThicknesses[0] = m_geom_container->GetLayerCellGeom(7)->get_thickness();
-      layerThicknesses[1] = m_geom_container->GetLayerCellGeom(8)->get_thickness();
-      layerThicknesses[2] = m_geom_container->GetLayerCellGeom(27)->get_thickness();
-      layerThicknesses[3] = m_geom_container->GetLayerCellGeom(50)->get_thickness();
+  // These are randomly chosen layer thicknesses for the TPC, to get the
+  // correct region thicknesses in an easy to pass way to the helper fxn
+  layerThicknesses[0] = m_geom_container->GetLayerCellGeom(7)->get_thickness();
+  layerThicknesses[1] = m_geom_container->GetLayerCellGeom(8)->get_thickness();
+  layerThicknesses[2] = m_geom_container->GetLayerCellGeom(27)->get_thickness();
+  layerThicknesses[3] = m_geom_container->GetLayerCellGeom(50)->get_thickness();
 
   return TrackAnalysisUtils::calc_dedx(tpcseed, m_cluster_map, geometry, layerThicknesses);
     
