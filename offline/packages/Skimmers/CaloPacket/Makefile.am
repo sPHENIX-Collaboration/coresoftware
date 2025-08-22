@@ -24,7 +24,8 @@ libCaloPacketSkimmer_la_LIBADD = \
   -lSubsysReco \
   -lcalo_io \
   -lffarawobjects \
-  -lg4jets
+  -lg4jets \
+  -lqautils
 
 
 BUILT_SOURCES = testexternals.cc

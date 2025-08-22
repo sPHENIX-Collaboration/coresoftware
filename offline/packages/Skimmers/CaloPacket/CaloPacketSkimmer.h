@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <TH1D.h>
 
 class PHCompositeNode;
 
@@ -24,7 +25,7 @@ class CaloPacketSkimmer : public SubsysReco
   {
     m_CaloDetectors = {CaloTowerDefs::CEMC, CaloTowerDefs::HCALIN,
                        CaloTowerDefs::HCALOUT, CaloTowerDefs::SEPD,
-                       CaloTowerDefs::ZDC};
+                       CaloTowerDefs::ZDC, CaloTowerDefs::MBD};
   }
 
   void set_detector_on(CaloTowerDefs::DetectorSystem det)
@@ -43,7 +44,7 @@ class CaloPacketSkimmer : public SubsysReco
  private:
   std::vector<CaloTowerDefs::DetectorSystem> m_CaloDetectors{
       CaloTowerDefs::CEMC, CaloTowerDefs::HCALIN, CaloTowerDefs::HCALOUT,
-      CaloTowerDefs::SEPD, CaloTowerDefs::ZDC};
+      CaloTowerDefs::SEPD, CaloTowerDefs::ZDC, CaloTowerDefs::MBD};
   bool m_UseOfflinePacketFlag{true};
   bool m_PacketNodesFlag{false};
 
@@ -90,6 +91,9 @@ class CaloPacketSkimmer : public SubsysReco
       return {0, 0};  // Invalid range
     }
   }
+
+  TH1D* h_aborted_events{nullptr};
+  TH1D* h_kept_events{nullptr};
 };
 
 #endif
