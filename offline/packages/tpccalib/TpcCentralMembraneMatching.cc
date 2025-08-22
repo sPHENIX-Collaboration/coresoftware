@@ -1411,7 +1411,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       reco_r_phi[1]->Fill(tmp_pos.Phi(), tmp_pos.Perp());
     }
 
-    if (Verbosity())
+    if (Verbosity() > 2)
     {
       double raw_rad = sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
       double static_rad = sqrt(tmp_static.X() * tmp_static.X() + tmp_static.Y() * tmp_static.Y());
@@ -1468,7 +1468,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     m_reco_RMatches[0] = doGlobalRMatching(reco_r_phi[0], false);
     m_reco_RMatches[1] = doGlobalRMatching(reco_r_phi[1], true);
 
-    if (Verbosity())
+    if (Verbosity() > 2)
     {
       for (int i = 0; i < (int) m_reco_RMatches[0].size(); i++)
       {
@@ -1856,7 +1856,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   } // end else for fancy
 
   // print some statistics:
-  if (Verbosity())
+  if (Verbosity() > 1)
   {
     const auto n_valid_truth = std::count_if(m_truth_pos.begin(), m_truth_pos.end(), [](const TVector3& pos)
      { return get_r(pos.x(), pos.y()) > 30; });
@@ -2032,7 +2032,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     ckey++;
   }
 
-  if (Verbosity())
+  if (Verbosity() > 1)
   {
     std::cout << "TpcCentralMembraneMatching::process_events - cmclusters: " << m_corrected_CMcluster_map->size() << std::endl;
     std::cout << "TpcCentralMembraneMatching::process_events - matched pairs: " << nMatched << std::endl;

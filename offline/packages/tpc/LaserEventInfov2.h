@@ -26,12 +26,16 @@ class LaserEventInfov2 : public LaserEventInfov1
   bool isGl1LaserPileupEvent() const override { return m_isGl1LaserPileupEvent; }
   void setIsGl1LaserPileupEvent(const bool isGl1LaserPileupEvent) override { m_isGl1LaserPileupEvent = isGl1LaserPileupEvent; }
 
+  uint64_t getBCO() const override { return m_bco; }
+  void setBCO(const uint64_t bco) override { m_bco = bco; }
+
  protected:
 
   bool m_canHaveGl1Data{false};
   bool m_isGl1LaserEvent{false};
   bool m_isGl1LaserPileupEvent{false};
-
+  uint64_t m_bco{0};
+  
   ClassDefOverride(LaserEventInfov2, 1);
 };
 

@@ -32,6 +32,9 @@ class LaserEventInfo : public PHObject
   virtual bool isGl1LaserPileupEvent() const { return false; }
   virtual void setIsGl1LaserPileupEvent(const bool /*isLaserEvent*/) {}
 
+  virtual uint64_t getBCO() const { return 0; }
+  virtual void setBCO(const uint64_t /*bco*/) {}
+
   virtual int getPeakSample(const bool /*side*/) const { return std::numeric_limits<int>::max(); }
   virtual void setPeakSample(const bool /*side*/, const int /*sample*/) {}
 
