@@ -2,6 +2,7 @@
 #define CALOBASE_PHOTONCLUSTER_H
 
 #include <phool/phool.h>
+#include <Rtypes.h>  // for ROOT dictionary macro definitions
 #include <iostream>
 #include <limits>
 
@@ -18,8 +19,6 @@
 class PhotonCluster 
 {
  public:
-  PhotonCluster() = default;
-  
   //! Virtual destructor for proper cleanup via base pointer
   virtual ~PhotonCluster() = default;
 
@@ -92,9 +91,11 @@ class PhotonCluster
   //! @}
 
  protected:
-  // Intentionally empty – no state in interface. Concrete implementations own storage.
-  PhotonCluster() {}
+  // Prevent direct instantiation; allow construction by derived classes only.
+  PhotonCluster() = default;
 
+  // Interface-only class (no PHObject inheritance) -> no overrides of ROOT virtuals
+  // Use plain ClassDef to generate dictionary if needed for containers holding PhotonCluster*.
   ClassDef(PhotonCluster, 1)
 };
 
