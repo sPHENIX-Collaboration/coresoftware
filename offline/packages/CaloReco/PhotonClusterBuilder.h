@@ -42,14 +42,14 @@ class PhotonClusterBuilder : public SubsysReco
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
-  void calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon);
+  void calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon, float eta, float phi);
   void calculate_bdt_score(PhotonClusterv1* photon);
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);
   double deltaR(double eta1, double phi1, double eta2, double phi2);
 
 
-  std::string m_input_cluster_node{"CLUSTER_CEMC"};
+  std::string m_input_cluster_node{"CLUSTERINFO_CEMC"};
   std::string m_output_photon_node{"PHOTONCLUSTER_CEMC"};
   float m_min_cluster_et{5.0f};
   float m_shape_min_tower_E{0.070f};

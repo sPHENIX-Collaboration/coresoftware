@@ -1,12 +1,21 @@
 #include "PhotonClusterBuilder.h"
 
 #include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterUtility.h>
 #include <calobase/RawClusterv1.h>
 #include <calobase/RawCluster.h>
 #include <calobase/PhotonClusterContainer.h>
 #include <calobase/PhotonClusterv1.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
+#include <calobase/RawTowerGeomContainer.h>
+
+
+// Tower stuff
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfoDefs.h>
+#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
 // for the vertex
@@ -174,8 +183,10 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
     { 
         continue; 
     }
+    CLHEP::Hep3Vector vertex_vec(0, 0, vertex);
 
-    float eta = RawClusterUtility::GetPseudorapidity(*rc, vertex);
+    float eta = RawClusterUtility::GetPseudorapidity(*rc,  vertex_vec);
+    float phi = RawClusterUtility::GetAzimuthAngle(*rc,  vertex_vec);
     float E = rc->get_energy();
     float ET = E / cosh(eta);
     if (ET < m_min_cluster_et) 
@@ -189,8 +200,8 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
         continue;
     }
     PhotonClusterv1* photon = new PhotonClusterv1(*rcv1);
-    
-    calculate_shower_shapes(rc, photon);
+
+    calculate_shower_shapes(rc, photon, eta, phi);
     calculate_bdt_score(photon);
 
     m_photon_container->AddCluster(photon);
@@ -216,16 +227,14 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
 
   std::vector<float> x = {e11_over_e33, et1, et2, et3, et4};
 
-  float bdt_score = -2; // default value
-  if (photon->get_et() > 7)
-  {
-    bdt_score = m_bdt->Compute(x)[0];
-  }
+  float bdt_score = -1; // default value
+
+  bdt_score = m_bdt->Compute(x)[0];
   photon->set_shower_shape_parameter("bdt_score", bdt_score);
 }
 
 
-void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon)
+void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon, float cluster_eta, float cluster_phi)
 {
     std::vector<float> showershape = rc->get_shower_shapes(m_shape_min_tower_E);
     if (showershape.empty())
@@ -425,9 +434,9 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
     photon->set_shower_shape_parameter("w72", w72);
 
     // HCAL info
-    std::vector<int> ihcal_tower = find_closest_hcal_tower(photon->get_eta(), photon->get_phi(), m_geomIH, m_ihcal_tower_container, 0.0, true);
-    std::vector<int> ohcal_tower = find_closest_hcal_tower(photon->get_eta(), photon->get_phi(), m_geomOH, m_ohcal_tower_container, 0.0, false);
-    
+    std::vector<int> ihcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomIH, m_ihcal_tower_container, 0.0, true);
+    std::vector<int> ohcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomOH, m_ohcal_tower_container, 0.0, false);
+
     float ihcal_et = 0;
     float ohcal_et = 0;
     float ihcal_et22 = 0;
