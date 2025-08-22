@@ -29,6 +29,7 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackAnalysisUtils.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
@@ -1181,6 +1182,7 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name.c_str());
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   m_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if(!m_cluster_map || !m_geom_container)
   {
     std::cout << "Can't continue in KFParticle_Tools::get_dEdx, returning -1" << std::endl;
@@ -1189,57 +1191,16 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
 
   SvtxTrack *daughter_track = toolSet.getTrack(daughter.Id(), m_dst_trackmap);
   TrackSeed *tpcseed = daughter_track->get_tpc_seed();
+  float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
+      // These are randomly chosen layer thicknesses for the TPC, to get the
+      // correct region thicknesses in an easy to pass way to the helper fxn
+      layerThicknesses[0] = m_geom_container->GetLayerCellGeom(7)->get_thickness();
+      layerThicknesses[1] = m_geom_container->GetLayerCellGeom(8)->get_thickness();
+      layerThicknesses[2] = m_geom_container->GetLayerCellGeom(27)->get_thickness();
+      layerThicknesses[3] = m_geom_container->GetLayerCellGeom(50)->get_thickness();
 
-  std::vector<TrkrDefs::cluskey> clusterKeys;
-  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(), tpcseed->end_cluster_keys());
-  std::vector<float> dedxlist;
-  for (unsigned long cluster_key : clusterKeys)
-  {
-    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-    if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId)
-    {
-        continue;
-    }
-    TrkrCluster* cluster = m_cluster_map->findCluster(cluster_key);
-
-    float adc = cluster->getAdc();
-    PHG4TpcCylinderGeom* GeoLayer_local = m_geom_container->GetLayerCellGeom(layer_local);
-    float thick = GeoLayer_local->get_thickness();
+  return TrackAnalysisUtils::calc_dedx(tpcseed, m_cluster_map, geometry, layerThicknesses);
     
-    float r = GeoLayer_local->get_radius();
-    float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
-    float beta = atan(tpcseed->get_slope());
-
-    float alphacorr = cos(alpha);
-    if(alphacorr<0||alphacorr>4)
-    {
-      alphacorr=4;
-    }
-
-    float betacorr = cos(beta);
-    if(betacorr<0||betacorr>4)
-    {
-      betacorr=4;
-    }
-
-    adc/=thick;
-    adc*=alphacorr;
-    adc*=betacorr;
-    dedxlist.push_back(adc);
-    sort(dedxlist.begin(), dedxlist.end());
-  }
-
-  int trunc_min = 0;
-  int trunc_max = (int)dedxlist.size()*0.7;
-  float sumdedx = 0;
-  int ndedx = 0;
-  for(int j = trunc_min; j<=trunc_max;j++)
-  {
-    sumdedx+=dedxlist.at(j);
-    ndedx++;
-  }
-  sumdedx/=ndedx;
-  return sumdedx;
 }
 
 void KFParticle_Tools::init_dEdx_fits()

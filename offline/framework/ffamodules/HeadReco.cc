@@ -84,6 +84,10 @@ int HeadReco::process_event(PHCompositeNode *topNode)
           {
             evtheader->set_ImpactParameter(hi->impact_parameter());
             evtheader->set_EventPlaneAngle(hi->event_plane_angle());
+            for (unsigned int n = 1; n <= 6; ++n)
+            {
+              evtheader->set_FlowPsiN(n, genevt->get_flow_psi(n));
+            }
             evtheader->set_eccentricity(hi->eccentricity());
             evtheader->set_ncoll(hi->Ncoll());
             evtheader->set_npart(hi->Npart_targ() + hi->Npart_proj());

@@ -1,7 +1,7 @@
-
 #include "CaloPacketSkimmer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllHistoManager.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
@@ -10,11 +10,16 @@
 #include <ffarawobjects/CaloPacketContainer.h>
 #include <variant>
 
+#include <qautils/QAHistManagerDef.h>
+
 #include <phool/getClass.h>
 
+
+#include <cassert>
 #include <iostream>  // for operator<<, basic_ostream
 #include <map>       // for operator!=, _Rb_tree_iterator
 #include <utility>   // for pair
+#include <TH1.h>
 
 static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
     {CaloTowerDefs::CEMC, "CEMCPackets"},
@@ -43,6 +48,17 @@ int CaloPacketSkimmer::InitRun(PHCompositeNode * /*topNode*/)
     std::cout << std::endl;
   }
 
+  auto* hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  h_aborted_events = new TH1D("h_caloskimmer_aborted_events", "Aborted Events", 1, 0, 1);
+  h_aborted_events->SetDirectory(nullptr);
+  hm->registerHisto(h_aborted_events);
+
+  h_kept_events = new TH1D("h_caloskimmer_kept_events", "Kept Events", 1, 0, 1);
+  h_kept_events->SetDirectory(nullptr);
+  hm->registerHisto(h_kept_events);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -61,12 +77,14 @@ int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity() > 1)
       {
-        std::cout << "CaloPacketSkimmer: Skipping event due to failure in detector: " << getDetectorName(det) << std::endl;
+        std::cout << "CaloPacketSkimmer::process_event - Detector " << getDetectorName(det) << " failed" << std::endl;
       }
+      h_aborted_events->Fill(1); // Increment histogram for aborted events
       return ret;
     }
   }
 
+  h_kept_events->Fill(1); // Increment histogram for kept events
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

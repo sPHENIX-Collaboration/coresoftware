@@ -12,8 +12,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
 
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
@@ -59,10 +59,11 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret; }
 
-  // both configurations are identical, use field map from node tree
-  _field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  // load magnetic field from node tree
+  /* note: if field is not found it is created with default configuration, as defined in PHFieldUtility */
+  const auto field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  fitter = std::make_unique<ALICEKF>(_cluster_map,_field_map, _min_clusters_per_track,_max_sin_phi,Verbosity());
+  fitter = std::make_unique<ALICEKF>(_cluster_map,field_map, _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
@@ -72,8 +73,11 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
-  //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
-  // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
+
+  // properly set constField in ALICEKF, based on PHFieldConfig
+  const auto field_config = PHFieldUtility::GetFieldConfigNode(nullptr, topNode);
+  if( field_config->get_field_config() == PHFieldConfig::kFieldUniform )
+  { fitter->setConstBField(field_config->get_field_mag_z()); }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

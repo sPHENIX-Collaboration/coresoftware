@@ -11,6 +11,8 @@
 
 #include <iostream>  // for cout, ostream
 
+#include <map>
+
 namespace HepMC
 {
   class GenEvent;
@@ -24,6 +26,13 @@ class PHHepMCGenEvent : public PHObject
   PHHepMCGenEvent(const PHHepMCGenEvent& event);
   PHHepMCGenEvent& operator=(const PHHepMCGenEvent& event);
   ~PHHepMCGenEvent() override;
+
+
+  //! \brief reaction plane angles thrown by hijing flowAfterburner 
+  // ! only will be filled if the flowAfterburner enabled and input HepMC is from hijing
+  // ! it is a map of n to psi_n[n]
+  typedef std::map<unsigned int, float> FlowAfterburner_PsiMap;
+
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
@@ -53,6 +62,7 @@ class PHHepMCGenEvent : public PHObject
 
   //! whether this event has been processed in Geant4 simulation
   void is_simulated(bool v) { _isSimulated = v; }
+
 
   //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
   const HepMC::FourVector& get_collision_vertex() const { return _collisionVertex; }
@@ -97,6 +107,31 @@ class PHHepMCGenEvent : public PHObject
 
   //!LorentzRotation to translate from lab frame to hepmc event frame
   virtual CLHEP::HepLorentzRotation get_LorentzRotation_Lab2EvtGen() const { return CLHEP::HepLorentzRotation::IDENTITY; }
+
+
+  //! reaction plane angles thrown by hijing flowAfterburner
+  virtual float get_flow_psi(unsigned int /* n */) const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return 0.0f;
+  }
+
+  // ! get the reaction plane angle psi_n[n]
+  virtual const FlowAfterburner_PsiMap& get_flow_psi_map() const 
+  { 
+    PHOOL_VIRTUAL_WARNING;
+    static FlowAfterburner_PsiMap dummy_map;
+    return dummy_map; 
+  }
+
+  //! set the reaction plane angle psi_n[n]
+  virtual void set_flow_psi(unsigned int /*n*/, float /*psi*/) { PHOOL_VIRTUAL_WARNING; }
+
+  virtual void set_flow_psi_map(const FlowAfterburner_PsiMap& /*psi_map*/)
+  {
+    PHOOL_VIRTUAL_WARNING;
+  }
+
 
   //! host an HepMC event
   bool addEvent(HepMC::GenEvent* evt);

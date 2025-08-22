@@ -60,7 +60,7 @@ int GlobalQA::Init(PHCompositeNode * /*unused*/)
   {
     std::cout << "In GlobalQA::Init" << std::endl;
   }
- 
+
   createHistos();
 
   if (m_debug)
@@ -114,37 +114,34 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     triggervec = gl1PacketInfo->getScaledVector();
   }
 
-  if ((triggervec >> 0xAU) & 0x1U)
+  //--------------------------- MBD vertex------------------------------//
+  MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+  MbdVertex *bvertex = nullptr;
+  float mbd_zvtx = std::numeric_limits<float>::quiet_NaN();
+  if (mbdmap)
   {
-    //--------------------------- MBD vertex------------------------------//
-    MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-    MbdVertex *bvertex = nullptr;
-    float mbd_zvtx = std::numeric_limits<float>::quiet_NaN();
-    if (mbdmap)
+    for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
     {
-      for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
-      {
-        bvertex = mbditer->second;
-      }
-      if (bvertex)
-      {
-        mbd_zvtx = bvertex->get_z();
-      }
+      bvertex = mbditer->second;
     }
-    h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
-    h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
-    if (!std::isfinite(mbd_zvtx))
+    if (bvertex)
     {
-      h_GlobalQA_mbd_zvtxq->SetBinContent(1, h_GlobalQA_mbd_zvtxq->GetBinContent(1) + 1);
+      mbd_zvtx = bvertex->get_z();
     }
-    else
-    {
-      h_GlobalQA_mbd_zvtxq->SetBinContent(2, h_GlobalQA_mbd_zvtxq->GetBinContent(2) + 1);
-    }
+  }
+  h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
+  h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
+  if (!std::isfinite(mbd_zvtx))
+  {
+    h_GlobalQA_mbd_zvtxq->SetBinContent(1, h_GlobalQA_mbd_zvtxq->GetBinContent(1) + 1);
+  }
+  else
+  {
+    h_GlobalQA_mbd_zvtxq->SetBinContent(2, h_GlobalQA_mbd_zvtxq->GetBinContent(2) + 1);
   }
 
   //--------------------------- sEPD ------------------------------//
-  
+
   if (triggervec & mbdtrig)  // Any MBD trigger (bits 10-15)
   {
     //--------------------------- sEPD ------------------------------//
@@ -175,16 +172,16 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
         float phibin = (float) (TowerInfoDefs::get_epd_phibin(key));
         if (!isZS)
         {
-            if (arm == 0)
-            {
-              sepdsouthadcsum += _e;
-              h2Profile_GlobalQA_sEPD_tiles_south->Fill(rbin, phibin, _e);
-            }
-            else if (arm == 1)
-            {
-              sepdnorthadcsum += _e;
-              h2Profile_GlobalQA_sEPD_tiles_north->Fill(rbin, phibin, _e);
-            }
+          if (arm == 0)
+          {
+            sepdsouthadcsum += _e;
+            h2Profile_GlobalQA_sEPD_tiles_south->Fill(rbin, phibin, _e);
+          }
+          else if (arm == 1)
+          {
+            sepdnorthadcsum += _e;
+            h2Profile_GlobalQA_sEPD_tiles_north->Fill(rbin, phibin, _e);
+          }
         }
       }
 
@@ -194,182 +191,176 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     }
   }
 
-  if ((triggervec >> 0x3U) & 0x1U)
-  {
-    // ------------------------------------- ZDC
-    // -----------------------------------------//
+  // ------------------------------------- ZDC
+  // -----------------------------------------//
 
-    Zdcinfo *zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
-    float totalzdcsouthcalib = 0.;
-    float totalzdcnorthcalib = 0.;
-    if (zdcinfo)
+  Zdcinfo *zdcinfo = findNode::getClass<Zdcinfo>(topNode, "Zdcinfo");
+  float totalzdcsouthcalib = 0.;
+  float totalzdcnorthcalib = 0.;
+  if (zdcinfo)
+  {
+    totalzdcsouthcalib = zdcinfo->get_zdc_energy(0);
+    totalzdcnorthcalib = zdcinfo->get_zdc_energy(1);
+    zdc_zvtx = zdcinfo->get_zvertex();
+    h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
+    h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
+    h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
+    h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
+  }
+
+  //--------------------------- MBD ----------------------------------------//
+  MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
+  if (!bbcpmts)
+  {
+    std::cout << "GlobalQA::process_event: Could not find MbdPmtContainer,"
+              << std::endl;
+    // return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  //    int hits = 0;
+  int hits_n = 0;
+  int hits_s = 0;
+  int hits_n_t = 0;
+  int hits_s_t = 0;
+  std::vector<float> time_sum_s;
+  std::vector<float> time_sum_n;
+  float sum_s = 0.;
+  float sum_n = 0.;
+  float sum_s2 = 0.;
+  float sum_n2 = 0.;
+  float tot_charge_s = 0.;
+  float tot_charge_n = 0.;
+
+  float charge_thresh = 0.4;
+  if (bbcpmts)
+  {
+    int nPMTs = bbcpmts->get_npmt();
+    for (int i = 0; i < nPMTs; i++)
     {
-      totalzdcsouthcalib = zdcinfo->get_zdc_energy(0);
-      totalzdcnorthcalib = zdcinfo->get_zdc_energy(1);
-      zdc_zvtx = zdcinfo->get_zvertex();
-      h_GlobalQA_zdc_zvtx->Fill(zdc_zvtx);
-      h_GlobalQA_zdc_zvtx_wide->Fill(zdc_zvtx);
-      h_GlobalQA_zdc_energy_s->Fill(totalzdcsouthcalib);
-      h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
+      MbdPmtHit *mbdpmt = bbcpmts->get_pmt(i);
+      float q = mbdpmt->get_q();
+      float t = mbdpmt->get_time();
+      if (i < 64)
+      {
+        tot_charge_s += q;
+        if (q > charge_thresh)
+        {
+          hits_s++;
+        }
+        if (i == 56 || std::isnan(t))
+        {
+          continue;
+        }
+        hits_s_t++;
+        time_sum_s.push_back(t);
+        sum_s += t;
+        sum_s2 += t * t;
+      }
+      else if (i >= 64)
+      {
+        tot_charge_n += q;
+        if (q > charge_thresh)
+        {
+          hits_n++;
+        }
+        if (i == 120 || std::isnan(t))
+        {
+          continue;
+        }
+        hits_n_t++;
+        time_sum_n.push_back(t);
+        sum_n += t;
+        sum_n2 += t * t;
+      }
+      // if (q > charge_thresh) {
+      //   hits++;
+      // }
     }
   }
 
-  if ((triggervec >> 0xAU) & 0x1U)
+  // Calculating the zvtx
+  std::sort(time_sum_n.begin(), time_sum_n.end());
+  std::sort(time_sum_s.begin(), time_sum_s.end());
+  unsigned length_s = time_sum_s.size();
+  unsigned length_n = time_sum_n.size();
+  float mean_north = 999;
+  float mean_south = 999;
+  int central_cut = 4;
+  float sigma_cut = 1.5;
+
+  if (hits_s_t >= central_cut)
   {
-    //--------------------------- MBD ----------------------------------------//
-    MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
-    if (!bbcpmts)
-    {
-      std::cout << "GlobalQA::process_event: Could not find MbdPmtContainer,"
-                << std::endl;
-      // return Fun4AllReturnCodes::ABORTEVENT;
-    }
+    mean_south = sum_s / static_cast<float>(hits_s_t);
+    float rms_s = std::sqrt((sum_s2 / static_cast<float>(hits_s_t)) - (mean_south * mean_south));
+    int nhit_s_center = 0;
+    float sum_s_center = 0.;
 
-    //    int hits = 0;
-    int hits_n = 0;
-    int hits_s = 0;
-    int hits_n_t = 0;
-    int hits_s_t = 0;
-    std::vector<float> time_sum_s;
-    std::vector<float> time_sum_n;
-    float sum_s = 0.;
-    float sum_n = 0.;
-    float sum_s2 = 0.;
-    float sum_n2 = 0.;
-    float tot_charge_s = 0.;
-    float tot_charge_n = 0.;
-
-    float charge_thresh = 0.4;
-    if (bbcpmts)
+    for (unsigned int is = 0; is < length_s; is++)
     {
-      int nPMTs = bbcpmts->get_npmt();
-      for (int i = 0; i < nPMTs; i++)
+      if (std::fabs(time_sum_s.at(is) - mean_south) < sigma_cut * rms_s)
       {
-        MbdPmtHit *mbdpmt = bbcpmts->get_pmt(i);
-        float q = mbdpmt->get_q();
-        float t = mbdpmt->get_time();
-        if (i < 64)
-        {
-          tot_charge_s += q;
-          if (q > charge_thresh)
-          {
-            hits_s++;
-          }
-          if (i == 56 || std::isnan(t))
-          {
-            continue;
-          }
-          hits_s_t++;
-          time_sum_s.push_back(t);
-          sum_s += t;
-          sum_s2 += t * t;
-        }
-        else if (i >= 64)
-        {
-          tot_charge_n += q;
-          if (q > charge_thresh)
-          {
-            hits_n++;
-          }
-          if (i == 120 || std::isnan(t))
-          {
-            continue;
-          }
-          hits_n_t++;
-          time_sum_n.push_back(t);
-          sum_n += t;
-          sum_n2 += t * t;
-        }
-        // if (q > charge_thresh) {
-        //   hits++;
-        // }
+        sum_s_center += time_sum_s.at(is);
+        nhit_s_center++;
       }
     }
 
-    // Calculating the zvtx
-    std::sort(time_sum_n.begin(), time_sum_n.end());
-    std::sort(time_sum_s.begin(), time_sum_s.end());
-    unsigned length_s = time_sum_s.size();
-    unsigned length_n = time_sum_n.size();
-    float mean_north = 999;
-    float mean_south = 999;
-    int central_cut = 4;
-    float sigma_cut = 1.5;
-
-    if (hits_s_t >= central_cut)
+    if (nhit_s_center > 0)
     {
-      mean_south = sum_s / static_cast<float>(hits_s_t);
-      float rms_s = std::sqrt((sum_s2 / static_cast<float>(hits_s_t)) - (mean_south * mean_south));
-      int nhit_s_center = 0;
-      float sum_s_center = 0.;
-
-      for (unsigned int is = 0; is < length_s; is++)
-      {
-        if (std::fabs(time_sum_s.at(is) - mean_south) < sigma_cut * rms_s)
-        {
-          sum_s_center += time_sum_s.at(is);
-          nhit_s_center++;
-        }
-      }
-
-      if (nhit_s_center > 0)
-      {
-        float mean_south_center =
-            sum_s_center / static_cast<float>(nhit_s_center);
-        mean_south = mean_south_center;
-      }
+      float mean_south_center =
+          sum_s_center / static_cast<float>(nhit_s_center);
+      mean_south = mean_south_center;
     }
-    else if (hits_s >= 2 && (hits_s_t >= 1))
-    {
-      mean_south = sum_s / static_cast<float>(hits_s_t);
-    }
-
-    if (hits_n_t >= central_cut)
-    {
-      mean_north = sum_n / static_cast<float>(hits_n_t);
-      float rms_n = std::sqrt((sum_n2 / static_cast<float>(hits_n_t)) - (mean_north * mean_north));
-      int nhit_n_center = 0;
-      float sum_n_center = 0.;
-
-      for (unsigned int ino = 0; ino < length_n; ino++)
-      {
-        if (std::abs(time_sum_n.at(ino) - mean_north) < sigma_cut * rms_n)
-        {
-          sum_n_center += time_sum_n.at(ino);
-          nhit_n_center++;
-        }
-      }
-
-      if (nhit_n_center > 0)
-      {
-        float mean_north_center = sum_n_center / static_cast<float>(nhit_n_center);
-        mean_north = mean_north_center;
-      }
-    }
-    else if (hits_n >= 2 && hits_n_t >= 1)
-    {
-      mean_north = sum_n / static_cast<float>(hits_n_t);
-    }
-    float calc_zvtx;
-    if (mean_north != 999 && mean_south != 999)
-    {
-      calc_zvtx = 15 * (mean_south - mean_north);
-    }
-    else
-    {
-      calc_zvtx = 999;
-    }
-
-    h_GlobalQA_calc_zvtx->Fill(calc_zvtx);
-    h_GlobalQA_calc_zvtx_wide->Fill(calc_zvtx);
-    h_GlobalQA_mbd_charge_s->Fill(tot_charge_s);
-    h_GlobalQA_mbd_charge_n->Fill(tot_charge_n);
-    h_GlobalQA_mbd_nhit_s->Fill(hits_s);
-    h_GlobalQA_mbd_nhit_n->Fill(hits_n);
-    h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s + tot_charge_n);
-    h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_s, tot_charge_n);
-    h2_GlobalQA_mbd_nhits_NS_correlation->Fill(hits_s, hits_n);
   }
+  else if (hits_s >= 2 && (hits_s_t >= 1))
+  {
+    mean_south = sum_s / static_cast<float>(hits_s_t);
+  }
+
+  if (hits_n_t >= central_cut)
+  {
+    mean_north = sum_n / static_cast<float>(hits_n_t);
+    float rms_n = std::sqrt((sum_n2 / static_cast<float>(hits_n_t)) - (mean_north * mean_north));
+    int nhit_n_center = 0;
+    float sum_n_center = 0.;
+
+    for (unsigned int ino = 0; ino < length_n; ino++)
+    {
+      if (std::abs(time_sum_n.at(ino) - mean_north) < sigma_cut * rms_n)
+      {
+        sum_n_center += time_sum_n.at(ino);
+        nhit_n_center++;
+      }
+    }
+
+    if (nhit_n_center > 0)
+    {
+      float mean_north_center = sum_n_center / static_cast<float>(nhit_n_center);
+      mean_north = mean_north_center;
+    }
+  }
+  else if (hits_n >= 2 && hits_n_t >= 1)
+  {
+    mean_north = sum_n / static_cast<float>(hits_n_t);
+  }
+  float calc_zvtx;
+  if (mean_north != 999 && mean_south != 999)
+  {
+    calc_zvtx = 15 * (mean_south - mean_north);
+  }
+  else
+  {
+    calc_zvtx = 999;
+  }
+
+  h_GlobalQA_calc_zvtx->Fill(calc_zvtx);
+  h_GlobalQA_calc_zvtx_wide->Fill(calc_zvtx);
+  h_GlobalQA_mbd_charge_s->Fill(tot_charge_s);
+  h_GlobalQA_mbd_charge_n->Fill(tot_charge_n);
+  h_GlobalQA_mbd_nhit_s->Fill(hits_s);
+  h_GlobalQA_mbd_nhit_n->Fill(hits_n);
+  h_GlobalQA_mbd_charge_sum->Fill(tot_charge_s + tot_charge_n);
+  h2_GlobalQA_mbd_charge_NS_correlation->Fill(tot_charge_s, tot_charge_n);
+  h2_GlobalQA_mbd_nhits_NS_correlation->Fill(hits_s, hits_n);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -467,7 +458,6 @@ void GlobalQA::createHistos()
       new TH2D("h2_GlobalQA_sEPD_ADC_channel_north",
                "h2_GlobalQA_sEPD_ADC_channel_north ; #eta; #phi", 16, -0.5,
                15.5, 24, -0.5, 23.5);
-
 
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_s);
   hm->registerHisto(h_GlobalQA_sEPD_adcsum_n);

@@ -46,10 +46,14 @@ class ALICEKF
   bool checknan(double val, const std::string& msg, int num) const;
   double get_Bz(double x, double y, double z) const;
 
-  //! used for fast momentum calculation
+  //! constant magnetic field
+  /**
+   * it is used for fast momentum calculation, or when positions are outside the field map boundaries along z
+   * specifically, the latter happens in extended readout mode for pp collisions, for out-of-time TPC clusters
+   */
   void setConstBField(float b) { _const_field = b; }
 
-void useFixedClusterError(bool opt) { _use_fixed_clus_error = opt; }
+  void useFixedClusterError(bool opt) { _use_fixed_clus_error = opt; }
   void setFixedClusterError(int i, double val) { _fixed_clus_error.at(i) = val; }
   double getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vector3 global, int i, int j) const;
   std::vector<double> GetCircleClusterResiduals(const std::vector<std::pair<double, double>>& pts, double R, double X0, double Y0) const;
@@ -60,16 +64,22 @@ void useFixedClusterError(bool opt) { _use_fixed_clus_error = opt; }
   int Verbosity() const
   { return _v; }
 
+  //! magnetic field map
   PHField* _B = nullptr;
+
+  //! constant magnetic field
+  /**
+   * it is used for fast momentum calculation, or when positions are outside the field map boundaries along z
+   * specifically, the latter happens in extended readout mode for pp collisions, for out-of-time TPC clusters
+   */
+  float _const_field = 1.4;
+
   size_t _min_clusters_per_track = 20;
   TrkrClusterContainer* _cluster_map = nullptr;
 
   int _v = 0;
   static constexpr double _Bzconst = 10. * 0.000299792458f;
   double _max_sin_phi = 1.;
-
-  //! used for fast momentum calculation
-  float _const_field = 1.4;
 
   // cluster error parametrization
   std::unique_ptr<ClusterErrorPara> _ClusErrPara;
