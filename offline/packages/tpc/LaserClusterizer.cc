@@ -873,7 +873,7 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if(!m_laserEventInfo->isLaserEvent() && !m_laserEventInfo->isGl1LaserEvent() && !m_laserEventInfo->isGl1LaserPileupEvent())
+  if((m_laserEventInfo->canHaveGl1Data() && !m_laserEventInfo->isGl1LaserEvent()) || (!m_laserEventInfo->canHaveGl1Data() && !m_laserEventInfo->isLaserEvent()))
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
