@@ -1,22 +1,99 @@
 #include "TrackAnalysisUtils.h"
 
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/TpcDefs.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
 #include "SvtxTrack.h"
 #include "TrackSeed.h"
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TpcDefs.h>
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrClusterContainer.h>
 
 #include <cmath>
 
 namespace TrackAnalysisUtils
 {
-  float calc_dedx(TrackSeed* tpcseed, 
-                  TrkrClusterContainer *cluster_map,
+
+  float calc_dedx(TrackSeed* tpcseed,
+                  TrkrClusterContainer* clustermap,
                   ActsGeometry* tgeometry,
                   float thickness_per_region[4])
   {
+    std::vector<TrkrDefs::cluskey> clusterKeys;
+    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
+                       tpcseed->end_cluster_keys());
 
+    std::vector<float> dedxlist;
+    for (unsigned long cluster_key : clusterKeys)
+    {
+      auto detid = TrkrDefs::getTrkrId(cluster_key);
+      if (detid != TrkrDefs::TrkrId::tpcId)
+      {
+        continue;  // the micromegas clusters are added to the TPC seeds
+      }
+      unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
+      TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+      float adc = cluster->getAdc();
+      float thick = 0;
+      if (layer_local < 23)
+      {
+        if (layer_local % 2 == 0)
+        {
+          thick = thickness_per_region[1];
+        }
+        else
+        {
+          thick = thickness_per_region[0];
+        }
+      }
+      else if (layer_local < 39)
+      {
+        thick = thickness_per_region[2];
+      }
+      else
+      {
+        thick = thickness_per_region[3];
+      }
+      auto cglob = tgeometry->getGlobalPosition(cluster_key, cluster);
+      float r = std::sqrt(cglob(0) * cglob(0) + cglob(1) * cglob(1));
+      float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
+      float beta = std::atan(tpcseed->get_slope());
+      float alphacorr = std::cos(alpha);
+      if (alphacorr < 0 || alphacorr > 4)
+      {
+        alphacorr = 4;
+      }
+      float betacorr = std::cos(beta);
+      if (betacorr < 0 || betacorr > 4)
+      {
+        betacorr = 4;
+      }
+      adc /= thick;
+      adc *= alphacorr;
+      adc *= betacorr;
+      dedxlist.push_back(adc);
+      sort(dedxlist.begin(), dedxlist.end());
+    }
+    int trunc_min = 0;
+    if (dedxlist.empty())
+    {
+      return std::numeric_limits<float>::quiet_NaN();
+    }
+    int trunc_max = (int) dedxlist.size() * 0.7;
+    float sumdedx = 0;
+    int ndedx = 0;
+    for (int j = trunc_min; j <= trunc_max; j++)
+    {
+      sumdedx += dedxlist.at(j);
+      ndedx++;
+    }
+    sumdedx /= ndedx;
+    return sumdedx;
+  }
+
+  float calc_dedx_calib(TrackSeed* tpcseed,
+                        TrkrClusterContainer* cluster_map,
+                        ActsGeometry* tgeometry,
+                        float thickness_per_region[4])
+  {
     std::vector<TrkrDefs::cluskey> clusterKeys;
     clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
                        tpcseed->end_cluster_keys());
@@ -47,7 +124,7 @@ namespace TrackAnalysisUtils
         csegment = 1;
         thickness = thickness_per_region[2];
       }
-      if(csegment == 0)
+      if (csegment == 0)
       {
         if (layer_local % 2 == 0)
         {
