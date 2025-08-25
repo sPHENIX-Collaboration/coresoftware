@@ -44,6 +44,10 @@ class ClusterIso : public SubsysReco
     m_use_towerinfo = usetowerinfo;
   };
 
+  // Minimum tower energy (GeV) required for a tower to contribute to isolation sum
+  void setMinTowerEnergy(float emin) { m_minTowerEnergy = emin; }
+  float getMinTowerEnergy() const { return m_minTowerEnergy; }
+
   void set_cluster_node_name(const std::string& name)
   {
     m_cluster_node_name = name;
@@ -61,6 +65,7 @@ class ClusterIso : public SubsysReco
   bool m_do_unsubtracted;
   bool m_use_towerinfo = true;
   std::string m_cluster_node_name = "CLUSTERINFO_CEMC";
+  float m_minTowerEnergy{-100}; ///< Minimum tower energy for inclusion in isolation calculation
 };
 
 /** \Brief Function to find delta R between 2 objects
