@@ -5,10 +5,8 @@ LaserEventInfov2::~LaserEventInfov2() = default;
 void LaserEventInfov2::identify(std::ostream& os) const
 {
   os << "LaserEventInfov2: " << std::endl;
-  os << "   canHaveGl1Data? " << canHaveGl1Data() << std::endl;
   os << "   isGl1LaserEvent? " << isGl1LaserEvent() << std::endl;
   os << "   isGl1LaserPileupEvent? " << isGl1LaserPileupEvent() << std::endl;
-  os << "   BCO: " << getBCO() << std::endl;
   os << "   isLaserEvent? " << isLaserEvent() << std::endl;
   if (isLaserEvent())
   {
@@ -35,10 +33,8 @@ void LaserEventInfov2::Reset()
 void LaserEventInfov2::CopyTo(LaserEventInfo* info)
 {
   info->setIsLaserEvent(isLaserEvent());
-  info->setCanHaveGl1Data(canHaveGl1Data());
   info->setIsGl1LaserEvent(isGl1LaserEvent());
   info->setIsGl1LaserPileupEvent(isGl1LaserPileupEvent());
-  info->setBCO(getBCO());
 
   for (int side = 0; side <= 1; side++)
   {

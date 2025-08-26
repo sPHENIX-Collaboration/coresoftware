@@ -1309,7 +1309,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if((lasereventinfo->canHaveGl1Data() && !lasereventinfo->isGl1LaserEvent()) || (!lasereventinfo->canHaveGl1Data() && !lasereventinfo->isLaserEvent()) || !m_corrected_CMcluster_map)
+  if((eventHeader->get_RunNumber() > 66153 && !lasereventinfo->isGl1LaserEvent()) || (eventHeader->get_RunNumber() <= 66153 && !lasereventinfo->isLaserEvent()) || !m_corrected_CMcluster_map)
   //if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
   {
     if(!m_useHeader)
