@@ -39,6 +39,8 @@ class PhotonClusterBuilder : public SubsysReco
   void set_ET_threshold(float e) { m_min_cluster_et = e; }
   void set_shower_shape_min_tower_energy(float e) { m_shape_min_tower_E = e; }
   void set_bdt_model_file(const std::string& path) { m_bdt_model_file = path; }
+  void set_bdt_feature_list(const std::vector<std::string>& features) { m_bdt_feature_list = features; }
+  const std::vector<std::string>& get_bdt_feature_list() const { return m_bdt_feature_list; }
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
@@ -54,6 +56,8 @@ class PhotonClusterBuilder : public SubsysReco
   float m_min_cluster_et{5.0f};
   float m_shape_min_tower_E{0.070f};
   std::string m_bdt_model_file{"myBDT_5.root"};
+  std::vector<std::string> m_bdt_feature_list;
+  float m_vertex{std::numeric_limits<float>::quiet_NaN()};
 
   RawClusterContainer* m_rawclusters{nullptr};
   PhotonClusterContainer* m_photon_container{nullptr};

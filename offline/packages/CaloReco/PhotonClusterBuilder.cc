@@ -148,7 +148,7 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
   }
 
   //init with NaN
-  float vertex = std::numeric_limits<float>::quiet_NaN();
+  m_vertex = std::numeric_limits<float>::quiet_NaN();
     //assume we need vertex for photon shower shape for now
     //in the future we need to change the vertex to MBD tracking combined
     MbdVertexMap *vertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
@@ -162,10 +162,10 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
       MbdVertex *vtx = vertexmap->begin()->second;
       if (vtx)
       {
-        vertex = vtx->get_z();
+        m_vertex = vtx->get_z();
 
 
-        if (vertex != vertex)
+        if (m_vertex != m_vertex)
           return Fun4AllReturnCodes::EVENT_OK;
 
       }
@@ -183,7 +183,8 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
     { 
         continue; 
     }
-    CLHEP::Hep3Vector vertex_vec(0, 0, vertex);
+    
+    CLHEP::Hep3Vector vertex_vec(0, 0, m_vertex);
 
     float eta = RawClusterUtility::GetPseudorapidity(*rc,  vertex_vec);
     float phi = RawClusterUtility::GetAzimuthAngle(*rc,  vertex_vec);
@@ -216,16 +217,24 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
     return;
   }
 
-  float e11 = photon->get_shower_shape_parameter("e11");
-  float e33 = photon->get_shower_shape_parameter("e33");
-  float et1 = photon->get_shower_shape_parameter("et1");
-  float et2 = photon->get_shower_shape_parameter("et2");
-  float et3 = photon->get_shower_shape_parameter("et3");
-  float et4 = photon->get_shower_shape_parameter("et4");
-
-  float e11_over_e33 = (e33 > 0) ? e11 / e33 : 0;
-
-  std::vector<float> x = {e11_over_e33, et1, et2, et3, et4};
+  std::vector<float> x;
+  for (const auto& feature : m_bdt_feature_list)
+  {
+    if (feature == "e11_over_e33")
+    {
+      float e11 = photon->get_shower_shape_parameter("e11");
+      float e33 = photon->get_shower_shape_parameter("e33");
+      x.push_back((e33 > 0) ? e11 / e33 : 0);
+    }
+    else if (feature == "vertex_z")
+    {
+      x.push_back(m_vertex);
+    }
+    else
+    {
+      x.push_back(photon->get_shower_shape_parameter(feature));
+    }
+  }
 
   float bdt_score = -1; // default value
 
@@ -432,6 +441,8 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
     photon->set_shower_shape_parameter("w32", w32);
     photon->set_shower_shape_parameter("w52", w52);
     photon->set_shower_shape_parameter("w72", w72);
+    photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
+    photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
 
     // HCAL info
     std::vector<int> ihcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomIH, m_ihcal_tower_container, 0.0, true);
