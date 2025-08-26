@@ -73,17 +73,17 @@ void PhotonClusterv1::identify_photon(std::ostream& os) const
 bool PhotonClusterv1::pass_photon_cuts() const
 {
   // @warning: These are example cuts - customize based on your analysis needs
-  
+  std::cout<<"this is currently unimplemented"<<std::endl;
   // Minimum energy cut
   if (get_energy() < 0.5f) {
     return false;  
   }
   
   // Shower shape cut: if a shape named "core" exists, apply cut
-  auto it_core = m_shower_shapes.find("core");
-  if (it_core != m_shower_shapes.end()) {
-    if (it_core->second > 0.3f) return false;
-  }
+  //auto it_core = m_shower_shapes.find("core");
+  //if (it_core != m_shower_shapes.end()) {
+  //  if (it_core->second > 0.3f) return false;
+  //}
   
   // Isolation cut (photons should be isolated)
   if (get_et_iso() > 2.0f) {

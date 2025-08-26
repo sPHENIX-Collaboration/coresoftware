@@ -72,6 +72,7 @@ pkginclude_HEADERS = \
   TowerInfoContainerSimv2.h
 
 ROOTDICTS = \
+  PhotonCluster_Dict.cc \
   PhotonClusterv1_Dict.cc \
   PhotonClusterContainer_Dict.cc \
   RawCluster_Dict.cc \
@@ -109,6 +110,7 @@ ROOTDICTS = \
 
 pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
+  PhotonCluster_Dict_rdict.pcm \
   PhotonClusterv1_Dict_rdict.pcm \
   PhotonClusterContainer_Dict_rdict.pcm \
   RawCluster_Dict_rdict.pcm \
@@ -146,6 +148,7 @@ pcmdir = $(libdir)
 
 libcalo_io_la_SOURCES = \
   $(ROOTDICTS) \
+  PhotonCluster.cc \
   PhotonClusterv1.cc \
   PhotonClusterContainer.cc \
   RawCluster.cc \

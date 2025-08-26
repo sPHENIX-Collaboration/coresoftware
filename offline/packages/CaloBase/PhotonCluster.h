@@ -20,7 +20,7 @@ class PhotonCluster
 {
  public:
   //! Virtual destructor for proper cleanup via base pointer
-  virtual ~PhotonCluster() = default;
+  virtual ~PhotonCluster();
 
   //! @name Photon Property Getters
   //! @{
