@@ -70,8 +70,11 @@ class CaloValid : public SubsysReco
   TH2* h_ihcal_mbd_correlation{nullptr};
   TH2* h_emcal_hcal_correlation{nullptr};
   TH2* h_cemc_etaphi{nullptr};
+  TH2* h_cemc_etaphi_highhit{nullptr};
   TH2* h_ihcal_etaphi{nullptr};
+  TH2* h_ihcal_etaphi_highhit{nullptr};
   TH2* h_ohcal_etaphi{nullptr};
+  TH2* h_ohcal_etaphi_highhit{nullptr};
   TH2* h_cemc_etaphi_wQA{nullptr};
   TH2* h_ihcal_etaphi_wQA{nullptr};
   TH2* h_ohcal_etaphi_wQA{nullptr};
@@ -82,8 +85,11 @@ class CaloValid : public SubsysReco
   TH2* h_ihcal_e_chi2{nullptr};
   TH2* h_ohcal_e_chi2{nullptr};
   TProfile2D* h_cemc_etaphi_time{nullptr};
+  TProfile2D* h_cemc_etaphi_time_highhit{nullptr};
   TProfile2D* h_ihcal_etaphi_time{nullptr};
+  TProfile2D* h_ihcal_etaphi_time_highhit{nullptr};
   TProfile2D* h_ohcal_etaphi_time{nullptr};
+  TProfile2D* h_ohcal_etaphi_time_highhit{nullptr};
   TProfile2D* h_cemc_etaphi_fracHitADC{nullptr};
   TProfile2D* h_cemc_etaphi_fracHit{nullptr};
   TProfile2D* h_ihcal_etaphi_fracHitADC{nullptr};
