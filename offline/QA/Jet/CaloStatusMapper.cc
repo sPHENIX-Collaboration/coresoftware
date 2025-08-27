@@ -199,7 +199,6 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
 
       // fill histograms accordingly
       m_hists[statBase]->Fill(status);
-      m_hists[statBase]->AddBinContent(m_totalBin[statBase], 1.0);
       m_hists[perEtaBase]->Fill(iEta);
       m_hists[perPhiBase]->Fill(iPhi);
       m_hists[phiEtaBase]->Fill(iEta, iPhi);
@@ -342,10 +341,6 @@ void CaloStatusMapper::BuildHistograms()
       }
 
     }  // end status loop
-    
-    int totalBin = m_hists[statBase]->GetNbinsX();
-    m_hists[statBase]->GetXaxis()->SetBinLabel(totalBin, "N_{Total}");
-    m_totalBin[statBase] = totalBin;
   }  // end node loop
   return;
 

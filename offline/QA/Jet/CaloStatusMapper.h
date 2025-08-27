@@ -126,9 +126,6 @@ class CaloStatusMapper : public SubsysReco
     ///! no. of events processed
     uint64_t m_nEvent {0};
 
-    ///! total bins for status histograms
-    std::map<std::string, int> m_totalBin;
-  
 };  // end CaloStatusMapper
 
 #endif
