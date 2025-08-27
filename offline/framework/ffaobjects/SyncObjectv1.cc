@@ -13,7 +13,7 @@ void SyncObjectv1::Reset()
   eventnumber = 0;
   runnumber = 0;
   eventcounter = 0;
-  segmentnumber = -999999;
+  segmentnumber = std::numeric_limits<int>::min();
   return;
 }
 
