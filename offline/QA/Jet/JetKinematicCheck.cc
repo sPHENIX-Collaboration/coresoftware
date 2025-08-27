@@ -27,7 +27,8 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-//____________________________________________________________________________.. 
+//____________________________________________________________________________..
+
 JetKinematicCheck::JetKinematicCheck(const std::string &moduleName,
                                      const std::string &recojetnameR02,
                                      const std::string &recojetnameR03,
