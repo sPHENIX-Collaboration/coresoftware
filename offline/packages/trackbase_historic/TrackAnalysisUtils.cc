@@ -4,6 +4,8 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+
+#include <tpc/TpcClusterZCrossingCorrection.h>
 #include "SvtxTrack.h"
 #include "TrackSeed.h"
 
@@ -89,15 +91,13 @@ namespace TrackAnalysisUtils
     return sumdedx;
   }
 
-  float calc_dedx_calib(TrackSeed* tpcseed,
+  float calc_dedx_calib(SvtxTrack* track,
                         TrkrClusterContainer* cluster_map,
                         ActsGeometry* tgeometry,
                         float thickness_per_region[4])
   {
-    std::vector<TrkrDefs::cluskey> clusterKeys;
-    clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-                       tpcseed->end_cluster_keys());
-
+    auto clusterKeys = get_cluster_keys(track->get_tpc_seed());
+    
     std::vector<float> dedxlist;
     for (unsigned long cluster_key : clusterKeys)
     {
@@ -109,9 +109,7 @@ namespace TrackAnalysisUtils
       TrkrCluster* cluster = cluster_map->findCluster(cluster_key);
       Acts::Vector3 cglob;
       cglob = tgeometry->getGlobalPosition(cluster_key, cluster);
-      //      float x = cglob(0);
-      // float y = cglob(1);
-      float z = cglob(2);
+
       int csegment = 0;
       float thickness = 0;
       if (layer_local >= 7 + 32)
@@ -138,6 +136,7 @@ namespace TrackAnalysisUtils
       float adc = cluster->getAdc();
 
       float r = std::sqrt(cglob(0) * cglob(0) + cglob(1) * cglob(1));
+      auto tpcseed = track->get_tpc_seed();
       float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
       float beta = std::atan(tpcseed->get_slope());
       float alphacorr = std::cos(alpha);
@@ -150,7 +149,14 @@ namespace TrackAnalysisUtils
       {
         betacorr = 4;
       }
-      adc /= (1 - ((105 - abs(z)) * 0.50 / 105));
+      if(track->get_crossing() < SHRT_MAX)
+      {
+        double z_crossing_corrected = 
+          TpcClusterZCrossingCorrection::correctZ(cglob.z(), 
+          TpcDefs::getSide(cluster_key), track->get_crossing());
+
+        adc /= (1 - ((105 - abs(z_crossing_corrected)) * 0.50 / 105));
+      }
       adc /= thickness;
       adc *= alphacorr;
       adc *= betacorr;
@@ -225,6 +231,18 @@ namespace TrackAnalysisUtils
     pair.second.second = sqrt(rotCov(2, 2));
 
     return pair;
+  }
+
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed)
+  {
+    std::vector<TrkrDefs::cluskey> out;
+   
+      if (seed)
+      {
+        std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
+      }
+    
+    return out;
   }
 
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
