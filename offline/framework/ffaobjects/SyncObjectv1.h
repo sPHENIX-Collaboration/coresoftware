@@ -47,21 +47,22 @@ class SyncObjectv1 : public SyncObject
   // cppcheck-suppress virtualCallInConstructor
   void SegmentNumber(const int ival) override { segmentnumber = ival; }
 
+  /// get Event Number
+  int EventNumber() const override { return eventnumber; }
+
  protected:
   /// get Event Counter
   int EventCounter() const override { return eventcounter; }
-  /// get Event Number
-  int EventNumber() const override { return eventnumber; }
   /// get Run Number
   int RunNumber() const override { return runnumber; }
   /// get Segment Number
   int SegmentNumber() const override { return segmentnumber; }
 
  private:
-  int eventcounter = 0;         // running counter
-  int eventnumber = 0;          // Event number
-  int runnumber = 0;            // Run number
-  int segmentnumber = -999999;  // segment number
+  int eventcounter{0};         // running counter
+  int eventnumber{0};          // Event number
+  int runnumber{0};            // Run number
+  int segmentnumber{std::numeric_limits<int>::min()};  // segment number
 
   ClassDefOverride(SyncObjectv1, 1)
 };
