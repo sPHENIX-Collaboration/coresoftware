@@ -78,8 +78,8 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
     N_const_bins[i] = 1.0 * i;
   }
 
-  const int N_frac = 100;
-  double frac_max = 1.0;
+  const int N_frac = 150;
+  double frac_max = 1.5;
   Double_t frac_bins[N_frac + 1];
   for (int i = 0; i <= N_frac; i++)
   {
