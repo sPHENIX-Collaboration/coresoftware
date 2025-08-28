@@ -254,8 +254,8 @@ void DijetQA::FindPairs(JetContainer* jets)
           h_dphi_l->Fill(m_dphil);
           h_Ajj_pt_l->Fill(m_ptl, m_Ajj);
           h_xj_pt_l->Fill(m_ptl, m_xj);
-          h_dphi_pt_l->Fill(m_ptl, std::abs(m_dphi));
-          h_dphi_Ajj_l->Fill(std::abs(m_dphi), m_Ajj);
+          h_dphi_pt_l->Fill(m_ptl, std::abs(m_dphil));
+          h_dphi_Ajj_l->Fill(std::abs(m_dphil), m_Ajj);
           //	m_T->Fill();
         }
         set_leading = false;
@@ -293,6 +293,7 @@ void DijetQA::FindPairs(JetContainer* jets)
         pt2 = jet_pair2->get_pt();
       }
       float dphi = jet_pair1->get_phi() - jet_pair2->get_phi();
+      if (dphi > M_PI) dphi = 2 * M_PI - dphi;
       Ajj = (pt1 - pt2) / (pt1 + pt2);
       xj = pt2 / pt1;
       h_Ajj->Fill(Ajj);
