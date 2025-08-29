@@ -32,7 +32,8 @@ pkginclude_HEADERS = \
   AlignmentDefs.h \
   MakeMilleFiles.h \
   Mille.h \
-  HelicalFitter.h
+  HelicalFitter.h \
+  WeightedFitter.h
 
 pcmdir = $(libdir)
 
@@ -40,7 +41,8 @@ libtrackeralign_la_SOURCES = \
   AlignmentDefs.cc \
   MakeMilleFiles.cc \
   Mille.cc \
-  HelicalFitter.cc
+  HelicalFitter.cc \
+  WeightedFitter.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
