@@ -19,7 +19,7 @@ namespace TrackAnalysisUtils
   DCAPair get_dca(SvtxTrack* track, Acts::Vector3& vertex);
 
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
-  std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* track);
+  std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed);
   float calc_dedx_calib(SvtxTrack* track, TrkrClusterContainer* cluster_map,
                         ActsGeometry* tgeometry,
                         // this is the thickness from R1[0],R1[1],R2[2], and R4[3]. You need
