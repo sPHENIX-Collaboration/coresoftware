@@ -11,7 +11,6 @@
 
 class PHCompositeNode;
 
-class CMFlashDifferenceContainer;
 class LaserClusterContainer;
 class EventHeader;
 
@@ -68,7 +67,6 @@ class TpcLaminationFitting : public SubsysReco
   TpcDistortionCorrection m_distortionCorrection;
 
   LaserClusterContainer *m_correctedCMcluster_map{nullptr};
-  CMFlashDifferenceContainer *m_cm_flash_diffs{nullptr};
 
   TpcDistortionCorrectionContainer *m_dcc_in_module_edge{nullptr};
   TpcDistortionCorrectionContainer *m_dcc_in_static{nullptr};
