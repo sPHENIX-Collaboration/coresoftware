@@ -139,7 +139,7 @@ class DijetQA : public SubsysReco
   float DeltaPhi{ntowers_opening * DeltaPhiOne};
   int m_nJet, m_nJetPair;
   float /* m_centrality = 0.,*/ m_zvtx,/* m_impactparam = 0., */m_Ajj, m_xj, m_ptl, m_ptsl;
-  float m_phil, m_phisl, m_dphil, m_dphi, m_etal, m_etasl, m_deltaeta;
+  float m_phil, m_phisl, m_dphil,/* m_dphi,*/ m_etal, m_etasl, m_deltaeta;
   TH1F *h_Ajj{nullptr}, *h_xj{nullptr}, *h_pt{nullptr}, *h_dphi{nullptr};
   TH2F *h_Ajj_pt{nullptr}, *h_xj_pt{nullptr}, *h_dphi_pt{nullptr}, *h_dphi_Ajj{nullptr};
   TH1F *h_Ajj_l{nullptr}, *h_xj_l{nullptr}, *h_pt_l{nullptr}, *h_dphi_l{nullptr};
