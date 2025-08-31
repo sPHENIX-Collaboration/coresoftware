@@ -43,12 +43,13 @@
 #include <TH2F.h>
 
 //____________________________________________________________________________..
-UEvsEtaCentrality::UEvsEtaCentrality(const std::string& modulename/*, const std::string& recojetname*/)
+UEvsEtaCentrality::UEvsEtaCentrality(const std::string& modulename)
   : SubsysReco(modulename)
   , m_moduleName(modulename)
 {
-  std::cout << "UEvsEtaCentrality::UEvsEtaCentrality(const std::string &moduleName) Calling ctor" << std::endl;
-  //m_config.moduleName = modulename;
+  if (m_config.debug && (Verbosity() > 1)){
+    std::cout << "UEvsEtaCentrality::UEvsEtaCentrality(const std::string &moduleName) Calling ctor" << std::endl;
+  }
 }
 
 //____________________________________________________________________________..
@@ -57,13 +58,11 @@ UEvsEtaCentrality::UEvsEtaCentrality(const Config& config)
   : SubsysReco(config.moduleName)
   , m_config(config)
 {
-
   // print debug message
   if (m_config.debug && (Verbosity() > 1))
   {
     std::cout << "UEvsEtaCentrality::UEvsEtaCentrality(Config&) Calling ctor" << std::endl;
   }
-
 }  // end ctor(Config&)
 
 //____________________________________________________________________________..
@@ -78,7 +77,9 @@ UEvsEtaCentrality::~UEvsEtaCentrality()
 //____________________________________________________________________________..
 int UEvsEtaCentrality::Init(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "UEvsEtaCentrality::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  if (m_config.debug && (Verbosity() > 1)){
+    std::cout << "UEvsEtaCentrality::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  }
 
   // initialize trigger analyzer
   delete m_analyzer;
@@ -138,7 +139,10 @@ int UEvsEtaCentrality::Init(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int UEvsEtaCentrality::InitRun(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "UEvsEtaCentrality::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  if (m_config.debug && (Verbosity() > 1))
+  {
+    std::cout << "UEvsEtaCentrality::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -203,9 +207,15 @@ int UEvsEtaCentrality::process_event(PHCompositeNode *topNode)
   float background_Psi2 = 0;
   float m_centrality = 0;
 
-  m_centrality =  cent_node->get_centile(CentralityInfo::PROP::epd_NS); 
+  m_centrality =  cent_node->get_centile(CentralityInfo::PROP::mbd_NS); 
   background_v2 = background->get_v2();
   background_Psi2 = background->get_Psi2();
+
+  // print centrality debug message XXX
+  if (m_config.debug /*&& (Verbosity() > 1)*/)
+  {
+    std::cout << "UEvsEtaCentrality::process_event, centrality = " << m_centrality << std::endl;
+  }
 
   hv2_cent->Fill(m_centrality, background_v2);
   hPsi2_cent->Fill(m_centrality, background_Psi2);
@@ -252,29 +262,17 @@ int UEvsEtaCentrality::ResetEvent(PHCompositeNode* /*topNode*/)
 //____________________________________________________________________________..
 int UEvsEtaCentrality::EndRun(const int runnumber)
 {
-  std::cout << "UEvsEtaCentrality::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  if (m_config.debug && (Verbosity() > 1))
+  {
+    std::cout << "UEvsEtaCentrality::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int UEvsEtaCentrality::End(PHCompositeNode* /*topNode*/)
 {
-  /*
-  std::cout << "UEvsEtaCentrality::End - Output to " << m_outputFileName << std::endl;
-  PHTFileServer::get().cd(m_outputFileName);
-  
-  hv2_cent->Write();
-  hPsi2_cent->Write();
-  hUEiHcalEta_Cent0_20->Write();
-  hUEoHcalEta_Cent0_20->Write();
-  hUEemcalEta_Cent0_20->Write();
-  hUEiHcalEta_Cent20_50->Write();
-  hUEoHcalEta_Cent20_50->Write();
-  hUEemcalEta_Cent20_50->Write();
-  hUEiHcalEta_Cent50_100->Write();
-  hUEoHcalEta_Cent50_100->Write();
-  hUEemcalEta_Cent50_100->Write();
-  */
 
   m_manager->registerHisto(hv2_cent);
   m_manager->registerHisto(hPsi2_cent);
@@ -287,15 +285,23 @@ int UEvsEtaCentrality::End(PHCompositeNode* /*topNode*/)
   m_manager->registerHisto(hUEiHcalEta_Cent50_100);
   m_manager->registerHisto(hUEoHcalEta_Cent50_100);
   m_manager->registerHisto(hUEemcalEta_Cent50_100);
-  
-  std::cout << "UEvsEtaCentrality::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+ 
+  if (m_config.debug && (Verbosity() > 1))
+  { 
+    std::cout << "UEvsEtaCentrality::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+  }
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int UEvsEtaCentrality::Reset(PHCompositeNode* /*topNode*/)
 {
-  std::cout << "UEvsEtaCentrality::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  if (m_config.debug && (Verbosity() > 1))
+  { 
+    std::cout << "UEvsEtaCentrality::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

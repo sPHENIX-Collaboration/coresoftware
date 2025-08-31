@@ -43,7 +43,7 @@ class UEvsEtaCentrality : public SubsysReco
     std::string moduleName {"UEvsEtaCentrality"};
   };
 
-  UEvsEtaCentrality(const std::string &moduleName = "UEvsEtaCentrality"/*, const std::string &recojetname="AntiKt_Tower_r04"*/);
+  UEvsEtaCentrality(const std::string &moduleName = "UEvsEtaCentrality");
   UEvsEtaCentrality(const Config& config);
   ~UEvsEtaCentrality() override;
 
