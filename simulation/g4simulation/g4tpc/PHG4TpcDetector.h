@@ -42,7 +42,7 @@ class PHG4TpcDetector : public PHG4Detector
   int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcExternalSupports(G4LogicalVolume *logicWorld);
 
-  void CreateCompositeMaterial(const std::string &compositeName, std::vector<std::string> materialName, const std::vector<double> &thickness);
+  static void CreateCompositeMaterial(const std::string &compositeName, std::vector<std::string> materialName, const std::vector<double> &thickness);
 
   //! add geometry node
   /** this setups the relevant geometry needed for offline reconstruciton */

@@ -60,14 +60,14 @@ int PHG4TpcDetector::IsInTpc(G4VPhysicalVolume *volume) const
 {
   if (m_ActiveFlag)
   {
-    if (m_ActiveVolumeSet.find(volume) != m_ActiveVolumeSet.end())
+    if (m_ActiveVolumeSet.contains(volume))
     {
       return 1;
     }
   }
   if (m_AbsorberActiveFlag)
   {
-    if (m_AbsorberVolumeSet.find(volume) != m_AbsorberVolumeSet.end())
+    if (m_AbsorberVolumeSet.contains(volume))
     {
       return -1;
     }
@@ -120,7 +120,8 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 void PHG4TpcDetector::CreateTpcGasMixture()
 {
   G4double density;
-  G4int ncomponents, natoms;
+  G4int ncomponents;
+  G4int natoms;
 
   G4double tpcGasTemperature = (273.15 + m_Params->get_double_param("TPC_gas_temperature")) * kelvin;
   G4double tpcGasPressure = m_Params->get_double_param("TPC_gas_pressure") * atmosphere;
@@ -132,10 +133,10 @@ void PHG4TpcDetector::CreateTpcGasMixture()
   G4Material *N2 = new G4Material("N2", density = 1.165 * mg / cm3, ncomponents = 1, kStateGas, tpcGasTemperature, tpcGasPressure);
   N2->AddElement(G4NistManager::Instance()->FindOrBuildElement("N"), natoms = 2);
 
-  //Create isobutane as only butane is in the standard G4Material list (they have different densities)
-  //https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
+  // Create isobutane as only butane is in the standard G4Material list (they have different densities)
+  // https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
   G4Material *isobutane = new G4Material("isobutane", density = 2.59 * mg / cm3, ncomponents = 2, kStateGas, tpcGasTemperature, tpcGasPressure);
-  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4); //Could use AddElement(PHG4Detector::GetDetectorElement("C", true), 4); instead?
+  isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), natoms = 4);  // Could use AddElement(PHG4Detector::GetDetectorElement("C", true), 4); instead?
   isobutane->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), natoms = 10);
 
   double Ne_frac = m_Params->get_double_param("Ne_frac");
@@ -150,13 +151,9 @@ void PHG4TpcDetector::CreateTpcGasMixture()
   const double N2_den = N2->GetDensity();
   const double isobutane_den = isobutane->GetDensity();
 
-  const double sphenix_tpc_gas_den = (Ne_den * Ne_frac)
-                                   + (Ar_den * Ar_frac)
-                                   + (CF4_den * CF4_frac)
-                                   + (N2_den * N2_frac)
-                                   + (isobutane_den * isobutane_frac);
+  const double sphenix_tpc_gas_den = (Ne_den * Ne_frac) + (Ar_den * Ar_frac) + (CF4_den * CF4_frac) + (N2_den * N2_frac) + (isobutane_den * isobutane_frac);
 
-  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", sphenix_tpc_gas_den, ncomponents = 5, kStateGas);//, tpcGasTemperature, tpcGasPressure);
+  G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", sphenix_tpc_gas_den, ncomponents = 5, kStateGas);  //, tpcGasTemperature, tpcGasPressure);
   sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ne"), (Ne_den * Ne_frac) / sphenix_tpc_gas_den);
   sPHENIX_tpc_gas->AddMaterial(G4NistManager::Instance()->FindOrBuildMaterial("G4_Ar"), (Ar_den * Ar_frac) / sphenix_tpc_gas_den);
   sPHENIX_tpc_gas->AddMaterial(CF4, (CF4_den * CF4_frac) / sphenix_tpc_gas_den);
@@ -481,7 +478,8 @@ void PHG4TpcDetector::CreateCompositeMaterial(
   assert(materialName.size() == thickness.size());
 
   // sum up the areal density and total thickness so we can divvy it out
-  double totalArealDensity = 0, totalThickness = 0;
+  double totalArealDensity = 0;
+  double totalThickness = 0;
   for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
   {
     tempmat = GetDetectorMaterial(materialName[i]);
@@ -515,13 +513,13 @@ void PHG4TpcDetector::add_geometry_node()
 {
   // create PHG4TpcCylinderGeomContainer and put on node tree
   const std::string geonode_name = "CYLINDERCELLGEOM_SVTX";
-  auto geonode = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode(), geonode_name);
+  auto *geonode = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode(), geonode_name);
   if (!geonode)
   {
     geonode = new PHG4TpcCylinderGeomContainer;
     PHNodeIterator iter(topNode());
-    auto runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-    auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
+    auto *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    auto *newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
     runNode->addNode(newNode);
   }
 
@@ -648,7 +646,7 @@ void PHG4TpcDetector::add_geometry_node()
                   << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << std::endl;
       }
 
-      auto layerseggeo = new PHG4TpcCylinderGeom;
+      auto *layerseggeo = new PHG4TpcCylinderGeom;
       layerseggeo->set_layer(layer);
 
       double r_length = Thickness[iregion];

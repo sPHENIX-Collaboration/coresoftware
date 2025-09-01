@@ -189,7 +189,8 @@ void PHG4TpcEndCapDetector::CreateCompositeMaterial(
   assert(materialName.size() == thickness.size());
 
   // sum up the areal density and total thickness so we can divvy it out
-  double totalArealDensity = 0, totalThickness = 0;
+  double totalArealDensity = 0;
+  double totalThickness = 0;
   for (std::vector<double>::size_type i = 0; i < thickness.size(); i++)
   {
     tempmat = GetDetectorMaterial(materialName[i]);
@@ -240,7 +241,7 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
       _depth * _percentage_filled / 100. / 2.,
       0, CLHEP::twopi);
 
-  auto material = GetDetectorMaterial(_material);
+  auto *material = GetDetectorMaterial(_material);
   if (material == nullptr)
   {
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << _material << std::endl;
@@ -267,7 +268,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
   assert(n_radial_modules >= 1);
 
   const std::string material_name(m_Params->get_string_param("wagon_wheel_material"));
-  auto material = GetDetectorMaterial(material_name);
+  auto *material = GetDetectorMaterial(material_name);
   if (material == nullptr)
   {
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("wagon_wheel_material") << std::endl;
@@ -486,7 +487,7 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
     }
 
     const std::string electronics_cooling_block_material_name(m_Params->get_string_param("electronics_cooling_block_material"));
-    auto material = GetDetectorMaterial(electronics_cooling_block_material_name);
+    auto *material = GetDetectorMaterial(electronics_cooling_block_material_name);
     if (material == nullptr)
     {
       std::cout << __PRETTY_FUNCTION__ << " Fatal Error: missing material " << m_Params->get_string_param("electronics_cooling_block_material_name") << std::endl;
@@ -552,8 +553,8 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
         m_DisplayAction->AddVolume(log_vol, "cooling_block");
 
       }  //     for (int sector_id = 0; sector_id < n_sectors; ++sector_id)
-    }    // for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
-  }      // electronics_cooling_block_material  if (electronics_cooling_block_thickness>0)
+    }  // for (int ring_id = 0; ring_id <= n_radial_modules; ++ring_id)
+  }  // electronics_cooling_block_material  if (electronics_cooling_block_thickness>0)
 
   ///////////////////////////////////////////////
   // electronics
