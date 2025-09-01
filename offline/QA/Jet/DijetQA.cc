@@ -18,6 +18,10 @@
 
 #include <TStyle.h>
 
+#include <boost/format.hpp>
+
+#include <cmath>
+
 //____________________________________________________________________________..
 DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
@@ -51,14 +55,6 @@ DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   }
 }
 
-//____________________________________________________________________________..
-DijetQA::~DijetQA()
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "DijetQA::~DijetQA() Calling dtor" << std::endl;
-  }
-}
 
 //____________________________________________________________________________..
 int DijetQA::Init(PHCompositeNode* /*topNode*/)
@@ -98,16 +94,6 @@ int DijetQA::Init(PHCompositeNode* /*topNode*/)
 	h_dphi_Ajj_l=new TH2F(boost::str(boost::format("h_%s_dphi_Ajj_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of event leading dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|^{leading}; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831, 100, -0.005, 0.995);
 	
 	return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int DijetQA::InitRun(PHCompositeNode* /*topNode*/)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "DijetQA::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
@@ -221,7 +207,7 @@ void DijetQA::FindPairs(JetContainer* jets)
       {
         continue;
       }
-      if (std::abs(j2->get_phi() - j1->get_phi()) > PI - DeltaPhi)
+      if (std::abs(j2->get_phi() - j1->get_phi()) > M_PI - DeltaPhi)
       {
         if (j2->get_pt() > j1->get_pt())
         {
@@ -321,26 +307,6 @@ void DijetQA::FindPairs(JetContainer* jets)
 }
 
 //____________________________________________________________________________..
-int DijetQA::ResetEvent(PHCompositeNode* /*topNode*/)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "DijetQA::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int DijetQA::EndRun(const int runnumber)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "DijetQA::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
 int DijetQA::End(PHCompositeNode* /*topNode*/)
 {
   //  std::cout << "DijetQA::End(PHCompositeNode *topNode) This is the End..." << std::endl;
@@ -382,22 +348,4 @@ int DijetQA::End(PHCompositeNode* /*topNode*/)
   m_manager->registerHisto(h_dphi_pt_l);
   m_manager->registerHisto(h_dphi_Ajj_l);
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int DijetQA::Reset(PHCompositeNode* /*topNode*/)
-{
-  if (Verbosity() > 1)
-  {
-    std::cout << "DijetQA::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-void DijetQA::Print(const std::string& what) const
-{
- if(Verbosity() > 1){
-	 std::cout << "DijetQA::Print(const std::string &what) const Printing info for " << what << std::endl;
-	}
 }

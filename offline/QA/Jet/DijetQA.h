@@ -3,7 +3,7 @@
 #ifndef DIJETQA_H
 #define DIJETQA_H
 
-#include "jetqa/JetQADefs.h"
+#include "JetQADefs.h"
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
@@ -40,14 +40,10 @@
 #include <TTree.h>
 
 #include <cstdlib>
-#include <math.h>
 #include <string>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <boost/format.hpp>
-
-#define PI 3.1415926535
 
 class PHCompositeNode;
 
@@ -56,7 +52,7 @@ class DijetQA : public SubsysReco
  public:
   DijetQA(const std::string &name = "DijetQA", const std::string &recojetname="AntiKt_Tower_r04");
 
-  ~DijetQA() override;
+  ~DijetQA() override = default;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
@@ -65,33 +61,14 @@ class DijetQA : public SubsysReco
    */
   int Init(PHCompositeNode *topNode) override;
 
-  /** Called for first event when run number is known.
-      Typically this is where you may want to fetch data from
-      database, because you know the run number. A place
-      to book histograms which have to know the run number.
-   */
-  int InitRun(PHCompositeNode *topNode) override;
-
   /** Called for each event.
       This is where you do the real work.
    */
   int process_event(PHCompositeNode *topNode) override;
   void FindPairs(JetContainer *);
 
-  /// Clean up internals after each event.
-  int ResetEvent(PHCompositeNode *topNode) override;
-
-  /// Called at the end of each run.
-  int EndRun(const int runnumber) override;
-
   /// Called at the end of all processing.
   int End(PHCompositeNode *topNode) override;
-
-  /// Reset
-  int Reset(PHCompositeNode * /*topNode*/) override;
-
-  /// Print something
-  void Print(const std::string &what = "ALL") const override;
 
   /// Set the eta range for reco jets
   void setEtaRange(double low, double high)
