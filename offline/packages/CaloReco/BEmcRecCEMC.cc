@@ -7,7 +7,6 @@
 #include <iostream>
 
 BEmcRecCEMC::BEmcRecCEMC()
-//  : _emcprof(nullptr)
 {
   Name("BEmcRecCEMC");
   SetCylindricalGeometry();
@@ -397,7 +396,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   x0 = x;
   ix0 = EmcCluster::lowint(x0 + 0.5);
 
-  if (EmcCluster::ABS(x0 - ix0) <= 0.5)
+  if (std::abs(x0 - ix0) <= 0.5)
   {
     x0 = ix0 + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
   }
@@ -410,14 +409,15 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
 
   // Correct for phi bias within module of 8 towers
 // NOLINTNEXTLINE(bugprone-incorrect-roundings)
-  int ix8 = int(x + 0.5) / 8;
+  int ix8 = int(x + 0.5) / 8; // that is hokey - suggest lroundf(x)
   float x8 = x + 0.5 - (ix8 * 8) - 4;  // from -4 to +4
   float dx = 0;
   if (m_UseDetailedGeometry)
   {
     // Don't know why there is a different factor for each tower of the sector
     // Just tuned from MC
-    int local_ix8 = int(x+0.5) - ix8 * 8;
+// NOLINTNEXTLINE(bugprone-incorrect-roundings)
+    int local_ix8 = int(x+0.5) - ix8 * 8; // that is hokey - suggest lroundf(x)
     dx = factor_[local_ix8] * x8 / 4.;
   }
   else
@@ -442,9 +442,9 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   y0 = y;
   iy0 = EmcCluster::lowint(y0 + 0.5);
 
-  if (EmcCluster::ABS(y0 - iy0) <= 0.5)
+  if (std::abs(y0 - iy0) <= 0.5)
   {
-    y0 = iy0 + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
+    y0 = iy0 + by * std::asinh(2. * (y0 - iy0) * sinh(0.5 / by));
   }
   else
   {
