@@ -11,7 +11,7 @@ class DumpMbdVertexMap : public DumpObject
 {
  public:
   explicit DumpMbdVertexMap(const std::string &NodeName);
-  ~DumpMbdVertexMap() override {}
+  ~DumpMbdVertexMap() override = default;
 
  protected:
   int process_Node(PHNode *mynode) override;
