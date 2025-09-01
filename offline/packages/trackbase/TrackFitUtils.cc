@@ -6,11 +6,9 @@
 #include "TrkrClusterContainerv4.h"
 #include "TrkrDefs.h"  // for cluskey, getTrkrId, tpcId
 
-#include <math.h>
-#include <trackbase/MvtxDefs.h>
-
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Definitions/Units.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
