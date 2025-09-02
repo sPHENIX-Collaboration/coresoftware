@@ -28,6 +28,7 @@
 #include <TFile.h>
 #include <TObjString.h>
 
+#include <cmath>
 #include <iostream>
 #include <numeric> // for std::accumulate
 
@@ -228,14 +229,14 @@ namespace G4Eval
       zsize_T = clus_R->getZSize() * m_nz_widths;  // * z_step;
     }
 
-    phi_delta = fabs(phi_T - phi_R);
+    phi_delta = std::abs(phi_T - phi_R);
     while (phi_delta > M_PI)
     {
       phi_delta = fabs(phi_delta - 2 * M_PI);
     }
     phi_delta /= phi_step;
 
-    z_delta = fabs(z_T - z_R) / z_step;
+    z_delta = std::abs(z_T - z_R) / z_step;
 
     /* float phi_stat = (m_nphi_widths * phisize_R ); */
 

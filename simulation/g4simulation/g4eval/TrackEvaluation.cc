@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <bitset>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <numeric>
 
@@ -830,7 +831,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster(TrkrDe
       //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
       cluster_struct.trk_radius = 1.0 / tpc_seed->get_qOverR();
       cluster_struct.trk_alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpc_seed->get_qOverR()));
-      cluster_struct.trk_beta = atan(tpc_seed->get_slope());
+      cluster_struct.trk_beta = std::atan(tpc_seed->get_slope());
     }
     else
     {
@@ -840,7 +841,7 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster(TrkrDe
       //	float R = TMath::Abs(1.0/si_seed->get_qOverR());
       cluster_struct.trk_radius = 1.0 / tpc_seed->get_qOverR();
       cluster_struct.trk_alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpc_seed->get_qOverR()));
-      cluster_struct.trk_beta = atan(si_seed->get_slope());
+      cluster_struct.trk_beta = std::atan(si_seed->get_slope());
     }
   }
 
