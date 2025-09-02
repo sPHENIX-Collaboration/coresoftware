@@ -343,17 +343,17 @@ void PHTruthTrackSeeding::buildTrackSeed(const std::vector<TrkrDefs::cluskey>& c
 
   // We have to pick the right one based on the bend angle, so iterate
   // through until you find the closest phi match
-  if (std::fabs(newphi - phi) > 0.03)
+  if (std::abs(newphi - phi) > 0.03)
   {
     track->set_X0(X0_2);
     newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
 
-    if (std::fabs(newphi - phi) > 0.03)
+    if (std::abs(newphi - phi) > 0.03)
     {
       track->set_Y0(Y0_2);
       newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
 
-      if (std::fabs(newphi - phi) > 0.03)
+      if (std::abs(newphi - phi) > 0.03)
       {
         track->set_X0(X0_1);
         newphi = TrackSeedHelper::get_phi_fastsim( track.get() );
