@@ -32,6 +32,7 @@
 #include <TTree.h>
 #include <TVector3.h>
 
+#include <algorithm>
 #include <boost/format.hpp>
 
 #include <cmath>
@@ -1404,7 +1405,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
     if (Verbosity())
     {
-      double raw_rad = sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
+      double raw_rad = std::sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
       double static_rad = sqrt(tmp_static.X() * tmp_static.X() + tmp_static.Y() * tmp_static.Y());
       double corr_rad = sqrt(tmp_pos.X() * tmp_pos.X() + tmp_pos.Y() * tmp_pos.Y());
       std::cout << "cluster " << clusterIndex << std::endl;
@@ -1543,7 +1544,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         }
 
         int clustRMatchIndex = -1;
-        clustRMatchIndex = getClusterRMatch(rR, (int) (side ? 1 : 0));
+        clustRMatchIndex = getClusterRMatch(rR, (side ? 1 : 0));
 
         if (clustRMatchIndex == -1 || truthRIndex != clustRMatchIndex)
         {
@@ -1629,7 +1630,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       }
 
       int clustRMatchIndex = -1;
-      clustRMatchIndex = getClusterRMatch(rR, (int) (side ? 1 : 0));
+      clustRMatchIndex = getClusterRMatch(rR, (side ? 1 : 0));
 
 
       int truthMatchIndex = -1;
@@ -1812,7 +1813,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
             lowRMatch = mid + 1;
           }
         }
-        if(upperBound < 1) upperBound = 1;
+        upperBound = std::max(upperBound, 1);
 
 	double dR = m_truth_pos[truth_index].Perp() - reco_pos[recoIndex].Perp();
 	if(fabs(dR) > 0.5 * (m_truth_RPeaks[upperBound] - m_truth_RPeaks[upperBound-1]))
