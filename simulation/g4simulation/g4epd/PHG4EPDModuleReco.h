@@ -60,18 +60,18 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
  private:
   void FillTilePhiArray();
   void FillTilePhi0Array();
-  int Getrmap(int rindex);
-  int Getphimap(int phiindex);
+  static int Getrmap(int rindex);
+  static int Getphimap(int phiindex);
   float GetTilePhi(int thisphi);
   float GetTilePhi0(int thisphi0);
-  float GetTileR(int thisr);
-  float GetTileZ(int thisz);
+  static float GetTileR(int thisr);
+  static float GetTileZ(int thisz);
   void CreateNodes(PHCompositeNode *topNode);
 
-  double m_EpdMpv {std::numeric_limits<double>::quiet_NaN()};
-  double tmin {std::numeric_limits<double>::quiet_NaN()};
-  double tmax {std::numeric_limits<double>::quiet_NaN()};
-  double m_DeltaT {std::numeric_limits<double>::quiet_NaN()};
+  double m_EpdMpv{std::numeric_limits<double>::quiet_NaN()};
+  double tmin{std::numeric_limits<double>::quiet_NaN()};
+  double tmax{std::numeric_limits<double>::quiet_NaN()};
+  double m_DeltaT{std::numeric_limits<double>::quiet_NaN()};
 
   std::array<float, 24> m_tilephi{};
   std::array<float, 12> m_tilephi0{};
@@ -80,8 +80,8 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
 
   std::string m_Detector;
   std::string m_Hitnodename;
-  std::string m_EPDSimTowerNodePrefix {"SIM"};
-  std::string m_EPDCalibTowerNodePrefix {"CALIB"};
+  std::string m_EPDSimTowerNodePrefix{"SIM"};
+  std::string m_EPDCalibTowerNodePrefix{"CALIB"};
 
   std::string m_TowerInfoNodeName;
   std::string m_TowerInfoNodeName_calib;

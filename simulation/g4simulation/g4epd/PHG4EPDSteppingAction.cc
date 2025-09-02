@@ -18,7 +18,6 @@
 #include <TSystem.h>
 
 #include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4ReferenceCountedHandle.hh>
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>
 #include <Geant4/G4StepStatus.hh>
@@ -211,7 +210,7 @@ void PHG4EPDSteppingAction::SetHitNodeName(const std::string& type, const std::s
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_SUPPORT")
+  if (type == "G4HIT_SUPPORT")
   {
     m_SupportNodeName = name;
     return;

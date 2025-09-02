@@ -6,10 +6,6 @@
 #include <tpc/TpcClusterZCrossingCorrection.h>
 
 /// Tracking includes
-#include <fun4all/SubsysReco.h>
-#include <math.h>
-#include <phool/PHIODataNode.h>
-#include <phparameter/PHParameterInterface.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -34,14 +30,18 @@
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
 
-#include <Acts/Definitions/Algebra.hpp>
-#include <Acts/Definitions/Units.hpp>
+#include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Definitions/Units.hpp>
 
 #include <TFile.h>
 #include <TNtuple.h>
