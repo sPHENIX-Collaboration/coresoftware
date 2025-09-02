@@ -211,8 +211,8 @@ int UEvsEtaCentrality::process_event(PHCompositeNode *topNode)
   background_v2 = background->get_v2();
   background_Psi2 = background->get_Psi2();
 
-  // print centrality debug message XXX
-  if (m_config.debug /*&& (Verbosity() > 1)*/)
+  // print centrality debug message
+  if (m_config.debug && (Verbosity() > 1))
   {
     std::cout << "UEvsEtaCentrality::process_event, centrality = " << m_centrality << std::endl;
   }
