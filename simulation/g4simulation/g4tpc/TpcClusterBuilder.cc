@@ -15,6 +15,7 @@
 
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
+#include <algorithm>
 #include <boost/format.hpp>
 
 #include <algorithm>
@@ -28,7 +29,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T &x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -109,8 +110,12 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
     const double threshold = sum_adc * m_pixel_thresholdrat;
 
     // FIXME -- see why the hits are so scattered
-    std::set<int> v_iphi, v_it;                                    // FIXME
-    std::map<int, unsigned int> m_iphi, m_it, m_iphiCut, m_itCut;  // FIXME
+    std::set<int> v_iphi;
+    std::set<int> v_it;  // FIXME
+    std::map<int, unsigned int> m_iphi;
+    std::map<int, unsigned int> m_it;
+    std::map<int, unsigned int> m_iphiCut;
+    std::map<int, unsigned int> m_itCut;  // FIXME
     for (auto iter = ihit_list.first; iter != ihit_list.second; ++iter)
     {
       unsigned int adc = iter->second->getAdc();
@@ -164,22 +169,10 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
         pnew.first->second += adc;
       }
 
-      if (iphi > phibinhi)
-      {
-        phibinhi = iphi;
-      }
-      if (iphi < phibinlo)
-      {
-        phibinlo = iphi;
-      }
-      if (it > tbinhi)
-      {
-        tbinhi = it;
-      }
-      if (it < tbinlo)
-      {
-        tbinlo = it;
-      }
+      phibinhi = std::max(iphi, phibinhi);
+      phibinlo = std::min(iphi, phibinlo);
+      tbinhi = std::max(it, tbinhi);
+      tbinlo = std::min(it, tbinlo);
 
       iphi_sum += iphi * adc;
       // phi2_sum += square(phi_center)*adc;
@@ -362,7 +355,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
     Acts::Vector3 local = surface->transform(m_tGeometry->geometry().getGeoContext()).inverse() * global;
     local /= Acts::UnitConstants::cm;
 
-    auto cluster = new TrkrClusterv4;  //
+    auto* cluster = new TrkrClusterv4;  //
     cluster->setAdc(adc_sum);
     /* cluster->setOverlap(ntouch); */
     /* cluster->setEdge(nedge); */
@@ -430,7 +423,7 @@ void TpcClusterBuilder::clear_hitsetkey_cnt()
 }
 
 void TpcClusterBuilder::print(
-    TrkrTruthTrackContainer* truth_tracks, int nclusprint)
+    TrkrTruthTrackContainer* truth_tracks, int nclusprint) const
 {
   std::cout << " ------------- content of TrkrTruthTrackContainer ---------- " << std::endl;
   auto& tmap = truth_tracks->getMap();
@@ -477,10 +470,10 @@ void TpcClusterBuilder::print_file(
     auto& track = _pair.second;
     fout << " id( " << track->getTrackid() << ")  phi:eta:pt(" << track->getPhi() << ":" << track->getPseudoRapidity() << ":" << track->getPt() << ") nclusters("
          << track->getClusters().size() << ") ";
-//    int nclus = 0;
+    //    int nclus = 0;
     for (auto cluskey : track->getClusters())
     {
-      auto C = m_clusterlist->findCluster(cluskey);
+      auto* C = m_clusterlist->findCluster(cluskey);
       fout << " "
            << ((int) TrkrDefs::getHitSetKeyFromClusKey(cluskey)) << ":" << ((int) TrkrDefs::getClusIndex(cluskey)) << "->adc:X:phisize:Y:zsize("
            << C->getAdc() << ":"
@@ -488,7 +481,7 @@ void TpcClusterBuilder::print_file(
            << C->getPhiSize() << ":"
            << C->getLocalY() << ":"
            << C->getZSize() << ") ";
-//      ++nclus;
+      //      ++nclus;
     }
     fout << std::endl;
   }
