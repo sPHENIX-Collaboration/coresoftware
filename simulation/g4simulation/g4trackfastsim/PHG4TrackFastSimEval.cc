@@ -510,9 +510,9 @@ void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode * /*topNode*/)
     m_TTree_vx = vertex->get_x();
     m_TTree_vy = vertex->get_y();
     m_TTree_vz = vertex->get_z();
-    m_TTree_DeltaVx = sqrt(vertex->get_error(1, 1));
-    m_TTree_DeltaVy = sqrt(vertex->get_error(2, 2));
-    m_TTree_DeltaVz = sqrt(vertex->get_error(3, 3));
+    m_TTree_DeltaVx = std::sqrt(vertex->get_error(1, 1));
+    m_TTree_DeltaVy = std::sqrt(vertex->get_error(2, 2));
+    m_TTree_DeltaVz = std::sqrt(vertex->get_error(3, 3));
 
     // best matched vertex
     PHG4VtxPoint *best_vtx = nullptr;
