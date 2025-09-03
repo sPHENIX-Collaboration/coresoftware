@@ -11,7 +11,6 @@
 
 class G4LogicalVolume;
 class G4VisAttributes;
-class G4VPhysicalVolume;
 
 class PHG4EPDDisplayAction : public PHG4DisplayAction
 {

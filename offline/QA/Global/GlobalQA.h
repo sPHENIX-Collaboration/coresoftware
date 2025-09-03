@@ -90,10 +90,10 @@ class GlobalQA : public SubsysReco
   std::string OutputFileName;
 
   // MBD trigger bit definitions (matching online monitoring)
-  static constexpr uint64_t mbdns = (0x1UL << 10) | (0x1UL << 11);  // MBD NS2 and NS1
-  static constexpr uint64_t mbdnsvtx10 = (0x1UL << 12) | (0x1UL << 15);  // MBD NS2/NS1 with vtx < 10cm
-  static constexpr uint64_t mbdnsvtx30 = (0x1UL << 13);  // MBD NS2 with vtx < 30cm
-  static constexpr uint64_t mbdnsvtx150 = (0x1UL << 14);  // MBD NS2 with vtx < 150cm
+  static constexpr uint64_t mbdns = (0x1UL << 10) | (0x1UL << 11);                    // MBD NS2 and NS1
+  static constexpr uint64_t mbdnsvtx10 = (0x1UL << 12) | (0x1UL << 15);               // MBD NS2/NS1 with vtx < 10cm
+  static constexpr uint64_t mbdnsvtx30 = (0x1UL << 13);                               // MBD NS2 with vtx < 30cm
+  static constexpr uint64_t mbdnsvtx150 = (0x1UL << 14);                              // MBD NS2 with vtx < 150cm
   static constexpr uint64_t mbdtrig = mbdns | mbdnsvtx10 | mbdnsvtx30 | mbdnsvtx150;  // Combined MBD triggers
 };
 

@@ -609,7 +609,7 @@ int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
         std::string varname = "layer";
         unsigned int layer = m_cdbttree->GetIntValue(key, varname);
         // antenna pads will be in 0 layer
-        if (layer <= 6)
+        if (layer <= 0 or layer>55)
         {
           continue;
         }
@@ -1721,7 +1721,16 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         //      nhits_local += tpcseed->size_cluster_keys();
         // fill the Gseed NTuple
         //---------------------
-        float dedx = calc_dedx(tpcseed);
+        float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
+        // These are randomly chosen layer thicknesses for the TPC, to get the
+        // correct region thicknesses in an easy to pass way to the helper fxn
+        layerThicknesses[0] = _geom_container->GetLayerCellGeom(7)->get_thickness();
+        layerThicknesses[1] = _geom_container->GetLayerCellGeom(8)->get_thickness();
+        layerThicknesses[2] = _geom_container->GetLayerCellGeom(27)->get_thickness();
+        layerThicknesses[3] = _geom_container->GetLayerCellGeom(50)->get_thickness();
+
+        float dedx = TrackAnalysisUtils::calc_dedx(tpcseed, _cluster_map, _tgeometry, layerThicknesses);
+
         float pidedx = 0;
         float kdedx = 0;
         float prdedx = 0;
@@ -1910,7 +1919,16 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   fX[n_track::ntrknprdedx] = 0;
   if (tpcseed)
   {
-    fX[n_track::ntrkndedx] = calc_dedx(tpcseed);
+    float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
+    // These are randomly chosen layer thicknesses for the TPC, to get the
+    // correct region thicknesses in an easy to pass way to the helper fxn
+    layerThicknesses[0] = _geom_container->GetLayerCellGeom(7)->get_thickness();
+    layerThicknesses[1] = _geom_container->GetLayerCellGeom(8)->get_thickness();
+    layerThicknesses[2] = _geom_container->GetLayerCellGeom(27)->get_thickness();
+    layerThicknesses[3] = _geom_container->GetLayerCellGeom(50)->get_thickness();
+
+    fX[n_track::ntrkndedx] = TrackAnalysisUtils::calc_dedx(tpcseed, _cluster_map, _tgeometry, layerThicknesses);
+    
     float trptot = track->get_p();
     if (track->get_charge() > 0)
     {
@@ -2076,81 +2094,6 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
   fX[n_track::ntrkpcax] = track->get_x();
   fX[n_track::ntrkpcay] = track->get_y();
   fX[n_track::ntrkpcaz] = track->get_z();
-}
-
-float TrkrNtuplizer::calc_dedx(TrackSeed* tpcseed)
-{
-  std::vector<TrkrDefs::cluskey> clusterKeys;
-  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-                     tpcseed->end_cluster_keys());
-
-  std::vector<float> dedxlist;
-  for (unsigned long cluster_key : clusterKeys)
-  {
-    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-    if (TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId)
-    {
-      continue;
-    }
-    TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
-    Acts::Vector3 cglob;
-    cglob = _tgeometry->getGlobalPosition(cluster_key, cluster);
-    //      float x = cglob(0);
-    // float y = cglob(1);
-    float z = cglob(2);
-    int cside = TpcDefs::getSide(cluster_key);
-    int csector = TpcDefs::getSectorId(cluster_key);
-    int csegment = 0;
-    if (layer_local >= 7 + 32)
-    {
-      csegment = 2;
-    }
-    else if (layer_local >= 7 + 16)
-    {
-      csegment = 1;
-    }
-    float adc = cluster->getAdc();
-    if (_do_dedx_calib == true)
-    {
-      if (dedxcorr[cside][csector][csegment] != 0)
-      {
-        adc /= dedxcorr[cside][csector][csegment];
-      }
-    }
-    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
-    float thick = GeoLayer_local->get_thickness();
-
-    float r = GeoLayer_local->get_radius();
-    float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
-    float beta = std::atan(tpcseed->get_slope());
-    float alphacorr = std::cos(alpha);
-    if (alphacorr < 0 || alphacorr > 4)
-    {
-      alphacorr = 4;
-    }
-    float betacorr = std::cos(beta);
-    if (betacorr < 0 || betacorr > 4)
-    {
-      betacorr = 4;
-    }
-    adc /= (1 - ((105 - abs(z)) * 0.50 / 105));
-    adc /= thick;
-    adc *= alphacorr;
-    adc *= betacorr;
-    dedxlist.push_back(adc);
-    sort(dedxlist.begin(), dedxlist.end());
-  }
-  int trunc_min = 0;
-  int trunc_max = (int) dedxlist.size() * 0.7;
-  float sumdedx = 0;
-  int ndedx = 0;
-  for (int j = trunc_min; j <= trunc_max; j++)
-  {
-    sumdedx += dedxlist.at(j);
-    ndedx++;
-  }
-  sumdedx /= ndedx;
-  return sumdedx;
 }
 
 float TrkrNtuplizer::get_n1pix(TrackSeed* tpcseed)

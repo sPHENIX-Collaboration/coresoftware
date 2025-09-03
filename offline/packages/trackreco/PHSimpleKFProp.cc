@@ -16,8 +16,8 @@
 #include <g4detectors/PHG4TpcCylinderGeom.h>
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
-#include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
 
 // tpc distortion correction
 #include <tpc/TpcDistortionCorrectionContainer.h>
@@ -49,6 +49,7 @@
 
 #include <omp.h>
 
+#include <cmath>
 #include <filesystem>
 #include <iostream>
 #include <syncstream>
@@ -88,10 +89,10 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
 
   // load magnetic field from node tree
   /* note: if field is not found it is created with default configuration, as defined in PHFieldUtility */
-  _field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  const auto field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
   // alice kalman filter
-  fitter = std::make_unique<ALICEKF>(_cluster_map, _field_map, _min_clusters_per_track, _max_sin_phi, Verbosity());
+  fitter = std::make_unique<ALICEKF>(_cluster_map, field_map, _min_clusters_per_track, _max_sin_phi, Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
@@ -102,28 +103,16 @@ int PHSimpleKFProp::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(1, _fixed_clus_err.at(1));
   fitter->setFixedClusterError(2, _fixed_clus_err.at(2));
 
+  // properly set constField in ALICEKF, based on PHFieldConfig
+  const auto field_config = PHFieldUtility::GetFieldConfigNode(nullptr, topNode);
+  if( field_config->get_field_config() == PHFieldConfig::kFieldUniform )
+  { fitter->setConstBField(field_config->get_field_mag_z()); }
+
   // assign number of threads
   std::cout << "PHSimpleKFProp::InitRun - m_num_threads: " << m_num_threads << std::endl;
   if( m_num_threads >= 1 ) { omp_set_num_threads( m_num_threads ); }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//___________________________________________________________________________
-double PHSimpleKFProp::get_Bz(double x, double y, double z) const
-{
-  double p[4] = {x*cm, y*cm, z*cm, 0.};
-  double bfield[3];
-
-  // check thread number. Use uncached field accessor for all but thread 0.
-  if( omp_get_thread_num() == 0 )
-  {
-    _field_map->GetFieldValue(p, bfield);
-  } else {
-    _field_map->GetFieldValue_nocache(p, bfield);
-  }
-
-  return bfield[2] / tesla;
 }
 
 //___________________________________________________________________________
@@ -581,7 +570,7 @@ bool PHSimpleKFProp::TransportAndRotate(
     const double tx = tX * cos(phi) - tY * sin(phi);
     const double ty = tX * sin(phi) + tY * cos(phi);
 
-    const double Bz = _Bzconst * get_Bz(tx, ty, tz);
+    const double Bz = _Bzconst * fitter->get_Bz(tx, ty, tz);
 
     kftrack.CalculateFitParameters(fp);
 
@@ -733,7 +722,7 @@ bool PHSimpleKFProp::PropagateStep(
       std::cout << "current parameters: pt=" << pt << ", (x, y, z) = (" << end_tx << ", " << end_ty << ", " << end_tz << ")" << std::endl;
     }
     // pt[GeV] = 0.3 B[T] R[m]
-    double R = 100. * pt / (0.3 * get_Bz(end_tx, end_ty, end_tz));
+    double R = 100. * pt / (0.3 * fitter->get_Bz(end_tx, end_ty, end_tz));
     if (Verbosity() > 1)
     {
       std::cout << "R=" << R << std::endl;
@@ -1139,8 +1128,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   }
   kftrack.SetQPt(track->get_charge() / track_pt);
 
-  float track_pX = track_px * cos(track_phi) + track_py * sin(track_phi);
-  float track_pY = -track_px * sin(track_phi) + track_py * cos(track_phi);
+  float track_pX = track_px * std::cos(track_phi) + track_py * std::sin(track_phi);
+  float track_pY = -track_px * std::sin(track_phi) + track_py * std::cos(track_phi);
 
   kftrack.SetSignCosPhi(track_pX / track_pt);
   kftrack.SetSinPhi(track_pY / track_pt);
@@ -1212,8 +1201,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   */
   std::vector<TrkrDefs::cluskey> propagated_track;
 
-  kftrack.SetX(track_x * cos(track_phi) + track_y * sin(track_phi));
-  kftrack.SetY(-track_x * sin(track_phi) + track_y * cos(track_phi));
+  kftrack.SetX(track_x * std::cos(track_phi) + track_y * std::sin(track_phi));
+  kftrack.SetY(-track_x * std::sin(track_phi) + track_y * std::cos(track_phi));
   kftrack.SetZ(track_z);
 
   if (kftrack.GetSignCosPhi() < 0)
@@ -1392,7 +1381,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
       TrackSeedHelper::circleFitByTaubin(&seed,local, 7, 55);
       TrackSeedHelper::lineFit(&seed,local, 7, 55);
       seed.set_phi(TrackSeedHelper::get_phi(&seed,local));
-      seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+      seed.set_qOverR(std::abs(seed.get_qOverR()) * q);
     }
 
   }
@@ -1425,7 +1414,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
     {
       std::cout << "Publishing seed " << ((int) itrack)
                 << " q " << q
-                << " qOverR " << fabs(seed.get_qOverR()) * q
+                << " qOverR " << std::abs(seed.get_qOverR()) * q
                 << " x " << TrackSeedHelper::get_x(&seed)
                 << " y " << TrackSeedHelper::get_y(&seed)
                 << " z " << TrackSeedHelper::get_z(&seed)

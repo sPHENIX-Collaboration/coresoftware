@@ -160,6 +160,8 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
     m_laserEventInfo->setIsGl1LaserEvent(false);
     m_laserEventInfo->setIsGl1LaserPileupEvent(false);
   }
+  
+
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;

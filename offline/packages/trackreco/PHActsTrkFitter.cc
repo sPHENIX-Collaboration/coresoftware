@@ -658,8 +658,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       else
       {
-	px = seedpt * cos(seedphi);
-	py = seedpt * sin(seedphi);
+	px = seedpt * std::cos(seedphi);
+	py = seedpt * std::sin(seedphi);
 	pz = seedpt * std::cosh(seedeta) * std::cos(seedtheta);
       }
 

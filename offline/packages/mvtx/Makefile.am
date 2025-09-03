@@ -63,8 +63,7 @@ libmvtx_la_LIBADD = \
   -lmvtx_decoder \
   -lphg4hit \
   -lSubsysReco \
-  -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrack_io
 
 # sources for io library
 libmvtx_io_la_SOURCES = \

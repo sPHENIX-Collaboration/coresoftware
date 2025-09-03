@@ -118,7 +118,7 @@ int PHG4TrackFastSimEval::InitRun(PHCompositeNode *topNode)
 
   PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
                                                                     "PHG4TrackFastSim_Parameter");
-  if (not nodeparams)
+  if (! nodeparams)
   {
     std::cout << __PRETTY_FUNCTION__ << " : Warning, missing PHG4TrackFastSim_Parameter node and skip saving hits"
          << std::endl;
@@ -231,7 +231,7 @@ int PHG4TrackFastSimEval::InitRun(PHCompositeNode *topNode)
 int PHG4TrackFastSimEval::process_event(PHCompositeNode *topNode)
 {
   m_EventCounter++;
-  if (Verbosity() >= 2 and m_EventCounter % 1000 == 0)
+  if (Verbosity() >= 2 && m_EventCounter % 1000 == 0)
   {
     std::cout << PHWHERE << "Events processed: " << m_EventCounter << std::endl;
   }
@@ -510,9 +510,9 @@ void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode * /*topNode*/)
     m_TTree_vx = vertex->get_x();
     m_TTree_vy = vertex->get_y();
     m_TTree_vz = vertex->get_z();
-    m_TTree_DeltaVx = sqrt(vertex->get_error(1, 1));
-    m_TTree_DeltaVy = sqrt(vertex->get_error(2, 2));
-    m_TTree_DeltaVz = sqrt(vertex->get_error(3, 3));
+    m_TTree_DeltaVx = std::sqrt(vertex->get_error(1, 1));
+    m_TTree_DeltaVy = std::sqrt(vertex->get_error(2, 2));
+    m_TTree_DeltaVz = std::sqrt(vertex->get_error(3, 3));
 
     // best matched vertex
     PHG4VtxPoint *best_vtx = nullptr;

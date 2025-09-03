@@ -224,7 +224,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   {
     mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS");
   }
-  if (!trackmap or !clustermap or !geometry or (!hitmap && m_doHits))
+  if (!trackmap || !clustermap || !geometry || (!hitmap && m_doHits))
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -335,60 +335,6 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-float TrackResiduals::calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* clustermap, PHG4TpcCylinderGeomContainer* tpcGeom)
-{
-  std::vector<TrkrDefs::cluskey> clusterKeys;
-  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
-                     tpcseed->end_cluster_keys());
-
-  std::vector<float> dedxlist;
-  for (unsigned long cluster_key : clusterKeys)
-  {
-    auto detid = TrkrDefs::getTrkrId(cluster_key);
-    if (detid != TrkrDefs::TrkrId::tpcId)
-    {
-      continue;  // the micromegas clusters are added to the TPC seeds
-    }
-    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-    TrkrCluster* cluster = clustermap->findCluster(cluster_key);
-    float adc = cluster->getAdc();
-    PHG4TpcCylinderGeom* GeoLayer_local = tpcGeom->GetLayerCellGeom(layer_local);
-    float thick = GeoLayer_local->get_thickness();
-    float r = GeoLayer_local->get_radius();
-    float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
-    float beta = std::atan(tpcseed->get_slope());
-    float alphacorr = std::cos(alpha);
-    if (alphacorr < 0 || alphacorr > 4)
-    {
-      alphacorr = 4;
-    }
-    float betacorr = std::cos(beta);
-    if (betacorr < 0 || betacorr > 4)
-    {
-      betacorr = 4;
-    }
-    adc /= thick;
-    adc *= alphacorr;
-    adc *= betacorr;
-    dedxlist.push_back(adc);
-    sort(dedxlist.begin(), dedxlist.end());
-  }
-  int trunc_min = 0;
-  if (dedxlist.empty())
-  {
-    return std::numeric_limits<float>::quiet_NaN();
-  }
-  int trunc_max = (int) dedxlist.size() * 0.7;
-  float sumdedx = 0;
-  int ndedx = 0;
-  for (int j = trunc_min; j <= trunc_max; j++)
-  {
-    sumdedx += dedxlist.at(j);
-    ndedx++;
-  }
-  sumdedx /= ndedx;
-  return sumdedx;
-}
 
 void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsigned int>& tpc_seed_ids)
 {
@@ -400,7 +346,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
   auto *svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
   auto *tpcGeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
-  if (!tpcseedmap or !trackmap or !clustermap or !silseedmap or !svtxseedmap or !geometry)
+  if (!tpcseedmap || !trackmap || !clustermap || !silseedmap || !svtxseedmap || !geometry)
   {
     std::cout << "Missing node, can't continue" << std::endl;
     return;
@@ -454,7 +400,15 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
       m_tpcseedpz = tpcseed->get_pz();
     }
     m_tpcseedcharge = tpcseed->get_qOverR() > 0 ? 1 : -1;
-    m_dedx = calc_dedx(tpcseed, clustermap, tpcGeo);
+    float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
+    // These are randomly chosen layer thicknesses for the TPC, to get the
+    // correct region thicknesses in an easy to pass way to the helper fxn
+    layerThicknesses[0] = tpcGeo->GetLayerCellGeom(7)->get_thickness();
+    layerThicknesses[1] = tpcGeo->GetLayerCellGeom(8)->get_thickness();
+    layerThicknesses[2] = tpcGeo->GetLayerCellGeom(27)->get_thickness();
+    layerThicknesses[3] = tpcGeo->GetLayerCellGeom(50)->get_thickness();
+    
+    m_dedx = TrackAnalysisUtils::calc_dedx(tpcseed, clustermap, geometry, layerThicknesses);
     m_nmaps = 0;
     m_nmapsstate = 0;
     m_nintt = 0;
@@ -821,7 +775,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
                                  PHG4CylinderGeomContainer* inttGeom,
                                  PHG4CylinderGeomContainer* mmGeom)
 {
-  if (!tpcGeom or !mvtxGeom or !inttGeom or !mmGeom)
+  if (!tpcGeom || !mvtxGeom || !inttGeom || !mmGeom)
   {
     std::cout << PHWHERE << "missing hit map, can't continue with hit tree"
               << std::endl;
@@ -1920,7 +1874,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
   auto *clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto *alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
-
+  auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   std::set<unsigned int> tpc_seed_ids;
   for (const auto& [key, track] : *trackmap)
   {
@@ -2038,7 +1992,15 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
     }
     if (tpcseed)
     {
-      m_dedx = calc_dedx(tpcseed, clustermap, tpcGeom);
+      float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
+      // These are randomly chosen layer thicknesses for the TPC, to get the
+      // correct region thicknesses in an easy to pass way to the helper fxn
+      layerThicknesses[0] = tpcGeom->GetLayerCellGeom(7)->get_thickness();
+      layerThicknesses[1] = tpcGeom->GetLayerCellGeom(8)->get_thickness();
+      layerThicknesses[2] = tpcGeom->GetLayerCellGeom(27)->get_thickness();
+      layerThicknesses[3] = tpcGeom->GetLayerCellGeom(50)->get_thickness();
+
+      m_dedx = TrackAnalysisUtils::calc_dedx(tpcseed, clustermap, geometry, layerThicknesses);
     }
 
     if (tpcseed)
@@ -2091,7 +2053,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
       /// repopulate with info that is going into alignment
       clearClusterStateVectors();
 
-      if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
+      if (alignmentmap && alignmentmap->find(key) != alignmentmap->end())
       {
         auto& statevec = alignmentmap->find(key)->second;
 
@@ -2255,7 +2217,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
   auto *clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto *alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
-
+  auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   std::set<unsigned int> tpc_seed_ids;
 
   for (const auto& [key, track] : *trackmap)
@@ -2374,7 +2336,15 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
     }
     if (tpcseed)
     {
-      m_dedx = calc_dedx(tpcseed, clustermap, tpcGeom);
+      float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
+      // These are randomly chosen layer thicknesses for the TPC, to get the
+      // correct region thicknesses in an easy to pass way to the helper fxn
+      layerThicknesses[0] = tpcGeom->GetLayerCellGeom(7)->get_thickness();
+      layerThicknesses[1] = tpcGeom->GetLayerCellGeom(8)->get_thickness();
+      layerThicknesses[2] = tpcGeom->GetLayerCellGeom(27)->get_thickness();
+      layerThicknesses[3] = tpcGeom->GetLayerCellGeom(50)->get_thickness();
+
+      m_dedx = TrackAnalysisUtils::calc_dedx(tpcseed, clustermap, geometry, layerThicknesses);
     }
     if (m_zeroField)
     {
@@ -2473,7 +2443,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       /// repopulate with info that is going into alignment
       clearClusterStateVectors();
 
-      if (alignmentmap and alignmentmap->find(key) != alignmentmap->end())
+      if (alignmentmap && alignmentmap->find(key) != alignmentmap->end())
       {
         auto& statevec = alignmentmap->find(key)->second;
 

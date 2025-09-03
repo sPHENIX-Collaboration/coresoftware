@@ -86,7 +86,7 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
   TH2 *h2(nullptr);
 
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP",  //
-               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+               ";mass [GeV/c^{2}];Entries", 40, m_min_mass, m_max_mass);
   hm->registerHisto(h);
 
   float eta_min = -1.3;

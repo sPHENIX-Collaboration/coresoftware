@@ -12,8 +12,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phfield/PHField.h>
 #include <phfield/PHFieldUtility.h>
+#include <phfield/PHFieldConfig.h>
 
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
@@ -38,6 +38,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <cmath>
 #include <iostream>                            // for operator<<, basic_ostream
 #include <vector>
 
@@ -59,10 +60,11 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
   int ret = get_nodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) { return ret; }
 
-  // both configurations are identical, use field map from node tree
-  _field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  // load magnetic field from node tree
+  /* note: if field is not found it is created with default configuration, as defined in PHFieldUtility */
+  const auto field_map = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
-  fitter = std::make_unique<ALICEKF>(_cluster_map,_field_map, _min_clusters_per_track,_max_sin_phi,Verbosity());
+  fitter = std::make_unique<ALICEKF>(_cluster_map,field_map, _min_clusters_per_track,_max_sin_phi,Verbosity());
   fitter->setNeonFraction(Ne_frac);
   fitter->setArgonFraction(Ar_frac);
   fitter->setCF4Fraction(CF4_frac);
@@ -72,8 +74,11 @@ int PrelimDistortionCorrection::InitRun(PHCompositeNode* topNode)
   fitter->setFixedClusterError(0,_fixed_clus_err.at(0));
   fitter->setFixedClusterError(1,_fixed_clus_err.at(1));
   fitter->setFixedClusterError(2,_fixed_clus_err.at(2));
-  //  _field_map = PHFieldUtility::GetFieldMapNode(nullptr,topNode);
-  // m_Cache = magField->makeCache(m_tGeometry->magFieldContext);
+
+  // properly set constField in ALICEKF, based on PHFieldConfig
+  const auto field_config = PHFieldUtility::GetFieldConfigNode(nullptr, topNode);
+  if( field_config->get_field_config() == PHFieldConfig::kFieldUniform )
+  { fitter->setConstBField(field_config->get_field_mag_z()); }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -174,7 +179,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       {
 	std::cout << "Input seed pars for " << track_it
 		  << " q " << track->get_charge()
-		  << " qOverR " << fabs(track->get_qOverR()) * track->get_charge()
+		  << " qOverR " << std::abs(track->get_qOverR()) * track->get_charge()
 		  << " X0 " << TrackSeedHelper::get_x(track)
 		  << " Y0 " << TrackSeedHelper::get_y(track)
 		  << " Z0 " << TrackSeedHelper::get_z(track)
@@ -294,7 +299,7 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
     TrackSeedHelper::circleFitByTaubin(&seed,positions, 7, 55);
     TrackSeedHelper::lineFit(&seed,positions, 7, 55);
 
-    seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+    seed.set_qOverR(std::abs(seed.get_qOverR()) * q);
     seed.set_phi(TrackSeedHelper::get_phi(&seed,positions));
     _track_map->insert(&seed);
 
@@ -302,7 +307,7 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
       {
 	std::cout << "Publishing seed " << seed_index
 		  << " q " << q
-		  << " qOverR " << fabs(seed.get_qOverR()) * q
+		  << " qOverR " << std::abs(seed.get_qOverR()) * q
 		  << " x " << TrackSeedHelper::get_x(&seed)
 		  << " y " << TrackSeedHelper::get_y(&seed)
 		  << " z " << TrackSeedHelper::get_z(&seed)

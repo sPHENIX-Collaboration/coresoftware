@@ -115,7 +115,7 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
       float hitAdc = cmclus->getHitAdc(i);
       float hitIT = cmclus->getHitIT(i);
 
-      double phi = atan2(cmclus->getHitY(i), cmclus->getHitX(i));
+      double phi = std::atan2(cmclus->getHitY(i), cmclus->getHitX(i));
       if (phi < -M_PI / 12.) phi += 2 * M_PI;
 
       int mod = -1;

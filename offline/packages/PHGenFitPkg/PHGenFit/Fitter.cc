@@ -178,7 +178,7 @@ namespace PHGenFit
       return -1;
     }
 
-    if (_display and save_to_evt_disp)
+    if (_display && save_to_evt_disp)
     {
       _display->addEvent(track->getGenFitTrack());
     }

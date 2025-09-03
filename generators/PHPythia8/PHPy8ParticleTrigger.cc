@@ -70,7 +70,7 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
     {
       if (pythia->event[i].id() == _theParticle &&
           (pythia->event[i].status() > 0    // only stable particles
-           or (not m_doStableParticleOnly)  // or not
+           || (! m_doStableParticleOnly)  // or not
            ))
       {
         if (_doBothYCut && (pythia->event[i].y() < _theYLow ||

@@ -84,6 +84,7 @@ bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
   return true;
 }
 
+
 bool PHHepMCGenEvent::swapEvent(HepMC::GenEvent*& evt)
 {
   swap(_theEvt, evt);
@@ -148,3 +149,4 @@ void PHHepMCGenEvent::PrintEvent()
 {
   _theEvt->print();
 }
+
