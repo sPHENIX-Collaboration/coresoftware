@@ -28,7 +28,7 @@ class PhotonCluster
   virtual float get_conversion_probability() const
   {
     PHOOL_VIRTUAL_WARN("get_conversion_probability()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   virtual bool is_converted() const
@@ -37,10 +37,10 @@ class PhotonCluster
     return false;
   }
 
-  virtual float get_shower_shape_parameter() const
+  virtual float get_shower_shape_parameter(const std::string& /*name*/) const
   {
     PHOOL_VIRTUAL_WARN("get_shower_shape_parameter()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! @}
 
@@ -70,7 +70,7 @@ class PhotonCluster
     PHOOL_VIRTUAL_WARN("set_converted()");
   }
 
-  virtual void set_shower_shape_parameter(const float /*shape*/)
+  virtual void set_shower_shape_parameter(const std::string& /*name*/,  const float /*shape*/)
   {
     PHOOL_VIRTUAL_WARN("set_shower_shape_parameter()");
   }

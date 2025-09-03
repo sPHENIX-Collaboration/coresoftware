@@ -55,8 +55,8 @@ class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
   void set_conversion_probability(const float prob) override { m_conversion_prob = prob; }
   void set_converted(const bool converted) override { m_is_converted = converted; }
   // Extra helper to set named shower shape parameters
-  void set_shower_shape_parameter(const std::string& name, float value) { m_shower_shapes[name] = value; }
-  float get_shower_shape_parameter(const std::string& name) const;
+  void set_shower_shape_parameter(const std::string& name, float value) override { m_shower_shapes[name] = value; }
+  float get_shower_shape_parameter(const std::string& name) const override;
   const std::map<std::string,float>& get_all_shower_shapes() const { return m_shower_shapes; }
   //! @}
 
