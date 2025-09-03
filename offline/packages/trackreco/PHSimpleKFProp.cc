@@ -49,6 +49,7 @@
 
 #include <omp.h>
 
+#include <cmath>
 #include <filesystem>
 #include <iostream>
 #include <syncstream>
@@ -1127,8 +1128,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   }
   kftrack.SetQPt(track->get_charge() / track_pt);
 
-  float track_pX = track_px * cos(track_phi) + track_py * sin(track_phi);
-  float track_pY = -track_px * sin(track_phi) + track_py * cos(track_phi);
+  float track_pX = track_px * std::cos(track_phi) + track_py * std::sin(track_phi);
+  float track_pY = -track_px * std::sin(track_phi) + track_py * std::cos(track_phi);
 
   kftrack.SetSignCosPhi(track_pX / track_pt);
   kftrack.SetSinPhi(track_pY / track_pt);
@@ -1200,8 +1201,8 @@ std::vector<TrkrDefs::cluskey> PHSimpleKFProp::PropagateTrack(TrackSeed* track, 
   */
   std::vector<TrkrDefs::cluskey> propagated_track;
 
-  kftrack.SetX(track_x * cos(track_phi) + track_y * sin(track_phi));
-  kftrack.SetY(-track_x * sin(track_phi) + track_y * cos(track_phi));
+  kftrack.SetX(track_x * std::cos(track_phi) + track_y * std::sin(track_phi));
+  kftrack.SetY(-track_x * std::sin(track_phi) + track_y * std::cos(track_phi));
   kftrack.SetZ(track_z);
 
   if (kftrack.GetSignCosPhi() < 0)
@@ -1380,7 +1381,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
       TrackSeedHelper::circleFitByTaubin(&seed,local, 7, 55);
       TrackSeedHelper::lineFit(&seed,local, 7, 55);
       seed.set_phi(TrackSeedHelper::get_phi(&seed,local));
-      seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+      seed.set_qOverR(std::abs(seed.get_qOverR()) * q);
     }
 
   }
@@ -1413,7 +1414,7 @@ void PHSimpleKFProp::rejectAndPublishSeeds(std::vector<TrackSeed_v2>& seeds, con
     {
       std::cout << "Publishing seed " << ((int) itrack)
                 << " q " << q
-                << " qOverR " << fabs(seed.get_qOverR()) * q
+                << " qOverR " << std::abs(seed.get_qOverR()) * q
                 << " x " << TrackSeedHelper::get_x(&seed)
                 << " y " << TrackSeedHelper::get_y(&seed)
                 << " z " << TrackSeedHelper::get_z(&seed)

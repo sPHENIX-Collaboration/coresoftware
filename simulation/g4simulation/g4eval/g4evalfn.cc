@@ -106,7 +106,7 @@ namespace g4evalfn
       {
         stat += dphi / (ismatcher->tol_pitch_phi[layer] * std::max(clus_T->getPhiSize(), clus_R->getPhiSize()));
       }
-      const float delta_z = std::fabs(clus_T->getPosition(1) - clus_R->getPosition(1));
+      const float delta_z = std::abs(clus_T->getPosition(1) - clus_R->getPosition(1));
       if (ismatcher->single_pixel_z_MVTX)
       {
         stat += delta_z / ismatcher->tol_pitch_z_MVTX;
@@ -139,7 +139,7 @@ namespace g4evalfn
       {
         stat += dphi / (ismatcher->tol_pitch_phi[layer] * std::max(clus_T->getPhiSize(), clus_R->getPhiSize()));
       }
-      const float delta_t = std::fabs(clus_T->getPosition(1) - clus_R->getPosition(1));
+      const float delta_t = std::abs(clus_T->getPosition(1) - clus_R->getPosition(1));
       if (ismatcher->single_bin_t_TPC)
       {
         stat += delta_t / ismatcher->tol_step_t_TPC;

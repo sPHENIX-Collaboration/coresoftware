@@ -9,6 +9,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
+#include <cmath>
 
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
@@ -121,11 +122,11 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
 
     float clusphi = atan2(global(1), global(0));
     TMatrixF ROT(3, 3);
-    ROT[0][0] = cos(clusphi);
-    ROT[0][1] = -sin(clusphi);
+    ROT[0][0] = std::cos(clusphi);
+    ROT[0][1] = -std::sin(clusphi);
     ROT[0][2] = 0.0;
-    ROT[1][0] = sin(clusphi);
-    ROT[1][1] = cos(clusphi);
+    ROT[1][0] = std::sin(clusphi);
+    ROT[1][1] = std::cos(clusphi);
     ROT[1][2] = 0.0;
     ROT[2][0] = 0.0;
     ROT[2][1] = 0.0;

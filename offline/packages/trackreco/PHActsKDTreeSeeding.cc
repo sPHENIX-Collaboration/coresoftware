@@ -42,6 +42,7 @@
 #include <Acts/Seeding/SpacePointGrid.hpp>
 #include <Acts/Utilities/KDTree.hpp>
 
+#include <cmath>
 #include <optional>
 
 namespace
@@ -299,7 +300,7 @@ void PHActsKDTreeSeeding::matchInttClusters(
       /// Check that the projection is within some reasonable amount of the segment
       /// to reject e.g. looking at segments in the opposite hemisphere. This is about
       /// the size of one intt segment (256 * 80 micron strips in a segment)
-      if (fabs(dphi) > 0.2)
+      if (std::abs(dphi) > 0.2)
       {
         continue;
       }

@@ -89,7 +89,7 @@ Checks: '
     bugprone-unused-return-value,
     bugprone-use-after-move,
     bugprone-virtual-near-miss,
-    cppcoreguidelines-macro-usage,
+#    cppcoreguidelines-macro-usage,
     cppcoreguidelines-prefer-member-initializer,
 #    cppcoreguidelines-pro-type-static-cast-downcast,
     cppcoreguidelines-virtual-class-destructor,

@@ -83,7 +83,8 @@ double AnalyticFieldModel::Rho(const TVector3& pos)
 TVector3 AnalyticFieldModel::Eint(float zfinal, const TVector3& pos)
 {  // field integral from 'pos' to z-position zfinal.
   // in rhat phihat zhat coordinates: (at phi=0, phi is the +Y position, Perp is the +X direction and Z is Z)
-  TVector3 eintI, eintF;
+  TVector3 eintI;
+  TVector3 eintF;
   eintI.SetXYZ(intErDzTestFunction1->Eval(pos.Perp(), pos.Phi(), pos.Z()),
                intEPhiDzTestFunction1->Eval(pos.Perp(), pos.Phi(), pos.Z()),
                intEzDzTestFunction1->Eval(pos.Perp(), pos.Phi(), pos.Z()));
