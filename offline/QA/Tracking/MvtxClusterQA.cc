@@ -28,7 +28,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
-#include <boost/format.hpp>
+#include <format>
 
 //____________________________________________________________________________..
 MvtxClusterQA::MvtxClusterQA(const std::string &name)
@@ -39,7 +39,7 @@ MvtxClusterQA::MvtxClusterQA(const std::string &name)
 //____________________________________________________________________________..
 int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
 {
-  auto geomContainer = findNode::getClass<
+  auto *geomContainer = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!geomContainer)
   {
@@ -48,9 +48,9 @@ int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  for (auto &layer : {0, 1, 2})
+  for (const auto &layer : {0, 1, 2})
   {
-    auto layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geomContainer->GetLayerGeom(layer));
+    auto *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geomContainer->GetLayerGeom(layer));
     if (!layergeom)
     {
       std::cout << PHWHERE << "Did not get layergeom for layer "
@@ -68,27 +68,27 @@ int MvtxClusterQA::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int MvtxClusterQA::process_event(PHCompositeNode *topNode)
 {
-  auto clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  auto *clusterContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!clusterContainer)
   {
     std::cout << PHWHERE << "No cluster container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
+  auto *trkrHitSetContainer = findNode::getClass<TrkrHitSetContainerv1>(topNode, "TRKR_HITSET");
   if (!trkrHitSetContainer)
   {
     std::cout << PHWHERE << "No trkrhitset container, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  auto tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  auto *tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!tGeometry)
   {
     std::cout << PHWHERE << "No acts geometry on node tree, bailing" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  
+
   int numclusters = 0;
   for (auto &hsk : clusterContainer->getHitSetKeys(TrkrDefs::TrkrId::mvtxId))
   {
@@ -112,13 +112,13 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto cluskey = iter->first;
-        const auto cluster = iter->second;
+        auto *const cluster = iter->second;
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
         h_clusperchip[(int) layer][(int) stave][(int) chip]->Fill(cluster->getLocalY(), cluster->getLocalX());
         h_clusSize->Fill(cluster->getSize());
-        h_clusSize_nClus->Fill(numclusters,cluster->getSize());
+        h_clusSize_nClus->Fill(numclusters, cluster->getSize());
         h_clusPhi_incl->Fill(phi);
         if (clayer == 0)
         {
@@ -146,12 +146,12 @@ int MvtxClusterQA::process_event(PHCompositeNode *topNode)
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const auto cluskey = iter->first;
-        const auto cluster = iter->second;
+        auto *const cluster = iter->second;
         auto globalpos = tGeometry->getGlobalPosition(cluskey, cluster);
         auto phi = atan2(globalpos(1), globalpos(0));
         auto clayer = TrkrDefs::getLayer(cluskey);
         h_clusSize->Fill(cluster->getSize());
-        h_clusSize_nClus->Fill(numclusters,cluster->getSize());
+        h_clusSize_nClus->Fill(numclusters, cluster->getSize());
         h_clusPhi_incl->Fill(phi);
         if (clayer == 0)
         {
@@ -203,50 +203,50 @@ std::string MvtxClusterQA::getHistoPrefix() const
 
 void MvtxClusterQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  h_occupancy = new TH1F((boost::format("%schipOccupancy") % getHistoPrefix()).str().c_str(), "MVTX Chip Occupancy", 60, 0, 0.6);
+  h_occupancy = new TH1F(std::format("{}chipOccupancy", getHistoPrefix()).c_str(), "MVTX Chip Occupancy", 60, 0, 0.6);
   h_occupancy->GetXaxis()->SetTitle("Chip Occupancy [%]");
   h_occupancy->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_occupancy);
-  h_clusSize = new TH1F((boost::format("%sclusterSize") % getHistoPrefix()).str().c_str(), "MVTX Cluster Size", 50, -0.5, 49.5);
+  h_clusSize = new TH1F(std::format("{}clusterSize", getHistoPrefix()).c_str(), "MVTX Cluster Size", 50, -0.5, 49.5);
   h_clusSize->GetXaxis()->SetTitle("Cluster Size");
   h_clusSize->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusSize);
-  h_clusPhi_incl = new TH1F((boost::format("%sclusterPhi_incl") % getHistoPrefix()).str().c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
+  h_clusPhi_incl = new TH1F(std::format("{}clusterPhi_incl", getHistoPrefix()).c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
   h_clusPhi_incl->GetXaxis()->SetTitle("Cluster (layer 0+1+2) #phi [rad]");
   h_clusPhi_incl->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_incl);
-  h_clusPhi_l0 = new TH1F((boost::format("%sclusterPhi_l0") % getHistoPrefix()).str().c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
+  h_clusPhi_l0 = new TH1F(std::format("{}clusterPhi_l0", getHistoPrefix()).c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
   h_clusPhi_l0->GetXaxis()->SetTitle("Cluster (layer 0) #phi [rad]");
   h_clusPhi_l0->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_l0);
-  h_clusPhi_l1 = new TH1F((boost::format("%sclusterPhi_l1") % getHistoPrefix()).str().c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
+  h_clusPhi_l1 = new TH1F(std::format("{}clusterPhi_l1", getHistoPrefix()).c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
   h_clusPhi_l1->GetXaxis()->SetTitle("Cluster (layer 1) #phi [rad]");
   h_clusPhi_l1->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_l1);
-  h_clusPhi_l2 = new TH1F((boost::format("%sclusterPhi_l2") % getHistoPrefix()).str().c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
+  h_clusPhi_l2 = new TH1F(std::format("{}clusterPhi_l2", getHistoPrefix()).c_str(), "MVTX Cluster Phi", 320, -3.2, 3.2);
   h_clusPhi_l2->GetXaxis()->SetTitle("Cluster (layer 2) #phi [rad]");
   h_clusPhi_l2->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_clusPhi_l2);
-  h_clusZ_clusPhi_l0 = new TH2F((boost::format("%sclusterZ_clusPhi_l0") % getHistoPrefix()).str().c_str(), "MVTX Cluster Z vs Phi", 300, -15, 15, 350, -3.5, 3.5);
+  h_clusZ_clusPhi_l0 = new TH2F(std::format("{}clusterZ_clusPhi_l0", getHistoPrefix()).c_str(), "MVTX Cluster Z vs Phi", 300, -15, 15, 350, -3.5, 3.5);
   h_clusZ_clusPhi_l0->GetXaxis()->SetTitle("Cluster (layer 2) Z [cm]");
   h_clusZ_clusPhi_l0->GetYaxis()->SetTitle("Cluster (layer 0) #phi [rad]");
   hm->registerHisto(h_clusZ_clusPhi_l0);
-  h_clusZ_clusPhi_l1 = new TH2F((boost::format("%sclusterZ_clusPhi_l1") % getHistoPrefix()).str().c_str(), "MVTX Cluster Z vs Phi", 300, -15, 15, 350, -3.5, 3.5);
+  h_clusZ_clusPhi_l1 = new TH2F(std::format("{}clusterZ_clusPhi_l1", getHistoPrefix()).c_str(), "MVTX Cluster Z vs Phi", 300, -15, 15, 350, -3.5, 3.5);
   h_clusZ_clusPhi_l1->GetXaxis()->SetTitle("Cluster (layer 2) Z [cm]");
   h_clusZ_clusPhi_l1->GetYaxis()->SetTitle("Cluster (layer 1) #phi [rad]");
   hm->registerHisto(h_clusZ_clusPhi_l1);
-  h_clusZ_clusPhi_l2 = new TH2F((boost::format("%sclusterZ_clusPhi_l2") % getHistoPrefix()).str().c_str(), "MVTX Cluster Z vs Phi", 300, -15, 15, 350, -3.5, 3.5);
+  h_clusZ_clusPhi_l2 = new TH2F(std::format("{}clusterZ_clusPhi_l2", getHistoPrefix()).c_str(), "MVTX Cluster Z vs Phi", 300, -15, 15, 350, -3.5, 3.5);
   h_clusZ_clusPhi_l2->GetXaxis()->SetTitle("Cluster (layer 2) Z [cm]");
   h_clusZ_clusPhi_l2->GetYaxis()->SetTitle("Cluster (layer 2) #phi [rad]");
   hm->registerHisto(h_clusZ_clusPhi_l2);
-  h_strobe = new TH1I((boost::format("%sstrobeTiming") % getHistoPrefix()).str().c_str(), "MVTX Strobe Timing per Hit", 32, -15, 16);
+  h_strobe = new TH1I(std::format("{}strobeTiming", getHistoPrefix()).c_str(), "MVTX Strobe Timing per Hit", 32, -15, 16);
   h_strobe->GetXaxis()->SetTitle("Strobe BCO - GL1 BCO");
   h_strobe->GetYaxis()->SetTitle("Entries");
   hm->registerHisto(h_strobe);
-  h_clusSize_nClus = new TH2F((boost::format("%sclusSize_nCLus") % getHistoPrefix()).str().c_str(),"MVTX Cluster Size vs Number of Clusters",800,-0.5,799.5,25,-0.5,24.5);
+  h_clusSize_nClus = new TH2F(std::format("{}clusSize_nCLus", getHistoPrefix()).c_str(), "MVTX Cluster Size vs Number of Clusters", 800, -0.5, 799.5, 25, -0.5, 24.5);
   h_clusSize_nClus->GetXaxis()->SetTitle("Number of Clusters");
   h_clusSize_nClus->GetYaxis()->SetTitle("Cluster Size");
   hm->registerHisto(h_clusSize_nClus);
@@ -260,7 +260,7 @@ void MvtxClusterQA::createHistos()
         //! 9 chips on each stave
         for (int chip = 0; chip < 9; chip++)
         {
-          h_clusperchip[layer][stave][chip] = new TH2F((boost::format("%snclusperchip%i_%i_%i") % getHistoPrefix() % layer % stave % chip).str().c_str(),
+          h_clusperchip[layer][stave][chip] = new TH2F(std::format("{}nclusperchip{}_{}_{}", getHistoPrefix(), layer, stave, chip).c_str(),
                                                        "MVTX clusters per chip", 2000, -2, 2, 2000, -1, 1);
           h_clusperchip[layer][stave][chip]->GetXaxis()->SetTitle("Local z [cm]");
           h_clusperchip[layer][stave][chip]->GetYaxis()->SetTitle("Local rphi [cm]");

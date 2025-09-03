@@ -190,6 +190,16 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   //! total number of dropped waveforms per packet due to fun4all pool mismatch
   TH1 *h_waveform_count_dropped_pool{nullptr};
 
+  //! total number of waveforms per packet
+  TH1 *h_fee_waveform_count_total{nullptr};
+
+  //! total number of dropped waveforms per fee due to bco mismatch
+  /*! waveforms are dropped when their FEE-BCO cannot be associated to any global BCO */
+  TH1 *h_fee_waveform_count_dropped_bco{nullptr};
+
+  //! total number of dropped waveforms per fee due to fun4all pool mismatch
+  TH1 *h_fee_waveform_count_dropped_pool{nullptr};
+
   //@}
 
   //!@name evaluation

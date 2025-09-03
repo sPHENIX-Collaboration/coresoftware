@@ -15,7 +15,7 @@
 // module components
 #include "BaseBeamBackgroundFilter.h"
 
-// c++ includes
+// c++ utilities
 #include <string>
 
 // forward declarations
@@ -42,7 +42,7 @@ class NullFilter : public BaseBeamBackgroundFilter
 
   // ctor/dtor
   NullFilter(const std::string& name = "Null");
-  NullFilter(const Config& cfg, const std::string& name = "Null");
+  NullFilter(const Config& config, const std::string& name = "Null");
   virtual ~NullFilter() = default;
 
   // inherited methods

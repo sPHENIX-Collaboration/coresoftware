@@ -21,6 +21,7 @@ libinttcalib_la_SOURCES = \
 
 libinttcalib_la_LIBADD = \
   -lcdbobjects \
+  -lqautils \
   -lintt \
   -lphool \
   -lSubsysReco

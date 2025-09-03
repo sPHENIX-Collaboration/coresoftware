@@ -5,10 +5,10 @@
 
 #include <phool/PHObject.h>
 
-#include <cmath>
 #include <cstddef>  // for size_t
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <set>
 #include <vector>
@@ -40,7 +40,7 @@ class JetMap : public PHObject
   virtual Jet::ALGO get_algo() const { return Jet::NONE; }
 
   virtual void set_par(float) { return; }
-  virtual float get_par() const { return NAN; }
+  virtual float get_par() const { return std::numeric_limits<float>::quiet_NaN(); }
 
   // set access to list of source identifiers ----------------------------------
 

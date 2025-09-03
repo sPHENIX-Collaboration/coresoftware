@@ -86,6 +86,27 @@ void RawClusterBuilderTemplate::Detector(const std::string &d)
   bemc->SetProbNoiseParam(fProbNoiseParam);
 }
 
+void RawClusterBuilderTemplate::set_UseCorrectPosition(const bool useCorrectPosition)
+{
+  if (bemc == nullptr)
+  {
+    std::cerr << "Error in RawClusterBuilderTemplate::set_UseCorrectPosition()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
+    return;
+  }
+
+  bemc->set_UseCorrectPosition(useCorrectPosition);
+}
+
+void RawClusterBuilderTemplate::set_UseCorrectShowerDepth(const bool useCorrectShowerDepth) {
+  if (bemc == nullptr)
+  {
+    std::cerr << "Error in RawClusterBuilderTemplate::set_UseCorrectShowerDepth()(): detector is not defined; use RawClusterBuilderTemplate::Detector() to define it" << std::endl;
+    return;
+  }
+
+  bemc->set_UseCorrectShowerDepth(useCorrectShowerDepth);
+}
+
 void RawClusterBuilderTemplate::set_UseDetailedGeometry(const bool useDetailedGeometry)
 {
   if (bemc == nullptr)

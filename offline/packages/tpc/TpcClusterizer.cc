@@ -505,7 +505,7 @@ namespace
       training_hits = new TrainingHits;
       assert(training_hits);
       training_hits->radius = radius;
-      training_hits->phi = my_data.layergeom->get_phicenter(iphi_center + my_data.phioffset, my_data.side);
+      training_hits->phi = my_data.layergeom->get_phicenter(iphi_center + my_data.phioffset);
       double center_t = my_data.layergeom->get_zcenter(it_center + my_data.toffset) + my_data.sampa_tbias;
       training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
       if (my_data.side == 0)
@@ -620,7 +620,7 @@ namespace
 
     // This is the global position
     double clusiphi = iphi_sum / adc_sum;
-    double clusphi = my_data.layergeom->get_phi(clusiphi, my_data.side);
+    double clusphi = my_data.layergeom->get_phi(clusiphi);
 
     float clusx = radius * cos(clusphi);
     float clusy = radius * sin(clusphi);
@@ -656,10 +656,11 @@ namespace
     }
 
     // Estimate the errors
-    const double phi_err_square = (phibinhi == phibinlo) ? square(radius * my_data.layergeom->get_phistep()) / 12 : square(radius) * phi_cov / (adc_sum * 0.14);
-
-    const double t_err_square = (tbinhi == tbinlo) ? square(my_data.layergeom->get_zstep()) / 12 : t_cov / (adc_sum * 0.14);
-
+    // Blow up error on single pixel clusters by a factor 3 to compensate for threshold effects
+    const double phi_err_square = (phibinhi == phibinlo) ? 9*(square(radius * my_data.layergeom->get_phistep()) / 12) : square(radius) * phi_cov / (adc_sum * 0.14);
+  
+  const double t_err_square = (tbinhi == tbinlo) ? 9*(square(my_data.layergeom->get_zstep()) / 12) : t_cov / (adc_sum * 0.14);
+  
     char tsize = tbinhi - tbinlo + 1;
     char phisize = phibinhi - phibinlo + 1;
     // std::cout << "phisize: "  << (int) phisize << " phibinhi " << phibinhi << " phibinlo " << phibinlo << std::endl;

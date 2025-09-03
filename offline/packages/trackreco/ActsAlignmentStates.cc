@@ -49,7 +49,7 @@ void ActsAlignmentStates::loadNodes( PHCompositeNode* topNode )
   m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
 
   // state map
-  m_alignmentStateMap = findNode::getClass<SvtxAlignmentStateMap>(topNode, "SvtxAlignmentStateMap");
+  m_alignmentStateMap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentStateMapName);
 
 }
 
@@ -101,7 +101,7 @@ void ActsAlignmentStates::fillAlignmentStateMap(
     }
   }
 
-  if (nmaps < 2 or nintt < 2)
+  if (nmaps < 2 || nintt < 2)
   {
     return;
   }
@@ -116,8 +116,8 @@ void ActsAlignmentStates::fillAlignmentStateMap(
   mj.visitBackwards(trackTip, [&](const auto& state)
                     {
     /// Collect only track states which were used in smoothing of KF and are measurements
-    if (not state.hasSmoothed() or
-        not state.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag))
+    if (! state.hasSmoothed() ||
+        ! state.typeFlags().test(Acts::TrackStateFlag::MeasurementFlag))
     {
       return true;
     }

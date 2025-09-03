@@ -70,8 +70,8 @@ class JetMapv1 : public JetMap
   std::vector<Jet*> vec() override;  // defaulted to PT in JetMap.h
 
  private:
-  Jet::ALGO _algo = Jet::NONE;  //< algorithm used to reconstruct jets
-  float _par = NAN;             //< algorithm parameter setting (e.g. radius)
+  Jet::ALGO _algo {Jet::NONE};  //< algorithm used to reconstruct jets
+  float _par {std::numeric_limits<float>::quiet_NaN()};             //< algorithm parameter setting (e.g. radius)
   std::set<Jet::SRC> _src;      //< list of sources (clusters, towers, etc)
   typ_JetMap _map;              //< jet algorithm output storage
 

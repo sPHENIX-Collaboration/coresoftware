@@ -15,13 +15,13 @@
 #include <TCanvas.h>
 #include <TH1.h>
 
-#include <boost/format.hpp>
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>
 #include <odbc++/types.h>
 
+#include <format>
 #include <iostream>
 
 XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntry)
@@ -321,7 +321,7 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
     std::cout << "Not enough statistics. Did not calibrate." << std::endl;
   }
 
-  const std::string cdbfname = (boost::format("SPIN-%08d_crossingshiftCDBTTree.root") % runnumber).str();
+  const std::string cdbfname = std::format("SPIN-{:08}_crossingshiftCDBTTree.root", runnumber);
   WriteToCDB(cdbfname);
   CommitToSpinDB();
   
@@ -481,8 +481,6 @@ int XingShiftCal::WriteToCDB(const std::string &fname)
 int XingShiftCal::CommitToSpinDB()
 {
   std::cout << "XingShiftCal::CommitPatternToSpinDB()" << std::endl;
-  std::string status;  //-------------------------------------------->
-
 
   if (runnumber == 0)
   {
@@ -1088,8 +1086,8 @@ int XingShiftCal::SpinDBQA()
 
     //if pc spin pattern does not match intended spin pattern within < 10 bunches
     int mismatches = 0;
-    std::string spin_pattern_blue = "";
-    std::string spin_pattern_yell = "";
+//    std::string spin_pattern_blue = "";
+//    std::string spin_pattern_yell = "";
     for (int crossing = 0; crossing < 120; crossing++)
     {
       int spin_cdev_blue = blueSpinPattern[crossing];

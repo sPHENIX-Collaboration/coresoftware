@@ -35,12 +35,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   int InitRun(PHCompositeNode *topNode) override;
 
   void UseGain(const int flagToUseGain);
-  void SetUseModuleGainWeights(const int flag) {m_use_module_gain_weights = flag;}
-  void SetModuleGainWeightsFileName(const std::string &name) {m_tpc_module_gain_weights_file = name;}
+  void SetUseModuleGainWeights(const int flag) { m_use_module_gain_weights = flag; }
+  void SetModuleGainWeightsFileName(const std::string &name) { m_tpc_module_gain_weights_file = name; }
   void ReadGain();
-  void SetUsePolyaGEMGain(const int flagPolya) {m_usePolya = flagPolya;}
-  void SetUseLangauGEMGain(const int flagLangau) {m_useLangau = flagLangau;}
-  void SetLangauParsFileName(const std::string &name) {m_tpc_langau_pars_file = name;}
+  void SetUsePolyaGEMGain(const int flagPolya) { m_usePolya = flagPolya; }
+  void SetUseLangauGEMGain(const int flagLangau) { m_useLangau = flagLangau; }
+  void SetLangauParsFileName(const std::string &name) { m_tpc_langau_pars_file = name; }
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
   void SetReadoutTime(float t) override { extended_readout_time = t; }
@@ -86,7 +86,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double sigmaT = std::numeric_limits<double>::signaling_NaN();
   std::array<double, 2> sigmaL{};
-  double phi_bin_width{};
+  std::array<double, 3> PhiBinWidth{};
   double drift_velocity = 8.0e-03;  // default value, override from macro
   float extended_readout_time = 0;  // ns
   int NTBins = std::numeric_limits<int>::max();
@@ -105,13 +105,13 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   double averageGEMGain = std::numeric_limits<double>::signaling_NaN();
   double polyaTheta = std::numeric_limits<double>::signaling_NaN();
 
-  std::array<std::vector<double>, NSides> sector_min_Phi;
-  std::array<std::vector<double>, NSides> sector_max_Phi;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_min_Phi_sectors;
+  std::array<std::array<std::vector<double>, NRSectors>, NSides> sector_max_Phi_sectors;
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
   double getSingleEGEMAmplification(double weight);
-  double getSingleEGEMAmplification(TF1 *f);
+  static double getSingleEGEMAmplification(TF1 *f);
   bool m_usePolya = false;
 
   bool m_useLangau = false;
@@ -121,14 +121,13 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   std::array<TH2 *, 2> h_gain{nullptr};
 
-  double m_module_gain_weight[2][3][12] = { 
-    { {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1} },
-    { {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1},
-      {1,1,1,1,1,1,1,1,1,1,1,1} } 
-  };
+  double m_module_gain_weight[2][3][12] = {
+      {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}},
+      {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+       {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}};
 
   TF1 *flangau[2][3][12] = {{{nullptr}}};
 

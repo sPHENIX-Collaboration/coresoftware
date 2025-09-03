@@ -53,6 +53,12 @@ Eventplaneinfo* EventplaneinfoMapv1::get(unsigned int id)
 
 Eventplaneinfo* EventplaneinfoMapv1::insert(Eventplaneinfo* clus, const EventplaneinfoMap::EPTYPE id)
 {
-  auto ret = _map.insert(std::make_pair(id, clus));
-  return ret.first->second;
+  auto [iter, inserted] = _map.insert(std::make_pair(id, clus));
+  if (!inserted)
+  {
+    delete iter->second;
+    iter->second = clus;
+  }
+  return iter->second;
 }
+

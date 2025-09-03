@@ -12,7 +12,11 @@
 class PHField3DCartesian : public PHField
 {
  public:
+
+  //! constructor
   explicit PHField3DCartesian(const std::string &fname, const float magfield_rescale = 1.0, const float innerradius = 0, const float outerradius = 1.e10, const float size_z = 1.e10);
+
+  //! destructor
   ~PHField3DCartesian() override;
 
   //! access field value
@@ -21,7 +25,9 @@ class PHField3DCartesian : public PHField
   //! @param[out] Bfield  field value. In the case of magnetic field, the order is Bx, By, Bz in in Geant4/CLHEP units
   void GetFieldValue(const double Point[4], double *Bfield) const override;
 
- private:
+  void GetFieldValue_nocache(const double Point[4], double *Bfield) const override;
+
+  private:
   std::string filename;
   double xmin = 1000000;
   double xmax = -1000000;
@@ -32,9 +38,9 @@ class PHField3DCartesian : public PHField
   double xstepsize = NAN;
   double ystepsize = NAN;
   double zstepsize = NAN;
+
   // these are updated in a const method
   // to cache previous values
-  mutable double xyz[2][2][2][3]{};
   mutable double bf[2][2][2][3]{};
   mutable double xkey_save = NAN;
   mutable double ykey_save = NAN;

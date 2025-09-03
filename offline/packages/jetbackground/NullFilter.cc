@@ -12,15 +12,15 @@
 // module components
 #include "NullFilter.h"
 
-#include "BeamBackgroundFilterAndQADefs.h"
+// jetqa utilities
+#include <jetqa/JetQADefs.h>
 
-// root includes
+// root libraries
 #include <TH1.h>
 
-// c++ includes
+// c++ utilities
 #include <iostream>
 #include <map>
-#include <memory>
 #include <vector>
 
 // ctor/dtor ==================================================================
@@ -91,7 +91,7 @@ void NullFilter::BuildHistograms(const std::string& module, const std::string& t
   };
 
   // make qa-compliant hist names
-  std::vector<std::string> histNames = BeamBackgroundFilterAndQADefs::MakeQAHistNames(varNames, moduleAndFilterName, tag);
+  std::vector<std::string> histNames = JetQADefs::MakeQAHistNames(varNames, moduleAndFilterName, tag);
 
   // construct histograms
   m_hists[varNames[0]] = new TH1D(histNames[0].data(), "", 2, -0.5, 1.5);

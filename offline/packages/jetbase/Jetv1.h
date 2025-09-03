@@ -11,9 +11,9 @@
 
 #include "Jet.h"
 
-#include <cmath>
 #include <cstddef>  // for size_t
 #include <iostream>
+#include <limits>
 #include <map>
 #include <utility>  // for pair, make_pair
 
@@ -107,7 +107,7 @@ class Jetv1 : public Jet
   float _mom[3]{};
 
   /// jet energy
-  float _e = NAN;
+  float _e {std::numeric_limits<float>::quiet_NaN()};
 
   /// source id -> component id
   typ_comp_ids _comp_ids;
@@ -118,7 +118,7 @@ class Jetv1 : public Jet
 
   // Function in Jet.h header which are not implemented in Jet.h
   // messages for function calls from Jet.h which are not implemented in Jetv1.h
-  void not_in_v1_msg(const std::string& method_name, std::ostream& os = std::cout) const;
+  static void not_in_v1_msg(const std::string& method_name, std::ostream& os = std::cout) ;
   size_t size_properties() const override { return _property_map.size(); };
   virtual std::vector<float>& get_property_vec() override;
 

@@ -233,7 +233,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
     G4Transform3D block_trans = G4TranslateX3D(g_tower.centralX * cm) * G4TranslateY3D(g_tower.centralY * cm) * G4TranslateZ3D(g_tower.centralZ * cm) * G4RotateX3D(g_tower.pRotationAngleX * rad);
 
-    const bool overlapcheck_block = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 2);
+    const bool overlapcheck_block = OverlapCheck() && (get_geom_v3()->get_construction_verbose() >= 2);
 
     G4PVPlacement* block_phys = new G4PVPlacement(block_trans, LV_tower,
                                                   G4String(GetName()) + G4String("_Tower"), sec_logic, false,
@@ -371,7 +371,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     name << GetName() + std::string("_Tower") << g_tower.id << "_fiber"
          << ss.str();
 
-    const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
+    const bool overlapcheck_fiber = OverlapCheck() && (get_geom_v3()->get_construction_verbose() >= 3);
     G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
                                                    G4String(name.str()), LV_tower, false, fiber_ID,
                                                    overlapcheck_fiber);
@@ -478,7 +478,7 @@ int PHG4FullProjSpacalDetector::Construct_Fibers(
       name << GetName() + std::string("_Tower") << g_tower.id << "_fiber"
            << ss.str();
 
-      const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
+      const bool overlapcheck_fiber = OverlapCheck() && (get_geom_v3()->get_construction_verbose() >= 3);
       G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place,
                                                      fiber_logic, G4String(name.str()), LV_tower, false,
                                                      fiber_ID, overlapcheck_fiber);

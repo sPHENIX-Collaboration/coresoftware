@@ -1,14 +1,15 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQAInclusiveFiller.h'
-// Derek Anderson
-// 04.03.2024
-//
-// A submodule for the TrksInJetQA F4A module to produce
-// QA histograms for tracks and more in jets
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQAInclusiveFiller.h
+ *  \author Derek Anderson
+ *  \date   04.03.2024
+ *
+ *  A submodule for the TrksInJetQA F4A module to produce
+ *  QA histograms for tracks and more in jets
+ */
+/// ===========================================================================
 
-#ifndef TRACKSINJETSQAMAKER_INCLUSIVEQAHISTFILLER_H
-#define TRACKSINJETSQAMAKER_INCLUSIVEQAHISTFILLER_H
+#ifndef TRKSINJETQAINCLUSIVEQAFILLER_H
+#define TRKSINJETQAINCLUSIVEQAFILLER_H
 
 // submodule definitions
 #include "TrksInJetQABaseFiller.h"
@@ -36,8 +37,13 @@
 // c+ utilities
 #include <cassert>
 
-// TrksInJetQAInclusiveFiller -------------------------------------------------
-
+// ============================================================================
+//! Inclusive histogram filler for TrksInJetQA module
+// ============================================================================
+/*! This histogram filler defines how to fill histograms
+ *  for inclusive populations (i.e. all objects regardless
+ *  of if they're in jets or not).
+ */
 class TrksInJetQAInclusiveFiller : public TrksInJetQABaseFiller
 {
  public:
@@ -59,4 +65,4 @@ class TrksInJetQAInclusiveFiller : public TrksInJetQABaseFiller
 
 #endif
 
-// end ------------------------------------------------------------------------
+/// end =======================================================================

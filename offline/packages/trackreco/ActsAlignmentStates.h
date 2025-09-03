@@ -48,6 +48,10 @@ class ActsAlignmentStates
   void fieldMap(std::string& fieldmap)
   {m_fieldMap = fieldmap; }
 
+  //! alignment states map
+  void alignmentStateMap (std::string const& name)
+  {m_alignmentStateMapName = name;}
+
  private:
 
   std::pair<Acts::Vector3, Acts::Vector3> get_projectionXY(const Acts::Surface& surface, const Acts::Vector3& tangent);
@@ -62,6 +66,8 @@ class ActsAlignmentStates
 
   //! alignment state map
   SvtxAlignmentStateMap* m_alignmentStateMap = nullptr;
+  std::string m_alignmentStateMapName = "SvtxAlignmentStateMap";
+
 
   //! cluster map
   TrkrClusterContainer* m_clusterMap = nullptr;

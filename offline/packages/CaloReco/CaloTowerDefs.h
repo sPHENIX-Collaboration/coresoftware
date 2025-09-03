@@ -10,6 +10,7 @@ namespace CaloTowerDefs
     HCALOUT = 2,
     SEPD = 3,
     ZDC = 4,
+    MBD = 5,
     DETECTOR_INVALID = 99999
   };
 

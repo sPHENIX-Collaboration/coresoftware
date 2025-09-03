@@ -20,7 +20,9 @@ class EventplaneinfoMap : public PHObject
     MBDS = 2,
     MBDN = 3,
     sEPDNS = 4,
-    MBDNS = 5
+    MBDNS = 5,
+    sEPDRING_SOUTH = 100,
+    sEPDRING_NORTH = 200  
   };
 
   typedef std::map<unsigned int, Eventplaneinfo*>::const_iterator ConstIter;

@@ -38,14 +38,14 @@ class ParticleFlowReco : public SubsysReco
   void set_only_crossing_zero(bool b) { _only_crossing_zero = b; }
 
  private:
-  int CreateNode(PHCompositeNode *topNode);
+  static int CreateNode(PHCompositeNode *topNode);
 
-  float calculate_dR(float, float, float, float);
+  static float calculate_dR(float, float, float, float);
   std::pair<float, float> get_expected_signature(int);
 
-  bool _only_crossing_zero = true;
+  bool _only_crossing_zero {true};
 
-  float _energy_match_Nsigma;
+  float _energy_match_Nsigma {1.5};
 
   std::vector<float> _pflow_TRK_p;
   std::vector<float> _pflow_TRK_eta;
@@ -79,7 +79,7 @@ class ParticleFlowReco : public SubsysReco
   std::vector<std::vector<int> > _pflow_HAD_match_EM;
   std::vector<std::vector<int> > _pflow_HAD_match_TRK;
 
-  std::string _track_map_name = "SvtxTrackMap";
+  std::string _track_map_name {"SvtxTrackMap"};
 };
 
 #endif  // PARTICLEFLOWRECO_H

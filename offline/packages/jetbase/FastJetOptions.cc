@@ -45,7 +45,8 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input)
         use_constituent_min_pt = true;
         constituent_min_pt = next_val(i, input);
       }
-      else if (item.opt == CONSTITUENT_MIN_E) {
+      else if (item.opt == CONSTITUENT_MIN_E)
+      {
         constituent_min_E = next_val(i, input);
       }
       else if (item.opt == DO_SOFTDROP)
@@ -90,27 +91,27 @@ FastJetOptions& FastJetOptions::update(std::vector<FastJetOptItem> input)
       }
       else if (item.opt == FJCS_max_eta)
       {
-        cs_max_eta = static_cast<float>(next_val(i, input));
+        cs_max_eta = next_val(i, input);
       }
       else if (item.opt == FJCS_GridMedBkgEst_Size)
       {
-        cs_gridmedestsize = static_cast<float>(next_val(i, input));
+        cs_gridmedestsize = next_val(i, input);
       }
       else if (item.opt == FJCS_max_dist)
       {
-        cs_max_dist = static_cast<float>(next_val(i, input));
+        cs_max_dist = next_val(i, input);
       }
       else if (item.opt == FJCS_alpha)
       {
-        cs_alpha = static_cast<float>(next_val(i, input));
+        cs_alpha = next_val(i, input);
       }
       else if (item.opt == FJCS_max_pt)
       {
-        cs_max_pt = static_cast<float>(next_val(i, input));
+        cs_max_pt = next_val(i, input);
       }
       else if (item.opt == FJCS_ghost_area)
       {
-        cs_ghost_area = static_cast<float>(next_val(i, input));
+        cs_ghost_area = next_val(i, input);
       }
       else if (item.opt == VERBOSITY)
       {
@@ -137,12 +138,10 @@ float FastJetOptions::next_val(unsigned int i, std::vector<FastJetOptItem>& inpu
     ++i;
     return inputs[i].val;
   }
-  else
-  {
-    std::cout << PHWHERE << std::endl;
-    std::cout << "Error in FastJetOptions, option required to have a value which isn't provided." << std::endl;
-    assert(false);
-  }
+
+  std::cout << PHWHERE << std::endl;
+  std::cout << "Error in FastJetOptions, option required to have a value which isn't provided." << std::endl;
+  assert(false);
 }
 
 void FastJetOptions::print(std::ostream& os)
@@ -151,11 +150,25 @@ void FastJetOptions::print(std::ostream& os)
 
   os << "FastJetOptions (input options for fastjet in FastJetAlgp)" << std::endl;
   os << " FastJet input options: " << std::endl
-     << " - R: " << jet_R << std::endl
-     << " - algorithm: " << (algo == Jet::ALGO::ANTIKT ? "ANTIKT" : algo == Jet::ALGO::KT      ? "KT"
-                                                                : algo == Jet::ALGO::CAMBRIDGE ? "CAMBRIDGE"
-                                                                                               : "none")
-     << std::endl
+     << " - R: " << jet_R << std::endl;
+  // if you insist on doing it this way - it is in one line
+    os << " - algorithm: ";
+    switch(algo)
+    {
+    case Jet::ALGO::ANTIKT:
+      os << "ANTIKT";
+	break;
+    case Jet::ALGO::KT:
+      os << "KT";
+      break;
+    case Jet::ALGO::CAMBRIDGE:
+      os << "CAMBRIDGE";
+      break;
+    default:
+      os << "none";
+      break;
+    }
+    os << std::endl
      << " - save jet components ids: " << (save_jet_components ? "yes" : "no") << std::endl
      << " - verbosity: " << verbosity << std::endl;
   if (use_constituent_min_pt)

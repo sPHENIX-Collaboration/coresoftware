@@ -186,6 +186,7 @@ class DecayFinder : public SubsysReco
   bool m_triggerOnDecay = false;
   bool m_allowPi0 = false;
   bool m_allowPhotons = false;
+  bool m_hasPhotonDaughter = false;
 
   int m_mother_ID = 0;
   std::vector<int> m_intermediates_ID;

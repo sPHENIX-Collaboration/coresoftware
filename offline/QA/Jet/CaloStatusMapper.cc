@@ -10,7 +10,7 @@
 
 #define CLUSTERSTATUSMAPPER_CC
 
-// module definition
+// module definitions
 #include "CaloStatusMapper.h"
 
 // calo base
@@ -186,12 +186,20 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
 
       // make base eta/phi hist name
       const std::string statLabel = CaloStatusMapperDefs::StatLabels().at(status);
+
+      // if not doing optional histograms, skip these status
+      if (!m_config.doOptHist && CaloStatusMapperDefs::IsStatusSkippable(statLabel))
+      {
+        continue;
+      }
+
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName, statLabel);
       const std::string perPhiBase = MakeBaseName("NPerPhi", nodeName, statLabel);
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName, statLabel);
 
       // fill histograms accordingly
       m_hists[statBase]->Fill(status);
+      m_hists[statBase]->AddBinContent(m_totalBin[statBase], 1.0);
       m_hists[perEtaBase]->Fill(iEta);
       m_hists[perPhiBase]->Fill(iPhi);
       m_hists[phiEtaBase]->Fill(iEta, iPhi);
@@ -219,10 +227,13 @@ int CaloStatusMapper::End(PHCompositeNode* /*topNode*/)
   }
 
   // normalize avg. status no.s
-  for (const auto& nodeName : m_config.inNodeNames)
+  if (m_config.doNorm)
   {
-    const std::string statBase = MakeBaseName("Status", nodeName.first);
-    m_hists[statBase]->Scale(1. / (double) m_nEvent);
+    for (const auto& nodeName : m_config.inNodeNames)
+    {
+      const std::string statBase = MakeBaseName("Status", nodeName.first);
+      m_hists[statBase]->Scale(1. / (double) m_nEvent);
+    }
   }
 
   // register hists and exit
@@ -284,7 +295,7 @@ void CaloStatusMapper::BuildHistograms()
 
     // make status hist name
     const std::string statBase = MakeBaseName("Status", nodeName.first);
-    const std::string statName = CaloStatusMapperDefs::MakeQAHistName(statBase, m_config.moduleName, m_config.histTag);
+    const std::string statName = JetQADefs::MakeQAHistName(statBase, m_config.moduleName, m_config.histTag);
 
     // create status hist
     //   - n.b. calo type doesn't matter here
@@ -297,15 +308,21 @@ void CaloStatusMapper::BuildHistograms()
       // set relevant bin label for status histogram
       m_hists[statBase]->GetXaxis()->SetBinLabel(statLabel.first + 1, statLabel.second.data());
 
+      // if not doing optional histograms, skip these status
+      if (!m_config.doOptHist && CaloStatusMapperDefs::IsStatusSkippable(statLabel.second))
+      {
+        continue;
+      }
+
       // make base eta/phi hist name
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName.first, statLabel.second);
       const std::string perPhiBase = MakeBaseName("NPerPhi", nodeName.first, statLabel.second);
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName.first, statLabel.second);
 
       // make full eta/phi hist name
-      const std::string namePerEta = CaloStatusMapperDefs::MakeQAHistName(perEtaBase, m_config.moduleName, m_config.histTag);
-      const std::string namePerPhi = CaloStatusMapperDefs::MakeQAHistName(perPhiBase, m_config.moduleName, m_config.histTag);
-      const std::string namePhiEta = CaloStatusMapperDefs::MakeQAHistName(phiEtaBase, m_config.moduleName, m_config.histTag);
+      const std::string namePerEta = JetQADefs::MakeQAHistName(perEtaBase, m_config.moduleName, m_config.histTag);
+      const std::string namePerPhi = JetQADefs::MakeQAHistName(perPhiBase, m_config.moduleName, m_config.histTag);
+      const std::string namePhiEta = JetQADefs::MakeQAHistName(phiEtaBase, m_config.moduleName, m_config.histTag);
 
       // make eta/phi hists
       switch (nodeName.second)
@@ -325,6 +342,10 @@ void CaloStatusMapper::BuildHistograms()
       }
 
     }  // end status loop
+    
+    int totalBin = m_hists[statBase]->GetNbinsX();
+    m_hists[statBase]->GetXaxis()->SetBinLabel(totalBin, "N_{Total}");
+    m_totalBin[statBase] = totalBin;
   }  // end node loop
   return;
 

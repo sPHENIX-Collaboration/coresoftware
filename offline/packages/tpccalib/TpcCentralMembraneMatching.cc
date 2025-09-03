@@ -10,7 +10,8 @@
 #include <trackbase/CMFlashDifferenceContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/LaserClusterContainerv1.h>
-#include <trackbase/LaserClusterv1.h>
+#include <trackbase/LaserCluster.h>
+#include <tpc/LaserEventInfo.h>
 #include <trackbase/TpcDefs.h>
 
 #include <ffaobjects/EventHeader.h>
@@ -38,6 +39,9 @@
 #include <iomanip>
 #include <set>
 #include <string>
+
+int layerMins[3] = {16,23,39};
+int layerMaxes[3] = {22, 38, 54};
 
 namespace
 {
@@ -990,7 +994,8 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     static constexpr float max_dr = 5.0;
     static constexpr float max_dphi = 0.05;
 
-    fout.reset(new TFile(m_histogramfilename.c_str(), "RECREATE"));
+    fout = new TFile(m_histogramfilename.c_str(), "RECREATE");
+    //fout.reset(new TFile(m_histogramfilename.c_str(), "RECREATE"));
     hxy_reco = new TH2F("hxy_reco", "reco cluster x:y", 800, -100, 100, 800, -80, 80);
     hxy_truth = new TH2F("hxy_truth", "truth cluster x:y", 800, -100, 100, 800, -80, 80);
 
@@ -1018,7 +1023,8 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     hdrphi = new TH1F("hdrphi", "r * dphi", 200, -0.05, 0.05);
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
 
-    m_debugfile.reset(new TFile(m_debugfilename.c_str(), "RECREATE"));
+    m_debugfile = new TFile(m_debugfilename.c_str(), "RECREATE");
+    //m_debugfile.reset(new TFile(m_debugfilename.c_str(), "RECREATE"));
     match_tree = new TTree("match_tree", "Match TTree");
 
     match_tree->Branch("event", &m_event_index);
@@ -1031,6 +1037,9 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     match_tree->Branch("recoZ", &m_recoZ);
     match_tree->Branch("rawR", &m_rawR);
     match_tree->Branch("rawPhi", &m_rawPhi);
+    match_tree->Branch("staticR", &m_staticR);
+    match_tree->Branch("staticPhi", &m_staticPhi);
+    match_tree->Branch("fitMode", &m_fitMode);
     match_tree->Branch("side", &m_side);
     match_tree->Branch("adc", &m_adc);
     match_tree->Branch("nhits", &m_nhits);
@@ -1262,6 +1271,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   std::vector<TVector3> static_pos;
   std::vector<TVector3> raw_pos;
   std::vector<bool> reco_side;
+  std::vector<bool> fitMode;
   std::vector<unsigned int> reco_nhits;
   std::vector<unsigned int> reco_adc;
   std::vector<unsigned int> reco_nLayers;
@@ -1292,7 +1302,15 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     m_event_index = eventHeader->get_EvtSequence();
   }
 
-  if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 100)
+  LaserEventInfo *lasereventinfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if(!lasereventinfo)
+  {
+    std::cout << PHWHERE << " LaserEvetnInfo Node missing, abort" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if((eventHeader->get_RunNumber() > 66153 && !lasereventinfo->isGl1LaserEvent()) || (eventHeader->get_RunNumber() <= 66153 && !lasereventinfo->isLaserEvent()) || !m_corrected_CMcluster_map)
+  //if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
   {
     if(!m_useHeader)
     {
@@ -1304,7 +1322,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   
   if (Verbosity())
   {
-    std::cout << PHWHERE << "   working on event " << m_event_index << std::endl;
+    std::cout << PHWHERE << "   working on event " << m_event_index << " which has " << m_corrected_CMcluster_map->size() << " clusters" << std::endl;
   }
 
   // reset output distortion correction container histograms
@@ -1340,6 +1358,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     // std::cout << "cluster " << clusterIndex << " side=" << side << "   sideKey=" << sideKey << "   are they the same? " << (side == sideKey ? "true" : "false") << std::endl;
     //  if(m_useOnly_nClus2 && nclus != 2) continue;
 
+
     nClus_gtMin++;
 
     // Do the static + average distortion corrections if the container was found
@@ -1370,6 +1389,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     static_pos.push_back(tmp_static);
     raw_pos.push_back(tmp_raw);
     reco_side.push_back(side);
+    fitMode.push_back(cmclus->getFitMode());
     reco_nhits.push_back(nhits);
     reco_adc.push_back(adc);
     reco_nLayers.push_back(cmclus->getNLayers());
@@ -1391,7 +1411,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       reco_r_phi[1]->Fill(tmp_pos.Phi(), tmp_pos.Perp());
     }
 
-    if (Verbosity())
+    if (Verbosity() > 2)
     {
       double raw_rad = sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
       double static_rad = sqrt(tmp_static.X() * tmp_static.X() + tmp_static.Y() * tmp_static.Y());
@@ -1448,7 +1468,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     m_reco_RMatches[0] = doGlobalRMatching(reco_r_phi[0], false);
     m_reco_RMatches[1] = doGlobalRMatching(reco_r_phi[1], true);
 
-    if (Verbosity())
+    if (Verbosity() > 2)
     {
       for (int i = 0; i < (int) m_reco_RMatches[0].size(); i++)
       {
@@ -1783,14 +1803,34 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       for(const auto& recoIndex : truthIndex)
       {
 
+            if(reco_nLayers[recoIndex] < 2 || reco_nLayers[recoIndex] > 3) continue;
+
+        int lowRMatch = 0;
+        int highRMatch = (int)m_truth_RPeaks.size()-1;
+        int upperBound = (int)m_truth_RPeaks.size();
+        while(lowRMatch <= highRMatch)
+        {
+          int mid = lowRMatch + (highRMatch - lowRMatch)/2;
+          if(m_truth_RPeaks[mid] >= reco_pos[recoIndex].Perp())
+          {
+            upperBound = mid;
+            highRMatch = mid - 1;
+          }
+          else
+          {
+            lowRMatch = mid + 1;
+          }
+        }
+        if(upperBound < 1) upperBound = 1;
+
 	double dR = m_truth_pos[truth_index].Perp() - reco_pos[recoIndex].Perp();
-	if(fabs(dR) > 1.0)
+	if(fabs(dR) > 0.5 * (m_truth_RPeaks[upperBound] - m_truth_RPeaks[upperBound-1]))
 	{
 	  continue;
 	}
 
 	double dphi = delta_phi(m_truth_pos[truth_index].Phi() - reco_pos[recoIndex].Phi());
-	if(fabs(dphi) > m_phi_cut)
+	if(fabs(dphi) > 0.5*phiSpacing[upperBound-1])
 	{
 	  continue;
 	}
@@ -1816,7 +1856,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   } // end else for fancy
 
   // print some statistics:
-  if (Verbosity())
+  if (Verbosity() > 1)
   {
     const auto n_valid_truth = std::count_if(m_truth_pos.begin(), m_truth_pos.end(), [](const TVector3& pos)
      { return get_r(pos.x(), pos.y()) > 30; });
@@ -1840,7 +1880,10 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       m_recoZ = reco_pos[i].Z();
       m_rawR = raw_pos[i].Perp();
       m_rawPhi = raw_pos[i].Phi();
+      m_staticR = static_pos[i].Perp();
+      m_staticPhi = static_pos[i].Phi();
       m_side = reco_side[i];
+      m_fitMode = fitMode[i];
       m_adc = reco_adc[i];
       m_nhits = reco_nhits[i];
       m_nLayers = reco_nLayers[i];
@@ -1922,10 +1965,20 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     cmdiff->setTruthR(m_truth_pos[i].Perp());
     cmdiff->setTruthZ(m_truth_pos[i].Z());
 
-    cmdiff->setRecoPhi(reco_pos[reco_index].Phi());
-    cmdiff->setRecoR(reco_pos[reco_index].Perp());
-    cmdiff->setRecoZ(reco_pos[reco_index].Z());
-    cmdiff->setNclusters(reco_nhits[reco_index]);
+    if (m_averageMode)
+    {
+      cmdiff->setRecoPhi(static_pos[reco_index].Phi());
+      cmdiff->setRecoR(static_pos[reco_index].Perp());
+      cmdiff->setRecoZ(static_pos[reco_index].Z());
+      cmdiff->setNclusters(reco_nhits[reco_index]);
+    }
+    else
+    {
+      cmdiff->setRecoPhi(reco_pos[reco_index].Phi());
+      cmdiff->setRecoR(reco_pos[reco_index].Perp());
+      cmdiff->setRecoZ(reco_pos[reco_index].Z());
+      cmdiff->setNclusters(reco_nhits[reco_index]);
+    }
 
     if (Verbosity() > 1)
     {
@@ -1948,9 +2001,15 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     // if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
 
     // calculate residuals (cluster - truth)
-    const double dr = reco_pos[reco_index].Perp() - m_truth_pos[i].Perp();
-    const double dphi = delta_phi(reco_pos[reco_index].Phi() - m_truth_pos[i].Phi());
-    const double rdphi = reco_pos[reco_index].Perp() * dphi;
+    double dr = reco_pos[reco_index].Perp() - m_truth_pos[i].Perp();
+    double dphi = delta_phi(reco_pos[reco_index].Phi() - m_truth_pos[i].Phi());
+    double rdphi = reco_pos[reco_index].Perp() * dphi;
+    if (m_averageMode)
+    {
+      dr = static_pos[reco_index].Perp() - m_truth_pos[i].Perp();
+      dphi = delta_phi(static_pos[reco_index].Phi() - m_truth_pos[i].Phi());
+      rdphi = static_pos[reco_index].Perp() * dphi;
+    }
     //currently, we cannot get any z distortion since we don't know when the laser actually flashed
     //so the distortion is set to 0 for now
     //const double dz = reco_pos[reco_index].z() - m_truth_pos[i].z();
@@ -1973,7 +2032,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     ckey++;
   }
 
-  if (Verbosity())
+  if (Verbosity() > 1)
   {
     std::cout << "TpcCentralMembraneMatching::process_events - cmclusters: " << m_corrected_CMcluster_map->size() << std::endl;
     std::cout << "TpcCentralMembraneMatching::process_events - matched pairs: " << nMatched << std::endl;
@@ -2036,6 +2095,7 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
       {
         if (h)
         {
+          std::cout << "writing in " << m_outputfile << "   histogram " << h->GetName() << std::endl;
           h->Write();
         }
       }
@@ -2069,16 +2129,26 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
   {
     m_debugfile->cd();
 
+    std::cout << "writing in " << m_debugfilename << "   match tree " << std::endl;
+
+    /*
     match_tree->Write();
     // match_ntup->Write();
+    std::cout << "writing in " << m_debugfilename << "   truth_r_phi " << std::endl;
     truth_r_phi[0]->Write();
     truth_r_phi[1]->Write();
+    std::cout << "writing in " << m_debugfilename << "   reco_r_phi " << std::endl;
     reco_r_phi[0]->Write();
     reco_r_phi[1]->Write();
+    std::cout << "writing in " << m_debugfilename << "   m_matchResiduals " << std::endl;
     m_matchResiduals[0]->Write();
     m_matchResiduals[1]->Write();
-
+    */
+    m_debugfile->Write();
+    std::cout << "closing " << m_debugfilename << std::endl;
     m_debugfile->Close();
+    std::cout << m_debugfilename << " has been closed" << std::endl;
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -21,8 +21,6 @@
 #include <memory>
 #include <string>
 
-class SyncObject;
-
 /*!
  * dedicated input manager that merges single events into "merged" events, containing a trigger event
  * and a number of time-shifted pile-up events corresponding to a given pile-up rate

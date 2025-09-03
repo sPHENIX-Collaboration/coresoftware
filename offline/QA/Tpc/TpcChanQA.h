@@ -7,13 +7,11 @@
 
 #include <string>
 #include <vector>
-#include <cmath>
+
 // Call classes to be used in code
 class PHCompositeNode;
-class TFile;
 class TH1;
 class TH2;
-class Fun4AllHistoManager;
 //
 
 class TpcChanQA : public SubsysReco  // Inherit public parts of SubsysReco

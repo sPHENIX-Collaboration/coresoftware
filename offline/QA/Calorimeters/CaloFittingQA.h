@@ -5,8 +5,6 @@
 
 #include <caloreco/CaloTowerDefs.h>
 
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
-
 #include <string>
 #include <vector>
 
@@ -16,7 +14,6 @@ class PHCompositeNode;
 class TH1;
 class TH2;
 class TProfile2D;
-class TProfile;
 
 class CaloFittingQA : public SubsysReco
 {
@@ -29,7 +26,7 @@ class CaloFittingQA : public SubsysReco
 
   //! full initialization
   int Init(PHCompositeNode*) override;
-  int InitRun(PHCompositeNode *) override;
+  int InitRun(PHCompositeNode*) override;
 
   //! event processing method
   int process_event(PHCompositeNode*) override;
@@ -38,8 +35,8 @@ class CaloFittingQA : public SubsysReco
   int End(PHCompositeNode*) override;
 
   int process_towers(PHCompositeNode*);
-  int process_data(PHCompositeNode *topNode, CaloTowerDefs::DetectorSystem dettype, std::vector<std::vector<float>> &waveforms);
-  bool skipChannel(int ich, int pid, CaloTowerDefs::DetectorSystem dettype);
+  int process_data(PHCompositeNode* topNode, CaloTowerDefs::DetectorSystem dettype, std::vector<std::vector<float>>& waveforms);
+  static bool skipChannel(int ich, int pid, CaloTowerDefs::DetectorSystem dettype);
 
   void set_offlineflag(const bool f = true)
   {
@@ -92,8 +89,9 @@ class CaloFittingQA : public SubsysReco
   TH2* h_ohcal_zs_frac_vs_multiplicity{nullptr};
   TH1* h_packet_events{nullptr};
   TH1* h_empty_packets{nullptr};
+  TH1* h_missing_packets{nullptr};
 
-  CDBTTree *cdbttree = nullptr;
+  CDBTTree* cdbttree = nullptr;
 
   int _eventcounter{0};
 
@@ -105,9 +103,9 @@ class CaloFittingQA : public SubsysReco
   float m_hcal_adc_threshold = 100.;
   float m_hcal_high_adc_threshold = 2000.;
 
-  float m_cemc_hit_threshold = 200; // ~ 300 MeV
-  float m_ihcal_hit_threshold = 600; // ~ 300 MeV
-  float m_ohcal_hit_threshold = 100; // ~ 300 MeV
+  float m_cemc_hit_threshold = 200;   // ~ 300 MeV
+  float m_ihcal_hit_threshold = 600;  // ~ 300 MeV
+  float m_ohcal_hit_threshold = 100;  // ~ 300 MeV
   bool m_PacketNodesFlag{false};
 
   std::string m_calibName;

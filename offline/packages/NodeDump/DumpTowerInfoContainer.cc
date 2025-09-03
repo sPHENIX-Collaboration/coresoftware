@@ -18,6 +18,7 @@ DumpTowerInfoContainer::DumpTowerInfoContainer(const std::string &NodeName)
 
 int DumpTowerInfoContainer::process_Node(PHNode *myNode)
 {
+  const auto original_precision = (*fout).precision();
   TowerInfoContainer *towerinfocontainer = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
@@ -26,13 +27,16 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
   }
   if (towerinfocontainer)
   {
+    (*fout).precision(std::numeric_limits<float>::max_digits10);
     unsigned int nchannels = towerinfocontainer->size();
     *fout << "size: " << towerinfocontainer->size() << std::endl;
     for (unsigned int channel = 0; channel < nchannels; channel++)
     {
       TowerInfo *rawtwr = towerinfocontainer->get_tower_at_channel(channel);
       *fout << "time: " << rawtwr->get_time() << std::endl;
+//      (*fout).precision(std::numeric_limits<decltype(rawtwr->get_energy())>::max_digits10);
       *fout << "energy: " << rawtwr->get_energy() << std::endl;
+//      (*fout).precision(std::numeric_limits<decltype(rawtwr->get_time_float())>::max_digits10);
       *fout << "time_float: " << rawtwr->get_time_float() << std::endl;
       *fout << "chi2: " << rawtwr->get_chi2() << std::endl;
       *fout << "pedestal: " << rawtwr->get_pedestal() << std::endl;
@@ -47,6 +51,7 @@ int DumpTowerInfoContainer::process_Node(PHNode *myNode)
         *fout << "waveform_value[" << j << "]: " << rawtwr->get_waveform_value(j) << std::endl;
       }
     }
+    (*fout).precision(original_precision);
   }
   return 0;
 }

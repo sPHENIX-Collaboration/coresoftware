@@ -9,7 +9,7 @@ CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow -Wno-unused-variable"
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wno-c11-extensions"
+  CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -fopenmp"
  ;;
 esac
 

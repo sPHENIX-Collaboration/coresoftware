@@ -12,8 +12,7 @@
 #define CLUSTERSTATUSMAPPER_H
 
 // jet qa
-// FIXME change to local include when ready to merge
-#include <jetqa/JetQADefs.h>
+#include "jetqa/JetQADefs.h"
 
 // module definitions
 #include "CaloStatusMapperDefs.h"
@@ -56,6 +55,12 @@ class CaloStatusMapper : public SubsysReco
 
       ///! turn debug messages on/off
       bool debug {true};
+
+      ///! turn normalizing histograms on/off
+      bool doNorm {false};
+
+      ///! turn optional histograms on/off
+      bool doOptHist {false};
 
       ///! module name
       std::string moduleName {"CaloStatusMapper"};
@@ -121,6 +126,9 @@ class CaloStatusMapper : public SubsysReco
     ///! no. of events processed
     uint64_t m_nEvent {0};
 
+    ///! total bins for status histograms
+    std::map<std::string, int> m_totalBin;
+  
 };  // end CaloStatusMapper
 
 #endif

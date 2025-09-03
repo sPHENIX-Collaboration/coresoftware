@@ -4,6 +4,7 @@
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
+#include "PHFieldInterpolated.h"
 #include "PHFieldConfig.h"
 #include "PHFieldConfigv1.h"
 #include "PHFieldUniform.h"
@@ -73,6 +74,22 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, float inner_rad
         outer_radius,
         size_z);
     break;
+  case PHFieldConfig::FieldInterpolated:
+	//    return "3d interpolated fieldmap"
+    field = new PHFieldInterpolated;
+	field->Verbosity(1); // Will print to std::cout when loading
+    try {
+      dynamic_cast<PHFieldInterpolated*>(field)->load_fieldmap (
+        field_config->get_filename(),
+        field_config->get_magfield_rescale()
+      );
+    } catch (std::exception const& e) {
+      delete field;
+      field = nullptr;
+      std::cout << e.what() << std::endl;
+      gSystem->Exit(1);
+    }
+	break;
 
   default:
     std::cout << "PHFieldUtility::BuildFieldMap - Invalid Field Configuration: " << field_config->get_field_config() << std::endl;
@@ -109,7 +126,7 @@ PHFieldUtility::GetFieldMapNode(const PHFieldConfig *default_config, PHComposite
   PHNodeIterator iter(topNode);
 
   // Looking for the RUN node
-  PHCompositeNode *parNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
   if (!parNode)
   {
     std::cout << PHWHERE << ": PAR Node missing, request aborting.";
@@ -144,7 +161,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
   PHNodeIterator iter(topNode);
 
   // Looking for the RUN node
-  PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
     std::cout << PHWHERE << ": RUN Node missing, aborting.";
@@ -165,7 +182,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
     }
     else
     {
-      field = static_cast<PHFieldConfig *>(default_config->CloneMe());
+      field = dynamic_cast<PHFieldConfig *>(default_config->CloneMe());
       if (verbosity)
       {
         std::cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from input default: ";

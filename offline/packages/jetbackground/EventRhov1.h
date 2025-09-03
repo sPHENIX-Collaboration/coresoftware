@@ -35,10 +35,9 @@ class EventRhov1 : public EventRho
   static std::string get_method_string(EventRho::Method method);  // new in v1
 
  private:
-
   float m_tower_rho{0};                                        // momentum density
   float m_tower_sigma{0};                                      // sigma of momentum density
-  EventRho::Method m_rho_method_type{ EventRho::Method::NONE };  // method of rho calculation
+  EventRho::Method m_rho_method_type{EventRho::Method::NONE};  // method of rho calculation
 
   ClassDefOverride(EventRhov1, 1);
 };

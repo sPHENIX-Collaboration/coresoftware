@@ -216,8 +216,14 @@ int DecayFinder::parseDecayDescriptor()
       }
       if (findParticle(daughter))
       {
-        m_daughters_ID.push_back(abs(get_pdgcode(daughter)));
+        int daughter_ID = abs(get_pdgcode(daughter));
+        m_daughters_ID.push_back(daughter_ID);
         daughters_charge.push_back(get_charge(daughter));
+
+        if (daughter_ID == 22)
+        {
+          m_hasPhotonDaughter = m_allowPhotons = true; 
+        }
       }
       else
       {
@@ -705,7 +711,7 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
         hasPi0 = true;
       }
 
-      if ((!m_allowPhotons && particleID == 22) || (!m_allowPi0 && particleID == 111))
+      if ((!m_allowPhotons && particleID == 22) || (!m_hasPhotonDaughter && particleID == 22) || (!m_allowPi0 && particleID == 111))
       {
         breakLoop = true;
         break;
@@ -726,7 +732,7 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
           decayChain.push_back(std::make_pair(std::make_pair(embedding_id, g4particle->get_barcode()), particleID));
         }
       }  // Now check if it's part of the other resonance list
-      else if ((m_allowPhotons && particleID == 22) || (m_allowPi0 && particleID == 111))
+      else if ((m_allowPhotons && !m_hasPhotonDaughter && particleID == 22) || (m_allowPi0 && particleID == 111))
       {
         continue;
       }
@@ -810,11 +816,11 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
             std::cout << "--------greatgrandchildren->pdg_id(): " << (*greatgrandchildren)->pdg_id() << std::endl;
           }
 
-          if ((m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22) || (m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
+          if ((m_allowPhotons && !m_hasPhotonDaughter && (*greatgrandchildren)->pdg_id() == 22) || (m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
           {
             continue;
           }
-          else if ((!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
+          else if ((!m_hasPhotonDaughter && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
           {
             break;
           }
@@ -851,11 +857,11 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
           }
         }
       }
-      else if ((m_allowPhotons && (*grandchildren)->pdg_id() == 22) || (m_allowPi0 && (*grandchildren)->pdg_id() == 111))
+      else if ((m_allowPhotons && !m_hasPhotonDaughter && (*grandchildren)->pdg_id() == 22) || (m_allowPi0 && (*grandchildren)->pdg_id() == 111))
       {
         continue;
       }
-      else if ((!m_allowPhotons && (*grandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*grandchildren)->pdg_id() == 111))
+      else if ((!m_hasPhotonDaughter && (*grandchildren)->pdg_id() == 22) || (!m_allowPhotons && (*grandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*grandchildren)->pdg_id() == 111))
       {
         break;
       }
@@ -894,10 +900,10 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  else if ((particle->pdg_id() == 22) || (particle->pdg_id() == 111))
-  {
-    return false;
-  }
+  //else if ((particle->pdg_id() == 22) || (particle->pdg_id() == 111))
+  //{
+  //  return false;
+  //}
   else
   {
     if (Verbosity() >= VERBOSITY_MAX)
@@ -983,10 +989,10 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  else if ((particle->get_pid() == 22) || (particle->get_pid() == 111))
-  {
-    return false;
-  }
+  //else if ((particle->get_pid() == 22) || (particle->get_pid() == 111))
+  //{
+  //  return false;
+  //}
   else
   {
     if (Verbosity() >= VERBOSITY_MAX)

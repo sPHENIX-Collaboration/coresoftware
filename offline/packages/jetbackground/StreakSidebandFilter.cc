@@ -13,17 +13,20 @@
 // module components
 #include "StreakSidebandFilter.h"
 
-// calo base
+// calobase libraries
 #include <calobase/TowerInfoContainer.h>
 
-// phool libraries
+// jetqa libraries
+#include <jetqa/JetQADefs.h>
+
+// phool utilities
 #include <phool/getClass.h>
 
 // root libraries
 #include <TH1.h>
 #include <TH2.h>
 
-// c++ utiilites
+// c++ utilities
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -115,7 +118,7 @@ bool StreakSidebandFilter::ApplyFilter(PHCompositeNode* topNode)
       m_hists["nstreaktwretavsphi"]->Fill(iEta, iUp);
 
     }  // end eta loop
-  }    // end phi loop
+  }  // end phi loop
 
   // now find longest streak
   const uint32_t nMaxStreak = *std::max_element(m_ohNumStreak.begin(), m_ohNumStreak.end());
@@ -147,7 +150,7 @@ void StreakSidebandFilter::BuildHistograms(const std::string& module, const std:
       "nstreaktwretavsphi"};
 
   // make qa-compliant hist names
-  std::vector<std::string> histNames = BeamBackgroundFilterAndQADefs::MakeQAHistNames(varNames, moduleAndFilterName, tag);
+  std::vector<std::string> histNames = JetQADefs::MakeQAHistNames(varNames, moduleAndFilterName, tag);
 
   // construct histograms
   //   - n.b. reminder that there are
@@ -181,7 +184,7 @@ void StreakSidebandFilter::GrabNodes(PHCompositeNode* topNode)
 // ----------------------------------------------------------------------------
 //! Check if tower not consistent w/ being in a streak
 // ----------------------------------------------------------------------------
-bool StreakSidebandFilter::IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower)
+bool StreakSidebandFilter::IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower) const
 {
   // print debug message
   if (m_config.debug && (m_config.verbosity > 2))
@@ -198,7 +201,7 @@ bool StreakSidebandFilter::IsTowerNotStreaky(const BeamBackgroundFilterAndQADefs
 // ----------------------------------------------------------------------------
 //! Check if a neighboring tower consistent w/ a streak
 // ----------------------------------------------------------------------------
-bool StreakSidebandFilter::IsNeighborNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower)
+bool StreakSidebandFilter::IsNeighborNotStreaky(const BeamBackgroundFilterAndQADefs::Tower& tower) const
 {
   // print debug message
   if (m_config.debug && (m_config.verbosity > 2))

@@ -51,9 +51,9 @@
 
 #include <phool/PHObject.h>
 
-#include <cmath>
 #include <cstddef>  // for size_t
 #include <iostream>
+#include <limits>
 #include <map>
 
 class TClonesArray;
@@ -159,38 +159,38 @@ class Jet : public PHObject
   virtual unsigned int get_id() const { return 0xFFFFFFFF; }
   virtual void set_id(unsigned int) { return; }
 
-  virtual float get_px() const { return NAN; }
+  virtual float get_px() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_px(float) { return; }
 
-  virtual float get_py() const { return NAN; }
+  virtual float get_py() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_py(float) { return; }
 
-  virtual float get_pz() const { return NAN; }
+  virtual float get_pz() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_pz(float) { return; }
 
-  virtual float get_e() const { return NAN; }
+  virtual float get_e() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_e(float) { return; }
 
-  virtual float get_p() const { return NAN; }
-  virtual float get_pt() const { return NAN; }
-  virtual float get_et() const { return NAN; }
-  virtual float get_eta() const { return NAN; }
-  virtual float get_phi() const { return NAN; }
-  virtual float get_mass() const { return NAN; }
-  virtual float get_mass2() const { return NAN; }
+  virtual float get_p() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_pt() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_et() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_eta() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_phi() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_mass() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float get_mass2() const { return std::numeric_limits<float>::quiet_NaN(); }
 
   // --------------------------------------------------------------------------
   // Functions for jet properties (always float values)
   // --------------------------------------------------------------------------
   // In both Jetv1 and Jetv2
-  virtual float get_property(Jet::PROPERTY /*prop_id*/) const { return NAN; };  // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
+  virtual float get_property(Jet::PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::quiet_NaN(); };  // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
   virtual void set_property(Jet::PROPERTY /*prop_id*/, float /*value*/){};      // in Jetv2 really uses the Jet::PROPERTY as an index for a vector
   virtual size_t size_properties() const { return 0; };
 
   //    new with Jetv2
   virtual void resize_properties(size_t /**/){};
   virtual std::vector<float>& get_property_vec();
-  // virtual inline float get_prop_by_index(unsigned int /*index*/) const { return NAN; }
+  // virtual inline float get_prop_by_index(unsigned int /*index*/) const { return std::numeric_limits<float>::quiet_NaN(); }
   // virtual inline void set_prop_by_index(unsigned int /*index*/, float /*value*/) { return; }
 
   //   deprecated by Jetv2
@@ -262,7 +262,7 @@ class Jet : public PHObject
 
     IterJetTCA(TClonesArray* _tca);
     void operator++() { ++index; };
-    Jet* operator*();
+    Jet* operator*() const;
     bool operator!=(const IterJetTCA& /*rhs*/) { return index != size; };
   };
 

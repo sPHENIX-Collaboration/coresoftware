@@ -52,6 +52,10 @@ class RawClusterBuilderTemplate : public SubsysReco
     m_UseAltZVertex = useAltZMode;
   }
 
+  void set_UseCorrectPosition(const bool useCorrectPosition);
+  
+  void set_UseCorrectShowerDepth(const bool useCorrectShowerDepth);
+
   void set_UseDetailedGeometry(const bool useDetailedGeometry);
 
   void setOutputClusterNodeName(const std::string& inpNodenm)

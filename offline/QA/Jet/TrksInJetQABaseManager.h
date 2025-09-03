@@ -1,19 +1,20 @@
-// ----------------------------------------------------------------------------
-// 'TrksInJetQABaseManager.h'
-// Derek Anderson
-// 04.03.2024
-//
-// Base hist manager submodule for the TrksInJetQA module which
-// consolidates methods/data common to all of the hist managers
-// ----------------------------------------------------------------------------
+/// ===========================================================================
+/*! \file   TrksInJetQABaseManager.h
+ *  \author Derek Anderson
+ *  \date   04.03.2024
+ *
+ *  Base hist manager submodule for the TrksInJetQA module which
+ *  consolidates methods/data common to all of the hist managers
+ */
+/// ===========================================================================
 
 #ifndef TRKSINJETQABASEMANAGER_H
 #define TRKSINJETQABASEMANAGER_H
 
 // module utilities
 #include "TrksInJetQAConfig.h"
+#include "TrksInJetQADefs.h"
 #include "TrksInJetQAHist.h"
-#include "TrksInJetQATypes.h"
 
 // phool includes
 #include <phool/phool.h>
@@ -30,8 +31,16 @@
 #include <utility>
 #include <vector>
 
-// TrksInJetQABaseManager definition ------------------------------------------
-
+// ============================================================================
+//! Base histogram manager for TrksInJetQA module
+// ============================================================================
+/*! This class consolidates all common functionality
+ *  for Histogram Managers deployed in the TrksInJetQA
+ *  module. The histogram managers define what variables
+ *  to histogram for a given object (e.g. tracks) and
+ *  how to extract the relevant information from that
+ *  object.
+ */
 class TrksInJetQABaseManager
 {
  public:
@@ -47,24 +56,24 @@ class TrksInJetQABaseManager
  protected:
   // private methods
   void BuildHistograms(const std::string& prefix = "", const std::string& suffix = "");
-  void ResetVectors();
 
   // private helper methods
   bool IsInMvtx(const uint16_t layer) const;
   bool IsInIntt(const uint16_t layer) const;
   bool IsInTpc(const uint16_t layer) const;
+  int Index(const int type, const int hist) const;
 
   // virtual private methods
   virtual void DefineHistograms() = 0;
 
   // histograms
-  VecHist1D m_vecHist1D;
-  VecHist2D m_vecHist2D;
+  TrksInJetQADefs::MapHist1D m_mapHist1D;
+  TrksInJetQADefs::MapHist2D m_mapHist2D;
 
   // histogram definitions
-  VecHistTypes m_vecHistTypes;
-  VecHistDef1D m_vecHistDef1D;
-  VecHistDef2D m_vecHistDef2D;
+  TrksInJetQADefs::MapHistTypes m_mapHistTypes;
+  TrksInJetQADefs::MapHistDef1D m_mapHistDef1D;
+  TrksInJetQADefs::MapHistDef2D m_mapHistDef2D;
 
   // module utilities
   TrksInJetQAConfig m_config;
@@ -74,4 +83,4 @@ class TrksInJetQABaseManager
 
 #endif
 
-// end ------------------------------------------------------------------------
+// end ========================================================================

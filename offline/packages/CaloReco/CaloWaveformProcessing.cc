@@ -9,6 +9,7 @@
 #include <cassert>
 #include <cstdlib>  // for getenv
 #include <iostream>
+#include <limits>
 #include <memory>  // for allocator_traits<>::value_type
 #include <string>
 
@@ -32,7 +33,7 @@ void CaloWaveformProcessing::initialize_processing()
     url_template = CDBInterface::instance()->getUrl(m_template_name, calibrations_repo_template);
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
-    if(m_processingtype == CaloWaveformProcessing::TEMPLATE_NOSAT)
+    if (m_processingtype == CaloWaveformProcessing::TEMPLATE_NOSAT)
     {
       m_Fitter->set_handleSaturation(false);
     }
@@ -53,9 +54,9 @@ void CaloWaveformProcessing::initialize_processing()
   }
   else if (m_processingtype == CaloWaveformProcessing::ONNX)
   {
-    std::string calibrations_repo_model = std::string(calibrationsroot) + "/WaveformProcessing/models/" + m_model_name;
-    url_onnx = CDBInterface::instance()->getUrl(m_model_name, calibrations_repo_model);
-    onnxmodule = onnxSession(url_onnx);
+    // std::string calibrations_repo_model = m_model_name;
+    // url_onnx = CDBInterface::instance()->getUrl("CEMC_ONNX", m_model_name);
+    onnxmodule = onnxSession(m_model_name);
   }
   else if (m_processingtype == CaloWaveformProcessing::NYQUIST)
   {
@@ -96,28 +97,97 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
 std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
+  std::vector<float> val;  // single row to return
   unsigned int nchnls = chnlvector.size();
   for (unsigned int m = 0; m < nchnls; m++)
   {
+    val.clear();
     const std::vector<float> &v = chnlvector.at(m);
-    unsigned int nsamples = v.size() - 1;
-    std::vector<float> vtmp;
-    vtmp.reserve(nsamples);
-    for (unsigned int k = 0; k < nsamples; k++)
+    int size1 = v.size();
+    if (size1 == _nzerosuppresssamples)
     {
-      vtmp.push_back((float) (v.at(k) / 1000.0));
-    }
-    std::vector<float> val = onnxInference(onnxmodule, vtmp, 1, 31, 3);
-    unsigned int nvals = val.size();
-    for (unsigned int i = 0; i < nvals; i++)
-    {
-      if (i == 0 || i == 2)
+      val.push_back(v.at(1) - v.at(0));
+      val.push_back(std::numeric_limits<float>::quiet_NaN());
+      val.push_back(v.at(0));
+      if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
       {
-        val.at(i) = val.at(i) * 1000;
+        val.push_back(1000000);
+      }
+      else
+      {
+        val.push_back(std::numeric_limits<float>::quiet_NaN());
+      }
+      val.push_back(0);
+      fit_values.push_back(val);
+    }
+    else
+    {
+      float maxheight = 0;
+      int maxbin = 0;
+      for (int i = 0; i < size1; i++)
+      {
+        if (v.at(i) > maxheight)
+        {
+          maxheight = v.at(i);
+          maxbin = i;
+        }
+      }
+      float pedestal = 1500;
+      if (maxbin > 4)
+      {
+        pedestal = 0.5 * (v.at(maxbin - 4) + v.at(maxbin - 5));
+      }
+      else if (maxbin > 3)
+      {
+        pedestal = (v.at(maxbin - 4));
+      }
+      else
+      {
+        pedestal = 0.5 * (v.at(size1 - 3) + v.at(size1 - 2));
+      }
+
+      if ((_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression))
+      {
+        val.push_back(v.at(6) - v.at(0));
+        val.push_back(std::numeric_limits<float>::quiet_NaN());
+        val.push_back(v.at(0));
+        if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
+        {
+          val.push_back(1000000);
+        }
+        else
+        {
+          val.push_back(std::numeric_limits<float>::quiet_NaN());
+        }
+        val.push_back(0);
+        fit_values.push_back(val);
+      }
+      else
+      {
+        unsigned int nsamples = v.size();
+        if (nsamples == 12)
+        {
+          // downstream onnx does not have a static input vector API,
+          // so we need to make a copy
+          std::vector<float> vtmp(v);
+          val = onnxInference(onnxmodule, vtmp, 1, 12, 3);
+          unsigned int nvals = val.size();
+          for (unsigned int i = 0; i < nvals; i++)
+          {
+            val.at(i) = val.at(i) * m_Onnx_factor[i] + m_Onnx_offset[i];
+          }
+          val.push_back(2000);
+          val.push_back(0);
+          fit_values.push_back(val);
+        }
+        else
+        {
+          float v_diff = v[1] - v[0];
+          std::vector<float> val1{v_diff, std::numeric_limits<float>::quiet_NaN(), v[1], std::numeric_limits<float>::quiet_NaN(), 0};
+          fit_values.push_back(val1);
+        }
       }
     }
-    fit_values.push_back(val);
-    val.clear();
   }
   return fit_values;
 }

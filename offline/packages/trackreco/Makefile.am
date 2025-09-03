@@ -12,7 +12,8 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
   -isystem${G4_MAIN}/include \
-  -isystem$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include \
+  -fopenmp
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -41,6 +42,7 @@ pkginclude_HEADERS = \
   PHActsTrackProjection.h \
   PHActsTrackPropagator.h \
   PHCASeeding.h \
+  PHCASiliconSeeding.h \
   AzimuthalSeeder.h \
   PHCosmicsFilter.h \
   PHLineLaserReco.h \
@@ -56,6 +58,7 @@ pkginclude_HEADERS = \
   PHSiliconTpcTrackMatching.h \
   PHSiliconCosmicSeeding.h \
   PHSimpleVertexFinder.h \
+  PHTrackPruner.h \
   PHTrackCleaner.h \
   PHTrackSelector.h \
   PHRaveVertexing.h \
@@ -76,10 +79,12 @@ pkginclude_HEADERS = \
   PHTruthSiliconAssociation.h \
   PHTruthVertexing.h \
   PrelimDistortionCorrection.h \
+  PrelimDistortionCorrectionAuAu.h \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h \
-  TpcSeedFilter.h
+  TpcSeedFilter.h \
+  WeightedFitter.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -124,6 +129,7 @@ libtrack_reco_la_SOURCES = \
   DSTClusterPruning.cc \
   PH3DVertexing.cc \
   PHCASeeding.cc \
+  PHCASiliconSeeding.cc \
   AzimuthalSeeder.cc \
   GPUTPCTrackParam.cxx \
   PHCosmicsFilter.cc \
@@ -146,6 +152,7 @@ libtrack_reco_la_SOURCES = \
   PHStreakFinder.cc \
   PHTpcClusterMover.cc \
   PHTpcDeltaZCorrection.cc \
+  PHTrackPruner.cc \
   PHTrackCleaner.cc \
   PHTrackClusterAssociator.cc \
   PHTrackSeeding.cc \
@@ -158,10 +165,12 @@ libtrack_reco_la_SOURCES = \
   PHTruthVertexing.cc \
   PHTruthSiliconAssociation.cc \
   PrelimDistortionCorrection.cc \
+  PrelimDistortionCorrectionAuAu.cc \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc \
-  TpcSeedFilter.cc
+  TpcSeedFilter.cc \
+  WeightedFitter.cc
 
 libtrack_reco_la_LIBADD = \
   -lActsCore \

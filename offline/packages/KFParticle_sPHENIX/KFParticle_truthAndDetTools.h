@@ -60,7 +60,7 @@ class KFParticle_truthAndDetTools
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
   void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
+  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
   void initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number);
@@ -74,7 +74,7 @@ class KFParticle_truthAndDetTools
 
   void clearVectors();
 
-  float get_e3x3(RawCluster *cluster, RawTowerContainer *Towers, int layer);
+  float get_e3x3(RawCluster *cluster, RawTowerContainer *Towers, int layer); //Nonfunctional; for now, tree fills with NAN
   float get_e5x5(RawCluster *cluster, RawTowerContainer *Towers, int layer);
 
   float PiRange(float deltaPhi)
@@ -83,19 +83,20 @@ class KFParticle_truthAndDetTools
     if (deltaPhi < -M_PI) deltaPhi += 2 * M_PI;
     return deltaPhi;
   }
-
+  
   // Functions to set cuts
-  void set_ntpc_low_cut(int set_variable) { m_ntpc_low_cut = set_variable; }  // THIS DOESN'T DO ANYTHING!!!!
   void set_emcal_radius_user(float set_variable) { m_emcal_radius_user = set_variable; }
-  void set_track_pt_low_cut(float set_variable) { m_track_pt_low_cut = set_variable; }
   void set_emcal_e_low_cut(float set_variable) { m_emcal_e_low_cut = set_variable; }
   void set_dphi_cut_low(float set_variable) { m_dphi_cut_low = set_variable; }
   void set_dphi_cut_high(float set_variable) { m_dphi_cut_high = set_variable; }
   void set_dz_cut_low(float set_variable) { m_dz_cut_low = set_variable; }
   void set_dz_cut_high(float set_variable) { m_dz_cut_high = set_variable; }
-
- protected:
+  
+  
+  protected:
+  bool m_get_detailed_tracking{true};
   bool m_use_mbd_vertex_truth{false};
+  bool m_dont_use_global_vertex_truth{false};
 
   std::string m_trk_map_node_name_nTuple{"SvtxTrackMap"};
   std::string m_vtx_map_node_name_nTuple{"SvtxVertexMap"};
@@ -131,8 +132,6 @@ class KFParticle_truthAndDetTools
   float m_ihcal_radius_user{117};
   float m_ohcal_radius_user{177.423};
 
-  int m_ntpc_low_cut{20};  // THIS DOESNT ACTUALLY DO ANYTHING THO
-  float m_track_pt_low_cut{0.5};
   float m_emcal_e_low_cut{0.2};
   float m_ihcal_e_low_cut{0.01};
   float m_ohcal_e_low_cut{0.01};

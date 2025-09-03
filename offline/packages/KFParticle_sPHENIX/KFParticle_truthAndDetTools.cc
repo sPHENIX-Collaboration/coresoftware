@@ -487,10 +487,12 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 }
 
 /*
-The following function matches tracks to calo clusters. As of 5/28/2025, this only extends to the EMCal. HCal matching is in development.
+The following function matches tracks to calo clusters. As of 7/1/2025, this only extends to the EMCal. HCal matching is in development.
+
+To run EMCal matching, DST_CALO files must be read into the Fun4All server. 
 */
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
-                                                 TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
+                                                 TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch)
 {
   dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   if (!dst_trackmap)
@@ -504,24 +506,21 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
   if (!clustersEM)
   {
-    // clustersEM = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_CEMC");
     clustersEM = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
     if (!clustersEM)
     {
-      // std::cout << "TrackCaloMatch::process_event : FATAL ERROR, cannot find cluster container " << "CLUSTER_CEMC" << std::endl;
-      std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTER_CEMC" << std::endl;
-      // return Fun4AllReturnCodes::ABORTEVENT;
+      std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTERINFO_CEMC" << std::endl;
     }
   }
-  if (!EMCalGeo)
-  {
-    EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
-    if (!EMCalGeo)
-    {
-      std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
-      // return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  }
+  // if (!EMCalGeo)
+  // {
+  //   EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+  //   if (!EMCalGeo)
+  //   {
+  //     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
+  //     // return Fun4AllReturnCodes::ABORTEVENT;
+  //   }
+  // }
   // if(!_towersEM)
   // {
   //   _towersEM = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
@@ -588,10 +587,11 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
   // Radii for track projections
   double caloRadiusEMCal;
+  caloRadiusEMCal = m_emcal_radius_user;  //Use function set_emcal_radius_user(float set_variable) to set this in your Fun4All macro
   // double caloRadiusIHCal;
   // double caloRadiusOHCal;
-  // caloRadiusEMCal = EMCalGeo->get_radius();
-  caloRadiusEMCal = 100.70;  // cm
+  // caloRadiusEMCal = 100.70;
+  // caloRadiusEMCal = EMCalGeo->get_radius(); //This requires DST_CALOFITTING 
   // caloRadiusOHCal = OHCalGeo->get_radius();
   // caloRadiusIHCal = IHCalGeo->get_radius();
 
@@ -652,15 +652,15 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   index = -1;
   // int ijk = 0; // nothing is being done with this variable in the end
 
-  clustersEM->identify();
+  //clustersEM->identify();
 
   if (thisState != nullptr)
   {
-    _track_phi_emc = std::atan2(thisState->get_y(), thisState->get_x());
-    _track_eta_emc = std::asinh(thisState->get_z() / std::sqrt((thisState->get_x() * thisState->get_x()) + (thisState->get_y() * thisState->get_y())));
     _track_x_emc = thisState->get_x();
     _track_y_emc = thisState->get_y();
     _track_z_emc = thisState->get_z();
+    _track_phi_emc = std::atan2(_track_y_emc, _track_x_emc);
+    _track_eta_emc = std::asinh(_track_z_emc / std::sqrt((_track_x_emc * _track_x_emc) + (_track_y_emc * _track_y_emc)));
 
     // Create objects, containers, iterators for clusters
     cluster = nullptr;
@@ -681,12 +681,15 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       }
 
       // Get cluster information
-      _emcal_phi = std::atan2(cluster->get_y(), cluster->get_x());
-      _emcal_eta = std::asinh(cluster->get_z() / std::sqrt((cluster->get_x() * cluster->get_x()) + (cluster->get_y() * cluster->get_y())));
       _emcal_x = cluster->get_x();
       _emcal_y = cluster->get_y();
+      _emcal_z = cluster->get_z();
       radius_scale = m_emcal_radius_user / std::sqrt((_emcal_x * _emcal_x) + (_emcal_y * _emcal_y));
-      _emcal_z = radius_scale * cluster->get_z();
+      _emcal_x *= radius_scale;
+      _emcal_y *= radius_scale;
+      _emcal_z *= radius_scale;
+      _emcal_phi = std::atan2(_emcal_y, _emcal_y);
+      _emcal_eta = std::asinh(_emcal_z / std::sqrt((_emcal_x * _emcal_x) + (_emcal_y * _emcal_y)));
       // _emcal_3x3 = get_e3x3(cluster, _towersEM, 0); //0 for emcal
       // _emcal_5x5 = get_e5x5(cluster, _towersEM, 0); //0 for emcal
       _emcal_3x3 = std::numeric_limits<float>::quiet_NaN();
@@ -696,7 +699,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       // Variables to determine potential matches
       float dphi = PiRange(_track_phi_emc - _emcal_phi);
       float dz = _track_z_emc - _emcal_z;
-      float deta = _emcal_eta - _track_eta_emc;
+      float deta = _track_eta_emc - _emcal_eta;
       float tmparg = caloRadiusEMCal * dphi;
       float dr = std::sqrt((tmparg * tmparg) + (dz * dz));  // sqrt((R*dphi)^2 + (dz)^2
       // float dr = sqrt((dphi*dphi + deta*deta)); //previous version
@@ -749,6 +752,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     }
   }
 
+  /*
   // Print out statements
   if (index != -1)
   {
@@ -757,6 +761,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     std::cout << "track projected x = " << _track_x_emc << " , y = " << _track_y_emc << " , z = " << _track_z_emc << " , phi = " << _track_phi_emc << " , eta = " << _track_eta_emc << std::endl;
     std::cout << "track px = " << track->get_px() << " , py = " << track->get_py() << " , pz = " << track->get_pz() << " , pt = " << track->get_pt() << " , p = " << track->get_p() << " , charge = " << track->get_charge() << std::endl;
   }
+  */
 
   // Save values to the branches!
   if (index == -1)
@@ -767,6 +772,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+    isTrackEMCalmatch = false;
   }
   else
   {
@@ -776,6 +782,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = v_emcal_clusE[index];
+    isTrackEMCalmatch = true;
   }
 
   // HCAL*******************************************************
@@ -1074,11 +1081,14 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
 
 void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
-  m_tree->Branch((daughter_number + "_residual_x").c_str(), &residual_x[daughter_id]);
-  m_tree->Branch((daughter_number + "_residual_y").c_str(), &residual_y[daughter_id]);
-  m_tree->Branch((daughter_number + "_residual_z").c_str(), &residual_z[daughter_id]);
-  m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
 
+  if(m_get_detailed_tracking){
+    m_tree->Branch((daughter_number + "_residual_x").c_str(), &residual_x[daughter_id]);
+    m_tree->Branch((daughter_number + "_residual_y").c_str(), &residual_y[daughter_id]);
+    m_tree->Branch((daughter_number + "_residual_z").c_str(), &residual_z[daughter_id]);
+    m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
+  }
+  
   for (auto const &subdetector : Use)
   {
     if (subdetector.second)
@@ -1087,27 +1097,32 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
     }
   }
 }
-
 void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number)
 {
   if (detectorName == "MVTX")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
   }
   if (detectorName == "INTT")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
   }
   if (detectorName == "TPC")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_side").c_str(), &tpc_side[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
   }
@@ -1121,8 +1136,6 @@ void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, c
 void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
                                                      TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id)
 {
-  std::cout << "Starting to run KFParticle_truthAndDetTools::fillDetectorBranch." << std::endl;
-
   dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   if (!dst_trackmap)
   {
@@ -1180,13 +1193,15 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ladderPhiId = InttDefs::getLadderPhiId(cluster_key);
         ++detector_nHits_INTT[daughter_id];
       }
-
+      
+      if(m_get_detailed_tracking){
       mvtx_staveID[daughter_id].push_back(staveId);
       mvtx_chipID[daughter_id].push_back(chipId);
       intt_ladderZID[daughter_id].push_back(ladderZId);
       intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
       tpc_sectorID[daughter_id].push_back(sectorId);
       tpc_side[daughter_id].push_back(side);
+      }
     }
   }
 
@@ -1218,12 +1233,14 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ++detector_nHits_TPOT[daughter_id];
       }
 
+      if(m_get_detailed_tracking){
       mvtx_staveID[daughter_id].push_back(staveId);
       mvtx_chipID[daughter_id].push_back(chipId);
       intt_ladderZID[daughter_id].push_back(ladderZId);
       intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
       tpc_sectorID[daughter_id].push_back(sectorId);
       tpc_side[daughter_id].push_back(side);
+      }
     }
   }
 
@@ -1236,11 +1253,18 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
     {
       auto stateckey = tstate->get_cluskey();
       TrkrCluster *cluster = dst_clustermap->findCluster(stateckey);
+      if (!cluster)
+      {
+	// do not have associated cluster, could be track states projected to calo system
+        continue;
+      }
       auto global = geometry->getGlobalPosition(stateckey, cluster);
-
+      
+      if(m_get_detailed_tracking){
       residual_x[daughter_id].push_back(global.x() - tstate->get_x());
       residual_y[daughter_id].push_back(global.y() - tstate->get_y());
       residual_z[daughter_id].push_back(global.z() - tstate->get_z());
+      }
 
       uint8_t id = TrkrDefs::getTrkrId(stateckey);
 
@@ -1259,7 +1283,7 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ++detector_nStates_TPOT[daughter_id];
         break;
       default:
-        std::cout << "Cluster key doesnt match a tracking system, this shouldn't happen" << std::endl;
+        //std::cout << "Cluster key doesnt match a tracking system, could be related with projected track state to calorimeter system" << std::endl;
         break;
       }
     }
@@ -1268,27 +1292,41 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
 
 int KFParticle_truthAndDetTools::getPVID(PHCompositeNode *topNode, const KFParticle &kfpvertex)
 {
-  if (m_use_mbd_vertex_truth)
+  if (m_dont_use_global_vertex_truth)
   {
-    dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-    if (dst_mbdvertexmap)
+    if (m_use_mbd_vertex_truth)
     {
-      MbdVertex *m_dst_vertex = dst_mbdvertexmap->get(kfpvertex.Id());
-      return m_dst_vertex->get_beam_crossing();
-    }
+      dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+      if (dst_mbdvertexmap)
+      {
+        MbdVertex *m_dst_vertex = dst_mbdvertexmap->get(kfpvertex.Id());
+        return m_dst_vertex->get_beam_crossing();
+      }
 
-    std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
+    else
+    {
+      dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
+      if (dst_vertexmap)
+      {
+        SvtxVertex *m_dst_vertex = dst_vertexmap->get(kfpvertex.Id());
+        return m_dst_vertex->get_beam_crossing();
+      }
+
+      std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    }
   }
   else
   {
-    dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vtx_map_node_name_nTuple);
-    if (dst_vertexmap)
+    auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+    if (!globalvertexmap)
     {
-      SvtxVertex *m_dst_vertex = dst_vertexmap->get(kfpvertex.Id());
-      return m_dst_vertex->get_beam_crossing();
+      return -100;
     }
 
-    std::cout << "KFParticle vertex matching: " << m_vtx_map_node_name_nTuple << " does not exist" << std::endl;
+    GlobalVertex *gvertex = globalvertexmap->get(kfpvertex.Id());
+    return gvertex->get_beam_crossing();
   }
 
   return -100;
@@ -1301,6 +1339,7 @@ void KFParticle_truthAndDetTools::allPVInfo(PHCompositeNode *topNode,
                                             std::vector<KFParticle> intermediates)
 {
   KFParticle_Tools kfpTupleTools;
+  kfpTupleTools.set_dont_use_global_vertex(m_dont_use_global_vertex_truth);
   std::vector<KFParticle> primaryVertices = kfpTupleTools.makeAllPrimaryVertices(topNode, m_vtx_map_node_name_nTuple);
 
   for (auto &primaryVertice : primaryVertices)

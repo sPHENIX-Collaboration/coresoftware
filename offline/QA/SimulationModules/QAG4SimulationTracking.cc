@@ -80,7 +80,7 @@ int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
   m_vertexMap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
-  if (!m_trackMap or !m_vertexMap)
+  if (!m_trackMap || !m_vertexMap)
   {
     std::cout << PHWHERE << " missing track related container(s). Quitting"
               << std::endl;
@@ -510,7 +510,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       geta = gv.Eta();
       //      gphi = gv.Phi();
     }
-    if (m_etaRange.first < geta and geta < m_etaRange.second)
+    if (m_etaRange.first < geta && geta < m_etaRange.second)
     {
       if (Verbosity())
       {

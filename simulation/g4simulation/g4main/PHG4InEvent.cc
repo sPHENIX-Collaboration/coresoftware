@@ -57,8 +57,8 @@ int PHG4InEvent::AddVtxCommon(PHG4VtxPoint *newvtx)
     bool zcomp = std::abs(newvtx->get_z() - viter->second->get_z()) <= distepsilon * (*std::max_element(zlist.begin(), zlist.end()));
     bool tcomp = std::abs(newvtx->get_t() - viter->second->get_t()) <= timeepsilon * (*std::max_element(tlist.begin(), tlist.end()));
 
-    if (*newvtx == *(viter->second) or
-        (xcomp and ycomp and zcomp and tcomp))
+    if (*newvtx == *(viter->second) ||
+        (xcomp && ycomp && zcomp && tcomp))
     {
       delete newvtx;
       return viter->first;

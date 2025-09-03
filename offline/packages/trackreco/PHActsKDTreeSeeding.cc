@@ -317,7 +317,7 @@ void PHActsKDTreeSeeding::matchInttClusters(
 
         /// Z strip spacing is the entire strip, so because we use fabs
         /// we divide by two
-        if (fabs(projectionLocal[1] - cluster->getLocalX()) < m_rPhiSearchWin and
+        if (fabs(projectionLocal[1] - cluster->getLocalX()) < m_rPhiSearchWin &&
             fabs(projectionLocal[2] - cluster->getLocalY()) < stripZSpacing / 2.)
         {
           /// Cache INTT global positions with seed

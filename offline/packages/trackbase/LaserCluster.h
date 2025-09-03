@@ -50,6 +50,9 @@ class LaserCluster : public PHObject
   virtual float getZ() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void setZ(float) {}
 
+  virtual bool getFitMode() const { return false; }
+  virtual void setFitMode(bool) {}
+
   virtual float getLayer() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void setLayer(float) {}
   virtual float getIPhi() const { return std::numeric_limits<float>::quiet_NaN(); }
