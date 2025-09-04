@@ -557,8 +557,8 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       if (pt > 1)
       {
         h_ntrack_pos->Fill(eta, phi);
-        
-        if(std::fabs(eta)<1.2)
+
+        if (std::fabs(eta) < 1.2)
         {
           h_ntpc_pos->Fill(ntpc);
         }
@@ -584,10 +584,10 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       if (pt > 1)
       {
         h_ntrack_neg->Fill(eta, phi);
-        if (std::fabs(eta)<1.2)
-          {
-            h_ntpc_neg->Fill(ntpc);
-          }
+        if (std::fabs(eta) < 1.2)
+        {
+          h_ntpc_neg->Fill(ntpc);
+        }
         h_ntpot_neg->Fill(nmms);
         h_ntpc_quality_neg->Fill(ntpc, quality);
         h_avgnclus_eta_phi_neg->Fill(eta, phi, ntpc);
