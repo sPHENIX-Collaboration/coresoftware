@@ -557,15 +557,10 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       if (pt > 1)
       {
         h_ntrack_pos->Fill(eta, phi);
-        if (trackvtx)
+        
+        if(std::fabs(eta)<1.2)
         {
-          float vz = trackvtx->get_z();
-          float eta_min = cal_tpc_eta_min_max(vz).first;
-          float eta_max = cal_tpc_eta_min_max(vz).second;
-          if (eta > eta_min && eta < eta_max)
-          {
-            h_ntpc_pos->Fill(ntpc);
-          }
+          h_ntpc_pos->Fill(ntpc);
         }
         h_ntpot_pos->Fill(nmms);
         h_ntpc_quality_pos->Fill(ntpc, quality);
@@ -589,16 +584,10 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       if (pt > 1)
       {
         h_ntrack_neg->Fill(eta, phi);
-        if (trackvtx)
-        {
-          float vz = trackvtx->get_z();
-          float eta_min = cal_tpc_eta_min_max(vz).first;
-          float eta_max = cal_tpc_eta_min_max(vz).second;
-          if (eta > eta_min && eta < eta_max)
+        if (std::fabs(eta)<1.2)
           {
             h_ntpc_neg->Fill(ntpc);
           }
-        }
         h_ntpot_neg->Fill(nmms);
         h_ntpc_quality_neg->Fill(ntpc, quality);
         h_avgnclus_eta_phi_neg->Fill(eta, phi, ntpc);
