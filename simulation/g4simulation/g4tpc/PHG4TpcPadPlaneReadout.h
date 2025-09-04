@@ -13,8 +13,9 @@
 #include <cmath>
 #include <string>  // for string
 #include <vector>
+#include <map>
 
-typedef std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> hitMask;
+typedef std::map<TrkrDefs::hitsetkey, std::vector<TrkrDefs::hitkey>> hitMask;
 
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;

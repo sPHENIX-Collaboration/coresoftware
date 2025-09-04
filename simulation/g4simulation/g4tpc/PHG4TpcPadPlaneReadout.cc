@@ -600,7 +600,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       if (m_maskDeadChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
-        if (!(std::find(m_deadChannelMap.begin(), m_deadChannelMap.end(), std::make_pair(hitsetkey, hitkey)) == m_deadChannelMap.end()))
+        if (m_deadChannelMap.find(hitsetkey) != m_deadChannelMap.end() && 
+            std::find(m_deadChannelMap[hitsetkey].begin(), m_deadChannelMap[hitsetkey].end(), hitkey) != m_deadChannelMap[hitsetkey].end())
         {
           continue;
         }
@@ -608,7 +609,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       if (m_maskHotChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
-        if (!(std::find(m_hotChannelMap.begin(), m_hotChannelMap.end(), std::make_pair(hitsetkey, hitkey)) == m_hotChannelMap.end()))
+        if (m_hotChannelMap.find(hitsetkey) != m_hotChannelMap.end() && 
+            std::find(m_hotChannelMap[hitsetkey].begin(), m_hotChannelMap[hitsetkey].end(), hitkey) != m_hotChannelMap[hitsetkey].end())
         {
           continue;
         }
@@ -1168,15 +1170,14 @@ void PHG4TpcPadPlaneReadout::makeChannelMask(hitMask& aMask, const std::string& 
     int Sector = cdbttree->GetIntValue(i, "sector");
     int Side = cdbttree->GetIntValue(i, "side");
     int Pad = cdbttree->GetIntValue(i, "pad");
-    //if (Verbosity() > VERBOSITY_A_LOT)
-    if (true)
+    if (Verbosity() > VERBOSITY_A_LOT)
     {
       std::cout << dbName << ": Will mask layer: " << Layer << ", sector: " << Sector << ", side: " << Side << ", Pad: " << Pad << std::endl;
     }
 
     TrkrDefs::hitsetkey DeadChannelHitKey = TpcDefs::genHitSetKey(Layer, Sector, Side);
     TrkrDefs::hitkey DeadHitKey = TpcDefs::genHitKey((unsigned int) Pad, 0);
-    aMask.push_back({std::make_pair(DeadChannelHitKey, DeadHitKey)});
+    aMask[DeadChannelHitKey].push_back(DeadHitKey);
   }
 
   delete cdbttree;
