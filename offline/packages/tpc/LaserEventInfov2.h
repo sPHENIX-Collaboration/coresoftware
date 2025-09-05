@@ -27,7 +27,7 @@ class LaserEventInfov2 : public LaserEventInfov1
 
   bool m_isGl1LaserEvent{false};
   bool m_isGl1LaserPileupEvent{false};
-
+  
   ClassDefOverride(LaserEventInfov2, 1);
 };
 

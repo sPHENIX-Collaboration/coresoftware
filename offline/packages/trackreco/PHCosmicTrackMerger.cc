@@ -134,7 +134,7 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode * /*unused*/)
       float tr1rzslope = std::get<0>(rzTr1Params);
       //! Check if the rz slope is close to 0 corresponding to an chain of clusters
       //! from an ion tail
-      if (std::fabs(tr1rzslope) < 0.005)
+      if (std::abs(tr1rzslope) < 0.005)
       {
         m_seeds->erase(m_seeds->index(tr1it));
         break;
@@ -194,8 +194,8 @@ int PHCosmicTrackMerger::process_event(PHCompositeNode * /*unused*/)
       if (
           //! check on common cluskeys
           (ckeyUnion.size() > 10) ||
-          (m_zeroField && std::fabs(tr1xyslope - tr2xyslope) < 0.5 && std::fabs(tr1rzslope - tr2rzslope * -1) < 0.5) ||
-          (!m_zeroField && std::fabs(tr1xyslope - tr2xyslope) < 0.03 && (std::fabs(tr1rzslope - tr2rzslope * -1) < 1)))
+          (m_zeroField && std::abs(tr1xyslope - tr2xyslope) < 0.5 && std::abs(tr1rzslope - tr2rzslope * -1) < 0.5) ||
+          (!m_zeroField && std::abs(tr1xyslope - tr2xyslope) < 0.03 && (std::abs(tr1rzslope - tr2rzslope * -1) < 1)))
       {
         if (Verbosity() > 3)
         {
@@ -289,7 +289,7 @@ void PHCosmicTrackMerger::getBestClustersPerLayer(TrackSeed *seed)
       clusr *= -1;
     }
     // skip tpot clusters, as they are always bad in 1D due to 1D resolution
-    if (std::fabs(clusr) > 80.)
+    if (std::abs(clusr) > 80.)
     {
       continue;
     }
@@ -345,8 +345,8 @@ void PHCosmicTrackMerger::getBestClustersPerLayer(TrackSeed *seed)
     {
       layer = 5;
     }
-    float dcaxydiff1 = std::fabs(dcaxy - bestLayerDcasxy.find(layer)->second.first);
-    float dcaxydiff2 = std::fabs(dcaxy - bestLayerDcasxy.find(layer)->second.second);
+    float dcaxydiff1 = std::abs(dcaxy - bestLayerDcasxy.find(layer)->second.first);
+    float dcaxydiff2 = std::abs(dcaxy - bestLayerDcasxy.find(layer)->second.second);
     if (trkid == TrkrDefs::TrkrId::mvtxId || trkid == TrkrDefs::TrkrId::tpcId)
     {
       if (dcaxydiff1 > dcaxydiff2)
@@ -427,7 +427,7 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
       clusr *= -1;
     }
     // skip tpot clusters, as they are always bad in 1D due to 1D resolution
-    if (std::fabs(clusr) > 80.)
+    if (std::abs(clusr) > 80.)
     {
       continue;
     }
@@ -447,7 +447,7 @@ void PHCosmicTrackMerger::removeOutliers(TrackSeed *seed)
       clusr *= -1;
     }
     // skip tpot clusters, as they are always bad in 1D due to 1D resolution
-    if (std::fabs(clusr) > 80.)
+    if (std::abs(clusr) > 80.)
     {
       continue;
     }

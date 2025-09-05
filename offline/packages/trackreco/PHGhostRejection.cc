@@ -128,10 +128,10 @@ void PHGhostRejection::find_ghosts(const std::vector<float>& trackChi2)
         delta_phi = delta_phi - 2*M_PI;
       }
       if (delta_phi < _phi_cut &&
-          std::fabs(track1eta - track2eta) < _eta_cut &&
-          std::fabs(track1_pos.x() - track2_pos.x()) < _x_cut &&
-          std::fabs(track1_pos.y() - track2_pos.y()) < _y_cut &&
-          std::fabs(track1_pos.z() - track2_pos.z()) < _z_cut)
+          std::abs(track1eta - track2eta) < _eta_cut &&
+          std::abs(track1_pos.x() - track2_pos.x()) < _x_cut &&
+          std::abs(track1_pos.y() - track2_pos.y()) < _y_cut &&
+          std::abs(track1_pos.z() - track2_pos.z()) < _z_cut)
       {
         matches_set.insert(trid1);
         matches.insert(std::pair(trid1, trid2));

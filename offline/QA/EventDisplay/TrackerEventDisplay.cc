@@ -202,8 +202,8 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             }
             z = clusz;
             phi_center = GeoLayer_local->get_phicenter(phibin);
-            x = radius * cos(phi_center);
-            y = radius * sin(phi_center);
+            x = radius * std::cos(phi_center);
+            y = radius * std::sin(phi_center);
 
             std::stringstream spts;
 

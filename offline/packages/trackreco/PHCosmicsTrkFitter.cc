@@ -377,7 +377,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
 
       // exclude silicon and tpot clusters for now
-      if (fabs(clusr) > 80 || fabs(clusr) < 30)
+      if (std::abs(clusr) > 80 || std::abs(clusr) < 30)
       {
         continue;
       }
@@ -405,7 +405,7 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     float p;
     if (m_ConstField)
     {
-      p = cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
+      p = std::cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
     }
     else
     {
@@ -428,11 +428,11 @@ void PHCosmicsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     float pz = std::cos(theta) * p;
     if (fulllineslope < 0)
     {
-      pz = fabs(pz);
+      pz = std::abs(pz);
     }
     else
     {
-      pz = fabs(pz) * -1;
+      pz = std::abs(pz) * -1;
     }
     Acts::Vector3 momentum = Acts::Vector3::Zero();
 

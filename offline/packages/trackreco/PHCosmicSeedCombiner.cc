@@ -19,6 +19,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
+#include <cmath>
+
 #include <phool/PHCompositeNode.h>
 
 //____________________________________________________________________________..
@@ -98,7 +100,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
         dphi += 2. * M_PI;
       }
       //! If they are back to back, dphi=pi
-      dphi = fabs(dphi) - M_PI;
+      dphi = std::abs(dphi) - M_PI;
 
       //! etas are opposite each other, so we add them
       const float deta = eta1 + eta2;
@@ -108,7 +110,7 @@ int PHCosmicSeedCombiner::process_event(PHCompositeNode*)
         std::cout << "eta 1 and eta2 " << eta1 << " , " << eta2 << std::endl;
         std::cout << "dphi and deta " << dphi << " , " << deta << std::endl;
       }
-      if (fabs(dphi) < m_dphiCut && fabs(deta) < m_detaCut)
+      if (std::abs(dphi) < m_dphiCut && std::abs(deta) < m_detaCut)
       {
         //! add the clusters to the tpc seed and delete seed 2 since it is
         //! from the same track
