@@ -59,13 +59,13 @@ class QAKFParticle : public SubsysReco
   TH1F *h_mass_KFP_crossing0 = nullptr;
   TH1F *h_mass_KFP_non_crossing0 = nullptr;
   TH1F *h_mass_KFP_ZDC_Coincidence = nullptr;
-  TH1F *h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm = nullptr;
+  TH1F *h_mass_KFP_MBD_NandS_geq_1_vtx_l_10_cm = nullptr;
   TH1F *h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm = nullptr;  
 
   TriggerAnalyzer *triggeranalyzer{nullptr};
 
   int m_ZDC_Coincidence_bit = INT_MAX;
-  int m_MBD_NandS_geq_1_vtx_l_30_cm_bit = INT_MAX;
+  int m_MBD_NandS_geq_1_vtx_l_10_cm_bit = INT_MAX;
   int m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit = INT_MAX; 
 
  private:

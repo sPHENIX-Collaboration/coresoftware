@@ -712,8 +712,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
             continue;
           }
 
-          addtruthhitset(hitsetkey, hitkey, hitenergy);
-
           if (Verbosity() > 0)
           {
             std::cout << "Layer: " << layer << ", Stave: " << (uint16_t) MvtxDefs::getStaveId(hitsetkey) << ", Chip: " << (uint16_t) MvtxDefs::getChipId(hitsetkey) << ", Row: " << (uint16_t) MvtxDefs::getRow(hitkey) << ", Col: " << (uint16_t) MvtxDefs::getCol(hitkey) << ", Strobe: " << (int) MvtxDefs::getStrobeId(hitsetkey) << ", added hit " << hitkey << " to hitset " << hitsetkey << " with energy " << hit->getEnergy() / TrkrDefs::MvtxEnergyScaleup << std::endl;
