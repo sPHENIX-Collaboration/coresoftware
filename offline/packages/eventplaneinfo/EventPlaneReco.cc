@@ -8,8 +8,8 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
-
-#include <epd/EpdGeom.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
 
 #include <mbd/MbdGeom.h>
 #include <mbd/MbdOut.h>
@@ -205,40 +205,35 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  if (_isSim) {
-    // Use GlobalVertexMap for simulation
-    GlobalVertexMap *vertexmap =
-        findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
-    if (!vertexmap) {
-      std::cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap"
-                << std::endl;
-      exit(-1);
-    }
-
-    if (!vertexmap->empty()) {
-      GlobalVertex *vtx = vertexmap->begin()->second;
-      if (vtx) {
-        _mbdvtx = vtx->get_z();
+  MbdVertexMap *mbdvtxmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+  if (mbdvtxmap && !mbdvtxmap->empty()) {
+    for (MbdVertexMap::ConstIter mbditer = mbdvtxmap->begin();
+         mbditer != mbdvtxmap->end(); ++mbditer) {
+      MbdVertex *mvertex = mbditer->second;
+      if (mvertex) {
+        _mbdvtx = mvertex->get_z();
+        if (Verbosity() > 1) {
+          std::cout << "EventPlaneReco: Using MbdVertexMap, z = " << _mbdvtx << std::endl;
+        }
+        break;
       }
     }
   } else {
-    // Use MbdVertexMap for data
-    MbdVertexMap *mbdvtxmap =
-        findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-    if (!mbdvtxmap) {
-      std::cout << PHWHERE << "::ERROR - cannot find MbdVertexMap" << std::endl;
-      exit(-1);
-    }
-
-    MbdVertex *mvertex = nullptr;
-    if (mbdvtxmap) {
-      for (MbdVertexMap::ConstIter mbditer = mbdvtxmap->begin();
-           mbditer != mbdvtxmap->end(); ++mbditer) {
-        mvertex = mbditer->second;
+    GlobalVertexMap *vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+    if (vertexmap && !vertexmap->empty()) {
+      GlobalVertex *vtx = vertexmap->begin()->second;
+      if (vtx) {
+        _mbdvtx = vtx->get_z();
+        if (Verbosity() > 1) {
+          std::cout << "EventPlaneReco: Using GlobalVertexMap, z = " << _mbdvtx << std::endl;
+        }
       }
-      if (mvertex) {
-        _mbdvtx = mvertex->get_z();
+    } else {
+      if (Verbosity() > 0) {
+        std::cout << PHWHERE << "::WARNING - No vertex found (neither MbdVertexMap nor GlobalVertexMap available)" << std::endl;
+        std::cout << "Event will be skipped for event plane calculation" << std::endl;
       }
+      _mbdvtx = 999999;
     }
   }
 
@@ -255,19 +250,15 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
     TowerInfoContainer *epd_towerinfo =
         findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_SEPD");
     if (!epd_towerinfo) {
-      epd_towerinfo = findNode::getClass<TowerInfoContainer>(
-          topNode, "TOWERINFO_CALIB_EPD");
-      if (!epd_towerinfo) {
-        std::cout << PHWHERE
-                  << "::ERROR - cannot find sEPD Calibrated TowerInfoContainer"
-                  << std::endl;
-        exit(-1);
-      }
+      std::cout << PHWHERE
+                << "::ERROR - cannot find TOWERINFO_CALIB_SEPD"
+                << std::endl;
+      exit(-1);
     }
 
-    EpdGeom *_epdgeom = findNode::getClass<EpdGeom>(topNode, "TOWERGEOM_EPD");
-    if (!_epdgeom) {
-      std::cout << PHWHERE << "::ERROR - cannot find TOWERGEOM_EPD"
+    RawTowerGeomContainer *_sepdgeom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_SEPD");
+    if (!_sepdgeom) {
+      std::cout << PHWHERE << "::ERROR - cannot find TOWERGEOM_SEPD"
                 << std::endl;
       exit(-1);
     }
@@ -312,7 +303,9 @@ int EventPlaneReco::process_event(PHCompositeNode *topNode) {
               continue;
             }
             unsigned int key = TowerInfoDefs::encode_epd(ch);
-            float tile_phi = _epdgeom->get_phi(key);
+            unsigned int geo_key = TowerInfoDefs::get_sepd_geokey_at_channel(ch);
+            RawTowerGeom *tower_geom = _sepdgeom->get_tower_geometry(geo_key);
+            float tile_phi = tower_geom->get_phi();
             int arm = TowerInfoDefs::get_epd_arm(key);
             int rbin = TowerInfoDefs::get_epd_rbin(key);
             int phibin = TowerInfoDefs::get_epd_phibin(key);
