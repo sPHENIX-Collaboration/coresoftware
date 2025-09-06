@@ -104,7 +104,7 @@ class ConstituentsinJets : public SubsysReco
 
   // ! Kinematic cuts and reco jet node name
   std::pair<double, double> m_etaRange{-1.1, 1.1};
-  std::pair<double, double> m_ptRange{1.0, 1000.0};
+  std::pair<double, double> m_ptRange{10.0, 100.0};
 
   // Jet N constituents
   Fun4AllHistoManager *m_manager{nullptr};
