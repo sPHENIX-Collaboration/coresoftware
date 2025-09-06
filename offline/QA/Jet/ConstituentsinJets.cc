@@ -89,15 +89,6 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
   for (int i = 0; i <= N_frac; ++i) {
     frac_bins[i] = frac_min + i * w; 
   }
-  /*
-  const int N_frac = 200;
-  double frac_max = 1.5;
-  Double_t frac_bins[N_frac + 1];
-  for (int i = -0.5; i <= N_frac; i++)
-  {
-    frac_bins[i] = (frac_max / N_frac) * i;
-  }
-  */
   
   const int N_calo_layers = 3;
   Double_t calo_layers_bins[N_calo_layers + 1] = {0.5, 1.5, 2.5, 3.5};  // emcal, ihcal, ohcal
