@@ -173,6 +173,8 @@ int MakeActsGeometry::Init(PHCompositeNode * /*topNode*/)
 
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
+  m_maxSurfZ = m_max_driftlength - 0.0001; // add clearance from physical TPC gas volume length to avoid overlaps
+
   m_geomContainerTpc =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
@@ -282,6 +284,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
+  m_actsGeometry->set_max_driftlength(m_max_driftlength);
+  m_actsGeometry->set_CM_halfwidth(m_CM_halfwidth);
   m_actsGeometry->set_tpc_tzero(m_tpc_tzero);
   // alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
   if (Verbosity() > 1)
@@ -514,7 +518,10 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 
     for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
     {
-      // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
+      // The mother is tpc_gas_volume (which is placed as tpc_gas_north and tpc_gas_south)
+      // tpc_gas_north and tpc_gas_south are offset from zero in the tpc volume by half the CM thickness
+      // so we center the fake surfaces in tpc_gas_volume
+      // the fake surfaces are thus included in both tpc_gas_north and tpc_gas_south
       double z_center = 0.0;
 
       for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)

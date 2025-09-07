@@ -105,7 +105,7 @@ public:
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;  // ns
   double NZBinsSide = 249;
-
+    
   // TPC shaping offset correction parameter
   // From Tony Frawley July 5, 2022
   double m_sampa_tbias = 39.6;  // ns

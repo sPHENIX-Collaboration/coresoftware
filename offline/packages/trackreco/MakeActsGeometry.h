@@ -138,13 +138,16 @@ class MakeActsGeometry : public SubsysReco
   double getSurfStepZ() { return m_surfStepZ; }
 
   void set_drift_velocity(double vd) { m_drift_velocity = vd; }
+  void set_max_driftlength(double val) { m_max_driftlength = val; }
+  void set_CM_halfwidth(double val) { m_CM_halfwidth = val; }
   void set_tpc_tzero(double tz) { m_tpc_tzero = tz; }
 
   void set_nSurfPhi(unsigned int value)
   {
     m_nSurfPhi = value;
   }
-
+  //  void set_maxSurfZ(double value) {m_maxSurfZ = value;}  // set to TPC gas volume length
+    
   void set_mvtx_applymisalign(bool b) { m_mvtxapplymisalign = b; }
   void set_intt_survey(bool surv) { m_inttSurvey = surv; }
 
@@ -243,9 +246,8 @@ class MakeActsGeometry : public SubsysReco
 
   /// TPC Acts::Surface subdivisions
   double m_minSurfZ = 0.;
-  /// This value must be less than the TPC gas volume in TGeo, which
-  /// is 105.22 cm
-  double m_maxSurfZ = 105.42;
+  /// This value should be slightly less than the TPC gas volume in TGeo
+  double m_maxSurfZ =  0;
   unsigned int m_nSurfZ = 1;
   unsigned int m_nSurfPhi = 12;
   double m_surfStepPhi = 0;
@@ -287,7 +289,9 @@ class MakeActsGeometry : public SubsysReco
 
   double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
   double m_tpc_tzero = 0.0;  // ns, override from macro
-
+  double m_max_driftlength = 102.325;  // override from macro
+  double m_CM_halfwidth = 0.28;  // central membrane half width in cm
+  
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField = "1.4";
   double m_magFieldRescale = -1.;

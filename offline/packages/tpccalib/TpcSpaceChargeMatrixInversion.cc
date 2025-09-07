@@ -32,9 +32,13 @@ namespace
   static constexpr float m_rmax = 78;
 
   // z range
-  static constexpr float m_zmin = -105.5;
-  static constexpr float m_zmax = 105.5;
-
+  float m_zmax =  105.5;
+  float m_zmin = -105.5;
+  /*
+  float m_zmax =  m_tGeometry->get_max_driftlength + m_tGeometry->get_CM_halfwidth;
+  float m_zmin = -m_zmax;
+  */
+  
   // convert internal data from TpcSpaceChargeMatrixContainer to 2D Eighen::Matrix
   template<float (TpcSpaceChargeMatrixContainer::*accessor)(int /*cell*/, int /*row*/, int /*column*/) const, int N>
     Eigen::Matrix<float, N, N> get_matrix( const TpcSpaceChargeMatrixContainer* container, int icell )

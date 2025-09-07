@@ -215,7 +215,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_mid", 57.475);    // 60.0);
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
-  set_default_double_param("maxdriftlength", 105.5);       // cm
+  set_default_double_param("maxdriftlength", 102.325);       // cm
   set_default_double_param("extended_readout_time", 0.0);  // ns
   set_default_double_param("tpc_adc_clock", 53.326184);    // ns, for 18.8 MHz clock
 

@@ -155,6 +155,9 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
 //___________________________________________________________________________________
 int PHTpcResiduals::InitRun(PHCompositeNode* topNode)
 {
+  m_zMax = m_tGeometry->get_max_driftlength + m_tGeometry->get_CM_halfwidth;
+  m_zMin = -m_zMax;
+  
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;

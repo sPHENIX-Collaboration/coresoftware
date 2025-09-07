@@ -118,6 +118,7 @@ namespace
     unsigned short maxHalfSizeT = 0;
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
+    double maxdrift = 0;
     double sampa_tbias = 0;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster *> cluster_vector;
@@ -472,8 +473,6 @@ namespace
     //
     // get z range from layer geometry
     /* these are used for rescaling the drift velocity */
-    // const double z_min = -105.5;
-    // const double z_max = 105.5;
     //  std::cout << "calc clus" << std::endl;
     //  loop over the hits in this cluster
     double t_sum = 0.0;
@@ -788,6 +787,7 @@ namespace
     const auto &phioffset = my_data->phioffset;
     const auto &tbins = my_data->tbins;
     const auto &toffset = my_data->toffset;
+    const auto &maxdrift = my_data->maxdrift;
     const auto &layer = my_data->layer;
     //    int nhits = 0;
     // for convenience, create a 2D vector to store adc values in and initialize to zero
@@ -801,13 +801,13 @@ namespace
     {
       if (layer >= 7 && layer < 22)
       {
-        int etacut = (tbins / 2.) - ((50 + (layer - 7)) / 105.5) * (tbins / 2.);
+        int etacut = (tbins / 2.) - ((50 + (layer - 7)) / maxdrift) * (tbins / 2.);
         tbinmin = etacut;
         tbinmax -= etacut;
       }
       if (layer >= 22 && layer <= 48)
       {
-        int etacut = (tbins / 2.) - ((65 + ((40.5 / 26) * (layer - 22))) / 105.5) * (tbins / 2.);
+        int etacut = (tbins / 2.) - ((65 + ((40.5 / 26) * (layer - 22))) / maxdrift) * (tbins / 2.);
         tbinmin = etacut;
         tbinmax -= etacut;
       }
@@ -1439,6 +1439,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.phioffset = PhiOffset;
       thread_pair.data.tbins = NTBinsSide;
       thread_pair.data.toffset = TOffset;
+      thread_pair.data.maxdrift = m_tGeometry>get_max_driftlength();
 
       thread_pair.data.radius = layergeom->get_radius();
       thread_pair.data.drift_velocity = m_tGeometry->get_drift_velocity();
@@ -1551,7 +1552,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.phioffset = PhiOffset;
       thread_pair.data.tbins = NTBinsSide;
       thread_pair.data.toffset = TOffset;
-
+      thread_pair.data.maxdrift =  m_tGeometry>get_max_driftlength();
+      
       /*
       PHG4TpcCylinderGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
       for( float iphi = 1408; iphi < 1408+ 128;iphi+=0.1){

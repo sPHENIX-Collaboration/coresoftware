@@ -1039,7 +1039,7 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
   set_default_double_param("neffelectrons_threshold", 1.0);
-  set_default_double_param("maxdriftlength", 105.5);     // cm
+  set_default_double_param("maxdriftlength", 102.325);     // cm
   set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
