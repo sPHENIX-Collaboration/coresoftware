@@ -198,7 +198,7 @@ int TpcDirectLaserReconstruction::process_event(PHCompositeNode* topNode)
     return res;
   }
 
-  m_zmax =  m_tGeometry->get_max_driftlength + m_tGeometry->get_CM_halfwidth;
+  m_zmax =  m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
   m_zmin = -m_zmax;
   
   process_tracks();

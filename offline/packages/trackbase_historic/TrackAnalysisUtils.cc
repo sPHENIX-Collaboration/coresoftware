@@ -155,7 +155,7 @@ namespace TrackAnalysisUtils
           TpcClusterZCrossingCorrection::correctZ(cglob.z(), 
           TpcDefs::getSide(cluster_key), track->get_crossing());
 
-	double maxz = tgeometry->get_tpc_maxdrift + tgeometry->get_CM_halfwidth;
+	double maxz = tgeometry->get_max_driftlength() + tgeometry->get_CM_halfwidth();
 	adc /= (1 - ((maxz - abs(z_crossing_corrected)) * 0.50 / maxz));
       }
       adc /= thickness;

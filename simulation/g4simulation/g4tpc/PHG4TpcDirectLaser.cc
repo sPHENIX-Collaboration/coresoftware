@@ -66,7 +66,7 @@ namespace
   constexpr double end_CM = 78. * cm;
 
   //_____________________________________________________________
-  std::optional<TVector3> central_membrane_intersection(const TVector3& start, const TVector3& direction)
+  std::optional<TVector3> central_membrane_intersection(const TVector3& start, const TVector3& direction, double halfwidth_CM)
   {
     const double end = start.z() > 0 ? halfwidth_CM : -halfwidth_CM;
     const double dist = end - start.z();
@@ -88,7 +88,7 @@ namespace
   }
 
   //_____________________________________________________________
-  std::optional<TVector3> endcap_intersection(const TVector3& start, const TVector3& direction)
+  std::optional<TVector3> endcap_intersection(const TVector3& start, const TVector3& direction, double halflength_tpc)
   {
     const double end = start.z() > 0 ? halflength_tpc : -halflength_tpc;
     const double dist = end - start.z();
@@ -623,7 +623,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
    * if the position along beam and laser direction have the same sign, it will intercept the endcap
    * otherwise will intercept the central membrane
    */
-  const auto plane_strike = (pos.z() * dir.z() > 0) ? endcap_intersection(pos, dir) : central_membrane_intersection(pos, dir);
+  const auto plane_strike = (pos.z() * dir.z() > 0) ? endcap_intersection(pos, dir,halflength_tpc) : central_membrane_intersection(pos, dir, halfwidth_CM);
 
   // field cage intersection
   const auto fc_strike = field_cage_intersection(pos, dir);

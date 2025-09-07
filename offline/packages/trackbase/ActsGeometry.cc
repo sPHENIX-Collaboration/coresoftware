@@ -78,7 +78,9 @@ const float& clockPeriod) const
   {
     zloc = -zloc;
   }
-
+  
+  float surfaceZCenter = _max_driftlength/2.0 + _CM_halfwidth;
+  
   auto x = rad * std::cos(phi);
   auto y = rad * std::sin(phi);
   auto z = surfaceZCenter + zloc;
