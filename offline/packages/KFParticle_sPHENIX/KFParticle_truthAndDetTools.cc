@@ -688,7 +688,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       _emcal_x *= radius_scale;
       _emcal_y *= radius_scale;
       _emcal_z *= radius_scale;
-      _emcal_phi = std::atan2(_emcal_y, _emcal_y);
+      _emcal_phi = std::atan2(_emcal_y, _emcal_x);
       _emcal_eta = std::asinh(_emcal_z / std::sqrt((_emcal_x * _emcal_x) + (_emcal_y * _emcal_y)));
       // _emcal_3x3 = get_e3x3(cluster, _towersEM, 0); //0 for emcal
       // _emcal_5x5 = get_e5x5(cluster, _towersEM, 0); //0 for emcal
