@@ -53,12 +53,12 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
 
-  void SetDeadChannelMapName(std::string dcmap) 
+  void SetDeadChannelMapName(const std::string& dcmap) 
   {
     m_maskDeadChannels = true;
     m_deadChannelMapName = dcmap;
   }
-  void SetHotChannelMapName(std::string hmap) 
+  void SetHotChannelMapName(const std::string& hmap) 
   {
     m_maskHotChannels = true;
     m_hotChannelMapName = hmap;
