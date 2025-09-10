@@ -1156,7 +1156,7 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   }
 }
 
-void PHG4TpcPadPlaneReadout::makeChannelMask(hitMask& aMask, const std::string& dbName, const std::string& totalChannelsToMask)
+void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc& aMask, const std::string& dbName, const std::string& totalChannelsToMask)
 {
   std::string database = CDBInterface::instance()->getUrl(dbName);
   CDBTTree* cdbttree = new CDBTTree(database);

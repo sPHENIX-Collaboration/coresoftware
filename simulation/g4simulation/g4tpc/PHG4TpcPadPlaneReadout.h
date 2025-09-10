@@ -15,7 +15,7 @@
 #include <vector>
 #include <map>
 
-typedef std::map<TrkrDefs::hitsetkey, std::vector<TrkrDefs::hitkey>> hitMask;
+typedef std::map<TrkrDefs::hitsetkey, std::vector<TrkrDefs::hitkey>> hitMaskTpc;
 
 class PHCompositeNode;
 class PHG4TpcCylinderGeomContainer;
@@ -71,7 +71,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   double check_phi(const unsigned int side, const double phi, const double radius);
 
-  void makeChannelMask(hitMask& aMask, const std::string& dbName, const std::string& totalChannelsToMask);
+  void makeChannelMask(hitMaskTpc& aMask, const std::string& dbName, const std::string& totalChannelsToMask);
 
   PHG4TpcCylinderGeomContainer *GeomContainer = nullptr;
   PHG4TpcCylinderGeom *LayerGeom = nullptr;
@@ -132,8 +132,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   TF1 *flangau[2][3][12] = {{{nullptr}}};
 
-  hitMask m_deadChannelMap;
-  hitMask m_hotChannelMap; 
+  hitMaskTpc m_deadChannelMap;
+  hitMaskTpc m_hotChannelMap; 
 
   bool m_maskDeadChannels = false;
   bool m_maskHotChannels = false;
