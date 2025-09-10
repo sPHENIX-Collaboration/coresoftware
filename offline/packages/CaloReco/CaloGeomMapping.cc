@@ -132,7 +132,8 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode *topNode)
   for (int ibin = 0; ibin < m_RawTowerGeomContainer->get_etabins(); ibin++)
   {
     parName = parBase + "_eta_";
-    double first, second;
+    double first;
+    double second;
     first = cdbttree->GetDoubleValue(ibin, parName + "first");
     second = cdbttree->GetDoubleValue(ibin, parName + "second");
     const std::pair<double, double> range(first, second);
@@ -141,7 +142,8 @@ void CaloGeomMapping::CreateGeomNode(PHCompositeNode *topNode)
   for (int ibin = 0; ibin < m_RawTowerGeomContainer->get_phibins(); ibin++)
   {
     parName = parBase + "_phi_";
-    double first, second;
+    double first;
+    double second;
     first = cdbttree->GetDoubleValue(ibin, parName + "first");
     second = cdbttree->GetDoubleValue(ibin, parName + "second");
     const std::pair<double, double> range(first, second);
