@@ -196,8 +196,8 @@ int PrelimDistortionCorrectionAuAu::process_event(PHCompositeNode* /*topNode*/)
     if(is_tpc)
     {
       // We want to move all clusters in this seed to point to Z0 = 0
-      //float Z0 = track->get_Z0();
-      float Z0 = 0;
+      //float Z0 = track->get_Z0();   // for pp
+      float Z0 = 0;                                // for AuAu
       float offset_Z = 0.0 - Z0;
 
       if(Verbosity() > 0)

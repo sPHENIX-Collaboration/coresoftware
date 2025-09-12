@@ -71,15 +71,16 @@ const float& clockPeriod) const
   }
 
   auto tbin = TpcDefs::getTBin(hitkey);
-  double surfaceZCenter = 52.89;                 // this is where G4 thinks the surface center is in cm
   double zdriftlength = tbin * clockPeriod * _drift_velocity;  // cm
-  double zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
+  double zloc =  _max_driftlength / 2.0 - zdriftlength;                   // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(hitsetkey);
   if (side == 0)
   {
     zloc = -zloc;
   }
-
+  
+  float surfaceZCenter = _max_driftlength/2.0 + _CM_halfwidth;
+  
   auto x = rad * std::cos(phi);
   auto y = rad * std::sin(phi);
   auto z = surfaceZCenter + zloc;
@@ -114,9 +115,8 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
     return glob;
   }
 
-  double surfaceZCenter = 52.89;                                 // this is where G4 thinks the surface center is in cm
   double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
-  double zloc = surfaceZCenter - zdriftlength;                   // local z relative to surface center (for north side):
+  double zloc = _max_driftlength / 2.0 - zdriftlength;                   // local z relative to surface center (for north side):
   unsigned int side = TpcDefs::getSide(key);
   if (side == 0)
   {
@@ -249,9 +249,8 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
   if (trkrid == TrkrDefs::tpcId)
   {
     double crossing_tzero_correction = crossing * sphenix_constants::time_between_crossings;
-    double surfaceZCenter = 52.89;                                 // this is where G4 thinks the surface center is in cm
     double zdriftlength = (cluster->getLocalY() - crossing_tzero_correction) * _drift_velocity;  // cm
-    double zloc = surfaceZCenter - zdriftlength;         // local z relative to surface center (for north side):
+    double zloc = _max_driftlength/2.0 - zdriftlength;         // local z relative to surface center (for north side):
     unsigned int side = TpcDefs::getSide(key);
     if (side == 0)
     {

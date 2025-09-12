@@ -110,6 +110,9 @@ class TpcDirectLaserReconstruction : public SubsysReco, public PHParameterInterf
 
   float m_max_zrange {10.0};  // cm
 
+  float m_zmax = 0;
+  float m_zmin = 0;
+  
   ///@name selection parameters
   //@{
   // residual cuts in r, phi plane
