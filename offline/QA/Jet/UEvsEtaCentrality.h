@@ -118,6 +118,10 @@ class UEvsEtaCentrality : public SubsysReco
   TH2F *hUEiHcalEta_Cent50_100 = nullptr;
   TH2F *hUEoHcalEta_Cent50_100 = nullptr;
   TH2F *hUEemcalEta_Cent50_100 = nullptr;
+
+  TH2F *hUEiHcalEta = nullptr;
+  TH2F *hUEoHcalEta = nullptr;
+  TH2F *hUEemcalEta = nullptr;
 };
 
 #endif // UEVSETACENTRALITY_H

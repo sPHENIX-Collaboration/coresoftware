@@ -108,6 +108,9 @@ int UEvsEtaCentrality::Init(PHCompositeNode* /*topNode*/)
       "ihcaleta_cent50_100",
       "ohcaleta_cent50_100",
       "emcaleta_cent50_100",
+      "ihcaleta",
+      "ohcaleta",
+      "emcaleta",
   };
   for (auto &vecHistName : vecHistNames)
   {
@@ -132,6 +135,10 @@ int UEvsEtaCentrality::Init(PHCompositeNode* /*topNode*/)
   hUEiHcalEta_Cent50_100 = new TH2F(vecHistNames[8].data(), "", 24, -1.1,1.1, 48, 0, 0.25);
   hUEoHcalEta_Cent50_100 = new TH2F(vecHistNames[9].data(), "", 24, -1.1,1.1, 48, 0, 0.5);
   hUEemcalEta_Cent50_100 = new TH2F(vecHistNames[10].data(), "", 24, -1.1,1.1, 48, 0, 1.5);
+
+  hUEiHcalEta = new TH2F(vecHistNames[11].data(), "", 24, -1.1,1.1, 48, 0, 0.25);
+  hUEoHcalEta = new TH2F(vecHistNames[12].data(), "", 24, -1.1,1.1, 48, 0, 0.5);
+  hUEemcalEta = new TH2F(vecHistNames[13].data(), "", 24, -1.1,1.1, 48, 0, 1.5);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -228,6 +235,11 @@ int UEvsEtaCentrality::process_event(PHCompositeNode *topNode)
    
     double eta = tower_geom->get_etacenter(i); //eta comes from IHCal
 
+    // all centrality histograms
+    hUEiHcalEta->Fill(eta, UEi);
+    hUEoHcalEta->Fill(eta, UEo);
+    hUEemcalEta->Fill(eta, UEe);
+
     if (m_centrality > 0 && m_centrality <= 20){
       hUEiHcalEta_Cent0_20->Fill(eta, UEi);                                                                                  
       hUEoHcalEta_Cent0_20->Fill(eta, UEo);                                                                                  
@@ -285,7 +297,10 @@ int UEvsEtaCentrality::End(PHCompositeNode* /*topNode*/)
   m_manager->registerHisto(hUEiHcalEta_Cent50_100);
   m_manager->registerHisto(hUEoHcalEta_Cent50_100);
   m_manager->registerHisto(hUEemcalEta_Cent50_100);
- 
+  m_manager->registerHisto(hUEiHcalEta);
+  m_manager->registerHisto(hUEoHcalEta);
+  m_manager->registerHisto(hUEemcalEta);
+
   if (m_config.debug && (Verbosity() > 1))
   { 
     std::cout << "UEvsEtaCentrality::End(PHCompositeNode *topNode) This is the End..." << std::endl;
