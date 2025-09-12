@@ -609,7 +609,7 @@ int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
         std::string varname = "layer";
         unsigned int layer = m_cdbttree->GetIntValue(key, varname);
         // antenna pads will be in 0 layer
-        if (layer <= 0 or layer>55)
+        if (layer <= 0 || layer>55)
         {
           continue;
         }

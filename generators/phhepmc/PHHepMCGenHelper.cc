@@ -111,7 +111,7 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
   assert(_vertex_width_z >= 0);
   assert(_vertex_width_t >= 0);
 
-  assert(not _reuse_vertex);  // logic check
+  assert(! _reuse_vertex);  // logic check
 
   // not reusing vertex so smear with the vertex parameters
   genevent->moveVertex(
@@ -126,7 +126,7 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
 //! https://github.com/eic/documents/blob/d06b5597a0a89dcad215bab50fe3eefa17a097a5/reports/general/Note-Simulations-BeamEffects.pdf
 double PHHepMCGenHelper::get_collision_width(unsigned int hv_index)
 {
-  assert((hv_index == 0) or (hv_index == 1));
+  assert((hv_index == 0) || (hv_index == 1));
 
   const double widthA = m_beam_bunch_width.first[hv_index];
   const double widthB = m_beam_bunch_width.second[hv_index];
@@ -514,7 +514,7 @@ void PHHepMCGenHelper::set_vertex_distribution_width(const double x, const doubl
 
 void PHHepMCGenHelper::set_beam_bunch_width(const std::vector<double> &beamA, const std::vector<double> &beamB)
 {
-  if (not m_use_beam_bunch_sim)
+  if (! m_use_beam_bunch_sim)
   {
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error: "
               << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect not to simulate bunch interaction but applying vertex distributions"

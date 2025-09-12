@@ -36,7 +36,7 @@ class PHGenIntegralv1 : public PHGenIntegral
   int Integrate() const override { return 1; }
   /// For integral objects, e.g. integrated luminosity counter, integrate with another object from another run
   int Integrate(PHObject*) override;
-  void CopyFrom(const PHObject* obj) override;
+  void CopyFrom(const PHObject* incoming_object) override;
 
   //! Integrated luminosity in pb^-1
   Double_t get_Integrated_Lumi() const override
@@ -104,18 +104,18 @@ class PHGenIntegralv1 : public PHGenIntegral
 
  private:
   //! Number of processed events in the Fun4All cycles
-  ULong64_t m_NProcessedEvent;
+  ULong64_t m_NProcessedEvent {0};
 
   //! Number of accepted events in the event generator. This can be higher than m_NProcessedEvent depending on trigger on the event generator
-  ULong64_t m_NGeneratorAcceptedEvent;
+  ULong64_t m_NGeneratorAcceptedEvent {0};
 
   //! Integrated luminosity in pb^-1
-  Double_t m_IntegratedLumi;
+  Double_t m_IntegratedLumi {0.};
 
   //! Sum of weight assigned to the events by the generators.
   //! Event weight is normally 1 and thus equal to number of the generated event and is uninteresting.
   //! However, there are several cases where one may have nontrivial event weights, e.g. using user hooks in Pythia8 generators to reweight the phase space
-  Double_t m_SumOfWeight;
+  Double_t m_SumOfWeight {0.};
 
   //! description on the source
   std::string m_Description;
