@@ -208,6 +208,7 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   try
   {
     CreateNodeTree(topNode);
+    LoadCalib(topNode);
   }
   catch (std::exception &e)
   {
@@ -221,6 +222,30 @@ int CaloTowerCalib::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void CaloTowerCalib::LoadCalib(PHCompositeNode *topNode)
+{
+  TowerInfoContainer *_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
+  unsigned int ntowers = _raw_towers->size();
+  m_cdbInfo_vec.resize(ntowers);
+
+  for (unsigned int channel = 0; channel < ntowers; channel++)
+  {
+    unsigned int key = _raw_towers->encode_key(channel);
+
+    m_cdbInfo_vec[channel].calibconst = cdbttree->GetFloatValue(key, m_fieldname);
+
+    if (m_doZScrosscalib)
+    {
+      m_cdbInfo_vec[channel].crosscalibconst = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib);
+    }
+
+    if(m_dotimecalib)
+    {
+      m_cdbInfo_vec[channel].meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
+    }
+  }
+}
+
 //____________________________________________________________________________..
 int CaloTowerCalib::process_event(PHCompositeNode *topNode)
 {
@@ -230,16 +255,15 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
 
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
-    unsigned int key = _raw_towers->encode_key(channel);
     TowerInfo *caloinfo_raw = _raw_towers->get_tower_at_channel(channel);
     _calib_towers->get_tower_at_channel(channel)->copy_tower(caloinfo_raw);
     float raw_amplitude = caloinfo_raw->get_energy();
-    float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
+    float calibconst = m_cdbInfo_vec[channel].calibconst;
     bool isZS = caloinfo_raw->get_isZS();
 
     if (isZS && m_doZScrosscalib)
     {
-      float crosscalibconst = cdbttree_ZScrosscalib->GetFloatValue(key, m_fieldname_ZScrosscalib);
+      float crosscalibconst = m_cdbInfo_vec[channel].crosscalibconst;
       if (crosscalibconst == 0) 
       { 
         crosscalibconst = 1; 
@@ -262,7 +286,7 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
       {
       //I realized that there is no point to do timing calibration for the towerinfov1 object since the resolution is not enough...
       float raw_time = caloinfo_raw->get_time_float();
-      float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
+      float meantime = m_cdbInfo_vec[channel].meantime;
       _calib_towers->get_tower_at_channel(channel)->set_time_float(raw_time - meantime);
       }
     }
