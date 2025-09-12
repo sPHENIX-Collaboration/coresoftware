@@ -2,9 +2,9 @@
 #define CALORECO_PHOTONCLUSTERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -21,7 +21,7 @@ namespace TMVA
   {
     class RBDT;
   }
-}
+}  // namespace TMVA
 
 // Simple builder that wraps existing RawClusters above an energy threshold
 // into PhotonClusterv1 objects and stores them in a PhotonClusterContainer node.
@@ -50,7 +50,6 @@ class PhotonClusterBuilder : public SubsysReco
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);
   double deltaR(double eta1, double phi1, double eta2, double phi2);
 
-
   std::string m_input_cluster_node{"CLUSTERINFO_CEMC"};
   std::string m_output_photon_node{"PHOTONCLUSTER_CEMC"};
   float m_min_cluster_et{5.0f};
@@ -70,4 +69,4 @@ class PhotonClusterBuilder : public SubsysReco
   std::unique_ptr<TMVA::Experimental::RBDT> m_bdt;
 };
 
-#endif // CALORECO_PHOTONCLUSTERBUILDER_H
+#endif  // CALORECO_PHOTONCLUSTERBUILDER_H
