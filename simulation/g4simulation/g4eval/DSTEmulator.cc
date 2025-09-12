@@ -33,6 +33,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
@@ -449,6 +450,7 @@ DSTEmulator::DSTEmulator(const std::string& name, const std::string& filename, i
   , sabotage(inSabotage)
   , apply_compression(compress)
 {
+  rnd.SetSeed(PHRandomSeed());
 }
 
 //_____________________________________________________________________

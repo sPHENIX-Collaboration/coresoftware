@@ -14,7 +14,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <TRandom.h>
+#include <TRandom3.h>
 
 #include <map>
 #include <set>
@@ -126,7 +126,7 @@ class DSTEmulator : public SubsysReco
   // replace the decompressed residuals by a large number
   int sabotage{0};
   // random seed
-  TRandom rnd{nullptr};
+  TRandom3 rnd;
   // switch to apply the compressed residuals to cluster positions
   bool apply_compression{true};
 };
