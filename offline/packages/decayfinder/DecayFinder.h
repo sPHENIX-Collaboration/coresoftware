@@ -161,7 +161,7 @@ class DecayFinder : public SubsysReco
   void calculateEffectiveTPCradius(double vertex[3], double &effective_top_r, double &effective_bottom_r);
   bool m_recalcualteEtaRange = true;
   double m_tpc_r = 78.0;
-  double m_tpc_z = 105.0;
+  double m_tpc_z = 102.325;
   double m_effective_top_tpc_r = m_tpc_r;
   double m_effective_bottom_tpc_r = m_tpc_r;
 

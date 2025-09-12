@@ -118,7 +118,6 @@ namespace
     unsigned short maxHalfSizeT = 0;
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
-    double maxz = 0;
     double sampa_tbias = 0;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster *> cluster_vector;
@@ -787,7 +786,7 @@ namespace
     const auto &phioffset = my_data->phioffset;
     const auto &tbins = my_data->tbins;
     const auto &toffset = my_data->toffset;
-    const auto &maxz = my_data->maxz;
+    const auto &maxz = my_data->tGeometry->get_max_driftlength() + my_data->tGeometry->get_CM_halfwidth();
     const auto &layer = my_data->layer;
     //    int nhits = 0;
     // for convenience, create a 2D vector to store adc values in and initialize to zero
@@ -812,6 +811,7 @@ namespace
         tbinmax -= etacut;
       }
     }
+    //    std::cout << PHWHERE << "         maxz " << maxz << " tbinmin " << tbinmin << " tbinmax " << tbinmax << std::endl;
 
     if (my_data->hitset != nullptr)
     {
@@ -885,10 +885,11 @@ namespace
     else if (my_data->rawhitset != nullptr)
     {
       RawHitSet *hitset = my_data->rawhitset;
-      /*std::cout << "Layer: " << my_data->layer
+      /*
+	std::cout << "Layer: " << my_data->layer
                 << "Side: " << my_data->side
                 << "Sector: " << my_data->sector
-                << " nhits:  " << hitset.size()
+                << " nhits:  " << hitset->size()
                 << std::endl;
       */
       for (int nphi = 0; nphi < phibins; nphi++)
@@ -1332,7 +1333,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  /*
+  std::cout << PHWHERE << " tGeometry maxz:  " << m_tGeometry->get_max_driftlength() << " + " <<  m_tGeometry->get_CM_halfwidth()<< std::endl;
+  std::cout << "    do_read_raw " << do_read_raw << " do_wedge_emulation " << do_wedge_emulation << " is_reco " << is_reco << std::endl;
+  std::cout << "    hits size " << m_hits->size() << std::endl;
+  */  
   // The hits are stored in hitsets, where each hitset contains all hits in a given TPC readout (layer, sector, side), so clusters are confined to a hitset
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
 
@@ -1341,16 +1346,16 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   int num_hitsets = 0;
 
   if (!do_read_raw)
-  {
-    hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-    num_hitsets = std::distance(hitsetrange.first, hitsetrange.second);
-  }
+    {
+      hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
+      num_hitsets = std::distance(hitsetrange.first, hitsetrange.second);
+      //std::cout << "   num_hitsets for TPC in hits map " << num_hitsets << std::endl;
+    }
   else
-  {
-    rawhitsetrange = m_rawhits->getHitSets(TrkrDefs::TrkrId::tpcId);
-    num_hitsets = std::distance(rawhitsetrange.first, rawhitsetrange.second);
-  }
-
+    {
+      rawhitsetrange = m_rawhits->getHitSets(TrkrDefs::TrkrId::tpcId);
+      num_hitsets = std::distance(rawhitsetrange.first, rawhitsetrange.second);
+    }
   // create structure to store given thread and associated data
   struct thread_pair_t
   {
@@ -1439,7 +1444,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.phioffset = PhiOffset;
       thread_pair.data.tbins = NTBinsSide;
       thread_pair.data.toffset = TOffset;
-      thread_pair.data.maxz = m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
 
       thread_pair.data.radius = layergeom->get_radius();
       thread_pair.data.drift_velocity = m_tGeometry->get_drift_velocity();
@@ -1552,7 +1556,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.phioffset = PhiOffset;
       thread_pair.data.tbins = NTBinsSide;
       thread_pair.data.toffset = TOffset;
-      thread_pair.data.maxz =  m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
       
       /*
       PHG4TpcCylinderGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
@@ -1698,7 +1701,23 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout << "TPC Clusterizer found " << m_clusterlist->size() << " Clusters " << std::endl;
+    if (Verbosity() > 100)
+      {
+	for (const auto& hitsetkey : m_clusterlist->getHitSetKeys(TrkrDefs::TrkrId::tpcId))
+	  {
+	    std::cout << "  hitsetkey " << hitsetkey << std::endl;
+	    auto range = m_clusterlist->getClusters(hitsetkey);
+	    for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
+	      {
+		TrkrDefs::cluskey ckey = clusIter->first;
+		//TrkrCluster* cluster = clusIter->second;
+		unsigned int layer = TrkrDefs::getLayer(ckey);
+		std::cout << "    ckey "  << ckey << " layer " << layer << std::endl; 
+	      }
+	  }
+      }
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

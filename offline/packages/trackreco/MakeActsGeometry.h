@@ -141,7 +141,8 @@ class MakeActsGeometry : public SubsysReco
   void set_max_driftlength(double val) { m_max_driftlength = val; }
   void set_CM_halfwidth(double val) { m_CM_halfwidth = val; }
   void set_tpc_tzero(double tz) { m_tpc_tzero = tz; }
-
+  void set_apply_tpc_tzero_correction(bool flag) { m_apply_tpc_tzero_correction = flag; }
+  
   void set_nSurfPhi(unsigned int value)
   {
     m_nSurfPhi = value;
@@ -288,9 +289,11 @@ class MakeActsGeometry : public SubsysReco
   //  int m_verbosity = 0;
 
   double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
-  double m_tpc_tzero = 0.0;  // ns, override from macro
   double m_max_driftlength = 102.325;  // override from macro
   double m_CM_halfwidth = 0.28;  // central membrane half width in cm
+
+  bool m_apply_tpc_tzero_correction = false;
+  double m_tpc_tzero = 0.0;  // ns, override from macro
   
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField = "1.4";
