@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 class CDBTTree;
 class PHCompositeNode;
@@ -129,6 +130,18 @@ class CaloTowerStatus : public SubsysReco
   float z_score_threshold = {5};
   float z_score_threshold_default = {5};
   float time_cut = 2;  // number of samples from the mean time for the channel in the run
+
+  void LoadCalib();
+
+  struct CDBInfo
+  {
+    float fraction_badChi2{0};
+    float mean_time{0};
+    float z_score{0};
+    int hotMap_val{0};
+  };
+
+  std::vector<CDBInfo> m_cdbInfo_vec;
 };
 
 #endif  // CALOTOWERBUILDER_H
