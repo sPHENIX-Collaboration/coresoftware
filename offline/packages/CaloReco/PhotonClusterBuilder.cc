@@ -706,7 +706,7 @@ std::vector<int> PhotonClusterBuilder::find_closest_hcal_tower(float eta, float 
 
     double this_phi = tower_geom->get_phi();
     double this_eta = getTowerEta(tower_geom, 0, 0, vertex_z);
-    double dR_val = deltaR(eta, this_eta, phi, this_phi);
+    double dR_val = deltaR(eta, phi, this_eta, this_phi);
     if (dR_val < minR)
     {
       minR = dR_val;
