@@ -235,7 +235,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
-
+  PHG4CylinderGeomContainer *m_geomContainerMvtx = nullptr;
   int m_lowStrobeIndex = 0;
   int m_highStrobeIndex = 1;
   /// Configuration classes for Acts seeding

@@ -604,7 +604,9 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
 {
   auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
 
-  float trackphi = seed.get_phi();
+  std::vector<TrkrDefs::cluskey> dummykeys = keys;
+  std::vector<Acts::Vector3> dummyclusters = clusters;
+
   /// Diagnostic
   if (m_seedAnalysis)
   {
@@ -653,21 +655,43 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         layer++;
         continue;
       }
+
+      // get an estimate of the phi of the track at this layer
+      // to know which hitsetkeys to look at
+      float layerradius = 0;
+      if (layer > 2)
+      {
+        layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
+      }
+      else
+      {
+        layerradius = m_geomContainerMvtx->GetLayerGeom(layer)->get_radius();
+      }
+      const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0],
+                                                                                            fitpars[1], fitpars[2]);
+
+      float approximate_phi1 = atan2(yplus, xplus);
+      float approximate_phi2 = atan2(yminus, xminus);
       for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det, layer))
       {
         auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
         auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
         float surfphi = atan2(surfcenter.y(), surfcenter.x());
-        float dphi = normPhi2Pi(trackphi - surfphi);
-
+        float dphi1 = normPhi2Pi(approximate_phi1 - surfphi);
+        float dphi2 = normPhi2Pi(approximate_phi2 - surfphi);
         /// Check that the projection is within some reasonable amount of the segment
         /// to reject e.g. looking at segments in the opposite hemisphere. This is about
         /// the size of one intt segment (256 * 80 micron strips in a segment)
-        if (std::abs(dphi) > 0.2)
+        if (std::fabs(dphi1) > 0.3 && std::fabs(dphi2) > 0.3)
         {
           continue;
         }
-
+        std::vector<float> dummypars;
+        /// If we added a cluster, refit the track to get a better projection
+        if (dummyclusters.size() > clusters.size())
+        {
+          dummypars = TrackFitUtils::fitClusters(dummyclusters, dummykeys, false);
+        }
         auto range = m_clusterMap->getClusters(hitsetkey);
         for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
         {
@@ -684,6 +708,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           auto glob = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
           auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
+          if (dummypars.size() > 0)
+          {
+            intersection = TrackFitUtils::get_helix_surface_intersection(surf, dummypars, glob, m_tGeometry);
+          }
           auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
           local /= Acts::UnitConstants::cm;
           m_projgx = intersection.x();
@@ -726,7 +754,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
-
           if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
                zresid < m_mvtxzSearchWin) ||
               (det == TrkrDefs::TrkrId::inttId && rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin))
@@ -734,6 +761,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           {
             if (rphiresid < minResidLayer[layer])
             {
+              dummyclusters.push_back(glob);
+              dummykeys.push_back(cluskey);
               minResidLayer[layer] = rphiresid;
               minResidckey[layer] = cluskey;
               minResidGlobPos[layer] = glob;
@@ -1019,6 +1048,14 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  m_geomContainerMvtx = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  if (!m_geomContainerMvtx)
+  {
+    std::cout << PHWHERE << "CYLINDERGEOM_MVTX node not found on node tree"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
