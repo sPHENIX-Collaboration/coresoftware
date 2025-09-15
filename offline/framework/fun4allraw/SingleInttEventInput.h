@@ -31,15 +31,15 @@ class SingleInttEventInput : public SingleStreamingInput
   void SetBcoRange(const unsigned int value) { m_BcoRange = value; }
   void ConfigureStreamingInputManager() override;
   void SetNegativeBco(const unsigned int value) { m_NegativeBco = value; }
-  const std::set<uint64_t>& BclkStack() const override { return m_BclkStack; }
-  const std::map<uint64_t, std::set<int>>& BeamClockFEE() const override { return m_BeamClockFEE; }
+  const std::set<uint64_t> &BclkStack() const override { return m_BclkStack; }
+  const std::map<uint64_t, std::set<int>> &BeamClockFEE() const override { return m_BeamClockFEE; }
 
  private:
   Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
-  bool bfirst {true};
+  bool bfirst{true};
 
   std::array<uint64_t, 14> m_PreviousClock{};
   std::array<uint64_t, 14> m_Rollover{};
