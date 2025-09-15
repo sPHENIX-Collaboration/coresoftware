@@ -96,7 +96,7 @@ int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
     printSeedConfigs(sfCfg);
   }
   // vector containing the map of z bins in the top and bottom layers
- 
+
   m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<2ul>>(
       nphineighbors, zBinNeighborsBottom);
   m_topBinFinder = std::make_unique<const Acts::GridBinFinder<2ul>>(
@@ -135,7 +135,9 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
       std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  } else {
+  }
+  else
+  {
     // reset seed container on first iteration
     m_seedContainer->Reset();
   }
@@ -147,7 +149,6 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
   }
 
   runSeeder();
- 
 
   if (Verbosity() > 0)
   {
@@ -180,7 +181,7 @@ int PHActsSiliconSeeding::End(PHCompositeNode* /*topNode*/)
 
 void PHActsSiliconSeeding::runSeeder()
 {
-  Acts::SeedFinder<SpacePoint,Acts::CylindricalSpacePointGrid<SpacePoint>> seedFinder(m_seedFinderCfg);
+  Acts::SeedFinder<SpacePoint, Acts::CylindricalSpacePointGrid<SpacePoint>> seedFinder(m_seedFinderCfg);
 
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
   eventTimer->stop();
@@ -192,7 +193,7 @@ void PHActsSiliconSeeding::runSeeder()
     GridSeeds seedVector;
     /// Covariance converter functor needed by seed finder
     auto covConverter = [=](const SpacePoint& sp, float zAlign, float rAlign,
-                                       float sigmaError)
+                            float sigmaError)
     {
       Acts::Vector3 position{sp.x(), sp.y(), sp.z()};
       Acts::Vector2 cov;
@@ -225,13 +226,11 @@ void PHActsSiliconSeeding::runSeeder()
     auto spacePointsGrouping = Acts::CylindricalBinnedGroup<SpacePoint>(
         std::move(grid), *m_bottomBinFinder, *m_topBinFinder,
         std::move(navigation));
-   
+
     /// variable middle SP radial region of interest
     const Acts::Range1D<float> rMiddleSPRange(
         std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5,
         std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
-   
-
 
     eventTimer->restart();
     SeedContainer seeds;
@@ -327,7 +326,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         {
           m_mvtxgx.push_back(globalPosition(0));
           m_mvtxgy.push_back(globalPosition(1));
-	  m_mvtxgz.push_back(globalPosition(2));
+          m_mvtxgz.push_back(globalPosition(2));
         }
         positions.insert(std::make_pair(cluskey, globalPosition));
         if (Verbosity() > 1)
@@ -497,39 +496,45 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed& si_track)
     crossing_keep = intt_crossings[0];
     for (unsigned int ic = 1; ic < intt_crossings.size(); ++ic)
     {
-      if(intt_crossings[ic] != crossing_keep)
-	{
-	  if(abs(intt_crossings[ic] - crossing_keep) > 1)
-	    {
-	      keep_it = false;
-	      
-	      if (Verbosity() > 1)
-		{
-		  std::cout << " Warning: INTT crossings not all the same "
-			    << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " setting crossing to SHRT_MAX" << std::endl;
-		}
-	    }
-	  else
-	    {
-	      // we have INTT clusters with crossing values that differ by 1
-	      // This can be a readout issue, we take the lower value as the correct one
+      if (intt_crossings[ic] != crossing_keep)
+      {
+        if (abs(intt_crossings[ic] - crossing_keep) > 1)
+        {
+          keep_it = false;
 
-	      if(Verbosity() > 1) { std::cout << " ic " << ic << " crossing keep " << crossing_keep << " intt_crossings " << intt_crossings[ic] << std::endl; }
-	      if(intt_crossings[ic] < crossing_keep)
-		{
-		  crossing_keep = intt_crossings[ic];
-		  if(Verbosity() > 1) { std::cout << "         ----- crossing keep changed to " << crossing_keep << std::endl; }
-		}
-	    }
-	}
+          if (Verbosity() > 1)
+          {
+            std::cout << " Warning: INTT crossings not all the same "
+                      << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " setting crossing to SHRT_MAX" << std::endl;
+          }
+        }
+        else
+        {
+          // we have INTT clusters with crossing values that differ by 1
+          // This can be a readout issue, we take the lower value as the correct one
+
+          if (Verbosity() > 1)
+          {
+            std::cout << " ic " << ic << " crossing keep " << crossing_keep << " intt_crossings " << intt_crossings[ic] << std::endl;
+          }
+          if (intt_crossings[ic] < crossing_keep)
+          {
+            crossing_keep = intt_crossings[ic];
+            if (Verbosity() > 1)
+            {
+              std::cout << "         ----- crossing keep changed to " << crossing_keep << std::endl;
+            }
+          }
+        }
+      }
     }
   }
-  
+
   if (keep_it)
-    {
-      return crossing_keep;
-    }
-  
+  {
+    return crossing_keep;
+  }
+
   return SHRT_MAX;
 }
 
@@ -585,7 +590,7 @@ std::vector<short int> PHActsSiliconSeeding::getInttCrossings(TrackSeed& si_trac
       auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
       for (auto iter1 = crossings.first; iter1 != crossings.second; ++iter1)
       {
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "                si Track with cluster " << iter1->first << " layer " << layer << " crossing " << iter1->second << std::endl;
         }
@@ -1055,7 +1060,7 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode* topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  
+
   m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   if (!m_tGeometry)
   {
