@@ -805,10 +805,10 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     // multiply total number of bins that include the edges by the bin size
     g4zsize = (double) binwidth * layergeom->get_zstep();
   }
-  else if (radius > 5 && radius < 20)  // INTT
+  else if (radius > 6 && radius < 20)  // INTT
   {
     // All we have is the position and layer number
-
+  
     CylinderGeomIntt* layergeom = dynamic_cast<CylinderGeomIntt*>(_intt_geom_container->GetLayerGeom(layer));
 
     // inner location

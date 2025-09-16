@@ -3,15 +3,15 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>                // for string
+#include <string>  // for string
 #include <vector>
 
 class PHCompositeNode;
 
 namespace HepMC
 {
-class GenParticle;
-class GenEvent;
+  class GenParticle;
+  class GenEvent;
 }  // namespace HepMC
 /// Particle selector for HepMC based events
 /// Will write out only _theParticle and _theDaughters (if specified)
@@ -21,9 +21,8 @@ class PHHepMCParticleSelectorDecayProductChain : public SubsysReco
 {
  public:
   PHHepMCParticleSelectorDecayProductChain(const std::string& name = "PARTICLESELECTOR");
-  ~PHHepMCParticleSelectorDecayProductChain() override {}
+  ~PHHepMCParticleSelectorDecayProductChain() override = default;
 
-  int InitRun(PHCompositeNode* topNode) override;
   int process_event(PHCompositeNode* topNode) override;
 
   /// Set the ID of the particle you want in your output.
@@ -52,7 +51,7 @@ class PHHepMCParticleSelectorDecayProductChain : public SubsysReco
   HepMC::GenParticle* GetParent(HepMC::GenParticle* p, HepMC::GenEvent* event);
 
   /// The particle you want to have in your output
-  int _theParticle;
+  int _theParticle{11};
   /// List of possible decay products of the particle you want in your output
   /// Ignored if empty
   std::vector<int> _theDaughters;
@@ -63,7 +62,7 @@ class PHHepMCParticleSelectorDecayProductChain : public SubsysReco
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
-  int _embedding_id;
+  int _embedding_id{0};
 };
 
 #endif

@@ -3,8 +3,8 @@
 #include <TClass.h>       // for TClass
 #include <TCollection.h>  // for TIter
 #include <TDirectory.h>   // for TDirectoryAtomicAdapter, TDirectory, gDirec...
-#include <TFile.h>
 #include <TF1.h>
+#include <TFile.h>
 #include <TKey.h>
 #include <TList.h>    // for TList
 #include <TObject.h>  // for TObject
@@ -65,14 +65,14 @@ void CDBTF::LoadCalibrations()
   TIter next(list);
   TKey *key;
   TObject *obj;
-  TF1*t1 = nullptr;
+  TF1 *t1 = nullptr;
   while ((key = (TKey *) next()))
   {
     obj = key->ReadObj();
     if ((obj->InheritsFrom("TF1")))
     {
       fin->GetObject(obj->GetName(), t1);
-      //t1->SetDirectory(nullptr);
+      // t1->SetDirectory(nullptr);
       m_TFMap.insert(std::make_pair(obj->GetName(), t1));
     }
   }
@@ -82,7 +82,7 @@ void CDBTF::LoadCalibrations()
 
 void CDBTF::Print() const
 {
-  for (auto &iter : m_TFMap)
+  for (const auto &iter : m_TFMap)
   {
     std::cout << "TF " << iter.first << ", type "
               << iter.second->IsA()->GetName() << std::endl;

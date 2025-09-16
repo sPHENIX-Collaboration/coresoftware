@@ -146,35 +146,35 @@ int JetKinematicCheck::Init(PHCompositeNode * /*unused*/)
   h_jet_eta_phi_r05->GetXaxis()->SetTitle("#eta");
   h_jet_eta_phi_r05->GetYaxis()->SetTitle("#Phi");
 
-  h_jet_mass_pt_r02 = new TH2D(vecHistNames[8].data(), "", 19, 5, 100, 15, 0, 15);
+  h_jet_mass_pt_r02 = new TH2D(vecHistNames[8].data(), "", 95, 5, 100, 72, -3, 15);
   h_jet_mass_pt_r02->GetXaxis()->SetTitle("p_{T} [GeV]");
   h_jet_mass_pt_r02->GetYaxis()->SetTitle("Jet Mass [GeV]");
 
-  h_jet_mass_pt_r03 = new TH2D(vecHistNames[9].data(), "", 19, 5, 100, 15, 0, 15);
+  h_jet_mass_pt_r03 = new TH2D(vecHistNames[9].data(), "", 95, 5, 100, 72, -3, 15);
   h_jet_mass_pt_r03->GetXaxis()->SetTitle("p_{T} [GeV]");
   h_jet_mass_pt_r03->GetYaxis()->SetTitle("Jet Mass [GeV]");
 
-  h_jet_mass_pt_r04 = new TH2D(vecHistNames[10].data(), "", 19, 5, 100, 15, 0, 15);
+  h_jet_mass_pt_r04 = new TH2D(vecHistNames[10].data(), "", 95, 5, 100, 72, -3, 15);
   h_jet_mass_pt_r04->GetXaxis()->SetTitle("p_{T} [GeV]");
   h_jet_mass_pt_r04->GetYaxis()->SetTitle("Jet Mass [GeV]");
 
-  h_jet_mass_pt_r05 = new TH2D(vecHistNames[11].data(), "", 19, 5, 100, 15, 0, 15);
+  h_jet_mass_pt_r05 = new TH2D(vecHistNames[11].data(), "", 95, 5, 100, 72, -3, 15);
   h_jet_mass_pt_r05->GetXaxis()->SetTitle("p_{T} [GeV]");
   h_jet_mass_pt_r05->GetYaxis()->SetTitle("Jet Mass [GeV]");
 
-  h_jet_mass_eta_r02 = new TH2D(vecHistNames[12].data(), "", 24, -1.1, 1.1, 15, 0, 15);
+  h_jet_mass_eta_r02 = new TH2D(vecHistNames[12].data(), "", 24, -1.1, 1.1, 72, -3, 15);
   h_jet_mass_eta_r02->GetXaxis()->SetTitle("#eta");
   h_jet_mass_eta_r02->GetYaxis()->SetTitle("Jet Mass [GeV]");
 
-  h_jet_mass_eta_r03 = new TH2D(vecHistNames[13].data(), "", 24, -1.1, 1.1, 15, 0, 15);
+  h_jet_mass_eta_r03 = new TH2D(vecHistNames[13].data(), "", 24, -1.1, 1.1, 72, -3, 15);
   h_jet_mass_eta_r03->GetXaxis()->SetTitle("#eta");
   h_jet_mass_eta_r03->GetYaxis()->SetTitle("Jet Mass [GeV]");
 
-  h_jet_mass_eta_r04 = new TH2D(vecHistNames[14].data(), "", 24, -1.1, 1.1, 15, 0, 15);
+  h_jet_mass_eta_r04 = new TH2D(vecHistNames[14].data(), "", 24, -1.1, 1.1, 72, -3, 15);
   h_jet_mass_eta_r04->GetXaxis()->SetTitle("#eta");
   h_jet_mass_eta_r04->GetYaxis()->SetTitle("Jet Mass [GeV]");
 
-  h_jet_mass_eta_r05 = new TH2D(vecHistNames[15].data(), "", 24, -1.1, 1.1, 15, 0, 15);
+  h_jet_mass_eta_r05 = new TH2D(vecHistNames[15].data(), "", 24, -1.1, 1.1, 72, -3, 15);
   h_jet_mass_eta_r05->GetXaxis()->SetTitle("#eta");
   h_jet_mass_eta_r05->GetYaxis()->SetTitle("Jet Mass [GeV]");
 

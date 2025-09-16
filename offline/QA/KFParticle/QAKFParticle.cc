@@ -120,7 +120,7 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
                ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
   
-  h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_MBD_NandS_geq_1_vtx_l_30_cm",  //
+  h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_MBD_NandS_geq_1_vtx_l_10_cm",  //
                ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
   
@@ -149,8 +149,8 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
   h_mass_KFP_ZDC_Coincidence = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_ZDC_Coincidence"));
   assert(h_mass_KFP_ZDC_Coincidence);
 
-  h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_MBD_NandS_geq_1_vtx_l_30_cm"));
-  assert(h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm);
+  h_mass_KFP_MBD_NandS_geq_1_vtx_l_10_cm = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_MBD_NandS_geq_1_vtx_l_10_cm"));
+  assert(h_mass_KFP_MBD_NandS_geq_1_vtx_l_10_cm);
 
   h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm"));
   assert(h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm);
@@ -231,9 +231,9 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
           {
             h_mass_KFP_ZDC_Coincidence->Fill(iter.second->GetMass());
           }
-          else if (m_MBD_NandS_geq_1_vtx_l_30_cm_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
+          else if (m_MBD_NandS_geq_1_vtx_l_10_cm_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
           {
-            h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm->Fill(iter.second->GetMass());
+            h_mass_KFP_MBD_NandS_geq_1_vtx_l_10_cm->Fill(iter.second->GetMass());
           }
           else if (m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit == i && triggeranalyzer->didTriggerFire(i) == 1)
           {
@@ -332,9 +332,9 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
     {
       m_ZDC_Coincidence_bit = i;
     }    
-    else if (triggerName == "MBD_NandS_geq_1_vtx_l_30_cm")
+    else if (triggerName == "MBD_NandS_geq_1_vtx_l_10_cm")
     {
-      m_MBD_NandS_geq_1_vtx_l_30_cm_bit = i;
+      m_MBD_NandS_geq_1_vtx_l_10_cm_bit = i;
     }
     else if (triggerName == "Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm")
     {

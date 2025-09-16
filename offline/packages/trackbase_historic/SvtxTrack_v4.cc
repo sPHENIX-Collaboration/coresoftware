@@ -32,7 +32,10 @@ SvtxTrack_v4::SvtxTrack_v4(const SvtxTrack_v4& source)
 
 SvtxTrack_v4& SvtxTrack_v4::operator=(const SvtxTrack_v4& source)
 {
-  CopyFrom(source);
+  if (this != &source)
+  {
+    CopyFrom(source);
+  }
   return *this;
 }
 
@@ -146,7 +149,7 @@ SvtxTrackState* SvtxTrack_v4::insert_state(const SvtxTrackState* state)
   if (iterator == _states.end() || pathlength < iterator->first)
   {
     // pathlength not found. Make a copy and insert
-    const auto copy = static_cast<SvtxTrackState*>(state->CloneMe());
+    auto *const copy = static_cast<SvtxTrackState*>(state->CloneMe());
     iterator = _states.insert(iterator, std::make_pair(pathlength, copy));
   }
 
