@@ -15,8 +15,6 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace std;
-
 PHGenIntegralv1::PHGenIntegralv1()
   : m_NProcessedEvent(0)
   , m_NGeneratorAcceptedEvent(0)
@@ -26,20 +24,16 @@ PHGenIntegralv1::PHGenIntegralv1()
 {}
 
 PHGenIntegralv1::PHGenIntegralv1(const std::string& description)
-  : m_NProcessedEvent(0)
-  , m_NGeneratorAcceptedEvent(0)
-  , m_IntegratedLumi(0.)
-  , m_SumOfWeight(0.)
-  , m_Description(description)
+  : m_Description(description)
 {}
 
-void PHGenIntegralv1::identify(ostream& os) const
+void PHGenIntegralv1::identify(std::ostream& os) const
 {
-  os << "PHGenIntegralv1::identify: " << get_Description() << endl
-     << " N_Generator_Accepted_Event = " << get_N_Generator_Accepted_Event() << " @ " << get_CrossSection_Generator_Accepted_Event() << " pb" << endl
-     << "          N_Processed_Event = " << get_N_Processed_Event() << " @ " << get_CrossSection_Processed_Event() << " pb" << endl
-     << "              Sum_Of_Weight = " << get_Sum_Of_Weight() << endl
-     << "            Integrated_Lumi = " << get_Integrated_Lumi() << " pb^-1" << endl;
+  os << "PHGenIntegralv1::identify: " << get_Description() << std::endl
+     << " N_Generator_Accepted_Event = " << get_N_Generator_Accepted_Event() << " @ " << get_CrossSection_Generator_Accepted_Event() << " pb" << std::endl
+     << "          N_Processed_Event = " << get_N_Processed_Event() << " @ " << get_CrossSection_Processed_Event() << " pb" << std::endl
+     << "              Sum_Of_Weight = " << get_Sum_Of_Weight() << std::endl
+     << "            Integrated_Lumi = " << get_Integrated_Lumi() << " pb^-1" << std::endl;
 }
 
 void PHGenIntegralv1::Reset()
@@ -57,14 +51,14 @@ int PHGenIntegralv1::Integrate(PHObject* incoming_object)
 
   if (!in_gen)
   {
-    cout << "PHGenIntegralv1::Integrate - Fatal Error - "
+    std::cout << "PHGenIntegralv1::Integrate - Fatal Error - "
          << "input object is not a PHGenIntegral: ";
     incoming_object->identify();
 
     exit(EXIT_FAILURE);
   }
 
-  if (m_IntegratedLumi == 0 and m_NProcessedEvent == 0)
+  if (m_IntegratedLumi == 0 && m_NProcessedEvent == 0)
   {
     m_Description = in_gen->get_Description();
   }
@@ -87,7 +81,7 @@ void PHGenIntegralv1::CopyFrom(const PHObject* incoming_object)
 
   if (!in_gen)
   {
-    cout << "PHGenIntegralv1::CopyFrom - Fatal Error - "
+    std::cout << "PHGenIntegralv1::CopyFrom - Fatal Error - "
          << "input object is not a PHGenIntegral: ";
     incoming_object->identify();
 

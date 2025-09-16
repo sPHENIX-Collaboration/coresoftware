@@ -36,9 +36,9 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger
   void SetPHighLow(double pHigh, double pLow);
 
   //! rapidity cuts
-  void SetYHigh(double eta);
-  void SetYLow(double eta);
-  void SetYHighLow(double etaHigh, double etaLow);
+  void SetYHigh(double Y);
+  void SetYLow(double Y);
+  void SetYHighLow(double YHigh, double YLow);
 
   void SetEtaHigh(double eta);
   void SetEtaLow(double eta);
@@ -61,18 +61,35 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger
   std::vector<int> _theParents;
   std::vector<int> _theParticles;
 
-  double _theYHigh = 999, _theYLow = -999;
-  double _theEtaHigh, _theEtaLow;
-  double _thePtHigh, _thePtLow;
-  double _thePHigh, _thePLow;
-  double _thePzHigh, _thePzLow;
+  double _theYHigh{999.9};
+  double _theYLow{999.9};
+  double _theEtaHigh{999.9};
+  double _theEtaLow{999.9};
+  double _thePtHigh{999.9};
+  double _thePtLow{999.9};
+  double _thePHigh{999.9};
+  double _thePLow{999.9};
+  double _thePzHigh{999.9};
+  double _thePzLow{999.9};
 
-  bool _doYHighCut = false, _doYLowCut = false, _doBothYCut = false;
-  bool _doEtaHighCut, _doEtaLowCut, _doBothEtaCut;
-  bool _doAbsEtaHighCut, _doAbsEtaLowCut, _doBothAbsEtaCut;
-  bool _doPtHighCut, _doPtLowCut, _doBothPtCut;
-  bool _doPHighCut, _doPLowCut, _doBothPCut;
-  bool _doPzHighCut, _doPzLowCut, _doBothPzCut;
+  bool _doYHighCut{false};
+  bool _doYLowCut{false};
+  bool _doBothYCut{false};
+  bool _doEtaHighCut{false};
+  bool _doEtaLowCut{false};
+  bool _doBothEtaCut{false};
+  bool _doAbsEtaHighCut{false};
+  bool _doAbsEtaLowCut{false};
+  bool _doBothAbsEtaCut{false};
+  bool _doPtHighCut{false};
+  bool _doPtLowCut{false};
+  bool _doBothPtCut{false};
+  bool _doPHighCut{false};
+  bool _doPLowCut{false};
+  bool _doBothPCut{false};
+  bool _doPzHighCut{false};
+  bool _doPzLowCut{false};
+  bool _doBothPzCut{false};
 
   bool m_doStableParticleOnly = true;
 };

@@ -3,46 +3,12 @@
 #include <Pythia8/Event.h>  // for Event, Particle
 #include <Pythia8/Pythia.h>
 
-#include <algorithm>  // for max
-#include <cstdlib>    // for abs
-#include <iostream>   // for operator<<, endl, basic_ostream, basic_o...
+#include <algorithm>
+#include <iostream>  // for operator<<, endl, basic_ostream, basic_o...
 
 //__________________________________________________________
 PHPy8ParticleTrigger::PHPy8ParticleTrigger(const std::string &name)
   : PHPy8GenTrigger(name)
-  , _theEtaHigh(-999.9)
-  , _theEtaLow(-999.9)
-  , _thePtHigh(999.9)
-  , _thePtLow(-999.9)
-  , _thePHigh(999.9)
-  , _thePLow(-999.9)
-  , _thePzHigh(999.9)
-  , _thePzLow(-999.9)
-  ,
-
-  _doEtaHighCut(false)
-  , _doEtaLowCut(false)
-  , _doBothEtaCut(false)
-  ,
-
-  _doAbsEtaHighCut(false)
-  , _doAbsEtaLowCut(false)
-  , _doBothAbsEtaCut(false)
-  ,
-
-  _doPtHighCut(false)
-  , _doPtLowCut(false)
-  , _doBothPtCut(false)
-  ,
-
-  _doPHighCut(false)
-  , _doPLowCut(false)
-  , _doBothPCut(false)
-  ,
-
-  _doPzHighCut(false)
-  , _doPzLowCut(false)
-  , _doBothPzCut(false)
 {
 }
 
@@ -59,7 +25,7 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
   if (Verbosity() > 2)
   {
     std::cout << "PHPy8ParticleTrigger::Apply - pythia event size: "
-         << pythia->event.size() << std::endl;
+              << pythia->event.size() << std::endl;
   }
 
   // Loop over all particles in the event
@@ -69,8 +35,8 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
     for (int _theParticle : _theParticles)
     {
       if (pythia->event[i].id() == _theParticle &&
-          (pythia->event[i].status() > 0    // only stable particles
-           || (! m_doStableParticleOnly)  // or not
+          (pythia->event[i].status() > 0  // only stable particles
+           || (!m_doStableParticleOnly)   // or not
            ))
       {
         if (_doBothYCut && (pythia->event[i].y() < _theYLow ||
@@ -160,11 +126,11 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
         if (Verbosity() > 5)
         {
           std::cout << "stable " << pythia->event[i].id()
-               << "  pt: " << pythia->event[i].pT()
-               << " pz: " << pythia->event[i].pz()
-               << " p: " << pythia->event[i].pAbs()
-               << " eta: " << pythia->event[i].eta()
-               << " y: " << pythia->event[i].y() << std::endl;
+                    << "  pt: " << pythia->event[i].pT()
+                    << " pz: " << pythia->event[i].pz()
+                    << " p: " << pythia->event[i].pAbs()
+                    << " eta: " << pythia->event[i].eta()
+                    << " y: " << pythia->event[i].y() << std::endl;
         }
 
         // loop over all partents to this particle
@@ -192,13 +158,13 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia)
         }  // parents for loop
 
         // If we made it here and it passes parents, success!
-        if (_theParents.size() == 0 || passedParents)
+        if (_theParents.empty() || passedParents)
         {
           return true;
         }
 
       }  // if _theParticles
-    }    //_theParticles for loop
+    }  //_theParticles for loop
 
   }  // pythia event for loop
 
