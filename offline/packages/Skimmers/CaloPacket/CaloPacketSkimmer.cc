@@ -73,6 +73,7 @@ int CaloPacketSkimmer::InitRun(PHCompositeNode * /*topNode*/)
 //____________________________________________________________________________..
 int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
 {
+  bool bad_event = false;
   // loop over detectors and return ABORTEVENT if any detector fails
   for (const auto &det : m_CaloDetectors)
   {
@@ -87,12 +88,16 @@ int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
       {
         std::cout << "CaloPacketSkimmer::process_event - Detector " << getDetectorName(det) << " failed" << std::endl;
       }
-      h_aborted_events->Fill(1); // Increment histogram for aborted events
-      return ret;
+      bad_event = true;
     }
   }
 
   h_kept_events->Fill(1); // Increment histogram for kept events
+  if (bad_event)
+  {
+    h_aborted_events->Fill(1); // Increment histogram for aborted events
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
