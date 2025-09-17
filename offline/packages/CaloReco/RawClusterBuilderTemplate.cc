@@ -716,7 +716,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       if (m_write_cluster_v2)
       {
         float xcorr = xcg, ycorr = ycg;
-        if (bemc) bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
+        bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
 
         auto* c2 = new RawClusterv2();
         c2->set_energy(cluster->get_energy());
