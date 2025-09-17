@@ -6,10 +6,6 @@
 #include <tpc/TpcClusterZCrossingCorrection.h>
 
 /// Tracking includes
-#include <fun4all/SubsysReco.h>
-#include <math.h>
-#include <phool/PHIODataNode.h>
-#include <phparameter/PHParameterInterface.h>
 #include <trackbase/ActsSurfaceMaps.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -34,20 +30,24 @@
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
 
-#include <Acts/Definitions/Algebra.hpp>
-#include <Acts/Definitions/Units.hpp>
+#include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Definitions/Units.hpp>
 
 #include <TFile.h>
 #include <TNtuple.h>
 
 #include <climits>  // for UINT_MAX
-#include <cmath>    // for fabs, sqrt
+#include <cmath>    // for std::abs, sqrt
 #include <fstream>
 #include <iostream>  // for operator<<, basic_ostream
 #include <memory>
@@ -318,7 +318,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         continue;  // discard incomplete seeds
       }
-      if (fabs(tracklet->get_eta()) > m_eta_cut)
+      if (std::abs(tracklet->get_eta()) > m_eta_cut)
       {
         continue;
       }
@@ -399,7 +399,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1]
                     << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << " eta " << tracklet->get_eta() << " phi " << tracklet->get_phi() << std::endl;
         }
-        if (fabs(tracklet->get_eta()) > m_eta_cut)
+        if (std::abs(tracklet->get_eta()) > m_eta_cut)
         {
           continue;
         }
@@ -519,7 +519,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
-    if (fabs(newTrack.get_eta()) > m_eta_cut)
+    if (std::abs(newTrack.get_eta()) > m_eta_cut)
     {
       continue;
     }
@@ -906,29 +906,31 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
     Acts::Vector3 event_vtx(averageVertex(0), averageVertex(1), averageVertex(2));
 
-    for (const auto& [vtxkey, vertex] : *m_vertexmap)
+    if (m_vertexmap)
     {
-      for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
+      for (const auto& [vtxkey, vertex] : *m_vertexmap)
       {
-        SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
-        if (vtxtrack)
+        for (auto trackiter = vertex->begin_tracks(); trackiter != vertex->end_tracks(); ++trackiter)
         {
-          unsigned int const vtxtrackid = vtxtrack->get_id();
-          if (trackid == vtxtrackid)
+          SvtxTrack* vtxtrack = m_trackmap->get(*trackiter);
+          if (vtxtrack)
           {
-            event_vtx(0) = vertex->get_x();
-            event_vtx(1) = vertex->get_y();
-            event_vtx(2) = vertex->get_z();
-            if (Verbosity() > 0)
+            unsigned int const vtxtrackid = vtxtrack->get_id();
+            if (trackid == vtxtrackid)
             {
-              std::cout << "     setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey
-                        << " vtx " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+              event_vtx(0) = vertex->get_x();
+              event_vtx(1) = vertex->get_y();
+              event_vtx(2) = vertex->get_z();
+              if (Verbosity() > 0)
+              {
+                std::cout << "     setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey
+                          << " vtx " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
+              }
             }
           }
         }
       }
     }
-
 
     // The residual for the vtx case is (event vtx - track vtx)
     // that is -dca
@@ -1203,7 +1205,7 @@ std::pair<Acts::Vector3, Acts::Vector3> HelicalFitter::get_line_tangent(const st
 
   float const arb_phi = atan2(arb_point(1), arb_point(0));
   Acts::Vector3 tangent = arb_point2 - arb_point;  // direction of line
-  if (fabs(arb_phi - phi) > M_PI / 2)
+  if (std::abs(arb_phi - phi) > M_PI / 2)
   {
     tangent = arb_point - arb_point2;  // direction of line
   }

@@ -169,9 +169,9 @@ int MakeMilleFiles::process_event(PHCompositeNode* /*topNode*/)
 
     //! Only take tracks that have 2 mm within event vertex
     if (m_useEventVertex &&
-        fabs(track->get_z() - eventVertex.z()) < 0.2 &&
-        fabs(track->get_x()) < 0.2 &&
-        fabs(track->get_y()) < 0.2)
+        std::abs(track->get_z() - eventVertex.z()) < 0.2 &&
+        std::abs(track->get_x()) < 0.2 &&
+        std::abs(track->get_y()) < 0.2)
     {
       //! set x and y to 0 since we are constraining to the x-y origin
       //! and add constraints to pede later
@@ -409,11 +409,11 @@ Acts::Vector3 MakeMilleFiles::localToGlobalVertex(SvtxTrack* track,
   Acts::RotationMatrix3 rot;
   Acts::RotationMatrix3 rot_T;
 
-  rot(0, 0) = cos(phi);
-  rot(0, 1) = -sin(phi);
+  rot(0, 0) = std::cos(phi);
+  rot(0, 1) = -std::sin(phi);
   rot(0, 2) = 0;
-  rot(1, 0) = sin(phi);
-  rot(1, 1) = cos(phi);
+  rot(1, 0) = std::sin(phi);
+  rot(1, 1) = std::cos(phi);
   rot(1, 2) = 0;
   rot(2, 0) = 0;
   rot(2, 1) = 0;

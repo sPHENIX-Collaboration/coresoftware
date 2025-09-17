@@ -70,6 +70,7 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
     std::cout << PHWHERE << ": PANIC: couldn't grab histogram manager!" << std::endl;
     assert(m_manager);
   }
+
   // Initialize histograms
   const int N_const = 200;
   Double_t N_const_bins[N_const + 1];
@@ -78,14 +79,17 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
     N_const_bins[i] = 1.0 * i;
   }
 
-  const int N_frac = 100;
-  double frac_max = 1.0;
+  const int N_frac = 200;
+  const double frac_min = -0.5;
+  const double frac_max = 1.5;
+  
   Double_t frac_bins[N_frac + 1];
-  for (int i = 0; i <= N_frac; i++)
-  {
-    frac_bins[i] = (frac_max / N_frac) * i;
+  const double w = (frac_max - frac_min) / N_frac;
+  
+  for (int i = 0; i <= N_frac; ++i) {
+    frac_bins[i] = frac_min + i * w; 
   }
-
+  
   const int N_calo_layers = 3;
   Double_t calo_layers_bins[N_calo_layers + 1] = {0.5, 1.5, 2.5, 3.5};  // emcal, ihcal, ohcal
 
@@ -123,15 +127,15 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
   h1_ConstituentsinJets_total->GetYaxis()->SetTitle("Counts");
 
   h1_ConstituentsinJets_IHCAL = new TH1D(vecHistNames[1].data(), "", N_const, N_const_bins);
-  h1_ConstituentsinJets_IHCAL->GetXaxis()->SetTitle("N constituents");
+  h1_ConstituentsinJets_IHCAL->GetXaxis()->SetTitle("N constituents IHCal");
   h1_ConstituentsinJets_IHCAL->GetYaxis()->SetTitle("Counts");
 
   h1_ConstituentsinJets_OHCAL = new TH1D(vecHistNames[2].data(), "", N_const, N_const_bins);
-  h1_ConstituentsinJets_OHCAL->GetXaxis()->SetTitle("N constituents");
+  h1_ConstituentsinJets_OHCAL->GetXaxis()->SetTitle("N constituents OHCal");
   h1_ConstituentsinJets_OHCAL->GetYaxis()->SetTitle("Counts");
 
   h1_ConstituentsinJets_CEMC = new TH1D(vecHistNames[3].data(), "", N_const, N_const_bins);
-  h1_ConstituentsinJets_CEMC->GetXaxis()->SetTitle("N constituents");
+  h1_ConstituentsinJets_CEMC->GetXaxis()->SetTitle("N constituents CEMC");
   h1_ConstituentsinJets_CEMC->GetYaxis()->SetTitle("Counts");
 
   h2_ConstituentsinJets_vs_caloLayer = new TH2D(vecHistNames[4].data(), "", N_calo_layers, calo_layers_bins, N_const, N_const_bins);
@@ -139,15 +143,15 @@ int ConstituentsinJets::Init(PHCompositeNode * /*topNode*/)
   h2_ConstituentsinJets_vs_caloLayer->GetYaxis()->SetTitle("N constituents");
 
   h1_jetFracE_IHCAL = new TH1D(vecHistNames[5].data(), "", N_frac, frac_bins);
-  h1_jetFracE_IHCAL->GetXaxis()->SetTitle("E fraction");
+  h1_jetFracE_IHCAL->GetXaxis()->SetTitle("E fraction IHCal");
   h1_jetFracE_IHCAL->GetYaxis()->SetTitle("Counts");
 
   h1_jetFracE_OHCAL = new TH1D(vecHistNames[6].data(), "", N_frac, frac_bins);
-  h1_jetFracE_OHCAL->GetXaxis()->SetTitle("E fraction");
+  h1_jetFracE_OHCAL->GetXaxis()->SetTitle("E fraction OHCal");
   h1_jetFracE_OHCAL->GetYaxis()->SetTitle("Counts");
 
   h1_jetFracE_CEMC = new TH1D(vecHistNames[7].data(), "", N_frac, frac_bins);
-  h1_jetFracE_CEMC->GetXaxis()->SetTitle("E fraction");
+  h1_jetFracE_CEMC->GetXaxis()->SetTitle("E fraction CEMC");
   h1_jetFracE_CEMC->GetYaxis()->SetTitle("Counts");
 
   h2_jetFracE_vs_caloLayer = new TH2D(vecHistNames[8].data(), "", N_calo_layers, calo_layers_bins, N_frac, frac_bins);

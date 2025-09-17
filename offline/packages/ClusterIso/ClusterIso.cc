@@ -248,6 +248,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
               {
                 continue;
               }
+              if (tower->get_energy() < m_minTowerEnergy) { continue; }
               unsigned int towerkey = towersEM3old->encode_key(channel);
               int ieta = towersEM3old->getTowerEtaBin(towerkey);
               int iphi = towersEM3old->getTowerPhiBin(towerkey);
@@ -274,6 +275,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
               {
                 continue;
               }
+              if (tower->get_energy() < m_minTowerEnergy) { continue; }
               unsigned int towerkey = towersIH3->encode_key(channel);
               int ieta = towersIH3->getTowerEtaBin(towerkey);
               int iphi = towersIH3->getTowerPhiBin(towerkey);
@@ -298,6 +300,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
               {
                 continue;
               }
+              if (tower->get_energy() < m_minTowerEnergy) { continue; }
               unsigned int towerkey = towersOH3->encode_key(channel);
               int ieta = towersOH3->getTowerEtaBin(towerkey);
               int iphi = towersOH3->getTowerPhiBin(towerkey);
@@ -420,6 +423,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
               {
                 continue;
               }
+              if (tower->get_energy() < m_minTowerEnergy) { continue; }
               unsigned int towerkey = towersEM3old->encode_key(channel);
               int ieta = towersEM3old->getTowerEtaBin(towerkey);
               int iphi = towersEM3old->getTowerPhiBin(towerkey);
@@ -447,6 +451,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
               {
                 continue;
               }
+              if (tower->get_energy() < m_minTowerEnergy) { continue; }
               unsigned int towerkey = towersIH3->encode_key(channel);
               int ieta = towersIH3->getTowerEtaBin(towerkey);
               int iphi = towersIH3->getTowerPhiBin(towerkey);
@@ -474,6 +479,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
               {
                 continue;
               }
+              if (tower->get_energy() < m_minTowerEnergy) { continue; }
               unsigned int towerkey = towersOH3->encode_key(channel);
               int ieta = towersOH3->getTowerEtaBin(towerkey);
               int iphi = towersOH3->getTowerPhiBin(towerkey);

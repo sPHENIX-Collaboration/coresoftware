@@ -98,7 +98,9 @@ void ChargeMapReader::FillChargeHistogram(TH3* h)
 
   //   0     1     2     ...   n-1
   // first|   ..|  ..  |  .. |last
-  float dphi, dr, dz;  // bin widths in each dimension.  Got too confusing to make these an array.
+  float dphi;
+  float dr;
+  float dz;  // bin widths in each dimension.  Got too confusing to make these an array.
   if (DEBUG)
   {
     std::cout << "filling chargehistogram" << std::endl;
@@ -108,7 +110,8 @@ void ChargeMapReader::FillChargeHistogram(TH3* h)
   dphi = binWidth[1];
   dz = binWidth[2];
 
-  float phimid, zmid;  // midpoints at each step.
+  float phimid;
+  float zmid;  // midpoints at each step.
   int i[3];
   for (i[0] = 0; i[0] < nBins[0]; i[0]++)
   {  // r
@@ -145,15 +148,19 @@ void ChargeMapReader::RegenerateCharge()
 
   //   0     1     2     ...   n-1
   // first|   ..|  ..  |  .. |last
-  float dphi, dr, dz;  // internal rep bin widths in each dimension.  Got too confusing to make these an array.
+  float dphi;
+  float dr;
+  float dz;  // internal rep bin widths in each dimension.  Got too confusing to make these an array.
   dr = binWidth[0];
   dphi = binWidth[1];
   dz = binWidth[2];
-  float dzhist, drhist;
+  float dzhist;
+  float drhist;
   dzhist = dz / inputAxisScale;
   drhist = dr / inputAxisScale;
 
-  float phimid, zmid;  // position of the center of each fixed-width array bin, in the input histogram units
+  float phimid;
+  float zmid;  // position of the center of each fixed-width array bin, in the input histogram units
   // note that since we computed density using the hist units, we must use those units for the volume term again here.
   int i[3];
   for (i[0] = 0; i[0] < nBins[0]; i[0]++)
@@ -264,8 +271,10 @@ void ChargeMapReader::RegenerateDensity()
   //   0     1     2   ...   n-1    n    n+1
   // under|first|   ..|  ..  |  .. |last| over
   int i[3];
-  float low[3], high[3];
-  float dr, dz;  // bin widths in each dimension.  Got too confusing to make these an array.
+  float low[3];
+  float high[3];
+  float dr;
+  float dz;  // bin widths in each dimension.  Got too confusing to make these an array.
   // note that all of this is done in the native units of the source data, specifically, the volume element is in hist units, not our internal units.
 
   for (i[0] = 1; i[0] <= nbins[0]; i[0]++)

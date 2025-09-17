@@ -543,7 +543,15 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
   int bestCombinationIndex = 0;
   for (unsigned int i = 1; i < possibleCandidates.size(); ++i)
   {
-    if (PVconstraint && !isAnInterMother)// && !m_require_track_and_vertex_match)
+    if (!PVconstraint || isAnInterMother || m_select_by_mass_error)
+    {
+      if (possibleCandidates[i].GetErrMass() < smallestMassError.GetErrMass())
+      {
+        smallestMassError = possibleCandidates[i];
+        bestCombinationIndex = i;
+      }
+    }
+    else 
     {
       float current_IPchi2 = 0;
       float best_IPchi2 = 0;
@@ -560,14 +568,6 @@ int KFParticle_eventReconstruction::selectBestCombination(bool PVconstraint, boo
       }
 
       if (current_IPchi2 < best_IPchi2)
-      {
-        smallestMassError = possibleCandidates[i];
-        bestCombinationIndex = i;
-      }
-    }
-    else
-    {
-      if (possibleCandidates[i].GetErrMass() < smallestMassError.GetErrMass())
       {
         smallestMassError = possibleCandidates[i];
         bestCombinationIndex = i;

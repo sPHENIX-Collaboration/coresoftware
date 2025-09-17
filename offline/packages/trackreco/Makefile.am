@@ -83,7 +83,8 @@ pkginclude_HEADERS = \
   SecondaryVertexFinder.h \
   SvtxTrackStateRemoval.h \
   TrackingIterationCounter.h \
-  TpcSeedFilter.h
+  TpcSeedFilter.h \
+  WeightedFitter.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -168,7 +169,8 @@ libtrack_reco_la_SOURCES = \
   SecondaryVertexFinder.cc \
   SvtxTrackStateRemoval.cc \
   TrackingIterationCounter.cc \
-  TpcSeedFilter.cc
+  TpcSeedFilter.cc \
+  WeightedFitter.cc
 
 libtrack_reco_la_LIBADD = \
   -lActsCore \

@@ -16,7 +16,9 @@ sub print_runs;
 my $dbh = DBI->connect("dbi:ODBC:FileCatalog_read") || die $DBI::error;
 $dbh->{LongReadLen}=2000; # full file paths need to fit in here
 
-my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic' and dataset = 'mdc2'");
+# old way - dealing with disorganized datasets
+#my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dsttype not like '%\_pi\_%' ESCAPE '\' and dsttype <> 'beam' and dsttype <> 'cosmic' and dataset = 'mdc2'");
+my $getdsttypes = $dbh->prepare("select distinct(dsttype) from datasets where dataset = 'mdc2'");
 $getdsttypes->execute();
 
 my %dsttype = ();
@@ -70,7 +72,8 @@ my %proddesc = (
     "31" => "Herwig Jet ptmin = 10 GeV",
     "32" => "Herwig Jet ptmin = 30 GeV",
     "33" => "JS pythia8 Jet ptmin = 15GeV",
-    "34" => "JS pythia8 Jet ptmin = 50GeV"
+    "34" => "JS pythia8 Jet ptmin = 50GeV",
+    "35" => "JS pythia8 Jet ptmin = 70GeV"
     );
 
 my %pileupdesc = (
@@ -839,6 +842,35 @@ if (defined $prodtype)
     {
         $embedok = 1;
 	$filenamestring = "pythia8_Jet50";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 35)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet70";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)

@@ -85,7 +85,6 @@
 #include <utility>
 #include <vector>
 
-class PHField;
 class TGeoManager;
 namespace genfit
 {

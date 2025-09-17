@@ -44,6 +44,7 @@
 #include <Acts/Seeding/InternalSpacePoint.hpp>
 #include <Acts/Seeding/Seed.hpp>
 #include <Acts/Seeding/SeedFilter.hpp>
+#include <cmath>
 
 namespace
 {
@@ -95,7 +96,7 @@ int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
     printSeedConfigs(sfCfg);
   }
   // vector containing the map of z bins in the top and bottom layers
- 
+
   m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<2ul>>(
       nphineighbors, zBinNeighborsBottom);
   m_topBinFinder = std::make_unique<const Acts::GridBinFinder<2ul>>(
@@ -134,7 +135,9 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
       std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  } else {
+  }
+  else
+  {
     // reset seed container on first iteration
     m_seedContainer->Reset();
   }
@@ -146,7 +149,6 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
   }
 
   runSeeder();
- 
 
   if (Verbosity() > 0)
   {
@@ -179,7 +181,7 @@ int PHActsSiliconSeeding::End(PHCompositeNode* /*topNode*/)
 
 void PHActsSiliconSeeding::runSeeder()
 {
-  Acts::SeedFinder<SpacePoint,Acts::CylindricalSpacePointGrid<SpacePoint>> seedFinder(m_seedFinderCfg);
+  Acts::SeedFinder<SpacePoint, Acts::CylindricalSpacePointGrid<SpacePoint>> seedFinder(m_seedFinderCfg);
 
   auto eventTimer = std::make_unique<PHTimer>("eventTimer");
   eventTimer->stop();
@@ -191,7 +193,7 @@ void PHActsSiliconSeeding::runSeeder()
     GridSeeds seedVector;
     /// Covariance converter functor needed by seed finder
     auto covConverter = [=](const SpacePoint& sp, float zAlign, float rAlign,
-                                       float sigmaError)
+                            float sigmaError)
     {
       Acts::Vector3 position{sp.x(), sp.y(), sp.z()};
       Acts::Vector2 cov;
@@ -224,13 +226,11 @@ void PHActsSiliconSeeding::runSeeder()
     auto spacePointsGrouping = Acts::CylindricalBinnedGroup<SpacePoint>(
         std::move(grid), *m_bottomBinFinder, *m_topBinFinder,
         std::move(navigation));
-   
+
     /// variable middle SP radial region of interest
     const Acts::Range1D<float> rMiddleSPRange(
         std::floor(rRangeSPExtent.min(Acts::binR) / 2) * 2 + 1.5,
         std::floor(rRangeSPExtent.max(Acts::binR) / 2) * 2 - 1.5);
-   
-
 
     eventTimer->restart();
     SeedContainer seeds;
@@ -326,7 +326,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         {
           m_mvtxgx.push_back(globalPosition(0));
           m_mvtxgy.push_back(globalPosition(1));
-	  m_mvtxgz.push_back(globalPosition(2));
+          m_mvtxgz.push_back(globalPosition(2));
         }
         positions.insert(std::make_pair(cluskey, globalPosition));
         if (Verbosity() > 1)
@@ -496,39 +496,45 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed& si_track)
     crossing_keep = intt_crossings[0];
     for (unsigned int ic = 1; ic < intt_crossings.size(); ++ic)
     {
-      if(intt_crossings[ic] != crossing_keep)
-	{
-	  if(abs(intt_crossings[ic] - crossing_keep) > 1)
-	    {
-	      keep_it = false;
-	      
-	      if (Verbosity() > 1)
-		{
-		  std::cout << " Warning: INTT crossings not all the same "
-			    << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " setting crossing to SHRT_MAX" << std::endl;
-		}
-	    }
-	  else
-	    {
-	      // we have INTT clusters with crossing values that differ by 1
-	      // This can be a readout issue, we take the lower value as the correct one
+      if (intt_crossings[ic] != crossing_keep)
+      {
+        if (abs(intt_crossings[ic] - crossing_keep) > 1)
+        {
+          keep_it = false;
 
-	      if(Verbosity() > 1) { std::cout << " ic " << ic << " crossing keep " << crossing_keep << " intt_crossings " << intt_crossings[ic] << std::endl; }
-	      if(intt_crossings[ic] < crossing_keep)
-		{
-		  crossing_keep = intt_crossings[ic];
-		  if(Verbosity() > 1) { std::cout << "         ----- crossing keep changed to " << crossing_keep << std::endl; }
-		}
-	    }
-	}
+          if (Verbosity() > 1)
+          {
+            std::cout << " Warning: INTT crossings not all the same "
+                      << " crossing_keep " << crossing_keep << " new crossing " << intt_crossings[ic] << " setting crossing to SHRT_MAX" << std::endl;
+          }
+        }
+        else
+        {
+          // we have INTT clusters with crossing values that differ by 1
+          // This can be a readout issue, we take the lower value as the correct one
+
+          if (Verbosity() > 1)
+          {
+            std::cout << " ic " << ic << " crossing keep " << crossing_keep << " intt_crossings " << intt_crossings[ic] << std::endl;
+          }
+          if (intt_crossings[ic] < crossing_keep)
+          {
+            crossing_keep = intt_crossings[ic];
+            if (Verbosity() > 1)
+            {
+              std::cout << "         ----- crossing keep changed to " << crossing_keep << std::endl;
+            }
+          }
+        }
+      }
     }
   }
-  
+
   if (keep_it)
-    {
-      return crossing_keep;
-    }
-  
+  {
+    return crossing_keep;
+  }
+
   return SHRT_MAX;
 }
 
@@ -584,7 +590,7 @@ std::vector<short int> PHActsSiliconSeeding::getInttCrossings(TrackSeed& si_trac
       auto crossings = _cluster_crossing_map->getCrossings(cluster_key);
       for (auto iter1 = crossings.first; iter1 != crossings.second; ++iter1)
       {
-	if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "                si Track with cluster " << iter1->first << " layer " << layer << " crossing " << iter1->second << std::endl;
         }
@@ -603,7 +609,9 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
 {
   auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
 
-  float trackphi = seed.get_phi();
+  std::vector<TrkrDefs::cluskey> dummykeys = keys;
+  std::vector<Acts::Vector3> dummyclusters = clusters;
+
   /// Diagnostic
   if (m_seedAnalysis)
   {
@@ -652,21 +660,43 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         layer++;
         continue;
       }
+
+      // get an estimate of the phi of the track at this layer
+      // to know which hitsetkeys to look at
+      float layerradius = 0;
+      if (layer > 2)
+      {
+        layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
+      }
+      else
+      {
+        layerradius = m_geomContainerMvtx->GetLayerGeom(layer)->get_radius();
+      }
+      const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0],
+                                                                                            fitpars[1], fitpars[2]);
+
+      float approximate_phi1 = atan2(yplus, xplus);
+      float approximate_phi2 = atan2(yminus, xminus);
       for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det, layer))
       {
         auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
         auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
         float surfphi = atan2(surfcenter.y(), surfcenter.x());
-        float dphi = normPhi2Pi(trackphi - surfphi);
-
+        float dphi1 = normPhi2Pi(approximate_phi1 - surfphi);
+        float dphi2 = normPhi2Pi(approximate_phi2 - surfphi);
         /// Check that the projection is within some reasonable amount of the segment
         /// to reject e.g. looking at segments in the opposite hemisphere. This is about
         /// the size of one intt segment (256 * 80 micron strips in a segment)
-        if (fabs(dphi) > 0.2)
+        if (std::fabs(dphi1) > 0.3 && std::fabs(dphi2) > 0.3)
         {
           continue;
         }
-
+        std::vector<float> dummypars;
+        /// If we added a cluster, refit the track to get a better projection
+        if (dummyclusters.size() > clusters.size())
+        {
+          dummypars = TrackFitUtils::fitClusters(dummyclusters, dummykeys, false);
+        }
         auto range = m_clusterMap->getClusters(hitsetkey);
         for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
         {
@@ -683,6 +713,10 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           auto glob = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
           auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
+          if (dummypars.size() > 0)
+          {
+            intersection = TrackFitUtils::get_helix_surface_intersection(surf, dummypars, glob, m_tGeometry);
+          }
           auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
           local /= Acts::UnitConstants::cm;
           m_projgx = intersection.x();
@@ -725,7 +759,6 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
-
           if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
                zresid < m_mvtxzSearchWin) ||
               (det == TrkrDefs::TrkrId::inttId && rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin))
@@ -733,6 +766,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           {
             if (rphiresid < minResidLayer[layer])
             {
+              dummyclusters.push_back(glob);
+              dummykeys.push_back(cluskey);
               minResidLayer[layer] = rphiresid;
               minResidckey[layer] = cluskey;
               minResidGlobPos[layer] = glob;
@@ -1014,6 +1049,14 @@ int PHActsSiliconSeeding::getNodes(PHCompositeNode* topNode)
   if (!m_geomContainerIntt)
   {
     std::cout << PHWHERE << "CYLINDERGEOM_INTT node not found on node tree"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_geomContainerMvtx = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  if (!m_geomContainerMvtx)
+  {
+    std::cout << PHWHERE << "CYLINDERGEOM_MVTX node not found on node tree"
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }

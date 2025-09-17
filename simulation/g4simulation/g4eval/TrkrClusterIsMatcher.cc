@@ -20,6 +20,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <cmath>
+
 int TrkrClusterIsMatcher::init(
     PHCompositeNode* topNode,
     const std::string& name_phg4_clusters,
@@ -182,7 +184,7 @@ bool TrkrClusterIsMatcher::operator()(TrkrDefs::cluskey key_T, TrkrDefs::cluskey
         return false;
       }
     }
-    const float delta_z = fabs(clus_T->getPosition(1) - clus_R->getPosition(1));
+    const float delta_z = std::abs(clus_T->getPosition(1) - clus_R->getPosition(1));
     if (single_pixel_z_MVTX)
     {
       if (delta_z > tol_pitch_z_MVTX)
@@ -237,7 +239,7 @@ bool TrkrClusterIsMatcher::operator()(TrkrDefs::cluskey key_T, TrkrDefs::cluskey
         return false;
       }
     }
-    const float delta_t = fabs(clus_T->getPosition(1) - clus_R->getPosition(1));
+    const float delta_t = std::abs(clus_T->getPosition(1) - clus_R->getPosition(1));
     if (single_bin_t_TPC)
     {
       if (delta_t > tol_step_t_TPC)

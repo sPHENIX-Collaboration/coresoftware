@@ -21,10 +21,10 @@
 #include <TTree.h>
 #include <TVector3.h>
 
-#include <boost/format.hpp>
-
 #include <algorithm>  // for max
+#include <cmath>
 #include <cstdlib>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -100,11 +100,11 @@ int fillSpaceChargeMaps::Init(PHCompositeNode * /*topNode*/)
 
   for (int iz = 0; iz < 30; iz++)
   {
-    std::string name = (boost::format("_h_SC_ibf_%d") % iz).str();
-    std::string name_ax = (boost::format("_h_SC_ibf_%d;#phi, [rad];R, [mm];Z, [mm]") % iz).str();
+    std::string name = std::format("_h_SC_ibf_{}", iz);
+    std::string name_ax = std::format("_h_SC_ibf_{};#phi, [rad];R, [mm];Z, [mm]", iz);
     _h_SC_ibf[iz] = new TH3F(name.c_str(), name_ax.c_str(), nphi, phi_bins, r_bins_N, r_bins, 2 * nz, z_bins);
-    name = (boost::format("_h_SC_prim_%d") % iz).str();
-    name_ax = (boost::format("_h_SC_prim_%d;#phi, [rad];R, [mm];Z, [mm]") % iz).str();
+    name = std::format("_h_SC_prim_{}", iz);
+    name_ax = std::format("_h_SC_prim_{};#phi, [rad];R, [mm];Z, [mm]", iz);
     _h_SC_prim[iz] = new TH3F(name.c_str(), name_ax.c_str(), nphi, phi_bins, r_bins_N, r_bins, 2 * nz, z_bins);
 
     hm->registerHisto(_h_SC_prim[iz]);
@@ -262,8 +262,8 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
       float y = (hit_y0 + f * (hit_y1 - hit_y0)) * cm;
       float z = (hit_z0 + f * (hit_z1 - hit_z0)) * cm;
 
-      float r = sqrt(x * x + y * y);
-      float phi = atan2(x, y);
+      float r = std::sqrt(x * x + y * y);
+      float phi = std::atan2(x, y);
       if (phi < 0)
       {
         phi += 2 * M_PI;
@@ -434,7 +434,7 @@ int fillSpaceChargeMaps::process_event(PHCompositeNode *topNode)
             _h_SC_ibf[iz]->Fill(_hit_phi, _hit_r, z_ibf[iz], _ibf_vol);
             if (iz == 0)
             {
-              _h_SC_XY->Fill(_hit_r * cos(_hit_phi), _hit_r * sin(_hit_phi));  //,_ibf_vol);
+              _h_SC_XY->Fill(_hit_r * std::cos(_hit_phi), _hit_r * std::sin(_hit_phi));  //,_ibf_vol);
             }
           }
           else

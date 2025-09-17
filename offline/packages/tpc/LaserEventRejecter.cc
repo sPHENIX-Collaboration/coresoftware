@@ -23,7 +23,15 @@ int LaserEventRejecter::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if(m_laserEventInfo->isGl1LaserPileupEvent() || m_laserEventInfo->isLaserEvent())
+  EventHeader *eventHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
+  if (!eventHeader)
+  {
+    std::cout << PHWHERE << " EventHeader Node missing, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+
+  if((eventHeader->get_RunNumber() > 66153 && m_laserEventInfo->isGl1LaserEvent()) || (eventHeader->get_RunNumber() <= 66153 && m_laserEventInfo->isLaserEvent()))
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }

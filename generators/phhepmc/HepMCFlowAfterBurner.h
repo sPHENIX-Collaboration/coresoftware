@@ -7,6 +7,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <array>
 
 #include <flowafterburner/AfterburnerAlgo.h>
 
@@ -55,6 +56,9 @@ class HepMCFlowAfterBurner : public SubsysReco
     enableFlucuations = enable;
   }
 
+  void scaleFlow(const float scale, const unsigned int n = 0);
+
+
   void SaveRandomState(const std::string &savefile = "HepMCFlowAfterBurner.ransave");
   void RestoreRandomState(const std::string &savefile = "HepMCFlowAfterBurner.ransave");
 
@@ -74,6 +78,7 @@ class HepMCFlowAfterBurner : public SubsysReco
   long randomSeed = 11793;
 
   bool enableFlucuations = true; //  turns on/off the fluctuations in the afterburner 
+  std::array<float, 6> flowScales = {1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F}; // scales for the flow harmonics
 
   Afterburner *m_afterburner = nullptr;
   AfterburnerAlgo *m_flowalgo = nullptr;

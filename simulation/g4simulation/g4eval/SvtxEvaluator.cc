@@ -1125,7 +1125,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             //          gphi = gv.Phi();
           }
 
-          if (nglmaps == 3 && fabs(geta) < 1.0 && gpt > 0.5)
+          if (nglmaps == 3 && std::abs(geta) < 1.0 && gpt > 0.5)
           {
             ++embedvtxid_maps_particle_count[gembed];
           }
@@ -1211,7 +1211,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           gvt = point->get_t();
           gembed = truthinfo->isEmbededVtx(point_id);
           gntracks = embedvtxid_particle_count[(int) gembed];
-          if (embedvtxid_maps_particle_count[(int) gembed] > 0 && fabs(gvt) < 2000. && fabs(gvz) < 13.0)
+          if (embedvtxid_maps_particle_count[(int) gembed] > 0 && std::abs(gvt) < 2000. && std::abs(gvz) < 13.0)
           {
             gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
           }
@@ -1283,7 +1283,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gvt = point->get_t();
             gembed = truthinfo->isEmbededVtx(point_id);
             gntracks = embedvtxid_particle_count[(int) gembed];
-            if (embedvtxid_maps_particle_count[(int) gembed] > 0 && fabs(gvt) < 2000 && fabs(gvz) < 13.0)
+            if (embedvtxid_maps_particle_count[(int) gembed] > 0 && std::abs(gvt) < 2000 && std::abs(gvz) < 13.0)
             {
               gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
             }
@@ -1437,7 +1437,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       TVector3 vin(g4hit->get_x(0), g4hit->get_y(0), g4hit->get_z(0));
       TVector3 vout(g4hit->get_x(1), g4hit->get_y(1), g4hit->get_z(1));
       float gdphi = vin.DeltaPhi(vout);
-      float gdz = fabs(g4hit->get_z(1) - g4hit->get_z(0));
+      float gdz = std::abs(g4hit->get_z(1) - g4hit->get_z(0));
       float gedep = g4hit->get_edep();
       float glayer = g4hit->get_layer();
 
@@ -1701,8 +1701,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             phi = local_GeoLayer->get_phicenter(phibin);
             z = local_GeoLayer->get_zcenter(zbin);
             r = local_GeoLayer->get_radius();
-            x = r*cos(phi);
-            y = r*sin(phi);
+            x = r*std::cos(phi);
+            y = r*std::sin(phi);
           }
 
           float g4hitID = NAN;
@@ -2537,7 +2537,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gadc = (float) gclus->getAdc();
 
         TVector3 gpos(gx, gy, gz);
-        float gr = sqrt(gx * gx + gy * gy);
+        float gr = std::sqrt(gx * gx + gy * gy);
         float gphi = gpos.Phi();
         float geta = gpos.Eta();
 
@@ -2580,7 +2580,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           z = glob(2);
 
           TVector3 pos(x, y, z);
-          r = sqrt(x * x + y * y);
+          r = std::sqrt(x * x + y * y);
           phi = pos.Phi();
           eta = pos.Eta();
                  
@@ -2690,7 +2690,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	     }
 
 	   float gflavor = g4particle->get_pid();
-	  if(fabs(gflavor)==211 || fabs(gflavor)==321 || fabs(gflavor)==2212)
+	  if(std::abs(gflavor)==211 || std::abs(gflavor)==321 || std::abs(gflavor)==2212)
 	    {
 	      gnchghad++;
 	    }
@@ -3049,7 +3049,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		float z = glob(2);
 		
 		TVector3 pos(x, y, z);
-		float r = sqrt(x*x+y*y);
+		float r = std::sqrt(x*x+y*y);
 		phi = pos.Phi();
 		eta = pos.Eta();
 		float gphisize = 0;
@@ -3209,9 +3209,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             float CVyy = track->get_error(4, 4);
             float CVyz = track->get_error(4, 5);
             float CVzz = track->get_error(5, 5);
-            deltapt = sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
-            deltaeta = sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
-            deltaphi = sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
+            deltapt = std::sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
+            deltaeta = std::sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
+            deltaphi = std::sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
             pcax = track->get_x();
             pcay = track->get_y();
             pcaz = track->get_z();
@@ -3554,7 +3554,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    float z = glob(2);
 	    
 	    TVector3 pos(x, y, z);
-	    float r = sqrt(x*x+y*y);
+	    float r = std::sqrt(x*x+y*y);
 	    //float phi = pos.Phi();
 	    //float eta = pos.Eta();
 	    float rphisize = 0;
@@ -3716,9 +3716,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float CVyy = track->get_error(4, 4);
         float CVyz = track->get_error(4, 5);
         float CVzz = track->get_error(5, 5);
-        float deltapt = sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
-        float deltaeta = sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
-        float deltaphi = sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
+        float deltapt = std::sqrt((CVxx * px * px + 2 * CVxy * px * py + CVyy * py * py) / (px * px + py * py));
+        float deltaeta = std::sqrt((CVzz * (px * px + py * py) * (px * px + py * py) + pz * (-2 * (CVxz * px + CVyz * py) * (px * px + py * py) + CVxx * px * px * pz + CVyy * py * py * pz + 2 * CVxy * px * py * pz)) / ((px * px + py * py) * (px * px + py * py) * (px * px + py * py + pz * pz)));
+        float deltaphi = std::sqrt((CVyy * px * px - 2 * CVxy * px * py + CVxx * py * py) / ((px * px + py * py) * (px * px + py * py)));
         float pcax = track->get_x();
         float pcay = track->get_y();
         float pcaz = track->get_z();
@@ -4252,11 +4252,11 @@ TMatrixF SvtxEvaluator::calculateClusterError(TrkrCluster* c, float& clusphi)
   localErr[2][2] = c->getActsLocalError(1, 1);
 
   TMatrixF ROT(3, 3);
-  ROT[0][0] = cos(clusphi);
-  ROT[0][1] = -sin(clusphi);
+  ROT[0][0] = std::cos(clusphi);
+  ROT[0][1] = -std::sin(clusphi);
   ROT[0][2] = 0.0;
-  ROT[1][0] = sin(clusphi);
-  ROT[1][1] = cos(clusphi);
+  ROT[1][0] = std::sin(clusphi);
+  ROT[1][1] = std::cos(clusphi);
   ROT[1][2] = 0.0;
   ROT[2][0] = 0.0;
   ROT[2][1] = 0.0;

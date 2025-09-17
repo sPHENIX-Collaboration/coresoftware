@@ -391,6 +391,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
 
+  void selectMotherByMassError(bool select = true) { m_select_by_mass_error = select; }
+
   void usePID(bool use = true){ m_use_PID = use; }
  
   void setPIDacceptFraction(float frac = 0.2){ m_dEdx_band_width = frac; }

@@ -27,6 +27,7 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <Acts/Definitions/Algebra.hpp>
+#include <cmath>
 
 namespace
 {
@@ -125,9 +126,9 @@ int PHTrackClusterAssociator::matchTracks(PHCompositeNode* topNode,
     const float statex = state->get_x();
     const float statey = state->get_y();
     const float statez = state->get_z();
-    const float statephi = atan2(statey, statex);
-    const float stateeta = asinh(statez /
-                                 sqrt(statex * statex + statey * statey));
+    const float statephi = std::atan2(statey, statex);
+    const float stateeta = std::asinh(statez /
+                                 std::sqrt(statex * statex + statey * statey));
 
     const int vertexid = track->get_vertex_id();
     const auto vertex = m_vertexMap->get(vertexid);

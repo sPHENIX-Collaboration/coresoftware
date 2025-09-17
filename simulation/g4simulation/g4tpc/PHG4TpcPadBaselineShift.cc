@@ -42,7 +42,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T &x)
+  constexpr T square(const T &x)
   {
     return x * x;
   }
@@ -99,7 +99,7 @@ PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name)
   std::cout << "PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name) Calling ctor" << std::endl;
 }
 
-bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom)
+bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
 {
   bool reject_it = false;
 
@@ -172,14 +172,14 @@ int PHG4TpcPadBaselineShift::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  auto geom =
+  auto *geom =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
+  AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
   std::cout << "PHG4TpcPadBaselineShift::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -343,7 +343,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
       {
         continue;  // zbin is unsigned int, <0 cannot happen
       }
-      adcval[zbin] = (unsigned short) adc;
+      adcval[zbin] = adc;
       sumADC += adc;
     }
     // Define ion-induced charge

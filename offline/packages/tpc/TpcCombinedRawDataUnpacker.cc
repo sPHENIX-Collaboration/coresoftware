@@ -310,14 +310,14 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     //    uint16_t sam = tpchit->get_samples();
     max_time_range = tpchit->get_samples();
      
-    int region = 0;
-    if(layer > 15)
+    int region = 2;
+    if(layer < 7 + 16)
+    {
+      region = 0;
+    }
+    else if( layer < 7 + 32)
     {
       region = 1;
-    }
-    if( layer > 31)
-    {
-      region = 2;
     }
 
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);

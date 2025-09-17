@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>                            // for pair
 
+
 using namespace std;
 
 class PHCompositeNode;
@@ -60,6 +61,14 @@ int HepMCFlowAfterBurner::Init(PHCompositeNode */*topNode*/)
     m_flowalgo->enable_fluctuations();
   }
   
+  for (unsigned int i = 1; i <= 6; ++i)
+  {//apply the scale factors to the flow harmonics if any
+    if (flowScales[i - 1] != 1.0F)
+    {
+      m_flowalgo->set_single_scale_N(i, flowScales[i - 1]);
+    }  
+  }
+
   return 0;
 }
 
@@ -84,6 +93,7 @@ int HepMCFlowAfterBurner::process_event(PHCompositeNode *topNode)
            << ", maxpt: " << maxpt << endl;
     }
 
+
     m_afterburner->flowAfterburner(evt);
 
     for ( unsigned int i=1; i<=6; ++i)
@@ -93,6 +103,11 @@ int HepMCFlowAfterBurner::process_event(PHCompositeNode *topNode)
       {
         cout << "  set reaction plane angle psi_" << i << " = " << genevt->get_flow_psi(i) << endl;
       }
+    }
+
+    if (Verbosity() > 1)
+    {
+      m_afterburner->getAlgo()->print();
     }
 
     // flowAfterburner(evt, engine, algorithmName, mineta, maxeta, minpt, maxpt);
@@ -153,3 +168,23 @@ void HepMCFlowAfterBurner::setAlgorithmName(const std::string &name)
   algorithmName = AfterburnerAlgo::getAlgoName(m_flowalgorithm); // make sure the name is consistent
   return;
 }
+
+void HepMCFlowAfterBurner::scaleFlow(const float scale, const unsigned int n)
+{
+  if ( n == 0 )
+  { // set all scales
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+      flowScales[i] = scale;
+    }
+  }
+  else if ( n > 0 && n <= 6 )
+  { // set specific harmonic
+    flowScales[n - 1] = scale;
+  }
+  else
+  { // out of range
+    std::cout << "HepMCFlowAfterBurner::scaleFlow - ERROR: n = " << n << " is out of range.  Must be between 0 (all) or 1,..,6." << std::endl;
+  }
+}
+

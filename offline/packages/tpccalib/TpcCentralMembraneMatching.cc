@@ -11,6 +11,7 @@
 #include <trackbase/CMFlashDifferencev1.h>
 #include <trackbase/LaserClusterContainerv1.h>
 #include <trackbase/LaserCluster.h>
+#include <tpc/LaserEventInfo.h>
 #include <trackbase/TpcDefs.h>
 
 #include <ffaobjects/EventHeader.h>
@@ -32,6 +33,7 @@
 #include <TTree.h>
 #include <TVector3.h>
 
+#include <algorithm>
 #include <boost/format.hpp>
 
 #include <cmath>
@@ -1301,7 +1303,15 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     m_event_index = eventHeader->get_EvtSequence();
   }
 
-  if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
+  LaserEventInfo *lasereventinfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if(!lasereventinfo)
+  {
+    std::cout << PHWHERE << " LaserEvetnInfo Node missing, abort" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  if((eventHeader->get_RunNumber() > 66153 && !lasereventinfo->isGl1LaserEvent()) || (eventHeader->get_RunNumber() <= 66153 && !lasereventinfo->isLaserEvent()) || !m_corrected_CMcluster_map)
+  //if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
   {
     if(!m_useHeader)
     {
@@ -1402,9 +1412,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       reco_r_phi[1]->Fill(tmp_pos.Phi(), tmp_pos.Perp());
     }
 
-    if (Verbosity())
+    if (Verbosity() > 2)
     {
-      double raw_rad = sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
+      double raw_rad = std::sqrt(cmclus->getX() * cmclus->getX() + cmclus->getY() * cmclus->getY());
       double static_rad = sqrt(tmp_static.X() * tmp_static.X() + tmp_static.Y() * tmp_static.Y());
       double corr_rad = sqrt(tmp_pos.X() * tmp_pos.X() + tmp_pos.Y() * tmp_pos.Y());
       std::cout << "cluster " << clusterIndex << std::endl;
@@ -1459,7 +1469,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     m_reco_RMatches[0] = doGlobalRMatching(reco_r_phi[0], false);
     m_reco_RMatches[1] = doGlobalRMatching(reco_r_phi[1], true);
 
-    if (Verbosity())
+    if (Verbosity() > 2)
     {
       for (int i = 0; i < (int) m_reco_RMatches[0].size(); i++)
       {
@@ -1543,7 +1553,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         }
 
         int clustRMatchIndex = -1;
-        clustRMatchIndex = getClusterRMatch(rR, (int) (side ? 1 : 0));
+        clustRMatchIndex = getClusterRMatch(rR, (side ? 1 : 0));
 
         if (clustRMatchIndex == -1 || truthRIndex != clustRMatchIndex)
         {
@@ -1629,7 +1639,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       }
 
       int clustRMatchIndex = -1;
-      clustRMatchIndex = getClusterRMatch(rR, (int) (side ? 1 : 0));
+      clustRMatchIndex = getClusterRMatch(rR, (side ? 1 : 0));
 
 
       int truthMatchIndex = -1;
@@ -1812,7 +1822,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
             lowRMatch = mid + 1;
           }
         }
-        if(upperBound < 1) upperBound = 1;
+        upperBound = std::max(upperBound, 1);
 
 	double dR = m_truth_pos[truth_index].Perp() - reco_pos[recoIndex].Perp();
 	if(fabs(dR) > 0.5 * (m_truth_RPeaks[upperBound] - m_truth_RPeaks[upperBound-1]))
@@ -1847,7 +1857,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   } // end else for fancy
 
   // print some statistics:
-  if (Verbosity())
+  if (Verbosity() > 1)
   {
     const auto n_valid_truth = std::count_if(m_truth_pos.begin(), m_truth_pos.end(), [](const TVector3& pos)
      { return get_r(pos.x(), pos.y()) > 30; });
@@ -2023,7 +2033,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     ckey++;
   }
 
-  if (Verbosity())
+  if (Verbosity() > 1)
   {
     std::cout << "TpcCentralMembraneMatching::process_events - cmclusters: " << m_corrected_CMcluster_map->size() << std::endl;
     std::cout << "TpcCentralMembraneMatching::process_events - matched pairs: " << nMatched << std::endl;
