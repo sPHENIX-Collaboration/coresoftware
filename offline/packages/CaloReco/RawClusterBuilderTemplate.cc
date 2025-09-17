@@ -118,6 +118,7 @@ void RawClusterBuilderTemplate::set_UseDetailedGeometry(const bool useDetailedGe
   bemc->set_UseDetailedGeometry(m_UseDetailedGeometry);
 }
 
+// cppcheck-suppress unusedFunction
 void RawClusterBuilderTemplate::WriteClusterV2(bool b)
 {
   m_write_cluster_v2 = b;
