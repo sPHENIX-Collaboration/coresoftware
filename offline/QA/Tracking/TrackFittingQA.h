@@ -17,6 +17,11 @@ class TrackFittingQA : public SubsysReco
   TrackFittingQA(const std::string& name = "TrackFittingQA");
   ~TrackFittingQA() override = default;
 
+  /// Histogram ranges (see member declarations for default values)
+  void set_quality_range ( float const& quality_range ) { m_quality_range = quality_range; }
+  void set_momentum_range ( float const& momentum_range ) { m_momentum_range = momentum_range; }
+  //...
+
   /// Cuts (bounds are inclusive, e.g. set_min_intt_states(2) means 1 state tracks are ignored, while 2 state tracks are kept)
   /// Defaults are all-inclusive
   void set_min_quality ( float const& min_quality ) { m_min_quality = min_quality; }
@@ -51,9 +56,13 @@ class TrackFittingQA : public SubsysReco
   void Print(std::string const& = "ALL") const override;
 
  private:
+  float m_momentum_range = 12.0;
+  float m_quality_range = 100.0;
+
   TH1* m_quality_hist[2]{};
   TH1* m_p_hist[2]{};
   TH1* m_pt_hist[2]{};
+  TH1* m_pt_err_hist[2]{};
   TH1* m_eta_hist[2]{};
   TH1* m_phi_eta_hist[2]{};
   TH1* m_intt_states_hist[2]{};

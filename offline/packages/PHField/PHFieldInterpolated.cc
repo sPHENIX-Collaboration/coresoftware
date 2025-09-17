@@ -129,8 +129,7 @@ PHFieldInterpolated::load_fieldmap (
 			std::stringstream what;
 			what
 				<< PHWHERE
-				<< " point does not round trip,"
-				<< " tree is not a grid"
+				<< " point does not round trip"
 				<< " (with " << point.transpose() << ")";
 			throw std::runtime_error(what.str());
 		}
@@ -146,20 +145,35 @@ PHFieldInterpolated::GetFieldValue (
 	double const* point_as_arr, // pointer to (immutable) double[4]
 	double* field_as_arr // pointer to (mutable) double[3]
 ) const {
+	Point_t point {
+		(float)point_as_arr[0],
+		(float)point_as_arr[1],
+		(float)point_as_arr[2],
+	};
+
+	for (int i = 0; i < 3; ++i) {
+		field_as_arr[i] = 0;
+	}
+
+	// Catches points out of bounds and early returns leaving field as 0
 	try {
-		Field_t field = get_interpolated ({
-			(float)point_as_arr[0],
-			(float)point_as_arr[1],
-			(float)point_as_arr[2],
-		});
-		for (int i = 0; i < 3; ++i) {
-			field_as_arr[i] = field(i);
+		validate_point(point);
+	} catch (std::exception const&) {
+		if (1 < Verbosity()) {
+			std::cout
+				<< PHWHERE
+				<< " Returning 0 for point out of fieldmap bounds"
+				<< " (at " << point.transpose() << ")"
+				<< std::endl;
 		}
-	} catch (std::exception const& e) {
-		std::cout
-			<< PHWHERE << "\n"
-			<< "\t" << e.what() << "\n"
-			<< std::endl;
+		return;
+	}
+
+	// This should not throw if point is in bounds, which we just checked
+	// If this throws, there is a bug in class logic
+	Field_t field = get_interpolated(point);
+	for (int i = 0; i < 3; ++i) {
+		field_as_arr[i] = field(i);
 	}
 }
 
@@ -198,12 +212,22 @@ PHFieldInterpolated::cache_interpolation (
 	Point_t const& point,
 	InterpolationCache& cache
 ) const {
-
 	Indices_t indices = get_indices(point);
+
+	// We get neighbors offset by [-1, +2] relative to the buffered point
+	// If we're close enough to an edge, this range isn't valid
+	// buffer about a shifted voxel further in instead
+	for (int i = 0; i < 3; ++i ) {
+		while (indices(i) - 1 < 0) { ++indices(i); }
+		while (m_N(i) < indices(i) + 3) { --indices(i); }
+	}
+
+	// Our coefficients have already been computed for the voxel we want to evaluate in
 	if ((indices - cache.m_buffered_indices).norm() == 0) { return; }
+
 	cache.m_buffered_indices = indices;
 
-	// The point at the the center of the cell
+	// The point at the the center of the voxel
 	// get_point gets the left-down-back corner
 	cache.m_center = get_point(indices);
 	for (int i = 0; i < 3; ++i) {
@@ -219,7 +243,7 @@ PHFieldInterpolated::cache_interpolation (
 		Eigen::VectorXf(64),
 	};
 
-	// Get the 64 neighboring points about the cell containing point and its neighboring cells
+	// Get the 64 (nearest) neighboring points about the cell containing point and its neighboring cells
 	// Note that the indices are of the left-down-back corner of this cell
 	for (int row = 0; row < 64; ++row) {
 		indices = {
@@ -227,20 +251,6 @@ PHFieldInterpolated::cache_interpolation (
 			cache.m_buffered_indices(1) + ((row / 4) % 4) - 1,
 			cache.m_buffered_indices(2) + (row % 4) - 1,
 		};
-
-		// Possible to throw while searching neighbors
-		// Re-throw an error, but with a different message
-		try {
-			validate_indices(indices);
-		} catch (std::exception const&) {
-			cache.m_buffered_indices = {-1, -1, -1};
-			std::stringstream what;
-			what
-				<< PHWHERE
-				<< " Point too close to edge of fieldmap "
-				<< " (at " << point.transpose() << ")";
-			throw std::runtime_error(what.str());
-		}
 
 		M.row(row) = get_design_vector(get_point(indices), cache);
 		for (int i = 0; i < 3; ++i) {
@@ -256,14 +266,9 @@ PHFieldInterpolated::cache_interpolation (
 	}
 }
 
-PHFieldInterpolated::Field_t
-PHFieldInterpolated::get_interpolated (
-	Point_t const& point
+PHFieldInterpolated::InterpolationCache&
+PHFieldInterpolated::get_cache (
 ) const {
-	// Because a separate access can change the map,
-	// this must be locked from the top
-	std::lock_guard lock(m_mutex);
-
 	// Update the access counts
 	InterpolationCache& this_cache = m_caches[std::this_thread::get_id()];
 	for (auto& [thread_id, cache] : m_caches) {
@@ -271,23 +276,36 @@ PHFieldInterpolated::get_interpolated (
 	}
 	this_cache.m_queue_index = 0;
 
-	// // Since c++20
-	// std::erase_if (m_caches, [](auto const& key_val_pair) {
-	// 	return MAX_THREADS <= key_val_pair.second.m_queue_index;
-	// });
+	return this_cache;
+}
 
-	// Manual loop for c++17 compatability
-	for (auto itr = m_caches.begin(); itr != m_caches.end();) {
-		if (MAX_THREADS <= itr->second.m_queue_index) {
-			itr = m_caches.erase(itr);
-		} else {
-			++itr;
-		}
+PHFieldInterpolated::Field_t
+PHFieldInterpolated::get_interpolated (
+	Point_t const& point
+) const {
+
+	InterpolationCache this_cache;
+
+	// Get a copy of the interpolation information this thread is using
+	{
+		std::lock_guard lock(m_mutex);
+		this_cache = get_cache();
 	}
 
-	// Reference could be dangling after erase, erase_if
-	this_cache = m_caches[std::this_thread::get_id()];
+	// Update the cache to be about the point
 	cache_interpolation(point, this_cache);
+
+	// Update its place in the member map
+	{
+		std::lock_guard lock(m_mutex);
+		get_cache() = this_cache;
+
+		// Prune map entries which haven't been used in a while
+		std::erase_if (m_caches, [](auto const& key_val_pair) {
+			return MAX_THREADS <= key_val_pair.second.m_queue_index;
+		});
+	}
+
 	return {
 		get_design_vector(point, this_cache).dot(this_cache.m_coefficients[0]),
 		get_design_vector(point, this_cache).dot(this_cache.m_coefficients[1]),
@@ -351,7 +369,7 @@ PHFieldInterpolated::validate_indices (
 			what
 				<< PHWHERE
 				<< " Component out of range"
-				<< " (at " << indices << ")";
+				<< " (at " << indices.transpose() << ")";
 			throw std::runtime_error(what.str());
 		}
 	}
@@ -367,7 +385,7 @@ PHFieldInterpolated::validate_point (
 			what
 				<< PHWHERE
 				<< " Component out of range"
-				<< " (at " << point << ")";
+				<< " (at " << point.transpose() << ")";
 			throw std::runtime_error(what.str());
 		}
 	}
