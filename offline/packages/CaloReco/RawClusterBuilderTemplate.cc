@@ -14,6 +14,7 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
+#include <calobase/RawClusterv2.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -116,6 +117,12 @@ void RawClusterBuilderTemplate::set_UseDetailedGeometry(const bool useDetailedGe
   m_UseDetailedGeometry = useDetailedGeometry;
   bemc->set_UseDetailedGeometry(m_UseDetailedGeometry);
 }
+
+void RawClusterBuilderTemplate::WriteClusterV2(bool b)
+{
+  m_write_cluster_v2 = b;
+}
+
 
 void RawClusterBuilderTemplate::LoadProfile(const std::string &fname)
 {
@@ -702,7 +709,35 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         ++ph;
       }
 
-      _clusters->AddCluster(cluster);
+      auto it_legacy = _clusters->AddCluster(cluster);
+      cluster->set_id(it_legacy->first);
+
+      if (m_write_cluster_v2)
+      {
+        float xcorr = xcg, ycorr = ycg;
+        if (bemc) bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
+
+        auto* c2 = new RawClusterv2();
+        c2->set_energy(cluster->get_energy());
+        c2->set_ecore(cluster->get_ecore());
+        c2->set_r(cluster->get_r());
+        c2->set_phi(cluster->get_phi());
+        c2->set_z(cluster->get_z());
+        c2->set_prob(cluster->get_prob());
+        c2->set_chi2(cluster->get_chi2());
+        for (const auto& kv : cluster->get_towermap()) c2->addTower(kv.first, kv.second);
+        c2->set_tower_cog(xcg, ycg, xcorr, ycorr);
+
+        if (m_cluster_container_v2)
+        {
+          auto it_v2 = m_cluster_container_v2->AddCluster(c2);
+          c2->set_id(it_v2->first);
+        }
+        else
+        {
+          delete c2;
+        }
+      }
       // ncl++;
 
       //      std::cout << "    ipk = " << ipk << ": E = " << ecl << "  E9 = "
@@ -780,6 +815,25 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
 
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "[RawClusterBuilderTemplate::CreateNodes] detector=" << detector
+              << " base=" << ClusterNodeName
+              << "  m_write_cluster_v2=" << std::boolalpha << m_write_cluster_v2 << std::endl;
+  }
+
+  if (m_write_cluster_v2)
+  {
+    const std::string ClusterNodeNameV2 = ClusterNodeName + "_V2"; // clean suffix
+    if (Verbosity() > 0)
+        std::cout << "  -> creating v2 node: " << ClusterNodeNameV2 << std::endl;
+
+    m_cluster_container_v2 = findNode::getClass<RawClusterContainer>(dstNode, ClusterNodeNameV2);
+    if (!m_cluster_container_v2) { m_cluster_container_v2 = new RawClusterContainer(); }
+    auto *clusterNodeV2 = new PHIODataNode<PHObject>(m_cluster_container_v2, ClusterNodeNameV2, "PHObject");
+    cemcNode->addNode(clusterNodeV2);
+  }
 }
 
 bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower) const

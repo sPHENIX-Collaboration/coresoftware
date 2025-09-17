@@ -37,6 +37,7 @@ pkginclude_HEADERS = \
   RawClusterUtility.h \
   RawCluster.h \
   RawClusterv1.h \
+  RawClusterv2.h \
   RawClusterDefs.h \
   RawClusterContainer.h \
   RawTower.h \
@@ -77,6 +78,7 @@ ROOTDICTS = \
   PhotonClusterContainer_Dict.cc \
   RawCluster_Dict.cc \
   RawClusterv1_Dict.cc \
+  RawClusterv2_Dict.cc \
   RawClusterContainer_Dict.cc \
   RawTower_Dict.cc \
   RawTowerv1_Dict.cc \
@@ -119,6 +121,7 @@ libcalo_io_la_SOURCES = \
   PhotonClusterContainer.cc \
   RawCluster.cc \
   RawClusterv1.cc \
+  RawClusterv2.cc \
   RawClusterContainer.cc \
   RawTower.cc \
   RawTowerv1.cc \
