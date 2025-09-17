@@ -19,6 +19,8 @@ class CaloPacketSkimmer : public SubsysReco
   int process_event(PHCompositeNode* /*topNode*/) override;
   int InitRun(PHCompositeNode* topNode) override;
 
+  int EndRun(const int /*runnumber*/) override;
+
   void set_all_detectors_off() { m_CaloDetectors.clear(); }
 
   void set_all_detectors_on()
@@ -94,6 +96,8 @@ class CaloPacketSkimmer : public SubsysReco
 
   TH1D* h_aborted_events{nullptr};
   TH1D* h_kept_events{nullptr};
+  TH1D* h_missing_packets{nullptr};
+  TH1D* h_empty_packets{nullptr};
 };
 
 #endif
