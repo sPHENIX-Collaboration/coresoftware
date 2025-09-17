@@ -28,10 +28,9 @@
 #include <TStyle.h>
 #include <TSystem.h>
 
-#include <boost/format.hpp>
-
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_const_iterator
 #include <utility>  // for pair
@@ -1393,7 +1392,7 @@ void LiteCaloEval::draw_spectra(const char *outfile)
       TLegend *t = new TLegend(0.5, 0.8, 0.75, 0.9);
       t->SetFillStyle(0);
       t->SetBorderSize(0);
-      t->AddEntry("", (boost::format("ieta %d - %d") % starteta % (maxeta - 1)).str().c_str());
+      t->AddEntry("", std::format("ieta {} - {}", starteta,  (maxeta - 1)).c_str());
 
       // eta loop
       for (int i = starteta; i < maxeta; i++)
@@ -1457,7 +1456,7 @@ void LiteCaloEval::draw_spectra(const char *outfile)
 
           h_cln = (TH1 *) h->Clone();
 
-          h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
+          h_cln_nm = std::format("h_cln_eta_{}_phi_{}", i, j);
 
           h_cln->SetName(h_cln_nm.c_str());
 
@@ -1539,13 +1538,13 @@ void LiteCaloEval::draw_spectra(const char *outfile)
       }
 
       TCanvas *c = new TCanvas();
-      c->SetName((boost::format("emcal_eta%d_%d") % starteta % (maxeta - 1)).str().c_str());
+      c->SetName(std::format("emcal_eta{}_{}", starteta, (maxeta - 1)).c_str());
       gPad->SetLogy(1);
 
       TLegend *t = new TLegend(0.5, 0.8, 0.75, 0.9);
       t->SetFillStyle(0);
       t->SetBorderSize(0);
-      t->AddEntry("", (boost::format("ieta %d - %d") % starteta % (maxeta - 1)).str().c_str());
+      t->AddEntry("", std::format("ieta {} - {}", starteta, (maxeta - 1)).c_str());
 
       // eta loop
       for (int i = starteta; i < maxeta; i++)
@@ -1592,7 +1591,7 @@ void LiteCaloEval::draw_spectra(const char *outfile)
 
           h_cln = (TH1 *) h->Clone();
 
-          h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
+          h_cln_nm = std::format("h_cln_eta_{}_phi_{}", i, j);
 
           h_cln->SetName(h_cln_nm.c_str());
 
@@ -1729,7 +1728,7 @@ void LiteCaloEval::draw_spectra(const char *infile, const char *outfile)
       TLegend *t = new TLegend(0.5, 0.8, 0.75, 0.9);
       t->SetFillStyle(0);
       t->SetBorderSize(0);
-      t->AddEntry("", (boost::format("ieta %d - %d") % starteta % (maxeta - 1)).str().c_str(), "");
+      t->AddEntry("", std::format("ieta {} - {}", starteta, (maxeta - 1)).c_str(), "");
 
       // eta loop
       for (int i = starteta; i < maxeta; i++)
@@ -1814,7 +1813,7 @@ void LiteCaloEval::draw_spectra(const char *infile, const char *outfile)
 
           h_cln = (TH1F *) h->Clone();
 
-          h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
+          h_cln_nm = std::format("h_cln_eta_{}_phi_{}", i, j);
 
           h_cln->SetName(h_cln_nm.c_str());
 
@@ -1897,11 +1896,11 @@ void LiteCaloEval::draw_spectra(const char *infile, const char *outfile)
       }
 
       TCanvas *c = new TCanvas();
-      c->SetName((boost::format("emcal_eta%d_%d") % starteta % (maxeta - 1)).str().c_str());
+      c->SetName(std::format("emcal_eta{}_{}", starteta, (maxeta - 1)).c_str());
       gPad->SetLogy(1);
 
       TLegend *t = new TLegend(0.5, 0.8, 0.75, 0.9);
-      t->AddEntry("", (boost::format("ieta %d - %d") % starteta % (maxeta - 1)).str().c_str());
+      t->AddEntry("", std::format("ieta {} - {}", starteta, (maxeta - 1)).c_str());
 
       // eta loop
       for (int i = starteta; i < maxeta; i++)
@@ -1968,7 +1967,7 @@ void LiteCaloEval::draw_spectra(const char *infile, const char *outfile)
 
           h_cln = (TH1F *) h->Clone();
 
-          h_cln_nm = (boost::format("h_cln_eta_%d_phi_%d") % i % j).str();
+          h_cln_nm = std::format("h_cln_eta_{}_phi_{}", i, j);
 
           h_cln->SetName(h_cln_nm.c_str());
 
@@ -2122,19 +2121,19 @@ void LiteCaloEval::fit_info(const char *outfile, const int runNum)
       // for ohcal
       if (calotype == LiteCaloEval::HCALOUT)
       {
-        histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
+        histname = std::format("hcal_out_eta_{}_phi_{}", i, j);
       }
 
       // ihcal
       if (calotype == LiteCaloEval::HCALIN)
       {
-        histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
+        histname = std::format("hcal_in_eta_{}_phi_{}", i, j);
       }
 
       // emcal
       if (calotype == LiteCaloEval::CEMC)
       {
-        histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
+        histname = std::format("emc_ieta{}_phi{}", i, j);
       }
 
       sum4avg += (cp->GetBinContent(i + 1, j + 1));
@@ -2282,19 +2281,19 @@ void LiteCaloEval::fit_info(const char *infile, const char *outfile, const int r
       // for ohcal
       if (calotype == LiteCaloEval::HCALOUT)
       {
-        histname = (boost::format("hcal_out_eta_%d_phi_%d") % i % j).str();
+        histname = std::format("hcal_out_eta_{}_phi_{}", i, j);
       }
 
       // ihcal
       if (calotype == LiteCaloEval::HCALIN)
       {
-        histname = (boost::format("hcal_in_eta_%d_phi_%d") % i % j).str();
+        histname = std::format("hcal_in_eta_{}_phi_{}", i, j);
       }
 
       // emcal
       if (calotype == LiteCaloEval::CEMC)
       {
-        histname = (boost::format("emc_ieta%d_phi%d") % i % j).str();
+        histname = std::format("emc_ieta{}_phi{}", i, j);
       }
 
       sum4avg += (cp->GetBinContent(i + 1, j + 1));
