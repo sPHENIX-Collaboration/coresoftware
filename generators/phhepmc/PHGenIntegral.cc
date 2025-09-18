@@ -15,13 +15,13 @@
 //! cross sections for the processed events in pb
 Double_t PHGenIntegral::get_CrossSection_Processed_Event() const
 {
-  return get_Integrated_Lumi() > 0 ? get_N_Processed_Event() / get_Integrated_Lumi() : std::numeric_limits<Double_t>::signaling_NaN();
+  return get_Integrated_Lumi() > 0 ? get_N_Processed_Event() / get_Integrated_Lumi() : std::numeric_limits<Double_t>::quiet_NaN();
 }
 
 //! cross sections for the events accepted by the event generator in pb
 Double_t PHGenIntegral::get_CrossSection_Generator_Accepted_Event() const
 {
-  return get_Integrated_Lumi() > 0 ? get_N_Generator_Accepted_Event() / get_Integrated_Lumi() : std::numeric_limits<Double_t>::signaling_NaN();
+  return get_Integrated_Lumi() > 0 ? get_N_Generator_Accepted_Event() / get_Integrated_Lumi() : std::numeric_limits<Double_t>::quiet_NaN();
 }
 
 //! description on the source
