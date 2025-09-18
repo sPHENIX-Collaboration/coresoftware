@@ -17,8 +17,10 @@ class TowerInfo : public PHObject
   ~TowerInfo() override = default;
   void Reset() override { return; }
 
-  virtual void set_time(short /*t*/) { return; }
-  virtual short get_time() { return -1; }
+  virtual void set_time(float /*t*/) { return; }
+  virtual float get_time() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual void set_time_short(short /*t*/) { return; }
+  virtual short get_time_short() { return -1; }
   virtual void set_energy(float /*energy*/) { return; }
   virtual float get_energy() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void copy_tower(TowerInfo* /*tower*/) { return; }
