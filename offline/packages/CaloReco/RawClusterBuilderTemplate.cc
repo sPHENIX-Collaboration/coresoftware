@@ -118,13 +118,6 @@ void RawClusterBuilderTemplate::set_UseDetailedGeometry(const bool useDetailedGe
   bemc->set_UseDetailedGeometry(m_UseDetailedGeometry);
 }
 
-// cppcheck-suppress unusedFunction
-void RawClusterBuilderTemplate::WriteClusterV2(bool b)
-{
-  m_write_cluster_v2 = b;
-}
-
-
 void RawClusterBuilderTemplate::LoadProfile(const std::string &fname)
 {
   if (bemc == nullptr)
@@ -674,7 +667,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       //      std::cout << "Prob/Chi2/NDF = " << prob << " " << chi2
       //           << " " << ndf << " Ecl = " << ecl << std::endl;
 
-      cluster = new RawClusterv1();
+      cluster = new RawClusterv2();
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_r(std::sqrt(xg * xg + yg * yg));
@@ -710,35 +703,16 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         ++ph;
       }
 
-      auto it_legacy = _clusters->AddCluster(cluster);
-      cluster->set_id(it_legacy->first);
-
-      if (m_write_cluster_v2)
+      // stamp tower CoG (raw & corrected) directly into v2
+      float xcorr = xcg, ycorr = ycg;
+      bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
+      if (auto* c2 = dynamic_cast<RawClusterv2*>(cluster))
       {
-        float xcorr = xcg, ycorr = ycg;
-        bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
-
-        auto* c2 = new RawClusterv2();
-        c2->set_energy(cluster->get_energy());
-        c2->set_ecore(cluster->get_ecore());
-        c2->set_r(cluster->get_r());
-        c2->set_phi(cluster->get_phi());
-        c2->set_z(cluster->get_z());
-        c2->set_prob(cluster->get_prob());
-        c2->set_chi2(cluster->get_chi2());
-        for (const auto& kv : cluster->get_towermap()) c2->addTower(kv.first, kv.second);
-        c2->set_tower_cog(xcg, ycg, xcorr, ycorr);
-
-        if (m_cluster_container_v2)
-        {
-          auto it_v2 = m_cluster_container_v2->AddCluster(c2);
-          c2->set_id(it_v2->first);
-        }
-        else
-        {
-          delete c2;
-        }
+          c2->set_tower_cog(xcg, ycg, xcorr, ycorr);
       }
+
+      auto it_v2same = _clusters->AddCluster(cluster);
+      cluster->set_id(it_v2same->first);
       // ncl++;
 
       //      std::cout << "    ipk = " << ipk << ": E = " << ecl << "  E9 = "
@@ -816,25 +790,6 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
 
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName, "PHObject");
   cemcNode->addNode(clusterNode);
-
-  if (Verbosity() > 0)
-  {
-    std::cout << "[RawClusterBuilderTemplate::CreateNodes] detector=" << detector
-              << " base=" << ClusterNodeName
-              << "  m_write_cluster_v2=" << std::boolalpha << m_write_cluster_v2 << std::endl;
-  }
-
-  if (m_write_cluster_v2)
-  {
-    const std::string ClusterNodeNameV2 = ClusterNodeName + "_V2"; // clean suffix
-    if (Verbosity() > 0)
-        std::cout << "  -> creating v2 node: " << ClusterNodeNameV2 << std::endl;
-
-    m_cluster_container_v2 = findNode::getClass<RawClusterContainer>(dstNode, ClusterNodeNameV2);
-    if (!m_cluster_container_v2) { m_cluster_container_v2 = new RawClusterContainer(); }
-    auto *clusterNodeV2 = new PHIODataNode<PHObject>(m_cluster_container_v2, ClusterNodeNameV2, "PHObject");
-    cemcNode->addNode(clusterNodeV2);
-  }
 }
 
 bool RawClusterBuilderTemplate::IsAcceptableTower(TowerInfo *tower) const

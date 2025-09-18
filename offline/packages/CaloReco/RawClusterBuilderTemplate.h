@@ -31,7 +31,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   void PrintCylGeom(RawTowerGeomContainer* towergeom, const std::string& fname) const;
   void SetProfileProb(bool pprob) { bProfProb = pprob; }
   void SetProbNoiseParam(float rn) { fProbNoiseParam = rn; }
-  void WriteClusterV2(bool b);
+    
   void set_threshold_energy(const float e) { _min_tower_e = e; }
   void set_peakthreshold_energy(const float e) { _min_peak_e = e; }
   void setEnergyNorm(const float norm) { fEnergyNorm = norm; }
@@ -100,9 +100,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   float _min_tower_e{0.020};
   float _min_peak_e{0.200};
   int chkenergyconservation{0};
-  bool m_write_cluster_v2 = false;
-  RawClusterContainer* m_cluster_container_v2 = nullptr; // second node
-    
+
   std::string detector;
   std::string ClusterNodeName;
 
