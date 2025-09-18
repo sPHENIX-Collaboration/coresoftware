@@ -24,9 +24,6 @@ class TowerInfo : public PHObject
   virtual void set_energy(float /*energy*/) { return; }
   virtual float get_energy() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void copy_tower(TowerInfo* /*tower*/) { return; }
-  // methods in v2
-  virtual void set_time_float(float /*t*/) { return; }
-  virtual float get_time_float() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void set_chi2(float /*chi2*/) { return; }
   virtual float get_chi2() { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void set_pedestal(float /*pedestal*/) { return; }
