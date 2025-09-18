@@ -37,6 +37,7 @@ libg4testbench_la_LDFLAGS = \
 libg4testbench_la_LIBADD = \
   libphg4hit.la \
   -lboost_filesystem \
+  -leicsmear \
   -lffamodules \
   -lfun4all \
   -lg4decayer \
@@ -49,11 +50,6 @@ libg4testbench_la_LIBADD = \
   -lphhepmc \
   -lphparameter
 
-# I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
-# pcm files in addition. If someone can figure out how to make a list
-# so this list of dictionaries is transformed into a list of pcm files
-# following a simple naming convention, please change this accordingly and
-# let me know
 ROOTHITDICTS = \
   EicEventHeader_Dict.cc \
   EicEventHeaderv1_Dict.cc \
@@ -103,12 +99,13 @@ libphg4hit_la_SOURCES = \
   PHG4VtxPointv2.cc
 
 libg4testbench_la_SOURCES = \
+  CosmicSpray.cc \
   Fun4AllMessenger.cc \
-  G4TBMagneticFieldSetup.cc \
-  G4TBFieldMessenger.cc \
   Fun4AllDstPileupInputManager.cc \
   Fun4AllDstPileupMerger.cc \
   Fun4AllSingleDstPileupInputManager.cc \
+  G4TBMagneticFieldSetup.cc \
+  G4TBFieldMessenger.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
   PHG4DisplayAction.cc \
@@ -149,13 +146,15 @@ libg4testbench_la_SOURCES = \
   PHG4UIsession.cc \
   PHG4Utils.cc \
   PHG4VertexSelection.cc \
-  CosmicSpray.cc
+  ReadEICFiles.cc
 
 
 ##############################################
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  CosmicSpray.h \
+  EcoMug.h \
   EicEventHeader.h \
   Fun4AllDstPileupInputManager.h \
   Fun4AllDstPileupMerger.h \
@@ -209,9 +208,7 @@ pkginclude_HEADERS = \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
   PHG4VtxPointv2.h \
-  ReadEICFiles.h \
-  CosmicSpray.h \
-  EcoMug.h
+  ReadEICFiles.h
 
 ################################################
 # linking tests
