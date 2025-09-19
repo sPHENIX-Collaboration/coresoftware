@@ -1174,9 +1174,25 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   //! Switch to get ideal transforms
   alignmentTransformationContainer::use_alignment = false;
-  auto idealcenter = surf_ideal->center(geometry->geometry().getGeoContext());
+  auto idealcenter = surf_ideal->center(geometry->geometry().getGeoContext());  //mm
   auto idealnorm = -1 * surf_ideal->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
 
+  if(Verbosity() > 3 && layer == 44)
+    {
+      std::vector<double> surfbounds = surf_ideal->bounds().values();  // mm
+      std::cout << "resids: layer " << layer << " ideal center z " << idealcenter.z() << " mm " << std::endl;
+      std::cout << " surface bounds " << surfbounds[0] << "  " << surfbounds[1] << " mm " << std::endl;
+      alignmentTransformationContainer::use_alignment = false;
+      Acts::Transform3 transform = surf_ideal->transform(geometry->geometry().getGeoContext());
+      std::cout << "Ideal transform is:" << std::endl;
+      std::cout << transform.matrix() << std::endl;
+      alignmentTransformationContainer::use_alignment = true;
+      Acts::Transform3 transform1 = surf_ideal->transform(geometry->geometry().getGeoContext());
+      std::cout << "Alignment transform is:" << std::endl;
+      std::cout << transform1.matrix() << std::endl;
+
+    }
+  
   // replace the corrected moved cluster local position with the readout position from ideal geometry for now
   // This allows us to see the distortion corrections by subtracting this uncorrected position
   // revisit this when looking at the alignment case

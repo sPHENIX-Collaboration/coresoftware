@@ -63,6 +63,7 @@ class PHTpcResiduals : public SubsysReco
   {
     m_maxResidualDz = maxResidualDz;
   }
+
   //@}
 
   /// track min pT
@@ -146,8 +147,8 @@ class PHTpcResiduals : public SubsysReco
 
   /// Tpc geometry
   static constexpr unsigned int m_nLayersTpc = 48;
-  static constexpr float m_zMin = -105.5;  // cm
-  static constexpr float m_zMax = 105.5;   // cm
+  float m_zMin = 0;  // cm
+  float m_zMax = 0;   // cm
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
