@@ -63,8 +63,8 @@ void JetBackgroundCut::CreateNodeTree(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int JetBackgroundCut::process_event(PHCompositeNode *topNode)
 {
-  TowerInfoContainer *towersEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
-  TowerInfoContainer *towersOH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+  TowerInfoContainer *towersEM = findNode::getClass<TowerInfoContainer>(topNode, m_input_cemc_tower_node);
+  TowerInfoContainer *towersOH = findNode::getClass<TowerInfoContainer>(topNode, m_input_ohcal_tower_node);
   JetContainer *jets = findNode::getClass<JetContainer>(topNode, _jetNodeName);
   GlobalVertexMap *gvtxmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
@@ -216,7 +216,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
       {
         unsigned int channel = comp.second;
         TowerInfo *tower;
-        if (comp.first == 13 || comp.first == 28 || comp.first == 25)
+        if (comp.first == Jet::CEMC_TOWER_RETOWER || comp.first == Jet::CEMC_TOWERINFO_RETOWER || comp.first == Jet::CEMC_TOWERINFO || comp.first == Jet::CEMC_TOWERINFO_SUB1)
         {
           tower = towersEM->get_tower_at_channel(channel);
           int key = towersEM->encode_key(channel);
@@ -230,7 +230,7 @@ int JetBackgroundCut::process_event(PHCompositeNode *topNode)
           float towerEta = -log(std::tan(0.5 * newTheta));
           frcem += tower->get_energy() / std::cosh(towerEta);
         }
-        if (comp.first == 7 || comp.first == 27)
+        if (comp.first == Jet::HCALOUT_TOWER|| comp.first == Jet::HCALOUT_TOWERINFO || comp.first == Jet::HCALOUT_TOWERINFO_SUB1)
         {
           tower = towersOH->get_tower_at_channel(channel);
           int key = towersOH->encode_key(channel);
