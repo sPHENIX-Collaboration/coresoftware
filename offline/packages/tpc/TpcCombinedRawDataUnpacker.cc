@@ -305,7 +305,6 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
     uint16_t sampch = tpchit->get_sampachannel();
     //    uint16_t sam = tpchit->get_samples();
     max_time_range = tpchit->get_samples();
-<<<<<<< HEAD
      
     int region = 2;
     if(layer < 7 + 16)
@@ -313,11 +312,6 @@ int TpcCombinedRawDataUnpacker::process_event(PHCompositeNode* topNode)
       region = 0;
     }
     else if( layer < 7 + 32)
-=======
-    varname = "phi";  // + std::to_string(key);
-
-    if(layer > 15)
->>>>>>> parent of 7e0a73ff1 (builds, ready to test jenkins)
     {
       region = 1;
     }
