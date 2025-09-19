@@ -667,7 +667,9 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       //      std::cout << "Prob/Chi2/NDF = " << prob << " " << chi2
       //           << " " << ndf << " Ecl = " << ecl << std::endl;
 
-      cluster = new RawClusterv2();
+      cluster = m_writeClusterV2
+                    ? static_cast<RawCluster*>(new RawClusterv2())
+                    : static_cast<RawCluster*>(new RawClusterv1());
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_r(std::sqrt(xg * xg + yg * yg));
@@ -703,12 +705,15 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         ++ph;
       }
 
-      // stamp tower CoG (raw & corrected) directly into v2
-      float xcorr = xcg, ycorr = ycg;
-      bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
-      if (auto* c2 = dynamic_cast<RawClusterv2*>(cluster))
+      // stamp tower CoG (raw & corrected) only when writing v2
+      if (m_writeClusterV2)
       {
+        float xcorr = xcg, ycorr = ycg;
+        bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
+        if (auto* c2 = dynamic_cast<RawClusterv2*>(cluster))
+        {
           c2->set_tower_cog(xcg, ycg, xcorr, ycorr);
+        }
       }
 
       auto it_v2same = _clusters->AddCluster(cluster);
