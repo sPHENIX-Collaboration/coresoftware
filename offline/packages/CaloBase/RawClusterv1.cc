@@ -19,7 +19,7 @@ void RawClusterv1::Reset()
 
 void RawClusterv1::addTower(const RawClusterDefs::keytype twrid, const float etower)
 {
-  if (towermap.find(twrid) != towermap.end())
+  if (towermap.contains(twrid))
   {
     std::cout << "tower 0x" << std::hex << twrid << ", dec: " << std::dec
               << twrid << " already exists, that is bad" << std::endl;
@@ -402,7 +402,7 @@ std::vector<float> RawClusterv1::get_shower_shapes(float tower_thresh) const
       return phi - totalphibins;
     }
     RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta, phi);
-    if (towermap.find(key) != towermap.end())
+    if (towermap.contains(key))
     {
       if (towermap.at(key) > tower_thresh)
       {

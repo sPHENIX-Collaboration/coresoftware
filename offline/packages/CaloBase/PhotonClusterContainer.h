@@ -22,7 +22,7 @@ class PhotonClusterContainer : public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   PhotonClusterContainer() = default;
-  ~PhotonClusterContainer() override {}
+  ~PhotonClusterContainer() override = default;
 
   void Reset() override;
   int isValid() const override;
@@ -30,8 +30,8 @@ class PhotonClusterContainer : public PHObject
 
   ConstIterator AddCluster(PhotonCluster* clus); // takes ownership
 
-  PhotonCluster* getCluster(const RawClusterDefs::keytype id);
-  const PhotonCluster* getCluster(const RawClusterDefs::keytype id) const;
+  PhotonCluster* getCluster(const RawClusterDefs::keytype key);
+  const PhotonCluster* getCluster(const RawClusterDefs::keytype key) const;
 
   ConstRange getClusters() const;
   Range getClusters();

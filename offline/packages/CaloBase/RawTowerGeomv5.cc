@@ -8,9 +8,9 @@ RawTowerGeomv5::RawTowerGeomv5(RawTowerDefs::keytype id)
 {
 }
 
-RawTowerGeomv5::RawTowerGeomv5(const RawTowerGeom& geom0)
+RawTowerGeomv5::RawTowerGeomv5(const RawTowerGeom& geom0) : _towerid(geom0.get_id())
 {
-  _towerid = geom0.get_id();
+  
 
   _rot[0] = geom0.get_rotx();
   _rot[1] = geom0.get_roty();

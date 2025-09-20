@@ -20,21 +20,21 @@ class RawClusterContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  RawClusterContainer() {}
-  ~RawClusterContainer() override {}
+  RawClusterContainer() = default;
+  ~RawClusterContainer() override = default;
 
   void Reset() override;
   int isValid() const override;
   void identify(std::ostream &os = std::cout) const override;
 
-  ConstIterator AddCluster(RawCluster *clus);
+  ConstIterator AddCluster(RawCluster *rawcluster);
 
-  RawCluster *getCluster(const RawClusterDefs::keytype id);
-  const RawCluster *getCluster(const RawClusterDefs::keytype id) const;
+  RawCluster *getCluster(const RawClusterDefs::keytype key);
+  const RawCluster *getCluster(const RawClusterDefs::keytype key) const;
 
   //! return all clusters
-  ConstRange getClusters(void) const;
-  Range getClusters(void);
+  ConstRange getClusters() const;
+  Range getClusters();
   const Map &getClustersMap() const { return _clusters; }
   Map &getClustersMap() { return _clusters; }
 

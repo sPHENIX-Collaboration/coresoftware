@@ -5,11 +5,11 @@
 #include <string>
 
 PhotonClusterv1::PhotonClusterv1(const RawClusterv1& rawcluster)
-  : PhotonCluster()
-  , RawClusterv1(rawcluster)
-  , m_conversion_prob(0.0f)
+  : 
+   RawClusterv1(rawcluster)
+  , m_conversion_prob(0.0F)
   , m_is_converted(false)
-  , m_shower_shapes()
+   
 {
   // No default shower shape inserted; user/algorithm must set if needed
   // Photon energy now same as cluster energy via get_energy()
@@ -28,7 +28,7 @@ void PhotonClusterv1::Reset()
 void PhotonClusterv1::reset_photon_properties()
 {
   // Reset photon-related values (cluster energy left to RawClusterv1 Reset caller if needed)
-  m_conversion_prob = 0.0f;
+  m_conversion_prob = 0.0F;
   m_is_converted = false;
   m_shower_shapes.clear();
 }
@@ -42,7 +42,7 @@ int PhotonClusterv1::isValid() const
 bool PhotonClusterv1::is_valid_photon() const
 {
   // Valid photon if has positive energy
-  return (get_energy() > 0.0f);
+  return (get_energy() > 0.0F);
 }
 
 void PhotonClusterv1::identify(std::ostream& os) const
@@ -75,7 +75,7 @@ bool PhotonClusterv1::pass_photon_cuts() const
   // @warning: These are example cuts - customize based on your analysis needs
   std::cout<<"this is currently unimplemented"<<std::endl;
   // Minimum energy cut
-  if (get_energy() < 0.5f) {
+  if (get_energy() < 0.5F) {
     return false;  
   }
   
@@ -86,7 +86,7 @@ bool PhotonClusterv1::pass_photon_cuts() const
   //}
   
   // Isolation cut (photons should be isolated)
-  if (get_et_iso() > 2.0f) {
+  if (get_et_iso() > 2.0F) {
     return false;  
   }
   
@@ -99,6 +99,7 @@ bool PhotonClusterv1::pass_photon_cuts() const
 float PhotonClusterv1::get_shower_shape_parameter(const std::string& name) const
 {
   auto it = m_shower_shapes.find(name);
-  if (it != m_shower_shapes.end()) return it->second;
+  if (it != m_shower_shapes.end()) { return it->second;
+}
   return std::numeric_limits<float>::signaling_NaN();
 }
