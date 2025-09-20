@@ -25,7 +25,7 @@ class RawTowerContainer : public PHObject
   {
   }
 
-  ~RawTowerContainer() override {}
+  ~RawTowerContainer() override = default;
 
   void Reset() override;
   int isValid() const override;
@@ -34,7 +34,7 @@ class RawTowerContainer : public PHObject
   void setCalorimeterID(RawTowerDefs::CalorimeterId caloid) { _caloid = caloid; }
   RawTowerDefs::CalorimeterId getCalorimeterID() { return _caloid; }
 
-  ConstIterator AddTower(const unsigned int ieta, const unsigned int iphi, RawTower *twr);
+  ConstIterator AddTower(const unsigned int ieta, const unsigned int iphi, RawTower *rawtower);
   ConstIterator AddTower(RawTowerDefs::keytype key, RawTower *twr);
 
   RawTower *getTower(RawTowerDefs::keytype key);

@@ -31,7 +31,7 @@ class RawTower : public PHObject
   typedef std::pair<ShowerIterator, ShowerIterator> ShowerRange;
   typedef std::pair<ShowerConstIterator, ShowerConstIterator> ShowerConstRange;
 
-  ~RawTower() override {}
+  ~RawTower() override = default;
 
   void Reset() override { PHOOL_VIRTUAL_WARNING; }
   int isValid() const override
@@ -180,10 +180,10 @@ class RawTower : public PHObject
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
   virtual double get_property(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::signaling_NaN(); }
   virtual void set_property(const PROPERTY /*prop_id*/, const double /*value*/) { return; }
-  static const std::string get_property_info(PROPERTY prop_id);
+  static std::string get_property_info(PROPERTY prop_id);
 
  protected:
-  RawTower() {}
+  RawTower() = default;
 
   virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }

@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <memory>
 
 RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(RawTowerDefs::CalorimeterId caloid)
   : RawTowerGeomContainerv1(caloid)
@@ -108,15 +107,12 @@ int RawTowerGeomContainer_Cylinderv1::get_etabin(const double eta) const
       ibin = i;
       break;
     }
-    else
+    const double deta = std::abs(mean_eta - eta);
+    if (deta < min_deta)
     {
-      const double deta = fabs(mean_eta - eta);
-      if (deta < min_deta)
-      {
-        min_deta = deta;
-        ibin = i;
-      }  // keep searching
-    }
+      min_deta = deta;
+      ibin = i;
+    }  // keep searching
 
     i++;
   }
@@ -154,15 +150,12 @@ int RawTowerGeomContainer_Cylinderv1::get_phibin(const double phi) const
       ibin = i;
       break;
     }
-    else
+    const double dphi = std::abs(mean_phi - phi_fold);
+    if (dphi < min_dphi)
     {
-      const double dphi = fabs(mean_phi - phi_fold);
-      if (dphi < min_dphi)
-      {
-        min_dphi = dphi;
-        ibin = i;
-      }  // keep searching
-    }
+      min_dphi = dphi;
+      ibin = i;
+    }  // keep searching
 
     i++;
   }

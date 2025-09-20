@@ -2,17 +2,13 @@
 #define TOWERINFOSIMV1_H
 
 #include "TowerInfov2.h"
-#include "TowerInfo.h"
-
-#include <cstdint>  // For int16_t
 
 class TowerInfoSimv1 : public TowerInfov2
 {
  public:
-    
-  TowerInfoSimv1() {}
-  ~TowerInfoSimv1() override {}
-  
+  TowerInfoSimv1() = default;
+  ~TowerInfoSimv1() override = default;
+
   void Reset() override;
   void Clear(Option_t* = "") override;
 

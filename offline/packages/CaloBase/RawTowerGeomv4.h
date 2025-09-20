@@ -13,9 +13,9 @@
 class RawTowerGeomv4 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv4() {}
+  RawTowerGeomv4() = default;
   RawTowerGeomv4(RawTowerDefs::keytype id);
-  virtual ~RawTowerGeomv4() {}
+  virtual ~RawTowerGeomv4() = default;
 
   void identify(std::ostream& os = std::cout) const override;
 

@@ -1,5 +1,7 @@
 #include "TowerInfoSimv2.h"
 
+#include "TowerInfo.h"
+
 void TowerInfoSimv2::Reset()
 {
   TowerInfoSimv1::Reset();
@@ -45,6 +47,3 @@ void TowerInfoSimv2::copy_tower(TowerInfo* tower)
   }
   return;
 }
-
-
-

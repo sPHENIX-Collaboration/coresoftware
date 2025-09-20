@@ -18,7 +18,7 @@ class TowerInfoContainerv4 : public TowerInfoContainer
   TowerInfoContainerv4(DETECTOR detec);
 
   // default constructor for ROOT IO
-  TowerInfoContainerv4() {}
+  TowerInfoContainerv4() = default;
   PHObject *CloneMe() const override { return new TowerInfoContainerv4(*this); }
   TowerInfoContainerv4(const TowerInfoContainerv4 &);
 

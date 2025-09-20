@@ -6,9 +6,9 @@
 class TowerInfov1 : public TowerInfo
 {
  public:
-  TowerInfov1() {}
+  TowerInfov1() = default;
   TowerInfov1(TowerInfo& tower);
-  ~TowerInfov1() override {}
+  ~TowerInfov1() override = default;
   void Reset() override;
 
   //! Clear is used by TClonesArray to reset the tower to initial state without calling destructor/constructor

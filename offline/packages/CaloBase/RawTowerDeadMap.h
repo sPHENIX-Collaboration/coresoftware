@@ -13,7 +13,7 @@ class RawTowerDeadMap : public PHObject
  public:
   typedef std::set<RawTowerDefs::keytype> Map;
 
-  ~RawTowerDeadMap() override {}
+  ~RawTowerDeadMap() override = default;
 
   void Reset() override;
   int isValid() const override;

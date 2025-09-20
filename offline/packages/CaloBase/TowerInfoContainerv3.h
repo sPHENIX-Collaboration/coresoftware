@@ -6,6 +6,9 @@
 
 #include <TClonesArray.h>
 
+#include <cstddef>
+#include <iostream>
+
 class PHObject;
 
 class TowerInfoContainerv3 : public TowerInfoContainer
@@ -14,7 +17,7 @@ class TowerInfoContainerv3 : public TowerInfoContainer
   TowerInfoContainerv3(DETECTOR detec);
 
   // default constructor for ROOT IO
-  TowerInfoContainerv3() {}
+  TowerInfoContainerv3() = default;
   PHObject *CloneMe() const override { return new TowerInfoContainerv3(*this); }
   TowerInfoContainerv3(const TowerInfoContainerv3 &);
 

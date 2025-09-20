@@ -107,7 +107,7 @@ namespace RawTowerDefs
   inline unsigned int
   decode_index(const unsigned int calo_tower_id)
   {
-    return (calo_tower_id) &0xFFFFFF;
+    return (calo_tower_id) & 0xFFFFFF;
   }
 
   /*! Extract tower index 1 of calorimeter tower from CaloTowerID

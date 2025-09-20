@@ -26,7 +26,7 @@ class RawTowerGeomContainer : public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
   //! default constructor for ROOT IO
-  ~RawTowerGeomContainer() override {}
+  ~RawTowerGeomContainer() override = default;
 
   void identify(std::ostream &os = std::cout) const override;
 
@@ -135,7 +135,7 @@ class RawTowerGeomContainer : public PHObject
 
  protected:
   //! this class is not for use. Base class only
-  RawTowerGeomContainer() {}
+  RawTowerGeomContainer() = default;
 
   ClassDefOverride(RawTowerGeomContainer, 2)
 };

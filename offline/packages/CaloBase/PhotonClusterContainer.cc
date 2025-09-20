@@ -1,7 +1,7 @@
 #include "PhotonClusterContainer.h"
 
 #include "PhotonCluster.h"
-#include "PhotonClusterv1.h" // for concrete type id access (set_id via RawCluster side not available here)
+#include "PhotonClusterv1.h"  // for concrete type id access (set_id via RawCluster side not available here)
 
 #include <iostream>
 
@@ -18,7 +18,7 @@ PhotonClusterContainer::Range PhotonClusterContainer::getClusters()
 PhotonClusterContainer::ConstIterator PhotonClusterContainer::AddCluster(PhotonCluster* clus)
 {
   unsigned int key = m_clusters.size();
-  while (m_clusters.find(key) != m_clusters.end())
+  while (m_clusters.contains(key))
   {
     key++;
   }
@@ -30,14 +30,20 @@ PhotonClusterContainer::ConstIterator PhotonClusterContainer::AddCluster(PhotonC
 PhotonCluster* PhotonClusterContainer::getCluster(const unsigned int key)
 {
   ConstIterator it = m_clusters.find(key);
-  if (it != m_clusters.end()) return it->second;
+  if (it != m_clusters.end())
+  {
+    return it->second;
+  }
   return nullptr;
 }
 
 const PhotonCluster* PhotonClusterContainer::getCluster(const unsigned int key) const
 {
   ConstIterator it = m_clusters.find(key);
-  if (it != m_clusters.end()) return it->second;
+  if (it != m_clusters.end())
+  {
+    return it->second;
+  }
   return nullptr;
 }
 

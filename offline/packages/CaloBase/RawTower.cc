@@ -39,7 +39,7 @@ RawTower::ShowerConstIterator RawTower::find_g4shower(int /*id*/) const
   return DummyShowerMap.end();
 }
 
-const std::string RawTower::get_property_info(RawTower::PROPERTY prop_id)
+std::string RawTower::get_property_info(RawTower::PROPERTY prop_id)
 {
   switch (prop_id)
   {
