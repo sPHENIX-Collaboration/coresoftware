@@ -150,7 +150,7 @@ int ZdcReco::process_event(PHCompositeNode *topNode)
     {
       TowerInfo *_tower = zdc_towerinfo->get_tower_at_channel(ch);
       float zdc_e = _tower->get_energy();
-      float zdc_time = _tower->get_time_float();
+      float zdc_time = _tower->get_time();
       if (TowerInfoDefs::isZDC(ch))
       {
         vzdcadc.push_back(zdc_e);

@@ -85,7 +85,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
       int ieta = towerinfosEM3->getTowerEtaBin(channelkey);
       int iphi = towerinfosEM3->getTowerPhiBin(channelkey);
       rawtower_e[ieta][iphi] = tower->get_energy();
-      rawtower_time[ieta][iphi] = tower->get_time_float();
+      rawtower_time[ieta][iphi] = tower->get_time();
       rawtower_status[ieta][iphi] = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
     }
     EMRetowerName = m_towerNodePrefix + "_CEMC_RETOWER";
@@ -148,11 +148,11 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
           towerinfo->set_energy(retower_e_temp / (double) (1 - scalefactor));
           if (retower_e_temp == 0)
           {
-            towerinfo->set_time_float(0);
+            towerinfo->set_time(0);
           }
           else
           {
-            towerinfo->set_time_float((retower_time_temp / retower_e_temp));
+            towerinfo->set_time((retower_time_temp / retower_e_temp));
           }
           towerinfo->set_chi2(scalefactor);
         }

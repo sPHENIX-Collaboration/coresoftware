@@ -14,11 +14,7 @@ class TowerInfov2 : public TowerInfov1
 
   void Reset() override;
   void Clear(Option_t* = "") override;
-  void set_time(short t) override { TowerInfov1::set_time(t * 1000); }
-  short get_time() override { return TowerInfov1::get_time() / 1000; }
 
-  void set_time_float(float t) override { TowerInfov1::set_time(t * 1000); }
-  float get_time_float() override { return TowerInfov1::get_time() / 1000.; }
 
   void set_chi2(float chi2) override { _chi2 = chi2; }
   float get_chi2() override { return _chi2; }

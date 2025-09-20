@@ -285,9 +285,9 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
       if(!isZS)
       {
       //I realized that there is no point to do timing calibration for the towerinfov1 object since the resolution is not enough...
-      float raw_time = caloinfo_raw->get_time_float();
+      float raw_time = caloinfo_raw->get_time();
       float meantime = m_cdbInfo_vec[channel].meantime;
-      _calib_towers->get_tower_at_channel(channel)->set_time_float(raw_time - meantime);
+      _calib_towers->get_tower_at_channel(channel)->set_time(raw_time - meantime);
       }
     }
   }
