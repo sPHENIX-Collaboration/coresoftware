@@ -22,18 +22,9 @@ class RawClusterv2 : public RawClusterv1
   // Optional: clone into the same dynamic type
   RawCluster* CloneMe() const override { return new RawClusterv2(*this); }
 
-  void Reset() override
-  {
-    RawClusterv1::Reset();
-    _x_raw  = _y_raw  = _x_corr = _y_corr = std::numeric_limits<float>::quiet_NaN();
-  }
+  void Reset() override;
 
-  void identify(std::ostream& os = std::cout) const override
-  {
-    RawClusterv1::identify(os);
-    os << "  [towerCoG raw=(" << _x_raw << "," << _y_raw << ") corr=("
-       << _x_corr << "," << _y_corr << ")]\n";
-  }
+  void identify(std::ostream& os = std::cout) const override;
 
  private:
   float _x_raw  = std::numeric_limits<float>::quiet_NaN();
