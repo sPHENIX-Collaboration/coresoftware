@@ -9,6 +9,7 @@
 
 class PHCompositeNode;
 class RawClusterContainer;
+class RawClusterv2;
 class RawTowerGeomContainer;
 class BEmcRec;
 class TowerInfo;
@@ -30,7 +31,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   void PrintCylGeom(RawTowerGeomContainer* towergeom, const std::string& fname) const;
   void SetProfileProb(bool pprob) { bProfProb = pprob; }
   void SetProbNoiseParam(float rn) { fProbNoiseParam = rn; }
-
+    
   void set_threshold_energy(const float e) { _min_tower_e = e; }
   void set_peakthreshold_energy(const float e) { _min_peak_e = e; }
   void setEnergyNorm(const float norm) { fEnergyNorm = norm; }
@@ -57,6 +58,8 @@ class RawClusterBuilderTemplate : public SubsysReco
   void set_UseCorrectShowerDepth(const bool useCorrectShowerDepth);
 
   void set_UseDetailedGeometry(const bool useDetailedGeometry);
+    
+  void WriteClusterV2(bool enable) { m_writeClusterV2 = enable; }
 
   void setOutputClusterNodeName(const std::string& inpNodenm)
   {
@@ -134,6 +137,7 @@ class RawClusterBuilderTemplate : public SubsysReco
   float m_min_cluster_e{0.0};
 
   bool m_subclustersplitting{true};
+  bool m_writeClusterV2{false};  // default off: use RawClusterv1
 
   std::string m_inputnodename;
   std::string m_outputnodename;
