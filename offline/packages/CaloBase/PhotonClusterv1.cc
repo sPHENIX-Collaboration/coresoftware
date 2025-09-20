@@ -5,11 +5,10 @@
 #include <string>
 
 PhotonClusterv1::PhotonClusterv1(const RawClusterv1& rawcluster)
-  : 
-   RawClusterv1(rawcluster)
+  : RawClusterv1(rawcluster)
   , m_conversion_prob(0.0F)
   , m_is_converted(false)
-   
+
 {
   // No default shower shape inserted; user/algorithm must set if needed
   // Photon energy now same as cluster energy via get_energy()
@@ -20,7 +19,7 @@ void PhotonClusterv1::Reset()
 {
   // @warning: Call base class reset first to avoid issues with virtual dispatch
   RawClusterv1::Reset();
-  
+
   // Reset photon-specific members
   reset_photon_properties();
 }
@@ -49,7 +48,7 @@ void PhotonClusterv1::identify(std::ostream& os) const
 {
   // @warning: Call base class identify first to maintain output order
   RawClusterv1::identify(os);
-  
+
   // Add photon-specific information
   identify_photon(os);
 }
@@ -73,33 +72,37 @@ void PhotonClusterv1::identify_photon(std::ostream& os) const
 bool PhotonClusterv1::pass_photon_cuts() const
 {
   // @warning: These are example cuts - customize based on your analysis needs
-  std::cout<<"this is currently unimplemented"<<std::endl;
+  std::cout << "this is currently unimplemented" << std::endl;
   // Minimum energy cut
-  if (get_energy() < 0.5F) {
-    return false;  
+  if (get_energy() < 0.5F)
+  {
+    return false;
   }
-  
+
   // Shower shape cut: if a shape named "core" exists, apply cut
-  //auto it_core = m_shower_shapes.find("core");
-  //if (it_core != m_shower_shapes.end()) {
+  // auto it_core = m_shower_shapes.find("core");
+  // if (it_core != m_shower_shapes.end()) {
   //  if (it_core->second > 0.3f) return false;
   //}
-  
+
   // Isolation cut (photons should be isolated)
-  if (get_et_iso() > 2.0F) {
-    return false;  
+  if (get_et_iso() > 2.0F)
+  {
+    return false;
   }
-  
+
   // @warning: Add more sophisticated photon ID cuts as needed
   // Consider using cluster properties like get_ecore(), get_prob(), etc.
-  
+
   return true;
 }
 
 float PhotonClusterv1::get_shower_shape_parameter(const std::string& name) const
 {
   auto it = m_shower_shapes.find(name);
-  if (it != m_shower_shapes.end()) { return it->second;
-}
+  if (it != m_shower_shapes.end())
+  {
+    return it->second;
+  }
   return std::numeric_limits<float>::signaling_NaN();
 }

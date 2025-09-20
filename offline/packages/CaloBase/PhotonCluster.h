@@ -1,8 +1,8 @@
 #ifndef CALOBASE_PHOTONCLUSTER_H
 #define CALOBASE_PHOTONCLUSTER_H
 
-#include <phool/phool.h>
 #include <Rtypes.h>  // for ROOT dictionary macro definitions
+#include <phool/phool.h>
 #include <iostream>
 #include <limits>
 
@@ -16,7 +16,7 @@
 //!  - This interface only covers photon ID related quantities (conversion + shower shape) and
 //!    convenience hooks for ID logic/printing. (conversion flag is a placeholder)
 //!  - Keep it lean: no data members here – storage resides in concrete subclasses.
-class PhotonCluster 
+class PhotonCluster
 {
  public:
   //! Virtual destructor for proper cleanup via base pointer
@@ -44,7 +44,7 @@ class PhotonCluster
   }
   //! @}
 
-  //! @name Photon Analysis Methods  
+  //! @name Photon Analysis Methods
   //! @{
   virtual bool pass_photon_cuts() const
   {
@@ -70,7 +70,7 @@ class PhotonCluster
     PHOOL_VIRTUAL_WARN("set_converted()");
   }
 
-  virtual void set_shower_shape_parameter(const std::string& /*name*/,  const float /*shape*/)
+  virtual void set_shower_shape_parameter(const std::string& /*name*/, const float /*shape*/)
   {
     PHOOL_VIRTUAL_WARN("set_shower_shape_parameter()");
   }
@@ -82,7 +82,7 @@ class PhotonCluster
   {
     PHOOL_VIRTUAL_WARN("reset_photon_properties()");
   }
-  
+
   virtual bool is_valid_photon() const
   {
     PHOOL_VIRTUAL_WARN("is_valid_photon()");

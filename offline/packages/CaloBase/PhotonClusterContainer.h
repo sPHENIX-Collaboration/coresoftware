@@ -9,7 +9,7 @@
 #include <map>
 #include <utility>
 
-class PhotonCluster; // interface
+class PhotonCluster;  // interface
 
 // Container owning photon cluster objects (PhotonClusterv1 or derivatives)
 class PhotonClusterContainer : public PHObject
@@ -28,7 +28,7 @@ class PhotonClusterContainer : public PHObject
   int isValid() const override;
   void identify(std::ostream& os = std::cout) const override;
 
-  ConstIterator AddCluster(PhotonCluster* clus); // takes ownership
+  ConstIterator AddCluster(PhotonCluster* clus);  // takes ownership
 
   PhotonCluster* getCluster(const RawClusterDefs::keytype key);
   const PhotonCluster* getCluster(const RawClusterDefs::keytype key) const;

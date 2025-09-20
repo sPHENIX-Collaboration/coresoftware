@@ -41,10 +41,10 @@ TowerInfoContainerv4::TowerInfoContainerv4(DETECTOR detec)
 }
 
 TowerInfoContainerv4::TowerInfoContainerv4(const TowerInfoContainerv4& source)
-  : TowerInfoContainer(source), _clones(new TClonesArray("TowerInfov4", source.size())), _detector(source.get_detectorid())
+  : TowerInfoContainer(source)
+  , _clones(new TClonesArray("TowerInfov4", source.size()))
+  , _detector(source.get_detectorid())
 {
-  
-  
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv4");
   for (unsigned int i = 0; i < source.size(); ++i)

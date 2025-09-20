@@ -2,12 +2,11 @@
 
 #include <iostream>
 
-RawTowerv1::RawTowerv1(const RawTower& tower) : towerid(tower.get_id()), energy(tower.get_energy()), time(tower.get_time())
+RawTowerv1::RawTowerv1(const RawTower& tower)
+  : towerid(tower.get_id())
+  , energy(tower.get_energy())
+  , time(tower.get_time())
 {
-  
-  
-  
-
   CellConstRange cell_range = tower.get_g4cells();
 
   for (CellConstIterator cell_iter = cell_range.first;
@@ -30,15 +29,15 @@ RawTowerv1::RawTowerv1(RawTowerDefs::keytype id)
 {
 }
 
-RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi) : towerid(RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi))
+RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi)
+  : towerid(RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi))
 {
-  
 }
 
 RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
-                       const unsigned int ieta, const unsigned int iphi) : towerid(RawTowerDefs::encode_towerid(caloid, ieta, iphi))
+                       const unsigned int ieta, const unsigned int iphi)
+  : towerid(RawTowerDefs::encode_towerid(caloid, ieta, iphi))
 {
-  
 }
 
 void RawTowerv1::Reset()
@@ -102,9 +101,8 @@ int RawTowerv1::get_bineta() const
   {
     return RawTowerDefs::decode_index1v2(towerid);
   }
-  
-      return RawTowerDefs::decode_index1(towerid);
- 
+
+  return RawTowerDefs::decode_index1(towerid);
 }
 
 int RawTowerv1::get_binphi() const
@@ -114,7 +112,6 @@ int RawTowerv1::get_binphi() const
   {
     return RawTowerDefs::decode_index2v2(towerid);
   }
-  
-      return RawTowerDefs::decode_index2(towerid);
- 
+
+  return RawTowerDefs::decode_index2(towerid);
 }

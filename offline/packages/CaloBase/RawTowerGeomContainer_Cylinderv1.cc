@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <memory>
 
 RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(RawTowerDefs::CalorimeterId caloid)
   : RawTowerGeomContainerv1(caloid)

@@ -1,10 +1,13 @@
 #include "RawClusterv1.h"
 
+#include "RawTowerDefs.h"
+
 #include <phool/phool.h>
 
 #include <cstdlib>
 #include <limits>
 #include <string>
+#include <vector>
 
 void RawClusterv1::Reset()
 {
