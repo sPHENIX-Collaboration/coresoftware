@@ -592,58 +592,53 @@ int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
     {
       side = 0;
     }
-    for (unsigned int fee = 0; fee <= 25; fee++)
-    {
-      for (unsigned int channel = 0; channel <= 255; channel++)
-      {
-        int feeM = FEE_map[fee];
-        if (FEE_R[fee] == 2)
-        {
-          feeM += 6;
-        }
-        if (FEE_R[fee] == 3)
-        {
-          feeM += 14;
-        }
-        unsigned int key = (256 * (feeM)) + channel;
-        std::string varname = "layer";
-        unsigned int layer = m_cdbttree->GetIntValue(key, varname);
-        // antenna pads will be in 0 layer
-        if (layer <= 0 || layer>55)
-        {
-          continue;
-        }
-        varname = "phi";  // + std::to_string(key);
-        double phi = -1 * pow(-1, side) * m_cdbttree->GetDoubleValue(key, varname) + (sector % 12) * M_PI / 6;
-        PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
-        unsigned int phibin = layergeom->get_phibin(phi);
-        // get global coords
-        double radius = layergeom->get_radius();  // returns center of layer
-        double chanphi = layergeom->get_phi(phibin);
-        float chanx = radius * cos(chanphi);
-        float chany = radius * sin(chanphi);
-
-        TrkrDefs::cluskey dummykey = TpcDefs::genClusKey(layer, (mc_sectors[sector % 12]), side, phibin);
-        fee_info nufeeinfo;
-        nufeeinfo.fee = fee;
-        nufeeinfo.channel = channel;
-        nufeeinfo.sampa = channel % 32;
-        fee_map.insert(std::make_pair(dummykey, nufeeinfo));
-        if (Verbosity() > 0)
-        {
-          std::cout << "side sec lay phibin " << side
-                    << " | hw " << sector
-                    << " | mc " << (mc_sectors[sector % 12])
-                    << " | " << layer
-                    << " | " << phibin
-                    << " => fee, channel "
-                    << fee << " | " << channel
-                    << " x | y " << chanx << " | " << chany
-                    << std::endl;
-        }
-        // have side, sector, layer, phibin -> fee, channel
-        //	  hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
-        //   hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+    for(unsigned int fee = 0; fee <= 25; fee++){
+      for(unsigned int channel = 0; channel <= 255; channel++){
+	int feeM = FEE_map[fee];
+	if (FEE_R[fee] == 2){
+	  feeM += 6;
+	}
+	if (FEE_R[fee] == 3){
+	  feeM += 14;
+	}
+	unsigned int key = (256 * (feeM)) + channel;
+	std::string varname = "layer";
+	unsigned int layer = m_cdbttree->GetIntValue(key, varname);
+	// antenna pads will be in 0 layer
+	if (layer <= 6){
+	  continue;
+	}
+	varname = "phi";  // + std::to_string(key);
+	double phi = ((side == 1 ? 1 : -1) * (m_cdbttree->GetDoubleValue(key, varname) - M_PI / 2.)) + ((sector % 12) * M_PI / 6);
+	PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
+	unsigned int phibin = layergeom->get_phibin(phi, side);
+	//get global coords
+	double radius = layergeom->get_radius();  // returns center of layer
+	double chanphi = layergeom->get_phi(phibin, side);
+	float chanx = radius * cos(chanphi);
+	float chany = radius * sin(chanphi);
+    
+	TrkrDefs::cluskey dummykey  = TpcDefs::genClusKey(layer, (mc_sectors[sector % 12]), side, phibin);
+	fee_info nufeeinfo;
+	nufeeinfo.fee = fee;
+	nufeeinfo.channel = channel;
+	nufeeinfo.sampa = channel%32;
+	fee_map.insert(std::make_pair(dummykey, nufeeinfo));
+	if (Verbosity() > 0){
+	  std::cout << "side sec lay phibin " << side
+		  << " | hw " << sector
+		  << " | mc " <<  (mc_sectors[sector % 12])
+		  << " | " << layer
+		  << " | " << phibin
+		  << " => fee, channel " 
+		  << fee << " | " << channel
+		  << " x | y " << chanx << " | " <<chany 
+		  << std::endl;
+	}
+	//have side, sector, layer, phibin -> fee, channel
+	//	  hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
+	//  hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+	
       }
     }
   }
@@ -1508,8 +1503,8 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             double radius = GeoLayer_local->get_radius();
             fx_hit[n_hit::nhitphibin] = (float) TpcDefs::getPad(hit_key);
             fx_hit[n_hit::nhittbin] = (float) TpcDefs::getTBin(hit_key);
-            fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin]);
-            float phi = GeoLayer_local->get_phicenter(TpcDefs::getPad(hit_key));
+            fx_hit[n_hit::nhitphi] = GeoLayer_local->get_phicenter(fx_hit[n_hit::nhitphibin], fx_hit[n_hit::nhitzelem]);
+            float phi = GeoLayer_local->get_phicenter(TpcDefs::getPad(hit_key), fx_hit[n_hit::nhitzelem]);
             float clockperiod = GeoLayer_local->get_zstep();
             auto glob = m_tGeometry->getGlobalPositionTpc(hitset_key, hit_key, phi, radius, clockperiod);
 

@@ -362,7 +362,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
 
       tbin = TpcDefs::getTBin(hitr->first);
       phibin = TpcDefs::getPad(hitr->first);
-      double phi_center = layergeom->get_phicenter(phibin);
+      double phi_center = layergeom->get_phicenter(phibin, side);
       if (phi_center < 0)
       {
         phi_center += 2 * pi;
