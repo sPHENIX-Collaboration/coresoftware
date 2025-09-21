@@ -49,7 +49,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -97,9 +97,9 @@ int PHActsSiliconSeeding::Init(PHCompositeNode* /*topNode*/)
   }
   // vector containing the map of z bins in the top and bottom layers
 
-  m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<2ul>>(
+  m_bottomBinFinder = std::make_unique<const Acts::GridBinFinder<2UL>>(
       nphineighbors, zBinNeighborsBottom);
-  m_topBinFinder = std::make_unique<const Acts::GridBinFinder<2ul>>(
+  m_topBinFinder = std::make_unique<const Acts::GridBinFinder<2UL>>(
       nphineighbors, zBinNeighborsTop);
 
   if (m_seedAnalysis)
@@ -220,8 +220,8 @@ void PHActsSiliconSeeding::runSeeder()
         spVec.begin(), spVec.end(), covConverter,
         rRangeSPExtent);
 
-    std::array<std::vector<std::size_t>, 2ul> navigation;
-    navigation[1ul] = m_seedFinderCfg.zBinsCustomLooping;
+    std::array<std::vector<std::size_t>, 2UL> navigation;
+    navigation[1UL] = m_seedFinderCfg.zBinsCustomLooping;
 
     auto spacePointsGrouping = Acts::CylindricalBinnedGroup<SpacePoint>(
         std::move(grid), *m_bottomBinFinder, *m_topBinFinder,
@@ -259,7 +259,7 @@ void PHActsSiliconSeeding::runSeeder()
     eventTimer->stop();
     circleFitTime += eventTimer->get_accumulated_time();
 
-    for (auto sp : spVec)
+    for (const auto *sp : spVec)
     {
       delete sp;
     }
@@ -312,7 +312,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
       std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
       auto trackSeed = std::make_unique<TrackSeed_v2>();
 
-      for (auto& spacePoint : seed.sp())
+      for (const auto& spacePoint : seed.sp())
       {
         const auto& cluskey = spacePoint->Id();
         cluster_keys.push_back(cluskey);
@@ -487,7 +487,7 @@ short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed& si_track)
 
   bool keep_it = true;
   short int crossing_keep = 0;
-  if (intt_crossings.size() == 0)
+  if (intt_crossings.empty())
   {
     keep_it = false;
   }
@@ -646,7 +646,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
 
   int nlayers = 3;
   int layer = 0;
-  for (auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId})
+  for (const auto& det : {TrkrDefs::TrkrId::mvtxId, TrkrDefs::TrkrId::inttId})
   {
     if (det == TrkrDefs::TrkrId::inttId)
     {
@@ -655,7 +655,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     }
     while (layer < nlayers)
     {
-      if (layersToSkip.find(layer) != layersToSkip.end())
+      if (layersToSkip.contains(layer))
       {
         layer++;
         continue;
@@ -709,11 +709,11 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
             }
           }
 
-          const auto cluster = clusIter->second;
+          auto *const cluster = clusIter->second;
           auto glob = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
           auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
-          if (dummypars.size() > 0)
+          if (!dummypars.empty())
           {
             intersection = TrackFitUtils::get_helix_surface_intersection(surf, dummypars, glob, m_tGeometry);
           }
@@ -935,7 +935,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
           }
         }
 
-        const auto cluster = clusIter->second;
+        auto *const cluster = clusIter->second;
         const auto hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
         const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey_A);
         if (!surface)
@@ -943,7 +943,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
           continue;
         }
 
-        auto sp = makeSpacePoint(surface, cluskey, cluster).release();
+        auto *sp = makeSpacePoint(surface, cluskey, cluster).release();
         spVec.push_back(sp);
         rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
         numSiliconHits++;
@@ -980,7 +980,7 @@ void PHActsSiliconSeeding::configureSPGrid()
   m_gridOptions = m_gridOptions.toInternalUnits();
 }
 
-Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter()
+Acts::SeedFilterConfig PHActsSiliconSeeding::configureSeedFilter() const
 {
   Acts::SeedFilterConfig config;
   config.maxSeedsPerSpM = m_maxSeedsPerSpM;
