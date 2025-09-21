@@ -94,6 +94,14 @@ class RawCluster : public PHObject
     PHOOL_VIRTUAL_WARN("get_z()");
     return std::numeric_limits<float>::signaling_NaN();
   }
+
+
+  virtual void set_tower_cog(float /*xr*/, float /*yr*/, float /*xc*/, float /*yc*/){return;}
+  virtual float x_tower_raw() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float y_tower_raw() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float x_tower_corr() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float y_tower_corr() { return std::numeric_limits<float>::signaling_NaN(); }
+
   //
 
   /*! \page where is RawCluster::get_eta() ?
