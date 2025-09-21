@@ -11,9 +11,9 @@
 class RawTowerGeomv3 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv3() {}
+  RawTowerGeomv3() = default;
   RawTowerGeomv3(RawTowerDefs::keytype id);
-  ~RawTowerGeomv3() override {}
+  ~RawTowerGeomv3() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
 

@@ -2,17 +2,15 @@
 #define TOWERINFOSIMV2_H
 
 #include "TowerInfoSimv1.h"
-#include "TowerInfo.h"
 
 #include <cstdint>  // For int16_t
 
 class TowerInfoSimv2 : public TowerInfoSimv1
 {
  public:
-    
-  TowerInfoSimv2() {}
-  ~TowerInfoSimv2() override {}
-  
+  TowerInfoSimv2() = default;
+  ~TowerInfoSimv2() override = default;
+
   void Reset() override;
   void Clear(Option_t* = "") override;
 
@@ -27,7 +25,7 @@ class TowerInfoSimv2 : public TowerInfoSimv1
   ShowerEdepMap _showeredeps;
 
   static const int nsample = 31;
-  int16_t _waveform[nsample] = {0}; // Initializes the entire array to zero
+  int16_t _waveform[nsample] = {0};  // Initializes the entire array to zero
 
   ClassDefOverride(TowerInfoSimv2, 1);
   // Inherit other methods and properties from TowerInfoSimv1

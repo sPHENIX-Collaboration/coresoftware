@@ -708,7 +708,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       // stamp tower CoG (raw & corrected) only when writing v2
       if (m_writeClusterV2)
       {
-        float xcorr = xcg, ycorr = ycg;
+        float xcorr = xcg;
+	float ycorr = ycg;
         bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
         if (auto* c2 = dynamic_cast<RawClusterv2*>(cluster))
         {

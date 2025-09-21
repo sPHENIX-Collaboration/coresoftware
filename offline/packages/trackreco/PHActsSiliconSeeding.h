@@ -174,7 +174,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// are a number of tunable parameters for the seeder here
   void configureSeeder();
   void configureSPGrid();
-  Acts::SeedFilterConfig configureSeedFilter();
+  Acts::SeedFilterConfig configureSeedFilter() const;
 
   /// Take final seeds and fill the TrackSeedContainer
   void makeSvtxTracks(const GridSeeds &seedVector);

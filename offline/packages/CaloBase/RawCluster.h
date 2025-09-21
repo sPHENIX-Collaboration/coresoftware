@@ -14,8 +14,8 @@
 #include <limits>
 #include <map>
 #include <string>  // for string
-#include <type_traits>
 #include <utility>
+#include <vector>
 
 class RawCluster : public PHObject
 {
@@ -26,7 +26,7 @@ class RawCluster : public PHObject
   typedef std::pair<TowerIterator, TowerIterator> TowerRange;
   typedef std::pair<TowerConstIterator, TowerConstIterator> TowerConstRange;
 
-  ~RawCluster() override {}
+  ~RawCluster() override = default;
   void Reset() override { PHOOL_VIRTUAL_WARNING; }
 
   PHObject* CloneMe() const override { return nullptr; }
@@ -180,10 +180,10 @@ class RawCluster : public PHObject
     return std::vector<float>();
   }
 
-  virtual std::pair<int,int> get_lead_tower() const
+  virtual std::pair<int, int> get_lead_tower() const
   {
     PHOOL_VIRTUAL_WARN("get_lead_tower()");
-    return {std::numeric_limits<int>::signaling_NaN(),std::numeric_limits<int>::signaling_NaN()};
+    return {std::numeric_limits<int>::signaling_NaN(), std::numeric_limits<int>::signaling_NaN()};
   }
 
   //  //! truth cluster's PHG4Particle ID
@@ -310,7 +310,7 @@ class RawCluster : public PHObject
   /** @} */  // end of property map definitions
 
  protected:
-  RawCluster() {}  // make sure nobody calls ctor of base class
+  RawCluster() = default;  // make sure nobody calls ctor of base class
   ClassDefOverride(RawCluster, 1)
 };
 
