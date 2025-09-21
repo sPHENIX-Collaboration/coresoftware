@@ -97,10 +97,10 @@ class RawCluster : public PHObject
 
 
   virtual void set_tower_cog(float /*xr*/, float /*yr*/, float /*xc*/, float /*yc*/){return;}
-  virtual float x_tower_raw() { return std::numeric_limits<float>::signaling_NaN(); }
-  virtual float y_tower_raw() { return std::numeric_limits<float>::signaling_NaN(); }
-  virtual float x_tower_corr() { return std::numeric_limits<float>::signaling_NaN(); }
-  virtual float y_tower_corr() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float x_tower_raw() const { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float y_tower_raw() const { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float x_tower_corr()const  { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float y_tower_corr()const  { return std::numeric_limits<float>::signaling_NaN(); }
 
   //
 
