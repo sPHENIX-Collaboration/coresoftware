@@ -1698,7 +1698,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             PHG4TpcCylinderGeom* local_GeoLayer = local_geom_container->GetLayerCellGeom(local_layer);
             phibin = (float) TpcDefs::getPad(hit_key);
             zbin = (float) TpcDefs::getTBin(hit_key);
-            phi = local_GeoLayer->get_phicenter(phibin);
+            phi = local_GeoLayer->get_phicenter(phibin, side);
             z = local_GeoLayer->get_zcenter(zbin);
             r = local_GeoLayer->get_radius();
             x = r*std::cos(phi);
