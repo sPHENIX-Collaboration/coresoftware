@@ -8,8 +8,8 @@
 class TowerInfov3 : public TowerInfov2
 {
  public:
-  TowerInfov3() {}
-  ~TowerInfov3() override {}
+  TowerInfov3() = default;
+  ~TowerInfov3() override = default;
 
   void Reset() override;
   void Clear(Option_t* = "") override;

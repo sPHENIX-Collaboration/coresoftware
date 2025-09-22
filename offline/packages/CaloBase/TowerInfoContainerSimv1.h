@@ -2,7 +2,7 @@
 #define TOWERINFOCONTAINERSIMV1_H
 
 #include "TowerInfoContainer.h"
-#include "TowerInfoSimv1.h" 
+#include "TowerInfoSimv1.h"
 
 #include <TClonesArray.h>
 
@@ -14,7 +14,7 @@ class TowerInfoContainerSimv1 : public TowerInfoContainer
   TowerInfoContainerSimv1(DETECTOR detec);
 
   // default constructor for ROOT IO
-  TowerInfoContainerSimv1() {}
+  TowerInfoContainerSimv1() = default;
   PHObject *CloneMe() const override { return new TowerInfoContainerSimv1(*this); }
   TowerInfoContainerSimv1(const TowerInfoContainerSimv1 &);
 

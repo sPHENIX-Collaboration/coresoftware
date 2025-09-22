@@ -3,11 +3,10 @@
 #include <iostream>
 
 RawTowerv1::RawTowerv1(const RawTower& tower)
+  : towerid(tower.get_id())
+  , energy(tower.get_energy())
+  , time(tower.get_time())
 {
-  towerid = (tower.get_id());
-  energy = (tower.get_energy());
-  time = (tower.get_time());
-
   CellConstRange cell_range = tower.get_g4cells();
 
   for (CellConstIterator cell_iter = cell_range.first;
@@ -31,14 +30,14 @@ RawTowerv1::RawTowerv1(RawTowerDefs::keytype id)
 }
 
 RawTowerv1::RawTowerv1(const unsigned int ieta, const unsigned int iphi)
+  : towerid(RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi))
 {
-  towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, ieta, iphi);
 }
 
 RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
                        const unsigned int ieta, const unsigned int iphi)
+  : towerid(RawTowerDefs::encode_towerid(caloid, ieta, iphi))
 {
-  towerid = RawTowerDefs::encode_towerid(caloid, ieta, iphi);
 }
 
 void RawTowerv1::Reset()
@@ -73,7 +72,7 @@ void RawTowerv1::identify(std::ostream& os) const
 void RawTowerv1::add_ecell(const CellKeyType g4cellid,
                            const float ecell)
 {
-  if (ecells.find(g4cellid) == ecells.end())
+  if (!ecells.contains(g4cellid))
   {
     ecells[g4cellid] = ecell;
   }
@@ -85,7 +84,7 @@ void RawTowerv1::add_ecell(const CellKeyType g4cellid,
 
 void RawTowerv1::add_eshower(const int g4showerid, const float eshower)
 {
-  if (eshowers.find(g4showerid) == eshowers.end())
+  if (!eshowers.contains(g4showerid))
   {
     eshowers[g4showerid] = eshower;
   }
@@ -102,10 +101,8 @@ int RawTowerv1::get_bineta() const
   {
     return RawTowerDefs::decode_index1v2(towerid);
   }
-  else
-  {
-    return RawTowerDefs::decode_index1(towerid);
-  }
+
+  return RawTowerDefs::decode_index1(towerid);
 }
 
 int RawTowerv1::get_binphi() const
@@ -115,8 +112,6 @@ int RawTowerv1::get_binphi() const
   {
     return RawTowerDefs::decode_index2v2(towerid);
   }
-  else
-  {
-    return RawTowerDefs::decode_index2(towerid);
-  }
+
+  return RawTowerDefs::decode_index2(towerid);
 }

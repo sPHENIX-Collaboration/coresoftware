@@ -75,7 +75,7 @@ int CDBInterface::End(PHCompositeNode *topNode)
     // not possible using for range loops, iterator gets invalidated
     for (auto itr = m_UrlVector.cbegin(); itr != m_UrlVector.cend();)
     {
-      if (tmp_set.find(*itr) != tmp_set.end())
+      if (tmp_set.contains(*itr))
       {
         if (Verbosity())
         {

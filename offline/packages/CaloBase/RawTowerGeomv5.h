@@ -5,18 +5,17 @@
 
 #include "RawTowerDefs.h"
 
-#include <iostream>
 #include <array>
+#include <iostream>
 #include <limits>
 
 class RawTowerGeomv5 : public RawTowerGeom
 {
  public:
-
-  RawTowerGeomv5() {}
+  RawTowerGeomv5() = default;
   RawTowerGeomv5(RawTowerDefs::keytype id);
   RawTowerGeomv5(const RawTowerGeom& geom0);
-  ~RawTowerGeomv5() override {}
+  ~RawTowerGeomv5() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
 
@@ -94,88 +93,78 @@ class RawTowerGeomv5 : public RawTowerGeom
   double get_theta() const override;
 
  protected:
-  
   RawTowerDefs::keytype _towerid{std::numeric_limits<RawTowerDefs::keytype>::max()};
 
   static constexpr int _nVtx = 8;
   static constexpr int _nDim = 3;
 
   std::array<double, _nDim> _center{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
   std::array<double, _nDim> _center_int{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
   std::array<double, _nDim> _center_ext{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
   std::array<double, _nDim> _center_low_eta{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
   std::array<double, _nDim> _center_high_eta{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
   std::array<double, _nDim> _center_low_phi{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
   std::array<double, _nDim> _center_high_phi{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
 
   std::array<double, _nVtx * _nDim> _vertices{
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(), // vertex 1 (new line for readability)
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),  // vertex 1 (new line for readability)
 
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(), // vertex 2 
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),  // vertex 2
 
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(), // etc.
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),  // etc.
 
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
 
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
 
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
 
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
 
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN(),
-      std::numeric_limits<double>:: quiet_NaN()
-  };
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
 
   std::array<double, _nDim> _rot{
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN(),
-    std::numeric_limits<double>:: quiet_NaN()
-  };
-  
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::quiet_NaN()};
+
   ClassDefOverride(RawTowerGeomv5, 1)
 };
 
