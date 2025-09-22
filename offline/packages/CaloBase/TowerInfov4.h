@@ -20,11 +20,11 @@ class TowerInfov4 : public TowerInfo
   void set_energy(float _energy) override { energy = _energy; }
   float get_energy() override { return energy; }
 
-  void set_time(short t) override { time = (t * 1000); }
-  short get_time() override { return ((float) time) / 1000; }
+  void set_time(float t) override { time = t * 1000; }
+  float get_time() override { return time / 1000.; }
+  void set_time_short(short t) override { time = t * 1000; }
+  short get_time_short() override { return short(time / 1000); }
 
-  void set_time_float(float t) override { time = t * 1000; }
-  float get_time_float() override { return time / 1000.; }
 
   void set_chi2(float _chi2) override
   {

@@ -117,7 +117,7 @@ int HCalCosmics::process_towers(PHCompositeNode *topNode)
     float adc = rawtower->get_energy();
     float energy = tower->get_energy();
     float chi2 = tower->get_chi2();
-    float time = tower->get_time_float();
+    float time = tower->get_time();
     unsigned int towerkey = towers->encode_key(channel);
     int ieta = towers->getTowerEtaBin(towerkey);
     int iphi = towers->getTowerPhiBin(towerkey);

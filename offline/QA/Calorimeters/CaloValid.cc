@@ -307,10 +307,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        int _time = tower->get_time();
         h_cemc_e_chi2->Fill(offlineenergy, tower->get_chi2());
-        float _timef = tower->get_time_float();
-        h_emcaltime_cut->Fill(_time);
+        float _timef = tower->get_time();
+        h_emcaltime_cut->Fill(_timef);
         bool isGood = tower->get_isGood();
         uint8_t status = tower->get_status();
         h_emcal_tower_e->Fill(offlineenergy);
@@ -332,7 +331,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         totalcemc += offlineenergy;
-        h_emcaltime->Fill(_time);
+        h_emcaltime->Fill(_timef);
         if (offlineenergy > emcal_hit_threshold)
         {
           h_cemc_etaphi_time->Fill(ieta, iphi, _timef);
@@ -378,9 +377,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        int _time = tower->get_time();
-        float _timef = tower->get_time_float();
-        h_ihcaltime_cut->Fill(_time);
+
+        float _timef = tower->get_time();
+        h_ihcaltime_cut->Fill(_timef);
         h_ihcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
         bool isGood = tower->get_isGood();
         h_ihcal_status->Fill(tower->get_status());
@@ -404,7 +403,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         totalihcal += offlineenergy;
-        h_ihcaltime->Fill(_time);
+        h_ihcaltime->Fill(_timef);
 
         if (offlineenergy > ihcal_hit_threshold)
         {
@@ -444,9 +443,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        int _time = tower->get_time();
-        float _timef = tower->get_time_float();
-        h_ohcaltime_cut->Fill(_time);
+        float _timef = tower->get_time();
+        h_ohcaltime_cut->Fill(_timef);
         h_ohcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
         bool isGood = tower->get_isGood();
         h_ohcal_status->Fill(tower->get_status());
@@ -470,7 +468,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         totalohcal += offlineenergy;
-        h_ohcaltime->Fill(_time);
+        h_ohcaltime->Fill(_timef);
 
         if (offlineenergy > ohcal_hit_threshold)
         {
@@ -511,7 +509,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        float raw_time = tower->get_time_float();
+        float raw_time = tower->get_time();
         if (tower->get_isZS())
         {
           h_cemc_channel_energy[channel]->Fill(tower->get_energy());
@@ -541,7 +539,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        float raw_time = tower->get_time_float();
+        float raw_time = tower->get_time();
         if (tower->get_isZS())
         {
           h_ohcal_channel_energy[channel]->Fill(tower->get_energy());
@@ -570,7 +568,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         TowerInfo* tower = towers->get_tower_at_channel(channel);
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
-        float raw_time = tower->get_time_float();
+        float raw_time = tower->get_time();
         int iphi = towers->getTowerPhiBin(towerkey);
         if (tower->get_isZS())
         {
