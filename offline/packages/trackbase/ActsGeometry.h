@@ -51,8 +51,10 @@ class ActsGeometry
   void set_max_driftlength(double val) { _max_driftlength = val; }
   void set_CM_halfwidth(double val) { _CM_halfwidth = val; }
   void set_tpc_tzero(double tz) { _tpc_tzero = tz; }
+  void set_sampa_tzero_bias(double tzb) { _sampa_tzero_bias = tzb; }
 
   double get_tpc_tzero() const { return _tpc_tzero; }
+  double get_sampa_tzero_bias() const { return _sampa_tzero_bias; }
   double get_max_driftlength() { return _max_driftlength; }
   double get_CM_halfwidth() { return _CM_halfwidth; }
   double get_drift_velocity() const { return _drift_velocity; }
@@ -86,6 +88,7 @@ class ActsGeometry
   double _max_driftlength = 102.235;  // cm
   double _CM_halfwidth = 0.28;  // cm
   double _tpc_tzero = 0.0;  // ns
+  double _sampa_tzero_bias = 0.0;  // ns
 };
 
 #endif

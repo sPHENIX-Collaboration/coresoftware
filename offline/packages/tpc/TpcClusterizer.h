@@ -69,8 +69,6 @@ public:
     set_max_cluster_half_size_z(20);
     set_fixed_window(3);
   };
-  void set_sampa_tbias(double value ) { m_sampa_tbias = value; }
-  ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
@@ -106,10 +104,6 @@ public:
   double AdcClockPeriod = 53.0;  // ns
   double NZBinsSide = 249;
     
-  // TPC shaping offset correction parameter
-  // From Tony Frawley July 5, 2022
-  double m_sampa_tbias = 39.6;  // ns
-
   TrainingHitsContainer *m_training;
 };
 

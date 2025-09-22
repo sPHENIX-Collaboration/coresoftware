@@ -118,7 +118,6 @@ namespace
     unsigned short maxHalfSizeT = 0;
     unsigned short maxHalfSizePhi = 0;
     double m_tdriftmax = 0;
-    double sampa_tbias = 0;
     std::vector<assoc> association_vector;
     std::vector<TrkrCluster *> cluster_vector;
     std::vector<TrainingHits *> v_hits;
@@ -504,7 +503,7 @@ namespace
       assert(training_hits);
       training_hits->radius = radius;
       training_hits->phi = my_data.layergeom->get_phicenter(iphi_center + my_data.phioffset);
-      double center_t = my_data.layergeom->get_zcenter(it_center + my_data.toffset) + my_data.sampa_tbias;
+      double center_t = my_data.layergeom->get_zcenter(it_center + my_data.toffset);
       training_hits->z = (my_data.m_tdriftmax - center_t) * my_data.tGeometry->get_drift_velocity();
       if (my_data.side == 0)
       {
@@ -669,9 +668,6 @@ namespace
     // Conversion gain is 20 mV/fC - relates total charge collected on pad to PEAK voltage out of ADC. The GEM gain is assumed to be 2000
     // To get equivalent charge per T bin, so that summing ADC input voltage over all T bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
     // Equivalent charge per T bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
-
-    // SAMPA shaping bias correction
-    clust = clust + my_data.sampa_tbias;
 
     /// convert to Acts units
     global *= Acts::UnitConstants::cm;
@@ -1420,7 +1416,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.tGeometry = m_tGeometry;
       thread_pair.data.maxHalfSizeT = MaxClusterHalfSizeT;
       thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
-      thread_pair.data.sampa_tbias = m_sampa_tbias;
       thread_pair.data.verbosity = Verbosity();
       thread_pair.data.do_split = do_split;
       thread_pair.data.FixedWindow = do_fixed_window;
@@ -1544,7 +1539,6 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.tGeometry = m_tGeometry;
       thread_pair.data.maxHalfSizeT = MaxClusterHalfSizeT;
       thread_pair.data.maxHalfSizePhi = MaxClusterHalfSizePhi;
-      thread_pair.data.sampa_tbias = m_sampa_tbias;
       thread_pair.data.verbosity = Verbosity();
 
       unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();

@@ -141,6 +141,7 @@ class MakeActsGeometry : public SubsysReco
   void set_max_driftlength(double val) { m_max_driftlength = val; }
   void set_CM_halfwidth(double val) { m_CM_halfwidth = val; }
   void set_tpc_tzero(double tz) { m_tpc_tzero = tz; }
+  void set_sampa_tzero_bias(double tzb) { m_sampa_tzero_bias = tzb; }
   void set_apply_tpc_tzero_correction(bool flag) { m_apply_tpc_tzero_correction = flag; }
   
   void set_nSurfPhi(unsigned int value)
@@ -294,6 +295,7 @@ class MakeActsGeometry : public SubsysReco
 
   bool m_apply_tpc_tzero_correction = false;
   double m_tpc_tzero = 0.0;  // ns, override from macro
+  double m_sampa_tzero_bias = 0.0;  // ns, override from macro
   
   /// Magnetic field components to set Acts magnetic field
   std::string m_magField = "1.4";

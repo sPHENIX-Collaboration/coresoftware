@@ -243,7 +243,8 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
   if (trkrid == TrkrDefs::tpcId)
   {
     double crossing_tzero_correction = crossing * sphenix_constants::time_between_crossings;
-    double zdriftlength = (cluster->getLocalY() - _tpc_tzero - crossing_tzero_correction) * _drift_velocity;  // cm
+    double zdriftlength = (cluster->getLocalY() -  _tpc_tzero - _sampa_tzero_bias - 
+			   crossing_tzero_correction) * _drift_velocity;  // cm
     double zloc = _max_driftlength/2.0 - zdriftlength;         // local z relative to surface center (for north side):
     unsigned int side = TpcDefs::getSide(key);
     if (side == 0)

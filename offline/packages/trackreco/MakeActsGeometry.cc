@@ -289,6 +289,7 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->set_max_driftlength(m_max_driftlength);
   m_actsGeometry->set_CM_halfwidth(m_CM_halfwidth);
   m_actsGeometry->set_tpc_tzero(m_tpc_tzero);
+  m_actsGeometry->set_sampa_tzero_bias(m_sampa_tzero_bias);
   // alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
   if (Verbosity() > 1)
   {
