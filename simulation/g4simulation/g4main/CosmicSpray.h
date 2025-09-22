@@ -21,6 +21,9 @@ class CosmicSpray : public SubsysReco
   ~CosmicSpray() override {}
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
+  void set_gen_min_momentum(const double p) { gen.SetMinimumMomentum(p); }  
+  void set_gen_max_momentum(const double p) { gen.SetMaximumMomentum(p); }
+
 
  private:
   EcoMug gen;
