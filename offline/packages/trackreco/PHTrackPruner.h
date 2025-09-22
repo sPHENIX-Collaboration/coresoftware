@@ -97,6 +97,10 @@ class PHTrackPruner : public SubsysReco
   int m_ntpc_states_low_cut = 35;
   int m_ntpot_states_low_cut = 2;
 
+  //! keep track of track/seed statistics
+  unsigned long m_total_tracks = 0;
+  unsigned long m_accepted_tracks = 0;
+
 };
 
 #endif  //  PHTRACKPRUNER_H

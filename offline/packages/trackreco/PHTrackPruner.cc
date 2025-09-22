@@ -117,6 +117,9 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
 
   std::multimap<size_t, size_t> good_matches;
 
+  // increment number of processed tracks
+  m_total_tracks += _svtx_track_map->size();
+
   for (auto &iter : *_svtx_track_map)
   {
     auto* svtx_track = iter.second;
@@ -125,7 +128,9 @@ int PHTrackPruner::process_event(PHCompositeNode * /*unused*/)
     {
       continue;
     }
+
     if (Verbosity() > 1) { std::cout<<"Pass track selection"<<std::endl; }
+    ++m_accepted_tracks;
 
     auto* tpc_seed = svtx_track->get_tpc_seed();
     auto* si_seed = svtx_track->get_silicon_seed();
@@ -249,6 +254,8 @@ bool PHTrackPruner::checkTrack(SvtxTrack *track)
 
 int PHTrackPruner::End(PHCompositeNode * /*unused*/)
 {
+  std::cout << "PHTrackPruner::End - m_total_tracks: " << m_total_tracks << std::endl;
+  std::cout << "PHTrackPruner::End -  m_accepted_tracks: " << m_accepted_tracks << " fraction: " << double(m_accepted_tracks)/m_total_tracks << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
