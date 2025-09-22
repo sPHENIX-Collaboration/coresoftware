@@ -1249,7 +1249,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   // we must use the construction transforms to get the local coordinates.
   // Set the flag to use ideal transforms for the duration of this process_event, for thread safety
   alignmentTransformationContainer::use_alignment = false;
-
+  
   //  int print_layer = 18;
 
   if (Verbosity() > 1000)
@@ -1333,11 +1333,17 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
               << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
   /*
   std::cout << PHWHERE << " tGeometry maxz:  " << m_tGeometry->get_max_driftlength() << " + " <<  m_tGeometry->get_CM_halfwidth()<< std::endl;
+  int test_layer = 20;
+  PHG4TpcCylinderGeom *layergeom_test = geom_container->GetLayerCellGeom(test_layer);  
+  std::cout << " layergeom zbins " << (unsigned short) layergeom_test->get_zbins()
+	    << " zstep " << layergeom_test->get_zstep()  << std::endl;
   std::cout << "    do_read_raw " << do_read_raw << " do_wedge_emulation " << do_wedge_emulation << " is_reco " << is_reco << std::endl;
-  std::cout << "    hits size " << m_hits->size() << std::endl;
-  */  
+   std::cout << "    hits size " << m_hits->size() << std::endl;
+  */
+  
   // The hits are stored in hitsets, where each hitset contains all hits in a given TPC readout (layer, sector, side), so clusters are confined to a hitset
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
 

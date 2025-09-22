@@ -115,14 +115,8 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
     return glob;
   }
 
-  double zdriftlength = cluster->getLocalY() * _drift_velocity;  // cm
-  double zloc = _max_driftlength / 2.0 - zdriftlength;                   // local z relative to surface center (for north side):
-  unsigned int side = TpcDefs::getSide(key);
-  if (side == 0)
-  {
-    zloc = -zloc;
-  }
-  Acts::Vector2 local(cluster->getLocalX(), zloc);
+  Acts::Vector2 local = getLocalCoords(key, cluster);  // no crossing correction here
+  
   glob = surface->localToGlobal(m_tGeometry.getGeoContext(),
                                 local * Acts::UnitConstants::cm,
                                 Acts::Vector3(1, 1, 1));
@@ -249,7 +243,7 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
   if (trkrid == TrkrDefs::tpcId)
   {
     double crossing_tzero_correction = crossing * sphenix_constants::time_between_crossings;
-    double zdriftlength = (cluster->getLocalY() - crossing_tzero_correction) * _drift_velocity;  // cm
+    double zdriftlength = (cluster->getLocalY() - _tpc_tzero - crossing_tzero_correction) * _drift_velocity;  // cm
     double zloc = _max_driftlength/2.0 - zdriftlength;         // local z relative to surface center (for north side):
     unsigned int side = TpcDefs::getSide(key);
     if (side == 0)
