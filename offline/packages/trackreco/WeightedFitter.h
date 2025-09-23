@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
@@ -39,8 +40,8 @@ public:
 		Eigen::Vector3d z; // sensor local z axis
 
 		// Cluster uncertainties
-		double sigma_x{1.0};
-		double sigma_y{1.0};
+		double sigma_x{1.0}; // Local x ~ Global rphi
+		double sigma_y{1.0}; // Local y ~ Global z
 	};
 
 	class FitErrorCalculator {
@@ -108,4 +109,5 @@ private:
 
 	TpcClusterZCrossingCorrection m_clusterCrossingCorrection;
 	TpcGlobalPositionWrapper m_globalPositionWrapper;
+	ClusterErrorPara m_cluster_error_para;
 };

@@ -85,7 +85,12 @@ private:
 
 	//! Returns the 20 element row of a design matrix for position point about the stored value m_center
 	static Eigen::VectorXf get_design_vector (Point_t const&, InterpolationCache const&);
+
+	//! Returns a mutable reference to the interpolation information cached for the calling thread
+	InterpolationCache& get_cache () const;
+
 	//! Caches the interpolation for the cell containing given point
+	//! Should really be a member funciton of InterpolationCache
 	void cache_interpolation (Point_t const&, InterpolationCache&) const;
 
 	//! Gets the 3D grid indices from a 1D deque index

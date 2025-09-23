@@ -69,7 +69,9 @@ public:
     set_max_cluster_half_size_z(20);
     set_fixed_window(3);
   };
-
+  
+  ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
+  
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
   bool record_ClusHitsVerbose{false};
