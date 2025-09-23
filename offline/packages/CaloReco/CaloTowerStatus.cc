@@ -270,7 +270,7 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
       z_score = m_cdbInfo_vec[channel].z_score;
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
-    float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
+    float time = m_raw_towers->get_tower_at_channel(channel)->get_time();
     float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)

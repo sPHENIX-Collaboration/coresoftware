@@ -35,6 +35,9 @@ std::string PHFieldConfig::get_field_config_description() const
   case kFieldCleo:
     return "Cleo Magnet Field";
     break;
+  case FieldInterpolated:
+	return "3D field map interpolated to O(3)";
+	break;
   default:
     return "Invalid Field";
   }

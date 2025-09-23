@@ -1,7 +1,9 @@
 #include "RawTowerGeomv5.h"
 
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
+#include <vector>
 
 RawTowerGeomv5::RawTowerGeomv5(RawTowerDefs::keytype id)
   : _towerid(id)
@@ -9,9 +11,8 @@ RawTowerGeomv5::RawTowerGeomv5(RawTowerDefs::keytype id)
 }
 
 RawTowerGeomv5::RawTowerGeomv5(const RawTowerGeom& geom0)
+  : _towerid(geom0.get_id())
 {
-  _towerid = geom0.get_id();
-
   _rot[0] = geom0.get_rotx();
   _rot[1] = geom0.get_roty();
   _rot[2] = geom0.get_rotz();
@@ -50,13 +51,11 @@ RawTowerGeomv5::RawTowerGeomv5(const RawTowerGeom& geom0)
   _center_high_phi[0] = geom0.get_center_high_phi_x();
   _center_high_phi[1] = geom0.get_center_high_phi_y();
   _center_high_phi[2] = geom0.get_center_high_phi_z();
-
 }
 
 void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
 {
-
-  /*       y                     
+  /*       y
            |                    7_______6
            |                   /|      /|
            |_______ z        8/_|_____/5|
@@ -69,7 +68,7 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
   if ((int) vertices.size() != _nVtx * 3)
   {
     std::cerr
-      << "RawTowerGeomv5::set_vertices - input " << vertices.size() << " vertices given. Expected 8 x 3." << std::endl;
+        << "RawTowerGeomv5::set_vertices - input " << vertices.size() << " vertices given. Expected 8 x 3." << std::endl;
     exit(1);
   }
 
@@ -87,38 +86,38 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
   _center_high_eta.fill(0.0);
   _center_low_phi.fill(0.0);
   _center_high_phi.fill(0.0);
-  
+
   for (int iDim = 0; iDim < _nDim; iDim++)
   {
     for (int iVtx = 0; iVtx < _nVtx; iVtx++)
     {
       _vertices[(iVtx * _nDim) + iDim] = vertices[(iVtx * _nDim) + iDim];
-      
+
       _center[iDim] += _vertices[(iVtx * _nDim) + iDim];
 
       if (face_inside[iVtx])
       {
-        _center_int[iDim] +=  _vertices[(iVtx * _nDim) + iDim];
+        _center_int[iDim] += _vertices[(iVtx * _nDim) + iDim];
       }
       if (face_outside[iVtx])
       {
-        _center_ext[iDim] +=  _vertices[(iVtx * _nDim) + iDim];
+        _center_ext[iDim] += _vertices[(iVtx * _nDim) + iDim];
       }
       if (face_low_eta[iVtx])
       {
-        _center_low_eta[iDim] +=  _vertices[(iVtx * _nDim) + iDim];
+        _center_low_eta[iDim] += _vertices[(iVtx * _nDim) + iDim];
       }
       if (face_high_eta[iVtx])
       {
-        _center_high_eta[iDim] +=  _vertices[(iVtx * _nDim) + iDim];
+        _center_high_eta[iDim] += _vertices[(iVtx * _nDim) + iDim];
       }
       if (face_low_phi[iVtx])
       {
-        _center_low_phi[iDim] +=  _vertices[(iVtx * _nDim) + iDim];
+        _center_low_phi[iDim] += _vertices[(iVtx * _nDim) + iDim];
       }
       if (face_high_phi[iVtx])
       {
-        _center_high_phi[iDim] +=  _vertices[(iVtx * _nDim) + iDim];
+        _center_high_phi[iDim] += _vertices[(iVtx * _nDim) + iDim];
       }
     }
 
@@ -127,13 +126,13 @@ void RawTowerGeomv5::set_vertices(const std::vector<double>& vertices)
     _center_int[iDim] /= (double) _nVtx / 2.;
 
     _center_ext[iDim] /= (double) _nVtx / 2.;
-    
+
     _center_low_eta[iDim] /= (double) _nVtx / 2.;
-    
+
     _center_high_eta[iDim] /= (double) _nVtx / 2.;
-    
+
     _center_low_phi[iDim] /= (double) _nVtx / 2.;
-    
+
     _center_high_phi[iDim] /= (double) _nVtx / 2.;
   }
 

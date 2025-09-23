@@ -306,7 +306,7 @@ namespace
       PHG4TpcCylinderGeom *layergeom = my_data.geom_container->GetLayerCellGeom((int) coords[0]);
       
       double r = layergeom->get_radius();
-      double phi = layergeom->get_phi(coords[1]);
+      double phi = layergeom->get_phi(coords[1], side);
       double t = layergeom->get_zcenter(fabs(coords[2]));
       
       double hitzdriftlength = t * my_data.tGeometry->get_drift_velocity();
@@ -571,16 +571,16 @@ namespace
       double phiHigh_RLow = -999.0;
       if(ceil(result.Parameter(2)) < layergeomLow->get_phibins())
       {
-        phiHigh_RLow = layergeomLow->get_phi(ceil(result.Parameter(2)));
+        phiHigh_RLow = layergeomLow->get_phi(ceil(result.Parameter(2)), (meanSide < 0 ? 0 : 1));
       }
       double phiHigh_RHigh = -999.0;
       if(ceil(result.Parameter(2)) < layergeomHigh->get_phibins())
       {
-        phiHigh_RHigh = layergeomHigh->get_phi(ceil(result.Parameter(2)));
+        phiHigh_RHigh = layergeomHigh->get_phi(ceil(result.Parameter(2)), (meanSide < 0 ? 0 : 1));
       }
 
-      double phiLow_RLow = layergeomLow->get_phi(floor(result.Parameter(2)));
-      double phiLow_RHigh = layergeomHigh->get_phi(floor(result.Parameter(2)));
+      double phiLow_RLow = layergeomLow->get_phi(floor(result.Parameter(2)), (meanSide < 0 ? 0 : 1));
+      double phiLow_RHigh = layergeomHigh->get_phi(floor(result.Parameter(2)), (meanSide < 0 ? 0 : 1));
 
       double meanR = (result.Parameter(1) - floor(result.Parameter(1))) * (RHigh - RLow) + RLow;
 

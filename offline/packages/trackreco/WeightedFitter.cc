@@ -363,12 +363,21 @@ WeightedFitter::add_track (
 		fitted_seed.insert_cluster_key(*cluster_key_itr);
 	}
 
+	// I've used a different parameterization than what TrackFitUtils does,
+	// and checked what the daisy chain of function calls returns for a straight line fit
+	// fitpars = {dy/dx, y_0, dz/dx, z_0}, where y,z_0 are the intercepts when projected onto the x-y,z plane
+	// Compare the following with HelicalFitter::cc 465-471
+
+	// Solve for s (m * s + b).dot({1, 0, 0}) = 0
+	double s_0 = -b(0) / m(0);
+	Acts::Vector3 x_0 = m * s_0 + b; // y_0, z_0 are the components of the point on the line with x = 0
+
 	fitted_seed.set_qOverR(1.0);
 	fitted_seed.set_phi(track_seed->get_phi());
-	fitted_seed.set_X0(b(0)); // TODO: check this
-	fitted_seed.set_Y0(b(1)); // TODO: check this
-	fitted_seed.set_Z0(b(2)); // TODO: check this
-	fitted_seed.set_slope(sin_theta / cos_theta); // TODO: check this
+	fitted_seed.set_X0(m[1] / m[0]); // dy/dx
+	fitted_seed.set_Y0(x_0(1)); // y_0 (y at x = 0)
+	fitted_seed.set_Z0(x_0(2)); // z_0 (z at x = 0)
+	fitted_seed.set_slope(m[2] / m[0]); // dz/dx
 
 	SvtxTrack_v4 fitted_track;
 	fitted_track.set_id(m_track_id);
@@ -506,6 +515,12 @@ WeightedFitter::modify_point_tpc (
 
 	// apply distortion corrections
 	point.pos = m_globalPositionWrapper.applyDistortionCorrections(point.pos);
+
+	// modify rphi and z errors using utility class
+	// note the "clusterRadius" argument (supplied as 0.0) is unused
+	auto rphi_z_error_pair = m_cluster_error_para.get_clusterv5_modified_error(cluster, 0.0, cluster_key);
+	point.sigma_x = rphi_z_error_pair.first;
+	point.sigma_y = rphi_z_error_pair.second;
 }
 
 void

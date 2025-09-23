@@ -1,5 +1,7 @@
 #include "TowerInfoSimv1.h"
 
+#include "TowerInfo.h"
+
 void TowerInfoSimv1::Reset()
 {
   TowerInfov2::Reset();
@@ -15,7 +17,6 @@ void TowerInfoSimv1::Clear(Option_t* /*unused*/)
   _showeredeps.clear();
   return;
 }
-
 
 void TowerInfoSimv1::copy_tower(TowerInfo* tower)
 {
@@ -56,4 +57,3 @@ void TowerInfoSimv1::add_shower_edep(const int showerid, const float edep)
   _showeredeps[showerid] += edep;
   return;
 }
-
