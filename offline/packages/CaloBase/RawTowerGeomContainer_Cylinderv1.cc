@@ -23,14 +23,14 @@ void RawTowerGeomContainer_Cylinderv1::Reset()
 void RawTowerGeomContainer_Cylinderv1::set_etabins(const int i)
 {
   assert(i > 0);
-  bound_t invalid_bound(std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN());
+  bound_t invalid_bound(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
   eta_bound_map.resize(i, invalid_bound);
 }
 
 void RawTowerGeomContainer_Cylinderv1::set_phibins(const int i)
 {
   assert(i > 0);
-  bound_t invalid_bound(std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN());
+  bound_t invalid_bound(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
   phi_bound_map.resize(i, invalid_bound);
 }
 

@@ -5,7 +5,7 @@
 
 void TowerInfov4::Reset()
 {
-  energy = std::numeric_limits<float>::signaling_NaN();
+  energy = std::numeric_limits<float>::quiet_NaN();
   time = 0;
   chi2 = 0;
   status = 0;
