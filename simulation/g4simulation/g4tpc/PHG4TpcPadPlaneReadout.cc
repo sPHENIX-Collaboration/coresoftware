@@ -1076,8 +1076,8 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
   set_default_double_param("neffelectrons_threshold", 1.0);
-  set_default_double_param("maxdriftlength", 102.325);     // cm
-  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
+  //  set_default_double_param("maxdriftlength", 102.325);     // cm
+  //  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
@@ -1118,11 +1118,12 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   sigmaL = {{get_double_param("sampa_shaping_lead"),
              get_double_param("sampa_shaping_tail")}};
 
-  const double tpc_adc_clock = get_double_param("tpc_adc_clock");
-
-  const double MaxZ = get_double_param("maxdriftlength");
+  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  double  tpc_adc_clock = layergeom->get_adc_clock();
+  double extended_readout_time = layergeom->get_extended_readout_time();
+  double maxdriftlength = layergeom->get_max_driftlength();
   const double TBinWidth = tpc_adc_clock;
-  const double MaxT = extended_readout_time + 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
+  const double MaxT = extended_readout_time + 2.0 * maxdriftlength/ drift_velocity;  // allows for extended time readout
   const double MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 

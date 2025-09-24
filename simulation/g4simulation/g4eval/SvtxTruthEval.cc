@@ -750,14 +750,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   if (radius > 28 && radius < 80)  // TPC
   {
     PHG4TpcCylinderGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
-
-    double tpc_length = 211.0;             // cm
+    
+    double tpc_max_driftlength = layergeom->get_max_driftlength();
     double drift_velocity = 8.0 / 1000.0;  // cm/ns
 
     // Phi size
     //======
     double diffusion_trans = 0.006;  // cm/SQRT(cm)
-    double phidiffusion = diffusion_trans * std::sqrt(tpc_length / 2. - fabs(avge_z));
+    double phidiffusion = diffusion_trans * std::sqrt(tpc_max_driftlength - fabs(avge_z));
 
     double added_smear_trans = 0.085;  // cm
     double gem_spread = 0.04;          // 400 microns
@@ -786,7 +786,7 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     inner_z = fabs(inner_z);
 
     double diffusion_long = 0.015;  // cm/SQRT(cm)
-    double zdiffusion = diffusion_long * std::sqrt(tpc_length / 2. - fabs(avge_z));
+    double zdiffusion = diffusion_long * std::sqrt(tpc_max_driftlength - fabs(avge_z));
     double zshaping_lead = 32.0 * drift_velocity;  // ns * cm/ns = cm
     double zshaping_tail = 48.0 * drift_velocity;
     double added_smear_long = 0.105;  // cm

@@ -20,6 +20,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
@@ -257,9 +260,14 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
   UpdateParametersWithMacro();
   electrons_per_cm = get_int_param("electrons_per_cm");
   electrons_per_gev = get_double_param("electrons_per_gev");
-  halfwidth_CM = get_double_param("CM_halfwidth");
-  halflength_tpc = get_double_param("tpc_half_length");
 
+    PHG4TpcCylinderGeomContainer *GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+   
+  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  double maxdriftlength = layergeom->get_max_driftlength();
+  halfwidth_CM = layergeom->get_CM_halfwidth();
+  halflength_tpc = maxdriftlength + halfwidth_CM;
+  
   // setup lasers
   SetupLasers();
 
@@ -340,8 +348,8 @@ void PHG4TpcDirectLaser::SetDefaultParameters()
   // number of electrons per deposited GeV in TPC gas
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1e6);
 
-  set_default_double_param("tpc_half_length", 102.325);
-  set_default_double_param("CM_halfwidth", 0.28);
+  //  set_default_double_param("tpc_half_length", 102.325);
+  //  set_default_double_param("CM_halfwidth", 0.28);
 
   // number of electrons deposited by laser per cm
   set_default_int_param("electrons_per_cm", 72);

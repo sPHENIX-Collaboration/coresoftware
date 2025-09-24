@@ -298,15 +298,18 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   electrons_per_gev = (Tpc_NTot / Tpc_dEdx) * 1e6;
 
+  // the z geometry is the same for all layers
+  PHG4TpcCylinderGeom *layergeom = seggeo->GetLayerCellGeom(20);
+     
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
-  max_time = get_double_param("max_time") + get_double_param("extended_readout_time");
+  max_time = get_double_param("max_time") + layergeom->get_extended_readout_time();
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
   if (Verbosity() > 0)
   {
-    std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") << " max time cutoff " << max_time << std::endl;
+    std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << layergeom->get_extended_readout_time() << " max time cutoff " << max_time << std::endl;
   }
 
   auto *se = Fun4AllServer::instance();
@@ -944,7 +947,6 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
   set_default_double_param("max_time", 13200.);              // ns
-  set_default_double_param("extended_readout_time", 7000.);  // ns
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution
