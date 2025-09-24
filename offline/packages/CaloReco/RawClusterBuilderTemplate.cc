@@ -14,6 +14,7 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
+#include <calobase/RawClusterv2.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -22,8 +23,6 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -192,10 +191,23 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
       else
       {
         std::cout << "RawClusterBuilderTemplate::InitRun - Detailed geometry not implemented for detector " << detector << ". The former geometry is used instead" << std::endl;
+        m_UseDetailedGeometry = false;
+        bemc->set_UseDetailedGeometry(false);
       }
     }
   }
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
+
+  if (!towergeom && m_UseDetailedGeometry)
+  {
+    std::cout << "RawClusterBuilderTemplate::InitRun - Detailed geometry node " << m_TowerGeomNodeName << " is not available. "
+              << "Switching to the former geometry node TOWERGEOM_" << detector << "." << std::endl;
+    m_UseDetailedGeometry = false;
+    m_TowerGeomNodeName = "TOWERGEOM_" + detector;
+    bemc->set_UseDetailedGeometry(false);
+    towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
+  }
+  
   if (!towergeom)
   {
     std::cout << PHWHERE << ": Could not find node " << m_TowerGeomNodeName << std::endl;
@@ -298,6 +310,10 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  // Release memory taken by the RawTowerGeom objects in BEmcRec
+  // Does nothing if the former geometry is used
+  bemc->ClearInitialDetailedGeometry();
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -350,6 +366,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     }
   }
 
+  // At this stage, it is more efficient to read the simple geometry node in any case
+  // Indeed, we only need to read the calorimeter ID
   m_TowerGeomNodeName = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
   if (!towergeom)
@@ -668,7 +686,9 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       //      std::cout << "Prob/Chi2/NDF = " << prob << " " << chi2
       //           << " " << ndf << " Ecl = " << ecl << std::endl;
 
-      cluster = new RawClusterv1();
+      cluster = m_writeClusterV2
+                    ? static_cast<RawCluster*>(new RawClusterv2())
+                    : static_cast<RawCluster*>(new RawClusterv1());
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_r(std::sqrt(xg * xg + yg * yg));
@@ -704,7 +724,20 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         ++ph;
       }
 
-      _clusters->AddCluster(cluster);
+      // stamp tower CoG (raw & corrected) only when writing v2
+      if (m_writeClusterV2)
+      {
+        float xcorr = xcg;
+	float ycorr = ycg;
+        bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
+        if (auto* c2 = dynamic_cast<RawClusterv2*>(cluster))
+        {
+          c2->set_tower_cog(xcg, ycg, xcorr, ycorr);
+        }
+      }
+
+      auto it_v2same = _clusters->AddCluster(cluster);
+      cluster->set_id(it_v2same->first);
       // ncl++;
 
       //      std::cout << "    ipk = " << ipk << ": E = " << ecl << "  E9 = "

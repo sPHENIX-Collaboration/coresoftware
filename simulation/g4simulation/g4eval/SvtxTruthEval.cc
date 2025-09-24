@@ -736,6 +736,12 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   double outer_phi = atan2(outer_y, outer_x);
   double avge_z = (outer_z + inner_z) / 2.0;
 
+  unsigned int side = 0;
+  if (avge_z < 0)
+  {
+    side = 1;
+  } 
+
   // Now fold these with the expected diffusion and shaping widths
   // assume spread is +/- equals this many sigmas times diffusion and shaping when extending the size
   double sigmas = 2.0;
@@ -766,8 +772,8 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     double g4min_phi = inner_phi - sigmas * std::sqrt(pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2)) / radius;
 
     // find the bins containing these max and min z edges
-    unsigned int phibinmin = layergeom->get_phibin(g4min_phi);
-    unsigned int phibinmax = layergeom->get_phibin(g4max_phi);
+    unsigned int phibinmin = layergeom->get_phibin(g4min_phi, side);
+    unsigned int phibinmax = layergeom->get_phibin(g4max_phi, side);
     unsigned int phibinwidth = phibinmax - phibinmin + 1;
     g4phisize = (double) phibinwidth * layergeom->get_phistep() * layergeom->get_radius();
 
@@ -805,10 +811,10 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     // multiply total number of bins that include the edges by the bin size
     g4zsize = (double) binwidth * layergeom->get_zstep();
   }
-  else if (radius > 5 && radius < 20)  // INTT
+  else if (radius > 6 && radius < 20)  // INTT
   {
     // All we have is the position and layer number
-
+  
     CylinderGeomIntt* layergeom = dynamic_cast<CylinderGeomIntt*>(_intt_geom_container->GetLayerGeom(layer));
 
     // inner location

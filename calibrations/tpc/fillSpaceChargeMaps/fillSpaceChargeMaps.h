@@ -5,7 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cmath>  // for sin, asin, cos, floor, M_PI
+#include <cmath>
 #include <map>
 #include <set>
 #include <string>

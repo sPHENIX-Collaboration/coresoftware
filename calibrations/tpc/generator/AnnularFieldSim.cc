@@ -16,6 +16,7 @@
 #include <TTree.h>
 #include <TVector3.h>
 
+#include <algorithm>
 #include <boost/format.hpp>
 
 #include <cassert>  // for assert
@@ -540,7 +541,8 @@ TVector3 AnnularFieldSim::analyticFieldIntegral(float zdest, TVector3 start, Mul
 
   // coordinates are assumed to be in native units (cm=1);
 
-  int r, phi;
+  int r;
+  int phi;
   bool rOkay = (GetRindexAndCheckBounds(start.Perp(), &r) == InBounds);
   bool phiOkay = (GetPhiIndexAndCheckBounds(FilterPhiPos(start.Phi()), &phi) == InBounds);
 
@@ -557,9 +559,12 @@ TVector3 AnnularFieldSim::analyticFieldIntegral(float zdest, TVector3 start, Mul
 
   int dir = (start.Z() > zdest ? -1 : 1);  //+1 if going to larger z, -1 if going to smaller;  if they're the same, the sense doesn't matter.
 
-  int zi, zf;
-  double startz, endz;
-  BoundsCase startBound, endBound;
+  int zi;
+  int zf;
+  double startz;
+  double endz;
+  BoundsCase startBound;
+  BoundsCase endBound;
 
   // make sure 'zi' is always the smaller of the two numbers, for handling the partial-steps.
   if (dir > 0)
@@ -604,7 +609,8 @@ TVector3 AnnularFieldSim::fieldIntegral(float zdest, const TVector3 &start, Mult
   // integrates E dz, from the starting point to the selected z position.  The path is assumed to be along z for each step, with adjustments to x and y accumulated after each step.
   // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::fieldIntegral(x=%f,y=%f, z=%f) to z=%f\n\n",__LINE__,start.X(),start.Y(),start.Z(),zdest);
 
-  int r, phi;
+  int r;
+  int phi;
   bool rOkay = (GetRindexAndCheckBounds(start.Perp(), &r) == InBounds);
   bool phiOkay = (GetPhiIndexAndCheckBounds(FilterPhiPos(start.Phi()), &phi) == InBounds);
 
@@ -616,9 +622,12 @@ TVector3 AnnularFieldSim::fieldIntegral(float zdest, const TVector3 &start, Mult
 
   int dir = (start.Z() > zdest ? -1 : 1);  //+1 if going to larger z, -1 if going to smaller;  if they're the same, the sense doesn't matter.
 
-  int zi, zf;
-  double startz, endz;
-  BoundsCase startBound, endBound;
+  int zi;
+  int zf;
+  double startz;
+  double endz;
+  BoundsCase startBound;
+  BoundsCase endBound;
 
   // make sure 'zi' is always the smaller of the two numbers, for handling the partial-steps.
   if (dir > 0)
@@ -799,9 +808,12 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3 
 
   int dir = (start.Z() < zdest ? 1 : -1);  //+1 if going to larger z, -1 if going to smaller;  if they're the same, the sense doesn't matter.
 
-  int zi, zf;
-  double startz, endz;
-  BoundsCase startBound, endBound;
+  int zi;
+  int zf;
+  double startz;
+  double endz;
+  BoundsCase startBound;
+  BoundsCase endBound;
 
   // make sure 'zi' is always the smaller of the two numbers, for handling the partial-steps.
   if (dir > 0)
@@ -846,7 +858,8 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3 
     }
   }
 
-  TVector3 fieldInt(0, 0, 0), partialInt;  // where we'll store integrals as we generate them.
+  TVector3 fieldInt(0, 0, 0);
+  TVector3 partialInt;  // where we'll store integrals as we generate them.
 
   for (int i = 0; i < 4; i++)
   {
@@ -952,8 +965,11 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
   Efieldname = "E:" + filename + ":" + treename;
-  float r, z;          // coordinates
-  float fr, fz, fphi;  // field components at that coordinate
+  float r;
+  float z;          // coordinates
+  float fr;
+  float fz;
+  float fphi;  // field components at that coordinate
   fTree->SetBranchAddress("r", &r);
   fTree->SetBranchAddress("er", &fr);
   fTree->SetBranchAddress("z", &z);
@@ -976,8 +992,11 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
   Bfieldname = "B:" + filename + ":" + treename;
-  float r, z;          // coordinates
-  float fr, fz, fphi;  // field components at that coordinate
+  float r;
+  float z;          // coordinates
+  float fr;
+  float fz;
+  float fphi;  // field components at that coordinate
   fTree->SetBranchAddress("r", &r);
   fTree->SetBranchAddress("br", &fr);
   fTree->SetBranchAddress("z", &z);
@@ -1004,8 +1023,12 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
   Bfieldname = "B(3D):" + filename + ":" + treename + " Scale =" + boost::str(boost::format("%2.2f") % scale);
-  float r, z, phi;     // coordinates
-  float fr, fz, fphi;  // field components at that coordinate
+  float r;
+  float z;
+  float phi;     // coordinates
+  float fr;
+  float fz;
+  float fphi;  // field components at that coordinate
   fTree->SetBranchAddress("rho", &r);
   fTree->SetBranchAddress("brho", &fr);
   fTree->SetBranchAddress("z", &z);
@@ -1672,7 +1695,8 @@ void AnnularFieldSim::populate_highres_lookup()
   // todo: if this runs too slowly, I can do geometry instead of looping over all the cells that are possibly in range
 
   // loop over all the f-bins in the roi:
-  TVector3 currentf, newf;  // the averaged field vector without, and then with the new contribution from the f-bin being considered.
+  TVector3 currentf;
+  TVector3 newf;  // the averaged field vector without, and then with the new contribution from the f-bin being considered.
   for (int ifr = rmin_roi; ifr < rmax_roi; ifr++)
   {
     int r_parentlow = std::floor((ifr - r_highres_dist) / (r_spacing * 1.0));       // l-bin partly enclosed in our high-res region
@@ -1720,10 +1744,7 @@ void AnnularFieldSim::populate_highres_lookup()
         {
           // skip parts that are out of range:
           // could speed this up by moving this into the definition of start and endpoint.
-          if (ir < 0)
-          {
-            ir = 0;
-          }
+          ir = std::max(ir, 0);
           if (ir >= nr)
           {
             break;
@@ -1760,10 +1781,7 @@ void AnnularFieldSim::populate_highres_lookup()
             }
             for (int iz = z_startpoint; iz < z_endpoint; iz++)
             {
-              if (iz < 0)
-              {
-                iz = 0;
-              }
+              iz = std::max(iz, 0);
               if (iz >= nz)
               {
                 break;
@@ -1831,8 +1849,16 @@ void AnnularFieldSim::populate_lowres_lookup()
   TVector3 at(1, 0, 0);
   TVector3 from(1, 0, 0);
   TVector3 zero(0, 0, 0);
-  int fphi_low, fphi_high, fz_low, fz_high;             // edges of the outer l-bin
-  int r_low, r_high, phi_low, phi_high, z_low, z_high;  // edges of the inner l-bin
+  int fphi_low;
+  int fphi_high;
+  int fz_low;
+  int fz_high;             // edges of the outer l-bin
+  int r_low;
+  int r_high;
+  int phi_low;
+  int phi_high;
+  int z_low;
+  int z_high;  // edges of the inner l-bin
 
   // todo:  add in handling if roi_low is wrap-around in phi
   for (int ifr = rmin_roi_low; ifr < rmax_roi_low; ifr++)
@@ -1994,9 +2020,17 @@ void AnnularFieldSim::load_phislice_lookup(const std::string &sourcefile)
   input->GetObject("info", tInfo);
   assert(tInfo);
 
-  float file_rmin, file_rmax, file_zmin, file_zmax;
-  int file_rmin_roi, file_rmax_roi, file_zmin_roi, file_zmax_roi;
-  int file_nr, file_np, file_nz;
+  float file_rmin;
+  float file_rmax;
+  float file_zmin;
+  float file_zmax;
+  int file_rmin_roi;
+  int file_rmax_roi;
+  int file_zmin_roi;
+  int file_zmax_roi;
+  int file_nr;
+  int file_np;
+  int file_nz;
   tInfo->SetBranchAddress("rmin", &file_rmin);
   tInfo->SetBranchAddress("rmax", &file_rmax);
   tInfo->SetBranchAddress("zmin", &file_zmin);
@@ -2039,7 +2073,11 @@ void AnnularFieldSim::load_phislice_lookup(const std::string &sourcefile)
   TTree *tLookup;
   input->GetObject("phislice", tLookup);
   assert(tLookup);
-  int ior, ifr, iophi, ioz, ifz;
+  int ior;
+  int ifr;
+  int iophi;
+  int ioz;
+  int ifz;
   TVector3 *unitf = nullptr;
   tLookup->SetBranchAddress("ir_source", &ior);
   tLookup->SetBranchAddress("ir_target", &ifr);
@@ -2100,7 +2138,11 @@ void AnnularFieldSim::save_phislice_lookup(const std::string &destfile)
   ;
 
   TTree *tLookup = new TTree("phislice", "Phislice Lookup Table");
-  int ior, ifr, iophi, ioz, ifz;
+  int ior;
+  int ifr;
+  int iophi;
+  int ioz;
+  int ifz;
   TVector3 unitf;
   tLookup->Branch("ir_source", &ior);
   tLookup->Branch("ir_target", &ifr);
@@ -2221,13 +2263,16 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
   // note the specific position in Epartial is in relative coordinates.
   // print_need_cout("AnnularFieldSim::sum_field_at(r=%d,phi=%d, z=%d)\n",r,phi,z);
   TVector3 sum(0, 0, 0);
-  float rdist, phidist, zdist, remdist;
+  float rdist;
+  float phidist;
+  float zdist;
+  float remdist;
   for (int ir = 0; ir < nr; ir++)
   {
     if (truncation_length > 0)
     {
       rdist = std::abs(ir - r);
-      remdist = sqrt(truncation_length * truncation_length - rdist * rdist);
+      remdist = std::sqrt(truncation_length * truncation_length - rdist * rdist);
       if (remdist < 0)
       {
         continue;  // skip if we're too far away
@@ -2237,8 +2282,8 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
     {
       if (truncation_length > 0)
       {
-        phidist = fmin(std::abs(iphi - phi), std::abs(std::abs(iphi - phi) - nphi));  // think about this in phi... rcc food for thought.
-        remdist = sqrt(truncation_length * truncation_length - phidist * phidist);
+        phidist = std::min(std::abs(iphi - phi), std::abs(std::abs(iphi - phi) - nphi));  // think about this in phi... rcc food for thought.
+        remdist = std::sqrt(truncation_length * truncation_length - phidist * phidist);
         if (remdist < 0)
         {
           continue;  // skip if we're too far away
@@ -2249,7 +2294,7 @@ TVector3 AnnularFieldSim::sum_full3d_field_at(int r, int phi, int z)
         if (truncation_length > 0)
         {
           zdist = std::abs(iz - z);
-          remdist = sqrt(truncation_length * truncation_length - zdist * zdist);
+          remdist = std::sqrt(truncation_length * truncation_length - zdist * zdist);
           if (remdist < 0)
           {
             continue;  // skip if we're too far away
@@ -2310,19 +2355,13 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
   // get the charge involved in the local highres block:
   for (int ir = r_parentlow * r_spacing; ir < r_parenthigh * r_spacing; ir++)
   {
-    if (ir < 0)
-    {
-      ir = 0;
-    }
+    ir = std::max(ir, 0);
     if (ir >= nr)
     {
       break;
     }
     int rbin = (ir - r) + r_highres_dist;  // index in our highres locale.  zeroth bin when we're at max distance below, etc.
-    if (rbin < 0)
-    {
-      rbin = 0;
-    }
+    rbin = std::max(rbin, 0);
     if (rbin >= nr_high)
     {
       rbin = nr_high - 1;
@@ -2332,20 +2371,14 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
       // no phi range checks since it's circular.
       int phiFilt = FilterPhiIndex(iphi);
       int phibin = (iphi - phi) + phi_highres_dist;
-      if (phibin < 0)
-      {
-        phibin = 0;
-      }
+      phibin = std::max(phibin, 0);
       if (phibin >= nphi_high)
       {
         phibin = nphi_high - 1;
       }
       for (int iz = z_parentlow * z_spacing; iz < z_parenthigh * z_spacing; iz++)
       {
-        if (iz < 0)
-        {
-          iz = 0;
-        }
+        iz = std::max(iz, 0);
         if (iz >= nz)
         {
           break;
@@ -2353,10 +2386,7 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
         // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::sum_field_at, reading q in f-bin at(r=%d,phi=%d, z=%d)\n",__LINE__,ir,iphi,iz);
 
         int zbin = (iz - z) + z_highres_dist;
-        if (zbin < 0)
-        {
-          zbin = 0;
-        }
+        zbin = std::max(zbin, 0);
         if (zbin >= nz_high)
         {
           zbin = nz_high - 1;
@@ -2530,7 +2560,8 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   // note that if any out-of-bounds ones survive somehow, the call to Epartial_lowres will fail loudly.
   int lBinEdge[2];              // lower and upper (included) edges of the low-res bin, measured in f-bins, reused per-dimension
   int hRegionEdge[2];           // lower and upper edge of the high-res region, measured in f-bins, reused per-dimension.
-  bool overlapsPhi, overlapsZ;  // whether we overlap in R, phi, and z.
+  bool overlapsPhi;
+  bool overlapsZ;  // whether we overlap in R, phi, and z.
 
   int r_highres_dist = (nr_high - 1) / 2;
   int phi_highres_dist = (nphi_high - 1) / 2;
@@ -2659,7 +2690,9 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
   TVector3 accumulated_drift(0, 0, 0);
   TVector3 drift_step(0, 0, zstep);
 
-  int rt, pt, zt;  // just placeholders for the bounds-checking.
+  int rt;
+  int pt;
+  int zt;  // just placeholders for the bounds-checking.
   BoundsCase zBound;
   for (int i = 0; i < steps; i++)
   {
@@ -2713,7 +2746,9 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
   // start=start*cm;
 
   // check the z bounds:
-  int rt, pt, zt;  // just placeholders for the bounds-checking.
+  int rt;
+  int pt;
+  int zt;  // just placeholders for the bounds-checking.
   BoundsCase zBound;
   zBound = GetZindexAndCheckBounds(zdest, &zt);
   bool rdrswitch = RdeltaRswitch;
@@ -2800,7 +2835,8 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
   position.SetY(start.Y() + accumulated_distortion.Y());
   position.SetZ(zdest - (integernumbersteps * zstep));
 
-  float StartR, FinalR;
+  float StartR;
+  float FinalR;
   float DeltaR;
   for (int i = 0; i < integernumbersteps; i++)
   {
@@ -3071,18 +3107,19 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
     side[1] = "negz";
   }
   std::string sepAxis[] = {"X", "Y", "Z", "R", "P", "RPhi"};
-  float zlower, zupper;
+  float zlower;
+  float zupper;
   for (int i = 0; i < nSides; i++)
   {
     if (i == 0)
     {  // doing the positive side
-      zlower = fmin(zih, zfh);
-      zupper = fmax(zih, zfh);
+      zlower = std::min(zih, zfh);
+      zupper = std::max(zih, zfh);
     }
     else
     {
-      zlower = -1 * fmax(zih, zfh);
-      zupper = -1 * fmin(zih, zfh);
+      zlower = -1 * std::max(zih, zfh);
+      zupper = -1 * std::min(zih, zfh);
     }
     for (int j = 0; j < nMapComponents; j++)
     {
@@ -3106,8 +3143,8 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   // monitor plots, and the position that that plot monitors at:
 
   // TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,(nzh/2+0.5)*s.Z()+zih);
-  TVector3 pos(((int) (nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((int) (nz / 2) + 0.5) * step.Z());
-  float posphi = ((int) (nph / 2) + 0.5) * steplocal.Phi() + pih;
+  TVector3 pos(((nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((nz / 2) + 0.5) * step.Z());
+  float posphi = ((nph / 2) + 0.5) * steplocal.Phi() + pih;
   pos.SetPhi(posphi);
   // int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3] = {(int) std::floor((pos.Perp() - rih) / steplocal.Perp()), (int) std::floor((posphi - pih) / steplocal.Phi()), (int) std::floor((pos.Z() - zih) / steplocal.Z())};
@@ -3159,17 +3196,28 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
                                 axn[0], axbot[0], axtop[0]);
   }
 
-  TVector3 inpart, outpart;
-  TVector3 diffdistort, distort;
+  TVector3 inpart;
+  TVector3 outpart;
+  TVector3 diffdistort;
+  TVector3 distort;
   int validToStep;
   int successCheck;
 
   // TTree version:
-  float partR, partP, partZ;
-  int ir, ip, iz;
-  float distortR, distortP, distortZ;
-  float distortX, distortY;
-  float diffdistR, diffdistP, diffdistZ;
+  float partR;
+  float partP;
+  float partZ;
+  int ir;
+  int ip;
+  int iz;
+  float distortR;
+  float distortP;
+  float distortZ;
+  float distortX;
+  float distortY;
+  float diffdistR;
+  float diffdistP;
+  float diffdistZ;
   TTree *dTree = new TTree("dTree", "Distortion per step z");
   dTree->Branch("r", &partR);
   dTree->Branch("p", &partP);
@@ -3644,8 +3692,8 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   // monitor plots, and the position that plot monitors at:
 
   // TVector3 pos((nrh/2+0.5)*steplocal.Perp()+rih,0,(nzh/2+0.5)*steplocal.Z()+zih);
-  TVector3 pos(((int) (nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((int) (nz / 2) + 0.5) * step.Z());
-  float posphi = ((int) (nph / 2) + 0.5) * steplocal.Phi() + pih;
+  TVector3 pos(((nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((nz / 2) + 0.5) * step.Z());
+  float posphi = ((nph / 2) + 0.5) * steplocal.Phi() + pih;
   pos.SetPhi(posphi);
   // int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3] = {(int) std::floor((pos.Perp() - rih) / steplocal.Perp()), (int) std::floor((posphi - pih) / steplocal.Phi()), (int) std::floor((pos.Z() - zih) / steplocal.Z())};
@@ -3698,16 +3746,26 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
                                 axn[0], axbot[0], axtop[0]);
   }
 
-  TVector3 inpart, outpart;
+  TVector3 inpart;
+  TVector3 outpart;
   TVector3 distort;
   int validToStep;
 
   // TTree version:
-  float partR, partP, partZ;
-  int ir, ip, iz;
-  float distortR, distortP, distortZ;
-  float distortX, distortY;
-  float diffdistR, diffdistP, diffdistZ;
+  float partR;
+  float partP;
+  float partZ;
+  int ir;
+  int ip;
+  int iz;
+  float distortR;
+  float distortP;
+  float distortZ;
+  float distortX;
+  float distortY;
+  float diffdistR;
+  float diffdistP;
+  float diffdistZ;
   TTree *dTree = new TTree("dTree", "Distortion per step z");
   dTree->Branch("r", &partR);
   dTree->Branch("p", &partP);
@@ -4081,7 +4139,9 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 
   // using second order langevin expansion from http://skipper.physics.sunysb.edu/~prakhar/tpc/Papers/ALICE-INT-2010-016.pdf
   // TVector3 (*field)[nr][ny][nz]=field_;
-  int rt, pt, zt;  // these are filled by the checkbounds that follow, but are not used.
+  int rt;
+  int pt;
+  int zt;  // these are filled by the checkbounds that follow, but are not used.
   BoundsCase zBound = GetZindexAndCheckBounds(start.Z(), &zt);
   if (GetRindexAndCheckBounds(start.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(start.Phi()), &pt) != InBounds || (zBound != InBounds && zBound != OnHighEdge))
   {
@@ -4262,7 +4322,9 @@ TVector3 AnnularFieldSim::GetFieldAt(const TVector3 &pos)
 {
   // assume pos is in native units (see header)
 
-  int r, p, z;
+  int r;
+  int p;
+  int z;
 
   if (GetRindexAndCheckBounds(pos.Perp(), &r) == BoundsCase::OutOfBounds)
   {
@@ -4288,7 +4350,9 @@ TVector3 AnnularFieldSim::GetBFieldAt(const TVector3 &pos)
 {
   // assume pos is in native units (see header)
 
-  int r, p, z;
+  int r;
+  int p;
+  int z;
 
   if (GetRindexAndCheckBounds(pos.Perp(), &r) == BoundsCase::OutOfBounds)
   {

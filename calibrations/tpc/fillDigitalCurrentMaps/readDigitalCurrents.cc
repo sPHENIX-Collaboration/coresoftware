@@ -25,6 +25,7 @@
 #include <TH3.h>
 
 #include <algorithm>  // for max
+#include <cassert>
 #include <cmath>      // for M_PI, sin, cos
 #include <fstream>
 #include <iostream>
@@ -384,7 +385,7 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         double phi_center = 0;
         if (_f_ccgc == 1)
         {
-          phi_center = layergeom_ccgc->get_phicenter(phibin);
+          phi_center = layergeom_ccgc->get_phicenter(phibin, zside);
         }
         else
         {
@@ -396,14 +397,8 @@ int readDigitalCurrents::process_event(PHCompositeNode *topNode)
         }
         if (phi_center < M_PI / 2 + M_PI / 12 && phi_center > M_PI / 2 - M_PI / 12)
         {
-          if (min_phiBin > phibin)
-          {
-            min_phiBin = phibin;
-          }
-          if (max_phiBin < phibin)
-          {
-            max_phiBin = phibin;
-          }
+          min_phiBin = std::min<int>(min_phiBin, phibin);
+          max_phiBin = std::max<int>(max_phiBin, phibin);
         }
         float x = radius * cos(phi_center);
         float y = radius * sin(phi_center);

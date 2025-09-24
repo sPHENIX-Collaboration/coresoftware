@@ -23,23 +23,12 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc, gsl_rng...
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>  // for operator<<, basic_ostream
 #include <set>
 #include <utility>  // for pair
 
-namespace
-{
-
-  // local version of std::clamp, which is only available for c++17
-  template <class T>
-  constexpr const T& clamp(const T& v, const T& lo, const T& hi)
-  {
-    return (v < lo) ? lo : (hi < v) ? hi
-                                    : v;
-  }
-
-}  // namespace
 //____________________________________________________________________________
 PHG4MicromegasDigitizer::PHG4MicromegasDigitizer(const std::string& name)
   : SubsysReco(name)
@@ -131,7 +120,7 @@ int PHG4MicromegasDigitizer::process_event(PHCompositeNode* topNode)
       if (voltage > m_adc_threshold * m_volt_per_electron_noise)
       {
         // keep hit, update adc
-        hit->setAdc(clamp<uint>(voltage * m_adc_per_volt, 0, 1023));
+        hit->setAdc(std::clamp<uint>(voltage * m_adc_per_volt, 0, 1023));
       }
       else
       {

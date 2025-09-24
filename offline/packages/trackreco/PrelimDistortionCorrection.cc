@@ -38,6 +38,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <cmath>
 #include <iostream>                            // for operator<<, basic_ostream
 #include <vector>
 
@@ -178,7 +179,7 @@ int PrelimDistortionCorrection::process_event(PHCompositeNode* /*topNode*/)
       {
 	std::cout << "Input seed pars for " << track_it
 		  << " q " << track->get_charge()
-		  << " qOverR " << fabs(track->get_qOverR()) * track->get_charge()
+		  << " qOverR " << std::abs(track->get_qOverR()) * track->get_charge()
 		  << " X0 " << TrackSeedHelper::get_x(track)
 		  << " Y0 " << TrackSeedHelper::get_y(track)
 		  << " Z0 " << TrackSeedHelper::get_z(track)
@@ -298,7 +299,7 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
     TrackSeedHelper::circleFitByTaubin(&seed,positions, 7, 55);
     TrackSeedHelper::lineFit(&seed,positions, 7, 55);
 
-    seed.set_qOverR(fabs(seed.get_qOverR()) * q);
+    seed.set_qOverR(std::abs(seed.get_qOverR()) * q);
     seed.set_phi(TrackSeedHelper::get_phi(&seed,positions));
     _track_map->insert(&seed);
 
@@ -306,7 +307,7 @@ void PrelimDistortionCorrection::publishSeeds(std::vector<TrackSeed_v2>& seeds, 
       {
 	std::cout << "Publishing seed " << seed_index
 		  << " q " << q
-		  << " qOverR " << fabs(seed.get_qOverR()) * q
+		  << " qOverR " << std::abs(seed.get_qOverR()) * q
 		  << " x " << TrackSeedHelper::get_x(&seed)
 		  << " y " << TrackSeedHelper::get_y(&seed)
 		  << " z " << TrackSeedHelper::get_z(&seed)

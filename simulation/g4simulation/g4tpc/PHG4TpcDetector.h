@@ -17,6 +17,8 @@ class PHCompositeNode;
 class PHG4TpcDisplayAction;
 class PHG4Subsystem;
 class PHParameters;
+class CDBTTree;
+class CDBInterface;
 
 class PHG4TpcDetector : public PHG4Detector
 {
@@ -25,9 +27,7 @@ class PHG4TpcDetector : public PHG4Detector
   PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  ~PHG4TpcDetector(void) override
-  {
-  }
+  ~PHG4TpcDetector(void) override;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -42,12 +42,13 @@ class PHG4TpcDetector : public PHG4Detector
   int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTpcExternalSupports(G4LogicalVolume *logicWorld);
 
-  void CreateCompositeMaterial(const std::string &compositeName, std::vector<std::string> materialName, const std::vector<double> &thickness);
+  static void CreateCompositeMaterial(const std::string &compositeName, std::vector<std::string> materialName, const std::vector<double> &thickness);
 
   //! add geometry node
   /** this setups the relevant geometry needed for offline reconstruciton */
   void add_geometry_node();
-
+  CDBTTree *m_cdbttree{nullptr};
+  CDBInterface *m_cdb{nullptr};
   PHG4TpcDisplayAction *m_DisplayAction = nullptr;
   PHParameters *m_Params = nullptr;
   G4UserLimits *m_G4UserLimits = nullptr;

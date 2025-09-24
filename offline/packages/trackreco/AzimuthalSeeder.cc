@@ -94,7 +94,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode * /*unused*/)
       float phi1 = atan2(pos1.y(), pos1.x());
 
       h_phi->Fill(phi0, phi0 - phi1);
-      if (std::fabs(phi0 - phi1) < 0.1)
+      if (std::abs(phi0 - phi1) < 0.1)
       {
         seed s;
         s.ckeys.push_back(key0);
@@ -114,7 +114,7 @@ int AzimuthalSeeder::process_event(PHCompositeNode * /*unused*/)
       float phi0 = atan2(s.globpos[0].y(), s.globpos[0].x());
       h_phi2->Fill(phi0, phi0 - phi2);
       h_phi3->Fill(phi2, phi1 - phi2);
-      if (std::fabs(phi0 - phi2) < 0.1 && std::fabs(phi1 - phi2) < 0.1)
+      if (std::abs(phi0 - phi2) < 0.1 && std::abs(phi1 - phi2) < 0.1)
       {
         s.ckeys.push_back(key2);
         s.globpos.push_back(pos2);

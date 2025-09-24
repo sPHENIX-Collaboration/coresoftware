@@ -13,6 +13,7 @@ class CDBTTree
   CDBTTree() = default;
   explicit CDBTTree(const std::string &fname);
   ~CDBTTree();
+  static void SetVerbosity(int v) { verbosity = v; }
   void SetFloatValue(int channel, const std::string &name, float value);
   void SetDoubleValue(int channel, const std::string &name, double value);
   void SetIntValue(int channel, const std::string &name, int value);
@@ -27,16 +28,16 @@ class CDBTTree
   void WriteSingleCDBTTree();
   void WriteMultipleCDBTTree();
   void Print();
-  void SetFilename(const std::string &fname) {m_Filename = fname;}
+  void SetFilename(const std::string &fname) { m_Filename = fname; }
   void LoadCalibrations();
-  float GetSingleFloatValue(const std::string &name, int verbose = 1);
-  float GetFloatValue(int channel, const std::string &name, int verbose = 1);
-  double GetSingleDoubleValue(const std::string &name, int verbose = 1);
-  double GetDoubleValue(int channel, const std::string &name, int verbose = 1);
-  int GetSingleIntValue(const std::string &name, int verbose = 1);
-  int GetIntValue(int channel, const std::string &name, int verbose = 1);
-  uint64_t GetSingleUInt64Value(const std::string &name, int verbose = 1);
-  uint64_t GetUInt64Value(int channel, const std::string &name, int verbose = 1);
+  float GetSingleFloatValue(const std::string &name, int verbose = 0);
+  float GetFloatValue(int channel, const std::string &name, int verbose = 0);
+  double GetSingleDoubleValue(const std::string &name, int verbose = 0);
+  double GetDoubleValue(int channel, const std::string &name, int verbose = 0);
+  int GetSingleIntValue(const std::string &name, int verbose = 0);
+  int GetIntValue(int channel, const std::string &name, int verbose = 0);
+  uint64_t GetSingleUInt64Value(const std::string &name, int verbose = 0);
+  uint64_t GetUInt64Value(int channel, const std::string &name, int verbose = 0);
 
  private:
   enum
@@ -46,6 +47,7 @@ class CDBTTree
   };
   const std::string m_TTreeName[2] = {"Single", "Multiple"};
   TTree *m_TTree[2] = {nullptr};
+  static int verbosity;
   bool m_Locked[2] = {false};
 
   std::string m_Filename;

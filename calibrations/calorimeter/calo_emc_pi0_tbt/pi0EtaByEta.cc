@@ -410,7 +410,8 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       float clus2_pt = E_vec_cluster2.perp();
       float clus2_chisq = recoCluster2->get_prob();
 
-      if (clus2_pt < pt2ClusCut || clus_pt > ptClusMax)
+      // Apply pt cuts to second cluster in the pair
+      if (clus2_pt < pt2ClusCut || clus2_pt > ptClusMax)
       {
         continue;
       }

@@ -33,18 +33,20 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>  // for _Rb_tree_it...
 #include <sstream>
 #include <utility>  // for swap, pair
 #include <vector>   // for vector
 
-using namespace std;
+namespace
+{
+   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
+}
+  static const double toMM = 1.e-12;
+using PHObjectNode_t = PHIODataNode<PHObject>;
 
-static boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
-static const double toMM = 1.e-12;
-typedef PHIODataNode<PHObject> PHObjectNode_t;
-
-Fun4AllOscarInputManager::Fun4AllOscarInputManager(const string &name, const string &topnodename)
+Fun4AllOscarInputManager::Fun4AllOscarInputManager(const std::string &name, const std::string &topnodename)
   : Fun4AllInputManager(name, "")
   , events_total(0)
   , events_thisfile(0)
@@ -57,7 +59,7 @@ Fun4AllOscarInputManager::Fun4AllOscarInputManager(const string &name, const str
   , isCompressed(false)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  topNode = se->topNode(topNodeName.c_str());
+  topNode = se->topNode(topNodeName);
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = se->getNode(InputNode(), topNodeName);
 
@@ -79,26 +81,26 @@ Fun4AllOscarInputManager::~Fun4AllOscarInputManager()
   delete unzipstream;
 }
 
-int Fun4AllOscarInputManager::fileopen(const string &filenam)
+int Fun4AllOscarInputManager::fileopen(const std::string &filenam)
 {
   if (!MySyncManager())
   {
-    cout << "Call fileopen only after you registered your Input Manager " << Name() << " with the Fun4AllServer" << endl;
+    std::cout << "Call fileopen only after you registered your Input Manager " << Name() << " with the Fun4AllServer" << std::endl;
     exit(1);
   }
   if (IsOpen())
   {
-    cout << "Closing currently open file "
+    std::cout << "Closing currently open file "
          << filename
-         << " and opening " << filenam << endl;
+         << " and opening " << filenam << std::endl;
     fileclose();
   }
   filename = filenam;
   FROG frog;
-  string fname(frog.location(filename.c_str()));
+  std::string fname(frog.location(filename));
   if (Verbosity() > 0)
   {
-    cout << Name() << ": opening file " << fname << endl;
+    std::cout << Name() << ": opening file " << fname << std::endl;
   }
 
   TString tstr(fname);
@@ -107,19 +109,19 @@ int Fun4AllOscarInputManager::fileopen(const string &filenam)
   if (tstr.Contains(bzip_ext))
   {
     // use boost iosteam library to decompress bz2 on the fly
-    filestream = new ifstream(fname.c_str(), std::ios::in | std::ios::binary);
+    filestream = new std::ifstream(fname.c_str(), std::ios::in | std::ios::binary);
     zinbuffer.push(boost::iostreams::bzip2_decompressor());
     zinbuffer.push(*filestream);
-    unzipstream = new istream(&zinbuffer);
+    unzipstream = new std::istream(&zinbuffer);
     isCompressed = true;
   }
   else if (tstr.Contains(gzip_ext))
   {
     // use boost iosream to decompress the gzip file on the fly
-    filestream = new ifstream(fname.c_str(), std::ios::in | std::ios::binary);
+    filestream = new std::ifstream(fname.c_str(), std::ios::in | std::ios::binary);
     zinbuffer.push(boost::iostreams::gzip_decompressor());
     zinbuffer.push(*filestream);
-    unzipstream = new istream(&zinbuffer);
+    unzipstream = new std::istream(&zinbuffer);
     isCompressed = true;
   }
   else
@@ -152,24 +154,22 @@ readagain:
     {
       if (Verbosity() > 0)
       {
-        cout << Name() << ": No Input file open" << endl;
+        std::cout << Name() << ": No Input file open" << std::endl;
       }
       return 0;
     }
-    else
+
+    if (OpenNextFile())
     {
-      if (OpenNextFile())
-      {
-        cout << Name() << ": No Input file from filelist opened" << endl;
-        return 0;
-      }
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return 0;
     }
   }
 
-  //Read oscar
+  // Read oscar
   evt = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
   int code = ConvertFromOscar();
-  /*  
+  /*
   if(skippedEvents < skipEvents || code == 3)
     {
       goto readagain;
@@ -177,27 +177,30 @@ readagain:
   */
   if (code == 1 || evt == nullptr)
   {
-    if (Verbosity() > 1) cout << "Finished file!" << endl;
+    if (Verbosity() > 1)
+    {
+      std::cout << "Finished file!" << std::endl;
+    }
     fileclose();
-    goto readagain;
+    goto readagain; // NOLINT(hicpp-avoid-goto)
   }
 
-  //  if(Verbosity() > 4) cout << "SIZE: " << phhepmcgenevt->size() << endl;
-  //MySyncManager()->CurrentEvent(evt->event_number());
+  //  if(Verbosity() > 4) std::cout << "SIZE: " << phhepmcgenevt->size() << std::endl;
+  // MySyncManager()->CurrentEvent(evt->event_number());
   events_total++;
   events_thisfile++;
 
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
-    //ResetEvent();
-    goto readagain;
+    // ResetEvent();
+    goto readagain; // NOLINT(hicpp-avoid-goto)
   }
 
   if (events_total < nevents)
   {
-    //ResetEvent();
-    goto readagain;
+    // ResetEvent();
+    goto readagain; // NOLINT(hicpp-avoid-goto)
   }
 
   return 0;
@@ -207,7 +210,7 @@ int Fun4AllOscarInputManager::fileclose()
 {
   if (!IsOpen())
   {
-    cout << Name() << ": fileclose: No Input file open" << endl;
+    std::cout << Name() << ": fileclose: No Input file open" << std::endl;
     return -1;
   }
   if (isCompressed)
@@ -225,7 +228,7 @@ int Fun4AllOscarInputManager::fileclose()
   return 0;
 }
 
-void Fun4AllOscarInputManager::Print(const string &what) const
+void Fun4AllOscarInputManager::Print(const std::string &what) const
 {
   Fun4AllInputManager::Print(what);
   return;
@@ -233,8 +236,8 @@ void Fun4AllOscarInputManager::Print(const string &what) const
 
 int Fun4AllOscarInputManager::ResetEvent()
 {
-  //delete evt;
-  //evt = nullptr;
+  // delete evt;
+  // evt = nullptr;
   return 0;
 }
 
@@ -247,10 +250,13 @@ int Fun4AllOscarInputManager::PushBackEvents(const int i)
     std::string theLine;
     while (getline(theOscarFile, theLine))
     {
-      if (theLine.compare(0, 1, "#") == 0) continue;
-      vector<double> theInfo;
-      double number = NAN;
-      for (istringstream numbers_iss(theLine); numbers_iss >> number;)
+      if (theLine.compare(0, 1, "#") == 0)
+      {
+        continue;
+      }
+      std::vector<double> theInfo;
+      double number = std::numeric_limits<double>::quiet_NaN();
+      for (std::istringstream numbers_iss(theLine); numbers_iss >> number;)
       {
         theInfo.push_back(number);
       }
@@ -261,14 +267,17 @@ int Fun4AllOscarInputManager::PushBackEvents(const int i)
         skippedEvents++;
         break;
       }
-      else if (theInfo.size() == 2 && theInfo[0] == 0 && theInfo[1] > 0)
+      if (theInfo.size() == 2 && theInfo[0] == 0 && theInfo[1] > 0)
       {
         continue;
       }
     }
   }
 
-  if (theOscarFile.eof()) return -1;
+  if (theOscarFile.eof())
+  {
+    return -1;
+  }
 
   return 0;
 }
@@ -280,22 +289,25 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
 
   if (theOscarFile.eof())  // if the file is exhausted bail out during this next read
   {
-    cout << "Oscar EOF" << endl;
+    std::cout << "Oscar EOF" << std::endl;
     return 1;
   }
   evt = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
 
-  if (Verbosity() > 1) cout << "Reading Oscar Event " << events_total + skippedEvents + 1 << endl;
-  //Grab New Event From Oscar
-  string theLine;
-  vector<vector<double> > theEventVec;
-  //  vector<HepMC::FourVector> theVtxVec;
+  if (Verbosity() > 1)
+  {
+    std::cout << "Reading Oscar Event " << events_total + skippedEvents + 1 << std::endl;
+  }
+  // Grab New Event From Oscar
+  std::string theLine;
+  std::vector<std::vector<double> > theEventVec;
+  //  std::vector<HepMC::FourVector> theVtxVec;
   if (isCompressed)
   {
     // while(getline(unzipstream, theLine))
     // 	{
     // 	  if(theLine.find("#") == 0) continue;
-    // 	  vector<double> theInfo; //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
+    // 	  std::vector<double> theInfo; //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
     // 	  double number;
     // 	  for(istringstream numbers_iss(theLine); numbers_iss >> number; )
     // 	    {
@@ -323,10 +335,13 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
   {
     while (getline(theOscarFile, theLine))
     {
-      if (theLine.compare(0, 1, "#") == 0) continue;
-      vector<double> theInfo;  //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
-      double number = NAN;
-      for (istringstream numbers_iss(theLine); numbers_iss >> number;)
+      if (theLine.compare(0, 1, "#") == 0)
+      {
+        continue;
+      }
+      std::vector<double> theInfo;  // format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
+      double number = std::numeric_limits<double>::quiet_NaN();
+      for (std::istringstream numbers_iss(theLine); numbers_iss >> number;)
       {
         theInfo.push_back(number);
       }
@@ -335,42 +350,40 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
       {
         break;
       }
-      else if (theInfo.size() == 2 && theInfo[0] == 0 && theInfo[1] > 0)
+      if (theInfo.size() == 2 && theInfo[0] == 0 && theInfo[1] > 0)
       {
         continue;
       }
-      else
-      {
-        theEventVec.push_back(theInfo);
-      }
 
-    }  //while(getline)
+      theEventVec.push_back(theInfo);
+
+    }  // while(getline)
   }
 
   /*
   if(skippedEvents < skipEvents)
     {
       skippedEvents++;
-      if (Verbosity() > 5) cout << "Skipping event " << skippedEvents << endl;
+      if (Verbosity() > 5) std::cout << "Skipping event " << skippedEvents << std::endl;
       return 2;
     }
   */
 
-  //Set Event Number
+  // Set Event Number
   evt->set_event_number(events_total + 1);
 
-  //Loop Over One Event, Fill particles
+  // Loop Over One Event, Fill particles
   std::vector<HepMC::GenParticle *> hepevt_particles(theEventVec.size());
   for (unsigned int i = 0; i < theEventVec.size(); i++)
   {
-    //int N = (int)theEventVec[i][0];
+    // int N = (int)theEventVec[i][0];
     int pid = (int) theEventVec[i][1];
     double px = theEventVec[i][3];
     double py = theEventVec[i][4];
     double pz = theEventVec[i][5];
     double E = theEventVec[i][6];
     double m = theEventVec[i][7];
-    int status = 1;  //oscar only writes final state particles
+    int status = 1;  // oscar only writes final state particles
 
     hepevt_particles[i] = new HepMC::GenParticle(HepMC::FourVector(px, py, pz, E), pid, status);
     hepevt_particles[i]->setGeneratedMass(m);
@@ -381,25 +394,37 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
   {
     HepMC::GenParticle *p = hepevt_particles[i];
     HepMC::GenVertex *prod_vtx = p->production_vertex();
-    if (prod_vtx) prod_vtx->add_particle_out(p);
+    if (prod_vtx)
+    {
+      prod_vtx->add_particle_out(p);
+    }
 
     bool found = false;
     HepMC::FourVector prod_pos(theEventVec[i][8] * toMM, theEventVec[i][9] * toMM, theEventVec[i][10] * toMM, theEventVec[i][11]);
     if (!prod_vtx)
     {
-      //See if the vertex is already in the event
+      // See if the vertex is already in the event
       for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin(); v != evt->vertices_end(); ++v)
       {
         HepMC::GenVertex *theV = *v;
-        if (theV->position().x() != prod_pos.x()) continue;
-        if (theV->position().y() != prod_pos.y()) continue;
-        if (theV->position().z() != prod_pos.z()) continue;
+        if (theV->position().x() != prod_pos.x())
+        {
+          continue;
+        }
+        if (theV->position().y() != prod_pos.y())
+        {
+          continue;
+        }
+        if (theV->position().z() != prod_pos.z())
+        {
+          continue;
+        }
         found = true;
         theV->add_particle_out(p);
       }
       if (!found)
       {
-        //Didn't find vertex, add it
+        // Didn't find vertex, add it
         prod_vtx = new HepMC::GenVertex(prod_pos);
         prod_vtx->add_particle_out(p);
         evt->add_vertex(prod_vtx);
@@ -407,12 +432,21 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
     }
 
     // If prod_vtx doesn't already have position specified, fill it.
-    if (!found && prod_vtx && prod_vtx->position() == HepMC::FourVector()) prod_vtx->set_position(prod_pos);
+    if (!found && prod_vtx && prod_vtx->position() == HepMC::FourVector())
+    {
+      prod_vtx->set_position(prod_pos);
+    }
   }
 
   evt->print();
-  if (Verbosity() > 5) evt->print();
-  if (Verbosity() > 3) cout << "Adding Event to phhepmcgenevt" << endl;
+  if (Verbosity() > 5)
+  {
+    evt->print();
+  }
+  if (Verbosity() > 3)
+  {
+    std::cout << "Adding Event to phhepmcgenevt" << std::endl;
+  }
 
   PHHepMCGenEventMap::Iter ievt =
       PHHepMCGenHelper::get_geneventmap()->find(PHHepMCGenHelper::get_embedding_id());
@@ -422,6 +456,8 @@ int Fun4AllOscarInputManager::ConvertFromOscar()
     ievt->second->addEvent(evt);
   }
   else
+  {
     PHHepMCGenHelper::insert_event(evt);
+  }
   return 0;
 }

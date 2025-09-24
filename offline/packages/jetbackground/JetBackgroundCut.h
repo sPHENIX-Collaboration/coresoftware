@@ -90,6 +90,16 @@ class JetBackgroundCut : public SubsysReco
     _cutParams.set_int_param("failsAnyJetCut", 0);
   }
 
+  void set_input_cemc_tower_node(const std::string &input_cemc_tower_node)
+  {
+    m_input_cemc_tower_node = input_cemc_tower_node;
+  }
+
+  void set_input_ohcal_tower_node(const std::string &input_ohcal_tower_node)
+  {
+    m_input_ohcal_tower_node = input_ohcal_tower_node;
+  }
+
  private:
   bool _doAbort;
   std::string _name;
@@ -99,6 +109,9 @@ class JetBackgroundCut : public SubsysReco
   GlobalVertex::VTXTYPE _vtxtype;
   int _sysvar;
   PHParameters _cutParams;
+
+  std::string m_input_cemc_tower_node{"TOWERINFO_CALIB_CEMC_RETOWER"};
+  std::string m_input_ohcal_tower_node{"TOWERINFO_CALIB_HCALOUT"};
 };
 
 #endif

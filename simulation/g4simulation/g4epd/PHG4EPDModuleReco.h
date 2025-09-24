@@ -8,7 +8,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <array>
-#include <cmath>
+#include <limits>
 #include <string>
 
 class PHCompositeNode;
@@ -58,29 +58,33 @@ class PHG4EPDModuleReco : public SubsysReco, public PHParameterInterface
   void set_timing_window(const double tmi, const double tma);
 
  private:
-  int Getrmap(int rindex);
-  int Getphimap(int phiindex);
+  void FillTilePhiArray();
+  void FillTilePhi0Array();
+  static int Getrmap(int rindex);
+  static int Getphimap(int phiindex);
   float GetTilePhi(int thisphi);
   float GetTilePhi0(int thisphi0);
-  float GetTileR(int thisr);
-  float GetTileZ(int thisz);
+  static float GetTileR(int thisr);
+  static float GetTileZ(int thisz);
   void CreateNodes(PHCompositeNode *topNode);
 
-  std::string m_Detector;
-  std::string m_Hitnodename;
-  std::string m_EPDSimTowerNodePrefix = "SIM";
-  std::string m_EPDCalibTowerNodePrefix = "CALIB";
+  double m_EpdMpv{std::numeric_limits<double>::quiet_NaN()};
+  double tmin{std::numeric_limits<double>::quiet_NaN()};
+  double tmax{std::numeric_limits<double>::quiet_NaN()};
+  double m_DeltaT{std::numeric_limits<double>::quiet_NaN()};
 
-  std::string m_TowerInfoNodeName;
-  std::string m_TowerInfoNodeName_calib;
+  std::array<float, 24> m_tilephi{};
+  std::array<float, 12> m_tilephi0{};
   std::array<std::array<std::array<double, 31>, 12>, 2> m_EpdTile_e = {};
   std::array<std::array<std::array<double, 31>, 12>, 2> m_EpdTile_Calib_e = {};
 
-  double m_EpdMpv = NAN;
+  std::string m_Detector;
+  std::string m_Hitnodename;
+  std::string m_EPDSimTowerNodePrefix{"SIM"};
+  std::string m_EPDCalibTowerNodePrefix{"CALIB"};
 
-  double tmin = NAN;
-  double tmax = NAN;
-  double m_DeltaT = NAN;
+  std::string m_TowerInfoNodeName;
+  std::string m_TowerInfoNodeName_calib;
 };
 
 #endif

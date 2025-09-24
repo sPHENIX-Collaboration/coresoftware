@@ -40,10 +40,8 @@ int RawTowerGeomv3::get_bineta() const
   {
     return RawTowerDefs::decode_index1v2(_towerid);
   }
-  else
-  {
-    return RawTowerDefs::decode_index1(_towerid);
-  }
+
+  return RawTowerDefs::decode_index1(_towerid);
 }
 
 int RawTowerGeomv3::get_binphi() const
@@ -53,10 +51,8 @@ int RawTowerGeomv3::get_binphi() const
   {
     return RawTowerDefs::decode_index2v2(_towerid);
   }
-  else
-  {
-    return RawTowerDefs::decode_index2(_towerid);
-  }
+
+  return RawTowerDefs::decode_index2(_towerid);
 }
 
 void RawTowerGeomv3::identify(std::ostream& os) const

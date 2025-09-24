@@ -18,11 +18,11 @@
 #include <TH1.h>
 #include <TH2.h>
 
-#include <stddef.h>   // for size_t
-#include <stdint.h>   // for uint16_t, int32_t
 #include <algorithm>  // for max, sort
 #include <cassert>
 #include <cmath>
+#include <cstddef>   // for size_t
+#include <cstdint>   // for uint16_t, int32_t
 #include <iostream>  // for basic_ostream, operator<<
 #include <memory>    // for unique_ptr
 
