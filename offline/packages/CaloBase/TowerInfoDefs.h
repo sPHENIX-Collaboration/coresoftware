@@ -45,6 +45,7 @@ namespace TowerInfoDefs
   RawTowerDefs::keytype get_emcal_geokey_at_channel(const unsigned int towerIndex);
   RawTowerDefs::keytype get_hcalin_geokey_at_channel(const unsigned int towerIndex);
   RawTowerDefs::keytype get_hcalout_geokey_at_channel(const unsigned int towerIndex);
+  RawTowerDefs::keytype get_sepd_geokey_at_channel(const unsigned int towerIndex);
 
 }  // namespace TowerInfoDefs
 #endif
