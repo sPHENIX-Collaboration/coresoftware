@@ -24,7 +24,7 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager, public PHHepMCGenHe
   Fun4AllOscarInputManager(const std::string &name = "DUMMY", const std::string &topnodename = "TOP");
   ~Fun4AllOscarInputManager() override;
   int fileopen(const std::string &filenam) override;
-// cppcheck-suppress virtualCallInConstructor
+  // cppcheck-suppress virtualCallInConstructor
   int fileclose() override;
   int run(const int nevents = 0) override;
   void Print(const std::string &what = "ALL") const override;
@@ -46,7 +46,7 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager, public PHHepMCGenHe
   std::string topNodeName;
   PHCompositeNode *topNode;
   HepMC::GenEvent *evt;
-  //HepMC::GenEvent *tmpEvt;
+  // HepMC::GenEvent *tmpEvt;
   int skipEvents, skippedEvents;
 
   // some pointers for use in decompression handling

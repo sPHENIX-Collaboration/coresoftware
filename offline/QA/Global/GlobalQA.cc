@@ -74,13 +74,6 @@ int GlobalQA::Init(PHCompositeNode * /*unused*/)
 int GlobalQA::process_event(PHCompositeNode *topNode)
 {
   _eventcounter++;
-  process_towers(topNode);
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int GlobalQA::process_towers(PHCompositeNode *topNode)
-{
   if (m_debug)
   {
     std::cout << _eventcounter << std::endl;
@@ -97,7 +90,7 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     }
   }
 
-  uint64_t triggervec = 0;
+  triggervec = 0;
   if (gl1PacketInfo)
   {
     triggervec = gl1PacketInfo->getScaledVector();
@@ -114,48 +107,35 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     triggervec = gl1PacketInfo->getScaledVector();
   }
 
-  //--------------------------- MBD vertex------------------------------//
-  MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-  MbdVertex *bvertex = nullptr;
-  float mbd_zvtx = std::numeric_limits<float>::quiet_NaN();
-  if (mbdmap)
+  process_towers(topNode);
+
+  if ( triggervec & mbdtrig )
   {
-    for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
-    {
-      bvertex = mbditer->second;
-    }
-    if (bvertex)
-    {
-      mbd_zvtx = bvertex->get_z();
-    }
+    process_mbd(topNode);
   }
-  h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
-  h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
-  if (!std::isfinite(mbd_zvtx))
-  {
-    h_GlobalQA_mbd_zvtxq->SetBinContent(1, h_GlobalQA_mbd_zvtxq->GetBinContent(1) + 1);
-  }
-  else
-  {
-    h_GlobalQA_mbd_zvtxq->SetBinContent(2, h_GlobalQA_mbd_zvtxq->GetBinContent(2) + 1);
-  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int GlobalQA::process_towers(PHCompositeNode *topNode)
+{
 
   //--------------------------- sEPD ------------------------------//
 
-  if (triggervec & mbdtrig)  // Any MBD trigger (bits 10-15)
+  TowerInfoContainer *_sepd_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
+  unsigned int ntowers = 0;
+  if (_sepd_towerinfo)
   {
-    //--------------------------- sEPD ------------------------------//
-    TowerInfoContainer *_sepd_towerinfo = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
-    unsigned int ntowers = 0;
-    if (_sepd_towerinfo)
-    {
-      ntowers = _sepd_towerinfo->size();
-    }
+    ntowers = _sepd_towerinfo->size();
     if (ntowers != 744)
     {
-      std::cout << "sEPD container has unexpected size - exiting now!" << std::endl;
-      gSystem->Exit(1);
+      std::cout << "sEPD container has unexpected size - skipping sEPD!" << std::endl;
+      //gSystem->Exit(1);     // commenting out exit so that ZDC and MBD aren't prevented
     }
+  }
+  if ( (triggervec & mbdtrig) && (ntowers == 744) )  // Any MBD trigger (bits 10-15)
+  {
+    //--------------------------- sEPD ------------------------------//
 
     float sepdsouthadcsum = 0.;
     float sepdnorthadcsum = 0.;
@@ -208,7 +188,39 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
     h_GlobalQA_zdc_energy_n->Fill(totalzdcnorthcalib);
   }
 
-  //--------------------------- MBD ----------------------------------------//
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+int GlobalQA::process_mbd(PHCompositeNode *topNode)
+{
+  //--------------------------- MBD ------------------------------//
+  MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+  MbdVertex *bvertex = nullptr;
+  float mbd_zvtx = std::numeric_limits<float>::quiet_NaN();
+  if (mbdmap)
+  {
+    for (MbdVertexMap::ConstIter mbditer = mbdmap->begin(); mbditer != mbdmap->end(); ++mbditer)
+    {
+      bvertex = mbditer->second;
+    }
+    if (bvertex)
+    {
+      mbd_zvtx = bvertex->get_z();
+    }
+  }
+  h_GlobalQA_mbd_zvtx->Fill(mbd_zvtx);
+  h_GlobalQA_mbd_zvtx_wide->Fill(mbd_zvtx);
+  if (!std::isfinite(mbd_zvtx))
+  {
+    h_GlobalQA_mbd_zvtxq->SetBinContent(1, h_GlobalQA_mbd_zvtxq->GetBinContent(1) + 1);
+  }
+  else
+  {
+    h_GlobalQA_mbd_zvtxq->SetBinContent(2, h_GlobalQA_mbd_zvtxq->GetBinContent(2) + 1);
+  }
+
   MbdPmtContainer *bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
   if (!bbcpmts)
   {
@@ -365,55 +377,40 @@ int GlobalQA::process_towers(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
 void GlobalQA::createHistos()
 {
   auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // MBD QA
-  h_GlobalQA_mbd_zvtxq =
-      new TH1D("h_GlobalQA_mbd_zvtxq",
-               ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2,
-               -0.5, 1.5);
-  h_GlobalQA_mbd_zvtx = new TH1D(
-      "h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]",
-      100, -50, 50);
-  h_GlobalQA_mbd_zvtx_wide = new TH1D(
-      "h_GlobalQA_mbd_zvtx_wide",
-      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_calc_zvtx = new TH1D(
-      "h_GlobalQA_calc_zvtx",
-      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
-  h_GlobalQA_calc_zvtx_wide = new TH1D(
-      "h_GlobalQA_calc_zvtx_wide",
-      ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
-  h_GlobalQA_mbd_charge_s =
-      new TH1D("h_GlobalQA_mbd_charge_s",
-               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
-  h_GlobalQA_mbd_charge_n =
-      new TH1D("h_GlobalQA_mbd_charge_n",
-               ";Scaled Trigger 10: MBD Coincidence    charge", 100, 0, 10);
-  h_GlobalQA_mbd_nhit_s =
-      new TH1D("h_GlobalQA_mbd_nhit_s",
-               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
-  h_GlobalQA_mbd_nhit_n =
-      new TH1D("h_GlobalQA_mbd_nhit_n",
-               ";Scaled Trigger 10: MBD Coincidence    nhit", 30, -0.5, 29.5);
+  h_GlobalQA_mbd_zvtxq = new TH1D("h_GlobalQA_mbd_zvtxq", ";Scaled Trigger 10: MBD Coincidence    Has zvtx?;percentage", 2, -0.5, 1.5);
 
-  h_GlobalQA_mbd_charge_sum =
-      new TH1F("h_GlobalQA_mbd_charge_sum", " ; MBD Total Charge ; Counts",
-               100, 0., 20);
+  h_GlobalQA_mbd_zvtx = new TH1D( "h_GlobalQA_mbd_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
 
-  h2_GlobalQA_mbd_charge_NS_correlation = new TH2F(
-      "h2_GlobalQA_mbd_charge_NS_correlation",
+  h_GlobalQA_mbd_zvtx_wide = new TH1D( "h_GlobalQA_mbd_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+
+  h_GlobalQA_calc_zvtx = new TH1D("h_GlobalQA_calc_zvtx", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -50, 50);
+
+  h_GlobalQA_calc_zvtx_wide = new TH1D("h_GlobalQA_calc_zvtx_wide", ";Scaled Trigger 10: MBD Coincidence    zvtx [cm]", 100, -300, 300);
+
+  h_GlobalQA_mbd_charge_s = new TH1D("h_GlobalQA_mbd_charge_s", ";Scaled Trigger 10: MBD Coincidence    charge", 1500, 0, 1500);
+
+  h_GlobalQA_mbd_charge_n = new TH1D("h_GlobalQA_mbd_charge_n", ";Scaled Trigger 10: MBD Coincidence    charge", 1500, 0, 1500);
+
+  h_GlobalQA_mbd_nhit_s = new TH1D("h_GlobalQA_mbd_nhit_s", ";Scaled Trigger 10: MBD Coincidence    nhit", 65, -0.5, 64.5);
+
+  h_GlobalQA_mbd_nhit_n = new TH1D("h_GlobalQA_mbd_nhit_n", ";Scaled Trigger 10: MBD Coincidence    nhit", 65, -0.5, 64.5);
+
+  h_GlobalQA_mbd_charge_sum = new TH1F("h_GlobalQA_mbd_charge_sum", " ; MBD Total Charge ; Counts", 2500, 0., 2500);
+
+  h2_GlobalQA_mbd_charge_NS_correlation = new TH2F("h2_GlobalQA_mbd_charge_NS_correlation",
       "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
       150, 0, 1500, 150, 0, 1500);
 
-  h2_GlobalQA_mbd_nhits_NS_correlation =
-      new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
-               "MBD Number Of Hits Correlation ; Number Of Hits (South); "
-               "Number Of Hits (North)",
-               70, 0., 70, 70, 0., 70);
+  h2_GlobalQA_mbd_nhits_NS_correlation = new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
+      "MBD Number Of Hits Correlation ; Number Of Hits (South); " "Number Of Hits (North)",
+      65, -0.5, 64.5, 65, -0.5, 64.5);
 
   hm->registerHisto(h_GlobalQA_mbd_zvtx);
   hm->registerHisto(h_GlobalQA_mbd_zvtxq);

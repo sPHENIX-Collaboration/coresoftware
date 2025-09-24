@@ -1,17 +1,18 @@
 #ifndef TOWERINFOV4_H
 #define TOWERINFOV4_H
 
-#include "TowerInfov1.h"
+#include "TowerInfo.h"
 
 #include <cmath>
+#include <cstdint>
 #include <limits>
 
 class TowerInfov4 : public TowerInfo
 {
  public:
-  TowerInfov4() {}
+  TowerInfov4() = default;
 
-  ~TowerInfov4() override {}
+  ~TowerInfov4() override = default;
 
   void Reset() override;
   void Clear(Option_t* = "") override;
@@ -19,16 +20,16 @@ class TowerInfov4 : public TowerInfo
   void set_energy(float _energy) override { energy = _energy; }
   float get_energy() override { return energy; }
 
-  void set_time(short t) override { time = (t * 1000); }
-  short get_time() override { return ((float) time) / 1000; }
+  void set_time(float t) override { time = t * 1000; }
+  float get_time() override { return time / 1000.; }
+  void set_time_short(short t) override { time = t * 1000; }
+  short get_time_short() override { return short(time / 1000); }
 
-  void set_time_float(float t) override { time = t * 1000; }
-  float get_time_float() override { return time / 1000.; }
 
   void set_chi2(float _chi2) override
   {
     float lnChi2;
-    
+
     if (std::isnan(_chi2))
     {
       lnChi2 = 0;
@@ -47,10 +48,11 @@ class TowerInfov4 : public TowerInfo
     }
     chi2 = static_cast<uint8_t>(std::round(lnChi2));
   }
-  float get_chi2() override {
+  float get_chi2() override
+  {
     return (chi2 == 0)
-        ? std::numeric_limits<float>::quiet_NaN() 
-        : (pow(1.08, static_cast<float>(chi2)) - 1.0);
+               ? std::numeric_limits<float>::quiet_NaN()
+               : (pow(1.08, static_cast<float>(chi2)) - 1.0);
   }
 
   void set_isHot(bool isHot) override { set_status_bit(0, isHot); }

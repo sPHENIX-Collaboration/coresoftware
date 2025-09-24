@@ -59,12 +59,21 @@ int CaloPacketSkimmer::InitRun(PHCompositeNode * /*topNode*/)
   h_kept_events->SetDirectory(nullptr);
   hm->registerHisto(h_kept_events);
 
+  h_missing_packets = new TH1D("h_caloskimmer_missing_packets", "Missing Packets", 6000, 6000, 12000);
+  h_missing_packets->SetDirectory(nullptr);
+  hm->registerHisto(h_missing_packets);
+
+  h_empty_packets = new TH1D("h_caloskimmer_empty_packets", "Empty Packets", 6000, 6000, 12000);
+  h_empty_packets->SetDirectory(nullptr);
+  hm->registerHisto(h_empty_packets);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
 int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
 {
+  bool bad_event = false;
   // loop over detectors and return ABORTEVENT if any detector fails
   for (const auto &det : m_CaloDetectors)
   {
@@ -79,12 +88,16 @@ int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
       {
         std::cout << "CaloPacketSkimmer::process_event - Detector " << getDetectorName(det) << " failed" << std::endl;
       }
-      h_aborted_events->Fill(1); // Increment histogram for aborted events
-      return ret;
+      bad_event = true;
     }
   }
 
   h_kept_events->Fill(1); // Increment histogram for kept events
+  if (bad_event)
+  {
+    h_aborted_events->Fill(1); // Increment histogram for aborted events
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -154,6 +167,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
         {
           std::cout << "CaloPacketSkimmer: No channels in packet " << pid << " for detector " << getDetectorName(dettype) << std::endl;
         }
+        h_empty_packets->Fill(pid);
         return Fun4AllReturnCodes::ABORTEVENT;
       }
     }
@@ -163,11 +177,13 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
       {
         std::cout << "CaloPacketSkimmer: Packet " << pid << " not found for detector " << getDetectorName(dettype) << std::endl;
       }
+      h_missing_packets->Fill(pid);
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     return Fun4AllReturnCodes::EVENT_OK;
   };
   // loop over packets
+  bool bad_event = false;
   for (int pid = startID; pid <= endID; pid++)
   {
     if (!m_PacketNodesFlag)
@@ -182,7 +198,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
         CaloPacket *packet = (*cont)->getPacketbyId(pid);
         if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
         {
-          return Fun4AllReturnCodes::ABORTEVENT;
+          bad_event = true;
         }
       }
       else if (auto *_event = std::get_if<Event *>(&event))
@@ -192,7 +208,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
         {
           // I think it is safe to delete a nullptr...yes, tessted
           delete packet;
-          return Fun4AllReturnCodes::ABORTEVENT;
+          bad_event = true;
         }
 
         delete packet;
@@ -203,10 +219,35 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
       CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
       if (process_packet(calopacket, pid) == Fun4AllReturnCodes::ABORTEVENT)
       {
-        return Fun4AllReturnCodes::ABORTEVENT;
+        bad_event = true;
       }
     }
   }
 
+  if (bad_event)
+  {
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int CaloPacketSkimmer::EndRun(const int /*runnumber*/)
+{
+  std::cout << "CaloPacketSkimmer::EndRun - Kept events: " << h_kept_events->GetEntries() << std::endl;
+  std::cout << "CaloPacketSkimmer::EndRun - Aborted events: " << h_aborted_events->GetEntries() << std::endl;
+//loop over and print the missing and empty packets
+  for (int pid = 6000; pid <= 12000; pid++)
+  {
+    int bin = h_missing_packets->FindBin(pid);
+    if (h_missing_packets->GetBinContent(bin) > 0)
+    {
+      std::cout << "CaloPacketSkimmer::EndRun - Missing packet: " << pid << " occurences: " << h_missing_packets->GetBinContent(bin) << std::endl;
+    }
+    if (h_empty_packets->GetBinContent(bin) > 0)
+    {
+      std::cout << "CaloPacketSkimmer::EndRun - Empty packet: " << pid << " occurences: " << h_empty_packets->GetBinContent(bin) << std::endl;
+    }
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }

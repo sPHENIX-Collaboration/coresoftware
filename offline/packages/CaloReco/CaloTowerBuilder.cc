@@ -220,7 +220,7 @@ int CaloTowerBuilder::process_sim()
     towerinfo->copy_tower(towerwaveform);
     towerinfo->set_time(processed_waveforms.at(i).at(1));
     towerinfo->set_energy(processed_waveforms.at(i).at(0));
-    towerinfo->set_time_float(processed_waveforms.at(i).at(1));
+    towerinfo->set_time(processed_waveforms.at(i).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(i).at(2));
     towerinfo->set_chi2(processed_waveforms.at(i).at(3));
     bool SZS = isSZS(processed_waveforms.at(i).at(1), processed_waveforms.at(i).at(3));
@@ -472,7 +472,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     TowerInfo *towerinfo = m_CaloInfoContainer->get_tower_at_channel(i);
     towerinfo->set_time(processed_waveforms.at(idx).at(1));
     towerinfo->set_energy(processed_waveforms.at(idx).at(0));
-    towerinfo->set_time_float(processed_waveforms.at(idx).at(1));
+    towerinfo->set_time(processed_waveforms.at(idx).at(1));
     towerinfo->set_pedestal(processed_waveforms.at(idx).at(2));
     towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
     bool SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));

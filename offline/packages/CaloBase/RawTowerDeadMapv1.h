@@ -13,7 +13,7 @@ class RawTowerDeadMapv1 : public RawTowerDeadMap
     : _caloid(caloid)
   {
   }
-  ~RawTowerDeadMapv1() override {}
+  ~RawTowerDeadMapv1() override = default;
 
   void Reset() override;
   int isValid() const override;

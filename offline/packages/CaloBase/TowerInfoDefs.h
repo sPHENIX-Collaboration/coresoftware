@@ -30,7 +30,7 @@ namespace TowerInfoDefs
   unsigned int get_mbd_side(const unsigned int key);  // side is same as arm
   unsigned int get_mbd_type(const unsigned int key);  // 0 for time 1 for charge
   unsigned int get_mbd_channel(const unsigned int key);
-  unsigned int encode_mbd(const unsigned int towerIndex);
+  unsigned int encode_mbd(const unsigned int pmtIndex);
   unsigned int decode_mbd(const unsigned int key);
 
   unsigned int encode_zdc(const unsigned int towerIndex);  // has ZDC,SMD,VETO

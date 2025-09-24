@@ -10,7 +10,7 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
 
   PHHepMCGenEventv1(const PHHepMCGenEventv1& event);
   PHHepMCGenEventv1& operator=(const PHHepMCGenEventv1& event);
-  ~PHHepMCGenEventv1() override;
+  ~PHHepMCGenEventv1() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
@@ -39,10 +39,10 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
   //! rotation angle, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame
   void set_rotation_angle(const double a) final { m_rotation_angle = a; }
 
-  //!LorentzRotation to translate from hepmc event frame to lab frame
+  //! LorentzRotation to translate from hepmc event frame to lab frame
   CLHEP::HepLorentzRotation get_LorentzRotation_EvtGen2Lab() const final;
 
-  //!LorentzRotation to translate from lab frame to hepmc event frame
+  //! LorentzRotation to translate from lab frame to hepmc event frame
   CLHEP::HepLorentzRotation get_LorentzRotation_Lab2EvtGen() const final;
 
   //! reaction plane angles thrown by hijing flowAfterburner
@@ -53,11 +53,9 @@ class PHHepMCGenEventv1 : public PHHepMCGenEvent
 
   // ! set the reaction plane angle psi_n[n]
   void set_flow_psi(unsigned int n, float psi) final { m_psi_n[n] = psi; }
-  
+
   // ! set the reaction plane angle psi_n[n] for all n
   void set_flow_psi_map(const FlowAfterburner_PsiMap& psi_map) final { m_psi_n = psi_map; }
-
-
 
  protected:
   //! boost beta vector for Lorentz Transform, part of composition of a LorentzRotation to translate from hepmc event frame to lab frame

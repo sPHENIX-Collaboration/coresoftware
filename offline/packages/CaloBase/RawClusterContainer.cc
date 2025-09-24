@@ -23,7 +23,7 @@ RawClusterContainer::AddCluster(RawCluster* rawcluster)
   // just to be safe in case someone deleted a cluster and key is
   // a valid index of a cluster, increment key until there is no cluster
   // in our map
-  while (_clusters.find(key) != _clusters.end())
+  while (_clusters.contains(key))
   {
     key++;
   }

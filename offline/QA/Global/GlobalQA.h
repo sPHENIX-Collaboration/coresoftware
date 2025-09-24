@@ -35,6 +35,7 @@ class GlobalQA : public SubsysReco
   int process_g4cells(PHCompositeNode *);
   int process_towers(PHCompositeNode *);
   int process_clusters(PHCompositeNode *);
+  int process_mbd(PHCompositeNode *);
 
   void Detector(const std::string &name) { detector = name; }
   void set_timing_cut_width(const int &t) { _range = t; }
@@ -44,7 +45,7 @@ class GlobalQA : public SubsysReco
                   double, double, int, double, double);
 
  private:
-  int evtcount{0};
+  //int evtcount{0};
   int Getpeaktime(TH1 *h);
   void createHistos();
 
@@ -82,6 +83,8 @@ class GlobalQA : public SubsysReco
 
   int _eventcounter{0};
   int _range{1};
+  uint64_t triggervec{0};
+  
 
   bool m_debug{false};
 

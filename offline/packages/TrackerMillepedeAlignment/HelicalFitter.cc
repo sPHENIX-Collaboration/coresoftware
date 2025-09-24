@@ -397,7 +397,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         if (Verbosity() > 1)
         {
           std::cout << " Track " << trackid << " dy/dx " << fitpars[0] << " y intercept " << fitpars[1]
-                    << " dx/dz " << fitpars[2] << " Z0 " << fitpars[3] << " eta " << tracklet->get_eta() << " phi " << tracklet->get_phi() << std::endl;
+                    << " dz/dx " << fitpars[2] << " Z0 " << fitpars[3] << " eta " << tracklet->get_eta() << " phi " << tracklet->get_phi() << std::endl;
         }
         if (std::abs(tracklet->get_eta()) > m_eta_cut)
         {
