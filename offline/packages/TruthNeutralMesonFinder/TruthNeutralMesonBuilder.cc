@@ -108,8 +108,8 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
   m_seen_mother_keys.clear();
-
-  std::map<int, std::pair<HepMC::GenParticle *, int>> hepmc_by_barcode;
+  hepmc_by_barcode.clear();
+  m_seen_barcodes.clear();
 
   if (genevtmap)
   {
@@ -179,6 +179,12 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
     magp = pp;
   };
 
+  auto is_hadron = [](int id)
+  {
+    int a = std::abs(id);
+    return (a > 100 && a < 100000);
+  };
+
   auto classify_origin = [&](int pid, int barcode, bool &is_prompt, int &parent_pid, bool &pi0_has_eta)
   {
     is_prompt = true;
@@ -207,6 +213,12 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
 
       HepMC::GenParticle *par = *(pv->particles_in_const_begin());
       if (!par)
+      {
+        break;
+      }
+
+      int tmp_parentid = par->pdg_id();
+      if (!is_hadron(tmp_parentid))
       {
         break;
       }
@@ -338,6 +350,7 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
           continue;
         }
         m_seen_mother_keys.insert(key);
+        m_seen_barcodes.insert(bc);
 
         auto *mes = new TruthNeutralMesonv1();
         mes->set_pid(pid);
@@ -401,6 +414,17 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
         {
           std::vector<PHG4Particle *> gamsG4;
           collect_photons_g4(bc, gamsG4);
+          if (Verbosity() > 0)
+          {
+            if (gamsG4.size() > 2)
+            {
+              std::cout << " In main loop / Geant part more than 2 photon check..." << std::endl;
+              for (auto *gph : gamsG4)
+              {
+                std::cout << " mother pid " << pid << " daughter pid " << gph->get_pid() << ", parent id " << gph->get_parent_id() << std::endl;
+              }
+            }
+          }
 
           if (gamsG4.size() == 2)
           {
@@ -424,7 +448,7 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (!genevtmap && truthinfo)
+  if (truthinfo)
   {
     PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
     for (auto it = range.first; it != range.second; ++it)
@@ -441,6 +465,11 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
       }
 
       const int bc = p->get_barcode();
+      if (m_seen_barcodes.contains(bc))
+      {
+        continue;
+      }
+      m_seen_barcodes.insert(bc);
       const std::pair<int, int> key(0, bc);
       if (m_seen_mother_keys.contains(key))
       {
@@ -467,6 +496,34 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
       bool pi0_has_eta = false;
       int parent_pid = 0;
       classify_origin(pid, bc, is_prompt, parent_pid, pi0_has_eta);
+      if (parent_pid == pid || parent_pid == 22)
+      {
+        continue;
+      }
+
+      auto g4parents = g4_by_id.find(p->get_parent_id());
+      if (g4parents == g4_by_id.end())
+      {
+        continue;
+      }
+      
+      auto *gp = g4parents->second;
+      if (!gp)
+      {
+        continue;
+      }
+      if (gp->get_track_id() < 0)
+      {
+        continue;
+      }
+      int parentbc = gp->get_barcode();
+
+      auto itH = hepmc_by_barcode.find(parentbc);
+      if (itH == hepmc_by_barcode.end())
+      {
+        continue;
+      }
+
       mes->set_prompt(is_prompt);
       mes->set_parent_pid(parent_pid);
       if (pid == 111)
@@ -482,38 +539,52 @@ int TruthNeutralMesonBuilder::process_event(PHCompositeNode *topNode)
         mes->set_eta_pi0pipm(eta_pi0pipm);
       }
 
+      std::vector<PHG4Particle *> gamsG4;
       auto itKids = g4_children.find(p->get_track_id());
-      if (itKids != g4_children.end())
+      if (itKids == g4_children.end())
       {
-        std::vector<PHG4Particle *> gamsG4;
-        for (auto *c : itKids->second)
-        {
-          if (!c)
-          {
-            continue;
-          }
-          if (std::abs(c->get_pid()) != 22)
-          {
-            continue;
-          }
-          gamsG4.push_back(c);
-        }
+        continue;
+      }
 
-        if (gamsG4.size() == 2)
+      for (auto *c : itKids->second)
+      {
+        if (!c)
         {
+          continue;
+        }
+        if (std::abs(c->get_pid()) != 22)
+        {
+          continue;
+        }
+        gamsG4.push_back(c);
+      }
+
+      if (Verbosity() > 0)
+      {
+        if (gamsG4.size() > 2)
+        {
+          std::cout << " In G4 loop more than 2 photon decay check..." << std::endl;
           for (auto *gph : gamsG4)
           {
-            float ge;
-            float gpt;
-            float geta;
-            float gphi;
-            float gp;
-            fill_kin_from_g4(gph, ge, gpt, geta, gphi, gp);
-            bool isconverted = false;
-            int gphtrackid = gph->get_track_id();
-            isconverted = FindConversion(truthinfo, gphtrackid, ge);
-            mes->add_photon(ge, gpt, geta, gphi, gp, isconverted);
+            std::cout << " pid " << gph->get_pid() << ", parent id " << pid << std::endl;
           }
+        }
+      }
+
+      if (gamsG4.size() == 2)
+      {
+        for (auto *gph : gamsG4)
+        {
+          float ge;
+          float gpt;
+          float geta;
+          float gphi;
+          float gpmom;
+          fill_kin_from_g4(gph, ge, gpt, geta, gphi, gpmom);
+          bool isconverted = false;
+          int gphtrackid = gph->get_track_id();
+          isconverted = FindConversion(truthinfo, gphtrackid, ge);
+          mes->add_photon(ge, gpt, geta, gphi, gpmom, isconverted);
         }
       }
       _container->AddMeson(mes);
@@ -636,7 +707,7 @@ bool TruthNeutralMesonBuilder::FindConversion(PHG4TruthInfoContainer *_truthinfo
       continue;
     }
     float vertexr = sqrt(vtxp->get_x() * vtxp->get_x() + vtxp->get_y() * vtxp->get_y());
-    if (vertexr < 93)
+    if (vertexr < m_conversion_radius_limit)
     {
       float momentum = sqrt(g4particle->get_px() * g4particle->get_px() + g4particle->get_py() * g4particle->get_py() + g4particle->get_pz() * g4particle->get_pz());
       if (momentum > 0.3 * energy)
@@ -650,6 +721,46 @@ bool TruthNeutralMesonBuilder::FindConversion(PHG4TruthInfoContainer *_truthinfo
     }
   }
   return foundconversion;
+}
+
+bool TruthNeutralMesonBuilder::RejectShowerMeson(PHG4TruthInfoContainer *_truthinfo, int parent_trackid, int this_trackid)
+{
+  PHG4Shower *shower = _truthinfo->GetShower(parent_trackid);
+  if (!shower)
+  {
+    return false;
+  }
+  bool reject = false;
+  auto g4particle_ids = shower->g4particle_ids();
+  for (auto g4particle_id : g4particle_ids)
+  {
+    if (g4particle_id != this_trackid)
+    {
+      continue;
+    }
+    PHG4Particle *g4particle = _truthinfo->GetParticle(g4particle_id);
+    if (!g4particle)
+    {
+      continue;
+    }
+    int vertexid = g4particle->get_vtx_id();
+    PHG4VtxPoint *vtxp = _truthinfo->GetVtx(vertexid);
+    if (!vtxp)
+    {
+      continue;
+    }
+
+    float vertexr = sqrt(vtxp->get_x() * vtxp->get_x() + vtxp->get_y() * vtxp->get_y());
+    if (vertexr > m_shower_reject_radius)
+    {
+      int g4particlepid = g4particle->get_pid();
+      if (abs(g4particlepid) == 111 || abs(g4particlepid) == 221)
+      {
+        reject = true;
+      }
+    }
+  }
+  return reject;
 }
 
 int TruthNeutralMesonBuilder::End(PHCompositeNode * /*topNode*/)
