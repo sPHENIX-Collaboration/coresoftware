@@ -725,7 +725,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       }
 
       // stamp tower CoG (raw & corrected) only when writing v2
-      float xcorr = xcg, ycorr = ycg;
+      float xcorr = xcg;
+      float ycorr = ycg;
       bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
       cluster->set_tower_cog(xcg, ycg, xcorr, ycorr);
 
