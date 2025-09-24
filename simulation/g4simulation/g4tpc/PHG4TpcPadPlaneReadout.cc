@@ -591,7 +591,21 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // get the Tpc readout sector - there are 12 sectors with how many pads each?
       unsigned int pads_per_sector = phibins / 12;
       unsigned int sector = pad_num / pads_per_sector;
-      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
+      //std::cout << "pad_num: " << pad_num << ", pads_per_sector: " << pads_per_sector << std::endl;
+  
+      int sectorTest = 0;
+      double phistep = 30.0;
+      if ((phi_gain * 180.0 / M_PI) >= 15 && (phi_gain * 180.0 / M_PI) < 345)
+      {
+        sectorTest = 1 + (int) ((phi_gain * 180.0 / M_PI - 15) / phistep);
+      }
+      else
+      {
+        sectorTest = 0;
+      }
+      //std::cout << "SectorTest: " << sectorTest << std::endl;    
+
+      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sectorTest, side);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
       TrkrHitSetContainer::Iterator single_hitsetit = single_hitsetcontainer->findOrAddHitSet(hitsetkey);
@@ -600,21 +614,52 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       if (m_maskDeadChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
+
+        /*
+        if (m_deadChannelMap.find(hitsetkey) != m_deadChannelMap.end())
+        {
+          if (std::find(m_deadChannelMap[hitsetkey].begin(), m_deadChannelMap[hitsetkey].end(), hitkey) != m_deadChannelMap[hitsetkey].end())
+          {
+            std::cout << "HitKey in dead channel map" << std::endl;
+          }
+          else
+          {
+            std::cout << "hitsetkey: " << hitsetkey << ", hitkey: " << hitkey << std::endl;
+          }
+        }     
+        */
+ 
         if (m_deadChannelMap.find(hitsetkey) != m_deadChannelMap.end() && 
             std::find(m_deadChannelMap[hitsetkey].begin(), m_deadChannelMap[hitsetkey].end(), hitkey) != m_deadChannelMap[hitsetkey].end())
         {
+          std::cout << "Masking this hit b/c of dead channel" << std::endl;
           continue;
         }
       }
       if (m_maskHotChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
+        /* 
+        if (m_hotChannelMap.find(hitsetkey) != m_hotChannelMap.end())
+        {
+          if (std::find(m_hotChannelMap[hitsetkey].begin(), m_hotChannelMap[hitsetkey].end(), hitkey) != m_hotChannelMap[hitsetkey].end())
+          {
+            std::cout << "HitKey in hot channel map" << std::endl;
+          }
+          else
+          {
+            std::cout << "hitsetkey: " << hitsetkey << ", hitkey: " << hitkey << std::endl;
+          }
+        }     
+        */
         if (m_hotChannelMap.find(hitsetkey) != m_hotChannelMap.end() && 
             std::find(m_hotChannelMap[hitsetkey].begin(), m_hotChannelMap[hitsetkey].end(), hitkey) != m_hotChannelMap[hitsetkey].end())
         {
+          std::cout << "Masking this hit b/c of hot channel" << std::endl;
           continue;
         }
       }
+      hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // generate the key for this hit, requires tbin and phibin
       hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) tbin_num);
 
@@ -1158,11 +1203,16 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
 void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc& aMask, const std::string& dbName, const std::string& totalChannelsToMask)
 {
-  std::string database = CDBInterface::instance()->getUrl(dbName);
-  CDBTTree* cdbttree = new CDBTTree(database);
+  //std::string database = CDBInterface::instance()->getUrl(dbName);
+  //CDBTTree* cdbttree = new CDBTTree(database);
+  std::cout << "Map Name: " << dbName << std::endl;
+  CDBTTree* cdbttree = new CDBTTree(dbName);
+  std::cout << "Map Found" << std::endl;
 
   int NChan = -1;
   NChan = cdbttree->GetSingleIntValue(totalChannelsToMask);
+
+  std::cout << "Number of channels to mask: " << NChan << std::endl;
 
   for (int i = 0; i < NChan; i++)
   {
@@ -1177,8 +1227,13 @@ void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc& aMask, const std::strin
 
     TrkrDefs::hitsetkey DeadChannelHitKey = TpcDefs::genHitSetKey(Layer, Sector, Side);
     TrkrDefs::hitkey DeadHitKey = TpcDefs::genHitKey((unsigned int) Pad, 0);
+
+    std::cout << "hitsetkey: " << DeadChannelHitKey << ", hitkey: " << DeadHitKey << std::endl;
+    
     aMask[DeadChannelHitKey].push_back(DeadHitKey);
   }
+
+  std::cout << "Size of map: " << aMask.size() << std::endl;
 
   delete cdbttree;
 }

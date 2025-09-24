@@ -57,11 +57,13 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   {
     m_maskDeadChannels = true;
     m_deadChannelMapName = dcmap;
+    std::cout << "Using TPC Dead Channel Map: " << dcmap << std::endl;
   }
   void SetHotChannelMapName(const std::string& hmap) 
   {
     m_maskHotChannels = true;
     m_hotChannelMapName = hmap;
+    std::cout << "Using TPC Hot Channel Map: " << hmap << std::endl;
   }
 
  private:
@@ -135,8 +137,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   hitMaskTpc m_deadChannelMap;
   hitMaskTpc m_hotChannelMap; 
 
-  bool m_maskDeadChannels = false;
-  bool m_maskHotChannels = false;
+  bool m_maskDeadChannels = true;
+  bool m_maskHotChannels = true;
   std::string m_deadChannelMapName; 
   std::string m_hotChannelMapName; 
 };
