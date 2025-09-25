@@ -177,14 +177,14 @@ class RawClusterv1 : public RawCluster
   //! cluster ID
   RawClusterDefs::keytype clusterid{0};
   //! total energy
-  float _energy{std::numeric_limits<float>::signaling_NaN()};
+  float _energy{std::numeric_limits<float>::quiet_NaN()};
   //! Tower operations
   TowerMap towermap;
 
   //! location of cluster in cylindrical coordinate
-  float _r{std::numeric_limits<float>::signaling_NaN()};
-  float _phi{std::numeric_limits<float>::signaling_NaN()};
-  float _z{std::numeric_limits<float>::signaling_NaN()};
+  float _r{std::numeric_limits<float>::quiet_NaN()};
+  float _phi{std::numeric_limits<float>::quiet_NaN()};
+  float _z{std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(RawClusterv1, 3)
 };

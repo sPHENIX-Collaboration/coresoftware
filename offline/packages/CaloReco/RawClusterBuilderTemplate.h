@@ -124,8 +124,8 @@ class RawClusterBuilderTemplate : public SubsysReco
   std::string m_towerInfo_nodename;
 
 
-  bool m_UseDetailedGeometry {false};
-  // Use a more detailed calorimeter geometry
+  bool m_UseDetailedGeometry {true};
+  // Use a more detailed calorimeter geometry (default)
   // Only available for CEMC
 
   int m_UseAltZVertex{1};
