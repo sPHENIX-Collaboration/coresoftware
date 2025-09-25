@@ -138,8 +138,6 @@ class MakeActsGeometry : public SubsysReco
   double getSurfStepZ() { return m_surfStepZ; }
 
   void set_drift_velocity(double vd) { m_drift_velocity = vd; }
-  void set_max_driftlength(double val) { m_max_driftlength = val; }
-  void set_CM_halfwidth(double val) { m_CM_halfwidth = val; }
   void set_tpc_tzero(double tz) { m_tpc_tzero = tz; }
   void set_sampa_tzero_bias(double tzb) { m_sampa_tzero_bias = tzb; }
   void set_apply_tpc_tzero_correction(bool flag) { m_apply_tpc_tzero_correction = flag; }
@@ -289,9 +287,9 @@ class MakeActsGeometry : public SubsysReco
   /// Verbosity value handed from PHActsSourceLinks
   //  int m_verbosity = 0;
 
-  double m_drift_velocity = 8.0e-03;  // cm/ns, override from macro
-  double m_max_driftlength = 102.325;  // override from macro
-  double m_CM_halfwidth = 0.28;  // central membrane half width in cm
+  double m_drift_velocity = 0.;  // cm/ns, override from macro
+  double m_max_driftlength = 0.;  // override from macro
+  double m_CM_halfwidth = 0.;  // central membrane half width in cm
 
   bool m_apply_tpc_tzero_correction = false;
   double m_tpc_tzero = 0.0;  // ns, override from macro

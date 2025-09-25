@@ -303,7 +303,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
      
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
-  max_time = get_double_param("max_time") + layergeom->get_extended_readout_time();
+  max_time = layergeom->get_max_driftlength() / drift_velocity + layergeom->get_extended_readout_time();
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
@@ -946,7 +946,6 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   set_default_double_param("isobutane_frac", 0.05);
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
-  set_default_double_param("max_time", 13200.);              // ns
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution
