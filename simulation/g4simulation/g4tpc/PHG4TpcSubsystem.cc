@@ -230,10 +230,18 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   else if ( runnumber < RunnumberRange::RUN3_TPCFW_CLOCK_CHANGE)
   {
     set_default_double_param("tpc_adc_clock", 50.037280);  // ns, for 20 MHz clock
+    // with drift length of 102cm and clock of 50 ns we get 542 time bins
+    // to get to 1024 samples (time bins0) we therefore need 1024-542=482 additional time bins
+    // and 482*50ns = 24100 ns. Add one some extra samples as they can always 
+    // be cut out later in the reconstruction
+    set_default_double_param("extended_readout_time", 24800); //ns, to account for 1024 samples
   }
   else
   {
     set_default_double_param("tpc_adc_clock", 56.881262);  // ns, for 17.5 MHz clock
+    // with drift length of 102cm and clock of 56 ns we get 477 time bins
+    // this already exceeds the 450 samples in the data
+    set_default_double_param("extended_readout_time", 0);  // ns, to account for 1024 samples
   }
   set_default_double_param("tpc_sector_phi_inner", 0.5024);  // 2 * M_PI / 12 );//sector size in phi for R1 sector
   set_default_double_param("tpc_sector_phi_mid", 0.5087);    // 2 * M_PI / 12 );//sector size in phi for R2 sector
