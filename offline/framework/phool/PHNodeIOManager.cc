@@ -424,6 +424,11 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     // Skip non-selected branches
     if (thisBranch->TestBit(kDoNotProcess))
     {
+      // Reset nodeIter to the parent branch
+      for (j = 1; j < splitvec.size() - 1; j++)
+      {
+        nodeIter.cd("..");
+      }
       continue;
     }
 
