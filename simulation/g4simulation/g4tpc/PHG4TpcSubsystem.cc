@@ -227,13 +227,9 @@ void PHG4TpcSubsystem::SetDefaultParameters()
     // and ensure that the electron drift uses the same value
     set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.83 MHz clock
   }
-  else if ( runnumber < RunnumberRange::RUN2AUAU_LAST)
-  {
-    set_default_double_param("tpc_adc_clock", 50.037280);  // ns, for 20 MHz clock
-  }
   else if ( runnumber < RunnumberRange::RUN3_TPCFW_CLOCK_CHANGE)
   {
-    set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.83 MHz clock
+    set_default_double_param("tpc_adc_clock", 50.037280);  // ns, for 20 MHz clock
   }
   else
   {
