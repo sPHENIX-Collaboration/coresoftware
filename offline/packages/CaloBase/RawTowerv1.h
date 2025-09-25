@@ -70,7 +70,7 @@ class RawTowerv1 : public RawTower
   double energy{0.};
   //! Time stamp assigned to the tower. Depending on the tower maker, it could
   //! be rise time or peak time.
-  float time{std::numeric_limits<float>::signaling_NaN()};
+  float time{std::numeric_limits<float>::quiet_NaN()};
 
   CellMap ecells;      //< default truth storage
   ShowerMap eshowers;  //< alternate truth storage for smaller filesizes

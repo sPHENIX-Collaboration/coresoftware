@@ -15,18 +15,12 @@ class RawClusterv2 : public RawClusterv1
   ~RawClusterv2() override = default;
 
   // ---- new API: tower-space CoG, in TOWER UNITS ----
-  void set_tower_cog(float xr, float yr, float xc, float yc)
-  {
-    _x_raw = xr;
-    _y_raw = yr;
-    _x_corr = xc;
-    _y_corr = yc;
-  }
+  void set_tower_cog(float xr, float yr, float xc, float yc) override { _x_raw = xr; _y_raw = yr; _x_corr = xc; _y_corr = yc; }
 
-  float x_tower_raw() const { return _x_raw; }
-  float y_tower_raw() const { return _y_raw; }
-  float x_tower_corr() const { return _x_corr; }
-  float y_tower_corr() const { return _y_corr; }
+  float x_tower_raw()  const override { return _x_raw;  }
+  float y_tower_raw()  const override { return _y_raw;  }
+  float x_tower_corr() const override { return _x_corr; }
+  float y_tower_corr() const override { return _y_corr; }
 
   // Optional: clone into the same dynamic type
   RawCluster* CloneMe() const override { return new RawClusterv2(*this); }
