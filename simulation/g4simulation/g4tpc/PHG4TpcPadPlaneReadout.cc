@@ -108,6 +108,16 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
+  
+  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  double tpc_adc_clock = layergeom->get_adc_clock();
+  double extended_readout_time = layergeom->get_extended_readout_time();
+  double maxdriftlength = layergeom->get_max_driftlength();
+  const double TBinWidth = tpc_adc_clock;
+  const double MaxT = extended_readout_time + 2.0 * maxdriftlength / drift_velocity;  // allows for extended time readout
+  const double MinT = 0;
+  NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
+
   if (m_use_module_gain_weights)
   {
     int side;
@@ -1117,15 +1127,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   sigmaT = get_double_param("gem_cloud_sigma");
   sigmaL = {{get_double_param("sampa_shaping_lead"),
              get_double_param("sampa_shaping_tail")}};
-
-  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
-  double  tpc_adc_clock = layergeom->get_adc_clock();
-  double extended_readout_time = layergeom->get_extended_readout_time();
-  double maxdriftlength = layergeom->get_max_driftlength();
-  const double TBinWidth = tpc_adc_clock;
-  const double MaxT = extended_readout_time + 2.0 * maxdriftlength/ drift_velocity;  // allows for extended time readout
-  const double MinT = 0;
-  NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
 
   averageGEMGain = get_double_param("gem_amplification");
