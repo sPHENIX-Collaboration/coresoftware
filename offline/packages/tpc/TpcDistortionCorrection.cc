@@ -103,7 +103,7 @@ Acts::Vector3 TpcDistortionCorrection::get_corrected_position(const Acts::Vector
     double zterm = 1.0;
 
     if (dcc->m_interpolate_z){
-      zterm=(1. - std::abs(z) / 105.5);
+      zterm=(1. - std::abs(z) / 102.605);
     }
     if (dcc->m_hDPint[index] && (mask & COORD_PHI) && check_boundaries(dcc->m_hDPint[index], phi, r))
     {

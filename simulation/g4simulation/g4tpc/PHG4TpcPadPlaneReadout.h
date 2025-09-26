@@ -44,7 +44,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   void SetLangauParsFileName(const std::string &name) { m_tpc_langau_pars_file = name; }
 
   void SetDriftVelocity(double vd) override { drift_velocity = vd; }
-  void SetReadoutTime(float t) override { extended_readout_time = t; }
+
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
 
@@ -89,7 +89,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   std::array<double, 2> sigmaL{};
   double phi_bin_width{};
   double drift_velocity = 8.0e-03;  // default value, override from macro
-  float extended_readout_time = 0;  // ns
   int NTBins = std::numeric_limits<int>::max();
   int m_NHits = 0;
   // Using Gain maps is turned off by default

@@ -176,6 +176,12 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_geomContainerTpc =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 
+  PHG4TpcCylinderGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  m_max_driftlength = layergeom->get_max_driftlength();
+  m_CM_halfwidth = layergeom->get_CM_halfwidth();
+  
+  m_maxSurfZ = m_max_driftlength - 0.0001; // add clearance from physical TPC gas volume length to avoid overlaps
+    
   // Alignment Transformation declaration of instance - must be here to set initial alignment flag
   AlignmentTransformation alignment_transformation;
   alignment_transformation.createAlignmentTransformContainer(topNode);
@@ -197,6 +203,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   {
     alignment_transformation.setMMParams(m_mmDevs);
   }
+
+  alignment_transformation.applyTpcTzeroCorrection(m_apply_tpc_tzero_correction);
 
   if (buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -282,7 +290,10 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->setGeometry(trackingGeometry);
   m_actsGeometry->setSurfMaps(surfMaps);
   m_actsGeometry->set_drift_velocity(m_drift_velocity);
+  m_actsGeometry->set_max_driftlength(m_max_driftlength);
+  m_actsGeometry->set_CM_halfwidth(m_CM_halfwidth);
   m_actsGeometry->set_tpc_tzero(m_tpc_tzero);
+  m_actsGeometry->set_sampa_tzero_bias(m_sampa_tzero_bias);
   // alignment_transformation.useInttSurveyGeometry(m_inttSurvey);
   if (Verbosity() > 1)
   {
@@ -514,7 +525,10 @@ void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol,
 
     for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
     {
-      // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
+      // The mother is tpc_gas_volume (which is placed as tpc_gas_north and tpc_gas_south)
+      // tpc_gas_north and tpc_gas_south are offset from zero in the tpc volume by half the CM thickness
+      // so we center the fake surfaces in tpc_gas_volume
+      // the fake surfaces are thus included in both tpc_gas_north and tpc_gas_south
       double z_center = 0.0;
 
       for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
