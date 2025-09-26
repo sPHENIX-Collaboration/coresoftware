@@ -266,8 +266,12 @@ int PHCASiliconSeeding::Process(PHCompositeNode* /*topNode*/)
   keyListPerLayer ckeys;
   std::tie(globalPositions, ckeys) = FillGlobalPositions();
 
-  //  int numberofseeds = 0;
-  // numberofseeds += FindSeeds(globalPositions, ckeys);
+  int numberofseeds = 0;
+  numberofseeds += FindSeeds(globalPositions, ckeys);
+  if (Verbosity() > 0)
+  {
+    std::cout << " found " << numberofseeds << " track seeds" << std::endl;
+  }
 
   for(auto& rtree : _rtrees)
   {
