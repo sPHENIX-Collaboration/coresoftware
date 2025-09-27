@@ -179,10 +179,8 @@ namespace
     {
       return ifc_strike;
     }
-    else
-    {
-      return (ifc_dist < ofc_dist) ? ifc_strike : ofc_strike;
-    }
+
+    return (ifc_dist < ofc_dist) ? ifc_strike : ofc_strike;
   }
 
   /// TVector3 stream

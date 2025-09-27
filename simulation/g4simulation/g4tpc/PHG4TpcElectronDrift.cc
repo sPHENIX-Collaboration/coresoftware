@@ -56,8 +56,6 @@
 #include <TNtuple.h>
 #include <TSystem.h>
 
-#include <boost/format.hpp>
-
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
@@ -65,6 +63,7 @@
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
+#include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
@@ -359,7 +358,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
     {
       const auto radius = layeriter->second->get_radius();
-      std::cout << boost::str(boost::format("%.3f ") % radius);
+      std::cout << std::format("{:.3f} ", radius);
       if (++counter == 8)
       {
         counter = 0;
@@ -978,7 +977,7 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 
 void PHG4TpcElectronDrift::set_flag_threshold_distortion(bool setflag, float setthreshold)
 {
-  std::cout << boost::str(boost::format("The logical status of threshold is now %d! and the value is set to %f") % setflag % setthreshold)
+  std::cout << std::format("The logical status of threshold is now {}! and the value is set to {}", setflag, setthreshold)
             << std::endl
             << std::endl
             << std::endl;

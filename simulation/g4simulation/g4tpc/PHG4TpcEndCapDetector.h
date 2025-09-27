@@ -62,7 +62,7 @@ class PHG4TpcEndCapDetector : public PHG4Detector
 
   void
   AddLayer(  //
-      G4AssemblyVolume *assmeblyvol,
+      G4AssemblyVolume *assemblyvol,
       G4double &z_start,
       const std::string &_name,        //! name base for this layer
       const std::string &_material,    //! material name in G4

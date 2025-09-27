@@ -137,7 +137,7 @@ class PHG4TpcDirectLaser : public SubsysReco, public PHParameterInterface
    * as expected by G4Hit. The energy is then converted back to a number of electrons
    * inside PHG4TpcElectronDrift
    */
-  double electrons_per_gev{std::numeric_limits<double>::signaling_NaN()};
+  double electrons_per_gev{std::numeric_limits<double>::quiet_NaN()};
 
   double arbitrary_theta{-30.0};  // degrees
   double arbitrary_phi{-30.0};    // degrees

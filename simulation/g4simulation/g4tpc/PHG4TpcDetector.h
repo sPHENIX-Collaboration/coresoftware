@@ -27,7 +27,7 @@ class PHG4TpcDetector : public PHG4Detector
   PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  ~PHG4TpcDetector(void) override;
+  ~PHG4TpcDetector() override;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;
@@ -49,13 +49,13 @@ class PHG4TpcDetector : public PHG4Detector
   void add_geometry_node();
   CDBTTree *m_cdbttree{nullptr};
   CDBInterface *m_cdb{nullptr};
-  PHG4TpcDisplayAction *m_DisplayAction = nullptr;
-  PHParameters *m_Params = nullptr;
-  G4UserLimits *m_G4UserLimits = nullptr;
-  int m_ActiveFlag = 0;
-  int m_AbsorberActiveFlag = 0;
-  double m_InnerCageRadius = std::numeric_limits<double>::signaling_NaN();
-  double m_OuterCageRadius = std::numeric_limits<double>::signaling_NaN();
+  PHG4TpcDisplayAction *m_DisplayAction {nullptr};
+  PHParameters *m_Params {nullptr};
+  G4UserLimits *m_G4UserLimits {nullptr};
+  int m_ActiveFlag {0};
+  int m_AbsorberActiveFlag {0};
+  double m_InnerCageRadius {std::numeric_limits<double>::quiet_NaN()};
+  double m_OuterCageRadius {std::numeric_limits<double>::quiet_NaN()};
   std::set<G4VPhysicalVolume *> m_AbsorberVolumeSet;
   std::set<G4VPhysicalVolume *> m_ActiveVolumeSet;
 
