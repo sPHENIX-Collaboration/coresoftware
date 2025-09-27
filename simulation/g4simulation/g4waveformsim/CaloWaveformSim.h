@@ -7,8 +7,8 @@
  * \version $Revision:   $
  * \date    $Date: $
  */
-#ifndef CALOWAVEFORMSIM_H
-#define CALOWAVEFORMSIM_H
+#ifndef G4WAVEFORMSIM_CALOWAVEFORMSIM_H
+#define G4WAVEFORMSIM_CALOWAVEFORMSIM_H
 
 #include <calobase/TowerInfoDefs.h>
 #include <caloreco/CaloTowerDefs.h>
@@ -231,4 +231,4 @@ class CaloWaveformSim : public SubsysReco
   double template_function(double *x, double *par);
 };
 
-#endif  // CALOWAVEFORMSIM_H
+#endif  // G4WAVEFORMSIM_CALOWAVEFORMSIM_H
