@@ -19,8 +19,6 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoContainerSimv2.h>
@@ -36,6 +34,7 @@
 #include <TProfile.h>
 #include <TSystem.h>
 #include <TTree.h>
+#include <algorithm>
 #include <cassert>
 #include <sstream>
 #include <string>
@@ -111,14 +110,37 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   }
 
   // Gain settings
-  m_gain = m_highgain ? ((m_detector == "CEMC") ? 16 : 32) : 1;
+  // nobody understands this construct, please keep in mind that other
+  // people have to read this and figure out what it does
+  //  m_gain = m_highgain ? ((m_detector == "CEMC") ? 16 : 32) : 1;
+  // use this instead:
+  if (!m_highgain)
+  {
+    m_gain = 1;
+  }
+  else if (m_detector == "CEMC")
+  {
+    m_gain = 16;
+  }
+  else
+  {
+    m_gain = 32;
+  }
 
   // Data energy calibration
-  if (!m_overrideCalibName) m_calibName = m_detector + "_calib_ADC_to_ETower";
-  if (!m_overrideFieldName) m_fieldname = m_detector + "_calib_ADC_to_ETower";
+  if (!m_overrideCalibName)
+  {
+    m_calibName = m_detector + "_calib_ADC_to_ETower";
+  }
+  if (!m_overrideFieldName)
+  {
+    m_fieldname = m_detector + "_calib_ADC_to_ETower";
+  }
   url = m_giveDirectURL ? m_directURL : CDBInterface::instance()->getUrl(m_calibName);
   if (!url.empty())
+  {
     cdbttree = new CDBTTree(url);
+  }
   else
   {
     std::cerr << "CaloWaveformSim::InitRun No data calibration for " << m_calibName << std::endl;
@@ -126,18 +148,29 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
   }
 
   // MC energy calibration (optional)
-  if (!m_overrideMCCalibName) m_MC_calibName = m_detector + "_MC_RECALIB";
-  if (!m_overrideMCFieldName) m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
+  if (!m_overrideMCCalibName)
+  {
+    m_MC_calibName = m_detector + "_MC_RECALIB";
+  }
+  if (!m_overrideMCFieldName)
+  {
+    m_MC_fieldname = m_detector + "_calib_ADC_to_ETower";
+  }
   url = m_giveDirectURL_MC ? m_directURL_MC : CDBInterface::instance()->getUrl(m_MC_calibName);
   if (!url.empty())
+  {
     cdbttree_MC = new CDBTTree(url);
+  }
   else if (Verbosity() > 0)
   {
     std::cout << "CaloWaveformSim::InitRun No MC calibration for " << m_MC_calibName << std::endl;
   }
 
   // Time calibration (data)
-  if (!m_overrideTimeCalibName) m_calibName_time = m_detector + "_meanTime";
+  if (!m_overrideTimeCalibName)
+  {
+    m_calibName_time = m_detector + "_meanTime";
+  }
   if (m_giveDirectURL_time)
   {
     url = m_directURL_time;
@@ -154,12 +187,20 @@ int CaloWaveformSim::InitRun(PHCompositeNode *topNode)
       }
     }
   }
-  if (m_dotimecalib) cdbttree_time = new CDBTTree(url);
+  if (m_dotimecalib)
+  {
+    cdbttree_time = new CDBTTree(url);
+  }
   if (Verbosity() > 0 && m_dotimecalib)
+  {
     std::cout << "CaloWaveformSim::InitRun Time calibration from " << url << std::endl;
+  }
 
   // Time calibration (MC)
-  if (!m_overrideMCTimeCalibName) m_MC_calibName_time = m_detector + "_MC_meanTime";
+  if (!m_overrideMCTimeCalibName)
+  {
+    m_MC_calibName_time = m_detector + "_MC_meanTime";
+  }
   if (m_giveDirectURL_MC_time)
   {
     url = m_directURL_MC_time;
@@ -277,7 +318,7 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
     ADC *= m_gain;
 
-    if(cdbttree_MC)
+    if (cdbttree_MC)
     {
       float MC_calibconst = cdbttree_MC->GetFloatValue(key, m_MC_fieldname);
       ADC *= MC_calibconst;
@@ -285,10 +326,10 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
 
     // if we have a tower by tower mean time, we shift the simulated waveform peak to that accordingly
     if (m_dotimecalib)
-    { 
+    {
       float meantime = cdbttree_time->GetFloatValue(key, m_fieldname_time);
       float MCmeantime = cdbttree_MC_time->GetFloatValue(key, m_MC_fieldname_time);
-      assert(m_peakpos == 6); // the MC mean time is derived when m_peakpos is set to 6
+      assert(m_peakpos == 6);  // the MC mean time is derived when m_peakpos is set to 6
       _shiftval = m_peakpos + shift_of_shift - template_peak + meantime - MCmeantime;
     }
 
@@ -364,14 +405,8 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
         m_waveforms.at(i).at(j) += m_fixpedestal;
       }
       // saturate at 2^14 - 1
-      if (m_waveforms.at(i).at(j) > 16383)
-      {
-        m_waveforms.at(i).at(j) = 16383;
-      }
-      if (m_waveforms.at(i).at(j) < 0)
-      {
-        m_waveforms.at(i).at(j) = 0;
-      }
+      m_waveforms.at(i).at(j) = std::min<__gnu_cxx::__alloc_traits<class std::allocator<float> >::value_type>(m_waveforms.at(i).at(j), 16383);
+      m_waveforms.at(i).at(j) = std::max<__gnu_cxx::__alloc_traits<class std::allocator<float> >::value_type>(m_waveforms.at(i).at(j), 0);
 
       m_CaloWaveformContainer->get_tower_at_channel(i)->set_waveform_value(j, m_waveforms.at(i).at(j));
     }
@@ -405,7 +440,7 @@ void CaloWaveformSim::maphitetaphi(PHG4Hit *g4hit, unsigned short &etabin, unsig
     if (light_collection_model.use_fiber_model())
     {
       const double z = 0.5 * (g4hit->get_local_z(0) + g4hit->get_local_z(1));
-      assert(! std::isnan(z));
+      assert(!std::isnan(z));
       correction *= light_collection_model.get_fiber_transmission(z);
     }
 

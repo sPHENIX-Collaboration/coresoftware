@@ -24,7 +24,7 @@ PHG4OHCalDisplayAction::~PHG4OHCalDisplayAction()
 
 void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
-  for (auto &it : m_ScintiLogVolSet)
+  for (const auto &it : m_ScintiLogVolSet)
   {
     if (it->GetVisAttributes())
     {
@@ -38,7 +38,7 @@ void PHG4OHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     m_VisAttVec.push_back(m_VisAtt);
   }
 
-  for (auto &it : m_SupportRingLogVolSet)
+  for (const auto &it : m_SupportRingLogVolSet)
   {
     if (it->GetVisAttributes())
     {
