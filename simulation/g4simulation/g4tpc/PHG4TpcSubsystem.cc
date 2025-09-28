@@ -17,6 +17,8 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/RunnumberRange.h>
+#include <phool/recoConsts.h>
 
 #include <iostream>  // for operator<<, basic_ost...
 #include <set>
@@ -216,8 +218,37 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
   set_default_double_param("maxdriftlength", 105.5);       // cm
-  set_default_double_param("extended_readout_time", 0.0);  // ns
-  set_default_double_param("tpc_adc_clock", 53.326184);    // ns, for 18.8 MHz clock
+  recoConsts *rc = recoConsts::instance();
+  int runnumber = rc->get_IntFlag("RUNNUMBER");
+  if (runnumber < RunnumberRange::RUN2PP_FIRST)
+  {
+    // current default clock used in simulation. Need to decide how to handle long term
+    // and ensure that the electron drift uses the same value
+    set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.83 MHz clock
+  }
+  else if ( runnumber < RunnumberRange::RUN3_TPCFW_CLOCK_CHANGE)
+  {
+    set_default_double_param("tpc_adc_clock", 50.037280);  // ns, for 20 MHz clock
+  }
+  else
+  {
+    set_default_double_param("tpc_adc_clock", 56.881262);  // ns, for 17.5 MHz clock
+  }
+  if(runnumber <= RunnumberRange::RUN2AUAU_FIRST && runnumber >= RunnumberRange::RUN2PP_FIRST)
+  {
+    // with drift length of 102cm and clock of 50 ns we get 542 time bins
+    // to get to 1024 samples (time bins0) we therefore need 1024-542=482 additional time bins
+    // and 482*50ns = 24100 ns. Add one some extra samples as they can always
+    // be cut out later in the reconstruction
+    set_default_double_param("extended_readout_time", 24800);  // ns, to account for 1024 samples
+  }
+  else 
+  {
+    // with drift length of 102cm and clock of 56 ns we get 477 time bins
+    // this already exceeds the 450 samples in the data
+    set_default_double_param("extended_readout_time", 0);  // ns, to account for 450 samples
+
+  }
 
   set_default_double_param("tpc_sector_phi_inner", 0.5024);  // 2 * M_PI / 12 );//sector size in phi for R1 sector
   set_default_double_param("tpc_sector_phi_mid", 0.5087);    // 2 * M_PI / 12 );//sector size in phi for R2 sector
