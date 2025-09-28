@@ -48,7 +48,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // otherwise warning of inconsistent overload since only one MapToPadPlane methow is overridden
   using PHG4TpcPadPlane::MapToPadPlane;
 
-  void MapToPadPlane(TpcClusterBuilder &tpc_clustbuilder, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
+  void MapToPadPlane(TpcClusterBuilder &tpc_truth_clusterer, TrkrHitSetContainer *single_hitsetcontainer, TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * /*hittruthassoc*/, const double x_gem, const double y_gem, const double t_gem, const unsigned int side, PHG4HitContainer::ConstIterator hiter, TNtuple * /*ntpad*/, TNtuple * /*nthit*/) override;
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
@@ -66,8 +66,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
  private:
   //  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &adc_tbin, std::vector<double> &adc_tbin_share);
+  void populate_zigzag_phibins(const unsigned int side, const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &phibin_pad_share);
+  void populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &adc_tbin, std::vector<double> &tbin_adc_share);
 
   double check_phi(const unsigned int side, const double phi, const double radius);
 
@@ -76,7 +76,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   PHG4TpcCylinderGeomContainer *GeomContainer = nullptr;
   PHG4TpcCylinderGeom *LayerGeom = nullptr;
 
-  double neffelectrons_threshold = std::numeric_limits<double>::signaling_NaN();
+  double neffelectrons_threshold = std::numeric_limits<double>::quiet_NaN();
 
   std::array<double, 3> MinRadius{};
   std::array<double, 3> MaxRadius{};
@@ -85,7 +85,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   static constexpr int NSectors = 12;
   static const int NRSectors = 3;
 
-  double sigmaT = std::numeric_limits<double>::signaling_NaN();
+  double sigmaT = std::numeric_limits<double>::quiet_NaN();
   std::array<double, 2> sigmaL{};
   double phi_bin_width{};
   double drift_velocity = 8.0e-03;  // default value, override from macro
@@ -102,8 +102,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   // gaussian sampling
   static constexpr double _nsigmas = 5;
 
-  double averageGEMGain = std::numeric_limits<double>::signaling_NaN();
-  double polyaTheta = std::numeric_limits<double>::signaling_NaN();
+  double averageGEMGain = std::numeric_limits<double>::quiet_NaN();
+  double polyaTheta = std::numeric_limits<double>::quiet_NaN();
 
   std::array<std::vector<double>, NSides> sector_min_Phi;
   std::array<std::vector<double>, NSides> sector_max_Phi;

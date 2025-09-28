@@ -103,6 +103,8 @@ class PHCASiliconSeeding : public PHTrackSeeding
     _min_clusters_per_track = minClus; 
   }
 
+  void set_track_map_name(const std::string &map_name) { trackmapname = map_name; }
+
  protected:
   int Setup(PHCompositeNode* topNode) override;
   int Process(PHCompositeNode* topNode) override;

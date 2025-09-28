@@ -38,8 +38,8 @@ PHG4TpcDigitizer::PHG4TpcDigitizer(const std::string &name)
   , TpcEnc(670)                                                           // electrons
   , Pedestal(50000)                                                       // electrons
   , ChargeToPeakVolts(20)                                                 // mV/fC
-  , ADCSignalConversionGain(std::numeric_limits<float>::signaling_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
-  , ADCNoiseConversionGain(std::numeric_limits<float>::signaling_NaN())
+  , ADCSignalConversionGain(std::numeric_limits<float>::quiet_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
+  , ADCNoiseConversionGain(std::numeric_limits<float>::quiet_NaN())
   , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))  // will be assigned in PHG4TpcDigitizer::InitRun
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
