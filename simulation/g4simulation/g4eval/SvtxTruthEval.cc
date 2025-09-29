@@ -771,10 +771,22 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     double g4max_phi = outer_phi + sigmas * std::sqrt(pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2)) / radius;
     double g4min_phi = inner_phi - sigmas * std::sqrt(pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2)) / radius;
 
-    // find the bins containing these max and min z edges
-    unsigned int phibinmin = layergeom->get_phibin(g4min_phi, side);
-    unsigned int phibinmax = layergeom->get_phibin(g4max_phi, side);
-    unsigned int phibinwidth = phibinmax - phibinmin + 1;
+    unsigned int phibinwidth = 1;
+    if(std::isnan(g4min_phi) || std::isnan(g4max_phi))
+      {
+      if (_verbosity > 1)
+	{
+	  std::cout << " g4min_phi " << g4min_phi << " g4max_phi " << g4max_phi << std::endl;
+	  std::cout << "     outer_phi " << outer_phi << " inner_phi " << inner_phi << " radius " << radius << std::endl;
+	}
+      }
+    else
+      {
+	// find the bins containing these max and min z edges
+	unsigned int phibinmin = layergeom->get_phibin(g4min_phi, side);
+	unsigned int phibinmax = layergeom->get_phibin(g4max_phi, side);
+	phibinwidth = phibinmax - phibinmin + 1;
+      }
     g4phisize = (double) phibinwidth * layergeom->get_phistep() * layergeom->get_radius();
 
     // Z size
