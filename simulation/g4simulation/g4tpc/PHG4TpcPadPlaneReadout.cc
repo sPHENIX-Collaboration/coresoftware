@@ -37,9 +37,10 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
+#include <boost/format.hpp>
+
 #include <cmath>
 #include <cstdlib>  // for getenv
-#include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
@@ -107,16 +108,6 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
-  
-  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
-  double tpc_adc_clock = layergeom->get_adc_clock();
-  double extended_readout_time = layergeom->get_extended_readout_time();
-  double maxdriftlength = layergeom->get_max_driftlength();
-  const double TBinWidth = tpc_adc_clock;
-  const double MaxT = extended_readout_time + 2.0 * maxdriftlength / drift_velocity;  // allows for extended time readout
-  const double MinT = 0;
-  NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
-
   if (m_use_module_gain_weights)
   {
     int side;
@@ -169,7 +160,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
         for (int ir = 0; ir < 3; ++ir)
         {
           pars_file >> side >> region >> sector >> par0 >> par1 >> par2 >> par3;
-          flangau[side][region][sector] = new TF1(std::format("flangau_{}_{}_{}", side, region, sector).c_str(), [](double *x, double *par)
+          flangau[side][region][sector] = new TF1((boost::format("flangau_%d_%d_%d") % side % region % sector).str().c_str(), [](double *x, double *par)
                                                   {
 		    Double_t invsq2pi = 0.3989422804014;
 		    Double_t mpshift  = -0.22278298;
@@ -200,22 +191,22 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
       
 		    return (par[2] * step * sum * invsq2pi / par[3]); }, 0, 5000, 4);
 
-          flangau[side][region][sector]->SetParameters(par0, par1, par2, par3);
-          // std::cout << " iside " << iside << " side " << side << " ir " << ir
-          //	    << " region " << region << " isec " << isec
-          //	    << " sector " << sector << " weight " << weight << std::endl;
-        }
-      }
-    }
-  }
+		  flangau[side][region][sector]->SetParameters(par0,par1,par2,par3);
+		  //std::cout << " iside " << iside << " side " << side << " ir " << ir 
+		  //	    << " region " << region << " isec " << isec 
+		  //	    << " sector " << sector << " weight " << weight << std::endl;
+		}
+	    }
+	}
+    } 
   if (m_maskDeadChannels)
   {
     makeChannelMask(m_deadChannelMap, m_deadChannelMapName, "TotalDeadChannels");
-  }
+  } 
   if (m_maskHotChannels)
   {
     makeChannelMask(m_hotChannelMap, m_hotChannelMapName, "TotalHotChannels");
-  }
+  } 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -343,6 +334,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
   }
 
+   
   unsigned int layernum = 0;
   /* TpcClusterBuilder pass_data {}; */
 
@@ -610,11 +602,11 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
       TrkrHitSetContainer::Iterator single_hitsetit = single_hitsetcontainer->findOrAddHitSet(hitsetkey);
       TrkrDefs::hitkey hitkey;
-
+     
       if (m_maskDeadChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
-        if (m_deadChannelMap.contains(hitsetkey) &&
+        if (m_deadChannelMap.find(hitsetkey) != m_deadChannelMap.end() && 
             std::find(m_deadChannelMap[hitsetkey].begin(), m_deadChannelMap[hitsetkey].end(), hitkey) != m_deadChannelMap[hitsetkey].end())
         {
           continue;
@@ -623,7 +615,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       if (m_maskHotChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
-        if (m_hotChannelMap.contains(hitsetkey) &&
+        if (m_hotChannelMap.find(hitsetkey) != m_hotChannelMap.end() && 
             std::find(m_hotChannelMap[hitsetkey].begin(), m_hotChannelMap[hitsetkey].end(), hitkey) != m_hotChannelMap[hitsetkey].end())
         {
           continue;
@@ -733,7 +725,7 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
       {
         if (fabs(max_phi - new_phi) > fabs(new_phi - min_phi))
         {
-          new_phi = min_phi - phi_bin_width / 5;
+          new_phi = min_phi - phi_bin_width / 5; 
         }
         else
         {
@@ -1084,8 +1076,8 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
   set_default_double_param("neffelectrons_threshold", 1.0);
-  //  set_default_double_param("maxdriftlength", 102.325);     // cm
-  //  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
+  set_default_double_param("maxdriftlength", 105.5);     // cm
+  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
@@ -1126,15 +1118,24 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   sigmaL = {{get_double_param("sampa_shaping_lead"),
              get_double_param("sampa_shaping_tail")}};
 
+  const double tpc_adc_clock = get_double_param("tpc_adc_clock");
+
+  const double MaxZ = get_double_param("maxdriftlength");
+  const double TBinWidth = tpc_adc_clock;
+  const double MaxT = extended_readout_time + 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
+  const double MinT = 0;
+  NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
+
 
   averageGEMGain = get_double_param("gem_amplification");
   polyaTheta = get_double_param("polya_theta");
+
 }
 
-void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc &aMask, const std::string &dbName, const std::string &totalChannelsToMask)
+void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc& aMask, const std::string& dbName, const std::string& totalChannelsToMask)
 {
   std::string database = CDBInterface::instance()->getUrl(dbName);
-  CDBTTree *cdbttree = new CDBTTree(database);
+  CDBTTree* cdbttree = new CDBTTree(database);
 
   int NChan = -1;
   NChan = cdbttree->GetSingleIntValue(totalChannelsToMask);
