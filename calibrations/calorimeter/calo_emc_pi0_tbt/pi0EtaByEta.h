@@ -141,6 +141,10 @@ class pi0EtaByEta : public SubsysReco
   {
     m_fieldname = name;
   } 
+  void set_ptClusMax(float val)
+  {
+    ptClusMax = val;
+  }
 
  protected:
   int Getpeaktime(TH1* h);
@@ -192,6 +196,7 @@ class pi0EtaByEta : public SubsysReco
 
   float _vz{0.};
   float target_pi0_mass{0.146};
+  float ptClusMax{4};
 
   bool dynMaskClus{false};
   bool doMix{false};
@@ -204,6 +209,7 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_vtx_bin{nullptr};
   int NBinsVtx{30};
   TH1* h_event{nullptr};
+  TH2* h_m_IB{nullptr};
 
   TFile* outfile{nullptr};
   Fun4AllHistoManager* hm{nullptr};
@@ -272,6 +278,8 @@ class pi0EtaByEta : public SubsysReco
   TH1* h_pt2{nullptr};
   TH1* h_nclusters{nullptr};
   TH1* h_emcal_e_eta{nullptr};
+  TH2* h_m_pt{nullptr};
+  TH1* h_tower_e{nullptr};
 
   TriggerAnalyzer* trigAna{nullptr};
 

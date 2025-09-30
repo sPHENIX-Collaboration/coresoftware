@@ -124,8 +124,12 @@ int pi0EtaByEta::Init(PHCompositeNode* /*unused*/)
   h_pt2 = new TH1F("h_pt2", "", 100, 0, 5);
 
   h_nclusters = new TH1F("h_nclusters", "", 1000, 0, 1000);
+  h_m_pt = new TH2F("h_m_pt","",350,0,0.7,30,0,15);
+  h_m_IB = new TH2F("h_m_IB","",300,0,1.0,384, -0.5, 383.5);
 
   h_event = new TH1F("h_event", "", 1, 0, 1);
+
+  h_tower_e = new TH1F("h_tower_e","",1000,-1,5);
 
   std::vector<std::vector<CLHEP::Hep3Vector>> temp2 = std::vector<std::vector<CLHEP::Hep3Vector>>();
   std::vector<CLHEP::Hep3Vector> temp = std::vector<CLHEP::Hep3Vector>();
@@ -257,6 +261,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
   if (useVertexTruth == true)
   {
+    found_vertex = true;
     vtx_z = vtx_z_tr;
   }
 
@@ -264,6 +269,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
+
 
   TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
   if (towers)
@@ -277,6 +283,10 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
       int ieta = towers->getTowerEtaBin(towerkey);
       int iphi = towers->getTowerPhiBin(towerkey);
       bool isGood = tower->get_isGood();
+      if (isGood)
+      {
+        h_tower_e->Fill(offlineenergy);
+      }
       if (offlineenergy > emcal_hit_threshold && isGood)
       {
         h_cemc_etaphi->Fill(ieta, iphi);
@@ -354,7 +364,6 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
   h_event->Fill(0);
 
-  float ptClusMax = 4;
   float pt1ClusCut = pt1BaseClusCut;
   float pt2ClusCut = pt2BaseClusCut;
 
@@ -441,6 +450,7 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
 
       h_pt1->Fill(photon1.Pt());
       h_pt2->Fill(photon2.Pt());
+      h_m_pt->Fill(pi0.M(),pi0.Pt());
 
       h_InvMass->Fill(pi0.M());
       if (clus2_pt < pt1ClusCut)
@@ -453,6 +463,9 @@ int pi0EtaByEta::process_towers(PHCompositeNode* topNode)
         continue;
       }
       h_mass_eta_lt[lt_eta]->Fill(pi0.M());
+
+      int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
+      h_m_IB->Fill(pi0.M(),static_cast<double>(IB_num));
 
       if (runTBTCompactMode)
       {
