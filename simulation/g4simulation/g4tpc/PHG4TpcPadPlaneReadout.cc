@@ -37,10 +37,9 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
-#include <boost/format.hpp>
-
 #include <cmath>
 #include <cstdlib>  // for getenv
+#include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
@@ -108,6 +107,16 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
   GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
+  
+  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  double tpc_adc_clock = layergeom->get_adc_clock();
+  double extended_readout_time = layergeom->get_extended_readout_time();
+  double maxdriftlength = layergeom->get_max_driftlength();
+  const double TBinWidth = tpc_adc_clock;
+  const double MaxT = extended_readout_time + 2.0 * maxdriftlength / drift_velocity;  // allows for extended time readout
+  const double MinT = 0;
+  NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
+
   if (m_use_module_gain_weights)
   {
     int side;
@@ -160,7 +169,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
         for (int ir = 0; ir < 3; ++ir)
         {
           pars_file >> side >> region >> sector >> par0 >> par1 >> par2 >> par3;
-          flangau[side][region][sector] = new TF1((boost::format("flangau_%d_%d_%d") % side % region % sector).str().c_str(), [](double *x, double *par)
+          flangau[side][region][sector] = new TF1(std::format("flangau_{}_{}_{}", side, region, sector).c_str(), [](double *x, double *par)
                                                   {
 		    Double_t invsq2pi = 0.3989422804014;
 		    Double_t mpshift  = -0.22278298;
@@ -191,22 +200,22 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
       
 		    return (par[2] * step * sum * invsq2pi / par[3]); }, 0, 5000, 4);
 
-		  flangau[side][region][sector]->SetParameters(par0,par1,par2,par3);
-		  //std::cout << " iside " << iside << " side " << side << " ir " << ir 
-		  //	    << " region " << region << " isec " << isec 
-		  //	    << " sector " << sector << " weight " << weight << std::endl;
-		}
-	    }
-	}
-    } 
+          flangau[side][region][sector]->SetParameters(par0, par1, par2, par3);
+          // std::cout << " iside " << iside << " side " << side << " ir " << ir
+          //	    << " region " << region << " isec " << isec
+          //	    << " sector " << sector << " weight " << weight << std::endl;
+        }
+      }
+    }
+  }
   if (m_maskDeadChannels)
   {
     makeChannelMask(m_deadChannelMap, m_deadChannelMapName, "TotalDeadChannels");
-  } 
+  }
   if (m_maskHotChannels)
   {
     makeChannelMask(m_hotChannelMap, m_hotChannelMapName, "TotalHotChannels");
-  } 
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -334,7 +343,6 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     }
   }
 
-  phi = check_phi(side, phi, rad_gem);
   unsigned int layernum = 0;
   /* TpcClusterBuilder pass_data {}; */
 
@@ -375,6 +383,12 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   /* pass_data.nphibins = phibins; */
 
   const auto tbins = LayerGeom->get_zbins();
+
+  sector_min_Phi = LayerGeom->get_sector_min_phi();
+  sector_max_Phi = LayerGeom->get_sector_max_phi();
+  phi_bin_width = LayerGeom->get_phistep();
+
+  phi = check_phi(side, phi, rad_gem);
 
   // Create the distribution function of charge on the pad plane around the electron position
 
@@ -570,7 +584,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
       // The only information written to the cell other than neffelectrons is tbin and pad number, so get those from geometry
       double tcenter = LayerGeom->get_zcenter(tbin_num);
-      double phicenter = LayerGeom->get_phicenter(pad_num);
+      double phicenter = LayerGeom->get_phicenter(pad_num, side);
       phi_integral += phicenter * neffelectrons;
       t_integral += tcenter * neffelectrons;
       weight += neffelectrons;
@@ -591,75 +605,30 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
       // get the Tpc readout sector - there are 12 sectors with how many pads each?
       unsigned int pads_per_sector = phibins / 12;
       unsigned int sector = pad_num / pads_per_sector;
-      //std::cout << "pad_num: " << pad_num << ", pads_per_sector: " << pads_per_sector << std::endl;
-  
-      int sectorTest = 0;
-      double phistep = 30.0;
-      if ((phi_gain * 180.0 / M_PI) >= 15 && (phi_gain * 180.0 / M_PI) < 345)
-      {
-        sectorTest = 1 + (int) ((phi_gain * 180.0 / M_PI - 15) / phistep);
-      }
-      else
-      {
-        sectorTest = 0;
-      }
-      //std::cout << "SectorTest: " << sectorTest << std::endl;    
-
-      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sectorTest, side);
+      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
       TrkrHitSetContainer::Iterator single_hitsetit = single_hitsetcontainer->findOrAddHitSet(hitsetkey);
       TrkrDefs::hitkey hitkey;
-     
+
       if (m_maskDeadChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
-
-        /*
-        if (m_deadChannelMap.find(hitsetkey) != m_deadChannelMap.end())
-        {
-          if (std::find(m_deadChannelMap[hitsetkey].begin(), m_deadChannelMap[hitsetkey].end(), hitkey) != m_deadChannelMap[hitsetkey].end())
-          {
-            std::cout << "HitKey in dead channel map" << std::endl;
-          }
-          else
-          {
-            std::cout << "hitsetkey: " << hitsetkey << ", hitkey: " << hitkey << std::endl;
-          }
-        }     
-        */
- 
-        if (m_deadChannelMap.find(hitsetkey) != m_deadChannelMap.end() && 
+        if (m_deadChannelMap.contains(hitsetkey) &&
             std::find(m_deadChannelMap[hitsetkey].begin(), m_deadChannelMap[hitsetkey].end(), hitkey) != m_deadChannelMap[hitsetkey].end())
         {
-          std::cout << "Masking this hit b/c of dead channel" << std::endl;
           continue;
         }
       }
       if (m_maskHotChannels)
       {
         hitkey = TpcDefs::genHitKey((unsigned int) pad_num, 0);
-        /* 
-        if (m_hotChannelMap.find(hitsetkey) != m_hotChannelMap.end())
-        {
-          if (std::find(m_hotChannelMap[hitsetkey].begin(), m_hotChannelMap[hitsetkey].end(), hitkey) != m_hotChannelMap[hitsetkey].end())
-          {
-            std::cout << "HitKey in hot channel map" << std::endl;
-          }
-          else
-          {
-            std::cout << "hitsetkey: " << hitsetkey << ", hitkey: " << hitkey << std::endl;
-          }
-        }     
-        */
-        if (m_hotChannelMap.find(hitsetkey) != m_hotChannelMap.end() && 
+        if (m_hotChannelMap.contains(hitsetkey) &&
             std::find(m_hotChannelMap[hitsetkey].begin(), m_hotChannelMap[hitsetkey].end(), hitkey) != m_hotChannelMap[hitsetkey].end())
         {
-          std::cout << "Masking this hit b/c of hot channel" << std::endl;
           continue;
         }
       }
-      hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // generate the key for this hit, requires tbin and phibin
       hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) tbin_num);
 
@@ -745,34 +714,34 @@ double PHG4TpcPadPlaneReadout::check_phi(const unsigned int side, const double p
     }
   }
 
-  if (p_region > 0)
+  if (p_region >= 0)
   {
     for (int s = 0; s < 12; s++)
     {
       double daPhi = 0;
       if (s == 0)
       {
-        daPhi = fabs(sector_min_Phi_sectors[side][p_region][11] + 2 * M_PI - sector_max_Phi_sectors[side][p_region][s]);
+        daPhi = fabs(sector_min_Phi[side][11] + 2 * M_PI - sector_max_Phi[side][s]);
       }
       else
       {
-        daPhi = fabs(sector_min_Phi_sectors[side][p_region][s - 1] - sector_max_Phi_sectors[side][p_region][s]);
+        daPhi = fabs(sector_min_Phi[side][s - 1] - sector_max_Phi[side][s]);
       }
-      double min_phi = sector_max_Phi_sectors[side][p_region][s];
-      double max_phi = sector_max_Phi_sectors[side][p_region][s] + daPhi;
+      double min_phi = sector_max_Phi[side][s];
+      double max_phi = sector_max_Phi[side][s] + daPhi;
       if (new_phi <= max_phi && new_phi >= min_phi)
       {
         if (fabs(max_phi - new_phi) > fabs(new_phi - min_phi))
         {
-          new_phi = min_phi - PhiBinWidth[p_region] / 5;  // to be changed
+          new_phi = min_phi - phi_bin_width / 5;
         }
         else
         {
-          new_phi = max_phi + PhiBinWidth[p_region] / 5;
+          new_phi = max_phi + phi_bin_width / 5;
         }
       }
     }
-    if (new_phi < sector_min_Phi_sectors[side][p_region][11] && new_phi >= -M_PI)
+    if (new_phi < sector_min_Phi[side][11] && new_phi >= -M_PI)
     {
       new_phi += 2 * M_PI;
     }
@@ -807,8 +776,8 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   const double philim_low = check_phi(side, philim_low_calc, radius);
   const double philim_high = check_phi(side, philim_high_calc, radius);
 
-  int phibin_low = LayerGeom->get_phibin(philim_high);
-  int phibin_high = LayerGeom->get_phibin(philim_low);
+  int phibin_low = LayerGeom->get_phibin(philim_high, side);
+  int phibin_high = LayerGeom->get_phibin(philim_low, side);
   int npads = phibin_high - phibin_low;
 
   if (Verbosity() > 1000)
@@ -845,7 +814,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
     {
       pad_now -= phibins;
     }
-    pads_phi[ipad] = LayerGeom->get_phicenter(pad_now);
+    pads_phi[ipad] = LayerGeom->get_phicenter(pad_now, side);
     sum_of_pads_phi += pads_phi[ipad];
     sum_of_pads_absphi += fabs(pads_phi[ipad]);
   }
@@ -1115,8 +1084,8 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
   set_default_double_param("neffelectrons_threshold", 1.0);
-  set_default_double_param("maxdriftlength", 105.5);     // cm
-  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
+  //  set_default_double_param("maxdriftlength", 102.325);     // cm
+  //  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
@@ -1157,62 +1126,18 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   sigmaL = {{get_double_param("sampa_shaping_lead"),
              get_double_param("sampa_shaping_tail")}};
 
-  const double tpc_adc_clock = get_double_param("tpc_adc_clock");
-
-  const double MaxZ = get_double_param("maxdriftlength");
-  const double TBinWidth = tpc_adc_clock;
-  const double MaxT = extended_readout_time + 2.0 * MaxZ / drift_velocity;  // allows for extended time readout
-  const double MinT = 0;
-  NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
-
-  const std::array<double, 3> SectorPhi =
-      {{get_double_param("tpc_sector_phi_inner"),
-        get_double_param("tpc_sector_phi_mid"),
-        get_double_param("tpc_sector_phi_outer")}};
-
-  const std::array<int, 3> NPhiBins =
-      {{get_int_param("ntpc_phibins_inner"),
-        get_int_param("ntpc_phibins_mid"),
-        get_int_param("ntpc_phibins_outer")}};
-
-  PhiBinWidth =
-      {{SectorPhi[0] * 12 / (double) NPhiBins[0],
-        SectorPhi[1] * 12 / (double) NPhiBins[1],
-        SectorPhi[2] * 12 / (double) NPhiBins[2]}};
 
   averageGEMGain = get_double_param("gem_amplification");
   polyaTheta = get_double_param("polya_theta");
-
-  for (int iregion = 0; iregion < 3; ++iregion)
-  {
-    for (int zside = 0; zside < 2; zside++)
-    {
-      sector_min_Phi_sectors[zside][iregion].clear();
-      sector_max_Phi_sectors[zside][iregion].clear();
-      for (int isector = 0; isector < NSectors; ++isector)
-      {
-        double sec_gap = (2 * M_PI - SectorPhi[iregion] * 12) / 12;
-        double sec_max_phi = M_PI - SectorPhi[iregion] / 2 - sec_gap - 2 * M_PI / 12 * isector;  // * (isector+1) ;
-        double sec_min_phi = sec_max_phi - SectorPhi[iregion];
-        sector_min_Phi_sectors[zside][iregion].push_back(sec_min_phi);
-        sector_max_Phi_sectors[zside][iregion].push_back(sec_max_phi);
-      }
-    }
-  }
 }
 
-void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc& aMask, const std::string& dbName, const std::string& totalChannelsToMask)
+void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc &aMask, const std::string &dbName, const std::string &totalChannelsToMask)
 {
-  //std::string database = CDBInterface::instance()->getUrl(dbName);
-  //CDBTTree* cdbttree = new CDBTTree(database);
-  std::cout << "Map Name: " << dbName << std::endl;
-  CDBTTree* cdbttree = new CDBTTree(dbName);
-  std::cout << "Map Found" << std::endl;
+  std::string database = CDBInterface::instance()->getUrl(dbName);
+  CDBTTree *cdbttree = new CDBTTree(database);
 
   int NChan = -1;
   NChan = cdbttree->GetSingleIntValue(totalChannelsToMask);
-
-  std::cout << "Number of channels to mask: " << NChan << std::endl;
 
   for (int i = 0; i < NChan; i++)
   {
@@ -1227,13 +1152,8 @@ void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc& aMask, const std::strin
 
     TrkrDefs::hitsetkey DeadChannelHitKey = TpcDefs::genHitSetKey(Layer, Sector, Side);
     TrkrDefs::hitkey DeadHitKey = TpcDefs::genHitKey((unsigned int) Pad, 0);
-
-    std::cout << "hitsetkey: " << DeadChannelHitKey << ", hitkey: " << DeadHitKey << std::endl;
-    
     aMask[DeadChannelHitKey].push_back(DeadHitKey);
   }
-
-  std::cout << "Size of map: " << aMask.size() << std::endl;
 
   delete cdbttree;
 }
