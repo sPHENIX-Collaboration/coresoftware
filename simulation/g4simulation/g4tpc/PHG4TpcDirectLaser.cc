@@ -20,6 +20,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
@@ -61,18 +64,12 @@ namespace
   /// length of generated G4Hits along laser track
   constexpr double maxHitLength = 1. * cm;
 
-  /// TPC half length
-  constexpr double halflength_tpc = 105.5 * cm;
-
   // inner and outer radii of field cages/TPC
   constexpr double begin_CM = 20. * cm;
   constexpr double end_CM = 78. * cm;
 
-  // half the thickness of the CM;
-  constexpr double halfwidth_CM = 0.5 * cm;
-
   //_____________________________________________________________
-  std::optional<TVector3> central_membrane_intersection(const TVector3& start, const TVector3& direction)
+  std::optional<TVector3> central_membrane_intersection(const TVector3& start, const TVector3& direction, double halfwidth_CM)
   {
     const double end = start.z() > 0 ? halfwidth_CM : -halfwidth_CM;
     const double dist = end - start.z();
@@ -94,7 +91,7 @@ namespace
   }
 
   //_____________________________________________________________
-  std::optional<TVector3> endcap_intersection(const TVector3& start, const TVector3& direction)
+  std::optional<TVector3> endcap_intersection(const TVector3& start, const TVector3& direction, double halflength_tpc)
   {
     const double end = start.z() > 0 ? halflength_tpc : -halflength_tpc;
     const double dist = end - start.z();
@@ -262,6 +259,13 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
   electrons_per_cm = get_int_param("electrons_per_cm");
   electrons_per_gev = get_double_param("electrons_per_gev");
 
+    PHG4TpcCylinderGeomContainer *GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+   
+  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  double maxdriftlength = layergeom->get_max_driftlength();
+  halfwidth_CM = layergeom->get_CM_halfwidth();
+  halflength_tpc = maxdriftlength + halfwidth_CM;
+  
   // setup lasers
   SetupLasers();
 
@@ -341,6 +345,9 @@ void PHG4TpcDirectLaser::SetDefaultParameters()
 
   // number of electrons per deposited GeV in TPC gas
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1e6);
+
+  //  set_default_double_param("tpc_half_length", 102.325);
+  //  set_default_double_param("CM_halfwidth", 0.28);
 
   // number of electrons deposited by laser per cm
   set_default_int_param("electrons_per_cm", 72);
@@ -622,7 +629,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
    * if the position along beam and laser direction have the same sign, it will intercept the endcap
    * otherwise will intercept the central membrane
    */
-  const auto plane_strike = (pos.z() * dir.z() > 0) ? endcap_intersection(pos, dir) : central_membrane_intersection(pos, dir);
+  const auto plane_strike = (pos.z() * dir.z() > 0) ? endcap_intersection(pos, dir,halflength_tpc) : central_membrane_intersection(pos, dir, halfwidth_CM);
 
   // field cage intersection
   const auto fc_strike = field_cage_intersection(pos, dir);

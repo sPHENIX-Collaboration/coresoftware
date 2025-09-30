@@ -68,7 +68,7 @@ ALICEKF::ALICEKF( TrkrClusterContainer* cmap, PHField* B, unsigned int min_clust
 double ALICEKF::get_Bz(double x, double y, double z) const
 {
   // check z boundaries
-  if (fabs(z) > 105.5)
+  if (fabs(z) > 102.605)
   {
     // constant field is used when z is out of bound
     return _const_field;

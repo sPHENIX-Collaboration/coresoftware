@@ -147,7 +147,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("tpc_length", 211.);
+  set_default_double_param("tpc_length", 205.21);  // 2 * (maxdrift 102.325 + CM halfwidth 0.28) cm 
 
   set_default_double_param("steplimits", 1);  // 1cm by default
 
@@ -217,7 +217,8 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_mid", 57.475);    // 60.0);
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
-  set_default_double_param("maxdriftlength", 105.5);       // cm
+  set_default_double_param("maxdriftlength", 102.325);       // cm
+  set_default_double_param("CM_halfwidth", 0.28);       // cm
   recoConsts *rc = recoConsts::instance();
   int runnumber = rc->get_IntFlag("RUNNUMBER");
   if (runnumber < RunnumberRange::RUN2PP_FIRST)

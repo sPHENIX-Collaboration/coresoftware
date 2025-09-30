@@ -750,14 +750,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   if (radius > 28 && radius < 80)  // TPC
   {
     PHG4TpcCylinderGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
-
-    double tpc_length = 211.0;             // cm
+    
+    double tpc_max_driftlength = layergeom->get_max_driftlength();
     double drift_velocity = 8.0 / 1000.0;  // cm/ns
 
     // Phi size
     //======
     double diffusion_trans = 0.006;  // cm/SQRT(cm)
-    double phidiffusion = diffusion_trans * std::sqrt(tpc_length / 2. - fabs(avge_z));
+    double phidiffusion = diffusion_trans * std::sqrt(tpc_max_driftlength - fabs(avge_z));
 
     double added_smear_trans = 0.085;  // cm
     double gem_spread = 0.04;          // 400 microns
@@ -771,10 +771,22 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     double g4max_phi = outer_phi + sigmas * std::sqrt(pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2)) / radius;
     double g4min_phi = inner_phi - sigmas * std::sqrt(pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2)) / radius;
 
-    // find the bins containing these max and min z edges
-    unsigned int phibinmin = layergeom->get_phibin(g4min_phi, side);
-    unsigned int phibinmax = layergeom->get_phibin(g4max_phi, side);
-    unsigned int phibinwidth = phibinmax - phibinmin + 1;
+    unsigned int phibinwidth = 1;
+    if(std::isnan(g4min_phi) || std::isnan(g4max_phi))
+      {
+      if (_verbosity > 1)
+	{
+	  std::cout << " g4min_phi " << g4min_phi << " g4max_phi " << g4max_phi << std::endl;
+	  std::cout << "     outer_phi " << outer_phi << " inner_phi " << inner_phi << " radius " << radius << std::endl;
+	}
+      }
+    else
+      {
+	// find the bins containing these max and min z edges
+	unsigned int phibinmin = layergeom->get_phibin(g4min_phi, side);
+	unsigned int phibinmax = layergeom->get_phibin(g4max_phi, side);
+	phibinwidth = phibinmax - phibinmin + 1;
+      }
     g4phisize = (double) phibinwidth * layergeom->get_phistep() * layergeom->get_radius();
 
     // Z size
@@ -786,7 +798,7 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     inner_z = fabs(inner_z);
 
     double diffusion_long = 0.015;  // cm/SQRT(cm)
-    double zdiffusion = diffusion_long * std::sqrt(tpc_length / 2. - fabs(avge_z));
+    double zdiffusion = diffusion_long * std::sqrt(tpc_max_driftlength - fabs(avge_z));
     double zshaping_lead = 32.0 * drift_velocity;  // ns * cm/ns = cm
     double zshaping_tail = 48.0 * drift_velocity;
     double added_smear_long = 0.105;  // cm
