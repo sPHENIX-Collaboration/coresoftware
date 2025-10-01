@@ -14,7 +14,6 @@
 
 #include <algorithm>
 #include <ostream>  // for operator<<, endl, basic_ostream, bas...
-#include <limits>
 
 void TrkrHitTruthAssocv1::Reset()
 {
