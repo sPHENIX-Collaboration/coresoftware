@@ -56,7 +56,6 @@ pkginclude_HEADERS = \
   TpcGlobalPositionWrapper.h \
   TpcLoadDistortionCorrection.h \
   TpcMap.h \
-  TpcMaskedChannelMap.h \
   TpcRawWriter.h \
   TpcSimpleClusterizer.h
 
@@ -90,7 +89,6 @@ libtpc_la_SOURCES = \
   TpcGlobalPositionWrapper.cc \
   TpcLoadDistortionCorrection.cc \
   TpcMap.cc \
-  TpcMaskedChannelMap.cc \
   TpcRawWriter.cc \
   TpcSimpleClusterizer.cc \
   TpcClusterMover.cc \
@@ -100,7 +98,6 @@ libtpc_la_SOURCES = \
 libtpc_la_LIBADD = \
   libtpc_io.la \
   -lffarawobjects \
-  -lcdbobjects \
   -lc10 \
   -ltorch_cpu \
   -ltorch \
