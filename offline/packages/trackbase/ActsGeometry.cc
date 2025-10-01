@@ -130,16 +130,10 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
     Acts::Vector3 world,
     TrkrDefs::subsurfkey& subsurfkey) const
 {
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
-  
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
-  std::cout << "layer: " << layer << ", side: " << side << std::endl;
+  
   auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
-
-  if (!mapIter)
 
   if (mapIter == m_surfMaps.m_tpcSurfaceMap.end())
   {
@@ -147,7 +141,6 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
               << hitsetkey << std::endl;
     return nullptr;
   }
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
   double world_phi = atan2(world[1], world[0]);
 
   const auto& surf_vec = mapIter->second;
@@ -157,50 +150,30 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
   // we use TPC side from the hitsetkey, since z can be either sign in northa nd south, depending on crossing
   double fraction = (world_phi + M_PI) / (2.0 * M_PI);
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
 
   double rounded_nsurf = std::round((double) (surf_vec.size() / 2) * fraction - 0.5);  // NOLINT
   unsigned int nsurfm = (unsigned int) rounded_nsurf;
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
 
   if (side == 0)
   {
     nsurfm += surf_vec.size() / 2;
   }
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
 
   unsigned int nsurf = nsurfm % surf_vec.size();
-  std::cout << "nsurf variable value: " << nsurf << std::endl;
   Surface this_surf = surf_vec[nsurf];
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
-
-  if (!this_surf)
-  {
-    std::cout << "this_surf exists" << std::endl;
-  }
-  else
-  {
-    std::cout << "this_surf does not exist" << std::endl;
-  }
 
   auto vec3d = this_surf->center(m_tGeometry.getGeoContext());
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
   double surf_phi = atan2(surf_center[1], surf_center[0]);
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
   double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
 
   if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
   {
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
     surf_index = nsurf;
     subsurfkey = nsurf;
   }
   else
   {
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
     // check for the periodic boundary condition
     auto firstsurf = *surf_vec.begin();
     auto firstsurfcenter = firstsurf->center(geometry().getGeoContext());
@@ -209,11 +182,9 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
     {
       world_phi += 2.0 * M_PI;
     }
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
     //check a few surfaces around this one
     for( int i = -1; i <= 1; i++)
     {
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
       if(i==0) // already tried this one
       {
         continue;
@@ -223,20 +194,16 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       vec3d = this_surf->center(geometry().getGeoContext());
       surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       surf_phi = atan2(surf_center[1], surf_center[0]);
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
 
       if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
       {
         surf_index = new_nsurf;
         subsurfkey = new_nsurf;
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
         return surf_vec[surf_index];
       }
     }
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
     return nullptr;
   }
-  std::cout << __FILE__ << " " << __func__ << " " << __LINE__ << std::endl; 
 
   return surf_vec[surf_index];
 }
