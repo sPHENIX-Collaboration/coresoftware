@@ -608,7 +608,14 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     TrackSeed& seed)
 {
   auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
-
+  float avgtripletx = 0;
+  float avgtriplety = 0;
+  for (auto& pos : clusters)
+  {
+    avgtripletx += std::cos(std::atan2(pos(1), pos(0)));
+    avgtriplety += std::sin(std::atan2(pos(1), pos(0)));
+  }
+  float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
   std::vector<TrkrDefs::cluskey> dummykeys = keys;
   std::vector<Acts::Vector3> dummyclusters = clusters;
 
@@ -677,17 +684,22 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
 
       float approximate_phi1 = atan2(yplus, xplus);
       float approximate_phi2 = atan2(yminus, xminus);
+      float approximatephi = approximate_phi1;
+      if(std::fabs(normPhi2Pi(approximate_phi2 - avgtripletphi)) < std::fabs(normPhi2Pi(approximate_phi1 - avgtripletphi)))
+      {
+        approximatephi = approximate_phi2;
+      }
       for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(det, layer))
       {
         auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
         auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
         float surfphi = atan2(surfcenter.y(), surfcenter.x());
-        float dphi1 = normPhi2Pi(approximate_phi1 - surfphi);
-        float dphi2 = normPhi2Pi(approximate_phi2 - surfphi);
+  
+        float dphi = normPhi2Pi(approximatephi - surfphi);
         /// Check that the projection is within some reasonable amount of the segment
         /// to reject e.g. looking at segments in the opposite hemisphere. This is about
         /// the size of one intt segment (256 * 80 micron strips in a segment)
-        if (std::fabs(dphi1) > 0.3 && std::fabs(dphi2) > 0.3)
+        if (std::fabs(dphi) > 0.3)
         {
           continue;
         }
