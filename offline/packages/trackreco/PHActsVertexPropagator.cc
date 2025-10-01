@@ -57,7 +57,7 @@ int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
                       svtxTrack->get_y(),
                       svtxTrack->get_z());
     auto surfptr = propagator.makeVertexSurface(pos);
-    auto vtxstate = svtxTrack->get_state(0);
+    auto *vtxstate = svtxTrack->get_state(0);
     auto boundParams = propagator.makeTrackParams(vtxstate, svtxTrack->get_charge(), surfptr).value();
 auto result = propagateTrack(boundParams, svtxTrack->get_vertex_id());
       if (result.ok())
@@ -75,7 +75,7 @@ auto result = propagateTrack(boundParams, svtxTrack->get_vertex_id());
   }
 
   setVtxChi2();
-  if (m_vertexMap->size() == 0 && Verbosity() > 2)
+  if (m_vertexMap->empty() && Verbosity() > 2)
   {
     std::cout << "Propagated tracks to PerigeeSurface at (0,0,0) as no track vertices were found" << std::endl;
   }
@@ -191,7 +191,7 @@ PHActsVertexPropagator::propagateTrack(
 
 Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
 {
-  auto svtxVertex = m_vertexMap->get(vtxid);
+  auto *svtxVertex = m_vertexMap->get(vtxid);
   /// check that a vertex exists
   if (svtxVertex)
   {

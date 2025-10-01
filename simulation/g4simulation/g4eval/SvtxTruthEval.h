@@ -16,6 +16,7 @@ class PHG4TpcCylinderGeomContainer;
 class PHG4VtxPoint;
 class TrkrCluster;
 class ActsGeometry;
+class PHParametersContainer;
 
 #include <map>
 #include <memory>
@@ -84,6 +85,7 @@ class SvtxTruthEval
   PHG4HitContainer* _g4hits_mms = nullptr;
   PHG4HitContainer* _g4hits_tracker = nullptr;
   PHG4HitContainer* _g4hits_maps = nullptr;
+  PHParametersContainer* _tpc_params = nullptr;
 
   PHG4TpcCylinderGeomContainer* _tpc_geom_container{};
   PHG4CylinderGeomContainer* _intt_geom_container{};
