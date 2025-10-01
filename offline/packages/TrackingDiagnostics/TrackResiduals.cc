@@ -885,6 +885,7 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_hitgx = glob.X();
         m_hitgy = glob.Y();
         m_hitgz = glob.Z();
+        std::cout << "MVTX HitSetKey: " << m_hitsetkey << ", X: " << m_hitgx << ", Y: " << m_hitgy << ", Z: " << m_hitgz << std::endl;
 
         m_segtype = std::numeric_limits<int>::quiet_NaN();
         m_tileid = std::numeric_limits<int>::quiet_NaN();
