@@ -33,11 +33,13 @@ MicromegasCombinedDataCalibration::MicromegasCombinedDataCalibration( const std:
 //_____________________________________________________________________
 int MicromegasCombinedDataCalibration::Init(PHCompositeNode* /*topNode*/ )
 {
+
+  std::cout << "MicromegasCombinedDataCalibration::Init - m_do_evaluation: " << m_do_evaluation << std::endl;
+  std::cout << "MicromegasCombinedDataCalibration::Init - m_evaluation_filename: " << m_evaluation_filename << std::endl;
+
   // histogram evaluation
   if( m_do_evaluation )
-  {
-    m_evaluation_file.reset( TFile::Open( m_evaluation_filename.c_str() ) );
-  }
+  { m_evaluation_file.reset( TFile::Open( m_evaluation_filename.c_str(), "RECREATE" ) ); }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
