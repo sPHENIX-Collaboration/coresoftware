@@ -21,7 +21,6 @@ namespace TrackSeedHelper
 
   float get_phi(TrackSeed const*, const position_map_t&);
   float get_phi_fastsim(TrackSeed const*);
-
   void circleFitByTaubin(
     TrackSeed*, const position_map_t& positions,
     uint8_t startLayer = 0,
