@@ -3,8 +3,6 @@
 #include "SvtxHitEval.h"
 #include "SvtxTruthEval.h"
 
-#include <trackbase/MvtxDefs.h>
-
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -357,12 +355,8 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
 
   std::set<PHG4Hit*> truth_hits;
 
-  std::cout << __FILE__ << ":" << __PRETTY_FUNCTION__ << " line " << __LINE__ << std::endl;
-
   // get all truth hits for this cluster
-  // _cluster_hit_map->identify();
-  _hit_truth_map->identify();
-
+  //_cluster_hit_map->identify();
   std::pair<std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator, std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey>::const_iterator>
       hitrange = _cluster_hit_map->getHits(cluster_key);  // returns range of pairs {cluster key, hit key} for this cluskey
 
@@ -374,24 +368,17 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
     // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
     TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
-    int strobeID = (static_cast<unsigned>(TrkrDefs::getLayer(hitsetkey)) < 3) ? MvtxDefs::getStrobeId(hitsetkey) : std::numeric_limits<int>::min();
-
-    std::cout << __LINE__ << " cluster key " << cluster_key << " hitsetkey " << hitsetkey << " layer " << static_cast<unsigned>(TrkrDefs::getLayer(hitsetkey)) << " strobe ID " << strobeID << " hitkey " << hitkey << std::endl;
-
     // get all of the g4hits for this hitkey
     std::multimap<TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype>> temp_map;
     _hit_truth_map->getG4Hits(hitsetkey, hitkey, temp_map);
     // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
 
-    std::cout << __LINE__ << " size of temp_map " << temp_map.size() << std::endl;
-    
     for (auto& htiter : temp_map)
     {
       // extract the g4 hit key here and add the hits to the set
       PHG4HitDefs::keytype g4hitkey = htiter.second.second;
       PHG4Hit* g4hit = nullptr;
       unsigned int trkrid = TrkrDefs::getTrkrId(hitsetkey);
-      std::cout << __LINE__ << " cluster key " << cluster_key << " trkrid " << trkrid << std::endl;
       switch (trkrid)
       {
       case TrkrDefs::tpcId:
@@ -401,7 +388,6 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
         g4hit = _g4hits_intt->findHit(g4hitkey);
         break;
       case TrkrDefs::mvtxId:
-        std::cout << __LINE__ << " cluster key " << cluster_key << " hitsetkey " << hitsetkey << " layer " << TrkrDefs::getLayer(hitsetkey) << " g4hitkey " << g4hitkey << std::endl;
         g4hit = _g4hits_mvtx->findHit(g4hitkey);
         break;
       case TrkrDefs::micromegasId:
