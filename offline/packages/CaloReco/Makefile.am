@@ -30,7 +30,9 @@ libcalo_reco_la_LIBADD = \
   -lsph_onnx \
   -lphparameter_io \
   -lphool \
-  -lSubsysReco
+  -lSubsysReco \
+  -lTMVA \
+  -lTMVAUtils
 endif
 
 AM_CPPFLAGS = \
@@ -52,6 +54,7 @@ pkginclude_HEADERS = \
   CaloTowerCalib.h \
   CaloTowerStatus.h \
   CaloTowerDefs.h \
+  PhotonClusterBuilder.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
@@ -84,6 +87,7 @@ libcalo_reco_la_SOURCES = \
   CaloTowerBuilder.cc \
   CaloTowerCalib.cc \
   CaloTowerStatus.cc \
+  PhotonClusterBuilder.cc \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \

@@ -137,10 +137,6 @@ namespace
   static constexpr float m_rmin = 20;
   static constexpr float m_rmax = 78;
 
-  // z range
-  static constexpr float m_zmin = -105.5;
-  static constexpr float m_zmax = 105.5;
-
 }  // namespace
 
 //_____________________________________________________________________
@@ -202,6 +198,9 @@ int TpcDirectLaserReconstruction::process_event(PHCompositeNode* topNode)
     return res;
   }
 
+  m_zmax =  m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
+  m_zmin = -m_zmax;
+  
   process_tracks();
   return Fun4AllReturnCodes::EVENT_OK;
 }

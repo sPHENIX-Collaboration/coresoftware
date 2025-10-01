@@ -26,7 +26,7 @@ class PHG4OHCalDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam);
+  PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam);
 
   //! destructor
   ~PHG4OHCalDetector() override;

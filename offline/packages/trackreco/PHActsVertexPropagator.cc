@@ -1,4 +1,5 @@
 #include "PHActsVertexPropagator.h"
+#include "ActsPropagator.h"
 
 #include <trackbase_historic/ActsTransformations.h>
 
@@ -24,7 +25,6 @@
 
 PHActsVertexPropagator::PHActsVertexPropagator(const std::string& name)
   : SubsysReco(name)
-  , m_trajectories(nullptr)
 {
 }
 
@@ -40,15 +40,11 @@ int PHActsVertexPropagator::InitRun(PHCompositeNode* topNode)
 }
 int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
 {
-  std::vector<unsigned int> deletedKeys;
-  for (const auto& [trackKey, trajectory] : *m_trajectories)
+  ActsPropagator propagator;
+  for (const auto& [trackKey, svtxTrack] : *m_trackMap)
   {
-    auto svtxTrack = m_trackMap->get(trackKey);
     if (!svtxTrack)
     {
-      /// Key was removed by the track cleaner, remove it from
-      /// the trajectory list too
-      deletedKeys.push_back(trackKey);
       continue;
     }
 
@@ -57,20 +53,13 @@ int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
       svtxTrack->identify();
     }
 
-    const auto& trackTips = trajectory.tips();
-
-    if (trackTips.size() > 1 && Verbosity() > 0)
-    {
-      std::cout << PHWHERE
-                << "More than 1 track tip per track. Should never happen..."
-                << std::endl;
-    }
-
-    for (const auto& trackTip : trackTips)
-    {
-      const auto& boundParams = trajectory.trackParameters(trackTip);
-
-      auto result = propagateTrack(boundParams, svtxTrack->get_vertex_id());
+    Acts::Vector3 pos(svtxTrack->get_x(),
+                      svtxTrack->get_y(),
+                      svtxTrack->get_z());
+    auto surfptr = propagator.makeVertexSurface(pos);
+    auto *vtxstate = svtxTrack->get_state(0);
+    auto boundParams = propagator.makeTrackParams(vtxstate, svtxTrack->get_charge(), surfptr).value();
+auto result = propagateTrack(boundParams, svtxTrack->get_vertex_id());
       if (result.ok())
       {
         updateSvtxTrack(svtxTrack, result.value().second);
@@ -82,19 +71,15 @@ int PHActsVertexPropagator::process_event(PHCompositeNode* /*unused*/)
           svtxTrack->identify();
         }
       }
-    }
+    
   }
 
   setVtxChi2();
-  if (m_vertexMap->size() == 0 && Verbosity() > 2)
+  if (m_vertexMap->empty() && Verbosity() > 2)
   {
     std::cout << "Propagated tracks to PerigeeSurface at (0,0,0) as no track vertices were found" << std::endl;
   }
-  /// Erase the trajectories that were removed from the track cleaner
-  for (auto& key : deletedKeys)
-  {
-    m_trajectories->erase(key);
-  }
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -206,7 +191,7 @@ PHActsVertexPropagator::propagateTrack(
 
 Acts::Vector3 PHActsVertexPropagator::getVertex(const unsigned int vtxid)
 {
-  auto svtxVertex = m_vertexMap->get(vtxid);
+  auto *svtxVertex = m_vertexMap->get(vtxid);
   /// check that a vertex exists
   if (svtxVertex)
   {
@@ -229,15 +214,6 @@ int PHActsVertexPropagator::getNodes(PHCompositeNode* topNode)
   if (!m_tGeometry)
   {
     std::cout << PHWHERE << "Acts tracking geometry not on node tree, exiting."
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, m_trajectories_name);
-
-  if (!m_trajectories)
-  {
-    std::cout << PHWHERE << "No acts trajectories on node tree, exiting. "
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }

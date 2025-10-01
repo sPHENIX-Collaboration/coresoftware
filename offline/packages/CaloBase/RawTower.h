@@ -128,7 +128,7 @@ class RawTower : public PHObject
   virtual float get_time() const
   {
     PHOOL_VIRTUAL_WARN("get_time()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! Time stamp assigned to the tower. Depending on the tower maker, it could be rise time or peak time.
   virtual void set_time(const float)
@@ -178,7 +178,7 @@ class RawTower : public PHObject
   };
 
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
-  virtual double get_property(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual double get_property(const PROPERTY /*prop_id*/) const { return std::numeric_limits<double>::quiet_NaN(); }
   virtual void set_property(const PROPERTY /*prop_id*/, const double /*value*/) { return; }
   static std::string get_property_info(PROPERTY prop_id);
 

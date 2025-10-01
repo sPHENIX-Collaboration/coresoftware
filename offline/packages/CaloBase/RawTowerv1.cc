@@ -43,7 +43,7 @@ RawTowerv1::RawTowerv1(const RawTowerDefs::CalorimeterId caloid,
 void RawTowerv1::Reset()
 {
   energy = 0;
-  time = std::numeric_limits<float>::signaling_NaN();
+  time = std::numeric_limits<float>::quiet_NaN();
   ecells.clear();
   eshowers.clear();
 }
