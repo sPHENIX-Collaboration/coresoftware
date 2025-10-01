@@ -17,6 +17,7 @@
 
 #include <TFile.h>
 #include <TProfile.h>
+#include <TH2.h>
 
 #include <boost/format.hpp>
 
@@ -33,6 +34,11 @@ MicromegasCombinedDataCalibration::MicromegasCombinedDataCalibration( const std:
 int MicromegasCombinedDataCalibration::Init(PHCompositeNode* /*topNode*/ )
 {
   // histogram evaluation
+  if( m_do_evaluation )
+  {
+    m_evaluation_file.reset( TFile::Open( m_evaluation_filename.c_str() ) );
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -72,12 +78,32 @@ int MicromegasCombinedDataCalibration::process_event(PHCompositeNode *topNode)
     if( piter == m_profile_map.end() || fee_id < piter->first )
     {
       // create and insert
-      const auto hname = (boost::format("h_adc_channel_%i") % fee_id ).str();
-      profile = new TProfile( hname.c_str(), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
+      const auto pname = (boost::format("p_adc_channel_%i") % fee_id ).str();
+      profile = new TProfile( pname.c_str(), "ADC vs channel;channel;adc", MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee );
       profile->SetErrorOption( "s" );
       m_profile_map.insert(  piter, std::make_pair( fee_id, profile ) );
     } else {
       profile = piter->second;
+    }
+
+    // find relevant 2D histogram
+    TH2* histogram = nullptr;
+    if( m_do_evaluation )
+    {
+      auto hiter = m_histogram_map.lower_bound( fee_id );
+      if( hiter == m_histogram_map.end() || fee_id < hiter->first )
+      {
+        static constexpr int max_adc = 1100;
+
+        // create and insert
+        const auto hname = (boost::format("h_adc_channel_%i") % fee_id ).str();
+        histogram = new TH2F( hname.c_str(), "ADC vs channel;channel;adc",
+          MicromegasDefs::m_nchannels_fee, 0, MicromegasDefs::m_nchannels_fee,
+          max_adc, 0, max_adc );
+        m_histogram_map.insert(  hiter, std::make_pair( fee_id, histogram ) );
+      } else {
+        histogram = hiter->second;
+      }
     }
 
     // fill
@@ -85,7 +111,10 @@ int MicromegasCombinedDataCalibration::process_event(PHCompositeNode *topNode)
     {
         const uint16_t adc =  rawhit->get_adc(is);
         if( adc != MicromegasDefs::m_adc_invalid )
-        { profile->Fill( channel, adc); }
+        {
+          if( profile ) { profile->Fill( channel, adc); }
+          if( histogram ) { histogram->Fill( channel, adc); }
+        }
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -114,6 +143,13 @@ int MicromegasCombinedDataCalibration::End(PHCompositeNode* /*topNode*/ )
       }
     }
     calibration_data.write( m_calibration_filename );
+  }
+
+  if( m_do_evaluation && m_evaluation_file )
+  {
+    m_evaluation_file->cd();
+    for( const auto& [feeid,h]:m_histogram_map ) { h->Write(); }
+    for( const auto& [feeid,p]:m_profile_map ) { p->Write(); }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
