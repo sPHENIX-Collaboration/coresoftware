@@ -50,6 +50,11 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void isStreaming()
+  {
+    m_streaming = true;
+  }
+
   void setStrobeRange(const int low, const int high)
   {
     m_lowStrobeIndex = low;
@@ -179,6 +184,9 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Take final seeds and fill the TrackSeedContainer
   void makeSvtxTracks(const GridSeeds &seedVector);
 
+  /// Take final seeds and fill the TrackSeedContainer
+  void makeSvtxTracksWithTime(const GridSeeds &seedVector, const int& strobe);
+
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(
       const Surface &surf,
@@ -194,6 +202,11 @@ class PHActsSiliconSeeding : public SubsysReco
   /// Projects circle fit to radii to find possible MVTX/INTT clusters
   /// belonging to track stub
   std::vector<TrkrDefs::cluskey> findMatches(
+      std::vector<Acts::Vector3> &clusters,
+      std::vector<TrkrDefs::cluskey> &keys,
+      TrackSeed &seed);
+
+        std::vector<TrkrDefs::cluskey> findMatchesWithTime(
       std::vector<Acts::Vector3> &clusters,
       std::vector<TrkrDefs::cluskey> &keys,
       TrackSeed &seed);
@@ -243,6 +256,8 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::CylindricalSpacePointGridConfig m_gridCfg;
   Acts::CylindricalSpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
+
+  bool m_streaming = false;
 
   /// boolean whether or not to include the intt in the acts search windows
   bool m_searchInIntt = false;
