@@ -77,7 +77,7 @@ RawTowerv2::get_property(const PROPERTY prop_id) const
     return i->second;
   }
 
-  return std::numeric_limits<double>::signaling_NaN();
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 void RawTowerv2::set_property(const PROPERTY prop_id, const double value)

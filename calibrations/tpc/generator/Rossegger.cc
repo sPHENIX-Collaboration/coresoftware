@@ -1331,9 +1331,13 @@ void Rossegger::SaveZeroes(const std::string &destfile)
   tInfo->Branch("epsilon", &epsilon);
   tInfo->Fill();
 
-  int n, k, m;
-  double munk, betamn;
-  double n2nk, n2mn;
+  int n;
+  int k;
+  int m;
+  double munk;
+  double betamn;
+  double n2nk;
+  double n2mn;
   TTree *tmunk = new TTree("munk", "Mu[n][k] values");
   tmunk->Branch("n", &n);
   tmunk->Branch("k", &k);
@@ -1383,9 +1387,13 @@ void Rossegger::LoadZeroes(const std::string &destfile)
   tInfo->GetEntry(0);
   std::cout << "order=" << ord << ",epsilon=" << epsilon << std::endl;
 
-  int n, k, m;
-  double munk, betamn;
-  double n2nk, n2mn;
+  int n;
+  int k;
+  int m;
+  double munk;
+  double betamn;
+  double n2nk;
+  double n2mn;
   TTree *tmunk = (TTree *) (f->Get("munk"));
   tmunk->SetBranchAddress("n", &n);
   tmunk->SetBranchAddress("k", &k);

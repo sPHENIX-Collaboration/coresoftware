@@ -516,16 +516,8 @@ void TrackResiduals::fillVertexTree(PHCompositeNode* topNode)
 float TrackResiduals::convertTimeToZ(ActsGeometry* geometry, TrkrDefs::cluskey cluster_key, TrkrCluster* cluster)
 {
   // must convert local Y from cluster average time of arival to local cluster z position
-  double drift_velocity = geometry->get_drift_velocity();
-  double zdriftlength = cluster->getLocalY() * drift_velocity;
-  double surfCenterZ = 52.89;                // 52.89 is where G4 thinks the surface center is
-  double zloc = surfCenterZ - zdriftlength;  // converts z drift length to local z position in the TPC in north
-  unsigned int side = TpcDefs::getSide(cluster_key);
-  if (side == 0)
-  {
-    zloc = -zloc;
-  }
-  float z = zloc;  // in cm
+  Acts::Vector2 local = geometry->getLocalCoords(cluster_key, cluster);
+  float z = local(1);
 
   return z;
 }
@@ -931,8 +923,8 @@ void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
         m_hitpad = TpcDefs::getPad(hitkey);
         m_hittbin = TpcDefs::getTBin(hitkey);
 
-        auto geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
-        auto phi = geoLayer->get_phicenter(m_hitpad);
+        auto *geoLayer = tpcGeom->GetLayerCellGeom(m_hitlayer);
+        auto phi = geoLayer->get_phicenter(m_hitpad, m_side);
         auto radius = geoLayer->get_radius();
         float AdcClockPeriod = geoLayer->get_zstep();
         auto glob = geometry->getGlobalPositionTpc(m_hitsetkey, hitkey, phi, radius, AdcClockPeriod);
@@ -1175,9 +1167,25 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
 
   //! Switch to get ideal transforms
   alignmentTransformationContainer::use_alignment = false;
-  auto idealcenter = surf_ideal->center(geometry->geometry().getGeoContext());
+  auto idealcenter = surf_ideal->center(geometry->geometry().getGeoContext());  //mm
   auto idealnorm = -1 * surf_ideal->normal(geometry->geometry().getGeoContext(), Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
 
+  if(Verbosity() > 3 && layer == 44)
+    {
+      std::vector<double> surfbounds = surf_ideal->bounds().values();  // mm
+      std::cout << "resids: layer " << layer << " ideal center z " << idealcenter.z() << " mm " << std::endl;
+      std::cout << " surface bounds " << surfbounds[0] << "  " << surfbounds[1] << " mm " << std::endl;
+      alignmentTransformationContainer::use_alignment = false;
+      Acts::Transform3 transform = surf_ideal->transform(geometry->geometry().getGeoContext());
+      std::cout << "Ideal transform is:" << std::endl;
+      std::cout << transform.matrix() << std::endl;
+      alignmentTransformationContainer::use_alignment = true;
+      Acts::Transform3 transform1 = surf_ideal->transform(geometry->geometry().getGeoContext());
+      std::cout << "Alignment transform is:" << std::endl;
+      std::cout << transform1.matrix() << std::endl;
+
+    }
+  
   // replace the corrected moved cluster local position with the readout position from ideal geometry for now
   // This allows us to see the distortion corrections by subtracting this uncorrected position
   // revisit this when looking at the alignment case

@@ -258,22 +258,22 @@ void SiliconSeedsQA::createHistos()
   }
 
   {
-    h_dcaxyorigin_phi = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi").c_str(), "DCA xy origin vs phi;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+    h_dcaxyorigin_phi = new TH2F(std::string(getHistoPrefix() + "dcaxyorigin_phi").c_str(), "DCA xy origin vs phi;#phi [rad];DCA_{xy} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 600, -3, 3);
     hm->registerHisto(h_dcaxyorigin_phi);
   }
 
   {
-    h_dcaxyvtx_phi = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi").c_str(), "DCA xy vertex vs phi;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 90, -3, 3);
+    h_dcaxyvtx_phi = new TH2F(std::string(getHistoPrefix() + "dcaxyvtx_phi").c_str(), "DCA xy vertex vs phi;#phi [rad];DCA_{xy} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 600, -3, 3);
     hm->registerHisto(h_dcaxyvtx_phi);
   }
 
   {
-    h_dcazorigin_phi = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi").c_str(), "DCA z origin vs phi;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 160, -20, 20);
+    h_dcazorigin_phi = new TH2F(std::string(getHistoPrefix() + "dcazorigin_phi").c_str(), "DCA z origin vs phi;#phi [rad];DCA_{z} wrt origin [cm];Entries", 300, -3.14159, 3.1459, 600, -3, 3);
     hm->registerHisto(h_dcazorigin_phi);
   }
 
   {
-    h_dcazvtx_phi = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi").c_str(), "DCA z vertex vs phi;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 160, -20, 20);
+    h_dcazvtx_phi = new TH2F(std::string(getHistoPrefix() + "dcazvtx_phi").c_str(), "DCA z vertex vs phi;#phi [rad];DCA_{z} wrt vertex [cm];Entries", 300, -3.14159, 3.1459, 600, -3, 3);
     hm->registerHisto(h_dcazvtx_phi);
   }
 
@@ -309,17 +309,17 @@ void SiliconSeedsQA::createHistos()
   }
 
   {
-    h_vx = new TH1F(std::string(getHistoPrefix() + "vx").c_str(), "Vertex x;Vertex x [cm];Entries", 100, -2.5, 2.5);
+    h_vx = new TH1F(std::string(getHistoPrefix() + "vx").c_str(), "Vertex x;Vertex x [cm];Entries", 500, -2.5, 2.5);
     hm->registerHisto(h_vx);
   }
 
   {
-    h_vy = new TH1F(std::string(getHistoPrefix() + "vy").c_str(), "Vertex y;Vertex y [cm];Entries", 100, -2.5, 2.5);
+    h_vy = new TH1F(std::string(getHistoPrefix() + "vy").c_str(), "Vertex y;Vertex y [cm];Entries", 500, -2.5, 2.5);
     hm->registerHisto(h_vy);
   }
 
   {
-    h_vx_vy = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y;Vertex x [cm];Vertex y [cm];Entries", 100, -2.5, 2.5, 100, -2.5, 2.5);
+    h_vx_vy = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y;Vertex x [cm];Vertex y [cm];Entries", 500, -2.5, 2.5, 500, -2.5, 2.5);
     hm->registerHisto(h_vx_vy);
   }
 

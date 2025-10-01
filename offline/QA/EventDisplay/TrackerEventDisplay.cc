@@ -27,10 +27,9 @@
 #include <phool/recoConsts.h>
 
 #include <TVector3.h>
-#include <boost/format.hpp>
-#include <boost/math/special_functions/sign.hpp>
 
 #include <cmath>
+#include <format>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -57,7 +56,7 @@ int TrackerEventDisplay::Init(PHCompositeNode* /*topNode*/)
 }
 int TrackerEventDisplay::InitRun(PHCompositeNode *topNode)
 {
-  auto geom =
+  auto *geom =
       findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom)
   {
@@ -138,7 +137,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             << std::endl;
     outdata << "    \"TRACKHITS\": [\n\n ";
 
-    auto m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    auto *m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
     if (Verbosity() >= 1)
     {
@@ -201,9 +200,9 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
               clusz = -clusz;
             }
             z = clusz;
-            phi_center = GeoLayer_local->get_phicenter(phibin);
-            x = radius * cos(phi_center);
-            y = radius * sin(phi_center);
+            phi_center = GeoLayer_local->get_phicenter(phibin, side);
+            x = radius * std::cos(phi_center);
+            y = radius * std::sin(phi_center);
 
             std::stringstream spts;
 
@@ -226,7 +225,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             spts << adc;
             spts << "}";
 
-            outdata << (boost::format("%1%") % spts.str());
+            outdata << std::format("{}", spts.str());
             spts.clear();
             spts.str("");
           }
@@ -334,7 +333,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
           spts << adc;
           spts << "}";
 
-          outdata << (boost::format("%1%") % spts.str());
+          outdata << std::format("{}", spts.str());
           spts.clear();
           spts.str("");
         }

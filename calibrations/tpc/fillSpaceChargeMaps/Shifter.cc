@@ -57,9 +57,14 @@ Shifter::Shifter(const std::string &truthfilename, const std::string &correction
   }
 }
 
-TVector3 Shifter::ShiftForward(const TVector3 &position)
+TVector3 Shifter::ShiftForward(const TVector3 &position) const
 {
-  double x, y, z, xshift, yshift, zshift;
+  double x;
+  double y;
+  double z;
+  double xshift;
+  double yshift;
+  double zshift;
   // const double mm = 1.0;
   // const double cm = 10.0;
   TVector3 shiftposition;
@@ -104,9 +109,11 @@ TVector3 Shifter::ShiftForward(const TVector3 &position)
   return forwardshift;
 }
 
-TVector3 Shifter::ShiftBack(const TVector3 &forwardshift)
+TVector3 Shifter::ShiftBack(const TVector3 &forwardshift) const
 {
-  double x, y, z;
+  double x;
+  double y;
+  double z;
   // const double mm = 1.0;
   // const double cm = 10.0;
   TVector3 shiftposition;
@@ -131,7 +138,7 @@ TVector3 Shifter::ShiftBack(const TVector3 &forwardshift)
   return shiftposition;
 }
 
-TVector3 Shifter::Shift(const TVector3 &position)
+TVector3 Shifter::Shift(const TVector3 &position) const
 {
   return ShiftBack(ShiftForward(position));
 }

@@ -20,7 +20,7 @@ class RawClusterv1 : public RawCluster
 {
  public:
   RawClusterv1() = default;
-  ~RawClusterv1() override {}
+  ~RawClusterv1() override = default;
 
   void Reset() override;
   PHObject* CloneMe() const override { return new RawClusterv1(*this); }
@@ -74,7 +74,7 @@ class RawClusterv1 : public RawCluster
   float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const override;
 
   std::vector<float> get_shower_shapes(float tower_thresh) const override;
-  std::pair<int,int> get_lead_tower() const override; // eta,phi of leading tower in cluster
+  std::pair<int, int> get_lead_tower() const override;  // eta,phi of leading tower in cluster
 
   //  //! truth cluster's PHG4Particle ID
   //  virtual int get_truth_track_ID() const override { return get_property_int(prop_truth_track_ID); }
@@ -177,14 +177,14 @@ class RawClusterv1 : public RawCluster
   //! cluster ID
   RawClusterDefs::keytype clusterid{0};
   //! total energy
-  float _energy{std::numeric_limits<float>::signaling_NaN()};
+  float _energy{std::numeric_limits<float>::quiet_NaN()};
   //! Tower operations
   TowerMap towermap;
 
   //! location of cluster in cylindrical coordinate
-  float _r{std::numeric_limits<float>::signaling_NaN()};
-  float _phi{std::numeric_limits<float>::signaling_NaN()};
-  float _z{std::numeric_limits<float>::signaling_NaN()};
+  float _r{std::numeric_limits<float>::quiet_NaN()};
+  float _phi{std::numeric_limits<float>::quiet_NaN()};
+  float _z{std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(RawClusterv1, 3)
 };

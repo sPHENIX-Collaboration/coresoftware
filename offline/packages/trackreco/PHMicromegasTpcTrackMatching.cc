@@ -193,7 +193,7 @@ namespace
 	bool phi_ok = phi_in_range(phi, t_min - 1e-4, t_max + 1e-4);
         //Tolerance in z
         bool z_ok = (z >= zmin - 1e-4 && z <= zmax + 1e-4);
-        bool proj_ok = (std::fabs(ntile.Dot(candidate_intersect - ptile)) <= 0.05);
+        bool proj_ok = (std::abs(ntile.Dot(candidate_intersect - ptile)) <= 0.05);
 
 	// Passes the checks for the projection inside the tile acceptance 
         if (std::abs(t_new - t) < tol && proj_ok && phi_ok && z_ok) 

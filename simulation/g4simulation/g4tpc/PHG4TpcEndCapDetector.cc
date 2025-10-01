@@ -27,15 +27,11 @@
 
 #include <CLHEP/Vector/RotationZ.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <boost/format.hpp>
-#pragma GCC diagnostic pop
-
 #include <algorithm>  // for max, copy
 #include <cassert>
 #include <cmath>
 #include <cstdlib>  // for exit
+#include <format>
 #include <iostream>
 
 class G4VSolid;
@@ -232,7 +228,7 @@ void PHG4TpcEndCapDetector ::AddLayer(  //
   G4ThreeVector g4vec(0, 0, z_start);
   z_start += _depth / 2.;
 
-  std::string name_base = boost::str(boost::format("%1%_Layer_%2%") % GetName() % _name);
+  std::string name_base = std::format("{}_Layer_{}", GetName(), _name);
 
   G4VSolid *solid_layer = new G4Tubs(
       name_base,
@@ -301,18 +297,17 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
 
     if (ring_id > 0)
     {
-      Rin = m_Params->get_double_param(
-                boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_outer") % (ring_id))) *
+      Rin = m_Params->get_double_param(std::format("wagon_wheel_front_frame_R_R{}_outer", ring_id)) *
             cm;
     }
     if (ring_id < n_radial_modules)
     {
-      Rout = m_Params->get_double_param(
-                 boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_inner") % (ring_id + 1))) *
+      Rout = m_Params->get_double_param(std::format("wagon_wheel_front_frame_R_R{}_inner", ring_id + 1)) *
              cm;
     }
 
-    std::string name_base = boost::str(boost::format("%1%_%2%_Ring%3%") % GetName() % "wagon_wheel_front_frame" % ring_id);
+    std::string name_base = std::format("{}_{}_Ring{}", GetName(), "wagon_wheel_front_frame", ring_id);
+
 
     G4VSolid *solid_wagon_wheel_front_frame = new G4Tubs(
         name_base,
@@ -338,15 +333,11 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
   for (int ring_id = 1; ring_id <= n_radial_modules; ++ring_id)
   {
     G4double Rout =
-        m_Params->get_double_param(
-            boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_outer") % (ring_id))) *
-        cm;
+      m_Params->get_double_param(std::format("wagon_wheel_front_frame_R_R{}_outer", ring_id)) * cm;
     G4double Rin =
-        m_Params->get_double_param(
-            boost::str(boost::format("wagon_wheel_front_frame_R_R%1%_inner") % (ring_id))) *
-        cm;
+      m_Params->get_double_param(std::format("wagon_wheel_front_frame_R_R{}_inner", ring_id)) * cm;
 
-    const G4double reduced_height = sqrt(Rout * Rout - wagon_wheel_front_frame_spoke_width / 2 * wagon_wheel_front_frame_spoke_width / 2);
+    const G4double reduced_height = std::sqrt(Rout * Rout - wagon_wheel_front_frame_spoke_width / 2 * wagon_wheel_front_frame_spoke_width / 2);
 
     std::vector<G4TwoVector> vertexes;
     vertexes.emplace_back(-wagon_wheel_front_frame_spoke_width / 2, Rin);
@@ -356,7 +347,8 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
 
     G4TwoVector zero(0, 0);
 
-    std::string name_base_spoke = boost::str(boost::format("%1%_%2%_Ring%3%_spoke") % GetName() % "wagon_wheel_front_frame" % ring_id);
+    std::string name_base_spoke = std::format("{}_{}_Ring{}_spoke", GetName(), "wagon_wheel_front_frame", ring_id);
+
 
     G4VSolid *solid_wagon_wheel_front_frame_spoke = new G4ExtrudedSolid(name_base_spoke,
                                                                         vertexes,
@@ -395,7 +387,8 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
 
     G4ThreeVector g4vec_wagon_wheel_rim_outer(0, 0, z_start + wagon_wheel_rim_outer_thickness / 2.);
 
-    std::string name_base = boost::str(boost::format("%1%_wagon_wheel_rim_outer") % GetName());
+    std::string name_base = std::format("{}_wagon_wheel_rim_outer", GetName());
+
 
     G4VSolid *solid_wagon_wheel = new G4Tubs(
         name_base,
@@ -425,7 +418,7 @@ void PHG4TpcEndCapDetector::ConstructWagonWheel(G4AssemblyVolume *assmeblyvol,
     const G4double wagon_wheel_spoke_R_inner = m_Params->get_double_param("wagon_wheel_spoke_R_inner") * cm;
     const G4double wagon_wheel_spoke_R_outer = m_Params->get_double_param("wagon_wheel_spoke_R_outer") * cm;
 
-    std::string name_base = boost::str(boost::format("%1%_wagon_wheel_spoke") % GetName());
+    std::string name_base = std::format("{}_wagon_wheel_spoke", GetName());
 
     std::vector<G4TwoVector> vertexes;
     vertexes.emplace_back(0, wagon_wheel_spoke_R_inner);
@@ -507,18 +500,14 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
 
       if (ring_id > 0)
       {
-        Rin = m_Params->get_double_param(
-                  boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) *
-              cm;
+        Rin = m_Params->get_double_param(std::format("electronics_cooling_block_R_R{}_outer", ring_id)) * cm;
       }
       if (ring_id < n_radial_modules)
       {
-        Rout = m_Params->get_double_param(
-                   boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id + 1))) *
-               cm;
+        Rout = m_Params->get_double_param(std::format("electronics_cooling_block_R_R{}_inner", ring_id + 1)) * cm;
       }
 
-      std::string name_base = boost::str(boost::format("%1%_%2%_Ring%3%") % GetName() % "electronics_cooling_block" % ring_id);
+      std::string name_base = std::format("{}_{}_Ring{}", GetName(), "electronics_cooling_block", ring_id);
 
       const G4double spoke_phi = atan2(wagon_wheel_spoke_width, Rin);
 
@@ -569,27 +558,22 @@ void PHG4TpcEndCapDetector::ConstructElectronics(G4AssemblyVolume *assmeblyvol,
   {
     for (int ring_id = 1; ring_id <= n_radial_modules; ++ring_id)
     {
-      const G4double Rout = m_Params->get_double_param(
-                                boost::str(boost::format("electronics_cooling_block_R_R%1%_outer") % (ring_id))) *
-                                cm -
-                            electronics_assemly_thickness;
-      const G4double Rin = m_Params->get_double_param(
-                               boost::str(boost::format("electronics_cooling_block_R_R%1%_inner") % (ring_id))) *
-                               cm +
-                           electronics_assemly_thickness;
-      const int nFEE = m_Params->get_int_param(boost::str(boost::format("electronics_nFEE_R%1%") % (ring_id)));
+      const G4double Rout = m_Params->get_double_param(std::format("electronics_cooling_block_R_R{}_outer", ring_id)) * cm - electronics_assemly_thickness;
+      const G4double Rin = m_Params->get_double_param(std::format("electronics_cooling_block_R_R{}_inner", ring_id)) * cm + electronics_assemly_thickness;
+      const int nFEE = m_Params->get_int_param(std::format("electronics_nFEE_R{}", ring_id));
+
 
       if (nFEE <= 0)
       {
         std::cout << __PRETTY_FUNCTION__ << " warning : ignore FEE construction for module " << ring_id << " as "
-                  << boost::str(boost::format("electronics_nFEE_R2%1%") % (ring_id)) << " = " << nFEE << std::endl;
+                  << std::format("electronics_nFEE_R2{}", ring_id) << " = " << nFEE << std::endl;
 
         continue;
       }
 
       G4AssemblyVolume *assmeblyvol_electronics = new G4AssemblyVolume();
       G4double starting_electronics(0);
-      std::string name_base = boost::str(boost::format("%1%_%2%_Ring%3%") % GetName() % "electronics" % ring_id);
+      std::string name_base = std::format("{}_{}_Ring{}", GetName(), "electronics", ring_id);
 
       if (Verbosity())
       {

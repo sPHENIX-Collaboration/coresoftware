@@ -1,3 +1,3 @@
 #include "PhotonCluster.h"
 
-PhotonCluster::~PhotonCluster() {}
+PhotonCluster::~PhotonCluster() = default;

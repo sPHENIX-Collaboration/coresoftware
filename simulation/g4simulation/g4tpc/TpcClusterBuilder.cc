@@ -16,10 +16,8 @@
 #include <g4detectors/PHG4TpcCylinderGeomContainer.h>
 
 #include <algorithm>
-#include <boost/format.hpp>
-
-#include <algorithm>
 #include <cmath>  // for sqrt, cos, sin
+#include <format>
 #include <ios>
 #include <iostream>
 #include <limits>
@@ -286,7 +284,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
             }
             /* std::cout << std::setprecision(2) << std::fixed; */
             double _rat = (float) m_iphi[_] / (float) adc_sum;
-            std::cout << boost::str(boost::format("%.2f") % _rat) << " ";
+            std::cout << std::format("{:.2f}", _rat) << " ";
             tempsum += _rat;
             _prev = _;
           }
@@ -317,7 +315,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
             }
             /* std::cout << std::setprecision(2) << std::fixed; */
             double _rat = (float) m_it[_] / (float) adc_sum;
-            std::cout << boost::str(boost::format("%.2f") % _rat) << " ";
+            std::cout << std::format("{:.2f}", _rat) << " ";
             tempsum += _rat;
             _prev = _;
           }
@@ -422,8 +420,7 @@ void TpcClusterBuilder::clear_hitsetkey_cnt()
   hitsetkey_cnt.clear();
 }
 
-void TpcClusterBuilder::print(
-    TrkrTruthTrackContainer* truth_tracks, int nclusprint) const
+void TpcClusterBuilder::print(TrkrTruthTrackContainer* truth_tracks, int nclusprint) const
 {
   std::cout << " ------------- content of TrkrTruthTrackContainer ---------- " << std::endl;
   auto& tmap = truth_tracks->getMap();
@@ -431,8 +428,8 @@ void TpcClusterBuilder::print(
   for (auto& _pair : tmap)
   {
     auto& track = _pair.second;
-    std::cout << boost::str(boost::format("id(%2i) phi:eta:pt(") % ((int) track->getTrackid()))
-              << boost::str(boost::format("%5.2f:%5.2f:%5.2f") % track->getPhi() % track->getPseudoRapidity() % track->getPt())
+    std::cout << std::format("id({:2d}) phi:eta:pt(", static_cast<int>(track->getTrackid()))
+	      << std::format("{:5.2f}:{:5.2f}:{:5.2f}", track->getPhi(), track->getPseudoRapidity(), track->getPt())
               << ") nclusters(" << track->getClusters().size() << ") ";
     if (verbosity <= 10)
     {

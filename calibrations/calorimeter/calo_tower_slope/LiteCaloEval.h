@@ -11,7 +11,6 @@ class TFile;
 class TH1;
 class TH2;
 class TH3;
-class TGraph;
 class TriggerAnalyzer;
 
 class LiteCaloEval : public SubsysReco

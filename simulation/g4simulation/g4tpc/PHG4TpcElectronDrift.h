@@ -125,17 +125,17 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   float max_g4hitstep{7.};
   float thresholdforreachesreadout{0.5};
 
-  double diffusion_trans = std::numeric_limits<double>::signaling_NaN();
-  double added_smear_sigma_trans = std::numeric_limits<double>::signaling_NaN();
-  double diffusion_long = std::numeric_limits<double>::signaling_NaN();
-  double added_smear_sigma_long = std::numeric_limits<double>::signaling_NaN();
-  double drift_velocity = std::numeric_limits<double>::signaling_NaN();
-  double tpc_length = std::numeric_limits<double>::signaling_NaN();
-  double electrons_per_gev = std::numeric_limits<double>::signaling_NaN();
-  double min_active_radius = std::numeric_limits<double>::signaling_NaN();
-  double max_active_radius = std::numeric_limits<double>::signaling_NaN();
-  double min_time = std::numeric_limits<double>::signaling_NaN();
-  double max_time = std::numeric_limits<double>::signaling_NaN();
+  double diffusion_trans = std::numeric_limits<double>::quiet_NaN();
+  double added_smear_sigma_trans = std::numeric_limits<double>::quiet_NaN();
+  double diffusion_long = std::numeric_limits<double>::quiet_NaN();
+  double added_smear_sigma_long = std::numeric_limits<double>::quiet_NaN();
+  double drift_velocity = std::numeric_limits<double>::quiet_NaN();
+  double tpc_length = std::numeric_limits<double>::quiet_NaN();
+  double electrons_per_gev = std::numeric_limits<double>::quiet_NaN();
+  double min_active_radius = std::numeric_limits<double>::quiet_NaN();
+  double max_active_radius = std::numeric_limits<double>::quiet_NaN();
+  double min_time = std::numeric_limits<double>::quiet_NaN();
+  double max_time = std::numeric_limits<double>::quiet_NaN();
   double zero_bfield_diffusion_factor{3.5};  // at drift voltage of 400 V
 
   bool record_ClusHitsVerbose{false};

@@ -7,11 +7,11 @@
 
 #include "PHRaveVertexing.h"
 
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackState.h>    // for SvtxTrackState
 #include <globalvertex/SvtxVertexMap_v1.h>
 #include <globalvertex/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>  // for SvtxTrackState
 
 #include <g4main/PHG4TruthInfoContainer.h>
 
@@ -22,31 +22,31 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                   // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                         // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                       // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <GenFit/FitStatus.h>                     // for FitStatus
-#include <GenFit/GFRaveTrackParameters.h>         // for GFRaveTrackParameters
+#include <GenFit/FitStatus.h>              // for FitStatus
+#include <GenFit/GFRaveTrackParameters.h>  // for GFRaveTrackParameters
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
-#include <GenFit/KalmanFittedStateOnPlane.h>      // for KalmanFittedStateOn...
+#include <GenFit/KalmanFittedStateOnPlane.h>  // for KalmanFittedStateOn...
 #include <GenFit/KalmanFitterInfo.h>
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
 #include <GenFit/Track.h>
-#include <GenFit/TrackPoint.h>                    // for TrackPoint
+#include <GenFit/TrackPoint.h>  // for TrackPoint
 
-#include <TMatrixDSymfwd.h>                       // for TMatrixDSym
-#include <TMatrixTSym.h>                          // for TMatrixTSym
-#include <TMatrixTUtils.h>                        // for TMatrixTRow
+#include <TMatrixDSymfwd.h>  // for TMatrixDSym
+#include <TMatrixTSym.h>     // for TMatrixTSym
+#include <TMatrixTUtils.h>   // for TMatrixTRow
 #include <TVector3.h>
 
 #include <iostream>
@@ -56,21 +56,23 @@
 #include <vector>
 
 class TGeoManager;
-namespace genfit { class AbsTrackRep; }
+namespace genfit
+{
+  class AbsTrackRep;
+}
 
-#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
-#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
-#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
+#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl
+#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl
+#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl
 
-//#define _DEBUG_
-
-using namespace std;
+// #define _DEBUG_
 
 /*
  * Constructor
  */
-PHRaveVertexing::PHRaveVertexing(const string& name)
+PHRaveVertexing::PHRaveVertexing(const std::string& name)
   : SubsysReco(name)
+  , _event(0)
   , _over_write_svtxvertexmap(false)
   , _svtxvertexmaprefit_node_name("SvtxVertexMapRefit")
   , _fitter(nullptr)
@@ -85,8 +87,6 @@ PHRaveVertexing::PHRaveVertexing(const string& name)
   , _t_rave(nullptr)
 {
   Verbosity(0);
-
-  _event = 0;
 }
 
 /*
@@ -104,8 +104,8 @@ int PHRaveVertexing::InitRun(PHCompositeNode* topNode)
 {
   CreateNodes(topNode);
 
-  auto tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
-  auto field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
+  auto* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+  auto* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
 
   //_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
   _fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
@@ -114,14 +114,14 @@ int PHRaveVertexing::InitRun(PHCompositeNode* topNode)
   if (!_fitter)
   {
     std::cout << PHWHERE << " PHGenFit::Fitter::getInstance returned nullptr"
-	      << std::endl;
+              << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   _fitter->set_verbosity(Verbosity());
 
   if (!_fitter)
   {
-    cerr << PHWHERE << endl;
+    std::cout << PHWHERE << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -131,9 +131,8 @@ int PHRaveVertexing::InitRun(PHCompositeNode* topNode)
     std::cout << PHWHERE << " genfit::GFRaveVertexFactory returned null ptr" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  _vertex_finder->setMethod(_vertexing_method.data());
+  _vertex_finder->setMethod(_vertexing_method);
   //_vertex_finder->setBeamspot();
-
 
   _t_translate = new PHTimer("_t_translate");
   _t_translate->stop();
@@ -154,51 +153,76 @@ int PHRaveVertexing::process_event(PHCompositeNode* topNode)
   _event++;
 
   if (Verbosity() > 1)
+  {
     std::cout << PHWHERE << "Events processed: " << _event << std::endl;
+  }
 
   GetNodes(topNode);
 
   //! stands for Refit_GenFit_Tracks
   GenFitTrackMap gf_track_map;
-  vector<genfit::Track*> gf_tracks;
-  if (Verbosity() > 1) _t_translate->restart();
-  for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
-       ++iter)
+  std::vector<genfit::Track*> gf_tracks;
+  if (Verbosity() > 1)
   {
-    SvtxTrack* svtx_track = iter->second;
+    _t_translate->restart();
+  }
+  for (auto& iter : *_trackmap)
+  {
+    SvtxTrack* svtx_track = iter.second;
     if (!svtx_track)
+    {
       continue;
+    }
 
     if (!(svtx_track->get_ndf() >= _vertex_min_ndf))
+    {
       continue;
+    }
 
     // require MVTX association
-    if(_nmvtx_required > 0)
+    if (_nmvtx_required > 0)
+    {
+      unsigned int nmvtx = 0;
+      for (auto clusit = svtx_track->begin_cluster_keys(); clusit != svtx_track->end_cluster_keys(); ++clusit)
       {
-	unsigned int nmvtx = 0;
-	for(auto clusit = svtx_track->begin_cluster_keys(); clusit != svtx_track->end_cluster_keys(); ++clusit)
-	  {
-	    if(TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId )
-	      {
-		nmvtx++;
-	      }
-	    if(nmvtx >=  _nmvtx_required) break;
-	  }
-	if(nmvtx < _nmvtx_required) continue;
-	if(Verbosity() > 1) std::cout << " track " << iter->first << "  has nmvtx at least " << nmvtx << std::endl;
+        if (TrkrDefs::getTrkrId(*clusit) == TrkrDefs::mvtxId)
+        {
+          nmvtx++;
+        }
+        if (nmvtx >= _nmvtx_required)
+        {
+          break;
+        }
       }
+      if (nmvtx < _nmvtx_required)
+      {
+        continue;
+      }
+      if (Verbosity() > 1)
+      {
+        std::cout << " track " << iter.first << "  has nmvtx at least " << nmvtx << std::endl;
+      }
+    }
 
-    //auto genfit_track = shared_ptr<genfit::Track> (TranslateSvtxToGenFitTrack(svtx_track));
-    auto genfit_track = TranslateSvtxToGenFitTrack(svtx_track);
+    // auto genfit_track = shared_ptr<genfit::Track> (TranslateSvtxToGenFitTrack(svtx_track));
+    auto* genfit_track = TranslateSvtxToGenFitTrack(svtx_track);
     if (!genfit_track)
+    {
       continue;
-    gf_track_map.insert({genfit_track, iter->first});
+    }
+    gf_track_map.insert({genfit_track, iter.first});
     gf_tracks.push_back(const_cast<genfit::Track*>(genfit_track));
   }
-  if (Verbosity() > 1) _t_translate->stop();
+  if (Verbosity() > 1)
+  {
+    _t_translate->stop();
+  }
 
-  if (Verbosity() > 1) _t_rave->restart();
-  vector<genfit::GFRaveVertex*> rave_vertices;
+  if (Verbosity() > 1)
+  {
+    _t_rave->restart();
+  }
+  std::vector<genfit::GFRaveVertex*> rave_vertices;
   if (gf_tracks.size() >= 2)
   {
     try
@@ -208,13 +232,21 @@ int PHRaveVertexing::process_event(PHCompositeNode* topNode)
     catch (...)
     {
       if (Verbosity() > 1)
+      {
         std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
+      }
     }
   }
-  if (Verbosity() > 1) _t_rave->stop();
+  if (Verbosity() > 1)
+  {
+    _t_rave->stop();
+  }
   FillSvtxVertexMap(rave_vertices, gf_track_map);
 
-  for (auto iter : gf_track_map) delete iter.first;
+  for (auto iter : gf_track_map)
+  {
+    delete iter.first;
+  }
 
   if (Verbosity() > 1)
   {
@@ -256,7 +288,7 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode* topNode)
       "PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   PHNodeIterator iter_dst(dstNode);
@@ -269,17 +301,21 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode* topNode)
     tb_node = new PHCompositeNode("SVTX");
     dstNode->addNode(tb_node);
     if (Verbosity() > 0)
-      cout << "SVTX node added" << endl;
+    {
+      std::cout << "SVTX node added" << std::endl;
+    }
   }
 
   if (!(_over_write_svtxvertexmap))
   {
     _vertexmap_refit = new SvtxVertexMap_v1;
     PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-        _vertexmap_refit, _svtxvertexmaprefit_node_name.c_str(), "PHObject");
+        _vertexmap_refit, _svtxvertexmaprefit_node_name, "PHObject");
     tb_node->addNode(vertexes_node);
     if (Verbosity() > 0)
-      cout << "Svtx/SvtxVertexMapRefit node added" << endl;
+    {
+      std::cout << "Svtx/SvtxVertexMapRefit node added" << std::endl;
+    }
   }
   else if (!findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap"))
   {
@@ -288,7 +324,9 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode* topNode)
         _vertexmap, "SvtxVertexMap", "PHObject");
     tb_node->addNode(vertexes_node);
     if (Verbosity() > 0)
-      cout << "Svtx/SvtxVertexMap node added" << endl;
+    {
+      std::cout << "Svtx/SvtxVertexMap node added" << std::endl;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -300,13 +338,13 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode* topNode)
  */
 int PHRaveVertexing::GetNodes(PHCompositeNode* topNode)
 {
-  //DST objects
-  // Input Svtx Tracks
+  // DST objects
+  //  Input Svtx Tracks
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_trackmap && _event < 2)
   {
-    cout << PHWHERE << " SvtxTrackMap node not found on node tree"
-         << endl;
+    std::cout << PHWHERE << " SvtxTrackMap node not found on node tree"
+              << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -314,8 +352,8 @@ int PHRaveVertexing::GetNodes(PHCompositeNode* topNode)
   _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!_vertexmap && _event < 2)
   {
-    cout << PHWHERE << " SvtxVertexrMap node not found on node tree"
-         << endl;
+    std::cout << PHWHERE << " SvtxVertexrMap node not found on node tree"
+              << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -323,11 +361,11 @@ int PHRaveVertexing::GetNodes(PHCompositeNode* topNode)
   if (!(_over_write_svtxvertexmap))
   {
     _vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
-                                                         _svtxvertexmaprefit_node_name.c_str());
+                                                         _svtxvertexmaprefit_node_name);
     if (!_vertexmap_refit && _event < 2)
     {
-      cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
-           << endl;
+      std::cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
+                << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
@@ -354,7 +392,7 @@ bool PHRaveVertexing::FillSvtxVertexMap(
   {
     if (!rave_vtx)
     {
-      cerr << PHWHERE << endl;
+      std::cout << PHWHERE << std::endl;
       return false;
     }
 
@@ -367,12 +405,16 @@ bool PHRaveVertexing::FillSvtxVertexMap(
     svtx_vtx->set_position(2, rave_vtx->getPos().Z());
 
     for (int i = 0; i < 3; i++)
+    {
       for (int j = 0; j < 3; j++)
+      {
         svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
+      }
+    }
 
     for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++)
     {
-      //TODO improve speed
+      // TODO improve speed
       const genfit::Track* rave_track =
           rave_vtx->getParameters(i)->getTrack();
       //			for(auto iter : gf_track_map) {
@@ -381,7 +423,9 @@ bool PHRaveVertexing::FillSvtxVertexMap(
       //			}
       auto iter = gf_track_map.find(rave_track);
       if (iter != gf_track_map.end())
+      {
         svtx_vtx->insert_track(iter->second);
+      }
     }
 
     if (_over_write_svtxvertexmap)
@@ -408,29 +452,29 @@ bool PHRaveVertexing::FillSvtxVertexMap(
     }
 
 #ifdef _DEBUG_
-    cout << __LINE__ << endl;
+    std::cout << __LINE__ << std::endl;
     svtx_vtx->identify();
 #endif
 
-  }  //loop over RAVE vertices
+  }  // loop over RAVE vertices
 
   return true;
 }
 
-genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track)
+genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track) const
 {
   try
   {
     // The first state is extracted to PCA, second one is the one with measurement
     SvtxTrackState* svtx_state(nullptr);
-    //SvtxTrackState* svtx_state = (svtx_track->begin_states())->second;
+    // SvtxTrackState* svtx_state = (svtx_track->begin_states())->second;
 
     if (svtx_track->begin_states() == svtx_track->end_states())
     {
       LogDebug("TranslateSvtxToGenFitTrack no state in track!");
       return nullptr;
     }
-    else if (++(svtx_track->begin_states()) == svtx_track->end_states())
+    if (++(svtx_track->begin_states()) == svtx_track->end_states())
     {
       // only one state in track
       svtx_state = (svtx_track->begin_states())->second;
@@ -461,17 +505,17 @@ genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track
 
 #ifdef _DEBUG_
     {
-      cout << "DEBUG" << __LINE__ << endl;
-      cout << "path length:      " << svtx_state->get_pathlength() << endl;
-      cout << "radius:           " << pos.Perp() << endl;
-      cout << "DEBUG: " << __LINE__ << endl;
+      std::cout << "DEBUG" << __LINE__ << std::endl;
+      std::cout << "path length:      " << svtx_state->get_pathlength() << std::endl;
+      std::cout << "radius:           " << pos.Perp() << std::endl;
+      std::cout << "DEBUG: " << __LINE__ << std::endl;
       for (int i = 0; i < 6; ++i)
       {
         for (int j = 0; j < 6; ++j)
         {
-          cout << svtx_state->get_error(i, j) << "\t";
+          std::cout << svtx_state->get_error(i, j) << "\t";
         }
-        cout << endl;
+        std::cout << std::endl;
       }
 
       cov.Print();
@@ -500,11 +544,11 @@ genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track
     ms->setPosMomCov(pos, mom, cov);
 #ifdef _DEBUG_
     {
-      cout << "DEBUG: " << __LINE__ << endl;
+      std::cout << "DEBUG: " << __LINE__ << std::endl;
       ms->Print();
-      cout << "Orig: " << __LINE__ << endl;
+      std::cout << "Orig: " << __LINE__ << std::endl;
       cov.Print();
-      cout << "Translate: " << __LINE__ << endl;
+      std::cout << "Translate: " << __LINE__ << std::endl;
       ms->get6DCov().Print();
     }
 #endif
@@ -517,7 +561,7 @@ genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track
 
 #ifdef _DEBUG_
 //		{
-//			cout << "DEBUG" << __LINE__ << endl;
+//			std::cout << "DEBUG" << __LINE__ << std::endl;
 //			TVector3 pos, mom;
 //			TMatrixDSym cov;
 //			genfit_track->getFittedState().getPosMomCov(pos, mom, cov);

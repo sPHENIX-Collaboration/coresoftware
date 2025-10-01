@@ -21,7 +21,7 @@
 class RawClusterUtility
 {
  public:
-  virtual ~RawClusterUtility() {}
+  virtual ~RawClusterUtility() = default;
 
   //
   //! polar angle of cluster with respect to given vertex position
@@ -62,7 +62,7 @@ class RawClusterUtility
 
  private:
   //! not intended to make an instance
-  RawClusterUtility() {}
+  RawClusterUtility() = default;
 };
 
 #endif

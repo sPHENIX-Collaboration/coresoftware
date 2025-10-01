@@ -33,6 +33,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
@@ -61,8 +62,8 @@ namespace
       : m_range(range)
     {
     }
-    inline const typename T::first_type& begin() { return m_range.first; }
-    inline const typename T::second_type& end() { return m_range.second; }
+    const typename T::first_type& begin() { return m_range.first; }
+    const typename T::second_type& end() { return m_range.second; }
 
    private:
     T m_range;
@@ -70,14 +71,14 @@ namespace
 
   //! square
   template <class T>
-  inline constexpr T square(T x)
+  constexpr T square(T x)
   {
     return x * x;
   }
 
   //! radius
   template <class T>
-  inline constexpr T get_r(T x, T y)
+  constexpr T get_r(T x, T y)
   {
     return std::sqrt(square(x) + square(y));
   }
@@ -162,7 +163,7 @@ namespace
     return std::accumulate(track->begin_cluster_keys(), track->end_cluster_keys(), int64_t(0),
                            [](int64_t value, const TrkrDefs::cluskey& key)
                            {
-                             return TrkrDefs::getLayer(key) < 64 ? value | (1ULL << TrkrDefs::getLayer(key)) : value;
+                             return TrkrDefs::getLayer(key) < 64 ? value | (1ULL << TrkrDefs::getLayer(key)) : value;  // NOLINT(hicpp-signed-bitwise)
                            });
   }
 
@@ -449,15 +450,14 @@ DSTEmulator::DSTEmulator(const std::string& name, const std::string& filename, i
   , sabotage(inSabotage)
   , apply_compression(compress)
 {
+  rnd.SetSeed(PHRandomSeed());
 }
 
 //_____________________________________________________________________
 int DSTEmulator::Init(PHCompositeNode* topNode)
 {
-  if (_tfile)
-  {
-    delete _tfile;
-  }
+  delete _tfile;
+
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
   _dst_data = new TNtuple("dst_data", "dst data",
@@ -470,7 +470,7 @@ int DSTEmulator::Init(PHCompositeNode* topNode)
 
   // find DST node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << "DSTEmulator::Init - DST Node missing" << std::endl;
@@ -479,7 +479,7 @@ int DSTEmulator::Init(PHCompositeNode* topNode)
 
   // get EVAL node
   iter = PHNodeIterator(dstNode);
-  auto evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
+  auto* evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
   if (!evalNode)
   {
     // create
@@ -488,7 +488,7 @@ int DSTEmulator::Init(PHCompositeNode* topNode)
     dstNode->addNode(evalNode);
   }
 
-  auto newNode = new PHIODataNode<PHObject>(new TrackEvaluationContainerv1, "TrackEvaluationContainer", "PHObject");
+  auto* newNode = new PHIODataNode<PHObject>(new TrackEvaluationContainerv1, "TrackEvaluationContainer", "PHObject");
   evalNode->addNode(newNode);
 
   // m_compressor = new DSTCompressor(4.08407e-02,
@@ -650,7 +650,7 @@ void DSTEmulator::evaluate_tracks()
 
   for (const auto& trackpair : *m_track_map)
   {
-    const auto track = trackpair.second;
+    auto* const track = trackpair.second;
     auto track_struct = create_track(track);
 
     // truth information
@@ -658,7 +658,7 @@ void DSTEmulator::evaluate_tracks()
     track_struct.contributors = contributors;
 
     // get particle
-    auto particle = m_g4truthinfo->GetParticle(id);
+    auto* particle = m_g4truthinfo->GetParticle(id);
     track_struct.embed = get_embed(particle);
     //    add_truth_information(track_struct, particle);
 
@@ -669,7 +669,7 @@ void DSTEmulator::evaluate_tracks()
     for (auto key_iter = track->begin_cluster_keys(); key_iter != track->end_cluster_keys(); ++key_iter)
     {
       const auto& cluster_key = *key_iter;
-      auto cluster = m_cluster_map->findCluster(cluster_key);
+      auto* cluster = m_cluster_map->findCluster(cluster_key);
       TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
 
       if (!cluster)
@@ -798,14 +798,14 @@ void DSTEmulator::evaluate_tracks()
       double world_z = world[2];
 
       double fraction = (world_phi + M_PI) / (2.0 * M_PI);
-      double rounded_nsurf = round((double) (surf_vec.size() / 2) * fraction - 0.5);
+      double rounded_nsurf = round((double) (surf_vec.size() / 2) * fraction - 0.5);  // NOLINT(bugprone-integer-division)
       unsigned int nsurf = (unsigned int) rounded_nsurf;
       if (world_z < 0)
       {
         nsurf += surf_vec.size() / 2;
       }
 
-      Surface surface = surf_vec[nsurf];
+      const Surface& surface = surf_vec[nsurf];
 
       Acts::Vector3 center = surface->center(m_tGeometry->geometry().getGeoContext()) / Acts::UnitConstants::cm;
 
@@ -1051,13 +1051,11 @@ std::pair<int, int> DSTEmulator::get_max_contributor(SvtxTrack* track) const
   {
     return {0, 0};
   }
-  else
-  {
-    return *std::max_element(
-        contributor_map.cbegin(), contributor_map.cend(),
-        [](const IdMap::value_type& first, const IdMap::value_type& second)
-        { return first.second < second.second; });
-  }
+
+  return *std::max_element(
+      contributor_map.cbegin(), contributor_map.cend(),
+      [](const IdMap::value_type& first, const IdMap::value_type& second)
+      { return first.second < second.second; });
 }
 
 //_____________________________________________________________________

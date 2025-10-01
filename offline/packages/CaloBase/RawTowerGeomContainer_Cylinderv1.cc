@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <memory>
 
 RawTowerGeomContainer_Cylinderv1::RawTowerGeomContainer_Cylinderv1(RawTowerDefs::CalorimeterId caloid)
   : RawTowerGeomContainerv1(caloid)
@@ -24,14 +23,14 @@ void RawTowerGeomContainer_Cylinderv1::Reset()
 void RawTowerGeomContainer_Cylinderv1::set_etabins(const int i)
 {
   assert(i > 0);
-  bound_t invalid_bound(std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN());
+  bound_t invalid_bound(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
   eta_bound_map.resize(i, invalid_bound);
 }
 
 void RawTowerGeomContainer_Cylinderv1::set_phibins(const int i)
 {
   assert(i > 0);
-  bound_t invalid_bound(std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN());
+  bound_t invalid_bound(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN());
   phi_bound_map.resize(i, invalid_bound);
 }
 
@@ -108,15 +107,12 @@ int RawTowerGeomContainer_Cylinderv1::get_etabin(const double eta) const
       ibin = i;
       break;
     }
-    else
+    const double deta = std::abs(mean_eta - eta);
+    if (deta < min_deta)
     {
-      const double deta = fabs(mean_eta - eta);
-      if (deta < min_deta)
-      {
-        min_deta = deta;
-        ibin = i;
-      }  // keep searching
-    }
+      min_deta = deta;
+      ibin = i;
+    }  // keep searching
 
     i++;
   }
@@ -154,15 +150,12 @@ int RawTowerGeomContainer_Cylinderv1::get_phibin(const double phi) const
       ibin = i;
       break;
     }
-    else
+    const double dphi = std::abs(mean_phi - phi_fold);
+    if (dphi < min_dphi)
     {
-      const double dphi = fabs(mean_phi - phi_fold);
-      if (dphi < min_dphi)
-      {
-        min_dphi = dphi;
-        ibin = i;
-      }  // keep searching
-    }
+      min_dphi = dphi;
+      ibin = i;
+    }  // keep searching
 
     i++;
   }

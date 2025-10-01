@@ -129,7 +129,6 @@ class PHActsTrkFitter : public SubsysReco
   void SetIteration(int iter) { _n_iteration = iter; }
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
   void set_svtx_seed_map_name(const std::string& map_name) { _svtx_seed_map_name = map_name; }
-  void set_trajctories_name(const std::string& map_name) {m_trajectories_name = map_name; }
 
   void set_svtx_alignment_state_map_name(const std::string& map_name) { 
       _svtx_alignment_state_map_name = map_name; 
@@ -251,10 +250,6 @@ class PHActsTrkFitter : public SubsysReco
       m_evaluator = nullptr;
   std::string m_evalname = "ActsEvaluator.root";
   //@}
-
-  //! acts trajectories
-  std::map<const unsigned int, Trajectory>* m_trajectories = nullptr;
-  std::string m_trajectories_name = "ActsTrajectories";
 
   //! tracks
 //  SvtxTrackMap* m_seedTracks = nullptr;

@@ -727,10 +727,10 @@ void TruthRecoTrackMatching::match_tracks_in_box(
 // ----------------------------------------
 inline float TruthRecoTrackMatching::abs_dphi(float phi0, float phi1)
 {
-  float dphi = std::fabs(phi0 - phi1);
+  float dphi = std::abs(phi0 - phi1);
   while (dphi > M_PI)
   {
-    dphi = std::fabs(dphi - 2 * M_PI);
+    dphi = std::abs(dphi - 2 * M_PI);
   }
   return dphi;
 }

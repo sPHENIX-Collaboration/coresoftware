@@ -11,9 +11,9 @@
 class RawTowerGeomv3 : public RawTowerGeom
 {
  public:
-  RawTowerGeomv3() {}
+  RawTowerGeomv3() = default;
   RawTowerGeomv3(RawTowerDefs::keytype id);
-  ~RawTowerGeomv3() override {}
+  ~RawTowerGeomv3() override = default;
 
   void identify(std::ostream& os = std::cout) const override;
 
@@ -80,13 +80,13 @@ class RawTowerGeomv3 : public RawTowerGeom
  protected:
   RawTowerDefs::keytype _towerid = ~0;  // complement = 0xFFFFF... independent of integer type (32/64/... bits)
 
-  double _center_x{std::numeric_limits<double>::signaling_NaN()};
-  double _center_y{std::numeric_limits<double>::signaling_NaN()};
-  double _center_z{std::numeric_limits<double>::signaling_NaN()};
+  double _center_x{std::numeric_limits<double>::quiet_NaN()};
+  double _center_y{std::numeric_limits<double>::quiet_NaN()};
+  double _center_z{std::numeric_limits<double>::quiet_NaN()};
 
-  double _size_x{std::numeric_limits<double>::signaling_NaN()};
-  double _size_y{std::numeric_limits<double>::signaling_NaN()};
-  double _size_z{std::numeric_limits<double>::signaling_NaN()};
+  double _size_x{std::numeric_limits<double>::quiet_NaN()};
+  double _size_y{std::numeric_limits<double>::quiet_NaN()};
+  double _size_z{std::numeric_limits<double>::quiet_NaN()};
 
   int _tower_type{-1};
 

@@ -63,6 +63,10 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
       PHIODataNode<TpcRawHitContainer> *thisNode = static_cast<PHIODataNode<TpcRawHitContainer> *>(thisNode_raw);
       if (thisNode)
       {
+        if (thisNode->getName() == "HEADER" || thisNode->getName().find("G4") != std::string::npos)
+        {
+          continue;
+        }
         std::cout << __PRETTY_FUNCTION__ << " : Found TpcRawHitContainer Node "
                   << thisNode->getName() << std::endl;
 
