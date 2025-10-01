@@ -107,12 +107,13 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
     emcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
     ihcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
     ohcal_towerinfos = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
-  }
-  if (Verbosity() > 0)
-  {
-    std::cout << "SubtractTowers::process_event: starting with " << emcal_towerinfos->size() << EMTowerName << " towers" << std::endl;
-    std::cout << "SubtractTowers::process_event: starting with " << ihcal_towerinfos->size() << IHTowerName << " towers" << std::endl;
-    std::cout << "SubtractTowers::process_event: starting with " << ohcal_towerinfos->size() << OHTowerName << " towers" << std::endl;
+  
+    if (Verbosity() > 0)
+      {
+	std::cout << "SubtractTowers::process_event: starting with " << emcal_towerinfos->size() << EMTowerName << " towers" << std::endl;
+	std::cout << "SubtractTowers::process_event: starting with " << ihcal_towerinfos->size() << IHTowerName << " towers" << std::endl;
+	std::cout << "SubtractTowers::process_event: starting with " << ohcal_towerinfos->size() << OHTowerName << " towers" << std::endl;
+      }
   }
 
   else

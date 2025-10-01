@@ -319,7 +319,7 @@ int OnCalServer::BeginRun(const int runno)
         }
       }
     }
-    if (NeedOtherTimeStamp.find((*iter).first) != NeedOtherTimeStamp.end())
+    if (NeedOtherTimeStamp.contains((*iter).first))
     {
       std::cout << "changing timestamp for " << (*iter).first->Name() << std::endl;
       rc->set_IntFlag("RUNNUMBER", fun4allrun);
@@ -330,7 +330,7 @@ int OnCalServer::BeginRun(const int runno)
       rc->set_IntFlag("RUNNUMBER", oncalrun);
       // rc->set_TimeStamp(OnCalBORTimeStamp);
     }
-    if (droplist.find((*iter).first->Name()) == droplist.end())
+    if (!droplist.contains((*iter).first->Name()))
     {
       iret = (*iter).first->InitRun(TopNode);
       if (iret == Fun4AllReturnCodes::ABORTRUN)

@@ -109,7 +109,9 @@ class AlignmentTransformation
   }
   void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur; }
 
- private:
+  void applyTpcTzeroCorrection(bool flag) { apply_tpc_tzero_correction = flag  ;}
+
+private:
   Eigen::Vector3d mvtxAngleDev;
   Eigen::Vector3d mvtxTransDev;
   Eigen::Vector3d inttAngleDev;
@@ -127,6 +129,8 @@ class AlignmentTransformation
 
   bool use_intt_survey_geometry = false;
 
+  bool apply_tpc_tzero_correction = false;
+  
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& sensorAnglesGlobal, bool survey);
 
   alignmentTransformationContainer* transformMap = NULL;

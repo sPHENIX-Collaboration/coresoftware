@@ -82,8 +82,8 @@ class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
   set_phibounds(const int ibin, const std::pair<double, double>& bounds) override;
 
  protected:
-  double radius{std::numeric_limits<double>::signaling_NaN()};
-  double thickness{std::numeric_limits<double>::signaling_NaN()};
+  double radius{std::numeric_limits<double>::quiet_NaN()};
+  double thickness{std::numeric_limits<double>::quiet_NaN()};
 
   typedef std::pair<double, double> bound_t;
   typedef std::vector<bound_t> bound_map_t;

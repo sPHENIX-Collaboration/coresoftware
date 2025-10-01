@@ -50,7 +50,7 @@ class RawCluster : public PHObject
   virtual float get_energy() const
   {
     PHOOL_VIRTUAL_WARN("get_energy()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! Tower operations
   virtual size_t getNTowers() const
@@ -75,25 +75,33 @@ class RawCluster : public PHObject
   virtual CLHEP::Hep3Vector get_position() const
   {
     PHOOL_VIRTUAL_WARN("get_position()");
-    return CLHEP::Hep3Vector(std::numeric_limits<float>::signaling_NaN(), std::numeric_limits<float>::signaling_NaN(), std::numeric_limits<float>::signaling_NaN());
+    return CLHEP::Hep3Vector(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
   }
   //
   //!  access to intrinsic cylindrical coordinate system
   virtual float get_phi() const
   {
     PHOOL_VIRTUAL_WARN("get_phi()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   virtual float get_r() const
   {
     PHOOL_VIRTUAL_WARN("get_r()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   virtual float get_z() const
   {
     PHOOL_VIRTUAL_WARN("get_z()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
+
+
+  virtual void set_tower_cog(float /*xr*/, float /*yr*/, float /*xc*/, float /*yc*/){return;}
+  virtual float x_tower_raw() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float y_tower_raw() const { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float x_tower_corr()const  { return std::numeric_limits<float>::quiet_NaN(); }
+  virtual float y_tower_corr()const  { return std::numeric_limits<float>::quiet_NaN(); }
+
   //
 
   /*! \page where is RawCluster::get_eta() ?
@@ -114,13 +122,13 @@ class RawCluster : public PHObject
    *  virtual float get_eta() const
    *  {
    *    PHOOL_VIRTUAL_WARN("get_eta()");
-   *    return std::numeric_limits<float>::signaling_NaN();
+   *    return std::numeric_limits<float>::quiet_NaN();
    *  }
    *  //! convert cluster E_T given a user chosen z-location
    *  virtual float get_et() const
    *  {
    *    PHOOL_VIRTUAL_WARN("get_et()");
-   *    return std::numeric_limits<float>::signaling_NaN();
+   *    return std::numeric_limits<float>::quiet_NaN();
    *  }
    */
 
@@ -128,12 +136,12 @@ class RawCluster : public PHObject
   virtual float get_x() const
   {
     PHOOL_VIRTUAL_WARN("get_x()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   virtual float get_y() const
   {
     PHOOL_VIRTUAL_WARN("get_y()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //
   //! access additional optional properties
@@ -141,37 +149,37 @@ class RawCluster : public PHObject
   virtual float get_ecore() const
   {
     PHOOL_VIRTUAL_WARN("get_ecore()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! reduced chi2 for EM shower
   virtual float get_chi2() const
   {
     PHOOL_VIRTUAL_WARN("get_chi2()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! cluster template probability for EM shower
   virtual float get_prob() const
   {
     PHOOL_VIRTUAL_WARN("get_prob()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! cluster template probability for merged pi0 EM shower
   virtual float get_merged_cluster_prob() const
   {
     PHOOL_VIRTUAL_WARN("get_merged_cluster_prob()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! isolation ET default
   virtual float get_et_iso() const
   {
     PHOOL_VIRTUAL_WARN("get_et_iso()");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
   //! isolation ET the radius and hueristic can be specified
   virtual float get_et_iso(const int /*radiusx10*/, bool /*subtracted*/, bool /*clusterTower*/) const
   {
     PHOOL_VIRTUAL_WARN("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower)");
-    return std::numeric_limits<float>::signaling_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   virtual std::vector<float> get_shower_shapes(float /*tower_thresh*/) const
@@ -183,7 +191,7 @@ class RawCluster : public PHObject
   virtual std::pair<int, int> get_lead_tower() const
   {
     PHOOL_VIRTUAL_WARN("get_lead_tower()");
-    return {std::numeric_limits<int>::signaling_NaN(), std::numeric_limits<int>::signaling_NaN()};
+    return {std::numeric_limits<int>::quiet_NaN(), std::numeric_limits<int>::quiet_NaN()};
   }
 
   //  //! truth cluster's PHG4Particle ID
@@ -295,7 +303,7 @@ class RawCluster : public PHObject
 
   //! getters
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
-  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual int get_property_int(const PROPERTY /*prop_id*/) const { return std::numeric_limits<int>::min(); }
   virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   //! setters

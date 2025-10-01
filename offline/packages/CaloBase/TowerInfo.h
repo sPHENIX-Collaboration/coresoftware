@@ -18,16 +18,16 @@ class TowerInfo : public PHObject
   void Reset() override { return; }
 
   virtual void set_time(float /*t*/) { return; }
-  virtual float get_time() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float get_time() { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_time_short(short /*t*/) { return; }
   virtual short get_time_short() { return -1; }
   virtual void set_energy(float /*energy*/) { return; }
-  virtual float get_energy() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float get_energy() { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void copy_tower(TowerInfo* /*tower*/) { return; }
   virtual void set_chi2(float /*chi2*/) { return; }
-  virtual float get_chi2() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float get_chi2() { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_pedestal(float /*pedestal*/) { return; }
-  virtual float get_pedestal() { return std::numeric_limits<float>::signaling_NaN(); }
+  virtual float get_pedestal() { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_isHot(bool /*isHot*/) { return; }
   virtual bool get_isHot() const { return false; }
   virtual void set_isBadTime(bool /*isBadTime*/) { return; }
