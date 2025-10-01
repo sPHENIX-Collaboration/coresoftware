@@ -286,13 +286,15 @@ class TpcCentralMembraneMatching : public SubsysReco
   //@{
 
   /// distortion correction grid size along phi
-  int m_phibins{24};
+  //int m_phibins{24};
+  int m_phibins{500};
 
   static constexpr float m_phiMin{0};
   static constexpr float m_phiMax{2. * M_PI};
 
   /// distortion correction grid size along r
-  int m_rbins{12};
+  //int m_rbins{12};
+  int m_rbins{500};
 
   static constexpr float m_rMin{20};  // cm
   static constexpr float m_rMax{80};  // cm
