@@ -8,14 +8,14 @@
 
 #include <g4main/PHG4Particle.h>
 
+#include <micromegas/MicromegasDefs.h>
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
-
-#include <micromegas/MicromegasDefs.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -28,8 +28,12 @@
 #include <intt/CylinderGeomIntt.h>
 #include <intt/CylinderGeomInttHelper.h>
 
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <TVector3.h>
 
@@ -752,7 +756,9 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     PHG4TpcCylinderGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
     
     double tpc_max_driftlength = layergeom->get_max_driftlength();
-    double drift_velocity = 8.0 / 1000.0;  // cm/ns
+    const auto params = _tpc_params->GetParameters(0);
+
+    double drift_velocity = params->get_double_param("drift_velocity");  // cm/ns
 
     // Phi size
     //======
@@ -1157,6 +1163,11 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
   _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
+  PHNodeIterator iter(topNode);
+  auto* parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR"));
+  PHNodeIterator parIter(parNode);
+  auto* ParDetNode = dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode", "TPC"));
+  _tpc_params = findNode::getClass<PHParametersContainer>(ParDetNode, "G4GEO_TPC");
   return;
 }
 
