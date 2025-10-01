@@ -1168,7 +1168,7 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
   {
     std::cout << "topNode:" << topNode << std::endl;
   }
-  PHTrackSeeding::set_track_map_name(trackmapname);
+  PHTrackSeeding::set_track_map_name(_track_map_name);
   PHTrackSeeding::Setup(topNode);
 
   // geometry initialization
