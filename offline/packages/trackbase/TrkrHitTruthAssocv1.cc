@@ -8,10 +8,13 @@
 #include "TrkrHitTruthAssocv1.h"
 #include "TrkrDefs.h"
 
+#include <MvtxDefs.h>
+
 #include <g4main/PHG4HitDefs.h>
 
 #include <algorithm>
 #include <ostream>  // for operator<<, endl, basic_ostream, bas...
+#include <limits>
 
 void TrkrHitTruthAssocv1::Reset()
 {
@@ -26,7 +29,8 @@ void TrkrHitTruthAssocv1::identify(std::ostream& os) const
   for (const auto& entry : m_map)
   {
     int layer = TrkrDefs::getLayer(entry.first);
-    os << "   hitset key: " << entry.first << " layer " << layer
+    int strobeID = (static_cast<unsigned>(TrkrDefs::getLayer(entry.first)) < 3) ? MvtxDefs::getStrobeId(entry.first) : std::numeric_limits<int>::min();
+    os << "   hitset key: " << entry.first << " layer " << layer << " strobe ID " << strobeID
        << " hit key: " << entry.second.first
        << " g4hit key: " << entry.second.second
        << std::endl;
@@ -82,6 +86,13 @@ void TrkrHitTruthAssocv1::removeAssoc(const TrkrDefs::hitsetkey hitsetkey, const
 void TrkrHitTruthAssocv1::getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap& temp_map) const
 {
   const auto hitsetrange = m_map.equal_range(hitsetkey);
+  // print out for debug
+  for(auto iter=hitsetrange.first;iter!=hitsetrange.second;++iter)
+  {
+    int strobeID = (static_cast<unsigned>(TrkrDefs::getLayer(iter->first)) < 3) ? MvtxDefs::getStrobeId(iter->first) : std::numeric_limits<int>::min();
+    std::cout << __FILE__ << ":" << __PRETTY_FUNCTION__ << " hitsetkey " << iter->first << " strobe ID " << strobeID << " hitkey " << iter->second.first << " g4hitkey " << iter->second.second << std::endl;
+  }
+
   std::copy_if(hitsetrange.first, hitsetrange.second, std::inserter(temp_map, temp_map.end()),
                [hidx](MMap::const_reference pair)
                { return pair.second.first == hidx; });
