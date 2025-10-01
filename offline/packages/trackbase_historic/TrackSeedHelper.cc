@@ -17,8 +17,8 @@ namespace
   {
     return x * x;
   }
-
-  std::pair<float, float> findRoot(const float& qOverR, const float& X0, const float& Y0)
+}
+  std::pair<float, float> TrackSeedHelper::findRoot(const float& qOverR, const float& X0, const float& Y0)
   {
     /**
     * We need to determine the closest point on the circle to the origin
@@ -44,12 +44,12 @@ namespace
     const float y = (std::abs(miny) < std::abs(miny2)) ? miny : miny2;
     return {x, y};
   }
-  std::pair<float, float> findRoot(TrackSeed const* seed)
+  std::pair<float, float> TrackSeedHelper::findRoot(TrackSeed const* seed)
   {
     return findRoot(seed->get_qOverR(), seed->get_X0(), seed->get_Y0());
   }
 
-}
+
 
 //____________________________________________________________________________________
 float TrackSeedHelper::get_phi(TrackSeed const* seed, const TrackSeedHelper::position_map_t& positions)
