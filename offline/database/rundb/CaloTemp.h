@@ -1,18 +1,15 @@
-#ifndef CALOTEMP_H__
-#define CALOTEMP_H__
+#ifndef RUNDB_CALOTEMP_H
+#define RUNDB_CALOTEMP_H
 
 #include <fun4all/SubsysReco.h>
-#include <vector>
+
+#include <string>
+
 // Forward declarations
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
-class TNtuple;
 class TTree;
-class TH2F;
-class TH1F;
-class TH1;
-class TProfile;
 class TProfile2D;
 class RunHeader;
 
@@ -20,7 +17,7 @@ class CaloTemp : public SubsysReco
 {
  public:
   //! constructor
-  CaloTemp(const std::string &name = "CaloTemp", const std::string &fname = "MyNtuple.root");
+  CaloTemp(const std::string &name = "CaloTemp", const std::string &filename = "MyNtuple.root");
 
   //! destructor
   virtual ~CaloTemp();
@@ -38,19 +35,23 @@ class CaloTemp : public SubsysReco
   int getTempHist();
 
  protected:
-  std::string detector;
+  Fun4AllHistoManager *hm{nullptr};
+  TFile *outfile{nullptr};
+  TProfile2D *h_calo_temp{nullptr};
+  TProfile2D *h_calo_temp2{nullptr};
+  RunHeader *runheader{nullptr};
+  TTree *tree{nullptr};
+  int runnumber{-9999};
+  int year{-9999};
+  int month{-9999};
+  int day{-9999};
+  int hour{-9999};
+  int minute{-9999};
+  int second{-9999};
+  bool temphist{true};
+  std::string detector{"HCALIN"};
   std::string outfilename;
-  bool temphist;
-  Fun4AllHistoManager *hm = nullptr;
-  TFile *outfile = nullptr;
-  TProfile2D* h_calo_temp = nullptr;
-  TProfile2D* h_calo_temp2 = nullptr;
-  RunHeader* runheader = nullptr;
-  int runnumber;
   std::string runtime;
-  TTree* tree = nullptr;
-  int year, month, day, hour, minute, second;
-
 };
 
 #endif
