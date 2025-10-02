@@ -185,7 +185,7 @@ class PHActsSiliconSeeding : public SubsysReco
   void makeSvtxTracks(const GridSeeds &seedVector);
 
   /// Take final seeds and fill the TrackSeedContainer
-  void makeSvtxTracksWithTime(const GridSeeds &seedVector, const int& strobe);
+  void makeSvtxTracksWithTime(const GridSeeds &seedVector, const int &strobe);
 
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(
@@ -206,9 +206,9 @@ class PHActsSiliconSeeding : public SubsysReco
       std::vector<TrkrDefs::cluskey> &keys,
       TrackSeed &seed);
 
-        std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
+  std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
       std::map<TrkrDefs::cluskey, Acts::Vector3> &positions,
-      const int& strobe);
+      const int &strobe);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
                                                    TrackSeed &seed,
@@ -256,9 +256,11 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::CylindricalSpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
 
+  /// boolean whether or not we are going to match the intt clusters
+  /// per strobe with crossing information and take all possible matches
   bool m_streaming = false;
 
-  //default to 10 mus
+  // default to 10 mus
   float m_strobeWidth = 10;
   /// boolean whether or not to include the intt in the acts search windows
   bool m_searchInIntt = false;
