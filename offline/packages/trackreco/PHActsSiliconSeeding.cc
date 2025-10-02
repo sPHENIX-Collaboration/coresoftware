@@ -987,8 +987,6 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   {
     keys.push_back(key);
     clusters.push_back(pos);
-    std::cout << "testing matches for seed with keys and positions "
-              << key << " " << pos.transpose() << std::endl;
   }
   auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
   std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
@@ -1038,10 +1036,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       {
         continue;
       }
-      std::cout << "there is a hitsetkey that matches in this strobe "
-                << strobe << " with crossing window " << strobecrossinglow
-                << "-" << strobecrossinghigh << " and timebucket " << timebucket
-                << std::endl;
+ 
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
@@ -1169,7 +1164,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
     inttMatches.push_back({l56});
   }
   
-  //if(Verbosity() > 2)
+  if(Verbosity() > 2)
   {
   std::cout << "intt matches size " << inttMatches.size() << std::endl;
   std::cout << "the matches are " << std::endl;
