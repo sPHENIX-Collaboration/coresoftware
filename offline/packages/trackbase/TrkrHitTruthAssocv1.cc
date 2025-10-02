@@ -5,10 +5,10 @@
  * @brief Implementation of TrkrHitTruthAssocv1
  */
 
-#include <TrkrHitTruthAssocv1.h>
-#include <TrkrDefs.h>
+#include "TrkrHitTruthAssocv1.h"
+#include "TrkrDefs.h"
 
-#include <MvtxDefs.h>
+#include "MvtxDefs.h"
 
 #include <g4main/PHG4HitDefs.h>
 
