@@ -258,6 +258,8 @@ class PHActsSiliconSeeding : public SubsysReco
 
   bool m_streaming = false;
 
+  //default to 10 mus
+  float m_strobeWidth = 10;
   /// boolean whether or not to include the intt in the acts search windows
   bool m_searchInIntt = false;
 

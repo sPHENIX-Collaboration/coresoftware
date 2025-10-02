@@ -119,7 +119,14 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+      // the strobe and time bucket are relative to the GL1.The strobe is nominally 9.9 mus
+      // so we check within a crossing window of 100
+      auto recoConsts = recoConsts::instance();
+      int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
 
+  /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
+  /// e.g. 10 mus = 10,000 ns / 100 ns per crossing = 100 crossings
+  m_strobeWidth = MvtxRawDefs::getStrobeLength(runnumber) * 10;
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -359,12 +366,10 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       }
 
       // now we match this triplet to all possible intt clusters within the strobe
-      std::vector<std::vector<TrkrDefs::cluskey>> matched_intt_clusters;
-      matched_intt_clusters = findMatchesWithTime(positions,
+      auto matched_intt_clusters = findMatchesWithTime(positions,
                                                   strobe);
-
       /// duplicate all possible mvtx-intt matches
-      if(matched_intt_clusters.size() > 0)
+      if (matched_intt_clusters.size() > 0)
       {                                            
       for (auto& intt_clus_vec : matched_intt_clusters)
       {
@@ -982,6 +987,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   {
     keys.push_back(key);
     clusters.push_back(pos);
+    std::cout << "testing matches for seed with keys and positions "
+              << key << " " << pos.transpose() << std::endl;
   }
   auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
   std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
@@ -1024,23 +1031,17 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
 
       int timebucket = InttDefs::getTimeBucketId(hitsetkey);
 
-      // the strobe and time bucket are relative to the GL1.The strobe is nominally 9.9 mus
-      // so we check within a crossing window of 100
-      auto recoConsts = recoConsts::instance();
-      int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
-
-      /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
-      /// e.g. 10 mus = 10,000 ns / 100 ns per crossing = 100 crossings
-      float strobeWidth = MvtxRawDefs::getStrobeLength(runnumber) * 10; 
-      int strobecrossinglow = strobe * strobeWidth;
-      int strobecrossinghigh = (strobe + 1) * strobeWidth;
-      std::cout << "strobe crossing low " << strobecrossinglow << " high " << strobecrossinghigh << " for strobe " << strobe << std::endl;
-      std::cout << "timebucket " << timebucket << std::endl;
+      int strobecrossinglow = strobe * m_strobeWidth;
+      int strobecrossinghigh = (strobe + 1) * m_strobeWidth;
+ 
       if (timebucket < strobecrossinglow || timebucket > strobecrossinghigh)
       {
         continue;
       }
-
+      std::cout << "there is a hitsetkey that matches in this strobe "
+                << strobe << " with crossing window " << strobecrossinglow
+                << "-" << strobecrossinghigh << " and timebucket " << timebucket
+                << std::endl;
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
@@ -1101,7 +1102,18 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
         if (rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin)
 
         {
-          std::cout << "matched intt cluster" << std::endl;
+          if(Verbosity() > 2)
+          {
+            std::cout << "matched intt cluster" << std::endl;
+            std::cout << "Matched INTT cluster with cluskey " << cluskey
+                      << " and position " << glob.transpose()
+                      << std::endl
+                      << " with projections rphi "
+                      << local.x() << " and inttclus rphi " << cluster->getLocalX()
+                      << " and proj z " << local.y() << " and inttclus z "
+                      << cluster->getLocalY() << " in layer " << layer
+                      << std::endl;
+          } 
           if (layer < 5)
           {
             layer34matches.insert(cluskey);
@@ -1119,7 +1131,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   /// and crossing-strobe matches. Sort them and return them as possible combinations
   /// with the triplet
   std::set<TrkrDefs::cluskey> keysToDelete;
-  // first start with exact crossing matches 
+  // first start with crossing matches  within a crossing of 1
   for (auto& l34 : layer34matches)
   {
     if(keysToDelete.find(l34) != keysToDelete.end())
@@ -1132,7 +1144,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       {
         continue;
       }
-      if(InttDefs::getTimeBucketId(l34) == InttDefs::getTimeBucketId(l56))
+      if(std::abs(InttDefs::getTimeBucketId(l34) - InttDefs::getTimeBucketId(l56)) < 2)
       {
         inttMatches.push_back({l34, l56});
         keysToDelete.insert(l34);
@@ -1157,6 +1169,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
     inttMatches.push_back({l56});
   }
   
+  //if(Verbosity() > 2)
+  {
   std::cout << "intt matches size " << inttMatches.size() << std::endl;
   std::cout << "the matches are " << std::endl;
   for(auto& matchvec : inttMatches)
@@ -1167,6 +1181,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       std::cout << key << " ";
     }
     std::cout << std::endl;
+  }
   }
   return inttMatches;
 }
