@@ -35,6 +35,7 @@
 
 #include <algorithm>
 #include <boost/format.hpp>
+#include <format>
 
 #include <cmath>
 #include <iomanip>
@@ -2426,9 +2427,12 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
           h->Write();
         }
       }
-      gr_points[i]->Write(Form("gr_points_%sz",(i==1 ? "pos" : "neg")));
-      gr_dR[i]->Write(Form("gr_dr_%sz",(i==1 ? "pos" : "neg")));
-      gr_dPhi[i]->Write(Form("gr_dPhi_%sz",(i==1 ? "pos" : "neg")));
+      //gr_points[i]->Write(Form("gr_points_%sz",(i==1 ? "pos" : "neg")));
+      //gr_dR[i]->Write(Form("gr_dr_%sz",(i==1 ? "pos" : "neg")));
+      //gr_dPhi[i]->Write(Form("gr_dPhi_%sz",(i==1 ? "pos" : "neg")));
+      gr_points[i]->Write(std::format("gr_points_{}z",(i==1 ? "pos" : "neg")).c_str());
+      gr_dR[i]->Write(std::format("gr_dr_{}z",(i==1 ? "pos" : "neg")).c_str());
+      gr_dPhi[i]->Write(std::format("gr_dPhi_{}z",(i==1 ? "pos" : "neg")).c_str());
     }
   }
 

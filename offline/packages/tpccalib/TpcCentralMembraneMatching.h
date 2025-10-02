@@ -107,10 +107,10 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_event_index = 100*seq;
   }
 
-  void set_laminationFile(const std::string& filename)
-  {
-    m_lamfilename = filename;
-  }
+  //void set_laminationFile(const std::string& filename)
+  //{
+    //m_lamfilename = filename;
+  //}
 
   void set_grid_dimensions(int phibins, int rbins);
 
@@ -256,12 +256,12 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //@}
 
-  double meanA[2] = {0.0, 0.0};
-  double meanB[2] = {0.0, 0.0};
-  double meanC[2] = {0.0, 0.0};
-  std::vector<double> lamPhis[2];
+  //double meanA[2] = {0.0, 0.0};
+  //double meanB[2] = {0.0, 0.0};
+  //double meanC[2] = {0.0, 0.0};
+  //std::vector<double> lamPhis[2];
 
-  std::string m_lamfilename = "";
+  //std::string m_lamfilename = "";
 
   unsigned int m_nHitsInCuster_minimum = 5;
 
