@@ -35,15 +35,20 @@ SingleTriggeredInput::SingleTriggeredInput(const std::string &name)
 
 SingleTriggeredInput::~SingleTriggeredInput()
 {
+  std::set<Event *> evtset;
   for (auto& [pid, dq] : m_PacketEventDeque)
   {
     while (!dq.empty())
     {
-      delete dq.front();
+      evtset.insert(dq.front());
       dq.pop_front();
     }
   }
-
+  for (auto *evt : evtset)
+  {
+    delete evt;
+  }
+  evtset.clear();
   for (auto& [pid, evt] : m_PacketEventBackup)
   {
     delete evt;
