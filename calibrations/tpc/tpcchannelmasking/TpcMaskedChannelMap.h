@@ -58,19 +58,19 @@ class TpcMaskedChannelMap : public SubsysReco
 
   TpcMap M;
 
-  std::vector<TpcRawHitContainer*> rawhitcont_vec;
+  std::vector<TpcRawHitContainer*> rawhitcont_vec{};
 
   float m_deadChanHitCut = 0.1;
   float m_hotChanHitCut = 10;   
  
   float n_Events = 0; 
 
-  std::string m_histogramFile;
+  std::string m_histogramFile{""};
 
-  TH2F *h_hits_side0;
-  TH2F *h_hits_side1;
-  TH2F *h_masked_side0;
-  TH2F *h_masked_side1;
+  TH2F *h_hits_side0{nullptr};
+  TH2F *h_hits_side1{nullptr};
+  TH2F *h_masked_side0{nullptr};
+  TH2F *h_masked_side1{nullptr};
 
   class channel_id_t
   {
