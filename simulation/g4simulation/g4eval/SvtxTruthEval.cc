@@ -756,7 +756,7 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     PHG4TpcCylinderGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
     
     double tpc_max_driftlength = layergeom->get_max_driftlength();
-    const auto params = _tpc_params->GetParameters(0);
+    const auto *const params = _tpc_params->GetParameters(0);
 
     double drift_velocity = params->get_double_param("drift_velocity");  // cm/ns
 
