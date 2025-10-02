@@ -337,27 +337,25 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       auto fitTimer = std::make_unique<PHTimer>("trackfitTimer");
       fitTimer->stop();
       fitTimer->restart();
-
+      std::cout << "make circle fit" << std::endl;
       auto trip_circ_fit = TrackFitUtils::circle_fit_by_taubin(clus_positions);
-      const auto [posx, posy] = TrackSeedHelper::findRoot(std::get<0>(trip_circ_fit),
+      const auto [posx, posy] = TrackSeedHelper::findRoot(1./std::get<0>(trip_circ_fit),
                                   std::get<1>(trip_circ_fit),
                                   std::get<2>(trip_circ_fit));
       if (std::abs(posx) > m_maxSeedPCA || std::abs(posy) > m_maxSeedPCA)
       {
-        if (Verbosity() > 1)
+        //if (Verbosity() > 1)
         {
           std::cout << "Large PCA seed " << std::endl;
         }
         m_nBadInitialFits++;
         continue;
       }
-      auto trip_line_fit = TrackFitUtils::line_fit(clus_positions);
 
       // now we match this triplet to all possible intt clusters within the strobe
       std::vector<std::vector<TrkrDefs::cluskey>> matched_intt_clusters;
+      std::cout << "find matches with time" << std::endl;
       matched_intt_clusters = findMatchesWithTime(positions,
-                                                  trip_circ_fit,
-                                                  trip_line_fit,
                                                   strobe);
       for (auto& intt_clus_vec : matched_intt_clusters)
       {
@@ -375,6 +373,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
             intt_clus,
             m_clusterMap->findCluster(intt_clus))));
         }
+        std::cout << " adding a track"<<std::endl;
         TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
         TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
         trackSeed->set_Z0(z);
@@ -936,16 +935,16 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
 
 std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWithTime(
     std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
-    const std::tuple<double, double, double>& circpars,
-    const std::tuple<double, double>& linepars,
     const int& strobe)
 {
-  std::vector<float> fitpars;
-  fitpars.push_back(std::get<0>(circpars));
-  fitpars.push_back(std::get<1>(circpars));
-  fitpars.push_back(std::get<2>(circpars));
-  fitpars.push_back(std::get<0>(linepars));
-  fitpars.push_back(std::get<1>(linepars));
+  std::vector<TrkrDefs::cluskey> keys;
+  std::vector<Acts::Vector3> clusters;
+  for (auto& [key, pos] : positions)
+  {
+    keys.push_back(key);
+    clusters.push_back(pos);
+  }
+  auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
   std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
   float avgtripletx = 0;
   float avgtriplety = 0;
@@ -960,8 +959,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   for (int layer = 3; layer < 7; ++layer)
   {
     float layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
-    const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, std::get<0>(circpars),
-                                                                                          std::get<1>(circpars), std::get<2>(circpars));
+    const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0], fitpars[1], fitpars[2]);
 
     float approximate_phi1 = atan2(yplus, xplus);
     float approximate_phi2 = atan2(yminus, xminus);
@@ -991,7 +989,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       // so we check within a crossing window of 100
       int strobecrossinglow = strobe * 100;
       int strobecrossinghigh = (strobe + 1) * 100;
-
+      std::cout << "strobe " << strobe << " timebucket " << timebucket
+                << " crossing window " << strobecrossinglow << " to " << strobecrossinghigh << std::endl;
       if (timebucket <= strobecrossinglow || timebucket >= strobecrossinghigh)
       {
         continue;
@@ -1057,7 +1056,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
         if (rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin)
 
         {
-          if(layer < 5)
+          std::cout << "matched intt cluster" << std::endl;
+          if (layer < 5)
           {
             layer34matches.insert(cluskey);
           }
@@ -1111,6 +1111,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   {
     inttMatches.push_back({l56});
   }
+  std::cout << "intt matches size " << inttMatches.size() << std::endl;
   return inttMatches;
 }
 

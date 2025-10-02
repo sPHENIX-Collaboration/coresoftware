@@ -208,8 +208,6 @@ class PHActsSiliconSeeding : public SubsysReco
 
         std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
       std::map<TrkrDefs::cluskey, Acts::Vector3> &positions,
-      const std::tuple<double, double, double>& circpars,
-      const std::tuple<double, double>& linepars,
       const int& strobe);
 
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
