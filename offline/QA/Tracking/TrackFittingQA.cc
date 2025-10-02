@@ -18,6 +18,7 @@
 #include <Rtypes.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <TProfile.h>
 
 #include <format>
 
@@ -76,7 +77,7 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_quality_hist[charge] = new TH1F(
         std::format("h_{}_quality_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("quality distribution ({} charged tracks);quality;Counts", charge_str).c_str(),
-        50, 0.0, m_quality_range);
+        50, m_quality_hist_xrange.first, m_quality_hist_xrange.second);
     hm->registerHisto(m_quality_hist[charge]);
     m_quality_hist[charge]->SetMarkerColor(color);
     m_quality_hist[charge]->SetLineColor(color);
@@ -86,7 +87,7 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_p_hist[charge] = new TH1F(
         std::format("h_{}_p_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("p distribution ({} charged tracks);p (GeV);Counts", charge_str).c_str(),
-        50, 0.0, m_momentum_range);
+        50, m_p_hist_xrange.first, m_p_hist_xrange.second);
     hm->registerHisto(m_p_hist[charge]);
     m_p_hist[charge]->SetMarkerColor(color);
     m_p_hist[charge]->SetLineColor(color);
@@ -96,7 +97,7 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_pt_hist[charge] = new TH1F(
         std::format("h_{}_pt_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("pt distribution ({} charged tracks);pt (GeV);Counts", charge_str).c_str(),
-        50, 0.0, m_momentum_range);
+        50, m_pt_hist_xrange.first, m_pt_hist_xrange.second);
     hm->registerHisto(m_pt_hist[charge]);
     m_pt_hist[charge]->SetMarkerColor(color);
     m_pt_hist[charge]->SetLineColor(color);
@@ -106,11 +107,22 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_pt_err_hist[charge] = new TH2F(
         std::format("h_{}_pt_err_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("relative pt err vs pt distribution ({} charged tracks);pt (GeV);pt err / pt (unitless)", charge_str).c_str(),
-        50, 0.0, m_momentum_range,
-        50, 0.0, 1.0);
+        50, m_pt_err_hist_xrange.first, m_pt_err_hist_xrange.second,
+        50, m_pt_err_hist_yrange.first, m_pt_err_hist_yrange.second);
     hm->registerHisto(m_pt_err_hist[charge]);
     m_pt_err_hist[charge]->SetMarkerColor(color);
     m_pt_err_hist[charge]->SetLineColor(color);
+    // ...
+
+    delete m_pt_err_profile[charge];
+    m_pt_err_profile[charge] = new TProfile(
+        std::format("h_{}_pt_err_{}_charged_tracks_profile", Name(), charge_str).c_str(),
+        std::format("relative pt err vs pt distribution ({} charged tracks);pt (GeV);pt err / pt (unitless)", charge_str).c_str(),
+        50, m_pt_err_hist_xrange.first, m_pt_err_hist_xrange.second,
+        m_pt_err_hist_yrange.first, m_pt_err_hist_yrange.second);
+    hm->registerHisto(m_pt_err_profile[charge]);
+    m_pt_err_profile[charge]->SetMarkerColor(color);
+    m_pt_err_profile[charge]->SetLineColor(color);
     // ...
 
     delete m_eta_hist[charge];
@@ -261,6 +273,7 @@ int TrackFittingQA::process_event(
     m_p_hist[charge]->Fill(track->get_p());
     m_pt_hist[charge]->Fill(track->get_pt());
     m_pt_err_hist[charge]->Fill(track->get_pt(), pt_err);
+    m_pt_err_profile[charge]->Fill(track->get_pt(), pt_err);
     m_eta_hist[charge]->Fill(track->get_eta());
     m_phi_eta_hist[charge]->Fill(track->get_phi(), track->get_eta());
 
