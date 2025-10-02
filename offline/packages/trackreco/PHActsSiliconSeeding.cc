@@ -13,6 +13,9 @@
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
+
+#include <fun4allraw/MvtxRawDefs.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -190,6 +193,10 @@ void PHActsSiliconSeeding::runSeeder()
   int spTime = 0;
   for (int strobe = m_lowStrobeIndex; strobe < m_highStrobeIndex; strobe++)
   {
+    if(Verbosity() > 3)
+    {
+      std::cout << "Seeding for strobe " << strobe << std::endl;
+    }
     GridSeeds seedVector;
     /// Covariance converter functor needed by seed finder
     auto covConverter = [=](const SpacePoint& sp, float zAlign, float rAlign,
@@ -337,14 +344,13 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       auto fitTimer = std::make_unique<PHTimer>("trackfitTimer");
       fitTimer->stop();
       fitTimer->restart();
-      std::cout << "make circle fit" << std::endl;
       auto trip_circ_fit = TrackFitUtils::circle_fit_by_taubin(clus_positions);
       const auto [posx, posy] = TrackSeedHelper::findRoot(1./std::get<0>(trip_circ_fit),
                                   std::get<1>(trip_circ_fit),
                                   std::get<2>(trip_circ_fit));
       if (std::abs(posx) > m_maxSeedPCA || std::abs(posy) > m_maxSeedPCA)
       {
-        //if (Verbosity() > 1)
+        if (Verbosity() > 1)
         {
           std::cout << "Large PCA seed " << std::endl;
         }
@@ -354,9 +360,12 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
 
       // now we match this triplet to all possible intt clusters within the strobe
       std::vector<std::vector<TrkrDefs::cluskey>> matched_intt_clusters;
-      std::cout << "find matches with time" << std::endl;
       matched_intt_clusters = findMatchesWithTime(positions,
                                                   strobe);
+
+      /// duplicate all possible mvtx-intt matches
+      if(matched_intt_clusters.size() > 0)
+      {                                            
       for (auto& intt_clus_vec : matched_intt_clusters)
       {
         // make the svtxtrack seed with both mvtx + intt clusters
@@ -373,14 +382,32 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
             intt_clus,
             m_clusterMap->findCluster(intt_clus))));
         }
-        std::cout << " adding a track"<<std::endl;
         TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
         TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
         trackSeed->set_Z0(z);
+        trackSeed->set_phi(TrackSeedHelper::get_phi(trackSeed.get(), positions));
         trackSeed->set_crossing(getCrossingIntt(*trackSeed));
         m_seedContainer->insert(trackSeed.get());
         numGoodSeeds++;
       }
+    }
+    else
+    {
+      /// make a single mvtx only seed
+      auto trackSeed = std::make_unique<TrackSeed_v2>();
+      for (auto& mvtx_clus : seed.sp())
+      {
+        const auto& cluskey = mvtx_clus->Id();
+        trackSeed->insert_cluster_key(cluskey);
+      }
+      TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
+      TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
+      trackSeed->set_Z0(z);
+      trackSeed->set_phi(TrackSeedHelper::get_phi(trackSeed.get(), positions));
+      trackSeed->set_crossing(SHRT_MAX);
+      m_seedContainer->insert(trackSeed.get());
+      numGoodSeeds++;
+    }
     }
 }
 }
@@ -987,11 +1014,17 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
 
       // the strobe and time bucket are relative to the GL1.The strobe is nominally 9.9 mus
       // so we check within a crossing window of 100
-      int strobecrossinglow = strobe * 100;
-      int strobecrossinghigh = (strobe + 1) * 100;
-      std::cout << "strobe " << strobe << " timebucket " << timebucket
-                << " crossing window " << strobecrossinglow << " to " << strobecrossinghigh << std::endl;
-      if (timebucket <= strobecrossinglow || timebucket >= strobecrossinghigh)
+      auto recoConsts = recoConsts::instance();
+      int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
+
+      /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
+      /// e.g. 10 mus = 10,000 ns / 100 ns per crossing = 100 crossings
+      float strobeWidth = MvtxRawDefs::getStrobeLength(runnumber) * 10; 
+      int strobecrossinglow = strobe * strobeWidth;
+      int strobecrossinghigh = (strobe + 1) * strobeWidth;
+      std::cout << "strobe crossing low " << strobecrossinglow << " high " << strobecrossinghigh << " for strobe " << strobe << std::endl;
+      std::cout << "timebucket " << timebucket << std::endl;
+      if (timebucket < strobecrossinglow || timebucket > strobecrossinghigh)
       {
         continue;
       }
@@ -1111,7 +1144,18 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   {
     inttMatches.push_back({l56});
   }
+  
   std::cout << "intt matches size " << inttMatches.size() << std::endl;
+  std::cout << "the matches are " << std::endl;
+  for(auto& matchvec : inttMatches)
+  {
+    std::cout << " match with " << matchvec.size() << " clusters ";
+    for(auto& key : matchvec)
+    {
+      std::cout << key << " ";
+    }
+    std::cout << std::endl;
+  }
   return inttMatches;
 }
 
