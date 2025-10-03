@@ -266,8 +266,12 @@ int PHCASiliconSeeding::Process(PHCompositeNode* /*topNode*/)
   keyListPerLayer ckeys;
   std::tie(globalPositions, ckeys) = FillGlobalPositions();
 
-  //  int numberofseeds = 0;
-  // numberofseeds += FindSeeds(globalPositions, ckeys);
+  int numberofseeds = 0;
+  numberofseeds += FindSeeds(globalPositions, ckeys);
+  if (Verbosity() > 0)
+  {
+    std::cout << " found " << numberofseeds << " track seeds" << std::endl;
+  }
 
   for(auto& rtree : _rtrees)
   {
@@ -1164,7 +1168,7 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
   {
     std::cout << "topNode:" << topNode << std::endl;
   }
-  PHTrackSeeding::set_track_map_name(trackmapname);
+  PHTrackSeeding::set_track_map_name(_track_map_name);
   PHTrackSeeding::Setup(topNode);
 
   // geometry initialization

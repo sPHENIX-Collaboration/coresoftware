@@ -168,7 +168,6 @@ class PHCASiliconSeeding : public PHTrackSeeding
   /// acts geometry
   ActsGeometry* m_tGeometry{nullptr};
 
-  std::string trackmapname = "SiliconTrackSeedContainer"; 
   //  TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   TrkrClusterCrossingAssoc *m_clusterCrossingMap = nullptr;

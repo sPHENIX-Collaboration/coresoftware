@@ -16,6 +16,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/ActsGeometry.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -78,21 +79,17 @@ namespace
   }
 
   // specify bins for which one will save histograms
-  static const std::vector<float> phi_rec = {get_sector_phi(9)};
-  static const std::vector<float> z_rec = {5.};
+  const std::vector<float> phi_rec = {get_sector_phi(9)};
+  const std::vector<float> z_rec = {5.};
 
   // phi range
-  static constexpr float m_phimin = 0;
-  static constexpr float m_phimax = 2. * M_PI;
+  constexpr float m_phimin = 0;
+  constexpr float m_phimax = 2. * M_PI;
 
   // TODO: could try to get the r and z range from TPC geometry
   // r range
-  static constexpr float m_rmin = 20;
-  static constexpr float m_rmax = 78;
-
-  // z range
-  static constexpr float m_zmin = -105.5;
-  static constexpr float m_zmax = 105.5;
+  constexpr float m_rmin = 20;
+  constexpr float m_rmax = 78;
 
   /// get cluster keys from a given track
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
@@ -194,6 +191,10 @@ int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
     return res;
   }
 
+    // z range
+  m_zmax =  m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
+  m_zmin = -m_zmax;
+  
   process_tracks();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -289,6 +290,8 @@ int TpcSpaceChargeReconstruction::load_nodes(PHCompositeNode* topNode)
 
   // global position wrapper
   m_globalPositionWrapper.loadNodes(topNode);
+
+  m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

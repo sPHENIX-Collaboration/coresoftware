@@ -31,7 +31,8 @@ libcalotemp_la_LDFLAGS = \
   -L$(OPT_SPHENIX)/lib \
   -lcalo_io \
   -lodbc++ \
-  -lfun4all
+  -lfun4all \
+  -lffamodules
 
 ################################################
 # linking tests
@@ -48,10 +49,6 @@ testexternals.C:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f $(BUILT_SOURCES)

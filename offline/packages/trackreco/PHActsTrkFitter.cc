@@ -81,7 +81,6 @@ namespace
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
-  , m_trajectories(nullptr)
 {
 }
 
@@ -259,8 +258,6 @@ int PHActsTrkFitter::ResetEvent(PHCompositeNode* /*topNode*/)
   {
     std::cout << "Reset PHActsTrkFitter" << std::endl;
   }
-
-  m_trajectories->clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -915,8 +912,6 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult& fitOutput,
 
     Trajectory trajectory(tracks.trackStateContainer(),
                           trackTips, indexedParams);
-
-    m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
     
     if (m_actsEvaluator)
     {
@@ -1269,15 +1264,6 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
           new PHIODataNode<PHObject>(m_directedTrackMap, "SvtxSiliconMMTrackMap", "PHObject");
       svtxNode->addNode(trackNode);
     }
-  }
-
-  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, m_trajectories_name);
-  if (!m_trajectories)
-  {
-    m_trajectories = new std::map<const unsigned int, Trajectory>;
-    auto node =
-        new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, m_trajectories_name);
-    svtxNode->addNode(node);
   }
 
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);

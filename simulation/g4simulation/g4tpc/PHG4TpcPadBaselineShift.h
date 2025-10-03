@@ -64,10 +64,10 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   int NZBinsMax{0};
   //   int NSearch {2};
 
-  float _hit_z{std::numeric_limits<float>::signaling_NaN()};
-  float _hit_r{std::numeric_limits<float>::signaling_NaN()};
-  float _hit_phi{std::numeric_limits<float>::signaling_NaN()};
-  float _hit_e{std::numeric_limits<float>::signaling_NaN()};
+  float _hit_z{std::numeric_limits<float>::quiet_NaN()};
+  float _hit_r{std::numeric_limits<float>::quiet_NaN()};
+  float _hit_phi{std::numeric_limits<float>::quiet_NaN()};
+  float _hit_e{std::numeric_limits<float>::quiet_NaN()};
   float _CScale{1.};
   float _drift_velocity{8.0e-03};
 

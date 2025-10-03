@@ -104,5 +104,5 @@ float PhotonClusterv1::get_shower_shape_parameter(const std::string& name) const
   {
     return it->second;
   }
-  return std::numeric_limits<float>::signaling_NaN();
+  return std::numeric_limits<float>::quiet_NaN();
 }

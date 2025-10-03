@@ -56,8 +56,6 @@
 #include <TNtuple.h>
 #include <TSystem.h>
 
-#include <boost/format.hpp>
-
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
@@ -65,6 +63,7 @@
 #include <cassert>
 #include <cmath>    // for sqrt, abs, NAN
 #include <cstdlib>  // for exit
+#include <format>
 #include <iostream>
 #include <map>      // for _Rb_tree_cons...
 #include <utility>  // for pair
@@ -298,15 +297,18 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   electrons_per_gev = (Tpc_NTot / Tpc_dEdx) * 1e6;
 
+  // the z geometry is the same for all layers
+  PHG4TpcCylinderGeom *layergeom = seggeo->GetLayerCellGeom(20);
+     
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
-  max_time = get_double_param("max_time") + get_double_param("extended_readout_time");
+  max_time = layergeom->get_max_driftlength() / drift_velocity + layergeom->get_extended_readout_time();
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
   if (Verbosity() > 0)
   {
-    std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << get_double_param("extended_readout_time") << " max time cutoff " << max_time << std::endl;
+    std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << layergeom->get_extended_readout_time() << " max time cutoff " << max_time << std::endl;
   }
 
   auto *se = Fun4AllServer::instance();
@@ -359,7 +361,7 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     for (auto layeriter = range.first; layeriter != range.second; ++layeriter)
     {
       const auto radius = layeriter->second->get_radius();
-      std::cout << boost::str(boost::format("%.3f ") % radius);
+      std::cout << std::format("{:.3f} ", radius);
       if (++counter == 8)
       {
         counter = 0;
@@ -943,8 +945,6 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
   set_default_double_param("isobutane_frac", 0.05);
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
-  set_default_double_param("max_time", 13200.);              // ns
-  set_default_double_param("extended_readout_time", 7000.);  // ns
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution
@@ -978,7 +978,7 @@ void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 
 void PHG4TpcElectronDrift::set_flag_threshold_distortion(bool setflag, float setthreshold)
 {
-  std::cout << boost::str(boost::format("The logical status of threshold is now %d! and the value is set to %f") % setflag % setthreshold)
+  std::cout << std::format("The logical status of threshold is now {}! and the value is set to {}", setflag, setthreshold)
             << std::endl
             << std::endl
             << std::endl;
