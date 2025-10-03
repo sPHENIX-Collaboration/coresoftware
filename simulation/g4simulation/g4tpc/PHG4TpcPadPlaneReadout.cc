@@ -112,8 +112,9 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   double tpc_adc_clock = layergeom->get_adc_clock();
   double extended_readout_time = layergeom->get_extended_readout_time();
   double maxdriftlength = layergeom->get_max_driftlength();
+  double drift_velocity_sim = layergeom->get_drift_velocity_sim();
   const double TBinWidth = tpc_adc_clock;
-  const double MaxT = extended_readout_time + 2.0 * maxdriftlength / drift_velocity;  // allows for extended time readout
+  const double MaxT = extended_readout_time + 2.0 * maxdriftlength / drift_velocity_sim;  // allows for extended time readout
   const double MinT = 0;
   NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 

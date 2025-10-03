@@ -565,17 +565,17 @@ void PHG4TpcDetector::add_geometry_node()
           0.56891770257002054,
       }};
 
-  const double drift_velocity = m_Params->get_double_param("drift_velocity");
+  const double drift_velocity_sim = m_Params->get_double_param("drift_velocity_sim");
   const double tpc_adc_clock = m_Params->get_double_param("tpc_adc_clock");
   const double maxdriftlength = m_Params->get_double_param("maxdriftlength");
   const double TBinWidth = tpc_adc_clock;
   const double extended_readout_time = m_Params->get_double_param("extended_readout_time");
-  const double MaxT = extended_readout_time + 2. * maxdriftlength / drift_velocity;  // allows for extended time readout
+  const double MaxT = extended_readout_time + 2. * maxdriftlength / drift_velocity_sim;  // allows for extended time readout
   const double MinT = 0;
   const int NTBins = (int) ((MaxT - MinT) / TBinWidth) + 1;
 
   std::cout << PHWHERE << "MaxT " << MaxT << " TBinWidth " << TBinWidth << " extended readout time "
-            << extended_readout_time << " NTBins = " << NTBins << " drift velocity " << drift_velocity << std::endl;
+            << extended_readout_time << " NTBins = " << NTBins << " drift velocity sim " << drift_velocity_sim << std::endl;
 
   const std::array<int, 3> NPhiBins =
       {{m_Params->get_int_param("ntpc_phibins_inner"),
@@ -722,7 +722,8 @@ void PHG4TpcDetector::add_geometry_node()
 	layerseggeo->set_max_driftlength(m_Params->get_double_param("maxdriftlength"));
 	layerseggeo->set_CM_halfwidth(m_Params->get_double_param("CM_halfwidth"));
 	layerseggeo->set_adc_clock(m_Params->get_double_param("tpc_adc_clock"));
-	layerseggeo->set_extended_readout_time(m_Params->get_double_param("extended_readout_time"));	
+	layerseggeo->set_extended_readout_time(m_Params->get_double_param("extended_readout_time"));
+	layerseggeo->set_drift_velocity_sim(m_Params->get_double_param("drift_velocity_sim"));	
       }
 
       // Chris Pinkenburg: greater causes huge memory growth which causes problems

@@ -129,7 +129,6 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double added_smear_sigma_trans = std::numeric_limits<double>::quiet_NaN();
   double diffusion_long = std::numeric_limits<double>::quiet_NaN();
   double added_smear_sigma_long = std::numeric_limits<double>::quiet_NaN();
-  double drift_velocity = std::numeric_limits<double>::quiet_NaN();
   double tpc_length = std::numeric_limits<double>::quiet_NaN();
   double electrons_per_gev = std::numeric_limits<double>::quiet_NaN();
   double min_active_radius = std::numeric_limits<double>::quiet_NaN();

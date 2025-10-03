@@ -202,7 +202,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("window_surface2_thickness", 0.0127);  // 127  um 2nd shell thickness be default
 
   // for geonode initialization
-  set_default_double_param("drift_velocity", 0.008);
+  set_default_double_param("drift_velocity_sim", 0.008);
 
   set_default_int_param("ntpc_layers_inner", 16);
   set_default_int_param("ntpc_layers_mid", 16);
