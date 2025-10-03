@@ -884,10 +884,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   }
   else  // MVTX
   {
-    unsigned int stave, stave_outer;
-    unsigned int chip, chip_outer;
-    int row, row_outer;
-    int column, column_outer;
+    unsigned int stave;
+    unsigned int stave_outer;
+    unsigned int chip;
+    unsigned int chip_outer;
+    int row;
+    int row_outer;
+    int column;
+    int column_outer;
 
     // add diffusion to entry and exit locations
     double max_diffusion_radius = 25.0e-4;  // 25 microns
