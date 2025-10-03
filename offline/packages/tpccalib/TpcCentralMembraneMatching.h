@@ -22,6 +22,9 @@
 #include <memory>
 #include <string>
 
+#include "TGraph.h"
+#include "TGraph2D.h"
+
 class PHCompositeNode;
 // class CMFlashClusterContainer;
 class CMFlashDifferenceContainer;
@@ -33,6 +36,7 @@ class TFile;
 class TH1;
 class TH2;
 class TGraph;
+class TGraph2D;
 class TNtuple;
 class TTree;
 class TVector3;
@@ -102,6 +106,11 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_event_sequence = seq;
     m_event_index = 100*seq;
   }
+
+  //void set_laminationFile(const std::string& filename)
+  //{
+    //m_lamfilename = filename;
+  //}
 
   void set_grid_dimensions(int phibins, int rbins);
 
@@ -189,9 +198,25 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //  TNtuple *match_ntup {nullptr};
   TTree *match_tree{nullptr};
+  TTree *event_tree{nullptr};
 
   bool m_useHeader{true};
   bool m_averageMode{false};
+
+  std::vector<bool> e_matched;
+  std::vector<int> e_truthIndex;
+  std::vector<float> e_truthR;
+  std::vector<float> e_truthPhi;
+  std::vector<float> e_recoR;
+  std::vector<float> e_recoPhi;
+  std::vector<bool> e_side;
+  std::vector<bool> e_isSaturated;
+  std::vector<bool> e_fitMode;
+  std::vector<float> e_NNR;
+  std::vector<float> e_NNPhi;
+  std::vector<float> e_NNDistance;
+  std::vector<int> e_NNIndex;
+  std::vector<unsigned int> e_adc;
 
   int m_event_index{0};
   int m_event_sequence{0};
@@ -208,6 +233,7 @@ class TpcCentralMembraneMatching : public SubsysReco
   float m_staticPhi{0.0};
   bool m_side{false};
   bool m_fitMode{false};
+  bool m_isSaturated{false};
   unsigned int m_adc{0};
   unsigned int m_nhits{0};
   unsigned int m_nLayers{0};
@@ -230,10 +256,27 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //@}
 
+  //double meanA[2] = {0.0, 0.0};
+  //double meanB[2] = {0.0, 0.0};
+  //double meanC[2] = {0.0, 0.0};
+  //std::vector<double> lamPhis[2];
+
+  //std::string m_lamfilename = "";
+
   unsigned int m_nHitsInCuster_minimum = 5;
 
   /// radius cut for matching clusters to pad, for size 2 clusters
   //  double m_rad_cut{0}.5;
+
+  std::map<int, float> deltaRByIndex;
+  std::map<int, float> deltaPhiByIndex;
+  std::map<int, float> meanRByIndex;
+  std::map<int, float> meanPhiByIndex;
+  std::map<int, int> nByIndex;
+
+  TGraph2D *gr_dR[2]{nullptr,nullptr};
+  TGraph2D *gr_dPhi[2]{nullptr,nullptr};
+  TGraph *gr_points[2]{nullptr,nullptr};
 
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
@@ -243,13 +286,15 @@ class TpcCentralMembraneMatching : public SubsysReco
   //@{
 
   /// distortion correction grid size along phi
-  int m_phibins{24};
+  //int m_phibins{24};
+  int m_phibins{500};
 
   static constexpr float m_phiMin{0};
   static constexpr float m_phiMax{2. * M_PI};
 
   /// distortion correction grid size along r
-  int m_rbins{12};
+  //int m_rbins{12};
+  int m_rbins{500};
 
   static constexpr float m_rMin{20};  // cm
   static constexpr float m_rMax{80};  // cm
