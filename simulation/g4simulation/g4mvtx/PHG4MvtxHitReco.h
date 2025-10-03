@@ -53,6 +53,10 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
+  void set_streaming_mode(bool val) { m_in_sphenix_srdo = val; }
+  void set_trigger_latency(double val) { m_trigger_latency = val; }
+  void set_strobe_width(double val) { m_strobe_width = val; }
+
  private:
   void makePixelMask(hitMask& aMask, const std::string& dbName, const std::string& totalPixelsToMask);
 
@@ -73,6 +77,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   double m_extended_readout_time = 0.0;
 
   bool m_in_sphenix_srdo = false;
+  double m_trigger_latency = 3.7;  // in us, same as in data
 
   class Deleter
   {
