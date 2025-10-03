@@ -53,6 +53,9 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   //! parameters
   void SetDefaultParameters() override;
 
+  // set triggered or streaming mode for simulation
+  void set_triggered_mode(const bool val) { m_triggered_mode = val; }
+
  private:
   void makePixelMask(hitMask& aMask, const std::string& dbName, const std::string& totalPixelsToMask);
 
@@ -72,7 +75,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   double m_strobe_separation;
   double m_extended_readout_time = 0.0;
 
-  bool m_in_sphenix_srdo = false;
+  bool m_triggered_mode = false;
 
   class Deleter
   {
