@@ -101,7 +101,7 @@ void TrkrHitTruthAssocv1::getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const u
   {
     const auto stave = MvtxDefs::getStaveId(hitsetkey);
     const auto chip = MvtxDefs::getChipId(hitsetkey);
-    const TrkrDefs::hitsetkey bare_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, /*strobe_in=*/0);
+    const TrkrDefs::hitsetkey bare_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
 
     const auto bare_hitsetrange = m_map.equal_range(bare_hitsetkey);
     for (auto it = bare_hitsetrange.first; it != bare_hitsetrange.second; ++it)
