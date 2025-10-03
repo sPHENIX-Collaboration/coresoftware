@@ -103,8 +103,6 @@ class PHCASiliconSeeding : public PHTrackSeeding
     _min_clusters_per_track = minClus; 
   }
 
-  void set_track_map_name(const std::string &map_name) { trackmapname = map_name; }
-
  protected:
   int Setup(PHCompositeNode* topNode) override;
   int Process(PHCompositeNode* topNode) override;
@@ -170,7 +168,6 @@ class PHCASiliconSeeding : public PHTrackSeeding
   /// acts geometry
   ActsGeometry* m_tGeometry{nullptr};
 
-  std::string trackmapname = "SiliconTrackSeedContainer"; 
   //  TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   TrkrClusterCrossingAssoc *m_clusterCrossingMap = nullptr;

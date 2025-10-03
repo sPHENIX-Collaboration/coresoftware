@@ -49,6 +49,12 @@ class MicromegasCombinedDataCalibration : public SubsysReco
   /// set to true to store evaluation histograms and ntuples
   void set_calibration_file( const std::string& value ) { m_calibration_filename = value; }
 
+  /// do evaluation
+  void set_do_evaluation( bool value ) { m_do_evaluation = value; }
+
+  /// evaluation filename
+  void set_evaluation_file( const std::string& value ) { m_evaluation_filename = value; }
+
   private:
   //! raw node
   std::string m_rawhitnodename = "MICROMEGASRAWHIT";
@@ -65,9 +71,23 @@ class MicromegasCombinedDataCalibration : public SubsysReco
   /// calibration output file
   std::string m_calibration_filename = "TPOT_Pedestal_000.root";
 
+  /// map fee id to 2D histograms
+  using histogram_map_t = std::map<int, TH2*>;
+  histogram_map_t m_histogram_map;
+
   /// map fee id to Profile histogram
   using profile_map_t = std::map<int, TProfile*>;
   profile_map_t m_profile_map;
+
+  /// do evaluation
+  bool m_do_evaluation = false;
+
+  /// evaluation file
+  std::string m_evaluation_filename = "MicromegasCombinedDataEvaluation.root";
+
+  // evaluation TFile
+  std::unique_ptr<TFile> m_evaluation_file;
+
 
 };
 
