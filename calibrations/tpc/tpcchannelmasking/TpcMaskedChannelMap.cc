@@ -100,7 +100,7 @@ int TpcMaskedChannelMap::process_event(PHCompositeNode * /* unused */)
     raw_hit_num = rawhitcont->get_nhits();
     for (unsigned int i = 0; i < raw_hit_num; i++)
     {
-      auto hit = rawhitcont->get_hit(i);
+      auto *hit = rawhitcont->get_hit(i);
       int32_t packet_id = hit->get_packetid();
       int ep = (packet_id - 4000) % 10;
       int sector = (packet_id - 4000 - ep) / 10;
@@ -260,7 +260,7 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
     }
   }
 
-  CDBTTree cdbttree( m_deadFile.c_str() );
+  CDBTTree cdbttree( m_deadFile );
   cdbttree.SetSingleIntValue( "TotalDeadChannels", m_deadChannelCDB.size() );
 
   std::cout << "Total Number of Dead Channels: " << m_deadChannelCDB.size() << std::endl;
@@ -283,7 +283,7 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
   cdbttree.WriteCDBTTree();  
   std::cout << __PRETTY_FUNCTION__ << " : completed saving to " << m_deadFile << std::endl;
 
-  CDBTTree cdbttree2( m_hotFile.c_str() );
+  CDBTTree cdbttree2( m_hotFile );
   cdbttree2.SetSingleIntValue( "TotalHotChannels", m_hotChannelCDB.size() );
   
   std::cout << "Total Number of Hot Channels: " << m_hotChannelCDB.size() << std::endl;
