@@ -182,6 +182,12 @@ void CaloGeomMapping::BuildFormerGeometry()
           RawTowerDefs::encode_towerid(m_caloid, ieta, iphi);
 
       double r = m_RawTowerGeomContainer->get_radius();
+
+      if (m_Detector == "HCALIN" || m_Detector == "HCALOUT")
+      {
+        r += m_RawTowerGeomContainer->get_radius() / 2.;
+      }
+      
       const double x(r * cos(m_RawTowerGeomContainer->get_phicenter(iphi)));
       const double y(r * sin(m_RawTowerGeomContainer->get_phicenter(iphi)));
       const double z(r / tan(2 * atan(exp(-1 * m_RawTowerGeomContainer->get_etacenter(ieta)))));
