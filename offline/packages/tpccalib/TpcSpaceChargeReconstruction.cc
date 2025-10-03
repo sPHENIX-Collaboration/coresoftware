@@ -79,17 +79,17 @@ namespace
   }
 
   // specify bins for which one will save histograms
-  static const std::vector<float> phi_rec = {get_sector_phi(9)};
-  static const std::vector<float> z_rec = {5.};
+  const std::vector<float> phi_rec = {get_sector_phi(9)};
+  const std::vector<float> z_rec = {5.};
 
   // phi range
-  static constexpr float m_phimin = 0;
-  static constexpr float m_phimax = 2. * M_PI;
+  constexpr float m_phimin = 0;
+  constexpr float m_phimax = 2. * M_PI;
 
   // TODO: could try to get the r and z range from TPC geometry
   // r range
-  static constexpr float m_rmin = 20;
-  static constexpr float m_rmax = 78;
+  constexpr float m_rmin = 20;
+  constexpr float m_rmax = 78;
 
   /// get cluster keys from a given track
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
