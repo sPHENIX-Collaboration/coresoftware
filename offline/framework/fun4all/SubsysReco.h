@@ -26,7 +26,7 @@ class SubsysReco : public Fun4AllBase
   /** dtor.
       Does nothing as this is a base class only.
   */
-  ~SubsysReco() override {}
+  ~SubsysReco() override = default;
 
   /// Called at the end of all processing.
   virtual int End(PHCompositeNode * /*topNode*/) { return 0; }
