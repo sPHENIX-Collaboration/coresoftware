@@ -60,7 +60,10 @@ class SubsysReco : public Fun4AllBase
 
   void Print(const std::string & /*what*/ = "ALL") const override {}
 
- protected:
+  /// For new rollover DSTs - we need to be able to update the Run Node before the End()
+  virtual int UpdateRunNode(PHCompositeNode * /*topNode*/) { return 0; }
+
+protected:
   /** ctor.
       @param name is the reference used inside the Fun4AllServer
   */
