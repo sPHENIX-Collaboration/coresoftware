@@ -149,7 +149,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
-
+  
   auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
 
   if (mapIter == m_surfMaps.m_tpcSurfaceMap.end())
