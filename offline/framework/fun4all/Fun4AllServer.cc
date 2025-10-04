@@ -267,7 +267,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
   std::string timer_name;
   timer_name = subsystem->Name() + "_" + topnodename;
   PHTimer timer(timer_name);
-  if (timer_map.find(timer_name) == timer_map.end())
+  if (!timer_map.contains(timer_name))
   {
     timer_map.insert(make_pair(timer_name, timer));
   }
@@ -718,6 +718,23 @@ int Fun4AllServer::process_event()
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
           ffamemtracker->Start((*iterOutMan)->Name(), "OutputManager");
 #endif
+          if (eventnumber > (*iterOutMan)->LastEventNumber())
+          {
+            if (Verbosity() > 0)
+            {
+              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
+                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+            }
+            PHNodeIterator nodeiter(TopNode);
+            PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
+            MakeNodesTransient(runNode);  // make all nodes transient by default
+            (*iterOutMan)->WriteNode(runNode);
+            (*iterOutMan)->RunAfterClosing();
+            segment = (*iterOutMan)->Segment();
+            (*iterOutMan)->UpdateLastEvent();
+            writing = true;
+          }
+          // save runnode, open new file, write
           (*iterOutMan)->WriteGeneric(dstNode);
 #ifdef FFAMEMTRACKER
           ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
@@ -1004,7 +1021,7 @@ int Fun4AllServer::MakeNodesTransient(PHCompositeNode *startNode)
   {
     if ((thisNode->getType() == "PHCompositeNode"))
     {
-      //NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-static-cast-downcast)
       MakeNodesTransient(static_cast<PHCompositeNode *>(thisNode));  // if this is a CompositeNode do this trick again
     }
     else
@@ -1015,7 +1032,7 @@ int Fun4AllServer::MakeNodesTransient(PHCompositeNode *startNode)
   return 0;
 }
 
-int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode) // NOLINT(misc-no-recursion)
+int Fun4AllServer::MakeNodesPersistent(PHCompositeNode *startNode)  // NOLINT(misc-no-recursion)
 {
   PHNodeIterator nodeiter(startNode);
   PHPointerListIterator<PHNode> iterat(nodeiter.ls());
