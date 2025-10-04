@@ -756,10 +756,8 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     PHG4TpcCylinderGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
     
     double tpc_max_driftlength = layergeom->get_max_driftlength();
-    const auto *const params = _tpc_params->GetParameters(0);
-
-    double drift_velocity = params->get_double_param("drift_velocity");  // cm/ns
-
+    double drift_velocity = layergeom->get_drift_velocity_sim();
+ 
     // Phi size
     //======
     double diffusion_trans = 0.006;  // cm/SQRT(cm)
@@ -886,10 +884,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   }
   else  // MVTX
   {
-    unsigned int stave, stave_outer;
-    unsigned int chip, chip_outer;
-    int row, row_outer;
-    int column, column_outer;
+    unsigned int stave;
+    unsigned int stave_outer;
+    unsigned int chip;
+    unsigned int chip_outer;
+    int row;
+    int row_outer;
+    int column;
+    int column_outer;
 
     // add diffusion to entry and exit locations
     double max_diffusion_radius = 25.0e-4;  // 25 microns

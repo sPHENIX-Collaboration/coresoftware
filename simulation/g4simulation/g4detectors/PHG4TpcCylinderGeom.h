@@ -39,7 +39,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   double get_CM_halfwidth() const  { return CM_halfwidth; }
   double get_adc_clock() const  { return adc_clock; }
   double get_extended_readout_time() const  { return extended_readout_time; }
-
+  double get_drift_velocity_sim() const  { return drift_velocity_sim; }
   
   virtual std::pair<double, double> get_zbounds(const int ibin) const;
   virtual std::pair<double, double> get_phibounds(const int ibin) const;
@@ -77,6 +77,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   void set_CM_halfwidth(const double val) { CM_halfwidth = val; }
   void set_adc_clock(const double val) { adc_clock = val; }
   void set_extended_readout_time(const double val) { extended_readout_time = val; }
+  void set_drift_velocity_sim(const double val) { drift_velocity_sim = val; }
   
   static const int NSides = 2;
 
@@ -110,6 +111,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   double CM_halfwidth{std::numeric_limits<double>::quiet_NaN()};
   double adc_clock{std::numeric_limits<double>::quiet_NaN()};
   double extended_readout_time{std::numeric_limits<double>::quiet_NaN()};
+  double drift_velocity_sim{std::numeric_limits<double>::quiet_NaN()};
   
   std::array<std::vector<double>, NSides> sector_R_bias;
   std::array<std::vector<double>, NSides> sector_Phi_bias;
