@@ -368,8 +368,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
         phi_center += 2 * pi;
       }
       _hit_phi = phi_center;
-      _hit_z = AdcClockPeriod * MaxTBins * layergeom->get_drift_velocity_sim() / 2.0 -
-	layergeom->get_zcenter(tbin) * layergeom->get_drift_velocity_sim();
+      _hit_z = AdcClockPeriod * MaxTBins * _drift_velocity / 2.0 - layergeom->get_zcenter(tbin) * _drift_velocity;
       if (side == 0)
       {
         _hit_z *= -1.0;
