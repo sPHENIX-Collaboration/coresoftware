@@ -95,7 +95,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode* topNode)
 
   m_tmin = get_double_param("mvtx_tmin");
   m_tmax = get_double_param("mvtx_tmax");
-  // m_in_sphenix_srdo = (bool) get_int_param("mvtx_in_sphenix_srdo");
+  m_in_sphenix_srdo = (bool) get_int_param("mvtx_in_sphenix_srdo");
   m_strobe_width = (m_in_sphenix_srdo) ? get_double_param("mvtx_strobe_width_sro") : get_double_param("mvtx_strobe_width_trg");
   m_strobe_separation = (m_in_sphenix_srdo) ? get_double_param("mvtx_strobe_separation_sro") : get_double_param("mvtx_strobe_separation_trg");
   m_trigger_latency = get_double_param("mvtx_trigger_latency");
