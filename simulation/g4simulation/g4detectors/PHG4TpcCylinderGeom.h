@@ -37,7 +37,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
 
   double get_max_driftlength() const { return 102.325; }
   double get_CM_halfwidth() const  { return 0.28; }
-  double get_adc_clock() const  { return 50.037280; } // 20MHz
+  double get_adc_clock() const  { return  53.326184; } // default sim value
   double get_extended_readout_time() const  { return 0.; }
   double get_drift_velocity_sim() const  { return 0.007550; }
   
