@@ -15,7 +15,6 @@ pkginclude_HEADERS = \
   Fun4AllEventOutputManager.h \
   Fun4AllFileOutStream.h \
   Fun4AllPrdfInputManager.h \
-  Fun4AllPrdfInputPoolManager.h \
   Fun4AllPrdfInputTriggerManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
@@ -40,12 +39,10 @@ pkginclude_HEADERS = \
   SingleInttEventInput.h \
   SingleInttPoolInput.h \
   SingleMvtxPoolInput.h \
-  SinglePrdfInput.h \
   SingleStreamingInput.h \
   SingleTpcPoolInput.h \
   SingleTriggerInput.h \
   SingleTriggeredInput.h \
-  SingleZdcInput.h \
   SingleZdcTriggerInput.h \
   SingleTpcTimeFrameInput.h \
   TpcTimeFrameBuilder.h
@@ -83,7 +80,6 @@ libfun4allraw_la_SOURCES = \
   Fun4AllEventOutputManager.cc \
   Fun4AllFileOutStream.cc \
   Fun4AllPrdfInputManager.cc \
-  Fun4AllPrdfInputPoolManager.cc \
   Fun4AllPrdfInputTriggerManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
@@ -106,12 +102,10 @@ libfun4allraw_la_SOURCES = \
   SingleMicromegasPoolInput_v1.cc \
   SingleMicromegasPoolInput_v2.cc \
   SingleMvtxPoolInput.cc \
-  SinglePrdfInput.cc \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
   SingleTriggerInput.cc \
   SingleTriggeredInput.cc \
-  SingleZdcInput.cc \
   SingleZdcTriggerInput.cc \
   SingleTpcTimeFrameInput.cc \
   TpcTimeFrameBuilder.cc
