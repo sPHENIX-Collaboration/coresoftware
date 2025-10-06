@@ -725,7 +725,7 @@ int Fun4AllServer::process_event()
               std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
                         << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
             }
-	    UpdateRunNode();
+            UpdateRunNode();
             PHNodeIterator nodeiter(TopNode);
             PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
             MakeNodesTransient(runNode);  // make all nodes transient by default
@@ -748,7 +748,7 @@ int Fun4AllServer::process_event()
               std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
                         << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
             }
-	    UpdateRunNode();
+            UpdateRunNode();
             PHNodeIterator nodeiter(TopNode);
             PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
             MakeNodesTransient(runNode);  // make all nodes transient by default
@@ -1799,10 +1799,10 @@ void Fun4AllServer::PrintMemoryTracker(const std::string &name)
 
 int Fun4AllServer::UpdateRunNode()
 {
-  int iret {Fun4AllReturnCodes::EVENT_OK};
+  int iret{Fun4AllReturnCodes::EVENT_OK};
   for (auto &Subsystem : Subsystems)
   {
-   iret += Subsystem.first->UpdateRunNode(Subsystem.second);
+    iret += Subsystem.first->UpdateRunNode(Subsystem.second);
   }
   return iret;
 }
