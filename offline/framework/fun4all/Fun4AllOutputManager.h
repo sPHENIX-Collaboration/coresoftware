@@ -44,7 +44,7 @@ class Fun4AllOutputManager : public Fun4AllBase
     return 0;
   }
 
-  virtual int StripCompositeNode(const std::string & /*nodename*/) {return 0;}
+  virtual int StripCompositeNode(const std::string & /*nodename*/) { return 0; }
 
   virtual void SaveRunNode(const int) { return; }
   virtual void SaveDstNode(const int) { return; }
@@ -100,7 +100,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual void SetEventsWritten(const unsigned int i) { m_NEvents = i; }
   //! get number of Events
   virtual int LastEventNumber() const { return m_LastEventNumber; }
-  virtual void UpdateLastEvent() {m_LastEventNumber += m_EventRollover;}
+  virtual void UpdateLastEvent() { m_LastEventNumber += m_EventRollover; }
   //! set number of events
   virtual void SetEventNumberRollover(const int evtno);
   //! get output file name
