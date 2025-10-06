@@ -71,10 +71,10 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string& name, const std::string& det
   , m_detector(detector)
   , m_tmin(-5000.)
   , m_tmax(5000.)
-  , m_strobe_width(9.7) // in us
+  , m_strobe_width(9.7 * microsecond) // in us
   , m_strobe_separation(0.)
   , m_in_sphenix_srdo(false)
-  , m_trigger_latency(3.7) // in us
+  , m_trigger_latency(3.7 * microsecond) // in us
   , m_truth_hits{new TrkrHitSetContainerv1}
 {
   if (Verbosity())
@@ -95,7 +95,7 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode* topNode)
 
   m_tmin = get_double_param("mvtx_tmin");
   m_tmax = get_double_param("mvtx_tmax");
-  m_in_sphenix_srdo = (bool) get_int_param("mvtx_in_sphenix_srdo");
+  // m_in_sphenix_srdo = (bool) get_int_param("mvtx_in_sphenix_srdo");
   m_strobe_width = (m_in_sphenix_srdo) ? get_double_param("mvtx_strobe_width_sro") : get_double_param("mvtx_strobe_width_trg");
   m_strobe_separation = (m_in_sphenix_srdo) ? get_double_param("mvtx_strobe_separation_sro") : get_double_param("mvtx_strobe_separation_trg");
   m_trigger_latency = get_double_param("mvtx_trigger_latency");
@@ -104,13 +104,13 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode* topNode)
 
   // printout
   std::cout
-      << "PHG4MvtxHitReco::InitRun\n"
-      << " m_tmin: " << m_tmin << "ns, m_tmax: " << m_tmax << "ns\n"
-      << " m_strobe_width: " << m_strobe_width << "\n"
-      << " m_strobe_separation: " << m_strobe_separation << "\n"
-      << " m_extended_readout_time: " << m_extended_readout_time << "\n"
+      << __PRETTY_FUNCTION__ << std::endl
+      << " m_tmin: " << m_tmin << " ns, m_tmax: " << m_tmax << " ns\n"
+      << " m_strobe_width: " << m_strobe_width << " ns\n"
+      << " m_strobe_separation: " << m_strobe_separation << " ns\n"
+      << " m_extended_readout_time: " << m_extended_readout_time << " ns\n"
       << " m_in_sphenix_srdo: " << (m_in_sphenix_srdo ? "true" : "false") << "\n"
-      << " m_trigger_latency: " << m_trigger_latency << "\n"
+      << " m_trigger_latency: " << m_trigger_latency << " ns\n"
       << std::endl;
 
   //! get DST node
@@ -246,12 +246,11 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
   // Generate strobe zero relative to trigger time
   double strobe_zero_tm_start = generate_strobe_zero_tm_start();
 
-  //! Mark here for TO-DO. m_tmax and m_tmin were supposed to be set from the macro but were instead overwritten here
   // assumes we want the range of accepted times to be from 0 to m_extended_readout_time
-  std::pair<double, double> alpide_pulse = generate_alpide_pulse(0.0);  // this currently just returns fixed values
+  std::pair<double, double> alpide_pulse = generate_alpide_pulse(0.0);  // this currently just returns fixed values [1500, 5900] ns
   double clearance = 200.0;                                             // 0.2 microsecond for luck
-  m_tmax = m_extended_readout_time + alpide_pulse.first + clearance; //! TODO
-  m_tmin = alpide_pulse.second - clearance; //! TODO
+  m_tmax = m_extended_readout_time + alpide_pulse.first + clearance; 
+  m_tmin = alpide_pulse.second - clearance; 
 
   // The above limits will select g4hit times of 0 up to m_extended_readout_time (only) with extensions by clearance
   // But we really want to select all g4hit times that will be strobed, so replace clearance with something derived from
@@ -313,7 +312,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode* topNode)
                   << " fall_edge " << fall_edge << " tmin " << m_tmin << " tmax " << m_tmax << std::endl;
       }
 
-      // Pile-up rejection
+      // Pile-up rejection for triggered mode
       if (!m_in_sphenix_srdo && (fall_edge < m_trigger_latency || lead_edge > (m_trigger_latency + m_strobe_width)))
       {
         if (Verbosity() > 0)
@@ -852,7 +851,7 @@ void PHG4MvtxHitReco::SetDefaultParameters()
   set_default_double_param("mvtx_strobe_width_trg", 0.1 * microsecond); // 100 ns for triggered mode
   set_default_double_param("mvtx_strobe_separation_sro", 0.2 * microsecond); // 200 ns separation for streaming mode
   set_default_double_param("mvtx_strobe_separation_trg", 0.); // 0 for triggered mode
-  set_default_int_param("mvtx_in_sphenix_srdo", (int) false);
+  set_default_int_param("mvtx_in_sphenix_srdo", (int) true); // default to true for streaming mode
   set_default_double_param("mvtx_trigger_latency", 3.7 * microsecond);
   return;
 }
