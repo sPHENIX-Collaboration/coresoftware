@@ -55,6 +55,13 @@ CDBInterface::~CDBInterface()
 //____________________________________________________________________________..
 int CDBInterface::End(PHCompositeNode *topNode)
 {
+  int iret = UpdateRunNode(topNode);PHNodeIterator iter(topNode);
+  return iret;
+}
+
+//____________________________________________________________________________..
+int CDBInterface::UpdateRunNode(PHCompositeNode *topNode)
+{
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   CdbUrlSave *cdburls = findNode::getClass<CdbUrlSave>(runNode, "CdbUrl");

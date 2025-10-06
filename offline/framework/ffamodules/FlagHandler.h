@@ -26,6 +26,8 @@ class FlagHandler : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  int UpdateRunNode(PHCompositeNode *topNode) override;
+
  private:
 };
 
