@@ -127,13 +127,15 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   phimax_roi = roi_phi1;
   zmax_roi = roi_z1;  // exlcuded upper edge of our region of interest, measured in f-bins
   std::cout << std::format("AnnularFieldSim::AnnularFieldSim set roi variables rmin={} phimin={} zmin={} rmax={} phimax={} zmax={}",
-    rmin_roi, phimin_roi, zmin_roi, rmax_roi, phimax_roi, zmax_roi) << std::endl;
+                           rmin_roi, phimin_roi, zmin_roi, rmax_roi, phimax_roi, zmax_roi)
+            << std::endl;
   // calculate the dimensions, in f-bins in our region of interest
   nr_roi = rmax_roi - rmin_roi;
   nphi_roi = phimax_roi - phimin_roi;
   nz_roi = zmax_roi - zmin_roi;
   std::cout << std::format("AnnularFieldSim::AnnularFieldSim calc'd roi variables nr={} nphi={} nz={}",
-    nr_roi, nphi_roi, nz_roi) << std::endl;
+                           nr_roi, nphi_roi, nz_roi)
+            << std::endl;
 
   // create an array to hold the SC-induced electric field in the roi with the specified dimensions
   Efield = new MultiArray<TVector3>(nr_roi, nphi_roi, nz_roi);
@@ -167,7 +169,8 @@ AnnularFieldSim::AnnularFieldSim(float in_innerRadius, float in_outerRadius, flo
   if (lookupCase == Full3D)
   {
     std::cout << std::format("AnnularFieldSim::AnnularFieldSim building Epartial (full3D) with nr_roi={} nphi_roi={} nz_roi={}  =~{:.2f}M TVector3 objects",
-    nr_roi, nphi_roi, nz_roi, nr_roi * nphi_roi * nz_roi * nr * nphi * nz / 1.0e6) << std::endl;
+                             nr_roi, nphi_roi, nz_roi, nr_roi * nphi_roi * nz_roi * nr * nphi * nz / 1.0e6)
+              << std::endl;
 
     Epartial = new MultiArray<TVector3>(nr_roi, nphi_roi, nz_roi, nr, nphi, nz);
     for (int i = 0; i < Epartial->Length(); i++)
@@ -300,7 +303,8 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   if (GetRindexAndCheckBounds(at.Perp(), &r_position) != InBounds)
   {
     std::cout << std::format("something's asking for 'at' with r={:.6f}, which is index={}",
-    at.Perp(), r_position) << std::endl;
+                             at.Perp(), r_position)
+              << std::endl;
     exit(1);
   }
   // note this is the field due to a fixed point charge in free space.
@@ -352,8 +356,6 @@ TVector3 AnnularFieldSim::calc_unit_field(TVector3 at, TVector3 from)
   return field;
 }
 
-
-
 TVector3 AnnularFieldSim::GetLocalFieldComponents(const TVector3 &field, const TVector3 &pos, const TVector3 &origin)
 {
   // this function returns the components of the field in the local coordinate system, which is in cylindrical coords
@@ -362,14 +364,17 @@ TVector3 AnnularFieldSim::GetLocalFieldComponents(const TVector3 &field, const T
   // it returns a TVector3 with the radial, azimuthal, and z components of the field in the local coordinate system.
 
   TVector3 local_pos = pos - origin;  // shift the position to the local coordinate system
-  //get the cylindrical radial vector pointing from the origin to the position:
+  // get the cylindrical radial vector pointing from the origin to the position:
   TVector3 radial_vector = local_pos;
   radial_vector.SetZ(0);  // zero out the z component, so we have a radial vector in the xy plane.
-  if(radial_vector.Mag()==0){
-    //if it's zero, make it arbitrary direction.
+  if (radial_vector.Mag() == 0)
+  {
+    // if it's zero, make it arbitrary direction.
     radial_vector.SetXYZ(1, 0, 0);  // set it to point in the x direction.
-  }else {
-  radial_vector.SetMag(1);  // normalize it to unit length, so we can use it to rotate the field vector.
+  }
+  else
+  {
+    radial_vector.SetMag(1);  // normalize it to unit length, so we can use it to rotate the field vector.
   }
   // get the cylindrical azimuthal vector, which is perpendicular to the radial vector:
   TVector3 azimuthal_vector = radial_vector;
@@ -379,7 +384,6 @@ TVector3 AnnularFieldSim::GetLocalFieldComponents(const TVector3 &field, const T
   local_field.SetXYZ(field.Dot(radial_vector), field.Dot(azimuthal_vector), field.Z());  // radial, azimuthal, and z components
   return local_field;
 }
-
 
 double AnnularFieldSim::FilterPhiPos(double phi)
 {
@@ -397,7 +401,8 @@ double AnnularFieldSim::FilterPhiPos(double phi)
   if (p >= 2 * M_PI || p < 0)
   {
     std::cout << std::format("AnnularFieldSim::FilterPhiPos asked to filter {:.6f}, which is more than range={:.6f} out of bounds. Check what called this.",
-    phi, 2 * M_PI) << std::endl;
+                             phi, 2 * M_PI)
+              << std::endl;
     exit(1);
   }
   return p;
@@ -558,7 +563,8 @@ TVector3 AnnularFieldSim::analyticFieldIntegral(float zdest, TVector3 start, Mul
   if (!rOkay || !phiOkay)
   {
     std::cout << std::format("AnnularFieldSim::analyticFieldIntegral asked to integrate along (r={:.6f}, phi={:.6f}), index=({}, {}), which is out of bounds. returning starting position.",
-    start.Perp(), start.Phi(), r, phi) << std::endl;
+                             start.Perp(), start.Phi(), r, phi)
+              << std::endl;
     return start;
   }
 
@@ -592,7 +598,8 @@ TVector3 AnnularFieldSim::analyticFieldIntegral(float zdest, TVector3 start, Mul
   if (!startOkay || !endOkay)
   {
     std::cout << std::format("AnnularFieldSim::analyticFieldIntegral asked to integrate from z={:.6f} to {:.6f}, index={} to {}, which is out of bounds. returning starting position.",
-    startz, endz, zi, zf) << std::endl;
+                             startz, endz, zi, zf)
+              << std::endl;
     return start;
   }
 
@@ -623,7 +630,8 @@ TVector3 AnnularFieldSim::fieldIntegral(float zdest, const TVector3 &start, Mult
   if (!rOkay || !phiOkay)
   {
     std::cout << std::format("AnnularFieldSim::fieldIntegral asked to integrate along (r={:.6f}, phi={:.6f}), index=({}, {}), which is out of bounds. returning starting position.",
-    start.Perp(), start.Phi(), r, phi) << std::endl;
+                             start.Perp(), start.Phi(), r, phi)
+              << std::endl;
     return start;
   }
 
@@ -657,7 +665,8 @@ TVector3 AnnularFieldSim::fieldIntegral(float zdest, const TVector3 &start, Mult
   if (!startOkay || !endOkay)
   {
     std::cout << std::format("AnnularFieldSim::fieldIntegral asked to integrate from z={:.6f} to {:.6f}, index={} to {}, which is out of bounds. returning starting position.",
-    startz, endz, zi, zf) << std::endl;
+                             startz, endz, zi, zf)
+              << std::endl;
     return start;
   }
 
@@ -766,7 +775,7 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3 
   // print_need_cout("AnnularFieldSim::interpolatedFieldIntegral(x=%f,y=%f, z=%f)\n",start.X(),start.Y(),start.Z());
 
   float r0 = (start.Perp() - rmin) / step.Perp() - 0.5;  // the position in r, in units of step, starting from the center of the 0th bin.
-  int r0i = std::floor(r0);                                   // the integer portion of the position. -- what center is below our position?
+  int r0i = std::floor(r0);                              // the integer portion of the position. -- what center is below our position?
   float r0d = r0 - r0i;                                  // the decimal portion of the position. -- how far past center are we?
   int ri[4];                                             // the r position of the four cell centers to consider
   ri[0] = ri[1] = r0i;
@@ -791,7 +800,7 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3 
 
   // now repeat that structure for phi:
   float p0 = (start.Phi()) / step.Phi() - 0.5;  // the position in phi, in units of step, starting from the center of the 0th bin.
-  int p0i = std::floor(p0);                          // the integer portion of the position. -- what center is below our position?
+  int p0i = std::floor(p0);                     // the integer portion of the position. -- what center is below our position?
   float p0d = p0 - p0i;                         // the decimal portion of the position. -- how far past center are we?
   int pi[4];                                    // the phi position of the four cell centers to consider
   pi[0] = pi[2] = FilterPhiIndex(p0i);
@@ -843,7 +852,8 @@ TVector3 AnnularFieldSim::interpolatedFieldIntegral(float zdest, const TVector3 
 
   if (!startOkay || !endOkay)
   {
-    std::cout << std::format("AnnularFieldSim::InterpolatedFieldIntegral asked to integrate from z={} to {}, index={} to {}, which is out of bounds. Returning zero.", startz, endz, zi, zf) << std::endl;;
+    std::cout << std::format("AnnularFieldSim::InterpolatedFieldIntegral asked to integrate from z={} to {}, index={} to {}, which is out of bounds. Returning zero.", startz, endz, zi, zf) << std::endl;
+    ;
     return zero_vector;
   }
 
@@ -976,7 +986,7 @@ void AnnularFieldSim::loadEfield(const std::string &filename, const std::string 
   fieldFile.GetObject(treename.c_str(), fTree);
   Efieldname = "E:" + filename + ":" + treename;
   float r;
-  float z;          // coordinates
+  float z;  // coordinates
   float fr;
   float fz;
   float fphi;  // field components at that coordinate
@@ -1003,7 +1013,7 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   fieldFile.GetObject(treename.c_str(), fTree);
   Bfieldname = "B:" + filename + ":" + treename;
   float r;
-  float z;          // coordinates
+  float z;  // coordinates
   float fr;
   float fz;
   float fphi;  // field components at that coordinate
@@ -1017,7 +1027,8 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
   loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla, 1);
-  std::cout << std::format("AnnularFieldSim::loadBfield:  finished loading B field from file {}, tree {}", filename, treename) << std::endl;;
+  std::cout << std::format("AnnularFieldSim::loadBfield:  finished loading B field from file {}, tree {}", filename, treename) << std::endl;
+  ;
   fieldFile.Close();
 
   return;
@@ -1027,7 +1038,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores field as Tesla.
-  std::cout << std::format("AnnularFieldSim::load3dBfield:  loading B field from file {}, tree {} (sign={})", filename, treename,zsign) << std::endl;
+  std::cout << std::format("AnnularFieldSim::load3dBfield:  loading B field from file {}, tree {} (sign={})", filename, treename, zsign) << std::endl;
 
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
@@ -1035,7 +1046,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   Bfieldname = "B(3D):" + filename + ":" + treename + " Scale =" + std::format("{:.2f}", scale);
   float r;
   float z;
-  float phi;     // coordinates
+  float phi;  // coordinates
   float fr;
   float fz;
   float fphi;  // field components at that coordinate
@@ -1056,135 +1067,134 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
   // we're loading a tree of unknown size and spacing -- and possibly uneven spacing -- into our local data.
   // formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
   // the x,y,z shift moves the detector in the field (hence for a +1 shift in each, the field value at (0,0,0) is recorded at detector coordinate (-1,-1,-1)
-  TVector3 origin= TVector3(xshift, yshift, zshift);  // the origin of the detector in the field coordinate system.
-  bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
+  TVector3 origin = TVector3(xshift, yshift, zshift);  // the origin of the detector in the field coordinate system.
+  bool phiSymmetry = (phiptr == nullptr);              // if the phi pointer is zero, assume phi symmetry.
 
-  std::cout <<  std::format("AnnularFieldSim::loadField:  loading field from {}, detector origin at ({},{},{}) in the field map, field unit {}, zsign {}, handling={}", source->GetName(), origin.X(), origin.Y(), origin.Z(), fieldunit, zsign, (phiSymmetry ? "phi-symmetric" : "not phi-symmetric")) << std::endl;
+  std::cout << std::format("AnnularFieldSim::loadField:  loading field from {}, detector origin at ({},{},{}) in the field map, field unit {}, zsign {}, handling={}", source->GetName(), origin.X(), origin.Y(), origin.Z(), fieldunit, zsign, (phiSymmetry ? "phi-symmetric" : "not phi-symmetric")) << std::endl;
 
+  int lowres_factor = 3;  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
 
-  int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
+  // float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
+  // needed, because the interpolation doesn't know that phi should wrap:
+  // float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
+  // float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
 
-  //float rbinsize=(rmax-rmin)/nr;  // the size of the bins in r
-//needed, because the interpolation doesn't know that phi should wrap:
-  //float phibinsize=(2.0*M_PI)/nphi;  // the size of the bins in phi
-  //float zbinsize=(zmax-zmin)/nz;  // the size of the bins in z
-
-  //since our lowres_factor may not divide evenly into the number of bins, we need to adjust the number of bins in each dimension:
-  int nlowbins_phi= nphi / lowres_factor + 1;  
-  int nlowbins_r = nr / lowres_factor + 1; 
+  // since our lowres_factor may not divide evenly into the number of bins, we need to adjust the number of bins in each dimension:
+  int nlowbins_phi = nphi / lowres_factor + 1;
+  int nlowbins_r = nr / lowres_factor + 1;
   int nlowbins_z = nz / lowres_factor + 1;
   float phi_lowres_step = M_PI * 2.0 / nlowbins_phi;  // the step size in phi for the low-res histogram
-  float r_lowres_step = (rmax - rmin) / nlowbins_r;  // the step size in r for the low-res histogram
-  float z_lowres_step = (zmax - zmin) / nlowbins_z;  // the step size in z for the low-res histogram
-
+  float r_lowres_step = (rmax - rmin) / nlowbins_r;   // the step size in r for the low-res histogram
+  float z_lowres_step = (zmax - zmin) / nlowbins_z;   // the step size in z for the low-res histogram
 
   std::cout << std::format("loading field from {}<z<{}", zmin, zmax) << std::endl;
   TH3F *htEntries = new TH3F("htentries", "num of entries in the field loading", nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
   TH3F *htSum[3];
-  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nlowbins_phi+2,  -phi_lowres_step, M_PI * 2.0+phi_lowres_step, nlowbins_r+2, rmin-r_lowres_step, rmax+r_lowres_step, nlowbins_z+2, zmin-z_lowres_step, zmax+z_lowres_step);
+  TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nlowbins_phi + 2, -phi_lowres_step, M_PI * 2.0 + phi_lowres_step, nlowbins_r + 2, rmin - r_lowres_step, rmax + r_lowres_step, nlowbins_z + 2, zmin - z_lowres_step, zmax + z_lowres_step);
   TH3F *htSumLow[3];
-  std::cout << std::format("AnnularFieldSim::loadField:  hires has {} phi bins from {} to {}, {} r bins from {} to {}, and {} z bins from {} to {}", 
-			    htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(),
-			    htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(),
-			    htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax()) << std::endl;
-  std::cout << std::format("AnnularFieldSim::loadField:  lowres has {} phi bins from {} to {}, {} r bins from {} to {}, and {} z bins from {} to {}", 
-			   htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(),
-			   htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(),
-			   htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax()) << std::endl;
-    
+  std::cout << std::format("AnnularFieldSim::loadField:  hires has {} phi bins from {} to {}, {} r bins from {} to {}, and {} z bins from {} to {}",
+                           htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(),
+                           htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(),
+                           htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax())
+            << std::endl;
+  std::cout << std::format("AnnularFieldSim::loadField:  lowres has {} phi bins from {} to {}, {} r bins from {} to {}, and {} z bins from {} to {}",
+                           htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(),
+                           htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(),
+                           htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax())
+            << std::endl;
+
   std::string axis[]{"r", "p", "z"};
   for (int i = 0; i < 3; i++)
   {
-    //make each htSum inherit its bounds from htEntries:
+    // make each htSum inherit its bounds from htEntries:
     htSum[i] = new TH3F(std::string("htsum" + std::to_string(i)).c_str(), std::string("sum of " + axis[i] + "-axis entries in the field loading").c_str(), htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(), htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(), htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax());
-    //make each htSumLow inherit its bounds from htEntriesLow:
+    // make each htSumLow inherit its bounds from htEntriesLow:
     htSumLow[i] = new TH3F(std::string("htsumlow" + std::to_string(i)).c_str(), std::string("sum of low " + axis[i] + "-axis entries in the field loading").c_str(), htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(), htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(), htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax());
   }
-  //define the lowres stepsizes for sanity:
+  // define the lowres stepsizes for sanity:
 
   std::vector<float> phiCoords(nphi);  // the phi coordinates of the bins in our internal rep.
-  int nPhiCoords=1;
-  if(phiSymmetry){
+  int nPhiCoords = 1;
+  if (phiSymmetry)
+  {
     //  if we do have phi symmetry, enumerate the phi coordinates we will use:
-   // std::cout << std::format("AnnularFieldSim::loadField:  phi symmetry, using {} phi coordinates:", nphi) << std::endl;
+    // std::cout << std::format("AnnularFieldSim::loadField:  phi symmetry, using {} phi coordinates:", nphi) << std::endl;
     for (int j = 0; j < nphi; j++)
     {
-      float phi0=(j+0.5)*step.Phi(); //stand-in for our phi pointer that doesn't exist.
-      phiCoords[j]=phi0;
+      float phi0 = (j + 0.5) * step.Phi();  // stand-in for our phi pointer that doesn't exist.
+      phiCoords[j] = phi0;
       std::cout << std::format("{:.2f} ", phi0) << std::endl;
     }
     std::cout << std::endl;
-    nPhiCoords=nphi;
+    nPhiCoords = nphi;
   }
 
-
-
-  //traverse the field tree and fill the histograms.
+  // traverse the field tree and fill the histograms.
   int nEntries = source->GetEntries();
   for (int i = 0; i < nEntries; i++)
   {  // could probably do this with an iterator
 
-    //keep track of progress:
-    int rem=i%(source->GetEntries()/10);
-    int quo=i/(source->GetEntries()/10);
-    if(rem==0 && quo>0){
+    // keep track of progress:
+    int rem = i % (source->GetEntries() / 10);
+    int quo = i / (source->GetEntries() / 10);
+    if (rem == 0 && quo > 0)
+    {
       std::cout << std::format("loadField:  {}0%", quo) << std::endl;
     }
-
 
     source->GetEntry(i);
     float zval = *zptr * zsign;  // since the field map may assume symmetry wrt z, we  need the ability to flip the sign of the z coordinate.
     // note that the z sign also needs to affect the field sign in that direction, which is handled outside in the z components of the fills
-    float rval=*rptr;
+    float rval = *rptr;
     float phival;
-    //we have to also carefully transform the field itself:
-    float fzval = *fzptr * fieldunit * zsign;  // z component of the field (altered in rotations of the cylinder, but not translations), note that we flip the sign if requested (ie the Efield loader).
-    float fphival = *fphiptr * fieldunit*zsign;  // phi component of the field 
-    float frval = *frptr * fieldunit;  // radial component of the field 
-    TVector3 rphizField(frval, fphival, fzval);  
-
+    // we have to also carefully transform the field itself:
+    float fzval = *fzptr * fieldunit * zsign;      // z component of the field (altered in rotations of the cylinder, but not translations), note that we flip the sign if requested (ie the Efield loader).
+    float fphival = *fphiptr * fieldunit * zsign;  // phi component of the field
+    float frval = *frptr * fieldunit;              // radial component of the field
+    TVector3 rphizField(frval, fphival, fzval);
 
     // if we aren't asking for phi symmetry, build just the one phi strip
 
     if (!phiSymmetry)
     {
       assert(phiptr);
-      phiCoords[0]=*phiptr;
+      phiCoords[0] = *phiptr;
     }
-    for (int j = 0; j < nPhiCoords; j++){//this is a loop over n=1 if we have no symmetry, or nphi if we do.
-      phival=phiCoords[j];//the input phitr if no symmetry, or precompupted values if symmetry.
+    for (int j = 0; j < nPhiCoords; j++)
+    {                         // this is a loop over n=1 if we have no symmetry, or nphi if we do.
+      phival = phiCoords[j];  // the input phitr if no symmetry, or precompupted values if symmetry.
 
-      //find the vector coordinate of this field position, in the field map coords.
-      TVector3 fieldMapPos(rval,0,zval);// the position in the field map, in cylindrical coordinates.
-      fieldMapPos.SetPhi(phival);  // set the phi coordinate in the field map.
+      // find the vector coordinate of this field position, in the field map coords.
+      TVector3 fieldMapPos(rval, 0, zval);  // the position in the field map, in cylindrical coordinates.
+      fieldMapPos.SetPhi(phival);           // set the phi coordinate in the field map.
 
-      //convert the components of the field into the global cartesian system:
-      TVector3 globalField=rphizField;  // the field vector in the global coordinate system, in cylindrical coordinates.
-      globalField.RotateZ(phival);  // the rphiz frame is rotated from the global by the phi coordinate, so to make these match the cartesian system, we must rotate the field to the local rphiz frame
+      // convert the components of the field into the global cartesian system:
+      TVector3 globalField = rphizField;  // the field vector in the global coordinate system, in cylindrical coordinates.
+      globalField.RotateZ(phival);        // the rphiz frame is rotated from the global by the phi coordinate, so to make these match the cartesian system, we must rotate the field to the local rphiz frame
 
-      //if our origin is not zero, apply the translation of field and coords:
-      TVector3 tpcPos=fieldMapPos-origin;  // the position of this field datapoint in the tpc coordinate system
-      //I think this could just be a rotation by -tpcPos.Phi()...
-      TVector3 tpcField=GetLocalFieldComponents(globalField,fieldMapPos,origin); //note that this returns the rphiz components at that point, in the tpc coordinate system.
+      // if our origin is not zero, apply the translation of field and coords:
+      TVector3 tpcPos = fieldMapPos - origin;  // the position of this field datapoint in the tpc coordinate system
+      // I think this could just be a rotation by -tpcPos.Phi()...
+      TVector3 tpcField = GetLocalFieldComponents(globalField, fieldMapPos, origin);  // note that this returns the rphiz components at that point, in the tpc coordinate system. // NOLINT(readability-suspicious-call-argument)
 
-      //get the cylindrical coordinates of our position in the TPC coordinate system:
-      rval= tpcPos.Perp();  // the radial coordinate in the tpc coordinate system
+      // get the cylindrical coordinates of our position in the TPC coordinate system:
+      rval = tpcPos.Perp();                 // the radial coordinate in the tpc coordinate system
       phival = FilterPhiPos(tpcPos.Phi());  // the phi coordinate in the tpc coordinate system, wrapped into the expected range.
-      zval = tpcPos.Z();  // the z coordinate in the tpc coordinate system
+      zval = tpcPos.Z();                    // the z coordinate in the tpc coordinate system
 
-      //and the field components in the tpc coordinate system:
-      frval = tpcField.X();  // the radial component of the field in the tpc coordinate system
+      // and the field components in the tpc coordinate system:
+      frval = tpcField.X();    // the radial component of the field in the tpc coordinate system
       fphival = tpcField.Y();  // the azimuthal component of the field in the tpc coordinate system
-      fzval = tpcField.Z();  // the z component of the field in the tpc coordinate system
+      fzval = tpcField.Z();    // the z component of the field in the tpc coordinate system
 
-      htEntries->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSum[0]->Fill(phival,rval, zval, frval );
-      htSum[1]->Fill(phival,rval, zval, fphival );
-      htSum[2]->Fill(phival,rval, zval, fzval );
-      htEntriesLow->Fill(phival,rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
-      htSumLow[0]->Fill(phival,rval, zval, frval );
-      htSumLow[1]->Fill(phival,rval, zval, fphival );
-      htSumLow[2]->Fill(phival,rval, zval, fzval );
+      htEntries->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+      htSum[0]->Fill(phival, rval, zval, frval);
+      htSum[1]->Fill(phival, rval, zval, fphival);
+      htSum[2]->Fill(phival, rval, zval, fzval);
+      htEntriesLow->Fill(phival, rval, zval);  // for legacy reasons this histogram, like others, goes phi-r-z.
+      htSumLow[0]->Fill(phival, rval, zval, frval);
+      htSumLow[1]->Fill(phival, rval, zval, fphival);
+      htSumLow[2]->Fill(phival, rval, zval, fzval);
     }
   }
   // now we just divide and fill our local plots (which should eventually be stored as histograms, probably) with the values from each hist cell:
@@ -1197,18 +1207,20 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
       {
         TVector3 cellcenter = GetCellCenter(j, i, k);
         int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
-        TVector3 fieldvec(htSum[0]->GetBinContent(bin), htSum[1]->GetBinContent(bin), htSum[2]->GetBinContent(bin));//r, phi, z components in that order
+        TVector3 fieldvec(htSum[0]->GetBinContent(bin), htSum[1]->GetBinContent(bin), htSum[2]->GetBinContent(bin));  // r, phi, z components in that order
         if (htEntries->GetBinContent(bin) < 0.99)
         {
           // no entries here!
           nemptybins++;
-        } else{
+        }
+        else
+        {
           fieldvec = fieldvec * (1.0 / htEntries->GetBinContent(bin));
         }
-        //now we have the rphiz field at this position.  We want to store it, for our own sanity, in cartesian componnets (it makes the intergrals easier in the drift stage)
-        // so we have to rotate this to the proper angle
-        // (if it helps, remember that the x component of the fieldvec is the radial direction, and we need that to point from the origin to the cell center in order for it to be in cartesian coordinates)
-        fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));  
+        // now we have the rphiz field at this position.  We want to store it, for our own sanity, in cartesian componnets (it makes the intergrals easier in the drift stage)
+        //  so we have to rotate this to the proper angle
+        //  (if it helps, remember that the x component of the fieldvec is the radial direction, and we need that to point from the origin to the cell center in order for it to be in cartesian coordinates)
+        fieldvec.RotateZ(FilterPhiPos(cellcenter.Phi()));
         (*field)->Set(j, i, k, fieldvec);
       }
     }
@@ -1217,29 +1229,33 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
   {
     std::cout << std::format("found {} empty bins when constructing {}.  Filling with lower resolution.", nemptybins, ((*field == Bfield) ? "Bfield" : "Eexternal")) << std::endl;
 
-    //first, we need to stitch the lowest phibin together with the highest phibin, by setting the lowest phi bin contents and nentries to be the same as the highest-1, and the highest to the lowest+1:
-    for (int j=0; j<htEntriesLow->GetNbinsY(); j++){
-      for (int k=0; k<htEntriesLow->GetNbinsZ(); k++){
-        int lowbin=htEntriesLow->GetBin(1,j,k);
-        int highbin=htEntriesLow->GetBin(htEntriesLow->GetNbinsX()-1,j,k);
+    // first, we need to stitch the lowest phibin together with the highest phibin, by setting the lowest phi bin contents and nentries to be the same as the highest-1, and the highest to the lowest+1:
+    for (int j = 0; j < htEntriesLow->GetNbinsY(); j++)
+    {
+      for (int k = 0; k < htEntriesLow->GetNbinsZ(); k++)
+      {
+        int lowbin = htEntriesLow->GetBin(1, j, k);
+        int highbin = htEntriesLow->GetBin(htEntriesLow->GetNbinsX() - 1, j, k);
         htEntriesLow->SetBinContent(lowbin,
-          htEntriesLow->GetBinContent(htEntriesLow->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
-        //and the same for the triplet of htSumLow:
-        for (auto & i : htSumLow){
+                                    htEntriesLow->GetBinContent(htEntriesLow->GetBin(htEntriesLow->GetNbinsX() - 2, j, k)));
+        // and the same for the triplet of htSumLow:
+        for (auto &i : htSumLow)
+        {
           i->SetBinContent(lowbin,
-            i->GetBinContent(i->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
-          }
-        //and then we repeat for the highend stitch:
+                           i->GetBinContent(i->GetBin(htEntriesLow->GetNbinsX() - 2, j, k)));
+        }
+        // and then we repeat for the highend stitch:
         htEntriesLow->SetBinContent(highbin,
-          htEntriesLow->GetBinContent(htEntriesLow->GetBin(2,j,k)));
-        for (auto & i : htSumLow){
+                                    htEntriesLow->GetBinContent(htEntriesLow->GetBin(2, j, k)));
+        for (auto &i : htSumLow)
+        {
           i->SetBinContent(highbin,
-            i->GetBinContent(i->GetBin(2,j,k)));
-          }
+                           i->GetBinContent(i->GetBin(2, j, k)));
         }
       }
+    }
 
-      //now that it is stitched, we can interpolate correctly.
+    // now that it is stitched, we can interpolate correctly.
     for (int i = 0; i < nphi; i++)
     {
       for (int j = 0; j < nr; j++)
@@ -1250,46 +1266,51 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
-            if(false){//long debug check.
-              std::cout << std::format("Filling coordinates p{},r{},z{}, (cell p{} r{} z{}) with lowres field", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k) << std::endl;
-              std::cout << std::format(" sanity: htEntries->FindBins(p{:.2f},r{:.2f},z{:.2f})=(p{},r{},z{})={}, content={}", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
-                htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
-                htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
-                htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin)) << std::endl;
-            
-              TVector3 globalPos= cellcenter+origin;  // the position of this field datapoint in the input system
-              //bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
-              float tr_low=htEntries->GetYaxis()->GetBinLowEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
-              float tr_high=htEntries->GetYaxis()->GetBinUpEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
-              float tz_low=htEntries->GetZaxis()->GetBinLowEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));
-              float tz_high=htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));  
-              float tphi_low=htEntries->GetXaxis()->GetBinLowEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
-              float tphi_high=htEntries->GetXaxis()->GetBinUpEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
-              TVector3 tlow(tr_low, 0, tz_low);  // the low edge of the bin in the input system
-              tlow.RotateZ(tphi_low);  // rotate to the correct phi
-              TVector3 thigh(tr_high, 0, tz_high);  // the high edge of the bin in the input system
-              thigh.RotateZ(tphi_high);  // rotate to the correct phi
-              tlow=tlow+origin;  // translate to the input coordinate system
-              thigh=thigh+origin;  // translate to the input coordinate system
-              if (phiSymmetry){
-                std::cout << std::format("this corresponds to (r,phi,z)=({},{},{}) in the input map coordinates, which has bounds roughly (r>{:.1f} && r<{:.1f} && z> {:.1f} && z<{:.1f})\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z()) << std::endl;
-              }else{
+            if (false)
+            {  // long debug check.
+              std::cout << std::format("Filling coordinates p{},r{},z{}, (cell p{} r{} z{}) with lowres field", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i, j, k) << std::endl;
+              std::cout << std::format(" sanity: htEntries->FindBins(p{:.2f},r{:.2f},z{:.2f})=(p{},r{},z{})={}, content={}", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(),
+                                       htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())),
+                                       htEntries->GetYaxis()->FindBin(cellcenter.Perp()),
+                                       htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin))
+                        << std::endl;
 
-                std::cout << std::format("this corresponds to (r,phi,z)=({},{},{}) in the input map coordinates, which has bounds roughly (r>{:.1f} && r<{:.1f} && phi>{:.1f} && phi<{:.1f} && z> {:.1f} && z<{:.1f})\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z()) << std::endl;
+              TVector3 globalPos = cellcenter + origin;  // the position of this field datapoint in the input system
+              // bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
+              float tr_low = htEntries->GetYaxis()->GetBinLowEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+              float tr_high = htEntries->GetYaxis()->GetBinUpEdge(htEntries->GetYaxis()->FindBin(cellcenter.Perp()));
+              float tz_low = htEntries->GetZaxis()->GetBinLowEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));
+              float tz_high = htEntries->GetZaxis()->GetBinUpEdge(htEntries->GetZaxis()->FindBin(cellcenter.Z()));
+              float tphi_low = htEntries->GetXaxis()->GetBinLowEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
+              float tphi_high = htEntries->GetXaxis()->GetBinUpEdge(htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())));
+              TVector3 tlow(tr_low, 0, tz_low);     // the low edge of the bin in the input system
+              tlow.RotateZ(tphi_low);               // rotate to the correct phi
+              TVector3 thigh(tr_high, 0, tz_high);  // the high edge of the bin in the input system
+              thigh.RotateZ(tphi_high);             // rotate to the correct phi
+              tlow = tlow + origin;                 // translate to the input coordinate system
+              thigh = thigh + origin;               // translate to the input coordinate system
+              if (phiSymmetry)
+              {
+                std::cout << std::format("this corresponds to (r,phi,z)=({},{},{}) in the input map coordinates, which has bounds roughly (r>{:.1f} && r<{:.1f} && z> {:.1f} && z<{:.1f})\n", globalPos.Perp(), globalPos.Phi(), globalPos.Z(), tlow.Perp(), thigh.Perp(), tlow.Z(), thigh.Z()) << std::endl;
               }
-            } 
+              else
+              {
+                std::cout << std::format("this corresponds to (r,phi,z)=({},{},{}) in the input map coordinates, which has bounds roughly (r>{:.1f} && r<{:.1f} && phi>{:.1f} && phi<{:.1f} && z> {:.1f} && z<{:.1f})\n", globalPos.Perp(), globalPos.Phi(), globalPos.Z(), tlow.Perp(), thigh.Perp(), tlow.Phi(), thigh.Phi(), tlow.Z(), thigh.Z()) << std::endl;
+              }
+            }
 
             TVector3 fieldvec(htSumLow[0]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
-               htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
-               htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
+                              htSumLow[1]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()),
+                              htSumLow[2]->Interpolate(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z()));
             int lowbin = htEntriesLow->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
-            //TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
- 
+            // TVector3 fieldvec(htSumLow[0]->GetBinContent(lowbin), htSumLow[1]->GetBinContent(lowbin), htSumLow[2]->GetBinContent(lowbin));
+
             if (htEntriesLow->GetBinContent(lowbin) < 0.99)
             {
-	      std::cout << std::format("not enough entries in source to fill fieldmap, even using the lower res fall-back. Value near r={:.2f}, phi={:.2f}, z={:.2f} is {}, (with range of {:.3f},{:.3f},{:.3f}) Pick lower granularity!",
-    cellcenter.Perp(), FilterPhiPos(cellcenter.Phi()), cellcenter.Z(),
-    htEntriesLow->GetBinContent(lowbin), r_lowres_step, phi_lowres_step, z_lowres_step) << std::endl;
+              std::cout << std::format("not enough entries in source to fill fieldmap, even using the lower res fall-back. Value near r={:.2f}, phi={:.2f}, z={:.2f} is {}, (with range of {:.3f},{:.3f},{:.3f}) Pick lower granularity!",
+                                       cellcenter.Perp(), FilterPhiPos(cellcenter.Phi()), cellcenter.Z(),
+                                       htEntriesLow->GetBinContent(lowbin), r_lowres_step, phi_lowres_step, z_lowres_step)
+                        << std::endl;
               std::cout << "Saving fieldmaps to debug.hist.root" << std::endl;
               TFile *debugfile = new TFile("debug.hist.root", "RECREATE");
               htEntries->Write();
@@ -1301,7 +1322,9 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
               }
               debugfile->Close();
               exit(1);
-            } else {
+            }
+            else
+            {
               fieldvec = fieldvec * (1.0 / htEntriesLow->GetBinContent(lowbin));
             }
             // have to rotate this to the proper direction.
@@ -1312,7 +1335,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
       }
     }
   }
-  //std::cout << "Field loaded." << std::endl;
+  // std::cout << "Field loaded." << std::endl;
   return;
 }
 
@@ -1364,9 +1387,9 @@ void AnnularFieldSim::load_and_resample_spacecharge(int new_nphi, int new_nr, in
   int hzn = hist->GetNbinsZ();
   std::cout << std::format("From histogram, native r dimensions: {}<r<{}, hrn (Y axis)={}", hrmin, hrmax, hrn) << std::endl;
 
-std::cout << std::format("From histogram, native phi dimensions: {}<phi<{}, hrn (X axis)={}", hphimin, hphimax, hphin) << std::endl;
+  std::cout << std::format("From histogram, native phi dimensions: {}<phi<{}, hrn (X axis)={}", hphimin, hphimax, hphin) << std::endl;
 
-std::cout << std::format("From histogram, native z dimensions: {}<z<{}, hrn (Z axis)={}", hzmin, hzmax, hzn) << std::endl;
+  std::cout << std::format("From histogram, native z dimensions: {}<z<{}, hrn (Z axis)={}", hzmin, hzmax, hzn) << std::endl;
 
   // do some computation of steps:
   float hrstep = (hrmax - hrmin) / hrn;
@@ -1431,8 +1454,8 @@ std::cout << std::format("From histogram, native z dimensions: {}<z<{}, hrn (Z a
           resampled->Fill(phi, r, z, hist->GetBinContent(bin));
         }
       }  // k (z loop)
-    }    // j (r loop)
-  }      // i (phi loop)
+    }  // j (r loop)
+  }  // i (phi loop)
   std::cout << "here in load_and_resample_spacecharge, I am going to call load_spacecharge." << std::endl;
   load_spacecharge(resampled, zoffset, chargescale, cmscale, true);
 }
@@ -1547,7 +1570,7 @@ void AnnularFieldSim::populate_fieldmap()
   //  remember that Efield uses relative indices
   std::cout << std::format("in pop_fieldmap, n=({},{},{})\n", nr, nphi, nz) << std::endl;
 
-std::cout << std::format("populating fieldmap for ({}x{}x{}) grid with ({}x{}x{}) source ", nr_roi, nphi_roi, nz_roi, nr, nphi, nz) << std::endl;
+  std::cout << std::format("populating fieldmap for ({}x{}x{}) grid with ({}x{}x{}) source ", nr_roi, nphi_roi, nz_roi, nr, nphi, nz) << std::endl;
 
   if (truncation_length > 0)
   {
@@ -1571,10 +1594,9 @@ std::cout << std::format("populating fieldmap for ({}x{}x{}) grid with ({}x{}x{}
         localF = sum_field_at(ir, iphi, iz);  // asks in global coordinates
         if (!(el % percent))
         {
-	  std::cout << std::format("populate_fieldmap {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
+          std::cout << std::format("populate_fieldmap {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
 
-std::cout << std::format("sum_field_at (ir={}, iphi={}, iz={}) gives ({:E},{:E},{:E})", ir, iphi, iz, localF.X(), localF.Y(), localF.Z()) << std::endl;
-
+          std::cout << std::format("sum_field_at (ir={}, iphi={}, iz={}) gives ({:E},{:E},{:E})", ir, iphi, iz, localF.X(), localF.Y(), localF.Z()) << std::endl;
         }
         el++;
 
@@ -1632,7 +1654,8 @@ void AnnularFieldSim::populate_full3d_lookup()
   // remember the 'f' part of Epartial uses relative indices.
   //   TVector3 (*f)[fx][fy][fz][ox][oy][oz]=field_;
   std::cout << std::format("populating full lookup table for ({}x{}x{})x({}x{}x{}) grid",
-    rmax_roi - rmin_roi, phimax_roi - phimin_roi, zmax_roi - zmin_roi, nr, nphi, nz) << std::endl;
+                           rmax_roi - rmin_roi, phimax_roi - phimin_roi, zmax_roi - zmin_roi, nr, nphi, nz)
+            << std::endl;
   unsigned long long totalelements = (rmax_roi - rmin_roi);
   totalelements *= (phimax_roi - phimin_roi);
   totalelements *= (zmax_roi - zmin_roi);
@@ -1662,7 +1685,7 @@ void AnnularFieldSim::populate_full3d_lookup()
               el++;
               if (!(el % percent))
               {
-		std::cout << std::format("populate_full3d_lookup {}%", static_cast<uint64_t>(debug_npercent) * el / percent) << std::endl;
+                std::cout << std::format("populate_full3d_lookup {}%", static_cast<uint64_t>(debug_npercent) * el / percent) << std::endl;
               }
               from = GetCellCenter(ior, iophi, ioz);
 
@@ -1718,8 +1741,8 @@ void AnnularFieldSim::populate_highres_lookup()
   {
     int r_parentlow = std::floor((ifr - r_highres_dist) / (r_spacing * 1.0));       // l-bin partly enclosed in our high-res region
     int r_parenthigh = std::floor((ifr + r_highres_dist) / (r_spacing * 1.0)) + 1;  // definitely not enclosed in our high-res region
-    int r_startpoint = r_parentlow * r_spacing;                                // the first f-bin of the lowest-r f-bin that our h-region touches.  COuld be less than zero.
-    int r_endpoint = r_parenthigh * r_spacing;                                 // the first f-bin of the lowest-r l-bin after that that our h-region does not touch.  could be larger than max.
+    int r_startpoint = r_parentlow * r_spacing;                                     // the first f-bin of the lowest-r f-bin that our h-region touches.  COuld be less than zero.
+    int r_endpoint = r_parenthigh * r_spacing;                                      // the first f-bin of the lowest-r l-bin after that that our h-region does not touch.  could be larger than max.
 
     for (int ifphi = phimin_roi; ifphi < phimax_roi; ifphi++)
     {
@@ -1869,7 +1892,7 @@ void AnnularFieldSim::populate_lowres_lookup()
   int fphi_low;
   int fphi_high;
   int fz_low;
-  int fz_high;             // edges of the outer l-bin
+  int fz_high;  // edges of the outer l-bin
   int r_low;
   int r_high;
   int phi_low;
@@ -1994,11 +2017,11 @@ void AnnularFieldSim::populate_phislice_lookup()
             {
               if (!(el % percent))
               {
-		std::cout << std::format("populate_phislice_lookup {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
+                std::cout << std::format("populate_phislice_lookup {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
 
-std::cout << std::format("self-to-self is zero (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) gives ({:E},{:E},{:E})",
-    ior, iophi, ioz, ifr, ifz, zero.X(), zero.Y(), zero.Z()) << std::endl;
-
+                std::cout << std::format("self-to-self is zero (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) gives ({:E},{:E},{:E})",
+                                         ior, iophi, ioz, ifr, ifz, zero.X(), zero.Y(), zero.Z())
+                          << std::endl;
               }
               Epartial_phislice->Set(ifr - rmin_roi, 0, ifz - zmin_roi, ior, iophi, ioz, zero);
             }
@@ -2009,11 +2032,11 @@ std::cout << std::format("self-to-self is zero (ir={}, iphi={}, iz={}) to (or={}
               {
                 if (!(el % percent))
                 {
-		  std::cout << std::format("populate_phislice_lookup {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
+                  std::cout << std::format("populate_phislice_lookup {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
 
-std::cout << std::format("calc_unit_field (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) gives ({:E},{:E},{:E})",
-    ior, iophi, ioz, ifr, ifz, unitf.X(), unitf.Y(), unitf.Z()) << std::endl;
-
+                  std::cout << std::format("calc_unit_field (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) gives ({:E},{:E},{:E})",
+                                           ior, iophi, ioz, ifr, ifz, unitf.X(), unitf.Y(), unitf.Z())
+                            << std::endl;
                 }
               }
 
@@ -2030,7 +2053,8 @@ std::cout << std::format("calc_unit_field (ir={}, iphi={}, iz={}) to (or={}, oph
 void AnnularFieldSim::load_phislice_lookup(const std::string &sourcefile)
 {
   std::cout << std::format("loading phislice lookup for ({}x{}x{})x({}x{}x{}) grid from {}",
-    nr_roi, 1, nz_roi, nr, nphi, nz, sourcefile) << std::endl;
+                           nr_roi, 1, nz_roi, nr, nphi, nz, sourcefile)
+            << std::endl;
   unsigned long long totalelements = nr;  // nr*nphi*nz*nr_roi*nz_roi
   totalelements *= nphi;
   totalelements *= nz;
@@ -2071,16 +2095,16 @@ void AnnularFieldSim::load_phislice_lookup(const std::string &sourcefile)
   std::cout << "param\tobj\tfile" << std::endl;
 
   std::cout << std::format("nr\t{}\t{}", nr, file_nr) << std::endl;
-std::cout << std::format("np\t{}\t{}", nphi, file_np) << std::endl;
-std::cout << std::format("nz\t{}\t{}", nz, file_nz) << std::endl;
-std::cout << std::format("rmin\t{:.2f}\t{:.2f}", rmin, file_rmin) << std::endl;
-std::cout << std::format("rmax\t{:.2f}\t{:.2f}", rmax, file_rmax) << std::endl;
-std::cout << std::format("zmin\t{:.2f}\t{:.2f}", zmin, file_zmin) << std::endl;
-std::cout << std::format("zmax\t{:.2f}\t{:.2f}", zmax, file_zmax) << std::endl;
-std::cout << std::format("rmin_roi\t{}\t{}", rmin_roi, file_rmin_roi) << std::endl;
-std::cout << std::format("rmax_roi\t{}\t{}", rmax_roi, file_rmax_roi) << std::endl;
-std::cout << std::format("zmin_roi\t{}\t{}", zmin_roi, file_zmin_roi) << std::endl;
-std::cout << std::format("zmax_roi\t{}\t{}", zmax_roi, file_zmax_roi) << std::endl;
+  std::cout << std::format("np\t{}\t{}", nphi, file_np) << std::endl;
+  std::cout << std::format("nz\t{}\t{}", nz, file_nz) << std::endl;
+  std::cout << std::format("rmin\t{:.2f}\t{:.2f}", rmin, file_rmin) << std::endl;
+  std::cout << std::format("rmax\t{:.2f}\t{:.2f}", rmax, file_rmax) << std::endl;
+  std::cout << std::format("zmin\t{:.2f}\t{:.2f}", zmin, file_zmin) << std::endl;
+  std::cout << std::format("zmax\t{:.2f}\t{:.2f}", zmax, file_zmax) << std::endl;
+  std::cout << std::format("rmin_roi\t{}\t{}", rmin_roi, file_rmin_roi) << std::endl;
+  std::cout << std::format("rmax_roi\t{}\t{}", rmax_roi, file_rmax_roi) << std::endl;
+  std::cout << std::format("zmin_roi\t{}\t{}", zmin_roi, file_zmin_roi) << std::endl;
+  std::cout << std::format("zmax_roi\t{}\t{}", zmax_roi, file_zmax_roi) << std::endl;
 
   if (file_rmin != rmin || file_rmax != rmax ||
       file_zmin != zmin || file_zmax != zmax ||
@@ -2089,7 +2113,6 @@ std::cout << std::format("zmax_roi\t{}\t{}", zmax_roi, file_zmax_roi) << std::en
       file_nr != nr || file_np != nphi || file_nz != nz)
   {
     std::cout << "file parameters do not match fieldsim parameters:" << std::endl;
-
 
     exit(1);
   }
@@ -2124,9 +2147,9 @@ std::cout << std::format("zmax_roi\t{}\t{}", zmax_roi, file_zmax_roi) << std::en
     {
       std::cout << std::format("load_phislice_lookup {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
 
-std::cout << std::format("field from (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) is ({:E},{:E},{:E})",
-    ior, iophi, ioz, ifr, ifz, unitf->X(), unitf->Y(), unitf->Z()) << std::endl;
-
+      std::cout << std::format("field from (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) is ({:E},{:E},{:E})",
+                               ior, iophi, ioz, ifr, ifz, unitf->X(), unitf->Y(), unitf->Z())
+                << std::endl;
     }
   }
 
@@ -2198,10 +2221,11 @@ void AnnularFieldSim::save_phislice_lookup(const std::string &destfile)
             {
               if (!(el % percent))
               {
-		std::cout << std::format("save_phislice_lookup {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
+                std::cout << std::format("save_phislice_lookup {}%:  ", static_cast<uint64_t>(debug_npercent) * el / percent);
 
-std::cout << std::format("field from (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) is ({:E},{:E},{:E})",
-    ior, iophi, ioz, ifr, ifz, unitf.X(), unitf.Y(), unitf.Z()) << std::endl;
+                std::cout << std::format("field from (ir={}, iphi={}, iz={}) to (or={}, ophi=0, oz={}) is ({:E},{:E},{:E})",
+                                         ior, iophi, ioz, ifr, ifz, unitf.X(), unitf.Y(), unitf.Z())
+                          << std::endl;
               }
             }
 
@@ -2280,7 +2304,7 @@ TVector3 AnnularFieldSim::sum_field_at(int r, int phi, int z)
   sum += Eexternal->Get(r - rmin_roi, phi - phimin_roi, z - zmin_roi);
   if (debugFlag())
   {
-    std::cout << std::format( "summed field at ({},{},{})=({},{},{})", r, phi, z, sum.X(), sum.Y(), sum.Z()) << std::endl;
+    std::cout << std::format("summed field at ({},{},{})=({},{},{})", r, phi, z, sum.X(), sum.Y(), sum.Z()) << std::endl;
   }
 
   return sum;
@@ -2374,7 +2398,8 @@ TVector3 AnnularFieldSim::sum_local_field_at(int r, int phi, int z)
   int z_parentlow = std::floor((z - z_highres_dist) / (z_spacing * 1.0));
   int z_parenthigh = std::floor((z + z_highres_dist) / (z_spacing * 1.0)) + 1;
   std::cout << std::format("AnnularFieldSim::sum_local_field_at parents: rlow={}, philow={}, zlow={}, rhigh={}, phihigh={}, zhigh={}",
-    r_parentlow, phi_parentlow, z_parentlow, r_parenthigh, phi_parenthigh, z_parenthigh) << std::endl;
+                           r_parentlow, phi_parentlow, z_parentlow, r_parenthigh, phi_parenthigh, z_parenthigh)
+            << std::endl;
 
   // zero our current qlocal holder:
   for (int i = 0; i < q_local->Length(); i++)
@@ -2469,7 +2494,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   bool skip[] = {false, false, false, false, false, false, false, false};
 
   float r0 = r / (1.0 * r_spacing) - 0.5 - rmin_roi_low;  // the position in r, in units of r_spacing, starting from the center of the 0th l-bin in the roi.
-  int r0i = std::floor(r0);                                    // the integer portion of the position. -- what center is below our position?
+  int r0i = std::floor(r0);                               // the integer portion of the position. -- what center is below our position?
   float r0d = r0 - r0i;                                   // the decimal portion of the position. -- how far past center are we?
   // instead of listing all eight, I'll address these as i%2, (i/2)%2 and (i/4)%2 to avoid typos
   int ri[2];  // the r position of the eight cell centers to consider.
@@ -2508,9 +2533,9 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   float p0 = phi / (1.0 * phi_spacing) - 0.5 - phimin_roi_low;  // the position 'phi' in  units of phi_spacing, starting from the center of the 0th bin.
   // print_need_cout("prepping to filter low, p0=%f, phi=%d, phi_spacing=%d, phimin_roi_low=%d\n",p0,phi,phi_spacing,phimin_roi_low);
 
-  int p0i = std::floor(p0);   // the integer portion of the position. -- what center is below our position?
-  float p0d = p0 - p0i;  // the decimal portion of the position. -- how far past center are we?
-  int pi[4];             // the local phi position of the four l-bin centers to consider
+  int p0i = std::floor(p0);  // the integer portion of the position. -- what center is below our position?
+  float p0d = p0 - p0i;      // the decimal portion of the position. -- how far past center are we?
+  int pi[4];                 // the local phi position of the four l-bin centers to consider
   // print_need_cout("filtering low, p0i=%d, nphi_low=%d\n",p0i,nphi_low);
   // Q: why do I need to filter here?
   // A: Worst case scenario, this produces -1<p0<0.  If that wraps around and is still in the roi, I should include it
@@ -2552,7 +2577,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   // and once more for z.  ooph.
 
   float z0 = z / (1.0 * z_spacing) - 0.5 - zmin_roi_low;  // the position in r, in units of r_spacing, starting from the center of the 0th bin.
-  int z0i = std::floor(z0);                                    // the integer portion of the position. -- what center is below our position?
+  int z0i = std::floor(z0);                               // the integer portion of the position. -- what center is below our position?
   float z0d = z0 - z0i;                                   // the decimal portion of the position. -- how far past center are we?
   // instead of listing all eight, I'll address these as i%2, (i/2)%2 and (i/4)%2 to avoid typos
   int zi[2];  // the r position of the eight cell centers to consider.
@@ -2588,8 +2613,8 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
   TVector3 sum(0, 0, 0);
   // at this point, we should be skipping all destination l-bins that are out-of-bounds.
   // note that if any out-of-bounds ones survive somehow, the call to Epartial_lowres will fail loudly.
-  int lBinEdge[2];              // lower and upper (included) edges of the low-res bin, measured in f-bins, reused per-dimension
-  int hRegionEdge[2];           // lower and upper edge of the high-res region, measured in f-bins, reused per-dimension.
+  int lBinEdge[2];     // lower and upper (included) edges of the low-res bin, measured in f-bins, reused per-dimension
+  int hRegionEdge[2];  // lower and upper edge of the high-res region, measured in f-bins, reused per-dimension.
   bool overlapsPhi;
   bool overlapsZ;  // whether we overlap in R, phi, and z.
 
@@ -2626,29 +2651,28 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
           // if their bounds are interleaved in all dimensions, there is overlap, and we've already summed this region.
           continue;
         }
-        
-                  // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::sum_field_at, considering l-bin at(r=%d,phi=%d, z=%d)\n",__LINE__,ir,iphi,iz);
 
-          for (int i = 0; i < 8; i++)
+        // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::sum_field_at, considering l-bin at(r=%d,phi=%d, z=%d)\n",__LINE__,ir,iphi,iz);
+
+        for (int i = 0; i < 8; i++)
+        {
+          if (skip[i])
           {
-            if (skip[i])
-            {
-              continue;
-            }
-            if (ri[(i / 4) % 2] + rmin_roi_low == ir && pi[(i / 2) % 2] + phimin_roi_low == iphi && zi[(i) % 2] + zmin_roi_low == iz)
-            {
-	      std::cout << std::format("considering an l-bins effect on itself, r={}, phi={}, z={} (matches i={}, not skipped), means we're not interpolating fairly", ir, iphi, iz, i) << std::endl;
-              exit(1);
-            }
-            // the ri, pi, and zi elements are relative to the roi, as needed for Epartial.
-            // the ir, iphi, and iz are all absolute, as needed for q_lowres
-            if (pi[(i / 2) % 2] < 0)
-            {
-              std::cout << std::format("{}: Getting with phi={}", __LINE__, (pi[(i / 2) % 2])) << std::endl;
-            }
-            sum += (Epartial_lowres->Get(ri[(i / 4) % 2], pi[(i / 2) % 2], zi[(i) % 2], ir, iphi, iz) * q_lowres->Get(ir, iphi, iz)) * zw[(i) % 2] * pw[(i / 2) % 2] * rw[(i / 4) % 2];
+            continue;
           }
-       
+          if (ri[(i / 4) % 2] + rmin_roi_low == ir && pi[(i / 2) % 2] + phimin_roi_low == iphi && zi[(i) % 2] + zmin_roi_low == iz)
+          {
+            std::cout << std::format("considering an l-bins effect on itself, r={}, phi={}, z={} (matches i={}, not skipped), means we're not interpolating fairly", ir, iphi, iz, i) << std::endl;
+            exit(1);
+          }
+          // the ri, pi, and zi elements are relative to the roi, as needed for Epartial.
+          // the ir, iphi, and iz are all absolute, as needed for q_lowres
+          if (pi[(i / 2) % 2] < 0)
+          {
+            std::cout << std::format("{}: Getting with phi={}", __LINE__, (pi[(i / 2) % 2])) << std::endl;
+          }
+          sum += (Epartial_lowres->Get(ri[(i / 4) % 2], pi[(i / 2) % 2], zi[(i) % 2], ir, iphi, iz) * q_lowres->Get(ir, iphi, iz)) * zw[(i) % 2] * pw[(i / 2) % 2] * rw[(i / 4) % 2];
+        }
       }
     }
   }
@@ -2734,12 +2758,14 @@ TVector3 AnnularFieldSim::swimToInAnalyticSteps(float zdest, TVector3 start, int
     if (GetRindexAndCheckBounds(ret.Perp(), &rt) != InBounds || GetPhiIndexAndCheckBounds(FilterPhiPos(ret.Phi()), &pt) != InBounds || (zBound == OutOfBounds))
     {
       std::cout << std::format("AnnularFieldSim::swimToInAnalyticSteps at step {} asked to swim particle from ({},{},{}) (rphiz)=({}cm,{}rad,{}cm) which is outside the ROI.",
-    i, ret.X() / cm, ret.Y() / cm, ret.Z() / cm, ret.Perp() / cm, ret.Phi(), ret.Z() / cm) << std::endl;
+                               i, ret.X() / cm, ret.Y() / cm, ret.Z() / cm, ret.Perp() / cm, ret.Phi(), ret.Z() / cm)
+                << std::endl;
 
-std::cout << std::format(" -- {} <= r < {} \t{} <= phi < {} \t{} <= z < {}",
-    rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
-    phimin_roi * step.Phi(), phimax_roi * step.Phi(),
-    zmin_roi * step.Z(), zmax_roi * step.Z()) << std::endl;
+      std::cout << std::format(" -- {} <= r < {} \t{} <= phi < {} \t{} <= z < {}",
+                               rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
+                               phimin_roi * step.Phi(), phimax_roi * step.Phi(),
+                               zmin_roi * step.Z(), zmax_roi * step.Z())
+                << std::endl;
 
       if (!(goodToStep == nullptr))
       {
@@ -2798,13 +2824,15 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
       }
     }
     // otherwise, we're not in the twin, and default to our usual gripe:
-    std::cout << std::format( "AnnularFieldSim::GetTotalDistortion starting at ({},{},{})=(r{},p{},z{}) asked to drift to z={}, which is outside the ROI. hasTwin= {}. Returning zero_vector.",
-    start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), zdest, static_cast<int>(hasTwin)) << std::endl;
+    std::cout << std::format("AnnularFieldSim::GetTotalDistortion starting at ({},{},{})=(r{},p{},z{}) asked to drift to z={}, which is outside the ROI. hasTwin= {}. Returning zero_vector.",
+                             start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), zdest, static_cast<int>(hasTwin))
+              << std::endl;
 
-std::cout << std::format(" -- {} <= r < {} \t{} <= phi < {} \t{} <= z < {}",
-    rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
-    phimin_roi * step.Phi(), phimax_roi * step.Phi(),
-    zmin_roi * step.Z(), zmax_roi * step.Z()) << std::endl;
+    std::cout << std::format(" -- {} <= r < {} \t{} <= phi < {} \t{} <= z < {}",
+                             rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
+                             phimin_roi * step.Phi(), phimax_roi * step.Phi(),
+                             zmin_roi * step.Z(), zmax_roi * step.Z())
+              << std::endl;
 
     *goodToStep = 0;
     *success = 0;
@@ -2819,12 +2847,14 @@ std::cout << std::format(" -- {} <= r < {} \t{} <= phi < {} \t{} <= z < {}",
   if (zBound == OutOfBounds)
   {
     std::cout << std::format("AnnularFieldSim::GetTotalDistortion starting at ({},{},{})=(r{},p{},z{}) asked to drift from z={}, which is outside the ROI. Returning zero_vector.",
-    start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), start.Z()) << std::endl;
+                             start.X(), start.Y(), start.Z(), start.Perp(), FilterPhiPos(start.Phi()), start.Z(), start.Z())
+              << std::endl;
 
-std::cout << std::format(" -- {} <= r < {} \t{} <= phi < {} \t{} <= z < {}",
-    rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
-    phimin_roi * step.Phi(), phimax_roi * step.Phi(),
-    zmin_roi * step.Z(), zmax_roi * step.Z()) << std::endl;
+    std::cout << std::format(" -- {} <= r < {} \t{} <= phi < {} \t{} <= z < {}",
+                             rmin_roi * step.Perp() + rmin, rmax_roi * step.Perp() + rmin,
+                             phimin_roi * step.Phi(), phimax_roi * step.Phi(),
+                             zmin_roi * step.Z(), zmax_roi * step.Z())
+              << std::endl;
     *goodToStep = 0;
     *success = 0;
     return zero_vector;
@@ -2941,7 +2971,8 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase, const TVector
   }
 
   std::cout << std::format("plotting field slices for {} field, slicing at ({:.2f},{:.2f},{:.2f})...",
-    which, pos.Perp(), FilterPhiPos(pos.Phi()), pos.Z()) << std::endl;
+                           which, pos.Perp(), FilterPhiPos(pos.Phi()), pos.Z())
+            << std::endl;
 
   std::cout << "file=" << filebase << std::endl;
 
@@ -2968,7 +2999,8 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase, const TVector
     axbot[2] = axbot[5] = (float) (twin->GetInnerEdge().Z());
   }
   std::cout << std::format("rpz bounds are {}<r{}\t {}<phi{}\t {}<z{}",
-    axbot[0], axtop[0], axbot[1], axtop[1], axbot[2], axtop[2]) << std::endl;
+                           axbot[0], axtop[0], axbot[1], axtop[1], axbot[2], axtop[2])
+            << std::endl;
 
   float axstep[6];
   for (int i = 0; i < 6; i++)
@@ -2983,22 +3015,25 @@ void AnnularFieldSim::PlotFieldSlices(const std::string &filebase, const TVector
   {
     // loop over which axis slice to take
     hCharge[ax] = new TH2F(std::string("hCharge" + axis[ax]).c_str(),
-			   std::format("Spacecharge Distribution in the {}{} plane at {}={:.3f} (C/cm^3);{};{}",
-				       axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], axis[ax + 1], axis[ax + 2]).c_str(),
+                           std::format("Spacecharge Distribution in the {}{} plane at {}={:.3f} (C/cm^3);{};{}",
+                                       axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], axis[ax + 1], axis[ax + 2])
+                               .c_str(),
                            axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                            axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
     for (int i = 0; i < 3; i++)
     {
       // loop over which axis of the field to read
       hEfield[ax][i] = new TH2F(std::format("h{}field{}_{}{}", which, axis[i], axis[ax + 1], axis[ax + 2]).c_str(),
-std::format("{} component of {} Field in the {}{} plane at {}={:.3f} ({}) ;{};{}",
-	    axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], units, axis[ax + 1], axis[ax + 2]).c_str(),
+                                std::format("{} component of {} Field in the {}{} plane at {}={:.3f} ({}) ;{};{}",
+                                            axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax], units, axis[ax + 1], axis[ax + 2])
+                                    .c_str(),
 
                                 axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                 axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
       hEfieldComp[ax][i] = new TH1F(std::format("h{}fieldComp{}_{}{}", which, axis[i], axis[ax + 1], axis[ax + 2]).c_str(),
-				    std::format("Log Magnitude of {} component of {} Field in the {}{} plane at {}={:.3f};log10(mag)",
-    axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax]).c_str(),
+                                    std::format("Log Magnitude of {} component of {} Field in the {}{} plane at {}={:.3f};log10(mag)",
+                                                axis[i], which, axis[ax + 1], axis[ax + 2], axis[ax], axisval[ax])
+                                        .c_str(),
                                     200, -5, 5);
     }
   }
@@ -3017,9 +3052,10 @@ std::format("{} component of {} Field in the {}{} plane at {}={:.3f} ({}) ;{};{}
         lpos.SetPhi(rpz_coord[1]);
         if (false && ax == 0)
         {
-	  std::cout << std::format("sampling rpz=({},{},{})=({},{},{}) after conversion to xyz=({},{},{})",
-    rpz_coord[0], rpz_coord[1], rpz_coord[2], lpos.Perp(), FilterPhiPos(lpos.Phi()), lpos.Z(),
-    lpos.X(), lpos.Y(), lpos.Z()) << std::endl;
+          std::cout << std::format("sampling rpz=({},{},{})=({},{},{}) after conversion to xyz=({},{},{})",
+                                   rpz_coord[0], rpz_coord[1], rpz_coord[2], lpos.Perp(), FilterPhiPos(lpos.Phi()), lpos.Z(),
+                                   lpos.X(), lpos.Y(), lpos.Z())
+                    << std::endl;
         }
         if (mapEfield)
         {
@@ -3125,8 +3161,8 @@ void AnnularFieldSim::GenerateSeparateDistortionMaps(const std::string &filebase
   std::cout << "generating distortion map..." << std::endl;
   std::cout << "file=" << filebase << std::endl;
   std::cout << std::format("Phi:  {} steps from {} to {} (field has {} steps)", nph, pih, pfh, GetFieldStepsPhi()) << std::endl;
-std::cout << std::format("R:  {} steps from {} to {} (field has {} steps)", nrh, rih, rfh, GetFieldStepsR()) << std::endl;
-std::cout << std::format("Z:  {} steps from {} to {} (field has {} steps)", nzh, zih, zfh, GetFieldStepsZ()) << std::endl;
+  std::cout << std::format("R:  {} steps from {} to {} (field has {} steps)", nrh, rih, rfh, GetFieldStepsR()) << std::endl;
+  std::cout << std::format("Z:  {} steps from {} to {} (field has {} steps)", nzh, zih, zfh, GetFieldStepsZ()) << std::endl;
   std::string distortionFilename = filebase + ".distortion_map.hist.root";
   std::string summaryFilename = filebase + "distortion_summary.pdf";
   std::string diffSummaryFilename = filebase + "differential_summary.pdf";
@@ -3194,8 +3230,8 @@ std::cout << std::format("Z:  {} steps from {} to {} (field has {} steps)", nzh,
   // monitor plots, and the position that that plot monitors at:
 
   // TVector3 pos((nrh/2+0.5)*s.Perp()+rih,0,(nzh/2+0.5)*s.Z()+zih);
-  TVector3 pos(((nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((nz / 2) + 0.5) * step.Z());
-  float posphi = ((nph / 2) + 0.5) * steplocal.Phi() + pih;
+  TVector3 pos(((nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((nz / 2) + 0.5) * step.Z()); // NOLINT(bugprone-integer-division)
+  float posphi = ((nph / 2) + 0.5) * steplocal.Phi() + pih; // NOLINT(bugprone-integer-division)
   pos.SetPhi(posphi);
   // int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3] = {(int) std::floor((pos.Perp() - rih) / steplocal.Perp()), (int) std::floor((posphi - pih) / steplocal.Phi()), (int) std::floor((pos.Z() - zih) / steplocal.Z())};
@@ -3225,27 +3261,29 @@ std::cout << std::format("Z:  {} steps from {} to {} (field has {} steps)", nzh,
     {
       // loop over which plane to work in
       hDiffDist[ax][i] = new TH2F(std::string("hDiffDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
-				  std::format("{} component of diff. distortion in {}{} plane at {}={:.3f};{};{}",
-    axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
+                                  std::format("{} component of diff. distortion in {}{} plane at {}={:.3f};{};{}",
+                                              axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2])
+                                      .c_str(),
                                   axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                   axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
       hIntDist[ax][i] = new TH2F(std::string("hIntDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
-				 std::format("{} component of int. distortion in {}{} plane at {}={:.3f};{};{}",
-    axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
+                                 std::format("{} component of int. distortion in {}{} plane at {}={:.3f};{};{}",
+                                             axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2])
+                                     .c_str(),
                                  axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                  axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
     }
     hRDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                            std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
     hRDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                            std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
     hRDiffDist[0][i] = new TH1F(std::string("hRDiffDist" + axname[i]).c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                                std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
     hRDiffDist[1][i] = new TH1F(std::string("hRDiffDist" + axname[i] + "Neg").c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                                std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
   }
 
@@ -3454,8 +3492,8 @@ std::cout << std::format("Z:  {} steps from {} to {} (field has {} steps)", nzh,
 
           if (!(el % waypoint))
           {
-	    std::cout << std::format("generating distortions {}%:  ", static_cast<int>(el / percent));
-std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E})", ir, ip, iz, distortR, distortP, distortZ) << std::endl;
+            std::cout << std::format("generating distortions {}%:  ", static_cast<int>(el / percent));
+            std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E})", ir, ip, iz, distortR, distortP, distortZ) << std::endl;
           }
           el++;
         }
@@ -3527,7 +3565,7 @@ std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E}
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos,std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
+    tex->DrawLatex(0.05, texpos, std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -3745,8 +3783,8 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   // monitor plots, and the position that plot monitors at:
 
   // TVector3 pos((nrh/2+0.5)*steplocal.Perp()+rih,0,(nzh/2+0.5)*steplocal.Z()+zih);
-  TVector3 pos(((nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((nz / 2) + 0.5) * step.Z());
-  float posphi = ((nph / 2) + 0.5) * steplocal.Phi() + pih;
+  TVector3 pos(((nrh / 2) + 0.5) * steplocal.Perp() + rih, 0, zmin + ((nz / 2) + 0.5) * step.Z()); // NOLINT(bugprone-integer-division)
+  float posphi = ((nph / 2) + 0.5) * steplocal.Phi() + pih; // NOLINT(bugprone-integer-division)
   pos.SetPhi(posphi);
   // int xi[3]={nrh/2,nph/2,nzh/2};
   int xi[3] = {(int) std::floor((pos.Perp() - rih) / steplocal.Perp()), (int) std::floor((posphi - pih) / steplocal.Phi()), (int) std::floor((pos.Z() - zih) / steplocal.Z())};
@@ -3777,25 +3815,25 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
     {
       // loop over which plane to work in
       hDiffDist[ax][i] = new TH2F(std::string("hDiffDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
-				  std::format("{} component of diff. distortion in {}{} plane at {}={:.3f};{};{}", axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
+                                  std::format("{} component of diff. distortion in {}{} plane at {}={:.3f};{};{}", axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
                                   axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                   axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
       hIntDist[ax][i] = new TH2F(std::string("hDIntDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
-				 std::format("{} component of int. distortion in {}{} plane at {}={:.3f};{};{}", axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
+                                 std::format("{} component of int. distortion in {}{} plane at {}={:.3f};{};{}", axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
                                  axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                  axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
     }
     hRDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                            std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
     hRDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                            std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
     hRDiffDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                                std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
     hRDiffDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
-			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
+                                std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
   }
 
@@ -3989,8 +4027,8 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
 
         if (!(el % percent))
         {
-	  std::cout << std::format("generating distortions {}%:  ", static_cast<int>(debug_npercent * (el / percent)));
-std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E})", ir, ip, iz, distortR, distortP, distortZ) << std::endl;
+          std::cout << std::format("generating distortions {}%:  ", static_cast<int>(debug_npercent * (el / percent)));
+          std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E})", ir, ip, iz, distortR, distortP, distortZ) << std::endl;
         }
         el++;
       }
@@ -4117,7 +4155,7 @@ std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E}
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos,std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
+    tex->DrawLatex(0.05, texpos, std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -4240,7 +4278,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
   {
     std::cout << "GetStepDistortion is attempting to swim with no drift field:" << std::endl;
     std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
-std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})",fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
     exit(1);
   }
   // float fieldz=field_[in3(x,y,0,fx,fy,fz)].Z()+E.Z();// *field[x][y][zi].Z();
@@ -4282,11 +4320,11 @@ std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})",fieldInt
   if (false)
   {
     std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
-std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
-std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
+    std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
   }
 
   // if (std::abs(deltaZ / zdist) > 0.25)
@@ -4294,14 +4332,14 @@ std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, de
   {
     std::cout << "GetStepDistortion produced a very large zdistortion!" << std::endl;
     std::cout << std::format("GetStepDistortion: zdist={:.4f}, deltaZ={:.4f}, Delta/z={:.4f}", zdist, deltaZ, deltaZ / zdist) << std::endl;
-std::cout << std::format("GetStepDistortion: average field Z:  Ez={:.4f}V/cm, Bz={:.4f}T", EfieldZ / (V / cm), BfieldZ / Tesla) << std::endl;
-std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
-std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
-std::cout << std::format("GetStepDistortion: EfieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: BfieldInt=({:E},{:E},{:E})", fieldIntB.X(), fieldIntB.Y(), fieldIntB.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion: average field Z:  Ez={:.4f}V/cm, Bz={:.4f}T", EfieldZ / (V / cm), BfieldZ / Tesla) << std::endl;
+    std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
+    std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
+    std::cout << std::format("GetStepDistortion: EfieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: BfieldInt=({:E},{:E},{:E})", fieldIntB.X(), fieldIntB.Y(), fieldIntB.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
 
     // assert(false);
   }
@@ -4309,12 +4347,12 @@ std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, de
   if (std::abs(deltaX) < 1E-20 && !(chargeCase == NoSpacecharge))
   {
     std::cout << std::format("GetStepDistortion produced a very small deltaX: {:E}", deltaX) << std::endl;
-std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
-std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
-std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
+    std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
+    std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
 
     // assert(1==2);
   }
@@ -4323,12 +4361,13 @@ std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, de
   if (false)
   {
     std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
-std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) (rp)=({:.4f},{:.4f}) to z={:.4f}",
-                         start.X(), start.Y(), start.Z(), start.Perp(), start.Phi(), zdest) << std::endl;
-std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
-std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) (rp)=({:.4f},{:.4f}) to z={:.4f}",
+                             start.X(), start.Y(), start.Z(), start.Perp(), start.Phi(), zdest)
+              << std::endl;
+    std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
     exit(1);
   }
 
@@ -4365,7 +4404,6 @@ std::string AnnularFieldSim::GetLookupString()
 std::string AnnularFieldSim::GetGasString()
 {
   return std::format("vdrift={:.2f}cm/us, Enom={:.2f}V/cm, Bnom={:.2f}T, omtau={:.4E}", vdrift / (cm / us), Enominal / (V / cm), Bnominal / Tesla, omegatau_nominal);
-
 }
 
 std::string AnnularFieldSim::GetFieldString()
