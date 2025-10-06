@@ -18,7 +18,8 @@
 //
 
 #include <cmath>
-#include <cstdio>
+#include <format>
+#include <iostream>
 #include <limits>
 #include <map>
 #include <string>
@@ -32,12 +33,12 @@ class Rossegger
 {
  public:
   explicit Rossegger(const std::string &filename);
-  Rossegger(double a = 30, double b = 80, double L = 80, double epsilon = 1E-4);
-  virtual ~Rossegger() {}
+  Rossegger(double InnerRadius = 30, double OuterRadius = 80, double Rdo_Z = 80, double precision = 1E-4);
+  virtual ~Rossegger() = default;
 
   void Verbosity(int v)
   {
-    printf("verbosity set to %d.  was %d\n", v, verbosity);
+    std::cout << std::format("verbosity set to {}.  was {}", v, verbosity) << std::endl;
     verbosity = v;
     return;
   };
@@ -45,7 +46,7 @@ class Rossegger
   double Rmn_for_zeroes(int m, double x);           // Rmn function from Rossegger, as used to find Betamn zeroes.
   double Rmn1(int m, int n, double r);              // Rmn1 function from Rossegger
   double Rmn2(int m, int n, double r);              // Rmn2 function from Rossegger
-  double RPrime(int m, int n, double a, double r);  // RPrime function from Rossegger
+  double RPrime(int m, int n, double ref, double r);  // RPrime function from Rossegger
 
   double Rnk(int n, int k, double r);       // Rnk function from Rossegger
   double Rnk_for_zeroes(int n, double mu);  // Rnk function from Rossegger, as used to find munk zeroes.
@@ -62,7 +63,7 @@ class Rossegger
   // Rmn_for_zeroes doesn't have a way to speed it up with precalcs.
   double Rmn1_(int m, int n, double r);              // Rmn1 function from Rossegger
   double Rmn2_(int m, int n, double r);              // Rmn2 function from Rossegger
-  double RPrime_(int m, int n, double a, double r);  // RPrime function from Rossegger
+  double RPrime_(int m, int n, double ref, double r);  // RPrime function from Rossegger
   double Rnk_(int n, int k, double r);               // Rnk function from Rossegger
   double Rnk_for_zeroes_(int n, double mu);          // Rnk function from Rossegger, as used to find munk zeroes.
   double Ez_(double r, double phi, double z, double r1, double phi1, double z1);

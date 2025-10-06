@@ -366,7 +366,7 @@ double Rossegger::Kimu(double mu, double x)
   return DKI;
 }
 
-double Rossegger::Rmn_for_zeroes(int m, double x)
+double Rossegger::Rmn_for_zeroes(int m, double x) // NOLINT(readability-make-member-function-const)
 {
   double lx = a * x / b;
   //  Rossegger Equation 5.12:
@@ -488,7 +488,7 @@ double Rossegger::Rmn1(int m, int n, double r)
   return R;
 }
 
-double Rossegger::Rmn1_(int m, int n, double r)
+double Rossegger::Rmn1_(int m, int n, double r) // NOLINT(readability-make-member-function-const)
 {
   //  Check input arguments for sanity...
   int error = 0;
@@ -553,7 +553,7 @@ double Rossegger::Rmn2(int m, int n, double r)
   return R;
 }
 
-double Rossegger::Rmn2_(int m, int n, double r)
+double Rossegger::Rmn2_(int m, int n, double r) // NOLINT(readability-make-member-function-const)
 {
   //  Check input arguments for sanity...
   int error = 0;
@@ -629,7 +629,7 @@ double Rossegger::RPrime(int m, int n, double ref, double r)
   return R;
 }
 
-double Rossegger::RPrime_(int m, int n, double ref, double r)
+double Rossegger::RPrime_(int m, int n, double ref, double r) // NOLINT(readability-make-member-function-const)
 {
   //  Check input arguments for sanity...
   int error = 0;

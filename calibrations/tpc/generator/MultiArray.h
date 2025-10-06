@@ -3,8 +3,9 @@
 #define MULTIARRAY_H
 
 #include <cassert>
-#include <cstdio>   // for printf
 #include <cstdlib>  // for malloc
+#include <format>
+#include <iostream>
 
 template <class T>
 class MultiArray
@@ -91,7 +92,7 @@ class MultiArray
     {
       if (n[i] <= n_[i] || n_[i] < 0)
       {  // check bounds
-        printf("asking for el %d %d %d %d %d %d.  %dth element is outside of bounds 0<x<%d\n", n_[0], n_[1], n_[2], n_[3], n_[4], n_[5], n_[i], n[i]);
+	std::cout << std::format("asking for el {} {} {} {} {} {}.  {}th element is outside of bounds 0<x<{}", n_[0], n_[1], n_[2], n_[3], n_[4], n_[5], n_[i], n[i]) << std::endl;
         assert(false);
       }
       index = (index * n[i]) + n_[i];
@@ -120,7 +121,7 @@ class MultiArray
   {  // get the value at position a in the 1D equivalent, assuming the math is done elsewhere, or we're just going straight through the thing.
     if (a < 0 || a >= length)
     {
-      printf("tried to seek element %d of multiarray, but bounds are 0<a<%ld\n", a, length);
+      std::cout << std::format("tried to seek element {} of multiarray, but bounds are 0<a<{}", a, length) << std::endl;
       assert(a < 0 || a >= length);  // check bounds
     }
     return &(field[a]);
