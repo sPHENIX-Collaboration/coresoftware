@@ -16,8 +16,6 @@
 #include <TTree.h>
 #include <TVector3.h>
 
-#include <boost/format.hpp>
-
 #include <algorithm>
 #include <cassert>  // for assert
 #include <cmath>
@@ -1034,7 +1032,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
   fieldFile.GetObject(treename.c_str(), fTree);
-  Bfieldname = "B(3D):" + filename + ":" + treename + " Scale =" + boost::str(boost::format("%2.2f") % scale);
+  Bfieldname = "B(3D):" + filename + ":" + treename + " Scale =" + std::format("{:.2f}", scale);
   float r;
   float z;
   float phi;     // coordinates
@@ -1080,7 +1078,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
   float z_lowres_step = (zmax - zmin) / nlowbins_z;  // the step size in z for the low-res histogram
 
 
-  std::cout << boost::str(boost::format("loading field from %f<z<%f") % zmin % zmax) << std::endl;
+  std::cout << std::format("loading field from {}<z<{}", zmin, zmax) << std::endl;
   TH3F *htEntries = new TH3F("htentries", "num of entries in the field loading", nphi, 0, M_PI * 2.0, nr, rmin, rmax, nz, zmin, zmax);
   TH3F *htSum[3];
   TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nlowbins_phi+2,  -phi_lowres_step, M_PI * 2.0+phi_lowres_step, nlowbins_r+2, rmin-r_lowres_step, rmax+r_lowres_step, nlowbins_z+2, zmin-z_lowres_step, zmax+z_lowres_step);
@@ -1219,7 +1217,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
   }
   if (nemptybins > 0)
   {
-    std::cout << boost::str(boost::format("found %d empty bins when constructing %s.  Filling with lower resolution.") % nemptybins % ((*field == Bfield) ? "Bfield" : "Eexternal")) << std::endl;
+    std::cout << std::format("found {} empty bins when constructing {}.  Filling with lower resolution.", nemptybins, ((*field == Bfield) ? "Bfield" : "Eexternal")) << std::endl;
 
     //first, we need to stitch the lowest phibin together with the highest phibin, by setting the lowest phi bin contents and nentries to be the same as the highest-1, and the highest to the lowest+1:
     for (int j=0; j<htEntriesLow->GetNbinsY(); j++){
@@ -2116,7 +2114,7 @@ std::cout << std::format("zmax_roi\t{}\t{}", zmax_roi, file_zmax_roi) << std::en
   tLookup->SetBranchAddress("Evec", &unitf);  // assume field has units V/(C*cm)
 
   int el = 0;
-  std::cout << boost::str(boost::format("%s has %lld entries") % sourcefile % tLookup->GetEntries());
+  std::cout << std::format("{} has {} entries", sourcefile, tLookup->GetEntries());
   for (int i = 0; i < (int) totalelements; i++)
   {
     el++;
@@ -2140,7 +2138,7 @@ std::cout << std::format("field from (ir={}, iphi={}, iz={}) to (or={}, ophi=0, 
 
 void AnnularFieldSim::save_phislice_lookup(const std::string &destfile)
 {
-  std::cout << boost::str(boost::format("saving phislice  lookup for (%dx%dx%d)x(%dx%dx%d) grid to %s") % nr_roi % 1 % nz_roi % nr % nphi % nz % destfile) << std::endl;
+  std::cout << std::format("saving phislice  lookup for ({}x{}x{})x({}x{}x{}) grid to {}", nr_roi, 1, nz_roi, nr, nphi, nz, destfile) << std::endl;
   unsigned long long totalelements = nr;  // nr*nphi*nz*nr_roi*nz_roi
   totalelements *= nphi;
   totalelements *= nz;
@@ -3531,7 +3529,7 @@ std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E}
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") % debug_distortionScale.X() % debug_distortionScale.Y() % debug_distortionScale.Z()).c_str());
+    tex->DrawLatex(0.05, texpos,std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -3585,7 +3583,7 @@ std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E}
   tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
-  tex->DrawLatex(0.05, texpos, boost::str(boost::format("Drifting grid of (rp)=(%d x %d) electrons with %d steps") % nrh % nph % nSteps).c_str());
+  tex->DrawLatex(0.05, texpos, std::format("Drifting grid of (rp)=({} x {}) electrons with {} steps", nrh, nph, nSteps).c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
@@ -3595,7 +3593,7 @@ std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E}
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") % debug_distortionScale.X() % debug_distortionScale.Y() % debug_distortionScale.Z()).c_str());
+    tex->DrawLatex(0.05, texpos, std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -3714,9 +3712,9 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
 
   std::cout << "generating distortion map..." << std::endl;
   std::cout << "file=" << filebase << std::endl;
-  std::cout << boost::str(boost::format("Phi:  %d steps from %f to %f (field has %d steps)") % nph % pih % pfh % GetFieldStepsPhi()) << std::endl;
-  std::cout << boost::str(boost::format("R:  %d steps from %f to %f (field has %d steps)") % nrh % rih % rfh % GetFieldStepsR()) << std::endl;
-  std::cout << boost::str(boost::format("Z:  %d steps from %f to %f (field has %d steps)") % nzh % zih % zfh % GetFieldStepsZ()) << std::endl;
+  std::cout << std::format("Phi:  {} steps from {} to {} (field has {} steps)", nph, pih, pfh, GetFieldStepsPhi()) << std::endl;
+  std::cout << std::format("R:  %d steps from %f to %f (field has %d steps)", nrh, rih, rfh, GetFieldStepsR()) << std::endl;
+  std::cout << std::format("Z:  %d steps from %f to %f (field has %d steps)", nzh, zih, zfh, GetFieldStepsZ()) << std::endl;
   std::string distortionFilename = filebase + ".distortion_summary.pdf";
   std::string summaryFilename = filebase + ".distortion_summary.pdf";
   std::string diffSummaryFilename = filebase + ".differential_summary.pdf";
@@ -3756,13 +3754,13 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   int xi[3] = {(int) std::floor((pos.Perp() - rih) / steplocal.Perp()), (int) std::floor((posphi - pih) / steplocal.Phi()), (int) std::floor((pos.Z() - zih) / steplocal.Z())};
   if (!hasTwin)
   {
-    std::cout << boost::str(boost::format("rpz slice indices= (%d,%d,%d) (no twin)") % xi[0] % xi[1] % xi[2]) << std::endl;
+    std::cout << std::format("rpz slice indices= ({},{},{}) (no twin)", xi[0], xi[1], xi[2]) << std::endl;
   }
   int twinz = 0;  // this is meant to be the matching position to xi[2] in the twin, hence generally -1*pos.  Better to just ask the twin rather than trying to calculate it ourselves...
   if (hasTwin)
   {
     twinz = twin->GetZindex(-1 * pos.Z());
-    std::cout << boost::str(boost::format("rpz slice indices= (%d,%d,%d) twinz=%d") % xi[0] % xi[1] % xi[2] % twinz) << std::endl;
+    std::cout << std::format("rpz slice indices= ({},{},{}) twinz={}", xi[0], xi[1], xi[2], twinz) << std::endl;
   }
 
   const std::string axname[] = {"r", "p", "z", "r", "p", "z"};
@@ -3781,25 +3779,25 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
     {
       // loop over which plane to work in
       hDiffDist[ax][i] = new TH2F(std::string("hDiffDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
-                                  boost::str(boost::format("%s component of diff. distortion in  %s%s plane at %s=%2.3f;%s;%s") % axname[i] % axname[ax + 1] % axname[ax + 2] % axname[ax] % axval[ax] % axname[ax + 1] % axname[ax + 2]).c_str(),
+				  std::format("{} component of diff. distortion in {}{} plane at {}={:.3f};{};{}", axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
                                   axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                   axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
       hIntDist[ax][i] = new TH2F(std::string("hDIntDist" + axname[i] + "_" + axname[ax + 1] + axname[ax + 2]).c_str(),
-                                 boost::str(boost::format("%s component of int. distortion in  %s%s plane at %s=%2.3f;%s;%s") % axname[i] % axname[ax + 1] % axname[ax + 2] % axname[ax] % axval[ax] % axname[ax + 1] % axname[ax + 2]).c_str(),
+				 std::format("{} component of int. distortion in {}{} plane at {}={:.3f};{};{}", axname[i], axname[ax + 1], axname[ax + 2], axname[ax], axval[ax], axname[ax + 1], axname[ax + 2]).c_str(),
                                  axn[ax + 1], axbot[ax + 1], axtop[ax + 1],
                                  axn[ax + 2], axbot[ax + 2], axtop[ax + 2]);
     }
     hRDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
-                            boost::str(boost::format("%s component of int. distortion vs r with %s=%2.3f and %s=%2.3f;r(cm);#delta (cm)") % axname[i] % axname[1] % axval[1] % axname[2] % axval[2]).c_str(),
+			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
     hRDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
-                            boost::str(boost::format("%s component of int. distortion vs r with %s=%2.3f and %s=-%2.3f;r(cm);#delta (cm)") % axname[i] % axname[1] % axval[1] % axname[2] % axval[2]).c_str(),
+			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                             axn[0], axbot[0], axtop[0]);
     hRDiffDist[0][i] = new TH1F(std::string("hRDist" + axname[i]).c_str(),
-                                boost::str(boost::format("%s component of diff. distortion vs r with %s=%2.3f and %s=%2.3f;r(cm);#delta (cm)") % axname[i] % axname[1] % axval[1] % axname[2] % axval[2]).c_str(),
+			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
     hRDiffDist[1][i] = new TH1F(std::string("hRDist" + axname[i] + "Neg").c_str(),
-                                boost::str(boost::format("%s component of diff. distortion vs r with %s=%2.3f and %s=-%2.3f;r(cm);#delta (cm)") % axname[i] % axname[1] % axval[1] % axname[2] % axval[2]).c_str(),
+			    std::format("{} component of int. distortion vs r with {}={:.3f} and {}={:.3f};r(cm);#delta (cm)", axname[i], axname[1], axval[1], axname[2], axval[2]).c_str(),
                                 axn[0], axbot[0], axtop[0]);
   }
 
@@ -3839,7 +3837,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   totalelements *= nph;
   totalelements *= nzh;  // breaking up this multiplication prevents a 32bit math overflow
   unsigned long long percent = totalelements / 100 * debug_npercent;
-  std::cout << boost::str(boost::format("total elements = %llu") % totalelements) << std::endl;
+  std::cout << std::format("total elements = {}", totalelements) << std::endl;
 
   int el = 0;
 
@@ -3993,8 +3991,8 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
 
         if (!(el % percent))
         {
-          std::cout << boost::str(boost::format("generating distortions %d%%:  ") % ((int) (debug_npercent * (el / percent))));
-          std::cout << boost::str(boost::format("distortion at (ir=%d,ip=%d,iz=%d) is (%E,%E,%E)") % ir % ip % iz % distortR % distortP % distortZ) << std::endl;
+	  std::cout << std::format("generating distortions {}%:  ", static_cast<int>(debug_npercent * (el / percent)));
+std::cout << std::format("distortion at (ir={}, ip={}, iz={}) is ({:E},{:E},{:E})", ir, ip, iz, distortR, distortP, distortZ) << std::endl;
         }
         el++;
       }
@@ -4055,7 +4053,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
-  tex->DrawLatex(0.05, texpos, boost::str(boost::format("Drifting grid of (rp)=(%d x %d) electrons with %d steps") % nrh % nph % nSteps).c_str());
+  tex->DrawLatex(0.05, texpos, std::format("Drifting grid of (rp)=({} x {}) electrons with {} steps", nrh, nph, nSteps).c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
@@ -4063,7 +4061,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") % debug_distortionScale.X() % debug_distortionScale.Y() % debug_distortionScale.Z()).c_str());
+    tex->DrawLatex(0.05, texpos, std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -4111,7 +4109,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   tex->DrawLatex(0.05, texpos, GetChargeString().c_str());
   texpos -= texshift;
   // tex->DrawLatex(0.05,texpos,Form("Drift Field = %2.2f V/cm",GetNominalE()));texpos-=texshift;
-  tex->DrawLatex(0.05, texpos, boost::str(boost::format("Drifting grid of (rp)=(%d x %d) electrons with %d steps") % nrh % nph % nSteps).c_str());
+  tex->DrawLatex(0.05, texpos, std::format("Drifting grid of (rp)=({} x {}) electrons with {} steps", nrh, nph, nSteps).c_str());
   texpos -= texshift;
   tex->DrawLatex(0.05, texpos, GetLookupString().c_str());
   texpos -= texshift;
@@ -4121,7 +4119,7 @@ void AnnularFieldSim::GenerateDistortionMaps(const std::string &filebase, int r_
   texpos -= texshift;
   if (debug_distortionScale.Mag() > 0)
   {
-    tex->DrawLatex(0.05, texpos, boost::str(boost::format("Distortion scaled by (r,p,z)=(%2.2f,%2.2f,%2.2f)") % debug_distortionScale.X() % debug_distortionScale.Y() % debug_distortionScale.Z()).c_str());
+    tex->DrawLatex(0.05, texpos,std::format("Distortion scaled by (r,p,z)=({:.2f},{:.2f},{:.2f})", debug_distortionScale.X(), debug_distortionScale.Y(), debug_distortionScale.Z()).c_str());
     texpos -= texshift;
   }
   texpos = 0.9;
@@ -4216,7 +4214,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 
   if (std::abs(zdist) < ALMOST_ZERO * step.Z())
   {
-    //   std::cout <<  boost::str(boost::format("Asked  particle from (%f,%f,%f) to z=%f, which is a distance of %fcm.  Returning zero.") %start.X() %start.Y() %start.Z() %zdest %zdist) << std::endl;
+    //   std::cout <<  std::format("Asked  particle from ({},{},{}) to z={}, which is a distance of {}cm.  Returning zero.", start.X(), start.Y(), start.Z(), zdest, zdist) << std::endl;
     return zero_vector;
   }
 
@@ -4243,8 +4241,8 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
   if (std::abs(fieldInt.Z() / zdist) < ALMOST_ZERO)
   {
     std::cout << "GetStepDistortion is attempting to swim with no drift field:" << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") % start.X() % start.Y() % start.Z() % zdest) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") % fieldInt.X() % fieldInt.Y() % fieldInt.Z()) << std::endl;
+    std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
+std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})",fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
     exit(1);
   }
   // float fieldz=field_[in3(x,y,0,fx,fy,fz)].Z()+E.Z();// *field[x][y][zi].Z();
@@ -4285,52 +4283,54 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 
   if (false)
   {
-    std::cout << boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") % c0 % c1 % c2) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") % EintOverEz.X() % EintOverEz.Y() % EintOverEz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") % BintOverBz.X() % BintOverBz.Y() % BintOverBz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") % start.X() % start.Y() % start.Z() % zdest) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") % fieldInt.X() % fieldInt.Y() % fieldInt.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") % deltaX % deltaY % deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
+std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
+std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
   }
 
   // if (std::abs(deltaZ / zdist) > 0.25)
   if (false)
   {
     std::cout << "GetStepDistortion produced a very large zdistortion!" << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: zdist=%2.4f, deltaZ=%2.4f, Delta/z=%2.4f") % zdist % deltaZ % (deltaZ / zdist)) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: average field Z:  Ez=%2.4fV/cm, Bz=%2.4fT") % (EfieldZ / (V / cm)) % (BfieldZ / Tesla)) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") % c0 % c1 % c2) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") % EintOverEz.X() % EintOverEz.Y() % EintOverEz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") % BintOverBz.X() % BintOverBz.Y() % BintOverBz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") % start.X() % start.Y() % start.Z() % zdest) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: EfieldInt=(%E,%E,%E)") % fieldInt.X() % fieldInt.Y() % fieldInt.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: BfieldInt=(%E,%E,%E)") % fieldIntB.X() % fieldIntB.Y() % fieldIntB.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") % deltaX % deltaY % deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion: zdist={:.4f}, deltaZ={:.4f}, Delta/z={:.4f}", zdist, deltaZ, deltaZ / zdist) << std::endl;
+std::cout << std::format("GetStepDistortion: average field Z:  Ez={:.4f}V/cm, Bz={:.4f}T", EfieldZ / (V / cm), BfieldZ / Tesla) << std::endl;
+std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
+std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
+std::cout << std::format("GetStepDistortion: EfieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: BfieldInt=({:E},{:E},{:E})", fieldIntB.X(), fieldIntB.Y(), fieldIntB.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
+
     // assert(false);
   }
 
   if (std::abs(deltaX) < 1E-20 && !(chargeCase == NoSpacecharge))
   {
-    std::cout << boost::str(boost::format("GetStepDistortion produced a very small deltaX: %E") % deltaX) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") % c0 % c1 % c2) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") % EintOverEz.X() % EintOverEz.Y() % EintOverEz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") % BintOverBz.X() % BintOverBz.Y() % BintOverBz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) to z=%2.4f") % start.X() % start.Y() % start.Z() % zdest) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") % fieldInt.X() % fieldInt.Y() % fieldInt.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") % deltaX % deltaY % deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion produced a very small deltaX: {:E}", deltaX) << std::endl;
+std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
+std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) to z={:.4f}", start.X(), start.Y(), start.Z(), zdest) << std::endl;
+std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
+
     // assert(1==2);
   }
 
   // if (!(std::abs(deltaX) < 1E3))
   if (false)
   {
-    std::cout << boost::str(boost::format("GetStepDistortion produced a very large deltaX: %E") % deltaX) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  (c0,c1,c2)=(%E,%E,%E)") % c0 % c1 % c2) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  EintOverEz==(%E,%E,%E)") % EintOverEz.X() % EintOverEz.Y() % EintOverEz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion:  BintOverBz==(%E,%E,%E)") % BintOverBz.X() % BintOverBz.Y() % BintOverBz.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: (%2.4f,%2.4f,%2.4f) (rp)=(%2.4f,%2.4f) to z=%2.4f") % start.X() % start.Y() % start.Z() % start.Perp() % start.Phi() % zdest) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: fieldInt=(%E,%E,%E)") % fieldInt.X() % fieldInt.Y() % fieldInt.Z()) << std::endl;
-    std::cout << boost::str(boost::format("GetStepDistortion: delta=(%E,%E,%E)") % deltaX % deltaY % deltaZ) << std::endl;
+    std::cout << std::format("GetStepDistortion:  (c0,c1,c2)=({:E},{:E},{:E})", c0, c1, c2) << std::endl;
+std::cout << std::format("GetStepDistortion:  EintOverEz==({:E},{:E},{:E})", EintOverEz.X(), EintOverEz.Y(), EintOverEz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion:  BintOverBz==({:E},{:E},{:E})", BintOverBz.X(), BintOverBz.Y(), BintOverBz.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: ({:.4f},{:.4f},{:.4f}) (rp)=({:.4f},{:.4f}) to z={:.4f}",
+                         start.X(), start.Y(), start.Z(), start.Perp(), start.Phi(), zdest) << std::endl;
+std::cout << std::format("GetStepDistortion: fieldInt=({:E},{:E},{:E})", fieldInt.X(), fieldInt.Y(), fieldInt.Z()) << std::endl;
+std::cout << std::format("GetStepDistortion: delta=({:E},{:E},{:E})", deltaX, deltaY, deltaZ) << std::endl;
     exit(1);
   }
 
@@ -4354,24 +4354,25 @@ std::string AnnularFieldSim::GetLookupString()
 {
   if (lookupCase == LookupCase::Full3D)
   {
-    return boost::str(boost::format("Full3D (%d x %d x %d) with (%d x %d x %d) roi") % nr % nphi % nz % nr_roi % nphi_roi % nz_roi);
+    return std::format("Full3D ({} x {} x {}) with ({} x {} x {}) roi", nr, nphi, nz, nr_roi, nphi_roi, nz_roi);
   }
 
   if (lookupCase == LookupCase::PhiSlice)
   {
-    return boost::str(boost::format("PhiSlice (%d x %d x %d) with (%d x 1 x %d) roi") % nr % nphi % nz % nr_roi % nz_roi);
+    return std::format("PhiSlice ({} x {} x {}) with ({} x 1 x {}) roi", nr, nphi, nz, nr_roi, nz_roi);
   }
 
   return "broken";
 }
 std::string AnnularFieldSim::GetGasString()
 {
-  return boost::str(boost::format("vdrift=%2.2fcm/us, Enom=%2.2fV/cm, Bnom=%2.2fT, omtau=%2.4E") % (vdrift / (cm / us)) % (Enominal / (V / cm)) % (Bnominal / Tesla) % omegatau_nominal);
+  return std::format("vdrift={:.2f}cm/us, Enom={:.2f}V/cm, Bnom={:.2f}T, omtau={:.4E}", vdrift / (cm / us), Enominal / (V / cm), Bnominal / Tesla, omegatau_nominal);
+
 }
 
 std::string AnnularFieldSim::GetFieldString()
 {
-  return boost::str(boost::format("%s, %s") % Efieldname % Bfieldname);
+  return std::format("{}, {}", Efieldname, Bfieldname);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -4441,7 +4442,7 @@ float AnnularFieldSim::GetChargeAt(const TVector3 &pos)
     {
       return twin->GetChargeAt(pos);
     }
-    std::cout << boost::str(boost::format("Caution:  tried to read charge at zbin=%d!  No twin available to handle this") % z) << std::endl;
+    std::cout << std::format("Caution:  tried to read charge at zbin={}!  No twin available to handle this", z) << std::endl;
     return -999;
   }
 
