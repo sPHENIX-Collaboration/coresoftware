@@ -1017,7 +1017,7 @@ void AnnularFieldSim::loadBfield(const std::string &filename, const std::string 
   // phi += 1;
   // phi = 0;  //satisfy picky racf compiler
   loadField(&Bfield, fTree, &r, nullptr, &z, &fr, &fphi, &fz, Tesla, 1);
-  printf("AnnularFieldSim::loadBfield:  finished loading B field from file %s, tree %s\n", filename.c_str(), treename.c_str());
+  std::cout << std::format("AnnularFieldSim::loadBfield:  finished loading B field from file {}, tree {}", filename, treename) << std::endl;;
   fieldFile.Close();
 
   return;
@@ -1027,7 +1027,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
 {
   // prep variables so that loadField can just iterate over the tree entries and fill our selected tree agnostically
   // assumes file stores field as Tesla.
-  printf("AnnularFieldSim::load3dBfield:  loading B field from file %s, tree %s (sign=%d)\n", filename.c_str(), treename.c_str(),zsign);
+  std::cout << std::format("AnnularFieldSim::load3dBfield:  loading B field from file {}, tree {} (sign={})", filename, treename,zsign) << std::endl;
 
   TFile fieldFile(filename.c_str(), "READ");
   TTree *fTree;
@@ -1046,7 +1046,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   fTree->SetBranchAddress("phi", &phi);
   fTree->SetBranchAddress("bphi", &fphi);
   loadField(&Bfield, fTree, &r, &phi, &z, &fr, &fphi, &fz, Tesla * scale, zsign, xshift, yshift, zshift);
-  printf("AnnularFieldSim::load3dBfield:  finished loading B field from file %s, tree %s (sign=%d) with scale %f\n", filename.c_str(), treename.c_str(), zsign, scale);
+  std::cout << std::format("AnnularFieldSim::load3dBfield:  finished loading B field from file {}, tree {} (sign={}) with scale {}\n", filename, treename, zsign, scale) << std::endl;
   fieldFile.Close();
   return;
 }
@@ -1059,7 +1059,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
   TVector3 origin= TVector3(xshift, yshift, zshift);  // the origin of the detector in the field coordinate system.
   bool phiSymmetry = (phiptr == nullptr);  // if the phi pointer is zero, assume phi symmetry.
 
-  printf("AnnularFieldSim::loadField:  loading field from %s, detector origin at (%f,%f,%f) in the field map, field unit %f, zsign %d, handling=%s\n", source->GetName(), origin.X(), origin.Y(), origin.Z(), fieldunit, zsign, (phiSymmetry ? "phi-symmetric" : "not phi-symmetric"));
+  std::cout <<  std::format("AnnularFieldSim::loadField:  loading field from {}, detector origin at ({},{},{}) in the field map, field unit {}, zsign {}, handling={}", source->GetName(), origin.X(), origin.Y(), origin.Z(), fieldunit, zsign, (phiSymmetry ? "phi-symmetric" : "not phi-symmetric")) << std::endl;
 
 
   int lowres_factor = 3;                  // to fill in gaps, we group together loweres^3 cells into one block and use that average.
@@ -1083,17 +1083,15 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
   TH3F *htSum[3];
   TH3F *htEntriesLow = new TH3F("htentrieslow", "num of lowres entries in the field loading", nlowbins_phi+2,  -phi_lowres_step, M_PI * 2.0+phi_lowres_step, nlowbins_r+2, rmin-r_lowres_step, rmax+r_lowres_step, nlowbins_z+2, zmin-z_lowres_step, zmax+z_lowres_step);
   TH3F *htSumLow[3];
-  printf("AnnularFieldSim::loadField:  hires has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", 
-  htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(), 
-  htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(), 
-  htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax());
-  printf("AnnularFieldSim::loadField:  lowres has %d phi bins from %f to %f, %d r bins from %f to %f, and %d z bins from %f to %f\n", 
-  htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(),
-  htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(),
-  htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax());
-  
-  
-  
+  std::cout << std::format("AnnularFieldSim::loadField:  hires has {} phi bins from {} to {}, {} r bins from {} to {}, and {} z bins from {} to {}", 
+			    htEntries->GetNbinsX(), htEntries->GetXaxis()->GetXmin(), htEntries->GetXaxis()->GetXmax(),
+			    htEntries->GetNbinsY(), htEntries->GetYaxis()->GetXmin(), htEntries->GetYaxis()->GetXmax(),
+			    htEntries->GetNbinsZ(), htEntries->GetZaxis()->GetXmin(), htEntries->GetZaxis()->GetXmax()) << std::endl;
+  std::cout << std::format("AnnularFieldSim::loadField:  lowres has {} phi bins from {} to {}, {} r bins from {} to {}, and {} z bins from {} to {}", 
+			   htEntriesLow->GetNbinsX(), htEntriesLow->GetXaxis()->GetXmin(), htEntriesLow->GetXaxis()->GetXmax(),
+			   htEntriesLow->GetNbinsY(), htEntriesLow->GetYaxis()->GetXmin(), htEntriesLow->GetYaxis()->GetXmax(),
+			   htEntriesLow->GetNbinsZ(), htEntriesLow->GetZaxis()->GetXmin(), htEntriesLow->GetZaxis()->GetXmax()) << std::endl;
+    
   std::string axis[]{"r", "p", "z"};
   for (int i = 0; i < 3; i++)
   {
@@ -1108,14 +1106,14 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
   int nPhiCoords=1;
   if(phiSymmetry){
     //  if we do have phi symmetry, enumerate the phi coordinates we will use:
-   // printf("AnnularFieldSim::loadField:  phi symmetry, using %d phi coordinates:\n", nphi);
+   // std::cout << std::format("AnnularFieldSim::loadField:  phi symmetry, using {} phi coordinates:", nphi) << std::endl;
     for (int j = 0; j < nphi; j++)
     {
       float phi0=(j+0.5)*step.Phi(); //stand-in for our phi pointer that doesn't exist.
       phiCoords[j]=phi0;
-      printf("%2.2f ", phi0);
+      std::cout << std::format("{:.2f} ", phi0) << std::endl;
     }
-    printf("\n");
+    std::cout << std::endl;
     nPhiCoords=nphi;
   }
 
@@ -1130,7 +1128,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
     int rem=i%(source->GetEntries()/10);
     int quo=i/(source->GetEntries()/10);
     if(rem==0 && quo>0){
-      printf("loadField:  %d0%%\n", quo);
+      std::cout << std::format("loadField:  {}0%", quo) << std::endl;
     }
 
 
@@ -1253,11 +1251,11 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
           if (htEntries->GetBinContent(bin) == 0)
           {
             if(false){//long debug check.
-              printf("Filling coordinates p%f,r%f,z%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k);
-              printf(" sanity: htEntries->FindBins(p%2.2f,r%2.2f,z%2.2f)=(p%d,r%d,z%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
+              std::cout << std::format("Filling coordinates p{},r{},z{}, (cell p{} r{} z{}) with lowres field", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k) << std::endl;
+              std::cout << std::format(" sanity: htEntries->FindBins(p{:.2f},r{:.2f},z{:.2f})=(p{},r{},z{})={}, content={}", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
                 htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
                 htEntries->GetYaxis()->FindBin(cellcenter.Perp()), 
-                htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin));
+                htEntries->GetZaxis()->FindBin(cellcenter.Z()), bin, htEntries->GetBinContent(bin)) << std::endl;
             
               TVector3 globalPos= cellcenter+origin;  // the position of this field datapoint in the input system
               //bounds of the bin of this cell in htEntries, so I can understand why this has no entries:
@@ -1274,10 +1272,10 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
               tlow=tlow+origin;  // translate to the input coordinate system
               thigh=thigh+origin;  // translate to the input coordinate system
               if (phiSymmetry){
-                printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z());
+                std::cout << std::format("this corresponds to (r,phi,z)=({},{},{}) in the input map coordinates, which has bounds roughly (r>{:.1f} && r<{:.1f} && z> {:.1f} && z<{:.1f})\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Z(),thigh.Z()) << std::endl;
               }else{
 
-                printf("this corresponds to (r,phi,z)=(%f,%f,%f) in the input map coordinates, which has bounds roughly (r>%1.1f && r<%1.1f && phi>%1.1f && phi<%1.1f && z> %1.1f && z<%1.1f)\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z());
+                std::cout << std::format("this corresponds to (r,phi,z)=({},{},{}) in the input map coordinates, which has bounds roughly (r>{:.1f} && r<{:.1f} && phi>{:.1f} && phi<{:.1f} && z> {:.1f} && z<{:.1f})\n",globalPos.Perp(),globalPos.Phi(),globalPos.Z(),tlow.Perp(),thigh.Perp(),tlow.Phi(),thigh.Phi(),tlow.Z(),thigh.Z()) << std::endl;
               }
             } 
 
@@ -1292,7 +1290,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
 	      std::cout << std::format("not enough entries in source to fill fieldmap, even using the lower res fall-back. Value near r={:.2f}, phi={:.2f}, z={:.2f} is {}, (with range of {:.3f},{:.3f},{:.3f}) Pick lower granularity!",
     cellcenter.Perp(), FilterPhiPos(cellcenter.Phi()), cellcenter.Z(),
     htEntriesLow->GetBinContent(lowbin), r_lowres_step, phi_lowres_step, z_lowres_step) << std::endl;
-              printf("Saving fieldmaps to debug.hist.root\n");
+              std::cout << "Saving fieldmaps to debug.hist.root" << std::endl;
               TFile *debugfile = new TFile("debug.hist.root", "RECREATE");
               htEntries->Write();
               htEntriesLow->Write();
@@ -1314,7 +1312,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, con
       }
     }
   }
-  //printf("Field loaded.\n");
+  //std::cout << "Field loaded." << std::endl;
   return;
 }
 
