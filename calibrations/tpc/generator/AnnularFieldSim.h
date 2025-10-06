@@ -95,9 +95,9 @@ class AnnularFieldSim
   }
 
   // getters for internal states:
-  const std::string GetLookupString();
-  const std::string GetGasString();
-  const std::string GetFieldString();
+  std::string GetLookupString();
+  std::string GetGasString();
+  std::string GetFieldString();
   const std::string &GetChargeString() { return chargestring; };
   float GetNominalB() { return Bnominal; };
   float GetNominalE() { return Enominal; };
@@ -148,7 +148,7 @@ class AnnularFieldSim
   void loadBfield(const std::string &filename, const std::string &treename);
   void load3dBfield(const std::string &filename, const std::string &treename, int zsign = 1, float scale = 1.0, float xshift=0, float yshift=0, float zshift=0);
 
-  void loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float xshift=0, float yshift=0, float zshift=0);
+  void loadField(MultiArray<TVector3> **field, TTree *source, const float *rptr, const float *phiptr, const float *zptr, const float *frptr, const float *fphiptr, const float *fzptr, float fieldunit, int zsign, float xshift=0, float yshift=0, float zshift=0);
 
   void load_rossegger(double epsilon = 1E-4)
   {
@@ -183,7 +183,7 @@ class AnnularFieldSim
   TVector3 interpolatedFieldIntegral(float zdest, TVector3 start) { return interpolatedFieldIntegral(zdest, start, Efield); };
   TVector3 interpolatedFieldIntegral(float zdest, const TVector3 &start, MultiArray<TVector3> *field);
   double FilterPhiPos(double phi);         // puts phi in 0<phi<2pi
-  int FilterPhiIndex(int phi, int range);  // puts phi in bin range 0<phi<range.  defaults to using nphi for range.
+  int FilterPhiIndex(int phi, int range) const;  // puts phi in bin range 0<phi<range.  defaults to using nphi for range.
 
   TVector3 GetCellCenter(int r, int phi, int z);
   TVector3 GetRoiCellCenter(int r, int phi, int z);

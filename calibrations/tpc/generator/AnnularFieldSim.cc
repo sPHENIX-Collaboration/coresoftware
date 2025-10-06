@@ -398,7 +398,7 @@ double AnnularFieldSim::FilterPhiPos(double phi)
   }
   return p;
 }
-int AnnularFieldSim::FilterPhiIndex(int phi, int range = -1)
+int AnnularFieldSim::FilterPhiIndex(int phi, int range = -1) const
 {
   if (range < 0)
   {
@@ -597,7 +597,7 @@ TVector3 AnnularFieldSim::analyticFieldIntegral(float zdest, TVector3 start, Mul
     integral = aliceModel->Eint(endz, start) + Eexternal->Get(r - rmin_roi, phi - phimin_roi, zi - zmin_roi) * (endz - startz);
     return dir * integral;
   }
-  else if (field == Bfield)
+  if (field == Bfield)
   {
     return interpolatedFieldIntegral(zdest, start, Bfield);
   }
@@ -1041,7 +1041,7 @@ void AnnularFieldSim::load3dBfield(const std::string &filename, const std::strin
   return;
 }
 
-void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float xshift, float yshift, float zshift)
+void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, const float *rptr, const float *phiptr, const float *zptr, const float *frptr, const float *fphiptr, const float *fzptr, float fieldunit, int zsign, float xshift, float yshift, float zshift)
 {
   // we're loading a tree of unknown size and spacing -- and possibly uneven spacing -- into our local data.
   // formally, we might want to interpolate or otherwise weight, but for now, carve this into our usual bins, and average, similar to the way we load spacecharge.
@@ -1217,16 +1217,16 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
         htEntriesLow->SetBinContent(lowbin,
           htEntriesLow->GetBinContent(htEntriesLow->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
         //and the same for the triplet of htSumLow:
-        for (int i=0; i<3; i++){
-          htSumLow[i]->SetBinContent(lowbin,
-            htSumLow[i]->GetBinContent(htSumLow[i]->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
+        for (auto & i : htSumLow){
+          i->SetBinContent(lowbin,
+            i->GetBinContent(i->GetBin(htEntriesLow->GetNbinsX()-2,j,k)));
           }
         //and then we repeat for the highend stitch:
         htEntriesLow->SetBinContent(highbin,
           htEntriesLow->GetBinContent(htEntriesLow->GetBin(2,j,k)));
-        for (int i=0; i<3; i++){
-          htSumLow[i]->SetBinContent(highbin,
-            htSumLow[i]->GetBinContent(htSumLow[i]->GetBin(2,j,k)));
+        for (auto & i : htSumLow){
+          i->SetBinContent(highbin,
+            i->GetBinContent(i->GetBin(2,j,k)));
           }
         }
       }
@@ -1242,7 +1242,7 @@ void AnnularFieldSim::loadField(MultiArray<TVector3> **field, TTree *source, flo
           int bin = htEntries->FindBin(FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z());
           if (htEntries->GetBinContent(bin) == 0)
           {
-            if(0){//long debug check.
+            if(false){//long debug check.
               printf("Filling coordinates p%f,r%f,z%f, (cell p%d r%d z%d) with lowres field\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), i,j,k);
               printf(" sanity: htEntries->FindBins(p%2.2f,r%2.2f,z%2.2f)=(p%d,r%d,z%d)=%d, content=%f\n", FilterPhiPos(cellcenter.Phi()), cellcenter.Perp(), cellcenter.Z(), 
                 htEntries->GetXaxis()->FindBin(FilterPhiPos(cellcenter.Phi())), 
@@ -1314,7 +1314,7 @@ void AnnularFieldSim::load_spacecharge(const std::string &filename, const std::s
   std::cout << "Loading spacecharge from '" << filename
             << "'.  Seeking histname '" << histname << "'" << std::endl;
   chargesourcename = filename + ":" + histname;
-  load_spacecharge(scmap, zoffset, chargescale, cmscale, isChargeDensity, chargesourcename.c_str());
+  load_spacecharge(scmap, zoffset, chargescale, cmscale, isChargeDensity, chargesourcename);
   f->Close();
   return;
 }
@@ -2596,9 +2596,8 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
           // if their bounds are interleaved in all dimensions, there is overlap, and we've already summed this region.
           continue;
         }
-        else
-        {
-          // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::sum_field_at, considering l-bin at(r=%d,phi=%d, z=%d)\n",__LINE__,ir,iphi,iz);
+        
+                  // if(debugFlag()) print_need_cout("%d: AnnularFieldSim::sum_field_at, considering l-bin at(r=%d,phi=%d, z=%d)\n",__LINE__,ir,iphi,iz);
 
           for (int i = 0; i < 8; i++)
           {
@@ -2619,7 +2618,7 @@ TVector3 AnnularFieldSim::sum_nonlocal_field_at(int r, int phi, int z)
             }
             sum += (Epartial_lowres->Get(ri[(i / 4) % 2], pi[(i / 2) % 2], zi[(i) % 2], ir, iphi, iz) * q_lowres->Get(ir, iphi, iz)) * zw[(i) % 2] * pw[(i / 2) % 2] * rw[(i / 4) % 2];
           }
-        }
+       
       }
     }
   }
@@ -2774,7 +2773,7 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
     *success = 0;
     return zero_vector;  // rcchere
   }
-  else if (zBound == OnLowEdge)
+  if (zBound == OnLowEdge)
   {
     // nudge it in z:
     zdest += ALMOST_ZERO;
@@ -2788,7 +2787,7 @@ TVector3 AnnularFieldSim::GetTotalDistortion(float zdest, const TVector3 &start,
     *success = 0;
     return zero_vector;
   }
-  else if (zBound == OnLowEdge)
+  if (zBound == OnLowEdge)
   {
     // nudge it in z:
     zdest += ALMOST_ZERO;
@@ -4293,7 +4292,7 @@ TVector3 AnnularFieldSim::GetStepDistortion(float zdest, const TVector3 &start, 
 }
 
 // putting all the getters here out of the way:
-const std::string AnnularFieldSim::GetLookupString()
+std::string AnnularFieldSim::GetLookupString()
 {
   if (lookupCase == LookupCase::Full3D)
   {
@@ -4307,12 +4306,12 @@ const std::string AnnularFieldSim::GetLookupString()
 
   return "broken";
 }
-const std::string AnnularFieldSim::GetGasString()
+std::string AnnularFieldSim::GetGasString()
 {
   return boost::str(boost::format("vdrift=%2.2fcm/us, Enom=%2.2fV/cm, Bnom=%2.2fT, omtau=%2.4E") % (vdrift / (cm / us)) % (Enominal / (V / cm)) % (Bnominal / Tesla) % omegatau_nominal);
 }
 
-const std::string AnnularFieldSim::GetFieldString()
+std::string AnnularFieldSim::GetFieldString()
 {
   return boost::str(boost::format("%s, %s") % Efieldname % Bfieldname);
 }
