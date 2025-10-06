@@ -134,7 +134,7 @@ void PHG4TpcDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
     int layer = layeriter->second->get_layer();
     float thickness = (layeriter->second)->get_thickness();
     float pitch = (layeriter->second)->get_phistep() * (layeriter->second)->get_radius();
-    float length = (layeriter->second)->get_zstep() * _drift_velocity;
+    float length = (layeriter->second)->get_zstep() * (layeriter->second)->get_drift_velocity_sim();
 
     float minpath = pitch;
     minpath = std::min(length, minpath);

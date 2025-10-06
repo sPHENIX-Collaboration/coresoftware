@@ -133,3 +133,16 @@ void Fun4AllOutputManager::SetNEvents(const unsigned int nevt)
   m_MaxEvents = nevt;
   return;
 }
+
+void Fun4AllOutputManager::SetEventNumberRollover(const int evtno)
+{
+  if (evtno <= 0)
+  {
+    std::cout << PHWHERE << " Events number to roll over has to be > 0" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  m_LastEventNumber = evtno-1; // for e.g. 100k we want first segment 0-99999, 100000-199999,...
+  m_EventRollover = evtno;
+  return;
+}

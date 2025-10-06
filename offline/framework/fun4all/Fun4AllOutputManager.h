@@ -98,6 +98,11 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual void IncrementEvents(const unsigned int i) { m_NEvents += i; }
   //! set number of events
   virtual void SetEventsWritten(const unsigned int i) { m_NEvents = i; }
+  //! get number of Events
+  virtual int LastEventNumber() const { return m_LastEventNumber; }
+  virtual void UpdateLastEvent() {m_LastEventNumber += m_EventRollover;}
+  //! set number of events
+  virtual void SetEventNumberRollover(const int evtno);
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
   //! set compression level (if implemented)
@@ -139,6 +144,12 @@ class Fun4AllOutputManager : public Fun4AllBase
 
   //! Split level of TBranches
   int splitlevel{std::numeric_limits<int>::min()};
+
+  //! Last Event Number in output file
+  int m_LastEventNumber{std::numeric_limits<int>::max()};
+
+  //! Event number for rollover
+  int m_EventRollover{0};
 
   //! Number of Events
   unsigned int m_NEvents{0};

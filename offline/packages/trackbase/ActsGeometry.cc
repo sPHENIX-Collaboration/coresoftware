@@ -105,6 +105,18 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
 
   auto surface = m_surfMaps.getSurface(key, cluster);
 
+  /*
+  std::cout << " getGlobalPositionTpc transform is: " << std::endl
+	    <<  surface->transform(m_tGeometry.getGeoContext()).matrix()
+	    << std::endl;
+  alignmentTransformationContainer::use_alignment = false;
+  Acts::Vector3 ideal_center = surface->center(m_tGeometry.getGeoContext()) * 0.1;
+  alignmentTransformationContainer::use_alignment = true;  
+  Acts::Vector3 sensorCenter = surface->center(m_tGeometry.getGeoContext()) * 0.1;  // cm
+  std::cout << "  ideal surface center: " << ideal_center << std::endl;
+  std::cout << "  aligned surface center: " << sensorCenter << std::endl;
+  */
+  
   if (!surface)
   {
     std::cerr << "Couldn't identify cluster surface. Returning NAN"
@@ -122,6 +134,11 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
                                 Acts::Vector3(1, 1, 1));
   glob /= Acts::UnitConstants::cm;
 
+  /*
+  std::cout << "  local " << local << std::endl;
+  std::cout << "  glob " << glob << std::endl;
+  */  
+  
   return glob;
 }
 
@@ -132,7 +149,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
 {
   unsigned int layer = TrkrDefs::getLayer(hitsetkey);
   unsigned int side = TpcDefs::getSide(hitsetkey);
-
+  
   auto mapIter = m_surfMaps.m_tpcSurfaceMap.find(layer);
 
   if (mapIter == m_surfMaps.m_tpcSurfaceMap.end())
@@ -253,6 +270,10 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
     }
     local(0) = cluster->getLocalX();
     local(1) = zloc;
+    /*
+    std::cout << " clust " << cluster->getLocalY() << " tpc tzero " << _tpc_tzero << " sampa tbias " << _sampa_tzero_bias
+	      << " crossing tzero correction " << crossing_tzero_correction << " drift vel " << _drift_velocity << " zdriftlength " << zdriftlength << " zloc " << zloc << std::endl;
+    */
   }
   else
   {

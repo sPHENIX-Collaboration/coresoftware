@@ -191,6 +191,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
   assert(seggeo);
 
+    // the z geometry is the same for all layers
+  PHG4TpcCylinderGeom *layergeom = seggeo->GetLayerCellGeom(20);
+  // from top of GEM stack to top of GEM stack
+  tpc_length = 2 * (layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth());
+  
   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   auto *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
@@ -242,7 +247,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   }
   const PHParameters *tpcparam = tpcparams->GetParameters(0);
   assert(tpcparam);
-  tpc_length = tpcparam->get_double_param("tpc_length");
 
   diffusion_long = get_double_param("diffusion_long");
   added_smear_sigma_long = get_double_param("added_smear_long");
@@ -252,7 +256,6 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     diffusion_trans *= zero_bfield_diffusion_factor;
   }
   added_smear_sigma_trans = get_double_param("added_smear_trans");
-  drift_velocity = get_double_param("drift_velocity");
 
   // Data on gasses @20 C and 760 Torr from the following source:
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
@@ -297,18 +300,15 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
   electrons_per_gev = (Tpc_NTot / Tpc_dEdx) * 1e6;
 
-  // the z geometry is the same for all layers
-  PHG4TpcCylinderGeom *layergeom = seggeo->GetLayerCellGeom(20);
-     
   // min_time to max_time is the time window for accepting drifted electrons after the trigger
   min_time = 0.0;
-  max_time = layergeom->get_max_driftlength() / drift_velocity + layergeom->get_extended_readout_time();
+  max_time = layergeom->get_max_driftlength() / layergeom->get_drift_velocity_sim() + layergeom->get_extended_readout_time();
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
   if (Verbosity() > 0)
   {
-    std::cout << PHWHERE << " drift velocity " << drift_velocity << " extended_readout_time " << layergeom->get_extended_readout_time() << " max time cutoff " << max_time << std::endl;
+    std::cout << PHWHERE << " drift velocity " << layergeom->get_drift_velocity_sim() << " extended_readout_time " << layergeom->get_extended_readout_time() << " max time cutoff " << max_time << std::endl;
   }
 
   auto *se = Fun4AllServer::instance();
@@ -404,6 +404,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  PHG4TpcCylinderGeom *layergeom = seggeo->GetLayerCellGeom(20);
+    
   if (truth_clusterer.needs_input_nodes())
   {
     truth_clusterer.set_input_nodes(truthclustercontainer, m_tGeometry,
@@ -570,11 +572,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
           gsl_ran_gaussian(RandomGenerator.get(), r_sigma) +
           gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_trans);
 
-      const double t_path = (tpc_length / 2. - std::abs(z_start)) / drift_velocity;
-      const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - std::abs(z_start)) / drift_velocity;
+      const double t_path = (tpc_length / 2. - std::abs(z_start)) / layergeom->get_drift_velocity_sim();
+      const double t_sigma = diffusion_long * sqrt(tpc_length / 2. - std::abs(z_start)) / layergeom->get_drift_velocity_sim();
       const double rantime =
           gsl_ran_gaussian(RandomGenerator.get(), t_sigma) +
-          gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / drift_velocity;
+	gsl_ran_gaussian(RandomGenerator.get(), added_smear_sigma_long) / layergeom->get_drift_velocity_sim();
       double t_final = t_start + t_path + rantime;
 
       if (t_final < min_time || t_final > max_time)
@@ -585,11 +587,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       double z_final;
       if (z_start < 0)
       {
-        z_final = -tpc_length / 2. + t_final * drift_velocity;
+        z_final = -tpc_length / 2. + t_final * layergeom->get_drift_velocity_sim();
       }
       else
       {
-        z_final = tpc_length / 2. - t_final * drift_velocity;
+        z_final = tpc_length / 2. - t_final * layergeom->get_drift_velocity_sim();
       }
 
       const double radstart = std::sqrt(square(x_start) + square(y_start));
@@ -628,11 +630,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         z_final += z_distortion;
         if (z_start < 0)
         {
-          t_final = (z_final + tpc_length / 2.0) / drift_velocity;
+          t_final = (z_final + tpc_length / 2.0) / layergeom->get_drift_velocity_sim();
         }
         else
         {
-          t_final = (tpc_length / 2.0 - z_final) / drift_velocity;
+          t_final = (tpc_length / 2.0 - z_final) / layergeom->get_drift_velocity_sim();
         }
 
         x_final = rad_final * std::cos(phi_final);
@@ -937,7 +939,6 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
 
   set_default_double_param("diffusion_long", 0.014596);   // cm/SQRT(cm)
   set_default_double_param("diffusion_trans", 0.005313);  // cm/SQRT(cm)
-  set_default_double_param("drift_velocity", 0.00755);    // cm/ns
   set_default_double_param("Ne_frac", 0.00);
   set_default_double_param("Ar_frac", 0.75);
   set_default_double_param("CF4_frac", 0.20);
