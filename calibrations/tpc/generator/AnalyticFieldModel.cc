@@ -4,12 +4,19 @@
 #include <TFormula.h>
 #include <TVector3.h>
 
-#include <boost/format.hpp>
-
+#include <format>
 #include <iostream>
 #include <string>
 
 AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, float _z_max, float scalefactor)
+  : vTestFunction1(new TFormula("f1", "[0]*(x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*exp(-1* [2] * z^2)"))
+  , rhoTestFunction1(new TFormula("ff1", "[0]*(((16.0 * x^2 - 9.0 * [3] * x + 4.0*[4]) *cos([1] * y)^2 * exp(-1 *[2]*z^2)) - ((x^2 -  [3] * x + [4]) * 2 * [1]^2 * cos(2 * [1] * y) * exp(-1 *[2]*z^2)) + ((x^4 -  [3] * x^3 + [4] * x^2) * cos([1] * y)^2 * (4*[2]^2*z^2 - 2 * [2]) * exp(-1 *[2]*z^2)))"))
+  , erTestFunction1(new TFormula("er", " [0]*(4*x^3 - 3 * [3] *x^2 + 2 * [4] * x)*cos([1]* y)^2*exp(-1* [2] * z^2)"))
+  , ePhiTestFunction1(new TFormula("ePhi", "  [0]*(x^3 - [3] *x^2 +  [4] * x)* -1  * [1] * sin(2 * [1]* y)*exp(-1* [2] * z^2)"))
+  , ezTestFunction1(new TFormula("ez", " [0]*(x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*-1*2*[2]*z*exp(-1* [2] * z^2)"))
+  , intErDzTestFunction1(new TFormula("intErDz", " [0]*(4*x^3 - 3 * [3] *x^2 + 2 * [4] * x)*cos([1]* y)^2*((sqrt(pi)*TMath::Erf(sqrt([2]) * z))/(2 * sqrt([2]))) "))
+  , intEPhiDzTestFunction1(new TFormula("intEPhiDz", "[0]* (x^3 - [3] *x^2 +  [4] * x)* -1  * [1] * sin(2 * [1]* y)*((sqrt(pi)*TMath::Erf(sqrt([2]) * z))/(2 * sqrt([2])))"))
+  , intEzDzTestFunction1(new TFormula("intEzDz", "[0]* (x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*exp(-1* [2] * z^2)"))
 {
   double ifc_radius = _ifc_radius;
   double ofc_radius = _ofc_radius;
@@ -30,25 +37,11 @@ AnalyticFieldModel::AnalyticFieldModel(float _ifc_radius, float _ofc_radius, flo
   double d = sum;
   double e = prod;
 
-  vTestFunction1 = new TFormula("f1", "[0]*(x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*exp(-1* [2] * z^2)");
-  rhoTestFunction1 = new TFormula("ff1", "[0]*(((16.0 * x^2 - 9.0 * [3] * x + 4.0*[4]) *cos([1] * y)^2 * exp(-1 *[2]*z^2)) - ((x^2 -  [3] * x + [4]) * 2 * [1]^2 * cos(2 * [1] * y) * exp(-1 *[2]*z^2)) + ((x^4 -  [3] * x^3 + [4] * x^2) * cos([1] * y)^2 * (4*[2]^2*z^2 - 2 * [2]) * exp(-1 *[2]*z^2)))");
-
-  erTestFunction1 = new TFormula("er", " [0]*(4*x^3 - 3 * [3] *x^2 + 2 * [4] * x)*cos([1]* y)^2*exp(-1* [2] * z^2)");
-  ePhiTestFunction1 = new TFormula("ePhi",
-                                   "  [0]*(x^3 - [3] *x^2 +  [4] * x)* -1  * [1] * sin(2 * [1]* y)*exp(-1* [2] * z^2)");
-  ezTestFunction1 = new TFormula("ez",
-                                 " [0]*(x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*-1*2*[2]*z*exp(-1* [2] * z^2)");
-
-  intErDzTestFunction1 = new TFormula("intErDz",
-                                      " [0]*(4*x^3 - 3 * [3] *x^2 + 2 * [4] * x)*cos([1]* y)^2*((sqrt(pi)*TMath::Erf(sqrt([2]) * z))/(2 * sqrt([2]))) ");
-  intEPhiDzTestFunction1 = new TFormula("intEPhiDz",
-                                        "[0]* (x^3 - [3] *x^2 +  [4] * x)* -1  * [1] * sin(2 * [1]* y)*((sqrt(pi)*TMath::Erf(sqrt([2]) * z))/(2 * sqrt([2])))");
-  intEzDzTestFunction1 = new TFormula("intEzDz",
-                                      "[0]* (x^4 - [3] *x^3 + [4] * x^2)*cos([1]* y)^2*exp(-1* [2] * z^2)");
-
   std::cout << "Setting Analytic Formula, variables:" << std::endl;
-  std::cout << boost::str(boost::format("ifc=%f\tofc=%f\tdelz=%f\ndiff=%f\tscale=%f") % ifc_radius % ofc_radius % tpc_halfz % diff % scalefactor) << std::endl;
-  std::cout << boost::str(boost::format("a=%E\nb=%E\nc=%E\nd=%f\ne=%f") % a % b % c % d % e) << std::endl;
+  std::cout << std::format("ifc={:.6f}\tofc={:.6f}\tdelz={:.6f}\ndiff={:.6f}\tscale={:.6f}",
+                           ifc_radius, ofc_radius, tpc_halfz, diff, scalefactor)
+            << std::endl;
+  std::cout << std::format("a={:E}\nb={:E}\nc={:E}\nd={:.6f}\ne={:.6f}", a, b, c, d, e) << std::endl;
 
   vTestFunction1->SetParameters(a, b, c, d, e);
   rhoTestFunction1->SetParameters(a, b, c, d, e);

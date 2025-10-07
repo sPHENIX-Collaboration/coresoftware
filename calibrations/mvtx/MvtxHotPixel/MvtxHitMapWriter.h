@@ -12,13 +12,11 @@
 #include <fun4all/SubsysReco.h>
 
 #include <cstdint>
-#include <iostream>
 #include <string>
 #include <vector>
 
 class PHCompositeNode;
 class MvtxHitMap;
-class MvtxPixelMask;
 class MvtxRawEvtHeader;
 class MvtxRawHitContainer;
 class TTree;

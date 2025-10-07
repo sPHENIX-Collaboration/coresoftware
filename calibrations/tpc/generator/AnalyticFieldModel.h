@@ -13,9 +13,9 @@ class AnalyticFieldModel
   explicit AnalyticFieldModel(const AnalyticFieldModel &) = delete;
   AnalyticFieldModel &operator=(const AnalyticFieldModel &) = delete;
 
-  TVector3 E(const TVector3 &pos);                     // field as a function of position
-  double Rho(const TVector3 &pos);                     // charge density as a function of position
-  TVector3 Eint(float zfinal, const TVector3 &start);  // field integral from start point to position zfinal.
+  TVector3 E(const TVector3 &pos);                   // field as a function of position
+  double Rho(const TVector3 &pos);                   // charge density as a function of position
+  TVector3 Eint(float zfinal, const TVector3 &pos);  // field integral from start point to position zfinal.
 
  private:
   TFormula *vTestFunction1{nullptr};

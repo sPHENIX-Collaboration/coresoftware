@@ -13,23 +13,18 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   MvtxFakeHitRate.h \
   MvtxHitMapWriter.h 
-  
+
 lib_LTLIBRARIES = \
   libmvtxcalib.la
 
 libmvtxcalib_la_SOURCES = \
   MvtxFakeHitRate.cc \
   MvtxHitMapWriter.cc
-  
+
 libmvtxcalib_la_LIBADD = \
   -lphool \
-  -ltrack_io \
-  -lg4detectors \
-  -ltrackbase_historic_io \
   -lmvtx \
   -lffarawobjects \
-  -lcdbobjects \
-  -lCLHEP \
   -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
