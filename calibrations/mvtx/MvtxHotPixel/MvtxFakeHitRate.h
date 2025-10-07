@@ -12,7 +12,6 @@
 #include <fun4all/SubsysReco.h>
 
 #include <cstdint>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -81,7 +80,7 @@ class MvtxFakeHitRate : public SubsysReco
   int FillCurrentMaskTree();
   int CalcFHR();
 
-  double calc_threshold(int nhits);
+  double calc_threshold(int nhits) const;
 };
 
 #endif
