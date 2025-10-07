@@ -4,16 +4,12 @@
 #include <TMath.h>
 #include <TTree.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/math/special_functions.hpp>  //covers all the special functions.
-#pragma GCC diagnostic pop
-
-#include <boost/format.hpp>
 
 #include <algorithm>  // for max
 #include <cmath>
 #include <cstdlib>  // for exit, abs
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -43,20 +39,16 @@ extern "C"
  */
 
 Rossegger::Rossegger(double InnerRadius, double OuterRadius, double Rdo_Z, double precision)
+  : a(InnerRadius)
+  , b(OuterRadius)
+  , L(Rdo_Z)
+  , epsilon(precision)
 {
-  a = InnerRadius;
-  b = OuterRadius;
-  L = Rdo_Z;
-
-  epsilon = precision;
-
-  verbosity = 0;
-  pi = M_PI;
-
   PrecalcFreeConstants();
 
   // load the greens functions:
-  std::string zeroesfilename = boost::str(boost::format("rosseger_zeroes_eps%1.0E_a%2.2f_b%2.2f_L%2.2f.root") % epsilon % a % b % L);
+  std::string zeroesfilename = std::format("rosseger_zeroes_eps{:.0E}_a{:.2f}_b{:.2f}_L{:.2f}.root", epsilon, a, b, L);
+
   TFile *fileptr = TFile::Open(zeroesfilename.c_str(), "READ");
   if (!fileptr)
   {  // generate the lookuptable
@@ -214,8 +206,11 @@ void Rossegger::FindMunk(double localepsilon)
       x += localepsilon;
       if (verbosity > 0)
       {
-        std::cout << boost::str(boost::format("Mu[%d][%d]=%E") % n % k % Munk[n][k]) << std::endl;
-        std::cout << boost::str(boost::format("adjacent values are Rnk[mu-localepsilon]=%E\tRnk[mu+localepsilon]=%E") % (Rnk_for_zeroes(n, x - localepsilon)) % (Rnk_for_zeroes(n, x + localepsilon))) << std::endl;
+        std::cout << std::format("Mu[{}][{}]={:E}", n, k, Munk[n][k]) << std::endl;
+	std::cout << std::format("adjacent values are Rnk[mu-localepsilon]={:E}\tRnk[mu+localepsilon]={:E}",
+				 Rnk_for_zeroes(n, x - localepsilon),
+				 Rnk_for_zeroes(n, x + localepsilon))
+		  << std::endl;
         if (verbosity > 100)
         {
           std::cout << "values of argument to limu and kimu are " << ((n + 1) * pi / L * a)
@@ -269,7 +264,9 @@ bool Rossegger::CheckZeroes(double localepsilon)
       result = Rmn_for_zeroes(m, Betamn[m][n] * b);
       if (abs(result) > localepsilon)
       {
-        std::cout << boost::str(boost::format("(m=%d,n=%d) Jm(x)Ym(lx)-Jm(lx)Ym(x) = %f for x=b*%f") % m % n % result % Betamn[m][n]) << std::endl;
+        std::cout << std::format("(m={:d},n={:d}) Jm(x)Ym(lx)-Jm(lx)Ym(x) = {:.6f} for x=b*{:.6f}",
+				 m, n, result, Betamn[m][n])
+		  << std::endl;
         return false;
       }
     }
@@ -283,7 +280,9 @@ bool Rossegger::CheckZeroes(double localepsilon)
       result = Rnk_for_zeroes(n, Munk[n][k]);
       if (abs(result) > localepsilon * 100)
       {
-        std::cout << boost::str(boost::format("(n=%d,k=%d) limu(npi*a/L)kimu(npi*b/L)-kimu(npi*a/L)kimu(npi*b/L) = %f (>eps*100) for mu=%f") % n % k % result % Munk[n][k]) << std::endl;
+        std::cout << std::format("(n={:d},k={:d}) limu(npi*a/L)kimu(npi*b/L)-kimu(npi*a/L)kimu(npi*b/L) = {:.6f} (>eps*100) for mu={:.6f}",
+				 n, k, result, Munk[n][k])
+		  << std::endl;
         return false;
       }
     }
@@ -367,7 +366,7 @@ double Rossegger::Kimu(double mu, double x)
   return DKI;
 }
 
-double Rossegger::Rmn_for_zeroes(int m, double x)
+double Rossegger::Rmn_for_zeroes(int m, double x) // NOLINT(readability-make-member-function-const)
 {
   double lx = a * x / b;
   //  Rossegger Equation 5.12:
@@ -489,7 +488,7 @@ double Rossegger::Rmn1(int m, int n, double r)
   return R;
 }
 
-double Rossegger::Rmn1_(int m, int n, double r)
+double Rossegger::Rmn1_(int m, int n, double r) // NOLINT(readability-make-member-function-const)
 {
   //  Check input arguments for sanity...
   int error = 0;
@@ -554,7 +553,7 @@ double Rossegger::Rmn2(int m, int n, double r)
   return R;
 }
 
-double Rossegger::Rmn2_(int m, int n, double r)
+double Rossegger::Rmn2_(int m, int n, double r) // NOLINT(readability-make-member-function-const)
 {
   //  Check input arguments for sanity...
   int error = 0;
@@ -630,7 +629,7 @@ double Rossegger::RPrime(int m, int n, double ref, double r)
   return R;
 }
 
-double Rossegger::RPrime_(int m, int n, double ref, double r)
+double Rossegger::RPrime_(int m, int n, double ref, double r) // NOLINT(readability-make-member-function-const)
 {
   //  Check input arguments for sanity...
   int error = 0;
