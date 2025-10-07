@@ -1,6 +1,5 @@
 #include "SingleGl1TriggeredInput.h"
 
-#include "Fun4AllPrdfInputTriggerManager.h"
 #include "InputManagerType.h"
 
 #include <ffarawobjects/Gl1Packetv3.h>
