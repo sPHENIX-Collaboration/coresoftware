@@ -279,6 +279,10 @@ class TrackResiduals : public SubsysReco
   std::vector<float> m_clusgyunmoved;
   std::vector<float> m_clusgzunmoved;
   std::vector<float> m_clusgr;
+  std::vector<int> m_clstave;
+  std::vector<int> m_clchip;
+  std::vector<int> m_clladderz;
+  std::vector<int> m_clladderphi;
   std::vector<int> m_clsector;
   std::vector<int> m_clside;
   std::vector<int> m_cluslayer;
