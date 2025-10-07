@@ -116,6 +116,7 @@ class Fun4AllServer : public Fun4AllBase
   int EventCounter() const { return eventcounter; }
   std::map<const std::string, PHTimer>::const_iterator timer_begin() { return timer_map.begin(); }
   std::map<const std::string, PHTimer>::const_iterator timer_end() { return timer_map.end(); }
+  int UpdateRunNode();
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");

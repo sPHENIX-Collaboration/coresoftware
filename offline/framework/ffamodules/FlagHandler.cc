@@ -43,12 +43,22 @@ int FlagHandler::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int FlagHandler::End(PHCompositeNode *topNode)
 {
+  UpdateRunNode(topNode);
+  FlagSave *flagsave = findNode::getClass<FlagSave>(topNode, "Flags");
+  if (flagsave)
+  {
+    flagsave->identify();
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int FlagHandler::UpdateRunNode(PHCompositeNode *topNode)
+{
   FlagSave *flagsave = findNode::getClass<FlagSave>(topNode, "Flags");
   if (flagsave)
   {
     recoConsts *rc = recoConsts::instance();
     flagsave->FillFromPHFlag(rc, true);
-    flagsave->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
