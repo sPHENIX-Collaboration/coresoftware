@@ -10,19 +10,19 @@ class ChargeMapReader
 {
  public:
   ChargeMapReader();  // calls the below with default values.
-  ChargeMapReader(int _n0, float _rmin, float _rmax, int _n1, float _phimin, float _phimax, int _n2, float _zmin, float _zmax);
+  ChargeMapReader(int _nr, float _rmin, float _rmax, int _nphi, float _phimin, float _phimax, int _nz, float _zmin, float _zmax);
   ~ChargeMapReader() = default;
 
  private:
-  MultiArray<float>* charge = nullptr;
-  TH3* hSourceCharge = nullptr;
-  TH3* hChargeDensity = nullptr;
-  float inputAxisScale = 1;    // multiply the r and z dimensions of the input histogram by this, when filling our internal array.  So if the input histogram is in mm and we want to fill our array in cm, inputUnit=0.1;
-  float inputChargeScale = 1;  // multiply the content the input histogram bins by this, when filling our internal array.
-  int nBins[3] = {1, 1, 1};    // r,phi,z bins of the output fixed-width array
-  float lowerBound[3] = {0, 0, 0};
-  float upperBound[3] = {999, 999, 999};
-  float binWidth[3] = {999, 999, 999};
+  MultiArray<float>* charge {nullptr};
+  TH3* hSourceCharge {nullptr};
+  TH3* hChargeDensity {nullptr};
+  float inputAxisScale {1};    // multiply the r and z dimensions of the input histogram by this, when filling our internal array.  So if the input histogram is in mm and we want to fill our array in cm, inputUnit=0.1;
+  float inputChargeScale {1};  // multiply the content the input histogram bins by this, when filling our internal array.
+  int nBins[3] {1, 1, 1};    // r,phi,z bins of the output fixed-width array
+  float lowerBound[3] {0, 0, 0};
+  float upperBound[3] {999, 999, 999};
+  float binWidth[3] {999, 999, 999};
 
   bool CanInterpolateAt(float r, float phi, float z);  // checks whether it is okay to interpolate at this position in the charge density hist
 

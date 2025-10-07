@@ -2,25 +2,17 @@
 
 #include <mvtx/MvtxHitMap.h>
 #include <mvtx/MvtxPixelDefs.h>
-#include <mvtx/MvtxPixelMask.h>
+
+#include <ffarawobjects/MvtxRawEvtHeader.h>
+#include <ffarawobjects/MvtxRawHit.h>
+#include <ffarawobjects/MvtxRawHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <ffarawobjects/MvtxRawEvtHeader.h>
-#include <ffarawobjects/MvtxRawEvtHeaderv2.h>
-#include <ffarawobjects/MvtxRawHit.h>
-#include <ffarawobjects/MvtxRawHitContainer.h>
-#include <ffarawobjects/MvtxRawHitContainerv1.h>
-#include <ffarawobjects/MvtxRawHitv1.h>
-
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/TrkrDefs.h>
+#include <phool/phool.h>
 
 #include <TTree.h>
 
@@ -29,6 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 // MvtxHitMapWriter class
@@ -43,7 +36,7 @@ int MvtxHitMapWriter::InitRun(PHCompositeNode* /*topNode*/)
   std::cout << "MvtxHitMapWriter::InitRun - Writing output to " << m_outputfile << std::endl;
 
   // Create the output file and trees
-  PHTFileServer::get().open(m_outputfile, "RECREATE");
+  PHTFileServer::open(m_outputfile, "RECREATE");
   // main tree
   m_tree_info = new TTree("info", "MVTX Hit Map Info");
   m_tree_info->Branch("num_strobes", &m_num_strobes, "num_strobes/i");
@@ -65,7 +58,7 @@ int MvtxHitMapWriter::InitRun(PHCompositeNode* /*topNode*/)
 int MvtxHitMapWriter::get_nodes(PHCompositeNode* topNode)
 {
   // get dst nodes
-  m_mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeaderv2>(topNode, "MVTXRAWEVTHEADER");
+  m_mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, "MVTXRAWEVTHEADER");
   if (!m_mvtx_raw_event_header)
   {
     std::cout << PHWHERE << "::" << __func__ << ": Could not get MVTXRAWEVTHEADER from Node Tree" << std::endl;
@@ -76,7 +69,7 @@ int MvtxHitMapWriter::get_nodes(PHCompositeNode* topNode)
     m_mvtx_raw_event_header->identify();
   }
 
-  m_mvtx_raw_hit_container = findNode::getClass<MvtxRawHitContainerv1>(topNode, "MVTXRAWHIT");
+  m_mvtx_raw_hit_container = findNode::getClass<MvtxRawHitContainer>(topNode, "MVTXRAWHIT");
   if (!m_mvtx_raw_hit_container)
   {
     std::cout << PHWHERE << "::" << __func__ << ": Could not get MVTXRAWHIT from Node Tree" << std::endl;
@@ -104,7 +97,7 @@ int MvtxHitMapWriter::process_event(PHCompositeNode* topNode)
   for (unsigned int ihit = 0; ihit < m_mvtx_raw_hit_container->get_nhits(); ihit++)
   {
     // get this hit
-    auto mvtx_hit = m_mvtx_raw_hit_container->get_hit(ihit);
+    auto *mvtx_hit = m_mvtx_raw_hit_container->get_hit(ihit);
     if (!mvtx_hit)
     {
       std::cout << PHWHERE << "::" << __func__ << ": Could not get MVTX hit from container. Hit index: " << ihit << std::endl;
@@ -147,11 +140,11 @@ int MvtxHitMapWriter::FillTree()
   m_pixels.clear();
   m_nhits.clear();
 
-  for (auto it = pixel_hit_vector.begin(); it != pixel_hit_vector.end(); ++it)
+  for (auto & it : pixel_hit_vector)
   {
-    m_pixels.push_back(it->first);
-    m_nhits.push_back(it->second);
-    m_nhits_total += it->second;
+    m_pixels.push_back(it.first);
+    m_nhits.push_back(it.second);
+    m_nhits_total += it.second;
   }
 
   m_tree->Fill();
@@ -169,7 +162,7 @@ int MvtxHitMapWriter::End(PHCompositeNode* /*topNode*/)
   // Fill the current mask tree
   FillTree();
   std::cout << "MvtxHitMapWriter::End - Writing output to " << m_outputfile << std::endl;
-  PHTFileServer::get().cd(m_outputfile);
-  PHTFileServer::get().write(m_outputfile);
+  PHTFileServer::cd(m_outputfile);
+  PHTFileServer::write(m_outputfile);
   return Fun4AllReturnCodes::EVENT_OK;
 }

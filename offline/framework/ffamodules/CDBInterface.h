@@ -25,6 +25,8 @@ class CDBInterface : public SubsysReco
 
   void Print(const std::string &what = "ALL") const override;
 
+  int UpdateRunNode(PHCompositeNode *topNode) override;
+
   void Disable() { disable = true; }
   void Enable() { disable = false; }
 
