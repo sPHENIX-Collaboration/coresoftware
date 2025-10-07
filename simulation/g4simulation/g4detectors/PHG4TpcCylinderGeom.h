@@ -121,7 +121,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   // streamer
   friend std::ostream& operator<<(std::ostream&, const PHG4TpcCylinderGeom&);
 
-  ClassDefOverride(PHG4TpcCylinderGeom, 2)
+  ClassDefOverride(PHG4TpcCylinderGeom, 1)
 };
 
 #endif
