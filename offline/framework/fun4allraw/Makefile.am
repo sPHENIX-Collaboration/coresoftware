@@ -15,7 +15,6 @@ pkginclude_HEADERS = \
   Fun4AllEventOutputManager.h \
   Fun4AllFileOutStream.h \
   Fun4AllPrdfInputManager.h \
-  Fun4AllPrdfInputTriggerManager.h \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
@@ -26,13 +25,8 @@ pkginclude_HEADERS = \
   MicromegasBcoMatchingInformation_v1.h\
   MicromegasBcoMatchingInformation_v2.h\
   MvtxRawDefs.h \
-  SingleCemcTriggerInput.h \
   SingleGl1PoolInput.h \
-  SingleGl1TriggerInput.h \
   SingleGl1TriggeredInput.h \
-  SingleHcalTriggerInput.h \
-  SingleLL1TriggerInput.h \
-  SingleMbdTriggerInput.h \
   SingleMicromegasPoolInput.h \
   SingleMicromegasPoolInput_v1.h \
   SingleMicromegasPoolInput_v2.h \
@@ -41,9 +35,7 @@ pkginclude_HEADERS = \
   SingleMvtxPoolInput.h \
   SingleStreamingInput.h \
   SingleTpcPoolInput.h \
-  SingleTriggerInput.h \
   SingleTriggeredInput.h \
-  SingleZdcTriggerInput.h \
   SingleTpcTimeFrameInput.h \
   TpcTimeFrameBuilder.h
 
@@ -80,7 +72,6 @@ libfun4allraw_la_SOURCES = \
   Fun4AllEventOutputManager.cc \
   Fun4AllFileOutStream.cc \
   Fun4AllPrdfInputManager.cc \
-  Fun4AllPrdfInputTriggerManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
@@ -90,23 +81,16 @@ libfun4allraw_la_SOURCES = \
   MicromegasBcoMatchingInformation_v2.cc\
   mvtx_pool.cc \
   MvtxRawDefs.cc \
-  SingleCemcTriggerInput.cc \
   SingleGl1PoolInput.cc \
-  SingleGl1TriggerInput.cc \
   SingleGl1TriggeredInput.cc \
-  SingleHcalTriggerInput.cc \
   SingleInttEventInput.cc \
   SingleInttPoolInput.cc \
-  SingleLL1TriggerInput.cc \
-  SingleMbdTriggerInput.cc \
   SingleMicromegasPoolInput_v1.cc \
   SingleMicromegasPoolInput_v2.cc \
   SingleMvtxPoolInput.cc \
   SingleStreamingInput.cc \
   SingleTpcPoolInput.cc \
-  SingleTriggerInput.cc \
   SingleTriggeredInput.cc \
-  SingleZdcTriggerInput.cc \
   SingleTpcTimeFrameInput.cc \
   TpcTimeFrameBuilder.cc
 
