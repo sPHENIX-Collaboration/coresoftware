@@ -73,7 +73,7 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const std::string& name, const std::string& det
   , m_tmax(5000.)
   , m_strobe_width(9.7 * microsecond) // in us
   , m_strobe_separation(0.)
-  , m_in_sphenix_srdo(false)
+  , m_in_sphenix_srdo(true)
   , m_trigger_latency(3.7 * microsecond) // in us
   , m_truth_hits{new TrkrHitSetContainerv1}
 {
