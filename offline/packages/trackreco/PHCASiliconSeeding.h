@@ -110,7 +110,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
   {
     _min_intt_clusters = minINTT;
   }
-  void SetTrackMapName(std::string trackmap_name)
+  void SetTrackMapName(const std::string& trackmap_name)
   {
     _module_trackmap_name = trackmap_name;
   }
