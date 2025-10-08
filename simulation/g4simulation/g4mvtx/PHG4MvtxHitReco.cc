@@ -817,7 +817,10 @@ double PHG4MvtxHitReco::generate_strobe_zero_tm_start()
 
 int PHG4MvtxHitReco::get_strobe_frame(double alpide_time, double strobe_zero_tm_start) const
 {
-  if (!m_in_sphenix_srdo) return 0; // triggered mode, strobe frame is always assigned to 0
+  if (!m_in_sphenix_srdo) 
+  {
+    return 0; // triggered mode, strobe frame is always assigned to 0
+  }
 
   const double denom = m_strobe_width + m_strobe_separation;
   if (denom <= 0) // guard 
