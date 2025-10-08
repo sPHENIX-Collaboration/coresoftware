@@ -815,18 +815,21 @@ double PHG4MvtxHitReco::generate_strobe_zero_tm_start()
   return strobe0_start_time;
 }
 
-int PHG4MvtxHitReco::get_strobe_frame(double alpide_time, double strobe_zero_tm_start)
+int PHG4MvtxHitReco::get_strobe_frame(double alpide_time, double strobe_zero_tm_start) const
 {
-  if (!m_in_sphenix_srdo)
+  if (!m_in_sphenix_srdo) return 0; // triggered mode, strobe frame is always assigned to 0
+
+  const double denom = m_strobe_width + m_strobe_separation;
+  if (denom <= 0) // guard 
   {
-    return 0; // triggered mode, strobe frame is always assigned to 0
+    std::cout << __FILE__ << ":" << __PRETTY_FUNCTION__ << ":" << __LINE__
+              << " Invalid strobe parameters: m_strobe_width + m_strobe_separation = " << m_strobe_width + m_strobe_separation << " <= 0. Return 0." << std::endl;
+    return 0;
   }
-  else
-  {
-    int strobe_frame = int((alpide_time - strobe_zero_tm_start) / (m_strobe_width + m_strobe_separation));
-    strobe_frame += (alpide_time < strobe_zero_tm_start) ? -1 : 0;
-    return strobe_frame;
-  }
+
+  return (alpide_time < strobe_zero_tm_start)
+          ? static_cast<int>((alpide_time - strobe_zero_tm_start) / denom) - 1
+          : static_cast<int>((alpide_time - strobe_zero_tm_start) / denom);
 }
 
 void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, const double tmax)

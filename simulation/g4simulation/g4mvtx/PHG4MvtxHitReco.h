@@ -60,7 +60,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   double generate_strobe_zero_tm_start();
 
-  int get_strobe_frame(double alpide_time, double strobe_zero_tm_start);
+  int get_strobe_frame(double alpide_time, double strobe_zero_tm_start) const;
 
   TrkrDefs::hitsetkey zero_strobe_bits(TrkrDefs::hitsetkey hitsetkey);
 
