@@ -522,14 +522,15 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
   // Distribute the charge between the pads in t
   //====================================
   if (Verbosity() > 100 && layernum == print_layer)
-  {
-    std::cout << "  populate t bins for layernum " << layernum
-              << " with t_gem " << t_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << std::endl;
-  }
+    {
+      std::cout << "  populate t bins for layernum " << layernum
+		<< " with t_gem " << t_gem << " SAMPA peaking time  " << Ts << std::endl;
+    }
 
   std::vector<int> adc_tbin;
   std::vector<double> adc_tbin_share;
-  populate_tbins(t_gem, sigmaL, adc_tbin, adc_tbin_share);
+  sampaTimeDistribution(t_gem, adc_tbin, adc_tbin_share);
+
   /* if (adc_tbin.size() == 0)  { */
   /* pass_data.neff_electrons = 0; */
   /* } else { */
@@ -548,6 +549,17 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     adc_tbin_share[it] /= tnorm;
   }
 
+  /*
+  if(layernum == print_layer)
+    {
+      std::cout << "t_gem " << t_gem << std::endl;
+      for (unsigned int it = 0; it < adc_tbin.size(); ++it)
+	{
+	  std::cout << " tbin " << adc_tbin[it] << " share " << adc_tbin_share[it] << std::endl;
+	}
+    }
+  */
+  
   // Fill HitSetContainer
   //===============
   // These are used to do a quick clustering for checking
@@ -897,156 +909,6 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int side, co
   return;
 }
 
-void PHG4TpcPadPlaneReadout::populate_tbins(const double t, const std::array<double, 2> &cloud_sig_tt, std::vector<int> &tbin_adc, std::vector<double> &tbin_adc_share)
-{
-  int tbin = LayerGeom->get_zbin(t);
-  if (tbin < 0 || tbin > LayerGeom->get_zbins())
-  {
-    if (Verbosity() > 0)
-    {
-      std::cout << " t bin " << tbin << " for time " << t << " is outside range of " << LayerGeom->get_zbins() << " so return" << std::endl;
-    }
-    return;
-  }
-
-  double tstepsize = LayerGeom->get_zstep();
-  double tdisp = t - LayerGeom->get_zcenter(tbin);
-
-  if (Verbosity() > 1000)
-  {
-    std::cout << "     input:  t " << t << " tbin " << tbin << " tstepsize " << tstepsize << " t center " << LayerGeom->get_zcenter(tbin) << " tdisp " << tdisp << std::endl;
-  }
-
-  // Because of diffusion, hits can be shared across the membrane, so we allow all t bins
-  int min_cell_tbin = 0;
-  int max_cell_tbin = NTBins - 1;
-
-  double cloud_sig_tt_inv[2];
-  cloud_sig_tt_inv[0] = 1. / cloud_sig_tt[0];
-  cloud_sig_tt_inv[1] = 1. / cloud_sig_tt[1];
-
-  int zsect = 0;
-  if (t < 0)
-  {
-    zsect = -1;
-  }
-  else
-  {
-    zsect = 1;
-  }
-
-  int n_zz = int(3 * (cloud_sig_tt[0] + cloud_sig_tt[1]) / (2.0 * tstepsize) + 1);
-  if (Verbosity() > 1000)
-  {
-    std::cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_tt[0] << " cloud_sig_tt[1] " << cloud_sig_tt[1] << std::endl;
-  }
-  for (int it = -n_zz; it != n_zz + 1; ++it)
-  {
-    int cur_t_bin = tbin + it;
-    if ((cur_t_bin < min_cell_tbin) || (cur_t_bin > max_cell_tbin))
-    {
-      continue;
-    }
-
-    if (Verbosity() > 1000)
-    {
-      std::cout << " it " << it << " cur_t_bin " << cur_t_bin << " min_cell_tbin " << min_cell_tbin << " max_cell_tbin " << max_cell_tbin << std::endl;
-    }
-
-    double t_integral = 0.0;
-    if (it == 0)
-    {
-      // the crossover between lead and tail shaping occurs in this bin
-      int index1 = -1;
-      int index2 = -1;
-      if (zsect == -1)
-      {
-        index1 = 0;
-        index2 = 1;
-      }
-      else
-      {
-        index1 = 1;
-        index2 = 0;
-      }
-
-      double tLim1 = 0.0;
-      double tLim2 = 0.5 * M_SQRT2 * (-0.5 * tstepsize - tdisp) * cloud_sig_tt_inv[index1];
-      // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
-      double t_integral1 = 0.5 * (erf(tLim1) - erf(tLim2));
-
-      if (Verbosity() > 1000)
-      {
-        if (LayerGeom->get_layer() == print_layer)
-        {
-          std::cout << "   populate_tbins:  cur_t_bin " << cur_t_bin << "  center t " << LayerGeom->get_zcenter(cur_t_bin)
-                    << " index1 " << index1 << "  tLim1 " << tLim1 << " tLim2 " << tLim2 << " t_integral1 " << t_integral1 << std::endl;
-        }
-      }
-
-      tLim2 = 0.0;
-      tLim1 = 0.5 * M_SQRT2 * (0.5 * tstepsize - tdisp) * cloud_sig_tt_inv[index2];
-      double t_integral2 = 0.5 * (erf(tLim1) - erf(tLim2));
-
-      if (Verbosity() > 1000)
-      {
-        if (LayerGeom->get_layer() == print_layer)
-        {
-          std::cout << "   populate_tbins:  cur_t_bin " << cur_t_bin << "  center t " << LayerGeom->get_zcenter(cur_t_bin)
-                    << " index2 " << index2 << "  tLim1 " << tLim1 << " tLim2 " << tLim2 << " t_integral2 " << t_integral2 << std::endl;
-        }
-      }
-
-      t_integral = t_integral1 + t_integral2;
-    }
-    else
-    {
-      // The non zero bins are entirely in the lead or tail region
-      // lead or tail depends on which side of the membrane
-      int index = 0;
-      if (it < 0)
-      {
-        if (zsect == -1)
-        {
-          index = 0;
-        }
-        else
-        {
-          index = 1;
-        }
-      }
-      else
-      {
-        if (zsect == -1)
-        {
-          index = 1;
-        }
-        else
-        {
-          index = 0;
-        }
-      }
-      double tLim1 = 0.5 * M_SQRT2 * ((it + 0.5) * tstepsize - tdisp) * cloud_sig_tt_inv[index];
-      double tLim2 = 0.5 * M_SQRT2 * ((it - 0.5) * tstepsize - tdisp) * cloud_sig_tt_inv[index];
-      t_integral = 0.5 * (erf(tLim1) - erf(tLim2));
-
-      if (Verbosity() > 1000)
-      {
-        if (LayerGeom->get_layer() == print_layer)
-        {
-          std::cout << "   populate_tbins:  t_bin " << cur_t_bin << "  center t " << LayerGeom->get_zcenter(cur_t_bin)
-                    << " index " << index << "  tLim1 " << tLim1 << " tLim2 " << tLim2 << " t_integral " << t_integral << std::endl;
-        }
-      }
-    }
-
-    tbin_adc.push_back(cur_t_bin);
-    tbin_adc_share.push_back(t_integral);
-  }
-
-  return;
-}
-
 void PHG4TpcPadPlaneReadout::UseGain(const int flagToUseGain)
 {
   m_flagToUseGain = flagToUseGain;
@@ -1085,8 +947,6 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
   set_default_double_param("neffelectrons_threshold", 1.0);
-  //  set_default_double_param("maxdriftlength", 102.325);     // cm
-  //  set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.8 MHz clock
   set_default_double_param("gem_cloud_sigma", 0.04);     // cm = 400 microns
   set_default_double_param("sampa_shaping_lead", 32.0);  // ns, for 80 ns SAMPA
   set_default_double_param("sampa_shaping_tail", 48.0);  // ns, for 80 ns SAMPA
@@ -1158,3 +1018,77 @@ void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc &aMask, const std::strin
 
   delete cdbttree;
 }
+
+void PHG4TpcPadPlaneReadout::sampaTimeDistribution(double tzero,  std::vector<int> &adc_tbin, std::vector<double> &adc_tbin_share)
+{
+  // tzero is the arrival time of the electron at the GEM
+  // Ts is the sampa peaking time
+  // Assume the response is over after 8 clock cycles (400 ns)
+  int nclocks = 8;
+
+  double tstepsize = LayerGeom->get_zstep();
+  int tbinzero = LayerGeom->get_zbin(tzero);
+
+  // the first clock bin is a special case
+  double tfirst_end = LayerGeom->get_zcenter(tbinzero) + tstepsize/2.0;
+  double vfirst_end =  sampaShapingResponseFunction(tzero, tfirst_end); 
+  double first_integral = (vfirst_end / 2.0) * (tfirst_end - tzero);
+    
+  adc_tbin.push_back(tbinzero);
+  adc_tbin_share.push_back(first_integral);
+
+  /*
+  if (LayerGeom->get_layer() == print_layer)
+    {
+      std::cout << "     tzero " << tzero << " tbinzero " << tbinzero << " iclock  0 "  
+		<< " tfirst_end " << tfirst_end << " vfirst_end " << vfirst_end << " first_integral " << first_integral << std::endl;      
+    }
+  */
+  
+  for(int iclock = 1; iclock < nclocks; ++iclock)
+    {
+      int tbin = tbinzero + iclock;
+      if (tbin < 0 || tbin > LayerGeom->get_zbins())
+	{
+	  if (Verbosity() > 0)
+	    {
+	      std::cout << " t bin " << tbin << " is outside range of " << LayerGeom->get_zbins() << " so skip it" << std::endl;
+	    }
+	  continue;
+	}
+
+      // get the beginning and end of this clock bin
+      double tcenter = LayerGeom->get_zcenter(tbin);
+      double tlow = tcenter - tstepsize/2.0;
+
+      // sample the voltage in this bin at nsamples-1 locations
+      int nsamples = 6;
+      double sample_step = tstepsize / (double) nsamples;
+      double sintegral = 0;
+      for(int isample = 0; isample < nsamples; ++isample)
+	{
+	  double tnow = tlow + (double) isample * sample_step + sample_step / 2.0;	  
+	  double vnow = sampaShapingResponseFunction(tzero, tnow);
+	  sintegral += vnow * sample_step;
+
+	  /*
+	  if (LayerGeom->get_layer() == print_layer)
+	    {
+	      std::cout << "     tzero " << tzero << " tbinzero " << tbinzero << " iclock " << iclock << " tbin " << tbin << " isample " << isample
+			<< " tnow " << tnow << " vnow " << vnow  << " sintegral " << sintegral << std::endl;
+	    }
+	  */
+	}
+
+	  
+      adc_tbin.push_back(tbin);
+      adc_tbin_share.push_back(sintegral);      
+    }
+}
+  
+double PHG4TpcPadPlaneReadout::sampaShapingResponseFunction(double tzero, double t)
+  {
+    double v = exp(-4*(t-tzero)/Ts) * pow( (t-tzero)/Ts, 4.0);
+
+    return v;
+  }
