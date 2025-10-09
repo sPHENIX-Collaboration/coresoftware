@@ -954,6 +954,7 @@ if ($#ARGV < 0)
 	print "-l     : last segment\n";
 	print "-n     : <number of events>\n";
 	print "-nopileup : without pileup\n";
+	print "-nobkgpileup : background without pileup (use with -embed)\n";
 	print "-rand  : randomize segments used\n";
 	print "-run   : runnumber (mandatory, no default anymore)\n";
 	print "-s     : starting segment (remember first segment is 0)\n";
