@@ -209,7 +209,10 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
       std::map<TrkrDefs::cluskey, Acts::Vector3> &positions,
       const int &strobe);
-
+  std::vector<std::vector<TrkrDefs::cluskey>> iterateLayers(const int &startLayer,
+                                                            const int &endLayer,const int &strobe, 
+                                                            const std::vector<TrkrDefs::cluskey> &keys,
+                                                            const std::vector<Acts::Vector3>& positions);
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
                                                    TrackSeed &seed,
                                                    const double xProj[],

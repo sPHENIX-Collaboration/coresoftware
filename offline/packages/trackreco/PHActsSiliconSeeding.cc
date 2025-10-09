@@ -981,6 +981,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
     std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
     const int& strobe)
 {
+  std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
+
   std::vector<TrkrDefs::cluskey> keys;
   std::vector<Acts::Vector3> clusters;
   for (auto& [key, pos] : positions)
@@ -988,19 +990,90 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
     keys.push_back(key);
     clusters.push_back(pos);
   }
-  auto fitpars = TrackFitUtils::fitClusters(clusters, keys, true);
+  
+  std::set<TrkrDefs::cluskey> layer34matches;
+  std::set<TrkrDefs::cluskey> layer56matches;
+  auto innerLayerMatches = iterateLayers(3, 5, strobe, keys, clusters);
+  /// If we found none in layer 3-4, use the original triplet as a seed
+  /// for layer 5-6
+  if(Verbosity() > 1)
+  {
+    std::cout << "Layer 3-4 matches size " << innerLayerMatches.size() << std::endl;
+  }
+  if(innerLayerMatches.size() == 0)
+  {
+    innerLayerMatches.push_back(keys);
+  }
+  for (auto& seed : innerLayerMatches)
+  {
+    keys.clear();
+    clusters.clear();
+    for (auto& key : seed)
+    {
+      keys.push_back(key);
+      clusters.push_back(m_tGeometry->getGlobalPosition(
+            key,
+            m_clusterMap->findCluster(key)));
+    }
+   auto match = iterateLayers(5, 7, strobe, keys, clusters);
+   if(Verbosity() > 1)
+   {
+      std::cout << "Layer 5-6 matches size " << match.size() << std::endl;
+   }
+   /// If we found no matches, use the original seed
+   if(match.size() == 0)
+   {
+     match.push_back(seed);
+   }
+    for(auto mseed : match)
+    {
+      inttMatches.push_back(mseed);
+    }
+   
+ }
+
+ if (Verbosity() > 2)
+ {
+   std::cout << "intt matches size " << inttMatches.size() << std::endl;
+   std::cout << "the matches are " << std::endl;
+   for (auto& matchvec : inttMatches)
+   {
+     std::cout << " match with " << matchvec.size() << " clusters ";
+     for (auto& key : matchvec)
+     {
+       std::cout << key << " ";
+     }
+     std::cout << std::endl;
+   }
+  }
+  return inttMatches;
+}
+std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(const int& startLayer,
+                                                                                const int& endLayer,const int& strobe, 
+                                                                                const std::vector<TrkrDefs::cluskey>& keys,
+                                                                                const std::vector<Acts::Vector3>& positions)
+{
   std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
+  auto dummypos = positions;
+  auto fitpars = TrackFitUtils::fitClusters(dummypos, keys, true);
   float avgtripletx = 0;
   float avgtriplety = 0;
-  for (auto& [key, pos] : positions)
+  for (auto& pos : positions)
   {
     avgtripletx += std::cos(std::atan2(pos(1), pos(0)));
     avgtriplety += std::sin(std::atan2(pos(1), pos(0)));
   }
   float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
-  std::set<TrkrDefs::cluskey> layer34matches;
-  std::set<TrkrDefs::cluskey> layer56matches;
-  for (int layer = 3; layer < 7; ++layer)
+
+  int layer34timebucket = std::numeric_limits<int>::quiet_NaN();
+  for (auto& key : keys)
+  {
+    if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
+    {
+      layer34timebucket = InttDefs::getTimeBucketId(key);
+    }
+  }
+  for (int layer = startLayer; layer < endLayer; ++layer)
   {
     float layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
     const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0], fitpars[1], fitpars[2]);
@@ -1026,9 +1099,15 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       {
         continue;
       }
-
       int timebucket = InttDefs::getTimeBucketId(hitsetkey);
-
+      if(!std::isnan(layer34timebucket))
+      {
+        if(std::abs(timebucket - layer34timebucket) > 1)
+        {
+          continue;
+        }
+      }
+      
       int strobecrossinglow = strobe * m_strobeWidth;
       int strobecrossinghigh = (strobe + 1) * m_strobeWidth;
 
@@ -1036,7 +1115,6 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       {
         continue;
       }
-
       auto range = m_clusterMap->getClusters(hitsetkey);
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
@@ -1109,78 +1187,22 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
                       << cluster->getLocalY() << " in layer " << layer
                       << std::endl;
           }
-          if (layer < 5)
-          {
-            layer34matches.insert(cluskey);
-          }
-          else
-          {
-            layer56matches.insert(cluskey);
-          }
+          /// make a new seed with this cluster added
+          inttMatches.push_back([&]()
+                                  { std::vector<TrkrDefs::cluskey> skeys; 
+                                  for(auto const& key  : keys)
+                                  {
+                                    skeys.push_back(key);
+                                  }
+                                  skeys.push_back(cluskey);
+                                  return skeys; }());
+          
         }
       }
     }
   }
-
-  /// now layer34matches and layer56matches have all possible search window
-  /// and crossing-strobe matches. Sort them and return them as possible combinations
-  /// with the triplet
-  std::set<TrkrDefs::cluskey> keysToDelete;
-  // first start with crossing matches  within a crossing of 1
-  for (auto& l34 : layer34matches)
-  {
-    if (keysToDelete.find(l34) != keysToDelete.end())
-    {
-      continue;
-    }
-    for (auto& l56 : layer56matches)
-    {
-      if (keysToDelete.find(l56) != keysToDelete.end())
-      {
-        continue;
-      }
-      if (std::abs(InttDefs::getTimeBucketId(l34) - InttDefs::getTimeBucketId(l56)) < 2)
-      {
-        inttMatches.push_back({l34, l56});
-        keysToDelete.insert(l34);
-        keysToDelete.insert(l56);
-      }
-    }
-  }
-  for (auto& key : keysToDelete)
-  {
-    layer34matches.erase(key);
-    layer56matches.erase(key);
-  }
-
-  /// the rest did not have a 2 INTT exact crossing match. Just create single cluster entries
-  /// for each
-  for (auto& l34 : layer34matches)
-  {
-    inttMatches.push_back({l34});
-  }
-  for (auto& l56 : layer56matches)
-  {
-    inttMatches.push_back({l56});
-  }
-
-  if (Verbosity() > 2)
-  {
-    std::cout << "intt matches size " << inttMatches.size() << std::endl;
-    std::cout << "the matches are " << std::endl;
-    for (auto& matchvec : inttMatches)
-    {
-      std::cout << " match with " << matchvec.size() << " clusters ";
-      for (auto& key : matchvec)
-      {
-        std::cout << key << " ";
-      }
-      std::cout << std::endl;
-    }
-  }
   return inttMatches;
 }
-
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
     const Surface& surf,
     const TrkrDefs::cluskey key,
