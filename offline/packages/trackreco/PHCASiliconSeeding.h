@@ -102,6 +102,18 @@ class PHCASiliconSeeding : public PHTrackSeeding
   { 
     _min_clusters_per_track = minClus; 
   }
+  void SetMinMVTXClusters(unsigned int minMVTX)
+  {
+    _min_mvtx_clusters = minMVTX;
+  }
+  void SetMinINTTClusters(unsigned int minINTT)
+  {
+    _min_intt_clusters = minINTT;
+  }
+  void SetTrackMapName(const std::string& trackmap_name)
+  {
+    _module_trackmap_name = trackmap_name;
+  }
 
  protected:
   int Setup(PHCompositeNode* topNode) override;
@@ -112,7 +124,11 @@ class PHCASiliconSeeding : public PHTrackSeeding
  private:
   unsigned int _start_layer;
   unsigned int _end_layer;
+
   unsigned int _min_clusters_per_track;
+  unsigned int _min_mvtx_clusters = 2;
+  unsigned int _min_intt_clusters = 1;
+
   float _neighbor_phi_width;
   float _neighbor_z_width;
 
@@ -171,6 +187,8 @@ class PHCASiliconSeeding : public PHTrackSeeding
   //  TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   TrkrClusterCrossingAssoc *m_clusterCrossingMap = nullptr;
+
+  std::string _module_trackmap_name = "SiliconTrackSeedContainer";
 
   std::vector<bgi::rtree<pointKey, bgi::quadratic<16>>> _rtrees;  // need three layers at a time
 };
