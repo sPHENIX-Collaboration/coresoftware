@@ -320,7 +320,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
                   << seed.sp().size() << " measurements "
                   << std::endl;
       }
-
+      numSeeds++;
       if (m_seedAnalysis)
       {
         clearTreeVariables();
