@@ -13,8 +13,8 @@
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
@@ -114,7 +114,7 @@ int TrackResiduals::InitRun(PHCompositeNode* topNode)
   m_globalPositionWrapper.loadNodes(topNode);
   m_globalPositionWrapper.set_suppressCrossing(m_convertSeeds);
   // clusterMover needs the correct radii of the TPC layers
-  auto *tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto *tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   m_clusterMover.initialize_geometry(tpccellgeo);
   m_clusterMover.set_verbosity(0);
 
@@ -215,7 +215,7 @@ int TrackResiduals::process_event(PHCompositeNode* topNode)
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   auto *tpcGeom =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   auto *mvtxGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   auto *inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   auto *mmGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
@@ -344,7 +344,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
   auto *silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto *svtxseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SvtxTrackSeedContainer");
-  auto *tpcGeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto *tpcGeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
 
   if (!tpcseedmap || !trackmap || !clustermap || !silseedmap || !svtxseedmap || !geometry)
   {
@@ -762,7 +762,7 @@ int TrackResiduals::End(PHCompositeNode* /*unused*/)
 }
 void TrackResiduals::fillHitTree(TrkrHitSetContainer* hitmap,
                                  ActsGeometry* geometry,
-                                 PHG4TpcCylinderGeomContainer* tpcGeom,
+                                 PHG4TpcGeomContainer* tpcGeom,
                                  PHG4CylinderGeomContainer* mvtxGeom,
                                  PHG4CylinderGeomContainer* inttGeom,
                                  PHG4CylinderGeomContainer* mmGeom)
@@ -1877,7 +1877,7 @@ void TrackResiduals::fillResidualTreeKF(PHCompositeNode* topNode)
   auto *silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto *tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   auto *tpcGeom =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   auto *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto *clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
@@ -2220,7 +2220,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
   auto *silseedmap = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
   auto *tpcseedmap = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   auto *tpcGeom =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   auto *trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   auto *clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");

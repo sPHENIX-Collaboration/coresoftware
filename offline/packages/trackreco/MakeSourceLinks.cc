@@ -19,7 +19,7 @@
 #include <tpc/TpcGlobalPositionWrapper.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/EventData/SourceLink.hpp>
@@ -50,7 +50,7 @@ namespace
 
 }
 
-void MakeSourceLinks::initialize(PHG4TpcCylinderGeomContainer* cellgeo)
+void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo)
 {
   // get the TPC layer radii from the geometry object
   if (cellgeo)

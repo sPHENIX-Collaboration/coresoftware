@@ -30,8 +30,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -89,7 +89,7 @@ namespace
 
   struct thread_data
   {
-    PHG4TpcCylinderGeom *layergeom = nullptr;
+    PHG4TpcGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
     RawHitSet *rawhitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
@@ -1089,7 +1089,7 @@ TpcClusterizer::TpcClusterizer(const std::string &name)
 {
 }
 
-bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
+bool TpcClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const
 {
   bool reject_it = false;
 
@@ -1229,10 +1229,10 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     }
   }
   auto geom =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   
@@ -1314,8 +1314,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcCylinderGeomContainer *geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!geom_container)
   {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
@@ -1335,7 +1335,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   /*
   std::cout << PHWHERE << " tGeometry maxz:  " << m_tGeometry->get_max_driftlength() << " + " <<  m_tGeometry->get_CM_halfwidth()<< std::endl;
   int test_layer = 20;
-  PHG4TpcCylinderGeom *layergeom_test = geom_container->GetLayerCellGeom(test_layer);  
+  PHG4TpcGeom *layergeom_test = geom_container->GetLayerCellGeom(test_layer);  
   std::cout << " layergeom zbins " << (unsigned short) layergeom_test->get_zbins()
 	    << " zstep " << layergeom_test->get_zstep()  << std::endl;
   std::cout << "    do_read_raw " << do_read_raw << " do_wedge_emulation " << do_wedge_emulation << " is_reco " << is_reco << std::endl;
@@ -1394,7 +1394,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
       int side = TpcDefs::getSide(hitsetitr->first);
       unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-      PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+      PHG4TpcGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
       // instanciate new thread pair, at the end of thread vector
       thread_pair_t &thread_pair = threads.emplace_back();
@@ -1524,7 +1524,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
       int side = TpcDefs::getSide(hitsetitr->first);
       unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-      PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+      PHG4TpcGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
       // instanciate new thread pair, at the end of thread vector
       thread_pair_t &thread_pair = threads.emplace_back();
@@ -1560,7 +1560,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       thread_pair.data.toffset = TOffset;
       
       /*
-      PHG4TpcCylinderGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
+      PHG4TpcGeom *testlayergeom = geom_container->GetLayerCellGeom(32);
       for( float iphi = 1408; iphi < 1408+ 128;iphi+=0.1){
         double clusiphi = iphi;
         double clusphi = testlayergeom->get_phi(clusiphi);

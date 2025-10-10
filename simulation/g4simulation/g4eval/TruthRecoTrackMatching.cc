@@ -2,8 +2,8 @@
 #include "TrkrClusterIsMatcher.h"
 #include "ClusKeyIter.h"
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 
@@ -377,19 +377,18 @@ int TruthRecoTrackMatching::createNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_PHG4TpcCylinderGeomContainer =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!m_PHG4TpcCylinderGeomContainer)
+  m_PHG4TpcGeomContainer =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!m_PHG4TpcGeomContainer)
   {
-    std::cout << "Could not locate CYLINDERCELLGEOM_SVTX node when "
+    std::cout << "Could not locate TPCGEOMCONTAINER node when "
               << "running \"TruthRecoTrackMatching\" module." << std::endl;
-    /* std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl; */
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   // note that layers 0-6, and > 55, don't work
   /* for (int layer=7; layer<55; ++layer) { */
-  /*   PHG4TpcCylinderGeom *layergeom = m_PHG4TpcCylinderGeomContainer->GetLayerCellGeom(layer); */
+  /*   PHG4TpcGeom *layergeom = m_PHG4TpcGeomContainer->GetLayerCellGeom(layer); */
   /*   if (layer==7) m_zstep = layergeom->get_zstep(); */
   /*   m_phistep[layer] = layergeom->get_phistep(); */
   /* } */

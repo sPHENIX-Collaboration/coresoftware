@@ -27,7 +27,7 @@ int PHG4TpcGeomContainer::AddLayerCellGeom(const int i, PHG4TpcGeom *mygeom)
 {
   if (layergeoms.find(i) != layergeoms.end())
   {
-    std::cout << "layer " << i << " already added to PHCylinderCellGeomContainer" << std::endl;
+    std::cout << "layer " << i << " already added to PHG4TpcGeomContainer" << std::endl;
     return -1;
   }
   mygeom->set_layer(i);
@@ -40,7 +40,7 @@ int PHG4TpcGeomContainer::AddLayerCellGeom(PHG4TpcGeom *mygeom)
   int layer = mygeom->get_layer();
   if (layergeoms.find(layer) != layergeoms.end())
   {
-    std::cout << "layer " << layer << " already added to PHCylinderCellGeomContainer" << std::endl;
+    std::cout << "layer " << layer << " already added to PHG4TpcGeomContainer" << std::endl;
     return -1;
   }
   layergeoms[layer] = mygeom;

@@ -9,8 +9,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <trackbase/TrackFitUtils.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 #include <climits>
 #include <cmath>
 #include <iostream>
@@ -44,7 +44,7 @@ TpcClusterMover::TpcClusterMover()
   }
 }
 
-void TpcClusterMover::initialize_geometry(PHG4TpcCylinderGeomContainer *cellgeo)
+void TpcClusterMover::initialize_geometry(PHG4TpcGeomContainer *cellgeo)
 {
   if (_verbosity > 0)
   {
@@ -52,8 +52,8 @@ void TpcClusterMover::initialize_geometry(PHG4TpcCylinderGeomContainer *cellgeo)
   }
 
   int layer = 0;
-  PHG4TpcCylinderGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
-  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcGeomContainer::ConstRange layerrange = cellgeo->get_begin_end();
+  for (PHG4TpcGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {

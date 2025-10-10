@@ -18,7 +18,7 @@ class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 class PHG4CylinderGeomContainer;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class ActsGeometry;
@@ -71,7 +71,7 @@ std::set<PHG4Hit*> all_truth_hits(PHG4Particle* particle);
   PHG4HitContainer* _g4hits_tracker{nullptr};
   PHG4HitContainer* _g4hits_maps{nullptr};
 
-  PHG4TpcCylinderGeomContainer* _tpc_geom_container{nullptr};
+  PHG4TpcGeomContainer* _tpc_geom_container{nullptr};
   PHG4CylinderGeomContainer *_intt_geom_container{nullptr};
   PHG4CylinderGeomContainer* _mvtx_geom_container{nullptr};
   PHG4CylinderGeomContainer* _mms_geom_container{nullptr};

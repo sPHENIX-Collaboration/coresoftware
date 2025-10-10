@@ -20,8 +20,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
@@ -259,9 +259,9 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
   electrons_per_cm = get_int_param("electrons_per_cm");
   electrons_per_gev = get_double_param("electrons_per_gev");
 
-    PHG4TpcCylinderGeomContainer *GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+    PHG4TpcGeomContainer *GeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
    
-  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  PHG4TpcGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
   double maxdriftlength = layergeom->get_max_driftlength();
   halfwidth_CM = layergeom->get_CM_halfwidth();
   halflength_tpc = maxdriftlength + halfwidth_CM;

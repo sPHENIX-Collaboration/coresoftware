@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <iostream>  // for cout, ostream
+#include <array>
 
 class PHParameters;
 
@@ -140,7 +141,7 @@ class PHG4TpcGeom : public PHObject
     PHOOL_VIRTUAL_WARN("get_zcenter()");
     return NAN;
   }    
-  virtual double get_phicenter(const int, const int) const
+  virtual double get_phicenter(const int, const int=0) const
   {
     PHOOL_VIRTUAL_WARN("get_phicenter()");
     return NAN;
@@ -165,7 +166,7 @@ class PHG4TpcGeom : public PHObject
     PHOOL_VIRTUAL_WARN("get_zbin()");
     return -99999;
   }
-  virtual int get_phibin(const double, int) const
+  virtual int get_phibin(const double, int=0) const
   {
     PHOOL_VIRTUAL_WARN("get_phibin()");
     return -99999;
@@ -191,6 +192,25 @@ class PHG4TpcGeom : public PHObject
     return -99999;
   }
 
+  virtual const std::array<std::vector<double>, 2> &get_sector_min_phi();
+  virtual const std::array<std::vector<double>, 2> &get_sector_max_phi();
+
+  virtual void set_sector_min_phi(const std::array<std::vector<double>, 2>&)
+  {
+    PHOOL_VIRTUAL_WARN("set_sector_min_phi(const std::array<std::vector<double>, 2>&)");
+  }
+  virtual void set_sector_max_phi(const std::array<std::vector<double>, 2>&)
+  {
+    PHOOL_VIRTUAL_WARN("set_sector_max_phi(const std::array<std::vector<double>, 2>&)");
+  }
+  virtual void set_r_bias(const std::array<std::vector<double>, 2> &)
+  {
+    PHOOL_VIRTUAL_WARN("set_r_bias(const std::array<std::vector<double>, 2>&)");  
+  }
+  virtual void set_phi_bias(const std::array<std::vector<double>, 2> &)
+  {
+    PHOOL_VIRTUAL_WARN("set_phi_bias(const std::array<std::vector<double>, 2>&)");  
+  }
   
   virtual void set_layer(const int) { PHOOL_VIRTUAL_WARN("set_layer(const int)"); }
   virtual void set_radius(const double) { PHOOL_VIRTUAL_WARN("set_radius(const double)"); }

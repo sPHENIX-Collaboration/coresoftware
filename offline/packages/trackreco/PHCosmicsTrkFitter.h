@@ -31,7 +31,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
 class SvtxAlignmentStateMap;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 
 class TFile;
 class TTree;
@@ -201,7 +201,7 @@ class PHCosmicsTrkFitter : public SubsysReco
   ActsAlignmentStates m_alignStates;
 
   bool m_zeroField = false;
-  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
+  PHG4TpcGeomContainer* _tpccellgeo = nullptr;
 
   //! for diagnosing seed param + clusters
   bool m_seedClusAnalysis = false;

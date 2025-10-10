@@ -16,8 +16,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>  // for PHIODataNode
@@ -78,7 +78,7 @@ namespace
 {
   struct thread_data
   {
-    PHG4TpcCylinderGeomContainer *geom_container = nullptr;
+    PHG4TpcGeomContainer *geom_container = nullptr;
     ActsGeometry *tGeometry = nullptr;
     std::vector<TrkrHitSet *> hitsets;
     std::vector<unsigned int> layers;
@@ -303,7 +303,7 @@ namespace
 	      meanSide--;
       }
       
-      PHG4TpcCylinderGeom *layergeom = my_data.geom_container->GetLayerCellGeom((int) coords[0]);
+      PHG4TpcGeom *layergeom = my_data.geom_container->GetLayerCellGeom((int) coords[0]);
       
       double r = layergeom->get_radius();
       double phi = layergeom->get_phi(coords[1], side);
@@ -562,8 +562,8 @@ namespace
       const ROOT::Fit::FitResult& result = fit3D->Result();
 
 
-      PHG4TpcCylinderGeom *layergeomLow = my_data.geom_container->GetLayerCellGeom((int) floor(result.Parameter(1)));
-      PHG4TpcCylinderGeom *layergeomHigh = my_data.geom_container->GetLayerCellGeom((int) ceil(result.Parameter(1)));
+      PHG4TpcGeom *layergeomLow = my_data.geom_container->GetLayerCellGeom((int) floor(result.Parameter(1)));
+      PHG4TpcGeom *layergeomHigh = my_data.geom_container->GetLayerCellGeom((int) ceil(result.Parameter(1)));
 
       double RLow = layergeomLow->get_radius();
       double RHigh = layergeomHigh->get_radius();
@@ -837,10 +837,10 @@ int LaserClusterizer::InitRun(PHCompositeNode *topNode)
   }
   
   m_geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!m_geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   // get the first layer to get the clock freq

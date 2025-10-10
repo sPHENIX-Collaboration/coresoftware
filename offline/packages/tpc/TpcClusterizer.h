@@ -16,8 +16,8 @@ class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrainingHitsContainer;
-class PHG4TpcCylinderGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeom;
+class PHG4TpcGeomContainer;
 class RawHitSetContainer;
 class RawHitSet;
 class TpcClusterizer : public SubsysReco
@@ -73,7 +73,7 @@ public:
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
   
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
   bool record_ClusHitsVerbose{false};
 
   TrkrHitSetContainer *m_hits = nullptr;

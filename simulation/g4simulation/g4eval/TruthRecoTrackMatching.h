@@ -18,8 +18,8 @@
 
 class EmbRecoMatchContainer;
 class PHCompositeNode;
-class PHG4TpcCylinderGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeom;
+class PHG4TpcGeomContainer;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -123,7 +123,7 @@ class TruthRecoTrackMatching : public SubsysReco
   TrkrClusterContainer* m_TruthClusterContainer = nullptr;
   TrkrClusterContainer* m_RecoClusterContainer = nullptr;
   TrkrTruthTrackContainer* m_TrkrTruthTrackContainer = nullptr;
-  PHG4TpcCylinderGeomContainer* m_PHG4TpcCylinderGeomContainer = nullptr;
+  PHG4TpcGeomContainer* m_PHG4TpcGeomContainer = nullptr;
 
   ActsGeometry* m_ActsGeometry = nullptr;
 

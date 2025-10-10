@@ -20,7 +20,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedHelper.h>
 
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -131,7 +131,7 @@ int PHCosmicsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_fitCfg.fit->outlierFinder(m_outlierFinder);
   }
 
-  _tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  _tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
 
   if (m_actsEvaluator)
   {

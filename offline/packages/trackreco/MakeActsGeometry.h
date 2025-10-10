@@ -33,7 +33,7 @@
 
 class PHCompositeNode;
 class PHG4CylinderGeomContainer;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
@@ -218,7 +218,7 @@ class MakeActsGeometry : public SubsysReco
   PHG4CylinderGeomContainer *m_geomContainerMvtx = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerMicromegas = nullptr;
-  PHG4TpcCylinderGeomContainer *m_geomContainerTpc = nullptr;
+  PHG4TpcGeomContainer *m_geomContainerTpc = nullptr;
   TGeoManager *m_geoManager = nullptr;
 
   // Switch to use or not use the INTT survey geometry
