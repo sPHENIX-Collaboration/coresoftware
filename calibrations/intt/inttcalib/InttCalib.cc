@@ -673,7 +673,7 @@ int InttCalib::MakeHotMapPng_v3()
   TPad *legend_pad = new TPad("legend_pad", "legend_pad", 0.9, 0.1, 1.0, 1.0);
   legend_pad->SetFillStyle(4000);
   legend_pad->Range(0.0, 0.0, 1.0, 1.0);
-  legend_pad->Draw();
+  legend_pad->Draw(); // this adds the tpad to the canvas, so it gets deleted when the tcanvas is deleted
   legend_pad->cd();
   for (int i = 0; i < 4; ++i)
   {
