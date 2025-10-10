@@ -1065,7 +1065,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
   }
   float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
 
-  int layer34timebucket = std::numeric_limits<int>::quiet_NaN();
+  int layer34timebucket = std::numeric_limits<int>::max();
   for (auto& key : keys)
   {
     if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
@@ -1073,6 +1073,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
       layer34timebucket = InttDefs::getTimeBucketId(key);
     }
   }
+
   for (int layer = startLayer; layer < endLayer; ++layer)
   {
     float layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
@@ -1097,14 +1098,24 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
       /// the size of one intt segment (256 * 80 micron strips in a segment)
       if (std::fabs(dphi) > 0.3)
       {
+        if(Verbosity() > 3)
+        {
+          std::cout << "Skipping hitsetkey " << hitsetkey << " with dphi " << dphi << std::endl;
+        }
         continue;
       }
+
       int timebucket = InttDefs::getTimeBucketId(hitsetkey);
-      if(!std::isnan(layer34timebucket))
+      if(layer34timebucket < std::numeric_limits<int>::max())
       {
         if(std::abs(timebucket - layer34timebucket) > 1)
         {
-          continue;
+          if(Verbosity() > 3)
+          {
+            std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket 
+                      << " because layer 3-4 timebucket is " << layer34timebucket << std::endl;
+          }
+         continue;
         }
       }
       
@@ -1113,6 +1124,12 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
 
       if (timebucket < strobecrossinglow || timebucket > strobecrossinghigh)
       {
+        if(Verbosity() > 3)
+        {
+          std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket 
+                    << " because it is outside the strobe range " << strobecrossinglow 
+                    << " to " << strobecrossinghigh << std::endl;
+        }
         continue;
       }
       auto range = m_clusterMap->getClusters(hitsetkey);
@@ -1185,6 +1202,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
                       << local.x() << " and inttclus rphi " << cluster->getLocalX()
                       << " and proj z " << local.y() << " and inttclus z "
                       << cluster->getLocalY() << " in layer " << layer
+                      << " and crossing " << timebucket
                       << std::endl;
           }
           /// make a new seed with this cluster added
