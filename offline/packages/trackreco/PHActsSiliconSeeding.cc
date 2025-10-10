@@ -121,7 +121,7 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode* topNode)
   }
   // the strobe and time bucket are relative to the GL1.The strobe is nominally 9.9 mus
   // so we check within a crossing window of 100
-  auto *recoConsts = recoConsts::instance();
+  auto* recoConsts = recoConsts::instance();
   int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
 
   /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
@@ -415,7 +415,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       }
     }
   }
-  if(Verbosity() > 4)
+  if (Verbosity() > 4)
   {
     std::cout << "num good seeds : " << numGoodSeeds << std::endl;
   }
@@ -994,17 +994,17 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
     keys.push_back(key);
     clusters.push_back(pos);
   }
-  
+
   std::set<TrkrDefs::cluskey> layer34matches;
   std::set<TrkrDefs::cluskey> layer56matches;
   auto innerLayerMatches = iterateLayers(3, 5, strobe, keys, clusters);
   /// If we found none in layer 3-4, use the original triplet as a seed
   /// for layer 5-6
-  if(Verbosity() > 1)
+  if (Verbosity() > 1)
   {
     std::cout << "Layer 3-4 matches size " << innerLayerMatches.size() << std::endl;
   }
-  if(innerLayerMatches.empty())
+  if (innerLayerMatches.empty())
   {
     innerLayerMatches.push_back(keys);
   }
@@ -1016,44 +1016,43 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
     {
       keys.push_back(key);
       clusters.push_back(m_tGeometry->getGlobalPosition(
-            key,
-            m_clusterMap->findCluster(key)));
+          key,
+          m_clusterMap->findCluster(key)));
     }
-   auto match = iterateLayers(5, 7, strobe, keys, clusters);
-   if(Verbosity() > 1)
-   {
+    auto match = iterateLayers(5, 7, strobe, keys, clusters);
+    if (Verbosity() > 1)
+    {
       std::cout << "Layer 5-6 matches size " << match.size() << std::endl;
-   }
-   /// If we found no matches, use the original seed
-   if(match.empty())
-   {
-     match.push_back(seed);
-   }
-    for(const auto& mseed : match)
+    }
+    /// If we found no matches, use the original seed
+    if (match.empty())
+    {
+      match.push_back(seed);
+    }
+    for (const auto& mseed : match)
     {
       inttMatches.push_back(mseed);
     }
-   
- }
+  }
 
- if (Verbosity() > 2)
- {
-   std::cout << "intt matches size " << inttMatches.size() << std::endl;
-   std::cout << "the matches are " << std::endl;
-   for (auto& matchvec : inttMatches)
-   {
-     std::cout << " match with " << matchvec.size() << " clusters ";
-     for (auto& key : matchvec)
-     {
-       std::cout << key << " ";
-     }
-     std::cout << std::endl;
-   }
+  if (Verbosity() > 2)
+  {
+    std::cout << "intt matches size " << inttMatches.size() << std::endl;
+    std::cout << "the matches are " << std::endl;
+    for (auto& matchvec : inttMatches)
+    {
+      std::cout << " match with " << matchvec.size() << " clusters ";
+      for (auto& key : matchvec)
+      {
+        std::cout << key << " ";
+      }
+      std::cout << std::endl;
+    }
   }
   return inttMatches;
 }
 std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(const int& startLayer,
-                                                                                const int& endLayer,const int& strobe, 
+                                                                                const int& endLayer, const int& strobe,
                                                                                 const std::vector<TrkrDefs::cluskey>& keys,
                                                                                 const std::vector<Acts::Vector3>& positions)
 {
@@ -1072,7 +1071,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
   int layer34timebucket = std::numeric_limits<int>::max();
   for (const auto& key : keys)
   {
-    if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
     {
       layer34timebucket = InttDefs::getTimeBucketId(key);
     }
@@ -1102,7 +1101,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
       /// the size of one intt segment (256 * 80 micron strips in a segment)
       if (std::fabs(dphi) > 0.3)
       {
-        if(Verbosity() > 3)
+        if (Verbosity() > 3)
         {
           std::cout << "Skipping hitsetkey " << hitsetkey << " with dphi " << dphi << std::endl;
         }
@@ -1110,28 +1109,28 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
       }
 
       int timebucket = InttDefs::getTimeBucketId(hitsetkey);
-      if(layer34timebucket < std::numeric_limits<int>::max())
+      if (layer34timebucket < std::numeric_limits<int>::max())
       {
-        if(std::abs(timebucket - layer34timebucket) > 1)
+        if (std::abs(timebucket - layer34timebucket) > 1)
         {
-          if(Verbosity() > 3)
+          if (Verbosity() > 3)
           {
-            std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket 
+            std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket
                       << " because layer 3-4 timebucket is " << layer34timebucket << std::endl;
           }
-         continue;
+          continue;
         }
       }
-      
+
       int strobecrossinglow = strobe * m_strobeWidth;
       int strobecrossinghigh = (strobe + 1) * m_strobeWidth;
 
       if (timebucket < strobecrossinglow || timebucket > strobecrossinghigh)
       {
-        if(Verbosity() > 3)
+        if (Verbosity() > 3)
         {
-          std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket 
-                    << " because it is outside the strobe range " << strobecrossinglow 
+          std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket
+                    << " because it is outside the strobe range " << strobecrossinglow
                     << " to " << strobecrossinghigh << std::endl;
         }
         continue;
@@ -1211,7 +1210,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
           }
           /// make a new seed with this cluster added
           inttMatches.push_back([&]()
-                                  { std::vector<TrkrDefs::cluskey> skeys; 
+                                { std::vector<TrkrDefs::cluskey> skeys; 
                                   skeys.reserve(keys.size());
 for(auto const& key  : keys)
                                   {
@@ -1219,10 +1218,10 @@ for(auto const& key  : keys)
                                   }
                                   skeys.push_back(cluskey);
                                   return skeys; }());
-          
         }
-        else{
-          if(Verbosity()>3)
+        else
+        {
+          if (Verbosity() > 3)
           {
             std::cout << "there are no matched intt clusters in this hitsetkey" << std::endl;
             std::cout << "residuals are " << rphiresid << ", " << zresid << std::endl;
