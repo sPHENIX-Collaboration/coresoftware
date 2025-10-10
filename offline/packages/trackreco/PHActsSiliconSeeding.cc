@@ -121,7 +121,7 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode* topNode)
   }
   // the strobe and time bucket are relative to the GL1.The strobe is nominally 9.9 mus
   // so we check within a crossing window of 100
-  auto recoConsts = recoConsts::instance();
+  auto *recoConsts = recoConsts::instance();
   int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
 
   /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
@@ -369,13 +369,13 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       auto matched_intt_clusters = findMatchesWithTime(positions,
                                                        strobe);
       /// duplicate all possible mvtx-intt matches
-      if (matched_intt_clusters.size() > 0)
+      if (!matched_intt_clusters.empty())
       {
         for (auto& intt_clus_vec : matched_intt_clusters)
         {
           // make the svtxtrack seed with both mvtx + intt clusters
           auto trackSeed = std::make_unique<TrackSeed_v2>();
-          for (auto& mvtx_clus : seed.sp())
+          for (const auto& mvtx_clus : seed.sp())
           {
             const auto& cluskey = mvtx_clus->Id();
             trackSeed->insert_cluster_key(cluskey);
@@ -400,7 +400,7 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
       {
         /// make a single mvtx only seed
         auto trackSeed = std::make_unique<TrackSeed_v2>();
-        for (auto& mvtx_clus : seed.sp())
+        for (const auto& mvtx_clus : seed.sp())
         {
           const auto& cluskey = mvtx_clus->Id();
           trackSeed->insert_cluster_key(cluskey);
@@ -414,6 +414,10 @@ void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
         numGoodSeeds++;
       }
     }
+  }
+  if(Verbosity() > 4)
+  {
+    std::cout << "num good seeds : " << numGoodSeeds << std::endl;
   }
 }
 void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
@@ -1000,7 +1004,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
   {
     std::cout << "Layer 3-4 matches size " << innerLayerMatches.size() << std::endl;
   }
-  if(innerLayerMatches.size() == 0)
+  if(innerLayerMatches.empty())
   {
     innerLayerMatches.push_back(keys);
   }
@@ -1021,11 +1025,11 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWit
       std::cout << "Layer 5-6 matches size " << match.size() << std::endl;
    }
    /// If we found no matches, use the original seed
-   if(match.size() == 0)
+   if(match.empty())
    {
      match.push_back(seed);
    }
-    for(auto mseed : match)
+    for(const auto& mseed : match)
     {
       inttMatches.push_back(mseed);
     }
@@ -1058,7 +1062,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
   auto fitpars = TrackFitUtils::fitClusters(dummypos, keys, true);
   float avgtripletx = 0;
   float avgtriplety = 0;
-  for (auto& pos : positions)
+  for (const auto& pos : positions)
   {
     avgtripletx += std::cos(std::atan2(pos(1), pos(0)));
     avgtriplety += std::sin(std::atan2(pos(1), pos(0)));
@@ -1066,7 +1070,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
   float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
 
   int layer34timebucket = std::numeric_limits<int>::max();
-  for (auto& key : keys)
+  for (const auto& key : keys)
   {
     if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
     {
@@ -1208,13 +1212,21 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
           /// make a new seed with this cluster added
           inttMatches.push_back([&]()
                                   { std::vector<TrkrDefs::cluskey> skeys; 
-                                  for(auto const& key  : keys)
+                                  skeys.reserve(keys.size());
+for(auto const& key  : keys)
                                   {
                                     skeys.push_back(key);
                                   }
                                   skeys.push_back(cluskey);
                                   return skeys; }());
           
+        }
+        else{
+          if(Verbosity()>3)
+          {
+            std::cout << "there are no matched intt clusters in this hitsetkey" << std::endl;
+            std::cout << "residuals are " << rphiresid << ", " << zresid << std::endl;
+          }
         }
       }
     }
