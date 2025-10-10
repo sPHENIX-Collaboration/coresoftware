@@ -1121,10 +1121,8 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
           continue;
         }
       }
-
-      int strobecrossinglow = strobe * m_strobeWidth;
-      int strobecrossinghigh = (strobe + 1) * m_strobeWidth;
-
+      int strobecrossinglow = (strobe + m_strobeLowWindow) * m_strobeWidth;
+      int strobecrossinghigh = (strobe + m_strobeHighWindow) * m_strobeWidth;
       if (timebucket < strobecrossinglow || timebucket > strobecrossinghigh)
       {
         if (Verbosity() > 3)

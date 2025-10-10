@@ -168,11 +168,15 @@ class PHActsSiliconSeeding : public SubsysReco
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void iteration(int iter) { m_nIteration = iter; }
   void searchInIntt() { m_searchInIntt = true; }
-
+  void strobeWindowLowSearch(const int width) { m_strobeLowWindow = width; }
+  void strobeWindowHighSearch(const int width) { m_strobeHighWindow = width; }
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
-
+  
+  int m_strobeLowWindow = 0;
+  int m_strobeHighWindow = 1;
+  
   void runSeeder();
 
   /// Configure the seeding parameters for Acts. There
