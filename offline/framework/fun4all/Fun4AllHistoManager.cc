@@ -33,6 +33,12 @@ Fun4AllHistoManager::~Fun4AllHistoManager()
 
   while (Histo.begin() != Histo.end())
   {
+    if (Verbosity() > 0)
+    {
+      std::cout << PHWHERE << "deleting " << Histo.begin()->first
+		<< ", histo name " << Histo.begin()->second->GetName()
+		<< std::endl;
+    }
     delete Histo.begin()->second;
     Histo.erase(Histo.begin());
   }
