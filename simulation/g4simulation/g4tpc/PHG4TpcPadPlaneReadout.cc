@@ -2,7 +2,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-#include <g4detectors/PHG4TpcGeomv1.h>
+#include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
@@ -108,7 +108,7 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   GeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
   
-  PHG4TpcGeomv1 *layergeom = (PHG4TpcGeomv1 *) GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  PHG4TpcGeom *layergeom =  GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
   double tpc_adc_clock = layergeom->get_adc_clock();
   double extended_readout_time = layergeom->get_extended_readout_time();
   double maxdriftlength = layergeom->get_max_driftlength();
@@ -360,7 +360,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
     if (rad_gem > rad_low && rad_gem < rad_high)
     {
       // capture the layer where this electron hits the gem stack
-      LayerGeom = (PHG4TpcGeomv1 *) layeriter->second;
+      LayerGeom = layeriter->second;
 
       layernum = LayerGeom->get_layer();
       /* pass_data.layerGeom = LayerGeom; */

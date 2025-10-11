@@ -1315,10 +1315,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   PHG4TpcGeomContainer *geom_container =
-      findNode::getClass<PHG4TpcGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

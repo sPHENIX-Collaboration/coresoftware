@@ -149,7 +149,7 @@ namespace G4Eval
       findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
     if (!geom_tpc)
       {
-	std::cout << PHWHERE << " Could not locate TPCGEOMCONTAINER, try  CYLINDERCELLGEOM_SVTX" << std::endl;
+	std::cout << PHWHERE << " Could not locate TPCGEOMCONTAINER, abort" << std::endl;
 	return Fun4AllReturnCodes::ABORTRUN;
       }
     
