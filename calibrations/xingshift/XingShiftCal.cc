@@ -2,6 +2,8 @@
 
 #include <cdbobjects/CDBTTree.h>
 
+#include <ffamodules/DBInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
@@ -26,11 +28,11 @@
 
 XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntry)
   : SubsysReco(name)
+  , nevt(0)
   , overwriteSpinEntry(poverwriteSpinEntry)
 {
   // overwriteSpinEntry = poverwriteSpinEntry;
-  nevt = 0;
-  
+
   for (auto &scalercount : scalercounts)
   {
     for (unsigned long &j : scalercount)
@@ -39,13 +41,7 @@ XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntr
     }
   }
 
-
   std::cout << "XingShiftCal::XingShiftCal(const std::string &name) Calling ctor" << std::endl;
-}
-
-XingShiftCal::~XingShiftCal()
-{
-  std::cout << "XingShiftCal::~XingShiftCal() Calling dtor" << std::endl;
 }
 
 int XingShiftCal::Init(PHCompositeNode * /*topNode*/)
@@ -134,7 +130,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     {
       for (int i = 0; i < 360; i += 3)
       {
-	blueFillPattern[i / 3] = pBlueIntPattern->iValue(i);
+        blueFillPattern[i / 3] = pBlueIntPattern->iValue(i);
         if (pBlueIntPattern->iValue(i))
         {
           blueSpinPattern[i / 3] = pBluePolPattern->iValue(i);
@@ -152,7 +148,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     {
       for (int i = 0; i < 360; i += 3)
       {
-	yellFillPattern[i / 3] = pYellIntPattern->iValue(i);
+        yellFillPattern[i / 3] = pYellIntPattern->iValue(i);
         if (pYellIntPattern->iValue(i))
         {
           yellSpinPattern[i / 3] = pYellPolPattern->iValue(i);
@@ -167,8 +163,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     }
     //=======================================================================//
 
-
-     //============== Get pC spin patterns from buckets ==============//
+    //============== Get pC spin patterns from buckets ==============//
 
     // Get bunch asymmetries for measured spin pattern
     // there are 360 buckets for 120 bunches
@@ -186,7 +181,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
         {
           if (bluebot > 0 && bluetop > 0)
           {
-	    bluePcSpinPattern[i / 3] = 1;
+            bluePcSpinPattern[i / 3] = 1;
           }
           else if (bluebot < 0 && bluetop < 0)
           {
@@ -239,7 +234,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
     }
     //=======================================================================//
 
-
     //============== Get fill number ==============//
     fillnumberBlue = 0;
     fillnumberYellow = 0;
@@ -259,7 +253,7 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
   {
     p = evt->getPacket(packet_GL1);
     int bunchnr = p->lValue(0, "BunchNumber");
-    
+
     for (int i = 0; i < NTRIG; i++)
     {
       // 2nd arg of lValue: 0 is raw trigger count, 1 is live trigger count, 2 is scaled trigger count
@@ -324,7 +318,6 @@ int XingShiftCal::End(PHCompositeNode * /*topNode*/)
   const std::string cdbfname = std::format("SPIN-{:08}_crossingshiftCDBTTree.root", runnumber);
   WriteToCDB(cdbfname);
   CommitToSpinDB();
-  
 
   if (commitSuccessCDB)
   {
@@ -406,15 +399,15 @@ int XingShiftCal::CalculateCrossingShift(int &xing, uint64_t counts[NTRIG][NBUNC
       long long abort_sum = 0;
       for (int iunfillbunch = 0; iunfillbunch < NBUNCHES; iunfillbunch++)
       {
-	if (blueFillPattern[iunfillbunch] && yellFillPattern[iunfillbunch])
-	{
-	  continue;
-	}
-	int shiftbunch = iunfillbunch - ishift;
-	if (shiftbunch < 0)
-	{
-	  shiftbunch = 120 + shiftbunch;
-	}
+        if (blueFillPattern[iunfillbunch] && yellFillPattern[iunfillbunch])
+        {
+          continue;
+        }
+        int shiftbunch = iunfillbunch - ishift;
+        if (shiftbunch < 0)
+        {
+          shiftbunch = 120 + shiftbunch;
+        }
         abort_sum += counts[itrig][(shiftbunch) % NBUNCHES];
       }
       if (abort_sum < abort_sum_prev)
@@ -497,8 +490,6 @@ int XingShiftCal::CommitToSpinDB()
     return 0;
   }
 
-  
-
   int xing_correction_offset = -999;
   if (success)
   {
@@ -508,37 +499,21 @@ int XingShiftCal::CommitToSpinDB()
   {
     // if (verbosity) {
     std::cout << "no successful calibration, commit crossing shift -999 to spinDB" << std::endl;
-    
+
     //}
     commitSuccessSpinDB = 0;
-    //return 0;
+    // return 0;
   }
 
   // prepare values for db
   unsigned int qa_level = 0xffff;
 
-
   //=============== connect to daq db to get gl1p scalers ===============
   std::string daqdbname = "daq";
-  std::string daqdbowner = "phnxrc";
-  std::string daqdbpasswd = "";
 
-  odbc::Connection *conDAQ = nullptr;
-  try
+  odbc::Connection *conDAQ = DBInterface::getDBConnection(daqdbname);
+  if (!conDAQ)
   {
-    conDAQ = odbc::DriverManager::getConnection(daqdbname.c_str(), daqdbowner.c_str(), daqdbpasswd.c_str());
-  }
-  catch (odbc::SQLException &eDAQ)
-  {
-    std::cout << PHWHERE
-              << " Exception caught at XingShiftCal::CommitPatternToSpinDB when connecting to DAQ DB" << std::endl;
-    std::cout << "Message: " << eDAQ.getMessage() << std::endl;
-    //commitSuccessDAQDB = 0;
-    if (conDAQ)
-    {
-      delete conDAQ;
-      conDAQ = nullptr;
-    }
     return 0;
   }
 
@@ -557,7 +532,7 @@ int XingShiftCal::CommitToSpinDB()
     std::cout << PHWHERE
               << " Exception caught at XingShiftCal::CommitPatternToSpinDB when querying DAQ DB" << std::endl;
     std::cout << "Message: " << eGL1P.getMessage() << std::endl;
-    //commitSuccessSpinDB = 0;
+    // commitSuccessSpinDB = 0;
     if (conDAQ)
     {
       delete conDAQ;
@@ -566,11 +541,11 @@ int XingShiftCal::CommitToSpinDB()
     return 0;
   }
 
-
-  while (rsGL1P->next()) {
+  while (rsGL1P->next())
+  {
     int index = rsGL1P->getInt("index");
     int bunch = rsGL1P->getInt("bunch");
-    //MBD NS
+    // MBD NS
     if (index == 0)
     {
       mbdns[bunch] = rsGL1P->getInt("scaled");
@@ -583,10 +558,8 @@ int XingShiftCal::CommitToSpinDB()
     {
       zdcns[bunch] = rsGL1P->getInt("scaled");
     }
-
   }
   // =======================================================
-  
 
   // if (verbosity) {
   std::cout << "polb = " << polBlue << " +- " << polBlueErr
@@ -628,15 +601,15 @@ int XingShiftCal::CommitToSpinDB()
     {
       if (i == 0)
       {
-	std::cout << "mbdns = {";
+        std::cout << "mbdns = {";
       }
       else if (i == 1)
       {
-	std::cout << "mbdvtx = {";
+        std::cout << "mbdvtx = {";
       }
       else if (i == 2)
       {
-	std::cout << "zdcns = {";
+        std::cout << "zdcns = {";
       }
       for (int icross = 0; icross < NBUNCHES; icross++)
       {
@@ -648,38 +621,21 @@ int XingShiftCal::CommitToSpinDB()
         {
           std::cout << mbdvtx[icross] << ",";
         }
-	else if (i == 2)
-	{
-	  std::cout << zdcns[icross] << ",";
-	}	
+        else if (i == 2)
+        {
+          std::cout << zdcns[icross] << ",";
+        }
       }
       std::cout << "\b}\n";
-    }  
+    }
   }
-
-
 
   //================ connect to spin db ====================
   std::string dbname = "spinDB_write";
-  std::string dbowner = "phnxrc";
-  std::string dbpasswd = "";
   std::string dbtable = "spin";
-  odbc::Connection *conSpin = nullptr;
-  try
+  odbc::Connection *conSpin = DBInterface::getDBConnection(dbname);
+  if (!conSpin)
   {
-    conSpin = odbc::DriverManager::getConnection(dbname.c_str(), dbowner.c_str(), dbpasswd.c_str());
-  }
-  catch (odbc::SQLException &e)
-  {
-    std::cout << PHWHERE
-              << " Exception caught at XingShiftCal::CommitPatternToSpinDB when connecting to spin DB" << std::endl;
-    std::cout << "Message: " << e.getMessage() << std::endl;
-    commitSuccessSpinDB = 0;
-    if (conSpin)
-    {
-      delete conSpin;
-      conSpin = nullptr;
-    }
     return 0;
   }
   // if (verbosity) cout << "opened spin DB connection" << endl;
@@ -753,7 +709,7 @@ int XingShiftCal::CommitToSpinDB()
         << "polarblueerror = " << SQLArrayConstF(polBlueErr, NBUNCHES) << ", "
         << "polaryellow = " << SQLArrayConstF(polYellow, NBUNCHES) << ", "
         << "polaryellowerror = " << SQLArrayConstF(polYellowErr, NBUNCHES) << ", "
-	<< "crossingshift = " << xing_correction_offset << ", ";
+        << "crossingshift = " << xing_correction_offset << ", ";
     sql << "spinpatternblue = '{";
     for (int icross = 0; icross < NBUNCHES; icross++)
     {
@@ -822,7 +778,7 @@ int XingShiftCal::CommitToSpinDB()
         << SQLArrayConstF(polBlueErr, NBUNCHES) << ", "
         << SQLArrayConstF(polYellow, NBUNCHES) << ", "
         << SQLArrayConstF(polYellowErr, NBUNCHES) << ", "
-	<< xing_correction_offset << ", ";  
+        << xing_correction_offset << ", ";
     sql << "'{";
     for (int icross = 0; icross < NBUNCHES; icross++)
     {
@@ -917,43 +873,24 @@ int XingShiftCal::CommitToSpinDB()
     conSpin = nullptr;
   }
 
-
   // ========== Do spin db qa here =========== //
   SpinDBQA();
   // ========================================= //
 
-
   return 0;
 }
 
-
 int XingShiftCal::SpinDBQA()
 {
-
   // prepare values for db
   unsigned int qa_level = 0xffff;
 
   //================ connect to spin db ====================
   std::string dbname = "spinDB";
-  std::string dbowner = "phnxrc";
-  std::string dbpasswd = "";
   std::string dbtable = "spin";
-  odbc::Connection *conSpin = nullptr;
-  try
+  odbc::Connection *conSpin = DBInterface::getDBConnection(dbname);
+  if (!conSpin)
   {
-    conSpin = odbc::DriverManager::getConnection(dbname.c_str(), dbowner.c_str(), dbpasswd.c_str());
-  }
-  catch (odbc::SQLException &e)
-  {
-    std::cout << PHWHERE
-              << " Exception caught at XingShiftCal::CommitPatternToSpinDB when connecting to spin DB" << std::endl;
-    std::cout << "Message: " << e.getMessage() << std::endl;
-    commitSuccessSpinDB = 0;
-    if (conSpin)
-    {
-      delete conSpin;
-      conSpin = nullptr;
-    }
     return 0;
   }
 
@@ -967,10 +904,10 @@ int XingShiftCal::SpinDBQA()
                 << ";";
 
   std::cout << "SELECT runnumber, qa_level, badrunqa FROM " << dbtable
-                << " WHERE runnumber = " << runnumber
-                << " AND qa_level = " << qa_level
-	    << ";" << std::endl;
-  
+            << " WHERE runnumber = " << runnumber
+            << " AND qa_level = " << qa_level
+            << ";" << std::endl;
+
   odbc::Statement *stmtSpinSelect = conSpin->createStatement();
   odbc::ResultSet *rsSpin = nullptr;
   try
@@ -992,9 +929,9 @@ int XingShiftCal::SpinDBQA()
   if (rsSpin->next())
   {
     prevbadrunval = rsSpin->getInt("badrunqa");
-    if (rsSpin->wasNull()) 
+    if (rsSpin->wasNull())
     {
-      std::cout << "SPINDBQA: badrunqa is NULL. Setting to 0 for qa check. "<< std::endl;
+      std::cout << "SPINDBQA: badrunqa is NULL. Setting to 0 for qa check. " << std::endl;
       prevbadrunval = 0;
     }
     if (true)
@@ -1014,179 +951,161 @@ int XingShiftCal::SpinDBQA()
   }
 
   int badrunQA = 0;
-  
+
   if (prevbadrunval > 0)
   {
-    std::cout << "SPINDBQA: badrunqa is already > 0. No additional qa is performed." << std:: endl;
+    std::cout << "SPINDBQA: badrunqa is already > 0. No additional qa is performed." << std::endl;
     if (conSpin)
     {
       delete conSpin;
       conSpin = nullptr;
     }
-    return 0;  
+    return 0;
   }
-  else
+  //  else
+  //  {
+  // =========== Do bad run QA here =============
+  // if (conditions pass && previously existing badRunQA != 1): badrunQA = 0
+  // if (conditions fail (bad run)): badrunQA = 1
+
+  // if spin pattern does not match known MCR pattern
+  std::string scdev_blue;
+  std::string scdev_yell;
+  for (int crossing = 0; crossing < 120; crossing++)
   {
-    // =========== Do bad run QA here =============
-    // if (conditions pass && previously existing badRunQA != 1): badrunQA = 0
-    // if (conditions fail (bad run)): badrunQA = 1
-
-    //if spin pattern does not match known MCR pattern
-    std::string scdev_blue = "";
-    std::string scdev_yell = "";
-    for (int crossing = 0; crossing < 120; crossing++)
+    int ibluespin = blueSpinPattern[crossing];
+    int iyellspin = yellSpinPattern[crossing];
+    if (ibluespin == 1)
     {
-      int ibluespin = blueSpinPattern[crossing];
-      int iyellspin = yellSpinPattern[crossing];
-      if (ibluespin == 1)
-      {
-	scdev_blue.push_back('+');
-      }
-      else if (ibluespin == -1)
-      {
-	scdev_blue.push_back('-');
-      }
-      else
-      {
-	scdev_blue.push_back('*');
-      }
-
-      if (iyellspin == 1)
-      {
-	scdev_yell.push_back('+');
-      }
-      else if (iyellspin == -1)
-      {
-	scdev_yell.push_back('-');
-      }
-      else
-      {
-	scdev_yell.push_back('*');
-      }
+      scdev_blue.push_back('+');
     }
-    //std::string scdev_blue = TH1_to_string(hspinpatternBlue);
-    //std::string scdev_yell = TH1_to_string(hspinpatternYellow);
-    std::string pattern_name = "UNKNOWN";
-    
-    for (std::map<std::string, std::string>::const_iterator ii = preset_pattern_blue.begin(); ii != preset_pattern_blue.end(); ++ii)
+    else if (ibluespin == -1)
     {
-      std::string key = (*ii).first;
-      if (preset_pattern_blue[key] == scdev_blue && preset_pattern_yellow[key] == scdev_yell)
-      {
-	pattern_name = key;
-      }
+      scdev_blue.push_back('-');
+    }
+    else
+    {
+      scdev_blue.push_back('*');
     }
 
-    if (pattern_name == "UNKNOWN")
+    if (iyellspin == 1)
     {
-      badrunQA = 1;
-      std::cout << "SPINDBQA: Pattern is unidentified from known CDEV pattern. Setting bad run." << std::endl;
+      scdev_yell.push_back('+');
     }
-
-
-    //if pc spin pattern does not match intended spin pattern within < 10 bunches
-    int mismatches = 0;
-//    std::string spin_pattern_blue = "";
-//    std::string spin_pattern_yell = "";
-    for (int crossing = 0; crossing < 120; crossing++)
+    else if (iyellspin == -1)
     {
-      int spin_cdev_blue = blueSpinPattern[crossing];
-      int spin_cdev_yell = yellSpinPattern[crossing];
-      int spin_pC_blue = bluePcSpinPattern[crossing];
-      int spin_pC_yell = yellPcSpinPattern[crossing];
-
-      if(spin_pC_blue==-1 || spin_pC_blue==1)
-      {
-	if (spin_cdev_blue != spin_pC_blue && !(spin_cdev_blue == 0 && spin_pC_blue == 10))
-	{
-	  mismatches += 1;
-	}
-      }
-
-      if(spin_pC_yell==-1 || spin_pC_yell==1)
-      {
-	if (spin_cdev_yell != spin_pC_yell && !(spin_cdev_blue == 0 && spin_pC_blue == 10))
-	{
-	  mismatches += 1;
-	}
-      } 
+      scdev_yell.push_back('-');
     }
-
-    if (mismatches > 10)
+    else
     {
-      badrunQA = 1;
-      std::cout << "SPINDBQA: CDEV pattern has > 10 mismatched bunches from pC polarimeter. Setting bad run." << std::endl;
+      scdev_yell.push_back('*');
     }
-
-    //if crossing shift != 0
-    int xing_correction_offset = -999;
-    if (success)
-    {
-      xing_correction_offset = xingshift;
-    }
-
-    if (xing_correction_offset != 0)
-    {
-      badrunQA = 1;
-      std::cout << "SPINDBQA: Crossing shift does not equal 0. Setting bad run." << std::endl;
-    }
-
-    //if polarization <= 0 || > 1.00 //makes sure polarization from CNI aren't garbage values
-    if (polBlue <= 0.0 || polBlue > 100.0)
-    {
-      badrunQA = 1;
-      std::cout << "SPINDBQA: Blue beam polarization is unknown. Setting bad run." << std::endl;
-    }
-    if (polYellow <= 0.0 || polYellow > 100.0)
-    {
-      badrunQA = 1;
-      std::cout << "SPINDBQA: Yellow beam polarization is unknown. Setting bad run." << std::endl;
-    }
-      
-    // ============================================
-    
   }
-  
+  // std::string scdev_blue = TH1_to_string(hspinpatternBlue);
+  // std::string scdev_yell = TH1_to_string(hspinpatternYellow);
+  std::string pattern_name = "UNKNOWN";
+
+  for (std::map<std::string, std::string>::const_iterator ii = preset_pattern_blue.begin(); ii != preset_pattern_blue.end(); ++ii)
+  {
+    std::string key = (*ii).first;
+    if (preset_pattern_blue[key] == scdev_blue && preset_pattern_yellow[key] == scdev_yell)
+    {
+      pattern_name = key;
+    }
+  }
+
+  if (pattern_name == "UNKNOWN")
+  {
+    badrunQA = 1;
+    std::cout << "SPINDBQA: Pattern is unidentified from known CDEV pattern. Setting bad run." << std::endl;
+  }
+
+  // if pc spin pattern does not match intended spin pattern within < 10 bunches
+  int mismatches = 0;
+  //    std::string spin_pattern_blue = "";
+  //    std::string spin_pattern_yell = "";
+  for (int crossing = 0; crossing < 120; crossing++)
+  {
+    int spin_cdev_blue = blueSpinPattern[crossing];
+    int spin_cdev_yell = yellSpinPattern[crossing];
+    int spin_pC_blue = bluePcSpinPattern[crossing];
+    int spin_pC_yell = yellPcSpinPattern[crossing];
+
+    if (spin_pC_blue == -1 || spin_pC_blue == 1)
+    {
+      if (spin_cdev_blue != spin_pC_blue && !(spin_cdev_blue == 0 && spin_pC_blue == 10))
+      {
+        mismatches += 1;
+      }
+    }
+
+    if (spin_pC_yell == -1 || spin_pC_yell == 1)
+    {
+      if (spin_cdev_yell != spin_pC_yell && !(spin_cdev_blue == 0 && spin_pC_blue == 10))
+      {
+        mismatches += 1;
+      }
+    }
+  }
+
+  if (mismatches > 10)
+  {
+    badrunQA = 1;
+    std::cout << "SPINDBQA: CDEV pattern has > 10 mismatched bunches from pC polarimeter. Setting bad run." << std::endl;
+  }
+
+  // if crossing shift != 0
+  int xing_correction_offset = -999;
+  if (success)
+  {
+    xing_correction_offset = xingshift;
+  }
+
+  if (xing_correction_offset != 0)
+  {
+    badrunQA = 1;
+    std::cout << "SPINDBQA: Crossing shift does not equal 0. Setting bad run." << std::endl;
+  }
+
+  // if polarization <= 0 || > 1.00 //makes sure polarization from CNI aren't garbage values
+  if (polBlue <= 0.0 || polBlue > 100.0)
+  {
+    badrunQA = 1;
+    std::cout << "SPINDBQA: Blue beam polarization is unknown. Setting bad run." << std::endl;
+  }
+  if (polYellow <= 0.0 || polYellow > 100.0)
+  {
+    badrunQA = 1;
+    std::cout << "SPINDBQA: Yellow beam polarization is unknown. Setting bad run." << std::endl;
+  }
+
+  // ============================================
 
   //================ connect to spin db write ====================
   dbname = "spinDB_write";
-  dbowner = "phnxrc";
-  dbpasswd = "";
   dbtable = "spin";
   conSpin = nullptr;
   if (runExists)
   {
-
-    try
+    conSpin = DBInterface::getDBConnection(dbname);
+    if (!conSpin)
     {
-      conSpin = odbc::DriverManager::getConnection(dbname.c_str(), dbowner.c_str(), dbpasswd.c_str());
-    }
-    catch (odbc::SQLException &e)
-    {
-      std::cout << PHWHERE
-		<< " Exception caught at XingShiftCal::CommitPatternToSpinDB when connecting to spin DB" << std::endl;
-      std::cout << "Message: " << e.getMessage() << std::endl;
       commitSuccessSpinDB = 0;
-      if (conSpin)
-      {
-	delete conSpin;
-	conSpin = nullptr;
-      }
+      conSpin = nullptr;
       return 0;
     }
 
-
     std::cout << "UPDATE " << dbtable
-        << " SET badrunqa = " << badrunQA
-	<< " WHERE runnumber = " << runnumber
-        << " AND qa_level = " << qa_level
-	      << ";" << std::endl;
+              << " SET badrunqa = " << badrunQA
+              << " WHERE runnumber = " << runnumber
+              << " AND qa_level = " << qa_level
+              << ";" << std::endl;
 
     // prepare insert sql
     std::ostringstream sql;
     sql << "UPDATE " << dbtable
         << " SET badrunqa = " << badrunQA
-	<< " WHERE runnumber = " << runnumber
+        << " WHERE runnumber = " << runnumber
         << " AND qa_level = " << qa_level
         << ";";
 
@@ -1199,21 +1118,17 @@ int XingShiftCal::SpinDBQA()
     catch (odbc::SQLException &e)
     {
       std::cout << PHWHERE
-		<< " Exception caught at XingShiftCal::SpinDBQA when insert badrunqa into spin DB" << std::endl;
+                << " Exception caught at XingShiftCal::SpinDBQA when insert badrunqa into spin DB" << std::endl;
       std::cout << "Message: " << e.getMessage() << std::endl;
       commitSuccessSpinDB = 0;
       if (conSpin)
       {
-	delete conSpin;
-	conSpin = nullptr;
+        delete conSpin;
+        conSpin = nullptr;
       }
       return 0;
     }
-
   }
-
-  
-  
 
   if (conSpin)
   {
@@ -1221,10 +1136,8 @@ int XingShiftCal::SpinDBQA()
     conSpin = nullptr;
   }
 
-
   return 0;
 }
-
 
 std::string XingShiftCal::SQLArrayConstF(float x, int n)
 {
@@ -1254,4 +1167,3 @@ void XingShiftCal::Print(const std::string &what) const
 {
   std::cout << "XingShiftCal::Print(const std::string &what) const Printing info for " << what << std::endl;
 }
-
