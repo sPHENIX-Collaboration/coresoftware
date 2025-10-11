@@ -17,8 +17,8 @@ namespace
   {
     return x * x;
   }
-
-  std::pair<float, float> findRoot(TrackSeed const* seed)
+}
+  std::pair<float, float> TrackSeedHelper::findRoot(const float& qOverR, const float& X0, const float& Y0)
   {
     /**
     * We need to determine the closest point on the circle to the origin
@@ -32,10 +32,6 @@ namespace
     * two solutions. We take the smaller solution as the correct one, as
     * usually one solution is wildly incorrect (e.g. 1000 cm)
     */
-    const auto qOverR = seed->get_qOverR();
-    const auto X0 = seed->get_X0();
-    const auto Y0 = seed->get_Y0();
-
     const float R = std::abs(1./qOverR);
     const double miny = (std::sqrt(square(X0) * square(R) * square(Y0) + square(R) * pow(Y0, 4)) + square(X0) * Y0 + pow(Y0, 3)) / (square(X0) + square(Y0));
     const double miny2 = (-std::sqrt(square(X0) * square(R) * square(Y0) + square(R) * pow(Y0, 4)) + square(X0) * Y0 + pow(Y0, 3)) / (square(X0) + square(Y0));
@@ -48,8 +44,12 @@ namespace
     const float y = (std::abs(miny) < std::abs(miny2)) ? miny : miny2;
     return {x, y};
   }
+  std::pair<float, float> TrackSeedHelper::findRoot(TrackSeed const* seed)
+  {
+    return findRoot(seed->get_qOverR(), seed->get_X0(), seed->get_Y0());
+  }
 
-}
+
 
 //____________________________________________________________________________________
 float TrackSeedHelper::get_phi(TrackSeed const* seed, const TrackSeedHelper::position_map_t& positions)
