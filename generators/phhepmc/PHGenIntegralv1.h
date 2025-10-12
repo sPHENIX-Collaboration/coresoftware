@@ -2,7 +2,7 @@
 
 /*!
  * \file PHGenIntegralv1.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -13,8 +13,8 @@
 
 #include "PHGenIntegral.h"
 
-#include <iostream>         // for cout, ostream
-#include <string>           // for string
+#include <iostream>  // for cout, ostream
+#include <string>    // for string
 
 class PHObject;
 
@@ -26,9 +26,9 @@ class PHGenIntegralv1 : public PHGenIntegral
  public:
   PHGenIntegralv1();
   explicit PHGenIntegralv1(const std::string& description);
-  ~PHGenIntegralv1() override{}
+  ~PHGenIntegralv1() override {}
 
-  PHObject* CloneMe() const override {return new PHGenIntegralv1(*this);}
+  PHObject* CloneMe() const override { return new PHGenIntegralv1(*this); }
   int isValid() const override { return 1; }
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override;
@@ -104,18 +104,18 @@ class PHGenIntegralv1 : public PHGenIntegral
 
  private:
   //! Number of processed events in the Fun4All cycles
-  ULong64_t m_NProcessedEvent {0};
+  ULong64_t m_NProcessedEvent{0};
 
   //! Number of accepted events in the event generator. This can be higher than m_NProcessedEvent depending on trigger on the event generator
-  ULong64_t m_NGeneratorAcceptedEvent {0};
+  ULong64_t m_NGeneratorAcceptedEvent{0};
 
   //! Integrated luminosity in pb^-1
-  Double_t m_IntegratedLumi {0.};
+  Double_t m_IntegratedLumi{0.};
 
   //! Sum of weight assigned to the events by the generators.
   //! Event weight is normally 1 and thus equal to number of the generated event and is uninteresting.
   //! However, there are several cases where one may have nontrivial event weights, e.g. using user hooks in Pythia8 generators to reweight the phase space
-  Double_t m_SumOfWeight {0.};
+  Double_t m_SumOfWeight{0.};
 
   //! description on the source
   std::string m_Description;

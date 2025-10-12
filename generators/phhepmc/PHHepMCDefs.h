@@ -7,7 +7,7 @@
 
 namespace PHHepMCDefs
 {
-  static int DataVertexIndex = std::numeric_limits<int>::max()-1;
+  static int DataVertexIndex = std::numeric_limits<int>::max() - 1;
 }
 
 #endif

@@ -111,7 +111,7 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
   assert(_vertex_width_z >= 0);
   assert(_vertex_width_t >= 0);
 
-  assert(! _reuse_vertex);  // logic check
+  assert(!_reuse_vertex);  // logic check
 
   // not reusing vertex so smear with the vertex parameters
   genevent->moveVertex(
@@ -514,7 +514,7 @@ void PHHepMCGenHelper::set_vertex_distribution_width(const double x, const doubl
 
 void PHHepMCGenHelper::set_beam_bunch_width(const std::vector<double> &beamA, const std::vector<double> &beamB)
 {
-  if (! m_use_beam_bunch_sim)
+  if (!m_use_beam_bunch_sim)
   {
     std::cout << __PRETTY_FUNCTION__ << " Fatal Error: "
               << "m_use_beam_bunch_sim = " << m_use_beam_bunch_sim << ". Expect not to simulate bunch interaction but applying vertex distributions"

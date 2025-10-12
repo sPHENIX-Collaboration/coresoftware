@@ -3,11 +3,11 @@
 #include "PHHepMCGenEvent.h"
 #include "PHHepMCGenEventMap.h"
 
-#include <fun4all/Fun4AllOutputManager.h>                 // for Fun4AllOutp...
+#include <fun4all/Fun4AllOutputManager.h>  // for Fun4AllOutp...
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h>                                  // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <HepMC/IO_GenEvent.h>
 
@@ -19,21 +19,25 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include <cassert>
-#include <cstdlib>                                       // for exit
+#include <cstdlib>  // for exit
 #include <fstream>
 #include <iostream>
 #include <ostream>
 #include <string>
-#include <utility>                                        // for swap
+#include <utility>  // for swap
 
-namespace HepMC { class GenEvent; }
+namespace HepMC
+{
+  class GenEvent;
+}
 
-using namespace std;
+namespace
+{
+  boost::iostreams::filtering_streambuf<boost::iostreams::output> zoutbuffer;
+}
 
-static boost::iostreams::filtering_streambuf<boost::iostreams::output> zoutbuffer;
-
-Fun4AllHepMCOutputManager::Fun4AllHepMCOutputManager(const string &myname,
-                                                     const string &filename)
+Fun4AllHepMCOutputManager::Fun4AllHepMCOutputManager(const std::string &myname,
+                                                     const std::string &filename)
   : Fun4AllOutputManager(myname)
   , outfilename(filename)
   , comment_written(0)
@@ -48,19 +52,19 @@ Fun4AllHepMCOutputManager::Fun4AllHepMCOutputManager(const string &myname,
   if (tstr.Contains(bzip_ext))
   {
     // use boost iosteam library to compress to bz2 file on the fly
-    filestream = new ofstream(filename.c_str(), std::ios::out | std::ios::binary);
+    filestream = new std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
     zoutbuffer.push(boost::iostreams::bzip2_compressor(9));
     zoutbuffer.push(*filestream);
-    zipstream = new ostream(&zoutbuffer);
+    zipstream = new std::ostream(&zoutbuffer);
     ascii_out = new HepMC::IO_GenEvent(*zipstream);
   }
   else if (tstr.Contains(gzip_ext))
   {
     // use boost iosream to compress to gzip file on the fly
-    filestream = new ofstream(filename.c_str(), std::ios::out | std::ios::binary);
+    filestream = new std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
     zoutbuffer.push(boost::iostreams::gzip_compressor(9));
     zoutbuffer.push(*filestream);
-    zipstream = new ostream(&zoutbuffer);
+    zipstream = new std::ostream(&zoutbuffer);
     ascii_out = new HepMC::IO_GenEvent(*zipstream);
   }
   else
@@ -71,7 +75,7 @@ Fun4AllHepMCOutputManager::Fun4AllHepMCOutputManager(const string &myname,
 
   if (ascii_out->rdstate())
   {
-    cout << "error opening " << outfilename << " exiting " << endl;
+    std::cout << "error opening " << outfilename << " exiting " << std::endl;
     exit(1);
   }
   return;
@@ -79,34 +83,50 @@ Fun4AllHepMCOutputManager::Fun4AllHepMCOutputManager(const string &myname,
 
 Fun4AllHepMCOutputManager::~Fun4AllHepMCOutputManager()
 {
-  if (ascii_out)
+  try
   {
-    if (!comment_written)
+    if (ascii_out)
     {
-      if (comment.size())
+      if (!comment_written && !comment.empty())
       {
         ascii_out->write_comment(comment);
       }
+      ascii_out->clear();
+      delete ascii_out;
+      ascii_out = nullptr;
     }
-    ascii_out->clear();
+
+    if (!zoutbuffer.empty())
+    {
+      zoutbuffer.reset();
+    }
+
+    delete zipstream;
+    zipstream = nullptr;
+
+    delete filestream;
+    filestream = nullptr;
   }
-
-  delete ascii_out;
-
-  if (zoutbuffer.size() > 0) zoutbuffer.reset();
-
-  if (zipstream) delete zipstream;
-  if (filestream) delete filestream;
+  catch (const std::exception &e)
+  {
+    std::cout << "Exception caught in ~Fun4AllHepMCOutputManager: "
+              << e.what() << std::endl;
+  }
+  catch (...)
+  {
+    std::cout << "Unknown exception caught in ~Fun4AllHepMCOutputManager"
+              << std::endl;
+  }
 
   return;
 }
 
-void Fun4AllHepMCOutputManager::Print(const string &what) const
+void Fun4AllHepMCOutputManager::Print(const std::string &what) const
 {
-  cout << Name() << " writes " << outfilename << endl;
-  if (comment.size())
+  std::cout << Name() << " writes " << outfilename << std::endl;
+  if (!comment.empty())
   {
-    cout << "comment : " << comment << endl;
+    std::cout << "comment : " << comment << std::endl;
   }
   // base class print method
   Fun4AllOutputManager::Print(what);
@@ -118,7 +138,7 @@ int Fun4AllHepMCOutputManager::Write(PHCompositeNode *topNode)
 {
   if (!comment_written)
   {
-    if (comment.size())
+    if (!comment.empty())
     {
       ascii_out->write_comment(comment);
     }
@@ -129,7 +149,7 @@ int Fun4AllHepMCOutputManager::Write(PHCompositeNode *topNode)
 
   if (!geneventmap)
   {
-    cout << "Fun4AllHepMCOutputManager::Write - Fatal Error - missing source node PHHepMCGenEventMap" << endl;
+    std::cout << "Fun4AllHepMCOutputManager::Write - Fatal Error - missing source node PHHepMCGenEventMap" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   assert(geneventmap);
@@ -137,7 +157,7 @@ int Fun4AllHepMCOutputManager::Write(PHCompositeNode *topNode)
   PHHepMCGenEvent *genevt = geneventmap->get(_embedding_id);
   if (!genevt)
   {
-    cout << "Fun4AllHepMCOutputManager::Write - Warning - missing sub-event with embedding ID" << _embedding_id << " on node PHHepMCGenEventMap" << endl;
+    std::cout << "Fun4AllHepMCOutputManager::Write - Warning - missing sub-event with embedding ID" << _embedding_id << " on node PHHepMCGenEventMap" << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
   assert(genevt);
@@ -145,7 +165,7 @@ int Fun4AllHepMCOutputManager::Write(PHCompositeNode *topNode)
   HepMC::GenEvent *evt = genevt->getEvent();
   if (!evt)
   {
-    cout << PHWHERE << "0 HepMC Pointer" << endl;
+    std::cout << PHWHERE << "0 HepMC Pointer" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   assert(evt);
