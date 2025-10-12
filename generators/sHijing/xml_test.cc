@@ -20,8 +20,7 @@
 #include "cfortran.h"
 #pragma GCC diagnostic pop
 
-using namespace boost;
-using namespace std;
+//using namespace boost;
 
 float atl_ran(int * /*unused*/)
 {
@@ -31,12 +30,11 @@ float atl_ran(int * /*unused*/)
 // cppcheck-suppress *
 FCALLSCFUN1(FLOAT, atl_ran, ATL_RAN, atl_ran, PINT)
 
-using namespace boost::property_tree;
 
-// NOLINTNEXTLINE(bugprone-exception-escape)
-int main()
+int main() // NOLINT(bugprone-exception-escape)
 {
-  iptree pt, null;
+  boost::property_tree::iptree pt;
+  boost::property_tree::iptree null;
 
   std::ifstream config_file("xml_test.xml");
   if (config_file)
@@ -44,16 +42,16 @@ int main()
     read_xml(config_file, pt);
   }
 
-  iptree &it = pt.get_child("HIJING.FASTJET", null);
-  BOOST_FOREACH (iptree::value_type &v, it)
+  boost::property_tree::iptree &it = pt.get_child("HIJING.FASTJET", null);
+  BOOST_FOREACH (boost::property_tree::iptree::value_type &v, it)
   {
-    if (to_upper_copy(v.first) != "ALGORITHM")
+    if (boost::to_upper_copy(v.first) != "ALGORITHM")
     {
       continue;
     }
-    string name = v.second.get("NAME", "ANTIKT");
+    std::string name = v.second.get("NAME", "ANTIKT");
     float R = v.second.get("R", 0.4);
-    cout << name << " " << R << endl;
+    std::cout << name << " " << R << std::endl;
   }
 
   return 0;
