@@ -174,9 +174,9 @@ class PHActsSiliconSeeding : public SubsysReco
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
   
-  int m_strobeLowWindow = 0;
+  int m_strobeLowWindow = -1;
   int m_strobeHighWindow = 1;
-  
+
   void runSeeder();
 
   /// Configure the seeding parameters for Acts. There
@@ -329,7 +329,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   /// Search window for phi to match intt clusters in cm
   double m_inttrPhiSearchWin = 0.1;
-  float m_inttzSearchWin = 0.8;  // default to a half strip width
+  float m_inttzSearchWin = 2.0;  // default to one strip width
   double m_mvtxrPhiSearchWin = 0.2;
   float m_mvtxzSearchWin = 0.5;
   /// Whether or not to use truth clusters in hit lookup

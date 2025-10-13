@@ -1094,7 +1094,11 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
       auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
       auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
       float surfphi = atan2(surfcenter.y(), surfcenter.x());
-
+      if(Verbosity() > 5)
+      {
+        std::cout << "approximate phis " << approximate_phi1 << " " << approximate_phi2 << " using " << approximatephi
+                  << " and surfphi " << surfphi << std::endl;
+      }
       float dphi = normPhi2Pi(approximatephi - surfphi);
       /// Check that the projection is within some reasonable amount of the segment
       /// to reject e.g. looking at segments in the opposite hemisphere. This is about
@@ -1190,6 +1194,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         /// we divide by two
         float rphiresid = fabs(local.x() - cluster->getLocalX());
         float zresid = fabs(local.y() - cluster->getLocalY());
+       
         if (rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin)
 
         {
@@ -1210,7 +1215,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
           inttMatches.push_back([&]()
                                 { std::vector<TrkrDefs::cluskey> skeys; 
                                   skeys.reserve(keys.size());
-for(auto const& key  : keys)
+                                  for(auto const& key  : keys)
                                   {
                                     skeys.push_back(key);
                                   }
@@ -1223,6 +1228,7 @@ for(auto const& key  : keys)
           {
             std::cout << "there are no matched intt clusters in this hitsetkey" << std::endl;
             std::cout << "residuals are " << rphiresid << ", " << zresid << std::endl;
+            std::cout << "windows are " << m_inttrPhiSearchWin << ", " << m_inttzSearchWin << std::endl;
           }
         }
       }
