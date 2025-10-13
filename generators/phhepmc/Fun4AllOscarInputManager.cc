@@ -41,9 +41,9 @@
 
 namespace
 {
-   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
+  boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
 }
-  static const double toMM = 1.e-12;
+static const double toMM = 1.e-12;
 using PHObjectNode_t = PHIODataNode<PHObject>;
 
 Fun4AllOscarInputManager::Fun4AllOscarInputManager(const std::string &name, const std::string &topnodename)
@@ -91,8 +91,8 @@ int Fun4AllOscarInputManager::fileopen(const std::string &filenam)
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
-         << filename
-         << " and opening " << filenam << std::endl;
+              << filename
+              << " and opening " << filenam << std::endl;
     fileclose();
   }
   filename = filenam;
@@ -182,7 +182,7 @@ readagain:
       std::cout << "Finished file!" << std::endl;
     }
     fileclose();
-    goto readagain; // NOLINT(hicpp-avoid-goto)
+    goto readagain;  // NOLINT(hicpp-avoid-goto)
   }
 
   //  if(Verbosity() > 4) std::cout << "SIZE: " << phhepmcgenevt->size() << std::endl;
@@ -194,13 +194,13 @@ readagain:
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
     // ResetEvent();
-    goto readagain; // NOLINT(hicpp-avoid-goto)
+    goto readagain;  // NOLINT(hicpp-avoid-goto)
   }
 
   if (events_total < nevents)
   {
     // ResetEvent();
-    goto readagain; // NOLINT(hicpp-avoid-goto)
+    goto readagain;  // NOLINT(hicpp-avoid-goto)
   }
 
   return 0;

@@ -2,7 +2,7 @@
 
 /*!
  * \file PHGenIntegral.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -21,8 +21,8 @@
 class PHGenIntegral : public PHObject
 {
  public:
-  PHGenIntegral(){}
-  ~PHGenIntegral() override{}
+  PHGenIntegral() {}
+  ~PHGenIntegral() override {}
 
   //! Integrated luminosity in pb^-1
   virtual Double_t get_Integrated_Lumi() const
