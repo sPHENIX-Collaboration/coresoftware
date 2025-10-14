@@ -21,16 +21,17 @@ namespace TrackSeedHelper
 
   float get_phi(TrackSeed const*, const position_map_t&);
   float get_phi_fastsim(TrackSeed const*);
-
   void circleFitByTaubin(
     TrackSeed*, const position_map_t& positions,
     uint8_t startLayer = 0,
     uint8_t endLayer = 58);
+  std::pair<float, float> findRoot(TrackSeed const* seed);
+  std::pair<float, float> findRoot(const float& qOverR, const float& X0, const float& Y0);
 
   void lineFit(
-    TrackSeed*, const position_map_t& positions,
-    uint8_t startLayer = 0,
-    uint8_t endLayer = 58);
+      TrackSeed*, const position_map_t& positions,
+      uint8_t startLayer = 0,
+      uint8_t endLayer = 58);
 
   float get_x(TrackSeed const*);
   float get_y(TrackSeed const*);
