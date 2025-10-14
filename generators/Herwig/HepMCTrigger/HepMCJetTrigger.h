@@ -51,7 +51,7 @@ class HepMCJetTrigger : public SubsysReco
  private:
   bool isGoodEvent(HepMC::GenEvent* e1);
   std::vector<fastjet::PseudoJet> findAllJets(HepMC::GenEvent* e1);
-  int jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets);
+  int jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets) const;
   float threshold{0.};
   int goal_event_number{1000};
   int n_evts{0};

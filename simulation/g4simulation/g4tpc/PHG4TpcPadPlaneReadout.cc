@@ -1086,7 +1086,7 @@ void PHG4TpcPadPlaneReadout::sampaTimeDistribution(double tzero,  std::vector<in
     }
 }
   
-double PHG4TpcPadPlaneReadout::sampaShapingResponseFunction(double tzero, double t)
+double PHG4TpcPadPlaneReadout::sampaShapingResponseFunction(double tzero, double t) const
   {
     double v = exp(-4*(t-tzero)/Ts) * pow( (t-tzero)/Ts, 4.0);
 

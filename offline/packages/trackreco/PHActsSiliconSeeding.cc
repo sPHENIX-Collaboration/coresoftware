@@ -13,6 +13,9 @@
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+#include <phool/recoConsts.h>
+
+#include <fun4allraw/MvtxRawDefs.h>
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -116,7 +119,14 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  // the strobe and time bucket are relative to the GL1.The strobe is nominally 9.9 mus
+  // so we check within a crossing window of 100
+  auto* recoConsts = recoConsts::instance();
+  int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
 
+  /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
+  /// e.g. 10 mus = 10,000 ns / 100 ns per crossing = 100 crossings
+  m_strobeWidth = MvtxRawDefs::getStrobeLength(runnumber) * 10;
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -190,6 +200,10 @@ void PHActsSiliconSeeding::runSeeder()
   int spTime = 0;
   for (int strobe = m_lowStrobeIndex; strobe < m_highStrobeIndex; strobe++)
   {
+    if (Verbosity() > 3)
+    {
+      std::cout << "Seeding for strobe " << strobe << std::endl;
+    }
     GridSeeds seedVector;
     /// Covariance converter functor needed by seed finder
     auto covConverter = [=](const SpacePoint& sp, float zAlign, float rAlign,
@@ -254,12 +268,19 @@ void PHActsSiliconSeeding::runSeeder()
 
     seedVector.push_back(seeds);
 
-    makeSvtxTracks(seedVector);
+    if (m_streaming)
+    {
+      makeSvtxTracksWithTime(seedVector, strobe);
+    }
+    else
+    {
+      makeSvtxTracks(seedVector);
+    }
 
     eventTimer->stop();
     circleFitTime += eventTimer->get_accumulated_time();
 
-    for (const auto *sp : spVec)
+    for (const auto* sp : spVec)
     {
       delete sp;
     }
@@ -280,6 +301,125 @@ void PHActsSiliconSeeding::runSeeder()
   return;
 }
 
+void PHActsSiliconSeeding::makeSvtxTracksWithTime(const GridSeeds& seedVector,
+                                                  const int& strobe)
+
+{
+  int numSeeds = 0;
+  int numGoodSeeds = 0;
+  m_seedid = -1;
+
+  for (const auto& seeds : seedVector)
+  {
+    /// loop over acts triplets
+    for (const auto& seed : seeds)
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << "Seed " << numSeeds << " has "
+                  << seed.sp().size() << " measurements "
+                  << std::endl;
+      }
+      numSeeds++;
+      if (m_seedAnalysis)
+      {
+        clearTreeVariables();
+        m_seedid++;
+      }
+
+      std::map<TrkrDefs::cluskey, Acts::Vector3> positions;
+      std::vector<Acts::Vector3> clus_positions;
+
+      for (const auto& spacePoint : seed.sp())
+      {
+        const auto& cluskey = spacePoint->Id();
+
+        auto globalPosition = m_tGeometry->getGlobalPosition(
+            cluskey,
+            m_clusterMap->findCluster(cluskey));
+        if (m_seedAnalysis)
+        {
+          m_mvtxgx.push_back(globalPosition(0));
+          m_mvtxgy.push_back(globalPosition(1));
+          m_mvtxgz.push_back(globalPosition(2));
+        }
+        positions.insert(std::make_pair(cluskey, globalPosition));
+        clus_positions.push_back(globalPosition);
+      }
+      double z = seed.z() / Acts::UnitConstants::cm;
+
+      auto fitTimer = std::make_unique<PHTimer>("trackfitTimer");
+      fitTimer->stop();
+      fitTimer->restart();
+      auto trip_circ_fit = TrackFitUtils::circle_fit_by_taubin(clus_positions);
+      const auto [posx, posy] = TrackSeedHelper::findRoot(1. / std::get<0>(trip_circ_fit),
+                                                          std::get<1>(trip_circ_fit),
+                                                          std::get<2>(trip_circ_fit));
+      if (std::abs(posx) > m_maxSeedPCA || std::abs(posy) > m_maxSeedPCA)
+      {
+        if (Verbosity() > 1)
+        {
+          std::cout << "Large PCA seed " << std::endl;
+        }
+        m_nBadInitialFits++;
+        continue;
+      }
+
+      // now we match this triplet to all possible intt clusters within the strobe
+      auto matched_intt_clusters = findMatchesWithTime(positions,
+                                                       strobe);
+      /// duplicate all possible mvtx-intt matches
+      if (!matched_intt_clusters.empty())
+      {
+        for (auto& intt_clus_vec : matched_intt_clusters)
+        {
+          // make the svtxtrack seed with both mvtx + intt clusters
+          auto trackSeed = std::make_unique<TrackSeed_v2>();
+          for (const auto& mvtx_clus : seed.sp())
+          {
+            const auto& cluskey = mvtx_clus->Id();
+            trackSeed->insert_cluster_key(cluskey);
+          }
+          for (auto& intt_clus : intt_clus_vec)
+          {
+            trackSeed->insert_cluster_key(intt_clus);
+            positions.insert(std::make_pair(intt_clus, m_tGeometry->getGlobalPosition(
+                                                           intt_clus,
+                                                           m_clusterMap->findCluster(intt_clus))));
+          }
+          TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
+          TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
+          trackSeed->set_Z0(z);
+          trackSeed->set_phi(TrackSeedHelper::get_phi(trackSeed.get(), positions));
+          trackSeed->set_crossing(getCrossingIntt(*trackSeed));
+          m_seedContainer->insert(trackSeed.get());
+          numGoodSeeds++;
+        }
+      }
+      else
+      {
+        /// make a single mvtx only seed
+        auto trackSeed = std::make_unique<TrackSeed_v2>();
+        for (const auto& mvtx_clus : seed.sp())
+        {
+          const auto& cluskey = mvtx_clus->Id();
+          trackSeed->insert_cluster_key(cluskey);
+        }
+        TrackSeedHelper::circleFitByTaubin(trackSeed.get(), positions, 0, 7);
+        TrackSeedHelper::lineFit(trackSeed.get(), positions, 0, 2);
+        trackSeed->set_Z0(z);
+        trackSeed->set_phi(TrackSeedHelper::get_phi(trackSeed.get(), positions));
+        trackSeed->set_crossing(SHRT_MAX);
+        m_seedContainer->insert(trackSeed.get());
+        numGoodSeeds++;
+      }
+    }
+  }
+  if (Verbosity() > 4)
+  {
+    std::cout << "num good seeds : " << numGoodSeeds << std::endl;
+  }
+}
 void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
 {
   int numSeeds = 0;
@@ -685,7 +825,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
       float approximate_phi1 = atan2(yplus, xplus);
       float approximate_phi2 = atan2(yminus, xminus);
       float approximatephi = approximate_phi1;
-      if(std::fabs(normPhi2Pi(approximate_phi2 - avgtripletphi)) < std::fabs(normPhi2Pi(approximate_phi1 - avgtripletphi)))
+      if (std::fabs(normPhi2Pi(approximate_phi2 - avgtripletphi)) < std::fabs(normPhi2Pi(approximate_phi1 - avgtripletphi)))
       {
         approximatephi = approximate_phi2;
       }
@@ -694,7 +834,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
         auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
         auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
         float surfphi = atan2(surfcenter.y(), surfcenter.x());
-  
+
         float dphi = normPhi2Pi(approximatephi - surfphi);
         /// Check that the projection is within some reasonable amount of the segment
         /// to reject e.g. looking at segments in the opposite hemisphere. This is about
@@ -721,7 +861,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
             }
           }
 
-          auto *const cluster = clusIter->second;
+          auto* const cluster = clusIter->second;
           auto glob = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
           auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
@@ -841,6 +981,261 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
   return matchedClusters;
 }
 
+std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::findMatchesWithTime(
+    std::map<TrkrDefs::cluskey, Acts::Vector3>& positions,
+    const int& strobe)
+{
+  std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
+
+  std::vector<TrkrDefs::cluskey> keys;
+  std::vector<Acts::Vector3> clusters;
+  for (auto& [key, pos] : positions)
+  {
+    keys.push_back(key);
+    clusters.push_back(pos);
+  }
+
+  std::set<TrkrDefs::cluskey> layer34matches;
+  std::set<TrkrDefs::cluskey> layer56matches;
+  auto innerLayerMatches = iterateLayers(3, 5, strobe, keys, clusters);
+  /// If we found none in layer 3-4, use the original triplet as a seed
+  /// for layer 5-6
+  if (Verbosity() > 1)
+  {
+    std::cout << "Layer 3-4 matches size " << innerLayerMatches.size() << std::endl;
+  }
+  if (innerLayerMatches.empty())
+  {
+    innerLayerMatches.push_back(keys);
+  }
+  for (auto& seed : innerLayerMatches)
+  {
+    keys.clear();
+    clusters.clear();
+    for (auto& key : seed)
+    {
+      keys.push_back(key);
+      clusters.push_back(m_tGeometry->getGlobalPosition(
+          key,
+          m_clusterMap->findCluster(key)));
+    }
+    auto match = iterateLayers(5, 7, strobe, keys, clusters);
+    if (Verbosity() > 1)
+    {
+      std::cout << "Layer 5-6 matches size " << match.size() << std::endl;
+    }
+    /// If we found no matches, use the original seed
+    if (match.empty())
+    {
+      match.push_back(seed);
+    }
+    for (const auto& mseed : match)
+    {
+      inttMatches.push_back(mseed);
+    }
+  }
+
+  if (Verbosity() > 2)
+  {
+    std::cout << "intt matches size " << inttMatches.size() << std::endl;
+    std::cout << "the matches are " << std::endl;
+    for (auto& matchvec : inttMatches)
+    {
+      std::cout << " match with " << matchvec.size() << " clusters ";
+      for (auto& key : matchvec)
+      {
+        std::cout << key << " ";
+      }
+      std::cout << std::endl;
+    }
+  }
+  return inttMatches;
+}
+std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(const int& startLayer,
+                                                                                const int& endLayer, const int& strobe,
+                                                                                const std::vector<TrkrDefs::cluskey>& keys,
+                                                                                const std::vector<Acts::Vector3>& positions)
+{
+  std::vector<std::vector<TrkrDefs::cluskey>> inttMatches;
+  auto dummypos = positions;
+  auto fitpars = TrackFitUtils::fitClusters(dummypos, keys, true);
+  float avgtripletx = 0;
+  float avgtriplety = 0;
+  for (const auto& pos : positions)
+  {
+    avgtripletx += std::cos(std::atan2(pos(1), pos(0)));
+    avgtriplety += std::sin(std::atan2(pos(1), pos(0)));
+  }
+  float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
+
+  int layer34timebucket = std::numeric_limits<int>::max();
+  for (const auto& key : keys)
+  {
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId)
+    {
+      layer34timebucket = InttDefs::getTimeBucketId(key);
+    }
+  }
+
+  for (int layer = startLayer; layer < endLayer; ++layer)
+  {
+    float layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
+    const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0], fitpars[1], fitpars[2]);
+
+    float approximate_phi1 = atan2(yplus, xplus);
+    float approximate_phi2 = atan2(yminus, xminus);
+    float approximatephi = approximate_phi1;
+    if (std::fabs(normPhi2Pi(approximate_phi2 - avgtripletphi)) < std::fabs(normPhi2Pi(approximate_phi1 - avgtripletphi)))
+    {
+      approximatephi = approximate_phi2;
+    }
+    for (const auto& hitsetkey : m_clusterMap->getHitSetKeys(TrkrDefs::TrkrId::inttId, layer))
+    {
+      auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
+      auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
+      float surfphi = atan2(surfcenter.y(), surfcenter.x());
+      if(Verbosity() > 5)
+      {
+        std::cout << "approximate phis " << approximate_phi1 << " " << approximate_phi2 << " using " << approximatephi
+                  << " and surfphi " << surfphi << std::endl;
+      }
+      float dphi = normPhi2Pi(approximatephi - surfphi);
+      /// Check that the projection is within some reasonable amount of the segment
+      /// to reject e.g. looking at segments in the opposite hemisphere. This is about
+      /// the size of one intt segment (256 * 80 micron strips in a segment)
+      if (std::fabs(dphi) > 0.3)
+      {
+        if (Verbosity() > 3)
+        {
+          std::cout << "Skipping hitsetkey " << hitsetkey << " with dphi " << dphi << std::endl;
+        }
+        continue;
+      }
+
+      int timebucket = InttDefs::getTimeBucketId(hitsetkey);
+      if (layer34timebucket < std::numeric_limits<int>::max())
+      {
+        if (std::abs(timebucket - layer34timebucket) > 1)
+        {
+          if (Verbosity() > 3)
+          {
+            std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket
+                      << " because layer 3-4 timebucket is " << layer34timebucket << std::endl;
+          }
+          continue;
+        }
+      }
+      int strobecrossinglow = (strobe + m_strobeLowWindow) * m_strobeWidth;
+      int strobecrossinghigh = (strobe + m_strobeHighWindow) * m_strobeWidth;
+      if (timebucket < strobecrossinglow || timebucket > strobecrossinghigh)
+      {
+        if (Verbosity() > 3)
+        {
+          std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket
+                    << " because it is outside the strobe range " << strobecrossinglow
+                    << " to " << strobecrossinghigh << std::endl;
+        }
+        continue;
+      }
+      auto range = m_clusterMap->getClusters(hitsetkey);
+      for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
+      {
+        const auto cluskey = clusIter->first;
+        if (_iteration_map && m_nIteration > 0)
+        {
+          if (_iteration_map->getIteration(cluskey) < m_nIteration)
+          {
+            continue;  // skip clusters used in a previous iteration
+          }
+        }
+
+        auto* const cluster = clusIter->second;
+        auto glob = m_tGeometry->getGlobalPosition(
+            cluskey, cluster);
+        auto intersection = TrackFitUtils::get_helix_surface_intersection(surf, fitpars, glob, m_tGeometry);
+        auto local = (surf->transform(m_tGeometry->geometry().getGeoContext())).inverse() * (intersection * Acts::UnitConstants::cm);
+        local /= Acts::UnitConstants::cm;
+        m_projgx = intersection.x();
+        m_projgy = intersection.y();
+        m_projgr = std::sqrt(square(intersection.x()) + square(intersection.y()));
+        if (m_projgy < 0)
+        {
+          m_projgr *= -1;
+        }
+        m_projgz = intersection.z();
+        m_projlx = local.x();
+        m_projlz = local.y();
+        if (m_seedAnalysis)
+        {
+          const auto globalP = m_tGeometry->getGlobalPosition(
+              cluskey, cluster);
+          m_clusgx = globalP.x();
+          m_clusgy = globalP.y();
+          m_clusgr = std::sqrt(square(globalP.x()) + square(globalP.y()));
+          if (globalP.y() < 0)
+          {
+            m_clusgr *= -1;
+          }
+          m_clusgz = globalP.z();
+          m_cluslx = cluster->getLocalX();
+          m_cluslz = cluster->getLocalY();
+          h_nInttProj->Fill(local.x() - cluster->getLocalX(),
+                            local.y() - cluster->getLocalY());
+          h_hits->Fill(globalP(0), globalP(1));
+          h_zhits->Fill(globalP(2),
+                        std::sqrt(square(globalP(0)) + square(globalP(1))));
+
+          h_resids->Fill(local.y() - cluster->getLocalY(),
+                         local.x() - cluster->getLocalX());
+          m_tree->Fill();
+        }
+
+        /// Z strip spacing is the entire strip, so because we use fabs
+        /// we divide by two
+        float rphiresid = fabs(local.x() - cluster->getLocalX());
+        float zresid = fabs(local.y() - cluster->getLocalY());
+       
+        if (rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin)
+
+        {
+          if (Verbosity() > 2)
+          {
+            std::cout << "matched intt cluster" << std::endl;
+            std::cout << "Matched INTT cluster with cluskey " << cluskey
+                      << " and position " << glob.transpose()
+                      << std::endl
+                      << " with projections rphi "
+                      << local.x() << " and inttclus rphi " << cluster->getLocalX()
+                      << " and proj z " << local.y() << " and inttclus z "
+                      << cluster->getLocalY() << " in layer " << layer
+                      << " and crossing " << timebucket
+                      << std::endl;
+          }
+          /// make a new seed with this cluster added
+          inttMatches.push_back([&]()
+                                { std::vector<TrkrDefs::cluskey> skeys; 
+                                  skeys.reserve(keys.size());
+                                  for(auto const& key  : keys)
+                                  {
+                                    skeys.push_back(key);
+                                  }
+                                  skeys.push_back(cluskey);
+                                  return skeys; }());
+        }
+        else
+        {
+          if (Verbosity() > 3)
+          {
+            std::cout << "there are no matched intt clusters in this hitsetkey" << std::endl;
+            std::cout << "residuals are " << rphiresid << ", " << zresid << std::endl;
+            std::cout << "windows are " << m_inttrPhiSearchWin << ", " << m_inttzSearchWin << std::endl;
+          }
+        }
+      }
+    }
+  }
+  return inttMatches;
+}
 SpacePointPtr PHActsSiliconSeeding::makeSpacePoint(
     const Surface& surf,
     const TrkrDefs::cluskey key,
@@ -947,7 +1342,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
           }
         }
 
-        auto *const cluster = clusIter->second;
+        auto* const cluster = clusIter->second;
         const auto hitsetkey_A = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
         const auto surface = m_tGeometry->maps().getSiliconSurface(hitsetkey_A);
         if (!surface)
@@ -955,7 +1350,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
           continue;
         }
 
-        auto *sp = makeSpacePoint(surface, cluskey, cluster).release();
+        auto* sp = makeSpacePoint(surface, cluskey, cluster).release();
         spVec.push_back(sp);
         rRangeSPExtent.extend({sp->x(), sp->y(), sp->z()});
         numSiliconHits++;

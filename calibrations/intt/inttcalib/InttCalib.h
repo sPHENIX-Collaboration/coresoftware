@@ -63,6 +63,7 @@ class InttCalib : public SubsysReco
   static int GetFeeIndex(InttNameSpace::RawData_s const&, InttNameSpace::Offline_s const&);
   void SetColdSigmaCut(double in) { m_NUM_SIGMA_COLD = in; }
   void SetHotSigmaCut(double in) { m_NUM_SIGMA_HOT = in; }
+
   // For Fee by Fee
   int ConfigureHotMap_fee();
   int MakeHotMapCdb_fee();

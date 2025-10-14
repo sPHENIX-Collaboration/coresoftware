@@ -2,7 +2,7 @@
 
 /*!
  * \file PHGenIntegralv1.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -21,11 +21,13 @@ PHGenIntegralv1::PHGenIntegralv1()
   , m_IntegratedLumi(0.)
   , m_SumOfWeight(0.)
   , m_Description("Source Not Provided")
-{}
+{
+}
 
 PHGenIntegralv1::PHGenIntegralv1(const std::string& description)
   : m_Description(description)
-{}
+{
+}
 
 void PHGenIntegralv1::identify(std::ostream& os) const
 {
@@ -52,7 +54,7 @@ int PHGenIntegralv1::Integrate(PHObject* incoming_object)
   if (!in_gen)
   {
     std::cout << "PHGenIntegralv1::Integrate - Fatal Error - "
-         << "input object is not a PHGenIntegral: ";
+              << "input object is not a PHGenIntegral: ";
     incoming_object->identify();
 
     exit(EXIT_FAILURE);
@@ -82,7 +84,7 @@ void PHGenIntegralv1::CopyFrom(const PHObject* incoming_object)
   if (!in_gen)
   {
     std::cout << "PHGenIntegralv1::CopyFrom - Fatal Error - "
-         << "input object is not a PHGenIntegral: ";
+              << "input object is not a PHGenIntegral: ";
     incoming_object->identify();
 
     exit(EXIT_FAILURE);

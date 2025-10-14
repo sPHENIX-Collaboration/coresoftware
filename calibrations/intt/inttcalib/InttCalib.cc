@@ -30,11 +30,11 @@
 #include <cmath>
 #include <cstddef>  // for size_t
 #include <cstdint>  // for uint64_t
-#include <sstream>  // for basic_ostringstream
-
 #include <format>
 #include <iostream>
 #include <limits>
+#include <memory>
+#include <sstream>  // for basic_ostringstream
 
 InttCalib::InttCalib(const std::string &name)
   : SubsysReco(name)
@@ -43,14 +43,8 @@ InttCalib::InttCalib(const std::string &name)
 
 InttCalib::~InttCalib()
 {
-  for (auto &hist : m_hist)
-  {
-    delete hist;
-  }
-  for (auto &fit : m_fit)
-  {
-    delete fit;
-  }
+// only delete histograms which were not registered with the HistoManager
+// otherwise the code will segfault in the histomanager cleanup
   for (auto &hist : m_hist_fee)
   {
     delete hist;
@@ -60,10 +54,6 @@ InttCalib::~InttCalib()
     delete fit;
   }
   for (auto &hist : m_hist_half)
-  {
-    delete hist;
-  }
-  for (auto &hist : m_bco_peak)
   {
     delete hist;
   }
@@ -81,8 +71,10 @@ int InttCalib::InitRun(PHCompositeNode * /*unused*/)
   }
 
   m_do_nothing = false;
-
-  std::cout << "INITRUNEND" << std::endl;
+  if (Verbosity() > 0)
+  {
+    std::cout << "INITRUNEND" << std::endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -216,6 +208,7 @@ int InttCalib::EndRun(int const run_number)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
 int InttCalib::ConfigureHotMap_fee()
 {
   std::map<double, int> hitrate_pdf[m_MAX_LADDER]{};
@@ -446,8 +439,9 @@ int InttCalib::MakeHotMapCdb_v3()
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
+  auto cdbttree = std::make_unique<CDBTTree>(m_hotmap_cdb_file);
 
-  CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
+//  CDBTTree *cdbttree = new CDBTTree(m_hotmap_cdb_file);
   int size = 0;
   for (auto const &raw : InttNameSpace::AllRawDataChannels())
   {
@@ -524,7 +518,6 @@ int InttCalib::MakeHotMapCdb_v3()
   cdbttree->Commit();
   cdbttree->CommitSingle();
   cdbttree->WriteCDBTTree();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -680,7 +673,7 @@ int InttCalib::MakeHotMapPng_v3()
   TPad *legend_pad = new TPad("legend_pad", "legend_pad", 0.9, 0.1, 1.0, 1.0);
   legend_pad->SetFillStyle(4000);
   legend_pad->Range(0.0, 0.0, 1.0, 1.0);
-
+  legend_pad->Draw(); // this adds the tpad to the canvas, so it gets deleted when the tcanvas is deleted
   legend_pad->cd();
   for (int i = 0; i < 4; ++i)
   {
@@ -719,7 +712,6 @@ int InttCalib::MakeHotMapPng_v3()
   {
     cnvs->SaveAs(m_hotmap_png_file.c_str());
   }
-
   delete cnvs;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -807,7 +799,7 @@ int InttCalib::MakeBcoMapCdb()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  CDBTTree *cdbttree = new CDBTTree(m_bcomap_cdb_file);
+  auto cdbttree = std::make_unique<CDBTTree>(m_hotmap_cdb_file);
 
   int size = 0;
   std::vector<int> bco_temp_container;
@@ -1103,7 +1095,11 @@ int InttCalib::SaveHitrates()
 
 int InttCalib::LoadHitrates()
 {
-  TFile *file = TFile::Open("/sphenix/user/jbertaux/hitrates.root", "READ");
+  if (m_hotmap_png_file.empty())
+  {
+    std::cout << PHWHERE << "No TFile with hitrates specified with SetHotMapPngFile(filename)" << std::endl;
+  }
+  TFile *file = TFile::Open(m_hotmap_png_file.c_str(), "READ");
   if (!file)
   {
     std::cerr << "\n"

@@ -992,7 +992,7 @@ std::vector<TrackSeed_v2> PHCASiliconSeeding::FitSeeds(const std::vector<PHCASil
 
   for (const auto& chain : chains)
   {
-    if (chain.size() < 3)
+    if (chain.size() < _min_clusters_per_track)
     {
       continue;
     }
@@ -1001,25 +1001,34 @@ std::vector<TrackSeed_v2> PHCASiliconSeeding::FitSeeds(const std::vector<PHCASil
       std::cout << "chain size: " << chain.size() << std::endl;
     }
 
-    TrackSeed_v2 trackseed;
-    for (const auto& key : chain)
-    {
-      trackseed.insert_cluster_key(key);
-    }
-
     TrackSeedHelper::position_map_t positions;
     std::set<short> crossings;
+    size_t nmvtx = 0;
     size_t nintt = 0;
     for (const auto& cluskey : chain)
     {
       const auto& global = globalPositions.at(cluskey);
       positions.insert(std::make_pair(cluskey,global));
-
+      if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::mvtxId)
+      {
+        nmvtx++;
+      }
       if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::inttId)
       {
         nintt++;
         crossings.insert(GetClusterTimeIndex(cluskey));
       }
+    }
+
+    if(nmvtx<_min_mvtx_clusters || nintt<_min_intt_clusters)
+    {
+      continue;
+    }
+
+    TrackSeed_v2 trackseed;
+    for (const auto& key : chain)
+    {
+      trackseed.insert_cluster_key(key);
     }
 
     TrackSeedHelper::circleFitByTaubin(&trackseed,positions,_start_layer,_end_layer);
@@ -1168,7 +1177,7 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
   {
     std::cout << "topNode:" << topNode << std::endl;
   }
-  PHTrackSeeding::set_track_map_name(_track_map_name);
+  PHTrackSeeding::set_track_map_name(_module_trackmap_name);
   PHTrackSeeding::Setup(topNode);
 
   // geometry initialization

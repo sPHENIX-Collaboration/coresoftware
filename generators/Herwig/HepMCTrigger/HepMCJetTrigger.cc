@@ -89,7 +89,8 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
 {
   // do the fast jet clustering, antikt r=-0.4
   fastjet::JetDefinition const jetdef(fastjet::antikt_algorithm, 0.4);
-  std::vector<fastjet::PseudoJet> input, output;
+  std::vector<fastjet::PseudoJet> input;
+  std::vector<fastjet::PseudoJet> output;
   for (HepMC::GenEvent::particle_const_iterator iter = e1->particles_begin(); iter != e1->particles_end(); ++iter)
   {
     if (!(*iter)->end_vertex() && (*iter)->status() == 1)
@@ -100,19 +101,21 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
       input.push_back(pj);
     }
   }
-  if (input.size() == 0)
+  if (input.empty())
   {
     return input;
   }
   fastjet::ClusterSequence const js(input, jetdef);
   auto j = js.inclusive_jets();
+  output.reserve(j.size());
   for (const auto& j1 : j)
   {
     output.push_back(j1);  // just keep in the corect format
   }
   return output;
 }
-int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets)
+
+int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets) const
 {
   // search through for the number of identified jets above the threshold
   int n_good_jets = 0;

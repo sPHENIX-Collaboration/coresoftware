@@ -362,7 +362,10 @@ std::pair<double, double> ClusterCDFCalculator::GetCDF(const std::vector<double>
     ibin = henbins_photon->FindFixBin(clusterenergy) - 1;
     if (ibin < 0)
     {
-      std::cout << "ClusterCDFCalculator::GetCDF fatal error: histogram bin below 0... set prob. both to -1." << std::endl;
+      if (Verbosity() > 0) 
+      {
+        std::cout << "ClusterCDFCalculator::GetCDF histogram bin below 0... set prob. both to -1." << std::endl;
+      }
       return std::make_pair(-1, -1);
     }
     if (ibin >= henbins_photon->GetNbinsX())

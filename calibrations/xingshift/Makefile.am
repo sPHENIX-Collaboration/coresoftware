@@ -10,7 +10,8 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OFFLINE_MAIN)/lib64 \
-  -lcdbobjects
+  -lcdbobjects \
+  -lffamodules
 
 pkginclude_HEADERS = \
   XingShiftCal.h

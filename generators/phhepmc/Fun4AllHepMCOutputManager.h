@@ -25,7 +25,7 @@ class Fun4AllHepMCOutputManager : public Fun4AllOutputManager
 
   void Print(const std::string &what = "ALL") const override;
 
-  int Write(PHCompositeNode *startNode) override;
+  int Write(PHCompositeNode *topNode) override;
 
   int AddComment(const std::string &text);
 

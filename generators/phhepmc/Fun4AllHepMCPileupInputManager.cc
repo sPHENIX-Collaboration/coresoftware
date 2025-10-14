@@ -22,6 +22,7 @@
 Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
     const std::string &name, const std::string &nodename, const std::string &topnodename)
   : Fun4AllHepMCInputManager(name, nodename, topnodename)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
   //! repeatedly read the input file
   Repeat(1);
@@ -29,7 +30,6 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
   //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
   PHHepMCGenHelper::set_embedding_id(-1);
 
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(RandomGenerator, seed);
 
@@ -130,13 +130,11 @@ int Fun4AllHepMCPileupInputManager::run(const int /*nevents*/, const bool skip)
             }
             return -1;
           }
-          else
+
+          if (OpenNextFile())
           {
-            if (OpenNextFile())
-            {
-              std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-              return -1;
-            }
+            std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+            return -1;
           }
         }
         {
@@ -165,7 +163,7 @@ int Fun4AllHepMCPileupInputManager::run(const int /*nevents*/, const bool skip)
           if (Verbosity() > 1)
           {
             std::cout << "error type: " << ascii_in->error_type()
-                 << ", rdstate: " << ascii_in->rdstate() << std::endl;
+                      << ", rdstate: " << ascii_in->rdstate() << std::endl;
           }
           fileclose();
         }
@@ -174,7 +172,10 @@ int Fun4AllHepMCPileupInputManager::run(const int /*nevents*/, const bool skip)
           if (Verbosity() > 0)
           {
             std::cout << "Fun4AllHepMCPileupInputManager::run::" << Name();
-            if (skip) std::cout << " skip";
+            if (skip)
+            {
+              std::cout << " skip";
+            }
             std::cout << " hepmc evt no: " << evt->event_number() << std::endl;
           }
           events_total++;
@@ -199,8 +200,8 @@ int Fun4AllHepMCPileupInputManager::run(const int /*nevents*/, const bool skip)
       }
       else
       {
-	delete evt;
-	evt = nullptr;
+        delete evt;
+        evt = nullptr;
       }
     }  //    for (int icollision = 0; icollision < ncollisions; ++icollision)
 
@@ -227,12 +228,12 @@ int Fun4AllHepMCPileupInputManager::PushBackEvents(const int i)
     m_EventPushedBackFlag = -1;
     HepMC::IO_GenEvent ascii_io(m_HepMCTmpFile, std::ios::out);
     PHHepMCGenEventMap *geneventmap = PHHepMCGenHelper::get_geneventmap();
-    for (auto iter = geneventmap->begin(); iter != geneventmap->end(); ++iter)
+    for (auto &iter : *geneventmap)
     {
-      if (m_EventNumberMap.find((iter->second)->getEvent()->event_number()) != m_EventNumberMap.end())
+      if (m_EventNumberMap.contains((iter.second)->getEvent()->event_number()))
       {
         m_EventPushedBackFlag = 1;
-        HepMC::GenEvent *evttmp = (iter->second)->getEvent();
+        HepMC::GenEvent *evttmp = (iter.second)->getEvent();
         ascii_io << evttmp;
       }
     }
@@ -248,13 +249,13 @@ int Fun4AllHepMCPileupInputManager::InsertEvent(HepMC::GenEvent *evt, const doub
   {
     //! If set_embedding_id(i) with a positive number, the pile up event will be inserted with increasing positive embedding_id. This would be a strange way to use pile up.
 
-    genevent = geneventmap->insert_active_event(get_PHHepMCGenEvent_template() );
+    genevent = geneventmap->insert_active_event(get_PHHepMCGenEvent_template());
   }
   else
   {
     //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.
 
-    genevent = geneventmap->insert_background_event(get_PHHepMCGenEvent_template() );
+    genevent = geneventmap->insert_background_event(get_PHHepMCGenEvent_template());
   }
   assert(genevent);
   assert(evt);
