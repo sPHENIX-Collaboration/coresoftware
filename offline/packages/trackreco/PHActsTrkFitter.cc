@@ -178,7 +178,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_evaluator->verbosity(Verbosity());
   }
 
-  _tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  _tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
 
   if (Verbosity() > 1)
   {

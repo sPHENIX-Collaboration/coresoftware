@@ -30,7 +30,7 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomv1.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
@@ -632,7 +632,7 @@ namespace
     {
       clusz = -clusz;
     }
-    // std::cout << " side " << my_data.side << " clusz " << clusz << " clust " << clust << " driftmax " << my_data.m_tdriftmax << std::endl;
+    //  std::cout << " side " << my_data.side << " clusz " << clusz << " clust " << clust << " driftmax " << my_data.m_tdriftmax << std::endl;
     const double phi_cov = (iphi2_sum / adc_sum - square(clusiphi)) * pow(my_data.layergeom->get_phistep(), 2);
     const double t_cov = t2_sum / adc_sum - square(clust);
 
@@ -1238,6 +1238,16 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   
   AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
+  std::cout << "FirstLayerCellGeomv1 streamer: " << std::endl;  
+  auto g1 = (PHG4TpcGeomv1*) geom->GetFirstLayerCellGeom(); // cast because << not in the base class
+  std::cout << *g1 << std::endl;
+  std::cout << "LayerCellGeomv1 streamer for layer 24: " << std::endl;
+  auto g2 = (PHG4TpcGeomv1*) geom->GetLayerCellGeom(24); // cast because << not in the base class
+  std::cout << *g2 << std::endl;
+  std::cout << "LayerCellGeomv1 streamer for layer 40: " << std::endl;  
+  auto g3 = (PHG4TpcGeomv1*) geom->GetLayerCellGeom(40); // cast because << not in the base class
+  std::cout << *g3 << std::endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1440,7 +1450,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned short PhiOffset = NPhiBinsSector * sector;
       unsigned short TOffset = NTBinsMin;
 
-      m_tdriftmax = AdcClockPeriod * NZBinsSide;
+      m_tdriftmax = layergeom->get_max_driftlength() / m_tGeometry->get_drift_velocity(); 
+      //  std::cout << "     m_tdriftmax " << m_tdriftmax << " drift velocity reco " << m_tGeometry->get_drift_velocity() << std::endl;
       thread_pair.data.m_tdriftmax = m_tdriftmax;
 
       thread_pair.data.phibins = NPhiBinsSector;
@@ -1551,7 +1562,8 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       unsigned short PhiOffset = NPhiBinsSector * sector;
       unsigned short TOffset = NTBinsMin;
 
-      m_tdriftmax = AdcClockPeriod * NZBinsSide;
+      m_tdriftmax = layergeom->get_max_driftlength() / m_tGeometry->get_drift_velocity(); 
+      //      std::cout << "     m_tdriftmax " << m_tdriftmax << " drift velocity reco " << m_tGeometry->get_drift_velocity() << std::endl;
       thread_pair.data.m_tdriftmax = m_tdriftmax;
 
       thread_pair.data.phibins = NPhiBinsSector;

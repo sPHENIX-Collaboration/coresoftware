@@ -134,10 +134,10 @@ Acts::Vector3 ActsGeometry::getGlobalPositionTpc(TrkrDefs::cluskey key, TrkrClus
                                 Acts::Vector3(1, 1, 1));
   glob /= Acts::UnitConstants::cm;
 
-  /*
-  std::cout << "  local " << local << std::endl;
-  std::cout << "  glob " << glob << std::endl;
-  */  
+
+  // std::cout << "  local " << local << std::endl;
+  // std::cout << "  glob " << glob << std::endl;
+
   
   return glob;
 }
@@ -270,9 +270,12 @@ Acts::Vector2 ActsGeometry::getLocalCoords(TrkrDefs::cluskey key, TrkrCluster* c
     }
     local(0) = cluster->getLocalX();
     local(1) = zloc;
+
     /*
     std::cout << " clust " << cluster->getLocalY() << " tpc tzero " << _tpc_tzero << " sampa tbias " << _sampa_tzero_bias
-	      << " crossing tzero correction " << crossing_tzero_correction << " drift vel " << _drift_velocity << " zdriftlength " << zdriftlength << " zloc " << zloc << std::endl;
+	      << " crossing tzero correction " << crossing_tzero_correction << " drift vel " << _drift_velocity 
+	      << " crossing " << crossing << " crossing period " << sphenix_constants::time_between_crossings
+	      << " maxdriftlength " << _max_driftlength << " zdriftlength " << zdriftlength << " zloc " << zloc << std::endl;
     */
   }
   else

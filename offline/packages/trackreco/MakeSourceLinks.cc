@@ -407,6 +407,8 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   // loop over global positions returned by cluster mover
   for(auto&& [cluskey, global] : global_moved)
   {
+    // std::cout << "Global moved: " << global.x() << "  " <<  global.y() << "  " << global.z() << std::endl;
+    
     if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
     {
       if (m_verbosity > 3)
