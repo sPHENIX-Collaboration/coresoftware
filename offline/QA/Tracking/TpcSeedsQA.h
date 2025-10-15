@@ -25,7 +25,7 @@ class TProfile2D;
 class TNtuple;
 class SvtxVertexMap;
 class TrackSeedContainer;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 class TrackSeed;
 
 class TpcSeedsQA : public SubsysReco
@@ -74,7 +74,7 @@ class TpcSeedsQA : public SubsysReco
 
   TrkrClusterContainer* clustermap{nullptr};
   ActsGeometry* actsgeom{nullptr};
-  PHG4TpcCylinderGeomContainer* g4geom{nullptr};
+  PHG4TpcGeomContainer* g4geom{nullptr};
   SvtxTrackMap* trackmap{nullptr};
   SvtxVertexMap* vertexmap{nullptr};
 
