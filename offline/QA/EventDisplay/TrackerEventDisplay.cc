@@ -16,8 +16,8 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrHitSet.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -57,10 +57,10 @@ int TrackerEventDisplay::Init(PHCompositeNode* /*topNode*/)
 int TrackerEventDisplay::InitRun(PHCompositeNode *topNode)
 {
   auto *geom =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
@@ -101,11 +101,11 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
     return;
   }
 
-  PHG4TpcCylinderGeomContainer* geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return;
   }
 
@@ -183,7 +183,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
 
           if (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::TrkrId::tpcId)
           {
-            PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
+            PHG4TpcGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
             double radius = GeoLayer_local->get_radius();
             phibin = (float) TpcDefs::getPad(hit_key);
             tbin = (float) TpcDefs::getTBin(hit_key);

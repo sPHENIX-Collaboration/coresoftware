@@ -66,7 +66,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 
   if (!g4geom)
   {
-    std::cout << PHWHERE << " unable to find DST node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

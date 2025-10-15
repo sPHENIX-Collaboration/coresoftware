@@ -68,7 +68,7 @@ class TpcSeedsQA : public SubsysReco
 
   std::string m_clusterContainerName{"TRKR_CLUSTER"};
   std::string m_actsGeomName{"ActsGeometry"};
-  std::string m_g4GeomName{"CYLINDERCELLGEOM_SVTX"};
+  std::string m_g4GeomName{"TPCGEOMCONTAINER"};
   std::string m_trackMapName{"SvtxTrackMap"};
   std::string m_vertexMapName{"SvtxVertexMap"};
 

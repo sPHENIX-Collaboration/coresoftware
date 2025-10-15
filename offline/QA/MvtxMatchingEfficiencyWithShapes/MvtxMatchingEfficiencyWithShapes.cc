@@ -1,7 +1,7 @@
 #include "MvtxMatchingEfficiencyWithShapes.h"
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>
@@ -179,10 +179,10 @@ int MvtxMatchingEfficiencyWithShapes::process_event(PHCompositeNode* topNode)
     return -1;
   }
 
-  _geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  _geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!_geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -507,7 +507,7 @@ float MvtxMatchingEfficiencyWithShapes::calc_dedx(TrackSeed* tpcseed)
     TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
 
     float adc = cluster->getAdc();
-    PHG4TpcCylinderGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
+    PHG4TpcGeom* GeoLayer_local = _geom_container->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
 
     float r = GeoLayer_local->get_radius();

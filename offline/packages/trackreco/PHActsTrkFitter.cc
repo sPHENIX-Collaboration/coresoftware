@@ -179,7 +179,12 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   }
 
   _tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
-
+  if (!_tpccellgeo)
+    {
+      std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
   if (Verbosity() > 1)
   {
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;

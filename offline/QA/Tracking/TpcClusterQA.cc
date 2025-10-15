@@ -1,7 +1,7 @@
 #include "TpcClusterQA.h"
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
@@ -43,10 +43,10 @@ int TpcClusterQA::InitRun(PHCompositeNode *topNode)
 {
   // find tpc geometry
   auto *geomContainer =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geomContainer)
   {
-    std::cout << PHWHERE << " unable to find DST node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   // TPC has 3 regions, inner, mid and outer
@@ -82,7 +82,7 @@ int TpcClusterQA::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   auto *geomContainer =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   auto *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitmap)
   {
