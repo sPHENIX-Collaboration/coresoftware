@@ -204,8 +204,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
     alignment_transformation.setMMParams(m_mmDevs);
   }
 
-  alignment_transformation.applyTpcTzeroCorrection(m_apply_tpc_tzero_correction);
-
   if (buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
