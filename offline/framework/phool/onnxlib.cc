@@ -1,13 +1,28 @@
 #include "onnxlib.h"
+
 #include <iostream>
 
-Ort::Session *onnxSession(std::string &modelfile)
+Ort::Session *onnxSession(std::string &modelfile, int verbosity)
 {
   Ort::Env env(OrtLoggingLevel::ORT_LOGGING_LEVEL_WARNING, "fit");
   Ort::SessionOptions sessionOptions;
   sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
-
-  return new Ort::Session(env, modelfile.c_str(), sessionOptions);
+  auto *session = new Ort::Session(env, modelfile.c_str(), sessionOptions);
+  auto type_info = session->GetInputTypeInfo(0);
+  auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
+  auto input_dims = tensor_info.GetShape();
+  onnxlib::n_input = input_dims[1];
+  type_info = session->GetOutputTypeInfo(0);
+  tensor_info = type_info.GetTensorTypeAndShapeInfo();
+  auto output_dims = tensor_info.GetShape();
+  onnxlib::n_output = output_dims[1];
+  if (verbosity > 0)
+  {
+    std::cout << "onnxlib: using model " << modelfile << std::endl;
+    std::cout << "Number of Inputs: " << onnxlib::n_input << std::endl;
+    std::cout << "Number of Outputs: " << onnxlib::n_output << std::endl;
+  }
+  return session;
 }
 
 std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &input, int N, int Nsamp, int Nreturn)
