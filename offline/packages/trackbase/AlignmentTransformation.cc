@@ -212,7 +212,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
         }
 
         unsigned int side = TpcDefs::getSide(hitsetkey);
-	
+	/*	
 	if(apply_tpc_tzero_correction)
 	  {
 	    // modify dz for TPC hitsetkeys to include tpc tzero
@@ -225,7 +225,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		millepedeTranslation(2) += tzero_dz;
 	      }
 	  }
-
+	*/
+	
         unsigned int sector = TpcDefs::getSectorId(hitsetkey);
         int subsurfkey_min = (1 - side) * 144 + (144 - sector * 12) - 12 - 6;
         int subsurfkey_max = subsurfkey_min + 12;

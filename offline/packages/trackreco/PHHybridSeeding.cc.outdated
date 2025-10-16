@@ -24,8 +24,8 @@
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
 
 // sPHENIX Geant4 includes
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -99,8 +99,8 @@ PHHybridSeeding::PHHybridSeeding(
 
 int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
 {
-  PHG4TpcCylinderGeomContainer *cellgeos = findNode::getClass<
-      PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer *cellgeos = findNode::getClass<
+      PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   PHG4CylinderGeomContainer *laddergeos = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   PHG4CylinderGeomContainer *mapsladdergeos = findNode::getClass<
@@ -115,9 +115,9 @@ int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
   _layer_ilayer_map_all.clear();
   if (cellgeos)
   {
-    PHG4TpcCylinderGeomContainer::ConstRange layerrange =
+    PHG4TpcGeomContainer::ConstRange layerrange =
         cellgeos->get_begin_end();
-    for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter =
+    for (PHG4TpcGeomContainer::ConstIterator layeriter =
              layerrange.first;
          layeriter != layerrange.second; ++layeriter)
     {
@@ -168,12 +168,12 @@ int PHHybridSeeding::InitializeGeometry(PHCompositeNode *topNode)
   }
   if (cellgeos)
   {
-    PHG4TpcCylinderGeomContainer::ConstRange begin_end =
+    PHG4TpcGeomContainer::ConstRange begin_end =
         cellgeos->get_begin_end();
-    PHG4TpcCylinderGeomContainer::ConstIterator miter = begin_end.first;
+    PHG4TpcGeomContainer::ConstIterator miter = begin_end.first;
     for (; miter != begin_end.second; ++miter)
     {
-      PHG4TpcCylinderGeom *geo = miter->second;
+      PHG4TpcGeom *geo = miter->second;
       _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
           geo->get_radius() + 0.5 * geo->get_thickness();
 
