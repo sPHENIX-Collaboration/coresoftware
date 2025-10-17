@@ -53,12 +53,8 @@ ROOTDICTS = \
   InttVertexv1_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  CylinderGeomIntt_Dict_rdict.pcm \
-  InttVertexMap_Dict_rdict.pcm \
-  InttVertexMapv1_Dict_rdict.pcm \
-  InttVertex_Dict_rdict.pcm \
-  InttVertexv1_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 # sources for intt library
 libintt_la_SOURCES = \
@@ -84,6 +80,7 @@ libintt_la_LIBADD = \
   -lActsCore \
   -lcdbobjects \
   -lCLHEP \
+  -lffamodules \
   -lffarawobjects \
   -lodbc++ \
   -lphg4hit \

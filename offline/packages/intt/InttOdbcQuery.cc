@@ -1,6 +1,6 @@
-/// Originally imitated from coresoftware/offline/database/rundb/CaloTime.*
-
 #include "InttOdbcQuery.h"
+
+#include <ffamodules/DBInterface.h>
 
 #include <phool/phool.h>
 
@@ -13,65 +13,16 @@
 #include <sstream>
 
 #include <filesystem>
-#include <random> // For retrying connections
-#include <chrono> // For retrying connections
-#include <thread> // For retrying connections
 
 int InttOdbcQuery::Query(int runnumber)
 {
   m_query_successful = false;
 
-  std::random_device ran_dev;
-  std::seed_seq seeds {ran_dev(), ran_dev(), ran_dev()}; //...
-  std::mt19937_64 mersenne_twister(seeds);
-  std::uniform_int_distribution<> uniform(m_MIN_SLEEP_DUR, m_MAX_SLEEP_DUR);
-
-  int num_tries = 0;
-  int total_slept_ms = 0;
-
-  odbc::Connection* dbcon = nullptr;
-  for(num_tries = 0; num_tries < m_MAX_NUM_RETRIES; ++num_tries)
-  {
-    try
-    {
-      dbcon = odbc::DriverManager::getConnection("daq", "", "");
-    }
-    catch (odbc::SQLException &e)
-    {
-      std::cerr << PHWHERE << "\n"
-                << "\tSQL Exception:\n"
-                << "\t" << e.getMessage() << std::endl;
-    }
-
-    if(dbcon)
-    {
-      ++num_tries;
-      break;
-    }
-
-    int sleep_time_ms = uniform(mersenne_twister);
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
-    total_slept_ms += sleep_time_ms;
-
-    if(1 < m_verbosity)
-    {
-      std::cout << PHWHERE << "\n"
-                << "\tConnection unsuccessful\n"
-                << "\tSleeping for addtional " << sleep_time_ms << " ms" << std::endl;
-    }
-  }
-
-  if(m_verbosity)
-  {
-    std::cout << PHWHERE << "\n"
-              << "\tConnection successful (" << num_tries << " attempts, " << total_slept_ms << " ms)" << std::endl;
-  }
+  odbc::Connection* dbcon = DBInterface::getDBConnection("daq");
 
   if(!dbcon)
   {
-    std::cerr << PHWHERE << "\n"
-              << "\tDB Conntion failed after " << m_MAX_NUM_RETRIES << " retries\n"
-              << "\tAbandoning query" << std::endl;
+    std::cerr << PHWHERE << "DB Connection failed" << std::endl;
     return 1;
   }
 
