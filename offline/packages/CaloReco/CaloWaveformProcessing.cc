@@ -56,7 +56,7 @@ void CaloWaveformProcessing::initialize_processing()
   {
     // std::string calibrations_repo_model = m_model_name;
     // url_onnx = CDBInterface::instance()->getUrl("CEMC_ONNX", m_model_name);
-    onnxmodule = onnxSession(m_model_name);
+    onnxmodule = onnxSession(m_model_name, Verbosity());
   }
   else if (m_processingtype == CaloWaveformProcessing::NYQUIST)
   {
@@ -169,8 +169,8 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
         {
           // downstream onnx does not have a static input vector API,
           // so we need to make a copy
-          std::vector<float> vtmp(v);
-          val = onnxInference(onnxmodule, vtmp, 1, 12, 3);
+          std::vector<float> vtmp(v); //NOLINT(performance-unnecessary-copy-initialization)
+          val = onnxInference(onnxmodule, vtmp, 1, onnxlib::n_input, onnxlib::n_output);
           unsigned int nvals = val.size();
           for (unsigned int i = 0; i < nvals; i++)
           {

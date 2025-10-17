@@ -19,8 +19,10 @@ I trained a crappy CNN to classify EMCal clusters as photon or not photon. S.Li 
 #include <calobase/TowerInfoDefs.h>
 
 #include <ffaobjects/EventHeader.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/onnxlib.h>
@@ -34,12 +36,15 @@ RawClusterCNNClassifier::RawClusterCNNClassifier(const std::string &name)
 {
 }
 
-RawClusterCNNClassifier::~RawClusterCNNClassifier() = default;
+RawClusterCNNClassifier::~RawClusterCNNClassifier()
+{
+  delete onnxmodule;
+}
 
 int RawClusterCNNClassifier::Init(PHCompositeNode *topNode)
 {
   // init the onnx model
-  onnxmodule = onnxSession(m_modelPath);
+  onnxmodule = onnxSession(m_modelPath,Verbosity());
 
   if (m_inputNodeName == m_outputNodeName)
   {
@@ -120,18 +125,15 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
       // get ieta iphi
       int ix = RawTowerDefs::decode_index2(tower_key);  // iphi?
       int iy = RawTowerDefs::decode_index1(tower_key);  // ieta I  guess?(S.L.)
-      RawTowerDefs::CalorimeterId caloid =
-          RawTowerDefs::decode_caloid(tower_key);
+      RawTowerDefs::CalorimeterId caloid = RawTowerDefs::decode_caloid(tower_key);
       // check if cemc, but I guess they shoul all be anyways lol
       if (caloid != RawTowerDefs::CalorimeterId::CEMC)
       {
         continue;
       }
       // get the towerinfo key
-      unsigned int towerinfokey = TowerInfoDefs::encode_emcal(
-          iy, ix);  // this is the key for the towerinfo container get the towerinfo
-      TowerInfo *towerinfo =
-          emcTowerContainer->get_tower_at_key(towerinfokey);
+      unsigned int towerinfokey = TowerInfoDefs::encode_emcal(iy, ix);  // this is the key for the towerinfo container get the towerinfo
+      TowerInfo *towerinfo = emcTowerContainer->get_tower_at_key(towerinfokey);
       if (!towerinfo)
       {
         // should not happen
@@ -196,18 +198,6 @@ int RawClusterCNNClassifier::process_event(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int RawClusterCNNClassifier::End(PHCompositeNode * /*topNode*/)
-{
-  delete onnxmodule;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-void RawClusterCNNClassifier::Print(const std::string &what) const
-{
-  std::cout << "RawClusterCNNClassifier::Print(const std::string &what) const Printing info for " << what << std::endl;
-  return;
 }
 
 void RawClusterCNNClassifier::CreateNodes(PHCompositeNode *topNode)

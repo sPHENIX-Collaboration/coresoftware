@@ -1,5 +1,5 @@
-#ifndef RAWCLUSTERCNNCLASSIFIER_H
-#define RAWCLUSTERCNNCLASSIFIER_H
+#ifndef CALORECO_RAWCLUSTERCNNCLASSIFIER_H
+#define CALORECO_RAWCLUSTERCNNCLASSIFIER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -19,10 +19,6 @@ class RawClusterCNNClassifier : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-  int End(PHCompositeNode *topNode) override;
-
-  void Print(const std::string &what = "ALL") const override;
-  
   void set_modelPath(const std::string &modelPath) { m_modelPath = modelPath; }
 
   void set_inputNodeName(const std::string &inputNodeName) { m_inputNodeName = inputNodeName; }
@@ -34,6 +30,8 @@ class RawClusterCNNClassifier : public SubsysReco
   void set_min_cluster_e(const float min_cluster_e) { m_min_cluster_e = min_cluster_e; }
 
  private:
+  void CreateNodes(PHCompositeNode* topNode);
+
   Ort::Session *onnxmodule{nullptr};
   const int inputDimx{5};
   const int inputDimy{5};
@@ -42,7 +40,7 @@ class RawClusterCNNClassifier : public SubsysReco
 
   const float minET{3};
 
-  std::string m_modelPath{"/sphenix/u/shuhang98/core_patch/coresoftware/offline/packages/CaloReco/functional_model.onnx"};
+  std::string m_modelPath;//{"/sphenix/u/shuhang98/core_patch/coresoftware/offline/packages/CaloReco/functional_model.onnx"};
 
   std::string m_inputNodeName{"CLUSTERINFO_CEMC"};
   std::string m_outputNodeName{"CLUSTERINFO_CEMC_CNN"};
@@ -53,9 +51,6 @@ class RawClusterCNNClassifier : public SubsysReco
   RawClusterContainer *_clusters{nullptr};
 
   float m_min_cluster_e{3};
-
-  void CreateNodes(PHCompositeNode* topNode);
-
 
 };
 
