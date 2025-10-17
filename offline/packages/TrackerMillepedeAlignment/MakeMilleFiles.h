@@ -27,7 +27,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 class SvtxTrack;
 class SvtxTrackMap;
 class TrkrCluster;

@@ -10,7 +10,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <vector>
 
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 
 class TpcClusterMover
 {
@@ -24,7 +24,7 @@ class TpcClusterMover
 
   //! Updates the assumed default geometry below to that contained in the
   //! cell geo
-  void initialize_geometry(PHG4TpcCylinderGeomContainer *cellgeo);
+  void initialize_geometry(PHG4TpcGeomContainer *cellgeo);
 
  private:
   int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y);

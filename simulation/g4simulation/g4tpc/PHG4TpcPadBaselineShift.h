@@ -18,7 +18,7 @@ class TFile;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
-class PHG4TpcCylinderGeom;
+class PHG4TpcGeom;
 
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
@@ -39,7 +39,7 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   void writeTree(int f_writeTree);
 
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits{nullptr};
   TrkrClusterContainer *m_clusterlist{nullptr};

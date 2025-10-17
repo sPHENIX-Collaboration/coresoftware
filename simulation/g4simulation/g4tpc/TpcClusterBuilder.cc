@@ -8,12 +8,13 @@
 #include <trackbase/TrkrHitSetContainerv1.h>
 #include <trackbase/TrkrHitv2.h>  // for TrkrHit
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
 
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+
 
 #include <algorithm>
 #include <cmath>  // for sqrt, cos, sin
@@ -53,7 +54,7 @@ void TpcClusterBuilder::cluster_hits(TrkrTruthTrack* track)
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-    PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom* layergeom = geom_container->GetLayerCellGeom(layer);
 
     // get the maximum and minimum phi and time
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
@@ -487,7 +488,7 @@ void TpcClusterBuilder::print_file(
 }
 
 void TpcClusterBuilder::set_input_nodes(
-    TrkrClusterContainer* _truth_cluster_container, ActsGeometry* ActsGeometry, PHG4TpcCylinderGeomContainer* _geom_container, ClusHitsVerbosev1* _clushitsverbose)
+    TrkrClusterContainer* _truth_cluster_container, ActsGeometry* ActsGeometry, PHG4TpcGeomContainer* _geom_container, ClusHitsVerbosev1* _clushitsverbose)
 {
   m_clusterlist = _truth_cluster_container;
   m_tGeometry = ActsGeometry;

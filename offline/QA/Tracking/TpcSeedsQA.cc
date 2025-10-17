@@ -11,8 +11,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -54,7 +54,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 
   clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   actsgeom = findNode::getClass<ActsGeometry>(topNode, m_actsGeomName);
-  g4geom = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, m_g4GeomName);
+  g4geom = findNode::getClass<PHG4TpcGeomContainer>(topNode, m_g4GeomName);
   trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
@@ -66,7 +66,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 
   if (!g4geom)
   {
-    std::cout << PHWHERE << " unable to find DST node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -189,7 +189,7 @@ float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster *cluster = clustermap->findCluster(cluster_key);
     float adc = cluster->getAdc();
-    PHG4TpcCylinderGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
+    PHG4TpcGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
     float r = GeoLayer_local->get_radius();
     float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));

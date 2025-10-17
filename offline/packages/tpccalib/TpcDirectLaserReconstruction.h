@@ -18,7 +18,7 @@ class SvtxTrack;
 class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrHitSetContainer;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 
 class TFile;
 class TH1;
@@ -141,7 +141,7 @@ class TpcDirectLaserReconstruction : public SubsysReco, public PHParameterInterf
   ///@name nodes
   //@{
 
-  PHG4TpcCylinderGeomContainer *m_geom_container {nullptr};
+  PHG4TpcGeomContainer *m_geom_container {nullptr};
 
   /// Acts geometry
   ActsGeometry *m_tGeometry {nullptr};

@@ -14,7 +14,6 @@ class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 
 class PHCompositeNode;
-class PHG4TpcCylinderGeomContainer;
 class TNtuple;
 
 class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
