@@ -55,13 +55,13 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
   for (const std::string &s : session->GetInputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     inputNames.push_back(name);
   }
   for (const std::string &s : session->GetOutputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     outputNames.push_back(name);
   }
 #else
@@ -72,11 +72,11 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
   session->Run(Ort::RunOptions{nullptr}, inputNames.data(), inputTensors.data(), 1, outputNames.data(), outputTensors.data(), 1);
 
 #if ORT_API_VERSION == 22
-  for (auto iter : inputNames)
+  for (const auto *iter : inputNames)
   {
     delete[] iter;
   }
-  for (auto iter : outputNames)
+  for (const auto *iter : outputNames)
   {
     delete[] iter;
   }
@@ -115,13 +115,13 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
   for (const std::string &s : session->GetInputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     inputNames.push_back(name);
   }
   for (const std::string &s : session->GetOutputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     outputNames.push_back(name);
   }
 #else
@@ -131,11 +131,11 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
 #endif
   session->Run(Ort::RunOptions{nullptr}, inputNames.data(), inputTensors.data(), 1, outputNames.data(), outputTensors.data(), 1);
 #if ORT_API_VERSION == 22
-  for (auto iter : inputNames)
+  for (const auto *iter : inputNames)
   {
     delete[] iter;
   }
-  for (auto iter : outputNames)
+  for (const auto *iter : outputNames)
   {
     delete[] iter;
   }
