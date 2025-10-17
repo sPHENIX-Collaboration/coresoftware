@@ -18,24 +18,14 @@ int InttOdbcQuery::Query(int runnumber)
 {
   m_query_successful = false;
 
-  odbc::Connection* dbcon = DBInterface::getDBConnection("daq");
-
-  if (!dbcon)
-  {
-    std::cerr << PHWHERE << "DB Connection failed" << std::endl;
-    return 1;
-  }
-
-  odbc::Statement* statement = dbcon->createStatement();
+// statement will be deleted by DBInterface
+  odbc::Statement* statement = DBInterface::instance()->getStatement("daq");
 
   int iret = 0;
   iret += (QueryStreaming(statement, runnumber) != 0);
   //...
 
   m_query_successful = (iret == 0);
-
-  delete statement;
-  delete dbcon;
 
   return iret;
 }
