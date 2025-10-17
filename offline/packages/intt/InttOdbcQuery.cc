@@ -20,7 +20,7 @@ int InttOdbcQuery::Query(int runnumber)
 
   odbc::Connection* dbcon = DBInterface::getDBConnection("daq");
 
-  if(!dbcon)
+  if (!dbcon)
   {
     std::cerr << PHWHERE << "DB Connection failed" << std::endl;
     return 1;
@@ -48,13 +48,13 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
   try
   {
     std::string sql = "SELECT sched_data FROM gtm_scheduler WHERE vgtm=1 AND sched_entry = 1 AND runnumber = " + std::to_string(runnumber) + ";";
-    result_set = ((odbc::Statement*)statement)->executeQuery(sql);
-    if(result_set && result_set->next())
+    result_set = ((odbc::Statement*) statement)->executeQuery(sql);
+    if (result_set && result_set->next())
     {
       sched_data = result_set->getString("sched_data");
     }
   }
-  catch (odbc::SQLException &e)
+  catch (odbc::SQLException& e)
   {
     std::cerr << PHWHERE << "\n"
               << "\tSQL Exception:\n"
@@ -64,7 +64,7 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
   }
   delete result_set;
 
-  if(std::string{"{17,55,24,54}"} == sched_data)
+  if (std::string{"{17,55,24,54}"} == sched_data)
   {
     /// Streaming
     m_is_streaming = true;
@@ -81,7 +81,7 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
     return 1;
   }
 
-  if(m_verbosity)
+  if (m_verbosity)
   {
     std::cout << "\tsched_data: '" << sched_data << "'" << std::endl;
   }
@@ -97,13 +97,13 @@ int InttOdbcQuery::QueryType(void* statement, int runnumber)
   try
   {
     std::string sql = "SELECT runtype FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
-    result_set = ((odbc::Statement*)statement)->executeQuery(sql);
-    if(result_set && result_set->next())
+    result_set = ((odbc::Statement*) statement)->executeQuery(sql);
+    if (result_set && result_set->next())
     {
       m_type = result_set->getString("runtype");
     }
   }
-  catch (odbc::SQLException &e)
+  catch (odbc::SQLException& e)
   {
     std::cerr << PHWHERE << "\n"
               << "\tSQL Exception:\n"
@@ -113,7 +113,7 @@ int InttOdbcQuery::QueryType(void* statement, int runnumber)
   }
   delete result_set;
 
-  if(m_verbosity)
+  if (m_verbosity)
   {
     std::cout << "\trun type: " << m_type << std::endl;
   }
