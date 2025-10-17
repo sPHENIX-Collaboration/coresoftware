@@ -145,19 +145,13 @@ int CaloTemp::InitRun(PHCompositeNode* topNode)
 
 int CaloTemp::getRunTime()
 {
-  odbc::Connection* m_OdbcConnection = DBInterface::getDBConnection("daq");
-  if (!m_OdbcConnection)
-  {
-    return 1;
-  }
-
   std::string sql = "SELECT brtimestamp FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
 
   if (Verbosity() > 1)
   {
     std::cout << sql << std::endl;
   }
-  odbc::Statement* stmt = m_OdbcConnection->createStatement();
+  odbc::Statement* stmt = DBInterface::instance()->getStatement("daq");
   odbc::ResultSet* resultSet = stmt->executeQuery(sql);
 
   if (resultSet && resultSet->next())
@@ -169,26 +163,18 @@ int CaloTemp::getRunTime()
   std::cout << "Runtime for Run " << runnumber << ": " << runtime << std::endl;
 
   delete resultSet;
-  delete stmt;
-  delete m_OdbcConnection;
   return 0;
 }
 
 int CaloTemp::getTempHist()
 {
-  odbc::Connection* m_OdbcConnection = DBInterface::getDBConnection("daq");
-  if (!m_OdbcConnection)
-  {
-    return 1;
-  }
-
   std::string sql = "SELECT brtimestamp FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
 
   if (Verbosity() > 1)
   {
     std::cout << sql << std::endl;
   }
-  odbc::Statement* stmt = m_OdbcConnection->createStatement();
+  odbc::Statement* stmt  = DBInterface::instance()->getStatement("daq");
   odbc::ResultSet* resultSet = stmt->executeQuery(sql);
 
   if (resultSet && resultSet->next())
@@ -203,7 +189,6 @@ int CaloTemp::getTempHist()
   }
 
   delete resultSet;
-  delete stmt;
 
   int det = 0;
   std::string tablename;
@@ -236,7 +221,7 @@ int CaloTemp::getTempHist()
     std::cout << sql << std::endl;
   }
 
-  odbc::Statement* timeStmt = m_OdbcConnection->createStatement();
+  odbc::Statement* timeStmt = DBInterface::instance()->getStatement("daq");
   odbc::ResultSet* timeResultSet = timeStmt->executeQuery(sql);
 
   std::string closest_time;
@@ -252,9 +237,8 @@ int CaloTemp::getTempHist()
   }
 
   delete timeResultSet;
-  delete timeStmt;
 
-  odbc::Statement* tempStmt = m_OdbcConnection->createStatement();
+  odbc::Statement* tempStmt = DBInterface::instance()->getStatement("daq");
   sql = "SELECT towerid, " + tempstring + " FROM " + tablename + " WHERE time = '" + closest_time + "'";
   if (detector == "HCALIN" || detector == "HCALOUT")
   {
@@ -308,8 +292,6 @@ int CaloTemp::getTempHist()
   }
 
   delete tempResultSet;
-  delete tempStmt;
-  delete m_OdbcConnection;
   return 0;
 }
 

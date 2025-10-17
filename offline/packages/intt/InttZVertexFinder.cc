@@ -209,7 +209,7 @@ int InttZVertexFinder::process_event(PHCompositeNode* topNode)
       for (auto clusIter = range.first; clusIter != range.second; ++clusIter)
       {
         const auto cluskey = clusIter->first;
-        const auto cluster = clusIter->second;
+        auto* const cluster = clusIter->second;
 
         const auto globalPos = tGeometry->getGlobalPosition(cluskey, cluster);
         double clu_x = globalPos.x() * 10.;  // convert from "cm" to "mm" unit
