@@ -19,7 +19,7 @@ PHTimeServer::timer PHTimeServer::insert_new(const std::string& key)
   std::string tmp_key(key);
 
   int version = 0;
-  while ((_timers.find(tmp_key)) != _timers.end())
+  while (_timers.contains(tmp_key))
   {
     version++;
     std::ostringstream o;
@@ -40,7 +40,7 @@ PHTimeServer::timer PHTimeServer::insert_new_single_shot(const std::string& key)
   std::string tmp_key(key);
 
   int version = 0;
-  while ((_single_shot_timers.find(tmp_key)) != _single_shot_timers.end())
+  while (_single_shot_timers.contains(tmp_key))
   {
     version++;
     std::ostringstream o;

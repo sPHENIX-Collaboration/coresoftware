@@ -43,7 +43,10 @@ int main(int argc, char* argv[])
       for (size_t j = 0; j < input_dims.size(); j++)
       {
         std::cout << input_dims[j];
-        if (j + 1 < input_dims.size()) std::cout << ", ";
+        if (j + 1 < input_dims.size())
+        {
+          std::cout << ", ";
+        }
       }
       std::cout << "])\n";
     }
@@ -64,7 +67,10 @@ int main(int argc, char* argv[])
       for (size_t j = 0; j < output_dims.size(); j++)
       {
         std::cout << output_dims[j];
-        if (j + 1 < output_dims.size()) std::cout << ", ";
+        if (j + 1 < output_dims.size())
+        {
+          std::cout << ", ";
+        }
       }
       std::cout << "])\n";
     }
