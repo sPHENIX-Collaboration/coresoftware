@@ -2,7 +2,8 @@
 #include "InttFelixMap.h"
 
 #include <ffarawobjects/InttRawHit.h>
-#include <boost/format.hpp>
+
+#include <format>
 
 /// Struct methods
 InttNameSpace::RawData_s& InttNameSpace::RawData_s::operator++()
@@ -31,9 +32,9 @@ bool InttNameSpace::operator<(RawData_s const& lhs, RawData_s const& rhs)
 
 std::ostream& InttNameSpace::operator<<(std::ostream& out, RawData_s const& rawdata)
 {
-  return out << (boost::format (
-    "RawData_s { .felix_server = %1d, .felix_channel = %2d, .chip = %2d, .channel = %3d }")
-     % rawdata.felix_server % rawdata.felix_channel % rawdata.chip % rawdata.channel).str();
+  return out << std::format (
+		   "RawData_s {{ .felix_server = {}, .felix_channel = {:2}, .chip = {:2}, .channel = {:3} }}",
+		   rawdata.felix_server, rawdata.felix_channel, rawdata.chip, rawdata.channel);
 }
 
 InttNameSpace::Online_s& InttNameSpace::Online_s::operator++()
@@ -66,9 +67,9 @@ bool InttNameSpace::operator<(Online_s const& lhs, Online_s const& rhs)
 
 std::ostream& InttNameSpace::operator<<(std::ostream& out, Online_s const& online)
 {
-  return out << (boost::format (
-    "Online_s { .lyr = %1d, .ldr = %2d, .arm = %2d, .chp = %2d, .chn = %3d }")
-     % online.lyr % online.ldr % online.arm % online.chp % online.chn).str();
+  return out << std::format (
+    "Online_s {{ .lyr = {}, .ldr = {:2}, .arm = {:2}, .chp = {:2}, .chn = {:3} }}",
+    online.lyr, online.ldr, online.arm, online.chp, online.chn);
 }
 
 InttNameSpace::Offline_s& InttNameSpace::Offline_s::operator++()
@@ -101,9 +102,9 @@ bool InttNameSpace::operator<(Offline_s const& lhs, Offline_s const& rhs)
 
 std::ostream& InttNameSpace::operator<<(std::ostream& out, Offline_s const& offline)
 {
-  return out << (boost::format (
-    "Offline_s { .layer = %1d, .ladder_phi = %2d, .ladder_z = %2d, .strip_x = %2d, .strip_y = %3d }")
-    % offline.layer % offline.ladder_phi % offline.ladder_z % offline.strip_x % offline.strip_y).str();
+  return out << std::format (
+		   "Offline_s {{ .layer = {}, .ladder_phi = {:2}, .ladder_z = {:2}, .strip_x = {:2}, .strip_y = {:3} }}",
+		   offline.layer, offline.ladder_phi, offline.ladder_z, offline.strip_x, offline.strip_y);
 }
 
 /// Namespace-scope methods
