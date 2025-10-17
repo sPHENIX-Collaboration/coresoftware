@@ -44,10 +44,6 @@ DBInterface::~DBInterface()
   }
   if (!m_OdbcStatementMap.empty())
   {
-    for (auto iter : m_OdbcStatementMap)
-    {
-      delete iter.second;
-    }
     m_OdbcStatementMap.clear();
   }
   return;
@@ -90,10 +86,6 @@ int DBInterface::process_event(PHCompositeNode * /*topNode*/)
   }
   if (!m_OdbcStatementMap.empty())
   {
-    // for (auto iter : m_OdbcStatementMap)
-    // {
-    //   delete iter.second;
-    // }
     m_OdbcStatementMap.clear();
   }
 
