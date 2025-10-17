@@ -19,7 +19,6 @@ libeventplaneinfo_io_la_LIBADD = \
 
 libeventplaneinfo_la_LIBADD = \
   libeventplaneinfo_io.la \
-  -lepd_io \
   -lmbd_io \
   -lfun4all \
   -lffamodules \

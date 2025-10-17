@@ -46,7 +46,8 @@ namespace RawTowerDefs
     BWD_1 = 16,
     BWD_2 = 17,
     BWD_3 = 18,
-    BWD_4 = 19
+    BWD_4 = 19,
+    SEPD = 20
   };
 
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
@@ -278,6 +279,10 @@ namespace RawTowerDefs
       return "BWD_4";
       break;
 
+    case SEPD:
+      return "SEPD";
+      break;
+
     default:
       std::cout
           << "Invalid calorimeter ID passed to RawTowerDefs::convert_caloid_to_name"
@@ -350,6 +355,9 @@ namespace RawTowerDefs
 
     else if (caloname == "BWD_4")
       return BWD_4;
+
+    else if (caloname == "SEPD")
+      return SEPD;
 
     else
     {
