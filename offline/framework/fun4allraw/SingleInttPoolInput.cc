@@ -567,5 +567,6 @@ bool SingleInttPoolInput::IsStreaming(int runnumber)
     gSystem->Exit(1);
     exit(1);
   }
+  delete result_set;
   return m_is_streaming;
 }
