@@ -548,6 +548,7 @@ int XingShiftCal::CommitToSpinDB()
       zdcns[bunch] = rsGL1P->getInt("scaled");
     }
   }
+  delete rsGL1P;
   // =======================================================
 
   // if (verbosity) {
@@ -663,7 +664,7 @@ int XingShiftCal::CommitToSpinDB()
                 << ", ready to INSERT" << std::endl;
     }
   }
-
+  delete rsSpin;
   if (runExists && !overwriteSpinEntry)
   {
     std::cout << "BUT overwriteSpinEntry = " << overwriteSpinEntry << std::endl;
@@ -897,7 +898,7 @@ int XingShiftCal::SpinDBQA()
                 << ", no QA" << std::endl;
     }
   }
-
+  delete rsSpin;
   int badrunQA = 0;
 
   if (prevbadrunval > 0)
