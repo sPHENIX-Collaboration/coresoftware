@@ -36,7 +36,7 @@ DBInterface::~DBInterface()
 {
   if (!m_OdbcConnectionMap.empty())
   {
-    for (auto iter : m_OdbcConnectionMap)
+    for (const auto& iter : m_OdbcConnectionMap)
     {
       delete iter.second;
     }
@@ -78,7 +78,7 @@ int DBInterface::process_event(PHCompositeNode * /*topNode*/)
 {
   if (!m_OdbcConnectionMap.empty())
   {
-    for (auto iter : m_OdbcConnectionMap)
+    for (const auto& iter : m_OdbcConnectionMap)
     {
       delete iter.second;
     }
