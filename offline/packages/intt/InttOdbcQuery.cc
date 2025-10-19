@@ -30,7 +30,7 @@ int InttOdbcQuery::Query(int runnumber)
   return iret;
 }
 
-int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
+int InttOdbcQuery::QueryStreaming(odbc::Statement *statement, int runnumber)
 {
   odbc::ResultSet* result_set = nullptr;
 
@@ -38,7 +38,7 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
   try
   {
     std::string sql = "SELECT sched_data FROM gtm_scheduler WHERE vgtm=1 AND sched_entry = 1 AND runnumber = " + std::to_string(runnumber) + ";";
-    result_set = ((odbc::Statement*) statement)->executeQuery(sql);
+    result_set = statement->executeQuery(sql);
     if (result_set && result_set->next())
     {
       sched_data = result_set->getString("sched_data");
@@ -79,7 +79,7 @@ int InttOdbcQuery::QueryStreaming(void* statement, int runnumber)
   return 0;
 }
 
-int InttOdbcQuery::QueryType(void* statement, int runnumber)
+int InttOdbcQuery::QueryType(odbc::Statement *statement, int runnumber)
 {
   odbc::ResultSet* result_set = nullptr;
   m_type = "";
@@ -87,7 +87,7 @@ int InttOdbcQuery::QueryType(void* statement, int runnumber)
   try
   {
     std::string sql = "SELECT runtype FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
-    result_set = ((odbc::Statement*) statement)->executeQuery(sql);
+    result_set = statement->executeQuery(sql);
     if (result_set && result_set->next())
     {
       m_type = result_set->getString("runtype");
