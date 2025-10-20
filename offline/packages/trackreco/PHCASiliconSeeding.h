@@ -73,7 +73,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
     _lowest_allowed_strobeid = low_strobe;
     _highest_allowed_strobeid = high_strobe;
   }
-  void SetSearchWindow(float z_width, float phi_width)
+  void SetSearchWindow(float z_width, float phi_width) //* change parameter for z_width to dr/dz *//
   {
     _neighbor_z_width = z_width;
     _neighbor_phi_width = phi_width;
