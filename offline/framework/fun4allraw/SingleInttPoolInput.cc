@@ -147,7 +147,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
         pkt->identify();
       }
 
-      if (poolmap.find(pkt->getIdentifier()) == poolmap.end())  // we haven't seen this one yet
+      if (!poolmap.contains(pkt->getIdentifier()))  // we haven't seen this one yet
       {
         if (Verbosity() > 1)
         {
@@ -183,7 +183,9 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
             std::cout << "INTT Pool in Standalone mode " << std::endl;
           }
           else
+          {
             std::cout << "INTT Pool with GL1 BCO " << std::endl;
+          }
         }
         int numBCOs = pool->iValue(0, "NR_BCOS");
         uint64_t largest_bco = 0;
@@ -192,10 +194,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
         for (int j = 0; j < numBCOs; j++)
         {
           uint64_t bco = pool->lValue(j, "BCOLIST");
-          if (largest_bco < bco)
-          {
-            largest_bco = bco;
-          }
+          largest_bco = std::max(largest_bco, bco);
           if (bco < minBCO)
           {
             continue;
@@ -328,7 +327,7 @@ void SingleInttPoolInput::Print(const std::string &what) const
     for (const auto &bcliter : m_InttRawHitMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter : bcliter.second)
+      for (auto *feeiter : bcliter.second)
       {
         std::cout << "fee: " << feeiter->get_fee()
                   << " at " << std::hex << feeiter << std::dec << std::endl;
@@ -337,9 +336,9 @@ void SingleInttPoolInput::Print(const std::string &what) const
   }
   if (what == "ALL" || what == "STACK")
   {
-    for (auto &[packetid, bclkstack] : m_BclkStackPacketMap)
+    for (const auto &[packetid, bclkstack] : m_BclkStackPacketMap)
     {
-      for (auto &bclk : bclkstack)
+      for (const auto &bclk : bclkstack)
       {
         std::cout << "stacked bclk: 0x" << std::hex << bclk << std::dec << std::endl;
       }
@@ -441,16 +440,14 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
         // 		<< std::dec << std::endl;
         return true;
       }
-      else
-      {
-        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
-                  << " with stuck bclk: 0x" << std::hex << bcliter.second
-                  << " current bco range: 0x" << m_InttRawHitMap.begin()->first
-                  << ", to: 0x" << highest_bclk << ", delta: " << std::dec
-                  << (highest_bclk - m_InttRawHitMap.begin()->first)
-                  << std::dec << std::endl;
-        toerase.insert(bcliter.first);
-      }
+
+      std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+                << " with stuck bclk: 0x" << std::hex << bcliter.second
+                << " current bco range: 0x" << m_InttRawHitMap.begin()->first
+                << ", to: 0x" << highest_bclk << ", delta: " << std::dec
+                << (highest_bclk - m_InttRawHitMap.begin()->first)
+                << std::dec << std::endl;
+      toerase.insert(bcliter.first);
     }
   }
   for (auto iter : toerase)
@@ -491,7 +488,7 @@ void SingleInttPoolInput::ConfigureStreamingInputManager()
 {
   if (StreamingInputManager())
   {
-    auto rc = recoConsts::instance();
+    auto *rc = recoConsts::instance();
     // if it is triggered after the gtm firmware change
     if (rc->get_IntFlag("RUNNUMBER") > 58677 && m_BcoRange < 5)
     {
