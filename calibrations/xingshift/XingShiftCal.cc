@@ -511,17 +511,11 @@ int XingShiftCal::CommitToSpinDB()
   //=============== connect to daq db to get gl1p scalers ===============
   std::string daqdbname = "daq";
 
-  odbc::Connection *conDAQ = DBInterface::getDBConnection(daqdbname);
-  if (!conDAQ)
-  {
-    return 0;
-  }
-
   std::ostringstream sqlGL1PSelect;
   sqlGL1PSelect << "SELECT index, bunch, scaled FROM gl1_pscalers"
                 << " WHERE runnumber = " << runnumber
                 << ";";
-  odbc::Statement *stmtGL1PSelect = conDAQ->createStatement();
+  odbc::Statement *stmtGL1PSelect = DBInterface::instance()->getStatement(daqdbname);
   odbc::ResultSet *rsGL1P = nullptr;
   try
   {
@@ -533,11 +527,6 @@ int XingShiftCal::CommitToSpinDB()
               << " Exception caught at XingShiftCal::CommitPatternToSpinDB when querying DAQ DB" << std::endl;
     std::cout << "Message: " << eGL1P.getMessage() << std::endl;
     // commitSuccessSpinDB = 0;
-    if (conDAQ)
-    {
-      delete conDAQ;
-      conDAQ = nullptr;
-    }
     return 0;
   }
 
@@ -559,6 +548,7 @@ int XingShiftCal::CommitToSpinDB()
       zdcns[bunch] = rsGL1P->getInt("scaled");
     }
   }
+  delete rsGL1P;
   // =======================================================
 
   // if (verbosity) {
@@ -633,11 +623,6 @@ int XingShiftCal::CommitToSpinDB()
   //================ connect to spin db ====================
   std::string dbname = "spinDB_write";
   std::string dbtable = "spin";
-  odbc::Connection *conSpin = DBInterface::getDBConnection(dbname);
-  if (!conSpin)
-  {
-    return 0;
-  }
   // if (verbosity) cout << "opened spin DB connection" << endl;
 
   // check if this run already exists in spin_oncal
@@ -648,7 +633,7 @@ int XingShiftCal::CommitToSpinDB()
                 << " AND qa_level = " << qa_level
                 << ";";
   // if (verbosity) cout<<sqlSpinSelect.str()<<endl;
-  odbc::Statement *stmtSpinSelect = conSpin->createStatement();
+  odbc::Statement *stmtSpinSelect = DBInterface::instance()->getStatement(dbname);
   odbc::ResultSet *rsSpin = nullptr;
   try
   {
@@ -660,11 +645,6 @@ int XingShiftCal::CommitToSpinDB()
               << " Exception caught at XingShiftCal::CommitPatternToSpinDB when querying spin DB" << std::endl;
     std::cout << "Message: " << e.getMessage() << std::endl;
     commitSuccessSpinDB = 0;
-    if (conSpin)
-    {
-      delete conSpin;
-      conSpin = nullptr;
-    }
     return 0;
   }
   if (rsSpin->next())
@@ -684,17 +664,12 @@ int XingShiftCal::CommitToSpinDB()
                 << ", ready to INSERT" << std::endl;
     }
   }
-
+  delete rsSpin;
   if (runExists && !overwriteSpinEntry)
   {
     std::cout << "BUT overwriteSpinEntry = " << overwriteSpinEntry << std::endl;
     std::cout << "XingShiftCal is NOT going to UPDATE the entry" << std::endl;
     commitSuccessSpinDB = 0;
-    if (conSpin)
-    {
-      delete conSpin;
-      conSpin = nullptr;
-    }
     return 0;
   }
 
@@ -839,7 +814,7 @@ int XingShiftCal::CommitToSpinDB()
 
   // exec sql
 
-  odbc::Statement *stmtSpin = conSpin->createStatement();
+  odbc::Statement *stmtSpin = DBInterface::instance()->getStatement(dbname);
   try
   {
     stmtSpin->executeUpdate(sql.str());
@@ -850,28 +825,12 @@ int XingShiftCal::CommitToSpinDB()
               << " Exception caught at XingShiftCal::CommitPatternToSpinDB when insert into spin DB" << std::endl;
     std::cout << "Message: " << e.getMessage() << std::endl;
     commitSuccessSpinDB = 0;
-    if (conSpin)
-    {
-      delete conSpin;
-      conSpin = nullptr;
-    }
     return 0;
   }
 
   // if (verbosity) cout<<"spin db done"<<endl;
   commitSuccessSpinDB = 1;
 
-  if (conDAQ)
-  {
-    delete conDAQ;
-    conDAQ = nullptr;
-  }
-
-  if (conSpin)
-  {
-    delete conSpin;
-    conSpin = nullptr;
-  }
 
   // ========== Do spin db qa here =========== //
   SpinDBQA();
@@ -888,11 +847,6 @@ int XingShiftCal::SpinDBQA()
   //================ connect to spin db ====================
   std::string dbname = "spinDB";
   std::string dbtable = "spin";
-  odbc::Connection *conSpin = DBInterface::getDBConnection(dbname);
-  if (!conSpin)
-  {
-    return 0;
-  }
 
   // check if this run already exists in spin_oncal and get badrun value if it exists
   bool runExists = false;
@@ -908,7 +862,7 @@ int XingShiftCal::SpinDBQA()
             << " AND qa_level = " << qa_level
             << ";" << std::endl;
 
-  odbc::Statement *stmtSpinSelect = conSpin->createStatement();
+  odbc::Statement *stmtSpinSelect = DBInterface::instance()->getStatement(dbname);
   odbc::ResultSet *rsSpin = nullptr;
   try
   {
@@ -919,11 +873,6 @@ int XingShiftCal::SpinDBQA()
     std::cout << PHWHERE
               << " Exception caught at XingShiftCal::SpinDBQA when querying spin DB" << std::endl;
     std::cout << "Message: " << e.getMessage() << std::endl;
-    if (conSpin)
-    {
-      delete conSpin;
-      conSpin = nullptr;
-    }
     return 0;
   }
   if (rsSpin->next())
@@ -949,17 +898,12 @@ int XingShiftCal::SpinDBQA()
                 << ", no QA" << std::endl;
     }
   }
-
+  delete rsSpin;
   int badrunQA = 0;
 
   if (prevbadrunval > 0)
   {
     std::cout << "SPINDBQA: badrunqa is already > 0. No additional qa is performed." << std::endl;
-    if (conSpin)
-    {
-      delete conSpin;
-      conSpin = nullptr;
-    }
     return 0;
   }
   //  else
@@ -1084,17 +1028,8 @@ int XingShiftCal::SpinDBQA()
   //================ connect to spin db write ====================
   dbname = "spinDB_write";
   dbtable = "spin";
-  conSpin = nullptr;
   if (runExists)
   {
-    conSpin = DBInterface::getDBConnection(dbname);
-    if (!conSpin)
-    {
-      commitSuccessSpinDB = 0;
-      conSpin = nullptr;
-      return 0;
-    }
-
     std::cout << "UPDATE " << dbtable
               << " SET badrunqa = " << badrunQA
               << " WHERE runnumber = " << runnumber
@@ -1110,7 +1045,7 @@ int XingShiftCal::SpinDBQA()
         << ";";
 
     // exec sql
-    odbc::Statement *stmtSpin = conSpin->createStatement();
+    odbc::Statement *stmtSpin = DBInterface::instance()->getStatement(dbname);
     try
     {
       stmtSpin->executeUpdate(sql.str());
@@ -1121,19 +1056,8 @@ int XingShiftCal::SpinDBQA()
                 << " Exception caught at XingShiftCal::SpinDBQA when insert badrunqa into spin DB" << std::endl;
       std::cout << "Message: " << e.getMessage() << std::endl;
       commitSuccessSpinDB = 0;
-      if (conSpin)
-      {
-        delete conSpin;
-        conSpin = nullptr;
-      }
       return 0;
     }
-  }
-
-  if (conSpin)
-  {
-    delete conSpin;
-    conSpin = nullptr;
   }
 
   return 0;
