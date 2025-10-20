@@ -25,6 +25,16 @@
 #include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedHelper.h>
 
+// cylinder geometry for mvtx and intt
+#include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
+#include <intt/CylinderGeomIntt.h>
+
+#include <g4mvtx/PHG4MvtxMisalignment.h>
+
+#include <ffamodules/CDBInterface.h>
+
 // BOOST for combi seeding
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
@@ -89,13 +99,13 @@ PHCASiliconSeeding::PHCASiliconSeeding(
     unsigned int end_layer,
     unsigned int min_clusters_per_track,
     float neighbor_phi_width,
-    float neighbor_z_width)
+    float drdz_allowance)
   : PHTrackSeeding(name)
   , _start_layer(start_layer)
   , _end_layer(end_layer)
   , _min_clusters_per_track(min_clusters_per_track)
+  , _drdz_allowance(drdz_allowance)
   , _neighbor_phi_width(neighbor_phi_width)
-  , _neighbor_z_width(neighbor_z_width)
 {
 }
 
@@ -120,6 +130,27 @@ int PHCASiliconSeeding::InitializeGeometry(PHCompositeNode* topNode)
   if (!m_clusterCrossingMap)
   {
     std::cout << PHWHERE << "No cluster crossing association map, can't proceed" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  // cylinder geometry for mvtx and intt
+  geom_container_mvtx = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  if (!geom_container_mvtx)
+  {
+    std::cout << PHWHERE << "No MVTX cylinder geom container CYLINDERGEOM_MVTX, can't proceed" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+  // for mvtx, also get the displacement
+  mvtxmisalignment = new PHG4MvtxMisalignment();
+  mvtxmisalignment->setAlignmentFile(CDBInterface::instance()->getUrl("MVTX_ALIGNMENT"));
+  mvtxmisalignment->LoadMvtxStaveAlignmentParameters();
+  v_globaldisplacement = mvtxmisalignment->get_GlobalDisplacement();
+  radius_displacement = sqrt(v_globaldisplacement[0]*v_globaldisplacement[0] + v_globaldisplacement[1]*v_globaldisplacement[1]) * 0.1; // in cm
+
+  geom_container_intt = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  if (!geom_container_intt)
+  {
+    std::cout << PHWHERE << "No INTT cylinder geom container CYLINDERGEOM_INTT, can't proceed" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -223,10 +254,7 @@ std::vector<PHCASiliconSeeding::coordKey> PHCASiliconSeeding::FillTree(bgi::rtre
     const double clus_z = globalpos_d.z();
     if (Verbosity() > 5)
     {
-      /* int layer = TrkrDefs::getLayer(ckey); */
-      // std::cout << "Found cluster " << ckey << " in layer " << layer << std::endl;
-      // more detailed printout for debug. Delete afterwards
-      std::cout << __FILE__ << ":" << __LINE__ << " Found cluster, with ckey " << ckey << " in layer " << layer << " at global position (x,y,z) = (" << globalpos_d.x() << "," << globalpos_d.y() << "," << globalpos_d.z() << ") and (phi,z) = (" << clus_phi << "," << clus_z << ")" << std::endl;
+      std::cout << "Found cluster " << ckey << " in layer " << layer << " at global position (x,y,z) = (" << globalpos_d.x() << "," << globalpos_d.y() << "," << globalpos_d.z() << ") and (phi,z) = (" << clus_phi << "," << clus_z << ")" << std::endl;
     }
     //std::vector<pointKey> testduplicate;
     //QueryTree(_rtree, clus_phi - 0.00001, clus_z - 0.00001, clus_phi + 0.00001, clus_z + 0.00001, testduplicate);
@@ -240,13 +268,11 @@ std::vector<PHCASiliconSeeding::coordKey> PHCASiliconSeeding::FillTree(bgi::rtre
   }
   if (Verbosity() > 5)
   {
-    // std::cout << "nhits in layer(" << layer << "): " << coords.size() << std::endl;
-    std::cout << __FILE__ << ":" << __LINE__  << " nhits in layer(" << layer << "): " << coords.size() << std::endl;
+    std::cout << "nhits in layer(" << layer << "): " << coords.size() << std::endl;
   }
   if (Verbosity() > 3)
   {
-    // std::cout << "number of duplicates : " << n_dupli << std::endl;
-    std::cout << __FILE__ << ":" << __LINE__ << " number of duplicates : " << n_dupli << std::endl;
+    std::cout << "number of duplicates : " << n_dupli << std::endl;
   }
   return coords;
 }
@@ -266,6 +292,9 @@ int PHCASiliconSeeding::Process(PHCompositeNode* /*topNode*/)
     }
   }
 
+  // set up layer radius
+  SetupDefaultLayerRadius();
+
   PositionMap globalPositions;
   keyListPerLayer ckeys;
   std::tie(globalPositions, ckeys) = FillGlobalPositions();
@@ -274,8 +303,7 @@ int PHCASiliconSeeding::Process(PHCompositeNode* /*topNode*/)
   numberofseeds += FindSeeds(globalPositions, ckeys);
   if (Verbosity() > 0)
   {
-    // std::cout << " found " << numberofseeds << " track seeds" << std::endl;
-    std::cout << __FILE__ << ":" << __LINE__  << " found " << numberofseeds << " track seeds" << std::endl;
+    std::cout << " found " << numberofseeds << " track seeds" << std::endl;
   }
 
   for(auto& rtree : _rtrees)
@@ -315,8 +343,7 @@ bool PHCASiliconSeeding::ClusterTimesAreCompatible(const uint8_t trkr_id, const 
   {
     if(Verbosity()>3)
     {
-      // std::cout << "strobe a " << time_index << " strobe b " << MvtxDefs::getStrobeId(ckey) << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " strobe a " << time_index << " strobe b " << MvtxDefs::getStrobeId(ckey) << std::endl;
+      std::cout << "strobe a " << time_index << " strobe b " << MvtxDefs::getStrobeId(ckey) << std::endl;
     }
     return (time_index == MvtxDefs::getStrobeId(ckey)); // cut on same MVTX strobe
   }
@@ -325,8 +352,7 @@ bool PHCASiliconSeeding::ClusterTimesAreCompatible(const uint8_t trkr_id, const 
     short crossing = GetCleanINTTClusterCrossing(ckey);
     if(Verbosity()>3)
     {
-      // std::cout << "crossing a " << time_index << " crossing b " << crossing << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " crossing a " << time_index << " crossing b " << crossing << std::endl;
+      std::cout << "crossing a " << time_index << " crossing b " << crossing << std::endl;
     }
     return (crossing != SHRT_MAX && time_index != SHRT_MAX) && (abs(crossing - time_index) <= 1);
   }
@@ -359,8 +385,7 @@ short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ck
   {
     if(Verbosity()>3 && crossings.size()>2)
     {
-      // std::cout << "more than two INTT crossings within cluster: ";
-      std::cout << __FILE__ << ":" << __LINE__ << " more than two INTT crossings within cluster: ";
+      std::cout << "more than two INTT crossings within cluster: ";
       for(short cross : crossings) std::cout << cross << " ";
       std::cout << std::endl;
     }
@@ -379,8 +404,7 @@ short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ck
 
     if(abs(crossings_vec[1] - crossings_vec[0]) == 1)
     {
-      // std::cout << "INTT: resolving off-by-one between " << crossings_vec[0] << " and " << crossings_vec[1] << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " INTT: resolving off-by-one between " << crossings_vec[0] << " and " << crossings_vec[1] << std::endl;
+      std::cout << "INTT: resolving off-by-one between " << crossings_vec[0] << " and " << crossings_vec[1] << std::endl;
       return std::min(crossings_vec[0],crossings_vec[1]);
     }
     else
@@ -450,12 +474,10 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
   {
     if(Verbosity()>2)
     {
-      // std::cout << "layer " << l << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__  << " layer " << l << " _start_layer " << _start_layer << " _end_layer " << _end_layer << std::endl;
+      std::cout << "layer " << l << " _start_layer " << _start_layer << " _end_layer " << _end_layer << std::endl;
     }
     if(l>=4 && l<=6)
     {
-      std::cout << __FILE__ << ":" << __LINE__ << " skipping INTT double layers that have been combined into layers 3 and 4" << std::endl;
       continue; // skip INTT double layers that have been combined into layers 3 and 4
     }
     const size_t l_index = l - _start_layer;
@@ -470,11 +492,13 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
 
       const float dphiwindow_below = std::max(dphi_per_layer[l],dphi_per_layer[l-1]);
       const float dphiwindow_above = std::max(dphi_per_layer[l],dphi_per_layer[l+1]);
-      // need to take into account the fact that the Z window between the outer MVTX and the inner INTT layers needs to be blown up 
-      // const float dZwindow_below = std::max(dZ_per_layer[l],dZ_per_layer[l-1]);
-      // const float dZwindow_above = std::max(dZ_per_layer[l],dZ_per_layer[l+1]);
-      const float dZwindow_below = (l == 3) ? 5. : std::max(dZ_per_layer[l],dZ_per_layer[l-1]); // [5 cm] window between MVTX and INTT 
-      const float dZwindow_above = (l == 2) ? 5. : std::max(dZ_per_layer[l],dZ_per_layer[l+1]); // [5 cm] window between MVTX and INTT
+      
+      // use dr/dz windows to get the z windows 
+      float center_radius = (l < 3) ? GetMvtxRadiusByPhi(centerPhi, l) : radius_per_layer.at(l);
+      float center_radius_below = (l-1 < 3) ? GetMvtxRadiusByPhi(centerPhi, l-1) : radius_per_layer.at(l-1);
+      const float dZwindow_below = (center_radius - center_radius_below) * (1./_drdz_allowance);
+
+      std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_below " << dphiwindow_below << " dZwindow_below " << dZwindow_below << std::endl;
 
       QueryTree(_rtrees[l_index-1],
                 centerPhi - dphiwindow_below,
@@ -486,9 +510,10 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
       if(l_index>1)
       {
         const float dphiwindow_2below = std::max(dphi_per_layer[l],dphi_per_layer[l-2]);
-        // const float dZwindow_2below = std::max(dZ_per_layer[l],dZ_per_layer[l-2]);
-        const float dZwindow_2below = (l == 4) ? 5. : std::max(dZ_per_layer[l],dZ_per_layer[l-2]); // [5 cm] blown-up window between MVTX and INTT
+        const float center_radius_2below = (l-2 < 3) ? GetMvtxRadiusByPhi(centerPhi, l-2) : radius_per_layer.at(l-2);
+        const float dZwindow_2below = (center_radius - center_radius_2below) * (1./_drdz_allowance);
 
+        std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_2below " << dphiwindow_2below << " dZwindow_2below " << dZwindow_2below << std::endl;
         QueryTree(_rtrees[l_index-2],
                   centerPhi - dphiwindow_below - dphiwindow_2below,
                   centerZ - dZwindow_below - dZwindow_2below,
@@ -497,6 +522,8 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
                   clustersBelow);
       }
 
+      const float center_radius_above = (l+1 < 3) ? GetMvtxRadiusByPhi(centerPhi, l+1) : radius_per_layer.at(l+1);
+      const float dZwindow_above = (center_radius_above - center_radius) * (1./_drdz_allowance);
       std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_above " << dphiwindow_above << " dZwindow_above " << dZwindow_above << std::endl;
       QueryTree(_rtrees[l_index+1],
                 centerPhi - dphiwindow_above,
@@ -508,8 +535,8 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
       if(l_index<3)
       {
         const float dphiwindow_2above = std::max(dphi_per_layer[l],dphi_per_layer[l+2]);
-        // const float dZwindow_2above = std::max(dZ_per_layer[l],dZ_per_layer[l+2]);
-        const float dZwindow_2above = (l == 2) ? 5. : std::max(dZ_per_layer[l],dZ_per_layer[l+2]); // [5 cm] blown-up window between MVTX and INTT
+        const float center_radius_2above = (l+2 < 3) ? GetMvtxRadiusByPhi(centerPhi, l+2) : radius_per_layer.at(l+2);
+        const float dZwindow_2above = (center_radius_2above - center_radius) * (1./_drdz_allowance);
 
         std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_2above " << dphiwindow_2above << " dZwindow_2above " << dZwindow_2above << std::endl;
         QueryTree(_rtrees[l_index+2],
@@ -523,8 +550,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
       if(Verbosity()>3)
       {
         std::cout << std::endl;
-        // std::cout << "found " << clustersBelow.size() << " clusters below, " << clustersAbove.size() << " clusters above" << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__  << " center " << centerCluster.second << " found " << clustersBelow.size() << " clusters below, " << clustersAbove.size() << " clusters above" << std::endl;
+        std::cout << "center " << centerCluster.second << " found " << clustersBelow.size() << " clusters below, " << clustersAbove.size() << " clusters above" << std::endl;
       }
 
       float best_cos_angle = 1e9;
@@ -545,8 +571,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
         {
           if(Verbosity()>3)
           {
-            // std::cout << "below candidate has incompatible time" << std::endl;
-            std::cout << __FILE__ << ":" << __LINE__  << " below candidate has incompatible time" << std::endl;
+            std::cout << "below candidate has incompatible time" << std::endl;
           }
           continue;
         }
@@ -559,8 +584,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
           {
             if(Verbosity()>3)
             {
-              // std::cout << "above candidate has incompatible time" << std::endl;
-              std::cout << __FILE__ << ":" << __LINE__  << " above candidate has incompatible time" << std::endl;
+              std::cout << "above candidate has incompatible time" << std::endl;
             }
             continue;
           }
@@ -574,8 +598,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
 
           if(Verbosity()>3)
           {
-            // std::cout << "candidate triplet: " << std::endl;
-            std::cout << __FILE__ << ":" << __LINE__ << " candidate triplet: " << std::endl;
+            std::cout << "candidate triplet: " << std::endl;
             std::cout << "layer " << (int)TrkrDefs::getLayer(cbelow.second) << ": key " << cbelow.second << ": " << gpos_below.x() << ", " << gpos_below.y() << ", " << gpos_below.z() << std::endl;
             std::cout << "layer " << (int)TrkrDefs::getLayer(centerCluster.second) << ": key " << centerCluster.second << ": " << gpos_center.x() << ", " << gpos_center.y() << ", " << gpos_center.z() << std::endl;
             std::cout << "layer " << (int)TrkrDefs::getLayer(cabove.second) << ": key " << cabove.second << ": " << gpos_above.x() << ", " << gpos_above.y() << ", " << gpos_above.z() << std::endl;
@@ -598,7 +621,6 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
 
           if(Verbosity()>3)
           {
-            std::cout << __FILE__ << ":" << __LINE__  << std::endl;
             std::cout << "delta_below (in x, y, z): " << std::endl;
             std::cout << delta_below.x() << ", " << delta_below.y() << ", " << delta_below.z() << " (magnitude " << sqrt(mag2_below) << ")" << std::endl;
             std::cout << "delta_above (in x, y, z): " << std::endl;
@@ -616,8 +638,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
               {
                 if(Verbosity()>3)
                 {
-                  // std::cout << "beats best cos(angle) of " << best_cos_angle << std::endl;
-                  std::cout << __FILE__ << ":" << __LINE__  << " beats best cos(angle) of " << best_cos_angle << std::endl;
+                  std::cout << "beats best cos(angle) of " << best_cos_angle << std::endl;
                 }
                 best_cos_angle = cos_angle;
                 best_below_ckey = cbelow.second;
@@ -628,8 +649,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
 	    {
               if(Verbosity()>3)
               {
-                // std::cout << "passes straightness criterion" << std::endl;
-                std::cout << __FILE__ << ":" << __LINE__  << " passes straightness criterion" << std::endl;
+                std::cout << "passes straightness criterion" << std::endl;
               }
               passing_below_ckeys.push_back(cbelow.second);
 	            passing_above_ckeys.push_back(cabove.second);
@@ -638,17 +658,11 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
         }
       }
 
-      if (Verbosity() > 3)
-      {
-        std::cout << __FILE__ << ":" << __LINE__ << std::endl;
-      }
-
       if(_use_best && best_cos_angle < 1.)
       {
         if(Verbosity()>3)
         {
-          // std::cout << "adding triplet" << std::endl;
-          std::cout << __FILE__ << ":" << __LINE__ << " adding triplet (" << best_below_ckey << ", " << centerCluster.second << ", " << best_above_ckey << ")" << std::endl;
+          std::cout << "adding triplet(" << best_below_ckey << ", " << centerCluster.second << ", " << best_above_ckey << ")" << std::endl;
         }
         triplets[l_index].push_back({best_below_ckey,centerCluster.second,best_above_ckey});
       }
@@ -658,7 +672,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
         {
           if(Verbosity()>3)
           {
-            std::cout << __FILE__ << ":" << __LINE__ << " adding triplet (" << passing_below_ckeys[i] << ", " << centerCluster.second << ", " << passing_above_ckeys[i] << ")" << std::endl;
+            std::cout << "adding triplet(" << passing_below_ckeys[i] << ", " << centerCluster.second << ", " << passing_above_ckeys[i] << ")" << std::endl;
           }
           triplets[l_index].push_back({passing_below_ckeys[i],centerCluster.second,passing_above_ckeys[i]});
         }
@@ -666,9 +680,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
     }
     if(Verbosity() > 1)
     {
-      // std::cout << "layer: " << l << " formed " << triplets[l_index].size() << " triplets" << std::endl;
-      std::cout << "************************" << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " layer: " << l << " formed " << triplets[l_index].size() << " triplets" << std::endl;
+      std::cout << "layer: " << l << " formed " << triplets[l_index].size() << " triplets" << std::endl;
       // print out all triplets for debugging
       if(Verbosity() > 3)
       {
@@ -676,7 +688,6 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
         {
           std::cout << __LINE__ << " triplet (bottom, center, top): " << (uint64_t)triplet.bottom << ", " << (uint64_t)triplet.center << ", " << (uint64_t)triplet.top << std::endl;
         }
-        std::cout << "************************" << std::endl;
       }
     }
   }
@@ -694,15 +705,13 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
   }
   if(Verbosity() > 1)
   {
-    // std::cout << "Started with " << growingSeeds.size() << " stubs" << std::endl;
-    std::cout << __FILE__ << ":" << __LINE__ << " Started with " << growingSeeds.size() << " stubs" << std::endl;
+    std::cout << "Started with " << growingSeeds.size() << " stubs" << std::endl;
   }
   
   for(size_t l=_start_layer+1; l<=_end_layer-1; l++)
   {
     if(Verbosity() > 1)
     {
-      std::cout << __FILE__ << ":" << __LINE__ << std::endl;
       std::cout << "layer " << l << " _start_layer " << _start_layer << " _end_layer " << _end_layer << std::endl;
       std::cout << growingSeeds.size() << " still-growing seeds" << std::endl;
       std::cout << finishedSeeds.size() << " finished seeds" << std::endl;
@@ -712,15 +721,13 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
     // grow existing seeds
     if(Verbosity()>3)
     {
-      // std::cout << "growing current seeds" << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__  << " growing current seeds" << std::endl;
+      std::cout << "growing current seeds" << std::endl;
     }
     for(const keyList& seed : growingSeeds)
     {
       if(Verbosity()>3)
       {
-        // std::cout << "current keys: ";
-        std::cout << __FILE__ << ":" << __LINE__ << " current keys: ";
+        std::cout << "current keys: ";
         for(const TrkrDefs::cluskey& key : seed) std::cout << (uint64_t)key << ", ";
         std::cout << std::endl;
       }
@@ -730,23 +737,22 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
 
       if (Verbosity() > 3)
       {
-        std::cout << __FILE__ << ":" << __LINE__ << " searching for candidates to extend seed with top key: " << (uint64_t)currentTop << " and center key: " << (uint64_t)currentCenter << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__ << " number of candidate triplets " << ": " << triplets[l_index+1].size() << std::endl;
+        std::cout << " searching for candidates to extend seed with top key: " << (uint64_t)currentTop << " and center key: " << (uint64_t)currentCenter << std::endl;
+        std::cout << " number of candidate triplets " << ": " << triplets[l_index+1].size() << std::endl;
       }
 
       for(const Triplet& candidate_triplet : triplets[l_index+1])
       {
         if (Verbosity() > 3)
         {
-          std::cout << __FILE__ << ":" << __LINE__ << " candidate triplet: " << (uint64_t)candidate_triplet.bottom << ", " << (uint64_t)candidate_triplet.center << ", " << (uint64_t)candidate_triplet.top << std::endl;
+          std::cout << " candidate triplet: " << (uint64_t)candidate_triplet.bottom << ", " << (uint64_t)candidate_triplet.center << ", " << (uint64_t)candidate_triplet.top << std::endl;
         }
 
         if(candidate_triplet.center == currentTop && candidate_triplet.bottom == currentCenter)
         {
           if(Verbosity()>3)
           {
-            // std::cout << "found next candidate -- keys are " << (uint64_t)candidate_triplet.bottom << ", " << (uint64_t)candidate_triplet.center << ", " << (uint64_t)candidate_triplet.top << std::endl;
-            std::cout << __FILE__ << ":" << __LINE__ << " found next candidate -- keys are " << (uint64_t)candidate_triplet.bottom << ", " << (uint64_t)candidate_triplet.center << ", " << (uint64_t)candidate_triplet.top << std::endl;
+            std::cout << "found next candidate -- keys are " << (uint64_t)candidate_triplet.bottom << ", " << (uint64_t)candidate_triplet.center << ", " << (uint64_t)candidate_triplet.top << std::endl;
           }
           finished = false;
           keyList tempSeed = seed;
@@ -760,15 +766,13 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
     int new_seed_count = 0;
     if(Verbosity()>3)
     {
-      // std::cout << "starting new seeds" << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " starting new seeds" << std::endl;
+      std::cout << "starting new seeds" << std::endl;
     }
     for(const Triplet& triplet : triplets[l_index+1])
     {
       if(Verbosity()>3)
       {
-        // std::cout << "candidate triplet: " << (uint64_t)triplet.bottom << ", " << (uint64_t)triplet.center << ", " << (uint64_t)triplet.top << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__ << " candidate triplet: " << (uint64_t)triplet.bottom << ", " << (uint64_t)triplet.center << ", " << (uint64_t)triplet.top << std::endl;
+        std::cout << " candidate triplet: " << (uint64_t)triplet.bottom << ", " << (uint64_t)triplet.center << ", " << (uint64_t)triplet.top << std::endl;
       }
       bool has_existing_seed = false;
       for(const keyList& seed : tempSeeds)
@@ -777,8 +781,7 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
         {
           if(Verbosity()>3)
           {
-            // std::cout << "has existing seed with keys ";
-            std::cout << __FILE__ << ":" << __LINE__ << " has existing seed with keys ";
+            std::cout << "has existing seed with keys ";
             for(const TrkrDefs::cluskey& key : seed) std::cout << (uint64_t)key << ", ";
             std::cout << std::endl;
           }
@@ -789,8 +792,7 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
       {
         if(Verbosity()>3)
         {
-          // std::cout << "did not find existing seed" << std::endl;
-          std::cout << __FILE__ << ":" << __LINE__ << " did not find existing seed" << std::endl;
+          std::cout << "did not find existing seed" << std::endl;
         }
         new_seed_count++;
         tempSeeds.push_back({triplet.bottom, triplet.center, triplet.top});
@@ -798,8 +800,7 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
     }
     if(Verbosity() > 1)
     {
-      // std::cout << "started " << new_seed_count << " new seeds this layer" << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " started " << new_seed_count << " new seeds this layer" << std::endl;
+      std::cout << "started " << new_seed_count << " new seeds this layer" << std::endl;
     }
     growingSeeds = tempSeeds;
   }
@@ -891,19 +892,16 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
 
     if(Verbosity()>1 && seed_strobes.size()>1)
     {
-      // std::cout << "WARNING: seed MVTX strobes not all equal, something probably went wrong earlier! Strobe cut will be ignored when propagating this seed." << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " WARNING: seed MVTX strobes not all equal, something probably went wrong earlier! Strobe cut will be ignored when propagating this seed." << std::endl;
+      std::cout << "WARNING: seed MVTX strobes not all equal, something probably went wrong earlier! Strobe cut will be ignored when propagating this seed." << std::endl;
     }
 
     if(Verbosity()>3)
     {
-      // std::cout << "layers already covered: ";
-      std::cout << __FILE__ << ":" << __LINE__ << " layers already covered: ";
+      std::cout << "layers already covered: ";
       for(auto iter = seed.begin_cluster_keys(); iter != seed.end_cluster_keys(); ++iter) std::cout << (size_t)TrkrDefs::getLayer(*iter) << ", ";
       std::cout << std::endl;
 
-      // std::cout << "layers to propagate: ";
-      std::cout << __FILE__ << ":" << __LINE__ << " layers to propagate: ";
+      std::cout << "layers to propagate: ";
       for(const auto& layer : layers) std::cout << layer << ", ";
       std::cout << std::endl;
     }
@@ -930,8 +928,7 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
     {
       if(Verbosity()>3)
       {
-        // std::cout << "projection to outer radius failed, skipping layer" << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__ << " projection to outer radius failed, skipping layer" << std::endl;
+        std::cout << "projection to outer radius failed, skipping layer" << std::endl;
       }
       continue;
     }
@@ -940,7 +937,6 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
 
     if(Verbosity()>3)
     {
-      std::cout << __FILE__ << ":" << __LINE__ << std::endl;
       std::cout << "circle intersection solutions: (" << xplus << ", " << yplus << "), (" << xminus << ", " << yminus << ")" << std::endl;
       std::cout << "projected Z: " << z_outer << std::endl;
     }
@@ -972,7 +968,6 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
 
     if(Verbosity()>3)
     {
-      std::cout << __FILE__ << ":" << __LINE__ << std::endl;
       std::cout << "outer track position: (" << x_outer << ", " << y_outer << ", " << z_outer << ")" << std::endl;
       std::cout << "phi range: " << phi_min << " - " << phi_max << std::endl;
       std::cout << "z range: " << z_min << " - " << z_max << std::endl;
@@ -982,7 +977,6 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
     {
       if(Verbosity()>3)
       {
-        std::cout << __FILE__ << ":" << __LINE__;
         std::cout << "------------------------------------" << std::endl;
         std::cout << "layer " << layer << ": " << std::endl;
         std::cout << "current seed:" << std::endl;
@@ -990,17 +984,43 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
       }
       const size_t l_index = layer - _start_layer;
 
+      // use dr/dz too to set z search window based on radius
+      float z_window = 0.;
+      float avg_phi = (phi_min + phi_max) / 2.;
+      if(layer == _start_layer)
+      {
+        const float radius_layer_next = (layer+1 < 3) ? GetMvtxRadiusByPhi(avg_phi, layer+1) : radius_per_layer.at(layer+1);
+        z_window = (radius_layer_next - radius_per_layer.at(layer)) * (1./_drdz_allowance);
+      }
+      else if(layer == _end_layer)
+      {
+        const float radius_layer_prev = (layer-1 < 3) ? GetMvtxRadiusByPhi(avg_phi, layer-1) : radius_per_layer.at(layer-1);
+        z_window = (radius_per_layer.at(layer) - radius_layer_prev) * (1./_drdz_allowance);
+      }
+      else
+      {
+        const float radius_layer_prev = (layer-1 < 3) ? GetMvtxRadiusByPhi(avg_phi, layer-1) : radius_per_layer.at(layer-1);
+        float z_window_prev = (radius_per_layer.at(layer) - radius_layer_prev) * (1./_drdz_allowance);
+        const float radius_layer_next = (layer+1 < 3) ? GetMvtxRadiusByPhi(avg_phi, layer+1) : radius_per_layer.at(layer+1);
+        float z_window_next = (radius_layer_next - radius_per_layer.at(layer)) * (1./_drdz_allowance);
+        z_window = std::max(z_window_prev, z_window_next);
+      }
+
+      if (Verbosity()>3)
+      {
+        std::cout << "HelixPropagate to layer " << layer << " with z_window " << z_window << std::endl;
+      }
+      
       QueryTree(_rtrees[l_index],
                 phi_min-dphi_per_layer[layer],
-                z_min-dZ_per_layer[layer],
+                z_min-z_window,
                 phi_max+dphi_per_layer[layer],
-                z_max+dZ_per_layer[layer],
+                z_max+z_window,
                 closeClusters);
 
       if(Verbosity()>3)
       {
-        // std::cout << "found " << closeClusters.size() << " close clusters" << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__ << " found " << closeClusters.size() << " close clusters" << std::endl;
+        std::cout << "found " << closeClusters.size() << " close clusters" << std::endl;
       }
 
     }
@@ -1034,7 +1054,6 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
       
       if(Verbosity()>3)
       {
-        std::cout << __FILE__ << ":" << __LINE__ << std::endl;
         std::cout << "cluster key: " << (size_t)closeCluster.second << std::endl;
         std::cout << "close cluster position: (" << closeclusterpos.x() << ", " << closeclusterpos.y() << ", " << closeclusterpos.z() << ")" << std::endl;
         std::cout << "helix PCA: (" << pca.x() << ", " << pca.y() << ", " << pca.z() << ")" << std::endl;
@@ -1046,8 +1065,7 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
       {
         if(Verbosity()>3)
         {
-          // std::cout << "passed cuts" << std::endl;
-          std::cout << __FILE__ << ":" << __LINE__ << " passed cuts" << std::endl;
+          std::cout << "passed cuts" << std::endl;
         }
         best_added = closeCluster.second;
         best_dca3d = dca_3d;
@@ -1057,8 +1075,7 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
     {
       if(Verbosity()>3)
       {
-        // std::cout << "adding clusterkey: " << (size_t)best_added << " with 3d dca " << best_dca3d << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__ << " adding clusterkey: " << (size_t)best_added << " with 3d dca " << best_dca3d << std::endl;
+        std::cout << "adding clusterkey: " << (size_t)best_added << " with 3d dca " << best_dca3d << std::endl;
       }
       seed.insert_cluster_key(best_added);
       FitSeed(seed,globalPositions);
@@ -1078,8 +1095,7 @@ std::vector<TrackSeed_v2> PHCASiliconSeeding::FitSeeds(const std::vector<PHCASil
     }
     if (Verbosity() > 3)
     {
-      // std::cout << "chain size: " << chain.size() << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " chain size: " << chain.size() << std::endl;
+      std::cout << "chain size: " << chain.size() << std::endl;
     }
 
     TrackSeedHelper::position_map_t positions;
@@ -1140,8 +1156,7 @@ std::vector<TrackSeed_v2> PHCASiliconSeeding::FitSeeds(const std::vector<PHCASil
       {
         if(Verbosity()>1)
         {
-          // std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
-          std::cout << __FILE__ << ":" << __LINE__ << " Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
+          std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
         }
         trackseed.set_crossing(SHRT_MAX);
       }
@@ -1150,8 +1165,7 @@ std::vector<TrackSeed_v2> PHCASiliconSeeding::FitSeeds(const std::vector<PHCASil
     {
       if(crossings.size()>2 && Verbosity()>1)
       {
-        // std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__ << " Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
+        std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
       }
       trackseed.set_crossing(SHRT_MAX);
     }
@@ -1159,8 +1173,7 @@ std::vector<TrackSeed_v2> PHCASiliconSeeding::FitSeeds(const std::vector<PHCASil
     clean_chains.push_back(trackseed);
     if (Verbosity() > 2)
     {
-      // std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
+      std::cout << "pushed clean chain with " << trackseed.size_cluster_keys() << " clusters" << std::endl;
     }
   }
 
@@ -1171,8 +1184,7 @@ void PHCASiliconSeeding::FitSeed(TrackSeed_v2& seed, const PositionMap& globalPo
 {
   if(Verbosity()>3)
   {
-    // std::cout << "fitting seed:" << std::endl;
-    std::cout << __FILE__ << ":" << __LINE__ << " fitting seed:" << std::endl;
+    std::cout << "fitting seed:" << std::endl;
     seed.identify();
   }
   TrackSeedHelper::position_map_t positions;
@@ -1219,8 +1231,7 @@ void PHCASiliconSeeding::FitSeed(TrackSeed_v2& seed, const PositionMap& globalPo
     {
       if(Verbosity()>1)
       {
-        // std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
-        std::cout << __FILE__ << ":" << __LINE__ << " Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
+        std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
       }
       seed.set_crossing(SHRT_MAX);
     }
@@ -1229,15 +1240,13 @@ void PHCASiliconSeeding::FitSeed(TrackSeed_v2& seed, const PositionMap& globalPo
   {
     if(crossings.size()>2 && Verbosity()>1)
     {
-      // std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
-      std::cout << __FILE__ << ":" << __LINE__ << " Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
+      std::cout << "Warning: seed has multiple crossings within INTT clusters, setting to SHRTMAX" << std::endl;
     }
     seed.set_crossing(SHRT_MAX);
   }
   if(Verbosity()>3)
   {
-    // std::cout << "after fit:" << std::endl;
-    std::cout << __FILE__ << ":" << __LINE__ << " after fit:" << std::endl;
+    std::cout << "after fit:" << std::endl;
     seed.identify();
   }
 }
@@ -1281,14 +1290,12 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
     {
       // INTT z resolution constrains search windows to be at least 1 cm
       // (since INTT hits can be up to 2 cm in z)
-      dZ_per_layer[i] = std::max<float>(_neighbor_z_width,1.);
       max_dcaz_perlayer[i] = std::max<float>(_propagate_max_dcaz,1.);
       max_dcaxy_perlayer[i] = _propagate_max_dcaxy;
       dphi_per_layer[i] = _neighbor_phi_width;
     }
     else
     {
-      dZ_per_layer[i] = _neighbor_z_width;
       max_dcaz_perlayer[i] = _propagate_max_dcaz;
       max_dcaxy_perlayer[i] = _propagate_max_dcaxy;
       dphi_per_layer[i] = _neighbor_phi_width;
@@ -1296,6 +1303,50 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHCASiliconSeeding::SetupDefaultLayerRadius()
+{
+  // mvtx
+  PHG4CylinderGeomContainer::ConstRange mvtxlayerrange = geom_container_mvtx->get_begin_end();
+  for (PHG4CylinderGeomContainer::ConstIterator layeriter = mvtxlayerrange.first;
+       layeriter != mvtxlayerrange.second;
+       ++layeriter)
+  {
+    int layer = layeriter->second->get_layer();
+    auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+    if (layergeom)
+    {
+      radius_per_layer[layer] = layergeom->get_radius();
+      std::cout << "PHCASiliconSeeding::SetupLayerRadius - MVTX layer " << layer << " radius: " << layergeom->get_radius() << " cm" << std::endl;
+    }
+  }
+
+  // intt
+  PHG4CylinderGeomContainer::ConstRange inttlayerrange = geom_container_intt->get_begin_end();
+  for (PHG4CylinderGeomContainer::ConstIterator layeriter = inttlayerrange.first;
+       layeriter != inttlayerrange.second;
+       ++layeriter)
+  {
+    int layer = layeriter->second->get_layer();
+    auto layergeom = dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+    if (layergeom)
+    {
+      radius_per_layer[layer] = layergeom->get_radius();
+      std::cout << "PHCASiliconSeeding::SetupLayerRadius - INTT layer " << layer << " radius: " << layergeom->get_radius() << " cm" << std::endl;
+    }
+  }
+}
+
+float PHCASiliconSeeding::GetMvtxRadiusByPhi(float clusphi, int layer) const
+{
+  float phi0 = std::atan2(v_globaldisplacement[1], v_globaldisplacement[0]); // mvtx is displaced in global coords
+  if (phi0 < 0) 
+    phi0 += 2 * M_PI;
+
+  float radius_original = radius_per_layer.at(layer);
+  float radius_corrected = radius_original * (1.0 + (radius_displacement / radius_original) * std::cos(clusphi - phi0));
+  return radius_corrected;
 }
 
 int PHCASiliconSeeding::End()
