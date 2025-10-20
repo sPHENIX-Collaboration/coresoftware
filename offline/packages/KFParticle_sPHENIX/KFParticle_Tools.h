@@ -46,7 +46,7 @@ class SvtxTrack;
 class GlobalVertexMap;
 class GlobalVertex;
 class TrkrClusterContainer;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 
 class KFParticle_Tools : protected KFParticle_MVA
 {
@@ -271,7 +271,7 @@ class KFParticle_Tools : protected KFParticle_MVA
   SvtxVertexMap *m_dst_vertexmap {nullptr};
   SvtxVertex *m_dst_vertex {nullptr};
   TrkrClusterContainer *m_cluster_map {nullptr};
-  PHG4TpcCylinderGeomContainer *m_geom_container {nullptr};
+  PHG4TpcGeomContainer *m_geom_container {nullptr};
 
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);

@@ -41,7 +41,7 @@ float TpcClusterZCrossingCorrection::correctZ(float zinit, unsigned int side, sh
     corrected_z = zinit + (float) crossing * z_bunch_separation;
   }
 
-  //    std::cout << "         crossing " << crossing << " _vdrift " << _vdrift << " zinit " << zinit << " side " << side << " corrected_z " << corrected_z << std::endl;
+  //  std::cout << " TpcClusterZCrossingCorrection:    crossing " << crossing << " _vdrift " << _vdrift << " zinit " << zinit << " side " << side << " z_bunch_separation " << z_bunch_separation << " corrected_z " << corrected_z << std::endl;
 
   return corrected_z;
 }

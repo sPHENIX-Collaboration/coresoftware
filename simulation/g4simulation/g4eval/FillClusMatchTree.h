@@ -57,8 +57,8 @@ class PHG4ParticleSvtxMap;
 class SvtxPHG4ParticleMap;
 class EmbRecoMatchContainer;
 class PHCompositeNode;
-class PHG4TpcCylinderGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeom;
+class PHG4TpcGeomContainer;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -103,7 +103,7 @@ class FillClusMatchTree : public SubsysReco
   ClusHitsVerbose *m_SvtxClusHitVerb{nullptr};
   /* TrkrClusterContainer         *m_TruthClusterContainer        {nullptr}; */
   /* TrkrClusterContainer         *m_RecoClusterContainer         {nullptr}; */
-  /* PHG4TpcCylinderGeomContainer *m_PHG4TpcCylinderGeomContainer {nullptr}; */
+  /* PHG4TpcGeomContainer *m_PHG4TpcGeomContainer {nullptr}; */
 
   TTree *m_ttree;
   std::string m_outfile_name;

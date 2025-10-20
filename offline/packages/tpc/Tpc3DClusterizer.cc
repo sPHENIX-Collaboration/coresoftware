@@ -13,8 +13,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>  // for PHIODataNode
@@ -119,10 +119,10 @@ int Tpc3DClusterizer::InitRun(PHCompositeNode *topNode)
   }
   
   m_geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!m_geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -242,7 +242,7 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-    //PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
+    //PHG4TpcGeom *layergeom = m_geom_container->GetLayerCellGeom(layer);
     // double r = layergeom->get_radius();
     
     TrkrDefs::hitsetkey hitsetKey = TpcDefs::genHitSetKey(layer, sector, side);
@@ -462,7 +462,7 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
     int side = TpcDefs::getSide(spechitkey.second);
     // unsigned int sector= TpcDefs::getSectorId(spechitkey.second);
 
-    PHG4TpcCylinderGeom *layergeom = m_geom_container->GetLayerCellGeom((int) coords[0]);
+    PHG4TpcGeom *layergeom = m_geom_container->GetLayerCellGeom((int) coords[0]);
 
     double r = layergeom->get_radius();
     double phi = layergeom->get_phi(coords[1], side);

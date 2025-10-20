@@ -19,8 +19,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>  // for PHNode
@@ -99,7 +99,7 @@ PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name)
   std::cout << "PHG4TpcPadBaselineShift::PHG4TpcPadBaselineShift(const std::string &name) Calling ctor" << std::endl;
 }
 
-bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
+bool PHG4TpcPadBaselineShift::is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const
 {
   bool reject_it = false;
 
@@ -173,10 +173,10 @@ int PHG4TpcPadBaselineShift::InitRun(PHCompositeNode *topNode)
   }
 
   auto *geom =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
@@ -227,11 +227,11 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcCylinderGeomContainer *geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -271,7 +271,7 @@ int PHG4TpcPadBaselineShift::process_event(PHCompositeNode *topNode)
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
     _hit_sector = sector;
     _hit_layer = layer;

@@ -19,8 +19,8 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/CylinderGeom_MvtxHelper.h>
@@ -441,7 +441,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
     // Complicated, since only the part of the energy that is collected within a layer contributes to the position
     //===============================================================================
 
-    PHG4TpcCylinderGeom* GeoLayer = _tpc_geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom* GeoLayer = _tpc_geom_container->GetLayerCellGeom(layer);
     // get layer boundaries here for later use
     // radii of layer boundaries
     float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
@@ -753,7 +753,7 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   double radius = (inner_radius + outer_radius) / 2.;
   if (radius > 28 && radius < 80)  // TPC
   {
-    PHG4TpcCylinderGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
     
     double tpc_max_driftlength = layergeom->get_max_driftlength();
     double drift_velocity = layergeom->get_drift_velocity_sim();
@@ -1161,7 +1161,7 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
 
   _mms_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
-  _tpc_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  _tpc_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 

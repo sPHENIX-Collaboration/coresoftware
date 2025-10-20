@@ -40,7 +40,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrClusterContainer;
 class SvtxAlignmentStateMap;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 
 using SourceLink = ActsSourceLink;
 using FitResult = ActsTrackFittingAlgorithm::TrackFitterResult;
@@ -278,7 +278,7 @@ class PHActsTrkFitter : public SubsysReco
 
   bool m_enable_crossing_estimate = false;
 
-  PHG4TpcCylinderGeomContainer* _tpccellgeo = nullptr;
+  PHG4TpcGeomContainer* _tpccellgeo = nullptr;
 
   /// Variables for doing event time execution analysis
   bool m_timeAnalysis = false;

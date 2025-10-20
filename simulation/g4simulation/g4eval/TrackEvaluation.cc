@@ -6,8 +6,8 @@
 #include "TrackEvaluation.h"
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -478,7 +478,7 @@ int TrackEvaluation::load_nodes(PHCompositeNode* topNode)
   m_g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // tpc geometry
-  m_tpc_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  m_tpc_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   assert(m_tpc_geom_container);
 
   // micromegas geometry
@@ -952,7 +952,7 @@ void TrackEvaluation::add_truth_information(TrackEvaluationContainerv1::ClusterS
   // get layer, tpc flag and corresponding layer geometry
   const auto layer = cluster.layer;
   const bool is_tpc(layer >= 7 && layer < 55);
-  const PHG4TpcCylinderGeom* layergeom = is_tpc ? m_tpc_geom_container->GetLayerCellGeom(layer) : nullptr;
+  const PHG4TpcGeom* layergeom = is_tpc ? m_tpc_geom_container->GetLayerCellGeom(layer) : nullptr;
   const auto rin = layergeom ? layergeom->get_radius() - layergeom->get_thickness() / 2 : 0;
   const auto rout = layergeom ? layergeom->get_radius() + layergeom->get_thickness() / 2 : 0;
 

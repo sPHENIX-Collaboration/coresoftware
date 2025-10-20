@@ -8,8 +8,8 @@
 
 #include "TpcSpaceChargeMatrixContainerv1.h"
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TpcDefs.h>
@@ -277,7 +277,7 @@ void TpcDirectLaserReconstruction::set_grid_dimensions(int phibins, int rbins, i
 //_____________________________________________________________________
 int TpcDirectLaserReconstruction::load_nodes(PHCompositeNode* topNode)
 {
-  m_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   assert(m_geom_container);
 
   // acts geometry
@@ -1142,7 +1142,7 @@ void TpcDirectLaserReconstruction::process_track(SvtxTrack* track)
 
   for (auto layer : layer_bin_set)
   {
-    PHG4TpcCylinderGeom* layergeom = m_geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom* layergeom = m_geom_container->GetLayerCellGeom(layer);
     const auto layer_center_radius = layergeom->get_radius();
     const auto layer_inner_radius = layer_center_radius - layergeom->get_thickness() / 2.0;
     const auto layer_outer_radius = layer_center_radius + layergeom->get_thickness() / 2.0;

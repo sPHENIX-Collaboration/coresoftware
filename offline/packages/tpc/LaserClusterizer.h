@@ -2,7 +2,7 @@
 #define TPC_LASERCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h>
@@ -25,8 +25,8 @@ class LaserCluster;
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
-class PHG4TpcCylinderGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeom;
+class PHG4TpcGeomContainer;
 
 class LaserClusterizer : public SubsysReco
 {
@@ -59,7 +59,7 @@ class LaserClusterizer : public SubsysReco
   TrkrHitSetContainer *m_hits {nullptr};
   LaserClusterContainer *m_clusterlist {nullptr};
   ActsGeometry *m_tGeometry {nullptr};
-  PHG4TpcCylinderGeomContainer *m_geom_container {nullptr};
+  PHG4TpcGeomContainer *m_geom_container {nullptr};
   double min_clus_size {1};
   double min_adc_sum {10};
   double m_adc_threshold {74.4};

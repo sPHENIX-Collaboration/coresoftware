@@ -13,8 +13,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -57,7 +57,7 @@ namespace
 
   struct thread_data
   {
-    PHG4TpcCylinderGeom *layergeom = nullptr;
+    PHG4TpcGeom *layergeom = nullptr;
     TrkrHitSet *hitset = nullptr;
     ActsGeometry *tGeometry = nullptr;
     unsigned int layer = 0;
@@ -369,7 +369,7 @@ TpcSimpleClusterizer::TpcSimpleClusterizer(const std::string &name)
 {
 }
 
-bool TpcSimpleClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const
+bool TpcSimpleClusterizer::is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const
 {
   bool reject_it = false;
 
@@ -492,11 +492,11 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcCylinderGeomContainer *geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -546,7 +546,7 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
     unsigned int layer = TrkrDefs::getLayer(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom *layergeom = geom_container->GetLayerCellGeom(layer);
 
     // instanciate new thread pair, at the end of thread vector
     thread_pair_t &thread_pair = threads.emplace_back();

@@ -30,7 +30,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedHelper.h>
 
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -178,8 +178,13 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_evaluator->verbosity(Verbosity());
   }
 
-  _tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-
+  _tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!_tpccellgeo)
+    {
+      std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
   if (Verbosity() > 1)
   {
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;

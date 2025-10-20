@@ -25,8 +25,8 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4mvtx/PHG4MvtxMisalignment.h>
 
@@ -174,9 +174,9 @@ int MakeActsGeometry::Init(PHCompositeNode * /*topNode*/)
 int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 {
   m_geomContainerTpc =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
 
-  PHG4TpcCylinderGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  PHG4TpcGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(20);  // z geometry is the same for all layers
   m_max_driftlength = layergeom->get_max_driftlength();
   m_CM_halfwidth = layergeom->get_CM_halfwidth();
   
@@ -203,8 +203,6 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
   {
     alignment_transformation.setMMParams(m_mmDevs);
   }
-
-  alignment_transformation.applyTpcTzeroCorrection(m_apply_tpc_tzero_correction);
 
   if (buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -1739,8 +1737,8 @@ void MakeActsGeometry::setPlanarSurfaceDivisions()
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
 
   int layer = 0;
-  PHG4TpcCylinderGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
-  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcGeomContainer::ConstRange layerrange = m_geomContainerTpc->get_begin_end();
+  for (PHG4TpcGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {
@@ -1811,11 +1809,11 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
   }
 
   m_geomContainerTpc =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!m_geomContainerTpc)
   {
     std::cout << PHWHERE
-              << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX"
+              << "ERROR: Can't find node TPCGEOMCONTAINER"
               << std::endl;
     topNode->print();
     auto se = Fun4AllServer::instance();

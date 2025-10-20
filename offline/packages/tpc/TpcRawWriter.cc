@@ -22,8 +22,8 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -181,11 +181,11 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcCylinderGeomContainer *geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -330,7 +330,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     //   if(layer!=7) continue;
     //    int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins / 12;
     unsigned short NZBins = (unsigned short) layergeom->get_zbins();

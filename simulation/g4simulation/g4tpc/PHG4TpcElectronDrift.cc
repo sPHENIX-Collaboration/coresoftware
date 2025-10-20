@@ -22,8 +22,8 @@
 #include <g4tracking/TrkrTruthTrackContainerv1.h>
 #include <g4tracking/TrkrTruthTrackv1.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -187,12 +187,12 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
-  seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
-  seggeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
+  seggeonodename = "TPCGEOMCONTAINER";  // + detector;
+  seggeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, seggeonodename);
   assert(seggeo);
 
     // the z geometry is the same for all layers
-  PHG4TpcCylinderGeom *layergeom = seggeo->GetLayerCellGeom(20);
+  PHG4TpcGeom *layergeom = seggeo->GetLayerCellGeom(20);
   // from top of GEM stack to top of GEM stack
   tpc_length = 2 * (layergeom->get_max_driftlength() + layergeom->get_CM_halfwidth());
   
@@ -404,7 +404,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcCylinderGeom *layergeom = seggeo->GetLayerCellGeom(20);
+  PHG4TpcGeom *layergeom = seggeo->GetLayerCellGeom(20);
     
   if (truth_clusterer.needs_input_nodes())
   {

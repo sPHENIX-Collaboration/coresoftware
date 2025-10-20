@@ -2,8 +2,8 @@
 #include "g4evalfn.h"
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
 #include <mvtx/CylinderGeom_Mvtx.h>
@@ -61,15 +61,15 @@ int TrkrClusterIsMatcher::init(
 
   // ------ TPC data ------
   auto geom_tpc =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_tpc)
   {
-    std::cout << PHWHERE << " Could not locate CYLINDERCELLGEOM_SVTX node " << std::endl;
+    std::cout << PHWHERE << " Could not locate TPCGEOMCONTAINER node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   for (int i = 7; i < 55; ++i)
   {
-    PHG4TpcCylinderGeom* layergeom = geom_tpc->GetLayerCellGeom(i);
+    PHG4TpcGeom* layergeom = geom_tpc->GetLayerCellGeom(i);
     if (i == 7)
     {
       step_t_TPC = layergeom->get_zstep();

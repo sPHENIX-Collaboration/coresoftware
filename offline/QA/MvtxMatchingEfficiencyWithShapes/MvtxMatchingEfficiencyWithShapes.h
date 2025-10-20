@@ -17,7 +17,7 @@
 class ActsGeometry;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 class TrkrClusterHitAssoc;
 class TH1;
 class TrackSeed;
@@ -55,7 +55,7 @@ class MvtxMatchingEfficiencyWithShapes : public SubsysReco
   TH1 *h_INTT_time_delta {nullptr};
 
   TrkrClusterContainer *_cluster_map {nullptr};
-  PHG4TpcCylinderGeomContainer *_geom_container{nullptr};
+  PHG4TpcGeomContainer *_geom_container{nullptr};
   ActsGeometry *m_tGeometry {nullptr};
 
   //! hits

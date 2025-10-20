@@ -2,8 +2,8 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CellDefs.h>  // for genkey, keytype
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
@@ -104,11 +104,11 @@ int PHG4TpcPadPlaneReadout::InitRun(PHCompositeNode *topNode)
   {
     return reply;
   }
-  const std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";
-  GeomContainer = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, seggeonodename);
+  const std::string seggeonodename = "TPCGEOMCONTAINER";
+  GeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, seggeonodename);
   assert(GeomContainer);
   
-  PHG4TpcCylinderGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  PHG4TpcGeom *layergeom =  GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
   double tpc_adc_clock = layergeom->get_adc_clock();
   double extended_readout_time = layergeom->get_extended_readout_time();
   double maxdriftlength = layergeom->get_max_driftlength();
@@ -349,8 +349,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(
 
   // Find which readout layer this electron ends up in
 
-  PHG4TpcCylinderGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
-  for (PHG4TpcCylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+  PHG4TpcGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
+  for (PHG4TpcGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter)
   {
