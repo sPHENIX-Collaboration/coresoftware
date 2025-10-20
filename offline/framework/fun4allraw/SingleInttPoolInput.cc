@@ -38,13 +38,11 @@ SingleInttPoolInput::SingleInttPoolInput(const std::string &name)
   : SingleStreamingInput(name)
 {
   SubsystemEnum(InputManagerType::INTT);
-  plist = new Packet *[1];
   m_rawHitContainerName = "INTTRAWHIT";
 }
 
 SingleInttPoolInput::~SingleInttPoolInput()
 {
-  delete[] plist;
   for (auto iter : poolmap)
   {
     if (Verbosity() > 2)
@@ -116,20 +114,15 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     }
 
     int EventSequence = evt->getEvtSequence();
-    int npackets = evt->getPacketList(plist, 1);
-
-    if (npackets > 1)
-    {
-      exit(1);
-    }
+    std::vector<Packet *> pktvec = evt->getPacketVector();
     if (m_SkipEarlyEvents)
     {
-      for (int i = 0; i < npackets; i++)
+      for (Packet *pkt : pktvec)
       {
-        int numBCOs = plist[i]->iValue(0, "NR_BCOS");
+        int numBCOs = pkt->iValue(0, "NR_BCOS");
         for (int j = 0; j < numBCOs; j++)
         {
-          uint64_t bco = plist[i]->lValue(j, "BCOLIST");
+          uint64_t bco = pkt->lValue(j, "BCOLIST");
           if (bco < minBCO)
           {
             continue;
@@ -140,33 +133,33 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     }
     if (m_SkipEarlyEvents)
     {
-      for (int i = 0; i < npackets; i++)
+      for (Packet *pkt : pktvec)
       {
-        delete plist[i];
+        delete pkt;
       }
       delete evt;
       continue;
     }
-    for (int i = 0; i < npackets; i++)
+    for (Packet *pkt : pktvec)
     {
       if (Verbosity() > 2)
       {
-        plist[i]->identify();
+        pkt->identify();
       }
 
-      if (poolmap.find(plist[i]->getIdentifier()) == poolmap.end())  // we haven't seen this one yet
+      if (poolmap.find(pkt->getIdentifier()) == poolmap.end())  // we haven't seen this one yet
       {
         if (Verbosity() > 1)
         {
-          std::cout << "starting new intt pool for packet " << plist[i]->getIdentifier() << std::endl;
+          std::cout << "starting new intt pool for packet " << pkt->getIdentifier() << std::endl;
         }
-        poolmap[plist[i]->getIdentifier()] = new intt_pool(1000, 100);
-        poolmap[plist[i]->getIdentifier()]->Verbosity(Verbosity());
-        poolmap[plist[i]->getIdentifier()]->Name(std::to_string(plist[i]->getIdentifier()));
+        poolmap[pkt->getIdentifier()] = new intt_pool(1000, 100);
+        poolmap[pkt->getIdentifier()]->Verbosity(Verbosity());
+        poolmap[pkt->getIdentifier()]->Name(std::to_string(pkt->getIdentifier()));
       }
-      poolmap[plist[i]->getIdentifier()]->addPacket(plist[i]);
+      poolmap[pkt->getIdentifier()]->addPacket(pkt);
 
-      delete plist[i];
+      delete pkt;
     }
 
     delete evt;
@@ -546,7 +539,7 @@ bool SingleInttPoolInput::IsStreaming(int runnumber)
   odbc::Statement *statement = DBInterface::instance()->getStatement("daq");
   std::string sched_data;
   std::string sql = "SELECT sched_data FROM gtm_scheduler WHERE vgtm=1 AND sched_entry = 1 AND runnumber = " + std::to_string(runnumber) + ";";
-  odbc::ResultSet *result_set = ((odbc::Statement *) statement)->executeQuery(sql);
+  odbc::ResultSet *result_set = statement->executeQuery(sql);
   if (result_set && result_set->next())
   {
     sched_data = result_set->getString("sched_data");

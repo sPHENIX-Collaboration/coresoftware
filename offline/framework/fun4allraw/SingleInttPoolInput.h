@@ -38,7 +38,6 @@ class SingleInttPoolInput : public SingleStreamingInput
   bool IsStreaming(int runnumber);
 
  private:
-  Packet **plist{nullptr};
   unsigned int m_NumSpecialEvents{0};
   unsigned int m_BcoRange{0};
   unsigned int m_NegativeBco{0};
