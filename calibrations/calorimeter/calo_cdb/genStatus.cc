@@ -14,6 +14,7 @@
 
 // c++ includes --
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -49,6 +50,18 @@ int GenStatus::readHists(const std::string &input)
   h_CaloValid_ihcal_etaphi_time_raw = std::make_unique<TProfile2D>("ihcal_etaphi_time_raw", "", hcal_bins_eta, 0, hcal_bins_eta, hcal_bins_phi, 0, hcal_bins_phi);
   h_CaloValid_ohcal_etaphi_time_raw = std::make_unique<TProfile2D>("ohcal_etaphi_time_raw", "", hcal_bins_eta, 0, hcal_bins_eta, hcal_bins_phi, 0, hcal_bins_phi);
 
+  h_CaloFittingQA_cemc_etaphi_ZScrosscalib = std::make_unique<TProfile2D>("cemc_etaphi_ZScrosscalib", "", cemc_bins_eta, 0, cemc_bins_eta, cemc_bins_phi, 0, cemc_bins_phi);
+  h_CaloFittingQA_ihcal_etaphi_ZScrosscalib = std::make_unique<TProfile2D>("ihcal_etaphi_ZScrosscalib", "", hcal_bins_eta, 0, hcal_bins_eta, hcal_bins_phi, 0, hcal_bins_phi);
+  h_CaloFittingQA_ohcal_etaphi_ZScrosscalib = std::make_unique<TProfile2D>("ohcal_etaphi_ZScrosscalib", "", hcal_bins_eta, 0, hcal_bins_eta, hcal_bins_phi, 0, hcal_bins_phi);
+
+  std::ofstream outfile(m_CaloValid_list);
+
+  if (!outfile.is_open())
+  {
+    std::cout << std::format("Error: Unable to open file {} for writing.\n", m_CaloValid_list);
+    return 1;
+  }
+
   std::string line;
   std::map<std::string, int> ctr;
   while (std::getline(file, line))
@@ -64,6 +77,11 @@ int GenStatus::readHists(const std::string &input)
     }
 
     ++ctr["successfully_opened_files"];
+
+    if (line.find("HIST_CALOQA") != std::string::npos)
+    {
+      outfile << line << std::endl;
+    }
 
     auto *h = dynamic_cast<TProfile2D *>(tf->Get("h_CaloValid_cemc_etaphi_badChi2"));
 
@@ -113,6 +131,30 @@ int GenStatus::readHists(const std::string &input)
       ++ctr["h_CaloValid_ohcal_etaphi_time_raw"];
     }
 
+    h = dynamic_cast<TProfile2D *>(tf->Get("h_CaloFittingQA_cemc_etaphi_ZScrosscalib"));
+
+    if (h)
+    {
+      h_CaloFittingQA_cemc_etaphi_ZScrosscalib->Add(h);
+      ++ctr["h_CaloFittingQA_cemc_etaphi_ZScrosscalib"];
+    }
+
+    h = dynamic_cast<TProfile2D *>(tf->Get("h_CaloFittingQA_ihcal_etaphi_ZScrosscalib"));
+
+    if (h)
+    {
+      h_CaloFittingQA_ihcal_etaphi_ZScrosscalib->Add(h);
+      ++ctr["h_CaloFittingQA_ihcal_etaphi_ZScrosscalib"];
+    }
+
+    h = dynamic_cast<TProfile2D *>(tf->Get("h_CaloFittingQA_ohcal_etaphi_ZScrosscalib"));
+
+    if (h)
+    {
+      h_CaloFittingQA_ohcal_etaphi_ZScrosscalib->Add(h);
+      ++ctr["h_CaloFittingQA_ohcal_etaphi_ZScrosscalib"];
+    }
+
     tf->Close();
   }
 
@@ -121,7 +163,7 @@ int GenStatus::readHists(const std::string &input)
   std::cout << "Successfully opened files: " << ctr["successfully_opened_files"] << ", " << ctr["successfully_opened_files"] * 100. / ctr["total_files"] << " %" << std::endl;
   for (const auto &[name, value] : ctr)
   {
-    if (name.starts_with("h_CaloValid"))
+    if (name.starts_with("h_Calo"))
     {
       std::cout << "Hist: " << name << ", Found: " << value << ", " << value * 100. / ctr["successfully_opened_files"] << " %" << std::endl;
     }
@@ -190,43 +232,61 @@ void GenStatus::analyze(const std::string &outputDir)
   std::string detector = "CEMC";
   // fracBadChi2
   std::string payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + m_dataset + "_" + m_run + ".root";
-  if (h_CaloValid_cemc_etaphi_badChi2)
+  if (h_CaloValid_cemc_etaphi_badChi2->GetEntries())
   {
     histToCaloCDBTree(payloadName, "fraction", 0, h_CaloValid_cemc_etaphi_badChi2.get());
   }
   // time
   payloadName = outputDir + "/" + detector + "_meanTime" + "_" + m_dataset + "_" + m_run + ".root";
-  if (h_CaloValid_cemc_etaphi_time_raw)
+  if (h_CaloValid_cemc_etaphi_time_raw->GetEntries())
   {
     histToCaloCDBTree(payloadName, "time", 0, h_CaloValid_cemc_etaphi_time_raw.get());
+  }
+  // ZSCrossCalib
+  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + m_dataset + "_" + m_run + ".root";
+  if (h_CaloFittingQA_cemc_etaphi_ZScrosscalib->GetEntries())
+  {
+    histToCaloCDBTree(payloadName, "ratio", 0, h_CaloFittingQA_cemc_etaphi_ZScrosscalib.get());
   }
 
   detector = "HCALIN";
   // fracBadChi2
   payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + m_dataset + "_" + m_run + ".root";
-  if (h_CaloValid_ihcal_etaphi_badChi2)
+  if (h_CaloValid_ihcal_etaphi_badChi2->GetEntries())
   {
     histToCaloCDBTree(payloadName, "fraction", 1, h_CaloValid_ihcal_etaphi_badChi2.get());
   }
   // time
   payloadName = outputDir + "/" + detector + "_meanTime" + "_" + m_dataset + "_" + m_run + ".root";
-  if (h_CaloValid_ihcal_etaphi_time_raw)
+  if (h_CaloValid_ihcal_etaphi_time_raw->GetEntries())
   {
     histToCaloCDBTree(payloadName, "time", 1, h_CaloValid_ihcal_etaphi_time_raw.get());
+  }
+  // ZSCrossCalib
+  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + m_dataset + "_" + m_run + ".root";
+  if (h_CaloFittingQA_ihcal_etaphi_ZScrosscalib->GetEntries())
+  {
+    histToCaloCDBTree(payloadName, "ratio", 1, h_CaloFittingQA_ihcal_etaphi_ZScrosscalib.get());
   }
 
   detector = "HCALOUT";
   // fracBadChi2
   payloadName = outputDir + "/" + detector + "_hotTowers_fracBadChi2" + "_" + m_dataset + "_" + m_run + ".root";
-  if (h_CaloValid_ohcal_etaphi_badChi2)
+  if (h_CaloValid_ohcal_etaphi_badChi2->GetEntries())
   {
     histToCaloCDBTree(payloadName, "fraction", 1, h_CaloValid_ohcal_etaphi_badChi2.get());
   }
   // time
   payloadName = outputDir + "/" + detector + "_meanTime" + "_" + m_dataset + "_" + m_run + ".root";
-  if (h_CaloValid_ohcal_etaphi_time_raw)
+  if (h_CaloValid_ohcal_etaphi_time_raw->GetEntries())
   {
     histToCaloCDBTree(payloadName, "time", 1, h_CaloValid_ohcal_etaphi_time_raw.get());
+  }
+  // ZSCrossCalib
+  payloadName = outputDir + "/" + detector + "_ZSCrossCalib" + "_" + m_dataset + "_" + m_run + ".root";
+  if (h_CaloFittingQA_ohcal_etaphi_ZScrosscalib->GetEntries())
+  {
+    histToCaloCDBTree(payloadName, "ratio", 1, h_CaloFittingQA_ohcal_etaphi_ZScrosscalib.get());
   }
 }
 
@@ -256,15 +316,19 @@ void GenStatus::process(const std::string &input, const std::string &output)
   // create output & QA directory
   std::filesystem::create_directories(datasetDir.str());
 
-  std::string s_input = input;
   std::string hotMapOutputQA = datasetDir.str() + "/" + hotMapFile;
 
   // merges individal qa into one per run
-  readHists(input);
+  int ret = readHists(input);
+  if (ret)
+  {
+    return;
+  }
+
   analyze(outputDir);
 
   std::unique_ptr<emcNoisyTowerFinder> calo = std::make_unique<emcNoisyTowerFinder>();
-  calo->FindHot(s_input, hotMapOutput, "h_CaloValid_cemc_etaphi");
+  calo->FindHot(m_CaloValid_list, hotMapOutput, "h_CaloValid_cemc_etaphi");
 
   if (std::filesystem::exists(hotMapOutput))
   {
