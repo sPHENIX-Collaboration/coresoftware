@@ -14,10 +14,7 @@ int main()
   {
     std::cout << "Testing ODBC." << std::endl;
 
-    odbc::Connection* conn = DBInterface::getDBConnection("spinDB");
-    std::cout << "Connected to spinDB." << std::endl;
-
-    odbc::Statement* stmt = conn->createStatement();
+    odbc::Statement* stmt = DBInterface::instance()->getStatement("spinDB");
     std::string query = "SELECT mbdvtx FROM spin WHERE runnumber = 45876";
 
     odbc::ResultSet* rs = stmt->executeQuery(query);
@@ -40,13 +37,11 @@ int main()
     }
 
     delete rs;
-    delete stmt;
-    delete conn;
   }
   catch (odbc::SQLException& e)
   {
     std::cerr << "SQL Error: " << e.getMessage() << std::endl;
   }
-
+  delete DBInterface::instance();
   return 0;
 }
