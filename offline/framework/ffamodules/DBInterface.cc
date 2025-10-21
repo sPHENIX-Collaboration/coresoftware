@@ -92,12 +92,6 @@ int DBInterface::process_event(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-double DBInterface::getDVal(const std::string &name)
-{
-  std::cout << name << std::endl;
-  return 0.;
-}
-
 odbc::Connection *DBInterface::getDBConnection(const std::string &dbname, int verbosity)
 {
   auto coniter = m_OdbcConnectionMap.find(dbname);
@@ -105,14 +99,13 @@ odbc::Connection *DBInterface::getDBConnection(const std::string &dbname, int ve
   {
     return coniter->second;
   }
+  m_NumConnection[dbname]++;
   std::random_device ran_dev;
   std::seed_seq seeds{ran_dev(), ran_dev(), ran_dev()};  //...
   std::mt19937_64 mersenne_twister(seeds);
   std::uniform_int_distribution<> uniform(m_MIN_SLEEP_DUR, m_MAX_SLEEP_DUR);
   odbc::Connection *dbcon{nullptr};
-  int total_slept_ms{0};
-  int num_tries;
-  for (num_tries = 0; num_tries < m_MAX_NUM_RETRIES; ++num_tries)
+  for (int num_tries = 0; num_tries < m_MAX_NUM_RETRIES; ++num_tries)
   {
     try
     {
@@ -120,19 +113,19 @@ odbc::Connection *DBInterface::getDBConnection(const std::string &dbname, int ve
     }
     catch (odbc::SQLException &e)
     {
-      std::cerr << PHWHERE
+      std::cout << PHWHERE
                 << ": SQL Exception: "
                 << e.getMessage() << std::endl;
     }
 
     if (dbcon)
     {
-      ++num_tries;
       break;
     }
+    ++m_ConnectionTries;
     int sleep_time_ms = uniform(mersenne_twister);
     std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
-    total_slept_ms += sleep_time_ms;
+    m_SleepMS += sleep_time_ms;
 
     if (0 < verbosity)
     {
@@ -143,7 +136,7 @@ odbc::Connection *DBInterface::getDBConnection(const std::string &dbname, int ve
   if (1 < verbosity)
   {
     std::cout << PHWHERE
-              << ": Connection successful (" << num_tries << " attempts, " << total_slept_ms << " ms)" << std::endl;
+              << ": Connection successful (" << m_ConnectionTries << " attempts, " << m_SleepMS << " ms)" << std::endl;
   }
   if (!dbcon)
   {
@@ -167,4 +160,19 @@ odbc::Statement *DBInterface::getStatement(const std::string &dbname, int verbos
   odbc::Statement *statement = dbcon->createStatement();
   m_OdbcStatementMap.insert(std::make_pair(dbname, statement));
   return statement;
+}
+
+int DBInterface::End(PHCompositeNode * /*topNode*/)
+{
+  if (Verbosity() > 0)
+  {
+    std::cout << "Number of connection attempts" << std::endl;
+    for (auto const &iter: m_NumConnection)
+    {
+      std::cout << "db: " << iter.first << ", attempts: " << iter.second << std::endl;
+    }
+    std::cout << "Total time slept: " << m_SleepMS << " ms" << std::endl;
+    std::cout << "Total number of connection re-tries: " << m_ConnectionTries << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
