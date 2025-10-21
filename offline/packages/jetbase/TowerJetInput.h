@@ -31,6 +31,10 @@ class TowerJetInput : public JetInput
     m_vertex_type = type;
   }
 
+  float get_timing_e_threshold() { return m_timing_e_threshold; }
+  
+  void set_timing_e_threshold(float new_threshold) { m_timing_e_threshold = new_threshold; }
+
  private:
   Jet::SRC m_input;
   RawTowerDefs::CalorimeterId geocaloid{RawTowerDefs::CalorimeterId::NONE};
@@ -39,6 +43,7 @@ class TowerJetInput : public JetInput
   std::string towerName;
   bool m_use_vertextype {false};
   GlobalVertex::VTXTYPE m_vertex_type = GlobalVertex::UNDEFINED;
+  float m_timing_e_threshold{0.1};
 };
 
 #endif

@@ -511,6 +511,10 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       jet->set_pz(pz);
       jet->set_e(e);
       jet->insert_comp(m_input, channel);
+      if(e > m_timing_e_threshold)
+	{
+	  jet->set_property(Jet::PROPERTY::prop_t, tower->get_time());
+	}
       pseudojets.push_back(jet);
     }
   }
