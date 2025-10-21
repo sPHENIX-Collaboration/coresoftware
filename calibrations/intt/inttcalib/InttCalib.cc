@@ -799,7 +799,7 @@ int InttCalib::MakeBcoMapCdb()
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-  auto cdbttree = std::make_unique<CDBTTree>(m_hotmap_cdb_file);
+  auto cdbttree = std::make_unique<CDBTTree>(m_bcomap_cdb_file);
 
   int size = 0;
   std::vector<int> bco_temp_container;
