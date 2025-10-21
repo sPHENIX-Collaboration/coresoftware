@@ -99,12 +99,13 @@ PHCASiliconSeeding::PHCASiliconSeeding(
     unsigned int end_layer,
     unsigned int min_clusters_per_track,
     float neighbor_phi_width,
-    float drdz_allowance)
+    float eta_allowance)
   : PHTrackSeeding(name)
   , _start_layer(start_layer)
   , _end_layer(end_layer)
   , _min_clusters_per_track(min_clusters_per_track)
-  , _drdz_allowance(drdz_allowance)
+  , _eta_allowance(eta_allowance)
+  , _drdz_allowance((2.*std::exp(-eta_allowance))/(1 - std::exp(-1.*eta_allowance*2)))
   , _neighbor_phi_width(neighbor_phi_width)
 {
 }
@@ -281,7 +282,8 @@ int PHCASiliconSeeding::Process(PHCompositeNode* /*topNode*/)
 {
   if (Verbosity() > 3)
   {
-    std::cout << " Process...  " << std::endl;
+    std::cout << " PHCASiliconSeeding processing...  " << std::endl;
+    Identify();
   }
   if (_n_iteration > 0)
   {
