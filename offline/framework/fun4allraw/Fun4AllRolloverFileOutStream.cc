@@ -22,12 +22,11 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
                                                            const int increment,
                                                            const std::string &name)
   : Fun4AllFileOutStream(frule, name)
-
+  , m_MaxFileFize(sizeInMB)
+  , m_MaxNEvents(nEvents)
+  , m_CurrentSequence(offset)
+  , m_Increment(increment)
 {
-  m_Offset = offset;
-  m_CurrentSequence = offset;
-  m_MaxNEvents = nEvents;
-  m_MaxFileFize = sizeInMB;
   m_MaxFileFize = m_MaxFileFize * 1024 * 1024;
   if (m_MaxFileFize == 0 || m_MaxFileFize > MaxSize())
   {
@@ -38,7 +37,6 @@ Fun4AllRolloverFileOutStream::Fun4AllRolloverFileOutStream(const std::string &fr
     }
     m_MaxFileFize = MaxSize();
   }
-  m_Increment = increment;
   if (m_Increment <= 0)
   {
     m_Increment = 1;  // safety belt against overwriting files
@@ -54,8 +52,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
 
     char *outfilename = new char[filenamesize];
     iSeq(m_CurrentSequence);
-    // NOLINTNEXTLINE(hicpp-vararg)
-    int snprintfbytes = snprintf(outfilename, filenamesize, FileRule().c_str(), irun, iSeq());
+    int snprintfbytes = snprintf(outfilename, filenamesize, FileRule().c_str(), irun, iSeq());  // NOLINT(hicpp-vararg)
     if (static_cast<unsigned>(snprintfbytes) > filenamesize)
     {
       std::cout << PHWHERE << " " << Name() << ": filename exceeds length " << filenamesize
