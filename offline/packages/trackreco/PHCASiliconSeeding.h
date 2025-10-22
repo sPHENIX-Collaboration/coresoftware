@@ -10,9 +10,9 @@
 
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
 
-#include <trackbase/TrkrDefs.h>  // for cluskey
-#include <trackbase/TrkrClusterCrossingAssoc.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrClusterCrossingAssoc.h>
+#include <trackbase/TrkrDefs.h>  // for cluskey
 
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -30,10 +30,10 @@
 #include <cmath>    // for M_PI
 #include <cstdint>  // for uint64_t
 #include <map>      // for map
-#include <unordered_map>
 #include <memory>
 #include <set>
-#include <string>         // for string
+#include <string>  // for string
+#include <unordered_map>
 #include <utility>  // for pair
 #include <vector>   // for vector
 
@@ -64,8 +64,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
       unsigned int end_layer = 55,
       unsigned int min_clusters_per_track = 5,
       float neighbor_phi_width = .02,
-      float eta_allowance = 1.1
-  );
+      float eta_allowance = 1.1);
 
   ~PHCASiliconSeeding() override {}
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up)
@@ -81,7 +80,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
   void SetSearchWindow(float eta_allowance, float phi_width)
   {
     _eta_allowance = eta_allowance;
-    _drdz_allowance = (eta_allowance < 1E-5) ? (2.*std::exp(-5.0))/(1 - std::exp(-1.*5.0*2)) : (2.*std::exp(-eta_allowance))/(1 - std::exp(-1.*eta_allowance*2)); // If eta_allowance is very small, set to the value for eta = 5.0 for large allowance
+    _drdz_allowance = (eta_allowance < 1E-5) ? (2. * std::exp(-5.0)) / (1 - std::exp(-1. * 5.0 * 2)) : (2. * std::exp(-eta_allowance)) / (1 - std::exp(-1. * eta_allowance * 2));  // If eta_allowance is very small, set to the value for eta = 5.0 for large allowance
     _neighbor_phi_width = phi_width;
   }
   void SetPropagateMaxDCAxy(float dcaxy)
@@ -104,9 +103,9 @@ class PHCASiliconSeeding : public PHTrackSeeding
   {
     _require_INTT_consistency = req;
   }
-  void SetMinClustersPerTrack(unsigned int minClus) 
-  { 
-    _min_clusters_per_track = minClus; 
+  void SetMinClustersPerTrack(unsigned int minClus)
+  {
+    _min_clusters_per_track = minClus;
   }
   void SetMinMVTXClusters(unsigned int minMVTX)
   {
@@ -155,7 +154,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
   unsigned int _min_intt_clusters = 1;
 
   float _eta_allowance = 1.1;
-  float _drdz_allowance = (2.*std::exp(-_eta_allowance))/(1 - std::exp(-1.*_eta_allowance*2)); // default for eta allowance of 1.1
+  float _drdz_allowance = (2. * std::exp(-_eta_allowance)) / (1 - std::exp(-1. * _eta_allowance * 2));  // default for eta allowance of 1.1
   float _neighbor_phi_width;
 
   int _lowest_allowed_strobeid = -5;
@@ -214,15 +213,15 @@ class PHCASiliconSeeding : public PHTrackSeeding
   /// acts geometry
   ActsGeometry* m_tGeometry{nullptr};
   // cylinder geometry for mvtx and intt
-  PHG4CylinderGeomContainer *geom_container_mvtx = nullptr;
-  PHG4CylinderGeomContainer *geom_container_intt = nullptr;
-  PHG4MvtxMisalignment *mvtxmisalignment = nullptr;
+  PHG4CylinderGeomContainer* geom_container_mvtx = nullptr;
+  PHG4CylinderGeomContainer* geom_container_intt = nullptr;
+  PHG4MvtxMisalignment* mvtxmisalignment = nullptr;
   std::vector<double> v_globaldisplacement = {0., 0., 0.};
   float radius_displacement = 0.;
 
   //  TrackSeedContainer *m_seedContainer = nullptr;
-  TrkrClusterContainer *m_clusterMap = nullptr;
-  TrkrClusterCrossingAssoc *m_clusterCrossingMap = nullptr;
+  TrkrClusterContainer* m_clusterMap = nullptr;
+  TrkrClusterCrossingAssoc* m_clusterCrossingMap = nullptr;
 
   std::string _module_trackmap_name = "SiliconTrackSeedContainer";
 
