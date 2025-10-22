@@ -1,25 +1,27 @@
 #include "CaloPacketSkimmer.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <qautils/QAHistManagerDef.h>
+
+#include <ffarawobjects/CaloPacket.h>
+#include <ffarawobjects/CaloPacketContainer.h>
+
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
-#include <ffarawobjects/CaloPacket.h>
-#include <ffarawobjects/CaloPacketContainer.h>
-#include <variant>
 
-#include <qautils/QAHistManagerDef.h>
-
-#include <phool/getClass.h>
-
+#include <TH1.h>
 
 #include <cassert>
 #include <iostream>  // for operator<<, basic_ostream
 #include <map>       // for operator!=, _Rb_tree_iterator
 #include <utility>   // for pair
-#include <TH1.h>
+#include <variant>
 
 static const std::map<CaloTowerDefs::DetectorSystem, std::string> nodemap{
     {CaloTowerDefs::CEMC, "CEMCPackets"},
@@ -48,7 +50,7 @@ int CaloPacketSkimmer::InitRun(PHCompositeNode * /*topNode*/)
     std::cout << std::endl;
   }
 
-  auto* hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   h_aborted_events = new TH1D("h_caloskimmer_aborted_events", "Aborted Events", 1, 0, 1);
@@ -74,7 +76,7 @@ int CaloPacketSkimmer::InitRun(PHCompositeNode * /*topNode*/)
 int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
 {
   bool bad_event = false;
-  // loop over detectors and return ABORTEVENT if any detector fails
+  // loop over detectors and return DISCARDEVENT if any detector fails
   for (const auto &det : m_CaloDetectors)
   {
     if (Verbosity() > 1)
@@ -92,11 +94,11 @@ int CaloPacketSkimmer::process_event(PHCompositeNode *topNode)
     }
   }
 
-  h_kept_events->Fill(1); // Increment histogram for kept events
+  h_kept_events->Fill(1);  // Increment histogram for kept events
   if (bad_event)
   {
-    h_aborted_events->Fill(1); // Increment histogram for aborted events
-    return Fun4AllReturnCodes::ABORTEVENT;
+    h_aborted_events->Fill(1);  // Increment histogram for aborted events
+    return Fun4AllReturnCodes::DISCARDEVENT;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -168,7 +170,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
           std::cout << "CaloPacketSkimmer: No channels in packet " << pid << " for detector " << getDetectorName(dettype) << std::endl;
         }
         h_empty_packets->Fill(pid);
-        return Fun4AllReturnCodes::ABORTEVENT;
+        return Fun4AllReturnCodes::DISCARDEVENT;
       }
     }
     else
@@ -178,7 +180,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
         std::cout << "CaloPacketSkimmer: Packet " << pid << " not found for detector " << getDetectorName(dettype) << std::endl;
       }
       h_missing_packets->Fill(pid);
-      return Fun4AllReturnCodes::ABORTEVENT;
+      return Fun4AllReturnCodes::DISCARDEVENT;
     }
     return Fun4AllReturnCodes::EVENT_OK;
   };
@@ -193,10 +195,10 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
         if (!*cont)
         {
           std::cout << PHWHERE << " CaloPacketContainer not found: " << nodemap.find(dettype)->second << std::endl;
-          return Fun4AllReturnCodes::ABORTEVENT;
+          return Fun4AllReturnCodes::DISCARDEVENT;
         }
         CaloPacket *packet = (*cont)->getPacketbyId(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+        if (process_packet(packet, pid) == Fun4AllReturnCodes::DISCARDEVENT)
         {
           bad_event = true;
         }
@@ -204,7 +206,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
       else if (auto *_event = std::get_if<Event *>(&event))
       {
         Packet *packet = (*_event)->getPacket(pid);
-        if (process_packet(packet, pid) == Fun4AllReturnCodes::ABORTEVENT)
+        if (process_packet(packet, pid) == Fun4AllReturnCodes::DISCARDEVENT)
         {
           // I think it is safe to delete a nullptr...yes, tessted
           delete packet;
@@ -217,7 +219,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
     else
     {
       CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, pid);
-      if (process_packet(calopacket, pid) == Fun4AllReturnCodes::ABORTEVENT)
+      if (process_packet(calopacket, pid) == Fun4AllReturnCodes::DISCARDEVENT)
       {
         bad_event = true;
       }
@@ -226,7 +228,7 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
 
   if (bad_event)
   {
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -234,9 +236,9 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
 
 int CaloPacketSkimmer::EndRun(const int /*runnumber*/)
 {
-  std::cout << "CaloPacketSkimmer::EndRun - Kept events: " << h_kept_events->GetEntries() << std::endl;
-  std::cout << "CaloPacketSkimmer::EndRun - Aborted events: " << h_aborted_events->GetEntries() << std::endl;
-//loop over and print the missing and empty packets
+  std::cout << "CaloPacketSkimmer::EndRun - Analyzed events: " << h_kept_events->GetEntries() << std::endl;
+  std::cout << "CaloPacketSkimmer::EndRun - Discarded events: " << h_aborted_events->GetEntries() << std::endl;
+  // loop over and print the missing and empty packets
   for (int pid = 6000; pid <= 12000; pid++)
   {
     int bin = h_missing_packets->FindBin(pid);
