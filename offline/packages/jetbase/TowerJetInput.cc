@@ -165,6 +165,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   RawTowerGeomContainer *geom = nullptr;
   RawTowerGeomContainer *EMCal_geom = nullptr;
 
+  
   if (m_input == Jet::CEMC_TOWER)
   {
     towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
@@ -456,6 +457,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 
   // first grab the event vertex or bail
 
+
   std::vector<Jet *> pseudojets;
   if (m_use_towerinfo)
   {
@@ -485,7 +487,6 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       }
       RawTowerGeom *tower_geom = geom->get_tower_geometry(key);
       assert(tower_geom);
-
       double r = tower_geom->get_center_radius();
       if (m_input == Jet::CEMC_TOWER_RETOWER || m_input == Jet::CEMC_TOWERINFO_RETOWER || m_input == Jet::CEMC_TOWER_SUB1 || m_input == Jet::CEMC_TOWERINFO_SUB1 || m_input == Jet::CEMC_TOWER_SUB1CS)
       {
@@ -513,7 +514,12 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       jet->insert_comp(m_input, channel);
       if(e > m_timing_e_threshold)
 	{
-	  jet->set_property(Jet::PROPERTY::prop_t, tower->get_time());
+	  float tower_t = tower->get_time();
+	  if(jet->size_properties() < Jet::PROPERTY::prop_t+1)
+	    {
+	      jet->resize_properties(Jet::PROPERTY::prop_t + 1);
+	    }
+	  jet->set_property(Jet::PROPERTY::prop_t, tower_t);
 	}
       pseudojets.push_back(jet);
     }
