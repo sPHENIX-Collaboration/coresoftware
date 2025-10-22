@@ -409,7 +409,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   {
     // std::cout << "Global moved: " << global.x() << "  " <<  global.y() << "  " << global.z() << std::endl;
     
-    if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
+    if (m_ignoreLayer.contains(TrkrDefs::getLayer(cluskey)))
     {
       if (m_verbosity > 3)
       {
