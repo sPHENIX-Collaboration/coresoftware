@@ -89,9 +89,13 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     RunNumber(evt->getRunNumber());
     if (m_SavedRunNumber != RunNumber())
     {
-      std::cout << "setting streaming mode for run " << RunNumber() << std::endl;
+      if (GetVerbosity() > 1)
+      {
+	std::cout << "setting streaming mode for run " << RunNumber() << std::endl;
+      }
       streamingMode(IsStreaming(RunNumber()));
       m_SavedRunNumber = RunNumber();
+      ConfigureStreamingInputManagerLocal(m_SavedRunNumber);
     }
 
     if (GetVerbosity() > 1)
@@ -484,21 +488,28 @@ void SingleInttPoolInput::CreateDSTNode(PHCompositeNode *topNode)
 }
 //_______________________________________________________
 
-void SingleInttPoolInput::ConfigureStreamingInputManager()
+void SingleInttPoolInput::ConfigureStreamingInputManagerLocal(const int runnumber)
 {
   if (StreamingInputManager())
   {
-    auto *rc = recoConsts::instance();
     // if it is triggered after the gtm firmware change
-    if (rc->get_IntFlag("RUNNUMBER") > 58677 && m_BcoRange < 5)
+    if (runnumber > 58677 && m_BcoRange < 5)
     {
       SetBcoRange(3);
-      std::cout << "INTT changed to triggered event combining with range [-"
+      if (GetVerbosity() > 2)
+      {
+	std::cout << "INTT changed to triggered event combining with range [-"
+		  << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+      }
+    }
+    if (GetVerbosity() > 1)
+    {
+      std::cout << "INTT triggered event combining with range [-"
                 << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
     }
 
-    StreamingInputManager()->SetInttBcoRange(m_BcoRange);
-    StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
+    StreamingInputManager()->SetInttBcoRange(GetBcoRange());
+    StreamingInputManager()->SetInttNegativeBco(GetNegativeBco());
   }
 }
 
@@ -508,27 +519,15 @@ void SingleInttPoolInput::streamingMode(const bool isStreaming)
   {
     SetNegativeBco(120 - 23);
     SetBcoRange(500);
-    std::cout << "INTT set to streaming event combining" << std::endl;
+    if (GetVerbosity() > 2)
+    {
+      std::cout << "INTT set to streaming event combining" << std::endl;
+    }
     return;
   }
 
   SetNegativeBco(1);
   SetBcoRange(2);
-
-  std::cout << "INTT set to triggered event combining with range [-"
-            << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
-  if (StreamingInputManager())
-  {
-    if (RunNumber() > 58677 && m_BcoRange < 5)
-    {
-      SetBcoRange(3);
-      std::cout << "INTT changed to triggered event combining with range [-"
-                << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
-    }
-
-    StreamingInputManager()->SetInttBcoRange(m_BcoRange);
-    StreamingInputManager()->SetInttNegativeBco(m_NegativeBco);
-  }
 }
 
 bool SingleInttPoolInput::IsStreaming(int runnumber)
