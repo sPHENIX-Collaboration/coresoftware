@@ -290,15 +290,15 @@ void TpcRawHitQA::createHistos()
       hm->registerHisto(new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s)).c_str(),
 				 std::string("Number of Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 30000));
       hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees").c_str(),
-				 std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 3000));
+				 std::string("Sector " + std::to_string(s) + " Fee Hit Distribution;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 101, -15, 3015));
       hm->registerHisto(new TH1F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_laser").c_str(),
 				 std::string("Laser Hits in Sector " + std::to_string(s) + ";Number of Hits/Event;Entries").c_str(), 100, 0, 1000));
       hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees_laser").c_str(),
-				 std::string("Sector " + std::to_string(s) + " Fee Laser Hits;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 100, 0, 500));
+				 std::string("Sector " + std::to_string(s) + " Fee Laser Hits;FEE;Number of Hits/Event").c_str(), 26, -0.5, 25.5, 101, -2.5, 502.5));
       for (int f = 0; f < 26; f++)
 	{
 	  hm->registerHisto(new TH2F(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees" + std::to_string(f) + "_sampas").c_str(),
-				     std::string("Sector " + std::to_string(s) + " Fee " + std::to_string(f) + " Sampa Hit Distribution;Sampa;Number of Hits/Event").c_str(), 8, -0.5, 7.5, 100, 0, 3000));
+				     std::string("Sector " + std::to_string(s) + " Fee " + std::to_string(f) + " Sampa Hit Distribution;Sampa;Number of Hits/Event").c_str(), 8, -0.5, 7.5, 101, -15, 3015));
 	}
       for (int r = 0; r < 3; r++)
 	{
