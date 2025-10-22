@@ -500,8 +500,6 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
       float center_radius_below = (l - 1 < 3) ? GetMvtxRadiusByPhi(centerPhi, l - 1) : radius_per_layer.at(l - 1);
       const float dZwindow_below = (center_radius - center_radius_below) * (1. / _drdz_allowance);
 
-      std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_below " << dphiwindow_below << " dZwindow_below " << dZwindow_below << std::endl;
-
       QueryTree(_rtrees[l_index - 1],
                 centerPhi - dphiwindow_below,
                 centerZ - dZwindow_below,
@@ -515,7 +513,6 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
         const float center_radius_2below = (l - 2 < 3) ? GetMvtxRadiusByPhi(centerPhi, l - 2) : radius_per_layer.at(l - 2);
         const float dZwindow_2below = (center_radius - center_radius_2below) * (1. / _drdz_allowance);
 
-        std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_2below " << dphiwindow_2below << " dZwindow_2below " << dZwindow_2below << std::endl;
         QueryTree(_rtrees[l_index - 2],
                   centerPhi - dphiwindow_below - dphiwindow_2below,
                   centerZ - dZwindow_below - dZwindow_2below,
@@ -526,7 +523,6 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
 
       const float center_radius_above = (l + 1 < 3) ? GetMvtxRadiusByPhi(centerPhi, l + 1) : radius_per_layer.at(l + 1);
       const float dZwindow_above = (center_radius_above - center_radius) * (1. / _drdz_allowance);
-      std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_above " << dphiwindow_above << " dZwindow_above " << dZwindow_above << std::endl;
       QueryTree(_rtrees[l_index + 1],
                 centerPhi - dphiwindow_above,
                 centerZ - dZwindow_above,
@@ -540,7 +536,6 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
         const float center_radius_2above = (l + 2 < 3) ? GetMvtxRadiusByPhi(centerPhi, l + 2) : radius_per_layer.at(l + 2);
         const float dZwindow_2above = (center_radius_2above - center_radius) * (1. / _drdz_allowance);
 
-        std::cout << __LINE__ << " centerPhi " << centerPhi << " centerZ " << centerZ << " dphiwindow_2above " << dphiwindow_2above << " dZwindow_2above " << dZwindow_2above << std::endl;
         QueryTree(_rtrees[l_index + 2],
                   centerPhi - dphiwindow_above - dphiwindow_2above,
                   centerZ - dZwindow_above - dZwindow_2above,
@@ -688,7 +683,7 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
       {
         for (const Triplet& triplet : triplets[l_index])
         {
-          std::cout << __LINE__ << " triplet (bottom, center, top): " << (uint64_t) triplet.bottom << ", " << (uint64_t) triplet.center << ", " << (uint64_t) triplet.top << std::endl;
+          std::cout << " triplet (bottom, center, top): " << (uint64_t) triplet.bottom << ", " << (uint64_t) triplet.center << ", " << (uint64_t) triplet.top << std::endl;
         }
       }
     }
@@ -1317,7 +1312,10 @@ void PHCASiliconSeeding::SetupDefaultLayerRadius()
     if (layergeom)
     {
       radius_per_layer[layer] = layergeom->get_radius();
-      std::cout << "PHCASiliconSeeding::SetupLayerRadius - MVTX layer " << layer << " radius: " << layergeom->get_radius() << " cm" << std::endl;
+      if (Verbosity() > 0)
+      {
+        std::cout << "PHCASiliconSeeding::SetupLayerRadius - MVTX layer " << layer << " radius: " << layergeom->get_radius() << " cm" << std::endl;
+      }
     }
   }
 
@@ -1332,7 +1330,10 @@ void PHCASiliconSeeding::SetupDefaultLayerRadius()
     if (layergeom)
     {
       radius_per_layer[layer] = layergeom->get_radius();
-      std::cout << "PHCASiliconSeeding::SetupLayerRadius - INTT layer " << layer << " radius: " << layergeom->get_radius() << " cm" << std::endl;
+      if (Verbosity() > 0)
+      {
+        std::cout << "PHCASiliconSeeding::SetupLayerRadius - INTT layer " << layer << " radius: " << layergeom->get_radius() << " cm" << std::endl;
+      }
     }
   }
 }
