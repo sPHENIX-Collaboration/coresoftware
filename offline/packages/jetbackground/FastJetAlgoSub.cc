@@ -150,14 +150,20 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
       total_py += particle->get_py();
       total_pz += particle->get_pz();
       total_e += particle->get_e();
-      if(particle->has_property(Jet::PROPERTY::prop_t))
+      if(particle->size_properties() > Jet::PROPERTY::prop_t)
 	{
-	  w_t_sum += particle->get_property(Jet::PROPERTY::prop_t) * particle->get_e();
-	  w_e_sum += particle->get_e();
+	  if(particle->get_property(Jet::PROPERTY::prop_t))
+	    {
+	      w_t_sum += particle->get_property(Jet::PROPERTY::prop_t) * particle->get_e();
+	      w_e_sum += particle->get_e();
+	    }
 	}
 	jet->insert_comp(particle->get_comp_vec(), true);
     }
-
+    if(jet->size_properties() < Jet::PROPERTY::prop_t+1)
+      {
+	jet->resize_properties(Jet::PROPERTY::prop_t + 1);
+      }
     jet->set_property(Jet::PROPERTY::prop_t,w_t_sum/w_e_sum); //This intentionally becomes nan (0/0) if the
                                                               //value has not been filled at all so that
                                                               //the jet auto-fails timing cuts if necessary

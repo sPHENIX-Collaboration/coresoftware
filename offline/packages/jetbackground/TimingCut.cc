@@ -60,7 +60,7 @@ int TimingCut::CreateNodeTree(PHCompositeNode *topNode)
     return 1;
   }
 
-  _cutParams.SaveToNodeTree(parNode, "JetCutParams");
+  _cutParams.SaveToNodeTree(parNode, "TimingCutParams");
   return 0;
 }
 
