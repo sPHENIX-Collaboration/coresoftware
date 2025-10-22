@@ -24,6 +24,7 @@
 #include <globalvertex/SvtxVertex_v2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
@@ -55,6 +56,11 @@ WeightedFitter::FitErrorCalculator::operator() (
 	set_parameters(params);
 
 	double error{0};
+
+	if (m_vertex) {
+		error += (get_pca(m_vertex.value()) - m_vertex.value()).norm();
+	}
+
 	for (auto const& point : m_points) {
 		// in-plane displacement (in global coordinates)
 		Eigen::Vector3d displacement = get_intersection(point) - point.pos;
@@ -92,7 +98,19 @@ Eigen::Vector3d
 WeightedFitter::FitErrorCalculator::get_intersection (
 	WeightedFitter::ClusterFitPoint const& point
 ) const {
+	// solve s
+	// (m_slope * s + m_intercept - point.pos).dot(point.z) = 0
 	double s = (point.pos - m_intercept).dot(point.z) / m_slope.dot(point.z);
+	return m_slope * s + m_intercept;
+}
+
+Eigen::Vector3d
+WeightedFitter::FitErrorCalculator::get_pca (
+	Eigen::Vector3d const& point
+) const {
+	// solve s
+	// (m_slope * s + m_intercept - point).dot(m_slope) = 0
+	double s = (point - m_intercept).dot(m_slope); // m_slope is a unit vector
 	return m_slope * s + m_intercept;
 }
 
@@ -121,60 +139,41 @@ void
 WeightedFitter::get_nodes (
 	PHCompositeNode* top_node
 ) {
+	std::vector<std::string> missing_node_names;
+
 	m_geometry = findNode::getClass<ActsGeometry>(top_node, m_geometry_node_name);
-	if (!m_geometry) {
-		std::stringstream what;
-		what
-			<< PHWHERE
-			<< " Couldn't get node: "
-			<< m_geometry_node_name;
-		throw std::runtime_error(what.str());
-	}
+	if (!m_geometry) { missing_node_names.push_back(m_geometry_node_name); }
 
 	m_trkr_cluster_container = findNode::getClass<TrkrClusterContainer>(top_node, m_trkr_cluster_container_node_name);
-	if (!m_trkr_cluster_container) {
-		std::stringstream what;
-		what
-			<< PHWHERE
-			<< " Couldn't get node: "
-			<< m_trkr_cluster_container_node_name;
-		throw std::runtime_error(what.str());
-	}
+	if (!m_trkr_cluster_container) { missing_node_names.push_back(m_trkr_cluster_container_node_name); }
 
 	if (m_which_tracks == k_svtx_tracks) {
 		m_svtx_track_seed_container = findNode::getClass<TrackSeedContainer>(top_node, m_svtx_track_seed_container_node_name);
-		if (!m_svtx_track_seed_container) {
-			std::stringstream what;
-			what
-				<< PHWHERE
-				<< " Couldn't get node: "
-				<< m_svtx_track_seed_container_node_name;
-			throw std::runtime_error(what.str());
-		}
+		if (!m_svtx_track_seed_container) { missing_node_names.push_back(m_svtx_track_seed_container_node_name); }
 	}
 
 	if (m_which_tracks == k_svtx_tracks || m_which_tracks == k_silicon_tracks) {
 		m_silicon_track_seed_container = findNode::getClass<TrackSeedContainer>(top_node, m_silicon_track_seed_container_node_name);
-		if (!m_silicon_track_seed_container) {
-			std::stringstream what;
-			what
-				<< PHWHERE
-				<< " Couldn't get node: "
-				<< m_silicon_track_seed_container_node_name;
-			throw std::runtime_error(what.str());
-		}
+		if (!m_silicon_track_seed_container) { missing_node_names.push_back(m_silicon_track_seed_container_node_name); }
 	}
 
 	if (m_which_tracks == k_svtx_tracks || m_which_tracks == k_tpc_tracks) {
 		m_tpc_track_seed_container = findNode::getClass<TrackSeedContainer>(top_node, m_tpc_track_seed_container_node_name);
-		if (!m_tpc_track_seed_container) {
-			std::stringstream what;
-			what
-				<< PHWHERE
-				<< " Couldn't get node: "
-				<< m_tpc_track_seed_container_node_name;
-			throw std::runtime_error(what.str());
-		}
+		if (!m_tpc_track_seed_container) { missing_node_names.push_back(m_tpc_track_seed_container_node_name); }
+	}
+
+	if (m_use_vertex) {
+		m_vertex_map = findNode::getClass<SvtxVertexMap>(top_node, m_vertex_map_node_name);
+		if (!m_vertex_map) { missing_node_names.push_back(m_vertex_map_node_name); }
+	}
+
+	if (missing_node_names.size()) {
+		std::stringstream what;
+		what
+			<< PHWHERE
+			<< " Couldn't get node(s): ";
+		for (auto const& name : missing_node_names) { what << "\n " << name; }
+		throw std::runtime_error(what.str());
 	}
 }
 
@@ -239,6 +238,7 @@ WeightedFitter::make_ntuple (
 	delete m_ntuple;
 	m_ntuple = new TNtuple (
 		"ntp", "ntp",
+		"event:track:"
 		"fitstatus:"
 		"nmaps:nintt:ntpc:cluslayer:"
 		"clusstave:cluschip:clusstrobe:"
@@ -250,6 +250,8 @@ WeightedFitter::make_ntuple (
 		"stategx:stategy:stategz:"
 		"dXdx0:dXdy0:dXdtheta:dXdphi:"
 		"dYdx0:dYdy0:dYdtheta:dYdphi:"
+		"Ndx0:Ndy0:Ndtheta:Ndphi:"
+		"vtxgx:vtxgy:vtxgz:"
 	);
 	m_ntuple->SetDirectory(m_file);
 }
@@ -342,11 +344,9 @@ WeightedFitter::process_event (
 		if (get_cluster_keys(track_seed_ptr)) continue;
 		if (get_points()) continue;
 		if (do_fit()) continue;
+		if (m_use_vertex && refit_with_vertex()) continue;
 		if (add_track()) continue;
 		++m_track_id;
-
-		// draw(); // leaks memory in current implementation
-		// break;
 	}
 
 	if (Verbosity()) {
@@ -402,6 +402,7 @@ WeightedFitter::get_points (
 	m_num_intt = 0;
 	m_num_tpc = 0;
 
+	m_fit_error_calculator->m_vertex.reset();
 	m_fit_error_calculator->m_points.clear();
 
 	// Assign all clusters (e.g., Si clusters) the same side
@@ -411,14 +412,10 @@ WeightedFitter::get_points (
 
 	for (auto const& cluster_key : m_cluster_keys) {
 		TrkrCluster* cluster = m_trkr_cluster_container->findCluster(cluster_key);
-		if (!cluster) {
-			continue;
-		}
+		if (!cluster) continue;
 
 		Surface const surf = m_geometry->maps().getSurface(cluster_key, cluster);
-		if (!surf) {
-			continue;
-		}
+		if (!surf) continue;
 	
 		auto local_to_global_transform = surf->transform(m_geometry->geometry().getGeoContext()); // in mm
 
@@ -538,6 +535,84 @@ WeightedFitter::do_fit (
 			<< " status: " << m_minimizer->Status()
 			<< std::endl;
 	}
+
+	double const* params = m_minimizer->X();
+	m_fit_error_calculator->set_parameters(params);
+
+	return !fit_succeeded;
+}
+
+bool
+WeightedFitter::refit_with_vertex (
+) {
+	if (!m_vertex_map) {
+		std::stringstream what;
+		what
+			<< PHWHERE
+			<< " Couldn't get node: "
+			<< m_vertex_map_node_name;
+		throw std::runtime_error(what.str());
+	}
+
+	if (m_vertex_map->empty()) {
+		if (1 < Verbosity()) {
+			std::cout
+				<< PHWHERE
+				<< " vertex map is empty"
+				<< std::endl;
+		}
+		return true;
+	}
+
+	double min_dca = std::numeric_limits<double>::max();
+	for (auto const& [vertex_id, svtx_vertex] : *m_vertex_map) {
+		if (!svtx_vertex) {
+			std::cout << PHWHERE << " vertex pointer is null" << std::endl;
+			continue;
+		}
+
+		Eigen::Vector3d vertex_pos {
+			svtx_vertex->get_x(),
+			svtx_vertex->get_y(),
+			svtx_vertex->get_z(),
+		};
+
+		double dca = (m_fit_error_calculator->get_pca(vertex_pos) - vertex_pos).norm();
+		if (dca < min_dca) {
+			min_dca = dca;
+			m_fit_error_calculator->m_vertex = vertex_pos;
+		}
+	}
+
+	if (!m_fit_error_calculator->m_vertex) {
+		std::cout << "no vertex after loop" << std::endl;
+		return true;
+	}
+
+	if (1 < Verbosity()) {
+		std::cout
+			<< PHWHERE
+			<< " vertex: " << m_fit_error_calculator->m_vertex.value().transpose()
+			<< " track pca: " << m_fit_error_calculator->get_pca(m_fit_error_calculator->m_vertex.value()).transpose()
+			<< " dca: " << min_dca
+			<< std::endl;
+	}
+
+	ROOT::Math::Functor get_fit_error(*m_fit_error_calculator, &FitErrorCalculator::operator(), 4);
+	m_minimizer->SetFunction(get_fit_error);
+
+	bool fit_succeeded = m_minimizer->Minimize();
+	if (1 < Verbosity()) {
+		std::cout
+			<< PHWHERE
+			<< " fit " << (fit_succeeded ? "succeeded" : "failed")
+			<< " status: " << m_minimizer->Status()
+			<< std::endl;
+	}
+
+	double const* params = m_minimizer->X();
+	m_fit_error_calculator->set_parameters(params);
+
 	return !fit_succeeded;
 }
 
@@ -638,6 +713,29 @@ WeightedFitter::add_track (
 			global_derivative_matrix(1, i) = proj[1].dot(global_derivatives[i]); // Y residual partial derivative
 		}
 
+		std::array<double, 4> numeric_partial_derivatives{};
+		for (int i = 0; i < 4; ++i) {
+			static double const epsilon = 1.0E-8;
+
+			double temp_params[4]{};
+			for (int j = 0; j < 4; ++j) temp_params[j] = params[j];
+
+			temp_params[i] = params[i] + epsilon;
+			m_fit_error_calculator->set_parameters(temp_params);
+			Eigen::Vector3d temp = m_fit_error_calculator->get_intersection(point) - point.pos;
+			numeric_partial_derivatives[i] += sqr(point.x.dot(temp) / point.sigma_x);
+			numeric_partial_derivatives[i] += sqr(point.y.dot(temp) / point.sigma_y);
+
+			temp_params[i] = params[i] - epsilon;
+			m_fit_error_calculator->set_parameters(temp_params);
+			temp = m_fit_error_calculator->get_intersection(point) - point.pos;
+			numeric_partial_derivatives[i] -= sqr(point.x.dot(temp) / point.sigma_x);
+			numeric_partial_derivatives[i] -= sqr(point.y.dot(temp) / point.sigma_y);
+
+			numeric_partial_derivatives[i] /= 2.0 * epsilon;
+		}
+		m_fit_error_calculator->set_parameters(params);
+
 		alignment_state->set_cluster_key(point.cluster_key);
 		alignment_state->set_residual(residual);
 		alignment_state->set_local_derivative_matrix(local_derivative_matrix);
@@ -650,7 +748,21 @@ WeightedFitter::add_track (
 					<< " Filling ntuple"
 					<< std::endl;
 			}
+
+			Eigen::Vector3f vertex = {
+				std::numeric_limits<float>::quiet_NaN(),
+				std::numeric_limits<float>::quiet_NaN(),
+				std::numeric_limits<float>::quiet_NaN(),
+			};
+
+			if (m_fit_error_calculator->m_vertex) {
+				vertex(0) = (float)m_fit_error_calculator->m_vertex.value()(0);
+				vertex(1) = (float)m_fit_error_calculator->m_vertex.value()(1);
+				vertex(2) = (float)m_fit_error_calculator->m_vertex.value()(2);
+			}
+
 			float ntp_data[] = {
+				(float)Fun4AllServer::instance()->EventNumber(), (float)m_track_id,
 				(float)m_minimizer->Status(),
 				(float)m_num_mvtx, (float)m_num_intt, (float)m_num_tpc, (float)point.layer,
 				(float)point.stave, (float)point.chip, (float)point.strobe,
@@ -662,6 +774,8 @@ WeightedFitter::add_track (
 				(float)intersection(0), (float)intersection(1), (float)intersection(2),
 				(float)local_derivative_matrix(0, 0), (float)local_derivative_matrix(0, 1), (float)local_derivative_matrix(0, 2), (float)local_derivative_matrix(0, 3),
 				(float)local_derivative_matrix(1, 0), (float)local_derivative_matrix(1, 1), (float)local_derivative_matrix(1, 2), (float)local_derivative_matrix(1, 3),
+				(float)numeric_partial_derivatives[0],  (float)numeric_partial_derivatives[1], (float)numeric_partial_derivatives[2], (float)numeric_partial_derivatives[3], 
+				vertex(0), vertex(1), vertex(2),
 			};
 			m_ntuple->Fill(ntp_data);
 		}

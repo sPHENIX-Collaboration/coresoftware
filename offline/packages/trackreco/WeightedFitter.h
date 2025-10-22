@@ -13,6 +13,7 @@
 #include <Math/Minimizer.h>
 
 #include <array>
+#include <optional>
 
 class PHCompositeNode;
 class ActsGeometry;
@@ -26,7 +27,6 @@ class SvtxVertexMap;
 
 class TFile;
 class TNtuple;
-class TPad;
 
 class WeightedFitter : public SubsysReco {
 public:
@@ -66,6 +66,7 @@ private:
 	bool get_cluster_keys (TrackSeed*);
 	bool get_points();
 	bool do_fit();
+	bool refit_with_vertex();
 	bool add_track();
 
 	std::string m_ntuple_file_name{}; // none--by default do not make it
@@ -156,10 +157,12 @@ public:
 
 	virtual void set_parameters (double const*) const;
 	virtual Eigen::Vector3d get_intersection (ClusterFitPoint const&) const;
+	virtual Eigen::Vector3d get_pca (Eigen::Vector3d const&) const;
 
 private:
 	friend WeightedFitter;
 	std::vector<ClusterFitPoint> m_points;
+	std::optional<Eigen::Vector3d> m_vertex;
 
 	mutable double m_cos_theta{0};
 	mutable double m_sin_theta{0};
