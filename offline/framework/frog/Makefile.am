@@ -35,7 +35,7 @@ libffamodules_la_LIBADD = \
   -lodbc++
 
 libFROG_la_LIBADD = \
-  -lffamodules
+  libffamodules.la
 
 pkginclude_HEADERS = \
   FROG.h
