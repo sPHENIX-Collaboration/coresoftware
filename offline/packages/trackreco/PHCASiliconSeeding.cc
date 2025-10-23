@@ -342,7 +342,7 @@ bool PHCASiliconSeeding::ClusterTimesAreCompatible(const uint8_t trkr_id, const 
     return true;  // clusters can only be compared within the same detector, so compatibility cut is not applicable
   }
 
-  if(trkr_id == TrkrDefs::mvtxId)
+  if (trkr_id == TrkrDefs::mvtxId)
   {
     if (Verbosity() > 3)
     {
@@ -372,27 +372,28 @@ int PHCASiliconSeeding::GetClusterTimeIndex(const TrkrDefs::cluskey ckey) const
     return MvtxDefs::getStrobeId(ckey);
   }
 
-  if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::inttId)
+  if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::inttId)
   {
     return GetCleanINTTClusterCrossing(ckey);
   }
-  
-      return SHRT_MAX;  // other detectors don't carry interpretable time info
- 
+
+  return SHRT_MAX;  // other detectors don't carry interpretable time info
 }
 
 short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ckey) const
 {
   std::set<short> crossings = GetINTTClusterCrossings(ckey);
 
-  if(crossings.empty() || crossings.size() > 2)
+  if (crossings.empty() || crossings.size() > 2)
   {
     if (Verbosity() > 3 && crossings.size() > 2)
     {
       std::cout << "more than two INTT crossings within cluster: ";
 
-      for(short cross : crossings) { std::cout << cross << " ";
-}
+      for (short cross : crossings)
+      {
+        std::cout << cross << " ";
+      }
       std::cout << std::endl;
     }
     return SHRT_MAX;
@@ -427,20 +428,19 @@ std::set<short> PHCASiliconSeeding::GetINTTClusterCrossings(const TrkrDefs::clus
   {
     return std::set<short>{};  // only INTT clusters have crossing info
   }
-  
-      std::set<short> crossings;
-    TrkrCluster* clus = m_clusterMap->findCluster(ckey);
-    if (!clus)
-    {
-      return std::set<short>{};  // a cluster that doesn't exist has no cluster crossing info
-    }
-    auto crossingrange = m_clusterCrossingMap->getCrossings(ckey);
-    for (auto iter = crossingrange.first; iter != crossingrange.second; ++iter)
-    {
-      crossings.insert(iter->second);
-    }
-    return crossings;
- 
+
+  std::set<short> crossings;
+  TrkrCluster* clus = m_clusterMap->findCluster(ckey);
+  if (!clus)
+  {
+    return std::set<short>{};  // a cluster that doesn't exist has no cluster crossing info
+  }
+  auto crossingrange = m_clusterCrossingMap->getCrossings(ckey);
+  for (auto iter = crossingrange.first; iter != crossingrange.second; ++iter)
+  {
+    crossings.insert(iter->second);
+  }
+  return crossings;
 }
 
 std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::CreateLinks(const PHCASiliconSeeding::PositionMap& globalPositions, const PHCASiliconSeeding::keyListPerLayer& ckeys)
@@ -731,8 +731,10 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
       {
         std::cout << "current keys: ";
 
-        for(const TrkrDefs::cluskey& key : seed) { std::cout << (uint64_t)key << ", ";
-}
+        for (const TrkrDefs::cluskey& key : seed)
+        {
+          std::cout << (uint64_t) key << ", ";
+        }
         std::cout << std::endl;
       }
       const TrkrDefs::cluskey currentTop = seed.back();
@@ -765,8 +767,10 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
         }
       }
 
-      if(finished) { finishedSeeds.push_back(seed);
-}
+      if (finished)
+      {
+        finishedSeeds.push_back(seed);
+      }
     }
     // find starts of new seeds
     int new_seed_count = 0;
@@ -789,8 +793,10 @@ std::vector<PHCASiliconSeeding::keyList> PHCASiliconSeeding::FollowLinks(const s
           {
             std::cout << "has existing seed with keys ";
 
-            for(const TrkrDefs::cluskey& key : seed) { std::cout << (uint64_t)key << ", ";
-}
+            for (const TrkrDefs::cluskey& key : seed)
+            {
+              std::cout << (uint64_t) key << ", ";
+            }
             std::cout << std::endl;
           }
           has_existing_seed = true;
@@ -829,8 +835,8 @@ float PHCASiliconSeeding::getSeedQuality(const TrackSeed_v2& seed, const PHCASil
     Acts::Vector3 pos = globalPositions.at(*iter);
     TrkrCluster* c = m_clusterMap->findCluster(*iter);
 
-    xy_pts.emplace_back(pos.x(),pos.y());
-    rz_pts.emplace_back(sqrt(pos.x()*pos.x()+pos.y()*pos.y()),pos.z());
+    xy_pts.emplace_back(pos.x(), pos.y());
+    rz_pts.emplace_back(sqrt(pos.x() * pos.x() + pos.y() * pos.y()), pos.z());
     xyerr.push_back(c->getRPhiError());
     zerr.push_back(c->getZError());
   }
@@ -909,13 +915,17 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
     {
       std::cout << "layers already covered: ";
 
-      for(auto iter = seed.begin_cluster_keys(); iter != seed.end_cluster_keys(); ++iter) { std::cout << (size_t)TrkrDefs::getLayer(*iter) << ", ";
-}
+      for (auto iter = seed.begin_cluster_keys(); iter != seed.end_cluster_keys(); ++iter)
+      {
+        std::cout << (size_t) TrkrDefs::getLayer(*iter) << ", ";
+      }
       std::cout << std::endl;
 
       std::cout << "layers to propagate: ";
-      for(const auto& layer : layers) { std::cout << layer << ", ";
-}
+      for (const auto& layer : layers)
+      {
+        std::cout << layer << ", ";
+      }
       std::cout << std::endl;
     }
 
@@ -1324,7 +1334,7 @@ void PHCASiliconSeeding::SetupDefaultLayerRadius()
        ++layeriter)
   {
     int layer = layeriter->second->get_layer();
-    auto *layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
+    auto* layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
     if (layergeom)
     {
       radius_per_layer[layer] = layergeom->get_radius();
@@ -1342,7 +1352,7 @@ void PHCASiliconSeeding::SetupDefaultLayerRadius()
        ++layeriter)
   {
     int layer = layeriter->second->get_layer();
-    auto *layergeom = dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
+    auto* layergeom = dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
     if (layergeom)
     {
       radius_per_layer[layer] = layergeom->get_radius();
