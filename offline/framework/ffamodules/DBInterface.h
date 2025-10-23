@@ -19,13 +19,12 @@ class DBInterface : public SubsysReco
 
   ~DBInterface() override;
 
-  /// Called at the beginning of all processing after Run number is known.
-  int InitRun(PHCompositeNode *topNode) override;
-
   int process_event(PHCompositeNode *) override;
 
   /// Called at the end of all processing.
   int End(PHCompositeNode *) override;
+
+  void Print(const std::string & /*what*/ = "ALL") const override;
 
   odbc::Connection *getDBConnection(const std::string &dbname, int verbosity = 0);
   odbc::Statement *getStatement(const std::string &dbname, int verbosity = 0);
@@ -43,6 +42,7 @@ class DBInterface : public SubsysReco
   std::map<std::string, odbc::Connection *> m_OdbcConnectionMap;
   std::map<std::string, odbc::Statement *> m_OdbcStatementMap;
   std::map<std::string, int> m_NumConnection;
+  std::map<std::string, int> m_NumStatementUse;
 };
 
 #endif
