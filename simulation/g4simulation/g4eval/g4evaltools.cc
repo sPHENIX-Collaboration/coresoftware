@@ -164,7 +164,7 @@ namespace G4Eval
       }
     
     m_TruthClusters =
-      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters.c_str());
+      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters);
     if (!m_TruthClusters)
       {
       std::cout << PHWHERE << " Could not locate " << name_phg4_clusters << " node" << std::endl;

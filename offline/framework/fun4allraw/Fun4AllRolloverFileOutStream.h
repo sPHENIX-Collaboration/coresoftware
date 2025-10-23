@@ -29,7 +29,6 @@ class Fun4AllRolloverFileOutStream : public Fun4AllFileOutStream
   uint64_t m_MaxFileFize{0};
   unsigned int m_MaxNEvents{0};
   int m_CurrentSequence{0};
-  int m_Offset{0};
   int m_Increment{1};
 };
 

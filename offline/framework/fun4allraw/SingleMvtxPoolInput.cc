@@ -1,4 +1,6 @@
 #include "SingleMvtxPoolInput.h"
+
+#include "MvtxRawDefs.h"
 #include "Fun4AllStreamingInputManager.h"
 #include "mvtx_pool.h"
 
@@ -7,9 +9,9 @@
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
 #include <fun4all/Fun4AllUtils.h>
-#include "MvtxRawDefs.h"
 
 #include <frog/FROG.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
