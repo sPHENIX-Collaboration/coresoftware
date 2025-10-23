@@ -350,7 +350,7 @@ bool PHCASiliconSeeding::ClusterTimesAreCompatible(const uint8_t trkr_id, const 
     }
     return (time_index == MvtxDefs::getStrobeId(ckey));  // cut on same MVTX strobe
   }
-  else if (trkr_id == TrkrDefs::inttId)
+  if (trkr_id == TrkrDefs::inttId)
   {
     short crossing = GetCleanINTTClusterCrossing(ckey);
     if (Verbosity() > 3)
@@ -376,10 +376,9 @@ int PHCASiliconSeeding::GetClusterTimeIndex(const TrkrDefs::cluskey ckey) const
   {
     return GetCleanINTTClusterCrossing(ckey);
   }
-  else
-  {
-    return SHRT_MAX;  // other detectors don't carry interpretable time info
-  }
+  
+      return SHRT_MAX;  // other detectors don't carry interpretable time info
+ 
 }
 
 short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ckey) const
@@ -398,7 +397,7 @@ short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ck
     }
     return SHRT_MAX;
   }
-  else if (crossings.size() == 1)
+  if (crossings.size() == 1)
 
   {
     return *(crossings.begin());
@@ -453,8 +452,8 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
   for (size_t l = _start_layer; l <= _end_layer; l++)
   {
     const size_t l_index = l - _start_layer;
-    _rtrees.push_back(bgi::rtree<pointKey, bgi::quadratic<16>>());
-    triplets.push_back(std::vector<Triplet>());
+    _rtrees.emplace_back();
+    triplets.emplace_back();
     if (l == 4)
 
     {
@@ -1055,7 +1054,7 @@ void PHCASiliconSeeding::HelixPropagate(std::vector<TrackSeed_v2>& seeds, const 
         continue;
       }
 
-      const Acts::Vector3 closeclusterpos = globalPositions.at(closeCluster.second);
+      const Acts::Vector3& closeclusterpos = globalPositions.at(closeCluster.second);
       const Acts::Vector3 pca = TrackFitUtils::get_helix_pca(fitpars, closeclusterpos);
 
       const Acts::Vector3 residual = closeclusterpos - pca;
