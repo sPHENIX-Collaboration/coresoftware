@@ -29,6 +29,7 @@ public:
 
 private:
 	static std::string constexpr m_prefix{"h_InttQa"};
+
 	static int const n_felix_servers{8};
 	static int const n_felix_channels{14};
 	static int const n_chips{26};
@@ -45,6 +46,14 @@ private:
 	per_felix_channel_array_t m_felix_channel_hit_distribution{};
 	per_chip_array_t m_chip_hit_distribution{};
 	per_chip_array_t m_chip_adc_distribution{};
+
+	static int const n_barrels{2};
+	static int const n_ladder_z{4};
+	static std::array<int, n_barrels> constexpr n_ladders{24, 32, };
+	static std::array<int, n_ladder_z> constexpr n_strip_y{5, 8, 8, 5, };
+
+	typedef std::array<TH1*, n_barrels> per_barrel_array_t;
+	per_barrel_array_t m_barrel_hit_distribution{};
 
 	// Gl1Packet* m_gl1_packet{};
 	// std::vector<InttEventHeader*> m_intt_event_headers{};
