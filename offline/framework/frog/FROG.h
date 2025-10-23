@@ -31,12 +31,6 @@ class FROG
 
  private:
   odbc::Connection *GetConnection(const std::string &database);
-  void Disconnect();
-  static const int m_MAX_NUM_RETRIES{3000};
-  static const int m_MIN_SLEEP_DUR{5000};   // milliseconds
-  static const int m_MAX_SLEEP_DUR{30000};  // milliseconds
-
-  std::map<std::string, odbc::Connection *> m_OdbcConnectionMap;
   int m_Verbosity{0};
   std::string pfn;
 };
