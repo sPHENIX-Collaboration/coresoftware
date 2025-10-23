@@ -39,6 +39,7 @@ DBInterface::~DBInterface()
   {
     m_OdbcStatementMap.clear();
   }
+  __instance = nullptr;
   return;
 }
 
