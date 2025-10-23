@@ -13,7 +13,6 @@
 #include <Math/Minimizer.h>
 
 #include <array>
-#include <optional>
 
 class PHCompositeNode;
 class ActsGeometry;
@@ -30,6 +29,7 @@ class TNtuple;
 
 class WeightedFitter : public SubsysReco {
 public:
+	class VertexFitPoint;
 	class ClusterFitPoint;
 	class FitErrorCalculator;
 	enum which_track_e { k_silicon_tracks, k_tpc_tracks, k_svtx_tracks, };
@@ -120,6 +120,19 @@ private:
 	ClusterErrorPara m_cluster_error_para;
 };
 
+class WeightedFitter::VertexFitPoint {
+public:
+	void reset() {
+		use = false;
+		pos = Eigen::Vector3d::Zero();
+		cov = Eigen::Matrix3d::Identity();
+	}
+
+	bool use{false};
+	Eigen::Vector3d pos = Eigen::Vector3d::Zero();
+	Eigen::Matrix3d cov = Eigen::Matrix3d::Identity();
+};
+
 class WeightedFitter::ClusterFitPoint {
 public:
 	TrkrDefs::cluskey cluster_key;
@@ -161,8 +174,8 @@ public:
 
 private:
 	friend WeightedFitter;
+	VertexFitPoint m_vertex;
 	std::vector<ClusterFitPoint> m_points;
-	std::optional<Eigen::Vector3d> m_vertex;
 
 	mutable double m_cos_theta{0};
 	mutable double m_sin_theta{0};

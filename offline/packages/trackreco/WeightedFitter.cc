@@ -37,7 +37,6 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
-#include <array>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -57,8 +56,9 @@ WeightedFitter::FitErrorCalculator::operator() (
 
 	double error{0};
 
-	if (m_vertex) {
-		error += (get_pca(m_vertex.value()) - m_vertex.value()).norm();
+	if (m_vertex.use) {
+		Eigen::Vector3d displacement = get_pca(m_vertex.pos) - m_vertex.pos;
+		error += displacement.transpose() * m_vertex.cov * displacement;
 	}
 
 	for (auto const& point : m_points) {
@@ -251,7 +251,7 @@ WeightedFitter::make_ntuple (
 		"dXdx0:dXdy0:dXdtheta:dXdphi:"
 		"dYdx0:dYdy0:dYdtheta:dYdphi:"
 		"Ndx0:Ndy0:Ndtheta:Ndphi:"
-		"vtxgx:vtxgy:vtxgz:"
+		"dca:vtxgx:vtxgy:vtxgz:"
 	);
 	m_ntuple->SetDirectory(m_file);
 }
@@ -564,12 +564,10 @@ WeightedFitter::refit_with_vertex (
 		return true;
 	}
 
+	SvtxVertex* closest_vertex{};
 	double min_dca = std::numeric_limits<double>::max();
 	for (auto const& [vertex_id, svtx_vertex] : *m_vertex_map) {
-		if (!svtx_vertex) {
-			std::cout << PHWHERE << " vertex pointer is null" << std::endl;
-			continue;
-		}
+		if (!svtx_vertex) continue;
 
 		Eigen::Vector3d vertex_pos {
 			svtx_vertex->get_x(),
@@ -580,40 +578,40 @@ WeightedFitter::refit_with_vertex (
 		double dca = (m_fit_error_calculator->get_pca(vertex_pos) - vertex_pos).norm();
 		if (dca < min_dca) {
 			min_dca = dca;
-			m_fit_error_calculator->m_vertex = vertex_pos;
+			closest_vertex = svtx_vertex;
 		}
 	}
 
-	if (!m_fit_error_calculator->m_vertex) {
-		std::cout << "no vertex after loop" << std::endl;
-		return true;
+	if (!closest_vertex) {
+		std::stringstream what;
+		what
+			<< PHWHERE
+			<< "no vertex after loop";
+		throw std::runtime_error(what.str());
+	}
+
+	m_fit_error_calculator->m_vertex.use = true;
+	m_fit_error_calculator->m_vertex.pos = Eigen::Vector3d {
+		closest_vertex->get_x(),
+		closest_vertex->get_y(),
+		closest_vertex->get_z(),
+	};
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			m_fit_error_calculator->m_vertex.cov(i, j) = closest_vertex->get_error(i, j);
+		}
 	}
 
 	if (1 < Verbosity()) {
 		std::cout
 			<< PHWHERE
-			<< " vertex: " << m_fit_error_calculator->m_vertex.value().transpose()
-			<< " track pca: " << m_fit_error_calculator->get_pca(m_fit_error_calculator->m_vertex.value()).transpose()
+			<< " vertex: " << m_fit_error_calculator->m_vertex.pos.transpose()
+			<< " track pca: " << m_fit_error_calculator->get_pca(m_fit_error_calculator->m_vertex.pos).transpose()
 			<< " dca: " << min_dca
 			<< std::endl;
 	}
 
-	ROOT::Math::Functor get_fit_error(*m_fit_error_calculator, &FitErrorCalculator::operator(), 4);
-	m_minimizer->SetFunction(get_fit_error);
-
-	bool fit_succeeded = m_minimizer->Minimize();
-	if (1 < Verbosity()) {
-		std::cout
-			<< PHWHERE
-			<< " fit " << (fit_succeeded ? "succeeded" : "failed")
-			<< " status: " << m_minimizer->Status()
-			<< std::endl;
-	}
-
-	double const* params = m_minimizer->X();
-	m_fit_error_calculator->set_parameters(params);
-
-	return !fit_succeeded;
+	return do_fit();
 }
 
 bool
@@ -749,16 +747,18 @@ WeightedFitter::add_track (
 					<< std::endl;
 			}
 
+			float dca = std::numeric_limits<float>::quiet_NaN();
 			Eigen::Vector3f vertex = {
 				std::numeric_limits<float>::quiet_NaN(),
 				std::numeric_limits<float>::quiet_NaN(),
 				std::numeric_limits<float>::quiet_NaN(),
 			};
 
-			if (m_fit_error_calculator->m_vertex) {
-				vertex(0) = (float)m_fit_error_calculator->m_vertex.value()(0);
-				vertex(1) = (float)m_fit_error_calculator->m_vertex.value()(1);
-				vertex(2) = (float)m_fit_error_calculator->m_vertex.value()(2);
+			if (m_fit_error_calculator->m_vertex.use) {
+				vertex(0) = (float)m_fit_error_calculator->m_vertex.pos(0);
+				vertex(1) = (float)m_fit_error_calculator->m_vertex.pos(1);
+				vertex(2) = (float)m_fit_error_calculator->m_vertex.pos(2);
+				dca = (float)(m_fit_error_calculator->get_pca(m_fit_error_calculator->m_vertex.pos) - m_fit_error_calculator->m_vertex.pos).norm();
 			}
 
 			float ntp_data[] = {
@@ -775,7 +775,7 @@ WeightedFitter::add_track (
 				(float)local_derivative_matrix(0, 0), (float)local_derivative_matrix(0, 1), (float)local_derivative_matrix(0, 2), (float)local_derivative_matrix(0, 3),
 				(float)local_derivative_matrix(1, 0), (float)local_derivative_matrix(1, 1), (float)local_derivative_matrix(1, 2), (float)local_derivative_matrix(1, 3),
 				(float)numeric_partial_derivatives[0],  (float)numeric_partial_derivatives[1], (float)numeric_partial_derivatives[2], (float)numeric_partial_derivatives[3], 
-				vertex(0), vertex(1), vertex(2),
+				dca, vertex(0), vertex(1), vertex(2),
 			};
 			m_ntuple->Fill(ntp_data);
 		}
