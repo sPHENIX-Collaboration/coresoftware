@@ -79,28 +79,28 @@ int TpcRawHitQA::InitRun(PHCompositeNode *topNode)
       }
   }
 
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   for (int s = 0; s < 24; s++)
     {
-      h_nhits_sectors[s] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s)).c_str()));
-      h_nhits_sectors_fees[s] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees").c_str()));
-      h_nhits_sectors_laser[s] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_laser").c_str()));
-      h_nhits_sectors_fees_laser[s] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees_laser").c_str()));
+      h_nhits_sectors[s] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s))));
+      h_nhits_sectors_fees[s] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees")));
+      h_nhits_sectors_laser[s] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_laser")));
+      h_nhits_sectors_fees_laser[s] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees_laser")));
       for (int f = 0; f < 26; f++)
 	{
-	  h_nhits_sectors_fees_sampas[s][f] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees" + std::to_string(f) + "_sampas").c_str()));
+	  h_nhits_sectors_fees_sampas[s][f] = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sec" + std::to_string(s) + "_fees" + std::to_string(f) + "_sampas")));
 	}
       for (int r = 0; r < 3; r++)
 	{
-	  h_nhits_sam[s][r] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sample_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str()));
-	  h_adc[s][r] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "adc_sec" + std::to_string(s) + "_R" + std::to_string(r)).c_str()));
+	  h_nhits_sam[s][r] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "nhits_sample_sec" + std::to_string(s) + "_R" + std::to_string(r))));
+	  h_adc[s][r] = dynamic_cast<TH1 *>(hm->getHisto(std::string(getHistoPrefix() + "adc_sec" + std::to_string(s) + "_R" + std::to_string(r))));
 	}
     }
 
-  h_xy_N = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_North").c_str()));
-  h_xy_S = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_South").c_str()));
+  h_xy_N = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_North")));
+  h_xy_S = dynamic_cast<TH2 *>(hm->getHisto(std::string(getHistoPrefix() + "xyPos_South")));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -125,7 +125,7 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
       raw_hit_num = rawhitcont->get_nhits();
       for (unsigned int i = 0; i < raw_hit_num; i++)
 	{
-	  auto hit = rawhitcont->get_hit(i);
+	  auto *hit = rawhitcont->get_hit(i);
 	  uint16_t sam = hit->get_samples();
 	  int32_t packet_id = hit->get_packetid();
 	  int ep = (packet_id - 4000) % 10;
@@ -187,7 +187,7 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
 		    }
 		}
 
-	      if (selectedValues.size() > 0)
+	      if (!selectedValues.empty())
 		{
 		  float mean = 0.0;
 		  for (int value : selectedValues)
@@ -270,7 +270,7 @@ int TpcRawHitQA::process_event(PHCompositeNode * /*unused*/)
 //____________________________________________________________________________..
 int TpcRawHitQA::EndRun(const int /*runnumber*/)
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -282,7 +282,7 @@ std::string TpcRawHitQA::getHistoPrefix() const { return std::string("h_") + Nam
 
 void TpcRawHitQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   for (int s = 0; s < 24; s++)

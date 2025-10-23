@@ -1816,7 +1816,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
               << "ERROR: Can't find node TPCGEOMCONTAINER"
               << std::endl;
     topNode->print();
-    auto se = Fun4AllServer::instance();
+    auto *se = Fun4AllServer::instance();
     se->Print();
     return Fun4AllReturnCodes::ABORTRUN;
   }
