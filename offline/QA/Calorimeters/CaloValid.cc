@@ -177,8 +177,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   float mbddownscale;
   float adc_threshold;
   float emcal_hit_threshold;
+  float emcal_highhit_threshold;
   float ohcal_hit_threshold;
+  float ohcal_highhit_threshold;
   float ihcal_hit_threshold;
+  float ihcal_highhit_threshold;
 
   if (m_species == "AuAu")
   {
@@ -191,6 +194,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     emcal_hit_threshold = 0.5;  // GeV
     ohcal_hit_threshold = 0.5;
     ihcal_hit_threshold = 0.25;
+
+    emcal_highhit_threshold = 3.0;
+    ohcal_highhit_threshold = 3.0;
+    ihcal_highhit_threshold = 3.0;
   }
   else
   {
@@ -203,6 +210,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     emcal_hit_threshold = 0.5;  // GeV
     ohcal_hit_threshold = 0.5;
     ihcal_hit_threshold = 0.25;
+
+    emcal_highhit_threshold = 3.0;
+    ohcal_highhit_threshold = 3.0;
+    ihcal_highhit_threshold = 3.0;
   }
 
   //----------------------------------vertex------------------------------------------------------//
@@ -221,6 +232,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       vtx_z = vtx->get_z();
     }
     h_vtx_z_raw->Fill(vtx_z);
+      if (fabs(vtx_z) < 20.0)
+  {
+    h_vtx_z_cut->Fill(vtx_z);
+  }
   }
 
   //--------------------------- trigger and GL1-------------------------------//
@@ -296,10 +311,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        int _time = tower->get_time();
         h_cemc_e_chi2->Fill(offlineenergy, tower->get_chi2());
-        float _timef = tower->get_time_float();
-        h_emcaltime_cut->Fill(_time);
+        float _timef = tower->get_time();
+        h_emcaltime_cut->Fill(_timef);
         bool isGood = tower->get_isGood();
         uint8_t status = tower->get_status();
         h_emcal_tower_e->Fill(offlineenergy);
@@ -321,7 +335,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         totalcemc += offlineenergy;
-        h_emcaltime->Fill(_time);
+        h_emcaltime->Fill(_timef);
         if (offlineenergy > emcal_hit_threshold)
         {
           h_cemc_etaphi_time->Fill(ieta, iphi, _timef);
@@ -347,6 +361,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_cemc_etaphi_fracHit->Fill(ieta, iphi, 0);
         }
+	if (offlineenergy > emcal_highhit_threshold)
+        {
+          h_cemc_etaphi_time_highhit->Fill(ieta, iphi, _timef);
+          h_cemc_etaphi_highhit->Fill(ieta, iphi);
+	}
       }
     }
   }
@@ -362,9 +381,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        int _time = tower->get_time();
-        float _timef = tower->get_time_float();
-        h_ihcaltime_cut->Fill(_time);
+
+        float _timef = tower->get_time();
+        h_ihcaltime_cut->Fill(_timef);
         h_ihcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
         bool isGood = tower->get_isGood();
         h_ihcal_status->Fill(tower->get_status());
@@ -388,7 +407,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         totalihcal += offlineenergy;
-        h_ihcaltime->Fill(_time);
+        h_ihcaltime->Fill(_timef);
 
         if (offlineenergy > ihcal_hit_threshold)
         {
@@ -407,6 +426,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
             h_ihcal_etaphi_badChi2->Fill(ieta, iphi, 0);
           }
         }
+	if (offlineenergy > ihcal_highhit_threshold)
+        {
+          h_ihcal_etaphi_time_highhit->Fill(ieta, iphi, _timef);
+          h_ihcal_etaphi_highhit->Fill(ieta, iphi);
+        }
       }
     }
   }
@@ -423,9 +447,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        int _time = tower->get_time();
-        float _timef = tower->get_time_float();
-        h_ohcaltime_cut->Fill(_time);
+        float _timef = tower->get_time();
+        h_ohcaltime_cut->Fill(_timef);
         h_ohcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
         bool isGood = tower->get_isGood();
         h_ohcal_status->Fill(tower->get_status());
@@ -449,7 +472,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         totalohcal += offlineenergy;
-        h_ohcaltime->Fill(_time);
+        h_ohcaltime->Fill(_timef);
 
         if (offlineenergy > ohcal_hit_threshold)
         {
@@ -468,6 +491,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
             h_ohcal_etaphi_badChi2->Fill(ieta, iphi, 0);
           }
         }
+	if (offlineenergy > ohcal_highhit_threshold)
+        {
+          h_ohcal_etaphi_time_highhit->Fill(ieta, iphi, _timef);
+          h_ohcal_etaphi_highhit->Fill(ieta, iphi);
+        }
       }
     }
   }
@@ -485,7 +513,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        float raw_time = tower->get_time_float();
+        float raw_time = tower->get_time();
         if (tower->get_isZS())
         {
           h_cemc_channel_energy[channel]->Fill(tower->get_energy());
@@ -515,7 +543,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
         int iphi = towers->getTowerPhiBin(towerkey);
-        float raw_time = tower->get_time_float();
+        float raw_time = tower->get_time();
         if (tower->get_isZS())
         {
           h_ohcal_channel_energy[channel]->Fill(tower->get_energy());
@@ -544,7 +572,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         TowerInfo* tower = towers->get_tower_at_channel(channel);
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
-        float raw_time = tower->get_time_float();
+        float raw_time = tower->get_time();
         int iphi = towers->getTowerPhiBin(towerkey);
         if (tower->get_isZS())
         {
@@ -616,12 +644,18 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   }
 
   // cuts
+  /*
   float emcMinClusE1 = 1.3;  // 0.5;
   float emcMinClusE2 = 0.7;  // 0.5;
-  float emcMaxClusE = 100;
-  float maxAlpha = 0.6;
+  */
 
-  if (totalcemc < 0.2 * emcaldownscale)
+  float minClusPt1 = 1.5;   // CHANGED: was emcMinClusE1 - now it's a pt cut
+  float minClusPt2 = 1.0;   // CHANGED: was emcMinClusE2 - now it's a pt cut  
+  float emcMaxClusE = 100; 
+  float maxAlpha = 0.6;     
+  
+
+  if (totalcemc < 0.1 * emcaldownscale)
   {
     RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
     RawClusterContainer::ConstIterator clusterIter;
@@ -642,7 +676,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
       h_clusE->Fill(clusE);
 
-      if (clusE < emcMinClusE1 || clusE > emcMaxClusE)
+      //      if (clusE < emcMinClusE1 || clusE > emcMaxClusE)
+
+      if (clus_pt < minClusPt1 || clusE > emcMaxClusE)
       {
         continue;
       }
@@ -673,7 +709,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         float clus2_pt = E_vec_cluster2.perp();
         float clus2_chisq = recoCluster2->get_chi2();
 
-        if (clus2E < emcMinClusE2 || clus2E > emcMaxClusE)
+	// if (clus2E < emcMinClusE2 || clus2E > emcMaxClusE)
+	  if (clus2_pt < minClusPt2 || clus2E > emcMaxClusE) 
         {
           continue;
         }
@@ -696,7 +733,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
         int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
-
+	if (fabs(vtx_z) < 20.0)
+	  {
         for (int bit : scaledActiveBits)
         {
           if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
@@ -709,6 +747,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
               static_cast<double>(pi0Mass));
         }
         h_InvMass->Fill(pi0Mass);
+	  }
       }
     }  // end cluster loop
   }
@@ -912,14 +951,26 @@ void CaloValid::createHistos()
   h_cemc_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi);
 
+  h_cemc_etaphi_highhit = new TH2F(std::format("{}cemc_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
+  h_cemc_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_highhit);
+  
   h_ihcal_etaphi = new TH2F(std::format("{}ihcal_etaphi", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ihcal_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi);
 
+  h_ihcal_etaphi_highhit = new TH2F(std::format("{}ihcal_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ihcal_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_highhit);
+  
   h_ohcal_etaphi = new TH2F(std::format("{}ohcal_etaphi", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ohcal_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi);
 
+  h_ohcal_etaphi_highhit = new TH2F(std::format("{}ohcal_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ohcal_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_highhit);
+  
   h_cemc_etaphi_wQA = new TH2F(std::format("{}cemc_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
   h_cemc_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_wQA);
@@ -964,6 +1015,10 @@ void CaloValid::createHistos()
   h_cemc_etaphi_time_raw->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_time_raw);
 
+  h_cemc_etaphi_time_highhit = new TProfile2D(std::format("{}cemc_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+  h_cemc_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_time_highhit);
+  
   h_ihcal_etaphi_time = new TProfile2D(std::format("{}ihcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ihcal_etaphi_time->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_time);
@@ -972,6 +1027,10 @@ void CaloValid::createHistos()
   h_ihcal_etaphi_time_raw->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_time_raw);
 
+  h_ihcal_etaphi_time_highhit = new TProfile2D(std::format("{}ihcal_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ihcal_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_time_highhit);
+  
   h_ohcal_etaphi_time = new TProfile2D(std::format("{}ohcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ohcal_etaphi_time->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_time);
@@ -980,6 +1039,10 @@ void CaloValid::createHistos()
   h_ohcal_etaphi_time_raw->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_time_raw);
 
+  h_ohcal_etaphi_time_highhit = new TProfile2D(std::format("{}ohcal_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ohcal_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_time_highhit);
+  
   h_cemc_etaphi_fracHitADC = new TProfile2D(std::format("{}cemc_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
   h_cemc_etaphi_fracHitADC->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_fracHitADC);
