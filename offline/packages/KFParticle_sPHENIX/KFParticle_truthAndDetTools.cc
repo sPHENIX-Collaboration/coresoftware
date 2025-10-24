@@ -1176,7 +1176,8 @@ void KFParticle_truthAndDetTools::Get5x5CellInfo(RawClusterDefs::keytype key_in,
     int etabin = center_eta+i;
     //End of eta acceptance case
     if(etabin < 0 || etabin > 95){ continue; }
-    else{ v_eta_tmp.push_back(etabin); }
+    v_eta_tmp.push_back(etabin);
+    // else{ v_eta_tmp.push_back(etabin); }
   }
 
   //Vector to hold keys and energies
