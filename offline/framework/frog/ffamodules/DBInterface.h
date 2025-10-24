@@ -1,8 +1,6 @@
 #ifndef FFAMODULES_DBINTERFACE_H
 #define FFAMODULES_DBINTERFACE_H
 
-#include <fun4all/SubsysReco.h>
-
 #include <map>
 #include <string>
 
@@ -12,26 +10,19 @@ namespace odbc
   class Statement;
 }  // namespace odbc
 
-class DBInterface : public SubsysReco
+class DBInterface
 {
  public:
   static DBInterface *instance();
 
-  ~DBInterface() override;
-
-  int process_event(PHCompositeNode *) override;
-
-  /// Called at the end of all processing.
-  int End(PHCompositeNode *) override;
-
-  void Print(const std::string & /*what*/ = "ALL") const override;
+  virtual ~DBInterface();
 
   odbc::Connection *getDBConnection(const std::string &dbname, int verbosity = 0);
   odbc::Statement *getStatement(const std::string &dbname, int verbosity = 0);
   
  private:
 
-  DBInterface(const std::string &name = "DBInterface");
+  DBInterface() = default;
   static DBInterface *__instance;
   int m_ConnectionTries {0};
   int m_SleepMS {0};
