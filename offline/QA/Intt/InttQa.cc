@@ -29,7 +29,7 @@ InttQa::InttQa (
 	std::string const& name
 ) : SubsysReco(name) {
 
-	auto hm = QAHistManagerDef::getHistoManager();
+	auto* hm = QAHistManagerDef::getHistoManager();
 
 	// The numeric values are important for naming the histograms,
 	// which is why I do not use range-based for loops here
@@ -124,8 +124,8 @@ InttQa::InitRun (
 	// I think this is moot b/c in practice most DST will only have one node, 'INTTRAWHIT'
 	PHPointerListIterator<PHNode> next_intt_node(intt_itr.ls());
 	for (PHNode* itr_node; (itr_node = next_intt_node());) {
-		auto intt_raw_hit_container_node = static_cast<PHIODataNode<InttRawHitContainer>*>(itr_node);
-		if (!intt_raw_hit_container_node) continue;
+		auto* intt_raw_hit_container_node = static_cast<PHIODataNode<InttRawHitContainer>*>(itr_node);
+		if (!intt_raw_hit_container_node) { continue; }
 		if (Verbosity()) {
 			std::cout
 				<< PHWHERE
@@ -133,8 +133,8 @@ InttQa::InitRun (
 				<< std::endl;
 		}
 
-		auto intt_raw_hit_container = dynamic_cast<InttRawHitContainer*>(intt_raw_hit_container_node->getData());
-		if (!intt_raw_hit_container) continue; 
+		auto* intt_raw_hit_container = dynamic_cast<InttRawHitContainer*>(intt_raw_hit_container_node->getData());
+		if (!intt_raw_hit_container) { continue; }
 		m_intt_raw_hit_containers.push_back(intt_raw_hit_container);
 	}
 
@@ -154,12 +154,12 @@ InttQa::InitRun (
 
 int
 InttQa::process_event (
-	PHCompositeNode* // top_node
+	PHCompositeNode* /*unused*/
 ) {
 	for (auto const& intt_raw_hit_container : m_intt_raw_hit_containers) {
 		for (unsigned int hit_index{0}; hit_index < intt_raw_hit_container->get_nhits(); ++hit_index) {
 
-			auto hit = intt_raw_hit_container->get_hit(hit_index);
+			auto* hit = intt_raw_hit_container->get_hit(hit_index);
 			InttNameSpace::RawData_s raw = InttNameSpace::RawFromHit(hit);
 
 			// Fine for triggered case, for streaming we will need the GL1
@@ -180,7 +180,7 @@ InttQa::process_event (
 
 			// Every other layer is staggered
 			double phi = 6.2832 * (2.0 * offline.ladder_phi - (layer % 2)) / n_ladders[barrel];
-			while (3.1416 * (1.0 - 1.0 / n_ladders[barrel]) < phi) phi -= 6.2832;
+			while (3.1416 * (1.0 - 1.0 / n_ladders[barrel]) < phi) { phi -= 6.2832; }
 
 			double z_index = offline.strip_y;
 			switch (offline.ladder_z) {
@@ -192,6 +192,8 @@ InttQa::process_event (
 				break;
 			case 3:
 				z_index += 21;
+				break;
+			default:
 				break;
 			}
 			m_barrel_hit_distribution[barrel]->Fill(z_index, phi);
