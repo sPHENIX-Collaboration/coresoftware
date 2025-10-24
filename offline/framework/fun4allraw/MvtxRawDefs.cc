@@ -49,7 +49,6 @@ namespace
     if (resultSet && resultSet->next())
     {
       float strobe = resultSet->getFloat("strobe");
-      std::cout << "MVTX strobe read from offline mvtx DB: " << strobe << std::endl;
       return strobe;
     }
 
@@ -66,7 +65,6 @@ namespace
     {
       strobeWidth = resultSet->getFloat("strobe");
     }
-    std::cout << "MVTX strobe read from daq db: " << strobeWidth << std::endl;
     return strobeWidth;
   }
 }  // namespace
