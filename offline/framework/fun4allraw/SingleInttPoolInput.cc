@@ -244,8 +244,29 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           for (int j = 0; j < num_hits; j++)
           {
             uint64_t gtm_bco = pool->lValue(j, "BCO");
-            if (gtm_bco < minBCO)
-            {
+
+			std::stringstream ss;
+			ss << std::hex << gtm_bco;
+			std::string hexstr = ss.str();
+			std::transform(hexstr.begin(), hexstr.end(), hexstr.begin(), ::toupper);
+			// substring search
+			if (hexstr.find("CADEAD") != std::string::npos) 
+			{
+			  if (Verbosity() > 1)
+			  {
+				std::cout << "CADE(Header) found in BCO!" << hexstr << std::endl;
+			  }			  
+			  continue;
+			}
+			if (hexstr.find("80CAFE") != std::string::npos) 
+			{
+			  if (Verbosity() > 1)
+			  {
+				std::cout << "CAFE(Footer) found in BCO!" << hexstr << std::endl;
+			  }		  
+			  continue;
+			} if (gtm_bco < minBCO)
+			{
               // std::cout << "dropping hit with bco 0x" << std::hex
               // 	      << gtm_bco << ", min bco: 0x" << minBCO
               // 	      << std::endl;
