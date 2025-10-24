@@ -265,7 +265,8 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
 				std::cout << "CAFE(Footer) found in BCO!" << hexstr << std::endl;
 			  }		  
 			  continue;
-			} if (gtm_bco < minBCO)
+			}
+			if (gtm_bco < minBCO)
 			{
               // std::cout << "dropping hit with bco 0x" << std::hex
               // 	      << gtm_bco << ", min bco: 0x" << minBCO
