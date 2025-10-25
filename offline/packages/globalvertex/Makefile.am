@@ -24,6 +24,11 @@ libglobalvertex_la_LIBADD = \
   -lfun4all
 
 pkginclude_HEADERS = \
+  CaloVertex.h \
+  CaloVertexv1.h \
+  CaloVertexMap.h \
+  CaloVertexMapv1.h \
+  CaloVtxReco.h \
   GlobalVertex.h \
   GlobalVertexv1.h \
   GlobalVertexv2.h \
@@ -47,6 +52,11 @@ pkginclude_HEADERS = \
   Vertex.h
 
 ROOTDICTS = \
+  CaloVertex_Dict.cc \
+  CaloVertexv1_Dict.cc \
+  CaloVertexMap_Dict.cc \
+  CaloVertexMapv1_Dict.cc \
+  CaloVtxReco_Dict.cc \
   GlobalVertex_Dict.cc \
   GlobalVertexv1_Dict.cc \
   GlobalVertexv2_Dict.cc \
@@ -74,6 +84,9 @@ nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libglobalvertex_io_la_SOURCES = \
   $(ROOTDICTS) \
+  CaloVertexv1.cc \
+  CaloVertexMap.cc \
+  CaloVertexMapv1.cc \
   GlobalVertex.cc \
   GlobalVertexv1.cc \
   GlobalVertexv2.cc \
@@ -95,6 +108,7 @@ libglobalvertex_io_la_SOURCES = \
   Vertex.cc
 
 libglobalvertex_la_SOURCES = \
+  CaloVtxReco.cc \
   GlobalVertexReco.cc
 
 # Rule for generating table CINT dictionaries.
