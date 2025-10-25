@@ -91,7 +91,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     {
       if (GetVerbosity() > 1)
       {
-	std::cout << "setting streaming mode for run " << RunNumber() << std::endl;
+        std::cout << "setting streaming mode for run " << RunNumber() << std::endl;
       }
       streamingMode(IsStreaming(RunNumber()));
       m_SavedRunNumber = RunNumber();
@@ -498,16 +498,30 @@ void SingleInttPoolInput::ConfigureStreamingInputManagerLocal(const int runnumbe
       SetBcoRange(3);
       if (GetVerbosity() > 2)
       {
-	std::cout << "INTT changed to triggered event combining with range [-"
-		  << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+        std::cout << "INTT changed to triggered event combining with range [-"
+                  << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
       }
     }
-    if (GetVerbosity() > 1)
+    switch (m_StreamingFlag)
     {
-      std::cout << "INTT triggered event combining with range [-"
+    case InttStreamingMode::TRIGGERED:
+      std::cout << PHWHERE << " INTT triggered event combining with range [-"
                 << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+      break;
+    case InttStreamingMode::STREAMING:
+      std::cout << PHWHERE << " INTT streaming event combining with range [-"
+                << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+      break;
+    case InttStreamingMode::UNDEFINED:
+      std::cout << PHWHERE << " INTT undefined streaming mode, combining with range [-"
+                << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+      break;
+    default:
+      std::cout << PHWHERE << " Unknown INTT streaming mode: "
+                << m_StreamingFlag << " combining with range [-"
+                << m_NegativeBco << "," << m_BcoRange << "]" << std::endl;
+      break;
     }
-
     StreamingInputManager()->SetInttBcoRange(GetBcoRange());
     StreamingInputManager()->SetInttNegativeBco(GetNegativeBco());
   }
@@ -544,11 +558,13 @@ bool SingleInttPoolInput::IsStreaming(int runnumber)
   if (std::string{"{17,55,24,54}"} == sched_data)
   {
     m_is_streaming = true;
+    m_StreamingFlag = 1;
   }
   else if (std::string{"{0,54,91,53}"} == sched_data)
   {
     /// Triggered
     m_is_streaming = false;
+    m_StreamingFlag = -1;
   }
   else
   {
