@@ -18,6 +18,7 @@
 #include <Rtypes.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <TProfile.h>
 
 #include <format>
 
@@ -76,7 +77,7 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_quality_hist[charge] = new TH1F(
         std::format("h_{}_quality_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("quality distribution ({} charged tracks);quality;Counts", charge_str).c_str(),
-        50, 0.0, m_quality_range);
+        50, m_quality_hist_xrange.first, m_quality_hist_xrange.second);
     hm->registerHisto(m_quality_hist[charge]);
     m_quality_hist[charge]->SetMarkerColor(color);
     m_quality_hist[charge]->SetLineColor(color);
@@ -86,7 +87,7 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_p_hist[charge] = new TH1F(
         std::format("h_{}_p_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("p distribution ({} charged tracks);p (GeV);Counts", charge_str).c_str(),
-        50, 0.0, m_momentum_range);
+        50, m_p_hist_xrange.first, m_p_hist_xrange.second);
     hm->registerHisto(m_p_hist[charge]);
     m_p_hist[charge]->SetMarkerColor(color);
     m_p_hist[charge]->SetLineColor(color);
@@ -96,7 +97,7 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_pt_hist[charge] = new TH1F(
         std::format("h_{}_pt_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("pt distribution ({} charged tracks);pt (GeV);Counts", charge_str).c_str(),
-        50, 0.0, m_momentum_range);
+        50, m_pt_hist_xrange.first, m_pt_hist_xrange.second);
     hm->registerHisto(m_pt_hist[charge]);
     m_pt_hist[charge]->SetMarkerColor(color);
     m_pt_hist[charge]->SetLineColor(color);
@@ -106,11 +107,22 @@ int TrackFittingQA::Init(PHCompositeNode* /*unused*/)
     m_pt_err_hist[charge] = new TH2F(
         std::format("h_{}_pt_err_{}_charged_tracks", Name(), charge_str).c_str(),
         std::format("relative pt err vs pt distribution ({} charged tracks);pt (GeV);pt err / pt (unitless)", charge_str).c_str(),
-        50, 0.0, m_momentum_range,
-        50, 0.0, 1.0);
+        50, m_pt_err_hist_xrange.first, m_pt_err_hist_xrange.second,
+        50, m_pt_err_hist_yrange.first, m_pt_err_hist_yrange.second);
     hm->registerHisto(m_pt_err_hist[charge]);
     m_pt_err_hist[charge]->SetMarkerColor(color);
     m_pt_err_hist[charge]->SetLineColor(color);
+    // ...
+
+    delete m_pt_err_profile[charge];
+    m_pt_err_profile[charge] = new TProfile(
+        std::format("h_{}_pt_err_{}_charged_tracks_profile", Name(), charge_str).c_str(),
+        std::format("relative pt err vs pt distribution ({} charged tracks);pt (GeV);pt err / pt (unitless)", charge_str).c_str(),
+        50, m_pt_err_hist_xrange.first, m_pt_err_hist_xrange.second,
+        m_pt_err_hist_yrange.first, m_pt_err_hist_yrange.second);
+    hm->registerHisto(m_pt_err_profile[charge]);
+    m_pt_err_profile[charge]->SetMarkerColor(color);
+    m_pt_err_profile[charge]->SetLineColor(color);
     // ...
 
     delete m_eta_hist[charge];
@@ -225,26 +237,26 @@ int TrackFittingQA::process_event(
       // There is an additional state representing the vertex at the beginning of the map,
       // but getTrkrId will return 0 for its corresponding cluster
       // Identify it as having path_length identically equal to 0
-      if (path_length == 0) continue;
+      if (path_length == 0) { continue; }
 
       auto trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(state->get_cluskey()));
       auto itr = counters.find(trkr_id);
-      if (itr == counters.end()) continue;
+      if (itr == counters.end()) { continue; }
       ++itr->second;
     }
 
     // Cuts
-    if ( track->get_quality() < m_min_quality ) continue;
-    if ( m_max_quality < track->get_quality() ) continue;
-    if ( track->get_p() < m_min_p ) continue;
-    if ( track->get_pt() < m_min_pt ) continue;
-    if ( m_max_abs_eta < std::abs(track->get_eta()) ) continue;
-    if ( counters[TrkrDefs::inttId] < m_min_intt_states ) continue;
-    if ( counters[TrkrDefs::mvtxId] < m_min_mvtx_states ) continue;
-    if ( counters[TrkrDefs::tpcId] < m_min_tpc_states ) continue;
-    if ( counters[TrkrDefs::micromegasId] < m_min_tpot_states ) continue;
-    if ( track->get_crossing() < m_min_crossing ) continue;
-    if ( m_max_crossing < track->get_crossing() ) continue;
+    if ( track->get_quality() < m_min_quality ) { continue; }
+    if ( m_max_quality < track->get_quality() ) { continue; }
+    if ( track->get_p() < m_min_p ) { continue; }
+    if ( track->get_pt() < m_min_pt ) { continue; }
+    if ( m_max_abs_eta < std::abs(track->get_eta()) ) { continue; }
+    if ( counters[TrkrDefs::inttId] < m_min_intt_states ) { continue; }
+    if ( counters[TrkrDefs::mvtxId] < m_min_mvtx_states ) { continue; }
+    if ( counters[TrkrDefs::tpcId] < m_min_tpc_states ) { continue; }
+    if ( counters[TrkrDefs::micromegasId] < m_min_tpot_states ) { continue; }
+    if ( track->get_crossing() < m_min_crossing ) { continue; }
+    if ( m_max_crossing < track->get_crossing() ) { continue; }
 
     // Fill histograms if passing
     int charge = (0 < track->get_charge()) ? 1 : 0;
@@ -261,6 +273,7 @@ int TrackFittingQA::process_event(
     m_p_hist[charge]->Fill(track->get_p());
     m_pt_hist[charge]->Fill(track->get_pt());
     m_pt_err_hist[charge]->Fill(track->get_pt(), pt_err);
+    m_pt_err_profile[charge]->Fill(track->get_pt(), pt_err);
     m_eta_hist[charge]->Fill(track->get_eta());
     m_phi_eta_hist[charge]->Fill(track->get_phi(), track->get_eta());
 
