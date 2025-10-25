@@ -706,6 +706,12 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       }
       hlist = pp->GetHitList();
       ph = hlist.begin();
+
+      // accumulate energy-weighted time
+      double ew_num = 0.0;   // sum(E * t)
+      double ew_den = 0.0;   // sum(E)
+      bool   saw_nonzero_t = false;
+
       while (ph != hlist.end())
       {
         ich = (*ph).ich;
@@ -720,7 +726,21 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid(Calo_ID, iy + BINY0, ix + BINX0);  // Becuase in this part index1 is iy
         //	std::cout << iphi << " " << ieta << ": "
         //           << twrkey << " e = " << (*ph).amp) << std::endl;
-        cluster->addTower(twrkey, (*ph).amp / fEnergyNorm);
+          
+        const float amp = (*ph).amp;
+        const float tof = (*ph).tof;
+
+        // add tower (energy is un-normalized inside vhit)
+        cluster->addTower(twrkey, amp / fEnergyNorm);
+
+        // accumulate EW time (finite guard; treat exact 0 as “no time”)
+        if (std::isfinite(tof))
+        {
+          if (std::fabs(tof) > 1e-9f) saw_nonzero_t = true;
+          ew_num += static_cast<double>(amp) * static_cast<double>(tof);
+        }
+        ew_den += static_cast<double>(amp);
+
         ++ph;
       }
 
@@ -730,6 +750,10 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
       cluster->set_tower_cog(xcg, ycg, xcorr, ycorr);
 
+      // set cluster mean time (v2 clusters only)
+      float tmean = std::numeric_limits<float>::quiet_NaN();
+      if (ew_den > 0.0 && saw_nonzero_t) tmean = static_cast<float>(ew_num / ew_den);
+      static_cast<RawClusterv2*>(cluster)->set_mean_time(tmean);
       _clusters->AddCluster(cluster);
       // ncl++;
 
