@@ -66,16 +66,16 @@ std::vector<GlobalVertex*> GlobalVertexMapv1::get_gvtxs_with_type(GlobalVertex::
   return vertices;
 }
 
-std::vector<Vertex*> GlobalVertexMapv1::get_vtxs_of_type(GlobalVertex::VTXTYPE type)
+std::vector<const Vertex*> GlobalVertexMapv1::get_vtxs_of_type(GlobalVertex::VTXTYPE type)
 {
-  std::vector<Vertex*> vertices;
+  std::vector<const Vertex*> vertices;
   Iter iter = _map.begin();
   while(iter != _map.end())
     {
       GlobalVertex::VertexIter it = iter->second->find_vertexes(type);
       if(it->second.size() > 0)
 	{
-	  for(unsigned int i=0; i<it->second.size() ++i)
+	  for(unsigned int i=0; i<it->second.size(); ++i)
 	    {
 	      vertices.push_back(it->second.at(i));
 	    }
