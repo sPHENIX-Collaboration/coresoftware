@@ -19,16 +19,14 @@
 #include <phool/phool.h>           // for PHWHERE
 
 #include <Event/Event.h>
-#include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/EventTypes.h>
+#include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/fileEventiterator.h>
 
 #include <cassert>
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
-
-using namespace std;
 
 Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const std::string &name, const std::string &prdfnodename, const std::string &topnodename)
   : Fun4AllInputManager(name, prdfnodename, topnodename)
@@ -82,7 +80,7 @@ int Fun4AllPrdfInputManager::fileopen(const std::string &filenam)
     std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
     return -1;
   }
-  pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
+  std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
   m_Segment = runseg.second;
   IsOpen(1);
   AddToFileOpened(fname);  // add file to the list of files which were opened
@@ -103,13 +101,11 @@ readagain:
       }
       return -1;
     }
-    else
+
+    if (OpenNextFile())
     {
-      if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return -1;
     }
   }
   if (Verbosity() > 3)
