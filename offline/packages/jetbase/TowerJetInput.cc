@@ -10,8 +10,8 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertexv2.h>
+#include <globalvertex/GlobalVertexMapv1.h>
 
 #include <phool/getClass.h>
 
@@ -82,35 +82,29 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   }
   else
   {
-    GlobalVertex *vtx = vertexmap->begin()->second;
-    if (vtx)
-    {
-      if (m_use_vertextype)
+    if(m_use_vertextype)
       {
-        auto typeStartIter = vtx->find_vertexes(m_vertex_type);
-        auto typeEndIter = vtx->end_vertexes();
-        for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
-        {
-          const auto &[type, vertexVec] = *iter;
-          if (type != m_vertex_type)
-          {
-            continue;
-          }
-          for (const auto *vertex : vertexVec)
-          {
-            if (!vertex)
-            {
-              continue;
-            }
-            vtxz = vertex->get_z();
-          }
-        }
+	std::vector<const Vertex*> vertices = vertexmap->get_vtxs_of_type(m_vertex_type);
+	if(vertices.size() > 0)
+	  {
+	    if(vertices.at(0))
+	      {
+		vtxz = vertices.at(0)->get_z();
+	      }
+	    if(vertices.size() > 1 && Verbosity() > 0)
+	      {
+		std::cout << "TowerJetInput::WARNING!! More than one vertex of selected type!" << std::endl;
+	      }
+	  }
       }
-      else
+    else
       {
-        vtxz = vtx->get_z();
+	GlobalVertex *vtx = vertexmap->begin()->second;
+	if (vtx)
+	  {
+	    vtxz = vtx->get_z();
+	  }
       }
-    }
   }
   if (std::isnan(vtxz))
   {
