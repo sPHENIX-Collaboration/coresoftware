@@ -359,10 +359,7 @@ bool PHCASiliconSeeding::ClusterTimesAreCompatible(const uint8_t trkr_id, const 
     }
     return (crossing != SHRT_MAX && time_index != SHRT_MAX) && (abs(crossing - time_index) <= 1);
   }
-  else
-  {
-    return true;  // other detectors don't carry interpretable time info
-  }
+return true;
 }
 
 int PHCASiliconSeeding::GetClusterTimeIndex(const TrkrDefs::cluskey ckey) const
@@ -403,23 +400,21 @@ short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ck
   {
     return *(crossings.begin());
   }
-  else  // crossings.size()==2
-  {
-    // allow for crossing to be off by 1,
-    // take lower crossing to be true value
-    std::vector<short> crossings_vec;
-    std::copy(crossings.begin(), crossings.end(), std::back_inserter(crossings_vec));
+ 
+  // allow for crossing to be off by 1,
+  // take lower crossing to be true value
+  std::vector<short> crossings_vec;
+  std::copy(crossings.begin(), crossings.end(), std::back_inserter(crossings_vec));
 
-    if (abs(crossings_vec[1] - crossings_vec[0]) == 1)
+  if (abs(crossings_vec[1] - crossings_vec[0]) == 1)
     {
       std::cout << "INTT: resolving off-by-one between " << crossings_vec[0] << " and " << crossings_vec[1] << std::endl;
       return std::min(crossings_vec[0], crossings_vec[1]);
     }
-    else
-    {
-      return SHRT_MAX;
-    }
-  }
+    
+    return SHRT_MAX;
+    
+  
 }
 
 std::set<short> PHCASiliconSeeding::GetINTTClusterCrossings(const TrkrDefs::cluskey ckey) const
