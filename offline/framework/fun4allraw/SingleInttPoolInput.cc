@@ -245,32 +245,42 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
           {
             uint64_t gtm_bco = pool->lValue(j, "BCO");
 
-			std::stringstream ss;
-			ss << std::hex << gtm_bco;
-			std::string hexstr = ss.str();
-			std::transform(hexstr.begin(), hexstr.end(), hexstr.begin(), ::toupper);
-			// substring search
-			if (hexstr.find("CADEAD") != std::string::npos) 
-			{
-			  if (Verbosity() > 1)
-			  {
-				std::cout << "CADE(Header) found in BCO!" << hexstr << std::endl;
-			  }			  
-			  continue;
-			}
-			if (hexstr.find("80CAFE") != std::string::npos) 
-			{
-			  if (Verbosity() > 1)
-			  {
-				std::cout << "CAFE(Footer) found in BCO!" << hexstr << std::endl;
-			  }		  
-			  continue;
-			}
-			if (gtm_bco < minBCO)
-			{
+            bool found{false};
+            static uint64_t const header = 0xcadead;
+            static uint64_t const footer = 0x80cafe;
+            static uint64_t const projection = 0xffffff;
+            for (int shift = 0; shift < 36; shift+=4)
+            {
+                if ((gtm_bco & (projection << shift)) == (header << shift)) {
+                    if (1 < Verbosity()) {
+                        std::cout << std::hex
+                            << " Header found in BCO!"
+                            << " bco: 0x" << gtm_bco
+                            << " projection: 0x" << (header << shift)
+                            << std::dec << std::endl;
+                    }
+                    found = true;
+                    break;
+                }
+                if ((gtm_bco & (projection << shift)) == (footer << shift)) {
+                    if (1 < Verbosity()) {
+                        std::cout << std::hex
+                            << " Footer found in BCO!"
+                            << " bco: 0x" << gtm_bco
+                            << " projection: 0x" << (footer << shift)
+                            << std::dec << std::endl;
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (found) { continue; }
+
+            if (gtm_bco < minBCO)
+            {
               // std::cout << "dropping hit with bco 0x" << std::hex
-              // 	      << gtm_bco << ", min bco: 0x" << minBCO
-              // 	      << std::endl;
+              //       << gtm_bco << ", min bco: 0x" << minBCO
+              //       << std::endl;
               continue;
             }
             if (!IsStandaloneMode() && gtm_bco > minBCO * 2)
@@ -319,7 +329,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
             m_InttRawHitMap[gtm_bco].push_back(newhit.release());
           }
         }
-        //	    Print("FEEBCLK");
+        //    Print("FEEBCLK");
       }
       pool->next();
     }
@@ -439,7 +449,7 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
   //   if (!iter.second->depth_ok())
   //   {
   //   std::cout << "GetSomeMoreEvents depth not ok, ret true" << std::endl;
-  // 	return true;
+  //   return true;
   //   }
   // }
   uint64_t localbclk = ibclk;
@@ -462,8 +472,8 @@ bool SingleInttPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
       if ((highest_bclk - m_InttRawHitMap.begin()->first) < MaxBclkDiff())
       {
         // std::cout << "FEE " << bcliter.first << " bclk: "
-        // 		<< std::hex << bcliter.second << ", req: " << localbclk
-        // 		<< std::dec << std::endl;
+        // << std::hex << bcliter.second << ", req: " << localbclk
+        // << std::dec << std::endl;
         return true;
       }
 
