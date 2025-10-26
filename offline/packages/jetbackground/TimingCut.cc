@@ -146,7 +146,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   _cutParams.set_int_param("failsDeltatCut",failsDeltat);
   _cutParams.set_int_param("failsMbdDtCut",failsMbdt);
   _cutParams.set_int_param("failsAnyTimeCut", failsAnyCut);
-  _cutParams.UpdateNodeTree(parNode, "JetCutParams");
+  _cutParams.UpdateNodeTree(parNode, "TimingCutParams");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
