@@ -12,7 +12,7 @@
 #include <calobase/TowerInfoContainer.h>
 #include <globalvertex/GlobalVertexv2.h>
 #include <globalvertex/GlobalVertexMapv1.h>
-
+#include <globalvertex/Vertex.h>
 #include <phool/getClass.h>
 
 #include <cassert>

@@ -185,15 +185,12 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 	  joheta[j] = 0;
 	  for(auto comp: jets[j]->get_comp_vec())
 	    {
-	      if(_debug > 6) cout << comp.first << " ";
 	      if(comp.first==5 || comp.first == 26) continue;
 	      unsigned int channel = comp.second;
 	      if(comp.first==7 || comp.first == 27)
 		{
 		  TowerInfo* tower = towers[2]->get_tower_at_channel(channel);
-		  if(_debug > 6) cout << "towerE: " << tower->get_energy() << " " << endl;
 		  if(tower->get_energy() < 0.1) continue;
-		  if(_debug > 6) cout << "good tower ";
 		  johsum[j] += tower->get_energy();
 		  float neweta = new_eta(channel, towers[2], geom[2], RawTowerDefs::CalorimeterId::HCALOUT, testz);
 		  joheta[j] += neweta*tower->get_energy();
@@ -201,16 +198,12 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 	      if(comp.first == 13 || comp.first == 28 || comp.first == 25)
 		{
 		  TowerInfo* tower = towers[0]->get_tower_at_channel(channel);
-		  if(_debug > 6) cout << "towerE: " << tower->get_energy() << " " << endl;
 		  if(tower->get_energy() < 0.1) continue;
-		  if(_debug > 6) cout << "good tower ";
 		  jemsum[j] += tower->get_energy();
 		  float neweta = new_eta(channel, towers[0], geom[1], RawTowerDefs::CalorimeterId::HCALIN, testz);
 		  jemeta[j] += neweta*tower->get_energy();
 		}
 	    }
-	  if(_debug > 6) cout << endl;
-	  if(_debug > 3) cout << jemeta[j] << " " << jemsum[j] << " : " << joheta[j] << " " << johsum[j] << endl;
 	  jemeta[j] /= jemsum[j];
 	  joheta[j] /= johsum[j];
 	  if((jemsum[j] == 0 || johsum[j] == 0) && _debug > 1) cout << "zero E sum in at least one calo for a jet" << endl;
@@ -223,13 +216,15 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 	  _zvtx = testz;
 	}
     }
-
-  if(_debug > 2) cout << "optimal z: " << _zvtx << endl;
-  CaloVertex *vertex = new CaloVertexv1();
-  _zvtx *= 1.406; //calibration factor from simulation
-  vertex->set_z(_zvtx);
-  _calovtxmap->insert(vertex);
-  if(_debug > 3) cout << "CaloVtxReco: end event" << endl;
+  if(abs(_zvtx) < 305)
+    {
+      if(_debug > 2) cout << "optimal z: " << _zvtx << endl;
+      CaloVertex *vertex = new CaloVertexv1();
+      _zvtx *= 1.406; //calibration factor from simulation
+      vertex->set_z(_zvtx);
+      _calovtxmap->insert(vertex);
+      if(_debug > 3) cout << "CaloVtxReco: end event" << endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

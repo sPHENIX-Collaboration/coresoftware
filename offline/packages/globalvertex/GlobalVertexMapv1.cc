@@ -73,7 +73,7 @@ std::vector<const Vertex*> GlobalVertexMapv1::get_vtxs_of_type(GlobalVertex::VTX
   while(iter != _map.end())
     {
       GlobalVertex::VertexIter it = iter->second->find_vertexes(type);
-      if(it->second.size() > 0)
+      if(it != iter->second->end_vertexes())
 	{
 	  for(unsigned int i=0; i<it->second.size(); ++i)
 	    {
