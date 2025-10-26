@@ -249,7 +249,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
             static uint64_t const header = 0xcadead;
             static uint64_t const footer = 0x80cafe;
             static uint64_t const projection = 0xffffff;
-            for (int shift = 0; shift < 36; shift+=4)
+            for (unsigned int shift = 0; shift < 36; shift+=4)
             {
                 if ((gtm_bco & (projection << shift)) == (header << shift)) {
                     if (1 < Verbosity()) {
