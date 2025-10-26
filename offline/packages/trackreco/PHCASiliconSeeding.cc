@@ -347,7 +347,7 @@ bool PHCASiliconSeeding::ClusterTimesAreCompatible(const uint8_t trkr_id, const 
     }
     return (time_index == MvtxDefs::getStrobeId(ckey)); // cut on same MVTX strobe
   }
-  else if(trkr_id == TrkrDefs::inttId)
+  if(trkr_id == TrkrDefs::inttId)
   {
     short crossing = GetCleanINTTClusterCrossing(ckey);
     if(Verbosity()>3)
@@ -356,10 +356,8 @@ bool PHCASiliconSeeding::ClusterTimesAreCompatible(const uint8_t trkr_id, const 
     }
     return (crossing != SHRT_MAX && time_index != SHRT_MAX) && (abs(crossing - time_index) <= 1);
   }
-  else
-  {
-    return true; // other detectors don't carry interpretable time info
-  }
+
+  return true; // other detectors don't carry interpretable time info
 }
 
 int PHCASiliconSeeding::GetClusterTimeIndex(const TrkrDefs::cluskey ckey) const
@@ -372,10 +370,9 @@ int PHCASiliconSeeding::GetClusterTimeIndex(const TrkrDefs::cluskey ckey) const
   {
     return GetCleanINTTClusterCrossing(ckey);
   }
-  else
-  {
-    return SHRT_MAX; // other detectors don't carry interpretable time info
-  }
+
+  return SHRT_MAX; // other detectors don't carry interpretable time info
+
 }
 
 short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ckey) const
@@ -386,8 +383,7 @@ short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ck
     if(Verbosity()>3 && crossings.size()>2)
     {
       std::cout << "more than two INTT crossings within cluster: ";
-      for(short cross : crossings) { std::cout << cross << " ";
-}
+      for(short cross : crossings) { std::cout << cross << " ";}
       std::cout << std::endl;
     }
     return SHRT_MAX;
@@ -396,9 +392,8 @@ short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ck
   {
     return *(crossings.begin());
   }
-  else // crossings.size()==2
-  {
-    // allow for crossing to be off by 1,
+  // crossings.size()==2
+      // allow for crossing to be off by 1,
     // take lower crossing to be true value
     std::vector<short> crossings_vec;
     std::copy(crossings.begin(),crossings.end(),std::back_inserter(crossings_vec));
@@ -408,11 +403,8 @@ short PHCASiliconSeeding::GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ck
       std::cout << "INTT: resolving off-by-one between " << crossings_vec[0] << " and " << crossings_vec[1] << std::endl;
       return std::min(crossings_vec[0],crossings_vec[1]);
     }
-    else
-    {
-      return SHRT_MAX;
-    }
-  }
+
+    return SHRT_MAX;
 }
 
 std::set<short> PHCASiliconSeeding::GetINTTClusterCrossings(const TrkrDefs::cluskey ckey) const
@@ -645,14 +637,14 @@ std::vector<std::vector<PHCASiliconSeeding::Triplet>> PHCASiliconSeeding::Create
                 best_above_ckey = cabove.second;
               }
             }
-	    else
+            else
 	    {
               if(Verbosity()>3)
               {
                 std::cout << "passes straightness criterion" << std::endl;
               }
               passing_below_ckeys.push_back(cbelow.second);
-	            passing_above_ckeys.push_back(cabove.second);
+	      passing_above_ckeys.push_back(cabove.second);
 	    }
           }
         }

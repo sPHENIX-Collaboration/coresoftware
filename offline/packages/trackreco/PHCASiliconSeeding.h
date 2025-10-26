@@ -172,11 +172,11 @@ class PHCASiliconSeeding : public PHTrackSeeding
   std::vector<coordKey> FillTree(bgi::rtree<pointKey, bgi::quadratic<16>>&, const keyList&, const PositionMap&, int layer);
   int FindSeeds(const PositionMap&, const keyListPerLayer&);
 
-  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double zmin, double phimax, double zmax, std::vector<pointKey>& returned_values) const;
+  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double z_min, double phimax, double z_max, std::vector<pointKey>& returned_values) const;
   float getSeedQuality(const TrackSeed_v2& seed, const PositionMap& globalPositions) const;
   void HelixPropagate(std::vector<TrackSeed_v2>& seeds, const PositionMap& globalPositions) const;
   void FitSeed(TrackSeed_v2& seed, const PositionMap& globalPositions) const;
-  std::vector<TrackSeed_v2> FitSeeds(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
+  std::vector<TrackSeed_v2> FitSeeds(const std::vector<keyList>& chains, const PositionMap& globalPositions) const;
 
   std::set<short> GetINTTClusterCrossings(const TrkrDefs::cluskey ckey) const;
   short GetCleanINTTClusterCrossing(const TrkrDefs::cluskey ckey) const;
