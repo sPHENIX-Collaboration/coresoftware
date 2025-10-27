@@ -17,15 +17,20 @@ class DBInterface
 
   virtual ~DBInterface();
 
-  odbc::Connection *getDBConnection(const std::string &dbname, int verbosity = 0);
-  odbc::Statement *getStatement(const std::string &dbname, int verbosity = 0);
+  int Verbosity() const {return m_Verbosity;}
+  void Verbosity(const int i) {m_Verbosity = i;}
+  void Print(const std::string & /*what*/) const;
+
+  odbc::Connection *getDBConnection(const std::string &dbname);
+  odbc::Statement *getStatement(const std::string &dbname);
   
  private:
 
-  DBInterface() = default;
+  DBInterface(const std::string &name = "DBInterfaceNoFFA");
   static DBInterface *__instance;
   int m_ConnectionTries {0};
   int m_SleepMS {0};
+  int m_Verbosity {0};
   static constexpr int m_MAX_NUM_RETRIES = 3000;
   static constexpr int m_MIN_SLEEP_DUR = 200;   // milliseconds
   static constexpr int m_MAX_SLEEP_DUR = 3000;  // milliseconds
