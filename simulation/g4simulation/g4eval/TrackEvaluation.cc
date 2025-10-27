@@ -32,11 +32,15 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
 
 #include <TVector3.h>
@@ -44,8 +48,12 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <numeric>
+#include <vector>
 
 //_____________________________________________________________________
 namespace
@@ -823,9 +831,9 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster(TrkrDe
       cluster_struct.z_error = cluster->getZError();
       cluster_struct.para_phi_error = sqrt(para_errors_mm.first) / cluster_struct.r;
       cluster_struct.para_z_error = sqrt(para_errors_mm.second);
-      //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
+      //	float R = std::abs(1.0/tpc_seed->get_qOverR());
       cluster_struct.trk_radius = 1.0 / tpc_seed->get_qOverR();
-      cluster_struct.trk_alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpc_seed->get_qOverR()));
+      cluster_struct.trk_alpha = (r * r) / (2 * r * std::abs(1.0 / tpc_seed->get_qOverR()));
       cluster_struct.trk_beta = std::atan(tpc_seed->get_slope());
     }
     else
@@ -833,9 +841,9 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster(TrkrDe
       auto para_errors_mvtx = ClusErrPara.get_cluster_error(cluster, r, key, si_seed->get_qOverR(), si_seed->get_slope());
       cluster_struct.phi_error = sqrt(para_errors_mvtx.first) / cluster_struct.r;
       cluster_struct.z_error = sqrt(para_errors_mvtx.second);
-      //	float R = TMath::Abs(1.0/si_seed->get_qOverR());
+      //	float R = std::abs(1.0/si_seed->get_qOverR());
       cluster_struct.trk_radius = 1.0 / tpc_seed->get_qOverR();
-      cluster_struct.trk_alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpc_seed->get_qOverR()));
+      cluster_struct.trk_alpha = (r * r) / (2 * r * std::abs(1.0 / tpc_seed->get_qOverR()));
       cluster_struct.trk_beta = std::atan(si_seed->get_slope());
     }
   }
