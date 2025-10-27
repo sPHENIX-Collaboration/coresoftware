@@ -26,8 +26,8 @@ class DBInterface : public SubsysReco
 
   void Print(const std::string & /*what*/ = "ALL") const override;
 
-  odbc::Connection *getDBConnection(const std::string &dbname, int verbosity = 0);
-  odbc::Statement *getStatement(const std::string &dbname, int verbosity = 0);
+  odbc::Connection *getDBConnection(const std::string &dbname);
+  odbc::Statement *getStatement(const std::string &dbname);
   
  private:
 
