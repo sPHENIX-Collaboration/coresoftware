@@ -8,35 +8,10 @@
  */
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/SvtxTrackInfo_v1.h>
-#include <trackbase_historic/SvtxTrack_v4.h>
-#include <trackbase_historic/TrackInfoContainer_v1.h>
-#include <trackbase_historic/TrackStateInfo_v1.h>
 
-#include <TClonesArray.h>
-#include <TFile.h>
-#include <TTree.h>
-
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-
-class PHG4Hit;
-class PHG4HitContainer;
-class PHG4Particle;
-class PHG4TruthInfoContainer;
-class SvtxTrack;
+class PHCompositeNode;
 class SvtxTrackMap;
-// class DSTContainerv3;
-// class DSTContainer;
-class TrkrCluster;
-class TrkrClusterContainer;
-class TrkrClusterHitAssoc;
-class TrkrHitSetContainer;
-class TrkrHitTruthAssoc;
-class TrackSeedContainer;
+class TrackInfoContainer;
 
 class DSTTrackInfoWriter : public SubsysReco
 {
@@ -45,10 +20,10 @@ class DSTTrackInfoWriter : public SubsysReco
   DSTTrackInfoWriter(const std::string& = "DSTTrackInfoWriter");
 
   //! global initialization
-  int InitRun(PHCompositeNode* topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode* topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   enum Flags
   {
@@ -65,18 +40,18 @@ class DSTTrackInfoWriter : public SubsysReco
 
  private:
   //! load nodes
-  int load_nodes(PHCompositeNode*);
+  int load_nodes(PHCompositeNode *topNode);
 
   //! evaluate track info
   void evaluate_track_info();
 
-  TrackInfoContainer_v1* m_track_info_container = nullptr;
+  TrackInfoContainer *m_track_info_container {nullptr};
 
   //! flags
-  int m_flags = WriteEvent | WriteClusters | WriteTracks;
+  int m_flags {WriteEvent | WriteClusters | WriteTracks};
 
   //! tracks
-  SvtxTrackMap* m_track_map = nullptr;
+  SvtxTrackMap *m_track_map {nullptr};
 };
 
 #endif  // G4EVAL_DSTTrackInfoWRITER_H
