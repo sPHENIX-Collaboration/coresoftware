@@ -46,6 +46,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <limits>
 
 RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   : SubsysReco(name)
@@ -750,10 +751,11 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
       cluster->set_tower_cog(xcg, ycg, xcorr, ycorr);
 
-      // set cluster mean time (v2 clusters only)
-      float tmean = std::numeric_limits<float>::quiet_NaN();
-      if (ew_den > 0.0 && saw_nonzero_t) tmean = static_cast<float>(ew_num / ew_den);
-      static_cast<RawClusterv2*>(cluster)->set_mean_time(tmean);
+      // set cluster mean time via base-class API (no down-cast)
+      const float tmean = (ew_den > 0.0 && saw_nonzero_t)
+                            ? static_cast<float>(ew_num / ew_den)
+                            : std::numeric_limits<float>::quiet_NaN();
+      cluster->set_mean_time(tmean);
       _clusters->AddCluster(cluster);
       // ncl++;
 
