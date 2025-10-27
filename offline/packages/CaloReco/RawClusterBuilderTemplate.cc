@@ -709,8 +709,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       ph = hlist.begin();
 
       // accumulate energy-weighted time
-      double ew_num = 0.0;   // sum(E * t)
-      double ew_den = 0.0;   // sum(E)
+      float ew_num = 0.0;   // sum(E * t)
+      float ew_den = 0.0;   // sum(E)
       bool   saw_nonzero_t = false;
 
       while (ph != hlist.end())
@@ -737,10 +737,11 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         // accumulate EW time (finite guard; treat exact 0 as “no time”)
         if (std::isfinite(tof))
         {
-          if (std::fabs(tof) > 1e-9f) saw_nonzero_t = true;
-          ew_num += static_cast<double>(amp) * static_cast<double>(tof);
+          if (std::fabs(tof) > 1e-9f) { saw_nonzero_t = true; }
+          ew_num += amp * tof;    // float math end-to-end
         }
-        ew_den += static_cast<double>(amp);
+        ew_den += amp;
+
 
         ++ph;
       }
@@ -751,9 +752,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
       cluster->set_tower_cog(xcg, ycg, xcorr, ycorr);
 
-      // set cluster mean time via base-class API (no down-cast)
-      const float tmean = (ew_den > 0.0 && saw_nonzero_t)
-                            ? static_cast<float>(ew_num / ew_den)
+      const float tmean = (ew_den > 0.0f && saw_nonzero_t)
+                            ? (ew_num / ew_den)
                             : std::numeric_limits<float>::quiet_NaN();
       cluster->set_mean_time(tmean);
       _clusters->AddCluster(cluster);
