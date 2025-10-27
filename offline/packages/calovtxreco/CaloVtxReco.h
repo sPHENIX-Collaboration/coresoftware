@@ -28,6 +28,10 @@ class CaloVtxReco : public SubsysReco
   float get_jet_threshold() { return _jet_threshold; }
 
   void set_jet_threshold(float new_thresh) { _jet_threshold = new_thresh; }
+
+  float get_calib_factor() { return _calib_factor; }
+
+  void set_calib_factor(float new_calib) { _calib_factor = new_calib; }
  
  private:
   int _debug;
@@ -35,6 +39,7 @@ class CaloVtxReco : public SubsysReco
   std::string _jetnodename;
   float _jet_threshold{15};
   float _zvtx;
+  float _calib_factor{1.406};
   CaloVertexMap* _calovtxmap;
 };
 

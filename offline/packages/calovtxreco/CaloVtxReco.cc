@@ -220,7 +220,7 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
     {
       if(_debug > 2) cout << "optimal z: " << _zvtx << endl;
       CaloVertex *vertex = new CaloVertexv1();
-      _zvtx *= 1.406; //calibration factor from simulation
+      _zvtx *= _calib_factor; //calibration factor from simulation
       vertex->set_z(_zvtx);
       _calovtxmap->insert(vertex);
       if(_debug > 3) cout << "CaloVtxReco: end event" << endl;
