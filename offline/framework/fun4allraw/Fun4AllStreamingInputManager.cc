@@ -41,6 +41,7 @@
 #include <TH2.h>
 #include <TSystem.h>
 
+#include <format>
 #include <algorithm>  // for max
 #include <cassert>
 #include <cstdint>  // for uint64_t, uint16_t
@@ -708,7 +709,6 @@ int Fun4AllStreamingInputManager::FillIntt()
   }
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
-  h_refbco_intt->Fill(refbcobitshift);
   bool allpackets = true;
   int allpacketsallfees = 0;
   for (auto &p : m_InttInputVector)
@@ -745,6 +745,7 @@ int Fun4AllStreamingInputManager::FillIntt()
     }
     feeidset.clear();
     bool thispacket = false;
+    h_refbco_intt[histo_to_fill]->Fill(refbcobitshift);
 
     for (auto &[packetid, gtmbcoset] : bcl_stack)
     {
@@ -1445,12 +1446,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  {
-    auto h = new TH1I("h_InttPoolQA_RefGL1BCO", "INTT ref BCO", 1000, 0, 1000);
-    h->GetXaxis()->SetTitle("GL1 BCO");
-    h->SetTitle("GL1 Reference BCO");
-    hm->registerHisto(h);
-  }
+
   {
     auto h = new TH1I("h_MvtxPoolQA_RefGL1BCO", "MVTX ref BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
@@ -1488,6 +1484,13 @@ void Fun4AllStreamingInputManager::createQAHistos()
   // intt has 8 prdfs, one per felix
   for (int i = 0; i < 8; i++)
   {
+    
+    auto hgl1 = new TH1I(std::format("h_InttPoolQA_RefGL1BCO_server{}",i).c_str(), std::format("INTT ref BCO server{}",i).c_str(), 1000, 0, 1000);
+    hgl1->GetXaxis()->SetTitle("GL1 BCO");
+    hgl1->SetTitle(std::format("GL1 Reference BCO for server{}",i).c_str());
+    hm->registerHisto(hgl1);
+    
+
     auto h = new TH1I((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str(), "INTT trigger tagged BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
     h->SetTitle((boost::format("EBDC %i") % i).str().c_str());
@@ -1533,12 +1536,13 @@ void Fun4AllStreamingInputManager::createQAHistos()
     hm->registerHisto(h_bcoLL1Strobediff[i]);
   }
   // Get the global pointers
-  h_refbco_intt = dynamic_cast<TH1 *>(hm->getHisto("h_InttPoolQA_RefGL1BCO"));
   h_taggedAll_intt = dynamic_cast<TH1 *>(hm->getHisto("h_InttPoolQA_TagBCOAllServers"));
   h_taggedAllFee_intt = new TH1I("h_InttPoolQA_TagBCOAllServersAllFees", "INTT trigger tagged BCO all servers and fees", 1000, 0, 1000);
   hm->registerHisto(h_taggedAllFee_intt);
   for (int i = 0; i < 8; i++)
   {
+    h_refbco_intt[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("h_InttPoolQA_RefGL1BCO_server{}", i).c_str()));
+
     h_gl1tagged_intt[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str()));
     h_bcodiff_intt[i] = new TH2I((boost::format("h_InttPoolQA_BCODiff_server%i") % i).str().c_str(), ";FEE ID;|GL1 BCO - GTM BCO|", 14, 0, 14, 10000, 0, 10000);
     hm->registerHisto(h_bcodiff_intt[i]);
