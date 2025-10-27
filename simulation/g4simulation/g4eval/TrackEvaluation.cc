@@ -150,7 +150,7 @@ namespace
 
     if (!valid)
     {
-      return NAN;
+      return std::numeric_limits<double>::quiet_NaN();
     }
     return swx / sw;
   }

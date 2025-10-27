@@ -175,13 +175,13 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
       float e = recojet->get_e();
       float pt = recojet->get_pt();
 
-      float gid = NAN;
-      float gncomp = NAN;
-      float geta = NAN;
-      float gphi = NAN;
-      float ge = NAN;
-      float gpt = NAN;
-      float efromtruth = NAN;
+      float gid = std::numeric_limits<float>::quiet_NaN();
+      float gncomp = std::numeric_limits<float>::quiet_NaN();
+      float geta = std::numeric_limits<float>::quiet_NaN();
+      float gphi = std::numeric_limits<float>::quiet_NaN();
+      float ge = std::numeric_limits<float>::quiet_NaN();
+      float gpt = std::numeric_limits<float>::quiet_NaN();
+      float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
       if (truthjet)
       {
@@ -244,13 +244,13 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
       float ge = truthjet->get_e();
       float gpt = truthjet->get_pt();
 
-      float id = NAN;
-      float ncomp = NAN;
-      float eta = NAN;
-      float phi = NAN;
-      float e = NAN;
-      float pt = NAN;
-      float efromtruth = NAN;
+      float id = std::numeric_limits<float>::quiet_NaN();
+      float ncomp = std::numeric_limits<float>::quiet_NaN();
+      float eta = std::numeric_limits<float>::quiet_NaN();
+      float phi = std::numeric_limits<float>::quiet_NaN();
+      float e = std::numeric_limits<float>::quiet_NaN();
+      float pt = std::numeric_limits<float>::quiet_NaN();
+      float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
       if (recojet)
       {

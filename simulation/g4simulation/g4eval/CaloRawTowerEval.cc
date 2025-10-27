@@ -623,7 +623,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Shower* sho
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -634,12 +634,12 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Shower* sho
   else if (!tower || !shower)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(shower))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -674,7 +674,7 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Shower* sh
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -685,12 +685,12 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Shower* sh
   else if (!tower || !shower)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(shower))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -1165,7 +1165,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -1176,12 +1176,12 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   else if (!tower || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap
@@ -1194,7 +1194,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -1229,7 +1229,7 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Particle* 
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -1240,12 +1240,12 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Particle* 
   else if (!tower || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap
@@ -1258,7 +1258,7 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Particle* 
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)

@@ -38,9 +38,10 @@
 #include <TVector3.h>
 
 #include <cassert>
-#include <cmath>    // for sqrt, NAN, fabs
+#include <cmath>    // for sqrt, fabs
 #include <cstdlib>  // for abs
 #include <iostream>
+#include <limits>
 #include <map>
 #include <set>
 #include <utility>
@@ -312,11 +313,11 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
   unsigned int layer;
   for (layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms; ++layer)
   {
-    float gx = NAN;
-    float gy = NAN;
-    float gz = NAN;
-    float gt = NAN;
-    float gedep = NAN;
+    float gx = std::numeric_limits<float>::quiet_NaN();
+    float gy = std::numeric_limits<float>::quiet_NaN();
+    float gz = std::numeric_limits<float>::quiet_NaN();
+    float gt = std::numeric_limits<float>::quiet_NaN();
+    float gedep = std::numeric_limits<float>::quiet_NaN();
 
     std::vector<PHG4Hit*> contributing_hits;
     std::vector<double> contributing_hits_energy;
@@ -390,8 +391,8 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
     }
 
     // Estimate the size of the truth cluster
-    float g4phisize = NAN;
-    float g4zsize = NAN;
+    float g4phisize = std::numeric_limits<float>::quiet_NaN();
+    float g4zsize = std::numeric_limits<float>::quiet_NaN();
     G4ClusterSize(ckey, layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
     for (int i1 = 0; i1 < 3; ++i1)
@@ -511,7 +512,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
       float yout = yl[1];
       float zout = zl[1];
 
-      float local_t = NAN;
+      float local_t = std::numeric_limits<float>::quiet_NaN();
 
       if (rbegin < rbin)
       {
@@ -705,15 +706,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
 {
   // sort the contributing g4hits in radius
   double inner_radius = 100.;
-  double inner_x = NAN;
-  double inner_y = NAN;
-  double inner_z = NAN;
-  ;
+  double inner_x = std::numeric_limits<double>::quiet_NaN();
+  double inner_y = std::numeric_limits<double>::quiet_NaN();
+  double inner_z = std::numeric_limits<double>::quiet_NaN();
 
   double outer_radius = 0.;
-  double outer_x = NAN;
-  double outer_y = NAN;
-  double outer_z = NAN;
+  double outer_x = std::numeric_limits<double>::quiet_NaN();
+  double outer_y = std::numeric_limits<double>::quiet_NaN();
+  double outer_z = std::numeric_limits<double>::quiet_NaN();
 
   for (unsigned int ihit = 0; ihit < contributing_hits_entry.size(); ++ihit)
   {

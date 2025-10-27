@@ -262,9 +262,9 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
     float gvy = gvertex->get_y();
     float gvz = gvertex->get_z();
 
-    float vx = NAN;
-    float vy = NAN;
-    float vz = NAN;
+    float vx = std::numeric_limits<float>::quiet_NaN();
+    float vy = std::numeric_limits<float>::quiet_NaN();
+    float vz = std::numeric_limits<float>::quiet_NaN();
     if (vertexmap)
     {
       if (!vertexmap->empty())
@@ -312,7 +312,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
       std::cout << ")" << std::endl;
 
       float gpt = std::sqrt(gpx * gpx + gpy * gpy);
-      float geta = NAN;
+      float geta = std::numeric_limits<float>::quiet_NaN();
       if (gpt != 0.0)
       {
         geta = std::asinh(gpz / gpt);
@@ -421,9 +421,9 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     float gvy = gvertex->get_y();
     float gvz = gvertex->get_z();
 
-    float vx = NAN;
-    float vy = NAN;
-    float vz = NAN;
+    float vx = std::numeric_limits<float>::quiet_NaN();
+    float vy = std::numeric_limits<float>::quiet_NaN();
+    float vz = std::numeric_limits<float>::quiet_NaN();
     if (vertexmap)
     {
       if (!vertexmap->empty())
@@ -492,7 +492,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float gflavor = primary->get_pid();
 
       PHG4Shower* shower = trutheval->get_primary_shower(primary);
-      float gnhits = NAN;
+      float gnhits = std::numeric_limits<float>::quiet_NaN();
       if (shower)
       {
         gnhits = shower->get_nhits(trutheval->get_caloid());
@@ -507,7 +507,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float ge = primary->get_e();
 
       float gpt = std::sqrt(gpx * gpx + gpy * gpy);
-      float geta = NAN;
+      float geta = std::numeric_limits<float>::quiet_NaN();
       if (gpt != 0.0)
       {
         geta = std::asinh(gpz / gpt);
@@ -524,16 +524,16 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       RawCluster* cluster = clustereval->best_cluster_from(primary);
 
-      float clusterID = NAN;
-      float ntowers = NAN;
-      float eta = NAN;
-      float x = NAN;
-      float y = NAN;
-      float z = NAN;
-      float phi = NAN;
-      float e = NAN;
+      float clusterID = std::numeric_limits<float>::quiet_NaN();
+      float ntowers = std::numeric_limits<float>::quiet_NaN();
+      float eta = std::numeric_limits<float>::quiet_NaN();
+      float x = std::numeric_limits<float>::quiet_NaN();
+      float y = std::numeric_limits<float>::quiet_NaN();
+      float z = std::numeric_limits<float>::quiet_NaN();
+      float phi = std::numeric_limits<float>::quiet_NaN();
+      float e = std::numeric_limits<float>::quiet_NaN();
 
-      float efromtruth = NAN;
+      float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
       if (cluster)
       {
@@ -661,26 +661,26 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
 
-        float gparticleID = NAN;
-        float gflavor = NAN;
-        float gnhits = NAN;
-        float gpx = NAN;
-        float gpy = NAN;
-        float gpz = NAN;
-        float ge = NAN;
+        float gparticleID = std::numeric_limits<float>::quiet_NaN();
+        float gflavor = std::numeric_limits<float>::quiet_NaN();
+        float gnhits = std::numeric_limits<float>::quiet_NaN();
+        float gpx = std::numeric_limits<float>::quiet_NaN();
+        float gpy = std::numeric_limits<float>::quiet_NaN();
+        float gpz = std::numeric_limits<float>::quiet_NaN();
+        float ge = std::numeric_limits<float>::quiet_NaN();
 
-        float gpt = NAN;
-        float geta = NAN;
-        float gphi = NAN;
+        float gpt = std::numeric_limits<float>::quiet_NaN();
+        float geta = std::numeric_limits<float>::quiet_NaN();
+        float gphi = std::numeric_limits<float>::quiet_NaN();
 
-        float gvx = NAN;
-        float gvy = NAN;
-        float gvz = NAN;
+        float gvx = std::numeric_limits<float>::quiet_NaN();
+        float gvy = std::numeric_limits<float>::quiet_NaN();
+        float gvz = std::numeric_limits<float>::quiet_NaN();
 
-        float gembed = NAN;
-        float gedep = NAN;
+        float gembed = std::numeric_limits<float>::quiet_NaN();
+        float gedep = std::numeric_limits<float>::quiet_NaN();
 
-        float efromtruth = NAN;
+        float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
         if (primary)
         {
@@ -822,26 +822,26 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
 
-        float gparticleID = NAN;
-        float gflavor = NAN;
-        float gnhits = NAN;
-        float gpx = NAN;
-        float gpy = NAN;
-        float gpz = NAN;
-        float ge = NAN;
+        float gparticleID = std::numeric_limits<float>::quiet_NaN();
+        float gflavor = std::numeric_limits<float>::quiet_NaN();
+        float gnhits = std::numeric_limits<float>::quiet_NaN();
+        float gpx = std::numeric_limits<float>::quiet_NaN();
+        float gpy = std::numeric_limits<float>::quiet_NaN();
+        float gpz = std::numeric_limits<float>::quiet_NaN();
+        float ge = std::numeric_limits<float>::quiet_NaN();
 
-        float gpt = NAN;
-        float geta = NAN;
-        float gphi = NAN;
+        float gpt = std::numeric_limits<float>::quiet_NaN();
+        float geta = std::numeric_limits<float>::quiet_NaN();
+        float gphi = std::numeric_limits<float>::quiet_NaN();
 
-        float gvx = NAN;
-        float gvy = NAN;
-        float gvz = NAN;
+        float gvx = std::numeric_limits<float>::quiet_NaN();
+        float gvy = std::numeric_limits<float>::quiet_NaN();
+        float gvz = std::numeric_limits<float>::quiet_NaN();
 
-        float gembed = NAN;
-        float gedep = NAN;
+        float gembed = std::numeric_limits<float>::quiet_NaN();
+        float gedep = std::numeric_limits<float>::quiet_NaN();
 
-        float efromtruth = NAN;
+        float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
         if (primary)
         {
@@ -960,7 +960,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float x = cluster->get_x();
       float y = cluster->get_y();
       float z = cluster->get_z();
-      float eta = NAN;
+      float eta = std::numeric_limits<float>::quiet_NaN();
       float phi = cluster->get_phi();
       float e = cluster->get_energy();
 
@@ -980,27 +980,27 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
 
-      float gparticleID = NAN;
-      float gflavor = NAN;
+      float gparticleID = std::numeric_limits<float>::quiet_NaN();
+      float gflavor = std::numeric_limits<float>::quiet_NaN();
 
-      float gnhits = NAN;
-      float gpx = NAN;
-      float gpy = NAN;
-      float gpz = NAN;
-      float ge = NAN;
+      float gnhits = std::numeric_limits<float>::quiet_NaN();
+      float gpx = std::numeric_limits<float>::quiet_NaN();
+      float gpy = std::numeric_limits<float>::quiet_NaN();
+      float gpz = std::numeric_limits<float>::quiet_NaN();
+      float ge = std::numeric_limits<float>::quiet_NaN();
 
-      float gpt = NAN;
-      float geta = NAN;
-      float gphi = NAN;
+      float gpt = std::numeric_limits<float>::quiet_NaN();
+      float geta = std::numeric_limits<float>::quiet_NaN();
+      float gphi = std::numeric_limits<float>::quiet_NaN();
 
-      float gvx = NAN;
-      float gvy = NAN;
-      float gvz = NAN;
+      float gvx = std::numeric_limits<float>::quiet_NaN();
+      float gvy = std::numeric_limits<float>::quiet_NaN();
+      float gvz = std::numeric_limits<float>::quiet_NaN();
 
-      float gembed = NAN;
-      float gedep = NAN;
+      float gembed = std::numeric_limits<float>::quiet_NaN();
+      float gedep = std::numeric_limits<float>::quiet_NaN();
 
-      float efromtruth = NAN;
+      float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
       if (primary)
       {

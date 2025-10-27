@@ -710,7 +710,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
     float gpx = g4particle->get_px();
     float gpy = g4particle->get_py();
     float gpz = g4particle->get_pz();
-    float gpeta = NAN;
+    float gpeta = std::numeric_limits<float>::quiet_NaN();
 
     TVector3 gv(gpx, gpy, gpz);
     gpeta = gv.Eta();
@@ -1263,7 +1263,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
   if (!has_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -1274,7 +1274,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
   else if (!particle)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -1310,7 +1310,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
   if (!has_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -1321,7 +1321,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
   else if (!g4hit)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if ((_do_cache) &&

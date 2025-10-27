@@ -237,7 +237,7 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
   else
   {
     _iseed = 0;
-    m_fSeed = NAN;
+    m_fSeed = std::numeric_limits<float>::quiet_NaN();
   }
 
   if (Verbosity() > 1)
@@ -489,9 +489,9 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     float gvy = gvertex->get_y();
     float gvz = gvertex->get_z();
 
-    float vx = NAN;
-    float vy = NAN;
-    float vz = NAN;
+    float vx = std::numeric_limits<float>::quiet_NaN();
+    float vy = std::numeric_limits<float>::quiet_NaN();
+    float vz = std::numeric_limits<float>::quiet_NaN();
 
     SvtxVertexMap* vertexmap = nullptr;
     if (_use_initial_vertex)
@@ -1114,8 +1114,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float gpx = g4particle->get_px();
           float gpy = g4particle->get_py();
           float gpz = g4particle->get_pz();
-          float gpt = NAN;
-          float geta = NAN;
+          float gpt = std::numeric_limits<float>::quiet_NaN();
+          float geta = std::numeric_limits<float>::quiet_NaN();
 
           if (gpx != 0 && gpy != 0)
           {
@@ -1193,15 +1193,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float ntracks = vertex->size_tracks();
         float chi2 = vertex->get_chisq();
         float ndof = vertex->get_ndof();
-        float gvx = NAN;
-        float gvy = NAN;
-        float gvz = NAN;
-        float gvt = NAN;
-        float gembed = NAN;
+        float gvx = std::numeric_limits<float>::quiet_NaN();
+        float gvy = std::numeric_limits<float>::quiet_NaN();
+        float gvz = std::numeric_limits<float>::quiet_NaN();
+        float gvt = std::numeric_limits<float>::quiet_NaN();
+        float gembed = std::numeric_limits<float>::quiet_NaN();
         float gntracks = truthinfo->GetNumPrimaryVertexParticles();
-        float gntracksmaps = NAN;
-        float gnembed = NAN;
-        float nfromtruth = NAN;
+        float gntracksmaps = std::numeric_limits<float>::quiet_NaN();
+        float gnembed = std::numeric_limits<float>::quiet_NaN();
+        float nfromtruth = std::numeric_limits<float>::quiet_NaN();
         if (point)
         {
           const int point_id = point->get_id();
@@ -1257,20 +1257,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             continue;
           }
 
-          float vx = NAN;
-          float vy = NAN;
-          float vz = NAN;
-          float ntracks = NAN;
+          float vx = std::numeric_limits<float>::quiet_NaN();
+          float vy = std::numeric_limits<float>::quiet_NaN();
+          float vz = std::numeric_limits<float>::quiet_NaN();
+          float ntracks = std::numeric_limits<float>::quiet_NaN();
 
-          float gvx = NAN;
-          float gvy = NAN;
-          float gvz = NAN;
-          float gvt = NAN;
+          float gvx = std::numeric_limits<float>::quiet_NaN();
+          float gvy = std::numeric_limits<float>::quiet_NaN();
+          float gvz = std::numeric_limits<float>::quiet_NaN();
+          float gvt = std::numeric_limits<float>::quiet_NaN();
           float gembed = iter->first;
-          float gntracks = NAN;
-          float gntracksmaps = NAN;
-          float gnembed = NAN;
-          float nfromtruth = NAN;
+          float gntracks = std::numeric_limits<float>::quiet_NaN();
+          float gntracksmaps = std::numeric_limits<float>::quiet_NaN();
+          float gnembed = std::numeric_limits<float>::quiet_NaN();
+          float nfromtruth = std::numeric_limits<float>::quiet_NaN();
 
           PHG4VtxPoint* point = embedvtxid_vertex[gembed];
 
@@ -1368,11 +1368,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float gntracks = vertex_particle_count[point_id];
 
           float gembed = truthinfo->isEmbededVtx(point_id);
-          float vx = NAN;
-          float vy = NAN;
-          float vz = NAN;
-          float ntracks = NAN;
-          float nfromtruth = NAN;
+          float vx = std::numeric_limits<float>::quiet_NaN();
+          float vy = std::numeric_limits<float>::quiet_NaN();
+          float vz = std::numeric_limits<float>::quiet_NaN();
+          float ntracks = std::numeric_limits<float>::quiet_NaN();
+          float nfromtruth = std::numeric_limits<float>::quiet_NaN();
 
           if (vertex)
           {
@@ -1443,19 +1443,19 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       float gtrackID = g4hit->get_trkid();
 
-      float gflavor = NAN;
-      float gpx = NAN;
-      float gpy = NAN;
-      float gpz = NAN;
+      float gflavor = std::numeric_limits<float>::quiet_NaN();
+      float gpx = std::numeric_limits<float>::quiet_NaN();
+      float gpy = std::numeric_limits<float>::quiet_NaN();
+      float gpz = std::numeric_limits<float>::quiet_NaN();
       TVector3 vec(g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z());
       float geta = vec.Eta();
       float gphi = vec.Phi();
-      float gvx = NAN;
-      float gvy = NAN;
-      float gvz = NAN;
+      float gvx = std::numeric_limits<float>::quiet_NaN();
+      float gvy = std::numeric_limits<float>::quiet_NaN();
+      float gvz = std::numeric_limits<float>::quiet_NaN();
 
-      float gembed = NAN;
-      float gprimary = NAN;
+      float gembed = std::numeric_limits<float>::quiet_NaN();
+      float gprimary = std::numeric_limits<float>::quiet_NaN();
 
       float gfpx = 0.;
       float gfpy = 0.;
@@ -1513,21 +1513,21 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       // best cluster reco'd
       TrkrDefs::cluskey cluster_key = clustereval->best_cluster_from(g4hit);
 
-      float clusID = NAN;
-      float x = NAN;
-      float y = NAN;
-      float z = NAN;
-      float eta = NAN;
-      float phi = NAN;
-      float e = NAN;
-      float adc = NAN;
-      float local_layer = NAN;
-      float size = NAN;
-      float efromtruth = NAN;
-      float dphitru = NAN;
-      float detatru = NAN;
-      float dztru = NAN;
-      float drtru = NAN;
+      float clusID = std::numeric_limits<float>::quiet_NaN();
+      float x = std::numeric_limits<float>::quiet_NaN();
+      float y = std::numeric_limits<float>::quiet_NaN();
+      float z = std::numeric_limits<float>::quiet_NaN();
+      float eta = std::numeric_limits<float>::quiet_NaN();
+      float phi = std::numeric_limits<float>::quiet_NaN();
+      float e = std::numeric_limits<float>::quiet_NaN();
+      float adc = std::numeric_limits<float>::quiet_NaN();
+      float local_layer = std::numeric_limits<float>::quiet_NaN();
+      float size = std::numeric_limits<float>::quiet_NaN();
+      float efromtruth = std::numeric_limits<float>::quiet_NaN();
+      float dphitru = std::numeric_limits<float>::quiet_NaN();
+      float detatru = std::numeric_limits<float>::quiet_NaN();
+      float dztru = std::numeric_limits<float>::quiet_NaN();
+      float drtru = std::numeric_limits<float>::quiet_NaN();
 
       TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
       if (!clustermap)
@@ -1685,13 +1685,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float cellID = 0;
           float ecell = hit->getAdc();
 
-          float phibin = NAN;
-          float zbin = NAN;
-          float phi = NAN;
-          float r = NAN;
-          float x = NAN;
-          float y = NAN;
-          float z = NAN;
+          float phibin = std::numeric_limits<float>::quiet_NaN();
+          float zbin = std::numeric_limits<float>::quiet_NaN();
+          float phi = std::numeric_limits<float>::quiet_NaN();
+          float r = std::numeric_limits<float>::quiet_NaN();
+          float x = std::numeric_limits<float>::quiet_NaN();
+          float y = std::numeric_limits<float>::quiet_NaN();
+          float z = std::numeric_limits<float>::quiet_NaN();
 
           if (local_layer >= _nlayers_maps + _nlayers_intt && local_layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
           {
@@ -1705,31 +1705,31 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             y = r*std::sin(phi);
           }
 
-          float g4hitID = NAN;
-          float gedep = NAN;
-          float gx = NAN;
-          float gy = NAN;
-          float gz = NAN;
-          float gt = NAN;
-          float gtrackID = NAN;
-          float gflavor = NAN;
-          float gpx = NAN;
-          float gpy = NAN;
-          float gpz = NAN;
-          float gvx = NAN;
-          float gvy = NAN;
-          float gvz = NAN;
-          float gvt = NAN;
-          float gfpx = NAN;
-          float gfpy = NAN;
-          float gfpz = NAN;
-          float gfx = NAN;
-          float gfy = NAN;
-          float gfz = NAN;
-          float gembed = NAN;
-          float gprimary = NAN;
+          float g4hitID = std::numeric_limits<float>::quiet_NaN();
+          float gedep = std::numeric_limits<float>::quiet_NaN();
+          float gx = std::numeric_limits<float>::quiet_NaN();
+          float gy = std::numeric_limits<float>::quiet_NaN();
+          float gz = std::numeric_limits<float>::quiet_NaN();
+          float gt = std::numeric_limits<float>::quiet_NaN();
+          float gtrackID = std::numeric_limits<float>::quiet_NaN();
+          float gflavor = std::numeric_limits<float>::quiet_NaN();
+          float gpx = std::numeric_limits<float>::quiet_NaN();
+          float gpy = std::numeric_limits<float>::quiet_NaN();
+          float gpz = std::numeric_limits<float>::quiet_NaN();
+          float gvx = std::numeric_limits<float>::quiet_NaN();
+          float gvy = std::numeric_limits<float>::quiet_NaN();
+          float gvz = std::numeric_limits<float>::quiet_NaN();
+          float gvt = std::numeric_limits<float>::quiet_NaN();
+          float gfpx = std::numeric_limits<float>::quiet_NaN();
+          float gfpy = std::numeric_limits<float>::quiet_NaN();
+          float gfpz = std::numeric_limits<float>::quiet_NaN();
+          float gfx = std::numeric_limits<float>::quiet_NaN();
+          float gfy = std::numeric_limits<float>::quiet_NaN();
+          float gfz = std::numeric_limits<float>::quiet_NaN();
+          float gembed = std::numeric_limits<float>::quiet_NaN();
+          float gprimary = std::numeric_limits<float>::quiet_NaN();
 
-          float efromtruth = NAN;
+          float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
           if (g4hit)
           {
@@ -1943,9 +1943,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float phisize = 0;
           float zsize = 0;
           float maxadc = -999;
-	  float redge = NAN;
-	  float pedge = NAN;
-	  float ovlp = NAN;
+	  float redge = std::numeric_limits<float>::quiet_NaN();
+	  float pedge = std::numeric_limits<float>::quiet_NaN();
+	  float ovlp = std::numeric_limits<float>::quiet_NaN();
 
 
 	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
@@ -2000,47 +2000,47 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           }
           e = sumadc;
 
-          float trackID = NAN;
+          float trackID = std::numeric_limits<float>::quiet_NaN();
           if (track != nullptr)
           {
             trackID = track->get_id();
           }
 
-          float g4hitID = NAN;
-          float gx = NAN;
-          float gy = NAN;
-          float gz = NAN;
-          float gr = NAN;
-          float gphi = NAN;
-          // float gedep = NAN;
-          float geta = NAN;
-          float gt = NAN;
-          float gtrackID = NAN;
-          float gflavor = NAN;
-          float gpx = NAN;
-          float gpy = NAN;
-          float gpz = NAN;
-          float gvx = NAN;
-          float gvy = NAN;
-          float gvz = NAN;
-          float gvt = NAN;
-          float gfpx = NAN;
-          float gfpy = NAN;
-          float gfpz = NAN;
-          float gfx = NAN;
-          float gfy = NAN;
-          float gfz = NAN;
-          float gembed = NAN;
-          float gprimary = NAN;
+          float g4hitID = std::numeric_limits<float>::quiet_NaN();
+          float gx = std::numeric_limits<float>::quiet_NaN();
+          float gy = std::numeric_limits<float>::quiet_NaN();
+          float gz = std::numeric_limits<float>::quiet_NaN();
+          float gr = std::numeric_limits<float>::quiet_NaN();
+          float gphi = std::numeric_limits<float>::quiet_NaN();
+          // float gedep = std::numeric_limits<float>::quiet_NaN();
+          float geta = std::numeric_limits<float>::quiet_NaN();
+          float gt = std::numeric_limits<float>::quiet_NaN();
+          float gtrackID = std::numeric_limits<float>::quiet_NaN();
+          float gflavor = std::numeric_limits<float>::quiet_NaN();
+          float gpx = std::numeric_limits<float>::quiet_NaN();
+          float gpy = std::numeric_limits<float>::quiet_NaN();
+          float gpz = std::numeric_limits<float>::quiet_NaN();
+          float gvx = std::numeric_limits<float>::quiet_NaN();
+          float gvy = std::numeric_limits<float>::quiet_NaN();
+          float gvz = std::numeric_limits<float>::quiet_NaN();
+          float gvt = std::numeric_limits<float>::quiet_NaN();
+          float gfpx = std::numeric_limits<float>::quiet_NaN();
+          float gfpy = std::numeric_limits<float>::quiet_NaN();
+          float gfpz = std::numeric_limits<float>::quiet_NaN();
+          float gfx = std::numeric_limits<float>::quiet_NaN();
+          float gfy = std::numeric_limits<float>::quiet_NaN();
+          float gfz = std::numeric_limits<float>::quiet_NaN();
+          float gembed = std::numeric_limits<float>::quiet_NaN();
+          float gprimary = std::numeric_limits<float>::quiet_NaN();
 
-          float efromtruth = NAN;
+          float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
           if (Verbosity() > 1)
           {
             std::cout << PHWHERE << "  ****   reco: layer " << local_layer << std::endl;
             std::cout << "              reco cluster key " << cluster_key << "  r " << r << "  x " << x << "  y " << y << "  z " << z << "  phi " << phi << " adc " << adc << std::endl;
           }
-          float nparticles = NAN;
+          float nparticles = std::numeric_limits<float>::quiet_NaN();
 
           // get best matching truth cluster from clustereval
           const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
@@ -2277,9 +2277,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float phisize = 0;
           float zsize = 0;
           float maxadc = -999;
-	  float redge = NAN;
-	  float pedge = NAN;
-	  float ovlp = NAN;
+	  float redge = std::numeric_limits<float>::quiet_NaN();
+	  float pedge = std::numeric_limits<float>::quiet_NaN();
+	  float ovlp = std::numeric_limits<float>::quiet_NaN();
 
 	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
 	  phisize = cluster->getPhiSize();
@@ -2316,37 +2316,37 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
           }
 
-          float trackID = NAN;
+          float trackID = std::numeric_limits<float>::quiet_NaN();
           trackID = track->get_id();
 
-          float g4hitID = NAN;
-          float gx = NAN;
-          float gy = NAN;
-          float gz = NAN;
-          float gr = NAN;
-          float gphi = NAN;
-          // float gedep = NAN;
-          float geta = NAN;
-          float gt = NAN;
-          float gtrackID = NAN;
-          float gflavor = NAN;
-          float gpx = NAN;
-          float gpy = NAN;
-          float gpz = NAN;
-          float gvx = NAN;
-          float gvy = NAN;
-          float gvz = NAN;
-          float gvt = NAN;
-          float gfpx = NAN;
-          float gfpy = NAN;
-          float gfpz = NAN;
-          float gfx = NAN;
-          float gfy = NAN;
-          float gfz = NAN;
-          float gembed = NAN;
-          float gprimary = NAN;
+          float g4hitID = std::numeric_limits<float>::quiet_NaN();
+          float gx = std::numeric_limits<float>::quiet_NaN();
+          float gy = std::numeric_limits<float>::quiet_NaN();
+          float gz = std::numeric_limits<float>::quiet_NaN();
+          float gr = std::numeric_limits<float>::quiet_NaN();
+          float gphi = std::numeric_limits<float>::quiet_NaN();
+          // float gedep = std::numeric_limits<float>::quiet_NaN();
+          float geta = std::numeric_limits<float>::quiet_NaN();
+          float gt = std::numeric_limits<float>::quiet_NaN();
+          float gtrackID = std::numeric_limits<float>::quiet_NaN();
+          float gflavor = std::numeric_limits<float>::quiet_NaN();
+          float gpx = std::numeric_limits<float>::quiet_NaN();
+          float gpy = std::numeric_limits<float>::quiet_NaN();
+          float gpz = std::numeric_limits<float>::quiet_NaN();
+          float gvx = std::numeric_limits<float>::quiet_NaN();
+          float gvy = std::numeric_limits<float>::quiet_NaN();
+          float gvz = std::numeric_limits<float>::quiet_NaN();
+          float gvt = std::numeric_limits<float>::quiet_NaN();
+          float gfpx = std::numeric_limits<float>::quiet_NaN();
+          float gfpy = std::numeric_limits<float>::quiet_NaN();
+          float gfpz = std::numeric_limits<float>::quiet_NaN();
+          float gfx = std::numeric_limits<float>::quiet_NaN();
+          float gfy = std::numeric_limits<float>::quiet_NaN();
+          float gfz = std::numeric_limits<float>::quiet_NaN();
+          float gembed = std::numeric_limits<float>::quiet_NaN();
+          float gprimary = std::numeric_limits<float>::quiet_NaN();
 
-          float efromtruth = NAN;
+          float efromtruth = std::numeric_limits<float>::quiet_NaN();
 
           // get best matching truth cluster from clustereval
           const auto [truth_ckey, truth_cluster] = clustereval->max_truth_cluster_by_energy(cluster_key);
@@ -2532,7 +2532,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gx = gclus->getX();
         float gy = gclus->getY();
         float gz = gclus->getZ();
-        float gt = NAN;
+        float gt = std::numeric_limits<float>::quiet_NaN();
         float gedep = gclus->getError(0, 0);
         float gadc = (float) gclus->getAdc();
 
@@ -2553,17 +2553,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         // Find the matching TrkrCluster, if it exists
 
-        float x = NAN;
-        float y = NAN;
-        float z = NAN;
-        float r = NAN;
-        float phi = NAN;
-        float eta = NAN;
-        float ex = NAN;
-        float ey = NAN;
-        float ez = NAN;
-        float ephi = NAN;
-        float adc = NAN;
+        float x = std::numeric_limits<float>::quiet_NaN();
+        float y = std::numeric_limits<float>::quiet_NaN();
+        float z = std::numeric_limits<float>::quiet_NaN();
+        float r = std::numeric_limits<float>::quiet_NaN();
+        float phi = std::numeric_limits<float>::quiet_NaN();
+        float eta = std::numeric_limits<float>::quiet_NaN();
+        float ex = std::numeric_limits<float>::quiet_NaN();
+        float ey = std::numeric_limits<float>::quiet_NaN();
+        float ez = std::numeric_limits<float>::quiet_NaN();
+        float ephi = std::numeric_limits<float>::quiet_NaN();
+        float adc = std::numeric_limits<float>::quiet_NaN();
 
         float nreco = 0;
         float phisize = 0;
@@ -2835,9 +2835,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gpx = g4particle->get_px();
         float gpy = g4particle->get_py();
         float gpz = g4particle->get_pz();
-        float gpt = NAN;
-        float geta = NAN;
-        float gphi = NAN;
+        float gpt = std::numeric_limits<float>::quiet_NaN();
+        float geta = std::numeric_limits<float>::quiet_NaN();
+        float gphi = std::numeric_limits<float>::quiet_NaN();
         if (gpx != 0 && gpy != 0)
         {
           TVector3 gv(gpx, gpy, gpz);
@@ -2877,11 +2877,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gembed = trutheval->get_embed(g4particle);
         float gprimary = trutheval->is_primary(g4particle);
 
-        float trackID = NAN;
-        float charge = NAN;
-        float quality = NAN;
-        float chisq = NAN;
-        float ndf = NAN;
+        float trackID = std::numeric_limits<float>::quiet_NaN();
+        float charge = std::numeric_limits<float>::quiet_NaN();
+        float quality = std::numeric_limits<float>::quiet_NaN();
+        float chisq = std::numeric_limits<float>::quiet_NaN();
+        float ndf = std::numeric_limits<float>::quiet_NaN();
         float local_nhits = 0;
         float nmaps = 0;
         float nintt = 0;
@@ -2897,63 +2897,63 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nlmms = 0;
         unsigned int layers = 0x0;
         int vertexID = -1;
-        float vx = NAN;
-        float vy = NAN;
-        float vz = NAN;
-        float dca2d = NAN;
-        float dca2dsigma = NAN;
-        float dca3dxy = NAN;
-        float dca3dxysigma = NAN;
-        float dca3dz = NAN;
-        float dca3dzsigma = NAN;
-        float px = NAN;
-        float py = NAN;
-        float pz = NAN;
-        float pt = NAN;
-        float eta = NAN;
-        float phi = NAN;
-        float deltapt = NAN;
-        float deltaeta = NAN;
-        float deltaphi = NAN;
-        float pcax = NAN;
-        float pcay = NAN;
-        float pcaz = NAN;
+        float vx = std::numeric_limits<float>::quiet_NaN();
+        float vy = std::numeric_limits<float>::quiet_NaN();
+        float vz = std::numeric_limits<float>::quiet_NaN();
+        float dca2d = std::numeric_limits<float>::quiet_NaN();
+        float dca2dsigma = std::numeric_limits<float>::quiet_NaN();
+        float dca3dxy = std::numeric_limits<float>::quiet_NaN();
+        float dca3dxysigma = std::numeric_limits<float>::quiet_NaN();
+        float dca3dz = std::numeric_limits<float>::quiet_NaN();
+        float dca3dzsigma = std::numeric_limits<float>::quiet_NaN();
+        float px = std::numeric_limits<float>::quiet_NaN();
+        float py = std::numeric_limits<float>::quiet_NaN();
+        float pz = std::numeric_limits<float>::quiet_NaN();
+        float pt = std::numeric_limits<float>::quiet_NaN();
+        float eta = std::numeric_limits<float>::quiet_NaN();
+        float phi = std::numeric_limits<float>::quiet_NaN();
+        float deltapt = std::numeric_limits<float>::quiet_NaN();
+        float deltaeta = std::numeric_limits<float>::quiet_NaN();
+        float deltaphi = std::numeric_limits<float>::quiet_NaN();
+        float pcax = std::numeric_limits<float>::quiet_NaN();
+        float pcay = std::numeric_limits<float>::quiet_NaN();
+        float pcaz = std::numeric_limits<float>::quiet_NaN();
 
-        float nfromtruth = NAN;
-        float nwrong = NAN;
-        float ntrumaps = NAN;
-	float nwrongmaps = NAN;
-        float ntruintt = NAN;
-	float nwrongintt = NAN;
-        float ntrumms = NAN;
-	float nwrongmms = NAN;
-        float ntrutpc = NAN;
-	float nwrongtpc = NAN;
-        float ntrutpc1 = NAN;
-	float nwrongtpc1 = NAN;
-        float ntrutpc11 = NAN;
-	float nwrongtpc11 =NAN;
-        float ntrutpc2 = NAN;
-	float nwrongtpc2 = NAN;
-        float ntrutpc3 = NAN;
-	float nwrongtpc3 = NAN;
-        float layersfromtruth = NAN;
+        float nfromtruth = std::numeric_limits<float>::quiet_NaN();
+        float nwrong = std::numeric_limits<float>::quiet_NaN();
+        float ntrumaps = std::numeric_limits<float>::quiet_NaN();
+	float nwrongmaps = std::numeric_limits<float>::quiet_NaN();
+        float ntruintt = std::numeric_limits<float>::quiet_NaN();
+	float nwrongintt = std::numeric_limits<float>::quiet_NaN();
+        float ntrumms = std::numeric_limits<float>::quiet_NaN();
+	float nwrongmms = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc1 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc1 = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc11 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc11 =std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc2 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc2 = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc3 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc3 = std::numeric_limits<float>::quiet_NaN();
+        float layersfromtruth = std::numeric_limits<float>::quiet_NaN();
 	float npedge = 0;
 	float nredge = 0;
 	float nbig = 0;
 	float novlp = 0;
 	float merr = 0;
 	float msize = 0;
-	float siqr = NAN;
-	float siphi = NAN;
-	float sithe = NAN;
-	float six0 = NAN;
-	float siy0 = NAN;
-	float tpqr = NAN;
-	float tpphi = NAN;
-	float tpthe = NAN;
-	float tpx0 = NAN;
-	float tpy0 = NAN;
+	float siqr = std::numeric_limits<float>::quiet_NaN();
+	float siphi = std::numeric_limits<float>::quiet_NaN();
+	float sithe = std::numeric_limits<float>::quiet_NaN();
+	float six0 = std::numeric_limits<float>::quiet_NaN();
+	float siy0 = std::numeric_limits<float>::quiet_NaN();
+	float tpqr = std::numeric_limits<float>::quiet_NaN();
+	float tpphi = std::numeric_limits<float>::quiet_NaN();
+	float tpthe = std::numeric_limits<float>::quiet_NaN();
+	float tpx0 = std::numeric_limits<float>::quiet_NaN();
+	float tpy0 = std::numeric_limits<float>::quiet_NaN();
 
         if (_do_track_match)
         {
@@ -3440,7 +3440,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float crossing;
         if (crossing_int == SHRT_MAX)
         {
-          crossing = NAN;
+          crossing = std::numeric_limits<float>::quiet_NaN();
         }
         else
         {
@@ -3484,16 +3484,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	float novlp = 0;
 	float merr = 0;
 	float msize = 0;
-	float siqr = NAN;
-	float siphi = NAN;
-	float sithe = NAN;
-	float six0 = NAN;
-	float siy0 = NAN;
-	float tpqr = NAN;
-	float tpphi = NAN;
-	float tpthe = NAN;
-	float tpx0 = NAN;
-	float tpy0 = NAN;
+	float siqr = std::numeric_limits<float>::quiet_NaN();
+	float siphi = std::numeric_limits<float>::quiet_NaN();
+	float sithe = std::numeric_limits<float>::quiet_NaN();
+	float six0 = std::numeric_limits<float>::quiet_NaN();
+	float siy0 = std::numeric_limits<float>::quiet_NaN();
+	float tpqr = std::numeric_limits<float>::quiet_NaN();
+	float tpphi = std::numeric_limits<float>::quiet_NaN();
+	float tpthe = std::numeric_limits<float>::quiet_NaN();
+	float tpx0 = std::numeric_limits<float>::quiet_NaN();
+	float tpy0 = std::numeric_limits<float>::quiet_NaN();
 
         if (tpcseed)
         {
@@ -3680,16 +3680,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
         layers = nlmaps + nlintt + nltpc + nlmms;
 
-        float dca3dxy = NAN, dca3dz = NAN,
-              dca3dxysigma = NAN, dca3dzsigma = NAN;
-        float dca2d = NAN, dca2dsigma = NAN;
+        float dca3dxy = std::numeric_limits<float>::quiet_NaN(), dca3dz = std::numeric_limits<float>::quiet_NaN(),
+              dca3dxysigma = std::numeric_limits<float>::quiet_NaN(), dca3dzsigma = std::numeric_limits<float>::quiet_NaN();
+        float dca2d = std::numeric_limits<float>::quiet_NaN(), dca2dsigma = std::numeric_limits<float>::quiet_NaN();
 
         /// this is the global vertex
         int vertexID = track->get_vertex_id();
         GlobalVertex* vertex = gvertexmap->get(vertexID);
-        float vx = NAN;
-        float vy = NAN;
-        float vz = NAN;
+        float vx = std::numeric_limits<float>::quiet_NaN();
+        float vy = std::numeric_limits<float>::quiet_NaN();
+        float vz = std::numeric_limits<float>::quiet_NaN();
         if (vertex)
         {
           vx = vertex->get_x();
@@ -3723,9 +3723,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float pcay = track->get_y();
         float pcaz = track->get_z();
 
-        float gtrackID = NAN;
-        float gflavor = NAN;
-        float ng4hits = NAN;
+        float gtrackID = std::numeric_limits<float>::quiet_NaN();
+        float gflavor = std::numeric_limits<float>::quiet_NaN();
+        float ng4hits = std::numeric_limits<float>::quiet_NaN();
         unsigned int ngmaps = 0;
         unsigned int ngintt = 0;
         unsigned int ngmms = 0;
@@ -3734,45 +3734,45 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         unsigned int nglintt = 0;
         unsigned int nglmms = 0;
         unsigned int ngltpc = 0;
-        float gpx = NAN;
-        float gpy = NAN;
-        float gpt = NAN;
-        float geta = NAN;
-        float gphi = NAN;
-        float gpz = NAN;
-        float gvx = NAN;
-        float gvy = NAN;
-        float gvz = NAN;
-        float gvt = NAN;
-        float gfpx = NAN;
-        float gfpy = NAN;
-        float gfpz = NAN;
-        float gfx = NAN;
-        float gfy = NAN;
-        float gfz = NAN;
-        float gembed = NAN;
-        float gprimary = NAN;
+        float gpx = std::numeric_limits<float>::quiet_NaN();
+        float gpy = std::numeric_limits<float>::quiet_NaN();
+        float gpt = std::numeric_limits<float>::quiet_NaN();
+        float geta = std::numeric_limits<float>::quiet_NaN();
+        float gphi = std::numeric_limits<float>::quiet_NaN();
+        float gpz = std::numeric_limits<float>::quiet_NaN();
+        float gvx = std::numeric_limits<float>::quiet_NaN();
+        float gvy = std::numeric_limits<float>::quiet_NaN();
+        float gvz = std::numeric_limits<float>::quiet_NaN();
+        float gvt = std::numeric_limits<float>::quiet_NaN();
+        float gfpx = std::numeric_limits<float>::quiet_NaN();
+        float gfpy = std::numeric_limits<float>::quiet_NaN();
+        float gfpz = std::numeric_limits<float>::quiet_NaN();
+        float gfx = std::numeric_limits<float>::quiet_NaN();
+        float gfy = std::numeric_limits<float>::quiet_NaN();
+        float gfz = std::numeric_limits<float>::quiet_NaN();
+        float gembed = std::numeric_limits<float>::quiet_NaN();
+        float gprimary = std::numeric_limits<float>::quiet_NaN();
 
 	int ispure = 0;
-        float nfromtruth = NAN;
-        float nwrong = NAN;
-        float ntrumaps = NAN;
-	float nwrongmaps = NAN;
-        float ntruintt = NAN;
-	float nwrongintt = NAN;
-        float ntrumms = NAN;
-	float nwrongmms = NAN;
-        float ntrutpc = NAN;
-	float nwrongtpc = NAN;
-        float ntrutpc1 = NAN;
-	float nwrongtpc1 = NAN;
-        float ntrutpc11 = NAN;
-	float nwrongtpc11 = NAN;
-        float ntrutpc2 = NAN;
-	float nwrongtpc2 = NAN;
-        float ntrutpc3 = NAN;
-	float nwrongtpc3 = NAN;
-        float layersfromtruth = NAN;
+        float nfromtruth = std::numeric_limits<float>::quiet_NaN();
+        float nwrong = std::numeric_limits<float>::quiet_NaN();
+        float ntrumaps = std::numeric_limits<float>::quiet_NaN();
+	float nwrongmaps = std::numeric_limits<float>::quiet_NaN();
+        float ntruintt = std::numeric_limits<float>::quiet_NaN();
+	float nwrongintt = std::numeric_limits<float>::quiet_NaN();
+        float ntrumms = std::numeric_limits<float>::quiet_NaN();
+	float nwrongmms = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc1 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc1 = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc11 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc11 = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc2 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc2 = std::numeric_limits<float>::quiet_NaN();
+        float ntrutpc3 = std::numeric_limits<float>::quiet_NaN();
+	float nwrongtpc3 = std::numeric_limits<float>::quiet_NaN();
+        float layersfromtruth = std::numeric_limits<float>::quiet_NaN();
 
         if (_do_track_match)
         {
@@ -4089,27 +4089,27 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-    float gx = NAN;
-    float gy = NAN;
-    float gz = NAN;
-    float gr = NAN;
-    float geta = NAN;
-    float gphi = NAN;
-    float glayer = NAN;
-    float gpx = NAN;
-    float gpy = NAN;
-    float gpz = NAN;
-    float gtpt = NAN;
-    float gtphi = NAN;
-    float gteta = NAN;
-    float gvx = NAN;
-    float gvy = NAN;
-    float gvz = NAN;
-    float gembed = NAN;
-    float gprimary = NAN;
-    float gflav = NAN;
-    float dphiprev = NAN;
-    float detaprev = NAN;
+    float gx = std::numeric_limits<float>::quiet_NaN();
+    float gy = std::numeric_limits<float>::quiet_NaN();
+    float gz = std::numeric_limits<float>::quiet_NaN();
+    float gr = std::numeric_limits<float>::quiet_NaN();
+    float geta = std::numeric_limits<float>::quiet_NaN();
+    float gphi = std::numeric_limits<float>::quiet_NaN();
+    float glayer = std::numeric_limits<float>::quiet_NaN();
+    float gpx = std::numeric_limits<float>::quiet_NaN();
+    float gpy = std::numeric_limits<float>::quiet_NaN();
+    float gpz = std::numeric_limits<float>::quiet_NaN();
+    float gtpt = std::numeric_limits<float>::quiet_NaN();
+    float gtphi = std::numeric_limits<float>::quiet_NaN();
+    float gteta = std::numeric_limits<float>::quiet_NaN();
+    float gvx = std::numeric_limits<float>::quiet_NaN();
+    float gvy = std::numeric_limits<float>::quiet_NaN();
+    float gvz = std::numeric_limits<float>::quiet_NaN();
+    float gembed = std::numeric_limits<float>::quiet_NaN();
+    float gprimary = std::numeric_limits<float>::quiet_NaN();
+    float gflav = std::numeric_limits<float>::quiet_NaN();
+    float dphiprev = std::numeric_limits<float>::quiet_NaN();
+    float detaprev = std::numeric_limits<float>::quiet_NaN();
 
     float *xval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
     float *yval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];

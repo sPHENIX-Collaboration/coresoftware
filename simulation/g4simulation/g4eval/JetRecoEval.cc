@@ -1038,7 +1038,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
   else if (!recojet || !truthjet)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -1315,7 +1315,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
   else if (!recojet)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
