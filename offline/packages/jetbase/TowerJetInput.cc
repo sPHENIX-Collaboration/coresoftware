@@ -508,7 +508,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       jet->insert_comp(m_input, channel);
       if(e > m_timing_e_threshold)
 	{
-	  float tower_t = tower->get_time();
+	  float tower_t = 17.6*tower->get_time(); // 17.6 ns/sample and get_time() returns t in samples
 	  if(jet->size_properties() < Jet::PROPERTY::prop_t+1)
 	    {
 	      jet->resize_properties(Jet::PROPERTY::prop_t + 1);

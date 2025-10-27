@@ -22,7 +22,7 @@ class TimingCut : public SubsysReco
 
   bool Fails_Lead_t(float lead_time)
   {
-    return abs(lead_time + _t_shift) < _t_width;
+    return abs(lead_time + _t_shift) > _t_width;
   }
 
   bool Fails_Mbd_dt(float lead_time, float mbd_time)
