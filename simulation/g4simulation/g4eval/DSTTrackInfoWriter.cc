@@ -32,7 +32,7 @@ int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
   }
   // find DST node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << "DSTTrackInfoWriter::Init - DST Node missing" << std::endl;
@@ -41,7 +41,7 @@ int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
 
   // get EVAL node
   iter = PHNodeIterator(dstNode);
-  auto evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
+  auto *evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
   if (!evalNode)
   {
     // create
@@ -54,7 +54,7 @@ int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
   // m_container->arrClsDST = new TClonesArray("DSTContainerv3::ClusterStruct");
   // m_container->trkrClsDST = new TClonesArray("TrkrClusterv4");
 
-  auto newInfoNode = new PHIODataNode<PHObject>(new TrackInfoContainer_v1, "TrackInfoContainer", "PHObject");
+  auto *newInfoNode = new PHIODataNode<PHObject>(new TrackInfoContainer_v1, "TrackInfoContainer", "PHObject");
   evalNode->addNode(newInfoNode);
 
   // auto newTrackNode = new PHIODataNode<PHObject>(new SvtxTrackArray_v1, "TRACK_ARRAYV1", "PHObject");
@@ -145,7 +145,7 @@ void DSTTrackInfoWriter::evaluate_track_info()
   ActsTransformations transformer;
   for (const auto& trackpair : *m_track_map)
   {
-    const auto track = trackpair.second;
+    auto *const track = trackpair.second;
     // this track will have a TPC and Silicon seed
 
     uint64_t hitbitmap = 0;
