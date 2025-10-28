@@ -41,11 +41,11 @@
 #include <TH2.h>
 #include <TSystem.h>
 
-#include <format>
 #include <algorithm>  // for max
 #include <cassert>
 #include <cstdint>  // for uint64_t, uint16_t
 #include <cstdlib>
+#include <format>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
 
@@ -907,15 +907,15 @@ int Fun4AllStreamingInputManager::FillMvtx()
       auto [felix, endpoint] = MvtxRawDefs::get_flx_endpoint(link.layer, link.stave);
       int packetid = felix * 2 + endpoint;
       h_bcoLL1Strobediff[packetid]->Fill(diff);
-      if(diff <= m_mvtx_bco_range)
+      if (diff <= m_mvtx_bco_range)
       {
         h_tagStBcoFelix_mvtx[packetid]->Fill(refbcobitshift);
         h_tagStBcoFEE_mvtx[packetid]->Fill(feeId);
         match = true;
       }
     }
-    
-    if(match)
+
+    if (match)
     {
       // break because we found a match for this GL1, so we are done
       break;
@@ -1202,7 +1202,7 @@ int Fun4AllStreamingInputManager::FillTpc()
       }
     }
   }
-  
+
   // again m_TpcRawHitMap.empty() is handled by return of FillTpcPool()
   if (!m_TpcRawHitMap.empty())
   {
@@ -1292,33 +1292,34 @@ int Fun4AllStreamingInputManager::FillInttPool()
   }
   for (auto *iter : m_InttInputVector)
   {
-	if(!m_gl1_registered_flag) {
-	  iter->SetStandaloneMode(true);
-}
-	if (Verbosity() > 0)
-	{
-	  std::cout << "Fun4AllStreamingInputManager::FillInttPool - fill pool for " << iter->Name() << std::endl;
-	}
-	iter->FillPool(ref_bco_minus_range);
-	// iter->FillPool();
-	if (m_RunNumber == 0)
-	{
-	  m_RunNumber = iter->RunNumber();
-	  SetRunNumber(m_RunNumber);
-	}
-	else
-	{
-	  if (m_RunNumber != iter->RunNumber())
-	  {
-		std::cout << PHWHERE << " Run Number mismatch, run is "
-		  << m_RunNumber << ", " << iter->Name() << " reads "
-		  << iter->RunNumber() << std::endl;
-		std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
-		Print("INPUTFILES");
-		gSystem->Exit(1);
-		exit(1);
-	  }
-	}
+    if (!m_gl1_registered_flag)
+    {
+      iter->SetStandaloneMode(true);
+    }
+    if (Verbosity() > 0)
+    {
+      std::cout << "Fun4AllStreamingInputManager::FillInttPool - fill pool for " << iter->Name() << std::endl;
+    }
+    iter->FillPool(ref_bco_minus_range);
+    // iter->FillPool();
+    if (m_RunNumber == 0)
+    {
+      m_RunNumber = iter->RunNumber();
+      SetRunNumber(m_RunNumber);
+    }
+    else
+    {
+      if (m_RunNumber != iter->RunNumber())
+      {
+        std::cout << PHWHERE << " Run Number mismatch, run is "
+                  << m_RunNumber << ", " << iter->Name() << " reads "
+                  << iter->RunNumber() << std::endl;
+        std::cout << "You are likely reading files from different runs, do not do that" << std::endl;
+        Print("INPUTFILES");
+        gSystem->Exit(1);
+        exit(1);
+      }
+    }
   }
   if (m_InttRawHitMap.empty())
   {
@@ -1447,7 +1448,6 @@ void Fun4AllStreamingInputManager::createQAHistos()
   auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-
   {
     auto *h = new TH1I("h_MvtxPoolQA_RefGL1BCO", "MVTX ref BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
@@ -1474,7 +1474,6 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_taggedAllFelixesAllFees_mvtx = h;
   }
 
-
   for (int i = 0; i < 12; i++)
   {
     h_tagStBcoFEE_mvtx[i] = new TH1I((boost::format("h_MvtxPoolQA_TagStBcoFEEsPacket%i") % i).str().c_str(), "", 10000, 0, 10000);
@@ -1485,12 +1484,10 @@ void Fun4AllStreamingInputManager::createQAHistos()
   // intt has 8 prdfs, one per felix
   for (int i = 0; i < 8; i++)
   {
-    
-    auto *hgl1 = new TH1I(std::format("h_InttPoolQA_RefGL1BCO_server{}",i).c_str(), std::format("INTT ref BCO server{}",i).c_str(), 1000, 0, 1000);
+    auto *hgl1 = new TH1I(std::format("h_InttPoolQA_RefGL1BCO_server{}", i).c_str(), std::format("INTT ref BCO server{}", i).c_str(), 1000, 0, 1000);
     hgl1->GetXaxis()->SetTitle("GL1 BCO");
-    hgl1->SetTitle(std::format("GL1 Reference BCO for server{}",i).c_str());
+    hgl1->SetTitle(std::format("GL1 Reference BCO for server{}", i).c_str());
     hm->registerHisto(hgl1);
-    
 
     auto *h = new TH1I((boost::format("h_InttPoolQA_TagBCO_server%i") % i).str().c_str(), "INTT trigger tagged BCO", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
@@ -1528,7 +1525,6 @@ void Fun4AllStreamingInputManager::createQAHistos()
     hm->registerHisto(h_all);
   }
 
-
   for (int i = 0; i < 12; i++)
   {
     h_bcoGL1LL1diff[i] = new TH1I((boost::format("h_MvtxPoolQA_GL1LL1BCODiff_packet%i") % i).str().c_str(), "MVTX BCO diff;|GL1 BCO - LL1 BCO|", 5000, 0, 5000);
@@ -1561,6 +1557,4 @@ void Fun4AllStreamingInputManager::createQAHistos()
     h_tagBcoFelix_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCO_felix%i") % i).str()));
     h_tagBcoFelixAllFees_mvtx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("h_MvtxPoolQA_TagBCOAllFees_Felix%i") % i).str()));
   }
-
-
 }
