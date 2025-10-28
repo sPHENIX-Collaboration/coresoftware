@@ -50,37 +50,47 @@ GlobalVertex* GlobalVertexMapv1::get(unsigned int id)
   return iter->second;
 }
 
-std::vector<GlobalVertex*> GlobalVertexMapv1::get_gvtxs_with_type(GlobalVertex::VTXTYPE type)
+std::vector<GlobalVertex*> GlobalVertexMapv1::get_gvtxs_with_type(std::vector<GlobalVertex::VTXTYPE> types)
 {
   std::vector<GlobalVertex*> vertices;
   Iter iter = _map.begin();
-  while(iter != _map.end())
+
+  for(unsigned int i=0; i<types.size(); ++i)
     {
-      GlobalVertex::VertexIter it = iter->second->find_vertexes(type);
-      if(it != iter->second->end_vertexes())
+      while(iter != _map.end())
 	{
-	  vertices.push_back(iter->second);
+	  GlobalVertex::VertexIter it = iter->second->find_vertexes(types.at(i));
+	  if(it != iter->second->end_vertexes())
+	    {
+	      vertices.push_back(iter->second);
+	    }
+	  ++iter;
 	}
-      ++iter;
+      if(vertices.size() > 0) break;
     }
+  
   return vertices;
 }
 
-std::vector<const Vertex*> GlobalVertexMapv1::get_vtxs_of_type(GlobalVertex::VTXTYPE type)
+std::vector<const Vertex*> GlobalVertexMapv1::get_vtxs_of_type(std::vector<GlobalVertex::VTXTYPE> types)
 {
   std::vector<const Vertex*> vertices;
   Iter iter = _map.begin();
-  while(iter != _map.end())
+  for(unsigned int j=0; j<types.size(); ++j)
     {
-      GlobalVertex::VertexIter it = iter->second->find_vertexes(type);
-      if(it != iter->second->end_vertexes())
+      while(iter != _map.end())
 	{
-	  for(unsigned int i=0; i<it->second.size(); ++i)
+	  GlobalVertex::VertexIter it = iter->second->find_vertexes(types.at(j));
+	  if(it != iter->second->end_vertexes())
 	    {
-	      vertices.push_back(it->second.at(i));
+	      for(unsigned int i=0; i<it->second.size(); ++i)
+		{
+		  vertices.push_back(it->second.at(i));
+		}
 	    }
+	  ++iter;
 	}
-      ++iter;
+      if(vertices.size() > 0) break;
     }
   return vertices;
 }

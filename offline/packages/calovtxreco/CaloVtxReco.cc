@@ -21,6 +21,7 @@ CaloVtxReco::CaloVtxReco(const std::string &name, const std::string &jetnodename
   _name = name;
   _jetnodename = jetnodename;
   _debug = debug;
+  _calovtxmap = NULL;
 }
 
 //____________________________________________________________________________..
@@ -120,7 +121,7 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
   geom[1] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   geom[2] = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
-  const int nz = 121;
+  const int nz = 601;
   const int njet = 2;
   Jet* jets[njet];
   float jpt[njet] = {0};
@@ -174,7 +175,7 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
   float metric = FLT_MAX;
   for(int i=0; i<nz; ++i)
     {
-      float testz = -300+i*5;
+      float testz = -300+i;
       float testmetric = 0;
       for(int j=0; j<njet; ++j)
 	{

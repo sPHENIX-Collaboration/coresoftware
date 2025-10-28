@@ -28,8 +28,8 @@ class GlobalVertexMap : public PHObject
 
   virtual const GlobalVertex* get(unsigned int /*idkey*/) const { return nullptr; }
   virtual GlobalVertex* get(unsigned int /*idkey*/) { return nullptr; }
-  virtual std::vector<GlobalVertex*> get_gvtxs_with_type(GlobalVertex::VTXTYPE /*type*/) {return {}; }
-  virtual std::vector<const Vertex*> get_vtxs_of_type(GlobalVertex::VTXTYPE /*type*/) { return {}; }
+  virtual std::vector<GlobalVertex*> get_gvtxs_with_type(std::vector<GlobalVertex::VTXTYPE> /*type*/) {return {}; }
+  virtual std::vector<const Vertex*> get_vtxs_of_type(std::vector<GlobalVertex::VTXTYPE> /*type*/) { return {}; }
   virtual GlobalVertex* insert(GlobalVertex* /*vertex*/) { return nullptr; }
   virtual size_t erase(unsigned int /*idkey*/) { return 0; }
 
