@@ -143,7 +143,7 @@ namespace
       swrx += w*(r0*x0 + r1*x1);
     }
 
-    if( !valid ) return NAN;
+    if( !valid ) return std::numeric_limits<float>::quiet_NaN();
 
     const auto alpha = (sw*swrx - swr*swx);
     const auto beta = (swr2*swx - swr*swrx);

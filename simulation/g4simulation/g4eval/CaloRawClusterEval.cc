@@ -433,7 +433,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -444,12 +444,12 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   else if (!cluster || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!get_truth_eval()->is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap
@@ -462,7 +462,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -778,7 +778,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -789,12 +789,12 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   else if (!cluster || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!get_truth_eval()->is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap

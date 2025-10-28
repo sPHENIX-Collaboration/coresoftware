@@ -243,18 +243,13 @@ void PHG4DSTReader::build_tree()
 
 int PHG4DSTReader::process_event(PHCompositeNode *topNode)
 {
-  //  const double significand = _event / TMath::Power(10, (int) (log10(_event)));
-  //
-  //  if (fmod(significand, 1.0) == 0 && significand <= 10)
-  //    std::cout << "PHG4DSTReader::process_event - " << _event << std::endl;
   _event++;
 
   // clean ups
   _particle_set.clear();
   _vertex_set.clear();
 
-  PHG4TruthInfoContainer *truthInfoList = findNode::getClass<
-      PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  PHG4TruthInfoContainer *truthInfoList = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!truthInfoList)
   {
     if (_event < 2)

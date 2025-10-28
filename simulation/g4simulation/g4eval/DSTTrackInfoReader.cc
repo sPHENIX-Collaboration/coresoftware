@@ -4,41 +4,15 @@
  */
 
 #include "DSTTrackInfoReader.h"
+
+#include <trackbase_historic/TrackInfoContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <intt/InttClusterizer.h>
-#include <micromegas/MicromegasDefs.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-#include <trackbase/InttDefs.h>
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterContainerv4.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrClusterv4.h>
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v4.h>
-#include <trackbase_historic/TrackSeedContainer_v1.h>
 
-
-#include <algorithm>
-#include <bitset>
-#include <cassert>
-#include <iostream>
-#include <numeric>
 
 //_____________________________________________________________________
 
@@ -59,7 +33,7 @@ int DSTTrackInfoReader::InitRun(PHCompositeNode* topNode)
   // evalNode->addNode(newNode);
 
   // TrackInfo container
-  m_track_info_container = findNode::getClass<TrackInfoContainer_v1>(topNode, "TrackInfoContainer");
+  m_track_info_container = findNode::getClass<TrackInfoContainer>(topNode, "TrackInfoContainer");
 
   // m_container = findNode::getClass<DSTContainer>(topNode, "DSTContainer");
 
@@ -96,7 +70,7 @@ int DSTTrackInfoReader::load_nodes(PHCompositeNode* topNode)
   // get necessary nodes
   // m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
-  m_track_info_container = findNode::getClass<TrackInfoContainer_v1>(topNode, "TrackInfoContainer");
+  m_track_info_container = findNode::getClass<TrackInfoContainer>(topNode, "TrackInfoContainer");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
