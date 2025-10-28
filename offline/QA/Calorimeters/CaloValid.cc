@@ -232,6 +232,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       vtx_z = vtx->get_z();
     }
     h_vtx_z_raw->Fill(vtx_z);
+      if (fabs(vtx_z) < 20.0)
+  {
+    h_vtx_z_cut->Fill(vtx_z);
+  }
   }
 
   //--------------------------- trigger and GL1-------------------------------//
@@ -640,12 +644,18 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   }
 
   // cuts
+  /*
   float emcMinClusE1 = 1.3;  // 0.5;
   float emcMinClusE2 = 0.7;  // 0.5;
-  float emcMaxClusE = 100;
-  float maxAlpha = 0.6;
+  */
 
-  if (totalcemc < 0.2 * emcaldownscale)
+  float minClusPt1 = 1.5;   // CHANGED: was emcMinClusE1 - now it's a pt cut
+  float minClusPt2 = 1.0;   // CHANGED: was emcMinClusE2 - now it's a pt cut  
+  float emcMaxClusE = 100; 
+  float maxAlpha = 0.6;     
+  
+
+  if (totalcemc < 0.1 * emcaldownscale)
   {
     RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
     RawClusterContainer::ConstIterator clusterIter;
@@ -666,7 +676,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
       h_clusE->Fill(clusE);
 
-      if (clusE < emcMinClusE1 || clusE > emcMaxClusE)
+      //      if (clusE < emcMinClusE1 || clusE > emcMaxClusE)
+
+      if (clus_pt < minClusPt1 || clusE > emcMaxClusE)
       {
         continue;
       }
@@ -697,7 +709,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         float clus2_pt = E_vec_cluster2.perp();
         float clus2_chisq = recoCluster2->get_chi2();
 
-        if (clus2E < emcMinClusE2 || clus2E > emcMaxClusE)
+	// if (clus2E < emcMinClusE2 || clus2E > emcMaxClusE)
+	  if (clus2_pt < minClusPt2 || clus2E > emcMaxClusE) 
         {
           continue;
         }
@@ -720,7 +733,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
         int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
-
+	if (fabs(vtx_z) < 20.0)
+	  {
         for (int bit : scaledActiveBits)
         {
           if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
@@ -733,6 +747,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
               static_cast<double>(pi0Mass));
         }
         h_InvMass->Fill(pi0Mass);
+	  }
       }
     }  // end cluster loop
   }
