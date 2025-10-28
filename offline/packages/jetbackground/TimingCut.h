@@ -71,9 +71,9 @@ class TimingCut : public SubsysReco
   std::string _jetNodeName;
   GlobalVertex::VTXTYPE _vtxtype;
   PHParameters _cutParams;
-  float _t_width{8.0};
+  float _t_width{6.0};
   float _dt_width{3.0};
-  float _t_shift{4.0};
+  float _t_shift{2.0};
   float _mbd_dt_width{3.0};
 };
 
