@@ -208,11 +208,8 @@ int CaloPacketSkimmer::processDetector(PHCompositeNode *topNode, CaloTowerDefs::
         Packet *packet = (*_event)->getPacket(pid);
         if (process_packet(packet, pid) == Fun4AllReturnCodes::DISCARDEVENT)
         {
-          // I think it is safe to delete a nullptr...yes, tessted
-          delete packet;
           bad_event = true;
         }
-
         delete packet;
       }
     }
