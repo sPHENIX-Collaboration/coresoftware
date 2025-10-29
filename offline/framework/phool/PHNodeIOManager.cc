@@ -100,6 +100,10 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     file->SetCompressionSettings(m_CompressionSetting);
     tree = new TTree(TreeName.c_str(), title.c_str());
     TTree::SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
+    if(!std::isnan(m_cacheSize))
+    {
+      tree->SetCacheSize(m_cacheSize);
+    }
     gROOT->cd(currdir.c_str());
     return true;
     break;
