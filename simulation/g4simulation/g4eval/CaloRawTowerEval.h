@@ -74,23 +74,22 @@ class CaloRawTowerEval
   /// what primary showers contributed energy to this tower?
   std::set<PHG4Shower*> all_truth_primary_showers(RawTower* tower);
   std::set<PHG4Shower*> all_truth_primary_showers(TowerInfo* tower);
-  
 
   /// which primary shower contributed the most energy to this tower?
   PHG4Shower* max_truth_primary_shower_by_energy(RawTower* tower);
   PHG4Shower* max_truth_primary_shower_by_energy(TowerInfo* tower);
 
   /// what towers did this primary shower contribute energy to?
-  std::set<RawTower*> all_towers_from(PHG4Shower* primary);
-  std::set<TowerInfo*> all_towerinfos_from(PHG4Shower* primary);
+  std::set<RawTower*> all_towers_from(PHG4Shower* shower);
+  std::set<TowerInfo*> all_towerinfos_from(PHG4Shower* shower);
 
   /// which tower did this primary shower contribute the most energy to?
-  RawTower* best_tower_from(PHG4Shower* primary);
-  TowerInfo* best_towerinfo_from(PHG4Shower* primary);
+  RawTower* best_tower_from(PHG4Shower* shower);
+  TowerInfo* best_towerinfo_from(PHG4Shower* shower);
 
   /// how much energy did this primary shower contribute to this tower?
-  float get_energy_contribution(RawTower* tower, PHG4Shower* primary);
-  float get_energy_contribution(TowerInfo* tower, PHG4Shower* primary);
+  float get_energy_contribution(RawTower* tower, PHG4Shower* shower);
+  float get_energy_contribution(TowerInfo* tower, PHG4Shower* shower);
 
   // particle interface
 
@@ -154,7 +153,7 @@ class CaloRawTowerEval
 
   std::map<RawTower*, std::set<PHG4Hit*> > _cache_all_truth_hits;
 
-  //some copy and paste for the towerinfo type
+  // some copy and paste for the towerinfo type
 
   std::map<TowerInfo*, std::set<PHG4Shower*> > _cache_towerinfo_all_truth_primary_showers;
   std::map<TowerInfo*, PHG4Shower*> _cache_towerinfo_max_truth_primary_shower_by_energy;
