@@ -208,7 +208,10 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 	  jemeta[j] /= jemsum[j];
 	  joheta[j] /= johsum[j];
 	  if((jemsum[j] == 0 || johsum[j] == 0) && _debug > 1) cout << "zero E sum in at least one calo for a jet" << endl;
-	  testmetric += pow(jemeta[j]-joheta[j],2);
+	  if(!std::isnan(jemeta[j]) && !std::isnan(joheta[j]))
+	    {
+	      testmetric += pow(jemeta[j]-joheta[j],2);
+	    }
 	}
       if(_debug > 3) cout << "metric: " << testmetric << endl;
       if(testmetric < metric && testmetric != 0)
