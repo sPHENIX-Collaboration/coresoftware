@@ -76,7 +76,14 @@ PHPointerList<T>::operator=(const PHPointerList<T>& l)
   if (this != &l)
   {
     maxNItems = l.maxNItems;
-    grow(l.maxNItems);
+    if (maxNItems > 0)
+    {
+      grow(l.maxNItems);
+    }
+    else
+    {
+      items = nullptr;
+    }
     nItems = l.length();
     for (size_t i = 0; i < nItems; ++i)
     {
