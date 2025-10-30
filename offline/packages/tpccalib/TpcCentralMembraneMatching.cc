@@ -9,10 +9,11 @@
 
 #include <trackbase/CMFlashDifferenceContainerv1.h>
 #include <trackbase/CMFlashDifferencev1.h>
-#include <trackbase/LaserClusterContainerv1.h>
 #include <trackbase/LaserCluster.h>
-#include <tpc/LaserEventInfo.h>
+#include <trackbase/LaserClusterContainerv1.h>
 #include <trackbase/TpcDefs.h>
+
+#include <tpc/LaserEventInfo.h>
 
 #include <ffaobjects/EventHeader.h>
 
@@ -26,46 +27,40 @@
 #include <TFile.h>
 #include <TGraph.h>
 #include <TH1.h>
-#include <TH1F.h>
 #include <TH2.h>
-#include <TString.h>
 #include <TStyle.h>
 #include <TTree.h>
 #include <TVector3.h>
 
 #include <algorithm>
-#include <boost/format.hpp>
-#include <format>
-
 #include <cmath>
+#include <format>
 #include <iomanip>
 #include <set>
 #include <string>
 
-int layerMins[3] = {16,23,39};
+int layerMins[3] = {16, 23, 39};
 int layerMaxes[3] = {22, 38, 54};
 
 namespace
 {
   template <class T>
-  inline constexpr T delta_phi(const T& phi)
+  constexpr T delta_phi(const T& phi)
   {
     if (phi > M_PI)
     {
       return phi - 2. * M_PI;
     }
-    else if (phi <= -M_PI)
+    if (phi <= -M_PI)
     {
       return phi + 2. * M_PI;
     }
-    else
-    {
-      return phi;
-    }
+
+    return phi;
   }
 
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -158,7 +153,7 @@ namespace
 
 //____________________________________________________________________________..
 TpcCentralMembraneMatching::TpcCentralMembraneMatching(const std::string& name)
-: SubsysReco(name)
+  : SubsysReco(name)
 {
   // calculate stripes center positions
   CalculateCenters(nPads_R1, R1_e, nGoodStripes_R1_e, keepUntil_R1_e, nStripesIn_R1_e, nStripesBefore_R1_e, cx1_e, cy1_e);
@@ -182,10 +177,8 @@ double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1* hitHist, TH1* cl
   clustHist->Smooth();
 
   // make a TF1 with a lambda function to make a function out of the truth histogram and shift it by a constant
-  TF1* f1 = new TF1(
-    "f1", [&](double* x, double* p)
-    { return p[0] * hitHist->GetBinContent(hitHist->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); },
-    -M_PI, M_PI, 2);
+  TF1* f1 = new TF1("f1", [&](double* x, double* p)
+                    { return p[0] * hitHist->GetBinContent(hitHist->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); }, -M_PI, M_PI, 2);
   f1->SetParNames("A", "shift");
   f1->SetParameters(1.0, 0.0);
   f1->SetParLimits(1, -M_PI / 18, M_PI / 18);
@@ -211,11 +204,11 @@ double TpcCentralMembraneMatching::getPhiRotation_smoothed(TH1* hitHist, TH1* cl
 
 void TpcCentralMembraneMatching::getRegionPhiRotation(bool side)
 {
-  TH1* oddHist[3];
-  TH1* evenHist[3];
+  TH1* oddHist[3]{};
+  TH1* evenHist[3]{};
 
-  TH1* oddTruthHist[3];
-  TH1* evenTruthHist[3];
+  TH1* oddTruthHist[3]{};
+  TH1* evenTruthHist[3]{};
 
   for (int i = 0; i < (int) m_reco_RPeaks[side].size(); i++)
   {
@@ -235,27 +228,27 @@ void TpcCentralMembraneMatching::getRegionPhiRotation(bool side)
     {
       if (!oddHist[region])
       {
-        oddHist[region] = (TH1*) reco_r_phi[side]->ProjectionX((boost::format("oddR%d_%d") %region %side).str().c_str(), peak - 2, peak + 2);
+        oddHist[region] = (TH1*) reco_r_phi[side]->ProjectionX(std::format("oddR{}_{}", region, side).c_str(), peak - 2, peak + 2);
       }
       else
       {
-        oddHist[region]->Add(reco_r_phi[side]->ProjectionX((boost::format("oddR%d_%d") %region %side).str().c_str(), peak - 2, peak + 2));
+        oddHist[region]->Add(reco_r_phi[side]->ProjectionX(std::format("oddR{}_{}", region, side).c_str(), peak - 2, peak + 2));
       }
     }
     else
     {
       if (!evenHist[region])
       {
-        evenHist[region] = (TH1*) reco_r_phi[side]->ProjectionX((boost::format("evenR%d_%d") %region %side).str().c_str(), peak - 2, peak + 2);
+        evenHist[region] = (TH1*) reco_r_phi[side]->ProjectionX(std::format("evenR{}_{}", region, side).c_str(), peak - 2, peak + 2);
       }
       else
       {
-        evenHist[region]->Add(reco_r_phi[side]->ProjectionX((boost::format("evenR%d_%d") %region %side).str().c_str(), peak - 2, peak + 2));
+        evenHist[region]->Add(reco_r_phi[side]->ProjectionX(std::format("evenR{}_{}", region, side).c_str(), peak - 2, peak + 2));
       }
     }
   }
 
-  for (int i = 0; i < (int) m_truth_RPeaks.size(); i++)
+  for (unsigned int i = 0; i < m_truth_RPeaks.size(); i++)
   {
     int peak = truth_r_phi[side]->GetYaxis()->FindBin(m_truth_RPeaks[i]);
 
@@ -273,22 +266,22 @@ void TpcCentralMembraneMatching::getRegionPhiRotation(bool side)
     {
       if (!oddTruthHist[region])
       {
-        oddTruthHist[region] = (TH1*) truth_r_phi[side]->ProjectionX((boost::format("oddTR%d_%d") %region %side).str().c_str(), peak - 1, peak + 1);
+        oddTruthHist[region] = (TH1*) truth_r_phi[side]->ProjectionX(std::format("oddTR{}_{}", region, side).c_str(), peak - 1, peak + 1);
       }
       else
       {
-        oddTruthHist[region]->Add(truth_r_phi[side]->ProjectionX((boost::format("oddTR%d_%d") %region %side).str().c_str(), peak - 1, peak + 1));
+        oddTruthHist[region]->Add(truth_r_phi[side]->ProjectionX(std::format("oddTR{}_{}", region, side).c_str(), peak - 1, peak + 1));
       }
     }
     else
     {
       if (!evenTruthHist[region])
       {
-        evenTruthHist[region] = (TH1*) truth_r_phi[side]->ProjectionX((boost::format("evenTR%d_%d") %region %side).str().c_str(), peak - 1, peak + 1);
+        evenTruthHist[region] = (TH1*) truth_r_phi[side]->ProjectionX(std::format("evenTR{}_{}", region, side).c_str(), peak - 1, peak + 1);
       }
       else
       {
-        evenTruthHist[region]->Add(truth_r_phi[side]->ProjectionX((boost::format("evenTR%d_%d") %region %side).str().c_str(), peak - 1, peak + 1));
+        evenTruthHist[region]->Add(truth_r_phi[side]->ProjectionX(std::format("evenTR{}_{}", region, side).c_str(), peak - 1, peak + 1));
       }
     }
   }
@@ -301,18 +294,18 @@ void TpcCentralMembraneMatching::getRegionPhiRotation(bool side)
   for (int region : regions)
   {
     TF1* fEven = new TF1(
-      "fEven", [&](double* x, double* p)
-      { return p[0] * evenTruthHist[region]->GetBinContent(evenTruthHist[region]->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); },
-      -M_PI, M_PI, 2);
+        "fEven", [&](double* x, double* p)
+        { return p[0] * evenTruthHist[region]->GetBinContent(evenTruthHist[region]->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); },
+        -M_PI, M_PI, 2);
     fEven->SetParNames("A", "shift");
     fEven->SetParameters(1.0, 0.0);
     fEven->SetParLimits(1, -M_PI / 18, M_PI / 18);
     fEven->SetNpx(1000);
 
     TF1* fOdd = new TF1(
-      "fOdd", [&](double* x, double* p)
-      { return p[0] * oddTruthHist[region]->GetBinContent(oddTruthHist[region]->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); },
-      -M_PI, M_PI, 2);
+        "fOdd", [&](double* x, double* p)
+        { return p[0] * oddTruthHist[region]->GetBinContent(oddTruthHist[region]->FindBin((x[0] - p[1]) > M_PI ? x[0] - p[1] - 2 * M_PI : x[0] - p[1])); },
+        -M_PI, M_PI, 2);
     fOdd->SetParNames("A", "shift");
     fOdd->SetParameters(1.0, 0.0);
     fOdd->SetParLimits(1, -M_PI / 18, M_PI / 18);
@@ -977,16 +970,14 @@ int TpcCentralMembraneMatching::getClusterRMatch(double clusterR, int side)
   {
     return m_reco_RMatches[side][closestPeak];
   }
-  else
-  {
-    return -1;
-  }
+
+  return -1;
 }
 
 //____________________________________________________________________________..
 int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
 {
-  if(!m_fieldOn)
+  if (!m_fieldOn)
   {
     m_useHeader = false;
   }
@@ -997,7 +988,7 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     static constexpr float max_dphi = 0.05;
 
     fout = new TFile(m_histogramfilename.c_str(), "RECREATE");
-    //fout.reset(new TFile(m_histogramfilename.c_str(), "RECREATE"));
+    // fout.reset(new TFile(m_histogramfilename.c_str(), "RECREATE"));
     hxy_reco = new TH2F("hxy_reco", "reco cluster x:y", 800, -100, 100, 800, -80, 80);
     hxy_truth = new TH2F("hxy_truth", "truth cluster x:y", 800, -100, 100, 800, -80, 80);
 
@@ -1026,7 +1017,7 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
     hnclus = new TH1F("hnclus", " nclusters ", 3, 0., 3.);
 
     m_debugfile = new TFile(m_debugfilename.c_str(), "RECREATE");
-    //m_debugfile.reset(new TFile(m_debugfilename.c_str(), "RECREATE"));
+    // m_debugfile.reset(new TFile(m_debugfilename.c_str(), "RECREATE"));
     match_tree = new TTree("match_tree", "Match TTree");
     event_tree = new TTree("event_tree", "Event Tree");
 
@@ -1112,10 +1103,9 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
 
     source.SetZ(+1);
     source.RotateZ(M_PI / 18);
-    source.SetX(-1*source.X());
+    source.SetX(-1 * source.X());
     m_truth_pos.push_back(source);
     truth_r_phi[1]->Fill(source.Phi(), source.Perp());
-
   };
 
   // inner region extended is the 8 layers inside 30 cm
@@ -1128,235 +1118,233 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
         TVector3 dummyPos(cx1_e[i][j], cy1_e[i][j], 0.0);
         dummyPos.RotateZ(k * phi_petal);
         save_truth_position(dummyPos);
-        //int truth_index_1 = k*10000 + j*100 + i;
-        //int truth_index_1 = k*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
+        // int truth_index_1 = k*10000 + j*100 + i;
+        // int truth_index_1 = k*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
         int truth_index_1;
         int truth_index_0;
-        if(k<=8)
+        if (k <= 8)
         {
-         truth_index_0 = (26-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
-	 truth_index_1 = (8-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
-       }
-	else
-	{
-	  truth_index_0 = (44-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
-	  truth_index_1 = (26-k)*10000 + j*100 + (nGoodStripes_R1_e[j]-i-1);
-	}
-       m_truth_index.push_back(truth_index_0);
-       m_truth_index.push_back(truth_index_1);
+          truth_index_0 = (26 - k) * 10000 + j * 100 + (nGoodStripes_R1_e[j] - i - 1);
+          truth_index_1 = (8 - k) * 10000 + j * 100 + (nGoodStripes_R1_e[j] - i - 1);
+        }
+        else
+        {
+          truth_index_0 = (44 - k) * 10000 + j * 100 + (nGoodStripes_R1_e[j] - i - 1);
+          truth_index_1 = (26 - k) * 10000 + j * 100 + (nGoodStripes_R1_e[j] - i - 1);
+        }
+        m_truth_index.push_back(truth_index_0);
+        m_truth_index.push_back(truth_index_1);
 
-       if (Verbosity() > 2)
-       {
-        std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-        << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
-        << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
-      }
-      if (m_savehistograms)
-      {
-        hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
+        if (Verbosity() > 2)
+        {
+          std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+                    << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+                    << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
+        }
+        if (m_savehistograms)
+        {
+          hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
+        }
       }
     }
   }
-}
 
   // inner region is the 8 layers outside 30 cm
-for (int j = 0; j < nRadii; ++j)
-{
-  for (int i = 0; i < nGoodStripes_R1[j]; ++i)
+  for (int j = 0; j < nRadii; ++j)
   {
-    for (int k = 0; k < 18; ++k)
+    for (int i = 0; i < nGoodStripes_R1[j]; ++i)
     {
-      TVector3 dummyPos(cx1[i][j], cy1[i][j], 0.0);
-      dummyPos.RotateZ(k * phi_petal);
-      save_truth_position(dummyPos);
-      //int truth_index_1 = k*10000 + (j+8)*100 + i;
-      //int truth_index_1 = k*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
-      int truth_index_1;
-      int truth_index_0;
-      if(k<=8)
+      for (int k = 0; k < 18; ++k)
       {
-        truth_index_0 = (26-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
-        truth_index_1 = (8-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+        TVector3 dummyPos(cx1[i][j], cy1[i][j], 0.0);
+        dummyPos.RotateZ(k * phi_petal);
+        save_truth_position(dummyPos);
+        // int truth_index_1 = k*10000 + (j+8)*100 + i;
+        // int truth_index_1 = k*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+        int truth_index_1;
+        int truth_index_0;
+        if (k <= 8)
+        {
+          truth_index_0 = (26 - k) * 10000 + (j + 8) * 100 + (nGoodStripes_R1[j] - i - 1);
+          truth_index_1 = (8 - k) * 10000 + (j + 8) * 100 + (nGoodStripes_R1[j] - i - 1);
+        }
+        else
+        {
+          truth_index_0 = (44 - k) * 10000 + (j + 8) * 100 + (nGoodStripes_R1[j] - i - 1);
+          truth_index_1 = (26 - k) * 10000 + (j + 8) * 100 + (nGoodStripes_R1[j] - i - 1);
+        }
+        m_truth_index.push_back(truth_index_0);
+        m_truth_index.push_back(truth_index_1);
+
+        if (Verbosity() > 2)
+        {
+          std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+                    << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+                    << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
+        }
+        if (m_savehistograms)
+        {
+          hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
+        }
+      }
+    }
+  }
+
+  for (int j = 0; j < nRadii; ++j)
+  {
+    for (int i = 0; i < nGoodStripes_R2[j]; ++i)
+    {
+      for (int k = 0; k < 18; ++k)
+      {
+        TVector3 dummyPos(cx2[i][j], cy2[i][j], 0.0);
+        dummyPos.RotateZ(k * phi_petal);
+        save_truth_position(dummyPos);
+        // int truth_index_1 = k*10000 + (j+16)*100 + i;
+        // int truth_index_1 = k*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
+        int truth_index_1;
+        int truth_index_0;
+        if (k <= 8)
+        {
+          truth_index_0 = (26 - k) * 10000 + (j + 16) * 100 + (nGoodStripes_R2[j] - i - 1);
+          truth_index_1 = (8 - k) * 10000 + (j + 16) * 100 + (nGoodStripes_R2[j] - i - 1);
+        }
+        else
+        {
+          truth_index_0 = (44 - k) * 10000 + (j + 16) * 100 + (nGoodStripes_R2[j] - i - 1);
+          truth_index_1 = (26 - k) * 10000 + (j + 16) * 100 + (nGoodStripes_R2[j] - i - 1);
+        }
+        m_truth_index.push_back(truth_index_0);
+        m_truth_index.push_back(truth_index_1);
+
+        if (Verbosity() > 2)
+        {
+          std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+                    << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+                    << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
+        }
+        if (m_savehistograms)
+        {
+          hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
+        }
+      }
+    }
+  }
+
+  for (int j = 0; j < nRadii; ++j)
+  {
+    for (int i = 0; i < nGoodStripes_R3[j]; ++i)
+    {
+      for (int k = 0; k < 18; ++k)
+      {
+        TVector3 dummyPos(cx3[i][j], cy3[i][j], 0.0);
+        dummyPos.RotateZ(k * phi_petal);
+        save_truth_position(dummyPos);
+        // int truth_index_1 = k*10000 + (j+24)*100 + i;
+        // int truth_index_1 = k*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
+        int truth_index_1;
+        int truth_index_0;
+        if (k <= 8)
+        {
+          truth_index_0 = (26 - k) * 10000 + (j + 24) * 100 + (nGoodStripes_R3[j] - i - 1);
+          truth_index_1 = (8 - k) * 10000 + (j + 24) * 100 + (nGoodStripes_R3[j] - i - 1);
+        }
+        else
+        {
+          truth_index_0 = (44 - k) * 10000 + (j + 24) * 100 + (nGoodStripes_R3[j] - i - 1);
+          truth_index_1 = (26 - k) * 10000 + (j + 24) * 100 + (nGoodStripes_R3[j] - i - 1);
+        }
+        m_truth_index.push_back(truth_index_0);
+        m_truth_index.push_back(truth_index_1);
+
+        if (Verbosity() > 2)
+        {
+          std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
+                    << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
+                    << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
+        }
+        if (m_savehistograms)
+        {
+          hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
+        }
+      }
+    }
+  }
+
+  /*
+  int count[2] = {0, 0};
+
+  TFile *lamFile = new TFile(m_lamfilename.c_str(), "READ");
+  if(lamFile && !lamFile->IsZombie())
+  {
+    //std::cout << "got lamination file: " << m_lamfilename << std::endl;
+    TTree *lamTree = (TTree *) lamFile->Get("laminationTree");
+
+    //std::cout << "got lamination tree" << std::endl;
+
+    double A = 0.0;
+    double B = 0.0;
+    double C = 0.0;
+    double lamPhi = 0.0;
+    bool side = false;
+    bool isGoodFit = false;
+
+    lamTree->SetBranchAddress("A", &A);
+    lamTree->SetBranchAddress("B", &B);
+    lamTree->SetBranchAddress("C", &C);
+    lamTree->SetBranchAddress("lamPhi", &lamPhi);
+    lamTree->SetBranchAddress("side", &side);
+    lamTree->SetBranchAddress("goodFit", &isGoodFit);
+
+    int nEntries = lamTree->GetEntries();
+    for (int i = 0; i < nEntries; i++)
+    {
+      lamTree->GetEntry(i);
+      if (!isGoodFit) continue;
+      meanA[(int) side] += A;
+      meanB[(int) side] += B;
+      meanC[(int) side] += C;
+      count[(int) side]++;
+      lamPhis[side].push_back(lamPhi);
+    }
+
+    for(int s=0; s<2; s++)
+    {
+      if(count[s]>0)
+      {
+        meanA[s] /= count[s];
+        meanB[s] /= count[s];
+        meanC[s] /= count[s];
       }
       else
       {
-	truth_index_0 = (44-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
-	truth_index_1 = (26-k)*10000 + (j+8)*100 + (nGoodStripes_R1[j]-i-1);
+        meanA[s] = 0.0;
+        meanB[s] = 0.0;
+        meanC[s] = 0.0;
       }
-      m_truth_index.push_back(truth_index_0);
-      m_truth_index.push_back(truth_index_1);
 
-      if (Verbosity() > 2)
-      {
-        std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-        << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
-        << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
-      }
-      if (m_savehistograms)
-      {
-        hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
-      }
+      //std::cout << "side " << s << "  meanA " << meanA[s] << "  meanB " << meanB[s] << "  meanC " << meanC[s] << std::endl;
     }
   }
-}
+  */
 
-for (int j = 0; j < nRadii; ++j)
-{
-  for (int i = 0; i < nGoodStripes_R2[j]; ++i)
+  for (int s = 0; s < 2; s++)
   {
-    for (int k = 0; k < 18; ++k)
-    {
-      TVector3 dummyPos(cx2[i][j], cy2[i][j], 0.0);
-      dummyPos.RotateZ(k * phi_petal);
-      save_truth_position(dummyPos);
-      //int truth_index_1 = k*10000 + (j+16)*100 + i;
-      //int truth_index_1 = k*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
-      int truth_index_1;
-      int truth_index_0;
-      if(k<=8)
-      {
-        truth_index_0 = (26-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
-        truth_index_1 = (8-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
-      }
-      else
-      {
-	truth_index_0 = (44-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
-	truth_index_1 = (26-k)*10000 + (j+16)*100 + (nGoodStripes_R2[j]-i-1);
-      }
-      m_truth_index.push_back(truth_index_0);
-      m_truth_index.push_back(truth_index_1);
+    gr_dR[s] = new TGraph2D();
+    gr_dPhi[s] = new TGraph2D();
 
-      if (Verbosity() > 2)
-      {
-        std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-        << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
-        << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
-      }
-      if (m_savehistograms)
-      {
-        hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
-      }
-    }
-  }
-}
-
-for (int j = 0; j < nRadii; ++j)
-{
-  for (int i = 0; i < nGoodStripes_R3[j]; ++i)
-  {
-    for (int k = 0; k < 18; ++k)
-    {
-      TVector3 dummyPos(cx3[i][j], cy3[i][j], 0.0);
-      dummyPos.RotateZ(k * phi_petal);
-      save_truth_position(dummyPos);
-      //int truth_index_1 = k*10000 + (j+24)*100 + i;
-      //int truth_index_1 = k*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
-      int truth_index_1;
-      int truth_index_0;
-      if(k<=8)
-      {
-        truth_index_0 = (26-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
-        truth_index_1 = (8-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
-      }
-      else
-      {
-	truth_index_0 = (44-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
-	truth_index_1 = (26-k)*10000 + (j+24)*100 + (nGoodStripes_R3[j]-i-1);
-      }
-      m_truth_index.push_back(truth_index_0);
-      m_truth_index.push_back(truth_index_1);
-
-      if (Verbosity() > 2)
-      {
-        std::cout << " i " << i << " j " << j << " k " << k << " x1 " << dummyPos.X() << " y1 " << dummyPos.Y()
-        << " theta " << std::atan2(dummyPos.Y(), dummyPos.X())
-        << " radius " << get_r(dummyPos.X(), dummyPos.y()) << std::endl;
-      }
-      if (m_savehistograms)
-      {
-        hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
-      }
-    }
-  }
-}
-
-/*
-int count[2] = {0, 0};
-
-TFile *lamFile = new TFile(m_lamfilename.c_str(), "READ");
-if(lamFile && !lamFile->IsZombie())
-{
-  //std::cout << "got lamination file: " << m_lamfilename << std::endl;
-  TTree *lamTree = (TTree *) lamFile->Get("laminationTree");
-
-  //std::cout << "got lamination tree" << std::endl;
-
-  double A = 0.0;
-  double B = 0.0;
-  double C = 0.0;
-  double lamPhi = 0.0;
-  bool side = false;
-  bool isGoodFit = false;
-
-  lamTree->SetBranchAddress("A", &A);
-  lamTree->SetBranchAddress("B", &B);
-  lamTree->SetBranchAddress("C", &C);
-  lamTree->SetBranchAddress("lamPhi", &lamPhi);
-  lamTree->SetBranchAddress("side", &side);
-  lamTree->SetBranchAddress("goodFit", &isGoodFit);
-
-  int nEntries = lamTree->GetEntries();
-  for (int i = 0; i < nEntries; i++)
-  {
-    lamTree->GetEntry(i);
-    if (!isGoodFit) continue;
-    meanA[(int) side] += A;
-    meanB[(int) side] += B;
-    meanC[(int) side] += C;
-    count[(int) side]++;
-    lamPhis[side].push_back(lamPhi);
+    gr_points[s] = new TGraph();
+    gr_points[s]->SetMarkerStyle(20);
+    gr_points[s]->SetMarkerSize(0.5);
+    gr_points[s]->SetMarkerColor(kBlack);
   }
 
-  for(int s=0; s<2; s++)
-  {
-    if(count[s]>0)
-    {
-      meanA[s] /= count[s];
-      meanB[s] /= count[s];
-      meanC[s] /= count[s];
-    }
-    else
-    {
-      meanA[s] = 0.0;
-      meanB[s] = 0.0;
-      meanC[s] = 0.0;
-    }
-
-    //std::cout << "side " << s << "  meanA " << meanA[s] << "  meanB " << meanB[s] << "  meanC " << meanC[s] << std::endl;
-  }
-}
-*/
-
-
-for(int s=0; s<2; s++)
-{
-  gr_dR[s] = new TGraph2D();
-  gr_dPhi[s] = new TGraph2D();
-
-  gr_points[s] = new TGraph();
-  gr_points[s]->SetMarkerStyle(20);
-  gr_points[s]->SetMarkerSize(0.5);
-  gr_points[s]->SetMarkerColor(kBlack);
-}
-
-int ret = GetNodes(topNode);
-return ret;
+  int ret = GetNodes(topNode);
+  return ret;
 }
 
 //____________________________________________________________________________..
 int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 {
-
   e_matched.clear();
   e_truthIndex.clear();
   e_truthR.clear();
@@ -1371,7 +1359,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   e_NNIndex.clear();
   e_adc.clear();
 
-  for(int s=0; s<2; s++)
+  for (int s = 0; s < 2; s++)
   {
     gr_dR[s]->Clear();
     gr_dPhi[s]->Clear();
@@ -1395,44 +1383,42 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   std::vector<float> reco_SDWeightedIPhi;
   std::vector<float> reco_SDWeightedIT;
 
-  //TF1 *laminationFunc = new TF1("laminationFunc", "[3] + [0]*(1 - exp(-[2]*(x-[1])))", 30,80);
+  // TF1 *laminationFunc = new TF1("laminationFunc", "[3] + [0]*(1 - exp(-[2]*(x-[1])))", 30,80);
 
   eventHeader = findNode::getClass<EventHeader>(topNode, "EventHeader");
-  if(!eventHeader)
+  if (!eventHeader)
   {
     std::cout << PHWHERE << " EventHeader Node missing, abort" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if(m_useHeader && eventHeader->get_EvtSequence() == 0)
+  if (m_useHeader && eventHeader->get_EvtSequence() == 0)
   {
     m_useHeader = false;
   }
 
-
-  if(m_useHeader)
+  if (m_useHeader)
   {
     m_event_index = eventHeader->get_EvtSequence();
   }
 
-  LaserEventInfo *lasereventinfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
-  if(!lasereventinfo)
+  LaserEventInfo* lasereventinfo = findNode::getClass<LaserEventInfo>(topNode, "LaserEventInfo");
+  if (!lasereventinfo)
   {
     std::cout << PHWHERE << " LaserEvetnInfo Node missing, abort" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if((eventHeader->get_RunNumber() > 66153 && !lasereventinfo->isGl1LaserEvent()) || (eventHeader->get_RunNumber() <= 66153 && !lasereventinfo->isLaserEvent()) || !m_corrected_CMcluster_map)
-  //if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
+  if ((eventHeader->get_RunNumber() > 66153 && !lasereventinfo->isGl1LaserEvent()) || (eventHeader->get_RunNumber() <= 66153 && !lasereventinfo->isLaserEvent()) || !m_corrected_CMcluster_map)
+  // if (!m_corrected_CMcluster_map || m_corrected_CMcluster_map->size() < 1000)
   {
-    if(!m_useHeader)
+    if (!m_useHeader)
     {
       m_event_index++;
     }
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  
-  
+
   if (Verbosity())
   {
     std::cout << PHWHERE << "   working on event " << m_event_index << " which has " << m_corrected_CMcluster_map->size() << " clusters" << std::endl;
@@ -1456,8 +1442,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   // read the reconstructed CM clusters
   auto clusrange = m_corrected_CMcluster_map->getClusters();
   for (auto cmitr = clusrange.first;
-   cmitr != clusrange.second;
-   ++cmitr)
+       cmitr != clusrange.second;
+       ++cmitr)
   {
     const auto& [cmkey, cmclus_orig] = *cmitr;
     // CMFlashCluster *cmclus = cmclus_orig;
@@ -1467,16 +1453,14 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     const unsigned int adc = cmclus->getAdc();
     bool side = (bool) TpcDefs::getSide(cmkey);
 
-
     // std::cout << "cluster " << clusterIndex << " side=" << side << "   sideKey=" << sideKey << "   are they the same? " << (side == sideKey ? "true" : "false") << std::endl;
     //  if(m_useOnly_nClus2 && nclus != 2) continue;
-
 
     nClus_gtMin++;
 
     // Do the static + average distortion corrections if the container was found
-    //since incorrect z values are in cluster do to wrong t0 of laser flash, fixing based on the side for now
-    //Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
+    // since incorrect z values are in cluster do to wrong t0 of laser flash, fixing based on the side for now
+    // Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), cmclus->getZ());
     Acts::Vector3 pos(cmclus->getX(), cmclus->getY(), (side ? 1.0 : -1.0));
     TVector3 tmp_raw(pos[0], pos[1], pos[2]);
     if (m_dcc_in_module_edge)
@@ -1521,13 +1505,12 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     }
     */
 
-
     // if(nclus == 1 && isRGap) continue;
 
     bool tmpIsSaturated = false;
-    for(int h=0; h<(int)cmclus->getNhits(); h++)
+    for (int h = 0; h < (int) cmclus->getNhits(); h++)
     {
-      if(cmclus->getHitAdc(h) > 900)
+      if (cmclus->getHitAdc(h) > 900)
       {
         tmpIsSaturated = true;
         break;
@@ -1551,9 +1534,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     reco_SDWeightedLayer.push_back(cmclus->getSDWeightedLayer());
     reco_SDWeightedIPhi.push_back(cmclus->getSDWeightedIPhi());
     reco_SDWeightedIT.push_back(cmclus->getSDWeightedIT());
-
-
-
 
     if (side == 0)
     {
@@ -1584,7 +1564,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
   if (nClus_gtMin < 25)
   {
-    if(!m_useHeader)
+    if (!m_useHeader)
     {
       m_event_index++;
     }
@@ -1606,9 +1586,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
   std::vector<std::vector<int>> truth_NNRecoIndex(m_truth_pos.size(), std::vector<int>(0));
 
-
-  if(m_doFancy){
-
+  if (m_doFancy)
+  {
     // get global phi rotation for each module
     m_recoRotation[0][1] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR2", 206, 290), reco_r_phi[0]->ProjectionX("cR2_0", 206, 290), false);
     m_recoRotation[0][0] = getPhiRotation_smoothed(truth_r_phi[0]->ProjectionX("hR1", 151, 206), reco_r_phi[0]->ProjectionX("cR1_0", 151, 206), false);
@@ -1633,9 +1612,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         std::cout << "side 1 cluster index " << i << "   hit match " << m_reco_RMatches[1][i] << "   recoPeak=" << m_reco_RPeaks[1][i] << "   shifted recoPeak=" << (m_m[1] * m_reco_RPeaks[1][i] + m_b[1]) << "   truthPeak=" << m_truth_RPeaks[m_reco_RMatches[1][i]] << "   residual=" << m_truth_RPeaks[m_reco_RMatches[1][i]] - (m_m[1] * m_reco_RPeaks[1][i] + m_b[1]) << std::endl;
       }
     }
-
-
-
 
     for (const auto& truth : m_truth_pos)
     {
@@ -1793,7 +1769,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       int clustRMatchIndex = -1;
       clustRMatchIndex = getClusterRMatch(rR, (side ? 1 : 0));
 
-
       int truthMatchIndex = -1;
       truth_index = 0;
       for (const auto& truth : m_truth_pos)
@@ -1802,79 +1777,77 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         double tPhi = truth.Phi();
         double tZ = truth.Z();
 
-	if( (!side && tZ > 0) || (side && tZ < 0) )
-	{
-	  truth_index++;
-	  continue;
-	}
-
-        if(sqrt(pow(truth.X() - reco.X(),2) + pow(truth.Y() - reco.Y(),2)) < NNDist[recoIndex])
-        {
-         NNDist[recoIndex] = sqrt(pow(truth.X() - reco.X(),2) + pow(truth.Y() - reco.Y(),2));
-         NNR[recoIndex] = tR;
-         NNPhi[recoIndex] = tPhi;
-         NNIndex[recoIndex] = m_truth_index[truth_index];
-       }
-
-       if (clustRMatchIndex == -1)
-       {
-         continue;
-       }
-
-       if (reco_matched[recoIndex])
-       {
-        if (reco_matchedTruthIndex[recoIndex] == truth_index)
-        {
-          reco_distToNN[recoIndex] = sqrt(pow(truth.X() - reco.X(), 2) + pow(truth.Y() - reco.Y(), 2));
-          break;
-        }
-        else
+        if ((!side && tZ > 0) || (side && tZ < 0))
         {
           truth_index++;
           continue;
         }
-       }
 
-      int truthRIndex = -1;
-
-      // get which hit radial index this it
-      for (int k = 0; k < (int) m_truth_RPeaks.size(); k++)
-      {
-        if (std::abs(tR - m_truth_RPeaks[k]) < 0.5)
+        if (sqrt(pow(truth.X() - reco.X(), 2) + pow(truth.Y() - reco.Y(), 2)) < NNDist[recoIndex])
         {
-          truthRIndex = k;
-          break;
+          NNDist[recoIndex] = sqrt(pow(truth.X() - reco.X(), 2) + pow(truth.Y() - reco.Y(), 2));
+          NNR[recoIndex] = tR;
+          NNPhi[recoIndex] = tPhi;
+          NNIndex[recoIndex] = m_truth_index[truth_index];
         }
-      }
 
-      if (truthRIndex == -1 || truthRIndex != clustRMatchIndex)
-      {
+        if (clustRMatchIndex == -1)
+        {
+          continue;
+        }
+
+        if (reco_matched[recoIndex])
+        {
+          if (reco_matchedTruthIndex[recoIndex] == truth_index)
+          {
+            reco_distToNN[recoIndex] = sqrt(pow(truth.X() - reco.X(), 2) + pow(truth.Y() - reco.Y(), 2));
+            break;
+          }
+
+          truth_index++;
+          continue;
+        }
+
+        int truthRIndex = -1;
+
+        // get which hit radial index this it
+        for (int k = 0; k < (int) m_truth_RPeaks.size(); k++)
+        {
+          if (std::abs(tR - m_truth_RPeaks[k]) < 0.5)
+          {
+            truthRIndex = k;
+            break;
+          }
+        }
+
+        if (truthRIndex == -1 || truthRIndex != clustRMatchIndex)
+        {
+          truth_index++;
+          continue;
+        }
+
+        if ((!side && tZ > 0) || (side && tZ < 0))
+        {
+          truth_index++;
+          continue;
+        }
+
+        auto dphi = delta_phi(tPhi - rPhi);
+        if (fabs(dphi) > m_phi_cut)
+        {
+          truth_index++;
+          continue;
+        }
+
+        float dist = sqrt(pow(tR * sin(tPhi) - rR * sin(rPhi), 2) + pow(tR * cos(tPhi) - rR * cos(rPhi), 2));
+
+        if (dist < reco_distToNN[recoIndex])
+        {
+          reco_distToNN[recoIndex] = dist;
+          truthMatchIndex = truth_index;
+        }
+
         truth_index++;
-        continue;
-      }
-
-      if ((!side && tZ > 0) || (side && tZ < 0))
-      {
-        truth_index++;
-        continue;
-      }
-
-      auto dphi = delta_phi(tPhi - rPhi);
-      if (fabs(dphi) > m_phi_cut)
-      {
-        truth_index++;
-        continue;
-      }
-
-      float dist = sqrt(pow(tR * sin(tPhi) - rR * sin(rPhi), 2) + pow(tR * cos(tPhi) - rR * cos(rPhi), 2));
-
-      if (dist < reco_distToNN[recoIndex])
-      {
-        reco_distToNN[recoIndex] = dist;
-        truthMatchIndex = truth_index;
-      }
-
-      truth_index++;
 
       }  // end of truth loop
 
@@ -1884,7 +1857,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       }
       recoIndex++;
     }
-  } //end fancy
+  }  // end fancy
   else
   {
     int reco_index = 0;
@@ -1899,8 +1872,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       int match_localTruth = -1;
       for (const auto& truth : m_truth_pos)
       {
-	//std::cout << "reco_index " << reco_index << "   truth_index " << truth_index << std::endl;
-	double tR = get_r(truth.X(), truth.Y());
+        // std::cout << "reco_index " << reco_index << "   truth_index " << truth_index << std::endl;
+        double tR = get_r(truth.X(), truth.Y());
         double tPhi = truth.Phi();
         double tZ = truth.Z();
 
@@ -1924,32 +1897,32 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
           continue;
         }
 
-        double dist = sqrt(pow(truth.X() - reco.X(),2) + pow(truth.Y() - reco.Y(),2));
+        double dist = sqrt(pow(truth.X() - reco.X(), 2) + pow(truth.Y() - reco.Y(), 2));
         if (dist < minNNDist)
         {
           minNNDist = dist;
           match_localTruth = truth_index;
         }
-	truth_index++;
-      } // end truth loop
+        truth_index++;
+      }  // end truth loop
 
-      if(match_localTruth == -1)
+      if (match_localTruth == -1)
       {
-	reco_index++;
-	continue;
+        reco_index++;
+        continue;
       }
 
       truth_NNRecoIndex[match_localTruth].push_back(reco_index);
-      NNDist[reco_index] = sqrt(pow(m_truth_pos[match_localTruth].X() - reco.X(),2) + pow(m_truth_pos[match_localTruth].Y() - reco.Y(),2));
+      NNDist[reco_index] = sqrt(pow(m_truth_pos[match_localTruth].X() - reco.X(), 2) + pow(m_truth_pos[match_localTruth].Y() - reco.Y(), 2));
       NNR[reco_index] = get_r(m_truth_pos[match_localTruth].X(), m_truth_pos[match_localTruth].Y());
       NNPhi[reco_index] = m_truth_pos[match_localTruth].Phi();
       NNIndex[reco_index] = m_truth_index[match_localTruth];
 
       reco_index++;
-    } // end reco loop
+    }  // end reco loop
 
     truth_index = 0;
-    for(const auto& truthIndex : truth_NNRecoIndex)
+    for (const auto& truthIndex : truth_NNRecoIndex)
     {
       double maxADC = 0.0;
       int recoMatchIndex = -1;
@@ -1957,28 +1930,27 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       int currentTruthIndex = m_truth_index[truth_index];
       int currentRow = (currentTruthIndex / 100) % 100;
 
-      if(currentRow == 15 || currentRow == 23 || currentRow == 31)
+      if (currentRow == 15 || currentRow == 23 || currentRow == 31)
       {
         truth_index++;
         continue;
       }
 
-      for(const auto& recoIndex : truthIndex)
+      for (const auto& recoIndex : truthIndex)
       {
-
-            //if(reco_nLayers[recoIndex] < 2 || reco_nLayers[recoIndex] > 3) continue;
-        if(reco_nLayers[recoIndex] != 2)
+        // if(reco_nLayers[recoIndex] < 2 || reco_nLayers[recoIndex] > 3) continue;
+        if (reco_nLayers[recoIndex] != 2)
         {
           continue;
         }
 
         int lowRMatch = 0;
-        int highRMatch = (int)m_truth_RPeaks.size()-1;
-        int upperBound = (int)m_truth_RPeaks.size();
-        while(lowRMatch <= highRMatch)
+        int highRMatch = (int) m_truth_RPeaks.size() - 1;
+        int upperBound = (int) m_truth_RPeaks.size();
+        while (lowRMatch <= highRMatch)
         {
-          int mid = lowRMatch + (highRMatch - lowRMatch)/2;
-          if(m_truth_RPeaks[mid] >= reco_pos[recoIndex].Perp())
+          int mid = lowRMatch + (highRMatch - lowRMatch) / 2;
+          if (m_truth_RPeaks[mid] >= reco_pos[recoIndex].Perp())
           {
             upperBound = mid;
             highRMatch = mid - 1;
@@ -1990,43 +1962,43 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         }
         upperBound = std::max(upperBound, 1);
 
-	double dR = m_truth_pos[truth_index].Perp() - reco_pos[recoIndex].Perp();
-	if(fabs(dR) > 0.5 * (m_truth_RPeaks[upperBound] - m_truth_RPeaks[upperBound-1]))
-	{
-	  continue;
-	}
+        double dR = m_truth_pos[truth_index].Perp() - reco_pos[recoIndex].Perp();
+        if (fabs(dR) > 0.5 * (m_truth_RPeaks[upperBound] - m_truth_RPeaks[upperBound - 1]))
+        {
+          continue;
+        }
 
-	double dphi = delta_phi(m_truth_pos[truth_index].Phi() - reco_pos[recoIndex].Phi());
-	if(fabs(dphi) > 0.5*phiSpacing[upperBound-1])
-	{
-	  continue;
-	}
+        double dphi = delta_phi(m_truth_pos[truth_index].Phi() - reco_pos[recoIndex].Phi());
+        if (fabs(dphi) > 0.5 * phiSpacing[upperBound - 1])
+        {
+          continue;
+        }
 
-        if(reco_adc[recoIndex] > maxADC)
+        if (reco_adc[recoIndex] > maxADC)
         {
           maxADC = reco_adc[recoIndex];
           recoMatchIndex = recoIndex;
         }
       }
 
-      if(recoMatchIndex >= 0)
+      if (recoMatchIndex >= 0)
       {
         truth_matchedRecoIndex[truth_index] = recoMatchIndex;
         reco_matched[recoMatchIndex] = true;
         reco_matchedTruthIndex[recoMatchIndex] = truth_index;
         truth_matched[truth_index] = true;
-	nMatched++;
+        nMatched++;
       }
 
       truth_index++;
     }
-  } // end else for fancy
+  }  // end else for fancy
 
   // print some statistics:
   if (Verbosity() > 1)
   {
     const auto n_valid_truth = std::count_if(m_truth_pos.begin(), m_truth_pos.end(), [](const TVector3& pos)
-     { return get_r(pos.x(), pos.y()) > 30; });
+                                             { return get_r(pos.x(), pos.y()) > 30; });
     std::cout << "TpcCentralMembraneMatching::process_event - m_truth_pos size: " << m_truth_pos.size() << std::endl;
     std::cout << "TpcCentralMembraneMatching::process_event - m_truth_pos size, r>30cm: " << n_valid_truth << std::endl;
     std::cout << "TpcCentralMembraneMatching::process_event - reco_pos size: " << reco_pos.size() << std::endl;
@@ -2078,7 +2050,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       e_NNIndex.push_back(NNIndex[i]);
       e_NNDistance.push_back(NNDist[i]);
       e_adc.push_back(reco_adc[i]);
-
 
       if (m_side)
       {
@@ -2134,7 +2105,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    //std::cout << "i=" << i << "   ckey=" << ckey << "   reco_index=" << truth_matchedRecoIndex[i] << std::endl;
+    // std::cout << "i=" << i << "   ckey=" << ckey << "   reco_index=" << truth_matchedRecoIndex[i] << std::endl;
 
     int reco_index = truth_matchedRecoIndex[i];
 
@@ -2145,7 +2116,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
     // std::cout << "good reco_index" << std::endl;
 
-    auto cmdiff = new CMFlashDifferencev1();
+    auto* cmdiff = new CMFlashDifferencev1();
     cmdiff->setTruthPhi(m_truth_pos[i].Phi());
     cmdiff->setTruthR(m_truth_pos[i].Perp());
     cmdiff->setTruthZ(m_truth_pos[i].Z());
@@ -2172,7 +2143,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
     m_cm_flash_diffs->addDifferenceSpecifyKey(ckey, cmdiff);
 
-    
     // store cluster position
     double clus_r = reco_pos[reco_index].Perp();
     double clus_phi = reco_pos[reco_index].Phi();
@@ -2190,34 +2160,33 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     {
       clus_phi += 2 * M_PI;
     }
-    
 
-    //const double clus_z = reco_pos[reco_index].z();
+    // const double clus_z = reco_pos[reco_index].z();
     const bool side = reco_side[reco_index];
-    //const bool side = (clus_z < 0) ? false : true;
-    // if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
+    // const bool side = (clus_z < 0) ? false : true;
+    //  if(side != reco_side[reco_index]) std::cout << "sides do not match!" << std::endl;
 
     // calculate residuals (cluster - truth)
 
-    //std::cout << PHWHERE << "   filling graphs on side " << side << " with phi=" << clus_phi << " and R=" << clus_r << "  with dr=" << dr << " and dphi=" << dphi << std::endl;
+    // std::cout << PHWHERE << "   filling graphs on side " << side << " with phi=" << clus_phi << " and R=" << clus_r << "  with dr=" << dr << " and dphi=" << dphi << std::endl;
 
     gr_dR[side]->AddPoint(clus_phi, clus_r, dr);
     gr_dPhi[side]->AddPoint(clus_phi, clus_r, dphi);
 
-    if(clus_phi < M_PI/12)
+    if (clus_phi < M_PI / 12)
     {
-      gr_dR[side]->AddPoint(clus_phi + 2*M_PI, clus_r, dr);
-      gr_dPhi[side]->AddPoint(clus_phi + 2*M_PI, clus_r, dphi);
+      gr_dR[side]->AddPoint(clus_phi + 2 * M_PI, clus_r, dr);
+      gr_dPhi[side]->AddPoint(clus_phi + 2 * M_PI, clus_r, dphi);
     }
-    if(clus_phi > 23*M_PI/12)
+    if (clus_phi > 23 * M_PI / 12)
     {
-      gr_dR[side]->AddPoint(clus_phi - 2*M_PI, clus_r, dr);
-      gr_dPhi[side]->AddPoint(clus_phi - 2*M_PI, clus_r, dphi);
+      gr_dR[side]->AddPoint(clus_phi - 2 * M_PI, clus_r, dr);
+      gr_dPhi[side]->AddPoint(clus_phi - 2 * M_PI, clus_r, dphi);
     }
 
-    //double rdphi = reco_pos[reco_index].Perp() * dphi;
+    // double rdphi = reco_pos[reco_index].Perp() * dphi;
 
-    //std::cout << "about to add to maps for truth index " << m_truth_index[i] << std::endl;
+    // std::cout << "about to add to maps for truth index " << m_truth_index[i] << std::endl;
 
     deltaRByIndex[m_truth_index[i]] += dr;
     deltaPhiByIndex[m_truth_index[i]] += dphi;
@@ -2225,14 +2194,12 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     meanPhiByIndex[m_truth_index[i]] += clus_phi;
     nByIndex[m_truth_index[i]]++;
 
-    //std::cout << "map now has " << nByIndex[m_truth_index[i]] << "entries" << std::endl;
+    // std::cout << "map now has " << nByIndex[m_truth_index[i]] << "entries" << std::endl;
 
-
-
-    //currently, we cannot get any z distortion since we don't know when the laser actually flashed
-    //so the distortion is set to 0 for now
-    //const double dz = reco_pos[reco_index].z() - m_truth_pos[i].z();
-    //const double dz = 0.0;
+    // currently, we cannot get any z distortion since we don't know when the laser actually flashed
+    // so the distortion is set to 0 for now
+    // const double dz = reco_pos[reco_index].z() - m_truth_pos[i].z();
+    // const double dz = 0.0;
 
     // fill distortion correction histograms
     /*
@@ -2241,37 +2208,36 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
      * - we might need a smoothing procedure to fill the bins that have no entries using neighbors
      */
 
-     /*
-     //original method
-    for (const auto& dcc : {m_dcc_out, m_dcc_out_aggregated.get()})
-    {
-      static_cast<TH2*>(dcc->m_hDRint[side])->Fill(clus_phi, clus_r, dr);
-      static_cast<TH2*>(dcc->m_hDPint[side])->Fill(clus_phi, clus_r, rdphi);
-      static_cast<TH2*>(dcc->m_hDZint[side])->Fill(clus_phi, clus_r, dz);
-      static_cast<TH2*>(dcc->m_hentries[side])->Fill(clus_phi, clus_r);
-    }
-    */
+    /*
+    //original method
+   for (const auto& dcc : {m_dcc_out, m_dcc_out_aggregated.get()})
+   {
+     static_cast<TH2*>(dcc->m_hDRint[side])->Fill(clus_phi, clus_r, dr);
+     static_cast<TH2*>(dcc->m_hDPint[side])->Fill(clus_phi, clus_r, rdphi);
+     static_cast<TH2*>(dcc->m_hDZint[side])->Fill(clus_phi, clus_r, dz);
+     static_cast<TH2*>(dcc->m_hentries[side])->Fill(clus_phi, clus_r);
+   }
+   */
 
     ckey++;
   }
 
+  // std::cout << "about to fill fluct hist" << std::endl;
 
-  //std::cout << "about to fill fluct hist" << std::endl;
-
-  for(int s=0; s<2; s++)
+  for (int s = 0; s < 2; s++)
   {
     bool firstGoodR = false;
-    for(int j=1; j<=m_dcc_out->m_hDRint[s]->GetNbinsY(); j++)
+    for (int j = 1; j <= m_dcc_out->m_hDRint[s]->GetNbinsY(); j++)
     {
       double RVal = m_dcc_out->m_hDRint[s]->GetYaxis()->GetBinCenter(j);
       double Rlow = m_dcc_out->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j);
-      double Rhigh = m_dcc_out->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j+1);
+      double Rhigh = m_dcc_out->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j + 1);
 
-      if(!firstGoodR)
+      if (!firstGoodR)
       {
-        for(int p=0; p<gr_dR[s]->GetN(); p++)
+        for (int p = 0; p < gr_dR[s]->GetN(); p++)
         {
-          if(gr_dR[s]->GetY()[p] > Rlow && gr_dR[s]->GetY()[p] > Rhigh)
+          if (gr_dR[s]->GetY()[p] > Rlow && gr_dR[s]->GetY()[p] > Rhigh)
           {
             firstGoodR = true;
             break;
@@ -2280,12 +2246,12 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         continue;
       }
 
-      for(int i=2; i<=m_dcc_out->m_hDRint[s]->GetNbinsX()-1; i++)
+      for (int i = 2; i <= m_dcc_out->m_hDRint[s]->GetNbinsX() - 1; i++)
       {
         double phiVal = m_dcc_out->m_hDRint[s]->GetXaxis()->GetBinCenter(i);
-        m_dcc_out->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal,RVal));
-        m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
-      }      
+        m_dcc_out->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal, RVal));
+        m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal * gr_dPhi[s]->Interpolate(phiVal, RVal));
+      }
     }
   }
 
@@ -2298,30 +2264,31 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
   }
 
   // normalize per-event distortion correction histograms and fill guarding bins
-  //normalize_distortions(m_dcc_out);
-  //fill_guarding_bins(m_dcc_out);
+  // normalize_distortions(m_dcc_out);
+  // fill_guarding_bins(m_dcc_out);
 
   if (Verbosity() > 2)
   {
     // read back differences from node tree as a check
     auto diffrange = m_cm_flash_diffs->getDifferences();
     for (auto cmitr = diffrange.first;
-     cmitr != diffrange.second;
-     ++cmitr)
+         cmitr != diffrange.second;
+         ++cmitr)
     {
       auto key = cmitr->first;
-      auto cmreco = cmitr->second;
+      auto* cmreco = cmitr->second;
 
       std::cout << " key " << key
-      << " nclus " << cmreco->getNclusters()
-      << " truth Phi " << cmreco->getTruthPhi() << " reco Phi " << cmreco->getRecoPhi()
-      << " truth R " << cmreco->getTruthR() << " reco R " << cmreco->getRecoR()
-      << " truth Z " << cmreco->getTruthZ() << " reco Z " << cmreco->getRecoZ()
-      << std::endl;
+                << " nclus " << cmreco->getNclusters()
+                << " truth Phi " << cmreco->getTruthPhi() << " reco Phi " << cmreco->getRecoPhi()
+                << " truth R " << cmreco->getTruthR() << " reco R " << cmreco->getRecoR()
+                << " truth Z " << cmreco->getTruthZ() << " reco Z " << cmreco->getRecoZ()
+                << std::endl;
     }
   }
 
-  if(!m_useHeader){
+  if (!m_useHeader)
+  {
     m_event_index++;
   }
 
@@ -2331,7 +2298,6 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
 {
-
   std::cout << PHWHERE << "starting TpcCentralMembraneMatching::End()" << std::endl;
 
   // write distortion corrections
@@ -2346,53 +2312,50 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
     fill_guarding_bins(m_dcc_out_aggregated.get());
     */
 
-
-    for(int s=0; s<2; s++)
+    for (int s = 0; s < 2; s++)
     {
       gr_dR[s]->Clear();
       gr_dPhi[s]->Clear();
     }
 
-    for(auto [idx, n] : nByIndex)
+    for (auto [idx, n] : nByIndex)
     {
-      if(n < 50)
+      if (n < 50)
       {
         continue;
       }
       int side = (idx < 180000 ? 1 : 0);
 
-      gr_dR[side]->AddPoint(meanPhiByIndex[idx]/n, meanRByIndex[idx]/n, deltaRByIndex[idx]/n);
-      gr_dPhi[side]->AddPoint(meanPhiByIndex[idx]/n, meanRByIndex[idx]/n, deltaPhiByIndex[idx]/n);
-      gr_points[side]->AddPoint(meanPhiByIndex[idx]/n, meanRByIndex[idx]/n);
+      gr_dR[side]->AddPoint(meanPhiByIndex[idx] / n, meanRByIndex[idx] / n, deltaRByIndex[idx] / n);
+      gr_dPhi[side]->AddPoint(meanPhiByIndex[idx] / n, meanRByIndex[idx] / n, deltaPhiByIndex[idx] / n);
+      gr_points[side]->AddPoint(meanPhiByIndex[idx] / n, meanRByIndex[idx] / n);
 
-      if(meanPhiByIndex[idx]/n < M_PI/12)
+      if (meanPhiByIndex[idx] / n < M_PI / 12)
       {
-        gr_dR[side]->AddPoint(meanPhiByIndex[idx]/n + 2*M_PI, meanRByIndex[idx]/n, deltaRByIndex[idx]/n);
-        gr_dPhi[side]->AddPoint(meanPhiByIndex[idx]/n + 2*M_PI, meanRByIndex[idx]/n, deltaPhiByIndex[idx]/n);
+        gr_dR[side]->AddPoint(meanPhiByIndex[idx] / n + 2 * M_PI, meanRByIndex[idx] / n, deltaRByIndex[idx] / n);
+        gr_dPhi[side]->AddPoint(meanPhiByIndex[idx] / n + 2 * M_PI, meanRByIndex[idx] / n, deltaPhiByIndex[idx] / n);
       }
-      if(meanPhiByIndex[idx]/n > 23*M_PI/12)
+      if (meanPhiByIndex[idx] / n > 23 * M_PI / 12)
       {
-        gr_dR[side]->AddPoint(meanPhiByIndex[idx]/n - 2*M_PI, meanRByIndex[idx]/n, deltaRByIndex[idx]/n);
-        gr_dPhi[side]->AddPoint(meanPhiByIndex[idx]/n - 2*M_PI, meanRByIndex[idx]/n, deltaPhiByIndex[idx]/n);
+        gr_dR[side]->AddPoint(meanPhiByIndex[idx] / n - 2 * M_PI, meanRByIndex[idx] / n, deltaRByIndex[idx] / n);
+        gr_dPhi[side]->AddPoint(meanPhiByIndex[idx] / n - 2 * M_PI, meanRByIndex[idx] / n, deltaPhiByIndex[idx] / n);
       }
-
     }
 
-
-    for(int s=0; s<2; s++)
+    for (int s = 0; s < 2; s++)
     {
       bool firstGoodR = false;
-      for(int j=1; j<=m_dcc_out_aggregated->m_hDRint[s]->GetNbinsY(); j++)
+      for (int j = 1; j <= m_dcc_out_aggregated->m_hDRint[s]->GetNbinsY(); j++)
       {
         double RVal = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinCenter(j);
         double Rlow = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j);
-        double Rhigh = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j+1);
+        double Rhigh = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j + 1);
 
-        if(!firstGoodR)
+        if (!firstGoodR)
         {
-          for(int p=0; p<gr_dR[s]->GetN(); p++)
+          for (int p = 0; p < gr_dR[s]->GetN(); p++)
           {
-            if(gr_dR[s]->GetY()[p] > Rlow && gr_dR[s]->GetY()[p] > Rhigh)
+            if (gr_dR[s]->GetY()[p] > Rlow && gr_dR[s]->GetY()[p] > Rhigh)
             {
               firstGoodR = true;
               break;
@@ -2401,15 +2364,14 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
           continue;
         }
 
-        for(int i=2; i<=m_dcc_out_aggregated->m_hDRint[s]->GetNbinsX()-1; i++)
+        for (int i = 2; i <= m_dcc_out_aggregated->m_hDRint[s]->GetNbinsX() - 1; i++)
         {
           double phiVal = m_dcc_out_aggregated->m_hDRint[s]->GetXaxis()->GetBinCenter(i);
 
-          m_dcc_out_aggregated->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal,RVal));
-          m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
+          m_dcc_out_aggregated->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal, RVal));
+          m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal * gr_dPhi[s]->Interpolate(phiVal, RVal));
         }
       }
-
     }
 
     // create TFile and write all histograms
@@ -2427,12 +2389,12 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
           h->Write();
         }
       }
-      //gr_points[i]->Write(Form("gr_points_%sz",(i==1 ? "pos" : "neg")));
-      //gr_dR[i]->Write(Form("gr_dr_%sz",(i==1 ? "pos" : "neg")));
-      //gr_dPhi[i]->Write(Form("gr_dPhi_%sz",(i==1 ? "pos" : "neg")));
-      gr_points[i]->Write(std::format("gr_points_{}z",(i==1 ? "pos" : "neg")).c_str());
-      gr_dR[i]->Write(std::format("gr_dr_{}z",(i==1 ? "pos" : "neg")).c_str());
-      gr_dPhi[i]->Write(std::format("gr_dPhi_{}z",(i==1 ? "pos" : "neg")).c_str());
+      // gr_points[i]->Write(Form("gr_points_%sz",(i==1 ? "pos" : "neg")));
+      // gr_dR[i]->Write(Form("gr_dr_%sz",(i==1 ? "pos" : "neg")));
+      // gr_dPhi[i]->Write(Form("gr_dPhi_%sz",(i==1 ? "pos" : "neg")));
+      gr_points[i]->Write(std::format("gr_points_{}z", (i == 1 ? "pos" : "neg")).c_str());
+      gr_dR[i]->Write(std::format("gr_dr_{}z", (i == 1 ? "pos" : "neg")).c_str());
+      gr_dPhi[i]->Write(std::format("gr_dPhi_{}z", (i == 1 ? "pos" : "neg")).c_str());
     }
   }
 
@@ -2482,7 +2444,6 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
     std::cout << "closing " << m_debugfilename << std::endl;
     m_debugfile->Close();
     std::cout << m_debugfilename << " has been closed" << std::endl;
-
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -2535,8 +2496,6 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-
-
   // Looking for the RUN node
   // PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   // if (!runNode)
@@ -2546,12 +2505,12 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
   //}
   // PHNodeIterator runiter(runNode);
   // auto flashDiffContainer = findNode::getClass<CMFlashDifferenceContainerv1>(runNode, "CM_FLASH_DIFFERENCES");
-  auto flashDiffContainer = findNode::getClass<CMFlashDifferenceContainerv1>(topNode, "CM_FLASH_DIFFERENCES");
+  auto* flashDiffContainer = findNode::getClass<CMFlashDifferenceContainerv1>(topNode, "CM_FLASH_DIFFERENCES");
   if (!flashDiffContainer)
   {
     PHNodeIterator dstiter(dstNode);
     PHCompositeNode* DetNode =
-    dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+        dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -2560,7 +2519,7 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
 
     flashDiffContainer = new CMFlashDifferenceContainerv1;
     PHIODataNode<PHObject>* CMFlashDifferenceNode =
-    new PHIODataNode<PHObject>(flashDiffContainer, "CM_FLASH_DIFFERENCES", "PHObject");
+        new PHIODataNode<PHObject>(flashDiffContainer, "CM_FLASH_DIFFERENCES", "PHObject");
     // runNode->addNode(CMFlashDifferenceNode);
     DetNode->addNode(CMFlashDifferenceNode);
   }
@@ -2603,7 +2562,7 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
   if (!m_dcc_out)
   {
     /// Get the RUN node and check
-    auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+    auto* runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
     if (!runNode)
     {
       std::cout << "TpcCentralMembraneMatching::InitRun - RUN Node missing, quitting" << std::endl;
@@ -2615,7 +2574,7 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     m_dcc_out->m_dimensions = 2;
     m_dcc_out->m_phi_hist_in_radians = false;
     m_dcc_out->m_interpolate_z = true;
-    auto node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
+    auto* node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
     runNode->addNode(node);
   }
 
@@ -2675,18 +2634,18 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     for (int i = 0; i < 2; ++i)
     {
       delete dcc->m_hDPint[i];
-      dcc->m_hDPint[i] = new TH2F((boost::format("hIntDistortionP%s") % extension[i]).str().c_str(), (boost::format("hIntDistortionP%s") % extension[i]).str().c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+      dcc->m_hDPint[i] = new TH2F(std::format("hIntDistortionP{}", extension[i]).c_str(), std::format("hIntDistortionP{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
       delete dcc->m_hDRint[i];
-      dcc->m_hDRint[i] = new TH2F((boost::format("hIntDistortionR%s") % extension[i]).str().c_str(), (boost::format("hIntDistortionR%s") % extension[i]).str().c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+      dcc->m_hDRint[i] = new TH2F(std::format("hIntDistortionR{}", extension[i]).c_str(), std::format("hIntDistortionR{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
       delete dcc->m_hDZint[i];
-      dcc->m_hDZint[i] = new TH2F((boost::format("hIntDistortionZ%s") % extension[i]).str().c_str(), (boost::format("hIntDistortionZ%s") % extension[i]).str().c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+      dcc->m_hDZint[i] = new TH2F(std::format("hIntDistortionZ{}", extension[i]).c_str(), std::format("hIntDistortionZ{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
       delete dcc->m_hentries[i];
-      dcc->m_hentries[i] = new TH2I((boost::format("hEntries%s") % extension[i]).str().c_str(), (boost::format("hEntries%s") % extension[i]).str().c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
+      dcc->m_hentries[i] = new TH2I(std::format("hEntries{}", extension[i]).c_str(), std::format("hEntries{}", extension[i]).c_str(), m_phibins + 2, phiMin, phiMax, m_rbins + 2, rMin, rMax);
 
-      // delete dcc->m_hDPint[i]; dcc->m_hDPint[i] = new TH2F( (boost::format("hIntDistortionP%s") % extension[i]).str().c_str(), (boost::format("hIntDistortionP%s") % extension[i]).str().c_str(), 205, phiBins, 68, r_bins );
-      // delete dcc->m_hDRint[i]; dcc->m_hDRint[i] = new TH2F( (boost::format("hIntDistortionR%s") % extension[i]).str().c_str(), (boost::format("hIntDistortionR%s") % extension[i]).str().c_str(), 205, phiBins, 68, r_bins );
-      // delete dcc->m_hDZint[i]; dcc->m_hDZint[i] = new TH2F( (boost::format("hIntDistortionZ%s") % extension[i]).str().c_str(), (boost::format("hIntDistortionZ%s") % extension[i]).str().c_str(), 205, phiBins, 68, r_bins );
-      // delete dcc->m_hentries[i]; dcc->m_hentries[i] = new TH2I( (boost::format("hEntries%s") % extension[i]).str().c_str(), (boost::format("hEntries%s") % extension[i]).str().c_str(), 205, phiBins, 68, r_bins);
+      // delete dcc->m_hDPint[i]; dcc->m_hDPint[i] = new TH2F( std::format("hIntDistortionP{}", extension[i]).c_str(), std::format("hIntDistortionP{}", extension[i]).c_str(), 205, phiBins, 68, r_bins );
+      // delete dcc->m_hDRint[i]; dcc->m_hDRint[i] = new TH2F( std::format("hIntDistortionR{}", extension[i]).c_str(), std::format("hIntDistortionR{}", extension[i]).c_str(), 205, phiBins, 68, r_bins );
+      // delete dcc->m_hDZint[i]; dcc->m_hDZint[i] = new TH2F( std::format("hIntDistortionZ{}", extension[i]).c_str(), std::format("hIntDistortionZ{}", extension[i]).c_str(), 205, phiBins, 68, r_bins );
+      // delete dcc->m_hentries[i]; dcc->m_hentries[i] = new TH2I( std::format("hEntries{}", extension[i]).c_str(), std::format("hEntries{}", extension[i]).c_str(), 205, phiBins, 68, r_bins);
     }
   }
 
@@ -2695,13 +2654,13 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
 
 //_____________________________________________________________
 void TpcCentralMembraneMatching::CalculateCenters(
-  int nPads,
-  const std::array<double, nRadii>& R,
-  std::array<int, nRadii>& nGoodStripes,
-  const std::array<int, nRadii>& keepUntil,
-  std::array<int, nRadii>& nStripesIn,
-  std::array<int, nRadii>& nStripesBefore,
-  double cx[][nRadii], double cy[][nRadii])
+    int nPads,
+    const std::array<double, nRadii>& R,
+    std::array<int, nRadii>& nGoodStripes,
+    const std::array<int, nRadii>& keepUntil,
+    std::array<int, nRadii>& nStripesIn,
+    std::array<int, nRadii>& nStripesBefore,
+    double cx[][nRadii], double cy[][nRadii])
 {
   const double phi_module = M_PI / 6.0;  // angle span of a module
   const int pr_mult = 3;                 // multiples of intrinsic resolution of pads
@@ -2742,7 +2701,7 @@ void TpcCentralMembraneMatching::CalculateCenters(
       if (Verbosity() > 2)
       {
         std::cout << " j " << j << " i " << i << " i_out " << i_out << " theta " << theta << " cx " << cx[i_out][j] << " cy " << cy[i_out][j]
-        << " radius " << sqrt(pow(cx[i_out][j], 2) + pow(cy[i_out][j], 2)) << std::endl;
+                  << " radius " << sqrt(pow(cx[i_out][j], 2) + pow(cy[i_out][j], 2)) << std::endl;
       }
 
       i_out++;

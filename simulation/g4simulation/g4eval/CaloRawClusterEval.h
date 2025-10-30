@@ -20,8 +20,6 @@ class RawCluster;
 class RawTowerContainer;
 class TowerInfoContainer;
 
-
-
 class CaloRawClusterEval
 {
  public:

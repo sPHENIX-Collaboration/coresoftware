@@ -8,19 +8,19 @@
  * \date $Date: $
  */
 
-#ifndef QAHISTMANAGERDEF_H_
-#define QAHISTMANAGERDEF_H_
+#ifndef QAUTILS_QAHISTMANAGERDEF_H_
+#define QAUTILS_QAHISTMANAGERDEF_H_
 
 #include <string>
 #include <vector>
+
 class Fun4AllHistoManager;
 class TAxis;
 
 namespace QAHistManagerDef
 {
   //! Get a pointer to the default hist manager for QA modules
-  Fun4AllHistoManager*
-  getHistoManager();
+  Fun4AllHistoManager* getHistoManager();
 
   //! Save hist to root files. It will overwrite the old file if exist
   void saveQARootFile(const std::string& file_name);
@@ -34,4 +34,4 @@ namespace QAHistManagerDef
   std::vector<std::string> tokenize(const std::string& str, const char* delimiter);
 }  // namespace QAHistManagerDef
 
-#endif /* QAHISTMANAGERDEF_H_ */
+#endif /* QAUTILS_QAHISTMANAGERDEF_H_ */

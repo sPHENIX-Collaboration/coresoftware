@@ -176,10 +176,7 @@ int CaloEvaluator::End(PHCompositeNode* /*topNode*/)
     std::cout << "===========================================================================" << std::endl;
   }
 
-  if (_caloevalstack)
-  {
-    delete _caloevalstack;
-  }
+  delete _caloevalstack;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -353,7 +350,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
       std::cout << " edep = " << trutheval->get_shower_energy_deposit(primary) << std::endl;
 
       std::set<RawCluster*> clusters = clustereval->all_clusters_from(primary);
-      for (auto cluster : clusters)
+      for (auto* cluster : clusters)
       {
         float ntowers = cluster->getNTowers();
         float x = cluster->get_x();
@@ -481,8 +478,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       if (!_truth_trace_embed_flags.empty())
       {
-        if (_truth_trace_embed_flags.find(trutheval->get_embed(primary)) ==
-            _truth_trace_embed_flags.end())
+        if (!_truth_trace_embed_flags.contains(trutheval->get_embed(primary)))
         {
           continue;
         }
@@ -603,7 +599,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       std::string towernode = "TOWER_CALIB_" + _caloname;
-      RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
+      RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode);
       if (!towers)
       {
         std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
@@ -611,7 +607,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       std::string towergeomnode = "TOWERGEOM_" + _caloname;
-      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode);
       if (!towergeom)
       {
         std::cout << PHWHERE << " ERROR: Can't find " << towergeomnode << std::endl;
@@ -759,7 +755,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       std::string towernode = "TOWERINFO_CALIB_" + _caloname;
-      TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, towernode.c_str());
+      TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, towernode);
       if (!towers)
       {
         std::cout << PHWHERE << " ERROR: Can't find " << towernode << std::endl;
@@ -767,7 +763,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       std::string towergeomnode = "TOWERGEOM_" + _caloname;
-      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode);
       if (!towergeom)
       {
         std::cout << PHWHERE << " ERROR: Can't find " << towergeomnode << std::endl;
@@ -913,7 +909,6 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
     }
   }
-  
 
   //------------------------
   // fill the Cluster NTuple
@@ -933,7 +928,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     {
       clusternode = "CLUSTER_CALIB_" + _caloname;
     }
-    RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, clusternode.c_str());
+    RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, clusternode);
     if (!clusters)
     {
       std::cout << PHWHERE << " ERROR: Can't find " << clusternode << std::endl;
