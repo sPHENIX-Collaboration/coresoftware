@@ -24,7 +24,7 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int BranchSelect(const std::string &branch, const int iflag) override;
   int setBranches() override;
-  void CacheSize(int size) { m_IManager->CacheSize(size); }
+  void CacheSize(uint64_t size) { m_IManager->CacheSize(size); }
   virtual int setSyncBranches(PHNodeIOManager *iman);
   void Print(const std::string &what = "ALL") const override;
   int PushBackEvents(const int i) override;

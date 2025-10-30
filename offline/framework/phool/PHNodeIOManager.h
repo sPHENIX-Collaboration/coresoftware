@@ -55,7 +55,7 @@ class PHNodeIOManager : public PHIOManager
   int SplitLevel() const { return splitlevel; }
   int BufferSize() const { return buffersize; }
   int CacheSize() const { return m_cacheSize; }
-  void CacheSize(int size) { m_cacheSize = size;}
+  void CacheSize(uint64_t size) { m_cacheSize = size;}
   
   void DisableReadCache();
 
@@ -68,7 +68,7 @@ private:
   TFile *file{nullptr};
   TTree *tree{nullptr};
   std::string TreeName{"T"};
-  int m_cacheSize = std::numeric_limits<int>::quiet_NaN();
+  uint64_t m_cacheSize = std::numeric_limits<uint64_t>::quiet_NaN();
   int accessMode{PHReadOnly};
   int m_CompressionSetting{505};  // ZSTD
   int isFunctionalFlag{0};        // flag to tell if that object initialized properly
