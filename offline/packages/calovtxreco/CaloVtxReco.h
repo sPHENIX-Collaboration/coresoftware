@@ -34,13 +34,13 @@ class CaloVtxReco : public SubsysReco
   void set_calib_factor(float new_calib) { _calib_factor = new_calib; }
  
  private:
-  int _debug;
   std::string _name;
   std::string _jetnodename;
+  int _debug;
   float _jet_threshold{15};
   float _zvtx{-9999};
   float _calib_factor{1.406};
-  CaloVertexMap* _calovtxmap;
+  CaloVertexMap* _calovtxmap{};
 };
 
 #endif // CALOVTXRECO

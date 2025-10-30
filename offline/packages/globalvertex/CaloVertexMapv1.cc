@@ -46,14 +46,14 @@ CaloVertex* CaloVertexMapv1::get(unsigned int id)
   return iter->second;
 }
 
-CaloVertex* CaloVertexMapv1::insert(CaloVertex* clus)
+CaloVertex* CaloVertexMapv1::insert(CaloVertex* vertex)
 {
   unsigned int index = 0;
   if (!_map.empty())
   {
     index = _map.rbegin()->first + 1;
   }
-  _map.insert(std::make_pair(index, clus));
+  _map.insert(std::make_pair(index, vertex));
   _map[index]->set_id(index);
   return _map[index];
 }

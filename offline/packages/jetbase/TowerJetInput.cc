@@ -85,7 +85,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     if(m_use_vertextype)
       {
 	std::vector<const Vertex*> vertices = vertexmap->get_vtxs_of_type(m_vertex_type);
-	if(vertices.size() > 0)
+	if(!vertices.empty())
 	  {
 	    if(vertices.at(0))
 	      {

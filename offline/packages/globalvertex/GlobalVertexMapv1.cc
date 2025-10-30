@@ -66,7 +66,7 @@ std::vector<GlobalVertex*> GlobalVertexMapv1::get_gvtxs_with_type(std::vector<Gl
 	    }
 	  ++iter;
 	}
-      if(vertices.size() > 0) break;
+      if(!vertices.empty()) { break; }
     }
   
   return vertices;
@@ -90,15 +90,15 @@ std::vector<const Vertex*> GlobalVertexMapv1::get_vtxs_of_type(std::vector<Globa
 	    }
 	  ++iter;
 	}
-      if(vertices.size() > 0) break;
+      if(!vertices.empty()) { break; }
     }
   return vertices;
 }
 
-GlobalVertex* GlobalVertexMapv1::insert(GlobalVertex* clus)
+GlobalVertex* GlobalVertexMapv1::insert(GlobalVertex* vertex)
 {
-  unsigned int index = clus->get_id();
-  _map[index] = clus;
+  unsigned int index = vertex->get_id();
+  _map[index] = vertex;
   return _map[index];
 }
 

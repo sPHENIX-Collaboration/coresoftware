@@ -1,14 +1,5 @@
 #include "TimingCut.h"
 
-#include <calobase/RawTowerDefs.h>  // for CalorimeterId, encode_to...
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calobase/TowerInfo.h>  // for TowerInfo
-#include <calobase/TowerInfoContainer.h>
-
-#include <globalvertex/GlobalVertexMap.h>
-#include <globalvertex/Vertex.h>  // for Vertex
-
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
 
@@ -24,15 +15,14 @@
 #include <map>       // for _Rb_tree_iterator, opera...
 #include <utility>   // for pair
 #include <vector>    // for vector
-
+#include <mbd/MbdOutV2.h>
 //____________________________________________________________________________..
-TimingCut::TimingCut(const std::string &jetNodeName, const std::string &name, const int debug, const bool doAbort, GlobalVertex::VTXTYPE vtxtype)
+TimingCut::TimingCut(const std::string &jetNodeName, const std::string &name, const int debug, const bool doAbort)
   : SubsysReco(name)
   , _doAbort(doAbort)
   , _name(name)
   , _debug(debug)
   , _jetNodeName(jetNodeName)
-  , _vtxtype(vtxtype)
   , _cutParams(name)
 {
   SetDefaultParams();
@@ -132,7 +122,37 @@ int TimingCut::process_event(PHCompositeNode *topNode)
 
   bool failsDeltat = Fails_Delta_t(maxJett, subJett);
   bool failsLeadt = Fails_Lead_t(maxJett);
-  bool failsMbdt = Fails_Mbd_dt(maxJett, subJett);
+
+  MbdOut * mbdout = static_cast<MbdOut*>(findNode::getClass<MbdOut>(topNode,"MbdOut"));
+  float m_mbd_t0 = std::numeric_limits<float>::quiet_NaN();
+  float m_mbd_ts = std::numeric_limits<float>::quiet_NaN();
+  float m_mbd_tn = std::numeric_limits<float>::quiet_NaN();
+  if(mbdout)
+    {
+      m_mbd_t0 = mbdout->get_t0();
+      m_mbd_ts = mbdout->get_time(0); // south side
+      m_mbd_tn = mbdout->get_time(1); // north side
+    }
+
+  float mbd_time = std::numeric_limits<float>::quiet_NaN();
+  if(!std::isnan(m_mbd_t0))
+    {
+      mbd_time = m_mbd_t0;
+    }
+  else if(!std::isnan(m_mbd_tn))
+    {
+      mbd_time = m_mbd_tn;
+    }
+  else if(!std::isnan(m_mbd_ts))
+    {
+      mbd_time = m_mbd_ts;
+    }
+  
+  bool failsMbdt = false;
+  if(!std::isnan(mbd_time))
+    {
+      failsMbdt = Fails_Mbd_dt(maxJett, subJett);
+    }
 
   bool failsAnyCut = failsDeltat || failsLeadt || failsMbdt;
     

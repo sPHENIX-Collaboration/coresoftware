@@ -2,7 +2,6 @@
 #define TIMINGCUT_H
 
 #include <fun4all/SubsysReco.h>
-#include <globalvertex/GlobalVertex.h>
 #include <phparameter/PHParameters.h>
 #include <cmath>
 #include <string>
@@ -11,23 +10,23 @@ class PHCompositeNode;
 class TimingCut : public SubsysReco
 {
  public:
-  explicit TimingCut(const std::string &jetNodeName, const std::string &name = "TimingCutModule", int debug = 0, bool doAbort = false, GlobalVertex::VTXTYPE vtxtype = GlobalVertex::MBD);
+  explicit TimingCut(const std::string &jetNodeName, const std::string &name = "TimingCutModule", int debug = 0, bool doAbort = false);
 
   ~TimingCut() override = default;
 
   bool Fails_Delta_t(float lead_time, float sub_time)
   {
-    return abs(lead_time - sub_time) > _dt_width;
+    return fabs(lead_time - sub_time) > _dt_width;
   }
 
   bool Fails_Lead_t(float lead_time)
   {
-    return abs(lead_time + _t_shift) > _t_width;
+    return fabs(lead_time + _t_shift) > _t_width;
   }
 
   bool Fails_Mbd_dt(float lead_time, float mbd_time)
   {
-    return abs(lead_time - mbd_time) > _mbd_dt_width;
+    return fabs(lead_time - mbd_time) > _mbd_dt_width;
   }
 
   void set_t_shift(float new_shift) { _t_shift = new_shift; }
@@ -69,7 +68,6 @@ class TimingCut : public SubsysReco
   int _debug;
   bool _missingInfoWarningPrinted = false;
   std::string _jetNodeName;
-  GlobalVertex::VTXTYPE _vtxtype;
   PHParameters _cutParams;
   float _t_width{6.0};
   float _dt_width{3.0};

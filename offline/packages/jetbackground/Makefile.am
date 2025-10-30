@@ -28,6 +28,7 @@ libjetbackground_la_LIBADD = \
   -leventplaneinfo_io \
   -lglobalvertex \
   -ljetbase \
+  -lmbd \
   -lpdbcalBase \
   -lphg4hit \
   -lphparameter \

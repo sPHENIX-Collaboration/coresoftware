@@ -44,7 +44,7 @@ class TowerJetInput : public JetInput
     m_vertex_type.push_back(type);
   }
 
-  void set_GlobalVertexTypes(std::vector<GlobalVertex::VTXTYPE> types)
+  void set_GlobalVertexTypes(const std::vector<GlobalVertex::VTXTYPE>& types)
   {
     reset_GlobalVertexType();
     m_use_vertextype = true;
