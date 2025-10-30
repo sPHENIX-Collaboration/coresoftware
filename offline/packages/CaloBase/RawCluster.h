@@ -101,6 +101,10 @@ class RawCluster : public PHObject
   virtual float y_tower_raw() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float x_tower_corr()const  { return std::numeric_limits<float>::quiet_NaN(); }
   virtual float y_tower_corr()const  { return std::numeric_limits<float>::quiet_NaN(); }
+    
+  virtual void  set_mean_time(float /*t*/) { return; }
+  virtual float mean_time() const          { return std::numeric_limits<float>::quiet_NaN(); }
+
 
   //
 
