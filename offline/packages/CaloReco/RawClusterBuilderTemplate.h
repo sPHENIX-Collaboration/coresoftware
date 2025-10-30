@@ -79,7 +79,12 @@ class RawClusterBuilderTemplate : public SubsysReco
   }
 
   void set_min_cluster_E_saved(float min_cluster_E) { m_min_cluster_e = min_cluster_E; }
-  
+
+  void set_vertex_type(GlobalVertex::VTXTYPE type)
+  {
+    m_vertex_type = type;
+  }
+
   void setSubclusterSplitting(bool doSubClusterSplitting)
   {
     m_subclustersplitting = doSubClusterSplitting;
