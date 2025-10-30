@@ -294,7 +294,7 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   TFile* file_ptr = gFile;  // save current gFile
   file->cd();
   
-  if (!std::isnan(m_cacheSize))
+  if (m_cacheSize != std::numeric_limits<uint64_t>::max())
   {
     tree->SetCacheSize(m_cacheSize);
   }

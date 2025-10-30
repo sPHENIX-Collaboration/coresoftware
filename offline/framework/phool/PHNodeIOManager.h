@@ -68,7 +68,7 @@ private:
   TFile *file{nullptr};
   TTree *tree{nullptr};
   std::string TreeName{"T"};
-  uint64_t m_cacheSize = std::numeric_limits<uint64_t>::quiet_NaN();
+  uint64_t m_cacheSize = std::numeric_limits<uint64_t>::max();
   int accessMode{PHReadOnly};
   int m_CompressionSetting{505};  // ZSTD
   int isFunctionalFlag{0};        // flag to tell if that object initialized properly
