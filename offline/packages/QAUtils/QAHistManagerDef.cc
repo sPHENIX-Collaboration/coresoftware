@@ -65,7 +65,7 @@ namespace QAHistManagerDef
   void saveQARootFile(const std::string &file_name)
   {
     // add provenance info
-    std::string build = "";
+    std::string build;
     const char *offline_main = getenv("OFFLINE_MAIN");
     if (!offline_main)
     {
@@ -86,7 +86,7 @@ namespace QAHistManagerDef
         build = tokens.back();
       }
     }
-    auto rc = recoConsts::instance();
+    auto *rc = recoConsts::instance();
     std::string dbtag = rc->get_StringFlag("CDB_GLOBALTAG");
     std::string info = "Build: " + build + " , dbtag: " + dbtag;
     TH1 *h = new TH1I("h_QAHistManagerDef_ProductionInfo", "", 10, 0, 10);
