@@ -145,6 +145,9 @@ class Jet : public PHObject
     //! jet area
     prop_area = 11,
     no_property = 12,
+
+    //! jet time
+    prop_t = 13,
   };
 
   Jet() {}

@@ -130,7 +130,12 @@ float GlobalVertexv2::get_position(unsigned int coor) const
     auto mbdit = _vtxs.find(GlobalVertex::VTXTYPE::MBD);
     if (mbdit == _vtxs.end())
     {
-      return std::numeric_limits<float>::quiet_NaN();
+      auto caloit = _vtxs.find(GlobalVertex::VTXTYPE::CALO);
+      if(caloit == _vtxs.end())
+	{
+	  return std::numeric_limits<float>::quiet_NaN();
+	}
+      return caloit->second[0]->get_position(coor);
     }
     return mbdit->second[0]->get_position(coor);
   }
