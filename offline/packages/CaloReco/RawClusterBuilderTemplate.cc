@@ -737,7 +737,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         // accumulate EW time (finite guard; treat exact 0 as “no time”)
         if (std::isfinite(tof))
         {
-          if (std::fabs(tof) > 1e-9f) { saw_nonzero_t = true; }
+          if (std::abs(tof) > 1e-9F) { saw_nonzero_t = true; }
           ew_num += amp * tof;    // float math end-to-end
         }
         ew_den += amp;
@@ -752,7 +752,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
       cluster->set_tower_cog(xcg, ycg, xcorr, ycorr);
 
-      const float tmean = (ew_den > 0.0f && saw_nonzero_t)
+      const float tmean = (ew_den > 0.0F && saw_nonzero_t)
                             ? (ew_num / ew_den)
                             : std::numeric_limits<float>::quiet_NaN();
       cluster->set_mean_time(tmean);
