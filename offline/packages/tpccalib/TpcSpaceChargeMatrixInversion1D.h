@@ -70,10 +70,10 @@ class TpcSpaceChargeMatrixInversion1D : public Fun4AllBase
   /// central membrane distortion container
   std::unique_ptr<TpcDistortionCorrectionContainer> m_dcc_cm;
 
-  TH1* h_rdphi_layer_negz;
-  TH1* h_rdphi_layer_posz;
-  TH1* h_rdphi_radius_negz;
-  TH1* h_rdphi_radius_posz;
+  TH1* h_rdphi_layer_negz = nullptr;
+  TH1* h_rdphi_layer_posz = nullptr;
+  TH1* h_rdphi_radius_negz = nullptr;
+  TH1* h_rdphi_radius_posz = nullptr;
 
   std::map<int, float> TpcRadiusMap;
   void loadTpcRadius()
