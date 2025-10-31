@@ -42,7 +42,11 @@ pkginclude_HEADERS = \
   TpcSpaceChargeMatrixContainer.h \
   TpcSpaceChargeMatrixContainerv1.h \
   TpcSpaceChargeMatrixContainerv2.h \
+  TpcSpaceChargeMatrixContainer1D.h \
+  TpcSpaceChargeMatrixContainer2D.h \
   TpcSpaceChargeMatrixInversion.h \
+  TpcSpaceChargeMatrixInversion1D.h \
+  TpcSpaceChargeMatrixInversion2D.h \
   TpcSpaceChargeReconstruction.h \
   TpcSpaceChargeReconstructionHelper.h \
   PHTpcResiduals.h \
@@ -53,22 +57,30 @@ pkginclude_HEADERS = \
 ROOTDICTS = \
   TpcSpaceChargeMatrixContainer_Dict.cc \
   TpcSpaceChargeMatrixContainerv1_Dict.cc \
-  TpcSpaceChargeMatrixContainerv2_Dict.cc
+  TpcSpaceChargeMatrixContainerv2_Dict.cc \
+  TpcSpaceChargeMatrixContainer1D_Dict.cc \
+  TpcSpaceChargeMatrixContainer2D_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   TpcSpaceChargeMatrixContainer_Dict_rdict.pcm \
   TpcSpaceChargeMatrixContainerv1_Dict_rdict.pcm \
-  TpcSpaceChargeMatrixContainerv2_Dict_rdict.pcm
+  TpcSpaceChargeMatrixContainerv2_Dict_rdict.pcm \
+  TpcSpaceChargeMatrixContainer1D_Dict_rdict.pcm \
+  TpcSpaceChargeMatrixContainer2D_Dict_rdict.pcm
 
 libtpccalib_io_la_SOURCES = \
   $(ROOTDICTS) \
   TpcSpaceChargeMatrixContainerv1.cc \
-  TpcSpaceChargeMatrixContainerv2.cc
+  TpcSpaceChargeMatrixContainerv2.cc \
+  TpcSpaceChargeMatrixContainer1D.cc \
+  TpcSpaceChargeMatrixContainer2D.cc
 
 libtpccalib_la_SOURCES = \
   TpcDirectLaserReconstruction.cc \
   TpcSpaceChargeMatrixInversion.cc \
+  TpcSpaceChargeMatrixInversion1D.cc \
+  TpcSpaceChargeMatrixInversion2D.cc \
   TpcSpaceChargeReconstruction.cc \
   TpcSpaceChargeReconstructionHelper.cc \
   PHTpcResiduals.cc \
