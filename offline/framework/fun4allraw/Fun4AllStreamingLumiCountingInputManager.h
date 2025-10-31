@@ -11,7 +11,7 @@
 #include <map>
 #include <set>
 #include <string>
-class SingleStreamingInputv2;
+class SingleStreamingInput;
 class Gl1Packet;
 class PHCompositeNode;
 class SyncObject;
@@ -34,7 +34,7 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync) override;
   int HasSyncObject() const override { return 1; }
   std::string GetString(const std::string &what) const override;
-  void registerStreamingInput(SingleStreamingInputv2 *evtin, InputManagerType::enu_subsystem);
+  void registerStreamingInput(SingleStreamingInput *evtin, InputManagerType::enu_subsystem);
   int FillGl1();
   void AddGl1RawHit(uint64_t bclk, Gl1Packet *hit);
   void AddGl1Window(uint64_t bclk, int negative_window, int positive_window);
@@ -76,7 +76,7 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   bool flat_overflow{false};
   uint64_t bco_temp = 0;
 
-  std::vector<SingleStreamingInputv2 *> m_Gl1InputVector;
+  std::vector<SingleStreamingInput *> m_Gl1InputVector;
   std::map<uint64_t, Gl1RawHitInfo> m_Gl1RawHitMap;
   std::map<uint64_t, std::pair<uint64_t, uint64_t>> m_BCOWindows;
   std::map<uint64_t, int> m_BCOBunchNumber;
