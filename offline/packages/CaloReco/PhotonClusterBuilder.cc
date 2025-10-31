@@ -6,6 +6,7 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawClusterv1.h>
+#include <calobase/RawClusterv2.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
