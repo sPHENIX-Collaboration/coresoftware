@@ -91,6 +91,17 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
 
   CreateNodes(topNode);
 
+  // Create Space on NodeTree to save Minimum Bias Params
+  PHNodeIterator parIter(topNode);
+  m_parNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", "PAR"));
+  if (!m_parNode)
+  {
+    std::cout << "No RUN node found; cannot create PHParameters. Aborting run!";
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_MinBiasParams.SaveToNodeTree(m_parNode, "MinBiasParams");
+
   m_zdc_energy_sum.fill(0);
   m_mbd_charge_sum.fill(0);
   m_mbd_hit.fill(0);
@@ -324,15 +335,6 @@ int MinimumBiasClassifier::GetNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHNodeIterator parIter(topNode);
-  m_parNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", "PAR"));
-  if (!m_parNode)
-  {
-    std::cout << "No RUN node found; cannot create PHParameters for storing cut results. Aborting run!";
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  m_MinBiasParams.SaveToNodeTree(m_parNode, "MinBiasParams");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
