@@ -1,7 +1,5 @@
 #include "PHTpcResiduals.h"
 #include "TpcSpaceChargeMatrixContainerv2.h"
-#include "TpcSpaceChargeMatrixContainer1D.h"
-#include "TpcSpaceChargeMatrixContainer2D.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -145,11 +143,6 @@ namespace
 PHTpcResiduals::PHTpcResiduals(const std::string& name)
   : SubsysReco(name)
   , m_matrix_container(new TpcSpaceChargeMatrixContainerv2)
-  , m_matrix_container_1D_layer_negz(new TpcSpaceChargeMatrixContainer1D)
-  , m_matrix_container_1D_layer_posz(new TpcSpaceChargeMatrixContainer1D)
-  , m_matrix_container_1D_radius_negz(new TpcSpaceChargeMatrixContainer1D)
-  , m_matrix_container_1D_radius_posz(new TpcSpaceChargeMatrixContainer1D)
-  , m_matrix_container_2D_radius_z(new TpcSpaceChargeMatrixContainer2D)
 {
 }
 
@@ -165,7 +158,6 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
   std::cout << "PHTpcResiduals::Init - m_minZErr: " << m_minZErr << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minPt: " << m_minPt << " GeV/c" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_requireCrossing: " << m_requireCrossing << std::endl;
-  if (m_do1DGrid) {std::cout << "PHTpcResiduals::Init - m_requireCM (for 1D): " << m_requireCM << std::endl;}
 
   // reset counters
   m_total_tracks = 0;
@@ -181,7 +173,7 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
 int PHTpcResiduals::InitRun(PHCompositeNode* topNode)
 {
 
-  
+
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -216,17 +208,6 @@ int PHTpcResiduals::End(PHCompositeNode* /*topNode*/)
     std::unique_ptr<TFile> outputfile(TFile::Open(m_outputfile.c_str(), "RECREATE"));
     outputfile->cd();
     m_matrix_container->Write("TpcSpaceChargeMatrixContainer");
-    if (m_do1DGrid && m_matrix_container_1D_layer_negz && m_matrix_container_1D_layer_posz && m_matrix_container_1D_radius_negz && m_matrix_container_1D_radius_posz)
-    {
-      m_matrix_container_1D_layer_negz->Write("TpcSpaceChargeMatrixContainer_1D_layer_negz");
-      m_matrix_container_1D_layer_posz->Write("TpcSpaceChargeMatrixContainer_1D_layer_posz");
-      m_matrix_container_1D_radius_negz->Write("TpcSpaceChargeMatrixContainer_1D_radius_negz");
-      m_matrix_container_1D_radius_posz->Write("TpcSpaceChargeMatrixContainer_1D_radius_posz");
-    }
-    if (m_do2DGrid && m_matrix_container_2D_radius_z)
-    {
-      m_matrix_container_2D_radius_z->Write("TpcSpaceChargeMatrixContainer_2D_radius_z");
-    }
   }
 
   // print counters
@@ -305,6 +286,10 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   {
     return false;
   }
+//  if (m_useMicromegas && count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2)
+//  {
+//    return false;
+//  }
 
   const auto state_keys(get_state_keys(track));
   if (count_clusters<TrkrDefs::mvtxId>(state_keys) < 3)
@@ -315,6 +300,10 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   {
     return false;
   }
+//  if (m_useMicromegas && count_clusters<TrkrDefs::micromegasId>(state_keys) < 2)
+//  {
+//    return false;
+//  }
 
   if (m_useMicromegas && checkTPOTResidual(track)==false)
   {
@@ -470,22 +459,6 @@ bool PHTpcResiduals::checkTPOTResidual(SvtxTrack* track) const
 }
 
 //___________________________________________________________________________________
-bool PHTpcResiduals::checkTrackCM(SvtxTrack* track) const
-{
-  if (Verbosity() > 2)
-  {
-    std::cout << "PHTpcResiduals::checkTrackCM - pcaz: " << track->get_z() << std::endl;
-  }
-
-  if (m_requireCM && (fabs(track->get_z()) > m_pcazcut || fabs(track->get_eta()) > m_etacut))
-  {
-    return false;
-  }
-
-  return true;
-}
-
-//___________________________________________________________________________________
 Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
 {
   return makeTrackParams(track, track->get_state(0));
@@ -556,8 +529,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
   // store crossing. It is used in calculating cluster's global position
   const auto crossing = track->get_crossing();
   assert(crossing != SHRT_MAX);
-
-  bool nearCM = checkTrackCM(track);
 
   for (const auto& cluskey : get_cluster_keys(track))
   {
@@ -757,22 +728,10 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // get cell index
     const auto index = getCell(globClusPos);
-    const auto index_1D_layer = getCell_layer((int) TrkrDefs::getLayer(cluskey));
-    const auto index_1D_radius = getCell_radius(globClusPos);
-    const auto index_2D_rz = getCell_rz(globClusPos);
 
     if (Verbosity() > 3)
     {
       std::cout << "Bin index found is " << index << std::endl;
-      if (m_do1DGrid)
-      {
-        std::cout << "Bin index (1D layer) found is " << index_1D_layer << std::endl;
-        std::cout << "Bin index (1D radius) found is " << index_1D_radius << std::endl;
-      }
-      if (m_do2DGrid)
-      {
-        std::cout << "Bin index (2D radius & z) found is " << index_2D_rz << std::endl;
-      }
     }
 
     if (index < 0)
@@ -844,126 +803,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // update entries in cell
     m_matrix_container->add_to_entries(index);
-
-    if (m_do1DGrid && nearCM)
-    {
-      if (index_1D_layer < 0 || index_1D_radius < 0)
-      {
-        continue;
-      }
-
-      // Fill distortion matrices
-      if (clusZ<0)
-      {
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 0, 0, square(clusR) / erp);
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 0, 1, 0);
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 0, 2, clusR*trackAlpha / erp);
-
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 1, 0, 0);
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 1, 1, 1. / ez);
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 1, 2, trackBeta / ez);
-
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 2, 0, clusR * trackAlpha / erp);
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 2, 1, trackBeta / ez);
-        m_matrix_container_1D_layer_negz->add_to_lhs(index_1D_layer, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
-
-        m_matrix_container_1D_layer_negz->add_to_rhs(index_1D_layer, 0, clusR*drphi / erp);
-        m_matrix_container_1D_layer_negz->add_to_rhs(index_1D_layer, 1, dz / ez);
-        m_matrix_container_1D_layer_negz->add_to_rhs(index_1D_layer, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
-
-        // update entries in cell
-        m_matrix_container_1D_layer_negz->add_to_entries(index_1D_layer);
-
-
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 0, 0, square(clusR) / erp);
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 0, 1, 0);
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 0, 2, clusR*trackAlpha / erp);
-
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 1, 0, 0);
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 1, 1, 1. / ez);
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 1, 2, trackBeta / ez);
-
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 2, 0, clusR * trackAlpha / erp);
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 2, 1, trackBeta / ez);
-        m_matrix_container_1D_radius_negz->add_to_lhs(index_1D_radius, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
-
-        m_matrix_container_1D_radius_negz->add_to_rhs(index_1D_radius, 0, clusR*drphi / erp);
-        m_matrix_container_1D_radius_negz->add_to_rhs(index_1D_radius, 1, dz / ez);
-        m_matrix_container_1D_radius_negz->add_to_rhs(index_1D_radius, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
-
-        // update entries in cell
-        m_matrix_container_1D_radius_negz->add_to_entries(index_1D_radius);
-      }
-      else if (clusZ>=0)
-      {
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 0, 0, square(clusR) / erp);
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 0, 1, 0);
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 0, 2, clusR*trackAlpha / erp);
-
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 1, 0, 0);
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 1, 1, 1. / ez);
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 1, 2, trackBeta / ez);
-
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 2, 0, clusR * trackAlpha / erp);
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 2, 1, trackBeta / ez);
-        m_matrix_container_1D_layer_posz->add_to_lhs(index_1D_layer, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
-
-        m_matrix_container_1D_layer_posz->add_to_rhs(index_1D_layer, 0, clusR*drphi / erp);
-        m_matrix_container_1D_layer_posz->add_to_rhs(index_1D_layer, 1, dz / ez);
-        m_matrix_container_1D_layer_posz->add_to_rhs(index_1D_layer, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
-
-        // update entries in cell
-        m_matrix_container_1D_layer_posz->add_to_entries(index_1D_layer);
-
-
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 0, 0, square(clusR) / erp);
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 0, 1, 0);
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 0, 2, clusR*trackAlpha / erp);
-
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 1, 0, 0);
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 1, 1, 1. / ez);
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 1, 2, trackBeta / ez);
-
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 2, 0, clusR * trackAlpha / erp);
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 2, 1, trackBeta / ez);
-        m_matrix_container_1D_radius_posz->add_to_lhs(index_1D_radius, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
-
-        m_matrix_container_1D_radius_posz->add_to_rhs(index_1D_radius, 0, clusR*drphi / erp);
-        m_matrix_container_1D_radius_posz->add_to_rhs(index_1D_radius, 1, dz / ez);
-        m_matrix_container_1D_radius_posz->add_to_rhs(index_1D_radius, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
-
-        // update entries in cell
-        m_matrix_container_1D_radius_posz->add_to_entries(index_1D_radius);
-      }
-    }
-
-    if (m_do2DGrid)
-    {
-      if (index_2D_rz < 0)
-      {
-        continue;
-      }
-
-      // Fill distortion matrices
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 0, 0, square(clusR) / erp);
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 0, 1, 0);
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 0, 2, clusR*trackAlpha / erp);
-
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 1, 0, 0);
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 1, 1, 1. / ez);
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 1, 2, trackBeta / ez);
-
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 2, 0, clusR * trackAlpha / erp);
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 2, 1, trackBeta / ez);
-      m_matrix_container_2D_radius_z->add_to_lhs(index_2D_rz, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
-
-      m_matrix_container_2D_radius_z->add_to_rhs(index_2D_rz, 0, clusR*drphi / erp);
-      m_matrix_container_2D_radius_z->add_to_rhs(index_2D_rz, 1, dz / ez);
-      m_matrix_container_2D_radius_z->add_to_rhs(index_2D_rz, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
-
-      // update entries in cell
-      m_matrix_container_2D_radius_z->add_to_entries(index_2D_rz);
-    }
 
     // increment number of accepted clusters
     ++m_accepted_clusters;
@@ -1047,72 +886,6 @@ int PHTpcResiduals::getCell(const Acts::Vector3& loc)
 }
 
 //_______________________________________________________________________________
-int PHTpcResiduals::getCell_layer(const int layer)
-{
-  // get grid dimensions from matrix container
-  int layerbins = 0;
-  m_matrix_container_1D_layer_negz->get_grid_dimensions(layerbins);
-
-  // layer
-  if (layer < m_layerMin || layer >= m_layerMax)
-  {
-    return -1;
-  }
-  const int ilayer = layerbins * (layer - m_layerMin) / (m_layerMax - m_layerMin);
-
-  // get index from matrix container
-  return m_matrix_container_1D_layer_negz->get_cell_index(ilayer);
-}
-
-int PHTpcResiduals::getCell_radius(const Acts::Vector3& loc)
-{
-  // get grid dimensions from matrix container
-  int rbins = 0;
-  m_matrix_container_1D_radius_negz->get_grid_dimensions(rbins);
-
-  // r
-  const auto r = get_r(loc(0), loc(1));
-  if (r < m_rMin || r >= m_rMax)
-  {
-    return -1;
-  }
-  const int ir = rbins * (r - m_rMin) / (m_rMax - m_rMin);
-
-
-  // get index from matrix container
-  return m_matrix_container_1D_radius_negz->get_cell_index(ir);
-}
-
-//_______________________________________________________________________________
-int PHTpcResiduals::getCell_rz(const Acts::Vector3& loc)
-{
-  // get grid dimensions from matrix container
-  int pbins = 0;
-  int rbins = 0;
-  int zbins = 0;
-  m_matrix_container_2D_radius_z->get_grid_dimensions(pbins, rbins, zbins);
-
-  // r
-  const auto r = get_r(loc(0), loc(1));
-  if (r < m_rMin || r >= m_rMax)
-  {
-    return -1;
-  }
-  const int ir = rbins * (r - m_rMin) / (m_rMax - m_rMin);
-
-  // z
-  const auto z = loc(2);
-  if (z < m_zMin || z >= m_zMax)
-  {
-    return -1;
-  }
-  const int iz = zbins * (z - m_zMin) / (m_zMax - m_zMin);
-
-  // get index from matrix container
-  return m_matrix_container_2D_radius_z->get_cell_index(ir, iz);
-}
-
-//_______________________________________________________________________________
 int PHTpcResiduals::createNodes(PHCompositeNode* /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1159,20 +932,4 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 void PHTpcResiduals::setGridDimensions(const int phiBins, const int rBins, const int zBins)
 {
   m_matrix_container->set_grid_dimensions(phiBins, rBins, zBins);
-  if (m_do1DGrid)
-  {
-    m_matrix_container_1D_radius_negz->set_grid_dimensions(rBins);
-    m_matrix_container_1D_radius_posz->set_grid_dimensions(rBins);
-  }
-  if (m_do2DGrid)
-  {
-    m_matrix_container_2D_radius_z->set_grid_dimensions(phiBins, rBins, zBins);
-  }
-}
-
-//____________________________________________________________________________
-void PHTpcResiduals::setGridDimensions(const int layerBins)
-{
-  m_matrix_container_1D_layer_negz->set_grid_dimensions(layerBins);
-  m_matrix_container_1D_layer_posz->set_grid_dimensions(layerBins);
 }

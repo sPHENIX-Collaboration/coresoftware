@@ -37,24 +37,12 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   virtual void get_grid_dimensions( int& /*phibins*/, int& /*rbins*/, int& /*zbins*/ ) const
   {}
 
-  virtual void get_grid_dimensions( int& /*rbins*/, int& /*zbins*/ ) const
-  {}
-
-  virtual void get_grid_dimensions( int& /*layerbins*/ ) const
-  {}
-
   /// get total grid size
   virtual int get_grid_size() const
   { return 0; }
 
   /// get grid index for given sub-indexes
   virtual int get_cell_index( int /*iphibin*/, int /*irbin*/, int /*izbin*/ ) const
-  { return -1; }
-
-  virtual int get_cell_index( int /*irbin*/, int /*izbin*/ ) const
-  { return -1; }
-
-  virtual int get_cell_index( int /*ilayerbin*/ ) const
   { return -1; }
 
   /// get entries for a given cell
@@ -100,12 +88,6 @@ class TpcSpaceChargeMatrixContainer : public PHObject
   \param zbins the number of bins along z
   */
   virtual void set_grid_dimensions( int /*phibins*/, int /*rbins*/, int /*zbins*/ )
-  {}
-
-  virtual void set_grid_dimensions( int /*rbins*/, int /*zbins*/ )
-  {}
-
-  virtual void set_grid_dimensions( int /*layerbins*/ )
   {}
 
   /// increment cell entries

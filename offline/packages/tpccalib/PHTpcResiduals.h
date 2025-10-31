@@ -81,33 +81,14 @@ class PHTpcResiduals : public SubsysReco
     m_minPt = value;
   }
 
-  /// track pcaz cut
-  void setPCAzcut(double value)
-  {
-    m_pcazcut = value;
-  }
-  
-  /// track eta cut
-  void setEtacut(double value)
-  {
-    m_etacut = value;
-  }
-
   /// track crossing
   void requireCrossing(bool flag = true)
   {
     m_requireCrossing = flag;
   }
 
-  /// track near CM
-  void requireCM(bool flag = true)
-  {
-    m_requireCM = flag;
-  }
-
   /// Grid dimensions
   void setGridDimensions(const int phiBins, const int rBins, const int zBins);
-  void setGridDimensions(const int layerBins);
 
   /// set to true to store evaluation histograms and ntuples
   void setSavehistograms(bool) {}
@@ -127,10 +108,6 @@ class PHTpcResiduals : public SubsysReco
     m_useMicromegas = value;
   }
 
-  /// do 1D/2D
-  void do1DGrid() {m_do1DGrid = true;}
-  void do2DGrid() {m_do2DGrid = true;}
-
   void disableModuleEdgeCorr() { m_disable_module_edge_corr = true; }
   void disableStaticCorr() { m_disable_static_corr = true; }
   void disableAverageCorr() { m_disable_average_corr = true; }
@@ -149,7 +126,6 @@ class PHTpcResiduals : public SubsysReco
   int processTracks(PHCompositeNode *topNode);
 
   bool checkTrack(SvtxTrack *track) const;
-  bool checkTrackCM(SvtxTrack *track) const;
   bool checkTPOTResidual(SvtxTrack* track) const;
   void processTrack(SvtxTrack *track);
 
@@ -158,9 +134,6 @@ class PHTpcResiduals : public SubsysReco
 
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3 &loc);
-  int getCell_layer(const int layer);
-  int getCell_radius(const Acts::Vector3 &loc);
-  int getCell_rz(const Acts::Vector3 &loc);
 
   //! create ACTS track parameters from Svtx track
   Acts::BoundTrackParameters makeTrackParams(SvtxTrack *) const;
@@ -206,11 +179,6 @@ class PHTpcResiduals : public SubsysReco
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
-  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container_1D_layer_negz;
-  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container_1D_layer_posz;
-  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container_1D_radius_negz;
-  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container_1D_radius_posz;
-  std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container_2D_radius_z;
 
   // TODO: check if needed
   int m_event = 0;
@@ -221,21 +189,8 @@ class PHTpcResiduals : public SubsysReco
   /// minimum pT required for track to be considered in residuals calculation (GeV/c)
   double m_minPt = 0.5;
 
-  /// track pca z cut, only apply if m_requireCM is enabled
-  double m_pcazcut = 10; // +/- 10 cm
-
-  /// track eta cut, only apply if m_requireCM is enabled
-  double m_etacut = 0.25; // +/- 0.25
-
-  /// require track near CM, only for 1D distortion map (layer or radius)
-  bool m_requireCM = false;
-
   /// require track crossing zero
   bool m_requireCrossing = false;
-
-  /// if do 1D/2D
-  bool m_do1DGrid = false;
-  bool m_do2DGrid = false;
 
   /// disable distortion correction
   bool m_disable_module_edge_corr = false;

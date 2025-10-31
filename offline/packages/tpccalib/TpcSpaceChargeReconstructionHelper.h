@@ -11,7 +11,6 @@
 #include <vector>
 
 // forward declarations
-class TH1;
 class TH2;
 class TH3;
 class TString;
@@ -62,15 +61,6 @@ class TpcSpaceChargeReconstructionHelper
    */
   static void extrapolate_phi2(TH3* /*source*/, const TH3* /*mask*/);
 
-  /// expand 2D histogram to 3D
-  /**
-   * input 2D histogram is in R x Z plane
-   * expand it to 3D Phi x R x Z
-   * the original 2D histogram is put in the phi bin corresponding to the center of TPOT central sector
-   * other phi bins are set to zero
-   */
-  static TH3* expand(const TH2* /*source*/, const int /*pbins*/, const float /*pmin*/, const float /*pmax*/);
-
   /// separate positive and negative z histograms
   /**
    * split histograms in two, the first with negative z values only, the second with positive z values
@@ -78,8 +68,6 @@ class TpcSpaceChargeReconstructionHelper
    * at the central membrane (z = 0)
    */
   static std::tuple<TH3*, TH3*> split(const TH3* /*source*/);
-  static std::tuple<TH2*, TH2*> split(const TH2* /*source*/);
-  static std::tuple<TH1*, TH1*> split(const TH1* /*source*/);
 
   /**
    * copy input histogram into output, with new name, while adding two "guarding bins" on
@@ -88,8 +76,6 @@ class TpcSpaceChargeReconstructionHelper
    * to correct for the space charge distortions.
    */
   static TH3* add_guarding_bins(const TH3* /*source*/, const TString& /*name*/);
-  static TH2* add_guarding_bins(const TH2* /*source*/, const TString& /*name*/);
-  static TH1* add_guarding_bins(const TH1* /*source*/, const TString& /*name*/);
 
   /// shortcut to angular window, needed to define TPOT acceptance
   using range_t = std::pair<double, double>;
@@ -116,8 +102,6 @@ class TpcSpaceChargeReconstructionHelper
   { theta_range_west = range_list; }
   //@}
 
-  static void Verbosity(const int value)
-  { verbosity = value; }
   private:
 
   ///@name detector geometry
@@ -141,7 +125,6 @@ class TpcSpaceChargeReconstructionHelper
   static range_list_t theta_range_west;
   //@}
 
-  static int verbosity;
 };
 
 #endif
