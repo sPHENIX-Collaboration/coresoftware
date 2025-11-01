@@ -308,7 +308,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
 
     // get seeeds
     auto *tpcSeed = track->get_tpc_seed();
-    auto siliconSeed = track->get_silicon_seed();
+    auto *siliconSeed = track->get_silicon_seed();
 
     /// Should have never been added to the map...
     if (!tpcSeed || !siliconSeed)
@@ -546,7 +546,7 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
     TPOTtileID = MicromegasDefs::getTileId(cluskey);
     nTPOTcluster++;
 
-    const *auto cluster = m_clusterContainer->findCluster(cluskey);
+    const auto *cluster = m_clusterContainer->findCluster(cluskey);
 
     SvtxTrackState* state = nullptr;
 
