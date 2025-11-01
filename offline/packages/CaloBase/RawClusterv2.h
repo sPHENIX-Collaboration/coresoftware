@@ -25,8 +25,7 @@ class RawClusterv2 : public RawClusterv1
   void  set_mean_time(float t) override { _t_mean = t; }
   float mean_time() const      override { return _t_mean; }
 
-  // Optional: clone into the same dynamic type
-  RawCluster* CloneMe() const override { return new RawClusterv2(*this); }
+  PHObject* CloneMe() const override { return new RawClusterv2(*this); }
 
   void Reset() override;
 
