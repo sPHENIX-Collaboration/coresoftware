@@ -63,13 +63,28 @@ class PHTpcResiduals : public SubsysReco
   {
     m_maxResidualDz = maxResidualDz;
   }
-
   //@}
+
+  void setMinRPhiErr(float minRPhiErr)
+  {
+    m_minRPhiErr = minRPhiErr;
+  }
+
+  void setMinZErr(float minZErr)
+  {
+    m_minZErr = minZErr;
+  }
 
   /// track min pT
   void setMinPt(double value)
   {
     m_minPt = value;
+  }
+
+  /// track crossing
+  void requireCrossing(bool flag = true)
+  {
+    m_requireCrossing = flag;
   }
 
   /// Grid dimensions
@@ -93,6 +108,11 @@ class PHTpcResiduals : public SubsysReco
     m_useMicromegas = value;
   }
 
+  void disableModuleEdgeCorr() { m_disable_module_edge_corr = true; }
+  void disableStaticCorr() { m_disable_static_corr = true; }
+  void disableAverageCorr() { m_disable_average_corr = true; }
+  void disableFluctuationCorr() { m_disable_fluctuation_corr = true; }
+
  private:
   using BoundTrackParam =
       const Acts::BoundTrackParameters;
@@ -106,6 +126,7 @@ class PHTpcResiduals : public SubsysReco
   int processTracks(PHCompositeNode *topNode);
 
   bool checkTrack(SvtxTrack *track) const;
+  bool checkTPOTResidual(SvtxTrack* track) const;
   void processTrack(SvtxTrack *track);
 
   /// fill track state from bound track parameters
@@ -137,6 +158,9 @@ class PHTpcResiduals : public SubsysReco
   float m_maxTBeta = 1.5;
   float m_maxResidualDz = 0.5;  // cm
 
+  float m_minRPhiErr = 0.005;  // 0.005cm -- 50um
+  float m_minZErr = 0.01;  // 0.01cm -- 100um
+
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2. * M_PI;
 
@@ -144,6 +168,9 @@ class PHTpcResiduals : public SubsysReco
   static constexpr float m_rMax = 78;  // cm
 
   static constexpr int m_minClusCount = 10;
+
+  static constexpr float m_layerMin = 7;
+  static constexpr float m_layerMax = 55;
 
   /// Tpc geometry
   static constexpr unsigned int m_nLayersTpc = 48;
@@ -161,6 +188,15 @@ class PHTpcResiduals : public SubsysReco
 
   /// minimum pT required for track to be considered in residuals calculation (GeV/c)
   double m_minPt = 0.5;
+
+  /// require track crossing zero
+  bool m_requireCrossing = false;
+
+  /// disable distortion correction
+  bool m_disable_module_edge_corr = false;
+  bool m_disable_static_corr = false;
+  bool m_disable_average_corr = false;
+  bool m_disable_fluctuation_corr = false;
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";
