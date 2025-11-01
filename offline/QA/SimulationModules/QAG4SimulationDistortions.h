@@ -97,14 +97,6 @@ class QAG4SimulationDistortions : public SubsysReco
   float m_statePz = NAN;
   float m_trackPt = NAN;
   float m_trackdEdx = NAN;
-  int m_track_nmvtx = 0;
-  int m_track_nmvtxstate = 0;
-  int m_track_nintt = 0;
-  int m_track_ninttstate = 0;
-  int m_track_ntpc = 0;
-  int m_track_ntpcstate = 0;
-  int m_track_ntpot = 0;
-  int m_track_ntpotstate = 0;
   int m_charge = -10;
   int m_crossing = -10;
 

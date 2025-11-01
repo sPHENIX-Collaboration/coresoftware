@@ -238,49 +238,49 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto h_beta = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "betadz"));
+  auto *h_beta = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "betadz"));
   assert(h_beta);
 
-  auto h_alpha = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "alphardphi"));
+  auto *h_alpha = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "alphardphi"));
   assert(h_alpha);
 
-  auto h_rphiResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "rphiResid"));
+  auto *h_rphiResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "rphiResid"));
   assert(h_rphiResid);
 
-  auto h_zResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "zResid"));
+  auto *h_zResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "zResid"));
   assert(h_zResid);
 
-  auto h_etaResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "etaResid"));
+  auto *h_etaResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "etaResid"));
   assert(h_etaResid);
 
-  auto h_etaResidLayer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "etaResidLayer"));
+  auto *h_etaResidLayer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "etaResidLayer"));
   assert(h_etaResidLayer);
 
-  auto h_zResidLayer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "zResidLayer"));
+  auto *h_zResidLayer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "zResidLayer"));
   assert(h_zResidLayer);
 
-  auto h_deltarphi_layer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "deltarphi_layer"));
+  auto *h_deltarphi_layer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "deltarphi_layer"));
   assert(h_deltarphi_layer);
 
-  auto h_deltaz_layer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "deltaz_layer"));
+  auto *h_deltaz_layer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "deltaz_layer"));
   assert(h_deltaz_layer);
 
-  auto h_statez_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "statez_pulls"));
+  auto *h_statez_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "statez_pulls"));
   assert(h_statez_pulls);
 
-  auto h_staterphi_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "staterphi_pulls"));
+  auto *h_staterphi_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "staterphi_pulls"));
   assert(h_staterphi_pulls);
 
-  auto h_clusz_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "clusz_pulls"));
+  auto *h_clusz_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "clusz_pulls"));
   assert(h_clusz_pulls);
 
-  auto h_clusrphi_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "clusrphi_pulls"));
+  auto *h_clusrphi_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "clusrphi_pulls"));
   assert(h_clusrphi_pulls);
 
-  auto h_nstates_vs_nclus = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "nstates_vs_nclus"));
+  auto *h_nstates_vs_nclus = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "nstates_vs_nclus"));
   assert(h_nstates_vs_nclus);
 
-  auto t_tree = dynamic_cast<TTree*>(hm->getHisto(get_histo_prefix() + "residTree"));
+  auto *t_tree = dynamic_cast<TTree*>(hm->getHisto(get_histo_prefix() + "residTree"));
   assert(t_tree);
 
   std::cout << "QAG4SimulationDistortions::process_event - tracks: " << m_trackMap->size() << std::endl;
@@ -307,7 +307,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
     if (Verbosity() > 1) { std::cout << "pass track selection" << std::endl;}
 
     // get seeeds
-    auto tpcSeed = track->get_tpc_seed();
+    auto *tpcSeed = track->get_tpc_seed();
     auto siliconSeed = track->get_silicon_seed();
 
     /// Should have never been added to the map...
@@ -523,10 +523,10 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto h_tpot_deltarphi = dynamic_cast<TH1*>(hm->getHisto(get_histo_prefix() + "tpot_deltarphi"));
+  auto *h_tpot_deltarphi = dynamic_cast<TH1*>(hm->getHisto(get_histo_prefix() + "tpot_deltarphi"));
   assert(h_tpot_deltarphi);
 
-  auto h_tpot_deltaz = dynamic_cast<TH1*>(hm->getHisto(get_histo_prefix() + "tpot_deltaz"));
+  auto *h_tpot_deltaz = dynamic_cast<TH1*>(hm->getHisto(get_histo_prefix() + "tpot_deltaz"));
   assert(h_tpot_deltaz);
 
   bool flag = true;
@@ -546,7 +546,7 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
     TPOTtileID = MicromegasDefs::getTileId(cluskey);
     nTPOTcluster++;
 
-    const auto cluster = m_clusterContainer->findCluster(cluskey);
+    const *auto cluster = m_clusterContainer->findCluster(cluskey);
 
     SvtxTrackState* state = nullptr;
 
