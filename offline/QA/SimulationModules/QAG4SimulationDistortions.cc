@@ -546,7 +546,7 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
     TPOTtileID = MicromegasDefs::getTileId(cluskey);
     nTPOTcluster++;
 
-    const auto *cluster = m_clusterContainer->findCluster(cluskey);
+    auto cluster = m_clusterContainer->findCluster(cluskey);
 
     SvtxTrackState* state = nullptr;
 
