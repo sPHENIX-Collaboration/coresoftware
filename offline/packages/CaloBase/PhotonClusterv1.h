@@ -2,14 +2,14 @@
 #define CALOBASE_PHOTONCLUSTERV1_H
 
 #include "PhotonCluster.h"
-#include "RawClusterv1.h"
+#include "RawCluster.h"
 
 #include <map>
 #include <string>
 
-//! PhotonClusterv1 - derives from both PhotonCluster and RawClusterv1
+//! PhotonClusterv1 - derives from both PhotonCluster and RawCluster
 //! @warning Multiple inheritance used - be careful with method resolution
-class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
+class PhotonClusterv1 : public PhotonCluster, public RawCluster
 {
  public:
   PhotonClusterv1() = default;
@@ -17,9 +17,9 @@ class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
   //! @warning Virtual destructor override - ensures proper cleanup
   ~PhotonClusterv1() override = default;
 
-  //! Copy constructor from existing RawClusterv1 object
-  //! @warning This will copy all RawClusterv1 data but initialize photon properties to defaults
-  explicit PhotonClusterv1(const RawClusterv1& rawcluster);
+  //! Copy constructor from existing RawCluster object
+  //! @warning This will copy all RawCluster data but initialize photon properties to defaults
+  explicit PhotonClusterv1(const RawCluster& rawcluster);
 
   //! Copy constructor
   PhotonClusterv1(const PhotonClusterv1& other) = default;
@@ -29,7 +29,7 @@ class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
 
   //! @name PHObject Interface Overrides
   //! @{
-  //! @warning Override methods from RawClusterv1 - virtual dispatch applies
+  //! @warning Override methods from RawCluster - virtual dispatch applies
   void Reset() override;
   PHObject* CloneMe() const override { return new PhotonClusterv1(*this); }
   int isValid() const override;
@@ -41,7 +41,7 @@ class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
   //! @warning These methods override virtual functions from PhotonCluster base
   float get_conversion_probability() const override { return m_conversion_prob; }
   bool is_converted() const override { return m_is_converted; }
-  // RawClusterv1 already provides energy and isolation energy accessors
+  // RawCluster already provides energy and isolation energy accessors
   // No single default shower shape parameter anymore
   bool pass_photon_cuts() const override;
   void identify_photon(std::ostream& os = std::cout) const override;
@@ -63,7 +63,7 @@ class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
  private:
   //! @warning Photon-specific data members - memory managed only in this derived class
   //! @warning Base class PhotonCluster has NO data members by design
-  // Photon energy and isolation energy now sourced from RawClusterv1
+  // Photon energy and isolation energy now sourced from RawCluster
   float m_conversion_prob{0.0f};                 //!< Probability of photon conversion
   bool m_is_converted{false};                    //!< Conversion flag
   std::map<std::string, float> m_shower_shapes;  //!< Named shower shape parameters
