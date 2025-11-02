@@ -1,19 +1,17 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef EVENTPLANERECO_H
-#define EVENTPLANERECO_H
+#ifndef EVENTPLANEINFO_EVENTPLANERECO_H
+#define EVENTPLANEINFO_EVENTPLANERECO_H
 
 //===========================================================
 /// \author Ejiro Umaka
 //===========================================================
 
-#include <cdbobjects/CDBTTree.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string> // for string
 #include <vector> // for vector
 
-class CDBHistos;
 class TProfile2D;
 class TH1;
 
@@ -106,4 +104,4 @@ private:
   float _mbd_vertex_cut{60.0};
 };
 
-#endif // EVENTPLANERECO_H
+#endif // EVENTPLANEINFO_EVENTPLANERECO_H

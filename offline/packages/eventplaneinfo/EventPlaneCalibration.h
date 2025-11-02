@@ -7,7 +7,6 @@
 /// \author Ejiro Umaka
 //===========================================================
 
-//#include <cdbobjects/CDBTTree.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string> // for string

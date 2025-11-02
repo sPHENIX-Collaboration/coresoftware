@@ -1,11 +1,9 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef EVENTPLANEINFOMAPV1_H
-#define EVENTPLANEINFOMAPV1_H
+#ifndef EVENTPLANEINFO_EVENTPLANEINFOMAPV1_H
+#define EVENTPLANEINFO_EVENTPLANEINFOMAPV1_H
 
 #include "EventplaneinfoMap.h"
-
-//#include "Eventplaneinfo.h"
 
 #include <iostream>
 #include <map>
@@ -43,4 +41,4 @@ class EventplaneinfoMapv1 : public EventplaneinfoMap
   ClassDefOverride(EventplaneinfoMapv1, 1);
 };
 
-#endif  // EVENTPLANEINFOMAPV1_H
+#endif  // EVENTPLANEINFO_EVENTPLANEINFOMAPV1_H
