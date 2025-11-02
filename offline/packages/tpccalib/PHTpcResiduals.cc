@@ -333,7 +333,7 @@ bool PHTpcResiduals::checkTPOTResidual(SvtxTrack* track) const
     TPOTtileID = MicromegasDefs::getTileId(cluskey);
     nTPOTcluster++;
 
-    const auto cluster = m_clusterContainer->findCluster(cluskey);
+    auto *const cluster = m_clusterContainer->findCluster(cluskey);
 
     SvtxTrackState* state = nullptr;
 
@@ -543,7 +543,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     }
 
     const auto layer = TrkrDefs::getLayer(cluskey);
-    const auto cluster = m_clusterContainer->findCluster(cluskey);
+    auto *const cluster = m_clusterContainer->findCluster(cluskey);
     const auto surface = m_tGeometry->maps().getSurface(cluskey, cluster);
     //auto result = propagator.propagateTrack(trackParams, surface);//surface aborter
     auto result = propagator.propagateTrack(trackParams, layer);//layer aborter
