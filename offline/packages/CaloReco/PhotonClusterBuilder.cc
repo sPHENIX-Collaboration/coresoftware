@@ -5,8 +5,6 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawClusterv1.h>
-#include <calobase/RawClusterv2.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
@@ -196,13 +194,8 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-    RawClusterv2* rcv2 = dynamic_cast<RawClusterv2*>(rc);
-    if (!rcv2)
-    {
-      std::cerr << "PhotonClusterBuilder: unsupported RawCluster type" << std::endl;
-      continue;
-    }
-    PhotonClusterv1* photon = new PhotonClusterv1(*rcv2);
+
+    PhotonClusterv1* photon = new PhotonClusterv1(*rc);
 
     calculate_shower_shapes(rc, photon, eta, phi);
     calculate_bdt_score(photon);
