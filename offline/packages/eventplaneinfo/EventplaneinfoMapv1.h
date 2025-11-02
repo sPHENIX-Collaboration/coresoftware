@@ -5,10 +5,12 @@
 
 #include "EventplaneinfoMap.h"
 
-#include "Eventplaneinfo.h"
+//#include "Eventplaneinfo.h"
 
 #include <iostream>
 #include <map>
+
+class Eventplaneinfo;
 
 class EventplaneinfoMapv1 : public EventplaneinfoMap
 {
