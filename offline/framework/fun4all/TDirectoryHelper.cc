@@ -296,7 +296,7 @@ void TDirectoryHelper::splitPath(const std::string& path,
     }
   }
 
-  if (not slashes_pos.empty())
+  if (! slashes_pos.empty())
   {
     for (size_t i = 0; i < slashes_pos.size() - 1; i++)
     {

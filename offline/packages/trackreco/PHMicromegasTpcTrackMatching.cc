@@ -193,7 +193,7 @@ namespace
 	bool phi_ok = phi_in_range(phi, t_min - 1e-4, t_max + 1e-4);
         //Tolerance in z
         bool z_ok = (z >= zmin - 1e-4 && z <= zmax + 1e-4);
-        bool proj_ok = (std::fabs(ntile.Dot(candidate_intersect - ptile)) <= 0.05);
+        bool proj_ok = (std::abs(ntile.Dot(candidate_intersect - ptile)) <= 0.05);
 
 	// Passes the checks for the projection inside the tile acceptance 
         if (std::abs(t_new - t) < tol && proj_ok && phi_ok && z_ok) 
@@ -690,6 +690,14 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 
       } else {
 
+        if (!_use_silicon && tracklet_tpc->get_pt() <= _pt_cut)
+        {
+          if (Verbosity() > 1){
+            std::cout << "  Skip by low pt=" << tracklet_tpc->get_pt() << std::endl;
+          }
+          continue;
+        }
+
 	auto phi_range = layergeom->get_phi_range(tileid, _tGeometry);
         double t_min = phi_range.first;
         double t_max = phi_range.second;
@@ -709,6 +717,25 @@ int PHMicromegasTpcTrackMatching::process_event(PHCompositeNode* topNode)
 	x = intersection.X();
         y = intersection.Y();
         z = intersection.Z();
+
+        const double last_cluster_phi = _use_silicon ?
+        std::atan2(clusGlobPos_silicon.back()(1), clusGlobPos_silicon.back()(0)) :
+        std::atan2(clusGlobPos.back()(1),         clusGlobPos.back()(0));
+
+        const double phi_proj = std::atan2(y, x);
+
+        double dphi = TVector2::Phi_mpi_pi(phi_proj - last_cluster_phi);
+
+        if (!_use_silicon && std::abs(dphi) > _dphi_cut)
+        {
+          if (Verbosity() > 1)
+          {
+            std::cout << "  Masking by |Δφ|=" << std::abs(dphi)
+                << " and pt=" << tracklet_tpc->get_pt()
+                << " (seedID " << seedID << ", tpcID " << tpcID << ")\n";
+          }
+          continue;
+        }
 
       }
 

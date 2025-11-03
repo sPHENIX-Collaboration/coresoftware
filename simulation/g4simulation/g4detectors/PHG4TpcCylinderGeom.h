@@ -35,6 +35,12 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   double get_etastep() const;
   double get_etamin() const;
 
+  double get_max_driftlength() const { return 102.325; }
+  double get_CM_halfwidth() const  { return 0.28; }
+  double get_adc_clock() const  { return  53.326184; } // default sim value
+  double get_extended_readout_time() const  { return 0.; }
+  double get_drift_velocity_sim() const  { return 0.007550; }
+  
   virtual std::pair<double, double> get_zbounds(const int ibin) const;
   virtual std::pair<double, double> get_phibounds(const int ibin) const;
   virtual std::pair<double, double> get_etabounds(const int ibin) const;
@@ -66,7 +72,13 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   void set_etabins(const int i);
   void set_etamin(const double z);
   void set_etastep(const double z);
-
+  // capture the z geometry related setup parameters
+  void set_max_driftlength(const double /*val*/) { return; }
+  void set_CM_halfwidth(const double /*val*/) { return; }
+  void set_adc_clock(const double /*val*/) { return; }
+  void set_extended_readout_time(const double /*val*/) { return; }
+  void set_drift_velocity_sim(const double /*val*/) { return; }
+  
   static const int NSides = 2;
 
   void set_r_bias(const std::array<std::vector<double>, NSides> &dr) { sector_R_bias = dr; }
@@ -95,6 +107,12 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   double phistep{std::numeric_limits<double>::quiet_NaN()};
   double thickness{std::numeric_limits<double>::quiet_NaN()};
 
+  // double max_driftlength{std::numeric_limits<double>::quiet_NaN()};
+  // double CM_halfwidth{std::numeric_limits<double>::quiet_NaN()};
+  // double adc_clock{std::numeric_limits<double>::quiet_NaN()};
+  // double extended_readout_time{std::numeric_limits<double>::quiet_NaN()};
+  // double drift_velocity_sim{std::numeric_limits<double>::quiet_NaN()};
+  
   std::array<std::vector<double>, NSides> sector_R_bias;
   std::array<std::vector<double>, NSides> sector_Phi_bias;
   std::array<std::vector<double>, NSides> sector_min_Phi;
@@ -103,7 +121,7 @@ class PHG4TpcCylinderGeom : public PHG4CylinderGeom
   // streamer
   friend std::ostream& operator<<(std::ostream&, const PHG4TpcCylinderGeom&);
 
-  ClassDefOverride(PHG4TpcCylinderGeom, 2)
+  ClassDefOverride(PHG4TpcCylinderGeom, 1)
 };
 
 #endif

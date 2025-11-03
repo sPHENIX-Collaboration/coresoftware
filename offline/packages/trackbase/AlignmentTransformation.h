@@ -109,7 +109,7 @@ class AlignmentTransformation
   }
   void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur; }
 
- private:
+private:
   Eigen::Vector3d mvtxAngleDev;
   Eigen::Vector3d mvtxTransDev;
   Eigen::Vector3d inttAngleDev;

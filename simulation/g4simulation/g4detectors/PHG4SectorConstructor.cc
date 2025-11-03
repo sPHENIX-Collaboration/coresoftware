@@ -74,7 +74,7 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
     geom.set_max_polar_angle(geom.get_min_polar_angle());
     geom.set_min_polar_angle(t);
   }
-  if ((geom.get_min_polar_edge() == Sector_Geometry::kFlatEdge or geom.get_max_polar_edge() == Sector_Geometry::kFlatEdge) and geom.get_N_Sector() <= 2)
+  if ((geom.get_min_polar_edge() == Sector_Geometry::kFlatEdge || geom.get_max_polar_edge() == Sector_Geometry::kFlatEdge) && geom.get_N_Sector() <= 2)
   {
     G4Exception(
         (std::string("PHG4SectorConstructor::Construct_Sectors::") + (name_base)).c_str(),
@@ -107,7 +107,7 @@ void PHG4Sector::PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *World
 
   G4VSolid *Boundary_Det = SecConeBoundary_Det;
 
-  if (geom.get_min_polar_edge() != Sector_Geometry::kConeEdge or geom.get_max_polar_edge() != Sector_Geometry::kConeEdge)
+  if (geom.get_min_polar_edge() != Sector_Geometry::kConeEdge || geom.get_max_polar_edge() != Sector_Geometry::kConeEdge)
   {
     // build a flat edge
 

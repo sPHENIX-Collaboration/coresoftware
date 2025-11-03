@@ -7,7 +7,6 @@
 
 #include <phool/PHObject.h>
 
-#include <cmath>
 #include <iostream>
 #include <limits>
 #include <string>

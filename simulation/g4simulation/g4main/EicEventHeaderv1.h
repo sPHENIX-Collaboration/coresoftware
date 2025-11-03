@@ -6,7 +6,6 @@
 #include "EicEventHeader.h"
 
 #include <cstdint>
-#include <iostream>
 #include <map>
 
 class EicEventHeaderv1 : public EicEventHeader
@@ -14,7 +13,7 @@ class EicEventHeaderv1 : public EicEventHeader
  public:
   EicEventHeaderv1() {}
   explicit EicEventHeaderv1(const EicEventHeader *eicevt);
-  ~EicEventHeaderv1() override {}
+  ~EicEventHeaderv1() override = default;
 
   //  void identify(std::ostream& os  = std::cout) const;
   void Reset() override;

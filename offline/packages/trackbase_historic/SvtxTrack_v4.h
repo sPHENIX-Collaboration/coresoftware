@@ -27,7 +27,7 @@ class SvtxTrack_v4 : public SvtxTrack
   SvtxTrack_v4(const SvtxTrack_v4&);
 
   //* assignment operator
-  SvtxTrack_v4& operator=(const SvtxTrack_v4& track);
+  SvtxTrack_v4& operator=(const SvtxTrack_v4& source);
 
   //* destructor
   ~SvtxTrack_v4() override;

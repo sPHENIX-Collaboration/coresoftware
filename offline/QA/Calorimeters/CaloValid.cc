@@ -368,6 +368,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           h_cemc_etaphi_time_highhit->Fill(ieta, iphi, timef);
           h_cemc_etaphi_highhit->Fill(ieta, iphi);
         }
+	if (offlineenergy > emcal_highhit_threshold)
+        {
+          h_cemc_etaphi_time_highhit->Fill(ieta, iphi, _timef);
+          h_cemc_etaphi_highhit->Fill(ieta, iphi);
+	}
       }
     }
   }
@@ -426,6 +431,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           h_ihcal_etaphi_time_highhit->Fill(ieta, iphi, timef);
           h_ihcal_etaphi_highhit->Fill(ieta, iphi);
         }
+	if (offlineenergy > ihcal_highhit_threshold)
+        {
+          h_ihcal_etaphi_time_highhit->Fill(ieta, iphi, _timef);
+          h_ihcal_etaphi_highhit->Fill(ieta, iphi);
+        }
       }
     }
   }
@@ -482,6 +492,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         if (offlineenergy > ohcal_highhit_threshold)
         {
           h_ohcal_etaphi_time_highhit->Fill(ieta, iphi, timef);
+          h_ohcal_etaphi_highhit->Fill(ieta, iphi);
+        }
+	if (offlineenergy > ohcal_highhit_threshold)
+        {
+          h_ohcal_etaphi_time_highhit->Fill(ieta, iphi, _timef);
           h_ohcal_etaphi_highhit->Fill(ieta, iphi);
         }
       }

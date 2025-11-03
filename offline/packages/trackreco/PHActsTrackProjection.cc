@@ -1,21 +1,12 @@
 #include "PHActsTrackProjection.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>
-#include <phool/PHTimer.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
 #include <trackbase/ActsTrackFittingAlgorithm.h>
 
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+
 #include <globalvertex/SvtxVertex.h>
 #include <globalvertex/SvtxVertexMap.h>
 
@@ -25,7 +16,19 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainerv1.h>
 #include <calobase/RawTowerGeomContainer.h>
+
 #include <phgeom/PHGeomUtility.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
+#include <phool/PHTimer.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
@@ -33,7 +36,8 @@
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
 #include <CLHEP/Vector/ThreeVector.h>
-#include <math.h>
+
+#include <cmath>
 
 namespace
 {

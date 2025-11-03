@@ -15,23 +15,8 @@
 #include <phool/PHObject.h>  // for PHObject
 
 #include <cassert>
-#include <cmath>
-
-PHG4HitEval::PHG4HitEval()
-  : eion(NAN)
-  , scint_id(-9999)
-  , light_yield(NAN)
-  , path_length(NAN)
-
-{
-  // TODO Auto-generated constructor stub
-}
 
 PHG4HitEval::PHG4HitEval(const PHG4Hit *g4hit)
-  : eion(NAN)
-  , scint_id(-9999)
-  , light_yield(NAN)
-  , path_length(NAN)
 {
   CopyFrom(g4hit);
 }

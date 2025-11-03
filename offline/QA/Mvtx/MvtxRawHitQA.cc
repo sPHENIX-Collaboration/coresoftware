@@ -51,7 +51,7 @@ int MvtxRawHitQA::InitRun(PHCompositeNode *topNode)
       continue;
     }
     // only want the raw hits, not the header nodes
-    if((thisnode->getName()).find("HEADER") != std::string::npos)
+    if ((thisnode->getName()).find("HEADER") != std::string::npos || thisnode->getName().find("G4") != std::string::npos)
     {
       continue;
     }

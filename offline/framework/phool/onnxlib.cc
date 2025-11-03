@@ -1,13 +1,28 @@
 #include "onnxlib.h"
+
 #include <iostream>
 
-Ort::Session *onnxSession(std::string &modelfile)
+Ort::Session *onnxSession(std::string &modelfile, int verbosity)
 {
   Ort::Env env(OrtLoggingLevel::ORT_LOGGING_LEVEL_WARNING, "fit");
   Ort::SessionOptions sessionOptions;
   sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
-
-  return new Ort::Session(env, modelfile.c_str(), sessionOptions);
+  auto *session = new Ort::Session(env, modelfile.c_str(), sessionOptions);
+  auto type_info = session->GetInputTypeInfo(0);
+  auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
+  auto input_dims = tensor_info.GetShape();
+  onnxlib::n_input = input_dims[1];
+  type_info = session->GetOutputTypeInfo(0);
+  tensor_info = type_info.GetTensorTypeAndShapeInfo();
+  auto output_dims = tensor_info.GetShape();
+  onnxlib::n_output = output_dims[1];
+  if (verbosity > 0)
+  {
+    std::cout << "onnxlib: using model " << modelfile << std::endl;
+    std::cout << "Number of Inputs: " << onnxlib::n_input << std::endl;
+    std::cout << "Number of Outputs: " << onnxlib::n_output << std::endl;
+  }
+  return session;
 }
 
 std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &input, int N, int Nsamp, int Nreturn)
@@ -40,13 +55,13 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
   for (const std::string &s : session->GetInputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     inputNames.push_back(name);
   }
   for (const std::string &s : session->GetOutputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     outputNames.push_back(name);
   }
 #else
@@ -57,11 +72,11 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
   session->Run(Ort::RunOptions{nullptr}, inputNames.data(), inputTensors.data(), 1, outputNames.data(), outputTensors.data(), 1);
 
 #if ORT_API_VERSION == 22
-  for (auto iter : inputNames)
+  for (const auto *iter : inputNames)
   {
     delete[] iter;
   }
-  for (auto iter : outputNames)
+  for (const auto *iter : outputNames)
   {
     delete[] iter;
   }
@@ -100,13 +115,13 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
   for (const std::string &s : session->GetInputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     inputNames.push_back(name);
   }
   for (const std::string &s : session->GetOutputNames())
   {
     name = new char[s.size() + 1];
-    sprintf(name, "%s", s.c_str());
+    sprintf(name, "%s", s.c_str()); //NOLINT(hicpp-vararg)
     outputNames.push_back(name);
   }
 #else
@@ -116,11 +131,11 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
 #endif
   session->Run(Ort::RunOptions{nullptr}, inputNames.data(), inputTensors.data(), 1, outputNames.data(), outputTensors.data(), 1);
 #if ORT_API_VERSION == 22
-  for (auto iter : inputNames)
+  for (const auto *iter : inputNames)
   {
     delete[] iter;
   }
-  for (auto iter : outputNames)
+  for (const auto *iter : outputNames)
   {
     delete[] iter;
   }

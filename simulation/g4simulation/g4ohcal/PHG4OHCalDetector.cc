@@ -77,6 +77,7 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4OHCalDisplayAction *>(subsys->GetDisplayAction()))
   , m_Params(parames)
+  , gdml_config(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
   , m_SizeZ(m_Params->get_double_param("size_z") * cm)
@@ -85,7 +86,6 @@ PHG4OHCalDetector::PHG4OHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
-  gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
   // changes in the parameters have to be made here
   // otherwise they will not be propagated to the node tree
@@ -126,14 +126,14 @@ int PHG4OHCalDetector::IsInOHCal(G4VPhysicalVolume *volume) const
 {
   if (m_AbsorberActiveFlag)
   {
-    if (m_SteelAbsorberLogVolSet.find(volume->GetLogicalVolume()) != m_SteelAbsorberLogVolSet.end())
+    if (m_SteelAbsorberLogVolSet.contains(volume->GetLogicalVolume()))
     {
       return -1;
     }
   }
   if (m_ActiveFlag)
   {
-    if (m_ScintiTileLogVolSet.find(volume->GetLogicalVolume()) != m_ScintiTileLogVolSet.end())
+    if (m_ScintiTileLogVolSet.contains(volume->GetLogicalVolume()))
     {
       return 1;
     }
@@ -286,7 +286,7 @@ int PHG4OHCalDetector::ConstructOHCal(G4LogicalVolume *hcalenvelope)
     }
   }
 
-  for (auto &logical_vol : m_SteelAbsorberLogVolSet)
+  for (const auto &logical_vol : m_SteelAbsorberLogVolSet)
   {
     if (m_FieldSetup)  // only if we have a field defined for the steel absorber
     {

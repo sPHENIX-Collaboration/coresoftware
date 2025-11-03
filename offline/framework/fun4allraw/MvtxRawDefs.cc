@@ -1,23 +1,17 @@
 #include "MvtxRawDefs.h"
 
-#include <odbc++/connection.h>  // odbc::Connection
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <odbc++/drivermanager.h>
-#pragma GCC diagnostic pop
+#include <ffamodules/DBInterface.h>
+
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>  // for Statement
 #include <odbc++/types.h>
 
-#include <TRandom3.h>
-
-#include <chrono>
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <thread>
 
 uint8_t MvtxRawDefs::getStaveIndex(const uint8_t& lyrId, const uint8_t& stvId)
 {
@@ -46,44 +40,15 @@ namespace
 {
   float getStrobeLengthFromOCDB(const int& runNumber)
   {
-    constexpr uint8_t MAX_NUM_RETRIES = 10;
-    std::unique_ptr<odbc::Connection> m_OdbcConnection(nullptr);
-    int num_tries = 0;
-    TRandom3 rnd = TRandom3();
-    do
-    {
-      try
-      {
-        std::unique_ptr<odbc::Connection> temp(odbc::DriverManager::getConnection("mvtx_read", "", ""));
-        m_OdbcConnection = std::move(temp);
-      }
-      catch (odbc::SQLException& e)
-      {
-        std::cout << " Exception caught during DriverManager::getConnection" << std::endl;
-        std::cout << "Message: " << e.getMessage() << std::endl;
-      }
-      ++num_tries;
-      int wait = 20 + (rnd.Uniform() * 300);
-      if (!m_OdbcConnection)
-      {
-        std::this_thread::sleep_for(std::chrono::seconds(wait));  // sleep 30 seconds before retry
-      }
-    } while ((!m_OdbcConnection) && (num_tries < MAX_NUM_RETRIES));
+    odbc::Statement *statement = DBInterface::instance()->getStatement("mvtx_read");
 
-    if (!m_OdbcConnection)
-    {
-      return std::numeric_limits<float>::quiet_NaN();
-    }
+    std::string sqlcmd = "SELECT strobe FROM mvtx_strobe_offline WHERE runnumber = " + std::to_string(runNumber);
 
-    std::string sqlcmd = "SELECT strobe FROM mvtx_strobe_offline WHERE runnumber = " + std::to_string(runNumber) + ";";
-
-    std::unique_ptr<odbc::Statement> statement(m_OdbcConnection->createStatement());
     std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlcmd));
 
     if (resultSet && resultSet->next())
     {
       float strobe = resultSet->getFloat("strobe");
-      std::cout << "MVTX strobe read from ocdb: " << strobe << std::endl;
       return strobe;
     }
 
@@ -93,32 +58,13 @@ namespace
   float getStrobeLengthFromDAQ(const int& runNumber)
   {
     float strobeWidth = std::numeric_limits<float>::quiet_NaN();
-
-    std::string executable_command = "psql -h sphnxdaqdbreplica daq --csv -c \"SELECT strobe FROM mvtx_strobe WHERE hostname = \'mvtx0\' AND runnumber = ";
-    executable_command += std::to_string(runNumber);
-    executable_command += ";\" | tail -n 1";
-
-    std::array<char, 128> buffer = {};
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(executable_command.c_str(), "r"), pclose);
-    if (!pipe)
+    odbc::Statement *statement = DBInterface::instance()->getStatement("daq");
+    std::string sqlcmd = "SELECT strobe FROM mvtx_strobe WHERE hostname = 'mvtx0' AND runnumber = " + std::to_string(runNumber);
+    std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlcmd));
+    if (resultSet && resultSet->next())
     {
-      throw std::runtime_error("popen() failed!");
+      strobeWidth = resultSet->getFloat("strobe");
     }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-    {
-      result += buffer.data();
-    }
-    try
-    {
-      strobeWidth = stof(result);
-    }
-    catch (std::invalid_argument const& ex)
-    {
-      std::cout << "mvtx_utils::getStrobeLength() Run number " << runNumber << " has no strobe length in the DAQ database, returning NAN" << std::endl;
-    }
-
-    std::cout << "MVTX strobe read from daq db: " << strobeWidth << std::endl;
     return strobeWidth;
   }
 }  // namespace

@@ -8,6 +8,10 @@
 #include "MbdVertexMap.h"
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
+#include "TruthVertex.h"
+#include "TruthVertexMap.h"
+#include "TruthVertexMap_v1.h"
+#include "TruthVertex_v1.h"
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -22,6 +26,10 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+
+// truth info, for truth z vertex
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <cmath>
 #include <cstdlib>  // for exit
@@ -66,8 +74,10 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   SvtxVertexMap *svtxmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  TruthVertexMap *truthmap = findNode::getClass<TruthVertexMap>(topNode, "TruthVertexMap");
+  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
-  // we will make 3 different kinds of global vertexes
+  // we will make 4 different kinds of global vertexes
   //  (1) SVTX+MBD vertexes - we match SVTX vertex to the nearest MBD vertex within 3 sigma in zvertex
   //      the spatial point comes from the SVTX, the timing from the MBD
   //      number of SVTX+MBD vertexes <= number of SVTX vertexes
@@ -78,6 +88,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
   //  (3) MBD only vertexes - use the default x,y positions on this module and
   //      pull in the mbd z and mbd t
+
+  //  (4) Truth vertexes - if the G4TruthInfo node is present (should be for simulation only), we will
+  //      create a GlobalVertex from the primary truth vertex, and create+fill a TruthVertexMap node
 
   // there may be some quirks as we get to large luminosity and the MBD becomes
   // untrust worthy, I'm guessing analyzers would resort exclusively to (1) or (2)
@@ -219,6 +232,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
+      
       if (std::isnan(mbd->get_z()))
       {
         continue;
@@ -237,6 +251,49 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         vertex->identify();
       }
     }
+  }
+
+  // okay now add the truth vertex (4th class)...
+
+  if (truthinfo)
+  {
+    PHG4VtxPoint *vtxp = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
+    float truth_z_vertex = std::numeric_limits<float>::quiet_NaN();
+    float truth_x_vertex = std::numeric_limits<float>::quiet_NaN();
+    float truth_y_vertex = std::numeric_limits<float>::quiet_NaN();
+    if (vtxp)
+    {
+      truth_z_vertex = vtxp->get_z();
+      truth_x_vertex = vtxp->get_x();
+      truth_y_vertex = vtxp->get_y();
+      TruthVertex *tvertex = new TruthVertex_v1();
+      tvertex->set_id(globalmap->size());
+      tvertex->set_z(truth_z_vertex);
+      tvertex->set_z_err(0);
+      tvertex->set_x(truth_x_vertex);
+      tvertex->set_x_err(0);
+      tvertex->set_y(truth_y_vertex);
+      tvertex->set_y_err(0);
+
+      tvertex->set_t(0);
+      tvertex->set_t_err(0);  // 0.1
+      GlobalVertex *vertex = new GlobalVertexv2();
+      vertex->clone_insert_vtx(GlobalVertex::TRUTH, tvertex);
+      globalmap->insert(vertex);
+      if (truthmap) truthmap->insert(tvertex);
+      if (Verbosity() > 1)
+      {
+        vertex->identify();
+      }
+    }
+    else if (Verbosity())
+    {
+      std::cout << "PHG4TruthInfoContainer has no primary vertex" << std::endl;
+    }
+  }
+  else if (Verbosity())
+  {
+    std::cout << "PHG4TruthInfoContainer is missing" << std::endl;
   }
 
   /// Associate any tracks that were not assigned a track-vertex
@@ -276,6 +333,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   {
     globalmap->identify();
   }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -307,5 +365,18 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(vertexes, "GlobalVertexMap", "PHObject");
     globalNode->addNode(VertexMapNode);
   }
+
+  TruthVertexMap *truthmap = findNode::getClass<TruthVertexMap>(topNode, "TruthVertexMap");
+  PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  // Create the TruthVertexMap only if the PHG4TruthInfoContainer is present
+  if (!truthmap && truthinfo)
+  {
+    if (Verbosity())
+      std::cout << "Creating TruthVertexMap node" << std::endl;
+    truthmap = new TruthVertexMap_v1();
+    PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
+    globalNode->addNode(TruthVertexMapNode);
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }

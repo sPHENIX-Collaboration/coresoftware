@@ -65,14 +65,6 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     datafile.open(alignmentParamsFile);
   }
 
-  // Get the TPC time offset from ActsGeometry and convert to an additional dz
-  double tpc_tzero = m_tGeometry->get_tpc_tzero();
-  double tpc_vdrift = m_tGeometry->get_drift_velocity();
-  double tzero_dz = tpc_tzero * tpc_vdrift * 10.0;  // convert cm to mm
-
-  std::cout << "AlignmentTransformation::CreateMap:  TPC tzero " << tpc_tzero << " tpc_vdrift " << tpc_vdrift 
-	    << " z offset (mm) " << tzero_dz << std::endl; 
- 
   ActsSurfaceMaps surfMaps = m_tGeometry->maps();
   Surface surf;
 
@@ -211,18 +203,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
           millepedeTranslation = millepedeTranslation + perturbationTranslation;
         }
 
-	// modify dz for TPC hitsetkeys to include tpc tzero
         unsigned int side = TpcDefs::getSide(hitsetkey);
-	if(side == 0)
-	  {
-	    millepedeTranslation(2) -= tzero_dz;
-	  }
-	else
-	  {
-	    millepedeTranslation(2) += tzero_dz;
-	  }
-
-
         unsigned int sector = TpcDefs::getSectorId(hitsetkey);
         int subsurfkey_min = (1 - side) * 144 + (144 - sector * 12) - 12 - 6;
         int subsurfkey_max = subsurfkey_min + 12;

@@ -95,7 +95,7 @@ class JetSeedCount : public SubsysReco
   std::string m_histTag {"AllTrig_AntiKt_Tower_r04_Sub1"};
 
   std::pair<double, double> m_etaRange {-1,1};
-  std::pair<double, double> m_ptRange{5,100};
+  std::pair<double, double> m_ptRange{10,100};
 
   // trigger selection
   bool m_doTrgSelect {false};

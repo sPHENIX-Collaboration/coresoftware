@@ -125,7 +125,7 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary)
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -135,12 +135,12 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary)
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   primary = get_primary_particle(primary);
@@ -152,7 +152,7 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary)
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -185,7 +185,7 @@ float CaloTruthEval::get_shower_eh_ratio(PHG4Particle* primary)
   if (!has_full_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -195,12 +195,12 @@ float CaloTruthEval::get_shower_eh_ratio(PHG4Particle* primary)
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   PHG4Shower* shower = get_primary_shower(primary);

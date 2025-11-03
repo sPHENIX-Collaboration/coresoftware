@@ -123,7 +123,8 @@ namespace CaloStatusMapperDefs
   {
 
     // axis definitions
-    AxisDef stat {"Status", S, -0.5, S - 0.5};
+    AxisDef stat {"Status", S + 1, -0.5, S + 0.5};
+    //! AxisDef stat {"Status", S, -0.5, S - 0.5};
     AxisDef eta {"i_{#eta}", H, -0.5, H - 0.5};
     AxisDef phi {"i_{#phi}", F, -0.5, F - 0.5};
 

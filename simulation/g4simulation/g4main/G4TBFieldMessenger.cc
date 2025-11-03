@@ -41,8 +41,6 @@
 #include <Geant4/G4UIcmdWithoutParameter.hh>
 #include <Geant4/G4UIdirectory.hh>
 
-class G4UIcommand;
-
 //////////////////////////////////////////////////////////////////////////////
 
 G4TBFieldMessenger::G4TBFieldMessenger(G4TBMagneticFieldSetup* pEMfield)

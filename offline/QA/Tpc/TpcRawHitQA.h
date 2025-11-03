@@ -42,6 +42,7 @@ class TpcRawHitQA : public SubsysReco
   TH2* h_nhits_sectors_fees[24]{nullptr};
   TH1* h_nhits_sectors_laser[24]{nullptr};
   TH2* h_nhits_sectors_fees_laser[24]{nullptr};
+  TH2* h_nhits_sectors_fees_sampas[24][26]{{nullptr}};
   TH1* h_nhits_sam[24][3]{{nullptr}};
   TH1* h_adc[24][3]{{nullptr}};
   TH2* h_xy_N{nullptr};
@@ -54,3 +55,4 @@ class TpcRawHitQA : public SubsysReco
 };
 
 #endif  // TPCRAWHITQA_H
+

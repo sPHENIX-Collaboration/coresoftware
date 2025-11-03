@@ -4,7 +4,6 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <type_traits>
 
 void PHG4Hit::CopyFrom(const PHObject* phobj)
 {

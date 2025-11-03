@@ -6,7 +6,6 @@
 #include "PHG4Hit.h"
 #include "PHG4HitDefs.h"
 
-#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <limits>

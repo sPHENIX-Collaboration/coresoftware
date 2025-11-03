@@ -202,6 +202,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   try
   {
     CreateNodeTree(topNode);
+    LoadCalib();
   }
   catch (std::exception &e)
   {
@@ -215,6 +216,31 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+void CaloTowerStatus::LoadCalib()
+{
+  unsigned int ntowers = m_raw_towers->size();
+  m_cdbInfo_vec.resize(ntowers);
+
+  for (unsigned int channel = 0; channel < ntowers; channel++)
+  {
+    unsigned int key = m_raw_towers->encode_key(channel);
+
+    if (m_doHotChi2)
+    {
+      m_cdbInfo_vec[channel].fraction_badChi2 = m_cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
+    }
+    if (m_doTime)
+    {
+      m_cdbInfo_vec[channel].mean_time = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
+    }
+    if (m_doHotMap)
+    {
+      m_cdbInfo_vec[channel].hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
+      m_cdbInfo_vec[channel].z_score = m_cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
+    }
+  }
+}
+
 //____________________________________________________________________________..
 int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 {
@@ -225,7 +251,6 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
   float z_score = 0;
   for (unsigned int channel = 0; channel < ntowers; channel++)
   {
-    unsigned int key = m_raw_towers->encode_key(channel);
     // only reset what we will set
     m_raw_towers->get_tower_at_channel(channel)->set_isHot(false);
     m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(false);
@@ -233,22 +258,19 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 
     if (m_doHotChi2)
     {
-      fraction_badChi2 = m_cdbttree_chi2->GetFloatValue(key, m_fieldname_chi2);
+      fraction_badChi2 = m_cdbInfo_vec[channel].fraction_badChi2;
     }
     if (m_doTime)
     {
-      mean_time = m_cdbttree_time->GetFloatValue(key, m_fieldname_time);
+      mean_time = m_cdbInfo_vec[channel].mean_time;
     }
     if (m_doHotMap)
     {
-      hotMap_val = m_cdbttree_hotMap->GetIntValue(key, m_fieldname_hotMap);
-      if(!m_isSim)
-      {
-        z_score = m_cdbttree_hotMap->GetFloatValue(key, m_fieldname_z_score);
-      }
+      hotMap_val = m_cdbInfo_vec[channel].hotMap_val;
+      z_score = m_cdbInfo_vec[channel].z_score;
     }
     float chi2 = m_raw_towers->get_tower_at_channel(channel)->get_chi2();
-    float time = m_raw_towers->get_tower_at_channel(channel)->get_time_float();
+    float time = m_raw_towers->get_tower_at_channel(channel)->get_time();
     float adc = m_raw_towers->get_tower_at_channel(channel)->get_energy();
 
     if (fraction_badChi2 > fraction_badChi2_threshold && m_doHotChi2)
@@ -259,16 +281,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isBadTime(true);
     }
-
-    bool is_bad_tower_data = hotMap_val == 1 ||                                              // dead
-                             std::fabs(z_score) > z_score_threshold ||                       // hot or cold
-                             (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default); // cold part 2
-
-    bool is_bad_tower_sim = hotMap_val != 0;
-
-    bool is_bad_tower = (!m_isSim && is_bad_tower_data) || (m_isSim && is_bad_tower_sim);
-
-    if (is_bad_tower && m_doHotMap)
+    if (( hotMap_val == 1 || // dead
+          std::fabs(z_score) > z_score_threshold || // hot or cold
+          (hotMap_val == 3 && z_score >= -1 * z_score_threshold_default)) // cold part 2
+          && m_doHotMap)
     {
       m_raw_towers->get_tower_at_channel(channel)->set_isHot(true);
     }

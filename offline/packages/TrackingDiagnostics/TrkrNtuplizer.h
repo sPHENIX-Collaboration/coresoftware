@@ -17,9 +17,12 @@
 
 #include <limits>
 #include <map>
+#include <queue>
 #include <set>
 #include <string>
 
+class CDBInterface;
+class CDBTTree;
 class PHCompositeNode;
 class PHTimer;
 class TrkrCluster;
@@ -31,7 +34,7 @@ class SvtxTrackMap;
 class SvtxVertexMap;
 class TrkrClusterContainer;
 class ActsGeometry;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 class GlobalVertexMap;
 
 // class ClusterErrorPara;
@@ -86,6 +89,12 @@ class TrkrNtuplizer : public SubsysReco
   void job(const int job) { m_job = job; }
 
  private:
+  struct fee_info
+  {
+    unsigned int fee = std::numeric_limits<unsigned int>::max();
+    unsigned int channel = std::numeric_limits<unsigned int>::max();
+    unsigned int sampa = std::numeric_limits<unsigned int>::max();
+  };
   int m_segment = 0;
   int m_runnumber = 0;
   int m_job = 0;
@@ -95,14 +104,13 @@ class TrkrNtuplizer : public SubsysReco
   float m_fSeed{std::numeric_limits<float>::quiet_NaN()};
   // eval stack
 
-  float calc_dedx(TrackSeed *tpcseed);
   TF1 *f_pion_plus{nullptr};
   TF1 *f_kaon_plus{nullptr};
   TF1 *f_proton_plus{nullptr};
   TF1 *f_pion_minus{nullptr};
   TF1 *f_kaon_minus{nullptr};
   TF1 *f_proton_minus{nullptr};
-  float  dedxcorr[2][12][3]{};
+  float dedxcorr[2][12][3]{};
   float get_n1pix(TrackSeed *tpcseed);
 
   static TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
@@ -148,7 +156,45 @@ class TrkrNtuplizer : public SubsysReco
   TrkrClusterContainer *_cluster_map{nullptr};
   SvtxTrackMap *_trackmap{nullptr};
   ActsGeometry *_tgeometry{nullptr};
-  PHG4TpcCylinderGeomContainer *_geom_container{nullptr};
+  PHG4TpcGeomContainer *_geom_container{nullptr};
+  float m_ZDC_coincidence{0};
+  float m_mbd_rate{0};
+  float m_rawzdc{0};
+  float m_livezdc{0};
+  float m_scaledzdc{0};
+  float m_rawmbd{0};
+  float m_livembd{0};
+  float m_scaledmbd{0};
+  float m_rawmbdv10{0};
+  float m_livembdv10{0};
+  float m_scaledmbdv10{0};
+  float m_mbd_rate1{0};
+  float m_rawzdc1{0};
+  float m_livezdc1{0};
+  float m_scaledzdc1{0};
+  float m_rawmbd1{0};
+  float m_livembd1{0};
+  float m_scaledmbd1{0};
+  float m_rawmbdv101{0};
+  float m_livembdv101{0};
+  float m_scaledmbdv101{0};
+  float m_rawzdclast{0};
+  float m_rawmbdlast{0};
+  float m_rawmbdv10last{0};
+  uint64_t m_bcolast = std::numeric_limits<uint64_t>::quiet_NaN();
+
+  std::queue<int> m_rawzdc_hist;
+  std::queue<int> m_rawmbd_hist;
+  std::queue<int> m_rawmbdv10_hist;
+  std::queue<uint64_t> m_bco_hist;
+
+  uint64_t m_bco = std::numeric_limits<uint64_t>::quiet_NaN();
+  uint64_t m_bco1 = std::numeric_limits<uint64_t>::quiet_NaN();
+  uint64_t m_bcotr = std::numeric_limits<uint64_t>::quiet_NaN();
+  uint64_t m_bcotr1 = std::numeric_limits<uint64_t>::quiet_NaN();
+  float m_totalmbd = std::numeric_limits<float>::quiet_NaN();
+  std::vector<int> m_firedTriggers;
+  uint64_t m_gl1BunchCrossing = std::numeric_limits<uint64_t>::quiet_NaN();
 
   std::string _clustrackseedcontainer = "TpcTrackSeedContainer";
 
@@ -164,6 +210,15 @@ class TrkrNtuplizer : public SubsysReco
   bool _cache_track_from_cluster_exists = false;
   std::map<TrkrDefs::cluskey, std::set<SvtxTrack *> > _cache_all_tracks_from_cluster;
   std::map<TrkrDefs::cluskey, SvtxTrack *> _cache_best_track_from_cluster;
+
+  CDBTTree *m_cdbttree{nullptr};
+  CDBInterface *m_cdb{nullptr};
+
+  int mc_sectors[12]{5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
+  int FEE_map[26]{4, 5, 0, 2, 1, 11, 9, 10, 8, 7, 6, 0, 1, 3, 7, 6, 5, 4, 3, 2, 0, 2, 1, 3, 5, 4};
+  int FEE_R[26]{2, 2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 2, 2, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3};
+
+  std::map<TrkrDefs::cluskey, fee_info> fee_map;
 };
 
 #endif  // G4EVAL_SVTXEVALUATOR_H

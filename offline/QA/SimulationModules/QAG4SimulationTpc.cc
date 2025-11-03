@@ -3,7 +3,7 @@
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
@@ -83,12 +83,12 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   }
 
   // find tpc geometry
-  PHG4TpcCylinderGeomContainer* geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  // auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  // auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << " unable to find DST node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

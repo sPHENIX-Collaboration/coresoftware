@@ -5,7 +5,6 @@
 
 #include <phhepmc/PHHepMCGenHelper.h>
 
-#include <algorithm>  // for max
 #include <cmath>
 #include <memory>
 #include <string>
@@ -28,7 +27,6 @@ namespace Pythia8
 class PHPythia8 : public SubsysReco, public PHHepMCGenHelper
 {
  public:
-
   //! constructor
   explicit PHPythia8(const std::string &name = "PHPythia8");
 
@@ -78,7 +76,7 @@ class PHPythia8 : public SubsysReco, public PHHepMCGenHelper
  private:
   int read_config(const std::string &cfg_file);
   int create_node_tree(PHCompositeNode *topNode) final;
-  double percent_diff(const double a, const double b) { return fabs((a - b) / a); }
+  double percent_diff(const double a, const double b) { return std::fabs((a - b) / a); }
   int m_EventCount = 0;
 
   // event selection

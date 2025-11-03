@@ -29,12 +29,13 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackAnalysisUtils.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrDefs.h> 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
@@ -79,22 +80,23 @@ KFParticle_Tools::KFParticle_Tools()
   , m_max_decayTime(FLT_MAX)
   , m_min_decayLength(-1 * FLT_MAX)
   , m_max_decayLength(FLT_MAX)
-  , m_track_pt(0.2)
+  , m_track_min_pt(0.)
+  , m_track_max_pt(5e3)
   , m_track_ptchi2(FLT_MAX)
-  , m_track_ip_xy(-1.)
+  , m_track_ip_xy(-100.)
   , m_track_ipchi2_xy(-1)
   , m_track_ip(-1.)
   , m_track_ipchi2(-1)
-  , m_track_chi2ndof(4.)
+  , m_track_chi2ndof(100.)
   , m_nMVTXStates(3)
   , m_nINTTStates(1)
   , m_nTPCStates(20)
   , m_nTPOTStates(0)
-  , m_comb_DCA_xy(0.05)
-  , m_comb_DCA(0.05)
-  , m_vertex_chi2ndof(15.)
+  , m_comb_DCA_xy(1)
+  , m_comb_DCA(0.5)
+  , m_vertex_chi2ndof(20.)
   , m_fdchi2(0.)
-  , m_dira_min(0.90)
+  , m_dira_min(-1.01)
   , m_dira_max(1.01)
   , m_mother_pt(0.)
   , m_mother_ipchi2(FLT_MAX)
@@ -446,7 +448,7 @@ int KFParticle_Tools::getTracksFromVertex(PHCompositeNode *topNode, const KFPart
   calcMinIP(particle, primaryVertices, min_ip, min_ipchi2);
   calcMinIP(particle, primaryVertices, min_ip_xy, min_ipchi2_xy, false);
 
-  if (pt >= m_track_pt
+  if (isInRange(m_track_min_pt, pt, m_track_max_pt)
    && ptchi2 <= m_track_ptchi2
    && min_ip >= m_track_ip
    && min_ipchi2 >= m_track_ipchi2 
@@ -1179,66 +1181,25 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
 {
   m_dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name.c_str());
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  m_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if(!m_cluster_map || !m_geom_container)
+  m_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  auto geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  if(!m_cluster_map || !m_geom_container || !geometry)
   {
-    std::cout << "Can't continue in KFParticle_Tools::get_dEdx, returning -1" << std::endl;
     return -1.0;
   }
 
   SvtxTrack *daughter_track = toolSet.getTrack(daughter.Id(), m_dst_trackmap);
   TrackSeed *tpcseed = daughter_track->get_tpc_seed();
+  float layerThicknesses[4] = {0.0, 0.0, 0.0, 0.0};
+  // These are randomly chosen layer thicknesses for the TPC, to get the
+  // correct region thicknesses in an easy to pass way to the helper fxn
+  layerThicknesses[0] = m_geom_container->GetLayerCellGeom(7)->get_thickness();
+  layerThicknesses[1] = m_geom_container->GetLayerCellGeom(8)->get_thickness();
+  layerThicknesses[2] = m_geom_container->GetLayerCellGeom(27)->get_thickness();
+  layerThicknesses[3] = m_geom_container->GetLayerCellGeom(50)->get_thickness();
 
-  std::vector<TrkrDefs::cluskey> clusterKeys;
-  clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(), tpcseed->end_cluster_keys());
-  std::vector<float> dedxlist;
-  for (unsigned long cluster_key : clusterKeys)
-  {
-    unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
-    if(TrkrDefs::getTrkrId(cluster_key) != TrkrDefs::TrkrId::tpcId)
-    {
-        continue;
-    }
-    TrkrCluster* cluster = m_cluster_map->findCluster(cluster_key);
-
-    float adc = cluster->getAdc();
-    PHG4TpcCylinderGeom* GeoLayer_local = m_geom_container->GetLayerCellGeom(layer_local);
-    float thick = GeoLayer_local->get_thickness();
+  return TrackAnalysisUtils::calc_dedx(tpcseed, m_cluster_map, geometry, layerThicknesses);
     
-    float r = GeoLayer_local->get_radius();
-    float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
-    float beta = atan(tpcseed->get_slope());
-
-    float alphacorr = cos(alpha);
-    if(alphacorr<0||alphacorr>4)
-    {
-      alphacorr=4;
-    }
-
-    float betacorr = cos(beta);
-    if(betacorr<0||betacorr>4)
-    {
-      betacorr=4;
-    }
-
-    adc/=thick;
-    adc*=alphacorr;
-    adc*=betacorr;
-    dedxlist.push_back(adc);
-    sort(dedxlist.begin(), dedxlist.end());
-  }
-
-  int trunc_min = 0;
-  int trunc_max = (int)dedxlist.size()*0.7;
-  float sumdedx = 0;
-  int ndedx = 0;
-  for(int j = trunc_min; j<=trunc_max;j++)
-  {
-    sumdedx+=dedxlist.at(j);
-    ndedx++;
-  }
-  sumdedx/=ndedx;
-  return sumdedx;
 }
 
 void KFParticle_Tools::init_dEdx_fits()

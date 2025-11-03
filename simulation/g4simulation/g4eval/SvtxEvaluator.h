@@ -13,6 +13,7 @@
 #include <TMatrixT.h>
 #include <TMatrixTUtils.h>
 
+#include <limits>
 #include <string>
 
 class PHCompositeNode;
@@ -74,11 +75,11 @@ class SvtxEvaluator : public SubsysReco
   void scan_for_primaries(bool b) { _scan_for_primaries = b; }
   
  private:
-  unsigned int _ievent = 0;
-  unsigned int _iseed = 0;
-  float m_fSeed = NAN;
+  unsigned int _ievent {0};
+  unsigned int _iseed {0};
+  float m_fSeed {std::numeric_limits<float>::quiet_NaN()};
   // eval stack
-  SvtxEvalStack *_svtxevalstack = nullptr;
+  SvtxEvalStack *_svtxevalstack {nullptr};
 
   TMatrixF calculateClusterError(TrkrCluster *c, float &clusphi);
   void get_dca(SvtxTrack *track, GlobalVertexMap *vertexmap,
@@ -89,51 +90,52 @@ class SvtxEvaluator : public SubsysReco
   //----------------------------------
   // evaluator output ntuples
 
-  bool _strict = false;
-  bool _use_initial_vertex = true;
-  bool _use_genfit_vertex = false;
-  unsigned int _errors = 0;
+  bool _strict {false};
+  bool _use_initial_vertex {true};
+  bool _use_genfit_vertex {false};
+  unsigned int _errors {0};
 
-  bool _do_info_eval = true;
-  bool _do_vertex_eval = true;
-  bool _do_gpoint_eval = true;
-  bool _do_g4hit_eval = true;
-  bool _do_hit_eval = true;
-  bool _do_cluster_eval = true;
-  bool _do_g4cluster_eval = true;
-  bool _do_gtrack_eval = true;
-  bool _do_track_eval = true;
-  bool _do_gseed_eval = false;
+  bool _do_info_eval {true};
+  bool _do_vertex_eval {true};
+  bool _do_gpoint_eval {true};
+  bool _do_g4hit_eval {true};
+  bool _do_hit_eval {true};
+  bool _do_cluster_eval {true};
+  bool _do_g4cluster_eval {true};
+  bool _do_gtrack_eval {true};
+  bool _do_track_eval {true};
+  bool _do_gseed_eval {false};
 
-  bool _do_track_match = true;
-  bool _do_eval_light = true;
-  bool _do_vtx_eval_light = true;
-  bool _scan_for_embedded = false;
-  bool _scan_for_primaries = false;
+  bool _do_track_match {true};
+  bool _do_eval_light {true};
+  bool _do_vtx_eval_light {true};
+  bool _scan_for_embedded {false};
+  bool _scan_for_primaries {false};
 
-  unsigned int _nlayers_maps = 3;
-  unsigned int _nlayers_intt = 4;
-  unsigned int _nlayers_tpc = 48;
-  unsigned int _nlayers_mms = 2;
+  unsigned int _nlayers_maps {3};
+  unsigned int _nlayers_intt {4};
+  unsigned int _nlayers_tpc {48};
+  unsigned int _nlayers_mms {2};
 
-  TNtuple *_ntp_info = nullptr;
-  TNtuple *_ntp_vertex = nullptr;
-  TNtuple *_ntp_gpoint = nullptr;
-  TNtuple *_ntp_g4hit = nullptr;
-  TNtuple *_ntp_hit = nullptr;
-  TNtuple *_ntp_cluster = nullptr;
-  TNtuple *_ntp_g4cluster = nullptr;
-  TNtuple *_ntp_gtrack = nullptr;
-  TNtuple *_ntp_track = nullptr;
-  TNtuple *_ntp_gseed = nullptr;
+  TNtuple *_ntp_info {nullptr};
+  TNtuple *_ntp_vertex {nullptr};
+  TNtuple *_ntp_gpoint {nullptr};
+  TNtuple *_ntp_g4hit {nullptr};
+  TNtuple *_ntp_hit {nullptr};
+  TNtuple *_ntp_cluster {nullptr};
+  TNtuple *_ntp_g4cluster {nullptr};
+  TNtuple *_ntp_gtrack {nullptr};
+  TNtuple *_ntp_track {nullptr};
+  TNtuple *_ntp_gseed {nullptr};
+
+  TFile *_tfile {nullptr};
+
+  PHTimer *_timer {nullptr};
 
   // evaluator output file
   std::string _filename;
   // Track map name
   std::string _trackmapname;
-  TFile *_tfile = nullptr;
-
-  PHTimer *_timer = nullptr;
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode *topNode);  ///< dump the evaluator information into ntuple for external analysis

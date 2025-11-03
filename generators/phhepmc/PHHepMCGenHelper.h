@@ -16,6 +16,7 @@
 #include <gsl/gsl_rng.h>
 
 #include <cmath>
+#include <limits>
 #include <string>
 #include <utility>
 #include <vector>

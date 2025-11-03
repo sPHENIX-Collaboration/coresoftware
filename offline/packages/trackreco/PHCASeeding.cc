@@ -17,8 +17,8 @@
 #include <phool/phool.h>  // for PHWHERE
 
 // tpc distortion correction
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 #include <tpc/TpcDistortionCorrectionContainer.h>
 
 #include <ffamodules/CDBInterface.h>
@@ -979,10 +979,10 @@ int PHCASeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
   t_makeseeds->stop();
 
   auto geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cerr << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cerr << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   for (int i = 8; i <= 54; ++i)

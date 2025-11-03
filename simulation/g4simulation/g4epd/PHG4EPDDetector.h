@@ -32,16 +32,16 @@ class PHG4EPDDetector : public PHG4Detector
 
   int IsInDetector(G4VPhysicalVolume*) const;
 
-  uint32_t module_id_for(uint32_t index, uint32_t slice, uint32_t side);
+  static uint32_t module_id_for(uint32_t tile_id, uint32_t sector, uint32_t arm);
   uint32_t module_id_for(G4VPhysicalVolume* volume);
 
   void SuperDetector(std::string const& name) { superdetector = name; }
-  const std::string &SuperDetector() const { return superdetector; }
+  const std::string& SuperDetector() const { return superdetector; }
 
   PHG4EPDDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 
  private:
-  G4ExtrudedSolid* construct_block(int32_t index);
+  static G4ExtrudedSolid* construct_block(int32_t index);
 
   PHG4EPDDisplayAction* m_DisplayAction = nullptr;
   PHParameters* m_Params = nullptr;

@@ -178,7 +178,9 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
 
   void setMinDecayLengthSignificance_XY(float min = 0) { m_mother_min_decay_length_xy_significance = min; }
 
-  void setMinimumTrackPT(float pt) { m_track_pt = pt; }
+  void setMinimumTrackPT(float pt) { m_track_min_pt = pt; }
+
+  void setMaximumTrackPT(float pt) { m_track_max_pt = pt; }
 
   void setMaximumTrackPTchi2(float ptchi2) { m_track_ptchi2 = ptchi2; }
 
@@ -388,6 +390,8 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void requireBunchCrossingMatch(bool require = true) { m_require_bunch_crossing_match = require; }
 
   void requireTrackVertexBunchCrossingMatch(bool require = true) { m_require_track_and_vertex_match = require; }
+
+  void selectMotherByMassError(bool select = true) { m_select_by_mass_error = select; }
 
   void usePID(bool use = true){ m_use_PID = use; }
  

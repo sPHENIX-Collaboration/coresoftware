@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>  // for string
+#include <ctime>
 
 class PHCompositeNode;
 

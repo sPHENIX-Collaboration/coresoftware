@@ -14,6 +14,9 @@ public:
     void LoadProfile(const std::string &filename);
     std::pair<double, double> GetCDF(const std::vector<double>& energies, double clusterenergy, int NMATRIXDIM);
 
+    int  Verbosity() { return m_verbosity; }
+    void Verbosity(const int verbose) { m_verbosity = verbose; }
+
 private:
     TFile* file{nullptr};
     TH1* henbins_photon{nullptr};
@@ -68,6 +71,8 @@ private:
 
     const int gridSize {49};
     const double epsilon {1e-9};
+
+    int m_verbosity{0};
 };
 
 #endif

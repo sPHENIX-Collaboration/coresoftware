@@ -16,8 +16,8 @@ class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrainingHitsContainer;
-class PHG4TpcCylinderGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeom;
+class PHG4TpcGeomContainer;
 class RawHitSetContainer;
 class RawHitSet;
 class TpcClusterizer : public SubsysReco
@@ -69,11 +69,11 @@ public:
     set_max_cluster_half_size_z(20);
     set_fixed_window(3);
   };
-  void set_sampa_tbias(double value ) { m_sampa_tbias = value; }
+  
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
-
+  
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom) const;
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
   bool record_ClusHitsVerbose{false};
 
   TrkrHitSetContainer *m_hits = nullptr;
@@ -105,11 +105,7 @@ public:
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;  // ns
   double NZBinsSide = 249;
-
-  // TPC shaping offset correction parameter
-  // From Tony Frawley July 5, 2022
-  double m_sampa_tbias = 39.6;  // ns
-
+    
   TrainingHitsContainer *m_training;
 };
 

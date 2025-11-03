@@ -74,7 +74,7 @@ int QAG4SimulationJet::InitRun(PHCompositeNode* topNode)
 
   if (flag(kProcessTruthSpectrum))
   {
-    if (not _jettrutheval)
+    if (! _jettrutheval)
     {
       _jettrutheval = std::shared_ptr<JetTruthEval>(new JetTruthEval(topNode, _truth_jet));
     }
@@ -358,7 +358,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
   {
     assert(jet);
 
-    if (not jet_acceptance_cut(jet))
+    if (! jet_acceptance_cut(jet))
     {
       continue;
     }
@@ -653,7 +653,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   {
     assert(jet);
 
-    if (not jet_acceptance_cut(jet))
+    if (! jet_acceptance_cut(jet))
     {
       continue;
     }
@@ -772,7 +772,7 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   {
     assert(jet);
 
-    if (not jet_acceptance_cut(jet))
+    if (! jet_acceptance_cut(jet))
     {
       continue;
     }

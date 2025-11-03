@@ -11,8 +11,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -54,11 +54,11 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 
   clustermap = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterContainerName);
   actsgeom = findNode::getClass<ActsGeometry>(topNode, m_actsGeomName);
-  g4geom = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, m_g4GeomName);
+  g4geom = findNode::getClass<PHG4TpcGeomContainer>(topNode, m_g4GeomName);
   trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   vertexmap = findNode::getClass<SvtxVertexMap>(topNode, m_vertexMapName);
 
-  if (!trackmap or !clustermap or !actsgeom or !vertexmap)
+  if (!trackmap || !clustermap || !actsgeom || !vertexmap)
   {
     std::cout << PHWHERE << "Missing node(s), can't continue" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -66,7 +66,7 @@ int TpcSeedsQA::InitRun(PHCompositeNode *topNode)
 
   if (!g4geom)
   {
-    std::cout << PHWHERE << " unable to find DST node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -189,7 +189,7 @@ float TpcSeedsQA::calc_dedx(TrackSeed *tpcseed)
     unsigned int layer_local = TrkrDefs::getLayer(cluster_key);
     TrkrCluster *cluster = clustermap->findCluster(cluster_key);
     float adc = cluster->getAdc();
-    PHG4TpcCylinderGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
+    PHG4TpcGeom *GeoLayer_local = g4geom->GetLayerCellGeom(layer_local);
     float thick = GeoLayer_local->get_thickness();
     float r = GeoLayer_local->get_radius();
     float alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpcseed->get_qOverR()));
@@ -557,15 +557,10 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       if (pt > 1)
       {
         h_ntrack_pos->Fill(eta, phi);
-        if (trackvtx)
+
+        if (std::fabs(eta) < 1.2)
         {
-          float vz = trackvtx->get_z();
-          float eta_min = cal_tpc_eta_min_max(vz).first;
-          float eta_max = cal_tpc_eta_min_max(vz).second;
-          if (eta > eta_min && eta < eta_max)
-          {
-            h_ntpc_pos->Fill(ntpc);
-          }
+          h_ntpc_pos->Fill(ntpc);
         }
         h_ntpot_pos->Fill(nmms);
         h_ntpc_quality_pos->Fill(ntpc, quality);
@@ -589,15 +584,9 @@ int TpcSeedsQA::process_event(PHCompositeNode *topNode)
       if (pt > 1)
       {
         h_ntrack_neg->Fill(eta, phi);
-        if (trackvtx)
+        if (std::fabs(eta) < 1.2)
         {
-          float vz = trackvtx->get_z();
-          float eta_min = cal_tpc_eta_min_max(vz).first;
-          float eta_max = cal_tpc_eta_min_max(vz).second;
-          if (eta > eta_min && eta < eta_max)
-          {
-            h_ntpc_neg->Fill(ntpc);
-          }
+          h_ntpc_neg->Fill(ntpc);
         }
         h_ntpot_neg->Fill(nmms);
         h_ntpc_quality_neg->Fill(ntpc, quality);
@@ -1244,7 +1233,7 @@ void TpcSeedsQA::createHistos()
     h_clusphisizegeq1pt_side1[region]->GetXaxis()->SetTitle("p_{T} [GeV/c]");
     hm->registerHisto(h_clusphisizegeq1pt_side1[region]);
 
-    h_cluster_phisize1_fraction_side0[region] = new TH1F(std::format("{}sclusphisize1frac_side0_{}", getHistoPrefix(), region).c_str(),
+    h_cluster_phisize1_fraction_side0[region] = new TH1F(std::format("{}clusphisize1frac_side0_{}", getHistoPrefix(), region).c_str(),
                                                          std::format("Fraction of TPC Cluster Phi Size == 1, side 0, region_{}", region).c_str(), 100, 0, 1);
     h_cluster_phisize1_fraction_side0[region]->GetXaxis()->SetTitle("Fraction");
     hm->registerHisto(h_cluster_phisize1_fraction_side0[region]);

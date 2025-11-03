@@ -2,12 +2,11 @@
 
 #include <phool/phool.h>
 
+#include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, basic_ostream::o...
 #include <limits>
 #include <string>   // for operator<<, string, char_traits
 #include <utility>  // for pair
-
-using namespace std;
 
 EicEventHeaderv1::EicEventHeaderv1(const EicEventHeader *eicevt)
 {
@@ -29,10 +28,10 @@ float EicEventHeaderv1::get_property_float(const PROPERTY prop_id) const
 {
   if (!check_property(prop_id, type_float))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
          << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_float) << endl;
+         << " not " << get_property_type(type_float) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -49,10 +48,10 @@ int EicEventHeaderv1::get_property_int(const PROPERTY prop_id) const
 {
   if (!check_property(prop_id, type_int))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
          << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_int) << endl;
+         << " not " << get_property_type(type_int) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -70,10 +69,10 @@ EicEventHeaderv1::get_property_uint(const PROPERTY prop_id) const
 {
   if (!check_property(prop_id, type_uint))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
          << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_uint) << endl;
+         << " not " << get_property_type(type_uint) << std::endl;
     exit(1);
   }
   prop_map_t::const_iterator i = prop_map.find(prop_id);
@@ -90,10 +89,10 @@ void EicEventHeaderv1::set_property(const PROPERTY prop_id, const float value)
 {
   if (!check_property(prop_id, type_float))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
          << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_float) << endl;
+         << " not " << get_property_type(type_float) << std::endl;
     exit(1);
   }
   prop_map[prop_id] = u_property(value).get_storage();
@@ -103,10 +102,10 @@ void EicEventHeaderv1::set_property(const PROPERTY prop_id, const int value)
 {
   if (!check_property(prop_id, type_int))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
          << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_int) << endl;
+         << " not " << get_property_type(type_int) << std::endl;
     exit(1);
   }
   prop_map[prop_id] = u_property(value).get_storage();
@@ -116,10 +115,10 @@ void EicEventHeaderv1::set_property(const PROPERTY prop_id, const unsigned int v
 {
   if (!check_property(prop_id, type_uint))
   {
-    pair<const string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
-    cout << PHWHERE << " Property " << property_info.first << " with id "
+    std::pair<const std::string, PROPERTY_TYPE> property_info = get_property_info(prop_id);
+    std::cout << PHWHERE << " Property " << property_info.first << " with id "
          << prop_id << " is of type " << get_property_type(property_info.second)
-         << " not " << get_property_type(type_uint) << endl;
+         << " not " << get_property_type(type_uint) << std::endl;
     exit(1);
   }
   prop_map[prop_id] = u_property(value).get_storage();

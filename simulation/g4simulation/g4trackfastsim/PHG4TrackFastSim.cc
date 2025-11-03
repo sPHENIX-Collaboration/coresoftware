@@ -253,7 +253,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
   //		return Fun4AllReturnCodes::ABORTRUN;
   //	}
 
-  if (not m_SvtxTrackMapOut)
+  if (! m_SvtxTrackMapOut)
   {
     LogError("m_SvtxTrackMapOut not found!");
     return Fun4AllReturnCodes::ABORTRUN;
@@ -595,7 +595,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
   }
 
   m_SvtxVertexMap = findNode::getClass<SvtxVertexMap_v1>(topNode, "SvtxVertexMap");
-  if (not m_SvtxVertexMap)
+  if (! m_SvtxVertexMap)
   {
     m_SvtxVertexMap = new SvtxVertexMap_v1;
     PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(m_SvtxVertexMap, "SvtxVertexMap", "PHObject");

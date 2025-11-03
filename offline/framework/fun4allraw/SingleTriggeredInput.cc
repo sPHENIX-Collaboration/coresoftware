@@ -35,15 +35,20 @@ SingleTriggeredInput::SingleTriggeredInput(const std::string &name)
 
 SingleTriggeredInput::~SingleTriggeredInput()
 {
+  std::set<Event *> evtset;
   for (auto& [pid, dq] : m_PacketEventDeque)
   {
     while (!dq.empty())
     {
-      delete dq.front();
+      evtset.insert(dq.front());
       dq.pop_front();
     }
   }
-
+  for (auto *evt : evtset)
+  {
+    delete evt;
+  }
+  evtset.clear();
   for (auto& [pid, evt] : m_PacketEventBackup)
   {
     delete evt;
@@ -577,7 +582,7 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
   }
   int pid = pkt->getIdentifier();
 
-  if (m_bclkarray_map.find(pid) == m_bclkarray_map.end())
+  if (!m_bclkarray_map.contains(pid))
   {
     m_bclkarray_map[pid].fill(std::numeric_limits<uint64_t>::max());
     m_bclkdiffarray_map[pid].fill(std::numeric_limits<uint64_t>::max());
@@ -588,7 +593,7 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
 
 
   // Special handling for FEM-copied clocks
-  if (m_packetclk_copy_runs && m_CorrectCopiedClockPackets.count(pid))
+  if (m_packetclk_copy_runs && m_CorrectCopiedClockPackets.contains(pid))
   {
     if (event_index == 0)
     {
@@ -630,7 +635,7 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
   {
     static std::unordered_set<int> warned;
 
-    if (warned.find(pid) == warned.end())
+    if (!warned.contains(pid))
     {
       std::cout << Name() << ": First pool for pacekt " << pid << " – skipping first diff because of no previous clock" << std::endl;
       warned.insert(pid);
@@ -1186,7 +1191,7 @@ int SingleTriggeredInput::ReadEvent()
     CaloPacket *newhit = findNode::getClass<CaloPacket>(m_topNode, packet_id);
     newhit->Reset();
 
-    if (m_DitchPackets.count(packet_id) && m_DitchPackets[packet_id].count(0))
+    if (m_DitchPackets.contains(packet_id) && m_DitchPackets[packet_id].contains(0))
     {
       newhit->setStatus(OfflinePacket::PACKET_DROPPED);
       newhit->setIdentifier(packet_id);
@@ -1196,7 +1201,7 @@ int SingleTriggeredInput::ReadEvent()
     }
 
     newhit->setStatus(OfflinePacket::PACKET_OK);
-    if (m_OverrideWithRepClock.count(packet_id))
+    if (m_OverrideWithRepClock.contains(packet_id))
     {
       newhit->setStatus(OfflinePacket::PACKET_CORRUPT);
     }
@@ -1208,7 +1213,7 @@ int SingleTriggeredInput::ReadEvent()
     newhit->setNrChannels(nr_channels);
     newhit->setNrSamples(nr_samples);
     newhit->setIdentifier(packet_id);
-    if (m_packetclk_copy_runs && m_CorrectCopiedClockPackets.count(packet_id))
+    if (m_packetclk_copy_runs && m_CorrectCopiedClockPackets.contains(packet_id))
     {
       uint64_t prev_packet_clock = m_PreviousValidBCOMap[packet_id];
       newhit->setBCO(prev_packet_clock);

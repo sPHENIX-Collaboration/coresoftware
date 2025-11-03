@@ -323,7 +323,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 
         auto thisvertex = _svtx_vertex_map->get(thisid);
         float dz = thistrack->get_z() - thisvertex->get_z();
-        if (std::fabs(dz) < maxdz)
+        if (std::abs(dz) < maxdz)
         {
           maxdz = dz;
           newvtxid = thisid;

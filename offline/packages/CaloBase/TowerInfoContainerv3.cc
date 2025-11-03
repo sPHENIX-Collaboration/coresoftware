@@ -42,9 +42,9 @@ TowerInfoContainerv3::TowerInfoContainerv3(DETECTOR detec)
 
 TowerInfoContainerv3::TowerInfoContainerv3(const TowerInfoContainerv3& source)
   : TowerInfoContainer(source)
+  , _clones(new TClonesArray("TowerInfov3", source.size()))
+  , _detector(source.get_detectorid())
 {
-  _detector = source.get_detectorid();
-  _clones = new TClonesArray("TowerInfov3", source.size());
   _clones->SetOwner();
   _clones->SetName("TowerInfoContainerv3");
   for (unsigned int i = 0; i < source.size(); ++i)

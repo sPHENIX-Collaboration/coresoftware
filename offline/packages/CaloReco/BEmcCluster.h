@@ -133,45 +133,6 @@ class EmcCluster : public TObject
  public:
   // MV 2002/02/28 moved these functions here from #define's
 
-  static int max(int a, int b)
-  {
-    return a > b ? a : b;
-  }
-  static float max(float a, float b)
-  {
-    return a > b ? a : b;
-  }
-  static double max(double a, double b)
-  {
-    return a > b ? a : b;
-  }
-
-  static int min(int a, int b)
-  {
-    return a < b ? a : b;
-  }
-  static float min(float a, float b)
-  {
-    return a < b ? a : b;
-  }
-  static double min(double a, double b)
-  {
-    return a < b ? a : b;
-  }
-
-  static int ABS(int x)
-  {
-    return abs(x);
-  }
-  static float ABS(float x)
-  {
-    return fabsf(x);
-  }
-  static double ABS(double x)
-  {
-    return fabs(x);
-  }
-
   static int lowint(float x)
   {
     return x < 0. ? int(x - 1) : int(x);

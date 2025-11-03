@@ -1,7 +1,6 @@
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenParticle.h>
 #include <HepMC/GenVertex.h>
-#include <HepMC/IO_BaseClass.h>  // for IO_BaseClass
 #include <HepMC/IO_GenEvent.h>
 #include <HepMC/SimpleVector.h>  // for FourVector
 #include <HepMC/Units.h>         // for GEV, MM
@@ -39,7 +38,9 @@ int fillEvent(HepMC::GenEvent* evt, std::ifstream& file)
 
   if ( found_event == 1 )
   {
-    int nevt, ntrk, nvtx;
+    int nevt;
+    int ntrk;
+    int nvtx;
 
     std::stringstream evtline( line );
 
@@ -72,8 +73,14 @@ int fillEvent(HepMC::GenEvent* evt, std::ifstream& file)
     // Next line should be the vertex
     // Note: starlight currently only has one vertex, but a future version could have more
     // VERTEX: x y z t nv nproc nparent ndaughters
-    double x, y, z, t;
-    int nv, nproc, npar, ndau;
+    double x;
+    double y;
+    double z;
+    double t;
+    int nv;
+    int nproc;
+    int npar;
+    int ndau;
     file >> label >> x >> y >> z >> t >> nv >> nproc >> npar >> ndau;
     if (label != "VERTEX:")
     {
@@ -85,8 +92,14 @@ int fillEvent(HepMC::GenEvent* evt, std::ifstream& file)
     evt->add_vertex(v0);
 
     // TRACK: GPID px py py nev ntr stopv PDGPID
-    double px, py, pz;  // three vector components of the track's momentum
-    int gpid, nev, ntr, stopv, pdgpid;
+    double px;
+    double py;
+    double pz;  // three vector components of the track's momentum
+    int gpid;
+    int nev;
+    int ntr;
+    int stopv;
+    int pdgpid;
     for (int itrk = 0; itrk < ndau; itrk++)
     {
       file >> label >> gpid >> px >> py >> pz >> nev >> ntr >> stopv >> pdgpid;
@@ -146,7 +159,7 @@ int main(int argc, char* argv[])
 
   // Open the HepMC output file
   std::ofstream outputFile(hepmcfname);
-  HepMC::IO_GenEvent ascii_io(hepmcfname.c_str(), std::ios::out);
+  HepMC::IO_GenEvent ascii_io(hepmcfname, std::ios::out);
 
 //  unsigned int events = 0;
 

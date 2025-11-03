@@ -3,11 +3,9 @@
 
 #include <Geant4/G4UImessenger.hh>
 
-#include <Geant4/G4String.hh>  // for G4String
 
 class Fun4AllServer;
 class G4UIcmdWithAnInteger;
-class G4UIcommand;
 class G4UIdirectory;
 
 class Fun4AllMessenger : public G4UImessenger

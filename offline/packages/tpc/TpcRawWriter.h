@@ -17,7 +17,7 @@ class RawHitSetContainerv1;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class PHG4CylinderCellGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 
 
 class TpcRawWriter : public SubsysReco

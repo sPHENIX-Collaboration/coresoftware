@@ -286,10 +286,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       {
         pdiff_tol = 0.25;
       }
-      float const pdiff = std::fabs((seed1.xyslope - seed2.xyslope) / longestxyslope);
-      float const pdiff2 = std::fabs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
-      float const pdiff3 = std::fabs((seed1.xzintercept - seed2.xzintercept) / longestxzint);
-      float const pdiff4 = std::fabs((seed1.xzslope - seed2.xzslope) / longestxzslope);
+      float const pdiff = std::abs((seed1.xyslope - seed2.xyslope) / longestxyslope);
+      float const pdiff2 = std::abs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
+      float const pdiff3 = std::abs((seed1.xzintercept - seed2.xzintercept) / longestxzint);
+      float const pdiff4 = std::abs((seed1.xzslope - seed2.xzslope) / longestxzslope);
       if (Verbosity() > 1)
       {
         std::cout << "pdiff1,2,3,4 " << pdiff << ", " << pdiff2 << ", " << pdiff3 << ", " << pdiff4 << std::endl;
@@ -370,10 +370,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
         std::cout << "xy slope diff: " << seed1.xyslope - seed2.xyslope << ", xy int diff   " << seed1.xyintercept - seed2.xyintercept << ", xz slope diff " << seed1.xzslope - seed2.xzslope << ", xz int diff   " << seed1.xzintercept - seed2.xzintercept << std::endl;
       }
       //! These values are tuned on the cosmic data
-      if (std::fabs(seed1.xyslope - seed2.xyslope) < slope_tol &&
-          std::fabs(seed1.xyintercept - seed2.xyintercept) < incept_tol &&
-          std::fabs(seed1.xzslope - seed2.xzslope) < slope_tol &&
-          std::fabs(seed1.xzintercept - seed2.xzintercept) < incept_tol)
+      if (std::abs(seed1.xyslope - seed2.xyslope) < slope_tol &&
+          std::abs(seed1.xyintercept - seed2.xyintercept) < incept_tol &&
+          std::abs(seed1.xzslope - seed2.xzslope) < slope_tol &&
+          std::abs(seed1.xzintercept - seed2.xzintercept) < incept_tol)
       {
         for (auto& key : seed2.ckeys)
         {

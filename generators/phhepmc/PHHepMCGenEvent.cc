@@ -1,10 +1,6 @@
 #include "PHHepMCGenEvent.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#pragma GCC diagnostic pop
-
 #include <HepMC/SimpleVector.h>  // for FourVector
 
 #include <CLHEP/Vector/Boost.h>
@@ -15,8 +11,6 @@
 #include <sstream>
 #include <utility>  // for swap
 
-using namespace std;
-
 PHHepMCGenEvent::PHHepMCGenEvent()
   : _embedding_id(0)
   , _isSimulated(false)
@@ -25,20 +19,21 @@ PHHepMCGenEvent::PHHepMCGenEvent()
 {
 }
 
-PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
-  : _embedding_id(event.get_embedding_id())
-  , _isSimulated(event.is_simulated())
-  , _collisionVertex(event.get_collision_vertex())
-  , _theEvt(nullptr)
+PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)  // NOLINT(bugprone-copy-constructor-init)
+  : _embedding_id(event._embedding_id)
+  , _isSimulated(event._isSimulated)
+  , _collisionVertex(event._collisionVertex)
+  , _theEvt(event._theEvt ? new HepMC::GenEvent(*event._theEvt) : nullptr)
+
 {
-  if (event.getEvent())
-    _theEvt = new HepMC::GenEvent(*event.getEvent());
-  return;
 }
 
 PHHepMCGenEvent& PHHepMCGenEvent::operator=(const PHHepMCGenEvent& event)
 {
-  if (&event == this) return *this;
+  if (&event == this)
+  {
+    return *this;
+  }
 
   Reset();
 
@@ -80,15 +75,21 @@ bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
   delete _theEvt;
 
   _theEvt = evt;
-  if (!_theEvt) return false;
+  if (!_theEvt)
+  {
+    return false;
+  }
   return true;
 }
 
 bool PHHepMCGenEvent::swapEvent(HepMC::GenEvent*& evt)
 {
-  swap(_theEvt, evt);
+  std::swap(_theEvt, evt);
 
-  if (!_theEvt) return false;
+  if (!_theEvt)
+  {
+    return false;
+  }
   return true;
 }
 
@@ -99,7 +100,10 @@ bool PHHepMCGenEvent::addEvent(HepMC::GenEvent& evt)
 
 void PHHepMCGenEvent::clearEvent()
 {
-  if (_theEvt) _theEvt->clear();
+  if (_theEvt)
+  {
+    _theEvt->clear();
+  }
 }
 
 void PHHepMCGenEvent::moveVertex(double x, double y, double z, double t)
@@ -110,20 +114,22 @@ void PHHepMCGenEvent::moveVertex(double x, double y, double z, double t)
   _collisionVertex.setT(_collisionVertex.t() + t);
 }
 
-int PHHepMCGenEvent::size(void) const
+int PHHepMCGenEvent::size() const
 {
   if (_theEvt)
+  {
     return _theEvt->particles_size();
-  else
-    return 0;
+  }
+  return 0;
 }
 
-int PHHepMCGenEvent::vertexSize(void) const
+int PHHepMCGenEvent::vertexSize() const
 {
   if (_theEvt)
+  {
     return _theEvt->vertices_size();
-  else
-    return 0;
+  }
+  return 0;
 }
 
 //_____________________________________________________________________________
@@ -131,10 +137,10 @@ void PHHepMCGenEvent::identify(std::ostream& os) const
 {
   os << "identify yourself: PHHepMCGenEvent Object";
   os << ", No of Particles: " << size();
-  os << ", No of Vertices:  " << vertexSize() << endl;
-  os << " embedding_id = " << _embedding_id << endl;
-  os << " isSimulated = " << _isSimulated << endl;
-  os << " collisionVertex = (" << _collisionVertex.x() << "," << _collisionVertex.y() << "," << _collisionVertex.z() << ") cm, " << _collisionVertex.t() << " ns" << endl;
+  os << ", No of Vertices:  " << vertexSize() << std::endl;
+  os << " embedding_id = " << _embedding_id << std::endl;
+  os << " isSimulated = " << _isSimulated << std::endl;
+  os << " collisionVertex = (" << _collisionVertex.x() << "," << _collisionVertex.y() << "," << _collisionVertex.z() << ") cm, " << _collisionVertex.t() << " ns" << std::endl;
 
   return;
 }

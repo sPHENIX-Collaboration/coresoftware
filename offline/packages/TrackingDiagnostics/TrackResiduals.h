@@ -27,7 +27,7 @@ class SvtxTrack;
 class TrackSeed;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeomContainer;
 class PHG4CylinderGeomContainer;
 class TpcDistortionCorrectionContainer;
 class TrackResiduals : public SubsysReco
@@ -74,7 +74,7 @@ class TrackResiduals : public SubsysReco
   void fillEventTree(PHCompositeNode *topNode);
   void fillClusterTree(TrkrClusterContainer *clusters, ActsGeometry *geometry);
   void fillHitTree(TrkrHitSetContainer *hitmap, ActsGeometry *geometry,
-                   PHG4TpcCylinderGeomContainer *tpcGeom, PHG4CylinderGeomContainer *mvtxGeom,
+                   PHG4TpcGeomContainer *tpcGeom, PHG4CylinderGeomContainer *mvtxGeom,
                    PHG4CylinderGeomContainer *inttGeom, PHG4CylinderGeomContainer *mmGeom);
   void fillResidualTreeKF(PHCompositeNode *topNode);
   void fillResidualTreeSeeds(PHCompositeNode *topNode);
@@ -90,7 +90,6 @@ class TrackResiduals : public SubsysReco
                                Acts::Vector3 &glob, ActsGeometry *geometry);
   void fillVertexTree(PHCompositeNode *topNode);
   void fillFailedSeedTree(PHCompositeNode *topNode, std::set<unsigned int> &tpc_seed_ids);
-  static float calc_dedx(TrackSeed *tpcseed, TrkrClusterContainer *clustermap, PHG4TpcCylinderGeomContainer *tpcGeom);
 
   bool m_use_clustermover = true;
 

@@ -31,7 +31,7 @@ namespace PHGenFit
       const int pdg_code, const int direction,
       const int verbosity)
   {
-    assert(direction == 1 or direction == -1);
+    assert(direction == 1 || direction == -1);
 
     assert(state);
 

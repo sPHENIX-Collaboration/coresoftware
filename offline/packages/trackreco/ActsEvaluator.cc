@@ -251,7 +251,7 @@ void ActsEvaluator::visitTrackStates(const Acts::ConstVectorMultiTrajectory& tra
                       {
     /// Only fill the track states with non-outlier measurement
     auto typeFlags = state.typeFlags();
-    if (not typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
+    if (! typeFlags.test(Acts::TrackStateFlag::MeasurementFlag))
     {
       return true;
     }
@@ -1045,7 +1045,7 @@ int ActsEvaluator::getNodes(PHCompositeNode* topNode)
   m_tpcSeeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
   m_siliconSeeds = findNode::getClass<TrackSeedContainer>(topNode, "SiliconTrackSeedContainer");
 
-  if (!m_tpcSeeds or !m_siliconSeeds)
+  if (!m_tpcSeeds || !m_siliconSeeds)
   {
     std::cout << PHWHERE << "Seed containers not found, cannot continue!"
               << std::endl;

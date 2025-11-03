@@ -8,6 +8,8 @@
 
 #include <g4main/PHG4Particle.h>
 
+#include <micromegas/MicromegasDefs.h>
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
@@ -15,12 +17,10 @@
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <micromegas/MicromegasDefs.h>
-
 #include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/CylinderGeom_MvtxHelper.h>
@@ -28,15 +28,20 @@
 #include <intt/CylinderGeomIntt.h>
 #include <intt/CylinderGeomInttHelper.h>
 
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <TVector3.h>
 
 #include <cassert>
-#include <cmath>    // for sqrt, NAN, fabs
+#include <cmath>    // for sqrt, fabs
 #include <cstdlib>  // for abs
 #include <iostream>
+#include <limits>
 #include <map>
 #include <set>
 #include <utility>
@@ -308,11 +313,11 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
   unsigned int layer;
   for (layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms; ++layer)
   {
-    float gx = NAN;
-    float gy = NAN;
-    float gz = NAN;
-    float gt = NAN;
-    float gedep = NAN;
+    float gx = std::numeric_limits<float>::quiet_NaN();
+    float gy = std::numeric_limits<float>::quiet_NaN();
+    float gz = std::numeric_limits<float>::quiet_NaN();
+    float gt = std::numeric_limits<float>::quiet_NaN();
+    float gedep = std::numeric_limits<float>::quiet_NaN();
 
     std::vector<PHG4Hit*> contributing_hits;
     std::vector<double> contributing_hits_energy;
@@ -386,8 +391,8 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
     }
 
     // Estimate the size of the truth cluster
-    float g4phisize = NAN;
-    float g4zsize = NAN;
+    float g4phisize = std::numeric_limits<float>::quiet_NaN();
+    float g4zsize = std::numeric_limits<float>::quiet_NaN();
     G4ClusterSize(ckey, layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
     for (int i1 = 0; i1 < 3; ++i1)
@@ -437,7 +442,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
     // Complicated, since only the part of the energy that is collected within a layer contributes to the position
     //===============================================================================
 
-    PHG4TpcCylinderGeom* GeoLayer = _tpc_geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom* GeoLayer = _tpc_geom_container->GetLayerCellGeom(layer);
     // get layer boundaries here for later use
     // radii of layer boundaries
     float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
@@ -507,7 +512,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
       float yout = yl[1];
       float zout = zl[1];
 
-      float local_t = NAN;
+      float local_t = std::numeric_limits<float>::quiet_NaN();
 
       if (rbegin < rbin)
       {
@@ -701,15 +706,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
 {
   // sort the contributing g4hits in radius
   double inner_radius = 100.;
-  double inner_x = NAN;
-  double inner_y = NAN;
-  double inner_z = NAN;
-  ;
+  double inner_x = std::numeric_limits<double>::quiet_NaN();
+  double inner_y = std::numeric_limits<double>::quiet_NaN();
+  double inner_z = std::numeric_limits<double>::quiet_NaN();
 
   double outer_radius = 0.;
-  double outer_x = NAN;
-  double outer_y = NAN;
-  double outer_z = NAN;
+  double outer_x = std::numeric_limits<double>::quiet_NaN();
+  double outer_y = std::numeric_limits<double>::quiet_NaN();
+  double outer_z = std::numeric_limits<double>::quiet_NaN();
 
   for (unsigned int ihit = 0; ihit < contributing_hits_entry.size(); ++ihit)
   {
@@ -749,15 +753,15 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   double radius = (inner_radius + outer_radius) / 2.;
   if (radius > 28 && radius < 80)  // TPC
   {
-    PHG4TpcCylinderGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
-
-    double tpc_length = 211.0;             // cm
-    double drift_velocity = 8.0 / 1000.0;  // cm/ns
-
+    PHG4TpcGeom* layergeom = _tpc_geom_container->GetLayerCellGeom(layer);
+    
+    double tpc_max_driftlength = layergeom->get_max_driftlength();
+    double drift_velocity = layergeom->get_drift_velocity_sim();
+ 
     // Phi size
     //======
     double diffusion_trans = 0.006;  // cm/SQRT(cm)
-    double phidiffusion = diffusion_trans * std::sqrt(tpc_length / 2. - fabs(avge_z));
+    double phidiffusion = diffusion_trans * std::sqrt(tpc_max_driftlength - fabs(avge_z));
 
     double added_smear_trans = 0.085;  // cm
     double gem_spread = 0.04;          // 400 microns
@@ -771,10 +775,22 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     double g4max_phi = outer_phi + sigmas * std::sqrt(pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2)) / radius;
     double g4min_phi = inner_phi - sigmas * std::sqrt(pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2)) / radius;
 
-    // find the bins containing these max and min z edges
-    unsigned int phibinmin = layergeom->get_phibin(g4min_phi, side);
-    unsigned int phibinmax = layergeom->get_phibin(g4max_phi, side);
-    unsigned int phibinwidth = phibinmax - phibinmin + 1;
+    unsigned int phibinwidth = 1;
+    if(std::isnan(g4min_phi) || std::isnan(g4max_phi))
+      {
+      if (_verbosity > 1)
+	{
+	  std::cout << " g4min_phi " << g4min_phi << " g4max_phi " << g4max_phi << std::endl;
+	  std::cout << "     outer_phi " << outer_phi << " inner_phi " << inner_phi << " radius " << radius << std::endl;
+	}
+      }
+    else
+      {
+	// find the bins containing these max and min z edges
+	unsigned int phibinmin = layergeom->get_phibin(g4min_phi, side);
+	unsigned int phibinmax = layergeom->get_phibin(g4max_phi, side);
+	phibinwidth = phibinmax - phibinmin + 1;
+      }
     g4phisize = (double) phibinwidth * layergeom->get_phistep() * layergeom->get_radius();
 
     // Z size
@@ -786,7 +802,7 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     inner_z = fabs(inner_z);
 
     double diffusion_long = 0.015;  // cm/SQRT(cm)
-    double zdiffusion = diffusion_long * std::sqrt(tpc_length / 2. - fabs(avge_z));
+    double zdiffusion = diffusion_long * std::sqrt(tpc_max_driftlength - fabs(avge_z));
     double zshaping_lead = 32.0 * drift_velocity;  // ns * cm/ns = cm
     double zshaping_tail = 48.0 * drift_velocity;
     double added_smear_long = 0.105;  // cm
@@ -811,10 +827,10 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     // multiply total number of bins that include the edges by the bin size
     g4zsize = (double) binwidth * layergeom->get_zstep();
   }
-  else if (radius > 5 && radius < 20)  // INTT
+  else if (radius > 6 && radius < 20)  // INTT
   {
     // All we have is the position and layer number
-
+  
     CylinderGeomIntt* layergeom = dynamic_cast<CylinderGeomIntt*>(_intt_geom_container->GetLayerGeom(layer));
 
     // inner location
@@ -868,10 +884,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
   }
   else  // MVTX
   {
-    unsigned int stave, stave_outer;
-    unsigned int chip, chip_outer;
-    int row, row_outer;
-    int column, column_outer;
+    unsigned int stave;
+    unsigned int stave_outer;
+    unsigned int chip;
+    unsigned int chip_outer;
+    int row;
+    int row_outer;
+    int column;
+    int column_outer;
 
     // add diffusion to entry and exit locations
     double max_diffusion_radius = 25.0e-4;  // 25 microns
@@ -1141,10 +1161,15 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
 
   _mms_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
-  _tpc_geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  _tpc_geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
+  PHNodeIterator iter(topNode);
+  auto* parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR"));
+  PHNodeIterator parIter(parNode);
+  auto* ParDetNode = dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode", "TPC"));
+  _tpc_params = findNode::getClass<PHParametersContainer>(ParDetNode, "G4GEO_TPC");
   return;
 }
 

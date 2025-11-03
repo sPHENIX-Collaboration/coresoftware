@@ -39,6 +39,8 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
   void set_test_windows_printout(const bool test) { _test_windows = test; }
   void set_pp_mode(const bool mode) { _pp_mode = mode; }
   void set_use_silicon( const bool value ) { _use_silicon = value; }
+  void set_pt_cut( const float pt) { _pt_cut = pt; }
+  void set_dphi_cut( const float dphi) { _dphi_cut = dphi; }
   void SetIteration(int iter) { _n_iteration = iter; }
 
   void zeroField(const bool flag) { _zero_field = flag; }
@@ -73,6 +75,12 @@ class PHMicromegasTpcTrackMatching : public SubsysReco
 
   // range of TPC layers to use in projection to micromegas
   unsigned int _max_tpc_layer = 55;
+
+  // pt cut for field-on data
+  float _pt_cut = 0.5;
+
+  // delta_phi window between the last cluster in the tracklet and the projection
+  float _dphi_cut = 0.9;
 
   TrkrClusterContainer* _cluster_map{nullptr};
   TrkrClusterContainer* _corrected_cluster_map{nullptr};

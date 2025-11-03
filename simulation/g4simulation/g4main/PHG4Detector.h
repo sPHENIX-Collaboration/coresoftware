@@ -42,7 +42,7 @@ class PHG4Detector
   virtual void ConstructMe(G4LogicalVolume *mothervolume) = 0;
 
   //! Optional PostConstruction call after all geometry is constructed
-  virtual void PostConstruction(){};
+  virtual void PostConstruction() {};
 
   virtual void Verbosity(const int v) { m_Verbosity = v; }
 

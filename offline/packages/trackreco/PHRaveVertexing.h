@@ -10,20 +10,20 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <map>                   // for map, map<>::value_compare
+#include <map>  // for map, map<>::value_compare
 #include <string>
 #include <vector>
 
 namespace genfit
 {
-class GFRaveVertex;
-class GFRaveVertexFactory;
-class Track;
+  class GFRaveVertex;
+  class GFRaveVertexFactory;
+  class Track;
 } /* namespace genfit */
 
 namespace PHGenFit
 {
-class Fitter;
+  class Fitter;
 } /* namespace PHGenFit */
 
 class PHTimer;
@@ -45,16 +45,16 @@ class PHRaveVertexing : public SubsysReco
   //! dtor
   ~PHRaveVertexing() override;
 
-  //!Initialization, called for initialization
+  //! Initialization, called for initialization
   int Init(PHCompositeNode*) override;
 
-  //!Initialization Run, called for initialization of a run
+  //! Initialization Run, called for initialization of a run
   int InitRun(PHCompositeNode*) override;
 
-  //!Process Event, called for each event
+  //! Process Event, called for each event
   int process_event(PHCompositeNode*) override;
 
-  //!End, write and close files
+  //! End, write and close files
   int End(PHCompositeNode*) override;
 
   const std::string& get_vertexing_method() const
@@ -87,7 +87,7 @@ class PHRaveVertexing : public SubsysReco
     _over_write_svtxvertexmap = overWriteSvtxvertexmap;
   }
 
-  void set_svtxvertexmaprefit_node_name(const std::string & name) {_svtxvertexmaprefit_node_name = name;}
+  void set_svtxvertexmaprefit_node_name(const std::string& name) { _svtxvertexmaprefit_node_name = name; }
 
   double get_vertex_min_ndf() const
   {
@@ -111,10 +111,10 @@ class PHRaveVertexing : public SubsysReco
   //! Get all the nodes
   int GetNodes(PHCompositeNode*);
 
-  //!Create New nodes
+  //! Create New nodes
   int CreateNodes(PHCompositeNode*);
 
-  genfit::Track* TranslateSvtxToGenFitTrack(SvtxTrack* svtx);
+  genfit::Track* TranslateSvtxToGenFitTrack(SvtxTrack* svtx) const;
 
   //! Fill SvtxVertexMap from GFRaveVertexes and Tracks
   bool FillSvtxVertexMap(

@@ -6,11 +6,9 @@
 #include "TrkrClusterContainerv4.h"
 #include "TrkrDefs.h"  // for cluskey, getTrkrId, tpcId
 
-#include <math.h>
-#include <trackbase/MvtxDefs.h>
-
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/Definitions/Units.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -629,7 +627,7 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
   {
     unsigned int const trkrid = TrkrDefs::getTrkrId(cluskey_vec[ivec]);
 
-    if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
+    if (trkrid != TrkrDefs::inttId && cluskey_vec[ivec] != 0)
     {
       global_vec_noINTT.push_back(global_vec[ivec]);
     }
@@ -692,7 +690,7 @@ std::vector<float> TrackFitUtils::fitClustersZeroField(const std::vector<Acts::V
         global_vec_noINTT.push_back(global_vec[ivec]);
       }
     }
-    else if (trkrid != TrkrDefs::inttId and cluskey_vec[ivec] != 0)
+    else if (trkrid != TrkrDefs::inttId && cluskey_vec[ivec] != 0)
     {
       global_vec_noINTT.push_back(global_vec[ivec]);
     }

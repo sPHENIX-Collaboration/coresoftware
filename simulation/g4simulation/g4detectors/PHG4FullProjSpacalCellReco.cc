@@ -437,7 +437,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     if (light_collection_model.use_fiber_model())
     {
       const double z = 0.5 * (hiter->second->get_local_z(0) + hiter->second->get_local_z(1));
-      assert(not std::isnan(z));
+      assert(! std::isnan(z));
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }

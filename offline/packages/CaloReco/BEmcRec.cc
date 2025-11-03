@@ -24,8 +24,6 @@
 BEmcRec::BEmcRec() : fModules(new std::vector<EmcModule>), fClusters(new std::vector<EmcCluster>)
 {
   fTowerGeom.clear();
-  
-  
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -86,6 +84,7 @@ void BEmcRec::PrintTowerGeometry(const std::string& fname)
       }
     }
   }
+  outfile.close();
 }
 
 void BEmcRec::PrintTowerGeometryDetailed(const std::string& fname)
@@ -120,6 +119,20 @@ void BEmcRec::PrintTowerGeometryDetailed(const std::string& fname)
       }
     }
   }
+  outfile.close();
+}
+
+void BEmcRec::ClearInitialDetailedGeometry()
+{
+  // Contrary to the fTowerGeom node,
+  // fTowerGeomDetailed is only used optionally for PrintTowerGeomDetailed()
+  // Memory should be released once it becomes irrelevant.
+
+  for (auto & ich : fTowerGeomDetailed)
+  {
+    delete ich.second;
+  }
+  fTowerGeomDetailed.clear();
 }
 
 bool BEmcRec::GetTowerGeometry(int ix, int iy, TowerGeom& geom)
@@ -185,7 +198,7 @@ bool BEmcRec::SetTowerGeometry(int ix, int iy, const RawTowerGeom& raw_geom0)
   
   if (m_UseDetailedGeometry)
   {
-    // copy the input geometry inside fTowerGeomDetailed (only for debugging)
+    // copy the input geometry inside fTowerGeomDetailed (only for print)
     RawTowerGeomv5 *geom_detailed = new RawTowerGeomv5(raw_geom0); 
     fTowerGeomDetailed[ich] = geom_detailed;
   }

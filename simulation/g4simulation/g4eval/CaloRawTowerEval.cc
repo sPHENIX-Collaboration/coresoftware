@@ -254,7 +254,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(RawTower* tower
   float max_e = FLT_MAX * -1.0;
   std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
 
-  for (auto shower : showers)
+  for (auto* shower : showers)
   {
     if (_strict)
     {
@@ -315,7 +315,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(TowerInfo* towe
   float max_e = FLT_MAX * -1.0;
   std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
 
-  for (auto shower : showers)
+  for (auto* shower : showers)
   {
     if (_strict)
     {
@@ -383,7 +383,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Shower* shower)
   RawTower* best_tower = nullptr;
   float best_energy = FLT_MAX * -1.0;
   std::set<RawTower*> towers = all_towers_from(shower);
-  for (auto tower : towers)
+  for (auto* tower : towers)
   {
     if (_strict)
     {
@@ -449,7 +449,7 @@ TowerInfo* CaloRawTowerEval::best_towerinfo_from(PHG4Shower* shower)
   TowerInfo* best_tower = nullptr;
   float best_energy = FLT_MAX * -1.0;
   std::set<TowerInfo*> towers = all_towerinfos_from(shower);
-  for (auto tower : towers)
+  for (auto* tower : towers)
   {
     if (_strict)
     {
@@ -524,7 +524,7 @@ std::set<RawTower*> CaloRawTowerEval::all_towers_from(PHG4Shower* shower)
     RawTower* tower = iter->second;
 
     std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
-    for (auto candidate : showers)
+    for (auto* candidate : showers)
     {
       if (_strict)
       {
@@ -591,7 +591,7 @@ std::set<TowerInfo*> CaloRawTowerEval::all_towerinfos_from(PHG4Shower* shower)
     TowerInfo* tower = _towerinfos->get_tower_at_channel(channel);
 
     std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
-    for (auto candidate : showers)
+    for (auto* candidate : showers)
     {
       if (_strict)
       {
@@ -623,7 +623,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Shower* sho
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -634,12 +634,12 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Shower* sho
   else if (!tower || !shower)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(shower))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -674,7 +674,7 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Shower* sh
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -685,12 +685,12 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Shower* sh
   else if (!tower || !shower)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(shower))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -751,7 +751,7 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primary_particles(RawTower* 
 
   std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
 
-  for (auto shower : showers)
+  for (auto* shower : showers)
   {
     PHG4Particle* primary = get_truth_eval()->get_primary_particle(shower);
 
@@ -806,7 +806,7 @@ std::set<PHG4Particle*> CaloRawTowerEval::all_truth_primary_particles(TowerInfo*
 
   std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
 
-  for (auto shower : showers)
+  for (auto* shower : showers)
   {
     PHG4Particle* primary = get_truth_eval()->get_primary_particle(shower);
 
@@ -1165,7 +1165,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -1176,12 +1176,12 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   else if (!tower || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap
@@ -1194,7 +1194,7 @@ float CaloRawTowerEval::get_energy_contribution(RawTower* tower, PHG4Particle* p
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -1229,7 +1229,7 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Particle* 
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -1240,12 +1240,12 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Particle* 
   else if (!tower || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!_trutheval.is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap
@@ -1258,7 +1258,7 @@ float CaloRawTowerEval::get_energy_contribution(TowerInfo* tower, PHG4Particle* 
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -1467,16 +1467,16 @@ void CaloRawTowerEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
   std::string towername = "TOWER_CALIB_" + _caloname;
-  _towers = findNode::getClass<RawTowerContainer>(topNode, towername.c_str());
+  _towers = findNode::getClass<RawTowerContainer>(topNode, towername);
 
   std::string towerinfoname = "TOWERINFO_CALIB_" + _caloname;
-  _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoname.c_str());
+  _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoname);
 
   std::string cellname = "G4CELL_" + _caloname;
-  _g4cells = findNode::getClass<PHG4CellContainer>(topNode, cellname.c_str());
+  _g4cells = findNode::getClass<PHG4CellContainer>(topNode, cellname);
 
   std::string hitname = "G4HIT_" + _caloname;
-  _g4hits = findNode::getClass<PHG4HitContainer>(topNode, hitname.c_str());
+  _g4hits = findNode::getClass<PHG4HitContainer>(topNode, hitname);
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 

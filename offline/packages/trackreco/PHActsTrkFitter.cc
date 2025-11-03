@@ -30,7 +30,7 @@
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeedHelper.h>
 
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -81,7 +81,6 @@ namespace
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : SubsysReco(name)
-  , m_trajectories(nullptr)
 {
 }
 
@@ -179,8 +178,13 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
     m_evaluator->verbosity(Verbosity());
   }
 
-  _tpccellgeo = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-
+  _tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+  if (!_tpccellgeo)
+    {
+      std::cout << PHWHERE << " unable to find DST node TPCGEOMCONTAINER" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
   if (Verbosity() > 1)
   {
     std::cout << "Finish PHActsTrkFitter Setup" << std::endl;
@@ -259,8 +263,6 @@ int PHActsTrkFitter::ResetEvent(PHCompositeNode* /*topNode*/)
   {
     std::cout << "Reset PHActsTrkFitter" << std::endl;
   }
-
-  m_trajectories->clear();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -658,8 +660,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
       else
       {
-	px = seedpt * cos(seedphi);
-	py = seedpt * sin(seedphi);
+	px = seedpt * std::cos(seedphi);
+	py = seedpt * std::sin(seedphi);
 	pz = seedpt * std::cosh(seedeta) * std::cos(seedtheta);
       }
 
@@ -915,8 +917,6 @@ bool PHActsTrkFitter::getTrackFitResult(FitResult& fitOutput,
 
     Trajectory trajectory(tracks.trackStateContainer(),
                           trackTips, indexedParams);
-
-    m_trajectories->insert(std::make_pair(track->get_id(), trajectory));
     
     if (m_actsEvaluator)
     {
@@ -1269,15 +1269,6 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
           new PHIODataNode<PHObject>(m_directedTrackMap, "SvtxSiliconMMTrackMap", "PHObject");
       svtxNode->addNode(trackNode);
     }
-  }
-
-  m_trajectories = findNode::getClass<std::map<const unsigned int, Trajectory>>(topNode, m_trajectories_name);
-  if (!m_trajectories)
-  {
-    m_trajectories = new std::map<const unsigned int, Trajectory>;
-    auto node =
-        new PHDataNode<std::map<const unsigned int, Trajectory>>(m_trajectories, m_trajectories_name);
-    svtxNode->addNode(node);
   }
 
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);

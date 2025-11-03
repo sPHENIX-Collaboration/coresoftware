@@ -17,7 +17,7 @@ class PHG4TpcSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4TpcSubsystem(const std::string &name = "TPC", const int layer = 0);
+  PHG4TpcSubsystem(const std::string &name = "TPC", const int lyr = 0);
 
   //! destructor
   ~PHG4TpcSubsystem() override;

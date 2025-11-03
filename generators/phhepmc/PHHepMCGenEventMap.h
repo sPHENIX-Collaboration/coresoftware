@@ -5,8 +5,8 @@
 
 #include <phool/PHObject.h>
 
-#include <cstddef>           // for size_t
-#include <iostream>           // for cout, ostream
+#include <cstddef>   // for size_t
+#include <iostream>  // for cout, ostream
 #include <map>
 
 //! \brief PHHepMCGenEventMap is collection of HEPMC events input into this simulation
@@ -34,7 +34,7 @@ class PHHepMCGenEventMap : public PHObject
   ~PHHepMCGenEventMap() override;
 
   void identify(std::ostream& os = std::cout) const override;
-// cppcheck-suppress virtualCallInConstructor
+  // cppcheck-suppress virtualCallInConstructor
   void Reset() override;
   int isValid() const override { return 1; }
   PHHepMCGenEventMap* CloneMe() const override { return new PHHepMCGenEventMap(*this); }
@@ -54,7 +54,7 @@ class PHHepMCGenEventMap : public PHObject
   //! insert a event of background, e.g. Au+Au collision background. First event has embedding ID = 0, which is usually the primary Au+Au collision in the case of HI embedding
   PHHepMCGenEvent* insert_background_event(const PHHepMCGenEvent* event = nullptr);
   //! insert a event with specific embedding ID
-  PHHepMCGenEvent* insert_event(const int embedding_id, const PHHepMCGenEvent* event = nullptr);
+  PHHepMCGenEvent* insert_event(const int index, const PHHepMCGenEvent* event = nullptr);
 
   size_t erase(int idkey)
   {

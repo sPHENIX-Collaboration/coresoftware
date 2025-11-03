@@ -8,13 +8,11 @@
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 
-#include <algorithm>  // for max
-#include <cmath>      // for sqrt
-#include <cstdlib>    // for abs
-#include <iostream>   // for operator<<, endl, basic_ostream
-#include <memory>     // for allocator_traits<>::value_type
-#include <utility>    // for swap
-#include <vector>     // for vector
+#include <algorithm>
+#include <cmath>     // for sqrt
+#include <iostream>  // for operator<<, endl, basic_ostream
+#include <utility>   // for swap
+#include <vector>    // for vector
 
 //__________________________________________________________
 PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name)
@@ -41,7 +39,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
   if (Verbosity() > 2)
   {
     std::cout << "PHPy8JetTrigger::Apply - pythia event size: "
-         << pythia->event.size() << std::endl;
+              << pythia->event.size() << std::endl;
   }
 
   // Loop over all particles in the event
@@ -95,10 +93,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
   {
     const double pt = sqrt(fastjet.px() * fastjet.px() + fastjet.py() * fastjet.py());
 
-    if (pt > max_pt)
-    {
-      max_pt = pt;
-    }
+    max_pt = std::max(pt, max_pt);
 
     std::vector<fastjet::PseudoJet> constituents = fastjet.constituents();
     int ijet_nconst = constituents.size();
@@ -128,10 +123,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
           double z_constit = con_ptot * ctheta / jet_ptot;
 
-          if (z_constit > leading_Z)
-          {
-            leading_Z = z_constit;
-          }
+          leading_Z = std::max(z_constit, leading_Z);
         }
 
         if (leading_Z > _minZ)
@@ -187,7 +179,7 @@ void PHPy8JetTrigger::SetMinNumConstituents(int nconst)
   _nconst = nconst;
 }
 
-void PHPy8JetTrigger::PrintConfig()
+void PHPy8JetTrigger::PrintConfig() const
 {
   std::cout << "---------------- PHPy8JetTrigger::PrintConfig --------------------" << std::endl;
 

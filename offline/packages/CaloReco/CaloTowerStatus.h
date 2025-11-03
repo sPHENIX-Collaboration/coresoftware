@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 class CDBTTree;
 class PHCompositeNode;
@@ -90,11 +91,6 @@ class CaloTowerStatus : public SubsysReco
     m_doAbortNoHotMap = status;
     return;
   }
-  void set_isSim(bool isSim = true)
-  {
-    m_isSim = isSim;
-    return;
-  }
 
  private:
   TowerInfoContainer *m_raw_towers{nullptr};
@@ -126,7 +122,6 @@ class CaloTowerStatus : public SubsysReco
   bool use_directURL_time{false};
   bool use_directURL_hotMap{false};
   bool use_directURL_chi2{false};
-  bool m_isSim{false};
 
   float badChi2_treshold_const = {1e4};
   float badChi2_treshold_quadratic = {1./100};
@@ -135,6 +130,18 @@ class CaloTowerStatus : public SubsysReco
   float z_score_threshold = {5};
   float z_score_threshold_default = {5};
   float time_cut = 2;  // number of samples from the mean time for the channel in the run
+
+  void LoadCalib();
+
+  struct CDBInfo
+  {
+    float fraction_badChi2{0};
+    float mean_time{0};
+    float z_score{0};
+    int hotMap_val{0};
+  };
+
+  std::vector<CDBInfo> m_cdbInfo_vec;
 };
 
 #endif  // CALOTOWERBUILDER_H

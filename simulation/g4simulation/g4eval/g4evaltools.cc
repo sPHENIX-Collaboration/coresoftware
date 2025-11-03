@@ -5,8 +5,8 @@
 #include <intt/CylinderGeomIntt.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <g4tracking/EmbRecoMatchContainer.h>
 #include <g4tracking/TrkrTruthTrack.h>
@@ -28,6 +28,7 @@
 #include <TFile.h>
 #include <TObjString.h>
 
+#include <cmath>
 #include <iostream>
 #include <numeric> // for std::accumulate
 
@@ -144,27 +145,28 @@ namespace G4Eval
     }
 
     // ------ TPC data ------
-    auto geom_tpc =
-        findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+    PHG4TpcGeomContainer *geom_tpc =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
     if (!geom_tpc)
-    {
-      std::cout << PHWHERE << " Could not locate CYLINDERCELLGEOM_SVTX node " << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    for (int this_layer = 7; this_layer < 55; ++this_layer)
-    {
-      PHG4TpcCylinderGeom* layergeom = geom_tpc->GetLayerCellGeom(this_layer);
-      if (this_layer == 7)
       {
-        m_zstep_tpc = layergeom->get_zstep();
+	std::cout << PHWHERE << " Could not locate TPCGEOMCONTAINER, abort" << std::endl;
+	return Fun4AllReturnCodes::ABORTRUN;
       }
-      m_phistep[this_layer] = layergeom->get_phistep();
-    }
-
+    
+    for (int this_layer = 7; this_layer < 55; ++this_layer)
+      {
+	PHG4TpcGeom* layergeom = geom_tpc->GetLayerCellGeom(this_layer);
+	if (this_layer == 7)
+	  {
+	    m_zstep_tpc = layergeom->get_zstep();
+	  }
+	m_phistep[this_layer] = layergeom->get_phistep();
+      }
+    
     m_TruthClusters =
-        findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters.c_str());
+      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters);
     if (!m_TruthClusters)
-    {
+      {
       std::cout << PHWHERE << " Could not locate " << name_phg4_clusters << " node" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
@@ -228,14 +230,14 @@ namespace G4Eval
       zsize_T = clus_R->getZSize() * m_nz_widths;  // * z_step;
     }
 
-    phi_delta = fabs(phi_T - phi_R);
+    phi_delta = std::abs(phi_T - phi_R);
     while (phi_delta > M_PI)
     {
       phi_delta = fabs(phi_delta - 2 * M_PI);
     }
     phi_delta /= phi_step;
 
-    z_delta = fabs(z_T - z_R) / z_step;
+    z_delta = std::abs(z_T - z_R) / z_step;
 
     /* float phi_stat = (m_nphi_widths * phisize_R ); */
 

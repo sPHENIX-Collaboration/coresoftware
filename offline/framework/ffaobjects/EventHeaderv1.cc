@@ -1,7 +1,7 @@
 #include "EventHeaderv1.h"
 
-#include <cmath>  // for NAN
 #include <iostream>
+#include <limits>
 #include <utility>  // for pair
 
 void EventHeaderv1::Reset()
@@ -65,7 +65,7 @@ float EventHeaderv1::get_floatval(const std::string &name) const
   {
     return iter->second;
   }
-  return NAN;
+  return std::numeric_limits<float>::quiet_NaN();
 }
 
 void EventHeaderv1::set_intval(const std::string &name, const int64_t ival)

@@ -5,6 +5,8 @@
 
 #include <phool/PHCompositeNode.h>
 
+#include <iostream>
+
 Timing::Timing(const std::string &name)
   : SubsysReco(name)
 {

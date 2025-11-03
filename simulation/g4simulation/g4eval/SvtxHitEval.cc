@@ -909,7 +909,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Particl
     {
       std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -924,7 +924,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Particl
     {
       std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -964,7 +964,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Hit* g4
     {
       std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -979,7 +979,7 @@ float SvtxHitEval::get_energy_contribution(TrkrDefs::hitkey hit_key, PHG4Hit* g4
     {
       std::cout << PHWHERE << " nerr: " << _errors << std::endl;
     }
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)

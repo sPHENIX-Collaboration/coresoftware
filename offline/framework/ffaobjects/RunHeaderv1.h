@@ -33,7 +33,7 @@ class RunHeaderv1 : public RunHeader
   int get_intval(const std::string &name) const override;
 
  private:
-  int RunNumber = 0;
+  int RunNumber{0};
   std::map<std::string, int> m_IntRunProperties;
   std::map<std::string, float> m_FloatRunProperties;
 

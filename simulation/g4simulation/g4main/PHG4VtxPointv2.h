@@ -7,8 +7,6 @@
 
 #include "PHG4MCProcessDefs.h"
 
-#include <climits>   // for INT_MIN
-#include <cmath>     // def of NAN
 #include <iostream>  // for cout, ostream
 
 class PHG4VtxPointv2 : public PHG4VtxPointv1
@@ -38,7 +36,7 @@ class PHG4VtxPointv2 : public PHG4VtxPointv1
   void identify(std::ostream& os = std::cout) const override;
 
   /// set process property
-  void set_process(int proc) override 
+  void set_process(int proc) override
   {
     auto prop = ((PropEncoding) mProp);
     prop.properties.process = proc;

@@ -8,6 +8,8 @@
 #include "TrkrHitTruthAssocv1.h"
 #include "TrkrDefs.h"
 
+#include "MvtxDefs.h"
+
 #include <g4main/PHG4HitDefs.h>
 
 #include <algorithm>
@@ -82,7 +84,32 @@ void TrkrHitTruthAssocv1::removeAssoc(const TrkrDefs::hitsetkey hitsetkey, const
 void TrkrHitTruthAssocv1::getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap& temp_map) const
 {
   const auto hitsetrange = m_map.equal_range(hitsetkey);
-  std::copy_if(hitsetrange.first, hitsetrange.second, std::inserter(temp_map, temp_map.end()),
-               [hidx](MMap::const_reference pair)
-               { return pair.second.first == hidx; });
+
+  bool found = false;
+  for (auto it = hitsetrange.first; it != hitsetrange.second; ++it)
+  {
+    if (it->second.first == hidx)
+    {
+      temp_map.emplace_hint(temp_map.end(), it->first, it->second);
+      found = true;
+    }
+  }
+
+  // mvtx special case: if no hits were found, look for the bare hitsetkey
+  const auto layer = TrkrDefs::getLayer(hitsetkey);
+  if (!found && layer < 3)
+  {
+    const auto stave = MvtxDefs::getStaveId(hitsetkey);
+    const auto chip = MvtxDefs::getChipId(hitsetkey);
+    const TrkrDefs::hitsetkey bare_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip, 0);
+
+    const auto bare_hitsetrange = m_map.equal_range(bare_hitsetkey);
+    for (auto it = bare_hitsetrange.first; it != bare_hitsetrange.second; ++it)
+    {
+      if (it->second.first == hidx)
+      {
+        temp_map.emplace_hint(temp_map.end(), it->first, it->second);
+      }
+    }
+  }
 }

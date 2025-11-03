@@ -19,7 +19,7 @@
 #include <tpc/TpcGlobalPositionWrapper.h>
 #include <tpc/TpcClusterZCrossingCorrection.h>
 
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/EventData/SourceLink.hpp>
@@ -50,7 +50,7 @@ namespace
 
 }
 
-void MakeSourceLinks::initialize(PHG4TpcCylinderGeomContainer* cellgeo)
+void MakeSourceLinks::initialize(PHG4TpcGeomContainer* cellgeo)
 {
   // get the TPC layer radii from the geometry object
   if (cellgeo)
@@ -206,7 +206,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
   // loop over cluster_vec and make source links
   for(auto& cluskey : cluster_vec)
     {
-      if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
+      if (m_ignoreLayer.contains(TrkrDefs::getLayer(cluskey)))
 	{
 	  if (m_verbosity > 3)
 	    {
@@ -407,7 +407,9 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
   // loop over global positions returned by cluster mover
   for(auto&& [cluskey, global] : global_moved)
   {
-    if (m_ignoreLayer.find(TrkrDefs::getLayer(cluskey)) != m_ignoreLayer.end())
+    // std::cout << "Global moved: " << global.x() << "  " <<  global.y() << "  " << global.z() << std::endl;
+    
+    if (m_ignoreLayer.contains(TrkrDefs::getLayer(cluskey)))
     {
       if (m_verbosity > 3)
       {

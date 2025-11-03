@@ -2,7 +2,7 @@
 #define TPC_LASEREVENTIDENTIFIER_H
 
 #include <fun4all/SubsysReco.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -14,8 +14,8 @@
 class PHCompositeNode;
 class TrkrHitSet;
 class TrkrHitSetContainer;
-class PHG4TpcCylinderGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeom;
+class PHG4TpcGeomContainer;
 class LaserEventInfo;
 class LaserEventIdentifier : public SubsysReco
 {
@@ -39,7 +39,7 @@ class LaserEventIdentifier : public SubsysReco
 
   TrkrHitSetContainer *m_hits = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
-  PHG4TpcCylinderGeomContainer *m_geom_container = nullptr;
+  PHG4TpcGeomContainer *m_geom_container = nullptr;
 
   LaserEventInfo *m_laserEventInfo = nullptr ;
   bool m_debug = false;

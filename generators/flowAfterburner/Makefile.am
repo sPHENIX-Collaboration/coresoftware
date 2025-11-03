@@ -16,10 +16,12 @@ AM_CPPFLAGS = \
   -isystem$(OFFLINE_MAIN)/include
 
 pkginclude_HEADERS = \
-  flowAfterburner.h
+  flowAfterburner.h \
+  AfterburnerAlgo.h
 
 libflowafterburner_la_SOURCES = \
-  flowAfterburner.cc
+  flowAfterburner.cc \
+  AfterburnerAlgo.cc
 
 
 bin_PROGRAMS = flowAfterburner 

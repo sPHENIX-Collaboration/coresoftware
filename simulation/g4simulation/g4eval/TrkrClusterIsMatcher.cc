@@ -1,11 +1,13 @@
 #include "TrkrClusterIsMatcher.h"
+
 #include "g4evalfn.h"
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <trackbase/ActsGeometry.h>
@@ -13,12 +15,13 @@
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>  // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+
+#include <cmath>
+#include <iostream>
 
 int TrkrClusterIsMatcher::init(
     PHCompositeNode* topNode,
@@ -34,7 +37,7 @@ int TrkrClusterIsMatcher::init(
   }
   for (int i = 0; i < 3; ++i)
   {
-    auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(i));
+    auto *layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(i));
     pitch_phi[i] = layergeom->get_pixel_x();
     if (i == 0)
     {
@@ -58,16 +61,16 @@ int TrkrClusterIsMatcher::init(
   }
 
   // ------ TPC data ------
-  auto geom_tpc =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto *geom_tpc =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_tpc)
   {
-    std::cout << PHWHERE << " Could not locate CYLINDERCELLGEOM_SVTX node " << std::endl;
+    std::cout << PHWHERE << " Could not locate TPCGEOMCONTAINER node " << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   for (int i = 7; i < 55; ++i)
   {
-    PHG4TpcCylinderGeom* layergeom = geom_tpc->GetLayerCellGeom(i);
+    PHG4TpcGeom* layergeom = geom_tpc->GetLayerCellGeom(i);
     if (i == 7)
     {
       step_t_TPC = layergeom->get_zstep();
@@ -76,7 +79,7 @@ int TrkrClusterIsMatcher::init(
   }
 
   m_TruthClusters =
-      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters.c_str());
+      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters);
   if (!m_TruthClusters)
   {
     std::cout << PHWHERE << " Could not locate " << name_phg4_clusters << " node" << std::endl;
@@ -84,7 +87,7 @@ int TrkrClusterIsMatcher::init(
   }
 
   m_RecoClusters =
-      findNode::getClass<TrkrClusterContainer>(topNode, name_reco_clusters.c_str());
+      findNode::getClass<TrkrClusterContainer>(topNode, name_reco_clusters);
   if (!m_TruthClusters)
   {
     std::cout << PHWHERE << " Could not locate " << name_reco_clusters << " node" << std::endl;
@@ -182,7 +185,7 @@ bool TrkrClusterIsMatcher::operator()(TrkrDefs::cluskey key_T, TrkrDefs::cluskey
         return false;
       }
     }
-    const float delta_z = fabs(clus_T->getPosition(1) - clus_R->getPosition(1));
+    const float delta_z = std::abs(clus_T->getPosition(1) - clus_R->getPosition(1));
     if (single_pixel_z_MVTX)
     {
       if (delta_z > tol_pitch_z_MVTX)
@@ -237,7 +240,7 @@ bool TrkrClusterIsMatcher::operator()(TrkrDefs::cluskey key_T, TrkrDefs::cluskey
         return false;
       }
     }
-    const float delta_t = fabs(clus_T->getPosition(1) - clus_R->getPosition(1));
+    const float delta_t = std::abs(clus_T->getPosition(1) - clus_R->getPosition(1));
     if (single_bin_t_TPC)
     {
       if (delta_t > tol_step_t_TPC)
@@ -261,6 +264,8 @@ bool TrkrClusterIsMatcher::operator()(TrkrDefs::cluskey key_T, TrkrDefs::cluskey
     return false;  // no info for matching TPOT at this time
   }
   break;
+  default:
+    std::cout << "not implemented det_0123 : " << det_0123 << std::endl;
   }
   return false;  // code shouldn't arrive here; just for completeness for compiler
 }

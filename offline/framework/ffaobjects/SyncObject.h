@@ -6,6 +6,7 @@
 #include <phool/PHObject.h>
 
 #include <iostream>
+#include <limits>
 
 ///
 class SyncObject : public PHObject
@@ -44,15 +45,16 @@ class SyncObject : public PHObject
   /// set Run Number
   virtual void RunNumber(const int /*ival*/) { return; }
 
- protected:
   /// get Event Number
-  virtual int EventNumber() const { return -9999; }
+  virtual int EventNumber() const { return std::numeric_limits<int>::min(); }
+
+protected:
   /// get Event Counter
-  virtual int EventCounter() const { return -9999; }
+  virtual int EventCounter() const { return std::numeric_limits<int>::min(); }
   /// get Run Number
-  virtual int RunNumber() const { return -9999; }
+  virtual int RunNumber() const { return std::numeric_limits<int>::min(); }
   /// get Segment Number
-  virtual int SegmentNumber() const { return -9999; }
+  virtual int SegmentNumber() const { return std::numeric_limits<int>::min(); }
 
  private:  // prevent doc++ from showing ClassDefOverride
   friend class SyncObjectv1;

@@ -55,6 +55,13 @@ CDBInterface::~CDBInterface()
 //____________________________________________________________________________..
 int CDBInterface::End(PHCompositeNode *topNode)
 {
+  int iret = UpdateRunNode(topNode);PHNodeIterator iter(topNode);
+  return iret;
+}
+
+//____________________________________________________________________________..
+int CDBInterface::UpdateRunNode(PHCompositeNode *topNode)
+{
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
   CdbUrlSave *cdburls = findNode::getClass<CdbUrlSave>(runNode, "CdbUrl");
@@ -75,7 +82,7 @@ int CDBInterface::End(PHCompositeNode *topNode)
     // not possible using for range loops, iterator gets invalidated
     for (auto itr = m_UrlVector.cbegin(); itr != m_UrlVector.cend();)
     {
-      if (tmp_set.find(*itr) != tmp_set.end())
+      if (tmp_set.contains(*itr))
       {
         if (Verbosity())
         {

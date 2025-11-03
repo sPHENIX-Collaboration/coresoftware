@@ -11,13 +11,10 @@
 #ifndef USPIN_SPINDBOUTPUT_H
 #define USPIN_SPINDBOUTPUT_H
 
-#include "SpinDBContent.h"
-
 #include <map>
+#include <memory>  // for unique_ptr
 #include <string>
 #include <vector>
-
-#define QA_ERROR_VALUE -999
 
 namespace odbc
 {
@@ -25,6 +22,8 @@ namespace odbc
   class Statement;
   class ResultSet;
 };  // namespace odbc
+
+class SpinDBContent;
 
 class SpinDBOutput
 {
@@ -37,13 +36,13 @@ class SpinDBOutput
   }
   virtual ~SpinDBOutput() = default;
   void Initialize();
-  void SetUserName(const char *user)
+  void SetUserName(const std::string &user)
   {
     user_name = user;
     return;
   }
-  void SetDBName(const char *dbname);
-  void SetTableName(const char *tname);
+  void SetDBName(const std::string &dbname);
+  void SetTableName(const std::string &tname);
   int PrintDBColumn();
   int PrintDBRawContent(int runnum);
   int PrintDBRawContent(int runnum, int qa_level);
@@ -53,33 +52,31 @@ class SpinDBOutput
   int StoreDBContent(int run1, int run2);
   int StoreDBContent(int run1, int run2, int qa_level);
   void ClearDBContent();
-  int GetDBContent(SpinDBContent &spin_cont, int runnum);
-  int GetDBContent(SpinDBContent &spin_cont, int runnum, int qa_level);
-  int GetDBContentStore(SpinDBContent &spin_cont, int runnum);
+  int GetDBContent(SpinDBContent *&spin_cont, int runnum);
+  int GetDBContent(SpinDBContent *&spin_cont, int runnum, int qa_level);
+  int GetDBContentStore(SpinDBContent *&spin_cont, int runnum);
+  static int CopyDBContent(SpinDBContent &spin_cont, SpinDBContent &spin_cont_copy);
   int GetDefaultQA(int runnum);
-  void Verbosity(int verbose = 0){verbosity=verbose;}
+  void Verbosity(int verbose = 0) { verbosity = verbose; }
 
  private:
-  static const int ERROR_VALUE;
+  static constexpr int ERROR_VALUE{-999};
 
-  int verbosity = 0;
+  int verbosity{0};
 
   std::string db_name;
   std::string user_name;
   std::string table_name;
 
-  SpinDBContent spin_cont_store1;
-  std::map<int, SpinDBContent> spin_cont_store;
+  std::map<int, std::unique_ptr<SpinDBContent>> spin_cont_store;
 
   odbc::Connection *ConnectDB(void);
   int GetDBContent(SpinDBContent &spin_cont, odbc::ResultSet *rs);
-  int GetArray(odbc::ResultSet *rs, const char *name, std::vector<std::string> &value);
-  int GetArray(odbc::ResultSet *rs, const char *name, float *value, int nvalue);
-  int GetArray(odbc::ResultSet *rs, const char *name, unsigned int *value, int nvalue);
-  int GetArray(odbc::ResultSet *rs, const char *name, int *value, int nvalue);
-  int GetArray(odbc::ResultSet *rs, const char *name, long long *value, int nvalue);
-
-  
+  int GetArray(odbc::ResultSet *rs, const std::string &name, std::vector<std::string> &value) const;
+  int GetArray(odbc::ResultSet *rs, const std::string &name, float *value, int nvalue);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, unsigned int *value, int nvalue);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, int *value, int nvalue);
+  int GetArray(odbc::ResultSet *rs, const std::string &name, long long *value, int nvalue);
 };
 
 #endif /* USPIN_SPINDBOUTPUT_H */

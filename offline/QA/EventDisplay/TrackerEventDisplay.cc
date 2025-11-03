@@ -16,8 +16,8 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrHitSet.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -27,10 +27,9 @@
 #include <phool/recoConsts.h>
 
 #include <TVector3.h>
-#include <boost/format.hpp>
-#include <boost/math/special_functions/sign.hpp>
 
 #include <cmath>
+#include <format>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -57,11 +56,11 @@ int TrackerEventDisplay::Init(PHCompositeNode* /*topNode*/)
 }
 int TrackerEventDisplay::InitRun(PHCompositeNode *topNode)
 {
-  auto geom =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  auto *geom =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
@@ -102,11 +101,11 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
     return;
   }
 
-  PHG4TpcCylinderGeomContainer* geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer* geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return;
   }
 
@@ -138,7 +137,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             << std::endl;
     outdata << "    \"TRACKHITS\": [\n\n ";
 
-    auto m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    auto *m_tGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
     if (Verbosity() >= 1)
     {
@@ -184,7 +183,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
 
           if (TrkrDefs::getTrkrId(hitset_key) == TrkrDefs::TrkrId::tpcId)
           {
-            PHG4TpcCylinderGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
+            PHG4TpcGeom* GeoLayer_local = geom_container->GetLayerCellGeom(layer_local);
             double radius = GeoLayer_local->get_radius();
             phibin = (float) TpcDefs::getPad(hit_key);
             tbin = (float) TpcDefs::getTBin(hit_key);
@@ -202,8 +201,8 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             }
             z = clusz;
             phi_center = GeoLayer_local->get_phicenter(phibin, side);
-            x = radius * cos(phi_center);
-            y = radius * sin(phi_center);
+            x = radius * std::cos(phi_center);
+            y = radius * std::sin(phi_center);
 
             std::stringstream spts;
 
@@ -226,7 +225,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
             spts << adc;
             spts << "}";
 
-            outdata << (boost::format("%1%") % spts.str());
+            outdata << std::format("{}", spts.str());
             spts.clear();
             spts.str("");
           }
@@ -334,7 +333,7 @@ void TrackerEventDisplay::makeJsonFile(PHCompositeNode* topNode)
           spts << adc;
           spts << "}";
 
-          outdata << (boost::format("%1%") % spts.str());
+          outdata << std::format("{}", spts.str());
           spts.clear();
           spts.str("");
         }

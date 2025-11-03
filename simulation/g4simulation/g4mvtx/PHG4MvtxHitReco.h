@@ -60,7 +60,7 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
 
   double generate_strobe_zero_tm_start();
 
-  int get_strobe_frame(double alpide_time, double strobe_zero_tm_start);
+  int get_strobe_frame(double alpide_time, double strobe_zero_tm_start) const;
 
   TrkrDefs::hitsetkey zero_strobe_bits(TrkrDefs::hitsetkey hitsetkey);
 
@@ -72,7 +72,8 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterInterface
   double m_strobe_separation;
   double m_extended_readout_time = 0.0;
 
-  bool m_in_sphenix_srdo = false;
+  bool m_in_sphenix_srdo = true;
+  double m_trigger_latency = 3.7;  // in us, same as in data
 
   class Deleter
   {

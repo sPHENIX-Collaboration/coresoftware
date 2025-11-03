@@ -186,12 +186,20 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
 
       // make base eta/phi hist name
       const std::string statLabel = CaloStatusMapperDefs::StatLabels().at(status);
+
+      // if not doing optional histograms, skip these status
+      if (!m_config.doOptHist && CaloStatusMapperDefs::IsStatusSkippable(statLabel))
+      {
+        continue;
+      }
+
       const std::string perEtaBase = MakeBaseName("NPerEta", nodeName, statLabel);
       const std::string perPhiBase = MakeBaseName("NPerPhi", nodeName, statLabel);
       const std::string phiEtaBase = MakeBaseName("PhiVsEta", nodeName, statLabel);
 
       // fill histograms accordingly
       m_hists[statBase]->Fill(status);
+      m_hists[statBase]->AddBinContent(m_totalBin[statBase], 1.0);
       m_hists[perEtaBase]->Fill(iEta);
       m_hists[perPhiBase]->Fill(iPhi);
       m_hists[phiEtaBase]->Fill(iEta, iPhi);
@@ -334,6 +342,10 @@ void CaloStatusMapper::BuildHistograms()
       }
 
     }  // end status loop
+    
+    int totalBin = m_hists[statBase]->GetNbinsX();
+    m_hists[statBase]->GetXaxis()->SetBinLabel(totalBin, "N_{Total}");
+    m_totalBin[statBase] = totalBin;
   }  // end node loop
   return;
 

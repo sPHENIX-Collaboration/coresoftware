@@ -2,8 +2,9 @@
 
 #include <TVector3.h>
 
-#include <cmath>   // for NAN, abs
-#include <string>  // for string
+#include <cmath>
+#include <limits>
+#include <string>
 
 class AnalyticFieldModel;
 class ChargeMapReader;
@@ -47,8 +48,8 @@ class AnnularFieldSim
   // note that if we set to Zero, we skip the lookup step.
 
   // constructors with history for backwards compatibility
-  AnnularFieldSim(float rmin, float rmax, float dz, int r, int phi, int z, float vdr);  // abbr. constructor with roi=full region
-  AnnularFieldSim(float rin, float rout, float dz,
+  AnnularFieldSim(float rin, float rout, float dz, int r, int phi, int z, float vdr);  // abbr. constructor with roi=full region
+  AnnularFieldSim(float in_innerRadius, float in_outerRadius, float in_outerZ,
                   int r, int roi_r0, int roi_r1,
                   int phi, int roi_phi0, int roi_phi1,
                   int z, int roi_z0, int roi_z1,
@@ -95,9 +96,9 @@ class AnnularFieldSim
   }
 
   // getters for internal states:
-  const std::string GetLookupString();
-  const std::string GetGasString();
-  const std::string GetFieldString();
+  std::string GetLookupString();
+  std::string GetGasString();
+  std::string GetFieldString();
   const std::string &GetChargeString() { return chargestring; };
   float GetNominalB() { return Bnominal; };
   float GetNominalE() { return Enominal; };
@@ -146,9 +147,9 @@ class AnnularFieldSim
   void setFlatFields(float B, float E);
   void loadEfield(const std::string &filename, const std::string &treename, int zsign = 1);
   void loadBfield(const std::string &filename, const std::string &treename);
-  void load3dBfield(const std::string &filename, const std::string &treename, int zsign = 1, float scale = 1.0, float xshift=0, float yshift=0, float zshift=0);
+  void load3dBfield(const std::string &filename, const std::string &treename, int zsign = 1, float scale = 1.0, float xshift = 0, float yshift = 0, float zshift = 0);
 
-  void loadField(MultiArray<TVector3> **field, TTree *source, float *rptr, float *phiptr, float *zptr, float *frptr, float *fphiptr, float *fzptr, float fieldunit, int zsign, float xshift=0, float yshift=0, float zshift=0);
+  void loadField(MultiArray<TVector3> **field, TTree *source, const float *rptr, const float *phiptr, const float *zptr, const float *frptr, const float *fphiptr, const float *fzptr, float fieldunit, int zsign, float xshift = 0, float yshift = 0, float zshift = 0);
 
   void load_rossegger(double epsilon = 1E-4)
   {
@@ -182,8 +183,8 @@ class AnnularFieldSim
   TVector3 analyticFieldIntegral(float zdest, TVector3 start, MultiArray<TVector3> *field);
   TVector3 interpolatedFieldIntegral(float zdest, TVector3 start) { return interpolatedFieldIntegral(zdest, start, Efield); };
   TVector3 interpolatedFieldIntegral(float zdest, const TVector3 &start, MultiArray<TVector3> *field);
-  double FilterPhiPos(double phi);         // puts phi in 0<phi<2pi
-  int FilterPhiIndex(int phi, int range);  // puts phi in bin range 0<phi<range.  defaults to using nphi for range.
+  double FilterPhiPos(double phi);               // puts phi in 0<phi<2pi
+  int FilterPhiIndex(int phi, int range) const;  // puts phi in bin range 0<phi<range.  defaults to using nphi for range.
 
   TVector3 GetCellCenter(int r, int phi, int z);
   TVector3 GetRoiCellCenter(int r, int phi, int z);
@@ -271,10 +272,10 @@ class AnnularFieldSim
   // static constexpr float k_perm=8.987e11;//=1/(4*pi*eps0) in (V*cm)/C in a vacuum. so that we supply space charge in Coulombs, distance in cm, and fields in V/cm
 
   // gas constants:
-  double vdrift = NAN;  // gas drift speed in cm/s
-  double langevin_T1 = NAN;
-  double langevin_T2 = NAN;       // gas tensor drift terms.
-  double omegatau_nominal = NAN;  // nominal omegatau value, derived from vdrift and field strengths.
+  double vdrift = std::numeric_limits<double>::quiet_NaN();  // gas drift speed in cm/s
+  double langevin_T1 = std::numeric_limits<double>::quiet_NaN();
+  double langevin_T2 = std::numeric_limits<double>::quiet_NaN();       // gas tensor drift terms.
+  double omegatau_nominal = std::numeric_limits<double>::quiet_NaN();  // nominal omegatau value, derived from vdrift and field strengths.
   // double vprime; //first derivative of drift velocity at specific E
   // double vprime2; //second derivative of drift velocity at specific E
 
@@ -285,8 +286,8 @@ class AnnularFieldSim
   //  char fieldstring[300],Bfieldname[100],Efieldname[100];
   std::string chargesourcename;
   std::string chargestring;
-  float Enominal = NAN;  // magnitude of the nominal field on which drift speed is based, in V/cm.
-  float Bnominal;        // magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
+  float Enominal = std::numeric_limits<double>::quiet_NaN();  // magnitude of the nominal field on which drift speed is based, in V/cm.
+  float Bnominal;                                             // magnitude of the nominal magnetic field on which drift speed is based, in Tesla.
 
   // physical dimensions
   float phispan;     // angular span of the area in the phi direction, since TVector3 is too smart.
@@ -311,27 +312,27 @@ class AnnularFieldSim
 
   // variables related to the high-res behavior:
   //
-  int nr_high = -1;
-  int nphi_high = -1;
-  int nz_high = -1;  // dimensions, in f-bins of neighborhood of a f-bin in which we calculate the field in full resolution
+  int nr_high{-1};
+  int nphi_high{-1};
+  int nz_high{-1};  // dimensions, in f-bins of neighborhood of a f-bin in which we calculate the field in full resolution
 
   // variables related to the low-res behavior:
   //
-  int r_spacing = -1;
-  int phi_spacing = -1;
-  int z_spacing = -1;  // number of f-bins, in each direction, to gang together to make a single low-resolution bin (l-bin)
-  int nr_low = -1;
-  int nphi_low = -1;
-  int nz_low = -1;  // dimensions, in l-bins, of the entire volume
-  int rmin_roi_low = -1;
-  int phimin_roi_low = -1;
-  int zmin_roi_low = -1;  // lowest l-bin that is at least partly in our region of interest
-  int rmax_roi_low = -1;
-  int phimax_roi_low = -1;
-  int zmax_roi_low = -1;  // excluded upper edge l-bin of our region of interest
-  int nr_roi_low = -1;
-  int nphi_roi_low = -1;
-  int nz_roi_low = -1;  // dimensions of our roi in l-bins
+  int r_spacing{-1};
+  int phi_spacing{-1};
+  int z_spacing{-1};  // number of f-bins, in each direction, to gang together to make a single low-resolution bin (l-bin)
+  int nr_low{-1};
+  int nphi_low{-1};
+  int nz_low{-1};  // dimensions, in l-bins, of the entire volume
+  int rmin_roi_low{-1};
+  int phimin_roi_low{-1};
+  int zmin_roi_low{-1};  // lowest l-bin that is at least partly in our region of interest
+  int rmax_roi_low{-1};
+  int phimax_roi_low{-1};
+  int zmax_roi_low{-1};  // excluded upper edge l-bin of our region of interest
+  int nr_roi_low{-1};
+  int nphi_roi_low{-1};
+  int nz_roi_low{-1};  // dimensions of our roi in l-bins
 
   // 3- and 6-dimensional arrays to handle bin and bin-to-bin data
   //

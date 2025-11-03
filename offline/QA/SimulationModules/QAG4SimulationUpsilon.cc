@@ -247,7 +247,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
       geta = gv.Eta();
       //      gphi = gv.Phi();
     }
-    if (m_etaRange.first < geta and geta < m_etaRange.second)
+    if (m_etaRange.first < geta && geta < m_etaRange.second)
     {
       if (Verbosity())
       {
@@ -388,7 +388,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
       h_nGen_Pair_InvMassGen->Fill(gv_quakonium.m());
       h_norm->Fill("Truth Upsilon in Acc.", 1);
 
-      if (pair_pos.second and pair_neg.second)
+      if (pair_pos.second && pair_neg.second)
       {
         CLHEP::HepLorentzVector v_pos;
         CLHEP::HepLorentzVector v_neg;

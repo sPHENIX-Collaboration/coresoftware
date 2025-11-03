@@ -484,6 +484,16 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
   m_tree->Branch((daughter_number + "_OHCAL_energy_3x3").c_str(), &detector_ohcal_energy_3x3[daughter_id], (daughter_number + "_OHCAL_energy_3x3/F").c_str());
   m_tree->Branch((daughter_number + "_OHCAL_energy_5x5").c_str(), &detector_ohcal_energy_5x5[daughter_id], (daughter_number + "_OHCAL_energy_5x5/F").c_str());
   m_tree->Branch((daughter_number + "_OHCAL_energy_cluster").c_str(), &detector_ohcal_cluster_energy[daughter_id], (daughter_number + "_OHCAL_energy_cluster/F").c_str());
+  
+  //Cluster Shape Studies
+  if(m_get_detailed_calorimetry){
+    m_tree->Branch((daughter_number + "_EMCAL_5x5Cell_binPhi").c_str(), &detector_emcal_5x5Cell_Phi[daughter_id]);
+    m_tree->Branch((daughter_number + "_EMCAL_5x5Cell_binEta").c_str(), &detector_emcal_5x5Cell_Eta[daughter_id]);
+    m_tree->Branch((daughter_number + "_EMCAL_5x5Cell_E").c_str(), &detector_emcal_5x5Cell_E[daughter_id]);
+    m_tree->Branch((daughter_number + "_EMCAL_nTowers").c_str(), &detector_emcal_ntowers[daughter_id], (daughter_number + "_EMCAL_nTowers/i").c_str());
+    m_tree->Branch((daughter_number + "_EMCAL_Chi2").c_str(), &detector_emcal_chi2[daughter_id], (daughter_number + "_EMCAL_Chi2/F").c_str());
+  }
+
 }
 
 /*
@@ -512,24 +522,24 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "CLUSTERINFO_CEMC" << std::endl;
     }
   }
-  // if (!EMCalGeo)
-  // {
-  //   EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
-  //   if (!EMCalGeo)
-  //   {
-  //     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
-  //     // return Fun4AllReturnCodes::ABORTEVENT;
-  //   }
-  // }
-  // if(!_towersEM)
-  // {
-  //   _towersEM = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
-  //   if(!_towersEM)
-  //   {
-  //     std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_CEMC" << std::endl;
-  //     //return Fun4AllReturnCodes::ABORTEVENT;
-  //   }
-  // }
+  if (!EMCalGeo)
+  {
+    EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+    if (!EMCalGeo)
+    {
+      std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWERGEOM_CEMC" << std::endl;
+      // return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
+    if(!_towersEM)
+  {
+    _towersEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+    if(!_towersEM)
+    {
+      std::cout << __FILE__ << "::" << __func__ << " : FATAL ERROR, cannot find cluster container " << "TOWER_CALIB_CEMC" << std::endl;
+      //return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  }
   if (!clustersIH)
   {
     clustersIH = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_HCALIN");
@@ -646,6 +656,13 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   std::vector<float> v_emcal_3x3;
   std::vector<float> v_emcal_5x5;
   std::vector<float> v_emcal_clusE;
+  //Detailed Calo Info 
+  float _emcal_nTowers = std::numeric_limits<float>::quiet_NaN();
+  float _emcal_chi2 = std::numeric_limits<float>::quiet_NaN();
+  std::vector<float> v_emcal_nTowers;
+  std::vector<float> v_emcal_chi2;
+  RawClusterDefs::keytype _clus_key;
+  std::vector<RawClusterDefs::keytype> v_clus_key;
 
   // Set variables for matching
   is_match = false;
@@ -688,13 +705,25 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       _emcal_x *= radius_scale;
       _emcal_y *= radius_scale;
       _emcal_z *= radius_scale;
-      _emcal_phi = std::atan2(_emcal_y, _emcal_y);
+      _emcal_phi = std::atan2(_emcal_y, _emcal_x);
       _emcal_eta = std::asinh(_emcal_z / std::sqrt((_emcal_x * _emcal_x) + (_emcal_y * _emcal_y)));
       // _emcal_3x3 = get_e3x3(cluster, _towersEM, 0); //0 for emcal
       // _emcal_5x5 = get_e5x5(cluster, _towersEM, 0); //0 for emcal
       _emcal_3x3 = std::numeric_limits<float>::quiet_NaN();
       _emcal_5x5 = std::numeric_limits<float>::quiet_NaN();
       _emcal_clusE = cluster_energy;
+      //Detailed Calo Info 
+      _emcal_nTowers = cluster->getNTowers(); 
+      _emcal_chi2 = cluster->get_chi2();
+      _clus_key = cluster->get_id();
+
+      
+
+  //     virtual RawClusterDefs::keytype get_id() const
+  // {
+  //   PHOOL_VIRTUAL_WARN("get_id()");
+  //   return 0;
+  // }
 
       // Variables to determine potential matches
       float dphi = PiRange(_track_phi_emc - _emcal_phi);
@@ -733,8 +762,12 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
       v_emcal_3x3.push_back(_emcal_3x3);
       v_emcal_5x5.push_back(_emcal_5x5);
       v_emcal_clusE.push_back(_emcal_clusE);
+      //Detailed Calo Info
+      v_emcal_nTowers.push_back(_emcal_nTowers);
+      v_emcal_chi2.push_back(_emcal_chi2);
+      v_clus_key.push_back(_clus_key);
+
       is_match = true;
-      // ijk++;
     }
 
     // Find the closest match from all potential matches
@@ -750,6 +783,7 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
         }
       }
     }
+
   }
 
   /*
@@ -772,6 +806,14 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+    if(m_get_detailed_calorimetry)
+    {
+    detector_emcal_ntowers[daughter_id] = std::numeric_limits<unsigned int>::quiet_NaN();
+    detector_emcal_chi2[daughter_id] = std::numeric_limits<float>::quiet_NaN();
+    detector_emcal_5x5Cell_Phi[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
+    detector_emcal_5x5Cell_Eta[daughter_id].push_back(std::numeric_limits<unsigned int>::quiet_NaN());
+    detector_emcal_5x5Cell_E[daughter_id].push_back(std::numeric_limits<float>::quiet_NaN());
+    }
     isTrackEMCalmatch = false;
   }
   else
@@ -782,8 +824,15 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     detector_emcal_energy_3x3[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_energy_5x5[daughter_id] = std::numeric_limits<float>::quiet_NaN();
     detector_emcal_cluster_energy[daughter_id] = v_emcal_clusE[index];
+    if(m_get_detailed_calorimetry)
+    {
+    detector_emcal_ntowers[daughter_id] = v_emcal_nTowers[index];
+    detector_emcal_chi2[daughter_id] = v_emcal_chi2[index];
+    KFParticle_truthAndDetTools::Get5x5CellInfo(v_clus_key[index], daughter_id); //Adds the tower info to the vectors
+    }
     isTrackEMCalmatch = true;
   }
+
 
   // HCAL*******************************************************
 
@@ -1079,13 +1128,101 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   // std::cout << "OHCAL CLLUSTERS MATCHED TO TRACK" << std::endl;
 }
 
+
+void KFParticle_truthAndDetTools::Get5x5CellInfo(RawClusterDefs::keytype key_in, int daughter_id){
+
+  //Get cluster from cluster key 
+  RawCluster *clus = clustersEM->getCluster(key_in);
+  
+  //Set up variables for looping over towers
+  int center_phi = std::numeric_limits<int>::quiet_NaN();
+  int center_eta = std::numeric_limits<int>::quiet_NaN();
+  float center_energy = -9999;
+  const RawCluster::TowerConstRange begin_end_Towers = clus->get_towers();
+  RawCluster::TowerConstIterator towersIter;
+  
+  //Loop over the towers in the cluster to find the cluster center
+  for (towersIter = begin_end_Towers.first; towersIter != begin_end_Towers.second; ++towersIter){
+    if(towersIter->second > center_energy){
+      //Setup for phi and eta
+      RawTowerGeom *tower_geom = EMCalGeo->get_tower_geometry(towersIter->first);
+      //Get energy, phi, and eta of center tower
+      center_energy = towersIter->second;
+      center_phi = EMCalGeo->get_phibin(tower_geom->get_phi());
+      center_eta = EMCalGeo->get_etabin(tower_geom->get_eta());
+    }
+  } // Now we have the center tower and can grab the 5x5 grid info
+    
+  //Vectors used in next for loops
+  std::vector<unsigned int> v_phi_tmp;
+  std::vector<unsigned int> v_eta_tmp;
+
+  //Get phi bins, and account for wrap-around case
+  for(int i = -2; i<=2; i++){
+    int phibin = center_phi+i;
+    //Wraparound
+    if(phibin < 0 || phibin > 255){ 
+      if(phibin == -1)  { phibin = 255;}
+      if(phibin == -2)  { phibin = 254;}
+      if(phibin == 256) { phibin = 0;}
+      if(phibin == 257) { phibin = 1;}
+      if(phibin == 258) { phibin = 2;}
+    }
+    v_phi_tmp.push_back(phibin);
+  }
+
+  //Get eta bins, and account for end of acceptance
+  for(int i = -2; i<=2; i++){
+    int etabin = center_eta+i;
+    //End of eta acceptance case
+    if(etabin < 0 || etabin > 95){ continue; }
+    v_eta_tmp.push_back(etabin);
+    // else{ v_eta_tmp.push_back(etabin); }
+  }
+
+  //Vector to hold keys and energies
+  std::vector<unsigned int> v_tower_phi = {};
+  std::vector<unsigned int> v_tower_eta = {};
+  std::vector<float> v_tower_energy = {};
+  
+  //Ranges for for-loops
+  int phi_range = v_phi_tmp.size();
+  int eta_range = v_eta_tmp.size();
+
+  //for loop to fill vectors which will be stored in the KFP output nTuple
+  for(int i = 0; i<phi_range; i++){
+    //Get ith phi bin
+    const unsigned int iphi = v_phi_tmp[i];
+
+    for(int j=0; j<eta_range; j++){
+      
+      //Get jth eta bin
+      const unsigned int jeta = v_eta_tmp[j];
+      //Get key at phi and eta bin
+      unsigned int towerinfo_key = TowerInfoDefs::encode_emcal(jeta, iphi);
+      //Get energy 
+      TowerInfo *tower = _towersEM->get_tower_at_key(towerinfo_key);
+      float energytmp = tower->get_energy();
+
+      //Store in vectors
+      detector_emcal_5x5Cell_Phi[daughter_id].push_back(iphi);
+      detector_emcal_5x5Cell_Eta[daughter_id].push_back(jeta);
+      detector_emcal_5x5Cell_E[daughter_id].push_back(energytmp);
+    }
+  }
+
+}
+
 void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number)
 {
-  m_tree->Branch((daughter_number + "_residual_x").c_str(), &residual_x[daughter_id]);
-  m_tree->Branch((daughter_number + "_residual_y").c_str(), &residual_y[daughter_id]);
-  m_tree->Branch((daughter_number + "_residual_z").c_str(), &residual_z[daughter_id]);
-  m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
 
+  if(m_get_detailed_tracking){
+    m_tree->Branch((daughter_number + "_residual_x").c_str(), &residual_x[daughter_id]);
+    m_tree->Branch((daughter_number + "_residual_y").c_str(), &residual_y[daughter_id]);
+    m_tree->Branch((daughter_number + "_residual_z").c_str(), &residual_z[daughter_id]);
+    m_tree->Branch((daughter_number + "_layer").c_str(), &detector_layer[daughter_id]);
+  }
+  
   for (auto const &subdetector : Use)
   {
     if (subdetector.second)
@@ -1094,27 +1231,32 @@ void KFParticle_truthAndDetTools::initializeDetectorBranches(TTree *m_tree, int 
     }
   }
 }
-
 void KFParticle_truthAndDetTools::initializeSubDetectorBranches(TTree *m_tree, const std::string &detectorName, int daughter_id, const std::string &daughter_number)
 {
   if (detectorName == "MVTX")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_staveID").c_str(), &mvtx_staveID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_chipID").c_str(), &mvtx_chipID[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_MVTX[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_MVTX[daughter_id]);
   }
   if (detectorName == "INTT")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_ladderZID").c_str(), &intt_ladderZID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_ladderPhiID").c_str(), &intt_ladderPhiID[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_INTT[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_INTT[daughter_id]);
   }
   if (detectorName == "TPC")
   {
+    if(m_get_detailed_tracking){
     m_tree->Branch((daughter_number + "_" + detectorName + "_sectorID").c_str(), &tpc_sectorID[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_side").c_str(), &tpc_side[daughter_id]);
+    }
     m_tree->Branch((daughter_number + "_" + detectorName + "_nHits").c_str(), &detector_nHits_TPC[daughter_id]);
     m_tree->Branch((daughter_number + "_" + detectorName + "_nStates").c_str(), &detector_nStates_TPC[daughter_id]);
   }
@@ -1185,13 +1327,15 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ladderPhiId = InttDefs::getLadderPhiId(cluster_key);
         ++detector_nHits_INTT[daughter_id];
       }
-
+      
+      if(m_get_detailed_tracking){
       mvtx_staveID[daughter_id].push_back(staveId);
       mvtx_chipID[daughter_id].push_back(chipId);
       intt_ladderZID[daughter_id].push_back(ladderZId);
       intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
       tpc_sectorID[daughter_id].push_back(sectorId);
       tpc_side[daughter_id].push_back(side);
+      }
     }
   }
 
@@ -1223,12 +1367,14 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         ++detector_nHits_TPOT[daughter_id];
       }
 
+      if(m_get_detailed_tracking){
       mvtx_staveID[daughter_id].push_back(staveId);
       mvtx_chipID[daughter_id].push_back(chipId);
       intt_ladderZID[daughter_id].push_back(ladderZId);
       intt_ladderPhiID[daughter_id].push_back(ladderPhiId);
       tpc_sectorID[daughter_id].push_back(sectorId);
       tpc_side[daughter_id].push_back(side);
+      }
     }
   }
 
@@ -1247,10 +1393,12 @@ void KFParticle_truthAndDetTools::fillDetectorBranch(PHCompositeNode *topNode,
         continue;
       }
       auto global = geometry->getGlobalPosition(stateckey, cluster);
-
+      
+      if(m_get_detailed_tracking){
       residual_x[daughter_id].push_back(global.x() - tstate->get_x());
       residual_y[daughter_id].push_back(global.y() - tstate->get_y());
       residual_z[daughter_id].push_back(global.z() - tstate->get_z());
+      }
 
       uint8_t id = TrkrDefs::getTrkrId(stateckey);
 
@@ -1384,6 +1532,14 @@ void KFParticle_truthAndDetTools::clearVectors()
     // PV vectors
     allPV_daughter_IP[i].clear();
     allPV_daughter_IPchi2[i].clear();
+
+    //Detailed Calo 
+    if(m_get_detailed_calorimetry){
+    detector_emcal_5x5Cell_Phi[i].clear();
+    detector_emcal_5x5Cell_Eta[i].clear();
+    detector_emcal_5x5Cell_E[i].clear();
+    }
+
   }
 
   allPV_x.clear();

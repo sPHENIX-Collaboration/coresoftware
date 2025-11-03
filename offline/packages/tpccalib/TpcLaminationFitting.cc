@@ -123,7 +123,8 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 //______________________________________
 int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
 {
-  m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
+  //m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LAMINATION_CLUSTER");
+  m_correctedCMcluster_map = findNode::getClass<LaserClusterContainer>(topNode, "LASER_CLUSTER");
   if (!m_correctedCMcluster_map)
   {
     std::cout << PHWHERE << "CORRECTED_CM_CLUSTER Node missing, abort." << std::endl;
@@ -165,13 +166,6 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
     flashDiffContainer = new CMFlashDifferenceContainerv1;
     PHIODataNode<PHObject> *CMFlashDifferenceNode = new PHIODataNode<PHObject>(flashDiffContainer, "CM_FLASH_DIFFERENCES", "PHObject");
     DetNode->addNode(CMFlashDifferenceNode);
-  }
-
-  m_cm_flash_diffs = findNode::getClass<CMFlashDifferenceContainerv1>(topNode, "CM_FLASH_DIFFERENCES");
-  if (!m_cm_flash_diffs)
-  {
-    std::cout << PHWHERE << " ERROR: Can't find CM_FLASH_DIFFERENCES." << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
   }
 
   const std::string dcc_out_node_name = "TpcDistortionCorrectionContainerAverage";

@@ -9,6 +9,7 @@
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
+#include <cmath>
 
 #include <TMatrixFfwd.h>
 #include <TMatrixT.h>
@@ -54,25 +55,39 @@ bool ALICEKF::checknan(double val, const std::string& name, int num) const
   return std::isnan(val);
 }
 
+
+ALICEKF::ALICEKF( TrkrClusterContainer* cmap, PHField* B, unsigned int min_clusters, double max_sin_phi, int verbosity):
+  _B(B),
+  _min_clusters_per_track(min_clusters),
+  _cluster_map(cmap),
+  _v(verbosity),
+  _max_sin_phi(max_sin_phi),
+  _ClusErrPara(new ClusterErrorPara)
+{}
+
 double ALICEKF::get_Bz(double x, double y, double z) const
 {
-  //  if(_use_const_field) return _const_field;
-  if (_use_const_field || fabs(z) > 105.5)
+  // check z boundaries
+  if (fabs(z) > 102.605)
   {
+    // constant field is used when z is out of bound
     return _const_field;
-  }
-  double p[4] = {x * cm, y * cm, z * cm, 0. * cm};
-  double bfield[3];
-
-  // check thread number. Use uncached field accessor for all but thread 0.
-  if( omp_get_thread_num() == 0 )
-  {
-    _B->GetFieldValue(p, bfield);
   } else {
-    _B->GetFieldValue_nocache(p, bfield);
-  }
 
-  return bfield[2] / tesla;
+    // use field map
+    const std::array<double,4> p = {x * cm, y * cm, z * cm, 0. * cm};
+    double bfield[3];
+
+    // check thread number. Use uncached field accessor for all but thread 0.
+    if( omp_get_thread_num() == 0 )
+    {
+      _B->GetFieldValue(&p[0], bfield);
+    } else {
+      _B->GetFieldValue_nocache(&p[0], bfield);
+    }
+
+    return bfield[2] / tesla;
+  }
 }
 
 double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vector3 global, int i, int j) const
@@ -107,11 +122,11 @@ double ALICEKF::getClusterError(TrkrCluster* c, TrkrDefs::cluskey key, Acts::Vec
 
     float clusphi = atan2(global(1), global(0));
     TMatrixF ROT(3, 3);
-    ROT[0][0] = cos(clusphi);
-    ROT[0][1] = -sin(clusphi);
+    ROT[0][0] = std::cos(clusphi);
+    ROT[0][1] = -std::sin(clusphi);
     ROT[0][2] = 0.0;
-    ROT[1][0] = sin(clusphi);
-    ROT[1][1] = cos(clusphi);
+    ROT[1][0] = std::sin(clusphi);
+    ROT[1][1] = std::cos(clusphi);
     ROT[1][2] = 0.0;
     ROT[2][0] = 0.0;
     ROT[2][1] = 0.0;
@@ -732,11 +747,11 @@ TrackSeedAliceSeedMap ALICEKF::ALICEKalmanFilter(const std::vector<keylist>& tra
     int track_charge = 0;
     if (trackSeed.GetQPt() < 0)
     {
-      track_charge = -1 * trackSeed.GetSignCosPhi();  // * _fieldDir;
+      track_charge = -1 * trackSeed.GetSignCosPhi();
     }
     else
     {
-      track_charge = 1 * trackSeed.GetSignCosPhi();  // * _fieldDir;
+      track_charge = 1 * trackSeed.GetSignCosPhi();
     }
 
     double sinphi = sin(track_phi);  // who had the idea to use s here?????

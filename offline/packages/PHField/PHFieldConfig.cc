@@ -11,11 +11,9 @@
 
 #include <iostream>
 
-using namespace std;
-
 const std::string PHFieldConfig::kInvalid_FileName("INVALID FILE");
 
-string PHFieldConfig::get_field_config_description() const
+std::string PHFieldConfig::get_field_config_description() const
 {
   switch (get_field_config())
   {
@@ -37,6 +35,9 @@ string PHFieldConfig::get_field_config_description() const
   case kFieldCleo:
     return "Cleo Magnet Field";
     break;
+  case FieldInterpolated:
+	return "3D field map interpolated to O(3)";
+	break;
   default:
     return "Invalid Field";
   }
@@ -47,5 +48,5 @@ string PHFieldConfig::get_field_config_description() const
  */
 void PHFieldConfig::identify(std::ostream& os) const
 {
-  os << "PHFieldConfig::identify - isValid() = " << isValid() << endl;
+  os << "PHFieldConfig::identify - isValid() = " << isValid() << std::endl;
 }

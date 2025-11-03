@@ -11,8 +11,8 @@
 #include <Acts/Geometry/GeometryIdentifier.hpp>
 #include <Acts/Seeding/SeedFinder.hpp>
 
-#include <Acts/Utilities/GridBinFinder.hpp>
 #include <Acts/Seeding/SpacePointGrid.hpp>
+#include <Acts/Utilities/GridBinFinder.hpp>
 
 #include <trackbase/SpacePoint.h>
 
@@ -49,6 +49,11 @@ class PHActsSiliconSeeding : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
+
+  void isStreaming()
+  {
+    m_streaming = true;
+  }
 
   void setStrobeRange(const int low, const int high)
   {
@@ -163,10 +168,14 @@ class PHActsSiliconSeeding : public SubsysReco
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void iteration(int iter) { m_nIteration = iter; }
   void searchInIntt() { m_searchInIntt = true; }
-
+  void strobeWindowLowSearch(const int width) { m_strobeLowWindow = width; }
+  void strobeWindowHighSearch(const int width) { m_strobeHighWindow = width; }
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
+  
+  int m_strobeLowWindow = -1;
+  int m_strobeHighWindow = 1;
 
   void runSeeder();
 
@@ -174,10 +183,13 @@ class PHActsSiliconSeeding : public SubsysReco
   /// are a number of tunable parameters for the seeder here
   void configureSeeder();
   void configureSPGrid();
-  Acts::SeedFilterConfig configureSeedFilter();
+  Acts::SeedFilterConfig configureSeedFilter() const;
 
   /// Take final seeds and fill the TrackSeedContainer
   void makeSvtxTracks(const GridSeeds &seedVector);
+
+  /// Take final seeds and fill the TrackSeedContainer
+  void makeSvtxTracksWithTime(const GridSeeds &seedVector, const int &strobe);
 
   /// Create a seeding space point out of an Acts::SourceLink
   SpacePointPtr makeSpacePoint(
@@ -198,6 +210,13 @@ class PHActsSiliconSeeding : public SubsysReco
       std::vector<TrkrDefs::cluskey> &keys,
       TrackSeed &seed);
 
+  std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
+      std::map<TrkrDefs::cluskey, Acts::Vector3> &positions,
+      const int &strobe);
+  std::vector<std::vector<TrkrDefs::cluskey>> iterateLayers(const int &startLayer,
+                                                            const int &endLayer, const int &strobe,
+                                                            const std::vector<TrkrDefs::cluskey> &keys,
+                                                            const std::vector<Acts::Vector3> &positions);
   std::vector<TrkrDefs::cluskey> matchInttClusters(std::vector<Acts::Vector3> &clusters,
                                                    TrackSeed &seed,
                                                    const double xProj[],
@@ -235,7 +254,7 @@ class PHActsSiliconSeeding : public SubsysReco
   TrackSeedContainer *m_seedContainer = nullptr;
   TrkrClusterContainer *m_clusterMap = nullptr;
   PHG4CylinderGeomContainer *m_geomContainerIntt = nullptr;
-
+  PHG4CylinderGeomContainer *m_geomContainerMvtx = nullptr;
   int m_lowStrobeIndex = 0;
   int m_highStrobeIndex = 1;
   /// Configuration classes for Acts seeding
@@ -244,6 +263,12 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::CylindricalSpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
 
+  /// boolean whether or not we are going to match the intt clusters
+  /// per strobe with crossing information and take all possible matches
+  bool m_streaming = false;
+
+  // default to 10 mus
+  float m_strobeWidth = 10;
   /// boolean whether or not to include the intt in the acts search windows
   bool m_searchInIntt = false;
 
@@ -294,50 +319,48 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<std::pair<int, int>> zBinNeighborsTop;
   std::vector<std::pair<int, int>> zBinNeighborsBottom;
   int nphineighbors = 1;
- std::unique_ptr<const Acts::GridBinFinder<2ul>> m_bottomBinFinder;
- std::unique_ptr<const Acts::GridBinFinder<2ul>> m_topBinFinder;
+  std::unique_ptr<const Acts::GridBinFinder<2ul>> m_bottomBinFinder;
+  std::unique_ptr<const Acts::GridBinFinder<2ul>> m_topBinFinder;
 
- int m_event = 0;
+  int m_event = 0;
 
- /// Maximum allowed transverse PCA for seed, cm
- double m_maxSeedPCA = 2.;
-
+  /// Maximum allowed transverse PCA for seed, cm
+  double m_maxSeedPCA = 2.;
 
   /// Search window for phi to match intt clusters in cm
   double m_inttrPhiSearchWin = 0.1;
-  float m_inttzSearchWin = 0.8;  // default to a half strip width
+  float m_inttzSearchWin = 2.0;  // default to one strip width
   double m_mvtxrPhiSearchWin = 0.2;
   float m_mvtxzSearchWin = 0.5;
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 
- bool m_cleanSeeds = false;
+  bool m_cleanSeeds = false;
 
- int m_nBadUpdates = 0;
- int m_nBadInitialFits = 0;
- TrkrClusterIterationMapv1 *_iteration_map = nullptr;
- int m_nIteration = 0;
- std::string _track_map_name = "SiliconTrackSeedContainer";
- ClusterErrorPara _ClusErrPara;
+  int m_nBadUpdates = 0;
+  int m_nBadInitialFits = 0;
+  TrkrClusterIterationMapv1 *_iteration_map = nullptr;
+  int m_nIteration = 0;
+  std::string _track_map_name = "SiliconTrackSeedContainer";
 
- bool m_seedAnalysis = false;
- TFile *m_file = nullptr;
- TH2 *h_nInttProj = nullptr;
- TH1 *h_nMvtxHits = nullptr;
- TH1 *h_nInttHits = nullptr;
- TH1 *h_nMatchedClusters = nullptr;
- TH2 *h_nHits = nullptr;
- TH1 *h_nSeeds = nullptr;
- TH1 *h_nActsSeeds = nullptr;
- TH1 *h_nTotSeeds = nullptr;
- TH1 *h_nInputMeas = nullptr;
- TH1 *h_nInputMvtxMeas = nullptr;
- TH1 *h_nInputInttMeas = nullptr;
- TH2 *h_hits = nullptr;
- TH2 *h_zhits = nullptr;
- TH2 *h_projHits = nullptr;
- TH2 *h_zprojHits = nullptr;
- TH2 *h_resids = nullptr;
+  bool m_seedAnalysis = false;
+  TFile *m_file = nullptr;
+  TH2 *h_nInttProj = nullptr;
+  TH1 *h_nMvtxHits = nullptr;
+  TH1 *h_nInttHits = nullptr;
+  TH1 *h_nMatchedClusters = nullptr;
+  TH2 *h_nHits = nullptr;
+  TH1 *h_nSeeds = nullptr;
+  TH1 *h_nActsSeeds = nullptr;
+  TH1 *h_nTotSeeds = nullptr;
+  TH1 *h_nInputMeas = nullptr;
+  TH1 *h_nInputMvtxMeas = nullptr;
+  TH1 *h_nInputInttMeas = nullptr;
+  TH2 *h_hits = nullptr;
+  TH2 *h_zhits = nullptr;
+  TH2 *h_projHits = nullptr;
+  TH2 *h_zprojHits = nullptr;
+  TH2 *h_resids = nullptr;
 };
 
 #endif

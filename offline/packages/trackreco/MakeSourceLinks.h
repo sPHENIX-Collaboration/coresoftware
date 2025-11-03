@@ -42,7 +42,7 @@ class MakeSourceLinks
  public:
  MakeSourceLinks() = default;
 
- void initialize(PHG4TpcCylinderGeomContainer* cellgeo);
+ void initialize(PHG4TpcGeomContainer* cellgeo);
 
   void setVerbosity(int verbosity) {m_verbosity = verbosity;}
 

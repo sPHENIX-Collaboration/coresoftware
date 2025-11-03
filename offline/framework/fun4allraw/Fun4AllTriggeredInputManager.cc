@@ -1,6 +1,5 @@
 #include "Fun4AllTriggeredInputManager.h"
 
-#include "SinglePrdfInput.h"
 #include "SingleTriggeredInput.h"
 
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager

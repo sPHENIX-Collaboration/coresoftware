@@ -25,17 +25,16 @@ libg4eval_la_LIBADD = \
   -lCLHEP \
   -lfun4all \
   -lg4detectors_io \
-  -ljetbase \
-  -lglobalvertex_io \
   -lg4tracking_io \
-  -lintt \
+  -lglobalvertex_io \
   -lintt_io \
+  -lintt \
+  -ljetbase_io \
   -lmicromegas_io \
-  -lmvtx \
   -lmvtx_io \
+  -lmvtx \
   -lphhepmc_io \
   -lphg4hit \
-  -ltrack \
   -ltrackbase_historic \
   -ltpc_io
 
@@ -85,9 +84,8 @@ ROOTDICTS = \
   TrackEvaluationContainerv1_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  TrackEvaluationContainer_Dict_rdict.pcm \
-  TrackEvaluationContainerv1_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libg4eval_io_la_SOURCES = \
   $(ROOTDICTS) \

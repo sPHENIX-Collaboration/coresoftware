@@ -16,14 +16,14 @@ class PHG4TrackingAction : public G4UserTrackingAction
   ~PHG4TrackingAction() override {}
 
   //   //! tracking action. This defines pre/post processing of a single track in an event
-  void PreUserTrackingAction(const G4Track*) override {}
+  void PreUserTrackingAction(const G4Track *) override {}
 
-  void PostUserTrackingAction(const G4Track*) override {}
+  void PostUserTrackingAction(const G4Track *) override {}
 
   //! Set the node pointers
-  virtual void SetInterfacePointers(PHCompositeNode*) { return; }
+  virtual void SetInterfacePointers(PHCompositeNode *) { return; }
 
-  virtual int ResetEvent(PHCompositeNode*) { return 0; }
+  virtual int ResetEvent(PHCompositeNode *) { return 0; }
 };
 
 #endif  // G4MAIN_PHG4TRACKINGACTION_H

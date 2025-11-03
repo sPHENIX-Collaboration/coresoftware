@@ -201,11 +201,11 @@ int SecondaryVertexFinder::process_event(PHCompositeNode* /*topNode*/)
       std::cout << " get_dca returned NAN " << std::endl;
       continue;
     }
-    if (fabs(dca3dxy1) < _track_dcaxy_cut)
+    if (std::abs(dca3dxy1) < _track_dcaxy_cut)
     {
       continue;
     }
-    if (fabs(dca3dz1) < _track_dcaz_cut)
+    if (std::abs(dca3dz1) < _track_dcaz_cut)
     {
       continue;
     }
@@ -259,11 +259,11 @@ int SecondaryVertexFinder::process_event(PHCompositeNode* /*topNode*/)
         std::cout << " get_dca returned NAN " << std::endl;
         continue;
       }
-      if (fabs(dca3dxy2) < _track_dcaxy_cut)
+      if (std::abs(dca3dxy2) < _track_dcaxy_cut)
       {
         continue;
       }
-      if (fabs(dca3dz2) < _track_dcaz_cut)
+      if (std::abs(dca3dz2) < _track_dcaz_cut)
       {
         continue;
       }
@@ -509,7 +509,7 @@ bool SecondaryVertexFinder::passConversionElectronCuts(const TLorentzVector& tsu
   }
 
   // pair cuts
-  if (fabs(pair_dca) > _conversion_pair_dcacut)
+  if (std::abs(pair_dca) > _conversion_pair_dcacut)
   {
     return pass;
   };
@@ -540,7 +540,7 @@ bool SecondaryVertexFinder::passConversionElectronCuts(const TLorentzVector& tsu
   };
 
   // selects "decays" with zero mass
-  if (fabs(tr1->get_eta() - tr2->get_eta()) > _deta_cut)
+  if (std::abs(tr1->get_eta() - tr2->get_eta()) > _deta_cut)
   {
     return pass;
   };
@@ -742,11 +742,11 @@ void SecondaryVertexFinder::get_dca(SvtxTrack* track,
 
   Acts::RotationMatrix3 rot;
   Acts::RotationMatrix3 rot_T;
-  rot(0, 0) = cos(phi);
-  rot(0, 1) = -sin(phi);
+  rot(0, 0) = std::cos(phi);
+  rot(0, 1) = -std::sin(phi);
   rot(0, 2) = 0;
-  rot(1, 0) = sin(phi);
-  rot(1, 1) = cos(phi);
+  rot(1, 0) = std::sin(phi);
+  rot(1, 1) = std::cos(phi);
   rot(1, 2) = 0;
   rot(2, 0) = 0;
   rot(2, 1) = 0;

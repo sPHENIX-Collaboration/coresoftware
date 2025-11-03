@@ -65,6 +65,9 @@ class EventHeader : public PHObject
   void set_EventPlaneAngle(const double rval) { set_floatval("rplane", rval); }
   float get_EventPlaneAngle() const { return get_floatval("rplane"); }
 
+  void set_FlowPsiN(const unsigned int n, const float psi) { set_floatval("psi_" + std::to_string(n), psi); }
+  float get_FlowPsiN(const unsigned int n) const { return get_floatval("psi_" + std::to_string(n)); }
+
   void set_eccentricity(const double rval) { set_floatval("ecc", rval); }
   float get_eccentricity() const { return get_floatval("ecc"); }
 

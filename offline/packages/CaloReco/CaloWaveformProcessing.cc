@@ -56,7 +56,7 @@ void CaloWaveformProcessing::initialize_processing()
   {
     // std::string calibrations_repo_model = m_model_name;
     // url_onnx = CDBInterface::instance()->getUrl("CEMC_ONNX", m_model_name);
-    onnxmodule = onnxSession(m_model_name);
+    onnxmodule = onnxSession(m_model_name, Verbosity());
   }
   else if (m_processingtype == CaloWaveformProcessing::NYQUIST)
   {
@@ -169,8 +169,8 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
         {
           // downstream onnx does not have a static input vector API,
           // so we need to make a copy
-          std::vector<float> vtmp(v);
-          val = onnxInference(onnxmodule, vtmp, 1, 12, 3);
+          std::vector<float> vtmp(v); //NOLINT(performance-unnecessary-copy-initialization)
+          val = onnxInference(onnxmodule, vtmp, 1, onnxlib::n_input, onnxlib::n_output);
           unsigned int nvals = val.size();
           for (unsigned int i = 0; i < nvals; i++)
           {
@@ -208,69 +208,4 @@ void CaloWaveformProcessing::set_nthreads(int nthreads)
     m_Fitter->set_nthreads(nthreads);
   }
   return;
-}
-
-bool CaloWaveformProcessing::apply_zero_suppression(std::vector<float> &v)
-{
-  int size1 = v.size() - 1;
-  if (size1 == _nzerosuppresssamples)
-  {
-    v.push_back(v.at(1) - v.at(0));                        // returns peak sample - pedestal sample
-    v.push_back(std::numeric_limits<float>::quiet_NaN());  // set time to qnan for ZS
-    v.push_back(v.at(0));
-    if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
-    {
-      v.push_back(1000000);
-    }
-    else
-    {
-      v.push_back(std::numeric_limits<float>::quiet_NaN());
-    }
-    v.push_back(0);
-    return true;
-  }
-  else
-  {
-    float maxheight = 0;
-    int maxbin = 0;
-    for (int i = 0; i < size1; i++)
-    {
-      if (v.at(i) > maxheight)
-      {
-        maxheight = v.at(i);
-        maxbin = i;
-      }
-    }
-    float pedestal = 1500;
-    if (maxbin > 4)
-    {
-      pedestal = 0.5 * (v.at(maxbin - 4) + v.at(maxbin - 5));
-    }
-    else if (maxbin > 3)
-    {
-      pedestal = (v.at(maxbin - 4));
-    }
-    else
-    {
-      pedestal = 0.5 * (v.at(size1 - 3) + v.at(size1 - 2));
-    }
-
-    if ((_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) || (_maxsoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression))
-    {
-      v.push_back(v.at(6) - v.at(0));
-      v.push_back(std::numeric_limits<float>::quiet_NaN());
-      v.push_back(v.at(0));
-      if (v.at(0) != 0 && v.at(1) == 0)  // check if post-sample is 0, if so set high chi2
-      {
-        v.push_back(1000000);
-      }
-      else
-      {
-        v.push_back(std::numeric_limits<float>::quiet_NaN());
-      }
-      v.push_back(0);
-      return true;
-    }
-  }
-  return false;
 }

@@ -112,7 +112,7 @@ PHG4OHCalSteppingAction::~PHG4OHCalSteppingAction()
   delete m_Hit;
 
   // since we have a copy in memory of this one - we need to delete it
-  for (auto it : m_MapCorrHist)
+  for (auto* it : m_MapCorrHist)
   {
     delete it;
   }
@@ -408,23 +408,21 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
         {
           break;
         }
-        else
+
+        if (aTrack->GetTrackID() == m_SaveTrackId)
         {
-          if (aTrack->GetTrackID() == m_SaveTrackId)
-          {
-            std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
-            std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-                      << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-                      << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-                      << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
-            std::cout << "last track: " << m_SaveTrackId
-                      << ", current trackid: " << aTrack->GetTrackID() << std::endl;
-            std::cout << "phys pre vol: " << volume->GetName()
-                      << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
-            std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-                      << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
-            gSystem->Exit(1);
-          }
+          std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
+          std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                    << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                    << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                    << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+          std::cout << "last track: " << m_SaveTrackId
+                    << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+          std::cout << "phys pre vol: " << volume->GetName()
+                    << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+          std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                    << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+          gSystem->Exit(1);
         }
       }
       else
@@ -636,10 +634,8 @@ bool PHG4OHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 //____________________________________________________________________________..
@@ -743,7 +739,7 @@ void PHG4OHCalSteppingAction::SetHitNodeName(const std::string& type, const std:
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_ABSORBER")
+  if (type == "G4HIT_ABSORBER")
   {
     m_AbsorberNodeName = name;
     return;

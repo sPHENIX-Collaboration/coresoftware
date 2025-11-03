@@ -100,6 +100,7 @@ bool PHNodeIOManager::setFile(const std::string& f, const std::string& title,
     file->SetCompressionSettings(m_CompressionSetting);
     tree = new TTree(TreeName.c_str(), title.c_str());
     TTree::SetMaxTreeSize(900000000000LL);  // set max size to ~900 GB
+
     gROOT->cd(currdir.c_str());
     return true;
     break;
@@ -292,6 +293,11 @@ bool PHNodeIOManager::readEventFromFile(size_t requestedEvent)
   std::string currdir = gDirectory->GetPath();
   TFile* file_ptr = gFile;  // save current gFile
   file->cd();
+  
+  if (m_cacheSize != std::numeric_limits<uint64_t>::max())
+  {
+    tree->SetCacheSize(m_cacheSize);
+  }
 
   if (requestedEvent)
   {
@@ -424,6 +430,11 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
     // Skip non-selected branches
     if (thisBranch->TestBit(kDoNotProcess))
     {
+      // Reset nodeIter to the parent branch
+      for (j = 1; j < splitvec.size() - 1; j++)
+      {
+        nodeIter.cd("..");
+      }
       continue;
     }
 

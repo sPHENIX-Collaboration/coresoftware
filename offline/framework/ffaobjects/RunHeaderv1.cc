@@ -1,6 +1,6 @@
 #include "RunHeaderv1.h"
 
-#include <cmath>    // for NAN
+#include <limits>
 #include <utility>  // for pair
 
 void RunHeaderv1::identify(std::ostream &out) const
@@ -39,7 +39,7 @@ float RunHeaderv1::get_floatval(const std::string &name) const
   {
     return iter->second;
   }
-  return NAN;
+  return std::numeric_limits<float>::quiet_NaN();
 }
 
 void RunHeaderv1::set_intval(const std::string &name, const int ival)

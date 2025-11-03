@@ -347,7 +347,7 @@ void TpcTimeFrameBuilder::CleanupUsedPackets(const uint64_t& bclk)
               << bclk << std::dec << std::endl;
   }
 
-  while (not m_UsedTimeFrameSet.empty())
+  while (! m_UsedTimeFrameSet.empty())
   {
     uint64_t bco_completed = m_UsedTimeFrameSet.front();
     m_UsedTimeFrameSet.pop();
@@ -435,13 +435,13 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
 
   if (m_hitFormat <0 )
   {
-    if (packet->getHitFormat() != IDTPCFEEV4 and packet->getHitFormat() != IDTPCFEEV5 and packet->getHitFormat() != IDTPCFEEV6 )
+    if (packet->getHitFormat() != IDTPCFEEV4 && packet->getHitFormat() != IDTPCFEEV5 && packet->getHitFormat() != IDTPCFEEV6 )
     {
       cout << __PRETTY_FUNCTION__ << "\t- Error : expect packet format " << IDTPCFEEV4 
           << " or "<< IDTPCFEEV5<< " or "<< IDTPCFEEV6
           << "\t- but received packet format " << packet->getHitFormat() << ":" << endl;
       packet->identify();
-      assert(packet->getHitFormat() == IDTPCFEEV4 or packet->getHitFormat() == IDTPCFEEV5 or packet->getHitFormat() == IDTPCFEEV6);
+      assert(packet->getHitFormat() == IDTPCFEEV4 || packet->getHitFormat() == IDTPCFEEV5 || packet->getHitFormat() == IDTPCFEEV6);
       return 0;
     }
 
@@ -454,7 +454,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
       // Tested with Run24 data. Could be changable in future runs
       clock_multiplier = 4.262916255;
     }
-    else if (m_hitFormat == IDTPCFEEV5 or packet->getHitFormat() == IDTPCFEEV6)
+    else if (m_hitFormat == IDTPCFEEV5 || packet->getHitFormat() == IDTPCFEEV6)
     {
       // version 46 FEE firmware 
       clock_multiplier = 30./8.;
@@ -496,7 +496,7 @@ int TpcTimeFrameBuilder::ProcessPacket(Packet* packet)
   }
 
   assert(m_packetTimer);
-  if ((m_verbosity == 1 and (call_count % 1000) == 0) or (m_verbosity > 1))
+  if ((m_verbosity == 1 && (call_count % 1000) == 0) || (m_verbosity > 1))
   {
     cout << __PRETTY_FUNCTION__ << "\t- : received packet ";
     packet->identify();
@@ -780,7 +780,7 @@ void TpcTimeFrameBuilder::process_fee_data_waveform(const unsigned int & fee, st
   payload.bx_timestamp = static_cast<uint32_t>(static_cast<uint32_t>(data_buffer[6] & 0x3ffU) << 10U) | (data_buffer[5] & 0x3ffU);
   payload.data_crc = data_buffer[pkt_length];
 
-  if (not m_fastBCOSkip)
+  if (! m_fastBCOSkip)
   {
     auto crc_parity = crc16_parity(fee, pkt_length);
     payload.calc_crc = crc_parity.first;
@@ -825,7 +825,7 @@ void TpcTimeFrameBuilder::process_fee_data_waveform(const unsigned int & fee, st
     }
 
     // if bco matching information is still not verified, drop the packet
-    if (not m_bcoMatchingInformation.is_verified())
+    if (! m_bcoMatchingInformation.is_verified())
     {
       m_hFEEDataStream->Fill(fee, "PacketHeartBeatClockSyncUnavailable", 1);
 
@@ -861,12 +861,12 @@ void TpcTimeFrameBuilder::process_fee_data_waveform(const unsigned int & fee, st
       }
     }
   }
-  else if (not m_fastBCOSkip)  //     if (payload.type == m_bcoMatchingInformation.HEARTBEAT_T)
+  else if (! m_fastBCOSkip)  //     if (payload.type == m_bcoMatchingInformation.HEARTBEAT_T)
   {
     m_hFEEChannelPacketCount->Fill(fee * MAX_CHANNELS + payload.channel, 1);
 
     // if bco matching information is still not verified, drop the packet
-    if (not m_bcoMatchingInformation.is_verified())
+    if (! m_bcoMatchingInformation.is_verified())
     {
       m_hFEEDataStream->Fill(fee, "PacketClockSyncUnavailable", 1);
 
@@ -918,7 +918,7 @@ void TpcTimeFrameBuilder::process_fee_data_waveform(const unsigned int & fee, st
           << "\t- calc_parity = 0x" << hex << payload.calc_parity << dec << endl;
   }
 
-  if ((not m_fastBCOSkip) and payload.gtm_bco > 0)
+  if ((! m_fastBCOSkip) && payload.gtm_bco > 0)
   {
     m_hFEEDataStream->Fill(fee, "RawHit", 1);
 
@@ -1228,7 +1228,7 @@ int TpcTimeFrameBuilder::decode_gtm_data(const TpcTimeFrameBuilder::dma_word& gt
     }
   }
 
-  if (not(m_fastBCOSkip and (payload.is_lvl1 or payload.is_endat)))
+  if (!(m_fastBCOSkip && (payload.is_lvl1 || payload.is_endat)))
   {
     int fee = -1;
     for (BcoMatchingInformation& bcoMatchingInformation : m_bcoMatchingInformation_vec)
@@ -1574,7 +1574,7 @@ uint64_t TpcTimeFrameBuilder::BcoMatchingInformation::
   // start with 40bit clock, enforced
   uint64_t gtm_bco_corrected = gtm_bco & ((uint64_t(1) << m_GTM_CLOCK_BITS) - 1);
 
-  if (not m_bco_reference)
+  if (! m_bco_reference)
   {
     return gtm_bco_corrected;
   }
@@ -1613,7 +1613,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
     m_hNorm->Fill("TriggerGTM", 1);
 
     assert(m_hGTMNewEventSpacing);
-    if (not m_gtm_bco_trig_list.empty())
+    if (! m_gtm_bco_trig_list.empty())
     {
       m_hGTMNewEventSpacing->Fill(gtm_bco - m_gtm_bco_trig_list.back());
     }
@@ -1632,7 +1632,7 @@ void TpcTimeFrameBuilder::BcoMatchingInformation::save_gtm_bco_information(const
       assert(m_hNorm);
       m_hNorm->Fill("UnmatchedEnDATGTM", 1);
 
-      if (not m_gtm_bco_trig_list.empty())
+      if (! m_gtm_bco_trig_list.empty())
       {
         assert(m_hGTMNewEventSpacing);
         m_hGTMNewEventSpacing->Fill(gtm_bco - m_gtm_bco_trig_list.back());
@@ -1972,7 +1972,7 @@ std::optional<uint64_t> TpcTimeFrameBuilder::BcoMatchingInformation::find_gtm_bc
 
       bool new_orphan = m_orphans.insert(fee_bco).second;
 
-      if ((new_orphan and verbosity()) or (verbosity() > 3))
+      if ((new_orphan && verbosity()) || (verbosity() > 3))
       {
         // find element for which predicted fee_bco is the closest to request
         const auto iter2 = std::min_element(

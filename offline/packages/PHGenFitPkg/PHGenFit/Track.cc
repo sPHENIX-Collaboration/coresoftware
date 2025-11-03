@@ -256,7 +256,7 @@ namespace PHGenFit
         << ": direction: " << direction
         << std::endl;
 #endif
-    assert(direction == 1 or direction == -1);
+    assert(direction == 1 || direction == -1);
 
     double pathlenth = WILD_DOUBLE;
 
@@ -353,7 +353,7 @@ namespace PHGenFit
 
   genfit::MeasuredStateOnPlane* Track::extrapolateToCylinder(double radius, const TVector3& line_point, const TVector3& line_direction, const int tr_point_id, const int direction) const
   {
-    assert(direction == 1 or direction == -1);
+    assert(direction == 1 || direction == -1);
     genfit::MeasuredStateOnPlane* state = new genfit::MeasuredStateOnPlane();
     double pathlenth = this->extrapolateToCylinder(*state, radius, line_point, line_direction, tr_point_id, direction);
     if (pathlenth <= WILD_DOUBLE)

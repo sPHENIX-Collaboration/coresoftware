@@ -17,6 +17,8 @@
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
+#include <phool/RunnumberRange.h>
+#include <phool/recoConsts.h>
 
 #include <iostream>  // for operator<<, basic_ost...
 #include <set>
@@ -145,7 +147,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);
-  set_default_double_param("tpc_length", 211.);
+  set_default_double_param("tpc_length", 205.21);  // 2 * (maxdrift 102.325 + CM halfwidth 0.28) cm 
 
   set_default_double_param("steplimits", 1);  // 1cm by default
 
@@ -200,7 +202,7 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("window_surface2_thickness", 0.0127);  // 127  um 2nd shell thickness be default
 
   // for geonode initialization
-  set_default_double_param("drift_velocity", 0.008);
+  set_default_double_param("drift_velocity_sim", 0.008);
 
   set_default_int_param("ntpc_layers_inner", 16);
   set_default_int_param("ntpc_layers_mid", 16);
@@ -215,9 +217,39 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_mid", 57.475);    // 60.0);
   set_default_double_param("tpc_maxradius_outer", 75.911);  // 77.0);  // from Tom
 
-  set_default_double_param("maxdriftlength", 105.5);       // cm
-  set_default_double_param("extended_readout_time", 0.0);  // ns
-  set_default_double_param("tpc_adc_clock", 53.326184);         // ns, for 18.8 MHz clock
+  set_default_double_param("maxdriftlength", 102.325);       // cm
+  set_default_double_param("CM_halfwidth", 0.28);       // cm
+  recoConsts *rc = recoConsts::instance();
+  int runnumber = rc->get_IntFlag("RUNNUMBER");
+  if (runnumber < RunnumberRange::RUN2PP_FIRST)
+  {
+    // current default clock used in simulation. Need to decide how to handle long term
+    // and ensure that the electron drift uses the same value
+    set_default_double_param("tpc_adc_clock", 53.326184);  // ns, for 18.83 MHz clock
+  }
+  else if ( runnumber < RunnumberRange::RUN3_TPCFW_CLOCK_CHANGE)
+  {
+    set_default_double_param("tpc_adc_clock", 50.037280);  // ns, for 20 MHz clock
+  }
+  else
+  {
+    set_default_double_param("tpc_adc_clock", 56.881262);  // ns, for 17.5 MHz clock
+  }
+  if(runnumber <= RunnumberRange::RUN2AUAU_FIRST && runnumber >= RunnumberRange::RUN2PP_FIRST)
+  {
+    // with drift length of 102cm and clock of 50 ns we get 542 time bins
+    // to get to 1024 samples (time bins0) we therefore need 1024-542=482 additional time bins
+    // and 482*50ns = 24100 ns. Add one some extra samples as they can always
+    // be cut out later in the reconstruction
+    set_default_double_param("extended_readout_time", 24800);  // ns, to account for 1024 samples
+  }
+  else 
+  {
+    // with drift length of 102cm and clock of 56 ns we get 477 time bins
+    // this already exceeds the 450 samples in the data
+    set_default_double_param("extended_readout_time", 0);  // ns, to account for 450 samples
+
+  }
 
   set_default_double_param("tpc_sector_phi_inner", 0.5024);  // 2 * M_PI / 12 );//sector size in phi for R1 sector
   set_default_double_param("tpc_sector_phi_mid", 0.5087);    // 2 * M_PI / 12 );//sector size in phi for R2 sector
@@ -227,10 +259,10 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_int_param("ntpc_phibins_mid", 1536);    // 128 * 12
   set_default_int_param("ntpc_phibins_outer", 2304);  // 192 * 12
 
-  set_default_double_param("TPC_gas_temperature", 15.0); //in celcius
-  set_default_double_param("TPC_gas_pressure", 1.0); //in atmospheres
-  set_default_double_param("Ne_frac", 0.00); 
-  set_default_double_param("Ar_frac", 0.75); 
+  set_default_double_param("TPC_gas_temperature", 15.0);  // in celcius
+  set_default_double_param("TPC_gas_pressure", 1.0);      // in atmospheres
+  set_default_double_param("Ne_frac", 0.00);
+  set_default_double_param("Ar_frac", 0.75);
   set_default_double_param("CF4_frac", 0.20);
   set_default_double_param("N2_frac", 0.00);
   set_default_double_param("isobutane_frac", 0.05);

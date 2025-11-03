@@ -25,6 +25,7 @@
 #include <algorithm>  // for max
 #include <cmath>
 #include <vector>  // for vector
+
 class G4Material;
 
 PHG4EPDDetector::PHG4EPDDetector(PHG4Subsystem* subsys,
@@ -92,14 +93,14 @@ int PHG4EPDDetector::IsInDetector(G4VPhysicalVolume* volume) const
   G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
   if (m_ActiveFlag)
   {
-    if (m_ActiveLogVolSet.find(mylogvol) != m_ActiveLogVolSet.end())
+    if (m_ActiveLogVolSet.contains(mylogvol))
     {
       return 1;
     }
   }
   if (m_SupportActiveFlag)
   {
-    if (m_SupportLogVolSet.find(mylogvol) != m_SupportLogVolSet.end())
+    if (m_SupportLogVolSet.contains(mylogvol))
     {
       return -2;
     }
@@ -158,7 +159,7 @@ G4ExtrudedSolid* PHG4EPDDetector::construct_block(int32_t index)
 {
   std::string label("tile_" + std::to_string(index));
 
-  const double(*coords)[5][2] = &coordinates[index];
+  const double (*coords)[5][2] = &coordinates[index];
 
   std::vector<G4TwoVector> vertices;
 

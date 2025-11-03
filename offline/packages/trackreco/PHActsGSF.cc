@@ -172,7 +172,7 @@ int PHActsGSF::process_event(PHCompositeNode* topNode)
     TrackSeed* silseed = track->get_silicon_seed();
 
     /// We only fit full sPHENIX tracks
-    if (!silseed or !tpcseed)
+    if (!silseed || !tpcseed)
     {
       continue;
     }

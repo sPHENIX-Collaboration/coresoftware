@@ -231,7 +231,7 @@ int PHCosmicSiliconPropagator::process_event(PHCompositeNode* /*unused*/)
 
         float projz = clusglob.y() * yzslope + yzint;
 
-        if (std::fabs(projz - clusglob.z()) < _dca_z_cut)
+        if (std::abs(projz - clusglob.z()) < _dca_z_cut)
         {
           newClusKeys.push_back(key);
         }

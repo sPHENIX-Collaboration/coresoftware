@@ -75,6 +75,7 @@ libphnodedump_la_SOURCES = \
   DumpTrkrHitSetContainer.cc \
   DumpTrkrClusterCrossingAssoc.cc \
   DumpTrkrHitTruthAssoc.cc \
+  DumpTruthVertexMap.cc \
   DumpZdcinfo.cc \
   PHNodeDump.cc
 
@@ -91,6 +92,7 @@ libphnodedump_la_LIBADD = \
   -lffarawobjects \
   -lg4detectors_io \
   -lg4mbd_io \
+  -lglobalvertex_io \
   -lHepMC \
   -ljetbase_io \
   -lmbd_io \

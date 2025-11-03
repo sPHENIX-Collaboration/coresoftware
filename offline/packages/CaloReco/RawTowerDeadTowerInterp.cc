@@ -175,7 +175,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
 
       }  // for (const pair<int, int> &neighborIndex : neighborIndexs)
 
-      if (n_neighbor > 0 and E_SumNeighbor != 0)
+      if (n_neighbor > 0 && E_SumNeighbor != 0)
       {
 
 	unsigned int deadtowerkey = ((unsigned int) (bineta) << 16U) + binphi;
@@ -220,7 +220,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode * /*topNode*/)
   {
     static bool once = true;
 
-    if (Verbosity() and once)
+    if (Verbosity() && once)
     {
       once = false;
 

@@ -240,9 +240,9 @@ int CaloPacketv1::iValue(const int n, const std::string &what) const
   return std::numeric_limits<int>::min();
 }
 
-int CaloPacketv1::iValue(const int channel, const int sample) const
+int CaloPacketv1::iValue(const int sample, const int channel) const
 {
-  return samples.at(channel).at(sample);
+  return samples.at(sample).at(channel);
 }
 
 void CaloPacketv1::identify(std::ostream &os) const

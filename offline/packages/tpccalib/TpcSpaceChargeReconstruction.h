@@ -23,6 +23,7 @@ class SvtxTrackMap;
 class TpcSpaceChargeMatrixContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
+class ActGeometry;
 
 class TFile;
 class TH1;
@@ -141,6 +142,9 @@ class TpcSpaceChargeReconstruction : public SubsysReco, public PHParameterInterf
   float m_max_dz = 0.5;
   //@}
 
+  float m_zmin = 0;
+  float m_zmax = 0;
+  
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
 
@@ -179,6 +183,8 @@ class TpcSpaceChargeReconstruction : public SubsysReco, public PHParameterInterf
 
   //! tpc global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
+
+ ActsGeometry *m_tGeometry = nullptr;
 };
 
 #endif

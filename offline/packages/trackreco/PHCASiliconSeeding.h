@@ -10,9 +10,14 @@
 
 #include "PHTrackSeeding.h"  // for PHTrackSeeding
 
-#include <trackbase/TrkrDefs.h>  // for cluskey
-#include <trackbase/TrkrClusterCrossingAssoc.h>
 #include <trackbase/ActsGeometry.h>
+#include <trackbase/TrkrClusterCrossingAssoc.h>
+#include <trackbase/TrkrDefs.h>  // for cluskey
+
+#include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+
+#include <g4mvtx/PHG4MvtxMisalignment.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -25,10 +30,10 @@
 #include <cmath>    // for M_PI
 #include <cstdint>  // for uint64_t
 #include <map>      // for map
-#include <unordered_map>
 #include <memory>
 #include <set>
-#include <string>         // for string
+#include <string>  // for string
+#include <unordered_map>
 #include <utility>  // for pair
 #include <vector>   // for vector
 
@@ -59,8 +64,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
       unsigned int end_layer = 55,
       unsigned int min_clusters_per_track = 5,
       float neighbor_phi_width = .02,
-      float neighbor_z_width = .01
-  );
+      float eta_allowance = 1.1);
 
   ~PHCASiliconSeeding() override {}
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up)
@@ -73,9 +77,10 @@ class PHCASiliconSeeding : public PHTrackSeeding
     _lowest_allowed_strobeid = low_strobe;
     _highest_allowed_strobeid = high_strobe;
   }
-  void SetSearchWindow(float z_width, float phi_width)
+  void SetSearchWindow(float eta_allowance, float phi_width)
   {
-    _neighbor_z_width = z_width;
+    _eta_allowance = eta_allowance;
+    _drdz_allowance = (eta_allowance < 1E-5) ? (2. * std::exp(-5.0)) / (1 - std::exp(-1. * 5.0 * 2)) : (2. * std::exp(-eta_allowance)) / (1 - std::exp(-1. * eta_allowance * 2));  // If eta_allowance is very small, set to the value for eta = 5.0 for large allowance
     _neighbor_phi_width = phi_width;
   }
   void SetPropagateMaxDCAxy(float dcaxy)
@@ -98,9 +103,40 @@ class PHCASiliconSeeding : public PHTrackSeeding
   {
     _require_INTT_consistency = req;
   }
-  void SetMinClustersPerTrack(unsigned int minClus) 
-  { 
-    _min_clusters_per_track = minClus; 
+  void SetMinClustersPerTrack(unsigned int minClus)
+  {
+    _min_clusters_per_track = minClus;
+  }
+  void SetMinMVTXClusters(unsigned int minMVTX)
+  {
+    _min_mvtx_clusters = minMVTX;
+  }
+  void SetMinINTTClusters(unsigned int minINTT)
+  {
+    _min_intt_clusters = minINTT;
+  }
+  void SetTrackMapName(const std::string& trackmap_name)
+  {
+    _module_trackmap_name = trackmap_name;
+  }
+  void Identify() const
+  {
+    std::cout << "----- Configuration parameters -----" << std::endl;
+    std::cout << " - Start layer: " << _start_layer << std::endl;
+    std::cout << " - End layer: " << _end_layer << std::endl;
+    std::cout << " - MVTX strobe ID range: [" << _lowest_allowed_strobeid << ", " << _highest_allowed_strobeid << "]" << std::endl;
+    std::cout << " - Search window eta allowance: " << _eta_allowance << ", drdz allowance: " << _drdz_allowance << std::endl;
+    std::cout << " - Search window neighbor phi width: " << _neighbor_phi_width << std::endl;
+    std::cout << " - Propagate max DCAxy: " << _propagate_max_dcaxy << std::endl;
+    std::cout << " - Propagate max DCAz: " << _propagate_max_dcaz << std::endl;
+    std::cout << " - Max cos(triplet breaking angle): " << _max_cos_angle << std::endl;
+    std::cout << " - Use best triplet: " << (_use_best ? "true" : "false") << std::endl;
+    std::cout << " - Require INTT consistency: " << (_require_INTT_consistency ? "true" : "false") << std::endl;
+    std::cout << " - Minimum clusters per track: " << _min_clusters_per_track << std::endl;
+    std::cout << " - Minimum MVTX clusters: " << _min_mvtx_clusters << std::endl;
+    std::cout << " - Minimum INTT clusters: " << _min_intt_clusters << std::endl;
+    std::cout << " - Track Map Name: " << _module_trackmap_name << std::endl;
+    std::cout << "------------------------------------" << std::endl;
   }
 
  protected:
@@ -112,9 +148,14 @@ class PHCASiliconSeeding : public PHTrackSeeding
  private:
   unsigned int _start_layer;
   unsigned int _end_layer;
+
   unsigned int _min_clusters_per_track;
+  unsigned int _min_mvtx_clusters = 2;
+  unsigned int _min_intt_clusters = 1;
+
+  float _eta_allowance = 1.1;
+  float _drdz_allowance = (2. * std::exp(-_eta_allowance)) / (1 - std::exp(-1. * _eta_allowance * 2));  // default for eta allowance of 1.1
   float _neighbor_phi_width;
-  float _neighbor_z_width;
 
   int _lowest_allowed_strobeid = -5;
   int _highest_allowed_strobeid = 5;
@@ -126,10 +167,10 @@ class PHCASiliconSeeding : public PHTrackSeeding
   bool _use_best = true;
   bool _require_INTT_consistency = true;
 
-  std::array<float, 55> dZ_per_layer{};
   std::array<float, 55> dphi_per_layer{};
   std::array<float, 55> max_dcaxy_perlayer{};
   std::array<float, 55> max_dcaz_perlayer{};
+  std::array<float, 7> radius_per_layer{};  // radius of each layer
 
   struct Triplet
   {
@@ -165,13 +206,24 @@ class PHCASiliconSeeding : public PHTrackSeeding
 
   void publishSeeds(const std::vector<TrackSeed_v2>& seeds) const;
 
+  // set up layer radii
+  void SetupDefaultLayerRadius();
+  float GetMvtxRadiusByPhi(float clusphi, int layer) const;
+
   /// acts geometry
   ActsGeometry* m_tGeometry{nullptr};
+  // cylinder geometry for mvtx and intt
+  PHG4CylinderGeomContainer* geom_container_mvtx = nullptr;
+  PHG4CylinderGeomContainer* geom_container_intt = nullptr;
+  PHG4MvtxMisalignment* mvtxmisalignment = nullptr;
+  std::vector<double> v_globaldisplacement = {0., 0., 0.};
+  float radius_displacement = 0.;
 
-  std::string trackmapname = "SiliconTrackSeedContainer"; 
   //  TrackSeedContainer *m_seedContainer = nullptr;
-  TrkrClusterContainer *m_clusterMap = nullptr;
-  TrkrClusterCrossingAssoc *m_clusterCrossingMap = nullptr;
+  TrkrClusterContainer* m_clusterMap = nullptr;
+  TrkrClusterCrossingAssoc* m_clusterCrossingMap = nullptr;
+
+  std::string _module_trackmap_name = "SiliconTrackSeedContainer";
 
   std::vector<bgi::rtree<pointKey, bgi::quadratic<16>>> _rtrees;  // need three layers at a time
 };

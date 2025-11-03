@@ -504,7 +504,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
         G4TranslateZ3D(g_tower.centralZ * cm) *
         G4RotateX3D(g_tower.pRotationAngleX * rad);
 
-    const bool overlapcheck_block = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 2);
+    const bool overlapcheck_block = OverlapCheck() && (get_geom_v3()->get_construction_verbose() >= 2);
 
     G4PVPlacement* block_phys = new G4PVPlacement(block_trans, LV_tower,
                                                   G4String(GetName()) + G4String("_Tower_") + std::to_string(g_tower.id), sec_logic, false,
@@ -665,7 +665,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     name << GetName() + std::string("_Tower") << g_tower.id << "_fiber"
          << ss.str();
 
-    const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
+    const bool overlapcheck_fiber = OverlapCheck() && (get_geom_v3()->get_construction_verbose() >= 3);
     G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
                                                    G4String(name.str()), LV_tower, false, fiber_ID,
                                                    overlapcheck_fiber);
@@ -771,7 +771,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
       name << GetName() + std::string("_Tower") << g_tower.id << "_fiber"
            << ss.str();
 
-      const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
+      const bool overlapcheck_fiber = OverlapCheck() && (get_geom_v3()->get_construction_verbose() >= 3);
       G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place,
                                                      fiber_logic, G4String(name.str()), LV_tower, false,
                                                      fiber_ID, overlapcheck_fiber);
@@ -882,9 +882,9 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
   const double weight_x2 = 1 - (double) (index_y + 1) / g_tower.NSubtowerY;
   const double weight_xcenter = 1 - (double) (index_y + 0.5) / g_tower.NSubtowerY;
 
-  assert(weight_x1 >= 0 and weight_x1 <= 1);
-  assert(weight_x2 >= 0 and weight_x2 <= 1);
-  assert(weight_xcenter >= 0 and weight_xcenter <= 1);
+  assert(weight_x1 >= 0 && weight_x1 <= 1);
+  assert(weight_x2 >= 0 && weight_x2 <= 1);
+  assert(weight_xcenter >= 0 && weight_xcenter <= 1);
 
   const double lg_pDx1 = (g_tower.pDx1 * weight_x1  //
                           + g_tower.pDx2 * (1 - weight_x1)) /

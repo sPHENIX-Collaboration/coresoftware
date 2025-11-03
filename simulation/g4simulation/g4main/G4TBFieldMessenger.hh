@@ -35,7 +35,6 @@
 #ifndef G4MAIN_G4TBFIELDMESSENGER_H
 #define G4MAIN_G4TBFIELDMESSENGER_H
 
-#include <Geant4/G4String.hh>
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4UImessenger.hh>
 

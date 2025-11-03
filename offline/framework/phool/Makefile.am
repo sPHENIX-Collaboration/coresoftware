@@ -95,6 +95,9 @@ noinst_PROGRAMS = \
   testexternals_phool \
   testexternals_sph_onnx
 
+bin_PROGRAMS = \
+  onnxtest
+
 endif
 
 libphool_la_LDFLAGS = \
@@ -114,7 +117,10 @@ libsph_onnx_la_LIBADD = \
 BUILT_SOURCES = \
   testexternals.cc
 
+onnxtest_SOURCES = onnxtest.cc
 
+onnxtest_LDADD = \
+  libsph_onnx.la
 
 testexternals_phool_SOURCES = testexternals.cc
 testexternals_sph_onnx_SOURCES = testexternals.cc

@@ -21,7 +21,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -225,10 +225,8 @@ double PHG4TpcDistortion::get_reaches_readout(double r, double phi, double z) co
   {
     return get_distortion('R', r, phi, z);
   }
-  else
-  {
-    return 1;
-  }
+
+  return 1;
 }
 
 double PHG4TpcDistortion::get_distortion(char axis, double r, double phi, double z) const

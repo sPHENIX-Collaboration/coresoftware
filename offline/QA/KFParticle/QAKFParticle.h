@@ -43,6 +43,8 @@ class QAKFParticle : public SubsysReco
 
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
 
+  void setKFParticleNodeName(const std::string &name) { m_KFParticleNodeName = name; }
+
  protected:
   // SvtxClusterEval *clustereval = nullptr;
   int m_mother_id = 0;
@@ -57,13 +59,13 @@ class QAKFParticle : public SubsysReco
   TH1F *h_mass_KFP_crossing0 = nullptr;
   TH1F *h_mass_KFP_non_crossing0 = nullptr;
   TH1F *h_mass_KFP_ZDC_Coincidence = nullptr;
-  TH1F *h_mass_KFP_MBD_NandS_geq_1_vtx_l_30_cm = nullptr;
+  TH1F *h_mass_KFP_MBD_NandS_geq_1_vtx_l_10_cm = nullptr;
   TH1F *h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm = nullptr;  
 
   TriggerAnalyzer *triggeranalyzer{nullptr};
 
   int m_ZDC_Coincidence_bit = INT_MAX;
-  int m_MBD_NandS_geq_1_vtx_l_30_cm_bit = INT_MAX;
+  int m_MBD_NandS_geq_1_vtx_l_10_cm_bit = INT_MAX;
   int m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit = INT_MAX; 
 
  private:
@@ -84,7 +86,9 @@ class QAKFParticle : public SubsysReco
   KFParticle_Container *m_kfpContainer = nullptr;
   std::map<std::string, std::pair<int, float>> particleMasses;
   std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_KFParticleNodeName = "reconstructedParticles";
 
+  bool hasTriggerInfo = true;
   static const int nTriggerBits = 64;
   int counter = 0;
 };

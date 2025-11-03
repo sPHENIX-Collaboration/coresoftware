@@ -41,6 +41,7 @@ libg4dst_la_LDFLAGS = \
   -ltpccalib_io \
   -ltrack_io \
   -ltrackbase_historic_io \
+  -luspin_io \
   -lzdcinfo_io
 
 libg4dst_la_SOURCES = \

@@ -59,7 +59,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   /// time between bunch crossing in ns
   double _time_between_crossings = sphenix_constants::time_between_crossings;
 
-  //derived parameters
+  // derived parameters
   double _ave_coll_per_crossing = 1.;
   int _min_crossing = 0;
   int _max_crossing = 0;

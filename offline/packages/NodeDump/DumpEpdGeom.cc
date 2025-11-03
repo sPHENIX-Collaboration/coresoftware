@@ -5,6 +5,7 @@
 #include <calobase/TowerInfoDefs.h>
 #include <epd/EpdGeom.h>
 
+#include <iomanip>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -19,6 +20,7 @@ DumpEpdGeom::DumpEpdGeom(const std::string &NodeName)
 
 int DumpEpdGeom::process_Node(PHNode *myNode)
 {
+  const auto original_precision = (*fout).precision();
   EpdGeom *epdgeom = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
   if (thisNode)
@@ -27,6 +29,7 @@ int DumpEpdGeom::process_Node(PHNode *myNode)
   }
   if (epdgeom)
   {
+    (*fout).precision(std::numeric_limits<float>::max_digits10);
     for (int iarm = 0; iarm < 2; iarm++)
     {
       for (int irad = 0; irad < 16; irad++)
@@ -44,6 +47,7 @@ int DumpEpdGeom::process_Node(PHNode *myNode)
           *fout << "get_z: " << epdgeom->get_z(key) << std::endl;
         }
       }
+      (*fout).precision(original_precision);
     }
   }
   return 0;

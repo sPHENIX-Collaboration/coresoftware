@@ -140,7 +140,7 @@ std::set<PHG4Shower*> CaloRawClusterEval::all_truth_primary_showers(RawCluster* 
 
       std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
 
-      for (auto shower : new_primary_showers)
+      for (auto* shower : new_primary_showers)
       {
         if (_strict)
         {
@@ -177,7 +177,7 @@ std::set<PHG4Shower*> CaloRawClusterEval::all_truth_primary_showers(RawCluster* 
 
       std::set<PHG4Shower*> new_primary_showers = _towereval.all_truth_primary_showers(tower);
 
-      for (auto shower : new_primary_showers)
+      for (auto* shower : new_primary_showers)
       {
         if (_strict)
         {
@@ -234,7 +234,7 @@ PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* c
   PHG4Shower* max_primary = nullptr;
   float max_e = FLT_MAX * -1.0;
   std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
-  for (auto primary : primary_showers)
+  for (auto* primary : primary_showers)
   {
     if (_strict)
     {
@@ -321,7 +321,7 @@ std::set<RawCluster*> CaloRawClusterEval::all_clusters_from(PHG4Shower* primary)
     RawCluster* cluster = iter->second;
 
     std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
-    for (auto candidate : primary_showers)
+    for (auto* candidate : primary_showers)
     {
       if (_strict)
       {
@@ -396,7 +396,7 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary)
   RawCluster* best_cluster = nullptr;
   float best_energy = FLT_MAX * -1.0;
   std::set<RawCluster*> clusters = all_clusters_from(primary);
-  for (auto cluster : clusters)
+  for (auto* cluster : clusters)
   {
     if (_strict)
     {
@@ -433,7 +433,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -444,12 +444,12 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   else if (!cluster || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!get_truth_eval()->is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap
@@ -462,7 +462,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Showe
   else if (!primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_do_cache)
@@ -571,7 +571,7 @@ std::set<PHG4Particle*> CaloRawClusterEval::all_truth_primary_particles(RawClust
 
   std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
 
-  for (auto shower : primary_showers)
+  for (auto* shower : primary_showers)
   {
     if (_strict)
     {
@@ -778,7 +778,7 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   if (!has_reduced_node_pointers())
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (_strict)
@@ -789,12 +789,12 @@ float CaloRawClusterEval::get_energy_contribution(RawCluster* cluster, PHG4Parti
   else if (!cluster || !primary)
   {
     ++_errors;
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   if (!get_truth_eval()->is_primary(primary))
   {
-    return NAN;
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   // reduce cache misses by using only pointer from PrimaryMap
@@ -918,7 +918,7 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
 
       std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
 
-      for (auto g4hit : new_hits)
+      for (auto* g4hit : new_hits)
       {
         if (_strict)
         {
@@ -955,7 +955,7 @@ std::set<PHG4Hit*> CaloRawClusterEval::all_truth_hits(RawCluster* cluster)
 
       std::set<PHG4Hit*> new_hits = get_rawtower_eval()->all_truth_hits(tower);
 
-      for (auto g4hit : new_hits)
+      for (auto* g4hit : new_hits)
       {
         if (_strict)
         {
@@ -987,13 +987,13 @@ void CaloRawClusterEval::get_node_pointers(PHCompositeNode* topNode)
   {
     nodename = "CLUSTER_" + _caloname;
   }
-  _clusters = findNode::getClass<RawClusterContainer>(topNode, nodename.c_str());
+  _clusters = findNode::getClass<RawClusterContainer>(topNode, nodename);
 
   std::string towername = "TOWER_CALIB_" + _caloname;
-  _towers = findNode::getClass<RawTowerContainer>(topNode, towername.c_str());
+  _towers = findNode::getClass<RawTowerContainer>(topNode, towername);
 
   std::string towerinfoname = "TOWERINFO_CALIB_" + _caloname;
-  _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoname.c_str());
+  _towerinfos = findNode::getClass<TowerInfoContainer>(topNode, towerinfoname);
 
   return;
 }

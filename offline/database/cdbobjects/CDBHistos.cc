@@ -82,7 +82,7 @@ void CDBHistos::LoadCalibrations()
 
 void CDBHistos::Print() const
 {
-  for (auto &iter : m_HistoMap)
+  for (const auto &iter : m_HistoMap)
   {
     std::cout << "histogram " << iter.first << ", type "
               << iter.second->IsA()->GetName() << std::endl;

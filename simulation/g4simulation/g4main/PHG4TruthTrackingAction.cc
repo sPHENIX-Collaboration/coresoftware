@@ -76,14 +76,12 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
   }
 
   int vtxindex = ti->get_vtx_id();
-  
 
   // maybe we should do the sPHENIX primary tracking here as here is the place where the parent id etc. are finally set
-  
+
   if (issPHENIXPrimary(*m_TruthInfoList, ti))
   {
-
-    //we also want to set keep this track
+    // we also want to set keep this track
     PHG4TrackUserInfoV1* userinfo = dynamic_cast<PHG4TrackUserInfoV1*>(track->GetUserInformation());
     if (userinfo)
     {
@@ -94,7 +92,7 @@ void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
 
     m_TruthInfoList->AddsPHENIXPrimaryParticle(trackid, newparticle);
   }
-  
+
   m_CurrG4Particle = {track_id_g4, trackid, vtxindex};
 
   // create or add to a new shower object --------------------------------------

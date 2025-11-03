@@ -139,12 +139,12 @@ int EpdReco::process_event(PHCompositeNode *topNode)
 
   for (unsigned int ch = 0; ch < ntowers; ch++)
   {
-    float ch_time = _sepd_towerinfo->get_tower_at_channel(ch)->get_time_float();
+    float ch_time = _sepd_towerinfo->get_tower_at_channel(ch)->get_time();
     float ch_adc = _sepd_towerinfo->get_tower_at_channel(ch)->get_energy();
     float ch_mpv = cdbttree->GetFloatValue(ch, m_fieldname);
     double ch_nmip = ch_adc / ch_mpv;
     m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_energy(ch_nmip);
-    m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_time_float(ch_time);
+    m_TowerInfoContainer_calib->get_tower_at_channel(ch)->set_time(ch_time);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

@@ -422,7 +422,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     {
       length = inner_z_length;
     }
-    if (std::fabs(hit->get_z(0)) > length)
+    if (std::abs(hit->get_z(0)) > length)
     {
       continue;
     }
@@ -516,7 +516,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     float px_hi = t_track->px + pt_diff;
     float py_lo = t_track->py - pt_diff;
     float py_hi = t_track->py + pt_diff;
-    float pz_diff = std::fabs(t_track->pz) * pz_search_scale;
+    float pz_diff = std::abs(t_track->pz) * pz_search_scale;
     float pz_lo = t_track->pz - pz_diff;
     float pz_hi = t_track->pz + pz_diff;
 
@@ -531,7 +531,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
       for (unsigned int i = 1; i < pointer_list.size(); ++i)
       {
         mom_reco = std::sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
-        if (std::fabs(mom_true - mom_reco) < std::fabs(mom_true - best_mom))
+        if (std::abs(mom_true - mom_reco) < std::abs(mom_true - best_mom))
         {
           best_mom = mom_reco;
           best_ind = i;
@@ -561,7 +561,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     float px_hi = r_track->px + pt_diff;
     float py_lo = r_track->py - pt_diff;
     float py_hi = r_track->py + pt_diff;
-    float pz_diff = std::fabs(r_track->pz) * pz_search_scale;
+    float pz_diff = std::abs(r_track->pz) * pz_search_scale;
     float pz_lo = r_track->pz - pz_diff;
     float pz_hi = r_track->pz + pz_diff;
 
@@ -576,7 +576,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
       for (unsigned int i = 1; i < pointer_list.size(); ++i)
       {
         mom_true = std::sqrt((pointer_list[i]->px) * (pointer_list[i]->px) + (pointer_list[i]->py) * (pointer_list[i]->py) + (pointer_list[i]->pz) * (pointer_list[i]->pz));
-        if (std::fabs(mom_reco - mom_true) < std::fabs(mom_reco - best_mom))
+        if (std::abs(mom_reco - mom_true) < std::abs(mom_reco - best_mom))
         {
           best_mom = mom_true;
           best_ind = i;

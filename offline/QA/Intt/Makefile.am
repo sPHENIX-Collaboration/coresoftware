@@ -11,6 +11,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
+  InttQa.h \
   InttRawHitQA.h \
   InttStreamQA.h \
   InttQaCommon.h \
@@ -22,6 +23,7 @@ lib_LTLIBRARIES = \
   libinttrawhitqa.la
 
 libinttrawhitqa_la_SOURCES = \
+  InttQa.cc \
   InttRawHitQA.cc \
   InttStreamQA.cc \
   TH2INTT.cc \

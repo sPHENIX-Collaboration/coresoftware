@@ -29,10 +29,6 @@ class HepMCNodeReader : public SubsysReco
   void pythia(const bool pythia) { is_pythia = pythia; }
 
   //! this function is depreciated.
-  //! Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.
-  void Embed(const int i = 1);
-
-  //! this function is depreciated.
   //! HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location.
   //! And the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators.
   void VertexPosition(const double v_x, const double v_y, const double v_z);

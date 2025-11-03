@@ -18,7 +18,7 @@ class TFile;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
-class PHG4TpcCylinderGeom;
+class PHG4TpcGeom;
 
 struct ActsSurfaceMaps;
 struct ActsTrackingGeometry;
@@ -37,10 +37,9 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   void setScale(float CScale);
   void setFileName(const std::string &filename);
   void writeTree(int f_writeTree);
-  void set_drift_velocity(float vd) { _drift_velocity = vd; }
 
  private:
-  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcCylinderGeom *layergeom);
+  bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
 
   TrkrHitSetContainer *m_hits{nullptr};
   TrkrClusterContainer *m_clusterlist{nullptr};
@@ -64,12 +63,11 @@ class PHG4TpcPadBaselineShift : public SubsysReco
   int NZBinsMax{0};
   //   int NSearch {2};
 
-  float _hit_z{std::numeric_limits<float>::signaling_NaN()};
-  float _hit_r{std::numeric_limits<float>::signaling_NaN()};
-  float _hit_phi{std::numeric_limits<float>::signaling_NaN()};
-  float _hit_e{std::numeric_limits<float>::signaling_NaN()};
+  float _hit_z{std::numeric_limits<float>::quiet_NaN()};
+  float _hit_r{std::numeric_limits<float>::quiet_NaN()};
+  float _hit_phi{std::numeric_limits<float>::quiet_NaN()};
+  float _hit_e{std::numeric_limits<float>::quiet_NaN()};
   float _CScale{1.};
-  float _drift_velocity{8.0e-03};
 
   //   bool do_hit_assoc {true};
 

@@ -13,15 +13,13 @@
 #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase_historic/SvtxTrackState.h>
-
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 class ActsGeometry;
-class PHG4TpcCylinderGeomContainer;
+class PHCompositeNode;
+class PHG4TpcGeomContainer;
 class PHG4CylinderGeomContainer;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -29,6 +27,7 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxTrackState;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -61,7 +60,7 @@ class TrackEvaluation : public SubsysReco
   };
 
   //! set flags. Should be a bitwise or of Flags enum
-  void set_flags(int flags)
+  void set_flags(unsigned int flags)
   {
     m_flags = flags;
   }
@@ -117,7 +116,7 @@ class TrackEvaluation : public SubsysReco
   TrackEvaluationContainerv1* m_container = nullptr;
 
   //! flags
-  int m_flags = EvalEvent | EvalClusters | EvalTracks;
+  unsigned int m_flags = EvalEvent | EvalClusters | EvalTracks;
 
   /// Acts tracking geometry for surface lookup
   ActsGeometry* m_tGeometry = nullptr;
@@ -149,7 +148,7 @@ class TrackEvaluation : public SubsysReco
   PHG4TruthInfoContainer* m_g4truthinfo = nullptr;
 
   //! tpc geometry
-  PHG4TpcCylinderGeomContainer* m_tpc_geom_container = nullptr;
+  PHG4TpcGeomContainer* m_tpc_geom_container = nullptr;
 
   //! micromegas geometry
   PHG4CylinderGeomContainer* m_micromegas_geom_container = nullptr;

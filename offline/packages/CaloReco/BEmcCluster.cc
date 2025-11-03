@@ -661,7 +661,7 @@ int EmcCluster::GetSubClusters(std::vector<EmcCluster>& PkList, std::vector<EmcM
         a = 0;
 
         // predict energy within 2.5 cell square around local peak
-        if (ABS(dx) < 2.5 && ABS(dy) < 2.5)
+        if (std::abs(dx) < 2.5 && std::abs(dy) < 2.5)
         {
           //          a = epk[ipk] * fOwner->PredictEnergy(dx, dy, epk[ipk]);
           a = epk[ipk] * fOwner->PredictEnergy(epk[ipk], xpk[ipk], ypk[ipk], ix, iy);

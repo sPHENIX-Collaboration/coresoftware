@@ -140,6 +140,14 @@ class JetKinematicCheck : public SubsysReco
   TH1 *h_jet_average_mass_eta_1D_r04  {nullptr};
   TH2 *h_jet_mass_eta_r05  {nullptr};
   TH1 *h_jet_average_mass_eta_1D_r05  {nullptr};
+  TH2 *h_jet_pt_eta_r02  {nullptr};
+  TH2 *h_jet_pt_phi_r02	 {nullptr};
+  TH2 *h_jet_pt_eta_r03	 {nullptr};
+  TH2 *h_jet_pt_phi_r03	 {nullptr};
+  TH2 *h_jet_pt_eta_r04	 {nullptr};
+  TH2 *h_jet_pt_phi_r04  {nullptr};
+  TH2 *h_jet_pt_eta_r05  {nullptr};
+  TH2 *h_jet_pt_phi_r05  {nullptr};
 };
 
 #endif  // JETKINEMATICCHECK_H

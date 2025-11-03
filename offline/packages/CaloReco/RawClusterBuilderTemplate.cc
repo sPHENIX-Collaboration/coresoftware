@@ -14,6 +14,7 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
+#include <calobase/RawClusterv2.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -22,8 +23,6 @@
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <ffamodules/CDBInterface.h>
 
@@ -47,6 +46,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <limits>
 
 RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   : SubsysReco(name)
@@ -192,10 +192,23 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
       else
       {
         std::cout << "RawClusterBuilderTemplate::InitRun - Detailed geometry not implemented for detector " << detector << ". The former geometry is used instead" << std::endl;
+        m_UseDetailedGeometry = false;
+        bemc->set_UseDetailedGeometry(false);
       }
     }
   }
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
+
+  if (!towergeom && m_UseDetailedGeometry)
+  {
+    std::cout << "RawClusterBuilderTemplate::InitRun - Detailed geometry node " << m_TowerGeomNodeName << " is not available. "
+              << "Switching to the former geometry node TOWERGEOM_" << detector << "." << std::endl;
+    m_UseDetailedGeometry = false;
+    m_TowerGeomNodeName = "TOWERGEOM_" + detector;
+    bemc->set_UseDetailedGeometry(false);
+    towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
+  }
+  
   if (!towergeom)
   {
     std::cout << PHWHERE << ": Could not find node " << m_TowerGeomNodeName << std::endl;
@@ -298,6 +311,10 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     }
   }
 
+  // Release memory taken by the RawTowerGeom objects in BEmcRec
+  // Does nothing if the former geometry is used
+  bemc->ClearInitialDetailedGeometry();
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -350,6 +367,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     }
   }
 
+  // At this stage, it is more efficient to read the simple geometry node in any case
+  // Indeed, we only need to read the calorimeter ID
   m_TowerGeomNodeName = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
   if (!towergeom)
@@ -668,7 +687,9 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       //      std::cout << "Prob/Chi2/NDF = " << prob << " " << chi2
       //           << " " << ndf << " Ecl = " << ecl << std::endl;
 
-      cluster = new RawClusterv1();
+      cluster = m_writeClusterV2
+                    ? static_cast<RawCluster*>(new RawClusterv2())
+                    : static_cast<RawCluster*>(new RawClusterv1());
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_r(std::sqrt(xg * xg + yg * yg));
@@ -686,6 +707,12 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       }
       hlist = pp->GetHitList();
       ph = hlist.begin();
+
+      // accumulate energy-weighted time
+      float ew_num = 0.0;   // sum(E * t)
+      float ew_den = 0.0;   // sum(E)
+      bool   saw_nonzero_t = false;
+
       while (ph != hlist.end())
       {
         ich = (*ph).ich;
@@ -700,10 +727,35 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid(Calo_ID, iy + BINY0, ix + BINX0);  // Becuase in this part index1 is iy
         //	std::cout << iphi << " " << ieta << ": "
         //           << twrkey << " e = " << (*ph).amp) << std::endl;
-        cluster->addTower(twrkey, (*ph).amp / fEnergyNorm);
+          
+        const float amp = (*ph).amp;
+        const float tof = (*ph).tof;
+
+        // add tower (energy is un-normalized inside vhit)
+        cluster->addTower(twrkey, amp / fEnergyNorm);
+
+        // accumulate EW time (finite guard; treat exact 0 as “no time”)
+        if (std::isfinite(tof))
+        {
+          if (std::abs(tof) > 1e-9F) { saw_nonzero_t = true; }
+          ew_num += amp * tof;    // float math end-to-end
+        }
+        ew_den += amp;
+
+
         ++ph;
       }
 
+      // stamp tower CoG (raw & corrected) only when writing v2
+      float xcorr = xcg;
+      float ycorr = ycg;
+      bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
+      cluster->set_tower_cog(xcg, ycg, xcorr, ycorr);
+
+      const float tmean = (ew_den > 0.0F && saw_nonzero_t)
+                            ? (ew_num / ew_den)
+                            : std::numeric_limits<float>::quiet_NaN();
+      cluster->set_mean_time(tmean);
       _clusters->AddCluster(cluster);
       // ncl++;
 

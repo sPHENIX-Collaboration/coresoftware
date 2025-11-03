@@ -164,7 +164,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
       const PHHepMCGenEvent *genevnt = genevntpair.second;
       assert(genevnt);
 
-      if (genevnt->get_collision_vertex().z() < m_vertexAcceptanceRange.first or genevnt->get_collision_vertex().z() > m_vertexAcceptanceRange.second)
+      if (genevnt->get_collision_vertex().z() < m_vertexAcceptanceRange.first || genevnt->get_collision_vertex().z() > m_vertexAcceptanceRange.second)
       {
         if (Verbosity() >= 2)
         {
@@ -223,7 +223,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
 //_________________________________________________________________
 int PHG4ScoringManager::End(PHCompositeNode * /*unused*/)
 {
-  if (not m_outputFileName.empty())
+  if (!m_outputFileName.empty())
   {
     PHTFileServer::get().cd(m_outputFileName);
     cout << "PHG4ScoringManager::End - save results to " << m_outputFileName << endl;

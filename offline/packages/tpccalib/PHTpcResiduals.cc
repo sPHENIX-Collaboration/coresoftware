@@ -155,6 +155,8 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
 //___________________________________________________________________________________
 int PHTpcResiduals::InitRun(PHCompositeNode* topNode)
 {
+
+  
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -164,7 +166,8 @@ int PHTpcResiduals::InitRun(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  m_zMax = m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
+  m_zMin = -m_zMax;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -630,7 +633,7 @@ void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, floa
     }
   }
 
-  state.set_name(std::to_string((TrkrDefs::cluskey) key));
+  state.set_name(std::to_string( key));
   state.set_cluskey(key);
   track->insert_state(&state);
 }

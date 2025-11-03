@@ -14,7 +14,7 @@ class PHG4EventHeaderv1 : public PHG4EventHeader
   PHG4EventHeaderv1();
 
   /// dtor
-  ~PHG4EventHeaderv1() override {}
+  ~PHG4EventHeaderv1() override = default;
 
   /// Clear Event
   void Reset() override;

@@ -20,6 +20,9 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
+
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrack_v2.h>
@@ -42,37 +45,31 @@ namespace
 
   // utility
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
 
   // unique detector id for all direct lasers
-  static const int detId = PHG4HitDefs::get_volume_id("PHG4TpcDirectLaser");
+  const int detId = PHG4HitDefs::get_volume_id("PHG4TpcDirectLaser");
 
   ///@name units
   //@{
-  static constexpr double cm = 1.0;
+  constexpr double cm = 1.0;
   //@}
 
   /// speed of light, in cm per ns
-  static constexpr double speed_of_light = GSL_CONST_MKSA_SPEED_OF_LIGHT * 1e-7;
+  constexpr double speed_of_light = GSL_CONST_MKSA_SPEED_OF_LIGHT * 1e-7;
 
   /// length of generated G4Hits along laser track
-  static constexpr double maxHitLength = 1. * cm;
-
-  /// TPC half length
-  static constexpr double halflength_tpc = 105.5 * cm;
+  constexpr double maxHitLength = 1. * cm;
 
   // inner and outer radii of field cages/TPC
-  static constexpr double begin_CM = 20. * cm;
-  static constexpr double end_CM = 78. * cm;
-
-  // half the thickness of the CM;
-  static constexpr double halfwidth_CM = 0.5 * cm;
+  constexpr double begin_CM = 20. * cm;
+  constexpr double end_CM = 78. * cm;
 
   //_____________________________________________________________
-  std::optional<TVector3> central_membrane_intersection(const TVector3& start, const TVector3& direction)
+  std::optional<TVector3> central_membrane_intersection(const TVector3& start, const TVector3& direction, double halfwidth_CM)
   {
     const double end = start.z() > 0 ? halfwidth_CM : -halfwidth_CM;
     const double dist = end - start.z();
@@ -94,7 +91,7 @@ namespace
   }
 
   //_____________________________________________________________
-  std::optional<TVector3> endcap_intersection(const TVector3& start, const TVector3& direction)
+  std::optional<TVector3> endcap_intersection(const TVector3& start, const TVector3& direction, double halflength_tpc)
   {
     const double end = start.z() > 0 ? halflength_tpc : -halflength_tpc;
     const double dist = end - start.z();
@@ -175,14 +172,12 @@ namespace
     {
       return (ofc_dist > 0) ? ofc_strike : std::nullopt;
     }
-    else if (ofc_dist < 0)
+    if (ofc_dist < 0)
     {
       return ifc_strike;
     }
-    else
-    {
-      return (ifc_dist < ofc_dist) ? ifc_strike : ofc_strike;
-    }
+
+    return (ifc_dist < ofc_dist) ? ifc_strike : ofc_strike;
   }
 
   /// TVector3 stream
@@ -212,7 +207,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
     std::cout << "Fun4AllDstPileupMerger::load_nodes - creating node G4TruthInfo" << std::endl;
 
     PHNodeIterator iter(topNode);
-    auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+    auto* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
     if (!dstNode)
     {
       std::cout << PHWHERE << "DST Node missing, aborting." << std::endl;
@@ -225,7 +220,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
 
   // load and check G4Hit node
   hitnodename = "G4HIT_" + detector;
-  auto* g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  auto* g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   if (!g4hit)
   {
     std::cout << Name() << " Could not locate G4HIT node " << hitnodename << std::endl;
@@ -239,7 +234,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
   {
     // find DST node and check
     PHNodeIterator iter(topNode);
-    auto dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+    auto* dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
     if (!dstNode)
     {
       std::cout << PHWHERE << "DST Node missing, aborting." << std::endl;
@@ -248,7 +243,7 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
 
     // find or create SVTX node
     iter = PHNodeIterator(dstNode);
-    auto node = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
+    auto* node = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
     if (!node)
     {
       dstNode->addNode(node = new PHCompositeNode("SVTX"));
@@ -264,6 +259,13 @@ int PHG4TpcDirectLaser::InitRun(PHCompositeNode* topNode)
   electrons_per_cm = get_int_param("electrons_per_cm");
   electrons_per_gev = get_double_param("electrons_per_gev");
 
+    PHG4TpcGeomContainer *GeomContainer = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+   
+  PHG4TpcGeom *layergeom = GeomContainer->GetLayerCellGeom(20);  // z geometry is the same for all layers
+  double maxdriftlength = layergeom->get_max_driftlength();
+  halfwidth_CM = layergeom->get_CM_halfwidth();
+  halflength_tpc = maxdriftlength + halfwidth_CM;
+  
   // setup lasers
   SetupLasers();
 
@@ -303,7 +305,7 @@ int PHG4TpcDirectLaser::process_event(PHCompositeNode* topNode)
   assert(m_g4truthinfo);
 
   // load g4hit container
-  m_g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  m_g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   assert(m_g4hitcontainer);
 
   // load track map
@@ -343,6 +345,9 @@ void PHG4TpcDirectLaser::SetDefaultParameters()
 
   // number of electrons per deposited GeV in TPC gas
   set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1e6);
+
+  //  set_default_double_param("tpc_half_length", 102.325);
+  //  set_default_double_param("CM_halfwidth", 0.28);
 
   // number of electrons deposited by laser per cm
   set_default_int_param("electrons_per_cm", 72);
@@ -577,14 +582,14 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
   {
     // add vertex
     const auto vtxid = m_g4truthinfo->maxvtxindex() + 1;
-    const auto vertex = new PHG4VtxPoint_t(pos.x(), pos.y(), pos.z(), 0, vtxid);
+    auto* const vertex = new PHG4VtxPoint_t(pos.x(), pos.y(), pos.z(), 0, vtxid);
     m_g4truthinfo->AddVertex(vtxid, vertex);
 
     // increment track id
     trackid = m_g4truthinfo->maxtrkindex() + 1;
 
     // create new g4particle
-    auto particle = new PHG4Particle_t();
+    auto* particle = new PHG4Particle_t();
     particle->set_track_id(trackid);
     particle->set_vtx_id(vtxid);
     particle->set_parent_id(0);
@@ -624,7 +629,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
    * if the position along beam and laser direction have the same sign, it will intercept the endcap
    * otherwise will intercept the central membrane
    */
-  const auto plane_strike = (pos.z() * dir.z() > 0) ? endcap_intersection(pos, dir) : central_membrane_intersection(pos, dir);
+  const auto plane_strike = (pos.z() * dir.z() > 0) ? endcap_intersection(pos, dir,halflength_tpc) : central_membrane_intersection(pos, dir, halfwidth_CM);
 
   // field cage intersection
   const auto fc_strike = field_cage_intersection(pos, dir);
@@ -675,7 +680,7 @@ void PHG4TpcDirectLaser::AppendLaserTrack(double theta, double phi, const PHG4Tp
     }
 
     // from phg4tpcsteppingaction.cc
-    auto hit = new PHG4Hit_t;
+    auto* hit = new PHG4Hit_t;
     hit->set_trkid(trackid);
     hit->set_layer(99);
 

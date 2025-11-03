@@ -24,7 +24,7 @@ class PHPy8JetTrigger : public PHPy8GenTrigger
   void SetMinLeadingZ(double minZ);
   void SetMinNumConstituents(int nconst);
 
-  void PrintConfig();
+  void PrintConfig() const;
 
  private:
   double _theEtaHigh;

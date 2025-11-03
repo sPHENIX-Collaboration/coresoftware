@@ -278,8 +278,8 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep, bool /
       }
       if (geantino)
       {
-        //implement your own here://
-        // if you want to do something special for geantinos (normally you do not)
+        // implement your own here://
+        //  if you want to do something special for geantinos (normally you do not)
         m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way
                               // geantinos survive the g4hit compression
         if (whichactive > 0)
@@ -291,8 +291,8 @@ bool PHG4TpcEndCapSteppingAction::UserSteppingAction(const G4Step *aStep, bool /
       {
         m_Hit->set_edep(m_EdepSum);
       }
-      //implement your own here://
-      // what you set here will be saved in the output
+      // implement your own here://
+      //  what you set here will be saved in the output
       if (whichactive > 0)
       {
         m_Hit->set_eion(m_EionSum);

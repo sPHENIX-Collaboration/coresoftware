@@ -85,8 +85,7 @@ class CaloWaveformProcessing : public SubsysReco
   void set_onnx_offset(const int i, const double val) { m_Onnx_offset.at(i) = val; }
 
  private:
-  bool apply_zero_suppression(std::vector<float> &v);
-  CaloWaveformFitting *m_Fitter = nullptr;
+  CaloWaveformFitting *m_Fitter{nullptr};
 
   CaloWaveformProcessing::process m_processingtype{CaloWaveformProcessing::TEMPLATE};
   int _nthreads{1};

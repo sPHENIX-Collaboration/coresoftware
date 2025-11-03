@@ -30,8 +30,8 @@
 #include <map>
 
 class ClusHitsVerbosev1;
-class PHG4TpcCylinderGeom;
-class PHG4TpcCylinderGeomContainer;
+class PHG4TpcGeom;
+class PHG4TpcGeomContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrHitSetContainer;
@@ -43,7 +43,7 @@ class TrkrTruthTrackContainer;
 class TpcClusterBuilder
 {
  public:
-  TpcClusterBuilder(){};
+  TpcClusterBuilder() {};
   ~TpcClusterBuilder()
   {
     delete m_hits;
@@ -57,18 +57,18 @@ class TpcClusterBuilder
   void cluster_hits(TrkrTruthTrack* track);
   void addhitset(TrkrDefs::hitsetkey, TrkrDefs::hitkey, float neffelectrons);
   void set_current_track(TrkrTruthTrack* _trkrtruthtrack);
-  void print(TrkrTruthTrackContainer*, int nclusprint = -1);
+  void print(TrkrTruthTrackContainer*, int nclusprint = -1) const;
   void print_file(TrkrTruthTrackContainer*, const std::string&);
   void set_verbosity(int verbosity_level) { verbosity = verbosity_level; }
 
   void clear_hitsetkey_cnt();
   void set_pixel_thresholdrat(double val) { m_pixel_thresholdrat = val; };
-  void set_input_nodes(TrkrClusterContainer* _truth_cluster_container, ActsGeometry* _ActsGeometry, PHG4TpcCylinderGeomContainer* _geom_container, ClusHitsVerbosev1* _clushitsverbose);
+  void set_input_nodes(TrkrClusterContainer* _truth_cluster_container, ActsGeometry* _ActsGeometry, PHG4TpcGeomContainer* _geom_container, ClusHitsVerbosev1* _clushitsverbose);
 
  private:
   ActsGeometry* m_tGeometry{nullptr};  // used to generate clusters
   ClusHitsVerbosev1* mClusHitsVerbose{nullptr};
-  PHG4TpcCylinderGeomContainer* geom_container{nullptr};
+  PHG4TpcGeomContainer* geom_container{nullptr};
   TrkrClusterContainer* m_clusterlist{nullptr};  // fill for output
 
   // internal containers to fill and consume hits and fill with tracks

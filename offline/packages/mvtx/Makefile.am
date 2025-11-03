@@ -36,9 +36,8 @@ ROOTDICTS = \
   MvtxNoiseMap_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  CylinderGeom_Mvtx_Dict_rdict.pcm \
-  MvtxNoiseMap_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
@@ -63,14 +62,12 @@ libmvtx_la_LIBADD = \
   -lmvtx_decoder \
   -lphg4hit \
   -lSubsysReco \
-  -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrack_io
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
-  MvtxNoiseMap.cc \
   SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \

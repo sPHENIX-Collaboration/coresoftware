@@ -22,8 +22,8 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <Acts/Definitions/Units.hpp>
 #include <Acts/Surfaces/Surface.hpp>
@@ -181,11 +181,11 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TpcCylinderGeomContainer *geom_container =
-      findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer *geom_container =
+      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -311,6 +311,8 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
 //    count++;
   }
   std::cout << "processing tpc" << std::endl;
+  float tpc_zmax = m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
+
   // loop over the TPC HitSet objects
   TrkrHitSetContainer::ConstRange tpc_hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   //  const int num_hitsets = std::distance(hitsetrange.first,hitsetrange.second);
@@ -328,7 +330,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     //   if(layer!=7) continue;
     //    int side = TpcDefs::getSide(hitsetitr->first);
     unsigned int sector = TpcDefs::getSectorId(hitsetitr->first);
-    PHG4TpcCylinderGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+    PHG4TpcGeom *layergeom = geom_container->GetLayerCellGeom(layer);
     unsigned short NPhiBins = (unsigned short) layergeom->get_phibins();
     unsigned short NPhiBinsSector = NPhiBins / 12;
     unsigned short NZBins = (unsigned short) layergeom->get_zbins();
@@ -361,18 +363,18 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
     int zbinmin = 0;
     if (layer >= 7 && layer < 22)
     {
-      int etacut = 249 - ((50 + (layer - 7)) / 105.5) * 249;
+      int etacut = 249 - ((50 + (layer - 7)) / tpc_zmax) * 249;
       zbinmin = etacut;
       zbinmax -= etacut;
     }
     if (layer >= 22 && layer <= 48)
     {
-      int etacut = 249 - ((65 + ((40.5 / 26) * (layer - 22))) / 105.5) * 249;
+      int etacut = 249 - ((65 + ((40.5 / 26) * (layer - 22))) / tpc_zmax) * 249;
       zbinmin = etacut;
       zbinmax -= etacut;
     }
 
-    // std::cout << " layer: " << layer << " zbin limit " << zbinmin << " | " << zbinmax <<std::endl;
+    //    std::cout << " layer: " << layer << " zbin limit " << zbinmin << " | " << zbinmax <<std::endl;
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
          ++hitr)

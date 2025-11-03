@@ -4,42 +4,26 @@
 #include <mvtx/MvtxPixelDefs.h>
 #include <mvtx/MvtxPixelMask.h>
 
+#include <ffarawobjects/MvtxRawEvtHeader.h>
+#include <ffarawobjects/MvtxRawHit.h>
+#include <ffarawobjects/MvtxRawHitContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <ffarawobjects/MvtxRawEvtHeader.h>
-#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
-#include <ffarawobjects/MvtxRawEvtHeaderv2.h>
-#include <ffarawobjects/MvtxRawHit.h>
-#include <ffarawobjects/MvtxRawHitContainer.h>
-#include <ffarawobjects/MvtxRawHitContainerv1.h>
-#include <ffarawobjects/MvtxRawHitv1.h>
-
-#include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>
-
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/TrkrDefs.h>
+#include <phool/phool.h>
 
 #include <TH1.h>
 #include <TTree.h>
 
 #include <algorithm>
-#include <cassert>
-#include <climits>
-#include <cmath>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <memory>
-#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 // MvtxFakeHitRate class
@@ -47,14 +31,14 @@
 MvtxFakeHitRate::~MvtxFakeHitRate()
 {
   // clean up
-  if (m_hot_pixel_mask)
-  {
+  
+  
     delete m_hot_pixel_mask;
-  }
-  if (m_hit_map)
-  {
+  
+  
+  
     delete m_hit_map;
-  }
+  
 }
 
 int MvtxFakeHitRate::InitRun(PHCompositeNode* /*topNode*/)
@@ -75,7 +59,7 @@ int MvtxFakeHitRate::InitRun(PHCompositeNode* /*topNode*/)
   std::cout << "MvtxFakeHitRate::InitRun - Writing output to " << m_outputfile << std::endl;
 
   // Create the output file and trees
-  PHTFileServer::get().open(m_outputfile, "RECREATE");
+  PHTFileServer::open(m_outputfile, "RECREATE");
   // main tree
   m_tree = new TTree("masked_pixels", "masked_pixels");
   m_tree->OptimizeBaskets();
@@ -103,7 +87,7 @@ int MvtxFakeHitRate::InitRun(PHCompositeNode* /*topNode*/)
 int MvtxFakeHitRate::get_nodes(PHCompositeNode* topNode)
 {
   // get dst nodes
-  m_mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeaderv2>(topNode, "MVTXRAWEVTHEADER");
+  m_mvtx_raw_event_header = findNode::getClass<MvtxRawEvtHeader>(topNode, "MVTXRAWEVTHEADER");
   if (!m_mvtx_raw_event_header)
   {
     std::cout << PHWHERE << "::" << __func__ << ": Could not get MVTXRAWEVTHEADER from Node Tree" << std::endl;
@@ -114,7 +98,7 @@ int MvtxFakeHitRate::get_nodes(PHCompositeNode* topNode)
     m_mvtx_raw_event_header->identify();
   }
 
-  m_mvtx_raw_hit_container = findNode::getClass<MvtxRawHitContainerv1>(topNode, "MVTXRAWHIT");
+  m_mvtx_raw_hit_container = findNode::getClass<MvtxRawHitContainer>(topNode, "MVTXRAWHIT");
   if (!m_mvtx_raw_hit_container)
   {
     std::cout << PHWHERE << "::" << __func__ << ": Could not get MVTXRAWHIT from Node Tree" << std::endl;
@@ -141,7 +125,7 @@ int MvtxFakeHitRate::process_event(PHCompositeNode* topNode)
   for (unsigned int ihit = 0; ihit < m_mvtx_raw_hit_container->get_nhits(); ihit++)
   {
     // get this hit
-    auto mvtx_hit = m_mvtx_raw_hit_container->get_hit(ihit);
+    auto *mvtx_hit = m_mvtx_raw_hit_container->get_hit(ihit);
     if (!mvtx_hit)
     {
       std::cout << PHWHERE << "::" << __func__ << ": Could not get MVTX hit from container. Hit index: " << ihit << std::endl;
@@ -201,7 +185,7 @@ int MvtxFakeHitRate::FillCurrentMaskTree()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-double MvtxFakeHitRate::calc_threshold(int nhits)
+double MvtxFakeHitRate::calc_threshold(int nhits) const
 {
   // Calculate the noise threshold
   if (nhits == 0)
@@ -229,10 +213,7 @@ int MvtxFakeHitRate::CalcFHR()
     std::cout << "MvtxFakeHitRate::CalcFHR - No pixels with hits" << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  if (npixels_with_hits < m_max_masked_pixels)
-  {
-    m_max_masked_pixels = npixels_with_hits;
-  }
+  m_max_masked_pixels = std::min(npixels_with_hits, m_max_masked_pixels);
 
   // sort the pixel hit vector by hit count
   std::sort(pixel_hit_vector.begin(), pixel_hit_vector.end(), [](const MvtxHitMap::pixel_hits_pair_t& a, const MvtxHitMap::pixel_hits_pair_t& b)
@@ -241,9 +222,9 @@ int MvtxFakeHitRate::CalcFHR()
   // get initial values
   unsigned int nhits_all = 0;
   m_masked_pixels.clear();
-  for (auto it = pixel_hit_vector.begin(); it != pixel_hit_vector.end(); ++it)
+  for (auto & it : pixel_hit_vector)
   {
-    nhits_all += it->second;
+    nhits_all += it.second;
   }
   m_noise_threshold = calc_threshold(nhits_all);
   m_threshold_vs_nmasked->Fill(0.5, m_noise_threshold);
@@ -256,13 +237,13 @@ int MvtxFakeHitRate::CalcFHR()
     int ipixel = 0;
     int nhits = nhits_all;
 
-    for (auto it = pixel_hit_vector.begin(); it != pixel_hit_vector.end(); ++it)
+    for (auto & it : pixel_hit_vector)
     {
       if (ipixel < nmasked)
       {
-        m_masked_pixels.push_back(it->first);
+        m_masked_pixels.push_back(it.first);
         m_num_masked_pixels++;
-        nhits -= it->second;
+        nhits -= it.second;
       }
       ipixel++;
     }
@@ -303,7 +284,7 @@ int MvtxFakeHitRate::End(PHCompositeNode* /*topNode*/)
 
   // Write the output
   std::cout << "MvtxFakeHitRate::End - Writing output to " << m_outputfile << std::endl;
-  PHTFileServer::get().cd(m_outputfile);
+  PHTFileServer::cd(m_outputfile);
   m_tree->Write();
   m_current_mask->Write();
   m_threshold_vs_nmasked->GetXaxis()->SetNdivisions(505);

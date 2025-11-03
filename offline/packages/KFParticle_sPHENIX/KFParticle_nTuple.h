@@ -35,9 +35,19 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
                   std::vector<KFParticle> intermediates);
 
   float calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters);
-
+  
   bool fillConditionMet();
 
+  /// Functions to get detailed subsystem information
+  void GetDetailedTracking(bool set_variable = true) { 
+    m_get_detailed_tracking = set_variable; 
+    if(m_get_detailed_tracking){m_detector_info = true;}
+  }
+  void GetDetailedCalorimetry(bool set_variable = true) { 
+    m_get_detailed_calorimetry = set_variable; 
+    if(m_get_detailed_calorimetry){m_calo_info = true;}
+  }
+  
  protected:
   bool m_has_intermediates_nTuple {false};
   bool m_extrapolateTracksToSV_nTuple{true};
