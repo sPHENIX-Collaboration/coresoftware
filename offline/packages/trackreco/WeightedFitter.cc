@@ -2,6 +2,7 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ClusterErrorPara.h>
 #include <trackbase/InttDefs.h>
 #include <trackbase/MvtxDefs.h>
 #include <trackbase/TpcDefs.h>
@@ -13,12 +14,15 @@
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackSeed_v1.h>
+#include <trackbase_historic/SvtxTrackSeed_v2.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
-#include <trackbase_historic/SvtxTrackSeed_v1.h>
-#include <trackbase_historic/SvtxTrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer.h>
+#include <trackbase_historic/WeightedTrack.h>
+#include <trackbase_historic/WeightedTrackZeroField.h>
+#include <trackbase_historic/WeightedTrackMap.h>
 
 #include <globalvertex/SvtxVertexMap_v1.h>
 #include <globalvertex/SvtxVertex_v2.h>
@@ -38,100 +42,34 @@
 #include <TNtuple.h>
 
 #include <iostream>
+#include <functional>
 #include <limits>
 #include <map>
 #include <sstream>
 #include <stdexcept>
 
-namespace {
+namespace { // anonymous
 	template <typename T>
-	T sqr (T const& t) { return t * t; }
-}
-
-double
-WeightedFitter::FitErrorCalculator::operator() (
-	double const* params
-) const {
-	set_parameters(params);
-
-	double error{0};
-
-	if (m_vertex.use) {
-		Eigen::Vector3d displacement = get_pca(m_vertex.pos) - m_vertex.pos;
-		error += displacement.transpose() * m_vertex.cov * displacement;
-	}
-
-	for (auto const& point : m_points) {
-		// in-plane displacement (in global coordinates)
-		Eigen::Vector3d displacement = get_intersection(point) - point.pos;
-
-		// Square error
-		error += sqr(displacement.dot(point.x) / point.sigma_x);
-		error += sqr(displacement.dot(point.y) / point.sigma_y);
-	}
-	return error;
-}
-
-void
-WeightedFitter::FitErrorCalculator::set_parameters (
-	double const* params
-) const {
-	m_cos_theta = std::cos(params[2]);
-	m_sin_theta = std::sin(params[2]);
-	m_cos_phi = std::cos(params[3]);
-	m_sin_phi = std::sin(params[3]);
-
-	m_intercept = Eigen::Vector3d {
-		params[0], // x-component of xy plane intercept
-		params[1], // y-component of xy plane intercept
-		0,
-	};
-
-	m_slope = Eigen::Vector3d {
-		m_sin_theta * m_cos_phi,
-		m_sin_theta * m_sin_phi,
-		m_cos_theta
-	};
-}
-
-Eigen::Vector3d
-WeightedFitter::FitErrorCalculator::get_intersection (
-	WeightedFitter::ClusterFitPoint const& point
-) const {
-	// solve s
-	// (m_slope * s + m_intercept - point.pos).dot(point.z) = 0
-	double s = (point.pos - m_intercept).dot(point.z) / m_slope.dot(point.z);
-	return m_slope * s + m_intercept;
-}
-
-Eigen::Vector3d
-WeightedFitter::FitErrorCalculator::get_pca (
-	Eigen::Vector3d const& point
-) const {
-	// solve s
-	// (m_slope * s + m_intercept - point).dot(m_slope) = 0
-	double s = (point - m_intercept).dot(m_slope); // m_slope is a unit vector
-	return m_slope * s + m_intercept;
+	T sqr (T const& t) { return t*t; }
 }
 
 WeightedFitter::WeightedFitter (
 	std::string const& name
-) : SubsysReco (
-	name
-) {
+) : SubsysReco (name),
+	m_minimizer(ROOT::Math::Factory::CreateMinimizer("Minuit2"))
+{
 	// Setup Minimizer
-	m_minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
 	m_minimizer->SetMaxFunctionCalls(1E8); // For Minuit/Minuit2
 	m_minimizer->SetMaxIterations(1E6); // For GSL Minimizers--probably moot to call
 	m_minimizer->SetTolerance(1E-8);
 	m_minimizer->SetPrintLevel(0);
 
-	m_fit_error_calculator = new FitErrorCalculator;
+	set_track_type<WeightedTrackZeroField>();
 }
 
 WeightedFitter::~WeightedFitter (
 ) {
-	delete m_fit_error_calculator;
+	delete m_weighted_track;
 	delete m_minimizer;
 }
 
@@ -167,7 +105,7 @@ WeightedFitter::get_nodes (
 		if (!m_vertex_map) { missing_node_names.push_back(m_vertex_map_node_name); }
 	}
 
-	if (missing_node_names.size()) {
+	if (!missing_node_names.empty()) {
 		std::stringstream what;
 		what
 			<< PHWHERE
@@ -216,7 +154,7 @@ void
 WeightedFitter::make_ntuple (
 ) {
 	if (m_ntuple_file_name.empty()) {
-		if (m_file) m_file->Close();
+		if (m_file) { m_file->Close(); }
 		m_file = nullptr;
 
 		delete m_ntuple;
@@ -250,8 +188,7 @@ WeightedFitter::make_ntuple (
 		"stategx:stategy:stategz:"
 		"dXdx0:dXdy0:dXdtheta:dXdphi:"
 		"dYdx0:dYdy0:dYdtheta:dYdphi:"
-		"Ndx0:Ndy0:Ndtheta:Ndphi:"
-		"dca:vtxgx:vtxgy:vtxgz:"
+		"dca_xy:vtxgx:vtxgy:vtxgz:"
 	);
 	m_ntuple->SetDirectory(m_file);
 }
@@ -277,7 +214,7 @@ WeightedFitter::InitRun (
 
 int
 WeightedFitter::End (
-	PHCompositeNode*
+	PHCompositeNode* /*top_node*/
 ) {
 	if (m_ntuple && m_file) {
 		m_ntuple->Write();
@@ -338,14 +275,29 @@ WeightedFitter::process_event (
 		std::cout << std::endl;
 	}
 
-	for (auto track_seed_ptr : *track_seed_container) {
-		if (!track_seed_ptr) continue;
+	for (auto* track_seed_ptr : *track_seed_container) {
+		if (!track_seed_ptr) { continue; }
 
-		if (get_cluster_keys(track_seed_ptr)) continue;
-		if (get_points()) continue;
-		if (do_fit()) continue;
-		if (m_use_vertex && refit_with_vertex()) continue;
-		if (add_track()) continue;
+		if (get_cluster_keys(track_seed_ptr)) {
+			if (1 < Verbosity()) { std::cout << PHWHERE << "continuing" << std::endl; }
+			continue;
+		}
+		if (get_points()) {
+			if (1 < Verbosity()) { std::cout << PHWHERE << "continuing" << std::endl; }
+			continue;
+		}
+		if (do_fit()) {
+			if (1 < Verbosity()) { std::cout << PHWHERE << "continuing" << std::endl; }
+			continue;
+		}
+		if (m_use_vertex && refit_with_vertex()) {
+			if (1 < Verbosity()) { std::cout << PHWHERE << "continuing" << std::endl; }
+			continue;
+		}
+		if (add_track()) {
+			if (1 < Verbosity()) { std::cout << PHWHERE << "continuing" << std::endl; }
+			continue;
+		}
 		++m_track_id;
 	}
 
@@ -388,7 +340,7 @@ WeightedFitter::get_cluster_keys (
 
 	m_cluster_keys.clear();
 	for (auto const* seed : {m_silicon_seed, m_tpc_seed}) {
-		if (!seed) continue;
+		if (!seed) { continue; }
         std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(m_cluster_keys));
 	}
 
@@ -402,8 +354,8 @@ WeightedFitter::get_points (
 	m_num_intt = 0;
 	m_num_tpc = 0;
 
-	m_fit_error_calculator->m_vertex.reset();
-	m_fit_error_calculator->m_points.clear();
+	delete m_weighted_track;
+	m_weighted_track = m_track_factory();
 
 	// Assign all clusters (e.g., Si clusters) the same side
 	// Choose mode as the value to set all points to
@@ -412,80 +364,50 @@ WeightedFitter::get_points (
 
 	for (auto const& cluster_key : m_cluster_keys) {
 		TrkrCluster* cluster = m_trkr_cluster_container->findCluster(cluster_key);
-		if (!cluster) continue;
+		if (!cluster) { continue; }
 
 		Surface const surf = m_geometry->maps().getSurface(cluster_key, cluster);
-		if (!surf) continue;
+		if (!surf) { continue; }
 	
 		auto local_to_global_transform = surf->transform(m_geometry->geometry().getGeoContext()); // in mm
+		local_to_global_transform.translation() /= Acts::UnitConstants::cm; // converted to cm
+		Eigen::Vector3d local_pos = Eigen::Vector3d { cluster->getLocalX(), cluster->getLocalY(), 0.0 }; // in cm
 
-		Eigen::Vector3d local_pos = Eigen::Vector3d {
-			cluster->getLocalX(),
-			cluster->getLocalY(),
-			0.0
-		} * Acts::UnitConstants::cm; // converted to mm
-
-		ClusterFitPoint point {
-			.cluster_key = cluster_key,
-			.layer = TrkrDefs::getLayer(point.cluster_key),
-			.pos = (local_to_global_transform * local_pos) / Acts::UnitConstants::cm,
-			.o = local_to_global_transform.translation() / Acts::UnitConstants::cm,
-			.x = local_to_global_transform.rotation().col(0), 
-			.y = local_to_global_transform.rotation().col(1),
-			.z = local_to_global_transform.rotation().col(2),
-			.sigma_x = cluster->getRPhiError(),
-			.sigma_y = cluster->getZError(),
-		};
+		ClusterFitPoint point;
+		point.cluster_key = cluster_key;
+		point.cluster_position = (local_to_global_transform * local_pos);
+		point.cluster_errors = { cluster->getRPhiError(), cluster->getZError() };
+		point.sensor_local_to_global_transform = local_to_global_transform;
 
 		// Modify position, error using helper classes
 		// Note that these calls are effectively NOOPs for non-TPC points
-		point.pos = m_global_position_wrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, m_crossing);
+		point.cluster_position = m_global_position_wrapper.getGlobalPositionDistortionCorrected(cluster_key, cluster, m_crossing);
 
 		// note the "clusterRadius" argument (supplied as 0.0) is unused
-		auto rphi_z_error_pair = m_cluster_error_para.get_clusterv5_modified_error(cluster, 0.0, cluster_key);
-		point.sigma_x = sqrt(rphi_z_error_pair.first);
-		point.sigma_y = sqrt(rphi_z_error_pair.second);
+		auto rphi_z_error_pair = ClusterErrorPara::get_clusterv5_modified_error(cluster, 0.0, cluster_key);
+		point.cluster_errors = Eigen::Vector2d {std::sqrt(rphi_z_error_pair.first), std::sqrt(rphi_z_error_pair.second) };
+
+		m_weighted_track->push_back(point);
 
 		TrkrDefs::TrkrId trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(cluster_key));
 		switch (trkr_id) {
 			case TrkrDefs::mvtxId:
-				point.stave = MvtxDefs::getStaveId(cluster_key);
-				point.chip = MvtxDefs::getChipId(cluster_key);
-				point.strobe = MvtxDefs::getStrobeId(cluster_key);
 				++m_num_mvtx;
 				break;
 			case TrkrDefs::inttId:
-				point.ladder_z = InttDefs::getLadderZId(cluster_key);
-				point.ladder_phi = InttDefs::getLadderPhiId(cluster_key);
-				point.time_bucket = InttDefs::getTimeBucketId(cluster_key);
 				++m_num_intt;
 				break;
-			case TrkrDefs::tpcId: {
-				point.side = TpcDefs::getSide(cluster_key);
-				point.sector = TpcDefs::getSectorId(cluster_key);
-				++sides[point.side];
+			case TrkrDefs::tpcId:
 				++m_num_tpc;
+				++sides[TpcDefs::getSide(cluster_key)];
 				break;
-			}
 			default:
 				continue;
 		}
-
-		m_fit_error_calculator->m_points.push_back (point);
 	}
 
 	if (m_reassign_sides && !sides.empty()) {
-		int side = sides[0] < sides[1] ? 1 : 0;
-		for (auto& point : m_fit_error_calculator->m_points) {
-			if (Verbosity() && (point.side != -1) && (point.side != side)) {
-				std::cout
-					<< PHWHERE
-					<< " track with mixed TPC sides"
-					<< " (at layer " << point.layer << ", mode is " << side << ", got " << point.side << ")"
-					<< std::endl;
-			}
-			point.side = side;
-		}
+		m_side = sides[0] < sides[1] ? 1 : 0;
 	}
 
 	return false;
@@ -494,38 +416,21 @@ WeightedFitter::get_points (
 bool
 WeightedFitter::do_fit (
 ) {
-	if (m_fit_error_calculator->m_points.size() < 2) {
-		if (1 < Verbosity()) {
+	try {
+		m_weighted_track->configure_minimizer(*m_minimizer);
+	} catch (std::exception const& e) {
+		if (Verbosity()) {
 			std::cout
-				<< PHWHERE
-				<< " too few points to perform fit"
+				<< PHWHERE << "\n"
+				<< e.what()
 				<< std::endl;
 		}
 		return true;
 	}
 
-	// initial slope
-	Eigen::Vector3d slope = (m_fit_error_calculator->m_points[1].pos - m_fit_error_calculator->m_points[0].pos).normalized();
-	double phi = std::atan2(slope(1), slope(0));
-	double theta = std::acos(slope(2));
-
-	// initlal intercept
-	// Solve for s (slope * s + m_points[0].pos).dot({0, 0, 1}) = 0
-	double s = -m_fit_error_calculator->m_points[0].pos(2) / slope(2);
-	double x = (slope * s + m_fit_error_calculator->m_points[0].pos)(0);
-	double y = (slope * s + m_fit_error_calculator->m_points[0].pos)(1);
-
-	m_minimizer->SetVariable(0, "x",     x,     1E-6);
-	m_minimizer->SetVariable(1, "y",     y,     1E-6);
-	m_minimizer->SetVariable(2, "theta", theta, 1E-6);
-	m_minimizer->SetVariable(3, "phi",   phi,   1E-6);
-
-	// Bounds for angular parameters
-	m_minimizer->SetVariableLimits(2,          0,     3.1416);
-	m_minimizer->SetVariableLimits(3, phi - 1.58, phi + 1.58);
-
-	ROOT::Math::Functor get_fit_error(*m_fit_error_calculator, &FitErrorCalculator::operator(), 4);
-	m_minimizer->SetFunction(get_fit_error);
+	std::function<double(double const*)> lambda = [&](double const* params) { return m_weighted_track->get_squared_error(params); };
+	ROOT::Math::Functor functor(lambda, m_weighted_track->get_n_parameters());
+	m_minimizer->SetFunction(functor);
 
 	bool fit_succeeded = m_minimizer->Minimize();
 	if (1 < Verbosity()) {
@@ -537,7 +442,7 @@ WeightedFitter::do_fit (
 	}
 
 	double const* params = m_minimizer->X();
-	m_fit_error_calculator->set_parameters(params);
+	m_weighted_track->set_parameters(params);
 
 	return !fit_succeeded;
 }
@@ -567,7 +472,7 @@ WeightedFitter::refit_with_vertex (
 	SvtxVertex* closest_vertex{};
 	double min_dca = std::numeric_limits<double>::max();
 	for (auto const& [vertex_id, svtx_vertex] : *m_vertex_map) {
-		if (!svtx_vertex) continue;
+		if (!svtx_vertex) { continue; }
 
 		Eigen::Vector3d vertex_pos {
 			svtx_vertex->get_x(),
@@ -575,7 +480,7 @@ WeightedFitter::refit_with_vertex (
 			svtx_vertex->get_z(),
 		};
 
-		double dca = (m_fit_error_calculator->get_pca(vertex_pos) - vertex_pos).norm();
+		double dca = (m_weighted_track->get_pca(vertex_pos) - vertex_pos).norm();
 		if (dca < min_dca) {
 			min_dca = dca;
 			closest_vertex = svtx_vertex;
@@ -590,23 +495,19 @@ WeightedFitter::refit_with_vertex (
 		throw std::runtime_error(what.str());
 	}
 
-	m_fit_error_calculator->m_vertex.use = true;
-	m_fit_error_calculator->m_vertex.pos = Eigen::Vector3d {
-		closest_vertex->get_x(),
-		closest_vertex->get_y(),
-		closest_vertex->get_z(),
-	};
+	m_weighted_track->use_vertex();
 	for (int i = 0; i < 3; ++i) {
+		m_weighted_track->vertex_position(i) = closest_vertex->get_position(i);
 		for (int j = 0; j < 3; ++j) {
-			m_fit_error_calculator->m_vertex.cov(i, j) = closest_vertex->get_error(i, j);
+			m_weighted_track->vertex_covariance(i, j) = closest_vertex->get_error(i, j);
 		}
 	}
 
 	if (1 < Verbosity()) {
 		std::cout
 			<< PHWHERE
-			<< " vertex: " << m_fit_error_calculator->m_vertex.pos.transpose()
-			<< " track pca: " << m_fit_error_calculator->get_pca(m_fit_error_calculator->m_vertex.pos).transpose()
+			<< " vertex: " << m_weighted_track->get_vertex_position().transpose()
+			<< " track pca: " << m_weighted_track->get_pca(m_weighted_track->get_vertex_position()).transpose()
 			<< " dca: " << min_dca
 			<< std::endl;
 	}
@@ -618,23 +519,8 @@ bool
 WeightedFitter::add_track (
 ) {
 	double const* params = m_minimizer->X();
-	m_fit_error_calculator->set_parameters(params);
-
-	// xy-intercept
-	Acts::Vector3 b {
-		params[0], // x-component of xy plane intercept
-		params[1], // y-component of xy plane intercept
-		0
-	};
-
-	// slope (spherical-polar parameterized)
-	double cos_theta = std::cos(params[2]), sin_theta = std::sin(params[2]);
-	double cos_phi = std::cos(params[3]), sin_phi = std::sin(params[3]);
-	Acts::Vector3 m {
-		sin_theta * cos_phi,
-		sin_theta * sin_phi,
-		cos_theta
-	};
+	m_weighted_track->set_parameters(params);
+	Eigen::Vector3d slope = m_weighted_track->get_slope_at_path_length(0); // Straight line tracks have uniform slope, we can pass any value for path_length here
 
 	SvtxTrack_v4 fitted_track;
 	fitted_track.set_id(m_track_id);
@@ -645,94 +531,48 @@ WeightedFitter::add_track (
 	fitted_track.set_x(params[0]);
 	fitted_track.set_y(params[1]);
 	fitted_track.set_z(0.0);
-	fitted_track.set_px(m(0));
-	fitted_track.set_py(m(1));
-	fitted_track.set_pz(m(2));
+	fitted_track.set_px(slope(0));
+	fitted_track.set_py(slope(1));
+	fitted_track.set_pz(slope(2));
 
 	SvtxAlignmentStateMap::StateVec alignment_states;
-	for (auto const& point : m_fit_error_calculator->m_points) {
-		Acts::Vector3 intersection = m_fit_error_calculator->get_intersection(point);
-		double s = (point.pos - b).dot(point.z) / m.dot(point.z);
+	for (auto const& point : *m_weighted_track) {
+		Acts::Vector3 intersection = m_weighted_track->get_intersection(point.sensor_local_to_global_transform);
 
 		SvtxTrackState_v1 svtx_track_state(intersection.norm());
 		svtx_track_state.set_x(intersection(0));
 		svtx_track_state.set_y(intersection(1));
 		svtx_track_state.set_z(intersection(2));
-		svtx_track_state.set_px(m(0));
-		svtx_track_state.set_py(m(1));
-		svtx_track_state.set_pz(m(2));
+		svtx_track_state.set_px(slope(0));
+		svtx_track_state.set_py(slope(1));
+		svtx_track_state.set_pz(slope(2));
 		fitted_track.insert_state(&svtx_track_state);
 
-		// Move this implementation into the fitter helper class eventually
 		auto alignment_state = std::make_unique<SvtxAlignmentState_v1>();
 		SvtxAlignmentState::GlobalMatrix global_derivative_matrix = SvtxAlignmentState::GlobalMatrix::Zero();
 		SvtxAlignmentState::LocalMatrix local_derivative_matrix = SvtxAlignmentState::LocalMatrix::Zero();
 
-		// TODO: move these to the helper class implementation
+		Eigen::Vector2d residual = point.get_residuals(intersection);
+		Eigen::Matrix<double, 2, 3> projection = m_weighted_track->get_projection(point.sensor_local_to_global_transform);
 
-		Acts::Vector2 residual {
-			point.x.dot(intersection - point.pos),
-			point.y.dot(intersection - point.pos),
-		};
-
-		// Follows from the Atlas paper (Global \Chi^{2} approach to the Alignment of the ATLAS Silicon Tracking Detectors)
-		std::array<Acts::Vector3, 2> proj = {
-			point.x - (m.dot(point.x) / m.dot(point.z)) * point.z,
-			point.y - (m.dot(point.y) / m.dot(point.z)) * point.z,
-		};
-
-		// PARTIAL derivatives of track parameters
-		// (the projection vectors take care of the implicit intersection dependency)
-		std::array<Eigen::Vector3d, 4> local_derivatives {
-			Eigen::Vector3d {1.0, 0.0, 0.0},
-			Eigen::Vector3d {0.0, 1.0, 0.0},
-			Eigen::Vector3d { cos_theta * cos_phi, cos_theta * sin_phi, -sin_theta} * s,
-			Eigen::Vector3d {-sin_theta * sin_phi, sin_theta * cos_phi, 0.0} * s,
-		};
-
-		// PARTIAL derivatives of alignment parameters
+		// PARTIAL derivatives of global alignment parameters
 		// (the projection vectors take care of the implicit intersection dependency)
 		std::array<Eigen::Vector3d, 6> global_derivatives {
-			Eigen::Vector3d {1.0, 0.0, 0.0}.cross(intersection - point.o),
-			Eigen::Vector3d {0.0, 1.0, 0.0}.cross(intersection - point.o),
-			Eigen::Vector3d {0.0, 0.0, 1.0}.cross(intersection - point.o),
+			Eigen::Vector3d {1.0, 0.0, 0.0}.cross(intersection - point.sensor_local_to_global_transform.translation()),
+			Eigen::Vector3d {0.0, 1.0, 0.0}.cross(intersection - point.sensor_local_to_global_transform.translation()),
+			Eigen::Vector3d {0.0, 0.0, 1.0}.cross(intersection - point.sensor_local_to_global_transform.translation()),
 			Eigen::Vector3d {1.0, 0.0, 0.0},
 			Eigen::Vector3d {0.0, 1.0, 0.0},
 			Eigen::Vector3d {0.0, 0.0, 1.0},
 		};
 
 		for (int i = 0; i < 4; ++i) {
-			local_derivative_matrix(0, i) = proj[0].dot(local_derivatives[i]); // X residual partial derivative
-			local_derivative_matrix(1, i) = proj[1].dot(local_derivatives[i]); // Y residual partial derivative
+			local_derivative_matrix.col(i) = m_weighted_track->get_residual_derivative(i, point.sensor_local_to_global_transform);
 		}
 
 		for (int i = 0; i < 6; ++i) {
-			global_derivative_matrix(0, i) = proj[0].dot(global_derivatives[i]); // X residual partial derivative
-			global_derivative_matrix(1, i) = proj[1].dot(global_derivatives[i]); // Y residual partial derivative
+			global_derivative_matrix.col(i) = projection * global_derivatives[i];
 		}
-
-		std::array<double, 4> numeric_partial_derivatives{};
-		for (int i = 0; i < 4; ++i) {
-			static double const epsilon = 1.0E-8;
-
-			double temp_params[4]{};
-			for (int j = 0; j < 4; ++j) temp_params[j] = params[j];
-
-			temp_params[i] = params[i] + epsilon;
-			m_fit_error_calculator->set_parameters(temp_params);
-			Eigen::Vector3d temp = m_fit_error_calculator->get_intersection(point) - point.pos;
-			numeric_partial_derivatives[i] += sqr(point.x.dot(temp) / point.sigma_x);
-			numeric_partial_derivatives[i] += sqr(point.y.dot(temp) / point.sigma_y);
-
-			temp_params[i] = params[i] - epsilon;
-			m_fit_error_calculator->set_parameters(temp_params);
-			temp = m_fit_error_calculator->get_intersection(point) - point.pos;
-			numeric_partial_derivatives[i] -= sqr(point.x.dot(temp) / point.sigma_x);
-			numeric_partial_derivatives[i] -= sqr(point.y.dot(temp) / point.sigma_y);
-
-			numeric_partial_derivatives[i] /= 2.0 * epsilon;
-		}
-		m_fit_error_calculator->set_parameters(params);
 
 		alignment_state->set_cluster_key(point.cluster_key);
 		alignment_state->set_residual(residual);
@@ -747,35 +587,71 @@ WeightedFitter::add_track (
 					<< std::endl;
 			}
 
-			float dca = std::numeric_limits<float>::quiet_NaN();
+			float layer = TrkrDefs::getLayer(point.cluster_key);
+			float stave{-1};
+			float chip{-1};
+			float strobe{-1};
+			float ladder_z{-1};
+			float ladder_phi{-1};
+			float time_bucket{-1};
+			float side{-1};
+			float sector{-1};
+			TrkrDefs::TrkrId trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(point.cluster_key));
+			switch (trkr_id) {
+				case TrkrDefs::mvtxId:
+					stave = MvtxDefs::getStaveId(point.cluster_key);
+					chip = MvtxDefs::getChipId(point.cluster_key);
+					strobe = MvtxDefs::getStrobeId(point.cluster_key);
+					break;
+				case TrkrDefs::inttId:
+					ladder_z = InttDefs::getLadderZId(point.cluster_key);
+					ladder_phi = InttDefs::getLadderPhiId(point.cluster_key);
+					time_bucket = InttDefs::getTimeBucketId(point.cluster_key);
+					break;
+				case TrkrDefs::tpcId:
+					side = TpcDefs::getSide(point.cluster_key);
+					sector = TpcDefs::getSectorId(point.cluster_key);
+					break;
+				default:
+					continue;
+			}
+			if (m_reassign_sides) { side = m_side; }
+
+			Eigen::Affine3d global_to_local_transform = point.sensor_local_to_global_transform.inverse();
+			Eigen::Vector3d cluster_local_position =  global_to_local_transform * point.cluster_position;
+			Eigen::Vector3d intersection_local_position = global_to_local_transform * intersection;
+
+			float dca_xy = std::numeric_limits<float>::quiet_NaN();
 			Eigen::Vector3f vertex = {
 				std::numeric_limits<float>::quiet_NaN(),
 				std::numeric_limits<float>::quiet_NaN(),
 				std::numeric_limits<float>::quiet_NaN(),
 			};
 
-			if (m_fit_error_calculator->m_vertex.use) {
-				vertex(0) = (float)m_fit_error_calculator->m_vertex.pos(0);
-				vertex(1) = (float)m_fit_error_calculator->m_vertex.pos(1);
-				vertex(2) = (float)m_fit_error_calculator->m_vertex.pos(2);
-				dca = (float)(m_fit_error_calculator->get_pca(m_fit_error_calculator->m_vertex.pos) - m_fit_error_calculator->m_vertex.pos).norm();
+			if (m_use_vertex) {
+				vertex(0) = (float)m_weighted_track->vertex_position(0);
+				vertex(1) = (float)m_weighted_track->vertex_position(1);
+				vertex(2) = (float)m_weighted_track->vertex_position(2);
+
+				// displacement between the associated vertex and the point of closest approach on the track
+				Eigen::Vector3d delta = m_weighted_track->get_pca(m_weighted_track->get_vertex_position()) - m_weighted_track->get_vertex_position();
+				dca_xy = std::sqrt(sqr(delta(0)) + sqr(delta(1)));
 			}
 
 			float ntp_data[] = {
 				(float)Fun4AllServer::instance()->EventNumber(), (float)m_track_id,
 				(float)m_minimizer->Status(),
-				(float)m_num_mvtx, (float)m_num_intt, (float)m_num_tpc, (float)point.layer,
-				(float)point.stave, (float)point.chip, (float)point.strobe,
-				(float)point.ladder_z, (float)point.ladder_phi, (float)point.time_bucket,
-				(float)point.side, (float)point.sector,
-				(float)point.x.dot(point.pos - point.o), (float)point.y.dot(point.pos - point.o), (float)point.sigma_x, (float)point.sigma_y,
-				(float)point.pos(0), (float)point.pos(1), (float)point.pos(2),
-				(float)point.x.dot(intersection - point.o), (float)point.y.dot(intersection - point.o), (float)point.sigma_x, (float)point.sigma_y,
+				(float)m_num_mvtx, (float)m_num_intt, (float)m_num_tpc, layer,
+				stave, chip, strobe,
+				ladder_z, ladder_phi, time_bucket,
+				side, sector,
+				(float)cluster_local_position(0), (float)cluster_local_position(1), (float)point.cluster_errors(0), (float)point.cluster_errors(1),
+				(float)point.cluster_position(0), (float)point.cluster_position(1), (float)point.cluster_position(2),
+				(float)intersection_local_position(0), (float)intersection_local_position(1), (float)point.cluster_errors(0), (float)point.cluster_errors(1),
 				(float)intersection(0), (float)intersection(1), (float)intersection(2),
 				(float)local_derivative_matrix(0, 0), (float)local_derivative_matrix(0, 1), (float)local_derivative_matrix(0, 2), (float)local_derivative_matrix(0, 3),
 				(float)local_derivative_matrix(1, 0), (float)local_derivative_matrix(1, 1), (float)local_derivative_matrix(1, 2), (float)local_derivative_matrix(1, 3),
-				(float)numeric_partial_derivatives[0],  (float)numeric_partial_derivatives[1], (float)numeric_partial_derivatives[2], (float)numeric_partial_derivatives[3], 
-				dca, vertex(0), vertex(1), vertex(2),
+				dca_xy, vertex(0), vertex(1), vertex(2),
 			};
 			m_ntuple->Fill(ntp_data);
 		}
@@ -784,13 +660,13 @@ WeightedFitter::add_track (
 			std::cout
 				<< "\tcluster_key:  " << point.cluster_key << "\n"
 				<< "\tintersection: " << intersection.transpose() << "\n"
-				<< "\tpos:          " << point.pos.transpose() << "\n"
-				<< "\to:            " << point.o.transpose() << "\n"
-				<< "\tx:            " << point.x.transpose() << "\n"
-				<< "\ty:            " << point.y.transpose() << "\n"
-				<< "\tz:            " << point.z.transpose() << "\n"
-				<< "\tproj_x:       " << proj[0].transpose() << "\n"
-				<< "\tproj_y:       " << proj[1].transpose() << "\n"
+				<< "\tpos:          " << point.cluster_position.transpose() << "\n"
+				<< "\to:            " << point.sensor_local_to_global_transform.translation().transpose() << "\n"
+				<< "\tx:            " << point.sensor_local_to_global_transform.rotation().col(0).transpose() << "\n"
+				<< "\ty:            " << point.sensor_local_to_global_transform.rotation().col(1).transpose() << "\n"
+				<< "\tz:            " << point.sensor_local_to_global_transform.rotation().col(2).transpose() << "\n"
+				<< "\tproj_x:       " << projection.row(0) << "\n"
+				<< "\tproj_y:       " << projection.row(1) << "\n"
 				<< std::endl;
 		}
 	}

@@ -1,9 +1,11 @@
 #pragma once
 
 #include <fun4all/SubsysReco.h>
-#include <trackbase/ClusterErrorPara.h>
+
+// #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
-#include <tpc/TpcClusterZCrossingCorrection.h>
+
+// #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <Eigen/Dense>
@@ -13,25 +15,26 @@
 #include <Math/Minimizer.h>
 
 #include <array>
+#include <functional>
+#include <type_traits>
 
 class PHCompositeNode;
 class ActsGeometry;
+class SvtxTrackMap;
+class SvtxAlignmentStateMap;
+class SvtxVertexMap;
 class TrackSeed;
 class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-class SvtxTrackMap;
-class SvtxAlignmentStateMap;
-class SvtxVertexMap;
+class WeightedTrackMap;
+class WeightedTrack;
 
 class TFile;
 class TNtuple;
 
 class WeightedFitter : public SubsysReco {
 public:
-	class VertexFitPoint;
-	class ClusterFitPoint;
-	class FitErrorCalculator;
 	enum which_track_e { k_silicon_tracks, k_tpc_tracks, k_svtx_tracks, };
 
 	WeightedFitter(std::string const& = "WeightedFitter");
@@ -51,6 +54,19 @@ public:
 	void use_vertex (bool const& use_vertex = true) { m_use_vertex = use_vertex; }
 	void set_vertex_node_name (std::string const& name) { m_vertex_map_node_name = name; }
 
+	/// Set the type of tracks to use for the fit via a template argument
+	/// By default, WeightedFitterZeroField tracks are used
+	template <typename T>
+	void set_track_type() {
+		// Helps clarify compilation failures to users
+		static_assert (std::is_convertible_v<T*, WeightedTrack*>, "Template argument must be derived from trackbase_historic/WeightedTrack");
+		m_track_factory = []{ return new T; };
+	}
+
+	/// Set the method to produce "new" (owned by an instance of this class) tracks
+	/// Useful if some configuration beyond default construction, otherwise, see set_track_type
+	void set_track_factory (std::function<WeightedTrack*(void)> track_factory) { m_track_factory = track_factory; }
+
 	/// Output setting methods
 	void set_track_map_node_name (std::string const& name) { m_track_map_node_name = name; }
 	void set_alignment_map_node_name (std::string const& name) { m_alignment_map_node_name = name; }
@@ -69,7 +85,7 @@ private:
 	bool refit_with_vertex();
 	bool add_track();
 
-	std::string m_ntuple_file_name{}; // none--by default do not make it
+	std::string m_ntuple_file_name{}; // empty--by default do not make it
 	TFile* m_file{};
 	TNtuple* m_ntuple{};
 
@@ -83,11 +99,11 @@ private:
 
 	std::string m_silicon_track_seed_container_node_name{"SiliconTrackSeedContainer"};
 	TrackSeedContainer* m_silicon_track_seed_container{};
-	TrackSeed* m_silicon_seed;
+	TrackSeed* m_silicon_seed{};
 
 	std::string m_tpc_track_seed_container_node_name{"TpcTrackSeedContainer"};
 	TrackSeedContainer* m_tpc_track_seed_container{};
-	TrackSeed* m_tpc_seed;
+	TrackSeed* m_tpc_seed{};
 
 	std::string m_svtx_track_seed_container_node_name{"SvtxTrackSeedContainer"};
 	TrackSeedContainer* m_svtx_track_seed_container{};
@@ -107,81 +123,18 @@ private:
 	int m_crossing{SHRT_MAX};
 	std::vector<TrkrDefs::cluskey> m_cluster_keys;
 
-	ROOT::Math::Minimizer* m_minimizer{nullptr};
-	FitErrorCalculator* m_fit_error_calculator{nullptr};
+	ROOT::Math::Minimizer* m_minimizer{};
+	WeightedTrack* m_weighted_track{};
+	std::function<WeightedTrack*(void)> m_track_factory;
 
 	bool m_reassign_sides{false};
 	int m_num_mvtx{0};
 	int m_num_intt{0};
 	int m_num_tpc{0};
+	int m_side{-1};
 
-	TpcClusterZCrossingCorrection m_clusterCrossingCorrection; // unused for now, maybe to get uncorrected positions later
 	TpcGlobalPositionWrapper m_global_position_wrapper;
-	ClusterErrorPara m_cluster_error_para;
-};
-
-class WeightedFitter::VertexFitPoint {
-public:
-	void reset() {
-		use = false;
-		pos = Eigen::Vector3d::Zero();
-		cov = Eigen::Matrix3d::Identity();
-	}
-
-	bool use{false};
-	Eigen::Vector3d pos = Eigen::Vector3d::Zero();
-	Eigen::Matrix3d cov = Eigen::Matrix3d::Identity();
-};
-
-class WeightedFitter::ClusterFitPoint {
-public:
-	TrkrDefs::cluskey cluster_key;
-	int layer{-1};
-
-	// All are expected in global coordinates
-	Eigen::Vector3d pos = Eigen::Vector3d::Zero(); // cluster position
-	Eigen::Vector3d o = Eigen::Vector3d::Zero(); // sensor center
-	Eigen::Vector3d x = Eigen::Vector3d::Zero(); // sensor local x axis
-	Eigen::Vector3d y = Eigen::Vector3d::Zero(); // sensor local y axis
-	Eigen::Vector3d z = Eigen::Vector3d::Zero(); // sensor local z axis
-
-	// Cluster uncertainties
-	double sigma_x{1.0}; // Local x ~ Global rphi
-	double sigma_y{1.0}; // Local y ~ Global z
-
-	// Detector-level information
-	int stave{-1};
-	int chip{-1};
-	int strobe{-1};
-
-	int ladder_z{-1};
-	int ladder_phi{-1};
-	int time_bucket{-1};
-
-	int sector{-1};
-	int side{-1};
-};
-
-class WeightedFitter::FitErrorCalculator {
-public:
-	FitErrorCalculator() = default;
-	virtual ~FitErrorCalculator() = default;
-	double operator()(double const*) const;
-
-	virtual void set_parameters (double const*) const;
-	virtual Eigen::Vector3d get_intersection (ClusterFitPoint const&) const;
-	virtual Eigen::Vector3d get_pca (Eigen::Vector3d const&) const;
-
-private:
-	friend WeightedFitter;
-	VertexFitPoint m_vertex;
-	std::vector<ClusterFitPoint> m_points;
-
-	mutable double m_cos_theta{0};
-	mutable double m_sin_theta{0};
-	mutable double m_cos_phi{0};
-	mutable double m_sin_phi{0};
-	mutable Eigen::Vector3d m_intercept = Eigen::Vector3d::Zero();
-	mutable Eigen::Vector3d m_slope = Eigen::Vector3d::Zero();
+	// ClusterErrorPara m_cluster_error_para;
+	// TpcClusterZCrossingCorrection m_clusterCrossingCorrection; // unused for now, maybe to get uncorrected positions later
 };
 
