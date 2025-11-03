@@ -37,27 +37,28 @@
 #include <TSystem.h>
 
 #include <cassert>
+#define _USE_MATH_DEFINES  // NOLINT(bugprone-reserved-identifier) - needed for M_PI
 #include <cmath>   // log10, pow, sqrt, std::abs, M_PI
-#include <cstdint>
-#include <format>
-#include <iostream>
+#include <cstdint> // uint8_t, uint64_t, etc.
+#include <format>  // std::format (C++20)
+#include <iostream> // std::cout
 #include <limits>
-#include <string>
-#include <utility>
-#include <vector>
+#include <string>  // std::string
+#include <vector>  // std::vector
 #include <algorithm>
 
 namespace
 {
   // helper: faster alpha calc without pow/sqrt
-  inline float clusterAlpha(const float e1, const float e2)
+  inline auto clusterAlpha(const float energy1, const float energy2) -> float
   {
-    const float denom = e1 + e2;
+    const float denom = energy1 + energy2;
     if (denom == 0.F) { return std::numeric_limits<float>::infinity(); }
-    return std::abs(e1 - e2) / denom;
+    return std::abs(energy1 - energy2) / denom;
   }
 
-  inline bool inTrigOfInterest(const std::vector<int>& trigs, int bit)
+  // NOLINTNEXTLINE(bugprone-easily-swappable-parameters) - container vs single int are semantically different
+  inline auto inTrigOfInterest(const std::vector<int>& trigs, const int bit) -> bool
   {
     return std::find(trigs.begin(), trigs.end(), bit) != trigs.end();
   }
@@ -634,7 +635,6 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   constexpr float emcMaxClusE = 100.F;
   constexpr float maxAlpha = 0.6F;
 
-  // low activity gate, using 0.1 scale-down factor
   if (totalcemc < 0.1F * emcaldownscale)
   {
     RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
@@ -886,12 +886,10 @@ void CaloValid::MirrorHistogram(TH1* h)
 
 TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, int xbins_in, double xmin, double xmax, int ybins_in, double ymin, double ymax)
 {
-  // note: ROOT wants Double_t*, we manage/delete manually
   const Double_t logymin = std::log10(ymin);
   const Double_t logymax = std::log10(ymax);
   const Double_t binwidth = (logymax - logymin) / static_cast<Double_t>(ybins_in);
 
-  // allocate +2 to avoid malloc corruption in ROOT
   Double_t* ybins = new Double_t[ybins_in + 2];
 
   for (int i = 0; i <= ybins_in + 1; i++)
