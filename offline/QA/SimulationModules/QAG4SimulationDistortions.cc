@@ -1,16 +1,4 @@
-
 #include "QAG4SimulationDistortions.h"
-
-#include <fun4all/SubsysReco.h>
-
-#include <qautils/QAHistManagerDef.h>
-
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -27,17 +15,28 @@
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
-#include <TH1.h>
-#include <TH2.h>
-#include <TString.h>
-#include <TTree.h>
+#include <qautils/QAHistManagerDef.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>  // for PHWHERE
 
 #include <Acts/Definitions/Algebra.hpp>
+
+#include <TH1.h>
+#include <TH2.h>
+#include <TTree.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <string>
 #include <utility>  // for pair
 #include <vector>
@@ -47,7 +46,7 @@ namespace
 
   // square
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -60,20 +59,18 @@ namespace
   }
 
   template <class T>
-  inline constexpr T deltaPhi(const T& phi)
+  constexpr T deltaPhi(const T& phi)
   {
     if (phi > M_PI)
     {
       return phi - 2. * M_PI;
     }
-    else if (phi <= -M_PI)
+    if (phi <= -M_PI)
     {
       return phi + 2. * M_PI;
     }
-    else
-    {
-      return phi;
-    }
+
+    return phi;
   }
 
   /// return number of clusters of a given type that belong to a tracks
@@ -93,12 +90,8 @@ QAG4SimulationDistortions::QAG4SimulationDistortions(const std::string& name)
 }
 
 //____________________________________________________________________________..
-QAG4SimulationDistortions::~QAG4SimulationDistortions() = default;
-
-//____________________________________________________________________________..
 int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
 {
-
   // reset counters
   m_total_tracks = 0;
   m_accepted_tracks = 0;
@@ -107,94 +100,87 @@ int QAG4SimulationDistortions::Init(PHCompositeNode* /*unused*/)
   m_accepted_states = 0;
 
   // histogram manager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  TH1* h(nullptr);
+  h_beta = new TH2F(std::string(get_histo_prefix() + "betadz").c_str(), ";tan#beta; #Deltaz [cm]", 100, -0.5, 0.5, 100, -0.5, 0.5);
+  hm->registerHisto(h_beta);
 
-  h = new TH2F(TString(get_histo_prefix()) + "betadz", ";tan#beta; #Deltaz [cm]", 100, -0.5, 0.5, 100, -0.5, 0.5);
+  h_alpha = new TH2F(std::string(get_histo_prefix() + "alphardphi").c_str(), ";tan#alpha; r#Delta#phi [cm]", 100, -0.5, 0.5, 100, -0.5, 0.5);
+  hm->registerHisto(h_alpha);
 
-  hm->registerHisto(h);
+  h_rphiResid = new TH2F(std::string(get_histo_prefix() + "rphiResid").c_str(), ";r [cm]; #Deltar#phi [cm]", 60, 20, 80, 500, -2, 2);
+  hm->registerHisto(h_rphiResid);
 
-  h = new TH2F(TString(get_histo_prefix()) + "alphardphi", ";tan#alpha; r#Delta#phi [cm]", 100, -0.5, 0.5, 100, -0.5, 0.5);
-  hm->registerHisto(h);
+  h_zResid = new TH2F(std::string(get_histo_prefix() + "zResid").c_str(), ";z [cm]; #Deltaz [cm]", 200, -100, 100, 1000, -2, 2);
+  hm->registerHisto(h_zResid);
 
-  h = new TH2F(TString(get_histo_prefix()) + "rphiResid", ";r [cm]; #Deltar#phi [cm]", 60, 20, 80, 500, -2, 2);
-  hm->registerHisto(h);
+  h_etaResid = new TH2F(std::string(get_histo_prefix() + "etaResid").c_str(), ";#eta;#Delta#eta", 20, -1, 1, 500, -0.2, 0.2);
+  hm->registerHisto(h_etaResid);
 
-  h = new TH2F(TString(get_histo_prefix()) + "zResid", ";z [cm]; #Deltaz [cm]", 200, -100, 100, 1000, -2, 2);
-  hm->registerHisto(h);
+  h_etaResidLayer = new TH2F(std::string(get_histo_prefix() + "etaResidLayer").c_str(), ";r [cm]; #Delta#eta", 60, 20, 80, 500, -0.2, 0.2);
+  hm->registerHisto(h_etaResidLayer);
 
-  h = new TH2F(TString(get_histo_prefix()) + "etaResid", ";#eta;#Delta#eta", 20, -1, 1, 500, -0.2, 0.2);
-  hm->registerHisto(h);
+  h_zResidLayer = new TH2F(std::string(get_histo_prefix() + "zResidLayer").c_str(), ";r [cm]; #Deltaz [cm]", 60, 20, 80, 1000, -2, 2);
+  hm->registerHisto(h_zResidLayer);
 
-  h = new TH2F(TString(get_histo_prefix()) + "etaResidLayer", ";r [cm]; #Delta#eta", 60, 20, 80, 500, -0.2, 0.2);
-  hm->registerHisto(h);
+  h_deltarphi_layer = new TH2F(std::string(get_histo_prefix() + "deltarphi_layer").c_str(), ";layer; r.#Delta#phi_{cluster-track} (cm)", 57, 0, 57, 500, -2, 2);
+  hm->registerHisto(h_deltarphi_layer);
 
-  h = new TH2F(TString(get_histo_prefix()) + "zResidLayer", ";r [cm]; #Deltaz [cm]", 60, 20, 80, 1000, -2, 2);
-  hm->registerHisto(h);
+  h_deltaz_layer = new TH2F(std::string(get_histo_prefix() + "deltaz_layer").c_str(), ";layer; #Deltaz_{cluster-track} (cm)", 57, 0, 57, 100, -2, 2);
+  hm->registerHisto(h_deltaz_layer);
 
-  h = new TH2F(TString(get_histo_prefix()) + "deltarphi_layer", ";layer; r.#Delta#phi_{cluster-track} (cm)", 57, 0, 57, 500, -2, 2);
-  hm->registerHisto(h);
+  h_statez_pulls = new TH2F(std::string(get_histo_prefix() + "statez_pulls").c_str(), ";layer; #Deltaz_{cluster-track}/#sigma_{z}^{state}", 57, 0, 57, 100, -5, 5);
+  hm->registerHisto(h_statez_pulls);
 
-  h = new TH2F(TString(get_histo_prefix()) + "deltaz_layer", ";layer; #Deltaz_{cluster-track} (cm)", 57, 0, 57, 100, -2, 2);
-  hm->registerHisto(h);
+  h_staterphi_pulls = new TH2F(std::string(get_histo_prefix() + "staterphi_pulls").c_str(), ";layer; #Deltar#phi_{cluster-track}/#sigma_{rphi}^{state}", 57, 0, 57, 100, -5, 5);
+  hm->registerHisto(h_staterphi_pulls);
 
-  h = new TH2F(TString(get_histo_prefix()) + "statez_pulls", ";layer; #Deltaz_{cluster-track}/#sigma_{z}^{state}", 57, 0, 57, 100, -5, 5);
-  hm->registerHisto(h);
+  h_clusz_pulls = new TH2F(std::string(get_histo_prefix() + "clusz_pulls").c_str(), ";layer; #Deltaz_{cluster-track}/#sigma_{z}^{clus}", 57, 0, 57, 100, -5, 5);
+  hm->registerHisto(h_clusz_pulls);
 
-  h = new TH2F(TString(get_histo_prefix()) + "staterphi_pulls", ";layer; #Deltar#phi_{cluster-track}/#sigma_{rphi}^{state}", 57, 0, 57, 100, -5, 5);
-  hm->registerHisto(h);
+  h_clusrphi_pulls = new TH2F(std::string(get_histo_prefix() + "clusrphi_pulls").c_str(), ";layer; #Deltar#phi_{cluster-track}/#sigma_{r#phi}^{clus}", 57, 0, 57, 100, -5, 5);
+  hm->registerHisto(h_clusrphi_pulls);
 
-  h = new TH2F(TString(get_histo_prefix()) + "clusz_pulls", ";layer; #Deltaz_{cluster-track}/#sigma_{z}^{clus}", 57, 0, 57, 100, -5, 5);
-  hm->registerHisto(h);
+  h_nstates_vs_nclus = new TH2F(std::string(get_histo_prefix() + "nstates_vs_nclus").c_str(), ";Number of states on track; Number of clusters on track", 57, 0, 57, 57, 0, 57);
+  hm->registerHisto(h_nstates_vs_nclus);
 
-  h = new TH2F(TString(get_histo_prefix()) + "clusrphi_pulls", ";layer; #Deltar#phi_{cluster-track}/#sigma_{r#phi}^{clus}", 57, 0, 57, 100, -5, 5);
-  hm->registerHisto(h);
+  h_tpot_deltarphi = new TH1F(std::string(get_histo_prefix() + "tpot_deltarphi").c_str(), ";TPOT  r.#Delta#phi_{cluster-track} (cm); Number of TPOT clusters", 100, -1, 1);
+  hm->registerHisto(h_tpot_deltarphi);
 
-  h = new TH2F(TString(get_histo_prefix()) + "nstates_vs_nclus", ";Number of states on track; Number of clusters on track", 57, 0, 57, 57, 0, 57);
-  hm->registerHisto(h);
+  h_tpot_deltaz = new TH1F(std::string(get_histo_prefix() + "tpot_deltaz").c_str(), ";TPOT  #Deltaz_{cluster-track} (cm); Number of TPOT clusters", 100, -2, 2);
+  hm->registerHisto(h_tpot_deltaz);
 
-  h = new TH1F(TString(get_histo_prefix()) + "tpot_deltarphi", ";TPOT  r.#Delta#phi_{cluster-track} (cm); Number of TPOT clusters", 100, -1, 1);
-  hm->registerHisto(h);
+  t_tree = new TTree(std::string(get_histo_prefix() + "residTree").c_str(), "tpc residual info");
+  t_tree->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/F");
+  t_tree->Branch("tanBeta", &m_tanBeta, "tanBeta/F");
+  t_tree->Branch("drphi", &m_drphi, "drphi/F");
+  t_tree->Branch("dz", &m_dz, "dz/F");
+  t_tree->Branch("clusR", &m_clusR, "clusR/F");
+  t_tree->Branch("clusPhi", &m_clusPhi, "clusPhi/F");
+  t_tree->Branch("clusZ", &m_clusZ, "clusZ/F");
+  t_tree->Branch("clusEta", &m_clusEta, "clusEta/F");
+  t_tree->Branch("stateR", &m_stateR, "stateR/F");
+  t_tree->Branch("statePhi", &m_statePhi, "statePhi/F");
+  t_tree->Branch("stateZ", &m_stateZ, "stateZ/F");
+  t_tree->Branch("stateEta", &m_stateEta, "stateEta/F");
+  t_tree->Branch("stateRPhiErr", &m_stateRPhiErr, "stateRPhiErr/F");
+  t_tree->Branch("stateZErr", &m_stateZErr, "stateZErr/F");
+  t_tree->Branch("clusRPhiErr", &m_clusRPhiErr, "clusRPhiErr/F");
+  t_tree->Branch("clusZErr", &m_clusZErr, "clusZErr/F");
+  t_tree->Branch("cluskey", &m_cluskey, "cluskey/l");
+  t_tree->Branch("event", &m_event, "event/I");
 
-  h = new TH1F(TString(get_histo_prefix()) + "tpot_deltaz", ";TPOT  #Deltaz_{cluster-track} (cm); Number of TPOT clusters", 100, -2, 2);
-  hm->registerHisto(h);
+  t_tree->Branch("layer", &m_layer, "layer/I");
+  t_tree->Branch("statePt", &m_statePt, "statePt/F");
+  t_tree->Branch("statePz", &m_statePz, "statePz/F");
 
-  TTree* t(nullptr);
+  t_tree->Branch("trackPt", &m_trackPt, "trackPt/F");
+  t_tree->Branch("charge", &m_charge, "charge/I");
+  t_tree->Branch("crossing", &m_crossing, "crossing/I");
+  t_tree->Branch("trackdEdx", &m_trackdEdx, "trackdEdx/F");
 
-
-  t = new TTree(TString(get_histo_prefix()) + "residTree", "tpc residual info");
-  t->Branch("tanAlpha", &m_tanAlpha, "tanAlpha/F");
-  t->Branch("tanBeta", &m_tanBeta, "tanBeta/F");
-  t->Branch("drphi", &m_drphi, "drphi/F");
-  t->Branch("dz", &m_dz, "dz/F");
-  t->Branch("clusR", &m_clusR, "clusR/F");
-  t->Branch("clusPhi", &m_clusPhi, "clusPhi/F");
-  t->Branch("clusZ", &m_clusZ, "clusZ/F");
-  t->Branch("clusEta", &m_clusEta, "clusEta/F");
-  t->Branch("stateR", &m_stateR, "stateR/F");
-  t->Branch("statePhi", &m_statePhi, "statePhi/F");
-  t->Branch("stateZ", &m_stateZ, "stateZ/F");
-  t->Branch("stateEta", &m_stateEta, "stateEta/F");
-  t->Branch("stateRPhiErr", &m_stateRPhiErr, "stateRPhiErr/F");
-  t->Branch("stateZErr", &m_stateZErr, "stateZErr/F");
-  t->Branch("clusRPhiErr", &m_clusRPhiErr, "clusRPhiErr/F");
-  t->Branch("clusZErr", &m_clusZErr, "clusZErr/F");
-  t->Branch("cluskey", &m_cluskey, "cluskey/l");
-  t->Branch("event", &m_event, "event/I");
-
-  t->Branch("layer", &m_layer, "layer/I");
-  t->Branch("statePt", &m_statePt, "statePt/F");
-  t->Branch("statePz", &m_statePz, "statePz/F");
-
-  t->Branch("trackPt", &m_trackPt, "trackPt/F");
-  t->Branch("charge", &m_charge, "charge/I");
-  t->Branch("crossing", &m_crossing, "crossing/I");
-  t->Branch("trackdEdx", &m_trackdEdx, "trackdEdx/F");
-
-
-  hm->registerHisto(t);
+  hm->registerHisto(t_tree);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -216,10 +202,22 @@ int QAG4SimulationDistortions::InitRun(PHCompositeNode* topNode)
 
   // load distortion corrections
   m_globalPositionWrapper.loadNodes(topNode);
-  if (m_disable_module_edge_corr) { m_globalPositionWrapper.set_enable_module_edge_corr(false); }
-  if (m_disable_static_corr) { m_globalPositionWrapper.set_enable_static_corr(false); }
-  if (m_disable_average_corr) { m_globalPositionWrapper.set_enable_average_corr(false); }
-  if (m_disable_fluctuation_corr) { m_globalPositionWrapper.set_enable_fluctuation_corr(false); }
+  if (m_disable_module_edge_corr)
+  {
+    m_globalPositionWrapper.set_enable_module_edge_corr(false);
+  }
+  if (m_disable_static_corr)
+  {
+    m_globalPositionWrapper.set_enable_static_corr(false);
+  }
+  if (m_disable_average_corr)
+  {
+    m_globalPositionWrapper.set_enable_average_corr(false);
+  }
+  if (m_disable_fluctuation_corr)
+  {
+    m_globalPositionWrapper.set_enable_fluctuation_corr(false);
+  }
 
   if (!m_trackMap || !m_clusterContainer || !m_tGeometry)
   {
@@ -238,61 +236,15 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto *h_beta = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "betadz"));
-  assert(h_beta);
-
-  auto *h_alpha = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "alphardphi"));
-  assert(h_alpha);
-
-  auto *h_rphiResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "rphiResid"));
-  assert(h_rphiResid);
-
-  auto *h_zResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "zResid"));
-  assert(h_zResid);
-
-  auto *h_etaResid = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "etaResid"));
-  assert(h_etaResid);
-
-  auto *h_etaResidLayer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "etaResidLayer"));
-  assert(h_etaResidLayer);
-
-  auto *h_zResidLayer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "zResidLayer"));
-  assert(h_zResidLayer);
-
-  auto *h_deltarphi_layer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "deltarphi_layer"));
-  assert(h_deltarphi_layer);
-
-  auto *h_deltaz_layer = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "deltaz_layer"));
-  assert(h_deltaz_layer);
-
-  auto *h_statez_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "statez_pulls"));
-  assert(h_statez_pulls);
-
-  auto *h_staterphi_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "staterphi_pulls"));
-  assert(h_staterphi_pulls);
-
-  auto *h_clusz_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "clusz_pulls"));
-  assert(h_clusz_pulls);
-
-  auto *h_clusrphi_pulls = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "clusrphi_pulls"));
-  assert(h_clusrphi_pulls);
-
-  auto *h_nstates_vs_nclus = dynamic_cast<TH2*>(hm->getHisto(get_histo_prefix() + "nstates_vs_nclus"));
-  assert(h_nstates_vs_nclus);
-
-  auto *t_tree = dynamic_cast<TTree*>(hm->getHisto(get_histo_prefix() + "residTree"));
-  assert(t_tree);
-
   std::cout << "QAG4SimulationDistortions::process_event - tracks: " << m_trackMap->size() << std::endl;
   for (const auto& [key, track] : *m_trackMap)
   {
-
     // total track counter
     ++m_total_tracks;
 
     // get track crossing and check
     const auto crossing = track->get_crossing();
-    if(crossing == SHRT_MAX)
+    if (crossing == std::numeric_limits<short>::max())
     {
       std::cout << "QAG4SimulationDistortions::process_event - invalid crossing. Track skipped." << std::endl;
       continue;
@@ -301,14 +253,20 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
     // check track quality
     if (!checkTrack(track))
     {
-      if (Verbosity() > 1) { std::cout << "failed track selection" << std::endl;}
+      if (Verbosity() > 1)
+      {
+        std::cout << "failed track selection" << std::endl;
+      }
       continue;
     }
-    if (Verbosity() > 1) { std::cout << "pass track selection" << std::endl;}
+    if (Verbosity() > 1)
+    {
+      std::cout << "pass track selection" << std::endl;
+    }
 
     // get seeeds
-    auto *tpcSeed = track->get_tpc_seed();
-    auto *siliconSeed = track->get_silicon_seed();
+    auto* tpcSeed = track->get_tpc_seed();
+    auto* siliconSeed = track->get_silicon_seed();
 
     /// Should have never been added to the map...
     if (!tpcSeed || !siliconSeed)
@@ -319,30 +277,30 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
     if (Verbosity() > 0)
     {
       std::cout << " tpc seed " << tpcSeed->get_tpc_seed_index()
-	        << " with si seed " << siliconSeed->get_silicon_seed_index()
-		<< " crossing " << siliconSeed->get_crossing()
-		<< std::endl;
+                << " with si seed " << siliconSeed->get_silicon_seed_index()
+                << " crossing " << siliconSeed->get_crossing()
+                << std::endl;
     }
-
 
     // accepted track counter
     ++m_accepted_tracks;
 
     for (auto iter = track->begin_states(); iter != track->end_states(); ++iter)
     {
-
       ++m_total_states;
 
       auto& state = iter->second;
       const auto ckey = state->get_cluskey();
       const auto trkrId = TrkrDefs::getTrkrId(ckey);
 
-      if( trkrId != TrkrDefs::tpcId )
-      { continue; }
+      if (trkrId != TrkrDefs::tpcId)
+      {
+        continue;
+      }
 
       ++m_accepted_states;
 
-      auto cluster = m_clusterContainer->findCluster(ckey);
+      auto* cluster = m_clusterContainer->findCluster(ckey);
 
       const auto clusGlobPosition = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(ckey, cluster, crossing);
 
@@ -427,7 +385,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
       m_clusEta = clusEta;
       m_stateEta = trackEta;
       m_layer = layer;
-      m_statePt = sqrt(stateGlobMom(0)*stateGlobMom(0)+stateGlobMom(1)*stateGlobMom(1));
+      m_statePt = sqrt(stateGlobMom(0) * stateGlobMom(0) + stateGlobMom(1) * stateGlobMom(1));
       m_statePz = stateGlobMom(2);
       m_trackPt = track->get_pt();
       m_charge = track->get_charge();
@@ -447,7 +405,7 @@ int QAG4SimulationDistortions::process_event(PHCompositeNode* /*unused*/)
     }
     int nstates = track->size_states();
     int nclus = (track->get_silicon_seed()->size_cluster_keys()) + (track->get_tpc_seed()->size_cluster_keys());
-    h_nstates_vs_nclus->Fill(nstates,nclus);
+    h_nstates_vs_nclus->Fill(nstates, nclus);
   }
 
   m_event++;
@@ -479,7 +437,6 @@ int QAG4SimulationDistortions::End(PHCompositeNode* /*topNode*/)
 //_____________________________________________________________________________
 bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
 {
-
   if (track->get_pt() < m_minPT)
   {
     return false;
@@ -510,7 +467,7 @@ bool QAG4SimulationDistortions::checkTrack(SvtxTrack* track)
     return false;
   }
 
-  if (m_useMicromegas && checkTPOTResidual(track)==false)
+  if (m_useMicromegas && checkTPOTResidual(track) == false)
   {
     return false;
   }
@@ -523,12 +480,6 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
   Fun4AllHistoManager* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto *h_tpot_deltarphi = dynamic_cast<TH1*>(hm->getHisto(get_histo_prefix() + "tpot_deltarphi"));
-  assert(h_tpot_deltarphi);
-
-  auto *h_tpot_deltaz = dynamic_cast<TH1*>(hm->getHisto(get_histo_prefix() + "tpot_deltaz"));
-  assert(h_tpot_deltaz);
-
   bool flag = true;
 
   int nTPOTcluster = 0;
@@ -536,7 +487,6 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
   int TPOTtileID = -1;
   for (const auto& cluskey : get_cluster_keys(track))
   {
-
     // make sure cluster is from TPOT
     const auto detId = TrkrDefs::getTrkrId(cluskey);
     if (detId != TrkrDefs::micromegasId)
@@ -546,7 +496,7 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
     TPOTtileID = MicromegasDefs::getTileId(cluskey);
     nTPOTcluster++;
 
-    auto *cluster = m_clusterContainer->findCluster(cluskey);
+    auto* cluster = m_clusterContainer->findCluster(cluskey);
 
     SvtxTrackState* state = nullptr;
 
@@ -577,7 +527,7 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
     nTPOTstate++;
 
     const auto crossing = track->get_crossing();
-    assert(crossing != SHRT_MAX);
+    assert(crossing != std::numeric_limits<short>::max());
 
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
@@ -632,40 +582,39 @@ bool QAG4SimulationDistortions::checkTPOTResidual(SvtxTrack* track)
     }
 
     // check rphi residual for layer 55
-    if (layer==55 && std::fabs(drphi)>0.1)
+    if (layer == 55 && std::fabs(drphi) > 0.1)
     {
       flag = false;
       break;
     }
 
     // check z residual for layer 56
-    if (layer==56 && std::fabs(dz)>1)
+    if (layer == 56 && std::fabs(dz) > 1)
     {
       flag = false;
       break;
     }
-
   }
 
   if (flag)
   {
     // SCOZ has a half dead tile
     // only require one TPOT cluster/state from SCOP
-    if (TPOTtileID==0)
+    if (TPOTtileID == 0)
     {
-      if (nTPOTcluster<1 || nTPOTstate<1)
+      if (nTPOTcluster < 1 || nTPOTstate < 1)
       {
         flag = false;
       }
     }
-    else if (TPOTtileID>0)
+    else if (TPOTtileID > 0)
     {
-      if (nTPOTcluster<2 || nTPOTstate<2)
+      if (nTPOTcluster < 2 || nTPOTstate < 2)
       {
         flag = false;
       }
     }
-    else if (TPOTtileID<0)
+    else if (TPOTtileID < 0)
     {
       flag = false;
     }
@@ -700,5 +649,3 @@ std::vector<TrkrDefs::cluskey> QAG4SimulationDistortions::get_state_keys(SvtxTra
   }
   return out;
 }
-
-
