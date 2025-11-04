@@ -1,29 +1,29 @@
 #ifndef TRACKRECO_PHTPCRESIDUALS_H
 #define TRACKRECO_PHTPCRESIDUALS_H
 
-#include <fun4all/SubsysReco.h>
+#include "TpcSpaceChargeMatrixContainer.h"  // for TpcSpaceChargeMa...
+
 #include <tpc/TpcGlobalPositionWrapper.h>
-#include <trackbase/ActsGeometry.h>
+
 #include <trackbase/TrkrDefs.h>
 #include <trackbase_historic/ActsTransformations.h>
 
+#include <fun4all/SubsysReco.h>
+
+#include <Acts/Definitions/Algebra.hpp>  // for Vector3
 #include <Acts/EventData/TrackParameters.hpp>
-#include <Acts/Utilities/Result.hpp>
 
+#include <cmath>
 #include <memory>
-#include <optional>
+#include <string>   // for basic_string
+#include <utility>  // for pair
 
+class ActsGeometry;
+class SvtxTrackState;
 class PHCompositeNode;
 class SvtxTrack;
 class SvtxTrackMap;
-class TpcSpaceChargeMatrixContainer;
-class TrkrCluster;
 class TrkrClusterContainer;
-
-class TFile;
-class TH1;
-class TH2;
-class TTree;
 
 /**
  * This class takes preliminary fits from PHActsTrkFitter to the
@@ -126,7 +126,7 @@ class PHTpcResiduals : public SubsysReco
   int processTracks(PHCompositeNode *topNode);
 
   bool checkTrack(SvtxTrack *track) const;
-  bool checkTPOTResidual(SvtxTrack* track) const;
+  bool checkTPOTResidual(SvtxTrack *track) const;
   void processTrack(SvtxTrack *track);
 
   /// fill track state from bound track parameters
@@ -159,7 +159,7 @@ class PHTpcResiduals : public SubsysReco
   float m_maxResidualDz = 0.5;  // cm
 
   float m_minRPhiErr = 0.005;  // 0.005cm -- 50um
-  float m_minZErr = 0.01;  // 0.01cm -- 100um
+  float m_minZErr = 0.01;      // 0.01cm -- 100um
 
   static constexpr float m_phiMin = 0;
   static constexpr float m_phiMax = 2. * M_PI;
@@ -175,7 +175,7 @@ class PHTpcResiduals : public SubsysReco
   /// Tpc geometry
   static constexpr unsigned int m_nLayersTpc = 48;
   float m_zMin = 0;  // cm
-  float m_zMax = 0;   // cm
+  float m_zMax = 0;  // cm
 
   /// matrix container
   std::unique_ptr<TpcSpaceChargeMatrixContainer> m_matrix_container;
