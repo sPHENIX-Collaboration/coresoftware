@@ -12,7 +12,7 @@
 #include <calobase/TowerInfoContainer.h>
 #include <globalvertex/GlobalVertexv2.h>
 #include <globalvertex/GlobalVertexMapv1.h>
-#include <globalvertex/Vertex.h>
+
 #include <phool/getClass.h>
 
 #include <cassert>
@@ -84,7 +84,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   {
     if(m_use_vertextype)
       {
-	std::vector<const Vertex*> vertices = vertexmap->get_vtxs_of_type(m_vertex_type);
+	std::vector<GlobalVertex*> vertices = vertexmap->get_gvtxs_with_type(m_vertex_type);
 	if(!vertices.empty())
 	  {
 	    if(vertices.at(0))

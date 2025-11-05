@@ -155,10 +155,6 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 		  jpt[1] = pt;
 		}
 	    }
-	  else
-	    {
-	      continue;
-	    }
 	}      
     }
   else

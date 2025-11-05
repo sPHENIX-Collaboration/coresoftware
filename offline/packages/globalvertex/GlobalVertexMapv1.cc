@@ -72,29 +72,6 @@ std::vector<GlobalVertex*> GlobalVertexMapv1::get_gvtxs_with_type(std::vector<Gl
   return vertices;
 }
 
-std::vector<const Vertex*> GlobalVertexMapv1::get_vtxs_of_type(std::vector<GlobalVertex::VTXTYPE> types)
-{
-  std::vector<const Vertex*> vertices;
-  Iter iter = _map.begin();
-  for(unsigned int j=0; j<types.size(); ++j)
-    {
-      while(iter != _map.end())
-	{
-	  GlobalVertex::VertexIter it = iter->second->find_vertexes(types.at(j));
-	  if(it != iter->second->end_vertexes())
-	    {
-	      for(unsigned int i=0; i<it->second.size(); ++i)
-		{
-		  vertices.push_back(it->second.at(i));
-		}
-	    }
-	  ++iter;
-	}
-      if(!vertices.empty()) { break; }
-    }
-  return vertices;
-}
-
 GlobalVertex* GlobalVertexMapv1::insert(GlobalVertex* vertex)
 {
   unsigned int index = vertex->get_id();
