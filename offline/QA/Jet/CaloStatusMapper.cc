@@ -121,6 +121,8 @@ int CaloStatusMapper::Init(PHCompositeNode* /*topNode*/)
   InitHistManager();
   BuildHistograms();
 
+  allCaloEnergy = new TH1F("h_calostatusmapper_towere_allcalo", "All Calo Tower Energy Sum; Tower E [GeV]", 1000, 0, 2000);
+
   // make sure event no. is set to 0
   m_nEvent = 0;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -154,6 +156,8 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
   // grab input nodes
   GrabNodes(topNode);
 
+  float sumCaloE = 0;
+
   // loop over input nodes
   for (size_t iNode = 0; iNode < m_inNodes.size(); ++iNode)
   {
@@ -161,6 +165,9 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
     // grab node name & make status base
     const std::string nodeName = m_config.inNodeNames[iNode].first;
     const std::string statBase = MakeBaseName("Status", nodeName);
+    const std::string energyBase = MakeBaseName("TowerE", nodeName);
+
+    float totalE = 0;
 
     // loop over towers
     TowerInfoContainer* towers = m_inNodes[iNode];
@@ -204,8 +211,18 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
       m_hists[perPhiBase]->Fill(iPhi);
       m_hists[phiEtaBase]->Fill(iEta, iPhi);
 
+      float towerE = tower->get_energy();
+      totalE += towerE;
     }  // end tower loop
+
+    // fill total tower energy
+    m_hists[energyBase]->Fill(totalE);
+
+    sumCaloE += totalE;
   }  // end node loop
+
+  // fill all calo total energy plot
+  allCaloEnergy -> Fill(sumCaloE);
 
   // increment event no. and return
   ++m_nEvent;
@@ -240,6 +257,7 @@ int CaloStatusMapper::End(PHCompositeNode* /*topNode*/)
   for (const auto& hist : m_hists) {
     m_manager->registerHisto(hist.second);
   }
+  m_manager->registerHisto(allCaloEnergy);
   return Fun4AllReturnCodes::EVENT_OK;
 
 }  // end 'End(PHCompositeNode*)'
@@ -300,6 +318,23 @@ void CaloStatusMapper::BuildHistograms()
     // create status hist
     //   - n.b. calo type doesn't matter here
     m_hists[statBase] = emHistDef.MakeStatus1D(statName);
+
+    // make tower energy hist name
+    const std::string energyBase = MakeBaseName("TowerE", nodeName.first);
+    const std::string energyName = JetQADefs::MakeQAHistName(energyBase, m_config.moduleName, m_config.histTag);
+
+    // create energy hist
+    switch (nodeName.second)
+    {
+      case CaloStatusMapperDefs::Calo::HCal:
+        m_hists[energyBase] = hcHistDef.MakeEnergy1D(energyName);
+        break;
+      case CaloStatusMapperDefs::Calo::EMCal:
+          [[fallthrough]];
+      default:
+        m_hists[energyBase] = emHistDef.MakeEnergy1D(energyName);
+        break;
+    }
 
     // loop over status labels
     for (const auto& statLabel : CaloStatusMapperDefs::StatLabels())

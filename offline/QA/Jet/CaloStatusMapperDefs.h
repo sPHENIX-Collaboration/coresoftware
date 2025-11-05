@@ -118,7 +118,7 @@ namespace CaloStatusMapperDefs
   /*! This is a lightweight struct to organize the axis definitions
    *  for status, eta, phi axes and make histograms using them.
    */ 
-  template <std::size_t H, std::size_t F, std::size_t S>
+  template <std::size_t H, std::size_t F, std::size_t S, std::size_t E>
   struct HistDef
   {
 
@@ -127,6 +127,7 @@ namespace CaloStatusMapperDefs
     //! AxisDef stat {"Status", S, -0.5, S - 0.5};
     AxisDef eta {"i_{#eta}", H, -0.5, H - 0.5};
     AxisDef phi {"i_{#phi}", F, -0.5, F - 0.5};
+    AxisDef towere {"Tower E", E + 1, -0.5, E + 0.5};
 
     //! make 1 1d status plot
     TH1D* MakeStatus1D(const std::string& name) const
@@ -156,13 +157,19 @@ namespace CaloStatusMapperDefs
       return new TH2D(name.data(), title.data(), eta.nBins, eta.start, eta.stop, phi.nBins, phi.start, phi.stop);
     }
 
+    //! make a 1d tower energy plot
+    TH1D* MakeEnergy1D(const std::string& name) const
+    {
+      const std::string title = ";" + towere.label;
+      return new TH1D(name.data(), title.data(), towere.nBins, towere.start, towere.stop);
+    }
   };  // end HistDef
 
   // -------------------------------------------------------------------------
   //! Maps for specific calorimeters
   // -------------------------------------------------------------------------
-  typedef HistDef<96, 256, 7> EMCalHistDef;
-  typedef HistDef<24, 64, 7> HCalHistDef;
+  typedef HistDef<96, 256, 7, 2000> EMCalHistDef;
+  typedef HistDef<24, 64, 7, 500> HCalHistDef;
 
 
 

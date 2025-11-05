@@ -119,6 +119,7 @@ class CaloStatusMapper : public SubsysReco
 
     ///! output histograms
     std::map<std::string, TH1*> m_hists;
+    TH1F *allCaloEnergy;
 
     ///! input nodes
     std::vector<TowerInfoContainer*> m_inNodes;
