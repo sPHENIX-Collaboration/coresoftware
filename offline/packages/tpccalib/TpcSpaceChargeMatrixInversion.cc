@@ -34,7 +34,7 @@ namespace
   // z range
   float m_zmax =  102.605;
   float m_zmin = -102.605;
-  
+
   // convert internal data from TpcSpaceChargeMatrixContainer to 2D Eighen::Matrix
   template<float (TpcSpaceChargeMatrixContainer::*accessor)(int /*cell*/, int /*row*/, int /*column*/) const, int N>
     Eigen::Matrix<float, N, N> get_matrix( const TpcSpaceChargeMatrixContainer* container, int icell )
@@ -434,9 +434,17 @@ void TpcSpaceChargeMatrixInversion::extrapolate_distortion_corrections()
       TpcSpaceChargeReconstructionHelper::extrapolate_z2(h, hmask_extrap_p2.get(), side);
     };
 
-    process_histogram(static_cast<TH3*>(m_dcc_average->m_hDRint[i]), static_cast<TH2*>(m_dcc_cm->m_hDRint[i]));
-    process_histogram(static_cast<TH3*>(m_dcc_average->m_hDPint[i]), static_cast<TH2*>(m_dcc_cm->m_hDPint[i]));
-    process_histogram(static_cast<TH3*>(m_dcc_average->m_hDZint[i]), static_cast<TH2*>(m_dcc_cm->m_hDZint[i]));
+    if( m_dcc_cm )
+    {
+      // use central membrane for normalizing accross phi if available
+      process_histogram(static_cast<TH3*>(m_dcc_average->m_hDRint[i]), static_cast<TH2*>(m_dcc_cm->m_hDRint[i]));
+      process_histogram(static_cast<TH3*>(m_dcc_average->m_hDPint[i]), static_cast<TH2*>(m_dcc_cm->m_hDPint[i]));
+      process_histogram(static_cast<TH3*>(m_dcc_average->m_hDZint[i]), static_cast<TH2*>(m_dcc_cm->m_hDZint[i]));
+    } else {
+      process_histogram(static_cast<TH3*>(m_dcc_average->m_hDRint[i]), nullptr);
+      process_histogram(static_cast<TH3*>(m_dcc_average->m_hDPint[i]), nullptr);
+      process_histogram(static_cast<TH3*>(m_dcc_average->m_hDZint[i]), nullptr);
+    }
   }
 }
 
