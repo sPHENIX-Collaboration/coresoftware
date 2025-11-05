@@ -32,7 +32,6 @@ class GlobalVertexMapv1 : public GlobalVertexMap
   const GlobalVertex* get(unsigned int idkey) const override;
   GlobalVertex* get(unsigned int idkey) override;
   std::vector<GlobalVertex*> get_gvtxs_with_type(std::vector<GlobalVertex::VTXTYPE> types) override;
-  std::vector<const Vertex*> get_vtxs_of_type(std::vector<GlobalVertex::VTXTYPE> types) override;
   GlobalVertex* insert(GlobalVertex* vertex) override;
   size_t erase(unsigned int idkey) override
   {
