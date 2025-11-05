@@ -55,11 +55,11 @@ std::vector<GlobalVertex*> GlobalVertexMapv1::get_gvtxs_with_type(std::vector<Gl
   std::vector<GlobalVertex*> vertices;
   Iter iter = _map.begin();
 
-  for(unsigned int i=0; i<types.size(); ++i)
+  for(GlobalVertex::VTXTYPE type : types)
     {
       while(iter != _map.end())
 	{
-	  GlobalVertex::VertexIter it = iter->second->find_vertexes(types.at(i));
+	  GlobalVertex::VertexIter it = iter->second->find_vertexes(type);
 	  if(it != iter->second->end_vertexes())
 	    {
 	      vertices.push_back(iter->second);

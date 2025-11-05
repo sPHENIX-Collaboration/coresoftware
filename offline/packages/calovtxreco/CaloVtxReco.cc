@@ -85,7 +85,7 @@ float CaloVtxReco::new_eta(int channel, TowerInfoContainer* towers, RawTowerGeom
   float oldeta = tower_geom->get_eta();
   
   float radius = (caloID==RawTowerDefs::CalorimeterId::HCALIN?radius_EM:radius_OH);
-  float towerz = radius/(tan(2*atan(std::exp(oldeta))));
+  float towerz = radius/(tan(2*std::atanf(std::exp(oldeta))));
   float newz = towerz + testz;
   float newTheta = std::atan2(radius,newz);
   float neweta = -log(tan(0.5*newTheta));
