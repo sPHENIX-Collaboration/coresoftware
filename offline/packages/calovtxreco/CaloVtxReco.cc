@@ -12,12 +12,12 @@
 #include <globalvertex/CaloVertexMapv1.h>
 
 #include <cmath>
-static const float radius_EM = 93.5;
+static const float radius_EM = 93.5; //hardcoding these so we don't have to call get radius every time
 static const float radius_OH = 225.87;
-
+static const float radius_IH = 127.503;
 //____________________________________________________________________________..
-CaloVtxReco::CaloVtxReco(const std::string &name, const std::string &jetnodename, const int debug):
-  SubsysReco(name), _name(name), _jetnodename(jetnodename), _debug(debug)
+CaloVtxReco::CaloVtxReco(const std::string &name, const std::string &jetnodename, const int debug, const bool use_z_energy_dep):
+  SubsysReco(name), _name(name), _jetnodename(jetnodename), _debug(debug), _use_z_energy_dep(use_z_energy_dep)
 {  
   _calovtxmap = NULL;
 }
@@ -101,10 +101,129 @@ float get_dphi(float phi1, float phi2)
   return dphi;
 }
 
+int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode)
+{
+
+  TowerInfoContainer *emcal_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
+  TowerInfoContainer *hcalin_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
+  TowerInfoContainer *hcalout_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+  RawTowerGeomContainer *tower_geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+  RawTowerGeomContainer *tower_geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+  RawTowerGeomContainer *tower_geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+
+  int size;
+
+  float average_z[3] = {0};
+  float total_E[3] = {0};
+
+
+  if (emcal_towers)
+    {
+      size = emcal_towers->size(); //online towers should be the same!                                                                                           
+      for (int channel = 0; channel < size;channel++)
+        {
+          TowerInfo *_tower = emcal_towers->get_tower_at_channel(channel);
+          short good = (_tower->get_isGood() ? 1:0);
+          if (!good) continue;
+
+          float energy = _tower->get_energy();
+          if (energy < _energy_cut) continue;
+
+          //float time = _tower->get_time_float();                                                                                                               
+
+          unsigned int towerkey = emcal_towers->encode_key(channel);
+          int ieta = emcal_towers->getTowerEtaBin(towerkey);
+          int iphi = emcal_towers->getTowerPhiBin(towerkey);
+
+          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::CEMC, ieta, iphi);
+	  /*
+          if (emcal_r < 10)
+            {
+               emcal_r = tower_geomEM->get_tower_geometry(key)->get_center_radius();
+            }
+	  */
+          float tower_z = tower_geomEM->get_tower_geometry(key)->get_center_z();
+          average_z[0] += tower_z*energy;
+          total_E[0] += energy;
+
+        }
+    }
+
+  if (hcalin_towers )
+    {
+
+      size = hcalin_towers->size(); //online towers should be the same!                                                                                          
+      for (int channel = 0; channel < size;channel++)
+        {
+          TowerInfo *_tower = hcalin_towers->get_tower_at_channel(channel);
+          float energy = _tower->get_energy();
+          if (energy < _energy_cut) continue;
+          //float time = _tower->get_time_float();                                                                                                               
+          short good = (_tower->get_isGood() ? 1:0);
+          if (!good) continue;
+
+          unsigned int towerkey = hcalin_towers->encode_key(channel);
+          int ieta = hcalin_towers->getTowerEtaBin(towerkey);
+          int iphi = hcalin_towers->getTowerPhiBin(towerkey);
+          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, ieta, iphi);
+          float tower_z = tower_geomIH->get_tower_geometry(key)->get_center_z();
+	  /*
+          if (hcalin_r < 10)
+            {
+               hcalin_r = tower_geomIH->get_tower_geometry(key)->get_center_radius();
+            }
+	  */
+          average_z[1] += tower_z*energy;
+          total_E[1] += energy;
+        }
+    }
+  if (hcalout_towers )
+    {
+
+      size = hcalout_towers->size(); //online towers should be the same!                                                                                         
+      for (int channel = 0; channel < size;channel++)
+        {
+          TowerInfo *_tower = hcalout_towers->get_tower_at_channel(channel);
+          float energy = _tower->get_energy();
+          if (energy < _energy_cut) continue;
+          //float time = _tower->get_time_float();                                                                                                               
+          unsigned int towerkey = hcalout_towers->encode_key(channel);
+          int ieta = hcalout_towers->getTowerEtaBin(towerkey);
+          int iphi = hcalout_towers->getTowerPhiBin(towerkey);
+          short good = (_tower->get_isGood() ? 1:0);
+
+          if (!good) continue;
+
+          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta, iphi);
+	  /*
+          if (hcalout_r < 10)
+            {
+              hcalout_r = tower_geomOH->get_tower_geometry(key)->get_center_radius();
+            }
+	  */
+          float tower_z = tower_geomOH->get_tower_geometry(key)->get_center_z();
+          average_z[2] += tower_z*energy;
+          total_E[2] += energy;
+        }
+    }
+  
+  double b_calo_vertex_z = (average_z[0] + average_z[1] + average_z[2])/(total_E[0] + total_E[1] + total_E[2]);
+
+  CaloVertex *vertex = new CaloVertexv1();
+  vertex->set_z(b_calo_vertex_z);
+  _calovtxmap->insert(vertex);
+
+  return 0;
+}
+
 int CaloVtxReco::process_event(PHCompositeNode *topNode)
 {
 
-  
+  if(_use_z_energy_dep)
+    {
+      calo_tower_algorithm(topNode);
+      return Fun4AllReturnCodes::EVENT_OK;
+    }
 
   if(_debug > 1) { std::cout << std::endl << std::endl << std::endl << "CaloVtxReco: Beginning event processing" << std::endl;
 }
