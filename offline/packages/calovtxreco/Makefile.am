@@ -12,28 +12,16 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   CaloVtxReco.h
 
-ROOTDICTS = \
-  CaloVtxReco_Dict.cc
-
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = 
 
 lib_LTLIBRARIES = \
-  libcalovtxreco_io.la \
   libcalovtxreco.la
-
-libcalovtxreco_io_la_SOURCES = \
-  $(ROOTDICTS) \
-  CaloVtxReco.cc
 
 libcalovtxreco_la_SOURCES = \
   CaloVtxReco.cc
 
-libcalovtxreco_io_la_LIBADD = \
-  -lphool -lSubsysReco -lmbd_io -ljetbase
-
 libcalovtxreco_la_LIBADD = \
-  libcalovtxreco_io.la \
   -lcalo_io \
   -lSubsysReco -lffaobjects \
   -ljetbase -lglobalvertex
@@ -51,7 +39,6 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_io_SOURCES = testexternals.cc
-testexternals_io_LDADD   = libcalovtxreco_io.la
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libcalovtxreco.la

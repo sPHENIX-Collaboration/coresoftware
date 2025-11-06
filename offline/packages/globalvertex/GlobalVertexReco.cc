@@ -272,7 +272,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       {
 	const CaloVertex *calo = caloiter->second;
 	
-	if (used_calo_vtxids.find(calo->get_id()) != used_calo_vtxids.end())
+	if (used_calo_vtxids.contains(calo->get_id()))
 	  {
 	    continue;
 	  }
@@ -311,7 +311,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     {
       const MbdVertex *mbd = mbditer->second;
 
-      if (used_mbd_vtxids.find(mbd->get_id()) != used_mbd_vtxids.end())
+      if (used_mbd_vtxids.contains(mbd->get_id()))
       {
         continue;
       }
@@ -327,7 +327,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 	    {
 	      const CaloVertex *calo = caloiter->second;
 	      
-	      if (used_calo_vtxids.find(calo->get_id()) != used_calo_vtxids.end())
+	      if (used_calo_vtxids.contains(calo->get_id()))
 		{
 		  continue;
 		}
