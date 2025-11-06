@@ -85,7 +85,7 @@ float CaloVtxReco::new_eta(int channel, TowerInfoContainer* towers, RawTowerGeom
   float oldeta = tower_geom->get_eta();
   
   float radius = (caloID==RawTowerDefs::CalorimeterId::HCALIN?radius_EM:radius_OH);
-  float towerz = radius/(tan(2*std::atanf(std::exp(oldeta))));
+  float towerz = radius/(tanf(2*std::atanf(std::exp(oldeta))));
   float newz = towerz + testz;
   float newTheta = std::atan2(radius,newz);
   float neweta = -log(tan(0.5*newTheta));
@@ -101,7 +101,7 @@ float get_dphi(float phi1, float phi2)
   return dphi;
 }
 
-int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode)
+const int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode)
 {
 
   TowerInfoContainer *emcal_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
@@ -124,10 +124,10 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode)
         {
           TowerInfo *_tower = emcal_towers->get_tower_at_channel(channel);
           short good = (_tower->get_isGood() ? 1:0);
-          if (!good) continue;
+          if (!good) { continue; }
 
           float energy = _tower->get_energy();
-          if (energy < _energy_cut) continue;
+          if (energy < _energy_cut) { continue; }
 
           //float time = _tower->get_time_float();                                                                                                               
 
@@ -157,10 +157,10 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode)
         {
           TowerInfo *_tower = hcalin_towers->get_tower_at_channel(channel);
           float energy = _tower->get_energy();
-          if (energy < _energy_cut) continue;
+          if (energy < _energy_cut) { continue; }
           //float time = _tower->get_time_float();                                                                                                               
           short good = (_tower->get_isGood() ? 1:0);
-          if (!good) continue;
+          if (!good) { continue; }
 
           unsigned int towerkey = hcalin_towers->encode_key(channel);
           int ieta = hcalin_towers->getTowerEtaBin(towerkey);
@@ -185,14 +185,14 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode)
         {
           TowerInfo *_tower = hcalout_towers->get_tower_at_channel(channel);
           float energy = _tower->get_energy();
-          if (energy < _energy_cut) continue;
+          if (energy < _energy_cut) { continue; }
           //float time = _tower->get_time_float();                                                                                                               
           unsigned int towerkey = hcalout_towers->encode_key(channel);
           int ieta = hcalout_towers->getTowerEtaBin(towerkey);
           int iphi = hcalout_towers->getTowerPhiBin(towerkey);
           short good = (_tower->get_isGood() ? 1:0);
 
-          if (!good) continue;
+          if (!good) { continue; }
 
           const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, ieta, iphi);
 	  /*
