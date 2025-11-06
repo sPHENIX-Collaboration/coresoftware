@@ -116,7 +116,7 @@ int TrackingIterationCounter::createNodes(PHCompositeNode *topNode)
 }
 int TrackingIterationCounter::getNodes(PHCompositeNode *topNode)
 {
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
     std::cout << PHWHERE << "No track map, bailing. " << std::endl;
