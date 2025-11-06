@@ -23,7 +23,8 @@ lib_LTLIBRARIES = \
   libcalovtxreco.la
 
 libcalovtxreco_io_la_SOURCES = \
-  $(ROOTDICTS) 
+  $(ROOTDICTS) \
+  CaloVtxReco.cc
 
 libcalovtxreco_la_SOURCES = \
   CaloVtxReco.cc
