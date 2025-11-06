@@ -12,7 +12,8 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   CaloVtxReco.h
 
-ROOTDICTS = 
+ROOTDICTS = \
+  CaloVtxReco_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = 

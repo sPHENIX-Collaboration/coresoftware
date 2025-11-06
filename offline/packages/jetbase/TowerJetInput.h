@@ -65,7 +65,7 @@ class TowerJetInput : public JetInput
   std::string m_towerNodePrefix;
   std::string towerName;
   bool m_use_vertextype {false};
-  std::vector<GlobalVertex::VTXTYPE> m_vertex_type{{GlobalVertex::UNDEFINED}};
+  std::vector<GlobalVertex::VTXTYPE> m_vertex_type{GlobalVertex::UNDEFINED};
   float m_timing_e_threshold{0.1};
 };
 
