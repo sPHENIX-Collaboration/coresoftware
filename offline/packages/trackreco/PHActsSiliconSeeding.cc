@@ -855,7 +855,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           const auto cluskey = clusIter->first;
           if (_iteration_map && m_nIteration > 0)
           {
-            if (_iteration_map->getIteration(cluskey) < m_nIteration)
+            if (_iteration_map->getIteration(cluskey) > 0)
             {
               continue;  // skip clusters used in a previous iteration
             }
@@ -1143,7 +1143,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         const auto cluskey = clusIter->first;
         if (_iteration_map && m_nIteration > 0)
         {
-          if (_iteration_map->getIteration(cluskey) < m_nIteration)
+          if (_iteration_map->getIteration(cluskey) > 0)
           {
             continue;  // skip clusters used in a previous iteration
           }
@@ -1336,7 +1336,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
         totNumSiliconHits++;
         if (_iteration_map && m_nIteration > 0)
         {
-          if (_iteration_map->getIteration(cluskey) < m_nIteration)
+          if (_iteration_map->getIteration(cluskey) > 0)
           {
             continue;  // skip hits used in a previous iteration
           }
