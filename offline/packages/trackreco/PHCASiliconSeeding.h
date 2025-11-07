@@ -39,6 +39,7 @@
 
 class PHCompositeNode;
 class TrkrCluster;
+class TrackSeed;
 class TrackSeed_v2;
 
 namespace bg = boost::geometry;
@@ -148,7 +149,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
  private:
   unsigned int _start_layer;
   unsigned int _end_layer;
-
+  float _strobe_width = 9.9; // mus
   unsigned int _min_clusters_per_track;
   unsigned int _min_mvtx_clusters = 2;
   unsigned int _min_intt_clusters = 1;
@@ -184,6 +185,7 @@ class PHCASiliconSeeding : public PHTrackSeeding
    * uses ActsTransformation to convert cluster local position into global coordinates
    * incorporates TPC distortion correction, if present
    */
+  bool timingMismatch(const TrackSeed& seed) const;
   Acts::Vector3 getGlobalPosition(TrkrDefs::cluskey, TrkrCluster*) const;
   std::pair<PositionMap, keyListPerLayer> FillGlobalPositions();
 
