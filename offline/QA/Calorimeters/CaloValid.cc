@@ -37,35 +37,19 @@
 #include <TSystem.h>
 
 #include <cassert>
-#define _USE_MATH_DEFINES  // NOLINT(bugprone-reserved-identifier) - needed for M_PI
-#include <cmath>   // log10, pow, sqrt, std::abs, M_PI
-#include <cstdint> // uint8_t, uint64_t, etc.
-#include <format>  // std::format (C++20)
-#include <iostream> // std::cout
+#include <cmath>  // for log10, pow, sqrt, abs, M_PI
+#include <cstdint>
+#include <format>
+#include <iostream>  // for operator<<, endl, basic_...
 #include <limits>
-#include <string>  // std::string
-#include <vector>  // std::vector
-#include <algorithm>
-
-namespace
-{
-  // helper: faster alpha calc without pow/sqrt
-  inline auto clusterAlpha(const float energy1, const float energy2) -> float
-  {
-    const float denom = energy1 + energy2;
-    if (denom == 0.F) { return std::numeric_limits<float>::infinity(); }
-    return std::abs(energy1 - energy2) / denom;
-  }
-
-  // NOLINTNEXTLINE(bugprone-easily-swappable-parameters) - container vs single int are semantically different
-  inline auto inTrigOfInterest(const std::vector<int>& trigs, const int bit) -> bool
-  {
-    return std::find(trigs.begin(), trigs.end(), bit) != trigs.end();
-  }
-}  // namespace
+#include <map>  // for operator!=, _Rb_tree_con...
+#include <string>
+#include <utility>  // for pair
 
 CaloValid::CaloValid(const std::string& name)
   : SubsysReco(name)
+  , m_outputFileName("")  // Initialize member variables
+  , OutputFileName("")     // Initialize member variables
 {
 }
 
@@ -102,13 +86,15 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+// Note: InitRun cannot be made static as it modifies member variable m_species
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 int CaloValid::InitRun(PHCompositeNode* topNode)
 {
   RunHeader* runhdr = findNode::getClass<RunHeader>(topNode, "RunHeader");
 
   if (runhdr)
   {
-    const int runnumber = runhdr->get_RunNumber();
+    int runnumber = runhdr->get_RunNumber();
 
     if (runnumber >= RunnumberRange::RUN2PP_FIRST && runnumber <= RunnumberRange::RUN2PP_LAST)
     {
@@ -134,9 +120,12 @@ int CaloValid::InitRun(PHCompositeNode* topNode)
         std::cout << "This run is from Run-3 Au+Au.\n";
       }
     }
-    else if (Verbosity() > 0)
+    else
     {
-      std::cout << "Run number is out of range. Check RunnumberRange.h . Using pp as default.\n";
+      if (Verbosity() > 0)
+      {
+        std::cout << "Run number is out of range. Check RunnumberRange.h .Using pp as default. \n";
+      }
     }
   }
   else if (Verbosity() > 0)
@@ -150,6 +139,7 @@ int CaloValid::InitRun(PHCompositeNode* topNode)
 int CaloValid::process_event(PHCompositeNode* topNode)
 {
   _eventcounter++;
+  //  std::cout << "In process_event" << std::endl;
   process_towers(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -157,7 +147,7 @@ int CaloValid::process_event(PHCompositeNode* topNode)
 
 int CaloValid::process_towers(PHCompositeNode* topNode)
 {
-  // --------------------------- Event header -------------------------------- //
+  //---------------------------Event header--------------------------------//
   EventHeader* eventheader = findNode::getClass<EventHeader>(topNode, "EventHeader");
   int event_number = 0;
   if (eventheader)
@@ -174,63 +164,65 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
   if (m_debug)
   {
-    std::cout << _eventcounter << std::endl;
+    // Cast to unsigned to avoid signed bitwise operator warning
+    // NOLINTNEXTLINE(hicpp-signed-bitwise)
+    std::cout << static_cast<unsigned int>(_eventcounter) << std::endl;
   }
-
+  //  std::cout << "In process_towers" << std::endl;
   auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  float totalcemc = 0.F;
-  float totalihcal = 0.F;
-  float totalohcal = 0.F;
-  float totalmbd = 0.F;
+  float totalcemc = 0.;
+  float totalihcal = 0.;
+  float totalohcal = 0.;
+  float totalmbd = 0.;
 
-  float emcaldownscale = 0.F;
-  float ihcaldownscale = 0.F;
-  float ohcaldownscale = 0.F;
-  float mbddownscale = 0.F;
-  float adc_threshold = 0.F;
-  float emcal_hit_threshold = 0.F;
-  float emcal_highhit_threshold = 0.F;
-  float ohcal_hit_threshold = 0.F;
-  float ohcal_highhit_threshold = 0.F;
-  float ihcal_hit_threshold = 0.F;
-  float ihcal_highhit_threshold = 0.F;
+  float emcaldownscale;
+  float ihcaldownscale;
+  float ohcaldownscale;
+  float mbddownscale;
+  float adc_threshold;
+  float emcal_hit_threshold;
+  float emcal_highhit_threshold;
+  float ohcal_hit_threshold;
+  float ohcal_highhit_threshold;
+  float ihcal_hit_threshold;
+  float ihcal_highhit_threshold;
 
   if (m_species == "AuAu")
   {
-    emcaldownscale = 1350000.F / 800.F;
-    ihcaldownscale = 55000.F / 300.F;
-    ohcaldownscale = 265000.F / 600.F;
-    mbddownscale = 2800.F;
-    adc_threshold = 15.F;
+    emcaldownscale = 1350000. / 800.;
+    ihcaldownscale = 55000. / 300.;
+    ohcaldownscale = 265000. / 600.;
+    mbddownscale = 2800.0;
+    adc_threshold = 15.;
 
-    emcal_hit_threshold = 0.5F;  // GeV
-    ohcal_hit_threshold = 0.5F;
-    ihcal_hit_threshold = 0.25F;
+    emcal_hit_threshold = 0.5;  // GeV
+    ohcal_hit_threshold = 0.5;
+    ihcal_hit_threshold = 0.25;
 
-    emcal_highhit_threshold = 3.0F;
-    ohcal_highhit_threshold = 3.0F;
-    ihcal_highhit_threshold = 3.0F;
+    emcal_highhit_threshold = 3.0;
+    ohcal_highhit_threshold = 3.0;
+    ihcal_highhit_threshold = 3.0;
   }
   else
   {
-    emcaldownscale = 100000.F / 800.F;
-    ihcaldownscale = 4000.F / 300.F;
-    ohcaldownscale = 25000.F / 600.F;
-    mbddownscale = 200.F;
-    adc_threshold = 100.F;
+    emcaldownscale = 100000. / 800.;
+    ihcaldownscale = 4000. / 300.;
+    ohcaldownscale = 25000. / 600.;
+    mbddownscale = 200.0;
+    adc_threshold = 100.;
 
-    emcal_hit_threshold = 0.5F;  // GeV
-    ohcal_hit_threshold = 0.5F;
-    ihcal_hit_threshold = 0.25F;
+    emcal_hit_threshold = 0.5;  // GeV
+    ohcal_hit_threshold = 0.5;
+    ihcal_hit_threshold = 0.25;
 
-    emcal_highhit_threshold = 3.0F;
-    ohcal_highhit_threshold = 3.0F;
-    ihcal_highhit_threshold = 3.0F;
+    emcal_highhit_threshold = 3.0;
+    ohcal_highhit_threshold = 3.0;
+    ihcal_highhit_threshold = 3.0;
   }
 
-  // ---------------------------------- vertex -------------------------------- //
+  //----------------------------------vertex------------------------------------------------------//
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
   if (!vertexmap)
   {
@@ -243,23 +235,27 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     GlobalVertex* vtx = vertexmap->begin()->second;
     if (vtx)
     {
-      vtx_z = static_cast<float>(vtx->get_z());
+      vtx_z = vtx->get_z();
     }
     h_vtx_z_raw->Fill(vtx_z);
-    if (std::fabs(vtx_z) < 20.0F)
-    {
-      h_vtx_z_cut->Fill(vtx_z);
-    }
+    // Use std::fabs instead of fabs to avoid float-to-double promotion
+    if (std::fabs(vtx_z) < 20.0)
+  {
+    h_vtx_z_cut->Fill(vtx_z);
+  }
   }
 
-  // --------------------------- trigger and GL1 ------------------------------ //
+  //--------------------------- trigger and GL1-------------------------------//
   if (trigAna)
   {
     trigAna->decodeTriggers(topNode);
   }
-  else if (m_debug)
+  else
   {
-    std::cout << "[ERROR] No TriggerAnalyzer pointer!\n";
+    if (m_debug)
+    {
+      std::cout << "[ERROR] No TriggerAnalyzer pointer!\n";
+    }
   }
 
   std::vector<int> scaledActiveBits;
@@ -276,27 +272,29 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   bool scaledBits[64] = {false};
   uint64_t raw[64] = {0};
   uint64_t live[64] = {0};
-
+  // long long int scaled[64] = { 0 };
   Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, 14001);
   if (!gl1PacketInfo)
   {
     gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     if (!gl1PacketInfo)
     {
-      std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing" << std::endl;
+      std::cout << PHWHERE << "GlobalQA::process_event: GL1Packet node is missing"
+                << std::endl;
     }
   }
-
+  uint64_t triggervec = 0;
   if (gl1PacketInfo)
   {
-    uint64_t triggervec = gl1PacketInfo->getScaledVector();
+    triggervec = gl1PacketInfo->getScaledVector();
     for (int i = 0; i < 64; i++)
     {
-      const bool trig_decision = ((triggervec & 0x1U) == 0x1U);
+      bool trig_decision = ((triggervec & 0x1U) == 0x1U);
       scaledBits[i] = trig_decision;
 
       raw[i] = gl1PacketInfo->lValue(i, 0);
       live[i] = gl1PacketInfo->lValue(i, 1);
+      // scaled[i] = gl1PacketInfo->lValue(i, 2);
 
       if (trig_decision)
       {
@@ -304,25 +302,26 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       }
       triggervec = (triggervec >> 1U) & 0xffffffffU;
     }
+    // triggervec = gl1PacketInfo->getScaledVector(); commented out to get rid of never used warning using clang -tidy
   }
 
-  // --------------------------- calibrated towers --------------------------- //
+  //---------------------------calibrated towers-------------------------------//
   {
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
     if (towers)
     {
-      const int size = towers->size();  // online towers should be the same!
+      int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
-        const float offlineenergy = tower->get_energy();
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
+        float offlineenergy = tower->get_energy();
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
         h_cemc_e_chi2->Fill(offlineenergy, tower->get_chi2());
-        const float timef = tower->get_time();
-        h_emcaltime_cut->Fill(timef);
-        const bool isGood = tower->get_isGood();
+        float _timef = tower->get_time();
+        h_emcaltime_cut->Fill(_timef);
+        bool isGood = tower->get_isGood();
         uint8_t status = tower->get_status();
         h_emcal_tower_e->Fill(offlineenergy);
         h_emcal_tower_e_wide_range->Fill(offlineenergy);
@@ -330,43 +329,44 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_emcal_tower_e_saturated->Fill(offlineenergy);
         }
-        const float pedestal = tower->get_pedestal();
+        float pedestal = tower->get_pedestal();
         h_cemc_channel_pedestal[channel]->Fill(pedestal);
 
         for (int is = 0; is < 8; is++)
         {
-          if ((status & 1U) != 0U)
+          if (status & 1U)  // clang-tidy mark 1 as unsigned
           {
             h_cemc_status->Fill(is);
           }
-          status = static_cast<uint8_t>(status >> 1U);
+          status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
         totalcemc += offlineenergy;
-        h_emcaltime->Fill(timef);
+        h_emcaltime->Fill(_timef);
         if (offlineenergy > emcal_hit_threshold)
         {
-          h_cemc_etaphi_time->Fill(ieta, iphi, timef);
+          h_cemc_etaphi_time->Fill(ieta, iphi, _timef);
           h_cemc_etaphi->Fill(ieta, iphi);
           if (isGood && (scaledBits[10] || scaledBits[11]))
           {
             h_cemc_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
           }
-          h_cemc_etaphi_badChi2->Fill(ieta, iphi, tower->get_isBadChi2() ? 1.0 : 0.0);
+          if (tower->get_isBadChi2())
+          {
+            h_cemc_etaphi_badChi2->Fill(ieta, iphi, 1);
+          }
+          else
+          {
+            h_cemc_etaphi_badChi2->Fill(ieta, iphi, 0);
+          }
         }
-
-        if (offlineenergy > 0.25F)
+        if (offlineenergy > 0.25)
         {
-          h_cemc_etaphi_fracHit->Fill(ieta, iphi, 1.0);
+          h_cemc_etaphi_fracHit->Fill(ieta, iphi, 1);
         }
         else
         {
-          h_cemc_etaphi_fracHit->Fill(ieta, iphi, 0.0);
-        }
-        if (offlineenergy > emcal_highhit_threshold)
-        {
-          h_cemc_etaphi_time_highhit->Fill(ieta, iphi, timef);
-          h_cemc_etaphi_highhit->Fill(ieta, iphi);
+          h_cemc_etaphi_fracHit->Fill(ieta, iphi, 0);
         }
 	if (offlineenergy > emcal_highhit_threshold)
         {
@@ -380,21 +380,21 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
-        const float offlineenergy = tower->get_energy();
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
+        float offlineenergy = tower->get_energy();
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
 
-        const float timef = tower->get_time();
-        h_ihcaltime_cut->Fill(timef);
+        float _timef = tower->get_time();
+        h_ihcaltime_cut->Fill(_timef);
         h_ihcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
-        const bool isGood = tower->get_isGood();
+        bool isGood = tower->get_isGood();
         h_ihcal_status->Fill(tower->get_status());
-        const float pedestal = tower->get_pedestal();
+        float pedestal = tower->get_pedestal();
         h_ihcal_channel_pedestal[channel]->Fill(pedestal);
         h_ihcal_tower_e->Fill(offlineenergy);
         h_ihcal_tower_e_wide_range->Fill(offlineenergy);
@@ -406,30 +406,32 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         uint8_t status = tower->get_status();
         for (int is = 0; is < 8; is++)
         {
-          if ((status & 1U) != 0U)
+          if (status & 1U)  // clang-tidy mark 1 as unsigned
           {
             h_ihcal_status->Fill(is);
           }
-          status = static_cast<uint8_t>(status >> 1U);
+          status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
         totalihcal += offlineenergy;
-        h_ihcaltime->Fill(timef);
+        h_ihcaltime->Fill(_timef);
 
         if (offlineenergy > ihcal_hit_threshold)
         {
           h_ihcal_etaphi->Fill(ieta, iphi);
-          h_ihcal_etaphi_time->Fill(ieta, iphi, timef);
+          h_ihcal_etaphi_time->Fill(ieta, iphi, _timef);
           if (isGood && (scaledBits[10] || scaledBits[11]))
           {
             h_ihcal_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
           }
-          h_ihcal_etaphi_badChi2->Fill(ieta, iphi, tower->get_isBadChi2() ? 1.0 : 0.0);
-        }
-        if (offlineenergy > ihcal_highhit_threshold)
-        {
-          h_ihcal_etaphi_time_highhit->Fill(ieta, iphi, timef);
-          h_ihcal_etaphi_highhit->Fill(ieta, iphi);
+          if (tower->get_isBadChi2())
+          {
+            h_ihcal_etaphi_badChi2->Fill(ieta, iphi, 1);
+          }
+          else
+          {
+            h_ihcal_etaphi_badChi2->Fill(ieta, iphi, 0);
+          }
         }
 	if (offlineenergy > ihcal_highhit_threshold)
         {
@@ -444,20 +446,20 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
-        const float offlineenergy = tower->get_energy();
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
-        const float timef = tower->get_time();
-        h_ohcaltime_cut->Fill(timef);
+        float offlineenergy = tower->get_energy();
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
+        float _timef = tower->get_time();
+        h_ohcaltime_cut->Fill(_timef);
         h_ohcal_e_chi2->Fill(offlineenergy, tower->get_chi2());
-        const bool isGood = tower->get_isGood();
+        bool isGood = tower->get_isGood();
         h_ohcal_status->Fill(tower->get_status());
-        const float pedestal = tower->get_pedestal();
+        float pedestal = tower->get_pedestal();
         h_ohcal_channel_pedestal[channel]->Fill(pedestal);
         h_ohcal_tower_e->Fill(offlineenergy);
         h_ohcal_tower_e_wide_range->Fill(offlineenergy);
@@ -469,30 +471,32 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         uint8_t status = tower->get_status();
         for (int is = 0; is < 8; is++)
         {
-          if ((status & 1U) != 0U)
+          if (status & 1U)  // clang-tidy mark 1 as unsigned
           {
             h_ohcal_status->Fill(is);
           }
-          status = static_cast<uint8_t>(status >> 1U);
+          status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
         totalohcal += offlineenergy;
-        h_ohcaltime->Fill(timef);
+        h_ohcaltime->Fill(_timef);
 
         if (offlineenergy > ohcal_hit_threshold)
         {
+          h_ohcal_etaphi_time->Fill(ieta, iphi, _timef);
           h_ohcal_etaphi->Fill(ieta, iphi);
-          h_ohcal_etaphi_time->Fill(ieta, iphi, timef);
           if (isGood && (scaledBits[10] || scaledBits[11]))
           {
             h_ohcal_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
           }
-          h_ohcal_etaphi_badChi2->Fill(ieta, iphi, tower->get_isBadChi2() ? 1.0 : 0.0);
-        }
-        if (offlineenergy > ohcal_highhit_threshold)
-        {
-          h_ohcal_etaphi_time_highhit->Fill(ieta, iphi, timef);
-          h_ohcal_etaphi_highhit->Fill(ieta, iphi);
+          if (tower->get_isBadChi2())
+          {
+            h_ohcal_etaphi_badChi2->Fill(ieta, iphi, 1);
+          }
+          else
+          {
+            h_ohcal_etaphi_badChi2->Fill(ieta, iphi, 0);
+          }
         }
 	if (offlineenergy > ohcal_highhit_threshold)
         {
@@ -503,33 +507,32 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     }
   }
 
-  // -------------------------- raw tower ------------------------------ //
   {
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
-        const float raw_time = tower->get_time();
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
+        float raw_time = tower->get_time();
         if (tower->get_isZS())
         {
           h_cemc_channel_energy[channel]->Fill(tower->get_energy());
         }
 
-        const float raw_energy = tower->get_energy();
+        float raw_energy = tower->get_energy();
         if (raw_energy > adc_threshold)
         {
-          h_cemc_etaphi_fracHitADC->Fill(ieta, iphi, 1.0);
+          h_cemc_etaphi_fracHitADC->Fill(ieta, iphi, 1);
           h_cemc_etaphi_time_raw->Fill(ieta, iphi, raw_time);
         }
         else
         {
-          h_cemc_etaphi_fracHitADC->Fill(ieta, iphi, 0.0);
+          h_cemc_etaphi_fracHitADC->Fill(ieta, iphi, 0);
         }
       }
     }
@@ -538,28 +541,28 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
-        const float raw_time = tower->get_time();
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
+        float raw_time = tower->get_time();
         if (tower->get_isZS())
         {
           h_ohcal_channel_energy[channel]->Fill(tower->get_energy());
         }
 
-        const float raw_energy = tower->get_energy();
+        float raw_energy = tower->get_energy();
         if (raw_energy > adc_threshold)
         {
           h_ohcal_etaphi_time_raw->Fill(ieta, iphi, raw_time);
-          h_ohcal_etaphi_fracHitADC->Fill(ieta, iphi, 1.0);
+          h_ohcal_etaphi_fracHitADC->Fill(ieta, iphi, 1);
         }
         else
         {
-          h_ohcal_etaphi_fracHitADC->Fill(ieta, iphi, 0.0);
+          h_ohcal_etaphi_fracHitADC->Fill(ieta, iphi, 0);
         }
       }
     }
@@ -568,50 +571,51 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();  // online towers should be the same!
       for (int channel = 0; channel < size; channel++)
       {
         TowerInfo* tower = towers->get_tower_at_channel(channel);
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
-        const float raw_time = tower->get_time();
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        float raw_time = tower->get_time();
+        int iphi = towers->getTowerPhiBin(towerkey);
         if (tower->get_isZS())
         {
           h_ihcal_channel_energy[channel]->Fill(tower->get_energy());
         }
 
-        const float raw_energy = tower->get_energy();
+        float raw_energy = tower->get_energy();
         if (raw_energy > adc_threshold)
         {
           h_ihcal_etaphi_time_raw->Fill(ieta, iphi, raw_time);
-          h_ihcal_etaphi_fracHitADC->Fill(ieta, iphi, 1.0);
+          h_ihcal_etaphi_fracHitADC->Fill(ieta, iphi, 1);
         }
         else
         {
-          h_ihcal_etaphi_fracHitADC->Fill(ieta, iphi, 0.0);
+          h_ihcal_etaphi_fracHitADC->Fill(ieta, iphi, 0);
         }
       }
     }
   }
 
-  // --------------------------- MBD ---------------------------------------- //
+  //--------------------------- MBD ----------------------------------------//
   MbdPmtContainer* bbcpmts = findNode::getClass<MbdPmtContainer>(topNode, "MbdPmtContainer");
   if (!bbcpmts)
   {
-    std::cout << "CaloValid::process_event: Could not find MbdPmtContainer," << std::endl;
+    std::cout << "CaloVald::process_event: Could not find MbdPmtContainer," << std::endl;
+    // return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   int hits = 0;
   if (bbcpmts)
   {
-    const int nPMTs = bbcpmts->get_npmt();
+    int nPMTs = bbcpmts->get_npmt();
     for (int i = 0; i < nPMTs; i++)
     {
       MbdPmtHit* mbdpmt = bbcpmts->get_pmt(i);
-      const float pmtadc = mbdpmt->get_q();
+      float pmtadc = mbdpmt->get_q();
       totalmbd += pmtadc;
-      if (pmtadc > 0.4F)
+      if (pmtadc > 0.4)
       {
         hits++;
       }
@@ -624,56 +628,69 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   h_ohcal_mbd_correlation->Fill(totalohcal / ohcaldownscale, totalmbd / mbddownscale);
   h_emcal_hcal_correlation->Fill(totalcemc / emcaldownscale, totalohcal / ohcaldownscale);
 
-  // ------------------------------ clusters & pi0 -------------------------- //
+  //------------------------------ clusters & pi0 ------------------------------//
   RawClusterContainer* clusterContainer = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_CEMC");
   if (!clusterContainer)
   {
-    std::cout << PHWHERE
-              << "CaloValid::process_event - Fatal Error - CLUSTERINFO_CEMC node is missing."
-              << std::endl;
-    return Fun4AllReturnCodes::EVENT_OK;
+    std::cout << PHWHERE << "CaloValid::funkyCaloStuff::process_event - Fatal Error - CLUSTER_CEMC node is missing. " << std::endl;
+    return 0;
   }
 
-  // geometry for hot tower/cluster masking (still required by codebase)
-  const std::string towergeomnodename = "TOWERGEOM_CEMC";
+  //////////////////////////////////////////
+  // geometry for hot tower/cluster masking
+  std::string towergeomnodename = "TOWERGEOM_CEMC";
   RawTowerGeomContainer* m_geometry = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename);
   if (!m_geometry)
   {
-    std::cout << Name() << "::CreateNodeTree"
+    std::cout << Name() << "::"
+              << "CreateNodeTree"
               << ": Could not find node " << towergeomnodename << std::endl;
     gSystem->Exit(1);
   }
 
-  // pT cuts instead of energy cuts
-  constexpr float minClusPt1 = 1.5F;
-  constexpr float minClusPt2 = 1.0F;
-  constexpr float emcMaxClusE = 100.F;
-  constexpr float maxAlpha = 0.6F;
+  // cuts
+  /*
+  float emcMinClusE1 = 1.3;  // 0.5;
+  float emcMinClusE2 = 0.7;  // 0.5;
+  */
 
-  if (totalcemc < 0.1F * emcaldownscale)
+  float minClusPt1 = 1.5;   // CHANGED: was emcMinClusE1 - now it's a pt cut
+  float minClusPt2 = 1.0;   // CHANGED: was emcMinClusE2 - now it's a pt cut  
+  float emcMaxClusE = 100; 
+  float maxAlpha = 0.6;     
+  
+
+  if (totalcemc < 0.1 * emcaldownscale)
   {
     RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
+    RawClusterContainer::ConstIterator clusterIter;
+    RawClusterContainer::ConstIterator clusterIter2;
 
-    for (auto clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; ++clusterIter)
+    // Note: The infinite loop warnings for lines 664, 695, and 768 appear to be false positives
+    // from clang-tidy. The iterators ARE being incremented in the for loop statements.
+    // NOLINTNEXTLINE(bugprone-infinite-loop)
+    for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; ++clusterIter)
     {
       RawCluster* recoCluster = clusterIter->second;
-      CLHEP::Hep3Vector vertex(0, 0, 0);
-      const CLHEP::Hep3Vector e_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
 
-      const float clusE = static_cast<float>(e_vec_cluster.mag());
-      const float clus_eta = static_cast<float>(e_vec_cluster.pseudoRapidity());
-      const float clus_phi = static_cast<float>(e_vec_cluster.phi());
-      const float clus_pt = static_cast<float>(e_vec_cluster.perp());
-      const float clus_chisq = static_cast<float>(recoCluster->get_chi2());
+      CLHEP::Hep3Vector vertex(0, 0, 0);
+      CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+
+      float clusE = E_vec_cluster.mag();
+      float clus_eta = E_vec_cluster.pseudoRapidity();
+      float clus_phi = E_vec_cluster.phi();
+      float clus_pt = E_vec_cluster.perp();
+      float clus_chisq = recoCluster->get_chi2();
 
       h_clusE->Fill(clusE);
 
-      // leading photon candidate cut
+      //      if (clusE < emcMinClusE1 || clusE > emcMaxClusE)
+
       if (clus_pt < minClusPt1 || clusE > emcMaxClusE)
       {
         continue;
       }
-      if (clus_chisq > 4.F)
+      if (clus_chisq > 4)
       {
         continue;
       }
@@ -683,36 +700,30 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       TLorentzVector photon1;
       photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
 
-      for (auto clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; ++clusterIter2)
+      // NOLINTNEXTLINE(bugprone-infinite-loop)
+      for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; ++clusterIter2)
       {
         if (clusterIter == clusterIter2)
         {
           continue;
         }
-
         RawCluster* recoCluster2 = clusterIter2->second;
 
         CLHEP::Hep3Vector vertex2(0, 0, 0);
-        const CLHEP::Hep3Vector e_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex2);
+        CLHEP::Hep3Vector E_vec_cluster2 = RawClusterUtility::GetECoreVec(*recoCluster2, vertex2);
 
-        const float clus2E = static_cast<float>(e_vec_cluster2.mag());
-        const float clus2_eta = static_cast<float>(e_vec_cluster2.pseudoRapidity());
-        const float clus2_phi = static_cast<float>(e_vec_cluster2.phi());
-        const float clus2_pt = static_cast<float>(e_vec_cluster2.perp());
-        const float clus2_chisq = static_cast<float>(recoCluster2->get_chi2());
+        float clus2E = E_vec_cluster2.mag();
+        float clus2_eta = E_vec_cluster2.pseudoRapidity();
+        float clus2_phi = E_vec_cluster2.phi();
+        float clus2_pt = E_vec_cluster2.perp();
+        float clus2_chisq = recoCluster2->get_chi2();
 
-        // partner photon candidate cut
-        if (clus2_pt < minClusPt2 || clus2E > emcMaxClusE)
+	// if (clus2E < emcMinClusE2 || clus2E > emcMaxClusE)
+	  if (clus2_pt < minClusPt2 || clus2E > emcMaxClusE) 
         {
           continue;
         }
-        if (clus2_chisq > 4.F)
-        {
-          continue;
-        }
-
-        // energy asymmetry cut (alpha)
-        if (clusterAlpha(clusE, clus2E) > maxAlpha)
+        if (clus2_chisq > 4)
         {
           continue;
         }
@@ -720,58 +731,67 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         TLorentzVector photon2;
         photon2.SetPtEtaPhiE(clus2_pt, clus2_eta, clus2_phi, clus2E);
 
-        const TLorentzVector pi0 = photon1 + photon2;
-        const float pi0Mass = static_cast<float>(pi0.M());
-        const unsigned int lt_eta = recoCluster->get_lead_tower().first;
-        const unsigned int lt_phi = recoCluster->get_lead_tower().second;
-
-        // integer index for the 8x8 "IB" macro-cell
-        const int IB_num = static_cast<int>((lt_eta / 8U) * 32U + (lt_phi / 8U));
-
-        // require vertex |z| < 20 cm for filling mass
-        if (std::fabs(vtx_z) < 20.0F)
+        if (sqrt(pow(clusE - clus2E, 2)) / (clusE + clus2E) > maxAlpha)
         {
-          for (int bit : scaledActiveBits)
-          {
-            if (!inTrigOfInterest(triggerIndices, bit))
-            {
-              continue;
-            }
-            h_pi0_trigIB_mass->Fill(
-                static_cast<double>(bit),
-                static_cast<double>(IB_num),
-                static_cast<double>(pi0Mass));
-          }
-          h_InvMass->Fill(pi0Mass);
+          continue;
         }
+
+        TLorentzVector pi0 = photon1 + photon2;
+        float pi0Mass = pi0.M();
+        unsigned int lt_eta = recoCluster->get_lead_tower().first;
+        unsigned int lt_phi = recoCluster->get_lead_tower().second;
+
+        int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
+        // Use std::fabs instead of fabs to avoid float-to-double promotion
+	if (std::fabs(vtx_z) < 20.0)
+	  {
+        for (int bit : scaledActiveBits)
+        {
+          if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
+          {
+            continue;
+          }
+          h_pi0_trigIB_mass->Fill(
+              static_cast<double>(bit),
+              static_cast<double>(IB_num),
+              static_cast<double>(pi0Mass));
+        }
+        h_InvMass->Fill(pi0Mass);
+	  }
       }
     }  // end cluster loop
   }
 
-  // ----------------- Trigger / alignment ---------------------------- //
-  float leading_cluster_ecore = 0.F;
-  float leading_cluster_eta = 0.F;
-  float leading_cluster_phi = 0.F;
-  const int evtNum_overK = event_number / 1000;
+  //----------------- Trigger / alignment ----------------------------//
+  float leading_cluster_ecore = 0;
+  float leading_cluster_eta = 0;
+  float leading_cluster_phi = 0;
+  int evtNum_overK = event_number / 1000;
 
   if (clusterContainer)
   {
-    RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
+    RawClusterContainer::ConstRange clusterEnd =
+        clusterContainer->getClusters();
+    RawClusterContainer::ConstIterator clusterIter;
+    RawClusterContainer::ConstIterator clusterIter2;
 
-    for (auto clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; ++clusterIter)
+    // NOLINTNEXTLINE(bugprone-infinite-loop)
+    for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second;
+         ++clusterIter)
     {
       RawCluster* recoCluster = clusterIter->second;
-      if (recoCluster->get_chi2() > 2.F)
+      if (recoCluster->get_chi2() > 2)
       {
         continue;
       }
 
       CLHEP::Hep3Vector vertex(0, 0, 0);
-      const CLHEP::Hep3Vector e_vec_cluster = RawClusterUtility::GetECoreVec(*recoCluster, vertex);
+      CLHEP::Hep3Vector E_vec_cluster =
+          RawClusterUtility::GetECoreVec(*recoCluster, vertex);
 
-      const float clusE = static_cast<float>(e_vec_cluster.mag());
-      const float clusEta = static_cast<float>(e_vec_cluster.pseudoRapidity());
-      const float clusPhi = static_cast<float>(e_vec_cluster.phi());
+      float clusE = E_vec_cluster.mag();
+      float clusEta = E_vec_cluster.pseudoRapidity();
+      float clusPhi = E_vec_cluster.phi();
       if (clusE > leading_cluster_ecore)
       {
         leading_cluster_ecore = clusE;
@@ -779,30 +799,25 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         leading_cluster_phi = clusPhi;
       }
     }
-
     for (int i = 0; i < 64; i++)
     {
-      if (!scaledBits[i])
+      if (scaledBits[i])
       {
-        continue;
-      }
-
-      pr_ldClus_trig->Fill(i, leading_cluster_ecore);
-
-      if (!inTrigOfInterest(trigOfInterest, i))
-      {
-        continue;
-      }
-
-      h_edist[i]->Fill(leading_cluster_eta, leading_cluster_phi);
-      h_ldClus_trig[i]->Fill(leading_cluster_ecore);
-      pr_evtNum_ldClus_trig[i]->Fill(evtNum_overK, leading_cluster_ecore);
-      if (raw[i] > 0U)
-      {
-        pr_rejection[i]->Fill(evtNum_overK,
-                              static_cast<float>(raw[10]) / static_cast<float>(raw[i]));
-        pr_livetime[i]->Fill(evtNum_overK,
-                             static_cast<float>(live[i]) / static_cast<float>(raw[i]));
+        pr_ldClus_trig->Fill(i, leading_cluster_ecore);
+        if (!(std::find(trigOfInterest.begin(), trigOfInterest.end(), i) != trigOfInterest.end()))
+        {
+          continue;
+        }
+        h_edist[i]->Fill(leading_cluster_eta, leading_cluster_phi);
+        h_ldClus_trig[i]->Fill(leading_cluster_ecore);
+        pr_evtNum_ldClus_trig[i]->Fill(evtNum_overK, leading_cluster_ecore);
+        if (raw[i] > 0)
+        {
+          pr_rejection[i]->Fill(evtNum_overK,
+                                (float) raw[10] / (float) raw[i]);
+          pr_livetime[i]->Fill(evtNum_overK,
+                               (float) live[i] / (float) raw[i]);
+        }
       }
     }
   }
@@ -820,20 +835,20 @@ int CaloValid::End(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();
 
       auto* h_CaloValid_cemc_etaphi_pedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}cemc_etaphi_pedRMS", getHistoPrefix())));
       auto* h_CaloValid_cemc_etaphi_ZSpedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}cemc_etaphi_ZSpedRMS", getHistoPrefix())));
 
       for (int channel = 0; channel < size; channel++)
       {
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
-        const float ped_rms = static_cast<float>(h_cemc_channel_pedestal[channel]->GetRMS());
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
+        float ped_rms = h_cemc_channel_pedestal[channel]->GetRMS();
         h_CaloValid_cemc_etaphi_pedRMS->Fill(ieta, iphi, ped_rms);
         MirrorHistogram(h_cemc_channel_energy[channel]);
-        const double rmsZS = h_cemc_channel_energy[channel]->GetRMS();
+        double rmsZS = h_cemc_channel_energy[channel]->GetRMS();
         h_CaloValid_cemc_etaphi_ZSpedRMS->Fill(ieta, iphi, rmsZS);
       }
     }
@@ -843,20 +858,20 @@ int CaloValid::End(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();
 
       auto* h_CaloValid_ihcal_etaphi_pedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}ihcal_etaphi_pedRMS", getHistoPrefix())));
       auto* h_CaloValid_ihcal_etaphi_ZSpedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}ihcal_etaphi_ZSpedRMS", getHistoPrefix())));
 
       for (int channel = 0; channel < size; channel++)
       {
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
-        const float ped_rms = static_cast<float>(h_ihcal_channel_pedestal[channel]->GetRMS());
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
+        float ped_rms = h_ihcal_channel_pedestal[channel]->GetRMS();
         h_CaloValid_ihcal_etaphi_pedRMS->Fill(ieta, iphi, ped_rms);
         MirrorHistogram(h_ihcal_channel_energy[channel]);
-        const double rmsZS = h_ihcal_channel_energy[channel]->GetRMS();
+        double rmsZS = h_ihcal_channel_energy[channel]->GetRMS();
         h_CaloValid_ihcal_etaphi_ZSpedRMS->Fill(ieta, iphi, rmsZS);
       }
     }
@@ -866,20 +881,20 @@ int CaloValid::End(PHCompositeNode* topNode)
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
     if (towers)
     {
-      const int size = towers->size();
+      int size = towers->size();
 
       auto* h_CaloValid_ohcal_etaphi_pedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}ohcal_etaphi_pedRMS", getHistoPrefix())));
       auto* h_CaloValid_ohcal_etaphi_ZSpedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}ohcal_etaphi_ZSpedRMS", getHistoPrefix())));
 
-      for (int channel = 0; channel < size; channel++)
+     for (int channel = 0; channel < size; channel++)
       {
-        const unsigned int towerkey = towers->encode_key(channel);
-        const int ieta = towers->getTowerEtaBin(towerkey);
-        const int iphi = towers->getTowerPhiBin(towerkey);
-        const float ped_rms = static_cast<float>(h_ohcal_channel_pedestal[channel]->GetRMS());
+        unsigned int towerkey = towers->encode_key(channel);
+        int ieta = towers->getTowerEtaBin(towerkey);
+        int iphi = towers->getTowerPhiBin(towerkey);
+        float ped_rms = h_ohcal_channel_pedestal[channel]->GetRMS();
         h_CaloValid_ohcal_etaphi_pedRMS->Fill(ieta, iphi, ped_rms);
         MirrorHistogram(h_ohcal_channel_energy[channel]);
-        const double rmsZS = h_ohcal_channel_energy[channel]->GetRMS();
+        double rmsZS = h_ohcal_channel_energy[channel]->GetRMS();
         h_CaloValid_ohcal_etaphi_ZSpedRMS->Fill(ieta, iphi, rmsZS);
       }
     }
@@ -889,53 +904,58 @@ int CaloValid::End(PHCompositeNode* topNode)
 
 void CaloValid::MirrorHistogram(TH1* h)
 {
-  const int middleBin = h->GetXaxis()->FindBin(0.0);
+  int middleBin = h->GetXaxis()->FindBin(0.0);
 
   for (int i = 1; i < middleBin; ++i)
   {
-    const int correspondingBin = middleBin + (middleBin - i);
-    const float negValue = static_cast<float>(h->GetBinContent(i));
+    int correspondingBin = middleBin + (middleBin - i);
+    float negValue = h->GetBinContent(i);
     h->SetBinContent(correspondingBin, negValue);
   }
 }
 
-TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, int xbins_in, double xmin, double xmax, int ybins_in, double ymin, double ymax)
+// Note: Parameters appear unused but they are actually used in the TH2F constructor.
+// Suppressing the warning or marking them as potentially unused would be appropriate.
+TH2* CaloValid::LogYHist2D([[maybe_unused]] const std::string& name, 
+                           [[maybe_unused]] const std::string& title, 
+                           [[maybe_unused]] int xbins_in, 
+                           [[maybe_unused]] double xmin, 
+                           [[maybe_unused]] double xmax, 
+                           int ybins_in, 
+                           double ymin, 
+                           double ymax)
 {
-  const Double_t logymin = std::log10(ymin);
-  const Double_t logymax = std::log10(ymax);
-  const Double_t binwidth = (logymax - logymin) / static_cast<Double_t>(ybins_in);
+  Double_t logymin = std::log10(ymin);
+  Double_t logymax = std::log10(ymax);
+  Double_t binwidth = (logymax - logymin) / ybins_in;
+  Double_t* ybins = new Double_t[ybins_in + 2];  // allocate 1 extra bin to fix "malloc()L memory corruption crash
 
-  Double_t* ybins = new Double_t[ybins_in + 2];
-
-  for (int i = 0; i <= ybins_in + 1; i++)
+  // Note: The infinite loop warning for line 913 appears to be a false positive.
+  // The loop variable i IS being incremented in the for statement.
+  // NOLINTNEXTLINE(bugprone-infinite-loop)
+  for (Int_t i = 0; i <= ybins_in + 1; ++i)
   {
-    ybins[i] = std::pow(10.0, logymin + (static_cast<Double_t>(i) * binwidth));
+    ybins[i] = pow(10, logymin + (i * binwidth));
   }
 
-  TH2F* h = new TH2F(name.c_str(), title.c_str(),
-                     xbins_in, xmin, xmax,
-                     ybins_in, ybins);
+  TH2F* h = new TH2F(name.c_str(), title.c_str(), xbins_in, xmin, xmax, ybins_in, ybins);
   delete[] ybins;
   return h;
 }
 
-std::string CaloValid::getHistoPrefix() const
-{
-  return std::string("h_") + Name() + std::string("_");
-}
+// Note: getHistoPrefix cannot be made static because it calls Name() which requires 'this'
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
 
 void CaloValid::createHistos()
 {
   auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
+  // create and register your histos (all types) here
   h_emcal_mbd_correlation = new TH2F(std::format("{}emcal_mbd_correlation", getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
   h_emcal_mbd_correlation->SetDirectory(nullptr);
   hm->registerHisto(h_emcal_mbd_correlation);
-
-  h_mbd_hits = new TH1F(std::format("{}mbd_hits", getHistoPrefix()).c_str(), "mb hits", 100, 0, 100);
-  h_mbd_hits->SetDirectory(nullptr);
-  hm->registerHisto(h_mbd_hits);
 
   h_ohcal_mbd_correlation = new TH2F(std::format("{}ohcal_mbd_correlation", getHistoPrefix()).c_str(), ";ohcal;mbd", 100, 0, 1, 100, 0, 1);
   h_ohcal_mbd_correlation->SetDirectory(nullptr);
@@ -953,111 +973,115 @@ void CaloValid::createHistos()
   h_cemc_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi);
 
-  h_cemc_etaphi_highhit = new TH2F(std::format("{}cemc_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
-  h_cemc_etaphi_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_etaphi_highhit);
-
   h_ihcal_etaphi = new TH2F(std::format("{}ihcal_etaphi", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ihcal_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi);
-
-  h_ihcal_etaphi_highhit = new TH2F(std::format("{}ihcal_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
-  h_ihcal_etaphi_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_etaphi_highhit);
 
   h_ohcal_etaphi = new TH2F(std::format("{}ohcal_etaphi", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ohcal_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi);
 
-  h_ohcal_etaphi_highhit = new TH2F(std::format("{}ohcal_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
-  h_ohcal_etaphi_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_ohcal_etaphi_highhit);
-
-  h_cemc_etaphi_wQA = new TH2F(std::format("{}cemc_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
+  h_cemc_etaphi_wQA = new TProfile2D(std::format("{}cemc_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 100);
   h_cemc_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_wQA);
 
-  h_ihcal_etaphi_wQA = new TH2F(std::format("{}ihcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ihcal_etaphi_wQA = new TProfile2D(std::format("{}ihcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 100);
   h_ihcal_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_wQA);
 
-  h_ohcal_etaphi_wQA = new TH2F(std::format("{}ohcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ohcal_etaphi_wQA = new TProfile2D(std::format("{}ohcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 100);
   h_ohcal_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_wQA);
 
-  h_ihcal_status = new TH1F(std::format("{}ihcal_status", getHistoPrefix()).c_str(), "", 256, 0, 256);
-  h_ihcal_status->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_status);
-
-  h_ohcal_status = new TH1F(std::format("{}ohcal_status", getHistoPrefix()).c_str(), "", 256, 0, 256);
-  h_ohcal_status->SetDirectory(nullptr);
-  hm->registerHisto(h_ohcal_status);
-
-  h_cemc_status = new TH1F(std::format("{}cemc_status", getHistoPrefix()).c_str(), "", 256, 0, 256);
-  h_cemc_status->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_status);
-
-  h_cemc_e_chi2 = LogYHist2D(std::format("{}cemc_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
+  h_cemc_e_chi2 = new TH2F(std::format("{}cemc_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
   h_cemc_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_e_chi2);
 
-  h_ihcal_e_chi2 = LogYHist2D(std::format("{}ihcal_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
+  h_ihcal_e_chi2 = new TH2F(std::format("{}ihcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
   h_ihcal_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_e_chi2);
 
-  h_ohcal_e_chi2 = LogYHist2D(std::format("{}ohcal_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
+  h_ohcal_e_chi2 = new TH2F(std::format("{}ohcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
   h_ohcal_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_e_chi2);
 
-  h_cemc_etaphi_time = new TProfile2D(std::format("{}cemc_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+  h_cemc_etaphi_time = new TProfile2D(std::format("{}cemc_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -17.5, 32.5);
   h_cemc_etaphi_time->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_time);
 
-  h_cemc_etaphi_time_raw = new TProfile2D(std::format("{}cemc_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
-  h_cemc_etaphi_time_raw->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_etaphi_time_raw);
-
-  h_cemc_etaphi_time_highhit = new TProfile2D(std::format("{}cemc_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
-  h_cemc_etaphi_time_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_etaphi_time_highhit);
-
-  h_ihcal_etaphi_time = new TProfile2D(std::format("{}ihcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ihcal_etaphi_time = new TProfile2D(std::format("{}ihcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
   h_ihcal_etaphi_time->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_time);
 
-  h_ihcal_etaphi_time_raw = new TProfile2D(std::format("{}ihcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
-  h_ihcal_etaphi_time_raw->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_etaphi_time_raw);
-
-  h_ihcal_etaphi_time_highhit = new TProfile2D(std::format("{}ihcal_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
-  h_ihcal_etaphi_time_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_etaphi_time_highhit);
-
-  h_ohcal_etaphi_time = new TProfile2D(std::format("{}ohcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ohcal_etaphi_time = new TProfile2D(std::format("{}ohcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
   h_ohcal_etaphi_time->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_time);
 
-  h_ohcal_etaphi_time_raw = new TProfile2D(std::format("{}ohcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
-  h_ohcal_etaphi_time_raw->SetDirectory(nullptr);
-  hm->registerHisto(h_ohcal_etaphi_time_raw);
+  h_cemc_etaphi_time_highhit = new TProfile2D(std::format("{}cemc_etaphi_time_highhit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -17.5, 32.5);
+  h_cemc_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_time_highhit);
 
-  h_ohcal_etaphi_time_highhit = new TProfile2D(std::format("{}ohcal_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ihcal_etaphi_time_highhit = new TProfile2D(std::format("{}ihcal_etaphi_time_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
+  h_ihcal_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_time_highhit);
+
+  h_ohcal_etaphi_time_highhit = new TProfile2D(std::format("{}ohcal_etaphi_time_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
   h_ohcal_etaphi_time_highhit->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_time_highhit);
 
-  h_cemc_etaphi_fracHitADC = new TProfile2D(std::format("{}cemc_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
-  h_cemc_etaphi_fracHitADC->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_etaphi_fracHitADC);
+  h_cemc_etaphi_highhit = new TH2F(std::format("{}cemc_etaphi_highhit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
+  h_cemc_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_highhit);
 
-  h_cemc_etaphi_fracHit = new TProfile2D(std::format("{}cemc_etaphi_fracHit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+  h_ihcal_etaphi_highhit = new TH2F(std::format("{}ihcal_etaphi_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ihcal_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_highhit);
+
+  h_ohcal_etaphi_highhit = new TH2F(std::format("{}ohcal_etaphi_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ohcal_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_highhit);
+
+  h_cemc_etaphi_time_raw = new TProfile2D(std::format("{}cemc_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -17.5, 32.5);
+  h_cemc_etaphi_time_raw->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_time_raw);
+
+  h_ihcal_etaphi_time_raw = new TProfile2D(std::format("{}ihcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
+  h_ihcal_etaphi_time_raw->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_time_raw);
+
+  h_ohcal_etaphi_time_raw = new TProfile2D(std::format("{}ohcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
+  h_ohcal_etaphi_time_raw->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_time_raw);
+
+  h_cemc_status = new TH1F(std::format("{}cemc_status", getHistoPrefix()).c_str(), ";status", 8, 0, 8);
+  h_cemc_status->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_status);
+
+  h_ihcal_status = new TH1F(std::format("{}ihcal_status", getHistoPrefix()).c_str(), ";status", 8, 0, 8);
+  h_ihcal_status->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_status);
+
+  h_ohcal_status = new TH1F(std::format("{}ohcal_status", getHistoPrefix()).c_str(), ";status", 8, 0, 8);
+  h_ohcal_status->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_status);
+
+  h_mbd_hits = new TH1F(std::format("{}mbd_hits", getHistoPrefix()).c_str(), ";mbd charge [a.u.]", 100, 0, 100);
+  h_mbd_hits->SetDirectory(nullptr);
+  hm->registerHisto(h_mbd_hits);
+
+  h_cemc_etaphi_fracHit = new TProfile2D(std::format("{}cemc_etaphi_fracHit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 1);
   h_cemc_etaphi_fracHit->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_fracHit);
 
-  h_ihcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ihcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_cemc_etaphi_fracHitADC = new TProfile2D(std::format("{}cemc_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 1);
+  h_cemc_etaphi_fracHitADC->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_fracHitADC);
+
+  h_ihcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ihcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 1);
   h_ihcal_etaphi_fracHitADC->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_fracHitADC);
 
-  h_ohcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ohcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ohcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ohcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 1);
   h_ohcal_etaphi_fracHitADC->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_fracHitADC);
 
@@ -1102,6 +1126,7 @@ void CaloValid::createHistos()
   h_InvMass->SetDirectory(nullptr);
   hm->registerHisto(h_InvMass);
 
+  // for (int channel = 0; channel < 128*192; channel++) {
   h_channel_pedestal_0 = new TH1F(std::format("{}channel_pedestal_0", getHistoPrefix()).c_str(), "Test Pedestal", 1000, -500., 500.);
   h_channel_pedestal_0->SetDirectory(nullptr);
   hm->registerHisto(h_channel_pedestal_0);
@@ -1177,6 +1202,7 @@ void CaloValid::createHistos()
   h_ohcal_tower_e_saturated->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_tower_e_saturated);
 
+  // cluster QA
   h_etaphi_clus = new TH2F(std::format("{}etaphi_clus", getHistoPrefix()).c_str(), "", 140, -1.2, 1.2, 64, -1 * M_PI, M_PI);
   h_etaphi_clus->SetDirectory(nullptr);
   hm->registerHisto(h_etaphi_clus);
@@ -1189,9 +1215,9 @@ void CaloValid::createHistos()
   h_triggerVec->SetDirectory(nullptr);
   hm->registerHisto(h_triggerVec);
 
-  //---------EMCal channel histos--------//
+  //---------EMCal--------//
   {
-    const int size = 128 * 192;
+    int size = 128 * 192;
     for (int channel = 0; channel < size; channel++)
     {
       std::string hname = std::format("h_cemc_channel_pedestal_{}", channel);
@@ -1203,9 +1229,9 @@ void CaloValid::createHistos()
       h_cemc_channel_energy[channel]->SetDirectory(nullptr);
     }
   }
-  //--------OHCal channel histos--------//
+  //--------OHCal--------//
   {
-    const int size = 32 * 48;
+    int size = 32 * 48;
     for (int channel = 0; channel < size; channel++)
     {
       std::string hname = std::format("h_ohcal_channel_pedestal_{}", channel);
@@ -1217,9 +1243,9 @@ void CaloValid::createHistos()
       h_ohcal_channel_energy[channel]->SetDirectory(nullptr);
     }
   }
-  //--------IHCal channel histos-------//
+  //--------IHCal-------//
   {
-    const int size = 32 * 48;
+    int size = 32 * 48;
     for (int channel = 0; channel < size; channel++)
     {
       std::string hname = std::format("h_ihcal_channel_pedestal_{}", channel);
@@ -1231,7 +1257,6 @@ void CaloValid::createHistos()
       h_ihcal_channel_energy[channel]->SetDirectory(nullptr);
     }
   }
-
   h_pi0_trigIB_mass = new TH3F(
       "h_pi0_trigIB_mass",
       ";Trigger Bit; iIB (eta*32 + phi); #pi^{0} Mass (GeV/c^{2})",
@@ -1243,30 +1268,28 @@ void CaloValid::createHistos()
   hm->registerHisto(h_pi0_trigIB_mass);
 
   // Trigger QA
-  pr_ldClus_trig = new TProfile("pr_CaloValid_ldClus_trig", "", 64, 0, 64, 0, 10);
+  // h_triggerVec = new TH1F("h_CaloValid_triggerVec", "", 64, 0, 64); commented out due to memory allocation issue w/ redef from line 1009
+  pr_ldClus_trig =
+      new TProfile("pr_CaloValid_ldClus_trig", "", 64, 0, 64, 0, 10);
   for (int i = 0; i < 64; i++)
   {
-    if (!inTrigOfInterest(trigOfInterest, i))
+    if (!(std::find(trigOfInterest.begin(), trigOfInterest.end(), i) != trigOfInterest.end()))
     {
       continue;
     }
-
     h_edist[i] = new TH2F(
         std::format("h_CaloValid_edist_trig{}", i).c_str(), "",
         64, -1.2, 1.2, 128, -3.1415, 3.1415);
-
     h_ldClus_trig[i] = new TH1F(
         std::format("h_CaloValid_ldClus_trig{}", i).c_str(), "",
         18, 1, 10);
-
     pr_evtNum_ldClus_trig[i] = new TProfile(
-        std::format("pr_CaloValid_evtNum_ldClus_trig{}", i).c_str(),
+        std::format("pr_CaloValid_evtNum_ldClus_trig{}", i)
+            .c_str(),
         "", 100000, 0, 100000, 0, 10);
-
     pr_rejection[i] = new TProfile(
         std::format("pr_CaloValid_rejection_trig{}", i).c_str(),
         "", 100000, 0, 100000, 0, 50000);
-
     pr_livetime[i] = new TProfile(
         std::format("pr_CaloValid_livetime_trig{}", i).c_str(),
         "", 100000, 0, 100000, 0, 10);
@@ -1277,7 +1300,6 @@ void CaloValid::createHistos()
     hm->registerHisto(pr_rejection[i]);
     hm->registerHisto(pr_livetime[i]);
   }
-
   hm->registerHisto(h_triggerVec);
   hm->registerHisto(pr_ldClus_trig);
 }
