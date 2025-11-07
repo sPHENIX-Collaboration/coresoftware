@@ -4,21 +4,21 @@
 #include <map>
 #include <string>
 
-PhotonClusterv1::PhotonClusterv1(const RawCluster& rawcluster)
-  : RawCluster(rawcluster)
-  , m_conversion_prob(0.0F)
+PhotonClusterv1::PhotonClusterv1(const RawCluster & rc)
+  : m_conversion_prob(0.0F)
   , m_is_converted(false)
-
 {
-  // No default shower shape inserted; user/algorithm must set if needed
-  // Photon energy now same as cluster energy via get_energy()
-  // Isolation energy sourced from RawCluster get_et_iso()
+  if (auto rc1 = dynamic_cast<const RawClusterv1*>(&rc)) {
+    RawClusterv1::operator=(*rc1);   // copy-assign v1 subobject
+  } else {
+    throw std::runtime_error("PhotonClusterv1 requires RawClusterv1 (or derived).");
+  }
 }
 
 void PhotonClusterv1::Reset()
 {
   // @warning: Call base class reset first to avoid issues with virtual dispatch
-  RawCluster::Reset();
+  RawClusterv1::Reset();
 
   // Reset photon-specific members
   reset_photon_properties();
@@ -35,7 +35,7 @@ void PhotonClusterv1::reset_photon_properties()
 int PhotonClusterv1::isValid() const
 {
   // @warning: Multiple inheritance - both base class validations checked
-  return RawCluster::isValid() && is_valid_photon();
+  return RawClusterv1::isValid() && is_valid_photon();
 }
 
 bool PhotonClusterv1::is_valid_photon() const
@@ -47,7 +47,7 @@ bool PhotonClusterv1::is_valid_photon() const
 void PhotonClusterv1::identify(std::ostream& os) const
 {
   // @warning: Call base class identify first to maintain output order
-  RawCluster::identify(os);
+  RawClusterv1::identify(os);
 
   // Add photon-specific information
   identify_photon(os);
