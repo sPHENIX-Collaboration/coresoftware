@@ -197,7 +197,8 @@ class TrackResiduals : public SubsysReco
   float m_dcaxy = std::numeric_limits<float>::quiet_NaN();
   float m_dcaz = std::numeric_limits<float>::quiet_NaN();
   float m_tracklength = std::numeric_limits<float>::quiet_NaN();
-
+  
+  int m_silseedit = std::numeric_limits<int>::quiet_NaN();
   float m_silseedx = std::numeric_limits<float>::quiet_NaN();
   float m_silseedy = std::numeric_limits<float>::quiet_NaN();
   float m_silseedz = std::numeric_limits<float>::quiet_NaN();
@@ -216,7 +217,8 @@ class TrackResiduals : public SubsysReco
   int m_tpcseedcharge = std::numeric_limits<int>::quiet_NaN();
   float m_tpcseedphi = std::numeric_limits<float>::quiet_NaN();
   float m_tpcseedeta = std::numeric_limits<float>::quiet_NaN();
-
+  int m_tpcseedit = std::numeric_limits<int>::quiet_NaN();
+  
   float m_dedx = std::numeric_limits<float>::quiet_NaN();
 
   //! hit tree info
