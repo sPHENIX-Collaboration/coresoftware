@@ -173,6 +173,22 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     // get all connected pairs of tracks by looping over the track_pair map
     std::vector<std::set<unsigned int>> connected_tracks = findConnectedTracks();
 
+    // we want the biggest vertex first, sort the vector of connected track sets by size
+    for (unsigned int ivtx = 0; ivtx < connected_tracks.size(); ++ivtx)
+      {
+	bool isdone = true;	
+	for (unsigned int j = 0; j < connected_tracks.size() - ivtx - 1; j++) 
+	  {	
+	    if (connected_tracks[j].size() < connected_tracks[j + 1].size())
+	      {	  
+		swap(connected_tracks[j], connected_tracks[j + 1]);
+		isdone = false;
+	      }
+
+	    if(isdone) break;
+	  }
+      }
+    
     // make vertices - each set of connected tracks is a vertex
     for (unsigned int ivtx = 0; ivtx < connected_tracks.size(); ++ivtx)
     {
