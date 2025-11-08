@@ -12,19 +12,24 @@
 #include <TVector3.h>
 #include <TTree.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include <format>
 #include <vector>
 
 class Shifter {
 public:
 explicit Shifter(const TString& sourcefilename);
+ // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   TFile *forward, *average;
   TH3F *hX, *hY, *hZ, *hR, *hPhi, *hXave, *hYave, *hZave, *hRave, *hPhiave;  
+// NOLINTEND(misc-non-private-member-variables-in-classes)
 };
 
 Shifter::Shifter(const TString& sourcefilename){
   //single event distortion file
+// NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
+
   forward=TFile::Open(sourcefilename,"READ"); 
 
   hX=(TH3F*)forward->Get("hIntDistortionPosX");
@@ -43,6 +48,7 @@ Shifter::Shifter(const TString& sourcefilename){
   
   hRave=(TH3F*)average->Get("hIntDistortionPosR");
   hPhiave=(TH3F*)average->Get("hIntDistortionPosP");
+// NOLINTEND(cppcoreguidelines-prefer-member-initializer)
  
   //subtract average from total distortions to study fluctuations
   hX->Add(hXave,-1);
@@ -108,7 +114,7 @@ int CMDistortionAnalysis(int  /*nMaxEvents*/ = -1) {
     
     TFile *plots;
 
-    plots=TFile::Open(Form("CMModels_Event%d.root",ifile),"READ");
+    plots=TFile::Open(std::string("CMModels_Event" + std::to_string(ifile) + ".root").c_str(),"READ");
    
     TH3F *hCartCMModel[3];
     hCartCMModel[0]=(TH3F*)plots->Get("hCMModelX");
@@ -613,7 +619,7 @@ int CMDistortionAnalysis(int  /*nMaxEvents*/ = -1) {
 
     titlepad->cd();
     titlepad->Clear();
-    title->DrawLatex(0.01,0.4,Form("Event %d; %s", ifile, sourcefilename.Data())); 
+    title->DrawLatex(0.01,0.4,std::format("Event {}; {}", ifile, sourcefilename.Data()).c_str());
     title->Draw();
     
     stitlepad1->cd();
