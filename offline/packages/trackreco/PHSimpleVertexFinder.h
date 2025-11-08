@@ -42,6 +42,8 @@ class PHSimpleVertexFinder : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void setBeamLineCut(const double cut) { _beamline_xy_cut = cut; }
+  void setBeamSpotCutX(const double cutlo, const double cuthi) { _beamline_x_cut_lo = cutlo; _beamline_x_cut_hi = cuthi; }
+  void setBeamSpotCutY(const double cutlo, const double cuthi) { _beamline_y_cut_lo = cutlo; _beamline_y_cut_hi = cuthi; }
   void setDcaCut(const double cut) { _base_dcacut = cut; }
   void setTrackQualityCut(double cut) { _qual_cut = cut; }
   void setRequireMVTX(bool set) { _require_mvtx = set; }
@@ -79,14 +81,19 @@ class PHSimpleVertexFinder : public SubsysReco
   SvtxVertexMap *_svtx_vertex_map{nullptr};
   ActsGeometry* _tGeometry{nullptr};
 
-  double _base_dcacut = 0.0080;  // 80 microns
-  double _active_dcacut = 0.080;
-  double _beamline_xy_cut = 0.2;  // must be within 2 mm of beam line
-  double _qual_cut = 10.0;
+  double _base_dcacut = 0.12;  // pair dca cut - 1000 microns
+  double _active_dcacut = 0.12;
+  double _beamline_xy_cut = 0.5;  // must be within this distance of beam line - no longer used
+  // defines a box around the beam spot
+  double _beamline_x_cut_lo = -0.5;  
+  double _beamline_x_cut_hi = 0.5; 
+  double _beamline_y_cut_lo = -0.5;  
+  double _beamline_y_cut_hi = 0.5; 
+  double _qual_cut = 500.0;
   bool _require_mvtx = true;
-  unsigned int _nmvtx_required = 3;
-  double _track_pt_cut = 0.0;
-  double _outlier_cut = 0.015;
+  unsigned int _nmvtx_required = 2;
+  double _track_pt_cut = 0.2;
+  double _outlier_cut = 0.2;
   //name of TRKR_CLUSTER Container
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 

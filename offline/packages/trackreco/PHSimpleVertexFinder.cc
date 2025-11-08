@@ -258,9 +258,25 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
       {
         unsigned int trid = cit->second;
 
-        if (Verbosity() > 1)
+	if (Verbosity() > 1)
         {
           std::cout << "   vertex " << thisid << " insert track " << trid << std::endl;
+	  SvtxTrack *track = _track_map->get(trid);
+	  if (track)
+	    {
+	      auto siseed = track->get_silicon_seed();
+	      short int intt_crossing = siseed->get_crossing();
+	      std::cout << " vtxid " << thisid << " vertex crossing " << cross
+			<< " track crossing " << cross
+			<< " intt crossing " << intt_crossing
+			<< " trackID " << trid
+			<< " track Z " << track->get_z()
+			<< " X " << track->get_x()
+			<< " Y " << track->get_y()
+			<< " quality " << track->get_quality()
+			<< " pt " << track->get_pt()
+			<< std::endl;
+	    }
         }
         svtxVertex->insert_track(trid);
         _track_map->get(trid)->set_vertex_id(thisid);
@@ -682,7 +698,12 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
 
 
 	  // check dca cut is satisfied, and that PCA is close to beam line
-	  if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
+	  // if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
+	  if (fabs(dca) < _active_dcacut
+	      && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi)
+	      && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi)
+	      && (PCA2.x() > _beamline_x_cut_lo && PCA2.x() < _beamline_x_cut_hi)
+	      && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi)   )
 	    {
 	      int id1 = cumulative_trackid_vec[i1];
 	      int id2 = cumulative_trackid_vec[i2];
@@ -864,30 +885,35 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
   double dca = dcaTwoLines(a1, b1, a2, b2, PCA1, PCA2);
 
   if (Verbosity() > 3)
-  {
-    std::cout << " pair dca is " << dca << " _active_dcacut is " << _active_dcacut
-              << " PCA1.x " << PCA1.x() << " PCA1.y " << PCA1.y()
-              << " PCA2.x " << PCA2.x() << " PCA2.y " << PCA2.y() << std::endl;
-  }
-
-  // check dca cut is satisfied, and that PCA is close to beam line
-  if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
-  {
-    if (Verbosity() > 3)
     {
-      std::cout << " good match for tracks " << tr1->get_id() << " and " << tr2->get_id() << " with pT " << tr1->get_pt() << " and " << tr2->get_pt() << std::endl;
-      std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
-      std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
-      std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
-      std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
-      std::cout << "    dca " << dca << std::endl;
+      std::cout << " pair dca is " << dca << " _active_dcacut is " << _active_dcacut
+		<< " PCA1.x " << PCA1.x() << " PCA1.y " << PCA1.y()
+		<< " PCA2.x " << PCA2.x() << " PCA2.y " << PCA2.y() << std::endl;
     }
-
-    // capture the results for successful matches
-    _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
-    _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
-  }
-
+  
+  // check dca cut is satisfied, and that PCA is close to beam line
+  //  if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
+  if (fabs(dca) < _active_dcacut
+      && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi)
+      && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi)
+      && (PCA2.x() > _beamline_x_cut_lo && PCA2.x() < _beamline_x_cut_hi)
+      && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi)   )
+    {
+      if (Verbosity() > 3)
+	{
+	  std::cout << " good match for tracks " << tr1->get_id() << " and " << tr2->get_id() << " with pT " << tr1->get_pt() << " and " << tr2->get_pt() << std::endl;
+	  std::cout << "    a1.x " << a1.x() << " a1.y " << a1.y() << " a1.z " << a1.z() << std::endl;
+	  std::cout << "    a2.x  " << a2.x() << " a2.y " << a2.y() << " a2.z " << a2.z() << std::endl;
+	  std::cout << "    PCA1.x() " << PCA1.x() << " PCA1.y " << PCA1.y() << " PCA1.z " << PCA1.z() << std::endl;
+	  std::cout << "    PCA2.x() " << PCA2.x() << " PCA2.y " << PCA2.y() << " PCA2.z " << PCA2.z() << std::endl;
+	  std::cout << "    dca " << dca << std::endl;
+	}
+      
+      // capture the results for successful matches
+      _track_pair_map.insert(std::make_pair(id1, std::make_pair(id2, dca)));
+      _track_pair_pca_map.insert(std::make_pair(id1, std::make_pair(id2, std::make_pair(PCA1, PCA2))));
+    }
+  
   return;
 }
 
@@ -960,33 +986,66 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
   {
     unsigned int id1 = it.first;
     unsigned int id2 = it.second.first;
-
+    double dca12 = it.second.second;
+    
+    if(Verbosity() > 2)
+      {
+	auto rt = _track_pair_pca_map.equal_range(id1);
+	for (auto ct = rt.first; ct != rt.second; ++ct)
+	  {
+	    unsigned int idb = ct->second.first;
+	    if(idb==id2)
+	      {
+		auto pca1=ct->second.second.first;
+		auto pca2=ct->second.second.second;
+		std::cout << "Begin search on id1 = " << id1 << " and id2 = " << id2 << " dca12 = " << dca12 << std::endl;
+		std::cout << "       id1 " << id1 << " pca1 " << pca1.x() << "  " << pca1.y() << "  " << pca1.z() << std::endl;
+		std::cout << "       id2 " << id2 << " pca1 " << pca2.x() << "  " << pca2.y() << "  " << pca2.z() << std::endl;
+	      }
+	  }
+      }
+    
     if ((used.find(id1) != used.end()) && (used.find(id2) != used.end()))
-    {
-      if (Verbosity() > 3)
       {
-        std::cout << " tracks " << id1 << " and " << id2 << " are both in used , skip them" << std::endl;
+	if (Verbosity() > 2)
+	  {
+	    std::cout << " tracks " << id1 << " and " << id2 << " are both in used , skip them" << std::endl;
+	  }
+	continue;
       }
-      continue;
-    }
     else if ((used.find(id1) == used.end()) && (used.find(id2) == used.end()))
-    {
-      if (Verbosity() > 3)
       {
-        std::cout << " tracks " << id1 << " and " << id2 << " are both not in used , start a new connected set" << std::endl;
+	if (Verbosity() > 2)
+	  {
+	    auto rt1 = _track_pair_pca_map.equal_range(id1);
+	    for (auto ct = rt1.first; ct != rt1.second; ++ct)
+	      {
+		unsigned int ida = ct->first;
+		unsigned int idb = ct->second.first;
+		
+		if(idb==id2)
+		  {
+		    auto pcaa=ct->second.second.first;
+		    auto pcab=ct->second.second.second;
+		    std::cout << " tracks " << id1 << " and " << id2 << " dca = " << dca12
+			      << " are both not in used, start a new connected set" << std::endl;
+		    std::cout << "       ida " << ida << " pcaa " << pcaa.x() << "  " << pcaa.y() << "  " << pcaa.z() << std::endl;
+		    std::cout << "       idb " << idb << " pcab " << pcab.x() << "  " << pcab.y() << "  " << pcab.z() << std::endl;
+		  }
+	      }
+	  }
+	// close out and start a new connected set
+	if (connected.size() > 0)
+	  {
+	    if (Verbosity() > 2)
+	      {
+		std::cout << "           closing out set with size " << connected.size() << std::endl;
+	      }
+	    connected_tracks.push_back(connected);
+	    connected.clear();
+	  }
       }
-      // close out and start a new connections set
-      if (connected.size() > 0)
-      {
-        connected_tracks.push_back(connected);
-        connected.clear();
-        if (Verbosity() > 3)
-        {
-          std::cout << "           closing out set " << std::endl;
-        }
-      }
-    }
-
+    
     // get everything connected to id1 and id2
     connected.insert(id1);
     used.insert(id1);
@@ -996,12 +1055,31 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
     {
       unsigned int id3 = cit.first;
       unsigned int id4 = cit.second.first;
+      double dca34 = cit.second.second;
+
       if ((connected.find(id3) != connected.end()) || (connected.find(id4) != connected.end()))
       {
-        if (Verbosity() > 3)
-        {
-          std::cout << " found connection to " << id3 << " and " << id4 << std::endl;
-        }
+        if (Verbosity() > 2)
+	  {
+
+	    auto rt2 = _track_pair_pca_map.equal_range(id3);
+	    for (auto ct = rt2.first; ct != rt2.second; ++ct)
+	      {
+		unsigned int ida = ct->first;
+		unsigned int idb = ct->second.first;
+		
+		if(idb==id4)
+		  {
+		    auto pcaa=ct->second.second.first;
+		    auto pcab=ct->second.second.second;
+		    std::cout << "         found connection to " << id3 << " and " << id4 << " dca34 = " << dca34
+			      << " pca dz = " << pcaa.z() - pcab.z() << std::endl;
+		    std::cout << "       id3 " << ida << " pca3 " << pcaa.x() << "  " << pcaa.y() << "  " << pcaa.z() << std::endl;
+		    std::cout << "       id4 " << idb << " pca4 " << pcab.x() << "  " << pcab.y() << "  " << pcab.z() << std::endl;
+		}
+	      }
+	    
+	  }
         connected.insert(id3);
         used.insert(id3);
         connected.insert(id4);
@@ -1012,20 +1090,20 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
 
   // close out the last set
   if (connected.size() > 0)
-  {
-    connected_tracks.push_back(connected);
-    connected.clear();
-    if (Verbosity() > 3)
     {
-      std::cout << "           closing out last set " << std::endl;
+      if (Verbosity() > 2)
+	{
+	  std::cout << "           closing out last connected set with size " << connected.size() << std::endl;
+	}
+      connected_tracks.push_back(connected);
+      connected.clear();
     }
-  }
-
-  if (Verbosity() > 3)
-  {
-    std::cout << "connected_tracks size " << connected_tracks.size() << std::endl;
-  }
-
+  
+  if (Verbosity() > 2)
+    {
+      std::cout << "connected_tracks size " << connected_tracks.size() << std::endl;
+    }
+  
   return connected_tracks;
 }
 
