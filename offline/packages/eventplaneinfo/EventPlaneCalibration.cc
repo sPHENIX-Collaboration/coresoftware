@@ -9,24 +9,23 @@
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
 
-#include <calotrigger/MinimumBiasInfo.h>
-#include <centrality/CentralityInfo.h>
+//#include <calotrigger/MinimumBiasInfo.h>
+
+//#include <centrality/CentralityInfo.h>
 
 #include <epd/EpdGeom.h>
 
 #include <mbd/MbdGeom.h>
-#include <mbd/MbdOut.h>
 #include <mbd/MbdPmtContainer.h>
 #include <mbd/MbdPmtHit.h>
 
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/MbdVertex.h>
 #include <globalvertex/MbdVertexMap.h>
 
 #include <cdbobjects/CDBHistos.h>
 #include <cdbobjects/CDBTTree.h>
-#include <ffamodules/CDBInterface.h>
+
+#include <ffarawobjects/Gl1Packet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h> // for SubsysReco
@@ -41,12 +40,11 @@
 #include <phool/recoConsts.h>
 
 #include <TProfile2D.h>
+#include <TH1.h>
 
-#include <ffarawobjects/Gl1Packet.h>
-
-#include <array> // for array
-#include <cfloat>
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib> // for exit
 #include <format>
 #include <iostream>
@@ -498,7 +496,7 @@ int EventPlaneCalibration::process_event(PHCompositeNode *topNode) {
               for (int p = 0; p < _imax; p++) {
                 double terms = p + 1.0;
                 double n = order + 1.0;
-                double tmp = (double)(n * terms);
+                double tmp = (n * terms);
 
                 tprof_cos_south_epd_shift[order][p]->Fill(
                     _ssum, _mbdvtx,
@@ -533,7 +531,7 @@ int EventPlaneCalibration::process_event(PHCompositeNode *topNode) {
               {
                 double terms = p + 1.0;
                 double n = order + 1.0;
-                double tmp = (double)(n * terms);
+                double tmp = (n * terms);
                 double prefactor = 2.0 / terms;
 
                 // south

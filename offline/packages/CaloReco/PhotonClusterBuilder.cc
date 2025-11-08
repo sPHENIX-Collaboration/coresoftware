@@ -5,7 +5,6 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawClusterv1.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
@@ -195,13 +194,8 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-    RawClusterv1* rcv1 = dynamic_cast<RawClusterv1*>(rc);
-    if (!rcv1)
-    {
-      std::cerr << "PhotonClusterBuilder: unsupported RawCluster type" << std::endl;
-      continue;
-    }
-    PhotonClusterv1* photon = new PhotonClusterv1(*rcv1);
+
+    PhotonClusterv1* photon = new PhotonClusterv1(*rc);
 
     calculate_shower_shapes(rc, photon, eta, phi);
     calculate_bdt_score(photon);
@@ -270,22 +264,30 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   int detamax = 0;
   int dphimax = 0;
   int nsaturated = 0;
+  //float clusteravgtime = rc->mean_time();
+  //float cluster_total_e = 0;
   const RawCluster::TowerMap& tower_map = rc->get_towermap();
   std::set<unsigned int> towers_in_cluster;
   for (auto tower_iter : tower_map)
   {
-    towers_in_cluster.insert(tower_iter.first);
     RawTowerDefs::keytype tower_key = tower_iter.first;
     int ieta = RawTowerDefs::decode_index1(tower_key);
     int iphi = RawTowerDefs::decode_index2(tower_key);
 
+    
     unsigned int towerinfokey = TowerInfoDefs::encode_emcal(ieta, iphi);
+    towers_in_cluster.insert(towerinfokey);
     TowerInfo* towerinfo = m_emc_tower_container->get_tower_at_key(towerinfokey);
-    if (towerinfo && towerinfo->get_isSaturated())
+    if (towerinfo)
     {
-      nsaturated++;
+      //clusteravgtime += towerinfo->get_time() * towerinfo->get_energy();
+      //cluster_total_e += towerinfo->get_energy();
+      if (towerinfo->get_isSaturated())
+      {
+        nsaturated++;
+      }
     }
-
+    
     int totalphibins = 256;
     auto dphiwrap = [totalphibins](int towerphi, int maxiphi_arg)
     {
@@ -307,6 +309,16 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
     detamax = std::max(std::abs(deta), detamax);
     dphimax = std::max(std::abs(dphi_val), dphimax);
   }
+
+  //if (cluster_total_e > 0)
+  //{
+  //  clusteravgtime /= cluster_total_e;
+  //}
+  //else
+  //{
+  //  std::cout << "cluster_total_e is 0(this should not happen!!!), setting clusteravgtime to NaN" << std::endl;
+  //  clusteravgtime = std::numeric_limits<float>::quiet_NaN();
+  //}
 
   float E77[7][7] = {{0.0F}};
   int E77_ownership[7][7] = {{0}};
@@ -536,6 +548,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("w72", w72);
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
+  //photon->set_shower_shape_parameter("mean_time", clusteravgtime);
 
   // HCAL info
   std::vector<int> ihcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomIH, m_ihcal_tower_container, 0.0, true);
