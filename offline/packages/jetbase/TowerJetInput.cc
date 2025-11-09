@@ -506,14 +506,18 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       jet->set_pz(pz);
       jet->set_e(e);
       jet->insert_comp(m_input, channel);
+      float tower_t = 17.6*tower->get_time(); // 17.6 ns/sample and get_time() returns t in samples
+      if(jet->size_properties() < Jet::PROPERTY::prop_t+1)
+	{
+	  jet->resize_properties(Jet::PROPERTY::prop_t + 1);
+	}
       if(e > m_timing_e_threshold)
 	{
-	  float tower_t = 17.6*tower->get_time(); // 17.6 ns/sample and get_time() returns t in samples
-	  if(jet->size_properties() < Jet::PROPERTY::prop_t+1)
-	    {
-	      jet->resize_properties(Jet::PROPERTY::prop_t + 1);
-	    }
 	  jet->set_property(Jet::PROPERTY::prop_t, tower_t);
+	}
+      else
+	{
+	  jet->set_property(Jet::PROPERTY::prop_t, std::numeric_limits<float>::quiet_NaN());
 	}
       pseudojets.push_back(jet);
     }

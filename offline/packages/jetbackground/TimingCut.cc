@@ -120,8 +120,8 @@ int TimingCut::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  bool failsDeltat = Fails_Delta_t(maxJett, subJett);
-  bool failsLeadt = Fails_Lead_t(maxJett);
+  bool passDeltat = Pass_Delta_t(maxJett, subJett);
+  bool passLeadt = Pass_Lead_t(maxJett);
 
   MbdOut * mbdout = static_cast<MbdOut*>(findNode::getClass<MbdOut>(topNode,"MbdOut"));
   float m_mbd_t0 = std::numeric_limits<float>::quiet_NaN();
@@ -148,24 +148,24 @@ int TimingCut::process_event(PHCompositeNode *topNode)
       mbd_time = m_mbd_ts;
     }
   
-  bool failsMbdt = false;
+  bool passMbdt = false;
   if(!std::isnan(mbd_time))
     {
-      failsMbdt = Fails_Mbd_dt(maxJett, subJett);
+      passMbdt = Pass_Mbd_dt(maxJett, subJett);
     }
 
-  bool failsAnyCut = failsDeltat || failsLeadt || failsMbdt;
+  bool failAnyCut = !passDeltat || !passLeadt || !passMbdt;
     
-  if (failsAnyCut && _doAbort)
+  if (failAnyCut && _doAbort)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   PHNodeIterator iter(topNode);
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
-  _cutParams.set_int_param("failsLeadtCut",failsLeadt);
-  _cutParams.set_int_param("failsDeltatCut",failsDeltat);
-  _cutParams.set_int_param("failsMbdDtCut",failsMbdt);
-  _cutParams.set_int_param("failsAnyTimeCut", failsAnyCut);
+  _cutParams.set_int_param("passLeadtCut",passLeadt);
+  _cutParams.set_int_param("passDeltatCut",passDeltat);
+  _cutParams.set_int_param("passMbdDtCut",passMbdt);
+  _cutParams.set_int_param("failAnyTimeCut", failAnyCut);
   _cutParams.UpdateNodeTree(parNode, "TimingCutParams");
 
   return Fun4AllReturnCodes::EVENT_OK;

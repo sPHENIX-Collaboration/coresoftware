@@ -14,19 +14,19 @@ class TimingCut : public SubsysReco
 
   ~TimingCut() override = default;
 
-  bool Fails_Delta_t(float lead_time, float sub_time)
+  bool Pass_Delta_t(float lead_time, float sub_time)
   {
-    return fabs(lead_time - sub_time) > _dt_width;
+    return fabs(lead_time - sub_time) < _dt_width;
   }
 
-  bool Fails_Lead_t(float lead_time)
+  bool Pass_Lead_t(float lead_time)
   {
-    return fabs(lead_time + _t_shift) > _t_width;
+    return fabs(lead_time + _t_shift) < _t_width;
   }
 
-  bool Fails_Mbd_dt(float lead_time, float mbd_time)
+  bool Pass_Mbd_dt(float lead_time, float mbd_time)
   {
-    return fabs(lead_time - mbd_time) > _mbd_dt_width;
+    return fabs(lead_time - mbd_time) < _mbd_dt_width;
   }
 
   void set_t_shift(float new_shift) { _t_shift = new_shift; }
@@ -57,10 +57,10 @@ class TimingCut : public SubsysReco
 
   void SetDefaultParams()
   {
-    _cutParams.set_int_param("failsLeadtCut", 0);
-    _cutParams.set_int_param("failsDeltatCut", 0);
-    _cutParams.set_int_param("failsMbdDtCut", 0);
-    _cutParams.set_int_param("failsAnyTimeCut",0);
+    _cutParams.set_int_param("passLeadtCut", 0);
+    _cutParams.set_int_param("passDeltatCut", 0);
+    _cutParams.set_int_param("passMbdDtCut", 0);
+    _cutParams.set_int_param("failAnyTimeCut",0);
   }
  private:
   bool _doAbort;
