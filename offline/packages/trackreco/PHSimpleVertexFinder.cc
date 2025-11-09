@@ -33,7 +33,6 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
-#include <iostream>
 #include <numeric>
 #include <vector>
 
@@ -98,7 +97,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     // Here we skip those crossing = zero tracks that do not have silicon seeds
     if (_pp_mode)
     {
-      auto siseed = track->get_silicon_seed();
+      auto *siseed = track->get_silicon_seed();
       if (crossing == 0 && !siseed)
       {
       continue;
@@ -152,7 +151,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
       }
 
     /// If we didn't find any matches, try again with a slightly larger DCA cut
-    if (_track_pair_map.size() == 0)
+    if (_track_pair_map.empty())
     {
       _active_dcacut = 3.0 * _base_dcacut;
       if(_zero_field)
@@ -185,7 +184,10 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 		isdone = false;
 	      }
 
-	    if(isdone) break;
+	    if(isdone)
+	    {
+	      break;
+	    }
 	  }
       }
     
@@ -232,7 +234,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
       {
         unsigned int trid = cit->second;
         matrix_t cov;
-        auto track = _track_map->get(trid);
+        auto *track = _track_map->get(trid);
         for (int i = 0; i < 3; ++i)
         {
           for (int j = 0; j < 3; ++j)
@@ -280,7 +282,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
 	  SvtxTrack *track = _track_map->get(trid);
 	  if (track)
 	    {
-	      auto siseed = track->get_silicon_seed();
+	      auto *siseed = track->get_silicon_seed();
 	      short int intt_crossing = siseed->get_crossing();
 	      std::cout << " vtxid " << thisid << " vertex crossing " << cross
 			<< " track crossing " << cross
@@ -328,7 +330,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     //=================================================
     for (const auto &[trackkey, track] : *crossing_tracks)
     {
-      auto thistrack = _track_map->get(trackkey);  // get the original, not the copy
+      auto *thistrack = _track_map->get(trackkey);  // get the original, not the copy
       auto vtxid = thistrack->get_vertex_id();
       if (Verbosity() > 1)
       {
@@ -353,7 +355,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
           std::cout << "                test vertex " << thisid << std::endl;
         }
 
-        auto thisvertex = _svtx_vertex_map->get(thisid);
+        auto *thisvertex = _svtx_vertex_map->get(thisid);
         float dz = thistrack->get_z() - thisvertex->get_z();
         if (std::abs(dz) < maxdz)
         {
@@ -394,7 +396,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
           continue;
         }
 
-        auto siseed = track->get_silicon_seed();
+        auto *siseed = track->get_silicon_seed();
         short int intt_crossing = siseed->get_crossing();
 
         // the track crossing may be from the INTT clusters or from geometric matching if there are no INTT clusters
@@ -508,7 +510,7 @@ void PHSimpleVertexFinder::checkDCAs(SvtxTrackMap *track_map)
   for (auto tr1_it = track_map->begin(); tr1_it != track_map->end(); ++tr1_it)
   {
     auto id1 = tr1_it->first;
-    auto tr1 = tr1_it->second;
+    auto *tr1 = tr1_it->second;
     if (tr1->get_quality() > _qual_cut)
     {
       continue;
@@ -547,7 +549,7 @@ void PHSimpleVertexFinder::checkDCAs(SvtxTrackMap *track_map)
     for (auto tr2_it = std::next(tr1_it); tr2_it != track_map->end(); ++tr2_it)
     {
       auto id2 = tr2_it->first;
-      auto tr2 = tr2_it->second;
+      auto *tr2 = tr2_it->second;
       if (tr2->get_quality() > _qual_cut)
       {
         continue;
@@ -609,7 +611,7 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
   for (auto & tr1_it : *track_map)
   {
     auto id1 = tr1_it.first;
-    auto tr1 = tr1_it.second;
+    auto *tr1 = tr1_it.second;
 
     //    tr1->identify();
  
@@ -695,11 +697,11 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
 
   for(unsigned int i1 = 0; i1 < cumulative_trackid_vec.size(); ++i1)
     {
-      if(cumulative_fitpars_vec[i1].size() == 0) { continue; }
+      if(cumulative_fitpars_vec[i1].empty()) { continue; }
 
       for(unsigned int i2 = i1; i2 < cumulative_trackid_vec.size(); ++i2)
 	{
-	  if(cumulative_fitpars_vec[i2].size() == 0) { continue; }
+	  if(cumulative_fitpars_vec[i2].empty()) { continue; }
 
 	  //  For straight line: fitpars[4] = { xyslope, y0, xzslope, z0 }
 	  Eigen::Vector3d a1(0.0, cumulative_fitpars_vec[i1][1],cumulative_fitpars_vec[i1][3]);      // point on track 1 at x = 0
@@ -751,7 +753,7 @@ void PHSimpleVertexFinder::getTrackletClusterList(TrackSeed* tracklet, std::vect
        ++clusIter)
   {
     auto key = *clusIter;
-    auto cluster = _cluster_map->findCluster(key);
+    auto *cluster = _cluster_map->findCluster(key);
     if (!cluster)
     {
       std::cout << PHWHERE << "Failed to get cluster with key " << key << std::endl;
@@ -790,7 +792,7 @@ void PHSimpleVertexFinder::checkDCAs()
   for (auto tr1_it = _track_map->begin(); tr1_it != _track_map->end(); ++tr1_it)
   {
     auto id1 = tr1_it->first;
-    auto tr1 = tr1_it->second;
+    auto *tr1 = tr1_it->second;
     if (tr1->get_quality() > _qual_cut)
     {
       continue;
@@ -829,7 +831,7 @@ void PHSimpleVertexFinder::checkDCAs()
     for (auto tr2_it = std::next(tr1_it); tr2_it != _track_map->end(); ++tr2_it)
     {
       auto id2 = tr2_it->first;
-      auto tr2 = tr2_it->second;
+      auto *tr2 = tr2_it->second;
       if (tr2->get_quality() > _qual_cut)
       {
         continue;
@@ -1021,7 +1023,7 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
 	  }
       }
     
-    if ((used.find(id1) != used.end()) && (used.find(id2) != used.end()))
+    if ((used.contains(id1)) && (used.contains(id2)))
       {
 	if (Verbosity() > 2)
 	  {
@@ -1029,7 +1031,7 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
 	  }
 	continue;
       }
-    else if ((used.find(id1) == used.end()) && (used.find(id2) == used.end()))
+    if ((!used.contains(id1)) && (!used.contains(id2)))
       {
 	if (Verbosity() > 2)
 	  {
@@ -1051,7 +1053,7 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
 	      }
 	  }
 	// close out and start a new connected set
-	if (connected.size() > 0)
+	if (!connected.empty())
 	  {
 	    if (Verbosity() > 2)
 	      {
@@ -1073,7 +1075,7 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
       unsigned int id4 = cit.second.first;
       double dca34 = cit.second.second;
 
-      if ((connected.find(id3) != connected.end()) || (connected.find(id4) != connected.end()))
+      if ((connected.contains(id3)) || (connected.contains(id4)))
       {
         if (Verbosity() > 2)
 	  {
@@ -1105,7 +1107,7 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
   }
 
   // close out the last set
-  if (connected.size() > 0)
+  if (!connected.empty())
     {
       if (Verbosity() > 2)
 	{
