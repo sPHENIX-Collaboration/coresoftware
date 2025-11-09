@@ -1,21 +1,33 @@
 //step 3 in cart coords
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TFileCollection.h>
+#include <TFileInfo.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <THashList.h>
+#include <TLatex.h>
+#include <TMath.h>
+#include <TPad.h>
+#include <TTree.h>
+#include <TVector3.h>
+
 #include <iostream>
 #include <cmath>
+#include <format>
 #include <vector>
-#include "TMath.h"
-#include "TVector3.h"
-#include "TTree.h"
-
-using namespace std;
 
 class Shifter {
 public:
-Shifter(TString sourcefilename);
+explicit Shifter(const TString& sourcefilename);
+ // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   TFile *forward, *average;
   TH3F *hX, *hY, *hZ, *hR, *hPhi, *hXave, *hYave, *hZave, *hRave, *hPhiave;  
+// NOLINTEND(misc-non-private-member-variables-in-classes)
 };
 
-Shifter::Shifter(TString sourcefilename){
+Shifter::Shifter(const TString& sourcefilename){
+// NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
   //single event distortion file
   forward=TFile::Open(sourcefilename,"READ"); 
 
@@ -35,6 +47,7 @@ Shifter::Shifter(TString sourcefilename){
   
   hRave=(TH3F*)average->Get("hIntDistortionPosR");
   hPhiave=(TH3F*)average->Get("hIntDistortionPosP");
+// NOLINTEND(cppcoreguidelines-prefer-member-initializer)
  
   //subtract average from total distortions to study fluctuations
   hX->Add(hXave,-1);
@@ -45,13 +58,13 @@ Shifter::Shifter(TString sourcefilename){
   hPhi->Add(hPhiave,-1);
 }
 
-int CMDistortionAnalysisCart(int nMaxEvents = -1) {
+int CMDistortionAnalysisCart(int  /*nMaxEvents*/ = -1) {
   Shifter *shifter;
   int nbins = 35; 
-  double x, y, z;
+//  double x, y, z;
   double low = -80.0;
   double high = 80.0;
-  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
+//  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
   int nEvents; 
   
   TCanvas *canvas=new TCanvas("canvas","CMDistortionAnalysisCart",2000,3000);
@@ -100,7 +113,7 @@ int CMDistortionAnalysisCart(int nMaxEvents = -1) {
     
     TFile *plots;
 
-    plots=TFile::Open(Form("CMModelsCart_Event%d.root",ifile),"READ");
+    plots=TFile::Open(std::format("CMModelsCart_Event{}.root",ifile).c_str(),"READ");
    
     TH3F *hCartCMModel[3];
     hCartCMModel[0]=(TH3F*)plots->Get("hCMModelX");
@@ -137,7 +150,7 @@ int CMDistortionAnalysisCart(int nMaxEvents = -1) {
     double maxr = 79.115387;
     double maxz = 106.81875;
 
-    double rshiftcart, phishiftcart;
+//    double rshiftcart, phishiftcart;
 
     int ndiff = 300;
     int mindiff = -20;
@@ -197,13 +210,13 @@ int CMDistortionAnalysisCart(int nMaxEvents = -1) {
     TH2F *hPhiDiffvZ = new TH2F("hPhiDiffvZ", "Difference between Phi Model and True vs. z (R > 30); z (cm); shift difference (#mum)",nz,minz,maxz,ndiff,mindiff,maxdiff);
     TH2F *hPhiDiffvPhi = new TH2F("hPhiDiffvPhi", "Difference between Phi Model and True vs. phi (R > 30, 10 < z < 90); phi (rad); shift difference (#mum)",nphi,minphi,maxphi,ndiff,mindiff,maxdiff);
 
-    TH2F *hRDiffvR_PhiR = new TH2F("hRDiffvR_PhiR", "Difference between R Model and True vs. r, Phi,R binning (R > 30, 10 < z < 90); r (cm); shift difference (#mum)",nr,minr,maxr,ndiff,mindiff,maxdiff);
-    TH2F *hRDiffvZ_PhiR = new TH2F("hRDiffvZ_PhiR", "Difference between R Model and True vs. z, Phi,R binning (R > 30); z (cm); shift difference (#mum)",nz,minz,maxz,ndiff,mindiff,maxdiff);
-    TH2F *hRDiffvPhi_PhiR = new TH2F("hRDiffvPhi_PhiR", "Difference between R Model and True vs. phi, Phi,R binning (R > 30, 10 < z < 90); phi (rad); shift difference (#mum)",nphi,minphi,maxphi,ndiff,mindiff,maxdiff);
+//    TH2F *hRDiffvR_PhiR = new TH2F("hRDiffvR_PhiR", "Difference between R Model and True vs. r, Phi,R binning (R > 30, 10 < z < 90); r (cm); shift difference (#mum)",nr,minr,maxr,ndiff,mindiff,maxdiff);
+//    TH2F *hRDiffvZ_PhiR = new TH2F("hRDiffvZ_PhiR", "Difference between R Model and True vs. z, Phi,R binning (R > 30); z (cm); shift difference (#mum)",nz,minz,maxz,ndiff,mindiff,maxdiff);
+//    TH2F *hRDiffvPhi_PhiR = new TH2F("hRDiffvPhi_PhiR", "Difference between R Model and True vs. phi, Phi,R binning (R > 30, 10 < z < 90); phi (rad); shift difference (#mum)",nphi,minphi,maxphi,ndiff,mindiff,maxdiff);
 
-    TH2F *hPhiDiffvR_PhiR = new TH2F("hPhiDiffvR_PhiR", "Difference between Phi Model and True vs. r, Phi,R binning (R > 30, 10 < z < 90); r (cm); shift difference (#mum)",nr,minr,maxr,ndiff,mindiff,maxdiff);
-    TH2F *hPhiDiffvZ_PhiR = new TH2F("hPhiDiffvZ_PhiR", "Difference between Phi Model and True vs. z, Phi,R binning (R > 30); z (cm); shift difference (#mum)",nz,minz,maxz,ndiff,mindiff,maxdiff);
-    TH2F *hPhiDiffvPhi_PhiR = new TH2F("hPhiDiffvPhi_PhiR", "Difference between Phi Model and True vs. phi, Phi,R binning (R > 30, 10 < z < 90); phi (rad); shift difference (#mum)",nphi,minphi,maxphi,ndiff,mindiff,maxdiff);
+//    TH2F *hPhiDiffvR_PhiR = new TH2F("hPhiDiffvR_PhiR", "Difference between Phi Model and True vs. r, Phi,R binning (R > 30, 10 < z < 90); r (cm); shift difference (#mum)",nr,minr,maxr,ndiff,mindiff,maxdiff);
+//    TH2F *hPhiDiffvZ_PhiR = new TH2F("hPhiDiffvZ_PhiR", "Difference between Phi Model and True vs. z, Phi,R binning (R > 30); z (cm); shift difference (#mum)",nz,minz,maxz,ndiff,mindiff,maxdiff);
+//    TH2F *hPhiDiffvPhi_PhiR = new TH2F("hPhiDiffvPhi_PhiR", "Difference between Phi Model and True vs. phi, Phi,R binning (R > 30, 10 < z < 90); phi (rad); shift difference (#mum)",nphi,minphi,maxphi,ndiff,mindiff,maxdiff);
     
     for(int i = 1; i < nphi - 1; i++){
       double phi = minphi + ((maxphi - minphi)/(1.0*nphi))*(i+0.5); //center of bin
@@ -220,7 +233,7 @@ int CMDistortionAnalysisCart(int nMaxEvents = -1) {
 	  double shifttrueCyl[2];
 	  double differenceCyl[2];
 
-	  double differenceR, differencePhi;
+//	  double differenceR, differencePhi;
 
 	  int bin = hCartCMModel[0]->FindBin(phi,r,z); //same for all
 
@@ -320,23 +333,23 @@ int CMDistortionAnalysisCart(int nMaxEvents = -1) {
     hTrueMeanPhi->Fill(hPhiShiftTrue->GetMean(1));
     hTrueStdDevPhi->Fill(hPhiShiftTrue->GetStdDev(1));
 
-    for (int m = 0; m < 6; m++){
-      hCartesianAveDiff[m]->SetStats(0);
+    for (auto & m : hCartesianAveDiff){
+      m->SetStats(false);
     }
-    for (int m = 0; m < 4; m++){
-      hCylindricalAveDiff[m]->SetStats(0);
+    for (auto & m : hCylindricalAveDiff){
+      m->SetStats(false);
     }
   
-    hCompareRTrue->SetStats(0);
-    hComparePhiTrue->SetStats(0);
+    hCompareRTrue->SetStats(false);
+    hComparePhiTrue->SetStats(false);
 
-    hRDiffvR->SetStats(0);
-    hRDiffvZ->SetStats(0);
-    hRDiffvPhi->SetStats(0);
+    hRDiffvR->SetStats(false);
+    hRDiffvZ->SetStats(false);
+    hRDiffvPhi->SetStats(false);
   
-    hPhiDiffvR->SetStats(0);
-    hPhiDiffvZ->SetStats(0);
-    hPhiDiffvPhi->SetStats(0);
+    hPhiDiffvR->SetStats(false);
+    hPhiDiffvZ->SetStats(false);
+    hPhiDiffvPhi->SetStats(false);
     
     TPad *c1=new TPad("c1","",0.0,0.8,1.0,0.93); //can i do an array of pads?
     TPad *c2=new TPad("c2","",0.0,0.64,1.0,0.77);
@@ -466,7 +479,7 @@ int CMDistortionAnalysisCart(int nMaxEvents = -1) {
 
     titlepad->cd();
     titlepad->Clear();
-    title->DrawLatex(0.01,0.4,Form("Event %d; %s", ifile, sourcefilename.Data())); 
+    title->DrawLatex(0.01,0.4,std::format("Event {}; {}", ifile, sourcefilename.Data()).c_str());
     title->Draw();
     
     stitlepad1->cd();
