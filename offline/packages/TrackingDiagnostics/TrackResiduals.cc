@@ -11,7 +11,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-
+#include <trackbase/TrkrClusterIterationMap.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
@@ -1743,6 +1743,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("crossing_estimate", &m_crossing_estimate, "m_crossing_estimate/I");
+  m_tree->Branch("silseedit",&m_silseedit, "m_silseedit/I");
   m_tree->Branch("silseedx", &m_silseedx, "m_silseedx/F");
   m_tree->Branch("silseedy", &m_silseedy, "m_silseedy/F");
   m_tree->Branch("silseedz", &m_silseedz, "m_silseedz/F");
@@ -2254,6 +2255,8 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto *alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  auto *iteration_map = findNode::getClass<TrkrClusterIterationMap>(topNode, "TrkrClusterIterationMap");
+   
   std::set<unsigned int> tpc_seed_ids;
 
   for (const auto& [key, track] : *trackmap)
@@ -2263,7 +2266,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       continue;
     }
     m_trackid = track->get_id();
-
+   
     m_crossing = track->get_crossing();
     m_crossing_estimate = SHRT_MAX;
     m_px = track->get_px();
@@ -2356,6 +2359,11 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       m_silseedphi = silseed->get_phi();
       m_silseedeta = silseed->get_eta();
       m_silseedcharge = silseed->get_qOverR() > 0 ? 1 : -1;
+      if (iteration_map)
+      {
+        m_silseedit = iteration_map->getIteration(*silseed->begin_cluster_keys());
+   
+      }
     }
     if (tpcseed)
     {
