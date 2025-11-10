@@ -48,6 +48,8 @@
 
 CaloValid::CaloValid(const std::string& name)
   : SubsysReco(name)
+  , m_outputFileName("")  // Initialize member variables
+  , OutputFileName("")     // Initialize member variables
 {
 }
 
@@ -85,6 +87,7 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
 }
 
 // Note: InitRun cannot be made static as it modifies member variable m_species
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 int CaloValid::InitRun(PHCompositeNode* topNode)
 {
   RunHeader* runhdr = findNode::getClass<RunHeader>(topNode, "RunHeader");
@@ -161,7 +164,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
   if (m_debug)
   {
-    std::cout << _eventcounter << std::endl;
+    // Cast to unsigned to avoid signed bitwise operator warning
+    // NOLINTNEXTLINE(hicpp-signed-bitwise)
+    std::cout << static_cast<unsigned int>(_eventcounter) << std::endl;
   }
   //  std::cout << "In process_towers" << std::endl;
   auto* hm = QAHistManagerDef::getHistoManager();
@@ -233,10 +238,11 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       vtx_z = vtx->get_z();
     }
     h_vtx_z_raw->Fill(vtx_z);
-    if (std::abs(vtx_z) < 20.0)
-    {
-      h_vtx_z_cut->Fill(vtx_z);
-    }
+    // Use std::fabs instead of fabs to avoid float-to-double promotion
+    if (std::fabs(vtx_z) < 20.0)
+  {
+    h_vtx_z_cut->Fill(vtx_z);
+  }
   }
 
   //--------------------------- trigger and GL1-------------------------------//
@@ -662,6 +668,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
     // Note: The infinite loop warnings for lines 664, 695, and 768 appear to be false positives
     // from clang-tidy. The iterators ARE being incremented in the for loop statements.
+    // NOLINTNEXTLINE(bugprone-infinite-loop)
     for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; ++clusterIter)
     {
       RawCluster* recoCluster = clusterIter->second;
@@ -693,6 +700,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       TLorentzVector photon1;
       photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
 
+      // NOLINTNEXTLINE(bugprone-infinite-loop)
       for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; ++clusterIter2)
       {
         if (clusterIter == clusterIter2)
@@ -734,18 +742,22 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
         int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
-	if (std::abs(vtx_z) < 20.0)
-	{
-	  for (int bit : scaledActiveBits)
+        // Use std::fabs instead of fabs to avoid float-to-double promotion
+	if (std::fabs(vtx_z) < 20.0)
 	  {
-	    if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
-	    {
-	      continue;
-	    }
-	    h_pi0_trigIB_mass->Fill(bit, IB_num,pi0Mass);
+        for (int bit : scaledActiveBits)
+        {
+          if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
+          {
+            continue;
+          }
+          h_pi0_trigIB_mass->Fill(
+              static_cast<double>(bit),
+              static_cast<double>(IB_num),
+              static_cast<double>(pi0Mass));
+        }
+        h_InvMass->Fill(pi0Mass);
 	  }
-	  h_InvMass->Fill(pi0Mass);
-	}
       }
     }  // end cluster loop
   }
@@ -763,6 +775,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     RawClusterContainer::ConstIterator clusterIter;
     RawClusterContainer::ConstIterator clusterIter2;
 
+    // NOLINTNEXTLINE(bugprone-infinite-loop)
     for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second;
          ++clusterIter)
     {
@@ -903,13 +916,13 @@ void CaloValid::MirrorHistogram(TH1* h)
 
 // Note: Parameters appear unused but they are actually used in the TH2F constructor.
 // Suppressing the warning or marking them as potentially unused would be appropriate.
-TH2* CaloValid::LogYHist2D(const std::string& name,
-                           const std::string& title,
-                           int xbins_in,
-                           double xmin,
-                           double xmax,
-                           int ybins_in,
-                           double ymin,
+TH2* CaloValid::LogYHist2D([[maybe_unused]] const std::string& name, 
+                           [[maybe_unused]] const std::string& title, 
+                           [[maybe_unused]] int xbins_in, 
+                           [[maybe_unused]] double xmin, 
+                           [[maybe_unused]] double xmax, 
+                           int ybins_in, 
+                           double ymin, 
                            double ymax)
 {
   Double_t logymin = std::log10(ymin);
@@ -919,6 +932,7 @@ TH2* CaloValid::LogYHist2D(const std::string& name,
 
   // Note: The infinite loop warning for line 913 appears to be a false positive.
   // The loop variable i IS being incremented in the for statement.
+  // NOLINTNEXTLINE(bugprone-infinite-loop)
   for (Int_t i = 0; i <= ybins_in + 1; ++i)
   {
     ybins[i] = pow(10, logymin + (i * binwidth));
@@ -930,10 +944,8 @@ TH2* CaloValid::LogYHist2D(const std::string& name,
 }
 
 // Note: getHistoPrefix cannot be made static because it calls Name() which requires 'this'
-std::string CaloValid::getHistoPrefix() const
-{
-  return std::string("h_") + Name() + std::string("_");
-}
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
 
 void CaloValid::createHistos()
 {
@@ -981,15 +993,18 @@ void CaloValid::createHistos()
   h_ohcal_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_wQA);
 
-  h_cemc_e_chi2 = new TH2F(std::format("{}cemc_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
+  // h_cemc_e_chi2 = new TH2F(std::format("{}cemc_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
+  h_cemc_e_chi2 = LogYHist2D(std::format("{}cemc_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
   h_cemc_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_e_chi2);
 
-  h_ihcal_e_chi2 = new TH2F(std::format("{}ihcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
+  //  h_ihcal_e_chi2 = new TH2F(std::format("{}ihcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
+  h_ihcal_e_chi2 = LogYHist2D(std::format("{}ihcal_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
   h_ihcal_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_e_chi2);
 
-  h_ohcal_e_chi2 = new TH2F(std::format("{}ohcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
+  // h_ohcal_e_chi2 = new TH2F(std::format("{}ohcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
+  h_ohcal_e_chi2 = LogYHist2D(std::format("{}ohcal_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
   h_ohcal_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_e_chi2);
 
@@ -1057,19 +1072,19 @@ void CaloValid::createHistos()
   h_mbd_hits->SetDirectory(nullptr);
   hm->registerHisto(h_mbd_hits);
 
-  h_cemc_etaphi_fracHit = new TProfile2D(std::format("{}cemc_etaphi_fracHit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 1);
+  h_cemc_etaphi_fracHit = new TProfile2D(std::format("{}cemc_etaphi_fracHit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
   h_cemc_etaphi_fracHit->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_fracHit);
 
-  h_cemc_etaphi_fracHitADC = new TProfile2D(std::format("{}cemc_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 1);
+  h_cemc_etaphi_fracHitADC = new TProfile2D(std::format("{}cemc_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
   h_cemc_etaphi_fracHitADC->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_fracHitADC);
 
-  h_ihcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ihcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 1);
+  h_ihcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ihcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ihcal_etaphi_fracHitADC->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_fracHitADC);
 
-  h_ohcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ohcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 1);
+  h_ohcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ohcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ohcal_etaphi_fracHitADC->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_fracHitADC);
 
