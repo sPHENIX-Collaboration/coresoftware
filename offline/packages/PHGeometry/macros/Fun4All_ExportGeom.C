@@ -30,9 +30,7 @@ Fun4All_ExportGeom(const std::string &DST_file_name = "sPHENIX.root_DST.root")
   gSystem->Load("libphgeom.so");
 
   // in case DST contains sPHENIX stuff
-  gSystem->Load("libg4calo.so");
-  gSystem->Load("libg4vertex.so");
-  gSystem->Load("libg4eval.so");
+  gSystem->Load("libg4dst.so");
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);
