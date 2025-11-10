@@ -627,7 +627,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
   return;
 }
 
-bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed)
+bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed) const
 {
   std::set<int> mvtx_strobes;
   std::set<int> intt_crossings;

@@ -202,7 +202,7 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent,
                                                         const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
-  bool isTimingMismatched(TrackSeed& seed);
+  bool isTimingMismatched(TrackSeed& seed) const;
   
       /// Projects circle fit to radii to find possible MVTX/INTT clusters
       /// belonging to track stub
