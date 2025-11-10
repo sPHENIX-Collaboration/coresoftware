@@ -32,6 +32,7 @@
 // for cluster vertex correction
 #include <CLHEP/Vector/ThreeVector.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <map>
@@ -162,7 +163,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
   }
 
   // Information on clusters
-  RawClusterContainer *clusterContainer = findNode::getClass<RawClusterContainer>(topNode, m_clusterNode.c_str());
+  RawClusterContainer *clusterContainer = findNode::getClass<RawClusterContainer>(topNode, m_clusterNode);
   if (!clusterContainer && storeClusters)
   {
     std::cout << PHWHERE << "caloTreeGen::process_event: " << m_clusterNode << " node is missing. Output related to this node will be empty" << std::endl;
@@ -171,7 +172,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
 
   // tower information
   TowerInfoContainer *emcTowerContainer;
-  emcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_emcTowerNode.c_str());
+  emcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_emcTowerNode);
   if (!emcTowerContainer && storeEMCal)
   {
     std::cout << PHWHERE << "caloTreeGen::process_event: " << m_emcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
@@ -255,7 +256,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
 
   // tower information
   TowerInfoContainer *ohcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_ohcTowerNode);
-  TowerInfoContainer *ihcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_ihcTowerNode.c_str());
+  TowerInfoContainer *ihcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_ihcTowerNode);
 
   if (!ohcTowerContainer || !ihcTowerContainer)
   {
@@ -316,7 +317,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
     }
   }
 
-  TowerInfoContainer *zdcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_zdcTowerNode.c_str());
+  TowerInfoContainer *zdcTowerContainer = findNode::getClass<TowerInfoContainer>(topNode, m_zdcTowerNode);
   if (!zdcTowerContainer)
   {
     std::cout << PHWHERE << "caloTreeGen::process_event: " << m_emcTowerNode << " node is missing. Output related to this node will be empty" << std::endl;
@@ -350,7 +351,7 @@ int caloTreeGen::process_event(PHCompositeNode *topNode)
     }
   }
 
-  Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, m_trigNode.c_str());
+  Gl1Packet *gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, m_trigNode);
   if (!gl1PacketInfo && storeTrig)
   {
     std::cout << PHWHERE << "caloTreeGen::process_event: " << m_trigNode << " node is missing. Output related to this node will be empty" << std::endl;
@@ -437,10 +438,7 @@ float caloTreeGen::getMaxTowerE(RawCluster *cluster)
   {
     float towE = toweriter->second;
 
-    if (towE > maxEnergy)
-    {
-      maxEnergy = towE;
-    }
+    maxEnergy = std::max(towE, maxEnergy);
   }
   return maxEnergy;
 }
