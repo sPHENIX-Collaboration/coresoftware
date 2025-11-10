@@ -57,7 +57,7 @@ Fun4AllStreamingLumiCountingInputManager::~Fun4AllStreamingLumiCountingInputMana
   delete m_SyncObject;
   // clear leftover raw event maps and vectors with poolreaders
   // GL1
-  for (auto iter : m_Gl1InputVector)
+  for (auto *iter : m_Gl1InputVector)
   {
     delete iter;
   }
@@ -231,7 +231,7 @@ void Fun4AllStreamingLumiCountingInputManager::AddGl1BunchNumber(uint64_t bco_tr
 int Fun4AllStreamingLumiCountingInputManager::FillGl1()
 {
   // unsigned int alldone = 0;
-  for (auto iter : m_Gl1InputVector)
+  for (auto *iter : m_Gl1InputVector)
   {
     if (Verbosity() > 0)
     {
@@ -363,7 +363,7 @@ int Fun4AllStreamingLumiCountingInputManager::FillGl1()
   // mow use new
 
   Gl1Packet *gl1packet = findNode::getClass<Gl1Packet>(m_topNode, "GL1RAWHIT");
-  for (auto gl1hititer : m_Gl1RawHitMap.begin()->second.Gl1RawHitVector)
+  for (auto *gl1hititer : m_Gl1RawHitMap.begin()->second.Gl1RawHitVector)
   {
     if (!m_StreamingFlag)  // if streaming flag is set, the gl1packet is a nullptr
     {
@@ -435,7 +435,7 @@ int Fun4AllStreamingLumiCountingInputManager::FillGl1()
   // about clearing all gl1 related maps
   if (m_StreamingFlag)
   {
-    for (auto iter : m_Gl1InputVector)
+    for (auto *iter : m_Gl1InputVector)
     {
       delete iter;
     }
@@ -444,7 +444,7 @@ int Fun4AllStreamingLumiCountingInputManager::FillGl1()
   }
   else
   {
-    for (auto iter : m_Gl1InputVector)
+    for (auto *iter : m_Gl1InputVector)
     {
       iter->CleanupUsedPackets(m_Gl1RawHitMap.begin()->first);
     }
@@ -511,11 +511,11 @@ void Fun4AllStreamingLumiCountingInputManager::SetPositiveWindow(const unsigned 
 
 void Fun4AllStreamingLumiCountingInputManager::createLuminosityHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   // zhiwan
   {
-    auto tr = new TTree("BCOWindowTree", "BCO Window Data");
+    auto *tr = new TTree("BCOWindowTree", "BCO Window Data");
     tr->Branch("bco_trim", &m_bco_trim);
     tr->Branch("lower_bound", &m_lower_bound);
     tr->Branch("upper_bound", &m_upper_bound);
@@ -526,55 +526,55 @@ void Fun4AllStreamingLumiCountingInputManager::createLuminosityHistos()
   }
 
   {
-    auto h = new TH1I("h_LumiBCO", "Lumi BCO", 500, 0, 500);
+    auto *h = new TH1I("h_LumiBCO", "Lumi BCO", 500, 0, 500);
     h->GetXaxis()->SetTitle(" Lumi BCO per event");
     h->SetTitle("Number of BCO matched");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1I("h_BunchNumber", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
+    auto *h = new TH1I("h_BunchNumber", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
     h->GetXaxis()->SetTitle("Bunch Number per event");
     h->SetTitle("Number of crossing");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("h_BunchNumberOccurance", "Bunch Number Lumi BCO", 120, -0.5, 119.5);
+    auto *h = new TH1D("h_BunchNumberOccurance", "Bunch Number Lumi BCO", 120, -0.5, 119.5);
     h->GetXaxis()->SetTitle("Bunch Number per time window");
     h->SetTitle("Number of crossing");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1I("h_diffBCO", "gl1 bco 1-2", 3500, 0, 3500);
+    auto *h = new TH1I("h_diffBCO", "gl1 bco 1-2", 3500, 0, 3500);
     h->GetXaxis()->SetTitle("GL1 BCO difference");
     h->SetTitle("Number of crossing");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("h_MBDSNraw_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
+    auto *h = new TH1D("h_MBDSNraw_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
     h->GetXaxis()->SetTitle("Bunch Number per event");
     h->SetTitle("MBDSN Number of crossing");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("h_MBDSNlive_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
+    auto *h = new TH1D("h_MBDSNlive_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
     h->GetXaxis()->SetTitle("Bunch Number per event");
     h->SetTitle("MBDSN Number of crossing");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("h_MBDSNscaled_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
+    auto *h = new TH1D("h_MBDSNscaled_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
     h->GetXaxis()->SetTitle("Bunch Number per event");
     h->SetTitle("MBDSN Number of crossing");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("h_rawgl1scalerBunchID", "Bunch Number Lumi BCO", 10, -0.5, 9.5);
+    auto *h = new TH1D("h_rawgl1scalerBunchID", "Bunch Number Lumi BCO", 10, -0.5, 9.5);
     h->GetXaxis()->SetTitle("Bunch Number per event");
     h->SetTitle("raw GL1 scaler");
     hm->registerHisto(h);
   }
   {
-    auto h = new TH1D("h_gl1p_ZDCCoin_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
+    auto *h = new TH1D("h_gl1p_ZDCCoin_BunchID", "Bunch Number Lumi BCO", 121, -0.5, 120.5);
     h->GetXaxis()->SetTitle("Bunch Number per event");
     h->SetTitle("raw GL1 scaler");
     hm->registerHisto(h);
