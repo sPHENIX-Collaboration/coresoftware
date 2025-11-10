@@ -13,7 +13,7 @@ void CentralityInfov2::identify(std::ostream &os) const
 
 bool CentralityInfov2::has_centrality_bin(const PROP prop_id) const
 {
-  return _centrality_bin_map.find(prop_id) != _centrality_bin_map.end();
+  return _centrality_bin_map.contains(prop_id);
 }
 
 void CentralityInfov2::set_centrality_bin(const PROP prop_id, int value)
