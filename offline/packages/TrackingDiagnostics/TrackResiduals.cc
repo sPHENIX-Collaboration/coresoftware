@@ -132,6 +132,10 @@ void TrackResiduals::clearClusterStateVectors()
   m_idealsurfcentery.clear();
   m_idealsurfcenterz.clear();
   m_idealsurfnormx.clear();
+  m_clstave.clear();
+  m_clchip.clear();
+  m_clladderz.clear();
+  m_clladderphi.clear();
   m_clsector.clear();
   m_clside.clear();
   m_idealsurfnormy.clear();
@@ -1009,9 +1013,13 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   switch (TrkrDefs::getTrkrId(ckey))
   {
   case TrkrDefs::mvtxId:
+    m_clstave.push_back(MvtxDefs::getStaveId(ckey));
+    m_clchip.push_back(MvtxDefs::getChipId(ckey));
     m_nmaps++;
     break;
   case TrkrDefs::inttId:
+    m_clladderz.push_back(InttDefs::getLadderZId(ckey));
+    m_clladderphi.push_back(InttDefs::getLadderPhiId(ckey));
     m_nintt++;
     break;
   case TrkrDefs::tpcId:
@@ -1358,22 +1366,38 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   {
   case TrkrDefs::mvtxId:
     m_nmaps++;
+    m_clstave.push_back(MvtxDefs::getStaveId(ckey));
+    m_clchip.push_back(MvtxDefs::getChipId(ckey));
+    m_clladderz.push_back(-1);
+    m_clladderphi.push_back(-1);
     m_clsector.push_back(-1);
     m_clside.push_back(-1);
     break;
   case TrkrDefs::inttId:
+    m_clstave.push_back(-1);
+    m_clchip.push_back(-1);
+    m_clladderz.push_back(InttDefs::getLadderZId(ckey));
+    m_clladderphi.push_back(InttDefs::getLadderPhiId(ckey));
     m_clsector.push_back(-1);
     m_clside.push_back(-1);
     m_nintt++;
     break;
   case TrkrDefs::tpcId:
     m_ntpc++;
+    m_clstave.push_back(-1);
+    m_clchip.push_back(-1);
+    m_clladderz.push_back(-1);
+    m_clladderphi.push_back(-1);
     m_clsector.push_back(TpcDefs::getSectorId(ckey));
     m_clside.push_back(TpcDefs::getSide(ckey));
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
     m_tileid = MicromegasDefs::getTileId(ckey);
+    m_clstave.push_back(-1);
+    m_clchip.push_back(-1);
+    m_clladderz.push_back(-1);
+    m_clladderphi.push_back(-1);
     m_clsector.push_back(-1);
     m_clside.push_back(-1);
     break;
@@ -1780,8 +1804,12 @@ void TrackResiduals::createBranches()
   m_tree->Branch("dcaxy", &m_dcaxy, "m_dcaxy/F");
   m_tree->Branch("dcaz", &m_dcaz, "m_dcaz/F");
 
-  m_tree->Branch("clussector", &m_clsector);
   m_tree->Branch("cluslayer", &m_cluslayer);
+  m_tree->Branch("clusstave", &m_clstave);
+  m_tree->Branch("cluschip", &m_clchip);
+  m_tree->Branch("clusladderz", &m_clladderz);
+  m_tree->Branch("clusladderphi", &m_clladderphi);
+  m_tree->Branch("clussector", &m_clsector);
   m_tree->Branch("clusside", &m_clside);
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);
