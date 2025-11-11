@@ -68,8 +68,8 @@ class PHSimpleVertexFinder : public SubsysReco
   void getTrackletClusterList(TrackSeed* tracklet, std::vector<TrkrDefs::cluskey>& cluskey_vec);
   
   void findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2);
-  double dcaTwoLines(const Eigen::Vector3d &p1, const Eigen::Vector3d &v1,
-                     const Eigen::Vector3d &p2, const Eigen::Vector3d &v2,
+  double dcaTwoLines(const Eigen::Vector3d &a1, const Eigen::Vector3d &b1,
+                     const Eigen::Vector3d &a2, const Eigen::Vector3d &b2,
                      Eigen::Vector3d &PCA1, Eigen::Vector3d &PCA2);
   std::vector<std::set<unsigned int>> findConnectedTracks();
   void removeOutlierTrackPairs();
