@@ -12,12 +12,16 @@
 
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
+#include <phool/recoConsts.h>
 
 // trackbase_historic includes
+#include <fun4allraw/MvtxRawDefs.h>
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrackFitUtils.h>
 #include <trackbase/TrkrCluster.h>  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/InttDefs.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>  // for getLayer, clu...
@@ -1275,10 +1279,61 @@ void PHCASiliconSeeding::publishSeeds(const std::vector<TrackSeed_v2>& seeds) co
     {
       pseed->identify();
     }
-    _track_map->insert(pseed.get());
+    if (timingMismatch(*pseed)) 
+    {
+          continue;
+    }
+      _track_map->insert(pseed.get());
   }
 }
+bool PHCASiliconSeeding::timingMismatch(const TrackSeed& seed) const
+{
+  std::set<int> mvtx_strobes;
+  std::set<int> intt_crossings;
 
+  for (auto it = seed.begin_cluster_keys(); it != seed.end_cluster_keys(); ++it)
+  {
+    TrkrDefs::cluskey cluskey = *it;
+    const unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+    if (trkrid == TrkrDefs::TrkrId::mvtxId)
+    {
+      mvtx_strobes.insert(MvtxDefs::getStrobeId(cluskey));
+    }
+    if (trkrid == TrkrDefs::TrkrId::inttId)
+    {
+      intt_crossings.insert(InttDefs::getTimeBucketId(cluskey));
+    }
+  }
+
+  if (mvtx_strobes.size() > 1)
+  {
+    return true;
+  }
+  if (intt_crossings.size() > 2)
+  {
+    return true;
+  }
+  int crossing1 = *intt_crossings.begin();
+  int crossing2 = *intt_crossings.rbegin();
+
+  if (abs(crossing2 - crossing1) > 2)
+  {
+    return true;
+  }
+
+  int mvtx_strobe = *mvtx_strobes.begin();
+  int strobecrossinglow = (mvtx_strobe - 1) * _strobe_width;
+  int strobecrossinghigh = (mvtx_strobe + 1) * _strobe_width;
+  if (crossing1 < strobecrossinglow || crossing1 > strobecrossinghigh)
+  {
+    if (crossing2 < strobecrossinglow || crossing2 > strobecrossinghigh)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
 int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::InitRun
 {
   if (Verbosity() > 0)
@@ -1291,6 +1346,10 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
   }
   PHTrackSeeding::set_track_map_name(_module_trackmap_name);
   PHTrackSeeding::Setup(topNode);
+  auto* recoConsts = recoConsts::instance();
+  int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
+
+  _strobe_width = MvtxRawDefs::getStrobeLength(runnumber) * 10;
 
   // geometry initialization
   int ret = InitializeGeometry(topNode);

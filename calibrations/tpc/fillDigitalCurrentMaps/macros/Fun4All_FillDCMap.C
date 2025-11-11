@@ -1,16 +1,20 @@
-#pragma once
+#ifndef MACRO_FUN4ALL_FILLDCMAP_C
+#define MACRO_FUN4ALL_FILLDCMAP_C
+
+#include "../readDigitalCurrents.h"
+
+#include <frog/FROG.h>
+
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllDstInputManager.h>
 
-#include <readDigitalCurrents.h>
+#include <Rtypes.h>
+#include <TSystem.h>
 
-#include <stdio.h>
-#include <frog/FROG.h>
-
+#include <iostream>
 #include <string>
 
-// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libreadDigitalCurrents.so)
 R__LOAD_LIBRARY(libg4dst.so)
@@ -18,18 +22,18 @@ R__LOAD_LIBRARY(libg4dst.so)
 std::vector<int> readBeamXings();
 
 std::vector<int> readBeamXings(){
-  //cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << endl;
+  //std::cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   std::vector<int> bXs;
-  string line;
-  string txt_file = "./data/timestamps_50kHz_1M.txt";
-  ifstream InputFile (txt_file);
+  std::string line;
+  std::string txt_file = "./data/timestamps_50kHz_1M.txt";
+  std::ifstream InputFile (txt_file);
   //std::map<int,int> timestamps;
   if (InputFile.is_open()){
     int n_line=0;
     while ( getline (InputFile,line) )
     {
         n_line++;
-      //cout << line << '\n';
+      //std::cout << line << '\n';
       if(n_line>3){
         std::istringstream is( line );
         double n[2] = {0,0};
@@ -53,7 +57,7 @@ int closest(std::vector<int> const& vec, int value) {
     return *it;
 }
 
-void Fun4All_FillDCMap(  const int nEvents = 1000, const int eventsInFileStart = 0, const int eventsBeamCrossing = 1508071, const string &fname = "/sphenix/user/shulga/Work/IBF/macros/detectors/sPHENIX/Files/DST_G4Hits_sHijing_0-12fm_005000_006000.root", const string &foutputname = "./Files/hists_G4Hits_sHijing_0-12fm_000000_001000.root" )//DST_G4sPHENIX_1000evt.root")//G4sPHENIX.root" )
+void Fun4All_FillDCMap(  const int nEvents = 1000, const int eventsInFileStart = 0, const int eventsBeamCrossing = 1508071, const std::string &fname = "/sphenix/user/shulga/Work/IBF/macros/detectors/sPHENIX/Files/DST_G4Hits_sHijing_0-12fm_005000_006000.root", const std::string &foutputname = "./Files/hists_G4Hits_sHijing_0-12fm_000000_001000.root" )//DST_G4sPHENIX_1000evt.root")//G4sPHENIX.root" )
 {
   // /sphenix/user/frawley/new_macros_april27/macros/detectors/sPHENIX/Reconstructed_DST_Hijing_50kHz_00000.root
   
@@ -66,16 +70,16 @@ void Fun4All_FillDCMap(  const int nEvents = 1000, const int eventsInFileStart =
   std::vector<int>::iterator it = std::find(bXs.begin(), bXs.end(), eventsBeamCrossing);
   int index=0; 
   index = std::distance(bXs.begin(), it);
-  cout<<"Index="<<index<<endl;
+  std::cout<<"Index="<<index<<std::endl;
   for(int n=0;n<30;n++){
     int bXN=index+n*300;
     bXs_sel.push_back(bXs[bXN]);
-    cout<<"bX="<<bXs[bXN]<<endl;
+    std::cout<<"bX="<<bXs[bXN]<<std::endl;
   }
 
   Fun4AllServer *se = Fun4AllServer::instance();
-  string cd_name = "readDigitalCurrents"+std::to_string(eventsInFileStart);
-  //cout<<fname_tmp<<endl;
+  std::string cd_name = "readDigitalCurrents"+std::to_string(eventsInFileStart);
+  //std::cout<<fname_tmp<<std::endl;
   readDigitalCurrents *dist_calc = new readDigitalCurrents(cd_name, foutputname);
   //readDigitalCurrents *dist_calc = new readDigitalCurrents();
   se->registerSubsystem(dist_calc);
@@ -88,8 +92,8 @@ void Fun4All_FillDCMap(  const int nEvents = 1000, const int eventsInFileStart =
 
   gSystem->Load("libFROG");
   FROG *fr = new FROG();
-  string inputFileName = fr->location(fname);
-  cout << "Next file:" << inputFileName << endl;
+  std::string inputFileName = fr->location(fname);
+  std::cout << "Next file:" << inputFileName << std::endl;
   // this (DST) input manager just drives the event loop
   Fun4AllInputManager *in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFileName);//fname);
@@ -99,15 +103,17 @@ void Fun4All_FillDCMap(  const int nEvents = 1000, const int eventsInFileStart =
   {
     return;
   }
-  cout << endl << "Running over " << nEvents << " Events" << endl;
+  std::cout << std::endl << "Running over " << nEvents << " Events" << std::endl;
   se->run(nEvents);
   //}
-  cout << endl << "Calling End in Fun4All_readDigitalCurrents.C" << endl;
+  std::cout << std::endl << "Calling End in Fun4All_readDigitalCurrents.C" << std::endl;
   se->End();
 
-  cout << endl << "All done, calling delete Fun4AllServer" << endl;
+  std::cout << std::endl << "All done, calling delete Fun4AllServer" << std::endl;
   delete se;
 
-  cout << endl << "gSystem->Exit(0)" << endl;
+  std::cout << std::endl << "gSystem->Exit(0)" << std::endl;
   gSystem->Exit(0);
 }
+
+#endif

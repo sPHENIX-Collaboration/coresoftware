@@ -1,19 +1,28 @@
 // step 2
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include "TMath.h"
-#include "TVector3.h"
-#include "TTree.h"
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TFileCollection.h>
+#include <TFileInfo.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <THashList.h>
+#include <TMath.h>
+#include <TSystem.h>
+#include <TTree.h>
 #include <TTime.h>
+#include <TVector3.h>
 
-using namespace std;
+#include <cmath>
+#include <format>
+#include <iostream>
+#include <vector>
 
 int CMDistortionRecoCart(int nMaxEvents = -1) {
   int nbins = 35; 
   double low = -80.0;
   double high = 80.0;
-  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
+//  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
   int nEvents;
     
   //take in events
@@ -25,11 +34,12 @@ int CMDistortionRecoCart(int nMaxEvents = -1) {
   TString sourcefilename;
   
   //how many events
-  if (nMaxEvents<0){
-    nEvents=filelist->GetNFiles();
-  } else if(nMaxEvents<filelist->GetNFiles()){
+  if(nMaxEvents >= 0 && nMaxEvents<filelist->GetNFiles())
+  {
     nEvents=nMaxEvents;
-  } else {
+  }
+  else
+  {
     nEvents= filelist->GetNFiles();
   }
   
@@ -40,7 +50,8 @@ int CMDistortionRecoCart(int nMaxEvents = -1) {
   //canvas for time plot
   TCanvas *canvas=new TCanvas("canvas","CMDistortionRecoCart2",400,400);
   
-  TVector3 *position, *newposition;
+  TVector3 *position;
+  TVector3 *newposition;
   position = new TVector3(1.,1.,1.);
   newposition = new TVector3(1.,1.,1.);
 
@@ -56,7 +67,7 @@ int CMDistortionRecoCart(int nMaxEvents = -1) {
     //get data from ttree
     sourcefilename=((TFileInfo*)(filelist->GetList()->At(ifile)))->GetCurrentUrl()->GetFile();
     
-    char const *treename="cmDistHitsTree";
+//    char const *treename="cmDistHitsTree";
     TFile *input=TFile::Open(sourcefilename, "READ");
     TTree *inTree=(TTree*)input->Get("tree");
     
@@ -77,12 +88,12 @@ int CMDistortionRecoCart(int nMaxEvents = -1) {
 
       hStripesPerBin->Fill(position->X(),position->Y(),1);
       
-      deltaX = (newposition->X() - position->X())*(1e4); //convert from cm to micron 
-      deltaY = (newposition->Y() - position->Y())*(1e4);
-      deltaZ = (newposition->Z() - position->Z())*(1e4);
+      double deltaX = (newposition->X() - position->X())*(1e4); //convert from cm to micron 
+      double deltaY = (newposition->Y() - position->Y())*(1e4);
+      double deltaZ = (newposition->Z() - position->Z())*(1e4);
 
-      deltaR = (newposition->Perp() - position->Perp())*(1e4);
-      deltaPhi = newposition->DeltaPhi(*position);
+      // double deltaR = (newposition->Perp() - position->Perp())*(1e4);
+      // double deltaPhi = newposition->DeltaPhi(*position);
 
       hCartesianForward[0]->Fill(position->X(),position->Y(),deltaX);
       hCartesianForward[1]->Fill(position->X(),position->Y(),deltaY);
@@ -114,7 +125,8 @@ int CMDistortionRecoCart(int nMaxEvents = -1) {
 	double xaveshift = (hCartesianAveShift[0]->GetBinContent(xbin))*(1e-4); // converts  microns to cm 
 	double yaveshift = (hCartesianAveShift[1]->GetBinContent(ybin))*(1e-4);
 	
-	TVector3 shifted, original;
+	TVector3 shifted;
+	TVector3 original;
 	original.SetX(x);
 	original.SetY(y);
 	shifted.SetX(x+xaveshift);
@@ -155,7 +167,11 @@ int CMDistortionRecoCart(int nMaxEvents = -1) {
     hCylindricalCMModel[0]=new TH3F("hCMModelRCart", "CM Model: Radial Shift Forward of Stripe Centers from Cartesian", nphi,minphi,maxphi, nr,minr,maxr, nz,minz,maxz);
     hCylindricalCMModel[1]=new TH3F("hCMModelPhiCart", "CM Model: Phi Shift Forward of Stripe Centers from Cartesian", nphi,minphi,maxphi, nr,minr,maxr, nz,minz,maxz);
       
-    double xshift, yshift, zshift, rshiftcart, phishiftcart;
+    double xshift;
+    double yshift;
+    double zshift;
+    double rshiftcart;
+    double phishiftcart;
       
     for(int i = 0; i < nphi; i++){
       double phi = minphi + ((maxphi - minphi)/(1.0*nphi))*(i+0.5); //center of bin
@@ -188,7 +204,7 @@ int CMDistortionRecoCart(int nMaxEvents = -1) {
     
     TFile *plots;
 
-    plots=TFile::Open(Form("CMModelsCart_Event%d.root",ifile),"RECREATE");
+    plots=TFile::Open(std::format("CMModelsCart_Event{}.root",ifile).c_str(),"RECREATE");
     hStripesPerBin->Write(); 
 
     for(int i = 0; i < 3; i++){
