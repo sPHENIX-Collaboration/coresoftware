@@ -16,7 +16,7 @@ DumpPacket::~DumpPacket()
 void DumpPacket::ddumppacket(OfflinePacket *pkt)
 {
   int packetid = pkt->getIdentifier();
-  if (m_PacketDumpFile.find(packetid) == m_PacketDumpFile.end())
+  if (!m_PacketDumpFile.contains(packetid))
   {
     std::string fname = "offlinepacket_" + std::to_string(packetid) + ".ddump";
     std::ofstream *dumpfile = new std::ofstream(fname);
