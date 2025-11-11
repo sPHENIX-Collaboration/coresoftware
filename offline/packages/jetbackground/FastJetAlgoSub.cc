@@ -152,7 +152,7 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
       total_e += particle->get_e();
       if(particle->size_properties() > Jet::PROPERTY::prop_t)
 	{
-	  if(particle->get_property(Jet::PROPERTY::prop_t) && !std::isnan(particle->get_property(Jet::PROPERTY::prop_t)))
+	  if(!std::isnan(particle->get_property(Jet::PROPERTY::prop_t)))
 	    {
 	      w_t_sum += particle->get_property(Jet::PROPERTY::prop_t) * particle->get_e();
 	      w_e_sum += particle->get_e();
