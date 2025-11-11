@@ -83,12 +83,12 @@ class PHSimpleVertexFinder : public SubsysReco
 
   double _base_dcacut = 0.12;  // pair dca cut - 1000 microns
   double _active_dcacut = 0.12;
-  double _beamline_xy_cut = 0.5;  // must be within this distance of beam line - no longer used
+  double _beamline_xy_cut = 0.2;  // must be within this distance of beam line - no longer used
   // defines a box around the beam spot
-  double _beamline_x_cut_lo = -0.5;  
-  double _beamline_x_cut_hi = 0.5; 
-  double _beamline_y_cut_lo = -0.5;  
-  double _beamline_y_cut_hi = 0.5; 
+  double _beamline_x_cut_lo = -0.2;  
+  double _beamline_x_cut_hi = 0.2; 
+  double _beamline_y_cut_lo = -0.2;  
+  double _beamline_y_cut_hi = 0.2; 
   double _qual_cut = 500.0;
   bool _require_mvtx = true;
   unsigned int _nmvtx_required = 2;
