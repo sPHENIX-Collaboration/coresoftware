@@ -1,10 +1,15 @@
 #ifndef TIMINGCUT_H
 #define TIMINGCUT_H
 
+#include <jetbase/Jet.h>
+
 #include <fun4all/SubsysReco.h>
+
 #include <phparameter/PHParameters.h>
+
 #include <cmath>
 #include <string>
+
 class PHCompositeNode;
 
 class TimingCut : public SubsysReco
@@ -16,17 +21,17 @@ class TimingCut : public SubsysReco
 
   bool Pass_Delta_t(float lead_time, float sub_time)
   {
-    return fabs(lead_time - sub_time) < _dt_width;
+    return std::abs(lead_time - sub_time) < _dt_width;
   }
 
   bool Pass_Lead_t(float lead_time)
   {
-    return fabs(lead_time + _t_shift) < _t_width;
+    return std::abs(lead_time + _t_shift) < _t_width;
   }
 
   bool Pass_Mbd_dt(float lead_time, float mbd_time)
   {
-    return fabs(lead_time - mbd_time) < _mbd_dt_width;
+    return std::abs(lead_time - mbd_time) < _mbd_dt_width;
   }
 
   void set_t_shift(float new_shift) { _t_shift = new_shift; }
