@@ -1,30 +1,31 @@
 #include "CaloVtxReco.h"
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <jetbase/JetContainerv1.h>
+
+#include <jetbase/JetContainer.h>
 #include <jetbase/Jet.h>
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
+
+#include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeom.h>
-#include <calobase/TowerInfoContainerv4.h>
+#include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
+
 #include <globalvertex/CaloVertexv1.h>
 #include <globalvertex/CaloVertexMapv1.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
 #include <cmath>
+
 static const float radius_EM = 93.5; //hardcoding these so we don't have to call get radius every time
 static const float radius_OH = 225.87;
-static const float radius_IH = 127.503;
+//static const float radius_IH = 127.503;
 //____________________________________________________________________________..
-CaloVtxReco::CaloVtxReco(const std::string &name, const std::string &jetnodename, const int debug, const bool use_z_energy_dep):
-  SubsysReco(name), _name(name), _jetnodename(jetnodename), _debug(debug), _use_z_energy_dep(use_z_energy_dep)
-{  
-  _calovtxmap = NULL;
-}
-
-//____________________________________________________________________________..
-CaloVtxReco::~CaloVtxReco()
-= default;
+CaloVtxReco::CaloVtxReco(const std::string &name, const std::string &jetnodename, const bool use_z_energy_dep):
+  SubsysReco(name), m_jetnodename(jetnodename), m_use_z_energy_dep(use_z_energy_dep)
+{}
 
 int CaloVtxReco::createNodes(PHCompositeNode *topNode)
 {
@@ -52,11 +53,11 @@ int CaloVtxReco::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(globalNode);
   }
 
-  _calovtxmap = findNode::getClass<CaloVertexMap>(globalNode, "CaloVertexMap");
-  if (!_calovtxmap)
+  m_calovtxmap = findNode::getClass<CaloVertexMap>(globalNode, "CaloVertexMap");
+  if (!m_calovtxmap)
   {
-    _calovtxmap = new CaloVertexMapv1();
-    PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(_calovtxmap, "CaloVertexMap", "PHObject");
+    m_calovtxmap = new CaloVertexMapv1();
+    PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(m_calovtxmap, "CaloVertexMap", "PHObject");
     globalNode->addNode(VertexMapNode);
   }
 
@@ -66,7 +67,7 @@ int CaloVtxReco::createNodes(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int CaloVtxReco::InitRun(PHCompositeNode *topNode)
 {
-  if(_debug > 1) { std::cout << "Initializing!" << std::endl;
+  if(Verbosity() > 1) { std::cout << "Initializing!" << std::endl;
 }
   if(createNodes(topNode) == Fun4AllReturnCodes::ABORTRUN)
     {
@@ -95,7 +96,7 @@ float CaloVtxReco::new_eta(int channel, TowerInfoContainer* towers, RawTowerGeom
 
 float get_dphi(float phi1, float phi2)
 {
-  float dphi = abs(phi1-phi2);
+  float dphi = std::abs(phi1-phi2);
   if(dphi > M_PI) { dphi = 2*M_PI - dphi;
 }
   return dphi;
@@ -113,8 +114,8 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode) const
 
   int size;
 
-  float average_z[3] = {0};
-  float total_E[3] = {0};
+  float average_z[3] {0};
+  float total_E[3] {0};
 
 
   if (emcal_towers)
@@ -127,7 +128,7 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode) const
           if (!good) { continue; }
 
           float energy = _tower->get_energy();
-          if (energy < _energy_cut) { continue; }
+          if (energy < m_energy_cut) { continue; }
 
           //float time = _tower->get_time_float();                                                                                                               
 
@@ -157,7 +158,7 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode) const
         {
           TowerInfo *_tower = hcalin_towers->get_tower_at_channel(channel);
           float energy = _tower->get_energy();
-          if (energy < _energy_cut) { continue; }
+          if (energy < m_energy_cut) { continue; }
           //float time = _tower->get_time_float();                                                                                                               
           short good = (_tower->get_isGood() ? 1:0);
           if (!good) { continue; }
@@ -185,7 +186,7 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode) const
         {
           TowerInfo *_tower = hcalout_towers->get_tower_at_channel(channel);
           float energy = _tower->get_energy();
-          if (energy < _energy_cut) { continue; }
+          if (energy < m_energy_cut) { continue; }
           //float time = _tower->get_time_float();                                                                                                               
           unsigned int towerkey = hcalout_towers->encode_key(channel);
           int ieta = hcalout_towers->getTowerEtaBin(towerkey);
@@ -211,7 +212,7 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode) const
 
   CaloVertex *vertex = new CaloVertexv1();
   vertex->set_z(b_calo_vertex_z);
-  _calovtxmap->insert(vertex);
+  m_calovtxmap->insert(vertex);
 
   return 0;
 }
@@ -219,16 +220,16 @@ int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode) const
 int CaloVtxReco::process_event(PHCompositeNode *topNode)
 {
 
-  if(_use_z_energy_dep)
+  if(m_use_z_energy_dep)
     {
       calo_tower_algorithm(topNode);
       return Fun4AllReturnCodes::EVENT_OK;
     }
 
-  if(_debug > 1) { std::cout << std::endl << std::endl << std::endl << "CaloVtxReco: Beginning event processing" << std::endl;
+  if(Verbosity() > 1) { std::cout << std::endl << std::endl << std::endl << "CaloVtxReco: Beginning event processing" << std::endl;
 }
-  _zvtx = std::numeric_limits<float>::quiet_NaN();
-  JetContainer *jetcon = findNode::getClass<JetContainerv1>(topNode, _jetnodename);
+  m_zvtx = std::numeric_limits<float>::quiet_NaN();
+  JetContainer *jetcon = findNode::getClass<JetContainer>(topNode, m_jetnodename);
   TowerInfoContainer *towers[3];
   towers[0] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC_RETOWER");
   towers[1] = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
@@ -251,7 +252,7 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
   if(jetcon)
     {
       int tocheck = jetcon->size();
-      if(_debug > 2) { std::cout << "Found " << tocheck << " jets to check..." << std::endl;
+      if(Verbosity() > 2) { std::cout << "Found " << tocheck << " jets to check..." << std::endl;
 }
       for(int i=0; i<tocheck; ++i)
         {
@@ -259,7 +260,7 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
           if(jet)
             {
 	      float pt = jet->get_pt();
-	      if(pt < _jet_threshold) { continue;
+	      if(pt < m_jet_threshold) { continue;
 }
 	      if(pt > jpt[0])
 		{
@@ -278,19 +279,19 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
     }
   else
     {
-      if(_debug > 0) { std::cout << "no jets" << std::endl;
+      if(Verbosity() > 0) { std::cout << "no jets" << std::endl;
 }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
   if(jpt[0] == 0)
     {
-      if(_debug > 2) { std::cout << "NO JETS > 5 GeV!" << std::endl;
+      if(Verbosity() > 2) { std::cout << "NO JETS > 5 GeV!" << std::endl;
 }
     }
 	
 
-  float metric = FLT_MAX;
+  float metric = std::numeric_limits<float>::max();
   for(int i=0; i<nz; ++i)
     {
       float testz = -300+i;
@@ -305,12 +306,14 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 	  joheta[j] = 0;
 	  for(auto comp: jets[j]->get_comp_vec())
 	    {
-	      if(comp.first==5 || comp.first == 26) continue;
+	      if(comp.first==5 || comp.first == 26) { continue;
+}
 	      unsigned int channel = comp.second;
 	      if(comp.first==7 || comp.first == 27)
 		{
 		  TowerInfo* tower = towers[2]->get_tower_at_channel(channel);
-		  if(tower->get_energy() < 0.1) continue;
+		  if(tower->get_energy() < 0.1) { continue;
+}
 		  johsum[j] += tower->get_energy();
 		  float neweta = new_eta(channel, towers[2], geom[2], RawTowerDefs::CalorimeterId::HCALOUT, testz);
 		  joheta[j] += neweta*tower->get_energy();
@@ -318,7 +321,8 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 	      if(comp.first == 13 || comp.first == 28 || comp.first == 25)
 		{
 		  TowerInfo* tower = towers[0]->get_tower_at_channel(channel);
-		  if(tower->get_energy() < 0.1) continue;
+		  if(tower->get_energy() < 0.1) { continue;
+}
 		  jemsum[j] += tower->get_energy();
 		  float neweta = new_eta(channel, towers[0], geom[1], RawTowerDefs::CalorimeterId::HCALIN, testz);
 		  jemeta[j] += neweta*tower->get_energy();
@@ -326,47 +330,31 @@ int CaloVtxReco::process_event(PHCompositeNode *topNode)
 	    }
 	  jemeta[j] /= jemsum[j];
 	  joheta[j] /= johsum[j];
-	  if((jemsum[j] == 0 || johsum[j] == 0) && _debug > 1) { std::cout << "zero E sum in at least one calo for a jet" << std::endl;
+	  if((jemsum[j] == 0 || johsum[j] == 0) && Verbosity() > 1) { std::cout << "zero E sum in at least one calo for a jet" << std::endl;
 }
 	  if(!std::isnan(jemeta[j]) && !std::isnan(joheta[j]))
 	    {
 	      testmetric += pow(jemeta[j]-joheta[j],2);
 	    }
 	}
-      if(_debug > 3) { std::cout << "metric: " << testmetric << std::endl;
+      if(Verbosity() > 3) { std::cout << "metric: " << testmetric << std::endl;
 }
       if(testmetric < metric && testmetric != 0)
 	{
 	  metric = testmetric;
-	  _zvtx = testz;
+	  m_zvtx = testz;
 	}
     }
-  if(abs(_zvtx) < 305)
+  if(std::abs(m_zvtx) < 305)
     {
-      if(_debug > 2) { std::cout << "optimal z: " << _zvtx << std::endl;
+      if(Verbosity() > 2) { std::cout << "optimal z: " << m_zvtx << std::endl;
 }
       CaloVertex *vertex = new CaloVertexv1();
-      _zvtx *= _calib_factor; //calibration factor from simulation
-      vertex->set_z(_zvtx);
-      _calovtxmap->insert(vertex);
-      if(_debug > 3) { std::cout << "CaloVtxReco: end event" << std::endl;
+      m_zvtx *= m_calib_factor; //calibration factor from simulation
+      vertex->set_z(m_zvtx);
+      m_calovtxmap->insert(vertex);
+      if(Verbosity() > 3) { std::cout << "CaloVtxReco: end event" << std::endl;
 }
     }
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int CaloVtxReco::EndRun(const int runnumber)
-{
-  if (Verbosity() > 0)
-    {
-      std::cout << "CaloVtxReco::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-    }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-void CaloVtxReco::Print(const std::string &what) const
-{
-  std::cout << "CaloVtxReco::Print(const std::string &what) const Printing info for " << what << std::endl;
 }
