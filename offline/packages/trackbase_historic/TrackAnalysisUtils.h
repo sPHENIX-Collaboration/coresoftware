@@ -10,7 +10,7 @@ class SvtxTrack;
 class TrackSeed;
 class ActsGeometry;
 class TrkrClusterContainer;
-class SvtxVertex;
+class GlobalVertex;
 namespace TrackAnalysisUtils
 {
   /// Returns DCA as .first and uncertainty on DCA as .second
@@ -18,7 +18,7 @@ namespace TrackAnalysisUtils
   using DCAPair = std::pair<DCA, DCA>;
 
   DCAPair get_dca(SvtxTrack* track, Acts::Vector3& vertex);
-  DCAPair get_dca(SvtxTrack* track, SvtxVertex* vertex);
+  DCAPair get_dca(SvtxTrack* track, GlobalVertex* vertex);
   Acts::RotationMatrix3 rotationMatrixToLocal(const Acts::Vector3& mom);
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track);
   std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed);

@@ -4,7 +4,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/GlobalVertex.h>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include "SvtxTrack.h"
@@ -179,7 +179,7 @@ namespace TrackAnalysisUtils
   }
 
   TrackAnalysisUtils::DCAPair get_dca(SvtxTrack *track,
-                                      SvtxVertex* vertex)
+                                      GlobalVertex* vertex)
   {
     Acts::Vector3 vpos(vertex->get_x(),
                        vertex->get_y(),
