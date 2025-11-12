@@ -15,7 +15,7 @@ class PHCompositeNode;
 class TimingCut : public SubsysReco
 {
  public:
-  explicit TimingCut(const std::string &jetNodeName, const std::string &name = "TimingCutModule", int debug = 0, bool doAbort = false);
+  explicit TimingCut(const std::string &jetNodeName, const std::string &name = "TimingCutModule", bool doAbort = false);
 
   ~TimingCut() override = default;
 
@@ -67,10 +67,9 @@ class TimingCut : public SubsysReco
     _cutParams.set_int_param("passMbdDtCut", 0);
     _cutParams.set_int_param("failAnyTimeCut",0);
   }
- private:
+
+private:
   bool _doAbort;
-  std::string _name;
-  int _debug;
   bool _missingInfoWarningPrinted = false;
   std::string _jetNodeName;
   PHParameters _cutParams;

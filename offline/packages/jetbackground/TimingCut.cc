@@ -18,11 +18,9 @@
 #include <utility>   // for pair
 #include <vector>    // for vector
 //____________________________________________________________________________..
-TimingCut::TimingCut(const std::string &jetNodeName, const std::string &name, const int debug, const bool doAbort)
+TimingCut::TimingCut(const std::string &jetNodeName, const std::string &name, const bool doAbort)
   : SubsysReco(name)
   , _doAbort(doAbort)
-  , _name(name)
-  , _debug(debug)
   , _jetNodeName(jetNodeName)
   , _cutParams(name)
 {
@@ -61,7 +59,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   JetContainer *jets = findNode::getClass<JetContainer>(topNode, _jetNodeName);
   if (!jets)
   {
-    if (_debug > 0 && !_missingInfoWarningPrinted)
+    if (Verbosity() > 0 && !_missingInfoWarningPrinted)
     {
       std::cout << "Missing jets; abort event. Further warnings will be suppressed." << std::endl;
     }
@@ -77,7 +75,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   if (jets)
   {
     int tocheck = jets->size();
-    if (_debug > 2)
+    if (Verbosity() > 2)
     {
       std::cout << "Found " << tocheck << " jets to check..." << std::endl;
     }
@@ -114,7 +112,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   }
   else
   {
-    if (_debug > 0)
+    if (Verbosity() > 0)
     {
       std::cout << "No jet node!" << std::endl;
     }
