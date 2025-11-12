@@ -20,7 +20,7 @@ class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
 
   //! Copy constructor from existing RawCluster object
   //! @warning This will copy all RawCluster data but initialize photon properties to defaults
-  explicit PhotonClusterv1(const RawCluster & rawcluster);
+  explicit PhotonClusterv1(const RawCluster & rc);
 
   //! Copy constructor
   PhotonClusterv1(const PhotonClusterv1& other) = default;
@@ -32,7 +32,11 @@ class PhotonClusterv1 : public PhotonCluster, public RawClusterv1
   //! @{
   //! @warning Override methods from RawCluster - virtual dispatch applies
   void Reset() override;
-  PHObject* CloneMe() const override { return new PhotonClusterv1(*this); }
+  PHObject* CloneMe() const override 
+  { 
+    auto* obj = new PhotonClusterv1(*this);
+    return static_cast<PHObject*>(static_cast<RawCluster*>(obj)); // go through the unique RawCluster virtual base, then to PHObject
+  }
   int isValid() const override;
   void identify(std::ostream& os = std::cout) const override;
   //! @}

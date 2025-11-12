@@ -5,6 +5,7 @@
 #include <phool/phool.h>
 #include <iostream>
 #include <limits>
+#include <RawCluster.h>
 
 //! Interface mixin providing photon-specific augmentation to a calorimeter cluster.
 //!
@@ -16,7 +17,7 @@
 //!  - This interface only covers photon ID related quantities (conversion + shower shape) and
 //!    convenience hooks for ID logic/printing. (conversion flag is a placeholder)
 //!  - Keep it lean: no data members here – storage resides in concrete subclasses.
-class PhotonCluster
+class PhotonCluster: public RawCluster
 {
  public:
   //! Virtual destructor for proper cleanup via base pointer

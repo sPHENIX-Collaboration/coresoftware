@@ -8,7 +8,7 @@ PhotonClusterv1::PhotonClusterv1(const RawCluster & rc)
   : m_conversion_prob(0.0F)
   , m_is_converted(false)
 {
-  if (auto rc1 = dynamic_cast<const RawClusterv1*>(&rc)) {
+  if (const auto rc1 = dynamic_cast<const RawClusterv1*>(&rc)) {
     RawClusterv1::operator=(*rc1);   // copy-assign v1 subobject
   } else {
     throw std::runtime_error("PhotonClusterv1 requires RawClusterv1 (or derived).");
