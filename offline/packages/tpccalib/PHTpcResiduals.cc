@@ -1,59 +1,49 @@
 #include "PHTpcResiduals.h"
 #include "TpcSpaceChargeMatrixContainerv2.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>
-#include <phool/PHTimer.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <tpc/TpcDistortionCorrectionContainer.h>
-
-#include <trackbase/TpcDefs.h>
+#include <trackbase/ActsGeometry.h>
+#include <trackbase/ActsSurfaceMaps.h>
+#include <trackbase/ActsTrackingGeometry.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v2.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <trackreco/ActsPropagator.h>
 
 #include <micromegas/MicromegasDefs.h>
 
-#include <Acts/Geometry/GeometryIdentifier.hpp>
-#include <Acts/MagneticField/ConstantBField.hpp>
-#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <Acts/Definitions/TrackParametrization.hpp>
+#include <Acts/Definitions/Units.hpp>
+#include <Acts/EventData/GenericBoundTrackParameters.hpp>
+#include <Acts/EventData/ParticleHypothesis.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <Acts/Propagator/EigenStepper.hpp>
-#pragma GCC diagnostic pop
-
-#include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Surfaces/Surface.hpp>
-
-#include <Acts/MagneticField/MagneticFieldProvider.hpp>
+#include <Acts/Utilities/Result.hpp>
 
 #include <TFile.h>
 #include <TH1.h>
-#include <TH2.h>
-#include <TTree.h>
-#include <cmath>
 
+#include <cassert>
 #include <iostream>
-#include <sstream>
+#include <limits>
 
 namespace
 {
 
   // square
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -66,32 +56,30 @@ namespace
   }
 
   template <class T>
-  inline constexpr T deltaPhi(const T& phi)
+  constexpr T deltaPhi(const T& phi)
   {
     if (phi > M_PI)
     {
       return phi - 2. * M_PI;
     }
-    else if (phi <= -M_PI)
+    if (phi <= -M_PI)
     {
       return phi + 2. * M_PI;
     }
-    else
-    {
-      return phi;
-    }
+
+    return phi;
   }
 
   /// get sector median angle associated to a given index
   /** this assumes that sector 0 is centered on phi=0, then numbered along increasing phi */
-  inline constexpr double get_sector_phi(int isec)
+  constexpr double get_sector_phi(int isec)
   {
     return isec * M_PI / 6;
   }
 
   // specify bins for which one will save histograms
-  static const std::vector<float> phi_rec = {get_sector_phi(9)};
-  static const std::vector<float> z_rec = {5.};
+  const std::vector<float> phi_rec = {get_sector_phi(9)};
+  const std::vector<float> z_rec = {5.};
 
   //! get cluster keys from a given track
   std::vector<TrkrDefs::cluskey> get_cluster_keys(SvtxTrack* track)
@@ -103,6 +91,20 @@ namespace
       {
         std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
       }
+    }
+    return out;
+  }
+
+  std::vector<TrkrDefs::cluskey> get_state_keys(SvtxTrack* track)
+  {
+    std::vector<TrkrDefs::cluskey> out;
+    for (auto state_iter = track->begin_states();
+         state_iter != track->end_states();
+         ++state_iter)
+    {
+      SvtxTrackState* tstate = state_iter->second;
+      auto stateckey = tstate->get_cluskey();
+      out.push_back(stateckey);
     }
     return out;
   }
@@ -140,7 +142,10 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
   std::cout << "PHTpcResiduals::Init - m_maxTBeta: " << m_maxTBeta << std::endl;
   std::cout << "PHTpcResiduals::Init - m_maxResidualDrphi: " << m_maxResidualDrphi << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_maxResidualDz: " << m_maxResidualDz << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_minRPhiErr: " << m_minRPhiErr << " cm" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_minZErr: " << m_minZErr << " cm" << std::endl;
   std::cout << "PHTpcResiduals::Init - m_minPt: " << m_minPt << " GeV/c" << std::endl;
+  std::cout << "PHTpcResiduals::Init - m_requireCrossing: " << m_requireCrossing << std::endl;
 
   // reset counters
   m_total_tracks = 0;
@@ -155,8 +160,6 @@ int PHTpcResiduals::Init(PHCompositeNode* /*topNode*/)
 //___________________________________________________________________________________
 int PHTpcResiduals::InitRun(PHCompositeNode* topNode)
 {
-
-  
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -245,6 +248,11 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
     std::cout << "PHTpcResiduals::checkTrack - pt: " << track->get_pt() << std::endl;
   }
 
+  if (m_requireCrossing && track->get_crossing() != 0)
+  {
+    return false;
+  }
+
   if (track->get_pt() < m_minPt)
   {
     return false;
@@ -252,7 +260,7 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
 
   // ignore tracks with too few mvtx, intt and micromegas hits
   const auto cluster_keys(get_cluster_keys(track));
-  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 2)
+  if (count_clusters<TrkrDefs::mvtxId>(cluster_keys) < 3)
   {
     return false;
   }
@@ -260,12 +268,178 @@ bool PHTpcResiduals::checkTrack(SvtxTrack* track) const
   {
     return false;
   }
-  if (m_useMicromegas && count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2)
+  if (count_clusters<TrkrDefs::tpcId>(cluster_keys) < 35)
+  {
+    return false;
+  }
+  //  if (m_useMicromegas && count_clusters<TrkrDefs::micromegasId>(cluster_keys) < 2)
+  //  {
+  //    return false;
+  //  }
+
+  const auto state_keys(get_state_keys(track));
+  if (count_clusters<TrkrDefs::mvtxId>(state_keys) < 3)
+  {
+    return false;
+  }
+  if (count_clusters<TrkrDefs::inttId>(state_keys) < 2)
+  {
+    return false;
+  }
+  //  if (m_useMicromegas && count_clusters<TrkrDefs::micromegasId>(state_keys) < 2)
+  //  {
+  //    return false;
+  //  }
+
+  if (m_useMicromegas && checkTPOTResidual(track) == false)
   {
     return false;
   }
 
   return true;
+}
+
+//___________________________________________________________________________________
+bool PHTpcResiduals::checkTPOTResidual(SvtxTrack* track) const
+{
+  bool flag = true;
+
+  int nTPOTcluster = 0;
+  int nTPOTstate = 0;
+  int TPOTtileID = -1;
+  for (const auto& cluskey : get_cluster_keys(track))
+  {
+    // make sure cluster is from TPOT
+    const auto detId = TrkrDefs::getTrkrId(cluskey);
+    if (detId != TrkrDefs::micromegasId)
+    {
+      continue;
+    }
+    TPOTtileID = MicromegasDefs::getTileId(cluskey);
+    nTPOTcluster++;
+
+    auto* const cluster = m_clusterContainer->findCluster(cluskey);
+
+    SvtxTrackState* state = nullptr;
+
+    // the track states from the Acts fit are fitted to fully corrected clusters, and are on the surface
+    for (auto state_iter = track->begin_states();
+         state_iter != track->end_states();
+         ++state_iter)
+    {
+      SvtxTrackState* tstate = state_iter->second;
+      auto stateckey = tstate->get_cluskey();
+      if (stateckey == cluskey)
+      {
+        state = tstate;
+        break;
+      }
+    }
+
+    const auto layer = TrkrDefs::getLayer(cluskey);
+
+    if (!state)
+    {
+      if (Verbosity() > 1)
+      {
+        std::cout << "   no state for cluster " << cluskey << "  in layer " << layer << std::endl;
+      }
+      continue;
+    }
+    nTPOTstate++;
+
+    const auto crossing = track->get_crossing();
+    assert(crossing != std::numeric_limits<short>::max());
+
+    // calculate residuals with respect to cluster
+    // Get all the relevant information for residual calculation
+    const auto globClusPos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluskey, cluster, crossing);
+    const double clusR = get_r(globClusPos(0), globClusPos(1));
+    const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
+    const double clusZ = globClusPos(2);
+
+    const double globStateX = state->get_x();
+    const double globStateY = state->get_y();
+    const double globStateZ = state->get_z();
+    const double globStatePx = state->get_px();
+    const double globStatePy = state->get_py();
+    const double globStatePz = state->get_pz();
+
+    const double trackR = std::sqrt(square(globStateX) + square(globStateY));
+
+    const double dr = clusR - trackR;
+    const double trackDrDt = (globStateX * globStatePx + globStateY * globStatePy) / trackR;
+    const double trackDxDr = globStatePx / trackDrDt;
+    const double trackDyDr = globStatePy / trackDrDt;
+    const double trackDzDr = globStatePz / trackDrDt;
+
+    const double trackX = globStateX + dr * trackDxDr;
+    const double trackY = globStateY + dr * trackDyDr;
+    const double trackZ = globStateZ + dr * trackDzDr;
+    const double trackPhi = std::atan2(trackY, trackX);
+
+    // Calculate residuals
+    // need to be calculated in local coordinates in the future
+    const double drphi = clusR * deltaPhi(clusPhi - trackPhi);
+    if (std::isnan(drphi))
+    {
+      continue;
+    }
+
+    const double dz = clusZ - trackZ;
+    if (std::isnan(dz))
+    {
+      continue;
+    }
+
+    if (Verbosity() > 3)
+    {
+      std::cout << "PHTpcResiduals::checkTPOTResidual -"
+                << " drphi: " << drphi
+                << " dz: " << dz
+                << std::endl;
+    }
+
+    // check rphi residual for layer 55
+    if (layer == 55 && std::fabs(drphi) > 0.1)
+    {
+      flag = false;
+      break;
+    }
+
+    // check z residual for layer 56
+    if (layer == 56 && std::fabs(dz) > 1)
+    {
+      flag = false;
+      break;
+    }
+  }
+
+  if (flag)
+  {
+    // SCOZ has a half dead tile
+    // only require one TPOT cluster/state from SCOP
+    if (TPOTtileID == 0)
+    {
+      if (nTPOTcluster < 1 || nTPOTstate < 1)
+      {
+        flag = false;
+      }
+    }
+    else if (TPOTtileID > 0)
+    {
+      if (nTPOTcluster < 2 || nTPOTstate < 2)
+      {
+        flag = false;
+      }
+    }
+    else if (TPOTtileID < 0)
+    {
+      flag = false;
+    }
+  }
+
+  return flag;
 }
 
 //___________________________________________________________________________________
@@ -338,7 +512,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
   // store crossing. It is used in calculating cluster's global position
   const auto crossing = track->get_crossing();
-  assert(crossing != SHRT_MAX);
+  assert(crossing != std::numeric_limits<short>::max());
 
   for (const auto& cluskey : get_cluster_keys(track))
   {
@@ -352,9 +526,11 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       continue;
     }
 
-    const auto cluster = m_clusterContainer->findCluster(cluskey);
+    const auto layer = TrkrDefs::getLayer(cluskey);
+    auto* const cluster = m_clusterContainer->findCluster(cluskey);
     const auto surface = m_tGeometry->maps().getSurface(cluskey, cluster);
-    auto result = propagator.propagateTrack(trackParams, surface);
+    // auto result = propagator.propagateTrack(trackParams, surface);//surface aborter
+    auto result = propagator.propagateTrack(trackParams, layer);  // layer aborter
 
     // skip if propagation failed
     if (!result.ok())
@@ -424,7 +600,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     const auto globalStatePos = trackStateParams.position(m_tGeometry->geometry().getGeoContext());
     const auto globalStateMom = trackStateParams.momentum();
-    const auto globalStateCov = *trackStateParams.covariance();
+    const auto globalStateCov = *trackStateParams.covariance();  // NOLINT(bugprone-unchecked-optional-access)
 
     const double trackRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm;
     const double trackZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm;
@@ -490,7 +666,20 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       std::cout << "PHTpcResiduals::processTrack -"
                 << " drphi: " << drphi
                 << " dz: " << dz
+                << " erp: " << erp
+                << " ez: " << ez
                 << std::endl;
+    }
+
+    // check rphi and z error
+    if (std::sqrt(erp) < m_minRPhiErr)
+    {
+      continue;
+    }
+
+    if (std::sqrt(ez) < m_minZErr)
+    {
+      continue;
     }
 
     const double trackPPhi = -trackStateParams.momentum()(0) * std::sin(trackPhi) + trackStateParams.momentum()(1) * std::cos(trackPhi);
@@ -523,6 +712,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // get cell index
     const auto index = getCell(globClusPos);
+
     if (Verbosity() > 3)
     {
       std::cout << "Bin index found is " << index << std::endl;
@@ -563,7 +753,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     // Fill distortion matrices
     m_matrix_container->add_to_lhs(index, 0, 0, square(clusR) / erp);
     m_matrix_container->add_to_lhs(index, 0, 1, 0);
-    m_matrix_container->add_to_lhs(index, 0, 2, clusR*trackAlpha / erp);
+    m_matrix_container->add_to_lhs(index, 0, 2, clusR * trackAlpha / erp);
 
     m_matrix_container->add_to_lhs(index, 1, 0, 0);
     m_matrix_container->add_to_lhs(index, 1, 1, 1. / ez);
@@ -573,17 +763,17 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     m_matrix_container->add_to_lhs(index, 2, 1, trackBeta / ez);
     m_matrix_container->add_to_lhs(index, 2, 2, square(trackAlpha) / erp + square(trackBeta) / ez);
 
-    m_matrix_container->add_to_rhs(index, 0, clusR*drphi / erp);
+    m_matrix_container->add_to_rhs(index, 0, clusR * drphi / erp);
     m_matrix_container->add_to_rhs(index, 1, dz / ez);
     m_matrix_container->add_to_rhs(index, 2, trackAlpha * drphi / erp + trackBeta * dz / ez);
 
     // also update rphi reduced matrices
     m_matrix_container->add_to_lhs_rphi(index, 0, 0, square(clusR) / erp);
-    m_matrix_container->add_to_lhs_rphi(index, 0, 1, clusR*trackAlpha / erp);
+    m_matrix_container->add_to_lhs_rphi(index, 0, 1, clusR * trackAlpha / erp);
     m_matrix_container->add_to_lhs_rphi(index, 1, 0, clusR * trackAlpha / erp);
     m_matrix_container->add_to_lhs_rphi(index, 1, 1, square(trackAlpha) / erp);
 
-    m_matrix_container->add_to_rhs_rphi(index, 0, clusR*drphi / erp);
+    m_matrix_container->add_to_rhs_rphi(index, 0, clusR * drphi / erp);
     m_matrix_container->add_to_rhs_rphi(index, 1, trackAlpha * drphi / erp);
 
     // also update z reduced matrices
@@ -633,7 +823,7 @@ void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, floa
     }
   }
 
-  state.set_name(std::to_string( key));
+  state.set_name(std::to_string(key));
   state.set_cluskey(key);
   track->insert_state(&state);
 }
@@ -714,6 +904,22 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 
   // tpc global position wrapper
   m_globalPositionWrapper.loadNodes(topNode);
+  if (m_disable_module_edge_corr)
+  {
+    m_globalPositionWrapper.set_enable_module_edge_corr(false);
+  }
+  if (m_disable_static_corr)
+  {
+    m_globalPositionWrapper.set_enable_static_corr(false);
+  }
+  if (m_disable_average_corr)
+  {
+    m_globalPositionWrapper.set_enable_average_corr(false);
+  }
+  if (m_disable_fluctuation_corr)
+  {
+    m_globalPositionWrapper.set_enable_fluctuation_corr(false);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

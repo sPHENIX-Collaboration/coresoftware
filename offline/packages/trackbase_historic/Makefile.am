@@ -11,7 +11,8 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include  \
-  -isystem$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include \
+  -isystem$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -67,7 +68,10 @@ pkginclude_HEADERS = \
   TrackInfoContainer_v2.h \
   TrackInfoContainer_v3.h \
   TrackStateInfo.h \
-  TrackStateInfo_v1.h
+  TrackStateInfo_v1.h \
+  WeightedTrack.h \
+  WeightedTrackZeroField.h \
+  WeightedTrackMap.h
 
 ROOTDICTS = \
   TrackSeed_Dict.cc \
@@ -114,7 +118,10 @@ ROOTDICTS = \
   TrackInfoContainer_v2_Dict.cc \
   TrackInfoContainer_v3_Dict.cc \
   TrackStateInfo_Dict.cc \
-  TrackStateInfo_v1_Dict.cc
+  TrackStateInfo_v1_Dict.cc \
+  WeightedTrack_Dict.cc \
+  WeightedTrackZeroField_Dict.cc \
+  WeightedTrackMap_Dict.cc
 
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
@@ -162,7 +169,10 @@ nobase_dist_pcm_DATA = \
   TrackInfoContainer_v2_Dict_rdict.pcm \
   TrackInfoContainer_v3_Dict_rdict.pcm \
   TrackStateInfo_Dict_rdict.pcm \
-  TrackStateInfo_v1_Dict_rdict.pcm
+  TrackStateInfo_v1_Dict_rdict.pcm \
+  WeightedTrack_Dict_rdict.pcm \
+  WeightedTrackZeroField_Dict_rdict.pcm \
+  WeightedTrackMap_Dict_rdict.pcm
 
 libtrackbase_historic_la_SOURCES = \
   ActsTransformations.cc \
@@ -212,7 +222,10 @@ libtrackbase_historic_io_la_SOURCES = \
   TrackInfoContainer_v1.cc \
   TrackInfoContainer_v2.cc \
   TrackInfoContainer_v3.cc \
-  TrackStateInfo_v1.cc
+  TrackStateInfo_v1.cc \
+  WeightedTrack.cc \
+  WeightedTrackZeroField.cc \
+  WeightedTrackMap.cc
 
 AM_LDFLAGS = \
   -L$(libdir) \

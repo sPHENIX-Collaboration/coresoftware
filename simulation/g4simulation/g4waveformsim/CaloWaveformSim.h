@@ -24,7 +24,6 @@ class TProfile;
 class PHG4Hit;
 class PHG4CylinderCellGeom_Spacalv1;
 class PHG4CylinderGeom_Spacalv3;
-class TRandom3;
 class TTree;
 class CDBTTree;
 class TowerInfoContainer;
@@ -117,6 +116,11 @@ class CaloWaveformSim : public SubsysReco
     m_giveDirectURL_MC_time = true;
     m_directURL_MC_time = url;
   }
+  void set_smear_const(float val)
+  {
+    m_smear_const = true;
+    factor_const = val;
+  }
   void set_overrideMCTimeFieldName(bool overrideField) { m_overrideMCTimeFieldName = overrideField; }
   void set_overrideMCTimeCalibName(bool overrideCalib) { m_overrideMCTimeCalibName = overrideCalib; }
 
@@ -168,6 +172,9 @@ class CaloWaveformSim : public SubsysReco
   bool m_overrideMCCalibName{false};
   bool m_giveDirectURL_MC{false};
   std::string m_directURL_MC{""};
+
+  bool m_smear_const{false};
+  float factor_const{0.};
 
   // Data time calibration
   std::string m_fieldname_time{"time"};
