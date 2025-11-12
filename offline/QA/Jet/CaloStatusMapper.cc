@@ -121,8 +121,6 @@ int CaloStatusMapper::Init(PHCompositeNode* /*topNode*/)
   InitHistManager();
   BuildHistograms();
 
-  allCaloEnergy = new TH1F("h_calostatusmapper_towere_allcalo", "All Calo Tower Energy Sum; Tower E [GeV]", 1000, 0, 2000);
-
   // make sure event no. is set to 0
   m_nEvent = 0;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -306,6 +304,11 @@ void CaloStatusMapper::BuildHistograms()
   // instantiate histogram definitions
   const CaloStatusMapperDefs::EMCalHistDef emHistDef;
   const CaloStatusMapperDefs::HCalHistDef  hcHistDef;
+
+  // make total calo energy hist
+  const std::string caloEBase = MakeBaseName("TowerE", "towerinfo_calib_allcalo");
+  const std::string caloEName = JetQADefs::MakeQAHistName(caloEBase, m_config.moduleName, m_config.histTag);
+  allCaloEnergy = new TH1F(caloEName.data(), "All Calo Tower Energy Sum; Tower E [GeV]", 320, -200, 3000);
 
   // loop over input node names
   for (const auto& nodeName : m_config.inNodeNames)

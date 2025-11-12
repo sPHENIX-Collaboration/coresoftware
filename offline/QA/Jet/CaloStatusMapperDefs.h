@@ -127,7 +127,7 @@ namespace CaloStatusMapperDefs
     //! AxisDef stat {"Status", S, -0.5, S - 0.5};
     AxisDef eta {"i_{#eta}", H, -0.5, H - 0.5};
     AxisDef phi {"i_{#phi}", F, -0.5, F - 0.5};
-    AxisDef towere {"Tower E", E + 1, -0.5, E + 0.5};
+    AxisDef towere {"Tower E", (E + 100)/10, -100, E};
 
     //! make 1 1d status plot
     TH1D* MakeStatus1D(const std::string& name) const
