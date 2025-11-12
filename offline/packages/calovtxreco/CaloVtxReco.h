@@ -19,7 +19,7 @@ class CaloVtxReco : public SubsysReco
   
   int InitRun(PHCompositeNode *topNode) override;
 
-  const int calo_tower_algorithm(PHCompositeNode *topNode);
+  int calo_tower_algorithm(PHCompositeNode *topNode) const;
 
   int process_event(PHCompositeNode *topNode) override;
 

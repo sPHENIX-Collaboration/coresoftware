@@ -101,7 +101,7 @@ float get_dphi(float phi1, float phi2)
   return dphi;
 }
 
-const int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode)
+int CaloVtxReco::calo_tower_algorithm(PHCompositeNode *topNode) const
 {
 
   TowerInfoContainer *emcal_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
