@@ -152,7 +152,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
              ++iter)
         {
-          auto track = trackmap->find(*iter)->second;
+          auto *track = trackmap->find(*iter)->second;
           track->set_vertex_id(vertex->get_id());
         }
       }
@@ -178,7 +178,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     {
       const SvtxVertex *svtx = svtxiter->second;
 
-      if (used_svtx_vtxids.find(svtx->get_id()) != used_svtx_vtxids.end())
+      if (used_svtx_vtxids.contains(svtx->get_id()))
       {
         continue;
       }
@@ -201,7 +201,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
              ++iter)
         {
-          auto track = trackmap->find(*iter)->second;
+          auto *track = trackmap->find(*iter)->second;
           track->set_vertex_id(vertex->get_id());
         }
       }
@@ -228,11 +228,11 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     {
       const MbdVertex *mbd = mbditer->second;
 
-      if (used_mbd_vtxids.find(mbd->get_id()) != used_mbd_vtxids.end())
+      if (used_mbd_vtxids.contains(mbd->get_id()))
       {
         continue;
       }
-      
+
       if (std::isnan(mbd->get_z()))
       {
         continue;
@@ -280,7 +280,10 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       GlobalVertex *vertex = new GlobalVertexv2();
       vertex->clone_insert_vtx(GlobalVertex::TRUTH, tvertex);
       globalmap->insert(vertex);
-      if (truthmap) truthmap->insert(tvertex);
+      if (truthmap)
+      {
+        truthmap->insert(tvertex);
+      }
       if (Verbosity() > 1)
       {
         vertex->identify();
@@ -372,7 +375,9 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
   if (!truthmap && truthinfo)
   {
     if (Verbosity())
+    {
       std::cout << "Creating TruthVertexMap node" << std::endl;
+    }
     truthmap = new TruthVertexMap_v1();
     PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
     globalNode->addNode(TruthVertexMapNode);

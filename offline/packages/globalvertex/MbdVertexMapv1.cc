@@ -46,14 +46,14 @@ MbdVertex* MbdVertexMapv1::get(unsigned int id)
   return iter->second;
 }
 
-MbdVertex* MbdVertexMapv1::insert(MbdVertex* clus)
+MbdVertex* MbdVertexMapv1::insert(MbdVertex* vertex)
 {
   unsigned int index = 0;
   if (!_map.empty())
   {
     index = _map.rbegin()->first + 1;
   }
-  _map.insert(std::make_pair(index, clus));
+  _map.insert(std::make_pair(index, vertex));
   _map[index]->set_id(index);
   return _map[index];
 }
