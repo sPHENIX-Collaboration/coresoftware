@@ -940,10 +940,14 @@ void CaloValid::createHistos()
   auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  // create and register your histos (all types) here
+ // create and register your histos (all types) here
   h_emcal_mbd_correlation = new TH2F(std::format("{}emcal_mbd_correlation", getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
   h_emcal_mbd_correlation->SetDirectory(nullptr);
   hm->registerHisto(h_emcal_mbd_correlation);
+
+  h_mbd_hits = new TH1F(std::format("{}mbd_hits", getHistoPrefix()).c_str(), "mb hits", 100, 0, 100);
+  h_mbd_hits->SetDirectory(nullptr);
+  hm->registerHisto(h_mbd_hits);
 
   h_ohcal_mbd_correlation = new TH2F(std::format("{}ohcal_mbd_correlation", getHistoPrefix()).c_str(), ";ohcal;mbd", 100, 0, 1, 100, 0, 1);
   h_ohcal_mbd_correlation->SetDirectory(nullptr);
@@ -961,112 +965,105 @@ void CaloValid::createHistos()
   h_cemc_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi);
 
+  h_cemc_etaphi_highhit = new TH2F(std::format("{}cemc_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
+  h_cemc_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_highhit);
+  
   h_ihcal_etaphi = new TH2F(std::format("{}ihcal_etaphi", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ihcal_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi);
 
+  h_ihcal_etaphi_highhit = new TH2F(std::format("{}ihcal_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ihcal_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_highhit);
+  
   h_ohcal_etaphi = new TH2F(std::format("{}ohcal_etaphi", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ohcal_etaphi->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi);
 
-  h_cemc_etaphi_wQA = new TProfile2D(std::format("{}cemc_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, 0, 100);
+  h_ohcal_etaphi_highhit = new TH2F(std::format("{}ohcal_etaphi_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
+  h_ohcal_etaphi_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_highhit);
+  
+  h_cemc_etaphi_wQA = new TH2F(std::format("{}cemc_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
   h_cemc_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_wQA);
 
-  h_ihcal_etaphi_wQA = new TProfile2D(std::format("{}ihcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 100);
+  h_ihcal_etaphi_wQA = new TH2F(std::format("{}ihcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ihcal_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_wQA);
 
-  h_ohcal_etaphi_wQA = new TProfile2D(std::format("{}ohcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, 0, 100);
+  h_ohcal_etaphi_wQA = new TH2F(std::format("{}ohcal_etaphi_wQA", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
   h_ohcal_etaphi_wQA->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_wQA);
 
-  // h_cemc_e_chi2 = new TH2F(std::format("{}cemc_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
+  h_ihcal_status = new TH1F(std::format("{}ihcal_status", getHistoPrefix()).c_str(), "", 256, 0, 256);
+  h_ihcal_status->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_status);
+
+  h_ohcal_status = new TH1F(std::format("{}ohcal_status", getHistoPrefix()).c_str(), "", 256, 0, 256);
+  h_ohcal_status->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_status);
+
+  h_cemc_status = new TH1F(std::format("{}cemc_status", getHistoPrefix()).c_str(), "", 256, 0, 256);
+  h_cemc_status->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_status);
+
   h_cemc_e_chi2 = LogYHist2D(std::format("{}cemc_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
   h_cemc_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_e_chi2);
 
-  // h_ihcal_e_chi2 = new TH2F(std::format("{}ihcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
   h_ihcal_e_chi2 = LogYHist2D(std::format("{}ihcal_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
   h_ihcal_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_e_chi2);
 
-  //  h_ohcal_e_chi2 = new TH2F(std::format("{}ohcal_e_chi2", getHistoPrefix()).c_str(), ";e;chi2", 100, 0, 10, 100, 0, 10);
   h_ohcal_e_chi2 = LogYHist2D(std::format("{}ohcal_e_chi2", getHistoPrefix()), "", 270, -2, 25, 1000, 0.5, 4e8);
   h_ohcal_e_chi2->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_e_chi2);
 
-  h_cemc_etaphi_time = new TProfile2D(std::format("{}cemc_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -17.5, 32.5);
+  h_cemc_etaphi_time = new TProfile2D(std::format("{}cemc_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
   h_cemc_etaphi_time->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_time);
 
-  h_ihcal_etaphi_time = new TProfile2D(std::format("{}ihcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
-  h_ihcal_etaphi_time->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_etaphi_time);
-
-  h_ohcal_etaphi_time = new TProfile2D(std::format("{}ohcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
-  h_ohcal_etaphi_time->SetDirectory(nullptr);
-  hm->registerHisto(h_ohcal_etaphi_time);
-
-  h_cemc_etaphi_time_highhit = new TProfile2D(std::format("{}cemc_etaphi_time_highhit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -17.5, 32.5);
-  h_cemc_etaphi_time_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_etaphi_time_highhit);
-
-  h_ihcal_etaphi_time_highhit = new TProfile2D(std::format("{}ihcal_etaphi_time_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
-  h_ihcal_etaphi_time_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_etaphi_time_highhit);
-
-  h_ohcal_etaphi_time_highhit = new TProfile2D(std::format("{}ohcal_etaphi_time_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
-  h_ohcal_etaphi_time_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_ohcal_etaphi_time_highhit);
-
-  h_cemc_etaphi_highhit = new TH2F(std::format("{}cemc_etaphi_highhit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256);
-  h_cemc_etaphi_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_etaphi_highhit);
-
-  h_ihcal_etaphi_highhit = new TH2F(std::format("{}ihcal_etaphi_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
-  h_ihcal_etaphi_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_etaphi_highhit);
-
-  h_ohcal_etaphi_highhit = new TH2F(std::format("{}ohcal_etaphi_highhit", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64);
-  h_ohcal_etaphi_highhit->SetDirectory(nullptr);
-  hm->registerHisto(h_ohcal_etaphi_highhit);
-
-  h_cemc_etaphi_time_raw = new TProfile2D(std::format("{}cemc_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -17.5, 32.5);
+  h_cemc_etaphi_time_raw = new TProfile2D(std::format("{}cemc_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
   h_cemc_etaphi_time_raw->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_time_raw);
 
-  h_ihcal_etaphi_time_raw = new TProfile2D(std::format("{}ihcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
+  h_cemc_etaphi_time_highhit = new TProfile2D(std::format("{}cemc_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+  h_cemc_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_time_highhit);
+  
+  h_ihcal_etaphi_time = new TProfile2D(std::format("{}ihcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ihcal_etaphi_time->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_time);
+
+  h_ihcal_etaphi_time_raw = new TProfile2D(std::format("{}ihcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ihcal_etaphi_time_raw->SetDirectory(nullptr);
   hm->registerHisto(h_ihcal_etaphi_time_raw);
 
-  h_ohcal_etaphi_time_raw = new TProfile2D(std::format("{}ohcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -17.5, 32.5);
+  h_ihcal_etaphi_time_highhit = new TProfile2D(std::format("{}ihcal_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ihcal_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ihcal_etaphi_time_highhit);
+  
+  h_ohcal_etaphi_time = new TProfile2D(std::format("{}ohcal_etaphi_time", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ohcal_etaphi_time->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_time);
+
+  h_ohcal_etaphi_time_raw = new TProfile2D(std::format("{}ohcal_etaphi_time_raw", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ohcal_etaphi_time_raw->SetDirectory(nullptr);
   hm->registerHisto(h_ohcal_etaphi_time_raw);
 
-  h_cemc_status = new TH1F(std::format("{}cemc_status", getHistoPrefix()).c_str(), ";status", 8, 0, 8);
-  h_cemc_status->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_status);
-
-  h_ihcal_status = new TH1F(std::format("{}ihcal_status", getHistoPrefix()).c_str(), ";status", 8, 0, 8);
-  h_ihcal_status->SetDirectory(nullptr);
-  hm->registerHisto(h_ihcal_status);
-
-  h_ohcal_status = new TH1F(std::format("{}ohcal_status", getHistoPrefix()).c_str(), ";status", 8, 0, 8);
-  h_ohcal_status->SetDirectory(nullptr);
-  hm->registerHisto(h_ohcal_status);
-
-  h_mbd_hits = new TH1F(std::format("{}mbd_hits", getHistoPrefix()).c_str(), ";mbd charge [a.u.]", 100, 0, 100);
-  h_mbd_hits->SetDirectory(nullptr);
-  hm->registerHisto(h_mbd_hits);
+  h_ohcal_etaphi_time_highhit = new TProfile2D(std::format("{}ohcal_etaphi_time_highthreshold", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
+  h_ohcal_etaphi_time_highhit->SetDirectory(nullptr);
+  hm->registerHisto(h_ohcal_etaphi_time_highhit);
+  
+  h_cemc_etaphi_fracHitADC = new TProfile2D(std::format("{}cemc_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
+  h_cemc_etaphi_fracHitADC->SetDirectory(nullptr);
+  hm->registerHisto(h_cemc_etaphi_fracHitADC);
 
   h_cemc_etaphi_fracHit = new TProfile2D(std::format("{}cemc_etaphi_fracHit", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
   h_cemc_etaphi_fracHit->SetDirectory(nullptr);
   hm->registerHisto(h_cemc_etaphi_fracHit);
-
-  h_cemc_etaphi_fracHitADC = new TProfile2D(std::format("{}cemc_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 96, 0, 96, 256, 0, 256, -10, 10);
-  h_cemc_etaphi_fracHitADC->SetDirectory(nullptr);
-  hm->registerHisto(h_cemc_etaphi_fracHitADC);
 
   h_ihcal_etaphi_fracHitADC = new TProfile2D(std::format("{}ihcal_etaphi_fracHitADC", getHistoPrefix()).c_str(), ";eta;phi", 24, 0, 24, 64, 0, 64, -10, 10);
   h_ihcal_etaphi_fracHitADC->SetDirectory(nullptr);
@@ -1206,6 +1203,8 @@ void CaloValid::createHistos()
   h_triggerVec->SetDirectory(nullptr);
   hm->registerHisto(h_triggerVec);
 
+
+  
   //---------EMCal--------//
   {
     int size = 128 * 192;
