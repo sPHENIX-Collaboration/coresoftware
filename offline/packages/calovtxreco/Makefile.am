@@ -12,9 +12,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   CaloVtxReco.h
 
-pcmdir = $(libdir)
-nobase_dist_pcm_DATA = 
-
 lib_LTLIBRARIES = \
   libcalovtxreco.la
 
@@ -23,22 +20,14 @@ libcalovtxreco_la_SOURCES = \
 
 libcalovtxreco_la_LIBADD = \
   -lcalo_io \
-  -lSubsysReco -lffaobjects \
-  -ljetbase -lglobalvertex
-#-lg4jets_io
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#just to get the dependency
-%_Dict_rdict.pcm: %_Dict.cc ;
+  -lSubsysReco \
+  -ljetbase \
+  -lglobalvertex_io
 
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_io \
   testexternals
-
-testexternals_io_SOURCES = testexternals.cc
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libcalovtxreco.la
