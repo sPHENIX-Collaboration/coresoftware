@@ -36,6 +36,7 @@ class Fun4AllSyncManager : public Fun4AllBase
   int fileclose(const std::string &managername = "NONE");
   int CurrentRun() { return m_CurrentRun; }
   void CurrentRun(const int ival) { m_CurrentRun = ival; }
+  int CurrentEvent() const {return m_CurrentEvent;}
   void CurrentEvent(const int evt);
   void Print(const std::string &what = "ALL") const override;
   void SegmentNumber(const int iseg) { m_PrdfSegment = iseg; }
