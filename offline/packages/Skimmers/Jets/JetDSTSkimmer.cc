@@ -46,7 +46,7 @@ int JetDSTSkimmer::process_event(PHCompositeNode *topNode)
       }
       continue;
     }
-    for (auto jet : *jets)
+    for (auto *jet : *jets)
     {
       if (jet->get_pt() > jetThreshold)
       {
@@ -54,7 +54,10 @@ int JetDSTSkimmer::process_event(PHCompositeNode *topNode)
         break;
       }
     }
-    if (passedJet) break;
+    if (passedJet)
+    {
+      break;
+    }
   }
 
   // Check all configured cluster nodes; pass if any cluster exceeds its node threshold
@@ -83,7 +86,10 @@ int JetDSTSkimmer::process_event(PHCompositeNode *topNode)
         break;
       }
     }
-    if (passedCluster) break;
+    if (passedCluster)
+    {
+      break;
+    }
   }
 
   // place holder for identifying background events
