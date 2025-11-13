@@ -18,7 +18,6 @@ libglobalvertex_io_la_LIBADD = \
 
 libglobalvertex_la_LIBADD = \
   libglobalvertex_io.la \
-  -lmbd_io \
   -lphg4hit \
   -lSubsysReco \
   -ltrackbase_historic_io
