@@ -171,6 +171,9 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
 
 int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
 {
+  evt_inttHits_vec.clear();
+  evt_ChipHit_count_map.clear();
+
   TrkrHitSetContainer* trkr_hit_set_container = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!trkr_hit_set_container)
   {
@@ -242,113 +245,159 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
   TrkrHitSetContainer::Iterator hit_set_container_itr;
   TrkrHit* hit = nullptr;
 
-  for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
-  {
-    InttRawHit* intthit = inttcont->get_hit(i);
-    InttNameSpace::RawData_s raw = InttNameSpace::RawFromHit(intthit);
-
-    int adc = intthit->get_adc();
-    // amp = intthit->get_amplitude();
-    uint64_t bco_full = intthit->get_bco();
-    int bco = intthit->get_FPHX_BCO();
-
-    InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
-
-    ////////////////////////
-    // bad channel filter
-    if (m_badmap.OfflineLoaded() && m_badmap.IsBad(ofl))
+  unsigned int loop_start = (m_SaturatedChipRejection) ? 0 : 1; // note : if m_SaturatedChipRejection, then first loop for counting, otherwise, start with the second loop
+  for (unsigned int loop = loop_start; loop < 2; loop++){
+    
+    for (unsigned int i = 0; i < inttcont->get_nhits(); i++)
     {
-      if (1 < Verbosity())
+      InttRawHit* intthit = inttcont->get_hit(i);
+      InttNameSpace::RawData_s raw = InttNameSpace::RawFromHit(intthit);
+
+      int adc = intthit->get_adc();
+      // amp = intthit->get_amplitude();
+      uint64_t bco_full = intthit->get_bco();
+      int bco = intthit->get_FPHX_BCO();
+
+      InttNameSpace::Offline_s ofl = InttNameSpace::ToOffline(raw);
+
+      ////////////////////////
+      // bad channel filter
+      if (m_badmap.OfflineLoaded() && m_badmap.IsBad(ofl))
       {
-        std::cout
-          << PHWHERE << "\n"
-          << "\tMasking channel:\n"
-          << "\t" << ofl.layer << " " << ofl.ladder_phi << " " << ofl.ladder_z << " " << ofl.strip_y << " " << ofl.strip_x << "\n"
-          << std::endl;
-      }
-      continue;
-    }
-
-    if (m_badmap.RawDataLoaded() && m_badmap.IsBad(raw))
-    {
-      if (1 < Verbosity())
-      {
-        std::cout
-          << PHWHERE << "\n"
-          << "\tMasking (raw) channel:\n"
-          << "\t" << raw.felix_server << " " << raw.felix_channel << " " << raw.chip << " " << raw.channel << "\n"
-          << std::endl;
-      }
-      continue;
-    }
-
-    ////////////////////////
-    // bco filter
-    if (m_bcomap.IsBad(raw, bco_full, bco) && m_bcoFilter)
-    {
-      // std::cout<<"bad bco removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
-      continue;
-    }
-
-    hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
-    int time_bucket = 0;
-    if(!m_runStandAlone)
-      {
-	if(m_triggeredMode)
-	  {
-	    time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;
-	  }
-	else    // streamed mode
-	  {
-	    // For triggered events with the INTT in streaming mode:
-	    //   The BCO corresponding to a given FPHX_BCO is:
-	    //               intthit->get_FPHX_BCO() + intthit->get_bco() - m_inttFeeOffset
-	    //   The bunch crossing relative to the trigger BCO is then:
-	    //               (intthit->get_FPHX_BCO() + intthit->get_bco() - m_inttFeeOffset) - gl1bco
-	    
-	    time_bucket =  intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco -  m_inttFeeOffset;
-	  }
-      }
-    hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, time_bucket);
-    hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
-    hit = hit_set_container_itr->second->getHit(hit_key);
-
-    if(m_outputBcoDiff)
-      {
-	int bco_diff = 0;
-	if(m_triggeredMode)
-	  {
-	    bco_diff = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) + 128) % 128;
-	  }
-	else
-	  {
-	    bco_diff =  intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco;
-	  }
-
-	std::cout << " bco: " << " fee " << intthit->get_fee() 
-		  << " rawhitbco " <<  intthit->get_bco() 
-		  << " gl1bco " << gl1bco 
-		  << "  intthit->get_FPHX_BCO() " <<  intthit->get_FPHX_BCO()
-		  << " bcodiff " << bco_diff 
-		  << " time_bucket " << time_bucket 
-		  << std::endl;
+        if (1 < Verbosity())
+        {
+          std::cout
+            << PHWHERE << "\n"
+            << "\tMasking channel:\n"
+            << "\t" << ofl.layer << " " << ofl.ladder_phi << " " << ofl.ladder_z << " " << ofl.strip_y << " " << ofl.strip_x << "\n"
+            << std::endl;
+        }
+        continue;
       }
 
-    if (hit)
-    {
-      continue;
+      if (m_badmap.RawDataLoaded() && m_badmap.IsBad(raw))
+      {
+        if (1 < Verbosity())
+        {
+          std::cout
+            << PHWHERE << "\n"
+            << "\tMasking (raw) channel:\n"
+            << "\t" << raw.felix_server << " " << raw.felix_channel << " " << raw.chip << " " << raw.channel << "\n"
+            << std::endl;
+        }
+        continue;
+      }
+
+      ////////////////////////
+      // bco filter
+      if (m_bcomap.IsBad(raw, bco_full, bco) && m_bcoFilter)
+      {
+        // std::cout<<"bad bco removed : "<<raw.felix_server<<" "<<raw.felix_channel<<" "<<raw.chip<<" "<<raw.channel<<std::endl;
+        continue;
+      }
+
+      int time_bucket = 0;
+
+      // Note: Case 1: Local, Triggered, With BCO filter
+      if ( m_runStandAlone && m_triggeredMode && m_bcoFilter ) {time_bucket = 0;}
+
+      // Note: Case 2: Local, Triggered, No BCO filter
+      else if ( m_runStandAlone && m_triggeredMode && !m_bcoFilter ) {time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;}
+
+      // Note: Case 3: Local, Streaming, With BCO filter
+      else if ( m_runStandAlone && !m_triggeredMode && m_bcoFilter ) {
+          std::cout<< PHWHERE << "\n" << "You selected INTT local mode, streaming mode, and BCO_filter, which is not supported. Exiting."<< std::endl;
+          gSystem->Exit(1);
+          exit(1);
+      }
+
+      // Note: Case 4: Local, Streaming, No BCO filter
+      else if ( m_runStandAlone && !m_triggeredMode && !m_bcoFilter ) {
+          std::cout<< PHWHERE << "\n"<< "You selected INTT local mode, streaming mode, and WITHOUT BCO_filter, but GL1 is not available for time-bucket calculation. Exiting."<< std::endl;
+          gSystem->Exit(1);
+          exit(1);
+      }
+
+      // Note: Case 5: Global, Triggered, With BCO filter
+      else if ( !m_runStandAlone && m_triggeredMode && m_bcoFilter ) {time_bucket = 0;}
+
+      // Note: Case 6: Global, Triggered, No BCO filter
+      else if ( !m_runStandAlone && m_triggeredMode && !m_bcoFilter ) {time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;}
+
+      // Note: Case 7: Global, Streaming, With BCO filter
+      else if ( !m_runStandAlone && !m_triggeredMode && m_bcoFilter ) {
+          std::cout<< PHWHERE << "\n"<< "You selected INTT global mode, streaming mode, and BCO_filter, which is not supported. Exiting."<< std::endl;
+          gSystem->Exit(1);
+          exit(1);
+      }
+
+      // Note: Case 8: Global, Streaming, No BCO filter
+      else if ( !m_runStandAlone && !m_triggeredMode && !m_bcoFilter ) {time_bucket = intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco -  m_inttFeeOffset;}
+
+      if(m_outputBcoDiff)
+      {
+        int bco_diff = 0;
+        if(m_triggeredMode)
+          {
+            bco_diff = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) + 128) % 128;
+          }
+        else
+          {
+            bco_diff =  intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco;
+          }
+
+        std::cout << " bco: " << " fee " << intthit->get_fee() 
+            << " rawhitbco " <<  intthit->get_bco() 
+            << " gl1bco " << gl1bco 
+            << "  intthit->get_FPHX_BCO() " <<  intthit->get_FPHX_BCO()
+            << " bcodiff " << bco_diff 
+            << " time_bucket " << time_bucket 
+            << std::endl;
+      }
+
+      std::string text_to_hit =  Form("%d_%d_%d_%d_%d",int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), int(intthit->get_channel_id()), time_bucket);
+      std::string text_to_chip = Form("%d_%d_%d_%d",   int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), time_bucket);
+
+      if (loop == 0) { // note : the first "loop" is for counting the number of chip hit, so we don't touch the hit set key things 
+
+        if (std::find(evt_inttHits_vec.begin(), evt_inttHits_vec.end(),text_to_hit) == evt_inttHits_vec.end()){ // note : this is a new hit to the evt_inttHits_vec
+          evt_inttHits_vec.push_back(text_to_hit);
+          
+          if (evt_ChipHit_count_map.find(text_to_chip) == evt_ChipHit_count_map.end()){
+            evt_ChipHit_count_map[text_to_chip] = 1;
+          }
+          else{
+            evt_ChipHit_count_map[text_to_chip] += 1;
+          }
+        }
+      
+        continue;
+      }
+
+      if (loop == 1 && m_SaturatedChipRejection && evt_ChipHit_count_map[text_to_chip] >= HighChipMultiplicityCut){continue;}
+
+      hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
+
+      hit_set_key = InttDefs::genHitSetKey(ofl.layer, ofl.ladder_z, ofl.ladder_phi, time_bucket);
+      hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
+      hit = hit_set_container_itr->second->getHit(hit_key);
+
+      if (hit)
+      {
+        continue;
+      }
+
+      ////////////////////////
+      // dac conversion
+      int dac = m_dacmap.GetDAC(raw, adc);
+
+      hit = new TrkrHitv2;
+      //--hit->setAdc(adc);
+      hit->setAdc(dac);
+      hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
     }
 
-    ////////////////////////
-    // dac conversion
-    int dac = m_dacmap.GetDAC(raw, adc);
-
-    hit = new TrkrHitv2;
-    //--hit->setAdc(adc);
-    hit->setAdc(dac);
-    hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
