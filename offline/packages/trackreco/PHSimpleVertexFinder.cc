@@ -716,12 +716,12 @@ void PHSimpleVertexFinder::checkDCAsZF(SvtxTrackMap *track_map)
 
 
 	  // check dca cut is satisfied, and that PCA is close to beam line
-	  // if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
 	  if (fabs(dca) < _active_dcacut
 	      && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi)
 	      && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi)
 	      && (PCA2.x() > _beamline_x_cut_lo && PCA2.x() < _beamline_x_cut_hi)
-	      && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi)   )
+	      && (PCA2.y() > _beamline_y_cut_lo && PCA2.y() < _beamline_y_cut_hi)
+	      )
 	    {
 	      int id1 = cumulative_trackid_vec[i1];
 	      int id2 = cumulative_trackid_vec[i2];
@@ -910,7 +910,6 @@ void PHSimpleVertexFinder::findDcaTwoTracks(SvtxTrack *tr1, SvtxTrack *tr2)
     }
   
   // check dca cut is satisfied, and that PCA is close to beam line
-  //  if (fabs(dca) < _active_dcacut && (fabs(PCA1.x()) < _beamline_xy_cut && fabs(PCA1.y()) < _beamline_xy_cut))
   if (fabs(dca) < _active_dcacut
       && (PCA1.x() > _beamline_x_cut_lo && PCA1.x() < _beamline_x_cut_hi)
       && (PCA1.y() > _beamline_y_cut_lo && PCA1.y() < _beamline_y_cut_hi)
@@ -1096,7 +1095,6 @@ std::vector<std::set<unsigned int>> PHSimpleVertexFinder::findConnectedTracks()
 		    std::cout << "       id4 " << idb << " pca4 " << pcab.x() << "  " << pcab.y() << "  " << pcab.z() << std::endl;
 		}
 	      }
-	    
 	  }
         connected.insert(id3);
         used.insert(id3);
