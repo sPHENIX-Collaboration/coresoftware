@@ -24,55 +24,78 @@ JetDSTSkimmer::JetDSTSkimmer(const std::string &name)
 //____________________________________________________________________________..
 int JetDSTSkimmer::process_event(PHCompositeNode *topNode)
 {
-  // here we are basically going to see if the max cluster pT or max jet pT is above a certain threshold, otherwise we will abort the event
-  // jet loop
-  JetContainer *jets = findNode::getClass<JetContainer>(topNode, m_JetNodeName);
-  if (!jets)
+  // If no thresholds are configured, keep all events
+  if (m_JetNodePts.empty() && m_ClusterNodePts.empty())
   {
-    std::cout << "JetDSTSkimmer::process_event - Error - Can't find Jet Node " << m_JetNodeName << " therefore no selection can be made" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
-  float maxjetpt = 0;
-  for (auto jet : *jets)
+
+  // Check all configured jet nodes; pass if any jet exceeds its node threshold
+  bool passedJet = false;
+  for (const auto &jetNodeAndThreshold : m_JetNodePts)
   {
-    if (jet->get_pt() > maxjetpt)
+    const std::string &jetNodeName = jetNodeAndThreshold.first;
+    const float jetThreshold = jetNodeAndThreshold.second;
+
+    JetContainer *jets = findNode::getClass<JetContainer>(topNode, jetNodeName);
+    if (!jets)
     {
-      maxjetpt = jet->get_pt();
+      if (Verbosity() > 0)
+      {
+        std::cout << "JetDSTSkimmer::process_event - Warning - Can't find Jet Node Not Skimming on this: " << jetNodeName << std::endl;
+      }
+      continue;
+    }
+    for (auto *jet : *jets)
+    {
+      if (jet->get_pt() > jetThreshold)
+      {
+        passedJet = true;
+        break;
+      }
+    }
+    if (passedJet)
+    {
+      break;
     }
   }
 
-  RawClusterContainer *_clusters = findNode::getClass<RawClusterContainer>(topNode, m_ClusterNodeName);
-  if (!_clusters)
+  // Check all configured cluster nodes; pass if any cluster exceeds its node threshold
+  bool passedCluster = false;
+  for (const auto &clusterNodeAndThreshold : m_ClusterNodePts)
   {
-    std::cout << "JetDSTSkimmer::process_event - Error - Can't find Cluster Node " << m_ClusterNodeName << " therefore no selection can be made" << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  float maxclusterpt = 0;
-  RawClusterContainer::Map clusterMap = _clusters->getClustersMap();
-  for (auto &clusterPair : clusterMap)
-  {
-    RawCluster *recoCluster = (clusterPair.second);
-    if (recoCluster->get_energy() > maxclusterpt)
+    const std::string &clusterNodeName = clusterNodeAndThreshold.first;
+    const float clusterThreshold = clusterNodeAndThreshold.second;
+
+    RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode, clusterNodeName);
+    if (!clusters)
     {
-      maxclusterpt = recoCluster->get_energy();
+      if (Verbosity() > 0)
+      {
+        std::cout << "JetDSTSkimmer::process_event - Warning - Can't find Cluster Node " << clusterNodeName << std::endl;
+      }
+      continue;
+    }
+    RawClusterContainer::Map clusterMap = clusters->getClustersMap();
+    for (auto &clusterPair : clusterMap)
+    {
+      RawCluster *recoCluster = (clusterPair.second);
+      if (recoCluster->get_energy() > clusterThreshold)
+      {
+        passedCluster = true;
+        break;
+      }
+    }
+    if (passedCluster)
+    {
+      break;
     }
   }
+
   // place holder for identifying background events
   bool isBackground = isBackgroundEvent();
 
-  bool keepEvent = false;
-  if (maxjetpt > m_minJetPt || maxclusterpt > m_minClusterPt)
-  {
-    keepEvent = true;
-  }
-  else
-  {
-    // verbose output, verbose 2 also will show the event abortion by this module
-    if (Verbosity() > 1)
-    {
-      std::cout << "JetDSTSkimmer::process_event - Event Rejected - Max Jet pT: " << maxjetpt << " Max Cluster pT: " << maxclusterpt << std::endl;
-    }
-  }
+  bool keepEvent = (passedJet || passedCluster);
   if (isBackground)
   {
     keepEvent = false;
@@ -81,8 +104,13 @@ int JetDSTSkimmer::process_event(PHCompositeNode *topNode)
       std::cout << "JetDSTSkimmer::process_event - Event Rejected - Background Event" << std::endl;
     }
   }
+
   if (!keepEvent)
   {
+    if (Verbosity() > 1)
+    {
+      std::cout << "JetDSTSkimmer::process_event - Event Rejected - No jets or clusters above thresholds" << std::endl;
+    }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
