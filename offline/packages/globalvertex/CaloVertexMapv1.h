@@ -1,38 +1,34 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef GLOBALVERTEX_GLOBALVERTEXMAPV1_H
-#define GLOBALVERTEX_GLOBALVERTEXMAPV1_H
+#ifndef GLOBALVERTEX_CALOVERTEXMAPV1_H
+#define GLOBALVERTEX_CALOVERTEXMAPV1_H
 
-#include "GlobalVertexMap.h"
+#include "CaloVertexMap.h"
 
-#include "GlobalVertex.h"
+#include "CaloVertex.h"
 
 #include <cstddef>  // for size_t
 #include <iostream>
 #include <map>
 
-class GlobalVertexMapv1 : public GlobalVertexMap
+class CaloVertexMapv1 : public CaloVertexMap
 {
  public:
-  GlobalVertexMapv1() = default;
-  ~GlobalVertexMapv1() override;
+  CaloVertexMapv1() = default;
+  ~CaloVertexMapv1() override;
 
   void identify(std::ostream& os = std::cout) const override;
   void Reset() override { clear(); }
-  int isValid() const override { return _map.size(); }
-  PHObject* CloneMe() const override { return new GlobalVertexMapv1(*this); }
-  void CopyTo(GlobalVertexMap*) override;
+  int isValid() const override { return 1; }
 
   bool empty() const override { return _map.empty(); }
   size_t size() const override { return _map.size(); }
   size_t count(unsigned int idkey) const override { return _map.count(idkey); }
-  // cppcheck-suppress virtualCallInConstructor
   void clear() override;
 
-  const GlobalVertex* get(unsigned int idkey) const override;
-  GlobalVertex* get(unsigned int idkey) override;
-  std::vector<GlobalVertex*> get_gvtxs_with_type(std::vector<GlobalVertex::VTXTYPE> types) override;
-  GlobalVertex* insert(GlobalVertex* vertex) override;
+  const CaloVertex* get(unsigned int idkey) const override;
+  CaloVertex* get(unsigned int idkey) override;
+  CaloVertex* insert(CaloVertex* vertex) override;
   size_t erase(unsigned int idkey) override
   {
     delete _map[idkey];
@@ -48,9 +44,9 @@ class GlobalVertexMapv1 : public GlobalVertexMap
   Iter end() override { return _map.end(); }
 
  private:
-  std::map<unsigned int, GlobalVertex*> _map;
+  std::map<unsigned int, CaloVertex*> _map;
 
-  ClassDefOverride(GlobalVertexMapv1, 1);
+  ClassDefOverride(CaloVertexMapv1, 1);
 };
 
-#endif  // G4VERTEX_GLOBALVERTEXMAPv1_H
+#endif  // G4CALO_CALOVERTEXMAPV1_H
