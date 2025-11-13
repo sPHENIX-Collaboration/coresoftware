@@ -528,8 +528,15 @@ void PHG4TpcDetector::add_geometry_node()
     geonode = new PHG4TpcGeomContainer;
     PHNodeIterator iter(topNode());
     auto *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    PHNodeIterator runiter(runNode);
+    PHCompositeNode *geomNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", "RECO_TRACKING_GEOMETRY"));
+    if(!geomNode)
+      {
+        geomNode = new PHCompositeNode("RECO_TRACKING_GEOMETRY");
+        runNode->addNode(geomNode);
+      }
     auto *newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
-    runNode->addNode(newNode);
+    geomNode->addNode(newNode);
   }
 
   m_cdb = CDBInterface::instance();
