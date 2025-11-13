@@ -128,8 +128,8 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 	PHCompositeNode *stripcomp = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", compnodename));
 	if (stripcomp)
 	{
-	  se->MakeNodesTransient(stripcomp);
-	}
+          se->MakeNodesTransient(stripcomp);
+        }
       }
     }
     if (!stripnodes.empty())
@@ -252,6 +252,17 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   if (saverunnodes.empty())
   {
     se->MakeNodesPersistent(thisNode);
+    if (!m_StripCompositeNodes.empty())
+    {
+      for (const auto &compnodename : m_StripCompositeNodes)
+      {
+        PHCompositeNode *stripcomp = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", compnodename));
+        if (stripcomp)
+        {
+          se->MakeNodesTransient(stripcomp);
+        }
+      }
+    }
     if (!striprunnodes.empty())
     {
       for (const auto &nodename : striprunnodes)
