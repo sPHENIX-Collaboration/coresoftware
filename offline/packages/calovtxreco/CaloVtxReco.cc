@@ -18,10 +18,10 @@
 #include <phool/getClass.h>
 
 #include <cmath>
-
-static const float radius_EM = 93.5;  // hardcoding these so we don't have to call get radius every time
-static const float radius_OH = 225.87;
-// static const float radius_IH = 127.503;
+/*
+float radius_EM = 93.5;
+float radius_OH = 225.87;
+*/
 //____________________________________________________________________________..
 CaloVtxReco::CaloVtxReco(const std::string &name, const std::string &jetnodename, const bool use_z_energy_dep)
   : SubsysReco(name)
@@ -78,6 +78,31 @@ int CaloVtxReco::InitRun(PHCompositeNode *topNode)
   {
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  RawTowerGeomContainer *tower_geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
+  RawTowerGeomContainer *tower_geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+  if(!tower_geomEM || !tower_geomOH)
+    {
+      if(Verbosity() > 0)
+	{
+	  std::cout << "CaloVtxReco::InitRun(): Missing tower geometry node for towergeomEM (address: " << tower_geomEM << ") or towergeomOH (address: " << tower_geomOH << ") - aborting run!" << std::endl;
+	}
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  
+  m_radius_EM = tower_geomEM->get_radius();
+  m_radius_OH = tower_geomOH->get_radius();
+
+  if(std::isnan(m_radius_EM) || std::isnan(m_radius_OH))
+    {
+      if(Verbosity() > 0)
+	{
+	  std::cout << "CaloVtxReco::InitRun(): NaN value for one of radius EM (value: " << m_radius_EM << ") or radius OH (value: " << m_radius_OH << ") after attempting to get - aborting run!" << std::endl;
+	}
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+      
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -89,7 +114,7 @@ float CaloVtxReco::new_eta(int channel, TowerInfoContainer *towers, RawTowerGeom
   RawTowerGeom *tower_geom = geom->get_tower_geometry(geomkey);
   float oldeta = tower_geom->get_eta();
 
-  float radius = (caloID == RawTowerDefs::CalorimeterId::HCALIN ? radius_EM : radius_OH);
+  float radius = (caloID == RawTowerDefs::CalorimeterId::HCALIN ? m_radius_EM : m_radius_OH);
   float towerz = radius / (tanf(2 * std::atanf(std::exp(oldeta))));
   float newz = towerz + testz;
   float newTheta = std::atan2(radius, newz);

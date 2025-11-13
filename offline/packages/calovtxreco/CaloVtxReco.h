@@ -45,6 +45,8 @@ class CaloVtxReco : public SubsysReco
   float m_zvtx{std::numeric_limits<float>::quiet_NaN()};
   float m_calib_factor{1.406};
   float m_energy_cut{0.1};
+  float m_radius_EM{std::numeric_limits<float>::quiet_NaN()};
+  float m_radius_OH{std::numeric_limits<float>::quiet_NaN()};
   bool m_use_z_energy_dep;
   std::string m_jetnodename;
 };
