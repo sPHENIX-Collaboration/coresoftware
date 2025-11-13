@@ -16,8 +16,8 @@
 #include <phool/PHPointerListIterator.h>
 
 #include <cdbobjects/CDBTTree.h>
-#include <g4detectors/PHG4TpcCylinderGeom.h>
-#include <g4detectors/PHG4TpcCylinderGeomContainer.h>
+#include <g4detectors/PHG4TpcGeom.h>
+#include <g4detectors/PHG4TpcGeomContainer.h>
 #include <trackbase/TpcDefs.h>
 
 #include <TFile.h>
@@ -174,12 +174,14 @@ int TpcMaskedChannelMap::process_event(PHCompositeNode * /* unused */)
 //____________________________________________________________________________..
 int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
 {
-  PHG4TpcCylinderGeomContainer* geom_container = findNode::getClass<PHG4TpcCylinderGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4TpcGeomContainer* geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_container)
   {
-    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node TPCGEOMCONTAINER" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+
+  int nDeadFees = 0;
 
   int side = 1;
   for (int m_Sector = 0; m_Sector < 24; m_Sector++)
@@ -190,10 +192,13 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
     }
     for (int m_FEE = 0; m_FEE < 26; m_FEE++)
     {
+      int nDeadInFee = 0;
       for (int m_Channel = 0; m_Channel < 256; m_Channel++)
       {
-        if (nhit_sectors_fees_channels[m_Sector][m_FEE][m_Channel]/n_Events < m_deadChanHitCut)
+        //if (nhit_sectors_fees_channels[m_Sector][m_FEE][m_Channel]/n_Events < m_deadChanHitCut)
+        if (m_Sector == 1 || m_Sector == 0)
         {
+          nDeadInFee++;
           int layer = M.getLayer(m_FEE, m_Channel);
 
           if (layer < 7)
@@ -201,7 +206,7 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
             continue;
           }
 
-          PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
+          PHG4TpcGeom* layergeom = geom_container->GetLayerCellGeom(layer);
          
           double phi = 0;
           if (m_Sector < 12)  // NS
@@ -226,6 +231,7 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
         }
         else if (nhit_sectors_fees_channels[m_Sector][m_FEE][m_Channel]/n_Events > m_hotChanHitCut)
         {
+          nDeadInFee++;
           int layer = M.getLayer(m_FEE, m_Channel);
 
           if (layer < 7)
@@ -233,7 +239,7 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
             continue;
           }
 
-          PHG4TpcCylinderGeom* layergeom = geom_container->GetLayerCellGeom(layer);
+          PHG4TpcGeom* layergeom = geom_container->GetLayerCellGeom(layer);
          
           double phi = 0;
           if (m_Sector < 12)  // NS
@@ -257,8 +263,14 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
           }
         }
       }
+      if (nDeadInFee > 250)
+      {
+        nDeadFees++;
+      }
     }
   }
+
+  std::cout << "Number of dead FEEs: " << nDeadFees << std::endl;
 
   CDBTTree cdbttree( m_deadFile );
   cdbttree.SetSingleIntValue( "TotalDeadChannels", m_deadChannelCDB.size() );

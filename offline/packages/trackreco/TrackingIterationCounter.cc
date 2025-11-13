@@ -51,11 +51,13 @@ int TrackingIterationCounter::process_event(PHCompositeNode *)
 {
   for (const auto &[key, track] : *m_trackMap)
   {
-    auto silseed = track->get_silicon_seed();
-    auto tpcseed = track->get_tpc_seed();
+    auto* silseed = track->get_silicon_seed();
+    auto* tpcseed = track->get_tpc_seed();
     if(silseed)
     {
+
     addClustersToIterationMap(silseed);
+ 
     }
     if(tpcseed)
     {
@@ -116,7 +118,7 @@ int TrackingIterationCounter::createNodes(PHCompositeNode *topNode)
 }
 int TrackingIterationCounter::getNodes(PHCompositeNode *topNode)
 {
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
     std::cout << PHWHERE << "No track map, bailing. " << std::endl;

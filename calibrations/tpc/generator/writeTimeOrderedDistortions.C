@@ -1,17 +1,25 @@
 //basic framework to read and compare events in a time ordered distortion file
 //these files contain a TTree with xingnum, and three distortion map branches
-#include "TTree.h" //this prevents a lazy binding issue and/or is a magic spell.
-#include "TCanvas.h" //this prevents a lazy binding issue and/or is a magic spell.
-#include "TH3F.h"
-#include "TH2F.h"
-#include "TH1F.h"
 
-void writeTimeOrderedDistortions(bool subtractFirst=false, char *filename="/sphenix/user/rcorliss/distortion_maps/2022.07/TimeOrderedDistortions.root", char *inputpattern="/sphenix/user/rcorliss/distortion_maps/2022.07/*.distortion_map.hist.root", bool debug=false){
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TFileCollection.h>
+#include <TFileInfo.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <THashList.h>
+#include <TTree.h>
 
-  TFile *treefile=TFile::Open(filename,"RECREATE");
+#include <format>
+#include <iostream>
+
+void writeTimeOrderedDistortions(bool subtractFirst=false, const std::string &filename="/sphenix/user/rcorliss/distortion_maps/2022.07/TimeOrderedDistortions.root", const std::string &inputpattern="/sphenix/user/rcorliss/distortion_maps/2022.07/*.distortion_map.hist.root", bool debug=false){
+
+  TFile *treefile=TFile::Open(filename.c_str(),"RECREATE");
   //TTree *tree=(TTree*)(file->Get("TimeDists"));
 
-  int nhists=8;
+  const int nhists=8;
   TH3F *basehist[nhists];
   TH3F *temphist[nhists];
   int xingnum=0;
@@ -35,17 +43,18 @@ void writeTimeOrderedDistortions(bool subtractFirst=false, char *filename="/sphe
   TTree *tree=new TTree("TimeDists", "TimeDists");
   tree->Branch("xingnum",&xingnum);
   for (int i=0;i<nhists;i++){
-    temphist[i]=new TH3F(Form("temphist%d",i),Form("temphist%d",i),10,0,10,20,0,20,30,0,30);
-    basehist[i]=new TH3F(Form("basehist%d",i),Form("basehist%d",i),10,0,10,20,0,20,30,0,30);
+    temphist[i]=new TH3F(std::format("temphist{}",i).c_str(),std::format("temphist{}",i).c_str(),10,0,10,20,0,20,30,0,30);
+    basehist[i]=new TH3F(std::format("basehist{}",i).c_str(),std::format("basehist{}",i).c_str(),10,0,10,20,0,20,30,0,30);
     tree->Branch(branchname[i].c_str(),&(temphist[i]));
   }
-  if (debug)  printf("histograms built and branched.\n");
+  if (debug) {  std::cout << "histograms built and branched." << std::endl;
+}
 
   //find all files that match the input string
   TFileCollection *filelist=new TFileCollection();
-  filelist->Add(inputpattern);
+  filelist->Add(inputpattern.c_str());
   filelist->Print();
-  printf("found %d files like: %s\n",filelist->GetNFiles(),((TFileInfo*)(filelist->GetList()->At(0)))->GetCurrentUrl()->GetFile());//Title());//Print();
+  std::cout << "found " << filelist->GetNFiles() << " files like: " << ((TFileInfo*)(filelist->GetList()->At(0)))->GetCurrentUrl()->GetFile() << std::endl;
 
   //return;
   TFile *infile;
@@ -58,30 +67,41 @@ void writeTimeOrderedDistortions(bool subtractFirst=false, char *filename="/sphe
     //for each file, find all histograms in that file.
     infile=TFile::Open(((TFileInfo*)(filelist->GetList()->At(i)))->GetCurrentUrl()->GetUrl(),"READ");//gross.
     fileIsValid=true;
-    if (debug)   printf("=====> Trying File %d\n",i);
-    if (!infile->IsOpen()) {
-          printf("=====> File %d is NOT openable <=======\n",i);
+    if (debug)
+    {
+      std::cout << "=====> Trying File " << i << std::endl;
+    }
+    if (!infile->IsOpen())
+    {
+      std::cout << "=====> File " << i << " is NOT openable <=======" << std::endl;
       continue; //file didn't open right.  move on to the next one.
     }
     //TList *keys=infile->GetListOfKeys();
     for (int j=0;j<nhists;j++){
-      temphist[j]=NULL;
+      temphist[j]=nullptr;
       temphist[j]=infile->Get<TH3F>(histname[j].c_str());
       if (!temphist[j]){
 	fileIsValid=false; //histogram doesn't exist.  don't bother loading the other hists.
 	break;
       }
       int nbins=temphist[j]->GetNcells();
-        if (debug) printf("=======> \"%s\" has %d cells\n",histname[j].c_str(),nbins);
+        if (debug)
+	{
+	  std::cout << "=======> \"" << histname[j] << "\" has " << nbins << " cells" << std::endl;
+	}
 
     }
-    if (!fileIsValid) {
+    if (!fileIsValid)
+    {
       infile->Close();
-          printf("=====> File %d is NOT valid <=======\n",i);
+      std::cout << "=====> File " << i << " is NOT valid <=======" << std::endl;
 
-	continue; //didn't get all our hists.  move on to the next file.
+      continue; //didn't get all our hists.  move on to the next file.
     }
-      if (debug) printf("=====> File %d is valid\n",i);
+    if (debug)
+    {
+      std::cout << "=====> File " << i << " is valid" << std::endl;
+    }
     xingnum=i;//temporary fix to paste something in there.
     if(subtractFirst){
       if (isFirst){
@@ -93,7 +113,7 @@ void writeTimeOrderedDistortions(bool subtractFirst=false, char *filename="/sphe
 	isFirst=false;
       }
       for (int j=0;j<nhists;j++){
-	printf("ptr j=%d:  b:%p\tt:%p\n",j,basehist[j],temphist[j]);
+	std::cout << "ptr j=" << j << ":  b:" << basehist[j] << "\tt:" << temphist[j] << std::endl;
 	int nbins=temphist[j]->GetNcells();
 	for (int k=0;k<nbins;k++){
 	  double b=basehist[j]->GetBinContent(k);
@@ -102,7 +122,10 @@ void writeTimeOrderedDistortions(bool subtractFirst=false, char *filename="/sphe
 	  temphist[j]->SetBinContent(k,diff);
 	  //temphist[j]->Add(basehist[j],-1);
 	}
-	  if (debug) printf("=======> \"%s\" has %d cells when writing diff\n",histname[j].c_str(),nbins);
+	if (debug)
+	{
+	  std::cout << "=======> \"" << histname[j] << "\" has " << nbins << " cells when writing diff" << std::endl;
+	}
 
       }
     }
@@ -111,7 +134,7 @@ void writeTimeOrderedDistortions(bool subtractFirst=false, char *filename="/sphe
     nMaps++;
     infile->Close();
   }
-  printf("finished tree %s has nMaps=%d\n",filename, nMaps);
+  std::cout << "finished tree " << filename << " has nMaps=" << nMaps << std::endl;
       
   treefile->cd();
   tree->Write();

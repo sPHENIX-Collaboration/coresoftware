@@ -10,8 +10,8 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <globalvertex/GlobalVertex.h>
-#include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/GlobalVertexv2.h>
+#include <globalvertex/GlobalVertexMapv1.h>
 
 #include <phool/getClass.h>
 
@@ -82,35 +82,29 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   }
   else
   {
-    GlobalVertex *vtx = vertexmap->begin()->second;
-    if (vtx)
-    {
-      if (m_use_vertextype)
+    if(m_use_vertextype)
       {
-        auto typeStartIter = vtx->find_vertexes(m_vertex_type);
-        auto typeEndIter = vtx->end_vertexes();
-        for (auto iter = typeStartIter; iter != typeEndIter; ++iter)
-        {
-          const auto &[type, vertexVec] = *iter;
-          if (type != m_vertex_type)
-          {
-            continue;
-          }
-          for (const auto *vertex : vertexVec)
-          {
-            if (!vertex)
-            {
-              continue;
-            }
-            vtxz = vertex->get_z();
-          }
-        }
+	std::vector<GlobalVertex*> vertices = vertexmap->get_gvtxs_with_type(m_vertex_type);
+	if(!vertices.empty())
+	  {
+	    if(vertices.at(0))
+	      {
+		vtxz = vertices.at(0)->get_z();
+	      }
+	    if(vertices.size() > 1 && Verbosity() > 0)
+	      {
+		std::cout << "TowerJetInput::WARNING!! More than one vertex of selected type!" << std::endl;
+	      }
+	  }
       }
-      else
+    else
       {
-        vtxz = vtx->get_z();
+	GlobalVertex *vtx = vertexmap->begin()->second;
+	if (vtx)
+	  {
+	    vtxz = vtx->get_z();
+	  }
       }
-    }
   }
   if (std::isnan(vtxz))
   {
@@ -165,6 +159,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
   RawTowerGeomContainer *geom = nullptr;
   RawTowerGeomContainer *EMCal_geom = nullptr;
 
+  
   if (m_input == Jet::CEMC_TOWER)
   {
     towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
@@ -456,6 +451,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
 
   // first grab the event vertex or bail
 
+
   std::vector<Jet *> pseudojets;
   if (m_use_towerinfo)
   {
@@ -485,7 +481,6 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       }
       RawTowerGeom *tower_geom = geom->get_tower_geometry(key);
       assert(tower_geom);
-
       double r = tower_geom->get_center_radius();
       if (m_input == Jet::CEMC_TOWER_RETOWER || m_input == Jet::CEMC_TOWERINFO_RETOWER || m_input == Jet::CEMC_TOWER_SUB1 || m_input == Jet::CEMC_TOWERINFO_SUB1 || m_input == Jet::CEMC_TOWER_SUB1CS)
       {
@@ -511,6 +506,19 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       jet->set_pz(pz);
       jet->set_e(e);
       jet->insert_comp(m_input, channel);
+      float tower_t = 17.6*tower->get_time(); // 17.6 ns/sample and get_time() returns t in samples
+      if(jet->size_properties() < Jet::PROPERTY::prop_t+1)
+	{
+	  jet->resize_properties(Jet::PROPERTY::prop_t + 1);
+	}
+      if(e > m_timing_e_threshold)
+	{
+	  jet->set_property(Jet::PROPERTY::prop_t, tower_t);
+	}
+      else
+	{
+	  jet->set_property(Jet::PROPERTY::prop_t, std::numeric_limits<float>::quiet_NaN());
+	}
       pseudojets.push_back(jet);
     }
   }
