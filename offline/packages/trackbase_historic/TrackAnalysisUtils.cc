@@ -191,7 +191,8 @@ namespace TrackAnalysisUtils
     auto rot = rotationMatrixToLocal(mom);
     Acts::RotationMatrix3 rot_T = rot.transpose();
 
-    Acts::ActsSquareMatrix<3> posCov, vertexCov;
+    Acts::ActsSquareMatrix<3> posCov;
+    Acts::ActsSquareMatrix<3> vertexCov;
     for (int i = 0; i < 3; ++i)
     {
       for (int j = 0; j < 3; ++j)
