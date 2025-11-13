@@ -33,7 +33,8 @@ libjetbase_la_LIBADD = \
   -lglobalvertex_io \
   -lgsl \
   -lgslcblas \
-  -lRecursiveTools
+  -lRecursiveTools \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   ClusterJetInput.h \
