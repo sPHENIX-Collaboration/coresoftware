@@ -58,7 +58,7 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_outputBcoDiff(bool flag) {m_outputBcoDiff = flag; }
   void set_triggeredMode(bool flag) {m_triggeredMode = flag; }
   void set_bcoFilter(bool flag) {m_bcoFilter = flag; }
-  void set_SaturatedChipRejection(bool flag){m_SaturatedChipRejection = flag;}
+  void set_SaturatedChipRejection(bool flag){m_SaturatedChipRejection = flag;} // note : this is for removing a fraction of the saturated chips
   void set_HighChipMultiplicityCut(int cut){HighChipMultiplicityCut = cut;}
 
  private:
