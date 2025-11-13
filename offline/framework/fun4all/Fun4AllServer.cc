@@ -718,6 +718,9 @@ int Fun4AllServer::process_event()
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
           ffamemtracker->Start((*iterOutMan)->Name(), "OutputManager");
 #endif
+	  (*iterOutMan)->InitializeLastEvent(eventnumber);
+	  std::cout << "Fun4All Event: " << eventnumber << ", outman: " << (*iterOutMan)->LastEventNumber()
+		    << std::endl;
           if (eventnumber > (*iterOutMan)->LastEventNumber())
           {
             if (Verbosity() > 0)

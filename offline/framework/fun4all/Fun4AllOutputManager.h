@@ -99,6 +99,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   //! set number of events
   virtual void SetEventsWritten(const unsigned int i) { m_NEvents = i; }
   //! get number of Events
+  virtual void SetLastEventNumber(int ival) { m_LastEventNumber = ival; }
   virtual int LastEventNumber() const { return m_LastEventNumber; }
   virtual void UpdateLastEvent() { m_LastEventNumber += m_EventRollover; }
   //! set number of events
@@ -107,7 +108,10 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual std::string OutFileName() const { return m_OutFileName; }
   //! set compression level (if implemented)
   virtual void CompressionSetting(const int /*i*/) { return; }
-
+  virtual int GetEventNumberRollover() const {return m_EventRollover;}
+  virtual void InitializeLastEvent(int /*eventnumber*/) {return;}
+  virtual void StartSegment(int iseg) {m_CurrentSegment = iseg;}
+  
   void OutFileName(const std::string &name) { m_OutFileName = name; }
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }

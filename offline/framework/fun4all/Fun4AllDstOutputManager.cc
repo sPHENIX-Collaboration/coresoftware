@@ -346,3 +346,20 @@ int Fun4AllDstOutputManager::outfile_open_first_write()
   dstOut->SetCompressionSetting(m_CompressionSetting);
   return 0;
 }
+
+void Fun4AllDstOutputManager::InitializeLastEvent(int eventnumber)
+{
+  if (GetEventNumberRollover() == 0 || m_LastEventInitialized || eventnumber < 0)
+{
+  return;
+}
+m_LastEventInitialized = true;
+unsigned int firstevent = eventnumber/GetEventNumberRollover();
+unsigned int newlastevent =  firstevent * GetEventNumberRollover() + GetEventNumberRollover() -1;
+  std::cout << "event number: " << eventnumber << ", rollover: " << GetEventNumberRollover() << ", multiple: "
+	  << eventnumber/GetEventNumberRollover() << ", new last event number " 
+	    << newlastevent << std::endl;
+  SetLastEventNumber(firstevent * GetEventNumberRollover() + GetEventNumberRollover() -1);
+//SetEventNumberRollover(firstevent * GetEventNumberRollover() + GetEventNumberRollover());
+return;
+}
