@@ -39,6 +39,16 @@ class CDBTTree
   uint64_t GetSingleUInt64Value(const std::string &name, int verbose = 0);
   uint64_t GetUInt64Value(int channel, const std::string &name, int verbose = 0);
 
+  const auto &GetFloatEntryMap() const { return m_FloatEntryMap; }
+  const auto &GetDoubleEntryMap() const { return m_DoubleEntryMap; }
+  const auto &GetIntEntryMap() const { return m_IntEntryMap; }
+  const auto &GetUInt64EntryMap() const { return m_UInt64EntryMap; }
+
+  const auto &GetSingleFloatEntryMap() const { return m_SingleFloatEntryMap; }
+  const auto &GetSingleDoubleEntryMap() const { return m_SingleDoubleEntryMap; }
+  const auto &GetSingleIntEntryMap() const { return m_SingleIntEntryMap; }
+  const auto &GetSingleUInt64EntryMap() const { return m_SingleUInt64EntryMap; }
+
  private:
   enum
   {

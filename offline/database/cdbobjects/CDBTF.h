@@ -17,6 +17,7 @@ class CDBTF
   void LoadCalibrations();
   void registerTF(TF1 *t1);
   TF1 *getTF(const std::string &name, bool printerror = true);
+  const auto &GetTFMap() const {return m_TFMap;}
 
  private:
   std::string m_Filename;
