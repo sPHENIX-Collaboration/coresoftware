@@ -28,6 +28,7 @@ libjetbackground_la_LIBADD = \
   -leventplaneinfo_io \
   -lglobalvertex \
   -ljetbase \
+  -lmbd \
   -lpdbcalBase \
   -lphg4hit \
   -lphparameter \
@@ -51,6 +52,7 @@ pkginclude_HEADERS = \
   StreakSidebandFilter.h \
   SubtractTowers.h \
   SubtractTowersCS.h \
+  TimingCut.h \
   TowerBackground.h \
   TowerBackgroundv1.h \
   TowerRho.h \
@@ -86,7 +88,8 @@ libjetbackground_la_SOURCES = \
   RetowerCEMC.cc \
   StreakSidebandFilter.cc \
   SubtractTowers.cc \
-  SubtractTowersCS.cc
+  SubtractTowersCS.cc \
+  TimingCut.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

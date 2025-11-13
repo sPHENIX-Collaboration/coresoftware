@@ -50,6 +50,28 @@ GlobalVertex* GlobalVertexMapv1::get(unsigned int id)
   return iter->second;
 }
 
+std::vector<GlobalVertex*> GlobalVertexMapv1::get_gvtxs_with_type(std::vector<GlobalVertex::VTXTYPE> types)
+{
+  std::vector<GlobalVertex*> vertices;
+  Iter iter = _map.begin();
+
+  for(GlobalVertex::VTXTYPE type : types)
+    {
+      while(iter != _map.end())
+	{
+	  GlobalVertex::VertexIter it = iter->second->find_vertexes(type);
+	  if(it != iter->second->end_vertexes())
+	    {
+	      vertices.push_back(iter->second);
+	    }
+	  ++iter;
+	}
+      if(!vertices.empty()) { break; }
+    }
+  
+  return vertices;
+}
+
 GlobalVertex* GlobalVertexMapv1::insert(GlobalVertex* vertex)
 {
   unsigned int index = vertex->get_id();
