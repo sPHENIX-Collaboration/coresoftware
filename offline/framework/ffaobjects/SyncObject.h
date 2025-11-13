@@ -17,7 +17,7 @@ class SyncObject : public PHObject
   /// copy ctor daughter class copy ctor needs also this
   SyncObject(const SyncObject& source) = default;
   /// dtor
-  ~SyncObject() override {}
+  ~SyncObject() override = default;
   /// Clear Sync
   void Reset() override;
 
