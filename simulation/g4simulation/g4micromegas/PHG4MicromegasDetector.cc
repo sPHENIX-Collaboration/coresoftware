@@ -695,7 +695,7 @@ void PHG4MicromegasDetector::add_geometry_node()
         geomNode = new PHCompositeNode("RECO_TRACKING_GEOMETRY");
         runNode->addNode(geomNode);
       }
-    auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
     geomNode->addNode(newNode);
   }
 
