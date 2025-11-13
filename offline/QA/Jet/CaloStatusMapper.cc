@@ -1,29 +1,18 @@
-/// ===========================================================================
-/*! \file   CaloStatusMapperLinkDef.h
- *  \author Derek Anderson
- *  \date   05.22.2024
- *
- *  A Fun4All QA module to plot no. of towers per event
- *  and vs. eta, phi as a function of status.
- */
-/// ===========================================================================
-
-#define CLUSTERSTATUSMAPPER_CC
-
 // module definitions
 #include "CaloStatusMapper.h"
 
 // calo base
 #include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 
 // calo trigger
 #include <calotrigger/TriggerAnalyzer.h>
 
-// f4a libraries
+// f4a includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
 
-// phool libraries
+// phool includes
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
@@ -31,14 +20,14 @@
 // qa utilities
 #include <qautils/QAHistManagerDef.h>
 
-// root libraries
+// root includes
 #include <TH1.h>
 #include <TH2.h>
 #include <TStyle.h>
 
-// c++ utiilites
-#include <algorithm>
+// c++ includes
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 
 
