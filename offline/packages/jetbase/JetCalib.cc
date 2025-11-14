@@ -119,13 +119,26 @@ int JetCalib::InitRun(PHCompositeNode *topNode)
         }
         for (int iz = 0; iz < nZvrtxBins; ++iz)
         {
-          if (iz < 3) {
+          if (iz < 3 && jet_radius <= 0.4) {
             for (int ieta = 0; ieta < nEtaBins; ++ieta)
             {
               TF1 *func_temp = m_JetCalibFile->getTF(JetCalibFunc_name + "_Z" + std::to_string(iz) + "_Eta" + std::to_string(ieta));
               if (!func_temp)
               {
                 std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not find calibration function: " << JetCalibFunc_name << "_Z" << iz << "_Eta" << ieta << std::endl;
+                exit(1);
+              }
+              m_JetCalibFunc[iz][ieta] = func_temp;
+            }
+          }
+          else if (iz < 3 && jet_radius > 0.4)
+          {
+            for (int ieta = 0; ieta < nEtaBins; ++ieta)
+            {
+              TF1 *func_temp = m_JetCalibFile->getTF(JetCalibFunc_name + "_Z" + std::to_string(iz));
+              if (!func_temp)
+              {
+                std::cout << "JetCalib::InitRun(PHCompositeNode *topNode) : Could not find calibration function: " << JetCalibFunc_name << "_Z" << iz << std::endl;
                 exit(1);
               }
               m_JetCalibFunc[iz][ieta] = func_temp;
@@ -182,6 +195,41 @@ int JetCalib::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
   }
+  // Get z-vertex if needed.
+  float zvertex = -999.0;
+  if (ApplyZvrtxDependentCalib)
+  {
+    if (!vertexmap->empty())
+    {
+      GlobalVertex *vtx = vertexmap->begin()->second;
+      auto mbdStartIter = vtx->find_vertexes(GlobalVertex::MBD);
+      auto mbdEndIter = vtx->end_vertexes();
+      for (auto iter = mbdStartIter; iter != mbdEndIter; ++iter)
+      {
+        const auto &[type, vertexVec] = *iter;
+        if (type != GlobalVertex::MBD)
+        {
+          continue;
+        }
+        for (const auto *vertex : vertexVec)
+        {
+          if (!vertex)
+          {
+            continue;
+          }
+          zvertex = vertex->get_z();
+        }
+      }
+    }
+    else
+    {
+      if (Verbosity() > 0)
+      {
+        std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : GlobalVertexMap is empty." << std::endl;
+      }
+    }
+  }
+
   // Apply calibration to jets and add to calib jet node.
   int ijet = 0;
   for (auto *jet : *_raw_jets)
@@ -189,25 +237,7 @@ int JetCalib::process_event(PHCompositeNode *topNode)
     float pt = jet->get_pt();
     float eta = jet->get_eta();
     float phi = jet->get_phi();
-    float zvertex = -999.0;
-    if (ApplyZvrtxDependentCalib)
-    {
-      if (!vertexmap->empty())
-      {
-        GlobalVertex *vtx = vertexmap->begin()->second;
-        if (vtx)
-        {
-          zvertex = vtx->get_z();
-        }
-      }
-      else
-      {
-        if (Verbosity() > 0)
-        {
-          std::cout << "JetCalib::process_event(PHCompositeNode *topNode) : GlobalVertexMap is empty. Assign zvertex = 0." << std::endl;
-        }
-      }
-    }
+
     float calib_pt = doCalibration(m_JetCalibFunc, pt, zvertex, eta);
     auto *calib_jet = _calib_jets->add_jet();
     calib_jet->set_px(calib_pt * std::cos(phi));
@@ -352,7 +382,7 @@ int getEtaBin(int zvrtxbin, float eta, float jet_radius)
 
 float JetCalib::doCalibration(const std::vector<std::vector<TF1 *>> &JetCalibFunc, float jetPt, float zvrtx, float eta) const
 {
-  float calib = 1;
+  float calib = jetPt;
   int zvrtxbin = 0;
   int etabin = 0;
   if (ApplyZvrtxDependentCalib || ApplyEtaDependentCalib)
@@ -360,7 +390,14 @@ float JetCalib::doCalibration(const std::vector<std::vector<TF1 *>> &JetCalibFun
     zvrtxbin = getZvrtxBin(zvrtx);
     if (ApplyEtaDependentCalib)
     {
-      etabin = getEtaBin(zvrtxbin, eta, jet_radius);
+      if (zvrtxbin < 3)
+      {
+        etabin = getEtaBin(zvrtxbin, eta, jet_radius);
+      }
+      else
+      {
+        etabin = 0;
+      }
     }
   }
   calib = JetCalibFunc[zvrtxbin][etabin]->Eval(jetPt);

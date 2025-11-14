@@ -45,16 +45,14 @@ float MbdVertexv2::get_position(unsigned int coor) const
   {
     return get_x();
   }
-  else if (coor == 1)
+  if (coor == 1)
   {
     return get_y();
   }
-  else if (coor == 2)
+  if (coor == 2)
   {
     return get_z();
   }
-  else
-  {
-    return std::numeric_limits<float>::quiet_NaN();
-  }
+
+  return std::numeric_limits<float>::quiet_NaN();
 }
