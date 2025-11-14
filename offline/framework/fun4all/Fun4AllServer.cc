@@ -813,8 +813,6 @@ int Fun4AllServer::process_event()
 
 int Fun4AllServer::ResetNodeTree()
 {
-  std::vector<std::string> ResetNodeList;
-  ResetNodeList.emplace_back("DST");
   PHNodeReset reset;
   reset.Verbosity(Verbosity() > 2 ? Verbosity() - 2 : 0);  // one lower verbosity level than Fun4AllServer
   std::map<std::string, PHCompositeNode *>::const_iterator iter;
