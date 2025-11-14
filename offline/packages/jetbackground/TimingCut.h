@@ -66,6 +66,9 @@ class TimingCut : public SubsysReco
     _cutParams.set_int_param("passDeltatCut", 0);
     _cutParams.set_int_param("passMbdDtCut", 0);
     _cutParams.set_int_param("failAnyTimeCut",0);
+    _cutParams.set_double_param("maxJett",-9999);
+    _cutParams.set_double_param("subJett",-9999);
+    _cutParams.set_double_param("mbd_time",-9999);
   }
 
 private:
