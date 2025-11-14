@@ -4,6 +4,7 @@
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
+#include <globalvertex/GlobalVertex.h>
 
 #include <tpc/TpcClusterZCrossingCorrection.h>
 #include "SvtxTrack.h"
@@ -176,6 +177,39 @@ namespace TrackAnalysisUtils
     sumdedx /= ndedx;
     return sumdedx;
   }
+
+  TrackAnalysisUtils::DCAPair get_dca(SvtxTrack *track,
+                                      GlobalVertex* vertex)
+  {
+    Acts::Vector3 vpos(vertex->get_x(),
+                       vertex->get_y(),
+                       vertex->get_z());
+    Acts::Vector3 mom(track->get_px(),
+                      track->get_py(),
+                      track->get_pz());
+    auto dca = get_dca(track, vpos);
+    auto rot = rotationMatrixToLocal(mom);
+    Acts::RotationMatrix3 rot_T = rot.transpose();
+
+    Acts::ActsSquareMatrix<3> posCov;
+    Acts::ActsSquareMatrix<3> vertexCov;
+    for (int i = 0; i < 3; ++i)
+    {
+      for (int j = 0; j < 3; ++j)
+      {
+        posCov(i, j) = track->get_error(i, j);
+        vertexCov(i, j) = vertex->get_error(i, j);
+      }
+    }
+    
+
+    Acts::ActsSquareMatrix<3> rotCov = rot * (posCov+vertexCov) * rot_T;
+    dca.first.second = sqrt(rotCov(0, 0));
+    dca.second.second = sqrt(rotCov(2, 2));
+
+    return dca;
+  }
+
   TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
                                       Acts::Vector3& vertex)
   {
@@ -204,22 +238,8 @@ namespace TrackAnalysisUtils
       }
     }
 
-    Acts::Vector3 r = mom.cross(Acts::Vector3(0., 0., 1.));
-    float phi = atan2(r(1), r(0));
-    phi *= -1;
-    Acts::RotationMatrix3 rot;
-    Acts::RotationMatrix3 rot_T;
-    rot(0, 0) = std::cos(phi);
-    rot(0, 1) = -std::sin(phi);
-    rot(0, 2) = 0;
-    rot(1, 0) = std::sin(phi);
-    rot(1, 1) = std::cos(phi);
-    rot(1, 2) = 0;
-    rot(2, 0) = 0;
-    rot(2, 1) = 0;
-    rot(2, 2) = 1;
-
-    rot_T = rot.transpose();
+    auto rot = rotationMatrixToLocal(mom);
+    Acts::RotationMatrix3 rot_T = rot.transpose();
 
     Acts::Vector3 pos_R = rot * pos;
     Acts::ActsSquareMatrix<3> rotCov = rot * posCov * rot_T;
@@ -233,7 +253,24 @@ namespace TrackAnalysisUtils
 
     return pair;
   }
+  Acts::RotationMatrix3 rotationMatrixToLocal(const Acts::Vector3& mom)
+  {
+    Acts::Vector3 r = mom.cross(Acts::Vector3(0., 0., 1.));
+    float phi = atan2(r(1), r(0));
+    phi *= -1;
+    Acts::RotationMatrix3 rot;
 
+    rot(0, 0) = std::cos(phi);
+    rot(0, 1) = -std::sin(phi);
+    rot(0, 2) = 0;
+    rot(1, 0) = std::sin(phi);
+    rot(1, 1) = std::cos(phi);
+    rot(1, 2) = 0;
+    rot(2, 0) = 0;
+    rot(2, 1) = 0;
+    rot(2, 2) = 1;
+    return rot;
+  }
   std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed)
   {
     std::vector<TrkrDefs::cluskey> out;

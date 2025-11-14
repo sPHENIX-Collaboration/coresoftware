@@ -41,9 +41,9 @@ class JetCalib : public SubsysReco
   std::string m_inputNode{"AntiKt_Tower_r04"};
   std::string m_outputNode{"AntiKt_Tower_r04_Calib"};
   std::string m_zvrtxNode{"GlobalVertexMap"};
-  float jet_radius{0.4};                 // Jet radius.
-  bool ApplyZvrtxDependentCalib{false};  // Apply Z-vertex dependent calibration.
-  bool ApplyEtaDependentCalib{false};    // Apply eta dependent calibration.
+  float jet_radius{0.4};                // Jet radius.
+  bool ApplyZvrtxDependentCalib{true};  // Apply Z-vertex dependent calibration.
+  bool ApplyEtaDependentCalib{true};    // Apply eta dependent calibration.
 
   // Variables.
   CDBTF *m_JetCalibFile{nullptr};

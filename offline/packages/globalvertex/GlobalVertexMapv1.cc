@@ -13,7 +13,7 @@ GlobalVertexMapv1::~GlobalVertexMapv1()
 void GlobalVertexMapv1::identify(std::ostream& os) const
 {
   os << "GlobalVertexMapv1: size = " << _map.size() << std::endl;
-  for (auto& m : _map)
+  for (const auto& m : _map)
   {
     m.second->identify(os);
   }
@@ -83,16 +83,16 @@ void GlobalVertexMapv1::CopyTo(GlobalVertexMap* to_global)
 {
   for (auto const& it : _map)
   {
-    GlobalVertex *glvtx = dynamic_cast<GlobalVertex*>(it.second->CloneMe());
+    GlobalVertex* glvtx = dynamic_cast<GlobalVertex*>(it.second->CloneMe());
     glvtx->clear_vtxs();
     glvtx->set_id(to_global->size());
     for (GlobalVertex::ConstVertexIter iter = it.second->begin_vertexes(); iter != it.second->end_vertexes(); ++iter)
     {
-      for (auto& vertex : iter->second)
+      for (const auto& vertex : iter->second)
       {
-	glvtx->clone_insert_vtx(iter->first, vertex);
-	to_global->insert(glvtx);
+        glvtx->clone_insert_vtx(iter->first, vertex);
+        to_global->insert(glvtx);
       }
-    }    
+    }
   }
 }

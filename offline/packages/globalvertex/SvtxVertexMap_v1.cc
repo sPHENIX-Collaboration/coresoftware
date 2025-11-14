@@ -9,7 +9,7 @@
 
 // NOLINTNEXTLINE(bugprone-copy-constructor-init)
 SvtxVertexMap_v1::SvtxVertexMap_v1(const SvtxVertexMap_v1& vertexmap)
-  : _map()
+
 {
   for (auto iter : vertexmap)
   {
