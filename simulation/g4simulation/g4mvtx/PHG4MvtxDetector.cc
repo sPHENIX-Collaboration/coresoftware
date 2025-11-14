@@ -467,8 +467,15 @@ void PHG4MvtxDetector::AddGeometryNode()
       geo = new PHG4CylinderGeomContainer();
       PHNodeIterator iter(topNode());
       PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+      PHNodeIterator runiter(runNode);
+      PHCompositeNode *geomNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", "RECO_TRACKING_GEOMETRY"));
+      if(!geomNode)
+      {
+        geomNode = new PHCompositeNode("RECO_TRACKING_GEOMETRY");
+        runNode->addNode(geomNode);
+      }
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode, "PHObject");
-      runNode->addNode(newNode);
+      geomNode->addNode(newNode);
     }
     // here in the detector class we have internal units(mm), convert to cm
     // before putting into the geom object

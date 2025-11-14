@@ -125,11 +125,11 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
     {
       for (const auto &compnodename : m_StripCompositeNodes)
       {
-	PHCompositeNode *stripcomp = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", compnodename));
-	if (stripcomp)
-	{
-	  se->MakeNodesTransient(stripcomp);
-	}
+        PHCompositeNode *stripcomp = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", compnodename));
+        if (stripcomp)
+        {
+          se->MakeNodesTransient(stripcomp);
+        }
       }
     }
     if (!stripnodes.empty())
@@ -222,7 +222,7 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
     {
       if (Verbosity() > 0)
       {
-	std::cout << PHWHERE << " DST file has not been written to yet, not saving the RunNode by itself" << std::endl;
+        std::cout << PHWHERE << " DST file has not been written to yet, not saving the RunNode by itself" << std::endl;
       }
       return 0;
     }
@@ -252,6 +252,17 @@ int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
   if (saverunnodes.empty())
   {
     se->MakeNodesPersistent(thisNode);
+    if (!m_StripCompositeNodes.empty())
+    {
+      for (const auto &compnodename : m_StripCompositeNodes)
+      {
+        PHCompositeNode *stripcomp = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", compnodename));
+        if (stripcomp)
+        {
+          se->MakeNodesTransient(stripcomp);
+        }
+      }
+    }
     if (!striprunnodes.empty())
     {
       for (const auto &nodename : striprunnodes)
@@ -320,7 +331,7 @@ int Fun4AllDstOutputManager::outfile_open_first_write()
     {
       fullpath = p.parent_path();
     }
-    std::string runseg = std::format("-{:08}-{:05}",runnumber,m_CurrentSegment);
+    std::string runseg = std::format("-{:08}-{:05}", runnumber, m_CurrentSegment);
     std::string newfile = fullpath + std::string("/") + m_FileNameStem + runseg + std::string(p.extension());
     OutFileName(newfile);
     m_CurrentSegment++;
