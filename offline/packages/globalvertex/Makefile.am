@@ -14,14 +14,13 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libglobalvertex_io_la_LIBADD = \
-  -lphool \
-  -ltrackbase_historic_io
+  -lphool
 
 libglobalvertex_la_LIBADD = \
   libglobalvertex_io.la \
-  -ltrackbase_historic_io \
-  -lg4detectors \
-  -lfun4all
+  -lphg4hit \
+  -lSubsysReco \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   CaloVertex.h \

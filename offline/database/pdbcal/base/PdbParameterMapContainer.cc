@@ -49,7 +49,7 @@ void PdbParameterMapContainer::Reset()
 
 void PdbParameterMapContainer::AddPdbParameterMap(const int layer, PdbParameterMap *params)
 {
-  if (parametermap.find(layer) != parametermap.end())
+  if (parametermap.contains(layer))
   {
     std::cout << PHWHERE << " layer " << layer << " already exists" << std::endl;
     std::cout << "Here is the stacktrace: " << std::endl;

@@ -141,54 +141,7 @@ ROOTDICTS = \
 endif
 
 pcmdir = $(libdir)
-
-if USE_ONLINE
-nobase_dist_pcm_DATA = \
-  BbcGeom_Dict_rdict.pcm \
-  BbcGeomV1_Dict_rdict.pcm \
-  MbdGeom_Dict_rdict.pcm \
-  MbdGeomV1_Dict_rdict.pcm \
-  MbdGeomV2_Dict_rdict.pcm \
-  MbdOut_Dict_rdict.pcm \
-  MbdOutV1_Dict_rdict.pcm \
-  MbdOutV2_Dict_rdict.pcm \
-  MbdPmtHit_Dict_rdict.pcm \
-  MbdPmtHitV1_Dict_rdict.pcm \
-  MbdPmtSimHitV1_Dict_rdict.pcm \
-  MbdPmtContainer_Dict_rdict.pcm \
-  MbdPmtContainerV1_Dict_rdict.pcm \
-  MbdPmtSimContainerV1_Dict_rdict.pcm
-
-else
-nobase_dist_pcm_DATA = \
-  BbcOut_Dict_rdict.pcm \
-  BbcOutV1_Dict_rdict.pcm \
-  BbcGeom_Dict_rdict.pcm \
-  BbcGeomV1_Dict_rdict.pcm \
-  BbcPmtHit_Dict_rdict.pcm \
-  BbcPmtHitV1_Dict_rdict.pcm \
-  BbcPmtContainer_Dict_rdict.pcm \
-  BbcPmtContainerV1_Dict_rdict.pcm \
-  BbcPmtInfoV1_Dict_rdict.pcm \
-  BbcPmtInfoContainerV1_Dict_rdict.pcm \
-  BbcVertex_Dict_rdict.pcm \
-  BbcVertexv1_Dict_rdict.pcm \
-  BbcVertexv2_Dict_rdict.pcm \
-  BbcVertexMap_Dict_rdict.pcm \
-  BbcVertexMapv1_Dict_rdict.pcm \
-  MbdOut_Dict_rdict.pcm \
-  MbdOutV1_Dict_rdict.pcm \
-  MbdOutV2_Dict_rdict.pcm \
-  MbdGeom_Dict_rdict.pcm \
-  MbdGeomV1_Dict_rdict.pcm \
-  MbdGeomV2_Dict_rdict.pcm \
-  MbdPmtHit_Dict_rdict.pcm \
-  MbdPmtHitV1_Dict_rdict.pcm \
-  MbdPmtSimHitV1_Dict_rdict.pcm \
-  MbdPmtContainer_Dict_rdict.pcm \
-  MbdPmtContainerV1_Dict_rdict.pcm \
-  MbdPmtSimContainerV1_Dict_rdict.pcm
-endif
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 if USE_ONLINE
 libmbd_io_la_SOURCES = \
@@ -231,8 +184,6 @@ libmbd_io_la_SOURCES = \
   MbdPmtContainer.cc \
   MbdPmtContainerV1.cc \
   MbdPmtSimContainerV1.cc \
-  MbdRunningStats.cc \
-  MbdSig.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
   BbcVertexMap.cc \
@@ -241,7 +192,9 @@ libmbd_io_la_SOURCES = \
 libmbd_la_SOURCES = \
   MbdEvent.cc \
   MbdCalib.cc \
-  MbdReco.cc
+  MbdReco.cc \
+  MbdRunningStats.cc \
+  MbdSig.cc
 
 endif
 
@@ -257,12 +210,14 @@ libmbd_io_la_LIBADD = \
 
 libmbd_la_LIBADD = \
   libmbd_io.la \
-  -lphool \
-  -lffamodules \
-  -lffarawobjects \
   -lcdbobjects \
-  -lSubsysReco \
-  -lglobalvertex_io
+  -lffamodules \
+  -lffaobjects \
+  -lffarawobjects \
+  -lglobalvertex_io \
+  -lphool \
+  -lphg4hit \
+  -lSubsysReco
 
 endif
 
