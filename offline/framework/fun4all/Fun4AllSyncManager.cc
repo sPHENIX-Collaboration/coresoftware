@@ -130,6 +130,11 @@ int Fun4AllSyncManager::run(const int nevnts)
         {
           if (!(iter->GetSyncObject(&m_MasterSync)))  // NoSync managers return non zero
           {
+	    if (Verbosity() > 2)
+	    {
+	      std::cout << "got sync object from " << iter->Name() << std::endl;
+	      m_MasterSync->identify();
+	    }
             ifirst = 1;
           }
         }
@@ -145,7 +150,7 @@ int Fun4AllSyncManager::run(const int nevnts)
       iman++;
     }
 
-    // check event reading, syncronisation
+    // check event reading, synchronisation
     if (iret || iretsync)
     {
       // tell the server to reset the node tree
@@ -235,11 +240,10 @@ int Fun4AllSyncManager::run(const int nevnts)
       break;
     }
   }
-
 readerror:
-  if (!iret)
+  if (iret == 0)
   {
-    if (!resetnodetree)  // all syncing is done and no read errors --> we have a good event in memory
+    if (resetnodetree == 0)  // all syncing is done and no read errors --> we have a good event in memory
     {
       m_CurrentRun = 0;  // reset current run to 0
       for (auto &iter : m_InManager)
@@ -269,6 +273,14 @@ readerror:
             exit(1);
           }
         }
+      }
+// at the point all sync objects contain the same event number as does our
+// local sync object copy which serves as reference for all sync objects
+// NB: if we run Fun4AllNoSyncDstInputManager.h they will not update this
+// if there is no master sync the event number will stay at 0 (from the Reset())
+      if (m_MasterSync)
+      {
+	CurrentEvent(m_MasterSync->EventNumber());
       }
     }
     return resetnodetree;
@@ -460,6 +472,7 @@ int Fun4AllSyncManager::ResetEvent()
     }
     iret += inman->ResetEvent();
   }
+  m_CurrentEvent = 0;
   return iret;
 }
 

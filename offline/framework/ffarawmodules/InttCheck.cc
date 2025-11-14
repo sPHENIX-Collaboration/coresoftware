@@ -57,7 +57,7 @@ int InttCheck::process_event(PHCompositeNode *topNode)
           std::cout << "current bco: 0x" << std::hex << refbco
                     << std::dec << std::endl;
         }
-        if (bclk_seen.find(refbco) != bclk_seen.end())
+        if (bclk_seen.contains(refbco))
         {
           std::cout << "bco 0x" << std::hex << refbco << std::dec
                     << " seen before" << std::endl;

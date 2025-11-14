@@ -29,6 +29,7 @@ int DumpPHG4HitContainer::process_Node(PHNode *myNode)
   }
   if (phg4hitcontainer)
   {
+    (*fout).precision(std::numeric_limits<float>::max_digits10);
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = phg4hitcontainer->getHits();
     *fout << "size: " << phg4hitcontainer->size() << std::endl;

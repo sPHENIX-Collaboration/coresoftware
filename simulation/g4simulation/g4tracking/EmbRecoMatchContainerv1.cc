@@ -76,10 +76,13 @@ std::vector<unsigned short> EmbRecoMatchContainerv1::ids_TruthMatched() const
 std::vector<unsigned short> EmbRecoMatchContainerv1::ids_RecoMatched() const
 {
   std::vector<unsigned short> vec;
-  for (auto& id : m_RecoToTruth)
+  vec.reserve(m_RecoToTruth.size());
+
+  for (const auto& [id, _] : m_RecoToTruth)
   {
-    vec.push_back(id.first);
+    vec.push_back(id);
   }
+
   return vec;
 }
 

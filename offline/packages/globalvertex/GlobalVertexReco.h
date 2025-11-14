@@ -11,6 +11,7 @@
 //===========================================================
 
 #include <fun4all/SubsysReco.h>
+#include "GlobalVertex.h"
 
 #include <string>  // for string
 
@@ -29,6 +30,11 @@ class GlobalVertexReco : public SubsysReco
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
+  void setVertexType(GlobalVertex::VTXTYPE vtxtype)
+  {
+    _vtxtype = vtxtype;
+  }
+  
   void set_x_defaults(float xdefault, float xerr)
   {
     _xdefault = xdefault;
@@ -47,6 +53,12 @@ class GlobalVertexReco : public SubsysReco
 
  private:
   int CreateNodes(PHCompositeNode *topNode);
+  int useVertexType(GlobalVertex::VTXTYPE vtxtype)
+  {
+    return ( (_vtxtype == vtxtype) || (_vtxtype == GlobalVertex::VTXTYPE::UNDEFINED) );
+  }
+
+  GlobalVertex::VTXTYPE _vtxtype{GlobalVertex::VTXTYPE::UNDEFINED};
 
   float _xdefault{0.};
   float _xerr{0.3};

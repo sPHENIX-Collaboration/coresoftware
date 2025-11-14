@@ -112,7 +112,8 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 
   for (const auto &iter : m_PacketNodeNames)
   {
-    if (iter == "14001") continue;
+    if (iter == "14001") { continue;
+}
     CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
     if (!calopacket)
     {
@@ -344,7 +345,7 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
 void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
 {
   unsigned int packetid = calopkt->getIdentifier();
-  if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
+  if (!m_PacketStuffMap.contains(packetid))
   {
     std::string hname = "clkdiff" + std::to_string(packetid);
     TH1 *h1 = new TH1F(hname.c_str(), hname.c_str(), 100, 0, 99);
@@ -392,7 +393,7 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
 {
   unsigned int packetid = pkt->getIdentifier();
   uint64_t clk = (pkt->getBCO() & 0xFFFFFFFF);
-  if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
+  if (!m_PacketStuffMap.contains(packetid))
   {
     std::string hname = "clkdiff" + std::to_string(packetid);
     TH1 *h1 = new TH1F(hname.c_str(), hname.c_str(), 100, 0, 99);

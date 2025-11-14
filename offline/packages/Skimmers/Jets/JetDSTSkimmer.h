@@ -6,6 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <map>
 
 class PHCompositeNode;
 
@@ -20,20 +21,20 @@ class JetDSTSkimmer : public SubsysReco
 
   int process_event(PHCompositeNode *topNode) override;
 
-  void SetMinJetPt(float minJetPt) { m_minJetPt = minJetPt; }
-  void SetMinClusterPt(float minClusterPt) { m_minClusterPt = minClusterPt; }
+  void SetJetNodeThresholds(const std::string &jetNodeName, float threshold) { m_JetNodePts[jetNodeName] = threshold; }
+  void SetClusterNodeThresholds(const std::string &clusterNodeName, float threshold) { m_ClusterNodePts[clusterNodeName] = threshold; }
 
-  void SetJetNodeName(const std::string &jetNodeName) { m_JetNodeName = jetNodeName; }
-  void SetClusterNodeName(const std::string &clusterNodeName) { m_ClusterNodeName = clusterNodeName; }
+  void SetJetNodeThresholds(const std::map<std::string, float> &jetNodePts) { m_JetNodePts = jetNodePts; }
+  void SetClusterNodeThresholds(const std::map<std::string, float> &clusterNodePts) { m_ClusterNodePts = clusterNodePts; }
+
+  void ResetJetNodeThresholds() { m_JetNodePts.clear(); }
+  void ResetClusterNodeThresholds() { m_ClusterNodePts.clear(); }
 
  private:
     bool isBackgroundEvent();
 
-    float m_minJetPt{10};
-    float m_minClusterPt{5};
-    
-    std::string m_JetNodeName{"AntiKt_Tower_r04_Sub1"};
-    std::string m_ClusterNodeName{"CLUSTERINFO_CEMC"};
+    std::map<std::string, float> m_JetNodePts;
+    std::map<std::string, float> m_ClusterNodePts;
 };
 
 #endif // JETDSTSKIMMER_H

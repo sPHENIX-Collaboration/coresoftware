@@ -66,7 +66,7 @@ void PHParameters::set_int_param(const std::string &name, const int ival)
 
 int PHParameters::get_int_param(const std::string &name) const
 {
-  if (m_IntParMap.find(name) != m_IntParMap.end())
+  if (m_IntParMap.contains(name))
   {
     return m_IntParMap.find(name)->second;
   }
@@ -83,7 +83,7 @@ int PHParameters::get_int_param(const std::string &name) const
 
 bool PHParameters::exist_int_param(const std::string &name) const
 {
-  return m_IntParMap.find(name) != m_IntParMap.end();
+  return m_IntParMap.contains(name);
 }
 
 void PHParameters::printint() const
@@ -104,7 +104,7 @@ void PHParameters::set_double_param(const std::string &name, const double dval)
 double
 PHParameters::get_double_param(const std::string &name) const
 {
-  if (m_DoubleParMap.find(name) != m_DoubleParMap.end())
+  if (m_DoubleParMap.contains(name))
   {
     return m_DoubleParMap.find(name)->second;
   }
@@ -122,7 +122,7 @@ PHParameters::get_double_param(const std::string &name) const
 
 bool PHParameters::exist_double_param(const std::string &name) const
 {
-  return m_DoubleParMap.find(name) != m_DoubleParMap.end();
+  return m_DoubleParMap.contains(name);
 }
 
 void PHParameters::Print(Option_t * /*option*/) const
@@ -184,7 +184,7 @@ void PHParameters::set_string_param(const std::string &name, const std::string &
 std::string
 PHParameters::get_string_param(const std::string &name) const
 {
-  if (m_StringParMap.find(name) != m_StringParMap.end())
+  if (m_StringParMap.contains(name))
   {
     return m_StringParMap.find(name)->second;
   }
@@ -201,7 +201,7 @@ PHParameters::get_string_param(const std::string &name) const
 
 bool PHParameters::exist_string_param(const std::string &name) const
 {
-  return m_StringParMap.find(name) != m_StringParMap.end();
+  return m_StringParMap.contains(name);
 }
 
 void PHParameters::printstring() const

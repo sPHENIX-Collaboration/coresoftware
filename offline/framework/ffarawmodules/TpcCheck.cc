@@ -58,7 +58,7 @@ int TpcCheck::process_event(PHCompositeNode *topNode)
           std::cout << "current bco: 0x" << std::hex << *refbco.begin()
                     << std::dec << std::endl;
         }
-        if (bclk_seen.find(*refbco.begin()) != bclk_seen.end())
+        if (bclk_seen.contains(*refbco.begin()))
         {
           std::cout << "bco 0x" << std::hex << *refbco.begin() << std::dec
                     << " seen before" << std::endl;
@@ -68,7 +68,7 @@ int TpcCheck::process_event(PHCompositeNode *topNode)
       }
       else
       {
-        if (refbco.find(inh->get_bco()) == refbco.end())
+        if (!refbco.contains(inh->get_bco()))
         {
           if (*refbco.begin() <= inh->get_bco() + bcorange)
           {

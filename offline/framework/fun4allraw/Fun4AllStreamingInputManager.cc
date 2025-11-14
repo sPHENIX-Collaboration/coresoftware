@@ -606,6 +606,9 @@ int Fun4AllStreamingInputManager::FillGl1()
     {
       gl1packet->FillFrom(gl1hititer);
       MySyncManager()->CurrentEvent(gl1packet->getEvtSequence());
+      m_SyncObject->RunNumber(m_RunNumber);
+      m_SyncObject->EventNumber(gl1packet->getEvtSequence());
+      m_SyncObject->SegmentNumber(0);
     }
     m_RefBCO = gl1hititer->getBCO();
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)

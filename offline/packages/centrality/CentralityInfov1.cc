@@ -18,7 +18,7 @@ void CentralityInfov1::Reset()
 
 bool CentralityInfov1::has_quantity(const PROP prop_id) const
 {
-  return _quantity_map.find(prop_id) != _quantity_map.end();
+  return _quantity_map.contains(prop_id);
 }
 
 void CentralityInfov1::set_quantity(const PROP prop_id, float value)
@@ -38,7 +38,7 @@ float CentralityInfov1::get_quantity(const PROP prop_id) const
 
 bool CentralityInfov1::has_centile(const PROP prop_id) const
 {
-  return _centile_map.find(prop_id) != _centile_map.end();
+  return _centile_map.contains(prop_id);
 }
 
 void CentralityInfov1::set_centile(const PROP prop_id, float value)

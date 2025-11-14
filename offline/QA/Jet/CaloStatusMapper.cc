@@ -1,29 +1,18 @@
-/// ===========================================================================
-/*! \file   CaloStatusMapperLinkDef.h
- *  \author Derek Anderson
- *  \date   05.22.2024
- *
- *  A Fun4All QA module to plot no. of towers per event
- *  and vs. eta, phi as a function of status.
- */
-/// ===========================================================================
-
-#define CLUSTERSTATUSMAPPER_CC
-
 // module definitions
 #include "CaloStatusMapper.h"
 
 // calo base
 #include <calobase/TowerInfo.h>
+#include <calobase/TowerInfoContainer.h>
 
 // calo trigger
 #include <calotrigger/TriggerAnalyzer.h>
 
-// f4a libraries
+// f4a includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
 
-// phool libraries
+// phool includes
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
@@ -31,14 +20,14 @@
 // qa utilities
 #include <qautils/QAHistManagerDef.h>
 
-// root libraries
+// root includes
 #include <TH1.h>
 #include <TH2.h>
 #include <TStyle.h>
 
-// c++ utiilites
-#include <algorithm>
+// c++ includes
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 
 
@@ -154,6 +143,8 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
   // grab input nodes
   GrabNodes(topNode);
 
+  float sumCaloE = 0;
+
   // loop over input nodes
   for (size_t iNode = 0; iNode < m_inNodes.size(); ++iNode)
   {
@@ -161,6 +152,9 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
     // grab node name & make status base
     const std::string nodeName = m_config.inNodeNames[iNode].first;
     const std::string statBase = MakeBaseName("Status", nodeName);
+    const std::string energyBase = MakeBaseName("TowerE", nodeName);
+
+    float totalE = 0;
 
     // loop over towers
     TowerInfoContainer* towers = m_inNodes[iNode];
@@ -204,8 +198,18 @@ int CaloStatusMapper::process_event(PHCompositeNode* topNode)
       m_hists[perPhiBase]->Fill(iPhi);
       m_hists[phiEtaBase]->Fill(iEta, iPhi);
 
+      float towerE = tower->get_energy();
+      totalE += towerE;
     }  // end tower loop
+
+    // fill total tower energy
+    m_hists[energyBase]->Fill(totalE);
+
+    sumCaloE += totalE;
   }  // end node loop
+
+  // fill all calo total energy plot
+  allCaloEnergy -> Fill(sumCaloE);
 
   // increment event no. and return
   ++m_nEvent;
@@ -240,6 +244,7 @@ int CaloStatusMapper::End(PHCompositeNode* /*topNode*/)
   for (const auto& hist : m_hists) {
     m_manager->registerHisto(hist.second);
   }
+  m_manager->registerHisto(allCaloEnergy);
   return Fun4AllReturnCodes::EVENT_OK;
 
 }  // end 'End(PHCompositeNode*)'
@@ -289,6 +294,11 @@ void CaloStatusMapper::BuildHistograms()
   const CaloStatusMapperDefs::EMCalHistDef emHistDef;
   const CaloStatusMapperDefs::HCalHistDef  hcHistDef;
 
+  // make total calo energy hist
+  const std::string caloEBase = MakeBaseName("TowerE", "towerinfo_calib_allcalo");
+  const std::string caloEName = JetQADefs::MakeQAHistName(caloEBase, m_config.moduleName, m_config.histTag);
+  allCaloEnergy = new TH1F(caloEName.data(), "All Calo Tower Energy Sum; Tower E [GeV]", 320, -200, 3000);
+
   // loop over input node names
   for (const auto& nodeName : m_config.inNodeNames)
   {
@@ -300,6 +310,23 @@ void CaloStatusMapper::BuildHistograms()
     // create status hist
     //   - n.b. calo type doesn't matter here
     m_hists[statBase] = emHistDef.MakeStatus1D(statName);
+
+    // make tower energy hist name
+    const std::string energyBase = MakeBaseName("TowerE", nodeName.first);
+    const std::string energyName = JetQADefs::MakeQAHistName(energyBase, m_config.moduleName, m_config.histTag);
+
+    // create energy hist
+    switch (nodeName.second)
+    {
+      case CaloStatusMapperDefs::Calo::HCal:
+        m_hists[energyBase] = hcHistDef.MakeEnergy1D(energyName);
+        break;
+      case CaloStatusMapperDefs::Calo::EMCal:
+          [[fallthrough]];
+      default:
+        m_hists[energyBase] = emHistDef.MakeEnergy1D(energyName);
+        break;
+    }
 
     // loop over status labels
     for (const auto& statLabel : CaloStatusMapperDefs::StatLabels())

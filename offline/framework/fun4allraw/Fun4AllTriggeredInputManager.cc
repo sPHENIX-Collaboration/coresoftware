@@ -91,7 +91,8 @@ int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
     return -1;
   }
   EventNumber(m_Gl1TriggeredInput->EventNumber());
-  MySyncManager()->CurrentEvent(EventNumber());
+  m_SyncObject->EventNumber(EventNumber());
+  m_SyncObject->RunNumber(m_RunNumber);
   //    std::cout << "saving event on dst" << std::endl;
   return 0;
 }

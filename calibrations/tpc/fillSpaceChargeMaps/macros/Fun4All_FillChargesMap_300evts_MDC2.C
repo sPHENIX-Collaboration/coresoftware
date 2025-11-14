@@ -1,21 +1,21 @@
 #ifndef FUN4ALL_FILLCHARGESMAP_300EVTS_MDC2_C
 #define FUN4ALL_FILLCHARGESMAP_300EVTS_MDC2_C
 
+#include "../fillSpaceChargeMaps.h"
+
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllDstInputManager.h>
 
 #include <frog/FROG.h>
 
-#include <fillSpaceChargeMaps.h>
 
-#include <stdio.h>
-//#include <sstream>
-
+#include <fstream>
 #include <string>
 
+#include <Rtypes.h>
+#include <TSystem.h>
 
-// cppcheck-suppress unknownMacro
 R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libfillSpaceChargeMaps.so)
 R__LOAD_LIBRARY(libg4dst.so)
@@ -23,18 +23,18 @@ R__LOAD_LIBRARY(libg4dst.so)
 std::vector<int> readBeamXings();
 
 std::vector<int> readBeamXings(){
-  //cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << endl;
+  //std::cout << "fillSpaceChargeMaps::InitRun(PHCompositeNode *topNode) Initializing for Run XXX" << std::endl;
   std::vector<int> bXs;
-  string line;
-  string txt_file = "./data/timestamps_50kHz_1M.txt";
-  ifstream InputFile (txt_file);
+  std::string line;
+  std::string txt_file = "./data/timestamps_50kHz_1M.txt";
+  std::ifstream InputFile (txt_file);
   //std::map<int,int> timestamps;
   if (InputFile.is_open()){
     int n_line=0;
     while ( getline (InputFile,line) )
     {
         n_line++;
-      //cout << line << '\n';
+      //std::cout << line << '\n';
       if(n_line>3){
         std::istringstream is( line );
         double n[2] = {0,0};
@@ -56,7 +56,7 @@ int closest(std::vector<int> const& vec, int value) {
 
     return *it;
 }
-void Fun4All_FillChargesMap_300evts_MDC2(  const int nEvents = 10, const int eventsInFileStart = 0, const int eventsBeamCrossing = 1508071, const string &fname = "/sphenix/sim/sim01/sphnxpro/Micromegas/2/G4Hits_sHijing_0-12fm_000000_001000.root", const string &foutputname = "/sphenix/user/shulga/Work/IBF/DistortionMap/Files/slim_G4Hits_sHijing_0-12fm_000000_001000.root" )
+void Fun4All_FillChargesMap_300evts_MDC2(  const int nEvents = 10, const int eventsInFileStart = 0, const int eventsBeamCrossing = 1508071, const std::string &fname = "/sphenix/sim/sim01/sphnxpro/Micromegas/2/G4Hits_sHijing_0-12fm_000000_001000.root", const std::string &foutputname = "/sphenix/user/shulga/Work/IBF/DistortionMap/Files/slim_G4Hits_sHijing_0-12fm_000000_001000.root" )
 {
   ///////////////////////////////////////////
   // Make the Server
@@ -76,7 +76,7 @@ void Fun4All_FillChargesMap_300evts_MDC2(  const int nEvents = 10, const int eve
   std::vector<int>::iterator it = std::find(bXs.begin(), bXs.end(), eventsBeamCrossing);
   int index=0; 
   index = std::distance(bXs.begin(), it);
-  cout<<"Index="<<index<<endl;
+  std::cout<<"Index="<<index<<std::endl;
   for(int n=0;n<30;n++){
     int bXN=index+n*300;
     bXs_sel.push_back(bXs[bXN]);
@@ -84,12 +84,12 @@ void Fun4All_FillChargesMap_300evts_MDC2(  const int nEvents = 10, const int eve
     //bXs_sel_end.push_back(n_bX); 
     //int id_bX = std::distance(bXs.begin(), it);
     //std::vector<int>::iterator it_bX = std::find(bXs.begin(), bXs.end(), n_bX);
-    cout<<"bX="<<bXs[bXN]<<endl;
-    //cout<<"bX="<<bXs[bXN]<<"last event:"<<n_bX<<" evt:"<<std::distance(bXs.begin(), it_bX)<<endl;
+    std::cout<<"bX="<<bXs[bXN]<<std::endl;
+    //std::cout<<"bX="<<bXs[bXN]<<"last event:"<<n_bX<<" evt:"<<std::distance(bXs.begin(), it_bX)<<std::endl;
   }
   Fun4AllServer *se = Fun4AllServer::instance();
-  string cd_name = "fillSpaceChargeMaps"+std::to_string(eventsInFileStart);
-  //cout<<fname_tmp<<endl;
+  std::string cd_name = "fillSpaceChargeMaps"+std::to_string(eventsInFileStart);
+  //std::cout<<fname_tmp<<std::endl;
   fillSpaceChargeMaps *dist_calc = new fillSpaceChargeMaps(cd_name, foutputname);
   dist_calc->SetFrequency(50);
   dist_calc->SetEvtStart(eventsInFileStart);
@@ -112,8 +112,8 @@ void Fun4All_FillChargesMap_300evts_MDC2(  const int nEvents = 10, const int eve
 
   gSystem->Load("libFROG");
   FROG *fr = new FROG();
-  string inputFileName = fr->location(fname);
-  cout << "Next file:" << inputFileName << endl;
+  std::string inputFileName = fr->location(fname);
+  std::cout << "Next file:" << inputFileName << std::endl;
   // this (DST) input manager just drives the event loop
   Fun4AllInputManager *in = new Fun4AllDstInputManager("DSTin");
   in->fileopen(inputFileName);
@@ -123,16 +123,16 @@ void Fun4All_FillChargesMap_300evts_MDC2(  const int nEvents = 10, const int eve
   {
     return;
   }
-  cout << endl << "Running over " << nEvents << " Events" << endl;
+  std::cout << std::endl << "Running over " << nEvents << " Events" << std::endl;
   se->run(nEvents);
 
-  cout << endl << "Calling End in Fun4All_fillSpaceChargeMaps.C" << endl;
+  std::cout << std::endl << "Calling End in Fun4All_fillSpaceChargeMaps.C" << std::endl;
   se->End();
 
-  cout << endl << "All done, calling delete Fun4AllServer" << endl;
+  std::cout << std::endl << "All done, calling delete Fun4AllServer" << std::endl;
   delete se;
 
-  cout << endl << "gSystem->Exit(0)" << endl;
+  std::cout << std::endl << "gSystem->Exit(0)" << std::endl;
   gSystem->Exit(0);
 }
 
