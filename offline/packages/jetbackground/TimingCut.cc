@@ -150,7 +150,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   bool passMbdt = false;
   if(!std::isnan(mbd_time))
     {
-      passMbdt = Pass_Mbd_dt(maxJett, subJett);
+      passMbdt = Pass_Mbd_dt(maxJett, mbd_time);
     }
 
   bool failAnyCut = !passDeltat || !passLeadt || !passMbdt;
@@ -165,6 +165,9 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   _cutParams.set_int_param("passDeltatCut",passDeltat);
   _cutParams.set_int_param("passMbdDtCut",passMbdt);
   _cutParams.set_int_param("failAnyTimeCut", failAnyCut);
+  _cutParams.set_double_param("maxJett",maxJett);
+  _cutParams.set_double_param("subJett",subJett);
+  _cutParams.set_double_param("mbd_time",mbd_time);
   _cutParams.UpdateNodeTree(parNode, "TimingCutParams");
 
   return Fun4AllReturnCodes::EVENT_OK;
