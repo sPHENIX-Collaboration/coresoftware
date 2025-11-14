@@ -33,7 +33,10 @@ TruthVertex* TruthVertexMap_v1::get(unsigned int idkey)
 
 TruthVertex* TruthVertexMap_v1::insert(TruthVertex* vertex)
 {
-  if (!vertex) return nullptr;
+  if (!vertex)
+  {
+    return nullptr;
+  }
 
   unsigned int id = vertex->get_id();
   auto [it, inserted] = _map.insert({id, vertex});

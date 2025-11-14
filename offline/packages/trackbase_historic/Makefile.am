@@ -124,55 +124,8 @@ ROOTDICTS = \
   WeightedTrackMap_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  TrackSeed_Dict_rdict.pcm \
-  TrackSeed_v1_Dict_rdict.pcm \
-  TrackSeed_v2_Dict_rdict.pcm \
-  SvtxTrackSeed_v1_Dict_rdict.pcm \
-  SvtxTrackSeed_v2_Dict_rdict.pcm \
-  TrackSeed_FastSim_v1_Dict_rdict.pcm \
-  TrackSeed_FastSim_v2_Dict_rdict.pcm \
-  TrackSeedContainer_Dict_rdict.pcm \
-  TrackSeedContainer_v1_Dict_rdict.pcm \
-  PHG4ParticleSvtxMap_Dict_rdict.pcm \
-  PHG4ParticleSvtxMap_v1_Dict_rdict.pcm \
-  SvtxPHG4ParticleMap_Dict_rdict.pcm \
-  SvtxPHG4ParticleMap_v1_Dict_rdict.pcm \
-  SvtxAlignmentState_Dict_rdict.pcm \
-  SvtxAlignmentState_v1_Dict_rdict.pcm \
-  SvtxTrack_Dict_rdict.pcm \
-  SvtxTrackState_Dict_rdict.pcm \
-  SvtxTrackState_v1_Dict_rdict.pcm \
-  SvtxTrackState_v2_Dict_rdict.pcm \
-  SvtxTrackState_v3_Dict_rdict.pcm \
-  SvtxTrack_v1_Dict_rdict.pcm \
-  SvtxTrack_v2_Dict_rdict.pcm \
-  SvtxTrack_v3_Dict_rdict.pcm \
-  SvtxTrack_v4_Dict_rdict.pcm \
-  SvtxTrack_FastSim_Dict_rdict.pcm \
-  SvtxTrack_FastSim_v1_Dict_rdict.pcm \
-  SvtxTrack_FastSim_v2_Dict_rdict.pcm \
-  SvtxTrack_FastSim_v3_Dict_rdict.pcm \
-  SvtxAlignmentStateMap_Dict_rdict.pcm \
-  SvtxAlignmentStateMap_v1_Dict_rdict.pcm \
-  SvtxTrackMap_Dict_rdict.pcm \
-  SvtxTrackMap_v1_Dict_rdict.pcm \
-  SvtxTrackMap_v2_Dict_rdict.pcm \
-  SvtxTrackCaloClusterMap_Dict_rdict.pcm \
-  SvtxTrackCaloClusterMap_v1_Dict_rdict.pcm \
-  SvtxTrackInfo_Dict_rdict.pcm \
-  SvtxTrackInfo_v1_Dict_rdict.pcm \
-  SvtxTrackInfo_v2_Dict_rdict.pcm \
-  SvtxTrackInfo_v3_Dict_rdict.pcm \
-  TrackInfoContainer_Dict_rdict.pcm \
-  TrackInfoContainer_v1_Dict_rdict.pcm \
-  TrackInfoContainer_v2_Dict_rdict.pcm \
-  TrackInfoContainer_v3_Dict_rdict.pcm \
-  TrackStateInfo_Dict_rdict.pcm \
-  TrackStateInfo_v1_Dict_rdict.pcm \
-  WeightedTrack_Dict_rdict.pcm \
-  WeightedTrackZeroField_Dict_rdict.pcm \
-  WeightedTrackMap_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libtrackbase_historic_la_SOURCES = \
   ActsTransformations.cc \
