@@ -19,12 +19,17 @@ class TimingCut : public SubsysReco
 
   ~TimingCut() override = default;
 
-  bool Pass_Delta_t(float lead_time, float sub_time, float maxJetPhi, float subJetPhi)
+  float calc_dphi(float maxJetPhi, float subJetPhi)
   {
     float dPhi = std::fabs(maxJetPhi - subJetPhi);
     if(dPhi>M_PI) dPhi -= M_PI;
-    
-    return (std::fabs(lead_time - sub_time) < _dt_width && dPhi > 3*M_PI/4);
+    return dPhi;
+  }
+
+  bool Pass_Delta_t(float lead_time, float sub_time, float maxJetPhi, float subJetPhi)
+  {
+    float dPhi = calc_dphi(maxJetPhi, subJetPhi);
+    return (std::fabs(lead_time - sub_time) < _dt_width && dPhi > _min_dphi);
   }
 
   bool Pass_Lead_t(float lead_time)
@@ -49,6 +54,9 @@ class TimingCut : public SubsysReco
   void set_mbd_dt_width(float new_mbd_dt_width) { _mbd_dt_width = new_mbd_dt_width; }
   float get_mbd_dt_width() { return _mbd_dt_width; }
 
+  void set_min_dphi(float new_min_dphi) { _min_dphi = new_min_dphi; }
+  float get_min_dphi() { return _min_dphi; }
+
   int Init(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *topNode) override;
@@ -69,9 +77,10 @@ class TimingCut : public SubsysReco
     _cutParams.set_int_param("passDeltatCut", 0);
     _cutParams.set_int_param("passMbdDtCut", 0);
     _cutParams.set_int_param("failAnyTimeCut",0);
-    _cutParams.set_double_param("maxJett",-9999);
-    _cutParams.set_double_param("subJett",-9999);
-    _cutParams.set_double_param("mbd_time",-9999);
+    _cutParams.set_double_param("maxJett",9999);
+    _cutParams.set_double_param("subJett",9999);
+    _cutParams.set_double_param("mbd_time",9999);
+    _cutParams.set_double_param("dPhi",9999);
   }
 
 private:
@@ -83,6 +92,7 @@ private:
   float _dt_width{3.0};
   float _t_shift{2.0};
   float _mbd_dt_width{3.0};
+  float _min_dphi{3*M_PI/4};
 };
 
 #endif

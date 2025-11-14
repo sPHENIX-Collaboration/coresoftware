@@ -174,6 +174,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   _cutParams.set_double_param("maxJett",maxJett);
   _cutParams.set_double_param("subJett",subJett);
   _cutParams.set_double_param("mbd_time",mbd_time);
+  _cutParams.set_double_param("dPhi",calc_dphi(maxJetPhi, subJetPhi));
   _cutParams.UpdateNodeTree(parNode, "TimingCutParams");
 
   return Fun4AllReturnCodes::EVENT_OK;
