@@ -355,8 +355,9 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
             << std::endl;
       }
 
-      std::string text_to_hit =  Form("%d_%d_%d_%d_%d",int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), int(intthit->get_channel_id()), time_bucket);
-      std::string text_to_chip = Form("%d_%d_%d_%d",   int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), time_bucket);
+      int used_timing = (m_bcoFilter) ? intthit->get_FPHX_BCO() : time_bucket;
+      std::string text_to_hit =  Form("%d_%d_%d_%d_%d",int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), int(intthit->get_channel_id()), used_timing);
+      std::string text_to_chip = Form("%d_%d_%d_%d",   int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), used_timing);
 
       if (loop == 0) { // note : the first "loop" is for counting the number of chip hit, so we don't touch the hit set key things 
 
@@ -374,7 +375,14 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
         continue;
       }
 
-      if (loop == 1 && m_SaturatedChipRejection && evt_ChipHit_count_map[text_to_chip] >= HighChipMultiplicityCut){continue;}
+      if (loop == 1 && m_SaturatedChipRejection && evt_ChipHit_count_map[text_to_chip] >= HighChipMultiplicityCut){
+        
+        if (Verbosity() > 10000){
+          std::cout << PHWHERE << " hit in Saturated chip removed, the hit: "<<text_to_hit<<", the chip: " << text_to_chip << " with " << evt_ChipHit_count_map[text_to_chip] << " hits "<< std::endl;
+        }
+      
+        continue;
+      }
 
       hit_key = InttDefs::genHitKey(ofl.strip_y, ofl.strip_x);  // col, row <trackbase/InttDefs.h>
 
@@ -398,6 +406,6 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     }
 
   }
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
