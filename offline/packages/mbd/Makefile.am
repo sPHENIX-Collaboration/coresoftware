@@ -49,6 +49,10 @@ pkginclude_HEADERS = \
   MbdPmtContainerV1.h \
   MbdPmtHit.h \
   MbdPmtHitV1.h \
+  MbdRawContainer.h \
+  MbdRawContainerV1.h \
+  MbdRawHit.h \
+  MbdRawHitV1.h \
   MbdReturnCodes.h \
   MbdRunningStats.h \
   MbdCalib.h \
@@ -73,8 +77,10 @@ pkginclude_HEADERS = \
   MbdPmtHit.h \
   MbdPmtHitV1.h \
   MbdPmtSimHitV1.h \
-  BbcPmtInfoContainerV1.h \
-  BbcPmtInfoV1.h \
+  MbdRawContainer.h \
+  MbdRawContainerV1.h \
+  MbdRawHit.h \
+  MbdRawHitV1.h \
   MbdRunningStats.h \
   MbdSig.h \
   MbdEvent.h \
@@ -107,7 +113,11 @@ ROOTDICTS = \
   MbdPmtContainer_Dict.cc \
   MbdPmtContainerV1_Dict.cc \
   MbdPmtHit_Dict.cc \
-  MbdPmtHitV1_Dict.cc
+  MbdPmtHitV1_Dict.cc \
+  MbdRawContainer_Dict.cc \
+  MbdRawContainerV1_Dict.cc \
+  MbdRawHit_Dict.cc \
+  MbdRawHitV1_Dict.cc
 
 else
 ROOTDICTS = \
@@ -137,7 +147,11 @@ ROOTDICTS = \
   MbdPmtSimHitV1_Dict.cc \
   MbdPmtContainer_Dict.cc \
   MbdPmtContainerV1_Dict.cc \
-  MbdPmtSimContainerV1_Dict.cc
+  MbdPmtSimContainerV1_Dict.cc \
+  MbdRawHit_Dict.cc \
+  MbdRawHitV1_Dict.cc \
+  MbdRawContainer_Dict.cc \
+  MbdRawContainerV1_Dict.cc
 endif
 
 pcmdir = $(libdir)
@@ -157,6 +171,10 @@ libmbd_io_la_SOURCES = \
   MbdPmtHitV1.cc \
   MbdPmtContainer.cc \
   MbdPmtContainerV1.cc \
+  MbdRawHit.cc \
+  MbdRawHitV1.cc \
+  MbdRawContainer.cc \
+  MbdRawContainerV1.cc \
   MbdRunningStats.cc \
   MbdCalib.cc \
   MbdSig.cc
@@ -184,6 +202,12 @@ libmbd_io_la_SOURCES = \
   MbdPmtContainer.cc \
   MbdPmtContainerV1.cc \
   MbdPmtSimContainerV1.cc \
+  MbdRawHit.cc \
+  MbdRawHitV1.cc \
+  MbdRawContainer.cc \
+  MbdRawContainerV1.cc \
+  MbdRunningStats.cc \
+  MbdSig.cc \
   BbcVertexv1.cc \
   BbcVertexv2.cc \
   BbcVertexMap.cc \
