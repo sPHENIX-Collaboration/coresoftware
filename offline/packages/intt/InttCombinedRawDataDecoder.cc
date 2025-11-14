@@ -16,6 +16,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>  // for PHIODataNode
 #include <phool/PHNodeIterator.h>
@@ -26,6 +27,7 @@
 
 #include <cstdlib>     // for exit
 #include <filesystem>  // for filesystem::exist
+#include <format>
 #include <iostream>    // for operator<<, endl, bas...
 #include <map>         // for _Rb_tree_iterator
 
@@ -93,7 +95,7 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   // Check if INTT event header already exists
   if (m_writeInttEventHeader)
   {
-    auto inttNode = dynamic_cast<PHCompositeNode*>(trkr_itr.findFirst("PHCompositeNode", "INTT"));
+    auto *inttNode = dynamic_cast<PHCompositeNode*>(trkr_itr.findFirst("PHCompositeNode", "INTT"));
     if (!inttNode)
     {
       inttNode = new PHCompositeNode("INTT");
@@ -104,7 +106,7 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
     if (!intt_event_header)
     {
       intt_event_header = new InttEventInfov1();
-      auto newHeader = new PHIODataNode<PHObject>(intt_event_header, "INTTEVENTHEADER", "PHObject");
+      auto *newHeader = new PHIODataNode<PHObject>(intt_event_header, "INTTEVENTHEADER", "PHObject");
       inttNode->addNode(newHeader);
     }
   }
@@ -211,7 +213,7 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
     }
     else
     {
-      auto oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
+      auto *oldgl1 = findNode::getClass<Gl1RawHit>(topNode, "GL1RAWHIT");
       if(!oldgl1)
       {
         std::cout << PHWHERE << " no gl1 container, exiting" << std::endl;
@@ -299,40 +301,58 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       int time_bucket = 0;
 
       // Note: Case 1: Local, Triggered, With BCO filter
-      if ( m_runStandAlone && m_triggeredMode && m_bcoFilter ) {time_bucket = 0;}
+      if ( m_runStandAlone && m_triggeredMode && m_bcoFilter )
+      { // NOLINT (bugprone-branch-clone)
+	time_bucket = 0;
+      }
 
       // Note: Case 2: Local, Triggered, No BCO filter
-      else if ( m_runStandAlone && m_triggeredMode && !m_bcoFilter ) {time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;}
+      else if ( m_runStandAlone && m_triggeredMode && !m_bcoFilter )
+      { // NOLINT (bugprone-branch-clone)
+	time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;
+      }
 
       // Note: Case 3: Local, Streaming, With BCO filter
-      else if ( m_runStandAlone && !m_triggeredMode && m_bcoFilter ) {
+      else if ( m_runStandAlone && !m_triggeredMode && m_bcoFilter )
+      {
           std::cout<< PHWHERE << "\n" << "You selected INTT local mode, streaming mode, and BCO_filter, which is not supported. Exiting."<< std::endl;
           gSystem->Exit(1);
           exit(1);
       }
 
       // Note: Case 4: Local, Streaming, No BCO filter
-      else if ( m_runStandAlone && !m_triggeredMode && !m_bcoFilter ) {
+      else if ( m_runStandAlone && !m_triggeredMode && !m_bcoFilter )
+      {
           std::cout<< PHWHERE << "\n"<< "You selected INTT local mode, streaming mode, and WITHOUT BCO_filter, but GL1 is not available for time-bucket calculation. Exiting."<< std::endl;
           gSystem->Exit(1);
           exit(1);
       }
 
       // Note: Case 5: Global, Triggered, With BCO filter
-      else if ( !m_runStandAlone && m_triggeredMode && m_bcoFilter ) {time_bucket = 0;}
+      else if ( !m_runStandAlone && m_triggeredMode && m_bcoFilter )
+      { // NOLINT (bugprone-branch-clone)
+	time_bucket = 0;
+      }
 
       // Note: Case 6: Global, Triggered, No BCO filter
-      else if ( !m_runStandAlone && m_triggeredMode && !m_bcoFilter ) {time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;}
+      else if ( !m_runStandAlone && m_triggeredMode && !m_bcoFilter )
+      { // NOLINT (bugprone-branch-clone)
+	time_bucket = (intthit->get_FPHX_BCO() - (intthit->get_bco() & 0x7fU) - m_inttFeeOffset + 128) % 128;
+      }
 
       // Note: Case 7: Global, Streaming, With BCO filter
-      else if ( !m_runStandAlone && !m_triggeredMode && m_bcoFilter ) {
+      else if ( !m_runStandAlone && !m_triggeredMode && m_bcoFilter )
+      {
           std::cout<< PHWHERE << "\n"<< "You selected INTT global mode, streaming mode, and BCO_filter, which is not supported. Exiting."<< std::endl;
           gSystem->Exit(1);
           exit(1);
       }
 
       // Note: Case 8: Global, Streaming, No BCO filter
-      else if ( !m_runStandAlone && !m_triggeredMode && !m_bcoFilter ) {time_bucket = intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco -  m_inttFeeOffset;}
+      else if ( !m_runStandAlone && !m_triggeredMode && !m_bcoFilter )
+      {
+	time_bucket = intthit->get_FPHX_BCO() + intthit->get_bco() - gl1bco -  m_inttFeeOffset;
+      }
 
       if(m_outputBcoDiff)
       {
@@ -356,15 +376,15 @@ int InttCombinedRawDataDecoder::process_event(PHCompositeNode* topNode)
       }
 
       int used_timing = (m_bcoFilter) ? intthit->get_FPHX_BCO() : time_bucket;
-      std::string text_to_hit =  Form("%d_%d_%d_%d_%d",int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), int(intthit->get_channel_id()), used_timing);
-      std::string text_to_chip = Form("%d_%d_%d_%d",   int(intthit->get_packetid() - 3001), int(intthit->get_fee()), int((intthit->get_chip_id() - 1) % 26), used_timing);
+      std::string text_to_hit =  std::format("{}_{}_{}_{}_{}",int(intthit->get_packetid() - 3001), int(intthit->get_fee()), ((intthit->get_chip_id() - 1) % 26), int(intthit->get_channel_id()), used_timing);
+      std::string text_to_chip = std::format("{}_{}_{}_{}",   int(intthit->get_packetid() - 3001), int(intthit->get_fee()), ((intthit->get_chip_id() - 1) % 26), used_timing);
 
       if (loop == 0) { // note : the first "loop" is for counting the number of chip hit, so we don't touch the hit set key things 
 
         if (std::find(evt_inttHits_vec.begin(), evt_inttHits_vec.end(),text_to_hit) == evt_inttHits_vec.end()){ // note : this is a new hit to the evt_inttHits_vec
           evt_inttHits_vec.push_back(text_to_hit);
           
-          if (evt_ChipHit_count_map.find(text_to_chip) == evt_ChipHit_count_map.end()){
+          if (!evt_ChipHit_count_map.contains(text_to_chip)){
             evt_ChipHit_count_map[text_to_chip] = 1;
           }
           else{
