@@ -21,7 +21,7 @@ class TimingCut : public SubsysReco
 
   float calc_dphi(float maxJetPhi, float subJetPhi)
   {
-    float dPhi = std::fabs(maxJetPhi - subJetPhi);
+    float dPhi = std::abs(maxJetPhi - subJetPhi);
     if(dPhi>M_PI) dPhi -= M_PI;
     return dPhi;
   }
@@ -29,17 +29,17 @@ class TimingCut : public SubsysReco
   bool Pass_Delta_t(float lead_time, float sub_time, float maxJetPhi, float subJetPhi)
   {
     float dPhi = calc_dphi(maxJetPhi, subJetPhi);
-    return (std::fabs(lead_time - sub_time) < _dt_width && dPhi > _min_dphi);
+    return (std::abs(lead_time - sub_time) < _dt_width && dPhi > _min_dphi);
   }
 
   bool Pass_Lead_t(float lead_time)
   {
-    return std::fabs(lead_time + _t_shift) < _t_width;
+    return std::abs(lead_time + _t_shift) < _t_width;
   }
 
   bool Pass_Mbd_dt(float lead_time, float mbd_time)
   {
-    return std::fabs(lead_time - mbd_time) < _mbd_dt_width;
+    return std::abs(lead_time - mbd_time) < _mbd_dt_width;
   }
 
   void set_t_shift(float new_shift) { _t_shift = new_shift; }
