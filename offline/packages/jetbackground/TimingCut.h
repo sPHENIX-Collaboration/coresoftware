@@ -19,19 +19,22 @@ class TimingCut : public SubsysReco
 
   ~TimingCut() override = default;
 
-  bool Pass_Delta_t(float lead_time, float sub_time)
+  bool Pass_Delta_t(float lead_time, float sub_time, float maxJetPhi, float subJetPhi)
   {
-    return std::abs(lead_time - sub_time) < _dt_width;
+    float dPhi = std::fabs(maxJetPhi - subJetPhi);
+    if(dPhi>M_PI) dPhi -= M_PI;
+    
+    return (std::fabs(lead_time - sub_time) < _dt_width && dPhi > 3*M_PI/4);
   }
 
   bool Pass_Lead_t(float lead_time)
   {
-    return std::abs(lead_time + _t_shift) < _t_width;
+    return std::fabs(lead_time + _t_shift) < _t_width;
   }
 
   bool Pass_Mbd_dt(float lead_time, float mbd_time)
   {
-    return std::abs(lead_time - mbd_time) < _mbd_dt_width;
+    return std::fabs(lead_time - mbd_time) < _mbd_dt_width;
   }
 
   void set_t_shift(float new_shift) { _t_shift = new_shift; }

@@ -71,6 +71,8 @@ int TimingCut::process_event(PHCompositeNode *topNode)
   float subJetpT = 0;
   float maxJett = std::numeric_limits<float>::quiet_NaN();
   float subJett = std::numeric_limits<float>::quiet_NaN();
+  float maxJetPhi = std::numeric_limits<float>::quiet_NaN();
+  float subJetPhi = std::numeric_limits<float>::quiet_NaN();
   
   if (jets)
   {
@@ -83,6 +85,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
     {
       float jetpT = 0;
       float jett = std::numeric_limits<float>::quiet_NaN();
+      float jetPhi = std::numeric_limits<float>::quiet_NaN();
       Jet *jet = jets->get_jet(i);
       if (jet)
       {
@@ -99,14 +102,17 @@ int TimingCut::process_event(PHCompositeNode *topNode)
         {
           subJetpT = maxJetpT;
           subJett = maxJett;
+	  subJetPhi = maxJetPhi;
         }
         maxJetpT = jetpT;
         maxJett = jett;
+	maxJetPhi = jetPhi;
       }
       else if (jetpT > subJetpT)
       {
         subJetpT = jetpT;
         subJett = jett;
+	subJetPhi = jetPhi;
       }
     }
   }
@@ -119,7 +125,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  bool passDeltat = Pass_Delta_t(maxJett, subJett);
+  bool passDeltat = Pass_Delta_t(maxJett, subJett, maxJetPhi, subJetPhi);
   bool passLeadt = Pass_Lead_t(maxJett);
 
   MbdOut * mbdout = static_cast<MbdOut*>(findNode::getClass<MbdOut>(topNode,"MbdOut"));
