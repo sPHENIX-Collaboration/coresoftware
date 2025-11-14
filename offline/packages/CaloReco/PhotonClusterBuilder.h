@@ -9,7 +9,6 @@
 class PHCompositeNode;
 class RawClusterContainer;
 class RawCluster;
-class PhotonClusterContainer;
 class PhotonClusterv1;
 class TowerInfoContainer;
 class RawTowerGeomContainer;
@@ -61,7 +60,7 @@ class PhotonClusterBuilder : public SubsysReco
   float m_vertex{std::numeric_limits<float>::quiet_NaN()};
 
   RawClusterContainer* m_rawclusters{nullptr};
-  PhotonClusterContainer* m_photon_container{nullptr};
+  RawClusterContainer* m_photon_container{nullptr};
   TowerInfoContainer* m_emc_tower_container{nullptr};
   RawTowerGeomContainer* m_geomEM{nullptr};
   TowerInfoContainer* m_ihcal_tower_container{nullptr};

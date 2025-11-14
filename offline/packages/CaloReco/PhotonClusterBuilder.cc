@@ -1,6 +1,5 @@
 #include "PhotonClusterBuilder.h"
 
-#include <calobase/PhotonClusterContainer.h>
 #include <calobase/PhotonClusterv1.h>
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -129,10 +128,10 @@ void PhotonClusterBuilder::CreateNodes(PHCompositeNode* topNode)
   {
     throw std::runtime_error("PhotonClusterBuilder: DST node not found");
   }
-  m_photon_container = findNode::getClass<PhotonClusterContainer>(dstNode, m_output_photon_node);
+  m_photon_container = findNode::getClass<RawClusterContainer>(dstNode, m_output_photon_node);
   if (!m_photon_container)
   {
-    m_photon_container = new PhotonClusterContainer();
+    m_photon_container = new RawClusterContainer();
     auto* photonNode = new PHIODataNode<PHObject>(m_photon_container, m_output_photon_node, "PHObject");
     dstNode->addNode(photonNode);
   }
