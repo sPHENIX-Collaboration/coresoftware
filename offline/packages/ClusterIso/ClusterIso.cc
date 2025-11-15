@@ -27,6 +27,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <utility>
@@ -43,9 +44,15 @@ namespace
   {
     float deta = eta1 - eta2;
     float dphi = phi1 - phi2;
-    if (dphi > M_PI) dphi -= 2 * M_PI;       // corrects to keep range -pi to pi
-    if (dphi < -1 * M_PI) dphi += 2 * M_PI;  // corrects to keep range -pi to pi
-    return sqrt(deta * deta + dphi * dphi);
+    if (dphi > M_PI)
+    {
+      dphi -= 2 * M_PI;  // corrects to keep range -pi to pi
+    }
+    if (dphi < -1 * M_PI)
+    {
+      dphi += 2 * M_PI;  // corrects to keep range -pi to pi
+    }
+    return std::sqrt(deta * deta + dphi * dphi);
   }
 }  // namespace
 
