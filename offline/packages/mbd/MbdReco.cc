@@ -106,7 +106,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 
     if ( m_event!=nullptr )
     {
-      status = m_mbdevent->SetRawData(m_event, m_mbdraws, m_mbdpmts);
+      status = m_mbdevent->SetRawData(m_event, m_mbdraws, m_mbdpmts, _fitsonly);
     }
     else if ( m_mbdpackets!=nullptr || m_mbdpacket[0]!=nullptr || m_mbdpacket[1]!=nullptr)
     {
@@ -115,7 +115,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 	m_mbdpacket[0] = m_mbdpackets->getPacketbyId(1001);
 	m_mbdpacket[1] = m_mbdpackets->getPacketbyId(1002);
       }
-      status = m_mbdevent->SetRawData(m_mbdpacket,m_mbdraws,m_mbdpmts,m_gl1packet);
+      status = m_mbdevent->SetRawData(m_mbdpacket,m_mbdraws,m_mbdpmts,m_gl1packet,_fitsonly);
     }
 
     if (status == Fun4AllReturnCodes::DISCARDEVENT )
@@ -159,6 +159,10 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   {
     m_mbdevent->ProcessRawContainer( m_mbdraws, m_mbdpmts );
   }
+  else if ( _fitsonly==1 )
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
 
   m_mbdevent->Calculate(m_mbdpmts, m_mbdout, topNode);
 
@@ -173,8 +177,6 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     vertex->set_beam_crossing(0);
 
     m_mbdvtxmap->insert(vertex);
-
-    // copy to globalvertex
   }
 
   if (Verbosity() > 0)
@@ -254,7 +256,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   }
   else
   {
-    std::cout << "IS A DST_CALOFIT" << std::endl;
+    //std::cout << "IS A DST_CALOFIT" << std::endl;
     _rawdstflag = 1;
   }
 

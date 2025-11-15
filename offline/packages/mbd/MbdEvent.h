@@ -43,9 +43,9 @@ class MbdEvent
   int End();
   void Clear();
 
-  int SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts);
+  int SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, int fitsonly = 0);
 #ifndef ONLINE
-  int SetRawData(std::array< CaloPacket*,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
+  int SetRawData(std::array< CaloPacket*,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw, int fitsonly = 0);
 #endif
   int ProcessPackets(MbdRawContainer *bbcraws);
   int ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts);

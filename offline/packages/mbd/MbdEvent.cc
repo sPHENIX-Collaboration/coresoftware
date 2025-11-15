@@ -401,7 +401,7 @@ bool MbdEvent::isbadtch(const int ipmtch)
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
-int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
+int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw, int fitsonly)
 {
   //Verbosity(100);
   // First check if there is any event (ie, reading from PRDF)
@@ -433,11 +433,9 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
   }
 
   // Get Packets
-//  CaloPacket *dstp[2]{nullptr};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
-//    dstp[ipkt] = mbdraw->getPacketbyId(pktid);
 
     if (Verbosity() > 0)
     {
@@ -501,13 +499,22 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
     }
   }
 
+  // Fill MbdRawContainer
   int status = ProcessPackets(bbcraws);
+
+  if ( fitsonly )
+  {
+    return status;
+  }
+
+  // Fill MbdPmtContainer and MbdOut
   status = ProcessRawContainer(bbcraws,bbcpmts);
+
   return status;
 }
 #endif  // ONLINE
 
-int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
+int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, int fitsonly)
 {
   // First check if there is any event (ie, reading from PRDF)
   if (event == nullptr || bbcpmts == nullptr)
@@ -607,8 +614,16 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
     }
   }
 
+  // Fill MbdRawContainer
   int status = ProcessPackets(bbcraws);
+  if ( fitsonly )
+  {
+    return status;
+  }
+
+  // Fill MbdPmtContainer and MbdOut
   status = ProcessRawContainer(bbcraws,bbcpmts);
+
   return status;
 }
 
