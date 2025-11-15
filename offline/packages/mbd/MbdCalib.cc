@@ -2110,10 +2110,6 @@ float MbdCalib::get_threshold(const int pmtch, const int rel_or_abs)
   {
     return _thresh_mean[pmtch]/_qfit_mpv[pmtch];
   }
-  else
-  {
-    return _thresh_mean[pmtch];
-  }
-
-  return -1.; // error
+ 
+  return _thresh_mean[pmtch];
 }

@@ -32,8 +32,8 @@ MbdVertexFastSimReco::MbdVertexFastSimReco(const string &name)
   : SubsysReco(name)
   , m_T_Smear(NAN)
   , m_Z_Smear(NAN)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
 MbdVertexFastSimReco::~MbdVertexFastSimReco()

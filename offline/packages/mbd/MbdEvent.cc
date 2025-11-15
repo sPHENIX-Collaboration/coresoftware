@@ -730,7 +730,7 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
 int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
 {
   //std::cout << "In ProcessRawContainer" << std::endl;
-  int bnn = 0;
+  //int bnn = 0;
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
@@ -750,10 +750,12 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         // at calpass 2, we use tcorr (uncal_mbd pass). make sure tt_t0 = 0.
         m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
 
+        /*
         if ( pmtch>63 )
         {
           bnn++;
         }
+        */
       }
 
     }
