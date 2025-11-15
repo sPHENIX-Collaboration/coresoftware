@@ -198,6 +198,37 @@ class RawCluster : public PHObject
     return {std::numeric_limits<int>::quiet_NaN(), std::numeric_limits<int>::quiet_NaN()};
   }
 
+
+  virtual float get_shower_shape_parameter(const std::string& /*name*/) const
+  {
+    PHOOL_VIRTUAL_WARN("get_shower_shape_parameter()");
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  virtual const std::map<std::string, float>& get_all_shower_shapes() const
+  {
+    PHOOL_VIRTUAL_WARN("get_all_shower_shapes()");
+    static const std::map<std::string, float> dummy;
+    return dummy;
+  }
+
+  virtual bool pass_photon_cuts() const
+  {
+    PHOOL_VIRTUAL_WARN("pass_photon_cuts()");
+    return false;
+  }
+
+  virtual void identify_photon(std::ostream& /*os*/ = std::cout) const
+  {
+    PHOOL_VIRTUAL_WARN("identify_photon()");
+  }
+
+
+  virtual void reset_photon_properties()
+  {
+    PHOOL_VIRTUAL_WARN("reset_photon_properties()");
+  }
+
   //  //! truth cluster's PHG4Particle ID
   //  virtual int get_truth_track_ID() const
   //  {
@@ -240,6 +271,12 @@ class RawCluster : public PHObject
   //! isolation ET
   virtual void set_et_iso(const float) { PHOOL_VIRTUAL_WARNING; }
   virtual void set_et_iso(const float /*e*/, const int /*radiusx10*/, bool /*subtracted*/, bool /*clusterTower*/) { PHOOL_VIRTUAL_WARNING; }
+
+
+  virtual void set_shower_shape_parameter(const std::string& /*name*/, const float /*shape*/)
+  {
+    PHOOL_VIRTUAL_WARN("set_shower_shape_parameter()");
+  }
   //  //! truth cluster's PHG4Particle ID
   //  virtual void set_truth_track_ID(const int) { PHOOL_VIRTUAL_WARNING; }
   //  //! truth cluster's PHG4Particle flavor
