@@ -357,3 +357,28 @@ int Fun4AllDstOutputManager::outfile_open_first_write()
   dstOut->SetCompressionSetting(m_CompressionSetting);
   return 0;
 }
+
+// this method figures out the last event number to be saved before rolling over
+// an integer div of the current event by the number of events gives the first event we can expect
+// in this process (this is not needed), then adding the number of events we want gives us the last event
+// since want ranges like 1-99999, 100,000 - 199,999 we need to subtract 1
+// from the calculated range.
+// This is just run for the first event - later we just add the number of events to the last event number
+void Fun4AllDstOutputManager::InitializeLastEvent(int eventnumber)
+{
+  if (GetEventNumberRollover() == 0 || m_LastEventInitialized || eventnumber < 0)
+  {
+    return;
+  }
+  m_LastEventInitialized = true;
+  unsigned int firstevent = eventnumber / GetEventNumberRollover();
+  unsigned int newlastevent = firstevent * GetEventNumberRollover() + GetEventNumberRollover() - 1;
+  if (Verbosity() > 1)
+  {
+    std::cout << "event number: " << eventnumber << ", rollover: " << GetEventNumberRollover() << ", multiple: "
+              << eventnumber / GetEventNumberRollover() << ", new last event number "
+              << newlastevent << std::endl;
+  }
+  SetLastEventNumber(firstevent * GetEventNumberRollover() + GetEventNumberRollover() - 1);
+  return;
+}
