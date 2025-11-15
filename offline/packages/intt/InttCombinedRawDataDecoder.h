@@ -11,6 +11,8 @@
 
 #include <set>
 #include <string>
+#include <vector>
+#include <map>
 
 class PHCompositeNode;
 class InttEventInfo;
@@ -56,12 +58,16 @@ class InttCombinedRawDataDecoder : public SubsysReco
   void set_outputBcoDiff(bool flag) {m_outputBcoDiff = flag; }
   void set_triggeredMode(bool flag) {m_triggeredMode = flag; }
   void set_bcoFilter(bool flag) {m_bcoFilter = flag; }
+  void set_SaturatedChipRejection(bool flag){m_SaturatedChipRejection = flag;} // note : this is for removing a fraction of the saturated chips
+  void set_HighChipMultiplicityCut(int cut){HighChipMultiplicityCut = cut;}
+
  private:
   InttEventInfo* intt_event_header = nullptr;
   std::string m_InttRawNodeName = "INTTRAWHIT";
   bool m_runStandAlone = false;
   bool m_writeInttEventHeader = false;
   bool m_bcoFilter = false;
+  bool m_SaturatedChipRejection = true; // note : true as default
   std::pair<std::string, CalibRef> m_calibinfoDAC;
   std::pair<std::string, CalibRef> m_calibinfoBCO;
 
@@ -72,6 +78,10 @@ class InttCombinedRawDataDecoder : public SubsysReco
   int m_inttFeeOffset = 23;   //23 is the offset for INTT in streaming mode
   bool m_outputBcoDiff = false;
   bool m_triggeredMode = false;
+
+  std::vector<std::string> evt_inttHits_vec;
+  std::map<std::string, int> evt_ChipHit_count_map;
+  int HighChipMultiplicityCut = 71;
 
 };
 
