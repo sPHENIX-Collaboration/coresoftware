@@ -50,10 +50,6 @@ GlobalQA::GlobalQA(const std::string &name)
 {
 }
 
-GlobalQA::~GlobalQA()
-{
-}
-
 int GlobalQA::Init(PHCompositeNode * /*unused*/)
 {
   if (m_debug)
