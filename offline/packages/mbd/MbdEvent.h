@@ -17,6 +17,7 @@
 
 class PHCompositeNode;
 class Event;
+class MbdRawContainer;
 class MbdPmtContainer;
 class MbdOut;
 class MbdCalib;
@@ -38,15 +39,18 @@ class MbdEvent
   MbdEvent(const int cal_pass = 0, const bool proc_charge = false);
   virtual ~MbdEvent();
 
-  int SetRawData(Event *event, MbdPmtContainer *bbcpmts);
-#ifndef ONLINE
-  int SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
-#endif
-  void PostProcessChannels(MbdPmtContainer *bbcpmts);
-  int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNode *topNode = nullptr);
   int InitRun();
   int End();
   void Clear();
+
+  int SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, int fitsonly = 0);
+#ifndef ONLINE
+  int SetRawData(std::array< CaloPacket*,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw, int fitsonly = 0);
+#endif
+  int ProcessPackets(MbdRawContainer *bbcraws);
+  int ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts);
+  void PostProcessChannels(MbdPmtContainer *bbcpmts);
+  int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNode *topNode = nullptr);
 
   void SetSim(const int s) { _simflag = s; }
 
@@ -64,10 +68,10 @@ class MbdEvent
   float get_pmttt(const int ipmt) { return m_pmttt[ipmt]; }
   float get_pmttq(const int ipmt) { return m_pmttq[ipmt]; }
 
-  int  get_EventNumber(void) const { return m_evt; }
-  void set_EventNumber(int ievt) { m_evt = ievt; }
+  int   get_EventNumber(void) const { return m_evt; }
+  void  set_EventNumber(int ievt) { m_evt = ievt; }
 
-  void set_debug(const int d) { _debug = d; }
+  void  set_debug(const int d) { _debug = d; }
 
   MbdSig *GetSig(const int ipmt) { return &_mbdsig[ipmt]; }
 
@@ -76,8 +80,6 @@ class MbdEvent
   int FillSampMaxCalib();
 
   int  calib_is_done() { return _calib_done; }
-
-  int ProcessRawPackets(MbdPmtContainer *bbcpmts);
 
   int  Verbosity() { return _verbose; }
   void Verbosity(const int v) { _verbose = v; }
@@ -134,7 +136,10 @@ class MbdEvent
   // raw data
   Float_t m_adc[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES]{};   // raw waveform, adc values
   Float_t m_samp[MbdDefs::MBD_N_FEECH][MbdDefs::MAX_SAMPLES]{};  // raw waveform, sample values
-  Float_t m_ampl[MbdDefs::MBD_N_FEECH]{};                        // raw amplitude
+
+  Float_t m_ampl[MbdDefs::MBD_N_FEECH]{};                        // raw amplitude (ADC)
+  Float_t m_ttdc[MbdDefs::MBD_N_FEECH]{};                        // T-ch TDC
+  Float_t m_qtdc[MbdDefs::MBD_N_FEECH]{};                        // Q-ch TDC
 
   std::vector<MbdSig> _mbdsig;
 

@@ -928,7 +928,10 @@ void MbdSig::DrawWaveform()
   gSubPulse->Draw("ap");
   gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
   gPad->SetGridy(1);
-  if ( template_fcn!=nullptr ) template_fcn->Draw("same");  // should check if fit was made
+  if ( template_fcn!=nullptr )
+  {
+    template_fcn->Draw("same");  // should check if fit was made
+  }
   PadUpdate();
 
   _verbose = orig_verbose;

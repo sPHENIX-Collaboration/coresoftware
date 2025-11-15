@@ -42,13 +42,13 @@
 //____________________________________
 MbdDigitization::MbdDigitization(const std::string &name)
   : SubsysReco(name)
+  , m_RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
   , _tres(0.05)
 {
   std::fill(std::begin(f_pmtq), std::end(f_pmtq), 0.);
   std::fill(std::begin(f_pmtnpe), std::end(f_pmtnpe), 0.);
   std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
   std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
-  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
