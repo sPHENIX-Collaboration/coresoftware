@@ -14,18 +14,14 @@ float EpdGeomV1::get_z(unsigned int key) const
 
 float EpdGeomV1::get_phi(unsigned int key) const
 {
-
-  if(TowerInfoDefs::get_epd_rbin(key) == 0)
+  if (TowerInfoDefs::get_epd_rbin(key) == 0)
   {
     return tile_phi0[TowerInfoDefs::get_epd_phibin(key)];
   }
-  else
-  {
-    return tile_phi[TowerInfoDefs::get_epd_phibin(key)];
-  }
 
+  return tile_phi[TowerInfoDefs::get_epd_phibin(key)];
 }
- 
+
 void EpdGeomV1::set_z(unsigned int key, float z)
 {
   tile_z[TowerInfoDefs::get_epd_arm(key)] = z;
