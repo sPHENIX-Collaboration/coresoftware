@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
   Fun4AllPrdfOutputManager.h \
   Fun4AllRolloverFileOutStream.h \
   Fun4AllStreamingInputManager.h \
+  Fun4AllStreamingLumiCountingInputManager.h \
   Fun4AllTriggeredInputManager.h \
   intt_pool.h \
   InputManagerType.h \
@@ -75,6 +76,7 @@ libfun4allraw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllStreamingInputManager.cc \
+  Fun4AllStreamingLumiCountingInputManager.cc \
   Fun4AllTriggeredInputManager.cc \
   intt_pool.cc \
   MicromegasBcoMatchingInformation_v1.cc\
