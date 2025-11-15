@@ -718,6 +718,7 @@ int Fun4AllServer::process_event()
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
           ffamemtracker->Start((*iterOutMan)->Name(), "OutputManager");
 #endif
+	  (*iterOutMan)->InitializeLastEvent(eventnumber); // only executed once, returns immediately for all subsequent calls
           if (eventnumber > (*iterOutMan)->LastEventNumber())
           {
             if (Verbosity() > 0)
@@ -772,18 +773,18 @@ int Fun4AllServer::process_event()
   {
     for (const auto &histit : HistoManager)
     {
-      if ((*histit).dumpHistoSegments())
+      if (histit->dumpHistoSegments())
       {
         if (Verbosity() > 0)
         {
-          std::cout << PHWHERE << (*histit).Name() << " wrote events, closing " << (*histit).OutFileName() << std::endl;
+          std::cout << PHWHERE << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
         }
         // This is -1 because the segment is initially determined in the first event of a
         // segment from the DST, then incremented. So it is always 1 ahead of the histos
-        (*histit).segment(segment - 1);
-        (*histit).dumpHistos();
-        (*histit).RunAfterClosing();
-        (*histit).Reset();
+        histit->segment(segment - 1);
+        histit->dumpHistos();
+        histit->RunAfterClosing();
+        histit->Reset();
       }
     }
   }
@@ -810,8 +811,6 @@ int Fun4AllServer::process_event()
 
 int Fun4AllServer::ResetNodeTree()
 {
-  std::vector<std::string> ResetNodeList;
-  ResetNodeList.emplace_back("DST");
   PHNodeReset reset;
   reset.Verbosity(Verbosity() > 2 ? Verbosity() - 2 : 0);  // one lower verbosity level than Fun4AllServer
   std::map<std::string, PHCompositeNode *>::const_iterator iter;

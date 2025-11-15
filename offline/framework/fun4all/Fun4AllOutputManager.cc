@@ -156,7 +156,6 @@ void Fun4AllOutputManager::SetEventNumberRollover(const int evtno)
     gSystem->Exit(1);
     exit(1);
   }
-  m_LastEventNumber = evtno - 1;  // for e.g. 100k we want first segment 0-99999, 100000-199999,...
   m_EventRollover = evtno;
   return;
 }

@@ -22,6 +22,7 @@ class SyncObject;
 class TpcRawHit;
 class TH1;
 class TH2;
+
 class Fun4AllStreamingInputManager : public Fun4AllInputManager
 {
  public:
@@ -53,13 +54,13 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   void AddMvtxRawHit(uint64_t bclk, MvtxRawHit *hit);
   void AddTpcRawHit(uint64_t bclk, TpcRawHit *hit);
   void SetInttBcoRange(const unsigned int i);
-  void SetInttNegativeBco(const unsigned int value);
+  void SetInttNegativeBco(const unsigned int i);
   void SetMicromegasBcoRange(const unsigned int i);
-  void SetMicromegasNegativeBco(const unsigned int value);
+  void SetMicromegasNegativeBco(const unsigned int i);
   void SetMvtxBcoRange(const unsigned int i);
-  void SetMvtxNegativeBco(const unsigned int value);
+  void SetMvtxNegativeBco(const unsigned int i);
   void SetTpcBcoRange(const unsigned int i);
-  void SetTpcNegativeBco(const unsigned int value);
+  void SetTpcNegativeBco(const unsigned int i);
   int FillInttPool();
   int FillMicromegasPool();
   int FillMvtxPool();

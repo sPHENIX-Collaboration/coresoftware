@@ -93,6 +93,7 @@ int Fun4AllTriggeredInputManager::run(const int /*nevents*/)
   EventNumber(m_Gl1TriggeredInput->EventNumber());
   m_SyncObject->EventNumber(EventNumber());
   m_SyncObject->RunNumber(m_RunNumber);
+  m_SyncObject->SegmentNumber(0);
   //    std::cout << "saving event on dst" << std::endl;
   return 0;
 }
