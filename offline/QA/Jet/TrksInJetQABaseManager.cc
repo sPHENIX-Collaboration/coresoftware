@@ -8,8 +8,6 @@
  */
 /// ===========================================================================
 
-#define TRKSINJETQABASEMANAGER_CC
-
 #include "TrksInJetQABaseManager.h"
 
 // ctor/dtor ==================================================================
@@ -22,11 +20,6 @@ TrksInJetQABaseManager::TrksInJetQABaseManager(TrksInJetQAConfig& config,
   : m_config(config)
   , m_hist(hist)
 {};
-
-// ----------------------------------------------------------------------------
-//! Default dtor
-// ----------------------------------------------------------------------------
-TrksInJetQABaseManager::~TrksInJetQABaseManager() {};
 
 // public methods =============================================================
 
