@@ -297,7 +297,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
     total_primary_energy += particle->get_e();
   }
 
-  assert(! _truth_container->GetMap().empty());
+  assert(!_truth_container->GetMap().empty());
   const PHG4Particle *last_primary =
       _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
@@ -705,7 +705,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
   // get primary
   assert(_truth_container);
-  assert(! _truth_container->GetMap().empty());
+  assert(!_truth_container->GetMap().empty());
   PHG4Particle *last_primary = _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
 

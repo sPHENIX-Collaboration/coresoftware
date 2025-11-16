@@ -70,7 +70,7 @@ int QAG4SimulationJet::InitRun(PHCompositeNode* topNode)
 
   if (flag(kProcessTruthSpectrum))
   {
-    if (! _jettrutheval)
+    if (!_jettrutheval)
     {
       _jettrutheval = std::shared_ptr<JetTruthEval>(new JetTruthEval(topNode, _truth_jet));
     }
@@ -200,7 +200,7 @@ void QAG4SimulationJet::set_eta_range(double low, double high)
 }
 
 //! string description of eta range
-std::string QAG4SimulationJet::get_eta_range_str(const std::string &eta_name) const
+std::string QAG4SimulationJet::get_eta_range_str(const std::string& eta_name) const
 {
   return std::format("{:1} < {} < {:.1}", eta_range.first, eta_name, eta_range.second);
 }
@@ -347,11 +347,11 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
   Jet* leading_jet = nullptr;
   double max_et = 0;
-  for (auto *jet : *jets)
+  for (auto* jet : *jets)
   {
     assert(jet);
 
-    if (! jet_acceptance_cut(jet))
+    if (!jet_acceptance_cut(jet))
     {
       continue;
     }
@@ -473,7 +473,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
       std::set<PHG4Shower*> const showers = _jettrutheval->all_truth_showers(leading_jet);
 
-      for (auto *shower : showers)
+      for (auto* shower : showers)
       {
         if (Verbosity() >= VERBOSITY_A_LOT)
         {
@@ -642,11 +642,11 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading truth
   Jet* truthjet = nullptr;
   double max_et = 0;
-  for (auto *jet : *truthjets)
+  for (auto* jet : *truthjets)
   {
     assert(jet);
 
-    if (! jet_acceptance_cut(jet))
+    if (!jet_acceptance_cut(jet))
     {
       continue;
     }
@@ -761,11 +761,11 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading reco jet
   Jet* recojet = nullptr;
   max_et = 0;
-  for (auto *jet : *recojets)
+  for (auto* jet : *recojets)
   {
     assert(jet);
 
-    if (! jet_acceptance_cut(jet))
+    if (!jet_acceptance_cut(jet))
     {
       continue;
     }

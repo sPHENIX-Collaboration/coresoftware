@@ -33,16 +33,16 @@
 
 namespace
 {
-const int NHFQA = 16;
+  const int NHFQA = 16;
 
-int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
+  int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
 
-// float MassMin[NHFQA] = {1.6,1.6,1.7,2.0,5.0,5.0,5.1,2.0,9.0};
-float MassMin[NHFQA] = {1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1, 1.2, 9.0, 1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1};
-float MassMax[NHFQA] = {2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6, 3.2, 10.0, 2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6};
+  // float MassMin[NHFQA] = {1.6,1.6,1.7,2.0,5.0,5.0,5.1,2.0,9.0};
+  float MassMin[NHFQA] = {1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1, 1.2, 9.0, 1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1};
+  float MassMax[NHFQA] = {2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6, 3.2, 10.0, 2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6};
 
-std::multimap<std::vector<int>, int> decaymap[NHFQA];
-}
+  std::multimap<std::vector<int>, int> decaymap[NHFQA];
+}  // namespace
 
 /*
  *  QA module to check decay branching ratio, decay lifetime, and momentum conservation for inclusive heavy flavor hadron decay, which is handle by EvtGen as default

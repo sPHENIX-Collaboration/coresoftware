@@ -52,12 +52,11 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  
-      m_initialized = true;
- 
+
+  m_initialized = true;
 
   // find intt geometry
-  auto *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  auto* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   if (!geom_container)
   {
     std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_INTT" << std::endl;
@@ -72,7 +71,7 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode* topNode)
   }
 
   // histogram manager
-  auto *hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // create histograms
@@ -84,63 +83,63 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode* topNode)
     }
     {
       // rphi residuals (cluster - truth)
-      auto *h = new TH1F(std::format("{}drphi_{}", get_histo_prefix(), layer).c_str(), std::format("INTT r#Delta#phi_{{cluster-truth}} layer_{}", layer).c_str(), 100, -1e-2, 1e-2);
+      auto* h = new TH1F(std::format("{}drphi_{}", get_histo_prefix(), layer).c_str(), std::format("INTT r#Delta#phi_{{cluster-truth}} layer_{}", layer).c_str(), 100, -1e-2, 1e-2);
       h->GetXaxis()->SetTitle("r#Delta#phi_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // rphi cluster errors
-      auto *h = new TH1F(std::format("{}rphi_error_{}", get_histo_prefix(), layer).c_str(), std::format("INTT r#Delta#phi error layer_{}", layer).c_str(), 100, 0, 1e-2);
+      auto* h = new TH1F(std::format("{}rphi_error_{}", get_histo_prefix(), layer).c_str(), std::format("INTT r#Delta#phi error layer_{}", layer).c_str(), 100, 0, 1e-2);
       h->GetXaxis()->SetTitle("r#Delta#phi error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // phi pulls (cluster - truth)
-      auto *h = new TH1F(std::format("{}phi_pulls_{}", get_histo_prefix(), layer).c_str(), std::format("INTT #Delta#phi_{{cluster-truth}}/#sigma#phi layer_{}", layer).c_str(), 100, -3, 3);
+      auto* h = new TH1F(std::format("{}phi_pulls_{}", get_histo_prefix(), layer).c_str(), std::format("INTT #Delta#phi_{{cluster-truth}}/#sigma#phi layer_{}", layer).c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Delta#phi_{cluster-truth}/#sigma#phi");
       hm->registerHisto(h);
     }
 
     {
       // z residuals (cluster - truth)
-      auto *h = new TH1F(std::format("{}dz_{}", get_histo_prefix(), layer).c_str(), std::format("INTT #Deltaz_{{cluster-truth}} layer_{}", layer).c_str(), 100, -2.5, 2.5);
+      auto* h = new TH1F(std::format("{}dz_{}", get_histo_prefix(), layer).c_str(), std::format("INTT #Deltaz_{{cluster-truth}} layer_{}", layer).c_str(), 100, -2.5, 2.5);
       h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z cluster errors
-      auto *h = new TH1F(std::format("{}z_error_{}", get_histo_prefix(), layer).c_str(), std::format("INTT z error layer_{}", layer).c_str(), 100, 0, 2.5);
+      auto* h = new TH1F(std::format("{}z_error_{}", get_histo_prefix(), layer).c_str(), std::format("INTT z error layer_{}", layer).c_str(), 100, 0, 2.5);
       h->GetXaxis()->SetTitle("z error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z pulls (cluster - truth)
-      auto *h = new TH1F(std::format("{}z_pulls_{}", get_histo_prefix(), layer).c_str(), std::format("INTT #Deltaz_{{cluster-truth}}/#sigmaz layer_{}", layer).c_str(), 100, -3, 3);
+      auto* h = new TH1F(std::format("{}z_pulls_{}", get_histo_prefix(), layer).c_str(), std::format("INTT #Deltaz_{{cluster-truth}}/#sigmaz layer_{}", layer).c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Deltaz_{cluster-truth}/#sigmaz");
       hm->registerHisto(h);
     }
 
     {
       // total cluster size
-      auto *h = new TH1F(std::format("{}clus_size_{}", get_histo_prefix(), layer).c_str(), std::format("INTT cluster size layer_{}", layer).c_str(), 10, 0, 10);
+      auto* h = new TH1F(std::format("{}clus_size_{}", get_histo_prefix(), layer).c_str(), std::format("INTT cluster size layer_{}", layer).c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in phi
-      auto *h = new TH1F(std::format("{}clus_size_phi_{}", get_histo_prefix(), layer).c_str(), std::format("INTT cluster size (#phi) layer_{}", layer).c_str(), 10, 0, 10);
+      auto* h = new TH1F(std::format("{}clus_size_phi_{}", get_histo_prefix(), layer).c_str(), std::format("INTT cluster size (#phi) layer_{}", layer).c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize_{#phi}");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in z
-      auto *h = new TH1F(std::format("{}clus_size_z_{}", get_histo_prefix(), layer).c_str(), std::format("INTT cluster size (z) layer_{}", layer).c_str(), 10, 0, 10);
+      auto* h = new TH1F(std::format("{}clus_size_z_{}", get_histo_prefix(), layer).c_str(), std::format("INTT cluster size (z) layer_{}", layer).c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize_{z}");
       hm->registerHisto(h);
     }
@@ -216,7 +215,7 @@ int QAG4SimulationIntt::load_nodes(PHCompositeNode* topNode)
 void QAG4SimulationIntt::evaluate_clusters()
 {
   // histogram manager
-  auto *hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // load relevant histograms

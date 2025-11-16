@@ -42,11 +42,12 @@
 #include <TVector3.h>
 
 #include <cassert>
-#include <cmath>  // for cos, sin, NAN
+#include <cmath>  // for cos, sin
 #include <format>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
-#include <map>       // for map
+#include <limits>
+#include <map>  // for map
 #include <string>
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector
@@ -115,7 +116,7 @@ namespace
 
     if (!valid)
     {
-      return NAN;
+      return std::numeric_limits<double>::quiet_NaN();
     }
 
     const auto alpha = (sw * swzx - swz * swx);

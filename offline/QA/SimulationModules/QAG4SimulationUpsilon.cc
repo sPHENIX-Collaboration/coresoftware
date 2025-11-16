@@ -33,6 +33,7 @@
 #include <cmath>
 #include <cstdlib>  // for abs
 #include <iostream>
+#include <limits>
 #include <set>
 #include <string>
 #include <utility>  // for pair
@@ -238,7 +239,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
     double const gpy = g4particle->get_py();
     double const gpz = g4particle->get_pz();
     double gpt = 0;
-    double geta = NAN;
+    double geta = std::numeric_limits<double>::quiet_NaN();
 
     if (gpx != 0 && gpy != 0)
     {

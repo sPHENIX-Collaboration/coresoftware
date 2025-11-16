@@ -37,7 +37,7 @@ class QAG4SimulationJet : public SubsysReco
   };
 
   QAG4SimulationJet(const std::string &truth_jet, enu_flags flags = kDefaultFlag);
-  ~QAG4SimulationJet() override = default; 
+  ~QAG4SimulationJet() override = default;
 
   //! add reco jet to the process list
   //! @return number of reco jet on list
