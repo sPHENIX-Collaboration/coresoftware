@@ -37,6 +37,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -643,10 +644,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
 
         energy_hist_list[size]->Fill(energy == 0 ? 9.1e-4 : energy);  // trick to fill 0 energy tower to the first bin
 
-        if (energy > max_energy[size])
-        {
-          max_energy[size] = energy;
-        }
+        max_energy[size] = std::max(energy, max_energy[size]);
 
       }  //          for (int size = 1; size <= 4; ++size)
     }
