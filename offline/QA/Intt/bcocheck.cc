@@ -1,36 +1,40 @@
 #include "bcocheck.h"
-#include <TFile.h>
-#include <TH1.h>
-#include <TString.h>
-#include <TStyle.h>
-#include <TSystem.h>
+
+#include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
+
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+#include <TFile.h>
+#include <TH1.h>
+#include <TStyle.h>
+#include <TSystem.h>
+
 #include <cstdint>
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <limits>
 #include <ostream>
 #include <string>
 
-using namespace std;
-
-bcocheck::bcocheck(const string &name, const int run_num, const int felix_num)
+bcocheck::bcocheck(const std::string &name, const int run_num, const int felix_num)
   : SubsysReco(name)
+  , run_num_(run_num)
+  , felix_num_(felix_num)
 {
-  run_num_ = run_num;
-  felix_num_ = felix_num;
-  cout << "felix_num_=" << felix_num_ << "felix_num=" << felix_num << '\n';
+  std::cout << "felix_num_=" << felix_num_ << "felix_num=" << felix_num << std::endl;
 }
 
 int bcocheck::Init(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() > 5)
   {
-    std::cout << "Beginning Init in bcocheck" << '\n';
+    std::cout << "Beginning Init in bcocheck" << std::endl;
   }
 
   return 0;
@@ -40,13 +44,13 @@ int bcocheck::InitRun(PHCompositeNode *topNode)
 {
   if (!topNode)
   {
-    std::cout << "bcocheck::InitRun(PHCompositeNode* topNode)" << '\n';
-    std::cout << "\tCould not retrieve topNode; doing nothing" << '\n';
+    std::cout << "bcocheck::InitRun(PHCompositeNode* topNode)" << std::endl;
+    std::cout << "\tCould not retrieve topNode; doing nothing" << std::endl;
 
     return 1;
   }
 
-  cout << "felix_num_=" << felix_num_ << '\n';
+  std::cout << "felix_num_=" << felix_num_ << std::endl;
 
   // Initialize histograms
   for (int felix = 0; felix < kFelix_num_; felix++)
@@ -56,29 +60,29 @@ int bcocheck::InitRun(PHCompositeNode *topNode)
       continue;
     }
 
-    string const name = "h2_bco_felix_" + to_string(felix);
-    string const title = name + Form("_Run%d", run_num_);
+    std::string const name = "h2_bco_felix_" + std::to_string(felix);
+    std::string const title = name + std::format("_Run{}", run_num_);
     h_full_bco[felix] = new TH1D(name.c_str(), title.c_str(), 128, 0, 128);
     h_full_bco[felix]->SetXTitle("BCO_FULL - BCO");
     h_full_bco[felix]->SetMinimum(0);
-    tf_output_[felix] = new TFile(Form("./bco_000%d_intt%d.root", run_num_, felix), "RECREATE");
+    tf_output_[felix] = new TFile(std::format("./bco_000{}_intt{}.root", run_num_, felix).c_str(), "RECREATE");
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int bcocheck::process_event(PHCompositeNode *topNode)
 {
-  // cout<<"1234"<<endl;
+  // std::cout<<"1234"<<std::endl;
 
   // get raw hit
-  string const m_InttRawNodeName = "INTTRAWHIT";
+  std::string const m_InttRawNodeName = "INTTRAWHIT";
   InttRawHitContainer *inttcont = findNode::getClass<InttRawHitContainer>(topNode, m_InttRawNodeName);
   if (!inttcont)
   {
-    cout << PHWHERE << '\n';
-    cout << "bcocheck::process_event(PHCompositeNode* topNode)" << '\n';
-    cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << '\n';
-    cout << "Exiting" << '\n';
+    std::cout << PHWHERE << std::endl;
+    std::cout << "bcocheck::process_event(PHCompositeNode* topNode)" << std::endl;
+    std::cout << "Could not get \"" << m_InttRawNodeName << "\" from Node Tree" << std::endl;
+    std::cout << "Exiting" << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -89,17 +93,17 @@ int bcocheck::process_event(PHCompositeNode *topNode)
   // uint64_t difevent_bcofull = (longbco_full &bit )-(long_prev_bcofull &bit);
   // h_interval->Fill(difevent_bcofull);
   uint64_t const bco_full = longbco_full & 0x7FU;
-  // cout<<"longbco_full="<<longbco_full<<endl;
+  // std::cout<<"longbco_full="<<longbco_full<<std::endl;
 
   ievent_++;
-  // cout<<"5678"<<endl;
+  // std::cout<<"5678"<<std::endl;
   /*if(ievent_<500000){
     return Fun4AllReturnCodes::EVENT_OK;
   }*/
 
   if ((ievent_ % 100 == 0 && ievent_ < 1000) || ievent_ % 1000 == 0)
   {
-    cout << "Process event #" << ievent_ << '\n';
+    std::cout << "Process event #" << ievent_ << std::endl;
   }
 
   int const nhits = inttcont->get_nhits();
@@ -119,7 +123,7 @@ int bcocheck::process_event(PHCompositeNode *topNode)
 
     h_full_bco[fnum]->Fill(bco_diff);
   }
-  // cout<<"910"<<endl;
+  // std::cout<<"910"<<std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -129,7 +133,7 @@ int bcocheck::End(PHCompositeNode * /*topNode*/)
 
   if (Verbosity() > 1)
   {
-    std::cout << "Processing bcocheck done" << '\n';
+    std::cout << "Processing bcocheck done" << std::endl;
   }
 
   this->DrawHists();
