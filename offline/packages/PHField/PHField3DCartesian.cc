@@ -118,7 +118,6 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
 
 PHField3DCartesian::~PHField3DCartesian()
 {
-  std::cout << "PHField3DCartesian::~PHField3DCartesian" << std::endl;
   if (Verbosity() > 0)
   {
     std::cout << "PHField3DCartesian: cache hits: " << cache_hits
