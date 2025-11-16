@@ -58,24 +58,24 @@ class PHFieldConfig : public PHObject
 
   virtual void set_filename(const std::string& /*filename*/) { return; }
 
-  virtual double get_magfield_rescale() const { return std::numeric_limits<double>::signaling_NaN(); }
+  virtual double get_magfield_rescale() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   virtual void set_magfield_rescale(double /*magfieldRescale*/) { return; }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_x() const { return std::numeric_limits<double>::signaling_NaN(); }
+  virtual double get_field_mag_x() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual void set_field_mag_x(double /*fieldMagX*/) { return; }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_y() const { return std::numeric_limits<double>::signaling_NaN(); }
+  virtual double get_field_mag_y() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual void set_field_mag_y(double /*fieldMagY*/) { return; }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_z() const { return std::numeric_limits<double>::signaling_NaN(); }
+  virtual double get_field_mag_z() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
   virtual void set_field_mag_z(double /*fieldMagZ*/) { return; }

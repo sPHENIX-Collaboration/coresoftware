@@ -41,8 +41,10 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
   }
   rootinput->cd();
 
-  Float_t ROOT_Z, ROOT_R;
-  Float_t ROOT_BZ, ROOT_BR;
+  Float_t ROOT_Z;
+  Float_t ROOT_R;
+  Float_t ROOT_BZ;
+  Float_t ROOT_BR;
   //  get root NTuple objects
   TNtuple *field_map = (TNtuple *) gDirectory->Get("fieldmap");
   if (field_map)
@@ -65,7 +67,8 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
   field_map->SetBranchAddress("br", &ROOT_BR);
 
   // get the number of entries in the tree
-  int nz, nr;
+  int nz;
+  int nr;
   nz = field_map->GetEntries("z>-1e6");
   nr = field_map->GetEntries("r>-1e6");
   static const int NENTRIES = field_map->GetEntries();
@@ -91,7 +94,8 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
   }
 
   // Keep track of the unique z, r, phi values in the grid using sets
-  std::set<float> z_set, r_set;
+  std::set<float> z_set;
+  std::set<float> r_set;
 
   // Sort the entries to get rid of any stupid ordering problems...
 
@@ -155,7 +159,8 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
   BFieldZ_.resize(nz, std::vector<float>(nr, 0));
 
   // all of this assumes that  z_prev < z , i.e. the table is ordered (as of right now)
-  unsigned int ir = 0, iz = 0;  // useful indexes to keep track of
+  unsigned int ir = 0;
+  unsigned int iz = 0;  // useful indexes to keep track of
   std::map<trio, trio>::iterator iter = sorted_map.begin();
   for (; iter != sorted_map.end(); ++iter)
   {
@@ -165,14 +170,8 @@ PHField2D::PHField2D(const std::string &filename, const int verb, const float ma
     float Bz = std::get<0>(iter->second) * magfield_unit;
     float Br = std::get<1>(iter->second) * magfield_unit;
 
-    if (z > maxz_)
-    {
-      maxz_ = z;
-    }
-    if (z < minz_)
-    {
-      minz_ = z;
-    }
+    maxz_ = std::max(z, maxz_);
+    minz_ = std::min(z, minz_);
 
     // check for change in z value, when z changes we have a ton of updates to do
     if (z != z_map_[iz])
