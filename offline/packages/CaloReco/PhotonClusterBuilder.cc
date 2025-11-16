@@ -1,6 +1,5 @@
 #include "PhotonClusterBuilder.h"
 
-#include <calobase/PhotonClusterContainer.h>
 #include <calobase/PhotonClusterv1.h>
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -62,7 +61,10 @@ PhotonClusterBuilder::PhotonClusterBuilder(const std::string& name)
 int PhotonClusterBuilder::InitRun(PHCompositeNode* topNode)
 {
   // BDT
-  m_bdt = std::make_unique<TMVA::Experimental::RBDT>("myBDT", m_bdt_model_file);
+  if (m_do_bdt)
+  {
+    m_bdt = std::make_unique<TMVA::Experimental::RBDT>("myBDT", m_bdt_model_file);
+  }
 
   // locate input raw cluster container
   m_rawclusters = findNode::getClass<RawClusterContainer>(topNode, m_input_cluster_node);
@@ -126,10 +128,10 @@ void PhotonClusterBuilder::CreateNodes(PHCompositeNode* topNode)
   {
     throw std::runtime_error("PhotonClusterBuilder: DST node not found");
   }
-  m_photon_container = findNode::getClass<PhotonClusterContainer>(dstNode, m_output_photon_node);
+  m_photon_container = findNode::getClass<RawClusterContainer>(dstNode, m_output_photon_node);
   if (!m_photon_container)
   {
-    m_photon_container = new PhotonClusterContainer();
+    m_photon_container = new RawClusterContainer();
     auto* photonNode = new PHIODataNode<PHObject>(m_photon_container, m_output_photon_node, "PHObject");
     dstNode->addNode(photonNode);
   }
@@ -198,7 +200,12 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
     PhotonClusterv1* photon = new PhotonClusterv1(*rc);
 
     calculate_shower_shapes(rc, photon, eta, phi);
-    calculate_bdt_score(photon);
+    //this is defensive coding, if do bdt is set false the bdt object should be nullptr
+    //and this method will simply pass
+    if (m_do_bdt)
+    {
+      calculate_bdt_score(photon);
+    }
 
     m_photon_container->AddCluster(photon);
   }
@@ -264,8 +271,8 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   int detamax = 0;
   int dphimax = 0;
   int nsaturated = 0;
-  //float clusteravgtime = rc->mean_time();
-  //float cluster_total_e = 0;
+  float clusteravgtime = 0;
+  float cluster_total_e = 0;
   const RawCluster::TowerMap& tower_map = rc->get_towermap();
   std::set<unsigned int> towers_in_cluster;
   for (auto tower_iter : tower_map)
@@ -280,8 +287,8 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
     TowerInfo* towerinfo = m_emc_tower_container->get_tower_at_key(towerinfokey);
     if (towerinfo)
     {
-      //clusteravgtime += towerinfo->get_time() * towerinfo->get_energy();
-      //cluster_total_e += towerinfo->get_energy();
+      clusteravgtime += towerinfo->get_time() * towerinfo->get_energy();
+      cluster_total_e += towerinfo->get_energy();
       if (towerinfo->get_isSaturated())
       {
         nsaturated++;
@@ -310,15 +317,15 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
     dphimax = std::max(std::abs(dphi_val), dphimax);
   }
 
-  //if (cluster_total_e > 0)
-  //{
-  //  clusteravgtime /= cluster_total_e;
-  //}
-  //else
-  //{
-  //  std::cout << "cluster_total_e is 0(this should not happen!!!), setting clusteravgtime to NaN" << std::endl;
-  //  clusteravgtime = std::numeric_limits<float>::quiet_NaN();
-  //}
+  if (cluster_total_e > 0)
+  {
+    clusteravgtime /= cluster_total_e;
+  }
+  else
+  {
+    std::cout << "cluster_total_e is 0(this should not happen!!!), setting clusteravgtime to NaN" << std::endl;
+    clusteravgtime = std::numeric_limits<float>::quiet_NaN();
+  }
 
   float E77[7][7] = {{0.0F}};
   int E77_ownership[7][7] = {{0}};
@@ -548,7 +555,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("w72", w72);
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
-  //photon->set_shower_shape_parameter("mean_time", clusteravgtime);
+  photon->set_shower_shape_parameter("mean_time", clusteravgtime);
 
   // HCAL info
   std::vector<int> ihcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomIH, m_ihcal_tower_container, 0.0, true);
