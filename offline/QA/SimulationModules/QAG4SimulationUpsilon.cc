@@ -218,7 +218,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
       g4particle->identify();
     }
 
-    if (m_embeddingIDs.size() > 0)
+    if (!m_embeddingIDs.empty())
     {
       // only analyze subset of particle with proper embedding IDs
       int candidate_embedding_id = trutheval->get_embed(g4particle);
@@ -228,7 +228,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
       }
 
       // skip if no match
-      if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end())
+      if (!m_embeddingIDs.contains(candidate_embedding_id))
       {
         continue;
       }
@@ -265,7 +265,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
 
     const int pid = g4particle->get_pid();
 
-    if (abs(pid) != abs(m_daughterAbsPID))
+    if (std::abs(pid) != std::abs(m_daughterAbsPID))
     {
       if (Verbosity())
       {
@@ -374,7 +374,7 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
 
       const CLHEP::HepLorentzVector gv_quakonium = gv_pos + gv_neg;
 
-      if (fabs(quarkonium_mass - gv_quakonium.m()) > 1e-3)
+      if (std::abs(quarkonium_mass - gv_quakonium.m()) > 1e-3)
       {
         if (Verbosity())
         {
