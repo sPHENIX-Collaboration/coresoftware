@@ -8,7 +8,6 @@
  */
 /// ===========================================================================
 
-#define TRKSINJETQAINCLUSIVEFILLER_CC
 
 // submodule definition
 #include "TrksInJetQAInclusiveFiller.h"

@@ -8,7 +8,6 @@
  */
 /// ===========================================================================
 
-#define TRKSINJETQAJETMANAGER_CC
 
 // submodule definition
 #include "TrksInJetQAJetManager.h"
