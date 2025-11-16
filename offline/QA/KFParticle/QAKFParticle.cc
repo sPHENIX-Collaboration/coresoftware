@@ -5,10 +5,8 @@
 #include <kfparticle_sphenix/KFParticle_Container.h>
 #include <kfparticle_sphenix/KFParticle_Tools.h>
 
-//#include <g4eval/SvtxClusterEval.h>
-//#include <g4eval/SvtxEvalStack.h>  // for SvtxEvalStack
-
 #include <calotrigger/TriggerRunInfo.h>
+
 #include <ffarawobjects/Gl1Packet.h>
 
 #include <g4main/PHG4Particle.h>
@@ -30,18 +28,13 @@
 
 #include <KFParticle.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenVertex.h>
-#pragma GCC diagnostic pop
-
 #include <HepMC/GenParticle.h>
 #include <HepMC/IteratorRange.h>
 
 #include <TH1.h>
 #include <TH2.h>
-#include <TString.h>
 
 #include <CLHEP/Vector/LorentzVector.h>
 #include <CLHEP/Vector/ThreeVector.h>
@@ -58,11 +51,10 @@ KFParticle_Tools kfpTools;
 
 QAKFParticle::QAKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
-{
-  m_min_mass = min_m;
-  m_max_mass = max_m;
-  m_mother_id = kfpTools.getParticleID(mother_name);
-}
+  , m_mother_id(kfpTools.getParticleID(mother_name))
+  , m_min_mass(min_m)
+  , m_max_mass(max_m)
+{}
 
 int QAKFParticle::InitRun(PHCompositeNode *topNode)
 {
@@ -253,7 +245,7 @@ int QAKFParticle::load_nodes(PHCompositeNode *topNode)
 {
 
   std::string kfpContainerNodeName = m_KFParticleNodeName + "_KFParticle_Container";
-  m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, kfpContainerNodeName.c_str());
+  m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, kfpContainerNodeName);
   if (!m_kfpContainer)
   {
     std::cout << kfpContainerNodeName << " - Fatal Error - "
@@ -274,7 +266,7 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
   triggeranalyzer = new TriggerAnalyzer();
 
   //Check whether we actually have the right information
-  auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+  auto *gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1packet)
   {
     //std::cout << "No GL1RAWHIT" << std::endl;
@@ -286,7 +278,7 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
     }
   }
 
-  auto triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
+  auto *triggerruninfo = findNode::getClass<TriggerRunInfo>(topNode, "TriggerRunInfo");
   if (!triggerruninfo)
   {
     hasTriggerInfo = false;
@@ -296,7 +288,7 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
 
   size_t pos;
   std::string undrscr = "_";
-  std::string nothing = "";
+  std::string nothing;
   std::map<std::string, std::string> forbiddenStrings;
   forbiddenStrings[" "] = undrscr;
   forbiddenStrings[","] = nothing;
