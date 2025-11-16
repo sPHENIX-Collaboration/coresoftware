@@ -46,7 +46,7 @@ class TrksInJetQABaseManager
  public:
   // ctor/dtor
   TrksInJetQABaseManager(TrksInJetQAConfig& config, TrksInJetQAHist& hist);
-  virtual ~TrksInJetQABaseManager();
+  virtual ~TrksInJetQABaseManager() = default;
 
   // public methods
   void MakeHistograms(const std::string& prefix = "", const std::string& suffix = "");

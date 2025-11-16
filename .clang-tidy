@@ -131,7 +131,7 @@ Checks: '
     misc-misleading-identifier,
     misc-misplaced-const,
     misc-new-delete-overloads,
-    misc-no-recursion,
+    -misc-no-recursion,
     misc-non-copyable-objects,
     misc-non-private-member-variables-in-classes,
     misc-redundant-expression,
@@ -212,7 +212,7 @@ Checks: '
     readability-suspicious-call-argument,
     readability-uniqueptr-delete-release,
     readability-uppercase-literal-suffix,
-    readability-use-anyofallof,
+    -readability-use-anyofallof,
     readability-use-std-min-max
     '
 
