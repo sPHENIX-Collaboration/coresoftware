@@ -23,7 +23,7 @@ class GlobalQA : public SubsysReco
   // //int nevents = 100);
 
   //! destructor
-  ~GlobalQA() override;
+  ~GlobalQA() override = default;
 
   //! full initialization
   int Init(PHCompositeNode *) override;

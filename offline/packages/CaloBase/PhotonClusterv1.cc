@@ -1,24 +1,29 @@
 #include "PhotonClusterv1.h"
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <map>
+#include <stdexcept>
 #include <string>
 
-PhotonClusterv1::PhotonClusterv1(const RawCluster& rawcluster)
-  : RawCluster(rawcluster)
-  , m_conversion_prob(0.0F)
-  , m_is_converted(false)
-
+PhotonClusterv1::PhotonClusterv1(const RawCluster & rc)
+  //: m_conversion_prob(0.0F)
+  //, m_is_converted(false)
 {
-  // No default shower shape inserted; user/algorithm must set if needed
-  // Photon energy now same as cluster energy via get_energy()
-  // Isolation energy sourced from RawCluster get_et_iso()
+  if (const auto* const rc1 = dynamic_cast<const RawClusterv1*>(&rc))
+  {
+    RawClusterv1::operator=(*rc1);  // copy-assign v1 subobject
+  }
+  else
+  {
+    throw std::runtime_error("PhotonClusterv1 requires RawClusterv1 (or derived).");
+  }
 }
 
 void PhotonClusterv1::Reset()
 {
   // @warning: Call base class reset first to avoid issues with virtual dispatch
-  RawCluster::Reset();
+  RawClusterv1::Reset();
 
   // Reset photon-specific members
   reset_photon_properties();
@@ -26,28 +31,17 @@ void PhotonClusterv1::Reset()
 
 void PhotonClusterv1::reset_photon_properties()
 {
-  // Reset photon-related values (cluster energy left to RawCluster Reset caller if needed)
-  m_conversion_prob = 0.0F;
-  m_is_converted = false;
   m_shower_shapes.clear();
+  return;
 }
 
-int PhotonClusterv1::isValid() const
-{
-  // @warning: Multiple inheritance - both base class validations checked
-  return RawCluster::isValid() && is_valid_photon();
-}
 
-bool PhotonClusterv1::is_valid_photon() const
-{
-  // Valid photon if has positive energy
-  return (get_energy() > 0.0F);
-}
+
 
 void PhotonClusterv1::identify(std::ostream& os) const
 {
   // @warning: Call base class identify first to maintain output order
-  RawCluster::identify(os);
+  RawClusterv1::identify(os);
 
   // Add photon-specific information
   identify_photon(os);
@@ -57,27 +51,19 @@ void PhotonClusterv1::identify_photon(std::ostream& os) const
 {
   os << "--- PhotonClusterv1 Photon Properties ---" << std::endl;
   os << "  Photon Energy: " << get_energy() << " GeV" << std::endl;
-  os << "  Conversion Probability: " << get_conversion_probability() << std::endl;
-  os << "  Is Converted: " << (is_converted() ? "Yes" : "No") << std::endl;
-  os << "  Isolation Energy: " << get_et_iso() << " GeV" << std::endl;
   // List all named shower shapes
   for (const auto& kv : m_shower_shapes)
   {
     os << "    shape[" << kv.first << "]: " << kv.second << std::endl;
   }
-  os << "  Passes Photon Cuts: " << (pass_photon_cuts() ? "Yes" : "No") << std::endl;
   os << "------------------------------------------" << std::endl;
 }
 
 bool PhotonClusterv1::pass_photon_cuts() const
 {
   // @warning: These are example cuts - customize based on your analysis needs
-  std::cout << "this is currently unimplemented" << std::endl;
+  std::cout << "PhotonClusterv1::pass_photon_cuts() is currently unimplemented" << std::endl;
   // Minimum energy cut
-  if (get_energy() < 0.5F)
-  {
-    return false;
-  }
 
   // Shower shape cut: if a shape named "core" exists, apply cut
   // auto it_core = m_shower_shapes.find("core");
@@ -85,11 +71,6 @@ bool PhotonClusterv1::pass_photon_cuts() const
   //  if (it_core->second > 0.3f) return false;
   //}
 
-  // Isolation cut (photons should be isolated)
-  if (get_et_iso() > 2.0F)
-  {
-    return false;
-  }
 
   // @warning: Add more sophisticated photon ID cuts as needed
   // Consider using cluster properties like get_ecore(), get_prob(), etc.

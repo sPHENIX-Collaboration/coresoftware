@@ -9,7 +9,6 @@
 class PHCompositeNode;
 class RawClusterContainer;
 class RawCluster;
-class PhotonClusterContainer;
 class PhotonClusterv1;
 class TowerInfoContainer;
 class RawTowerGeomContainer;
@@ -40,6 +39,7 @@ class PhotonClusterBuilder : public SubsysReco
   void set_shower_shape_min_tower_energy(float e) { m_shape_min_tower_E = e; }
   void set_bdt_model_file(const std::string& path) { m_bdt_model_file = path; }
   void set_bdt_feature_list(const std::vector<std::string>& features) { m_bdt_feature_list = features; }
+  void set_do_bdt(bool do_bdt) { m_do_bdt = do_bdt; }
   const std::vector<std::string>& get_bdt_feature_list() const { return m_bdt_feature_list; }
 
  private:
@@ -49,6 +49,7 @@ class PhotonClusterBuilder : public SubsysReco
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);
   double deltaR(double eta1, double phi1, double eta2, double phi2);
+  bool m_do_bdt{false};
 
   std::string m_input_cluster_node{"CLUSTERINFO_CEMC"};
   std::string m_output_photon_node{"PHOTONCLUSTER_CEMC"};
@@ -59,7 +60,7 @@ class PhotonClusterBuilder : public SubsysReco
   float m_vertex{std::numeric_limits<float>::quiet_NaN()};
 
   RawClusterContainer* m_rawclusters{nullptr};
-  PhotonClusterContainer* m_photon_container{nullptr};
+  RawClusterContainer* m_photon_container{nullptr};
   TowerInfoContainer* m_emc_tower_container{nullptr};
   RawTowerGeomContainer* m_geomEM{nullptr};
   TowerInfoContainer* m_ihcal_tower_container{nullptr};
