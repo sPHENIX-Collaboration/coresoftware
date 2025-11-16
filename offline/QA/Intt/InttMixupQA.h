@@ -1,5 +1,5 @@
-#ifndef QA_INTTMIXUPQA_H
-#define QA_INTTMIXUPQA_H
+#ifndef QA_INTT_INTTMIXUPQA_H
+#define QA_INTT_INTTMIXUPQA_H
 
 // Fun4All headers
 #include <fun4all/SubsysReco.h>
