@@ -3,18 +3,18 @@
 #ifndef MVTXRAWHITQA_H
 #define MVTXRAWHITQA_H
 
-#include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
 #include <ffarawobjects/MvtxRawHitContainer.h>
 #include <ffarawobjects/MvtxRawHit.h>
 
-#include <TH1.h>
-#include <TH2.h>
-#include <TProfile2D.h>
+#include <fun4all/SubsysReco.h>
 
 #include <string>
 #include <vector>
+
+class TH1;
+class TH2;
 
 class MvtxRawHitQA : public SubsysReco
 {
