@@ -55,7 +55,7 @@ namespace
   class range_adaptor
   {
    public:
-    range_adaptor(const T &range)
+    explicit range_adaptor(const T &range)
       : m_range(range)
     {
     }
@@ -330,11 +330,11 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   assert(h_nGen_etaGen);
 
   // clusters per layer and per track
-  auto h_nClus_layer = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layer"));
+  auto *h_nClus_layer = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layer"));
   assert(h_nClus_layer);
 
   // clusters per layer and per generated track
-  auto h_nClus_layerGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layerGen"));
+  auto *h_nClus_layerGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layerGen"));
   assert(h_nClus_layerGen);
 
   // n events and n tracks histogram
@@ -442,7 +442,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         h_nReco_pTReco_cuts->Fill(pt);  // normalization histogram fill with cuts
       }
 
-      auto g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
+      auto *g4particle_match = trackeval->max_truth_particle_by_nclusters(track);
       if (g4particle_match)
       {
         SvtxTrack *matched_track = trackeval->best_track_from(g4particle_match);
@@ -495,7 +495,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
 
       // skip if no match
-      if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end())
+      if (!m_embeddingIDs.contains(candidate_embedding_id))
       {
         continue;
       }
@@ -644,8 +644,8 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         int INTT_hits = 0;
         int TPC_hits = 0;
 
-        auto tpcSeed = track->get_tpc_seed();
-        auto silSeed = track->get_silicon_seed();
+        auto *tpcSeed = track->get_tpc_seed();
+        auto *silSeed = track->get_silicon_seed();
 
         if (silSeed)
         {
@@ -707,7 +707,7 @@ void QAG4SimulationTracking::get_dca(SvtxTrack *track, float &dca3dxy,
                                      float &dca3dzsigma)
 {
   auto vtxid = track->get_vertex_id();
-  auto glVertex = m_vertexMap->get(vtxid);
+  auto *glVertex = m_vertexMap->get(vtxid);
   if (!glVertex)
   {
     return;
