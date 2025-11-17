@@ -8,7 +8,6 @@
  */
 /// ===========================================================================
 
-#define TRKSINJETQA_CC
 
 // module defintion
 #include "TrksInJetQA.h"
