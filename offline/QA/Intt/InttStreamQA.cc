@@ -1,16 +1,18 @@
 #include "InttStreamQA.h"
 
 /// Fun4All includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <qautils/QAHistManagerDef.h>
 
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
 #include <phool/PHPointerListIterator.h>
-#include <qautils/QAHistManagerDef.h>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -57,7 +59,7 @@ int InttStreamQA::InitRun(PHCompositeNode* topNode)
     if(theNode)
     {
       std::cout << PHWHERE << " Found INTT Raw hit container node " << theNode->getName() << std::endl;
-      auto cont = (InttRawHitContainer*)theNode->getData();
+      auto *cont = (InttRawHitContainer*)theNode->getData();
       if(cont)
       {
         m_rawhit_containers.push_back(cont);
@@ -297,10 +299,11 @@ std::string InttStreamQA::getHistoPrefix() const
 
 void InttStreamQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  std::string sname, stitle;
+  std::string sname;
+  std::string stitle;
   for (int i = 0; i < 8; i++)
   {
     sname = (getHistoPrefix() + "bco_" + std::to_string(i));

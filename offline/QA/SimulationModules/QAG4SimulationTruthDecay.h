@@ -1,26 +1,20 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef GEANTTESTER_H
-#define GEANTTESTER_H
+#ifndef QA_SIMULATIONMODULES_QAG4SIMULATIONTRUTHDECAY_H
+#define QA_SIMULATIONMODULES_QAG4SIMULATIONTRUTHDECAY_H
 
 #include <fun4all/SubsysReco.h>
 
-#include <decayfinder/DecayFinderContainer_v1.h>  // for DecayFinderContainer_v1
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-
-#include <TBranch.h>
-#include <TFile.h>
-#include <TTree.h>
-
 #include <string>
+#include <vector>
 
+class DecayFinderContainerBase;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHG4Particle;
 class PHG4VtxPoint;
+class TFile;
+class TTree;
 
 class QAG4SimulationTruthDecay : public SubsysReco
 {
@@ -109,7 +103,7 @@ class QAG4SimulationTruthDecay : public SubsysReco
   TTree *m_tree;
   bool m_write_nTuple;
   bool m_write_QAHists;
-  DecayFinderContainer_v1 *m_decayMap = nullptr;
+  DecayFinderContainerBase *m_decayMap = nullptr;
 
   void initializeBranches();
   void getMotherPDG(PHCompositeNode *topNode);

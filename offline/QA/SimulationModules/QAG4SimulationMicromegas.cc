@@ -41,13 +41,13 @@
 #include <TH1.h>
 #include <TVector3.h>
 
-#include <boost/format.hpp>
-
 #include <cassert>
-#include <cmath>     // for cos, sin, NAN
+#include <cmath>  // for cos, sin
+#include <format>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
-#include <map>       // for map
+#include <limits>
+#include <map>  // for map
 #include <string>
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector
@@ -57,7 +57,7 @@ namespace
 {
   //! square
   template <class T>
-  inline constexpr T square(T x)
+  constexpr T square(T x)
   {
     return x * x;
   }
@@ -116,7 +116,7 @@ namespace
 
     if (!valid)
     {
-      return NAN;
+      return std::numeric_limits<double>::quiet_NaN();
     }
 
     const auto alpha = (sw * swzx - swz * swx);
@@ -143,13 +143,11 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  else
-  {
-    m_initialized = true;
-  }
+
+  m_initialized = true;
 
   // find mvtx geometry
-  auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
+  auto* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MICROMEGAS_FULL");
   if (!geom_container)
   {
     std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_MICROMEGAS_FULL" << std::endl;
@@ -181,7 +179,7 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
   }
 
   // histogram manager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // create histograms
@@ -193,7 +191,7 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
     }
 
     // get layer geometry
-    const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geom_container->GetLayerGeom(layer));
+    auto* const layergeom = dynamic_cast<CylinderGeomMicromegas*>(geom_container->GetLayerGeom(layer));
     assert(layergeom);
 
     // get segmentation type
@@ -202,9 +200,9 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
 
     {
       // ADC distributions
-      auto h = new TH1F((boost::format("%sadc_%i") % get_histo_prefix() % layer).str().c_str(),
-                        (boost::format("micromegas ADC distribution layer_%i") % layer).str().c_str(),
-                        1024, 0, 1024);
+      auto* h = new TH1F(std::format("{}adc_{}", get_histo_prefix(), layer).c_str(),
+                         std::format("micromegas ADC distribution layer_{}", layer).c_str(),
+                         1024, 0, 1024);
       h->GetXaxis()->SetTitle("ADC");
       hm->registerHisto(h);
     }
@@ -212,35 +210,35 @@ int QAG4SimulationMicromegas::InitRun(PHCompositeNode* topNode)
     {
       // residuals (cluster - truth)
       const double max_residual = is_segmentation_phi ? 0.04 : 0.08;
-      auto h = new TH1F((boost::format("%sresidual_%i") % get_histo_prefix() % layer).str().c_str(),
-                        (boost::format("micromegas %s_{cluster-truth} layer_%i") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz") % layer).str().c_str(),
-                        100, -max_residual, max_residual);
-      h->GetXaxis()->SetTitle((boost::format("%s_{cluster-truth} (cm)") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).str().c_str());
+      auto* h = new TH1F(std::format("{}residual_{}", get_histo_prefix(), layer).c_str(),
+                         std::format("micromegas {}_{{cluster-truth}} layer_{}", (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz"), layer).c_str(),
+                         100, -max_residual, max_residual);
+      h->GetXaxis()->SetTitle(std::format("{}_{{cluster-truth}} (cm)", (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).c_str());
       hm->registerHisto(h);
     }
 
     {
       // cluster errors
       const double max_error = is_segmentation_phi ? 0.04 : 0.08;
-      auto h = new TH1F((boost::format("%sresidual_error_%i") % get_histo_prefix() % layer).str().c_str(),
-                        (boost::format("micromegas %s error layer_%i") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz") % layer).str().c_str(),
-                        100, 0, max_error);
-      h->GetXaxis()->SetTitle((boost::format("%s error (cm)") % (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).str().c_str());
+      auto* h = new TH1F(std::format("{}residual_error_{}", get_histo_prefix(), layer).c_str(),
+                         std::format("micromegas {} error layer_{}", (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz"), layer).c_str(),
+                         100, 0, max_error);
+      h->GetXaxis()->SetTitle(std::format("{} error (cm)", (is_segmentation_phi ? "r#Delta#phi" : "#Deltaz")).c_str());
       hm->registerHisto(h);
     }
 
     {
       // pulls (cluster - truth)
-      auto h = new TH1F((boost::format("%scluster_pulls_%i") % get_histo_prefix() % layer).str().c_str(),
-                        (boost::format("micromegas %s layer_%i") % (is_segmentation_phi ? "#Delta#phi/#sigma#phi" : "#Deltaz/#sigmaz") % layer).str().c_str(),
-                        100, -5, 5);
+      auto* h = new TH1F(std::format("{}cluster_pulls_{}", get_histo_prefix(), layer).c_str(),
+                         std::format("micromegas {} layer_{}", (is_segmentation_phi ? "#Delta#phi/#sigma#phi" : "#Deltaz/#sigmaz"), layer).c_str(),
+                         100, -5, 5);
       h->GetXaxis()->SetTitle(is_segmentation_phi ? "#Delta#phi/#sigma#phi" : "#Deltaz/#sigmaz");
       hm->registerHisto(h);
     }
 
     {
       // cluster size
-      auto h = new TH1F((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str().c_str(), (boost::format("micromegas cluster size layer_%i") % layer).str().c_str(), 20, 0, 20);
+      auto* h = new TH1F(std::format("{}clus_size_{}", get_histo_prefix(), layer).c_str(), std::format("micromegas cluster size layer_{}", layer).c_str(), 20, 0, 20);
       h->GetXaxis()->SetTitle("csize");
       hm->registerHisto(h);
     }
@@ -336,7 +334,7 @@ void QAG4SimulationMicromegas::evaluate_hits()
   }
 
   // histogram manager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // load relevant histograms
@@ -351,7 +349,7 @@ void QAG4SimulationMicromegas::evaluate_hits()
   for (const auto& layer : m_layers)
   {
     HistogramList h;
-    h.adc = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sadc_%i") % get_histo_prefix() % layer).str()));
+    h.adc = dynamic_cast<TH1*>(hm->getHisto(std::format("{}adc_{}", get_histo_prefix(), layer)));
     histograms.insert(std::make_pair(layer, h));
   }
 
@@ -394,7 +392,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
   SvtxClusterEval* clustereval = m_svtxEvalStack->get_cluster_eval();
   assert(clustereval);
   // histogram manager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
   // load relevant histograms
   struct HistogramList
@@ -412,10 +410,10 @@ void QAG4SimulationMicromegas::evaluate_clusters()
   for (const auto& layer : m_layers)
   {
     HistogramList h;
-    h.residual = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sresidual_%i") % get_histo_prefix() % layer).str()));
-    h.residual_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sresidual_error_%i") % get_histo_prefix() % layer).str()));
-    h.pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%scluster_pulls_%i") % get_histo_prefix() % layer).str()));
-    h.csize = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_%i") % get_histo_prefix() % layer).str()));
+    h.residual = dynamic_cast<TH1*>(hm->getHisto(std::format("{}residual_{}", get_histo_prefix(), layer)));
+    h.residual_error = dynamic_cast<TH1*>(hm->getHisto(std::format("{}residual_error_{}", get_histo_prefix(), layer)));
+    h.pulls = dynamic_cast<TH1*>(hm->getHisto(std::format("{}cluster_pulls_{}", get_histo_prefix(), layer)));
+    h.csize = dynamic_cast<TH1*>(hm->getHisto(std::format("{}clus_size_{}", get_histo_prefix(), layer)));
 
     histograms.insert(std::make_pair(layer, h));
   }
@@ -486,7 +484,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       const auto tileid = MicromegasDefs::getTileId(ckey);
 
       // load geometry
-      const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
+      auto* const layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geonode->GetLayerGeom(layer));
       if (!layergeom)
       {
         continue;
@@ -500,7 +498,7 @@ void QAG4SimulationMicromegas::evaluate_clusters()
       }
 
       // get cluster
-      const auto cluster = m_cluster_map->findCluster(ckey);
+      auto* const cluster = m_cluster_map->findCluster(ckey);
       const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
 
       // get segmentation type

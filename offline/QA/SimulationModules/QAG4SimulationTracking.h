@@ -71,26 +71,26 @@ class QAG4SimulationTracking : public SubsysReco
   std::set<int> m_embeddingIDs;
 
   //! range of the truth track eta to be analyzed
-  std::pair<double, double> m_etaRange = {-1, 1};
+  std::pair<double, double> m_etaRange{-1, 1};
 
   //! only count unique truth<->reco track pair in tracking efficiency
-  bool m_uniqueTrackingMatch = true;
+  bool m_uniqueTrackingMatch{true};
 
   //! cut for selecting on foreground
-  int m_embed_id_cut = 0;
+  int m_embed_id_cut{0};
 
-  PHG4TruthInfoContainer *m_truthContainer = nullptr;
-  SvtxTrackMap *m_trackMap = nullptr;
-  GlobalVertexMap *m_vertexMap = nullptr;
+  PHG4TruthInfoContainer *m_truthContainer{nullptr};
+  SvtxTrackMap *m_trackMap{nullptr};
+  GlobalVertexMap *m_vertexMap{nullptr};
 
-  TrkrClusterContainer *m_cluster_map = nullptr;
-  TrkrClusterHitAssoc *m_cluster_hit_map = nullptr;
-  TrkrHitTruthAssoc *m_hit_truth_map = nullptr;
+  TrkrClusterContainer *m_cluster_map{nullptr};
+  TrkrClusterHitAssoc *m_cluster_hit_map{nullptr};
+  TrkrHitTruthAssoc *m_hit_truth_map{nullptr};
 
-  PHG4HitContainer *m_g4hits_tpc = nullptr;
-  PHG4HitContainer *m_g4hits_intt = nullptr;
-  PHG4HitContainer *m_g4hits_mvtx = nullptr;
-  PHG4HitContainer *m_g4hits_micromegas = nullptr;
+  PHG4HitContainer *m_g4hits_tpc{nullptr};
+  PHG4HitContainer *m_g4hits_intt{nullptr};
+  PHG4HitContainer *m_g4hits_mvtx{nullptr};
+  PHG4HitContainer *m_g4hits_micromegas{nullptr};
 };
 
 #endif  // QA_QAG4SimulationTracking_H

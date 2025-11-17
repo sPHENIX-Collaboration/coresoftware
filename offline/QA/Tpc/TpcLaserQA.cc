@@ -34,7 +34,7 @@ int TpcLaserQA::InitRun(PHCompositeNode * /*topNode*/)
 {
   createHistos();
 
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   m_nLaserEvents = dynamic_cast<TH1 *>(hm->getHisto(std::format("{}nLaserEvents", getHistoPrefix())));
@@ -116,7 +116,8 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
       float hitIT = cmclus->getHitIT(i);
 
       double phi = std::atan2(cmclus->getHitY(i), cmclus->getHitX(i));
-      if (phi < -M_PI / 12.) phi += 2 * M_PI;
+      if (phi < -M_PI / 12.) { phi += 2 * M_PI;
+}
 
       int mod = -1;
       double RValue = -999;
@@ -146,10 +147,12 @@ int TpcLaserQA::process_event(PHCompositeNode *topNode)
         }
       }
 
-      if (mod == -1) continue;
+      if (mod == -1) { continue;
+}
 
       m_TPCWheel[side]->Fill(phi, RValue, hitAdc);
-      if (hitAdc > 900) m_saturation[side]->Fill(phi, RValue);
+      if (hitAdc > 900) { m_saturation[side]->Fill(phi, RValue);
+}
 
       if (hitAdc > 100)
       {
@@ -179,18 +182,18 @@ std::string TpcLaserQA::getHistoPrefix() const { return std::string("h_") + Name
 
 void TpcLaserQA::createHistos()
 {
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  auto h1 = new TH1F(std::format("{}nLaserEvents", getHistoPrefix()).c_str(), "Number of Laser Events", 1, 0.5, 1.5);
+  auto *h1 = new TH1F(std::format("{}nLaserEvents", getHistoPrefix()).c_str(), "Number of Laser Events", 1, 0.5, 1.5);
   hm->registerHisto(h1);
 
   for (int side = 0; side < 2; side++)
   {
-    auto h = new TH2F(std::format("{}TPCWheel_{}", getHistoPrefix(), (side == 1 ? "North" : "South")).c_str(), std::format("Laser Hit ADC per event {}", (side == 1 ? "North" : "South")).c_str(), 12, -M_PI / 12., 23. * M_PI / 12., 4, rBinEdges);
+    auto *h = new TH2F(std::format("{}TPCWheel_{}", getHistoPrefix(), (side == 1 ? "North" : "South")).c_str(), std::format("Laser Hit ADC per event {}", (side == 1 ? "North" : "South")).c_str(), 12, -M_PI / 12., 23. * M_PI / 12., 4, rBinEdges);
     hm->registerHisto(h);
 
-    auto h2 = new TH1F(std::format("{}nLaserClusters_{}", getHistoPrefix(), (side == 1 ? "North" : "South")).c_str(), std::format("Number of Laser Clusters per Event {}", (side == 1 ? "North" : "South")).c_str(), 81, -50, 8050);
+    auto *h2 = new TH1F(std::format("{}nLaserClusters_{}", getHistoPrefix(), (side == 1 ? "North" : "South")).c_str(), std::format("Number of Laser Clusters per Event {}", (side == 1 ? "North" : "South")).c_str(), 81, -50, 8050);
     if (side == 1)
     {
       h2->SetLineColor(kRed);
@@ -201,16 +204,16 @@ void TpcLaserQA::createHistos()
     }
     hm->registerHisto(h2);
 
-    auto h3 = new TH2F(std::format("{}saturation_{}", getHistoPrefix(), (side == 1 ? "North" : "South")).c_str(), std::format("Number of Saturated Hits per event {}", (side == 1 ? "North" : "South")).c_str(), 12, -M_PI / 12., 23. * M_PI / 12., 4, rBinEdges);
+    auto *h3 = new TH2F(std::format("{}saturation_{}", getHistoPrefix(), (side == 1 ? "North" : "South")).c_str(), std::format("Number of Saturated Hits per event {}", (side == 1 ? "North" : "South")).c_str(), 12, -M_PI / 12., 23. * M_PI / 12., 4, rBinEdges);
     hm->registerHisto(h3);
 
     for (int sec = 0; sec < 12; sec++)
     {
-      auto h4 = new TH1F(std::format("{}sample_R1_{}_{}", getHistoPrefix(), (side == 1 ? "North" : "South"), sec).c_str(), std::format("Diffuse Laser Time Sample Sector {} R1 {}", sec, (side == 1 ? "North" : "South")).c_str(), 51, 305.5, 356.5);
+      auto *h4 = new TH1F(std::format("{}sample_R1_{}_{}", getHistoPrefix(), (side == 1 ? "North" : "South"), sec).c_str(), std::format("Diffuse Laser Time Sample Sector {} R1 {}", sec, (side == 1 ? "North" : "South")).c_str(), 51, 305.5, 356.5);
       h4->SetLineColor(kRed);
-      auto h5 = new TH1F(std::format("{}sample_R2_{}_{}", getHistoPrefix(), (side == 1 ? "North" : "South"), sec).c_str(), std::format("Diffuse Laser Time Sample Sector {} R2 {}", sec, (side == 1 ? "North" : "South")).c_str(), 51, 305.5, 356.5);
+      auto *h5 = new TH1F(std::format("{}sample_R2_{}_{}", getHistoPrefix(), (side == 1 ? "North" : "South"), sec).c_str(), std::format("Diffuse Laser Time Sample Sector {} R2 {}", sec, (side == 1 ? "North" : "South")).c_str(), 51, 305.5, 356.5);
       h5->SetLineColor(kBlue);
-      auto h6 = new TH1F(std::format("{}sample_R3_{}_{}", getHistoPrefix(), (side == 1 ? "North" : "South"), sec).c_str(), std::format("Diffuse Laser Time Sample Sector {} R3 {}", sec, (side == 1 ? "North" : "South")).c_str(), 51, 305.5, 356.5);
+      auto *h6 = new TH1F(std::format("{}sample_R3_{}_{}", getHistoPrefix(), (side == 1 ? "North" : "South"), sec).c_str(), std::format("Diffuse Laser Time Sample Sector {} R3 {}", sec, (side == 1 ? "North" : "South")).c_str(), 51, 305.5, 356.5);
       h6->SetLineColor(kGreen + 2);
 
       hm->registerHisto(h4);

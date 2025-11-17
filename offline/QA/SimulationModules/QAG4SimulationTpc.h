@@ -51,22 +51,22 @@ class QAG4SimulationTpc : public SubsysReco
   G4HitSet find_g4hits(TrkrDefs::cluskey) const;
 
   /// true if histograms are initialized
-  bool m_initialized = false;
+  bool m_initialized{false};
 
   /// Acts tracking geometry for surface lookup
-  ActsGeometry* m_tGeometry = nullptr;
+  ActsGeometry* m_tGeometry{nullptr};
 
   /// cluster map
-  TrkrClusterContainer* m_cluster_map = nullptr;
+  TrkrClusterContainer* m_cluster_map{nullptr};
 
   /// clusters to hit association
-  TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
+  TrkrClusterHitAssoc* m_cluster_hit_map{nullptr};
 
   /// hit to g4hit association
-  TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
+  TrkrHitTruthAssoc* m_hit_truth_map{nullptr};
 
   /// g4 hits
-  PHG4HitContainer* m_g4hits_tpc = nullptr;
+  PHG4HitContainer* m_g4hits_tpc{nullptr};
 
   /// list of relevant layers
   /* it is filled at Init stage. It should not change for the full run */

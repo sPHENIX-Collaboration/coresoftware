@@ -81,7 +81,7 @@ int TpcChanQA::process_event(PHCompositeNode *topNode)
   }
 
   // Call HistoManager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // Reference histograms initialized in header file to histos in HistoManager
@@ -154,17 +154,17 @@ std::string TpcChanQA::getHistoPrefix() const { return std::string("h_") + Name(
 void TpcChanQA::createHistos()
 {
   // Initialize HistoManager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // Create and register histos in HistoManager
   {
-    auto h = new TH1F(std::format("{}channel_hits_sec{}", getHistoPrefix(), sectorNum).c_str(), ";Channels;hits", 256, 0, 256);
+    auto *h = new TH1F(std::format("{}channel_hits_sec{}", getHistoPrefix(), sectorNum).c_str(), ";Channels;hits", 256, 0, 256);
     hm->registerHisto(h);
   }
 
   {
-    auto h = new TH2F(std::format("{}channel_ADCs_sec{}", getHistoPrefix(), sectorNum).c_str(), ";Channels;ADCs", 256, 0, 256, 1024, 0, 1024);
+    auto *h = new TH2F(std::format("{}channel_ADCs_sec{}", getHistoPrefix(), sectorNum).c_str(), ";Channels;ADCs", 256, 0, 256, 1024, 0, 1024);
     hm->registerHisto(h);
   }
 }
