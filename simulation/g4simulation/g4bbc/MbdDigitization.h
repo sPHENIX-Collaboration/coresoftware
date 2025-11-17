@@ -54,10 +54,10 @@ class MbdDigitization : public SubsysReco
   void CreateNodes(PHCompositeNode *topNode);  // Create all the nodes
   void GetNodes(PHCompositeNode *);            // Get all the needed nodes
 
-  Float_t f_vx = NAN;
-  Float_t f_vy = NAN;
-  Float_t f_vz = NAN;
-  Float_t f_vt = NAN;
+  Float_t f_vx{ NAN };
+  Float_t f_vy{ NAN };
+  Float_t f_vz{ NAN };
+  Float_t f_vt{ NAN };
   Float_t f_pmtq[128]{};   // equiv. nch in each pmt
   Float_t f_pmtt0[128]{};  // time in each pmt
   Float_t f_pmtt1[128]{};  // time in each pmt
@@ -66,13 +66,13 @@ class MbdDigitization : public SubsysReco
   // gains
   std::array<Float_t,128> _gains = {};
 
-  TF1 *gaussian = nullptr;
+  TF1 *gaussian{ nullptr };
 
   //
-  TDatabasePDG *_pdg = nullptr;
-  gsl_rng *m_RandomGenerator = nullptr;
-  unsigned int m_Seed = 0;
-  Float_t _tres = NAN;  // time resolution of one channel
+  TDatabasePDG *_pdg{ nullptr };
+  gsl_rng *m_RandomGenerator{ nullptr };
+  unsigned int m_Seed{ 0 };
+  Float_t _tres{ 0.05 };  // time resolution of one channel
 
   std::map<int, int> _pids;  // PIDs of tracks in the BBC
 
