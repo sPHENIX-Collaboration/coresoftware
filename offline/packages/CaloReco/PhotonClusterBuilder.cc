@@ -395,6 +395,11 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   float e52 = 0;
   float w72 = 0;
   float e72 = 0;
+  float detacog = fabs(maxieta - avg_eta);
+  float dphicog = fabs(maxiphi - avg_phi);
+  float drad = std::sqrt(dphicog*dphicog + detacog*detacog);
+
+
   int signphi = (avg_phi - std::floor(avg_phi)) > 0.5 ? 1 : -1;
 
   for (int i = 0; i < 7; i++)
@@ -556,6 +561,9 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
   photon->set_shower_shape_parameter("mean_time", clusteravgtime);
+  photon->set_shower_shape_parameter("detacog", detacog);
+  photon->set_shower_shape_parameter("dphicog", dphicog);
+  photon->set_shower_shape_parameter("drad", drad);
 
   // HCAL info
   std::vector<int> ihcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomIH, m_ihcal_tower_container, 0.0, true);
