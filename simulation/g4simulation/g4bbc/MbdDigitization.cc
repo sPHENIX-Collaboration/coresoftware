@@ -45,10 +45,10 @@ MbdDigitization::MbdDigitization(const std::string &name)
   , m_RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
   , _tres(0.05)
 {
-  std::fill(std::begin(f_pmtq), std::end(f_pmtq), 0.);
-  std::fill(std::begin(f_pmtnpe), std::end(f_pmtnpe), 0.);
-  std::fill(std::begin(f_pmtt0), std::end(f_pmtt0), std::numeric_limits<float>::quiet_NaN());
-  std::fill(std::begin(f_pmtt1), std::end(f_pmtt1), std::numeric_limits<float>::quiet_NaN());
+  f_pmtq.fill(0.);
+  f_pmtt0.fill(std::numeric_limits<Float_t>::quiet_NaN());
+  f_pmtt1.fill(std::numeric_limits<Float_t>::quiet_NaN());
+  f_pmtnpe.fill(0.);
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
@@ -110,15 +110,14 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
   //**** Initialize Variables
 
   // PMT data
-  float len[MbdDefs::MBD_N_PMT] = {0.};
-  float edep[MbdDefs::MBD_N_PMT] = {0.};
-  float first_time[MbdDefs::MBD_N_PMT];  // First hit time for each tube
-  std::fill_n(first_time, MbdDefs::MBD_N_PMT, 1e12);
-  std::fill_n(f_pmtt0, MbdDefs::MBD_N_PMT, 1e12);
-  std::fill_n(f_pmtt1, MbdDefs::MBD_N_PMT, 1e12);
-  std::fill_n(f_pmtq, MbdDefs::MBD_N_PMT, 0.);
-  std::fill_n(f_pmtnpe, MbdDefs::MBD_N_PMT, 0.);
-
+  std::array<float,MbdDefs::MBD_N_PMT> len {0.};
+  std::array<float,MbdDefs::MBD_N_PMT> edep {0.};
+  std::array<float,MbdDefs::MBD_N_PMT> first_time {};
+  first_time.fill(1e12);
+  f_pmtt0.fill(1e12);
+  f_pmtt1.fill(1e12);
+  f_pmtq.fill(0.);
+  f_pmtnpe.fill(0.);
   // Get True Vertex
   // NB: Currently PrimaryVertexIndex is always 1, need to figure out how to handle collision pile-up
   PHG4VtxPoint *vtxp = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());

@@ -1,15 +1,18 @@
 #ifndef G4MBD_BBCDIGITIZATION_H
 #define G4MBD_BBCDIGITIZATION_H
 
+#include <mbd/MbdDefs.h>
+
 #include <fun4all/SubsysReco.h>
 
 #include <Rtypes.h>
 
 #include <gsl/gsl_rng.h>
 
-#include <cmath>
-#include <map>
 #include <array>
+#include <cmath>
+#include <limits>
+#include <map>
 #include <string>
 
 // Forward declarations
@@ -41,12 +44,6 @@ class MbdDigitization : public SubsysReco
   //! Process Event, called for each event
   int process_event(PHCompositeNode *) override;
 
-  //! Reset after every event
-  // int ResetEvent(PHCompositeNode * /*topNode*/) override;
-
-  //! End, write and close files
-  int End(PHCompositeNode *) override { return 0; }
-
   //! Set time resolution (each channel has same time resol)
   void set_tres(const Float_t tr) { _tres = tr; }
 
@@ -54,17 +51,17 @@ class MbdDigitization : public SubsysReco
   void CreateNodes(PHCompositeNode *topNode);  // Create all the nodes
   void GetNodes(PHCompositeNode *);            // Get all the needed nodes
 
-  Float_t f_vx{ NAN };
-  Float_t f_vy{ NAN };
-  Float_t f_vz{ NAN };
-  Float_t f_vt{ NAN };
-  Float_t f_pmtq[128]{};   // equiv. nch in each pmt
-  Float_t f_pmtt0[128]{};  // time in each pmt
-  Float_t f_pmtt1[128]{};  // time in each pmt
-  Float_t f_pmtnpe[128]{}; // npe in each pmt
+  Float_t f_vx{ std::numeric_limits<Float_t>::quiet_NaN() };
+  Float_t f_vy{ std::numeric_limits<Float_t>::quiet_NaN() };
+  Float_t f_vz{ std::numeric_limits<Float_t>::quiet_NaN() };
+  Float_t f_vt{ std::numeric_limits<Float_t>::quiet_NaN() };
+  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtq {};   // equiv. nch in each pmt
+  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtt0 {};  // time in each pmt
+  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtt1 {};  // time in each pmt
+  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtnpe {}; // npe in each pmt
 
   // gains
-  std::array<Float_t,128> _gains = {};
+  std::array<Float_t,MbdDefs::MBD_N_PMT> _gains = {};
 
   TF1 *gaussian{ nullptr };
 
