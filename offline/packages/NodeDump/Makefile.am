@@ -89,7 +89,6 @@ libphnodedump_la_LIBADD = \
   -lffaobjects \
   -lffarawobjects \
   -lg4detectors_io \
-  -lg4mbd_io \
   -lglobalvertex_io \
   -lHepMC \
   -ljetbase_io \
