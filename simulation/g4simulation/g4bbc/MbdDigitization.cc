@@ -1,8 +1,8 @@
 #include "MbdDigitization.h"
 
 #include <mbd/MbdDefs.h>
-#include <mbd/MbdPmtSimContainerV1.h>
 #include <mbd/MbdPmtHit.h>
+#include <mbd/MbdPmtSimContainerV1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -46,9 +46,9 @@ MbdDigitization::MbdDigitization(const std::string &name)
   , _tres(0.05)
 {
   f_pmtq.fill(0.);
+  f_pmtnpe.fill(0.);
   f_pmtt0.fill(std::numeric_limits<Float_t>::quiet_NaN());
   f_pmtt1.fill(std::numeric_limits<Float_t>::quiet_NaN());
-  f_pmtnpe.fill(0.);
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
@@ -62,7 +62,7 @@ MbdDigitization::~MbdDigitization()
 //___________________________________
 int MbdDigitization::Init(PHCompositeNode *topNode)
 {
-  if ( Verbosity() )
+  if (Verbosity())
   {
     std::cout << PHWHERE << std::endl;
   }
@@ -81,20 +81,20 @@ int MbdDigitization::InitRun(PHCompositeNode *topNode)
 {
   GetNodes(topNode);
 
-  _gains = { 135.137, 135.035, 134.861, 134.543, 135.761, 134.942, 134.053, 134.398,
-    135.568, 134.874, 134.677, 135.614, 135.366, 134.564, 135.143, 135.412, 135.308,
-    135.752, 134.392, 135.372, 135.025, 135.247, 135.337, 135.396, 133.553, 134.93,
-    135.917, 135.209, 135.886, 134.914, 134.766, 135.734, 135.343, 134.815, 134.68,
-    135.214, 135.251, 134.617, 135.182, 134.659, 135.119, 135.022, 134.648, 134.814,
-    135.1, 134.99, 134.82, 134.844, 135.817, 135.788, 135.469, 135.178, 135.17, 134.938,
-    135.544, 135.445, 134.872, 134.4, 134.875, 134.852, 134.23, 133.922, 135.46, 134.44,
-    135.475, 135.716, 135.084, 136.074, 136.198, 136.226, 136.214, 136.1, 136.727,
-    135.422, 136.258, 136.394, 135.754, 136.072, 136.897, 135.775, 135.902, 135.959,
-    136.306, 135.846, 135.986, 135.487, 136.404, 134.988, 135.858, 136.511, 136.128,
-    135.535, 135.984, 136.162, 135.496, 135.104, 135.762, 135.653, 135.379, 135.868,
-    136.747, 135.606, 136.074, 135.833, 136.382, 135.796, 135.364, 135.985, 135.46,
-    135.869, 136.068, 135.876, 136.339, 135.48, 136.435, 135.997, 136.01, 136.675,
-    136.105, 136.423, 135.739, 136.112, 136.523, 135.883, 136.972, 136.741, 135.419, 135.407 };
+  _gains = {135.137, 135.035, 134.861, 134.543, 135.761, 134.942, 134.053, 134.398,
+            135.568, 134.874, 134.677, 135.614, 135.366, 134.564, 135.143, 135.412, 135.308,
+            135.752, 134.392, 135.372, 135.025, 135.247, 135.337, 135.396, 133.553, 134.93,
+            135.917, 135.209, 135.886, 134.914, 134.766, 135.734, 135.343, 134.815, 134.68,
+            135.214, 135.251, 134.617, 135.182, 134.659, 135.119, 135.022, 134.648, 134.814,
+            135.1, 134.99, 134.82, 134.844, 135.817, 135.788, 135.469, 135.178, 135.17, 134.938,
+            135.544, 135.445, 134.872, 134.4, 134.875, 134.852, 134.23, 133.922, 135.46, 134.44,
+            135.475, 135.716, 135.084, 136.074, 136.198, 136.226, 136.214, 136.1, 136.727,
+            135.422, 136.258, 136.394, 135.754, 136.072, 136.897, 135.775, 135.902, 135.959,
+            136.306, 135.846, 135.986, 135.487, 136.404, 134.988, 135.858, 136.511, 136.128,
+            135.535, 135.984, 136.162, 135.496, 135.104, 135.762, 135.653, 135.379, 135.868,
+            136.747, 135.606, 136.074, 135.833, 136.382, 135.796, 135.364, 135.985, 135.46,
+            135.869, 136.068, 135.876, 136.339, 135.48, 136.435, 135.997, 136.01, 136.675,
+            136.105, 136.423, 135.739, 136.112, 136.523, 135.883, 136.972, 136.741, 135.419, 135.407};
 
   return 0;
 }
@@ -103,16 +103,16 @@ int MbdDigitization::InitRun(PHCompositeNode *topNode)
 // Call user instructions for every event
 int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
 {
-  if ( Verbosity() )
+  if (Verbosity())
   {
     std::cout << PHWHERE << std::endl;
   }
   //**** Initialize Variables
 
   // PMT data
-  std::array<float,MbdDefs::MBD_N_PMT> len {0.};
-  std::array<float,MbdDefs::MBD_N_PMT> edep {0.};
-  std::array<float,MbdDefs::MBD_N_PMT> first_time {};
+  std::array<float, MbdDefs::MBD_N_PMT> len{0.};
+  std::array<float, MbdDefs::MBD_N_PMT> edep{0.};
+  std::array<float, MbdDefs::MBD_N_PMT> first_time{};
   first_time.fill(1e12);
   f_pmtt0.fill(1e12);
   f_pmtt1.fill(1e12);
@@ -136,7 +136,7 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
   }
 
   // Go through BBC G4 hits
-  if ( Verbosity()>10 )
+  if (Verbosity() > 10)
   {
     std::cout << "Processing BBC G4 Hits" << std::endl;
   }
@@ -203,7 +203,7 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
     nhits++;
   }
 
-  if ( Verbosity()>10 )
+  if (Verbosity() > 10)
   {
     std::cout << "Found " << nhits << " MBD hits" << std::endl;
     std::cout << "Calculating response and storing in MbdPmtHits" << std::endl;
@@ -220,13 +220,13 @@ int MbdDigitization::process_event(PHCompositeNode * /*topNode*/)
       }
 
       // Get charge in BBC tube
-      f_pmtnpe[ipmt] = len[ipmt] * (120 / 3.0);                          // MBD/BBC gets 120 p.e. per 3 cm
+      f_pmtnpe[ipmt] = len[ipmt] * (120 / 3.0);                                     // MBD/BBC gets 120 p.e. per 3 cm
       float dnpe = gsl_ran_gaussian(m_RandomGenerator, std::sqrt(f_pmtnpe[ipmt]));  // get fluctuation in npe
       // add detector resolution
-      float dres = gsl_ran_gaussian(m_RandomGenerator, f_pmtnpe[ipmt]*0.127);       // to match real data
+      float dres = gsl_ran_gaussian(m_RandomGenerator, f_pmtnpe[ipmt] * 0.127);  // to match real data
 
-      f_pmtnpe[ipmt] += (dnpe+dres);  // apply the fluctuations
-      f_pmtq[ipmt] = f_pmtnpe[ipmt]/_gains[ipmt];
+      f_pmtnpe[ipmt] += (dnpe + dres);  // apply the fluctuations
+      f_pmtq[ipmt] = f_pmtnpe[ipmt] / _gains[ipmt];
 
       // Now time
       if (first_time[ipmt] < 9999.)

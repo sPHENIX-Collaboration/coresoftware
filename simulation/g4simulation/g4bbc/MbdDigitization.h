@@ -1,5 +1,5 @@
-#ifndef G4MBD_BBCDIGITIZATION_H
-#define G4MBD_BBCDIGITIZATION_H
+#ifndef G4MBD_MBDDIGITIZATION_H
+#define G4MBD_MBDDIGITIZATION_H
 
 #include <mbd/MbdDefs.h>
 
@@ -51,34 +51,34 @@ class MbdDigitization : public SubsysReco
   void CreateNodes(PHCompositeNode *topNode);  // Create all the nodes
   void GetNodes(PHCompositeNode *);            // Get all the needed nodes
 
-  Float_t f_vx{ std::numeric_limits<Float_t>::quiet_NaN() };
-  Float_t f_vy{ std::numeric_limits<Float_t>::quiet_NaN() };
-  Float_t f_vz{ std::numeric_limits<Float_t>::quiet_NaN() };
-  Float_t f_vt{ std::numeric_limits<Float_t>::quiet_NaN() };
-  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtq {};   // equiv. nch in each pmt
-  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtt0 {};  // time in each pmt
-  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtt1 {};  // time in each pmt
-  std::array<Float_t,MbdDefs::MBD_N_PMT> f_pmtnpe {}; // npe in each pmt
-
-  // gains
-  std::array<Float_t,MbdDefs::MBD_N_PMT> _gains = {};
-
-  TF1 *gaussian{ nullptr };
-
-  //
-  TDatabasePDG *_pdg{ nullptr };
-  gsl_rng *m_RandomGenerator{ nullptr };
-  unsigned int m_Seed{ 0 };
-  Float_t _tres{ 0.05 };  // time resolution of one channel
-
-  std::map<int, int> _pids;  // PIDs of tracks in the BBC
-
-  // Input Objects from DST
-  PHG4TruthInfoContainer *_truth_container {nullptr};
-  PHG4HitContainer *_bbchits {nullptr};
+  gsl_rng *m_RandomGenerator{nullptr};
 
   // Output to DST
-  MbdPmtContainer *_bbcpmts {nullptr};
+  MbdPmtContainer *_bbcpmts{nullptr};
+  // Input Objects from DST
+  PHG4TruthInfoContainer *_truth_container{nullptr};
+  PHG4HitContainer *_bbchits{nullptr};
+
+  TDatabasePDG *_pdg{nullptr};
+  TF1 *gaussian{nullptr};
+
+  Float_t f_vx{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t f_vy{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t f_vz{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t f_vt{std::numeric_limits<Float_t>::quiet_NaN()};
+  Float_t _tres{0.05};  // time resolution of one channel
+
+  std::array<Float_t, MbdDefs::MBD_N_PMT> f_pmtq{};    // equiv. nch in each pmt
+  std::array<Float_t, MbdDefs::MBD_N_PMT> f_pmtt0{};   // time in each pmt
+  std::array<Float_t, MbdDefs::MBD_N_PMT> f_pmtt1{};   // time in each pmt
+  std::array<Float_t, MbdDefs::MBD_N_PMT> f_pmtnpe{};  // npe in each pmt
+
+  // gains
+  std::array<Float_t, MbdDefs::MBD_N_PMT> _gains = {};
+
+  unsigned int m_Seed{0};
+
+  std::map<int, int> _pids;  // PIDs of tracks in the BBC
 };
 
-#endif  //* __BBCDIGITIZATION_H__ *//
+#endif  //* G4MBD_MBDDIGITIZATION_H *//
