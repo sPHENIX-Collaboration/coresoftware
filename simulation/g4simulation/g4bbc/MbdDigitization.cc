@@ -47,8 +47,8 @@ MbdDigitization::MbdDigitization(const std::string &name)
 {
   f_pmtq.fill(0.);
   f_pmtnpe.fill(0.);
-  f_pmtt0.fill(std::numeric_limits<Float_t>::quiet_NaN());
-  f_pmtt1.fill(std::numeric_limits<Float_t>::quiet_NaN());
+  f_pmtt0.fill(std::numeric_limits<decltype(f_pmtt0)::value_type>::quiet_NaN());
+  f_pmtt1.fill(std::numeric_limits<decltype(f_pmtt1)::value_type>::quiet_NaN());
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
