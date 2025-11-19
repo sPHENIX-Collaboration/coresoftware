@@ -1,50 +1,14 @@
-#ifndef bcocheck_H__
-#define bcocheck_H__
-
-// std headers
-#include <array>
-#include <filesystem>
-#include <iomanip>  // setw, setfill
-#include <iostream>
-#include <vector>
-
-#include <fstream>
-#include <iostream>
-#include <set>
-#include <string>
-#include <vector>
-
-// ROOT headers
-#include <TCanvas.h>
-#include <TFile.h>
-#include <TGraph.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TLegend.h>
-#include <TLine.h>
-#include <TObject.h>
-#include <TPaveStats.h>
-#include <TROOT.h>
-#include <TStyle.h>
-#include <TSystem.h>
-#include <TTree.h>
+#ifndef QA_INTT_BCOCHECK_H
+#define QA_INTT_BCOCHECK_H
 
 // Fun4All headers
 #include <fun4all/SubsysReco.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <ffarawobjects/InttRawHit.h>
-#include <ffarawobjects/InttRawHitContainer.h>
-
-#include <trackbase/InttEventInfo.h>
-#include <trackbase/InttEventInfov1.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
+#include <string>
 
 class PHCompositeNode;
+class TFile;
+class TH1;
 
 class bcocheck : public SubsysReco
 {
@@ -64,21 +28,21 @@ class bcocheck : public SubsysReco
 
   // int SetHistBin(std::string type);
  private:
-  // general variables
-  int run_num_ = 0;
-  int felix_num_ = 0;
-  static const int kFelix_num_ = 8;     // the number of our FELIX server
-  static const int kFee_num_ = 14;      // the number of half-ladders in a single FELIX server
-  static const int kChip_num_ = 26;     // the number of chip in a half-ladder
-  static const int kChan_num_ = 128;    // the number of channel in a single chip
-  static const int kFirst_pid_ = 3001;  // the first pid (packet ID), which means intt0
-  static const int divimul = 10;
-
-  int ievent_ = 0;
-  TFile *tf_output_[kFelix_num_] = {};
-
-  TH1D *h_full_bco[kFelix_num_] = {};
-
+  // methods
   void DrawHists();
+  // general variables
+  int run_num_{0};
+  int felix_num_{0};
+  static constexpr int kFelix_num_{8};     // the number of our FELIX server
+  static constexpr int kFee_num_{14};      // the number of half-ladders in a single FELIX server
+  static constexpr int kChip_num_{26};     // the number of chip in a half-ladder
+  static constexpr int kChan_num_{128};    // the number of channel in a single chip
+  static constexpr int kFirst_pid_{3001};  // the first pid (packet ID), which means intt0
+  static constexpr int divimul{10};
+
+  int ievent_{0};
+  TFile *tf_output_[kFelix_num_]{};
+
+  TH1 *h_full_bco[kFelix_num_]{};
 };
 #endif

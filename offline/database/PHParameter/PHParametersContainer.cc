@@ -84,7 +84,7 @@ void PHParametersContainer::CreateAndFillFrom(const PdbParameterMapContainer *sa
 
 void PHParametersContainer::AddPHParameters(const int detid, PHParameters *params)
 {
-  if (parametermap.find(detid) != parametermap.end())
+  if (parametermap.contains(detid))
   {
     std::cout << PHWHERE << " detector id " << detid << " already exists for "
               << (parametermap.find(detid))->second->Name() << std::endl;
@@ -230,7 +230,7 @@ void PHParametersContainer::UpdateNodeTree(PHCompositeNode *topNode, const std::
 
 int PHParametersContainer::ExistDetid(const int detid) const
 {
-  if (parametermap.find(detid) != parametermap.end())
+  if (parametermap.contains(detid))
   {
     return 1;
   }

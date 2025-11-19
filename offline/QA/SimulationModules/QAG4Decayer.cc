@@ -1,6 +1,7 @@
 #include "QAG4Decayer.h"
 
-#include <TTree.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <decayfinder/DecayFinder.h>
@@ -13,32 +14,35 @@
 #include <phool/getClass.h>
 
 #include <TF1.h>
+#include <TFile.h>
 #include <TH1.h>
 #include <TLorentzVector.h>
 #include <TROOT.h>
 #include <TStyle.h>
+#include <TTree.h>
 #include <TVector3.h>
 
-#include <boost/format.hpp>
-
 #include <algorithm>
-
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <map>
 #include <string>
 #include <vector>
 
-const int NHFQA = 16;
+namespace
+{
+  const int NHFQA = 16;
 
-static int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
+  int QAVtxPDGID[NHFQA] = {411, 421, 431, 4122, 511, 521, 531, 443, 553, -411, -421, -431, -4122, -511, -521, -531};
 
-// float MassMin[NHFQA] = {1.6,1.6,1.7,2.0,5.0,5.0,5.1,2.0,9.0};
-static float MassMin[NHFQA] = {1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1, 1.2, 9.0, 1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1};
-static float MassMax[NHFQA] = {2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6, 3.2, 10.0, 2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6};
+  // float MassMin[NHFQA] = {1.6,1.6,1.7,2.0,5.0,5.0,5.1,2.0,9.0};
+  float MassMin[NHFQA] = {1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1, 1.2, 9.0, 1.6, 1.6, 1.7, 2.0, 5.0, 5.0, 5.1};
+  float MassMax[NHFQA] = {2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6, 3.2, 10.0, 2.0, 2.0, 2.1, 2.5, 5.5, 5.5, 5.6};
 
-static std::multimap<std::vector<int>, int> decaymap[NHFQA];
+  std::multimap<std::vector<int>, int> decaymap[NHFQA];
+}  // namespace
 
 /*
  *  QA module to check decay branching ratio, decay lifetime, and momentum conservation for inclusive heavy flavor hadron decay, which is handle by EvtGen as default
@@ -63,28 +67,28 @@ int QAG4Decayer::Init(PHCompositeNode *topNode)
 
   for (int i = 0; i < NHFQA; i++)
   {
-    h = new TH1F((boost::format("QAPx_%d") % i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F(std::format("QAPx_{}", i).c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QAPy_%d") % i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F(std::format("QAPy_{}", i).c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QAPz_%d") % i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F(std::format("QAPz_{}", i).c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QAE_%d") % i).str().c_str(), "", 200, -1, 1);
+    h = new TH1F(std::format("QAE_{}", i).c_str(), "", 200, -1, 1);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("InvMass_%d") % i).str().c_str(), "", 100, MassMin[i], MassMax[i]);
+    h = new TH1F(std::format("InvMass_{}", i).c_str(), "", 100, MassMin[i], MassMax[i]);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("QACosTheta_%d") % i).str().c_str(), "", 120, -1.2, 1.2);
+    h = new TH1F(std::format("QACosTheta_{}", i).c_str(), "", 120, -1.2, 1.2);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("BR1DHis_%d") % i).str().c_str(), "", 10, -0.5, 9.5);
+    h = new TH1F(std::format("BR1DHis_{}", i).c_str(), "", 10, -0.5, 9.5);
     hm->registerHisto(h);
 
-    h = new TH1F((boost::format("ProperLifeTime_%d") % i).str().c_str(), "", 100, 0.0001, 0.05);
+    h = new TH1F(std::format("ProperLifeTime_{}", i).c_str(), "", 100, 0.0001, 0.05);
     hm->registerHisto(h);
   }
 
@@ -296,35 +300,35 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
 
   for (int i = 0; i < NHFQA; i++)
   {
-    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
+    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("QAPx_{}", i)));
     assert(QAPx[i]);
 
-    QAPy[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPy_%d") % i).str().c_str()));
+    QAPy[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("QAPy_{}", i)));
     assert(QAPy[i]);
 
-    QAPz[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPz_%d") % i).str().c_str()));
+    QAPz[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("QAPz_{}", i)));
     assert(QAPz[i]);
 
-    QAE[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAE_%d") % i).str().c_str()));
+    QAE[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("QAE_{}", i)));
     assert(QAE[i]);
 
-    QACosTheta[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
+    QACosTheta[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("QAPx_{}", i)));
     assert(QAPx[i]);
 
-    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("QAPx_%d") % i).str().c_str()));
+    QAPx[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("QAPx_{}", i)));
     assert(QAPx[i]);
 
-    BR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("BR1DHis_%d") % i).str().c_str()));
+    BR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("BR1DHis_{}", i)));
     assert(BR1DHis[i]);
     /*
-       AntiBR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("AntiBR1DHis_%d") %i).str().c_str()));
+       AntiBR1DHis[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("AntiBR1DHis_{}",i).c_str()));
        assert(AntiBR1DHis[i]);
        */
 
-    InvMass[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("InvMass_%d") % i).str().c_str()));
+    InvMass[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("InvMass_{}", i)));
     assert(InvMass[i]);
 
-    ProperLifeTime[i] = dynamic_cast<TH1 *>(hm->getHisto((boost::format("ProperLifeTime_%d") % i).str().c_str()));
+    ProperLifeTime[i] = dynamic_cast<TH1 *>(hm->getHisto(std::format("ProperLifeTime_{}", i)));
     assert(ProperLifeTime[i]);
   }
 
@@ -589,7 +593,7 @@ int QAG4Decayer::process_event(PHCompositeNode *topNode)
     int key = -1;
     std::vector<int> ChannelID;
 
-    if (decaymap[HFIndexToFill].find({DaughterInfo[q]}) != decaymap[HFIndexToFill].end())
+    if (decaymap[HFIndexToFill].contains({DaughterInfo[q]}))
     {
       key = decaymap[HFIndexToFill].find({DaughterInfo[q]})->second;
     }

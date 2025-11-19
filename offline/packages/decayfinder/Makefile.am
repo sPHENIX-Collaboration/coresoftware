@@ -24,9 +24,8 @@ ROOTDICTS = \
   DecayFinderContainer_v1_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  DecayFinderContainerBase_Dict_rdict.pcm \
-  DecayFinderContainer_v1_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libdecayfinder_io_la_SOURCES = \
   $(ROOTDICTS) \

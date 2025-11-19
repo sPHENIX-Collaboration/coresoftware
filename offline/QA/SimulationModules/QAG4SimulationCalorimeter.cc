@@ -37,6 +37,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>  // for Hep3Vector
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -296,7 +297,7 @@ int QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode * /*topNode*/
     total_primary_energy += particle->get_e();
   }
 
-  assert(! _truth_container->GetMap().empty());
+  assert(!_truth_container->GetMap().empty());
   const PHG4Particle *last_primary =
       _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
@@ -643,10 +644,7 @@ int QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
 
         energy_hist_list[size]->Fill(energy == 0 ? 9.1e-4 : energy);  // trick to fill 0 energy tower to the first bin
 
-        if (energy > max_energy[size])
-        {
-          max_energy[size] = energy;
-        }
+        max_energy[size] = std::max(energy, max_energy[size]);
 
       }  //          for (int size = 1; size <= 4; ++size)
     }
@@ -707,7 +705,7 @@ int QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 
   // get primary
   assert(_truth_container);
-  assert(! _truth_container->GetMap().empty());
+  assert(!_truth_container->GetMap().empty());
   PHG4Particle *last_primary = _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
 

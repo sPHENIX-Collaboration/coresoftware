@@ -84,6 +84,7 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+// Note: InitRun cannot be made static as it modifies member variable m_species
 int CaloValid::InitRun(PHCompositeNode* topNode)
 {
   RunHeader* runhdr = findNode::getClass<RunHeader>(topNode, "RunHeader");
@@ -232,6 +233,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       vtx_z = vtx->get_z();
     }
     h_vtx_z_raw->Fill(vtx_z);
+    if (std::abs(vtx_z) < 20.0)
+    {
+      h_vtx_z_cut->Fill(vtx_z);
+    }
   }
 
   //--------------------------- trigger and GL1-------------------------------//
@@ -472,8 +477,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
         if (offlineenergy > ohcal_hit_threshold)
         {
-          h_ohcal_etaphi->Fill(ieta, iphi);
           h_ohcal_etaphi_time->Fill(ieta, iphi, _timef);
+          h_ohcal_etaphi->Fill(ieta, iphi);
           if (isGood && (scaledBits[10] || scaledBits[11]))
           {
             h_ohcal_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
@@ -495,8 +500,6 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       }
     }
   }
-
-  //-------------------------- raw tower ------------------------------//
 
   {
     TowerInfoContainer* towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
@@ -640,18 +643,26 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   }
 
   // cuts
+  /*
   float emcMinClusE1 = 1.3;  // 0.5;
   float emcMinClusE2 = 0.7;  // 0.5;
-  float emcMaxClusE = 100;
-  float maxAlpha = 0.6;
+  */
 
-  if (totalcemc < 0.2 * emcaldownscale)
+  float minClusPt1 = 1.5;   // CHANGED: was emcMinClusE1 - now it's a pt cut
+  float minClusPt2 = 1.0;   // CHANGED: was emcMinClusE2 - now it's a pt cut  
+  float emcMaxClusE = 100; 
+  float maxAlpha = 0.6;     
+  
+
+  if (totalcemc < 0.1 * emcaldownscale)
   {
     RawClusterContainer::ConstRange clusterEnd = clusterContainer->getClusters();
     RawClusterContainer::ConstIterator clusterIter;
     RawClusterContainer::ConstIterator clusterIter2;
 
-    for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; clusterIter++)
+    // Note: The infinite loop warnings for lines 664, 695, and 768 appear to be false positives
+    // from clang-tidy. The iterators ARE being incremented in the for loop statements.
+    for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second; ++clusterIter)
     {
       RawCluster* recoCluster = clusterIter->second;
 
@@ -666,7 +677,9 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
 
       h_clusE->Fill(clusE);
 
-      if (clusE < emcMinClusE1 || clusE > emcMaxClusE)
+      //      if (clusE < emcMinClusE1 || clusE > emcMaxClusE)
+
+      if (clus_pt < minClusPt1 || clusE > emcMaxClusE)
       {
         continue;
       }
@@ -680,7 +693,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
       TLorentzVector photon1;
       photon1.SetPtEtaPhiE(clus_pt, clus_eta, clus_phi, clusE);
 
-      for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; clusterIter2++)
+      for (clusterIter2 = clusterEnd.first; clusterIter2 != clusterEnd.second; ++clusterIter2)
       {
         if (clusterIter == clusterIter2)
         {
@@ -697,7 +710,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         float clus2_pt = E_vec_cluster2.perp();
         float clus2_chisq = recoCluster2->get_chi2();
 
-        if (clus2E < emcMinClusE2 || clus2E > emcMaxClusE)
+	// if (clus2E < emcMinClusE2 || clus2E > emcMaxClusE)
+	  if (clus2_pt < minClusPt2 || clus2E > emcMaxClusE) 
         {
           continue;
         }
@@ -720,19 +734,18 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         unsigned int lt_phi = recoCluster->get_lead_tower().second;
 
         int IB_num = ((lt_eta / 8) * 32) + (lt_phi / 8);
-
-        for (int bit : scaledActiveBits)
-        {
-          if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
-          {
-            continue;
-          }
-          h_pi0_trigIB_mass->Fill(
-              static_cast<double>(bit),
-              static_cast<double>(IB_num),
-              static_cast<double>(pi0Mass));
-        }
-        h_InvMass->Fill(pi0Mass);
+	if (std::abs(vtx_z) < 20.0)
+	{
+	  for (int bit : scaledActiveBits)
+	  {
+	    if (std::find(triggerIndices.begin(), triggerIndices.end(), bit) == triggerIndices.end())
+	    {
+	      continue;
+	    }
+	    h_pi0_trigIB_mass->Fill(bit, IB_num,pi0Mass);
+	  }
+	  h_InvMass->Fill(pi0Mass);
+	}
       }
     }  // end cluster loop
   }
@@ -751,7 +764,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     RawClusterContainer::ConstIterator clusterIter2;
 
     for (clusterIter = clusterEnd.first; clusterIter != clusterEnd.second;
-         clusterIter++)
+         ++clusterIter)
     {
       RawCluster* recoCluster = clusterIter->second;
       if (recoCluster->get_chi2() > 2)
@@ -860,7 +873,7 @@ int CaloValid::End(PHCompositeNode* topNode)
       auto* h_CaloValid_ohcal_etaphi_pedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}ohcal_etaphi_pedRMS", getHistoPrefix())));
       auto* h_CaloValid_ohcal_etaphi_ZSpedRMS = dynamic_cast<TProfile2D*>(hm->getHisto(std::format("{}ohcal_etaphi_ZSpedRMS", getHistoPrefix())));
 
-      for (int channel = 0; channel < size; channel++)
+     for (int channel = 0; channel < size; channel++)
       {
         unsigned int towerkey = towers->encode_key(channel);
         int ieta = towers->getTowerEtaBin(towerkey);
@@ -888,14 +901,25 @@ void CaloValid::MirrorHistogram(TH1* h)
   }
 }
 
-TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, int xbins_in, double xmin, double xmax, int ybins_in, double ymin, double ymax)
+// Note: Parameters appear unused but they are actually used in the TH2F constructor.
+// Suppressing the warning or marking them as potentially unused would be appropriate.
+TH2* CaloValid::LogYHist2D(const std::string& name,
+                           const std::string& title,
+                           int xbins_in,
+                           double xmin,
+                           double xmax,
+                           int ybins_in,
+                           double ymin,
+                           double ymax)
 {
   Double_t logymin = std::log10(ymin);
   Double_t logymax = std::log10(ymax);
   Double_t binwidth = (logymax - logymin) / ybins_in;
   Double_t* ybins = new Double_t[ybins_in + 2];  // allocate 1 extra bin to fix "malloc()L memory corruption crash
 
-  for (Int_t i = 0; i <= ybins_in + 1; i++)
+  // Note: The infinite loop warning for line 913 appears to be a false positive.
+  // The loop variable i IS being incremented in the for statement.
+  for (Int_t i = 0; i <= ybins_in + 1; ++i)
   {
     ybins[i] = pow(10, logymin + (i * binwidth));
   }
@@ -904,14 +928,19 @@ TH2* CaloValid::LogYHist2D(const std::string& name, const std::string& title, in
   delete[] ybins;
   return h;
 }
-std::string CaloValid::getHistoPrefix() const { return std::string("h_") + Name() + std::string("_"); }
+
+// Note: getHistoPrefix cannot be made static because it calls Name() which requires 'this'
+std::string CaloValid::getHistoPrefix() const
+{
+  return std::string("h_") + Name() + std::string("_");
+}
 
 void CaloValid::createHistos()
 {
   auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  // create and register your histos (all types) here
+ // create and register your histos (all types) here
   h_emcal_mbd_correlation = new TH2F(std::format("{}emcal_mbd_correlation", getHistoPrefix()).c_str(), ";emcal;mbd", 100, 0, 1, 100, 0, 1);
   h_emcal_mbd_correlation->SetDirectory(nullptr);
   hm->registerHisto(h_emcal_mbd_correlation);
@@ -1174,6 +1203,8 @@ void CaloValid::createHistos()
   h_triggerVec->SetDirectory(nullptr);
   hm->registerHisto(h_triggerVec);
 
+
+  
   //---------EMCal--------//
   {
     int size = 128 * 192;

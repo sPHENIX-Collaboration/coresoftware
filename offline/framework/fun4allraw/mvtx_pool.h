@@ -23,10 +23,10 @@ class mvtx_pool {
 
   size_t get_feeidSet_size();
 
-  int get_feeid(const uint16_t iLink);
-  int get_hbfSet_size(const uint16_t iLink);
-  int get_trgSet_size(const uint16_t iLink);
-  int get_strbSet_size(const uint16_t iLink);
+  int get_feeid(const uint16_t iLnk);
+  int get_hbfSet_size(const uint16_t iLnk);
+  int get_trgSet_size(const uint16_t iLnk);
+  int get_strbSet_size(const uint16_t iLnk);
 
   int get_L1_IR_BC(const uint16_t iLnk, const uint32_t);
   int get_TRG_IR_BC(const uint16_t iLnk, const uint32_t);

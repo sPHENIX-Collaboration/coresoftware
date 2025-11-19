@@ -1,11 +1,13 @@
 #include "GlobalVertexReco.h"
 
-#include "GlobalVertex.h"     // for GlobalVertex, GlobalVe...
+//#include "GlobalVertex.h"     // for GlobalVertex, GlobalVe...
 #include "GlobalVertexMap.h"  // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
 #include "GlobalVertexv2.h"
 #include "MbdVertex.h"
 #include "MbdVertexMap.h"
+#include "CaloVertex.h"
+#include "CaloVertexMap.h"
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
 #include "TruthVertex.h"
@@ -65,6 +67,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   // Get Objects off of the Node Tree
   //---------------------------------
   GlobalVertexMap *globalmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+  
   if (!globalmap)
   {
     std::cout << PHWHERE << "::ERROR - cannot find GlobalVertexMap" << std::endl;
@@ -73,6 +76,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
   SvtxVertexMap *svtxmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   MbdVertexMap *mbdmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
+  CaloVertexMap *calomap = findNode::getClass<CaloVertexMap>(topNode, "CaloVertexMap");
   SvtxTrackMap *trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   TruthVertexMap *truthmap = findNode::getClass<TruthVertexMap>(topNode, "TruthVertexMap");
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -98,8 +102,9 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
   std::set<unsigned int> used_svtx_vtxids;
   std::set<unsigned int> used_mbd_vtxids;
+  std::set<unsigned int> used_calo_vtxids;
 
-  if (svtxmap && mbdmap)
+  if (svtxmap && mbdmap && useVertexType(GlobalVertex::VTXTYPE::SVTX_MBD))
   {
     if (Verbosity())
     {
@@ -152,7 +157,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
              ++iter)
         {
-          auto track = trackmap->find(*iter)->second;
+          auto *track = trackmap->find(*iter)->second;
           track->set_vertex_id(vertex->get_id());
         }
       }
@@ -165,7 +170,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   }
 
   // okay now loop over all unused SVTX vertexes (2nd class)...
-  if (svtxmap)
+  if (svtxmap && useVertexType(GlobalVertex::VTXTYPE::SVTX))
   {
     if (Verbosity())
     {
@@ -178,7 +183,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     {
       const SvtxVertex *svtx = svtxiter->second;
 
-      if (used_svtx_vtxids.find(svtx->get_id()) != used_svtx_vtxids.end())
+      if (used_svtx_vtxids.contains(svtx->get_id()))
       {
         continue;
       }
@@ -201,7 +206,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         for (auto iter = svtx->begin_tracks(); iter != svtx->end_tracks();
              ++iter)
         {
-          auto track = trackmap->find(*iter)->second;
+          auto *track = trackmap->find(*iter)->second;
           track->set_vertex_id(vertex->get_id());
         }
       }
@@ -215,7 +220,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
   }
 
   // okay now loop over all unused MBD vertexes (3rd class)...
-  if (mbdmap)
+  if (mbdmap && useVertexType(GlobalVertex::VTXTYPE::MBD))
   {
     if (Verbosity())
     {
@@ -228,11 +233,11 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     {
       const MbdVertex *mbd = mbditer->second;
 
-      if (used_mbd_vtxids.find(mbd->get_id()) != used_mbd_vtxids.end())
+      if (used_mbd_vtxids.contains(mbd->get_id()))
       {
         continue;
       }
-      
+
       if (std::isnan(mbd->get_z()))
       {
         continue;
@@ -253,7 +258,118 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // okay now add the truth vertex (4th class)...
+  // okay now loop over all unused MBD vertexes (3rd class)...
+  if (calomap && useVertexType(GlobalVertex::VTXTYPE::CALO))
+  {
+    if (Verbosity())
+    {
+      std::cout << "GlobalVertexReco::process_event -  calomap" << std::endl;
+    }
+
+    for (CaloVertexMap::ConstIter caloiter = calomap->begin();
+         caloiter != calomap->end();
+         ++caloiter)
+      {
+	const CaloVertex *calo = caloiter->second;
+	
+	if (used_calo_vtxids.contains(calo->get_id()))
+	  {
+	    continue;
+	  }
+	
+	if (std::isnan(calo->get_z()))
+	  {
+	    continue;
+	  }
+	
+	GlobalVertex *vertex = new GlobalVertexv2();
+	vertex->set_id(globalmap->size());
+	
+	vertex->clone_insert_vtx(GlobalVertex::CALO, calo);
+	used_calo_vtxids.insert(calo->get_id());
+	
+	globalmap->insert(vertex);
+	
+	if (Verbosity() > 1)
+	  {
+	    vertex->identify();
+	  }
+      }
+  }
+
+// okay now loop over all unused MBD vertexes (3rd class)...
+  if (mbdmap && calomap && useVertexType(GlobalVertex::VTXTYPE::MBD_CALO))
+  {
+    if (Verbosity())
+    {
+      std::cout << "GlobalVertexReco::process_event -  calomap + mbdmap" << std::endl;
+    }
+
+    for (MbdVertexMap::ConstIter mbditer = mbdmap->begin();
+         mbditer != mbdmap->end();
+         ++mbditer)
+    {
+      const MbdVertex *mbd = mbditer->second;
+
+      if (used_mbd_vtxids.contains(mbd->get_id()))
+      {
+        continue;
+      }
+
+      
+      bool getcalo =  std::isnan(mbd->get_z());
+
+      if (getcalo)
+	{
+	  for (CaloVertexMap::ConstIter caloiter = calomap->begin();
+	       caloiter != calomap->end();
+	       ++caloiter)
+	    {
+	      const CaloVertex *calo = caloiter->second;
+	      
+	      if (used_calo_vtxids.contains(calo->get_id()))
+		{
+		  continue;
+		}
+	      
+	      if (std::isnan(calo->get_z()))
+		{
+		  continue;
+		}
+	      
+	      GlobalVertex *vertex = new GlobalVertexv2();
+	      vertex->set_id(globalmap->size());
+	
+	      vertex->clone_insert_vtx(GlobalVertex::CALO, calo);
+	      used_calo_vtxids.insert(calo->get_id());
+	      
+	      globalmap->insert(vertex);
+	      
+	      if (Verbosity() > 1)
+		{
+		  vertex->identify();
+		}
+	    }
+	  
+	}
+      else
+	{
+	  GlobalVertex *vertex = new GlobalVertexv2();
+	  vertex->set_id(globalmap->size());
+	  
+	  vertex->clone_insert_vtx(GlobalVertex::MBD, mbd);
+	  used_mbd_vtxids.insert(mbd->get_id());
+	  
+	  globalmap->insert(vertex);
+	  
+	  if (Verbosity() > 1)
+	    {
+	      vertex->identify();
+	    }
+	}
+    }
+  }
+// okay now add the truth vertex (4th class)...
 
   if (truthinfo)
   {
@@ -280,7 +396,10 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       GlobalVertex *vertex = new GlobalVertexv2();
       vertex->clone_insert_vtx(GlobalVertex::TRUTH, tvertex);
       globalmap->insert(vertex);
-      if (truthmap) truthmap->insert(tvertex);
+      if (truthmap)
+      {
+        truthmap->insert(tvertex);
+      }
       if (Verbosity() > 1)
       {
         vertex->identify();
@@ -372,7 +491,9 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode)
   if (!truthmap && truthinfo)
   {
     if (Verbosity())
+    {
       std::cout << "Creating TruthVertexMap node" << std::endl;
+    }
     truthmap = new TruthVertexMap_v1();
     PHIODataNode<PHObject> *TruthVertexMapNode = new PHIODataNode<PHObject>(truthmap, "TruthVertexMap", "PHObject");
     globalNode->addNode(TruthVertexMapNode);

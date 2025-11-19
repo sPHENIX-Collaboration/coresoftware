@@ -1,6 +1,5 @@
 #include "QAG4SimulationJet.h"
 
-#include <TString.h>
 #include <qautils/QAHistManagerDef.h>
 
 #include <g4eval/JetEvalStack.h>
@@ -20,8 +19,6 @@
 
 #include <phool/getClass.h>
 
-#include <boost/format.hpp>
-
 #include <TAxis.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -29,6 +26,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <memory>
 #include <set>
@@ -38,9 +36,7 @@
 QAG4SimulationJet::QAG4SimulationJet(const std::string& truth_jet,
                                      enu_flags flags)
   : SubsysReco("QAG4SimulationJet_" + truth_jet)
-  , _jetevalstacks()
   , _truth_jet(truth_jet)
-  , _reco_jets()
   , _flags(flags)
   , eta_range(-1, 1)
   , _jet_match_dEta(.1)
@@ -74,7 +70,7 @@ int QAG4SimulationJet::InitRun(PHCompositeNode* topNode)
 
   if (flag(kProcessTruthSpectrum))
   {
-    if (! _jettrutheval)
+    if (!_jettrutheval)
     {
       _jettrutheval = std::shared_ptr<JetTruthEval>(new JetTruthEval(topNode, _truth_jet));
     }
@@ -204,12 +200,9 @@ void QAG4SimulationJet::set_eta_range(double low, double high)
 }
 
 //! string description of eta range
-//! @return TString as ROOT likes
-TString
-QAG4SimulationJet::get_eta_range_str(const char* eta_name) const
+std::string QAG4SimulationJet::get_eta_range_str(const std::string& eta_name) const
 {
-  assert(eta_name);
-  return TString((boost::format("%.1f < %s < %.1f") % eta_range.first % eta_name % eta_range.second).str().c_str());
+  return std::format("{:1} < {} < {:.1}", eta_range.first, eta_name, eta_range.second);
 }
 
 //! acceptance cut on jet object
@@ -226,12 +219,12 @@ QAG4SimulationJet::get_histo_prefix(const std::string& src_jet_name,
 {
   std::string histo_prefix = "h_QAG4SimJet_";
 
-  if (src_jet_name.length() > 0)
+  if (!src_jet_name.empty())
   {
     histo_prefix += src_jet_name;
     histo_prefix += "_";
   }
-  if (reco_jet_name.length() > 0)
+  if (!reco_jet_name.empty())
   {
     histo_prefix += reco_jet_name;
     histo_prefix += "_";
@@ -322,7 +315,7 @@ int QAG4SimulationJet::Init_Spectrum(PHCompositeNode* /*topNode*/,
 int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
                                         const std::string& jet_name, const bool is_reco_jet)
 {
-  JetContainer* jets = findNode::getClass<JetContainer>(topNode, jet_name.c_str());
+  JetContainer* jets = findNode::getClass<JetContainer>(topNode, jet_name);
   if (!jets)
   {
     std::cout
@@ -354,11 +347,11 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
   Jet* leading_jet = nullptr;
   double max_et = 0;
-  for (auto jet : *jets)
+  for (auto* jet : *jets)
   {
     assert(jet);
 
-    if (! jet_acceptance_cut(jet))
+    if (!jet_acceptance_cut(jet))
     {
       continue;
     }
@@ -480,7 +473,7 @@ int QAG4SimulationJet::process_Spectrum(PHCompositeNode* topNode,
 
       std::set<PHG4Shower*> const showers = _jettrutheval->all_truth_showers(leading_jet);
 
-      for (auto shower : showers)
+      for (auto* shower : showers)
       {
         if (Verbosity() >= VERBOSITY_A_LOT)
         {
@@ -649,11 +642,11 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading truth
   Jet* truthjet = nullptr;
   double max_et = 0;
-  for (auto jet : *truthjets)
+  for (auto* jet : *truthjets)
   {
     assert(jet);
 
-    if (! jet_acceptance_cut(jet))
+    if (!jet_acceptance_cut(jet))
     {
       continue;
     }
@@ -768,11 +761,11 @@ int QAG4SimulationJet::process_TruthMatching(PHCompositeNode* topNode,
   // search for leading reco jet
   Jet* recojet = nullptr;
   max_et = 0;
-  for (auto jet : *recojets)
+  for (auto* jet : *recojets)
   {
     assert(jet);
 
-    if (! jet_acceptance_cut(jet))
+    if (!jet_acceptance_cut(jet))
     {
       continue;
     }

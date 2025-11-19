@@ -33,6 +33,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <set>
 #include <string>
@@ -262,8 +263,8 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       float const gpx = g4particle->get_px();
       float const gpy = g4particle->get_py();
       float const gpz = g4particle->get_pz();
-      float gpt = NAN;
-      float geta = NAN;
+      float gpt = std::numeric_limits<float>::quiet_NaN();
+      float geta = std::numeric_limits<float>::quiet_NaN();
 
       if (gpx != 0 && gpy != 0)
       {
@@ -327,13 +328,13 @@ int QAG4SimulationVertex::process_event(PHCompositeNode *topNode)
       float const vy = vertex->get_y();
       float const vz = vertex->get_z();
       float const ntracks = vertex->size_tracks();
-      float gvx = NAN;
-      float gvy = NAN;
-      float gvz = NAN;
-      float gvt = NAN;
-      float gembed = NAN;
+      float gvx = std::numeric_limits<float>::quiet_NaN();
+      float gvy = std::numeric_limits<float>::quiet_NaN();
+      float gvz = std::numeric_limits<float>::quiet_NaN();
+      float gvt = std::numeric_limits<float>::quiet_NaN();
+      float gembed = std::numeric_limits<float>::quiet_NaN();
       float gntracks = m_truthInfo->GetNumPrimaryVertexParticles();
-      float gntracksmaps = NAN;
+      float gntracksmaps = std::numeric_limits<float>::quiet_NaN();
 
       h_ntracks->Fill(ntracks);
 

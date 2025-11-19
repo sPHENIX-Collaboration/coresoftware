@@ -1,19 +1,17 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef EVENTPLANERECO_H
-#define EVENTPLANERECO_H
+#ifndef EVENTPLANEINFO_EVENTPLANERECO_H
+#define EVENTPLANEINFO_EVENTPLANERECO_H
 
 //===========================================================
 /// \author Ejiro Umaka
 //===========================================================
 
-#include <cdbobjects/CDBTTree.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string> // for string
 #include <vector> // for vector
 
-class CDBHistos;
 class TProfile2D;
 class TH1;
 
@@ -34,18 +32,19 @@ public:
   void set_sEPD_Mip_cut(const float e) { _epd_e = e; }
   void set_sEPD_Charge_cut(const float c) { _epd_charge_min = c; }
   void set_MBD_Min_Qcut(const float f) { _mbd_e = f; }
-  void set_MBD_Vetex_cut(const float v) { _mbd_vertex_cut = v; }
+  void set_MBD_Vertex_cut(const float v) { _mbd_vertex_cut = v; }
   void set_Ep_orders(const unsigned int n) { m_MaxOrder = n; }
 
 private:
   int CreateNodes(PHCompositeNode *topNode);
   unsigned int m_MaxOrder{3};
+  static const int nRings {16};
+
   std::string FileName;
     
   std::vector<std::vector<double>> south_q;
   std::vector<std::vector<double>> north_q;
   std::vector<std::vector<double>> northsouth_q;
-  static const int nRings = 16;
   std::vector<std::vector<std::vector<double>>> ring_q_north;
   std::vector<std::vector<std::vector<double>>> ring_q_south;
   std::vector<std::pair<double, double>> south_Qvec;
@@ -105,4 +104,4 @@ private:
   float _mbd_vertex_cut{60.0};
 };
 
-#endif // EVENTPLANERECO_H
+#endif // EVENTPLANEINFO_EVENTPLANERECO_H

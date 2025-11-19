@@ -8,7 +8,6 @@
  */
 /// ===========================================================================
 
-#define TRKSINJETQAINJETFILLER_CC
 
 // submodule definition
 #include "TrksInJetQAInJetFiller.h"

@@ -12,9 +12,9 @@ GlobalVertexv2::~GlobalVertexv2()
 
 void GlobalVertexv2::Reset()
 {
-  for (auto & _vtx : _vtxs)
+  for (auto &_vtx : _vtxs)
   {
-    for (auto vertex : _vtx.second)
+    for (const auto *vertex : _vtx.second)
     {
       delete vertex;
     }
@@ -22,7 +22,7 @@ void GlobalVertexv2::Reset()
   _vtxs.clear();
 }
 
-void GlobalVertexv2::identify(std::ostream& os) const
+void GlobalVertexv2::identify(std::ostream &os) const
 {
   os << "---GlobalVertexv2-----------------------" << std::endl;
 
@@ -31,7 +31,7 @@ void GlobalVertexv2::identify(std::ostream& os) const
   {
     os << "  Vertex type " << iter->first << " has " << iter->second.size()
        << " vertices associated to it" << std::endl;
-    for (auto& vertex : iter->second)
+    for (const auto &vertex : iter->second)
     {
       vertex->identify();
     }
@@ -50,7 +50,7 @@ int GlobalVertexv2::isValid() const
   }
   return 1;
 }
-void GlobalVertexv2::insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex)
+void GlobalVertexv2::insert_vtx(GlobalVertex::VTXTYPE type, const Vertex *vertex)
 {
   auto it = _vtxs.find(type);
   if (it == _vtxs.end())
@@ -63,10 +63,10 @@ void GlobalVertexv2::insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex
 
   it->second.push_back(vertex);
 }
-void GlobalVertexv2::clone_insert_vtx(GlobalVertex::VTXTYPE type, const Vertex* vertex)
+void GlobalVertexv2::clone_insert_vtx(GlobalVertex::VTXTYPE type, const Vertex *vertex)
 {
   auto it = _vtxs.find(type);
-  Vertex *clone = dynamic_cast<Vertex *> (vertex->CloneMe());
+  Vertex *clone = dynamic_cast<Vertex *>(vertex->CloneMe());
   if (it == _vtxs.end())
   {
     VertexVector vector;
@@ -130,7 +130,12 @@ float GlobalVertexv2::get_position(unsigned int coor) const
     auto mbdit = _vtxs.find(GlobalVertex::VTXTYPE::MBD);
     if (mbdit == _vtxs.end())
     {
-      return std::numeric_limits<float>::quiet_NaN();
+      auto caloit = _vtxs.find(GlobalVertex::VTXTYPE::CALO);
+      if(caloit == _vtxs.end())
+	{
+	  return std::numeric_limits<float>::quiet_NaN();
+	}
+      return caloit->second[0]->get_position(coor);
     }
     return mbdit->second[0]->get_position(coor);
   }
@@ -138,7 +143,7 @@ float GlobalVertexv2::get_position(unsigned int coor) const
   GlobalVertex::VertexVector trackvertices = svtxit->second;
   size_t mosttracks = 0;
   float pos = std::numeric_limits<float>::quiet_NaN();
-  for (auto vertex : trackvertices)
+  for (const auto *vertex : trackvertices)
   {
     if (vertex->size_tracks() > mosttracks)
     {
@@ -161,7 +166,7 @@ float GlobalVertexv2::get_chisq() const
   GlobalVertex::VertexVector trackvertices = svtxit->second;
   size_t mosttracks = 0;
   float chisq = std::numeric_limits<float>::quiet_NaN();
-  for (auto vertex : trackvertices)
+  for (const auto *vertex : trackvertices)
   {
     if (vertex->size_tracks() > mosttracks)
     {
@@ -184,7 +189,7 @@ unsigned int GlobalVertexv2::get_ndof() const
   GlobalVertex::VertexVector trackvertices = svtxit->second;
   size_t mosttracks = 0;
   unsigned int ndf = std::numeric_limits<unsigned int>::max();
-  for (auto vertex : trackvertices)
+  for (const auto *vertex : trackvertices)
   {
     if (vertex->size_tracks() > mosttracks)
     {
@@ -211,16 +216,14 @@ float GlobalVertexv2::get_error(unsigned int i, unsigned int j) const
     {
       return mbdit->second[0]->get_z_err();
     }
-    else
-    {
-      return std::numeric_limits<float>::quiet_NaN();
-    }
+
+    return std::numeric_limits<float>::quiet_NaN();
   }
 
   GlobalVertex::VertexVector trackvertices = svtxit->second;
   size_t mosttracks = 0;
   float err = std::numeric_limits<float>::quiet_NaN();
-  for (auto vertex : trackvertices)
+  for (const auto *vertex : trackvertices)
   {
     if (vertex->size_tracks() > mosttracks)
     {

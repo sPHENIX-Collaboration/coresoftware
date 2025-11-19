@@ -50,7 +50,11 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   void SetDefaultParameters() override;
   void UpdateInternalParameters() override;
-
+ 
+  void SetMaskChannelsFromFile() 
+  {
+    m_maskFromFile = true;
+  } 
   void SetDeadChannelMapName(const std::string& dcmap) 
   {
     m_maskDeadChannels = true;
@@ -138,6 +142,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   bool m_maskDeadChannels {false};
   bool m_maskHotChannels {false};
+  bool m_maskFromFile {false};
   std::string m_deadChannelMapName; 
   std::string m_hotChannelMapName; 
 };

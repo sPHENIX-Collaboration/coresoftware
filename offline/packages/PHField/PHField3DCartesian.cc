@@ -9,11 +9,7 @@
 
 #include <Geant4/G4SystemOfUnits.hh>
 
-// stacktrace gives a shadow warning
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
-#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cmath>
@@ -28,7 +24,7 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
 {
   std::cout << "PHField3DCartesian::PHField3DCartesian" << std::endl;
 
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 2; i++) // NOLINT (modernize-loop-convert)
   {
     for (int j = 0; j < 2; j++)
     {
@@ -36,7 +32,7 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
       {
         for (int l = 0; l < 3; l++)
         {
-          bf[i][j][k][l] = NAN;
+          bf[i][j][k][l] = {std::numeric_limits<double>::quiet_NaN()};
         }
       }
     }
@@ -68,8 +64,12 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
     gSystem->Exit(1);
     exit(1);
   }
-  Float_t ROOT_X, ROOT_Y, ROOT_Z;
-  Float_t ROOT_BX, ROOT_BY, ROOT_BZ;
+  Float_t ROOT_X;
+  Float_t ROOT_Y;
+  Float_t ROOT_Z;
+  Float_t ROOT_BX;
+  Float_t ROOT_BY;
+  Float_t ROOT_BZ;
   field_map->SetBranchAddress("x", &ROOT_X);
   field_map->SetBranchAddress("y", &ROOT_Y);
   field_map->SetBranchAddress("z", &ROOT_Z);
@@ -118,7 +118,6 @@ PHField3DCartesian::PHField3DCartesian(const std::string &fname, const float mag
 
 PHField3DCartesian::~PHField3DCartesian()
 {
-  std::cout << "PHField3DCartesian::~PHField3DCartesian" << std::endl;
   if (Verbosity() > 0)
   {
     std::cout << "PHField3DCartesian: cache hits: " << cache_hits

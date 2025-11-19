@@ -27,13 +27,9 @@
 
 #include <KFParticle.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
-#pragma GCC diagnostic pop
-
 #include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>
 #include <HepMC/IteratorRange.h>
 
 #include <TH1.h>
@@ -50,15 +46,18 @@
 #include <utility>  // for pair
 #include <vector>
 
-static KFParticle_Tools kfpTools;
+namespace
+{
+  KFParticle_Tools kfpTools;
+}
 
 QAG4SimulationKFParticle::QAG4SimulationKFParticle(const std::string &name, const std::string &mother_name, double min_m, double max_m)
   : SubsysReco(name)
+  , m_mother_id(kfpTools.getParticleID(mother_name))
+  , m_min_mass(min_m)
+  , m_max_mass(max_m)
+  , m_mother_name(mother_name)
 {
-  m_min_mass = min_m;
-  m_max_mass = max_m;
-  m_mother_id = kfpTools.getParticleID(mother_name);
-  m_mother_name = mother_name;
 }
 
 int QAG4SimulationKFParticle::InitRun(PHCompositeNode *topNode)
@@ -93,57 +92,57 @@ int QAG4SimulationKFParticle::Init(PHCompositeNode * /*topNode*/)
 
   TH1 *h(nullptr);
 
-  h = new TH1F(TString(get_histo_prefix()) + "InvMass",  //
+  h = new TH1F(TString(get_histo_prefix()) + "InvMass",
                ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP",  //
+  h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP",
                ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "DecayTime",  //
+  h = new TH1F(TString(get_histo_prefix()) + "DecayTime",
                ";Decay Time [ps];Entries", 100, 0, 1.5);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "pT",  //
+  h = new TH1F(TString(get_histo_prefix()) + "pT",
                ";pT [GeV/c];Entries", 100, 0, 10);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "Chi2_NDF",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Chi2_NDF",
                ";#chi^{2}/NDF ;Entries", 100, 0, 5);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "Rapidity",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Rapidity",
                ";y;Entries", 100, -2, 2);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "Mother_DCA_XY",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Mother_DCA_XY",
                ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter1_pT",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter1_pT",
                ";pT [GeV/c];Entries", 100, 0, 10);
   hm->registerHisto(h);
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter2_pT",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter2_pT",
                ";pT [GeV/c];Entries", 100, 0, 10);
   hm->registerHisto(h);
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter3_pT",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter3_pT",
                ";pT [GeV/c];Entries", 100, 0, 10);
   hm->registerHisto(h);
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter4_pT",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter4_pT",
                ";pT [GeV/c];Entries", 100, 0, 10);
   hm->registerHisto(h);
 
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter1_DCA_XY_Mother",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter1_DCA_XY_Mother",
                ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter2_DCA_XY_Mother",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter2_DCA_XY_Mother",
                ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter3_DCA_XY_Mother",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter3_DCA_XY_Mother",
                ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
-  h = new TH1F(TString(get_histo_prefix()) + "Daughter4_DCA_XY_Mother",  //
+  h = new TH1F(TString(get_histo_prefix()) + "Daughter4_DCA_XY_Mother",
                ";DCA [cm];Entries", 100, -0.05, 0.05);
   hm->registerHisto(h);
 
@@ -236,7 +235,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
   {
     if (iter.second->GetPDG() != m_mother_id)
     {
-      if (d_id.size() == 0)
+      if (d_id.empty())
       {
         d_id.push_back(abs(iter.second->GetPDG()));
       }
@@ -248,7 +247,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
           {
             continue;
           }
-          else if (j == d_id.size() - 1)
+          if (j == d_id.size() - 1)
           {
             d_id.push_back(abs(iter.second->GetPDG()));
           }
@@ -269,7 +268,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
       h_Rapidity->Fill(iter.second->GetRapidity());
       // best PV fit for mother
       int bestCombinationIndex = 0;
-      if (vertex_vec.size() > 0)
+      if (!vertex_vec.empty())
       {
         for (unsigned int i = 1; i < vertex_vec.size(); ++i)
         {
@@ -292,7 +291,7 @@ int QAG4SimulationKFParticle::process_event(PHCompositeNode *topNode)
         for (unsigned int i = 0; i < d_id.size(); ++i)
         {
           std::map<unsigned int, KFParticle *> const D_Map = m_kfpContainer->returnParticlesByPDGid(d_id[i]);
-          for (auto &[key, part] : D_Map)
+          for (const auto &[key, part] : D_Map)
           {
             if (i == 0)
             {

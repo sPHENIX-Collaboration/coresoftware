@@ -16,7 +16,6 @@
 
 #include <phool/PHCompositeNode.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 //#include <g4jets/JetMap.h>

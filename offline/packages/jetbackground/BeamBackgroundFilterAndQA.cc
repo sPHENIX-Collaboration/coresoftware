@@ -9,7 +9,6 @@
  */
 /// ===========================================================================
 
-#define BEAMBACKGROUNDFILTERANDQA_CC
 
 // module components
 #include "BeamBackgroundFilterAndQA.h"

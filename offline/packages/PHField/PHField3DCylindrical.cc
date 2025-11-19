@@ -37,8 +37,12 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
 
   //  get root NTuple objects
   TNtuple *field_map = (TNtuple *) gDirectory->Get("map");
-  Float_t ROOT_Z, ROOT_R, ROOT_PHI;
-  Float_t ROOT_BZ, ROOT_BR, ROOT_BPHI;
+  Float_t ROOT_Z;
+  Float_t ROOT_R;
+  Float_t ROOT_PHI;
+  Float_t ROOT_BZ;
+  Float_t ROOT_BR;
+  Float_t ROOT_BPHI;
   field_map->SetBranchAddress("z", &ROOT_Z);
   field_map->SetBranchAddress("r", &ROOT_R);
   field_map->SetBranchAddress("phi", &ROOT_PHI);
@@ -47,7 +51,9 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
   field_map->SetBranchAddress("bphi", &ROOT_BPHI);
 
   // get the number of entries in the tree
-  int nz, nr, nphi;
+  int nz;
+  int nr;
+  int nphi;
   nz = field_map->GetEntries("z>-1e6");
   nr = field_map->GetEntries("r>-1e6");
   nphi = field_map->GetEntries("phi>-1e6");
@@ -71,7 +77,9 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
   }
 
   // Keep track of the unique z, r, phi values in the grid using sets
-  std::set<float> z_set, r_set, phi_set;
+  std::set<float> z_set;
+  std::set<float> r_set;
+  std::set<float> phi_set;
 
   // Sort the entries to get rid of any stupid ordering problems...
 
@@ -140,7 +148,9 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
   BFieldZ_.resize(nz, std::vector<std::vector<float> >(nr, std::vector<float>(nphi, 0)));
 
   // all of this assumes that  z_prev < z , i.e. the table is ordered (as of right now)
-  unsigned int ir = 0, iphi = 0, iz = 0;  // useful indexes to keep track of
+  unsigned int ir = 0;
+  unsigned int iphi = 0;
+  unsigned int iz = 0;  // useful indexes to keep track of
   std::map<trio, trio>::iterator iter = sorted_map.begin();
   for (; iter != sorted_map.end(); ++iter)
   {
@@ -152,14 +162,8 @@ PHField3DCylindrical::PHField3DCylindrical(const std::string &filename, const in
     float Br = std::get<1>(iter->second) * gauss;
     float Bphi = std::get<2>(iter->second) * gauss;
 
-    if (z > maxz_)
-    {
-      maxz_ = z;
-    }
-    if (z < minz_)
-    {
-      minz_ = z;
-    }
+    maxz_ = std::max(z, maxz_);
+    minz_ = std::min(z, minz_);
 
     // check for change in z value, when z changes we have a ton of updates to do
     if (z != z_map_[iz])
@@ -471,7 +475,7 @@ bool PHField3DCylindrical::bin_search(const std::vector<float> &vec, unsigned st
     index = middle;
     return true;
   }
-  else if (vec[middle] > key)
+  if (vec[middle] > key)
   {
     return bin_search(vec, start, middle - 1, key, index);
   }

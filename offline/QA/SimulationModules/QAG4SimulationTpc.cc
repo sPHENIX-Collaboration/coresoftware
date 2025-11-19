@@ -34,10 +34,9 @@
 #include <TAxis.h>  // for TAxis
 #include <TH1.h>
 
-#include <boost/format.hpp>
-
 #include <cassert>
-#include <cmath>     // for atan2
+#include <cmath>  // for atan2
+#include <format>
 #include <iostream>  // for operator<<, basic...
 #include <iterator>  // for distance
 #include <map>       // for map
@@ -61,10 +60,8 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  else
-  {
-    m_initialized = true;
-  }
+
+  m_initialized = true;
 
   if (!m_svtxEvalStack)
   {
@@ -114,20 +111,20 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
   }
 
   // histogram manager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // create histograms
 
   // truth clusters
   {
-    auto h = new TH1F((boost::format("%sefficiency_0") % get_histo_prefix()).str().c_str(), "TPC_truth_clusters", 48, 7, 54);
+    auto* h = new TH1F(std::format("{}efficiency_0", get_histo_prefix()).c_str(), "TPC_truth_clusters", 48, 7, 54);
     h->GetXaxis()->SetTitle("sPHENIX layer");
     hm->registerHisto(h);
   }
   // matched clusters
   {
-    auto h = new TH1F((boost::format("%sefficiency_1") % get_histo_prefix()).str().c_str(), "TPC_matched_clusters", 48, 7, 54);
+    auto* h = new TH1F(std::format("{}efficiency_1", get_histo_prefix()).c_str(), "TPC_matched_clusters", 48, 7, 54);
     h->GetXaxis()->SetTitle("sPHENIX layer");
     hm->registerHisto(h);
   }
@@ -141,63 +138,63 @@ int QAG4SimulationTpc::InitRun(PHCompositeNode* topNode)
     }
     {
       // rphi residuals (cluster - truth)
-      auto h = new TH1F((boost::format("%sdrphi_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC r#Delta#phi_{cluster-truth} region_%i") % region).str().c_str(), 100, -0.079, 0.075);
+      auto* h = new TH1F(std::format("{}drphi_{}", get_histo_prefix(), region).c_str(), std::format("TPC r#Delta#phi_{{cluster-truth}} region_{}", region).c_str(), 100, -0.079, 0.075);
       h->GetXaxis()->SetTitle("r#Delta#phi_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // rphi cluster errors
-      auto h = new TH1F((boost::format("%srphi_error_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC r#Delta#phi error region_%i") % region).str().c_str(), 100, 0, 0.075);
+      auto* h = new TH1F(std::format("{}rphi_error_{}", get_histo_prefix(), region).c_str(), std::format("TPC r#Delta#phi error region_{}", region).c_str(), 100, 0, 0.075);
       h->GetXaxis()->SetTitle("r#Delta#phi error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // phi pulls (cluster - truth)
-      auto h = new TH1F((boost::format("%sphi_pulls_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC #Delta#phi_{cluster-truth}/#sigma#phi region_%i") % region).str().c_str(), 100, -3, 3);
+      auto* h = new TH1F(std::format("{}phi_pulls_{}", get_histo_prefix(), region).c_str(), std::format("TPC #Delta#phi_{{cluster-truth}}/#sigma#phi region_{}", region).c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Delta#phi_{cluster-truth}/#sigma#phi (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z residuals (cluster - truth)
-      auto h = new TH1F((boost::format("%sdz_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC #Deltaz_{cluster-truth} region_%i") % region).str().c_str(), 100, -0.19, 0.19);
+      auto* h = new TH1F(std::format("{}dz_{}", get_histo_prefix(), region).c_str(), std::format("TPC #Deltaz_{{cluster-truth}} region_{}", region).c_str(), 100, -0.19, 0.19);
       h->GetXaxis()->SetTitle("#Delta#z_{cluster-truth} (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z cluster errors
-      auto h = new TH1F((boost::format("%sz_error_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC z error region_%i") % region).str().c_str(), 100, 0, 0.18);
+      auto* h = new TH1F(std::format("{}z_error_{}", get_histo_prefix(), region).c_str(), std::format("TPC z error region_{}", region).c_str(), 100, 0, 0.18);
       h->GetXaxis()->SetTitle("z error (cm)");
       hm->registerHisto(h);
     }
 
     {
       // z pulls (cluster - truth)
-      auto h = new TH1F((boost::format("%sz_pulls_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC #Deltaz_{cluster-truth}/#sigmaz region_%i") % region).str().c_str(), 100, -3, 3);
+      auto* h = new TH1F(std::format("{}z_pulls_{}", get_histo_prefix(), region).c_str(), std::format("TPC #Deltaz_{{cluster-truth}}/#sigmaz region_{}", region).c_str(), 100, -3, 3);
       h->GetXaxis()->SetTitle("#Delta#z_{cluster-truth}/#sigmaz (cm)");
       hm->registerHisto(h);
     }
 
     {
       // total cluster size
-      auto h = new TH1F((boost::format("%sclus_size_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC cluster size region_%i") % region).str().c_str(), 30, 0, 30);
+      auto* h = new TH1F(std::format("{}clus_size_{}", get_histo_prefix(), region).c_str(), std::format("TPC cluster size region_{}", region).c_str(), 30, 0, 30);
       h->GetXaxis()->SetTitle("csize");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in phi
-      auto h = new TH1F((boost::format("%sclus_size_phi_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC cluster size (#phi) region_%i") % region).str().c_str(), 10, 0, 10);
+      auto* h = new TH1F(std::format("{}clus_size_phi_{}", get_histo_prefix(), region).c_str(), std::format("TPC cluster size (#phi) region_{}", region).c_str(), 10, 0, 10);
       h->GetXaxis()->SetTitle("csize_{#phi}");
       hm->registerHisto(h);
     }
 
     {
       // cluster size in z
-      auto h = new TH1F((boost::format("%sclus_size_z_%i") % get_histo_prefix() % region).str().c_str(), (boost::format("TPC cluster size (z) region_%i") % region).str().c_str(), 12, 0, 12);
+      auto* h = new TH1F(std::format("{}clus_size_z_{}", get_histo_prefix(), region).c_str(), std::format("TPC cluster size (z) region_{}", region).c_str(), 12, 0, 12);
       h->GetXaxis()->SetTitle("csize_{z}");
       hm->registerHisto(h);
     }
@@ -283,13 +280,13 @@ void QAG4SimulationTpc::evaluate_clusters()
   assert(clustereval);
 
   // histogram manager
-  auto hm = QAHistManagerDef::getHistoManager();
+  auto* hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // get histograms for cluster efficiency
-  TH1* h_eff0 = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sefficiency_0") % get_histo_prefix()).str().c_str()));
+  TH1* h_eff0 = dynamic_cast<TH1*>(hm->getHisto(std::format("{}efficiency_0", get_histo_prefix())));
   assert(h_eff0);
-  TH1* h_eff1 = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sefficiency_1") % get_histo_prefix()).str().c_str()));
+  TH1* h_eff1 = dynamic_cast<TH1*>(hm->getHisto(std::format("{}efficiency_1", get_histo_prefix())));
   assert(h_eff1);
 
   // get histograms for cluster parameters vs truth
@@ -314,17 +311,17 @@ void QAG4SimulationTpc::evaluate_clusters()
   for (int region = 0; region < 3; ++region)
   {
     HistogramList h;
-    h.drphi = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sdrphi_%i") % get_histo_prefix() % region).str().c_str()));
-    h.rphi_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%srphi_error_%i") % get_histo_prefix() % region).str().c_str()));
-    h.phi_pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sphi_pulls_%i") % get_histo_prefix() % region).str().c_str()));
+    h.drphi = dynamic_cast<TH1*>(hm->getHisto(std::format("{}drphi_{}", get_histo_prefix(), region)));
+    h.rphi_error = dynamic_cast<TH1*>(hm->getHisto(std::format("{}rphi_error_{}", get_histo_prefix(), region)));
+    h.phi_pulls = dynamic_cast<TH1*>(hm->getHisto(std::format("{}phi_pulls_{}", get_histo_prefix(), region)));
 
-    h.dz = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sdz_%i") % get_histo_prefix() % region).str().c_str()));
-    h.z_error = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sz_error_%i") % get_histo_prefix() % region).str().c_str()));
-    h.z_pulls = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sz_pulls_%i") % get_histo_prefix() % region).str().c_str()));
+    h.dz = dynamic_cast<TH1*>(hm->getHisto(std::format("{}dz_{}", get_histo_prefix(), region)));
+    h.z_error = dynamic_cast<TH1*>(hm->getHisto(std::format("{}z_error_{}", get_histo_prefix(), region)));
+    h.z_pulls = dynamic_cast<TH1*>(hm->getHisto(std::format("{}z_pulls_{}", get_histo_prefix(), region)));
 
-    h.csize = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_%i") % get_histo_prefix() % region).str().c_str()));
-    h.csize_phi = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_phi_%i") % get_histo_prefix() % region).str().c_str()));
-    h.csize_z = dynamic_cast<TH1*>(hm->getHisto((boost::format("%sclus_size_z_%i") % get_histo_prefix() % region).str().c_str()));
+    h.csize = dynamic_cast<TH1*>(hm->getHisto(std::format("{}clus_size_{}", get_histo_prefix(), region)));
+    h.csize_phi = dynamic_cast<TH1*>(hm->getHisto(std::format("{}clus_size_phi_{}", get_histo_prefix(), region)));
+    h.csize_z = dynamic_cast<TH1*>(hm->getHisto(std::format("{}clus_size_z_{}", get_histo_prefix(), region)));
 
     histograms.insert(std::make_pair(region, h));
   }

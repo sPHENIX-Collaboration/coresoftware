@@ -15,7 +15,6 @@ AM_LDFLAGS = \
 libg4vertex_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
-  -lg4mbd_io \
   -lmbd_io \
   -ltrackbase_historic_io \
   -lglobalvertex_io

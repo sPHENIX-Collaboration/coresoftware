@@ -1,11 +1,20 @@
-void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const char* ionFile, const char* ibfName, const char* primName, const char* outputFile){
+#include <TFile.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <TString.h>
+
+#include <format>
+#include <iostream>
+
+bool generateTruthIbfGainMap(const char* adcFile, const char *adcName, const char* ionFile, const char* ibfName, const char* primName, const char*  /*outputFile*/){
   
  //load the adc-per-bin data from the specified file.
   TFile* adcInputFile = TFile::Open(adcFile, "READ");
   TH3* hAdc=nullptr;
   adcInputFile->GetObject(adcName, hAdc);
   if (hAdc == nullptr)  {
-    printf("ADC hist %s or file %s not found!\n",adcName, adcFile);
+    std::cout << "ADC hist " <<  adcName << " or file "
+	      <<  adcFile << " not found!" << std::endl;
     return false;
   }
   
@@ -16,20 +25,26 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   ibfInputFile->GetObject(ibfName,hIbf);
   ibfInputFile->GetObject(primName,hPrimaries);
   if (hIbf == nullptr) {
-    printf("IBF hist %s or file %s not found!\n",ibfName, ionFile);
+    std::cout << "IBF hist " << ibfName << " or file "
+	      << ionFile << " not found!" << std::endl;
     return false;
   }
   if (hPrimaries == nullptr) {
-    printf("IBF hist %s IN file %s not found!\n",primName, ionFile);
+    std::cout << "IBF hist " <<  primName << " IN file "
+	      << ionFile << " not found!" << std::endl;
     return false;
   }
 
-  TFile *output=TFile::Open(outputFile,"RECREATE");
+//  TFile *output=TFile::Open(outputFile,"RECREATE");
   //generate 2D histograms with the IBF, and IBF + Primaries, per side:
 
-  int nSections=3;
-  TH2 *hFlatTotal[nSections],*hFlatIbf[nSections]; //flat charge sums in north and south
-  int zbins,neg,cm,pos;
+  const int nSections=3;
+  TH2 *hFlatTotal[nSections];
+  TH2 *hFlatIbf[nSections]; //flat charge sums in north and south
+  int zbins;
+  int neg;
+  int cm;
+  int pos;
   zbins=hAdc->GetZaxis()->GetNbins();
   neg=1;
   cm=zbins/2;
@@ -41,9 +56,9 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
 
   for (int i=0;i<nSections;i++){
     hPrimaries->GetZaxis()->SetRange(low[i],high[i]);
-    hFlatTotal[i]=(TH2*)hPrimaries->Project3D(Form("xy%s",suffix[i].Data()));
+    hFlatTotal[i]=(TH2*)hPrimaries->Project3D(std::format("xy{}",suffix[i].Data()).c_str());
     hIbf->GetZaxis()->SetRange(low[i],high[i]);
-    hFlatIbf[i]=(TH2*)hIbf->Project3D(Form("xy%s",suffix[i].Data()));
+    hFlatIbf[i]=(TH2*)hIbf->Project3D(std::format("xy{}",suffix[i].Data()).c_str());
     hFlatTotal[i]->Add(hFlatIbf[i]);
   }
   
@@ -66,21 +81,27 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   {
     nbins[i] = ax[i]->GetNbins();  //number of bins, not counting under and overflow.
     if (nbins[i]!=ax2[i]->GetNbins()){
-      printf("Primaries and Adc bins are different in axis %d. (%d vs %d).  Aborting unless in z.\n",i,nbins[i],ax2[i]->GetNbins());
-      if (i!=2) return;
-      printf("this is a z difference, which we can recover.\n");
+      std::cout << "Primaries and Adc bins are different in axis " << i
+		<< ". (" << nbins[i] << " vs "<< ax2[i]->GetNbins() << ").  Aborting unless in z." << std::endl;
+      if (i!=2)
+      {
+	return false;
+      }
+      std::cout << "this is a z difference, which we can recover." << std::endl;
     }
   }
 
   
   //project into 2D per rphi, and divide Ions by Adc to get the Ion/Adc gain.
-  TH2* hIonGain[nSections], *hIbfGain[nSections],*hFlatAdc[nSections];
+  TH2 * hIonGain[nSections];
+  TH2 *hIbfGain[nSections];
+  TH2 *hFlatAdc[nSections];
 
   for (int i=0;i<nSections;i++){
-    hIonGain[i]=static_cast<TH2*>(hFlatTotal[i]->Clone(Form("hIonGain%s",suffix[i].Data())));//with primaries
-    hIbfGain[i]=static_cast<TH2*>(hFlatIbf[i]->Clone(Form("hIbfGain%s",suffix[i].Data())));//with only ibf
+    hIonGain[i]=static_cast<TH2*>(hFlatTotal[i]->Clone(std::format("hIonGain{}",suffix[i].Data()).c_str()));//with primaries
+    hIbfGain[i]=static_cast<TH2*>(hFlatIbf[i]->Clone(std::format("hIbfGain{}",suffix[i].Data()).c_str()));//with only ibf
     hAdc->GetZaxis()->SetRange(low[i],high[i]);
-    hFlatAdc[i]=static_cast<TH2*>(hAdc->Project3D(Form("xy%s",suffix[i].Data())));
+    hFlatAdc[i]=static_cast<TH2*>(hAdc->Project3D(std::format("xy{}",suffix[i].Data()).c_str()));
 
     hIonGain[i]->Divide(hFlatAdc[i]);
     hIbfGain[i]->Divide(hFlatAdc[i]);
@@ -90,5 +111,5 @@ void generateTruthIbfGainMap(const char* adcFile, const char *adcName, const cha
   }
   
   //
-  return;
+  return true;
 }

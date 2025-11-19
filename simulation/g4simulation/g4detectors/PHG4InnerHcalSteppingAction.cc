@@ -33,7 +33,6 @@
 // Root headers
 #include <TFile.h>
 #include <TH2.h>
-#include <TSystem.h>
 
 #include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
@@ -521,10 +520,9 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+  
+      return false;
+ 
 }
 
 //____________________________________________________________________________..

@@ -138,7 +138,8 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
     float total_py = 0;
     float total_pz = 0;
     float total_e = 0;
-
+    float w_t_sum = 0;
+    float w_e_sum = 0;
     // copy components into output jet
     std::vector<fastjet::PseudoJet> comps = fastjets[ijet].constituents();
     for (auto& comp : comps)
@@ -149,9 +150,24 @@ void FastJetAlgoSub::cluster_and_fill(std::vector<Jet*>& particles, JetContainer
       total_py += particle->get_py();
       total_pz += particle->get_pz();
       total_e += particle->get_e();
-      jet->insert_comp(particle->get_comp_vec(), true);
+      if(particle->size_properties() > Jet::PROPERTY::prop_t)
+	{
+	  if(!std::isnan(particle->get_property(Jet::PROPERTY::prop_t)))
+	    {
+	      w_t_sum += particle->get_property(Jet::PROPERTY::prop_t) * particle->get_e();
+	      w_e_sum += particle->get_e();
+	    }
+	}
+	jet->insert_comp(particle->get_comp_vec(), true);
     }
-
+    if(jet->size_properties() < Jet::PROPERTY::prop_t+1)
+      {
+	jet->resize_properties(Jet::PROPERTY::prop_t + 1);
+      }
+    jet->set_property(Jet::PROPERTY::prop_t,w_t_sum/w_e_sum); //This intentionally becomes nan (0/0) if the
+                                                              //value has not been filled at all so that
+                                                              //the jet auto-fails timing cuts if necessary
+      
     jet->set_comp_sort_flag();  // make sure jet know comps might not be sorted
                                 // alternatively can just ommit the `true`
                                 // in insert_comp call above

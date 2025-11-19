@@ -29,7 +29,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-class TrkrClusterIterationMapv1;
+class TrkrClusterIterationMap;
 class TrkrClusterCrossingAssoc;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
@@ -202,13 +202,15 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent,
                                                         const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
-
-  /// Projects circle fit to radii to find possible MVTX/INTT clusters
-  /// belonging to track stub
-  std::vector<TrkrDefs::cluskey> findMatches(
-      std::vector<Acts::Vector3> &clusters,
-      std::vector<TrkrDefs::cluskey> &keys,
-      TrackSeed &seed);
+  bool isTimingMismatched(TrackSeed& seed) const;
+  
+      /// Projects circle fit to radii to find possible MVTX/INTT clusters
+      /// belonging to track stub
+      std::vector<TrkrDefs::cluskey>
+      findMatches(
+          std::vector<Acts::Vector3> &clusters,
+          std::vector<TrkrDefs::cluskey> &keys,
+          TrackSeed &seed);
 
   std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
       std::map<TrkrDefs::cluskey, Acts::Vector3> &positions,
@@ -339,7 +341,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
-  TrkrClusterIterationMapv1 *_iteration_map = nullptr;
+  TrkrClusterIterationMap *_iteration_map = nullptr;
   int m_nIteration = 0;
   std::string _track_map_name = "SiliconTrackSeedContainer";
 

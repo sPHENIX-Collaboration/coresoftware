@@ -1,19 +1,33 @@
 // step 2 with phi,r coords
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include "TMath.h"
-#include "TVector3.h"
-#include "TTree.h"
-#include <TTime.h>
 
-using namespace std;
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TFileCollection.h>
+#include <TFileInfo.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <THashList.h>
+#include <TMath.h>
+#include <TSystem.h>
+#include <TTree.h>
+#include <TTime.h>
+#include <TVector3.h>
+
+#include <cmath>
+#include <format>
+#include <iostream>
+#include <vector>
 
 int CMDistortionRecoPhiR(int nMaxEvents = -1) {
-  int nbins = 35; 
-  double low = -80.0;
-  double high = 80.0;
-  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
+  // int nbins = 35; 
+  // double low = -80.0;
+  // double high = 80.0;
+  double deltaX;
+  double deltaY;
+  double deltaZ;
+  double deltaR;
+  double deltaPhi;
   int nEvents;
     
   //take in events
@@ -23,15 +37,16 @@ int CMDistortionRecoPhiR(int nMaxEvents = -1) {
   TFileCollection *filelist=new TFileCollection();
   filelist->Add(inputpattern);
   TString sourcefilename;
-  
+
   //how many events
-  if (nMaxEvents<0){
-    nEvents=filelist->GetNFiles();
-  } else if(nMaxEvents<filelist->GetNFiles()){
+  if(nMaxEvents >= 0 && nMaxEvents<filelist->GetNFiles())
+  {
     nEvents=nMaxEvents;
-  } else {
+  }
+  else
+  {
     nEvents= filelist->GetNFiles();
-    }
+  }
   
   TCanvas *canvas1=new TCanvas("canvas1","CMDistortionReco1",1200,800);
   canvas1->Divide(3,2);
@@ -39,7 +54,8 @@ int CMDistortionRecoPhiR(int nMaxEvents = -1) {
   //canvas for time plot
   TCanvas *canvas=new TCanvas("canvas","CMDistortionReco2",400,400);
   
-  TVector3 *position, *newposition;
+  TVector3 *position;
+  TVector3 *newposition;
   position = new TVector3(1.,1.,1.);
   newposition = new TVector3(1.,1.,1.);
 
@@ -55,7 +71,7 @@ int CMDistortionRecoPhiR(int nMaxEvents = -1) {
     //get data from ttree
     sourcefilename=((TFileInfo*)(filelist->GetList()->At(ifile)))->GetCurrentUrl()->GetFile();
     
-    char const *treename="cmDistHitsTree";
+//    char const *treename="cmDistHitsTree";
     TFile *input=TFile::Open(sourcefilename, "READ");
     TTree *inTree=(TTree*)input->Get("tree");
     
@@ -149,7 +165,11 @@ int CMDistortionRecoPhiR(int nMaxEvents = -1) {
     hCylindricalCMModelPhiR[0]=new TH3F("hCMModelR_PhiR", "CM Model: Radial Shift Forward of Stripe Centers, Phi,R binning", nphi,minphi,maxphi, nr,minr,maxr, nz,minz,maxz);
     hCylindricalCMModelPhiR[1]=new TH3F("hCMModelPhi_PhiR", "CM Model: Phi Shift Forward of Stripe Centers, Phi,R binning", nphi,minphi,maxphi, nr,minr,maxr, nz,minz,maxz);  
       
-    double xshiftPhiR, yshiftPhiR, zshiftPhiR, rshiftcartPhiR, phishiftcartPhiR;
+    double xshiftPhiR;
+    double yshiftPhiR;
+    double zshiftPhiR;
+    double rshiftcartPhiR;
+    double phishiftcartPhiR;
   
     for(int i = 0; i < nphi; i++){
       double phi = minphi + ((maxphi - minphi)/(1.0*nphi))*(i+0.5); //center of bin
@@ -179,7 +199,7 @@ int CMDistortionRecoPhiR(int nMaxEvents = -1) {
     
     TFile *plots;
 
-    plots=TFile::Open(Form("CMModelsPhiR_Event%d.root",ifile),"RECREATE");
+    plots=TFile::Open(std::format("CMModelsPhiR_Event{}.root",ifile).c_str(),"RECREATE");
 
     for(int i = 0; i < 3; i++){
       hCartesianForwardPhiR[i]->Write();
@@ -203,8 +223,8 @@ int CMDistortionRecoPhiR(int nMaxEvents = -1) {
     hTimePerEvent->Fill(after-before);
     
     //to check histograms
-    for (int i = 0; i < 3; i++){
-      hCartesianForwardPhiR[i]->SetStats(0);
+    for (auto & i : hCartesianForwardPhiR){
+      i->SetStats(false);
     }
 
     canvas1->cd(1);

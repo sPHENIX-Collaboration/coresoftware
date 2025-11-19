@@ -294,6 +294,9 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
+  std::map<unsigned int,float> tbt_smear;
+
+
   // loop over hits
   for (PHG4HitContainer::ConstIterator hititer = hits->getHits().first; hititer != hits->getHits().second; hititer++)
   {
@@ -314,6 +317,20 @@ int CaloWaveformSim::process_event(PHCompositeNode *topNode)
     float calibconst = cdbttree->GetFloatValue(key, m_fieldname);
     float e_vis = hit->get_light_yield();
     e_vis *= correction;
+    if (m_smear_const)
+    {
+      auto it = tbt_smear.find(key);
+
+      if(it != tbt_smear.end())
+      {
+        e_vis *= it->second;
+      }
+      else
+      {
+        tbt_smear[key] =  1.0+ gsl_ran_gaussian(m_RandomGenerator,factor_const);
+        e_vis *= tbt_smear[key];
+      }
+    }
     float e_dep = e_vis / m_sampling_fraction;
     float ADC = (calibconst != 0) ? e_dep / calibconst : 0.;
     ADC *= m_gain;
