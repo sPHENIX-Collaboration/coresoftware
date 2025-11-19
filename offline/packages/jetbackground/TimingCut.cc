@@ -91,6 +91,7 @@ int TimingCut::process_event(PHCompositeNode *topNode)
       {
         jetpT = jet->get_pt();
 	jett = jet->get_property(Jet::PROPERTY::prop_t);
+	jetPhi = jet->get_phi();
       }
       else
       {
