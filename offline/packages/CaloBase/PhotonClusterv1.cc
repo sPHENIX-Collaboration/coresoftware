@@ -6,17 +6,18 @@
 #include <stdexcept>
 #include <string>
 
-PhotonClusterv1::PhotonClusterv1(const RawCluster & rc)
-  //: m_conversion_prob(0.0F)
-  //, m_is_converted(false)
+PhotonClusterv1::PhotonClusterv1(const RawCluster& rc)
+  : RawClusterv1([&rc]() -> const RawClusterv1& {
+      if (const auto* rc1 = dynamic_cast<const RawClusterv1*>(&rc))
+      {
+        return *rc1;
+      }
+      throw std::runtime_error("PhotonClusterv1 requires RawClusterv1 (or derived).");
+    }())
 {
-  if (const auto* const rc1 = dynamic_cast<const RawClusterv1*>(&rc))
+  if (const auto* photon = dynamic_cast<const PhotonClusterv1*>(&rc))
   {
-    RawClusterv1::operator=(*rc1);  // copy-assign v1 subobject
-  }
-  else
-  {
-    throw std::runtime_error("PhotonClusterv1 requires RawClusterv1 (or derived).");
+    m_shower_shapes = photon->get_all_shower_shapes();
   }
 }
 
