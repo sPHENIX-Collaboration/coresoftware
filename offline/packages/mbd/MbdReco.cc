@@ -63,6 +63,8 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
   int ret = getNodes(topNode);
 
   m_mbdevent->SetSim(_simflag);
+  m_mbdevent->SetRawDstFlag(_rawdstflag);
+  m_mbdevent->SetFitsOnly(_fitsonly);
   m_mbdevent->InitRun();
 
   return ret;
@@ -106,7 +108,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 
     if ( m_event!=nullptr )
     {
-      status = m_mbdevent->SetRawData(m_event, m_mbdraws, m_mbdpmts, _fitsonly);
+      status = m_mbdevent->SetRawData(m_event, m_mbdraws, m_mbdpmts);
     }
     else if ( m_mbdpackets!=nullptr || m_mbdpacket[0]!=nullptr || m_mbdpacket[1]!=nullptr)
     {
@@ -115,7 +117,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
 	m_mbdpacket[0] = m_mbdpackets->getPacketbyId(1001);
 	m_mbdpacket[1] = m_mbdpackets->getPacketbyId(1002);
       }
-      status = m_mbdevent->SetRawData(m_mbdpacket,m_mbdraws,m_mbdpmts,m_gl1packet,_fitsonly);
+      status = m_mbdevent->SetRawData(m_mbdpacket,m_mbdraws,m_mbdpmts,m_gl1packet);
     }
 
     if (status == Fun4AllReturnCodes::DISCARDEVENT )
@@ -176,7 +178,10 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     vertex->set_t_err(m_tres);
     vertex->set_beam_crossing(0);
 
-    m_mbdvtxmap->insert(vertex);
+    if ( !_fitsonly )
+    {
+      m_mbdvtxmap->insert(vertex);
+    }
   }
 
   if (Verbosity() > 0)
@@ -229,7 +234,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   }
 
   m_mbdout = findNode::getClass<MbdOut>(bbcNode, "MbdOut");
-  if (!m_mbdout)
+  if (!m_mbdout && !_fitsonly)
   {
     std::cout << "Creating MbdOut Node " << std::endl;
     m_mbdout = new MbdOutV2();
@@ -238,7 +243,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   }
 
   m_mbdpmts = findNode::getClass<MbdPmtContainer>(bbcNode, "MbdPmtContainer");
-  if (!m_mbdpmts)
+  if (!m_mbdpmts && !_fitsonly)
   {
     std::cout << "Creating MbdPmtContainer Node " << std::endl;
     m_mbdpmts = new MbdPmtContainerV1();
@@ -268,7 +273,7 @@ int MbdReco::createNodes(PHCompositeNode *topNode)
   }
 
   m_mbdvtxmap = findNode::getClass<MbdVertexMap>(globalNode, "MbdVertexMap");
-  if (!m_mbdvtxmap)
+  if (!m_mbdvtxmap && !_fitsonly)
   {
     m_mbdvtxmap = new MbdVertexMapv1();
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(m_mbdvtxmap, "MbdVertexMap", "PHObject");
@@ -342,7 +347,7 @@ int MbdReco::getNodes(PHCompositeNode *topNode)
   }
 
   m_mbdvtxmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
-  if (!m_mbdvtxmap)
+  if (!m_mbdvtxmap && !_fitsonly)
   {
     std::cout << PHWHERE << "MbdVertexMap node not found on node tree" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;

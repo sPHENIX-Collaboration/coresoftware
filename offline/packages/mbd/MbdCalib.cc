@@ -84,6 +84,34 @@ int MbdCalib::Download_All()
     }
     Download_SampMax(sampmax_url);
 
+    if ( !_rawdstflag )
+    {
+      std::string ped_url = _cdb->getUrl("MBD_PED");
+      if (Verbosity() > 0)
+      {
+        std::cout << "ped_url " << ped_url << std::endl;
+      }
+      Download_Ped(ped_url);
+
+    
+      std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
+      if (Verbosity() > 0)
+      {
+        std::cout << "pileup_url " << pileup_url << std::endl;
+      }
+      Download_Pileup(pileup_url);
+
+      if (do_templatefit)
+      {
+        std::string shape_url = _cdb->getUrl("MBD_SHAPES");
+        if (Verbosity() > 0)
+        {
+          std::cout << "shape_url " << shape_url << std::endl;
+        }
+        Download_Shapes(shape_url);
+      }
+    }
+
     std::string qfit_url = _cdb->getUrl("MBD_QFIT");
     if (Verbosity() > 0)
     {
@@ -105,50 +133,30 @@ int MbdCalib::Download_All()
     }
     Download_TQT0(tq_t0_url);
 
-    std::string t0corr_url = _cdb->getUrl("MBD_T0CORR");
-    if ( Verbosity() > 0 )
+    if ( !_fitsonly )
     {
-      std::cout << "t0corr_url " << t0corr_url << std::endl;
-    }
-    Download_T0Corr(t0corr_url);
-
-    std::string ped_url = _cdb->getUrl("MBD_PED");
-    if (Verbosity() > 0)
-    {
-      std::cout << "ped_url " << ped_url << std::endl;
-    }
-    Download_Ped(ped_url);
-
-    std::string timecorr_url = _cdb->getUrl("MBD_TIMECORR");
-    if ( Verbosity() > 0 )
-    {
-      std::cout << "timecorr_url " << timecorr_url << std::endl;
-    }
-    Download_TimeCorr(timecorr_url);
-
-    std::string slew_url = _cdb->getUrl("MBD_SLEWCORR");
-    if ( Verbosity() > 0 )
-    {
-      std::cout << "slew_url " << slew_url << std::endl;
-    }
-    Download_SlewCorr(slew_url);
-
-    std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
-    if (Verbosity() > 0)
-    {
-      std::cout << "pileup_url " << pileup_url << std::endl;
-    }
-    Download_Pileup(pileup_url);
-
-    if (do_templatefit)
-    {
-      std::string shape_url = _cdb->getUrl("MBD_SHAPES");
-      if (Verbosity() > 0)
+      std::string t0corr_url = _cdb->getUrl("MBD_T0CORR");
+      if ( Verbosity() > 0 )
       {
-        std::cout << "shape_url " << shape_url << std::endl;
+        std::cout << "t0corr_url " << t0corr_url << std::endl;
       }
-      Download_Shapes(shape_url);
+      Download_T0Corr(t0corr_url);
+
+      std::string timecorr_url = _cdb->getUrl("MBD_TIMECORR");
+      if ( Verbosity() > 0 )
+      {
+        std::cout << "timecorr_url " << timecorr_url << std::endl;
+      }
+      Download_TimeCorr(timecorr_url);
+
+      std::string slew_url = _cdb->getUrl("MBD_SLEWCORR");
+      if ( Verbosity() > 0 )
+      {
+        std::cout << "slew_url " << slew_url << std::endl;
+      }
+      Download_SlewCorr(slew_url);
     }
+
     Verbosity(0);
   }
 #endif
@@ -159,6 +167,21 @@ int MbdCalib::Download_All()
     std::string sampmax_file = bbc_caldir + "/mbd_sampmax.calib";
     Download_SampMax(sampmax_file);
 
+    if ( !_rawdstflag )
+    {
+      std::string ped_file = bbc_caldir + "/mbd_ped.calib";
+      Download_Ped(ped_file);
+
+      std::string pileup_file = bbc_caldir + "/mbd_pileup.calib";
+      Download_Pileup(pileup_file);
+
+      if (do_templatefit)
+      {
+        std::string shape_file = bbc_caldir + "/mbd_shape.calib";
+        Download_Shapes(shape_file);
+      }
+    }
+
     std::string qfit_file = bbc_caldir + "/mbd_qfit.calib";
     Download_Gains(qfit_file);
 
@@ -168,25 +191,16 @@ int MbdCalib::Download_All()
     std::string tt_t0_file = bbc_caldir + "/mbd_tt_t0.calib";
     Download_TTT0(tt_t0_file);
 
-    std::string t0corr_file = bbc_caldir + "/mbd_t0corr.calib";
-    Download_T0Corr(t0corr_file);
-
-    std::string ped_file = bbc_caldir + "/mbd_ped.calib";
-    Download_Ped(ped_file);
-
-    std::string tt_tcorr_file = bbc_caldir + "/mbd_timecorr.calib";
-    Download_TimeCorr(tt_tcorr_file);
-
-    std::string slew_file = bbc_caldir + "/mbd_slewcorr.calib";
-    Download_SlewCorr(slew_file);
-
-    std::string pileup_file = bbc_caldir + "/mbd_pileup.calib";
-    Download_Pileup(pileup_file);
-
-    if (do_templatefit)
+    if ( !_fitsonly )
     {
-      std::string shape_file = bbc_caldir + "/mbd_shape.calib";
-      Download_Shapes(shape_file);
+      std::string t0corr_file = bbc_caldir + "/mbd_t0corr.calib";
+      Download_T0Corr(t0corr_file);
+
+      std::string tt_tcorr_file = bbc_caldir + "/mbd_timecorr.calib";
+      Download_TimeCorr(tt_tcorr_file);
+
+      std::string slew_file = bbc_caldir + "/mbd_slewcorr.calib";
+      Download_SlewCorr(slew_file);
     }
   }
 

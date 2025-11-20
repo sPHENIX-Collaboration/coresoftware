@@ -148,6 +148,8 @@ int MbdEvent::InitRun()
     _mbdcal->Verbosity(1);
   }
 
+  _mbdcal->SetRawDstFlag( _rawdstflag );
+  _mbdcal->SetFitsOnly( _fitsonly );
   _mbdcal->Download_All();
 
   if ( _simflag == 0 )  // do following for real data
@@ -401,11 +403,11 @@ bool MbdEvent::isbadtch(const int ipmtch)
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
-int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw, int fitsonly)
+int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
 {
-  //Verbosity(100);
+  //std::cout << "MbdEvent::SetRawData()" << std::endl;
   // First check if there is any event (ie, reading from PRDF)
-  if ((dstp[0] == nullptr && dstp[1] == nullptr) || bbcpmts == nullptr)
+  if (dstp[0] == nullptr && dstp[1] == nullptr)
   {
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
@@ -484,8 +486,10 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
         _mbdsig[feech].SetNSamples( _nsamples );
         _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
 
-        //std::cout << "feech " << feech << std::endl;
-        //_mbdsig[feech].Print();
+        /*
+        std::cout << "feech " << feech << std::endl;
+        _mbdsig[feech].Print();
+        */
       }
 
       //delete dstp[ipkt];
@@ -502,7 +506,7 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
   // Fill MbdRawContainer
   int status = ProcessPackets(bbcraws);
 
-  if ( fitsonly )
+  if ( _fitsonly )
   {
     return status;
   }
@@ -514,10 +518,10 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
 }
 #endif  // ONLINE
 
-int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, int fitsonly)
+int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
-  if (event == nullptr || bbcpmts == nullptr)
+  if (event == nullptr)
   {
 #ifndef ONLINE
     return Fun4AllReturnCodes::DISCARDEVENT;
@@ -616,7 +620,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
 
   // Fill MbdRawContainer
   int status = ProcessPackets(bbcraws);
-  if ( fitsonly )
+  if ( _fitsonly )
   {
     return status;
   }
@@ -730,7 +734,6 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
 int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
 {
   //std::cout << "In ProcessRawContainer" << std::endl;
-  //int bnn = 0;
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
@@ -749,13 +752,6 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
 
         // at calpass 2, we use tcorr (uncal_mbd pass). make sure tt_t0 = 0.
         m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
-
-        /*
-        if ( pmtch>63 )
-        {
-          bnn++;
-        }
-        */
       }
 
     }

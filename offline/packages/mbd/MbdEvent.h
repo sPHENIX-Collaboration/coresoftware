@@ -43,9 +43,9 @@ class MbdEvent
   int End();
   void Clear();
 
-  int SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, int fitsonly = 0);
+  int SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts);
 #ifndef ONLINE
-  int SetRawData(std::array< CaloPacket*,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw, int fitsonly = 0);
+  int SetRawData(std::array< CaloPacket*,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw);
 #endif
   int ProcessPackets(MbdRawContainer *bbcraws);
   int ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts);
@@ -53,6 +53,8 @@ class MbdEvent
   int Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNode *topNode = nullptr);
 
   void SetSim(const int s) { _simflag = s; }
+  void SetRawDstFlag(const int r) { _rawdstflag = r; }
+  void SetFitsOnly(const int f) { _fitsonly = f; }
 
   float get_bbcz() { return m_bbcz; }
   float get_bbczerr() { return m_bbczerr; }
@@ -121,6 +123,8 @@ class MbdEvent
   int _verbose{0};
   int _runnum{0};
   int _simflag{0};
+  int _rawdstflag{0};  // dst with raw container
+  int _fitsonly{0};    // stop reco after waveform fits (for DST_CALOFIT pass)
   int _nsamples{31};
   int _calib_done{0}; 
   unsigned int _no_sampmax{0};      //! sampmax calib doesn't exist
