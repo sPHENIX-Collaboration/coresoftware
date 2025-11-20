@@ -46,11 +46,11 @@ void TrkrTruthTrackv1::identify(std::ostream& os) const
 
 TrkrTruthTrackv1::TrkrTruthTrackv1(unsigned int _trackid, PHG4Particle* p, PHG4VtxPoint* vtx)
   : trackid{_trackid}
-  , clusters{}
+  , X0(vtx->get_x()), Y0(vtx->get_y()), Z0(vtx->get_z()) 
 {
-  X0 = vtx->get_x();
-  Y0 = vtx->get_y();
-  Z0 = vtx->get_z();
+  
+  
+  
 
   TLorentzVector v1;
   v1.SetPxPyPzE(p->get_px(), p->get_py(), p->get_pz(), p->get_e());
@@ -81,8 +81,7 @@ std::pair<bool, TrkrDefs::cluskey> TrkrTruthTrackv1::get_cluskey(TrkrDefs::hitse
   {
     return {false, 0.};
   }
-  else
-  {
-    return {true, *lb};
-  }
+  
+      return {true, *lb};
+ 
 }
