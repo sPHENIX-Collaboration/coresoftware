@@ -395,8 +395,8 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   float e52 = 0;
   float w72 = 0;
   float e72 = 0;
-  float detacog = fabs(maxieta - avg_eta);
-  float dphicog = fabs(maxiphi - avg_phi);
+  float detacog = std::abs(maxieta - avg_eta);
+  float dphicog = std::abs(maxiphi - avg_phi);
   float drad = std::sqrt(dphicog*dphicog + detacog*detacog);
 
 
