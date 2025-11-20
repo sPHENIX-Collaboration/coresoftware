@@ -175,7 +175,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int createNodes(PHCompositeNode *topNode);
   
   int m_strobeLowWindow = -1;
-  int m_strobeHighWindow = 1;
+  int m_strobeHighWindow = 2;
 
   void runSeeder();
 
