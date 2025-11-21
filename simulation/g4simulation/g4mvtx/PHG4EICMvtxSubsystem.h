@@ -54,15 +54,15 @@ class PHG4EICMvtxSubsystem : public PHG4DetectorGroupSubsystem
   }
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4EICMvtxDetector* m_Detector;
+  PHG4EICMvtxDetector* m_Detector {nullptr};
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction* steppingAction_ {nullptr};
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
+  PHG4DisplayAction* m_DisplayAction {nullptr};
 
   // These are passed on to the detector class
   unsigned int n_layers;

@@ -60,7 +60,7 @@ class PHG4MvtxDetector : public PHG4Detector
 
  private:
   void AddGeometryNode();
-  int ConstructMvtx(G4LogicalVolume* sandwich);
+  int ConstructMvtx(G4LogicalVolume* trackerenvelope);
   int ConstructMvtx_Layer(int layer, G4AssemblyVolume* stave, G4LogicalVolume*& trackerenvelope);
   int ConstructMvtxPassiveVol(G4LogicalVolume*& lv);
 

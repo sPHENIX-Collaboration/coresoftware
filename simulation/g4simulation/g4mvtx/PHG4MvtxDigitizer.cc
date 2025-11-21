@@ -24,6 +24,7 @@
 
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc
 
+#include <algorithm>
 #include <cstdlib>  // for exit
 #include <iostream>
 #include <set>
@@ -31,10 +32,11 @@
 PHG4MvtxDigitizer::PHG4MvtxDigitizer(const std::string &name)
   : SubsysReco(name)
   , _energy_threshold(0.95e-6)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   std::cout << Name() << " random seed: " << seed << std::endl;
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+
   gsl_rng_set(RandomGenerator, seed);
 
   if (Verbosity() > 0)
@@ -121,14 +123,8 @@ void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
     float length = (layeriter->second)->get_pixel_z();
 
     float minpath = pitch;
-    if (length < minpath)
-    {
-      minpath = length;
-    }
-    if (thickness < minpath)
-    {
-      minpath = thickness;
-    }
+    minpath = std::min(length, minpath);
+    minpath = std::min(thickness, minpath);
     float mip_e = 0.003876 * minpath;
 
     if (Verbosity())
@@ -136,7 +132,7 @@ void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
       std::cout << "mip_e = " << mip_e << std::endl;
     }
 
-    if (_max_adc.find(layer) == _max_adc.end())
+    if (!_max_adc.contains(layer))
     {
       // cppcheck-suppress stlFindInsert
       _max_adc[layer] = 255;
@@ -164,7 +160,7 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitTruthAssoc node
-  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
 
   // Digitization
 
@@ -210,10 +206,7 @@ void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
         rm_hit = true;
       }
       unsigned short adc = (unsigned short) (hit->getEnergy() / (TrkrDefs::MvtxEnergyScaleup * _energy_scale[layer]));
-      if (adc > _max_adc[layer])
-      {
-        adc = _max_adc[layer];
-      }
+      adc = std::min(adc, _max_adc[layer]);
       hit->setAdc(adc);
 
       if (rm_hit)
