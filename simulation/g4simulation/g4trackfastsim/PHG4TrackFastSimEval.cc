@@ -9,6 +9,7 @@
 
 #include <globalvertex/SvtxVertex.h>  // for SvtxVertex
 #include <globalvertex/SvtxVertexMap.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
@@ -20,6 +21,7 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <pdbcalbase/PdbParameterMap.h>
+
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -40,12 +42,14 @@
 #include <map>      // for _Rb_tree_const_ite...
 #include <utility>  // for pair
 
-// NOLINTNEXTLINE(bugprone-macro-parentheses)
-#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-// NOLINTNEXTLINE(bugprone-macro-parentheses)
-#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-// NOLINTNEXTLINE(bugprone-macro-parentheses)
-#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
+#define LogDebug(exp) \
+  (std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl)
+
+#define LogError(exp) \
+  (std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl)
+
+#define LogWarning(exp) \
+  (std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl)
 
 const std::string xyzt[] = {"x", "y", "z", "t"};
 
@@ -88,7 +92,7 @@ int PHG4TrackFastSimEval::InitRun(PHCompositeNode *topNode)
   {
     std::cout << PHWHERE << " Openning file " << m_OutFileName << std::endl;
   }
-  PHTFileServer::get().open(m_OutFileName, "RECREATE");
+  PHTFileServer::open(m_OutFileName, "RECREATE");
 
   // create TTree
   m_TracksEvalTree = new TTree("tracks", "FastSim Eval => tracks");
@@ -118,10 +122,10 @@ int PHG4TrackFastSimEval::InitRun(PHCompositeNode *topNode)
 
   PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
                                                                     "PHG4TrackFastSim_Parameter");
-  if (! nodeparams)
+  if (!nodeparams)
   {
     std::cout << __PRETTY_FUNCTION__ << " : Warning, missing PHG4TrackFastSim_Parameter node and skip saving hits"
-         << std::endl;
+              << std::endl;
   }
   else
   {
@@ -139,7 +143,7 @@ int PHG4TrackFastSimEval::InitRun(PHCompositeNode *topNode)
       const int &phg4hit_node_id = iter->second;
 
       std::cout << __PRETTY_FUNCTION__ << " Prepare PHG4Hit node name " << phg4hit_node_name
-           << " with ID = " << phg4hit_node_id << std::endl;
+                << " with ID = " << phg4hit_node_id << std::endl;
 
       std::string branch_name = std::string("nHit_") + phg4hit_node_name;
       m_TracksEvalTree->Branch(branch_name.c_str(),
@@ -253,7 +257,7 @@ int PHG4TrackFastSimEval::process_event(PHCompositeNode *topNode)
 //----------------------------------------------------------------------------//
 int PHG4TrackFastSimEval::End(PHCompositeNode * /*topNode*/)
 {
-  PHTFileServer::get().cd(m_OutFileName);
+  PHTFileServer::cd(m_OutFileName);
 
   m_TracksEvalTree->Write();
   m_VertexEvalTree->Write();
@@ -341,10 +345,10 @@ void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
     m_TTree_gpy = g4particle->get_py();
     m_TTree_gpz = g4particle->get_pz();
 
-    m_TTree_gvx = NAN;
-    m_TTree_gvy = NAN;
-    m_TTree_gvz = NAN;
-    m_TTree_gvt = NAN;
+    m_TTree_gvx = std::numeric_limits<float>::quiet_NaN();
+    m_TTree_gvy = std::numeric_limits<float>::quiet_NaN();
+    m_TTree_gvz = std::numeric_limits<float>::quiet_NaN();
+    m_TTree_gvt = std::numeric_limits<float>::quiet_NaN();
     PHG4VtxPoint *vtx = m_TruthInfoContainer->GetVtx(g4particle->get_vtx_id());
     if (vtx)
     {
@@ -577,33 +581,33 @@ void PHG4TrackFastSimEval::reset_variables()
   //-- truth
   m_TTree_gTrackID = -9999;
   m_TTree_gFlavor = -9999;
-  m_TTree_gpx = NAN;
-  m_TTree_gpy = NAN;
-  m_TTree_gpz = NAN;
+  m_TTree_gpx = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_gpy = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_gpz = std::numeric_limits<float>::quiet_NaN();
 
-  m_TTree_gvx = NAN;
-  m_TTree_gvy = NAN;
-  m_TTree_gvz = NAN;
-  m_TTree_gvt = NAN;
+  m_TTree_gvx = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_gvy = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_gvz = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_gvt = std::numeric_limits<float>::quiet_NaN();
 
   //-- reco
   m_TTree_TrackID = -9999;
   m_TTree_Charge = -9999;
   m_TTree_nHits = -9999;
-  m_TTree_px = NAN;
-  m_TTree_py = NAN;
-  m_TTree_pz = NAN;
-  m_TTree_pcax = NAN;
-  m_TTree_pcay = NAN;
-  m_TTree_pcaz = NAN;
-  m_TTree_dca2d = NAN;
+  m_TTree_px = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_py = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_pz = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_pcax = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_pcay = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_pcaz = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_dca2d = std::numeric_limits<float>::quiet_NaN();
 
-  m_TTree_vx = NAN;
-  m_TTree_vy = NAN;
-  m_TTree_vz = NAN;
-  m_TTree_DeltaVx = NAN;
-  m_TTree_DeltaVy = NAN;
-  m_TTree_DeltaVz = NAN;
+  m_TTree_vx = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_vy = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_vz = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_DeltaVx = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_DeltaVy = std::numeric_limits<float>::quiet_NaN();
+  m_TTree_DeltaVz = std::numeric_limits<float>::quiet_NaN();
   m_TTree_nTracks = -9999;
   m_TTree_nFromTruth = -9999;
   for (auto &elem : m_TTree_proj_vec)
@@ -641,7 +645,7 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
   if (!m_TruthInfoContainer && m_EventCounter < 2)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
-         << std::endl;
+              << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -651,9 +655,9 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
   if (!m_TrackMap)
   {
     std::cout << PHWHERE << "SvtxTrackMap node with name "
-         << m_TrackMapName
-         << " not found on node tree"
-         << std::endl;
+              << m_TrackMapName
+              << " not found on node tree"
+              << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -661,7 +665,7 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
   if (!m_VertexMap && Verbosity())
   {
     std::cout << PHWHERE << "SvtxTrackMap node with name SvtxVertexMap not found on node tree. Will not build the vertex eval tree"
-         << std::endl;
+              << std::endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

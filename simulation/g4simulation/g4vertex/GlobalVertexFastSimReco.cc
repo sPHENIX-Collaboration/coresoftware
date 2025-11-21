@@ -28,9 +28,9 @@
 #include <iostream>
 
 GlobalVertexFastSimReco::GlobalVertexFastSimReco(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name), RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  
 }
 
 GlobalVertexFastSimReco::~GlobalVertexFastSimReco()

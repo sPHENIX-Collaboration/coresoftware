@@ -24,7 +24,7 @@ void EmbRecoMatchContainerv1::addMatch(EmbRecoMatch* match)
 
   m_RecoToTruth.emplace_back(id_reco, id_true);  // vector of which to go to
 
-  if (m_nTruthPerReco.find(id_reco) == m_nTruthPerReco.end())
+  if (!m_nTruthPerReco.contains(id_reco))
   {
     m_nTruthPerReco[id_reco] = 1;
   }
@@ -32,7 +32,7 @@ void EmbRecoMatchContainerv1::addMatch(EmbRecoMatch* match)
   {
     m_nTruthPerReco[id_reco] += 1;
   }
-  if (m_nRecoPerTruth.find(id_true) == m_nRecoPerTruth.end())
+  if (!m_nRecoPerTruth.contains(id_true))
   {
     m_nRecoPerTruth[id_true] = 1;
   }
@@ -44,7 +44,7 @@ void EmbRecoMatchContainerv1::addMatch(EmbRecoMatch* match)
 
 void EmbRecoMatchContainerv1::checkfill_idsTruthUnmatched(unsigned short id_true)
 {
-  if (m_nRecoPerTruth.find(id_true) == m_nRecoPerTruth.end())
+  if (!m_nRecoPerTruth.contains(id_true))
   {
     m_idsTruthUnmatched.push_back(id_true);
   }
@@ -66,7 +66,7 @@ void EmbRecoMatchContainerv1::Reset()
 std::vector<unsigned short> EmbRecoMatchContainerv1::ids_TruthMatched() const
 {
   std::vector<unsigned short> vec;
-  for (auto& id : m_data)
+  for (const auto& id : m_data)
   {
     vec.push_back(id->idTruthTrack());
   }
@@ -136,9 +136,9 @@ void EmbRecoMatchContainerv1::identify(std::ostream& os) const
      << std::setw(9) << "nClus-Emb "
      << std::setw(10) << "nClus-Reco "
      << std::setw(12) << "nClus_Matched " << std::endl;
-  for (auto& _m : m_data)
+  for (const auto& _m : m_data)
   {
-    auto m = static_cast<EmbRecoMatchv1*>(_m);
+    auto *m = static_cast<EmbRecoMatchv1*>(_m);
     os << std::setw(6) << m->idTruthTrack() << " "              // id-Emb"
        << std::setw(7) << m->idRecoTrack() << " "               //"id-Reco"
        << std::setw(7) << m->idTpcTrackSeed() << " "            //"id-Seed"

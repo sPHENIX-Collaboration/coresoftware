@@ -1,8 +1,9 @@
-#ifndef TRACKBASE_EMBRECOMATCHCONTAINERV1_H
-#define TRACKBASE_EMBRECOMATCHCONTAINERV1_H
+#ifndef G4TRACKING_EMBRECOMATCHCONTAINERV1_H
+#define G4TRACKING_EMBRECOMATCHCONTAINERV1_H
+
+#include "EmbRecoMatchContainer.h"
 
 #include <vector>
-#include "EmbRecoMatchContainer.h"
 
 class EmbRecoMatch;
 
@@ -25,10 +26,10 @@ class EmbRecoMatchContainerv1 : public EmbRecoMatchContainer
   Vector& getMatches() override { return m_data; };
 
   void addMatch(EmbRecoMatch* match) override;
-  bool hasTruthMatch(unsigned short idEmb) override;
-  bool hasRecoMatch(unsigned short idReco) override;
-  EmbRecoMatch* getMatchTruth(unsigned short idEmb, unsigned short offset = 0) override;
-  EmbRecoMatch* getMatchReco(unsigned short idEmb, unsigned short offset = 0) override;
+  bool hasTruthMatch(unsigned short idtruth) override;
+  bool hasRecoMatch(unsigned short idreco) override;
+  EmbRecoMatch* getMatchTruth(unsigned short idtruth, unsigned short offset = 0) override;
+  EmbRecoMatch* getMatchReco(unsigned short idreco, unsigned short offset = 0) override;
 
   // PHObject virtual overload
   void identify(std::ostream& os = std::cout) const override;
@@ -57,4 +58,4 @@ class EmbRecoMatchContainerv1 : public EmbRecoMatchContainer
   ClassDefOverride(EmbRecoMatchContainerv1, 1)
 };
 
-#endif  // TRACKBASE_EMBRECOMATCHCONTAINERV1_H
+#endif  // G4TRACKING_EMBRECOMATCHCONTAINERV1_H
