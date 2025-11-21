@@ -158,6 +158,7 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
   if (!vertexmap)
   {
     std::cout << "GlobalVertexMap node is missing" << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   if (vertexmap && !vertexmap->empty())
   {
@@ -176,6 +177,11 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::EVENT_OK;
     }
   }
+  else
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // iterate over clusters via map to have access to keys if needed
   const auto& rcmap = m_rawclusters->getClustersMap();
   for (const auto& kv : rcmap)
@@ -187,6 +193,8 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
     }
 
     CLHEP::Hep3Vector vertex_vec(0, 0, m_vertex);
+
+
 
     float eta = RawClusterUtility::GetPseudorapidity(*rc, vertex_vec);
     float phi = RawClusterUtility::GetAzimuthAngle(*rc, vertex_vec);
@@ -228,9 +236,21 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
       float e33 = photon->get_shower_shape_parameter("e33");
       x.push_back((e33 > 0) ? e11 / e33 : 0);
     }
+    else if (feature == "e32_over_e35")
+    {
+      float e32 = photon->get_shower_shape_parameter("e32");
+      float e35 = photon->get_shower_shape_parameter("e35");
+      x.push_back((e35 > 0) ? e32 / e35 : 0);
+    }
     else if (feature == "vertex_z")
     {
       x.push_back(m_vertex);
+    }
+    else if (feature == "ET")
+    {
+      float E = photon->get_energy();
+      float ET = E / std::cosh(photon->get_shower_shape_parameter("cluster_eta"));
+      x.push_back(ET);
     }
     else
     {
@@ -241,6 +261,7 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
   float bdt_score = -1;  // default value
 
   bdt_score = m_bdt->Compute(x)[0];
+
   photon->set_shower_shape_parameter("bdt_score", bdt_score);
 }
 
@@ -395,6 +416,11 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   float e52 = 0;
   float w72 = 0;
   float e72 = 0;
+  float detacog = std::abs(maxieta - avg_eta);
+  float dphicog = std::abs(maxiphi - avg_phi);
+  float drad = std::sqrt(dphicog*dphicog + detacog*detacog);
+
+
   int signphi = (avg_phi - std::floor(avg_phi)) > 0.5 ? 1 : -1;
 
   for (int i = 0; i < 7; i++)
@@ -556,6 +582,9 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
   photon->set_shower_shape_parameter("mean_time", clusteravgtime);
+  photon->set_shower_shape_parameter("detacog", detacog);
+  photon->set_shower_shape_parameter("dphicog", dphicog);
+  photon->set_shower_shape_parameter("drad", drad);
 
   // HCAL info
   std::vector<int> ihcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomIH, m_ihcal_tower_container, 0.0, true);
