@@ -43,7 +43,6 @@
 MbdDigitization::MbdDigitization(const std::string &name)
   : SubsysReco(name)
   , m_RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
-  , _tres(0.05)
 {
   f_pmtq.fill(0.);
   f_pmtnpe.fill(0.);
