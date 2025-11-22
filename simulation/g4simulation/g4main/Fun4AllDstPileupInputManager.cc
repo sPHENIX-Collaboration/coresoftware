@@ -6,13 +6,13 @@
 #include "Fun4AllDstPileupInputManager.h"
 #include "Fun4AllDstPileupMerger.h"
 
-#include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-
 #include <ffaobjects/RunHeader.h>
 
 #include <frog/FROG.h>
+
+#include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
@@ -46,7 +46,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
   with additional code to handle the background IManager
   */
 
-  auto se = Fun4AllServer::instance();
+  auto *se = Fun4AllServer::instance();
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
@@ -75,7 +75,7 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
       m_IManager->read(m_runNode);
 
       // get the current run number
-      auto runheader = findNode::getClass<RunHeader>(m_runNode, "RunHeader");
+      auto *runheader = findNode::getClass<RunHeader>(m_runNode, "RunHeader");
       if (runheader)
       {
         SetRunNumber(runheader->get_RunNumber());
@@ -128,12 +128,10 @@ int Fun4AllDstPileupInputManager::fileopen(const std::string &filenam)
     AddToFileOpened(FileName());  // add file to the list of files which were opened
     return 0;
   }
-  else
-  {
-    std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
-    m_IManager.reset();
-    return -1;
-  }
+
+  std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
+  m_IManager.reset();
+  return -1;
 }
 
 //_____________________________________________________________________________
@@ -143,7 +141,7 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
   {
     return runOne(nevents);
   }
-  else if (nevents > 1)
+  if (nevents > 1)
   {
     const auto result = runOne(nevents - 1);
     if (result != 0)
@@ -159,7 +157,7 @@ int Fun4AllDstPileupInputManager::run(const int nevents)
    */
   if (!m_dstNode)
   {
-    auto se = Fun4AllServer::instance();
+    auto *se = Fun4AllServer::instance();
     m_dstNode = se->getNode(InputNode(), TopNodeName());
   }
 
@@ -265,7 +263,7 @@ int Fun4AllDstPileupInputManager::setBranches()
       std::map<const std::string, int>::const_iterator branchiter;
       for (branchiter = m_branchread.begin(); branchiter != m_branchread.end(); ++branchiter)
       {
-        m_IManager->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+        m_IManager->selectObjectToRead(branchiter->first, branchiter->second);
         if (Verbosity() > 0)
         {
           std::cout << branchiter->first << " set to " << branchiter->second << std::endl;
@@ -349,13 +347,11 @@ int Fun4AllDstPileupInputManager::runOne(const int nevents)
       }
       return -1;
     }
-    else
+
+    if (OpenNextFile())
     {
-      if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return -1;
     }
   }
   if (Verbosity() > 3)
@@ -366,7 +362,7 @@ int Fun4AllDstPileupInputManager::runOne(const int nevents)
 readagain:
 
   // read main event to dstNode
-  auto dummy = m_IManager->read(m_dstNodeInternal.get());
+  auto *dummy = m_IManager->read(m_dstNodeInternal.get());
   int ncount = 0;
   while (dummy)
   {
