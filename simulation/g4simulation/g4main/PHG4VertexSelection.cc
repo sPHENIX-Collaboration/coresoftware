@@ -45,11 +45,11 @@ int PHG4VertexSelection::InitRun(PHCompositeNode * /*topNode*/)
 int PHG4VertexSelection::process_event(PHCompositeNode *topNode)
 {
   // g4 truth info
-  auto g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  auto *g4truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // main vertex
   const auto main_vertex_id = g4truthinfo->GetPrimaryVertexIndex();
-  const auto vertex = g4truthinfo->GetPrimaryVtx(main_vertex_id);
+  auto *const vertex = g4truthinfo->GetPrimaryVtx(main_vertex_id);
   if (!vertex)
   {
     return false;
