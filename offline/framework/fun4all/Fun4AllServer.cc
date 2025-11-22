@@ -420,8 +420,7 @@ tryagain:
       std::cout << "Could not find module " << *striter
                 << ", removing it from list of event selector modules" << std::endl;
       manager->EventSelector()->erase(striter);
-      // NOLINTNEXTLINE(hicpp-avoid-goto)
-      goto tryagain;
+      goto tryagain;  // NOLINT(hicpp-avoid-goto)
     }
   }
   return 0;
@@ -705,7 +704,11 @@ int Fun4AllServer::process_event()
         exit(1);
       }
       std::vector<Fun4AllOutputManager *>::iterator iterOutMan;
-
+      std::cout << "printing histomanagers" << std::endl;
+      for (auto &hiter : HistoManager)
+      {
+	std::cout << "histo manager: " << hiter->Name() << std::endl;
+      }
       for (iterOutMan = OutputManager.begin(); iterOutMan != OutputManager.end(); ++iterOutMan)
       {
         if (!(*iterOutMan)->DoNotWriteEvent(&RetCodes))
@@ -769,22 +772,34 @@ int Fun4AllServer::process_event()
       }
     }
   }
-  if (!HistoManager.empty() && !eventbad && writing)
+  for (auto &hiter : HistoManager)
   {
-    for (const auto &histit : HistoManager)
+    std::cout << "dumping histo manager: " << hiter->Name() << std::endl;
+  }
+  if (!HistoManager.empty() && !eventbad)
+  {
+    int eventnumber_minus1 = eventnumber-1;
+    
+    for (auto &histit : HistoManager)
     {
+      std::cout << "dumping " << histit->Name() << std::endl;
+      histit->InitializeLastEvent(eventnumber_minus1);
+      if (eventnumber_minus1 > (histit)->LastEventNumber())
+      {
+	std::cout << "saving hito manager " << histit->Name() << std::endl;
+      }
       if (histit->dumpHistoSegments())
       {
-        if (Verbosity() > 0)
-        {
-          std::cout << PHWHERE << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
-        }
-        // This is -1 because the segment is initially determined in the first event of a
-        // segment from the DST, then incremented. So it is always 1 ahead of the histos
-        histit->segment(segment - 1);
-        histit->dumpHistos();
-        histit->RunAfterClosing();
-        histit->Reset();
+	if (Verbosity() > 0)
+	{
+	  std::cout << PHWHERE << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
+	}
+	// This is -1 because the segment is initially determined in the first event of a
+	// segment from the DST, then incremented. So it is always 1 ahead of the histos
+	histit->segment(segment - 1);
+	histit->dumpHistos();
+	histit->RunAfterClosing();
+	histit->Reset();
       }
     }
   }
