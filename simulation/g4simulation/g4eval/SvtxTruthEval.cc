@@ -1165,11 +1165,6 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
   _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
-  PHNodeIterator iter(topNode);
-  auto* parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR"));
-  PHNodeIterator parIter(parNode);
-  auto* ParDetNode = dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode", "TPC"));
-  _tpc_params = findNode::getClass<PHParametersContainer>(ParDetNode, "G4GEO_TPC");
   return;
 }
 
