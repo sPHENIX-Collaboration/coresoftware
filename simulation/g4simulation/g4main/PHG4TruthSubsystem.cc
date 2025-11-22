@@ -28,6 +28,7 @@ class PHG4TrackingAction;
 PHG4TruthSubsystem::PHG4TruthSubsystem(const std::string& name)
   : PHG4Subsystem(name)
 {
+  return;
 }
 
 //_______________________________________________________________________
@@ -121,7 +122,7 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode* topNode)
     PHG4TruthInfoContainer::VtxIterator vtxiter = vtxrange.first;
     while (vtxiter != vtxrange.second)
     {
-      if (savevtxlist.find(vtxiter->first) == savevtxlist.end())
+      if (!savevtxlist.contains(vtxiter->first))
       {
         truthInfoList->delete_vtx(vtxiter++);
       }
