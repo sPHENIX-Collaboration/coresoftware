@@ -34,7 +34,7 @@ class PHG4ScoringManager : public SubsysReco
  public:
   PHG4ScoringManager();
 
-  ~PHG4ScoringManager() override {}
+  ~PHG4ScoringManager() override = default;
 
   //! full initialization
   int InitRun(PHCompositeNode *topNode) override;

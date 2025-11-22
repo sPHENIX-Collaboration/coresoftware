@@ -91,7 +91,7 @@ int PHG4ScoringManager::InitRun(PHCompositeNode * /*topNode*/)
     std::cout << "PHG4ScoringManager::InitRun - Making PHTFileServer " << m_outputFileName
          << std::endl;
   }
-  PHTFileServer::get().open(m_outputFileName, "RECREATE");
+  PHTFileServer::open(m_outputFileName, "RECREATE");
 
   Fun4AllHistoManager *hm = getHistoManager();
   assert(hm);
@@ -219,7 +219,7 @@ int PHG4ScoringManager::End(PHCompositeNode * /*unused*/)
 {
   if (!m_outputFileName.empty())
   {
-    PHTFileServer::get().cd(m_outputFileName);
+    PHTFileServer::cd(m_outputFileName);
     std::cout << "PHG4ScoringManager::End - save results to " << m_outputFileName << std::endl;
 
     makeScoringHistograms();
