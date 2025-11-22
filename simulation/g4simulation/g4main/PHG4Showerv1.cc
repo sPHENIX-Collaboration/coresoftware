@@ -9,17 +9,6 @@
 #include <utility>
 
 PHG4Showerv1::PHG4Showerv1()
-  : _id(0xFFFFFFFF)
-  , _parent_particle_id(0)
-  , _parent_shower_id(0)
-  , _pos()
-  , _covar()
-  , _edep()
-  , _eion()
-  , _light_yield()
-  , _eh_ratio()
-  , _g4particle_ids()
-  , _g4hit_ids()
 {
   // with C++11 begin() and end() exist, you do not need the array size anymore
   // to fill an array

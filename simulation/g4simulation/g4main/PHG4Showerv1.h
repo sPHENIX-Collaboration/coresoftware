@@ -9,6 +9,7 @@
 
 #include <cstddef>  // for size_t
 #include <iostream>
+#include <limits>
 #include <map>
 #include <set>
 
@@ -49,7 +50,7 @@ class PHG4Showerv1 : public PHG4Shower
   void set_position(unsigned int coor, float xi) override { _pos[coor] = xi; }
 
   float get_covar(unsigned int i, unsigned int j) const override;
-  void set_covar(unsigned int i, unsigned int j, float entry) override;
+  void set_covar(unsigned int i, unsigned int j, float value) override;
 
   unsigned int get_nhits(int volume) const override;
   void set_nhits(int volume, unsigned int nhits) override { _nhits[volume] = nhits; }
@@ -108,11 +109,11 @@ class PHG4Showerv1 : public PHG4Shower
  private:
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
-  int _id;                             //< unique identifier within container
-  int _parent_particle_id;             //< association of shower to parent particle id
-  int _parent_shower_id;               //< association of shower to parent shower id
-  float _pos[3];                       //< mean position of the shower hits
-  float _covar[6];                     //< covariance of shower hits
+  int _id {std::numeric_limits<int>::min()};                             //< unique identifier within container
+  int _parent_particle_id {0};             //< association of shower to parent particle id
+  int _parent_shower_id {0};               //< association of shower to parent shower id
+  float _pos[3] {};                       //< mean position of the shower hits
+  float _covar[6] {};                     //< covariance of shower hits
   std::map<int, unsigned int> _nhits;  //< number of hits in different volumes
   std::map<int, float> _edep;          //< energy deposit in different volumes
   std::map<int, float> _eion;          //< ionization energy in different volumes
