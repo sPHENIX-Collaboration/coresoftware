@@ -21,11 +21,7 @@
 #include <Geant4/G4PrimaryVertex.hh>                    // for G4PrimaryVertex
 #include <Geant4/G4VUserPrimaryParticleInformation.hh>  // for G4VUserPrimar...
 
-// eigen has some shadowed variables
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <Eigen/Dense>
-#pragma GCC diagnostic pop
 
 #include <cmath>     // for isnan
 #include <cstdlib>   // for abs
@@ -37,16 +33,6 @@
 #include <vector>   // for vector, vecto...
 
 class PHG4VtxPoint;
-
-using namespace std;
-
-//___________________________________________________
-PHG4TruthEventAction::PHG4TruthEventAction()
-  : m_TruthInfoContainer(nullptr)
-  , m_LowerKeyPrevExist(0)
-  , m_UpperKeyPrevExist(0)
-{
-}
 
 //___________________________________________________
 void PHG4TruthEventAction::BeginOfEventAction(const G4Event* /*evt*/)
@@ -407,30 +393,30 @@ void PHG4TruthEventAction::ProcessShowers()
         PHG4Hit* g4hit = hits->findHit(g4hit_id);
         if (!g4hit)
         {
-          cout << PHWHERE << " missing g4hit" << endl;
+          std::cout << PHWHERE << " missing g4hit" << std::endl;
           continue;
         }
 
         PHG4Particle* particle = m_TruthInfoContainer->GetParticle(g4hit->get_trkid());
         if (!particle)
         {
-          cout << PHWHERE << " missing g4particle for track "
-               << g4hit->get_trkid() << endl;
+          std::cout << PHWHERE << " missing g4particle for track "
+               << g4hit->get_trkid() << std::endl;
           continue;
         }
 
         PHG4VtxPoint* vtx = m_TruthInfoContainer->GetVtx(particle->get_vtx_id());
         if (!vtx)
         {
-          cout << PHWHERE << " missing g4vertex" << endl;
+          std::cout << PHWHERE << " missing g4vertex" << std::endl;
           continue;
         }
 
         // shower location and shape info
 
-        if (!isnan(g4hit->get_x(0)) &&
-            !isnan(g4hit->get_y(0)) &&
-            !isnan(g4hit->get_z(0)))
+        if (!std::isnan(g4hit->get_x(0)) &&
+            !std::isnan(g4hit->get_y(0)) &&
+            !std::isnan(g4hit->get_z(0)))
         {
           std::vector<float> entry(3);
           entry[0] = g4hit->get_x(0);
@@ -444,9 +430,9 @@ void PHG4TruthEventAction::ProcessShowers()
           sumw2 += w * w;
         }
 
-        if (!isnan(g4hit->get_x(1)) &&
-            !isnan(g4hit->get_y(1)) &&
-            !isnan(g4hit->get_z(1)))
+        if (!std::isnan(g4hit->get_x(1)) &&
+            !std::isnan(g4hit->get_y(1)) &&
+            !std::isnan(g4hit->get_z(1)))
         {
           std::vector<float> entry(3);
           entry[0] = g4hit->get_x(1);
@@ -462,7 +448,7 @@ void PHG4TruthEventAction::ProcessShowers()
 
         // e/h ratio
 
-        if (!isnan(g4hit->get_edep()))
+        if (!std::isnan(g4hit->get_edep()))
         {
           if (abs(particle->get_pid()) == 11)
           {
@@ -477,15 +463,15 @@ void PHG4TruthEventAction::ProcessShowers()
         // summary info
 
         ++nhits;
-        if (!isnan(g4hit->get_edep()))
+        if (!std::isnan(g4hit->get_edep()))
         {
           edep += g4hit->get_edep();
         }
-        if (!isnan(g4hit->get_eion()))
+        if (!std::isnan(g4hit->get_eion()))
         {
           eion += g4hit->get_eion();
         }
-        if (!isnan(g4hit->get_light_yield()))
+        if (!std::isnan(g4hit->get_light_yield()))
         {
           light_yield += g4hit->get_light_yield();
         }

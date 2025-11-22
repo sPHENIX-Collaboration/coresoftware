@@ -13,7 +13,6 @@ class PHG4HitReadBack : public SubsysReco
 {
  public:
   PHG4HitReadBack(const std::string &name = "PHG4HITREADBACK");
-  int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
  protected:

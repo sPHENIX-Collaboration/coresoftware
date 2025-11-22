@@ -53,8 +53,8 @@ void PHG4SimpleEventGenerator::set_eta_range(const double min, const double max)
   }
   m_EtaMin = min;
   m_EtaMax = max;
-  m_ThetaMin = NAN;
-  m_ThetaMax = NAN;
+  m_ThetaMin = std::numeric_limits<double>::quiet_NaN();
+  m_ThetaMax = std::numeric_limits<double>::quiet_NaN();
   return;
 }
 
@@ -72,8 +72,8 @@ void PHG4SimpleEventGenerator::set_theta_range(const double min, const double ma
   }
   m_ThetaMin = min;
   m_ThetaMax = max;
-  m_EtaMin = NAN;
-  m_EtaMax = NAN;
+  m_EtaMin = std::numeric_limits<double>::quiet_NaN();
+  m_EtaMax = std::numeric_limits<double>::quiet_NaN();
   return;
 }
 
@@ -118,9 +118,9 @@ void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max, 
   m_Pt_Min = min;
   m_Pt_Max = max;
   m_Pt_GausWidth = pt_gaus_width;
-  m_P_Min = NAN;
-  m_P_Max = NAN;
-  m_P_GausWidth = NAN;
+  m_P_Min = std::numeric_limits<double>::quiet_NaN();
+  m_P_Max = std::numeric_limits<double>::quiet_NaN();
+  m_P_GausWidth = std::numeric_limits<double>::quiet_NaN();
   return;
 }
 
@@ -137,9 +137,9 @@ void PHG4SimpleEventGenerator::set_p_range(const double min, const double max, c
               << ", max: " << max << ", p_gaus_width: " << p_gaus_width << std::endl;
     gSystem->Exit(1);
   }
-  m_Pt_Min = NAN;
-  m_Pt_Max = NAN;
-  m_Pt_GausWidth = NAN;
+  m_Pt_Min = std::numeric_limits<double>::quiet_NaN();
+  m_Pt_Max = std::numeric_limits<double>::quiet_NaN();
+  m_Pt_GausWidth = std::numeric_limits<double>::quiet_NaN();
   m_P_Min = min;
   m_P_Max = max;
   m_P_GausWidth = p_gaus_width;

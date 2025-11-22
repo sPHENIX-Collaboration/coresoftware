@@ -16,7 +16,7 @@ class PHG4Showerv1 : public PHG4Shower
 {
  public:
   PHG4Showerv1();
-  ~PHG4Showerv1() override {}
+  ~PHG4Showerv1() override = default;
 
   // PHObject virtual overloads
 

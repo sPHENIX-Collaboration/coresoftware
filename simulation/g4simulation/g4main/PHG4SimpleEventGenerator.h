@@ -103,17 +103,17 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   double m_VertexSizeWidth = 0.;
   double m_EtaMin = -1.25;
   double m_EtaMax = 1.25;
-  double m_ThetaMin = NAN;
-  double m_ThetaMax = NAN;
+  double m_ThetaMin = std::numeric_limits<double>::quiet_NaN();
+  double m_ThetaMax = std::numeric_limits<double>::quiet_NaN();
   double m_PhiMin = -M_PI;
   double m_PhiMax = M_PI;
   double m_Pt_Min = 0.;
   double m_Pt_Max = 10.;
   double m_Pt_GausWidth = 0.;
-  double m_P_Min = NAN;
-  double m_P_Max = NAN;
-  double m_P_GausWidth = NAN;
-  double m_powerLawN = NAN;
+  double m_P_Min = std::numeric_limits<double>::quiet_NaN();
+  double m_P_Max = std::numeric_limits<double>::quiet_NaN();
+  double m_P_GausWidth = std::numeric_limits<double>::quiet_NaN();
+  double m_powerLawN = std::numeric_limits<double>::quiet_NaN();
 };
 
 #endif

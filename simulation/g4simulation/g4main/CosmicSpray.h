@@ -7,7 +7,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cmath>
+#include <limits>
 #include <string>  // for string
 
 class PHCompositeNode;
@@ -28,13 +28,13 @@ class CosmicSpray : public SubsysReco
  private:
   EcoMug gen;
 
-  double _gun_e = NAN;
-  double _x_min = NAN;
-  double _x_max = NAN;
-  double _z_min = NAN;
-  double _z_max = NAN;
-  double _y_fix = NAN;
+  double _gun_e = std::numeric_limits<double>::quiet_NaN();
+  double _x_min = std::numeric_limits<double>::quiet_NaN();
+  double _x_max = std::numeric_limits<double>::quiet_NaN();
+  double _z_min = std::numeric_limits<double>::quiet_NaN();
+  double _z_max = std::numeric_limits<double>::quiet_NaN();
+  double _y_fix = std::numeric_limits<double>::quiet_NaN();
 
-  double _R = NAN;
+  double _R = std::numeric_limits<double>::quiet_NaN();
 };
 #endif
