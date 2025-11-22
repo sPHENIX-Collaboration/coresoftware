@@ -27,7 +27,7 @@ PHG4IHCalDisplayAction::~PHG4IHCalDisplayAction()
 
 void PHG4IHCalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
-  for (auto &it : m_ScintiLogVolSet)
+  for (const auto &it : m_ScintiLogVolSet)
   {
     if (it->GetVisAttributes())
     {

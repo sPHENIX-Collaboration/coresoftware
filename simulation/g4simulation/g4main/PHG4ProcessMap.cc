@@ -15,7 +15,7 @@
 //_____________________________________________________________________________
 bool PHG4ProcessMap::IsDefined(int subType)
 {
-  return !(fMap.find(subType) == fMap.end());
+  return !(!fMap.contains(subType));
 }
 
 //
@@ -57,7 +57,7 @@ void PHG4ProcessMap::PrintAll() const
 //_____________________________________________________________________________
 void PHG4ProcessMap::Clear()
 {
-  if (fMap.size())
+  if (!fMap.empty())
   {
     fMap.clear();
   }
@@ -80,10 +80,8 @@ PHG4ProcessMap::GetMCProcess(const G4VProcess* process) const
     std::cerr << "PHG4ProcessMap::GetCodes " << text.c_str() << std::endl;
     return kPNoProcess;
   }
-  else
-  {
-    return (*i).second;
-  }
+
+  return (*i).second;
 }
 
 //_____________________________________________________________________________

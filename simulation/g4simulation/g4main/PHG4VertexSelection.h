@@ -32,7 +32,7 @@ class PHG4VertexSelection : public SubsysReco, public PHParameterInterface
 
  private:
   // z vertex cut (cm)
-  double m_vertex_zcut = 10;
+  double m_vertex_zcut{10};
 };
 
 #endif

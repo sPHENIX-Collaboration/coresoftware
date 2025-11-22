@@ -14,13 +14,10 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <algorithm>  // for fill
-#include <cmath>      // for NAN
 #include <iostream>   // for operator<<, basic_ostream
 #include <iterator>   // for begin, end
 
-using namespace std;
-
-PHG4IonGun::PHG4IonGun(const string &name)
+PHG4IonGun::PHG4IonGun(const std::string &name)
   : PHG4ParticleGeneratorBase(name)
   , ion(new PHG4Particlev3())
 {
@@ -47,7 +44,7 @@ int PHG4IonGun::process_event(PHCompositeNode *topNode)
   int vtxindex = ineve->AddVtx(get_vtx_x(), get_vtx_y(), get_vtx_z(), get_t0());
   //   G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon(Z, A, excitEnergy);
   // G4PrimaryParticle* g4part = new G4PrimaryParticle(ion);
-  //   cout << "name: " << ion->GetParticleName() << ", pdgcode: " << ion->GetPDGEncoding() << endl;
+  //   std::cout << "name: " << ion->GetParticleName() << ", pdgcode: " << ion->GetPDGEncoding() << std::endl;
   PHG4Particle *particle = new PHG4Particlev3(ion);
   SetParticleId(particle, ineve);
   ineve->AddParticle(vtxindex, particle);
@@ -69,10 +66,10 @@ void PHG4IonGun::UpdateParticle()
   return;
 }
 
-void PHG4IonGun::Print(const string & /*what*/) const
+void PHG4IonGun::Print(const std::string & /*what*/) const
 {
-  cout << "PHG4IonGun, using ions of" << endl;
-  cout << "A: " << A << ", Z: " << Z << ", charge: " << ioncharge
-       << ", excitation Energy: " << excitEnergy << endl;
-  cout << "px: " << mom[0] / GeV << " GeV, py: " << mom[1] / GeV << " GeV, pz: " << mom[2] / GeV << " GeV" << endl;
+  std::cout << "PHG4IonGun, using ions of" << std::endl;
+  std::cout << "A: " << A << ", Z: " << Z << ", charge: " << ioncharge
+            << ", excitation Energy: " << excitEnergy << std::endl;
+  std::cout << "px: " << mom[0] / GeV << " GeV, py: " << mom[1] / GeV << " GeV, pz: " << mom[2] / GeV << " GeV" << std::endl;
 }

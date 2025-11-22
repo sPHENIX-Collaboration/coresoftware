@@ -44,12 +44,12 @@ class PHG4TruthSubsystem : public PHG4Subsystem
   void SetSaveOnlyEmbeded(bool b = true) { m_SaveOnlyEmbededFlag = b; };
 
  private:
-  PHG4TruthEventAction *m_EventAction;
+  PHG4TruthEventAction *m_EventAction{nullptr};
 
-  PHG4TruthTrackingAction *m_TrackingAction;
+  PHG4TruthTrackingAction *m_TrackingAction{nullptr};
 
   //! only save the G4 truth information that is associated with the embedded particle
-  bool m_SaveOnlyEmbededFlag;
+  bool m_SaveOnlyEmbededFlag{false};
 };
 
 #endif

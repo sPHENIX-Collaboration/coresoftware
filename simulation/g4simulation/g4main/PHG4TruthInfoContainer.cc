@@ -4,20 +4,11 @@
 #include "PHG4Shower.h"
 #include "PHG4VtxPoint.h"
 
+#include <algorithm>
 #include <boost/tuple/tuple.hpp>
 
 #include <limits>
 #include <string>
-
-using namespace std;
-
-PHG4TruthInfoContainer::PHG4TruthInfoContainer()
-  : particlemap()
-  , vtxmap()
-  , particle_embed_flags()
-  , vertex_embed_flags()
-{
-}
 
 PHG4TruthInfoContainer::~PHG4TruthInfoContainer() { Reset(); }
 
@@ -53,45 +44,45 @@ void PHG4TruthInfoContainer::Reset()
   return;
 }
 
-void PHG4TruthInfoContainer::identify(ostream& os) const
+void PHG4TruthInfoContainer::identify(std::ostream& os) const
 {
-  os << "---particlemap--------------------------" << endl;
+  os << "---particlemap--------------------------" << std::endl;
   for (auto iter : particlemap)
   {
-    os << "particle id " << iter.first << endl;
+    os << "particle id " << iter.first << std::endl;
     (iter.second)->identify();
   }
 
-  os << "---vtxmap-------------------------------" << endl;
+  os << "---vtxmap-------------------------------" << std::endl;
   for (auto vter : vtxmap)
   {
-    os << "vtx id: " << vter.first << endl;
+    os << "vtx id: " << vter.first << std::endl;
     (vter.second)->identify();
   }
 
-  os << "---showermap-------------------------------" << endl;
+  os << "---showermap-------------------------------" << std::endl;
   for (auto ster : showermap)
   {
-    os << "shower id: " << ster.first << endl;
+    os << "shower id: " << ster.first << std::endl;
     (ster.second)->identify();
   }
 
-  os << "---list of embeded track flags-------------------" << endl;
+  os << "---list of embeded track flags-------------------" << std::endl;
   for (auto particle_embed_flag : particle_embed_flags)
   {
     os << "embeded track id: " << particle_embed_flag.first
-       << " flag: " << particle_embed_flag.second << endl;
+       << " flag: " << particle_embed_flag.second << std::endl;
   }
 
-  os << "---list of embeded vtx flags-------------------" << endl;
+  os << "---list of embeded vtx flags-------------------" << std::endl;
   for (auto vertex_embed_flag : vertex_embed_flags)
   {
     os << "embeded vertex id: " << vertex_embed_flag.first
-       << " flag: " << vertex_embed_flag.second << endl;
+       << " flag: " << vertex_embed_flag.second << std::endl;
   }
 
-  os << "---primary vertex-------------------" << endl;
-  os << "Vertex " << GetPrimaryVertexIndex() << " is identified as the primary vertex" << endl;
+  os << "---primary vertex-------------------" << std::endl;
+  os << "Vertex " << GetPrimaryVertexIndex() << " is identified as the primary vertex" << std::endl;
 
   return;
 }
@@ -108,15 +99,15 @@ PHG4TruthInfoContainer::AddParticle(const int trackid, PHG4Particle* newparticle
     return it;
   }
 
-  cerr << "PHG4TruthInfoContainer::AddParticle"
-       << " - Attempt to add particle with existing trackid "
-       << trackid << ": " << newparticle->get_name() << " id "
-       << newparticle->get_track_id()
-       << ", p = [" << newparticle->get_px()
-       << ", " << newparticle->get_py()
-       << ", " << newparticle->get_pz() << "], "
-       << " parent ID " << newparticle->get_parent_id()
-       << std::endl;
+  std::cout << "PHG4TruthInfoContainer::AddParticle"
+            << " - Attempt to add particle with existing trackid "
+            << trackid << ": " << newparticle->get_name() << " id "
+            << newparticle->get_track_id()
+            << ", p = [" << newparticle->get_px()
+            << ", " << newparticle->get_py()
+            << ", " << newparticle->get_pz() << "], "
+            << " parent ID " << newparticle->get_parent_id()
+            << std::endl;
   return particlemap.end();
 }
 
@@ -133,15 +124,15 @@ PHG4TruthInfoContainer::AddsPHENIXPrimaryParticle(const int trackid, PHG4Particl
     return it;
   }
 
-  cerr << "PHG4TruthInfoContainer::AddsPHENIXPrimaryParticle"
-       << " - Attempt to add sPHENIX primary particle with existing trackid "
-       << trackid << ": " << newparticle->get_name() << " id "
-       << newparticle->get_track_id()
-       << ", p = [" << newparticle->get_px()
-       << ", " << newparticle->get_py()
-       << ", " << newparticle->get_pz() << "], "
-       << " parent ID " << newparticle->get_parent_id()
-       << std::endl;
+  std::cout << "PHG4TruthInfoContainer::AddsPHENIXPrimaryParticle"
+            << " - Attempt to add sPHENIX primary particle with existing trackid "
+            << trackid << ": " << newparticle->get_name() << " id "
+            << newparticle->get_track_id()
+            << ", p = [" << newparticle->get_px()
+            << ", " << newparticle->get_py()
+            << ", " << newparticle->get_pz() << "], "
+            << " parent ID " << newparticle->get_parent_id()
+            << std::endl;
   return sPHENIXprimaryparticlemap.end();
 }
 
@@ -248,10 +239,10 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint* newvtx)
   ConstVtxIterator it;
   bool added = false;
 
-  if (vtxmap.find(id) != vtxmap.end())
+  if (vtxmap.contains(id))
   {
-    cout << "trying to add existing vtx " << id
-         << " vtx pos: " << endl;
+    std::cout << "trying to add existing vtx " << id
+              << " vtx pos: " << std::endl;
     (vtxmap.find(id)->second)->identify();
     identify();
   }
@@ -263,8 +254,8 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint* newvtx)
     return it;
   }
 
-  cerr << "PHG4TruthInfoContainer::AddVertex"
-       << " - Attempt to add vertex with existing id " << id << std::endl;
+  std::cout << "PHG4TruthInfoContainer::AddVertex"
+            << " - Attempt to add vertex with existing id " << id << std::endl;
   return vtxmap.end();
 }
 
@@ -275,10 +266,10 @@ PHG4TruthInfoContainer::AddShower(const int id, PHG4Shower* newshower)
   ConstShowerIterator it;
   bool added = false;
 
-  if (showermap.find(id) != showermap.end())
+  if (showermap.contains(id))
   {
-    cout << "trying to add existing shower " << id
-         << " shower pos: " << endl;
+    std::cout << "trying to add existing shower " << id
+              << " shower pos: " << std::endl;
     (showermap.find(id)->second)->identify();
     identify();
   }
@@ -290,8 +281,8 @@ PHG4TruthInfoContainer::AddShower(const int id, PHG4Shower* newshower)
     return it;
   }
 
-  cerr << "PHG4TruthInfoContainer::AddShower"
-       << " - Attempt to add shower with existing id " << id << std::endl;
+  std::cout << "PHG4TruthInfoContainer::AddShower"
+            << " - Attempt to add shower with existing id " << id << std::endl;
   return showermap.end();
 }
 
@@ -302,10 +293,7 @@ int PHG4TruthInfoContainer::maxtrkindex() const
   {
     key = particlemap.rbegin()->first;
   }
-  if (key < 0)
-  {
-    key = 0;
-  }
+  key = std::max(key, 0);
   return key;
 }
 
@@ -316,10 +304,7 @@ int PHG4TruthInfoContainer::mintrkindex() const
   {
     key = particlemap.begin()->first;
   }
-  if (key > 0)
-  {
-    key = 0;
-  }
+  key = std::min(key, 0);
   return key;
 }
 
@@ -330,10 +315,7 @@ int PHG4TruthInfoContainer::maxvtxindex() const
   {
     key = vtxmap.rbegin()->first;
   }
-  if (key < 0)
-  {
-    key = 0;
-  }
+  key = std::max(key, 0);
   return key;
 }
 
@@ -344,10 +326,7 @@ int PHG4TruthInfoContainer::minvtxindex() const
   {
     key = vtxmap.begin()->first;
   }
-  if (key > 0)
-  {
-    key = 0;
-  }
+  key = std::min(key, 0);
   return key;
 }
 
@@ -358,10 +337,7 @@ int PHG4TruthInfoContainer::maxshowerindex() const
   {
     key = showermap.rbegin()->first;
   }
-  if (key < 0)
-  {
-    key = 0;
-  }
+  key = std::max(key, 0);
   return key;
 }
 
@@ -372,10 +348,7 @@ int PHG4TruthInfoContainer::minshowerindex() const
   {
     key = showermap.begin()->first;
   }
-  if (key > 0)
-  {
-    key = 0;
-  }
+  key = std::min(key, 0);
   return key;
 }
 
@@ -425,7 +398,10 @@ int PHG4TruthInfoContainer::isEmbeded(const int trackid) const
   if (trackid_embed <= 0)
   {
     const PHG4Particle* p = GetParticle(trackid_embed);
-    if (p) trackid_embed = p->get_primary_id();
+    if (p)
+    {
+      trackid_embed = p->get_primary_id();
+    }
   }
   std::map<int, int>::const_iterator iter = particle_embed_flags.find(trackid_embed);
   if (iter == particle_embed_flags.end())
@@ -461,18 +437,18 @@ bool PHG4TruthInfoContainer::is_primary(const PHG4Particle* p) const
 bool PHG4TruthInfoContainer::is_sPHENIX_primary(const PHG4Particle* p) const
 {
   // sPHENIX primary particles are in the sPHENIXprimaryparticlemap
-  return (sPHENIXprimaryparticlemap.find(p->get_track_id()) != sPHENIXprimaryparticlemap.end());
+  return (sPHENIXprimaryparticlemap.contains(p->get_track_id()));
 }
 
 int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
 {
   ConstVtxRange vrange = GetPrimaryVtxRange();
 
-  int highest_embedding_ID = numeric_limits<int>::min();
+  int highest_embedding_ID = std::numeric_limits<int>::min();
   int vtx_id_for_highest_embedding_ID = 0;
   for (auto iter = vrange.first; iter != vrange.second; ++iter)
   {
-    //        cout <<"PHG4TruthInfoContainer::GetPrimaryVertexIndex - vertex ID "<<iter->first<<" embedding ID "<< isEmbededVtx(iter->first) <<": ";
+    //        std::cout <<"PHG4TruthInfoContainer::GetPrimaryVertexIndex - vertex ID "<<iter->first<<" embedding ID "<< isEmbededVtx(iter->first) <<": ";
     // iter->second->identify();
     const int embedding_ID = isEmbededVtx(iter->first);
 
@@ -483,11 +459,11 @@ int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
     }
   }
 
-  if (highest_embedding_ID == numeric_limits<int>::min())
+  if (highest_embedding_ID == std::numeric_limits<int>::min())
   {
-    cout << "PHG4TruthInfoContainer::GetPrimaryVertexIndex - "
-         << "WARNING: no valid primary vertex. Return an invalid ID of 0"
-         << endl;
+    std::cout << "PHG4TruthInfoContainer::GetPrimaryVertexIndex - "
+              << "WARNING: no valid primary vertex. Return an invalid ID of 0"
+              << std::endl;
     return 0;
   }
 

@@ -17,10 +17,10 @@ class PHG4TruthEventAction : public PHG4EventAction
 {
  public:
   //! constructor
-  PHG4TruthEventAction();
+  PHG4TruthEventAction() = default;
 
   //! destuctor
-  ~PHG4TruthEventAction() override {}
+  ~PHG4TruthEventAction() override = default;
 
   void BeginOfEventAction(const G4Event*) override;
 
@@ -43,10 +43,10 @@ class PHG4TruthEventAction : public PHG4EventAction
   std::set<int> m_WriteSet;
 
   //! pointer to truth information container
-  PHG4TruthInfoContainer* m_TruthInfoContainer;
+  PHG4TruthInfoContainer* m_TruthInfoContainer{nullptr};
 
-  int m_LowerKeyPrevExist;
-  int m_UpperKeyPrevExist;
+  int m_LowerKeyPrevExist{0};
+  int m_UpperKeyPrevExist{0};
 
   std::map<int, PHG4HitContainer*> m_HitContainerMap;
 };
