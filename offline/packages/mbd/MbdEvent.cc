@@ -1189,11 +1189,7 @@ void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& 
 
   if ( npts>1.0 )
   {
-    rms = sqrt( (sum2/npts) - (mean*mean) );
-    if ( rms<0.05 )
-    {
-      rms = 0.05;
-    }
+    rms = std::max( sqrt( (sum2/npts) - (mean*mean) ), 0.05);
   }
   else
   {
