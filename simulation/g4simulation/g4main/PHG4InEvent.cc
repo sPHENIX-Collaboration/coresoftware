@@ -70,7 +70,7 @@ int PHG4InEvent::AddVtxCommon(PHG4VtxPoint *newvtx)
 
 int PHG4InEvent::AddParticle(const int vtxid, PHG4Particle *particle)
 {
-  if (vtxlist.find(vtxid) == vtxlist.end())
+  if (!vtxlist.contains(vtxid))
   {
     std::cout << "cannot add particle to non existing vertex, id: " << vtxid << std::endl;
     exit(1);
