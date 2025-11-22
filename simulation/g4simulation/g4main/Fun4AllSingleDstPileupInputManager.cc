@@ -130,12 +130,11 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
     AddToFileOpened(FileName());  // add file to the list of files which were opened
     return 0;
   }
-  
-      std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
-    m_IManager.reset();
-    m_IManager_background.reset();
-    return -1;
- 
+
+  std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
+  m_IManager.reset();
+  m_IManager_background.reset();
+  return -1;
 }
 
 //_____________________________________________________________________________
@@ -151,13 +150,12 @@ int Fun4AllSingleDstPileupInputManager::run(const int nevents)
       }
       return -1;
     }
-    
-          if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
-   
+
+    if (OpenNextFile())
+    {
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return -1;
+    }
   }
 
   if (Verbosity() > 3)

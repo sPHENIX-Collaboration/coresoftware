@@ -19,7 +19,8 @@ class PHCompositeNode;
 
 PHG4ConsistencyCheck::PHG4ConsistencyCheck(const std::string &name)
   : SubsysReco(name)
-{}
+{
+}
 
 int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
 {

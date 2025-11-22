@@ -80,9 +80,8 @@ PHG4ProcessMap::GetMCProcess(const G4VProcess* process) const
     std::cerr << "PHG4ProcessMap::GetCodes " << text.c_str() << std::endl;
     return kPNoProcess;
   }
-  
-      return (*i).second;
- 
+
+  return (*i).second;
 }
 
 //_____________________________________________________________________________

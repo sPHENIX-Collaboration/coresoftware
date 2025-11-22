@@ -89,7 +89,7 @@ int PHG4ScoringManager::InitRun(PHCompositeNode * /*topNode*/)
   if (Verbosity() >= VERBOSITY_SOME)
   {
     std::cout << "PHG4ScoringManager::InitRun - Making PHTFileServer " << m_outputFileName
-         << std::endl;
+              << std::endl;
   }
   PHTFileServer::open(m_outputFileName, "RECREATE");
 
@@ -163,7 +163,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
         if (Verbosity() >= 2)
         {
           std::cout << __PRETTY_FUNCTION__ << ": get vertex " << genevnt->get_collision_vertex().z()
-               << " which is outside range " << m_vertexAcceptanceRange.first << " to " << m_vertexAcceptanceRange.second << " cm:";
+                    << " which is outside range " << m_vertexAcceptanceRange.first << " to " << m_vertexAcceptanceRange.second << " cm:";
           genevnt->identify();
         }
 
@@ -183,8 +183,8 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
   if (!ineve)
   {
     std::cout << "PHG4ScoringManager::process_event - Error - "
-         << "unable to find DST node "
-         << "PHG4INEVENT" << std::endl;
+              << "unable to find DST node "
+              << "PHG4INEVENT" << std::endl;
   }
   else
   {
@@ -344,21 +344,21 @@ void PHG4ScoringManager::makeScoringHistograms()
       G4double unitValue = g4mesh->GetPSUnitValue(psname);
       G4String unit = g4mesh->GetPSUnit(psname);
 
-      const std::string hname = std::format("hScore_{}_{}", meshName,  std::string(psname));
+      const std::string hname = std::format("hScore_{}_{}", meshName, std::string(psname));
       const std::string htitle = std::format("Mesh {}, Primitive scorer {}: score [{}]", meshName, std::string(psname), std::string(unit));
 
       if (Verbosity())
       {
         std::cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName
-             << "  scorer " << psname
-             << "  with axis: "
-             << "# i" << divisionAxisNames[0]
-             << ", i" << divisionAxisNames[1]
-             << ", i" << divisionAxisNames[2]
-             << ", value "
-             << "[unit: " << unit << "]."
-             << " Saving to histogram " << hname << " : " << htitle
-             << std::endl;
+                  << "  scorer " << psname
+                  << "  with axis: "
+                  << "# i" << divisionAxisNames[0]
+                  << ", i" << divisionAxisNames[1]
+                  << ", i" << divisionAxisNames[2]
+                  << ", value "
+                  << "[unit: " << unit << "]."
+                  << " Saving to histogram " << hname << " : " << htitle
+                  << std::endl;
       }
       // book histogram
       TH3 *h = new TH3D(hname.c_str(),   //

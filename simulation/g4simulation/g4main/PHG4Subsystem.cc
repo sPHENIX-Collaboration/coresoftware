@@ -13,6 +13,6 @@ void PHG4Subsystem::SetMotherSubsystem(PHG4Subsystem *subsys)
   }
   std::cout << "PHG4Subsystem::SetMotherSubsystem: "
             << subsys->Name() << " is not implemented as a mother subsystem"
-	    << std::endl;
+            << std::endl;
   gSystem->Exit(1);
 }

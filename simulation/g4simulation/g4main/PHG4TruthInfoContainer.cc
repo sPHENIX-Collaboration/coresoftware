@@ -10,7 +10,6 @@
 #include <limits>
 #include <string>
 
-
 PHG4TruthInfoContainer::~PHG4TruthInfoContainer() { Reset(); }
 
 void PHG4TruthInfoContainer::Reset()
@@ -101,14 +100,14 @@ PHG4TruthInfoContainer::AddParticle(const int trackid, PHG4Particle* newparticle
   }
 
   std::cout << "PHG4TruthInfoContainer::AddParticle"
-       << " - Attempt to add particle with existing trackid "
-       << trackid << ": " << newparticle->get_name() << " id "
-       << newparticle->get_track_id()
-       << ", p = [" << newparticle->get_px()
-       << ", " << newparticle->get_py()
-       << ", " << newparticle->get_pz() << "], "
-       << " parent ID " << newparticle->get_parent_id()
-       << std::endl;
+            << " - Attempt to add particle with existing trackid "
+            << trackid << ": " << newparticle->get_name() << " id "
+            << newparticle->get_track_id()
+            << ", p = [" << newparticle->get_px()
+            << ", " << newparticle->get_py()
+            << ", " << newparticle->get_pz() << "], "
+            << " parent ID " << newparticle->get_parent_id()
+            << std::endl;
   return particlemap.end();
 }
 
@@ -126,14 +125,14 @@ PHG4TruthInfoContainer::AddsPHENIXPrimaryParticle(const int trackid, PHG4Particl
   }
 
   std::cout << "PHG4TruthInfoContainer::AddsPHENIXPrimaryParticle"
-       << " - Attempt to add sPHENIX primary particle with existing trackid "
-       << trackid << ": " << newparticle->get_name() << " id "
-       << newparticle->get_track_id()
-       << ", p = [" << newparticle->get_px()
-       << ", " << newparticle->get_py()
-       << ", " << newparticle->get_pz() << "], "
-       << " parent ID " << newparticle->get_parent_id()
-       << std::endl;
+            << " - Attempt to add sPHENIX primary particle with existing trackid "
+            << trackid << ": " << newparticle->get_name() << " id "
+            << newparticle->get_track_id()
+            << ", p = [" << newparticle->get_px()
+            << ", " << newparticle->get_py()
+            << ", " << newparticle->get_pz() << "], "
+            << " parent ID " << newparticle->get_parent_id()
+            << std::endl;
   return sPHENIXprimaryparticlemap.end();
 }
 
@@ -243,7 +242,7 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint* newvtx)
   if (vtxmap.contains(id))
   {
     std::cout << "trying to add existing vtx " << id
-         << " vtx pos: " << std::endl;
+              << " vtx pos: " << std::endl;
     (vtxmap.find(id)->second)->identify();
     identify();
   }
@@ -256,7 +255,7 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint* newvtx)
   }
 
   std::cout << "PHG4TruthInfoContainer::AddVertex"
-       << " - Attempt to add vertex with existing id " << id << std::endl;
+            << " - Attempt to add vertex with existing id " << id << std::endl;
   return vtxmap.end();
 }
 
@@ -270,7 +269,7 @@ PHG4TruthInfoContainer::AddShower(const int id, PHG4Shower* newshower)
   if (showermap.contains(id))
   {
     std::cout << "trying to add existing shower " << id
-         << " shower pos: " << std::endl;
+              << " shower pos: " << std::endl;
     (showermap.find(id)->second)->identify();
     identify();
   }
@@ -283,7 +282,7 @@ PHG4TruthInfoContainer::AddShower(const int id, PHG4Shower* newshower)
   }
 
   std::cout << "PHG4TruthInfoContainer::AddShower"
-       << " - Attempt to add shower with existing id " << id << std::endl;
+            << " - Attempt to add shower with existing id " << id << std::endl;
   return showermap.end();
 }
 
@@ -399,8 +398,10 @@ int PHG4TruthInfoContainer::isEmbeded(const int trackid) const
   if (trackid_embed <= 0)
   {
     const PHG4Particle* p = GetParticle(trackid_embed);
-    if (p) { trackid_embed = p->get_primary_id();
-}
+    if (p)
+    {
+      trackid_embed = p->get_primary_id();
+    }
   }
   std::map<int, int>::const_iterator iter = particle_embed_flags.find(trackid_embed);
   if (iter == particle_embed_flags.end())
@@ -461,8 +462,8 @@ int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
   if (highest_embedding_ID == std::numeric_limits<int>::min())
   {
     std::cout << "PHG4TruthInfoContainer::GetPrimaryVertexIndex - "
-         << "WARNING: no valid primary vertex. Return an invalid ID of 0"
-         << std::endl;
+              << "WARNING: no valid primary vertex. Return an invalid ID of 0"
+              << std::endl;
     return 0;
   }
 

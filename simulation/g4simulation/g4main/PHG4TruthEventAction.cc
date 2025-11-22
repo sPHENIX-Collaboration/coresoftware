@@ -85,10 +85,9 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     {
       continue;
     }
-    
-          wrttracks.push_back(mytrkid);
-      wrtvtx.push_back(particle->get_vtx_id());
-   
+
+    wrttracks.push_back(mytrkid);
+    wrtvtx.push_back(particle->get_vtx_id());
 
     // now crawl up the truth info and add parents until we hit
     // a track which is already being saved
@@ -314,9 +313,8 @@ void PHG4TruthEventAction::PruneShowers()
           jter->second.erase(kter++);
           continue;
         }
-        
-                  ++kter;
-       
+
+        ++kter;
       }
 
       if (jter->second.empty())
@@ -399,7 +397,7 @@ void PHG4TruthEventAction::ProcessShowers()
         if (!particle)
         {
           std::cout << PHWHERE << " missing g4particle for track "
-               << g4hit->get_trkid() << std::endl;
+                    << g4hit->get_trkid() << std::endl;
           continue;
         }
 

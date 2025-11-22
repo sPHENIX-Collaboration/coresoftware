@@ -79,20 +79,20 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
   const std::string& mname(aMaterial->GetName());
 
   std::set<std::string>::const_iterator it =
-    m_ScintLightYieldMissingMaterialSet.find(mname);
+      m_ScintLightYieldMissingMaterialSet.find(mname);
 
   if (it == m_ScintLightYieldMissingMaterialSet.end())
   {
     m_ScintLightYieldMissingMaterialSet.insert(mname);
 
     std::cout << "PHG4SteppingAction::GetScintLightYield - WARNING - "
-	      << "can not find scintillation light yield for material " << mname
-	      << ", will assume it do NOT scintillate. "
-	      << "Please ignore this warning if you do not expect scintillation light from "
-	      << mname << std::endl;
+              << "can not find scintillation light yield for material " << mname
+              << ", will assume it do NOT scintillate. "
+              << "Please ignore this warning if you do not expect scintillation light from "
+              << mname << std::endl;
   }
 
-  return light_yield; // whatever was set as default at beginning
+  return light_yield;  // whatever was set as default at beginning
 }
 
 double
@@ -108,13 +108,12 @@ PHG4SteppingAction::GetVisibleEnergyDeposition(const G4Step* step)
     double visen = emSaturation->VisibleEnergyDepositionAtAStep(step) / GeV;
     return visen;
   }
-  
-      std::cout
-        << "PHG4SteppingAction::GetScintLightYield - ERROR - can NOT initialize G4EmSaturation!"
-        << std::endl;
 
-    return 0.;
- 
+  std::cout
+      << "PHG4SteppingAction::GetScintLightYield - ERROR - can NOT initialize G4EmSaturation!"
+      << std::endl;
+
+  return 0.;
 }
 
 void PHG4SteppingAction::StoreLocalCoordinate(PHG4Hit* hit, const G4Step* aStep,

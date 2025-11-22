@@ -33,9 +33,9 @@ PHG4EtaParameterization::PHG4EtaParameterization(
   if (_maxEta < _minEta)
   {
     std::cout << " invalid eta, max<min"
-         << " etamin: " << _minEta
-         << " etamax: " << _maxEta
-         << std::endl;
+              << " etamin: " << _minEta
+              << " etamax: " << _maxEta
+              << std::endl;
     exit(1);
   }
   //    G4Exception("PHG4EtaParameterization::PHG4EtaParameterization", "invalid eta, max<min",G4ExceptionSeverity::FatalException);
@@ -43,9 +43,9 @@ PHG4EtaParameterization::PHG4EtaParameterization(
   if ((_radiusIn < 0.0) || (_radiusOut < 0.0) || (_radiusOut < _radiusIn))
   {
     std::cout << " invalid radius parameters:"
-         << " radiusIn: " << radiusIn
-         << " radiusOut: " << radiusOut
-         << std::endl;
+              << " radiusIn: " << radiusIn
+              << " radiusOut: " << radiusOut
+              << std::endl;
     exit(1);
   }
   //    G4Exception("PHG4EtaParameterization::PHG4EtaParameterization: invalid radius parameters");

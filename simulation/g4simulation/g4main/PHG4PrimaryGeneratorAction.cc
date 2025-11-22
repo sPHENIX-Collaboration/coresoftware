@@ -68,7 +68,7 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         else
         {
           std::cout << PHWHERE << "Cannot get PDG value for particle " << particleName
-               << ", dropping it" << std::endl;
+                    << ", dropping it" << std::endl;
           continue;
         }
       }

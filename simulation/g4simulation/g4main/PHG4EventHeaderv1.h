@@ -40,9 +40,9 @@ class PHG4EventHeaderv1 : public PHG4EventHeader
   void set_EventPlaneAngle(const float r) override { rplane = r; }
 
  protected:
-  int evtseq {-9999};
-  float bimp {std::numeric_limits<float>::quiet_NaN()};
-  float rplane {std::numeric_limits<float>::quiet_NaN()};
+  int evtseq{-9999};
+  float bimp{std::numeric_limits<float>::quiet_NaN()};
+  float rplane{std::numeric_limits<float>::quiet_NaN()};
 
  private:  // prevent doc++ from showing ClassDefOverride
   ClassDefOverride(PHG4EventHeaderv1, 1)

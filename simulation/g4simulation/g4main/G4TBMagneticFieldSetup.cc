@@ -291,10 +291,8 @@ void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector& fieldVector)
 
   if (fieldVector != G4ThreeVector(0., 0., 0.))
   {
-    
-    
-      delete fEMfield;
-    
+    delete fEMfield;
+
     fEMfield = new G4UniformMagField(fieldVector);
 
     fEquation->SetFieldObj(fEMfield);  // must now point to the new field

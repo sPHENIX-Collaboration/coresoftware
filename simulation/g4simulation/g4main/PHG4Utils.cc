@@ -210,10 +210,9 @@ std::pair<bool, std::pair<double, double>> PHG4Utils::lines_intersect(
       // std::cout << "       NO segment/segment intersection!" << std::endl;
       return std::make_pair(false, std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()));
     }
-    
-          // std::cout << "       segment/segment intersection!" << std::endl;
-      return std::make_pair(true, std::make_pair(rx, ry));
-   
+
+    // std::cout << "       segment/segment intersection!" << std::endl;
+    return std::make_pair(true, std::make_pair(rx, ry));
   }
 
   return std::make_pair(false, std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()));
@@ -311,7 +310,7 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
   return std::make_pair(false, std::numeric_limits<double>::quiet_NaN());
 }
 
-double PHG4Utils::sA(double r, double x, double y) // NOLINT(misc-no-recursion)
+double PHG4Utils::sA(double r, double x, double y)  // NOLINT(misc-no-recursion)
 {
   // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
   // It is called repeatedly to find the overlap area between the circle and rectangle
@@ -391,7 +390,7 @@ std::string PHG4Utils::md5sum(const std::string& filename)
   }
   myfile.close();
   hash.get_digest(digest);
-  const auto *const charDigest = reinterpret_cast<const char*>(&digest);
+  const auto* const charDigest = reinterpret_cast<const char*>(&digest);
   std::string result;
   boost::algorithm::hex(charDigest, charDigest + sizeof(boost::uuids::detail::md5::digest_type), std::back_inserter(result));
   boost::algorithm::to_lower(result);

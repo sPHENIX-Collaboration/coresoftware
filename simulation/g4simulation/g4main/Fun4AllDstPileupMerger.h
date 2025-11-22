@@ -41,10 +41,10 @@ class Fun4AllDstPileupMerger final
 
  private:
   //! hepmc
-  PHHepMCGenEventMap *m_geneventmap {nullptr};
+  PHHepMCGenEventMap *m_geneventmap{nullptr};
 
   //! truth information
-  PHG4TruthInfoContainer *m_g4truthinfo {nullptr};
+  PHG4TruthInfoContainer *m_g4truthinfo{nullptr};
 
   //! maps g4hit containers to node names
   std::map<std::string, PHG4HitContainer *> m_g4hitscontainers;

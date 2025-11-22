@@ -70,6 +70,6 @@ void PHG4IonGun::Print(const std::string & /*what*/) const
 {
   std::cout << "PHG4IonGun, using ions of" << std::endl;
   std::cout << "A: " << A << ", Z: " << Z << ", charge: " << ioncharge
-       << ", excitation Energy: " << excitEnergy << std::endl;
+            << ", excitation Energy: " << excitEnergy << std::endl;
   std::cout << "px: " << mom[0] / GeV << " GeV, py: " << mom[1] / GeV << " GeV, pz: " << mom[2] / GeV << " GeV" << std::endl;
 }

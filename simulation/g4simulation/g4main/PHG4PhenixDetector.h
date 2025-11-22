@@ -59,8 +59,8 @@ class PHG4PhenixDetector : public G4VUserDetectorConstruction
 
   std::list<PHG4Detector*> m_DetectorList;
 
-  G4LogicalVolume* logicWorld {nullptr};    // pointer to the logical World
-  G4VPhysicalVolume* physiWorld {nullptr};  // pointer to the physical World
+  G4LogicalVolume* logicWorld{nullptr};    // pointer to the logical World
+  G4VPhysicalVolume* physiWorld{nullptr};  // pointer to the physical World
   G4double WorldSizeX;
   G4double WorldSizeY;
   G4double WorldSizeZ;

@@ -13,7 +13,6 @@
 
 class PHCompositeNode;
 
-
 PHG4HitReadBack::PHG4HitReadBack(const std::string &name)
   : SubsysReco(name)
 {

@@ -43,7 +43,7 @@ class PHG4TruthEventAction : public PHG4EventAction
   std::set<int> m_WriteSet;
 
   //! pointer to truth information container
-  PHG4TruthInfoContainer* m_TruthInfoContainer {nullptr};
+  PHG4TruthInfoContainer* m_TruthInfoContainer{nullptr};
 
   int m_LowerKeyPrevExist{0};
   int m_UpperKeyPrevExist{0};
