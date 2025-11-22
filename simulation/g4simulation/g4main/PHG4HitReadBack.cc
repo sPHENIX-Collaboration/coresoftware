@@ -30,7 +30,9 @@ int PHG4HitReadBack::process_event(PHCompositeNode *topNode)
   }
   phc->identify();
   std::pair<PHG4HitContainer::ConstIterator, PHG4HitContainer::ConstIterator> hititer = phc->getHits(1);
-  PHG4HitContainer::ConstIterator begin, end, it;
+  PHG4HitContainer::ConstIterator begin;
+  PHG4HitContainer::ConstIterator end;
+  PHG4HitContainer::ConstIterator it;
   begin = hititer.first;
   end = hititer.second;
   for (it = begin; it != end; ++it)
