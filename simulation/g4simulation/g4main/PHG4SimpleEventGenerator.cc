@@ -187,17 +187,17 @@ void PHG4SimpleEventGenerator::set_vertex_size_parameters(const double mean, con
 
 int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
 {
-  if (m_FunctionNames.find(m_VertexFunc_x) == m_FunctionNames.end())
+  if (!m_FunctionNames.contains(m_VertexFunc_x))
   {
     std::cout << PHWHERE << "::Error - unknown x vertex distribution function requested" << std::endl;
     gSystem->Exit(1);
   }
-  if (m_FunctionNames.find(m_VertexFunc_y) == m_FunctionNames.end())
+  if (!m_FunctionNames.contains(m_VertexFunc_y))
   {
     std::cout << PHWHERE << "::Error - unknown y vertex distribution function requested" << std::endl;
     gSystem->Exit(1);
   }
-  if (m_FunctionNames.find(m_VertexFunc_z) == m_FunctionNames.end())
+  if (!m_FunctionNames.contains(m_VertexFunc_z))
   {
     std::cout << PHWHERE << "::Error - unknown z vertex distribution function requested" << std::endl;
     gSystem->Exit(1);

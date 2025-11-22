@@ -31,10 +31,10 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   int process_event(PHCompositeNode *topNode) override;
 
   //! interface for adding particles by name
-  void add_particles(const std::string &name, const unsigned int count);
+  void add_particles(const std::string &name, const unsigned int num);
 
   //! interface for adding particle by pid
-  void add_particles(const int pid, const unsigned int count);
+  void add_particles(const int pid, const unsigned int num);
 
   //! range of randomized eta values (mutually exclusive with theta range)
   void set_eta_range(const double eta_min, const double eta_max);
@@ -85,35 +85,35 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
                                                                        // also used to check if function is implemented
   std::map<FUNCTION, std::string> m_FunctionNames = {{Uniform, "Uniform"}, {Gaus, "Gaus"}};
 
-  PHG4InEvent *m_InEvent = nullptr;
-  FUNCTION m_VertexFunc_x = Uniform;
-  FUNCTION m_VertexFunc_y = Uniform;
-  FUNCTION m_VertexFunc_z = Uniform;
-  double m_Vertex_x = 0.;
-  double m_Vertex_y = 0.;
-  double m_Vertex_z = 0.;
-  double m_VertexWidth_x = 0.;
-  double m_VertexWidth_y = 0.;
-  double m_VertexWidth_z = 0.;
-  double m_VertexOffset_x = 0.;
-  double m_VertexOffset_y = 0.;
-  double m_VertexOffset_z = 0.;
-  FUNCTION m_VertexSizeFunc_r = Uniform;
-  double m_VertexSizeMean = 0.;
-  double m_VertexSizeWidth = 0.;
-  double m_EtaMin = -1.25;
-  double m_EtaMax = 1.25;
-  double m_ThetaMin = std::numeric_limits<double>::quiet_NaN();
-  double m_ThetaMax = std::numeric_limits<double>::quiet_NaN();
-  double m_PhiMin = -M_PI;
-  double m_PhiMax = M_PI;
-  double m_Pt_Min = 0.;
-  double m_Pt_Max = 10.;
-  double m_Pt_GausWidth = 0.;
-  double m_P_Min = std::numeric_limits<double>::quiet_NaN();
-  double m_P_Max = std::numeric_limits<double>::quiet_NaN();
-  double m_P_GausWidth = std::numeric_limits<double>::quiet_NaN();
-  double m_powerLawN = std::numeric_limits<double>::quiet_NaN();
+  PHG4InEvent *m_InEvent {nullptr};
+  FUNCTION m_VertexFunc_x {Uniform};
+  FUNCTION m_VertexFunc_y {Uniform};
+  FUNCTION m_VertexFunc_z {Uniform};
+  double m_Vertex_x {0.};
+  double m_Vertex_y {0.};
+  double m_Vertex_z {0.};
+  double m_VertexWidth_x {0.};
+  double m_VertexWidth_y {0.};
+  double m_VertexWidth_z {0.};
+  double m_VertexOffset_x {0.};
+  double m_VertexOffset_y {0.};
+  double m_VertexOffset_z {0.};
+  FUNCTION m_VertexSizeFunc_r {Uniform};
+  double m_VertexSizeMean {0.};
+  double m_VertexSizeWidth {0.};
+  double m_EtaMin {-1.25};
+  double m_EtaMax {1.25};
+  double m_ThetaMin {std::numeric_limits<double>::quiet_NaN()};
+  double m_ThetaMax {std::numeric_limits<double>::quiet_NaN()};
+  double m_PhiMin {-M_PI};
+  double m_PhiMax {M_PI};
+  double m_Pt_Min {0.};
+  double m_Pt_Max {10.};
+  double m_Pt_GausWidth {0.};
+  double m_P_Min {std::numeric_limits<double>::quiet_NaN()};
+  double m_P_Max {std::numeric_limits<double>::quiet_NaN()};
+  double m_P_GausWidth {std::numeric_limits<double>::quiet_NaN()};
+  double m_powerLawN {std::numeric_limits<double>::quiet_NaN()};
 };
 
 #endif
