@@ -11,7 +11,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/uuid/detail/md5.hpp>
 
-#include <algorithm>  // for copy
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>  // for exit
 #include <fstream>
@@ -210,11 +210,10 @@ std::pair<bool, std::pair<double, double>> PHG4Utils::lines_intersect(
       // std::cout << "       NO segment/segment intersection!" << std::endl;
       return std::make_pair(false, std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()));
     }
-    else
-    {
-      // std::cout << "       segment/segment intersection!" << std::endl;
+    
+          // std::cout << "       segment/segment intersection!" << std::endl;
       return std::make_pair(true, std::make_pair(rx, ry));
-    }
+   
   }
 
   return std::make_pair(false, std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()));
@@ -332,15 +331,9 @@ double PHG4Utils::sA(double r, double x, double y) // NOLINT(misc-no-recursion)
     return -sA(r, x, -y);
   }
 
-  if (x > r)
-  {
-    x = r;
-  }
+  x = std::min(x, r);
 
-  if (y > r)
-  {
-    y = r;
-  }
+  y = std::min(y, r);
 
   if (x * x + y * y > r * r)
   {
@@ -398,7 +391,7 @@ std::string PHG4Utils::md5sum(const std::string& filename)
   }
   myfile.close();
   hash.get_digest(digest);
-  const auto charDigest = reinterpret_cast<const char*>(&digest);
+  const auto *const charDigest = reinterpret_cast<const char*>(&digest);
   std::string result;
   boost::algorithm::hex(charDigest, charDigest + sizeof(boost::uuids::detail::md5::digest_type), std::back_inserter(result));
   boost::algorithm::to_lower(result);
