@@ -81,26 +81,26 @@ class G4TBMagneticFieldSetup
   G4FieldManager* GetGlobalFieldManager();
 
  private:
-  int verbosity = 0;
+  int verbosity {0};
 
-  G4FieldManager* fFieldManager = nullptr;
+  G4FieldManager* fFieldManager {nullptr};
 
-  G4ChordFinder* fChordFinder = nullptr;
+  G4ChordFinder* fChordFinder {nullptr};
 
-  G4Mag_UsualEqRhs* fEquation = nullptr;
+  G4Mag_UsualEqRhs* fEquation {nullptr};
 
-  G4MagneticField* fEMfield = nullptr;
+  G4MagneticField* fEMfield {nullptr};
 
   G4ThreeVector fElFieldValue;
 
-  G4MagIntegratorStepper* fStepper = nullptr;
-  G4MagInt_Driver* fIntgrDriver = nullptr;
+  G4MagIntegratorStepper* fStepper {nullptr};
+  G4MagInt_Driver* fIntgrDriver {nullptr};
 
   G4int fStepperType;
 
   G4double fMinStep;
 
-  G4TBFieldMessenger* fFieldMessenger = nullptr;
+  G4TBFieldMessenger* fFieldMessenger {nullptr};
 
   double magfield_at_000[3]{};
 };
