@@ -336,23 +336,22 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
         {
           break;
         }
-        
-                  if (aTrack->GetTrackID() == m_SaveTrackId)
-          {
-            std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
-            std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-                      << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-                      << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-                      << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
-            std::cout << "last track: " << m_SaveTrackId
-                      << ", current trackid: " << aTrack->GetTrackID() << std::endl;
-            std::cout << "phys pre vol: " << volume->GetName()
-                      << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
-            std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-                      << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
-            gSystem->Exit(1);
-          }
-       
+
+        if (aTrack->GetTrackID() == m_SaveTrackId)
+        {
+          std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
+          std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+                    << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+                    << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+                    << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << std::endl;
+          std::cout << "last track: " << m_SaveTrackId
+                    << ", current trackid: " << aTrack->GetTrackID() << std::endl;
+          std::cout << "phys pre vol: " << volume->GetName()
+                    << " post vol : " << touchpost->GetVolume()->GetName() << std::endl;
+          std::cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+                    << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
+          gSystem->Exit(1);
+        }
       }
       else
       {
@@ -549,9 +548,8 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
     // return true to indicate the hit was used
     return true;
   }
-  
-      return false;
- 
+
+  return false;
 }
 
 //____________________________________________________________________________..

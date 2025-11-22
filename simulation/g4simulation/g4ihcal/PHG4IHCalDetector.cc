@@ -60,8 +60,8 @@
 #include <boost/tokenizer.hpp>
 
 #include <cassert>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <memory>   // for unique_ptr
@@ -72,7 +72,8 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4IHCalDisplayAction *>(subsys->GetDisplayAction()))
   , m_Params(parameters)
-  , gdml_config(PHG4GDMLUtility::GetOrMakeConfigNode(Node)), m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
+  , gdml_config(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
+  , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
   , m_OuterRadius(m_Params->get_double_param("outer_radius") * cm)
   , m_SizeZ(m_Params->get_double_param("size_z") * cm)
   , m_NumScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
@@ -80,7 +81,6 @@ PHG4IHCalDetector::PHG4IHCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Nod
   , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
   , m_GDMPath(m_Params->get_string_param("GDMPath"))
 {
-  
   assert(gdml_config);
   // changes in the parameters have to be made here
   // otherwise they will not be propagated to the node tree
