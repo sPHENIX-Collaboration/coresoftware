@@ -783,12 +783,14 @@ void PHG4Reco::G4Seed(const unsigned int i)
 //____________________________________________________________________________
 void PHG4Reco::DefineMaterials()
 {
-  G4String symbol, name;  // a=mass of a mole;
-  G4double density;       // z=mean number of protons;
-  G4double fractionmass, a;
-  G4int ncomponents, natoms, z;
-  // this is for FTFP_BERT_HP where the neutron code barfs
-  // if the z difference to the last known element (U) is too large
+  G4String symbol;
+  G4String name;
+  G4double density;
+  G4double fractionmass;
+  G4double a;
+  G4int ncomponents;
+  G4int natoms;
+  G4int z;
   // home made compounds
   // this is a legacy implementation but if they are used in multiple
   // subsystems put them here
@@ -846,8 +848,7 @@ void PHG4Reco::DefineMaterials()
   cf30_peek70->AddMaterial(peek, fractionmass = 0.65531915);
 
   // that seems to be the composition of 304 Stainless steel
-  G4Material *StainlessSteel =
-      new G4Material("SS304", density = 7.9 * g / cm3, ncomponents = 8);
+  G4Material *StainlessSteel = new G4Material("SS304", density = 7.9 * g / cm3, ncomponents = 8);
   StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.70105);
   StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cr"), 0.18);
   StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Ni"), 0.09);
@@ -857,8 +858,7 @@ void PHG4Reco::DefineMaterials()
   StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.0075);
   StainlessSteel->AddElement(G4NistManager::Instance()->FindOrBuildElement("P"), 0.00045);
 
-  G4Material *SS310 =
-      new G4Material("SS310", density = 8.0 * g / cm3, ncomponents = 8);
+  G4Material *SS310 = new G4Material("SS310", density = 8.0 * g / cm3, ncomponents = 8);
   SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.50455);
   SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cr"), 0.25);
   SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("Ni"), 0.20);
@@ -869,8 +869,7 @@ void PHG4Reco::DefineMaterials()
   SS310->AddElement(G4NistManager::Instance()->FindOrBuildElement("P"), 0.00045);
 
   // SS316 from https://www.azom.com
-  G4Material *SS316 =
-      new G4Material("SS316", density = 8.0 * g / cm3, ncomponents = 9);
+  G4Material *SS316 = new G4Material("SS316", density = 8.0 * g / cm3, ncomponents = 9);
   SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.68095);
   SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Cr"), 0.16);
   SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Ni"), 0.11);
@@ -881,8 +880,7 @@ void PHG4Reco::DefineMaterials()
   SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("Si"), 0.0075);
   SS316->AddElement(G4NistManager::Instance()->FindOrBuildElement("P"), 0.00045);
 
-  G4Material *Steel =
-      new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);
+  G4Material *Steel = new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);
   Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Fe"), 0.9834);
   Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("Mn"), 0.014);
   Steel->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 0.0017);
