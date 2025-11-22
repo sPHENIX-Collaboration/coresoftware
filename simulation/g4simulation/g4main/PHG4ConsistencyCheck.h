@@ -19,7 +19,7 @@ class PHG4ConsistencyCheck : public SubsysReco
   int process_event(PHCompositeNode *) override;
 
  protected:
-  unsigned int errorcnt;
+  unsigned int errorcnt {0};
 };
 
 #endif

@@ -5,8 +5,11 @@
 #include "PHG4Particle.h"
 #include "PHG4TruthInfoContainer.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 
+#include <algorithm>
 #include <iostream>  // for operator<<, basic_ostream::opera...
 #include <map>       // for _Rb_tree_const_iterator, map<>::...
 #include <set>       // for set
@@ -16,9 +19,7 @@ class PHCompositeNode;
 
 PHG4ConsistencyCheck::PHG4ConsistencyCheck(const std::string &name)
   : SubsysReco(name)
-  , errorcnt(0)
-{
-}
+{}
 
 int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
 {
@@ -32,10 +33,7 @@ int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
   int imax = 1000000;
   for (titer = trange.first; titer != trange.second; ++titer)
   {
-    if (titer->first < imax)
-    {
-      imax = titer->first;
-    }
+    imax = std::min(titer->first, imax);
   }
   std::cout << "min index: " << imax << std::endl;
   std::pair<std::map<int, int>::const_iterator, std::map<int, int>::const_iterator> embtrk_b_e = truthcont->GetEmbeddedTrkIds();
@@ -65,7 +63,7 @@ int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
         int primary_id = part->get_primary_id();
         if (truthcont->isEmbeded(primary_id) > 0)
         {
-          if (printpart.find(primary_id) == printpart.end())
+          if (!printpart.contains(primary_id))
           {
             std::cout << "primary id " << primary_id << " is embedded" << std::endl;
             printpart.insert(primary_id);
@@ -93,5 +91,5 @@ int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
     }
   }
 
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
