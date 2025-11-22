@@ -9,17 +9,9 @@
 
 #include <cstdlib>
 
-PHG4HitContainer::PHG4HitContainer()
-  : id(-1)
-  , hitmap()
-  , layers()
-{
-}
-
 PHG4HitContainer::PHG4HitContainer(const std::string &nodename)
   : id(PHG4HitDefs::get_volume_id(nodename))
-  , hitmap()
-  , layers()
+
 {
 }
 
@@ -91,13 +83,13 @@ PHG4HitContainer::genkey(const unsigned int detid)
   PHG4HitDefs::keytype hitid = getmaxkey(detid);
   hitid++;
   PHG4HitDefs::keytype newkey = hitid | shiftval;
-  if (hitmap.find(newkey) != hitmap.end())
+  if (hitmap.contains(newkey))
   {
     std::cout << PHWHERE << " duplicate key: 0x"
-         << std::hex << newkey << std::dec
-         << " for detector " << detid
-         << " hitmap.size: " << hitmap.size()
-         << " hitid: " << hitid << " exiting now" << std::endl;
+              << std::hex << newkey << std::dec
+              << " for detector " << detid
+              << " hitmap.size: " << hitmap.size()
+              << " hitid: " << hitid << " exiting now" << std::endl;
     exit(1);
   }
   return newkey;
@@ -107,7 +99,7 @@ PHG4HitContainer::ConstIterator
 PHG4HitContainer::AddHit(PHG4Hit *newhit)
 {
   PHG4HitDefs::keytype key = newhit->get_hit_id();
-  if (hitmap.find(key) != hitmap.end())
+  if (hitmap.contains(key))
   {
     std::cout << "hit with id  0x" << std::hex << key << std::dec << " exists already" << std::endl;
     return hitmap.find(key);
