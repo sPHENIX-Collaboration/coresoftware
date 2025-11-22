@@ -81,20 +81,19 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     PHG4Particle* particle = m_TruthInfoContainer->GetParticle(mytrkid);
 
     // if track is already in save list, nothing needs to be done
-    if (savelist.find(mytrkid) != savelist.end())
+    if (savelist.contains(mytrkid))
     {
       continue;
     }
-    else
-    {
-      wrttracks.push_back(mytrkid);
+    
+          wrttracks.push_back(mytrkid);
       wrtvtx.push_back(particle->get_vtx_id());
-    }
+   
 
     // now crawl up the truth info and add parents until we hit
     // a track which is already being saved
     int parentid = particle->get_parent_id();
-    while (savelist.find(parentid) == savelist.end() && parentid != 0)
+    while (!savelist.contains(parentid) && parentid != 0)
     {
       particle = m_TruthInfoContainer->GetParticle(parentid);
       wrttracks.push_back(parentid);
@@ -130,7 +129,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   {
     removed[0]++;
     int trackid = truthiter->first;
-    if (savelist.find(trackid) == savelist.end())
+    if (!savelist.contains(trackid))
     {
       // track not in save list
 
@@ -165,7 +164,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   while (vtxiter != vtxrange.second)
   {
     removed[2]++;
-    if (savevtxlist.find(vtxiter->first) == savevtxlist.end())
+    if (!savevtxlist.contains(vtxiter->first))
     {
       m_TruthInfoContainer->delete_vtx(vtxiter++);
       removed[3]++;
@@ -315,10 +314,9 @@ void PHG4TruthEventAction::PruneShowers()
           jter->second.erase(kter++);
           continue;
         }
-        else
-        {
-          ++kter;
-        }
+        
+                  ++kter;
+       
       }
 
       if (jter->second.empty())
