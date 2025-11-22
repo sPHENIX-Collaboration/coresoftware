@@ -4,18 +4,12 @@
 #include "PHG4Shower.h"
 #include "PHG4VtxPoint.h"
 
+#include <algorithm>
 #include <boost/tuple/tuple.hpp>
 
 #include <limits>
 #include <string>
 
-PHG4TruthInfoContainer::PHG4TruthInfoContainer()
-  : particlemap()
-  , vtxmap()
-  , particle_embed_flags()
-  , vertex_embed_flags()
-{
-}
 
 PHG4TruthInfoContainer::~PHG4TruthInfoContainer() { Reset(); }
 
@@ -246,7 +240,7 @@ PHG4TruthInfoContainer::AddVertex(const int id, PHG4VtxPoint* newvtx)
   ConstVtxIterator it;
   bool added = false;
 
-  if (vtxmap.find(id) != vtxmap.end())
+  if (vtxmap.contains(id))
   {
     std::cout << "trying to add existing vtx " << id
          << " vtx pos: " << std::endl;
@@ -273,7 +267,7 @@ PHG4TruthInfoContainer::AddShower(const int id, PHG4Shower* newshower)
   ConstShowerIterator it;
   bool added = false;
 
-  if (showermap.find(id) != showermap.end())
+  if (showermap.contains(id))
   {
     std::cout << "trying to add existing shower " << id
          << " shower pos: " << std::endl;
@@ -300,10 +294,7 @@ int PHG4TruthInfoContainer::maxtrkindex() const
   {
     key = particlemap.rbegin()->first;
   }
-  if (key < 0)
-  {
-    key = 0;
-  }
+  key = std::max(key, 0);
   return key;
 }
 
@@ -314,10 +305,7 @@ int PHG4TruthInfoContainer::mintrkindex() const
   {
     key = particlemap.begin()->first;
   }
-  if (key > 0)
-  {
-    key = 0;
-  }
+  key = std::min(key, 0);
   return key;
 }
 
@@ -328,10 +316,7 @@ int PHG4TruthInfoContainer::maxvtxindex() const
   {
     key = vtxmap.rbegin()->first;
   }
-  if (key < 0)
-  {
-    key = 0;
-  }
+  key = std::max(key, 0);
   return key;
 }
 
@@ -342,10 +327,7 @@ int PHG4TruthInfoContainer::minvtxindex() const
   {
     key = vtxmap.begin()->first;
   }
-  if (key > 0)
-  {
-    key = 0;
-  }
+  key = std::min(key, 0);
   return key;
 }
 
@@ -356,10 +338,7 @@ int PHG4TruthInfoContainer::maxshowerindex() const
   {
     key = showermap.rbegin()->first;
   }
-  if (key < 0)
-  {
-    key = 0;
-  }
+  key = std::max(key, 0);
   return key;
 }
 
@@ -370,10 +349,7 @@ int PHG4TruthInfoContainer::minshowerindex() const
   {
     key = showermap.begin()->first;
   }
-  if (key > 0)
-  {
-    key = 0;
-  }
+  key = std::min(key, 0);
   return key;
 }
 
@@ -423,7 +399,8 @@ int PHG4TruthInfoContainer::isEmbeded(const int trackid) const
   if (trackid_embed <= 0)
   {
     const PHG4Particle* p = GetParticle(trackid_embed);
-    if (p) trackid_embed = p->get_primary_id();
+    if (p) { trackid_embed = p->get_primary_id();
+}
   }
   std::map<int, int>::const_iterator iter = particle_embed_flags.find(trackid_embed);
   if (iter == particle_embed_flags.end())
@@ -459,7 +436,7 @@ bool PHG4TruthInfoContainer::is_primary(const PHG4Particle* p) const
 bool PHG4TruthInfoContainer::is_sPHENIX_primary(const PHG4Particle* p) const
 {
   // sPHENIX primary particles are in the sPHENIXprimaryparticlemap
-  return (sPHENIXprimaryparticlemap.find(p->get_track_id()) != sPHENIXprimaryparticlemap.end());
+  return (sPHENIXprimaryparticlemap.contains(p->get_track_id()));
 }
 
 int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
