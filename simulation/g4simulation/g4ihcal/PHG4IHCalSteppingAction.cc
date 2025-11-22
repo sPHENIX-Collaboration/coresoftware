@@ -336,9 +336,8 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
         {
           break;
         }
-        else
-        {
-          if (aTrack->GetTrackID() == m_SaveTrackId)
+        
+                  if (aTrack->GetTrackID() == m_SaveTrackId)
           {
             std::cout << GetName() << ": Bad step status combination for the same track " << std::endl;
             std::cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
@@ -353,7 +352,7 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
                       << " previous phys post vol: " << m_SaveVolPost->GetName() << std::endl;
             gSystem->Exit(1);
           }
-        }
+       
       }
       else
       {
@@ -550,10 +549,9 @@ bool PHG4IHCalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+  
+      return false;
+ 
 }
 
 //____________________________________________________________________________..
@@ -583,7 +581,7 @@ void PHG4IHCalSteppingAction::SetHitNodeName(const std::string& type, const std:
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_ABSORBER")
+  if (type == "G4HIT_ABSORBER")
   {
     m_AbsorberNodeName = name;
     return;
