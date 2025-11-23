@@ -17,6 +17,7 @@
 #include <array>
 #include <functional>
 #include <type_traits>
+#include <set>
 
 class PHCompositeNode;
 class ActsGeometry;
@@ -51,8 +52,20 @@ public:
 	void set_silicon_track_seed_container_node_name (std::string const& name) { m_silicon_track_seed_container_node_name = name; }
 	void set_tpc_track_seed_container_node_name (std::string const& name) { m_tpc_track_seed_container_node_name = name; }
 
+	/// Set the minimum number of clusters for the track to be used
+	void set_min_num_mvtx (int num_mvtx) { m_min_num_mvtx = num_mvtx; }
+	void set_min_num_intt (int num_intt) { m_min_num_intt = num_intt; }
+	void set_min_num_tpc (int num_tpc) { m_min_num_tpc = num_tpc; }
+	void set_min_num_tpot (int num_tpot) { m_min_num_tpot = num_tpot; }
+
 	void use_vertex (bool const& use_vertex = true) { m_use_vertex = use_vertex; }
 	void set_vertex_node_name (std::string const& name) { m_vertex_map_node_name = name; }
+
+	/// If this method is called such that the internal m_included_layers member is non-empty,
+	/// only those layers which have been explicitly added will be used in the fit
+	void include_layer (int layer) { m_included_layers.insert(layer); m_excluded_layers.erase(layer); }
+	/// Explicitly exclude layers
+	void exclude_layer (int layer) { m_excluded_layers.insert(layer); m_included_layers.erase(layer); }
 
 	/// Set the type of tracks to use for the fit via a template argument
 	/// By default, WeightedFitterZeroField tracks are used
@@ -119,6 +132,11 @@ private:
 	std::string m_alignment_map_node_name{"WeightedFitterAlignmentStateMap"};
 	SvtxAlignmentStateMap* m_alignment_map{};
 
+	// Layers to be included--if populated, only those layers will be included
+	std::set<int> m_included_layers;
+	// Layers to be excluded
+	std::set<int> m_excluded_layers;
+
 	int m_track_id{0};
 	int m_crossing{SHRT_MAX};
 	std::vector<TrkrDefs::cluskey> m_cluster_keys;
@@ -131,7 +149,13 @@ private:
 	int m_num_mvtx{0};
 	int m_num_intt{0};
 	int m_num_tpc{0};
+	int m_num_tpot{0};
 	int m_side{-1};
+
+	int m_min_num_mvtx{0}; // 3
+	int m_min_num_intt{0}; // 2
+	int m_min_num_tpc{0}; // 20
+	int m_min_num_tpot{0}; // 0
 
 	TpcGlobalPositionWrapper m_global_position_wrapper;
 	// ClusterErrorPara m_cluster_error_para;
