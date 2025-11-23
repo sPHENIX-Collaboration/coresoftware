@@ -64,7 +64,7 @@ int Fun4AllHistoManager::RunAfterClosing()
     recoConsts *rc = recoConsts::instance();
     int runnumber = 0;
     std::string runseg;
-    if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
+    if (rc->FlagExist("RUNNUMBER") && m_UseFileRuleFlag)
     {
       runnumber = rc->get_IntFlag("RUNNUMBER");
       runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);
@@ -113,7 +113,7 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
   recoConsts *rc = recoConsts::instance();
   int runnumber = 0;
   std::string runseg;
-  if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
+  if (rc->FlagExist("RUNNUMBER") && m_UseFileRuleFlag)
   {
     runnumber = rc->get_IntFlag("RUNNUMBER");
     runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);

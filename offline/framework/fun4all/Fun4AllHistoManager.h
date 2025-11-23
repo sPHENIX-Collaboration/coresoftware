@@ -46,8 +46,6 @@ class Fun4AllHistoManager : public Fun4AllBase
   int dumpHistos(const std::string &filename = "", const std::string &openmode = "RECREATE");
   const std::string &OutFileName() { return m_outfilename; }
   void setOutfileName(const std::string &filename) { m_outfilename = filename; }
-  bool dumpHistoSegments() { return m_dumpHistoSegments; }
-  void dumpHistoSegments(const bool dump) { m_dumpHistoSegments = dump; }
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
   void segment(const int segment) { m_CurrentSegment = segment; }
@@ -60,7 +58,6 @@ class Fun4AllHistoManager : public Fun4AllBase
   void UseFileRule() { m_UseFileRuleFlag = true; }
 
 private:
-  bool m_dumpHistoSegments {false};
   bool m_LastEventInitializedFlag {false};
   bool m_UseFileRuleFlag {false};
   int m_CurrentSegment {0};
