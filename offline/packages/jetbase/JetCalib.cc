@@ -316,19 +316,19 @@ int getZvrtxBin(float zvrtx)
   {
     return 1;  // -60 to -30
   }
-  else if (zvrtx >= -30.0 && zvrtx < 30.0)
+  if (zvrtx >= -30.0 && zvrtx < 30.0)
   {
     return 0;  // -30 to 30
   }
-  else if (zvrtx >= 30.0 && zvrtx < 60)
+  if (zvrtx >= 30.0 && zvrtx < 60)
   {
     return 2;  // 30 to 60
   }
-  else if ((zvrtx < -60.0 && zvrtx >= -900) || (zvrtx >= 60.0 && zvrtx < 900))
+  if ((zvrtx < -60.0 && zvrtx >= -900) || (zvrtx >= 60.0 && zvrtx < 900))
   {
     return 3;  // -inf to -60 or 60 to inf
   }
-  else if (zvrtx < -900)
+  if (zvrtx < -900)
   {
     return 4;  // -999 no zvertex
   }

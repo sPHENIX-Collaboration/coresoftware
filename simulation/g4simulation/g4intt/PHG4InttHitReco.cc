@@ -30,7 +30,9 @@
 #include <g4main/PHG4Utils.h>
 
 #include <cdbobjects/CDBTTree.h>
+
 #include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
@@ -45,6 +47,7 @@
 
 #include <TSystem.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -65,16 +68,16 @@ PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   , m_Tmin(NAN)
   , m_Tmax(NAN)
   , m_crossingPeriod(NAN)
-  , m_truth_hits{new TrkrHitSetContainerv1}
+  , m_LocalOutVec(gsl_vector_alloc(3)), m_PathVec(gsl_vector_alloc(3)), m_SegmentVec(gsl_vector_alloc(3)), m_truth_hits{new TrkrHitSetContainerv1}
 {
   InitializeParameters();
 
   m_HitNodeName = "G4HIT_" + m_Detector;
   m_CellNodeName = "G4CELL_" + m_Detector;
   m_GeoNodeName = "CYLINDERGEOM_" + m_Detector;
-  m_LocalOutVec = gsl_vector_alloc(3);
-  m_PathVec = gsl_vector_alloc(3);
-  m_SegmentVec = gsl_vector_alloc(3);
+  
+  
+  
 }
 
 PHG4InttHitReco::~PHG4InttHitReco()
@@ -131,7 +134,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
     PHNodeIterator dstiter(dstNode);
@@ -147,7 +150,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
-  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
     PHNodeIterator dstiter(dstNode);
@@ -196,7 +199,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   {
     PHNodeIterator dstiter(dstNode);
     m_truthtracks = new TrkrTruthTrackContainerv1();
-    auto newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
     dstNode->addNode(newNode);
   }
 
@@ -204,7 +207,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   if (!m_truthclusters)
   {
     m_truthclusters = new TrkrClusterContainerv4;
-    auto newNode = new PHIODataNode<PHObject>(m_truthclusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(m_truthclusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
     dstNode->addNode(newNode);
   }
 
@@ -223,21 +226,21 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     if (!mClusHitsVerbose)
     {
       PHNodeIterator dstiter(dstNode);
-      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
       if (!DetNode)
       {
         DetNode = new PHCompositeNode("TRKR");
         dstNode->addNode(DetNode);
       }
       mClusHitsVerbose = new ClusHitsVerbosev1();
-      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
+      auto *newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_TruthClusHitsVerbose", "PHObject");
       DetNode->addNode(newNode);
     }
   }
 
   //Check for the hot channel map file
   bool m_useLocalHitMaskFile = m_localHotStripFileName.empty() ? false : true;
-  std::string hotStripFile = "";
+  std::string hotStripFile;
   if (m_useLocalHitMaskFile)
   {
     hotStripFile = m_localHotStripFileName;
@@ -274,7 +277,7 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     std::cout<<"INTT simulation BadChannelMap : size = "<<m_HotChannelSet.size()<<"  ";
-    std::cout<<(( m_HotChannelSet.size() > 0 ) ? "Hot channel map loaded " : "Hot channel map is not loaded");
+    std::cout<<(( !m_HotChannelSet.empty() ) ? "Hot channel map loaded " : "Hot channel map is not loaded");
     std::cout<<std::endl;
   }
 
@@ -291,7 +294,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
     std::cout << "Could not locate TRKR_HITSET node, quit! " << std::endl;
@@ -299,7 +302,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitTruthAssoc node
-  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
     std::cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << std::endl;
@@ -539,14 +542,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       // Get the hit crossing
       int crossing = (int) (round(time / m_crossingPeriod));
       // crossing has to fit into 5 bits
-      if (crossing < -512)
-      {
-        crossing = -512;
-      }
-      if (crossing > 511)
-      {
-        crossing = 511;
-      }
+      crossing = std::max(crossing, -512);
+      crossing = std::min(crossing, 511);
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the Intt ?
       // The hitset key includes the layer, the ladder_z_index (sensors numbered 0-3) and  ladder_phi_index (azimuthal location of ladder) for this hit
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index, crossing);
@@ -567,7 +564,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       double hit_energy = venergy[i1].first * TrkrDefs::InttEnergyScaleup;
       addtruthhitset(hitsetkey, hitkey, hit_energy);
 
-      if (m_HotChannelSet.find(raw) != m_HotChannelSet.end())
+      if (m_HotChannelSet.contains(raw))
       { //We still want the truth hit
         continue;
       }
@@ -866,7 +863,10 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode *topNode)
     // as the SvtxTrack clusters
     /* const double threshold = sum_adc * m_truth_pixelthreshold; */
     const double threshold = sum_adc * m_pixel_thresholdrat;       // FIXME -- tune this as needed
-    std::map<int, unsigned int> m_iphi, m_it, m_iphiCut, m_itCut;  // FIXME
+    std::map<int, unsigned int> m_iphi;
+    std::map<int, unsigned int> m_it;
+    std::map<int, unsigned int> m_iphiCut;
+    std::map<int, unsigned int> m_itCut;  // FIXME
 
     int layer = TrkrDefs::getLayer(hitsetkey);
     CylinderGeomIntt *geom = dynamic_cast<CylinderGeomIntt *>(geom_container->GetLayerGeom(layer));
@@ -908,7 +908,7 @@ void PHG4InttHitReco::cluster_truthhits(PHCompositeNode *topNode)
       // now get the positions from the geometry
       double local_hit_location[3] = {0., 0., 0.};
 
-      geom->find_strip_center_localcoords(ladder_z_index, row, col, local_hit_location);
+      geom->find_strip_center_localcoords(ladder_z_index, row, col, local_hit_location); //NOLINT(readability-suspicious-call-argument)
 
       xlocalsum += local_hit_location[0];
       ylocalsum += local_hit_location[1];
