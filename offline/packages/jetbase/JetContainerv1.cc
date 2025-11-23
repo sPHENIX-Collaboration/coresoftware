@@ -3,8 +3,7 @@
 
 #include <phool/phool.h>  // for PHWHERE
 
-#include <boost/format.hpp>
-
+#include <format>
 #include <limits>
 #include <string>
 
@@ -89,12 +88,12 @@ void JetContainerv1::print_jets(std::ostream& os)
   int ijet = 0;
   for (auto *jet : *this)
   {
-    os << (boost::format("  jet(%2i) : pT(%6.2f)  eta(%6.2f)  phi(%6.2f)") % ijet % jet->get_pt() % jet->get_eta() % jet->get_phi()).str();
+    os << std::format("  jet({:2}) : pT({:6.2f})  eta({:6.2f})  phi({:6.2f})", ijet, jet->get_pt(), jet->get_eta(), jet->get_phi());
     ++ijet;
 //    unsigned int i = 0;
     for (auto prop : m_pindex)
     {
-      os << (boost::format("  %8s(%6.2f)") % (str_Jet_PROPERTY(prop.first)) % (jet->get_property(prop.second))).str();
+      os << std::format("  {:>8}({:6.2f})", str_Jet_PROPERTY(prop.first), jet->get_property(prop.second));
 //      i++;
     }
     os << std::endl;
