@@ -6,6 +6,8 @@
 
 #include <TClonesArray.h>
 
+#include <limits>
+
 class JetContainerv1 : public JetContainer
 {
  public:
@@ -109,7 +111,7 @@ class JetContainerv1 : public JetContainer
 
   std::set<Jet::SRC> m_src;  //< set of sources (clusters, towers, etc)
 
-  float m_RhoMedian{NAN};
+  float m_RhoMedian{std::numeric_limits<float>::signaling_NaN()};
 
   ClassDefOverride(JetContainerv1, 1);
 };

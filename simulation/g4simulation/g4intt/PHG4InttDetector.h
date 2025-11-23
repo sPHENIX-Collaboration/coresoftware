@@ -61,7 +61,7 @@ class PHG4InttDetector : public PHG4Detector
 
  private:
   void AddGeometryNode();
-  int ConstructIntt(G4LogicalVolume *sandwich);
+  int ConstructIntt(G4LogicalVolume *trackerenvelope);
 
   PHG4InttDisplayAction *m_DisplayAction{nullptr};
   PHParametersContainer *m_ParamsContainer{nullptr};
