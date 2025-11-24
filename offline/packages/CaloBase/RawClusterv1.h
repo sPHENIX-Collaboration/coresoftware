@@ -20,6 +20,7 @@ class RawClusterv1 : public RawCluster
 {
  public:
   RawClusterv1() = default;
+  RawClusterv1(const RawCluster& cluster);
   ~RawClusterv1() override = default;
 
   void Reset() override;
@@ -171,6 +172,9 @@ class RawClusterv1 : public RawCluster
   prop_map_t prop_map;
 
   /** @} */  // end of property map definitions
+
+ private:
+  void copy_property_from_cluster(const RawCluster& source, const PROPERTY prop_id);
 
   //
  protected:
