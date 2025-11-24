@@ -178,7 +178,8 @@ WeightedFitter::make_ntuple (
 		"ntp", "ntp",
 		"event:track:"
 		"fitstatus:"
-		"nmaps:nintt:ntpc:cluslayer:"
+		"nmaps:nintt:ntpc:nmms:"
+		"cluslayer:"
 		"clusstave:cluschip:clusstrobe:"
 		"clusladderz:clusladderphi:clustimebucket:"
 		"clusside:clussector:"
@@ -387,6 +388,13 @@ WeightedFitter::get_points (
 		auto rphi_z_error_pair = ClusterErrorPara::get_clusterv5_modified_error(cluster, 0.0, cluster_key);
 		point.cluster_errors = Eigen::Vector2d {std::sqrt(rphi_z_error_pair.first), std::sqrt(rphi_z_error_pair.second) };
 
+		int layer = TrkrDefs::getLayer(cluster_key);
+
+		// If the user has specified which layers to include, use ONLY those layers
+		if (!m_included_layers.empty() && !m_included_layers.contains(layer)) { continue; }
+		// Skip any layers explicitly excluded by the user
+		if (m_excluded_layers.contains(layer)) { continue; }
+
 		m_weighted_track->push_back(point);
 
 		TrkrDefs::TrkrId trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(cluster_key));
@@ -401,10 +409,19 @@ WeightedFitter::get_points (
 				++m_num_tpc;
 				++sides[TpcDefs::getSide(cluster_key)];
 				break;
+			case TrkrDefs::micromegasId:
+				++m_num_tpot;
+				break;
 			default:
 				continue;
 		}
 	}
+
+	// Enforce minimum detector cluster requirements
+	if (m_num_mvtx < m_min_num_mvtx) { return true; }
+	if (m_num_intt < m_min_num_intt) { return true; }
+	if (m_num_tpc < m_min_num_tpc) { return true; }
+	if (m_num_tpot < m_min_num_tpot) { return true; }
 
 	if (m_reassign_sides && !sides.empty()) {
 		m_side = sides[0] < sides[1] ? 1 : 0;
@@ -641,7 +658,8 @@ WeightedFitter::add_track (
 			float ntp_data[] = {
 				(float)Fun4AllServer::instance()->EventNumber(), (float)m_track_id,
 				(float)m_minimizer->Status(),
-				(float)m_num_mvtx, (float)m_num_intt, (float)m_num_tpc, layer,
+				(float)m_num_mvtx, (float)m_num_intt, (float)m_num_tpc, (float)m_num_tpot,
+				layer,
 				stave, chip, strobe,
 				ladder_z, ladder_phi, time_bucket,
 				side, sector,
@@ -659,6 +677,7 @@ WeightedFitter::add_track (
 		if (2 < Verbosity()) {
 			std::cout
 				<< "\tcluster_key:  " << point.cluster_key << "\n"
+				<< "\tlayer:        " << (int)TrkrDefs::getLayer(point.cluster_key) << "\n"
 				<< "\tintersection: " << intersection.transpose() << "\n"
 				<< "\tpos:          " << point.cluster_position.transpose() << "\n"
 				<< "\to:            " << point.sensor_local_to_global_transform.translation().transpose() << "\n"
