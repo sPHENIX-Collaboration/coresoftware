@@ -126,7 +126,12 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode* topNode)
 
   /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
   /// e.g. 10 mus = 10,000 ns / 100 ns per crossing = 100 crossings
+  float defaultStrobe = m_strobeWidth;
   m_strobeWidth = MvtxRawDefs::getStrobeLength(runnumber) * 10;
+  if(std::isnan(m_strobeWidth))
+  {
+    m_strobeWidth = defaultStrobe * 10;
+  }
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -1189,7 +1194,9 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         {
           std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket
                     << " because it is outside the strobe range " << strobecrossinglow
-                    << " to " << strobecrossinghigh << std::endl;
+                    << " to " << strobecrossinghigh << " " << m_strobeWidth 
+                    << ", " << m_strobeLowWindow << ", " << m_strobeHighWindow << " for strobe " << strobe << std::endl;
+
         }
         continue;
       }
