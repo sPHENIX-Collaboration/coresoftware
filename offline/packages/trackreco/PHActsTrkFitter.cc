@@ -854,23 +854,25 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
   return;
 }
 
-bool PHActsTrkFitter::getTrackFitResult(FitResult& fitOutput,
-                                        TrackSeed* seed, SvtxTrack* track,
-                                        ActsTrackFittingAlgorithm::TrackContainer& tracks,
-                                        const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
+bool PHActsTrkFitter::getTrackFitResult(
+  const FitResult& fitOutput,
+  TrackSeed* seed, SvtxTrack* track,
+  const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+  const ActsTrackFittingAlgorithm::MeasurementContainer& measurements)
 {
   /// Make a trajectory state for storage, which conforms to Acts track fit
   /// analysis tool
   std::vector<Acts::MultiTrajectoryTraits::IndexType> trackTips;
   trackTips.reserve(1);
-  auto& outtrack = fitOutput.value();
+  const auto& outtrack = fitOutput.value();
   if (outtrack.hasReferenceSurface())
   {
     trackTips.emplace_back(outtrack.tipIndex());
     Trajectory::IndexedParameters indexedParams;
-    indexedParams.emplace(std::pair{outtrack.tipIndex(),
-                                    ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
-                                                                  outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis()}});
+    indexedParams.emplace(
+      outtrack.tipIndex(),
+      ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
+      outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis()});
 
     if (Verbosity() > 2)
     {
@@ -1069,15 +1071,16 @@ void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
   }
 }
 
-void PHActsTrkFitter::updateSvtxTrack(std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
-                                      Trajectory::IndexedParameters& paramsMap,
-                                      ActsTrackFittingAlgorithm::TrackContainer& tracks,
-                                      SvtxTrack* track)
+void PHActsTrkFitter::updateSvtxTrack(
+  const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+  const Trajectory::IndexedParameters& paramsMap,
+  const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+  SvtxTrack* track)
 {
   const auto& mj = tracks.trackStateContainer();
 
   /// only one track tip in the track fit Trajectory
-  auto& trackTip = tips.front();
+  const auto& trackTip = tips.front();
 
   if (Verbosity() > 2)
   {
