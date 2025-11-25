@@ -567,7 +567,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
                 << std::endl;
     }
 
-    addTrackState(track, cluskey, pathLength, trackStateParams);
+    m_transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_tGeometry->geometry().getGeoContext());
 
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
@@ -791,41 +791,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     // increment number of accepted clusters
     ++m_accepted_clusters;
   }
-}
-
-//_______________________________________________________________________________________________________
-void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params)
-{
-  /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
-
-  // create track state
-  SvtxTrackState_v3 state(pathlength);
-
-  // save global position
-  const auto global = params.position(m_tGeometry->geometry().getGeoContext());
-  state.set_x(global.x() / Acts::UnitConstants::cm);
-  state.set_y(global.y() / Acts::UnitConstants::cm);
-  state.set_z(global.z() / Acts::UnitConstants::cm);
-
-  // save momentum
-  const auto momentum = params.momentum();
-  state.set_px(momentum.x());
-  state.set_py(momentum.y());
-  state.set_pz(momentum.z());
-
-  // covariance
-  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params);
-  for (int i = 0; i < 6; ++i)
-  {
-    for (int j = 0; j < 6; ++j)
-    {
-      state.set_error(i, j, globalCov(i, j));
-    }
-  }
-
-  state.set_name(std::to_string(key));
-  state.set_cluskey(key);
-  track->insert_state(&state);
 }
 
 //_______________________________________________________________________________

@@ -129,9 +129,6 @@ class PHTpcResiduals : public SubsysReco
   bool checkTPOTResidual(SvtxTrack *track) const;
   void processTrack(SvtxTrack *track);
 
-  /// fill track state from bound track parameters
-  void addTrackState(SvtxTrack *track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters &params);
-
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3 &loc);
 
