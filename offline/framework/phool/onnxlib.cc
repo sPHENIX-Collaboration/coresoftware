@@ -2,6 +2,12 @@
 
 #include <iostream>
 
+namespace onnxlib
+{
+  int n_input {-1};
+  int n_output {-1};
+}  // namespace onnxlib
+
 Ort::Session *onnxSession(std::string &modelfile, int verbosity)
 {
   Ort::Env env(OrtLoggingLevel::ORT_LOGGING_LEVEL_WARNING, "fit");
