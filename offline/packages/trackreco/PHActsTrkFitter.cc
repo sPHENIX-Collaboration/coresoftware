@@ -869,6 +869,11 @@ bool PHActsTrkFitter::getTrackFitResult(
   {
     trackTips.emplace_back(outtrack.tipIndex());
     Trajectory::IndexedParameters indexedParams;
+
+    // retrieve track parameters from fit result
+    Acts::BoundTrackParameters parameters = ActsExamples::TrackParameters(outtrack.referenceSurface().getSharedPtr(),
+      outtrack.parameters(), outtrack.covariance(), outtrack.particleHypothesis());
+
     indexedParams.emplace(
       outtrack.tipIndex(),
       ActsExamples::TrackParameters{outtrack.referenceSurface().getSharedPtr(),
@@ -1123,12 +1128,12 @@ void PHActsTrkFitter::updateSvtxTrack(
   track->set_chisq(trajState.chi2Sum);
   track->set_ndf(trajState.NDF);
 
-  ActsTransformations rotater;
-  rotater.setVerbosity(Verbosity());
+  ActsTransformations transformer;
+  transformer.setVerbosity(Verbosity());
 
   if (params.covariance())
   {
-    auto rotatedCov = rotater.rotateActsCovToSvtxTrack(params);
+    auto rotatedCov = transformer.rotateActsCovToSvtxTrack(params);
 
     for (int i = 0; i < 6; i++)
     {
@@ -1146,10 +1151,9 @@ void PHActsTrkFitter::updateSvtxTrack(
   trackStateTimer.restart();
 
   if (m_fillSvtxTrackStates)
-  {
-    rotater.fillSvtxTrackStates(mj, trackTip, track,
-                                m_transient_geocontext);
-  }
+  { transformer.fillSvtxTrackStates(mj, trackTip, track, m_transient_geocontext); }
+
+  // in using silicon mm fit .
 
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
