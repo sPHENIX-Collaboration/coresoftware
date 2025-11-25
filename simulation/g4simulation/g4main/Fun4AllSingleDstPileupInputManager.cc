@@ -6,12 +6,12 @@
 #include "Fun4AllSingleDstPileupInputManager.h"
 #include "Fun4AllDstPileupMerger.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-
 #include <ffaobjects/RunHeader.h>
 
 #include <frog/FROG.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
@@ -47,7 +47,7 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
   with additional code to handle the background IManager
   */
 
-  auto se = Fun4AllServer::instance();
+  auto *se = Fun4AllServer::instance();
   if (IsOpen())
   {
     std::cout << "Closing currently open file "
@@ -76,7 +76,7 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
       m_IManager->read(m_runNode);
 
       // get the current run number
-      auto runheader = findNode::getClass<RunHeader>(m_runNode, "RunHeader");
+      auto *runheader = findNode::getClass<RunHeader>(m_runNode, "RunHeader");
       if (runheader)
       {
         SetRunNumber(runheader->get_RunNumber());
@@ -130,13 +130,11 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
     AddToFileOpened(FileName());  // add file to the list of files which were opened
     return 0;
   }
-  else
-  {
-    std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
-    m_IManager.reset();
-    m_IManager_background.reset();
-    return -1;
-  }
+
+  std::cout << PHWHERE << ": " << Name() << " Could not open file " << FileName() << std::endl;
+  m_IManager.reset();
+  m_IManager_background.reset();
+  return -1;
 }
 
 //_____________________________________________________________________________
@@ -152,13 +150,11 @@ int Fun4AllSingleDstPileupInputManager::run(const int nevents)
       }
       return -1;
     }
-    else
+
+    if (OpenNextFile())
     {
-      if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return -1;
     }
   }
 
@@ -170,7 +166,7 @@ int Fun4AllSingleDstPileupInputManager::run(const int nevents)
 readagain:
 
   // read main event to dstNode
-  auto dummy = m_IManager->read(m_dstNode);
+  auto *dummy = m_IManager->read(m_dstNode);
   int ncount = 0;
   while (dummy)
   {
@@ -330,10 +326,10 @@ int Fun4AllSingleDstPileupInputManager::setBranches()
       std::map<const std::string, int>::const_iterator branchiter;
       for (branchiter = m_branchread.begin(); branchiter != m_branchread.end(); ++branchiter)
       {
-        m_IManager->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+        m_IManager->selectObjectToRead(branchiter->first, branchiter->second);
         if (m_IManager_background)
         {
-          m_IManager_background->selectObjectToRead(branchiter->first.c_str(), branchiter->second);
+          m_IManager_background->selectObjectToRead(branchiter->first, branchiter->second);
         }
         if (Verbosity() > 0)
         {

@@ -382,7 +382,7 @@ void PHG4InttSteppingAction::SetHitNodeName(const std::string& type, const std::
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_ABSORBER")
+  if (type == "G4HIT_ABSORBER")
   {
     m_AbsorberNodeName = name;
     return;

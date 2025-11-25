@@ -3,8 +3,6 @@
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <boost/lexical_cast.hpp>
-
 #include <iostream>  // for operator<<, basic_ostream, endl, cout
 #include <string>    // for string, operator<<
 
@@ -22,7 +20,7 @@ namespace PHG4TrackUserInfo
       else
       {
         std::cout << "Unknown UserTrackInformation stored in track number "
-                  << boost::lexical_cast<std::string>(track->GetTrackID())
+                  << track->GetTrackID()
                   << std::endl;
       }
     }
@@ -47,7 +45,7 @@ namespace PHG4TrackUserInfo
       else
       {
         std::cout << "Unknown UserTrackInformation stored in track number "
-                  << boost::lexical_cast<std::string>(track->GetTrackID())
+                  << track->GetTrackID()
                   << std::endl;
       }
     }
@@ -72,7 +70,7 @@ namespace PHG4TrackUserInfo
       else
       {
         std::cout << "Unknown UserTrackInformation stored in track number "
-                  << boost::lexical_cast<std::string>(track->GetTrackID())
+                  << track->GetTrackID()
                   << std::endl;
       }
     }
@@ -97,7 +95,7 @@ namespace PHG4TrackUserInfo
       else
       {
         std::cout << "Unknown UserTrackInformation stored in track number "
-                  << boost::lexical_cast<std::string>(track->GetTrackID())
+                  << track->GetTrackID()
                   << std::endl;
       }
     }
@@ -122,7 +120,7 @@ namespace PHG4TrackUserInfo
       else
       {
         std::cout << "Unknown UserTrackInformation stored in track number "
-                  << boost::lexical_cast<std::string>(track->GetTrackID())
+                  << track->GetTrackID()
                   << std::endl;
       }
     }
@@ -147,7 +145,7 @@ namespace PHG4TrackUserInfo
       else
       {
         std::cout << "Unknown UserTrackInformation stored in track number "
-                  << boost::lexical_cast<std::string>(track->GetTrackID())
+                  << track->GetTrackID()
                   << std::endl;
       }
     }

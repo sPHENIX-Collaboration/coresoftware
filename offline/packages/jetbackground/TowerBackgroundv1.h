@@ -27,6 +27,7 @@ class TowerBackgroundv1 : public TowerBackground
   float get_v2() const override { return _v2; }
   float get_Psi2() const override { return _Psi2; }
   int get_nStripsUsedForFlow() const override { return _nStrips; }
+  int get_nTowersUsedForBkg() const override { return _nTowers; }
   bool get_flow_failure_flag() const override { return _flow_failure_flag; }
 
  private:

@@ -13,15 +13,13 @@ class PHG4ConsistencyCheck : public SubsysReco
 {
  public:
   PHG4ConsistencyCheck(const std::string &name = "CONSISTENCYCHECK");
-  ~PHG4ConsistencyCheck() override {}
-  //! init
-  int InitRun(PHCompositeNode *) override;
+  ~PHG4ConsistencyCheck() override = default;
 
   //! event processing
   int process_event(PHCompositeNode *) override;
 
  protected:
-  unsigned int errorcnt;
+  unsigned int errorcnt{0};
 };
 
 #endif

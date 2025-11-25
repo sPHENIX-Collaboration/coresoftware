@@ -22,15 +22,10 @@ class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
  public:
   PHG4TrackUserInfoV1()
     : G4VUserTrackInformation("TrackUserInfoV1")
-    , usertrackid(0)
-    , userparentid(0)
-    , userprimaryid(0)
-    , wanted(0)
-    , keep(0)
-    , shower(nullptr)
   {
   }
-  ~PHG4TrackUserInfoV1() override {}
+
+  ~PHG4TrackUserInfoV1() override = default;
 
   void Print() const override
   {
@@ -61,12 +56,12 @@ class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
   PHG4Shower* GetShower() const { return shower; }
 
  private:
-  int usertrackid;
-  int userparentid;
-  int userprimaryid;
-  int wanted;
-  int keep;
-  PHG4Shower* shower;
+  int usertrackid{0};
+  int userparentid{0};
+  int userprimaryid{0};
+  int wanted{0};
+  int keep{0};
+  PHG4Shower* shower{nullptr};
 };
 
 // Utility function to wrap up the operations involved with adding user info
@@ -78,9 +73,9 @@ namespace PHG4TrackUserInfo
   void SetUserTrackId(G4Track* track, const int usertrackid);
   void SetUserParentId(G4Track* track, const int userparentid);
   void SetUserPrimaryId(G4Track* track, const int userprimaryid);
-  void SetWanted(G4Track* track, const int wanted);
-  void SetKeep(G4Track* track, const int keep);
-  void SetShower(G4Track* track, PHG4Shower* ptr);
+  void SetWanted(G4Track* track, const int trkid);
+  void SetKeep(G4Track* track, const int trkid);
+  void SetShower(G4Track* track, PHG4Shower* shower);
 }  // namespace PHG4TrackUserInfo
 
 #endif

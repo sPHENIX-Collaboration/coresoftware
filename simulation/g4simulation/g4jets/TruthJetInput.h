@@ -13,7 +13,7 @@ class TruthJetInput : public JetInput
 {
  public:
   TruthJetInput(Jet::SRC input);
-  ~TruthJetInput() override {}
+  ~TruthJetInput() override = default;
 
   //! by default, TruthJetInput process all truth primary particle.
   //! However, it can be configured to read only one or more embedded stream via add_embedding_flag()
@@ -37,9 +37,9 @@ class TruthJetInput : public JetInput
   }
 
  private:
-  Jet::SRC m_Input = Jet::VOID;
-  float m_EtaMin = -4.;
-  float m_EtaMax = 4.;
+  Jet::SRC m_Input {Jet::VOID};
+  float m_EtaMin {-4.};
+  float m_EtaMax {4.};
 
   //! if empty: process all primary particles
   //! if non-empty: only process primary particles in the selected embed stream.

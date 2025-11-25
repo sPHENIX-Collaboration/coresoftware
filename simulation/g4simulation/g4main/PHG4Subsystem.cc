@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-using namespace std;
-
 void PHG4Subsystem::SetMotherSubsystem(PHG4Subsystem *subsys)
 {
   if (subsys->CanBeMotherSubsystem())
@@ -13,8 +11,8 @@ void PHG4Subsystem::SetMotherSubsystem(PHG4Subsystem *subsys)
     m_MyMotherSubsystem = subsys;
     return;
   }
-  cout << "PHG4Subsystem::SetMotherSubsystem: "
-       << subsys->Name() << " is not implemented as a mother subsystem"
-       << endl;
+  std::cout << "PHG4Subsystem::SetMotherSubsystem: "
+            << subsys->Name() << " is not implemented as a mother subsystem"
+            << std::endl;
   gSystem->Exit(1);
 }

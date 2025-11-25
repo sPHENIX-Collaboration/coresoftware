@@ -32,6 +32,7 @@
 //
 
 #include "G4TBMagneticFieldSetup.hh"
+
 #include "G4TBFieldMessenger.hh"
 #include "PHG4MagneticField.h"
 
@@ -69,7 +70,7 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField* phfield)
   fEMfield = new PHG4MagneticField(phfield);
   fFieldMessenger = new G4TBFieldMessenger(this);
   fEquation = new G4Mag_UsualEqRhs(fEMfield);
-  fMinStep = 0.005 * mm;  // minimal step of 10 microns
+  fMinStep = 0.005 * mm;  // minimal step of 5 microns
   fStepperType = 4;       // ClassicalRK4 -- the default stepper
 
   fFieldManager = GetGlobalFieldManager();
@@ -290,10 +291,8 @@ void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector& fieldVector)
 
   if (fieldVector != G4ThreeVector(0., 0., 0.))
   {
-    if (fEMfield)
-    {
-      delete fEMfield;
-    }
+    delete fEMfield;
+
     fEMfield = new G4UniformMagField(fieldVector);
 
     fEquation->SetFieldObj(fEMfield);  // must now point to the new field

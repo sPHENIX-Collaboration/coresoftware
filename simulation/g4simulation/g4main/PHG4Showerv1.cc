@@ -8,66 +8,53 @@
 #include <iterator>  // for begin, end
 #include <utility>
 
-using namespace std;
-
 PHG4Showerv1::PHG4Showerv1()
-  : _id(0xFFFFFFFF)
-  , _parent_particle_id(0)
-  , _parent_shower_id(0)
-  , _pos()
-  , _covar()
-  , _edep()
-  , _eion()
-  , _light_yield()
-  , _eh_ratio()
-  , _g4particle_ids()
-  , _g4hit_ids()
 {
   // with C++11 begin() and end() exist, you do not need the array size anymore
   // to fill an array
-  fill(std::begin(_pos), std::end(_pos), NAN);
-  fill(std::begin(_covar), std::end(_covar), NAN);
+  std::fill(std::begin(_pos), std::end(_pos), std::numeric_limits<float>::quiet_NaN());
+  std::fill(std::begin(_covar), std::end(_covar), std::numeric_limits<float>::quiet_NaN());
 }
 
-void PHG4Showerv1::identify(ostream &os) const
+void PHG4Showerv1::identify(std::ostream &os) const
 {
-  os << "---PHG4Showerv1-------------------------------" << endl;
-  os << "id: " << get_id() << endl;
-  os << "parent_particle_id: " << get_parent_particle_id() << endl;
-  os << "parent_shower_id: " << get_parent_shower_id() << endl;
-  os << "x: " << get_x() << endl;
-  os << "y: " << get_y() << endl;
-  os << "z: " << get_z() << endl;
+  os << "---PHG4Showerv1-------------------------------" << std::endl;
+  os << "id: " << get_id() << std::endl;
+  os << "parent_particle_id: " << get_parent_particle_id() << std::endl;
+  os << "parent_shower_id: " << get_parent_shower_id() << std::endl;
+  os << "x: " << get_x() << std::endl;
+  os << "y: " << get_y() << std::endl;
+  os << "z: " << get_z() << std::endl;
 
   os << "         ( ";
   os << get_covar(0, 0) << " , ";
   os << get_covar(0, 1) << " , ";
-  os << get_covar(0, 2) << " )" << endl;
+  os << get_covar(0, 2) << " )" << std::endl;
   os << " covar = ( ";
   os << get_covar(1, 0) << " , ";
   os << get_covar(1, 1) << " , ";
-  os << get_covar(1, 2) << " )" << endl;
+  os << get_covar(1, 2) << " )" << std::endl;
   os << "         ( ";
   os << get_covar(2, 0) << " , ";
   os << get_covar(2, 1) << " , ";
-  os << get_covar(2, 2) << " )" << endl;
+  os << get_covar(2, 2) << " )" << std::endl;
 
-  os << "VOLUME ID : edep eion light_yield" << endl;
+  os << "VOLUME ID : edep eion light_yield" << std::endl;
   for (auto iter : _edep)
   {
     int volid = iter.first;
     os << volid << " : " << get_edep(volid) << " " << get_eion(volid) << " "
-       << get_light_yield(volid) << endl;
+       << get_light_yield(volid) << std::endl;
   }
 
-  os << "G4Particle IDs" << endl;
+  os << "G4Particle IDs" << std::endl;
   for (int _g4particle_id : _g4particle_ids)
   {
     os << _g4particle_id << " ";
   }
-  os << endl;
+  os << std::endl;
 
-  os << "G4Hit IDs" << endl;
+  os << "G4Hit IDs" << std::endl;
   for (const auto &_g4hit_id : _g4hit_ids)
   {
     for (unsigned long long jter : _g4hit_id.second)
@@ -75,9 +62,9 @@ void PHG4Showerv1::identify(ostream &os) const
       os << jter << " ";
     }
   }
-  os << endl;
+  os << std::endl;
 
-  os << "-----------------------------------------------" << endl;
+  os << "-----------------------------------------------" << std::endl;
 
   return;
 }
@@ -90,7 +77,7 @@ int PHG4Showerv1::isValid() const
   }
   for (float _po : _pos)
   {
-    if (isnan(_po))
+    if (std::isnan(_po))
     {
       return 0;
     }
@@ -99,7 +86,7 @@ int PHG4Showerv1::isValid() const
   {
     for (int i = j; i < 3; ++i)
     {
-      if (isnan(get_covar(i, j)))
+      if (std::isnan(get_covar(i, j)))
       {
         return 0;
       }

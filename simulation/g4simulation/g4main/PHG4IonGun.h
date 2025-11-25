@@ -5,7 +5,7 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
-#include <cmath>
+#include <limits>
 #include <string>
 
 class PHG4Particle;
@@ -26,12 +26,12 @@ class PHG4IonGun : public PHG4ParticleGeneratorBase
 
  private:
   void UpdateParticle();
-  PHG4Particle *ion = nullptr;
-  int A = 0;
-  int Z = 0;
-  double mom[3] = {NAN, NAN, NAN};
-  int ioncharge = 0;
-  double excitEnergy = 0.;
+  PHG4Particle *ion{nullptr};
+  int A{0};
+  int Z{0};
+  double mom[3]{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  int ioncharge{0};
+  double excitEnergy{0.};
 };
 
 #endif

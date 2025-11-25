@@ -25,29 +25,27 @@
 #include <string>   // for operator<<
 #include <utility>  // for pair
 
-using namespace std;
-
 void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   if (!inEvent)
   {
     return;
   }
-  map<int, PHG4VtxPoint*>::const_iterator vtxiter;
-  multimap<int, PHG4Particle*>::const_iterator particle_iter;
+  std::map<int, PHG4VtxPoint*>::const_iterator vtxiter;
+  std::multimap<int, PHG4Particle*>::const_iterator particle_iter;
   std::pair<std::map<int, PHG4VtxPoint*>::const_iterator, std::map<int, PHG4VtxPoint*>::const_iterator> vtxbegin_end = inEvent->GetVertices();
 
   for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; ++vtxiter)
   {
-    //       cout << "vtx number: " << vtxiter->first << endl;
+    //       std::cout << "vtx number: " << vtxiter->first << std::endl;
     //       (*vtxiter->second).identify();
     // expected units are cm !
     G4ThreeVector position((*vtxiter->second).get_x() * cm, (*vtxiter->second).get_y() * cm, (*vtxiter->second).get_z() * cm);
     G4PrimaryVertex* vertex = new G4PrimaryVertex(position, (*vtxiter->second).get_t() * nanosecond);
-    pair<multimap<int, PHG4Particle*>::const_iterator, multimap<int, PHG4Particle*>::const_iterator> particlebegin_end = inEvent->GetParticles(vtxiter->first);
+    std::pair<std::multimap<int, PHG4Particle*>::const_iterator, std::multimap<int, PHG4Particle*>::const_iterator> particlebegin_end = inEvent->GetParticles(vtxiter->first);
     for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
     {
-      // cout << "PHG4PrimaryGeneratorAction: dealing with" << endl;
+      // std::cout << "PHG4PrimaryGeneratorAction: dealing with" << std::endl;
       //  (particle_iter->second)->identify();
 
       // this is really ugly, and maybe it can be streamlined. Initially it was clear cut, if we only give a particle by its name,
@@ -69,8 +67,8 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         }
         else
         {
-          cout << PHWHERE << "Cannot get PDG value for particle " << particleName
-               << ", dropping it" << endl;
+          std::cout << PHWHERE << "Cannot get PDG value for particle " << particleName
+                    << ", dropping it" << std::endl;
           continue;
         }
       }
@@ -101,9 +99,9 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         }
         else
         {
-          cout << PHWHERE << " cannot get G4 particle definition" << endl;
-          cout << "you should have never gotten here, please check this in detail" << endl;
-          cout << "exiting now" << endl;
+          std::cout << PHWHERE << " cannot get G4 particle definition" << std::endl;
+          std::cout << "you should have never gotten here, please check this in detail" << std::endl;
+          std::cout << "exiting now" << std::endl;
           exit(1);
         }
       }
@@ -134,7 +132,7 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
           }
           else
           {
-            cout << __PRETTY_FUNCTION__ << ": WARNING : PDG ID of " << (*particle_iter->second).get_pid() << " is not a valid ion! Therefore, this particle is ignored in processing :";
+            std::cout << __PRETTY_FUNCTION__ << ": WARNING : PDG ID of " << (*particle_iter->second).get_pid() << " is not a valid ion! Therefore, this particle is ignored in processing :";
             (*particle_iter->second).identify();
           }
         }
