@@ -508,12 +508,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     const double globalStateMomY = state->get_py();
     const double globalStateMomZ = state->get_pz();
 
-//     // errors
-//     const auto globalStateCov = m_transformer.rotateSvtxTrackCovToActs(state);
-//     const double trackRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm;
-//     const double trackZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm;
-
-    // TODO: double check vs previous
+    // errors
     const double trackRPhiErr = state->get_rphi_error();
     const double trackZErr = state->get_z_error();
 

@@ -6,7 +6,6 @@
 #include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -113,11 +112,6 @@ class PHTpcResiduals : public SubsysReco
   void disableFluctuationCorr() { m_disable_fluctuation_corr = true; }
 
  private:
-  using BoundTrackParam =
-      const Acts::BoundTrackParameters;
-
-  /// pairs path length and track parameters
-  using BoundTrackParamPair = std::pair<float, BoundTrackParam>;
 
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
@@ -130,9 +124,6 @@ class PHTpcResiduals : public SubsysReco
 
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3 &loc);
-
-  /// acts transformation
-  ActsTransformations m_transformer;
 
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
