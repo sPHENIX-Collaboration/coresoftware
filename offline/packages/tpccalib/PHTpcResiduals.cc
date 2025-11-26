@@ -526,48 +526,15 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       continue;
     }
 
-    const auto layer = TrkrDefs::getLayer(cluskey);
-    auto* const cluster = m_clusterContainer->findCluster(cluskey);
-    const auto surface = m_tGeometry->maps().getSurface(cluskey, cluster);
-    // auto result = propagator.propagateTrack(trackParams, surface);//surface aborter
-    auto result = propagator.propagateTrack(trackParams, layer);  // layer aborter
+    // find matching track state
+    const auto stateiter = std::find_if( track->begin_states(), track->end_states(), [&cluskey]( const auto& state_pair )
+      { return state_pair.second->get_cluskey() == cluskey; } );
 
-    // skip if propagation failed
-    if (!result.ok())
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << "Starting track params position/momentum: "
-                  << trackParams.position(m_tGeometry->geometry().geoContext).transpose()
-                  << std::endl
-                  << std::endl
-                  << "Track params phi/eta "
-                  << std::atan2(trackParams.momentum().y(),
-                                trackParams.momentum().x())
-                  << " and "
-                  << std::atanh(trackParams.momentum().z() / trackParams.momentum().norm())
-                  << std::endl;
-      }
-
-      continue;
-    }
+    // check if found
+    if( stateiter ==  track->end_states() ) continue;
 
     // get extrapolated track state, convert to sPHENIX and add to track
-    auto& [pathLength, trackStateParams] = result.value();
-    pathLength /= Acts::UnitConstants::cm;
-
-    if (Verbosity() > 1)
-    {
-      std::cout << "PHTpcResiduals::processTrack -"
-                << " path length: " << pathLength
-                << " track momentum : "
-                << trackParams.momentum()
-                << " propagator momentum : "
-                << trackStateParams.momentum()
-                << std::endl;
-    }
-
-    m_transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_tGeometry->geometry().getGeoContext());
+    const auto& [pathLength, state] = stateiter
 
     // calculate residuals with respect to cluster
     // Get all the relevant information for residual calculation
@@ -577,12 +544,8 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     const double clusZ = globClusPos(2);
 
     // cluster errors
-    double clusRPhiErr = 0;
-    double clusZErr = 0;
-
-    clusRPhiErr = cluster->getRPhiError();
-    clusZErr = cluster->getZError();
-
+    const double clusRPhiErr = cluster->getRPhiError();
+    const double clusZErr = cluster->getZError();
     if (Verbosity() > 3)
     {
       std::cout << "PHTpcResiduals::processTrack -"
@@ -593,29 +556,31 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
                 << std::endl;
     }
 
-    /*
-     * as instructed by Christof, it should not be necessary to cut on small
-     * cluster errors any more with clusters of version 4 or higher
-     */
+    // position
+    const double globStateX = state->get_x();
+    const double globStateY = state->get_y();
+    const double globStateZ = state->get_z();
+    const auto trackR = std::sqrt(square(globStateX) + square(globStateY));
 
-    const auto globalStatePos = trackStateParams.position(m_tGeometry->geometry().getGeoContext());
-    const auto globalStateMom = trackStateParams.momentum();
-    const auto globalStateCov = *trackStateParams.covariance();  // NOLINT(bugprone-unchecked-optional-access)
+    // momentum
+    const double globalStateMomX = state->get_px();
+    const double globalStateMomY = state->get_px();
+    const double globalStateMomZ = state->get_pz();
 
-    const double trackRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm;
-    const double trackZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm;
+//     // errors
+//     const auto globalStateCov = m_transformer.rotateSvtxTrackCovToActs(state);
+//     const double trackRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm;
+//     const double trackZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm;
 
-    const double globStateX = globalStatePos.x() / Acts::UnitConstants::cm;
-    const double globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
-    const double globStateZ = globalStatePos.z() / Acts::UnitConstants::cm;
-
-    const double trackR = std::sqrt(square(globStateX) + square(globStateY));
+    // TODO: double check vs previous
+    const double trackRPhiErr = state->get_rphi_error();
+    const double trackZErr = state->get_z_error();
 
     const double dr = clusR - trackR;
-    const double trackDrDt = (globStateX * globalStateMom(0) + globStateY * globalStateMom(1)) / trackR;
-    const double trackDxDr = globalStateMom(0) / trackDrDt;
-    const double trackDyDr = globalStateMom(1) / trackDrDt;
-    const double trackDzDr = globalStateMom(2) / trackDrDt;
+    const double trackDrDt = (globStateX * globalStateMomX + globStateY * globalStateMomY) / trackR;
+    const double trackDxDr = globalStateMomX / trackDrDt;
+    const double trackDyDr = globalStateMomY / trackDrDt;
+    const double trackDzDr = globalStateMomZ / trackDrDt;
 
     const double trackX = globStateX + dr * trackDxDr;
     const double trackY = globStateY + dr * trackDyDr;
@@ -682,9 +647,9 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       continue;
     }
 
-    const double trackPPhi = -trackStateParams.momentum()(0) * std::sin(trackPhi) + trackStateParams.momentum()(1) * std::cos(trackPhi);
-    const double trackPR = trackStateParams.momentum()(0) * std::cos(trackPhi) + trackStateParams.momentum()(1) * std::sin(trackPhi);
-    const double trackPZ = trackStateParams.momentum()(2);
+    const double trackPPhi = -globalStateMomX*std::sin(trackPhi) + globalStateMomY*std::cos(trackPhi);
+    const double trackPR = globalStateMomX*std::cos(trackPhi) + globalStateMomY*std::sin(trackPhi);
+    const double trackPZ = globalStateMomZ;
 
     const double trackAlpha = -trackPPhi / trackPR;
     if (std::isnan(trackAlpha))
