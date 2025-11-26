@@ -717,8 +717,8 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       fitTimer.stop();
       fitTimer.restart();
 
-      std::shared_ptr<Acts::VectorTrackContainer> trackContainer;
-      std::shared_ptr<Acts::VectorMultiTrajectory> trackStateContainer;
+      auto trackContainer = std::make_shared<Acts::VectorTrackContainer>();
+      auto trackStateContainer = std::make_shared<Acts::VectorMultiTrajectory>();
       ActsTrackFittingAlgorithm::TrackContainer tracks(trackContainer, trackStateContainer);
 
       if(Verbosity() > 1)
