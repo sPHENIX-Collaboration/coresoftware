@@ -49,7 +49,7 @@ namespace
     explicit range_ftor_t(double value)
       : m_value(value){};
 
-    bool operator()(const TpcSpaceChargeReconstructionHelper::range_t& range)
+    bool operator()(const TpcSpaceChargeReconstructionHelper::range_t& range) const
     {
       return m_value > range.first && m_value < range.second;
     }
@@ -370,10 +370,13 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, const TH2
             auto ir_cm = source_cm->GetYaxis()->FindBin( r );
 
             // check out of bound
-            if( ip_cm == 0 || ip_cm > source_cm->GetNbinsX() ) { scale = 1; }
-            else if( ir==0 || ir > source_cm->GetNbinsY() ) { scale = 1; }
-            else if( ir==1 || ir == source_cm->GetNbinsY() )
+            if( ( ip_cm == 0 || ip_cm > source_cm->GetNbinsX() ) ||
+              ( ir==0 || ir > source_cm->GetNbinsY() ) )
             {
+
+              scale = 1;
+
+            } else if( ir_cm==1 || ir_cm == source_cm->GetNbinsY() ) {
 
               // if first or last bin is used, interpolate will break. Need to use the bin content
               const double distortion_local = source_cm->GetBinContent(ip_cm, ir_cm);
@@ -389,7 +392,7 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, const TH2
 
             } else {
 
-              // in first or last bin of histogram, interpolation will not work.
+              // use interpolation
               const double distortion_local = source_cm->Interpolate(phi, r);
               const double distortion_ref = source_cm->Interpolate(phi_ref, r);
               scale = distortion_local / distortion_ref;

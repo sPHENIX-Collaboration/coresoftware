@@ -471,7 +471,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       { return state_pair.second->get_cluskey() == cluskey; } );
 
     // check if found
-    if( stateiter ==  track->end_states() ) continue;
+    if( stateiter ==  track->end_states() ) { continue; }
 
     // get extrapolated track state, convert to sPHENIX and add to track
     const auto& [pathLength, state] = *stateiter;

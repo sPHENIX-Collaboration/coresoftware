@@ -946,12 +946,12 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
     const CalibratorAdapter& calibrator,
     ActsTrackFittingAlgorithm::TrackContainer& tracks)
 {
+  // use direct fit for silicon MM gits or direct navigation
   if (m_fitSiliconMMs || m_directNavigation)
-  {
-    return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, calibrator, tracks);
-  } else {
-    return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, calibrator, tracks);
-  }
+  { return (*m_fitCfg.dFit)(sourceLinks, seed, kfOptions, surfSequence, calibrator, tracks); }
+
+  // use full fit in all other cases
+  return (*m_fitCfg.fit)(sourceLinks, seed, kfOptions, calibrator, tracks);
 }
 
 //__________________________________________________________________________________
@@ -970,7 +970,7 @@ SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks
       std::cout << "SL available on : " << asl.geometryId() << std::endl;
     }
 
-    const auto surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
+    const auto* const surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
     if (m_fitSiliconMMs)
     {
       // skip TPC surfaces
@@ -1137,7 +1137,7 @@ void PHActsTrkFitter::updateSvtxTrack(
 
   // in using silicon mm fit also extrapolate track parameters to all TPC surfaces with clusters
   // get all tpc clusters
-  auto seed = track->get_tpc_seed();
+  auto* seed = track->get_tpc_seed();
   if( m_fitSiliconMMs && seed )
   {
 
@@ -1157,7 +1157,7 @@ void PHActsTrkFitter::updateSvtxTrack(
       // get layer, propagate
       const auto layer = TrkrDefs::getLayer(cluskey);
       auto result = propagator.propagateTrack(params, layer);
-      if( !result.ok() ) continue;
+      if( !result.ok() ) { continue; }
 
       // get path length and extrapolated parameters
       auto& [pathLength, trackStateParams] = result.value();
