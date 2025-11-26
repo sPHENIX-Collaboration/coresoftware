@@ -10,7 +10,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
-#include <trackbase_historic/SvtxTrackState_v2.h>
+#include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/TrackSeed.h>
 
 #include <trackreco/ActsPropagator.h>
@@ -799,7 +799,7 @@ void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, floa
   /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
 
   // create track state
-  SvtxTrackState_v2 state(pathlength);
+  SvtxTrackState_v3 state(pathlength);
 
   // save global position
   const auto global = params.position(m_tGeometry->geometry().getGeoContext());
