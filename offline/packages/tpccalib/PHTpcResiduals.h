@@ -11,7 +11,6 @@
 #include <fun4all/SubsysReco.h>
 
 #include <Acts/Definitions/Algebra.hpp>  // for Vector3
-#include <Acts/EventData/TrackParameters.hpp>
 
 #include <cmath>
 #include <memory>
@@ -131,12 +130,6 @@ class PHTpcResiduals : public SubsysReco
 
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3 &loc);
-
-  //! create ACTS track parameters from Svtx track
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *) const;
-
-  //! create ACTS track parameters from Svtx track state
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *, SvtxTrackState *) const;
 
   /// acts transformation
   ActsTransformations m_transformer;

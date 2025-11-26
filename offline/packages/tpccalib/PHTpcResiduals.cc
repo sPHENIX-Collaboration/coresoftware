@@ -13,8 +13,6 @@
 #include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/TrackSeed.h>
 
-#include <trackreco/ActsPropagator.h>
-
 #include <micromegas/MicromegasDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -442,59 +440,6 @@ bool PHTpcResiduals::checkTPOTResidual(SvtxTrack* track) const
   return flag;
 }
 
-//___________________________________________________________________________________
-Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
-{
-  return makeTrackParams(track, track->get_state(0));
-}
-
-//___________________________________________________________________________________
-Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, SvtxTrackState* state) const
-{
-  Acts::Vector3 momentum(track->get_px(),
-                         track->get_py(),
-                         track->get_pz());
-  double trackQ = track->get_charge() * Acts::UnitConstants::e;
-  double p = state->get_p();
-
-  // covariance
-  const auto cov = m_transformer.rotateSvtxTrackCovToActs(state);
-
-  // position
-  const Acts::Vector3 position(
-      state->get_x() * Acts::UnitConstants::cm,
-      state->get_y() * Acts::UnitConstants::cm,
-      state->get_z() * Acts::UnitConstants::cm);
-
-  if (Verbosity())
-  {
-    std::cout << "PHTpcResiduals::makeTrackParams -"
-              << " position: " << position
-              << " momentum: " << momentum
-              << std::endl;
-
-    // covariance
-    std::cout << "PHTpcResiduals::makeTrackParams - cov: " << std::endl;
-    for (int i = 0; i < 6; ++i)
-    {
-      std::cout << "  ";
-      for (int j = 0; j < 6; ++j)
-      {
-        std::cout << state->get_error(i, j) << " ";
-      }
-      std::cout << std::endl;
-    }
-  }
-
-  const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
-  const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
-                                            actsFourPos, momentum,
-                                            trackQ / p, cov,
-                                            Acts::ParticleHypothesis::pion())
-      .value();
-}
-
 //_____________________________________________________________________________________________
 void PHTpcResiduals::processTrack(SvtxTrack* track)
 {
@@ -505,10 +450,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
               << " position: " << Acts::Vector3(track->get_x(), track->get_y(), track->get_z())
               << std::endl;
   }
-  ActsPropagator propagator(m_tGeometry);
-
-  // create ACTS parameters from track parameters at origin
-  auto trackParams = makeTrackParams(track);
 
   // store crossing. It is used in calculating cluster's global position
   const auto crossing = track->get_crossing();
@@ -534,7 +475,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     if( stateiter ==  track->end_states() ) continue;
 
     // get extrapolated track state, convert to sPHENIX and add to track
-    const auto& [pathLength, state] = stateiter
+    const auto& [pathLength, state] = *stateiter;
 
     // calculate residuals with respect to cluster
     auto* const cluster = m_clusterContainer->findCluster(cluskey);
