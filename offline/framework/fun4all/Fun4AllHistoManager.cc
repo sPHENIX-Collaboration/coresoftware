@@ -62,14 +62,7 @@ int Fun4AllHistoManager::RunAfterClosing()
       return -1;
     }
     recoConsts *rc = recoConsts::instance();
-    int runnumber = 0;
-    std::string runseg;
-    if (rc->FlagExist("RUNNUMBER") && m_UseFileRuleFlag)
-    {
-      runnumber = rc->get_IntFlag("RUNNUMBER");
-      runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);
-    }
-    std::string fullcmd = m_RunAfterClosingScript + " " + m_outfilename + runseg + " " + m_ClosingArgs;
+    std::string fullcmd = m_RunAfterClosingScript + " " + m_LastClosedFileName + " " + m_ClosingArgs;
     if (Verbosity() > 1)
     {
       std::cout << PHWHERE << " running " << fullcmd << std::endl;
@@ -127,9 +120,10 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
     theoutfile = fullpath + std::string("/") + std::string(p.stem()) + runseg + std::string(p.extension());
     m_CurrentSegment++;
   }
+  m_LastClosedFileName = theoutfile;
   std::filesystem::path pout = theoutfile;
   theoutfile = theoutfile + std::string("?reproducible=") + std::string(pout.filename());
-  std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << theoutfile.c_str() << std::endl;
+  std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " <<  m_LastClosedFileName << std::endl;
 
   const int compress = 505;
   std::ostringstream creator;
