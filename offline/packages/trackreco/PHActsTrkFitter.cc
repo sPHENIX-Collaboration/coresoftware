@@ -701,7 +701,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       /// Set host of propagator options for Acts to do e.g. material integration
       Acts::PropagatorPlainOptions ppPlainOptions;
 
-      std::unique_ptr<Calibrator> calibptr;
+      auto calibptr = std::make_unique<Calibrator>();
       CalibratorAdapter calibrator{*calibptr, measurements};
 
       auto magcontext = m_tGeometry->geometry().magFieldContext;
