@@ -505,7 +505,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
 
     // momentum
     const double globalStateMomX = state->get_px();
-    const double globalStateMomY = state->get_px();
+    const double globalStateMomY = state->get_py();
     const double globalStateMomZ = state->get_pz();
 
 //     // errors
