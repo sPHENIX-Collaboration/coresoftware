@@ -7,6 +7,8 @@
 
 
 #include "PHActsTrkFitter.h"
+
+#include "ActsPropagator.h"
 #include "MakeSourceLinks.h"
 
 #include <tpc/TpcDistortionCorrectionContainer.h>
@@ -804,7 +806,6 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
 
             if (getTrackFitResult(result, track, &newTrack, tracks, measurements))
             {
-              // interpolate track parameters to all TPC layers and store state vectors
 
               // insert in dedicated map
               m_directedTrackMap->insertWithKey(&newTrack, trid);
@@ -1134,7 +1135,38 @@ void PHActsTrkFitter::updateSvtxTrack(
   if (m_fillSvtxTrackStates)
   { transformer.fillSvtxTrackStates(mj, trackTip, track, m_transient_geocontext); }
 
-  // in using silicon mm fit .
+  // in using silicon mm fit also extrapolate track parameters to all TPC surfaces with clusters
+  // get all tpc clusters
+  auto seed = track->get_tpc_seed();
+  if( m_fitSiliconMMs && seed )
+  {
+
+    // acts propagator
+    ActsPropagator propagator(m_tGeometry);
+
+    // loop over cluster keys associated to TPC seed
+    for( auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter )
+    {
+      const auto& cluskey = *key_iter;
+
+      // make sure cluster is from TPC
+      const auto detId = TrkrDefs::getTrkrId(cluskey);
+      if (detId != TrkrDefs::tpcId)
+      { continue; }
+
+      // get layer, propagate
+      const auto layer = TrkrDefs::getLayer(cluskey);
+      auto result = propagator.propagateTrack(params, layer);
+      if( !result.ok() ) continue;
+
+      // get path length and extrapolated parameters
+      auto& [pathLength, trackStateParams] = result.value();
+      pathLength /= Acts::UnitConstants::cm;
+
+      // create track state and add to track
+      transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+    }
+  }
 
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
