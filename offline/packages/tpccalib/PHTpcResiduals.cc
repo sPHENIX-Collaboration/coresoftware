@@ -537,7 +537,7 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     const auto& [pathLength, state] = stateiter
 
     // calculate residuals with respect to cluster
-    // Get all the relevant information for residual calculation
+    auto* const cluster = m_clusterContainer->findCluster(cluskey);
     const auto globClusPos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluskey, cluster, crossing);
     const double clusR = get_r(globClusPos(0), globClusPos(1));
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
