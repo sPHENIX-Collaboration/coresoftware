@@ -10,7 +10,6 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
-#include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/TrackSeed.h>
 
 #include <micromegas/MicromegasDefs.h>
