@@ -95,8 +95,7 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
     if (m_outfilename.empty())
     {
       recoConsts *rc = recoConsts::instance();
-      std::ostringstream filnam;
-      int runnumber = -1;
+      int runnumber = 0;
       if (rc->FlagExist("RUNNUMBER"))
       {
         runnumber = rc->get_IntFlag("RUNNUMBER");
@@ -104,34 +103,44 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
       // this will set the filename to the name of the manager
       // add the runnumber in the std 10 digit format and
       // end it with a .root extension
-      filnam << Name() << "-"
-             << std::setfill('0') << std::setw(10)
-             << runnumber << ".root";
-      m_outfilename = filnam.str();
+      m_outfilename = Name() + std::format("-{:08}.root", runnumber);
     }
   }
+  std::string theoutfile = m_outfilename;
+  if (ApplyFileRule())
+  {
+    
+  std::filesystem::path p = m_outfilename;
+
   recoConsts *rc = recoConsts::instance();
   int runnumber = 0;
-  std::string runseg;
-  if (rc->FlagExist("RUNNUMBER") && m_UseFileRuleFlag)
+  if (rc->FlagExist("RUNNUMBER"))
   {
     runnumber = rc->get_IntFlag("RUNNUMBER");
-    runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);
   }
-
-  std::string theoutfile = m_outfilename + runseg;
+    std::string fullpath = ".";
+    if (p.has_parent_path())
+    {
+      fullpath = p.parent_path();
+    }
+    std::string runseg = std::format("-{:08}-{:05}",runnumber,m_CurrentSegment);
+    theoutfile = fullpath + std::string("/") + std::string(p.stem()) + runseg + std::string(p.extension());
+    m_CurrentSegment++;
+  }
+  std::filesystem::path pout = theoutfile;
+  theoutfile = theoutfile + std::string("?reproducible=") + std::string(pout.filename());
   std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << theoutfile.c_str() << std::endl;
 
-  const int compress = 9;
+  const int compress = 505;
   std::ostringstream creator;
   creator << "Created by " << Name();
-  TFile hfile(theoutfile.c_str(), openmode.c_str(), creator.str().c_str(), compress);
+  TFile hfile(theoutfile.c_str(), openmode.c_str(), creator.str().c_str());
   if (!hfile.IsOpen())
   {
     std::cout << PHWHERE << " Could not open output file" << theoutfile.c_str() << std::endl;
     return -1;
   }
-
+  hfile.SetCompressionSettings(compress);
   std::map<const std::string, TNamed *>::const_iterator hiter;
   for (hiter = Histo.begin(); hiter != Histo.end(); ++hiter)
   {
@@ -332,6 +341,15 @@ void Fun4AllHistoManager::Print(const std::string &what) const
       std::cout << hiter->first << " is " << hiter->second << std::endl;
     }
     std::cout << std::endl;
+  }
+  if (what == "ALL" || what == "CONFIG")
+  {
+    std::cout << Name() << std::endl;
+    std::cout << "Output Filename: " << m_outfilename << std::endl;
+    std::cout << "use filerule: " << m_UseFileRuleFlag << std::endl;
+    std::cout << "Event Rollover at " << GetEventNumberRollover() << std::endl;
+    std::cout << "current last event " << LastEventNumber() << std::endl;
+    std::cout << "current segment number: " << m_CurrentSegment << std::endl;
   }
   return;
 }

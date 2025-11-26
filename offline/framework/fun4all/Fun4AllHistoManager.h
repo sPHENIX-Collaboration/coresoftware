@@ -53,9 +53,11 @@ class Fun4AllHistoManager : public Fun4AllBase
   void SetEventNumberRollover(const int evtno) {m_EventRollover = evtno;}
   int LastEventNumber() const { return m_LastEventNumber; }
   void SetLastEventNumber(int ival) { m_LastEventNumber = ival; }
+  void UpdateLastEvent() { m_LastEventNumber += m_EventRollover; }
   void InitializeLastEvent(int eventnumber);
   void StartSegment(int iseg) {m_CurrentSegment = iseg;}
   void UseFileRule() { m_UseFileRuleFlag = true; }
+  bool ApplyFileRule() const { return m_UseFileRuleFlag; }
 
 private:
   bool m_LastEventInitializedFlag {false};

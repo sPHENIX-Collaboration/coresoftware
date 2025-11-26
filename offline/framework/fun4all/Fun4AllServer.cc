@@ -767,6 +767,10 @@ int Fun4AllServer::process_event()
       }
     }
   }
+    for (auto &histit : HistoManager)
+    {
+      histit->Print("CONFIG");
+    }
   // saving the histograms using the same scheme as the DSTs
   if (!HistoManager.empty() && !eventbad)
   {
@@ -781,6 +785,7 @@ int Fun4AllServer::process_event()
 	std::cout << "saving histo manager " << histit->Name() << std::endl;
 	histit->dumpHistos();
 	histit->RunAfterClosing();
+        histit->UpdateLastEvent();
 	histit->Reset();
 	if (Verbosity() > 0)
 	{
@@ -1173,7 +1178,14 @@ int Fun4AllServer::End()
   // close output files (check for existing output managers is
   // done inside outfileclose())
   outfileclose();
-
+  for (auto &histit : HistoManager)
+  {
+    if (histit->ApplyFileRule())
+    {
+      histit->dumpHistos();
+      histit->RunAfterClosing();
+    }
+  }
   if (ScreamEveryEvent)
   {
     std::cout << "*******************************************************************************" << std::endl;
