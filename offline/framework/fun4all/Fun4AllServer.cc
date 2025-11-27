@@ -702,63 +702,62 @@ int Fun4AllServer::process_event()
         std::cout << PHWHERE << " FATAL: Someone changed the number of Output Nodes on the fly, from " << OutNodeCount << " to " << newcount << std::endl;
         exit(1);
       }
-      std::vector<Fun4AllOutputManager *>::iterator iterOutMan;
-      for (iterOutMan = OutputManager.begin(); iterOutMan != OutputManager.end(); ++iterOutMan)
+      for (auto *iterOutMan : OutputManager)
       {
-        if (!(*iterOutMan)->DoNotWriteEvent(&RetCodes))
+        if (!iterOutMan->DoNotWriteEvent(&RetCodes))
         {
           if (Verbosity() >= VERBOSITY_MORE)
           {
-            std::cout << "Writing Event for " << (*iterOutMan)->Name() << std::endl;
+            std::cout << "Writing Event for " << iterOutMan->Name() << std::endl;
           }
 #ifdef FFAMEMTRACKER
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
-          ffamemtracker->Start((*iterOutMan)->Name(), "OutputManager");
+          ffamemtracker->Start(iterOutMan->Name(), "OutputManager");
 #endif
-	  (*iterOutMan)->InitializeLastEvent(eventnumber); // only executed once, returns immediately for all subsequent calls
-          if (eventnumber > (*iterOutMan)->LastEventNumber())
+	  iterOutMan->InitializeLastEvent(eventnumber); // only executed once, returns immediately for all subsequent calls
+          if (eventnumber > iterOutMan->LastEventNumber())
           {
             if (Verbosity() > 0)
             {
-              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
-                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+              std::cout << PHWHERE << iterOutMan->Name() << " wrote " << iterOutMan->EventsWritten()
+                        << " events, closing " << iterOutMan->OutFileName() << std::endl;
             }
             UpdateRunNode();
             PHNodeIterator nodeiter(TopNode);
             PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
             MakeNodesTransient(runNode);  // make all nodes transient by default
-            (*iterOutMan)->WriteNode(runNode);
-            (*iterOutMan)->RunAfterClosing();
-            segment = (*iterOutMan)->Segment();
-            (*iterOutMan)->UpdateLastEvent();
+            iterOutMan->WriteNode(runNode);
+            iterOutMan->RunAfterClosing();
+            segment = iterOutMan->Segment();
+            iterOutMan->UpdateLastEvent();
           }
           // save runnode, open new file, write
-          (*iterOutMan)->WriteGeneric(dstNode);
+          iterOutMan->WriteGeneric(dstNode);
 #ifdef FFAMEMTRACKER
-          ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
+          ffamemtracker->Stop(iterOutMan->Name(), "OutputManager");
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
 #endif
-          if ((*iterOutMan)->EventsWritten() >= (*iterOutMan)->GetNEvents())
+          if (iterOutMan->EventsWritten() >= iterOutMan->GetNEvents())
           {
             if (Verbosity() > 0)
             {
-              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
-                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+              std::cout << PHWHERE << iterOutMan->Name() << " wrote " << iterOutMan->EventsWritten()
+                        << " events, closing " << iterOutMan->OutFileName() << std::endl;
             }
             UpdateRunNode();
             PHNodeIterator nodeiter(TopNode);
             PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
             MakeNodesTransient(runNode);  // make all nodes transient by default
-            (*iterOutMan)->WriteNode(runNode);
-            (*iterOutMan)->RunAfterClosing();
-            segment = (*iterOutMan)->Segment();
+            iterOutMan->WriteNode(runNode);
+            iterOutMan->RunAfterClosing();
+            segment = iterOutMan->Segment();
           }
         }
         else
         {
           if (Verbosity() >= VERBOSITY_MORE)
           {
-            std::cout << "Not Writing Event for " << (*iterOutMan)->Name() << std::endl;
+            std::cout << "Not Writing Event for " << iterOutMan->Name() << std::endl;
           }
         }
       }
