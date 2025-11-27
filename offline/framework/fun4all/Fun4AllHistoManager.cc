@@ -62,7 +62,6 @@ int Fun4AllHistoManager::RunAfterClosing()
       std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " is not owner executable" << std::endl;
       return -1;
     }
-    recoConsts *rc = recoConsts::instance();
     std::string fullcmd = m_RunAfterClosingScript + " " + m_LastClosedFileName + " " + m_ClosingArgs;
     if (Verbosity() > 1)
     {
