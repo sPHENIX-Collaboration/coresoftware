@@ -674,7 +674,6 @@ int Fun4AllServer::process_event()
   }
 
   gROOT->cd(currdir.c_str());
-  bool writing = false;
   int segment = std::numeric_limits<int>::min();
   //  mainIter.print();
   if (!OutputManager.empty() && !eventbad)  // there are registered IO managers and
@@ -732,7 +731,6 @@ int Fun4AllServer::process_event()
             (*iterOutMan)->RunAfterClosing();
             segment = (*iterOutMan)->Segment();
             (*iterOutMan)->UpdateLastEvent();
-            writing = true;
           }
           // save runnode, open new file, write
           (*iterOutMan)->WriteGeneric(dstNode);
@@ -754,7 +752,6 @@ int Fun4AllServer::process_event()
             (*iterOutMan)->WriteNode(runNode);
             (*iterOutMan)->RunAfterClosing();
             segment = (*iterOutMan)->Segment();
-            writing = true;
           }
         }
         else
@@ -767,29 +764,23 @@ int Fun4AllServer::process_event()
       }
     }
   }
-    for (auto &histit : HistoManager)
-    {
-      histit->Print("CONFIG");
-    }
   // saving the histograms using the same scheme as the DSTs
   if (!HistoManager.empty() && !eventbad)
   {
-    int eventnumber_minus1 = eventnumber-1; // kludge to save at the correct event
+    int eventnumber_plus1 = eventnumber+1; // kludge to save at the correct event
     
     for (auto &histit : HistoManager)
     {
-//      std::cout << "dumping " << histit->Name() << std::endl;
-      histit->InitializeLastEvent(eventnumber_minus1);
-      if (eventnumber_minus1 > histit->LastEventNumber())
+      histit->InitializeLastEvent(eventnumber_plus1);
+      if (eventnumber_plus1 > histit->LastEventNumber())
       {
-	std::cout << "saving histo manager " << histit->Name() << std::endl;
 	histit->dumpHistos();
 	histit->RunAfterClosing();
         histit->UpdateLastEvent();
 	histit->Reset();
 	if (Verbosity() > 0)
 	{
-	  std::cout << PHWHERE << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
+	  std::cout << PHWHERE << "saving " << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
 	}
       }
     }
@@ -847,10 +838,9 @@ int Fun4AllServer::Reset()
     }
     i += (*iter).first->Reset((*iter).second);
   }
-  std::vector<Fun4AllHistoManager *>::iterator hiter;
-  for (hiter = HistoManager.begin(); hiter != HistoManager.end(); ++hiter)
+  for (auto *hiter : HistoManager)
   {
-    (*hiter)->Reset();
+    hiter->Reset();
   }
   return i;
 }
