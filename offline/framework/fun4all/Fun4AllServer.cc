@@ -763,7 +763,10 @@ int Fun4AllServer::process_event()
   // saving the histograms using the same scheme as the DSTs
   if (!HistoManager.empty() && !eventbad)
   {
-    int eventnumber_plus1 = eventnumber+1; // kludge to save at the correct event
+    // kludge to save at the correct event. This is called after the event processing. Normally it would be fine to check for == eventnumber
+    // but if that event is missing we would overshoot. If there is more than one event missing this will overshoot, but there is only so much
+    // one can do
+    int eventnumber_plus1 = eventnumber+1;
     
     for (auto &histit : HistoManager)
     {
