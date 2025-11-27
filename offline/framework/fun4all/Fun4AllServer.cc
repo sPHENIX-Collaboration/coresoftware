@@ -674,7 +674,6 @@ int Fun4AllServer::process_event()
   }
 
   gROOT->cd(currdir.c_str());
-  int segment = std::numeric_limits<int>::min();
   //  mainIter.print();
   if (!OutputManager.empty() && !eventbad)  // there are registered IO managers and
   // the event is not flagged bad
@@ -728,7 +727,6 @@ int Fun4AllServer::process_event()
             MakeNodesTransient(runNode);  // make all nodes transient by default
             iterOutMan->WriteNode(runNode);
             iterOutMan->RunAfterClosing();
-            segment = iterOutMan->Segment();
             iterOutMan->UpdateLastEvent();
           }
           // save runnode, open new file, write
@@ -750,7 +748,6 @@ int Fun4AllServer::process_event()
             MakeNodesTransient(runNode);  // make all nodes transient by default
             iterOutMan->WriteNode(runNode);
             iterOutMan->RunAfterClosing();
-            segment = iterOutMan->Segment();
           }
         }
         else
