@@ -1,5 +1,6 @@
 #include "Fun4AllHistoManager.h"
 
+#include "Fun4AllOutputManager.h"
 #include "TDirectoryHelper.h"
 
 #include <phool/phool.h>
@@ -126,9 +127,8 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
   std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " <<  m_LastClosedFileName << std::endl;
 
   const int compress = 505;
-  std::ostringstream creator;
-  creator << "Created by " << Name();
-  TFile hfile(theoutfile.c_str(), openmode.c_str(), creator.str().c_str());
+  std::string creator = "Created by " + Name();
+  TFile hfile(theoutfile.c_str(), openmode.c_str(), creator.c_str());
   if (!hfile.IsOpen())
   {
     std::cout << PHWHERE << " Could not open output file" << theoutfile.c_str() << std::endl;
@@ -389,4 +389,13 @@ void Fun4AllHistoManager::InitializeLastEvent(int eventnumber)
   }
   SetLastEventNumber(firstevent * GetEventNumberRollover() + GetEventNumberRollover() - 1);
   return;
+}
+
+void Fun4AllHistoManager::CopyRolloverSetting(const Fun4AllOutputManager *outman)
+{
+  SetEventNumberRollover(outman->GetEventNumberRollover());
+  UseFileRule(outman->ApplyFileRule());
+  StartSegment(outman->Segment());
+  SetClosingScript(outman->GetClosingScript());
+  SetClosingScriptArgs(outman->GetClosingScript());
 }

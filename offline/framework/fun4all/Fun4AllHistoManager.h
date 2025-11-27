@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 
+class Fun4AllOutputManager;
 class TNamed;
 
 class Fun4AllHistoManager : public Fun4AllBase
@@ -56,8 +57,9 @@ class Fun4AllHistoManager : public Fun4AllBase
   void UpdateLastEvent() { m_LastEventNumber += m_EventRollover; }
   void InitializeLastEvent(int eventnumber);
   void StartSegment(int iseg) {m_CurrentSegment = iseg;}
-  void UseFileRule() { m_UseFileRuleFlag = true; }
+  void UseFileRule(bool b = true) { m_UseFileRuleFlag = b; }
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
+  void CopyRolloverSetting(const Fun4AllOutputManager *outman);
 
 private:
   bool m_LastEventInitializedFlag {false};
