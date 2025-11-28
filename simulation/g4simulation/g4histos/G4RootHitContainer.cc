@@ -11,8 +11,8 @@
 static const int NMAX = 100000;
 
 G4RootHitContainer::G4RootHitContainer()
+  : SnglHits(new TClonesArray("PHG4HitEval", NMAX))
 {
-  SnglHits = new TClonesArray("PHG4HitEval", NMAX);
 }
 
 G4RootHitContainer::~G4RootHitContainer()

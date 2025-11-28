@@ -11,7 +11,7 @@ class G4RootRawTower : public PHObject
  public:
   G4RootRawTower() = default;
   G4RootRawTower(const float ieta, const float iphi, const float e);
-  ~G4RootRawTower() override {}
+  ~G4RootRawTower() override = default;
 
   void Reset() override;
   int isValid() const override;
