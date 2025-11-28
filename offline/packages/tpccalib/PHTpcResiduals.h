@@ -6,12 +6,10 @@
 #include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/ActsTransformations.h>
 
 #include <fun4all/SubsysReco.h>
 
 #include <Acts/Definitions/Algebra.hpp>  // for Vector3
-#include <Acts/EventData/TrackParameters.hpp>
 
 #include <cmath>
 #include <memory>
@@ -114,11 +112,6 @@ class PHTpcResiduals : public SubsysReco
   void disableFluctuationCorr() { m_disable_fluctuation_corr = true; }
 
  private:
-  using BoundTrackParam =
-      const Acts::BoundTrackParameters;
-
-  /// pairs path length and track parameters
-  using BoundTrackParamPair = std::pair<float, BoundTrackParam>;
 
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
@@ -129,20 +122,8 @@ class PHTpcResiduals : public SubsysReco
   bool checkTPOTResidual(SvtxTrack *track) const;
   void processTrack(SvtxTrack *track);
 
-  /// fill track state from bound track parameters
-  void addTrackState(SvtxTrack *track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters &params);
-
   /// Gets distortion cell for identifying bins in TPC
   int getCell(const Acts::Vector3 &loc);
-
-  //! create ACTS track parameters from Svtx track
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *) const;
-
-  //! create ACTS track parameters from Svtx track state
-  Acts::BoundTrackParameters makeTrackParams(SvtxTrack *, SvtxTrackState *) const;
-
-  /// acts transformation
-  ActsTransformations m_transformer;
 
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
