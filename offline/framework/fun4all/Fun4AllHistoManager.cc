@@ -1,5 +1,6 @@
 #include "Fun4AllHistoManager.h"
 
+#include "Fun4AllOutputManager.h"
 #include "TDirectoryHelper.h"
 
 #include <phool/phool.h>
@@ -61,15 +62,7 @@ int Fun4AllHistoManager::RunAfterClosing()
       std::cout << PHWHERE << "RunAfterClosing() closing script " << m_RunAfterClosingScript << " is not owner executable" << std::endl;
       return -1;
     }
-    recoConsts *rc = recoConsts::instance();
-    int runnumber = 0;
-    std::string runseg;
-    if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
-    {
-      runnumber = rc->get_IntFlag("RUNNUMBER");
-      runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);
-    }
-    std::string fullcmd = m_RunAfterClosingScript + " " + m_outfilename + runseg + " " + m_ClosingArgs;
+    std::string fullcmd = m_RunAfterClosingScript + " " + m_LastClosedFileName + " " + m_ClosingArgs;
     if (Verbosity() > 1)
     {
       std::cout << PHWHERE << " running " << fullcmd << std::endl;
@@ -95,8 +88,7 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
     if (m_outfilename.empty())
     {
       recoConsts *rc = recoConsts::instance();
-      std::ostringstream filnam;
-      int runnumber = -1;
+      int runnumber = 0;
       if (rc->FlagExist("RUNNUMBER"))
       {
         runnumber = rc->get_IntFlag("RUNNUMBER");
@@ -104,34 +96,44 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
       // this will set the filename to the name of the manager
       // add the runnumber in the std 10 digit format and
       // end it with a .root extension
-      filnam << Name() << "-"
-             << std::setfill('0') << std::setw(10)
-             << runnumber << ".root";
-      m_outfilename = filnam.str();
+      m_outfilename = Name() + std::format("-{:08}.root", runnumber);
     }
   }
+  std::string theoutfile = m_outfilename;
+  if (ApplyFileRule())
+  {
+    
+  std::filesystem::path p = m_outfilename;
+
   recoConsts *rc = recoConsts::instance();
   int runnumber = 0;
-  std::string runseg;
-  if (rc->FlagExist("RUNNUMBER") && m_dumpHistoSegments)
+  if (rc->FlagExist("RUNNUMBER"))
   {
     runnumber = rc->get_IntFlag("RUNNUMBER");
-    runseg = std::format("-{:08}-{:05}.root",runnumber,m_CurrentSegment);
   }
+    std::string fullpath = ".";
+    if (p.has_parent_path())
+    {
+      fullpath = p.parent_path();
+    }
+    std::string runseg = std::format("-{:08}-{:05}",runnumber,m_CurrentSegment);
+    theoutfile = fullpath + std::string("/") + std::string(p.stem()) + runseg + std::string(p.extension());
+    m_CurrentSegment++;
+  }
+  m_LastClosedFileName = theoutfile;
+  std::filesystem::path pout = theoutfile;
+  theoutfile = theoutfile + std::string("?reproducible=") + std::string(pout.filename());
+  std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " <<  m_LastClosedFileName << std::endl;
 
-  std::string theoutfile = m_outfilename + runseg;
-  std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " << theoutfile.c_str() << std::endl;
-
-  const int compress = 9;
-  std::ostringstream creator;
-  creator << "Created by " << Name();
-  TFile hfile(theoutfile.c_str(), openmode.c_str(), creator.str().c_str(), compress);
+  const int compress = 505;
+  std::string creator = "Created by " + Name();
+  TFile hfile(theoutfile.c_str(), openmode.c_str(), creator.c_str());
   if (!hfile.IsOpen())
   {
     std::cout << PHWHERE << " Could not open output file" << theoutfile.c_str() << std::endl;
     return -1;
   }
-
+  hfile.SetCompressionSettings(compress);
   std::map<const std::string, TNamed *>::const_iterator hiter;
   for (hiter = Histo.begin(); hiter != Histo.end(); ++hiter)
   {
@@ -333,6 +335,15 @@ void Fun4AllHistoManager::Print(const std::string &what) const
     }
     std::cout << std::endl;
   }
+  if (what == "ALL" || what == "CONFIG")
+  {
+    std::cout << Name() << std::endl;
+    std::cout << "Output Filename: " << m_outfilename << std::endl;
+    std::cout << "use filerule: " << m_UseFileRuleFlag << std::endl;
+    std::cout << "Event Rollover at " << GetEventNumberRollover() << std::endl;
+    std::cout << "current last event " << LastEventNumber() << std::endl;
+    std::cout << "current segment number: " << m_CurrentSegment << std::endl;
+  }
   return;
 }
 
@@ -352,4 +363,38 @@ void Fun4AllHistoManager::Reset()
     }
   }
   return;
+}
+
+// this method figures out the last event number to be saved before rolling over
+// an integer div of the current event by the number of events gives the first event we can expect
+// in this process (this is not needed), then adding the number of events we want gives us the last event
+// since want ranges like 1-99999, 100,000 - 199,999 we need to subtract 1
+// from the calculated range.
+// This is just run for the first event - later we just add the number of events to the last event number
+void Fun4AllHistoManager::InitializeLastEvent(int eventnumber)
+{
+  if (GetEventNumberRollover() == 0 || m_LastEventInitializedFlag || eventnumber < 0)
+  {
+    return;
+  }
+  m_LastEventInitializedFlag = true;
+  unsigned int firstevent = eventnumber / GetEventNumberRollover();
+  unsigned int newlastevent = firstevent * GetEventNumberRollover() + GetEventNumberRollover() - 1;
+  if (Verbosity() > 1)
+  {
+    std::cout << "event number: " << eventnumber << ", rollover: " << GetEventNumberRollover() << ", multiple: "
+              << eventnumber / GetEventNumberRollover() << ", new last event number "
+              << newlastevent << std::endl;
+  }
+  SetLastEventNumber(firstevent * GetEventNumberRollover() + GetEventNumberRollover() - 1);
+  return;
+}
+
+void Fun4AllHistoManager::CopyRolloverSetting(const Fun4AllOutputManager *outman)
+{
+  SetEventNumberRollover(outman->GetEventNumberRollover());
+  UseFileRule(outman->ApplyFileRule());
+  StartSegment(outman->Segment());
+  SetClosingScript(outman->GetClosingScript());
+  SetClosingScriptArgs(outman->GetClosingScript());
 }

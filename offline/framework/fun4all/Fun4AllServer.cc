@@ -420,8 +420,7 @@ tryagain:
       std::cout << "Could not find module " << *striter
                 << ", removing it from list of event selector modules" << std::endl;
       manager->EventSelector()->erase(striter);
-      // NOLINTNEXTLINE(hicpp-avoid-goto)
-      goto tryagain;
+      goto tryagain;  // NOLINT(hicpp-avoid-goto)
     }
   }
   return 0;
@@ -675,8 +674,6 @@ int Fun4AllServer::process_event()
   }
 
   gROOT->cd(currdir.c_str());
-  bool writing = false;
-  int segment = std::numeric_limits<int>::min();
   //  mainIter.print();
   if (!OutputManager.empty() && !eventbad)  // there are registered IO managers and
   // the event is not flagged bad
@@ -704,87 +701,86 @@ int Fun4AllServer::process_event()
         std::cout << PHWHERE << " FATAL: Someone changed the number of Output Nodes on the fly, from " << OutNodeCount << " to " << newcount << std::endl;
         exit(1);
       }
-      std::vector<Fun4AllOutputManager *>::iterator iterOutMan;
-
-      for (iterOutMan = OutputManager.begin(); iterOutMan != OutputManager.end(); ++iterOutMan)
+      for (auto *iterOutMan : OutputManager)
       {
-        if (!(*iterOutMan)->DoNotWriteEvent(&RetCodes))
+        if (!iterOutMan->DoNotWriteEvent(&RetCodes))
         {
           if (Verbosity() >= VERBOSITY_MORE)
           {
-            std::cout << "Writing Event for " << (*iterOutMan)->Name() << std::endl;
+            std::cout << "Writing Event for " << iterOutMan->Name() << std::endl;
           }
 #ifdef FFAMEMTRACKER
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
-          ffamemtracker->Start((*iterOutMan)->Name(), "OutputManager");
+          ffamemtracker->Start(iterOutMan->Name(), "OutputManager");
 #endif
-	  (*iterOutMan)->InitializeLastEvent(eventnumber); // only executed once, returns immediately for all subsequent calls
-          if (eventnumber > (*iterOutMan)->LastEventNumber())
+	  iterOutMan->InitializeLastEvent(eventnumber); // only executed once, returns immediately for all subsequent calls
+          if (eventnumber > iterOutMan->LastEventNumber())
           {
             if (Verbosity() > 0)
             {
-              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
-                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+              std::cout << PHWHERE << iterOutMan->Name() << " wrote " << iterOutMan->EventsWritten()
+                        << " events, closing " << iterOutMan->OutFileName() << std::endl;
             }
             UpdateRunNode();
             PHNodeIterator nodeiter(TopNode);
             PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
             MakeNodesTransient(runNode);  // make all nodes transient by default
-            (*iterOutMan)->WriteNode(runNode);
-            (*iterOutMan)->RunAfterClosing();
-            segment = (*iterOutMan)->Segment();
-            (*iterOutMan)->UpdateLastEvent();
-            writing = true;
+            iterOutMan->WriteNode(runNode);
+            iterOutMan->RunAfterClosing();
+            iterOutMan->UpdateLastEvent();
           }
           // save runnode, open new file, write
-          (*iterOutMan)->WriteGeneric(dstNode);
+          iterOutMan->WriteGeneric(dstNode);
 #ifdef FFAMEMTRACKER
-          ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
+          ffamemtracker->Stop(iterOutMan->Name(), "OutputManager");
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
 #endif
-          if ((*iterOutMan)->EventsWritten() >= (*iterOutMan)->GetNEvents())
+          if (iterOutMan->EventsWritten() >= iterOutMan->GetNEvents())
           {
             if (Verbosity() > 0)
             {
-              std::cout << PHWHERE << (*iterOutMan)->Name() << " wrote " << (*iterOutMan)->EventsWritten()
-                        << " events, closing " << (*iterOutMan)->OutFileName() << std::endl;
+              std::cout << PHWHERE << iterOutMan->Name() << " wrote " << iterOutMan->EventsWritten()
+                        << " events, closing " << iterOutMan->OutFileName() << std::endl;
             }
             UpdateRunNode();
             PHNodeIterator nodeiter(TopNode);
             PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(nodeiter.findFirst("PHCompositeNode", "RUN"));
             MakeNodesTransient(runNode);  // make all nodes transient by default
-            (*iterOutMan)->WriteNode(runNode);
-            (*iterOutMan)->RunAfterClosing();
-            segment = (*iterOutMan)->Segment();
-            writing = true;
+            iterOutMan->WriteNode(runNode);
+            iterOutMan->RunAfterClosing();
           }
         }
         else
         {
           if (Verbosity() >= VERBOSITY_MORE)
           {
-            std::cout << "Not Writing Event for " << (*iterOutMan)->Name() << std::endl;
+            std::cout << "Not Writing Event for " << iterOutMan->Name() << std::endl;
           }
         }
       }
     }
   }
-  if (!HistoManager.empty() && !eventbad && writing)
+  // saving the histograms using the same scheme as the DSTs
+  if (!HistoManager.empty() && !eventbad)
   {
-    for (const auto &histit : HistoManager)
+    // kludge to save at the correct event. This is called after the event processing. Normally it would be fine to check for == eventnumber
+    // but if that event is missing we would overshoot. If there is more than one event missing this will overshoot, but there is only so much
+    // one can do
+    int eventnumber_plus1 = eventnumber+1;
+    
+    for (auto &histit : HistoManager)
     {
-      if (histit->dumpHistoSegments())
+      histit->InitializeLastEvent(eventnumber_plus1);
+      if (eventnumber_plus1 > histit->LastEventNumber())
       {
-        if (Verbosity() > 0)
-        {
-          std::cout << PHWHERE << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
-        }
-        // This is -1 because the segment is initially determined in the first event of a
-        // segment from the DST, then incremented. So it is always 1 ahead of the histos
-        histit->segment(segment - 1);
-        histit->dumpHistos();
-        histit->RunAfterClosing();
-        histit->Reset();
+	histit->dumpHistos();
+	histit->RunAfterClosing();
+        histit->UpdateLastEvent();
+	histit->Reset();
+	if (Verbosity() > 0)
+	{
+	  std::cout << PHWHERE << "saving " << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
+	}
       }
     }
   }
@@ -841,10 +837,9 @@ int Fun4AllServer::Reset()
     }
     i += (*iter).first->Reset((*iter).second);
   }
-  std::vector<Fun4AllHistoManager *>::iterator hiter;
-  for (hiter = HistoManager.begin(); hiter != HistoManager.end(); ++hiter)
+  for (auto *hiter : HistoManager)
   {
-    (*hiter)->Reset();
+    hiter->Reset();
   }
   return i;
 }
@@ -1172,7 +1167,14 @@ int Fun4AllServer::End()
   // close output files (check for existing output managers is
   // done inside outfileclose())
   outfileclose();
-
+  for (auto &histit : HistoManager)
+  {
+    if (histit->ApplyFileRule())
+    {
+      histit->dumpHistos();
+      histit->RunAfterClosing();
+    }
+  }
   if (ScreamEveryEvent)
   {
     std::cout << "*******************************************************************************" << std::endl;

@@ -111,12 +111,14 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual int GetEventNumberRollover() const {return m_EventRollover;}
   virtual void InitializeLastEvent(int /*eventnumber*/) {return;}
   virtual void StartSegment(int iseg) {m_CurrentSegment = iseg;}
-  
+
   void OutFileName(const std::string &name) { m_OutFileName = name; }
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
+  const std::string &GetClosingScript() const {return m_RunAfterClosingScript;}
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
+  const std::string &GetClosingScriptArgs() { return m_ClosingArgs; }
   int RunAfterClosing();
-  void UseFileRule() { m_UseFileRuleFlag = true; }
+  void UseFileRule(bool b = true) { m_UseFileRuleFlag = b; }
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
   void SetNEvents(const unsigned int nevt);
   unsigned int GetNEvents() const { return m_MaxEvents; }
@@ -126,7 +128,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   void BufferSize(const int size) { buffersize = size; }
   int SplitLevel() const { return splitlevel; }
   int BufferSize() const { return buffersize; }
-  int Segment() { return m_CurrentSegment; }
+  int Segment() const { return m_CurrentSegment; }
 
  protected:
   /*!
