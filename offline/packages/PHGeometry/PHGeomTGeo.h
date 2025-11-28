@@ -2,7 +2,7 @@
 
 /*!
  * \file PHGeomTGeo.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -26,7 +26,7 @@ class TGeoManager;
 class PHGeomTGeo : public PHObject
 {
  public:
-  PHGeomTGeo();
+  PHGeomTGeo() = default;
   ~PHGeomTGeo() override;
 
   /** identify Function from PHObject
@@ -53,9 +53,9 @@ class PHGeomTGeo : public PHObject
   //! this function checks whether _fGeom is still the current gGeoManager which avoids operates on an invalid pointer
   bool ConsistencyCheck() const;
 
- protected:
+ private:
   //! store and stream the full geometry via DST objects
-  TGeoManager* _fGeom;
+  TGeoManager* _fGeom{nullptr};
 };
 
 #endif

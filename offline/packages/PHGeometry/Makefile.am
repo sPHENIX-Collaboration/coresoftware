@@ -19,8 +19,8 @@ ROOTDICTS = \
   PHGeomIOTGeo_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-    PHGeomIOTGeo_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libphgeom_la_SOURCES = \
   PHGeomTGeo.cc \
