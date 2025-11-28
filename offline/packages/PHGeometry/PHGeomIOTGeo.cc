@@ -2,7 +2,7 @@
 
 /*!
  * \file PHGeomIOTGeo.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -13,14 +13,12 @@
 #include <TGeoManager.h>
 #include <TGeoVolume.h>
 #include <TMemFile.h>
-#include <TObject.h>      // for TObject
+#include <TObject.h>  // for TObject
 
 #include <cassert>
 #include <iostream>
 #include <sstream>
 #include <string>
-
-using namespace std;
 
 PHGeomIOTGeo::PHGeomIOTGeo()
   : Data(0)
@@ -29,14 +27,14 @@ PHGeomIOTGeo::PHGeomIOTGeo()
 
 PHGeomIOTGeo::~PHGeomIOTGeo()
 {
-    Data.resize(0);
+  Data.resize(0);
 }
 
 void PHGeomIOTGeo::SetGeometry(const TGeoVolume* g)
 {
   if (!g)
   {
-    cout << __PRETTY_FUNCTION__ << " - Error - Invalid input" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " - Error - Invalid input" << std::endl;
     return;
   }
 
@@ -55,7 +53,10 @@ void PHGeomIOTGeo::SetGeometry(const TGeoVolume* g)
 TGeoVolume*
 PHGeomIOTGeo::GetGeometryCopy()
 {
-  if (! isValid()) return nullptr;
+  if (!isValid())
+  {
+    return nullptr;
+  }
 
   TMemFile f2("mem2", Data.data(), Data.size(), "READ");
   TGeoVolume* vol = dynamic_cast<TGeoVolume*>(f2.Get("TOP"));
@@ -65,16 +66,17 @@ PHGeomIOTGeo::GetGeometryCopy()
   return vol;
 }
 
-TGeoManager*
-PHGeomIOTGeo::
-    ConstructTGeoManager()
+TGeoManager* PHGeomIOTGeo::ConstructTGeoManager()
 {
-  if (! isValid()) return nullptr;
+  if (!isValid())
+  {
+    return nullptr;
+  }
 
   // force TGeoManager to use the Fun4All unit of cm
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,2)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 23, 2)
   TGeoManager::LockDefaultUnits(kFALSE);
-  TGeoManager::SetDefaultUnits( TGeoManager::kRootUnits );
+  TGeoManager::SetDefaultUnits(TGeoManager::kRootUnits);
   TGeoManager::LockDefaultUnits(kTRUE);
 #else
   TGeoManager::SetDefaultRootUnits();
@@ -90,7 +92,7 @@ PHGeomIOTGeo::
   tgeo->SetTopVolume(vol);
   //  tgeo->CloseGeometry();
 
-  ostringstream stitle;
+  std::ostringstream stitle;
   stitle
       << "TGeoManager built by PHGeomUtility::LoadFromIONode based on RUN/GEOMETRY_IO node with name ("
       << vol->GetName() << ") and title ("
@@ -108,10 +110,14 @@ void PHGeomIOTGeo::identify(std::ostream& os) const
 {
   os << "PHGeomIOTGeo - ";
   if (isValid())
+  {
     os << " with geometry data " << Data.size() << "Byte";
+  }
   else
+  {
     os << "Empty";
-  os << endl;
+  }
+  os << std::endl;
 }
 
 /// Clear Event
