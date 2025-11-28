@@ -10,10 +10,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackState.h>
-#include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/TrackSeed.h>
-
-#include <trackreco/ActsPropagator.h>
 
 #include <micromegas/MicromegasDefs.h>
 
@@ -442,59 +439,6 @@ bool PHTpcResiduals::checkTPOTResidual(SvtxTrack* track) const
   return flag;
 }
 
-//___________________________________________________________________________________
-Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track) const
-{
-  return makeTrackParams(track, track->get_state(0));
-}
-
-//___________________________________________________________________________________
-Acts::BoundTrackParameters PHTpcResiduals::makeTrackParams(SvtxTrack* track, SvtxTrackState* state) const
-{
-  Acts::Vector3 momentum(track->get_px(),
-                         track->get_py(),
-                         track->get_pz());
-  double trackQ = track->get_charge() * Acts::UnitConstants::e;
-  double p = state->get_p();
-
-  // covariance
-  const auto cov = m_transformer.rotateSvtxTrackCovToActs(state);
-
-  // position
-  const Acts::Vector3 position(
-      state->get_x() * Acts::UnitConstants::cm,
-      state->get_y() * Acts::UnitConstants::cm,
-      state->get_z() * Acts::UnitConstants::cm);
-
-  if (Verbosity())
-  {
-    std::cout << "PHTpcResiduals::makeTrackParams -"
-              << " position: " << position
-              << " momentum: " << momentum
-              << std::endl;
-
-    // covariance
-    std::cout << "PHTpcResiduals::makeTrackParams - cov: " << std::endl;
-    for (int i = 0; i < 6; ++i)
-    {
-      std::cout << "  ";
-      for (int j = 0; j < 6; ++j)
-      {
-        std::cout << state->get_error(i, j) << " ";
-      }
-      std::cout << std::endl;
-    }
-  }
-
-  const auto perigee = Acts::Surface::makeShared<Acts::PerigeeSurface>(position);
-  const auto actsFourPos = Acts::Vector4(position(0), position(1), position(2), 10 * Acts::UnitConstants::ns);
-  return Acts::BoundTrackParameters::create(perigee, m_tGeometry->geometry().getGeoContext(),
-                                            actsFourPos, momentum,
-                                            trackQ / p, cov,
-                                            Acts::ParticleHypothesis::pion())
-      .value();
-}
-
 //_____________________________________________________________________________________________
 void PHTpcResiduals::processTrack(SvtxTrack* track)
 {
@@ -505,10 +449,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
               << " position: " << Acts::Vector3(track->get_x(), track->get_y(), track->get_z())
               << std::endl;
   }
-  ActsPropagator propagator(m_tGeometry);
-
-  // create ACTS parameters from track parameters at origin
-  auto trackParams = makeTrackParams(track);
 
   // store crossing. It is used in calculating cluster's global position
   const auto crossing = track->get_crossing();
@@ -526,63 +466,26 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       continue;
     }
 
-    const auto layer = TrkrDefs::getLayer(cluskey);
-    auto* const cluster = m_clusterContainer->findCluster(cluskey);
-    const auto surface = m_tGeometry->maps().getSurface(cluskey, cluster);
-    // auto result = propagator.propagateTrack(trackParams, surface);//surface aborter
-    auto result = propagator.propagateTrack(trackParams, layer);  // layer aborter
+    // find matching track state
+    const auto stateiter = std::find_if( track->begin_states(), track->end_states(), [&cluskey]( const auto& state_pair )
+      { return state_pair.second->get_cluskey() == cluskey; } );
 
-    // skip if propagation failed
-    if (!result.ok())
-    {
-      if (Verbosity() > 1)
-      {
-        std::cout << "Starting track params position/momentum: "
-                  << trackParams.position(m_tGeometry->geometry().geoContext).transpose()
-                  << std::endl
-                  << std::endl
-                  << "Track params phi/eta "
-                  << std::atan2(trackParams.momentum().y(),
-                                trackParams.momentum().x())
-                  << " and "
-                  << std::atanh(trackParams.momentum().z() / trackParams.momentum().norm())
-                  << std::endl;
-      }
-
-      continue;
-    }
+    // check if found
+    if( stateiter ==  track->end_states() ) { continue; }
 
     // get extrapolated track state, convert to sPHENIX and add to track
-    auto& [pathLength, trackStateParams] = result.value();
-    pathLength /= Acts::UnitConstants::cm;
-
-    if (Verbosity() > 1)
-    {
-      std::cout << "PHTpcResiduals::processTrack -"
-                << " path length: " << pathLength
-                << " track momentum : "
-                << trackParams.momentum()
-                << " propagator momentum : "
-                << trackStateParams.momentum()
-                << std::endl;
-    }
-
-    addTrackState(track, cluskey, pathLength, trackStateParams);
+    const auto& [pathLength, state] = *stateiter;
 
     // calculate residuals with respect to cluster
-    // Get all the relevant information for residual calculation
+    auto* const cluster = m_clusterContainer->findCluster(cluskey);
     const auto globClusPos = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluskey, cluster, crossing);
     const double clusR = get_r(globClusPos(0), globClusPos(1));
     const double clusPhi = std::atan2(globClusPos(1), globClusPos(0));
     const double clusZ = globClusPos(2);
 
     // cluster errors
-    double clusRPhiErr = 0;
-    double clusZErr = 0;
-
-    clusRPhiErr = cluster->getRPhiError();
-    clusZErr = cluster->getZError();
-
+    const double clusRPhiErr = cluster->getRPhiError();
+    const double clusZErr = cluster->getZError();
     if (Verbosity() > 3)
     {
       std::cout << "PHTpcResiduals::processTrack -"
@@ -593,29 +496,26 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
                 << std::endl;
     }
 
-    /*
-     * as instructed by Christof, it should not be necessary to cut on small
-     * cluster errors any more with clusters of version 4 or higher
-     */
+    // position
+    const double globStateX = state->get_x();
+    const double globStateY = state->get_y();
+    const double globStateZ = state->get_z();
+    const auto trackR = std::sqrt(square(globStateX) + square(globStateY));
 
-    const auto globalStatePos = trackStateParams.position(m_tGeometry->geometry().getGeoContext());
-    const auto globalStateMom = trackStateParams.momentum();
-    const auto globalStateCov = *trackStateParams.covariance();  // NOLINT(bugprone-unchecked-optional-access)
+    // momentum
+    const double globalStateMomX = state->get_px();
+    const double globalStateMomY = state->get_py();
+    const double globalStateMomZ = state->get_pz();
 
-    const double trackRPhiErr = std::sqrt(globalStateCov(Acts::eBoundLoc0, Acts::eBoundLoc0)) / Acts::UnitConstants::cm;
-    const double trackZErr = sqrt(globalStateCov(Acts::eBoundLoc1, Acts::eBoundLoc1)) / Acts::UnitConstants::cm;
-
-    const double globStateX = globalStatePos.x() / Acts::UnitConstants::cm;
-    const double globStateY = globalStatePos.y() / Acts::UnitConstants::cm;
-    const double globStateZ = globalStatePos.z() / Acts::UnitConstants::cm;
-
-    const double trackR = std::sqrt(square(globStateX) + square(globStateY));
+    // errors
+    const double trackRPhiErr = state->get_rphi_error();
+    const double trackZErr = state->get_z_error();
 
     const double dr = clusR - trackR;
-    const double trackDrDt = (globStateX * globalStateMom(0) + globStateY * globalStateMom(1)) / trackR;
-    const double trackDxDr = globalStateMom(0) / trackDrDt;
-    const double trackDyDr = globalStateMom(1) / trackDrDt;
-    const double trackDzDr = globalStateMom(2) / trackDrDt;
+    const double trackDrDt = (globStateX * globalStateMomX + globStateY * globalStateMomY) / trackR;
+    const double trackDxDr = globalStateMomX / trackDrDt;
+    const double trackDyDr = globalStateMomY / trackDrDt;
+    const double trackDzDr = globalStateMomZ / trackDrDt;
 
     const double trackX = globStateX + dr * trackDxDr;
     const double trackY = globStateY + dr * trackDyDr;
@@ -682,9 +582,9 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
       continue;
     }
 
-    const double trackPPhi = -trackStateParams.momentum()(0) * std::sin(trackPhi) + trackStateParams.momentum()(1) * std::cos(trackPhi);
-    const double trackPR = trackStateParams.momentum()(0) * std::cos(trackPhi) + trackStateParams.momentum()(1) * std::sin(trackPhi);
-    const double trackPZ = trackStateParams.momentum()(2);
+    const double trackPPhi = -globalStateMomX*std::sin(trackPhi) + globalStateMomY*std::cos(trackPhi);
+    const double trackPR = globalStateMomX*std::cos(trackPhi) + globalStateMomY*std::sin(trackPhi);
+    const double trackPZ = globalStateMomZ;
 
     const double trackAlpha = -trackPPhi / trackPR;
     if (std::isnan(trackAlpha))
@@ -791,41 +691,6 @@ void PHTpcResiduals::processTrack(SvtxTrack* track)
     // increment number of accepted clusters
     ++m_accepted_clusters;
   }
-}
-
-//_______________________________________________________________________________________________________
-void PHTpcResiduals::addTrackState(SvtxTrack* track, TrkrDefs::cluskey key, float pathlength, const Acts::BoundTrackParameters& params)
-{
-  /* this is essentially a copy of the code from trackbase_historic/ActsTransformations::fillSvtxTrackStates */
-
-  // create track state
-  SvtxTrackState_v2 state(pathlength);
-
-  // save global position
-  const auto global = params.position(m_tGeometry->geometry().getGeoContext());
-  state.set_x(global.x() / Acts::UnitConstants::cm);
-  state.set_y(global.y() / Acts::UnitConstants::cm);
-  state.set_z(global.z() / Acts::UnitConstants::cm);
-
-  // save momentum
-  const auto momentum = params.momentum();
-  state.set_px(momentum.x());
-  state.set_py(momentum.y());
-  state.set_pz(momentum.z());
-
-  // covariance
-  const auto globalCov = m_transformer.rotateActsCovToSvtxTrack(params);
-  for (int i = 0; i < 6; ++i)
-  {
-    for (int j = 0; j < 6; ++j)
-    {
-      state.set_error(i, j, globalCov(i, j));
-    }
-  }
-
-  state.set_name(std::to_string(key));
-  state.set_cluskey(key);
-  track->insert_state(&state);
 }
 
 //_______________________________________________________________________________
