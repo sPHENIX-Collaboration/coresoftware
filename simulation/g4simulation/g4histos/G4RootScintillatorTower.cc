@@ -1,17 +1,6 @@
 #include "G4RootScintillatorTower.h"
 
-// #include <calobase/TowerInfo.h>
-
 #include <iostream>
-
-using namespace std;
-
-G4RootScintillatorTower::G4RootScintillatorTower()
-  : row(-1)
-  , column(-1)
-  , energy(0)
-{
-}
 
 G4RootScintillatorTower::G4RootScintillatorTower(double towerenergy, int ieta, int iphi)
   : row(iphi)

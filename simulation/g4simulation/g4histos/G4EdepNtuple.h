@@ -33,14 +33,13 @@ class G4EdepNtuple : public SubsysReco
 
   void AddNode(const std::string &name, const int detid = 0);
 
- protected:
-  int nblocks;
-  Fun4AllHistoManager *hm;
+ private:
+  Fun4AllHistoManager *hm{nullptr};
   std::string _filename;
   std::set<std::string> _node_postfix;
   std::map<std::string, int> _detid;
-  TNtuple *ntup;
-  TFile *outfile;
+  TNtuple *ntup{nullptr};
+  TFile *outfile{nullptr};
 };
 
 #endif

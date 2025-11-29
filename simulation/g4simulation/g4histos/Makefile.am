@@ -49,14 +49,8 @@ ROOTDICTS = \
   G4RootScintillatorTower_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  G4RootHitContainer_Dict_rdict.pcm \
-  G4RootRawTowerContainer_Dict_rdict.pcm \
-  G4RootRawTower_Dict_rdict.pcm \
-  G4RootScintillatorSlatContainer_Dict_rdict.pcm \
-  G4RootScintillatorSlat_Dict_rdict.pcm \
-  G4RootScintillatorTowerContainer_Dict_rdict.pcm \
-  G4RootScintillatorTower_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libg4histos_la_SOURCES = \
   $(ROOTDICTS) \

@@ -50,8 +50,8 @@ class PHG4GDMLWriteSetup : public PHG4GDMLWriteSolids
 
  protected:
 
-   PHG4GDMLWriteSetup();
-   virtual ~PHG4GDMLWriteSetup();
+   PHG4GDMLWriteSetup() = default;
+   virtual ~PHG4GDMLWriteSetup() = default;
 
 };
 

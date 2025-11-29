@@ -42,12 +42,12 @@ PHG4MicromegasSubsystem::~PHG4MicromegasSubsystem()
 int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  auto *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   PHNodeIterator dstIter(dstNode);
   if (GetParams()->get_int_param("active"))
   {
     std::set<std::string> nodes;
-    auto detNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+    auto *detNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!detNode)
     {
       detNode = new PHCompositeNode(SuperDetector());
@@ -71,7 +71,7 @@ int PHG4MicromegasSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
     for (const auto &g4hitnodename : nodes)
     {
-      auto g4_hits = findNode::getClass<PHG4HitContainer>(detNode, g4hitnodename);
+      auto *g4_hits = findNode::getClass<PHG4HitContainer>(detNode, g4hitnodename);
       if (!g4_hits)
       {
         g4_hits = new PHG4HitContainer(g4hitnodename);

@@ -54,16 +54,6 @@
 #include <Geant4/G4PVParameterised.hh>
 #include <Geant4/G4VPVParameterisation.hh>
 
-PHG4GDMLWriteParamvol::
-PHG4GDMLWriteParamvol() : PHG4GDMLWriteSetup()
-{
-}
-
-PHG4GDMLWriteParamvol::
-~PHG4GDMLWriteParamvol()
-{
-}
-
 void PHG4GDMLWriteParamvol::
 Box_dimensionsWrite(xercesc::DOMElement* parametersElement,
                     const G4Box* const box)

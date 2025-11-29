@@ -51,13 +51,9 @@ PHG4GDMLWrite::PHG4GDMLWrite()
 {
 }
 
-PHG4GDMLWrite::~PHG4GDMLWrite()
-{
-}
-
 G4bool PHG4GDMLWrite::FileExists(const G4String& fname) const
 {
-  struct stat FileInfo;
+  struct stat FileInfo{};
   return (stat(fname.c_str(), &FileInfo) == 0);
 }
 
@@ -79,14 +75,14 @@ PHG4GDMLWrite::DepthMapType& PHG4GDMLWrite::DepthMap()
   return instance;
 }
 
-void PHG4GDMLWrite::AddExtension(xercesc::DOMElement*,
-                                 const G4LogicalVolume* const)
+void PHG4GDMLWrite::AddExtension(xercesc::DOMElement* /*unused*/,
+                                 const G4LogicalVolume* const /*unused*/)
 {
   // Empty implementation. To be overwritten by user for specific extensions
   // related to attributes associated to volumes
 }
 
-void PHG4GDMLWrite::ExtensionWrite(xercesc::DOMElement*)
+void PHG4GDMLWrite::ExtensionWrite(xercesc::DOMElement* /*unused*/)
 {
   // Empty implementation. To be overwritten by user for specific extensions
 }
@@ -94,23 +90,21 @@ void PHG4GDMLWrite::ExtensionWrite(xercesc::DOMElement*)
 void PHG4GDMLWrite::AddAuxInfo(PHG4GDMLAuxListType* auxInfoList,
                                xercesc::DOMElement* element)
 {
-  for (std::vector<PHG4GDMLAuxStructType>::const_iterator
-           iaux = auxInfoList->begin();
-       iaux != auxInfoList->end(); ++iaux)
+  for (const auto & iaux : *auxInfoList)
   {
     xercesc::DOMElement* auxiliaryElement = NewElement("auxiliary");
     element->appendChild(auxiliaryElement);
 
-    auxiliaryElement->setAttributeNode(NewAttribute("auxtype", (*iaux).type));
-    auxiliaryElement->setAttributeNode(NewAttribute("auxvalue", (*iaux).value));
-    if (((*iaux).unit) != "")
+    auxiliaryElement->setAttributeNode(NewAttribute("auxtype", iaux.type));
+    auxiliaryElement->setAttributeNode(NewAttribute("auxvalue", iaux.value));
+    if (!iaux.unit.empty())
     {
-      auxiliaryElement->setAttributeNode(NewAttribute("auxunit", (*iaux).unit));
+      auxiliaryElement->setAttributeNode(NewAttribute("auxunit", iaux.unit));
     }
 
-    if (iaux->auxList)
+    if (iaux.auxList)
     {
-      AddAuxInfo(iaux->auxList, auxiliaryElement);
+      AddAuxInfo(iaux.auxList, auxiliaryElement);
     }
   }
   return;
@@ -118,7 +112,7 @@ void PHG4GDMLWrite::AddAuxInfo(PHG4GDMLAuxListType* auxInfoList,
 
 void PHG4GDMLWrite::UserinfoWrite(xercesc::DOMElement* gdmlElement)
 {
-  if (auxList.size() > 0)
+  if (!auxList.empty())
   {
     std::cout << "PHG4GDML: Writing userinfo..." << std::endl;
 
@@ -162,8 +156,9 @@ G4String PHG4GDMLWrite::GenerateName(const G4String& name, const void* const ptr
   };
 
   nameOut = G4String(stream.str());
-  if (nameOut.contains(' '))
+  if (nameOut.contains(' ')) {
     nameOut.erase(std::remove(nameOut.begin(), nameOut.end(), ' '), nameOut.end());
+}
 
   return nameOut;
 }
@@ -233,7 +228,7 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
   xercesc::DOMImplementation* impl =
       xercesc::DOMImplementationRegistry::getDOMImplementation(tempStr);
   xercesc::XMLString::transcode("gdml", tempStr, 9999);
-  doc = impl->createDocument(0, tempStr, 0);
+  doc = impl->createDocument(nullptr, tempStr, nullptr);
   xercesc::DOMElement* gdml = doc->getDocumentElement();
 
 #if XERCES_VERSION_MAJOR >= 3
@@ -322,7 +317,7 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
 
 void PHG4GDMLWrite::AddModule(const G4VPhysicalVolume* const physvol)
 {
-  if (physvol == 0)
+  if (physvol == nullptr)
   {
     G4Exception("PHG4GDMLWrite::AddModule()", "InvalidSetup", FatalException,
                 "Invalid NULL pointer is specified for modularization!");
@@ -360,7 +355,7 @@ void PHG4GDMLWrite::AddModule(const G4int depth)
     G4Exception("PHG4GDMLWrite::AddModule()", "InvalidSetup", FatalException,
                 "Depth must be a positive number!");
   }
-  if (DepthMap().find(depth) != DepthMap().end())
+  if (DepthMap().contains(depth))
   {
     G4Exception("PHG4GDMLWrite::AddModule()", "InvalidSetup", FatalException,
                 "Adding module(s) at this depth is already requested!");
@@ -371,12 +366,12 @@ void PHG4GDMLWrite::AddModule(const G4int depth)
 G4String PHG4GDMLWrite::Modularize(const G4VPhysicalVolume* const physvol,
                                    const G4int depth)
 {
-  if (PvolumeMap().find(physvol) != PvolumeMap().end())
+  if (PvolumeMap().contains(physvol))
   {
     return PvolumeMap()[physvol];  // Modularize via physvol
   }
 
-  if (DepthMap().find(depth) != DepthMap().end())  // Modularize via depth
+  if (DepthMap().contains(depth))  // Modularize via depth
   {
     std::stringstream stream;
     stream << "depth" << depth << "_module" << DepthMap()[depth] << ".gdml";
@@ -388,7 +383,7 @@ G4String PHG4GDMLWrite::Modularize(const G4VPhysicalVolume* const physvol,
                         // was requested at that level/physvol!
 }
 
-void PHG4GDMLWrite::AddAuxiliary(PHG4GDMLAuxStructType myaux)
+void PHG4GDMLWrite::AddAuxiliary(const PHG4GDMLAuxStructType& myaux)
 {
   auxList.push_back(myaux);
 }
