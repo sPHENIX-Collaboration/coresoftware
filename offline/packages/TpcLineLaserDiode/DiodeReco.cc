@@ -216,12 +216,7 @@ int DiodeReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int DiodeReco::End(PHCompositeNode * /*unused*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-double DiodeReco::MaxAdc(int n, int low_bin, int high_bin)
+double DiodeReco::MaxAdc(int n, int low_bin, int high_bin) const
 {
   double MaxSum = -99999;  // Maximum sum over n bins within the bin range
   int MaxMid = -1;         // Bin number of the middle bin used to calculate MaxSum
@@ -250,7 +245,7 @@ double DiodeReco::MaxAdc(int n, int low_bin, int high_bin)
   return MaxSum / (2.0 * n + 1.0);
 }
 
-int DiodeReco::MaxBin(int n)
+int DiodeReco::MaxBin(int n) const
 {
   double MaxSum = -99999;
   int MaxMid = -1;
@@ -274,7 +269,7 @@ int DiodeReco::MaxBin(int n)
   return MaxMid;
 }
 
-double DiodeReco::Integral(int low_bin, int high_bin)
+double DiodeReco::Integral(int low_bin, int high_bin) const
 {
   low_bin = std::max(low_bin, 0);
   high_bin = std::min(high_bin, static_cast<int>(adc.size()));
@@ -287,7 +282,7 @@ double DiodeReco::Integral(int low_bin, int high_bin)
   return SUM;
 }
 
-int DiodeReco::NAboveThreshold(double upper_thr, double lower_thr)
+int DiodeReco::NAboveThreshold(double upper_thr, double lower_thr) const
 {
   int nAbove = 0;
 
@@ -310,7 +305,7 @@ int DiodeReco::NAboveThreshold(double upper_thr, double lower_thr)
   return nAbove;
 }
 
-double DiodeReco::PulseWidth(double upper_thr, double lower_thr)
+double DiodeReco::PulseWidth(double upper_thr, double lower_thr) const
 {
   //  The results of this routine are ONLY valid
   //  if NAbove is one.
