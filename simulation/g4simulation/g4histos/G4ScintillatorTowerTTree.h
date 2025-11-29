@@ -13,7 +13,7 @@ class G4ScintillatorTowerTTree : public SubsysReco
 {
  public:
   G4ScintillatorTowerTTree(const std::string &name = "SCINTILLATORTOWERTTREE");
-  ~G4ScintillatorTowerTTree() override {}
+  ~G4ScintillatorTowerTTree() override = default;
 
   //! full initialization
   int Init(PHCompositeNode *) override;
@@ -29,15 +29,15 @@ class G4ScintillatorTowerTTree : public SubsysReco
 
   void HistoFileName(const std::string &name) { _histofilename = name; }
 
- protected:
+ private:
   std::string _detector;
   std::string _outnodename;
   std::string _towernodename;
   std::string _histofilename;
-  int savetowers;
-  int evtno;
-  Fun4AllHistoManager *hm;
-  TH1 *etot_hist;
+  int savetowers{1};
+  int evtno{0};
+  Fun4AllHistoManager *hm{nullptr};
+  TH1 *etot_hist{nullptr};
 };
 
 #endif

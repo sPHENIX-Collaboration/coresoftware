@@ -20,8 +20,7 @@
 
 #include <TVector3.h>
 
-#include <boost/format.hpp>
-
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -145,10 +144,8 @@ void TPCHitTrackDisplay::TPCRawOut(PHCompositeNode *topNode)
     }
 
      outfile1
-        << (boost::format(
-          "{ \"pt\": %1%, \"e\": %2%, \"p\": %3%, \"c\": %4%, \"pdgcode \": %5%, \"pts\":[ %6% ]},")
-           % mom.Pt() % mom.PseudoRapidity() % mom.Phi() % c % _pdgcode % spts.str() ) << std::endl;
-           spts.clear();
+        << std::format("{ \"pt\": {}, \"e\": {}, \"p\": {}, \"c\": {}, \"pdgcode \": {}, \"pts\":[ {} ]},",
+          mom.Pt(), mom.PseudoRapidity(), mom.Phi(), c, _pdgcode, spts.str() ) << std::endl;
            spts.str("");
 }
 
@@ -218,7 +215,7 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode* topNode)
     }
     SvtxTrack* track = iter.second;
     std::vector<TrkrDefs::cluskey> clusters;
-    auto siseed = track->get_silicon_seed();
+    auto *siseed = track->get_silicon_seed();
     if (siseed)
     {
       for (auto iter1 = siseed->begin_cluster_keys(); iter1 != siseed->end_cluster_keys(); ++iter1)
@@ -228,7 +225,7 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode* topNode)
       }
     }
 
-    auto tpcseed = track->get_tpc_seed();
+    auto *tpcseed = track->get_tpc_seed();
     if (tpcseed)
     {
       for (auto iter1 = tpcseed->begin_cluster_keys(); iter1 != tpcseed->end_cluster_keys(); ++iter1)
@@ -317,8 +314,7 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode* topNode)
       spts << clusADC;
       spts << "}";
 
-      outfile1 << (boost::format("%1%") % spts.str());
-      spts.clear();
+      outfile1 << std::format("{}", spts.str());
       spts.str("");
     }
   }
@@ -357,7 +353,7 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode* topNode)
     c = track->get_charge();
 
     std::vector<TrkrDefs::cluskey> clusters;
-    auto siseed = track->get_silicon_seed();
+    auto *siseed = track->get_silicon_seed();
     if (siseed)
     {
       for (auto iter1 = siseed->begin_cluster_keys(); iter1 != siseed->end_cluster_keys(); ++iter1)
@@ -367,7 +363,7 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode* topNode)
       }
     }
 
-    auto tpcseed = track->get_tpc_seed();
+    auto *tpcseed = track->get_tpc_seed();
     if (tpcseed)
     {
       for (auto iter1 = tpcseed->begin_cluster_keys(); iter1 != tpcseed->end_cluster_keys(); ++iter1)
@@ -414,23 +410,17 @@ void TPCHitTrackDisplay::SimulationOut(PHCompositeNode* topNode)
     firstClus = true;
     if (firstTrack)
     {
-      outfile1
-          << (boost::format(
-                  "{ \"pt\": %1%, \"e\": %2%, \"p\": %3%, \"c\": %4%, \"pdgcode \": %5%, \"centrality \": %6%, \"pts\":[ %7% ]}") %
-              mom.Pt() % mom.PseudoRapidity() % mom.Phi() % c % _pdgcode % cent_index % spts.str())
+      outfile1 << std::format("{{ \"pt\": {}, \"e\": {}, \"p\": {}, \"c\": {}, \"pdgcode \": {}, \"centrality \": {}, \"pts\": [ {} ] }}",
+		  mom.Pt(), mom.PseudoRapidity(), mom.Phi(), c, _pdgcode, cent_index, spts.str())
           << std::endl;
-      spts.clear();
       spts.str("");
       firstTrack = false;
     }
     else
     {
-      outfile1
-          << (boost::format(
-                  ",{ \"pt\": %1%, \"e\": %2%, \"p\": %3%, \"c\": %4%, \"pdgcode \": %5%, \"centrality \": %6%, \"pts\":[ %7% ]}") %
-              mom.Pt() % mom.PseudoRapidity() % mom.Phi() % c % _pdgcode % cent_index % spts.str())
+      outfile1 << std::format(",{{ \"pt\": {}, \"e\": {}, \"p\": {}, \"c\": {}, \"pdgcode\": {}, \"centrality\": {}, \"pts\": [ {} ] }}",
+			      mom.Pt(), mom.PseudoRapidity(), mom.Phi(), c, _pdgcode, cent_index, spts.str())
           << std::endl;
-      spts.clear();
       spts.str("");
     }
   }

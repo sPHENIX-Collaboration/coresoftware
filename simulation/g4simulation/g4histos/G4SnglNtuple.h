@@ -35,8 +35,7 @@ class G4SnglNtuple : public SubsysReco
 
   void AddNode(const std::string &name, const int detid = 0);
 
- protected:
-  int nblocks{0};
+ private:
   Fun4AllHistoManager *hm{nullptr};
   std::vector<TH1 *> nhits;
   std::vector<TH1 *> eloss;

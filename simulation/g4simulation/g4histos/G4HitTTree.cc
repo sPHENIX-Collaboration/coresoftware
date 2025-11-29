@@ -22,26 +22,19 @@
 #include <map>       // for _Rb_tree_const_iterator
 #include <utility>   // for pair
 
-using namespace std;
-
 G4HitTTree::G4HitTTree(const std::string &name)
   : SubsysReco(name)
-  , savehits(1)
-  , evtno(0)
-  , hm(nullptr)
-  , etot_hist(nullptr)
-  , eion_etot_hist(nullptr)
 {
   BlackHoleName("BH_1");  // initialize this to what we have in our common sims
 }
 
 int G4HitTTree::Init(PHCompositeNode *topNode)
 {
-  if (!_detector.size())
+  if (_detector.empty())
   {
-    cout << "Detector not set via Detector(<name>) method" << endl;
-    cout << "(it is the name appended to the G4HIT_<name> nodename)" << endl;
-    cout << "you do not want to run like this, exiting now" << endl;
+    std::cout << "Detector not set via Detector(<name>) method" << std::endl;
+    std::cout << "(it is the name appended to the G4HIT_<name> nodename)" << std::endl;
+    std::cout << "you do not want to run like this, exiting now" << std::endl;
     gSystem->Exit(1);
   }
   hm = new Fun4AllHistoManager("HITHIST");
@@ -70,7 +63,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
   {
     PHG4HitContainer::ConstRange hit_range = g4hits->getHits();
     // shower_z->Reset();
-    //   cout << "Number of Hits: " << g4hits->size() << endl;
+    //   std::cout << "Number of Hits: " << g4hits->size() << std::endl;
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
     {
       PHG4Hit *inhit = hit_iter->second;
@@ -89,7 +82,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
   {
     PHG4HitContainer::ConstRange hit_range = g4hits->getHits();
     // shower_z->Reset();
-    //   cout << "Number of Hits: " << g4hits->size() << endl;
+    //   std::cout << "Number of Hits: " << g4hits->size() << std::endl;
     for (PHG4HitContainer::ConstIterator hit_iter = hit_range.first; hit_iter != hit_range.second; hit_iter++)
     {
       PHG4Hit *inhit = hit_iter->second;

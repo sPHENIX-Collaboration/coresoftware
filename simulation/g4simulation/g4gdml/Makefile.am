@@ -8,10 +8,10 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
   -isystem$(XERCESCROOT)/include \
-  -I$(OPT_SPHENIX)/include
+  -isystem$(OPT_SPHENIX)/include
 
 libphg4gdml_la_LDFLAGS = \
   -L$(libdir) \
@@ -69,4 +69,3 @@ testexternals.cc:
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES)
-

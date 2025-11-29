@@ -36,14 +36,6 @@
 
 #include <Geant4/G4LogicalVolume.hh>
 
-PHG4GDMLWriteSetup::PHG4GDMLWriteSetup() : PHG4GDMLWriteSolids()
-{
-}
-
-PHG4GDMLWriteSetup::~PHG4GDMLWriteSetup()
-{
-}
-
 void PHG4GDMLWriteSetup::SetupWrite(xercesc::DOMElement* gdmlElement,
                                   const G4LogicalVolume* const logvol)
 {
