@@ -779,7 +779,7 @@ int Fun4AllServer::process_event()
 	histit->Reset();
 	if (Verbosity() > 0)
 	{
-	  std::cout << PHWHERE << "saving " << histit->Name() << " wrote events, closing " << histit->OutFileName() << std::endl;
+	  std::cout << PHWHERE << "saving " << histit->Name() << " wrote events, closing " << histit->LastClosedFileName() << std::endl;
 	}
       }
     }
