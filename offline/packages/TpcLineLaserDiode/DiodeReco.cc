@@ -1,20 +1,22 @@
 #include "DiodeReco.h"
 
+#include <ffamodules/CDBInterface.h>
+
+#include <ffarawobjects/TpcDiodeContainerv1.h>
+#include <ffarawobjects/TpcDiodev1.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <ffarawobjects/TpcDiodeContainerv1.h>
-#include <ffarawobjects/TpcDiodev1.h>
-
 #include <Event/Event.h>
 #include <Event/caen_correction.h>
 #include <Event/packet.h>
 
-#include <ffamodules/CDBInterface.h>
 
 #include <TSystem.h>
 
@@ -214,7 +216,7 @@ int DiodeReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int DiodeReco::End(PHCompositeNode *)
+int DiodeReco::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -291,15 +293,15 @@ int DiodeReco::NAboveThreshold(double upper_thr, double lower_thr)
 
   bool belowThreshold = true;
 
-  for (size_t i = 0; i < adc.size(); i++)
+  for (double adc_val : adc)
   {
-    if (belowThreshold && adc[i] >= upper_thr)
+    if (belowThreshold && adc_val >= upper_thr)
     {
       nAbove++;
       belowThreshold = false;
     }
 
-    else if (!belowThreshold && adc[i] < lower_thr)
+    else if (!belowThreshold && adc_val < lower_thr)
     {
       belowThreshold = true;
     }
@@ -364,8 +366,8 @@ void DiodeReco::PedestalCorrected(int low_bin = -1, int high_bin = 9999)
     PEDESTAL = (sam[(n - 1) / 2] + sam[n / 2]) / 2.0;
   }
 
-  for (size_t i = 0; i < adc.size(); i++)
+  for (double & adc_val : adc)
   {
-    adc[i] = adc[i] - PEDESTAL;
+    adc_val = adc_val - PEDESTAL;
   }
 }
