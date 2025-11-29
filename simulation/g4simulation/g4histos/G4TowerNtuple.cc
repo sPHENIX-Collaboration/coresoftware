@@ -30,6 +30,7 @@ G4TowerNtuple::~G4TowerNtuple()
 
 int G4TowerNtuple::Init(PHCompositeNode * /*unused*/)
 {
+  delete hm; // make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(m_filename.c_str(), "RECREATE");
   ntup = new TNtuple("towerntup", "G4Towers", "detid:phi:eta:energy");

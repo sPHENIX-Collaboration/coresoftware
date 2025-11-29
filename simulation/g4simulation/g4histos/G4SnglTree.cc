@@ -26,6 +26,7 @@ G4SnglTree::G4SnglTree(const std::string &name, const std::string &filename)
 
 int G4SnglTree::Init(PHCompositeNode * /*unused*/)
 {
+  delete outfile; // make cppcheck happy
   outfile = new TFile(_filename.c_str(), "RECREATE");
   g4tree = new TTree("mG4EvtTree", "g4tree");
   g4tree->SetAutoSave(1000000);

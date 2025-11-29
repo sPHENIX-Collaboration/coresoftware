@@ -27,6 +27,7 @@ G4EdepNtuple::~G4EdepNtuple()
 
 int G4EdepNtuple::Init(PHCompositeNode * /*unused*/)
 {
+  delete hm; // make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("edepntup", "G4Edeps", "detid:layer:edep");

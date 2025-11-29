@@ -25,6 +25,7 @@ G4VtxNtuple::~G4VtxNtuple()
 
 int G4VtxNtuple::Init(PHCompositeNode * /*unused*/)
 {
+  delete hm; // make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
   ntup = new TNtuple("vtxntup", "G4Vtxs", "vx:vy:vz");
   hm->registerHisto(ntup);

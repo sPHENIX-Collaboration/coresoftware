@@ -33,6 +33,7 @@ G4CellNtuple::~G4CellNtuple()
 
 int G4CellNtuple::Init(PHCompositeNode * /*unused*/)
 {
+  delete hm; // make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("cellntup", "G4Cells", "detid:layer:phi:eta:edep");
