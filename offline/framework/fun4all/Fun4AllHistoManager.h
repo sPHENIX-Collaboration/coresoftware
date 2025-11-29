@@ -50,21 +50,22 @@ class Fun4AllHistoManager : public Fun4AllBase
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
   void segment(const int segment) { m_CurrentSegment = segment; }
-  int GetEventNumberRollover() const {return m_EventRollover;}
-  void SetEventNumberRollover(const int evtno) {m_EventRollover = evtno;}
+  int GetEventNumberRollover() const { return m_EventRollover; }
+  void SetEventNumberRollover(const int evtno) { m_EventRollover = evtno; }
   int LastEventNumber() const { return m_LastEventNumber; }
   void SetLastEventNumber(int ival) { m_LastEventNumber = ival; }
   void UpdateLastEvent() { m_LastEventNumber += m_EventRollover; }
   void InitializeLastEvent(int eventnumber);
-  void StartSegment(int iseg) {m_CurrentSegment = iseg;}
+  void StartSegment(int iseg) { m_CurrentSegment = iseg; }
   void UseFileRule(bool b = true) { m_UseFileRuleFlag = b; }
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
   void CopyRolloverSetting(const Fun4AllOutputManager *outman);
+  const std::string &LastClosedFileName() const { return m_LastClosedFileName; }
 
-private:
-  bool m_LastEventInitializedFlag {false};
-  bool m_UseFileRuleFlag {false};
-  int m_CurrentSegment {0};
+ private:
+  bool m_LastEventInitializedFlag{false};
+  bool m_UseFileRuleFlag{false};
+  int m_CurrentSegment{0};
   int m_EventRollover{0};
   int m_LastEventNumber{std::numeric_limits<int>::max()};
 
