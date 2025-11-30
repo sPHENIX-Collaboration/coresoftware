@@ -1,4 +1,5 @@
 #include "FillClusMatchTree.h"
+
 #include "TrkrClusterIsMatcher.h"
 #include "g4evalfn.h"
 
@@ -33,8 +34,7 @@
 #include <TH2.h>
 #include <TTree.h>
 
-#include <boost/format.hpp>
-
+#include <format>
 #include <iostream>
 
 //____________________________________________________________________________..
@@ -45,19 +45,18 @@ FillClusMatchTree::FillClusMatchTree(
   , m_fill_clusters{_fill_clusters}
   , m_fill_clusverbose{_fill_clusverbose}
   , m_fill_SvUnmatched{_fill_SvUnMatched}
+  , h2_G4_nPixelsPhi(new TH2D("G4_nPixelsPhi", "PHG4 Emb Tracks; cluster pixel width Phi; layer",
+                              100, -0.5, 99.5, 56, -0.5, 55.5))
+  , h2_G4_nPixelsZ(new TH2D("G4_nPixelsZ", "PHG4 Emb Tracks; cluster pixel width Z; layer",
+                            100, -0.5, 99.5, 56, -0.5, 55.5))
+  , h2_Sv_nPixelsPhi(new TH2D("Sv_nPixelsPhi", "Svtx Reco Tracks; cluster pixel width Phi; layer",
+                              100, -0.5, 99.5, 56, -0.5, 55.5))
+  , h2_Sv_nPixelsZ(new TH2D("Sv_nPixelsZ", "Svtx Reco Tracks; cluster pixel width Z; layer",
+                            100, -0.5, 99.5, 56, -0.5, 55.5))
 {
   m_TCEval.ismatcher = m_ismatcher;
 
-  PHTFileServer::get().open(m_outfile_name, "RECREATE");
-
-  h2_G4_nPixelsPhi = new TH2D("G4_nPixelsPhi", "PHG4 Emb Tracks; cluster pixel width Phi; layer",
-                              100, -0.5, 99.5, 56, -0.5, 55.5);
-  h2_G4_nPixelsZ = new TH2D("G4_nPixelsZ", "PHG4 Emb Tracks; cluster pixel width Z; layer",
-                            100, -0.5, 99.5, 56, -0.5, 55.5);
-  h2_Sv_nPixelsPhi = new TH2D("Sv_nPixelsPhi", "Svtx Reco Tracks; cluster pixel width Phi; layer",
-                              100, -0.5, 99.5, 56, -0.5, 55.5);
-  h2_Sv_nPixelsZ = new TH2D("Sv_nPixelsZ", "Svtx Reco Tracks; cluster pixel width Z; layer",
-                            100, -0.5, 99.5, 56, -0.5, 55.5);
+  PHTFileServer::open(m_outfile_name, "RECREATE");
 
   m_ttree = new TTree("T", "Tracks (and sometimes clusters)");
 
@@ -247,9 +246,9 @@ int FillClusMatchTree::process_event(PHCompositeNode* /*topNode*/)
     auto range = m_TCEval.get_PHG4_clusters()->getClusters(hitsetkey);
     for (auto iter = range.first; iter != range.second; ++iter)
     {
-      auto& cluster = iter->second;
-      h2_G4_nPixelsPhi->Fill((float) cluster->getPhiSize(), layer);
-      h2_G4_nPixelsZ->Fill((float) cluster->getZSize(), layer);
+      const auto& cluster = iter->second;
+      h2_G4_nPixelsPhi->Fill( cluster->getPhiSize(), layer);
+      h2_G4_nPixelsZ->Fill( cluster->getZSize(), layer);
     }
   }
   // fill in pixel widths on reco tracks
@@ -259,9 +258,9 @@ int FillClusMatchTree::process_event(PHCompositeNode* /*topNode*/)
     auto range = m_TCEval.get_SVTX_clusters()->getClusters(hitsetkey);
     for (auto iter = range.first; iter != range.second; ++iter)
     {
-      auto& cluster = iter->second;
-      h2_Sv_nPixelsPhi->Fill((float) cluster->getPhiSize(), layer);
-      h2_Sv_nPixelsZ->Fill((float) cluster->getZSize(), layer);
+      const auto& cluster = iter->second;
+      h2_Sv_nPixelsPhi->Fill( cluster->getPhiSize(), layer);
+      h2_Sv_nPixelsZ->Fill( cluster->getZSize(), layer);
     }
   }
 
@@ -291,8 +290,8 @@ int FillClusMatchTree::process_event(PHCompositeNode* /*topNode*/)
     unsigned int g4_trkid = match->idTruthTrack();
     int sv_trkid = match->idRecoTrack();
 
-    auto g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
-    auto svtrk = m_SvtxTrackMap->get(sv_trkid);
+    auto *g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
+    auto *svtrk = m_SvtxTrackMap->get(sv_trkid);
 
     m_TCEval.addClusKeys(g4trk);
     m_TCEval.addClusKeys(svtrk);
@@ -389,7 +388,7 @@ int FillClusMatchTree::process_event(PHCompositeNode* /*topNode*/)
   b_is_Svtrack = false;
   for (auto& g4_trkid : m_EmbRecoMatchContainer->ids_TruthUnmatched())
   {
-    auto g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
+    auto *g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
     m_TCEval.addClusKeys(g4trk);
 
     b_trackid = g4_trkid;
@@ -427,7 +426,7 @@ int FillClusMatchTree::process_event(PHCompositeNode* /*topNode*/)
   {
     for (auto sv_trkid : g4evalfn::unmatchedSvtxTrkIds(m_EmbRecoMatchContainer, m_SvtxTrackMap))
     {
-      auto svtrk = m_SvtxTrackMap->get(sv_trkid);
+      auto *svtrk = m_SvtxTrackMap->get(sv_trkid);
       m_TCEval.addClusKeys(svtrk);
       b_trackid = sv_trkid;
       b_trkpt = svtrk->get_pt();
@@ -512,17 +511,25 @@ void FillClusMatchTree::print_mvtx_diagnostics()
     }
   }
 
-  std::cout << (boost::format("MVTX"
-                              "\nPHG4:  Tracks(%.0f)   Clusters In tracks(%.0f)   Total (%.0f)"
-                              "\n       ave. per track: %6.3f   ratio in all tracks: %6.2f") %
-                n_PHG4_tracks % n_in_PHG4_tracks % n_in_PHG4_clusters % (n_in_PHG4_tracks / n_PHG4_tracks) % (n_in_PHG4_tracks / n_in_PHG4_clusters))
-                   .str()
+  std::cout << std::format(
+    "MVTX\n"
+    "PHG4:  Tracks({:.0f})   Clusters In tracks({:.0f})   Total ({:.0f})\n"
+    "       ave. per track: {:6.3f}   ratio in all tracks: {:6.2f}",
+    n_PHG4_tracks,
+    n_in_PHG4_tracks,
+    n_in_PHG4_clusters,
+    n_in_PHG4_tracks / n_PHG4_tracks,
+    n_in_PHG4_tracks / n_in_PHG4_clusters)
             << std::endl;
-  std::cout << (boost::format(
-                    "\nSVTX:  Tracks(%.0f)   Clusters In tracks(%.0f)   Total (%.0f)"
-                    "\n       ave. per track: %6.3f   ratio in all tracks: %6.2f") %
-                n_SVTX_tracks % n_in_SVTX_tracks % n_in_SVTX_clusters % (n_in_SVTX_tracks / n_SVTX_tracks) % (n_in_SVTX_tracks / n_in_SVTX_clusters))
-                   .str()
+  std::cout << std::format(
+    "\nSVTX:  Tracks({:.0f})   Clusters In tracks({:.0f})   Total ({:.0f})"
+    "\n       ave. per track: {:6.3f}   ratio in all tracks: {:6.2f}",
+    n_SVTX_tracks,
+    n_in_SVTX_tracks,
+    n_in_SVTX_clusters,
+    n_in_SVTX_tracks / n_SVTX_tracks,
+    n_in_SVTX_tracks / n_in_SVTX_clusters
+)
             << std::endl;
 }
 
@@ -532,7 +539,7 @@ int FillClusMatchTree::End(PHCompositeNode* /*unused*/)
   {
     std::cout << PHWHERE << ": ending FillClusMatchTree" << std::endl;
   }
-  PHTFileServer::get().cd(m_outfile_name);
+  PHTFileServer::cd(m_outfile_name);
 
   h2_G4_nPixelsPhi->Write();
   h2_G4_nPixelsZ->Write();
@@ -545,7 +552,7 @@ int FillClusMatchTree::End(PHCompositeNode* /*unused*/)
 
 void FillClusMatchTree::clear_clusvecs(const std::string& tag)
 {
-  if (tag != "" && b_clus_x.size() > 0)
+  if (!tag.empty() && !b_clus_x.empty())
   {
     for (auto x : b_clus_x)
     {
@@ -627,16 +634,16 @@ void FillClusMatchTree::fill_cluster_branches(
   }
   else
   {
-    b_phibins.push_back({});
-    b_phibinsE.push_back({});
+    b_phibins.emplace_back();
+    b_phibinsE.emplace_back();
 
-    b_zbins.push_back({});
-    b_zbinsE.push_back({});
+    b_zbins.emplace_back();
+    b_zbinsE.emplace_back();
 
-    b_phibins_cut.push_back({});
-    b_phibinsE_cut.push_back({});
+    b_phibins_cut.emplace_back();
+    b_phibinsE_cut.emplace_back();
 
-    b_zbins_cut.push_back({});
-    b_zbinsE_cut.push_back({});
+    b_zbins_cut.emplace_back();
+    b_zbinsE_cut.emplace_back();
   }
 }

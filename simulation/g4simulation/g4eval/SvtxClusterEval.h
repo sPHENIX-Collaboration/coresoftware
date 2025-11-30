@@ -78,7 +78,7 @@ class SvtxClusterEval
   void FillRecoClusterFromG4HitCache();
   // overlap calculations
   float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* truthparticle);
-  float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Hit* truthhit);
+  float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Hit* g4hit);
 
   std::pair<TrkrDefs::cluskey, TrkrCluster*> reco_cluster_from_truth_cluster(TrkrDefs::cluskey, const std::shared_ptr<TrkrCluster>& gclus);
 
@@ -93,18 +93,18 @@ class SvtxClusterEval
   //! Fast approximation of atan2() for cluster searching
   //! From https://www.dsprelated.com/showarticle/1052.php
   float fast_approx_atan2(float y, float x);
-  float fast_approx_atan2(float y2x);
+  float fast_approx_atan2(float z);
 
   SvtxHitEval _hiteval;
-  TrkrClusterContainer* _clustermap = nullptr;
-  TrkrClusterHitAssoc* _cluster_hit_map = nullptr;
-  TrkrHitTruthAssoc* _hit_truth_map = nullptr;
-  PHG4TruthInfoContainer* _truthinfo = nullptr;
-  PHG4HitContainer* _g4hits_tpc = nullptr;
-  PHG4HitContainer* _g4hits_intt = nullptr;
-  PHG4HitContainer* _g4hits_mvtx = nullptr;
-  PHG4HitContainer* _g4hits_mms = nullptr;
-  ActsGeometry* _tgeometry = nullptr;
+  TrkrClusterContainer* _clustermap {nullptr};
+  TrkrClusterHitAssoc* _cluster_hit_map {nullptr};
+  TrkrHitTruthAssoc* _hit_truth_map {nullptr};
+  PHG4TruthInfoContainer* _truthinfo {nullptr};
+  PHG4HitContainer* _g4hits_tpc {nullptr};
+  PHG4HitContainer* _g4hits_intt {nullptr};
+  PHG4HitContainer* _g4hits_mvtx {nullptr};
+  PHG4HitContainer* _g4hits_mms {nullptr};
+  ActsGeometry* _tgeometry {nullptr};
 
   bool _strict = false;
   int _verbosity = 0;

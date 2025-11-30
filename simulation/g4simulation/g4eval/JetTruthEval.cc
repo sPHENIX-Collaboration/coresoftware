@@ -147,7 +147,7 @@ std::set<PHG4Shower*> JetTruthEval::all_truth_showers(Jet* truthjet)
   std::set<PHG4Particle*> truth_particles = all_truth_particles(truthjet);
 
   // loop over all the entries in the truthjet
-  for (auto particle : truth_particles)
+  for (auto *particle : truth_particles)
   {
     if (_strict)
     {
@@ -203,7 +203,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet)
   std::set<PHG4Particle*> truth_particles = all_truth_particles(truthjet);
 
   // loop over all the entries in the truthjet
-  for (auto particle : truth_particles)
+  for (auto *particle : truth_particles)
   {
     if (_strict)
     {
@@ -219,7 +219,7 @@ std::set<PHG4Hit*> JetTruthEval::all_truth_hits(Jet* truthjet)
     SvtxTruthEval* svtx_truth_eval = _svtxevalstack.get_truth_eval();
     std::set<PHG4Hit*> svtx_g4hits = svtx_truth_eval->all_truth_hits(particle);
 
-    for (auto g4hit : svtx_g4hits)
+    for (auto *g4hit : svtx_g4hits)
     {
       if (_strict)
       {
@@ -268,7 +268,7 @@ Jet* JetTruthEval::get_truth_jet(PHG4Particle* particle)
   Jet* truth_jet = nullptr;
 
   // loop over all jets and look for this particle...
-  for (auto candidate : *_truthjets)
+  for (auto *candidate : *_truthjets)
   {
     /* Jet* candidate = _truthjet.second; */
 

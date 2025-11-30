@@ -27,9 +27,11 @@
 class TrivialTrack
 {
  public:
+  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   float px, py, pz;
   float dcax, dcay, dcaz;
   float quality;
+  // NOLINTEND(misc-non-private-member-variables-in-classes)
   TrivialTrack(float x, float y, float z, float dx, float dy, float dz, float qual = 0.)
     : px(x)
     , py(y)
@@ -40,23 +42,10 @@ class TrivialTrack
     , quality(qual)
   {
   }
-  ~TrivialTrack() = default;
 };
 
-class RecursiveMomentumContainer
+class RecursiveMomentumContainer  // NOLINT(hicpp-special-member-functions)
 {
- protected:
-  float px_lo, px_hi;
-  float py_lo, py_hi;
-  float pz_lo, pz_hi;
-
-  int level;
-  int maxlevel;
-
-  unsigned int x_pos, y_pos, z_pos;
-
-  RecursiveMomentumContainer* containers[2][2][2]{};
-
  public:
   RecursiveMomentumContainer(float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI, int MLEV, int LEV = 0)
     : px_lo(PX_LO)
@@ -75,9 +64,9 @@ class RecursiveMomentumContainer
     {
       for (auto& j : container)
       {
-        for (unsigned int k = 0; k < 2; ++k)
+        for (auto& k : j)
         {
-          j[k] = nullptr;
+          k = nullptr;
         }
       }
     }
@@ -88,12 +77,9 @@ class RecursiveMomentumContainer
     {
       for (auto& j : container)
       {
-        for (unsigned int k = 0; k < 2; ++k)
+        for (auto& k : j)
         {
-          if (j[k] != nullptr)
-          {
-            delete j[k];
-          }
+          delete k;
         }
       }
     }
@@ -115,34 +101,24 @@ class RecursiveMomentumContainer
           z_pos = 1;
           continue;
         }
-        else
+
+        if (y_pos == 0)
         {
-          if (y_pos == 0)
-          {
-            z_pos = 0;
-            y_pos = 1;
-            continue;
-          }
-          else
-          {
-            if (x_pos == 0)
-            {
-              z_pos = 0;
-              y_pos = 0;
-              x_pos = 1;
-              continue;
-            }
-            else
-            {
-              return nullptr;
-            }
-          }
+          z_pos = 0;
+          y_pos = 1;
+          continue;
         }
+
+        if (x_pos == 0)
+        {
+          z_pos = 0;
+          y_pos = 0;
+          x_pos = 1;
+          continue;
+        }
+        return nullptr;
       }
-      else
-      {
-        return containers[x_pos][y_pos][z_pos]->begin();
-      }
+      return containers[x_pos][y_pos][z_pos]->begin();
     }
   }
 
@@ -159,29 +135,23 @@ class RecursiveMomentumContainer
           z_pos = 1;
           continue;
         }
-        else
+
+        if (y_pos == 0)
         {
-          if (y_pos == 0)
-          {
-            z_pos = 0;
-            y_pos = 1;
-            continue;
-          }
-          else
-          {
-            if (x_pos == 0)
-            {
-              z_pos = 0;
-              y_pos = 0;
-              x_pos = 1;
-              continue;
-            }
-            else
-            {
-              return nullptr;
-            }
-          }
+          z_pos = 0;
+          y_pos = 1;
+          continue;
         }
+
+        if (x_pos == 0)
+        {
+          z_pos = 0;
+          y_pos = 0;
+          x_pos = 1;
+          continue;
+        }
+
+        return nullptr;
       }
       TrivialTrack* val = nullptr;
       if (block_changed == true)
@@ -201,34 +171,25 @@ class RecursiveMomentumContainer
           z_pos = 1;
           continue;
         }
-        else
+
+        if (y_pos == 0)
         {
-          if (y_pos == 0)
-          {
-            z_pos = 0;
-            y_pos = 1;
-            continue;
-          }
-          else
-          {
-            if (x_pos == 0)
-            {
-              z_pos = 0;
-              y_pos = 0;
-              x_pos = 1;
-              continue;
-            }
-            else
-            {
-              return nullptr;
-            }
-          }
+          z_pos = 0;
+          y_pos = 1;
+          continue;
         }
+
+        if (x_pos == 0)
+        {
+          z_pos = 0;
+          y_pos = 0;
+          x_pos = 1;
+          continue;
+        }
+        return nullptr;
       }
-      else
-      {
-        return val;
-      }
+
+      return val;
     }
   }
 
@@ -238,23 +199,37 @@ class RecursiveMomentumContainer
     {
       for (auto& j : container)
       {
-        for (unsigned int k = 0; k < 2; ++k)
+        for (auto& k : j)
         {
-          if (j[k] == nullptr)
+          if (k == nullptr)
           {
             continue;
           }
 
-          if ((j[k]->px_hi < PX_LO) || (j[k]->px_lo > PX_HI) || (j[k]->py_hi < PY_LO) || (j[k]->py_lo > PY_HI) || (j[k]->pz_hi < PZ_LO) || (j[k]->pz_lo > PZ_HI))
+          if ((k->px_hi < PX_LO) || (k->px_lo > PX_HI) || (k->py_hi < PY_LO) || (k->py_lo > PY_HI) || (k->pz_hi < PZ_LO) || (k->pz_lo > PZ_HI))
           {
             continue;
           }
 
-          j[k]->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
+          k->append_list(track_list, PX_LO, PX_HI, PY_LO, PY_HI, PZ_LO, PZ_HI);
         }
       }
     }
   }
+
+ protected:
+  // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
+  float px_lo, px_hi;
+  float py_lo, py_hi;
+  float pz_lo, pz_hi;
+
+  int level;
+  int maxlevel;
+
+  unsigned int x_pos, y_pos, z_pos;
+
+  RecursiveMomentumContainer* containers[2][2][2]{};
+  // NOLINTEND(misc-non-private-member-variables-in-classes)
 };
 
 class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
@@ -265,7 +240,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   {
   }
 
-  ~RecursiveMomentumContainerEnd() override = default;
+  //  ~RecursiveMomentumContainerEnd() override = default;
 
   bool insert(TrivialTrack& track) override
   {
@@ -285,11 +260,9 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
     {
       return nullptr;
     }
-    else
-    {
-      x_pos += 1;
-      return (&(tracks[x_pos]));
-    }
+
+    x_pos += 1;
+    return (&(tracks[x_pos]));
   }
 
   void append_list(std::vector<TrivialTrack*>& track_list, float PX_LO, float PX_HI, float PY_LO, float PY_HI, float PZ_LO, float PZ_HI) override
@@ -305,7 +278,7 @@ class RecursiveMomentumContainerEnd : public RecursiveMomentumContainer
   }
 
  protected:
-  std::vector<TrivialTrack> tracks;
+  std::vector<TrivialTrack> tracks;  // NOLINT(misc-non-private-member-variables-in-classes)
 };
 
 bool RecursiveMomentumContainer::insert(TrivialTrack& track)
@@ -369,26 +342,16 @@ MomentumEvaluator::MomentumEvaluator(const std::string& fname, float pt_s, float
 }
 MomentumEvaluator::~MomentumEvaluator()
 {
-  if (ntp_true != nullptr)
-  {
-    delete ntp_true;
-  }
-  if (ntp_reco != nullptr)
-  {
-    delete ntp_reco;
-  }
+  delete ntp_true;
+
+  delete ntp_reco;
 }
 
 int MomentumEvaluator::Init(PHCompositeNode* /*topNode*/)
 {
-  if (ntp_true != nullptr)
-  {
-    delete ntp_true;
-  }
-  if (ntp_reco != nullptr)
-  {
-    delete ntp_reco;
-  }
+  delete ntp_true;
+
+  delete ntp_reco;
 
   ntp_true = new TNtuple("ntp_true", "true simulated tracks", "event:px:py:pz:dcax:dcay:dcaz:r_px:r_py:r_pz:r_dcax:r_dcay:r_dcaz:quality");
   ntp_reco = new TNtuple("ntp_reco", "reconstructed tracks", "event:px:py:pz:dcax:dcay:dcaz:t_px:t_py:t_pz:t_dcax:t_dcay:t_dcaz:quality");
@@ -428,18 +391,18 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
     }
 
     int trk_id = hit->get_trkid();
-    if (trkids.find(trk_id) == trkids.end())
+    if (!trkids.contains(trk_id))
     {
       trkids[trk_id].first = 0;
       trkids[trk_id].second = 0;
     }
     if (hit->get_layer() < 32)
     {
-      trkids[trk_id].first = (trkids[trk_id].first | (1 << (hit->get_layer())));
+      trkids[trk_id].first = (trkids[trk_id].first | (1U << (hit->get_layer())));
     }
     else if (hit->get_layer() < 64)
     {
-      trkids[trk_id].second = (trkids[trk_id].second | (1 << (hit->get_layer() - 32)));
+      trkids[trk_id].second = (trkids[trk_id].second | (1U << (hit->get_layer() - 32U)));
     }
     else
     {
@@ -480,7 +443,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    if (trkids.find(particle->get_track_id()) == trkids.end())
+    if (!trkids.contains(particle->get_track_id()))
     {
       continue;
     }
@@ -522,7 +485,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
     reco_sorted.append_list(pointer_list, px_lo, px_hi, py_lo, py_hi, pz_lo, pz_hi);
 
-    if (pointer_list.size() > 0)
+    if (!pointer_list.empty())
     {
       float mom_true = std::sqrt(pt * pt + (t_track->pz) * (t_track->pz));
       float best_ind = 0;
@@ -567,7 +530,7 @@ int MomentumEvaluator::process_event(PHCompositeNode* topNode)
 
     true_sorted.append_list(pointer_list, px_lo, px_hi, py_lo, py_hi, pz_lo, pz_hi);
 
-    if (pointer_list.size() > 0)
+    if (!pointer_list.empty())
     {
       float mom_reco = std::sqrt(pt * pt + (r_track->pz) * (r_track->pz));
       float best_ind = 0;

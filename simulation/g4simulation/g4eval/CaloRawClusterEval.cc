@@ -232,7 +232,7 @@ PHG4Shower* CaloRawClusterEval::max_truth_primary_shower_by_energy(RawCluster* c
   // loop over all primaries associated with this cluster and
   // get the energy contribution for each one, record the max
   PHG4Shower* max_primary = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Shower*> primary_showers = all_truth_primary_showers(cluster);
   for (auto* primary : primary_showers)
   {
@@ -394,7 +394,7 @@ RawCluster* CaloRawClusterEval::best_cluster_from(PHG4Shower* primary)
   }
 
   RawCluster* best_cluster = nullptr;
-  float best_energy = FLT_MAX * -1.0;
+  float best_energy = std::numeric_limits<float>::min();
   std::set<RawCluster*> clusters = all_clusters_from(primary);
   for (auto* cluster : clusters)
   {
@@ -1006,7 +1006,7 @@ unsigned int CaloRawClusterEval::get_towerinfo_key(RawTowerDefs::keytype tower_k
       RawTowerDefs::decode_caloid(tower_key);
   // the encoding for calo are actually all the same
   //  this is for safety and furture compatibility(s.l.)
-  unsigned int towerinfokey = UINT_MAX;
+  unsigned int towerinfokey = std::numeric_limits<unsigned int>::max();
   if (caloid == RawTowerDefs::CalorimeterId::CEMC)
   {
     towerinfokey = TowerInfoDefs::encode_emcal(iy, ix);

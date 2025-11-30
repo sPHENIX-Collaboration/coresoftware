@@ -163,7 +163,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
     }
 
     // for every recojet
-    for (auto recojet : *recojets)
+    for (auto *recojet : *recojets)
     {
       /* Jet *recojet = iter.second; */
       Jet *truthjet = recoeval->max_truth_jet_by_energy(recojet);
@@ -232,7 +232,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode)
     }
 
     // for every truthjet
-    for (auto truthjet : *truthjets)
+    for (auto *truthjet : *truthjets)
     {
       /* Jet *truthjet = iter.second; */
       Jet *recojet = recoeval->best_jet_from(truthjet);

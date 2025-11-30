@@ -1,8 +1,7 @@
 #include "SvtxEvaluator.h"
 
-#include "SvtxEvalStack.h"
-
 #include "SvtxClusterEval.h"
+#include "SvtxEvalStack.h"
 #include "SvtxHitEval.h"
 #include "SvtxTrackEval.h"
 #include "SvtxTruthEval.h"
@@ -23,13 +22,13 @@
 #include <trackbase_historic/ActsTransformations.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
+#include <trackbase_historic/TrackSeed.h>
 
-#include <globalvertex/SvtxVertex.h>
-#include <globalvertex/SvtxVertexMap.h>
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
+#include <globalvertex/SvtxVertex.h>
+#include <globalvertex/SvtxVertexMap.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -51,6 +50,7 @@
 #include <TNtuple.h>
 #include <TVector3.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
@@ -147,7 +147,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
     _ntp_cluster = new TNtuple("ntp_cluster", "svtxcluster => max truth",
                                "event:seed:hitID:x:y:z:r:phi:eta:theta:ex:ey:ez:ephi:pez:pephi:"
                                "e:adc:maxadc:layer:phielem:zelem:size:phisize:zsize:"
-			       "pedge:redge:ovlp:"
+                               "pedge:redge:ovlp:"
                                "trackID:niter:g4hitID:gx:"
                                "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
                                "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
@@ -174,10 +174,10 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                               "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                               "gembed:gprimary:"
                               "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
-			      "siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
+                              "siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
                               "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:"
                               "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
-			      "npedge:nredge:nbig:novlp:merr:msize:"
+                              "npedge:nredge:nbig:novlp:merr:msize:"
                               "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
@@ -186,7 +186,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
     _ntp_track = new TNtuple("ntp_track", "svtxtrack => max truth",
                              "event:seed:trackID:crossing:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
                              "siqr:siphi:sithe:six0:siy0:tpqr:tpphi:tpthe:tpx0:tpy0:"
-			     "charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
+                             "charge:quality:chisq:ndf:nhits:nmaps:nintt:ntpc:nmms:ntpc1:ntpc11:ntpc2:ntpc3:nlmaps:nlintt:nltpc:nlmms:layers:"
                              "vertexID:vx:vy:vz:dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:"
                              "gtrackID:singlematch:gflavor:gnhits:gnmaps:gnintt:gntpc:gnmms:gnlmaps:gnlintt:gnltpc:gnlmms:"
                              "gpx:gpy:gpz:gpt:geta:gphi:"
@@ -194,7 +194,7 @@ int SvtxEvaluator::Init(PHCompositeNode* /*topNode*/)
                              "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                              "gembed:gprimary:nfromtruth:nwrong:ntrumaps:nwrongmaps:ntruintt:nwrongintt:"
                              "ntrutpc:nwrongtpc:ntrumms:nwrongmms:ntrutpc1:nwrongtpc1:ntrutpc11:nwrongtpc11:ntrutpc2:nwrongtpc2:ntrutpc3:nwrongtpc3:layersfromtruth:"
-			     "npedge:nredge:nbig:novlp:merr:msize:"
+                             "npedge:nredge:nbig:novlp:merr:msize:"
                              "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps:nclusmms");
   }
 
@@ -409,7 +409,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
     }
 
     std::cout << "---SVXTRACKS-------------" << std::endl;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname);
     if (trackmap)
     {
       unsigned int itrack = 0;
@@ -526,7 +526,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     std::cout << "===Tracking Summary============================" << std::endl;
     unsigned int ng4hits[100] = {0};
     std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
-    for (auto g4hit : g4hits)
+    for (auto* g4hit : g4hits)
     {
       ++ng4hits[g4hit->get_layer()];
     }
@@ -606,7 +606,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
       }
     }
 
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname);
 
     std::cout << "nGtracks = " << std::distance(truthinfo->GetPrimaryParticleRange().first, truthinfo->GetPrimaryParticleRange().second);
     std::cout << " => nTracks = ";
@@ -622,7 +622,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     // cluster wise information
     if (Verbosity() > 1)
     {
-      for (auto g4hit : g4hits)
+      for (auto* g4hit : g4hits)
       {
         std::cout << std::endl;
         std::cout << "===PHG4Hit===================================" << std::endl;
@@ -683,7 +683,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
         std::cout << " ---Associated-PHG4Hits-----------------------------------------" << std::endl;
         std::set<PHG4Hit*> local_g4hits = trutheval->all_truth_hits(particle);
-        for (auto g4hit : local_g4hits)
+        for (auto* g4hit : local_g4hits)
         {
           float x = 0.5 * (g4hit->get_x(0) + g4hit->get_x(1));
           float y = 0.5 * (g4hit->get_y(0) + g4hit->get_y(1));
@@ -731,7 +731,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
         if (trackmap && clustermap)
         {
           std::set<SvtxTrack*> tracks = trackeval->all_tracks_from(particle);
-          for (auto track : tracks)
+          for (auto* track : tracks)
           {
             float px = track->get_px();
             float py = track->get_py();
@@ -887,7 +887,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           {
             nhit_tpc_out++;
           }
-          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)
+          if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1)  // NOLINT(bugprone-integer-division)
           {
             nhit_tpc_mid++;
           }
@@ -1012,7 +1012,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       std::cout << "Filling ntp_info " << std::endl;
     }
     float ntrk = 0;
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname);
     if (trackmap)
     {
       ntrk = (float) trackmap->size();
@@ -1094,7 +1094,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
           unsigned int nglmaps = 0;
 
-	  std::vector<int> lmaps(_nlayers_maps + 1,0);
+          std::vector<int> lmaps(_nlayers_maps + 1, 0);
           for (const TrkrDefs::cluskey g4cluster : g4clusters)
           {
             unsigned int local_layer = TrkrDefs::getLayer(g4cluster);
@@ -1177,73 +1177,73 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         GlobalVertex* gvertex = iter.second;
         auto svtxviter = gvertex->find_vertexes(GlobalVertex::SVTX);
-	if(svtxviter == gvertex->end_vertexes())
-	  {
-	    continue;
-	  }
-
-	GlobalVertex::VertexVector vertices = svtxviter->second;
-	for(auto& vertex : vertices)
-	  {
-        PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
-        int vertexID = vertex->get_id();
-        float vx = vertex->get_x();
-        float vy = vertex->get_y();
-        float vz = vertex->get_z();
-        float ntracks = vertex->size_tracks();
-        float chi2 = vertex->get_chisq();
-        float ndof = vertex->get_ndof();
-        float gvx = std::numeric_limits<float>::quiet_NaN();
-        float gvy = std::numeric_limits<float>::quiet_NaN();
-        float gvz = std::numeric_limits<float>::quiet_NaN();
-        float gvt = std::numeric_limits<float>::quiet_NaN();
-        float gembed = std::numeric_limits<float>::quiet_NaN();
-        float gntracks = truthinfo->GetNumPrimaryVertexParticles();
-        float gntracksmaps = std::numeric_limits<float>::quiet_NaN();
-        float gnembed = std::numeric_limits<float>::quiet_NaN();
-        float nfromtruth = std::numeric_limits<float>::quiet_NaN();
-        if (point)
+        if (svtxviter == gvertex->end_vertexes())
         {
-          const int point_id = point->get_id();
-          gvx = point->get_x();
-          gvy = point->get_y();
-          gvz = point->get_z();
-          gvt = point->get_t();
-          gembed = truthinfo->isEmbededVtx(point_id);
-          gntracks = embedvtxid_particle_count[(int) gembed];
-          if (embedvtxid_maps_particle_count[(int) gembed] > 0 && std::abs(gvt) < 2000. && std::abs(gvz) < 13.0)
-          {
-            gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
-          }
-          gnembed = (float) ngembed;
-          nfromtruth = vertexeval->get_ntracks_contribution(vertex, point);
-          embedvtxid_found[(int) gembed] = true;
+          continue;
         }
 
-        float vertex_data[] = {(float) _ievent, m_fSeed,
-                               (float) vertexID,
-                               vx,
-                               vy,
-                               vz,
-                               ntracks,
-                               chi2,
-                               ndof,
-                               gvx,
-                               gvy,
-                               gvz,
-                               gvt,
-                               gembed,
-                               gntracks,
-                               gntracksmaps,
-                               gnembed,
-                               nfromtruth,
-                               nhit_tpc_all,
-                               nhit_tpc_in,
-                               nhit_tpc_mid,
-                               nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+        GlobalVertex::VertexVector vertices = svtxviter->second;
+        for (auto& vertex : vertices)
+        {
+          PHG4VtxPoint* point = vertexeval->max_truth_point_by_ntracks(vertex);
+          int vertexID = vertex->get_id();
+          float vx = vertex->get_x();
+          float vy = vertex->get_y();
+          float vz = vertex->get_z();
+          float ntracks = vertex->size_tracks();
+          float chi2 = vertex->get_chisq();
+          float ndof = vertex->get_ndof();
+          float gvx = std::numeric_limits<float>::quiet_NaN();
+          float gvy = std::numeric_limits<float>::quiet_NaN();
+          float gvz = std::numeric_limits<float>::quiet_NaN();
+          float gvt = std::numeric_limits<float>::quiet_NaN();
+          float gembed = std::numeric_limits<float>::quiet_NaN();
+          float gntracks = truthinfo->GetNumPrimaryVertexParticles();
+          float gntracksmaps = std::numeric_limits<float>::quiet_NaN();
+          float gnembed = std::numeric_limits<float>::quiet_NaN();
+          float nfromtruth = std::numeric_limits<float>::quiet_NaN();
+          if (point)
+          {
+            const int point_id = point->get_id();
+            gvx = point->get_x();
+            gvy = point->get_y();
+            gvz = point->get_z();
+            gvt = point->get_t();
+            gembed = truthinfo->isEmbededVtx(point_id);
+            gntracks = embedvtxid_particle_count[(int) gembed];
+            if (embedvtxid_maps_particle_count[(int) gembed] > 0 && std::abs(gvt) < 2000. && std::abs(gvz) < 13.0)
+            {
+              gntracksmaps = embedvtxid_maps_particle_count[(int) gembed];
+            }
+            gnembed = (float) ngembed;
+            nfromtruth = vertexeval->get_ntracks_contribution(vertex, point);
+            embedvtxid_found[(int) gembed] = true;
+          }
 
-        _ntp_vertex->Fill(vertex_data);
-	  }
+          float vertex_data[] = {(float) _ievent, m_fSeed,
+                                 (float) vertexID,
+                                 vx,
+                                 vy,
+                                 vz,
+                                 ntracks,
+                                 chi2,
+                                 ndof,
+                                 gvx,
+                                 gvy,
+                                 gvz,
+                                 gvt,
+                                 gembed,
+                                 gntracks,
+                                 gntracksmaps,
+                                 gnembed,
+                                 nfromtruth,
+                                 nhit_tpc_all,
+                                 nhit_tpc_in,
+                                 nhit_tpc_mid,
+                                 nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps, nclus_mms};
+
+          _ntp_vertex->Fill(vertex_data);
+        }
       }
 
       if (!_scan_for_embedded)
@@ -1423,7 +1423,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       _timer->restart();
     }
     std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
-    for (auto g4hit : g4hits)
+    for (auto* g4hit : g4hits)
     {
       PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
@@ -1701,8 +1701,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             phi = local_GeoLayer->get_phicenter(phibin, side);
             z = local_GeoLayer->get_zcenter(zbin);
             r = local_GeoLayer->get_radius();
-            x = r*std::cos(phi);
-            y = r*std::sin(phi);
+            x = r * std::cos(phi);
+            y = r * std::sin(phi);
           }
 
           float g4hitID = std::numeric_limits<float>::quiet_NaN();
@@ -1801,8 +1801,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               side,
               cellID,
               ecell,
-              (float) phibin,
-              (float) zbin,
+              phibin,
+              zbin,
               phi,
               x,
               y,
@@ -1943,22 +1943,24 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float phisize = 0;
           float zsize = 0;
           float maxadc = -999;
-	  float redge = std::numeric_limits<float>::quiet_NaN();
-	  float pedge = std::numeric_limits<float>::quiet_NaN();
-	  float ovlp = std::numeric_limits<float>::quiet_NaN();
+          float redge = std::numeric_limits<float>::quiet_NaN();
+          float pedge = std::numeric_limits<float>::quiet_NaN();
+          float ovlp = std::numeric_limits<float>::quiet_NaN();
 
+          auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, cluster_key);
+          phisize = cluster->getPhiSize();
+          zsize = cluster->getZSize();
+          // double clusRadius = r;
+          ez = sqrt(para_errors.second);
+          ephi = sqrt(para_errors.first);
+          maxadc = cluster->getMaxAdc();
+          pedge = cluster->getEdge();
+          ovlp = cluster->getOverlap();
 
-	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
-	  phisize = cluster->getPhiSize();
-	  zsize = cluster->getZSize();
-	  // double clusRadius = r;
-	  ez = sqrt(para_errors.second);
-	  ephi = sqrt(para_errors.first);
-	  maxadc = cluster->getMaxAdc();
-	  pedge = cluster->getEdge();
-	  ovlp = cluster->getOverlap();
-	
-	  if(hitsetlayer==7||hitsetlayer==22||hitsetlayer==23||hitsetlayer==38||hitsetlayer==39) redge = 1;
+          if (hitsetlayer == 7 || hitsetlayer == 22 || hitsetlayer == 23 || hitsetlayer == 38 || hitsetlayer == 39)
+          {
+            redge = 1;
+          }
 
           float e = cluster->getAdc();
           float adc = cluster->getAdc();
@@ -1993,10 +1995,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
             ++size;
             sumadc += (hit->getAdc() - 70);
-            if ((hit->getAdc() - 70) > maxadc)
-            {
-              maxadc = (hit->getAdc() - 70);
-            }
+            maxadc = std::max<float>(hit->getAdc() - 70, maxadc);
           }
           e = sumadc;
 
@@ -2134,9 +2133,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                   size,
                                   phisize,
                                   zsize,
-				  pedge,
-				  redge,
-				  ovlp,
+                                  pedge,
+                                  redge,
+                                  ovlp,
                                   trackID,
                                   niter,
                                   g4hitID,
@@ -2188,7 +2187,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     // from other sources (noise hits on the embedded track)
 
     // need things off of the DST...
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname);
 
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
     if (!clustermap)
@@ -2217,7 +2216,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
 
         std::vector<TrkrDefs::cluskey> clusters;
-        auto siseed = track->get_silicon_seed();
+        auto* siseed = track->get_silicon_seed();
         if (siseed)
         {
           for (auto local_iter = siseed->begin_cluster_keys();
@@ -2228,7 +2227,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             clusters.push_back(cluster_key);
           }
         }
-        auto tpcseed = track->get_tpc_seed();
+        auto* tpcseed = track->get_tpc_seed();
         if (tpcseed)
         {
           for (auto local_iter = tpcseed->begin_cluster_keys();
@@ -2277,27 +2276,30 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float phisize = 0;
           float zsize = 0;
           float maxadc = -999;
-	  float redge = std::numeric_limits<float>::quiet_NaN();
-	  float pedge = std::numeric_limits<float>::quiet_NaN();
-	  float ovlp = std::numeric_limits<float>::quiet_NaN();
+          float redge = std::numeric_limits<float>::quiet_NaN();
+          float pedge = std::numeric_limits<float>::quiet_NaN();
+          float ovlp = std::numeric_limits<float>::quiet_NaN();
 
-	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster, r, cluster_key);
-	  phisize = cluster->getPhiSize();
-	  zsize = cluster->getZSize();
-	  // double clusRadius = r;
-	  ez = sqrt(para_errors.second);
-	  ephi = sqrt(para_errors.first);
-	  maxadc = cluster->getMaxAdc();
-	  pedge = cluster->getEdge();
-	  ovlp = cluster->getOverlap();
-          
-	  float e = cluster->getAdc();
+          auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, cluster_key);
+          phisize = cluster->getPhiSize();
+          zsize = cluster->getZSize();
+          // double clusRadius = r;
+          ez = sqrt(para_errors.second);
+          ephi = sqrt(para_errors.first);
+          maxadc = cluster->getMaxAdc();
+          pedge = cluster->getEdge();
+          ovlp = cluster->getOverlap();
+
+          float e = cluster->getAdc();
           float adc = cluster->getAdc();
           float local_layer = (float) TrkrDefs::getLayer(cluster_key);
           float sector = TpcDefs::getSectorId(cluster_key);
           float side = TpcDefs::getSide(cluster_key);
           // count all hits for this cluster
-	  if(local_layer==7||local_layer==22||local_layer==23||local_layer==38||local_layer==39) redge = 1;
+          if (local_layer == 7 || local_layer == 22 || local_layer == 23 || local_layer == 38 || local_layer == 39)
+          {
+            redge = 1;
+          }
 
           // count all hits for this cluster
           TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
@@ -2310,10 +2312,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           {
             TrkrHit* hit = hitset->second->getHit(clushititer->second);
             ++size;
-            if (hit->getAdc() > maxadc)
-            {
-              maxadc = hit->getAdc();
-            }
+            maxadc = std::max<float>(hit->getAdc(), maxadc);
           }
 
           float trackID = std::numeric_limits<float>::quiet_NaN();
@@ -2402,7 +2401,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               gembed = trutheval->get_embed(g4particle);
               gprimary = trutheval->is_primary(g4particle);
             }  //   if (g4particle){
-          }    //  if (g4hit) {
+          }  //  if (g4hit) {
 
           float nparticles = clustereval->all_truth_particles(cluster_key).size();
 
@@ -2431,9 +2430,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                   size,
                                   phisize,
                                   zsize,
-				  pedge,
-				  redge,
-				  ovlp,
+                                  pedge,
+                                  redge,
+                                  ovlp,
                                   trackID,
                                   niter,
                                   g4hitID,
@@ -2583,14 +2582,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           r = std::sqrt(x * x + y * y);
           phi = pos.Phi();
           eta = pos.Eta();
-                 
-	  auto para_errors = ClusErrPara.get_clusterv5_modified_error(reco_cluster, r, ckey);
-	  // std::cout << " ver v4 " <<  std::endl;
-	  phisize = reco_cluster->getPhiSize();
-	  zsize = reco_cluster->getZSize();
-	  ez = sqrt(para_errors.second);
-	  ephi = sqrt(para_errors.first);
-          
+
+          auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(reco_cluster, r, ckey);
+          // std::cout << " ver v4 " <<  std::endl;
+          phisize = reco_cluster->getPhiSize();
+          zsize = reco_cluster->getZSize();
+          ez = sqrt(para_errors.second);
+          ephi = sqrt(para_errors.first);
 
           adc = reco_cluster->getAdc();
 
@@ -2664,9 +2662,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     GlobalVertexMap* gvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-    if(!clustermap)
+    if (!clustermap)
+    {
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    
+    }
+
     if (truthinfo)
     {
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
@@ -2677,24 +2677,24 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       Float_t gntracks = (Float_t) truthinfo->GetNumPrimaryVertexParticles();
       Float_t gnchghad = 0;
-      for(auto iter = range.first; iter!= range.second; ++iter)
-	{
-	   PHG4Particle* g4particle = iter->second;
+      for (auto iter = range.first; iter != range.second; ++iter)
+      {
+        PHG4Particle* g4particle = iter->second;
 
-	   if (_scan_for_embedded)
-	     {
-	       if (trutheval->get_embed(g4particle) <= 0)
-		 {
-		   continue;
-		 }
-	     }
+        if (_scan_for_embedded)
+        {
+          if (trutheval->get_embed(g4particle) <= 0)
+          {
+            continue;
+          }
+        }
 
-	   float gflavor = g4particle->get_pid();
-	  if(std::abs(gflavor)==211 || std::abs(gflavor)==321 || std::abs(gflavor)==2212)
-	    {
-	      gnchghad++;
-	    }
-	}
+        float gflavor = g4particle->get_pid();
+        if (std::abs(gflavor) == 211 || std::abs(gflavor) == 321 || std::abs(gflavor) == 2212)
+        {
+          gnchghad++;
+        }
+      }
 
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
            iter != range.second;
@@ -2733,10 +2733,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         unsigned int ngltpc = 0;
         unsigned int nglmms = 0;
 
-	std::vector<int> lmaps(_nlayers_maps + 1,0);
-	std::vector<int> lintt(_nlayers_intt + 1,0);
-	std::vector<int> ltpc(_nlayers_tpc + 1,0);
-	std::vector<int> lmms(_nlayers_mms + 1,0);
+        std::vector<int> lmaps(_nlayers_maps + 1, 0);
+        std::vector<int> lintt(_nlayers_intt + 1, 0);
+        std::vector<int> ltpc(_nlayers_tpc + 1, 0);
+        std::vector<int> lmms(_nlayers_mms + 1, 0);
 
         for (const TrkrDefs::cluskey g4cluster : g4clusters)
         {
@@ -2922,38 +2922,38 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nfromtruth = std::numeric_limits<float>::quiet_NaN();
         float nwrong = std::numeric_limits<float>::quiet_NaN();
         float ntrumaps = std::numeric_limits<float>::quiet_NaN();
-	float nwrongmaps = std::numeric_limits<float>::quiet_NaN();
+        float nwrongmaps = std::numeric_limits<float>::quiet_NaN();
         float ntruintt = std::numeric_limits<float>::quiet_NaN();
-	float nwrongintt = std::numeric_limits<float>::quiet_NaN();
+        float nwrongintt = std::numeric_limits<float>::quiet_NaN();
         float ntrumms = std::numeric_limits<float>::quiet_NaN();
-	float nwrongmms = std::numeric_limits<float>::quiet_NaN();
+        float nwrongmms = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc1 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc1 = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc1 = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc11 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc11 =std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc11 = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc2 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc2 = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc2 = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc3 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc3 = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc3 = std::numeric_limits<float>::quiet_NaN();
         float layersfromtruth = std::numeric_limits<float>::quiet_NaN();
-	float npedge = 0;
-	float nredge = 0;
-	float nbig = 0;
-	float novlp = 0;
-	float merr = 0;
-	float msize = 0;
-	float siqr = std::numeric_limits<float>::quiet_NaN();
-	float siphi = std::numeric_limits<float>::quiet_NaN();
-	float sithe = std::numeric_limits<float>::quiet_NaN();
-	float six0 = std::numeric_limits<float>::quiet_NaN();
-	float siy0 = std::numeric_limits<float>::quiet_NaN();
-	float tpqr = std::numeric_limits<float>::quiet_NaN();
-	float tpphi = std::numeric_limits<float>::quiet_NaN();
-	float tpthe = std::numeric_limits<float>::quiet_NaN();
-	float tpx0 = std::numeric_limits<float>::quiet_NaN();
-	float tpy0 = std::numeric_limits<float>::quiet_NaN();
+        float npedge = 0;
+        float nredge = 0;
+        float nbig = 0;
+        float novlp = 0;
+        float merr = 0;
+        float msize = 0;
+        float siqr = std::numeric_limits<float>::quiet_NaN();
+        float siphi = std::numeric_limits<float>::quiet_NaN();
+        float sithe = std::numeric_limits<float>::quiet_NaN();
+        float six0 = std::numeric_limits<float>::quiet_NaN();
+        float siy0 = std::numeric_limits<float>::quiet_NaN();
+        float tpqr = std::numeric_limits<float>::quiet_NaN();
+        float tpphi = std::numeric_limits<float>::quiet_NaN();
+        float tpthe = std::numeric_limits<float>::quiet_NaN();
+        float tpx0 = std::numeric_limits<float>::quiet_NaN();
+        float tpy0 = std::numeric_limits<float>::quiet_NaN();
 
         if (_do_track_match)
         {
@@ -2976,20 +2976,19 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             {
               local_nhits += silseed->size_cluster_keys();
             }
-// +1 just in case _nlayers is zero
-            std::vector<int> maps(_nlayers_maps+1, 0);
-            std::vector<int> intt(_nlayers_intt+1, 0);
-            std::vector<int> tpc(_nlayers_tpc+1, 0);
-            std::vector<int> mms(_nlayers_mms+1, 0);
-
+            // +1 just in case _nlayers is zero
+            std::vector<int> maps(_nlayers_maps + 1, 0);
+            std::vector<int> intt(_nlayers_intt + 1, 0);
+            std::vector<int> tpc(_nlayers_tpc + 1, 0);
+            std::vector<int> mms(_nlayers_mms + 1, 0);
 
             if (tpcseed)
             {
-	      tpqr = tpcseed->get_qOverR();
-	      tpphi = tpcseed->get_phi();
-	      tpthe = tpcseed->get_theta();
-	      tpx0 = tpcseed->get_X0();
-	      tpy0 = tpcseed->get_Y0();
+              tpqr = tpcseed->get_qOverR();
+              tpphi = tpcseed->get_phi();
+              tpthe = tpcseed->get_theta();
+              tpx0 = tpcseed->get_X0();
+              tpy0 = tpcseed->get_Y0();
               for (TrackSeed::ConstClusterKeyIter local_iter = tpcseed->begin_cluster_keys();
                    local_iter != tpcseed->end_cluster_keys();
                    ++local_iter)
@@ -3041,50 +3040,62 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                   mms[local_layer - (_nlayers_maps + _nlayers_intt + _nlayers_tpc)] = 1;
                   nmms++;
                 }
-              
-		Acts::Vector3 glob;
-		glob = tgeometry->getGlobalPosition(cluster_key, cluster);
-		float x = glob(0);
-		float y = glob(1);
-		float z = glob(2);
-		
-		TVector3 pos(x, y, z);
-		float r = std::sqrt(x*x+y*y);
-		phi = pos.Phi();
-		eta = pos.Eta();
-		float gphisize = 0;
-		//float zsize = 0;
-		float gphierr = 0;
-		//float zerr = 0;
-		float govlp = 0 ;
-		float gedge = 0;
-		if(cluster!=nullptr){
-        
-		  gphisize = cluster->getPhiSize();
-		  //zsize = clusterv5->getZSize();
-		  auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
-		  //zerr = sqrt(para_errors.second);
-		  gphierr = sqrt(para_errors.first);
-		  govlp = cluster->getOverlap();
-		  gedge = cluster->getEdge();
-		 
-		  if(gedge>0) npedge++;
-		  if(gphisize>=4) nbig++;
-		  if(govlp>=2) novlp++;
-		  merr+=gphierr;
-		  msize+=gphisize;
-		}
-		if(local_layer==7||local_layer==22||local_layer==23||local_layer==38||local_layer==39) nredge++;
-	      }
-	    }
+
+                Acts::Vector3 glob;
+                glob = tgeometry->getGlobalPosition(cluster_key, cluster);
+                float x = glob(0);
+                float y = glob(1);
+                float z = glob(2);
+
+                TVector3 pos(x, y, z);
+                float r = std::sqrt(x * x + y * y);
+                phi = pos.Phi();
+                eta = pos.Eta();
+                float gphisize = 0;
+                // float zsize = 0;
+                float gphierr = 0;
+                // float zerr = 0;
+                float govlp = 0;
+                float gedge = 0;
+                if (cluster != nullptr)
+                {
+                  gphisize = cluster->getPhiSize();
+                  // zsize = clusterv5->getZSize();
+                  auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, cluster_key);
+                  // zerr = sqrt(para_errors.second);
+                  gphierr = sqrt(para_errors.first);
+                  govlp = cluster->getOverlap();
+                  gedge = cluster->getEdge();
+
+                  if (gedge > 0)
+                  {
+                    npedge++;
+                  }
+                  if (gphisize >= 4)
+                  {
+                    nbig++;
+                  }
+                  if (govlp >= 2)
+                  {
+                    novlp++;
+                  }
+                  merr += gphierr;
+                  msize += gphisize;
+                }
+                if (local_layer == 7 || local_layer == 22 || local_layer == 23 || local_layer == 38 || local_layer == 39)
+                {
+                  nredge++;
+                }
+              }
+            }
 
             if (silseed)
             {
-	      siqr = silseed->get_qOverR();
-	      siphi = silseed->get_phi();
-	      sithe = silseed->get_theta();
-	      six0 = silseed->get_X0();
-	      siy0 = silseed->get_Y0();
+              siqr = silseed->get_qOverR();
+              siphi = silseed->get_phi();
+              sithe = silseed->get_theta();
+              six0 = silseed->get_X0();
+              siy0 = silseed->get_Y0();
               for (TrackSeed::ConstClusterKeyIter local_iter = silseed->begin_cluster_keys();
                    local_iter != silseed->end_cluster_keys();
                    ++local_iter)
@@ -3188,12 +3199,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               vx = vertex->get_x();
               vy = vertex->get_y();
               vz = vertex->get_z();
-	      Acts::Vector3 vert(vx,vy,vz);
-	      auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
-	      dca3dxy = dcapair.first.first;
-	      dca3dxysigma = dcapair.first.second;
-	      dca3dz = dcapair.second.first;
-	      dca3dzsigma = dcapair.second.second;
+              Acts::Vector3 vert(vx, vy, vz);
+              auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
+              dca3dxy = dcapair.first.first;
+              dca3dxysigma = dcapair.first.second;
+              dca3dz = dcapair.second.first;
+              dca3dzsigma = dcapair.second.second;
             }
 
             px = track->get_px();
@@ -3225,9 +3236,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-	      auto pair = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
-	      ntrumaps = pair.first;
-	      nwrongmaps = pair.second;
+              auto pair = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
+              ntrumaps = pair.first;
+              nwrongmaps = pair.second;
             }
             if (_nlayers_intt == 0)
             {
@@ -3236,8 +3247,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             else
             {
               auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps, _nlayers_maps + _nlayers_intt);
-	      ntruintt = pair.first;
-	      nwrongintt = pair.second;
+              ntruintt = pair.first;
+              nwrongintt = pair.second;
             }
             if (_nlayers_mms == 0)
             {
@@ -3245,32 +3256,32 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-	      auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + _nlayers_tpc, _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms);
-	      ntrumms = pair.first;
-	      nwrongmms = pair.second;
+              auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + _nlayers_tpc, _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms);
+              ntrumms = pair.first;
+              nwrongmms = pair.second;
             }
             auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
-	    ntrutpc = pair.first;
-	    nwrongtpc = pair.second;
-            pair  = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 16);
-	    ntrutpc1 = pair.first;
-	    nwrongtpc1 = pair.second;
+            ntrutpc = pair.first;
+            nwrongtpc = pair.second;
+            pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 16);
+            ntrutpc1 = pair.first;
+            nwrongtpc1 = pair.second;
             pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 8);
-	    ntrutpc11 = pair.first;
-	    nwrongtpc11 = pair.second;
+            ntrutpc11 = pair.first;
+            nwrongtpc11 = pair.second;
             pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 16, _nlayers_maps + _nlayers_intt + 32);
-	    ntrutpc2 = pair.first;
-	    nwrongtpc2 = pair.second;
+            ntrutpc2 = pair.first;
+            nwrongtpc2 = pair.second;
             pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 32, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
-	    ntrutpc3 = pair.first;
-	    nwrongtpc3 = pair.first;
+            ntrutpc3 = pair.first;
+            nwrongtpc3 = pair.first;
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
 
         float gtrack_data[] = {(float) _ievent, m_fSeed,
                                gntracks,
-			       gnchghad,
+                               gnchghad,
                                gtrackID,
                                gflavor,
                                ng4hits,
@@ -3318,16 +3329,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                deltapt,
                                deltaeta,
                                deltaphi,
-			       siqr,
-			       siphi,
-			       sithe,
-			       six0,
-			       siy0,
-			       tpqr,
-			       tpphi,
-			       tpthe,
-			       tpx0,
-			       tpy0,
+                               siqr,
+                               siphi,
+                               sithe,
+                               six0,
+                               siy0,
+                               tpqr,
+                               tpphi,
+                               tpthe,
+                               tpx0,
+                               tpy0,
                                charge,
                                quality,
                                chisq,
@@ -3362,28 +3373,28 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                nfromtruth,
                                nwrong,
                                ntrumaps,
-			       nwrongmaps,
+                               nwrongmaps,
                                ntruintt,
-			       nwrongintt,
+                               nwrongintt,
                                ntrutpc,
-			       nwrongtpc,
+                               nwrongtpc,
                                ntrumms,
-			       nwrongmms,
+                               nwrongmms,
                                ntrutpc1,
-			       nwrongtpc1,
+                               nwrongtpc1,
                                ntrutpc11,
-			       nwrongtpc11,
+                               nwrongtpc11,
                                ntrutpc2,
-			       nwrongtpc2,
+                               nwrongtpc2,
                                ntrutpc3,
-			       nwrongtpc3,
+                               nwrongtpc3,
                                layersfromtruth,
-			       npedge,
-			       nredge,
-			       nbig,
-			       novlp,
-			       merr,
-			       msize,
+                               npedge,
+                               nredge,
+                               nbig,
+                               novlp,
+                               merr,
+                               msize,
                                nhit_tpc_all,
                                nhit_tpc_in,
                                nhit_tpc_mid,
@@ -3420,12 +3431,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     // need things off of the DST...
-    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
+    SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname);
 
     GlobalVertexMap* gvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "CORRECTED_TRKR_CLUSTER");
-    if(!clustermap)
+    if (!clustermap)
+    {
       clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    }
     ClusterErrorPara ClusErrPara;
     if (trackmap)
     {
@@ -3433,7 +3446,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         SvtxTrack* track = iter.second;
         float trackID = track->get_id();
-        
+
         TrackSeed* tpcseed = track->get_tpc_seed();
         TrackSeed* silseed = track->get_silicon_seed();
         short int crossing_int = track->get_crossing();
@@ -3460,11 +3473,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           local_nhits += silseed->size_cluster_keys();
         }
         unsigned int layers = 0x0;
-// +1 just in case _nlayers is zero
-	std::vector<int> maps(_nlayers_maps+1,0);
-        std::vector<int> intt(_nlayers_intt+1,0);
-        std::vector<int> tpc(_nlayers_tpc+1,0);
-        std::vector<int> mms(_nlayers_mms+1,0);
+        // +1 just in case _nlayers is zero
+        std::vector<int> maps(_nlayers_maps + 1, 0);
+        std::vector<int> intt(_nlayers_intt + 1, 0);
+        std::vector<int> tpc(_nlayers_tpc + 1, 0);
+        std::vector<int> mms(_nlayers_mms + 1, 0);
 
         float nmaps = 0;
         float nintt = 0;
@@ -3478,37 +3491,38 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nlintt = 0;
         float nltpc = 0;
         float nlmms = 0;
-	float npedge = 0;
-	float nredge = 0;
-	float nbig = 0;
-	float novlp = 0;
-	float merr = 0;
-	float msize = 0;
-	float siqr = std::numeric_limits<float>::quiet_NaN();
-	float siphi = std::numeric_limits<float>::quiet_NaN();
-	float sithe = std::numeric_limits<float>::quiet_NaN();
-	float six0 = std::numeric_limits<float>::quiet_NaN();
-	float siy0 = std::numeric_limits<float>::quiet_NaN();
-	float tpqr = std::numeric_limits<float>::quiet_NaN();
-	float tpphi = std::numeric_limits<float>::quiet_NaN();
-	float tpthe = std::numeric_limits<float>::quiet_NaN();
-	float tpx0 = std::numeric_limits<float>::quiet_NaN();
-	float tpy0 = std::numeric_limits<float>::quiet_NaN();
+        float npedge = 0;
+        float nredge = 0;
+        float nbig = 0;
+        float novlp = 0;
+        float merr = 0;
+        float msize = 0;
+        float siqr = std::numeric_limits<float>::quiet_NaN();
+        float siphi = std::numeric_limits<float>::quiet_NaN();
+        float sithe = std::numeric_limits<float>::quiet_NaN();
+        float six0 = std::numeric_limits<float>::quiet_NaN();
+        float siy0 = std::numeric_limits<float>::quiet_NaN();
+        float tpqr = std::numeric_limits<float>::quiet_NaN();
+        float tpphi = std::numeric_limits<float>::quiet_NaN();
+        float tpthe = std::numeric_limits<float>::quiet_NaN();
+        float tpx0 = std::numeric_limits<float>::quiet_NaN();
+        float tpy0 = std::numeric_limits<float>::quiet_NaN();
 
         if (tpcseed)
         {
-	  tpqr = tpcseed->get_qOverR();
-	  tpphi = tpcseed->get_phi();
-	  tpthe = tpcseed->get_theta();
-	  tpx0 = tpcseed->get_X0();
-	  tpy0 = tpcseed->get_Y0();
+          tpqr = tpcseed->get_qOverR();
+          tpphi = tpcseed->get_phi();
+          tpthe = tpcseed->get_theta();
+          tpx0 = tpcseed->get_X0();
+          tpy0 = tpcseed->get_Y0();
           for (SvtxTrack::ConstClusterKeyIter local_iter = tpcseed->begin_cluster_keys();
                local_iter != tpcseed->end_cluster_keys();
-               ++local_iter){
+               ++local_iter)
+          {
             TrkrDefs::cluskey cluster_key = *local_iter;
             TrkrCluster* cluster = clustermap->findCluster(cluster_key);
             unsigned int local_layer = TrkrDefs::getLayer(cluster_key);
-	    
+
             if (_nlayers_maps > 0 && local_layer < _nlayers_maps)
             {
               maps[local_layer] = 1;
@@ -3546,62 +3560,74 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                 ntpc3++;
               }
             }
-          
-	    Acts::Vector3 glob;
-	    glob = tgeometry->getGlobalPosition(cluster_key, cluster);
-	    float x = glob(0);
-	    float y = glob(1);
-	    float z = glob(2);
-	    
-	    TVector3 pos(x, y, z);
-	    float r = std::sqrt(x*x+y*y);
-	    //float phi = pos.Phi();
-	    //float eta = pos.Eta();
-	    float rphisize = 0;
-	    //float zsize = 0;
-	    float rphierr = 0;
-	    //float zerr = 0;
-	    float rovlp = 0 ;
-	    float pedge = 0;
-	    if(cluster!=nullptr){
-	     
-	      rphisize = cluster->getPhiSize();
-	      //zsize = clusterv5->getZSize();
-	      auto para_errors = ClusErrPara.get_clusterv5_modified_error(cluster,r,cluster_key);
-	      //zerr = sqrt(para_errors.second);
-	      rphierr = sqrt(para_errors.first);
-	      rovlp = cluster->getOverlap();
-	      pedge = cluster->getEdge();
-	       
-	      if(pedge>0) npedge++;
-	      if(rphisize>=4) nbig++;
-	      if(rovlp>=2) novlp++;
-	      merr+=rphierr;
-	      msize+=rphisize;
-	    }
-	    if(local_layer==7||local_layer==22||local_layer==23||local_layer==38||local_layer==39) nredge++;
-	    if(Verbosity() > 2)
-	      {
-		std::cout << " lay: "  << local_layer
-			  << " pedge " << pedge   
-			  << " | " << npedge  
-			  << " nredge " << nredge 
-			  << " rphisize " << rphisize  
-			  << " | " << nbig 
-			  << " rovlp " << rovlp  
-			  << "  | " << novlp  
-			  << std::endl;
-	      }
-	  }
-	}
-      
+
+            Acts::Vector3 glob;
+            glob = tgeometry->getGlobalPosition(cluster_key, cluster);
+            float x = glob(0);
+            float y = glob(1);
+            float z = glob(2);
+
+            TVector3 pos(x, y, z);
+            float r = std::sqrt(x * x + y * y);
+            // float phi = pos.Phi();
+            // float eta = pos.Eta();
+            float rphisize = 0;
+            // float zsize = 0;
+            float rphierr = 0;
+            // float zerr = 0;
+            float rovlp = 0;
+            float pedge = 0;
+            if (cluster != nullptr)
+            {
+              rphisize = cluster->getPhiSize();
+              // zsize = clusterv5->getZSize();
+              auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, cluster_key);
+              // zerr = sqrt(para_errors.second);
+              rphierr = sqrt(para_errors.first);
+              rovlp = cluster->getOverlap();
+              pedge = cluster->getEdge();
+
+              if (pedge > 0)
+              {
+                npedge++;
+              }
+              if (rphisize >= 4)
+              {
+                nbig++;
+              }
+              if (rovlp >= 2)
+              {
+                novlp++;
+              }
+              merr += rphierr;
+              msize += rphisize;
+            }
+            if (local_layer == 7 || local_layer == 22 || local_layer == 23 || local_layer == 38 || local_layer == 39)
+            {
+              nredge++;
+            }
+            if (Verbosity() > 2)
+            {
+              std::cout << " lay: " << local_layer
+                        << " pedge " << pedge
+                        << " | " << npedge
+                        << " nredge " << nredge
+                        << " rphisize " << rphisize
+                        << " | " << nbig
+                        << " rovlp " << rovlp
+                        << "  | " << novlp
+                        << std::endl;
+            }
+          }
+        }
+
         if (silseed)
         {
-	  siqr = silseed->get_qOverR();
-	  siphi = silseed->get_phi();
-	  sithe = silseed->get_theta();
-	  six0 = silseed->get_X0();
-	  siy0 = silseed->get_Y0();
+          siqr = silseed->get_qOverR();
+          siphi = silseed->get_phi();
+          sithe = silseed->get_theta();
+          six0 = silseed->get_X0();
+          siy0 = silseed->get_Y0();
           for (SvtxTrack::ConstClusterKeyIter local_iter = silseed->begin_cluster_keys();
                local_iter != silseed->end_cluster_keys();
                ++local_iter)
@@ -3680,9 +3706,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
         layers = nlmaps + nlintt + nltpc + nlmms;
 
-        float dca3dxy = std::numeric_limits<float>::quiet_NaN(), dca3dz = std::numeric_limits<float>::quiet_NaN(),
-              dca3dxysigma = std::numeric_limits<float>::quiet_NaN(), dca3dzsigma = std::numeric_limits<float>::quiet_NaN();
-        float dca2d = std::numeric_limits<float>::quiet_NaN(), dca2dsigma = std::numeric_limits<float>::quiet_NaN();
+        float dca3dxy = std::numeric_limits<float>::quiet_NaN();
+        float dca3dz = std::numeric_limits<float>::quiet_NaN();
+        float dca3dxysigma = std::numeric_limits<float>::quiet_NaN();
+        float dca3dzsigma = std::numeric_limits<float>::quiet_NaN();
+        float dca2d = std::numeric_limits<float>::quiet_NaN();
+        float dca2dsigma = std::numeric_limits<float>::quiet_NaN();
 
         /// this is the global vertex
         int vertexID = track->get_vertex_id();
@@ -3695,13 +3724,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           vx = vertex->get_x();
           vy = vertex->get_y();
           vz = vertex->get_z();
-	  Acts::Vector3 vert(vx,vy,vz);
+          Acts::Vector3 vert(vx, vy, vz);
 
           auto dcapair = TrackAnalysisUtils::get_dca(track, vert);
-	  dca3dxy = dcapair.first.first;
-	  dca3dxysigma = dcapair.first.second;
-	  dca3dz = dcapair.second.first;
-	  dca3dzsigma = dcapair.second.second;
+          dca3dxy = dcapair.first.first;
+          dca3dxysigma = dcapair.first.second;
+          dca3dz = dcapair.second.first;
+          dca3dzsigma = dcapair.second.second;
         }
         float px = track->get_px();
         float py = track->get_py();
@@ -3753,25 +3782,25 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gembed = std::numeric_limits<float>::quiet_NaN();
         float gprimary = std::numeric_limits<float>::quiet_NaN();
 
-	int ispure = 0;
+        int ispure = 0;
         float nfromtruth = std::numeric_limits<float>::quiet_NaN();
         float nwrong = std::numeric_limits<float>::quiet_NaN();
         float ntrumaps = std::numeric_limits<float>::quiet_NaN();
-	float nwrongmaps = std::numeric_limits<float>::quiet_NaN();
+        float nwrongmaps = std::numeric_limits<float>::quiet_NaN();
         float ntruintt = std::numeric_limits<float>::quiet_NaN();
-	float nwrongintt = std::numeric_limits<float>::quiet_NaN();
+        float nwrongintt = std::numeric_limits<float>::quiet_NaN();
         float ntrumms = std::numeric_limits<float>::quiet_NaN();
-	float nwrongmms = std::numeric_limits<float>::quiet_NaN();
+        float nwrongmms = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc1 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc1 = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc1 = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc11 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc11 = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc11 = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc2 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc2 = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc2 = std::numeric_limits<float>::quiet_NaN();
         float ntrutpc3 = std::numeric_limits<float>::quiet_NaN();
-	float nwrongtpc3 = std::numeric_limits<float>::quiet_NaN();
+        float nwrongtpc3 = std::numeric_limits<float>::quiet_NaN();
         float layersfromtruth = std::numeric_limits<float>::quiet_NaN();
 
         if (_do_track_match)
@@ -3786,14 +3815,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                 continue;
               }
             }
-	    SvtxTrack* truthrecotrk = trackeval->best_track_from(g4particle);
-	    if(truthrecotrk)
-	      {
-		if(truthrecotrk->get_id() == track->get_id())
-		  {
-		    ispure = 1;
-		  }
-	      }
+            SvtxTrack* truthrecotrk = trackeval->best_track_from(g4particle);
+            if (truthrecotrk)
+            {
+              if (truthrecotrk->get_id() == track->get_id())
+              {
+                ispure = 1;
+              }
+            }
             gtrackID = g4particle->get_track_id();
             gflavor = g4particle->get_pid();
 
@@ -3803,10 +3832,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gpy = g4particle->get_py();
             gpz = g4particle->get_pz();
 
-	    std::vector<int> lmaps(_nlayers_maps + 1,0);
-	    std::vector<int> lintt(_nlayers_intt + 1,0);
-	    std::vector<int> ltpc(_nlayers_tpc + 1,0);
-	    std::vector<int> lmms(_nlayers_mms + 1,0);
+            std::vector<int> lmaps(_nlayers_maps + 1, 0);
+            std::vector<int> lintt(_nlayers_intt + 1, 0);
+            std::vector<int> ltpc(_nlayers_tpc + 1, 0);
+            std::vector<int> lmms(_nlayers_mms + 1, 0);
 
             for (const TrkrDefs::cluskey g4cluster : g4clusters)
             {
@@ -3899,9 +3928,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-	      auto pair = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
-	      ntrumaps = pair.first;
-	      nwrongmaps = pair.second;
+              auto pair = trackeval->get_layer_range_contribution(track, g4particle, 0, _nlayers_maps);
+              ntrumaps = pair.first;
+              nwrongmaps = pair.second;
             }
             if (_nlayers_intt == 0)
             {
@@ -3909,9 +3938,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             }
             else
             {
-              auto pair =  trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps, _nlayers_maps + _nlayers_intt);
-	      ntruintt = pair.first;
-	      nwrongintt = pair.second;
+              auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps, _nlayers_maps + _nlayers_intt);
+              ntruintt = pair.first;
+              nwrongintt = pair.second;
             }
             if (_nlayers_mms == 0)
             {
@@ -3920,35 +3949,35 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             else
             {
               auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + _nlayers_tpc, _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms);
-	      ntrumms = pair.first;
-	      nwrongmms = pair.second;
+              ntrumms = pair.first;
+              nwrongmms = pair.second;
             }
-            auto pair  = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
-	    ntrutpc = pair.first;
-	    nwrongtpc = pair.second;
+            auto pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
+            ntrutpc = pair.first;
+            nwrongtpc = pair.second;
             pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 16);
-	    ntrutpc1 = pair.first;
-	    nwrongtpc1 = pair.second;
+            ntrutpc1 = pair.first;
+            nwrongtpc1 = pair.second;
             pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt, _nlayers_maps + _nlayers_intt + 8);
-	    ntrutpc11 = pair.first;
-	    nwrongtpc11 = pair.second;
+            ntrutpc11 = pair.first;
+            nwrongtpc11 = pair.second;
             pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 16, _nlayers_maps + _nlayers_intt + 32);
-	    ntrutpc2 = pair.first;
-	    nwrongtpc2 = pair.second;
+            ntrutpc2 = pair.first;
+            nwrongtpc2 = pair.second;
             pair = trackeval->get_layer_range_contribution(track, g4particle, _nlayers_maps + _nlayers_intt + 32, _nlayers_maps + _nlayers_intt + _nlayers_tpc);
-	    ntrutpc3 = pair.first;
-	    nwrongtpc3 = pair.second;
+            ntrutpc3 = pair.first;
+            nwrongtpc3 = pair.second;
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
-	if(Verbosity() > 2)
-	  {
-	    std::cout << " npedge "  << npedge  
-		      << " nredge "  << nredge  
-		      << " nbig " << nbig 
-		      << " novlp "<< novlp  
-		      << std::endl;
-	  }
+        if (Verbosity() > 2)
+        {
+          std::cout << " npedge " << npedge
+                    << " nredge " << nredge
+                    << " nbig " << nbig
+                    << " novlp " << novlp
+                    << std::endl;
+        }
         float track_data[] = {(float) _ievent, m_fSeed,
                               trackID,
                               crossing,
@@ -3961,16 +3990,16 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               deltapt,
                               deltaeta,
                               deltaphi,
-			      siqr,
-			      siphi,
-			      sithe,
-			      six0,
-			      siy0,
-			      tpqr,
-			      tpphi,
-			      tpthe,
-			      tpx0,
-			      tpy0,
+                              siqr,
+                              siphi,
+                              sithe,
+                              six0,
+                              siy0,
+                              tpqr,
+                              tpphi,
+                              tpthe,
+                              tpx0,
+                              tpy0,
                               charge,
                               quality,
                               chisq,
@@ -3993,7 +4022,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               pcay,
                               pcaz,
                               gtrackID,
-			      (float)ispure,
+                              (float) ispure,
                               gflavor,
                               ng4hits,
                               (float) ngmaps,
@@ -4023,30 +4052,30 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                               gembed,
                               gprimary,
                               nfromtruth,
-			      nwrong,
+                              nwrong,
                               ntrumaps,
-			      nwrongmaps,
+                              nwrongmaps,
                               ntruintt,
-			      nwrongintt,
+                              nwrongintt,
                               ntrutpc,
-			      nwrongtpc,
+                              nwrongtpc,
                               ntrumms,
-			      nwrongmms,
+                              nwrongmms,
                               ntrutpc1,
-			      nwrongtpc1,
+                              nwrongtpc1,
                               ntrutpc11,
-			      nwrongtpc11,
+                              nwrongtpc11,
                               ntrutpc2,
-			      nwrongtpc2,
+                              nwrongtpc2,
                               ntrutpc3,
-			      nwrongtpc3,
+                              nwrongtpc3,
                               layersfromtruth,
-			      npedge,
-			      nredge,
-			      nbig,
-			      novlp,
-			      merr,
-			      msize,
+                              npedge,
+                              nredge,
+                              nbig,
+                              novlp,
+                              merr,
+                              msize,
                               nhit_tpc_all,
                               nhit_tpc_in,
                               nhit_tpc_mid,
@@ -4111,9 +4140,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     float dphiprev = std::numeric_limits<float>::quiet_NaN();
     float detaprev = std::numeric_limits<float>::quiet_NaN();
 
-    float *xval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
-    float *yval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
-    float *zval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
+    float* xval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
+    float* yval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
+    float* zval = new float[_nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms];
     if (truthinfo)
     {
       int ntrk = 0;
@@ -4131,7 +4160,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           zval[i] = 0;
         }
         std::set<PHG4Hit*> truth_hits = trutheval->all_truth_hits(g4particle);
-        for (auto g4hit : truth_hits)
+        for (auto* g4hit : truth_hits)
         {
           unsigned int local_layer = g4hit->get_layer();
           // std::cout << "  g4hit " << g4hit->get_hit_id() << " layer = " << local_layer << std::endl;
@@ -4223,9 +4252,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
           _ntp_gseed->Fill(gseed_data);
         }
-	delete [] xval;
-	delete [] yval;
-	delete [] zval;
+        delete[] xval;
+        delete[] yval;
+        delete[] zval;
       }
     }
 
