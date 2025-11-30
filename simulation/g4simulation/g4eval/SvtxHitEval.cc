@@ -366,7 +366,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key)
 
   std::set<PHG4Hit*> hits = all_truth_hits(hit_key);
   PHG4Hit* max_hit = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   for (auto *hit : hits)
   {
     if (hit->get_edep() > max_e)
@@ -422,7 +422,7 @@ PHG4Hit* SvtxHitEval::max_truth_hit_by_energy(TrkrDefs::hitkey hit_key, const Tr
 
   std::set<PHG4Hit*> hits = all_truth_hits(hit_key, trkrid);
   PHG4Hit* max_hit = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   for (auto *hit : hits)
   {
     if (hit->get_edep() > max_e)
@@ -617,7 +617,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
   // loop over all particles associated with this hit and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_particle = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Particle*> particles = all_truth_particles(hit_key);
   for (auto *particle : particles)
   {
@@ -676,7 +676,7 @@ PHG4Particle* SvtxHitEval::max_truth_particle_by_energy(TrkrDefs::hitkey hit_key
   // loop over all particles associated with this hit and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_particle = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Particle*> particles = all_truth_particles(hit_key, trkrid);
   for (auto *particle : particles)
   {

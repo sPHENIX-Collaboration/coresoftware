@@ -9,6 +9,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>
@@ -759,7 +760,7 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(TrkrDefs::cluskey cluster_key)
 
   std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
   PHG4Hit* max_hit = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   for (auto* hit : hits)
   {
     if (hit->get_edep() > max_e)
@@ -848,7 +849,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_cluster_energy(TrkrDefs::cl
   // loop over all particles associated with this cluster and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_particle = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
   for (auto* particle : particles)
   {
@@ -899,7 +900,7 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(TrkrDefs::cluskey cl
   // loop over all particles associated with this cluster and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_particle = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
   for (auto* particle : particles)
   {

@@ -818,7 +818,7 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet)
   }
 
   Jet* truthjet = nullptr;
-  float max_energy = FLT_MAX * -1.0;
+  float max_energy = std::numeric_limits<float>::min();
 
   std::set<Jet*> truthjets = all_truth_jets(recojet);
   for (auto* candidate : truthjets)
@@ -930,7 +930,7 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet)
   }
 
   Jet* bestrecojet = nullptr;
-  float max_energy = FLT_MAX * -1.0;
+  float max_energy = std::numeric_limits<float>::min();
 
   std::set<Jet*> recojets = all_jets_from(truthjet);
   for (auto* recojet : recojets)

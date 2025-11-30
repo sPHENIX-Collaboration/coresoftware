@@ -993,7 +993,7 @@ PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle)
   }
 
   PHG4Hit* innermost_hit = nullptr;
-  float innermost_radius = FLT_MAX;
+  float innermost_radius = std::numeric_limits<float>::max();
 
   std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
   for (auto *candidate : truth_hits)
@@ -1030,7 +1030,7 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle)
   }
 
   PHG4Hit* outermost_hit = nullptr;
-  float outermost_radius = FLT_MAX * -1.0;
+  float outermost_radius = std::numeric_limits<float>::min();
 
   if (_do_cache)
   {

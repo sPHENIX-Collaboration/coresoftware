@@ -54,13 +54,13 @@ namespace G4Eval
     // are passed to it.
     // z and phi locations of phg4 hit (T) and Svtx hit (R)
     bool is_match{false};
-    int layer{INT_MAX};
+    int layer{std::numeric_limits<int>::max()};
 
-    float z_T{FLT_MAX}, z_R{FLT_MAX};
-    float phi_T{FLT_MAX}, phi_R{FLT_MAX};
-    float phisize_R{FLT_MAX}, phisize_T{FLT_MAX};  // phisize is in nbins * nwidhts
-    float zsize_R{FLT_MAX}, zsize_T{FLT_MAX};      // zsize   is in nbins * nwdiths
-    float phi_delta{FLT_MAX}, z_delta{FLT_MAX};    // deltas are also in nbins
+    float z_T{std::numeric_limits<float>::max()}, z_R{std::numeric_limits<float>::max()};
+    float phi_T{std::numeric_limits<float>::max()}, phi_R{std::numeric_limits<float>::max()};
+    float phisize_R{std::numeric_limits<float>::max()}, phisize_T{std::numeric_limits<float>::max()};  // phisize is in nbins * nwidhts
+    float zsize_R{std::numeric_limits<float>::max()}, zsize_T{std::numeric_limits<float>::max()};      // zsize   is in nbins * nwdiths
+    float phi_delta{std::numeric_limits<float>::max()}, z_delta{std::numeric_limits<float>::max()};    // deltas are also in nbins
 
     bool in_tpc{false};
     bool in_mvtx{false};

@@ -608,7 +608,7 @@ namespace G4Eval
   /* ClusCntr::layer_xyzLoc ClusCntr::xyzLoc(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey) { */
   /*   if (geom == nullptr) { */
   /*     std::cout << PHWHERE << " fatal: geom, type ActsGeometry*, must be set to call xyzLoc!" << std::endl; */
-  /*     return {-1,{FLT_MAX,FLT_MAX,FLT_MAX}}; */
+  /*     return {-1,{std::numeric_limits<float>::max(),std::numeric_limits<float>::max(),std::numeric_limits<float>::max()}}; */
   /*   } */
   /*   Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(reco_ckey, cluster); */
   /* } */

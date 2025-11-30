@@ -636,7 +636,7 @@ SvtxTrack* SvtxTrackEval::best_track_from(TrkrDefs::cluskey cluster_key)
   }
 
   SvtxTrack* best_track = nullptr;
-  float best_quality = FLT_MAX;
+  float best_quality = std::numeric_limits<float>::max();
 
   std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
   // loop over all SvtxTracks
