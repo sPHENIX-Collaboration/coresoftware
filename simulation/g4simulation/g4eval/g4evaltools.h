@@ -41,7 +41,7 @@ namespace G4Eval
    public:
     TrkrClusterComparer(float _nphi_widths = 0.5, float _nz_widths = 0.5);
     int init(PHCompositeNode* topNode,
-             const std::string& name_truth_clusters = "TRKR_TRUTHCLUSTERCONTAINER",
+             const std::string& name_phg4_clusters = "TRKR_TRUTHCLUSTERCONTAINER",
              const std::string& name_reco_clusters = "TRKR_CLUSTER");
 
     TrkrCluster* clus_T{nullptr};
@@ -111,12 +111,12 @@ namespace G4Eval
     ClusterKeyIter iter{};
     ClusterKeyIter iter_end_silicon{};
 
-    ClusKeyIter begin();
-    ClusKeyIter end();
+    ClusKeyIter begin() const;
+    ClusKeyIter end() const;
 
     void operator++();
-    TrkrDefs::cluskey operator*();
-    bool operator!=(const ClusKeyIter& rhs);
+    TrkrDefs::cluskey operator*() const;
+    bool operator!=(const ClusKeyIter& rhs) const;
   };
 
   int trklayer_0123(TrkrDefs::hitsetkey);  // 0:Mvtx 1:Intt 2:Tpc 3:Tpot

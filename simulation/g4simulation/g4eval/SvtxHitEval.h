@@ -65,13 +65,13 @@ class SvtxHitEval
   PHG4Particle* max_truth_particle_by_energy(TrkrDefs::hitkey hit_key, const TrkrDefs::TrkrId trkrid);
 
   // forwardtrace through to SvtxHits
-  std::set<TrkrDefs::hitkey> all_hits_from(PHG4Particle* truthparticle);
-  std::set<TrkrDefs::hitkey> all_hits_from(PHG4Hit* truthhit);
-  TrkrDefs::hitkey best_hit_from(PHG4Hit* truthhit);
+  std::set<TrkrDefs::hitkey> all_hits_from(PHG4Particle* g4particle);
+  std::set<TrkrDefs::hitkey> all_hits_from(PHG4Hit* g4hit);
+  TrkrDefs::hitkey best_hit_from(PHG4Hit* g4hit);
 
   // overlap calculations
   float get_energy_contribution(TrkrDefs::hitkey, PHG4Particle* truthparticle);
-  float get_energy_contribution(TrkrDefs::hitkey, PHG4Hit* truthhit);
+  float get_energy_contribution(TrkrDefs::hitkey, PHG4Hit* g4hit);
 
   unsigned int get_errors() { return _errors + _trutheval.get_errors(); }
 
@@ -89,7 +89,7 @@ class SvtxHitEval
   PHG4HitContainer* _g4hits_mvtx = nullptr;
   PHG4HitContainer* _g4hits_mms = nullptr;
 
-  PHG4TruthInfoContainer* _truthinfo;
+  PHG4TruthInfoContainer* _truthinfo{};
 
   bool _strict = false;
   int _verbosity = 0;

@@ -151,7 +151,7 @@ std::set<PHG4VtxPoint*> SvtxVertexEval::all_truth_points(const Vertex* vertex)
   std::set<PHG4VtxPoint*> points;
 
   std::set<PHG4Particle*> particles = all_truth_particles(vertex);
-  for (auto particle : particles)
+  for (auto *particle : particles)
   {
     PHG4VtxPoint* point = get_truth_eval()->get_vertex(particle);
 
@@ -209,7 +209,7 @@ PHG4VtxPoint* SvtxVertexEval::max_truth_point_by_ntracks(const Vertex* vertex)
   PHG4VtxPoint* max_point = nullptr;
   unsigned int max_ntracks = 0;
 
-  for (auto candidate : points)
+  for (auto *candidate : points)
   {
     unsigned int ntracks = get_ntracks_contribution(vertex, candidate);
     if (ntracks > max_ntracks)
@@ -263,7 +263,7 @@ std::set<const Vertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoi
   {
     const Vertex* vertex = iter.second;
     std::set<PHG4VtxPoint*> points = all_truth_points(vertex);
-    for (auto point : points)
+    for (auto *point : points)
     {
       if (get_truth_eval()->are_same_vertex(point, truthpoint))
       {

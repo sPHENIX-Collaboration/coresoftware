@@ -45,7 +45,7 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
 
   for (const auto& name : _compress_g4cell_names)
   {
-    PHG4CellContainer* g4cells = findNode::getClass<PHG4CellContainer>(topNode, name.c_str());
+    PHG4CellContainer* g4cells = findNode::getClass<PHG4CellContainer>(topNode, name);
     if (g4cells)
     {
       _g4cells.insert(g4cells);
@@ -54,7 +54,7 @@ int PHG4DstCompressReco::InitRun(PHCompositeNode* topNode)
 
   for (const auto& name : _compress_tower_names)
   {
-    RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, name.c_str());
+    RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, name);
     if (towers)
     {
       _towers.insert(towers);
@@ -94,14 +94,14 @@ int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
 
   //---cells--------------------------------------------------------------------
 
-  for (auto cells : _g4cells)
+  for (auto* cells : _g4cells)
   {
     cells->Reset();  // DROP ALL COMPRESSED G4CELLS
   }
 
   //---hits---------------------------------------------------------------------
 
-  for (auto hits : _g4hits)
+  for (auto* hits : _g4hits)
   {
     hits->Reset();  // DROP ALL COMPRESSED G4HITS
   }
@@ -109,7 +109,7 @@ int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
   //---secondary particles and vertexes-----------------------------------------
 
   std::set<int> keep_particle_ids;
-  for (auto hits : _keep_g4hits)
+  for (auto* hits : _keep_g4hits)
   {
     for (PHG4HitContainer::ConstIterator jter = hits->getHits().first;
          jter != hits->getHits().second;
@@ -156,16 +156,14 @@ int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
     int id = iter->first;
     PHG4Particle* particle = iter->second;
 
-    if (keep_particle_ids.find(id) != keep_particle_ids.end())
+    if (keep_particle_ids.contains(id))
     {
       ++iter;
       keep_vertex_ids.insert(particle->get_vtx_id());
       continue;
     }
-    else
-    {
-      _truth_info->delete_particle(iter++);  // DROP PARTICLES NOT ASSOCIATED TO A PRESERVED HIT
-    }
+
+    _truth_info->delete_particle(iter++);  // DROP PARTICLES NOT ASSOCIATED TO A PRESERVED HIT
   }
 
   PHG4TruthInfoContainer::VtxRange vrange = _truth_info->GetSecondaryVtxRange();
@@ -174,15 +172,13 @@ int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
   {
     int id = iter->first;
 
-    if (keep_vertex_ids.find(id) != keep_vertex_ids.end())
+    if (keep_vertex_ids.contains(id))
     {
       ++iter;
       continue;
     }
-    else
-    {
-      _truth_info->delete_vtx(iter++);  // DROP VERTEXES NOT ASSOCIATED TO A PRESERVED HIT
-    }
+
+    _truth_info->delete_vtx(iter++);  // DROP VERTEXES NOT ASSOCIATED TO A PRESERVED HIT
   }
 
   //---shower entries-----------------------------------------------------------
@@ -200,7 +196,7 @@ int PHG4DstCompressReco::process_event(PHCompositeNode* /*topNode*/)
   }
 
   //---tower cell entries-------------------------------------------------------
-  for (auto towers : _towers)
+  for (auto* towers : _towers)
   {
     // loop over all the towers
     for (RawTowerContainer::Iterator jter = towers->getTowers().first;
@@ -246,8 +242,7 @@ void PHG4DstCompressReco::SearchG4HitNodes(PHCompositeNode* top)
               dynamic_cast<PHG4HitContainer*>(DNode->getData());
           if (object)
           {
-            if (_compress_g4hit_names.find(thisNode->getName()) !=
-                _compress_g4hit_names.end())
+            if (_compress_g4hit_names.contains(thisNode->getName()))
             {
               _g4hits.insert(object);
             }
