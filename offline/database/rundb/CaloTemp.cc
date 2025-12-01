@@ -3,7 +3,8 @@
 // Tower includes
 #include <calobase/TowerInfoDefs.h>
 
-#include <ffamodules/DBInterface.h>
+#include <sphenixodbc/ODBCInterface.h>
+
 #include <ffaobjects/RunHeader.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
@@ -14,10 +15,8 @@
 #include <TProfile2D.h>
 #include <TTree.h>
 
-#include <odbc++/connection.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>  // for Statement
-#include <odbc++/types.h>
 
 #include <format>
 #include <iostream>
@@ -119,6 +118,7 @@ int CaloTemp::InitRun(PHCompositeNode* topNode)
       return 1;
     }
   }
+  delete ODBCInterface::instance();
 
   if (Verbosity())
   {
@@ -151,7 +151,7 @@ int CaloTemp::getRunTime()
   {
     std::cout << sql << std::endl;
   }
-  odbc::Statement* stmt = DBInterface::instance()->getStatement("daq");
+  odbc::Statement* stmt = ODBCInterface::instance()->getStatement("daq");
   odbc::ResultSet* resultSet = stmt->executeQuery(sql);
 
   if (resultSet && resultSet->next())
@@ -174,7 +174,7 @@ int CaloTemp::getTempHist()
   {
     std::cout << sql << std::endl;
   }
-  odbc::Statement* stmt  = DBInterface::instance()->getStatement("daq");
+  odbc::Statement* stmt = ODBCInterface::instance()->getStatement("daq");
   odbc::ResultSet* resultSet = stmt->executeQuery(sql);
 
   if (resultSet && resultSet->next())
@@ -221,7 +221,7 @@ int CaloTemp::getTempHist()
     std::cout << sql << std::endl;
   }
 
-  odbc::Statement* timeStmt = DBInterface::instance()->getStatement("daq");
+  odbc::Statement* timeStmt = ODBCInterface::instance()->getStatement("daq");
   odbc::ResultSet* timeResultSet = timeStmt->executeQuery(sql);
 
   std::string closest_time;
@@ -238,7 +238,7 @@ int CaloTemp::getTempHist()
 
   delete timeResultSet;
 
-  odbc::Statement* tempStmt = DBInterface::instance()->getStatement("daq");
+  odbc::Statement* tempStmt = ODBCInterface::instance()->getStatement("daq");
   sql = "SELECT towerid, " + tempstring + " FROM " + tablename + " WHERE time = '" + closest_time + "'";
   if (detector == "HCALIN" || detector == "HCALOUT")
   {
