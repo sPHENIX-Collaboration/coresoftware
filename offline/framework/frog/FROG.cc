@@ -6,11 +6,9 @@
 
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>  // for Statement
-#include <odbc++/types.h>      // for SQLException
 
 #include <boost/tokenizer.hpp>
 
-//#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
