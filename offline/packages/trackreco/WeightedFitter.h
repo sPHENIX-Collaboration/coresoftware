@@ -5,6 +5,8 @@
 // #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <trackbase_historic/WeightedTrack.h>
+
 // #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
@@ -29,7 +31,6 @@ class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class WeightedTrackMap;
-class WeightedTrack;
 
 class TFile;
 class TNtuple;
@@ -61,11 +62,13 @@ public:
 	void use_vertex (bool const& use_vertex = true) { m_use_vertex = use_vertex; }
 	void set_vertex_node_name (std::string const& name) { m_vertex_map_node_name = name; }
 
-	/// If this method is called such that the internal m_included_layers member is non-empty,
-	/// only those layers which have been explicitly added will be used in the fit
-	void include_layer (int layer) { m_included_layers.insert(layer); m_excluded_layers.erase(layer); }
-	/// Explicitly exclude layers
-	void exclude_layer (int layer) { m_excluded_layers.insert(layer); m_included_layers.erase(layer); }
+	// Set which layers to use in the fit (added to the WeightedTrack)
+	void exclude_layer_in_fit (int layer) { m_fit_excluded_layers.insert(layer); m_fit_included_layers.erase(layer); }
+	void include_layer_in_fit (int layer) { m_fit_included_layers.insert(layer); m_fit_excluded_layers.erase(layer); }
+
+	/// Set which layers to use in output SvtxTracks, SvtxAlignmentStates
+	void exclude_layer_in_output (int layer) { m_output_excluded_layers.insert(layer); m_output_included_layers.erase(layer); }
+	void include_layer_in_output (int layer) { m_output_included_layers.insert(layer); m_output_excluded_layers.erase(layer); }
 
 	/// Set the type of tracks to use for the fit via a template argument
 	/// By default, WeightedFitterZeroField tracks are used
@@ -83,6 +86,7 @@ public:
 	/// Output setting methods
 	void set_track_map_node_name (std::string const& name) { m_track_map_node_name = name; }
 	void set_alignment_map_node_name (std::string const& name) { m_alignment_map_node_name = name; }
+	void set_weighted_track_map_node_name (std::string const& name) { m_weighted_track_map_node_name = name; }
 
 	void set_ntuple_file_name (std::string const& name) { m_ntuple_file_name = name; }
 	void reassign_cluster_sides (bool reassign_sides = true) { m_reassign_sides = reassign_sides; }
@@ -132,10 +136,17 @@ private:
 	std::string m_alignment_map_node_name{"WeightedFitterAlignmentStateMap"};
 	SvtxAlignmentStateMap* m_alignment_map{};
 
-	// Layers to be included--if populated, only those layers will be included
-	std::set<int> m_included_layers;
-	// Layers to be excluded
-	std::set<int> m_excluded_layers;
+	std::string m_weighted_track_map_node_name{"WeightedFitterWeightedTrackMap"};
+	WeightedTrackMap* m_weighted_track_map{};
+
+	// Layers to use in the fit (added to the WeightedTrack)
+	std::set<int> m_fit_included_layers;
+	std::set<int> m_fit_excluded_layers;
+
+	/// Layers to use in output SvtxTracks, SvtxAlignmentStates
+	std::set<int> m_output_included_layers;
+	std::set<int> m_output_excluded_layers;
+	std::vector<ClusterFitPoint> m_output_cluster_fit_points{};
 
 	int m_track_id{0};
 	int m_crossing{SHRT_MAX};
