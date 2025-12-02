@@ -2,16 +2,14 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(OPT_SPHENIX)/include \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OFFLINE_MAIN)/lib64 \
-  -lcdbobjects \
-  -lffamodules
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   XingShiftCal.h
@@ -23,12 +21,11 @@ libXingShiftCal_la_SOURCES = \
   XingShiftCal.cc
 
 libXingShiftCal_la_LIBADD = \
-  -L$(OPT_SPHENIX)/lib \
+  -lcdbobjects \
+  -lfun4all \
   -lphool \
   -lSubsysReco \
-  -loncal \
-  -lodbc \
-  -lodbc++
+  -loncal
 
 
 BUILT_SOURCES = testexternals.cc

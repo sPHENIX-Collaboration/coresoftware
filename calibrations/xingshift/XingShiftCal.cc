@@ -2,7 +2,7 @@
 
 #include <cdbobjects/CDBTTree.h>
 
-#include <ffamodules/DBInterface.h>
+#include <fun4all/DBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
