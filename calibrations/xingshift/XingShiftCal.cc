@@ -17,11 +17,8 @@
 #include <TCanvas.h>
 #include <TH1.h>
 
-#include <odbc++/connection.h>
-#include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>
-#include <odbc++/types.h>
 
 #include <format>
 #include <iostream>
