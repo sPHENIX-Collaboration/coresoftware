@@ -69,7 +69,7 @@ libfun4all_la_LIBADD = \
   -lFROG \
   -lffaobjects \
   -lphool \
-  -lsphenixnpc
+  -lsphenixodbc
 
 libSubsysReco_la_SOURCES = \
   Fun4AllBase.cc
