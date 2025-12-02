@@ -18,12 +18,10 @@ libffamodules_la_LIBADD = \
   -lfun4all \
   -lffaobjects \
   -lphhepmc_io \
-  -lsphenixnpc \
   -lSubsysReco
 
 pkginclude_HEADERS = \
   CDBInterface.h \
-  DBInterface.h \
   FlagHandler.h \
   HeadReco.h \
   SyncReco.h \
@@ -31,7 +29,6 @@ pkginclude_HEADERS = \
 
 libffamodules_la_SOURCES = \
   CDBInterface.cc \
-  DBInterface.cc \
   FlagHandler.cc \
   HeadReco.cc \
   SyncReco.cc \
