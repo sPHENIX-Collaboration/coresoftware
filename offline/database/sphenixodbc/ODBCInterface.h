@@ -25,8 +25,15 @@ class ODBCInterface
 
   odbc::Connection *getDBConnection(const std::string &dbname);
   odbc::Statement *getStatement(const std::string &dbname);
+
+  int ConnectionTries() const {return m_ConnectionTries;}
+  int SleepMS() const {return m_SleepMS;}
+
+  void Disconnect();
+  const std::map<std::string, int>& getNumConnection() const {return m_NumConnection;}
+  const std::map<std::string, int>& getNumStatementUse() const {return m_NumStatementUse;}
   
- private:
+private:
 
   ODBCInterface() = default;
   static ODBCInterface *__instance;

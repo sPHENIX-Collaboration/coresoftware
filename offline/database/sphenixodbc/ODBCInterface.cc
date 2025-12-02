@@ -27,18 +27,7 @@ ODBCInterface *ODBCInterface::instance()
 
 ODBCInterface::~ODBCInterface()
 {
-  if (!m_OdbcConnectionMap.empty())
-  {
-    for (const auto& iter : m_OdbcConnectionMap)
-    {
-      delete iter.second;
-    }
-    m_OdbcConnectionMap.clear();
-  }
-  if (!m_OdbcStatementMap.empty())
-  {
-    m_OdbcStatementMap.clear();
-  }
+  ODBCInterface::Disconnect();
   __instance = nullptr;
   return;
 }
@@ -139,4 +128,20 @@ void ODBCInterface::Print(const std::string & /*what*/) const
     }
   }
   return;
+}
+
+void ODBCInterface::Disconnect()
+{
+    if (!m_OdbcConnectionMap.empty())
+  {
+    for (const auto& iter : m_OdbcConnectionMap)
+    {
+      delete iter.second;
+    }
+    m_OdbcConnectionMap.clear();
+  }
+  if (!m_OdbcStatementMap.empty())
+  {
+    m_OdbcStatementMap.clear();
+  }
 }
