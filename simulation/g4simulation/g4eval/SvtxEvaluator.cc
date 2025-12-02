@@ -2712,9 +2712,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         float gtrackID = g4particle->get_track_id();
         float gflavor = g4particle->get_pid();
-
-        std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
-
+        auto g4clustermap = trutheval->all_truth_clusters(g4particle);
+        std::set<TrkrDefs::cluskey> g4clusters;
+        for(const auto& [key, cluster]: g4clustermap)
+        {
+          g4clusters.insert(key);
+        }
+        
         float ng4hits = g4clusters.size();
         unsigned int ngmaps = 0;
         unsigned int ngmms = 0;
