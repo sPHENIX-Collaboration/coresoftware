@@ -8,7 +8,7 @@
 
 #include <TFile.h>
 #include <TH1.h>
-#include <THnSparse.h>
+#include <THnBase.h>
 #include <TNamed.h>
 #include <TSystem.h>
 #include <TTree.h>
@@ -28,10 +28,6 @@ Fun4AllHistoManager::Fun4AllHistoManager(const std::string &name)
 
 Fun4AllHistoManager::~Fun4AllHistoManager()
 {
-  // the last file is closed by deleting the output manager, if we want to execute a script at the end
-  // we have to run it here
-  RunAfterClosing();
-
   while (Histo.begin() != Histo.end())
   {
     if (Verbosity() > 0)
@@ -123,7 +119,7 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
   m_LastClosedFileName = theoutfile;
   std::filesystem::path pout = theoutfile;
   theoutfile = theoutfile + std::string("?reproducible=") + std::string(pout.filename());
-  std::cout << "Fun4AllHistoManager::dumpHistos() Writing root file: " <<  m_LastClosedFileName << std::endl;
+  std::cout << "Fun4AllHistoManager::dump() Writing root file: " <<  m_LastClosedFileName << std::endl;
 
   const int compress = 505;
   std::string creator = "Created by " + Name();
@@ -194,6 +190,7 @@ int Fun4AllHistoManager::dumpHistos(const std::string &filename, const std::stri
     }
   }
   hfile.Close();
+  RunAfterClosing();
   return iret;
 }
 
@@ -328,10 +325,9 @@ void Fun4AllHistoManager::Print(const std::string &what) const
     std::cout << "List of Histos in Fun4AllHistoManager "
               << Name() << ":" << std::endl;
 
-    std::map<const std::string, TNamed *>::const_iterator hiter;
-    for (hiter = Histo.begin(); hiter != Histo.end(); ++hiter)
+    for (const auto &hiter : Histo)
     {
-      std::cout << hiter->first << " is " << hiter->second << std::endl;
+      std::cout << hiter.first << " is " << hiter.second << std::endl;
     }
     std::cout << std::endl;
   }
@@ -357,9 +353,9 @@ void Fun4AllHistoManager::Reset()
     {
       (dynamic_cast<TH1 *>(h))->Reset();
     }
-    else if (h->InheritsFrom("THnSparse"))
+    else if (h->InheritsFrom("THnBase"))
     {
-      (dynamic_cast<THnSparse *>(h))->Reset();
+      (dynamic_cast<THnBase *>(h))->Reset();
     }
   }
   return;
@@ -397,4 +393,41 @@ void Fun4AllHistoManager::CopyRolloverSetting(const Fun4AllOutputManager *outman
   StartSegment(outman->Segment());
   SetClosingScript(outman->GetClosingScript());
   SetClosingScriptArgs(outman->GetClosingScript());
+}
+
+bool Fun4AllHistoManager::isEmpty() const
+{
+  bool thisempty = true;
+  for (const auto &hiter : Histo)
+  {
+    TH1 *h1 = dynamic_cast<TH1 *> (hiter.second);
+    if (h1)
+    {
+      if (h1->GetEntries() > 0 || h1->Integral() > 0)
+      {
+	std::cout << hiter.first << " has " << h1->GetEntries() << " entries"
+		  << " with integral " << h1->Integral() << std::endl;
+	thisempty = false;
+	break;
+      }
+    }
+    else
+    {
+      THnBase *hn = dynamic_cast<THnBase *> (hiter.second);
+      if (hn)
+      {
+	if (hn->GetEntries() > 0)
+	{
+	  std::cout << hiter.first << " has " << hn->GetEntries() << " entries" << std::endl;
+	  thisempty = false;
+	  break;
+	}
+      }
+      else
+      {
+	std::cout << hiter.first << " is not a TH1 or THnBase" << std::endl;
+      }
+    }
+  }
+  return thisempty;
 }

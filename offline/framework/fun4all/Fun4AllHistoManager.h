@@ -61,8 +61,9 @@ class Fun4AllHistoManager : public Fun4AllBase
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
   void CopyRolloverSetting(const Fun4AllOutputManager *outman);
   const std::string &LastClosedFileName() const { return m_LastClosedFileName; }
+  bool isEmpty() const;
 
- private:
+private:
   bool m_LastEventInitializedFlag{false};
   bool m_UseFileRuleFlag{false};
   int m_CurrentSegment{0};

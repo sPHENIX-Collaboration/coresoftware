@@ -445,8 +445,7 @@ Fun4AllServer::getOutputManager(const std::string &name)
   return nullptr;
 }
 
-Fun4AllHistoManager *
-Fun4AllServer::getHistoManager(const std::string &name)
+Fun4AllHistoManager *Fun4AllServer::getHistoManager(const std::string &name)
 {
   std::vector<Fun4AllHistoManager *>::iterator iter;
   for (iter = HistoManager.begin(); iter != HistoManager.end(); ++iter)
@@ -774,7 +773,7 @@ int Fun4AllServer::process_event()
       if (eventnumber_plus1 > histit->LastEventNumber())
       {
 	histit->dumpHistos();
-	histit->RunAfterClosing();
+//	histit->RunAfterClosing();
         histit->UpdateLastEvent();
 	histit->Reset();
 	if (Verbosity() > 0)
@@ -1171,8 +1170,17 @@ int Fun4AllServer::End()
   {
     if (histit->ApplyFileRule())
     {
-      histit->dumpHistos();
-      histit->RunAfterClosing();
+      if (! histit->isEmpty())
+      {
+	histit->dumpHistos();
+      }
+      else
+      {
+	if (Verbosity() > 0)
+	{
+	  std::cout << "only empty histos in " << histit->Name() << std::endl;
+	}
+      }
     }
   }
   if (ScreamEveryEvent)
