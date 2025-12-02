@@ -18,6 +18,7 @@ libffamodules_la_LIBADD = \
   -lfun4all \
   -lffaobjects \
   -lphhepmc_io \
+  -lsphenixnpc \
   -lSubsysReco
 
 pkginclude_HEADERS = \
