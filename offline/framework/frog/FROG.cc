@@ -4,21 +4,17 @@
 
 #include <phool/phool.h>
 
-//#include <odbc++/connection.h>
-//#include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>  // for Statement
 #include <odbc++/types.h>      // for SQLException
 
 #include <boost/tokenizer.hpp>
 
-#include <chrono>
-#include <cstdlib>
+//#include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <random>  // For retrying connections
+#include <memory>
 #include <string>
-#include <thread>
 
 const char *
 FROG::location(const std::string &logical_name)
