@@ -9,6 +9,8 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 
+#include <micromegas/MicromegasDefs.h>
+
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
@@ -189,6 +191,7 @@ WeightedFitter::make_ntuple (
 		"clusstave:cluschip:clusstrobe:"
 		"clusladderz:clusladderphi:clustimebucket:"
 		"clusside:clussector:"
+		"clussegtype:clustileid:"
 		"cluslx:cluslz:cluselx:cluselz:"
 		"clusgx:clusgy:clusgz:"
 		"statelx:statelz:stateelx:stateelz:"
@@ -364,6 +367,7 @@ WeightedFitter::get_points (
 	m_num_mvtx = 0;
 	m_num_intt = 0;
 	m_num_tpc = 0;
+	m_num_tpot = 0;
 
 	// delete m_weighted_track; // the track map owns the object
 	m_weighted_track = m_track_factory();
@@ -624,6 +628,8 @@ WeightedFitter::add_track (
 			float time_bucket{-1};
 			float side{-1};
 			float sector{-1};
+			float segtype{-1};
+			float tileid{-1};
 			TrkrDefs::TrkrId trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(point.cluster_key));
 			switch (trkr_id) {
 				case TrkrDefs::mvtxId:
@@ -639,6 +645,10 @@ WeightedFitter::add_track (
 				case TrkrDefs::tpcId:
 					side = TpcDefs::getSide(point.cluster_key);
 					sector = TpcDefs::getSectorId(point.cluster_key);
+					break;
+				case TrkrDefs::micromegasId:
+					segtype = (float) MicromegasDefs::getSegmentationType(point.cluster_key);
+					tileid = MicromegasDefs::getTileId(point.cluster_key);
 					break;
 				default:
 					continue;
@@ -674,6 +684,7 @@ WeightedFitter::add_track (
 				stave, chip, strobe,
 				ladder_z, ladder_phi, time_bucket,
 				side, sector,
+				segtype, tileid,
 				(float)cluster_local_position(0), (float)cluster_local_position(1), (float)point.cluster_errors(0), (float)point.cluster_errors(1),
 				(float)point.cluster_position(0), (float)point.cluster_position(1), (float)point.cluster_position(2),
 				(float)intersection_local_position(0), (float)intersection_local_position(1), (float)point.cluster_errors(0), (float)point.cluster_errors(1),
