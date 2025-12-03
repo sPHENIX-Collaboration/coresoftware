@@ -1,22 +1,18 @@
 #include "FROG.h"
 
+#include <sphenixodbc/ODBCInterface.h>
+
 #include <phool/phool.h>
 
-#include <odbc++/connection.h>
-#include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>  // for Statement
-#include <odbc++/types.h>      // for SQLException
 
 #include <boost/tokenizer.hpp>
 
-#include <chrono>
-#include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <random>  // For retrying connections
+#include <memory>
 #include <string>
-#include <thread>
 
 const char *
 FROG::location(const std::string &logical_name)
@@ -208,56 +204,14 @@ bool FROG::localSearch(const std::string &logical_name)
   return false;
 }
 
-odbc::Connection *FROG::GetConnection(const std::string &database)
-{
-  auto iter = m_OdbcConnectionMap.find(database);
-  if (iter != m_OdbcConnectionMap.end())
-  {
-    return iter->second;
-  }
-  std::random_device ran_dev;
-  std::seed_seq seeds{ran_dev(), ran_dev(), ran_dev()};  //...
-  std::mt19937_64 mersenne_twister(seeds);
-  std::uniform_int_distribution<> uniform(m_MIN_SLEEP_DUR, m_MAX_SLEEP_DUR);
-  int icount = 0;
-  do
-  {
-    try
-    {
-      odbc::Connection *connection = odbc::DriverManager::getConnection(database, "", "");
-      m_OdbcConnectionMap[database] = connection;
-      return connection;
-    }
-    catch (odbc::SQLException &e)
-    {
-      std::cout << PHWHERE
-                << " Exception caught during DriverManager::getConnection" << std::endl;
-      std::cout << "Message: " << e.getMessage() << std::endl;
-    }
-    icount++;
-    int sleep_time_ms = uniform(mersenne_twister);
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_ms));
-  } while (icount < m_MAX_NUM_RETRIES);
-  return nullptr;
-}
-
 void FROG::Disconnect()
 {
-  for (const auto &iter : m_OdbcConnectionMap)
-  {
-    delete iter.second;
-  }
-  m_OdbcConnectionMap.clear();
+  delete ODBCInterface::instance();
 }
 
 bool FROG::PGSearch(const std::string &lname)
 {
   bool bret = false;
-  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
-  if (!odbc_connection)
-  {
-    return bret;
-  }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name <> 'hpss' and full_host_name <> 'dcache' and full_host_name <> 'lustre'";
 
   if (Verbosity() > 1)
@@ -265,27 +219,20 @@ bool FROG::PGSearch(const std::string &lname)
     std::cout << "sql query:" << std::endl
               << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = odbc_connection->createStatement();
-  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+  odbc::Statement *statement = ODBCInterface::instance()->getStatement("FileCatalog_read");
+  std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlquery));
 
-  if (rs->next())
+  if (resultSet && resultSet->next())
   {
-    pfn = rs->getString(1);
+    pfn =  resultSet->getString(1);
     bret = true;
   }
-  delete rs;
-  delete stmt;
   return bret;
 }
 
 bool FROG::dCacheSearch(const std::string &lname)
 {
   bool bret = false;
-  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
-  if (!odbc_connection)
-  {
-    return bret;
-  }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'dcache'";
 
   if (Verbosity() > 1)
@@ -293,82 +240,61 @@ bool FROG::dCacheSearch(const std::string &lname)
     std::cout << "sql query:" << std::endl
               << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = odbc_connection->createStatement();
-  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+  odbc::Statement *statement = ODBCInterface::instance()->getStatement("FileCatalog_read");
+  std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlquery));
 
-  if (rs->next())
+  if (resultSet && resultSet->next())
   {
-    std::string dcachefile = rs->getString(1);
+    std::string dcachefile =  resultSet->getString(1);
     if (std::ifstream(dcachefile))
     {
       pfn = "dcache:" + dcachefile;
       bret = true;
     }
   }
-  delete rs;
-  delete stmt;
   return bret;
 }
 
 bool FROG::XRootDSearch(const std::string &lname)
 {
   bool bret = false;
-  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
-  if (!odbc_connection)
-  {
-    return bret;
-  }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
   if (Verbosity() > 1)
   {
     std::cout << "sql query:" << std::endl
               << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = odbc_connection->createStatement();
-  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+  odbc::Statement *statement = ODBCInterface::instance()->getStatement("FileCatalog_read");
+  std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlquery));
 
-  if (rs->next())
+  if (resultSet && resultSet->next())
   {
-    std::string xrootdfile = rs->getString(1);
+    std::string xrootdfile =  resultSet->getString(1);
     pfn = "root://xrdsphenix.rcf.bnl.gov/" + xrootdfile;
     bret = true;
   }
-  delete rs;
-  delete stmt;
   return bret;
 }
 
 bool FROG::LustreSearch(const std::string &lname)
 {
   bool bret = false;
-  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
-  if (!odbc_connection)
-  {
-    return bret;
-  }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
 
-  odbc::Statement *stmt = odbc_connection->createStatement();
-  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+  odbc::Statement *statement = ODBCInterface::instance()->getStatement("FileCatalog_read");
+  std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlquery));
 
-  if (rs->next())
+  if (resultSet && resultSet->next())
   {
-    pfn = rs->getString(1);
+    pfn =  resultSet->getString(1);
     bret = true;
   }
-  delete rs;
-  delete stmt;
   return bret;
 }
 
 bool FROG::MinIOSearch(const std::string &lname)
 {
   bool bret = false;
-  odbc::Connection *odbc_connection = GetConnection("FileCatalog_read");
-  if (!odbc_connection)
-  {
-    return bret;
-  }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
 
   if (Verbosity() > 1)
@@ -376,12 +302,12 @@ bool FROG::MinIOSearch(const std::string &lname)
     std::cout << "sql query:" << std::endl
               << sqlquery << std::endl;
   }
-  odbc::Statement *stmt = odbc_connection->createStatement();
-  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+  odbc::Statement *statement = ODBCInterface::instance()->getStatement("FileCatalog_read");
+  std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlquery));
 
-  if (rs->next())
+  if (resultSet && resultSet->next())
   {
-    pfn = rs->getString(1);
+    pfn =  resultSet->getString(1);
     std::string toreplace("/sphenix/lustre01/sphnxpro");
     size_t strpos = pfn.find(toreplace);
     if (strpos == std::string::npos)
@@ -399,53 +325,37 @@ bool FROG::MinIOSearch(const std::string &lname)
     pfn.replace(pfn.begin(), pfn.begin() + toreplace.size(), "s3://sphenixs3.rcf.bnl.gov:9000");
     bret = true;
   }
-  delete rs;
-  delete stmt;
   return bret;
 }
 
 bool FROG::RawDataSearch(const std::string &lname)
 {
   bool bret = false;
-  odbc::Connection *odbc_connection = GetConnection("RawdataCatalog_read");
-  if (!odbc_connection)
-  {
-    return bret;
-  }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'lustre'";
 
-  odbc::Statement *stmt = odbc_connection->createStatement();
-  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+  odbc::Statement *statement = ODBCInterface::instance()->getStatement("RawdataCatalog_read");
+  std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlquery));
 
-  if (rs->next())
+  if (resultSet && resultSet->next())
   {
-    pfn = rs->getString(1);
+    pfn =  resultSet->getString(1);
     bret = true;
   }
-  delete rs;
-  delete stmt;
   return bret;
 }
 
 bool FROG::HpssRawDataSearch(const std::string &lname)
 {
   bool bret = false;
-  odbc::Connection *odbc_connection = GetConnection("RawdataCatalog_read");
-  if (!odbc_connection)
-  {
-    return bret;
-  }
   std::string sqlquery = "SELECT full_file_path from files where lfn='" + lname + "' and full_host_name = 'hpss'";
 
-  odbc::Statement *stmt = odbc_connection->createStatement();
-  odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
+  odbc::Statement *statement = ODBCInterface::instance()->getStatement("RawdataCatalog_read");
+  std::unique_ptr<odbc::ResultSet> resultSet(statement->executeQuery(sqlquery));
 
-  if (rs->next())
+  if (resultSet && resultSet->next())
   {
-    pfn = rs->getString(1);
+    pfn =  resultSet->getString(1);
     bret = true;
   }
-  delete rs;
-  delete stmt;
   return bret;
 }

@@ -1,11 +1,12 @@
-#ifndef FFAMODULES_DBINTERFACE_H
-#define FFAMODULES_DBINTERFACE_H
+#ifndef FUN4ALL_DBINTERFACE_H
+#define FUN4ALL_DBINTERFACE_H
 
 #include <fun4all/SubsysReco.h>
 
 #include <map>
 #include <string>
 
+class ODBCInterface;
 namespace odbc
 {
   class Connection;
@@ -33,16 +34,7 @@ class DBInterface : public SubsysReco
 
   DBInterface(const std::string &name = "DBInterface");
   static DBInterface *__instance;
-  int m_ConnectionTries {0};
-  int m_SleepMS {0};
-  static constexpr int m_MAX_NUM_RETRIES = 3000;
-  static constexpr int m_MIN_SLEEP_DUR = 200;   // milliseconds
-  static constexpr int m_MAX_SLEEP_DUR = 3000;  // milliseconds
-
-  std::map<std::string, odbc::Connection *> m_OdbcConnectionMap;
-  std::map<std::string, odbc::Statement *> m_OdbcStatementMap;
-  std::map<std::string, int> m_NumConnection;
-  std::map<std::string, int> m_NumStatementUse;
+  ODBCInterface *m_ODBC{nullptr};
 };
 
 #endif

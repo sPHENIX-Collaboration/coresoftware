@@ -1,18 +1,16 @@
 #include "InttOdbcQuery.h"
 
-#include <ffamodules/DBInterface.h>
+#include <fun4all/DBInterface.h>
 
 #include <phool/phool.h>
 
-#include <odbc++/connection.h>
-#include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>
 
-#include <iostream>
-#include <sstream>
-
 #include <filesystem>
+#include <iostream>
+#include <memory>
+#include <sstream>
 
 int InttOdbcQuery::Query(int runnumber)
 {
@@ -32,13 +30,13 @@ int InttOdbcQuery::Query(int runnumber)
 
 int InttOdbcQuery::QueryStreaming(odbc::Statement *statement, int runnumber)
 {
-  odbc::ResultSet* result_set = nullptr;
+  std::unique_ptr<odbc::ResultSet> result_set;
 
   std::string sched_data;
   try
   {
     std::string sql = "SELECT sched_data FROM gtm_scheduler WHERE vgtm=1 AND sched_entry = 1 AND runnumber = " + std::to_string(runnumber) + ";";
-    result_set = statement->executeQuery(sql);
+    result_set = std::unique_ptr<odbc::ResultSet>(statement->executeQuery(sql));
     if (result_set && result_set->next())
     {
       sched_data = result_set->getString("sched_data");
@@ -49,10 +47,8 @@ int InttOdbcQuery::QueryStreaming(odbc::Statement *statement, int runnumber)
     std::cerr << PHWHERE << "\n"
               << "\tSQL Exception:\n"
               << "\t" << e.getMessage() << std::endl;
-    delete result_set;
     return 1;
   }
-  delete result_set;
 
   if (std::string{"{17,55,24,54}"} == sched_data)
   {
@@ -81,13 +77,13 @@ int InttOdbcQuery::QueryStreaming(odbc::Statement *statement, int runnumber)
 
 int InttOdbcQuery::QueryType(odbc::Statement *statement, int runnumber)
 {
-  odbc::ResultSet* result_set = nullptr;
+  std::unique_ptr<odbc::ResultSet> result_set;
   m_type = "";
 
   try
   {
     std::string sql = "SELECT runtype FROM run WHERE runnumber = " + std::to_string(runnumber) + ";";
-    result_set = statement->executeQuery(sql);
+    result_set = std::unique_ptr<odbc::ResultSet>(statement->executeQuery(sql));
     if (result_set && result_set->next())
     {
       m_type = result_set->getString("runtype");
@@ -98,10 +94,8 @@ int InttOdbcQuery::QueryType(odbc::Statement *statement, int runnumber)
     std::cerr << PHWHERE << "\n"
               << "\tSQL Exception:\n"
               << "\t" << e.getMessage() << std::endl;
-    delete result_set;
     return 1;
   }
-  delete result_set;
 
   if (m_verbosity)
   {

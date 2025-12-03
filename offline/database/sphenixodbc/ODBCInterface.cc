@@ -1,9 +1,4 @@
-#include "DBInterface.h"
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-
-#include <phool/phool.h>
+#include "ODBCInterface.h"
 
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
@@ -19,61 +14,25 @@
 #include <string>
 #include <thread>
 
-DBInterface *DBInterface::__instance{nullptr};
+ODBCInterface *ODBCInterface::__instance{nullptr};
 
-DBInterface *DBInterface::instance()
+ODBCInterface *ODBCInterface::instance()
 {
   if (!__instance)
   {
-    __instance = new DBInterface();
+    __instance = new ODBCInterface();
   }
   return __instance;
 }
 
-DBInterface::~DBInterface()
+ODBCInterface::~ODBCInterface()
 {
-  if (!m_OdbcConnectionMap.empty())
-  {
-    for (const auto& iter : m_OdbcConnectionMap)
-    {
-      delete iter.second;
-    }
-    m_OdbcConnectionMap.clear();
-  }
-  if (!m_OdbcStatementMap.empty())
-  {
-    m_OdbcStatementMap.clear();
-  }
+  ODBCInterface::Disconnect();
   __instance = nullptr;
   return;
 }
 
-DBInterface::DBInterface(const std::string &name)
-  : SubsysReco(name)
-{
-  Fun4AllServer *se = Fun4AllServer::instance();
-  se->addNewSubsystem(this);
-}
-
-int DBInterface::process_event(PHCompositeNode * /*topNode*/)
-{
-  if (!m_OdbcConnectionMap.empty())
-  {
-    for (const auto& iter : m_OdbcConnectionMap)
-    {
-      delete iter.second;
-    }
-    m_OdbcConnectionMap.clear();
-  }
-  if (!m_OdbcStatementMap.empty())
-  {
-    m_OdbcStatementMap.clear();
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-odbc::Connection *DBInterface::getDBConnection(const std::string &dbname)
+odbc::Connection *ODBCInterface::getDBConnection(const std::string &dbname)
 {
   auto coniter = m_OdbcConnectionMap.find(dbname);
   if (coniter != m_OdbcConnectionMap.end())
@@ -94,7 +53,7 @@ odbc::Connection *DBInterface::getDBConnection(const std::string &dbname)
     }
     catch (odbc::SQLException &e)
     {
-      std::cout << PHWHERE << ": SQL Exception: " << e.getMessage() << std::endl;
+      std::cout  << ": SQL Exception: " << e.getMessage() << std::endl;
     }
 
     if (dbcon)
@@ -108,18 +67,18 @@ odbc::Connection *DBInterface::getDBConnection(const std::string &dbname)
 
     if (0 < Verbosity())
     {
-      std::cout << PHWHERE << "Connection unsuccessful, Sleeping for addtional "
+      std::cout  << "Connection unsuccessful, Sleeping for addtional "
 		<< sleep_time_ms << " ms" << std::endl;
     }
   }
   if (1 < Verbosity())
   {
-    std::cout << PHWHERE << ": Connection successful (" << m_ConnectionTries
+    std::cout  << ": Connection successful (" << m_ConnectionTries
 	      << " attempts, " << m_SleepMS << " ms)" << std::endl;
   }
   if (!dbcon)
   {
-    std::cout << PHWHERE << ": DB Connection failed after " << m_MAX_NUM_RETRIES
+    std::cout  << ": DB Connection failed after " << m_MAX_NUM_RETRIES
 	      << " retries, abandoning query" << std::endl;
     return nullptr;
   }
@@ -127,7 +86,7 @@ odbc::Connection *DBInterface::getDBConnection(const std::string &dbname)
   return dbcon;
 }
 
-odbc::Statement *DBInterface::getStatement(const std::string &dbname)
+odbc::Statement *ODBCInterface::getStatement(const std::string &dbname)
 {
   m_NumStatementUse[dbname]++;
   auto statiter = m_OdbcStatementMap.find(dbname);
@@ -141,22 +100,8 @@ odbc::Statement *DBInterface::getStatement(const std::string &dbname)
   return statement;
 }
 
-int DBInterface::End(PHCompositeNode * /*topNode*/)
-{
-  if (Verbosity() > 0)
-  {
-    std::cout << "Number of connection attempts" << std::endl;
-    for (auto const &iter: m_NumConnection)
-    {
-      std::cout << "db: " << iter.first << ", attempts: " << iter.second << std::endl;
-    }
-    std::cout << "Total time slept: " << m_SleepMS << " ms" << std::endl;
-    std::cout << "Total number of connection re-tries: " << m_ConnectionTries << std::endl;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
-void DBInterface::Print(const std::string & /*what*/) const
+void ODBCInterface::Print(const std::string & /*what*/) const
 {
   if (m_NumConnection.empty())
   {
@@ -183,4 +128,20 @@ void DBInterface::Print(const std::string & /*what*/) const
     }
   }
   return;
+}
+
+void ODBCInterface::Disconnect()
+{
+    if (!m_OdbcConnectionMap.empty())
+  {
+    for (const auto& iter : m_OdbcConnectionMap)
+    {
+      delete iter.second;
+    }
+    m_OdbcConnectionMap.clear();
+  }
+  if (!m_OdbcStatementMap.empty())
+  {
+    m_OdbcStatementMap.clear();
+  }
 }

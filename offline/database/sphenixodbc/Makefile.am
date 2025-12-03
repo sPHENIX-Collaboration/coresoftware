@@ -3,27 +3,26 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
-  -isystem$(OPT_SPHENIX)/include \
-  -isystem`root-config --incdir`
+  -isystem$(OPT_SPHENIX)/include
 
-lib_LTLIBRARIES = libFROG.la
+lib_LTLIBRARIES = libsphenixodbc.la
 
-libFROG_la_LIBADD = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -lsphenixodbc
+bin_PROGRAMS = testODBC
+
+libsphenixodbc_la_LIBADD = \
+  -L$(OPT_SPHENIX)/lib \
+  -lodbc++
 
 pkginclude_HEADERS = \
-  FROG.h
+  ODBCInterface.h
 
-libFROG_la_SOURCES = \
-  FROG.cc
-
-bin_SCRIPTS = \
-  CreateDstList.pl \
-  CreateFileList.pl
+libsphenixodbc_la_SOURCES = \
+  ODBCInterface.cc
 
 noinst_PROGRAMS = testexternals
+
+testODBC_SOURCES = testODBC.cc
+testODBC_LDADD = libsphenixodbc.la
 
 BUILT_SOURCES = \
   testexternals.cc
@@ -31,7 +30,7 @@ BUILT_SOURCES = \
 testexternals_SOURCES = testexternals.cc
 
 testexternals_LDADD = \
-  libFROG.la
+  libsphenixodbc.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
