@@ -659,14 +659,18 @@ bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed) const
   {
     return true;
   }
+  if(intt_crossings.size() == 0)
+  {
+    // only an mvtx seed, must be in time given we seed on a strobe by strobe basis
+    return false;
+  }
+
   int crossing1 = *intt_crossings.begin();
   int crossing2 = *intt_crossings.rbegin();
-
-  if(abs(crossing2 - crossing1) > 2)
+  if (abs(crossing2 - crossing1) > 2)
   {
     return true;
   }
-
   int mvtx_strobe = *mvtx_strobes.begin();
   int strobecrossinglow = (mvtx_strobe + m_strobeLowWindow) * m_strobeWidth;
   int strobecrossinghigh = (mvtx_strobe + m_strobeHighWindow) * m_strobeWidth;
