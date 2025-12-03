@@ -152,8 +152,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
         surf = surfMaps.getSiliconSurface(hitsetkey);
 
+	Eigen::Vector3d localFrameTranslation(0.0, 0.0, 0.0);
+		
         Acts::Transform3 transform;
-        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, sensorAnglesGlobal, false);
+        transform = newMakeTransform(surf, millepedeTranslation, localFrameTranslation, sensorAngles, sensorAnglesGlobal, false);
 
         Acts::GeometryIdentifier id = surf->geometryId();
 
@@ -180,8 +182,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
         surf = surfMaps.getSiliconSurface(hitsetkey);
 
+	Eigen::Vector3d localFrameTranslation(0.0, 0.0, 0.0);
+		  
         Acts::Transform3 transform;
-        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, sensorAnglesGlobal, use_intt_survey_geometry);
+        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, use_intt_survey_geometry);
         Acts::GeometryIdentifier id = surf->geometryId();
 
         if (localVerbosity)
@@ -219,8 +223,15 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
           surf = surfMaps.getTpcSurface(hitsetkey, (unsigned int) sskey);
 
+	  // get the local frame translation that restores the center of the module to its ideal location after the local rotations are applied
+	  // moduleRadius is the radius of the center of the module
+	  unsigned int this_layer = TrkrDefs::getLayer(hitsetkey);
+	  unsigned int this_region = (this_layer - 7) / 16;  // 0-2
+	  float moduleRadius = TpcModuleRadii[this_region];
+	  Eigen::Vector3d localFrameTranslation = restoreTpcModuleCenter(moduleRadius, sensorAngles);	  
+
           Acts::Transform3 transform;
-          transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, sensorAnglesGlobal, false);
+          transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, false);
           Acts::GeometryIdentifier id = surf->geometryId();
 
           if (localVerbosity)
@@ -253,8 +264,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
         }
         surf = surfMaps.getMMSurface(hitsetkey);
 
+	Eigen::Vector3d localFrameTranslation(0.0, 0.0, 0.0);
+	
         Acts::Transform3 transform;
-        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, sensorAnglesGlobal, false);
+        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, false);
         Acts::GeometryIdentifier id = surf->geometryId();
 
         if (localVerbosity)
@@ -287,7 +300,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 }
 
 // currently used as the transform maker
-Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& sensorAnglesGlobal, bool survey)
+Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, bool survey)
 {
   // define null matrices
   Eigen::Vector3d nullTranslation(0, 0, 0);
@@ -308,7 +321,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
   Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
   Eigen::Quaternion<double> q = gamma * beta * alpha;
-  Eigen::Matrix3d millepedeRotation = q.matrix();
+  Eigen::Matrix3d millepedeRotationLocal = q.matrix();
 
  // Create alignment global coordinates rotation matrix
   Eigen::AngleAxisd grx(sensorAnglesGlobal(0), Eigen::Vector3d::UnitX());
@@ -319,17 +332,22 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 
   // and make affine matrices from each
 
-  Acts::Transform3 mpRotationAffine;
-  mpRotationAffine.linear() = millepedeRotation;
-  mpRotationAffine.translation() = nullTranslation;
+  // careful! what axes are what in local coordinates?
+  Acts::Transform3 mpLocalRotationAffine;
+  mpLocalRotationAffine.linear() = millepedeRotationLocal;
+  mpLocalRotationAffine.translation() = nullTranslation;
 
-  Acts::Transform3 mpRotationGlobalAffine;
-  mpRotationGlobalAffine.linear() = millepedeRotationGlobal;
-  mpRotationGlobalAffine.translation() = nullTranslation;
+  Acts::Transform3 mpLocalTranslationAffine;
+  mpLocalTranslationAffine.linear() = nullRotation;
+  mpLocalTranslationAffine.translation() = localFrameTranslation;
+    
+  Acts::Transform3 mpGlobalRotationAffine;
+  mpGlobalRotationAffine.linear() = millepedeRotationGlobal;
+  mpGlobalRotationAffine.translation() = nullTranslation;
 
-  Acts::Transform3 mpTranslationAffine;
-  mpTranslationAffine.linear() = nullRotation;
-  mpTranslationAffine.translation() = millepedeTranslation;
+  Acts::Transform3 mpGlobalTranslationAffine;
+  mpGlobalTranslationAffine.linear() = nullRotation;
+  mpGlobalTranslationAffine.translation() = millepedeTranslation;
 
   Acts::Transform3 actsRotationAffine;
   actsRotationAffine.linear() = actsRotationPart;
@@ -346,11 +364,13 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
     //! The millepede affines will just be what was read in, which was the
     //! survey information. This should (in principle) be equivalent to
     //! the ideal position + any misalignment
-    transform = mpTranslationAffine  * mpRotationGlobalAffine * mpRotationAffine;
+    transform = mpGlobalTranslationAffine  * mpGlobalRotationAffine * mpLocalRotationAffine;
   }
   else
   {
-    transform = mpTranslationAffine * mpRotationGlobalAffine * actsTranslationAffine * mpRotationAffine * actsRotationAffine;
+    transform = mpGlobalTranslationAffine * mpGlobalRotationAffine
+      * actsTranslationAffine * actsRotationAffine
+      * mpLocalTranslationAffine * mpLocalRotationAffine;
   }
 
   if (localVerbosity)
@@ -361,10 +381,10 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
     std::cout << "Input translation: " << std::endl << millepedeTranslation << std::endl;
     std::cout << "Input sensorAngles: " << std::endl << sensorAngles << std::endl;
     std::cout << "Input sensorAnglesGlobal: " << std::endl << sensorAnglesGlobal << std::endl;
-    std::cout << "mpRotationAffine: " << std::endl
-              << mpRotationAffine.matrix() << std::endl;
-      std::cout << "millepederotation * acts " << std::endl
-              << millepedeRotation * actsRotationPart << std::endl;
+    std::cout << "mpLocalRotationAffine: " << std::endl
+              << mpLocalRotationAffine.matrix() << std::endl;
+      std::cout << "mpLocalRotation * actsRotation " << std::endl
+              << millepedeRotationLocal * actsRotationPart << std::endl;
     std::cout << "actsRotationAffine: " << std::endl
               << actsRotationAffine.matrix() << std::endl;
     std::cout << "actsTranslationAffine: " << std::endl
@@ -372,9 +392,9 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
     std::cout << "full acts transform " << std::endl
               << actstransform.matrix() << std::endl;
     std::cout << "mpRotationGlobalAffine: " << std::endl
-	      << mpRotationGlobalAffine.matrix() << std::endl;
-    std::cout << "mpTranslationAffine: " << std::endl
-	      << mpTranslationAffine.matrix() << std::endl;
+	      << mpGlobalRotationAffine.matrix() << std::endl;
+    std::cout << "mpTranslationGlobalAffine: " << std::endl
+	      << mpGlobalTranslationAffine.matrix() << std::endl;
     std::cout << "Overall transform: " << std::endl
               << transform.matrix() << std::endl;
     std::cout << "overall * idealinv " << std::endl
@@ -391,6 +411,33 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   }
 
   return transform;
+}
+
+Eigen::Vector3d AlignmentTransformation::restoreTpcModuleCenter(float moduleRadius, Eigen::Vector3d& localRotation)
+{
+  // make a combined rotation matrix and apply it to the module center
+  // than calculate the translation back and return it
+  
+  // Create  local coordinates rotation matrix
+  Eigen::AngleAxisd alpha(localRotation(0), Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd beta(localRotation(1), Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd gamma(localRotation(2), Eigen::Vector3d::UnitZ());
+  Eigen::Quaternion<double> q = gamma * beta * alpha;
+  Eigen::Matrix3d millepedeRotation = q.matrix();
+
+    Eigen::Vector3d nullTranslation(0, 0, 0);
+    
+  Acts::Transform3 localRotationAffine;
+  localRotationAffine.linear() = millepedeRotation;
+  localRotationAffine.translation() = nullTranslation;
+  
+  Eigen::Vector3d moduleCenter(moduleRadius, 0.0, 0.0);  
+
+  Eigen::Vector3d newCenter =  localRotationAffine * moduleCenter;
+  
+  Eigen::Vector3d restoreModuleCenter = moduleCenter - newCenter;
+
+  return restoreModuleCenter; 
 }
 
 int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
