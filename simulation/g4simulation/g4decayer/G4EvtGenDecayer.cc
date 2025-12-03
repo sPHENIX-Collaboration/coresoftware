@@ -82,13 +82,13 @@ class EvtDecayBase;
 
 G4EvtGenDecayer::G4EvtGenDecayer()
   : G4VExtDecayer("G4EvtGenDecayer")
-  , fVerboseLevel(0)
+  , mEvtGenRandomEngine(new PHEvtGenRandomEngine()), radCorrEngine(genList.getPhotosModel()), fVerboseLevel(0)
 {
-  mEvtGenRandomEngine = new PHEvtGenRandomEngine();
+  
 
-  EvtRandom::setRandomEngine(static_cast<EvtRandomEngine*>(mEvtGenRandomEngine));
+  EvtRandom::setRandomEngine(mEvtGenRandomEngine);
 
-  radCorrEngine = genList.getPhotosModel();
+  
 
   extraModels = genList.getListOfModels();
 
@@ -103,7 +103,7 @@ G4EvtGenDecayer::G4EvtGenDecayer()
   string decay = string(offline_main) + "/share/EvtGen/DECAY.DEC";  // Using PDG 2019 reference as the input for now
   string evt = string(offline_main) + "/share/EvtGen/evt.pdl";
 
-  mEvtGen = new EvtGen(decay, evt, static_cast<EvtRandomEngine*>(mEvtGenRandomEngine), radCorrEngine, &extraModels);
+  mEvtGen = new EvtGen(decay, evt, mEvtGenRandomEngine, radCorrEngine, &extraModels);
   extraModels.clear();
 }
 
@@ -151,7 +151,7 @@ G4DecayProducts* G4EvtGenDecayer::ImportDecayProducts(const G4Track& track)
 
   EvtId parentID = EvtPDL::evtIdFromLundKC(pdgEncoding);
 
-  auto mParticle = EvtParticleFactory::particleFactory(parentID, p_init);
+  auto *mParticle = EvtParticleFactory::particleFactory(parentID, p_init);
   // Decay the particle
   mEvtGen->generateDecay(mParticle);
 
