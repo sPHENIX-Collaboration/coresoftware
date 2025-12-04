@@ -55,24 +55,24 @@ class G4UIcommand;
 
 G4Pythia6DecayerMessenger::G4Pythia6DecayerMessenger(
     G4Pythia6Decayer* pythia6Decayer)
-  : G4UImessenger()
-  , fPythia6Decayer(pythia6Decayer)
-  , fDirectory(nullptr)
-  , fVerboseCmd(nullptr)
-  , fDecayTypeCmd(nullptr)
+  : 
+   fPythia6Decayer(pythia6Decayer)
+  , fDirectory(new G4UIdirectory("/pythia6Decayer/"))
+  , fVerboseCmd(new G4UIcmdWithAnInteger("/pythia6Decayer/verbose", this))
+  , fDecayTypeCmd(new G4UIcmdWithAnInteger("/pythia6Decayer/forceDecayType", this))
 {
   /// Standard constructor
 
-  fDirectory = new G4UIdirectory("/pythia6Decayer/");
+  
   fDirectory->SetGuidance("G4Pythia6Decayer control commands.");
 
-  fVerboseCmd = new G4UIcmdWithAnInteger("/pythia6Decayer/verbose", this);
+  
   fVerboseCmd->SetGuidance("Set Pythia6Decayer verbose level");
   fVerboseCmd->SetParameterName("VerboseLevel", false);
   fVerboseCmd->SetRange("VerboseLevel >= 0 && VerboseLevel <= 1");
   fVerboseCmd->AvailableForStates(G4State_Idle);
 
-  fDecayTypeCmd = new G4UIcmdWithAnInteger("/pythia6Decayer/forceDecayType", this);
+  
   fDecayTypeCmd->SetGuidance("Force the specified decay type");
   fDecayTypeCmd->SetParameterName("DecayType", false);
   std::ostringstream os;
@@ -107,12 +107,12 @@ void G4Pythia6DecayerMessenger::SetNewValue(G4UIcommand* command,
   if (command == fVerboseCmd)
   {
     fPythia6Decayer
-        ->SetVerboseLevel(fVerboseCmd->GetNewIntValue(newValue));
+        ->SetVerboseLevel(G4UIcmdWithAnInteger::GetNewIntValue(newValue));
   }
   else if (command == fDecayTypeCmd)
   {
     fPythia6Decayer
-        ->ForceDecayType(EDecayType(fDecayTypeCmd->GetNewIntValue(newValue)));
+        ->ForceDecayType(EDecayType(G4UIcmdWithAnInteger::GetNewIntValue(newValue)));
   }
 }
 

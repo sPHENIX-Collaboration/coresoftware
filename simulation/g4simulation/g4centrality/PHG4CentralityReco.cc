@@ -3,6 +3,13 @@
 #include <centrality/CentralityInfo.h>    // for CentralityInfo, CentralityI...
 #include <centrality/CentralityInfov1.h>  // for CentralityInfov1
 
+#include <epd/EPDDefs.h>
+
+#include <ffaobjects/EventHeader.h>
+
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
@@ -14,14 +21,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <epd/EPDDefs.h>
-#include <ffaobjects/EventHeaderv1.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-
-#include <iostream>  // for operator<<, basic_ostream
-#include <map>       // for _Rb_tree_const_iterator
-#include <sstream>
+#include <iostream>   // for operator<<, basic_ostream
+#include <map>        // for _Rb_tree_const_iterator
 #include <stdexcept>  // for runtime_error
 #include <utility>    // for pair
 
@@ -48,13 +49,13 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
     throw;
   }
 
-  auto bhits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
+  auto *bhits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
   if (!bhits)
   {
     std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_BBC, will not use MBD centrality" << std::endl;
   }
 
-  auto ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
+  auto *ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
   if (!ehits)
   {
     std::cout << "PHG4CentralityReco::InitRun : cannot find G4HIT_EPD, will not use sEPD centrality" << std::endl;
@@ -71,40 +72,37 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
     // search for possible centile definitions
     for (int n = 0; n < 101; n++)
     {
-      std::ostringstream s1;
-      s1 << "epd_centile_" << n;
-      if (_centrality_calibration_params.exist_double_param(s1.str().c_str()))
+      std::string s1 = "epd_centile_" + std::to_string(n);
+      if (_centrality_calibration_params.exist_double_param(s1))
       {
-        _cent_cal_epd[_centrality_calibration_params.get_double_param(s1.str().c_str())] = n;
+        _cent_cal_epd[_centrality_calibration_params.get_double_param(s1)] = n;
         if (Verbosity() >= 2)
         {
-          std::cout << "PHG4CentralityReco::InitRun : sEPD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s1.str().c_str()) << std::endl;
+          std::cout << "PHG4CentralityReco::InitRun : sEPD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s1) << std::endl;
         }
       }
     }
     for (int n = 0; n < 101; n++)
     {
-      std::ostringstream s2;
-      s2 << "mbd_centile_" << n;
-      if (_centrality_calibration_params.exist_double_param(s2.str().c_str()))
+      std::string s2 = "mbd_centile_" + std::to_string(n);
+      if (_centrality_calibration_params.exist_double_param(s2))
       {
-        _cent_cal_mbd[_centrality_calibration_params.get_double_param(s2.str().c_str())] = n;
+        _cent_cal_mbd[_centrality_calibration_params.get_double_param(s2)] = n;
         if (Verbosity() >= 2)
         {
-          std::cout << "PHG4CentralityReco::InitRun : MBD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s2.str().c_str()) << std::endl;
+          std::cout << "PHG4CentralityReco::InitRun : MBD centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s2) << std::endl;
         }
       }
     }
     for (int n = 0; n < 101; n++)
     {
-      std::ostringstream s3;
-      s3 << "bimp_centile_" << n;
-      if (_centrality_calibration_params.exist_double_param(s3.str().c_str()))
+      std::string s3 = "bimp_centile_" + std::to_string(n);
+      if (_centrality_calibration_params.exist_double_param(s3))
       {
-        _cent_cal_bimp[_centrality_calibration_params.get_double_param(s3.str().c_str())] = n;
+        _cent_cal_bimp[_centrality_calibration_params.get_double_param(s3)] = n;
         if (Verbosity() >= 2)
         {
-          std::cout << "PHG4CentralityReco::InitRun : b (impact parameter) centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s3.str().c_str()) << std::endl;
+          std::cout << "PHG4CentralityReco::InitRun : b (impact parameter) centrality calibration, centile " << n << "% is " << _centrality_calibration_params.get_double_param(s3) << std::endl;
         }
       }
     }
@@ -120,7 +118,7 @@ int PHG4CentralityReco::InitRun(PHCompositeNode *topNode)
 int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
 {
   _bimp = 101;
-  auto event_header = findNode::getClass<EventHeaderv1>(topNode, "EventHeader");
+  auto *event_header = findNode::getClass<EventHeader>(topNode, "EventHeader");
   if (event_header)
   {
     _bimp = event_header->get_floatval("bimp");
@@ -142,7 +140,7 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
   _mbd_S = 0;
   _mbd_NS = 0;
 
-  auto bhits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
+  auto *bhits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_BBC");
 
   if (bhits)
   {
@@ -181,7 +179,7 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
   _epd_S = 0;
   _epd_NS = 0;
 
-  auto ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
+  auto *ehits = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_EPD");
 
   if (ehits)
   {
@@ -356,12 +354,7 @@ int PHG4CentralityReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4CentralityReco::End(PHCompositeNode * /*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-void PHG4CentralityReco::FillNode(PHCompositeNode *topNode)
+void PHG4CentralityReco::FillNode(PHCompositeNode *topNode) const
 {
   CentralityInfo *cent = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
   if (!cent)
@@ -369,20 +362,18 @@ void PHG4CentralityReco::FillNode(PHCompositeNode *topNode)
     std::cout << " ERROR -- can't find CentralityInfo node after it should have been created" << std::endl;
     return;
   }
-  else
-  {
-    cent->set_quantity(CentralityInfo::PROP::mbd_N, _mbd_N);
-    cent->set_quantity(CentralityInfo::PROP::mbd_S, _mbd_S);
-    cent->set_quantity(CentralityInfo::PROP::mbd_NS, _mbd_NS);
-    cent->set_quantity(CentralityInfo::PROP::epd_N, _epd_N);
-    cent->set_quantity(CentralityInfo::PROP::epd_S, _epd_S);
-    cent->set_quantity(CentralityInfo::PROP::epd_NS, _epd_NS);
-    cent->set_quantity(CentralityInfo::PROP::bimp, _bimp);
 
-    cent->set_centile(CentralityInfo::PROP::epd_NS, _epd_cent);
-    cent->set_centile(CentralityInfo::PROP::mbd_NS, _mbd_cent);
-    cent->set_centile(CentralityInfo::PROP::bimp, _bimp_cent);
-  }
+  cent->set_quantity(CentralityInfo::PROP::mbd_N, _mbd_N);
+  cent->set_quantity(CentralityInfo::PROP::mbd_S, _mbd_S);
+  cent->set_quantity(CentralityInfo::PROP::mbd_NS, _mbd_NS);
+  cent->set_quantity(CentralityInfo::PROP::epd_N, _epd_N);
+  cent->set_quantity(CentralityInfo::PROP::epd_S, _epd_S);
+  cent->set_quantity(CentralityInfo::PROP::epd_NS, _epd_NS);
+  cent->set_quantity(CentralityInfo::PROP::bimp, _bimp);
+
+  cent->set_centile(CentralityInfo::PROP::epd_NS, _epd_cent);
+  cent->set_centile(CentralityInfo::PROP::mbd_NS, _mbd_cent);
+  cent->set_centile(CentralityInfo::PROP::bimp, _bimp_cent);
 }
 
 void PHG4CentralityReco::CreateNode(PHCompositeNode *topNode)
