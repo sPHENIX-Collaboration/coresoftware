@@ -16,6 +16,7 @@
 #include <trackbase_historic/TrackSeedContainer_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase_historic/TrackSeedHelper.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -121,6 +122,10 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
   {
     std::cout << "cluster map size is " << clusterPositions.size() << std::endl;
   }
+  if(m_trackerId==TrkrDefs::TrkrId::mvtxId && clusterPositions.size()<4)
+  {
+        return Fun4AllReturnCodes::ABORTEVENT;
+  }
   auto seeds = makeSeeds(clusterPositions);
 
   if (Verbosity() > 1)
@@ -193,10 +198,11 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
     {
       svtxseed->insert_cluster_key(key);
     }
-    // if (m_trackerId == TrkrDefs::TrkrId::mvtxId){
-    //   svtxseed->circleFitByTaubin(clusterPositions, 0, 3);
-    //   svtxseed->lineFit(clusterPositions, 0, 3);
-    // }
+    if (m_trackerId == TrkrDefs::TrkrId::mvtxId){
+      TrackSeedHelper::circleFitByTaubin(svtxseed.get(),clusterPositions, 0, 7);
+      TrackSeedHelper::lineFit(svtxseed.get(),clusterPositions, 0, 7);
+      svtxseed->set_phi(TrackSeedHelper::get_phi(svtxseed.get(),clusterPositions));
+    }
     m_seedContainer->insert(svtxseed.get());
     ++iseed;
   }
@@ -204,6 +210,8 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
   {
     std::cout << "Final n seeds: " << m_seedContainer->size() << std::endl;
   }
+  if (m_seedContainer->size()==0)
+    return Fun4AllReturnCodes::ABORTEVENT;
   ++m_event;
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -496,12 +504,12 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       // only look at the cluster that is within 2cm of the doublet clusters
       float const dist1 = (pos1 - pos).norm();
       float const dist2 = (pos2 - pos).norm();
-      std::cout<< "layer " << int(TrkrDefs::getLayer(key)) << std::endl;
-      std::cout << "dist1, dist2 " << dist1 << ", " << dist2 << std::endl;
+      //std::cout<< "layer " << int(TrkrDefs::getLayer(key)) << std::endl;
+      //std::cout << "dist1, dist2 " << dist1 << ", " << dist2 << std::endl;
       float dist12_check = 2.;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
-        dist12_check = 3.5;
+        dist12_check = 4.0;
         if(TrkrDefs::getLayer(key) > 2)
         {
           dist12_check = 100000.0;

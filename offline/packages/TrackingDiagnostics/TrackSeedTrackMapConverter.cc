@@ -324,7 +324,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       float Y0 = trackSeed->get_Y0();
       float Z0 = trackSeed->get_Z0();
       float slope = trackSeed->get_slope();
-
+      
       std::vector<float> fitpars = {R, X0, Y0, slope, Z0};
 
       svtxtrack->set_crossing(trackSeed->get_crossing());
@@ -447,7 +447,8 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       std::cout << "Inserting svtxtrack into map " << std::endl;
       svtxtrack->identify();
     }
-
+    //if(m_cosmics)
+      
     m_trackMap->insert(svtxtrack.get());
   }
 

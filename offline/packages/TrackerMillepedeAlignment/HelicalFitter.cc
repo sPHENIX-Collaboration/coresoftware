@@ -320,7 +320,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
     else
     {
       //std::cout<<"event: "<<event<<"  , trackid: "<<trackid-trkid_correction<<"  , nhits: "<<cluskey_vec.size()<< "  , crossing: "<<tracklet->get_crossing()<<std::endl;
-      if (fitsilicon && nintt < 2)
+      //std::cout<<"tracklet size and nintt: "<<cluskey_vec.size()<<" : "<<nintt<<std::endl;
+      if (fitsilicon && nintt < 1)
       {
         continue;  // discard incomplete seeds
       }
@@ -530,7 +531,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       continue;
     }
-        std::cout<<"tracklet eta2: "<<tracklet->get_eta()<<std::endl;
+        //std::cout<<"tracklet eta2: "<<tracklet->get_eta()<<std::endl;
     if(fabs(newTrack.get_eta()) > m_eta_cut || newTrack.get_pt() < m_pt_min)
     {
       continue;
@@ -633,7 +634,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
   for (unsigned int trackid = 0; trackid < accepted_tracks; ++trackid)
   {
 
-        std::cout<<"tracklet eta2.5: "<<std::endl;
 
     const auto& global_vec = cumulative_global_vec[trackid];
     const auto& cluskey_vec = cumulative_cluskey_vec[trackid];
@@ -675,14 +675,14 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       }
       else
       {
-        std::cout<<"tracklet eta3: "<<std::endl;
+        //std::cout<<"tracklet eta3: "<<std::endl;
 
         fitpoint = get_helix_surface_intersection(surf, fitpars, global, helix_pca, helix_tangent);
-        std::cout<<"tracklet eta3.1: "<<fitpars_mvtx_half.size()<<std::endl;
+        //std::cout<<"tracklet eta3.1: "<<fitpars_mvtx_half.size()<<std::endl;
         fitpoint_mvtx_half = get_helix_surface_intersection(surf, fitpars_mvtx_half, global, helix_pca, helix_tangent);
       }
 
-        std::cout<<"tracklet eta3.2: "<<std::endl;
+        //std::cout<<"tracklet eta3.2: "<<std::endl;
 
       // fitpoint is the point where the helical fit intersects the plane of the surface
       // Now transform the helix fitpoint to local coordinates to compare with cluster local coordinates
@@ -718,7 +718,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
       {
         tangent = get_helix_tangent(fitpars, global);
       }
-        std::cout<<"tracklet eta4: "<<std::endl;
+        //std::cout<<"tracklet eta4: "<<std::endl;
 
       svtxstate.set_px(someseed.get_p() * tangent.second.x());
       svtxstate.set_py(someseed.get_p() * tangent.second.y());
