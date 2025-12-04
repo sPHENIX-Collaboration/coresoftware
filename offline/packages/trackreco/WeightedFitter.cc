@@ -15,7 +15,7 @@
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v2.h>
 #include <trackbase_historic/TrackSeed.h>
@@ -351,6 +351,7 @@ WeightedFitter::get_cluster_keys (
 		m_tpc_seed = m_tpc_track_seed_container->get(track_seed->get_tpc_seed_index());
 	}
 	m_crossing = m_silicon_seed ? m_silicon_seed->get_crossing() : SHRT_MAX;
+	if (m_silicon_seed) {std::cout<<"valid silicon seed crossing "<<m_silicon_seed->get_crossing()<<std::endl;}
 
 	m_cluster_keys.clear();
 	for (auto const* seed : {m_silicon_seed, m_tpc_seed}) {
@@ -437,6 +438,7 @@ WeightedFitter::get_points (
 	if (m_num_intt < m_min_num_intt) { return true; }
 	if (m_num_tpc < m_min_num_tpc) { return true; }
 	if (m_num_tpot < m_min_num_tpot) { return true; }
+	std::cout<<"m_num_mvtx = "<<m_num_mvtx<<" m_num_intt = "<<m_num_intt<<" m_num_tpc = "<<m_num_tpc<<" m_num_tpot = "<<m_num_tpot<<std::endl;
 
 	if (m_reassign_sides && !sides.empty()) {
 		m_side = sides[0] < sides[1] ? 1 : 0;
@@ -475,6 +477,86 @@ WeightedFitter::do_fit (
 
 	double const* params = m_minimizer->X();
 	m_weighted_track->set_parameters(params);
+
+	double const* errors = m_minimizer->Errors();
+	int nparams = m_weighted_track->get_n_parameters();
+	std::vector<double> cov_vector(nparams * nparams);
+	m_minimizer->GetCovMatrix(cov_vector.data());
+
+	param_cov = Eigen::Matrix4d::Zero();
+	for (int i = 0; i < nparams; ++i) {
+		for (int j = 0; j < nparams; ++j) {
+			param_cov(i, j) = cov_vector[i * nparams + j];
+		}
+	}
+
+	//test printout
+	if (Verbosity() > 1)
+	{
+    std::cout << "\n--- Parameters ---" << std::endl;
+    std::cout << std::setw(10) << "Name" 
+              << std::setw(15) << "Value" 
+              << std::setw(15) << "Error" 
+              << std::setw(15) << "Error/Value" 
+              << std::setw(15) << "Variance" << std::endl;
+    std::cout << std::string(70, '-') << std::endl;
+    
+    std::string names[4] = {"x0", "y0", "theta", "phi"};
+    for (int i = 0; i < 4; ++i) {
+        double rel_error = (params[i] != 0) ? fabs(errors[i]/params[i]) : 0;
+        std::cout << std::setw(10) << names[i]
+                  << std::setw(15) << std::scientific << std::setprecision(6) << params[i]
+                  << std::setw(15) << errors[i]
+                  << std::setw(15) << std::fixed << std::setprecision(3) << rel_error
+                  << std::setw(15) << std::scientific << std::setprecision(6) << param_cov(i, i)
+                  << std::endl;
+    }
+    
+    std::cout << "\n--- Full Covariance Matrix (4x4) ---" << std::endl;
+    std::cout << "Rows/Columns: [x0, y0, theta, phi]" << std::endl;
+    
+    std::cout << std::setw(12) << " ";
+    for (int j = 0; j < 4; ++j) {
+        std::cout << std::setw(15) << names[j];
+    }
+    std::cout << std::endl << std::string(75, '-') << std::endl;
+    
+    for (int i = 0; i < 4; ++i) {
+        std::cout << std::setw(12) << names[i];
+        for (int j = 0; j < 4; ++j) {
+            std::cout << std::setw(15) << std::scientific << std::setprecision(6) 
+                     << param_cov(i, j);
+        }
+        std::cout << std::endl;
+    }
+    
+    std::cout << "\n--- Matrix Properties ---" << std::endl;
+    
+    double max_asymmetry = 0;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = i+1; j < 4; ++j) {
+            double asymmetry = fabs(param_cov(i, j) - param_cov(j, i));
+            max_asymmetry = std::max(max_asymmetry, asymmetry);
+        }
+    }
+    std::cout << "Max asymmetry: " << max_asymmetry 
+              << (max_asymmetry < 1e-10 ? " (symmetric ✓)" : " (NOT symmetric!)") << std::endl;
+    
+    bool positive_diagonal = true;
+    for (int i = 0; i < 4; ++i) {
+        if (param_cov(i, i) <= 0) {
+            positive_diagonal = false;
+            std::cout << "WARNING: Negative variance for " << names[i] 
+                     << ": " << param_cov(i, i) << std::endl;
+        }
+    }
+    if (positive_diagonal) {
+        std::cout << "All variances are positive ✓" << std::endl;
+    }
+    
+    std::cout << "============== END FIT INFORMATION ==============\n" << std::endl;
+	}
+	//test printout
 
 	return !fit_succeeded;
 }
@@ -570,14 +652,79 @@ WeightedFitter::add_track (
 	SvtxAlignmentStateMap::StateVec alignment_states;
 	for (auto const& point : m_output_cluster_fit_points) {
 		Acts::Vector3 intersection = m_weighted_track->get_intersection(point.sensor_local_to_global_transform);
+		//test printout
+		std::cout << "==================================" << std::endl;
 
-		SvtxTrackState_v1 svtx_track_state(intersection.norm());
+		std::cout << "4x4 Matrix (homogeneous coordinates):" << std::endl;
+		std::cout << point.sensor_local_to_global_transform.matrix() << std::endl;
+
+		std::cout << "\nRotation part (3x3):" << std::endl;
+		std::cout << point.sensor_local_to_global_transform.rotation() << std::endl;
+
+		std::cout << "\nTranslation vector:" << std::endl;
+		std::cout << point.sensor_local_to_global_transform.translation().transpose() << std::endl;
+
+		std::cout << "==================================" << std::endl;
+		//test printout
+
+		SvtxTrackState_v3 svtx_track_state(intersection.norm());
 		svtx_track_state.set_x(intersection(0));
 		svtx_track_state.set_y(intersection(1));
 		svtx_track_state.set_z(intersection(2));
 		svtx_track_state.set_px(slope(0));
 		svtx_track_state.set_py(slope(1));
 		svtx_track_state.set_pz(slope(2));
+		svtx_track_state.set_name(std::to_string(point.cluster_key));
+		svtx_track_state.set_cluskey(point.cluster_key);
+
+		//Joseph's method
+		std::cout<<"point.cluster_errors(0) = "<<point.cluster_errors(0)<<" , point.cluster_errors(1) = "<<point.cluster_errors(1)<<std::endl;
+		// use the cluster uncertainties, rotated into global coordiantes, as the track state errors
+		// can add the uncertainties in track parameters later but these are negligible in magnitude by comparison
+		Eigen::Affine3d covariance = Eigen::Affine3d::Identity();
+		covariance(0, 0) = pow(point.cluster_errors(0),2);
+		covariance(1, 1) = pow(point.cluster_errors(1),2);
+		covariance(2, 2) = 0;
+		covariance = point.sensor_local_to_global_transform * covariance * point.sensor_local_to_global_transform.inverse();
+		for (int i = 0; i < 6; ++i) {
+			for (int j = 0; j < 6; ++j) {
+				// use the rotated cluster uncertainties for the spatial component
+				// (these seem to be indices 0, 1, 2 judging by a comment in ActsTransformations.cc:187
+				if (i < 3 && j < 3) {
+					svtx_track_state.set_error(i, j, covariance(i, j));
+					//svtx_track_state.set_error(i, j, covariance.rotation()(i, j));
+				} else {
+					svtx_track_state.set_error(i, j, 0);
+				}
+			}
+		}
+		std::cout << "Joseph's method: " << std::endl << covariance.matrix() << std::endl;
+		svtx_track_state.identify();
+		std::cout << "get_error(0,0) = " << svtx_track_state.get_error(0,0) << std::endl;
+		std::cout << "svtx_track_state.get_rphi_error() = " << svtx_track_state.get_rphi_error() << std::endl;
+		std::cout << "svtx_track_state.get_z_error() = " << svtx_track_state.get_z_error() << std::endl;
+
+		Eigen::Matrix<double, 3, 4> Jacobian_fitpars_globpos;
+    	for (int i = 0; i < 4; ++i) {
+    		Jacobian_fitpars_globpos.col(i) = m_weighted_track->get_partial_derivative(i, intersection.norm());
+    	}
+		Eigen::Matrix3d globpos_cov = Jacobian_fitpars_globpos * param_cov * Jacobian_fitpars_globpos.transpose();
+		for (int i = 0; i < 6; ++i) {
+			for (int j = 0; j < 6; ++j) {
+				// use the rotated cluster uncertainties for the spatial component
+				// (these seem to be indices 0, 1, 2 judging by a comment in ActsTransformations.cc:187
+				if (i < 3 && j < 3) {
+					svtx_track_state.set_error(i, j, globpos_cov(i, j));
+				} else {
+					svtx_track_state.set_error(i, j, 0);
+				}
+			}
+		}
+		std::cout<<"My method: "<<std::endl<<globpos_cov<<std::endl;
+		svtx_track_state.identify();
+		std::cout << "get_error(0,0) = " << svtx_track_state.get_error(0,0) << std::endl;
+		std::cout << "svtx_track_state.get_rphi_error() = " << svtx_track_state.get_rphi_error() << std::endl;
+		std::cout << "svtx_track_state.get_z_error() = " << svtx_track_state.get_z_error() << std::endl;
 		fitted_track.insert_state(&svtx_track_state);
 
 		auto alignment_state = std::make_unique<SvtxAlignmentState_v1>();
