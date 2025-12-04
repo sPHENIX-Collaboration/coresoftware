@@ -23,10 +23,12 @@ class FROG
   bool PGSearch(const std::string &lname);
   void Verbosity(const int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
+  void AutoDisconnect(bool b) { m_DisconnectFlag = b; }
 
  private:
   void Disconnect();
   int m_Verbosity{0};
+  bool m_DisconnectFlag{true};
   std::string pfn;
 };
 

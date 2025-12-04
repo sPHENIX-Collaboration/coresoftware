@@ -190,7 +190,10 @@ FROG::location(const std::string &logical_name)
       std::cout << "FROG: GSEARCHPATH not set " << std::endl;
     }
   }
-  Disconnect();
+  if (m_DisconnectFlag)
+  {
+    Disconnect();
+  }
   return pfn.c_str();
 }
 
@@ -206,7 +209,7 @@ bool FROG::localSearch(const std::string &logical_name)
 
 void FROG::Disconnect()
 {
-  delete ODBCInterface::instance();
+  ODBCInterface::instance()->Disconnect();
 }
 
 bool FROG::PGSearch(const std::string &lname)
@@ -224,7 +227,7 @@ bool FROG::PGSearch(const std::string &lname)
 
   if (resultSet && resultSet->next())
   {
-    pfn =  resultSet->getString(1);
+    pfn = resultSet->getString(1);
     bret = true;
   }
   return bret;
@@ -245,7 +248,7 @@ bool FROG::dCacheSearch(const std::string &lname)
 
   if (resultSet && resultSet->next())
   {
-    std::string dcachefile =  resultSet->getString(1);
+    std::string dcachefile = resultSet->getString(1);
     if (std::ifstream(dcachefile))
     {
       pfn = "dcache:" + dcachefile;
@@ -269,7 +272,7 @@ bool FROG::XRootDSearch(const std::string &lname)
 
   if (resultSet && resultSet->next())
   {
-    std::string xrootdfile =  resultSet->getString(1);
+    std::string xrootdfile = resultSet->getString(1);
     pfn = "root://xrdsphenix.rcf.bnl.gov/" + xrootdfile;
     bret = true;
   }
@@ -286,7 +289,7 @@ bool FROG::LustreSearch(const std::string &lname)
 
   if (resultSet && resultSet->next())
   {
-    pfn =  resultSet->getString(1);
+    pfn = resultSet->getString(1);
     bret = true;
   }
   return bret;
@@ -307,7 +310,7 @@ bool FROG::MinIOSearch(const std::string &lname)
 
   if (resultSet && resultSet->next())
   {
-    pfn =  resultSet->getString(1);
+    pfn = resultSet->getString(1);
     std::string toreplace("/sphenix/lustre01/sphnxpro");
     size_t strpos = pfn.find(toreplace);
     if (strpos == std::string::npos)
@@ -338,7 +341,7 @@ bool FROG::RawDataSearch(const std::string &lname)
 
   if (resultSet && resultSet->next())
   {
-    pfn =  resultSet->getString(1);
+    pfn = resultSet->getString(1);
     bret = true;
   }
   return bret;
@@ -354,7 +357,7 @@ bool FROG::HpssRawDataSearch(const std::string &lname)
 
   if (resultSet && resultSet->next())
   {
-    pfn =  resultSet->getString(1);
+    pfn = resultSet->getString(1);
     bret = true;
   }
   return bret;
