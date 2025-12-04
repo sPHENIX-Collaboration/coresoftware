@@ -264,7 +264,12 @@ class PHActsSiliconSeeding : public SubsysReco
   Acts::CylindricalSpacePointGridConfig m_gridCfg;
   Acts::CylindricalSpacePointGridOptions m_gridOptions;
   Acts::SeedFinderOptions m_seedFinderOptions;
-
+  mutable int strobesize = 0;
+  mutable int crossingsize = 0;
+  mutable int crossingdiff = 0;
+  mutable int timingdiff = 0;
+  mutable int nskipseeds = 0;
+  
   /// boolean whether or not we are going to match the intt clusters
   /// per strobe with crossing information and take all possible matches
   bool m_streaming = false;
