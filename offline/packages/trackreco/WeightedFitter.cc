@@ -351,7 +351,7 @@ WeightedFitter::get_cluster_keys (
 		m_tpc_seed = m_tpc_track_seed_container->get(track_seed->get_tpc_seed_index());
 	}
 	m_crossing = m_silicon_seed ? m_silicon_seed->get_crossing() : SHRT_MAX;
-	if (m_silicon_seed) {std::cout<<"valid silicon seed crossing "<<m_silicon_seed->get_crossing()<<std::endl;}
+	//if (m_silicon_seed) {std::cout<<"valid silicon seed crossing "<<m_silicon_seed->get_crossing()<<std::endl;}
 
 	m_cluster_keys.clear();
 	for (auto const* seed : {m_silicon_seed, m_tpc_seed}) {
@@ -438,7 +438,7 @@ WeightedFitter::get_points (
 	if (m_num_intt < m_min_num_intt) { return true; }
 	if (m_num_tpc < m_min_num_tpc) { return true; }
 	if (m_num_tpot < m_min_num_tpot) { return true; }
-	std::cout<<"m_num_mvtx = "<<m_num_mvtx<<" m_num_intt = "<<m_num_intt<<" m_num_tpc = "<<m_num_tpc<<" m_num_tpot = "<<m_num_tpot<<std::endl;
+	//std::cout<<"m_num_mvtx = "<<m_num_mvtx<<" m_num_intt = "<<m_num_intt<<" m_num_tpc = "<<m_num_tpc<<" m_num_tpot = "<<m_num_tpot<<std::endl;
 
 	if (m_reassign_sides && !sides.empty()) {
 		m_side = sides[0] < sides[1] ? 1 : 0;
@@ -652,7 +652,10 @@ WeightedFitter::add_track (
 	SvtxAlignmentStateMap::StateVec alignment_states;
 	for (auto const& point : m_output_cluster_fit_points) {
 		Acts::Vector3 intersection = m_weighted_track->get_intersection(point.sensor_local_to_global_transform);
+		double path_length = m_weighted_track->get_path_length_of_intersection(point.sensor_local_to_global_transform);
 		//test printout
+		if (Verbosity() > 1)
+		{
 		std::cout << "==================================" << std::endl;
 
 		std::cout << "4x4 Matrix (homogeneous coordinates):" << std::endl;
@@ -665,9 +668,10 @@ WeightedFitter::add_track (
 		std::cout << point.sensor_local_to_global_transform.translation().transpose() << std::endl;
 
 		std::cout << "==================================" << std::endl;
+		}
 		//test printout
 
-		SvtxTrackState_v3 svtx_track_state(intersection.norm());
+		SvtxTrackState_v3 svtx_track_state(path_length);
 		svtx_track_state.set_x(intersection(0));
 		svtx_track_state.set_y(intersection(1));
 		svtx_track_state.set_z(intersection(2));
@@ -677,8 +681,9 @@ WeightedFitter::add_track (
 		svtx_track_state.set_name(std::to_string(point.cluster_key));
 		svtx_track_state.set_cluskey(point.cluster_key);
 
+		/*
 		//Joseph's method
-		std::cout<<"point.cluster_errors(0) = "<<point.cluster_errors(0)<<" , point.cluster_errors(1) = "<<point.cluster_errors(1)<<std::endl;
+		//std::cout<<"point.cluster_errors(0) = "<<point.cluster_errors(0)<<" , point.cluster_errors(1) = "<<point.cluster_errors(1)<<std::endl;
 		// use the cluster uncertainties, rotated into global coordiantes, as the track state errors
 		// can add the uncertainties in track parameters later but these are negligible in magnitude by comparison
 		Eigen::Affine3d covariance = Eigen::Affine3d::Identity();
@@ -698,16 +703,18 @@ WeightedFitter::add_track (
 				}
 			}
 		}
-		std::cout << "Joseph's method: " << std::endl << covariance.matrix() << std::endl;
-		svtx_track_state.identify();
-		std::cout << "get_error(0,0) = " << svtx_track_state.get_error(0,0) << std::endl;
-		std::cout << "svtx_track_state.get_rphi_error() = " << svtx_track_state.get_rphi_error() << std::endl;
-		std::cout << "svtx_track_state.get_z_error() = " << svtx_track_state.get_z_error() << std::endl;
+		if (Verbosity() > 1)
+		{
+			std::cout << "Joseph's method: " << std::endl << covariance.matrix() << std::endl;
+			svtx_track_state.identify();
+			std::cout << "svtx_track_state.get_rphi_error() = " << svtx_track_state.get_rphi_error() << std::endl;
+			std::cout << "svtx_track_state.get_z_error() = " << svtx_track_state.get_z_error() << std::endl;
+		}
+		*/
 
+		//my method
 		Eigen::Matrix<double, 3, 4> Jacobian_fitpars_globpos;
-    	for (int i = 0; i < 4; ++i) {
-    		Jacobian_fitpars_globpos.col(i) = m_weighted_track->get_partial_derivative(i, intersection.norm());
-    	}
+		for (int i = 0; i < 4; ++i) { Jacobian_fitpars_globpos.col(i) = m_weighted_track->get_partial_derivative(i, path_length); }
 		Eigen::Matrix3d globpos_cov = Jacobian_fitpars_globpos * param_cov * Jacobian_fitpars_globpos.transpose();
 		for (int i = 0; i < 6; ++i) {
 			for (int j = 0; j < 6; ++j) {
@@ -720,11 +727,13 @@ WeightedFitter::add_track (
 				}
 			}
 		}
-		std::cout<<"My method: "<<std::endl<<globpos_cov<<std::endl;
-		svtx_track_state.identify();
-		std::cout << "get_error(0,0) = " << svtx_track_state.get_error(0,0) << std::endl;
-		std::cout << "svtx_track_state.get_rphi_error() = " << svtx_track_state.get_rphi_error() << std::endl;
-		std::cout << "svtx_track_state.get_z_error() = " << svtx_track_state.get_z_error() << std::endl;
+		if (Verbosity() > 1)
+		{
+			std::cout<<"My method: "<<std::endl<<globpos_cov<<std::endl;
+			svtx_track_state.identify();
+			std::cout << "svtx_track_state.get_rphi_error() = " << svtx_track_state.get_rphi_error() << std::endl;
+			std::cout << "svtx_track_state.get_z_error() = " << svtx_track_state.get_z_error() << std::endl;
+		}
 		fitted_track.insert_state(&svtx_track_state);
 
 		auto alignment_state = std::make_unique<SvtxAlignmentState_v1>();
