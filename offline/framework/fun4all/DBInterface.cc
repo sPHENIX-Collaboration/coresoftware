@@ -2,6 +2,8 @@
 
 #include <sphenixodbc/ODBCInterface.h>
 
+#include <frog/FROG.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
@@ -77,13 +79,18 @@ int DBInterface::End(PHCompositeNode * /*topNode*/)
 
 void DBInterface::Print(const std::string & /*what*/) const
 {
+  std::cout << "Currently open connections: " << m_ODBC->CurrentConnections() << std::endl;
+  for (auto const &iter : m_ODBC->getOdbcConnectionMap())
+  {
+    std::cout << "currently connected to " << iter.first << std::endl;
+  }
   if (m_ODBC->getNumConnection().empty())
   {
     std::cout << "No ODBC connections cached" << std::endl;
   }
   else
   {
-    std::cout << "Odbc Connections Opened: " << std::endl;
+    std::cout << "Odbc Connections Stats: " << std::endl;
     for (auto const &iter : m_ODBC->getNumConnection())
     {
       std::cout << "db: " << iter.first << ", opened: " << iter.second << std::endl;
@@ -102,4 +109,15 @@ void DBInterface::Print(const std::string & /*what*/) const
     }
   }
   return;
+}
+
+std::string DBInterface::location(const std::string &logical_name)
+{
+  if (!fr)
+  {
+    fr = new FROG();
+    fr->AutoDisconnect(false);
+  }
+  std::string fullfile = fr->location(logical_name);
+  return fullfile;
 }

@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 
+class FROG;
 class ODBCInterface;
 namespace odbc
 {
@@ -29,12 +30,14 @@ class DBInterface : public SubsysReco
 
   odbc::Connection *getDBConnection(const std::string &dbname);
   odbc::Statement *getStatement(const std::string &dbname);
+  std::string location(const std::string &logical_name);
   
  private:
 
   DBInterface(const std::string &name = "DBInterface");
   static DBInterface *__instance;
   ODBCInterface *m_ODBC{nullptr};
+  FROG *fr {nullptr};
 };
 
 #endif

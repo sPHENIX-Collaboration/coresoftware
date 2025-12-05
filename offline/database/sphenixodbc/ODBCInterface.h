@@ -28,16 +28,18 @@ class ODBCInterface
 
   int ConnectionTries() const {return m_ConnectionTries;}
   int SleepMS() const {return m_SleepMS;}
-
+  int CurrentConnections() const {return m_CurrentConnections;}
   void Disconnect();
   const std::map<std::string, int>& getNumConnection() const {return m_NumConnection;}
   const std::map<std::string, int>& getNumStatementUse() const {return m_NumStatementUse;}
-  
+  const std::map<std::string, odbc::Connection *>& getOdbcConnectionMap() {return m_OdbcConnectionMap;}
+
 private:
 
   ODBCInterface() = default;
   static ODBCInterface *__instance;
   int m_ConnectionTries {0};
+  int m_CurrentConnections {0};
   int m_SleepMS {0};
   uint64_t m_Verbosity {0};
   static constexpr int m_MAX_NUM_RETRIES = 3000;
