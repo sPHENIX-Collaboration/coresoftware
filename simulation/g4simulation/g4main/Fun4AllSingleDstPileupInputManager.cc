@@ -8,8 +8,7 @@
 
 #include <ffaobjects/RunHeader.h>
 
-#include <frog/FROG.h>
-
+#include <fun4all/DBInterface.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
@@ -56,8 +55,7 @@ int Fun4AllSingleDstPileupInputManager::fileopen(const std::string &filenam)
     fileclose();
   }
   FileName(filenam);
-  FROG frog;
-  m_fullfilename = frog.location(FileName());
+  m_fullfilename = DBInterface::instance()->location(FileName());
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << m_fullfilename << std::endl;
