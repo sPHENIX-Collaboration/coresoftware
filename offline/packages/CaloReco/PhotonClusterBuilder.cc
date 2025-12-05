@@ -280,13 +280,14 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   float avg_eta = showershape[4] + 0.5F;
   float avg_phi = showershape[5] + 0.5F;
 
+
   int maxieta = std::floor(avg_eta);
   int maxiphi = std::floor(avg_phi);
 
-  if (maxieta < 3 || maxieta > 92)
-  {
-    return;
-  }
+  //if (maxieta < 3 || maxieta > 92)
+  //{
+  //  return;
+  //}
 
   // for detamax, dphimax, nsaturated
   int detamax = 0;
@@ -355,6 +356,15 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   {
     for (int iphi = maxiphi - 3; iphi < maxiphi + 4; iphi++)
     {
+      //this is defensive coding, if ieta is out of range, set the energy to 0
+      //even without this, the requirement for towerinfo object will take care of it
+      if (ieta < 0 || ieta > 95)
+      {
+        E77[ieta - maxieta + 3][iphi - maxiphi + 3] = 0.0F;
+        E77_ownership[ieta - maxieta + 3][iphi - maxiphi + 3] = 0;
+        continue;
+      }
+
       int temp_ieta = ieta;
       int temp_iphi = iphi;
       shift_tower_index(temp_ieta, temp_iphi, 96, 256);
