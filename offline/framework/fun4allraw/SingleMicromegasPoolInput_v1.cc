@@ -10,8 +10,6 @@
 #include <qautils/QAHistManagerDef.h>
 #include <qautils/QAUtil.h>
 
-#include <frog/FROG.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>

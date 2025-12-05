@@ -1,6 +1,6 @@
 #include "SingleStreamingInput.h"
 
-#include <frog/FROG.h>
+#include <fun4all/DBInterface.h>
 
 #include <phool/phool.h>
 
@@ -33,8 +33,7 @@ int SingleStreamingInput::fileopen(const std::string &filenam)
     fileclose();
   }
   FileName(filenam);
-  FROG frog;
-  std::string fname = frog.location(FileName());
+  std::string fname = DBInterface::instance()->location(FileName());
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << FileName() << std::endl;
