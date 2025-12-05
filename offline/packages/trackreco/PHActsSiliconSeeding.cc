@@ -430,11 +430,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
   int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
-  strobesize = 0;
-  crossingsize = 0;
-  crossingdiff = 0;
-  timingdiff = 0;
-  nskipseeds = 0;
+
   int strobe = m_lowStrobeIndex;
   /// Loop over grid volumes. In our case this will be strobe
   for (const auto& seeds : seedVector)
@@ -633,15 +629,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
       seed->identify();
     }
   }
-  for (const auto& seeds : seedVector)
-  {
-    std::cout << "total found seed size " << seeds.size() << std::endl;
-  }
-    std::cout << "number of skipped seeds " << nskipseeds << std::endl;
-    std::cout << "strobe skipped " << strobesize << std::endl;
-    std::cout << "crossing skipped " << crossingsize << std::endl;
-    std::cout << "crossing diff skipped " << crossingdiff << std::endl;
-    std::cout << "timing diff skipped " << timingdiff << std::endl;
+
     return;
   }
 
@@ -666,17 +654,14 @@ bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed) const
  
   if(mvtx_strobes.size() > 1)
   {
-    strobesize++;
     return true;
   }
   if(intt_crossings.size() > 2)
   {
-    crossingsize++;
     return true;
   }
   if(intt_crossings.size() == 0)
   {
-    
     // only an mvtx seed, must be in time given we seed on a strobe by strobe basis
     return false;
   }
@@ -685,7 +670,6 @@ bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed) const
   int crossing2 = *intt_crossings.rbegin();
   if (abs(crossing2 - crossing1) > 2)
   {
-    crossingdiff++;
     return true;
   }
   int mvtx_strobe = *mvtx_strobes.begin();
@@ -695,7 +679,6 @@ bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed) const
     {
       if(crossing2 < strobecrossinglow || crossing2 > strobecrossinghigh)
       {
-        timingdiff++;
         return true;
       }
     }
