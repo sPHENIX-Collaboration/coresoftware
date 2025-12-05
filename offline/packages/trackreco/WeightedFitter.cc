@@ -438,6 +438,7 @@ WeightedFitter::get_points (
 	if (m_num_intt < m_min_num_intt) { return true; }
 	if (m_num_tpc < m_min_num_tpc) { return true; }
 	if (m_num_tpot < m_min_num_tpot) { return true; }
+	if (m_min_num_intt>0 && m_min_num_tpot>0 && m_crossing==SHRT_MAX) { return true; }
 	//std::cout<<"m_num_mvtx = "<<m_num_mvtx<<" m_num_intt = "<<m_num_intt<<" m_num_tpc = "<<m_num_tpc<<" m_num_tpot = "<<m_num_tpot<<std::endl;
 
 	if (m_reassign_sides && !sides.empty()) {
