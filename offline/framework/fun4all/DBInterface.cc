@@ -38,8 +38,8 @@ DBInterface::~DBInterface()
 
 DBInterface::DBInterface(const std::string &name)
   : SubsysReco(name)
+  , m_ODBC(ODBCInterface::instance())
 {
-  m_ODBC = ODBCInterface::instance();
   Fun4AllServer *se = Fun4AllServer::instance();
   se->addNewSubsystem(this);
 }
@@ -65,7 +65,7 @@ int DBInterface::End(PHCompositeNode * /*topNode*/)
   if (Verbosity() > 0)
   {
     std::cout << "Number of connection attempts" << std::endl;
-    for (auto const &iter: m_ODBC->getNumConnection())
+    for (auto const &iter : m_ODBC->getNumConnection())
     {
       std::cout << "db: " << iter.first << ", attempts: " << iter.second << std::endl;
     }
@@ -84,7 +84,7 @@ void DBInterface::Print(const std::string & /*what*/) const
   else
   {
     std::cout << "Odbc Connections Opened: " << std::endl;
-    for (auto const &iter: m_ODBC->getNumConnection())
+    for (auto const &iter : m_ODBC->getNumConnection())
     {
       std::cout << "db: " << iter.first << ", opened: " << iter.second << std::endl;
     }
@@ -96,7 +96,7 @@ void DBInterface::Print(const std::string & /*what*/) const
   else
   {
     std::cout << "Odbc Statement use: " << std::endl;
-    for (auto const &iter: m_ODBC->getNumStatementUse())
+    for (auto const &iter : m_ODBC->getNumStatementUse())
     {
       std::cout << "db: " << iter.first << ", Statement use: " << iter.second << std::endl;
     }

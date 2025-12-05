@@ -4,9 +4,9 @@
 
 #include <gsl/gsl_rng.h>  // for gsl_rng_alloc, gsl_rng_free, gsl_rng...
 
-PHEvtGenRandomEngine::PHEvtGenRandomEngine()
+PHEvtGenRandomEngine::PHEvtGenRandomEngine() : m_RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  
   m_Seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }

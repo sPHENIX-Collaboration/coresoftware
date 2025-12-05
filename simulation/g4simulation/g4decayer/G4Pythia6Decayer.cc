@@ -63,11 +63,11 @@ G4Pythia6Decayer::G4Pythia6Decayer()
   , fMessenger(this)
   , fVerboseLevel(0)
   , fDecayType(fgkDefaultDecayType)
-  , fDecayProductsArray(nullptr)
+  , fDecayProductsArray(new ParticleVector())
 {
   /// Standard constructor
 
-  fDecayProductsArray = new ParticleVector();
+  
 
   ForceDecay(fDecayType);
 }
@@ -210,7 +210,7 @@ void G4Pythia6Decayer::ForceParticleDecay(G4int particle, G4int product, G4int m
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void G4Pythia6Decayer::ForceParticleDecay(G4int particle, G4int* products,
-                                          G4int* mult, G4int npart)
+                                          const G4int* mult, G4int npart)
 {
   /// Force decay of particle into products with multiplicity mult
 
@@ -258,7 +258,8 @@ void G4Pythia6Decayer::ForceHadronicD()
   G4int iPiPlus = 211;
   G4int iPiMinus = -211;
 
-  G4int products[2] = {iKPlus, iPiMinus}, mult[2] = {1, 1};
+  G4int products[2] = {iKPlus, iPiMinus};
+  G4int mult[2] = {1, 1};
   ForceParticleDecay(iKstar0, products, mult, 2);
 
   // for Ds -> Phi pi+
