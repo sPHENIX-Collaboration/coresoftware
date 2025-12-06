@@ -660,7 +660,7 @@ bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed) const
   {
     return true;
   }
-  if(intt_crossings.size() == 0)
+  if(intt_crossings.empty())
   {
     // only an mvtx seed, must be in time given we seed on a strobe by strobe basis
     return false;
