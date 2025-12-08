@@ -10,8 +10,6 @@
 #include <ffarawobjects/MvtxRawHitv1.h>
 #include <fun4all/Fun4AllUtils.h>
 
-#include <frog/FROG.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>

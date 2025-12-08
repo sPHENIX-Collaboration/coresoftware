@@ -82,6 +82,7 @@ odbc::Connection *ODBCInterface::getDBConnection(const std::string &dbname)
 	      << " retries, abandoning query" << std::endl;
     return nullptr;
   }
+  m_CurrentConnections++;
   m_OdbcConnectionMap.insert(std::make_pair(dbname, dbcon));
   return dbcon;
 }
@@ -144,4 +145,5 @@ void ODBCInterface::Disconnect()
   {
     m_OdbcStatementMap.clear();
   }
+  m_CurrentConnections = 0;
 }

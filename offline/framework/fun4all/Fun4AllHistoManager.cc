@@ -392,7 +392,7 @@ void Fun4AllHistoManager::CopyRolloverSetting(const Fun4AllOutputManager *outman
   UseFileRule(outman->ApplyFileRule());
   StartSegment(outman->Segment());
   SetClosingScript(outman->GetClosingScript());
-  SetClosingScriptArgs(outman->GetClosingScript());
+  SetClosingScriptArgs(outman->GetClosingScriptArgs());
 }
 
 bool Fun4AllHistoManager::isEmpty() const

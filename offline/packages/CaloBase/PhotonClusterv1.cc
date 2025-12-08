@@ -3,17 +3,10 @@
 #include <iostream>
 #include <limits>
 #include <map>
-#include <stdexcept>
 #include <string>
 
 PhotonClusterv1::PhotonClusterv1(const RawCluster& rc)
-  : RawClusterv1([&rc]() -> const RawClusterv1& {
-      if (const auto* rc1 = dynamic_cast<const RawClusterv1*>(&rc))
-      {
-        return *rc1;
-      }
-      throw std::runtime_error("PhotonClusterv1 requires RawClusterv1 (or derived).");
-    }())
+  : RawClusterv1(rc)
 {
   if (const auto* photon = dynamic_cast<const PhotonClusterv1*>(&rc))
   {

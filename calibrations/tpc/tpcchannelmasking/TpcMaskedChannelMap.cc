@@ -195,8 +195,7 @@ int TpcMaskedChannelMap::End(PHCompositeNode *topNode)
       int nDeadInFee = 0;
       for (int m_Channel = 0; m_Channel < 256; m_Channel++)
       {
-        //if (nhit_sectors_fees_channels[m_Sector][m_FEE][m_Channel]/n_Events < m_deadChanHitCut)
-        if (m_Sector == 1 || m_Sector == 0)
+        if (nhit_sectors_fees_channels[m_Sector][m_FEE][m_Channel]/n_Events < m_deadChanHitCut)
         {
           nDeadInFee++;
           int layer = M.getLayer(m_FEE, m_Channel);

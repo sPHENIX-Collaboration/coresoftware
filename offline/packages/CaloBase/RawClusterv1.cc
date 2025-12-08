@@ -9,6 +9,63 @@
 #include <string>
 #include <vector>
 
+RawClusterv1::RawClusterv1(const RawCluster& cluster)
+{
+  set_id(cluster.get_id());
+  set_energy(cluster.get_energy());
+  set_r(cluster.get_r());
+  set_phi(cluster.get_phi());
+  set_z(cluster.get_z());
+
+  for (const auto& tower : cluster.get_towermap())
+  {
+    addTower(tower.first, tower.second);
+  }
+
+  static const PROPERTY kKnownProperties[] = {
+      prop_ecore,
+      prop_prob,
+      prop_chi2,
+      prop_merged_cluster_prob,
+      prop_et_iso_calotower_sub_R01,
+      prop_et_iso_calotower_R01,
+      prop_et_iso_calotower_sub_R02,
+      prop_et_iso_calotower_R02,
+      prop_et_iso_calotower_sub_R03,
+      prop_et_iso_calotower_R03,
+      prop_et_iso_calotower_sub_R04,
+      prop_et_iso_calotower_R04};
+
+  for (const auto prop_id : kKnownProperties)
+  {
+    copy_property_from_cluster(cluster, prop_id);
+  }
+}
+
+void RawClusterv1::copy_property_from_cluster(const RawCluster& source, const PROPERTY prop_id)
+{
+  if (!source.has_property(prop_id))
+  {
+    return;
+  }
+
+  std::pair<const std::string, PROPERTY_TYPE> property_info = RawCluster::get_property_info(prop_id);
+  switch (property_info.second)
+  {
+  case type_int:
+    set_property(prop_id, source.get_property_int(prop_id));
+    break;
+  case type_uint:
+    set_property(prop_id, source.get_property_uint(prop_id));
+    break;
+  case type_float:
+    set_property(prop_id, source.get_property_float(prop_id));
+    break;
+  default:
+    break;
+  }
+}
+
 void RawClusterv1::Reset()
 {
   clusterid = 0;
