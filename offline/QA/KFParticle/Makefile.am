@@ -11,13 +11,15 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  QAKFParticle.h
+  QAKFParticle.h \
+  QAKFParticleTrackPtAsymmetry.h
 
 lib_LTLIBRARIES = \
   libkfparticleqa.la
 
 libkfparticleqa_la_SOURCES = \
-  QAKFParticle.cc
+  QAKFParticle.cc \ 
+  QAKFParticleTrackPtAsymmetry.cc
 
 libkfparticleqa_io_la_LIBADD = \
   -lKFParticle \

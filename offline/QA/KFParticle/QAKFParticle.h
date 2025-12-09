@@ -13,6 +13,10 @@
 #include <memory>
 #include <string>  // for string
 
+#include <KFParticle.h>
+
+#include "QAKFParticleTrackPtAsymmetry.h"
+
 class KFParticle_Container;
 class PHCompositeNode;
 class SvtxClusterEval;
@@ -45,10 +49,26 @@ class QAKFParticle : public SubsysReco
 
   void setKFParticleNodeName(const std::string &name) { m_KFParticleNodeName = name; }
 
- private:
+  // toggle for pt asymmetry analysis (can be used for any particle with 2-body decay)
+  void enableTrackPtAsymmetry(bool flag) { m_doTrackPtAsymmetry = flag; }
+
+  void setTrackPtAsymmetryMotherEtaBins(const std::vector<double> &bins)
+  {
+    m_trackPtAsymEtaBins = bins;
+  }
+
+  void setTrackPtAsymmetryMotherPhiBins(const std::vector<double> &bins)
+  {
+    m_trackPtAsymPhiBins = bins;
+  }
+
+ protected:
   int load_nodes(PHCompositeNode *);
 
   void initializeTriggerInfo(PHCompositeNode *);
+
+  // for pt asymmetry QA
+  bool doTrackPtAsymmetry() const { return m_doTrackPtAsymmetry; }
 
   int m_mother_id {0};
   double m_min_mass {0.};
@@ -88,6 +108,13 @@ class QAKFParticle : public SubsysReco
   bool hasTriggerInfo {true};
   static constexpr int nTriggerBits {64};
   int counter {0};
+
+  // toggle for pt asymmetry analysis (can be used for any particle with 2-body decay)
+  bool m_doTrackPtAsymmetry {true};
+  std::vector<double> m_trackPtAsymEtaBins {-2.0, -1.0, -0.5, 0, 0.5, 1.0, 2.0};
+  std::vector<double> m_trackPtAsymPhiBins {-3.2, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.2};
+
+  std::unique_ptr<QAKFParticleTrackPtAsymmetry> m_trackPtAsymmetryAnalyzer;
 };
 
 #endif  // QAKFPARTICLE_H
