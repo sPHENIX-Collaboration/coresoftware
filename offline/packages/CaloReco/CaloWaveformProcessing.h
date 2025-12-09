@@ -106,8 +106,8 @@ class CaloWaveformProcessing : public SubsysReco
 
   std::string url_onnx;
   std::string m_model_name{"CEMC_ONNX"};
-  std::array<double, 3> m_Onnx_factor{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
-  std::array<double, 3> m_Onnx_offset{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  std::array<double, 4> m_Onnx_factor{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  std::array<double, 4> m_Onnx_offset{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 };
 
 #endif
