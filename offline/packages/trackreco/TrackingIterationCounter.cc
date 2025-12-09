@@ -55,9 +55,37 @@ int TrackingIterationCounter::process_event(PHCompositeNode *)
     auto* tpcseed = track->get_tpc_seed();
     if(silseed)
     {
-
-    addClustersToIterationMap(silseed);
- 
+      // on iter 1 only add 2+3 cluster seeds to iteration map
+      if(m_iteration==1)
+      {
+        if (silseed->size_cluster_keys() == 5)
+        {
+          int nmaps = 0;
+          int nintt = 0;
+          for (auto clusIter = silseed->begin_cluster_keys();
+               clusIter != silseed->end_cluster_keys();
+               ++clusIter)
+          {
+            auto trkrid = TrkrDefs::getTrkrId(*clusIter);
+            if (trkrid == TrkrDefs::inttId)
+            {
+              nintt++;
+            }
+            if (trkrid == TrkrDefs::mvtxId)
+            {
+              nmaps++;
+            }
+          }
+          if (nintt > 1 && nmaps > 2)
+          {
+            addClustersToIterationMap(silseed);
+          }
+        }
+    }
+    else
+    {
+      addClustersToIterationMap(silseed);
+    }
     }
     if(tpcseed)
     {
