@@ -57,7 +57,9 @@ int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 
 int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0)
+  
+  
+  if ( Verbosity() > 0 )
   {
     std::cout << "DetermineTowerBackground::process_event: entering with do_flow = " << _do_flow << ", seed type = " << _seed_type << ", ";
     if (_seed_type == 0)
@@ -79,33 +81,33 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
   IHTowerName = m_towerNodePrefix + "_HCALIN";
   OHTowerName = m_towerNodePrefix + "_HCALOUT";
-  auto towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
-  auto towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
-  auto towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
-  if (!towerinfosEM3)
+  auto * towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+  auto * towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
+  auto * towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
+  if ( !towerinfosEM3 )
   {
     std::cout << "DetermineTowerBackground::process_event: Cannot find node " << EMTowerName << std::endl;
     exit(1);
   }
-  if (!towerinfosIH3)
+  if ( !towerinfosIH3 )
   {
     std::cout << "DetermineTowerBackground::process_event: Cannot find node " << IHTowerName << std::endl;
     exit(1);
   }
-  if (!towerinfosOH3)
+  if ( !towerinfosOH3 )
   {
     std::cout << "DetermineTowerBackground::process_event: Cannot find node " << OHTowerName << std::endl;
     exit(1);
   }
 
-  RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-  RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
-  if (!geomIH)
+  auto * geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+  auto * geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+  if ( !geomIH )
   {
     std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALIN, exiting" << std::endl;
     exit(1);
   }
-  if (!geomOH)
+  if ( !geomOH )
   {
     std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALOUT, exiting" << std::endl;
     exit(1);
