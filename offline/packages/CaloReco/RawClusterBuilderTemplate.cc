@@ -753,8 +753,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
                             ? (ew_num / ew_den)
                             : std::numeric_limits<float>::quiet_NaN();
       cluster->set_mean_time(tmean);
-      // mechanical incidence angles (CEMC-only; stored as signed alphas in properties)
-      {
+        // mechanical incidence angles (CEMC-only; stored as signed alphas in properties)
+        {
           BEmcRecCEMC* cemc = dynamic_cast<BEmcRecCEMC*>(bemc);
           if (cemc)
           {
@@ -768,11 +768,18 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 
             if (inc_ok)
             {
-              cluster->set_property(RawCluster::prop_incidence_alpha_phi, a_phi_sgn);
-              cluster->set_property(RawCluster::prop_incidence_alpha_eta, a_eta_sgn);
+              // Use explicit property IDs so this compiles even when the
+              // RawCluster header does not yet define the named incidence enums.
+              constexpr RawCluster::PROPERTY kPropIncidenceAlphaPhi =
+                  static_cast<RawCluster::PROPERTY>(45);
+              constexpr RawCluster::PROPERTY kPropIncidenceAlphaEta =
+                  static_cast<RawCluster::PROPERTY>(46);
+
+              cluster->set_property(kPropIncidenceAlphaPhi, a_phi_sgn);
+              cluster->set_property(kPropIncidenceAlphaEta, a_eta_sgn);
             }
           }
-      }
+        }
 
       _clusters->AddCluster(cluster);
       // ncl++;

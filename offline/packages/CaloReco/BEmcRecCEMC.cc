@@ -5,8 +5,9 @@
 
 #include <cmath>
 #include <iostream>
-#include <TVector3.h>   // for TVector3 used in calculateIncidence
+#include <Math/Vector3D.h>   // for TVector3 used in calculateIncidence
 #include <algorithm>    // for std::max
+using ROOT::Math::XYZVector;
 
 BEmcRecCEMC::BEmcRecCEMC()
 {
@@ -242,8 +243,8 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
   // ────────────────────────────────────────────────────────────────────────────
   // Step 1) Owner tower in "tower units"
   // ────────────────────────────────────────────────────────────────────────────
-  const int ix = EmcCluster::lowint(x + 0.5f);
-  const int iy = EmcCluster::lowint(y + 0.5f);
+  const int ix = EmcCluster::lowint(x + 0.5F);
+  const int iy = EmcCluster::lowint(y + 0.5F);
 
   TowerGeom g{};
   if (!GetTowerGeometry(ix, iy, g))
@@ -259,23 +260,23 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
   // Step 2) Front-surface point F in cm:
   //         F = C + δx * eφ_geom + δy * eη_geom
   // ────────────────────────────────────────────────────────────────────────────
-  const TVector3 C(g.Xcenter, g.Ycenter, g.Zcenter);
-  const TVector3 ephi_geom(g.dX[0], g.dY[0], g.dZ[0]);
-  const TVector3 eeta_geom(g.dX[1], g.dY[1], g.dZ[1]);
+  const XYZVector C(g.Xcenter, g.Ycenter, g.Zcenter);
+  const XYZVector ephi_geom(g.dX[0], g.dY[0], g.dZ[0]);
+  const XYZVector eeta_geom(g.dX[1], g.dY[1], g.dZ[1]);
 
-  if (ephi_geom.Mag() < 1e-9 || eeta_geom.Mag() < 1e-9)
+  if (std::sqrt(ephi_geom.Mag2()) < 1e-9 || std::sqrt(eeta_geom.Mag2()) < 1e-9)
   {
     return false;
   }
 
-  const TVector3 F = C + dx * ephi_geom + dy * eeta_geom;
+  const XYZVector F = C + dx * ephi_geom + dy * eeta_geom;
 
   // ────────────────────────────────────────────────────────────────────────────
   // Step 3) Unit ray from vertex to the front surface
   // ────────────────────────────────────────────────────────────────────────────
-  const TVector3 V(0., 0., fVz);
-  TVector3 pF = F - V;
-  const double pFmag = pF.Mag();
+  const XYZVector V(0., 0., fVz);
+  XYZVector pF = F - V;
+  const double pFmag = std::sqrt(pF.Mag2());
   if (!(pFmag > 0.0))
   {
     return false;
@@ -285,7 +286,7 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
   // Helper: from a basis {un,uphi,ueta} and ray pF, compute projections
   // and signed incidence angles (no cosines returned).
   auto basis_to_incidence =
-    [&](const TVector3& un_b, const TVector3& uphi_b, const TVector3& ueta_b,
+    [&](const XYZVector& un_b, const XYZVector& uphi_b, const XYZVector& ueta_b,
         double& pn_b, double& pph_b, double& pet_b,
         double& aphi_b, double& aeta_b) -> bool
   {
@@ -309,20 +310,27 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
   // ────────────────────────────────────────────────────────────────────────────
   // Step 4) MECHANICAL frame from RawTowerGeomv5 rotations
   // ────────────────────────────────────────────────────────────────────────────
-  TVector3 un_mech, uphi_mech, ueta_mech;
+  XYZVector un_mech;
+  XYZVector uphi_mech;
+  XYZVector ueta_mech;
   {
     const double rx = g.rotX;
     const double ry = g.rotY;
     const double rz = g.rotZ;
 
-    const double cx = std::cos(rx), sx = std::sin(rx);
-    const double cy = std::cos(ry), sy = std::sin(ry);
-    const double cz = std::cos(rz), sz = std::sin(rz);
+    const double cx = std::cos(rx);
+    const double sx = std::sin(rx);
+    const double cy = std::cos(ry);
+    const double sy = std::sin(ry);
+    const double cz = std::cos(rz);
+    const double sz = std::sin(rz);
 
-    auto applyRot = [&](const TVector3& v) -> TVector3
+    auto applyRot = [&](const XYZVector& v) -> XYZVector
     {
       // Apply Rz * Ry * Rx to local vector v (column-vector convention).
-      double vx = v.X(), vy = v.Y(), vz = v.Z();
+      double vx = v.X();
+      double vy = v.Y();
+      double vz = v.Z();
 
       // Rx
       const double vx1 = vx;
@@ -339,29 +347,32 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
       const double vy3 =  sz * vx2 + cz * vy2;
       const double vz3 =  vz2;
 
-      return TVector3(vx3, vy3, vz3);
+      return XYZVector(vx3, vy3, vz3);
     };
 
     // Local axes: ẑ = bar axis, x̂/ŷ = transverse directions
-    TVector3 u_axis = applyRot(TVector3(0., 0., 1.)); // tower "z" axis
-    TVector3 u_x    = applyRot(TVector3(1., 0., 0.)); // tower "x" axis
-    TVector3 u_y    = applyRot(TVector3(0., 1., 0.)); // tower "y" axis
+    XYZVector u_axis = applyRot(XYZVector(0., 0., 1.)); // tower "z" axis
+    const XYZVector u_x    = applyRot(XYZVector(1., 0., 0.)); // tower "x" axis
+    const XYZVector u_y    = applyRot(XYZVector(0., 1., 0.)); // tower "y" axis
 
     // Normalize axis and enforce outward direction
-    const double amag = u_axis.Mag();
+    const double amag = std::sqrt(u_axis.Mag2());
     if (!(amag > 0.0))
     {
       return false;
     }
 
     u_axis *= (1.0 / amag);
-    if (u_axis.Dot(C) < 0.0) u_axis = -u_axis;
+    if (u_axis.Dot(C) < 0.0)
+    {
+      u_axis = -u_axis;
+    }
 
     un_mech = u_axis;
 
     // φ̂: project rotated local x̂ into plane ⟂ axis; normalize
     uphi_mech = u_x - un_mech * u_x.Dot(un_mech);
-    const double uphim = uphi_mech.Mag();
+    const double uphim = std::sqrt(uphi_mech.Mag2());
     if (!(uphim > 0.0))
     {
       return false;
@@ -372,7 +383,7 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
     ueta_mech = u_y
               - un_mech   * u_y.Dot(un_mech)
               - uphi_mech * u_y.Dot(uphi_mech);
-    const double uetam = ueta_mech.Mag();
+    const double uetam = std::sqrt(ueta_mech.Mag2());
     if (!(uetam > 0.0))
     {
       return false;
@@ -386,8 +397,8 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
     }
 
     // Align mechanical φ-axis sign with geometric φ tangent if available
-    TVector3 uphi_ref = ephi_geom;
-    const double refMag = uphi_ref.Mag();
+    XYZVector uphi_ref = ephi_geom;
+    const double refMag = std::sqrt(uphi_ref.Mag2());
     if (refMag > 0.0)
     {
       uphi_ref *= (1.0 / refMag);
@@ -402,8 +413,11 @@ bool BEmcRecCEMC::calculateIncidence(float x, float y,
   // ────────────────────────────────────────────────────────────────────────────
   // Step 5) Compute incidence in the mechanical frame
   // ────────────────────────────────────────────────────────────────────────────
-  double pn   = 0.0, pph  = 0.0, pet  = 0.0;
-  double aphi = 0.0, aeta = 0.0;
+  double pn   = 0.0;
+  double pph  = 0.0;
+  double pet  = 0.0;
+  double aphi = 0.0;
+  double aeta = 0.0;
 
   if (!basis_to_incidence(un_mech, uphi_mech, ueta_mech,
                           pn, pph, pet,
