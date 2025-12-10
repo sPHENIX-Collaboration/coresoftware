@@ -44,10 +44,6 @@ class DetermineTowerBackground : public SubsysReco
 
   void UseReweighting(bool do_reweight ) {  _do_reweight = do_reweight; }
 
-  void set_towerinfo(bool use_towerinfo)
-  {
-    m_use_towerinfo = use_towerinfo;
-  }
   void set_towerNodePrefix(const std::string &prefix)
   {
     m_towerNodePrefix = prefix;
@@ -101,7 +97,6 @@ class DetermineTowerBackground : public SubsysReco
   Jet::PROPERTY _index_SeedD{};
   Jet::PROPERTY _index_SeedItr{};
 
-  bool m_use_towerinfo{false};
   bool _is_flow_failure{false};
   bool _reweight_failed{false};
 
