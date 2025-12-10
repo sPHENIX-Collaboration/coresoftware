@@ -249,7 +249,7 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
             }
 
             // hook up the pt asymmetry analysis (can be used for any particle with 2-body decay)
-            if (m_doTrackPtAsymmetry) // Could add a check for 2-body decay here or do the check in the derived class
+            if (m_doTrackPtAsymmetry)
             {
                 m_trackPtAsymmetryAnalyzer->setVerbosity(Verbosity());
                 m_trackPtAsymmetryAnalyzer->analyzeTrackPtAsymmetry(m_trackMap, iter.second);
