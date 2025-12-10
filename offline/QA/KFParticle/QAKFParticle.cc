@@ -81,7 +81,7 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
     TH2 *h2(nullptr);
 
     h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP", //
-                 ";mass [GeV/c^{2}];Entries", 40, m_min_mass, m_max_mass);
+                 ";mass [GeV];Entries", 40, m_min_mass, m_max_mass);
     hm->registerHisto(h);
 
     float eta_min = -1.3;
@@ -92,35 +92,35 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
     float pt_max = 5;
 
     h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_Eta", //
-                  ";mass [GeV/c^{2}]; Eta", 100, m_min_mass, m_max_mass, 100, eta_min, eta_max);
+                  ";mass [GeV]; #eta", 100, m_min_mass, m_max_mass, 100, eta_min, eta_max);
     hm->registerHisto(h2);
 
     h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_Phi", //
-                  ";mass [GeV/c^{2}]; Phi", 100, m_min_mass, m_max_mass, 100, phi_min, phi_max);
+                  ";mass [GeV]; #phi [rad.]", 100, m_min_mass, m_max_mass, 100, phi_min, phi_max);
     hm->registerHisto(h2);
 
     h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_pT", //
-                  ";mass [GeV/c^{2}]; pT [GeV]", 100, m_min_mass, m_max_mass, 100, pt_min, pt_max);
+                  ";mass [GeV]; p_{T} [GeV]", 100, m_min_mass, m_max_mass, 100, pt_min, pt_max);
     hm->registerHisto(h2);
 
     h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_crossing0", //
-                 ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+                 ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
     hm->registerHisto(h);
 
     h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_non_crossing0", //
-                 ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+                 ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
     hm->registerHisto(h);
 
     h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_ZDC_Coincidence", //
-                 ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+                 ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
     hm->registerHisto(h);
 
     h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_MBD_NandS_geq_1_vtx_l_10_cm", //
-                 ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+                 ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
     hm->registerHisto(h);
 
     h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm", //
-                 ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+                 ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
     hm->registerHisto(h);
 
     h_mass_KFP = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP"));

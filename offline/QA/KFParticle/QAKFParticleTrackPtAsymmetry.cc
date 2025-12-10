@@ -132,7 +132,7 @@ void QAKFParticleTrackPtAsymmetry::analyzeTrackPtAsymmetry(SvtxTrackMap *m_track
         return;
     }
 
-    // positive and negative charged tracks (do we need this?)
+    //! positive and negative charged tracks (do we need this?)
     SvtxTrack *pos_trk = nullptr;
     SvtxTrack *neg_trk = nullptr;
     if (trk1->get_charge() > 0 && trk2->get_charge() < 0)
@@ -176,7 +176,6 @@ void QAKFParticleTrackPtAsymmetry::analyzeTrackPtAsymmetry(SvtxTrackMap *m_track
         h2_trackPtAsymmetry_vs_mass->Fill(pt_asymmetry, mother->GetMass());
     }
 
-    // fill differential histograms in (eta, phi) bins
     float mother_eta = 0;
     float mother_eta_err = 0;
     mother->GetEta(mother_eta, mother_eta_err);
