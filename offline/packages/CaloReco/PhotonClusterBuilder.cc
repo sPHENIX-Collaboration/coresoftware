@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <set>
 #include <stdexcept>
 
 namespace
@@ -711,6 +712,54 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("ihcal_iphi", ihcal_iphi);
   photon->set_shower_shape_parameter("ohcal_ieta", ohcal_ieta);
   photon->set_shower_shape_parameter("ohcal_iphi", ohcal_iphi);
+
+  float E = photon->get_energy();
+  float ET = E / std::cosh(cluster_eta);
+
+  auto compute_layer_iso = [&](RawTowerDefs::CalorimeterId calo_id, float radius)
+  {
+    TowerInfoContainer* container = nullptr;
+    RawTowerGeomContainer* geom = nullptr;
+    if (calo_id == RawTowerDefs::CalorimeterId::CEMC)
+    {
+      container = m_emc_tower_container;
+      geom = m_geomEM;
+    }
+    else if (calo_id == RawTowerDefs::CalorimeterId::HCALIN)
+    {
+      container = m_ihcal_tower_container;
+      geom = m_geomIH;
+    }
+    else
+    {
+      container = m_ohcal_tower_container;
+      geom = m_geomOH;
+    }
+    return calculate_layer_et(cluster_eta, cluster_phi, radius, container, geom, calo_id, m_vertex);
+  };
+
+  const float emcal_et_04 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.4);
+  const float ihcal_et_04 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALIN, 0.4);
+  const float ohcal_et_04 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALOUT, 0.4);
+
+  const float emcal_et_03 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.3);
+  const float ihcal_et_03 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALIN, 0.3);
+  const float ohcal_et_03 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALOUT, 0.3);
+
+  const float emcal_et_02 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.2);
+  const float emcal_et_01 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.1);
+  const float emcal_et_005 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.05);
+
+  photon->set_shower_shape_parameter("iso_04_emcal", emcal_et_04 - ET);
+  photon->set_shower_shape_parameter("iso_04_hcalin", ihcal_et_04);
+  photon->set_shower_shape_parameter("iso_04_hcalout", ohcal_et_04);
+
+  photon->set_shower_shape_parameter("iso_03_emcal", emcal_et_03 - ET);
+  photon->set_shower_shape_parameter("iso_03_hcalin", ihcal_et_03);
+  photon->set_shower_shape_parameter("iso_03_hcalout", ohcal_et_03);
+  photon->set_shower_shape_parameter("iso_02_emcal", emcal_et_02 - ET);
+  photon->set_shower_shape_parameter("iso_01_emcal", emcal_et_01 - ET);
+  photon->set_shower_shape_parameter("iso_005_emcal", emcal_et_005 - ET);
 }
 
 double PhotonClusterBuilder::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz)
@@ -791,6 +840,55 @@ std::vector<int> PhotonClusterBuilder::find_closest_hcal_tower(float eta, float 
   int detasign = (deta > 0) ? 1 : -1;
 
   return {matchedieta, matchediphi, detasign, dphisign};
+}
+
+float PhotonClusterBuilder::calculate_layer_et(float seed_eta, float seed_phi, float radius, TowerInfoContainer* towerContainer, RawTowerGeomContainer* geomContainer, RawTowerDefs::CalorimeterId calo_id, float vertex_z)
+{
+  if (!towerContainer || !geomContainer)
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  float layer_et = 0.0;
+  const unsigned int ntowers = towerContainer->size();
+  for (unsigned int channel = 0; channel < ntowers; ++channel)
+  {
+    TowerInfo* tower = towerContainer->get_tower_at_channel(channel);
+    if (!tower || !tower->get_isGood())
+    {
+      continue;
+    }
+
+    unsigned int towerkey = towerContainer->encode_key(channel);
+    int ieta = towerContainer->getTowerEtaBin(towerkey);
+    int iphi = towerContainer->getTowerPhiBin(towerkey);
+
+    RawTowerDefs::keytype geom_key = RawTowerDefs::encode_towerid(calo_id, ieta, iphi);
+    RawTowerGeom* tower_geom = geomContainer->get_tower_geometry(geom_key);
+    if (!tower_geom)
+    {
+      continue;
+    }
+
+    double tower_eta = getTowerEta(tower_geom, 0, 0, vertex_z);
+    double tower_phi = tower_geom->get_phi();
+
+    if (deltaR(seed_eta, seed_phi, tower_eta, tower_phi) >= radius)
+    {
+      continue;
+    }
+
+    float energy = tower->get_energy();
+    if (energy <= m_shape_min_tower_E)
+    {
+      continue;
+    }
+
+    float et = energy / std::cosh(tower_eta);
+    layer_et += et;
+  }
+
+  return layer_et;
 }
 
 double PhotonClusterBuilder::deltaR(double eta1, double phi1, double eta2, double phi2)
