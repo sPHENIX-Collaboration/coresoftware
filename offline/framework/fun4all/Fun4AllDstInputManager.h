@@ -4,7 +4,9 @@
 #define FUN4ALL_FUN4ALLDSTINPUTMANAGER_H
 
 #include "Fun4AllInputManager.h"
+
 #include <phool/PHNodeIOManager.h>
+
 #include <map>
 #include <string>
 

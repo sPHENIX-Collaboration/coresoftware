@@ -27,7 +27,12 @@
 #include <cmath>
 #include <iostream>  // for operator<<, endl, basic_ostream
 
-bool CosmicSpray::InDetector(double x, double y, double z)
+namespace
+{
+  constexpr double muon_mass = 0.1056583745;  // pdg value 2014
+}
+
+bool CosmicSpray::InDetector(double x, double y, double z) const
 {
   double gap = 5;
   if (x > _x_max)
@@ -59,20 +64,20 @@ bool CosmicSpray::InDetector(double x, double y, double z)
 
 CosmicSpray::CosmicSpray(const std::string &name, const double R)
   : SubsysReco(name)
+  //  , _x_min(183.3)
+  , _x_max(264.71)
+  //  , _z_min(-304.91)
+  , _z_max(304.91)
+  , _y_fix(_x_max)
+  , _R(R)
 {
-  _x_max = 264.71;
-  _x_min = 183.3;
-  _z_max = 304.91;
-  _z_min = -304.91;
-  _y_fix = _x_max;
-
   unsigned int seed = PHRandomSeed();
   gen.SetSeed(seed);
   gen.SetUseHSphere();            // half-spherical surface generation
   gen.SetHSphereRadius(R / 100);  // half-sphere radius
   gen.SetHSphereCenterPosition({{0., 0., -_y_fix / 100}});
   gen.SetMinimumMomentum(0.5);
-  _R = R;
+
   return;
 }
 
@@ -103,15 +108,19 @@ int CosmicSpray::process_event(PHCompositeNode *topNode)
   int pdgcode = 13;
   int trackid = 0;
   double gun_t = 0.0;
-  double gun_x = 0, gun_y = 0, gun_z = 0;
-  double gun_px = 0, gun_py = 0, gun_pz = 0;
+  double gun_x = 0;
+  double gun_y = 0;
+  double gun_z = 0;
+  double gun_px = 0;
+  double gun_py = 0;
+  double gun_pz = 0;
   bool GoodEvent = false;
   while (!GoodEvent)
   {
     gen.Generate();
     std::array<double, 3> muon_position = gen.GetGenerationPosition();
     double muon_p = gen.GetGenerationMomentum();
-    _gun_e = sqrt(0.105658 * 0.105658 + muon_p * muon_p);
+    _gun_e = sqrt(muon_mass * muon_mass + muon_p * muon_p);
     double tr = gen.GetGenerationTheta();
     double pr = gen.GetGenerationPhi();
     double muon_charge = gen.GetCharge();

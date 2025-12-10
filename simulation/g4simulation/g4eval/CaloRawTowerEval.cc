@@ -251,7 +251,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(RawTower* tower
   }
 
   PHG4Shower* max_shower = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
 
   for (auto* shower : showers)
@@ -312,7 +312,7 @@ PHG4Shower* CaloRawTowerEval::max_truth_primary_shower_by_energy(TowerInfo* towe
   }
 
   PHG4Shower* max_shower = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Shower*> showers = all_truth_primary_showers(tower);
 
   for (auto* shower : showers)
@@ -381,7 +381,7 @@ RawTower* CaloRawTowerEval::best_tower_from(PHG4Shower* shower)
   }
 
   RawTower* best_tower = nullptr;
-  float best_energy = FLT_MAX * -1.0;
+  float best_energy = std::numeric_limits<float>::min();
   std::set<RawTower*> towers = all_towers_from(shower);
   for (auto* tower : towers)
   {
@@ -447,7 +447,7 @@ TowerInfo* CaloRawTowerEval::best_towerinfo_from(PHG4Shower* shower)
   }
 
   TowerInfo* best_tower = nullptr;
-  float best_energy = FLT_MAX * -1.0;
+  float best_energy = std::numeric_limits<float>::min();
   std::set<TowerInfo*> towers = all_towerinfos_from(shower);
   for (auto* tower : towers)
   {

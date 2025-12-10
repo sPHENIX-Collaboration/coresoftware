@@ -22,7 +22,7 @@ class G4SnglTree : public SubsysReco
   G4SnglTree(const std::string &name = "G4SnglTree", const std::string &filename = "G4SnglTree.root");
 
   //! destructor
-  ~G4SnglTree() override {}
+  ~G4SnglTree() override = default;
 
   //! full initialization
   int Init(PHCompositeNode *) override;
@@ -38,16 +38,15 @@ class G4SnglTree : public SubsysReco
 
   void AddNode(const std::string &name, const int detid = 0);
 
- protected:
-  int nblocks;
+ private:
   //  std::vector<TH2 *> nhit_edep;
   std::string _filename;
   std::set<std::string> _node_postfix;
   std::map<std::string, int> _detid;
 
-  TTree *g4tree;
+  TTree *g4tree{nullptr};
   G4EvtTree mG4EvtTree{};
-  TFile *outfile;
+  TFile *outfile{nullptr};
 };
 
 #endif

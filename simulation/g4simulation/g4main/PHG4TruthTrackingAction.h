@@ -43,7 +43,7 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   PHG4TruthEventAction* m_EventAction;
 
   //! pointer to truth information container
-  PHG4TruthInfoContainer* m_TruthInfoList;
+  PHG4TruthInfoContainer* m_TruthInfoList{nullptr};
 
   PHG4Particle* AddParticle(PHG4TruthInfoContainer&, G4Track&);
   PHG4VtxPoint* AddVertex(PHG4TruthInfoContainer&, const G4Track&);
@@ -61,7 +61,9 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
 
   struct G4ParticleInfo
   {
-    int g4track_id, particle_id, vertex_id;
+    int g4track_id{0};
+    int particle_id{0};
+    int vertex_id{0};
   };
   std::vector<G4ParticleInfo> m_G4ParticleStack;
   G4ParticleInfo m_CurrG4Particle;

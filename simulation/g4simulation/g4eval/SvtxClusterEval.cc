@@ -9,6 +9,7 @@
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+
 #include <trackbase_historic/ActsTransformations.h>
 
 #include <g4main/PHG4Hit.h>
@@ -84,7 +85,7 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxClusterEval::all_t
 
   unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
   std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
-  for (auto particle : particles)
+  for (auto* particle : particles)
   {
     for (const auto& [ckey, cluster] : get_truth_eval()->all_truth_clusters(particle))
     {
@@ -234,7 +235,7 @@ std::pair<TrkrDefs::cluskey, TrkrCluster*> SvtxClusterEval::reco_cluster_from_tr
 
   std::set<TrkrDefs::cluskey> reco_cluskeys;
   std::set<PHG4Hit*> contributing_hits = get_truth_eval()->get_truth_hits_from_truth_cluster(ckey);
-  for (auto cont_g4hit : contributing_hits)
+  for (auto* cont_g4hit : contributing_hits)
   {
     std::set<TrkrDefs::cluskey> cluskeys = all_clusters_from(cont_g4hit);  // this returns clusters from this hit in any layer using TrkrAssoc maps
 
@@ -401,7 +402,7 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
         truth_hits.insert(g4hit);
       }
     }  // end loop over g4hits associated with hitsetkey and hitkey
-  }    // end loop over hits associated with cluskey
+  }  // end loop over hits associated with cluskey
 
   if (_do_cache)
   {
@@ -484,7 +485,7 @@ PHG4Hit* SvtxClusterEval::all_truth_hits_by_nhit(TrkrDefs::cluskey cluster_key)
         g4hitkeys.push_back(g4hitkey);
       }
     }  // end loop over g4hits associated with hitsetkey and hitkey
-  }    // end loop over hits associated with cluskey
+  }  // end loop over hits associated with cluskey
 
   //  if (_do_cache) _cache_all_truth_hits.insert(std::make_pair(cluster_key, truth_hits));
   PHG4HitDefs::keytype max_key = 0;
@@ -633,7 +634,7 @@ std::pair<int, int> SvtxClusterEval::gtrackid_and_layer_by_nhit(TrkrDefs::cluske
         g4hitkeys.push_back(g4hitkey);
       }
     }  // end loop over g4hits associated with hitsetkey and hitkey
-  }    // end loop over hits associated with cluskey
+  }  // end loop over hits associated with cluskey
 
   PHG4HitDefs::keytype max_key = 0;
   unsigned int n_max = 0;
@@ -759,8 +760,8 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(TrkrDefs::cluskey cluster_key)
 
   std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
   PHG4Hit* max_hit = nullptr;
-  float max_e = FLT_MAX * -1.0;
-  for (auto hit : hits)
+  float max_e = std::numeric_limits<float>::min();
+  for (auto* hit : hits)
   {
     if (hit->get_edep() > max_e)
     {
@@ -799,7 +800,7 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(TrkrDefs::cluskey c
 
   std::set<PHG4Hit*> g4hits = all_truth_hits(cluster_key);
 
-  for (auto hit : g4hits)
+  for (auto* hit : g4hits)
   {
     PHG4Particle* particle = get_truth_eval()->get_particle(hit);
     // std::cout << "cluster key " << cluster_key << " has hit " << hit->get_hit_id() << " and has particle " << particle->get_track_id() << std::endl;
@@ -848,9 +849,9 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_cluster_energy(TrkrDefs::cl
   // loop over all particles associated with this cluster and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_particle = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
-  for (auto particle : particles)
+  for (auto* particle : particles)
   {
     std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> truth_clus = get_truth_eval()->all_truth_clusters(particle);
     for (const auto& [ckey, cluster] : truth_clus)
@@ -899,9 +900,9 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(TrkrDefs::cluskey cl
   // loop over all particles associated with this cluster and
   // get the energy contribution for each one, record the max
   PHG4Particle* max_particle = nullptr;
-  float max_e = FLT_MAX * -1.0;
+  float max_e = std::numeric_limits<float>::min();
   std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
-  for (auto particle : particles)
+  for (auto* particle : particles)
   {
     float e = get_energy_contribution(cluster_key, particle);
     if (e > max_e)
@@ -973,7 +974,7 @@ void SvtxClusterEval::FillRecoClusterFromG4HitCache()
 
       // loop over all truth particles connected to this cluster
       std::set<PHG4Particle*> particles = all_truth_particles(cluster_key);
-      for (auto candidate : particles)
+      for (auto* candidate : particles)
       {
         temp_clusters_from_particles.insert(std::make_pair(candidate, cluster_key));
       }
@@ -1019,7 +1020,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
   }
 
   // one time, fill cache of g4hit/cluster pairs
-  if (_cache_all_clusters_from_g4hit.size() == 0)
+  if (_cache_all_clusters_from_g4hit.empty())
   {
     // make a map of truthhit, cluster_key inside this loop
     std::multimap<PHG4HitDefs::keytype, TrkrDefs::cluskey> truth_cluster_map;
@@ -1061,7 +1062,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
 
         // the returned truth hits were obtained from TrkrAssoc maps
         std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
-        for (auto candidate : hits)
+        for (auto* candidate : hits)
         {
           PHG4HitDefs::keytype g4hit_key = candidate->get_hit_id();
 
@@ -1121,7 +1122,7 @@ std::set<TrkrDefs::cluskey> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit
     return iter->second;
   }
 
-  if (_clusters_per_layer.size() == 0)
+  if (_clusters_per_layer.empty())
   {
     fill_cluster_layer_map();
   }
@@ -1149,7 +1150,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
   }
   */
   // one time, fill cache of g4hit/cluster pairs
-  if (_cache_best_cluster_from_gtrackid_layer.size() == 0)
+  if (_cache_best_cluster_from_gtrackid_layer.empty())
   {
     // get all reco clusters
     // std::cout << "cache size ==0" << std::endl;
@@ -1176,7 +1177,7 @@ TrkrDefs::cluskey SvtxClusterEval::best_cluster_by_nhit(int gid, int layer)
 
         //      std::map<std::pair<int, unsigned int>, TrkrDefs::cluskey>::iterator it_exists;
         //      it_exists =
-        if (_cache_best_cluster_from_gtrackid_layer.count(gid_lay) == 0)
+        if (!_cache_best_cluster_from_gtrackid_layer.contains(gid_lay))
         {
           if (gid_lay.second >= 0)
           {
@@ -1289,7 +1290,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
 
   float energy = 0.0;
   std::set<PHG4Hit*> hits = all_truth_hits(cluster_key);
-  for (auto hit : hits)
+  for (auto* hit : hits)
   {
     if (get_truth_eval()->is_g4hit_from_particle(hit, particle))
     {
@@ -1325,8 +1326,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
   }
 
   if ((_do_cache) &&
-      (_cache_get_energy_contribution_g4hit.find(std::make_pair(cluster_key, g4hit)) !=
-       _cache_get_energy_contribution_g4hit.end()))
+      (_cache_get_energy_contribution_g4hit.contains(std::make_pair(cluster_key, g4hit))))
   {
     return _cache_get_energy_contribution_g4hit[std::make_pair(cluster_key, g4hit)];
   }
@@ -1336,7 +1336,7 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
 
   float energy = 0.0;
   std::set<PHG4Hit*> g4hits = all_truth_hits(cluster_key);
-  for (auto candidate : g4hits)
+  for (auto* candidate : g4hits)
   {
     if (candidate->get_hit_id() != g4hit->get_hit_id())
     {
@@ -1447,7 +1447,7 @@ float SvtxClusterEval::fast_approx_atan2(float y, float x)
 {
   if (x != 0.0F)
   {
-    if (fabsf(x) > fabsf(y))
+    if (std::abs(x) > std::abs(y))
     {
       const float z = y / x;
       if (x > 0.0)
@@ -1455,43 +1455,35 @@ float SvtxClusterEval::fast_approx_atan2(float y, float x)
         // atan2(y,x) = atan(y/x) if x > 0
         return fast_approx_atan2(z);
       }
-      else if (y >= 0.0)
+      if (y >= 0.0)
       {
         // atan2(y,x) = atan(y/x) + PI if x < 0, y >= 0
         return fast_approx_atan2(z) + M_PI;
       }
-      else
-      {
-        // atan2(y,x) = atan(y/x) - PI if x < 0, y < 0
-        return fast_approx_atan2(z) - M_PI;
-      }
+
+      // atan2(y,x) = atan(y/x) - PI if x < 0, y < 0
+      return fast_approx_atan2(z) - M_PI;
     }
-    else  // Use property atan(y/x) = PI/2 - atan(x/y) if |y/x| > 1.
+    const float z = x / y;
+    if (y > 0.0)
     {
-      const float z = x / y;
-      if (y > 0.0)
-      {
-        // atan2(y,x) = PI/2 - atan(x/y) if |y/x| > 1, y > 0
-        return -fast_approx_atan2(z) + M_PI_2;
-      }
-      else
-      {
-        // atan2(y,x) = -PI/2 - atan(x/y) if |y/x| > 1, y < 0
-        return -fast_approx_atan2(z) - M_PI_2;
-      }
+      // atan2(y,x) = PI/2 - atan(x/y) if |y/x| > 1, y > 0
+      return -fast_approx_atan2(z) + M_PI_2;
     }
+
+    // atan2(y,x) = -PI/2 - atan(x/y) if |y/x| > 1, y < 0
+    return -fast_approx_atan2(z) - M_PI_2;
   }
-  else
+
+  if (y > 0.0F)  // x = 0, y > 0
   {
-    if (y > 0.0F)  // x = 0, y > 0
-    {
-      return M_PI_2;
-    }
-    else if (y < 0.0F)  // x = 0, y < 0
-    {
-      return -M_PI_2;
-    }
+    return M_PI_2;
   }
+  if (y < 0.0F)  // x = 0, y < 0
+  {
+    return -M_PI_2;
+  }
+
   return 0.0F;  // x,y = 0. Could return NaN instead.
 }
 

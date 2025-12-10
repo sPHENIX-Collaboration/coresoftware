@@ -1,10 +1,12 @@
 #include "InttQa.h"
 
-// #include <ffarawobjects/Gl1Packet.h>
+#include <ffarawobjects/Gl1Packet.h>
 // #include <trackbase/InttEventHeader.h> // why in trackbase and not ffarawobjects??????????
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
+
 #include <intt/InttMapping.h>
+#include <intt/InttOdbcQuery.h>
 
 #include <fun4all/Fun4AllHistoManager.h>  // required by QAHistManagerDef
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -30,6 +32,13 @@ InttQa::InttQa (
 ) : SubsysReco(name) {
 
 	auto* hm = QAHistManagerDef::getHistoManager();
+
+	m_is_streaming_hist = new TH1I (
+		std::format("{}_is_streaming", m_prefix).c_str(),
+		"GetBinContent(1) == 1 for streaming, GetBinContent(1) == 0 for triggered",
+		1, 0.5, 1.5
+	);
+	hm->registerHisto(m_is_streaming_hist);
 
 	// The numeric values are important for naming the histograms,
 	// which is why I do not use range-based for loops here
@@ -98,8 +107,44 @@ InttQa::InttQa (
 	}
 }
 
+void
+InttQa::query (
+) {
+	int runnumber = Fun4AllServer::instance()->RunNumber();
+	if (runnumber == 0) { // default value in Fun4AllServer.h
+		std::cout
+			<< PHWHERE
+			<< "Runnumber is default value (0) and was probably initialized, Unregistering"
+			<< std::endl;
+		Fun4AllServer::instance()->unregisterSubsystem(this);
+		return;
+	}
+
+	InttOdbcQuery intt_query;
+	if (intt_query.Query(runnumber) != 0) {
+		std::cout
+			<< PHWHERE
+			<< "Database query unsuccessful, Unregistering"
+			<< std::endl;
+		Fun4AllServer::instance()->unregisterSubsystem(this);
+		return;
+	}
+
+	m_is_streaming = intt_query.IsStreaming();
+	m_is_streaming_hist->SetBinContent(1, m_is_streaming ? 1 : 0);
+
+	if (Verbosity()) {
+		std::cout
+			<< PHWHERE
+			<< " m_is_streaming: " << m_is_streaming
+			<< " bin contents: " << m_is_streaming_hist->GetBinContent(1)
+			<< std::endl;
+	}
+
+}
+
 int
-InttQa::InitRun (
+InttQa::get_nodes (
 	PHCompositeNode* top_node
 ) {
 	// In case this is called multiple times per instance lifetime
@@ -109,12 +154,10 @@ InttQa::InitRun (
 
 	PHCompositeNode* intt_node = dynamic_cast<PHCompositeNode*>(dst_itr.findFirst("INTT"));
 	if (!intt_node) {
-		if (Verbosity()) {
-			std::cout
-				<< PHWHERE
-				<< "\tNo 'INTT' node found on the NodeTree, Unregistering\n"
-				<< std::flush;
-		}
+		std::cout
+			<< PHWHERE
+			<< "\tNo 'INTT' node found on the NodeTree, Unregistering"
+			<< std::endl;
 		Fun4AllServer::instance()->unregisterSubsystem(this);
 		return Fun4AllReturnCodes::EVENT_OK;
 	}
@@ -139,17 +182,35 @@ InttQa::InitRun (
 	}
 
 	if (m_intt_raw_hit_containers.empty()) {
-		if (Verbosity()) {
-			std::cout
-				<< PHWHERE
-				<< "No InttRawHitContainers found on the NodeTree, Unregistering"
-				<< std::endl;
-		}
+		std::cout
+			<< PHWHERE
+			<< "No InttRawHitContainers found on the NodeTree, Unregistering"
+			<< std::endl;
 		Fun4AllServer::instance()->unregisterSubsystem(this);
 		return Fun4AllReturnCodes::EVENT_OK;
 	}
 
+	if (m_is_streaming) { // need GL1
+		m_gl1_packet = findNode::getClass<Gl1Packet>(top_node, "GL1RAWHIT");
+		if (!m_gl1_packet) {
+			std::cout
+				<< PHWHERE
+				<< "INTT is streaming, but no GL1 found on node tree, Unregistering"
+				<< std::endl;
+			Fun4AllServer::instance()->unregisterSubsystem(this);
+		}
+		return Fun4AllReturnCodes::EVENT_OK;
+	}
+
 	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int
+InttQa::InitRun (
+	PHCompositeNode* top_node
+) {
+	query();
+	return get_nodes(top_node);
 }
 
 int
@@ -162,11 +223,16 @@ InttQa::process_event (
 			auto* hit = intt_raw_hit_container->get_hit(hit_index);
 			InttNameSpace::RawData_s raw = InttNameSpace::RawFromHit(hit);
 
-			// Fine for triggered case, for streaming we will need the GL1
-			// (and a usage of InttOdbcQuery to check if the data is streaming)
-			// int bco_diff = hit->get_FPHX_BCO() + hit->get_bco() - gl1_bco 
-			int bco_diff = (hit->get_FPHX_BCO() - int(hit->get_bco() & 0x7FU) + n_bcos) % n_bcos;
+			int bco_diff{0};
 			int adc = hit->get_adc();
+
+			if (m_is_streaming) {
+				uint64_t gl1_bco = m_gl1_packet->getBCO() & 0xFFFFFFFFFFU;
+				uint64_t intt_bco = hit->get_FPHX_BCO() & 0xFFFFFFFFFFU;
+				bco_diff = int(intt_bco - gl1_bco) + hit->get_bco();
+			} else {
+				bco_diff = (hit->get_FPHX_BCO() - int(hit->get_bco() & 0x7FU) + n_bcos) % n_bcos;
+			}
 
 			m_felix_server_hit_distribution[raw.felix_server]->Fill(raw.chip, raw.felix_channel);
 			m_felix_channel_bco_distribution[raw.felix_server][raw.felix_channel]->Fill(bco_diff);

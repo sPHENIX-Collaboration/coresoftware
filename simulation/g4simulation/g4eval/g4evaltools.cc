@@ -30,7 +30,7 @@
 
 #include <cmath>
 #include <iostream>
-#include <numeric> // for std::accumulate
+#include <numeric>  // for std::accumulate
 
 namespace G4Eval
 {
@@ -46,7 +46,7 @@ namespace G4Eval
     for (auto& reco : *m_SvtxTrackMap)
     {
       auto trkid = reco.first;
-      if (ids_matched.count(trkid) == 0)
+      if (!ids_matched.contains(trkid))
       {
         ids_unmatched.insert(trkid);
       }
@@ -118,7 +118,7 @@ namespace G4Eval
     }
     for (int this_layer = 0; this_layer < 3; ++this_layer)
     {
-      auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(this_layer));
+      auto* layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(this_layer));
       const double pitch = layergeom->get_pixel_x();
       const double length = layergeom->get_pixel_z();
       m_phistep[this_layer] = pitch;
@@ -145,34 +145,34 @@ namespace G4Eval
     }
 
     // ------ TPC data ------
-    PHG4TpcGeomContainer *geom_tpc =
-      findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+    PHG4TpcGeomContainer* geom_tpc =
+        findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
     if (!geom_tpc)
-      {
-	std::cout << PHWHERE << " Could not locate TPCGEOMCONTAINER, abort" << std::endl;
-	return Fun4AllReturnCodes::ABORTRUN;
-      }
-    
+    {
+      std::cout << PHWHERE << " Could not locate TPCGEOMCONTAINER, abort" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
     for (int this_layer = 7; this_layer < 55; ++this_layer)
+    {
+      PHG4TpcGeom* layergeom = geom_tpc->GetLayerCellGeom(this_layer);
+      if (this_layer == 7)
       {
-	PHG4TpcGeom* layergeom = geom_tpc->GetLayerCellGeom(this_layer);
-	if (this_layer == 7)
-	  {
-	    m_zstep_tpc = layergeom->get_zstep();
-	  }
-	m_phistep[this_layer] = layergeom->get_phistep();
+        m_zstep_tpc = layergeom->get_zstep();
       }
-    
+      m_phistep[this_layer] = layergeom->get_phistep();
+    }
+
     m_TruthClusters =
-      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters);
+        findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters);
     if (!m_TruthClusters)
-      {
+    {
       std::cout << PHWHERE << " Could not locate " << name_phg4_clusters << " node" << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
     m_RecoClusters =
-        findNode::getClass<TrkrClusterContainer>(topNode, name_reco_clusters.c_str());
+        findNode::getClass<TrkrClusterContainer>(topNode, name_reco_clusters);
     if (!m_TruthClusters)
     {
       std::cout << PHWHERE << " Could not locate " << name_reco_clusters << " node" << std::endl;
@@ -259,7 +259,7 @@ namespace G4Eval
   ClusLoc TrkrClusterComparer::clusloc_PHG4(
       std::pair<TrkrDefs::hitsetkey, TrkrDefs::cluskey> input)
   {
-    auto cluster = m_TruthClusters->findCluster(input.second);
+    auto* cluster = m_TruthClusters->findCluster(input.second);
     Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
     return {TrkrDefs::getLayer(input.first), gloc,
             (int) cluster->getPhiSize(), (int) cluster->getZSize()};
@@ -268,7 +268,7 @@ namespace G4Eval
   ClusLoc TrkrClusterComparer::clusloc_SVTX(
       std::pair<TrkrDefs::hitsetkey, TrkrDefs::cluskey> input)
   {
-    auto cluster = m_RecoClusters->findCluster(input.second);
+    auto* cluster = m_RecoClusters->findCluster(input.second);
     Eigen::Vector3d gloc = m_ActsGeometry->getGlobalPosition(input.second, cluster);
     return {TrkrDefs::getLayer(input.first), gloc,
             (int) cluster->getPhiSize(), (int) cluster->getZSize()};
@@ -287,7 +287,7 @@ namespace G4Eval
   {
   }
 
-  ClusKeyIter ClusKeyIter::begin()
+  ClusKeyIter ClusKeyIter::begin() const
   {
     ClusKeyIter iter0{track};
     if (iter0.no_data)
@@ -306,7 +306,7 @@ namespace G4Eval
     return iter0;
   }
 
-  ClusKeyIter ClusKeyIter::end()
+  ClusKeyIter ClusKeyIter::end() const
   {
     ClusKeyIter iter0{track};
     if (iter0.no_data)
@@ -338,7 +338,7 @@ namespace G4Eval
     }
   }
 
-  bool ClusKeyIter::operator!=(const ClusKeyIter& rhs)
+  bool ClusKeyIter::operator!=(const ClusKeyIter& rhs) const
   {
     if (no_data)
     {
@@ -347,7 +347,7 @@ namespace G4Eval
     return iter != rhs.iter;
   }
 
-  TrkrDefs::cluskey ClusKeyIter::operator*()
+  TrkrDefs::cluskey ClusKeyIter::operator*() const
   {
     return *iter;
   }
@@ -358,10 +358,8 @@ namespace G4Eval
     {
       return nullptr;
     }
-    else
-    {
-      return comp->m_TruthClusters;
-    }
+
+    return comp->m_TruthClusters;
   }
 
   TrkrClusterContainer* ClusCntr::get_SVTX_clusters()
@@ -370,10 +368,8 @@ namespace G4Eval
     {
       return nullptr;
     }
-    else
-    {
-      return comp->m_RecoClusters;
-    }
+
+    return comp->m_RecoClusters;
   }
 
   std::array<int, 5> ClusCntr::cntclus(Vector& keys)
@@ -419,7 +415,7 @@ namespace G4Eval
     svtx_keys.clear();
     for (auto ckey : ClusKeyIter(track))
     {
-      svtx_keys.push_back({TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey});
+      svtx_keys.emplace_back(TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey);
     }
     std::sort(svtx_keys.begin(), svtx_keys.end());
     return svtx_keys.size();
@@ -430,7 +426,7 @@ namespace G4Eval
     phg4_keys.clear();
     for (auto ckey : track->getClusters())
     {
-      phg4_keys.push_back({TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey});
+      phg4_keys.emplace_back(TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey);
     }
     std::sort(phg4_keys.begin(), phg4_keys.end());
     return phg4_keys.size();
@@ -612,7 +608,7 @@ namespace G4Eval
   /* ClusCntr::layer_xyzLoc ClusCntr::xyzLoc(std::pair<TrkrDefs::hitsetkey,TrkrDefs::cluskey) { */
   /*   if (geom == nullptr) { */
   /*     std::cout << PHWHERE << " fatal: geom, type ActsGeometry*, must be set to call xyzLoc!" << std::endl; */
-  /*     return {-1,{FLT_MAX,FLT_MAX,FLT_MAX}}; */
+  /*     return {-1,{std::numeric_limits<float>::max(),std::numeric_limits<float>::max(),std::numeric_limits<float>::max()}}; */
   /*   } */
   /*   Eigen::Vector3d gloc =    m_ActsGeometry->getGlobalPosition(reco_ckey, cluster); */
   /* } */

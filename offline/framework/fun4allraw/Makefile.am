@@ -96,7 +96,6 @@ libfun4allraw_la_SOURCES = \
 
 libfun4allraw_la_LIBADD = \
   libmvtx_decoder.la \
-  -lffamodules \
   -lffarawobjects \
   -lfun4all \
   -lEvent \

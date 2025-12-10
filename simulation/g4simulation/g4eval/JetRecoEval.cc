@@ -104,8 +104,8 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
   // truth hits and combine with other consituents
   for (auto jter : recojet->get_comp_vec())
   {
-      Jet::SRC source = jter.first;
-      unsigned int index = jter.second;
+    Jet::SRC source = jter.first;
+    unsigned int index = jter.second;
 
     std::set<PHG4Shower*> new_showers;
 
@@ -390,7 +390,7 @@ std::set<PHG4Shower*> JetRecoEval::all_truth_showers(Jet* recojet)
       new_showers = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_primary_showers(cluster);
     }
 
-    for (auto new_shower : new_showers)
+    for (auto* new_shower : new_showers)
     {
       truth_showers.insert(new_shower);
     }
@@ -432,8 +432,8 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
   // truth hits and combine with other consituents
   for (auto jter : recojet->get_comp_vec())
   {
-      Jet::SRC source = jter.first;
-      unsigned int index = jter.second;
+    Jet::SRC source = jter.first;
+    unsigned int index = jter.second;
 
     std::set<PHG4Particle*> new_particles;
 
@@ -724,7 +724,7 @@ std::set<PHG4Particle*> JetRecoEval::all_truth_particles(Jet* recojet)
       new_particles = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_primary_particles(cluster);
     }
 
-    for (auto new_particle : new_particles)
+    for (auto* new_particle : new_particles)
     {
       truth_particles.insert(new_particle);
     }
@@ -766,7 +766,7 @@ std::set<Jet*> JetRecoEval::all_truth_jets(Jet* recojet)
   std::set<PHG4Particle*> particles = all_truth_particles(recojet);
 
   // backtrack from the truth particles to the truth jets...
-  for (auto particle : particles)
+  for (auto* particle : particles)
   {
     if (_strict)
     {
@@ -818,10 +818,10 @@ Jet* JetRecoEval::max_truth_jet_by_energy(Jet* recojet)
   }
 
   Jet* truthjet = nullptr;
-  float max_energy = FLT_MAX * -1.0;
+  float max_energy = std::numeric_limits<float>::min();
 
   std::set<Jet*> truthjets = all_truth_jets(recojet);
-  for (auto candidate : truthjets)
+  for (auto* candidate : truthjets)
   {
     if (_strict)
     {
@@ -874,13 +874,13 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
   std::set<Jet*> recojets;
 
   // loop over all reco jets
-  for (auto recojet : *_recojets)
+  for (auto* recojet : *_recojets)
   {
     /* Jet* recojet = _recojet.second; */
 
     // if this jet back tracks to the truth jet
     std::set<Jet*> truthcandidates = all_truth_jets(recojet);
-    for (auto truthcandidate : truthcandidates)
+    for (auto* truthcandidate : truthcandidates)
     {
       if (_strict)
       {
@@ -909,7 +909,6 @@ std::set<Jet*> JetRecoEval::all_jets_from(Jet* truthjet)
 
 Jet* JetRecoEval::best_jet_from(Jet* truthjet)
 {
-
   if (_strict)
   {
     assert(truthjet);
@@ -931,10 +930,10 @@ Jet* JetRecoEval::best_jet_from(Jet* truthjet)
   }
 
   Jet* bestrecojet = nullptr;
-  float max_energy = FLT_MAX * -1.0;
+  float max_energy = std::numeric_limits<float>::min();
 
   std::set<Jet*> recojets = all_jets_from(truthjet);
-  for (auto recojet : recojets)
+  for (auto* recojet : recojets)
   {
     if (_strict)
     {
@@ -983,15 +982,11 @@ Jet* JetRecoEval::unique_reco_jet_from_truth(Jet* truthjet)
     {
       return recojet;  // uniquely matched
     }
-    else
-    {
-      return nullptr;
-    }
-  }
-  else
-  {
+
     return nullptr;
   }
+
+  return nullptr;
 }
 
 Jet* JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
@@ -1016,15 +1011,11 @@ Jet* JetRecoEval::unique_truth_jet_from_reco(Jet* recojet)
     {
       return truthjet;  // uniquely matched
     }
-    else
-    {
-      return nullptr;
-    }
-  }
-  else
-  {
+
     return nullptr;
   }
+
+  return nullptr;
 }
 
 // overlap calculations
@@ -1055,7 +1046,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet* truthjet)
 
   std::set<PHG4Particle*> truthjetcomp = get_truth_eval()->all_truth_particles(truthjet);
   // loop over all truthjet constituents
-  for (auto truthparticle : truthjetcomp)
+  for (auto* truthparticle : truthjetcomp)
   {
     if (_strict)
     {
@@ -1327,7 +1318,7 @@ float JetRecoEval::get_energy_contribution(Jet* recojet, Jet::SRC src)
       return iter->second;
     }
   }
-  
+
   float energy = 0.0;
 
   // loop over all recojet constituents
@@ -1576,8 +1567,8 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
 
   for (auto jter : recojet->get_comp_vec())
   {
-      Jet::SRC source = jter.first;
-      unsigned int index = jter.second;
+    Jet::SRC source = jter.first;
+    unsigned int index = jter.second;
 
     std::set<PHG4Hit*> new_hits;
 
@@ -1868,7 +1859,7 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
       new_hits = get_fhcal_eval_stack()->get_rawcluster_eval()->all_truth_hits(cluster);
     }
 
-    for (auto new_hit : new_hits)
+    for (auto* new_hit : new_hits)
     {
       truth_hits.insert(new_hit);
     }
@@ -1885,14 +1876,14 @@ std::set<PHG4Hit*> JetRecoEval::all_truth_hits(Jet* recojet)
 void JetRecoEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off of the DST...
-  _recojets = findNode::getClass<JetContainer>(topNode, _recojetname.c_str());
+  _recojets = findNode::getClass<JetContainer>(topNode, _recojetname);
   if (!_recojets)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << _recojetname << std::endl;
     exit(-1);
   }
 
-  _truthjets = findNode::getClass<JetContainer>(topNode, _truthjetname.c_str());
+  _truthjets = findNode::getClass<JetContainer>(topNode, _truthjetname);
   if (!_truthjets)
   {
     std::cout << PHWHERE << " ERROR: Can't find " << _truthjetname << std::endl;

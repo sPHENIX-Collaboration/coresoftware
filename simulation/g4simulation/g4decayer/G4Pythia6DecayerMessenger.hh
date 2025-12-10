@@ -53,7 +53,7 @@ class G4Pythia6DecayerMessenger : public G4UImessenger
   G4Pythia6DecayerMessenger(G4Pythia6Decayer* pythia6Decayer);
   virtual ~G4Pythia6DecayerMessenger();
 
-  virtual void SetNewValue(G4UIcommand* command, G4String string);
+  virtual void SetNewValue(G4UIcommand* command, G4String newValue);
 
  private:
   /// Not implemented

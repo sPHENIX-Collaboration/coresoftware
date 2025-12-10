@@ -28,8 +28,6 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace std;
-
 void PHG4GDMLUtility::Dump_GDML(const std::string &filename, G4VPhysicalVolume *vol, PHCompositeNode *topNode)
 {
   if (topNode == nullptr)
@@ -72,11 +70,11 @@ PHG4GDMLConfig *PHG4GDMLUtility::GetOrMakeConfigNode(PHCompositeNode *topNode, b
       "PHCompositeNode", "PAR"));
   if (!parNode)
   {
-    stringstream serr;
+    std::stringstream serr;
     serr << __PRETTY_FUNCTION__ << ": PAR Node missing, request aborting.";
-    cout << serr.str() << endl;
+    std::cout << serr.str() << std::endl;
 
-    throw runtime_error(serr.str());
+    throw std::runtime_error(serr.str());
 
     return nullptr;
   }

@@ -1,20 +1,22 @@
 #include "DiodeReco.h"
 
+#include <ffamodules/CDBInterface.h>
+
+#include <ffarawobjects/TpcDiodeContainerv1.h>
+#include <ffarawobjects/TpcDiodev1.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <ffarawobjects/TpcDiodeContainerv1.h>
-#include <ffarawobjects/TpcDiodev1.h>
-
 #include <Event/Event.h>
 #include <Event/caen_correction.h>
 #include <Event/packet.h>
 
-#include <ffamodules/CDBInterface.h>
 
 #include <TSystem.h>
 
@@ -214,12 +216,7 @@ int DiodeReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int DiodeReco::End(PHCompositeNode *)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-double DiodeReco::MaxAdc(int n, int low_bin, int high_bin)
+double DiodeReco::MaxAdc(int n, int low_bin, int high_bin) const
 {
   double MaxSum = -99999;  // Maximum sum over n bins within the bin range
   int MaxMid = -1;         // Bin number of the middle bin used to calculate MaxSum
@@ -248,7 +245,7 @@ double DiodeReco::MaxAdc(int n, int low_bin, int high_bin)
   return MaxSum / (2.0 * n + 1.0);
 }
 
-int DiodeReco::MaxBin(int n)
+int DiodeReco::MaxBin(int n) const
 {
   double MaxSum = -99999;
   int MaxMid = -1;
@@ -272,7 +269,7 @@ int DiodeReco::MaxBin(int n)
   return MaxMid;
 }
 
-double DiodeReco::Integral(int low_bin, int high_bin)
+double DiodeReco::Integral(int low_bin, int high_bin) const
 {
   low_bin = std::max(low_bin, 0);
   high_bin = std::min(high_bin, static_cast<int>(adc.size()));
@@ -285,21 +282,21 @@ double DiodeReco::Integral(int low_bin, int high_bin)
   return SUM;
 }
 
-int DiodeReco::NAboveThreshold(double upper_thr, double lower_thr)
+int DiodeReco::NAboveThreshold(double upper_thr, double lower_thr) const
 {
   int nAbove = 0;
 
   bool belowThreshold = true;
 
-  for (size_t i = 0; i < adc.size(); i++)
+  for (double adc_val : adc)
   {
-    if (belowThreshold && adc[i] >= upper_thr)
+    if (belowThreshold && adc_val >= upper_thr)
     {
       nAbove++;
       belowThreshold = false;
     }
 
-    else if (!belowThreshold && adc[i] < lower_thr)
+    else if (!belowThreshold && adc_val < lower_thr)
     {
       belowThreshold = true;
     }
@@ -308,7 +305,7 @@ int DiodeReco::NAboveThreshold(double upper_thr, double lower_thr)
   return nAbove;
 }
 
-double DiodeReco::PulseWidth(double upper_thr, double lower_thr)
+double DiodeReco::PulseWidth(double upper_thr, double lower_thr) const
 {
   //  The results of this routine are ONLY valid
   //  if NAbove is one.
@@ -364,8 +361,8 @@ void DiodeReco::PedestalCorrected(int low_bin = -1, int high_bin = 9999)
     PEDESTAL = (sam[(n - 1) / 2] + sam[n / 2]) / 2.0;
   }
 
-  for (size_t i = 0; i < adc.size(); i++)
+  for (double & adc_val : adc)
   {
-    adc[i] = adc[i] - PEDESTAL;
+    adc_val = adc_val - PEDESTAL;
   }
 }

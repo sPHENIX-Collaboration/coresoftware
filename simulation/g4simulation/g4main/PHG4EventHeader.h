@@ -6,8 +6,8 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include <cmath>
 #include <iostream>
+#include <limits>
 
 ///
 class PHG4EventHeader : public PHObject
@@ -44,10 +44,10 @@ class PHG4EventHeader : public PHObject
   /// set Event Number
   virtual void set_EvtSequence(const int /*ival*/) { return; }
 
-  virtual float get_ImpactParameter() const { return NAN; }
+  virtual float get_ImpactParameter() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_ImpactParameter(const float) { return; }
 
-  virtual float get_EventPlaneAngle() const { return NAN; }
+  virtual float get_EventPlaneAngle() const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_EventPlaneAngle(const float) { return; }
 
  private:  // prevent doc++ from showing ClassDefOverride

@@ -15,7 +15,7 @@ class PHG4VtxPoint;
 class PHG4InEvent : public PHObject
 {
  public:
-  PHG4InEvent() {}
+  PHG4InEvent() = default;
   ~PHG4InEvent() override;
 
   void identify(std::ostream &os = std::cout) const override;

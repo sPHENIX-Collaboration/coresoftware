@@ -23,10 +23,6 @@
 
 G4RawTowerTTree::G4RawTowerTTree(const std::string &name)
   : SubsysReco(name)
-  , savetowers(1)
-  , evtno(0)
-  , hm(nullptr)
-  , etot_hist(nullptr)
 {
 }
 
@@ -101,7 +97,7 @@ void G4RawTowerTTree::Detector(const std::string &det)
   _outnodename = "G4RootRawTower_" + det;
   _towernodename = "TOWERINFO_CALIB_" + det;
   _towergeomnodename = "TOWERGEOM_" + det;
-  if (!_histofilename.size())
+  if (_histofilename.empty())
   {
     _histofilename = "RawTowerHistos_" + det + ".root";
   }

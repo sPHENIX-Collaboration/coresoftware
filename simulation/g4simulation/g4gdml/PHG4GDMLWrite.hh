@@ -66,19 +66,19 @@ class PHG4GDMLWrite
 
   public:  // with description
 
-    G4Transform3D Write(const G4String& filename,
-                        const G4LogicalVolume* const topLog,
-                        const G4String& schemaPath,
-                        const G4int depth, G4bool storeReferences=true);
+    G4Transform3D Write(const G4String& fname,
+                        const G4LogicalVolume* const logvol,
+                        const G4String& setSchemaLocation,
+                        const G4int depth, G4bool refs=true);
       //
       // Main method for writing GDML files.
 
-    void AddModule(const G4VPhysicalVolume* const topVol);
+    void AddModule(const G4VPhysicalVolume* const physvol);
     void AddModule(const G4int depth);
       //
       // Split geometry structure in modules, by volume subtree or level
 
-    void AddAuxiliary(PHG4GDMLAuxStructType myaux);
+    void AddAuxiliary(const PHG4GDMLAuxStructType& myaux);
       //
       // Import auxiliary structure
 
@@ -114,14 +114,14 @@ class PHG4GDMLWrite
   protected:
 
     PHG4GDMLWrite();
-    virtual ~PHG4GDMLWrite();
+    virtual ~PHG4GDMLWrite() = default;
 
     VolumeMapType& VolumeMap();
 
     xercesc::DOMAttr* NewAttribute(const G4String&, const G4String&);
     xercesc::DOMAttr* NewAttribute(const G4String&, const G4double&);
     xercesc::DOMElement* NewElement(const G4String&);
-    G4String Modularize(const G4VPhysicalVolume* const topvol,
+    G4String Modularize(const G4VPhysicalVolume* const physvol,
                         const G4int depth);
 
     void AddAuxInfo(PHG4GDMLAuxListType* auxInfoList, xercesc::DOMElement* element);
@@ -137,7 +137,7 @@ class PHG4GDMLWrite
     xercesc::DOMDocument* doc;
     xercesc::DOMElement* extElement;
     xercesc::DOMElement* userinfoElement;
-    XMLCh tempStr[10000];
+    XMLCh tempStr[10000]{};
     PHG4GDMLAuxListType auxList;
 };
 

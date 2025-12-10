@@ -12,28 +12,24 @@
 #include <phool/phool.h>
 #include <numeric>
 
-TrkrClusterContainer* TrackClusEvaluator::get_PHG4_clusters()
+TrkrClusterContainer* TrackClusEvaluator::get_PHG4_clusters() const
 {
   if (ismatcher == nullptr)
   {
     return nullptr;
   }
-  else
-  {
-    return ismatcher->m_TruthClusters;
-  }
+
+  return ismatcher->m_TruthClusters;
 }
 
-TrkrClusterContainer* TrackClusEvaluator::get_SVTX_clusters()
+TrkrClusterContainer* TrackClusEvaluator::get_SVTX_clusters() const
 {
   if (ismatcher == nullptr)
   {
     return nullptr;
   }
-  else
-  {
-    return ismatcher->m_RecoClusters;
-  }
+
+  return ismatcher->m_RecoClusters;
 }
 
 std::array<int, 5> TrackClusEvaluator::cntclus(Vector& keys)
@@ -55,7 +51,7 @@ int TrackClusEvaluator::addClusKeys(SvtxTrack* track)
   svtx_keys.clear();
   for (auto ckey : ClusKeyIter(track))
   {
-    svtx_keys.push_back({TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey});
+    svtx_keys.emplace_back(TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey);
   }
   std::sort(svtx_keys.begin(), svtx_keys.end());
   return svtx_keys.size();
@@ -90,7 +86,7 @@ int TrackClusEvaluator::addClusKeys(TrkrTruthTrack* track)
   phg4_keys.clear();
   for (auto ckey : track->getClusters())
   {
-    phg4_keys.push_back({TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey});
+    phg4_keys.emplace_back(TrkrDefs::getHitSetKeyFromClusKey(ckey), ckey);
   }
   std::sort(phg4_keys.begin(), phg4_keys.end());
   return phg4_keys.size();

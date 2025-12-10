@@ -8,8 +8,6 @@
 #include <iostream>
 #include <utility>  // for pair
 
-using namespace std;
-
 PHG4PhenixDisplayAction::PHG4PhenixDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
@@ -42,7 +40,7 @@ void PHG4PhenixDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/
     }
     else
     {
-      cout << "unknown logical volume " << it.second << endl;
+      std::cout << "unknown logical volume " << it.second << std::endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);

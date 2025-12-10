@@ -69,8 +69,8 @@ class PHG4GDMLWriteParamvol : public PHG4GDMLWriteSetup
 
  protected:
 
-   PHG4GDMLWriteParamvol();
-   virtual ~PHG4GDMLWriteParamvol();
+  PHG4GDMLWriteParamvol() = default;
+  virtual ~PHG4GDMLWriteParamvol() = default;
 
    void Box_dimensionsWrite(xercesc::DOMElement*, const G4Box* const);
    void Trd_dimensionsWrite(xercesc::DOMElement*, const G4Trd* const);

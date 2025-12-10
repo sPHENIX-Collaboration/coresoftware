@@ -3,64 +3,30 @@
 #ifndef HFTRACKEFFICIENCY_H
 #define HFTRACKEFFICIENCY_H
 
-#include <decayfinder/DecayFinderContainer_v1.h>  // for DecayFinderContainer_v1
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
-#include <trackbase_historic/PHG4ParticleSvtxMap_v1.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v2.h>
 
-#include <CLHEP/Vector/LorentzVector.h>
-#include <CLHEP/Vector/ThreeVector.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>  // for GenVertex::particle_iterator
-#pragma GCC diagnostic pop
-
-#include <HepMC/GenParticle.h>
-#include <HepMC/IteratorRange.h>
-#include <HepMC/SimpleVector.h>
-
-#include <TBranch.h>
-#include <TDatabasePDG.h>
-#include <TFile.h>
-#include <TTree.h>
-
+#include <limits>
 #include <string>
+#include <utility>
+#include <vector>
 
+class DecayFinderContainerBase;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
-class PHG4Particle;
+class PHG4ParticleSvtxMap;
 class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
-
-namespace CLHEP
-{
-  class HepLorentzVector;
-}
-
-namespace HepMC
-{
-  class GenParticle;
-}
+class SvtxTrack;
+class SvtxTrackMap;
+class TFile;
+class TTree;
 
 class HFTrackEfficiency : public SubsysReco
 {
  public:
   explicit HFTrackEfficiency(const std::string &name = "HFTrackEfficiency");
 
-  ~HFTrackEfficiency() override;
+  ~HFTrackEfficiency() override = default;
 
   int Init(PHCompositeNode *topNode) override;
 
@@ -82,32 +48,32 @@ class HFTrackEfficiency : public SubsysReco
  private:
   using Decay = std::vector<std::pair<std::pair<int, int>, int>>;
 
-  bool m_triggerOnDecay;
+  bool m_triggerOnDecay{false};
 
-  PHG4TruthInfoContainer *m_truthInfo = nullptr;
-  PHHepMCGenEventMap *m_geneventmap = nullptr;
-  PHHepMCGenEvent *m_genevt = nullptr;
+  PHG4TruthInfoContainer *m_truthInfo{nullptr};
+  PHHepMCGenEventMap *m_geneventmap{nullptr};
+  PHHepMCGenEvent *m_genevt{nullptr};
 
-  PHG4ParticleSvtxMap_v1 *m_dst_truth_reco_map = nullptr;
+  PHG4ParticleSvtxMap *m_dst_truth_reco_map{nullptr};
 
-  DecayFinderContainer_v1 *m_decayMap = nullptr;
+  DecayFinderContainerBase *m_decayMap{nullptr};
   std::string m_df_module_name;
 
-  SvtxTrackMap *m_input_trackMap = nullptr;
-  SvtxTrackMap *m_output_trackMap = nullptr;
-  SvtxTrack *m_dst_track = nullptr;
+  SvtxTrackMap *m_input_trackMap{nullptr};
+  SvtxTrackMap *m_output_trackMap{nullptr};
+  SvtxTrack *m_dst_track{nullptr};
   std::string m_input_track_map_node_name;
   std::string m_output_track_map_node_name;
   std::string outputNodeName;
-  bool m_write_track_map;
+  bool m_write_track_map{false};
 
   std::string m_outfile_name;
-  TFile *m_outfile;
-  TTree *m_tree;
-  bool m_write_nTuple;
+  TFile *m_outfile{nullptr};
+  TTree *m_tree{nullptr};
+  bool m_write_nTuple{false};
 
-  unsigned int m_counter_allDecays = 0;
-  unsigned int m_counter_acceptedDecays = 0;
+  unsigned int m_counter_allDecays{0};
+  unsigned int m_counter_acceptedDecays{0};
   float m_truthRecoMatchPercent;
 
   unsigned int m_nDaughters;
@@ -121,33 +87,33 @@ class HFTrackEfficiency : public SubsysReco
   std::string getParticleName(const int PDGID);
   float getParticleMass(const int PDGID);
 
-  static const int m_maxTracks = 5;
-  bool m_all_tracks_reconstructed = false;
-  float m_true_mother_mass = std::numeric_limits<float>::quiet_NaN();
-  float m_reco_mother_mass = std::numeric_limits<float>::quiet_NaN();
-  float m_true_mother_pT = std::numeric_limits<float>::quiet_NaN();
-  float m_true_mother_p = std::numeric_limits<float>::quiet_NaN();
-  float m_true_mother_eta = std::numeric_limits<float>::quiet_NaN();
-  float m_min_true_track_pT = std::numeric_limits<float>::max();
-  float m_min_reco_track_pT = std::numeric_limits<float>::max();
-  float m_max_true_track_pT = -1. * std::numeric_limits<float>::max();  // Apparently min() is still a +ve value
-  float m_max_reco_track_pT = -1. * std::numeric_limits<float>::max();
-  bool m_reco_track_exists[m_maxTracks] = {false};
-  bool m_used_truth_reco_map[m_maxTracks] = {false};
-  float m_true_track_pT[m_maxTracks] = {std::numeric_limits<float>::quiet_NaN()};
-  float m_reco_track_pT[m_maxTracks] = {std::numeric_limits<float>::quiet_NaN()};
-  float m_true_track_eta[m_maxTracks] = {std::numeric_limits<float>::quiet_NaN()};
-  float m_reco_track_eta[m_maxTracks] = {std::numeric_limits<float>::quiet_NaN()};
-  float m_true_track_PID[m_maxTracks] = {std::numeric_limits<float>::quiet_NaN()};
-  float m_reco_track_chi2nDoF[m_maxTracks] = {std::numeric_limits<float>::quiet_NaN()};
-  int m_reco_track_silicon_seeds[m_maxTracks] = {0};
-  int m_reco_track_tpc_seeds[m_maxTracks] = {0};
-  float m_primary_vtx_x = std::numeric_limits<float>::quiet_NaN();
-  float m_primary_vtx_y = std::numeric_limits<float>::quiet_NaN();
-  float m_primary_vtx_z = std::numeric_limits<float>::quiet_NaN();
-  float m_secondary_vtx_x = std::numeric_limits<float>::quiet_NaN();
-  float m_secondary_vtx_y = std::numeric_limits<float>::quiet_NaN();
-  float m_secondary_vtx_z = std::numeric_limits<float>::quiet_NaN();
+  static const int m_maxTracks{5};
+  bool m_all_tracks_reconstructed{false};
+  float m_true_mother_mass{std::numeric_limits<float>::quiet_NaN()};
+  float m_reco_mother_mass{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_mother_pT{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_mother_p{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_mother_eta{std::numeric_limits<float>::quiet_NaN()};
+  float m_min_true_track_pT{std::numeric_limits<float>::max()};
+  float m_min_reco_track_pT{std::numeric_limits<float>::max()};
+  float m_max_true_track_pT{std::numeric_limits<float>::min()};  // Apparently min() is still a +ve value
+  float m_max_reco_track_pT{std::numeric_limits<float>::min()};
+  bool m_reco_track_exists[m_maxTracks]{false};
+  bool m_used_truth_reco_map[m_maxTracks]{false};
+  float m_true_track_pT[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_reco_track_pT[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_track_eta[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_reco_track_eta[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_true_track_PID[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  float m_reco_track_chi2nDoF[m_maxTracks]{std::numeric_limits<float>::quiet_NaN()};
+  int m_reco_track_silicon_seeds[m_maxTracks]{0};
+  int m_reco_track_tpc_seeds[m_maxTracks]{0};
+  float m_primary_vtx_x{std::numeric_limits<float>::quiet_NaN()};
+  float m_primary_vtx_y{std::numeric_limits<float>::quiet_NaN()};
+  float m_primary_vtx_z{std::numeric_limits<float>::quiet_NaN()};
+  float m_secondary_vtx_x{std::numeric_limits<float>::quiet_NaN()};
+  float m_secondary_vtx_y{std::numeric_limits<float>::quiet_NaN()};
+  float m_secondary_vtx_z{std::numeric_limits<float>::quiet_NaN()};
 };
 
 #endif  // HFTRACKEFFICIENCY_H

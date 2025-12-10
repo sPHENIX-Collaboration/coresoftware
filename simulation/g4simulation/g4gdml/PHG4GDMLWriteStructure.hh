@@ -61,20 +61,20 @@ class PHG4GDMLWriteStructure : public PHG4GDMLWriteParamvol
  public:
 
    PHG4GDMLWriteStructure(const PHG4GDMLConfig * config_input);
-   virtual ~PHG4GDMLWriteStructure();
+   virtual ~PHG4GDMLWriteStructure() = default;
 
    virtual void StructureWrite(xercesc::DOMElement*);
-   void AddVolumeAuxiliary(PHG4GDMLAuxStructType myaux, const G4LogicalVolume* const);
+   void AddVolumeAuxiliary(const PHG4GDMLAuxStructType& myaux, const G4LogicalVolume* const);
 
    void SetEnergyCutsExport(G4bool);
 
  protected:
 
    void DivisionvolWrite(xercesc::DOMElement*, const G4PVDivision* const);
-   void PhysvolWrite(xercesc::DOMElement*,const G4VPhysicalVolume* const topVol,
+   void PhysvolWrite(xercesc::DOMElement*,const G4VPhysicalVolume* const physvol,
                    const G4Transform3D& transform, const G4String& moduleName);
    void ReplicavolWrite(xercesc::DOMElement*, const G4VPhysicalVolume* const);
-   G4Transform3D TraverseVolumeTree(const G4LogicalVolume* const topVol,
+   G4Transform3D TraverseVolumeTree(const G4LogicalVolume* const volumePtr,
                                     const G4int depth);
    void SurfacesWrite();
    void BorderSurfaceCache(const G4LogicalBorderSurface* const);

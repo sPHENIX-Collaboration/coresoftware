@@ -24,7 +24,6 @@ libg4jets_la_LIBADD = \
   -ljetbase \
   -lphg4hit \
   -lcalo_io \
-  -lglobalvertex_io \
   -lRecursiveTools \
   -lphhepmc_io \
   -ltrackbase_historic_io

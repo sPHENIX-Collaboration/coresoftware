@@ -4,20 +4,6 @@
 #include <iostream>
 #include <limits>
 
-ParticleFlowElementv1::ParticleFlowElementv1()
-  : _mom()
-  , _e(std::numeric_limits<float>::quiet_NaN())
-{
-  for (float& i : _mom)
-  {
-    i = std::numeric_limits<float>::quiet_NaN();
-  }
-
-  _id = 0;
-
-  _type = ParticleFlowElement::PFLOWTYPE::UNASSIGNED;
-}
-
 void ParticleFlowElementv1::identify(std::ostream& os) const
 {
   os << "-- ParticleFlowElement v1 : ";

@@ -22,10 +22,8 @@ ROOTDICTS = \
   ParticleFlowElementContainer_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  ParticleFlowElement_Dict_rdict.pcm \
-  ParticleFlowElementv1_Dict_rdict.pcm \
-  ParticleFlowElementContainer_Dict_rdict.pcm 
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 lib_LTLIBRARIES = \
   libparticleflow_io.la \

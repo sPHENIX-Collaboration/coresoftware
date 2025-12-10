@@ -28,10 +28,10 @@ class G4VtxNtuple : public SubsysReco
   //! end of run method
   int End(PHCompositeNode *) override;
 
- protected:
+ private:
   std::string m_FileName;
-  Fun4AllHistoManager *hm = nullptr;
-  TNtuple *ntup = nullptr;
+  Fun4AllHistoManager *hm{nullptr};
+  TNtuple *ntup{nullptr};
 };
 
 #endif

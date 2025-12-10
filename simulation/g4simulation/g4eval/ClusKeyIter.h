@@ -21,12 +21,12 @@ struct ClusKeyIter
   ClusterKeyIter iter{};
   ClusterKeyIter iter_end_silicon{};
 
-  ClusKeyIter begin();
-  ClusKeyIter end();
+  ClusKeyIter begin() const;
+  ClusKeyIter end() const;
 
   void operator++();
-  TrkrDefs::cluskey operator*();
-  bool operator!=(const ClusKeyIter& rhs);
+  TrkrDefs::cluskey operator*() const;
+  bool operator!=(const ClusKeyIter& rhs) const;
 };
 
 #endif

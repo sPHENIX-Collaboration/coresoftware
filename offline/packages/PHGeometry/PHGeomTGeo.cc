@@ -2,7 +2,7 @@
 
 /*!
  * \file PHGeomTGeo.cc
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -16,21 +16,14 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace std;
-
-PHGeomTGeo::PHGeomTGeo()
-  : _fGeom(nullptr)
-{
-}
-
 PHGeomTGeo::~PHGeomTGeo()
 {
   ConsistencyCheck();
   if (_fGeom)
   {
-    _fGeom->UnlockGeometry();
+    TGeoManager::UnlockGeometry();
   }
-    delete _fGeom;
+  delete _fGeom;
 }
 
 void PHGeomTGeo::SetGeometry(TGeoManager* g)
@@ -40,12 +33,12 @@ void PHGeomTGeo::SetGeometry(TGeoManager* g)
 
   if (!g)
   {
-    cout << __PRETTY_FUNCTION__ << " - Error - Invalid input" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " - Error - Invalid input" << std::endl;
     return;
   }
 
   _fGeom = g;
-  _fGeom->LockGeometry();
+  TGeoManager::LockGeometry();
 
   ConsistencyCheck();
 }
@@ -54,16 +47,18 @@ TGeoManager*
 PHGeomTGeo::GetGeometry()
 {
   if (_fGeom == nullptr)
+  {
     return nullptr;
+  }
 
   ConsistencyCheck();
 
   if (_fGeom == gGeoManager)
-    return _fGeom;
-  else
   {
-    return nullptr;
+    return _fGeom;
   }
+
+  return nullptr;
 }
 
 /** identify Function from PHObject
@@ -73,11 +68,15 @@ void PHGeomTGeo::identify(std::ostream& os) const
 {
   os << "PHGeomTGeo - ";
   if (_fGeom)
+  {
     os << " with geometry data " << _fGeom->GetName() << ": "
        << _fGeom->GetTitle();
+  }
   else
+  {
     os << "Empty";
-  os << endl;
+  }
+  os << std::endl;
   ConsistencyCheck();
 }
 
@@ -88,7 +87,7 @@ void PHGeomTGeo::Reset()
 
   if (_fGeom)
   {
-    _fGeom->UnlockGeometry();
+    TGeoManager::UnlockGeometry();
     delete _fGeom;
   }
   _fGeom = nullptr;
@@ -100,26 +99,32 @@ int PHGeomTGeo::isValid() const
   ConsistencyCheck();
 
   if (_fGeom == nullptr)
+  {
     return 0;
+  }
   if (_fGeom->IsZombie())
+  {
     return 0;
+  }
   return 1;
 }
 
 bool PHGeomTGeo::ConsistencyCheck() const
 {
   if (_fGeom == nullptr)
+  {
     return true;  // uninitialized
+  }
 
   if (_fGeom == gGeoManager)
-    return true;
-  else
   {
-    cout << __PRETTY_FUNCTION__
-         << " - ERROR - gGeoManager is overridden by another TGeoManager. "
-         << "Please avoid using multiple TGeoManager in processing. Stop the process."
-         << endl;
-    exit(1);
-    return false;
+    return true;
   }
+
+  std::cout << __PRETTY_FUNCTION__
+            << " - ERROR - gGeoManager is overridden by another TGeoManager. "
+            << "Please avoid using multiple TGeoManager in processing. Stop the process."
+            << std::endl;
+  exit(1);
+  return false;
 }

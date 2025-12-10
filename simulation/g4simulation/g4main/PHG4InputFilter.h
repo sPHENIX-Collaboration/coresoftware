@@ -13,7 +13,7 @@ class PHG4InputFilter : public SubsysReco
 {
  public:
   PHG4InputFilter(const std::string &name = "G4INPUTFILTER");
-  ~PHG4InputFilter() override {}
+  ~PHG4InputFilter() override = default;
 
   int process_event(PHCompositeNode *topNode) override;
 
@@ -29,10 +29,10 @@ class PHG4InputFilter : public SubsysReco
 
  protected:
   double get_eta(const double x, const double y, const double z);
-  double etamin;
-  double etamax;
-  double ptmin;
-  double ptmax;
+  double etamin{std::numeric_limits<double>::quiet_NaN()};
+  double etamax{std::numeric_limits<double>::quiet_NaN()};
+  double ptmin{std::numeric_limits<double>::quiet_NaN()};
+  double ptmax{std::numeric_limits<double>::quiet_NaN()};
 };
 
 #endif

@@ -1,16 +1,5 @@
 #include "PHG4EventHeaderv1.h"
 
-#include <cmath>
-
-using namespace std;
-
-PHG4EventHeaderv1::PHG4EventHeaderv1()
-  : evtseq(-9999)
-  , bimp(NAN)
-  , rplane(NAN)
-{
-}
-
 int PHG4EventHeaderv1::isValid() const
 {
   if (evtseq > 0)
@@ -23,13 +12,13 @@ int PHG4EventHeaderv1::isValid() const
 void PHG4EventHeaderv1::Reset()
 {
   evtseq = -9999;
-  bimp = NAN;
-  rplane = NAN;
+  bimp = std::numeric_limits<float>::quiet_NaN();
+  rplane = std::numeric_limits<float>::quiet_NaN();
 }
 
 void PHG4EventHeaderv1::identify(std::ostream& os) const
 {
   os << "identify yourself: PHG4EventHeaderv1: evtseq: "
      << evtseq << ", bimp: " << bimp << ", rplane angle: " << rplane
-     << endl;
+     << std::endl;
 }

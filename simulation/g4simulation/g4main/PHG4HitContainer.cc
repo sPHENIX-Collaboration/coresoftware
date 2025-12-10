@@ -9,19 +9,9 @@
 
 #include <cstdlib>
 
-using namespace std;
-
-PHG4HitContainer::PHG4HitContainer()
-  : id(-1)
-  , hitmap()
-  , layers()
-{
-}
-
 PHG4HitContainer::PHG4HitContainer(const std::string &nodename)
   : id(PHG4HitDefs::get_volume_id(nodename))
-  , hitmap()
-  , layers()
+
 {
 }
 
@@ -35,20 +25,20 @@ void PHG4HitContainer::Reset()
   return;
 }
 
-void PHG4HitContainer::identify(ostream &os) const
+void PHG4HitContainer::identify(std::ostream &os) const
 {
   ConstIterator iter;
-  os << "Number of hits: " << size() << endl;
+  os << "Number of hits: " << size() << std::endl;
   for (iter = hitmap.begin(); iter != hitmap.end(); ++iter)
   {
-    os << "hit key 0x" << hex << iter->first << dec << endl;
+    os << "hit key 0x" << std::hex << iter->first << std::dec << std::endl;
     (iter->second)->identify();
   }
-  set<unsigned int>::const_iterator siter;
-  os << "Number of layers: " << num_layers() << endl;
+  std::set<unsigned int>::const_iterator siter;
+  os << "Number of layers: " << num_layers() << std::endl;
   for (siter = layers.begin(); siter != layers.end(); ++siter)
   {
-    os << "layer : " << *siter << endl;
+    os << "layer : " << *siter << std::endl;
   }
   return;
 }
@@ -82,24 +72,24 @@ PHG4HitContainer::genkey(const unsigned int detid)
   PHG4HitDefs::keytype detidlong = detid;
   if ((detidlong >> PHG4HitDefs::keybits) > 0)
   {
-    cout << PHWHERE << " detector id too large: " << detid << endl;
+    std::cout << PHWHERE << " detector id too large: " << detid << std::endl;
     gSystem->Exit(1);
   }
   PHG4HitDefs::keytype shiftval = detidlong << PHG4HitDefs::hit_idbits;
-  //  cout << "max index: " << (detminmax->second)->first << endl;
+  //  std::cout << "max index: " << (detminmax->second)->first << std::endl;
   // after removing hits with no energy deposition, we have holes
   // in our hit ranges. This construct will get us the last hit in
   // a layer and return it's hit id. Adding 1 will put us at the end of this layer
   PHG4HitDefs::keytype hitid = getmaxkey(detid);
   hitid++;
   PHG4HitDefs::keytype newkey = hitid | shiftval;
-  if (hitmap.find(newkey) != hitmap.end())
+  if (hitmap.contains(newkey))
   {
-    cout << PHWHERE << " duplicate key: 0x"
-         << hex << newkey << dec
-         << " for detector " << detid
-         << " hitmap.size: " << hitmap.size()
-         << " hitid: " << hitid << " exiting now" << endl;
+    std::cout << PHWHERE << " duplicate key: 0x"
+              << std::hex << newkey << std::dec
+              << " for detector " << detid
+              << " hitmap.size: " << hitmap.size()
+              << " hitid: " << hitid << " exiting now" << std::endl;
     exit(1);
   }
   return newkey;
@@ -109,9 +99,9 @@ PHG4HitContainer::ConstIterator
 PHG4HitContainer::AddHit(PHG4Hit *newhit)
 {
   PHG4HitDefs::keytype key = newhit->get_hit_id();
-  if (hitmap.find(key) != hitmap.end())
+  if (hitmap.contains(key))
   {
-    cout << "hit with id  0x" << hex << key << dec << " exists already" << endl;
+    std::cout << "hit with id  0x" << std::hex << key << std::dec << " exists already" << std::endl;
     return hitmap.find(key);
   }
   PHG4HitDefs::keytype detidlong = key >> PHG4HitDefs::hit_idbits;
@@ -134,7 +124,7 @@ PHG4HitContainer::ConstRange PHG4HitContainer::getHits(const unsigned int detid)
   PHG4HitDefs::keytype detidlong = detid;
   if ((detidlong >> PHG4HitDefs::keybits) > 0)
   {
-    cout << " detector id too large: " << detid << endl;
+    std::cout << " detector id too large: " << detid << std::endl;
     exit(1);
   }
   PHG4HitDefs::keytype keylow = detidlong << PHG4HitDefs::hit_idbits;
@@ -195,7 +185,7 @@ void PHG4HitContainer::RemoveZeroEDep()
     }
   }
   //   unsigned int hitsafter = hitmap.size();
-  //   cout << "hist before: " << hitsbef
-  //        << ", hits after: " << hitsafter << endl;
+  //   std::cout << "hist before: " << hitsbef
+  //        << ", hits after: " << hitsafter << std::endl;
   return;
 }

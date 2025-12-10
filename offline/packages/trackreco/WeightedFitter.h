@@ -5,6 +5,8 @@
 // #include <trackbase/ClusterErrorPara.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <trackbase_historic/WeightedTrack.h>
+
 // #include <tpc/TpcClusterZCrossingCorrection.h>
 #include <tpc/TpcGlobalPositionWrapper.h>
 
@@ -17,6 +19,7 @@
 #include <array>
 #include <functional>
 #include <type_traits>
+#include <set>
 
 class PHCompositeNode;
 class ActsGeometry;
@@ -28,7 +31,6 @@ class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
 class WeightedTrackMap;
-class WeightedTrack;
 
 class TFile;
 class TNtuple;
@@ -51,8 +53,22 @@ public:
 	void set_silicon_track_seed_container_node_name (std::string const& name) { m_silicon_track_seed_container_node_name = name; }
 	void set_tpc_track_seed_container_node_name (std::string const& name) { m_tpc_track_seed_container_node_name = name; }
 
+	/// Set the minimum number of clusters for the track to be used
+	void set_min_num_mvtx (int num_mvtx) { m_min_num_mvtx = num_mvtx; }
+	void set_min_num_intt (int num_intt) { m_min_num_intt = num_intt; }
+	void set_min_num_tpc (int num_tpc) { m_min_num_tpc = num_tpc; }
+	void set_min_num_tpot (int num_tpot) { m_min_num_tpot = num_tpot; }
+
 	void use_vertex (bool const& use_vertex = true) { m_use_vertex = use_vertex; }
 	void set_vertex_node_name (std::string const& name) { m_vertex_map_node_name = name; }
+
+	// Set which layers to use in the fit (added to the WeightedTrack)
+	void exclude_layer_in_fit (int layer) { m_fit_excluded_layers.insert(layer); m_fit_included_layers.erase(layer); }
+	void include_layer_in_fit (int layer) { m_fit_included_layers.insert(layer); m_fit_excluded_layers.erase(layer); }
+
+	/// Set which layers to use in output SvtxTracks, SvtxAlignmentStates
+	void exclude_layer_in_output (int layer) { m_output_excluded_layers.insert(layer); m_output_included_layers.erase(layer); }
+	void include_layer_in_output (int layer) { m_output_included_layers.insert(layer); m_output_excluded_layers.erase(layer); }
 
 	/// Set the type of tracks to use for the fit via a template argument
 	/// By default, WeightedFitterZeroField tracks are used
@@ -70,6 +86,7 @@ public:
 	/// Output setting methods
 	void set_track_map_node_name (std::string const& name) { m_track_map_node_name = name; }
 	void set_alignment_map_node_name (std::string const& name) { m_alignment_map_node_name = name; }
+	void set_weighted_track_map_node_name (std::string const& name) { m_weighted_track_map_node_name = name; }
 
 	void set_ntuple_file_name (std::string const& name) { m_ntuple_file_name = name; }
 	void reassign_cluster_sides (bool reassign_sides = true) { m_reassign_sides = reassign_sides; }
@@ -84,6 +101,8 @@ private:
 	bool do_fit();
 	bool refit_with_vertex();
 	bool add_track();
+
+	Eigen::Matrix4d param_cov{Eigen::Matrix4d::Zero()};
 
 	std::string m_ntuple_file_name{}; // empty--by default do not make it
 	TFile* m_file{};
@@ -119,6 +138,18 @@ private:
 	std::string m_alignment_map_node_name{"WeightedFitterAlignmentStateMap"};
 	SvtxAlignmentStateMap* m_alignment_map{};
 
+	std::string m_weighted_track_map_node_name{"WeightedFitterWeightedTrackMap"};
+	WeightedTrackMap* m_weighted_track_map{};
+
+	// Layers to use in the fit (added to the WeightedTrack)
+	std::set<int> m_fit_included_layers;
+	std::set<int> m_fit_excluded_layers;
+
+	/// Layers to use in output SvtxTracks, SvtxAlignmentStates
+	std::set<int> m_output_included_layers;
+	std::set<int> m_output_excluded_layers;
+	std::vector<ClusterFitPoint> m_output_cluster_fit_points{};
+
 	int m_track_id{0};
 	int m_crossing{SHRT_MAX};
 	std::vector<TrkrDefs::cluskey> m_cluster_keys;
@@ -131,7 +162,13 @@ private:
 	int m_num_mvtx{0};
 	int m_num_intt{0};
 	int m_num_tpc{0};
+	int m_num_tpot{0};
 	int m_side{-1};
+
+	int m_min_num_mvtx{0}; // 3
+	int m_min_num_intt{0}; // 2
+	int m_min_num_tpc{0}; // 20
+	int m_min_num_tpot{0}; // 0
 
 	TpcGlobalPositionWrapper m_global_position_wrapper;
 	// ClusterErrorPara m_cluster_error_para;

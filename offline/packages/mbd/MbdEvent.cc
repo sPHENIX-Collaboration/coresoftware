@@ -75,7 +75,7 @@ MbdEvent::MbdEvent(const int cal_pass, const bool proc_charge) :
     name += std::to_string(iarm);
     title = "bbc times, arm ";
     title += std::to_string(iarm);
-    hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -50., 50.);
+    hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -25., 25.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
 
@@ -384,7 +384,7 @@ void MbdEvent::Clear()
     m_bbcte[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
     m_bbctl[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
     hevt_bbct[iarm]->Reset();
-    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-50, 50);
+    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-25, 25);
   }
 
   // Reset end product to prepare next event
@@ -1030,7 +1030,8 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
     gausfit[iarm]->SetParameter(0, 5);
     gausfit[iarm]->SetParameter(1, mean);
     gausfit[iarm]->SetParameter(2, rms);
-    gausfit[iarm]->SetRange(rmin,rmax);
+    double binwid = hevt_bbct[iarm]->GetBinWidth(1);
+    gausfit[iarm]->SetRange(rmin-binwid,rmax+binwid);
     // gausfit[iarm]->SetParameter(1, earliest);
     // gausfit[iarm]->SetRange(6, earliest + 5 * 0.05);
     /*
@@ -1188,7 +1189,7 @@ void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& 
 
   if ( npts>1.0 )
   {
-    rms = sqrt( (sum2/npts) - (mean*mean) );
+    rms = std::max( sqrt( (sum2/npts) - (mean*mean) ), 0.05);
   }
   else
   {

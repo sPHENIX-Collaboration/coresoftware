@@ -103,12 +103,13 @@ libphg4hit_la_SOURCES = \
   PHG4VtxPointv2.cc
 
 libg4testbench_la_SOURCES = \
+  CosmicSpray.cc \
   Fun4AllMessenger.cc \
-  G4TBMagneticFieldSetup.cc \
-  G4TBFieldMessenger.cc \
   Fun4AllDstPileupInputManager.cc \
   Fun4AllDstPileupMerger.cc \
   Fun4AllSingleDstPileupInputManager.cc \
+  G4TBMagneticFieldSetup.cc \
+  G4TBFieldMessenger.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
   PHG4DisplayAction.cc \
@@ -148,8 +149,7 @@ libg4testbench_la_SOURCES = \
   PHG4TruthTrackingAction.cc \
   PHG4UIsession.cc \
   PHG4Utils.cc \
-  PHG4VertexSelection.cc \
-  CosmicSpray.cc
+  PHG4VertexSelection.cc
 
 
 ##############################################

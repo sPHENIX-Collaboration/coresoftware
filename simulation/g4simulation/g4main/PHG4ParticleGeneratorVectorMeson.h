@@ -6,6 +6,7 @@
 #include "PHG4ParticleGeneratorBase.h"
 
 #include <cmath>
+#include <limits>
 #include <map>
 #include <string>  // for string
 
@@ -102,10 +103,10 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   double mom_max = 10.;
   double pt_min = 4.;
   double pt_max = 4.;
-  double mass = NAN;
-  double m_Width = NAN;
-  double m1 = NAN;
-  double m2 = NAN;
+  double mass = std::numeric_limits<double>::quiet_NaN();
+  double m_Width = std::numeric_limits<double>::quiet_NaN();
+  double m1 = std::numeric_limits<double>::quiet_NaN();
+  double m2 = std::numeric_limits<double>::quiet_NaN();
   int _histrand_init = 0;
   std::string decay1 = "e+";
   std::string decay2 = "e-";

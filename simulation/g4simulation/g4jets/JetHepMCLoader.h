@@ -8,8 +8,8 @@
  * \date $Date: $
  */
 
-#ifndef G4JET_JETHEPMCLOADER_H
-#define G4JET_JETHEPMCLOADER_H
+#ifndef G4JETS_JETHEPMCLOADER_H
+#define G4JETS_JETHEPMCLOADER_H
 
 #include <jetbase/Jet.h>
 
@@ -77,7 +77,7 @@ class JetHepMCLoader : public SubsysReco
 
   std::string m_jetInputCategory;
 
-  bool m_saveQAPlots = false;
+  bool m_saveQAPlots {false};
 
   struct hepmc_jet_src
   {
@@ -105,4 +105,4 @@ class JetHepMCLoader : public SubsysReco
   std::vector<hepmc_jet_src> m_jetSrc;
 };
 
-#endif /* JETHEPMCLOADER_H_ */
+#endif /* G4JETS_JETHEPMCLOADER_H */

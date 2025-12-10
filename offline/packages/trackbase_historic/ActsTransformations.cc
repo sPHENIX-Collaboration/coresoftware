@@ -285,80 +285,101 @@ void ActsTransformations::calculateDCA(const Acts::BoundTrackParameters& param,
   dca3DzCov = rotCov(2, 2);
 }
 
-void ActsTransformations::fillSvtxTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
-                                              const size_t& trackTip,
-                                              SvtxTrack* svtxTrack,
-                                              Acts::GeometryContext& geoContext) const
+void ActsTransformations::fillSvtxTrackStates(
+  const Acts::ConstVectorMultiTrajectory& traj,
+  const size_t& trackTip,
+  SvtxTrack* svtxTrack,
+  const Acts::GeometryContext& geoContext) const
 {
   traj.visitBackwards(trackTip, [&](const auto& state)
-                      {
-    
-      /// Only fill the track states with non-outlier measurement
-      const auto typeFlags = state.typeFlags();
-      if( !typeFlags.test(Acts::TrackStateFlag::MeasurementFlag) )
-      { return true; }
-      
-      // only fill for state vectors with proper smoothed parameters
-      if( !state.hasSmoothed()) { return true;
+  {
+
+    /// Only fill the track states with non-outlier measurement
+    const auto typeFlags = state.typeFlags();
+    if( !typeFlags.test(Acts::TrackStateFlag::MeasurementFlag) )
+    { return true; }
+
+    // only fill for state vectors with proper smoothed parameters
+    if( !state.hasSmoothed()) { return true;
+  }
+
+  // create svtx state vector with relevant pathlength
+  const float pathlength = state.pathLength() / Acts::UnitConstants::cm;
+
+  // get smoothed fitted parameters
+  const Acts::BoundTrackParameters params(
+    state.referenceSurface().getSharedPtr(),
+    state.smoothed(),
+    state.smoothedCovariance(),
+    Acts::ParticleHypothesis::pion());
+
+  // get source link and key
+  const auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
+  const auto key = sourceLink.cluskey();
+
+  // add track state
+  addTrackState( svtxTrack,key,pathlength,params, geoContext );
+
+  return true; });
 }
 
-      // create svtx state vector with relevant pathlength
-      const float pathlength = state.pathLength() / Acts::UnitConstants::cm;  
-      SvtxTrackState_v3 out( pathlength );
-    
-      // get smoothed fitted parameters
-      const Acts::BoundTrackParameters params(
-        state.referenceSurface().getSharedPtr(),
-        state.smoothed(),
-        state.smoothedCovariance(),
-        Acts::ParticleHypothesis::pion());
+//_______________________________________________________________________________________________________
+void ActsTransformations::addTrackState(
+  SvtxTrack* track,
+  TrkrDefs::cluskey key,
+  float pathlength,
+  const Acts::BoundTrackParameters& params,
+  const Acts::GeometryContext& geoContext) const
+{
+  // create track state
+  SvtxTrackState_v3 state(pathlength);
 
-      // local position
-      const auto localX = params.parameters()[Acts::eBoundLoc0];
-      const auto localY = params.parameters()[Acts::eBoundLoc1];
-      out.set_localX(localX / Acts::UnitConstants::cm);
-      out.set_localY(localY / Acts::UnitConstants::cm);
-      
-      // global position
-      const auto global = params.position(geoContext);
-      out.set_x(global.x() / Acts::UnitConstants::cm);
-      out.set_y(global.y() / Acts::UnitConstants::cm);
-      out.set_z(global.z() / Acts::UnitConstants::cm);
+  // local position
+  const auto localX = params.parameters()[Acts::eBoundLoc0];
+  const auto localY = params.parameters()[Acts::eBoundLoc1];
+  state.set_localX(localX / Acts::UnitConstants::cm);
+  state.set_localY(localY / Acts::UnitConstants::cm);
 
-      // momentum
-      const auto momentum = params.momentum();
-      out.set_px(momentum.x());
-      out.set_py(momentum.y());
-      out.set_pz(momentum.z());
-      auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
-      out.set_cluskey(sourceLink.cluskey());
-      
-      /// covariance    
-      const auto globalCov = rotateActsCovToSvtxTrack(params);
-      for (int i = 0; i < 6; ++i) {
-        for (int j = 0; j < 6; ++j)
-      { out.set_error(i, j, globalCov(i,j)); }
-}
+  // global position
+  const auto global = params.position(geoContext);
+  state.set_x(global.x() / Acts::UnitConstants::cm);
+  state.set_y(global.y() / Acts::UnitConstants::cm);
+  state.set_z(global.z() / Acts::UnitConstants::cm);
 
-      // print
-      if(m_verbosity > 20)
-      {
-        std::cout << " inserting state with x,y,z ="
-          << " " << global.x() /  Acts::UnitConstants::cm 
-          << " " << global.y() /  Acts::UnitConstants::cm 
-          << " " << global.z() /  Acts::UnitConstants::cm 
-	  << " " << " localX, localY "
-	  << " " << localX / Acts::UnitConstants::cm
-	  << " " << localY / Acts::UnitConstants::cm
-	  << " pathlength " << pathlength
-          << " momentum px,py,pz = " <<  momentum.x() << "  " <<  momentum.y() << "  " << momentum.y()  
-		  << std::endl
-          << "covariance " << globalCov << std::endl; 
-      }
+  // save momentum
+  const auto momentum = params.momentum();
+  state.set_px(momentum.x());
+  state.set_py(momentum.y());
+  state.set_pz(momentum.z());
 
-      svtxTrack->insert_state(&out);      
-  
-      return true; });
+  // covariance
+  const auto globalCov = rotateActsCovToSvtxTrack(params);
+  for (int i = 0; i < 6; ++i)
+  {
+    for (int j = 0; j < 6; ++j)
+    {
+      state.set_error(i, j, globalCov(i, j));
+    }
+  }
 
-  return;
+  state.set_name(std::to_string(key));
+  state.set_cluskey(key);
+
+  // print
+  if(m_verbosity > 20)
+  {
+    std::cout << " inserting state with x,y,z ="
+      << " " << global.x() /  Acts::UnitConstants::cm
+      << " " << global.y() /  Acts::UnitConstants::cm
+      << " " << global.z() /  Acts::UnitConstants::cm
+      << " " << " localX, localY "
+      << " " << localX / Acts::UnitConstants::cm
+      << " " << localY / Acts::UnitConstants::cm
+      << " pathlength " << pathlength
+      << " momentum px,py,pz = " <<  momentum.x() << "  " <<  momentum.y() << "  " << momentum.y()
+      << std::endl
+      << "covariance " << globalCov << std::endl;
+  }
+
+  track->insert_state(&state);
 }
