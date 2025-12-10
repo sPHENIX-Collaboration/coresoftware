@@ -11,6 +11,7 @@ namespace RunnumberRange
   static const int RUN3_TPCFW_CLOCK_CHANGE = 58667;
   static const int RUN3AUAU_FIRST = 66457;
   static const int RUN3AUAU_LAST = 20000000;
+  static const int RUN3PP_FIRST = 79145;
 }
 
 #endif
