@@ -47,10 +47,35 @@ void QAKFParticleTrackPtAsymmetry::bookHistograms(Fun4AllHistoManager *hm)
     h_trackPtAsymmetry = new TH1F(TString(m_prefix) + "TrackPtAsymmetry", ";#Delta p_{T}(trk1, trk2)/#Sigma p_{T}(trk1, trk2);Entries", 100, -1.0, 1.0);
     hm->registerHisto(h_trackPtAsymmetry);
 
-    h2_trackPtAsymmetry_vs_mass = new TH2F(TString(m_prefix) + "TrackPtAsymmetry_vs_Mass", ";#Delta p_{T}(trk1, trk2)/#Sigma p_{T}(trk1, trk2);Mass [GeV/c^{2}]", 100, -1.0, 1.0, 100, m_min_mass, m_max_mass);
+    h2_trackPtAsymmetry_vs_mass = new TH2F(TString(m_prefix) + "TrackPtAsymmetry_vs_Mass", ";#Delta p_{T}(trk1, trk2)/#Sigma p_{T}(trk1, trk2);Mass [GeV]", 100, -1.0, 1.0, 100, m_min_mass, m_max_mass);
     hm->registerHisto(h2_trackPtAsymmetry_vs_mass);
 
     // differential histograms in (eta, phi) bins
+    for (size_t i = 0; i < m_mother_eta_bins.size() - 1; ++i)
+    {
+        std::vector<TH2 *> phi_bin_histos;
+        for (size_t j = 0; j < m_mother_phi_bins.size() - 1; ++j)
+        {
+            std::string histo_name = TString::Format("%sTrackPtAsymmetry_eta%.2f_%.2f_phi%.2f_%.2f", //
+                                                     m_prefix.c_str(),                          //
+                                                     m_mother_eta_bins[i],                      //
+                                                     m_mother_eta_bins[i + 1],                  //
+                                                     m_mother_phi_bins[j],                      //
+                                                     m_mother_phi_bins[j + 1])
+                                         .Data();
+            TH2 *h2 = new TH2F(histo_name.c_str(),
+                               TString::Format(";#Delta p_{T}(trk1, trk2)/#Sigma p_{T}(trk1, trk2);Mass [GeV]"),
+                               100,
+                               -1.0,
+                               1.0,
+                               100,
+                               m_min_mass,
+                               m_max_mass);
+            hm->registerHisto(h2);
+            phi_bin_histos.push_back(h2);
+        }
+        h2_trackPtAsymmetry_eta_phi_bins.push_back(phi_bin_histos);
+    }
 }
 
 void QAKFParticleTrackPtAsymmetry::analyzeTrackPtAsymmetry(SvtxTrackMap *m_trackMap, KFParticle *mother)
@@ -149,5 +174,30 @@ void QAKFParticleTrackPtAsymmetry::analyzeTrackPtAsymmetry(SvtxTrackMap *m_track
     if (h2_trackPtAsymmetry_vs_mass)
     {
         h2_trackPtAsymmetry_vs_mass->Fill(pt_asymmetry, mother->GetMass());
+    }
+
+    // fill differential histograms in (eta, phi) bins
+    float mother_eta = 0;
+    float mother_eta_err = 0;
+    mother->GetEta(mother_eta, mother_eta_err);
+    float mother_phi = 0;
+    float mother_phi_err = 0;
+    mother->GetPhi(mother_phi, mother_phi_err);
+    for (size_t i = 0; i < m_mother_eta_bins.size() - 1; ++i)
+    {
+        if (mother_eta >= m_mother_eta_bins[i] && mother_eta < m_mother_eta_bins[i + 1])
+        {
+            for (size_t j = 0; j < m_mother_phi_bins.size() - 1; ++j)
+            {
+                if (mother_phi >= m_mother_phi_bins[j] && mother_phi < m_mother_phi_bins[j + 1])
+                {
+                    TH2 *h2 = h2_trackPtAsymmetry_eta_phi_bins[i][j];
+                    if (h2)
+                    {
+                        h2->Fill(pt_asymmetry, mother->GetMass());
+                    }
+                }
+            }
+        }
     }
 }
