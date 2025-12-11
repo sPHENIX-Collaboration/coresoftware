@@ -317,6 +317,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   Eigen::Vector3d actsTranslationPart = actsTransform.translation();
 
   // Create  alignment local coordinates rotation matrix
+  // the measurement is in the local XY plane, which becomes the global xz plane
   Eigen::AngleAxisd alpha(sensorAngles(0), Eigen::Vector3d::UnitX());
   Eigen::AngleAxisd beta(sensorAngles(1), Eigen::Vector3d::UnitY());
   Eigen::AngleAxisd gamma(sensorAngles(2), Eigen::Vector3d::UnitZ());
