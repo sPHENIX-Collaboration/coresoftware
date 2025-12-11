@@ -1,4 +1,5 @@
 #include "QAKFParticle.h"
+#include "QAKFParticleTrackPtAsymmetry.h"
 
 #include <qautils/QAHistManagerDef.h>  // for getHistoManager
 
@@ -46,8 +47,6 @@
 #include <string>
 #include <utility>  // for pair
 #include <vector>
-
-#include "QAKFParticleTrackPtAsymmetry.h"
 
 KFParticle_Tools kfpTools;
 
