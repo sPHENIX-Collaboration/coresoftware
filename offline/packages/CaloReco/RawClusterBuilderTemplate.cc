@@ -770,13 +770,8 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
             {
               // Use explicit property IDs so this compiles even when the
               // RawCluster header does not yet define the named incidence enums.
-              constexpr RawCluster::PROPERTY kPropIncidenceAlphaPhi =
-                  static_cast<RawCluster::PROPERTY>(45);
-              constexpr RawCluster::PROPERTY kPropIncidenceAlphaEta =
-                  static_cast<RawCluster::PROPERTY>(46);
-
-              cluster->set_property(kPropIncidenceAlphaPhi, a_phi_sgn);
-              cluster->set_property(kPropIncidenceAlphaEta, a_eta_sgn);
+              cluster->set_property(RawCluster::prop_incidence_alpha_phi, a_phi_sgn);
+              cluster->set_property(RawCluster::prop_incidence_alpha_eta, a_eta_sgn);
             }
           }
         }
