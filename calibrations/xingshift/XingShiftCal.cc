@@ -2,7 +2,7 @@
 
 #include <cdbobjects/CDBTTree.h>
 
-#include <ffamodules/DBInterface.h>
+#include <fun4all/DBInterface.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -17,14 +17,12 @@
 #include <TCanvas.h>
 #include <TH1.h>
 
-#include <odbc++/connection.h>
-#include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>
-#include <odbc++/types.h>
 
 #include <format>
 #include <iostream>
+#include <memory>
 
 XingShiftCal::XingShiftCal(const std::string &name, const int poverwriteSpinEntry)
   : SubsysReco(name)
@@ -286,18 +284,6 @@ int XingShiftCal::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int XingShiftCal::ResetEvent(PHCompositeNode * /*topNode*/)
-{
-  // std::cout << "XingShiftCal::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-/*
-int XingShiftCal::EndRun(const int runnumber)
-{
-  std::cout << "XingShiftCal::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-*/
 int XingShiftCal::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "XingShiftCal::End(PHCompositeNode *topNode) This is the End..." << std::endl;
@@ -511,15 +497,12 @@ int XingShiftCal::CommitToSpinDB()
   //=============== connect to daq db to get gl1p scalers ===============
   std::string daqdbname = "daq";
 
-  std::ostringstream sqlGL1PSelect;
-  sqlGL1PSelect << "SELECT index, bunch, scaled FROM gl1_pscalers"
-                << " WHERE runnumber = " << runnumber
-                << ";";
+  std::string sqlGL1PSelect = "SELECT index, bunch, scaled FROM gl1_pscalers WHERE runnumber = " + std::to_string(runnumber);
   odbc::Statement *stmtGL1PSelect = DBInterface::instance()->getStatement(daqdbname);
-  odbc::ResultSet *rsGL1P = nullptr;
+  std::unique_ptr<odbc::ResultSet> rsGL1P;
   try
   {
-    rsGL1P = stmtGL1PSelect->executeQuery(sqlGL1PSelect.str());
+    rsGL1P = std::unique_ptr<odbc::ResultSet>(stmtGL1PSelect->executeQuery(sqlGL1PSelect));
   }
   catch (odbc::SQLException &eGL1P)
   {
@@ -548,7 +531,7 @@ int XingShiftCal::CommitToSpinDB()
       zdcns[bunch] = rsGL1P->getInt("scaled");
     }
   }
-  delete rsGL1P;
+
   // =======================================================
 
   // if (verbosity) {
@@ -627,17 +610,14 @@ int XingShiftCal::CommitToSpinDB()
 
   // check if this run already exists in spin_oncal
   bool runExists = false;
-  std::ostringstream sqlSpinSelect;
-  sqlSpinSelect << "SELECT runnumber, qa_level FROM " << dbtable
-                << " WHERE runnumber = " << runnumber
-                << " AND qa_level = " << qa_level
-                << ";";
+  std::string sqlSpinSelect = "SELECT runnumber, qa_level FROM " + dbtable + " WHERE runnumber = " + std::to_string(runnumber) + " AND qa_level = " + std::to_string(qa_level);
+
   // if (verbosity) cout<<sqlSpinSelect.str()<<endl;
   odbc::Statement *stmtSpinSelect = DBInterface::instance()->getStatement(dbname);
-  odbc::ResultSet *rsSpin = nullptr;
+  std::unique_ptr<odbc::ResultSet> rsSpin;
   try
   {
-    rsSpin = stmtSpinSelect->executeQuery(sqlSpinSelect.str());
+    rsSpin = std::unique_ptr<odbc::ResultSet>(stmtSpinSelect->executeQuery(sqlSpinSelect));
   }
   catch (odbc::SQLException &e)
   {
@@ -664,7 +644,7 @@ int XingShiftCal::CommitToSpinDB()
                 << ", ready to INSERT" << std::endl;
     }
   }
-  delete rsSpin;
+
   if (runExists && !overwriteSpinEntry)
   {
     std::cout << "BUT overwriteSpinEntry = " << overwriteSpinEntry << std::endl;
@@ -831,7 +811,6 @@ int XingShiftCal::CommitToSpinDB()
   // if (verbosity) cout<<"spin db done"<<endl;
   commitSuccessSpinDB = 1;
 
-
   // ========== Do spin db qa here =========== //
   SpinDBQA();
   // ========================================= //
@@ -851,22 +830,15 @@ int XingShiftCal::SpinDBQA()
   // check if this run already exists in spin_oncal and get badrun value if it exists
   bool runExists = false;
   int prevbadrunval = 0;
-  std::ostringstream sqlSpinSelect;
-  sqlSpinSelect << "SELECT runnumber, qa_level, badrunqa FROM " << dbtable
-                << " WHERE runnumber = " << runnumber
-                << " AND qa_level = " << qa_level
-                << ";";
+  std::string sqlSpinSelect = "SELECT runnumber, qa_level, badrunqa FROM " + dbtable + " WHERE runnumber = " + std::to_string(runnumber) + " AND qa_level = " + std::to_string(qa_level);
 
-  std::cout << "SELECT runnumber, qa_level, badrunqa FROM " << dbtable
-            << " WHERE runnumber = " << runnumber
-            << " AND qa_level = " << qa_level
-            << ";" << std::endl;
+  std::cout << sqlSpinSelect << std::endl;
 
   odbc::Statement *stmtSpinSelect = DBInterface::instance()->getStatement(dbname);
-  odbc::ResultSet *rsSpin = nullptr;
+  std::unique_ptr<odbc::ResultSet> rsSpin;
   try
   {
-    rsSpin = stmtSpinSelect->executeQuery(sqlSpinSelect.str());
+    rsSpin = std::unique_ptr<odbc::ResultSet>(stmtSpinSelect->executeQuery(sqlSpinSelect));
   }
   catch (odbc::SQLException &e)
   {
@@ -898,7 +870,7 @@ int XingShiftCal::SpinDBQA()
                 << ", no QA" << std::endl;
     }
   }
-  delete rsSpin;
+
   int badrunQA = 0;
 
   if (prevbadrunval > 0)
@@ -1030,25 +1002,16 @@ int XingShiftCal::SpinDBQA()
   dbtable = "spin";
   if (runExists)
   {
-    std::cout << "UPDATE " << dbtable
-              << " SET badrunqa = " << badrunQA
-              << " WHERE runnumber = " << runnumber
-              << " AND qa_level = " << qa_level
-              << ";" << std::endl;
-
     // prepare insert sql
-    std::ostringstream sql;
-    sql << "UPDATE " << dbtable
-        << " SET badrunqa = " << badrunQA
-        << " WHERE runnumber = " << runnumber
-        << " AND qa_level = " << qa_level
-        << ";";
+    std::string sql = "UPDATE " + dbtable + " SET badrunqa = " + std::to_string(badrunQA) + " WHERE runnumber = " + std::to_string(runnumber) + " AND qa_level = " + std::to_string(qa_level);
+
+    std::cout << sql << std::endl;
 
     // exec sql
     odbc::Statement *stmtSpin = DBInterface::instance()->getStatement(dbname);
     try
     {
-      stmtSpin->executeUpdate(sql.str());
+      stmtSpin->executeUpdate(sql);
     }
     catch (odbc::SQLException &e)
     {
@@ -1077,17 +1040,4 @@ std::string XingShiftCal::SQLArrayConstF(float x, int n)
   }
   s << "}'";
   return s.str();
-}
-
-//____________________________________________________________________________..
-int XingShiftCal::Reset(PHCompositeNode * /*topNode*/)
-{
-  // std::cout << "XingShiftCal::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-void XingShiftCal::Print(const std::string &what) const
-{
-  std::cout << "XingShiftCal::Print(const std::string &what) const Printing info for " << what << std::endl;
 }

@@ -174,7 +174,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
           unsigned int nvals = val.size();
           for (unsigned int i = 0; i < nvals; i++)
           {
-            val.at(i) = val.at(i) * m_Onnx_factor[i] + m_Onnx_offset[i];
+            val.at(i) = val.at(i) * m_Onnx_factor.at(i) + m_Onnx_offset.at(i);
           }
           val.push_back(2000);
           val.push_back(0);

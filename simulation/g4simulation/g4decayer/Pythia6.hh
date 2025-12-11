@@ -187,7 +187,7 @@ class Pythia6
   // ****** TPYTHIA routines
   //
   int Pycomp(int kf);
-  void Py1ent(int line, int kf, double pe, double theta, double phi);
+  void Py1ent(int ip, int kf, double pe, double theta, double phi);
   ParticleVector* ImportParticles();
   int ImportParticles(ParticleVector* particles, const char* option = "");
 

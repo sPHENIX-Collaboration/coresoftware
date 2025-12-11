@@ -111,6 +111,10 @@ class PHTpcResiduals : public SubsysReco
   void disableAverageCorr() { m_disable_average_corr = true; }
   void disableFluctuationCorr() { m_disable_fluctuation_corr = true; }
 
+  /// modify track map name
+  void setTrackMapName( const std::string& value )
+  { m_trackmapname = value; }
+
  private:
 
   int getNodes(PHCompositeNode *topNode);
@@ -127,6 +131,7 @@ class PHTpcResiduals : public SubsysReco
 
   /// Node information for Acts tracking geometry and silicon+MM
   /// track fit
+  std::string m_trackmapname = "SvtxSiliconMMTrackMap";
   SvtxTrackMap *m_trackMap = nullptr;
   ActsGeometry *m_tGeometry = nullptr;
   TrkrClusterContainer *m_clusterContainer = nullptr;

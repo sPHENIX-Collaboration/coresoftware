@@ -1348,9 +1348,12 @@ int PHCASiliconSeeding::Setup(PHCompositeNode* topNode)  // This is called by ::
   PHTrackSeeding::Setup(topNode);
   auto* recoConsts = recoConsts::instance();
   int runnumber = recoConsts->get_IntFlag("RUNNUMBER");
-
+  float defstrobe = _strobe_width;
   _strobe_width = MvtxRawDefs::getStrobeLength(runnumber) * 10;
-
+  if(std::isnan(_strobe_width))
+  {
+    _strobe_width = defstrobe;
+  }
   // geometry initialization
   int ret = InitializeGeometry(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK)

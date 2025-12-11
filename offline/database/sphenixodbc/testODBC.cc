@@ -1,4 +1,4 @@
-#include <ffamodules/DBInterface.h>
+#include "ODBCInterface.h"
 
 #include <odbc++/connection.h>
 #include <odbc++/resultset.h>
@@ -14,7 +14,7 @@ int main()
   {
     std::cout << "Testing ODBC." << std::endl;
 
-    odbc::Statement* stmt = DBInterface::instance()->getStatement("spinDB");
+    odbc::Statement* stmt = ODBCInterface::instance()->getStatement("spinDB");
     std::string query = "SELECT mbdvtx FROM spin WHERE runnumber = 45876";
 
     odbc::ResultSet* rs = stmt->executeQuery(query);
@@ -42,6 +42,6 @@ int main()
   {
     std::cerr << "SQL Error: " << e.getMessage() << std::endl;
   }
-  delete DBInterface::instance();
+  delete ODBCInterface::instance();
   return 0;
 }

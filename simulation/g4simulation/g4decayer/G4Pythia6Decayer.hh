@@ -83,7 +83,7 @@ class G4Pythia6Decayer : public G4VExtDecayer
   G4int CountProducts(G4int channel, G4int particle);
   void ForceParticleDecay(G4int particle, G4int product, G4int mult);
   void ForceParticleDecay(G4int particle,
-                          G4int* products, G4int* mult, G4int npart);
+                          G4int* products, const G4int* mult, G4int npart);
   void ForceHadronicD();
   void ForceOmega();
   void ForceDecay(EDecayType decayType);

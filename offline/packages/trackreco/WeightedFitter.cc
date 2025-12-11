@@ -9,18 +9,19 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainerv4.h>
 
+#include <micromegas/MicromegasDefs.h>
+
 #include <trackbase_historic/SvtxAlignmentState_v1.h>
 #include <trackbase_historic/SvtxAlignmentStateMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState_v3.h>
 #include <trackbase_historic/SvtxTrackSeed_v1.h>
 #include <trackbase_historic/SvtxTrackSeed_v2.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeed_v1.h>
 #include <trackbase_historic/TrackSeed_v2.h>
 #include <trackbase_historic/TrackSeedContainer.h>
-#include <trackbase_historic/WeightedTrack.h>
 #include <trackbase_historic/WeightedTrackZeroField.h>
 #include <trackbase_historic/WeightedTrackMap.h>
 
@@ -69,7 +70,7 @@ WeightedFitter::WeightedFitter (
 
 WeightedFitter::~WeightedFitter (
 ) {
-	delete m_weighted_track;
+	// delete m_weighted_track; // m_weighted_track_map
 	delete m_minimizer;
 }
 
@@ -148,6 +149,13 @@ WeightedFitter::make_nodes (
 		PHIODataNode<PHObject>* alignment_map_node = new PHIODataNode<PHObject>(m_alignment_map, m_alignment_map_node_name, "PHObject");
 		svtx_node->addNode(alignment_map_node);
 	}
+
+	m_weighted_track_map = findNode::getClass<WeightedTrackMap>(top_node, m_weighted_track_map_node_name);
+	if (!m_weighted_track_map) {
+		m_weighted_track_map = new WeightedTrackMap;
+		PHIODataNode<PHObject>* weighted_track_map_node = new PHIODataNode<PHObject>(m_weighted_track_map, m_weighted_track_map_node_name, "PHObject");
+		svtx_node->addNode(weighted_track_map_node);
+	}
 }
 
 void
@@ -183,6 +191,7 @@ WeightedFitter::make_ntuple (
 		"clusstave:cluschip:clusstrobe:"
 		"clusladderz:clusladderphi:clustimebucket:"
 		"clusside:clussector:"
+		"clussegtype:clustileid:"
 		"cluslx:cluslz:cluselx:cluselz:"
 		"clusgx:clusgy:clusgz:"
 		"statelx:statelz:stateelx:stateelz:"
@@ -240,6 +249,10 @@ WeightedFitter::process_event (
 	}
 
 	m_track_id = 0;
+	m_track_map->Reset();
+	m_alignment_map->Reset();
+	m_weighted_track_map->Reset();
+
 	std::string track_seed_container_node_name{};
 	TrackSeedContainer* track_seed_container{};
 	switch (m_which_tracks) {
@@ -354,9 +367,11 @@ WeightedFitter::get_points (
 	m_num_mvtx = 0;
 	m_num_intt = 0;
 	m_num_tpc = 0;
+	m_num_tpot = 0;
 
-	delete m_weighted_track;
+	// delete m_weighted_track; // the track map owns the object
 	m_weighted_track = m_track_factory();
+	m_output_cluster_fit_points.clear();
 
 	// Assign all clusters (e.g., Si clusters) the same side
 	// Choose mode as the value to set all points to
@@ -390,12 +405,12 @@ WeightedFitter::get_points (
 
 		int layer = TrkrDefs::getLayer(cluster_key);
 
-		// If the user has specified which layers to include, use ONLY those layers
-		if (!m_included_layers.empty() && !m_included_layers.contains(layer)) { continue; }
-		// Skip any layers explicitly excluded by the user
-		if (m_excluded_layers.contains(layer)) { continue; }
-
-		m_weighted_track->push_back(point);
+		// Include the point based on configuration handles
+		// Both (AND) conditions must be met:
+		// * We haven't specified a specific set of layers to include (so by default take all), OR we have explicitly specified to include the current layer
+		// * We haven't explicitly specified to exclude the current layer
+		if ( (m_fit_included_layers.empty() || m_fit_included_layers.contains(layer)) && !m_fit_excluded_layers.contains(layer) ) { m_weighted_track->push_back(point); }
+		if ( (m_output_included_layers.empty() || m_output_included_layers.contains(layer)) && !m_output_excluded_layers.contains(layer) ) { m_output_cluster_fit_points.push_back(point); }
 
 		TrkrDefs::TrkrId trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(cluster_key));
 		switch (trkr_id) {
@@ -460,6 +475,18 @@ WeightedFitter::do_fit (
 
 	double const* params = m_minimizer->X();
 	m_weighted_track->set_parameters(params);
+
+	//double const* errors = m_minimizer->Errors();
+	int nparams = m_weighted_track->get_n_parameters();
+	std::vector<double> cov_vector(nparams * nparams);
+	m_minimizer->GetCovMatrix(cov_vector.data());
+
+	param_cov = Eigen::Matrix4d::Zero();
+	for (int i = 0; i < nparams; ++i) {
+		for (int j = 0; j < nparams; ++j) {
+			param_cov(i, j) = cov_vector[i * nparams + j];
+		}
+	}
 
 	return !fit_succeeded;
 }
@@ -553,16 +580,34 @@ WeightedFitter::add_track (
 	fitted_track.set_pz(slope(2));
 
 	SvtxAlignmentStateMap::StateVec alignment_states;
-	for (auto const& point : *m_weighted_track) {
+	for (auto const& point : m_output_cluster_fit_points) {
 		Acts::Vector3 intersection = m_weighted_track->get_intersection(point.sensor_local_to_global_transform);
+		double path_length = m_weighted_track->get_path_length_of_intersection(point.sensor_local_to_global_transform);
 
-		SvtxTrackState_v1 svtx_track_state(intersection.norm());
+		SvtxTrackState_v3 svtx_track_state(path_length);
 		svtx_track_state.set_x(intersection(0));
 		svtx_track_state.set_y(intersection(1));
 		svtx_track_state.set_z(intersection(2));
 		svtx_track_state.set_px(slope(0));
 		svtx_track_state.set_py(slope(1));
 		svtx_track_state.set_pz(slope(2));
+		svtx_track_state.set_name(std::to_string(point.cluster_key));
+		svtx_track_state.set_cluskey(point.cluster_key);
+
+		Eigen::Matrix<double, 3, 4> Jacobian_fitpars_globpos;
+		for (int i = 0; i < 4; ++i) { Jacobian_fitpars_globpos.col(i) = m_weighted_track->get_partial_derivative(i, path_length); }
+		Eigen::Matrix3d globpos_cov = Jacobian_fitpars_globpos * param_cov * Jacobian_fitpars_globpos.transpose();
+		for (int i = 0; i < 6; ++i) {
+			for (int j = 0; j < 6; ++j) {
+				// use the rotated cluster uncertainties for the spatial component
+				// (these seem to be indices 0, 1, 2 judging by a comment in ActsTransformations.cc:187
+				if (i < 3 && j < 3) {
+					svtx_track_state.set_error(i, j, globpos_cov(i, j));
+				} else {
+					svtx_track_state.set_error(i, j, 0);
+				}
+			}
+		}
 		fitted_track.insert_state(&svtx_track_state);
 
 		auto alignment_state = std::make_unique<SvtxAlignmentState_v1>();
@@ -613,6 +658,8 @@ WeightedFitter::add_track (
 			float time_bucket{-1};
 			float side{-1};
 			float sector{-1};
+			float segtype{-1};
+			float tileid{-1};
 			TrkrDefs::TrkrId trkr_id = static_cast<TrkrDefs::TrkrId>(TrkrDefs::getTrkrId(point.cluster_key));
 			switch (trkr_id) {
 				case TrkrDefs::mvtxId:
@@ -628,6 +675,10 @@ WeightedFitter::add_track (
 				case TrkrDefs::tpcId:
 					side = TpcDefs::getSide(point.cluster_key);
 					sector = TpcDefs::getSectorId(point.cluster_key);
+					break;
+				case TrkrDefs::micromegasId:
+					segtype = (float) MicromegasDefs::getSegmentationType(point.cluster_key);
+					tileid = MicromegasDefs::getTileId(point.cluster_key);
 					break;
 				default:
 					continue;
@@ -663,6 +714,7 @@ WeightedFitter::add_track (
 				stave, chip, strobe,
 				ladder_z, ladder_phi, time_bucket,
 				side, sector,
+				segtype, tileid,
 				(float)cluster_local_position(0), (float)cluster_local_position(1), (float)point.cluster_errors(0), (float)point.cluster_errors(1),
 				(float)point.cluster_position(0), (float)point.cluster_position(1), (float)point.cluster_position(2),
 				(float)intersection_local_position(0), (float)intersection_local_position(1), (float)point.cluster_errors(0), (float)point.cluster_errors(1),
@@ -695,6 +747,7 @@ WeightedFitter::add_track (
 
 	m_track_map->insertWithKey(&fitted_track, m_track_id);
 	m_alignment_map->insertWithKey(m_track_id, alignment_states);
+	m_weighted_track_map->insert({m_track_id, m_weighted_track});
 
 	return false;
 }

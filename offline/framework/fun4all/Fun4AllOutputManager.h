@@ -116,7 +116,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   void SetClosingScript(const std::string &script) { m_RunAfterClosingScript = script; }
   const std::string &GetClosingScript() const {return m_RunAfterClosingScript;}
   void SetClosingScriptArgs(const std::string &args) { m_ClosingArgs = args; }
-  const std::string &GetClosingScriptArgs() { return m_ClosingArgs; }
+  const std::string &GetClosingScriptArgs() const { return m_ClosingArgs; }
   int RunAfterClosing();
   void UseFileRule(bool b = true) { m_UseFileRuleFlag = b; }
   bool ApplyFileRule() const { return m_UseFileRuleFlag; }
