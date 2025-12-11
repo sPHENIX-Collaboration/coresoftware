@@ -26,7 +26,7 @@
 DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
   , m_moduleName(name)
-  , m_etaRange(-1.1, 1.1)
+  , m_etaRange(-0.7, 0.7)
   , m_ptLeadRange(1, 100)
   , m_ptSubRange(1, 100)
   , m_nJet(-1)
@@ -294,7 +294,7 @@ void DijetQA::FindPairs(JetContainer* jets)
       h_Ajj_pt->Fill(pt1, Ajj);
       h_xj_pt->Fill(pt1, xj);
       h_dphi_pt->Fill(pt1, std::abs(dphi));
-      h_dphi_Ajj->Fill(std:;abs(dphi), Ajj);
+      h_dphi_Ajj->Fill(std::abs(dphi), Ajj);
       if (Verbosity() > 2)
       {
         std::cout << "highest pt jet is " << jet_leading->get_pt() << " and highest pt in a pair is " << jet_pair1->get_pt() << std::endl;
