@@ -26,7 +26,7 @@
 DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
   : SubsysReco(name)
   , m_moduleName(name)
-  , m_etaRange(-1.1, 1.1)
+  , m_etaRange(-0.7, 0.7)
   , m_ptLeadRange(1, 100)
   , m_ptSubRange(1, 100)
   , m_nJet(-1)
@@ -79,19 +79,19 @@ int DijetQA::Init(PHCompositeNode* /*topNode*/)
 	h_Ajj=new TH1F(boost::str(boost::format("h_%s_Ajj") % smallModuleName).c_str(), boost::str(boost::format("A_{jj} for identified jet pairs for %s; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
 	h_xj=new TH1F(boost::str(boost::format("h_%s_xj") % smallModuleName).c_str(), boost::str(boost::format("x_{j} for identified jet pairs for %s; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
 	h_pt=new TH1F(boost::str(boost::format("h_%s_pt") % smallModuleName).c_str(), boost::str(boost::format("p_{T} for leading jets in identified pairs for %s; p_{T} [GeV/c]; N_{jet}")% m_recoJetName).c_str(), 70, -0.5, 69.5);
-	h_dphi=new TH1F(boost::str(boost::format("h_%s_dphi")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| for identified jet pairs for %s; |#Delta #phi|; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831);
+	h_dphi=new TH1F(boost::str(boost::format("h_%s_dphi")% smallModuleName).c_str(), boost::str(boost::format("#Delta #varphi for identified jet pairs for %s; #Delta #varphi; N_{pairs}")% m_recoJetName).c_str(), 64, -M_PI, M_PI);
 	h_Ajj_pt=new TH2F(boost::str(boost::format("h_%s_Ajj_pt")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
 	h_xj_pt=new TH2F(boost::str(boost::format("h_%s_xj_pt")% smallModuleName).c_str(), boost::str(boost::format("x_{j} as a function of leading jet $p_{T}$ for %s; p_{T}^{leading} [GeV]; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_dphi_pt=new TH2F(boost::str(boost::format("h_%s_dphi_pt")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| of dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 64, 0, 6.2832);
-	h_dphi_Ajj=new TH2F(boost::str(boost::format("h_%s_dphi_Ajj")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831, 100, -0.005, 0.995);
+	h_dphi_pt=new TH2F(boost::str(boost::format("h_%s_dphi_pt")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| of dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 64, 0, M_PI);
+	h_dphi_Ajj=new TH2F(boost::str(boost::format("h_%s_dphi_Ajj")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 64, 0, M_PI, 100, -0.005, 0.995);
 	h_Ajj_l=new TH1F(boost::str(boost::format("h_%s_Ajj_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} for event leading jet pairs for %s; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
 	h_xj_l=new TH1F(boost::str(boost::format("h_%s_xj_l")% smallModuleName).c_str(), boost::str(boost::format("x_{j} for event leading jet pairs for %s; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 100, -0.005, 0.995);
 	h_pt_l=new TH1F(boost::str(boost::format("h_%s_pt_l")% smallModuleName).c_str(), boost::str(boost::format("p_{T} for leading jets in event leading pair for %s; p_{T} [GeV/c]; N_{jet}")% m_recoJetName).c_str(), 70, -0.5, 69.5);
-	h_dphi_l=new TH1F(boost::str(boost::format("h_%s_dphi_l")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| for leading jet pairs for %s; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831);
+	h_dphi_l=new TH1F(boost::str(boost::format("h_%s_dphi_l")% smallModuleName).c_str(), boost::str(boost::format("#Delta #varphi for leading jet pairs for %s; #Delta #varphi; N_{pairs}")% m_recoJetName).c_str(), 64, -M_PI, M_PI);
 	h_Ajj_pt_l=new TH2F(boost::str(boost::format("h_%s_Ajj_pt_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
 	h_xj_pt_l=new TH2F(boost::str(boost::format("h_%s_xj_pt_l")% smallModuleName).c_str(), boost::str(boost::format("x_{j} of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; x_{j}; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 100, -0.005, 0.995);
-	h_dphi_pt_l=new TH2F(boost::str(boost::format("h_%s_dphi_pt_l")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 64, 0, 6.2831);
-	h_dphi_Ajj_l=new TH2F(boost::str(boost::format("h_%s_dphi_Ajj_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of event leading dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|^{leading}; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 64, 0, 6.2831, 100, -0.005, 0.995);
+	h_dphi_pt_l=new TH2F(boost::str(boost::format("h_%s_dphi_pt_l")% smallModuleName).c_str(), boost::str(boost::format("|#Delta #varphi| of event leading dijet pair as a function of leading jet p_{T} for %s; p_{T}^{leading} [GeV/c]; |#Delta #varphi|; N_{pairs}")% m_recoJetName).c_str(), 70, -0.5, 69.5, 64, 0, M_PI);
+	h_dphi_Ajj_l=new TH2F(boost::str(boost::format("h_%s_dphi_Ajj_l")% smallModuleName).c_str(), boost::str(boost::format("A_{jj} of event leading dijet pair as a function of |#Delta #varphi| for %s; |#Delta #varphi|^{leading}; A_{jj}; N_{pairs}")% m_recoJetName).c_str(), 64, 0, M_PI, 100, -0.005, 0.995);
 	
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -207,7 +207,11 @@ void DijetQA::FindPairs(JetContainer* jets)
       {
         continue;
       }
-      if (std::abs(j2->get_phi() - j1->get_phi()) > M_PI - DeltaPhi)
+      float dphil = j2->get_phi() - j1->get_phi();
+      if (dphil > M_PI) { dphil = 2 * M_PI - dphil;}
+      if (dphil < -M_PI) { dphil = -2*M_PI - dphil;}
+
+      if (std::abs(dphil) > M_PI - DeltaPhi)
       {
         if (j2->get_pt() > j1->get_pt())
         {
@@ -230,7 +234,7 @@ void DijetQA::FindPairs(JetContainer* jets)
           m_ptsl = pt2;
           m_phil = jet_pair1->get_phi();
           m_phisl = jet_pair2->get_phi();
-          m_dphil = m_phil - m_phisl;
+          m_dphil = dphil;
           m_etal = jet_pair1->get_eta();
           m_etasl = jet_pair2->get_eta();
           m_deltaeta = m_etal - m_etasl;
@@ -279,14 +283,14 @@ void DijetQA::FindPairs(JetContainer* jets)
         pt2 = jet_pair2->get_pt();
       }
       float dphi = jet_pair1->get_phi() - jet_pair2->get_phi();
-      if (dphi > M_PI) { dphi = 2 * M_PI - dphi;
-}
+      if (dphi > M_PI) { dphi = 2 * M_PI - dphi;}
+      if (dphi < -M_PI) { dphi = -2*M_PI - dphi;}
       Ajj = (pt1 - pt2) / (pt1 + pt2);
       xj = pt2 / pt1;
       h_Ajj->Fill(Ajj);
       h_xj->Fill(xj);
       h_pt->Fill(pt1);
-      h_dphi->Fill(std::abs(dphi));
+      h_dphi->Fill(dphi);
       h_Ajj_pt->Fill(pt1, Ajj);
       h_xj_pt->Fill(pt1, xj);
       h_dphi_pt->Fill(pt1, std::abs(dphi));
