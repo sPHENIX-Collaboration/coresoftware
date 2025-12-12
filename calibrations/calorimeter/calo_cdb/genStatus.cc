@@ -58,7 +58,7 @@ int GenStatus::readHists(const std::string &input)
 
   if (!outfile.is_open())
   {
-    std::cout << std::format("Error: Unable to open file {} for writing.\n", m_CaloValid_list);
+    std::cout << "Error: Unable to open file " << m_CaloValid_list << " for writing." << std::endl;
     return 1;
   }
 
@@ -172,6 +172,14 @@ int GenStatus::readHists(const std::string &input)
 
   // Close the file
   file.close();
+  outfile.close();
+
+  // Check if the close/flush was successful
+  if (outfile.fail())
+  {
+    std::cout << "Error: Failed to flush/close the file properly: " << m_CaloValid_list << std::endl;
+    return 1;
+  }
 
   return 0;
 }
