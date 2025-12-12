@@ -128,8 +128,10 @@ private:
 
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, bool survey);
 
-  Eigen::Vector3d restoreTpcModuleCenter(float moduleRadius, Eigen::Vector3d& localRotation);
-  
+  Eigen::Vector3d getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation); 
+  void extractModuleCenterPositions();
+  double extractModuleCenter(TrkrDefs::hitsetkey hitsetkey, double sectorphi);  
+
   alignmentTransformationContainer* transformMap = NULL;
   alignmentTransformationContainer* transformMapTransient = NULL;
   ActsGeometry* m_tGeometry = NULL;
@@ -137,7 +139,9 @@ private:
   int getNodes(PHCompositeNode* topNode);
 
   // These should be checked and updated (ADF 12/2/2025)
-  float TpcModuleRadii[3] = {35.0, 50.0, 68.2}; // module radial center in local coords
+  float TpcModuleRadii[2][12][3] = {}; // module radial center in local coords
+  unsigned int innerlayer[3] = {7, 23, 39};
+  double sectorPhi[2][12] = {};
 };
 
 #endif
