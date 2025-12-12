@@ -402,7 +402,7 @@ void GlobalQA::createHistos()
 
   h2_GlobalQA_mbd_charge_NS_correlation = new TH2F("h2_GlobalQA_mbd_charge_NS_correlation",
       "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
-      150, 0, 1500, 150, 0, 1500);
+      500, 0, 1500, 500, 0, 1500);
 
   h2_GlobalQA_mbd_nhits_NS_correlation = new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
       "MBD Number Of Hits Correlation ; Number Of Hits (South); " "Number Of Hits (North)",
