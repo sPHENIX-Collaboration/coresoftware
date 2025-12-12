@@ -58,6 +58,30 @@ RawCluster::get_property_info(const PROPERTY prop_id)
   case prop_et_iso_calotower_R04:
     return std::make_pair("calortower isolation ET R=.4", RawCluster::type_float);
     break;
+
+  case prop_tower_x_raw:
+    return std::make_pair("tower-space CoG x (raw, tower units)", RawCluster::type_float);
+    break;
+  case prop_tower_y_raw:
+    return std::make_pair("tower-space CoG y (raw, tower units)", RawCluster::type_float);
+    break;
+  case prop_tower_x_corr:
+    return std::make_pair("tower-space CoG x (corrected, tower units)", RawCluster::type_float);
+    break;
+  case prop_tower_y_corr:
+    return std::make_pair("tower-space CoG y (corrected, tower units)", RawCluster::type_float);
+    break;
+  case prop_tower_t_mean:
+    return std::make_pair("energy-weighted mean time", RawCluster::type_float);
+    break;
+
+  case prop_incidence_alpha_phi:
+    return std::make_pair("mechanical incidence alpha_phi (signed, rad)", RawCluster::type_float);
+    break;
+  case prop_incidence_alpha_eta:
+    return std::make_pair("mechanical incidence alpha_eta (signed, rad)", RawCluster::type_float);
+    break;
+
     //  case prop_truth_track_ID:
     //    return std::make_pair("truth cluster's PHG4Particle ID", RawCluster::type_int);
     //    break;

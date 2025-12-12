@@ -324,12 +324,27 @@ class RawCluster : public PHObject
     prop_et_iso_calotower_sub_R04 = 26,
     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_R04 = 27,
+    //! tower-space CoG x (raw, tower units)
+    prop_tower_x_raw  = 40,
+    //! tower-space CoG y (raw, tower units)
+    prop_tower_y_raw  = 41,
+    //! tower-space CoG x (corrected, tower units)
+    prop_tower_x_corr = 42,
+    //! tower-space CoG y (corrected, tower units)
+    prop_tower_y_corr = 43,
+    //! energy-weighted mean time
+    prop_tower_t_mean = 44,
+    // ----- mechanical incidence angles (CEMC) -----
+    //! signed mechanical incidence alpha_phi (radians)
+    prop_incidence_alpha_phi = 45,
+    //! signed mechanical incidence alpha_eta (radians)
+    prop_incidence_alpha_eta = 46,
     //    // ----- truth cluster quantities -----
     //    //! truth cluster's PHG4Particle ID
     //    prop_truth_track_ID = 100,
     //    //! truth cluster's PHG4Particle flavor
     //    prop_truth_flavor = 101,
-
+      
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = std::numeric_limits<unsigned char>::max()
   };
