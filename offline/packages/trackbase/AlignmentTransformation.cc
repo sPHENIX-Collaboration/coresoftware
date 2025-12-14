@@ -44,6 +44,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     alignmentTransformationContainer::use_alignment = false;
   }
 
+  innerLayer[0] = 7;
+  innerLayer[1] = 23;
+  innerLayer[2] = 39;
+
   double m_moduleStepPhi = 2.0 * M_PI / 12.0;
   double m_modulePhiStart = -M_PI;
   for(int iside = 0; iside < 2; ++iside)
@@ -54,7 +58,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	}
     }
 
-  extractModuleCenterPositions();
+  extractModuleCenterPositions();  // needed for TPC module transforms
     
   // Define Parsing Variables
   TrkrDefs::hitsetkey hitsetkey = 0;
@@ -229,18 +233,20 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	    layer_begin = innerLayer[test_layer];
 	  }
 
+	unsigned int side = TpcDefs::getSide(hitsetkey);
+	unsigned int sector = TpcDefs::getSectorId(hitsetkey);
+	std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
+	
 	// loop over layers in module
-	for (unsigned int this_layer = layer_begin; this_layer < nlayers; ++this_layer)
+	for (unsigned int this_layer = layer_begin; this_layer < layer_begin + nlayers; ++this_layer)
 	  {
-	    unsigned int side = TpcDefs::getSide(hitsetkey);
-	    unsigned int sector = TpcDefs::getSectorId(hitsetkey);
 	    TrkrDefs::hitsetkey this_hitsetkey = TpcDefs::genHitSetKey(this_layer, sector, side);
-	    	
+
+	    //  std::cout << " *** module hitsetkey " << hitsetkey << " this_hitsetkey " << this_hitsetkey << " this layer " << this_layer << " side " << side << " sector " << sector << std::endl;
+		    
 	    // is this correct??????
 	    int subsurfkey_min = (1 - side) * 144 + (144 - sector * 12) - 12 - 6;
-	    int subsurfkey_max = subsurfkey_min + 12;
-	    // std::cout << " sector " << sector << " side " << side << " subsurfkey_min " << subsurfkey_min << " subsurfkey_max " << subsurfkey_max << std::endl;
-	    
+	    int subsurfkey_max = subsurfkey_min + 12;	    
 	    for (int subsurfkey = subsurfkey_min; subsurfkey < subsurfkey_max; subsurfkey++)
 	      {
 		int sskey = subsurfkey;
@@ -250,14 +256,18 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		  }
 		
 		surf = surfMaps.getTpcSurface(this_hitsetkey, (unsigned int) sskey);
+
+		Eigen::Vector3d localFrameTranslation(0,0,0);
+		if(test_layer < 4)
+		  {
+		    // get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
+		    unsigned int this_region = (this_layer - 7) / 16;  // 0-2
+		    Eigen::Vector3d this_center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1; 
+		    double this_radius = std::sqrt(this_center[0]*this_center[0] + this_center[1]*this_center[1]);
+		    float moduleRadius = TpcModuleRadii[side][sector][this_region];    // radius of the center of the module
+		    localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles);	  
+		  }
 		
-		// get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
-		unsigned int this_region = (this_layer - 7) / 16;  // 0-2
-		Eigen::Vector3d this_center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1; 
-		double this_radius = std::sqrt(this_center[0]*this_center[0] + this_center[1]*this_center[1]);
-		float moduleRadius = TpcModuleRadii[side][sector][this_region];    // radius of the center of the module
-		Eigen::Vector3d localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles);	  
-	    
 		Acts::Transform3 transform;
 		transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, false);
 		Acts::GeometryIdentifier id = surf->geometryId();
@@ -266,7 +276,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		  {
 		    unsigned int layer = this_layer;
 		    std::cout << " Add transform for TPC with surface GeometryIdentifier " << id << std::endl
-			      << " trkrid " << trkrId << " hitsetkey " << hitsetkey << " layer " << layer << " sector " << sector << " side " << side
+			      << " trkrid " << trkrId << " hitsetkey " << this_hitsetkey << " layer " << layer << " sector " << sector << " side " << side
 			      << " subsurfkey " << subsurfkey << std::endl;
 		    Acts::Vector3 center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // convert to cm
 		    std::cout << "Ideal surface center: " << std::endl
@@ -408,19 +418,17 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
     Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
 
     std::cout << "newMakeTransform" << std::endl;
-    std::cout << "Input translation: " << std::endl << millepedeTranslation << std::endl;
     std::cout << "Input sensorAngles: " << std::endl << sensorAngles << std::endl;
     std::cout << "Input sensorAnglesGlobal: " << std::endl << sensorAnglesGlobal << std::endl;
+    std::cout << "Input translation: " << std::endl << millepedeTranslation << std::endl;
     std::cout << "mpLocalRotationAffine: " << std::endl
               << mpLocalRotationAffine.matrix() << std::endl;
-      std::cout << "mpLocalRotation * actsRotation " << std::endl
-              << millepedeRotationLocal * actsRotationPart << std::endl;
+    std::cout << "mpLocalTranslationAffine: " << std::endl
+              << mpLocalTranslationAffine.matrix() << std::endl;
     std::cout << "actsRotationAffine: " << std::endl
               << actsRotationAffine.matrix() << std::endl;
     std::cout << "actsTranslationAffine: " << std::endl
               << actsTranslationAffine.matrix() << std::endl;
-    std::cout << "full acts transform " << std::endl
-              << actstransform.matrix() << std::endl;
     std::cout << "mpRotationGlobalAffine: " << std::endl
 	      << mpGlobalRotationAffine.matrix() << std::endl;
     std::cout << "mpTranslationGlobalAffine: " << std::endl
@@ -464,7 +472,9 @@ Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float modul
   dx += -Rdiff * sin(gamma);
   dy += -Rdiff *(1 - cos(gamma));
   dz += 0.0;
-  std::cout << "gamma translation: radius " << moduleRadius << " Rdiff " << Rdiff << std::endl;
+
+  std::cout << " alpha, beta, gamma " << alpha << "  " << beta << "  " << gamma << " radius " << moduleRadius << " Rdiff " << Rdiff
+  	    << " dx, dy dz " << dx << "  " << dy << "  " << dz << std::endl;
   
   Eigen::Vector3d localTranslation(dx,dy,dz);
 
@@ -593,27 +603,28 @@ void AlignmentTransformation::extractModuleCenterPositions()
 
   for(int iside = 0; iside < 2;++iside)
     {
-      for(int isector = 0; isector < 12; ++isector)
+      for (int iregion = 0; iregion < 3; ++iregion)
 	{
-
-	  for (int iregion = 0; iregion < 3; ++iregion)
+	  unsigned int lin = innerLayer[iregion];
+	  unsigned int lout = lin + 15;
+	  
+	  for(int isector = 0; isector < 12; ++isector)
 	    {
-	      unsigned int lin = innerLayer[iregion];
-	      unsigned int lout = lin + 16;
+	  
 	      double sectorphi = sectorPhi[iside][iregion];
 	      
 	      TrkrDefs::hitsetkey hitsetkey_in =  TpcDefs::genHitSetKey(lin, isector, iside);
+	      if(localVerbosity){ std::cout << "hitsetkey_in " << hitsetkey_in << " lin " << lin << " sector " << isector << " side " << iside << " region " << iregion << std::endl; }
 	      double surf_rad_in = extractModuleCenter(hitsetkey_in, sectorphi);
 	      
 	      TrkrDefs::hitsetkey hitsetkey_out =  TpcDefs::genHitSetKey(lout, isector, iside);
 	      double surf_rad_out = extractModuleCenter(hitsetkey_out,sectorphi);
-
-	      // we want what here?
 	      double mod_radius = (surf_rad_in + surf_rad_out) / 2.0;
-	      // double mod_phi = (surf_rphi_in[0] + surf_rphi_out[0]) / 2.0;
 	      
-	      //	      TpcModulePhi[iside][isector][iregion] = mod_phi;
 	      TpcModuleRadii[iside][isector][iregion] = mod_radius;
+
+	      if(localVerbosity){ std::cout << "hitsetkey_out " << hitsetkey_out << " lout " << lout <<" sector " << isector << " side " << iside
+					    << " region " << iregion << " module radius " << mod_radius << std::endl; }
 	    }
 	}
     }
@@ -625,20 +636,23 @@ double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetke
   // We want the module center position from the ideal geometry
 
   // the radius and z are not used, only the phi value
-  double x = std::cos(sectorphi) * 1.0;
-  double y = std::sin(sectorphi) * 1.0;
+  double x = std::cos(sectorphi + 0.01) * 10.0;
+  double y = std::sin(sectorphi + 0.01) * 10.0;
   double z = 0.0;
   
   Acts::Vector3 world(x,y,z);
   TrkrDefs::subsurfkey subsurfkey = 0;
+  std::cout << "Getting surface for hitsetkey " << hitsetkey << " subsurfkey " << subsurfkey  << " world " << world(0) << "  " << world(1) << "  " << world(2) << std::endl;  
   Surface surface = m_tGeometry->get_tpc_surface_from_coords( hitsetkey, world, subsurfkey);
+  if(!surface)
+    {
+      std::cout << PHWHERE << "Failed to find surface, quit " << std::endl;
+      exit(1);
+    }
 
   Eigen::Vector3d surf_center = surface->center(m_tGeometry->geometry().getGeoContext());
   surf_center /= 10.0;  // convert from mm to cm
-  //  double surf_phi = atan2(surf_center[1], surf_center[0]);
   double surf_radius = std::sqrt(surf_center[0]*surf_center[0] + surf_center[1]*surf_center[1]);
-    
-  //std::array<double, 2> surf_center = {surf_phi, surf_radius};
 
   return surf_radius;  
 }

@@ -140,7 +140,7 @@ private:
 
   // These should be checked and updated (ADF 12/2/2025)
   float TpcModuleRadii[2][12][3] = {}; // module radial center in local coords
-  unsigned int innerLayer[3] = {7, 23, 39};
+  unsigned int innerLayer[3] = {};
   double sectorPhi[2][12] = {};
 };
 
