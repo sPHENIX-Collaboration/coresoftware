@@ -38,12 +38,15 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TTree.h>
+#include <TStyle.h>
 
 #include <cstdlib>
 #include <string>
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <cmath.h>
+#include <boost/format.hpp>
 
 class PHCompositeNode;
 
@@ -110,10 +113,8 @@ class DijetQA : public SubsysReco
   std::pair<float, float> m_etaRange;
   std::pair<float, float> m_ptLeadRange;
   std::pair<float, float> m_ptSubRange;
-  float DeltaPhiOne{3.141529694 * 0.75};  // cut on the opening angle of phi for the identified jets
+  float DeltaPhi{M_PI * 0.25};  // cut on the opening angle of phi for the identified jets
                                           // using same value as the dijet analysis
-  int ntowers_opening{2};
-  float DeltaPhi{ntowers_opening * DeltaPhiOne};
   int m_nJet, m_nJetPair;
   float /* m_centrality = 0.,*/ m_zvtx,/* m_impactparam = 0., */m_Ajj, m_xj, m_ptl, m_ptsl;
   float m_phil, m_phisl, m_dphil,/* m_dphi,*/ m_etal, m_etasl, m_deltaeta;

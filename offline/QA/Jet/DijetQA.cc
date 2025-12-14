@@ -7,20 +7,11 @@
 //								//
 //		Author:Skadi 				  	//
 //		First commit:  		13 Nov 24		//
-//		Most recent update:	02 Dec 24		//
-//		version:		v1.0			//
+//		Most recent update:	14 Dec 25		//
+//		version:		v2.0			//
 //////////////////////////////////////////////////////////////////
 #include "DijetQA.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
-
-#include <TStyle.h>
-
-#include <boost/format.hpp>
-
-#include <cmath>
 
 //____________________________________________________________________________..
 DijetQA::DijetQA(const std::string& name, const std::string& recojetname)
