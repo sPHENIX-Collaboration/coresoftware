@@ -158,7 +158,7 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   else
   {
     std::string calibdir = CDBInterface::instance()->getUrl("INTT_STREAMING_FEE_OFFSET");
-    auto cdbtree = new CDBTTree(calibdir);
+    auto* cdbtree = new CDBTTree(calibdir);
     cdbtree->LoadCalibrations();
     m_inttFeeOffset = cdbtree->GetSingleIntValue("INTT_STREAMING_FEE_OFFSET");
     if(Verbosity() > 0)
