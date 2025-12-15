@@ -12,7 +12,7 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
 {
  public:
   SphenixClient() = default;
-  explicit SphenixClient(const std::string& globaltag);
+  explicit SphenixClient(const std::string& gt_name);
   virtual ~SphenixClient() = default;
   // make clang happy, since we use our own without overriding the base class methods
   using nopayloadclient::NoPayloadClient::getPayloadIOVs;
@@ -29,11 +29,11 @@ class SphenixClient : public nopayloadclient::NoPayloadClient
   nlohmann::json insertPayload(const std::string& pl_type, const std::string& file_url, long long iov_start, long long iov_end) override;
   nlohmann::json setGlobalTag(const std::string& name) override;
   std::string getCalibration(const std::string& pl_type, long long iov);
-  nlohmann::json unlockGlobalTag(const std::string& tagname) override;
-  nlohmann::json lockGlobalTag(const std::string& tagname) override;
+  nlohmann::json unlockGlobalTag(const std::string& gt_name) override;
+  nlohmann::json lockGlobalTag(const std::string& gt_name) override;
   nlohmann::json deletePayloadIOV(const std::string& pl_type, long long iov_start, long long iov_end) override;
 
-  bool existGlobalTag(const std::string& tagname);
+  bool existGlobalTag(const std::string& gt_name);
   int createDomain(const std::string& domain);
   int cache_set_GlobalTag(const std::string& name);
   bool isGlobalTagSet();

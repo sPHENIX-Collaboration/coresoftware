@@ -30,13 +30,8 @@
 //____________________________________________________________________________..
 tpc_hits::tpc_hits(const std::string &name)
   : SubsysReco(name)
-  , hm(nullptr)
-  , _filename("./outputfile.root")
 {
   std::cout << "tpc_hits::tpc_hits(const std::string &name)" << std::endl;
-  starting_BCO = -1;
-  rollover_value = 0;
-  current_BCOBIN = 0;
   M.setMapNames("AutoPad-R1-RevA.sch.ChannelMapping.csv", "AutoPad-R2-RevA-Pads.sch.ChannelMapping.csv", "AutoPad-R3-RevA.sch.ChannelMapping.csv");
 }
 
@@ -65,7 +60,7 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
 {
   // get dst node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  auto *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << "tpc_hits::InitRun - DST Node missing, doing nothing." << std::endl;
@@ -73,14 +68,14 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
   }
 
   // create hitset container if needed
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
     std::cout << "tpc_hits::InitRun - creating TRKR_HITSET." << std::endl;
 
     // find or create TRKR node
     PHNodeIterator dstiter(dstNode);
-    auto trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto *trkrnode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrnode)
     {
       trkrnode = new PHCompositeNode("TRKR");
@@ -89,7 +84,7 @@ int tpc_hits::InitRun(PHCompositeNode *topNode)
 
     // create container and add to the tree
     hitsetcontainer = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     trkrnode->addNode(newNode);
   }
   topNode->print();
@@ -110,7 +105,7 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
   // std::cout << "tpc_hits::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   //  load relevant nodes
   //  Get the TrkrHitSetContainer node
-  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   assert(trkrhitsetcontainer);
 
   Event *_event = findNode::getClass<Event>(topNode, "PRDF");
@@ -234,7 +229,7 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
             // generate hit key
             TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad + sector * pads_per_sector[FEE_R[sector] - 1], (unsigned int) t);
             // find existing hit, or create
-            auto hit = hitsetit->second->getHit(hitkey);
+            auto *hit = hitsetit->second->getHit(hitkey);
 
             // create hit, assign adc and insert in hitset
             if (!hit)
@@ -264,20 +259,6 @@ int tpc_hits::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-// int tpc_hits::ResetEvent(PHCompositeNode * /*topNode*/)
-//{
-//  std::cout << "tpc_hits::ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event" << std::endl;
-//  return Fun4AllReturnCodes::EVENT_OK;
-//}
-
-//____________________________________________________________________________..
-// int tpc_hits::EndRun(const int runnumber)
-//{
-//  std::cout << "tpc_hits::EndRun(const int runnumber) Ending Run for Run " << runnumber << std::endl;
-//  return Fun4AllReturnCodes::EVENT_OK;
-//}
-
-//____________________________________________________________________________..
 int tpc_hits::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "tpc_hits::End(PHCompositeNode *topNode) This is the End..." << std::endl;
@@ -285,16 +266,3 @@ int tpc_hits::End(PHCompositeNode * /*topNode*/)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-//____________________________________________________________________________..
-// int tpc_hits::Reset(PHCompositeNode * /*topNode*/)
-//{
-//  std::cout << "tpc_hits::Reset(PHCompositeNode *topNode) being Reset" << std::endl;
-//  return Fun4AllReturnCodes::EVENT_OK;
-//}
-
-//____________________________________________________________________________..
-// void tpc_hits::Print(const std::string &what) const
-//{
-//  std::cout << "tpc_hits::Print(const std::string &what) const Printing info for " << what << std::endl;
-//}
