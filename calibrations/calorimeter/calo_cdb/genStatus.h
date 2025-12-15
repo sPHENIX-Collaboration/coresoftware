@@ -36,10 +36,16 @@ class GenStatus
   std::unique_ptr<TProfile2D> h_CaloValid_ihcal_etaphi_time_raw;
   std::unique_ptr<TProfile2D> h_CaloValid_ohcal_etaphi_time_raw;
 
+  std::unique_ptr<TProfile2D> h_CaloFittingQA_cemc_etaphi_ZScrosscalib;
+  std::unique_ptr<TProfile2D> h_CaloFittingQA_ihcal_etaphi_ZScrosscalib;
+  std::unique_ptr<TProfile2D> h_CaloFittingQA_ohcal_etaphi_ZScrosscalib;
+
   int cemc_bins_eta{CaloGeometry::CEMC_ETA_BINS};
   int cemc_bins_phi{CaloGeometry::CEMC_PHI_BINS};
   int hcal_bins_eta{CaloGeometry::HCAL_ETA_BINS};
   int hcal_bins_phi{CaloGeometry::HCAL_PHI_BINS};
+
+  std::string m_CaloValid_list{"CaloValid.list"};
 };
 
 #endif

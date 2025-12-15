@@ -34,7 +34,18 @@ RawClusterv1::RawClusterv1(const RawCluster& cluster)
       prop_et_iso_calotower_sub_R03,
       prop_et_iso_calotower_R03,
       prop_et_iso_calotower_sub_R04,
-      prop_et_iso_calotower_R04};
+      prop_et_iso_calotower_R04,
+
+      // tower CoG and timing
+      prop_tower_x_raw,
+      prop_tower_y_raw,
+      prop_tower_x_corr,
+      prop_tower_y_corr,
+      prop_tower_t_mean,
+
+      // mechanical incidence angles
+      prop_incidence_alpha_phi,
+      prop_incidence_alpha_eta};
 
   for (const auto prop_id : kKnownProperties)
   {

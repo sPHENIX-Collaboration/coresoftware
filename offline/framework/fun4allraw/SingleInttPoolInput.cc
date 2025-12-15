@@ -9,6 +9,7 @@
 
 #include <fun4all/DBInterface.h>
 
+#include <phool/RunnumberRange.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -561,7 +562,14 @@ void SingleInttPoolInput::streamingMode(const bool isStreaming)
 {
   if (isStreaming)
   {
-    SetNegativeBco(120 - 23);
+    if(RunNumber() > RunnumberRange::RUN3PP_FIRST)
+    {
+      SetNegativeBco(120 - 24);
+    }
+    else
+    {
+      SetNegativeBco(120 - 23);
+    }
     SetBcoRange(500);
     if (GetVerbosity() > 2)
     {

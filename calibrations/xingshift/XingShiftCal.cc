@@ -793,7 +793,7 @@ int XingShiftCal::CommitToSpinDB()
   }
 
   // exec sql
-
+  rsSpin.reset();
   odbc::Statement *stmtSpin = DBInterface::instance()->getStatement(dbname);
   try
   {
@@ -998,6 +998,7 @@ int XingShiftCal::SpinDBQA()
   // ============================================
 
   //================ connect to spin db write ====================
+  rsSpin.reset();
   dbname = "spinDB_write";
   dbtable = "spin";
   if (runExists)

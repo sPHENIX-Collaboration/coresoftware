@@ -31,7 +31,10 @@ class FilterDatasets
   std::vector<std::pair<std::string, std::string>> m_runInfo;
   std::map<std::string, int> m_ctr;
 
-  std::vector<std::string> m_cdbName = {"CEMC_BadTowerMap", "CEMC_meanTime", "HCALIN_meanTime", "HCALOUT_meanTime", "CEMC_hotTowers_fracBadChi2", "HCALIN_hotTowers_fracBadChi2", "HCALOUT_hotTowers_fracBadChi2"};
+  std::vector<std::string> m_cdbName = {"CEMC_BadTowerMap"
+                                      , "CEMC_meanTime", "HCALIN_meanTime", "HCALOUT_meanTime"
+                                      , "CEMC_hotTowers_fracBadChi2", "HCALIN_hotTowers_fracBadChi2", "HCALOUT_hotTowers_fracBadChi2"
+                                      , "CEMC_ZSCrossCalib", "HCALIN_ZSCrossCalib", "HCALOUT_ZSCrossCalib"};
 
   Bool_t m_debug;
 

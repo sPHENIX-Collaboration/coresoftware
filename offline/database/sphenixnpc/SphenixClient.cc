@@ -202,7 +202,7 @@ int SphenixClient::createDomain(const std::string& domain)
       m_DomainCache.insert(existent_domain);
     }
   }
-  if (m_DomainCache.find(domain) == m_DomainCache.end())
+  if (!m_DomainCache.contains(domain))
   {
     resp = nopayloadclient::NoPayloadClient::createPayloadType(domain);
     iret = resp["code"];
@@ -227,9 +227,9 @@ bool SphenixClient::isGlobalTagSet()
   return true;
 }
 
-bool SphenixClient::existGlobalTag(const std::string& tagname)
+bool SphenixClient::existGlobalTag(const std::string& gt_name)
 {
-  if (m_GlobalTagCache.find(tagname) != m_GlobalTagCache.end())
+  if (m_GlobalTagCache.contains(gt_name))
   {
     return true;
   }
@@ -238,8 +238,8 @@ bool SphenixClient::existGlobalTag(const std::string& tagname)
   for (auto& it : msgcont.items())
   {
     std::string exist_gt = it.value().at("name");
-    m_GlobalTagCache.insert(tagname);
-    if (exist_gt == tagname)
+    m_GlobalTagCache.insert(gt_name);
+    if (exist_gt == gt_name)
     {
       return true;
     }

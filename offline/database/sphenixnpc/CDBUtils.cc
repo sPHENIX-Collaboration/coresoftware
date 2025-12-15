@@ -112,12 +112,12 @@ int CDBUtils::cloneGlobalTag(const std::string &source, const std::string &targe
     std::string exist_gt = it.value().at("name");
     gtset.insert(exist_gt);
   }
-  if (gtset.find(source) == gtset.end())
+  if (!gtset.contains(source))
   {
     std::cout << "source tag " << source << " does not exist" << std::endl;
     return -1;
   }
-  if (gtset.find(target) != gtset.end())
+  if (gtset.contains(target))
   {
     std::cout << "Target tag " << target << " exists, delete it first" << std::endl;
     return -1;
