@@ -235,7 +235,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
 	unsigned int side = TpcDefs::getSide(hitsetkey);
 	unsigned int sector = TpcDefs::getSectorId(hitsetkey);
-	std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
+	//std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
 	
 	// loop over layers in module
 	for (unsigned int this_layer = layer_begin; this_layer < layer_begin + nlayers; ++this_layer)
@@ -262,10 +262,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		  {
 		    // get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
 		    unsigned int this_region = (this_layer - 7) / 16;  // 0-2
-		    Eigen::Vector3d this_center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1; 
+		    Eigen::Vector3d this_center = surf->center(m_tGeometry->geometry().getGeoContext()) * 0.1;  // mm to cm
 		    double this_radius = std::sqrt(this_center[0]*this_center[0] + this_center[1]*this_center[1]);
-		    float moduleRadius = TpcModuleRadii[side][sector][this_region];    // radius of the center of the module
-		    localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles);	  
+		    float moduleRadius = TpcModuleRadii[side][sector][this_region];    // radius of the center of the module in cm
+		    localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles) * 10;  // cm to mm	  
 		  }
 		
 		Acts::Transform3 transform;
@@ -453,6 +453,8 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 
 Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation)
 {
+  // everything in cm here
+  
   float Rdiff =layerRadius - moduleRadius;
 
   // alpha local translation around X axis
@@ -473,8 +475,11 @@ Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float modul
   dy += -Rdiff *(1 - cos(gamma));
   dz += 0.0;
 
-  std::cout << " alpha, beta, gamma " << alpha << "  " << beta << "  " << gamma << " radius " << moduleRadius << " Rdiff " << Rdiff
-  	    << " dx, dy dz " << dx << "  " << dy << "  " << dz << std::endl;
+  if(localVerbosity)
+    {
+      std::cout << " alpha, beta, gamma " << alpha << "  " << beta << "  " << gamma << " radius " << moduleRadius << " Rdiff " << Rdiff
+		<< " dx, dy dz " << dx << "  " << dy << "  " << dz << std::endl;
+    }
   
   Eigen::Vector3d localTranslation(dx,dy,dz);
 
@@ -642,7 +647,7 @@ double AlignmentTransformation::extractModuleCenter(TrkrDefs::hitsetkey hitsetke
   
   Acts::Vector3 world(x,y,z);
   TrkrDefs::subsurfkey subsurfkey = 0;
-  std::cout << "Getting surface for hitsetkey " << hitsetkey << " subsurfkey " << subsurfkey  << " world " << world(0) << "  " << world(1) << "  " << world(2) << std::endl;  
+
   Surface surface = m_tGeometry->get_tpc_surface_from_coords( hitsetkey, world, subsurfkey);
   if(!surface)
     {
