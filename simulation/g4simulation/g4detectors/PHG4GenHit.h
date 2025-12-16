@@ -14,7 +14,7 @@ class PHG4GenHit : public SubsysReco
 {
  public:
   PHG4GenHit(const std::string &name = "PHG4GenHit");
-  ~PHG4GenHit() override {}
+  ~PHG4GenHit() = default;
 
   int process_event(PHCompositeNode *topNode) override;
 

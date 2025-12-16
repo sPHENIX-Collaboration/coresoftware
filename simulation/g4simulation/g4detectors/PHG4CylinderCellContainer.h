@@ -27,7 +27,7 @@ class PHG4CylinderCellContainer : public PHObject
 
   PHG4CylinderCellContainer() {}
 
-  ~PHG4CylinderCellContainer() override {}
+  ~PHG4CylinderCellContainer() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;

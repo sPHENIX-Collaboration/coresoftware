@@ -37,7 +37,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
                                    PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
-  ~PHG4FullProjTiltedSpacalDetector() override {}
+  ~PHG4FullProjTiltedSpacalDetector() = default;
 
   void
   ConstructMe(G4LogicalVolume* world) override;

@@ -24,7 +24,7 @@ class PHG4CellContainer : public PHObject
 
   PHG4CellContainer();
 
-  ~PHG4CellContainer() override {}
+  ~PHG4CellContainer() = default;
 
   // from PHObject
   void Reset() override;

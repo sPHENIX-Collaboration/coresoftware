@@ -17,7 +17,7 @@ class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
 {
  public:
   PHG4ScintillatorSlatv1() {}
-  ~PHG4ScintillatorSlatv1() override {}
+  ~PHG4ScintillatorSlatv1() = default;
 
   void identify(std::ostream& os = std::cout) const override;
 

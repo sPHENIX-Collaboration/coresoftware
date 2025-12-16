@@ -27,7 +27,7 @@ class PHG4ScintillatorSlatContainer : public PHObject
 
   PHG4ScintillatorSlatContainer() {}
 
-  ~PHG4ScintillatorSlatContainer() override {}
+  ~PHG4ScintillatorSlatContainer() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;

@@ -31,7 +31,7 @@ class PHG4Cell : public PHObject
   typedef std::pair<ShowerEdepIterator, ShowerEdepIterator> ShowerEdepRange;
   typedef std::pair<ShowerEdepConstIterator, ShowerEdepConstIterator> ShowerEdepConstRange;
 
-  ~PHG4Cell() override {}
+  ~PHG4Cell() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;

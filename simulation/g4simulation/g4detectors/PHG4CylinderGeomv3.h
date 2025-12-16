@@ -19,7 +19,7 @@ class PHG4CylinderGeomv3 : public PHG4CylinderGeomv2
   {
   }
 
-  ~PHG4CylinderGeomv3() override {}
+  ~PHG4CylinderGeomv3() = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;

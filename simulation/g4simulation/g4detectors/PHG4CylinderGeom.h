@@ -15,7 +15,7 @@ class PHParameters;
 class PHG4CylinderGeom : public PHObject
 {
  public:
-  ~PHG4CylinderGeom() override {}
+  ~PHG4CylinderGeom() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;

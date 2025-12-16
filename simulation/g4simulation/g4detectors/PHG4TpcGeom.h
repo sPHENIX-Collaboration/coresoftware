@@ -16,7 +16,7 @@ class PHParameters;
 class PHG4TpcGeom : public PHObject
 {
  public:
-  ~PHG4TpcGeom() override {}
+  ~PHG4TpcGeom() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;

@@ -36,7 +36,7 @@ class PHG4OuterHcalField : public G4MagneticField
   PHG4OuterHcalField(bool isInIron, G4int steelPlates,
                      G4double scintiGap, G4double tiltAngle);
 
-  ~PHG4OuterHcalField() override {}
+  ~PHG4OuterHcalField() = default;
 
   void
   GetFieldValue(const double Point[4], double *Bfield) const override;

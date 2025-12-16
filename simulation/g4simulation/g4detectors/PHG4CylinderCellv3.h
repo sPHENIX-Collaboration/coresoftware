@@ -11,7 +11,7 @@ class PHG4CylinderCellv3 : public PHG4CylinderCellv1
 {
  public:
   PHG4CylinderCellv3();
-  ~PHG4CylinderCellv3() override {}
+  ~PHG4CylinderCellv3() = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
