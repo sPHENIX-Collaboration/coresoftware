@@ -203,13 +203,14 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
 
     // loop over sample_range find maximum
     const auto sample_range = std::make_pair(rawhit->get_sample_begin(), rawhit->get_sample_end());
-    std::vector<uint16_t> adc_list;
+    using sample_pair_t = std::pair<uint16_t,uint16_t>;
+    std::vector<sample_pair_t> adc_list;
     for (auto is = std::max(m_sample_min, sample_range.first); is < std::min(m_sample_max, sample_range.second); ++is)
     {
       const uint16_t adc = rawhit->get_adc(is);
       if (adc != MicromegasDefs::m_adc_invalid)
       {
-        adc_list.push_back(adc);
+        adc_list.emplace_back(is, adc);
       }
     }
 
@@ -220,16 +221,18 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
 
     // get max adc value in range
     /* TODO: use more advanced signal processing */
-    auto max_adc = *std::max_element(adc_list.begin(), adc_list.end());
+    auto max_adc = *std::max_element(adc_list.begin(), adc_list.end(),
+      [](const sample_pair_t& first, const sample_pair_t& second)
+      { return first.second < second.second; } );
 
     // compare to hard min_adc value
-    if (max_adc < m_min_adc)
+    if (max_adc.second < m_min_adc)
     {
       continue;
     }
 
     // compare to threshold
-    if (max_adc < pedestal + m_n_sigma * rms)
+    if (max_adc.second < pedestal + m_n_sigma * rms)
     {
       continue;
     }
@@ -243,7 +246,8 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
                 << " tile: " << tile
                 << " channel: " << channel
                 << " strip: " << strip
-                << " adc: " << max_adc
+                << " sample: " << max_adc.first
+                << " adc: " << max_adc.second
                 << std::endl;
     }
 
@@ -251,19 +255,19 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
     const auto hitset_it = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
     // generate hit key
-    const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
+    const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip, max_adc.first);
 
     // find existing hit, or create
     auto hit = hitset_it->second->getHit(hitkey);
     if (hit)
     {
-      // std::cout << "MicromegasCombinedDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
+      std::cout << "MicromegasCombinedDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
       continue;
     }
 
     // create hit, assign adc and insert in hitset
     hit = new TrkrHitv2;
-    hit->setAdc(max_adc);
+    hit->setAdc(max_adc.second);
     hitset_it->second->addHitSpecificKey(hitkey, hit);
 
     // increment counter
