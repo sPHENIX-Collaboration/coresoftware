@@ -13,7 +13,7 @@
 class PHG4BlockGeom : public PHObject
 {
  public:
-  ~PHG4BlockGeom() override {}
+  ~PHG4BlockGeom() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;
@@ -104,7 +104,7 @@ class PHG4BlockGeom : public PHObject
   }
 
  protected:
-  PHG4BlockGeom() {}
+  PHG4BlockGeom() = default;
 
   ClassDefOverride(PHG4BlockGeom, 1)
 };

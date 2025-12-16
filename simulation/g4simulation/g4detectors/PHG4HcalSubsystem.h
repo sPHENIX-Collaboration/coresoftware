@@ -23,7 +23,7 @@ class PHG4HcalSubsystem : public PHG4Subsystem
   PHG4HcalSubsystem(const std::string &name = "HCALCYLINDER", const int layer = 0);
 
   //! destructor
-  ~PHG4HcalSubsystem(void) override = default;
+  ~PHG4HcalSubsystem() override = default;
 
   //! init
   /*!
@@ -41,8 +41,8 @@ class PHG4HcalSubsystem : public PHG4Subsystem
   int process_event(PHCompositeNode *) override;
 
   //! accessors (reimplemented)
-  PHG4Detector *GetDetector(void) const override;
-  PHG4SteppingAction *GetSteppingAction(void) const override;
+  PHG4Detector *GetDetector() const override;
+  PHG4SteppingAction *GetSteppingAction() const override;
 
   void SetRadius(const G4double dbl) { radius = dbl; }
   void SetLength(const G4double dbl) { length = dbl; }

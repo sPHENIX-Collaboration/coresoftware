@@ -12,7 +12,7 @@ class PHG4SteppingAction;
 class PHG4PhenixSteppingAction : public G4UserSteppingAction
 {
  public:
-  PHG4PhenixSteppingAction(void)
+  PHG4PhenixSteppingAction()
   {
   }
 

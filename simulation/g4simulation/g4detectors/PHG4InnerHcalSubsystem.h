@@ -40,8 +40,8 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
   void Print(const std::string& what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; }
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
   void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);

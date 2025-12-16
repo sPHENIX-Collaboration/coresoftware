@@ -25,7 +25,7 @@ class PHG4SimpleEventGenerator : public PHG4ParticleGeneratorBase
   };
 
   PHG4SimpleEventGenerator(const std::string &name = "EVTGENERATOR");
-  ~PHG4SimpleEventGenerator() override {}
+  ~PHG4SimpleEventGenerator() = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

@@ -20,10 +20,7 @@
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4Vector3D.hh>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/stacktrace.hpp>
-#pragma GCC diagnostic pop
 
 #include <cassert>  // for assert
 #include <cmath>    // for atan2, cos, sin, sqrt
@@ -41,8 +38,7 @@ PHG4OuterHcalField::PHG4OuterHcalField(bool isInIron, G4int steelPlates,
 
 void PHG4OuterHcalField::GetFieldValue(const double Point[4], double* Bfield) const
 {
-  G4FieldManager* field_manager =
-      G4TransportationManager::GetTransportationManager()->GetFieldManager();
+  G4FieldManager* field_manager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
 
   if (!field_manager)
   {

@@ -21,7 +21,7 @@ class PHG4ConeSubsystem : public PHG4DetectorSubsystem
   PHG4ConeSubsystem(const std::string& name = "CONE", const int layer = 0);
 
   //! destructor
-  ~PHG4ConeSubsystem(void) override;
+  ~PHG4ConeSubsystem() override;
 
   //! init runwise stuff
   /*!
@@ -39,8 +39,8 @@ class PHG4ConeSubsystem : public PHG4DetectorSubsystem
   int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; };
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; };
 
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
   void set_color(const double red, const double green, const double blue, const double alpha = 1.)

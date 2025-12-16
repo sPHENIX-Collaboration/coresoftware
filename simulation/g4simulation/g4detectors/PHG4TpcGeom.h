@@ -16,7 +16,7 @@ class PHParameters;
 class PHG4TpcGeom : public PHObject
 {
  public:
-  ~PHG4TpcGeom() override {}
+  ~PHG4TpcGeom() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;
@@ -242,7 +242,7 @@ class PHG4TpcGeom : public PHObject
   virtual void ImportParameters(const PHParameters & /*param*/) { return; }
 
  protected:
-  PHG4TpcGeom() {}
+  PHG4TpcGeom() = default;
 
   ClassDefOverride(PHG4TpcGeom, 1)
 };

@@ -15,7 +15,7 @@ class PHG4TrackingAction;
 class PHG4PhenixTrackingAction : public G4UserTrackingAction
 {
  public:
-  PHG4PhenixTrackingAction(void)
+  PHG4PhenixTrackingAction()
     : verbosity_(0)
   {
   }

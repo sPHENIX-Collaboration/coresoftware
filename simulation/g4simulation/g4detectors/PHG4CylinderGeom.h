@@ -15,7 +15,7 @@ class PHParameters;
 class PHG4CylinderGeom : public PHObject
 {
  public:
-  ~PHG4CylinderGeom() override {}
+  ~PHG4CylinderGeom() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;
@@ -160,7 +160,7 @@ class PHG4CylinderGeom : public PHObject
   virtual void ImportParameters(const PHParameters & /*param*/) { return; }
 
  protected:
-  PHG4CylinderGeom() {}
+  PHG4CylinderGeom() = default;
 
   ClassDefOverride(PHG4CylinderGeom, 1)
 };

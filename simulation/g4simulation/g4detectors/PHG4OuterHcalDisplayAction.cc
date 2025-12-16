@@ -25,7 +25,7 @@ PHG4OuterHcalDisplayAction::~PHG4OuterHcalDisplayAction()
 
 void PHG4OuterHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
 {
-  for (auto &it : m_ScintiLogVolSet)
+  for (const auto &it : m_ScintiLogVolSet)
   {
     if (it->GetVisAttributes())
     {

@@ -48,7 +48,7 @@ class PHG4PhenixDetector : public G4VUserDetectorConstruction
 
   void SetWorldShape(const std::string& s) { worldshape = s; }
   void SetWorldMaterial(const std::string& s) { worldmaterial = s; }
-  G4VPhysicalVolume* GetPhysicalVolume(void) { return physiWorld; }
+  G4VPhysicalVolume* GetPhysicalVolume() { return physiWorld; }
 
  private:
   PHG4PhenixDisplayAction* m_DisplayAction;

@@ -17,7 +17,7 @@ class PHG4OuterHcalSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4OuterHcalSubsystem(const std::string& name = "HCALOUT", const int layer = 0);
+  PHG4OuterHcalSubsystem(const std::string& name = "HCALOUT", const int lyr = 0);
 
   //! destructor
   ~PHG4OuterHcalSubsystem() override;
@@ -39,7 +39,7 @@ class PHG4OuterHcalSubsystem : public PHG4DetectorSubsystem
   void Print(const std::string& what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
+  PHG4Detector* GetDetector() const override;
   PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 

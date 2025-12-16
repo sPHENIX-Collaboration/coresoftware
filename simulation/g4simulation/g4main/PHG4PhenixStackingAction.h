@@ -14,7 +14,7 @@ class PHG4StackingAction;
 class PHG4PhenixStackingAction : public G4UserStackingAction
 {
  public:
-  PHG4PhenixStackingAction(void)
+  PHG4PhenixStackingAction()
   {
   }
 

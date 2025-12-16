@@ -20,7 +20,7 @@ class PHG4DisplayAction
   }
 
   //! destructor
-  virtual ~PHG4DisplayAction() {}
+  virtual ~PHG4DisplayAction() = default;
 
   //! ApplyDisplayAction method
   /**

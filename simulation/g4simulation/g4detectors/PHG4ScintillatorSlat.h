@@ -14,7 +14,7 @@
 class PHG4ScintillatorSlat : public PHObject
 {
  public:
-  ~PHG4ScintillatorSlat() override {}
+  ~PHG4ScintillatorSlat() = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override
@@ -37,7 +37,7 @@ class PHG4ScintillatorSlat : public PHObject
   virtual std::pair<std::set<PHG4HitDefs::keytype>::const_iterator, std::set<PHG4HitDefs::keytype>::const_iterator> get_hit_ids() const = 0;
 
  protected:
-  PHG4ScintillatorSlat() {}
+  PHG4ScintillatorSlat() = default;
   ClassDefOverride(PHG4ScintillatorSlat, 1)
 };
 

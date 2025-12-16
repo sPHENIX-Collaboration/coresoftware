@@ -31,7 +31,7 @@ class PHG4Cell : public PHObject
   typedef std::pair<ShowerEdepIterator, ShowerEdepIterator> ShowerEdepRange;
   typedef std::pair<ShowerEdepConstIterator, ShowerEdepConstIterator> ShowerEdepConstRange;
 
-  ~PHG4Cell() override {}
+  ~PHG4Cell() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;
@@ -158,7 +158,7 @@ class PHG4Cell : public PHObject
   static std::string get_property_type(const PROPERTY_TYPE prop_type);
 
  protected:
-  PHG4Cell() {}
+  PHG4Cell() = default;
   virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
   virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }
   ClassDefOverride(PHG4Cell, 2)
