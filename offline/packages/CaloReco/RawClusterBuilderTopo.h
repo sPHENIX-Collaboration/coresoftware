@@ -98,6 +98,11 @@ class RawClusterBuilderTopo : public SubsysReco
     _min_cluster_E = min_cluster_E;
   }
 
+  void setInputTowerNodePrefix(const std::string& inputPrefix)
+  {
+    _inputnodeprefix = inputPrefix;
+  }
+
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -239,6 +244,7 @@ class RawClusterBuilderTopo : public SubsysReco
   std::vector<std::vector<int> > _EMTOWERMAP_KEY_ETA_PHI;
   std::vector<std::vector<int> > _EMTOWERMAP_STATUS_ETA_PHI;
 
+  std::string _inputnodeprefix;
   std::string ClusterNodeName {"TOPOCLUSTER_HCAL"};
 };
 
