@@ -85,7 +85,7 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   uint16_t m_sample_min = 0;
 
   /// max sample for signal
-  uint16_t m_sample_max = 100;
+  uint16_t m_sample_max = 1024;
 
   /// keep track of number of hits per hitsetid
   using hitcountmap_t = std::map<TrkrDefs::hitsetkey, int>;
