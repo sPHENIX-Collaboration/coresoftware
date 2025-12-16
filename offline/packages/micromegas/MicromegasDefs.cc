@@ -30,6 +30,7 @@ namespace
 
   //! bit shift for hit key
   static constexpr unsigned int kBitShiftStrip = 0;
+  static constexpr unsigned int kBitShiftSample = 8;
 
 }
 
@@ -65,16 +66,24 @@ namespace MicromegasDefs
   }
 
   //________________________________________________________________
-  TrkrDefs::hitkey genHitKey(uint16_t strip)
+  TrkrDefs::hitkey genHitKey(uint16_t strip, uint16_t sample)
   {
-    TrkrDefs::hitkey key = strip << kBitShiftStrip;
-    return key;
+    const TrkrDefs::hitkey key = strip << kBitShiftStrip;
+    const TrkrDefs::hitkey tmp = sample << kBitShiftSample;
+    return key|tmp;
   }
 
   //________________________________________________________________
-  uint16_t getStrip( TrkrDefs::hitkey key )
+  uint8_t getStrip( TrkrDefs::hitkey key )
   {
     TrkrDefs::hitkey tmp = (key >> kBitShiftStrip);
+    return tmp;
+  }
+
+  //________________________________________________________________
+  uint16_t getSample( TrkrDefs::hitkey key )
+  {
+    TrkrDefs::hitkey tmp = (key >> kBitShiftSample);
     return tmp;
   }
 
