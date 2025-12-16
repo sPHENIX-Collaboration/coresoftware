@@ -15,12 +15,10 @@ class PHG4BeamlineMagnetSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4BeamlineMagnetSubsystem(const std::string &name = "CYLINDER", const int layer = 0);
+  PHG4BeamlineMagnetSubsystem(const std::string &name = "CYLINDER", const int lyr = 0);
 
   //! destructor
-  ~PHG4BeamlineMagnetSubsystem() override
-  {
-  }
+  ~PHG4BeamlineMagnetSubsystem() override = default;
 
   //! init runwise stuff
   /*!
@@ -48,7 +46,7 @@ class PHG4BeamlineMagnetSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4BeamlineMagnetDetector *detector_;
+  PHG4BeamlineMagnetDetector *m_Detector {nullptr};
 };
 
 #endif
