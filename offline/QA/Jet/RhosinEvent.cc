@@ -90,46 +90,6 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
     N_rho_area_bins[i] = (rho_max_area / N_rho_area) * i;
   }
 
-/*
-  // Initialize histograms
-  if (!m_inPPMode) 
-  {
-    const int N_rho_mult = 1000;
-    const double rho_max_mult = 0.5;
-    Double_t N_rho_mult_bins[N_rho_mult + 1];
-    for (int i = 0; i <= N_rho_mult; i++)
-    {
-      N_rho_mult_bins[i] = (rho_max_mult / 1000) * i;
-    }
-
-    const int N_rho_area = 400;
-    const double rho_max_area = 200;
-    Double_t N_rho_area_bins[N_rho_area + 1];
-    for (int i = 0; i <= N_rho_area; i++)
-    {
-      N_rho_area_bins[i] = (rho_max_area / 400.0) * i;
-    }
-  }
-  else
-  {
-    const int N_rho_mult = 100;
-    const double rho_max_mult = 0.05;
-    Double_t N_rho_mult_bins[N_rho_mult + 1];
-    for (int i = 0; i <= N_rho_mult; i++)
-    {
-      N_rho_mult_bins[i] = (rho_max_mult / 100) * i;
-    }
-
-    const int N_rho_area = 40;
-    const double rho_max_area = 20;
-    Double_t N_rho_area_bins[N_rho_area + 1];
-    for (int i = 0; i <= N_rho_area; i++)
-    {
-      N_rho_area_bins[i] = (rho_max_area / 40.0) * i;
-    }
-  }
-*/
-
   // make sure module name is lower case
   std::string smallModuleName = m_moduleName;
   std::transform(
