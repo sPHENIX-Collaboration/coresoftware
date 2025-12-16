@@ -104,7 +104,7 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
 
   // mass v.s bunch crossing
   h2 = new TH2F(TString(get_histo_prefix()) + "BunchCrossing_InvMass_KFP",  //
-                ";Beam crossing (106 ns/crossing);mass [GeV];", 599, -149.5, 449.5, 100, m_min_mass, m_max_mass); // the axis title is the same as the approved plot https://www.sphenix.bnl.gov/sites/default/files/2025-04/sphenix-perf-4-25-Kscrossingcut.pdf
+                ";Beam crossing (106 ns/crossing);mass [GeV];", 899, -149.5, 749.5, 100, m_min_mass, m_max_mass); // the axis title is the same as the approved plot https://www.sphenix.bnl.gov/sites/default/files/2025-04/sphenix-perf-4-25-Kscrossingcut.pdf
   hm->registerHisto(h2);
 
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_crossing0",  //
