@@ -14,7 +14,7 @@ class PHG4ParticleGeneratorD0 : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4ParticleGeneratorD0(const std::string &name = "D0GEN");
-  ~PHG4ParticleGeneratorD0() override {}
+  ~PHG4ParticleGeneratorD0() = default;
 
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

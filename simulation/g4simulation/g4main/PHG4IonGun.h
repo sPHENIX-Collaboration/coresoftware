@@ -15,7 +15,7 @@ class PHG4IonGun : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4IonGun(const std::string &name = "PHG4IONGUN");
-  ~PHG4IonGun() override {}
+  ~PHG4IonGun() = default;
   int process_event(PHCompositeNode *topNode) override;
   void SetA(const int a) { A = a; }
   void SetZ(const int z) { Z = z; }

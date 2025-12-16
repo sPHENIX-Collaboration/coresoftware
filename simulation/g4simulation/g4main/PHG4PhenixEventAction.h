@@ -15,7 +15,7 @@ class PHG4EventAction;
 class PHG4PhenixEventAction : public G4UserEventAction
 {
  public:
-  PHG4PhenixEventAction(void);
+  PHG4PhenixEventAction();
 
   ~PHG4PhenixEventAction() override;
 
