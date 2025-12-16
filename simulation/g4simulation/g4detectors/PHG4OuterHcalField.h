@@ -36,7 +36,7 @@ class PHG4OuterHcalField : public G4MagneticField
   PHG4OuterHcalField(bool isInIron, G4int steelPlates,
                      G4double scintiGap, G4double tiltAngle);
 
-  ~PHG4OuterHcalField() = default;
+  ~PHG4OuterHcalField() override = default;
 
   void
   GetFieldValue(const double Point[4], double *Bfield) const override;
@@ -114,9 +114,9 @@ class PHG4OuterHcalField : public G4MagneticField
   }
 
  private:
-  double relative_permeability_absorber = 1514.;
+  double relative_permeability_absorber {1514.};
   // relative permeability for Steel 1006 @ B = 1.06T
-  double relative_permeability_gap = 1;
+  double relative_permeability_gap {1};
 
   bool is_in_iron;
   G4int n_steel_plates;

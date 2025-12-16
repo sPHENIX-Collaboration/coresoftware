@@ -15,7 +15,7 @@
 
 #include <Geant4/G4Types.hh>  // for G4double, G4int
 
-#include <cmath>
+#include <limits>
 
 class G4ChordFinder;
 class G4FieldManager;
@@ -110,22 +110,22 @@ class PHG4OuterHcalFieldSetup
   }
 
  private:
-  G4FieldManager* fFieldManagerIron = nullptr;
-  G4FieldManager* fFieldManagerGap = nullptr;
-  G4Mag_UsualEqRhs* fEquationIron = nullptr;
-  G4Mag_UsualEqRhs* fEquationGap = nullptr;
-  G4ChordFinder* fChordFinderIron = nullptr;
-  G4ChordFinder* fChordFinderGap = nullptr;
-  G4MagneticField* fEMfieldIron = nullptr;
-  G4MagneticField* fEMfieldGap = nullptr;
-  G4MagIntegratorStepper* fStepperIron = nullptr;
-  G4MagIntegratorStepper* fStepperGap = nullptr;
+  G4FieldManager* fFieldManagerIron {nullptr};
+  G4FieldManager* fFieldManagerGap {nullptr};
+  G4Mag_UsualEqRhs* fEquationIron {nullptr};
+  G4Mag_UsualEqRhs* fEquationGap {nullptr};
+  G4ChordFinder* fChordFinderIron {nullptr};
+  G4ChordFinder* fChordFinderGap {nullptr};
+  G4MagneticField* fEMfieldIron {nullptr};
+  G4MagneticField* fEMfieldGap {nullptr};
+  G4MagIntegratorStepper* fStepperIron {nullptr};
+  G4MagIntegratorStepper* fStepperGap {nullptr};
 
-  G4double fMinStep = NAN;
+  G4int n_steel_plates {-1};
 
-  G4int n_steel_plates = -1;
-  G4double scinti_gap = NAN;
-  G4double tilt_angle = NAN;
+  G4double fMinStep {std::numeric_limits<G4double>::quiet_NaN()};
+  G4double scinti_gap {std::numeric_limits<G4double>::quiet_NaN()};
+  G4double tilt_angle {std::numeric_limits<G4double>::quiet_NaN()};
 };
 
 #endif /* PHG4OUTERHCALFIELDSETUP_H_ */

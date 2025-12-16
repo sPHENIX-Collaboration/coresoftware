@@ -7,14 +7,10 @@
 
 #include <Geant4/G4Types.hh>  // for G4double
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wpedantic"
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
-#pragma GCC diagnostic pop
 
+#include <limits>
 #include <map>
 #include <set>
 #include <string>   // for string
@@ -56,7 +52,7 @@ class PHG4OuterHcalDetector : public PHG4Detector
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string &SuperDetector() const { return m_SuperDetector; }
   int get_Layer() const { return m_Layer; }
-  void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
+  void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright) const;
   int ConsistencyCheck() const;
   void SetTiltViaNcross();
   int CheckTiltAngle() const;
@@ -70,43 +66,43 @@ class PHG4OuterHcalDetector : public PHG4Detector
   G4VSolid *ConstructSteelPlate(G4LogicalVolume *hcalenvelope);
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalenvelope);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
-  PHG4OuterHcalDisplayAction *m_DisplayAction = nullptr;
-  PHG4OuterHcalFieldSetup *m_FieldSetup = nullptr;
-  PHParameters *m_Params = nullptr;
-  G4AssemblyVolume *m_ScintiMotherAssembly = nullptr;
-  G4VSolid *m_SteelCutoutForMagnetG4Solid = nullptr;
-  double m_InnerRadius = NAN;
-  double m_OuterRadius = NAN;
-  double m_SizeZ = NAN;
-  double m_ScintiTileX = NAN;
-  double m_ScintiTileXLower = NAN;
-  double m_ScintiTileXUpper = NAN;
-  double m_ScintiTileZ = NAN;
-  double m_ScintiTileThickness = NAN;
-  double m_ScintiGap = NAN;
-  double m_ScintiInnerRadius = NAN;
-  double m_ScintiOuterRadius = NAN;
-  double m_TiltAngle = NAN;
-  double m_EnvelopeInnerRadius = NAN;
-  double m_EnvelopeOuterRadius = NAN;
-  double m_EnvelopeZ = NAN;
-  double m_VolumeEnvelope = NAN;
-  double m_VolumeSteel = NAN;
-  double m_VolumeScintillator = NAN;
+  PHG4OuterHcalDisplayAction *m_DisplayAction {nullptr};
+  PHG4OuterHcalFieldSetup *m_FieldSetup {nullptr};
+  PHParameters *m_Params {nullptr};
+  G4AssemblyVolume *m_ScintiMotherAssembly {nullptr};
+  G4VSolid *m_SteelCutoutForMagnetG4Solid {nullptr};
+  double m_InnerRadius {std::numeric_limits<double>::quiet_NaN()};
+  double m_OuterRadius {std::numeric_limits<double>::quiet_NaN()};
+  double m_SizeZ {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiTileX {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiTileXLower {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiTileXUpper {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiTileZ {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiTileThickness {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiGap {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiInnerRadius {std::numeric_limits<double>::quiet_NaN()};
+  double m_ScintiOuterRadius {std::numeric_limits<double>::quiet_NaN()};
+  double m_TiltAngle {std::numeric_limits<double>::quiet_NaN()};
+  double m_EnvelopeInnerRadius {std::numeric_limits<double>::quiet_NaN()};
+  double m_EnvelopeOuterRadius {std::numeric_limits<double>::quiet_NaN()};
+  double m_EnvelopeZ {std::numeric_limits<double>::quiet_NaN()};
+  double m_VolumeEnvelope {std::numeric_limits<double>::quiet_NaN()};
+  double m_VolumeSteel {std::numeric_limits<double>::quiet_NaN()};
+  double m_VolumeScintillator {std::numeric_limits<double>::quiet_NaN()};
 
-  int m_NumScintiPlates = 0;
-  int m_NumScintiTiles = 0;
+  int m_NumScintiPlates {0};
+  int m_NumScintiTiles {0};
 
-  int m_ActiveFlag = 0;
-  int m_AbsorberActiveFlag = 0;
+  int m_ActiveFlag {0};
+  int m_AbsorberActiveFlag {0};
 
-  int m_Layer = 0;
+  int m_Layer {0};
   std::string m_SuperDetector;
   std::string m_ScintiLogicNamePrefix;
   std::vector<G4VSolid *> m_ScintiTilesVec;
   std::set<G4VPhysicalVolume *> m_SteelAbsorberVec;
   std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
-  RawTowerGeomContainer *m_RawTowerGeom = nullptr;
+  RawTowerGeomContainer *m_RawTowerGeom {nullptr};
   std::string m_TowerGeomNodeName;
 };
 

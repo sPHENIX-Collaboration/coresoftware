@@ -17,7 +17,7 @@ class PHG4OuterHcalSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4OuterHcalSubsystem(const std::string& name = "HCALOUT", const int layer = 0);
+  PHG4OuterHcalSubsystem(const std::string& name = "HCALOUT", const int lyr = 0);
 
   //! destructor
   ~PHG4OuterHcalSubsystem() override;

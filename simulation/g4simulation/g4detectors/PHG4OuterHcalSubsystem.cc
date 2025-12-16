@@ -18,8 +18,8 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
+#include <limits>
 #include <set>       // for set
 #include <sstream>
 
@@ -62,30 +62,29 @@ int PHG4OuterHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       DetNode = new PHCompositeNode(SuperDetector());
       dstNode->addNode(DetNode);
     }
-    std::ostringstream nodename;
+    std::string nodename;
     if (SuperDetector() != "NONE")
     {
-      nodename << "G4HIT_" << SuperDetector();
+      nodename = "G4HIT_" + SuperDetector();
     }
     else
     {
-      nodename << "G4HIT_" << Name();
+      nodename = "G4HIT_" + Name();
     }
-    nodes.insert(nodename.str());
+    nodes.insert(nodename);
     if (GetParams()->get_int_param("absorberactive"))
     {
-      nodename.str("");
       if (SuperDetector() != "NONE")
       {
-        nodename << "G4HIT_ABSORBER_" << SuperDetector();
+        nodename = "G4HIT_ABSORBER_" + SuperDetector();
       }
       else
       {
-        nodename << "G4HIT_ABSORBER_" << Name();
+        nodename = "G4HIT_ABSORBER_" + Name();
       }
-      nodes.insert(nodename.str());
+      nodes.insert(nodename);
     }
-    for (auto &node : nodes)
+    for (const auto &node : nodes)
     {
       PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
       if (!g4_hits)
@@ -151,11 +150,11 @@ void PHG4OuterHcalSubsystem::SetLightCorrection(const double inner_radius, const
 void PHG4OuterHcalSubsystem::SetDefaultParameters()
 {
   set_default_double_param("inner_radius", 183.3);
-  set_default_double_param("light_balance_inner_corr", NAN);
-  set_default_double_param("light_balance_inner_radius", NAN);
-  set_default_double_param("light_balance_outer_corr", NAN);
-  set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("phistart", NAN);
+  set_default_double_param("light_balance_inner_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_inner_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("phistart", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("scinti_eta_coverage_neg", 1.1);
   set_default_double_param("scinti_eta_coverage_pos", 1.1);
   // some math issue in the code does not subtract the magnet cutout correctly
@@ -187,7 +186,7 @@ void PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_outer_radius", 263.2825);
   set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 304.91 * 2);
-  set_default_double_param("steplimits", NAN);
+  set_default_double_param("steplimits", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("tilt_angle", -11.23);  // engineering drawing
                                                    // corresponds very closely to 4 crossinge (-11.7826 deg)
 
