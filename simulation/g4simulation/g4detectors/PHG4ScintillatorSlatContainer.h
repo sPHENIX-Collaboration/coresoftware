@@ -25,7 +25,7 @@ class PHG4ScintillatorSlatContainer : public PHObject
   typedef std::set<int>::const_iterator LayerIter;
   typedef std::pair<LayerIter, LayerIter> LayerRange;
 
-  PHG4ScintillatorSlatContainer() {}
+  PHG4ScintillatorSlatContainer() = default;
 
   ~PHG4ScintillatorSlatContainer() = default;
 

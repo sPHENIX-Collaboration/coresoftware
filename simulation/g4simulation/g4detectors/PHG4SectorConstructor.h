@@ -351,7 +351,7 @@ namespace PHG4Sector
   {
    public:
     PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys);
-    virtual ~PHG4SectorConstructor() {}
+    virtual ~PHG4SectorConstructor() = default;
 
     void
     Construct_Sectors(G4LogicalVolume *WorldLog);

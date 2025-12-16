@@ -13,7 +13,7 @@ class PHParameters;
 class PHG4CylinderGeomv1 : public PHG4CylinderGeom
 {
  public:
-  PHG4CylinderGeomv1() {}
+  PHG4CylinderGeomv1() = default;
   PHG4CylinderGeomv1(const double r, const double zmi, const double zma, const double thickn)
     : radius(r)
     , zmin(zmi)

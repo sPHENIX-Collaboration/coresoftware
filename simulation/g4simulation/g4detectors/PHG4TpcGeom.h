@@ -242,7 +242,7 @@ class PHG4TpcGeom : public PHObject
   virtual void ImportParameters(const PHParameters & /*param*/) { return; }
 
  protected:
-  PHG4TpcGeom() {}
+  PHG4TpcGeom() = default;
 
   ClassDefOverride(PHG4TpcGeom, 1)
 };

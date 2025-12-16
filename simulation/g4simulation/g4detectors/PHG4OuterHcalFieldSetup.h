@@ -35,7 +35,7 @@ class PHG4OuterHcalFieldSetup
   explicit PHG4OuterHcalFieldSetup(const PHG4OuterHcalFieldSetup&) = delete;
   PHG4OuterHcalFieldSetup& operator=(const PHG4OuterHcalFieldSetup&) = delete;
 
-  virtual ~PHG4OuterHcalFieldSetup() {}
+  virtual ~PHG4OuterHcalFieldSetup() = default;
 
   G4FieldManager*
   get_Field_Manager_Gap() const

@@ -25,7 +25,7 @@ class PHG4CylinderCellContainer : public PHObject
   typedef std::set<int>::const_iterator LayerIter;
   typedef std::pair<LayerIter, LayerIter> LayerRange;
 
-  PHG4CylinderCellContainer() {}
+  PHG4CylinderCellContainer() = default;
 
   ~PHG4CylinderCellContainer() = default;
 

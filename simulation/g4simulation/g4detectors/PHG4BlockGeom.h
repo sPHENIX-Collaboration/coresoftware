@@ -104,7 +104,7 @@ class PHG4BlockGeom : public PHObject
   }
 
  protected:
-  PHG4BlockGeom() {}
+  PHG4BlockGeom() = default;
 
   ClassDefOverride(PHG4BlockGeom, 1)
 };

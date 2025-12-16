@@ -160,7 +160,7 @@ class PHG4CylinderGeom : public PHObject
   virtual void ImportParameters(const PHParameters & /*param*/) { return; }
 
  protected:
-  PHG4CylinderGeom() {}
+  PHG4CylinderGeom() = default;
 
   ClassDefOverride(PHG4CylinderGeom, 1)
 };
