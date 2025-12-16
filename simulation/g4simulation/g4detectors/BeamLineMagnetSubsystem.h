@@ -17,7 +17,7 @@ class BeamLineMagnetSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  BeamLineMagnetSubsystem(const std::string& name = "CYLINDER", const int layer = 0);
+  BeamLineMagnetSubsystem(const std::string& name = "CYLINDER", const int lyr = 0);
 
   //! destructor
   ~BeamLineMagnetSubsystem() override;
@@ -55,15 +55,15 @@ class BeamLineMagnetSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  BeamLineMagnetDetector* m_Detector = nullptr;
+  BeamLineMagnetDetector* m_Detector {nullptr};
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* m_SteppingAction = nullptr;
+  PHG4SteppingAction* m_SteppingAction {nullptr};
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction = nullptr;
+  PHG4DisplayAction* m_DisplayAction {nullptr};
 
   std::string m_HitNodeName;
   std::string m_AbsorberNodeName;
