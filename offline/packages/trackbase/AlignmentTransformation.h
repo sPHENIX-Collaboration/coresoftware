@@ -128,7 +128,7 @@ private:
 
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, bool survey);
 
-  Eigen::Vector3d getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation); 
+  Eigen::Vector3d getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation) const; 
   void extractModuleCenterPositions();
   double extractModuleCenter(TrkrDefs::hitsetkey hitsetkey, double sectorphi);  
 

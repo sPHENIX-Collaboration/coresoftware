@@ -50,7 +50,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
   double m_moduleStepPhi = 2.0 * M_PI / 12.0;
   double m_modulePhiStart = -M_PI;
-  for(int iside = 0; iside < 2; ++iside)
+  //  for(int iside = 0; iside < 2; ++iside)
+  for(int iside : {0,1} )
     {
       for(int isector = 0; isector < 12; ++isector)
 	{
@@ -62,7 +63,15 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     
   // Define Parsing Variables
   TrkrDefs::hitsetkey hitsetkey = 0;
-  float alpha = 0.0, beta = 0.0, gamma = 0.0, dx = 0.0, dy = 0.0, dz = 0.0, dgrx = 0.0, dgry = 0.0, dgrz = 0.0;
+  float alpha = 0.0;
+  float beta = 0.0;
+  float gamma = 0.0;
+  float dx = 0.0;
+  float dy = 0.0;
+  float dz = 0.0;
+  float dgrx = 0.0;
+  float dgry = 0.0;
+  float dgrz = 0.0;
 
   // load alignment constants file
   std::ifstream datafile;
@@ -171,7 +180,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	Eigen::Vector3d localFrameTranslation(0.0, 0.0, 0.0);
 		
         Acts::Transform3 transform;
-        transform = newMakeTransform(surf, millepedeTranslation, localFrameTranslation, sensorAngles, sensorAnglesGlobal, false);
+        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, false);
 
         Acts::GeometryIdentifier id = surf->geometryId();
 
@@ -451,7 +460,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   return transform;
 }
 
-Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation)
+Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation) const
 {
   // everything in cm here
   
@@ -460,19 +469,19 @@ Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float modul
   // alpha local translation around X axis
   float alpha = localRotation(0);
   float dx = 0.0;
-  float dy = -Rdiff * sin(alpha);
-  float dz = -Rdiff *(1 - cos(alpha));	    
+  float dy = -Rdiff * std::sin(alpha);
+  float dz = -Rdiff *(1 - std::cos(alpha));	    
 
   // beta local translation for rotation around Y axis
   float beta = localRotation(1);
-  dx += Rdiff * sin(beta);
+  dx += Rdiff * std::sin(beta);
   dy += 0.0;
-  dz += -Rdiff *(1 - cos(beta));	  
+  dz += -Rdiff *(1 - std::cos(beta));	  
 
   // gamma local translation around Z axis
   float gamma = localRotation(2);
-  dx += -Rdiff * sin(gamma);
-  dy += -Rdiff *(1 - cos(gamma));
+  dx += -Rdiff * std::sin(gamma);
+  dy += -Rdiff *(1 - std::cos(gamma));
   dz += 0.0;
 
   if(localVerbosity)
@@ -485,33 +494,6 @@ Eigen::Vector3d AlignmentTransformation::getTpcLocalFrameTranslation(float modul
 
   return localTranslation;
 }  
-      /*
-  
-  // make a combined rotation matrix and apply it to the module center
-  // than calculate the translation back and return it
-  
-  // Create  local coordinates rotation matrix
-  Eigen::AngleAxisd alpha(localRotation(0), Eigen::Vector3d::UnitX());
-  Eigen::AngleAxisd beta(localRotation(1), Eigen::Vector3d::UnitY());
-  Eigen::AngleAxisd gamma(localRotation(2), Eigen::Vector3d::UnitZ());
-  Eigen::Quaternion<double> q = gamma * beta * alpha;
-  Eigen::Matrix3d millepedeRotation = q.matrix();
-
-    Eigen::Vector3d nullTranslation(0, 0, 0);
-    
-  Acts::Transform3 localRotationAffine;
-  localRotationAffine.linear() = millepedeRotation;
-  localRotationAffine.translation() = nullTranslation;
-  
-  Eigen::Vector3d moduleCenter(moduleRadius, 0.0, 0.0);  
-
-  Eigen::Vector3d newCenter =  localRotationAffine * moduleCenter;
-  
-  Eigen::Vector3d restoreModuleCenter = moduleCenter - newCenter;
-
-  return restoreModuleCenter; 
-      */
-      
 
 int AlignmentTransformation::getNodes(PHCompositeNode* topNode)
 {
