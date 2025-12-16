@@ -294,10 +294,20 @@ void CaloStatusMapper::BuildHistograms()
   const CaloStatusMapperDefs::EMCalHistDef emHistDef;
   const CaloStatusMapperDefs::HCalHistDef  hcHistDef;
 
+  const CaloStatusMapperDefs::EMCalHistDef_pp emHistDef_pp;
+  const CaloStatusMapperDefs::HCalHistDef_pp  hcHistDef_pp;
+
   // make total calo energy hist
   const std::string caloEBase = MakeBaseName("TowerE", "towerinfo_calib_allcalo");
   const std::string caloEName = JetQADefs::MakeQAHistName(caloEBase, m_config.moduleName, m_config.histTag);
-  allCaloEnergy = new TH1F(caloEName.data(), "All Calo Tower Energy Sum; Tower E [GeV]", 320, -200, 3000);
+  if (!m_config.inPPMode)
+  {
+    allCaloEnergy = new TH1F(caloEName.data(), "All Calo Tower Energy Sum; Tower E [GeV]", 320, -200, 3000);
+  }
+  else
+  {
+    allCaloEnergy = new TH1F(caloEName.data(), "All Calo Tower Energy Sum; Tower E [GeV]", 210, -10, 200);
+  }
 
   // loop over input node names
   for (const auto& nodeName : m_config.inNodeNames)
@@ -319,12 +329,26 @@ void CaloStatusMapper::BuildHistograms()
     switch (nodeName.second)
     {
       case CaloStatusMapperDefs::Calo::HCal:
-        m_hists[energyBase] = hcHistDef.MakeEnergy1D(energyName);
+        if (!m_config.inPPMode)
+        {
+          m_hists[energyBase] = hcHistDef.MakeEnergy1D(energyName);
+	}
+	else
+	{
+          m_hists[energyBase] = hcHistDef_pp.MakeEnergy1D(energyName);
+	}
         break;
       case CaloStatusMapperDefs::Calo::EMCal:
           [[fallthrough]];
       default:
-        m_hists[energyBase] = emHistDef.MakeEnergy1D(energyName);
+        if (!m_config.inPPMode)
+        {
+          m_hists[energyBase] = emHistDef.MakeEnergy1D(energyName);
+	}
+        else
+        {
+          m_hists[energyBase] = emHistDef_pp.MakeEnergy1D(energyName);
+        }
         break;
     }
 
