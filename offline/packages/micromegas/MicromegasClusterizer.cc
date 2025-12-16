@@ -157,8 +157,10 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   // geometry
   PHG4CylinderGeomContainer* geonode = nullptr;
   for( std::string geonodename: {"CYLINDERGEOM_MICROMEGAS_FULL", "CYLINDERGEOM_MICROMEGAS" } )
-  { if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) )) { break; 
-}}
+  {
+    if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) ))
+    { break;}
+  }
   assert(geonode);
 
   // hitset container
@@ -182,8 +184,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   for( auto hitset_it = hitset_range.first; hitset_it != hitset_range.second; ++hitset_it )
   {
     // get hitset, key and layer
-    TrkrHitSet* hitset = hitset_it->second;
-    const TrkrDefs::hitsetkey hitsetkey = hitset_it->first;
+    const auto& [hitsetkey, hitset] = *hitset_it;
+
     const auto layer = TrkrDefs::getLayer(hitsetkey);
     const auto tileid = MicromegasDefs::getTileId(hitsetkey);
 
@@ -215,17 +217,32 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     using range_list_t = std::vector<TrkrHitSet::ConstRange>;
     range_list_t ranges;
 
-    // loop over hits
-    const auto hit_range = hitset->getHits();
+    // Make a local copy of hitsets, sorted along strips
+    /* when there are multiple hits on the same strip, only the first one (in time) is kept */
+    class StripSortFtor
+    {
+      public:
+      bool operator() ( const TrkrDefs::hitkey& first, const TrkrDefs::hitkey& second ) const
+      { return MicromegasDefs::getStrip(first) < MicromegasDefs::getStrip(second); }
+    };
+
+    using LocalMap = std::map<TrkrDefs::hitkey, TrkrHit*, StripSortFtor>;
+    LocalMap local_hitmap;
+
+    {
+      // loop over hits
+      const auto hit_range = hitset->getHits();
+      std::copy( hit_range.first, hit_range.second, std::inserter(local_hitmap, local_hitmap.end()) );
+    }
 
     // keep track of first iterator of runing cluster
-    auto begin = hit_range.first;
+    auto begin = local_hitmap.begin();
 
     // keep track of previous strip
     uint16_t previous_strip = 0;
     bool first = true;
 
-    for( auto hit_it = hit_range.first; hit_it != hit_range.second; ++hit_it )
+    for( auto hit_it = local_hitmap.begin(); hit_it != local_hitmap.end(); ++hit_it )
     {
 
       // get hit key
@@ -257,8 +274,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     }
 
     // store last cluster
-    if( begin != hit_range.second ) { ranges.push_back( std::make_pair( begin, hit_range.second ) );
-}
+    if( begin != local_hitmap.end() ) { ranges.push_back( std::make_pair( begin, local_hitmap.end() ) ); }
 
     // initialize cluster count
     int cluster_count = 0;
