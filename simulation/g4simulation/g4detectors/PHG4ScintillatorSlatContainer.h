@@ -63,11 +63,11 @@ class PHG4ScintillatorSlatContainer : public PHObject
   ConstRange getScintillatorSlats(const short icolumn) const;
 
   //! return all hist
-  ConstRange getScintillatorSlats(void) const;
+  ConstRange getScintillatorSlats() const;
 
   PHG4ScintillatorSlat *findScintillatorSlat(PHG4ScintillatorSlatDefs::keytype key);
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return slatmap.size();
   }

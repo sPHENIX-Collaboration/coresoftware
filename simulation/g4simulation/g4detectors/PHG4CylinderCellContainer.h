@@ -68,15 +68,15 @@ class PHG4CylinderCellContainer : public PHObject
   ConstRange getCylinderCells(const unsigned int detid) const;
 
   //! return all hist
-  ConstRange getCylinderCells(void) const;
+  ConstRange getCylinderCells() const;
 
   PHG4CylinderCell *findCylinderCell(PHG4CylinderCellDefs::keytype key);
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return cellmap.size();
   }
-  unsigned int num_layers(void) const
+  unsigned int num_layers() const
   {
     return layers.size();
   }

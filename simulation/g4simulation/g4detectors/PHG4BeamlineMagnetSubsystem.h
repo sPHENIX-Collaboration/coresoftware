@@ -18,7 +18,7 @@ class PHG4BeamlineMagnetSubsystem : public PHG4DetectorSubsystem
   PHG4BeamlineMagnetSubsystem(const std::string &name = "CYLINDER", const int layer = 0);
 
   //! destructor
-  ~PHG4BeamlineMagnetSubsystem(void) override
+  ~PHG4BeamlineMagnetSubsystem() override
   {
   }
 
@@ -41,7 +41,7 @@ class PHG4BeamlineMagnetSubsystem : public PHG4DetectorSubsystem
   void Print(const std::string &what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector *GetDetector(void) const override;
+  PHG4Detector *GetDetector() const override;
 
  private:
   void SetDefaultParameters() override;

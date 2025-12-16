@@ -51,14 +51,14 @@ int PHG4BbcDetector::IsInBbc(G4VPhysicalVolume *volume) const
 
   if (m_ActiveFlag)
   {
-    if (m_PhysLogicalVolSet.find(mylogvol) != m_PhysLogicalVolSet.end())
+    if (m_PhysLogicalVolSet.contains(mylogvol))
     {
       return 1;
     }
   }
   if (m_SupportActiveFlag)
   {
-    if (m_SupportLogicalVolSet.find(mylogvol) != m_SupportLogicalVolSet.end())
+    if (m_SupportLogicalVolSet.contains(mylogvol))
     {
       return -2;
     }

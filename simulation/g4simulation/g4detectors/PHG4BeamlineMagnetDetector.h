@@ -20,7 +20,7 @@ class PHG4BeamlineMagnetDetector : public PHG4Detector
   PHG4BeamlineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int layer = 0);
 
   //! destructor
-  ~PHG4BeamlineMagnetDetector(void) override = default;
+  ~PHG4BeamlineMagnetDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;

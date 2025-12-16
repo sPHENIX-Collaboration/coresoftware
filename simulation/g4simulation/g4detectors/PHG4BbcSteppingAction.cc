@@ -357,7 +357,7 @@ void PHG4BbcSteppingAction::SetHitNodeName(const std::string& type, const std::s
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_SUPPORT")
+  if (type == "G4HIT_SUPPORT")
   {
     m_SupportNodeName = name;
     return;

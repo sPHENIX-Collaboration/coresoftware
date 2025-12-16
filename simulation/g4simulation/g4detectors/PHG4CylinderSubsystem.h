@@ -21,7 +21,7 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   PHG4CylinderSubsystem(const std::string& name = "CYLINDER", const int layer = 0);
 
   //! destructor
-  ~PHG4CylinderSubsystem(void) override;
+  ~PHG4CylinderSubsystem() override;
 
   //! init runwise stuff
   /*!
@@ -42,8 +42,8 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   void Print(const std::string& what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; }
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
 
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
   void set_color(const double red, const double green, const double blue, const double alpha = 1.)

@@ -63,11 +63,11 @@ class PHG4CellContainer : public PHObject
   ConstRange getCells(const unsigned short int detid) const;
 
   //! return all hist
-  ConstRange getCells(void) const;
+  ConstRange getCells() const;
 
   PHG4Cell *findCell(PHG4CellDefs::keytype key);
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return cellmap.size();
   }

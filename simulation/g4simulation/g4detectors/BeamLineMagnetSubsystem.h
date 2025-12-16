@@ -41,8 +41,8 @@ class BeamLineMagnetSubsystem : public PHG4DetectorSubsystem
   void Print(const std::string& what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; }
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 
   // this method is used to check if it can be used as mothervolume
