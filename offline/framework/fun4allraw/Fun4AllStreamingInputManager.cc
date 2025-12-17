@@ -950,7 +950,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
       {
         auto diff = (m_RefBCO > gtmbco) ? m_RefBCO - gtmbco : gtmbco - m_RefBCO;
         h_bcoGL1LL1diff[packetid]->Fill(diff);
-        if (diff <= m_mvtx_bco_range)
+        if (diff <= 3)
         {
           taggedPacketsFEEs[packetid].insert(feeid);
           h_tagL1BcoFEE_mvtx[packetid]->Fill(feeid);
