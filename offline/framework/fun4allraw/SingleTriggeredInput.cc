@@ -1,11 +1,10 @@
 #include "SingleTriggeredInput.h"
 #include "SingleGl1TriggeredInput.h"
 
-#include <frog/FROG.h>
-
 #include <ffarawobjects/CaloPacketContainerv1.h>
 #include <ffarawobjects/CaloPacketv1.h>
 
+#include <fun4all/DBInterface.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -294,8 +293,7 @@ int SingleTriggeredInput::fileopen(const std::string &filenam)
     fileclose();
   }
   FileName(filenam);
-  FROG frog;
-  std::string fname = frog.location(FileName());
+  std::string fname = DBInterface::instance()->location(FileName());
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << FileName() << std::endl;
