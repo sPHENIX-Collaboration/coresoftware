@@ -423,6 +423,7 @@ int CaloTriggerEmulator::Download_Calibrations()
     }
     cdbttree_adcmask = new CDBTTree(calibdir);
   }
+  
   if (!m_optmask_file.empty())
   {
     LoadFiberMasks();
@@ -437,6 +438,7 @@ int CaloTriggerEmulator::Download_Calibrations()
     else
     {
       std::string calibdir = CDBInterface::instance()->getUrl("emcal_trigger_lut");
+
       if (calibdir.empty())
       {
         m_default_lut_emcal = true;
@@ -536,7 +538,7 @@ int CaloTriggerEmulator::process_event(PHCompositeNode *topNode)
   GetNodes(topNode);
 
   // process waveforms from the waveform container into primitives
-  if (process_waveforms())
+  if (process_waveforms(topNode))
   {
     return Fun4AllReturnCodes::EVENT_OK;
   }
@@ -581,7 +583,7 @@ int CaloTriggerEmulator::ResetEvent(PHCompositeNode * /*topNode*/)
 
   return 0;
 }
-int CaloTriggerEmulator::process_offline()
+int CaloTriggerEmulator::process_offline(PHCompositeNode *topNode)
 {
   int sample_start = 1;
   int sample_end = m_nsamples;
@@ -598,17 +600,29 @@ int CaloTriggerEmulator::process_offline()
       std::cout << __FILE__ << "::" << __FUNCTION__ << ":: emcal" << std::endl;
     }
 
-    if (!m_emcal_packets)
-    {
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
     unsigned int iwave = 0;
 
     for (int pid = m_packet_low_emcal; pid <= m_packet_high_emcal; pid++)
     {
-      CaloPacket *packet = m_emcal_packets->getPacketbyId(pid);
+      CaloPacket *packet;
+      if (m_use_individual_packets)
+	{
+	  if (Verbosity())
+	    {
+	      std::cout << "Individual packets" << std::endl;
+	    }
+	  packet = findNode::getClass<CaloPacket>(topNode, pid);
+	}
+      else
+	{
+	  packet = m_emcal_packets->getPacketbyId(pid);
+	}
       if (packet)
       {
+	if (Verbosity())
+	  {
+	    std::cout << "FoundPacket" << std::endl;
+	  }
         int nchannels = packet->iValue(0, "CHANNELS");
         unsigned int adc_skip_mask = 0;
 
@@ -694,15 +708,19 @@ int CaloTriggerEmulator::process_offline()
       std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
     }
 
-    if (!m_hcal_packets)
-    {
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-
     unsigned int iwave = 0;
     for (int pid = m_packet_low_hcalout; pid <= m_packet_high_hcalout; pid++)
     {
-      CaloPacket *packet = m_hcal_packets->getPacketbyId(pid);
+      CaloPacket *packet;
+      if (m_use_individual_packets)
+	{
+	  packet = findNode::getClass<CaloPacket>(topNode, pid);
+	}
+      else
+	{
+	  packet = m_hcal_packets->getPacketbyId(pid);
+	}
+
       if (packet)
       {
         int nchannels = packet->iValue(0, "CHANNELS");
@@ -754,14 +772,20 @@ int CaloTriggerEmulator::process_offline()
     {
       std::cout << __FILE__ << "::" << __FUNCTION__ << ":: ohcal" << std::endl;
     }
-    if (!m_hcal_packets)
-    {
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
     unsigned int iwave = 0;
     for (int pid = m_packet_low_hcalin; pid <= m_packet_high_hcalin; pid++)
     {
-      CaloPacket *packet = m_hcal_packets->getPacketbyId(pid);
+      CaloPacket *packet;
+      
+      if (m_use_individual_packets)
+	{
+	  packet = findNode::getClass<CaloPacket>(topNode, pid);
+	}
+      else
+	{
+	  packet = m_hcal_packets->getPacketbyId(pid);
+	}
+
       if (packet)
       {
         int nchannels = packet->iValue(0, "CHANNELS");
@@ -809,16 +833,16 @@ int CaloTriggerEmulator::process_offline()
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
-int CaloTriggerEmulator::process_waveforms()
+int CaloTriggerEmulator::process_waveforms(PHCompositeNode *topNode)
 {
   if (!m_isdata)
   {
     return process_sim();
   }
 
-  if (m_useoffline)
+  if (m_useoffline || m_use_individual_packets)
   {
-    return process_offline();
+    return process_offline(topNode);
   }
 
   if (m_event == nullptr)
@@ -1293,7 +1317,9 @@ int CaloTriggerEmulator::process_primitives()
               // unsigned int iwave = 64*ip + isum*4 + j;
               unsigned int key = TriggerDefs::GetTowerInfoKey(TriggerDefs::GetDetectorId("EMCAL"), ip, isum, j);
               unsigned int lut_input = (m_peak_sub_ped_emcal[key].at(is) >> 4U) & 0x3ffU;
-              if (m_default_lut_emcal)
+
+	      // shift before the sum
+	      if (m_default_lut_emcal)
               {
                 tmp = (m_l1_adc_table[lut_input] >> 2U);
               }
@@ -1304,8 +1330,11 @@ int CaloTriggerEmulator::process_primitives()
               }
               temp_sum += (tmp & 0xffU);
             }
+	    // shift after the sum
             sum = ((temp_sum & 0x3ffU) >> 2U) & 0xffU;
-            if (Verbosity() >= 10 && sum >= 1)
+
+	    // sum is now 8 bits and sends it all to the LL1
+	    if (Verbosity() >= 10 && sum >= 1)
             {
               std::cout << __FILE__ << "::" << __FUNCTION__ << ":: emcal sum " << sumkey << " = " << sum << std::endl;
             }
@@ -1365,6 +1394,7 @@ int CaloTriggerEmulator::process_primitives()
               temp_sum += (tmp & 0xffU);
             }
             sum = ((temp_sum & 0x3ffU) >> 2U) & 0xffU;
+
             if (Verbosity() >= 10 && sum >= 1)
             {
               std::cout << __FILE__ << "::" << __FUNCTION__ << ":: hcalout sum " << sumkey << " = " << sum << std::endl;
@@ -1610,7 +1640,7 @@ int CaloTriggerEmulator::process_organizer()
 
           for (unsigned int &it_s : *(*iter_sum).second)
           {
-            t_sum->at(i) += (it_s & 0xffU);
+            t_sum->at(i) += ((it_s & 0xffU) >> 1U);
             i++;
           }
         }
@@ -1669,7 +1699,7 @@ int CaloTriggerEmulator::process_organizer()
           std::vector<unsigned int> *t_sum = m_primitives_hcal_ll1->get_primitive_at_key(jet_prim_key)->get_sum_at_key(jet_sum_key);
           for (unsigned int &it_s : *(*iter_sum).second)
           {
-            t_sum->at(i) += ((it_s) & 0xffU);
+            t_sum->at(i) += ((it_s & 0xffU) >> 1U);
             i++;
           }
         }
@@ -1681,6 +1711,7 @@ int CaloTriggerEmulator::process_organizer()
     {
       std::cout << __FILE__ << "::" << __FUNCTION__ << "::" << __LINE__ << ":: Processing organizer" << std::endl;
     }
+    
     range = m_primitives_hcal_ll1->getTriggerPrimitives();
     for (TriggerPrimitiveContainerv1::Iter iter = range.first; iter != range.second; ++iter)
     {
@@ -1691,7 +1722,7 @@ int CaloTriggerEmulator::process_organizer()
       {
         for (unsigned int &it_s : *(*iter_sum).second)
         {
-          it_s = (it_s >> 1U) & 0xffU;
+          it_s = (it_s & 0xffU);
         }
       }
     }
@@ -2192,13 +2223,18 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
         exit(1);
       }
     }
-    m_hcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "HCALPackets");
-
-    if (m_hcal_packets)
-    {
-      m_useoffline = true;
-    }
-
+    else
+      {
+	m_hcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "HCALPackets");	
+	if (m_hcal_packets)
+	  {
+	    m_useoffline = true;
+	  }
+	else if (!m_hcal_packets && !m_event)
+	  {
+	    m_use_individual_packets = true;
+	  }
+      }
     m_primitives_hcalout = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCALOUT");
 
     if (!m_primitives_hcalout)
@@ -2214,6 +2250,7 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
       std::cout << "No HCAL Primitives found... " << std::endl;
       exit(1);
     }
+    
     hcalset = true;
   }
 
@@ -2239,21 +2276,28 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
     }
 
     if (!hcalset)
-    {
-      m_hcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "HCALPackets");
-
-      m_primitives_hcal_ll1 = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCAL_LL1");
-
-      if (!m_primitives_hcal_ll1)
       {
-        std::cout << "No HCAL Primitives found... " << std::endl;
-        exit(1);
+	m_hcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "HCALPackets");	
+	
+	if (m_hcal_packets)
+	  {
+	    m_useoffline = true;
+	  }
+	else if (!m_hcal_packets && !m_event)
+	  {
+	    m_use_individual_packets = true;
+	  }
+	m_primitives_hcal_ll1 = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_HCAL_LL1");
+	
+	if (!m_primitives_hcal_ll1)
+	  {
+	    std::cout << "No HCAL Primitives found... " << std::endl;
+	    exit(1);
+	  }
       }
-    }
   }
   if (m_do_emcal)
-  {
-    m_emcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "CEMCPackets");
+    {
 
     if (!m_isdata)
     {
@@ -2265,6 +2309,19 @@ void CaloTriggerEmulator::GetNodes(PHCompositeNode *topNode)
         exit(1);
       }
     }
+    else
+      {
+
+	m_emcal_packets = findNode::getClass<CaloPacketContainer>(topNode, "CEMCPackets");	
+	if (m_emcal_packets)
+	  {
+	    m_useoffline = true;
+	  }
+	else if (!m_emcal_packets && !m_event)
+	  {
+	    m_use_individual_packets = true;
+	  }
+      }
     m_primitives_emcal = findNode::getClass<TriggerPrimitiveContainer>(topNode, "TRIGGERPRIMITIVES_EMCAL");
 
     if (!m_primitives_emcal)
