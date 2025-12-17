@@ -319,7 +319,7 @@ void SiliconSeedsQA::createHistos()
   }
 
   {
-    h_vx_vy = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y;Vertex x [cm];Vertex y [cm];Entries", 500, -2.5, 2.5, 500, -2.5, 2.5);
+    h_vx_vy = new TH2F(std::string(getHistoPrefix() + "vx_vy").c_str(), "Vertex x vs y;Vertex x [cm];Vertex y [cm];Entries", 500, -0.5, 0.5, 500, -0.5, 0.5);
     hm->registerHisto(h_vx_vy);
   }
 
