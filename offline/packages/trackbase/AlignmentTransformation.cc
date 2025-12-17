@@ -50,8 +50,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
   double m_moduleStepPhi = 2.0 * M_PI / 12.0;
   double m_modulePhiStart = -M_PI;
-  //  for(int iside = 0; iside < 2; ++iside)
-  for(int iside : {0,1} )
+  for(int iside = 0; iside < 2; ++iside)
     {
       for(int isector = 0; isector < 12; ++isector)
 	{
@@ -162,7 +161,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
     perturbationTranslation = Eigen::Vector3d(0.0, 0.0, 0.0);
 
     unsigned int trkrId = TrkrDefs::getTrkrId(hitsetkey);  // specify between detectors
-	
+    	
     switch( trkrId )
     {
 
@@ -180,7 +179,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	Eigen::Vector3d localFrameTranslation(0.0, 0.0, 0.0);
 		
         Acts::Transform3 transform;
-        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, false);
+        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, false);
 
         Acts::GeometryIdentifier id = surf->geometryId();
 
@@ -210,7 +209,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	Eigen::Vector3d localFrameTranslation(0.0, 0.0, 0.0);
 		  
         Acts::Transform3 transform;
-        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, use_intt_survey_geometry);
+        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, use_intt_survey_geometry);
         Acts::GeometryIdentifier id = surf->geometryId();
 
         if (localVerbosity)
@@ -278,7 +277,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 		  }
 		
 		Acts::Transform3 transform;
-		transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, false);
+		transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, false);
 		Acts::GeometryIdentifier id = surf->geometryId();
 	    
 		if (localVerbosity)
@@ -315,7 +314,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 	Eigen::Vector3d localFrameTranslation(0.0, 0.0, 0.0);
 	
         Acts::Transform3 transform;
-        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, false);
+        transform = newMakeTransform(surf, millepedeTranslation, sensorAngles, localFrameTranslation, sensorAnglesGlobal, trkrId, false);
         Acts::GeometryIdentifier id = surf->geometryId();
 
         if (localVerbosity)
@@ -348,7 +347,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 }
 
 // currently used as the transform maker
-Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, bool survey)
+Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, unsigned int trkrid, bool survey)
 {
   // define null matrices
   Eigen::Vector3d nullTranslation(0, 0, 0);
@@ -417,9 +416,18 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   }
   else
   {
-    transform = mpGlobalTranslationAffine * mpGlobalRotationAffine
-      * actsTranslationAffine * actsRotationAffine
-      * mpLocalTranslationAffine * mpLocalRotationAffine;
+    if(trkrid == TrkrDefs::tpcId)
+      {
+	transform = mpGlobalTranslationAffine * mpGlobalRotationAffine
+	  * actsTranslationAffine * actsRotationAffine
+	  * mpLocalTranslationAffine * mpLocalRotationAffine;
+      }
+    else
+      {
+	// needed for backward compatibility to existing local rotations in MVTX
+	transform = mpGlobalTranslationAffine * mpGlobalRotationAffine
+	  * actsTranslationAffine *  mpLocalRotationAffine * actsRotationAffine;
+      }
   }
 
   if (localVerbosity)
@@ -587,8 +595,9 @@ void AlignmentTransformation::generateRandomPerturbations(Eigen::Vector3d angleD
 
 void AlignmentTransformation::extractModuleCenterPositions()
 {
+  if(localVerbosity){ std::cout << "Extracting TPC module center radii:" << std::endl; }
 
-  for(int iside = 0; iside < 2;++iside)
+    for(int iside = 0; iside < 2;++iside)
     {
       for (int iregion = 0; iregion < 3; ++iregion)
 	{
@@ -601,7 +610,7 @@ void AlignmentTransformation::extractModuleCenterPositions()
 	      double sectorphi = sectorPhi[iside][iregion];
 	      
 	      TrkrDefs::hitsetkey hitsetkey_in =  TpcDefs::genHitSetKey(lin, isector, iside);
-	      if(localVerbosity){ std::cout << "hitsetkey_in " << hitsetkey_in << " lin " << lin << " sector " << isector << " side " << iside << " region " << iregion << std::endl; }
+	      if(localVerbosity){ std::cout << "  hitsetkey_in " << hitsetkey_in << " lin " << lin << " sector " << isector << " side " << iside << " region " << iregion << std::endl; }
 	      double surf_rad_in = extractModuleCenter(hitsetkey_in, sectorphi);
 	      
 	      TrkrDefs::hitsetkey hitsetkey_out =  TpcDefs::genHitSetKey(lout, isector, iside);
@@ -610,7 +619,7 @@ void AlignmentTransformation::extractModuleCenterPositions()
 	      
 	      TpcModuleRadii[iside][isector][iregion] = mod_radius;
 
-	      if(localVerbosity){ std::cout << "hitsetkey_out " << hitsetkey_out << " lout " << lout <<" sector " << isector << " side " << iside
+	      if(localVerbosity){ std::cout << "  hitsetkey_out " << hitsetkey_out << " lout " << lout <<" sector " << isector << " side " << iside
 					    << " region " << iregion << " module radius " << mod_radius << std::endl; }
 	    }
 	}
