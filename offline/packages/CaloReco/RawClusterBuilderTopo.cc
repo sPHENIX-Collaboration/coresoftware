@@ -388,9 +388,20 @@ int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
 
 int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 {
-  TowerInfoContainer *towerinfosEM = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
-  TowerInfoContainer *towerinfosIH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
-  TowerInfoContainer *towerinfosOH = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
+
+  std::string towerinfoNodenameEM = "TOWERINFO_CALIB_CEMC";
+  std::string towerinfoNodenameIH = "TOWERINFO_CALIB_HCALIN";
+  std::string towerinfoNodenameOH = "TOWERINFO_CALIB_HCALOUT";
+  if (!_inputnodeprefix.empty())
+  {
+    towerinfoNodenameEM = _inputnodeprefix + "_CEMC";
+    towerinfoNodenameIH = _inputnodeprefix + "_HCALIN";
+    towerinfoNodenameOH = _inputnodeprefix + "_HCALOUT";
+  }
+
+  TowerInfoContainer *towerinfosEM = findNode::getClass<TowerInfoContainer>(topNode, towerinfoNodenameEM);
+  TowerInfoContainer *towerinfosIH = findNode::getClass<TowerInfoContainer>(topNode, towerinfoNodenameIH);
+  TowerInfoContainer *towerinfosOH = findNode::getClass<TowerInfoContainer>(topNode, towerinfoNodenameOH);
 
   if (!towerinfosEM)
   {
