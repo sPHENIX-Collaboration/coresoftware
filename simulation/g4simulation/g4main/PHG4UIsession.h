@@ -11,7 +11,7 @@ class PHG4UIsession : public G4UIsession
 {
  public:
   PHG4UIsession();
-  ~PHG4UIsession() override {}
+  ~PHG4UIsession() = default;
 
   void Verbosity(int verb) { verbosity = verb; }
 

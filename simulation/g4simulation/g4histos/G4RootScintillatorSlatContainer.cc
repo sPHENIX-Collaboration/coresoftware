@@ -10,8 +10,8 @@
 static const int NMAX = 1000;
 
 G4RootScintillatorSlatContainer::G4RootScintillatorSlatContainer()
+  : SnglSlats(new TClonesArray("G4RootScintillatorSlat", NMAX))
 {
-  SnglSlats = new TClonesArray("G4RootScintillatorSlat", NMAX);
 }
 
 G4RootScintillatorSlatContainer::~G4RootScintillatorSlatContainer()

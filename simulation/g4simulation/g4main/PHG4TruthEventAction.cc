@@ -21,11 +21,7 @@
 #include <Geant4/G4PrimaryVertex.hh>                    // for G4PrimaryVertex
 #include <Geant4/G4VUserPrimaryParticleInformation.hh>  // for G4VUserPrimar...
 
-// eigen has some shadowed variables
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
 #include <Eigen/Dense>
-#pragma GCC diagnostic pop
 
 #include <cmath>     // for isnan
 #include <cstdlib>   // for abs
@@ -37,16 +33,6 @@
 #include <vector>   // for vector, vecto...
 
 class PHG4VtxPoint;
-
-using namespace std;
-
-//___________________________________________________
-PHG4TruthEventAction::PHG4TruthEventAction()
-  : m_TruthInfoContainer(nullptr)
-  , m_LowerKeyPrevExist(0)
-  , m_UpperKeyPrevExist(0)
-{
-}
 
 //___________________________________________________
 void PHG4TruthEventAction::BeginOfEventAction(const G4Event* /*evt*/)
@@ -95,20 +81,18 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     PHG4Particle* particle = m_TruthInfoContainer->GetParticle(mytrkid);
 
     // if track is already in save list, nothing needs to be done
-    if (savelist.find(mytrkid) != savelist.end())
+    if (savelist.contains(mytrkid))
     {
       continue;
     }
-    else
-    {
-      wrttracks.push_back(mytrkid);
-      wrtvtx.push_back(particle->get_vtx_id());
-    }
+
+    wrttracks.push_back(mytrkid);
+    wrtvtx.push_back(particle->get_vtx_id());
 
     // now crawl up the truth info and add parents until we hit
     // a track which is already being saved
     int parentid = particle->get_parent_id();
-    while (savelist.find(parentid) == savelist.end() && parentid != 0)
+    while (!savelist.contains(parentid) && parentid != 0)
     {
       particle = m_TruthInfoContainer->GetParticle(parentid);
       wrttracks.push_back(parentid);
@@ -144,7 +128,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   {
     removed[0]++;
     int trackid = truthiter->first;
-    if (savelist.find(trackid) == savelist.end())
+    if (!savelist.contains(trackid))
     {
       // track not in save list
 
@@ -179,7 +163,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   while (vtxiter != vtxrange.second)
   {
     removed[2]++;
-    if (savevtxlist.find(vtxiter->first) == savevtxlist.end())
+    if (!savevtxlist.contains(vtxiter->first))
     {
       m_TruthInfoContainer->delete_vtx(vtxiter++);
       removed[3]++;
@@ -329,10 +313,8 @@ void PHG4TruthEventAction::PruneShowers()
           jter->second.erase(kter++);
           continue;
         }
-        else
-        {
-          ++kter;
-        }
+
+        ++kter;
       }
 
       if (jter->second.empty())
@@ -407,30 +389,30 @@ void PHG4TruthEventAction::ProcessShowers()
         PHG4Hit* g4hit = hits->findHit(g4hit_id);
         if (!g4hit)
         {
-          cout << PHWHERE << " missing g4hit" << endl;
+          std::cout << PHWHERE << " missing g4hit" << std::endl;
           continue;
         }
 
         PHG4Particle* particle = m_TruthInfoContainer->GetParticle(g4hit->get_trkid());
         if (!particle)
         {
-          cout << PHWHERE << " missing g4particle for track "
-               << g4hit->get_trkid() << endl;
+          std::cout << PHWHERE << " missing g4particle for track "
+                    << g4hit->get_trkid() << std::endl;
           continue;
         }
 
         PHG4VtxPoint* vtx = m_TruthInfoContainer->GetVtx(particle->get_vtx_id());
         if (!vtx)
         {
-          cout << PHWHERE << " missing g4vertex" << endl;
+          std::cout << PHWHERE << " missing g4vertex" << std::endl;
           continue;
         }
 
         // shower location and shape info
 
-        if (!isnan(g4hit->get_x(0)) &&
-            !isnan(g4hit->get_y(0)) &&
-            !isnan(g4hit->get_z(0)))
+        if (!std::isnan(g4hit->get_x(0)) &&
+            !std::isnan(g4hit->get_y(0)) &&
+            !std::isnan(g4hit->get_z(0)))
         {
           std::vector<float> entry(3);
           entry[0] = g4hit->get_x(0);
@@ -444,9 +426,9 @@ void PHG4TruthEventAction::ProcessShowers()
           sumw2 += w * w;
         }
 
-        if (!isnan(g4hit->get_x(1)) &&
-            !isnan(g4hit->get_y(1)) &&
-            !isnan(g4hit->get_z(1)))
+        if (!std::isnan(g4hit->get_x(1)) &&
+            !std::isnan(g4hit->get_y(1)) &&
+            !std::isnan(g4hit->get_z(1)))
         {
           std::vector<float> entry(3);
           entry[0] = g4hit->get_x(1);
@@ -462,7 +444,7 @@ void PHG4TruthEventAction::ProcessShowers()
 
         // e/h ratio
 
-        if (!isnan(g4hit->get_edep()))
+        if (!std::isnan(g4hit->get_edep()))
         {
           if (abs(particle->get_pid()) == 11)
           {
@@ -477,15 +459,15 @@ void PHG4TruthEventAction::ProcessShowers()
         // summary info
 
         ++nhits;
-        if (!isnan(g4hit->get_edep()))
+        if (!std::isnan(g4hit->get_edep()))
         {
           edep += g4hit->get_edep();
         }
-        if (!isnan(g4hit->get_eion()))
+        if (!std::isnan(g4hit->get_eion()))
         {
           eion += g4hit->get_eion();
         }
-        if (!isnan(g4hit->get_light_yield()))
+        if (!std::isnan(g4hit->get_light_yield()))
         {
           light_yield += g4hit->get_light_yield();
         }

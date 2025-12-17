@@ -43,12 +43,12 @@
 
 PHG4InttDigitizer::PHG4InttDigitizer(const std::string &name)
   : SubsysReco(name)
-  , PHParameterInterface(name)
+  , PHParameterInterface(name), RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
   InitializeParameters();
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   std::cout << Name() << " random seed: " << seed << std::endl;
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  
   gsl_rng_set(RandomGenerator, seed);
 }
 
@@ -169,7 +169,7 @@ void PHG4InttDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
        ++layeriter)
   {
     int layer = layeriter->second->get_layer();
-    if (_max_fphx_adc.find(layer) == _max_fphx_adc.end())
+    if (!_max_fphx_adc.contains(layer))
     {
       std::cout << "Error: _max_fphx_adc is not available." << std::endl;
       gSystem->Exit(1);
@@ -197,7 +197,7 @@ void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitTruthAssoc node
-  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
 
   //-------------
   // Digitization

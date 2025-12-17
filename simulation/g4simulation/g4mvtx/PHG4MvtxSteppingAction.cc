@@ -481,10 +481,8 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 
   return false;
 }
@@ -520,7 +518,7 @@ void PHG4MvtxSteppingAction::SetHitNodeName(const std::string& type, const std::
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_SUPPORT")
+  if (type == "G4HIT_SUPPORT")
   {
     m_SupportNodeName = name;
     return;

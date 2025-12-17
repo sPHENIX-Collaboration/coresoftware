@@ -31,15 +31,9 @@
 
 class PHG4Detector;
 
-using namespace std;
-using namespace PHG4MvtxDefs;
-
 //_______________________________________________________________________
 PHG4EICMvtxSubsystem::PHG4EICMvtxSubsystem(const std::string& name, const int _n_layers)
   : PHG4DetectorGroupSubsystem(name)
-  , m_Detector(nullptr)
-  , steppingAction_(nullptr)
-  , m_DisplayAction(nullptr)
   , n_layers(_n_layers)
   , detector_type(name)
 {
@@ -67,7 +61,7 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   if (Verbosity() > 0)
   {
-    cout << "PHG4EICMvtxSubsystem::Init started" << endl;
+    std::cout << "PHG4EICMvtxSubsystem::Init started" << std::endl;
   }
 
   PHNodeIterator iter(topNode);
@@ -79,7 +73,7 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // These values are set from the calling macro using the setters defined in the .h file
   if (Verbosity())
   {
-    cout << "    create Mvtx detector with " << n_layers << " layers." << endl;
+    std::cout << "    create Mvtx detector with " << n_layers << " layers." << std::endl;
   }
   m_Detector = new PHG4EICMvtxDetector(this, topNode, GetParamsContainer(), Name());
   m_Detector->Verbosity(Verbosity());
@@ -88,7 +82,7 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector->OverlapCheck(CheckOverlap());
   if (Verbosity())
   {
-    cout << "    ------ created detector " << Name() << endl;
+    std::cout << "    ------ created detector " << Name() << std::endl;
     GetParamsContainer()->Print();
   }
   // loop all layer to find atleast one active layer
@@ -96,7 +90,7 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // for now not absorber are implemnented yet
   int absorberactive = 0;
   int blackhole = 0;
-  for (set<int>::const_iterator parContainerIter = GetDetIds().first; parContainerIter != GetDetIds().second; ++parContainerIter)
+  for (std::set<int>::const_iterator parContainerIter = GetDetIds().first; parContainerIter != GetDetIds().second; ++parContainerIter)
   {
     if (active || GetParamsContainer()->GetParameters(*parContainerIter)->get_int_param("active"))
     {
@@ -120,7 +114,7 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       detNode = new PHCompositeNode(SuperDetector());
       dstNode->addNode(detNode);
     }
-    ostringstream nodename;
+    std::ostringstream nodename;
     if (SuperDetector() != "NONE")
     {
       nodename << "G4HIT_" << SuperDetector();
@@ -137,7 +131,7 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
     if (Verbosity())
     {
-      cout << PHWHERE << "creating hits node " << nodename.str() << endl;
+      std::cout << PHWHERE << "creating hits node " << nodename.str() << std::endl;
     }
 
     if (absorberactive)
@@ -158,7 +152,7 @@ int PHG4EICMvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
       if (Verbosity())
       {
-        cout << PHWHERE << "creating hits node " << nodename.str() << endl;
+        std::cout << PHWHERE << "creating hits node " << nodename.str() << std::endl;
       }
     }
 
@@ -203,26 +197,26 @@ PHG4SteppingAction* PHG4EICMvtxSubsystem::GetSteppingAction() const
 //_______________________________________________________________________
 void PHG4EICMvtxSubsystem::SetDefaultParameters()
 {
-  for (set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
+  for (std::set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
   {
     const int& ilyr = *lyr_it;
-    const double rLr = mvtxdat[ilyr][kRmd];
-    double turbo = radii2Turbo(mvtxdat[ilyr][kRmn], rLr, mvtxdat[ilyr][kRmx], SegmentationAlpide::SensorSizeRows * 10.);
+    const double rLr = PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmd];
+    double turbo = radii2Turbo(PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmn], rLr, PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kRmx], SegmentationAlpide::SensorSizeRows * 10.);
 
     set_default_int_param(ilyr, "active", 1);  // non-automatic initialization in PHG4DetectorGroupSubsystem
     set_default_int_param(ilyr, "layer", ilyr);
-    set_default_int_param(ilyr, "N_staves", mvtxdat[ilyr][kNStave]);
+    set_default_int_param(ilyr, "N_staves", PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kNStave]);
 
     set_default_double_param(ilyr, "layer_nominal_radius", rLr);
     set_default_double_param(ilyr, "phitilt", turbo);
-    set_default_double_param(ilyr, "phi0", mvtxdat[ilyr][kPhi0]);
+    set_default_double_param(ilyr, "phi0", PHG4MvtxDefs::mvtxdat[ilyr][PHG4MvtxDefs::kPhi0]);
     set_default_string_param(ilyr, "material", "G4_AIR");  // default - almost nothing
   }
 
-  set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
+  set_default_string_param(PHG4MvtxDefs::GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
   /*
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
-  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_thickness", NAN);
+  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_thickness", std::numeric_limits<double>::quiet_NaN());
   */
 }

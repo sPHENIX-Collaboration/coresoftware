@@ -127,13 +127,13 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 
     // fill the map_TtoR
     /* PHG4ParticleSvtxMap::WeightedRecoTrackMap*  entry_TtoR; */
-    if (map_TtoR.find(gtrackID) == map_TtoR.end())
+    if (!map_TtoR.contains(gtrackID))
     {
       map_TtoR[gtrackID] = PHG4ParticleSvtxMap::WeightedRecoTrackMap{};
     }
     auto &entry_TtoR = map_TtoR[gtrackID];
     float weight_TtoR = (float) n_match + (float) n_truth / 100.;
-    if (entry_TtoR.find(weight_TtoR) == entry_TtoR.end())
+    if (!entry_TtoR.contains(weight_TtoR))
     {
       entry_TtoR[weight_TtoR] = {id_reco};  // i.e. std::set<unsigned int> { id_reco };
     }
@@ -144,13 +144,13 @@ int FillTruthRecoMatchMap::process_event(PHCompositeNode * /*topNode*/)
 
     // fill the map_RtoT
     /* SvtxPHG4ParticleMap::WeightedTruthTrackMap*  entry_RtoT; */
-    if (map_RtoT.find(id_reco) == map_RtoT.end())
+    if (!map_RtoT.contains(id_reco))
     {
       map_RtoT[id_reco] = SvtxPHG4ParticleMap::WeightedTruthTrackMap{};
     }
     auto &entry_RtoT = map_RtoT[id_reco];
     float weight_RtoT = (float) n_match + (float) n_reco / 100.;
-    if (entry_RtoT.find(weight_RtoT) == entry_RtoT.end())
+    if (!entry_RtoT.contains(weight_RtoT))
     {
       entry_RtoT[weight_RtoT] = {gtrackID};  // i.e. std::set<int> { gtrackID }
     }

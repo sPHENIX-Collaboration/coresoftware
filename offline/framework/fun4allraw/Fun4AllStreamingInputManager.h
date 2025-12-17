@@ -140,7 +140,7 @@ class Fun4AllStreamingInputManager : public Fun4AllInputManager
   std::map<int, std::map<int, uint64_t>> m_InttPacketFeeBcoMap;
 
   // QA histos
-  TH1 *h_refbco_mvtx{nullptr};
+  TH1 *h_refbco_mvtx[12]{nullptr};
   TH1 *h_taggedAllFelixes_mvtx{nullptr};
   TH1 *h_taggedAllFelixesAllFees_mvtx{nullptr};
   TH1 *h_tagBcoFelix_mvtx[12]{nullptr};

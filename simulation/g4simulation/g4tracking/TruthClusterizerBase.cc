@@ -42,10 +42,10 @@ void TruthClusterizerBase::init_clusterizer_base(PHCompositeNode*& _topNode, int
   m_topNode = _topNode;
   m_verbosity = _verbosity;
   PHNodeIterator iter(m_topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   assert(dstNode);
   PHNodeIterator dstiter(dstNode);
-  auto DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+  auto *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
   if (!DetNode)
   {
     DetNode = new PHCompositeNode("TRKR");
@@ -56,7 +56,7 @@ void TruthClusterizerBase::init_clusterizer_base(PHCompositeNode*& _topNode, int
   if (!m_truthtracks)
   {
     m_truthtracks = new TrkrTruthTrackContainerv1();
-    auto newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(m_truthtracks, "TRKR_TRUTHTRACKCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
 
@@ -64,7 +64,7 @@ void TruthClusterizerBase::init_clusterizer_base(PHCompositeNode*& _topNode, int
   if (!m_clusters)
   {
     m_clusters = new TrkrClusterContainerv4;
-    auto newNode = new PHIODataNode<PHObject>(m_clusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(m_clusters, "TRKR_TRUTHCLUSTERCONTAINER", "PHObject");
     DetNode->addNode(newNode);
   }
 

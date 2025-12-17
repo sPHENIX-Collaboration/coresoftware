@@ -13,8 +13,8 @@ std::vector<float> onnxInference(Ort::Session *session, std::vector<float> &inpu
 
 namespace onnxlib
 {
-  [[maybe_unused]] static int n_input{-1};
-  [[maybe_unused]] static int n_output{-1};
+  extern int n_input;
+  extern int n_output;
 }  // namespace onnxlib
 
 #endif

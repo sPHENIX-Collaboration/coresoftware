@@ -25,12 +25,7 @@ class XingShiftCal : public SubsysReco
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int ResetEvent(PHCompositeNode *topNode) override;
-  // int EndRun(const int runnumber) override;
   int End(PHCompositeNode *topNode) override;
-  int Reset(PHCompositeNode * /*topNode*/) override;
-
-  void Print(const std::string &what = "ALL") const override;
 
   int Calibrate(const int final = 0);
   int CalculateCrossingShift(int &xingshift, uint64_t counts[NTRIG][NBUNCHES], bool &success);

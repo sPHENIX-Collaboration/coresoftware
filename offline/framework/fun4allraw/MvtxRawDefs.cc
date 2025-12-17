@@ -1,10 +1,9 @@
 #include "MvtxRawDefs.h"
 
-#include <ffamodules/DBInterface.h>
+#include <fun4all/DBInterface.h>
 
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>  // for Statement
-#include <odbc++/types.h>
 
 #include <cmath>
 #include <iostream>

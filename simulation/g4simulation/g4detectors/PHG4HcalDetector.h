@@ -26,7 +26,7 @@ class PHG4HcalDetector : public PHG4Detector
   PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int layer = 0);
 
   //! destructor
-  ~PHG4HcalDetector(void) override = default;
+  ~PHG4HcalDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume* world) override;

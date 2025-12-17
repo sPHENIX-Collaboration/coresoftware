@@ -36,8 +36,6 @@
 #include <map>       // for map<>::const_iterator, map
 #include <utility>   // for pair
 
-// using namespace std;
-
 PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const std::string &name)
   : SubsysReco(name)
   , m_RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))

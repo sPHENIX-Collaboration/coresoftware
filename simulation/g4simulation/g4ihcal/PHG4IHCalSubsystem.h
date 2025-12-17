@@ -17,7 +17,7 @@ class PHG4IHCalSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4IHCalSubsystem(const std::string& name = "HCALIN", const int layer = 0);
+  PHG4IHCalSubsystem(const std::string& name = "HCALIN", const int lyr = 0);
 
   //! destructor
   ~PHG4IHCalSubsystem() override;

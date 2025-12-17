@@ -58,14 +58,14 @@ TrkrTruthTrack* TrkrTruthTrackContainerv1::getTruthTrack(unsigned int id, PHG4Tr
   {
     std::cout << PHWHERE << " Note: embedded track from PHG4TruthInfoContainer, id( "
               << id << " )without an associated PHG4Particle" << std::endl;
-    auto current_track = new TrkrTruthTrackv1();
+    auto *current_track = new TrkrTruthTrackv1();
     current_track->setTrackid(id);
     m_data[id] = current_track;
     return current_track;
   }
   int vtxid = particle->get_vtx_id();
   PHG4VtxPoint* vtx = truth_info->GetVtx(vtxid);
-  auto current_track = new TrkrTruthTrackv1(id, particle, vtx);
+  auto *current_track = new TrkrTruthTrackv1(id, particle, vtx);
   m_data[id] = current_track;
   return current_track;
 }
@@ -77,7 +77,7 @@ TrkrTruthTrackContainer::ConstRange TrkrTruthTrackContainerv1::getTruthTrackRang
 
 bool TrkrTruthTrackContainerv1::hasTrackid(unsigned int id) const
 {
-  return (m_data.find(id) != m_data.end());
+  return (m_data.contains(id));
 }
 
 TrkrTruthTrackContainer::Map& TrkrTruthTrackContainerv1::getMap()
@@ -89,7 +89,7 @@ void TrkrTruthTrackContainerv1::identify(std::ostream& os) const
 {
   os << " TrkrTruthTrackContainer data.  Containter " << (int) m_data.size() << " tracks" << std::endl;
   int cnt = 0;
-  for (auto& entry : m_data)
+  for (const auto& entry : m_data)
   {
     os << " Track(" << cnt << "): " << std::endl;
     entry.second->identify(os);

@@ -32,8 +32,8 @@ class TrackClusEvaluator
   TrackClusEvaluator(TrkrClusterIsMatcher* tcm = nullptr)
     : ismatcher{tcm} {};
 
-  TrkrClusterContainer* get_PHG4_clusters();
-  TrkrClusterContainer* get_SVTX_clusters();
+  TrkrClusterContainer* get_PHG4_clusters() const;
+  TrkrClusterContainer* get_SVTX_clusters() const;
 
   Vector svtx_keys{};
   Vector phg4_keys{};

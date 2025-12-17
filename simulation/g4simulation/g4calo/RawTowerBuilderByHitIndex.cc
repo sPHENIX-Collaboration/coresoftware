@@ -245,10 +245,18 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable()
     /* If line starts with keyword Tower, add to tower positions */
     if (line_mapping.find("Tower ") != std::string::npos)
     {
-      unsigned idx_j, idx_k, idx_l;
-      double pos_x, pos_y, pos_z;
-      double size_x, size_y, size_z;
-      double rot_x, rot_y, rot_z;
+      unsigned idx_j;
+      unsigned idx_k;
+      unsigned idx_l;
+      double pos_x;
+      double pos_y;
+      double pos_z;
+      double size_x;
+      double size_y;
+      double size_z;
+      double rot_x;
+      double rot_y;
+      double rot_z;
       double type;
       std::string dummys;
 

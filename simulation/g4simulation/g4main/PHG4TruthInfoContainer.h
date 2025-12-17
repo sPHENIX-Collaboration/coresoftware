@@ -35,7 +35,7 @@ class PHG4TruthInfoContainer : public PHObject
   typedef std::pair<ShowerIterator, ShowerIterator> ShowerRange;
   typedef std::pair<ConstShowerIterator, ConstShowerIterator> ConstShowerRange;
 
-  PHG4TruthInfoContainer();
+  PHG4TruthInfoContainer() = default;
   ~PHG4TruthInfoContainer() override;
 
   // from PHObject
@@ -46,8 +46,8 @@ class PHG4TruthInfoContainer : public PHObject
   // --- particle storage ------------------------------------------------------
 
   //! Add a particle that the user has created
-  ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
-  ConstIterator AddsPHENIXPrimaryParticle(const int particleid, PHG4Particle* newparticle);
+  ConstIterator AddParticle(const int trackid, PHG4Particle* newparticle);
+  ConstIterator AddsPHENIXPrimaryParticle(const int trackid, PHG4Particle* newparticle);
   void delete_particle(Iterator piter);
   void delete_particle(int trackid);
 
@@ -75,7 +75,7 @@ class PHG4TruthInfoContainer : public PHObject
   ConstRange GetSecondaryParticleRange() const { return ConstRange(particlemap.begin(), particlemap.upper_bound(0)); }
 
   //! track -> particle map size
-  unsigned int size(void) const { return particlemap.size(); }
+  unsigned int size() const { return particlemap.size(); }
   int GetNumPrimaryVertexParticles()
   {
     return std::distance(particlemap.upper_bound(0), particlemap.end());
@@ -118,7 +118,7 @@ class PHG4TruthInfoContainer : public PHObject
   // --- vertex storage --------------------------------------------------------
 
   //! Add a vertex and return an iterator to the user
-  ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* vertex);
+  ConstVtxIterator AddVertex(const int vtxid, PHG4VtxPoint* newvtx);
   void delete_vtx(VtxIterator viter);
   void delete_vtx(int vtxid);
 
@@ -180,7 +180,7 @@ class PHG4TruthInfoContainer : public PHObject
 
   //! Add a shower that the user has created
   ConstShowerIterator AddShower(const int showerid, PHG4Shower* newshower);
-  void delete_shower(ShowerIterator piter);
+  void delete_shower(ShowerIterator siter);
 
   PHG4Shower* GetShower(const int showerid);
   PHG4Shower* GetPrimaryShower(const int showerid);
@@ -196,7 +196,7 @@ class PHG4TruthInfoContainer : public PHObject
   ConstShowerRange GetSecondaryShowerRange() const { return ConstShowerRange(showermap.begin(), showermap.upper_bound(0)); }
 
   //! shower size
-  unsigned int shower_size(void) const { return showermap.size(); }
+  unsigned int shower_size() const { return showermap.size(); }
 
   //! Get the Shower Map storage
   const ShowerMap& GetShowerMap() const { return showermap; }

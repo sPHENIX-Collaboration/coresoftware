@@ -142,6 +142,9 @@ class MbdCalib
 
   // void Dump_to_file(const std::string& what = "ALL");
 
+  void SetRawDstFlag(const int r) { _rawdstflag = r; }
+  void SetFitsOnly(const int f) { _fitsonly = f; }
+
   void Reset();
   // void Print(Option_t* option) const;
 
@@ -158,6 +161,8 @@ class MbdCalib
 
   int _status{0};
   int _verbose{0};
+  int _rawdstflag{0};  // dst with raw container
+  int _fitsonly{0};    // stop reco after waveform fits (for DST_CALOFIT pass)
   // int          _run_number {0};
   // uint64_t     _timestamp {0};
   std::string _dbfilename;

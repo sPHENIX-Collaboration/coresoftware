@@ -38,7 +38,7 @@ class PHG4HitEval : public PHG4Hitv1
   {
     return eion;
   }
-  
+
   void set_eion(const float f) override
   {
     eion = f;
@@ -75,15 +75,15 @@ class PHG4HitEval : public PHG4Hitv1
   }
 
  protected:
-  float eion {std::numeric_limits<float>::quiet_NaN()};
+  float eion{std::numeric_limits<float>::quiet_NaN()};
 
-  int scint_id {std::numeric_limits<int>::min()};
+  int scint_id{std::numeric_limits<int>::min()};
 
   //! a number proportional to the scintillation light yield.
-  float light_yield {std::numeric_limits<float>::quiet_NaN()};
+  float light_yield{std::numeric_limits<float>::quiet_NaN()};
 
   //! path length of the track to the hit
-  float path_length {std::numeric_limits<float>::quiet_NaN()};
+  float path_length{std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(PHG4HitEval, 1)
 };

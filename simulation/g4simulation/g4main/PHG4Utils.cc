@@ -7,23 +7,17 @@
 
 #include <TSystem.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <boost/algorithm/string.hpp>
-#pragma GCC diagnostic pop
-
 #include <boost/algorithm/hex.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/uuid/detail/md5.hpp>
 
-#include <algorithm>  // for copy
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>  // for exit
 #include <fstream>
 #include <iostream>  // for operator<<, endl, basic_ostream
 #include <iterator>  // for back_insert_iterator
 #include <vector>    // for vector
-
-using namespace std;
 
 double PHG4Utils::_eta_coverage = 1.;
 
@@ -61,7 +55,7 @@ PHG4Utils::get_eta(const double theta)
   return eta;
 }
 
-pair<double, double>
+std::pair<double, double>
 PHG4Utils::get_etaphi(const double x, const double y, const double z)
 {
   double eta;
@@ -72,7 +66,7 @@ PHG4Utils::get_etaphi(const double x, const double y, const double z)
   phi = atan2(y, x);
   theta = atan2(radius, z);
   eta = -log(tan(theta / 2.));
-  return make_pair(eta, phi);
+  return std::make_pair(eta, phi);
 }
 
 double
@@ -89,11 +83,11 @@ PHG4Utils::get_eta(const double radius, const double z)
   return eta;
 }
 
-void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
+void PHG4Utils::SetColour(G4VisAttributes* att, const std::string& material)
 {
   if (!att)
   {
-    cout << "G4VisAttributes pointer is NULL" << endl;
+    std::cout << "G4VisAttributes pointer is NULL" << std::endl;
     return;
   }
   if (material == "AL_BABAR_MAG")
@@ -166,7 +160,7 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
   }
   else
   {
-    // cout << "default color red for material " << material << endl;
+    // std::cout << "default color red for material " << material << std::endl;
     att->SetColour(G4Colour::Cyan());
   }
   return;
@@ -210,20 +204,18 @@ std::pair<bool, std::pair<double, double>> PHG4Utils::lines_intersect(
   {
     double rx = cx + fx * h;
     double ry = cy + fy * h;
-    // cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
+    // std::cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << std::endl;
     if ((rx > ax && rx > bx) || (rx < ax && rx < bx) || (ry < ay && ry < by) || (ry > ay && ry > by))
     {
-      // cout << "       NO segment/segment intersection!" << endl;
-      return make_pair(false, make_pair(NAN, NAN));
+      // std::cout << "       NO segment/segment intersection!" << std::endl;
+      return std::make_pair(false, std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()));
     }
-    else
-    {
-      // cout << "       segment/segment intersection!" << endl;
-      return make_pair(true, make_pair(rx, ry));
-    }
+
+    // std::cout << "       segment/segment intersection!" << std::endl;
+    return std::make_pair(true, std::make_pair(rx, ry));
   }
 
-  return make_pair(false, make_pair(NAN, NAN));
+  return std::make_pair(false, std::make_pair(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()));
 }
 
 // returns success/failure and length of the line segment inside the rectangle (output)
@@ -247,8 +239,8 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
 
   if (cx > dx || cy > dy)
   {
-    cout << PHWHERE << "ERROR: Bad rectangle definition!" << endl;
-    return make_pair(false, NAN);
+    std::cout << PHWHERE << "ERROR: Bad rectangle definition!" << std::endl;
+    return std::make_pair(false, std::numeric_limits<double>::quiet_NaN());
   }
 
   double ex = cx;
@@ -256,30 +248,30 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
   double fx = dx;
   double fy = cy;
 
-  vector<double> vx;
-  vector<double> vy;
-  pair<bool, pair<double, double>> intersect1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy);
+  std::vector<double> vx;
+  std::vector<double> vy;
+  std::pair<bool, std::pair<double, double>> intersect1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy);
   //  bool i1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy, &rx, &ry);
   if (intersect1.first)
   {
     vx.push_back(intersect1.second.first);
     vy.push_back(intersect1.second.second);
   }
-  pair<bool, pair<double, double>> intersect2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy);
+  std::pair<bool, std::pair<double, double>> intersect2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy);
   //  bool i2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy, &rx, &ry);
   if (intersect2.first)
   {
     vx.push_back(intersect2.second.first);
     vy.push_back(intersect2.second.second);
   }
-  pair<bool, pair<double, double>> intersect3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy);
+  std::pair<bool, std::pair<double, double>> intersect3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy);
   //  bool i3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy, &rx, &ry);
   if (intersect3.first)
   {
     vx.push_back(intersect3.second.first);
     vy.push_back(intersect3.second.second);
   }
-  pair<bool, pair<double, double>> intersect4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey);
+  std::pair<bool, std::pair<double, double>> intersect4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey);
   //  bool i4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey, &rx, &ry);
   if (intersect4.first)
   {
@@ -287,39 +279,38 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
     vy.push_back(intersect4.second.second);
   }
 
-  // cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
-  // cout << "Number of intersections = " << vx.size() << endl;
+  // std::cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << std::endl;
+  // std::cout << "Number of intersections = " << vx.size() << std::endl;
 
   double rr = 0.;
   if (vx.size() == 2)
   {
     rr = sqrt((vx[0] - vx[1]) * (vx[0] - vx[1]) + (vy[0] - vy[1]) * (vy[0] - vy[1]));
-    //  cout << "Length of intersection = " << *rr << endl;
+    //  std::cout << "Length of intersection = " << *rr << std::endl;
   }
   if (vx.size() == 1)
   {
     // find which point (A or B) is within the rectangle
     if (ax > cx && ay > cy && ax < dx && ay < dy)  // point A is inside the rectangle
     {
-      // cout << "Point A is inside the rectangle." << endl;
+      // std::cout << "Point A is inside the rectangle." << std::endl;
       rr = sqrt((vx[0] - ax) * (vx[0] - ax) + (vy[0] - ay) * (vy[0] - ay));
     }
     if (bx > cx && by > cy && bx < dx && by < dy)  // point B is inside the rectangle
     {
-      // cout << "Point B is inside the rectangle." << endl;
+      // std::cout << "Point B is inside the rectangle." << std::endl;
       rr = sqrt((vx[0] - bx) * (vx[0] - bx) + (vy[0] - by) * (vy[0] - by));
     }
   }
 
   if (intersect1.first || intersect2.first || intersect3.first || intersect4.first)
   {
-    return make_pair(true, rr);
+    return std::make_pair(true, rr);
   }
-  return make_pair(false, NAN);
+  return std::make_pair(false, std::numeric_limits<double>::quiet_NaN());
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
-double PHG4Utils::sA(double r, double x, double y)
+double PHG4Utils::sA(double r, double x, double y)  // NOLINT(misc-no-recursion)
 {
   // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
   // It is called repeatedly to find the overlap area between the circle and rectangle
@@ -339,15 +330,9 @@ double PHG4Utils::sA(double r, double x, double y)
     return -sA(r, x, -y);
   }
 
-  if (x > r)
-  {
-    x = r;
-  }
+  x = std::min(x, r);
 
-  if (y > r)
-  {
-    y = r;
-  }
+  y = std::min(y, r);
 
   if (x * x + y * y > r * r)
   {
@@ -375,24 +360,24 @@ double PHG4Utils::circle_rectangle_intersection(double x1, double y1, double x2,
   y2 -= my;
 
   // {
-  //   cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
-  //   cout << " sA21 " << sA(r, x2, y1)
+  //   std::cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << std::endl;
+  //   std::cout << " sA21 " << sA(r, x2, y1)
   //        << " sA11 " << sA(r, x1, y1)
   //        << " sA22 " << sA(r, x2, y2)
   //        << " sA12 " << sA(r, x1, y2)
-  //        << endl;
+  //        << std::endl;
   // }
 
   return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
 }
 
-string PHG4Utils::md5sum(const std::string& filename)
+std::string PHG4Utils::md5sum(const std::string& filename)
 {
-  ifstream myfile;
+  std::ifstream myfile;
   myfile.open(filename);
   if (!myfile.is_open())
   {
-    cout << "Error opening " << filename << endl;
+    std::cout << "Error opening " << filename << std::endl;
     gSystem->Exit(1);
     exit(1);
   }
@@ -405,7 +390,7 @@ string PHG4Utils::md5sum(const std::string& filename)
   }
   myfile.close();
   hash.get_digest(digest);
-  const auto charDigest = reinterpret_cast<const char*>(&digest);
+  const auto* const charDigest = reinterpret_cast<const char*>(&digest);
   std::string result;
   boost::algorithm::hex(charDigest, charDigest + sizeof(boost::uuids::detail::md5::digest_type), std::back_inserter(result));
   boost::algorithm::to_lower(result);

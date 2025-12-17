@@ -21,12 +21,11 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>
 
-PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup(G4int steelPlates,
-                                                 G4double scintiGap, G4double tiltAngle)
-  : fMinStep(0.005 * mm)
-  , n_steel_plates(steelPlates) /*G4int*/
-  , scinti_gap(scintiGap)       /*G4double*/
-  , tilt_angle(tiltAngle)       /*G4double*/
+PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup(G4int steelPlates, G4double scintiGap, G4double tiltAngle)
+  : n_steel_plates(steelPlates)
+  , fMinStep(0.005 * mm)
+  , scinti_gap(scintiGap)
+  , tilt_angle(tiltAngle)
 {
   G4int nvar = 8;
 

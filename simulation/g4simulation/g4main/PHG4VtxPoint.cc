@@ -1,11 +1,9 @@
 #include "PHG4VtxPoint.h"
 
-using namespace std;
-
-void PHG4VtxPoint::identify(ostream& os) const
+void PHG4VtxPoint::identify(std::ostream& os) const
 {
   os << "virtual PHG4VtxPoint base class"
-     << endl;
+     << std::endl;
 }
 
 bool PHG4VtxPoint::operator==(const PHG4VtxPoint& p) const

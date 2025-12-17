@@ -115,7 +115,7 @@ int PHG4MvtxDetector::IsSensor(G4VPhysicalVolume *volume) const
 {
   // Is this volume one of the sensors?
   // Checks if pointer matches one of our stored sensors for this layer
-  if (m_SensorPV.find(volume) != m_SensorPV.end())
+  if (m_SensorPV.contains(volume))
   {
     if (Verbosity() > 0)
     {
@@ -127,7 +127,7 @@ int PHG4MvtxDetector::IsSensor(G4VPhysicalVolume *volume) const
   }
   if (m_SupportActiveFlag)
   {
-    if (m_SupportLV.find(volume->GetLogicalVolume()) != m_SupportLV.end())
+    if (m_SupportLV.contains(volume->GetLogicalVolume()))
     {
       return -1;
     }
@@ -205,11 +205,11 @@ void PHG4MvtxDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   const G4double rOuter[numZPlanes] = {mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_rmax, mvtxGeomDef::wrap_smallCylR, mvtxGeomDef::wrap_smallCylR};
 
-  auto mvtxWrapSol = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
+  auto *mvtxWrapSol = new G4Polycone("sol_MVTX_Wrapper", 0, 2.0 * M_PI, numZPlanes, zPlane, rInner, rOuter);
 
-  auto world_mat = logicWorld->GetMaterial();
+  auto *world_mat = logicWorld->GetMaterial();
 
-  auto logicMVTX = new G4LogicalVolume(mvtxWrapSol, world_mat, "log_MVTX_Wrapper");
+  auto *logicMVTX = new G4LogicalVolume(mvtxWrapSol, world_mat, "log_MVTX_Wrapper");
 
   G4RotationMatrix Ra;
   G4ThreeVector Ta;
@@ -256,9 +256,7 @@ int PHG4MvtxDetector::ConstructMvtx(G4LogicalVolume *trackerenvelope)
   gdmlParser.Read(m_StaveGeometryFile, false);
 
   // figure out which assembly we want
-  char assemblyname[500];
-  sprintf(assemblyname, "MVTXStave");
-
+  std::string assemblyname = "MVTXStave";
   if (Verbosity() > 0)
   {
     std::cout << "Geting the stave assembly named " << assemblyname << std::endl;

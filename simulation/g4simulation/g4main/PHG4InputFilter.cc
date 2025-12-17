@@ -11,14 +11,8 @@
 #include <map>       // for multimap<>::iterator, _Rb_tr...
 #include <utility>   // for pair
 
-using namespace std;
-
 PHG4InputFilter::PHG4InputFilter(const std::string &name)
   : SubsysReco(name)
-  , etamin(NAN)
-  , etamax(NAN)
-  , ptmin(NAN)
-  , ptmax(NAN)
 {
 }
 
@@ -27,61 +21,61 @@ int PHG4InputFilter::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!ineve)
   {
-    cout << PHWHERE << "no PHG4INEVENT node" << endl;
+    std::cout << PHWHERE << "no PHG4INEVENT node" << std::endl;
     return Fun4AllReturnCodes::EVENT_OK;
   }
-  pair<multimap<int, PHG4Particle *>::iterator, multimap<int, PHG4Particle *>::iterator> beginend = ineve->GetParticles_Modify();
-  multimap<int, PHG4Particle *>::iterator particleiter;
+  std::pair<std::multimap<int, PHG4Particle *>::iterator, std::multimap<int, PHG4Particle *>::iterator> beginend = ineve->GetParticles_Modify();
+  std::multimap<int, PHG4Particle *>::iterator particleiter;
   if (Verbosity() > 0)
   {
-    cout << "PHG4InputFilter before filter" << endl;
+    std::cout << "PHG4InputFilter before filter" << std::endl;
     ineve->identify();
   }
   particleiter = beginend.first;
   while (particleiter != beginend.second)
   {
-    if (isfinite(etamin))
+    if (std::isfinite(etamin))
     {
       double eta = get_eta((particleiter->second)->get_px(), (particleiter->second)->get_py(), (particleiter->second)->get_pz());
       if (eta < etamin)
       {
-        multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
+        std::multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
         ++particleiter_cache;
         ineve->DeleteParticle(particleiter);
         particleiter = particleiter_cache;
         continue;
       }
     }
-    if (isfinite(etamax))
+    if (std::isfinite(etamax))
     {
       double eta = get_eta((particleiter->second)->get_px(), (particleiter->second)->get_py(), (particleiter->second)->get_pz());
       if (eta > etamax)
       {
-        multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
+        std::multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
         ++particleiter_cache;
         ineve->DeleteParticle(particleiter);
         particleiter = particleiter_cache;
         continue;
       }
     }
-    if (isfinite(ptmin))
+    if (std::isfinite(ptmin))
     {
       double pt = sqrt((particleiter->second)->get_px() * (particleiter->second)->get_px() + (particleiter->second)->get_py() * (particleiter->second)->get_py());
       if (pt < ptmin)
       {
-        multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
+        std::multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
         ++particleiter_cache;
         ineve->DeleteParticle(particleiter);
         particleiter = particleiter_cache;
         continue;
       }
     }
-    if (isfinite(ptmax))
+    if (std::isfinite(ptmax))
     {
       double pt = sqrt((particleiter->second)->get_px() * (particleiter->second)->get_px() + (particleiter->second)->get_py() * (particleiter->second)->get_py());
       if (pt > ptmax)
       {
-        multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
+        std::multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter;
         ++particleiter_cache;
         ineve->DeleteParticle(particleiter);
         particleiter = particleiter_cache;
@@ -92,7 +86,7 @@ int PHG4InputFilter::process_event(PHCompositeNode *topNode)
   }
   if (Verbosity() > 0)
   {
-    cout << "PHG4InputFilter: after filter" << endl;
+    std::cout << "PHG4InputFilter: after filter" << std::endl;
     ineve->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;

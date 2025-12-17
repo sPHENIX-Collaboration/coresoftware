@@ -2,7 +2,7 @@
 
 /*!
  * \file PHGeomIOTGeo.h
- * \brief 
+ * \brief
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
@@ -30,7 +30,7 @@ class PHGeomIOTGeo : public PHObject
   PHGeomIOTGeo();
   ~PHGeomIOTGeo() override;
 
-  PHObject* CloneMe() const override {return new PHGeomIOTGeo(*this);}
+  PHObject* CloneMe() const override { return new PHGeomIOTGeo(*this); }
 
   /** identify Function from PHObject
    @param os Output Stream
@@ -43,8 +43,7 @@ class PHGeomIOTGeo : public PHObject
   Reset() override;
 
   /// isValid returns non zero if object contains vailid data
-  int
-  isValid() const override;
+  int isValid() const override;
 
   //! PHGeomIOTGeo do NOT own this TGeoVolume * g. Internally, it will use g to make a copy which PHGeomIOTGeo fully owns
   void

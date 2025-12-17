@@ -6,8 +6,6 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
 PHGeomFileImport::PHGeomFileImport(const std::string &geometry_file)
   : SubsysReco("PHGeomFileImport")
   , m_GeometryFile(geometry_file)

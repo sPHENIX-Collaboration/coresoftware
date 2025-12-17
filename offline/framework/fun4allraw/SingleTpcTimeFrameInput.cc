@@ -4,15 +4,15 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
+#include <qautils/QAHistManagerDef.h>
+
 #include <ffarawobjects/TpcRawHitContainerv3.h>
 #include <ffarawobjects/TpcRawHitv3.h>
 
-#include <frog/FROG.h>
-#include <phool/PHTimer.h>  // for PHTimer
-
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <qautils/QAHistManagerDef.h>
+
+#include <phool/PHTimer.h>  // for PHTimer
 
 #include <TAxis.h>
 #include <TH1.h>

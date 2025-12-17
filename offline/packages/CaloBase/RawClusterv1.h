@@ -20,6 +20,7 @@ class RawClusterv1 : public RawCluster
 {
  public:
   RawClusterv1() = default;
+  RawClusterv1(const RawCluster& cluster);
   ~RawClusterv1() override = default;
 
   void Reset() override;
@@ -73,6 +74,19 @@ class RawClusterv1 : public RawCluster
   //! isolation ET the radius and hueristic can be specified
   float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const override;
 
+  //! tower-space CoG in tower units (stored via property map)
+  float x_tower_raw() const override  { return get_property_float(prop_tower_x_raw); }
+  float y_tower_raw() const override  { return get_property_float(prop_tower_y_raw); }
+  float x_tower_corr() const override { return get_property_float(prop_tower_x_corr); }
+  float y_tower_corr() const override { return get_property_float(prop_tower_y_corr); }
+
+  //! energy-weighted mean time
+  float mean_time() const override { return get_property_float(prop_tower_t_mean); }
+
+  //! optional convenience accessors for mechanical incidence (return NaN if unset)
+  float alpha_mech_phi() const { return get_property_float(prop_incidence_alpha_phi); }
+  float alpha_mech_eta() const { return get_property_float(prop_incidence_alpha_eta); }
+
   std::vector<float> get_shower_shapes(float tower_thresh) const override;
   std::pair<int, int> get_lead_tower() const override;  // eta,phi of leading tower in cluster
 
@@ -110,6 +124,21 @@ class RawClusterv1 : public RawCluster
   void set_et_iso(const float e) override { set_property(prop_et_iso_calotower_R03, e); }
   //! isolation ET the radius and hueristic can be specified
   void set_et_iso(const float et_iso, const int radiusx10, bool subtracted, bool clusterTower) override;
+
+  //! tower-space CoG in tower units (stored via property map)
+  void set_tower_cog(float xr, float yr, float xc, float yc) override
+  {
+      set_property(prop_tower_x_raw,  xr);
+      set_property(prop_tower_y_raw,  yr);
+      set_property(prop_tower_x_corr, xc);
+      set_property(prop_tower_y_corr, yc);
+  }
+
+  //! energy-weighted mean time
+  void set_mean_time(float t) override
+  {
+      set_property(prop_tower_t_mean, t);
+  }
   //  //! truth cluster's PHG4Particle ID
   //  virtual void set_truth_track_ID(const int i) override { set_property(prop_truth_track_ID, i); }
   //  //! truth cluster's PHG4Particle flavor
@@ -171,6 +200,9 @@ class RawClusterv1 : public RawCluster
   prop_map_t prop_map;
 
   /** @} */  // end of property map definitions
+
+ private:
+  void copy_property_from_cluster(const RawCluster& source, const PROPERTY prop_id);
 
   //
  protected:

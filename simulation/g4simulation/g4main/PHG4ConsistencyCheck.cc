@@ -5,8 +5,11 @@
 #include "PHG4Particle.h"
 #include "PHG4TruthInfoContainer.h"
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 
+#include <algorithm>
 #include <iostream>  // for operator<<, basic_ostream::opera...
 #include <map>       // for _Rb_tree_const_iterator, map<>::...
 #include <set>       // for set
@@ -14,17 +17,9 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
 PHG4ConsistencyCheck::PHG4ConsistencyCheck(const std::string &name)
   : SubsysReco(name)
-  , errorcnt(0)
 {
-}
-
-int PHG4ConsistencyCheck::InitRun(PHCompositeNode * /*topNode*/)
-{
-  return 0;
 }
 
 int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
@@ -39,24 +34,21 @@ int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
   int imax = 1000000;
   for (titer = trange.first; titer != trange.second; ++titer)
   {
-    if (titer->first < imax)
-    {
-      imax = titer->first;
-    }
+    imax = std::min(titer->first, imax);
   }
-  cout << "min index: " << imax << endl;
+  std::cout << "min index: " << imax << std::endl;
   std::pair<std::map<int, int>::const_iterator, std::map<int, int>::const_iterator> embtrk_b_e = truthcont->GetEmbeddedTrkIds();
   std::map<int, int>::const_iterator embiter;
   for (embiter = embtrk_b_e.first; embiter != embtrk_b_e.second; ++embiter)
   {
-    cout << "embedded trkid: " << embiter->first << endl;
+    std::cout << "embedded trkid: " << embiter->first << std::endl;
   }
   PHG4HitContainer *ghit = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_CEMC_E");
   if (ghit)
   {
     PHG4HitContainer::ConstIterator hit;
     PHG4HitContainer::ConstRange hit_begin_end = ghit->getHits();
-    set<int> printpart;
+    std::set<int> printpart;
     for (hit = hit_begin_end.first; hit != hit_begin_end.second; ++hit)
     {
       int trkid = hit->second->get_trkid();
@@ -64,7 +56,7 @@ int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
       if (!part)
       {
         hit->second->identify();
-        cout << "could not locate geant particle " << trkid << " in G4HIT_CEMC_E" << endl;
+        std::cout << "could not locate geant particle " << trkid << " in G4HIT_CEMC_E" << std::endl;
         errorcnt++;
       }
       else
@@ -72,9 +64,9 @@ int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
         int primary_id = part->get_primary_id();
         if (truthcont->isEmbeded(primary_id) > 0)
         {
-          if (printpart.find(primary_id) == printpart.end())
+          if (!printpart.contains(primary_id))
           {
-            cout << "primary id " << primary_id << " is embedded" << endl;
+            std::cout << "primary id " << primary_id << " is embedded" << std::endl;
             printpart.insert(primary_id);
             PHG4Particle *parta = truthcont->GetParticle(primary_id);
             parta->identify();
@@ -94,11 +86,11 @@ int PHG4ConsistencyCheck::process_event(PHCompositeNode *topNode)
       PHG4Particle *part = truthcont->GetParticle(trkid);
       if (!part)
       {
-        cout << "could not locate geant particle " << trkid << " in G4HIT_SVTX" << endl;
+        std::cout << "could not locate geant particle " << trkid << " in G4HIT_SVTX" << std::endl;
         errorcnt++;
       }
     }
   }
 
-  return 0;
+  return Fun4AllReturnCodes::EVENT_OK;
 }

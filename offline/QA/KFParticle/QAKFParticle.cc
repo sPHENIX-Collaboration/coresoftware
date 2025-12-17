@@ -1,4 +1,5 @@
 #include "QAKFParticle.h"
+#include "QAKFParticleTrackPtAsymmetry.h"
 
 #include <qautils/QAHistManagerDef.h>  // for getHistoManager
 
@@ -29,8 +30,8 @@
 #include <KFParticle.h>
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
 #include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>
 #include <HepMC/IteratorRange.h>
 
 #include <TH1.h>
@@ -54,7 +55,8 @@ QAKFParticle::QAKFParticle(const std::string &name, const std::string &mother_na
   , m_mother_id(kfpTools.getParticleID(mother_name))
   , m_min_mass(min_m)
   , m_max_mass(max_m)
-{}
+{
+}
 
 int QAKFParticle::InitRun(PHCompositeNode *topNode)
 {
@@ -78,7 +80,7 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
   TH2 *h2(nullptr);
 
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP",  //
-               ";mass [GeV/c^{2}];Entries", 40, m_min_mass, m_max_mass);
+               ";mass [GeV];Entries", 40, m_min_mass, m_max_mass);
   hm->registerHisto(h);
 
   float eta_min = -1.3;
@@ -89,35 +91,40 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
   float pt_max = 5;
 
   h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_Eta",  //
-                ";mass [GeV/c^{2}]; Eta", 100, m_min_mass, m_max_mass, 100, eta_min, eta_max);
+                ";mass [GeV]; #eta", 100, m_min_mass, m_max_mass, 100, eta_min, eta_max);
   hm->registerHisto(h2);
 
   h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_Phi",  //
-                ";mass [GeV/c^{2}]; Phi", 100, m_min_mass, m_max_mass, 100, phi_min, phi_max);
+                ";mass [GeV]; #phi [rad.]", 100, m_min_mass, m_max_mass, 100, phi_min, phi_max);
   hm->registerHisto(h2);
 
   h2 = new TH2F(TString(get_histo_prefix()) + "InvMass_KFP_pT",  //
-                ";mass [GeV/c^{2}]; pT [GeV]", 100, m_min_mass, m_max_mass, 100, pt_min, pt_max);
+                ";mass [GeV]; p_{T} [GeV]", 100, m_min_mass, m_max_mass, 100, pt_min, pt_max);
   hm->registerHisto(h2);
-  
+
+  // mass v.s bunch crossing
+  h2 = new TH2F(TString(get_histo_prefix()) + "BunchCrossing_InvMass_KFP",  //
+                ";Beam crossing (106 ns/crossing);mass [GeV];", 899, -149.5, 749.5, 100, m_min_mass, m_max_mass); // the axis title is the same as the approved plot https://www.sphenix.bnl.gov/sites/default/files/2025-04/sphenix-perf-4-25-Kscrossingcut.pdf
+  hm->registerHisto(h2);
+
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_crossing0",  //
-               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+               ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
-  
+
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_non_crossing0",  //
-               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+               ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
-  
+
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_ZDC_Coincidence",  //
-               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+               ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
-  
+
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_MBD_NandS_geq_1_vtx_l_10_cm",  //
-               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+               ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
-  
+
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm",  //
-               ";mass [GeV/c^{2}];Entries", 100, m_min_mass, m_max_mass);
+               ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
 
   h_mass_KFP = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP"));
@@ -131,6 +138,9 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
 
   h_mass_KFP_pt = dynamic_cast<TH2F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_pT"));
   assert(h_mass_KFP_pt);
+
+  h_bunchcrossing_mass_KFP = dynamic_cast<TH2F *>(hm->getHisto(get_histo_prefix() + "BunchCrossing_InvMass_KFP"));
+  assert(h_bunchcrossing_mass_KFP);
 
   h_mass_KFP_crossing0 = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_crossing0"));
   assert(h_mass_KFP_crossing0);
@@ -146,6 +156,17 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
 
   h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm"));
   assert(h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm);
+
+  // pt asymmetry analyzer
+  if (m_doTrackPtAsymmetry)
+  {
+    m_trackPtAsymmetryAnalyzer = std::make_unique<QAKFParticleTrackPtAsymmetry>(get_histo_prefix(),     //
+                                                                                m_min_mass,             //
+                                                                                m_max_mass,             //
+                                                                                m_trackPtAsymEtaBins,   //
+                                                                                m_trackPtAsymPhiBins);  //
+    m_trackPtAsymmetryAnalyzer->bookHistograms(hm);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -166,11 +187,11 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
   }
   // histogram manager
 
-  if (hasTriggerInfo) 
+  if (hasTriggerInfo)
   {
     triggeranalyzer->decodeTriggers(topNode);
   }
-  
+
   for (auto &iter : *m_kfpContainer)
   {
     if (iter.second->GetPDG() == m_mother_id)
@@ -191,8 +212,8 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
       h_mass_KFP_phi->Fill(iter.second->GetMass(), phi);
 
       h_mass_KFP_pt->Fill(iter.second->GetMass(), iter.second->GetPt());
-     
-      const std::vector<int> track_ids = iter.second->DaughterIds(); 
+
+      const std::vector<int> track_ids = iter.second->DaughterIds();
       SvtxTrack *kfpTrack = nullptr;
       for (auto &iter2 : *m_trackMap)
       {
@@ -202,9 +223,9 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
           break;
         }
       }
-     
+
       if (kfpTrack)
-      { 
+      {
         if (kfpTrack->get_crossing() == 0)
         {
           h_mass_KFP_crossing0->Fill(iter.second->GetMass());
@@ -213,6 +234,8 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
         {
           h_mass_KFP_non_crossing0->Fill(iter.second->GetMass());
         }
+
+        h_bunchcrossing_mass_KFP->Fill(kfpTrack->get_crossing(), iter.second->GetMass());
       }
 
       if (hasTriggerInfo)
@@ -233,6 +256,13 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
           }
         }
       }
+
+      // hook up the pt asymmetry analysis (can be used for any particle with 2-body decay)
+      if (m_doTrackPtAsymmetry)
+      {
+        m_trackPtAsymmetryAnalyzer->setVerbosity(Verbosity());
+        m_trackPtAsymmetryAnalyzer->analyzeTrackPtAsymmetry(m_trackMap, iter.second);
+      }
     }
   }
 
@@ -243,7 +273,6 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
 
 int QAKFParticle::load_nodes(PHCompositeNode *topNode)
 {
-
   std::string kfpContainerNodeName = m_KFParticleNodeName + "_KFParticle_Container";
   m_kfpContainer = findNode::getClass<KFParticle_Container>(topNode, kfpContainerNodeName);
   if (!m_kfpContainer)
@@ -256,24 +285,21 @@ int QAKFParticle::load_nodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::string QAKFParticle::get_histo_prefix()
-{
-  return std::string("h_") + Name() + std::string("_") + m_trackMapName + std::string("_");
-}
+std::string QAKFParticle::get_histo_prefix() { return std::string("h_") + Name() + std::string("_") + m_trackMapName + std::string("_"); }
 
-void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
+void QAKFParticle::initializeTriggerInfo(PHCompositeNode *topNode)
 {
   triggeranalyzer = new TriggerAnalyzer();
 
-  //Check whether we actually have the right information
+  // Check whether we actually have the right information
   auto *gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
   if (!gl1packet)
   {
-    //std::cout << "No GL1RAWHIT" << std::endl;
+    // std::cout << "No GL1RAWHIT" << std::endl;
     gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     if (!gl1packet)
     {
-      //std::cout << "No GL1Packet" << std::endl;
+      // std::cout << "No GL1Packet" << std::endl;
       return;
     }
   }
@@ -282,7 +308,7 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
   if (!triggerruninfo)
   {
     hasTriggerInfo = false;
-    //std::cout << "No triggerRunInfo" << std::endl;
+    // std::cout << "No triggerRunInfo" << std::endl;
     return;
   }
 
@@ -312,18 +338,18 @@ void QAKFParticle::initializeTriggerInfo(PHCompositeNode* topNode)
       continue;
     }
 
-    for (auto const& [badString, goodString] : forbiddenStrings)
+    for (auto const &[badString, goodString] : forbiddenStrings)
     {
       while ((pos = triggerName.find(badString)) != std::string::npos)
       {
         triggerName.replace(pos, 1, goodString);
       }
     }
- 
-    if (triggerName == "ZDC_Coincidence") 
+
+    if (triggerName == "ZDC_Coincidence")
     {
       m_ZDC_Coincidence_bit = i;
-    }    
+    }
     else if (triggerName == "MBD_NandS_geq_1_vtx_l_10_cm")
     {
       m_MBD_NandS_geq_1_vtx_l_10_cm_bit = i;

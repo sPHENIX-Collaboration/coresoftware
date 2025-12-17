@@ -38,6 +38,8 @@ class CaloVertexv1 : public CaloVertex
   float get_z_err() const override { return _z_err; }
   void set_z_err(float z_err) override { _z_err = z_err; }
 
+  float get_position(unsigned int coor) const override;
+
  private:
   unsigned int _id{std::numeric_limits<unsigned int>::max()};  //< unique identifier within container
   float _t{std::numeric_limits<float>::quiet_NaN()};           //< collision time

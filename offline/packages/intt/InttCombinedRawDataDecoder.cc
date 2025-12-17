@@ -14,6 +14,8 @@
 #include <ffarawobjects/InttRawHit.h>
 #include <ffarawobjects/InttRawHitContainer.h>
 
+#include <cdbobjects/CDBTTree.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
@@ -153,7 +155,17 @@ int InttCombinedRawDataDecoder::InitRun(PHCompositeNode* topNode)
   {
     set_inttFeeOffset(temp_offset);
   }
-
+  else
+  {
+    std::string calibdir = CDBInterface::instance()->getUrl("INTT_STREAMING_FEE_OFFSET");
+    auto* cdbtree = new CDBTTree(calibdir);
+    cdbtree->LoadCalibrations();
+    m_inttFeeOffset = cdbtree->GetSingleIntValue("INTT_STREAMING_FEE_OFFSET");
+    if(Verbosity() > 0)
+    {
+      std::cout << "Loaded intt fee offset of " << m_inttFeeOffset << " from CDB" << std::endl;
+    }
+  }
   /// If user hasn't called with custom calibration, load default
   if (!m_badmap.OfflineLoaded() && !m_badmap.RawDataLoaded())
   {

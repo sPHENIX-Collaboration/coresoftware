@@ -314,7 +314,7 @@ void BeamLineMagnetSteppingAction::SetHitNodeName(const std::string& type, const
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_ABSORBER")
+  if (type == "G4HIT_ABSORBER")
   {
     m_AbsorberNodeName = name;
     return;

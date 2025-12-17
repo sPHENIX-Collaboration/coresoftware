@@ -6,11 +6,6 @@
 #include <map>
 #include <string>
 
-namespace odbc
-{
-  class Connection;
-}
-
 class FROG
 {
  public:
@@ -28,16 +23,12 @@ class FROG
   bool PGSearch(const std::string &lname);
   void Verbosity(const int i) { m_Verbosity = i; }
   int Verbosity() const { return m_Verbosity; }
+  void AutoDisconnect(bool b) { m_DisconnectFlag = b; }
 
  private:
-  odbc::Connection *GetConnection(const std::string &database);
   void Disconnect();
-  static const int m_MAX_NUM_RETRIES{3000};
-  static const int m_MIN_SLEEP_DUR{5000};   // milliseconds
-  static const int m_MAX_SLEEP_DUR{30000};  // milliseconds
-
-  std::map<std::string, odbc::Connection *> m_OdbcConnectionMap;
   int m_Verbosity{0};
+  bool m_DisconnectFlag{true};
   std::string pfn;
 };
 

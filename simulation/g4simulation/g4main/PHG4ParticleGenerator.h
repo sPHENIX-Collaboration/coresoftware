@@ -14,7 +14,7 @@ class PHG4ParticleGenerator : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4ParticleGenerator(const std::string &name = "PGENERATOR");
-  ~PHG4ParticleGenerator() override {}
+  ~PHG4ParticleGenerator() = default;
 
   int process_event(PHCompositeNode *topNode) override;
   void set_z_range(const double z_min, const double z_max);

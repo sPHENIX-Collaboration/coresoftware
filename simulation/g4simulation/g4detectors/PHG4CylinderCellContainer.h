@@ -25,9 +25,9 @@ class PHG4CylinderCellContainer : public PHObject
   typedef std::set<int>::const_iterator LayerIter;
   typedef std::pair<LayerIter, LayerIter> LayerRange;
 
-  PHG4CylinderCellContainer() {}
+  PHG4CylinderCellContainer() = default;
 
-  ~PHG4CylinderCellContainer() override {}
+  ~PHG4CylinderCellContainer() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;
@@ -68,15 +68,15 @@ class PHG4CylinderCellContainer : public PHObject
   ConstRange getCylinderCells(const unsigned int detid) const;
 
   //! return all hist
-  ConstRange getCylinderCells(void) const;
+  ConstRange getCylinderCells() const;
 
   PHG4CylinderCell *findCylinderCell(PHG4CylinderCellDefs::keytype key);
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return cellmap.size();
   }
-  unsigned int num_layers(void) const
+  unsigned int num_layers() const
   {
     return layers.size();
   }

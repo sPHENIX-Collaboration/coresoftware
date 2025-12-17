@@ -38,3 +38,13 @@ int CaloVertexv1::isValid() const
 
   return 1;
 }
+
+float CaloVertexv1::get_position(unsigned int coor) const
+{
+  if (coor == 2)
+  {
+    return get_z();
+  }
+
+  return std::numeric_limits<float>::quiet_NaN();
+}

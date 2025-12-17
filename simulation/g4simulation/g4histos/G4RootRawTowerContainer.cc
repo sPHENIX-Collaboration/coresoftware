@@ -10,8 +10,8 @@
 static const int NMAX = 1000;
 
 G4RootRawTowerContainer::G4RootRawTowerContainer()
+  : SnglG4RootRawTowers(new TClonesArray("G4RootRawTower", NMAX))
 {
-  SnglG4RootRawTowers = new TClonesArray("G4RootRawTower", NMAX);
 }
 
 G4RootRawTowerContainer::~G4RootRawTowerContainer()

@@ -3,7 +3,6 @@
 
 #include <Geant4/G4UImessenger.hh>
 
-
 class Fun4AllServer;
 class G4UIcmdWithAnInteger;
 class G4UIdirectory;

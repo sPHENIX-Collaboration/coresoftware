@@ -13,6 +13,10 @@
 #include <memory>
 #include <string>  // for string
 
+#include <KFParticle.h>
+
+#include "QAKFParticleTrackPtAsymmetry.h"
+
 class KFParticle_Container;
 class PHCompositeNode;
 class SvtxClusterEval;
@@ -45,30 +49,47 @@ class QAKFParticle : public SubsysReco
 
   void setKFParticleNodeName(const std::string &name) { m_KFParticleNodeName = name; }
 
- private:
+  // toggle for pt asymmetry analysis (can be used for any particle with 2-body decay)
+  void enableTrackPtAsymmetry(bool flag) { m_doTrackPtAsymmetry = flag; }
+
+  void setTrackPtAsymmetryMotherEtaBins(const std::vector<double> &bins)
+  {
+    m_trackPtAsymEtaBins = bins;
+  }
+
+  void setTrackPtAsymmetryMotherPhiBins(const std::vector<double> &bins)
+  {
+    m_trackPtAsymPhiBins = bins;
+  }
+
+ protected:
   int load_nodes(PHCompositeNode *);
 
   void initializeTriggerInfo(PHCompositeNode *);
 
-  int m_mother_id {0};
-  double m_min_mass {0.};
-  double m_max_mass {10.};
+  // for pt asymmetry QA
+  bool doTrackPtAsymmetry() const { return m_doTrackPtAsymmetry; }
 
-  TH1 *h_mass_KFP {nullptr};
-  TH2 *h_mass_KFP_eta {nullptr};
-  TH2 *h_mass_KFP_phi {nullptr};
-  TH2 *h_mass_KFP_pt {nullptr};
-  TH1 *h_mass_KFP_crossing0 {nullptr};
-  TH1 *h_mass_KFP_non_crossing0 {nullptr};
-  TH1 *h_mass_KFP_ZDC_Coincidence {nullptr};
-  TH1 *h_mass_KFP_MBD_NandS_geq_1_vtx_l_10_cm {nullptr};
-  TH1 *h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm {nullptr};  
+  int m_mother_id{0};
+  double m_min_mass{0.};
+  double m_max_mass{10.};
+
+  TH1 *h_mass_KFP{nullptr};
+  TH2 *h_mass_KFP_eta{nullptr};
+  TH2 *h_mass_KFP_phi{nullptr};
+  TH2 *h_mass_KFP_pt{nullptr};
+  TH2 *h_bunchcrossing_mass_KFP{nullptr}; // mass v.s bunch crossing
+  TH1 *h_mass_KFP_crossing0{nullptr};
+  TH1 *h_mass_KFP_non_crossing0{nullptr};
+  TH1 *h_mass_KFP_ZDC_Coincidence{nullptr};
+  TH1 *h_mass_KFP_MBD_NandS_geq_1_vtx_l_10_cm{nullptr};
+  TH1 *h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm{nullptr};
 
   TriggerAnalyzer *triggeranalyzer{nullptr};
 
-  int m_ZDC_Coincidence_bit {std::numeric_limits<int>::max()};
-  int m_MBD_NandS_geq_1_vtx_l_10_cm_bit {std::numeric_limits<int>::max()};
-  int m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit {std::numeric_limits<int>::max()}; 
+  int m_ZDC_Coincidence_bit{std::numeric_limits<int>::max()};
+  int m_MBD_NandS_geq_1_vtx_l_10_cm_bit{std::numeric_limits<int>::max()};
+  int m_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm_bit{std::numeric_limits<int>::max()};
 
   // SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
   // PHG4Particle *getTruthTrack(SvtxTrack *thisTrack);
@@ -78,16 +99,23 @@ class QAKFParticle : public SubsysReco
 
   // std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
 
-  SvtxTrackMap *m_trackMap {nullptr};
+  SvtxTrackMap *m_trackMap{nullptr};
   // PHG4TruthInfoContainer *m_truthInfo {nullptr};
-  KFParticle_Container *m_kfpContainer {nullptr};
+  KFParticle_Container *m_kfpContainer{nullptr};
   std::map<std::string, std::pair<int, float>> particleMasses;
-  std::string m_trackMapName {"SvtxTrackMap"};
-  std::string m_KFParticleNodeName {"reconstructedParticles"};
+  std::string m_trackMapName{"SvtxTrackMap"};
+  std::string m_KFParticleNodeName{"reconstructedParticles"};
 
-  bool hasTriggerInfo {true};
-  static constexpr int nTriggerBits {64};
-  int counter {0};
+  bool hasTriggerInfo{true};
+  static constexpr int nTriggerBits{64};
+  int counter{0};
+
+  // toggle for pt asymmetry analysis (can be used for any particle with 2-body decay)
+  bool m_doTrackPtAsymmetry{true};
+  std::vector<double> m_trackPtAsymEtaBins{-2.0, -1.0, -0.5, 0, 0.5, 1.0, 2.0};
+  std::vector<double> m_trackPtAsymPhiBins{-3.15, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.15};
+
+  std::unique_ptr<QAKFParticleTrackPtAsymmetry> m_trackPtAsymmetryAnalyzer;
 };
 
 #endif  // QAKFPARTICLE_H

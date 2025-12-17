@@ -44,7 +44,7 @@ class PHG4RegionInformation : public G4VUserRegionInformation
 {
  public:
   PHG4RegionInformation();
-  ~PHG4RegionInformation() override {}
+  ~PHG4RegionInformation() = default;
   void Print() const override;
 
  private:

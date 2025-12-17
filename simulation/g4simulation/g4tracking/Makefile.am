@@ -42,15 +42,8 @@ ROOTDICTS = \
   TrkrTruthTrackv1_Dict.cc 
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  EmbRecoMatchContainer_Dict_rdict.pcm \
-  EmbRecoMatchContainerv1_Dict_rdict.pcm \
-  EmbRecoMatch_Dict_rdict.pcm \
-  EmbRecoMatchv1_Dict_rdict.pcm \
-  TrkrTruthTrackContainer_Dict_rdict.pcm \
-  TrkrTruthTrackContainerv1_Dict_rdict.pcm \
-  TrkrTruthTrack_Dict_rdict.pcm \
-  TrkrTruthTrackv1_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libg4tracking_io_la_SOURCES = \
   $(ROOTDICTS) \

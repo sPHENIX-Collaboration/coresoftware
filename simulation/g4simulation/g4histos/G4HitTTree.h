@@ -14,7 +14,7 @@ class G4HitTTree : public SubsysReco
 {
  public:
   G4HitTTree(const std::string &name = "HITTTREE");
-  ~G4HitTTree() override {}
+  ~G4HitTTree() override = default;
 
   //! full initialization
   int Init(PHCompositeNode *) override;
@@ -29,17 +29,17 @@ class G4HitTTree : public SubsysReco
 
   void SaveHits(const int i = 1) { savehits = i; }
 
- protected:
+ private:
   std::string _detector;
   std::string _outnodename;
   std::string _hitnodename;
   std::string _absorbernodename;
   std::string _blackholenodename;
-  int savehits;
-  int evtno;
-  Fun4AllHistoManager *hm;
-  TH1 *etot_hist;
-  TH2 *eion_etot_hist;
+  int savehits{1};
+  int evtno{0};
+  Fun4AllHistoManager *hm{nullptr};
+  TH1 *etot_hist{nullptr};
+  TH2 *eion_etot_hist{nullptr};
 };
 
 #endif

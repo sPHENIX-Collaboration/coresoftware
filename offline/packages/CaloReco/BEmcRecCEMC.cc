@@ -5,6 +5,9 @@
 
 #include <cmath>
 #include <iostream>
+#include <Math/Vector3D.h>   // for TVector3 used in calculateIncidence
+#include <algorithm>    // for std::max
+using ROOT::Math::XYZVector;
 
 BEmcRecCEMC::BEmcRecCEMC()
 {
@@ -233,6 +236,207 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float et, float xg, float 
   return prob;
 }
 */
+
+bool BEmcRecCEMC::calculateIncidence(float x, float y,
+                                     float& a_phi_sgn, float& a_eta_sgn)
+{
+  // ────────────────────────────────────────────────────────────────────────────
+  // Step 1) Owner tower in "tower units"
+  // ────────────────────────────────────────────────────────────────────────────
+  const int ix = EmcCluster::lowint(x + 0.5F);
+  const int iy = EmcCluster::lowint(y + 0.5F);
+
+  TowerGeom g{};
+  if (!GetTowerGeometry(ix, iy, g))
+  {
+    return false;  // need detailed geometry
+  }
+
+  // Sub-cell offsets δ ∈ (−0.5, +0.5]
+  const float dx = x - ix;
+  const float dy = y - iy;
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Step 2) Front-surface point F in cm:
+  //         F = C + δx * eφ_geom + δy * eη_geom
+  // ────────────────────────────────────────────────────────────────────────────
+  const XYZVector C(g.Xcenter, g.Ycenter, g.Zcenter);
+  const XYZVector ephi_geom(g.dX[0], g.dY[0], g.dZ[0]);
+  const XYZVector eeta_geom(g.dX[1], g.dY[1], g.dZ[1]);
+
+  if (std::sqrt(ephi_geom.Mag2()) < 1e-9 || std::sqrt(eeta_geom.Mag2()) < 1e-9)
+  {
+    return false;
+  }
+
+  const XYZVector F = C + dx * ephi_geom + dy * eeta_geom;
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Step 3) Unit ray from vertex to the front surface
+  // ────────────────────────────────────────────────────────────────────────────
+  const XYZVector V(0., 0., fVz);
+  XYZVector pF = F - V;
+  const double pFmag = std::sqrt(pF.Mag2());
+  if (!(pFmag > 0.0))
+  {
+    return false;
+  }
+  pF *= (1.0 / pFmag);
+
+  // Helper: from a basis {un,uphi,ueta} and ray pF, compute projections
+  // and signed incidence angles (no cosines returned).
+  auto basis_to_incidence =
+    [&](const XYZVector& un_b, const XYZVector& uphi_b, const XYZVector& ueta_b,
+        double& pn_b, double& pph_b, double& pet_b,
+        double& aphi_b, double& aeta_b) -> bool
+  {
+    pn_b  = pF.Dot(un_b);
+    pph_b = pF.Dot(uphi_b);
+    pet_b = pF.Dot(ueta_b);
+
+    const double apn_b      = std::max(1e-12, std::fabs(pn_b));
+    const double aphi_mag_b = std::atan2(std::fabs(pph_b), apn_b);
+    const double aeta_mag_b = std::atan2(std::fabs(pet_b), apn_b);
+
+    const double sgn_phi_b = (pph_b >= 0.0) ? +1.0 : -1.0;
+    const double sgn_eta_b = (pet_b >= 0.0) ? +1.0 : -1.0;
+
+    aphi_b = sgn_phi_b * aphi_mag_b;
+    aeta_b = sgn_eta_b * aeta_mag_b;
+
+    return (std::isfinite(aphi_b) && std::isfinite(aeta_b));
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Step 4) MECHANICAL frame from RawTowerGeomv5 rotations
+  // ────────────────────────────────────────────────────────────────────────────
+  XYZVector un_mech;
+  XYZVector uphi_mech;
+  XYZVector ueta_mech;
+  {
+    const double rx = g.rotX;
+    const double ry = g.rotY;
+    const double rz = g.rotZ;
+
+    const double cx = std::cos(rx);
+    const double sx = std::sin(rx);
+    const double cy = std::cos(ry);
+    const double sy = std::sin(ry);
+    const double cz = std::cos(rz);
+    const double sz = std::sin(rz);
+
+    auto applyRot = [&](const XYZVector& v) -> XYZVector
+    {
+      // Apply Rz * Ry * Rx to local vector v (column-vector convention).
+      double vx = v.X();
+      double vy = v.Y();
+      double vz = v.Z();
+
+      // Rx
+      const double vx1 = vx;
+      const double vy1 =  cx * vy - sx * vz;
+      const double vz1 =  sx * vy + cx * vz;
+
+      // Ry
+      const double vx2 =  cy * vx1 + sy * vz1;
+      const double vy2 =  vy1;
+      const double vz2 = -sy * vx1 + cy * vz1;
+
+      // Rz
+      const double vx3 =  cz * vx2 - sz * vy2;
+      const double vy3 =  sz * vx2 + cz * vy2;
+      const double vz3 =  vz2;
+
+      return XYZVector(vx3, vy3, vz3);
+    };
+
+    // Local axes: ẑ = bar axis, x̂/ŷ = transverse directions
+    XYZVector u_axis = applyRot(XYZVector(0., 0., 1.)); // tower "z" axis
+    const XYZVector u_x    = applyRot(XYZVector(1., 0., 0.)); // tower "x" axis
+    const XYZVector u_y    = applyRot(XYZVector(0., 1., 0.)); // tower "y" axis
+
+    // Normalize axis and enforce outward direction
+    const double amag = std::sqrt(u_axis.Mag2());
+    if (!(amag > 0.0))
+    {
+      return false;
+    }
+
+    u_axis *= (1.0 / amag);
+    if (u_axis.Dot(C) < 0.0)
+    {
+      u_axis = -u_axis;
+    }
+
+    un_mech = u_axis;
+
+    // φ̂: project rotated local x̂ into plane ⟂ axis; normalize
+    uphi_mech = u_x - un_mech * u_x.Dot(un_mech);
+    const double uphim = std::sqrt(uphi_mech.Mag2());
+    if (!(uphim > 0.0))
+    {
+      return false;
+    }
+    uphi_mech *= (1.0 / uphim);
+
+    // η̂: start from rotated local ŷ, orthogonalize to {un,uphi}; normalize
+    ueta_mech = u_y
+              - un_mech   * u_y.Dot(un_mech)
+              - uphi_mech * u_y.Dot(uphi_mech);
+    const double uetam = std::sqrt(ueta_mech.Mag2());
+    if (!(uetam > 0.0))
+    {
+      return false;
+    }
+    ueta_mech *= (1.0 / uetam);
+
+    // Ensure right-handed triad
+    if (un_mech.Cross(uphi_mech).Dot(ueta_mech) < 0.0)
+    {
+      ueta_mech = -ueta_mech;
+    }
+
+    // Align mechanical φ-axis sign with geometric φ tangent if available
+    XYZVector uphi_ref = ephi_geom;
+    const double refMag = std::sqrt(uphi_ref.Mag2());
+    if (refMag > 0.0)
+    {
+      uphi_ref *= (1.0 / refMag);
+      if (uphi_mech.Dot(uphi_ref) < 0.0)
+      {
+        uphi_mech = -uphi_mech;
+        ueta_mech = -ueta_mech;
+      }
+    }
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Step 5) Compute incidence in the mechanical frame
+  // ────────────────────────────────────────────────────────────────────────────
+  double pn   = 0.0;
+  double pph  = 0.0;
+  double pet  = 0.0;
+  double aphi = 0.0;
+  double aeta = 0.0;
+
+  if (!basis_to_incidence(un_mech, uphi_mech, ueta_mech,
+                          pn, pph, pet,
+                          aphi, aeta))
+  {
+    return false;
+  }
+
+  a_phi_sgn = static_cast<float>(aphi);
+  a_eta_sgn = static_cast<float>(aeta);
+
+  m_lastAlphaPhiSigned = a_phi_sgn;
+  m_lastAlphaEtaSigned = a_eta_sgn;
+
+  const bool ok =
+      (std::isfinite(a_phi_sgn) && std::isfinite(a_eta_sgn));
+
+  return ok;
+}
 
 void BEmcRecCEMC::CorrectShowerDepth(int ix, int iy, float E, float xA, float yA, float zA, float& xC, float& yC, float& zC)
 {

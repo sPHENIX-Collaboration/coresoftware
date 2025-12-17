@@ -35,18 +35,17 @@ class G4TowerNtuple : public SubsysReco
 
   void AddNode(const std::string &name, const std::string &twrtype, const int detid);
 
- protected:
-  int nblocks;
-  Fun4AllHistoManager *hm;
+ private:
+  Fun4AllHistoManager *hm{nullptr};
   std::vector<TH1 *> nhits;
   std::vector<TH1 *> eloss;
   //  std::vector<TH2 *> nhit_edep;
-  std::string _filename;
-  std::set<std::string> _node_postfix;
-  std::map<std::string, std::string> _tower_type;
-  std::map<std::string, int> _detid;
-  TNtuple *ntup;
-  TFile *outfile;
+  std::string m_filename;
+  std::set<std::string> m_node_postfix;
+  std::map<std::string, std::string> m_tower_type;
+  std::map<std::string, int> m_detid;
+  TNtuple *ntup{nullptr};
+  TFile *outfile{nullptr};
 };
 
 #endif

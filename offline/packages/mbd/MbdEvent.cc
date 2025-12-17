@@ -75,7 +75,7 @@ MbdEvent::MbdEvent(const int cal_pass, const bool proc_charge) :
     name += std::to_string(iarm);
     title = "bbc times, arm ";
     title += std::to_string(iarm);
-    hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -50., 50.);
+    hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -25., 25.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
 
@@ -148,6 +148,8 @@ int MbdEvent::InitRun()
     _mbdcal->Verbosity(1);
   }
 
+  _mbdcal->SetRawDstFlag( _rawdstflag );
+  _mbdcal->SetFitsOnly( _fitsonly );
   _mbdcal->Download_All();
 
   if ( _simflag == 0 )  // do following for real data
@@ -382,7 +384,7 @@ void MbdEvent::Clear()
     m_bbcte[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
     m_bbctl[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
     hevt_bbct[iarm]->Reset();
-    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-50, 50);
+    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-25, 25);
   }
 
   // Reset end product to prepare next event
@@ -401,11 +403,11 @@ bool MbdEvent::isbadtch(const int ipmtch)
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
-int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw, int fitsonly)
+int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
 {
-  //Verbosity(100);
+  //std::cout << "MbdEvent::SetRawData()" << std::endl;
   // First check if there is any event (ie, reading from PRDF)
-  if ((dstp[0] == nullptr && dstp[1] == nullptr) || bbcpmts == nullptr)
+  if (dstp[0] == nullptr && dstp[1] == nullptr)
   {
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
@@ -484,8 +486,10 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
         _mbdsig[feech].SetNSamples( _nsamples );
         _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
 
-        //std::cout << "feech " << feech << std::endl;
-        //_mbdsig[feech].Print();
+        /*
+        std::cout << "feech " << feech << std::endl;
+        _mbdsig[feech].Print();
+        */
       }
 
       //delete dstp[ipkt];
@@ -502,7 +506,7 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
   // Fill MbdRawContainer
   int status = ProcessPackets(bbcraws);
 
-  if ( fitsonly )
+  if ( _fitsonly )
   {
     return status;
   }
@@ -514,10 +518,10 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
 }
 #endif  // ONLINE
 
-int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, int fitsonly)
+int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
-  if (event == nullptr || bbcpmts == nullptr)
+  if (event == nullptr)
   {
 #ifndef ONLINE
     return Fun4AllReturnCodes::DISCARDEVENT;
@@ -616,7 +620,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
 
   // Fill MbdRawContainer
   int status = ProcessPackets(bbcraws);
-  if ( fitsonly )
+  if ( _fitsonly )
   {
     return status;
   }
@@ -730,7 +734,6 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
 int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
 {
   //std::cout << "In ProcessRawContainer" << std::endl;
-  //int bnn = 0;
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
@@ -749,13 +752,6 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
 
         // at calpass 2, we use tcorr (uncal_mbd pass). make sure tt_t0 = 0.
         m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
-
-        /*
-        if ( pmtch>63 )
-        {
-          bnn++;
-        }
-        */
       }
 
     }
@@ -1034,7 +1030,8 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
     gausfit[iarm]->SetParameter(0, 5);
     gausfit[iarm]->SetParameter(1, mean);
     gausfit[iarm]->SetParameter(2, rms);
-    gausfit[iarm]->SetRange(rmin,rmax);
+    double binwid = hevt_bbct[iarm]->GetBinWidth(1);
+    gausfit[iarm]->SetRange(rmin-binwid,rmax+binwid);
     // gausfit[iarm]->SetParameter(1, earliest);
     // gausfit[iarm]->SetRange(6, earliest + 5 * 0.05);
     /*
@@ -1192,7 +1189,7 @@ void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& 
 
   if ( npts>1.0 )
   {
-    rms = sqrt( (sum2/npts) - (mean*mean) );
+    rms = std::max( sqrt( (sum2/npts) - (mean*mean) ), 0.05);
   }
   else
   {

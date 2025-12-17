@@ -71,7 +71,7 @@ class PHG4GDMLWriteMaterials : public PHG4GDMLWriteDefine
  protected:
 
    PHG4GDMLWriteMaterials();
-   virtual ~PHG4GDMLWriteMaterials();
+  virtual ~PHG4GDMLWriteMaterials() = default;
 
    void AtomWrite(xercesc::DOMElement*,const G4double&);
    void DWrite(xercesc::DOMElement*,const G4double&);

@@ -235,7 +235,8 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   {
     set_default_double_param("tpc_adc_clock", 56.881262);  // ns, for 17.5 MHz clock
   }
-  if(runnumber <= RunnumberRange::RUN2AUAU_FIRST && runnumber >= RunnumberRange::RUN2PP_FIRST)
+  if((runnumber <= RunnumberRange::RUN2AUAU_FIRST && runnumber >= RunnumberRange::RUN2PP_FIRST)
+    || (runnumber > RunnumberRange::RUN3PP_FIRST))
   {
     // with drift length of 102cm and clock of 50 ns we get 542 time bins
     // to get to 1024 samples (time bins0) we therefore need 1024-542=482 additional time bins

@@ -1,15 +1,23 @@
 #include "FillTruthRecoMatchTree.h"
 
-#include <TFile.h>
-#include <TH2D.h>
-#include <TTree.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 #include <g4tracking/EmbRecoMatch.h>
 #include <g4tracking/EmbRecoMatchContainer.h>
 #include <g4tracking/TrkrTruthTrack.h>
 #include <g4tracking/TrkrTruthTrackContainer.h>
+
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>
+
+#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <g4main/PHG4TruthInfoContainer.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHIODataNode.h>
@@ -18,16 +26,14 @@
 #include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/SvtxPHG4ParticleMap_v1.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
+
+#include <TFile.h>
+#include <TH2.h>
+#include <TTree.h>
+
+#include <format>
 #include <iostream>
 
-using std::cout;
-using std::endl;
 //____________________________________________________________________________..
 FillTruthRecoMatchTree::FillTruthRecoMatchTree(
     bool _fill_clusters, bool _fill_SvUnMatched, float _cluster_nzwidths, float _cluster_nphiwidths, const std::string& _outfile_name)
@@ -35,18 +41,17 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
   , m_fill_clusters{_fill_clusters}
   , m_fill_SvU{_fill_SvUnMatched}
   , m_outfile_name{_outfile_name}
+  , h2_G4_nPixelsPhi(new TH2D("G4_nPixelsPhi", "PHG4 Emb Tracks; cluster pixel width Phi; layer",
+                              100, -0.5, 99.5, 56, -0.5, 55.5))
+  , h2_G4_nPixelsZ(new TH2D("G4_nPixelsZ", "PHG4 Emb Tracks; cluster pixel width Z; layer",
+                            100, -0.5, 99.5, 56, -0.5, 55.5))
+  , h2_Sv_nPixelsPhi(new TH2D("Sv_nPixelsPhi", "Svtx Reco Tracks; cluster pixel width Phi; layer",
+                              100, -0.5, 99.5, 56, -0.5, 55.5))
+  , h2_Sv_nPixelsZ(new TH2D("Sv_nPixelsZ", "Svtx Reco Tracks; cluster pixel width Z; layer",
+                            100, -0.5, 99.5, 56, -0.5, 55.5))
 {
   m_cluscntr.set_comparer(&m_cluster_comp);
-  PHTFileServer::get().open(m_outfile_name, "RECREATE");
-
-  h2_G4_nPixelsPhi = new TH2D("G4_nPixelsPhi", "PHG4 Emb Tracks; cluster pixel width Phi; layer",
-                              100, -0.5, 99.5, 56, -0.5, 55.5);
-  h2_G4_nPixelsZ = new TH2D("G4_nPixelsZ", "PHG4 Emb Tracks; cluster pixel width Z; layer",
-                            100, -0.5, 99.5, 56, -0.5, 55.5);
-  h2_Sv_nPixelsPhi = new TH2D("Sv_nPixelsPhi", "Svtx Reco Tracks; cluster pixel width Phi; layer",
-                              100, -0.5, 99.5, 56, -0.5, 55.5);
-  h2_Sv_nPixelsZ = new TH2D("Sv_nPixelsZ", "Svtx Reco Tracks; cluster pixel width Z; layer",
-                            100, -0.5, 99.5, 56, -0.5, 55.5);
+  PHTFileServer::open(m_outfile_name, "RECREATE");
 
   m_ttree = new TTree("T", "Tracks (and sometimes clusters)");
 
@@ -87,9 +92,6 @@ FillTruthRecoMatchTree::FillTruthRecoMatchTree(
     m_ttree->Branch("nzbins", &b_clus_ntbins);
   }
 }
-
-//____________________________________________________________________________..
-FillTruthRecoMatchTree::~FillTruthRecoMatchTree() = default;
 
 //____________________________________________________________________________..
 int FillTruthRecoMatchTree::Init(PHCompositeNode* topNode)
@@ -197,7 +199,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
 {
   if (Verbosity() > 5)
   {
-    cout << " FillTruthRecoMatchTree::process_event() " << endl;
+    std::cout << " FillTruthRecoMatchTree::process_event() " << std::endl;
   }
 
   // fill in the event data
@@ -214,9 +216,9 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
     auto range = m_cluscntr.get_PHG4_clusters()->getClusters(hitsetkey);
     for (auto iter = range.first; iter != range.second; ++iter)
     {
-      auto& cluster = iter->second;
-      h2_G4_nPixelsPhi->Fill((float) cluster->getPhiSize(), layer);
-      h2_G4_nPixelsZ->Fill((float) cluster->getZSize(), layer);
+      const auto& cluster = iter->second;
+      h2_G4_nPixelsPhi->Fill(cluster->getPhiSize(), layer);
+      h2_G4_nPixelsZ->Fill(cluster->getZSize(), layer);
     }
   }
   // fill in pixel widths on reco tracks
@@ -226,9 +228,9 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
     auto range = m_cluscntr.get_SVTX_clusters()->getClusters(hitsetkey);
     for (auto iter = range.first; iter != range.second; ++iter)
     {
-      auto& cluster = iter->second;
-      h2_Sv_nPixelsPhi->Fill((float) cluster->getPhiSize(), layer);
-      h2_Sv_nPixelsZ->Fill((float) cluster->getZSize(), layer);
+      const auto& cluster = iter->second;
+      h2_Sv_nPixelsPhi->Fill(cluster->getPhiSize(), layer);
+      h2_Sv_nPixelsZ->Fill(cluster->getZSize(), layer);
     }
   }
 
@@ -258,8 +260,8 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
     unsigned int g4_trkid = match->idTruthTrack();
     int sv_trkid = match->idRecoTrack();
 
-    auto g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
-    auto svtrk = m_SvtxTrackMap->get(sv_trkid);
+    auto* g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
+    auto* svtrk = m_SvtxTrackMap->get(sv_trkid);
 
     m_cluscntr.addClusKeys(g4trk);
     m_cluscntr.addClusKeys(svtrk);
@@ -353,7 +355,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
         b_clus_layer.push_back(std::get<0>(loc));
         auto x = std::get<1>(loc)[0];
         auto y = std::get<1>(loc)[1];
-        /* if (_==0) cout << " apple x: " << x << " y: " << y << endl; */
+        /* if (_==0) std::cout << " apple x: " << x << " y: " << y << std::endl; */
         /* _ += 1; */
         b_clus_x.push_back(x);
         b_clus_y.push_back(y);
@@ -389,7 +391,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
   b_is_Svtrack = false;
   for (auto& g4_trkid : m_EmbRecoMatchContainer->ids_TruthUnmatched())
   {
-    auto g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
+    auto* g4trk = m_TrkrTruthTrackContainer->getTruthTrack(g4_trkid);
     m_cluscntr.addClusKeys(g4trk);
 
     b_trackid = g4_trkid;
@@ -437,7 +439,7 @@ int FillTruthRecoMatchTree::process_event(PHCompositeNode* /*topNode*/)
   {
     for (auto sv_trkid : G4Eval::unmatchedSvtxTrkIds(m_EmbRecoMatchContainer, m_SvtxTrackMap))
     {
-      auto svtrk = m_SvtxTrackMap->get(sv_trkid);
+      auto* svtrk = m_SvtxTrackMap->get(sv_trkid);
       m_cluscntr.addClusKeys(svtrk);
       b_trackid = sv_trkid;
       b_trkpt = svtrk->get_pt();
@@ -532,15 +534,15 @@ void FillTruthRecoMatchTree::print_mvtx_diagnostics()
     }
   }
 
-  std::cout << Form(
+  std::cout << std::format(
                    "MVTX"
-                   "\nPHG4:  Tracks(%.0f)   Clusters In tracks(%.0f)   Total (%.0f)"
-                   "\n       ave. per track: %6.3f   ratio in all tracks: %6.2f",
+                   "\nPHG4:  Tracks({:.0f})   Clusters In tracks({:.0f})   Total ({:.0f})"
+                   "\n       ave. per track: {:6.3f}   ratio in all tracks: {:6.2f}",
                    n_PHG4_tracks, n_in_PHG4_tracks, n_in_PHG4_clusters, (n_in_PHG4_tracks / n_PHG4_tracks), (n_in_PHG4_tracks / n_in_PHG4_clusters))
             << std::endl;
-  std::cout << Form(
-                   "\nSVTX:  Tracks(%.0f)   Clusters In tracks(%.0f)   Total (%.0f)"
-                   "\n       ave. per track: %6.3f   ratio in all tracks: %6.2f",
+  std::cout << std::format(
+                   "\nSVTX:  Tracks({:.0f})   Clusters In tracks({:.0f})   Total ({:.0f})"
+                   "\n       ave. per track: {:6.3f}   ratio in all tracks: {:6.2f}",
                    n_SVTX_tracks, n_in_SVTX_tracks, n_in_SVTX_clusters, (n_in_SVTX_tracks / n_SVTX_tracks), (n_in_SVTX_tracks / n_in_SVTX_clusters))
             << std::endl;
 }
@@ -551,7 +553,7 @@ int FillTruthRecoMatchTree::End(PHCompositeNode* /*unused*/)
   {
     std::cout << PHWHERE << ": ending FillTruthRecoMatchTree" << std::endl;
   }
-  PHTFileServer::get().cd(m_outfile_name);
+  PHTFileServer::cd(m_outfile_name);
 
   h2_G4_nPixelsPhi->Write();
   h2_G4_nPixelsZ->Write();
@@ -564,16 +566,16 @@ int FillTruthRecoMatchTree::End(PHCompositeNode* /*unused*/)
 
 void FillTruthRecoMatchTree::clear_clusvecs(const std::string& tag)
 {
-  /* cout << " banana |" << tag << "|"<<endl; */
-  if (tag != "")
+  /* std::cout << " banana |" << tag << "|"<<std::endl; */
+  if (!tag.empty())
   {
-    cout << endl
-         << " pear printing " << tag << " x(" << b_clus_x.size() << ") ";
+    std::cout << std::endl
+              << " pear printing " << tag << " x(" << b_clus_x.size() << ") ";
     for (auto x : b_clus_x)
     {
-      cout << x << " ";
+      std::cout << x << " ";
     }
-    cout << endl;
+    std::cout << std::endl;
   }
   // Tracks and clustes
   b_clusmatch.clear();

@@ -486,7 +486,7 @@ void CaloTruthEval::get_node_pointers(PHCompositeNode* topNode)
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   std::string name = "G4HIT_" + _caloname;
-  _g4hits = findNode::getClass<PHG4HitContainer>(topNode, name.c_str());
+  _g4hits = findNode::getClass<PHG4HitContainer>(topNode, name);
   _g4hit_container_id = PHG4HitDefs::get_volume_id(name);
 
   return;

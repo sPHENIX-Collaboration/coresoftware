@@ -22,7 +22,7 @@ class PHG4EnvelopeSubsystem : public PHG4Subsystem
   PHG4EnvelopeSubsystem(const std::string& name = "ENVELOPE_DEFAULT", const int layer = 0);
 
   // Destructor
-  ~PHG4EnvelopeSubsystem(void) override
+  ~PHG4EnvelopeSubsystem() override
   {
   }
 
@@ -38,8 +38,8 @@ class PHG4EnvelopeSubsystem : public PHG4Subsystem
   int process_event(PHCompositeNode*) override;
 
   // Accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override;
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override;
 
  private:
   // Pointer to Geant4 implementation of detector

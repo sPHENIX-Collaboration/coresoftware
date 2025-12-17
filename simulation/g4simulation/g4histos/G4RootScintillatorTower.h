@@ -12,9 +12,9 @@
 class G4RootScintillatorTower : public PHObject
 {
  public:
-  G4RootScintillatorTower();
+  G4RootScintillatorTower() = default;
   G4RootScintillatorTower(double towerenergy, int ieta, int iphi);
-  ~G4RootScintillatorTower() override {}
+  ~G4RootScintillatorTower() override = default;
 
   void Reset() override;
   int isValid() const override;
@@ -25,9 +25,9 @@ class G4RootScintillatorTower : public PHObject
   double get_energy() const { return energy; }
 
  protected:
-  short row;
-  short column;
-  double energy;
+  short row{-1};
+  short column{-1};
+  double energy{-1};
 
   ClassDefOverride(G4RootScintillatorTower, 1)
 };

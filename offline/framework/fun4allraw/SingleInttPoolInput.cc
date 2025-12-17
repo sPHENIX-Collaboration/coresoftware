@@ -7,8 +7,9 @@
 #include <ffarawobjects/InttRawHitContainerv2.h>
 #include <ffarawobjects/InttRawHitv2.h>
 
-#include <ffamodules/DBInterface.h>
+#include <fun4all/DBInterface.h>
 
+#include <phool/RunnumberRange.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -21,8 +22,6 @@
 
 #include <TSystem.h>
 
-#include <odbc++/connection.h>
-#include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>
 
@@ -563,7 +562,14 @@ void SingleInttPoolInput::streamingMode(const bool isStreaming)
 {
   if (isStreaming)
   {
-    SetNegativeBco(120 - 23);
+    if(RunNumber() > RunnumberRange::RUN3PP_FIRST)
+    {
+      SetNegativeBco(120 - 24);
+    }
+    else
+    {
+      SetNegativeBco(120 - 23);
+    }
     SetBcoRange(500);
     if (GetVerbosity() > 2)
     {
@@ -581,7 +587,7 @@ bool SingleInttPoolInput::IsStreaming(int runnumber)
   odbc::Statement *statement = DBInterface::instance()->getStatement("daq");
   std::string sched_data;
   std::string sql = "SELECT sched_data FROM gtm_scheduler WHERE vgtm=1 AND sched_entry = 1 AND runnumber = " + std::to_string(runnumber) + ";";
-  odbc::ResultSet *result_set = statement->executeQuery(sql);
+  std::unique_ptr<odbc::ResultSet> result_set(statement->executeQuery(sql));
   if (result_set && result_set->next())
   {
     sched_data = result_set->getString("sched_data");
@@ -604,6 +610,5 @@ bool SingleInttPoolInput::IsStreaming(int runnumber)
     gSystem->Exit(1);
     exit(1);
   }
-  delete result_set;
   return m_is_streaming;
 }

@@ -18,8 +18,8 @@ class RawCluster;
 class ParticleFlowElementv1 : public ParticleFlowElement
 {
  public:
-  ParticleFlowElementv1();
-  ~ParticleFlowElementv1() override {}
+  ParticleFlowElementv1() = default;
+  ~ParticleFlowElementv1() override = default;
 
   // PHObject virtual overloads
 
@@ -65,20 +65,20 @@ class ParticleFlowElementv1 : public ParticleFlowElement
 
  private:
   /// unique identifier within container
-  unsigned int _id;
+  unsigned int _id {0};
 
   // particle flow type
-  ParticleFlowElement::PFLOWTYPE _type;
+  ParticleFlowElement::PFLOWTYPE _type {ParticleFlowElement::PFLOWTYPE::UNASSIGNED};
 
   /// pflow momentum vector (px,py,pz)
-  float _mom[3];
+  float _mom[3]{std::numeric_limits<float>::quiet_NaN()};
 
   /// pflow energy
-  float _e;
+  float _e{std::numeric_limits<float>::quiet_NaN()};
 
-  SvtxTrack* _track = nullptr;
+  SvtxTrack* _track {nullptr};
   std::vector<RawCluster*> _ecluster;
-  RawCluster* _hcluster = nullptr;
+  RawCluster* _hcluster {nullptr};
   ClassDefOverride(ParticleFlowElementv1, 1);
 };
 

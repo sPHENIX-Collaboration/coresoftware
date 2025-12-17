@@ -20,8 +20,6 @@
 #include <TPad.h>
 #include <TStyle.h>
 
-#include <boost/format.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
