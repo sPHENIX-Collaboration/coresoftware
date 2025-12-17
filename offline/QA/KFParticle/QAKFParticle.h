@@ -78,6 +78,7 @@ class QAKFParticle : public SubsysReco
   TH2 *h_mass_KFP_eta{nullptr};
   TH2 *h_mass_KFP_phi{nullptr};
   TH2 *h_mass_KFP_pt{nullptr};
+  TH2 *h_bunchcrossing_mass_KFP{nullptr}; // mass v.s bunch crossing
   TH1 *h_mass_KFP_crossing0{nullptr};
   TH1 *h_mass_KFP_non_crossing0{nullptr};
   TH1 *h_mass_KFP_ZDC_Coincidence{nullptr};
