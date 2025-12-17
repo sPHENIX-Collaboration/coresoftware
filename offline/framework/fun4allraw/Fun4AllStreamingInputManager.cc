@@ -612,35 +612,35 @@ int Fun4AllStreamingInputManager::FillGl1()
     m_RefBCO = m_RefBCO & 0xFFFFFFFFFFU;  // 40 bits (need to handle rollovers)
                                           //    std::cout << "BCOis " << std::hex << m_RefBCO << std::dec << std::endl;
   }
-  
-    // if we run streaming, we only need the first gl1 bco to skip over all the junk
-    // which is taken before the daq actually starts. But once we have the first event
-    // and set the refBCO to the beginning of the run, we don't want the gl1 anymore
-    // so we delete its input manager(s) and unregister it
-    // deleting it also deletes all its allocated memory, so we don't have to worry
-    // about clearing all gl1 related maps
-    if (m_StreamingFlag)
+
+  // if we run streaming, we only need the first gl1 bco to skip over all the junk
+  // which is taken before the daq actually starts. But once we have the first event
+  // and set the refBCO to the beginning of the run, we don't want the gl1 anymore
+  // so we delete its input manager(s) and unregister it
+  // deleting it also deletes all its allocated memory, so we don't have to worry
+  // about clearing all gl1 related maps
+  if (m_StreamingFlag)
+  {
+    for (auto *iter : m_Gl1InputVector)
     {
-      for (auto *iter : m_Gl1InputVector)
-      {
-        delete iter;
-      }
-      m_gl1_registered_flag = false;
-      m_Gl1InputVector.clear();
+      delete iter;
     }
-    else
-    {
-      for (auto *iter : m_Gl1InputVector)
-      {
-        iter->CleanupUsedPackets(m_Gl1RawHitMap.begin()->first);
-      }
-      m_Gl1RawHitMap.begin()->second.Gl1RawHitVector.clear();
-      m_Gl1RawHitMap.erase(m_Gl1RawHitMap.begin());
-    }
-    // std::cout << "size  m_Gl1RawHitMap: " <<  m_Gl1RawHitMap.size()
-    // 	    << std::endl;
-    return 0;
+    m_gl1_registered_flag = false;
+    m_Gl1InputVector.clear();
   }
+  else
+  {
+    for (auto *iter : m_Gl1InputVector)
+    {
+      iter->CleanupUsedPackets(m_Gl1RawHitMap.begin()->first);
+    }
+    m_Gl1RawHitMap.begin()->second.Gl1RawHitVector.clear();
+    m_Gl1RawHitMap.erase(m_Gl1RawHitMap.begin());
+  }
+  // std::cout << "size  m_Gl1RawHitMap: " <<  m_Gl1RawHitMap.size()
+  // 	    << std::endl;
+  return 0;
+}
 
 int Fun4AllStreamingInputManager::FillIntt()
 {
@@ -896,7 +896,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
 
   unsigned int refbcobitshift = m_RefBCO & 0x3FU;
-  
+
   for (auto &[strbbco, mvtxrawhitinfo] : m_MvtxRawHitMap)
   {
     auto diff = (m_RefBCO > strbbco) ? m_RefBCO - strbbco : strbbco - m_RefBCO;
@@ -959,7 +959,6 @@ int Fun4AllStreamingInputManager::FillMvtx()
       }
       //      feecounter++;
     }
-
   }
   int allfeestagged = 0;
   for (auto &[pid, feeset] : taggedPacketsFEEs)
@@ -1462,7 +1461,6 @@ void Fun4AllStreamingInputManager::createQAHistos()
   auto *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-
   {
     auto *h = new TH1I("h_InttPoolQA_TagBCOAllServers", "INTT trigger tagged BCO all servers", 1000, 0, 1000);
     h->GetXaxis()->SetTitle("GL1 BCO");
@@ -1517,7 +1515,7 @@ void Fun4AllStreamingInputManager::createQAHistos()
   for (int i = 0; i < 12; i++)
   {
     {
-      auto *h = new TH1I( std::format("h_MvtxPoolQA_RefGL1BCO_endpoint{}", i).c_str(), "", 1000, 0, 1000);
+      auto *h = new TH1I(std::format("h_MvtxPoolQA_RefGL1BCO_endpoint{}", i).c_str(), "", 1000, 0, 1000);
       h->GetXaxis()->SetTitle("GL1 BCO Counts");
       hm->registerHisto(h);
     }
