@@ -50,7 +50,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
   double m_moduleStepPhi = 2.0 * M_PI / 12.0;
   double m_modulePhiStart = -M_PI;
-  for(int iside = 0; iside < 2; ++iside)
+  for(int iside : {0,1})
     {
       for(int isector = 0; isector < 12; ++isector)
 	{
@@ -538,7 +538,7 @@ void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode*
   if (!transformMap)
   {
     transformMap = new alignmentTransformationContainer;
-    auto node = new PHDataNode<alignmentTransformationContainer>(transformMap, "alignmentTransformationContainer");
+    auto *node = new PHDataNode<alignmentTransformationContainer>(transformMap, "alignmentTransformationContainer");
     dstNode->addNode(node);
   }
 
@@ -546,7 +546,7 @@ void AlignmentTransformation::createAlignmentTransformContainer(PHCompositeNode*
   if (!transformMapTransient)
   {
     transformMapTransient = new alignmentTransformationContainer;
-    auto node = new PHDataNode<alignmentTransformationContainer>(transformMapTransient, "alignmentTransformationContainerTransient");
+    auto *node = new PHDataNode<alignmentTransformationContainer>(transformMapTransient, "alignmentTransformationContainerTransient");
     dstNode->addNode(node);
   }
 }
