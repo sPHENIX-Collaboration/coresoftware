@@ -1320,19 +1320,19 @@ int CaloTriggerEmulator::process_primitives()
 
 	      // shift before the sum
 	      if (m_default_lut_emcal)
-              {
-                tmp = (m_l1_adc_table[lut_input] >> 2U);
-              }
+		{
+		  tmp = (m_l1_adc_table[lut_input] >> 2U);
+		}
               else
-              {
-                unsigned int lut_output = ((unsigned int) h_emcal_lut[key]->GetBinContent(lut_input + 1)) & 0x3ffU;
-                tmp = (lut_output >> 2U);
-              }
+		{
+		  unsigned int lut_output = ((unsigned int) h_emcal_lut[key]->GetBinContent(lut_input + 1)) & 0x3ffU;
+		  tmp = (lut_output >> 2U);
+		}
               temp_sum += (tmp & 0xffU);
             }
 	    // shift after the sum
             sum = ((temp_sum & 0x3ffU) >> 2U) & 0xffU;
-
+	    
 	    // sum is now 8 bits and sends it all to the LL1
 	    if (Verbosity() >= 10 && sum >= 1)
             {
@@ -1340,7 +1340,7 @@ int CaloTriggerEmulator::process_primitives()
             }
           }
           if (Verbosity())
-          {
+	    {
             std::cout << __FILE__ << "::" << __FUNCTION__ << ":: Processing primitives:: adding" << std::endl;
           }
 
