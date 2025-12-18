@@ -62,7 +62,7 @@ class DetermineTowerBackground : public SubsysReco
 
   int LoadCalibrations();
 
-  std::array<float,100> _CENTRALITY_V2;
+  std::vector<float> _CENTRALITY_V2;
   std::string m_calibName = "JET_AVERAGE_CALO_V2_SEPD_PSI2";
   bool m_overwrite_average_calo_v2{false};
   std::string m_overwrite_average_calo_v2_path;

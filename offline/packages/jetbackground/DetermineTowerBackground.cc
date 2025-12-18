@@ -107,7 +107,7 @@ int DetermineTowerBackground::LoadCalibrations()
   
   cdbtree_calo_v2->LoadCalibrations();
 
-  _CENTRALITY_V2.fill(0);
+  _CENTRALITY_V2.assign(100,0);
 
   for (int icent = 0; icent < 100; icent++)
     {
