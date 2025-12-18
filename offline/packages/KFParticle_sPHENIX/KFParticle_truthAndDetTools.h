@@ -5,6 +5,7 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterDefs.h>
+#include <calobase/RawClusterUtility.h> // For clusters
 //Tower 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
@@ -75,7 +76,7 @@ class KFParticle_truthAndDetTools
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
   void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch);
+  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch, const KFParticle &vertex_in);
   void Get5x5CellInfo(RawClusterDefs::keytype key_in, int daughter_id);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
@@ -107,7 +108,8 @@ class KFParticle_truthAndDetTools
   void set_dphi_cut_high(float set_variable) { m_dphi_cut_high = set_variable; }
   void set_dz_cut_low(float set_variable) { m_dz_cut_low = set_variable; }
   void set_dz_cut_high(float set_variable) { m_dz_cut_high = set_variable; }
-  
+  // void set_deta_cut_low(float set_variable) { m_deta_cut_low = set_variable; }
+  // void set_deta_cut_high(float set_variable) { m_deta_cut_high = set_variable; }
   
   protected:
   bool m_get_detailed_tracking{true};
@@ -156,6 +158,8 @@ class KFParticle_truthAndDetTools
   float m_dphi_cut_high{0.15};
   float m_dz_cut_low{-10};
   float m_dz_cut_high{10};
+  // float m_deta_cut_high{-0.1};
+  // float m_deta_cut_low{0.1};
 
   float m_true_daughter_vertex_x[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float m_true_daughter_vertex_y[max_tracks]{std::numeric_limits<float>::quiet_NaN()};

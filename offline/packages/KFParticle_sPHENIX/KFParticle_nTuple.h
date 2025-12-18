@@ -47,6 +47,9 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
     m_get_detailed_calorimetry = set_variable; 
     if(m_get_detailed_calorimetry){m_calo_info = true;}
   }
+  void get_dEdx_info(bool set_variable = true){ 
+    m_get_dEdx = set_variable;
+  }
   
  protected:
   bool m_has_intermediates_nTuple {false};
@@ -60,6 +63,7 @@ class KFParticle_nTuple : public KFParticle_truthAndDetTools, public KFParticle_
   bool m_get_trigger_info {false};
   bool m_detector_info {false};
   bool m_calo_info {false};
+  bool m_get_dEdx{false};
   bool m_require_track_emcal_match {false};
   bool isTrackEMCalmatch {true};
   std::string m_mother_name;

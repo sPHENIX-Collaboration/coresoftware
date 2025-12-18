@@ -55,6 +55,7 @@ libkfparticle_sphenix_io_la_LIBADD = \
 libkfparticle_sphenix_la_LIBADD = \
   libkfparticle_sphenix_io.la \
   -lcalo_io \
+  -lCLHEP \
   -lfun4all \
   -lg4eval \
   -lTMVA \

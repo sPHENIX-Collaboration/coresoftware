@@ -497,13 +497,12 @@ void KFParticle_truthAndDetTools::initializeCaloBranches(TTree *m_tree, int daug
 }
 
 /*
-The following function matches tracks to calo clusters. As of 7/1/2025, this only extends to the EMCal. HCal matching is in development.
-
-To run EMCal matching, DST_CALO files must be read into the Fun4All server. 
+The following function matches tracks to calo clusters. As of 12/18/2025, this only extends to the EMCal.
+To run EMCal matching, DST_CALOFITTING files must be loaded into the Fun4All server. 
 */
 void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
-                                                 TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch)
-{
+                                                 TTree * /*m_tree*/, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch,
+                                                const KFParticle &vertex_in){
   dst_trackmap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
   if (!dst_trackmap)
   {
@@ -608,55 +607,43 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   // Create variables and containers etc.
   bool is_match;
   int index;
-  float radius_scale;
   RawCluster *cluster;
 
   // EMCAL******************************************************
-  //  std::cout << "Starting EMCAL-track matching!" << std::endl;
 
   SvtxTrackState *thisState = nullptr;
   thisState = track->get_state(caloRadiusEMCal);
-  // thisState->identify();
-  // std::cout << "size states " << (size_t)track->size_states() << std::endl;
-  // for (auto state_iter = track->begin_states();
-  //       state_iter != track->end_states();
-  //       ++state_iter)
-  //   {
-  //     SvtxTrackState* tstate = state_iter->second;
-  //     tstate->identify();
-  //     std::cout<< "radius " << sqrt((tstate->get_x())*(tstate->get_x()) + (tstate->get_y())*(tstate->get_y())) << std::endl;
-  //   }
 
-  // assert(thisState);
+  /*
+  //Debugging: 
+  thisState->identify();
+  std::cout << "size states " << (size_t)track->size_states() << std::endl;
+  for (auto state_iter = track->begin_states(); state_iter != track->end_states(); ++state_iter){
+    SvtxTrackState* tstate = state_iter->second;
+    tstate->identify();
+    std::cout<< "radius " << sqrt((tstate->get_x())*(tstate->get_x()) + (tstate->get_y())*(tstate->get_y())) << std::endl;
+  }
+  assert(thisState);
+  */
+ 
+  
+  // Tracking variables
   float _track_phi_emc = std::numeric_limits<float>::quiet_NaN();
   float _track_eta_emc = std::numeric_limits<float>::quiet_NaN();
   float _track_x_emc = std::numeric_limits<float>::quiet_NaN();
   float _track_y_emc = std::numeric_limits<float>::quiet_NaN();
   float _track_z_emc = std::numeric_limits<float>::quiet_NaN();
 
-  // EMCal variables and vectors
-  float _emcal_phi = std::numeric_limits<float>::quiet_NaN();
-  float _emcal_eta = std::numeric_limits<float>::quiet_NaN();
-  float _emcal_x = std::numeric_limits<float>::quiet_NaN();
-  float _emcal_y = std::numeric_limits<float>::quiet_NaN();
-  float _emcal_z = std::numeric_limits<float>::quiet_NaN();
-  radius_scale = std::numeric_limits<float>::quiet_NaN();
-  float _emcal_3x3 = std::numeric_limits<float>::quiet_NaN();
-  float _emcal_5x5 = std::numeric_limits<float>::quiet_NaN();
-  float _emcal_clusE = std::numeric_limits<float>::quiet_NaN();
-  std::vector<float> v_emcal_phi;
-  std::vector<float> v_emcal_eta;
-  std::vector<float> v_emcal_x;
-  std::vector<float> v_emcal_y;
-  std::vector<float> v_emcal_z;
+  // EMCal vectors
+  std::vector<float> v_emcal_clusE;
   std::vector<float> v_emcal_dphi;
   std::vector<float> v_emcal_deta;
   std::vector<float> v_emcal_dr;
   std::vector<float> v_emcal_dz;
-  std::vector<float> v_emcal_3x3;
-  std::vector<float> v_emcal_5x5;
-  std::vector<float> v_emcal_clusE;
-  //Detailed Calo Info 
+  // std::vector<float> v_emcal_3x3;
+  // std::vector<float> v_emcal_5x5;
+
+  //Detailed Calo Info variables
   float _emcal_nTowers = std::numeric_limits<float>::quiet_NaN();
   float _emcal_chi2 = std::numeric_limits<float>::quiet_NaN();
   std::vector<float> v_emcal_nTowers;
@@ -667,15 +654,21 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
   // Set variables for matching
   is_match = false;
   index = -1;
-  // int ijk = 0; // nothing is being done with this variable in the end
-
+  
+  //Useful for debugging:
   //clustersEM->identify();
 
   if (thisState != nullptr)
   {
-    _track_x_emc = thisState->get_x();
-    _track_y_emc = thisState->get_y();
-    _track_z_emc = thisState->get_z();
+    //Vertex x,y,z
+    float vx = vertex_in.GetX();
+    float vy = vertex_in.GetY();
+    float vz = vertex_in.GetZ();
+
+    //Track state kinematics
+    _track_x_emc = thisState->get_x()-vx;
+    _track_y_emc = thisState->get_y()-vy;
+    _track_z_emc = thisState->get_z()-vz;
     _track_phi_emc = std::atan2(_track_y_emc, _track_x_emc);
     _track_eta_emc = std::asinh(_track_z_emc / std::sqrt((_track_x_emc * _track_x_emc) + (_track_y_emc * _track_y_emc)));
 
@@ -687,87 +680,66 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
     // Loop over the EMCal clusters
     for (clusIter_EMC = begin_end_EMC.first; clusIter_EMC != begin_end_EMC.second; ++clusIter_EMC)
     {
-      // Minimum energy cut
+      //Get cluster with respect to PV, not (0,0,0)
       cluster = clusIter_EMC->second;
-      float cluster_energy = cluster->get_energy();
+      CLHEP::Hep3Vector v_vertex;
+      v_vertex.set(vx,vy,vz);
+      CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, v_vertex);
+      
+      //CUT -- CLUSTER ENERGY
+      float cluster_energy = E_vec_cluster.mag();
+      if (cluster_energy < m_emcal_e_low_cut) continue;
 
-      if (cluster_energy < m_emcal_e_low_cut)
-      {
-        // ijk++;
-        continue;
-      }
+      //CUT -- DPHI 
+      float clPhi = E_vec_cluster.phi();
+      float dphi = PiRange(_track_phi_emc - clPhi); 
+      if (dphi > m_dphi_cut_high || dphi < m_dphi_cut_low) continue;
 
-      // Get cluster information
-      _emcal_x = cluster->get_x();
-      _emcal_y = cluster->get_y();
-      _emcal_z = cluster->get_z();
-      radius_scale = m_emcal_radius_user / std::sqrt((_emcal_x * _emcal_x) + (_emcal_y * _emcal_y));
-      _emcal_x *= radius_scale;
-      _emcal_y *= radius_scale;
-      _emcal_z *= radius_scale;
-      _emcal_phi = std::atan2(_emcal_y, _emcal_x);
-      _emcal_eta = std::asinh(_emcal_z / std::sqrt((_emcal_x * _emcal_x) + (_emcal_y * _emcal_y)));
-      // _emcal_3x3 = get_e3x3(cluster, _towersEM, 0); //0 for emcal
-      // _emcal_5x5 = get_e5x5(cluster, _towersEM, 0); //0 for emcal
-      _emcal_3x3 = std::numeric_limits<float>::quiet_NaN();
-      _emcal_5x5 = std::numeric_limits<float>::quiet_NaN();
-      _emcal_clusE = cluster_energy;
+      //CUT -- DZ
+      float clZ = cluster->get_z() - vz;
+      float dz = _track_z_emc - clZ;
+      if (dz > m_dz_cut_high || dz < m_dz_cut_low) continue;
+
+      // CUT -- DETA    // Currently not being used, but want to include functionality now 
+      float clEta = E_vec_cluster.pseudoRapidity();
+      float deta = _track_eta_emc - clEta; 
+      // if (deta > m_deta_cut_high || deta < m_deta_cut_low) continue;
+
+      //Calculate dr
+      float tmparg = caloRadiusEMCal * dphi;
+      float dr = std::sqrt((tmparg * tmparg) + (dz * dz));  // sqrt((R*dphi)^2 + (dz)^2
+      // float dr = sqrt((dphi*dphi + deta*deta)); //previous version
+      
       //Detailed Calo Info 
       _emcal_nTowers = cluster->getNTowers(); 
       _emcal_chi2 = cluster->get_chi2();
       _clus_key = cluster->get_id();
-
       
-
-  //     virtual RawClusterDefs::keytype get_id() const
-  // {
-  //   PHOOL_VIRTUAL_WARN("get_id()");
-  //   return 0;
-  // }
-
-      // Variables to determine potential matches
-      float dphi = PiRange(_track_phi_emc - _emcal_phi);
-      float dz = _track_z_emc - _emcal_z;
-      float deta = _track_eta_emc - _emcal_eta;
-      float tmparg = caloRadiusEMCal * dphi;
-      float dr = std::sqrt((tmparg * tmparg) + (dz * dz));  // sqrt((R*dphi)^2 + (dz)^2
-      // float dr = sqrt((dphi*dphi + deta*deta)); //previous version
-
-      // Requirements for a possible match
-      if (dz > m_dz_cut_high || dz < m_dz_cut_low)
-      {
-        continue;
-      }
-      if (dphi > m_dphi_cut_high || dphi < m_dphi_cut_low)
-      {
-        continue;
-      }
-
-      // std::cout << "**********DELTA INFORMATION************" << std::endl;
-      // std::cout << "dphi = " << dphi << std::endl;
-      // std::cout << "deta = " << deta << std::endl;
-      // std::cout << "dz =   " << dz <<   std::endl;
-      // std::cout << "dr =   " << dr <<   std::endl;
-      // std::cout << "****************************************" << std::endl;
       // Add potential match's information to vectors
-      v_emcal_phi.push_back(_emcal_phi);
-      v_emcal_eta.push_back(_emcal_eta);
-      v_emcal_x.push_back(_emcal_x);
-      v_emcal_y.push_back(_emcal_y);
-      v_emcal_z.push_back(_emcal_z);
+      v_emcal_clusE.push_back(cluster_energy);
       v_emcal_dphi.push_back(dphi);
       v_emcal_dz.push_back(dz);
       v_emcal_deta.push_back(deta);
       v_emcal_dr.push_back(dr);
-      v_emcal_3x3.push_back(_emcal_3x3);
-      v_emcal_5x5.push_back(_emcal_5x5);
-      v_emcal_clusE.push_back(_emcal_clusE);
+      // v_emcal_3x3.push_back(std::numeric_limits<float>::quiet_NaN());
+      // v_emcal_5x5.push_back(std::numeric_limits<float>::quiet_NaN());
+
       //Detailed Calo Info
       v_emcal_nTowers.push_back(_emcal_nTowers);
       v_emcal_chi2.push_back(_emcal_chi2);
       v_clus_key.push_back(_clus_key);
 
       is_match = true;
+
+      /*
+      //Useful for debugging:      
+      std::cout << "**********DELTA INFORMATION************" << std::endl;
+      std::cout << "dphi = " << dphi << std::endl;
+      std::cout << "deta = " << deta << std::endl;
+      std::cout << "dz =   " << dz <<   std::endl;
+      std::cout << "dr =   " << dr <<   std::endl;
+      std::cout << "****************************************" << std::endl;
+      */
     }
 
     // Find the closest match from all potential matches
@@ -783,11 +755,10 @@ void KFParticle_truthAndDetTools::fillCaloBranch(PHCompositeNode *topNode,
         }
       }
     }
-
   }
 
   /*
-  // Print out statements
+  // Print out statements -- Useful for debugging
   if (index != -1)
   {
     std::cout << "matched tracks!!!" << std::endl;
