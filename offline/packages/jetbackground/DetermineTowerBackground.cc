@@ -62,7 +62,11 @@ int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 	{
 	  std::cout << "Loading the average calo v2" << std::endl;
 	}
-      LoadCalibrations();
+      if (!LoadCalibrations())
+	{
+	  std::cout << "Load calibrations failed." << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
 
     }
   
