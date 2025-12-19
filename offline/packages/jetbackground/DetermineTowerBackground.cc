@@ -91,20 +91,13 @@ int DetermineTowerBackground::LoadCalibrations()
   if (calibdir.empty())
     {
       std::cout << "Could not find and load histograms for EMCAL LUTs! defaulting to the identity table!" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
+      exit(-1);
     }
   else
     {
       cdbtree_calo_v2 = new CDBTTree(calibdir);
     }
-  
-  if (!cdbtree_calo_v2)
-    {
-      std::cout << "Error in finding Average Calo v2." << std::endl;
-
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-  
+    
   cdbtree_calo_v2->LoadCalibrations();
 
   _CENTRALITY_V2.assign(100,0);
