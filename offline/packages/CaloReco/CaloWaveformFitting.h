@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <TString.h>
 
 class TProfile;
 
@@ -63,6 +64,7 @@ class CaloWaveformFitting
   std::vector<std::vector<float>> calo_processing_nyquist(const std::vector<std::vector<float>> &chnlvector);
 
   void initialize_processing(const std::string &templatefile);
+  void initialize_processing(const std::string &templatefile, TString histname);
 
  private:
   static void FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float &xmax, float &ymax);
@@ -97,5 +99,6 @@ class CaloWaveformFitting
   std::string url_template;
   std::string url_onnx;
   std::string m_model_name;
+  std::string m_template_histogram_name; // DEFAULT name
 };
 #endif

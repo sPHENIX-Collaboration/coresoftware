@@ -32,13 +32,31 @@ CaloWaveformFitting::~CaloWaveformFitting()
 {
   delete h_template;
 }
-
+// In CaloWaveformFitting.cc: added function without histogram name argument
 void CaloWaveformFitting::initialize_processing(const std::string &templatefile)
 {
+    // Use hardcoded default histogram name "waveform_template"
+    TFile *fin = TFile::Open(templatefile.c_str());
+    assert(fin);
+    assert(fin->IsOpen());
+    h_template = dynamic_cast<TProfile *>(fin->Get("waveform_template"));  // Fixed: added quotes
+    assert(h_template);
+    h_template->SetDirectory(nullptr);
+    fin->Close();
+    delete fin;
+    m_peakTimeTemp = h_template->GetBinCenter(h_template->GetMaximumBin());
+    t = new ROOT::TThreadExecutor(_nthreads);
+}
+// addwed function with histogram name argument
+void CaloWaveformFitting::initialize_processing(const std::string &templatefile, TString histname)
+{
+  // Set the histogram name first
+  m_template_histogram_name = histname;
   TFile *fin = TFile::Open(templatefile.c_str());
   assert(fin);
   assert(fin->IsOpen());
-  h_template = dynamic_cast<TProfile *>(fin->Get("waveform_template"));
+  h_template = dynamic_cast<TProfile *>(fin->Get(Form("%s", histname.Data())));
+  assert(h_template);
   h_template->SetDirectory(nullptr);
   fin->Close();
   delete fin;
