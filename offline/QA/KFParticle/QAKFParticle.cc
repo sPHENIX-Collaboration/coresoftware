@@ -209,9 +209,9 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
   assert(h_mass_KFP_Jet_6_GeV_MBD_NandS_geq_1_vtx_l_10_cm);
 
   // histograms for different bunch crossing ranges
-  for (size_t i = 0; i < bunchCrossingRanges.size(); ++i)
+for (const auto &range : bunchCrossingRanges)
   {
-    h_mass_KFP_crossingrange.push_back(dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_crossing_" + std::to_string(static_cast<int>(bunchCrossingRanges[i].first)) + "_to_" + std::to_string(static_cast<int>(bunchCrossingRanges[i].second)))));
+    h_mass_KFP_crossingrange.push_back(dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_crossing_" + std::to_string(static_cast<int>(range.first)) + "_to_" + std::to_string(static_cast<int>(range.second)))));
     assert(h_mass_KFP_crossingrange.back());
   }
 
@@ -296,13 +296,15 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
         h_bunchcrossing_mass_KFP->Fill(kfpTrack->get_crossing(), iter.second->GetMass());
 
         // fill the appropriate crossing range histogram
-        for (size_t i = 0; i < bunchCrossingRanges.size(); ++i)
+        size_t range_index = 0;
+        for (const auto &range : bunchCrossingRanges)
         {
-          if (kfpTrack->get_crossing() >= bunchCrossingRanges[i].first && kfpTrack->get_crossing() < bunchCrossingRanges[i].second)
+          if (kfpTrack->get_crossing() >= range.first && kfpTrack->get_crossing() < range.second)
           {
-            h_mass_KFP_crossingrange[i]->Fill(iter.second->GetMass());
+            h_mass_KFP_crossingrange[range_index]->Fill(iter.second->GetMass());
             break;
           }
+          ++range_index;
         }
       }
 
