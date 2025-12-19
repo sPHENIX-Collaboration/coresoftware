@@ -43,7 +43,7 @@ class PHG4SpacalDetector : public PHG4Detector
   PHG4SpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
                      PHParameters* parameters, const int layer = 0, bool init_geom = true);
 
-  ~PHG4SpacalDetector(void) override;
+  ~PHG4SpacalDetector() override;
 
   void
   ConstructMe(G4LogicalVolume* world) override;

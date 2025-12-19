@@ -21,7 +21,7 @@ class PHG4BlockDetector : public PHG4Detector
   PHG4BlockDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr = 0);
 
   //! destructor
-  ~PHG4BlockDetector(void) override = default;
+  ~PHG4BlockDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;

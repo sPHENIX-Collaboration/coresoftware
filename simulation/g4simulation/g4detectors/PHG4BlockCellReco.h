@@ -19,7 +19,7 @@ class PHG4BlockCellReco : public SubsysReco, public PHParameterContainerInterfac
  public:
   PHG4BlockCellReco(const std::string &name = "BLOCKRECO");
 
-  ~PHG4BlockCellReco() override {}
+  ~PHG4BlockCellReco() = default;
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;

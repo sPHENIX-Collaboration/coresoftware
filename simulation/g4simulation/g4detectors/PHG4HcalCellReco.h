@@ -17,7 +17,7 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
  public:
   PHG4HcalCellReco(const std::string &name = "HcalCellReco");
 
-  ~PHG4HcalCellReco() override {}
+  ~PHG4HcalCellReco() = default;
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;

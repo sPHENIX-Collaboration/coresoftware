@@ -231,19 +231,7 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
   std::vector<float> x;
   for (const auto& feature : m_bdt_feature_list)
   {
-    if (feature == "e11_over_e33")
-    {
-      float e11 = photon->get_shower_shape_parameter("e11");
-      float e33 = photon->get_shower_shape_parameter("e33");
-      x.push_back((e33 > 0) ? e11 / e33 : 0);
-    }
-    else if (feature == "e32_over_e35")
-    {
-      float e32 = photon->get_shower_shape_parameter("e32");
-      float e35 = photon->get_shower_shape_parameter("e35");
-      x.push_back((e35 > 0) ? e32 / e35 : 0);
-    }
-    else if (feature == "vertex_z")
+    if (feature == "vertex_z")
     {
       x.push_back(m_vertex);
     }
@@ -255,7 +243,25 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
     }
     else
     {
-      x.push_back(photon->get_shower_shape_parameter(feature));
+      const std::string delim = "_over_";
+      const auto pos = feature.find(delim);
+      if (pos != std::string::npos)
+      {
+        const std::string num = feature.substr(0, pos);
+        const std::string den = feature.substr(pos + delim.size());
+        const float numerator = photon->get_shower_shape_parameter(num);
+        const float denominator = photon->get_shower_shape_parameter(den);
+        x.push_back((denominator > 0) ? (numerator / denominator) : 0.0F);
+      }
+      else
+      {
+        x.push_back(photon->get_shower_shape_parameter(feature));
+      }
+    }
+    //check if the thing we pushed back is NaN
+    if (std::isnan(x.back()))
+    {
+      std::cerr << "PhotonClusterBuilder - feature name: " << feature << " is NaN" << std::endl;
     }
   }
 

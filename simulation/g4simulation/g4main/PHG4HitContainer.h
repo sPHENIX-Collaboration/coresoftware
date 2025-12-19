@@ -52,13 +52,13 @@ class PHG4HitContainer : public PHObject
   ConstRange getHits(const unsigned int detid) const;
 
   //! return all hist
-  ConstRange getHits(void) const;
+  ConstRange getHits() const;
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return hitmap.size();
   }
-  unsigned int num_layers(void) const
+  unsigned int num_layers() const
   {
     return layers.size();
   }

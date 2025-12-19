@@ -13,7 +13,7 @@ class PHG4ParticleGun : public PHG4ParticleGeneratorBase
 {
  public:
   PHG4ParticleGun(const std::string &name = "PGUN");
-  ~PHG4ParticleGun() override {}
+  ~PHG4ParticleGun() = default;
   int process_event(PHCompositeNode *topNode) override;
 };
 

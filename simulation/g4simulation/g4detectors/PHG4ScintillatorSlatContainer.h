@@ -25,9 +25,9 @@ class PHG4ScintillatorSlatContainer : public PHObject
   typedef std::set<int>::const_iterator LayerIter;
   typedef std::pair<LayerIter, LayerIter> LayerRange;
 
-  PHG4ScintillatorSlatContainer() {}
+  PHG4ScintillatorSlatContainer() = default;
 
-  ~PHG4ScintillatorSlatContainer() override {}
+  ~PHG4ScintillatorSlatContainer() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;
@@ -63,11 +63,11 @@ class PHG4ScintillatorSlatContainer : public PHObject
   ConstRange getScintillatorSlats(const short icolumn) const;
 
   //! return all hist
-  ConstRange getScintillatorSlats(void) const;
+  ConstRange getScintillatorSlats() const;
 
   PHG4ScintillatorSlat *findScintillatorSlat(PHG4ScintillatorSlatDefs::keytype key);
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return slatmap.size();
   }

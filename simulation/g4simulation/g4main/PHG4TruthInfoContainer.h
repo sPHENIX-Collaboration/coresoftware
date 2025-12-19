@@ -75,7 +75,7 @@ class PHG4TruthInfoContainer : public PHObject
   ConstRange GetSecondaryParticleRange() const { return ConstRange(particlemap.begin(), particlemap.upper_bound(0)); }
 
   //! track -> particle map size
-  unsigned int size(void) const { return particlemap.size(); }
+  unsigned int size() const { return particlemap.size(); }
   int GetNumPrimaryVertexParticles()
   {
     return std::distance(particlemap.upper_bound(0), particlemap.end());
@@ -196,7 +196,7 @@ class PHG4TruthInfoContainer : public PHObject
   ConstShowerRange GetSecondaryShowerRange() const { return ConstShowerRange(showermap.begin(), showermap.upper_bound(0)); }
 
   //! shower size
-  unsigned int shower_size(void) const { return showermap.size(); }
+  unsigned int shower_size() const { return showermap.size(); }
 
   //! Get the Shower Map storage
   const ShowerMap& GetShowerMap() const { return showermap; }

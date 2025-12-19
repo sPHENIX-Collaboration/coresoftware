@@ -24,7 +24,7 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   PHG4TruthTrackingAction(PHG4TruthEventAction*);
 
   //! destructor
-  ~PHG4TruthTrackingAction() override {}
+  ~PHG4TruthTrackingAction() = default;
 
   //! tracking action
   void PreUserTrackingAction(const G4Track*) override;

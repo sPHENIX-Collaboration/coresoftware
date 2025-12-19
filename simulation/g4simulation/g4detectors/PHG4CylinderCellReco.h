@@ -20,7 +20,7 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
  public:
   explicit PHG4CylinderCellReco(const std::string &name = "CYLINDERRECO");
 
-  ~PHG4CylinderCellReco() override {}
+  ~PHG4CylinderCellReco() = default;
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;

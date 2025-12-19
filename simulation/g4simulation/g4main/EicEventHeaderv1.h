@@ -11,7 +11,7 @@
 class EicEventHeaderv1 : public EicEventHeader
 {
  public:
-  EicEventHeaderv1() {}
+  EicEventHeaderv1() = default;
   explicit EicEventHeaderv1(const EicEventHeader *eicevt);
   ~EicEventHeaderv1() override = default;
 

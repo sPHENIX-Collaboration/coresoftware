@@ -13,7 +13,7 @@ class PHParameters;
 class PHG4CylinderGeomv1 : public PHG4CylinderGeom
 {
  public:
-  PHG4CylinderGeomv1() {}
+  PHG4CylinderGeomv1() = default;
   PHG4CylinderGeomv1(const double r, const double zmi, const double zma, const double thickn)
     : radius(r)
     , zmin(zmi)
@@ -22,7 +22,7 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
   {
   }
 
-  ~PHG4CylinderGeomv1() override {}
+  ~PHG4CylinderGeomv1() = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;

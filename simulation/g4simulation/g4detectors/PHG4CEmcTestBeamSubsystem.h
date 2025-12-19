@@ -41,8 +41,8 @@ class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
   int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override;
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override;
 
   void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
   {

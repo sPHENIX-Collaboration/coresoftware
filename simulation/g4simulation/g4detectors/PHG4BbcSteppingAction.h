@@ -34,27 +34,27 @@ class PHG4BbcSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4BbcDetector* m_Detector = nullptr;
+  PHG4BbcDetector* m_Detector {nullptr};
 
   //! pointer to hit container
-  PHG4HitContainer* m_HitContainer = nullptr;
-  PHG4HitContainer* m_SupportHitContainer = nullptr;
-  const PHParameters* m_Params = nullptr;
-  PHG4Hit* m_Hit = nullptr;
-  PHG4HitContainer* m_SaveHitContainer = nullptr;
+  PHG4HitContainer* m_HitContainer {nullptr};
+  PHG4HitContainer* m_SupportHitContainer {nullptr};
+  const PHParameters* m_Params {nullptr};
+  PHG4Hit* m_Hit {nullptr};
+  PHG4HitContainer* m_SaveHitContainer {nullptr};
 
-  G4VPhysicalVolume* m_SaveVolPre = nullptr;
-  G4VPhysicalVolume* m_SaveVolPost = nullptr;
+  G4VPhysicalVolume* m_SaveVolPre {nullptr};
+  G4VPhysicalVolume* m_SaveVolPost {nullptr};
 
-  int m_SaveTrackId = -1;
-  int m_SavePreStepStatus = -1;
-  int m_SavePostStepStatus = -1;
-  int m_ActiveFlag = 0;
-  int m_BlackHoleFlag = 0;
-  int m_SupportFlag = 0;
-  double m_EdepSum = 0.;
-  double m_EionSum = 0.;
-  double m_PathLen = 0.;
+  int m_SaveTrackId {-1};
+  int m_SavePreStepStatus {-1};
+  int m_SavePostStepStatus {-1};
+  int m_ActiveFlag {0};
+  int m_BlackHoleFlag {0};
+  int m_SupportFlag {0};
+  double m_EdepSum {0.};
+  double m_EionSum {0.};
+  double m_PathLen {0.};
 
   std::string m_HitNodeName;
   std::string m_SupportNodeName;

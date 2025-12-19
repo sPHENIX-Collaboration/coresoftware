@@ -102,6 +102,11 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
                 ";mass [GeV]; p_{T} [GeV]", 100, m_min_mass, m_max_mass, 100, pt_min, pt_max);
   hm->registerHisto(h2);
 
+  // mass v.s bunch crossing
+  h2 = new TH2F(TString(get_histo_prefix()) + "BunchCrossing_InvMass_KFP",  //
+                ";Beam crossing (106 ns/crossing);mass [GeV];", 899, -149.5, 749.5, 100, m_min_mass, m_max_mass); // the axis title is the same as the approved plot https://www.sphenix.bnl.gov/sites/default/files/2025-04/sphenix-perf-4-25-Kscrossingcut.pdf
+  hm->registerHisto(h2);
+
   h = new TH1F(TString(get_histo_prefix()) + "InvMass_KFP_crossing0",  //
                ";mass [GeV];Entries", 100, m_min_mass, m_max_mass);
   hm->registerHisto(h);
@@ -133,6 +138,9 @@ int QAKFParticle::Init(PHCompositeNode * /*topNode*/)
 
   h_mass_KFP_pt = dynamic_cast<TH2F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_pT"));
   assert(h_mass_KFP_pt);
+
+  h_bunchcrossing_mass_KFP = dynamic_cast<TH2F *>(hm->getHisto(get_histo_prefix() + "BunchCrossing_InvMass_KFP"));
+  assert(h_bunchcrossing_mass_KFP);
 
   h_mass_KFP_crossing0 = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "InvMass_KFP_crossing0"));
   assert(h_mass_KFP_crossing0);
@@ -226,6 +234,8 @@ int QAKFParticle::process_event(PHCompositeNode *topNode)
         {
           h_mass_KFP_non_crossing0->Fill(iter.second->GetMass());
         }
+
+        h_bunchcrossing_mass_KFP->Fill(kfpTrack->get_crossing(), iter.second->GetMass());
       }
 
       if (hasTriggerInfo)

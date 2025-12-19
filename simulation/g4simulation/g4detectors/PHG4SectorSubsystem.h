@@ -41,8 +41,8 @@ class PHG4SectorSubsystem : public PHG4Subsystem
 
   //! accessors (reimplemented)
   PHG4Detector*
-  GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override { return m_SteppingAction; }
+  GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override { return m_SteppingAction; }
 
   PHG4DisplayAction* GetDisplayAction() const override { return m_DisplayAction; }
 

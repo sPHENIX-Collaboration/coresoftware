@@ -561,10 +561,8 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool /
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 //____________________________________________________________________________..
@@ -608,7 +606,7 @@ void PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)
 
   static const std::string h_field_name = "hOuterHcalField";
 
-  if (! se->isHistoRegistered(h_field_name))
+  if (!se->isHistoRegistered(h_field_name))
   {
     TH2* h = new TH2F(h_field_name.c_str(), "Magnetic field (Tesla) in HCal;X (cm);Y (cm)", 2400,
                       -300, 300, 2400, -300, 300);

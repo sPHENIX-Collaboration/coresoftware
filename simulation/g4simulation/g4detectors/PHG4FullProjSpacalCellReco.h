@@ -24,7 +24,7 @@ class PHG4FullProjSpacalCellReco : public SubsysReco, public PHParameterInterfac
  public:
   PHG4FullProjSpacalCellReco(const std::string &name = "SPACALCELLRECO");
 
-  ~PHG4FullProjSpacalCellReco() override {}
+  ~PHG4FullProjSpacalCellReco() = default;
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;
