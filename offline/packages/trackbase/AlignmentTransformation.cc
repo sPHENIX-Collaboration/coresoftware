@@ -147,8 +147,8 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 
     if(localVerbosity > 0)
       {
-	std::cout  <<  hitsetkey << "  " << alpha  << "  " << beta  << "  " << gamma  << " dx " << dx  << " dy " << dy << " dz "  << dz
-		   << " dgrx " << dgrx << " dgry " << dgry << " dgrz " << dgrz << std::endl;
+	std::cout  <<  hitsetkey << "  " << alpha  << "  " << beta  << "  " << gamma  << "  " << dx  << "  " << dy << "  " << dz
+		   << "  " << dgrx << "  " << dgry << "  " << dgrz << std::endl;
       }
     
     // Perturbation translations and angles for stave and sensor
