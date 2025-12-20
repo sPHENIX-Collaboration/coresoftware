@@ -151,7 +151,10 @@ class MakeActsGeometry : public SubsysReco
   void set_mvtx_applymisalign(bool b) { m_mvtxapplymisalign = b; }
   void set_intt_survey(bool surv) { m_inttSurvey = surv; }
 
- private:
+  void setUseModuleTiltAlways(bool flag) { m_use_module_tilt_always = flag; }
+  void setUseNewSiliconRotationOrder(bool flag) { m_use_new_silicon_rotation_order = flag; }
+
+private:
   /// Main function to build all acts geometry for use in the fitting modules
   int buildAllGeometry(PHCompositeNode *topNode);
 
@@ -308,6 +311,9 @@ class MakeActsGeometry : public SubsysReco
   bool inttParam = false;
   bool tpcParam = false;
   bool mmParam = false;
+
+  bool m_use_module_tilt_always = false;
+  bool m_use_new_silicon_rotation_order = false;
 };
 
 #endif
