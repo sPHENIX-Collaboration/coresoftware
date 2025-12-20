@@ -19,7 +19,6 @@ class G4Box;
 class G4Polycone;
 class G4Tubs;
 
-
 /**
  */
 
@@ -53,11 +52,10 @@ class PHG4sPHENIXMagnetDetector : public PHG4Detector
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig *m_GdmlConfig = nullptr;
 
-  G4Box* Block(G4int iblock) const;
-  G4Tubs* CryoTubes(G4int itube) const;
-  G4Polycone* SolenoidPolycones(G4int ipolycone) const;
-  G4Tubs* SolenoidTubes(G4int itube) const;
-
+  G4Box *Block(G4int iblock) const;
+  G4Tubs *CryoTubes(G4int itube) const;
+  G4Polycone *SolenoidPolycones(G4int ipolycone) const;
+  G4Tubs *SolenoidTubes(G4int itube) const;
 
   int m_ActiveFlag;
   int m_Layer;
@@ -65,7 +63,6 @@ class PHG4sPHENIXMagnetDetector : public PHG4Detector
   std::string m_SuperDetector;
 
   std::set<G4LogicalVolume *> m_LogicalVolSet;
-
 };
 
 #endif
