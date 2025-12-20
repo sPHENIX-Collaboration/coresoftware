@@ -1,27 +1,22 @@
 #include "PHG4BlockGeomv1.h"
 
 #include <algorithm>
-#include <cmath>
-
-using namespace std;
+#include <limits>
 
 PHG4BlockGeomv1::PHG4BlockGeomv1()
-  : PHG4BlockGeom()
-  , _layer(-1)
-  , _rotation_z(NAN)
 {
   const double filldval = 1.;
-  fill(_size, _size + sizeof(_size) / sizeof(double), NAN);
-  fill(_center, _center + sizeof(_center) / sizeof(double), NAN);
-  fill(&_rot_matrix[0][0], &_rot_matrix[0][0] + sizeof(_rot_matrix) / sizeof(double), filldval);
+  std::fill(_size, _size + sizeof(_size) / sizeof(double), std::numeric_limits<double>::quiet_NaN());
+  std::fill(_center, _center + sizeof(_center) / sizeof(double), std::numeric_limits<double>::quiet_NaN());
+  std::fill(&_rot_matrix[0][0], &_rot_matrix[0][0] + sizeof(_rot_matrix) / sizeof(double), filldval);
 }
 
 PHG4BlockGeomv1::PHG4BlockGeomv1(const int layer,
                                  const double sizex, const double sizey, const double sizez,
                                  const double centerx, const double centery, const double centerz,
                                  const double zrot)
-  : PHG4BlockGeom()
-  , _layer(layer)
+  : 
+   _layer(layer)
   , _rotation_z(zrot)
 {
   _size[0] = sizex;
@@ -40,7 +35,7 @@ void PHG4BlockGeomv1::identify(std::ostream &os) const
      << ", rotation in z: " << _rotation_z
      << ", size: (" << _size[0] << ", " << _size[1] << ", " << _size[2] << ")"
      << ", center: (" << _center[0] << ", " << _center[1] << ", " << _center[2] << ")"
-     << endl;
+     << std::endl;
   return;
 }
 

@@ -18,7 +18,7 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4BlockSubsystem(const std::string& name = "BLOCK", const int layer = 0);
+  PHG4BlockSubsystem(const std::string& name = "BLOCK", const int lyr = 0);
 
   //! destructor
   ~PHG4BlockSubsystem() override;
