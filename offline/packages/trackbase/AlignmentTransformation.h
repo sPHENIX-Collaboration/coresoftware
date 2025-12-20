@@ -107,6 +107,8 @@ class AlignmentTransformation
     return transformMap->getMisalignmentFactor(layer);
   }
   void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur; }
+  void setUseNewSiliconRotationOrder(bool flag) { use_new_silicon_rotation_order = flag; }
+  void setUseModuleTiltAlways(bool flag) { use_module_tilt_always = flag; }
 
 private:
   Eigen::Vector3d mvtxAngleDev;
@@ -124,8 +126,11 @@ private:
 
   int localVerbosity = 0;
 
-  bool use_intt_survey_geometry = false;
+  bool use_new_silicon_rotation_order = false;
+  bool use_module_tilt_always = false;
 
+  bool use_intt_survey_geometry = false;
+  
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, unsigned int trkrid, bool survey);
 
   Eigen::Vector3d getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation) const; 

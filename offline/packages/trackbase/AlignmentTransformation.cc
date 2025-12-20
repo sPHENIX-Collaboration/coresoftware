@@ -277,7 +277,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
           surf = surfMaps.getTpcSurface(this_hitsetkey, (unsigned int) sskey);
 
           Eigen::Vector3d localFrameTranslation(0, 0, 0);
-          if (test_layer < 4)
+          if (test_layer < 4 || use_module_tilt_always)
           {
             // get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
             unsigned int this_region = (this_layer - 7) / 16;                                           // 0-2
@@ -431,8 +431,15 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
     }
     else
     {
-      // needed for backward compatibility to existing local rotations in MVTX
-      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * mpLocalRotationAffine * actsRotationAffine;
+      if(use_new_silicon_rotation_order)
+	{
+	  transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * actsRotationAffine * mpLocalTranslationAffine * mpLocalRotationAffine;
+	}
+      else
+	{
+	  // needed for backward compatibility to existing local rotations in MVTX
+	  transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * mpLocalRotationAffine * actsRotationAffine;
+	}
     }
   }
 
