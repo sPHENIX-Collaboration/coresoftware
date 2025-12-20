@@ -1041,8 +1041,8 @@ void PHG4CylinderCellReco::Detector(const std::string &d)
 
 void PHG4CylinderCellReco::SetDefaultParameters()
 {
-  set_default_double_param("size_long", NAN);
-  set_default_double_param("size_perp", NAN);
+  set_default_double_param("size_long", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("size_perp", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("tmax", 60.0);
   set_default_double_param("tmin", -20.0);  // collision has a timing spread around the triggered event. Accepting negative time too.
   set_default_double_param("delta_t", 100.);

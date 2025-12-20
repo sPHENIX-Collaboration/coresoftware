@@ -1,6 +1,7 @@
 #include "PHG4BlockGeomv1.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 PHG4BlockGeomv1::PHG4BlockGeomv1()

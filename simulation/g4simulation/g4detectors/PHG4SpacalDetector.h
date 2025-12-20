@@ -20,6 +20,7 @@
 #include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Types.hh>  // for G4double
 
+#include <limits>
 #include <map>
 #include <string>   // for string
 #include <utility>  // for pair
@@ -136,33 +137,33 @@ class PHG4SpacalDetector : public PHG4Detector
   //! map for G4VPhysicalVolume -> towers ID
   std::map<const G4VPhysicalVolume*, int> block_vol;
 
-  int active = 0;
-  int absorberactive = 0;
-  int layer = -9999;
-  int m_CosmicSetupFlag = 0;
-  int m_CellBinning = PHG4CellDefs::undefined;
-  int m_NumLayers = -1;
-  int m_NumPhiBins = -1;
-  int m_NumEtaBins = -1;
-  double m_Emin = 1e-6;
-  double m_EtaMin = NAN;
-  double m_PhiMin = NAN;
-  double m_EtaStep = NAN;
-  double m_PhiStep = NAN;
+  int active {0};
+  int absorberactive {0};
+  int layer {-9999};
+  int m_CosmicSetupFlag {0};
+  int m_CellBinning {PHG4CellDefs::undefined};
+  int m_NumLayers {-1};
+  int m_NumPhiBins {-1};
+  int m_NumEtaBins {-1};
+  double m_Emin {1e-6};
+  double m_EtaMin {std::numeric_limits<double>::quiet_NaN()};
+  double m_PhiMin {std::numeric_limits<double>::quiet_NaN()};
+  double m_EtaStep {std::numeric_limits<double>::quiet_NaN()};
+  double m_PhiStep {std::numeric_limits<double>::quiet_NaN()};
   std::string detector_type;
   std::string superdetector;
 
   //  G4UserLimits * step_limits;
   //  G4UserLimits * clading_step_limits;
-  G4UserLimits* fiber_core_step_limits = nullptr;
+  G4UserLimits* fiber_core_step_limits {nullptr};
 
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig* gdml_config = nullptr;
+  PHG4GDMLConfig* gdml_config {nullptr};
   // private:
 
-  SpacalGeom_t* _geom = nullptr;
+  SpacalGeom_t* _geom {nullptr};
 
-  RawTowerGeomContainer* m_RawTowerGeomContainer = nullptr;
+  RawTowerGeomContainer* m_RawTowerGeomContainer {nullptr};
   std::string m_TowerGeomNodeName;
 };
 

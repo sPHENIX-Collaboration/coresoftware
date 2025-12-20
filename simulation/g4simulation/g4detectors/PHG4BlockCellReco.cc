@@ -608,8 +608,8 @@ int PHG4BlockCellReco::CheckEnergy(PHCompositeNode *topNode)
 
 void PHG4BlockCellReco::SetDefaultParameters()
 {
-  set_default_double_param("deltaeta", NAN);
-  set_default_double_param("deltax", NAN);
+  set_default_double_param("deltaeta", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("deltax", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("tmax", 60.0);
   set_default_double_param("tmin", 0.0);
   return;

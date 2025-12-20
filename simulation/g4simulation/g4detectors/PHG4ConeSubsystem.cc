@@ -26,7 +26,7 @@ class PHG4Detector;
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
 {
-  m_ColorArray.fill(NAN);
+  m_ColorArray.fill(std::numeric_limits<double>::quiet_NaN());
   InitializeParameters();
 }
 
@@ -136,11 +136,11 @@ void PHG4ConeSubsystem::SetDefaultParameters()
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
 
-  set_default_double_param("length", NAN);
-  set_default_double_param("rmin1", NAN);
-  set_default_double_param("rmax1", NAN);
-  set_default_double_param("rmin2", NAN);
-  set_default_double_param("rmax2", NAN);
+  set_default_double_param("length", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("rmin1", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("rmax1", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("rmin2", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("rmax2", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("sphi", 0.);
   set_default_double_param("dphi", 360.);  // degrees
   set_default_double_param("rot_x", 0);

@@ -19,6 +19,8 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -33,7 +35,6 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
-#include <ffamodules/CDBInterface.h>
 
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
@@ -47,7 +48,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <sstream>
+#include <limits>
 #include <utility>  // for pair
 
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const std::string &name)
@@ -167,7 +168,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 
   using map_z_tower_z_ID_t = std::map<double, int>;
   map_z_tower_z_ID_t map_z_tower_z_ID;
-  double phi_min = NAN;
+  double phi_min = std::numeric_limits<double>::quiet_NaN();
 
   for (const auto &tower_pair : tower_map)
   {
@@ -210,8 +211,8 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
   }
   layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
   layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
-  layerseggeo->set_etamin(NAN);
-  layerseggeo->set_etastep(NAN);
+  layerseggeo->set_etamin(std::numeric_limits<double>::quiet_NaN());
+  layerseggeo->set_etastep(std::numeric_limits<double>::quiet_NaN());
 
   // build eta bin maps
   for (const auto &tower_pair : tower_map)

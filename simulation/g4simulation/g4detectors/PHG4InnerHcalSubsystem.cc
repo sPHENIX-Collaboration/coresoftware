@@ -18,8 +18,8 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <cmath>     // for NAN
 #include <iostream>  // for operator<<, basic_ostream
+#include <limits>
 #include <set>
 #include <sstream>
 
@@ -149,11 +149,11 @@ PHG4Detector *PHG4InnerHcalSubsystem::GetDetector() const
 void PHG4InnerHcalSubsystem::SetDefaultParameters()
 {
   set_default_double_param(PHG4HcalDefs::innerrad, 117.27);
-  set_default_double_param("light_balance_inner_corr", NAN);
-  set_default_double_param("light_balance_inner_radius", NAN);
-  set_default_double_param("light_balance_outer_corr", NAN);
-  set_default_double_param("light_balance_outer_radius", NAN);
-  set_default_double_param("phistart", NAN);
+  set_default_double_param("light_balance_inner_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_inner_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_corr", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("light_balance_outer_radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("phistart", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param(PHG4HcalDefs::outerrad, 134.42);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
@@ -176,7 +176,7 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_double_param("scinti_outer_radius", 133.13);
   set_default_double_param("scinti_tile_thickness", 0.7);
   set_default_double_param("size_z", 175.94 * 2);
-  set_default_double_param("steplimits", NAN);
+  set_default_double_param("steplimits", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("tilt_angle", 36.15);  // engineering drawing
                                                   // corresponds very closely to 4 crossinge (35.5497 deg)
 

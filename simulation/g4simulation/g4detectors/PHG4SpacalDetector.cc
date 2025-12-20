@@ -813,7 +813,7 @@ void PHG4SpacalDetector::AddCellGeometryNode()
 
   using map_z_tower_z_ID_t = std::map<double, int>;
   map_z_tower_z_ID_t map_z_tower_z_ID;
-  double phi_min = NAN;
+  double phi_min = std::numeric_limits<double>::quiet_NaN();
 
   for (const auto &tower_pair : tower_map)
   {
@@ -856,8 +856,8 @@ void PHG4SpacalDetector::AddCellGeometryNode()
   }
   layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
   layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
-  layerseggeo->set_etamin(NAN);
-  layerseggeo->set_etastep(NAN);
+  layerseggeo->set_etamin(std::numeric_limits<double>::quiet_NaN());
+  layerseggeo->set_etastep(std::numeric_limits<double>::quiet_NaN());
 
   // build eta bin maps
   for (const auto &tower_pair : tower_map)

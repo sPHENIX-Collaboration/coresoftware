@@ -60,7 +60,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <sstream>
+#include <limits>
 
 class PHCompositeNode;
 
@@ -540,7 +540,6 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
   m_ScintiMotherAssembly = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
   double deltaphi = 2 * M_PI / m_NumScintiPlates;
-  std::ostringstream name;
   double middlerad = m_OuterRadius - (m_OuterRadius - m_InnerRadius) / 2.;
   // for shorter scintillators we have to shift by 1/2 the "missing length"
   double scinti_tile_orig_length = m_ScintiTileXUpper + m_ScintiTileXLower - subtract_from_scinti_x;
@@ -593,9 +592,8 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
     delete Rot;
     Rot = new G4RotationMatrix();
     Rot->rotateZ(-phi * rad);
-    name.str("");
-    name << "InnerHcalSteel_" << i;
-    m_SteelAbsorberPhysVolSet.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str(), hcalenvelope, false, i, OverlapCheck()));
+    std::string name = "InnerHcalSteel_" + std::to_string(i);
+    m_SteelAbsorberPhysVolSet.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name, hcalenvelope, false, i, OverlapCheck()));
     phi += deltaphi;
   }
   return 0;
@@ -623,7 +621,6 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
   G4double theta;
   G4double x[4];
   G4double z[4];
-  std::ostringstream name;
   double overhang = (m_ScintiTileX - (m_OuterRadius - m_InnerRadius)) / 2.;
   double offset = 1 * cm + overhang;  // add 1cm to make sure the G4ExtrudedSolid
   // is larger than the tile so we do not have
@@ -678,9 +675,8 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
                                            zero, 1.0);
     G4RotationMatrix *rotm = new G4RotationMatrix();
     rotm->rotateX(-90 * deg);
-    name.str("");
-    name << "scintillator_" << i << "_left";
-    G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
+    std::string name = std::format("scintillator_{}_left", i);
+    G4VSolid *scinti_tile = new G4IntersectionSolid(name, bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
     delete rotm;
     m_ScintiTilesVec[i + m_NumScintiTilesNeg] = scinti_tile;
   }
@@ -733,9 +729,8 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
 
     G4RotationMatrix *rotm = new G4RotationMatrix();
     rotm->rotateX(90 * deg);
-    name.str("");
-    name << "scintillator_" << i << "_right";
-    G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
+    std::string name = std::format("scintillator_{}_right", i);
+    G4VSolid *scinti_tile = new G4IntersectionSolid(name, bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
     m_ScintiTilesVec[m_NumScintiTilesNeg - i - 1] = scinti_tile;
     delete rotm;
   }
@@ -754,7 +749,7 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
 double
 PHG4InnerHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, double yin)
 {
-  double xret = NAN;
+  double xret = std::numeric_limits<double>::quiet_NaN();
   double x[2];
   double y[2];
   x[0] = CGAL::to_double(p0.x());
@@ -786,20 +781,18 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
 {
   ConstructHcalSingleScintillators(hcalenvelope);
   G4AssemblyVolume *assmeblyvol = new G4AssemblyVolume();
-  std::ostringstream name;
   G4ThreeVector g4vec;
 
   double steplimits = m_Params->get_double_param("steplimits") * cm;
   for (unsigned int i = 0; i < m_ScintiTilesVec.size(); i++)
   {
-    name.str("");
-    name << m_ScintiLogicNamePrefix << i;
+    std::string name =  m_ScintiLogicNamePrefix + std::to_string(i);
     G4UserLimits *g4userlimits = nullptr;
     if (isfinite(steplimits))
     {
       g4userlimits = new G4UserLimits(steplimits);
     }
-    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name.str(), nullptr, nullptr, g4userlimits);
+    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name, nullptr, nullptr, g4userlimits);
     m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
   }
