@@ -34,7 +34,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
   PHG4FullProjTiltedSpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
-                                   PHParameters* parameters, const int layer = 0);
+                                   PHParameters* parameters, const int lyr = 0);
 
   // empty dtor, step limits are deleted in base class
   ~PHG4FullProjTiltedSpacalDetector() = default;

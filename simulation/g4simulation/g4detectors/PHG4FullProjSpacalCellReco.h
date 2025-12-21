@@ -54,14 +54,14 @@ class PHG4FullProjSpacalCellReco : public SubsysReco, public PHParameterInterfac
   std::string geonodename;
   std::string seggeonodename;
 
-  double sum_energy_g4hit {0};
-  int chkenergyconservation {0};
+  double sum_energy_g4hit{0};
+  int chkenergyconservation{0};
   std::map<unsigned int, PHG4Cell *> celllist;
 
   //! timing window size in ns. This is for a simple simulation of the ADC integration window starting from 0ns to this value. Default to infinity, i.e. include all hits
-  double tmin {std::numeric_limits<double>::quiet_NaN()};
-  double tmax {std::numeric_limits<double>::quiet_NaN()};
-  double m_DeltaT {std::numeric_limits<double>::quiet_NaN()};
+  double tmin{std::numeric_limits<double>::quiet_NaN()};
+  double tmax{std::numeric_limits<double>::quiet_NaN()};
+  double m_DeltaT{std::numeric_limits<double>::quiet_NaN()};
   LightCollectionModel light_collection_model;
 };
 

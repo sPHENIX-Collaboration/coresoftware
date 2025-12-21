@@ -35,7 +35,6 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
-
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH1.h>
@@ -184,7 +183,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
     if (tower_ID_phi == 0)
     {
       // assign phi min according phi bin 0
-// NOLINTNEXTLINE(bugprone-integer-division)
+      // NOLINTNEXTLINE(bugprone-integer-division)
       phi_min = M_PI_2 - deltaphi * (layergeom->get_max_phi_bin_in_sec() * layergeom->get_n_subtower_phi() / 2)  // shift of first tower in sector
                 + sector_map.begin()->second;
     }
@@ -438,7 +437,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     if (light_collection_model.use_fiber_model())
     {
       const double z = 0.5 * (hiter->second->get_local_z(0) + hiter->second->get_local_z(1));
-      assert(! std::isnan(z));
+      assert(!std::isnan(z));
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
@@ -515,15 +514,14 @@ int PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
         << sum_energy_cells - sum_energy_g4hit << std::endl;
     return -1;
   }
-  else
+
+  if (Verbosity() > 0)
   {
-    if (Verbosity() > 0)
-    {
-      std::cout << "PHG4FullProjSpacalCellReco::CheckEnergy::" << Name()
-                << " - total energy for this event: " << sum_energy_g4hit
-                << " GeV. Passed CheckEnergy" << std::endl;
-    }
+    std::cout << "PHG4FullProjSpacalCellReco::CheckEnergy::" << Name()
+              << " - total energy for this event: " << sum_energy_g4hit
+              << " GeV. Passed CheckEnergy" << std::endl;
   }
+
   return 0;
 }
 
