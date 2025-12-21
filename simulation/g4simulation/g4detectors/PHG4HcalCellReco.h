@@ -40,12 +40,12 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
   std::string hitnodename;
   std::string cellnodename;
 
-  int chkenergyconservation {0};
+  int chkenergyconservation{0};
 
-  double tmin {std::numeric_limits<double>::quiet_NaN()};
-  double tmax {std::numeric_limits<double>::quiet_NaN()};
-  double m_DeltaT {std::numeric_limits<double>::quiet_NaN()};
-  double m_FixedEnergy {std::numeric_limits<double>::quiet_NaN()};
+  double tmin{std::numeric_limits<double>::quiet_NaN()};
+  double tmax{std::numeric_limits<double>::quiet_NaN()};
+  double m_DeltaT{std::numeric_limits<double>::quiet_NaN()};
+  double m_FixedEnergy{std::numeric_limits<double>::quiet_NaN()};
 };
 
 #endif
