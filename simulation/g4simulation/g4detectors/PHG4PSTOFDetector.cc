@@ -16,9 +16,9 @@
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
-#include <limits>
 #include <iostream>  // for operator<<, endl, bas...
-#include <utility>   // for pair
+#include <limits>
+#include <utility>  // for pair
 
 class G4Material;
 class PHCompositeNode;
