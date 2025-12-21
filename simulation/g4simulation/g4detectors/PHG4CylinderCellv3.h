@@ -10,7 +10,7 @@
 class PHG4CylinderCellv3 : public PHG4CylinderCellv1
 {
  public:
-  PHG4CylinderCellv3();
+  PHG4CylinderCellv3() = default;
   ~PHG4CylinderCellv3() = default;
 
   // from PHObject

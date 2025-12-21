@@ -32,7 +32,7 @@ PHG4CEmcTestBeamSubsystem::PHG4CEmcTestBeamSubsystem(const std::string& name, co
 {
   // put the layer into the name so we get unique names
   // for multiple layers
-  Name(std::format("{}_{}",name,lyr));
+  Name(std::format("{}_{}", name, lyr));
   for (double& i : dimension)
   {
     i = 100.0 * cm;

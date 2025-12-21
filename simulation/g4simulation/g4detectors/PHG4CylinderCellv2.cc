@@ -1,9 +1,5 @@
 #include "PHG4CylinderCellv2.h"
 
-PHG4CylinderCellv2::PHG4CylinderCellv2()
-  : PHG4CylinderCellv1()
-{
-}
 
 void PHG4CylinderCellv2::identify(std::ostream& os) const
 {

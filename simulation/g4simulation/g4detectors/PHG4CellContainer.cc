@@ -19,10 +19,10 @@ void PHG4CellContainer::Reset()
 void PHG4CellContainer::identify(std::ostream& os) const
 {
   os << "Number of cells: " << size() << std::endl;
-  for (auto iter = cellmap.begin(); iter != cellmap.end(); ++iter)
+  for (auto iter : cellmap)
   {
-    os << "cell key 0x" << std::hex << iter->first << std::dec << std::endl;
-    (iter->second)->identify();
+    os << "cell key 0x" << std::hex << iter.first << std::dec << std::endl;
+    (iter.second)->identify();
   }
   return;
 }
@@ -31,7 +31,7 @@ PHG4CellContainer::ConstIterator
 PHG4CellContainer::AddCell(PHG4Cell* newcell)
 {
   PHG4CellDefs::keytype key = newcell->get_cellid();
-  if (cellmap.find(key) != cellmap.end())
+  if (cellmap.contains(key))
   {
     std::cout << "overwriting cell 0x" << std::hex << key << std::dec << std::endl;
     std::cout << "layer: " << PHG4CellDefs::get_detid(key) << std::endl;
@@ -43,7 +43,7 @@ PHG4CellContainer::AddCell(PHG4Cell* newcell)
 PHG4CellContainer::ConstIterator
 PHG4CellContainer::AddCellSpecifyKey(const PHG4CellDefs::keytype key, PHG4Cell* newcell)
 {
-  if (cellmap.find(key) != cellmap.end())
+  if (cellmap.contains(key))
   {
     std::cout << "PHG4CellContainer::AddCellSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);

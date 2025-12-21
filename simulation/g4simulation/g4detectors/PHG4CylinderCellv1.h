@@ -30,7 +30,7 @@ class PHG4CylinderCellv1 : public PHG4CylinderCell
 
   using PHG4Cell::add_edep;  // avoid warning for not including all overrides of add_edep
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) override;
-  void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float light_yield) override;
+  void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float ly) override;
 
   ShowerEdepConstRange get_g4showers() override
   {

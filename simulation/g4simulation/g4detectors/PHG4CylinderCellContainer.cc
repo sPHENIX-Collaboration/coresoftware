@@ -19,15 +19,15 @@ void PHG4CylinderCellContainer::Reset()
 void PHG4CylinderCellContainer::identify(std::ostream& os) const
 {
   os << "Number of cells: " << size() << std::endl;
-  for (auto iter = cellmap.begin(); iter != cellmap.end(); ++iter)
+  for (auto iter : cellmap)
   {
-    os << "cell key 0x" << std::hex << iter->first << std::dec << std::endl;
-    (iter->second)->identify();
+    os << "cell key 0x" << std::hex << iter.first << std::dec << std::endl;
+    (iter.second)->identify();
   }
   os << "Number of layers: " << num_layers() << std::endl;
-  for (auto siter = layers.begin(); siter != layers.end(); ++siter)
+  for (int layer : layers)
   {
-    os << "layer : " << *siter << std::endl;
+    os << "layer : " << layer << std::endl;
   }
   return;
 }
@@ -44,7 +44,7 @@ PHG4CylinderCellContainer::genkey(const unsigned int detid)
   unsigned int cellid = cellmap.size();
   cellid++;
   PHG4CylinderCellDefs::keytype newkey = cellid | shiftval;
-  if (cellmap.find(newkey) != cellmap.end())
+  if (cellmap.contains(newkey))
   {
     std::cout << " duplicate key: " << newkey << " exiting now" << std::endl;
     exit(1);
@@ -65,7 +65,7 @@ PHG4CylinderCellContainer::AddCylinderCell(const unsigned int detid, PHG4Cylinde
 PHG4CylinderCellContainer::ConstIterator
 PHG4CylinderCellContainer::AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell* newcell)
 {
-  if (cellmap.find(key) != cellmap.end())
+  if (cellmap.contains(key))
   {
     std::cout << "PHG4CylinderCellContainer::AddCylinderCellSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);

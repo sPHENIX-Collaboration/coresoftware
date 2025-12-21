@@ -26,7 +26,10 @@ class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
-static double no_overlap = 0.0001 * cm;  // added safety margin against overlaps by using same boundary between volumes
+namespace
+{
+  double no_overlap = 0.0001 * cm;  // added safety margin against overlaps by using same boundary between volumes
+}
 
 PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
@@ -36,8 +39,9 @@ PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector(PHG4Subsystem* subsys, PHComp
   , place_in_z(0 * cm)
   , plate_x(135 * mm)
   , plate_z(135 * mm)
+  , sandwich_thickness(2 * w_dimension[1] + sc_dimension[1])
   , active_scinti_fraction(0.78)
-  , sandwiches_per_tower(12) // 12 tungsten/scintillator fiber snadwiches per tower
+  , sandwiches_per_tower(12)  // 12 tungsten/scintillator fiber snadwiches per tower
   , num_towers(7)
   , layer(lyr)
 {
@@ -47,7 +51,7 @@ PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector(PHG4Subsystem* subsys, PHComp
   sc_dimension[0] = plate_x;
   sc_dimension[1] = 1 * mm;
   sc_dimension[2] = plate_z;
-  sandwich_thickness = 2 * w_dimension[1] + sc_dimension[1];  // two tungsten plats, one scintillator
+  // two tungsten plats, one scintillator
   for (int i = 0; i < 4; i++)
   {
     sandwich_vol.push_back(nullptr);
@@ -159,7 +163,7 @@ int PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
   if (active_scinti_fraction > 1 || active_scinti_fraction < 0)
   {
     std::cout << "invalid active scintillator fraction " << active_scinti_fraction
-         << " try between 0 and 1" << std::endl;
+              << " try between 0 and 1" << std::endl;
   }
 
   double sc_active_thickness = sc_dimension[1] * active_scinti_fraction;

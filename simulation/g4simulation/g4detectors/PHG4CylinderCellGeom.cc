@@ -69,16 +69,16 @@ void PHG4CylinderCellGeom::set_phibins(const int i)
   nphibins = i;
 }
 
-void PHG4CylinderCellGeom::set_phistep(const double r)
+void PHG4CylinderCellGeom::set_phistep(const double phi)
 {
   check_binning_method_phi("PHG4CylinderCellGeom::set_phistep");
-  phistep = r;
+  phistep = phi;
 }
 
-void PHG4CylinderCellGeom::set_phimin(const double r)
+void PHG4CylinderCellGeom::set_phimin(const double phi)
 {
   check_binning_method_phi("PHG4CylinderCellGeom::set_phimin");
-  phimin = r;
+  phimin = phi;
 }
 
 int PHG4CylinderCellGeom::get_etabins() const
@@ -308,7 +308,7 @@ void PHG4CylinderCellGeom::check_binning_method_eta(const std::string& src) cons
       binning != PHG4CylinderCellDefs::etaslatbinning &&
       binning != PHG4CylinderCellDefs::spacalbinning)
   {
-    if (src.size())
+    if (!src.empty())
     {
       std::cout << src << " : ";
     }
@@ -330,7 +330,7 @@ void PHG4CylinderCellGeom::check_binning_method_phi(const std::string& src) cons
       binning != PHG4CylinderCellDefs::etaslatbinning &&
       binning != PHG4CylinderCellDefs::spacalbinning)
   {
-    if (src.size())
+    if (!src.empty())
     {
       std::cout << src << " : ";
     }

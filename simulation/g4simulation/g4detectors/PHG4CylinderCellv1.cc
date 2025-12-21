@@ -4,7 +4,7 @@
 
 void PHG4CylinderCellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const float edep)
 {
-  if (edeps.find(g4hitid) == edeps.end())
+  if (!edeps.contains(g4hitid))
   {
     edeps[g4hitid] = edep;
   }
@@ -22,7 +22,7 @@ void PHG4CylinderCellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const floa
 
 void PHG4CylinderCellv1::add_shower_edep(const int g4showerid, const float edep)
 {
-  if (showeredeps.find(g4showerid) == showeredeps.end())
+  if (!showeredeps.contains(g4showerid))
   {
     showeredeps[g4showerid] = edep;
   }

@@ -1,10 +1,5 @@
 #include "PHG4CylinderCellv3.h"
 
-PHG4CylinderCellv3::PHG4CylinderCellv3()
-  : PHG4CylinderCellv1()
-{
-}
-
 void PHG4CylinderCellv3::identify(std::ostream& os) const
 {
   os << "PHG4CylinderCellv3: #" << cellid << " ";

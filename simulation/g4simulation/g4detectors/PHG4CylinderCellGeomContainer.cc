@@ -14,17 +14,17 @@ PHG4CylinderCellGeomContainer::~PHG4CylinderCellGeomContainer()
 
 void PHG4CylinderCellGeomContainer::identify(std::ostream &os) const
 {
-  for (auto iter = layergeoms.begin(); iter != layergeoms.end(); ++iter)
+  for (auto layergeom : layergeoms)
   {
-    std::cout << "layer " << iter->first << std::endl;
-    (iter->second)->identify(os);
+    std::cout << "layer " << layergeom.first << std::endl;
+    (layergeom.second)->identify(os);
   }
   return;
 }
 
 int PHG4CylinderCellGeomContainer::AddLayerCellGeom(const int i, PHG4CylinderCellGeom *mygeom)
 {
-  if (layergeoms.find(i) != layergeoms.end())
+  if (layergeoms.contains(i))
   {
     std::cout << "layer " << i << " already added to PHCylinderCellGeomContainer" << std::endl;
     return -1;
@@ -37,7 +37,7 @@ int PHG4CylinderCellGeomContainer::AddLayerCellGeom(const int i, PHG4CylinderCel
 int PHG4CylinderCellGeomContainer::AddLayerCellGeom(PHG4CylinderCellGeom *mygeom)
 {
   int layer = mygeom->get_layer();
-  if (layergeoms.find(layer) != layergeoms.end())
+  if (layergeoms.contains(layer))
   {
     std::cout << "layer " << layer << " already added to PHCylinderCellGeomContainer" << std::endl;
     return -1;
