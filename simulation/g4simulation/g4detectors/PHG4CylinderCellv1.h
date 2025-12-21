@@ -11,13 +11,14 @@
 #include <g4main/PHG4HitDefs.h>
 
 #include <iostream>  // for cout, ostream
+#include <limits>
 #include <map>
 #include <utility>  // for make_pair
 
 class PHG4CylinderCellv1 : public PHG4CylinderCell
 {
  public:
-  PHG4CylinderCellv1();
+  PHG4CylinderCellv1() = default;
   ~PHG4CylinderCellv1() = default;
 
   void identify(std::ostream& os = std::cout) const override;
@@ -29,7 +30,7 @@ class PHG4CylinderCellv1 : public PHG4CylinderCell
 
   using PHG4Cell::add_edep;  // avoid warning for not including all overrides of add_edep
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) override;
-  void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float light_yield) override;
+  void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float ly) override;
 
   ShowerEdepConstRange get_g4showers() override
   {
@@ -53,13 +54,13 @@ class PHG4CylinderCellv1 : public PHG4CylinderCell
   void set_light_yield(const float lightYield) override { light_yield = lightYield; }
 
  protected:
-  unsigned int layer;
-  PHG4CylinderCellDefs::keytype cellid;
-  int binz;
-  int binphi;
+  unsigned int layer {std::numeric_limits<unsigned int>::max()};
+  PHG4CylinderCellDefs::keytype cellid{std::numeric_limits<PHG4CylinderCellDefs::keytype>::max()};
+  int binz {-1};
+  int binphi {-1};
   EdepMap edeps;
   ShowerEdepMap showeredeps;
-  float light_yield;
+  float light_yield {0.};
 
   ClassDefOverride(PHG4CylinderCellv1, 2)
 };

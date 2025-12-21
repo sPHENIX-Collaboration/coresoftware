@@ -32,9 +32,9 @@ class PHG4ConeSteppingAction : public PHG4SteppingAction
   PHG4ConeDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4Hit* hit;
-  PHG4Shower* saveshower;
+  PHG4HitContainer* hits_ {nullptr};
+  PHG4Hit* hit {nullptr};
+  PHG4Shower* saveshower {nullptr};
 };
 
 #endif  // G4DETECTORS_PHG4CONESTEPPINGACTION_H

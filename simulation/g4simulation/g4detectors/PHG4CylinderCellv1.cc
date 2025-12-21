@@ -2,22 +2,9 @@
 
 #include <g4main/PHG4HitDefs.h>  // for keytype
 
-using namespace std;
-
-PHG4CylinderCellv1::PHG4CylinderCellv1()
-  : layer(0xFFFFFFFF)
-  , cellid(0xFFFFFFFF)
-  , binz(-1)
-  , binphi(-1)
-  , edeps()
-  , showeredeps()
-  , light_yield(0)
-{
-}
-
 void PHG4CylinderCellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const float edep)
 {
-  if (edeps.find(g4hitid) == edeps.end())
+  if (!edeps.contains(g4hitid))
   {
     edeps[g4hitid] = edep;
   }
@@ -35,7 +22,7 @@ void PHG4CylinderCellv1::add_edep(const PHG4HitDefs::keytype g4hitid, const floa
 
 void PHG4CylinderCellv1::add_shower_edep(const int g4showerid, const float edep)
 {
-  if (showeredeps.find(g4showerid) == showeredeps.end())
+  if (!showeredeps.contains(g4showerid))
   {
     showeredeps[g4showerid] = edep;
   }
@@ -65,5 +52,5 @@ void PHG4CylinderCellv1::identify(std::ostream& os) const
   os << binphi << ",";
   os << get_edep();
   os << ")";
-  os << endl;
+  os << std::endl;
 }

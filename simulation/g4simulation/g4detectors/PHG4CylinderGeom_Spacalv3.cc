@@ -418,7 +418,7 @@ double PHG4CylinderGeom_Spacalv3::
     Print();
     exit(10);
   }
-  return NAN;
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 //! check that all towers has consistent sub-tower divider

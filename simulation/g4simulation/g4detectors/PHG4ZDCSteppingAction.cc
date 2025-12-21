@@ -39,6 +39,7 @@
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <iostream>
@@ -51,11 +52,11 @@ PHG4ZDCSteppingAction::PHG4ZDCSteppingAction(PHG4ZDCDetector* detector, const PH
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
   , m_IsActiveFlag(m_Params->get_int_param("active"))
   , absorbertruth(m_Params->get_int_param("absorberactive"))
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();
   gsl_rng_set(RandomGenerator, seed);
 }
@@ -348,10 +349,8 @@ bool PHG4ZDCSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_u
     }
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 //____________________________________________________________________________..
@@ -391,12 +390,12 @@ void PHG4ZDCSteppingAction::SetHitNodeName(const std::string& type, const std::s
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_ABSORBER")
+  if (type == "G4HIT_ABSORBER")
   {
     m_AbsorberNodeName = name;
     return;
   }
-  else if (type == "G4HIT_SUPPORT")
+  if (type == "G4HIT_SUPPORT")
   {
     m_SupportNodeName = name;
     return;
@@ -466,20 +465,11 @@ double PHG4ZDCSteppingAction::ZDCResponse(double beta, double angle)
       }
       double avg_ph0 = PMMAsub0[Abin - 1] + (PMMAsub0[Abin] - PMMAsub0[Abin - 1]) * (angle / 5 - Abin + 1);
       double avg_ph1 = PMMAsub1[Abin - 1] + (PMMAsub1[Abin] - PMMAsub1[Abin - 1]) * (angle / 5 - Abin + 1);
-      if (avg_ph0 < 0)
-      {
-        avg_ph0 = 0;
-      }
-      if (avg_ph1 < 0)
-      {
-        avg_ph1 = 0;
-      }
+      avg_ph0 = std::max(avg_ph0, 0.);
+      avg_ph1 = std::max(avg_ph1, 0.);
       // linear linear interpolation with beta
       double avg_ph = avg_ph0 + (avg_ph1 - avg_ph0) * (beta - m_Beta[i - 1]) / (m_Beta[i] - m_Beta[i - 1]);
-      if (avg_ph < 0)
-      {
-        avg_ph = 0;
-      }
+      avg_ph = std::max(avg_ph, 0.);
       // use poisson?
       return avg_ph;
     }
@@ -506,41 +496,31 @@ double PHG4ZDCSteppingAction::ZDCEResponse(double E, double angle)
     double avg_ph = PMMAsub0[Abin - 1] + (PMMAsub0[Abin] - PMMAsub0[Abin - 1]) * (angle / 5 - Abin + 1);
     return avg_ph;
   }
-  else
-  {
-    for (int i = 1; i < 11; i++)
-    {
-      if (E <= m_E[i])
-      {
-        std::array<double, 36> PMMAsub0 = m_PMMA05E[i - 1];
-        std::array<double, 36> PMMAsub1 = m_PMMA05E[i];
 
-        int Abin = (int) angle / 5;
-        if (Abin == 0)
-        {
-          Abin = 1;
-        }
-        double avg_ph0 = PMMAsub0[Abin - 1] + (PMMAsub0[Abin] - PMMAsub0[Abin - 1]) * (angle / 5 - Abin + 1);
-        double avg_ph1 = PMMAsub1[Abin - 1] + (PMMAsub1[Abin] - PMMAsub1[Abin - 1]) * (angle / 5 - Abin + 1);
-        if (avg_ph0 < 0)
-        {
-          avg_ph0 = 0;
-        }
-        if (avg_ph1 < 0)
-        {
-          avg_ph1 = 0;
-        }
-        // linear linear interpolation with E
-        double avg_ph = avg_ph0 + (avg_ph1 - avg_ph0) * (E - m_E[i - 1]) / (m_E[i] - m_E[i - 1]);
-        if (avg_ph < 0)
-        {
-          avg_ph = 0;
-        }
-        // use poisson?
-        return avg_ph;
+  for (int i = 1; i < 11; i++)
+  {
+    if (E <= m_E[i])
+    {
+      std::array<double, 36> PMMAsub0 = m_PMMA05E[i - 1];
+      std::array<double, 36> PMMAsub1 = m_PMMA05E[i];
+
+      int Abin = (int) angle / 5;
+      if (Abin == 0)
+      {
+        Abin = 1;
       }
+      double avg_ph0 = PMMAsub0[Abin - 1] + (PMMAsub0[Abin] - PMMAsub0[Abin - 1]) * (angle / 5 - Abin + 1);
+      double avg_ph1 = PMMAsub1[Abin - 1] + (PMMAsub1[Abin] - PMMAsub1[Abin - 1]) * (angle / 5 - Abin + 1);
+      avg_ph0 = std::max<double>(avg_ph0, 0);
+      avg_ph1 = std::max<double>(avg_ph1, 0);
+      // linear linear interpolation with E
+      double avg_ph = avg_ph0 + (avg_ph1 - avg_ph0) * (E - m_E[i - 1]) / (m_E[i] - m_E[i - 1]);
+      avg_ph = std::max<double>(avg_ph, 0);
+      // use poisson?
+      return avg_ph;
     }
   }
+
   std::cout << "out of range" << std::endl;
   return 0;
 }

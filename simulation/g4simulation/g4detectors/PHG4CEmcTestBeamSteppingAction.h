@@ -33,9 +33,9 @@ class PHG4CEmcTestBeamSteppingAction : public PHG4SteppingAction
   PHG4CEmcTestBeamDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4HitContainer* absorberhits_;
-  PHG4Hit* hit;
+  PHG4HitContainer* hits_{nullptr};
+  PHG4HitContainer* absorberhits_{nullptr};
+  PHG4Hit* hit{nullptr};
 };
 
 #endif  // PHG4CEmcTestBeamSteppingAction_h

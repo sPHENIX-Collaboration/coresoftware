@@ -5,22 +5,20 @@
 #include <cstdlib>  // for exit
 #include <iostream>
 
-using namespace std;
+unsigned short
+generic_lower_16bit_key(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning);
 
 unsigned short
-generic_lower_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning);
-
-unsigned short
-generic_upper_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning);
+generic_upper_16bit_key(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning);
 
 unsigned int
-generic_32bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinning binning);
+generic_32bit_key(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning);
 
 PHG4CellDefs::keytype
-generic_16bit_genkey(const unsigned short detid, const PHG4CellDefs::CellBinning binning, const unsigned short upper16bits, const unsigned short lower16bits);
+generic_16bit_genkey(unsigned short detid, PHG4CellDefs::CellBinning binning, unsigned short upper16bits, unsigned short lower16bits);
 
 PHG4CellDefs::keytype
-generic_32bit_genkey(const unsigned short detid, const PHG4CellDefs::CellBinning binning, const unsigned int bit32);
+generic_32bit_genkey(unsigned short detid, PHG4CellDefs::CellBinning binning, unsigned int bit32);
 
 PHG4CellDefs::keytype
 PHG4CellDefs::SizeBinning::genkey(const unsigned short detid, const unsigned short zbin, const unsigned short iphi)
@@ -206,9 +204,9 @@ generic_lower_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::Cel
     unsigned short int low16bitkey = (key & 0xFFFFU);
     return low16bitkey;
   }
-  cout << PHWHERE << " could not decode 0x" << hex << key << dec << endl;
-  cout << "key 0x" << hex << key << ", binning: 0x" << tmp
-       << " and: " << (key & tmp) << dec << endl;
+  std::cout << PHWHERE << " could not decode 0x" << std::hex << key << std::dec << std::endl;
+  std::cout << "key 0x" << std::hex << key << ", binning: 0x" << tmp
+            << " and: " << (key & tmp) << std::dec << std::endl;
   exit(1);
 }
 
@@ -224,7 +222,7 @@ generic_upper_16bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::Cel
     unsigned short int hi16bitkey = (keytmp & 0xFFFFU);
     return hi16bitkey;
   }
-  cout << PHWHERE << " could not decode 0x" << hex << key << dec << endl;
+  std::cout << PHWHERE << " could not decode 0x" << std::hex << key << std::dec << std::endl;
   exit(1);
 }
 
@@ -239,7 +237,7 @@ generic_32bit_key(const PHG4CellDefs::keytype key, const PHG4CellDefs::CellBinni
     unsigned int bit32key = (key & 0xFFFFFFFF);
     return bit32key;
   }
-  cout << PHWHERE << " could not decode 0x" << hex << key << dec << endl;
+  std::cout << PHWHERE << " could not decode 0x" << std::hex << key << std::dec << std::endl;
   exit(1);
 }
 
