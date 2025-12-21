@@ -32,14 +32,10 @@
 class G4VPhysicalVolume;
 class PHCompositeNode;
 
-using namespace std;
 //____________________________________________________________________________..
 PHG4CEmcTestBeamSteppingAction::PHG4CEmcTestBeamSteppingAction(PHG4CEmcTestBeamDetector* detector)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
-  , hit(nullptr)
 {
 }
 
@@ -80,15 +76,15 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction(const G4Step* aStep, boo
     // an expensive string compare for every track when we know
     // geantino or chargedgeantino has pid=0
     if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+        aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != std::string::npos)
     {
       geantino = true;
     }
     G4StepPoint* prePoint = aStep->GetPreStepPoint();
     G4StepPoint* postPoint = aStep->GetPostStepPoint();
-    //       cout << "track id " << aTrack->GetTrackID() << endl;
-    //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
-    //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+    //       cout << "track id " << aTrack->GetTrackID() << std::endl;
+    //       cout << "time prepoint: " << prePoint->GetGlobalTime() << std::endl;
+    //       cout << "time postpoint: " << postPoint->GetGlobalTime() << std::endl;
     switch (prePoint->GetStepStatus())
     {
     case fGeomBoundary:
@@ -181,8 +177,8 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction(const G4Step* aStep, boo
 //____________________________________________________________________________..
 void PHG4CEmcTestBeamSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  string hitnodename;
-  string absorbernodename;
+  std::string hitnodename;
+  std::string absorbernodename;
   if (detector_->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + detector_->SuperDetector();
@@ -207,7 +203,7 @@ void PHG4CEmcTestBeamSteppingAction::SetInterfacePointers(PHCompositeNode* topNo
   {
     if (Verbosity() > 0)
     {
-      cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+      std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
     }
   }
 }

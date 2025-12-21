@@ -6,10 +6,6 @@
 
 #include <cstdlib>
 
-using namespace std;
-
-PHG4CellContainer::PHG4CellContainer() = default;
-
 void PHG4CellContainer::Reset()
 {
   while (cellmap.begin() != cellmap.end())
@@ -20,13 +16,12 @@ void PHG4CellContainer::Reset()
   return;
 }
 
-void PHG4CellContainer::identify(ostream& os) const
+void PHG4CellContainer::identify(std::ostream& os) const
 {
-  ConstIterator iter;
-  os << "Number of cells: " << size() << endl;
-  for (iter = cellmap.begin(); iter != cellmap.end(); ++iter)
+  os << "Number of cells: " << size() << std::endl;
+  for (auto iter = cellmap.begin(); iter != cellmap.end(); ++iter)
   {
-    os << "cell key 0x" << hex << iter->first << dec << endl;
+    os << "cell key 0x" << std::hex << iter->first << std::dec << std::endl;
     (iter->second)->identify();
   }
   return;
@@ -38,8 +33,8 @@ PHG4CellContainer::AddCell(PHG4Cell* newcell)
   PHG4CellDefs::keytype key = newcell->get_cellid();
   if (cellmap.find(key) != cellmap.end())
   {
-    cout << "overwriting cell 0x" << hex << key << dec << endl;
-    cout << "layer: " << PHG4CellDefs::get_detid(key) << endl;
+    std::cout << "overwriting cell 0x" << std::hex << key << std::dec << std::endl;
+    std::cout << "layer: " << PHG4CellDefs::get_detid(key) << std::endl;
   }
   cellmap[key] = newcell;
   return cellmap.find(key);
@@ -50,7 +45,7 @@ PHG4CellContainer::AddCellSpecifyKey(const PHG4CellDefs::keytype key, PHG4Cell* 
 {
   if (cellmap.find(key) != cellmap.end())
   {
-    cout << "PHG4CellContainer::AddCellSpecifyKey: duplicate key: " << key << " exiting now" << endl;
+    std::cout << "PHG4CellContainer::AddCellSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
   newcell->set_cellid(key);
@@ -64,8 +59,8 @@ PHG4CellContainer::getCells(const unsigned short int detid) const
   PHG4CellDefs::keytype tmp = detid;
   PHG4CellDefs::keytype keylow = tmp << PHG4CellDefs::bitshift_layer;
   PHG4CellDefs::keytype keyup = ((tmp + 1) << PHG4CellDefs::bitshift_layer) - 1;
-  //   cout << "keylow: 0x" << hex << keylow << dec << endl;
-  //   cout << "keyup: 0x" << hex << keyup << dec << endl;
+  //   std::cout << "keylow: 0x" << std::hex << keylow << std::dec << std::endl;
+  //   std::cout << "keyup: 0x" << std::hex << keyup << std::dec << std::endl;
   ConstRange retpair;
   retpair.first = cellmap.lower_bound(keylow);
   retpair.second = cellmap.upper_bound(keyup);

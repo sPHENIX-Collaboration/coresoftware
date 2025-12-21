@@ -66,24 +66,24 @@ class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
  private:
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4CEmcTestBeamDetector* detector_;
+  PHG4CEmcTestBeamDetector* detector_ {nullptr};
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4CEmcTestBeamSteppingAction* steppingAction_;
-  PHG4EventAction* eventAction_;
+  PHG4CEmcTestBeamSteppingAction* steppingAction_ {nullptr};
+  PHG4EventAction* eventAction_ {nullptr};
   G4double dimension[3]{};
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double rot_in_x;
-  G4double rot_in_y;
-  G4double rot_in_z;
+  G4double place_in_x {0.};
+  G4double place_in_y {0.};
+  G4double place_in_z {0.};
+  G4double rot_in_x {0.};
+  G4double rot_in_y {0.};
+  G4double rot_in_z {0.};
 
-  int active;
-  int absorberactive;
+  int active {0};
+  int absorberactive {0};
   int layer;
-  int blackhole;
+  int blackhole {0};
   std::string detector_type;
   std::string superdetector;
 };

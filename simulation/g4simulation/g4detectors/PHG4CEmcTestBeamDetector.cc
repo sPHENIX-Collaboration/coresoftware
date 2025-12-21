@@ -26,8 +26,6 @@ class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
-using namespace std;
-
 static double no_overlap = 0.0001 * cm;  // added safety margin against overlaps by using same boundary between volumes
 
 PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int lyr)
@@ -38,22 +36,10 @@ PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector(PHG4Subsystem* subsys, PHComp
   , place_in_z(0 * cm)
   , plate_x(135 * mm)
   , plate_z(135 * mm)
-  , x_rot(0)
-  , y_rot(0)
-  , z_rot(0)
-  , alpha(std::numeric_limits<double>::quiet_NaN())
-  , inner_radius(std::numeric_limits<double>::quiet_NaN())
-  , outer_radius(std::numeric_limits<double>::quiet_NaN())
-  , tower_angular_coverage(std::numeric_limits<double>::quiet_NaN())
-  , cemc_angular_coverage(std::numeric_limits<double>::quiet_NaN())
   , active_scinti_fraction(0.78)
-  , sandwiches_per_tower(12)
-  ,  // 12 tungsten/scintillator fiber snadwiches per tower
-  num_towers(7)
-  , active(0)
-  , absorberactive(0)
+  , sandwiches_per_tower(12) // 12 tungsten/scintillator fiber snadwiches per tower
+  , num_towers(7)
   , layer(lyr)
-  , blackhole(0)
 {
   w_dimension[0] = plate_x;
   w_dimension[1] = 0.5 * mm;
@@ -112,15 +98,13 @@ void PHG4CEmcTestBeamDetector::ConstructMe(G4LogicalVolume* logicWorld)
   // towerVisAtt->SetColour(G4Colour::Blue());
   //  tower_log->SetVisAttributes(towerVisAtt);
 
-  ostringstream tower_vol_name;
   for (int i = 0; i < 7; i++)
   {
-    tower_vol_name << "CEmcTower_" << i;
+    std::string tower_vol_name = "CEmcTower_" + std::to_string(i);
     double phi = -i * tower_angular_coverage;
     G4RotationMatrix* tower_rotm = new G4RotationMatrix();
     tower_rotm->rotateZ(phi * rad);
-    new G4PVPlacement(tower_rotm, G4ThreeVector(0, 0, 0), tower_log, tower_vol_name.str(), cemc_log, false, i, OverlapCheck());
-    tower_vol_name.str("");
+    new G4PVPlacement(tower_rotm, G4ThreeVector(0, 0, 0), tower_log, tower_vol_name, cemc_log, false, i, OverlapCheck());
   }
   ConstructTowerVolume(tower_log);
   return;
@@ -143,13 +127,12 @@ int PHG4CEmcTestBeamDetector::ConstructTowerVolume(G4LogicalVolume* tower_log)
   sandwichVisAtt->SetForceSolid(true);
   sandwichVisAtt->SetColour(G4Colour::White());
   sandwich_log->SetVisAttributes(sandwichVisAtt);
-  ostringstream sandwich_name;
   for (int i = 0; i < 12; i++)
   {
     G4RotationMatrix* sandwich_rotm = new G4RotationMatrix();
     double phi = -i * alpha;
     sandwich_rotm->rotateZ(phi * rad);
-    sandwich_name << "CEmcSandwich_" << i;
+    std::string sandwich_name = "CEmcSandwich_" + std::to_string(i);
     double xshift = cos(phi) * (inner_radius + (outer_radius - inner_radius) / 2.);
     double yshift = -sin(phi) * (inner_radius + (outer_radius - inner_radius) / 2.);
     // we need to shift everything up by sandwich_thickness/2, calculate the shift in x
@@ -159,9 +142,8 @@ int PHG4CEmcTestBeamDetector::ConstructTowerVolume(G4LogicalVolume* tower_log)
 
     new G4PVPlacement(sandwich_rotm, G4ThreeVector(xshift + xcorr, yshift + ycorr, 0),
                       sandwich_log,
-                      sandwich_name.str(),
+                      sandwich_name,
                       tower_log, false, i, OverlapCheck());
-    sandwich_name.str("");
   }
   ConstructSandwichVolume(sandwich_log);  // put W and scinti into sandwich
   return 0;
@@ -170,14 +152,14 @@ int PHG4CEmcTestBeamDetector::ConstructTowerVolume(G4LogicalVolume* tower_log)
 // here we put a single tungsten + scintillator sandwich together
 int PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
 {
-  vector<G4LogicalVolume*> block_logic;
+  std::vector<G4LogicalVolume*> block_logic;
   G4Material* AbsorberMaterial = GetDetectorMaterial("G4_W");
   G4Material* ScintiMaterial = GetDetectorMaterial("G4_POLYSTYRENE");
 
   if (active_scinti_fraction > 1 || active_scinti_fraction < 0)
   {
-    cout << "invalid active scintillator fraction " << active_scinti_fraction
-         << " try between 0 and 1" << endl;
+    std::cout << "invalid active scintillator fraction " << active_scinti_fraction
+         << " try between 0 and 1" << std::endl;
   }
 
   double sc_active_thickness = sc_dimension[1] * active_scinti_fraction;
