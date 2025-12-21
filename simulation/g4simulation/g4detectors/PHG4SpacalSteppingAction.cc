@@ -279,7 +279,7 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
       const double localz1 = localPosition.z();
 
       const double z = 0.5 * (localz0 + localz1);
-      assert(! std::isnan(z));
+      assert(!std::isnan(z));
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
@@ -309,10 +309,8 @@ bool PHG4SpacalSteppingAction::NoHitSteppingAction(const G4Step *aStep)
     }
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 //____________________________________________________________________________..
@@ -387,7 +385,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool /*wa
       {
         tower_ID = prePoint->GetTouchable()->GetReplicaNumber(0);
         sector_ID = prePoint->GetTouchable()->GetReplicaNumber(1);
-// NOLINTNEXTLINE(hicpp-signed-bitwise)
+        // NOLINTNEXTLINE(hicpp-signed-bitwise)
         fiber_ID = (1 << (PHG4CylinderGeom_Spacalv3::scint_id_coder::kfiber_bit)) - 1;  // use max fiber ID to flag for support strucrtures.
 
         //        std::cout <<"PHG4SpacalSteppingAction::UserSteppingAction - SUPPORT tower_ID = "<<tower_ID<<std::endl;
@@ -596,10 +594,8 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step *aStep, bool /*wa
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 //____________________________________________________________________________..
@@ -635,10 +631,8 @@ PHG4SpacalSteppingAction::get_zmin() const
   {
     return 0;
   }
-  else
-  {
-    return m_Detector->get_geom()->get_zmin() - .0001;
-  }
+
+  return m_Detector->get_geom()->get_zmin() - .0001;
 }
 
 double
@@ -648,10 +642,8 @@ PHG4SpacalSteppingAction::get_zmax() const
   {
     return 0;
   }
-  else
-  {
-    return m_Detector->get_geom()->get_zmax() + .0001;
-  }
+
+  return m_Detector->get_geom()->get_zmax() + .0001;
 }
 
 void PHG4SpacalSteppingAction::SetHitNodeName(const std::string &type, const std::string &name)
@@ -661,7 +653,7 @@ void PHG4SpacalSteppingAction::SetHitNodeName(const std::string &type, const std
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_ABSORBER")
+  if (type == "G4HIT_ABSORBER")
   {
     m_AbsorberNodeName = name;
     return;
