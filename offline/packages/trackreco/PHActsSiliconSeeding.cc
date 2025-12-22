@@ -565,7 +565,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         std::cout << "find intt clusters time " << addClusters << std::endl;
       }
 
-      if(m_searchInIntt)
+      if(m_searchInIntt && m_streaming)
       {
         bool mismatch = isTimingMismatched(*trackSeed);
         if (mismatch)
