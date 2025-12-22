@@ -21,6 +21,7 @@
 #include <TH2.h>
 
 #include <boost/format.hpp>
+#include <cmath>
 #include <iomanip>
 
 //____________________________________________________________________________..
@@ -89,7 +90,7 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       m_tpcseedphi = tpcseed->get_phi();
       m_tpcseedeta = tpcseed->get_eta();
 
-    if(fabs(m_tpcseedx - m_silseedx) < 2 && fabs(m_tpcseedy - m_silseedy) < 2)
+    if(std::fabs(m_tpcseedx - m_silseedx) < 2 && std::fabs(m_tpcseedy - m_silseedy) < 2)
     {
       h_tpcsilicon_corr->Fill(m_silseedphi-m_tpcseedphi, m_silseedeta-m_tpcseedeta);
     }
