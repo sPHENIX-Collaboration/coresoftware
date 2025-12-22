@@ -6,7 +6,6 @@
 
 #include "DecayFinderContainerBase.h"
 
-//#include <iterator>  // for reverse_iterator
 #include <map>      // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>  // for operator<<, endl, ostream, basic_ostream, bas...
 #include <utility>  // for pair, make_pair
@@ -24,7 +23,7 @@ void DecayFinderContainerBase::clear()
   DummyMap.clear();
 }
 
-const DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int /*unused*/) const
+DecayFinderContainerBase::Decay DecayFinderContainerBase::get(unsigned int /*unused*/) const
 {
   return DummyDecay;
 }

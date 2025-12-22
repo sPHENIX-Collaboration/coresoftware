@@ -40,7 +40,7 @@ class DecayFinderContainerBase : public PHObject
   virtual size_t count(unsigned int /*unused*/) const { return 0; }
   virtual void clear();
 
-  virtual const Decay get(unsigned int) const;
+  virtual Decay get(unsigned int) const;
   virtual Decay get(unsigned int);
 
   virtual ConstIter begin() const;
