@@ -164,10 +164,9 @@ bool PHG4ConeSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*was_
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+  
+      return false;
+ 
 }
 
 //____________________________________________________________________________..

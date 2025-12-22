@@ -18,7 +18,7 @@ class PHG4CylinderDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4CylinderDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int layer = 0);
+  PHG4CylinderDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr = 0);
 
   //! destructor
   ~PHG4CylinderDetector() override = default;
@@ -34,7 +34,7 @@ class PHG4CylinderDetector : public PHG4Detector
  private:
   PHParameters *m_Params;
 
-  G4VPhysicalVolume *m_CylinderPhysicalVolume;
+  G4VPhysicalVolume *m_CylinderPhysicalVolume {nullptr};
   PHG4CylinderDisplayAction *m_DisplayAction;
 
   int m_Layer;

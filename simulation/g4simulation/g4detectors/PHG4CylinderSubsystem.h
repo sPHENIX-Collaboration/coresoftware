@@ -18,7 +18,7 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4CylinderSubsystem(const std::string& name = "CYLINDER", const int layer = 0);
+  PHG4CylinderSubsystem(const std::string& name = "CYLINDER", const int lyr = 0);
 
   //! destructor
   ~PHG4CylinderSubsystem() override;

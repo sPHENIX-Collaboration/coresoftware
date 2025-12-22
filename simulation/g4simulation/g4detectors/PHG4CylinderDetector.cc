@@ -33,7 +33,6 @@ class PHCompositeNode;
 PHG4CylinderDetector::PHG4CylinderDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
-  , m_CylinderPhysicalVolume(nullptr)
   , m_DisplayAction(dynamic_cast<PHG4CylinderDisplayAction *>(subsys->GetDisplayAction()))
   , m_Layer(lyr)
 {

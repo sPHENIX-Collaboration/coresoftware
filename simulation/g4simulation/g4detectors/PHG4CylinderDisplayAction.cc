@@ -16,9 +16,6 @@ class G4VPhysicalVolume;
 PHG4CylinderDisplayAction::PHG4CylinderDisplayAction(const std::string &name, PHParameters *pars)
   : PHG4DisplayAction(name)
   , m_Params(pars)
-  , m_MyVolume(nullptr)
-  , m_VisAtt(nullptr)
-  , m_Colour(nullptr)
 {
 }
 

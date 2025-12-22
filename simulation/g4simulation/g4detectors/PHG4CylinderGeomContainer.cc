@@ -28,7 +28,7 @@ void PHG4CylinderGeomContainer::identify(std::ostream &os) const
 
 int PHG4CylinderGeomContainer::AddLayerGeom(const int i, PHG4CylinderGeom *mygeom)
 {
-  if (layergeoms.find(i) != layergeoms.end())
+  if (layergeoms.contains(i))
   {
     std::cout << "layer " << i << " already added to PHCylinderGeomContainer" << std::endl;
     return -1;
@@ -41,7 +41,7 @@ int PHG4CylinderGeomContainer::AddLayerGeom(const int i, PHG4CylinderGeom *mygeo
 int PHG4CylinderGeomContainer::AddLayerGeom(PHG4CylinderGeom *mygeom)
 {
   int layer = mygeom->get_layer();
-  if (layergeoms.find(layer) != layergeoms.end())
+  if (layergeoms.contains(layer))
   {
     std::cout << "layer " << layer << " already added to PHCylinderGeomContainer" << std::endl;
     return -1;
