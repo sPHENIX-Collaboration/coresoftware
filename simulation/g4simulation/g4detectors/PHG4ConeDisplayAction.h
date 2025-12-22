@@ -16,7 +16,7 @@ class PHParameters;
 class PHG4ConeDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4ConeDisplayAction(const std::string &name, PHParameters *parameters);
+  PHG4ConeDisplayAction(const std::string &name, PHParameters *pars);
 
   ~PHG4ConeDisplayAction() override;
 
@@ -26,9 +26,9 @@ class PHG4ConeDisplayAction : public PHG4DisplayAction
 
  private:
   PHParameters *m_Params;
-  G4LogicalVolume *m_MyVolume;
-  G4VisAttributes *m_VisAtt;
-  G4Colour *m_Colour;
+  G4LogicalVolume *m_MyVolume {nullptr};
+  G4VisAttributes *m_VisAtt {nullptr};
+  G4Colour *m_Colour {nullptr};
 };
 
 #endif  // G4DETECTORS_PHG4CONEDISPLAYACTION_H

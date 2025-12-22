@@ -323,10 +323,9 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*
     // return true to indicate the hit was used
     return true;
   }
-  else
-  {
-    return false;
-  }
+  
+      return false;
+ 
 }
 
 //____________________________________________________________________________..

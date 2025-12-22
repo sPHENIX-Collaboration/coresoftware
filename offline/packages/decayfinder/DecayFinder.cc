@@ -44,6 +44,7 @@
 #include <iterator>   // for end, begin
 #include <map>        // for map, map<>::mapped_type, _Rb...
 #include <memory>     // for allocator_traits<>::value_type
+#include <ranges>
 
 int listOfResonantPIDs[] = {111, 113, 213, 333, 310, 311, 313, 323, 413, 423, 513, 523, 441, 443, 100443, 9000111, 9000211, 100111, 100211, 10111,
                             10211, 9010111, 9010211, 10113, 10213, 20113, 20213, 9000113, 9000213, 100113, 100213, 9010113, 9010213, 9020113, 9020213,
@@ -107,10 +108,8 @@ int DecayFinder::process_event(PHCompositeNode* topNode)
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  else
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int DecayFinder::End(PHCompositeNode* /*topNode*/)
@@ -222,7 +221,7 @@ int DecayFinder::parseDecayDescriptor()
 
         if (daughter_ID == 22)
         {
-          m_hasPhotonDaughter = m_allowPhotons = true; 
+          m_hasPhotonDaughter = m_allowPhotons = true;
         }
       }
       else
@@ -304,14 +303,12 @@ int DecayFinder::parseDecayDescriptor()
     }
     return 0;
   }
-  else
+
+  if (Verbosity() >= VERBOSITY_SOME)
   {
-    if (Verbosity() >= VERBOSITY_SOME)
-    {
-      std::cout << "Your decay descriptor cannot be parsed, " << Name() << " will not be registered" << std::endl;
-    }
-    return Fun4AllReturnCodes::DONOTREGISTERSUBSYSTEM;
+    std::cout << "Your decay descriptor cannot be parsed, " << Name() << " will not be registered" << std::endl;
   }
+  return Fun4AllReturnCodes::DONOTREGISTERSUBSYSTEM;
 }
 
 /*
@@ -339,6 +336,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
 
   n = deleteElement(listOfResonantPIDs, n, m_mother_ID);
 
+  positive_motherDecayProducts.reserve(m_motherDecayProducts.size());
   for (int m_motherDecayProduct : m_motherDecayProducts)
   {
     positive_motherDecayProducts.push_back(std::abs(m_motherDecayProduct));
@@ -386,7 +384,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
         bool breakOut = false;
         correctMotherProducts.clear();
         decayChain.clear();
-        decayChain.push_back(std::make_pair(std::make_pair(g4particle->get_primary_id(), g4particle->get_barcode()), g4particle->get_pid()));
+        decayChain.emplace_back(std::make_pair(g4particle->get_primary_id(), g4particle->get_barcode()), g4particle->get_pid());
 
         searchGeant4Record(g4particle->get_barcode(), g4particle->get_pid(), positive_motherDecayProducts, breakOut, aMotherHasPhoton, aMotherHasPi0, aTrackFailedPT, aTrackFailedETA, correctMotherProducts);
 
@@ -443,10 +441,9 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
     return reconstructableDecayWasFound;
   }
 
-  for (PHHepMCGenEventMap::ConstReverseIter riter = m_geneventmap->rbegin();
-       riter != m_geneventmap->rend(); ++riter)
+  for (auto riter : std::ranges::reverse_view(*m_geneventmap))
   {
-    m_genevt = riter->second;
+    m_genevt = riter.second;
     if (!m_genevt)
     {
       std::cout << "DecayFinder: Missing node PHHepMCGenEvent" << std::endl;
@@ -468,7 +465,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
         bool breakOut = false;
         correctMotherProducts.clear();
         decayChain.clear();
-        decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), (*p)->barcode()), (*p)->pdg_id()));
+        decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*p)->barcode()), (*p)->pdg_id());
 
         // Make sure that the mother has a decay in our record
         if (!(*p)->end_vertex())  // Mother has no end vertex, decay volume was limited
@@ -575,6 +572,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
       }
       // Check if this is an internediate decay that didnt decay in the generator
       std::vector<int> positive_intermediates_ID;
+      positive_intermediates_ID.reserve(m_intermediates_ID.size());
       for (int i : m_intermediates_ID)
       {
         positive_intermediates_ID.push_back(abs(i));
@@ -590,7 +588,8 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
         auto it = std::find(positive_intermediates_ID.begin(), positive_intermediates_ID.end(), abs((*children)->pdg_id()));
         int index = std::distance(positive_intermediates_ID.begin(), it);
 
-        unsigned int trackStart = 0, trackStop = 0;
+        unsigned int trackStart = 0;
+        unsigned int trackStop = 0;
         if (index == 0)
         {
           trackStop = m_nTracksFromIntermediates[0];
@@ -616,7 +615,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
         if (needThisParticle)
         {
           actualDecayProducts.push_back((*children)->pdg_id());
-          decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), (*children)->barcode()), (*children)->pdg_id()));
+          decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*children)->barcode()), (*children)->pdg_id());
         }
         else  // Remove what I added to the decayChain
         {
@@ -632,7 +631,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
         if (needThisParticle)
         {
           actualDecayProducts.push_back((*children)->pdg_id());
-          decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), (*children)->barcode()), (*children)->pdg_id()));
+          decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*children)->barcode()), (*children)->pdg_id());
         }
       }
     }  // Now check if it's part of the resonance list
@@ -657,7 +656,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
           if (needThisParticle)
           {
             actualDecayProducts.push_back((*grandchildren)->pdg_id());
-            decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), (*grandchildren)->barcode()), (*grandchildren)->pdg_id()));
+            decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*grandchildren)->barcode()), (*grandchildren)->pdg_id());
           }
         }
       }
@@ -729,7 +728,7 @@ void DecayFinder::searchGeant4Record(int barcode, int pid, std::vector<int> deca
           }
           actualDecayProducts.push_back(particleID);
           int embedding_id = m_geneventmap ? m_genevt->get_embedding_id() : g4particle->get_primary_id();
-          decayChain.push_back(std::make_pair(std::make_pair(embedding_id, g4particle->get_barcode()), particleID));
+          decayChain.emplace_back(std::make_pair(embedding_id, g4particle->get_barcode()), particleID);
         }
       }  // Now check if it's part of the other resonance list
       else if ((m_allowPhotons && !m_hasPhotonDaughter && particleID == 22) || (m_allowPi0 && particleID == 111))
@@ -763,6 +762,7 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
   bool acceptParticle = false;
 
   std::vector<int> positive_intermediates_ID;
+  positive_intermediates_ID.reserve(m_intermediates_ID.size());
   for (int i : m_intermediates_ID)
   {
     positive_intermediates_ID.push_back(abs(i));
@@ -778,7 +778,8 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
     auto it = std::find(positive_intermediates_ID.begin(), positive_intermediates_ID.end(), abs(particle->pdg_id()));
     int index = std::distance(positive_intermediates_ID.begin(), it);
 
-    unsigned int trackStart = 0, trackStop = 0;
+    unsigned int trackStart = 0;
+    unsigned int trackStop = 0;
     if (index == 0)
     {
       trackStop = m_nTracksFromIntermediates[0];
@@ -820,40 +821,38 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
           {
             continue;
           }
-          else if ((!m_hasPhotonDaughter && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
+          if ((!m_hasPhotonDaughter && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPhotons && (*greatgrandchildren)->pdg_id() == 22) || (!m_allowPi0 && (*greatgrandchildren)->pdg_id() == 111))
           {
             break;
           }
-          else
+
+          actualIntermediateDecayProducts.push_back((*greatgrandchildren)->pdg_id());
+          decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*greatgrandchildren)->barcode()), (*greatgrandchildren)->pdg_id());
+          ++m_intermediate_product_counter;
+
+          HepMC::FourVector myFourVector = (*greatgrandchildren)->momentum();
+
+          HepMC::GenVertex* thisVtx = (*greatgrandchildren)->production_vertex();
+          double vtxPos[3] = {thisVtx->point3d().x(), thisVtx->point3d().y(), thisVtx->point3d().z()};
+          if (m_recalcualteEtaRange)
           {
-            actualIntermediateDecayProducts.push_back((*greatgrandchildren)->pdg_id());
-            decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), (*greatgrandchildren)->barcode()), (*greatgrandchildren)->pdg_id()));
-            ++m_intermediate_product_counter;
+            recalculateEta(myFourVector.py(), vtxPos);
+          }
 
-            HepMC::FourVector myFourVector = (*greatgrandchildren)->momentum();
+          if (myFourVector.perp() < m_pt_req)
+          {
+            trackFailedPT = true;
+          }
+          if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req))
+          {
+            trackFailedETA = true;
+          }
 
-            HepMC::GenVertex* thisVtx = (*greatgrandchildren)->production_vertex();
-            double vtxPos[3] = {thisVtx->point3d().x(), thisVtx->point3d().y(), thisVtx->point3d().z()};
-            if (m_recalcualteEtaRange)
-            {
-              recalculateEta(myFourVector.py(), vtxPos);
-            }
-
-            if (myFourVector.perp() < m_pt_req)
-            {
-              trackFailedPT = true;
-            }
-            if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req))
-            {
-              trackFailedETA = true;
-            }
-
-            if (Verbosity() >= VERBOSITY_MAX)
-            {
-              std::cout << "pT = " << myFourVector.perp() << ", eta = " << myFourVector.eta() << std::endl;
-              std::cout << "The track " << passOrFail(myFourVector.perp() >= m_pt_req) << " the pT requirement, ";
-              std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) << " the eta requirement." << std::endl;
-            }
+          if (Verbosity() >= VERBOSITY_MAX)
+          {
+            std::cout << "pT = " << myFourVector.perp() << ", eta = " << myFourVector.eta() << std::endl;
+            std::cout << "The track " << passOrFail(myFourVector.perp() >= m_pt_req) << " the pT requirement, ";
+            std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) << " the eta requirement." << std::endl;
           }
         }
       }
@@ -868,7 +867,7 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
       else
       {
         actualIntermediateDecayProducts.push_back((*grandchildren)->pdg_id());
-        decayChain.push_back(std::make_pair(std::make_pair(m_genevt->get_embedding_id(), (*grandchildren)->barcode()), (*grandchildren)->pdg_id()));
+        decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*grandchildren)->barcode()), (*grandchildren)->pdg_id());
         ++m_intermediate_product_counter;
 
         HepMC::FourVector myFourVector = (*grandchildren)->momentum();
@@ -900,10 +899,10 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  //else if ((particle->pdg_id() == 22) || (particle->pdg_id() == 111))
+  // else if ((particle->pdg_id() == 22) || (particle->pdg_id() == 111))
   //{
-  //  return false;
-  //}
+  //   return false;
+  // }
   else
   {
     if (Verbosity() >= VERBOSITY_MAX)
@@ -948,6 +947,7 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
   bool acceptParticle = false;
 
   std::vector<int> positive_intermediates_ID;
+  positive_intermediates_ID.reserve(m_intermediates_ID.size());
   for (int i : m_intermediates_ID)
   {
     positive_intermediates_ID.push_back(abs(i));
@@ -962,7 +962,8 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
     auto it = std::find(positive_intermediates_ID.begin(), positive_intermediates_ID.end(), abs(particle->get_pid()));
     int index = std::distance(positive_intermediates_ID.begin(), it);
 
-    unsigned int trackStart = 0, trackStop = 0;
+    unsigned int trackStart = 0;
+    unsigned int trackStop = 0;
     if (index == 0)
     {
       trackStop = m_nTracksFromIntermediates[0];
@@ -989,10 +990,10 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  //else if ((particle->get_pid() == 22) || (particle->get_pid() == 111))
+  // else if ((particle->get_pid() == 22) || (particle->get_pid() == 111))
   //{
-  //  return false;
-  //}
+  //   return false;
+  // }
   else
   {
     if (Verbosity() >= VERBOSITY_MAX)
@@ -1152,19 +1153,17 @@ void DecayFinder::multiplyVectorByScalarAndSort(std::vector<int>& v, int k)
 {
   // https://slaystudy.com/c-multiply-vector-by-scalar/
   std::transform(v.begin(), v.end(), v.begin(), [k](const int& c)
-  {
-    int particlesWithNoCC[] = {111, 113, 115, 130, 220, 221, 223, 225, 310, 330, 331, 333, 335, 440, 441, 443, 
-                               445, 551, 553, 555, 10111, 10113, 10221, 10223, 10331, 10333, 10441, 10443, 
-                               10551, 10553, 20113, 20223, 20333, 20443, 20553, 100443, 100553};
-    if (std::find(std::begin(particlesWithNoCC), std::end(particlesWithNoCC), c) != std::end(particlesWithNoCC))
-    {
-      return c;
-    }
-    else
-    {
-      return c * k;
-    }
-  });
+                 {
+                   int particlesWithNoCC[] = {111, 113, 115, 130, 220, 221, 223, 225, 310, 330, 331, 333, 335, 440, 441, 443,
+                                              445, 551, 553, 555, 10111, 10113, 10221, 10223, 10331, 10333, 10441, 10443,
+                                              10551, 10553, 20113, 20223, 20333, 20443, 20553, 100443, 100553};
+                   if (std::find(std::begin(particlesWithNoCC), std::end(particlesWithNoCC), c) != std::end(particlesWithNoCC))
+                   {
+                     return c;
+                   }
+
+                   return c * k;
+                 });
   std::sort(v.begin(), v.end());
 }
 
@@ -1174,10 +1173,8 @@ int DecayFinder::get_pdgcode(const std::string& name)
   {
     return TDatabasePDG::Instance()->GetParticle(name.c_str())->PdgCode();
   }
-  else
-  {
-    return 0;
-  }
+
+  return 0;
 }
 
 int DecayFinder::get_charge(const std::string& name)
@@ -1186,10 +1183,8 @@ int DecayFinder::get_charge(const std::string& name)
   {
     return TDatabasePDG::Instance()->GetParticle(name.c_str())->Charge() / 3;
   }
-  else
-  {
-    return -99;
-  }
+
+  return -99;
 }
 
 bool DecayFinder::isInRange(float min, float value, float max)
@@ -1197,7 +1192,7 @@ bool DecayFinder::isInRange(float min, float value, float max)
   return min <= value && value <= max;
 }
 
-void DecayFinder::calculateEffectiveTPCradius(double vertex[3], double& effective_top_r, double& effective_bottom_r)
+void DecayFinder::calculateEffectiveTPCradius(double vertex[3], double& effective_top_r, double& effective_bottom_r) const
 {
   double r_sq = std::pow(m_tpc_r, 2);
   double x_sq = std::pow(vertex[0], 2);
@@ -1254,7 +1249,7 @@ int DecayFinder::createDecayNode(PHCompositeNode* topNode)
   // Cant have forward slashes in DST or else you make a subdirectory on save!!!
   size_t pos;
   std::string undrscr = "_";
-  std::string nothing = "";
+  std::string nothing;
   std::map<std::string, std::string> forbiddenStrings;
   forbiddenStrings["/"] = undrscr;
   forbiddenStrings["("] = undrscr;
@@ -1274,7 +1269,7 @@ int DecayFinder::createDecayNode(PHCompositeNode* topNode)
   m_nodeName = baseName + "_DecayMap";
 
   m_decayMap = new DecayFinderContainer_v1();
-  PHIODataNode<PHObject>* decayNode = new PHIODataNode<PHObject>(m_decayMap, m_nodeName.c_str(), "PHObject");
+  PHIODataNode<PHObject>* decayNode = new PHIODataNode<PHObject>(m_decayMap, m_nodeName, "PHObject");
   lowerNode->addNode(decayNode);
   std::cout << m_nodeName << " node added" << std::endl;
 
@@ -1283,7 +1278,7 @@ int DecayFinder::createDecayNode(PHCompositeNode* topNode)
 
 void DecayFinder::fillDecayNode(PHCompositeNode* topNode, Decay& decay)
 {
-  m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, m_nodeName.c_str());
+  m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, m_nodeName);
   m_decayMap->insert(decay);
 }
 
@@ -1310,7 +1305,7 @@ void DecayFinder::printNode(PHCompositeNode* topNode)
   std::cout << "----------------";
   std::cout << " DecayFinderNode: " << m_nodeName << " information ";
   std::cout << "----------------" << std::endl;
-  DecayFinderContainer_v1* map = findNode::getClass<DecayFinderContainer_v1>(topNode, m_nodeName.c_str());
+  DecayFinderContainer_v1* map = findNode::getClass<DecayFinderContainer_v1>(topNode, m_nodeName);
   for (auto& iter : *map)
   {
     Decay decay = iter.second;
