@@ -18,6 +18,9 @@
 
 #include <ffarawobjects/Gl1Packet.h>
 #include <ffarawobjects/Gl1RawHit.h>
+#include <ffarawobjects/MvtxFeeIdInfov1.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
+#include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
 
@@ -34,16 +37,6 @@
 
 #include <cassert>
 #include <iterator>
-
-struct holdBCO
-{
-  uint64_t lastBCO = 0;
-  uint64_t emptyBC0 = 1;
-};
-
-std::vector<holdBCO> BCOs_withNoHits;
-
-uint64_t lastEventBCO = 0;
 
 namespace
 {
@@ -185,19 +178,6 @@ void MvtxCombinedRawDataDecoder::GetNodes(PHCompositeNode *topNode)
   {
     std::cout << PHWHERE << "Could not get gl1 raw hit" << std::endl;
   }
-
-  if (mvtx_raw_hit_container->get_nhits() < 1)
-  {
-    //No hits in this event
-    holdBCO interestingEvent;
-    interestingEvent.lastBCO = lastEventBCO;
-    interestingEvent.emptyBC0 = gl1rawhitbco;
-    BCOs_withNoHits.push_back(interestingEvent);
-
-    missingHits = true;
-  }
-
-  lastEventBCO = gl1rawhitbco;
 }
 
 //_____________________________________________________________________
@@ -274,38 +254,14 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   //             << std::endl;
   // }
 
-  if (!missingHits)
-  {
-    rawHits.clear();
-    MVTX_BCOs.clear();
-    MVTX_num_FEE_ID_info = 0;
-    MVTX_FEE_ID_info.clear();
-
-    for (unsigned int i = 0; i < mvtx_raw_hit_container->get_nhits(); i++)
-    {
-      rawHits.push_back(mvtx_raw_hit_container->get_hit(i));
-    }
-
-    MVTX_BCOs = mvtx_raw_event_header->getMvtxLvL1BCO();
-    MVTX_num_FEE_ID_info = mvtx_raw_event_header->get_nFeeIdInfo();
-    for (size_t i{}; i < MVTX_num_FEE_ID_info; ++i)
-    {
-      MVTX_FEE_ID_info.push_back(mvtx_raw_event_header->get_feeIdInfo(i));
-    }
-    
-  }
-
-  //for (const auto &L1 : mvtx_raw_event_header->getMvtxLvL1BCO())
-  for (const auto &L1 : MVTX_BCOs)
+  for (const auto &L1 : mvtx_raw_event_header->getMvtxLvL1BCO())
   {
     mvtx_event_header->add_L1_BCO(L1);
   }
-  //auto nMvtxFeeIdInfo = mvtx_raw_event_header->get_nFeeIdInfo();
-  //for (size_t i{}; i < nMvtxFeeIdInfo; ++i)
-  for (size_t i{}; i < MVTX_num_FEE_ID_info; ++i)
+  auto nMvtxFeeIdInfo = mvtx_raw_event_header->get_nFeeIdInfo();
+  for (size_t i{}; i < nMvtxFeeIdInfo; ++i)
   {
-    //auto *feeidinfo = mvtx_raw_event_header->get_feeidinfo(i);
-    auto *feeIdInfo = MVTX_FEE_ID_info.at(i);
+    auto *feeIdInfo = mvtx_raw_event_header->get_feeIdInfo(i);
     mvtx_event_header->add_strobe_BCO(feeIdInfo->get_bco());
   }
   if (Verbosity() >= 3)
@@ -323,11 +279,9 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
   uint16_t row = 0;
   uint16_t col = 0;
 
-  //for (unsigned int i = 0; i < mvtx_raw_hit_container->get_nhits(); i++)
-  for (unsigned int i = 0; i < rawHits.size(); i++)
+  for (unsigned int i = 0; i < mvtx_raw_hit_container->get_nhits(); i++)
   {
-    //mvtx_rawhit = mvtx_raw_hit_container->get_hit(i);
-    mvtx_rawhit = rawHits.at(i);
+    mvtx_rawhit = mvtx_raw_hit_container->get_hit(i);
     hit_strobe = mvtx_rawhit->get_bco();
     layer = mvtx_rawhit->get_layer_id();
     stave = mvtx_rawhit->get_stave_id();
@@ -408,33 +362,11 @@ int MvtxCombinedRawDataDecoder::process_event(PHCompositeNode *topNode)
     }
   }
 
-  //Clean things up
-  missingHits = false;
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
 int MvtxCombinedRawDataDecoder::End(PHCompositeNode * /*topNode*/)
 {
-  std::cout << "List of BCOs with missing hits" << std::endl;
-  std::cout << "Count of empty GL1s: " << BCOs_withNoHits.size() << std::endl;
-  for (auto &problematicBCOs : BCOs_withNoHits)
-  {
-    std::cout << "Empty BCO: " << problematicBCOs.emptyBC0 << ", previous BCO: " << problematicBCOs.lastBCO << ", difference: " << problematicBCOs.emptyBC0 - problematicBCOs.lastBCO << std::endl;
-  }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-
-// void MvtxCombinedRawDataDecoder::removeDuplicates(
-//     std::vector<std::pair<uint64_t, uint32_t> > &v)
-// {
-//   auto end = v.end();
-//   for (auto it = v.begin(); it != end; ++it)
-//   {
-//     end = remove(it + 1, end, *it);
-//   }
-//   v.erase(end, v.end());
-// }

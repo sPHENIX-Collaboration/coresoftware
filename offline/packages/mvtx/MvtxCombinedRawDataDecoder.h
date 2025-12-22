@@ -11,10 +11,6 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <ffarawobjects/MvtxFeeIdInfov1.h>
-#include <ffarawobjects/MvtxRawEvtHeaderv1.h>
-#include <ffarawobjects/MvtxRawEvtHeaderv2.h>
-
 #include <map>
 #include <memory>
 #include <set>
@@ -76,13 +72,6 @@ class MvtxCombinedRawDataDecoder : public SubsysReco
   MvtxRawEvtHeader* mvtx_raw_event_header = nullptr;
   MvtxRawHitContainer* mvtx_raw_hit_container = nullptr;
   MvtxRawHit* mvtx_rawhit = nullptr;
-
-  //Addition to correct for overlapping triggers
-  std::vector<MvtxRawHit*> rawHits;
-  bool missingHits {false};
-  std::set<uint64_t> MVTX_BCOs;
-  uint64_t MVTX_num_FEE_ID_info{0};
-  std::vector<MvtxFeeIdInfo*> MVTX_FEE_ID_info;
 
   std::string m_MvtxRawHitNodeName = "MVTXRAWHIT";
   std::string m_MvtxRawEvtHeaderNodeName = "MVTXRAWEVTHEADER";
