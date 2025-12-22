@@ -27,8 +27,6 @@
 #include <TVector3.h>
 #include <TStyle.h>//for gStyle 
 
-#include <boost/format.hpp>
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>

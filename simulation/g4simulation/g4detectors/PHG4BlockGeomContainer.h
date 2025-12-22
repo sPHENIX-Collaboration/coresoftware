@@ -6,6 +6,7 @@
 #include <phool/PHObject.h>
 
 #include <iostream>  // for cout, ostream
+#include <limits>
 #include <map>
 #include <utility>  // for make_pair, pair
 
@@ -20,7 +21,7 @@ class PHG4BlockGeomContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  PHG4BlockGeomContainer();
+  PHG4BlockGeomContainer() = default;
   ~PHG4BlockGeomContainer() override;
 
   // from PHObject
@@ -34,7 +35,7 @@ class PHG4BlockGeomContainer : public PHObject
 
  protected:
   std::map<int, PHG4BlockGeom *> _layergeoms;
-  float _magfield;
+  float _magfield{std::numeric_limits<float>::quiet_NaN()};
 
   ClassDefOverride(PHG4BlockGeomContainer, 1)
 };

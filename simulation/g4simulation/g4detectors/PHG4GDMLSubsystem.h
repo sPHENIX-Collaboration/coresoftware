@@ -49,8 +49,8 @@ class PHG4GDMLSubsystem : public PHG4DetectorSubsystem
   void Print(const std::string& what = "ALL") const override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override { return nullptr; }
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override { return nullptr; }
 
  private:
   void SetDefaultParameters() override;

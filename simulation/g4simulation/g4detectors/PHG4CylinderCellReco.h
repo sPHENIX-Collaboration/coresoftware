@@ -20,7 +20,7 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
  public:
   explicit PHG4CylinderCellReco(const std::string &name = "CYLINDERRECO");
 
-  ~PHG4CylinderCellReco() override {}
+  ~PHG4CylinderCellReco() = default;
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode) override;
@@ -34,8 +34,8 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
   void SetDefaultParameters() override;
 
   void Detector(const std::string &d);
-  void cellsize(const int i, const double sr, const double sz);
-  void etaphisize(const int i, const double deltaeta, const double deltaphi);
+  void cellsize(const int detid, const double sr, const double sz);
+  void etaphisize(const int detid, const double deltaeta, const double deltaphi);
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
   void OutputDetector(const std::string &d) { outdetector = d; }
 

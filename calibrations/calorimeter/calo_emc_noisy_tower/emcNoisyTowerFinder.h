@@ -25,7 +25,7 @@ class emcNoisyTowerFinder : public SubsysReco
   void FillHistograms(const int runnumber, const int segment);
   void CalculateCutOffs(const int runnumber);
   void WriteCDBTree(const int runnumber);
-  void FindHot(std::string& infilename, std::string& outfilename, const std::string& inHist = "h_hits_eta_phi_gev");
+  void FindHot(const std::string& infilename, const std::string& outfilename, const std::string& inHist = "h_hits_eta_phi_gev");
 
   void set_energy_threshold_adc(float val) { energy_threshold_adc = val; }
   void set_energy_threshold_gev(float val) { energy_threshold_gev = val; }

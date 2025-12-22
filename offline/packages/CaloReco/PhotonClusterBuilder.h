@@ -2,6 +2,8 @@
 #define CALORECO_PHOTONCLUSTERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
+#include <calobase/RawTowerDefs.h>
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -49,6 +51,7 @@ class PhotonClusterBuilder : public SubsysReco
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz);
   std::vector<int> find_closest_hcal_tower(float eta, float phi, RawTowerGeomContainer* geom, TowerInfoContainer* towerContainer, float vertex_z, bool isihcal);
   double deltaR(double eta1, double phi1, double eta2, double phi2);
+  float calculate_layer_et(float seed_eta, float seed_phi, float radius, TowerInfoContainer* towerContainer, RawTowerGeomContainer* geomContainer, RawTowerDefs::CalorimeterId calo_id, float vertex_z);
   bool m_do_bdt{false};
 
   std::string m_input_cluster_node{"CLUSTERINFO_CEMC"};

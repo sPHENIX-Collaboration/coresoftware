@@ -102,8 +102,7 @@ namespace PHG4Sector
       return layer_list;
     }
 
-    const std::string
-    &get_material() const
+    const std::string &get_material() const
     {
       return material;
     }
@@ -351,7 +350,7 @@ namespace PHG4Sector
   {
    public:
     PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys);
-    virtual ~PHG4SectorConstructor() {}
+    virtual ~PHG4SectorConstructor() = default;
 
     void
     Construct_Sectors(G4LogicalVolume *WorldLog);
@@ -374,7 +373,7 @@ namespace PHG4Sector
         const double start_z,          //
         const double thickness,        //
         G4VSolid *SecConeBoundary_Det  //
-    );
+    ) const;
 
    public:
     // properties

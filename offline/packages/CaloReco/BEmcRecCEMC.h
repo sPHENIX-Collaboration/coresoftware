@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <limits>  // for std::numeric_limits<float>::quiet_NaN()
 
 // class BEmcProfile;
 class EmcModule;
@@ -22,10 +23,18 @@ class BEmcRecCEMC : public BEmcRec
   void LoadProfile(const std::string &fname) override;
   //  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf) override;
   void GetImpactThetaPhi(float xg, float yg, float zg, float &theta, float &phi) override;
+    
+  bool calculateIncidence(float x, float y,
+                          float& a_phi_sgn, float& a_eta_sgn);
+  // optional accessors for the cached signed angles
+  float lastSignedAlphaPhi() const { return m_lastAlphaPhiSigned; }
+  float lastSignedAlphaEta()  const { return m_lastAlphaEtaSigned; }
 
  private:
   //  BEmcProfile *_emcprof;
-
+  // cache of the last signed mechanical incidence angles (in radians)
+  float m_lastAlphaPhiSigned { std::numeric_limits<float>::quiet_NaN() };
+  float m_lastAlphaEtaSigned { std::numeric_limits<float>::quiet_NaN() };
   // Average tower angle with respect to the transverse plane for each bin in eta
   // Only used when the detailed RawTowerGeom objects are not available
   double angles[96] = {2.382132067280038,2.3708136440088796,2.355383841518272,2.3434466029558525,2.32455480538339,2.3135158793606005,

@@ -13,7 +13,7 @@ class PHG4HeadReco : public SubsysReco
 {
  public:
   PHG4HeadReco(const std::string &name = "PHG4HeadReco");
-  ~PHG4HeadReco() override {}
+  ~PHG4HeadReco() = default;
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 

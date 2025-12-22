@@ -96,6 +96,18 @@ namespace TpcDefs
    */
   TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t side);
 
+    /**
+   * @brief Generate a hitsetkey for a tpc module
+   * @param[in] region index (0, 1, 2)
+   * @param[in] sector Sector index
+   * @param[in] side Side index
+   * @param[out] hitsetkey
+   *
+   * Generate a hitsetkey for the tpc. The tracker id is known
+   * implicitly and used in the function.
+   */
+  TrkrDefs::hitsetkey genModuleHitSetKey(const uint8_t region, const uint8_t sector, const uint8_t side);
+
   /**
    * @brief Generate a cluster key from indeces
    * @param[in] lyr Layer index

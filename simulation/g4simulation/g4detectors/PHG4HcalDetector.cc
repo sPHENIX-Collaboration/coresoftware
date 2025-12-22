@@ -42,7 +42,7 @@ class PHG4CylinderGeom;
 // uncomment if you want to make a graphics display where the slats are visible
 // it makes them stick out of the hcal for visibility
 // NEVER EVER RUN REAL SIMS WITH THIS
-//#define DISPLAY
+// #define DISPLAY
 
 int PHG4HcalDetector::INACTIVE = -100;
 //_______________________________________________________________
@@ -74,7 +74,7 @@ PHG4HcalDetector::PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
 int PHG4HcalDetector::IsInCylinderActive(const G4VPhysicalVolume* volume)
 {
   //  std::cout << "checking detector" << std::endl;
-  if (active && box_vol.find(volume) != box_vol.end())
+  if (active && box_vol.contains(volume))
   {
     return box_vol.find(volume)->second;
   }

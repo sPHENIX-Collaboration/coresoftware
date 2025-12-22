@@ -14,9 +14,6 @@
 PHG4BlockDisplayAction::PHG4BlockDisplayAction(const std::string &name, PHParameters *pars)
   : PHG4DisplayAction(name)
   , m_Params(pars)
-  , m_MyVolume(nullptr)
-  , m_VisAtt(nullptr)
-  , m_Colour(nullptr)
 {
 }
 

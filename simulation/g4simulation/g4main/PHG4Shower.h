@@ -27,7 +27,7 @@ class PHG4Shower : public PHObject
   typedef HitIdMap::iterator HitIdIter;
   typedef HitIdMap::const_iterator HitIdConstIter;
 
-  ~PHG4Shower() override {}
+  ~PHG4Shower() = default;
 
   // PHObject virtual overloads
 

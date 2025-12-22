@@ -175,10 +175,8 @@ bool PHG4EnvelopeSteppingAction::UserSteppingAction(const G4Step* aStep, bool /*
     }
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 void PHG4EnvelopeSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)

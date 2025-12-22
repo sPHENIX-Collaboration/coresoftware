@@ -89,6 +89,17 @@ TpcDefs::genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t sid
   return key;
 }
 
+TrkrDefs::hitsetkey
+TpcDefs::genModuleHitSetKey(const uint8_t region, const uint8_t sector, const uint8_t side)
+{
+  TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::tpcId, region);
+  TrkrDefs::hitsetkey tmp = sector;
+  key |= (tmp << kBitShiftSectorId);
+  tmp = side;
+  key |= (tmp << kBitShiftSide);
+  return key;
+}
+
 TrkrDefs::cluskey
 TpcDefs::genClusKey(const uint8_t lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid)
 {

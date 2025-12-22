@@ -34,14 +34,14 @@ class PHG4sPHENIXMagnetSteppingAction : public PHG4SteppingAction
   PHG4sPHENIXMagnetDetector *m_Detector;
   const PHParameters *m_Params;
   //! pointer to hit container
-  PHG4HitContainer *m_HitContainer;
-  PHG4Hit *m_Hit;
-  PHG4Shower *m_SaveShower;
-  G4VPhysicalVolume *m_SaveVolPre;
-  G4VPhysicalVolume *m_SaveVolPost;
-  int m_SaveTrackId;
-  int m_SavePreStepStatus;
-  int m_SavePostStepStatus;
+  PHG4HitContainer *m_HitContainer{nullptr};
+  PHG4Hit *m_Hit{nullptr};
+  PHG4Shower *m_SaveShower{nullptr};
+  G4VPhysicalVolume *m_SaveVolPre{nullptr};
+  G4VPhysicalVolume *m_SaveVolPost{nullptr};
+  int m_SaveTrackId{-1};
+  int m_SavePreStepStatus{-1};
+  int m_SavePostStepStatus{-1};
   int m_ActiveFlag;
   int m_BlackHoleFlag;
 

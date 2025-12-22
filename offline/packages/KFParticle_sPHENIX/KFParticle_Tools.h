@@ -73,7 +73,7 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   std::vector<int> findAllGoodTracks(const std::vector<KFParticle> &daughterParticles, const std::vector<KFParticle> &primaryVertices);
 
-  std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks);
+  std::vector<std::vector<int>> findTwoProngs(std::vector<KFParticle> daughterParticles, std::vector<int> goodTrackIndex, int nTracks) const;
 
   std::vector<std::vector<int>> findNProngs(std::vector<KFParticle> daughterParticles,
                                             const std::vector<int> &goodTrackIndex,
@@ -87,12 +87,12 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   float flightDistanceChi2(const KFParticle &particle, const KFParticle &vertex);
 
-  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode* topNode);
+  std::tuple<KFParticle, bool> buildMother(KFParticle vDaughters[], int daughterOrder[], bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
   void constrainToVertex(KFParticle &particle, bool &goodCandidate, KFParticle &vertex);
 
   std::tuple<KFParticle, bool> getCombination(KFParticle vDaughters[], int daughterOrder[], KFParticle vertex,
-                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode* topNode);
+                                              bool constrain_to_vertex, bool isIntermediate, int intermediateNumber, int nTracks, bool constrainMass, float required_vertexID, PHCompositeNode *topNode);
 
   std::vector<std::vector<int>> findUniqueDaughterCombinations(int start, int end);
 
@@ -119,17 +119,17 @@ class KFParticle_Tools : protected KFParticle_MVA
 
   double get_dEdx_fitValue(float momentum, int PID);
 
-  bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, KFParticle vertex);
+  bool checkTrackAndVertexMatch(KFParticle vDaughters[], int nTracks, const KFParticle &vertex);
 
-  void set_dont_use_global_vertex(bool set_variable){ m_dont_use_global_vertex = set_variable; }
+  void set_dont_use_global_vertex(bool set_variable) { m_dont_use_global_vertex = set_variable; }
 
  protected:
   std::string m_mother_name_Tools;
-  int m_num_intermediate_states {-1};
+  int m_num_intermediate_states{-1};
   std::vector<int> m_num_tracks_from_intermediate;
   std::vector<std::string> m_daughter_name;
   std::vector<int> m_daughter_charge;
-  int m_num_tracks {-1};
+  int m_num_tracks{-1};
 
   bool m_has_intermediates;
   std::vector<std::string> m_intermediate_name;
@@ -149,8 +149,8 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<float> m_intermediate_vertex_volume;
 
   bool m_use_PID{false};
-  float m_dEdx_band_width {0.2}; //Fraction of expected dE/dx
-  
+  float m_dEdx_band_width{0.2};  // Fraction of expected dE/dx
+
   TF1 *f_pion_plus{nullptr};
   TF1 *f_kaon_plus{nullptr};
   TF1 *f_proton_plus{nullptr};
@@ -158,120 +158,120 @@ class KFParticle_Tools : protected KFParticle_MVA
   TF1 *f_kaon_minus{nullptr};
   TF1 *f_proton_minus{nullptr};
 
-  std::map<int, TF1*> pidMap;
+  std::map<int, TF1 *> pidMap;
 
-  float m_min_mass {-1};
+  float m_min_mass{-1};
 
-  float m_max_mass {-1};
+  float m_max_mass{-1};
 
-  float m_min_decayTime_xy {-1000};
+  float m_min_decayTime_xy{-1000};
 
-  float m_max_decayTime_xy {std::numeric_limits<float>::max()};
+  float m_max_decayTime_xy{std::numeric_limits<float>::max()};
 
-  float m_min_decayLength_xy {-1000};
+  float m_min_decayLength_xy{-1000};
 
-  float m_max_decayLength_xy {std::numeric_limits<float>::max()};
+  float m_max_decayLength_xy{std::numeric_limits<float>::max()};
 
-  float m_min_decayTime {-1000};
+  float m_min_decayTime{-1000};
 
-  float m_max_decayTime {std::numeric_limits<float>::max()};
+  float m_max_decayTime{std::numeric_limits<float>::max()};
 
-  float m_min_decayLength {-1000};
+  float m_min_decayLength{-1000};
 
-  float m_max_decayLength {std::numeric_limits<float>::max()};
+  float m_max_decayLength{std::numeric_limits<float>::max()};
 
-  float m_mother_min_decay_time_significance {-1};
+  float m_mother_min_decay_time_significance{-1};
 
-  float m_mother_min_decay_length_significance {-1};
+  float m_mother_min_decay_length_significance{-1};
 
-  float m_mother_min_decay_length_xy_significance {-1};
+  float m_mother_min_decay_length_xy_significance{-1};
 
-  float m_track_min_pt {-1};
+  float m_track_min_pt{-1};
 
-  float m_track_max_pt {5e3};
+  float m_track_max_pt{5e3};
 
-  float m_track_ptchi2 {std::numeric_limits<float>::max()};
+  float m_track_ptchi2{std::numeric_limits<float>::max()};
 
-  float m_track_ip_xy {-100};
+  float m_track_ip_xy{-100};
 
-  float m_track_ipchi2_xy {-1000};
+  float m_track_ipchi2_xy{-1000};
 
-  float m_track_ip {-1};
+  float m_track_ip{-1};
 
-  float m_track_ipchi2 {-1};
+  float m_track_ipchi2{-1};
 
-  float m_track_chi2ndof {std::numeric_limits<float>::max()};
+  float m_track_chi2ndof{std::numeric_limits<float>::max()};
 
-  int m_nMVTXStates {2};
+  int m_nMVTXStates{2};
 
-  int m_nINTTStates {1};
+  int m_nINTTStates{1};
 
-  int m_nTPCStates {20};
+  int m_nTPCStates{20};
 
-  int m_nTPOTStates {0};
+  int m_nTPOTStates{0};
 
-  float m_comb_DCA_xy {std::numeric_limits<float>::max()};
+  float m_comb_DCA_xy{std::numeric_limits<float>::max()};
 
-  float m_comb_DCA {std::numeric_limits<float>::max()};
+  float m_comb_DCA{std::numeric_limits<float>::max()};
 
-  float m_vertex_chi2ndof {std::numeric_limits<float>::max()};
+  float m_vertex_chi2ndof{std::numeric_limits<float>::max()};
 
-  float m_fdchi2 {-1};
+  float m_fdchi2{-1};
 
-  float m_dira_xy_min {-1};
+  float m_dira_xy_min{-1};
 
-  float m_dira_xy_max {1};
+  float m_dira_xy_max{1};
 
-  float m_dira_min {-1};
+  float m_dira_min{-1};
 
-  float m_dira_max {1};
+  float m_dira_max{1};
 
-  float m_mother_pt {-1};
+  float m_mother_pt{-1};
 
-  float m_mother_ip {std::numeric_limits<float>::max()};
+  float m_mother_ip{std::numeric_limits<float>::max()};
 
-  float m_mother_ipchi2 {std::numeric_limits<float>::max()};
+  float m_mother_ipchi2{std::numeric_limits<float>::max()};
 
-  float m_mother_ip_xy {std::numeric_limits<float>::max()};
+  float m_mother_ip_xy{std::numeric_limits<float>::max()};
 
-  float m_mother_ipchi2_xy {std::numeric_limits<float>::max()};
+  float m_mother_ipchi2_xy{std::numeric_limits<float>::max()};
 
-  float m_mother_vertex_volume {std::numeric_limits<float>::max()};
+  float m_mother_vertex_volume{std::numeric_limits<float>::max()};
 
-  float m_mva_cut_value {-1};
+  float m_mva_cut_value{-1};
 
-  bool m_get_charge_conjugate {false};
+  bool m_get_charge_conjugate{false};
 
-  bool m_extrapolateTracksToSV {true};
+  bool m_extrapolateTracksToSV{true};
 
-  bool m_allowZeroMassTracks {false};
+  bool m_allowZeroMassTracks{false};
 
-  bool m_use_2D_matching_tools {false};
+  bool m_use_2D_matching_tools{false};
 
-  float m_min_radial_SV = -1.;
+  float m_min_radial_SV{-1.};
 
-  bool m_bunch_crossing_zero_only {false};  
+  bool m_bunch_crossing_zero_only{false};
 
-  bool m_require_bunch_crossing_match {true};
+  bool m_require_bunch_crossing_match{true};
 
-  bool m_use_mbd_vertex {false};
+  bool m_use_mbd_vertex{false};
 
-  bool m_dont_use_global_vertex {false};
+  bool m_dont_use_global_vertex{false};
 
-  bool m_require_track_and_vertex_match {false};
+  bool m_require_track_and_vertex_match{false};
 
   std::string m_vtx_map_node_name;
   std::string m_trk_map_node_name;
-  GlobalVertexMap *m_dst_globalvertexmap {nullptr};
-  GlobalVertex *m_dst_globalvertex {nullptr};
-  MbdVertexMap *m_dst_mbdvertexmap {nullptr};
-  MbdVertex *m_dst_mbdvertex {nullptr};
-  SvtxTrackMap *m_dst_trackmap {nullptr};
-  SvtxTrack *m_dst_track {nullptr};
-  SvtxVertexMap *m_dst_vertexmap {nullptr};
-  SvtxVertex *m_dst_vertex {nullptr};
-  TrkrClusterContainer *m_cluster_map {nullptr};
-  PHG4TpcGeomContainer *m_geom_container {nullptr};
+  GlobalVertexMap *m_dst_globalvertexmap{nullptr};
+  GlobalVertex *m_dst_globalvertex{nullptr};
+  MbdVertexMap *m_dst_mbdvertexmap{nullptr};
+  MbdVertex *m_dst_mbdvertex{nullptr};
+  SvtxTrackMap *m_dst_trackmap{nullptr};
+  SvtxTrack *m_dst_track{nullptr};
+  SvtxVertexMap *m_dst_vertexmap{nullptr};
+  SvtxVertex *m_dst_vertex{nullptr};
+  TrkrClusterContainer *m_cluster_map{nullptr};
+  PHG4TpcGeomContainer *m_geom_container{nullptr};
 
   void removeDuplicates(std::vector<double> &v);
   void removeDuplicates(std::vector<int> &v);

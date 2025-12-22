@@ -27,13 +27,10 @@ class G4Material;
 class G4VSolid;
 class PHCompositeNode;
 
-using namespace std;
-
 //_______________________________________________________________
 PHG4BlockDetector::PHG4BlockDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
-  , m_BlockPhysi(nullptr)
   , m_DisplayAction(dynamic_cast<PHG4BlockDisplayAction *>(subsys->GetDisplayAction()))
   , m_Layer(lyr)
 {
@@ -61,7 +58,7 @@ void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   double steplimits = m_Params->get_double_param("steplimits") * cm;
   G4UserLimits *g4userlimits = nullptr;
-  if (isfinite(steplimits))
+  if (std::isfinite(steplimits))
   {
     g4userlimits = new G4UserLimits(steplimits);
   }
@@ -94,12 +91,12 @@ void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   if (nRotation >= 2)
   {
-    cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
+    std::cout << __PRETTY_FUNCTION__ << ": Warning : " << GetName() << " is configured with more than one of the x-y-z rotations of "
          << "(" << m_Params->get_double_param("rot_x") << ", "
          << m_Params->get_double_param("rot_x") << ", "
          << m_Params->get_double_param("rot_x") << ") degrees. "
          << "The rotation is instruction is ambiguous and they are performed in the order of X->Y->Z rotations with result rotation matrix of:";
-    rotm->print(cout);
+    rotm->print(std::cout);
   }
 
   m_BlockPhysi = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),

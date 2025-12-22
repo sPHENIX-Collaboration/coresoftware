@@ -7,15 +7,15 @@
 
 #include <phool/phool.h>
 
-#include <cmath>
 #include <iostream>  // for cout, ostream
+#include <limits>
 
 class PHParameters;
 
 class PHG4CylinderGeom : public PHObject
 {
  public:
-  ~PHG4CylinderGeom() override {}
+  ~PHG4CylinderGeom() = default;
 
   // from PHObject
   void identify(std::ostream &os = std::cout) const override;
@@ -28,22 +28,22 @@ class PHG4CylinderGeom : public PHObject
   virtual double get_radius() const
   {
     PHOOL_VIRTUAL_WARN("get_radius()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_thickness() const
   {
     PHOOL_VIRTUAL_WARN("get_thickness()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_zmin() const
   {
     PHOOL_VIRTUAL_WARN("get_zmin()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_zmax() const
   {
     PHOOL_VIRTUAL_WARN("get_zmax()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual int get_nscint() const
   {
@@ -53,12 +53,12 @@ class PHG4CylinderGeom : public PHObject
   virtual double get_tiltangle() const
   {
     PHOOL_VIRTUAL_WARN("get_tiltangle()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_phi_slat_zero() const
   {
     PHOOL_VIRTUAL_WARN("get_phi_slat_zero()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 
   virtual void set_layer(const int) { PHOOL_VIRTUAL_WARN("set_layer(const int)"); }
@@ -106,22 +106,22 @@ class PHG4CylinderGeom : public PHObject
   virtual double get_strip_y_spacing() const
   {
     PHOOL_VIRTUAL_WARN("get_strip_y_spacing");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   // virtual double get_strip_z_spacing() const
   // {
   //   PHOOL_VIRTUAL_WARN("get_strip_z_spacing");
-  //   return NAN;
+  //   return std::numeric_limits<double>::quiet_NaN();
   // }
   virtual double get_strip_z_spacing(const int) const
   {
     PHOOL_VIRTUAL_WARN("get_strip_z_spacing");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_strip_tilt() const
   {
     PHOOL_VIRTUAL_WARN("get_strip_tilt");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 
   virtual int get_N_strip_columns() const
@@ -143,24 +143,24 @@ class PHG4CylinderGeom : public PHObject
   virtual double get_pixel_z() const
   {
     PHOOL_VIRTUAL_WARN("get_pixel_z");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_pixel_x() const
   {
     PHOOL_VIRTUAL_WARN("get_pixel_x");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_pixel_thickness() const
   {
     PHOOL_VIRTUAL_WARN("get_pixel_thickness");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
   virtual void ImportParameters(const PHParameters & /*param*/) { return; }
 
  protected:
-  PHG4CylinderGeom() {}
+  PHG4CylinderGeom() = default;
 
   ClassDefOverride(PHG4CylinderGeom, 1)
 };

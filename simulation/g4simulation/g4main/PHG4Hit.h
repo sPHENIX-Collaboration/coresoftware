@@ -16,7 +16,7 @@ class PHG4Hit : public PHObject
 {
  public:
   PHG4Hit() {}
-  ~PHG4Hit() override {}
+  ~PHG4Hit() = default;
 
   void identify(std::ostream &os = std::cout) const override;
   void CopyFrom(const PHObject *phobj) override;
