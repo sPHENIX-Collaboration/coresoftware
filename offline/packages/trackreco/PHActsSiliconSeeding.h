@@ -164,7 +164,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
   void largeGridSpacing(const bool spacing);
-
+  void checkTiming() { m_checkTiming = true; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void iteration(int iter) { m_nIteration = iter; }
   void searchInIntt() { m_searchInIntt = true; }
@@ -268,6 +268,10 @@ class PHActsSiliconSeeding : public SubsysReco
   /// boolean whether or not we are going to match the intt clusters
   /// per strobe with crossing information and take all possible matches
   bool m_streaming = false;
+
+///boolean whether or not we should check the timing mismatch between
+/// intt and mvtx, i.e. for second pass in streaming mode
+  bool m_checkTiming = false;
 
   // default to 10 mus
   float m_strobeWidth = 10;
