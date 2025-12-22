@@ -154,52 +154,52 @@ class DecayFinder : public SubsysReco
   std::string passOrFail(bool condition);
 
  private:
-  PHHepMCGenEventMap *m_geneventmap {nullptr};
-  PHHepMCGenEvent *m_genevt {nullptr};
-  PHG4TruthInfoContainer *m_truthinfo {nullptr};
+  PHHepMCGenEventMap *m_geneventmap{nullptr};
+  PHHepMCGenEvent *m_genevt{nullptr};
+  PHG4TruthInfoContainer *m_truthinfo{nullptr};
 
   void recalculateEta(double py, double vertex[3]);
   void calculateEffectiveTPCradius(double vertex[3], double &effective_top_r, double &effective_bottom_r) const;
-  bool m_recalcualteEtaRange {true};
-  double m_tpc_r {78.0};
-  double m_tpc_z {102.325};
-  double m_effective_top_tpc_r {m_tpc_r};
-  double m_effective_bottom_tpc_r {m_tpc_r};
+  bool m_recalcualteEtaRange{true};
+  double m_tpc_r{78.0};
+  double m_tpc_z{102.325};
+  double m_effective_top_tpc_r{m_tpc_r};
+  double m_effective_bottom_tpc_r{m_tpc_r};
 
-  double m_eta_high_req {1.1};
-  double m_eta_low_req {-1.1};
-  double m_pt_req {0.2};
+  double m_eta_high_req{1.1};
+  double m_eta_low_req{-1.1};
+  double m_pt_req{0.2};
 
-  int m_counter {0};
-  int m_intermediate_product_counter {0};
-  int m_nCandFail_pT {0};
-  int m_nCandFail_eta {0};
-  int m_nCandFail_pT_and_eta {0};
-  int m_nCandReconstructable {0};
-  int m_nCandHas_Photon {0};
-  int m_nCandHas_Pi0 {0};
-  int m_nCandHas_Photon_and_Pi0 {0};
-  int m_nCandHas_noPhoton_and_noPi0 {0};
+  int m_counter{0};
+  int m_intermediate_product_counter{0};
+  int m_nCandFail_pT{0};
+  int m_nCandFail_eta{0};
+  int m_nCandFail_pT_and_eta{0};
+  int m_nCandReconstructable{0};
+  int m_nCandHas_Photon{0};
+  int m_nCandHas_Pi0{0};
+  int m_nCandHas_Photon_and_Pi0{0};
+  int m_nCandHas_noPhoton_and_noPi0{0};
 
-  bool m_getChargeConjugate {false};
+  bool m_getChargeConjugate{false};
 
   std::string m_decayDescriptor;
-  bool m_triggerOnDecay {false};
-  bool m_allowPi0 {false};
-  bool m_allowPhotons {false};
-  bool m_hasPhotonDaughter {false};
+  bool m_triggerOnDecay{false};
+  bool m_allowPi0{false};
+  bool m_allowPhotons{false};
+  bool m_hasPhotonDaughter{false};
 
-  int m_mother_ID {0};
+  int m_mother_ID{0};
   std::vector<int> m_intermediates_ID;
   std::vector<int> m_daughters_ID;
 
-  int m_nTracksFromMother {0};
+  int m_nTracksFromMother{0};
   std::vector<int> m_nTracksFromIntermediates;
 
   std::vector<int> m_motherDecayProducts;
 
   bool m_save_dst;
-  DecayFinderContainer_v1 *m_decayMap {nullptr};
+  DecayFinderContainer_v1 *m_decayMap{nullptr};
   Decay decayChain;
   std::string m_nodeName;
   std::string m_container_name;

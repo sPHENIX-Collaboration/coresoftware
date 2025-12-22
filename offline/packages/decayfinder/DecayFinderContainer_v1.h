@@ -18,8 +18,8 @@ class DecayFinderContainer_v1 : public DecayFinderContainerBase
 {
  public:
   DecayFinderContainer_v1() = default;
-  DecayFinderContainer_v1(const DecayFinderContainer_v1 &decaymap);
-  DecayFinderContainer_v1& operator=(const DecayFinderContainer_v1 &decaymap);
+  DecayFinderContainer_v1(const DecayFinderContainer_v1& decaymap);
+  DecayFinderContainer_v1& operator=(const DecayFinderContainer_v1& decaymap);
   ~DecayFinderContainer_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;

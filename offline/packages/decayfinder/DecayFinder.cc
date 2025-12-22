@@ -108,9 +108,8 @@ int DecayFinder::process_event(PHCompositeNode* topNode)
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  
-      return Fun4AllReturnCodes::EVENT_OK;
- 
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int DecayFinder::End(PHCompositeNode* /*topNode*/)
@@ -222,7 +221,7 @@ int DecayFinder::parseDecayDescriptor()
 
         if (daughter_ID == 22)
         {
-          m_hasPhotonDaughter = m_allowPhotons = true; 
+          m_hasPhotonDaughter = m_allowPhotons = true;
         }
       }
       else
@@ -304,13 +303,12 @@ int DecayFinder::parseDecayDescriptor()
     }
     return 0;
   }
-  
-      if (Verbosity() >= VERBOSITY_SOME)
-    {
-      std::cout << "Your decay descriptor cannot be parsed, " << Name() << " will not be registered" << std::endl;
-    }
-    return Fun4AllReturnCodes::DONOTREGISTERSUBSYSTEM;
- 
+
+  if (Verbosity() >= VERBOSITY_SOME)
+  {
+    std::cout << "Your decay descriptor cannot be parsed, " << Name() << " will not be registered" << std::endl;
+  }
+  return Fun4AllReturnCodes::DONOTREGISTERSUBSYSTEM;
 }
 
 /*
@@ -339,7 +337,7 @@ bool DecayFinder::findDecay(PHCompositeNode* topNode)
   n = deleteElement(listOfResonantPIDs, n, m_mother_ID);
 
   positive_motherDecayProducts.reserve(m_motherDecayProducts.size());
-for (int m_motherDecayProduct : m_motherDecayProducts)
+  for (int m_motherDecayProduct : m_motherDecayProducts)
   {
     positive_motherDecayProducts.push_back(std::abs(m_motherDecayProduct));
   }
@@ -575,7 +573,7 @@ void DecayFinder::searchHepMCRecord(HepMC::GenParticle* particle, std::vector<in
       // Check if this is an internediate decay that didnt decay in the generator
       std::vector<int> positive_intermediates_ID;
       positive_intermediates_ID.reserve(m_intermediates_ID.size());
-for (int i : m_intermediates_ID)
+      for (int i : m_intermediates_ID)
       {
         positive_intermediates_ID.push_back(abs(i));
       }
@@ -765,7 +763,7 @@ bool DecayFinder::checkIfCorrectHepMCParticle(HepMC::GenParticle* particle, bool
 
   std::vector<int> positive_intermediates_ID;
   positive_intermediates_ID.reserve(m_intermediates_ID.size());
-for (int i : m_intermediates_ID)
+  for (int i : m_intermediates_ID)
   {
     positive_intermediates_ID.push_back(abs(i));
   }
@@ -827,36 +825,35 @@ for (int i : m_intermediates_ID)
           {
             break;
           }
-          
-                      actualIntermediateDecayProducts.push_back((*greatgrandchildren)->pdg_id());
-            decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*greatgrandchildren)->barcode()), (*greatgrandchildren)->pdg_id());
-            ++m_intermediate_product_counter;
 
-            HepMC::FourVector myFourVector = (*greatgrandchildren)->momentum();
+          actualIntermediateDecayProducts.push_back((*greatgrandchildren)->pdg_id());
+          decayChain.emplace_back(std::make_pair(m_genevt->get_embedding_id(), (*greatgrandchildren)->barcode()), (*greatgrandchildren)->pdg_id());
+          ++m_intermediate_product_counter;
 
-            HepMC::GenVertex* thisVtx = (*greatgrandchildren)->production_vertex();
-            double vtxPos[3] = {thisVtx->point3d().x(), thisVtx->point3d().y(), thisVtx->point3d().z()};
-            if (m_recalcualteEtaRange)
-            {
-              recalculateEta(myFourVector.py(), vtxPos);
-            }
+          HepMC::FourVector myFourVector = (*greatgrandchildren)->momentum();
 
-            if (myFourVector.perp() < m_pt_req)
-            {
-              trackFailedPT = true;
-            }
-            if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req))
-            {
-              trackFailedETA = true;
-            }
+          HepMC::GenVertex* thisVtx = (*greatgrandchildren)->production_vertex();
+          double vtxPos[3] = {thisVtx->point3d().x(), thisVtx->point3d().y(), thisVtx->point3d().z()};
+          if (m_recalcualteEtaRange)
+          {
+            recalculateEta(myFourVector.py(), vtxPos);
+          }
 
-            if (Verbosity() >= VERBOSITY_MAX)
-            {
-              std::cout << "pT = " << myFourVector.perp() << ", eta = " << myFourVector.eta() << std::endl;
-              std::cout << "The track " << passOrFail(myFourVector.perp() >= m_pt_req) << " the pT requirement, ";
-              std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) << " the eta requirement." << std::endl;
-            }
-         
+          if (myFourVector.perp() < m_pt_req)
+          {
+            trackFailedPT = true;
+          }
+          if (!isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req))
+          {
+            trackFailedETA = true;
+          }
+
+          if (Verbosity() >= VERBOSITY_MAX)
+          {
+            std::cout << "pT = " << myFourVector.perp() << ", eta = " << myFourVector.eta() << std::endl;
+            std::cout << "The track " << passOrFail(myFourVector.perp() >= m_pt_req) << " the pT requirement, ";
+            std::cout << "the track " << passOrFail(isInRange(m_eta_low_req, myFourVector.eta(), m_eta_high_req)) << " the eta requirement." << std::endl;
+          }
         }
       }
       else if ((m_allowPhotons && !m_hasPhotonDaughter && (*grandchildren)->pdg_id() == 22) || (m_allowPi0 && (*grandchildren)->pdg_id() == 111))
@@ -902,10 +899,10 @@ for (int i : m_intermediates_ID)
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  //else if ((particle->pdg_id() == 22) || (particle->pdg_id() == 111))
+  // else if ((particle->pdg_id() == 22) || (particle->pdg_id() == 111))
   //{
-  //  return false;
-  //}
+  //   return false;
+  // }
   else
   {
     if (Verbosity() >= VERBOSITY_MAX)
@@ -951,7 +948,7 @@ bool DecayFinder::checkIfCorrectGeant4Particle(PHG4Particle* particle, bool& has
 
   std::vector<int> positive_intermediates_ID;
   positive_intermediates_ID.reserve(m_intermediates_ID.size());
-for (int i : m_intermediates_ID)
+  for (int i : m_intermediates_ID)
   {
     positive_intermediates_ID.push_back(abs(i));
   }
@@ -993,10 +990,10 @@ for (int i : m_intermediates_ID)
 
     acceptParticle = compareDecays(requiredIntermediateDecayProducts, actualIntermediateDecayProducts);
   }
-  //else if ((particle->get_pid() == 22) || (particle->get_pid() == 111))
+  // else if ((particle->get_pid() == 22) || (particle->get_pid() == 111))
   //{
-  //  return false;
-  //}
+  //   return false;
+  // }
   else
   {
     if (Verbosity() >= VERBOSITY_MAX)
@@ -1156,18 +1153,17 @@ void DecayFinder::multiplyVectorByScalarAndSort(std::vector<int>& v, int k)
 {
   // https://slaystudy.com/c-multiply-vector-by-scalar/
   std::transform(v.begin(), v.end(), v.begin(), [k](const int& c)
-  {
-    int particlesWithNoCC[] = {111, 113, 115, 130, 220, 221, 223, 225, 310, 330, 331, 333, 335, 440, 441, 443, 
-                               445, 551, 553, 555, 10111, 10113, 10221, 10223, 10331, 10333, 10441, 10443, 
-                               10551, 10553, 20113, 20223, 20333, 20443, 20553, 100443, 100553};
-    if (std::find(std::begin(particlesWithNoCC), std::end(particlesWithNoCC), c) != std::end(particlesWithNoCC))
-    {
-      return c;
-    }
-    
-          return c * k;
-   
-  });
+                 {
+                   int particlesWithNoCC[] = {111, 113, 115, 130, 220, 221, 223, 225, 310, 330, 331, 333, 335, 440, 441, 443,
+                                              445, 551, 553, 555, 10111, 10113, 10221, 10223, 10331, 10333, 10441, 10443,
+                                              10551, 10553, 20113, 20223, 20333, 20443, 20553, 100443, 100553};
+                   if (std::find(std::begin(particlesWithNoCC), std::end(particlesWithNoCC), c) != std::end(particlesWithNoCC))
+                   {
+                     return c;
+                   }
+
+                   return c * k;
+                 });
   std::sort(v.begin(), v.end());
 }
 
@@ -1177,9 +1173,8 @@ int DecayFinder::get_pdgcode(const std::string& name)
   {
     return TDatabasePDG::Instance()->GetParticle(name.c_str())->PdgCode();
   }
-  
-      return 0;
- 
+
+  return 0;
 }
 
 int DecayFinder::get_charge(const std::string& name)
@@ -1188,9 +1183,8 @@ int DecayFinder::get_charge(const std::string& name)
   {
     return TDatabasePDG::Instance()->GetParticle(name.c_str())->Charge() / 3;
   }
-  
-      return -99;
- 
+
+  return -99;
 }
 
 bool DecayFinder::isInRange(float min, float value, float max)

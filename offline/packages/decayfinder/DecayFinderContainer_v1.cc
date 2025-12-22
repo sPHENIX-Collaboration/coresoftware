@@ -12,8 +12,9 @@
 #include <vector>   // for vector
 
 DecayFinderContainer_v1::DecayFinderContainer_v1(const DecayFinderContainer_v1& decaymap)
-   
- : DecayFinderContainerBase(decaymap) {
+
+  : DecayFinderContainerBase(decaymap)
+{
   for (const auto& iter : decaymap)
   {
     Decay decay = iter.second;
