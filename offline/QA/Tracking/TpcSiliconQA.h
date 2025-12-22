@@ -53,6 +53,7 @@ class TpcSiliconQA : public SubsysReco
   std::string getHistoPrefix() const;
   int m_event = 0;
 
+  TH2 *h_tpcsilicon_corr = nullptr;
   TH1 *h_crossing = nullptr;
   TH1 *h_phiDiff[8] = {nullptr};
   TH1 *h_etaDiff[8] = {nullptr};

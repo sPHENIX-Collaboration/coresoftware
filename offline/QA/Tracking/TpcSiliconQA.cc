@@ -89,6 +89,11 @@ int TpcSiliconQA::process_event(PHCompositeNode* topNode)
       m_tpcseedphi = tpcseed->get_phi();
       m_tpcseedeta = tpcseed->get_eta();
 
+    if(fabs(m_tpcseedx - m_silseedx) < 2 && fabs(m_tpcseedy - m_silseedy) < 2)
+    {
+      h_tpcsilicon_corr->Fill(m_silseedphi-m_tpcseedphi, m_silseedeta-m_tpcseedeta);
+    }
+
       h_phiDiff[0]->Fill(m_tpcseedphi - m_silseedphi);
       h_etaDiff[0]->Fill(m_tpcseedeta - m_silseedeta);
       h_xDiff[0]->Fill(m_tpcseedx - m_silseedx);
@@ -264,6 +269,11 @@ void TpcSiliconQA::createHistos()
     hm->registerHisto(h_zDiff[i]);
     i++;
   }
+
+  h_tpcsilicon_corr = new TH2F(std::string(getHistoPrefix() + "tpcsiletaphi").c_str(),
+                               ";#phi_{sil}-#phi_{TPC} [rad]; #eta_{sil}-#eta_{TPC}", 40, -0.5, 0.5, 40, -0.5, 0.5);
+                               hm->registerHisto(h_tpcsilicon_corr);
+
 
   return;
 }
