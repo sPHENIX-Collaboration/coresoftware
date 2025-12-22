@@ -20,7 +20,7 @@ class PHG4HcalSubsystem : public PHG4Subsystem
 {
  public:
   //! constructor
-  PHG4HcalSubsystem(const std::string &name = "HCALCYLINDER", const int layer = 0);
+  PHG4HcalSubsystem(const std::string &name = "HCALCYLINDER", const int lyr = 0);
 
   //! destructor
   ~PHG4HcalSubsystem() override = default;

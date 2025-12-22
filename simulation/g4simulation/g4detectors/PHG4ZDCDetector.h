@@ -45,10 +45,10 @@ class PHG4ZDCDetector : public PHG4Detector
   G4LogicalVolume *ConstructTower(int type);
   PHParameters *GetParams() const { return m_Params; }
 
-  PHG4ZDCDisplayAction *m_DisplayAction = nullptr;
-  PHParameters *m_Params = nullptr;
+  PHG4ZDCDisplayAction *m_DisplayAction {nullptr};
+  PHParameters *m_Params {nullptr};
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig *m_GdmlConfig = nullptr;
+  PHG4GDMLConfig *m_GdmlConfig {nullptr};
 
   /* ZDC geometry */
   double m_Angle;

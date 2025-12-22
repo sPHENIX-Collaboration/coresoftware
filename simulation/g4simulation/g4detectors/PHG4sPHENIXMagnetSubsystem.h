@@ -17,7 +17,7 @@ class PHG4sPHENIXMagnetSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4sPHENIXMagnetSubsystem(const std::string& name = "HCALOUT", const int layer = 0);
+  PHG4sPHENIXMagnetSubsystem(const std::string& name = "HCALOUT", const int lyr = 0);
 
   //! destructor
   ~PHG4sPHENIXMagnetSubsystem() override;

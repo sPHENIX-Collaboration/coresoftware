@@ -62,21 +62,32 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
     assert(m_manager);
   }
 
-  // Initialize histograms
-  const int N_rho_mult = 1000;
-  const double rho_max_mult = 0.5;
-  Double_t N_rho_mult_bins[N_rho_mult + 1];
-  for (int i = 0; i <= N_rho_mult; i++)
-  {
-    N_rho_mult_bins[i] = (rho_max_mult / 1000) * i;
+  // Initialize histogram parameters
+  int    N_rho_mult;
+  double rho_max_mult;
+  int    N_rho_area;
+  double rho_max_area;
+
+  if (!m_inPPMode) {
+    N_rho_mult   = 1000;
+    rho_max_mult = 0.5;
+    N_rho_area   = 400;
+    rho_max_area = 200;
+  } else {
+    N_rho_mult   = 100;
+    rho_max_mult = 0.05;
+    N_rho_area   = 40;
+    rho_max_area = 20;
   }
 
-  const int N_rho_area = 400;
-  const double rho_max_area = 200;
-  Double_t N_rho_area_bins[N_rho_area + 1];
-  for (int i = 0; i <= N_rho_area; i++)
-  {
-    N_rho_area_bins[i] = (rho_max_area / 400.0) * i;
+  std::vector<Double_t> N_rho_mult_bins(N_rho_mult+1);
+  for (int i = 0; i <= N_rho_mult; ++i) {
+    N_rho_mult_bins[i] = (rho_max_mult / N_rho_mult) * i;
+  }
+
+  std::vector<Double_t> N_rho_area_bins(N_rho_area+1);
+  for (int i = 0; i <= N_rho_area; ++i) {
+    N_rho_area_bins[i] = (rho_max_area / N_rho_area) * i;
   }
 
   // make sure module name is lower case
@@ -102,19 +113,19 @@ int RhosinEvent::Init(PHCompositeNode* /*topNode*/)
     }
   }
 
-  h1_mult_rho = new TH1D(vecHistNames[0].data(), "", N_rho_mult, N_rho_mult_bins);
+  h1_mult_rho = new TH1D(vecHistNames[0].data(), "", N_rho_mult, N_rho_mult_bins.data());
   h1_mult_rho->GetXaxis()->SetTitle("rho_M");
   h1_mult_rho->GetYaxis()->SetTitle("Counts");
 
-  h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "", N_rho_mult, N_rho_mult_bins);
+  h1_mult_rho_sigma = new TH1D(vecHistNames[1].data(), "", N_rho_mult, N_rho_mult_bins.data());
   h1_mult_rho_sigma->GetXaxis()->SetTitle("sigma_M");
   h1_mult_rho_sigma->GetYaxis()->SetTitle("Counts");
 
-  h1_area_rho = new TH1D(vecHistNames[2].data(), "", N_rho_area, N_rho_area_bins);
+  h1_area_rho = new TH1D(vecHistNames[2].data(), "", N_rho_area, N_rho_area_bins.data());
   h1_area_rho->GetXaxis()->SetTitle("rho_A");
   h1_area_rho->GetYaxis()->SetTitle("Counts");
 
-  h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "", N_rho_area, N_rho_area_bins);
+  h1_area_rho_sigma = new TH1D(vecHistNames[3].data(), "", N_rho_area, N_rho_area_bins.data());
   h1_area_rho_sigma->GetXaxis()->SetTitle("sigma_A");
   h1_area_rho_sigma->GetYaxis()->SetTitle("Counts");
 

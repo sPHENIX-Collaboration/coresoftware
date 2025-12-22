@@ -20,7 +20,7 @@ class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
 {
  public:
   //! constructor
-  PHG4CEmcTestBeamSubsystem(const std::string& name = "BLOCK", const int layer = 0);
+  PHG4CEmcTestBeamSubsystem(const std::string& name = "BLOCK", const int lyr = 0);
 
   //! destructor
   ~PHG4CEmcTestBeamSubsystem() override = default;
@@ -59,31 +59,31 @@ class PHG4CEmcTestBeamSubsystem : public PHG4Subsystem
   void SetActive(const int i = 1) { active = i; }
   void SetAbsorberActive(const int i = 1) { absorberactive = i; }
   void SuperDetector(const std::string& name) { superdetector = name; }
-  const std::string &SuperDetector() { return superdetector; }
+  const std::string& SuperDetector() { return superdetector; }
 
   void BlackHole(const int i = 1) { blackhole = i; }
 
  private:
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4CEmcTestBeamDetector* detector_;
+  PHG4CEmcTestBeamDetector* detector_{nullptr};
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4CEmcTestBeamSteppingAction* steppingAction_;
-  PHG4EventAction* eventAction_;
+  PHG4CEmcTestBeamSteppingAction* steppingAction_{nullptr};
+  PHG4EventAction* eventAction_{nullptr};
   G4double dimension[3]{};
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double rot_in_x;
-  G4double rot_in_y;
-  G4double rot_in_z;
+  G4double place_in_x{0.};
+  G4double place_in_y{0.};
+  G4double place_in_z{0.};
+  G4double rot_in_x{0.};
+  G4double rot_in_y{0.};
+  G4double rot_in_z{0.};
 
-  int active;
-  int absorberactive;
+  int active{0};
+  int absorberactive{0};
   int layer;
-  int blackhole;
+  int blackhole{0};
   std::string detector_type;
   std::string superdetector;
 };

@@ -2,8 +2,6 @@
 
 #include "PHG4CylinderCellGeom.h"
 
-using namespace std;
-
 PHG4CylinderCellGeomContainer::~PHG4CylinderCellGeomContainer()
 {
   while (layergeoms.begin() != layergeoms.end())
@@ -16,20 +14,19 @@ PHG4CylinderCellGeomContainer::~PHG4CylinderCellGeomContainer()
 
 void PHG4CylinderCellGeomContainer::identify(std::ostream &os) const
 {
-  map<int, PHG4CylinderCellGeom *>::const_iterator iter;
-  for (iter = layergeoms.begin(); iter != layergeoms.end(); ++iter)
+  for (auto layergeom : layergeoms)
   {
-    cout << "layer " << iter->first << endl;
-    (iter->second)->identify(os);
+    std::cout << "layer " << layergeom.first << std::endl;
+    (layergeom.second)->identify(os);
   }
   return;
 }
 
 int PHG4CylinderCellGeomContainer::AddLayerCellGeom(const int i, PHG4CylinderCellGeom *mygeom)
 {
-  if (layergeoms.find(i) != layergeoms.end())
+  if (layergeoms.contains(i))
   {
-    cout << "layer " << i << " already added to PHCylinderCellGeomContainer" << endl;
+    std::cout << "layer " << i << " already added to PHCylinderCellGeomContainer" << std::endl;
     return -1;
   }
   mygeom->set_layer(i);
@@ -40,9 +37,9 @@ int PHG4CylinderCellGeomContainer::AddLayerCellGeom(const int i, PHG4CylinderCel
 int PHG4CylinderCellGeomContainer::AddLayerCellGeom(PHG4CylinderCellGeom *mygeom)
 {
   int layer = mygeom->get_layer();
-  if (layergeoms.find(layer) != layergeoms.end())
+  if (layergeoms.contains(layer))
   {
-    cout << "layer " << layer << " already added to PHCylinderCellGeomContainer" << endl;
+    std::cout << "layer " << layer << " already added to PHCylinderCellGeomContainer" << std::endl;
     return -1;
   }
   layergeoms[layer] = mygeom;
@@ -52,12 +49,12 @@ int PHG4CylinderCellGeomContainer::AddLayerCellGeom(PHG4CylinderCellGeom *mygeom
 PHG4CylinderCellGeom *
 PHG4CylinderCellGeomContainer::GetLayerCellGeom(const int i)
 {
-  map<int, PHG4CylinderCellGeom *>::const_iterator iter = layergeoms.find(i);
+  const auto iter = layergeoms.find(i);
   if (iter != layergeoms.end())
   {
     return iter->second;
   }
-  cout << "Could not locate layer " << i << " in PHG4CylinderCellGeomContainer" << endl;
+  std::cout << "Could not locate layer " << i << " in PHG4CylinderCellGeomContainer" << std::endl;
   return nullptr;
 }
 

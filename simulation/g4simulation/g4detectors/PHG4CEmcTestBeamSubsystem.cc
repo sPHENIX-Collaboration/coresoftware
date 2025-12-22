@@ -17,37 +17,22 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>  // for G4double
 
+#include <format>
 #include <sstream>
 
 class PHG4Detector;
 class PHG4SteppingAction;
 
-using namespace std;
-
 //_______________________________________________________________________
 PHG4CEmcTestBeamSubsystem::PHG4CEmcTestBeamSubsystem(const std::string& name, const int lyr)
   : PHG4Subsystem(name)
-  , detector_(nullptr)
-  , steppingAction_(nullptr)
-  , eventAction_(nullptr)
-  , place_in_x(0)
-  , place_in_y(0)
-  , place_in_z(0)
-  , rot_in_x(0)
-  , rot_in_y(0)
-  , rot_in_z(0)
-  , active(0)
-  , absorberactive(0)
   , layer(lyr)
-  , blackhole(0)
   , detector_type(name)
   , superdetector("NONE")
 {
   // put the layer into the name so we get unique names
   // for multiple layers
-  ostringstream nam;
-  nam << name << "_" << lyr;
-  Name(nam.str());
+  Name(std::format("{}_{}", name, lyr));
   for (double& i : dimension)
   {
     i = 100.0 * cm;
@@ -73,42 +58,41 @@ int PHG4CEmcTestBeamSubsystem::Init(PHCompositeNode* topNode)
   detector_->OverlapCheck(CheckOverlap());
   if (active)
   {
-    ostringstream nodename;
+    std::string nodename;
     if (superdetector != "NONE")
     {
-      nodename << "G4HIT_" << superdetector;
+      nodename = "G4HIT_" + superdetector;
     }
     else
     {
-      nodename << "G4HIT_" << detector_type << "_" << layer;
+      nodename = std::format("G4HIT_{}_{}", detector_type, layer);
     }
     // create hit list
-    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+    PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     if (absorberactive)
     {
-      nodename.str("");
       if (superdetector != "NONE")
       {
-        nodename << "G4HIT_ABSORBER_" << superdetector;
+        nodename = "G4HIT_ABSORBER_" + superdetector;
       }
       else
       {
-        nodename << "G4HIT_ABSORBER_" << detector_type << "_" << layer;
+        nodename = std::format("G4HIT_ABSORBER_{}_{}", detector_type, layer);
       }
     }
-    block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+    block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename), nodename, "PHObject"));
     }
     // create stepping action
     steppingAction_ = new PHG4CEmcTestBeamSteppingAction(detector_);
 
-    eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
+    eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename);
   }
   if (blackhole && !active)
   {

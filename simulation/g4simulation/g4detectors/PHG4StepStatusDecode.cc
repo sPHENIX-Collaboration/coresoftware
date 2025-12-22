@@ -7,7 +7,10 @@
 #include <iostream>
 #include <map>
 
-static std::map<int, std::string> stepstatus;
+namespace
+{
+  std::map<int, std::string> stepstatus;
+}
 
 std::string PHG4StepStatusDecode::GetStepStatus(const int istatus)
 {
@@ -23,7 +26,7 @@ std::string PHG4StepStatusDecode::GetStepStatus(const int istatus)
     stepstatus[fExclusivelyForcedProc] = "fExclusivelyForcedProc";
     stepstatus[fUndefined] = "fUndefined";
   }
-  if (stepstatus.find(istatus) == stepstatus.end())
+  if (!stepstatus.contains(istatus))
   {
     std::cout << "could not find status " << istatus << " in stepstatus map" << std::endl;
     gSystem->Exit(1);

@@ -157,15 +157,15 @@ int PHG4CylinderSubsystem::process_event(PHCompositeNode *topNode)
 
 void PHG4CylinderSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("length", NAN);
+  set_default_double_param("length", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
-  set_default_double_param("radius", NAN);
-  set_default_double_param("steplimits", NAN);
-  set_default_double_param("thickness", NAN);
-  set_default_double_param("tmin", NAN);
-  set_default_double_param("tmax", NAN);
+  set_default_double_param("radius", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("steplimits", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("thickness", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("tmin", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("tmax", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("rot_x", 0.);
   set_default_double_param("rot_y", 0.);
   set_default_double_param("rot_z", 0.);

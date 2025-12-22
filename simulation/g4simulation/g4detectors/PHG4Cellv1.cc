@@ -4,7 +4,6 @@
 
 #include <phool/phool.h>
 
-#include <cmath>    // for NAN
 #include <cstdlib>  // for exit
 #include <iostream>
 #include <limits>
@@ -69,7 +68,7 @@ float PHG4Cellv1::get_property_float(const PROPERTY prop_id) const
     return u_property(i->second).fdata;
   }
 
-  return NAN;
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 int PHG4Cellv1::get_property_int(const PROPERTY prop_id) const
@@ -124,7 +123,7 @@ void PHG4Cellv1::add_property(const PROPERTY prop_id, const float value)
     exit(1);
   }
   float val = value;
-  if (prop_map.find(prop_id) != prop_map.end())
+  if (prop_map.contains(prop_id))
   {
     val += get_property_float(prop_id);
   }
@@ -142,7 +141,7 @@ void PHG4Cellv1::add_property(const PROPERTY prop_id, const int value)
     exit(1);
   }
   int val = value;
-  if (prop_map.find(prop_id) != prop_map.end())
+  if (prop_map.contains(prop_id))
   {
     val += get_property_int(prop_id);
   }
@@ -160,7 +159,7 @@ void PHG4Cellv1::add_property(const PROPERTY prop_id, const unsigned int value)
     exit(1);
   }
   unsigned int val = value;
-  if (prop_map.find(prop_id) != prop_map.end())
+  if (prop_map.contains(prop_id))
   {
     val += get_property_uint(prop_id);
   }

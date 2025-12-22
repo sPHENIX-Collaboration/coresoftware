@@ -33,7 +33,7 @@ class PHG4ScintillatorSlatContainer : public PHObject
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override;
 
-  ConstIterator AddScintillatorSlat(const PHG4ScintillatorSlatDefs::keytype key, PHG4ScintillatorSlat *newscintillatorSlat);
+  ConstIterator AddScintillatorSlat(const PHG4ScintillatorSlatDefs::keytype key, PHG4ScintillatorSlat *newslat);
 
   //! preferred removal method, key is currently the slat id
   void RemoveScintillatorSlat(PHG4ScintillatorSlatDefs::keytype key)

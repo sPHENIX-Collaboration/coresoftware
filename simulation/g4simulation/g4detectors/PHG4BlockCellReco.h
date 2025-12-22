@@ -33,7 +33,7 @@ class PHG4BlockCellReco : public SubsysReco, public PHParameterContainerInterfac
   void SetDefaultParameters() override;
 
   void Detector(const std::string &d) { detector = d; }
-  void etaxsize(const int i, const double deltaeta, const double deltax);
+  void etaxsize(const int detid, const double deltaeta, const double deltax);
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
 
   void set_timing_window(const int detid, const double tmin, const double tmax);

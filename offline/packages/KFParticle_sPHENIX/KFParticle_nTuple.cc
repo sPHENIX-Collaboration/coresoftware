@@ -7,7 +7,7 @@
 
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
-#include <trackbase_historic/SvtxTrack.h>   
+#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <KFParticle.h>
@@ -36,7 +36,7 @@ void KFParticle_nTuple::initializeVariables()
 
 void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 {
-  //kfpTupleTools.init_dEdx_fits(); //Cant do this! Two trees open at once!
+  // kfpTupleTools.init_dEdx_fits(); //Cant do this! Two trees open at once!
 
   delete m_tree;
   m_tree = new TTree("DecayTree", "DecayTree");
@@ -55,7 +55,7 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
 
   size_t pos;
   std::string undrscr = "_";
-  std::string nothing = "";
+  std::string nothing;
   std::map<std::string, std::string> forbiddenStrings;
   forbiddenStrings["/"] = undrscr;
   forbiddenStrings["("] = undrscr;
@@ -234,10 +234,13 @@ void KFParticle_nTuple::initializeBranches(PHCompositeNode* topNode)
     m_tree->Branch(TString(daughter_number) + "_track_ID", &m_calculated_daughter_trid[i], TString(daughter_number) + "_track_ID/I");
     m_tree->Branch(TString(daughter_number) + "_PDG_ID", &m_calculated_daughter_pdgID[i], TString(daughter_number) + "_PDG_ID/I");
     m_tree->Branch(TString(daughter_number) + "_Covariance", &m_calculated_daughter_cov[i], TString(daughter_number) + "_Covariance[21]/F", 21);
-    m_tree->Branch(TString(daughter_number) + "_calculated_dEdx", &m_calculated_daughter_dedx[i], TString(daughter_number) + "_calculated_dEdx/F");
-    //m_tree->Branch(TString(daughter_number) + "_expected_pion_dEdx", &m_calculated_daughter_expected_dedx_pion[i], TString(daughter_number) + "_expected_pion_dEdx/F");
-    //m_tree->Branch(TString(daughter_number) + "_expected_kaon_dEdx", &m_calculated_daughter_expected_dedx_kaon[i], TString(daughter_number) + "_expected_kaon_dEdx/F");
-    //m_tree->Branch(TString(daughter_number) + "_expected_proton_dEdx", &m_calculated_daughter_expected_dedx_proton[i], TString(daughter_number) + "_expected_proton_dEdx/F");
+    if (m_get_dEdx)
+    {
+      m_tree->Branch(TString(daughter_number) + "_calculated_dEdx", &m_calculated_daughter_dedx[i], TString(daughter_number) + "_calculated_dEdx/F");  // m_get_dEdx defaults to false; run get_dEdx_info() to change this
+    }
+    // m_tree->Branch(TString(daughter_number) + "_expected_pion_dEdx", &m_calculated_daughter_expected_dedx_pion[i], TString(daughter_number) + "_expected_pion_dEdx/F");
+    // m_tree->Branch(TString(daughter_number) + "_expected_kaon_dEdx", &m_calculated_daughter_expected_dedx_kaon[i], TString(daughter_number) + "_expected_kaon_dEdx/F");
+    // m_tree->Branch(TString(daughter_number) + "_expected_proton_dEdx", &m_calculated_daughter_expected_dedx_proton[i], TString(daughter_number) + "_expected_proton_dEdx/F");
 
     if (m_calo_info)
     {
@@ -317,7 +320,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   const float speedOfLight = 2.99792458e-2;
 
   KFParticle temp;
-  KFParticle* daughterArray = &daughters[0];
+  KFParticle* daughterArray = daughters.data();
 
   bool switchTrackPosition;
 
@@ -414,11 +417,11 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
   m_calculated_mother_pt = motherParticle.GetPt();
   m_calculated_mother_pt_err = motherParticle.GetErrPt();
   m_calculated_mother_q = motherParticle.Q();
-  //m_calculated_mother_eta = motherParticle.GetEta();
-  motherParticle.GetEta(m_calculated_mother_eta,TempError);
+  // m_calculated_mother_eta = motherParticle.GetEta();
+  motherParticle.GetEta(m_calculated_mother_eta, TempError);
   m_calculated_mother_rapidity = motherParticle.GetRapidity();
   m_calculated_mother_theta = motherParticle.GetTheta();
-  //m_calculated_mother_phi = motherParticle.GetPhi();
+  // m_calculated_mother_phi = motherParticle.GetPhi();
   motherParticle.GetPhi(m_calculated_mother_phi, TempError);
   m_calculated_mother_v = kfpTupleTools.calculateEllipsoidVolume(motherParticle);
   m_calculated_mother_pdgID = motherParticle.GetPDG();
@@ -430,7 +433,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   motherParticle.GetMass(m_calculated_mother_mass, m_calculated_mother_mass_err);
 
-  KFParticle* intermediateArray = &intermediates[0];
+  KFParticle* intermediateArray = intermediates.data();
   if (m_has_intermediates_nTuple)
   {
     for (int i = 0; i < m_num_intermediate_states_nTuple; ++i)
@@ -456,11 +459,11 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_intermediate_pt[i] = intermediateArray[i].GetPt();
       m_calculated_intermediate_pt_err[i] = intermediateArray[i].GetErrPt();
       m_calculated_intermediate_q[i] = intermediateArray[i].Q();  // I used to cast this as an int. clang-tidy want Uchar_t to Char_t to int
-      //m_calculated_intermediate_eta[i] = intermediateArray[i].GetEta();
+      // m_calculated_intermediate_eta[i] = intermediateArray[i].GetEta();
       intermediateArray[i].GetEta(m_calculated_intermediate_eta[i], TempError);
       m_calculated_intermediate_rapidity[i] = intermediateArray[i].GetRapidity();
       m_calculated_intermediate_theta[i] = intermediateArray[i].GetTheta();
-      //m_calculated_intermediate_phi[i] = intermediateArray[i].GetPhi();
+      // m_calculated_intermediate_phi[i] = intermediateArray[i].GetPhi();
       intermediateArray[i].GetPhi(m_calculated_intermediate_phi[i], TempError);
       m_calculated_intermediate_v[i] = kfpTupleTools.calculateEllipsoidVolume(intermediateArray[i]);
       m_calculated_intermediate_pdgID[i] = intermediateArray[i].GetPDG();
@@ -504,11 +507,11 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_calculated_daughter_pt[i] = daughterArray[i].GetPt();
     m_calculated_daughter_pt_err[i] = daughterArray[i].GetErrPt();
     m_calculated_daughter_q[i] = daughterArray[i].Q();
-    //m_calculated_daughter_eta[i] = daughterArray[i].GetEta();
+    // m_calculated_daughter_eta[i] = daughterArray[i].GetEta();
     daughterArray[i].GetEta(m_calculated_daughter_eta[i], TempError);
     m_calculated_daughter_rapidity[i] = daughterArray[i].GetRapidity();
     m_calculated_daughter_theta[i] = daughterArray[i].GetTheta();
-    //m_calculated_daughter_phi[i] = daughterArray[i].GetPhi();
+    // m_calculated_daughter_phi[i] = daughterArray[i].GetPhi();
     daughterArray[i].GetPhi(m_calculated_daughter_phi[i], TempError);
     m_calculated_daughter_chi2[i] = daughterArray[i].GetChi2();
     m_calculated_daughter_ndof[i] = daughterArray[i].GetNDF();
@@ -520,19 +523,22 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
       m_calculated_daughter_cov[i][j] = daughterArray[i].GetCovariance(j);
     }
 
-    //Now get bunch crossing number for the daughter particle
-    SvtxTrackMap *thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple.c_str());
-    SvtxTrack *thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
-    m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing(); 
-    m_calculated_daughter_dedx[i] = kfpTupleTools.get_dEdx(topNode, daughterArray[i]);
-    //m_calculated_daughter_expected_dedx_pion[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 211);
-    //m_calculated_daughter_expected_dedx_kaon[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 321);
-    //m_calculated_daughter_expected_dedx_proton[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 2212);
+    // Now get bunch crossing number for the daughter particle
+    SvtxTrackMap* thisTrackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trk_map_node_name_nTuple);
+    SvtxTrack* thisTrack = getTrack(daughterArray[i].Id(), thisTrackMap);
+    m_calculated_daughter_bunch_crossing[i] = thisTrack->get_crossing();
+    if (m_get_dEdx)
+    {
+      m_calculated_daughter_dedx[i] = kfpTupleTools.get_dEdx(topNode, daughterArray[i]);  // m_get_dEdx defaults to false; run get_dEdx_info() to change this
+    }
+    // m_calculated_daughter_expected_dedx_pion[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 211);
+    // m_calculated_daughter_expected_dedx_kaon[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 321);
+    // m_calculated_daughter_expected_dedx_proton[i] = kfpTupleTools.get_dEdx_fitValue((Int_t) daughterArray[i].GetQ() * daughterArray[i].GetP(), 2212);
 
     bool tempEMCalmatch = false;
     if (m_calo_info)
     {
-      fillCaloBranch(topNode, m_tree, daughterArray[i], i, tempEMCalmatch);
+      fillCaloBranch(topNode, m_tree, daughterArray[i], i, tempEMCalmatch, vertex_fillbranch);
       if (m_require_track_emcal_match && !tempEMCalmatch)
       {
         isTrackEMCalmatch = false;
@@ -623,8 +629,14 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
     // it only makes sense to calculate PVID for non-fake vertex
     // (this otherwise crashes if m_use_fake_pv_nTuple is true in an event with no real vertices)
-    if(m_use_fake_pv_nTuple) m_calculated_vertex_ID = -100; // error value returned by getPVID
-    else m_calculated_vertex_ID = getPVID(topNode, vertex_fillbranch);
+    if (m_use_fake_pv_nTuple)
+    {
+      m_calculated_vertex_ID = -100;  // error value returned by getPVID
+    }
+    else
+    {
+      m_calculated_vertex_ID = getPVID(topNode, vertex_fillbranch);
+    }
     // m_calculated_vertex_cov          = &vertex_fillbranch.CovarianceMatrix()[0];
     for (int j = 0; j < 6; ++j)
     {
@@ -634,7 +646,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   m_sv_mass = calc_secondary_vertex_mass_noPID(daughters);
 
-  kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);  
+  kfpTupleTools.getTracksFromBC(topNode, m_calculated_daughter_bunch_crossing[0], m_vtx_map_node_name_nTuple, m_multiplicity, m_nPVs);
   // cannot retrieve vertex map info from fake PV, hence the second condition
   if (m_constrain_to_vertex_nTuple && !m_use_fake_pv_nTuple)
   {
@@ -647,7 +659,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 
   PHNodeIterator nodeIter(topNode);
 
-  PHNode* evtNode = dynamic_cast<PHNode*>(nodeIter.findFirst("EventHeader"));
+  PHNode* evtNode = nodeIter.findFirst("EventHeader");
 
   if (evtNode)
   {
@@ -655,7 +667,7 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     m_runNumber = evtHeader->get_RunNumber();
     m_evtNumber = evtHeader->get_EvtSequence();
 
-    auto gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
+    auto* gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
     if (!gl1packet)
     {
       gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
@@ -691,12 +703,13 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
 float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle> kfp_daughters)
 {
   KFParticle mother_noPID;
-  KFParticle* daughterArray = &kfp_daughters[0];
+  KFParticle* daughterArray = kfp_daughters.data();
 
   for (int i = 0; i < m_num_tracks_nTuple; ++i)
   {
     KFParticle daughter_noPID;
-    float f_trackParameters[6], f_trackCovariance[21];
+    float f_trackParameters[6];
+    float f_trackCovariance[21];
     for (int j = 0; j < 6; ++j)
     {
       f_trackParameters[j] = daughterArray[i].GetParameter(j);
@@ -712,7 +725,7 @@ float KFParticle_nTuple::calc_secondary_vertex_mass_noPID(std::vector<KFParticle
   return mother_noPID.GetMass();
 }
 
-bool KFParticle_nTuple::fillConditionMet()
+bool KFParticle_nTuple::fillConditionMet() const
 {
   // return true if this is a track-only analysis
   if (!m_calo_info)
