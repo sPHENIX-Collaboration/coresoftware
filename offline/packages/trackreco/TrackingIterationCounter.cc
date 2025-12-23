@@ -25,11 +25,10 @@ TrackingIterationCounter::TrackingIterationCounter(const std::string &name)
 
 //____________________________________________________________________________..
 TrackingIterationCounter::~TrackingIterationCounter()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int TrackingIterationCounter::Init(PHCompositeNode *)
+int TrackingIterationCounter::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -86,7 +85,7 @@ void TrackingIterationCounter::addClustersToIterationMap(TrackSeed *seed)
 }
 
 //____________________________________________________________________________..
-int TrackingIterationCounter::End(PHCompositeNode *)
+int TrackingIterationCounter::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -115,7 +114,7 @@ int TrackingIterationCounter::createNodes(PHCompositeNode *topNode)
   if (!m_iterMap)
   {
     m_iterMap = new TrkrClusterIterationMapv1;
-    auto node =
+    auto *node =
         new PHIODataNode<PHObject>(m_iterMap, "TrkrClusterIterationMap", "PHObject");
     svtxNode->addNode(node);
   }
@@ -146,7 +145,7 @@ void TrackingIterationCounter::iterateSeeds(PHCompositeNode *topNode)
 }
 void TrackingIterationCounter::iterateSiliconSeeds(PHCompositeNode *topNode)
 {
-  auto seeds = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
+  auto *seeds = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
   for (const auto &seed : *seeds)
   {
     if (!seed)
