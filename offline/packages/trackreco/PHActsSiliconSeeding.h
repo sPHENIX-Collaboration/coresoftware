@@ -50,6 +50,22 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setIter1()
+  {
+    setStrobeRange(-5,5);
+    isStreaming();
+    setinttRPhiSearchWindow(0.2);
+  }
+  void setIter2()
+  {
+    searchInIntt();
+    set_track_map_name("SiliconTrackSeedContainerIt1");
+    iteration(2);
+    setStrobeRange(-1,2);
+    checkTiming();
+    strobeWindowLowSearch(-1);
+    strobeWindowHighSearch(2);
+  }
   void isStreaming()
   {
     m_streaming = true;
