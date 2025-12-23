@@ -3,6 +3,7 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>
 
+#include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
@@ -47,50 +48,30 @@ int TrackingIterationCounter::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int TrackingIterationCounter::process_event(PHCompositeNode *)
+int TrackingIterationCounter::process_event(PHCompositeNode *topNode)
 {
+  if (m_iterateSeeds)
+  {
+    iterateSeeds(topNode);
+
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
+
   for (const auto &[key, track] : *m_trackMap)
   {
-    auto* silseed = track->get_silicon_seed();
-    auto* tpcseed = track->get_tpc_seed();
-    if(silseed)
+    auto *silseed = track->get_silicon_seed();
+    auto *tpcseed = track->get_tpc_seed();
+    if (silseed)
     {
-      // on iter 1 only add 2+3 cluster seeds to iteration map
-      if(m_iteration==1)
-      {
-        if (silseed->size_cluster_keys() == 5)
-        {
-          int nmaps = 0;
-          int nintt = 0;
-          for (auto clusIter = silseed->begin_cluster_keys();
-               clusIter != silseed->end_cluster_keys();
-               ++clusIter)
-          {
-            auto trkrid = TrkrDefs::getTrkrId(*clusIter);
-            if (trkrid == TrkrDefs::inttId)
-            {
-              nintt++;
-            }
-            if (trkrid == TrkrDefs::mvtxId)
-            {
-              nmaps++;
-            }
-          }
-          if (nintt > 1 && nmaps > 2)
-          {
-            addClustersToIterationMap(silseed);
-          }
-        }
+     
+        addClustersToIterationMap(silseed);
+      
     }
-    else
+    if (tpcseed)
     {
-      addClustersToIterationMap(silseed);
+      addClustersToIterationMap(tpcseed);
     }
-    }
-    if(tpcseed)
-    {
-    addClustersToIterationMap(tpcseed);
-  }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -154,4 +135,50 @@ int TrackingIterationCounter::getNodes(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void TrackingIterationCounter::iterateSeeds(PHCompositeNode *topNode)
+{
+  if (m_trackMapName.find("Silicon") != std::string::npos)
+  {
+    iterateSiliconSeeds(topNode);
+  }
+}
+void TrackingIterationCounter::iterateSiliconSeeds(PHCompositeNode *topNode)
+{
+  auto seeds = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
+  for (const auto &seed : *seeds)
+  {
+    if (!seed)
+    {
+      continue;
+    }
+
+    if (m_iteration == 1)
+    {
+      if (seed->size_cluster_keys() > 4)
+      {
+        int nmaps = 0;
+        int nintt = 0;
+        for (auto clusIter = seed->begin_cluster_keys();
+             clusIter != seed->end_cluster_keys();
+             ++clusIter)
+        {
+          auto trkrid = TrkrDefs::getTrkrId(*clusIter);
+          if (trkrid == TrkrDefs::inttId)
+          {
+            nintt++;
+          }
+          if (trkrid == TrkrDefs::mvtxId)
+          {
+            nmaps++;
+          }
+        }
+        if (nintt > 1 && nmaps > 2)
+        {
+          addClustersToIterationMap(seed);
+        }
+      }
+    }
+  }
 }
