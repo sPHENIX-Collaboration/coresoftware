@@ -243,18 +243,10 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
       }
 
       unsigned int nlayers = 1;
-      unsigned int test_layer = TrkrDefs::getLayer(hitsetkey);
-      unsigned int layer_begin = test_layer;
-      if (test_layer < 4)
-      {
-        // This is a TPC module hitsetkey ("test_layer" will be 0, 1, 2)
-        nlayers = 16;
-        layer_begin = innerLayer[test_layer];
-      }
+      unsigned int layer_begin = TrkrDefs::getLayer(hitsetkey);
 
       unsigned int side = TpcDefs::getSide(hitsetkey);
       unsigned int sector = TpcDefs::getSectorId(hitsetkey);
-      // std::cout << "New module hitsetkey " << hitsetkey << "test_layer " << test_layer <<  " side " << side << " sector " << sector << " nlayers " << nlayers << " layer_begin " << layer_begin << std::endl;
 
       // loop over layers in module
       for (unsigned int this_layer = layer_begin; this_layer < layer_begin + nlayers; ++this_layer)
@@ -277,7 +269,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
           surf = surfMaps.getTpcSurface(this_hitsetkey, (unsigned int) sskey);
 
           Eigen::Vector3d localFrameTranslation(0, 0, 0);
-          if (test_layer < 4 || use_module_tilt_always)
+          if (use_module_tilt_always)
           {
             // get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
             unsigned int this_region = (this_layer - 7) / 16;                                           // 0-2
