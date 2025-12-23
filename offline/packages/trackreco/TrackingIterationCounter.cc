@@ -130,8 +130,10 @@ int TrackingIterationCounter::getNodes(PHCompositeNode *topNode)
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
+    if(!m_iterateSeeds){
     std::cout << PHWHERE << "No track map, bailing. " << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -179,6 +181,9 @@ void TrackingIterationCounter::iterateSiliconSeeds(PHCompositeNode *topNode)
           addClustersToIterationMap(seed);
         }
       }
+    }
+    else{
+      addClustersToIterationMap(seed);
     }
   }
 }
