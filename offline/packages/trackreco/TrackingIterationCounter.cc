@@ -3,10 +3,10 @@
 #include <trackbase/TrkrClusterIterationMapv1.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -57,16 +57,13 @@ int TrackingIterationCounter::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
 
-
   for (const auto &[key, track] : *m_trackMap)
   {
     auto *silseed = track->get_silicon_seed();
     auto *tpcseed = track->get_tpc_seed();
     if (silseed)
     {
-     
-        addClustersToIterationMap(silseed);
-      
+      addClustersToIterationMap(silseed);
     }
     if (tpcseed)
     {
@@ -130,9 +127,10 @@ int TrackingIterationCounter::getNodes(PHCompositeNode *topNode)
   m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
-    if(!m_iterateSeeds){
-    std::cout << PHWHERE << "No track map, bailing. " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    if (!m_iterateSeeds)
+    {
+      std::cout << PHWHERE << "No track map, bailing. " << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
 
@@ -182,7 +180,8 @@ void TrackingIterationCounter::iterateSiliconSeeds(PHCompositeNode *topNode)
         }
       }
     }
-    else{
+    else
+    {
       addClustersToIterationMap(seed);
     }
   }

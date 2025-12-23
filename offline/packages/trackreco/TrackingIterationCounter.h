@@ -26,7 +26,7 @@ class TrackingIterationCounter : public SubsysReco
 
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
   void iteration(const short int iter) { m_iteration = iter; }
-  void seedIterations() { m_iterateSeeds = true;  }
+  void seedIterations() { m_iterateSeeds = true; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
