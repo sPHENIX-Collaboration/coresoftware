@@ -126,3 +126,15 @@ void InputFileHandler::UpdateFileList()
   }
   return;
 }
+
+int InputFileHandler::ResetFileList()
+{
+  if (m_FileListCopy.empty())
+  {
+    std::cout << "ResetFileList can only be used with filelists" << std::endl;
+    return -1;
+  }
+  m_FileList.clear();
+  m_FileList = m_FileListCopy;
+  return 0;
+}

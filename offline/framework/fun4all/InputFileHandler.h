@@ -16,19 +16,24 @@ class InputFileHandler
   int AddFile(const std::string &filename);
   void AddToFileOpened(const std::string &filename) { m_FileListOpened.push_back(filename); }
   void Print(const std::string &what = "ALL") const;
-  int IsOpen() const { return m_IsOpen; }
+  virtual int IsOpen() const { return m_IsOpen; }
   void IsOpen(const int i) { m_IsOpen = i; }
   void SetVerbosity(const int i) { m_Verbosity = i; }
   int GetVerbosity() const { return m_Verbosity; }
-  const std::list<std::string> &GetFileList() const { return m_FileList; }
   void UpdateFileList();
   void FileName(const std::string &fn) { m_FileName = fn; }
   const std::string &FileName() const { return m_FileName; }
+  virtual int ResetFileList();
+  bool FileListEmpty() const { return m_FileList.empty(); }
+  void Repeat(const int i = -1) { m_Repeat = i; }
+  std::pair<std::list<std::string>::const_iterator, std::list<std::string>::const_iterator> FileOpenListBeginEnd() { return std::make_pair(m_FileListOpened.begin(), m_FileListOpened.end()); }
+  const std::list<std::string> &GetFileList() const { return m_FileListCopy; }
+  const std::list<std::string> &GetFileOpenedList() const { return m_FileListOpened; }
 
  private:
-  int m_IsOpen {0};
-  int m_Repeat {0};
-  int m_Verbosity {0};
+  int m_IsOpen{0};
+  int m_Repeat{0};
+  int m_Verbosity{0};
   std::string m_FileName;
   std::list<std::string> m_FileList;
   std::list<std::string> m_FileListCopy;
