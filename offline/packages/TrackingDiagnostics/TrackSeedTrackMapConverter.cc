@@ -6,7 +6,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/TrackSeed.h>
@@ -494,7 +494,7 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
         std::cout << PHWHERE << "SVTX node added" << std::endl;
       }
     }
-    m_trackMap = new SvtxTrackMap_v1;
+    m_trackMap = new SvtxTrackMap_v2;
     PHIODataNode<PHObject>* tracks_node =
         new PHIODataNode<PHObject>(m_trackMap, "SvtxTrackMap", "PHObject");
     tb_node->addNode(tracks_node);
@@ -530,7 +530,7 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
       }
     }
 
-    m_trackMap = new SvtxTrackMap_v1;
+    m_trackMap = new SvtxTrackMap_v2;
     PHIODataNode<PHObject>* tracks_node =
         new PHIODataNode<PHObject>(m_trackMap, m_trackMapName, "PHObject");
     tb_node->addNode(tracks_node);
