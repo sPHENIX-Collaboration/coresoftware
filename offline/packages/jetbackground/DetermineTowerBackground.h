@@ -13,6 +13,7 @@
 #include <jetbase/Jet.h>
 #include <string>
 #include <vector>
+#include <array>
 
 // forward declarations
 class PHCompositeNode;
@@ -37,7 +38,11 @@ class DetermineTowerBackground : public SubsysReco
   void SetBackgroundOutputName(const std::string &name) { _backgroundName = name; }
   void SetSeedType(int seed_type) { _seed_type = seed_type; }
   void SetFlow(int do_flow) { _do_flow = do_flow; };
-
+  void SetOverwriteCaloV2(std::string &url)
+  {
+    m_overwrite_average_calo_v2 = true;
+    m_overwrite_average_calo_v2_path = url;
+  }
   void SetSeedJetD(float D) { _seed_jet_D = D; };
   void SetSeedJetPt(float pt) { _seed_jet_pt = pt; };
   void SetSeedMaxConst(float max_const) { _seed_max_const = max_const; };
@@ -55,6 +60,13 @@ class DetermineTowerBackground : public SubsysReco
   int CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
 
+  int LoadCalibrations();
+
+  std::vector<float> _CENTRALITY_V2;
+  std::string m_calibName = "JET_AVERAGE_CALO_V2_SEPD_PSI2";
+  bool m_overwrite_average_calo_v2{false};
+  std::string m_overwrite_average_calo_v2_path;
+  
   int _do_flow{0};
   float _v2{0};
   float _Psi2{0};
