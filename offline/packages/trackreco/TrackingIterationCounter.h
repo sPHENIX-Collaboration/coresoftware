@@ -26,13 +26,17 @@ class TrackingIterationCounter : public SubsysReco
 
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
   void iteration(const short int iter) { m_iteration = iter; }
+  void seedIterations() { m_iterateSeeds = true; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
   int createNodes(PHCompositeNode *topNode);
   void addClustersToIterationMap(TrackSeed *seed);
+  void iterateSeeds(PHCompositeNode *topNode);
+  void iterateSiliconSeeds(PHCompositeNode *topNode);
   short int m_iteration = 1;
 
+  bool m_iterateSeeds = false;
   std::string m_trackMapName = "SvtxTrackMap";
   SvtxTrackMap *m_trackMap = nullptr;
   TrkrClusterIterationMap *m_iterMap = nullptr;

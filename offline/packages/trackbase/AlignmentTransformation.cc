@@ -245,7 +245,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
       unsigned int nlayers = 1;
       unsigned int test_layer = TrkrDefs::getLayer(hitsetkey);
       unsigned int layer_begin = test_layer;
-      if (test_layer < 4)
+      if (test_layer < 3)
       {
         // This is a TPC module hitsetkey ("test_layer" will be 0, 1, 2)
         nlayers = 16;
