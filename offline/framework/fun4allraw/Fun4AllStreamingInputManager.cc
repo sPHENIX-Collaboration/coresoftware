@@ -776,10 +776,9 @@ int Fun4AllStreamingInputManager::FillIntt()
   {
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
-  auto InttRawHitMapIt = m_InttRawHitMap.begin();
-  while (InttRawHitMapIt->first <= select_crossings)
+  while (m_InttRawHitMap.begin()->first <= select_crossings - m_intt_negative_bco)
   {
-    for (auto *intthititer : InttRawHitMapIt->second.InttRawHitVector)
+    for (auto *intthititer : m_InttRawHitMap.begin()->second.InttRawHitVector)
     {
       if (Verbosity() > 1)
       {
@@ -789,7 +788,21 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       inttcont->AddHit(intthititer);
     }
-    ++InttRawHitMapIt;
+    for (auto *iter : m_InttInputVector)
+    {
+      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
+      if (m_intt_negative_bco < 2)  // triggered mode
+      {
+        iter->clearPacketBClkStackMap(m_InttRawHitMap.begin()->first);
+        iter->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
+      }
+    }
+    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
+    m_InttRawHitMap.erase(m_InttRawHitMap.begin());
+    if (m_InttRawHitMap.empty())
+    {
+      break;
+    }
   }
   return 0;
 }
@@ -833,12 +846,12 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   select_crossings += m_RefBCO;
 
-  uint64_t ref_bco_minus_range = m_RefBCO <= m_mvtx_negative_bco ? 0 : m_RefBCO - m_mvtx_negative_bco;
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? 0 : m_RefBCO - m_mvtx_bco_range;
   if (Verbosity() > 2)
   {
     std::cout << "select MVTX crossings"
               << " from 0x" << std::hex << ref_bco_minus_range
-              << " to 0x" << select_crossings 
+              << " to 0x" << select_crossings - m_mvtx_bco_range
               << std::dec << std::endl;
   }
   // m_MvtxRawHitMap.empty() does not need to be checked here, FillMvtxPool returns non zero
@@ -968,37 +981,91 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   taggedPacketsFEEs.clear();
 
-  auto MvtxRawHitMapIt = m_MvtxRawHitMap.begin();
-  uint64_t lower_limit = m_mvtx_is_triggered ? select_crossings : select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco;
-  uint64_t upper_limit = m_mvtx_is_triggered ? select_crossings + m_mvtx_bco_range : select_crossings;
-
-  while (lower_limit <= MvtxRawHitMapIt->first && MvtxRawHitMapIt->first <= upper_limit)
+  if (m_mvtx_is_triggered)
   {
-    if (Verbosity() > 2)
+    while (select_crossings <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings + m_mvtx_bco_range)  // triggered
     {
-      std::cout << "Adding 0x" << std::hex << MvtxRawHitMapIt->first
-                << " ref: 0x" << select_crossings << std::dec << std::endl;
-    }
-    for (auto *mvtxFeeIdInfo : MvtxRawHitMapIt->second.MvtxFeeIdInfoVector)
-    {
-      if (Verbosity() > 1)
+      if (Verbosity() > 2)
       {
-        mvtxFeeIdInfo->identify();
+        std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
+                  << " ref: 0x" << select_crossings << std::dec << std::endl;
       }
-      mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
-    }
-    mvtxEvtHeader->AddL1Trg(MvtxRawHitMapIt->second.MvtxL1TrgBco);
-
-    for (auto *mvtxhititer : MvtxRawHitMapIt->second.MvtxRawHitVector)
-    {
-      if (Verbosity() > 1)
+      for (auto *mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
       {
-        mvtxhititer->identify();
+        if (Verbosity() > 1)
+        {
+          mvtxFeeIdInfo->identify();
+        }
+        mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
+        delete mvtxFeeIdInfo;
       }
-      mvtxcont->AddHit(mvtxhititer);
-    }
+      m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
+      mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
 
-    ++MvtxRawHitMapIt;
+      for (auto *mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+      {
+        if (Verbosity() > 1)
+        {
+          mvtxhititer->identify();
+        }
+        mvtxcont->AddHit(mvtxhititer);
+      }
+      for (auto *iter : m_MvtxInputVector)
+      {
+        iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+      m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
+      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+      // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
+      if (m_MvtxRawHitMap.empty())
+      {
+        break;
+      }
+    }
+  }
+  else
+  {
+    while (select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings)  // streamed
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
+                  << " ref: 0x" << select_crossings << std::dec << std::endl;
+      }
+      for (auto *mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
+      {
+        if (Verbosity() > 1)
+        {
+          mvtxFeeIdInfo->identify();
+        }
+        mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
+        delete mvtxFeeIdInfo;
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
+      mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
+
+      for (auto *mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+      {
+        if (Verbosity() > 1)
+        {
+          mvtxhititer->identify();
+        }
+        mvtxcont->AddHit(mvtxhititer);
+      }
+      for (auto *iter : m_MvtxInputVector)
+      {
+        iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+      }
+      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
+      m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
+      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
+      // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
+      if (m_MvtxRawHitMap.empty())
+      {
+        break;
+      }
+    }
   }
 
   return 0;
@@ -1355,7 +1422,7 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
 
 int Fun4AllStreamingInputManager::FillMvtxPool()
 {
-  uint64_t ref_bco_minus_range = m_RefBCO <= m_mvtx_negative_bco ? m_mvtx_negative_bco : m_RefBCO - m_mvtx_negative_bco;
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? m_mvtx_bco_range : m_RefBCO - m_mvtx_bco_range;
   for (auto *iter : m_MvtxInputVector)
   {
     if (Verbosity() > 3)
