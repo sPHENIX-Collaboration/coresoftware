@@ -172,7 +172,7 @@ int Fun4AllDstInputManager::run(const int nevents)
       return -1;
     }
 
-    if (OpenNextFile())
+    if (!OpenNextFile())
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;
@@ -494,13 +494,12 @@ readnextsync:
       std::cout << Name() << ": File exhausted while resyncing" << std::endl;
     }
     fileclose();
-    if (OpenNextFile())
+    if (!OpenNextFile())
     {
       return Fun4AllReturnCodes::SYNC_FAIL;
     }
     syncbranchname.clear();  // clear the sync branch name, who knows - it might be different on new file
-    // NOLINTNEXTLINE(hicpp-avoid-goto)
-    goto readnextsync;
+    goto readnextsync;// NOLINT(hicpp-avoid-goto)
   }
   if (!readfull)
   {
