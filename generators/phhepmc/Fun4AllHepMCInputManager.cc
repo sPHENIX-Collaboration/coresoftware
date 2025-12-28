@@ -3,12 +3,12 @@
 #include "PHHepMCGenEvent.h"
 #include "PHHepMCGenEventMap.h"
 
-#include <frog/FROG.h>
-
+#include <fun4all/DBInterface.h>
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInpu...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -91,8 +91,7 @@ int Fun4AllHepMCInputManager::fileopen(const std::string &filenam)
     fileclose();
   }
   filename = filenam;
-  FROG frog;
-  std::string fname(frog.location(filename));
+  std::string fname  = DBInterface::instance()->location(filename);
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << fname << std::endl;
@@ -165,7 +164,7 @@ int Fun4AllHepMCInputManager::run(const int /*nevents*/)
         return -1;
       }
 
-      if (OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         std::cout << "Fun4AllHepMCInputManager::run::" << Name() << ": No Input file from filelist opened" << std::endl;
         return -1;
