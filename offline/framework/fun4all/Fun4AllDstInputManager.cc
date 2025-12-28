@@ -3,6 +3,7 @@
 #include "DBInterface.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllServer.h"
+#include "InputFileHandlerReturnCodes.h"
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncDefs.h>
@@ -19,10 +20,7 @@
 
 #include <TSystem.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
-#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>
@@ -172,7 +170,7 @@ int Fun4AllDstInputManager::run(const int nevents)
       return -1;
     }
 
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;
@@ -198,7 +196,7 @@ readagain:
   if (!dummy)
   {
     fileclose();
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::SUCCESS)
     {
       goto readagain;// NOLINT(hicpp-avoid-goto)
     }
@@ -494,7 +492,7 @@ readnextsync:
       std::cout << Name() << ": File exhausted while resyncing" << std::endl;
     }
     fileclose();
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       return Fun4AllReturnCodes::SYNC_FAIL;
     }

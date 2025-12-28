@@ -1,4 +1,5 @@
 #include "InputFileHandler.h"
+#include "InputFileHandlerReturnCodes.h"
 
 #include <phool/phool.h>
 
@@ -95,10 +96,10 @@ int InputFileHandler::OpenNextFile()
     }
     else
     {
-      return 1;
+      return InputFileHandlerReturnCodes::SUCCESS;
     }
   }
-  return 0;
+  return InputFileHandlerReturnCodes::FAILURE;
 }
 
 void InputFileHandler::Print(const std::string & /* what */) const

@@ -1,0 +1,13 @@
+#ifndef FUN4ALL_INPUTFILEHANDLERRETURNCODES_H
+#define FUN4ALL_INPUTFILEHANDLERRETURNCODES_H
+
+namespace InputFileHandlerReturnCodes
+{
+  enum
+  {
+    SUCCESS = 1,
+    FAILURE = 0
+  };
+}
+
+#endif /* FUN4ALL_INPUTFILEHANDLERRETURNCODES_H */
