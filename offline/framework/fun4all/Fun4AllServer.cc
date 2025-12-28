@@ -3,6 +3,7 @@
 #include "Fun4AllDstOutputManager.h"
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllHistoManager.h"  // for Fun4AllHistoManager
+#include "Fun4AllInputManager.h"
 #include "Fun4AllMemoryTracker.h"
 #include "Fun4AllMonitoring.h"
 #include "Fun4AllOutputManager.h"
@@ -1385,6 +1386,11 @@ PHCompositeNode *Fun4AllServer::getNode(const std::string &name, const std::stri
 
 int Fun4AllServer::registerInputManager(Fun4AllInputManager *InManager)
 {
+  if (Verbosity() > 1)
+  {
+    std::cout << "Registering Input Manager " << InManager->Name()
+	      << std::endl;
+  }
   int iret = defaultSyncManager->registerInputManager(InManager);
   return iret;
 }

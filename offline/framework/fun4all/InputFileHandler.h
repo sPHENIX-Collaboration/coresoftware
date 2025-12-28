@@ -1,6 +1,7 @@
 #ifndef FUN4ALL_INPUTFILEHANDLER_H
 #define FUN4ALL_INPUTFILEHANDLER_H
 
+#include <cstdint>
 #include <list>
 #include <string>
 
@@ -9,8 +10,11 @@ class InputFileHandler
  public:
   InputFileHandler() = default;
   virtual ~InputFileHandler() = default;
-  virtual int fileopen(const std::string & /*filename*/) { return 0; }
+  virtual int fileopen(const std::string & /*filename*/);// { return 0; }
   virtual int fileclose() { return -1; }
+
+  virtual int ResetFileList();
+
   int OpenNextFile();
   int AddListFile(const std::string &filename);
   int AddFile(const std::string &filename);
@@ -18,12 +22,11 @@ class InputFileHandler
   void Print(const std::string &what = "ALL") const;
   virtual int IsOpen() const { return m_IsOpen; }
   void IsOpen(const int i) { m_IsOpen = i; }
-  void SetVerbosity(const int i) { m_Verbosity = i; }
-  int GetVerbosity() const { return m_Verbosity; }
+  void SetVerbosity(const uint64_t i) { m_Verbosity = i; }
+  uint64_t GetVerbosity() const { return m_Verbosity; }
   void UpdateFileList();
   void FileName(const std::string &fn) { m_FileName = fn; }
   const std::string &FileName() const { return m_FileName; }
-  virtual int ResetFileList();
   bool FileListEmpty() const { return m_FileList.empty(); }
   void Repeat(const int i = -1) { m_Repeat = i; }
   std::pair<std::list<std::string>::const_iterator, std::list<std::string>::const_iterator> FileOpenListBeginEnd() { return std::make_pair(m_FileListOpened.begin(), m_FileListOpened.end()); }
@@ -33,7 +36,7 @@ class InputFileHandler
  private:
   int m_IsOpen{0};
   int m_Repeat{0};
-  int m_Verbosity{0};
+  uint64_t m_Verbosity{0};
   std::string m_FileName;
   std::list<std::string> m_FileList;
   std::list<std::string> m_FileListCopy;

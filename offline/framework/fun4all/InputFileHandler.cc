@@ -138,3 +138,9 @@ int InputFileHandler::ResetFileList()
   m_FileList = m_FileListCopy;
   return 0;
 }
+
+int InputFileHandler::fileopen(const std::string &fname)
+{
+  std::cout << "InputFileHandler::fileopen opening " << fname << std::endl;
+  return 0;
+}

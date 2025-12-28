@@ -7,7 +7,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include <cstdint>  // for uintmax_t
+#include <cstdint>  // for uintFumax_t
 #include <fstream>
 #include <iostream>
 
@@ -92,3 +92,11 @@ int Fun4AllInputManager::RejectEvent()
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void Fun4AllInputManager::Verbosity(const uint64_t ival)
+{
+  Fun4AllBase::Verbosity(ival);
+  SetVerbosity(ival);
+  return;
+}
+

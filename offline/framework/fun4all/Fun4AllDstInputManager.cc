@@ -47,6 +47,8 @@ Fun4AllDstInputManager::~Fun4AllDstInputManager()
 
 int Fun4AllDstInputManager::fileopen(const std::string &filenam)
 {
+  std::cout << "Fun4AllDstInputManager::fileopen opening "
+	    << filenam << std::endl;
   Fun4AllServer *se = Fun4AllServer::instance();
   if (IsOpen())
   {

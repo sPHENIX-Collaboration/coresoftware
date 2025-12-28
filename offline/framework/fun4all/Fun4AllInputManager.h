@@ -21,6 +21,7 @@ class Fun4AllSyncManager;
 class Fun4AllInputManager : public Fun4AllBase, public InputFileHandler
 {
  public:
+  using Fun4AllBase::Verbosity;
   ~Fun4AllInputManager() override;
   virtual int run(const int /*nevents=0*/) { return -1; }
   virtual int ReadInRunNode(PHCompositeNode * /*RunNode*/) { return -1; }
@@ -48,7 +49,8 @@ class Fun4AllInputManager : public Fun4AllBase, public InputFileHandler
   const std::string &InputNode() { return m_InputNode; }
   void InputNode(const std::string &innode) { m_InputNode = innode; }
   const std::string &TopNodeName() const { return m_TopNodeName; }
-
+  void Verbosity(const uint64_t ival) override;
+  
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
   Fun4AllSyncManager *MySyncManager() { return m_MySyncManager; }
