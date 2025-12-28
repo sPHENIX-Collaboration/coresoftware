@@ -9,6 +9,7 @@
 #include <ffaobjects/RunHeader.h>
 
 #include <fun4all/DBInterface.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -346,7 +347,7 @@ int Fun4AllDstPileupInputManager::runOne(const int nevents)
       return -1;
     }
 
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;
