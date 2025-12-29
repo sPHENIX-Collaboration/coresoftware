@@ -42,7 +42,7 @@ libphhepmc_la_LIBADD = \
   -lgsl \
   -lgslcblas
 
-ROOT_DICTS = \
+ROOTDICTS = \
   PHGenIntegral_Dict.cc \
   PHGenIntegralv1_Dict.cc \
   PHHepMC_io_Dict.cc \
@@ -64,7 +64,7 @@ libphhepmc_la_SOURCES = \
   PHHepMCParticleSelectorDecayProductChain.cc
 
 libphhepmc_io_la_SOURCES = \
-  $(ROOT_DICTS) \
+  $(ROOTDICTS) \
   PHHepMCGenEvent.cc \
   PHHepMCGenEventv1.cc \
   PHHepMCGenEventMap.cc \
