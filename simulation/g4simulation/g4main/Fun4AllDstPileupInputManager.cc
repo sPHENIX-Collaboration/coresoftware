@@ -375,10 +375,9 @@ readagain:
   if (!dummy)
   {
     fileclose();
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::SUCCESS)
     {
-      // NOLINTNEXTLINE(hicpp-avoid-goto)
-      goto readagain;
+      goto readagain; // NOLINT(hicpp-avoid-goto)
     }
     return -1;
   }
