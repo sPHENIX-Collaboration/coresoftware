@@ -386,8 +386,7 @@ readagain:
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
-    // NOLINTNEXTLINE(hicpp-avoid-goto)
-    goto readagain;
+    goto readagain; // NOLINT(hicpp-avoid-goto)
   }
   return 0;
 }

@@ -208,8 +208,7 @@ readagain:
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cout << "Fun4AllSingleDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
-    // NOLINTNEXTLINE(hicpp-avoid-goto)
-    goto readagain;
+    goto readagain; // NOLINT(hicpp-avoid-goto)
   }
 
   // load relevant DST nodes to internal pointers
