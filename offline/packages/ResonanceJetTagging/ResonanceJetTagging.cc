@@ -60,8 +60,6 @@
 #include <set>       // for set
 #include <string>
 
-//class PHG4TruthInfoContainer;
-
 /**
  * ResonanceJetTagging is a class developed to reconstruct jets containing a D-meson
  * The class can be adapted to tag jets using any kind of particle
