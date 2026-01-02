@@ -3,6 +3,7 @@
 #include "DBInterface.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllServer.h"
+#include "InputFileHandlerReturnCodes.h"
 
 #include <ffaobjects/RunHeader.h>
 
@@ -89,7 +90,7 @@ int Fun4AllRunNodeInputManager::run(const int /*nevents*/)
       return -1;
     }
 
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;

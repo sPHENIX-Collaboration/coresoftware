@@ -1,4 +1,5 @@
 #include "InputFileHandler.h"
+#include "InputFileHandlerReturnCodes.h"
 
 #include <phool/phool.h>
 
@@ -95,10 +96,10 @@ int InputFileHandler::OpenNextFile()
     }
     else
     {
-      return 1;
+      return InputFileHandlerReturnCodes::SUCCESS;
     }
   }
-  return 0;
+  return InputFileHandlerReturnCodes::FAILURE;
 }
 
 void InputFileHandler::Print(const std::string & /* what */) const
@@ -125,4 +126,22 @@ void InputFileHandler::UpdateFileList()
     m_FileList.pop_front();
   }
   return;
+}
+
+int InputFileHandler::ResetFileList()
+{
+  if (m_FileListCopy.empty())
+  {
+    std::cout << "ResetFileList can only be used with filelists" << std::endl;
+    return -1;
+  }
+  m_FileList.clear();
+  m_FileList = m_FileListCopy;
+  return 0;
+}
+
+int InputFileHandler::fileopen(const std::string &fname)
+{
+  std::cout << "InputFileHandler::fileopen opening " << fname << std::endl;
+  return 0;
 }

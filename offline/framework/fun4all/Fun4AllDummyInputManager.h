@@ -29,8 +29,8 @@ class Fun4AllDummyInputManager : public Fun4AllInputManager
   int ResetFileList() override;
 
  private:
-  int m_NumEvents = 0;
-  int m_SumEvents = 0;
+  int m_NumEvents {0};
+  int m_SumEvents {0};
 };
 
 #endif
