@@ -15,10 +15,9 @@
 /// Class declarations for use in the analysis module
 class PHCompositeNode;
 class SvtxTrack;
-class PHG4Particlev2;
 class PHG4Particle;
 class ParticleFlowElement;
-class JetContainerv1;
+class JetContainer;
 
 namespace CLHEP
 {
@@ -71,16 +70,16 @@ class ResonanceJetTagging : public SubsysReco
   ResonanceJetTagging(const std::string &name = "ResonanceJetTagging", const TAG tag = TAG::D0, const std::string &KFparticle_Container_name = "");
 
   // Destructor
-  virtual ~ResonanceJetTagging();
+  ~ResonanceJetTagging() override = default;
 
   /// SubsysReco initialize processing method
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode *) override;
 
   /// SubsysReco event processing method
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *) override;
 
   /// SubsysReco end processing method
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode *) override;
 
   // Particle flow
   void setParticleFlowEtaAcc(double etamin, double etamax)
@@ -257,12 +256,12 @@ class ResonanceJetTagging : public SubsysReco
   fastjet::JetAlgorithm m_jetalgo;
   fastjet::RecombinationScheme m_recomb_scheme;
 
-  JetContainerv1 *m_taggedJetContainer = nullptr;
-  JetContainerv1 *m_truth_taggedJetContainer = nullptr;
+  JetContainer *m_taggedJetContainer {nullptr};
+  JetContainer *m_truth_taggedJetContainer {nullptr};
 
   int m_tag_pdg;
-  unsigned int m_jet_id = 0;
-  unsigned int m_truth_jet_id = 0;
+  unsigned int m_jet_id {0};
+  unsigned int m_truth_jet_id {0};
   bool m_dorec;
   bool m_dotruth;
   int m_nDaughters;
@@ -271,17 +270,17 @@ class ResonanceJetTagging : public SubsysReco
 
   /// Methods for grabbing the data
   int tagHFHadronic(PHCompositeNode *topNode);
-  void findTaggedJets(PHCompositeNode *topNode, PHG4Particlev2 *Tag, const std::vector<int> &TagDecays);
+  void findTaggedJets(PHCompositeNode *topNode, PHG4Particle *Tag, const std::vector<int> &TagDecays);
   void addParticleFlow(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addTracks(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, const std::vector<int> &TagDecays, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void addClusters(PHCompositeNode *topNode, std::vector<fastjet::PseudoJet> &particles, std::map<int, std::pair<Jet::SRC, int>> &fjMap);
   void findMCTaggedJets(PHCompositeNode *topNode);
 
-  bool isAcceptableParticleFlow(ParticleFlowElement *pfPart);
-  bool isAcceptableTrack(SvtxTrack *track);
-  bool isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
-  bool isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster);
-  bool isDecay(HepMC::GenParticle *particle, const std::vector<PHG4Particlev2*> &decays);
+  bool isAcceptableParticleFlow(ParticleFlowElement *pfPart) const;
+  bool isAcceptableTrack(SvtxTrack *track) const;
+  bool isAcceptableEMCalCluster(CLHEP::Hep3Vector &E_vec_cluster) const;
+  bool isAcceptableHCalCluster(CLHEP::Hep3Vector &E_vec_cluster) const;
+  bool isDecay(HepMC::GenParticle *particle, const std::vector<PHG4Particle*> &decays);
   bool isDecay(SvtxTrack *track, const std::vector<int> &decays);
   int createJetNode(PHCompositeNode *topNode);
 };
