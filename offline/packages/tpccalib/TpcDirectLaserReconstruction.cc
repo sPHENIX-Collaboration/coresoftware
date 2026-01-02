@@ -32,10 +32,9 @@
 #include <TVector3.h>
 
 #include <algorithm>
-#include <boost/format.hpp>
-
 #include <cassert>
 #include <cmath>
+#include <format>
 
 namespace
 {
@@ -428,7 +427,7 @@ void TpcDirectLaserReconstruction::create_histograms()
   for (int GEMhistiter = 0; GEMhistiter < 8; GEMhistiter++)
   {  // (pos z) laser 1 {0,60}, laser 2 {60,0}, laser 3 {0,-60}, laser 4 {-60,0}, (neg z) laser 5 {0,60}, laser 2 {60,0}, laser 3 {0,-60}, laser 4 {-60,0}
      //    sprintf(GEM_bin_label, "laser %i", GEMhistiter + 1);
-    GEM_bin_label = (boost::format("laser %i") % (GEMhistiter + 1)).str();
+    GEM_bin_label = std::format("laser {}", (GEMhistiter + 1));
     h_GEMs_hit->GetXaxis()->SetBinLabel(GEMhistiter + 1, GEM_bin_label.c_str());
     h_layers_hit->GetXaxis()->SetBinLabel(GEMhistiter + 1, GEM_bin_label.c_str());
   }

@@ -8,17 +8,15 @@
 
 #include <ffaobjects/EventHeader.h>
 
+#include <fun4all/DBInterface.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <odbc++/connection.h>
-#include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 #include <odbc++/statement.h>
-#include <odbc++/types.h>
 
 #include <TCanvas.h>
 #include <TF1.h>
@@ -28,12 +26,9 @@
 #include <TH3.h>
 #include <TLine.h>
 #include <TPaveText.h>
-#include <TString.h>
 #include <TStyle.h>
 #include <TTree.h>
 #include <TVector3.h>
-
-#include <boost/format.hpp>
 
 #include <cmath>
 #include <format>
@@ -678,17 +673,14 @@ int TpcLaminationFitting::InterpolatePhiDistortions(TH2 *simPhiDistortion[2])
 int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 {
 
-  odbc::Connection *dbConnection = odbc::DriverManager::getConnection("daq", "", "");
   std::string sql = "SELECT * FROM gl1_scalers WHERE runnumber = " + std::to_string(m_runnumber) + ";";
-  odbc::Statement *stmt = dbConnection->createStatement();
+  odbc::Statement *stmt =  DBInterface::instance()->getStatement("daq");
   odbc::ResultSet *resultSet = stmt->executeQuery(sql);
   std::array<std::array<uint64_t, 3>, 64> scalers{};  // initialize to zero
   if (!resultSet)
   {
     std::cerr << "No db found for run number " << m_runnumber << ". Cannot get ZDC rate so aborting run" << std::endl;
     delete resultSet;
-    delete stmt;
-    delete dbConnection;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -702,8 +694,6 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   }
 
   delete resultSet;
-  delete stmt;
-  delete dbConnection;
 
   m_ZDC_coincidence = (1.0*scalers[3][2]/scalers[0][2])/(106e-9);
 
