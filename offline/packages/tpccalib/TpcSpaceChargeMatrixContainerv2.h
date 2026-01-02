@@ -28,7 +28,7 @@ class TpcSpaceChargeMatrixContainerv2 : public TpcSpaceChargeMatrixContainer
   //@{
 
   /// identify object
-  void identify(std::ostream& os = std::cout) const override;
+  void identify(std::ostream& out = std::cout) const override;
 
   /// get grid dimensions
   void get_grid_dimensions(int& phibins, int& rbins, int& zbins) const override;

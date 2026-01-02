@@ -23,13 +23,13 @@
 namespace
 {
   // phi range
-  static constexpr float m_phimin = 0;
-  static constexpr float m_phimax = 2. * M_PI;
+  constexpr float m_phimin = 0;
+  constexpr float m_phimax = 2. * M_PI;
 
   // TODO: could try to get the r and z range from TPC geometry
   // r range
-  static constexpr float m_rmin = 20;
-  static constexpr float m_rmax = 78;
+  constexpr float m_rmin = 20;
+  constexpr float m_rmax = 78;
 
   // z range
   float m_zmax =  102.605;
@@ -78,7 +78,7 @@ void TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections(const std::st
   std::cout << "TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections - loading " << filename << std::endl;
 
   // open TFile
-  auto distortion_tfile = TFile::Open(filename.c_str());
+  auto *distortion_tfile = TFile::Open(filename.c_str());
   if (!distortion_tfile)
   {
     std::cout << "TpcSpaceChargeMatrixInversion::load_cm_distortion_corrections - cannot open " << filename << std::endl;
@@ -113,7 +113,7 @@ void TpcSpaceChargeMatrixInversion::load_average_distortion_corrections(const st
   std::cout << "TpcSpaceChargeMatrixInversion::load_average_distortion_corrections - loading " << filename << std::endl;
 
   // open TFile
-  auto distortion_tfile = TFile::Open(filename.c_str());
+  auto *distortion_tfile = TFile::Open(filename.c_str());
   if (!distortion_tfile)
   {
     std::cout << "TpcSpaceChargeMatrixInversion::load_average_distortion_corrections - cannot open " << filename << std::endl;
@@ -147,7 +147,7 @@ bool TpcSpaceChargeMatrixInversion::add_from_file(const std::string& shortfilena
 {
   // get filename from frog
   FROG frog;
-  const auto filename = frog.location(shortfilename);
+  const auto *const filename = frog.location(shortfilename);
 
   // open TFile
   std::unique_ptr<TFile> inputfile(TFile::Open(filename));
@@ -166,7 +166,7 @@ bool TpcSpaceChargeMatrixInversion::add_from_file(const std::string& shortfilena
   }
 
   // add object
-  return add(*source.get());
+  return add(*source);
 }
 
 //_____________________________________________________________________
