@@ -181,7 +181,7 @@ void SingleGl1PoolInput::Print(const std::string &what) const
     for (const auto &bcliter : m_Gl1RawHitMap)
     {
       std::cout << PHWHERE << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter : bcliter.second)
+      for (auto *feeiter : bcliter.second)
       {
         std::cout << PHWHERE << "fee: " << feeiter->getBCO()
                   << " at " << std::hex << feeiter << std::dec << std::endl;
@@ -204,7 +204,7 @@ void SingleGl1PoolInput::CleanupUsedPackets(const uint64_t bclk)
   {
     if (iter.first <= bclk)
     {
-      for (auto pktiter : iter.second)
+      for (auto *pktiter : iter.second)
       {
         delete pktiter;
       }
