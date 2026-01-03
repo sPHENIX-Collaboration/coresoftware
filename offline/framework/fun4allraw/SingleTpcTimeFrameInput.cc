@@ -11,6 +11,7 @@
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/PHTimer.h>  // for PHTimer
 
@@ -162,7 +163,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
                 << " GetEventiterator == null for targetBCO " << targetBCO << std::endl;
     }
 
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       if (Verbosity() > 1)
       {
@@ -216,7 +217,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;

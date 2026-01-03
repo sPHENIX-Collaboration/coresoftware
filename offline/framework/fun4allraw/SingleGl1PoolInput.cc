@@ -5,6 +5,8 @@
 
 #include <ffarawobjects/Gl1Packetv3.h>
 
+#include <fun4all/InputFileHandlerReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNode.h>          // for PHNode
@@ -45,7 +47,7 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -58,7 +60,7 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;

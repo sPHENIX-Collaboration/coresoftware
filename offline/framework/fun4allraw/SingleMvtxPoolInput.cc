@@ -8,7 +8,9 @@
 #include <ffarawobjects/MvtxRawEvtHeaderv2.h>
 #include <ffarawobjects/MvtxRawHitContainerv1.h>
 #include <ffarawobjects/MvtxRawHitv1.h>
+
 #include <fun4all/Fun4AllUtils.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -54,7 +56,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -68,7 +70,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;

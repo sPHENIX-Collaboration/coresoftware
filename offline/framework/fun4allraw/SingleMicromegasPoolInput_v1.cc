@@ -3,12 +3,14 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
+#include <qautils/QAHistManagerDef.h>
+#include <qautils/QAUtil.h>
+
 #include <ffarawobjects/MicromegasRawHitContainerv3.h>
 #include <ffarawobjects/MicromegasRawHitv3.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <qautils/QAHistManagerDef.h>
-#include <qautils/QAUtil.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -120,7 +122,7 @@ void SingleMicromegasPoolInput_v1::FillPool(const unsigned int /*nbclks*/)
 
   while (!GetEventiterator())  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -133,7 +135,7 @@ void SingleMicromegasPoolInput_v1::FillPool(const unsigned int /*nbclks*/)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;

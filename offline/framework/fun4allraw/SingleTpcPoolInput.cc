@@ -6,6 +6,8 @@
 #include <ffarawobjects/TpcRawHitContainerv2.h>
 #include <ffarawobjects/TpcRawHitv2.h>
 
+#include <fun4all/InputFileHandlerReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
@@ -33,7 +35,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -46,7 +48,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;
