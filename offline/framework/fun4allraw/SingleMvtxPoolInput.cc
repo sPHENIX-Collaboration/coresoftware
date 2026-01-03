@@ -29,9 +29,9 @@
 #include <set>
 
 SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
-  : SingleStreamingInput(name)
+  : SingleStreamingInput(name), plist(new Packet *[2])
 {
-  plist = new Packet *[2];
+  
   m_rawHitContainerName = "MVTXRAWHIT";
 }
 
@@ -106,7 +106,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
         plist[i]->identify();
       }
 
-      if (poolmap.find(plist[i]->getIdentifier()) == poolmap.end())
+      if (!poolmap.contains(plist[i]->getIdentifier()))
       {
         if (Verbosity() > 1)
         {
@@ -201,10 +201,32 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
       }
     }
     // Assign L1 trg to Strobe windows data.
-    for (auto &lv1Bco : gtmL1BcoSet)
+    for (const auto &lv1Bco : gtmL1BcoSet)
     {
       auto it = m_BclkStack.lower_bound(lv1Bco);
-      auto const strb_it = (it == m_BclkStack.begin()) ? (*it == lv1Bco ? it : m_BclkStack.cend()) : --it;
+//      auto const strb_it = (it == m_BclkStack.begin()) ? (*it == lv1Bco ? it : m_BclkStack.cend()) : --it;
+// this is equivalent but human readable for the above:
+      auto strb_it = m_BclkStack.cend();
+
+      if (it == m_BclkStack.begin())
+      {
+	if (*it == lv1Bco)
+	{
+	  strb_it = it;
+	}
+	else
+	{
+	  strb_it = m_BclkStack.cend();
+	}
+      }
+      else
+      {
+	// safe because it != begin()
+	auto prev = it;
+	--prev;
+	strb_it = prev;
+      }
+     
       if (strb_it != m_BclkStack.cend())
       {
         if (StreamingInputManager())
@@ -352,16 +374,15 @@ bool SingleMvtxPoolInput::GetSomeMoreEvents()
         // 		<< std::dec << std::endl;
         return true;
       }
-      else
-      {
-        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+      
+              std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
                   << " with stuck bclk: " << std::hex << bcliter.second
                   << " current bco range: 0x" << m_MvtxRawHitMap.begin()->first
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_MvtxRawHitMap.begin()->first)
                   << std::dec << std::endl;
         toerase.insert(bcliter.first);
-      }
+     
     }
   }
   for (auto iter : toerase)
