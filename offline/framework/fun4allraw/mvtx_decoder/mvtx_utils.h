@@ -4,13 +4,14 @@
 #ifndef MVTXDECODER_UTILS_H
 #define MVTXDECODER_UTILS_H
 
+#include <phool/recoConsts.h>
+
 #include <cstdint>
 #include <cassert>
 #include <iostream>
 #include <limits>
 #include <array>
 #include <memory>
-#include <phool/recoConsts.h>
 
 namespace mvtx_utils {
 

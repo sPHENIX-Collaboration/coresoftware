@@ -4,13 +4,12 @@
 //     <d44292025>
 
 #include "PixelData.h"
+
 #include <iostream>
 #include <sstream>
 
-using namespace mvtx;
-
 //________________________________________________________________________________
-void ChipPixelData::print() const
+void mvtx::ChipPixelData::print() const
 {
   // print chip data
   std::cout << "Chip " << mChipID << " | " << mPixels.size() << " hits" << std::endl;
@@ -21,7 +20,7 @@ void ChipPixelData::print() const
 }
 
 //________________________________________________________________________________
-std::string ChipPixelData::getErrorDetails(int pos) const
+std::string mvtx::ChipPixelData::getErrorDetails(int pos) const
 {
   // if possible, extract more detailed info about the error
   if (pos == int(ChipStat::RepeatingPixel))
