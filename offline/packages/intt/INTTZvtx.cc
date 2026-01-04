@@ -44,6 +44,8 @@ INTTZvtx::INTTZvtx(const std::string& runType,
   , draw_event_display(drawEventDisplay)
   , m_enable_qa(enableQA)
   , print_message_opt(printMessageOpt)
+  , MC_z_diff_peak(-777.)
+  , MC_z_diff_width(-777.)
 {
   // SetsPhenixStyle();
   gErrorIgnoreLevel = kWarning;  // note : To not print the "print plot info."
@@ -51,8 +53,6 @@ INTTZvtx::INTTZvtx(const std::string& runType,
   temp_event_zvtx_info.clear();
   avg_event_zvtx_vec.clear();
   Z_resolution_vec.clear();
-  MC_z_diff_peak = -777.;
-  MC_z_diff_width = -777.;
 
   N_group_info_detail = {-1., -1., -1., -1.};
 
@@ -75,28 +75,11 @@ INTTZvtx::INTTZvtx(const std::string& runType,
 INTTZvtx::~INTTZvtx()
 {
   // histos for z-vertex calculation
-  if (evt_possible_z != nullptr)
-  {
     delete evt_possible_z;
-  }
-  if (line_breakdown_hist != nullptr)
-  {
     delete line_breakdown_hist;
-  }
-  if (gaus_fit != nullptr)
-  {
     delete gaus_fit;
-  }
-  if (zvtx_finder != nullptr)
-  {
     delete zvtx_finder;
-  }
-
-  if (z_range_gr != nullptr)
-  {
     delete z_range_gr;
-  }
-
   if (draw_event_display)
   {
     // QA histograms
@@ -106,21 +89,11 @@ INTTZvtx::~INTTZvtx()
     delete evt_phi_diff_inner_phi;
     delete evt_inner_outer_phi;
     delete phi_diff_inner_phi;
-
     delete c2;
     // all the pads related to c2 are automatically deleted
-    if (temp_event_xy != nullptr)
-    {
       delete temp_event_xy;
-    }
-    if (temp_event_rz != nullptr)
-    {
       delete temp_event_rz;
-    }
-    if (z_range_gr_draw != nullptr)
-    {
       delete z_range_gr_draw;
-    }
   }
 
   if (m_enable_qa)
@@ -660,16 +633,16 @@ bool INTTZvtx::ProcessEvt(
     Clus_InnerPhi_Offset = (inner_i.y - beam_origin.second < 0)
                                ? atan2(inner_i.y - beam_origin.second,
                                        inner_i.x - beam_origin.first) *
-                                         (180. / TMath::Pi()) +
+                                         (180. / M_PI) +
                                      360
                                : atan2(inner_i.y - beam_origin.second,
                                        inner_i.x - beam_origin.first) *
-                                     (180. / TMath::Pi());
+                                     (180. / M_PI);
 
     // std::cout<<"inner clu phi : "<<Clus_InnerPhi_Offset<<" origin: "<< temp_sPH_inner_nocolumn_vec[inner_i].phi <<std::endl;
     // std::cout<<" ("<<Clus_InnerPhi_Offset<<", "<< temp_sPH_inner_nocolumn_vec[inner_i].phi<<")" <<std::endl;
     //
-    inner_clu_phi_map[int(Clus_InnerPhi_Offset)].push_back({false, inner_i});
+    inner_clu_phi_map[int(Clus_InnerPhi_Offset)].emplace_back(false, inner_i);
 
     if (inner_i.z > 0)
     {
@@ -686,13 +659,13 @@ bool INTTZvtx::ProcessEvt(
     Clus_OuterPhi_Offset = (outer_i.y - beam_origin.second < 0)
                                ? atan2(outer_i.y - beam_origin.second,
                                        outer_i.x - beam_origin.first) *
-                                         (180. / TMath::Pi()) +
+                                         (180. / M_PI) +
                                      360
                                : atan2(outer_i.y - beam_origin.second,
                                        outer_i.x - beam_origin.first) *
-                                     (180. / TMath::Pi());
+                                     (180. / M_PI);
 
-    outer_clu_phi_map[int(Clus_OuterPhi_Offset)].push_back({false, outer_i});
+    outer_clu_phi_map[int(Clus_OuterPhi_Offset)].emplace_back(false, outer_i);
 
     if (outer_i.z > 0)
     {
@@ -722,20 +695,36 @@ bool INTTZvtx::ProcessEvt(
       Clus_InnerPhi_Offset = (inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.y - beam_origin.second < 0)
                                  ? atan2(inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.y - beam_origin.second,
                                          inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.x - beam_origin.first) *
-                                           (180. / TMath::Pi()) +
+                                           (180. / M_PI) +
                                        360
                                  : atan2(inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.y - beam_origin.second,
                                          inner_clu_phi_map[inner_phi_i][inner_phi_clu_i].second.x - beam_origin.first) *
-                                       (180. / TMath::Pi());
+                                       (180. / M_PI);
 
       // todo: change the outer phi scan range
       // note : the outer phi index, -1, 0, 1
       for (int scan_i = -1; scan_i < 2; scan_i++)
       {
-        int true_scan_i = ((inner_phi_i + scan_i) < 0)     ? 360 + (inner_phi_i + scan_i)
-                          : ((inner_phi_i + scan_i) > 359) ? (inner_phi_i + scan_i) - 360
-                                                           : inner_phi_i + scan_i;
+        // int true_scan_i = ((inner_phi_i + scan_i) < 0)     ? 360 + (inner_phi_i + scan_i)
+        //                   : ((inner_phi_i + scan_i) > 359) ? (inner_phi_i + scan_i) - 360
+        //                                                    : inner_phi_i + scan_i;
+// The following expression is longer but much easier to understand
+	int tmp = inner_phi_i + scan_i;
+	int true_scan_i;
 
+	if (tmp < 0)
+	{
+	  true_scan_i = 360 + tmp;
+	}
+	else if (tmp > 359)
+	{
+	  true_scan_i = tmp - 360;
+	}
+	else
+	{
+	  true_scan_i = tmp;
+	}
+// end of nested condition readable translation
         // note : N clusters in that outer phi cell
         for (unsigned int outer_phi_clu_i = 0; outer_phi_clu_i < outer_clu_phi_map[true_scan_i].size(); outer_phi_clu_i++)
         {
@@ -747,11 +736,11 @@ bool INTTZvtx::ProcessEvt(
           Clus_OuterPhi_Offset = (outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.y - beam_origin.second < 0)
                                      ? atan2(outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.y - beam_origin.second,
                                              outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.x - beam_origin.first) *
-                                               (180. / TMath::Pi()) +
+                                               (180. / M_PI) +
                                            360
                                      : atan2(outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.y - beam_origin.second,
                                              outer_clu_phi_map[true_scan_i][outer_phi_clu_i].second.x - beam_origin.first) *
-                                           (180. / TMath::Pi());
+                                           (180. / M_PI);
 
           double delta_phi = get_delta_phi(Clus_InnerPhi_Offset, Clus_OuterPhi_Offset);
 
@@ -921,13 +910,13 @@ bool INTTZvtx::ProcessEvt(
     }
 
     //--std::cout<<"--6--"<<std::endl;
-    if (z_range_gr != nullptr)
-    {
+    
+    
       delete z_range_gr;
-    }
+    
     z_range_gr = new TGraphErrors(eff_N_comb.size(),
-                                  &eff_N_comb[0], &eff_z_mid[0],
-                                  &eff_N_comb_e[0], &eff_z_range[0]);
+                                  eff_N_comb.data(), eff_z_mid.data(),
+                                  eff_N_comb_e.data(), eff_z_range.data());
 
     z_range_gr->Fit(zvtx_finder, "NQ", "", 0, N_comb[N_comb.size() - 1]);
     double width_density_par = (double(eff_N_comb.size()) / fabs(temp_event_zvtx_info[2] - temp_event_zvtx_info[1]));
@@ -1055,12 +1044,12 @@ bool INTTZvtx::ProcessEvt(
     // drawing event display & QA histograms
     if (draw_event_display)
     {
-      if (temp_event_xy != nullptr)
-      {
+      
+      
         delete temp_event_xy;
-      }
+      
       temp_event_xy = new TGraph(temp_sPH_nocolumn_vec[0].size(),
-                                 &temp_sPH_nocolumn_vec[0][0], &temp_sPH_nocolumn_vec[1][0]);
+                                 temp_sPH_nocolumn_vec[0].data(), temp_sPH_nocolumn_vec[1].data());
       temp_event_xy->SetTitle("INTT event display X-Y plane");
       temp_event_xy->GetXaxis()->SetLimits(-150, 150);
       temp_event_xy->GetYaxis()->SetRangeUser(-150, 150);
@@ -1070,12 +1059,12 @@ bool INTTZvtx::ProcessEvt(
       temp_event_xy->SetMarkerColor(2);
       temp_event_xy->SetMarkerSize(1);
 
-      if (temp_event_rz != nullptr)
-      {
+      
+      
         delete temp_event_rz;
-      }
+      
       temp_event_rz = new TGraph(temp_sPH_nocolumn_rz_vec[0].size(),
-                                 &temp_sPH_nocolumn_rz_vec[0][0], &temp_sPH_nocolumn_rz_vec[1][0]);
+                                 temp_sPH_nocolumn_rz_vec[0].data(), temp_sPH_nocolumn_rz_vec[1].data());
       temp_event_rz->SetTitle("INTT event display r-Z plane");
       temp_event_rz->GetXaxis()->SetLimits(-500, 500);
       temp_event_rz->GetYaxis()->SetRangeUser(-150, 150);
@@ -1110,11 +1099,11 @@ bool INTTZvtx::ProcessEvt(
       // note : --------------------------------------------------------------------------------------------------------------------------
       // std::cout<<"test tag 2-5"<<std::endl;
       pad_z->cd();
-      if (z_range_gr_draw != nullptr)
-      {
+      
+      
         delete z_range_gr_draw;
-      }
-      z_range_gr_draw = new TGraphErrors(N_comb.size(), &N_comb[0], &z_mid[0], &N_comb_e[0], &z_range[0]);
+      
+      z_range_gr_draw = new TGraphErrors(N_comb.size(), N_comb.data(), z_mid.data(), N_comb_e.data(), z_range.data());
       z_range_gr_draw->GetYaxis()->SetRangeUser(-650, 650);
       z_range_gr_draw->GetXaxis()->SetTitle("Index");
       z_range_gr_draw->GetYaxis()->SetTitle("Z [mm]");
@@ -1609,11 +1598,10 @@ double INTTZvtx::GetZdiffPeakMC()
   {
     return MC_z_diff_peak;
   }
-  else
-  {
-    std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_peak wasn't assigned, the value is still -777. Pleak check" << std::endl;
+  
+      std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_peak wasn't assigned, the value is still -777. Pleak check" << std::endl;
     return -777.;
-  }
+ 
 }
 
 double INTTZvtx::GetZdiffWidthMC()
@@ -1622,11 +1610,10 @@ double INTTZvtx::GetZdiffWidthMC()
   {
     return MC_z_diff_width;
   }
-  else
-  {
-    std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_width wasn't assigned, the value is still -777. Pleak check" << std::endl;
+  
+      std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_width wasn't assigned, the value is still -777. Pleak check" << std::endl;
     return -777.;
-  }
+ 
 }
 
 std::vector<double> INTTZvtx::GetEvtZPeak()
@@ -1681,13 +1668,12 @@ double INTTZvtx::Get_extrapolation(double given_y, double p0x, double p0y, doubl
   {  // note : the line is vertical (if z is along the x axis)
     return p0x;
   }
-  else
-  {
-    double slope = (p1y - p0y) / (p1x - p0x);
+  
+      double slope = (p1y - p0y) / (p1x - p0x);
     double yIntercept = p0y - slope * p0x;
     double xCoordinate = (given_y - yIntercept) / slope;
     return xCoordinate;
-  }
+ 
 }
 
 std::pair<double, double> INTTZvtx::Get_possible_zvtx(double rvtx, std::vector<double> p0, std::vector<double> p1)  // note : inner p0, outer p1, vector {r,z}, -> {y,x}
@@ -1841,7 +1827,7 @@ std::vector<double> INTTZvtx::find_Ngroup(TH1* hist_in)
     }
   }
 
-  if (group_entry_vec.size() > 0)
+  if (!group_entry_vec.empty())
   {
     peak_group_ratio = group_entry_vec[peak_group_ID] / (accumulate(group_entry_vec.begin(), group_entry_vec.end(), 0.0));
   }
