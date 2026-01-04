@@ -11,10 +11,10 @@
 #include <TLine.h>
 #include <TTree.h>
 
-#include <boost/format.hpp>
 
 #include <algorithm>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <numeric>
 #include <string>
@@ -222,7 +222,7 @@ void INTTZvtx::Init()
 
   if (draw_event_display)
   {
-    c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
+    c2->Print(std::format("{}/temp_event_display.pdf", out_folder_directory).c_str());
   }
 
   m_initialized = true;
@@ -500,7 +500,7 @@ void INTTZvtx::InitTreeOut()
 {
   if (m_enable_qa)
   {
-    out_file = new TFile((boost::format("%s/INTT_zvtx.root") % out_folder_directory).str().c_str(), "RECREATE");
+    out_file = new TFile(std::format("{}/INTT_zvtx.root", out_folder_directory).c_str(), "RECREATE");
     tree_out = new TTree("tree_Z", "INTT Z info.");
 
     tree_out->Branch("eID", &out_eID);
@@ -685,7 +685,7 @@ bool INTTZvtx::ProcessEvt(
     {
       tree_out->Fill();
     }
-    std::cout << (boost::format("In INTTZvtx class, event : %i, return low clu continue, NClus : %ld %lu %lu\n") % event_i % total_NClus % temp_sPH_inner_nocolumn_vec.size() % temp_sPH_outer_nocolumn_vec.size()).str();
+    std::cout << std::format("In INTTZvtx class, event : {}, return low clu continue, NClus : {} {} {}\n", event_i, total_NClus, temp_sPH_inner_nocolumn_vec.size(), temp_sPH_outer_nocolumn_vec.size());
     return false;
   }
 
@@ -1135,7 +1135,7 @@ bool INTTZvtx::ProcessEvt(
       temp_event_xy->Draw("ap");
       // temp_event_xy -> Draw("p");
       draw_text->DrawLatex(0.2, 0.85,
-                           (boost::format("eID : %i, inner Ncluster : %zu, outer Ncluster : %zu") % event_i % temp_sPH_inner_nocolumn_vec.size() % temp_sPH_outer_nocolumn_vec.size()).str().c_str());
+                           std::format("eID : {}, inner Ncluster : {}, outer Ncluster : {}", event_i, temp_sPH_inner_nocolumn_vec.size(), temp_sPH_outer_nocolumn_vec.size()).c_str());
 
       //--std::cout<<"--9--"<<std::endl;
       // note : --------------------------------------------------------------------------------------------------------------------------
@@ -1146,7 +1146,7 @@ bool INTTZvtx::ProcessEvt(
       coord_line->DrawLine(0, -150, 0, 150);
       coord_line->DrawLine(-500, 0, 500, 0);
       draw_text->DrawLatex(0.2, 0.85, "Negative radius : Clu_{outer} > 180^{0}");
-      // draw_text -> DrawLatex(0.2, 0.81, (boost::format("EffSig avg : %.2f mm",temp_event_zvtx_info[0]));
+      // draw_text -> DrawLatex(0.2, 0.81, std::format("EffSig avg : {:.2f} mm",temp_event_zvtx_info[0]));
 
       // note : --------------------------------------------------------------------------------------------------------------------------
       // std::cout<<"test tag 2-5"<<std::endl;
@@ -1166,9 +1166,9 @@ bool INTTZvtx::ProcessEvt(
                                    z_range_gr_draw->GetXaxis()->GetXmax(), N_group_info[2]);
       eff_sig_range_line->DrawLine(z_range_gr_draw->GetXaxis()->GetXmin(), N_group_info[3],
                                    z_range_gr_draw->GetXaxis()->GetXmax(), N_group_info[3]);
-      draw_text->DrawLatex(0.2, 0.82, (boost::format("#color[2]{Event Zvtx %.2f mm, error : #pm%.2f}") % zvtx_finder->GetParameter(0) % zvtx_finder->GetParError(0)).str().c_str());
-      draw_text->DrawLatex(0.2, 0.78, (boost::format("#color[2]{Width density : %.6f}") % (width_density_par)).str().c_str());
-      draw_text->DrawLatex(0.2, 0.74, (boost::format("#color[2]{Width (%.0f%%) : %.2f to %.2f mm #rightarrow %.2f mm}") % (Integrate_portion * 100.) % temp_event_zvtx_info[2] % temp_event_zvtx_info[1] % (std::fabs(temp_event_zvtx_info[2] - temp_event_zvtx_info[1]) / 2.)).str().c_str());
+      draw_text->DrawLatex(0.2, 0.82, std::format("#color[2]{{Event Zvtx {:.2f} mm, error : #pm{:.2f}}}", zvtx_finder->GetParameter(0), zvtx_finder->GetParError(0)).c_str());
+      draw_text->DrawLatex(0.2, 0.78, std::format("#color[2]{{Width density : {:.6f}}}", (width_density_par)).c_str());
+      draw_text->DrawLatex(0.2, 0.74, std::format("#color[2]{{Width (%.0f%%) : {:.2f} to {:.2f} mm #rightarrow {:.2f} mm}}", (Integrate_portion * 100.), temp_event_zvtx_info[2], temp_event_zvtx_info[1], (std::abs(temp_event_zvtx_info[2] - temp_event_zvtx_info[1]) / 2.)).c_str());
 
       // z_range_gr_draw -> Draw("p same");
       zvtx_finder->Draw("lsame");
@@ -1182,9 +1182,9 @@ bool INTTZvtx::ProcessEvt(
                                    evt_possible_z->GetBinContent(evt_possible_z->GetMaximumBin()) / 2.,
                                    evt_possible_z->GetXaxis()->GetXmax(),
                                    evt_possible_z->GetBinContent(evt_possible_z->GetMaximumBin()) / 2.);
-      draw_text->DrawLatex(0.2, 0.82, (boost::format("N group : %.0f") % N_group_info[0]).str().c_str());
-      draw_text->DrawLatex(0.2, 0.78, (boost::format("Main peak ratio : %.2f") % N_group_info[1]).str().c_str());
-      draw_text->DrawLatex(0.2, 0.74, (boost::format("good z tag : %i") % good_zvtx_tag).str().c_str());
+      draw_text->DrawLatex(0.2, 0.82, std::format("N group : {:.0f}", N_group_info[0]).c_str());
+      draw_text->DrawLatex(0.2, 0.78, std::format("Main peak ratio : {:.2f}", N_group_info[1]).c_str());
+      draw_text->DrawLatex(0.2, 0.74, std::format("good z tag : {}", good_zvtx_tag).c_str());
 
       // note : --------------------------------------------------------------------------------------------------------------------------
       pad_z_line->cd();
@@ -1201,11 +1201,11 @@ bool INTTZvtx::ProcessEvt(
                                      final_selection_widthD, line_breakdown_hist->GetMaximum());
       final_fit_range_line->DrawLine(final_selection_widthU, line_breakdown_hist->GetMinimum(),
                                      final_selection_widthU, line_breakdown_hist->GetMaximum());
-      draw_text->DrawLatex(0.2, 0.82, (boost::format("Gaus mean %.2f mm") % loose_offset_peak).str().c_str());
-      draw_text->DrawLatex(0.2, 0.78, (boost::format("Width : %.2f mm") % tight_offset_width).str().c_str());
-      draw_text->DrawLatex(0.2, 0.74, (boost::format("Reduced #chi2 : %.3f") % (gaus_fit->GetChisquare() / double(gaus_fit->GetNDF()))).str().c_str());
-      draw_text->DrawLatex(0.2, 0.70, (boost::format("Norm. entry / Width : %.6f mm") % gaus_ratio).str().c_str());
-      draw_text->DrawLatex(0.2, 0.66, (boost::format("LB Geo mean : %.3f mm") % out_LB_geo_mean).str().c_str());
+      draw_text->DrawLatex(0.2, 0.82, std::format("Gaus mean {:.2f} mm", loose_offset_peak).c_str());
+      draw_text->DrawLatex(0.2, 0.78, std::format("Width : {:.2f} mm", tight_offset_width).c_str());
+      draw_text->DrawLatex(0.2, 0.74, std::format("Reduced #chi2 : {:.3f}", (gaus_fit->GetChisquare() / double(gaus_fit->GetNDF()))).c_str());
+      draw_text->DrawLatex(0.2, 0.70, std::format("Norm. entry / Width : {:.6f} mm", gaus_ratio).c_str());
+      draw_text->DrawLatex(0.2, 0.66, std::format("LB Geo mean : {:.3f} mm", out_LB_geo_mean).c_str());
 
       if (N_group_info_detail[0] != -1)
       {
@@ -1213,13 +1213,13 @@ bool INTTZvtx::ProcessEvt(
                                      line_breakdown_hist->GetBinContent(line_breakdown_hist->GetMaximumBin()) / 2.,
                                      line_breakdown_hist->GetXaxis()->GetXmax(),
                                      line_breakdown_hist->GetBinContent(line_breakdown_hist->GetMaximumBin()) / 2.);
-        draw_text->DrawLatex(0.2, 0.62, (boost::format("N group : %.0f") % N_group_info_detail[0]).str().c_str());
-        draw_text->DrawLatex(0.2, 0.58, (boost::format("Main peak ratio : %.2f") % N_group_info_detail[1]).str().c_str());
+        draw_text->DrawLatex(0.2, 0.62, std::format("N group : {:.0f}", N_group_info_detail[0]).c_str());
+        draw_text->DrawLatex(0.2, 0.58, std::format("Main peak ratio : {:.2f}", N_group_info_detail[1]).c_str());
       }
 
       if (run_type == "MC")
       {
-        draw_text->DrawLatex(0.2, 0.54, (boost::format("True MCz : %.3f mm") % (TrigZvtxMC * 10.)).str().c_str());
+        draw_text->DrawLatex(0.2, 0.54, std::format("True MCz : {:.3f} mm", (TrigZvtxMC * 10.)).c_str());
       }
 
       // note : --------------------------------------------------------------------------------------------------------------------------
@@ -1241,22 +1241,22 @@ bool INTTZvtx::ProcessEvt(
 
       if (draw_event_display && (event_i % print_rate) == 0 /*&& good_zvtx_tag == true*/)
       {
-        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
+        c2->Print(std::format("{}/temp_event_display.pdf", out_folder_directory).c_str());
       }
       else if (draw_event_display && (final_zvtx > 0 || final_zvtx < -450))
       {
         std::cout << "In INTTZvtx class, event :" << event_i << " weird zvtx " << std::endl;
-        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
+        c2->Print(std::format("{}/temp_event_display.pdf", out_folder_directory).c_str());
       }
       else if (draw_event_display && run_type == "MC" && fabs(final_zvtx - (TrigZvtxMC * 10.)) > 2. && total_NClus > 3000)
       {
         std::cout << "In INTTZvtx class, event :" << event_i << " High NClus, poor Z : " << fabs(final_zvtx - (TrigZvtxMC * 10.)) << std::endl;
-        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
+        c2->Print(std::format("{}/temp_event_display.pdf", out_folder_directory).c_str());
       }
       else if (draw_event_display && run_type == "MC" && fabs(final_zvtx - (TrigZvtxMC * 10.)) > 2.)
       {
         std::cout << "In INTTZvtx class, event :" << event_i << " low NClus, poor Z : " << fabs(final_zvtx - (TrigZvtxMC * 10.)) << std::endl;
-        c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
+        c2->Print(std::format("{}/temp_event_display.pdf", out_folder_directory).c_str());
       }
 
       // std::cout<<"--12--"<<std::endl;
@@ -1369,7 +1369,7 @@ void INTTZvtx::PrintPlots()
 
   if (draw_event_display)
   {
-    c2->Print((boost::format("%s/temp_event_display.pdf") % out_folder_directory).str().c_str());
+    c2->Print(std::format("{}/temp_event_display.pdf", out_folder_directory).c_str());
     c2->Clear();
   }
 
@@ -1385,7 +1385,7 @@ void INTTZvtx::PrintPlots()
     ltx->SetTextAlign(31);
 
     std::string plot_text = (run_type == "MC") ? "Simulation" : "Work-in-progress";
-    std::string inttlabel_text = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str();
+    std::string inttlabel_text = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text);
 
     // note : ---------------------------------------------------------------------------------------
 
@@ -1404,38 +1404,38 @@ void INTTZvtx::PrintPlots()
 
     eff_sig_range_line->DrawLine(avg_event_zvtx_info[1], 0, avg_event_zvtx_info[1], avg_event_zvtx->GetMaximum());
     eff_sig_range_line->DrawLine(avg_event_zvtx_info[2], 0, avg_event_zvtx_info[2], avg_event_zvtx->GetMaximum());
-    draw_text->DrawLatex(0.21, 0.87, (boost::format("EffSig min : %.2f mm") % avg_event_zvtx_info[1]).str().c_str());
-    draw_text->DrawLatex(0.21, 0.83, (boost::format("EffSig max : %.2f mm") % avg_event_zvtx_info[2]).str().c_str());
-    draw_text->DrawLatex(0.21, 0.79, (boost::format("EffSig avg : %.2f mm") % avg_event_zvtx_info[0]).str().c_str());
-    c1->Print((boost::format("%s/avg_event_zvtx.pdf") % out_folder_directory).str().c_str());
+    draw_text->DrawLatex(0.21, 0.87, std::format("EffSig min : {:.2f} mm", avg_event_zvtx_info[1]).c_str());
+    draw_text->DrawLatex(0.21, 0.83, std::format("EffSig max : {:.2f} mm", avg_event_zvtx_info[2]).c_str());
+    draw_text->DrawLatex(0.21, 0.79, std::format("EffSig avg : {:.2f} mm", avg_event_zvtx_info[0]).c_str());
+    c1->Print(std::format("{}/avg_event_zvtx.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     width_density->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/width_density.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/width_density.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     ES_width->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/ES_width.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/ES_width.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     ES_width_ratio->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/ES_width_ratio.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/ES_width_ratio.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_fitError->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/zvtx_evt_fitError.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/zvtx_evt_fitError.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
@@ -1464,13 +1464,13 @@ void INTTZvtx::PrintPlots()
       gaus_fit_2->Draw("lsame");
       eff_sig_range_line->DrawLine(Z_resolution_vec_info[1], 0, Z_resolution_vec_info[1], Z_resolution->GetMaximum());
       eff_sig_range_line->DrawLine(Z_resolution_vec_info[2], 0, Z_resolution_vec_info[2], Z_resolution->GetMaximum());
-      draw_text->DrawLatex(0.21, 0.87, (boost::format("EffSig min : %.2f mm") % Z_resolution_vec_info[1]).str().c_str());
-      draw_text->DrawLatex(0.21, 0.83, (boost::format("EffSig max : %.2f mm") % Z_resolution_vec_info[2]).str().c_str());
-      draw_text->DrawLatex(0.21, 0.79, (boost::format("EffSig avg : %.2f mm") % Z_resolution_vec_info[0]).str().c_str());
-      draw_text->DrawLatex(0.21, 0.71, (boost::format("Gaus mean  : %.2f mm") % gaus_fit_2->GetParameter(1)).str().c_str());
-      draw_text->DrawLatex(0.21, 0.67, (boost::format("Gaus width : %.2f mm") % fabs(gaus_fit_2->GetParameter(2))).str().c_str());
+      draw_text->DrawLatex(0.21, 0.87, std::format("EffSig min : {:.2f} mm", Z_resolution_vec_info[1]).c_str());
+      draw_text->DrawLatex(0.21, 0.83, std::format("EffSig max : {:.2f} mm", Z_resolution_vec_info[2]).c_str());
+      draw_text->DrawLatex(0.21, 0.79, std::format("EffSig avg : {:.2f} mm", Z_resolution_vec_info[0]).c_str());
+      draw_text->DrawLatex(0.21, 0.71, std::format("Gaus mean  : {:.2f} mm", gaus_fit_2->GetParameter(1)).c_str());
+      draw_text->DrawLatex(0.21, 0.67, std::format("Gaus width : {:.2f} mm", fabs(gaus_fit_2->GetParameter(2))).c_str());
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print((boost::format("%s/Z_resolution.pdf") % out_folder_directory).str().c_str());
+      c1->Print(std::format("{}/Z_resolution.pdf", out_folder_directory).c_str());
       c1->Clear();
 
       MC_z_diff_peak = gaus_fit_2->GetParameter(1);
@@ -1485,7 +1485,7 @@ void INTTZvtx::PrintPlots()
     {
       Z_resolution_Nclu->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print((boost::format("%s/Z_resolution_Nclu.pdf") % out_folder_directory).str().c_str());
+      c1->Print(std::format("{}/Z_resolution_Nclu.pdf", out_folder_directory).c_str());
       c1->Clear();
     }
     // note : ---------------------------------------------------------------------------------------
@@ -1494,7 +1494,7 @@ void INTTZvtx::PrintPlots()
     {
       Z_resolution_pos->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print((boost::format("%s/Z_resolution_pos.pdf") % out_folder_directory).str().c_str());
+      c1->Print(std::format("{}/Z_resolution_pos.pdf", out_folder_directory).c_str());
       c1->Clear();
     }
     // note : ---------------------------------------------------------------------------------------
@@ -1503,99 +1503,99 @@ void INTTZvtx::PrintPlots()
     {
       Z_resolution_pos_cut->Draw("colz0");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-      c1->Print((boost::format("%s/Z_resolution_pos_cut.pdf") % out_folder_directory).str().c_str());
+      c1->Print(std::format("{}/Z_resolution_pos_cut.pdf", out_folder_directory).c_str());
       c1->Clear();
     }
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_fitError_corre->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/zvtx_evt_fitError_corre.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/zvtx_evt_fitError_corre.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_nclu_corre->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/zvtx_evt_nclu_corre.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/zvtx_evt_nclu_corre.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     zvtx_evt_width_corre->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/zvtx_evt_width_corre.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/zvtx_evt_width_corre.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     gaus_width_Nclu->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/gaus_width_Nclu.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/gaus_width_Nclu.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     gaus_rchi2_Nclu->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/gaus_rchi2_Nclu.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/gaus_rchi2_Nclu.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     final_fit_width->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/final_fit_width.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/final_fit_width.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
 
     N_track_candidate_Nclu->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/N_track_candidate_Nclu.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/N_track_candidate_Nclu.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_width_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/peak_group_width_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/peak_group_width_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_ratio_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/peak_group_ratio_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/peak_group_ratio_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     N_group_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/N_group_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/N_group_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_detail_width_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/peak_group_detail_width_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/peak_group_detail_width_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     peak_group_detail_ratio_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/peak_group_detail_ratio_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/peak_group_detail_ratio_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     N_group_detail_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
-    c1->Print((boost::format("%s/N_group_detail_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/N_group_detail_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
     line_breakdown_gaus_ratio_hist->Draw("hist");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
 
-    c1->Print((boost::format("%s/line_breakdown_gaus_ratio_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/line_breakdown_gaus_ratio_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : ---------------------------------------------------------------------------------------
@@ -1609,12 +1609,12 @@ void INTTZvtx::PrintPlots()
     line_breakdown_gaus_width_hist->Draw("hist");
     gaus_fit->Draw("lsame");
 
-    draw_text->DrawLatex(0.2, 0.82, (boost::format("Gaus mean %.2f mm") % gaus_fit->GetParameter(1)).str().c_str());
-    draw_text->DrawLatex(0.2, 0.78, (boost::format("Width : %.2f mm") % fabs(gaus_fit->GetParameter(2))).str().c_str());
-    draw_text->DrawLatex(0.2, 0.74, (boost::format("Reduced #chi2 : %.3f") % (gaus_fit->GetChisquare() / double(gaus_fit->GetNDF()))).str().c_str());
+    draw_text->DrawLatex(0.2, 0.82, std::format("Gaus mean {:.2f} mm", gaus_fit->GetParameter(1)).c_str());
+    draw_text->DrawLatex(0.2, 0.78, std::format("Width : {:.2f} mm", fabs(gaus_fit->GetParameter(2))).c_str());
+    draw_text->DrawLatex(0.2, 0.74, std::format("Reduced #chi2 : {:.3f}", (gaus_fit->GetChisquare() / double(gaus_fit->GetNDF()))).c_str());
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, inttlabel_text.c_str());
 
-    c1->Print((boost::format("%s/line_breakdown_gaus_width_hist.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/line_breakdown_gaus_width_hist.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     delete ltx;

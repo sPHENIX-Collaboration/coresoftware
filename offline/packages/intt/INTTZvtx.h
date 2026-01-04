@@ -76,7 +76,7 @@ class INTTZvtx
            std::pair<double, double> DCACut = {-1, 1},
            int NCluCutl = 20,
            int NCluCut = 10000,
-           unsigned int zvtxCal_require = 15,
+           unsigned int zvtxCalRequire = 15,
            std::pair<double, double> zvtxQAWidth = {39.62, 65.36},
            bool drawEventDisplay = true,
            bool enableQA = true,
