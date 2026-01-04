@@ -1,6 +1,8 @@
 #include "INTTXYvtx.h"
 
 #include <TF1.h>
+#include <TH1.h>
+#include <TH2.h>
 
 #include <cmath>
 #include <format>
@@ -457,7 +459,7 @@ std::pair<double, double> INTTXYvtx::GetFinalVTXxy()
   return {current_vtxX, current_vtxY};
 }
 
-std::pair<std::vector<TH2F*>, std::vector<TH1F*>> INTTXYvtx::GetHistFinal()
+std::pair<std::vector<TH2*>, std::vector<TH1F*>> INTTXYvtx::GetHistFinal()
 {
   return {
       {DCA_distance_inner_phi_peak_final,
@@ -1333,7 +1335,7 @@ void INTTXYvtx::EndRun()
   return;
 }
 
-void INTTXYvtx::TH2F_threshold(TH2F* hist, double threshold)
+void INTTXYvtx::TH2F_threshold(TH2* hist, double threshold)
 {
   double max_cut = hist->GetMaximum() * threshold;
 
@@ -1349,7 +1351,7 @@ void INTTXYvtx::TH2F_threshold(TH2F* hist, double threshold)
   }
 }
 
-void INTTXYvtx::TH2F_threshold_advanced_2(TH2F* hist, double threshold)
+void INTTXYvtx::TH2F_threshold_advanced_2(TH2* hist, double threshold)
 {
   // note : this function is to remove the background of the 2D histogram
   // note : but the threshold is given by average of the contents of the top "chosen_bin" bins and timing the threshold
@@ -1573,7 +1575,7 @@ void INTTXYvtx::Draw2TGraph(
   }
 }
 
-std::vector<double> INTTXYvtx::SumTH2FColumnContent(TH2F* hist_in)
+std::vector<double> INTTXYvtx::SumTH2FColumnContent(TH2* hist_in)
 {
   std::vector<double> sum_vec;
   sum_vec.clear();
@@ -1603,7 +1605,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::Get4vtx(std::pair<double, doub
   return vec_out;
 }
 
-void INTTXYvtx::TH2F_FakeClone(TH2F* hist_in, TH2F* hist_out)
+void INTTXYvtx::TH2F_FakeClone(TH2* hist_in, TH2* hist_out)
 {
   if (hist_in->GetNbinsX() != hist_out->GetNbinsX() ||
       hist_in->GetNbinsY() != hist_out->GetNbinsY())
@@ -1636,7 +1638,7 @@ void INTTXYvtx::TH1F_FakeClone(TH1F* hist_in, TH1F* hist_out)
 }
 
 void INTTXYvtx::TH2FSampleLineFill(
-    TH2F* hist_in,
+    TH2* hist_in,
     double segmentation,
     std::pair<double, double> inner_clu,
     std::pair<double, double> outer_clu) const
