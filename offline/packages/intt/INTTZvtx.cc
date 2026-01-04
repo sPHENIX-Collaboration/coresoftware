@@ -51,7 +51,6 @@ INTTZvtx::INTTZvtx(const std::string& runType,
   temp_event_zvtx_info.clear();
   avg_event_zvtx_vec.clear();
   Z_resolution_vec.clear();
-  good_comb_id = 0;
   MC_z_diff_peak = -777.;
   MC_z_diff_width = -777.;
 
@@ -68,46 +67,6 @@ INTTZvtx::INTTZvtx(const std::string& runType,
   outer_clu_phi_map.clear();
   inner_clu_phi_map = std::vector<std::vector<std::pair<bool, clu_info>>>(360);
   outer_clu_phi_map = std::vector<std::vector<std::pair<bool, clu_info>>>(360);
-
-  ///////////
-  // ntuple variables
-  out_eID = 0;
-  bco_full_out = 0;
-  N_cluster_inner_out = -1;
-  N_cluster_outer_out = -1;
-  out_ES_zvtx = -1;
-  out_ES_zvtxE = -1;
-  out_ES_rangeL = -1;
-  out_ES_rangeR = -1;
-  out_ES_N_good = -1;
-  out_ES_width_density = -1;
-
-  out_LB_Gaus_Mean_mean = -1;
-  out_LB_Gaus_Mean_meanE = -1;
-  out_LB_Gaus_Mean_chi2 = -1;
-  out_LB_Gaus_Mean_width = -1;
-
-  out_LB_Gaus_Width_width = -1;
-  out_LB_Gaus_Width_size_width = -1;
-  out_LB_Gaus_Width_offset = -1;
-
-  out_mid_cut_Ngroup = -1;
-  out_mid_cut_peak_width = -1;
-  out_mid_cut_peak_ratio = -1;
-
-  out_LB_cut_Ngroup = -1;
-  out_LB_cut_peak_width = -1;
-  out_LB_cut_peak_ratio = -1;
-
-  out_LB_geo_mean = -1;
-  out_good_zvtx_tag = false;
-
-  MC_true_zvtx = -9999.;
-
-  out_centrality_bin = -1;
-
-  out_N_cluster_north = 0;
-  out_N_cluster_south = 0;
 
   ///////////
   //    Init();
