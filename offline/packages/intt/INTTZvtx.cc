@@ -11,7 +11,6 @@
 #include <TLine.h>
 #include <TTree.h>
 
-
 #include <algorithm>
 #include <filesystem>
 #include <format>
@@ -75,11 +74,11 @@ INTTZvtx::INTTZvtx(const std::string& runType,
 INTTZvtx::~INTTZvtx()
 {
   // histos for z-vertex calculation
-    delete evt_possible_z;
-    delete line_breakdown_hist;
-    delete gaus_fit;
-    delete zvtx_finder;
-    delete z_range_gr;
+  delete evt_possible_z;
+  delete line_breakdown_hist;
+  delete gaus_fit;
+  delete zvtx_finder;
+  delete z_range_gr;
   if (draw_event_display)
   {
     // QA histograms
@@ -91,9 +90,9 @@ INTTZvtx::~INTTZvtx()
     delete phi_diff_inner_phi;
     delete c2;
     // all the pads related to c2 are automatically deleted
-      delete temp_event_xy;
-      delete temp_event_rz;
-      delete z_range_gr_draw;
+    delete temp_event_xy;
+    delete temp_event_rz;
+    delete z_range_gr_draw;
   }
 
   if (m_enable_qa)
@@ -708,23 +707,23 @@ bool INTTZvtx::ProcessEvt(
         // int true_scan_i = ((inner_phi_i + scan_i) < 0)     ? 360 + (inner_phi_i + scan_i)
         //                   : ((inner_phi_i + scan_i) > 359) ? (inner_phi_i + scan_i) - 360
         //                                                    : inner_phi_i + scan_i;
-// The following expression is longer but much easier to understand
-	int tmp = inner_phi_i + scan_i;
-	int true_scan_i;
+        // The following expression is longer but much easier to understand
+        int tmp = inner_phi_i + scan_i;
+        int true_scan_i;
 
-	if (tmp < 0)
-	{
-	  true_scan_i = 360 + tmp;
-	}
-	else if (tmp > 359)
-	{
-	  true_scan_i = tmp - 360;
-	}
-	else
-	{
-	  true_scan_i = tmp;
-	}
-// end of nested condition readable translation
+        if (tmp < 0)
+        {
+          true_scan_i = 360 + tmp;
+        }
+        else if (tmp > 359)
+        {
+          true_scan_i = tmp - 360;
+        }
+        else
+        {
+          true_scan_i = tmp;
+        }
+        // end of nested condition readable translation
         // note : N clusters in that outer phi cell
         for (unsigned int outer_phi_clu_i = 0; outer_phi_clu_i < outer_clu_phi_map[true_scan_i].size(); outer_phi_clu_i++)
         {
@@ -910,10 +909,9 @@ bool INTTZvtx::ProcessEvt(
     }
 
     //--std::cout<<"--6--"<<std::endl;
-    
-    
-      delete z_range_gr;
-    
+
+    delete z_range_gr;
+
     z_range_gr = new TGraphErrors(eff_N_comb.size(),
                                   eff_N_comb.data(), eff_z_mid.data(),
                                   eff_N_comb_e.data(), eff_z_range.data());
@@ -1044,10 +1042,8 @@ bool INTTZvtx::ProcessEvt(
     // drawing event display & QA histograms
     if (draw_event_display)
     {
-      
-      
-        delete temp_event_xy;
-      
+      delete temp_event_xy;
+
       temp_event_xy = new TGraph(temp_sPH_nocolumn_vec[0].size(),
                                  temp_sPH_nocolumn_vec[0].data(), temp_sPH_nocolumn_vec[1].data());
       temp_event_xy->SetTitle("INTT event display X-Y plane");
@@ -1059,10 +1055,8 @@ bool INTTZvtx::ProcessEvt(
       temp_event_xy->SetMarkerColor(2);
       temp_event_xy->SetMarkerSize(1);
 
-      
-      
-        delete temp_event_rz;
-      
+      delete temp_event_rz;
+
       temp_event_rz = new TGraph(temp_sPH_nocolumn_rz_vec[0].size(),
                                  temp_sPH_nocolumn_rz_vec[0].data(), temp_sPH_nocolumn_rz_vec[1].data());
       temp_event_rz->SetTitle("INTT event display r-Z plane");
@@ -1099,10 +1093,9 @@ bool INTTZvtx::ProcessEvt(
       // note : --------------------------------------------------------------------------------------------------------------------------
       // std::cout<<"test tag 2-5"<<std::endl;
       pad_z->cd();
-      
-      
-        delete z_range_gr_draw;
-      
+
+      delete z_range_gr_draw;
+
       z_range_gr_draw = new TGraphErrors(N_comb.size(), N_comb.data(), z_mid.data(), N_comb_e.data(), z_range.data());
       z_range_gr_draw->GetYaxis()->SetRangeUser(-650, 650);
       z_range_gr_draw->GetXaxis()->SetTitle("Index");
@@ -1598,10 +1591,9 @@ double INTTZvtx::GetZdiffPeakMC()
   {
     return MC_z_diff_peak;
   }
-  
-      std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_peak wasn't assigned, the value is still -777. Pleak check" << std::endl;
-    return -777.;
- 
+
+  std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_peak wasn't assigned, the value is still -777. Pleak check" << std::endl;
+  return -777.;
 }
 
 double INTTZvtx::GetZdiffWidthMC()
@@ -1610,10 +1602,9 @@ double INTTZvtx::GetZdiffWidthMC()
   {
     return MC_z_diff_width;
   }
-  
-      std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_width wasn't assigned, the value is still -777. Pleak check" << std::endl;
-    return -777.;
- 
+
+  std::cout << "In INTTZvtx. Are you playing with data? The MC_z_diff_width wasn't assigned, the value is still -777. Pleak check" << std::endl;
+  return -777.;
 }
 
 std::vector<double> INTTZvtx::GetEvtZPeak()
@@ -1668,12 +1659,11 @@ double INTTZvtx::Get_extrapolation(double given_y, double p0x, double p0y, doubl
   {  // note : the line is vertical (if z is along the x axis)
     return p0x;
   }
-  
-      double slope = (p1y - p0y) / (p1x - p0x);
-    double yIntercept = p0y - slope * p0x;
-    double xCoordinate = (given_y - yIntercept) / slope;
-    return xCoordinate;
- 
+
+  double slope = (p1y - p0y) / (p1x - p0x);
+  double yIntercept = p0y - slope * p0x;
+  double xCoordinate = (given_y - yIntercept) / slope;
+  return xCoordinate;
 }
 
 std::pair<double, double> INTTZvtx::Get_possible_zvtx(double rvtx, std::vector<double> p0, std::vector<double> p1)  // note : inner p0, outer p1, vector {r,z}, -> {y,x}
