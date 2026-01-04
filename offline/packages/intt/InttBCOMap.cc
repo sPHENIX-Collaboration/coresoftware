@@ -4,10 +4,10 @@
 
 #include <ffamodules/CDBInterface.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
 InttBCOMap::InttBCOMap()
 {
@@ -132,7 +132,7 @@ int InttBCOMap::GetFeeOffSet()
 bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64_t const &bco_full, const int &bco)
 {
   // Definition of BCO difference was changed in Aug/2024
-  int bco_diff = (bco - (bco_full & 0x7fU)  + 128) % 128;
+  int bco_diff = (bco - (bco_full & 0x7fU) + 128) % 128;
   //  int bco_diff = (bco_full & 0x7FU) - bco;
   // if (bco_diff < 0)
   // {
@@ -159,10 +159,8 @@ bool InttBCOMap::IsBad(const int &felix_server, const int &felix_channel, uint64
     // std::cout<<"m_bco is initial value, not load the parameter. accept all bco "<<felix_server<<" "<<felix_channel<<std::endl;
     return false;
   }
-  else
-  {
-    return true;
-  }
+
+  return true;
 }
 bool InttBCOMap::IsBad(InttNameSpace::RawData_s const &raw, uint64_t const &bco_full, const int &bco)
 {
@@ -173,5 +171,3 @@ bool InttBCOMap::IsBad(InttNameSpace::Offline_s const &off, uint64_t const &bco_
 {
   return IsBad(InttNameSpace::ToRawData(off), bco_full, bco);
 }
-
-

@@ -167,13 +167,13 @@ bool InttBadChannelMap::IsBad(InttNameSpace::Offline_s const& ofl) const
 {
   if(m_offline_loaded)
   {
-    return m_offline_set.find(ofl) != m_offline_set.end();
+    return m_offline_set.contains(ofl);
   }
 
   if (m_rawdata_loaded)
   {
     auto raw = InttNameSpace::ToRawData(ofl);
-    return m_rawdata_set.find(raw) != m_rawdata_set.end();
+    return m_rawdata_set.contains(raw);
   }
 
   std::cout
@@ -191,13 +191,13 @@ bool InttBadChannelMap::IsBad(InttNameSpace::RawData_s const& raw) const
 {
   if (m_rawdata_loaded)
   {
-    return m_rawdata_set.find(raw) != m_rawdata_set.end();
+    return m_rawdata_set.contains(raw);
   }
 
   if (m_offline_loaded)
   {
     auto ofl = InttNameSpace::ToOffline(raw);
-    return m_offline_set.find(ofl) != m_offline_set.end();
+    return m_offline_set.contains(ofl);
   }
 
   std::cout
