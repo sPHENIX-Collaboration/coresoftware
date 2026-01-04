@@ -13,7 +13,7 @@ double cos_func(double* x, double* par) // NOLINT (readability-non-const-paramet
 INTTXYvtx::INTTXYvtx(const std::string& runType,
                      const std::string& outFolderDirectory,
                      std::pair<double, double> beamOrigin,
-                     double phiDiffCut,
+                     double  /*phiDiffCut*/, // unused, left here to keep the API unchanged
                      std::pair<double, double> DCACut,
                      int NCluCutl,
                      int NCluCut,
@@ -24,7 +24,7 @@ INTTXYvtx::INTTXYvtx(const std::string& runType,
   : run_type(runType)
   , out_folder_directory(outFolderDirectory)
   , beam_origin(beamOrigin)
-  , phi_diff_cut(phiDiffCut)
+//  , phi_diff_cut(phiDiffCut)
   , DCA_cut(DCACut)
   , N_clu_cutl(NCluCutl)
   , N_clu_cut(NCluCut)
@@ -32,16 +32,19 @@ INTTXYvtx::INTTXYvtx(const std::string& runType,
   , angle_diff_new_r(angleDiffNew_r)
   , peek(peekCut)
   , print_message_opt(printMessageOpt)
+  , current_vtxX(beam_origin.first)
+  , current_vtxY(beam_origin.second)
+  , plot_text((run_type == "MC") ? "Simulation" : "Work-in-progress")
 {
   gErrorIgnoreLevel = kWarning;  // note : To not print the "print plot info."
 
   // Init();
-  plot_text = (run_type == "MC") ? "Simulation" : "Work-in-progress";
+  
 
   cluster_pair_vec.clear();
 
-  current_vtxX = beam_origin.first;
-  current_vtxY = beam_origin.second;
+  
+  
 }
 
 INTTXYvtx::~INTTXYvtx()
@@ -404,9 +407,9 @@ void INTTXYvtx::ProcessEvt(
 
   //-------------------------------
   // tracklet reconstruction accumulated multiple events
-  for (auto& inner_i : temp_sPH_inner_nocolumn_vec)
+  for (const auto& inner_i : temp_sPH_inner_nocolumn_vec)
   {
-    for (auto& outer_i : temp_sPH_outer_nocolumn_vec)
+    for (const auto& outer_i : temp_sPH_outer_nocolumn_vec)
     {
       // note : try to ease the analysis and also make it quick.
       if (fabs(inner_i.phi - outer_i.phi) < 7)  // todo : the pre phi cut is here, can be optimized
@@ -423,13 +426,13 @@ void INTTXYvtx::ProcessEvt(
   // QA histogram
   if (m_enable_qa)
   {
-    for (auto& inner_i : temp_sPH_inner_nocolumn_vec)
+    for (const auto& inner_i : temp_sPH_inner_nocolumn_vec)
     {
       inner_pos_xy->Fill(inner_i.x, inner_i.y);
       inner_outer_pos_xy->Fill(inner_i.x, inner_i.y);
     }
 
-    for (auto& outer_i : temp_sPH_outer_nocolumn_vec)
+    for (const auto& outer_i : temp_sPH_outer_nocolumn_vec)
     {
       outer_pos_xy->Fill(outer_i.x, outer_i.y);
       inner_outer_pos_xy->Fill(outer_i.x, outer_i.y);
@@ -476,7 +479,7 @@ void INTTXYvtx::PrintPlots()
 
   if (m_enable_drawhist && m_enable_qa)
   {
-    std::string s_inttlabel = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text).c_str();
+    std::string s_inttlabel = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text);
     // note : -----------------------------------------------------------------------------------------
     inner_outer_pos_xy->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
@@ -549,7 +552,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
               << length / pow(2, N_trial) << " mm" << std::endl;
   }
 
-  if (cluster_pair_vec.size() == 0)
+  if (cluster_pair_vec.empty())
   {  // minimum tracklet cut. need to be tuned
     return {
         beam_origin,  // note : the best vertex
@@ -616,7 +619,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
         c1->cd();
         c1->Range(0, 0, 1, 1);
         ltx->DrawLatex(0.5, 0.5, std::format("New_trial_square_{}_{}", i, i1).c_str());
-        c1->Print(std::format("{}/{}", out_folder_directory.c_str(), m_quad_pdfname).c_str());
+        c1->Print(std::format("{}/{}", out_folder_directory, m_quad_pdfname).c_str());
         c1->Clear();
       }
 
@@ -703,7 +706,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
   {
     DrawTGraphErrors(grr_x, grr_y, grr_E, grr_E, out_folder_directory,
                      {
-		       std::format("Square_scan_history_{:.1f}mm_{}Trials", original_length, N_trial).c_str()  // title
+		       std::format("Square_scan_history_{:.1f}mm_{}Trials", original_length, N_trial)  // title
                          ,
                          "nth scan"  // x_title
                          ,
@@ -715,7 +718,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
                      });
     Draw2TGraph(All_FitError_angle_X, All_FitError_angle_Y, Winner_FitError_angle_X, Winner_FitError_angle_Y, out_folder_directory,
                 {
-                    std::format("Angle_diff_fit_error_{}Trials", N_trial).c_str()  // title
+                    std::format("Angle_diff_fit_error_{}Trials", N_trial)  // title
                     ,
                     "n iteration"  // x_title
                     ,
@@ -727,7 +730,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
                 });
     Draw2TGraph(All_FitError_DCA_X, All_FitError_DCA_Y, Winner_FitError_DCA_X, Winner_FitError_DCA_Y, out_folder_directory,
                 {
-                    std::format("DCA_fit_error_{}Trials", N_trial).c_str()  // title
+                    std::format("DCA_fit_error_{}Trials", N_trial)  // title
                     ,
                     "n iteration"  // x_title
                     ,
@@ -1038,7 +1041,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
 {
   if (m_enable_drawhist)
   {
-    std::string s_inttlabel = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text).c_str();
+    std::string s_inttlabel = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text);
     std::string s_pdfname = out_folder_directory + "/" + m_quad_pdfname;
     std::cout << s_pdfname << std::endl;
 
@@ -1362,7 +1365,7 @@ void INTTXYvtx::TH2F_threshold_advanced_2(TH2F* hist, double threshold)
     }
   }
   std::vector<unsigned long> ind(all_bin_content_vec.size(), 0);
-  TMath::Sort(all_bin_content_vec.size(), &all_bin_content_vec[0], &ind[0]);
+  TMath::Sort(all_bin_content_vec.size(), all_bin_content_vec.data(), ind.data());
   for (int i = 0; i < chosen_bin; i++)
   {
     max_cut += all_bin_content_vec[ind[i]];
@@ -1409,14 +1412,13 @@ INTTXYvtx::calculateDistanceAndClosestPoint(
 
     return {closest_distance, Xc, Yc};
   }
-  else
-  {
-    double closest_distance = std::abs(x1 - target_x);
+  
+      double closest_distance = std::abs(x1 - target_x);
     double Xc = x1;
     double Yc = target_y;
 
     return {closest_distance, Xc, Yc};
-  }
+ 
 }
 
 // note : Function to calculate the angle between two vectors in degrees using the cross product
@@ -1497,7 +1499,7 @@ void INTTXYvtx::DrawTGraphErrors(
   {
     c1->cd();
 
-    TGraphErrors* g = new TGraphErrors(x_vec.size(), &x_vec[0], &y_vec[0], &xE_vec[0], &yE_vec[0]);
+    TGraphErrors* g = new TGraphErrors(x_vec.size(), x_vec.data(), y_vec.data(), xE_vec.data(), yE_vec.data());
     g->SetMarkerStyle(20);
     g->SetMarkerSize(1.5);
     g->SetMarkerColor(1);
@@ -1535,7 +1537,7 @@ void INTTXYvtx::Draw2TGraph(
     c1->cd();
     c1->SetLogy(1);
 
-    TGraph* g1 = new TGraph(x1_vec.size(), &x1_vec[0], &y1_vec[0]);
+    TGraph* g1 = new TGraph(x1_vec.size(), x1_vec.data(), y1_vec.data());
     g1->SetMarkerStyle(5);
     g1->SetMarkerSize(1);
     g1->SetMarkerColor(1);
@@ -1547,7 +1549,7 @@ void INTTXYvtx::Draw2TGraph(
     g1->SetTitle(plot_name[0].c_str());
     g1->Draw("AP");
 
-    TGraph* g2 = new TGraph(x2_vec.size(), &x2_vec[0], &y2_vec[0]);
+    TGraph* g2 = new TGraph(x2_vec.size(), x2_vec.data(), y2_vec.data());
     g2->SetMarkerStyle(5);
     g2->SetMarkerSize(1);
     g2->SetMarkerColor(2);
@@ -1650,7 +1652,8 @@ void INTTXYvtx::TH2FSampleLineFill(
   double y_min = hist_in->GetYaxis()->GetXmin();
   double y_max = hist_in->GetYaxis()->GetXmax();
 
-  double seg_x, seg_y;
+  double seg_x;
+  double seg_y;
   double angle;
   int n_seg = 0;
 
@@ -1694,7 +1697,7 @@ INTTXYvtx::FillLine_FindVertex(
 {
   bool draw_plot = m_enable_drawhist;
 
-  if (cluster_pair_vec.size() == 0)
+  if (cluster_pair_vec.empty())
   {  // minimum tracklet cut. should be tuned
     return {beam_origin,
             {0, 0},

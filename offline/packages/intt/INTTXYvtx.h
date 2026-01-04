@@ -126,11 +126,11 @@ class INTTXYvtx
   std::pair<double, double> GetFinalVTXxy();
   std::pair<std::vector<TH2F*>, std::vector<TH1F*>> GetHistFinal();
 
- protected:
+ private:
   std::string run_type;
   std::string out_folder_directory;
   std::pair<double, double> beam_origin;
-  double phi_diff_cut;
+//  double phi_diff_cut;
   std::pair<double, double> DCA_cut;
   int N_clu_cutl;
   int N_clu_cut;
@@ -146,7 +146,6 @@ class INTTXYvtx
   bool m_initialized{false};
   std::string m_quad_pdfname{"New_Trial_square.pdf"};
 
- protected:
   ////////////////////////////
   std::vector<double> subMacroVTXxyCorrection(int test_index, int trial_index, bool draw_plot_opt);
   std::vector<double> GetVTXxyCorrection_new(int trial_index);
@@ -183,20 +182,19 @@ class INTTXYvtx
                               inner_clu,
                           std::pair<double, double> outer_clu) const;
 
- protected:
   std::vector<TH1*> m_v_hist{};
 
   /////////////////
   // QA histograms in process_evt // in m_v_hist
-  TH2F* N_cluster_correlation{nullptr};        // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* N_cluster_correlation_close{nullptr};  // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* inner_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* outer_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* inner_outer_pos_xy{nullptr};           // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* N_cluster_correlation{nullptr};        // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* N_cluster_correlation_close{nullptr};  // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* inner_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* outer_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* inner_outer_pos_xy{nullptr};           // QA fill: ProcessEvt, draw: PrintPlot
 
   // Quadorant method // in m_v_hist
-  TH2F* DCA_distance_inner_phi{nullptr};  // fill: subMacroPlotWorking
-  TH2F* angle_diff_inner_phi{nullptr};    // fill: subMacroPlotWorking
+  TH2* DCA_distance_inner_phi{nullptr};  // fill: subMacroPlotWorking
+  TH2* angle_diff_inner_phi{nullptr};    // fill: subMacroPlotWorking
 
   TH1F* angle_diff{nullptr};                 // QA fill: subMacroPlotWorking
   TH1F* angle_diff_new{nullptr};             // QA fill: subMacroPlotWorking
