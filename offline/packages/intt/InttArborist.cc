@@ -187,8 +187,8 @@ int InttArborist::process_event(
         .channel = intt_hit->get_channel_id()
 	};
 
-    clone_map_t::iterator clone_itr;
-    if ((clone_itr = m_clone_map.find(raw)) != m_clone_map.end())
+    auto clone_itr = m_clone_map.find(raw);
+    if (clone_itr != m_clone_map.end())
     {
       // can update our vector-valued branches at position clone_itr->second
       // for example, keep parameters of the max adc hit

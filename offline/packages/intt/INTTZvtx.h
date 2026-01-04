@@ -24,18 +24,18 @@ class INTTZvtx
  public:
   struct clu_info
   {
-    int column = -1;
+    int column {-1};
     // int chip_id;
-    double avg_chan = -9999.9;
-    int sum_adc = -1;
-    int sum_adc_conv = -1;
-    int size = -1;
+    double avg_chan {-9999.9};
+    int sum_adc {-1};
+    int sum_adc_conv {-1};
+    int size {-1};
 
-    double x = -9999.9;
-    double y = -9999.9;
-    double z = -9999.9;
-    int layer = -1;
-    double phi = -9999.9;
+    double x {-9999.9};
+    double y {-9999.9};
+    double z {-9999.9};
+    int layer {-1};
+    double phi {-9999.9};
     // std::vector<double> bco_diff_vec; // note : for the multi-hit cluster, more than one hit was included. so more than one bco_diff
   };
 
@@ -76,7 +76,7 @@ class INTTZvtx
            std::pair<double, double> DCACut = {-1, 1},
            int NCluCutl = 20,
            int NCluCut = 10000,
-           unsigned int zvtxCal_require = 15,
+           unsigned int zvtxCalRequire = 15,
            std::pair<double, double> zvtxQAWidth = {39.62, 65.36},
            bool drawEventDisplay = true,
            bool enableQA = true,
@@ -212,17 +212,39 @@ class INTTZvtx
   TTree* tree_out{nullptr};
 
   // note : for tree_out
-  double out_ES_zvtx, out_ES_zvtxE, out_ES_rangeL, out_ES_rangeR, out_ES_width_density, MC_true_zvtx;
-  double out_LB_Gaus_Mean_mean, out_LB_Gaus_Mean_meanE, out_LB_Gaus_Mean_width, out_LB_Gaus_Mean_chi2;
-  double out_LB_Gaus_Width_width, out_LB_Gaus_Width_size_width, out_LB_Gaus_Width_offset, out_LB_geo_mean;
-  double out_mid_cut_peak_width, out_mid_cut_peak_ratio, out_LB_cut_peak_width, out_LB_cut_peak_ratio;
-  bool out_good_zvtx_tag;
-  int out_eID, N_cluster_outer_out, N_cluster_inner_out, out_ES_N_good, out_mid_cut_Ngroup, out_LB_cut_Ngroup, out_centrality_bin;
-  int out_N_cluster_north, out_N_cluster_south;
-  uint64_t bco_full_out;
+  double out_ES_zvtx {-1.};
+  double out_ES_zvtxE {-1.};
+  double out_ES_rangeL {-1.};
+  double out_ES_rangeR {-1.};
+  double out_ES_width_density {-1.};
+  double MC_true_zvtx {-9999.};
+  double out_LB_Gaus_Mean_mean {-1.};
+  double out_LB_Gaus_Mean_meanE {-1.};
+  double out_LB_Gaus_Mean_width {-1.};
+  double out_LB_Gaus_Mean_chi2 {-1.};
+  double out_LB_Gaus_Width_width {-1.};
+  double out_LB_Gaus_Width_size_width {-1.};
+  double out_LB_Gaus_Width_offset {-1.};
+  double out_LB_geo_mean {-1.};
+  double out_mid_cut_peak_width {-1.};
+  double out_mid_cut_peak_ratio {-1.};
+  double out_LB_cut_peak_width {-1.};
+  double out_LB_cut_peak_ratio {-1.};
+  bool out_good_zvtx_tag {false};
+  int out_eID {0};
+  int N_cluster_outer_out {-1};
+  int N_cluster_inner_out {-1};
+  int out_ES_N_good {-1};
+  int out_mid_cut_Ngroup {-1};
+  int out_LB_cut_Ngroup {-1};
+  int out_centrality_bin {-1};
+  int out_N_cluster_north {0};
+  int out_N_cluster_south {0};
+  uint64_t bco_full_out {0};
 
   // note : for out parameters
-  double MC_z_diff_peak, MC_z_diff_width;  // note : the comparison between Reco - true in MC. Values are from fitting foucsing on the peak region.
+  double MC_z_diff_peak;
+  double MC_z_diff_width;  // note : the comparison between Reco - true in MC. Values are from fitting foucsing on the peak region.
 
   void InitHist();
   void InitCanvas();

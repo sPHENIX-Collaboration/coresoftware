@@ -98,7 +98,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   }
 
   // our own
-  void find_strip_index_values(const int segment_z_bin, const double ypos, const double zpos, int& strip_y_index, int& strip_z_index) override;
+  void find_strip_index_values(const int segment_z_bin, const double yin, const double zin, int& strip_y_index, int& strip_z_index) override;
 
   bool load_geometry() { return true; }
   void find_indices_from_segment_center(int& segment_z_bin, int& segment_phi_bin, double location[]);

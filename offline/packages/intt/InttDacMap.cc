@@ -112,17 +112,15 @@ unsigned short InttDacMap::GetDAC(const uint& felix_server,
   {
     return m_dac[felix_server][felix_channel][chip][adc];
   }
-  else
-  {
-    std::cout << "Range Invalid :"
-              << " " << felix_server
-              << " " << felix_channel
-              << " " << chip
-              << " " << adc
-              << ", return -1" << std::endl;
 
-    return -1;
-  }
+  std::cout << "Range Invalid :"
+            << " " << felix_server
+            << " " << felix_channel
+            << " " << chip
+            << " " << adc
+            << ", return -1" << std::endl;
+
+  return -1;
 }
 
 unsigned short InttDacMap::GetDAC(InttNameSpace::RawData_s const& rawdata, const uint& adc)
