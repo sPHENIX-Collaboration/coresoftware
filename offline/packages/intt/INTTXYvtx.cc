@@ -2,11 +2,10 @@
 
 #include <TF1.h>
 
-#include <boost/format.hpp>
-
 #include <cmath>
+#include <format>
 
-double cos_func(double* x, double* par)
+double cos_func(double* x, double* par) // NOLINT (readability-non-const-parameter)
 {
   return -1 * par[0] * cos(par[1] * (x[0] - par[2])) + par[3];
 }
@@ -477,35 +476,35 @@ void INTTXYvtx::PrintPlots()
 
   if (m_enable_drawhist && m_enable_qa)
   {
-    std::string s_inttlabel = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str();
+    std::string s_inttlabel = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text).c_str();
     // note : -----------------------------------------------------------------------------------------
     inner_outer_pos_xy->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    c1->Print((boost::format("%s/xyvtx_qa.pdf(") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/xyvtx_qa.pdf(", out_folder_directory).c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     inner_pos_xy->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    c1->Print((boost::format("%s/xyvtx_qa.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/xyvtx_qa.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     outer_pos_xy->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    c1->Print((boost::format("%s/xyvtx_qa.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/xyvtx_qa.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     N_cluster_correlation->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    c1->Print((boost::format("%s/xyvtx_qa.pdf") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/xyvtx_qa.pdf", out_folder_directory).c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     N_cluster_correlation_close->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    c1->Print((boost::format("%s/xyvtx_qa.pdf)") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/xyvtx_qa.pdf)", out_folder_directory).c_str());
     c1->Clear();
   }
 }
@@ -592,7 +591,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
     c1->cd();
     c1->Range(0, 0, 1, 1);
     ltx->DrawLatex(0.5, 0.5, "QA plots for quadrant method");
-    c1->Print((boost::format("%s/%s(") % out_folder_directory % m_quad_pdfname).str().c_str());
+    c1->Print(std::format("{}/{}(", out_folder_directory, m_quad_pdfname).c_str());
     c1->Clear();
   }
 
@@ -616,8 +615,8 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
       {
         c1->cd();
         c1->Range(0, 0, 1, 1);
-        ltx->DrawLatex(0.5, 0.5, (boost::format("New_trial_square_%i_%i") % i % i1).str().c_str());
-        c1->Print((boost::format("%s/%s") % out_folder_directory.c_str() % m_quad_pdfname).str().c_str());
+        ltx->DrawLatex(0.5, 0.5, std::format("New_trial_square_{}_{}", i, i1).c_str());
+        c1->Print(std::format("{}/{}", out_folder_directory.c_str(), m_quad_pdfname).c_str());
         c1->Clear();
       }
 
@@ -696,7 +695,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
   if (m_enable_drawhist)
   {
     c1->cd();
-    c1->Print((boost::format("%s/%s)") % out_folder_directory.c_str() % m_quad_pdfname).str().c_str());
+    c1->Print(std::format("{}/{})", out_folder_directory, m_quad_pdfname).c_str());
     c1->Clear();
   }
 
@@ -704,7 +703,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
   {
     DrawTGraphErrors(grr_x, grr_y, grr_E, grr_E, out_folder_directory,
                      {
-                         (boost::format("Square_scan_history_%.1fmm_%iTrials") % original_length % N_trial).str().c_str()  // title
+		       std::format("Square_scan_history_{:.1f}mm_{}Trials", original_length, N_trial).c_str()  // title
                          ,
                          "nth scan"  // x_title
                          ,
@@ -716,7 +715,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
                      });
     Draw2TGraph(All_FitError_angle_X, All_FitError_angle_Y, Winner_FitError_angle_X, Winner_FitError_angle_Y, out_folder_directory,
                 {
-                    (boost::format("Angle_diff_fit_error_%iTrials") % N_trial).str().c_str()  // title
+                    std::format("Angle_diff_fit_error_{}Trials", N_trial).c_str()  // title
                     ,
                     "n iteration"  // x_title
                     ,
@@ -728,7 +727,7 @@ std::vector<std::pair<double, double>> INTTXYvtx::MacroVTXSquare(double length, 
                 });
     Draw2TGraph(All_FitError_DCA_X, All_FitError_DCA_Y, Winner_FitError_DCA_X, Winner_FitError_DCA_Y, out_folder_directory,
                 {
-                    (boost::format("DCA_fit_error_%iTrials") % N_trial).str().c_str()  // title
+                    std::format("DCA_fit_error_{}Trials", N_trial).c_str()  // title
                     ,
                     "n iteration"  // x_title
                     ,
@@ -761,10 +760,10 @@ std::vector<double> INTTXYvtx::subMacroVTXxyCorrection(int test_index, int trial
   std::string sub_out_folder_name{};
   if (draw_plot_opt == true)
   {
-    sub_out_folder_name = (boost::format("%s/New_trial_square_%i_%i") % out_folder_directory % test_index % trial_index).str();
+    sub_out_folder_name = std::format("{}/New_trial_square_{}_{}", out_folder_directory, test_index, trial_index);
 
     //--if (std::filesystem::exists(sub_out_folder_name.c_str()) == false) {
-    //--  system((boost::format("mkdir %s",sub_out_folder_name.c_str()));
+    //--  system(std::format("mkdir {}",sub_out_folder_name.c_str()));
     //--}
 
     // PrintPlotsVTXxy(sub_out_folder_name);
@@ -1039,7 +1038,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
 {
   if (m_enable_drawhist)
   {
-    std::string s_inttlabel = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str();
+    std::string s_inttlabel = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text).c_str();
     std::string s_pdfname = out_folder_directory + "/" + m_quad_pdfname;
     std::cout << s_pdfname << std::endl;
 
@@ -1065,8 +1064,8 @@ void INTTXYvtx::PrintPlotsVTXxy()
     // gaus_fit -> Draw("l same");
     horizontal_fit_inner->Draw("l same");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    draw_text->DrawLatex(0.25, 0.84, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
-    draw_text->DrawLatex(0.25, 0.80, (boost::format("#color[2]{Pol0 fit chi2/NDF: %.3f, fit error: %.3f}") % (horizontal_fit_inner->GetChisquare() / double(horizontal_fit_inner->GetNDF())) % horizontal_fit_inner->GetParError(0)).str().c_str());
+    draw_text->DrawLatex(0.25, 0.84, std::format("#color[2]{{Assumed vertex: {:.3f} mm, {:.3f} mm}}", current_vtxX, current_vtxY).c_str());
+    draw_text->DrawLatex(0.25, 0.80, std::format("#color[2]{{Pol0 fit chi2/NDF: {:.3f}, fit error: {:.3f}}}", (horizontal_fit_inner->GetChisquare() / double(horizontal_fit_inner->GetNDF())), horizontal_fit_inner->GetParError(0)).c_str());
     c1->Print(s_pdfname.c_str());
     c1->Clear();
 
@@ -1078,7 +1077,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
     angle_diff_inner_phi_peak_profile->Draw("same");
     horizontal_fit_angle_diff_inner->Draw("l same");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    draw_text->DrawLatex(0.25, 0.84, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
+    draw_text->DrawLatex(0.25, 0.84, std::format("#color[2]{{Assumed vertex: {:.3f} mm, {:.3f} mm}}", current_vtxX, current_vtxY).c_str());
     c1->Print(s_pdfname.c_str());
     c1->Clear();
 
@@ -1109,7 +1108,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
       angle_diff_new->Draw("hist");
       angle_diff_new_bkg_remove->Draw("hist same");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      draw_text->DrawLatex(0.4, 0.80, (boost::format("#color[2]{Dist. StdDev: %.4f}") % angle_diff_new_bkg_remove->GetStdDev()).str().c_str());
+      draw_text->DrawLatex(0.4, 0.80, std::format("#color[2]{{Dist. StdDev: {:.4f}}}", angle_diff_new_bkg_remove->GetStdDev()).c_str());
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
@@ -1169,7 +1168,7 @@ void INTTXYvtx::PrintPlotsVTXxy()
       DCA_distance_outer_phi_peak_profile->Draw("same");
       horizontal_fit_outer->Draw("l same");
       ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-      draw_text->DrawLatex(0.25, 0.80, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
+      draw_text->DrawLatex(0.25, 0.80, std::format("#color[2]{{Assumed vertex: {:.3f} mm, {:.3f} mm}}", current_vtxX, current_vtxY).c_str());
       c1->Print(s_pdfname.c_str());
       c1->Clear();
 
@@ -1180,8 +1179,8 @@ void INTTXYvtx::PrintPlotsVTXxy()
       angle_diff_outer_phi_peak->Draw("colz0");
       angle_diff_outer_phi_peak_profile->Draw("same");
       horizontal_fit_angle_diff_outer->Draw("l same");
-      ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, (boost::format("%s, peak : %f") % s_inttlabel.c_str() % peek).str().c_str());
-      draw_text->DrawLatex(0.25, 0.84, (boost::format("#color[2]{Assumed vertex: %.3f mm, %.3f mm}") % current_vtxX % current_vtxY).str().c_str());
+      ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, std::format("{}, peak : {}", s_inttlabel, peek).c_str());
+      draw_text->DrawLatex(0.25, 0.84, std::format("#color[2]{{Assumed vertex: {:.3f} mm, {:.3f} mm}}", current_vtxX, current_vtxY).c_str());
       c1->Print(s_pdfname.c_str());
       c1->Clear();
     }
@@ -1247,7 +1246,7 @@ void INTTXYvtx::EndRun()
       std::filesystem::create_directory(out_folder_directory);
     }
 
-    TFile* file_out = new TFile((boost::format("%s/run_XY_histo.root") % out_folder_directory).str().c_str(), "RECREATE");
+    TFile* file_out = new TFile(std::format("{}/run_XY_histo.root", out_folder_directory).c_str(), "RECREATE");
 
     for (auto& itr : m_v_hist)
     {
@@ -1515,8 +1514,8 @@ void INTTXYvtx::DrawTGraphErrors(
       g->Draw("AP");
     }
 
-    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str());
-    c1->Print((boost::format("%s/%s") % output_directory.c_str() % plot_name[4]).str().c_str());
+    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text).c_str());
+    c1->Print(std::format("{}/{}", output_directory, plot_name[4]).c_str());
     c1->Clear();
 
     delete g;
@@ -1561,8 +1560,8 @@ void INTTXYvtx::Draw2TGraph(
     legend->AddEntry(g1, "Tested vertex candidates", "p");
     legend->AddEntry(g2, "Better performed candidates", "p");
     legend->Draw("same");
-    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str());
-    c1->Print((boost::format("%s/%s") % output_directory.c_str() % plot_name[4]).str().c_str());
+    ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text).c_str());
+    c1->Print(std::format("{}/{}", output_directory, plot_name[4]).c_str());
     c1->Clear();
     c1->SetLogy(0);
 
@@ -1638,7 +1637,7 @@ void INTTXYvtx::TH2FSampleLineFill(
     TH2F* hist_in,
     double segmentation,
     std::pair<double, double> inner_clu,
-    std::pair<double, double> outer_clu)
+    std::pair<double, double> outer_clu) const
 {
   if (!m_initialized)
   {
@@ -1797,20 +1796,20 @@ INTTXYvtx::FillLine_FindVertex(
     reco_vertex_gr->SetMarkerSize(1);
     reco_vertex_gr->SetPoint(reco_vertex_gr->GetN(), reco_vtx_x, reco_vtx_y);
 
-    std::string s_inttlabel = (boost::format("#it{#bf{sPHENIX INTT}} %s") % plot_text).str().c_str();
+    std::string s_inttlabel = std::format("#it{{#bf{{sPHENIX INTT}}}} {}", plot_text);
     // note : -----------------------------------------------------------------------------------------
     xy_hist->Draw("colz0");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    c1->Print((boost::format("%s/linefill_qa.pdf(") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/linefill_qa.pdf(", out_folder_directory).c_str());
     c1->Clear();
 
     // note : -----------------------------------------------------------------------------------------
     xy_hist_bkgrm->Draw("colz0");
-    draw_text->DrawLatex(0.21, 0.71 + 0.13, (boost::format("Vertex of the Run: %.4f mm, %.4f mm") % reco_vtx_x % reco_vtx_y).str().c_str());
-    draw_text->DrawLatex(0.21, 0.67 + 0.13, (boost::format("Vertex error: %.4f mm, %.4f mm") % xy_hist_bkgrm->GetMeanError(1) % xy_hist_bkgrm->GetMeanError(2)).str().c_str());
+    draw_text->DrawLatex(0.21, 0.71 + 0.13, std::format("Vertex of the Run: {:.4f} mm, {:.4f} mm", reco_vtx_x, reco_vtx_y).c_str());
+    draw_text->DrawLatex(0.21, 0.67 + 0.13, std::format("Vertex error: {:.4f} mm, {:.4f} mm", xy_hist_bkgrm->GetMeanError(1), xy_hist_bkgrm->GetMeanError(2)).c_str());
     reco_vertex_gr->Draw("p same");
     ltx->DrawLatex(1 - gPad->GetRightMargin(), 1 - gPad->GetTopMargin() + 0.01, s_inttlabel.c_str());
-    c1->Print((boost::format("%s/linefill_qa.pdf)") % out_folder_directory).str().c_str());
+    c1->Print(std::format("{}/linefill_qa.pdf)", out_folder_directory).c_str());
     c1->Clear();
 
     // std::cout<<"test : hello, can you see me ?"<<std::endl;

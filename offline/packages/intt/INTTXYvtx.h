@@ -181,7 +181,7 @@ class INTTXYvtx
                           double segmentation,
                           std::pair<double, double>
                               inner_clu,
-                          std::pair<double, double> outer_clu);
+                          std::pair<double, double> outer_clu) const;
 
  protected:
   std::vector<TH1*> m_v_hist{};
