@@ -8,6 +8,7 @@
 #include <ffarawobjects/InttRawHitv2.h>
 
 #include <fun4all/DBInterface.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/RunnumberRange.h>
 #include <phool/PHCompositeNode.h>
@@ -60,7 +61,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -74,7 +75,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;

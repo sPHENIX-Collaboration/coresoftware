@@ -185,7 +185,7 @@ int Fun4AllStreamingInputManager::run(const int /*nevents*/)
   //     }
   //     else
   //     {
-  //       if (OpenNextFile())
+  //       if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
   //       {
   //         std::cout << Name() << ": No Input file from filelist opened" << std::endl;
   //         return -1;

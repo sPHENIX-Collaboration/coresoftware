@@ -6,6 +6,7 @@
 
 #include <fun4all/DBInterface.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -330,7 +331,7 @@ int SingleTriggeredInput::FillEventVector()
 {
   while (GetEventIterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return -1;
@@ -380,7 +381,7 @@ int SingleTriggeredInput::FillEventVector()
           while (!skip_evt)
           {
             fileclose();
-            if (!OpenNextFile())
+            if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
             {
               FilesDone(1);
               return -1;
@@ -428,7 +429,7 @@ int SingleTriggeredInput::FillEventVector()
       while (!evt)
       {
         fileclose();
-        if (!OpenNextFile())
+        if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
         {
           FilesDone(1);
           return -1;

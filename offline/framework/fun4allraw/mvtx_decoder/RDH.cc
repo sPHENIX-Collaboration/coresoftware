@@ -9,11 +9,9 @@
 #include <format>
 #endif
 
-using namespace mvtx;
-
 //_________________________________________________
 /// placeholder copied from specific version
-RDHAny::RDHAny(int v)
+mvtx::RDHAny::RDHAny(int v)
 {
   if (v == 0)
   {
@@ -30,14 +28,14 @@ RDHAny::RDHAny(int v)
 }
 
 //_________________________________________________
-void RDHAny::copyFrom(const void* rdh)
+void mvtx::RDHAny::copyFrom(const void* rdh)
 {
   std::memcpy(this, rdh, sizeof(RDHAny));
 }
 
 #if __cplusplus >= 202002L
 //_________________________________________________
-void RDHUtils::printRDH(const RDHv8& rdh)
+void mvtx::RDHUtils::printRDH(const RDHv8& rdh)
 {
  // std::bitset<32> trb(rdh.trgType);
   std::cout << std::format(
@@ -61,14 +59,14 @@ void RDHUtils::printRDH(const RDHv8& rdh)
   std::cout << std::endl;
 }
 #else
-void RDHUtils::printRDH(const RDHv8& /*rdh*/)
+void mvtx::RDHUtils::printRDH(const RDHv8& /*rdh*/)
 {
   std::cerr << "RDHUtils::printRDH(const RDHv8&) only implemented in c++20." << std::endl;
 }
 #endif
 
 //_________________________________________________
-void RDHUtils::printRDH(const void* rdhP)
+void mvtx::RDHUtils::printRDH(const void* rdhP)
 {
   int version = getVersion(rdhP);
   if(version==8){
@@ -84,7 +82,7 @@ void RDHUtils::printRDH(const void* rdhP)
 
 //_________________________________________________
 #if __cplusplus >= 202002L
-void RDHUtils::dumpRDH(const void* rdhP)
+void mvtx::RDHUtils::dumpRDH(const void* rdhP)
 {
   const uint32_t* w32 = reinterpret_cast<const uint32_t*>(rdhP);
   for (int i = 0; i < 4; i++)
@@ -97,14 +95,14 @@ void RDHUtils::dumpRDH(const void* rdhP)
   }
 }
 #else
-void RDHUtils::dumpRDH(const void* /*rdhP*/)
+void mvtx::RDHUtils::dumpRDH(const void* /*rdhP*/)
 {
   std::cerr << "void RDHUtils::dumpRDH(const void*) only implemented in c++20." << std::endl;
 }
 #endif
 
 //_________________________________________________
-bool RDHUtils::checkRDH(const void* rdhP, bool verbose, bool checkZeros)
+bool mvtx::RDHUtils::checkRDH(const void* rdhP, bool verbose, bool checkZeros)
 {
   int version = getVersion(rdhP);
   bool ok = true;
@@ -127,7 +125,7 @@ bool RDHUtils::checkRDH(const void* rdhP, bool verbose, bool checkZeros)
 }
 
 //_____________________________________________________________________
-bool RDHUtils::checkRDH(const RDHv8& rdh, bool verbose, bool checkZeros)
+bool mvtx::RDHUtils::checkRDH(const RDHv8& rdh, bool verbose, bool checkZeros)
 {
   // check if rdh conforms with RDH8 fields
   bool ok = true;

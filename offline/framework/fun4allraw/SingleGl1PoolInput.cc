@@ -5,6 +5,8 @@
 
 #include <ffarawobjects/Gl1Packetv3.h>
 
+#include <fun4all/InputFileHandlerReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNode.h>          // for PHNode
@@ -45,7 +47,7 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -58,7 +60,7 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;
@@ -179,7 +181,7 @@ void SingleGl1PoolInput::Print(const std::string &what) const
     for (const auto &bcliter : m_Gl1RawHitMap)
     {
       std::cout << PHWHERE << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter : bcliter.second)
+      for (auto *feeiter : bcliter.second)
       {
         std::cout << PHWHERE << "fee: " << feeiter->getBCO()
                   << " at " << std::hex << feeiter << std::dec << std::endl;
@@ -202,7 +204,7 @@ void SingleGl1PoolInput::CleanupUsedPackets(const uint64_t bclk)
   {
     if (iter.first <= bclk)
     {
-      for (auto pktiter : iter.second)
+      for (auto *pktiter : iter.second)
       {
         delete pktiter;
       }
