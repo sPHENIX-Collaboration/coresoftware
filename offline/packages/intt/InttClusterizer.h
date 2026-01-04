@@ -78,8 +78,8 @@ class InttClusterizer : public SubsysReco
 
  private:
   bool record_ClusHitsVerbose{false};
-  bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit *> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit *> &rhs, const int layer);
-  bool ladder_are_adjacent(RawHit *lhs, RawHit *rhs, const int layer);
+  bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit *> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit *> &rhs, const int layer) const;
+  bool ladder_are_adjacent(RawHit *lhs, RawHit *rhs, const int layer) const;
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
