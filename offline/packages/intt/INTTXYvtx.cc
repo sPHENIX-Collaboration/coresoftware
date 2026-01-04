@@ -1,11 +1,19 @@
 #include "INTTXYvtx.h"
 
+#include <TCanvas.h>
 #include <TF1.h>
+#include <TFile.h>
+#include <TGraphErrors.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TLatex.h>
+#include <TLegend.h>
+#include <TProfile.h>
 
 #include <cmath>
+#include <filesystem>
 #include <format>
+#include <numeric>
 
 double cos_func(double* x, double* par) // NOLINT (readability-non-const-parameter)
 {
@@ -360,7 +368,7 @@ void INTTXYvtx::ProcessEvt(
     int NvtxMC,
     double /*TrigZvtxMC*/,
     bool PhiCheckTag,
-    Long64_t /*bco_full*/
+    int64_t /*bco_full*/
 )
 {
   if (!m_initialized)
@@ -459,7 +467,7 @@ std::pair<double, double> INTTXYvtx::GetFinalVTXxy()
   return {current_vtxX, current_vtxY};
 }
 
-std::pair<std::vector<TH2*>, std::vector<TH1F*>> INTTXYvtx::GetHistFinal()
+std::pair<std::vector<TH2*>, std::vector<TH1*>> INTTXYvtx::GetHistFinal()
 {
   return {
       {DCA_distance_inner_phi_peak_final,
@@ -1466,7 +1474,7 @@ double INTTXYvtx::calculateAngleBetweenVectors(
   return DCA_value;
 }
 
-void INTTXYvtx::Hist_1D_bkg_remove(TH1F* hist_in, double factor)
+void INTTXYvtx::Hist_1D_bkg_remove(TH1* hist_in, double factor)
 {
   // todo : N bins considered to be used in the background quantification
   std::vector<double> Nbin_content_vec{};
@@ -1623,7 +1631,7 @@ void INTTXYvtx::TH2F_FakeClone(TH2* hist_in, TH2* hist_out)
   }
 }
 
-void INTTXYvtx::TH1F_FakeClone(TH1F* hist_in, TH1F* hist_out)
+void INTTXYvtx::TH1F_FakeClone(TH1* hist_in, TH1* hist_out)
 {
   if (hist_in->GetNbinsX() != hist_out->GetNbinsX())
   {

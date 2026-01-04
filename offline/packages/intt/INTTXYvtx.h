@@ -3,24 +3,18 @@
 
 #include "InttVertexUtil.h"
 
-#include <TCanvas.h>
-#include <TFile.h>
-#include <TGraphErrors.h>
-#include <TLatex.h>
-#include <TLegend.h>
-#include <TProfile.h>
-
-#include <filesystem>
+#include <cstdint>
 #include <iostream>
-#include <map>
-#include <numeric>
 #include <string>
 #include <vector>
 
+class TCanvas;
+class TF1;
+class TGraph;
 class TH1;
-class TH1F;
 class TH2;
-
+class TLatex;
+class TProfile;
 // note : this class mainly focus on two things
 // note : 1. find a single vertex for the whole run
 // note :     a. the functions prepared for this purpose are : ProcessEvt(), GetFinalVTXxy(), MacroVTXSquare()
@@ -92,7 +86,7 @@ class INTTXYvtx
                   int NvtxMC,
                   double TrigZvtxMC,
                   bool PhiCheckTag,
-                  Long64_t bco_full);
+                  int64_t bco_full);
 
   //////////////////////////////////////////////////////
   // calculate XY vertex
@@ -126,7 +120,7 @@ class INTTXYvtx
   // access to internal variables, necessary?
   unsigned long GetVecNele();
   std::pair<double, double> GetFinalVTXxy();
-  std::pair<std::vector<TH2*>, std::vector<TH1F*>> GetHistFinal();
+  std::pair<std::vector<TH2*>, std::vector<TH1*>> GetHistFinal();
 
  private:
   std::string run_type;
@@ -160,7 +154,7 @@ class INTTXYvtx
   void PrintPlotsVTXxy();
 
   std::vector<std::pair<double, double>> Get4vtx(std::pair<double, double> origin, double length);
-  void TH1F_FakeClone(TH1F* hist_in, TH1F* hist_out);
+  void TH1F_FakeClone(TH1* hist_in, TH1* hist_out);
   void TH2F_FakeClone(TH2* hist_in, TH2* hist_out);
 
   void ClearHist(int print_option = 0);
@@ -174,7 +168,7 @@ class INTTXYvtx
 
   void TH2F_threshold(TH2* hist, double threshold);
   std::vector<double> SumTH2FColumnContent(TH2* hist_in);
-  void Hist_1D_bkg_remove(TH1F* hist_in, double factor);
+  void Hist_1D_bkg_remove(TH1* hist_in, double factor);
   void TH2F_threshold_advanced_2(TH2* hist, double threshold);
 
   // note : from the INTTXYvtxEvt.h // for FillLine_FindVertex
@@ -198,10 +192,10 @@ class INTTXYvtx
   TH2* DCA_distance_inner_phi{nullptr};  // fill: subMacroPlotWorking
   TH2* angle_diff_inner_phi{nullptr};    // fill: subMacroPlotWorking
 
-  TH1F* angle_diff{nullptr};                 // QA fill: subMacroPlotWorking
-  TH1F* angle_diff_new{nullptr};             // QA fill: subMacroPlotWorking
-  TH1F* angle_diff_new_bkg_remove{nullptr};  // QA fill: subMacroPlotWorking
-  TH1F* DCA_distance{nullptr};               // QA fill: subMacroPlotWorking
+  TH1* angle_diff{nullptr};                 // QA fill: subMacroPlotWorking
+  TH1* angle_diff_new{nullptr};             // QA fill: subMacroPlotWorking
+  TH1* angle_diff_new_bkg_remove{nullptr};  // QA fill: subMacroPlotWorking
+  TH1* DCA_distance{nullptr};               // QA fill: subMacroPlotWorking
 
   TH2* DCA_distance_outer_phi{nullptr};  // QA fill: subMacroPlotWorking
   TH2* angle_diff_outer_phi{nullptr};    // QA fill: subMacroPlotWorking
@@ -237,7 +231,7 @@ class INTTXYvtx
 
   TH2* angle_diff_outer_phi_peak_final{nullptr};    // QA fill: MacroVTXSquare
   TH2* DCA_distance_outer_phi_peak_final{nullptr};  // QA fill: MacroVTXSquare
-  TH1F* angle_diff_new_bkg_remove_final{nullptr};    // QA fill: MacroVTXSquare
+  TH1* angle_diff_new_bkg_remove_final{nullptr};    // QA fill: MacroVTXSquare
 
   TF1* horizontal_fit_inner{nullptr};             // subMacroPlotWorking
   TF1* horizontal_fit_angle_diff_inner{nullptr};  // subMacroPlotWorking
