@@ -386,7 +386,7 @@ int PHCASeeding::FindSeedsWithMerger(const PHCASeeding::PositionMap& globalPosit
   PHCASEEDING_PRINT_TIME(t_makebilinks, "init and make bilinks");
 
   t_makeseeds->restart();
-  keyLists trackSeedKeyLists = FollowBiLinks(trackSeedPairs, bodyLinks, globalPositions);
+  keyLists trackSeedKeyLists = removeDuplicates(FollowBiLinks(trackSeedPairs, bodyLinks, globalPositions));
   PHCASEEDING_PRINT_TIME(t_makeseeds, "make seeds");
   if (Verbosity() > 0)
   {
@@ -635,6 +635,66 @@ double PHCASeeding::getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b,
   return 2 * sin(break_angle) / hypot_length;
 }
 
+PHCASeeding::keyLists PHCASeeding::removeDuplicates(const PHCASeeding::keyLists& seeds)
+{
+  // Removes duplicate seeds (those that are subsets of another seed, with up to [differences_to_merge] allowed differences)
+  PHCASeeding::keyLists newseeds;
+  //size_t differences_to_merge = 2;
+  for(auto& seed_a : seeds)
+  {
+    //std::cout << "seed A: " << std::endl;
+    //for(auto c : seed_a) std::cout << c << " layer " << (int)TrkrDefs::getLayer(c) << std::endl;
+    bool merged = false;
+    for(auto &newseed : newseeds)
+    {
+      //std::cout << "newseed: " << std::endl;
+      //for(auto c : newseed) std::cout << c << " layer " << (int)TrkrDefs::getLayer(c) << std::endl;
+      std::vector<TrkrDefs::cluskey> intersection;
+      std::set<TrkrDefs::cluskey> seed_a_set(seed_a.begin(),seed_a.end());
+      std::set<TrkrDefs::cluskey> seed_b_set(newseed.begin(),newseed.end());
+      std::set_intersection(seed_a_set.begin(),seed_a_set.end(),seed_b_set.begin(),seed_b_set.end(),std::back_inserter(intersection));
+      // intersection comes out in the opposite direction, so reverse it
+      std::reverse(intersection.begin(),intersection.end());
+      //std::cout << "intersection: " << std::endl;
+      //for(auto c : intersection) std::cout << c << " layer " << (int)TrkrDefs::getLayer(c) << std::endl;
+      if(intersection.size() >= seed_a.size() - _differences_to_merge)
+      {
+        //std::cout << "merging" << std::endl;
+        merged = true;
+	auto minmax_pair = std::minmax_element(intersection.begin(),intersection.end(),
+          [](const TrkrDefs::cluskey& a,const TrkrDefs::cluskey& b){ return TrkrDefs::getLayer(a) < TrkrDefs::getLayer(b); });
+	size_t min_layer = TrkrDefs::getLayer(*(minmax_pair.first));
+	size_t max_layer = TrkrDefs::getLayer(*(minmax_pair.second));
+        //std::cout << "merging from layer " << min_layer << " to " << max_layer << std::endl;
+        std::vector<size_t> to_remove;
+	for(size_t index = 0; index < newseed.size(); index++)
+        {
+          //std::cout << "checking newseed " << newseed[index] << std::endl;
+          size_t layer = TrkrDefs::getLayer(newseed[index]);
+          if(layer>=min_layer && layer<=max_layer &&
+             std::find(intersection.begin(),intersection.end(),newseed[index])==intersection.end())
+          {
+            //std::cout << "discrepancy, removing" << std::endl;
+            to_remove.push_back(index);
+          }
+        }
+        for(int r = to_remove.size()-1; r>=0; r--)
+        {
+          newseed.erase(newseed.begin()+to_remove[r]);
+        }
+        //std::cout << "newseed is now: " << std::endl;
+        //for(auto c : newseed) std::cout << c << " layer " << (int)TrkrDefs::getLayer(c) << std::endl;
+      }
+    }
+    if(!merged)
+    {
+      newseeds.push_back(seed_a);
+    }
+  }
+  // std::cout << "originally " << seeds.size() << " seeds, now " << newseeds.size() << " seeds" << std::endl;
+  return newseeds;
+}
+
 PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& trackSeedPairs, const PHCASeeding::keyLinkPerLayer& bilinks, const PHCASeeding::PositionMap& globalPositions) const
 {
   // form all possible starting 3-cluster tracks (we need that to calculate curvature)
@@ -705,7 +765,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
     {
       // grow the seed to the maximum length allowed
       bool first_link = true;
-      bool done_growing = (seed.size() >= _max_clusters_per_seed);
+      bool done_growing = false; //(seed.size() >= _max_clusters_per_seed);
       keyList head_keys = {seed.back()};
       /* keyList head_keys = { seed.back() }; // heads of the seed */
 
@@ -730,6 +790,9 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
 
         // find which link_matches pass the dZdR and d2phidr2 cuts
         keyList passing_links{};
+	TrkrDefs::cluskey best_ckey = 0;
+	float best_deltaslope = 1e9;
+	float best_deltacurv = 1e9;
         for (const auto link : link_matches)
         {  // iL for "Index of Layer"
           // see if the link passes the growth cuts
@@ -757,7 +820,7 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
           const int i0 = (iL + 0) % 4;
           const int i1 = (iL + 1) % 4;
           const int i2 = (iL + 2) % 4;
-          const int i3 = (iL + 3) % 4;
+          //const int i3 = (iL + 3) % 4;
 
           phi[i0] = atan2(y, x);
           R[i0] = sqrt(x * x + y * y);
@@ -775,22 +838,33 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
           const float dZdR_01 = dZ_01 / dR_01;
           const float dZdR_12 = dZ_12 / dR_12;
 
-          if (fabs(dZdR_01 - dZdR_12) > _clusadd_delta_dzdr_window)
+          if (fabs(dZdR_01 - dZdR_12) > best_deltaslope)
           {
             continue;
           }
-          const float dphi_01 = wrap_dphi(phi[i1], phi[i0]);
-          const float dphi_12 = wrap_dphi(phi[i2], phi[i1]);
-          const float dphi_23 = wrap_dphi(phi[i3], phi[i2]);
-          const float dR_23 = R[i2] - R[i3];
-          const float d2phidr2_01 = dphi_01 / dR_01 / dR_01 - dphi_12 / dR_12 / dR_12;
-          const float d2phidr2_12 = dphi_12 / dR_12 / dR_12 - dphi_23 / dR_23 / dR_23;
-          if (fabs(d2phidr2_01 - d2phidr2_12) > _clusadd_delta_dphidr2_window)
+          //const float dphi_01 = wrap_dphi(phi[i1], phi[i0]);
+          //const float dphi_12 = wrap_dphi(phi[i2], phi[i1]);
+          //const float dphi_23 = wrap_dphi(phi[i3], phi[i2]);
+          //const float dR_23 = R[i2] - R[i3];
+          //const float d2phidr2_01 = dphi_01 / dR_01 / dR_01 - dphi_12 / dR_12 / dR_12;
+          //const float d2phidr2_12 = dphi_12 / dR_12 / dR_12 - dphi_23 / dR_23 / dR_23;
+	  const float newcurv = getMengerCurvature(link,seed.rbegin()[0],seed.rbegin()[1],globalPositions);
+	  const float currentcurv = getMengerCurvature(seed.rbegin()[0],seed.rbegin()[1],seed.rbegin()[2],globalPositions);
+          //if (fabs(d2phidr2_01 - d2phidr2_12) > _clusadd_delta_dphidr2_window)
+	  if(fabs(currentcurv-newcurv) > best_deltacurv)
           {
             continue;
           }
-          passing_links.push_back(link);
+          best_ckey = link;
+	  best_deltaslope = fabs(dZdR_01 - dZdR_12);
+	  best_deltacurv = fabs(newcurv - currentcurv);
+          // passing_links.push_back(link);
         }  // end loop over all bilinks in new layer
+
+        if(best_ckey != 0)
+	{
+	  passing_links.push_back(best_ckey);
+	}
 
         if (_split_seeds)
         {
@@ -805,10 +879,10 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
           break;
         case 1:
           seed.push_back(passing_links[0]);
-          if (seed.size() >= _max_clusters_per_seed)
-          {
-            done_growing = true;
-          }  // this seed is done growing
+          //if (seed.size() >= _max_clusters_per_seed)
+          //{
+          //  done_growing = true;
+          //}  // this seed is done growing
           head_keys = {passing_links[0]};
           break;
         default:  // more than one matched cluster
@@ -824,10 +898,10 @@ PHCASeeding::keyLists PHCASeeding::FollowBiLinks(const PHCASeeding::keyLinks& tr
               split_seeds.push_back(newseed);
             }
             seed.push_back(passing_links[0]);
-            if (seed.size() >= _max_clusters_per_seed)
-            {
-              done_growing = true;
-            }
+            //if (seed.size() >= _max_clusters_per_seed)
+            //{
+            //  done_growing = true;
+            //}
             head_keys = {passing_links[0]};
           }
           else

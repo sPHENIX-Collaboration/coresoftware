@@ -118,6 +118,7 @@ class PHCASeeding : public PHTrackSeeding
   }
   void SetMinHitsPerCluster(unsigned int minHits) { _min_nhits_per_cluster = minHits; }
   void SetMinClustersPerTrack(unsigned int minClus) { _min_clusters_per_track = minClus; }
+  void SetNDifferencesToMerge(size_t nDiff) { _differences_to_merge = nDiff; }
   void SetNClustersPerSeedRange(unsigned int minClus, unsigned int maxClus)
   {
     _min_clusters_per_seed = minClus;
@@ -230,6 +231,7 @@ class PHCASeeding : public PHTrackSeeding
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>>& rtree, double phimin, double zmin, double phimax, double zmax, std::vector<pointKey>& returned_values) const;
   std::vector<TrackSeed_v2> RemoveBadClusters(const std::vector<keyList>& seeds, const PositionMap& globalPositions) const;
   double getMengerCurvature(TrkrDefs::cluskey a, TrkrDefs::cluskey b, TrkrDefs::cluskey c, const PositionMap& globalPositions) const;
+  PHCASeeding::keyLists removeDuplicates(const PHCASeeding::keyLists& seeds);
 
   void publishSeeds(const std::vector<TrackSeed_v2>& seeds) const;
 
@@ -253,6 +255,7 @@ class PHCASeeding : public PHTrackSeeding
   float _clusadd_delta_dzdr_window = 0.5;
   float _clusadd_delta_dphidr2_window = 0.005;
   float _max_sin_phi;
+  size_t _differences_to_merge = 2;
   /* float _cosTheta_limit; */
   double _rz_outlier_threshold = 0.1;
   double _xy_outlier_threshold = 0.1;
