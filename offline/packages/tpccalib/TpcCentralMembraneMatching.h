@@ -101,6 +101,11 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_averageMode = averageMode;
   }
 
+  void set_totalDistMode(bool totalDistMode)
+  {
+    m_totalDistMode = totalDistMode;
+  }
+
   void set_event_sequence(int seq)
   {
     m_event_sequence = seq;
@@ -202,7 +207,8 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   bool m_useHeader{true};
   bool m_averageMode{false};
-
+  bool m_totalDistMode{false};
+  
   std::vector<bool> e_matched;
   std::vector<int> e_truthIndex;
   std::vector<float> e_truthR;
@@ -301,6 +307,7 @@ class TpcCentralMembraneMatching : public SubsysReco
 
   //@}
 
+  /*
   ///@name central membrane pads definitions
   //@{
   static constexpr double mm{1.0};
@@ -367,6 +374,7 @@ class TpcCentralMembraneMatching : public SubsysReco
       std::array<int, nRadii> &nStripesIn,
       std::array<int, nRadii> &nStripesBefore,
       double cx[][nRadii], double cy[][nRadii]);
+  */
 
   /// store centers of all central membrane pads
   std::vector<TVector3> m_truth_pos;

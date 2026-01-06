@@ -155,6 +155,106 @@ namespace
     return par[0]*g*cdf;
   }
 
+  void splitWeaklyConnectedRegion(const std::vector<hitData> &region, std::vector<std::vector<hitData>> &outputRegions)
+  {
+    int N = region.size();
+    std::vector<std::vector<int>> adj(N);
+    for(int i=0; i<N; i++)
+    {
+      for(int j=i+1; j<N; j++)
+      {
+        for(auto &neigh : neighborOffsets)
+        {
+          if(fabs(region[i].first.get<0>() + neigh.get<0>() - region[j].first.get<0>()) < 0.01 &&
+             fabs(region[i].first.get<1>() + neigh.get<1>() - region[j].first.get<1>()) < 0.01 &&
+             fabs(region[i].first.get<2>() + neigh.get<2>() - region[j].first.get<2>()) < 0.01)
+          {
+            adj[i].push_back(j);
+            adj[j].push_back(i);
+            break;
+          }
+        }
+      }
+    }
+
+    std::cout << "   constructed adjacency list, average degree = " << std::accumulate(adj.begin(), adj.end(), 0.0, [](double s, auto &v) { return s + v.size(); }) / N << ")" << std::endl;
+
+    std::vector<int> disc(N, -1), low(N, -1), parent(N, -1);
+    std::vector<std::pair<int,int>> bridges;
+    int time=0;
+
+    std::function<void(int)> dfs = [&](int u)
+    {
+      disc[u] = low[u] = ++time;
+      for(auto v : adj[u])
+      {
+        if(disc[v] == -1)
+        {
+          parent[v] = u;
+          dfs(v);
+          low[u] = std::min(low[u], low[v]);
+          if(low[v] > disc[u])
+          {
+            bridges.emplace_back(u,v);
+          }
+        }
+        else if(v != parent[u])
+        {
+          low[u] = std::min(low[u], disc[v]);
+        }
+      }
+    };
+
+    for(int i=0; i<N; i++)
+    {
+      if(disc[i] == -1) dfs(i);
+    }
+
+    std::cout << "   Found " << bridges.size() << " bridges in region of size " << N << std::endl;
+
+    std::vector<std::vector<int>> adj2 = adj;
+    int removed = 0;
+    for(auto [u,v] : bridges)
+    {
+      if(adj[u].size() > 2 && adj[v].size() > 2)
+      {
+        adj2[u].erase(std::remove(adj2[u].begin(), adj2[u].end(), v), adj2[u].end());
+        adj2[v].erase(std::remove(adj2[v].begin(), adj2[v].end(), u), adj2[v].end());
+        removed++;
+        std::cout << "      removed weak bridge between nodes " << u << " (deg = " << adj[u].size() << ") and " << v << " (deg = " << adj[v].size() << ")" << std::endl;
+      }
+    }
+
+    std::cout << "   Removed " << removed << " weak bridges, now finding connected components" << std::endl;
+
+    std::vector<bool> visited(N, false);
+    for(int i=0; i<N; i++)
+    {
+      if(visited[i]) continue;
+      std::vector<hitData> sub;
+      std::queue<int> q;
+      q.push(i);
+      visited[i] = true;
+      while(!q.empty())
+      {
+        int u = q.front();
+        q.pop();
+        sub.push_back(region[u]);
+        for(auto v : adj2[u])
+        {
+          if(!visited[v])
+          {
+            visited[v] = true;
+            q.push(v);
+          }
+        }
+      }
+      outputRegions.push_back(sub);
+      std::cout << "      found subregion of size " << sub.size() << std::endl;
+  }
+  std::cout << "   finished splitting region into " << outputRegions.size() << " subregions" << std::endl;
+}
+
   void findConnectedRegions3(std::vector<hitData> &clusHits, std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> &maxKey)
   {
     std::vector<std::vector<hitData>> regions;
@@ -215,11 +315,55 @@ namespace
         }
       }
       regions.push_back(region);
-
     }
 
+    std::cout << "finished with normal region finding, now splitting weakly connected regions" << std::endl;
+
+    std::vector<std::vector<hitData>> refinedRegions;
+    int regionNum = 0;
+    for(auto &region : regions)
+    {
+      std::vector<std::vector<hitData>> tmpRefinedRegions;
+      std::cout << "starting to split region " << regionNum << " with " << region.size() << " hits" << std::endl;
+      regionNum++;
+      splitWeaklyConnectedRegion(region, tmpRefinedRegions);
+      std::cout << "finished splitting region into " << tmpRefinedRegions.size() << std::endl;
+      for(auto &subregion : tmpRefinedRegions)
+      {
+        refinedRegions.push_back(subregion);
+      }
+      std::cout << "total refined regions so far: " << refinedRegions.size() << std::endl;
+    }
+
+    std::sort(refinedRegions.begin(), refinedRegions.end(), [&](const auto &a, const auto &b)
+    {
+      bool a_has = false;
+      bool b_has = false;
+      for(auto &h : a)
+      {
+        if(h.second.second.first == maxKey.first && h.second.second.second == maxKey.second)
+        {
+          a_has = true;
+          break;
+        }
+      }
+      for(auto &h : b)
+      {
+        if(h.second.second.first == maxKey.first && h.second.second.second == maxKey.second)
+        {       
+          b_has = true;
+          break;
+        }
+      }
+      if(a_has != b_has)
+      {
+        return a_has;
+      }
+      return a.size() > b.size();
+    });
+
     clusHits.clear();
-    for(auto hit : regions[0])
+    for(auto hit : refinedRegions[0])
     {
       clusHits.push_back(hit);
     }

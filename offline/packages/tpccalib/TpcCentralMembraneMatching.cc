@@ -16,6 +16,8 @@
 
 #include <ffaobjects/EventHeader.h>
 
+#include <cdbobjects/CDBTTree.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -160,11 +162,13 @@ namespace
 TpcCentralMembraneMatching::TpcCentralMembraneMatching(const std::string& name)
 : SubsysReco(name)
 {
+  /*
   // calculate stripes center positions
   CalculateCenters(nPads_R1, R1_e, nGoodStripes_R1_e, keepUntil_R1_e, nStripesIn_R1_e, nStripesBefore_R1_e, cx1_e, cy1_e);
   CalculateCenters(nPads_R1, R1, nGoodStripes_R1, keepUntil_R1, nStripesIn_R1, nStripesBefore_R1, cx1, cy1);
   CalculateCenters(nPads_R2, R2, nGoodStripes_R2, keepUntil_R2, nStripesIn_R2, nStripesBefore_R2, cx2, cy2);
   CalculateCenters(nPads_R3, R3, nGoodStripes_R3, keepUntil_R3, nStripesIn_R3, nStripesBefore_R3, cx3, cy3);
+  */
 }
 
 //___________________________________________________________
@@ -1095,7 +1099,31 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
   // Get truth cluster positions
   //=====================
 
-  const double phi_petal = M_PI / 9.0;  // angle span of one petal
+  CDBTTree *cdbttree = new CDBTTree("/sphenix/u/bkimelman/CMStripePattern.root");
+  cdbttree->LoadCalibrations();
+  auto cdbMap = cdbttree->GetDoubleEntryMap();
+  for (const auto &[index, values] : cdbMap)
+  {
+    m_truth_index.push_back(index);
+    double tmpR = cdbttree->GetDoubleValue(index, "truthR");
+    double tmpPhi = cdbttree->GetDoubleValue(index, "truthPhi");
+    TVector3 dummyPos(tmpR*cos(tmpPhi), tmpR*sin(tmpPhi), (index / 10000 < 18 ? 1.0 : -1.0));
+    m_truth_pos.push_back(dummyPos);
+    truth_r_phi[(index / 10000 < 18 ? 1 : 0)]->Fill(tmpPhi, tmpR);
+    if(Verbosity() > 2)
+    {
+      std::cout << " index " << index << " x " << dummyPos.X() << " y " << dummyPos.Y()
+      << " phi " << std::atan2(dummyPos.Y(), dummyPos.X())
+      << " radius " << get_r(dummyPos.X(), dummyPos.Y()) << std::endl;
+    }
+    if(m_savehistograms)
+    {
+      hxy_truth->Fill(dummyPos.X(), dummyPos.Y());
+    }
+
+  }
+
+  //const double phi_petal = M_PI / 9.0;  // angle span of one petal
 
   /*
    * utility function to
@@ -1103,6 +1131,7 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
    * - assign proper z,
    * - insert in container
    */
+  /*
   auto save_truth_position = [&](TVector3 source)
   {
     source.SetZ(-1);
@@ -1279,6 +1308,7 @@ for (int j = 0; j < nRadii; ++j)
     }
   }
 }
+*/
 
 /*
 int count[2] = {0, 0};
@@ -2150,7 +2180,14 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
     cmdiff->setTruthR(m_truth_pos[i].Perp());
     cmdiff->setTruthZ(m_truth_pos[i].Z());
 
-    if (m_averageMode)
+    if (m_totalDistMode)
+    {
+      cmdiff->setRecoPhi(raw_pos[reco_index].Phi());
+      cmdiff->setRecoR(raw_pos[reco_index].Perp());
+      cmdiff->setRecoZ(raw_pos[reco_index].Z());
+      cmdiff->setNclusters(reco_nhits[reco_index]);
+    }
+    else if (m_averageMode)
     {
       cmdiff->setRecoPhi(static_pos[reco_index].Phi());
       cmdiff->setRecoR(static_pos[reco_index].Perp());
@@ -2185,6 +2222,14 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
       dr = static_pos[reco_index].Perp() - m_truth_pos[i].Perp();
       dphi = delta_phi(static_pos[reco_index].Phi() - m_truth_pos[i].Phi());
+    }
+    if(m_totalDistMode)
+    {
+      clus_r = raw_pos[reco_index].Perp();
+      clus_phi = raw_pos[reco_index].Phi();
+
+      dr = raw_pos[reco_index].Perp() - m_truth_pos[i].Perp();
+      dphi = delta_phi(raw_pos[reco_index].Phi() - m_truth_pos[i].Phi());
     }
     if (clus_phi < 0)
     {
@@ -2260,6 +2305,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
   for(int s=0; s<2; s++)
   {
+    int N = gr_dR[s]->GetN();
+
     bool firstGoodR = false;
     for(int j=1; j<=m_dcc_out->m_hDRint[s]->GetNbinsY(); j++)
     {
@@ -2283,8 +2330,46 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       for(int i=2; i<=m_dcc_out->m_hDRint[s]->GetNbinsX()-1; i++)
       {
         double phiVal = m_dcc_out->m_hDRint[s]->GetXaxis()->GetBinCenter(i);
-        m_dcc_out->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal,RVal));
-        m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
+
+        double num_dPhi = 0.0;
+        double num_dR = 0.0;
+        double den = 0.0;
+        double smoothing_parameter = 2.0;
+
+        for(int k=0; k<N; k++)
+        {
+          double interp_dPhi = delta_phi(phiVal - gr_dR[s]->GetX()[k]);
+          double interp_RdPhi = RVal*interp_dPhi;
+          double interp_dR = RVal - gr_dR[s]->GetY()[k];
+
+          double distSq = (interp_RdPhi*interp_RdPhi) + (interp_dR*interp_dR);
+
+          if(distSq > 100.0) continue;
+
+          if(distSq < 1e-9)
+          {
+            num_dPhi = gr_dPhi[s]->GetZ()[k];
+            num_dR = gr_dR[s]->GetZ()[k];
+            
+            den = 1.0;
+
+            break;
+          }
+
+          double weight = 1.0 / pow(distSq, smoothing_parameter / 2.0);
+          num_dPhi += weight * gr_dPhi[s]->GetZ()[k];
+          num_dR += weight * gr_dR[s]->GetZ()[k];
+          den += weight;
+
+        }
+
+        if(den > 0.0)
+        {    
+          m_dcc_out->m_hDRint[s]->SetBinContent(i, j, num_dR / den);
+          m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*(num_dPhi / den));
+        }
+        //m_dcc_out->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal,RVal));
+        //m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
       }      
     }
   }
@@ -2693,6 +2778,7 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+/*
 //_____________________________________________________________
 void TpcCentralMembraneMatching::CalculateCenters(
   int nPads,
@@ -2763,3 +2849,4 @@ void TpcCentralMembraneMatching::CalculateCenters(
     nGoodStripes[j] = i_out;
   }
 }
+*/
