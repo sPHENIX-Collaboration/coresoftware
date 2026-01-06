@@ -5,51 +5,17 @@
 
 #include "DSTTrackInfoWriter.h"
 
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/TrackInfoContainer_v1.h>
+#include <trackbase_historic/ActsTransformations.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <micromegas/MicromegasDefs.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-#include <trackbase/InttDefs.h>
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/TpcDefs.h>
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterv4.h>
-#include <trackbase/TrkrDefs.h>
-// include new cluster
-#include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/TrackSeed_v1.h>
-// include SvtxTrackMap_v1 to write data to it
-#include <trackbase_historic/SvtxTrackInfo_v1.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrack_v4.h>
-#include <trackbase_historic/TrackInfoContainer_v1.h>
-#include <trackbase_historic/TrackStateInfo_v1.h>
-#include <trackbase_historic/ActsTransformations.h>
 
-#include <TClonesArray.h>
-#include <TFile.h>
-#include <TLine.h>
-#include <TTree.h>
-
-#include <algorithm>
-#include <bitset>
-#include <cassert>
 #include <iostream>
-#include <numeric>
-
-//_____________________________________________________________________
 
 //_____________________________________________________________________
 DSTTrackInfoWriter::DSTTrackInfoWriter(const std::string& name)
@@ -66,7 +32,7 @@ int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
   }
   // find DST node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << "DSTTrackInfoWriter::Init - DST Node missing" << std::endl;
@@ -75,7 +41,7 @@ int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
 
   // get EVAL node
   iter = PHNodeIterator(dstNode);
-  auto evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
+  auto *evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
   if (!evalNode)
   {
     // create
@@ -88,7 +54,7 @@ int DSTTrackInfoWriter::InitRun(PHCompositeNode* topNode)
   // m_container->arrClsDST = new TClonesArray("DSTContainerv3::ClusterStruct");
   // m_container->trkrClsDST = new TClonesArray("TrkrClusterv4");
 
-  auto newInfoNode = new PHIODataNode<PHObject>(new TrackInfoContainer_v1, "TrackInfoContainer", "PHObject");
+  auto *newInfoNode = new PHIODataNode<PHObject>(new TrackInfoContainer_v1, "TrackInfoContainer", "PHObject");
   evalNode->addNode(newInfoNode);
 
   // auto newTrackNode = new PHIODataNode<PHObject>(new SvtxTrackArray_v1, "TRACK_ARRAYV1", "PHObject");
@@ -154,7 +120,7 @@ int DSTTrackInfoWriter::load_nodes(PHCompositeNode* topNode)
   // get necessary nodes
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
-  m_track_info_container = findNode::getClass<TrackInfoContainer_v1>(topNode, "TrackInfoContainer");
+  m_track_info_container = findNode::getClass<TrackInfoContainer>(topNode, "TrackInfoContainer");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -179,12 +145,12 @@ void DSTTrackInfoWriter::evaluate_track_info()
   ActsTransformations transformer;
   for (const auto& trackpair : *m_track_map)
   {
-    const auto track = trackpair.second;
+    auto *const track = trackpair.second;
     // this track will have a TPC and Silicon seed
 
     uint64_t hitbitmap = 0;
 
-    SvtxTrackInfo_v1* trackInfo = new SvtxTrackInfo_v1();
+    SvtxTrackInfo *trackInfo = new SvtxTrackInfo_v1();
     if (Verbosity() > 1)
     {
       std::cout << "Before seeds"

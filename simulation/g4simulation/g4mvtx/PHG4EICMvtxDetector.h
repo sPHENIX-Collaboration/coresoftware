@@ -51,7 +51,7 @@ class PHG4EICMvtxDetector : public PHG4Detector
 
  private:
   void AddGeometryNode();
-  int ConstructMvtx(G4LogicalVolume* sandwich);
+  int ConstructMvtx(G4LogicalVolume* trackerenvelope);
   int ConstructMvtx_Layer(int layer, G4AssemblyVolume* stave, G4LogicalVolume*& trackerenvelope);
   void SetDisplayProperty(G4AssemblyVolume* av);
   void SetDisplayProperty(G4LogicalVolume* lv);

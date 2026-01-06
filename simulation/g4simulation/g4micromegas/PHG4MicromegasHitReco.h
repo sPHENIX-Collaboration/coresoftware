@@ -14,13 +14,13 @@
 #include <fun4all/SubsysReco.h>
 
 #include <gsl/gsl_rng.h>
+
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 class ActsGeometry;
-
 class CylinderGeomMicromegas;
 class PHCompositeNode;
 class PHG4Hit;
@@ -61,33 +61,33 @@ class PHG4MicromegasHitReco : public SubsysReco, public PHParameterInterface
   using charge_list_t = std::vector<charge_pair_t>;
 
   //! distribute a Gaussian charge across adjacent strips
-  charge_list_t distribute_charge(CylinderGeomMicromegas*, uint tileid, const TVector2& local_position, double sigma) const;
+  charge_list_t distribute_charge(CylinderGeomMicromegas*, uint tileid, const TVector2& local_coords, double sigma) const;
 
   //! acts geometry
-  ActsGeometry* m_acts_geometry = nullptr;
+  ActsGeometry* m_acts_geometry {nullptr};
 
   //! timing window (ns)
-  double m_tmin = -20;
+  double m_tmin {-20};
 
   //! timing window (ns)
-  double m_tmax = 800;
+  double m_tmax {800};
 
   //! number of primary electrons per GeV
-  double m_electrons_per_gev = 0;
+  double m_electrons_per_gev {0};
 
   //! min gain
-  double m_gain = 0;
+  double m_gain {0};
 
   //! electron cloud sigma (cm) after avalanche
-  double m_cloud_sigma = 0.04;
+  double m_cloud_sigma {0.04};
 
   //! electron transverse diffusion (cm/sqrt(cm))
-  double m_diffusion_trans = 0.03;
+  double m_diffusion_trans {0.03};
 
   //! additional smearing of primary electrons (cm)
   /** it is used to adjust the Micromegas resolution to actual measurements */
-  double m_added_smear_sigma_z = 0;
-  double m_added_smear_sigma_rphi = 0;
+  double m_added_smear_sigma_z {0};
+  double m_added_smear_sigma_rphi {0};
 
   //! rng de-allocator
   class Deleter

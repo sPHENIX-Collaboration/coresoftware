@@ -59,17 +59,12 @@
 #include <cassert>
 
 PHG4GDMLWriteStructure::PHG4GDMLWriteStructure(const PHG4GDMLConfig* config_input)
-  : PHG4GDMLWriteParamvol()
-  , structureElement(nullptr)
+  : structureElement(nullptr)
   , cexport(false)
   , config(config_input)
 {
   assert(config);
   reflFactory = G4ReflectionFactory::Instance();
-}
-
-PHG4GDMLWriteStructure::~PHG4GDMLWriteStructure()
-{
 }
 
 void PHG4GDMLWriteStructure::DivisionvolWrite(xercesc::DOMElement* volumeElement,
@@ -144,7 +139,8 @@ void PHG4GDMLWriteStructure::PhysvolWrite(xercesc::DOMElement* volumeElement,
 
   xercesc::DOMElement* physvolElement = NewElement("physvol");
   physvolElement->setAttributeNode(NewAttribute("name", name));
-  if (copynumber) physvolElement->setAttributeNode(NewAttribute("copynumber", copynumber));
+  if (copynumber) { physvolElement->setAttributeNode(NewAttribute("copynumber", copynumber));
+}
 
   volumeElement->appendChild(physvolElement);
 
@@ -349,7 +345,7 @@ G4bool PHG4GDMLWriteStructure::FindOpticalSurface(const G4SurfaceProperty* psurf
 const G4LogicalSkinSurface*
 PHG4GDMLWriteStructure::GetSkinSurface(const G4LogicalVolume* const lvol)
 {
-  G4LogicalSkinSurface* surf = 0;
+  G4LogicalSkinSurface* surf = nullptr;
   G4int nsurf = G4LogicalSkinSurface::GetNumberOfSkinSurfaces();
   if (nsurf)
   {
@@ -379,11 +375,11 @@ const G4LogicalBorderSurface* PHG4GDMLWriteStructure::GetBorderSurface(
   {
     const G4LogicalBorderSurfaceTable* btable =
         G4LogicalBorderSurface::GetSurfaceTable();
-    for (auto pos = btable->cbegin(); pos != btable->cend(); ++pos)
+    for (const auto & pos : *btable)
     {
-      if (pvol == pos->first.first)  // just the first in the couple
+      if (pvol == pos.first.first)  // just the first in the couple
       {                              // could be enough?
-        surf = pos->second;          // break;
+        surf = pos.second;          // break;
         BorderSurfaceCache(surf);
       }
     }
@@ -443,20 +439,21 @@ void PHG4GDMLWriteStructure::StructureWrite(xercesc::DOMElement* gdmlElement)
 G4Transform3D PHG4GDMLWriteStructure::
     TraverseVolumeTree(const G4LogicalVolume* const volumePtr, const G4int depth)
 {
-  if (VolumeMap().find(volumePtr) != VolumeMap().end())
+  if (VolumeMap().contains(volumePtr))
   {
     return VolumeMap()[volumePtr];  // Volume is already processed
   }
 
   //jump over the exclusions
   assert(config);
-  if (config->get_excluded_logical_vol().find(volumePtr) != config->get_excluded_logical_vol().end())
+  if (config->get_excluded_logical_vol().contains(volumePtr))
   {
     return G4Transform3D::Identity;
   }
 
   G4VSolid* solidPtr = volumePtr->GetSolid();
-  G4Transform3D R, invR;
+  G4Transform3D R;
+  G4Transform3D invR;
   G4int trans = 0;
 
   std::map<const G4LogicalVolume*, PHG4GDMLAuxListType>::iterator auxiter;
@@ -496,7 +493,7 @@ G4Transform3D PHG4GDMLWriteStructure::
   if (reflFactory->IsReflected(tmplv))
   {
     tmplv = reflFactory->GetConstituentLV(tmplv);
-    if (VolumeMap().find(tmplv) != VolumeMap().end())
+    if (VolumeMap().contains(tmplv))
     {
       return R;  // Volume is already processed
     }
@@ -531,8 +528,9 @@ G4Transform3D PHG4GDMLWriteStructure::
 
     //jump over the exclusions
     assert(config);
-    if (config->get_excluded_physical_vol().find(physvol) != config->get_excluded_physical_vol().end())
+    if (config->get_excluded_physical_vol().contains(physvol)) {
       continue;
+}
 
     const G4String ModuleName = Modularize(physvol, depth);
 
@@ -582,7 +580,7 @@ G4Transform3D PHG4GDMLWriteStructure::
     else  // Is it a physvol?
     {
       G4RotationMatrix rot;
-      if (physvol->GetFrameRotation() != 0)
+      if (physvol->GetFrameRotation() != nullptr)
       {
         rot = *(physvol->GetFrameRotation());
       }
@@ -626,7 +624,7 @@ G4Transform3D PHG4GDMLWriteStructure::
   return R;
 }
 
-void PHG4GDMLWriteStructure::AddVolumeAuxiliary(PHG4GDMLAuxStructType myaux,
+void PHG4GDMLWriteStructure::AddVolumeAuxiliary(const PHG4GDMLAuxStructType& myaux,
                                                 const G4LogicalVolume* const lvol)
 {
   std::map<const G4LogicalVolume*,
@@ -665,13 +663,13 @@ void PHG4GDMLWriteStructure::ExportEnergyCuts(const G4LogicalVolume* const lvol)
                                                    pcuts->GetProductionCut("proton"));
 
   PHG4GDMLAuxStructType gammainfo = {"gammaECut",
-                                     ConvertToString(gamma_cut), "MeV", 0};
+                                     ConvertToString(gamma_cut), "MeV", nullptr};
   PHG4GDMLAuxStructType eminusinfo = {"electronECut",
-                                      ConvertToString(eminus_cut), "MeV", 0};
+                                      ConvertToString(eminus_cut), "MeV", nullptr};
   PHG4GDMLAuxStructType eplusinfo = {"positronECut",
-                                     ConvertToString(eplus_cut), "MeV", 0};
+                                     ConvertToString(eplus_cut), "MeV", nullptr};
   PHG4GDMLAuxStructType protinfo = {"protonECut",
-                                    ConvertToString(proton_cut), "MeV", 0};
+                                    ConvertToString(proton_cut), "MeV", nullptr};
 
   AddVolumeAuxiliary(gammainfo, lvol);
   AddVolumeAuxiliary(eminusinfo, lvol);

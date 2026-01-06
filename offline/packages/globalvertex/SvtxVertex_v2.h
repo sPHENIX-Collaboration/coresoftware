@@ -77,10 +77,10 @@ class SvtxVertex_v2 : public SvtxVertex
 
   unsigned int _id{std::numeric_limits<unsigned int>::max()};    //< unique identifier within container
   float _t0{std::numeric_limits<float>::quiet_NaN()};            //< collision time
-  float _pos[3]{};                                                 //< collision position x,y,z
+  float _pos[3]{};                                               //< collision position x,y,z
   float _chisq{std::numeric_limits<float>::quiet_NaN()};         //< vertex fit chisq
   unsigned int _ndof{std::numeric_limits<unsigned int>::max()};  //< degrees of freedom
-  float _err[6]{};                                                 //< error covariance matrix (packed storage) (+/- cm^2)
+  float _err[6]{};                                               //< error covariance matrix (packed storage) (+/- cm^2)
   std::set<unsigned int> _track_ids;                             //< list of track ids
   unsigned int _beamcrossing{std::numeric_limits<unsigned int>::max()};
 

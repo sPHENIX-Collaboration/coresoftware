@@ -37,10 +37,10 @@
 #include <TClass.h>
 #include <TClonesArray.h>
 #include <TObject.h>
-#include <TString.h>
 #include <TTree.h>
 
 #include <cassert>
+#include <format>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -82,7 +82,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
   {
     const char *class_name = hit_type::Class()->GetName();
 
-    std::string hname = Form("G4HIT_%s", nodenam.c_str());
+    std::string hname = std::format("G4HIT_{}", nodenam);
     //      _node_name.push_back(hname);
     if (Verbosity() > 0)
     {
@@ -102,7 +102,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
     nblocks++;
   }
 
-  if (_tower_postfix.size() && Verbosity() > 0)
+  if (!_tower_postfix.empty() && Verbosity() > 0)
   {
     std::cout << "PHG4DSTReader::Init - zero suppression for calorimeter towers = "
               << _tower_zero_sup << " GeV" << std::endl;
@@ -111,7 +111,7 @@ int PHG4DSTReader::Init(PHCompositeNode * /*unused*/)
   {
     const char *class_name = RawTower_type::Class()->GetName();
 
-    std::string hname = Form("TOWER_%s", nodenam.c_str());
+    std::string hname = std::format("TOWER_{}", nodenam);
     //      _node_name.push_back(hname);
     if (Verbosity() > 0)
     {
@@ -214,7 +214,7 @@ void PHG4DSTReader::build_tree()
   static const int BUFFER_SIZE = 32000;
 
   // open TFile
-  PHTFileServer::get().open(_out_file_name, "RECREATE");
+  PHTFileServer::open(_out_file_name, "RECREATE");
 
   _T = new TTree("T", "PHG4DSTReader");
 
@@ -243,18 +243,13 @@ void PHG4DSTReader::build_tree()
 
 int PHG4DSTReader::process_event(PHCompositeNode *topNode)
 {
-  //  const double significand = _event / TMath::Power(10, (int) (log10(_event)));
-  //
-  //  if (fmod(significand, 1.0) == 0 && significand <= 10)
-  //    std::cout << "PHG4DSTReader::process_event - " << _event << std::endl;
   _event++;
 
   // clean ups
   _particle_set.clear();
   _vertex_set.clear();
 
-  PHG4TruthInfoContainer *truthInfoList = findNode::getClass<
-      PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  PHG4TruthInfoContainer *truthInfoList = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!truthInfoList)
   {
     if (_event < 2)
@@ -472,7 +467,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
         }
 
         // for every recojet
-        for (auto hit_raw : *hits)
+        for (auto *hit_raw : *hits)
         {
           /* Jet *hit_raw = iter.second; */
 
@@ -546,7 +541,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
       }
       for (int i : _particle_set)
       {
-        auto particle = truthInfoList->GetParticle(i);
+        auto *particle = truthInfoList->GetParticle(i);
         if (!particle)
         {
           std::cout
@@ -660,7 +655,7 @@ int PHG4DSTReader::End(PHCompositeNode * /*topNode*/)
 
   if (_T)
   {
-    PHTFileServer::get().cd(_out_file_name);
+    PHTFileServer::cd(_out_file_name);
     _T->Write();
     _T->ResetBranchAddresses();
   }

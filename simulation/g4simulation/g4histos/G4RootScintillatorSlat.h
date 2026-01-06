@@ -10,9 +10,9 @@ class PHG4ScintillatorSlat;
 class G4RootScintillatorSlat : public PHObject
 {
  public:
-  G4RootScintillatorSlat();
+  G4RootScintillatorSlat() = default;
   G4RootScintillatorSlat(const PHG4ScintillatorSlat& slat);
-  ~G4RootScintillatorSlat() override {}
+  ~G4RootScintillatorSlat() override = default;
 
   void Reset() override;
   int isValid() const override;
@@ -26,11 +26,11 @@ class G4RootScintillatorSlat : public PHObject
   double get_light_yield() const { return light_yield; }
 
  protected:
-  short row;
-  short column;
-  double edep;
-  double eion;
-  double light_yield;
+  short row{-1};
+  short column{-1};
+  double edep{0};
+  double eion{0};
+  double light_yield{0};
 
   ClassDefOverride(G4RootScintillatorSlat, 1)
 };

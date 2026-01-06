@@ -37,8 +37,8 @@ class Fun4AllStreamingLumiCountingInputManager : public Fun4AllInputManager
   void registerStreamingInput(SingleStreamingInputv2 *evtin, InputManagerType::enu_subsystem);
   int FillGl1();
   void AddGl1RawHit(uint64_t bclk, Gl1Packet *hit);
-  void AddGl1Window(uint64_t bclk, int negative_window, int positive_window);
-  void AddGl1BunchNumber(uint64_t bclk, int bunch_number);
+  void AddGl1Window(uint64_t bco_trim, int negative_window, int positive_window);
+  void AddGl1BunchNumber(uint64_t bco_trim, int bunch_number);
   void SetNegativeWindow(const unsigned int i);
   void SetPositiveWindow(const unsigned int i);
   void Streaming(bool b = true) { m_StreamingFlag = b; }

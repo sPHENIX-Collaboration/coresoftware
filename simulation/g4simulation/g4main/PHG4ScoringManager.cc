@@ -45,19 +45,13 @@
 #include <Geant4/G4VScoringMesh.hh>  // for G4VScoringMesh
 #include <Geant4/G4Version.hh>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <boost/format.hpp>
-#pragma GCC diagnostic pop
-
 #include <cassert>
 #include <cmath>  // for fabs, M_PI
+#include <format>
 #include <iostream>
 #include <limits>   // for numeric_limits
 #include <map>      // for _Rb_tree_const_ite...
 #include <utility>  // for pair
-
-using namespace std;
 
 PHG4ScoringManager::PHG4ScoringManager()
   : SubsysReco("PHG4ScoringManager")
@@ -70,7 +64,7 @@ int PHG4ScoringManager::InitRun(PHCompositeNode * /*topNode*/)
   G4RunManager *runManager = G4RunManager::GetRunManager();
   if (runManager == nullptr)
   {
-    cout << "PHG4ScoringManager::InitRun - fatal error: G4RunManager was not initialized yet. Please do include the Geant4 simulation in this Fun4All run." << endl;
+    std::cout << "PHG4ScoringManager::InitRun - fatal error: G4RunManager was not initialized yet. Please do include the Geant4 simulation in this Fun4All run." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -82,11 +76,11 @@ int PHG4ScoringManager::InitRun(PHCompositeNode * /*topNode*/)
   G4UImanager *UImanager = G4UImanager::GetUIpointer();
   assert(UImanager);
 
-  for (const string &cmd : m_commands)
+  for (const std::string &cmd : m_commands)
   {
     if (Verbosity() >= VERBOSITY_SOME)
     {
-      cout << "PHG4ScoringManager::InitRun - execute Geatn4 command: " << cmd << endl;
+      std::cout << "PHG4ScoringManager::InitRun - execute Geatn4 command: " << cmd << std::endl;
     }
     UImanager->ApplyCommand(cmd.c_str());
   }
@@ -94,10 +88,10 @@ int PHG4ScoringManager::InitRun(PHCompositeNode * /*topNode*/)
   // 4 init IOs
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "PHG4ScoringManager::InitRun - Making PHTFileServer " << m_outputFileName
-         << endl;
+    std::cout << "PHG4ScoringManager::InitRun - Making PHTFileServer " << m_outputFileName
+              << std::endl;
   }
-  PHTFileServer::get().open(m_outputFileName, "RECREATE");
+  PHTFileServer::open(m_outputFileName, "RECREATE");
 
   Fun4AllHistoManager *hm = getHistoManager();
   assert(hm);
@@ -124,7 +118,7 @@ int PHG4ScoringManager::InitRun(PHCompositeNode * /*topNode*/)
 }
 
 //_________________________________________________________________
-void PHG4ScoringManager::G4Command(const string &cmd)
+void PHG4ScoringManager::G4Command(const std::string &cmd)
 {
   m_commands.push_back(cmd);
   return;
@@ -149,7 +143,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
     if (once)
     {
       once = false;
-      cout << "PHG4ScoringManager::process_event - - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
+      std::cout << "PHG4ScoringManager::process_event - - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
     }
   }
   else
@@ -168,8 +162,8 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
       {
         if (Verbosity() >= 2)
         {
-          cout << __PRETTY_FUNCTION__ << ": get vertex " << genevnt->get_collision_vertex().z()
-               << " which is outside range " << m_vertexAcceptanceRange.first << " to " << m_vertexAcceptanceRange.second << " cm:";
+          std::cout << __PRETTY_FUNCTION__ << ": get vertex " << genevnt->get_collision_vertex().z()
+                    << " which is outside range " << m_vertexAcceptanceRange.first << " to " << m_vertexAcceptanceRange.second << " cm:";
           genevnt->identify();
         }
 
@@ -188,9 +182,9 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!ineve)
   {
-    cout << "PHG4ScoringManager::process_event - Error - "
-         << "unable to find DST node "
-         << "PHG4INEVENT" << endl;
+    std::cout << "PHG4ScoringManager::process_event - Error - "
+              << "unable to find DST node "
+              << "PHG4INEVENT" << std::endl;
   }
   else
   {
@@ -225,8 +219,8 @@ int PHG4ScoringManager::End(PHCompositeNode * /*unused*/)
 {
   if (!m_outputFileName.empty())
   {
-    PHTFileServer::get().cd(m_outputFileName);
-    cout << "PHG4ScoringManager::End - save results to " << m_outputFileName << endl;
+    PHTFileServer::cd(m_outputFileName);
+    std::cout << "PHG4ScoringManager::End - save results to " << m_outputFileName << std::endl;
 
     makeScoringHistograms();
 
@@ -256,10 +250,10 @@ void PHG4ScoringManager::makeScoringHistograms()
     G4VScoringMesh *g4mesh = scoringManager->GetMesh(imesh);
     assert(g4mesh);
 
-    const string meshName(g4mesh->GetWorldName().data());
+    const std::string meshName(g4mesh->GetWorldName().data());
     if (Verbosity())
     {
-      cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName << ": " << endl;
+      std::cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName << ": " << std::endl;
       g4mesh->List();
     }
 
@@ -279,9 +273,9 @@ void PHG4ScoringManager::makeScoringHistograms()
     const MeshShape meshShape = g4mesh->GetShape();
 #endif
     // PHENIX units
-    vector<double> meshBoundMin = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
+    std::vector<double> meshBoundMin = {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     // PHENIX units
-    vector<double> meshBoundMax = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
+    std::vector<double> meshBoundMax = {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 #if G4VERSION_NUMBER >= 1060
     if (meshShape == G4VScoringMesh::MeshShape::box)
 #else
@@ -327,7 +321,7 @@ void PHG4ScoringManager::makeScoringHistograms()
     }
     else
     {
-      cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << (int) meshShape << ". Skipping this mesh!" << endl;
+      std::cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << (int) meshShape << ". Skipping this mesh!" << std::endl;
       g4mesh->List();
       continue;
     }
@@ -350,21 +344,21 @@ void PHG4ScoringManager::makeScoringHistograms()
       G4double unitValue = g4mesh->GetPSUnitValue(psname);
       G4String unit = g4mesh->GetPSUnit(psname);
 
-      const string hname = boost::str(boost::format("hScore_%1%_%2%") % meshName.data() % psname.data());
-      const string htitle = boost::str(boost::format("Mesh %1%, Primitive scorer %2%: score [%3%]") % meshName.c_str() % psname.data() % unit.data());
+      const std::string hname = std::format("hScore_{}_{}", meshName, std::string(psname));
+      const std::string htitle = std::format("Mesh {}, Primitive scorer {}: score [{}]", meshName, std::string(psname), std::string(unit));
 
       if (Verbosity())
       {
-        cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName
-             << "  scorer " << psname
-             << "  with axis: "
-             << "# i" << divisionAxisNames[0]
-             << ", i" << divisionAxisNames[1]
-             << ", i" << divisionAxisNames[2]
-             << ", value "
-             << "[unit: " << unit << "]."
-             << " Saving to histogram " << hname << " : " << htitle
-             << endl;
+        std::cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName
+                  << "  scorer " << psname
+                  << "  with axis: "
+                  << "# i" << divisionAxisNames[0]
+                  << ", i" << divisionAxisNames[1]
+                  << ", i" << divisionAxisNames[2]
+                  << ", value "
+                  << "[unit: " << unit << "]."
+                  << " Saving to histogram " << hname << " : " << htitle
+                  << std::endl;
       }
       // book histogram
       TH3 *h = new TH3D(hname.c_str(),   //
@@ -416,16 +410,16 @@ void PHG4ScoringManager::makeScoringHistograms()
 Fun4AllHistoManager *
 PHG4ScoringManager::getHistoManager()
 {
-  static string histname("PHG4ScoringManager_HISTOS");
+  static std::string histname("PHG4ScoringManager_HISTOS");
   Fun4AllServer *se = Fun4AllServer::instance();
   Fun4AllHistoManager *hm = se->getHistoManager(histname);
   if (!hm)
   {
     if (Verbosity())
     {
-      cout
+      std::cout
           << "PHG4ScoringManager::get_HistoManager - Making Fun4AllHistoManager " << histname
-          << endl;
+          << std::endl;
     }
     hm = new Fun4AllHistoManager(histname);
     se->registerHistoManager(hm);

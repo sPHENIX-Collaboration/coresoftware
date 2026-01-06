@@ -102,7 +102,7 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track)
 
     std::set<PHG4Hit*> new_hits = _clustereval.all_truth_hits(cluster_key);
 
-    for (auto new_hit : new_hits)
+    for (auto* new_hit : new_hits)
     {
       truth_hits.insert(new_hit);
     }
@@ -184,7 +184,7 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
 
       std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster_key);
 
-      for (auto new_particle : new_particles)
+      for (auto* new_particle : new_particles)
       {
         truth_particles.insert(new_particle);
       }
@@ -219,7 +219,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
   if (_recoTruthMap && _recoTruthMap->processed())
   {
     const SvtxPHG4ParticleMap::WeightedTruthTrackMap map = _recoTruthMap->get(track->get_id());
-    if (map.size() == 0)
+    if (map.empty())
     {
       return nullptr;
     }
@@ -254,7 +254,7 @@ PHG4Particle* SvtxTrackEval::max_truth_particle_by_nclusters(SvtxTrack* track)
   {
     unsigned int max_nclusters = 0;
 
-    for (auto candidate : particles)
+    for (auto* candidate : particles)
     {
       unsigned int nclusters = get_nclusters_contribution(track, candidate);
       if (nclusters > max_nclusters)
@@ -338,7 +338,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
 
       // loop over all particles
       std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
-      for (auto candidate : particles)
+      for (auto* candidate : particles)
       {
         if (get_truth_eval()->are_same_particle(candidate, truthparticle))
         {
@@ -406,7 +406,7 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit)
 
       // loop over all hits
       std::set<PHG4Hit*> hits = _clustereval.all_truth_hits(cluster_key);
-      for (auto candidate : hits)
+      for (auto* candidate : hits)
       {
         // if track id matches argument add to output
         if (candidate->get_trkid() == truthhit->get_trkid())
@@ -447,7 +447,7 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle)
   {
     const PHG4ParticleSvtxMap::WeightedRecoTrackMap map = _truthRecoMap->get(truthparticle->get_track_id());
     /// No reco tracks found
-    if (map.size() == 0)
+    if (map.empty())
     {
       return nullptr;
     }
@@ -471,7 +471,7 @@ SvtxTrack* SvtxTrackEval::best_track_from(PHG4Particle* truthparticle)
   SvtxTrack* best_track = nullptr;
   unsigned int best_count = 0;
   std::set<SvtxTrack*> tracks = all_tracks_from(truthparticle);
-  for (auto track : tracks)
+  for (auto* track : tracks)
   {
     unsigned int count = get_nclusters_contribution(track, truthparticle);
     if (count > best_count)
@@ -569,10 +569,8 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(TrkrDefs::cluskey cluster_ke
     {
       return iter->second;
     }
-    else
-    {
-      return tracks;
-    }
+
+    return tracks;
   }
 
   // loop over all SvtxTracks
@@ -638,11 +636,11 @@ SvtxTrack* SvtxTrackEval::best_track_from(TrkrDefs::cluskey cluster_key)
   }
 
   SvtxTrack* best_track = nullptr;
-  float best_quality = FLT_MAX;
+  float best_quality = std::numeric_limits<float>::max();
 
   std::set<SvtxTrack*> tracks = all_tracks_from(cluster_key);
   // loop over all SvtxTracks
-  for (auto candidate : tracks)
+  for (auto* candidate : tracks)
   {
     if (candidate->get_quality() < best_quality)
     {
@@ -769,7 +767,7 @@ void SvtxTrackEval::calc_cluster_contribution(SvtxTrack* track, PHG4Particle* pa
     int matched = 0;
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
-    for (auto candidate : particles)
+    for (auto* candidate : particles)
     {
       if (get_truth_eval()->are_same_particle(candidate, particle))
       {
@@ -844,7 +842,7 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
 
-    for (auto candidate : particles)
+    for (auto* candidate : particles)
     {
       if (get_truth_eval()->are_same_particle(candidate, particle))
       {
@@ -872,7 +870,7 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
   if (!has_node_pointers())
   {
     ++_errors;
-    return std::make_pair(0,0);
+    return std::make_pair(0, 0);
   }
 
   if (_strict)
@@ -883,15 +881,15 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
   else if (!track || !particle)
   {
     ++_errors;
-    return std::make_pair(0,0);
+    return std::make_pair(0, 0);
   }
 
   unsigned int nmatches = 0;
   unsigned int nwrong = 0;
   unsigned int nlayers = end_layer - start_layer;
 
-  std::vector<int> layers(nlayers,0);
-  std::vector<int> layers_wrong(nlayers,0);
+  std::vector<int> layers(nlayers, 0);
+  std::vector<int> layers_wrong(nlayers, 0);
   // loop over all clusters
   std::vector<TrkrDefs::cluskey> cluster_keys = get_track_ckeys(track);
   for (const auto& cluster_key : cluster_keys)
@@ -919,19 +917,19 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
     int matched = 0;
-    for (auto candidate : particles)
+    for (auto* candidate : particles)
     {
       if (get_truth_eval()->are_same_particle(candidate, particle))
       {
         //	nmatches |= (0x3FFFFFFF & (0x1 << cluster_layer));
         layers[cluster_layer - start_layer] = 1;
-	matched = 1;
+        matched = 1;
       }
     }
-    if(matched == 0)
-      {
-	layers_wrong[cluster_layer - start_layer] = 1;
-      }
+    if (matched == 0)
+    {
+      layers_wrong[cluster_layer - start_layer] = 1;
+    }
   }
   for (unsigned int i = 0; i < nlayers; i++)
   {
@@ -939,13 +937,13 @@ std::pair<unsigned int, unsigned int> SvtxTrackEval::get_layer_range_contributio
     {
       nmatches++;
     }
-    if(layers_wrong[i] == 1)
-      {
-	nwrong++;
-      }
+    if (layers_wrong[i] == 1)
+    {
+      nwrong++;
+    }
   }
-  
-  return std::make_pair(nmatches,nwrong);
+
+  return std::make_pair(nmatches, nwrong);
 }
 
 void SvtxTrackEval::get_node_pointers(PHCompositeNode* topNode)

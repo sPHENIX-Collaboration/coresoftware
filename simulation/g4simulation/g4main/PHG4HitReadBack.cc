@@ -13,17 +13,10 @@
 
 class PHCompositeNode;
 
-using namespace std;
-
-PHG4HitReadBack::PHG4HitReadBack(const string &name)
+PHG4HitReadBack::PHG4HitReadBack(const std::string &name)
   : SubsysReco(name)
 {
   return;
-}
-
-int PHG4HitReadBack::InitRun(PHCompositeNode * /*topNode*/)
-{
-  return 0;
 }
 
 int PHG4HitReadBack::process_event(PHCompositeNode *topNode)
@@ -31,41 +24,43 @@ int PHG4HitReadBack::process_event(PHCompositeNode *topNode)
   PHG4HitContainer *phc = findNode::getClass<PHG4HitContainer>(topNode, "PHG4Hit");
   if (!phc)
   {
-    cout << "No PHG4Hit found" << endl;
+    std::cout << "No PHG4Hit found" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   phc->identify();
   std::pair<PHG4HitContainer::ConstIterator, PHG4HitContainer::ConstIterator> hititer = phc->getHits(1);
-  PHG4HitContainer::ConstIterator begin, end, it;
+  PHG4HitContainer::ConstIterator begin;
+  PHG4HitContainer::ConstIterator end;
+  PHG4HitContainer::ConstIterator it;
   begin = hititer.first;
   end = hititer.second;
   for (it = begin; it != end; ++it)
   {
-    cout << "key: 0x" << hex << it->first << dec << endl;
-    cout << "x: " << it->second->get_x(0) << endl;
+    std::cout << "key: 0x" << std::hex << it->first << std::dec << std::endl;
+    std::cout << "x: " << it->second->get_x(0) << std::endl;
   }
-  cout << "detid: 2" << endl;
+  std::cout << "detid: 2" << std::endl;
   hititer = phc->getHits(2);
   begin = hititer.first;
   end = hititer.second;
   for (it = begin; it != end; ++it)
   {
-    cout << "key: 0x" << hex << it->first << dec << endl;
-    cout << "x: " << it->second->get_x(0) << endl;
+    std::cout << "key: 0x" << std::hex << it->first << std::dec << std::endl;
+    std::cout << "x: " << it->second->get_x(0) << std::endl;
   }
-  cout << "detid: 3" << endl;
+  std::cout << "detid: 3" << std::endl;
   hititer = phc->getHits(3);
   begin = hititer.first;
   end = hititer.second;
   for (it = begin; it != end; ++it)
   {
-    cout << "key: 0x" << hex << it->first << dec << endl;
-    cout << "x: " << it->second->get_x(0) << endl;
+    std::cout << "key: 0x" << std::hex << it->first << std::dec << std::endl;
+    std::cout << "x: " << it->second->get_x(0) << std::endl;
   }
   //   phc = findNode::getClass<PHG4HitContainer>(topNode,"PHG4Hit2");
   //   if (!phc)
   //     {
-  //       cout << "No PHG4Hit found" << endl;
+  //       std::cout << "No PHG4Hit found" << std::endl;
   //       return ABORTEVENT;
   //     }
   //   phc->identify();

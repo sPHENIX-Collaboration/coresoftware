@@ -126,7 +126,12 @@ int PHActsSiliconSeeding::InitRun(PHCompositeNode* topNode)
 
   /// the strobe width is in microseconds. Crossings are 100 ns, so we multiply by 10
   /// e.g. 10 mus = 10,000 ns / 100 ns per crossing = 100 crossings
+  float defaultStrobe = m_strobeWidth;
   m_strobeWidth = MvtxRawDefs::getStrobeLength(runnumber) * 10;
+  if(std::isnan(m_strobeWidth))
+  {
+    m_strobeWidth = defaultStrobe * 10;
+  }
   if (createNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -139,7 +144,7 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
 {
   if (m_nIteration > 0)
   {
-    _iteration_map = findNode::getClass<TrkrClusterIterationMapv1>(topNode, "TrkrClusterIterationMap");
+    _iteration_map = findNode::getClass<TrkrClusterIterationMap>(topNode, "TrkrClusterIterationMap");
     if (!_iteration_map)
     {
       std::cerr << PHWHERE << "Cluster Iteration Map missing, aborting." << std::endl;
@@ -160,11 +165,11 @@ int PHActsSiliconSeeding::process_event(PHCompositeNode* topNode)
 
   runSeeder();
 
-  if (Verbosity() > 0)
-  {
-    std::cout << "Finished PHActsSiliconSeeding process_event"
-              << std::endl;
-  }
+if (Verbosity() > 0)
+{
+  std::cout << "Finished PHActsSiliconSeeding process_event"
+            << std::endl;
+}
 
   m_event++;
 
@@ -425,6 +430,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
   int numSeeds = 0;
   int numGoodSeeds = 0;
   m_seedid = -1;
+
   int strobe = m_lowStrobeIndex;
   /// Loop over grid volumes. In our case this will be strobe
   for (const auto& seeds : seedVector)
@@ -559,6 +565,14 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         std::cout << "find intt clusters time " << addClusters << std::endl;
       }
 
+      if(m_searchInIntt && m_checkTiming)
+      {
+        bool mismatch = isTimingMismatched(*trackSeed);
+        if (mismatch)
+        {
+          continue;
+        }
+      }
       numGoodSeeds++;
 
       /// The Acts z projection has better resolution than the circle fit
@@ -616,9 +630,61 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
     }
   }
 
-  return;
-}
+    return;
+  }
 
+bool PHActsSiliconSeeding::isTimingMismatched(TrackSeed& seed) const
+{
+  std::set<int> mvtx_strobes;
+  std::set<int> intt_crossings;
+
+  for (auto it = seed.begin_cluster_keys(); it != seed.end_cluster_keys(); ++it)
+  {
+    TrkrDefs::cluskey cluskey = *it;
+    const unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
+    if(trkrid == TrkrDefs::TrkrId::mvtxId)
+    {
+      mvtx_strobes.insert(MvtxDefs::getStrobeId(cluskey));
+    }
+    if(trkrid == TrkrDefs::TrkrId::inttId)
+    {
+      intt_crossings.insert(InttDefs::getTimeBucketId(cluskey));
+    }
+  }
+ 
+  if(mvtx_strobes.size() > 1)
+  {
+    return true;
+  }
+  if(intt_crossings.size() > 2)
+  {
+    return true;
+  }
+  if(intt_crossings.empty())
+  {
+    // only an mvtx seed, must be in time given we seed on a strobe by strobe basis
+    return false;
+  }
+
+  int crossing1 = *intt_crossings.begin();
+  int crossing2 = *intt_crossings.rbegin();
+  if (abs(crossing2 - crossing1) > 2)
+  {
+    return true;
+  }
+  int mvtx_strobe = *mvtx_strobes.begin();
+  int strobecrossinglow = (mvtx_strobe + m_strobeLowWindow) * m_strobeWidth;
+  int strobecrossinghigh = (mvtx_strobe + m_strobeHighWindow) * m_strobeWidth;
+  if (crossing1 < strobecrossinglow || crossing1 > strobecrossinghigh)
+    {
+      if(crossing2 < strobecrossinglow || crossing2 > strobecrossinghigh)
+      {
+        return true;
+      }
+    }
+  
+  return false;
+}
 short int PHActsSiliconSeeding::getCrossingIntt(TrackSeed& si_track)
 {
   // If the Si track contains an INTT hit, use it to get the bunch crossing offset
@@ -773,6 +839,18 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     }
   }
 
+  int seedstrobe = std::numeric_limits<int>::max();
+  for (auto it = seed.begin_cluster_keys();
+       it != seed.end_cluster_keys();
+       ++it)
+  {
+    if (TrkrDefs::getTrkrId(*it) == TrkrDefs::TrkrId::mvtxId)
+    {
+      // there is guaranteed only one strobe for mvtx clusters in the seed
+      seedstrobe = MvtxDefs::getStrobeId(*it);
+      break;
+    }
+  }
   std::vector<TrkrDefs::cluskey> matchedClusters;
   std::map<int, float> minResidLayer;
   std::map<int, TrkrDefs::cluskey> minResidckey;
@@ -855,12 +933,12 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
           const auto cluskey = clusIter->first;
           if (_iteration_map && m_nIteration > 0)
           {
-            if (_iteration_map->getIteration(cluskey) < m_nIteration)
+            if (_iteration_map->getIteration(cluskey) > 0)
             {
               continue;  // skip clusters used in a previous iteration
             }
           }
-
+          int newstrobe = MvtxDefs::getStrobeId(cluskey);
           auto* const cluster = clusIter->second;
           auto glob = m_tGeometry->getGlobalPosition(
               cluskey, cluster);
@@ -906,13 +984,13 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
                            local.x() - cluster->getLocalX());
             m_tree->Fill();
           }
-
+          bool strobecheck = std::abs(newstrobe - seedstrobe) < 2;
           /// Z strip spacing is the entire strip, so because we use fabs
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
           if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
-               zresid < m_mvtxzSearchWin) ||
+               zresid < m_mvtxzSearchWin && strobecheck) ||
               (det == TrkrDefs::TrkrId::inttId && rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin))
 
           {
@@ -1133,7 +1211,9 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         {
           std::cout << "Skipping hitsetkey " << hitsetkey << " with timebucket " << timebucket
                     << " because it is outside the strobe range " << strobecrossinglow
-                    << " to " << strobecrossinghigh << std::endl;
+                    << " to " << strobecrossinghigh << " " << m_strobeWidth 
+                    << ", " << m_strobeLowWindow << ", " << m_strobeHighWindow << " for strobe " << strobe << std::endl;
+
         }
         continue;
       }
@@ -1143,7 +1223,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
         const auto cluskey = clusIter->first;
         if (_iteration_map && m_nIteration > 0)
         {
-          if (_iteration_map->getIteration(cluskey) < m_nIteration)
+          if (_iteration_map->getIteration(cluskey) > 0)
           {
             continue;  // skip clusters used in a previous iteration
           }
@@ -1336,7 +1416,7 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
         totNumSiliconHits++;
         if (_iteration_map && m_nIteration > 0)
         {
-          if (_iteration_map->getIteration(cluskey) < m_nIteration)
+          if (_iteration_map->getIteration(cluskey) > 0)
           {
             continue;  // skip hits used in a previous iteration
           }

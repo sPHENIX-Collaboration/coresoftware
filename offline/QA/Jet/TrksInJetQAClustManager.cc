@@ -8,7 +8,6 @@
  */
 /// ============================================================================
 
-#define TRKSINJETQACLUSTMANAGER_CC
 
 // submodule definition
 #include "TrksInJetQAClustManager.h"

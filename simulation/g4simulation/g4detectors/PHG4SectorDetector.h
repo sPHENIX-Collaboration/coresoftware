@@ -22,7 +22,7 @@ class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorCon
   PHG4SectorDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //! destructor
-  ~PHG4SectorDetector(void) override = default;
+  ~PHG4SectorDetector() override = default;
 
   //! construct
   void ConstructMe(G4LogicalVolume *world) override;

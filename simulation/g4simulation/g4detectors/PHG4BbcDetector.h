@@ -5,7 +5,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <cmath>
+#include <limits>
 #include <set>
 #include <string>
 
@@ -39,15 +39,15 @@ class PHG4BbcDetector : public PHG4Detector
   PHG4BbcDisplayAction *GetDisplayAction() { return m_DisplayAction; }
 
  protected:
-  PHG4BbcDisplayAction *m_DisplayAction = nullptr;
+  PHG4BbcDisplayAction *m_DisplayAction {nullptr};
 
-  PHParameters *m_Params = nullptr;
+  PHParameters *m_Params {nullptr};
 
-  int m_ActiveFlag = 0;
-  int m_SupportActiveFlag = 0;
+  int m_ActiveFlag {0};
+  int m_SupportActiveFlag {0};
 
-  float m_bbcz = NAN;      // z-location of mid-point of quartz ckov crystals
-  float front_bbcz = NAN;  // z-location of front of BBC housing
+  float m_bbcz {std::numeric_limits<float>::quiet_NaN()};      // z-location of mid-point of quartz ckov crystals
+  float front_bbcz {std::numeric_limits<float>::quiet_NaN()};  // z-location of front of BBC housing
 
   std::set<G4LogicalVolume *> m_PhysLogicalVolSet;
   std::set<G4LogicalVolume *> m_SupportLogicalVolSet;

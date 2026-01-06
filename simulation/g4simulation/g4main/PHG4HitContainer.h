@@ -25,10 +25,10 @@ class PHG4HitContainer : public PHObject
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
   typedef std::set<unsigned int>::const_iterator LayerIter;
 
-  PHG4HitContainer();  //< used only by ROOT for DST readback
+  PHG4HitContainer() = default;  //< used only by ROOT for DST readback
   PHG4HitContainer(const std::string &nodename);
 
-  ~PHG4HitContainer() override {}
+  ~PHG4HitContainer() override = default;
 
   void Reset() override;
 
@@ -52,13 +52,13 @@ class PHG4HitContainer : public PHObject
   ConstRange getHits(const unsigned int detid) const;
 
   //! return all hist
-  ConstRange getHits(void) const;
+  ConstRange getHits() const;
 
-  unsigned int size(void) const
+  unsigned int size() const
   {
     return hitmap.size();
   }
-  unsigned int num_layers(void) const
+  unsigned int num_layers() const
   {
     return layers.size();
   }
@@ -71,7 +71,7 @@ class PHG4HitContainer : public PHObject
   PHG4HitDefs::keytype getmaxkey(const unsigned int detid);
 
  protected:
-  int id;  //< unique identifier from hash of node name. Defined following PHG4HitDefs::get_volume_id
+  int id{-1};  //< unique identifier from hash of node name. Defined following PHG4HitDefs::get_volume_id
   Map hitmap;
   std::set<unsigned int> layers;  // layers is not reset since layers must not change event by event
 

@@ -8,19 +8,26 @@
  * \date $Date: $
  */
 
+#include <phgeom/PHGeomUtility.h>
+#include <phgeom/PHGeomFileImport.h>
+
+#include <fun4all/Fun4AllDummyInputManager.h>
+#include <fun4all/Fun4AllDstOutputManager.h>
+#include <fun4all/Fun4AllInputManager.h>
+#include <fun4all/Fun4AllServer.h>
+
+#include <TSystem.h>
+
 #include <string>
-using namespace std;
 
 //! Read in a Geometry file, and output DST and ROOT TGeo files
 void
-Fun4All_ImportGeom(const string & geom_file = "./sPHENIX.root")
+Fun4All_ImportGeom(const std::string & geom_file = "./sPHENIX.root")
 {
   gSystem->Load("libphgeom.so");
 
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);
-  // just if we set some flags somewhere in this macro
-  recoConsts *rc = recoConsts::instance();
 
   PHGeomFileImport * import = new PHGeomFileImport(geom_file);
   se->registerSubsystem(import);

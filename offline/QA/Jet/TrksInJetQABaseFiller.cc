@@ -8,7 +8,6 @@
  */
 /// ===========================================================================
 
-#define TRKSINJETQABASEFILLER_CC
 
 #include "TrksInJetQABaseFiller.h"
 

@@ -1,14 +1,23 @@
 
 
 #include "AnnularFieldSim.h"
-#include "TTree.h" //this prevents a lazy binding issue and/or is a magic spell.
-#include "TCanvas.h" //this prevents a lazy binding issue and/or is a magic spell.
 
-// cppcheck-suppress unknownMacro
+#include <Rtypes.h>
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TFileCollection.h>
+#include <TFileInfo.h>
+#include <TH3.h>
+#include <THashList.h>
+#include <TTree.h>
+
+#include <format>
+#include <string>
+
 R__LOAD_LIBRARY(libfieldsim.so)
 
-char field_string[200];
-char lookup_string[200];
+std::string field_string;
+std::string lookup_string;
 
 AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe=false, bool useSpacecharge=true, float xshift=0, float yshift=0, float zshift=0);
 AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe=false, bool useSpacecharge=true);
@@ -16,8 +25,8 @@ void TestSpotDistortion(AnnularFieldSim *t);
 void SurveyFiles(TFileCollection* filelist);
 
   
-void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int nSteps=500, bool scanSteps=false, float xshift=0, float yshift=0, float zshift=0){
-  printf("generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up\n");
+void generate_distortion_map(const char *inputname, const char* gainName, const char *outputname, const char *ibfName, const char *primName, bool hasSpacecharge=true, bool isAdc=false, int  /*nSteps*/=500, bool scanSteps=false, float xshift=0, float yshift=0, float zshift=0){
+  std::cout << "generating single distortion map.  Caution:  This is vastly less efficient than re-using the tpc model once it is set up" << std::endl;
  
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
   TString gainHistName[2]={"hIbfGain_posz","hIbfGFain_negz"};
@@ -28,10 +37,11 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   float spacecharge_cm_per_axis_unit=0.1;//cm per histogram axis unit (mm), matching the MDC2 sample from Evgeny.
   
   //file names we'll be filling as we go:
-  TFile *infile, *gainfile;
+  TFile *infile;
+  TFile *gainfile;
  
   TString sourcefilename=inputname;
-  TString outputfilename=outputname;
+  std::string outputfilename=outputname;
 
   //now build the time-consuming part:
   AnnularFieldSim *tpc;
@@ -52,49 +62,51 @@ void generate_distortion_map(const char *inputname, const char* gainName, const 
   }   
     //hCharge->Scale(70);//Scaleing the histogram spacecharge by 100 times
 
-  TString chargestring;
+  std::string chargestring;
 	       
   //load the spacecharge into the distortion map generator:
   //  void load_spacecharge(TH3F *hist, float zoffset, float chargescale, float cmscale, bool isChargeDensity);
   if (!isAdc){
-    chargestring=Form("%s:(%s+%s)",inputname,ibfName,primName);
-    tpc->load_spacecharge(hCharge,0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity, chargestring.Data());
-    if (hasTwin) tpc->twin->load_spacecharge(hCharge,0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
+    chargestring=std::format("{}:({}+{})",inputname,ibfName,primName);
+    tpc->load_spacecharge(hCharge,0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity, chargestring);
+    if (hasTwin) { tpc->twin->load_spacecharge(hCharge,0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
+}
   }
   if (isAdc){ //load digital current using the scaling:
     gainfile=TFile::Open(gainName,"READ");
     TH2* hGain[2];
     hGain[0]=(TH2*)(gainfile->Get(gainHistName[0]));
-    chargestring=Form("%s:(dc:%s g:%s:%s)",inputname,ibfName,gainName,gainHistName[0].Data());
-    tpc->load_digital_current(hCharge,hGain[0],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
+    chargestring=std::format("{}:(dc:{} g:{}:{})",inputname,ibfName,gainName,gainHistName[0].Data());
+    tpc->load_digital_current(hCharge,hGain[0],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring);
     if (hasTwin) {
       hGain[1]=(TH2*)(gainfile->Get(gainHistName[1]));
-      tpc->twin->load_digital_current(hCharge,hGain[1],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring.Data());
+      tpc->twin->load_digital_current(hCharge,hGain[1],tpc_chargescale,spacecharge_cm_per_axis_unit,chargestring);
     }
   }
   //build the electric fieldmap from the chargemap
   tpc->populate_fieldmap();
-  if (hasTwin)  tpc->twin->populate_fieldmap();
+  if (hasTwin) {  tpc->twin->populate_fieldmap();
+}
 
   //build the distortion maps from the fieldmaps and save it to the output filename.
   if (scanSteps){
   for(int i=0;i<10;i++){
-  	TString study_filestring=Form("%s.steps%d.hist.root","study_file_changinginterval",50*(i+1));
-  tpc->GenerateSeparateDistortionMaps(std::string(study_filestring.Data()),50*(i+1),1,1,1,1,true);
+    std::string study_filestring=std::format("study_file_changinginterval.steps{}.hist.root",50*(i+1));
+  tpc->GenerateSeparateDistortionMaps(study_filestring,50*(i+1),1,1,1,1,true);
   //tpc->GenerateSeparateDistortionMaps(outputfilename.Data(),1,1,1,1,false);
 }
 }
   else{
-   tpc->GenerateSeparateDistortionMaps(std::string(outputfilename.Data()),450,1,1,1,1,false);
+   tpc->GenerateSeparateDistortionMaps(outputfilename,450,1,1,1,1,false);
 }
 
-  printf("distortions mapped.\n");
-  tpc->PlotFieldSlices(outputfilename.Data(),pos, 'E'); //plot the electric field
-  tpc->PlotFieldSlices(outputfilename.Data(),pos,'B'); //plot the magnetic field
-  printf("fieldslices plotted.\n");
+  std::cout << "distortions mapped." << std::endl;
+  tpc->PlotFieldSlices(outputfilename,pos, 'E'); //plot the electric field
+  tpc->PlotFieldSlices(outputfilename,pos,'B'); //plot the magnetic field
+  std::cout << "fieldslices plotted." << std::endl;
   
   infile->Close();
-  printf("input closed.  All done.  Anything else is root's problem.\n");
+  std::cout << "input closed.  All done.  Anything else is root's problem." << std::endl;
 
   return;
   
@@ -105,7 +117,7 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
   
 
   int maxmaps=10;
-  int maxmapsperfile=2;
+//  int maxmapsperfile=2;
 
   
   bool hasTwin=true; //this flag prompts the code to build both a positive-half and a negative-half for the TPC, reusing as much of the calculations as possible.  It is more efficient to 'twin' one half of the TPC than to recalculate/store the greens functions for both.
@@ -120,14 +132,15 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
   TFile *infile;
  
   TString sourcefilename;
-  TString outputfilename;
+  std::string outputfilename;
 
   
   //find all files that match the input string (we don't need this yet, but doing it before building the fieldsim saves time if there's an empty directory or something.
   TFileCollection *filelist=new TFileCollection();
   filelist->Add(inputpattern);
   filelist->Print();
-  printf("Using pattern \"%s\", found %d files to read, eg : %s\n",inputpattern,filelist->GetList()->GetEntries(),((TFileInfo*)(filelist->GetList()->At(0)))->GetCurrentUrl()->GetUrl());//Title());//Print();
+  std::cout << "Using pattern \"" << inputpattern << "\", found " <<  filelist->GetList()->GetEntries()
+	    << " files to read, eg : " << ((TFileInfo*)(filelist->GetList()->At(0)))->GetCurrentUrl()->GetUrl() << std::endl;
 
 
   // SurveyFiles( filelist);
@@ -169,21 +182,27 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
       TObject *tobj=infile->Get(keys->At(j)->GetName());
       //if this isn't a 3d histogram, skip it:
       bool isHist=tobj->InheritsFrom("TH3");
-      if (!isHist) continue;
+      if (!isHist) { continue;
+}
       TString objname=tobj->GetName();
-      if (objname.Contains("IBF")) continue; //this is an IBF-only map we don't want.
+      if (objname.Contains("IBF")) { continue; //this is an IBF-only map we don't want.
+}
       //assume this histogram is a charge map.
       //load just the averages:
       if (hasSpacecharge){
 	if (isDigitalCurrent){
 	  tpc->load_and_resample_spacecharge(8,36,40,sourcefilename.Data(),tobj->GetName(),0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
-	  if (hasTwin) tpc->twin->load_and_resample_spacecharge(8,36,40,sourcefilename.Data(),tobj->GetName(),0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
+	  if (hasTwin) { tpc->twin->load_and_resample_spacecharge(8,36,40,sourcefilename.Data(),tobj->GetName(),0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
+}
 
 	}
 
 	//load the spacecharge into the distortion map generator:
 	tpc->load_spacecharge(sourcefilename.Data(),tobj->GetName(),0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
-	if (hasTwin) tpc->twin->load_spacecharge(sourcefilename.Data(),tobj->GetName(),0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
+	if (hasTwin)
+	{
+	  tpc->twin->load_spacecharge(sourcefilename.Data(),tobj->GetName(),0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
+	}
 
 	//or load just the average:
 	//tpc->load_spacecharge(sourcefilename.Data(),"h_Charge_0",0,tpc_chargescale,spacecharge_cm_per_axis_unit, usesChargeDensity);
@@ -192,32 +211,40 @@ void generate_distortion_map(const char * inputpattern="./evgeny_apr/Smooth*.roo
 	//for (int k=0;k<tpc->q->Length();k++){
 	//  totalQ+=*(tpc->q->GetFlat(k));
 	//}
-	printf("Sanity check:  Total Q in reported region is %E C\n",totalQ);
+	std::cout << std::format("Sanity check:  Total Q in reported region is {:E} C",totalQ) << std::endl;
       }
       tpc->populate_fieldmap();
-      if (hasTwin)  tpc->twin->populate_fieldmap();
-      if (sourcefilename.Contains("verage")){ //this is an IBF map we don't want.
-	outputfilename=Form("%s.average.%s.%s",outputfilebase,field_string,lookup_string);
-      } else {
-	outputfilename=Form("%s.file%d.%s.%s.%s",outputfilebase,i,tobj->GetName(),field_string,lookup_string);
+      if (hasTwin)
+      {
+	tpc->twin->populate_fieldmap();
       }
-      printf("%s file has %s hist.  field=%s, lookup=%s. no scaling.\n",
-	     sourcefilename.Data(),tobj->GetName(),field_string,lookup_string);
+      if (sourcefilename.Contains("verage")){ //this is an IBF map we don't want.
+	outputfilename=std::format("{}.average.{}.{}",outputfilebase,field_string,lookup_string);
+      } else {
+	outputfilename=std::format("{}.file{}.{}.{}.{}",outputfilebase,i,tobj->GetName(),field_string,lookup_string);
+      }
+      std::cout << sourcefilename.Data() << " file has " << tobj->GetName() << " hist.  field="
+		<< field_string << ", lookup=" << lookup_string << ". no scaling" << std::endl;
 
       //TestSpotDistortion(tpc);
  
       //tpc->GenerateDistortionMaps(outputfilename,2,2,2,1,true);
 
 
-      tpc->GenerateSeparateDistortionMaps(std::string(outputfilename.Data()),2,2,2,1,true,nSteps);
+      tpc->GenerateSeparateDistortionMaps(outputfilename,2,2,2,1,nSteps,true);
 
-      printf("distortions mapped.\n");
-      tpc->PlotFieldSlices(outputfilename.Data(),pos);
-      tpc->PlotFieldSlices(outputfilename.Data(),pos,'B');
-      printf("fieldslices plotted.\n");     
-      printf("obj %d: getname: %s  inherits from TH3D:%d \n",j,tobj->GetName(),tobj->InheritsFrom("TH3"));
+      std::cout << "distortions mapped." << std::endl;
+      tpc->PlotFieldSlices(outputfilename,pos);
+      tpc->PlotFieldSlices(outputfilename,pos,'B');
+      std::cout << "fieldslices plotted." << std::endl;     
+      std::cout << "obj " << j << ": getname: " << tobj->GetName() << " inherits from TH3D:"
+		<< tobj->InheritsFrom("TH3") << std::endl;
+
       //break; //rcc temp -- uncomment this to process one hist per file.
-      if (i>maxmaps) return;
+      if (i>maxmaps)
+      {
+	return;
+      }
     }
       infile->Close();
   }
@@ -239,7 +266,7 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge, float 
   //step1:  specify the sPHENIX space charge model parameters
   const float tpc_rmin=20.0;
   const float tpc_rmax=78.0;
-  float tpc_deltar=tpc_rmax-tpc_rmin;
+//  float tpc_deltar=tpc_rmax-tpc_rmin;
   const float tpc_z=105.5;
   const float tpc_cmVolt=-400*tpc_z; //V =V_CM-V_RDO -- volts per cm times the length of the drift volume.
   //const float tpc_magField=0.5;//T -- The old value used in carlos's studies.
@@ -295,36 +322,35 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge, float 
 
     //load the field maps, either flat or actual maps
   tpc->setFlatFields(tpc_magField,tpc_cmVolt/tpc_z);
-  sprintf(field_string,"flat_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+  field_string = std::format("flat_B{:.1f}_E{:.1f}",tpc_magField,tpc_cmVolt/tpc_z);
 
   if (realE){
     tpc->loadEfield("/sphenix/user/rcorliss/field/externalEfield.ttree.root","fTree");
-    sprintf(field_string,"realE_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+    field_string = std::format("realE_B{:.1f}_E{:.1f}",tpc_magField,tpc_cmVolt/tpc_z);
   }
    if (realB){
     tpc->load3dBfield("/sphenix/user/rcorliss/field/sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5, xshift, yshift,zshift);
         //tpc->loadBfield("sPHENIX.2d.root","fieldmap");
-    sprintf(field_string,"realB_B%2.1f_E%2.1f_x%2.1f_y%2.1f_z%2.1f",tpc_magField,tpc_cmVolt/tpc_z,xshift, yshift,zshift);
+    field_string = std::format("realB_B{:.1f}_E{:.1f}_x{:.1f}_y{:.1f}_z{:.1f}",tpc_magField,tpc_cmVolt/tpc_z,xshift, yshift,zshift);
   } 
   if (realE && realB){
-    sprintf(field_string,"real_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+    field_string = std::format("real_B{:.1f}_E{:.1f}",tpc_magField,tpc_cmVolt/tpc_z);
   }
-  printf("set fields.\n");
+  std::cout << "set fields." << std::endl;
 
 
 
 
   //load the greens functions:
-  sprintf(lookup_string,"ross_phi1_%s_phislice_lookup_r%dxp%dxz%d",detgeoname,nr,nphi,nz);
-  char lookupFilename[300];
+  lookup_string = std::format("ross_phi1_{}_phislice_lookup_r{}xp{}xz{}",detgeoname,nr,nphi,nz);
   //sprintf(lookupFilename,"%s.root",lookup_string);
-  sprintf(lookupFilename,"/sphenix/user/rcorliss/rossegger/%s.root",lookup_string); //hardcoded for racf
-  TFile *fileptr=TFile::Open(lookupFilename,"READ");
+  std::string lookupFilename = std::format("/sphenix/user/rcorliss/rossegger/{}.root",lookup_string); //hardcoded for racf
+  TFile *fileptr=TFile::Open(lookupFilename.c_str(),"READ");
 
   if (!fileptr){ //generate the lookuptable
     //to use the full rossegger terms instead of trivial free-space greens functions, uncomment the line below:
     tpc->load_rossegger();
-    printf("loaded rossegger greens functions.\n");
+    std::cout << "loaded rossegger greens functions." << std::endl;
     tpc->populate_lookup();
     tpc->save_phislice_lookup(lookupFilename);
   } else{ //load it from a file
@@ -332,7 +358,7 @@ AnnularFieldSim *SetupDefaultSphenixTpc(bool twinMe, bool useSpacecharge, float 
     tpc->load_phislice_lookup(lookupFilename);
   }
 
-  printf("populated lookup.\n");
+  std::cout << "populated lookup." << std::endl;
 
 
 
@@ -382,7 +408,7 @@ AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe, bool useSpacecharge)
   //step1:  specify the sPHENIX space charge model parameters
   const float tpc_rmin=20.0;
   const float tpc_rmax=78.0;
-  float tpc_deltar=tpc_rmax-tpc_rmin;
+//  float tpc_deltar=tpc_rmax-tpc_rmin;
   const float tpc_z=105.5;
   const float tpc_cmVolt=-400*tpc_z; //V =V_CM-V_RDO -- volts per cm times the length of the drift volume.
   //const float tpc_magField=0.5;//T -- The old value used in carlos's studies.
@@ -436,35 +462,34 @@ AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe, bool useSpacecharge)
 
     //load the field maps, either flat or actual maps
   tpc->setFlatFields(tpc_magField,tpc_cmVolt/tpc_z);
-  sprintf(field_string,"flat_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+  field_string = std::format("flat_B{:.1f}_E{:.1f}",tpc_magField,tpc_cmVolt/tpc_z);
 
   if (realE){
     tpc->loadEfield("externalEfield.ttree.root","fTree");
-    sprintf(field_string,"realE_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+    field_string = std::format("realE_B{:.1f}_E{:.1f}",tpc_magField,tpc_cmVolt/tpc_z);
   }
    if (realB){
     tpc->load3dBfield("sphenix3dmaprhophiz.root","fieldmap",1,-1.4/1.5);
         //tpc->loadBfield("sPHENIX.2d.root","fieldmap");
-    sprintf(field_string,"realB_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+    field_string = std::format("realB_B{:.1f}_E{:.1f}",tpc_magField,tpc_cmVolt/tpc_z);
   } 
   if (realE && realB){
-    sprintf(field_string,"real_B%2.1f_E%2.1f",tpc_magField,tpc_cmVolt/tpc_z);
+    field_string = std::format("real_B{:.1f}_E{:.1f}",tpc_magField,tpc_cmVolt/tpc_z);
   }
-  printf("set fields.\n");
+  std::cout << "set fields." << std::endl;
 
 
 
 
   //load the greens functions:
-  sprintf(lookup_string,"ross_phi1_%s_phislice_lookup_r%dxp%dxz%d",detgeoname,nr,nphi,nz);
-  char lookupFilename[200];
-  sprintf(lookupFilename,"%s.root",lookup_string);
-  TFile *fileptr=TFile::Open(lookupFilename,"READ");
+  lookup_string = std::format("ross_phi1_{}_phislice_lookup_r{}xp{}xz{}",detgeoname,nr,nphi,nz);
+  std::string lookupFilename = lookup_string + ".root";
+  TFile *fileptr=TFile::Open(lookupFilename.c_str(),"READ");
 
   if (!fileptr){ //generate the lookuptable
     //to use the full rossegger terms instead of trivial free-space greens functions, uncomment the line below:
     tpc->load_rossegger();
-    printf("loaded rossegger greens functions.\n");
+    std::cout << "loaded rossegger greens functions." << std::endl;
     tpc->populate_lookup();
     tpc->save_phislice_lookup(lookupFilename);
   } else{ //load it from a file
@@ -472,7 +497,7 @@ AnnularFieldSim *SetupDigitalCurrentSphenixTpc(bool twinMe, bool useSpacecharge)
     tpc->load_phislice_lookup(lookupFilename);
   }
 
-  printf("populated lookup.\n");
+  std::cout << "populated lookup." << std::endl;
 
 
 
@@ -528,7 +553,7 @@ void  SurveyFiles(TFileCollection *filelist){
   for (int i=0;i<filelist->GetNFiles();i++){
    //for each file, find all histograms in that file.
     sourcefilename=((TFileInfo*)(filelist->GetList()->At(i)))->GetCurrentUrl()->GetFile();//gross
-    printf("file %d: %s\n", i, sourcefilename.Data());
+    std::cout << "file " << i << ": " << sourcefilename << std::endl;
     infile=TFile::Open(sourcefilename.Data(),"READ");
     TList *keys=infile->GetListOfKeys();
     //keys->Print();
@@ -538,17 +563,18 @@ void  SurveyFiles(TFileCollection *filelist){
       TObject *tobj=infile->Get(keys->At(j)->GetName());
       //if this isn't a 3d histogram, skip it:
       bool isHist=tobj->InheritsFrom("TH3");
-      if (!isHist) continue;
+      if (!isHist) { continue;
+}
       TString objname=tobj->GetName();
-      printf(" hist %s ",objname.Data());
+      std::cout << " hist " << objname << " ";
       if (objname.Contains("IBF")) {
-	printf(" is IBF only.\n");
+	std::cout << " is IBF only." << std::endl;
 	continue; //this is an IBF map we don't want.
       }
       float integral=((TH3D*)tobj)->Integral();
       integral_sum+=integral;
       nhists+=1;
-	printf(" will be used.  Total Q=%3.3E (ave=%3.3E)\n",integral,integral_sum/nhists);
+      std::cout << std::format(" will be used.  Total Q={:.3E} (ave={:.3E})",integral,integral_sum/nhists) << std::endl;
       //assume this histogram is a charge map.
       //load just the averages:
  

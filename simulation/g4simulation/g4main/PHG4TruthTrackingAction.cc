@@ -31,10 +31,8 @@
 //________________________________________________________
 PHG4TruthTrackingAction::PHG4TruthTrackingAction(PHG4TruthEventAction* eventAction)
   : m_EventAction(eventAction)
-  , m_TruthInfoList(nullptr)
-  , m_G4ParticleStack()
-  , m_CurrG4Particle()
 {
+  return;
 }
 
 void PHG4TruthTrackingAction::PreUserTrackingAction(const G4Track* track)
@@ -152,7 +150,7 @@ void PHG4TruthTrackingAction::PostUserTrackingAction(const G4Track* track)
     G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
     if (secondaries)
     {
-      for (auto secondary : *secondaries)
+      for (auto* secondary : *secondaries)
       {
         PHG4TrackUserInfo::SetUserParentId(const_cast<G4Track*>(secondary), trackid);
         PHG4TrackUserInfo::SetUserPrimaryId(const_cast<G4Track*>(secondary), primaryid);
@@ -185,14 +183,12 @@ void PHG4TruthTrackingAction::UpdateG4ParticleStack(const G4Track* track)
     {
       break;
     }
-    else
+
+    if (m_G4ParticleStack.back().g4track_id < 0)
     {
-      if (m_G4ParticleStack.back().g4track_id < 0)
-      {
-        m_TruthInfoList->delete_particle(m_G4ParticleStack.back().particle_id);
-      }
-      m_G4ParticleStack.pop_back();
+      m_TruthInfoList->delete_particle(m_G4ParticleStack.back().particle_id);
     }
+    m_G4ParticleStack.pop_back();
   }
 
   m_G4ParticleStack.push_back(m_CurrG4Particle);
@@ -322,7 +318,7 @@ PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, 
     return truth.GetVtxMap().find(iter->second)->second;
   }
   // get G4Track creator process
-  const auto g4Process = track.GetCreatorProcess();
+  const auto* const g4Process = track.GetCreatorProcess();
   // convert G4 Process to MC process
   const auto process = PHG4ProcessMapPhysics::Instance().GetMCProcess(g4Process);
   // otherwise, create and add a new one
@@ -402,7 +398,10 @@ bool PHG4TruthTrackingAction::isLongLived(int pid) const
 {
   // see https://inspirehep.net/files/4c26ef5fb432df99bdc1ff847653502f
   // Check nuclus
-  if (pid > 1000000000) return true;
+  if (pid > 1000000000)
+  {
+    return true;
+  }
   // this needs to be hardcoded somehow... :(
   // but in the future we can find a better home for this piece of code
   switch (pid)

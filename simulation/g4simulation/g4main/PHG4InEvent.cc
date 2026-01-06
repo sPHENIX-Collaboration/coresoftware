@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
-using namespace std;
 
 PHG4InEvent::~PHG4InEvent()
 {
@@ -23,14 +22,14 @@ int PHG4InEvent::AddVtx(const int /*id*/, const PHG4VtxPoint &vtx)
   return iret;
 }
 
-int PHG4InEvent::AddVtxHepMC(const int id, const double x, const double y, const double z, const double t0 = NAN)
+int PHG4InEvent::AddVtxHepMC(const int id, const double x, const double y, const double z, const double t0 = std::numeric_limits<double>::quiet_NaN())
 {
   PHG4VtxPoint *newvtx = new PHG4VtxPointv1(x, y, z, t0);
   vtxlist[id] = newvtx;
   return 0;
 }
 
-int PHG4InEvent::AddVtx(const double x, const double y, const double z, const double t0 = NAN)
+int PHG4InEvent::AddVtx(const double x, const double y, const double z, const double t0 = std::numeric_limits<double>::quiet_NaN())
 {
   PHG4VtxPoint *newvtx = new PHG4VtxPointv1(x, y, z, t0);
   int iret = AddVtxCommon(newvtx);
@@ -40,7 +39,7 @@ int PHG4InEvent::AddVtx(const double x, const double y, const double z, const do
 int PHG4InEvent::AddVtxCommon(PHG4VtxPoint *newvtx)
 {
   std::pair<std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator> vtxbegin_end = GetVertices();
-  for (map<int, PHG4VtxPoint *>::const_iterator viter = vtxbegin_end.first; viter != vtxbegin_end.second; ++viter)
+  for (std::map<int, PHG4VtxPoint *>::const_iterator viter = vtxbegin_end.first; viter != vtxbegin_end.second; ++viter)
   {
     /// Do a simultaneous relative + absolute floating point comparison for
     /// the vertex four vectors
@@ -71,9 +70,9 @@ int PHG4InEvent::AddVtxCommon(PHG4VtxPoint *newvtx)
 
 int PHG4InEvent::AddParticle(const int vtxid, PHG4Particle *particle)
 {
-  if (vtxlist.find(vtxid) == vtxlist.end())
+  if (!vtxlist.contains(vtxid))
   {
-    cout << "cannot add particle to non existing vertex, id: " << vtxid << endl;
+    std::cout << "cannot add particle to non existing vertex, id: " << vtxid << std::endl;
     exit(1);
   }
   // checking for duplicate particles - sometimes interesting
@@ -89,7 +88,7 @@ int PHG4InEvent::AddParticle(const int vtxid, PHG4Particle *particle)
   // 	  return -1;
   // 	}
   //     }
-  particlelist.insert(pair<int, PHG4Particle *>(vtxid, particle));
+  particlelist.insert(std::pair<int, PHG4Particle *>(vtxid, particle));
   return 0;
 }
 
@@ -109,43 +108,43 @@ void PHG4InEvent::Reset()
   return;
 }
 
-pair<map<int, PHG4VtxPoint *>::const_iterator, map<int, PHG4VtxPoint *>::const_iterator>
+std::pair<std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator>
 PHG4InEvent::GetVertices() const
 {
-  pair<map<int, PHG4VtxPoint *>::const_iterator, map<int, PHG4VtxPoint *>::const_iterator> retpair(vtxlist.begin(), vtxlist.end());
+  std::pair<std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator> retpair(vtxlist.begin(), vtxlist.end());
   return retpair;
 }
 
-pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator>
+std::pair<std::multimap<int, PHG4Particle *>::const_iterator, std::multimap<int, PHG4Particle *>::const_iterator>
 PHG4InEvent::GetParticles(const int vtxid) const
 {
-  pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator> retpair(particlelist.lower_bound(vtxid), particlelist.upper_bound(vtxid));
+  std::pair<std::multimap<int, PHG4Particle *>::const_iterator, std::multimap<int, PHG4Particle *>::const_iterator> retpair(particlelist.lower_bound(vtxid), particlelist.upper_bound(vtxid));
   return retpair;
 }
 
-pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator>
+std::pair<std::multimap<int, PHG4Particle *>::const_iterator, std::multimap<int, PHG4Particle *>::const_iterator>
 PHG4InEvent::GetParticles() const
 {
-  pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator> retpair(particlelist.begin(), particlelist.end());
+  std::pair<std::multimap<int, PHG4Particle *>::const_iterator, std::multimap<int, PHG4Particle *>::const_iterator> retpair(particlelist.begin(), particlelist.end());
   return retpair;
 }
 
-pair<multimap<int, PHG4Particle *>::iterator, multimap<int, PHG4Particle *>::iterator>
+std::pair<std::multimap<int, PHG4Particle *>::iterator, std::multimap<int, PHG4Particle *>::iterator>
 PHG4InEvent::GetParticles_Modify()
 {
-  pair<multimap<int, PHG4Particle *>::iterator, multimap<int, PHG4Particle *>::iterator> retpair(particlelist.begin(), particlelist.end());
+  std::pair<std::multimap<int, PHG4Particle *>::iterator, std::multimap<int, PHG4Particle *>::iterator> retpair(particlelist.begin(), particlelist.end());
   return retpair;
 }
 
-void PHG4InEvent::identify(ostream &os) const
+void PHG4InEvent::identify(std::ostream &os) const
 {
-  os << "vtx: " << endl;
-  multimap<int, PHG4Particle *>::const_iterator particle_iter;
+  os << "vtx: " << std::endl;
+  std::multimap<int, PHG4Particle *>::const_iterator particle_iter;
   for (auto iter : vtxlist)
   {
     os << "vtx " << iter.first << " , ";
     iter.second->identify(os);
-    pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator> particlebegin_end = GetParticles(iter.first);
+    std::pair<std::multimap<int, PHG4Particle *>::const_iterator, std::multimap<int, PHG4Particle *>::const_iterator> particlebegin_end = GetParticles(iter.first);
     for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
     {
       os << "vtx " << particle_iter->first << ", ";
@@ -154,7 +153,7 @@ void PHG4InEvent::identify(ostream &os) const
   }
   if (!embedded_particlelist.empty())
   {
-    os << "embedded particles:" << endl;
+    os << "embedded particles:" << std::endl;
     for (auto iter : embedded_particlelist)
     {
       (iter.first)->identify(os);
@@ -162,7 +161,7 @@ void PHG4InEvent::identify(ostream &os) const
   }
   else
   {
-    os << "no embedded particles" << endl;
+    os << "no embedded particles" << std::endl;
   }
   return;
 }

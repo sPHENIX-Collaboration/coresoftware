@@ -28,7 +28,9 @@ class SingleMicromegasPoolInput_v1 : public SingleStreamingInput
   void FillPool(const unsigned int nevents = 1) override;
 
   void CleanupUsedPackets(const uint64_t bclk) override
-  { CleanupUsedPackets(bclk,false); }
+  {
+    CleanupUsedPackets(bclk, false);
+  }
 
   void CleanupUsedPackets(const uint64_t bclk, bool /*dropped */) override;
 
@@ -90,22 +92,22 @@ class SingleMicromegasPoolInput_v1 : public SingleStreamingInput
   bco_matching_information_map_t m_bco_matching_information_map;
 
   // keep track of total number of waveforms per fee
-  std::map<int,uint64_t> m_fee_waveform_count_total{};
+  std::map<int, uint64_t> m_fee_waveform_count_total{};
 
   // keep track of dropped waveforms per fee, due to BCO mismatched
-  std::map<int,uint64_t> m_fee_waveform_count_dropped_bco{};
+  std::map<int, uint64_t> m_fee_waveform_count_dropped_bco{};
 
   // keep track of total number of waveforms per packet
-  std::map<int,uint64_t> m_waveform_count_total{};
+  std::map<int, uint64_t> m_waveform_count_total{};
 
   // keep track of dropped waveforms per packet, due to BCO mismatched
-  std::map<int,uint64_t> m_waveform_count_dropped_bco{};
+  std::map<int, uint64_t> m_waveform_count_dropped_bco{};
 
   // keep track of dropped waveforms per packet, due to fun4all pool mismatch
-  std::map<int,uint64_t> m_waveform_count_dropped_pool{};
+  std::map<int, uint64_t> m_waveform_count_dropped_pool{};
 
   // timer
-  PHTimer m_timer{ "SingleMicromegasPoolInput_v1" };
+  PHTimer m_timer{"SingleMicromegasPoolInput_v1"};
 
   //!@name QA histograms
   //@{
@@ -130,7 +132,6 @@ class SingleMicromegasPoolInput_v1 : public SingleStreamingInput
   TH1 *h_waveform_count_dropped_pool{nullptr};
 
   //@}
-
 };
 
 #endif

@@ -1,11 +1,9 @@
 #include "PhotonClusterBuilder.h"
 
-#include <calobase/PhotonClusterContainer.h>
 #include <calobase/PhotonClusterv1.h>
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-#include <calobase/RawClusterv1.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
@@ -33,6 +31,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <set>
 #include <stdexcept>
 
 namespace
@@ -63,7 +62,10 @@ PhotonClusterBuilder::PhotonClusterBuilder(const std::string& name)
 int PhotonClusterBuilder::InitRun(PHCompositeNode* topNode)
 {
   // BDT
-  m_bdt = std::make_unique<TMVA::Experimental::RBDT>("myBDT", m_bdt_model_file);
+  if (m_do_bdt)
+  {
+    m_bdt = std::make_unique<TMVA::Experimental::RBDT>("myBDT", m_bdt_model_file);
+  }
 
   // locate input raw cluster container
   m_rawclusters = findNode::getClass<RawClusterContainer>(topNode, m_input_cluster_node);
@@ -127,10 +129,10 @@ void PhotonClusterBuilder::CreateNodes(PHCompositeNode* topNode)
   {
     throw std::runtime_error("PhotonClusterBuilder: DST node not found");
   }
-  m_photon_container = findNode::getClass<PhotonClusterContainer>(dstNode, m_output_photon_node);
+  m_photon_container = findNode::getClass<RawClusterContainer>(dstNode, m_output_photon_node);
   if (!m_photon_container)
   {
-    m_photon_container = new PhotonClusterContainer();
+    m_photon_container = new RawClusterContainer();
     auto* photonNode = new PHIODataNode<PHObject>(m_photon_container, m_output_photon_node, "PHObject");
     dstNode->addNode(photonNode);
   }
@@ -157,6 +159,7 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
   if (!vertexmap)
   {
     std::cout << "GlobalVertexMap node is missing" << std::endl;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
   if (vertexmap && !vertexmap->empty())
   {
@@ -175,6 +178,11 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::EVENT_OK;
     }
   }
+  else
+  {
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   // iterate over clusters via map to have access to keys if needed
   const auto& rcmap = m_rawclusters->getClustersMap();
   for (const auto& kv : rcmap)
@@ -187,6 +195,8 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
 
     CLHEP::Hep3Vector vertex_vec(0, 0, m_vertex);
 
+
+
     float eta = RawClusterUtility::GetPseudorapidity(*rc, vertex_vec);
     float phi = RawClusterUtility::GetAzimuthAngle(*rc, vertex_vec);
     float E = rc->get_energy();
@@ -195,16 +205,16 @@ int PhotonClusterBuilder::process_event(PHCompositeNode* topNode)
     {
       continue;
     }
-    RawClusterv1* rcv1 = dynamic_cast<RawClusterv1*>(rc);
-    if (!rcv1)
-    {
-      std::cerr << "PhotonClusterBuilder: unsupported RawCluster type" << std::endl;
-      continue;
-    }
-    PhotonClusterv1* photon = new PhotonClusterv1(*rcv1);
+
+    PhotonClusterv1* photon = new PhotonClusterv1(*rc);
 
     calculate_shower_shapes(rc, photon, eta, phi);
-    calculate_bdt_score(photon);
+    //this is defensive coding, if do bdt is set false the bdt object should be nullptr
+    //and this method will simply pass
+    if (m_do_bdt)
+    {
+      calculate_bdt_score(photon);
+    }
 
     m_photon_container->AddCluster(photon);
   }
@@ -221,25 +231,44 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
   std::vector<float> x;
   for (const auto& feature : m_bdt_feature_list)
   {
-    if (feature == "e11_over_e33")
-    {
-      float e11 = photon->get_shower_shape_parameter("e11");
-      float e33 = photon->get_shower_shape_parameter("e33");
-      x.push_back((e33 > 0) ? e11 / e33 : 0);
-    }
-    else if (feature == "vertex_z")
+    if (feature == "vertex_z")
     {
       x.push_back(m_vertex);
     }
+    else if (feature == "ET")
+    {
+      float E = photon->get_energy();
+      float ET = E / std::cosh(photon->get_shower_shape_parameter("cluster_eta"));
+      x.push_back(ET);
+    }
     else
     {
-      x.push_back(photon->get_shower_shape_parameter(feature));
+      const std::string delim = "_over_";
+      const auto pos = feature.find(delim);
+      if (pos != std::string::npos)
+      {
+        const std::string num = feature.substr(0, pos);
+        const std::string den = feature.substr(pos + delim.size());
+        const float numerator = photon->get_shower_shape_parameter(num);
+        const float denominator = photon->get_shower_shape_parameter(den);
+        x.push_back((denominator > 0) ? (numerator / denominator) : 0.0F);
+      }
+      else
+      {
+        x.push_back(photon->get_shower_shape_parameter(feature));
+      }
+    }
+    //check if the thing we pushed back is NaN
+    if (std::isnan(x.back()))
+    {
+      std::cerr << "PhotonClusterBuilder - feature name: " << feature << " is NaN" << std::endl;
     }
   }
 
   float bdt_score = -1;  // default value
 
   bdt_score = m_bdt->Compute(x)[0];
+
   photon->set_shower_shape_parameter("bdt_score", bdt_score);
 }
 
@@ -258,34 +287,43 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   float avg_eta = showershape[4] + 0.5F;
   float avg_phi = showershape[5] + 0.5F;
 
+
   int maxieta = std::floor(avg_eta);
   int maxiphi = std::floor(avg_phi);
 
-  if (maxieta < 3 || maxieta > 92)
-  {
-    return;
-  }
+  //if (maxieta < 3 || maxieta > 92)
+  //{
+  //  return;
+  //}
 
   // for detamax, dphimax, nsaturated
   int detamax = 0;
   int dphimax = 0;
   int nsaturated = 0;
+  float clusteravgtime = 0;
+  float cluster_total_e = 0;
   const RawCluster::TowerMap& tower_map = rc->get_towermap();
   std::set<unsigned int> towers_in_cluster;
   for (auto tower_iter : tower_map)
   {
-    towers_in_cluster.insert(tower_iter.first);
     RawTowerDefs::keytype tower_key = tower_iter.first;
     int ieta = RawTowerDefs::decode_index1(tower_key);
     int iphi = RawTowerDefs::decode_index2(tower_key);
 
+    
     unsigned int towerinfokey = TowerInfoDefs::encode_emcal(ieta, iphi);
+    towers_in_cluster.insert(towerinfokey);
     TowerInfo* towerinfo = m_emc_tower_container->get_tower_at_key(towerinfokey);
-    if (towerinfo && towerinfo->get_isSaturated())
+    if (towerinfo)
     {
-      nsaturated++;
+      clusteravgtime += towerinfo->get_time() * towerinfo->get_energy();
+      cluster_total_e += towerinfo->get_energy();
+      if (towerinfo->get_isSaturated())
+      {
+        nsaturated++;
+      }
     }
-
+    
     int totalphibins = 256;
     auto dphiwrap = [totalphibins](int towerphi, int maxiphi_arg)
     {
@@ -308,6 +346,16 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
     dphimax = std::max(std::abs(dphi_val), dphimax);
   }
 
+  if (cluster_total_e > 0)
+  {
+    clusteravgtime /= cluster_total_e;
+  }
+  else
+  {
+    std::cout << "cluster_total_e is 0(this should not happen!!!), setting clusteravgtime to NaN" << std::endl;
+    clusteravgtime = std::numeric_limits<float>::quiet_NaN();
+  }
+
   float E77[7][7] = {{0.0F}};
   int E77_ownership[7][7] = {{0}};
 
@@ -315,6 +363,15 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   {
     for (int iphi = maxiphi - 3; iphi < maxiphi + 4; iphi++)
     {
+      //this is defensive coding, if ieta is out of range, set the energy to 0
+      //even without this, the requirement for towerinfo object will take care of it
+      if (ieta < 0 || ieta > 95)
+      {
+        E77[ieta - maxieta + 3][iphi - maxiphi + 3] = 0.0F;
+        E77_ownership[ieta - maxieta + 3][iphi - maxiphi + 3] = 0;
+        continue;
+      }
+
       int temp_ieta = ieta;
       int temp_iphi = iphi;
       shift_tower_index(temp_ieta, temp_iphi, 96, 256);
@@ -376,6 +433,11 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   float e52 = 0;
   float w72 = 0;
   float e72 = 0;
+  float detacog = std::abs(maxieta - avg_eta);
+  float dphicog = std::abs(maxiphi - avg_phi);
+  float drad = std::sqrt(dphicog*dphicog + detacog*detacog);
+
+
   int signphi = (avg_phi - std::floor(avg_phi)) > 0.5 ? 1 : -1;
 
   for (int i = 0; i < 7; i++)
@@ -536,6 +598,10 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("w72", w72);
   photon->set_shower_shape_parameter("cluster_eta", cluster_eta);
   photon->set_shower_shape_parameter("cluster_phi", cluster_phi);
+  photon->set_shower_shape_parameter("mean_time", clusteravgtime);
+  photon->set_shower_shape_parameter("detacog", detacog);
+  photon->set_shower_shape_parameter("dphicog", dphicog);
+  photon->set_shower_shape_parameter("drad", drad);
 
   // HCAL info
   std::vector<int> ihcal_tower = find_closest_hcal_tower(cluster_eta, cluster_phi, m_geomIH, m_ihcal_tower_container, 0.0, true);
@@ -652,6 +718,54 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("ihcal_iphi", ihcal_iphi);
   photon->set_shower_shape_parameter("ohcal_ieta", ohcal_ieta);
   photon->set_shower_shape_parameter("ohcal_iphi", ohcal_iphi);
+
+  float E = photon->get_energy();
+  float ET = E / std::cosh(cluster_eta);
+
+  auto compute_layer_iso = [&](RawTowerDefs::CalorimeterId calo_id, float radius)
+  {
+    TowerInfoContainer* container = nullptr;
+    RawTowerGeomContainer* geom = nullptr;
+    if (calo_id == RawTowerDefs::CalorimeterId::CEMC)
+    {
+      container = m_emc_tower_container;
+      geom = m_geomEM;
+    }
+    else if (calo_id == RawTowerDefs::CalorimeterId::HCALIN)
+    {
+      container = m_ihcal_tower_container;
+      geom = m_geomIH;
+    }
+    else
+    {
+      container = m_ohcal_tower_container;
+      geom = m_geomOH;
+    }
+    return calculate_layer_et(cluster_eta, cluster_phi, radius, container, geom, calo_id, m_vertex);
+  };
+
+  const float emcal_et_04 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.4);
+  const float ihcal_et_04 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALIN, 0.4);
+  const float ohcal_et_04 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALOUT, 0.4);
+
+  const float emcal_et_03 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.3);
+  const float ihcal_et_03 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALIN, 0.3);
+  const float ohcal_et_03 = compute_layer_iso(RawTowerDefs::CalorimeterId::HCALOUT, 0.3);
+
+  const float emcal_et_02 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.2);
+  const float emcal_et_01 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.1);
+  const float emcal_et_005 = compute_layer_iso(RawTowerDefs::CalorimeterId::CEMC, 0.05);
+
+  photon->set_shower_shape_parameter("iso_04_emcal", emcal_et_04 - ET);
+  photon->set_shower_shape_parameter("iso_04_hcalin", ihcal_et_04);
+  photon->set_shower_shape_parameter("iso_04_hcalout", ohcal_et_04);
+
+  photon->set_shower_shape_parameter("iso_03_emcal", emcal_et_03 - ET);
+  photon->set_shower_shape_parameter("iso_03_hcalin", ihcal_et_03);
+  photon->set_shower_shape_parameter("iso_03_hcalout", ohcal_et_03);
+  photon->set_shower_shape_parameter("iso_02_emcal", emcal_et_02 - ET);
+  photon->set_shower_shape_parameter("iso_01_emcal", emcal_et_01 - ET);
+  photon->set_shower_shape_parameter("iso_005_emcal", emcal_et_005 - ET);
 }
 
 double PhotonClusterBuilder::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz)
@@ -732,6 +846,55 @@ std::vector<int> PhotonClusterBuilder::find_closest_hcal_tower(float eta, float 
   int detasign = (deta > 0) ? 1 : -1;
 
   return {matchedieta, matchediphi, detasign, dphisign};
+}
+
+float PhotonClusterBuilder::calculate_layer_et(float seed_eta, float seed_phi, float radius, TowerInfoContainer* towerContainer, RawTowerGeomContainer* geomContainer, RawTowerDefs::CalorimeterId calo_id, float vertex_z)
+{
+  if (!towerContainer || !geomContainer)
+  {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  float layer_et = 0.0;
+  const unsigned int ntowers = towerContainer->size();
+  for (unsigned int channel = 0; channel < ntowers; ++channel)
+  {
+    TowerInfo* tower = towerContainer->get_tower_at_channel(channel);
+    if (!tower || !tower->get_isGood())
+    {
+      continue;
+    }
+
+    unsigned int towerkey = towerContainer->encode_key(channel);
+    int ieta = towerContainer->getTowerEtaBin(towerkey);
+    int iphi = towerContainer->getTowerPhiBin(towerkey);
+
+    RawTowerDefs::keytype geom_key = RawTowerDefs::encode_towerid(calo_id, ieta, iphi);
+    RawTowerGeom* tower_geom = geomContainer->get_tower_geometry(geom_key);
+    if (!tower_geom)
+    {
+      continue;
+    }
+
+    double tower_eta = getTowerEta(tower_geom, 0, 0, vertex_z);
+    double tower_phi = tower_geom->get_phi();
+
+    if (deltaR(seed_eta, seed_phi, tower_eta, tower_phi) >= radius)
+    {
+      continue;
+    }
+
+    float energy = tower->get_energy();
+    if (energy <= m_shape_min_tower_E)
+    {
+      continue;
+    }
+
+    float et = energy / std::cosh(tower_eta);
+    layer_et += et;
+  }
+
+  return layer_et;
 }
 
 double PhotonClusterBuilder::deltaR(double eta1, double phi1, double eta2, double phi2)

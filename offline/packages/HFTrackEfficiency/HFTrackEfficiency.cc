@@ -1,25 +1,53 @@
 #include "HFTrackEfficiency.h"
 
+#include <decayfinder/DecayFinderContainerBase.h>
+
+#include <trackbase_historic/PHG4ParticleSvtxMap.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
+
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <TDatabasePDG.h>
+#include <TFile.h>
+#include <TTree.h>
+
+#include <CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/ThreeVector.h>
+
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>  // for GenVertex::particle_iterator
+#include <HepMC/SimpleVector.h>
+
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <iostream>
+#include <map>
+#include <set>
 
 //____________________________________________________________________________..
 HFTrackEfficiency::HFTrackEfficiency(const std::string &name)
   : SubsysReco(name)
-  , m_triggerOnDecay(false)
   , m_input_track_map_node_name("SvtxTrackMap")
   , m_output_track_map_node_name("HFSelected")
-  , m_write_track_map(false)
   , m_outfile_name("outputHFTrackEff.root")
-  , m_outfile(nullptr)
-  , m_tree(nullptr)
-  , m_write_nTuple(false)
   , m_truthRecoMatchPercent(5.)
   , m_nDaughters(2)
 {
 }
-
-//____________________________________________________________________________..
-HFTrackEfficiency::~HFTrackEfficiency() = default;
 
 //____________________________________________________________________________..
 int HFTrackEfficiency::Init(PHCompositeNode *topNode)
@@ -40,7 +68,7 @@ int HFTrackEfficiency::Init(PHCompositeNode *topNode)
 
     outputNodeName = m_output_track_map_node_name + "_SvtxTrackMap";
     m_output_trackMap = new SvtxTrackMap_v2();
-    PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, outputNodeName.c_str(), "PHObject");
+    PHIODataNode<PHObject> *outputTrackNode = new PHIODataNode<PHObject>(m_output_trackMap, outputNodeName, "PHObject");
     dstNode->addNode(outputTrackNode);
     std::cout << outputNodeName << " node added" << std::endl;
   }
@@ -56,14 +84,14 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
   assert(dstNode);
 
   std::string df_node_name = m_df_module_name + "_DecayMap";
-  m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, df_node_name.c_str());
+  m_decayMap = findNode::getClass<DecayFinderContainerBase>(topNode, df_node_name);
   if (!m_decayMap)
   {
     std::cout << __FILE__ << ": Missing node " << df_node_name << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_input_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_input_track_map_node_name.c_str());
+  m_input_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_input_track_map_node_name);
   if (!m_input_trackMap)
   {
     std::cout << __FILE__ << ": Missing node " << m_input_track_map_node_name << std::endl;
@@ -85,7 +113,7 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
     }
   }
 
-  m_dst_truth_reco_map = findNode::getClass<PHG4ParticleSvtxMap_v1>(topNode, "PHG4ParticleSvtxMap");
+  m_dst_truth_reco_map = findNode::getClass<PHG4ParticleSvtxMap>(topNode, "PHG4ParticleSvtxMap");
   if (m_dst_truth_reco_map)
   {
     if (Verbosity() >= VERBOSITY_MORE)
@@ -139,10 +167,8 @@ int HFTrackEfficiency::process_event(PHCompositeNode *topNode)
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  else
-  {
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int HFTrackEfficiency::End(PHCompositeNode * /*topNode*/)
@@ -300,12 +326,12 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
       if (m_dst_truth_reco_map && truth_ID >= 0)
       {
         std::map<float, std::set<unsigned int>> reco_set = m_dst_truth_reco_map->get(truth_ID);
-        if (reco_set.size() == 0)
+        if (reco_set.empty())
         {
           continue;
         }
         const auto &best_weight = reco_set.rbegin();
-        if (best_weight->second.size() == 0)
+        if (best_weight->second.empty())
         {
           continue;
         }
@@ -375,8 +401,8 @@ bool HFTrackEfficiency::findTracks(PHCompositeNode *topNode, Decay decay)
     m_reco_mother_mass = motherRecoLV.m();
     if (m_write_track_map)
     {
-      m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, outputNodeName.c_str());
-      for (auto &track : selectedTracks)
+      m_output_trackMap = findNode::getClass<SvtxTrackMap>(topNode, outputNodeName);
+      for (const auto &track : selectedTracks)
       {
         m_output_trackMap->insertWithKey(track, track->get_id());
       }

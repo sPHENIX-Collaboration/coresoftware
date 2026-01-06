@@ -12,10 +12,12 @@
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <phool/recoConsts.h>
 
 #include <TAxis.h>
 #include <TH1.h>
+#include <TSystem.h>
 
 #include <cassert>
 #include <cmath>
@@ -30,7 +32,7 @@ namespace QAHistManagerDef
     Fun4AllServer *se = Fun4AllServer::instance();
     Fun4AllHistoManager *hm = se->getHistoManager(HistoManagerName);
 
-    if (! hm)
+    if (!hm)
     {
       //        std::cout
       //            << "QAHistManagerDef::get_HistoManager - Making Fun4AllHistoManager EMCalAna_HISTOS"
@@ -43,47 +45,53 @@ namespace QAHistManagerDef
 
     return hm;
   }
-  std::vector<std::string> tokenize(const std::string& str, const char* delimiter)
+  std::vector<std::string> tokenize(const std::string &str, const char *delimiter)
   {
     std::vector<std::string> tokens;
-  size_t start = 0;
-  size_t end = str.find(delimiter);
+    size_t start = 0;
+    size_t end = str.find(delimiter);
 
-  while (end != std::string::npos)
-  {
-    tokens.push_back(str.substr(start, end - start));
-    start = end + 1;
-    end = str.find(delimiter, start);
-  }
-  tokens.push_back(str.substr(start));
+    while (end != std::string::npos)
+    {
+      tokens.push_back(str.substr(start, end - start));
+      start = end + 1;
+      end = str.find(delimiter, start);
+    }
+    tokens.push_back(str.substr(start));
 
-  return tokens;
+    return tokens;
   }
   //! Save hist to root files
   void saveQARootFile(const std::string &file_name)
   {
     // add provenance info
-    std::string build = "";
-    const std::string offlinemain = getenv("OFFLINE_MAIN");
-    auto tokens = tokenize(offlinemain,"/");
-    for(const auto& token : tokens)
+    std::string build;
+    const char *offline_main = getenv("OFFLINE_MAIN");
+    if (!offline_main)
     {
-      if(token.find("new") != std::string::npos)
-    {
-      build = "new";
+      std::cout << "OFFLINE_MAIN not set - this should really not happen, quitting now" << std::endl;
+      gSystem->Exit(1);
+      exit(1);
     }
+    const std::string offlinemain = offline_main;
+    auto tokens = tokenize(offlinemain, "/");
+    for (const auto &token : tokens)
+    {
+      if (token.find("new") != std::string::npos)
+      {
+        build = "new";
+      }
       else if (token.find("ana") != std::string::npos)
       {
         build = tokens.back();
       }
     }
-    auto rc = recoConsts::instance();
+    auto *rc = recoConsts::instance();
     std::string dbtag = rc->get_StringFlag("CDB_GLOBALTAG");
     std::string info = "Build: " + build + " , dbtag: " + dbtag;
-    TH1* h = new TH1I("h_QAHistManagerDef_ProductionInfo","",10,0,10);
+    TH1 *h = new TH1I("h_QAHistManagerDef_ProductionInfo", "", 10, 0, 10);
     h->SetTitle(info.c_str());
     getHistoManager()->registerHisto(h);
-    
 
     // dump histos to file
     getHistoManager()->dumpHistos(file_name);

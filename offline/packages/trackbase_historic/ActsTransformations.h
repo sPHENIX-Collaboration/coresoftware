@@ -58,19 +58,31 @@ class ActsTransformations
 
   /// Calculate the DCA for a given Acts fitted track parameters and
   /// vertex
-  void calculateDCA(const ActsTrackFittingAlgorithm::TrackParameters& param,
-                    const Acts::Vector3& vertex,
-                    Acts::BoundSquareMatrix cov,
-                    Acts::GeometryContext& geoCtxt,
-                    float& dca3Dxy,
-                    float& dca3Dz,
-                    float& dca3DxyCov,
-                    float& dca3DzCov) const;
+  void calculateDCA(
+    const ActsTrackFittingAlgorithm::TrackParameters& param,
+    const Acts::Vector3& vertex,
+    Acts::BoundSquareMatrix cov,
+    Acts::GeometryContext& geoCtxt,
+    float& dca3Dxy,
+    float& dca3Dz,
+    float& dca3DxyCov,
+    float& dca3DzCov) const;
 
-  void fillSvtxTrackStates(const Acts::ConstVectorMultiTrajectory& traj,
-                           const size_t& trackTip,
-                           SvtxTrack* svtxTrack,
-                           Acts::GeometryContext& geoContext) const;
+  //___________________________________________________________________________________________________________
+  void fillSvtxTrackStates(
+    const Acts::ConstVectorMultiTrajectory& traj,
+    const size_t& trackTip,
+    SvtxTrack* svtxTrack,
+    const Acts::GeometryContext& geoContext
+    ) const;
+
+  //___________________________________________________________________________________________________________
+  void addTrackState(
+    SvtxTrack* track,
+    TrkrDefs::cluskey key,
+    float pathlength,
+    const Acts::BoundTrackParameters& params,
+    const Acts::GeometryContext& geoContext ) const;
 
  private:
   int m_verbosity = 0;

@@ -9,8 +9,9 @@ AM_CPPFLAGS = \
 lib_LTLIBRARIES = libFROG.la
 
 libFROG_la_LIBADD = \
-  -L$(OPT_SPHENIX)/lib \
-  -lodbc++
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  -lsphenixodbc
 
 pkginclude_HEADERS = \
   FROG.h

@@ -21,24 +21,18 @@
 #include <map>       // for _Rb_tree_const_iterator
 #include <utility>   // for pair
 
-using namespace std;
-
 G4ScintillatorTowerTTree::G4ScintillatorTowerTTree(const std::string &name)
   : SubsysReco(name)
-  , savetowers(1)
-  , evtno(0)
-  , hm(nullptr)
-  , etot_hist(nullptr)
 {
 }
 
 int G4ScintillatorTowerTTree::Init(PHCompositeNode *topNode)
 {
-  if (!_detector.size())
+  if (_detector.empty())
   {
-    cout << "Detector not set via Detector(<name>) method" << endl;
-    cout << "(it is the name appended to the G4TOWER_<name> nodename)" << endl;
-    cout << "you do not want to run like this, exiting now" << endl;
+    std::cout << "Detector not set via Detector(<name>) method" << std::endl;
+    std::cout << "(it is the name appended to the G4TOWER_<name> nodename)" << std::endl;
+    std::cout << "you do not want to run like this, exiting now" << std::endl;
     gSystem->Exit(1);
   }
   hm = new Fun4AllHistoManager("SCINTILLATORTOWERHIST");
@@ -61,7 +55,7 @@ int G4ScintillatorTowerTTree::process_event(PHCompositeNode *topNode)
   TowerInfoContainer *g4towers = findNode::getClass<TowerInfoContainerv1>(topNode, _towernodename);
   if (!g4towers)
   {
-    cout << "could not find " << _towernodename << endl;
+    std::cout << "could not find " << _towernodename << std::endl;
     gSystem->Exit(1);
   }
 
@@ -99,7 +93,7 @@ void G4ScintillatorTowerTTree::Detector(const std::string &det)
   _detector = det;
   _outnodename = "G4RootScintillatorTower_" + det;
   _towernodename = "TOWERINFO_" + det;
-  if (!_histofilename.size())
+  if (_histofilename.empty())
   {
     _histofilename = "ScintillatorTowerHistos_" + det + ".root";
   }

@@ -9,7 +9,7 @@ class PHCompositeNode;
 class PHG4EventAction
 {
  public:
-  PHG4EventAction(void)
+  PHG4EventAction()
   {
   }
 

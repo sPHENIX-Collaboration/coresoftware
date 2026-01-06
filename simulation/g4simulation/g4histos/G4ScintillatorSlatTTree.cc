@@ -22,24 +22,18 @@
 #include <map>       // for _Rb_tree_cons...
 #include <utility>   // for pair
 
-using namespace std;
-
 G4ScintillatorSlatTTree::G4ScintillatorSlatTTree(const std::string &name)
   : SubsysReco(name)
-  , saveslats(1)
-  , evtno(0)
-  , hm(nullptr)
-  , etot_hist(nullptr)
 {
 }
 
 int G4ScintillatorSlatTTree::Init(PHCompositeNode *topNode)
 {
-  if (!_detector.size())
+  if (_detector.empty())
   {
-    cout << "Detector not set via Detector(<name>) method" << endl;
-    cout << "(it is the name appended to the G4CELL_<name> nodename)" << endl;
-    cout << "you do not want to run like this, exiting now" << endl;
+    std::cout << "Detector not set via Detector(<name>) method" << std::endl;
+    std::cout << "(it is the name appended to the G4CELL_<name> nodename)" << std::endl;
+    std::cout << "you do not want to run like this, exiting now" << std::endl;
     gSystem->Exit(1);
   }
   hm = new Fun4AllHistoManager("SCINTILLATORSLATHIST");
@@ -62,7 +56,7 @@ int G4ScintillatorSlatTTree::process_event(PHCompositeNode *topNode)
   PHG4ScintillatorSlatContainer *g4slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode, _slatnodename);
   if (!g4slats)
   {
-    cout << "could not find " << _slatnodename << endl;
+    std::cout << "could not find " << _slatnodename << std::endl;
     gSystem->Exit(1);
   }
   PHG4ScintillatorSlatContainer::ConstRange slat_range = g4slats->getScintillatorSlats();
@@ -95,7 +89,7 @@ void G4ScintillatorSlatTTree::Detector(const std::string &det)
   _detector = det;
   _outnodename = "G4RootScintillatorSlat_" + det;
   _slatnodename = "G4CELL_" + det;
-  if (!_histofilename.size())
+  if (_histofilename.empty())
   {
     _histofilename = "ScintillatorSlatHistos_" + det + ".root";
   }

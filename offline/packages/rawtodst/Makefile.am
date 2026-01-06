@@ -23,6 +23,7 @@ librawtodst_la_SOURCES = \
   TPCMap.cc
 
 librawtodst_la_LIBADD = \
+  -lfun4all \
   -lphool \
   -lSubsysReco \
   -ltrack_io

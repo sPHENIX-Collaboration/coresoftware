@@ -10,11 +10,11 @@ CXXFLAGS="$CXXFLAGS -Wall -Werror -Wextra -Wshadow"
 
 dnl  AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | awk '{print $1>=4.8?"1":"0"}'` = 1)
 
-case $CXX in
-  clang++)
-    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy"
-  ;;
-esac
+dnl case $CXX in
+dnl   clang++)
+dnl    CXXFLAGS="$CXXFLAGS -Wno-c11-extensions -Wno-deprecated-copy"
+dnl  ;;
+dnl esac
 
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)

@@ -50,10 +50,6 @@ GlobalQA::GlobalQA(const std::string &name)
 {
 }
 
-GlobalQA::~GlobalQA()
-{
-}
-
 int GlobalQA::Init(PHCompositeNode * /*unused*/)
 {
   if (m_debug)
@@ -406,7 +402,7 @@ void GlobalQA::createHistos()
 
   h2_GlobalQA_mbd_charge_NS_correlation = new TH2F("h2_GlobalQA_mbd_charge_NS_correlation",
       "MBD Charge Correlation ; Total Charge (South); Total Charge (North)",
-      150, 0, 1500, 150, 0, 1500);
+      500, 0, 1500, 500, 0, 1500);
 
   h2_GlobalQA_mbd_nhits_NS_correlation = new TH2F("h2_GlobalQA_mbd_nhits_NS_correlation",
       "MBD Number Of Hits Correlation ; Number Of Hits (South); " "Number Of Hits (North)",
@@ -425,17 +421,29 @@ void GlobalQA::createHistos()
   hm->registerHisto(h2_GlobalQA_mbd_charge_NS_correlation);
   hm->registerHisto(h2_GlobalQA_mbd_nhits_NS_correlation);
 
+  // --- 6e6 for AuAu, 2e4 for pp
   // sEPD QA
+  // h_GlobalQA_sEPD_adcsum_s = new TH1D(
+  //     "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; Counts", 200, 0, 6e6);
+
+  // h_GlobalQA_sEPD_adcsum_n = new TH1D(
+  //     "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; Counts", 200, 0, 6e6);
+
+  // h2_GlobalQA_sEPD_adcsum_ns =
+  //     new TH2D("h2_GlobalQA_sEPD_adcsum_ns",
+  //              "sEPD NS ADC sum correlation ; ADC sum (south); ADC sum (north)",
+  //              500, 0, 6e6, 500, 0, 6e6);
+
   h_GlobalQA_sEPD_adcsum_s = new TH1D(
-      "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; Counts", 200, 0, 6e6);
+      "h_GlobalQA_sEPD_adcsum_s", " ; sEPD ADC sum ; Counts", 200, 0, 2e4);
 
   h_GlobalQA_sEPD_adcsum_n = new TH1D(
-      "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; Counts", 200, 0, 6e6);
+      "h_GlobalQA_sEPD_adcsum_n", " ; sEPD ADC sum ; Counts", 200, 0, 2e4);
 
   h2_GlobalQA_sEPD_adcsum_ns =
       new TH2D("h2_GlobalQA_sEPD_adcsum_ns",
                "sEPD NS ADC sum correlation ; ADC sum (south); ADC sum (north)",
-               500, 0, 6e6, 500, 0, 6e6);
+               500, 0, 2e4, 500, 0, 2e4);
 
   h2Profile_GlobalQA_sEPD_tiles_north =
       new TProfile2D("h2Profile_GlobalQA_sEPD_tiles_north",

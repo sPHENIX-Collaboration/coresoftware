@@ -6,7 +6,7 @@
 // Fun4All libraries
 #include <fun4all/SubsysReco.h>
 
-// std libraries
+// stl includes
 #include <string>
 #include <vector>
 
@@ -29,13 +29,6 @@ class InttRawHitQA : public SubsysReco
       register them to Fun4AllServer (so they can be output to file
       using Fun4AllServer::dumpHistos() method).
    */
-  int Init(PHCompositeNode* topNode) override;
-
-  /** Called for first event when run number is known.
-      Typically this is where you may want to fetch data from
-      database, because you know the run number. A place
-      to book histograms which have to know the run number.
-   */
   int InitRun(PHCompositeNode* topNode) override;
 
   /** Called for each event.
@@ -43,17 +36,8 @@ class InttRawHitQA : public SubsysReco
    */
   int process_event(PHCompositeNode* topNode) override;
 
-  /// Clean up internals after each event.
-  int ResetEvent(PHCompositeNode* topNode) override;
-
-  /// Called at the end of each run.
-  int EndRun(const int runnumber) override;
-
   /// Called at the end of all processing.
   int End(PHCompositeNode* topNode) override;
-
-  /// Reset
-  int Reset(PHCompositeNode* /*topNode*/) override;
 
  private:
   void createHistos();
@@ -61,18 +45,18 @@ class InttRawHitQA : public SubsysReco
   ///////////////////////////////////////////
   // general variables
   ///////////////////////////////////////////
-  static const int kFelix_num_ = 8;     // the number of our FELIX server
-  static const int kFee_num_ = 14;      // the number of half-ladders in a single FELIX server
-  static const int kChip_num_ = 26;     // the number of chip in a half-ladder
-  static const int kChan_num_ = 128;    // the number of channel in a single chip
-  static const int kFirst_pid_ = 3001;  // the first pid (packet ID), which means intt0
+  static const int kFelix_num_{8};     // the number of our FELIX server
+  static const int kFee_num_{14};      // the number of half-ladders in a single FELIX server
+  static const int kChip_num_{26};     // the number of chip in a half-ladder
+  static const int kChan_num_{128};    // the number of channel in a single chip
+  static const int kFirst_pid_{3001};  // the first pid (packet ID), which means intt0
 
-    std::vector<InttRawHitContainer*> m_rawhit_containers;
-  int previous_event_counter_ = -1;
-  int last_event_counter_ = 0;
-  int event_counter_by_myself_ = 0;  // because the event counter is not reliable, I count it by myself for histogram normalization
+  std::vector<InttRawHitContainer*> m_rawhit_containers;
+  int previous_event_counter_{-1};
+  int last_event_counter_{0};
+  int event_counter_by_myself_{0};  // because the event counter is not reliable, I count it by myself for histogram normalization
 
-  bool is_first_event_ = true;
+  bool is_first_event_{true};
 
   ///////////////////////////////////////////
   // objects to be output

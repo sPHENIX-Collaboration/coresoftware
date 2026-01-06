@@ -1,14 +1,17 @@
-#ifndef CALOPACKETSKIMMER_H
-#define CALOPACKETSKIMMER_H
+#ifndef SKIMMERS_CALOPACKETSKIMMER_H
+#define SKIMMERS_CALOPACKETSKIMMER_H
 
 #include <caloreco/CaloTowerDefs.h>
+
 #include <fun4all/SubsysReco.h>
+
 #include <algorithm>
 #include <string>
+#include <utility>
 #include <vector>
-#include <TH1D.h>
 
 class PHCompositeNode;
+class TH1;
 
 class CaloPacketSkimmer : public SubsysReco
 {
@@ -94,10 +97,10 @@ class CaloPacketSkimmer : public SubsysReco
     }
   }
 
-  TH1D* h_aborted_events{nullptr};
-  TH1D* h_kept_events{nullptr};
-  TH1D* h_missing_packets{nullptr};
-  TH1D* h_empty_packets{nullptr};
+  TH1* h_aborted_events{nullptr};
+  TH1* h_kept_events{nullptr};
+  TH1* h_missing_packets{nullptr};
+  TH1* h_empty_packets{nullptr};
 };
 
 #endif

@@ -1,15 +1,15 @@
 #include "Fun4AllPrdfInputManager.h"
 
+#include <fun4all/DBInterface.h>
 #include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
 #include <fun4all/Fun4AllUtils.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <ffaobjects/SyncObject.h>  // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
-
-#include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -19,16 +19,14 @@
 #include <phool/phool.h>           // for PHWHERE
 
 #include <Event/Event.h>
-#include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/EventTypes.h>
+#include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/fileEventiterator.h>
 
 #include <cassert>
 #include <cstdlib>
 #include <iostream>  // for operator<<, basic_ostream, endl
 #include <utility>   // for pair
-
-using namespace std;
 
 Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const std::string &name, const std::string &prdfnodename, const std::string &topnodename)
   : Fun4AllInputManager(name, prdfnodename, topnodename)
@@ -66,8 +64,7 @@ int Fun4AllPrdfInputManager::fileopen(const std::string &filenam)
     fileclose();
   }
   FileName(filenam);
-  FROG frog;
-  std::string fname = frog.location(FileName());
+  std::string fname = DBInterface::instance()->location(FileName());
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << FileName() << std::endl;
@@ -82,7 +79,7 @@ int Fun4AllPrdfInputManager::fileopen(const std::string &filenam)
     std::cout << PHWHERE << Name() << ": could not open file " << fname << std::endl;
     return -1;
   }
-  pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
+  std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
   m_Segment = runseg.second;
   IsOpen(1);
   AddToFileOpened(fname);  // add file to the list of files which were opened
@@ -103,13 +100,11 @@ readagain:
       }
       return -1;
     }
-    else
+
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
-      if (OpenNextFile())
-      {
-        std::cout << Name() << ": No Input file from filelist opened" << std::endl;
-        return -1;
-      }
+      std::cout << Name() << ": No Input file from filelist opened" << std::endl;
+      return -1;
     }
   }
   if (Verbosity() > 3)

@@ -1,5 +1,5 @@
-#ifndef TRKRCLUSTERISMATCHER__H
-#define TRKRCLUSTERISMATCHER__H
+#ifndef G4EVAL_TRKRCLUSTERISMATCHER_H
+#define G4EVAL_TRKRCLUSTERISMATCHER_H
 // Principle use:
 //   Does comparison of two clusters
 //   For now, does comparison by relative separation in T and RxPhi space
@@ -7,26 +7,26 @@
 //   overall size of the clusters (using the largest clustersize).
 //
 
+#include <trackbase/TrkrDefs.h>
+
 #include <array>
 #include <string>
-
-#include <trackbase/TrkrDefs.h>
 
 class ActsGeometry;
 class TrkrCluster;
 class PHCompositeNode;
 class TrkrClusterContainer;
-class TrackClusEvaluator;
 
 class TrkrClusterIsMatcher
 {
  public:
-  TrkrClusterIsMatcher(){};
+  TrkrClusterIsMatcher() = default;
+  ~TrkrClusterIsMatcher() = default;
 
   bool operator()(TrkrDefs::cluskey key_T, TrkrDefs::cluskey key_R);
 
   int init(PHCompositeNode* topNode,
-           const std::string& name_truth_clusters = "TRKR_TRUTHCLUSTERCONTAINER",
+           const std::string& name_phg4_clusters = "TRKR_TRUTHCLUSTERCONTAINER",
            const std::string& name_reco_clusters = "TRKR_CLUSTER");
 
   void set_tol_phi_MVTX(float _val);

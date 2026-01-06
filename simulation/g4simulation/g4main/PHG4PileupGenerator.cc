@@ -6,9 +6,7 @@
 
 #include <iostream>  // for operator<<, endl, basic_ostream
 
-using namespace std;
-
-PHG4PileupGenerator::PHG4PileupGenerator(const string &name)
+PHG4PileupGenerator::PHG4PileupGenerator(const std::string &name)
   : PHG4ParticleGeneratorBase(name)
 {
   return;

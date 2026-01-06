@@ -53,7 +53,7 @@ namespace
 {
   //! convenient square function
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -73,14 +73,12 @@ namespace
     {
       return angle - 2 * M_PI;
     }
-    else if (angle < -M_PI)
+    if (angle < -M_PI)
     {
       return angle + 2 * M_PI;
     }
-    else
-    {
-      return angle;
-    }
+
+    return angle;
   }
 
   // this corresponds to integrating a gaussian centered on zero and of width sigma from xloc - pitch/2 to xloc+pitch/2
@@ -156,7 +154,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode* topNode)
 
   // get dst node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << "PHG4MicromegasHitReco::InitRun - DST Node missing, doing nothing." << std::endl;
@@ -164,14 +162,14 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode* topNode)
   }
 
   // create hitset container if needed
-  auto hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto* hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!hitsetcontainer)
   {
     std::cout << "PHG4MicromegasHitReco::InitRun - creating TRKR_HITSET." << std::endl;
 
     // find or create TRKR node
     PHNodeIterator dstiter(dstNode);
-    auto trkrnode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto* trkrnode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrnode)
     {
       trkrnode = new PHCompositeNode("TRKR");
@@ -180,19 +178,19 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode* topNode)
 
     // create container and add to the tree
     hitsetcontainer = new TrkrHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    auto* newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
     trkrnode->addNode(newNode);
   }
 
   // create hit truth association if needed
-  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto* hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   if (!hittruthassoc)
   {
     std::cout << "PHG4MicromegasHitReco::InitRun - creating TRKR_HITTRUTHASSOC." << std::endl;
 
     // find or create TRKR node
     PHNodeIterator dstiter(dstNode);
-    auto trkrnode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto* trkrnode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!trkrnode)
     {
       trkrnode = new PHCompositeNode("TRKR");
@@ -200,7 +198,7 @@ int PHG4MicromegasHitReco::InitRun(PHCompositeNode* topNode)
     }
 
     hittruthassoc = new TrkrHitTruthAssocv1;
-    auto newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
+    auto* newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
     trkrnode->addNode(newNode);
   }
 
@@ -212,7 +210,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode* topNode)
 {
   // load relevant nodes
   // G4Hits
-  auto g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
+  auto* g4hitcontainer = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MICROMEGAS");
   assert(g4hitcontainer);
 
   // acts geometry
@@ -221,15 +219,15 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode* topNode)
 
   // geometry
   const auto geonodename = full_geonodename();
-  auto geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  auto* geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
   assert(geonode);
 
   // Get the TrkrHitSetContainer node
-  auto trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  auto* trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   assert(trkrhitsetcontainer);
 
   // Get the TrkrHitTruthAssoc node
-  auto hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  auto* hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
   assert(hittruthassoc);
 
   // loop over layers in the g4hit container
@@ -240,7 +238,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode* topNode)
     const auto layer = *layer_it;
 
     // get relevant geometry
-    auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(geonode->GetLayerGeom(layer));
+    auto* layergeom = dynamic_cast<CylinderGeomMicromegas*>(geonode->GetLayerGeom(layer));
     assert(layergeom);
 
     /*
@@ -383,7 +381,7 @@ int PHG4MicromegasHitReco::process_event(PHCompositeNode* topNode)
 
         // get hit from hitset
         TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip);
-        auto hit = hitset_it->second->getHit(hitkey);
+        auto* hit = hitset_it->second->getHit(hitkey);
         if (!hit)
         {
           // create hit and insert in hitset
@@ -515,7 +513,7 @@ PHG4MicromegasHitReco::charge_list_t PHG4MicromegasHitReco::distribute_charge(
     const auto fraction = zigzag_strips ? get_zigzag_fraction(xloc, sigma, pitch) : get_rectangular_fraction(xloc, sigma, pitch);
 
     // store
-    charge_list.push_back(std::make_pair(strip, fraction));
+    charge_list.emplace_back(strip, fraction);
   }
 
   return charge_list;

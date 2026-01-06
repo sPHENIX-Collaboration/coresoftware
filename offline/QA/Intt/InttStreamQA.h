@@ -1,18 +1,18 @@
-#ifndef INTTSTREAMQA_H__
-#define INTTSTREAMQA_H__
+#ifndef QA_INTT_INTTSTREAMQA_H
+#define QA_INTT_INTTSTREAMQA_H
+
+#include <fun4all/SubsysReco.h>
 
 #include <TObject.h>
-#include <fun4all/SubsysReco.h>
 
 #include <string>
 
-//#include <intt/InttMapping.h>
-
 /// Class declarations for use in the analysis module
+class InttRawHitContainer;
 class PHCompositeNode;
 class TH1;
 class TH2;
-class InttRawHitContainer;
+
 /// Definition of this analysis module class
 class InttStreamQA : public SubsysReco
 {

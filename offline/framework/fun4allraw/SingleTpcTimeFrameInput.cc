@@ -4,15 +4,16 @@
 #include "Fun4AllStreamingInputManager.h"
 #include "InputManagerType.h"
 
+#include <qautils/QAHistManagerDef.h>
+
 #include <ffarawobjects/TpcRawHitContainerv3.h>
 #include <ffarawobjects/TpcRawHitv3.h>
 
-#include <frog/FROG.h>
-#include <phool/PHTimer.h>  // for PHTimer
-
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <qautils/QAHistManagerDef.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
+
+#include <phool/PHTimer.h>  // for PHTimer
 
 #include <TAxis.h>
 #include <TH1.h>
@@ -33,10 +34,10 @@
 
 SingleTpcTimeFrameInput::SingleTpcTimeFrameInput(const std::string &name)
   : SingleStreamingInput(name)
+  , plist(new Packet *[NTPCPACKETS])
 {
   SubsystemEnum(InputManagerType::TPC);
   m_rawHitContainerName = "TPCRAWHIT";
-  plist = new Packet *[NTPCPACKETS];
 
   // cppcheck-suppress noCopyConstructor
   // cppcheck-suppress noOperatorEq
@@ -80,13 +81,13 @@ SingleTpcTimeFrameInput::~SingleTpcTimeFrameInput()
 
 SingleTpcTimeFrameInput::TimeTracker::TimeTracker(PHTimer *timer, const std::string &name, TH1 *hout)
   : m_timer(timer)
-  , m_name(name.c_str())
+  , m_name(name)
   , m_hNorm(hout)
 {
   assert(m_timer);
   assert(m_hNorm);
 
-  m_hNorm->Fill(m_name + "Count", 1);
+  m_hNorm->Fill((m_name + "Count").c_str(), 1);
 
   m_timer->restart();
 }
@@ -97,7 +98,7 @@ void SingleTpcTimeFrameInput::TimeTracker::stop()
   assert(m_hNorm);
 
   m_timer->stop();
-  m_hNorm->Fill(m_name + "Time[ms]", m_timer->elapsed());
+  m_hNorm->Fill((m_name + "Time[ms]").c_str(), m_timer->elapsed());
 
   stopped = true;
 }
@@ -118,7 +119,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
     {
       first = false;
 
-      if (m_SelectedPacketIDs.size())
+      if (!m_SelectedPacketIDs.empty())
       {
         std::cout << "SingleTpcTimeFrameInput::" << Name() << " : note, only processing packets with ID: ";
         for (const auto &id : m_SelectedPacketIDs)
@@ -162,7 +163,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
                 << " GetEventiterator == null for targetBCO " << targetBCO << std::endl;
     }
 
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       if (Verbosity() > 1)
       {
@@ -192,7 +193,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
       {
         require_more_data |= map_builder.second->isMoreDataRequired(targetBCO);
       }
-      if (! require_more_data)
+      if (!require_more_data)
       {
         if (Verbosity() > 1)
         {
@@ -216,7 +217,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;
@@ -231,8 +232,8 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
       if (Verbosity() >= 1)
       {
-        std::cout << __PRETTY_FUNCTION__ << ": Fetching new file "<<FileName()
-        <<" for run "<<evt->getRunNumber()<<" with next Event # " << evt->getEvtSequence() << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << ": Fetching new file " << FileName()
+                  << " for run " << evt->getRunNumber() << " with next Event # " << evt->getEvtSequence() << std::endl;
       }
     }
 
@@ -271,7 +272,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
       // get packet id
       const auto packet_id = packet->getIdentifier();
 
-      if (m_SelectedPacketIDs.size() > 0 && m_SelectedPacketIDs.find(packet_id) == m_SelectedPacketIDs.end())
+      if (!m_SelectedPacketIDs.empty() && !m_SelectedPacketIDs.contains(packet_id))
       {
         if (Verbosity() > 1)
         {
@@ -283,7 +284,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
         continue;
       }
 
-      if (m_TpcTimeFrameBuilderMap.find(packet_id) == m_TpcTimeFrameBuilderMap.end())
+      if (!m_TpcTimeFrameBuilderMap.contains(packet_id))
       {
         if (Verbosity() >= 1)
         {
@@ -292,7 +293,7 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
 
         m_TpcTimeFrameBuilderMap[packet_id] = new TpcTimeFrameBuilder(packet_id);
         m_TpcTimeFrameBuilderMap[packet_id]->setVerbosity(Verbosity());
-        if (m_digitalCurrentDebugTTreeName.size())
+        if (!m_digitalCurrentDebugTTreeName.empty())
         {
           m_TpcTimeFrameBuilderMap[packet_id]->SaveDigitalCurrentDebugTTree(m_digitalCurrentDebugTTreeName);
         }
@@ -317,10 +318,10 @@ void SingleTpcTimeFrameInput::FillPool(const uint64_t targetBCO)
   // output the time frame
   for (auto &map_builder : m_TpcTimeFrameBuilderMap)
   {
-    assert(! map_builder.second->isMoreDataRequired(targetBCO));
+    assert(!map_builder.second->isMoreDataRequired(targetBCO));
     auto &timeframe = map_builder.second->getTimeFrame(targetBCO);
 
-    for (auto newhit : timeframe)
+    for (auto *newhit : timeframe)
     {
       StreamingInputManager()->AddTpcRawHit(targetBCO, newhit);
     }

@@ -21,13 +21,9 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4UserLimits.hh>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#include <boost/format.hpp>
-#pragma GCC diagnostic pop
-
 #include <algorithm>  // for max
 #include <cmath>      // for M_PI, atan, cos, sin
+#include <format>
 #include <iostream>   // for operator<<, basic_...
 #include <regex>      // for regex
 #include <utility>    // for pair, make_pair
@@ -66,8 +62,6 @@ namespace ServiceProperties
   double cableRotate[3] = {10., 5., 5.};  // Rotate the cables to line up with the staves in deg
 }  // namespace ServiceProperties
 
-using namespace ServiceProperties;
-
 //________________________________________________________________________________
 PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDetector *detector, PHG4MvtxDisplayAction *dispAct, bool overlapCheck)
   : m_Detector(detector)
@@ -79,20 +73,11 @@ PHG4MvtxSupport::PHG4MvtxSupport(PHG4MvtxDetector *detector, PHG4MvtxDisplayActi
 //________________________________________________________________________________
 PHG4MvtxSupport::~PHG4MvtxSupport()
 {
-  if (m_avSupport)
-  {
     delete m_avSupport;
-  }
-  if (m_avBarrelCable)
-  {
     delete m_avBarrelCable;
-  }
-  for (auto av : m_avLayerCable)
+  for (auto *av : m_avLayerCable)
   {
-    if (av)
-    {
       delete av;
-    }
   }
 }
 
@@ -103,17 +88,17 @@ void PHG4MvtxSupport::CreateMvtxSupportMaterials()
   G4int natoms;
   G4String symbol;
   G4String material = "MVTX_EW_Al$";
-  if (!PHG4Detector::GetDetectorMaterial(material.c_str(), false))
+  if (!PHG4Detector::GetDetectorMaterial(material, false))
   {
-    auto MVTX_Al = new G4Material(material.c_str(), density = 2.7 * g / cm3,
+    auto *MVTX_Al = new G4Material(material, density = 2.7 * g / cm3,
                                   natoms = 1, kStateSolid);
     MVTX_Al->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_Al"), 100 * perCent);
   }
 
   material = "MVTX_Epoxy$";
-  if (!PHG4Detector::GetDetectorMaterial(material.c_str(), false))
+  if (!PHG4Detector::GetDetectorMaterial(material, false))
   {
-    auto MVTX_Epoxy = new G4Material(material.c_str(), density = 1.56 * g / cm3, natoms = 4);
+    auto *MVTX_Epoxy = new G4Material(material, density = 1.56 * g / cm3, natoms = 4);
     MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("H", true), 32);  // Hydrogen
     MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("C", true), 2);   // Nitrogen
     MVTX_Epoxy->AddElement(PHG4Detector::GetDetectorElement("N", true), 4);   // Oxygen
@@ -121,9 +106,9 @@ void PHG4MvtxSupport::CreateMvtxSupportMaterials()
   }
 
   material = "MVTX_CarbonFiber$";
-  if (!PHG4Detector::GetDetectorMaterial(material.c_str(), false))
+  if (!PHG4Detector::GetDetectorMaterial(material, false))
   {
-    auto MVTX_CF = new G4Material(material.c_str(), density = 1.987 * g / cm3,
+    auto *MVTX_CF = new G4Material(material, density = 1.987 * g / cm3,
                                   natoms = 2);
     MVTX_CF->AddMaterial(PHG4Detector::GetDetectorMaterial("G4_C"), 70 * perCent);         // Carbon (NX-80-240)
     MVTX_CF->AddMaterial(PHG4Detector::GetDetectorMaterial("MVTX_Epoxy$"), 30 * perCent);  // Epoxy (EX-1515)
@@ -184,21 +169,28 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
   const double sEndWNStepHolePhi[3] = {30.0, 22.5, 18.0};   // Deg
   const double sEndWNStepHoleTilt[3] = {0., 0.295, 0.297};  // Rad
 
-  const double sEndWNStepZlen = sEndWheelNLen - sEndWheelNThick;
+  const double sEndWNStepZlen = ServiceProperties::sEndWheelNLen - sEndWheelNThick;
 
   // local varianbles
-  double rmin, rmax, phimin, dphi;
-  double xpos, ypos, zpos, rpos;
-  double xlen, ylen;
+  double rmin;
+  double rmax;
+  double phimin;
+  double dphi;
+  double xpos;
+  double ypos;
+  double zpos;
+  double rpos;
+  double xlen;
+  double ylen;
 
   auto Ta = G4ThreeVector();
   auto Ra = G4RotationMatrix();
 
   const unsigned short nZplanes = 4;
   const double zPlane[nZplanes] = {0. * mm,
-                                   sEndWheelNLen - sEndWheelNThick,
-                                   sEndWheelNLen - sEndWheelNThick,
-                                   sEndWheelNLen};
+                                   ServiceProperties::sEndWheelNLen - sEndWheelNThick,
+                                   ServiceProperties::sEndWheelNLen - sEndWheelNThick,
+                                   ServiceProperties::sEndWheelNLen};
 
   const double rInner[nZplanes] = {sEndWheelNWallR[lay], sEndWheelNWallR[lay],
                                    sEndWheelNRmin[lay], sEndWheelNRmin[lay]};
@@ -210,12 +202,12 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
                                         nZplanes, zPlane, rInner, rOuter);
 
   // The holes in the veritcal wall
-  auto endwnwalhol = new G4Tubs(std::string("endwnwalhol" + std::to_string(lay)), 0, sEndWNWallHoleD / 2,
+  auto *endwnwalhol = new G4Tubs(std::string("endwnwalhol" + std::to_string(lay)), 0, sEndWNWallHoleD / 2,
                                 1.5 * (sEndWheelNRmax[lay] - sEndWheelNWallR[lay]),
                                 0, 2 * M_PI * rad);
 
   rmin = (sEndWheelNRmax[lay] + sEndWheelNWallR[lay]) / 2;
-  zpos = sEndWStepHoleZpos;
+  zpos = ServiceProperties::sEndWStepHoleZpos;
   dphi = 180. / sEndWNWallNHoles[lay];
   phimin = dphi / 2;
   for (int ihole = 0; ihole < 2 * sEndWNWallNHoles[lay]; ihole++)
@@ -230,14 +222,14 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
   }
 
   // The holes in the base
-  auto endwnbasBhol = new G4Tubs(std::string("endwnbasBhol" + std::to_string(lay)), 0, sEndWNBaseBigHoleD / 2,
+  auto *endwnbasBhol = new G4Tubs(std::string("endwnbasBhol" + std::to_string(lay)), 0, sEndWNBaseBigHoleD / 2,
                                  1.5 * sEndWheelNThick, 0, 2 * M_PI * rad);
 
-  auto endwnbasShol = new G4Tubs(std::string("endwnbasShol" + std::to_string(lay)), 0, sEndWNBaseSmallHoleD / 2,
+  auto *endwnbasShol = new G4Tubs(std::string("endwnbasShol" + std::to_string(lay)), 0, sEndWNBaseSmallHoleD / 2,
                                  1.5 * sEndWheelNThick, 0, 2 * M_PI * rad);
 
   rmin = sEndWNBaseHolesR[lay];
-  zpos = sEndWheelNLen - (sEndWheelNThick / 2);
+  zpos = ServiceProperties::sEndWheelNLen - (sEndWheelNThick / 2);
   phimin = 0.;
   for (int ihole = 0; ihole < (sEndWNBaseNBigHoles + sEndWNBaseNSmallHoles); ihole++)
   {
@@ -246,7 +238,7 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
     ypos = rmin * sin(phimin * deg);
     Ra.set(0., 0., 0.);
     Ta.set(xpos, ypos, zpos);
-    auto endwnbashol = (ihole < 2 || ihole == 5 || ihole > 8) ? endwnbasShol : endwnbasBhol;
+    auto *endwnbashol = (ihole < 2 || ihole == 5 || ihole > 8) ? endwnbasShol : endwnbasBhol;
     endWNBasis = new G4SubtractionSolid(std::string("endwnbasis-endwnwalhol" + std::to_string(ihole) + "l" + std::to_string(lay) + "a"),
                                         endWNBasis, endwnbashol, &Ra, Ta);
     Ta = G4ThreeVector(-xpos, -ypos, zpos);
@@ -261,7 +253,7 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
   double xDispl = sqrt(rmin * rmin - sEndWNStepYdispl[lay] * sEndWNStepYdispl[lay]) - xlen;
   ylen = sqrt(rmin * rmin - xDispl * xDispl) - sEndWNStepYdispl[lay];
 
-  auto stepBoxNSh = new G4Box(std::string("stepBoxNSh" + std::to_string(lay)), xlen / 2, ylen / 2,
+  auto *stepBoxNSh = new G4Box(std::string("stepBoxNSh" + std::to_string(lay)), xlen / 2, ylen / 2,
                               (sEndWNStepZlen / 2) - 0.05 * mm);
 
   xpos = xDispl + stepBoxNSh->GetXHalfLength();
@@ -272,25 +264,25 @@ void PHG4MvtxSupport::GetEndWheelSideN(const int lay, G4AssemblyVolume *&endWhee
   dphi = (90. * deg) - asin(xDispl / rmin) * rad - phimin + 5 * deg;
   rmax = rmin + 2 * stepBoxNSh->GetYHalfLength();
 
-  auto stepTubNSh = new G4Tubs(std::string("stepTubNSh" + std::to_string(lay)), rmin, rmax,
+  auto *stepTubNSh = new G4Tubs(std::string("stepTubNSh" + std::to_string(lay)), rmin, rmax,
                                1.5 * sEndWNStepZlen / 2, phimin, dphi);
   Ra.set(0., 0., 0.);
   Ta.set(-xpos, -ypos, 0);
-  auto stepNSh = new G4SubtractionSolid(std::string("stepNSh" + std::to_string(lay)),
+  auto *stepNSh = new G4SubtractionSolid(std::string("stepNSh" + std::to_string(lay)),
                                         stepBoxNSh, stepTubNSh, &Ra, Ta);
 
-  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
+  auto *matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
 
-  auto endWheelNvol = new G4LogicalVolume(endWNBasis, matAl, std::string("EndWheelNBasis" + std::to_string(lay)));
+  auto *endWheelNvol = new G4LogicalVolume(endWNBasis, matAl, std::string("EndWheelNBasis" + std::to_string(lay)));
   m_DisplayAction->AddVolume(endWheelNvol, "red");
   m_Detector->FillSupportLVArray(endWheelNvol);
 
-  auto stepNShLogVol = new G4LogicalVolume(stepNSh, matAl, std::string("StepNL" + std::to_string(lay) + "_LOGIC"));
+  auto *stepNShLogVol = new G4LogicalVolume(stepNSh, matAl, std::string("StepNL" + std::to_string(lay) + "_LOGIC"));
   m_DisplayAction->AddVolume(stepNShLogVol, "red");
   m_Detector->FillSupportLVArray(stepNShLogVol);
 
   // Finally put everything in the mother volume
-  zpos = (sEndWheelSNHolesZdist / 2) - (sEndWStepHoleZpos + sEndWStepHoleZdist);
+  zpos = (ServiceProperties::sEndWheelSNHolesZdist / 2) - (ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist);
   Ra.set(0., 0., 0.);
   Ta.set(0, 0, zpos);
   endWheel->AddPlacedVolume(endWheelNvol, Ta, &Ra);
@@ -369,9 +361,16 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
   const double sEndWheelNWallR = sEWSExtSectRmax[lay] - sEWSExtSectThick[lay] + 0.05 * mm;
 
   // local varianbles
-  double rmin, rmax, phimin, dphi;
-  double xpos, ypos, zpos, rpos;
-  double xlen, ylen;
+  double rmin;
+  double rmax;
+  double phimin;
+  double dphi;
+  double xpos;
+  double ypos;
+  double zpos;
+  double rpos;
+  double xlen;
+  double ylen;
 
   auto Ta = G4ThreeVector();
   auto Ra = G4RotationMatrix();
@@ -402,12 +401,12 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
                                         nZplanes, zPlane, rInner, rOuter);
 
   // The holes in the veritcal wall
-  auto endwswalhol = new G4Tubs(std::string("endwswalhol" + std::to_string(lay)), 0, sEndWSWallHoleD / 2,
+  auto *endwswalhol = new G4Tubs(std::string("endwswalhol" + std::to_string(lay)), 0, sEndWSWallHoleD / 2,
                                 1.5 * sEWSExtSectThick[lay],
                                 0, 2 * M_PI * rad);
 
   rmin = sEWSExtSectRmax[lay] - sEWSExtSectThick[lay] / 2;
-  zpos = sEndWStepHoleZpos;
+  zpos = ServiceProperties::sEndWStepHoleZpos;
   dphi = 180. / sEndWSWallNHoles[lay];
   phimin = dphi / 2;
   for (int ihole = 0; ihole < 2 * sEndWSWallNHoles[lay]; ihole++)
@@ -428,7 +427,7 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
   double xDispl = sqrt(rmin * rmin - sEndWSStepYdispl[lay] * sEndWSStepYdispl[lay]) - xlen;
   ylen = sqrt(rmin * rmin - xDispl * xDispl) - sEndWSStepYdispl[lay];
 
-  auto stepBoxSSh = new G4Box(std::string("stepBoxSSh" + std::to_string(lay)), xlen / 2, ylen / 2,
+  auto *stepBoxSSh = new G4Box(std::string("stepBoxSSh" + std::to_string(lay)), xlen / 2, ylen / 2,
                               (sEndWSStepZlen / 2) - 0.05 * mm);
 
   xpos = xDispl + stepBoxSSh->GetXHalfLength();
@@ -439,25 +438,25 @@ void PHG4MvtxSupport::GetEndWheelSideS(const int lay, G4AssemblyVolume *&endWhee
   dphi = (90. * deg) - asin(xDispl / rmin) * rad - phimin + 5 * deg;
   rmax = rmin + 2 * stepBoxSSh->GetYHalfLength();
 
-  auto stepTubSSh = new G4Tubs(std::string("stepTubSSh" + std::to_string(lay)), rmin, rmax,
+  auto *stepTubSSh = new G4Tubs(std::string("stepTubSSh" + std::to_string(lay)), rmin, rmax,
                                1.5 * sEndWSStepZlen / 2, phimin, dphi);
   Ra.set(0., 0., 0.);
   Ta.set(-xpos, -ypos, 0.);
-  auto stepSSh = new G4SubtractionSolid(std::string("stepSSh" + std::to_string(lay)),
+  auto *stepSSh = new G4SubtractionSolid(std::string("stepSSh" + std::to_string(lay)),
                                         stepBoxSSh, stepTubSSh, &Ra, Ta);
 
-  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
+  auto *matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
 
-  auto endWheelSvol = new G4LogicalVolume(endWSBasis, matAl, std::string("EndWheelSBasis" + std::to_string(lay)));
+  auto *endWheelSvol = new G4LogicalVolume(endWSBasis, matAl, std::string("EndWheelSBasis" + std::to_string(lay)));
   m_DisplayAction->AddVolume(endWheelSvol, "red");
   m_Detector->FillSupportLVArray(endWheelSvol);
 
-  auto stepSShLogVol = new G4LogicalVolume(stepSSh, matAl, std::string("StepSL" + std::to_string(lay) + "_LOGIC"));
+  auto *stepSShLogVol = new G4LogicalVolume(stepSSh, matAl, std::string("StepSL" + std::to_string(lay) + "_LOGIC"));
   m_DisplayAction->AddVolume(stepSShLogVol, "red");
   m_Detector->FillSupportLVArray(stepSShLogVol);
 
   // Finally put everything in the mother volume
-  zpos = (sEndWheelSNHolesZdist / 2) - (sEndWStepHoleZpos + sEndWStepHoleZdist);
+  zpos = (ServiceProperties::sEndWheelSNHolesZdist / 2) - (ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist);
   Ra.set(0., M_PI * rad, 0.);
   Ta.set(0, 0, -zpos);
   endWheel->AddPlacedVolume(endWheelSvol, Ta, &Ra);
@@ -536,19 +535,19 @@ void PHG4MvtxSupport::GetConeVolume(int lay, G4AssemblyVolume *&av)
                                    sBigCylDmax[lay] / 2,
                                    sBigCylDmax[lay] / 2};
 
-  auto coneSolid = new G4Polycone(std::string("cfConeL" + std::to_string(lay)), 0., 2. * M_PI * rad,
+  auto *coneSolid = new G4Polycone(std::string("cfConeL" + std::to_string(lay)), 0., 2. * M_PI * rad,
                                   nZplanes, zPlane, rInner, rOuter);
 
-  auto matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
+  auto *matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
 
-  auto coneLogVol = new G4LogicalVolume(coneSolid, matCF,
+  auto *coneLogVol = new G4LogicalVolume(coneSolid, matCF,
                                         std::string("ConeL" + std::to_string(lay) + "_LOGIC"),
                                         nullptr, nullptr, nullptr);
 
   m_DisplayAction->AddVolume(coneLogVol, "MVTX_CarbonFiber$");
   m_Detector->FillSupportLVArray(coneLogVol);
 
-  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelSExtSectLen;
+  double zpos = ServiceProperties::sEndWheelSNHolesZdist / 2 - (ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist) + sEndWheelSExtSectLen;
   G4ThreeVector Ta = G4ThreeVector(0., 0., -zpos);
   G4RotationMatrix Ra;
   av->AddPlacedVolume(coneLogVol, Ta, &Ra);
@@ -624,29 +623,29 @@ void PHG4MvtxSupport::CreateCYSS(G4AssemblyVolume *&av)
                                      sFlgLringRmax,
                                      sFlgLringRmax};
 
-  auto flangeSolid_1 = new G4Polycone("cyssFlangeNorth_1", 0., 2. * M_PI * rad,
+  auto *flangeSolid_1 = new G4Polycone("cyssFlangeNorth_1", 0., 2. * M_PI * rad,
                                       nZplanes, zPlane_1, rInner_1, rOuter_1);
 
-  auto flangeSolid_2 = new G4Polycone("cyssFlangeNorth_2", 0., 2. * M_PI * rad,
+  auto *flangeSolid_2 = new G4Polycone("cyssFlangeNorth_2", 0., 2. * M_PI * rad,
                                       nZplanes, zPlane_2, rInner_2, rOuter_2);
 
-  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
+  auto *matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
 
-  auto cyssFlangeLogVol_1 = new G4LogicalVolume(flangeSolid_1, matAl,
+  auto *cyssFlangeLogVol_1 = new G4LogicalVolume(flangeSolid_1, matAl,
                                                 "cyssFlangeNorth_1_LOGIC",
                                                 nullptr, nullptr, nullptr);
 
   m_DisplayAction->AddVolume(cyssFlangeLogVol_1, "MVTX_EW_Al$");
   m_Detector->FillSupportLVArray(cyssFlangeLogVol_1);
 
-  auto cyssFlangeLogVol_2 = new G4LogicalVolume(flangeSolid_2, matAl,
+  auto *cyssFlangeLogVol_2 = new G4LogicalVolume(flangeSolid_2, matAl,
                                                 "cyssFlangeNorth_2_LOGIC",
                                                 nullptr, nullptr, nullptr);
 
   m_DisplayAction->AddVolume(cyssFlangeLogVol_2, "MVTX_EW_Al$");
   m_Detector->FillSupportLVArray(cyssFlangeLogVol_2);
 
-  double zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelNLen + sFlgIntThick;
+  double zpos = ServiceProperties::sEndWheelSNHolesZdist / 2 - (ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist) + ServiceProperties::sEndWheelNLen + sFlgIntThick;
   G4ThreeVector Ta = G4ThreeVector(0., 0., zpos);
   G4RotationMatrix Ra(0, M_PI * rad, 0.);
   av->AddPlacedVolume(cyssFlangeLogVol_1, Ta, &Ra);
@@ -657,16 +656,16 @@ void PHG4MvtxSupport::CreateCYSS(G4AssemblyVolume *&av)
   const double sCYSScylRmin = 51.70 * mm;
   const double sCYSScylLen = 425.77 * mm;
 
-  auto cyssCylSol = new G4Tubs("CYSScyl_SOLID", sCYSScylRmin, sCYSScylRmax, sCYSScylLen / 2,
+  auto *cyssCylSol = new G4Tubs("CYSScyl_SOLID", sCYSScylRmin, sCYSScylRmax, sCYSScylLen / 2,
                                0., 2 * M_PI);
 
-  auto matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
-  auto cyssCylLog = new G4LogicalVolume(cyssCylSol, matCF, "CYSScyl_LOGIC",
+  auto *matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
+  auto *cyssCylLog = new G4LogicalVolume(cyssCylSol, matCF, "CYSScyl_LOGIC",
                                         nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(cyssCylLog, "MVTX_CarbonFiber$");
   m_Detector->FillSupportLVArray(cyssCylLog);
 
-  zpos -= (sFlgIntThick - sCYSScylLen / 2 + sCYSSFlgSsfFlgNsf - sCYSSFlgSsfCylsf);
+  zpos -= (sFlgIntThick - sCYSScylLen / 2 + ServiceProperties::sCYSSFlgSsfFlgNsf - ServiceProperties::sCYSSFlgSsfCylsf);
   Ta.set(0., 0., zpos);
   Ra.set(0, 0., 0.);
   av->AddPlacedVolume(cyssCylLog, Ta, &Ra);
@@ -701,15 +700,15 @@ void PHG4MvtxSupport::CreateCYSS(G4AssemblyVolume *&av)
                                            (sCYSSconIntDmin + sCYSSconThick) / 2,
                                            (sCYSSconIntDmin + sCYSSconThick) / 2};
 
-  auto cyssConeSol = new G4Polycone("cyssConeSol", 0., 2. * M_PI * rad,
+  auto *cyssConeSol = new G4Polycone("cyssConeSol", 0., 2. * M_PI * rad,
                                     nZplanesCone, zPlanesCone, rInnerCone, rOuterCone);
 
-  auto cyssConeLog = new G4LogicalVolume(cyssConeSol, matCF, "CYSScone_LOGIC",
+  auto *cyssConeLog = new G4LogicalVolume(cyssConeSol, matCF, "CYSScone_LOGIC",
                                          nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(cyssConeLog, "MVTX_CarbonFiber$");
   m_Detector->FillSupportLVArray(cyssConeLog);
 
-  zpos -= (sCYSScylLen / 2 + sCYSSFlgSsfCylsf - sCYSSconLen - sCYSSFlgSsfConesf);
+  zpos -= (sCYSScylLen / 2 + ServiceProperties::sCYSSFlgSsfCylsf - sCYSSconLen - ServiceProperties::sCYSSFlgSsfConesf);
   Ta.set(0., 0., zpos);
   Ra.set(0, M_PI * rad, 0.);
   av->AddPlacedVolume(cyssConeLog, Ta, &Ra);
@@ -757,15 +756,15 @@ void PHG4MvtxSupport::CreateCYSS(G4AssemblyVolume *&av)
                                          sCYSSribRext,
                                          sCYSSribRext};
 
-  auto cyssRibSol = new G4Polycone("cyssRibSol", 0., 2. * M_PI * rad,
+  auto *cyssRibSol = new G4Polycone("cyssRibSol", 0., 2. * M_PI * rad,
                                    nZplanesRib, zPlanesRib, rInnerRib, rOuterRib);
 
-  auto cyssRibLog = new G4LogicalVolume(cyssRibSol, matCF, "CYSSrib_LOGIC",
+  auto *cyssRibLog = new G4LogicalVolume(cyssRibSol, matCF, "CYSSrib_LOGIC",
                                         nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(cyssRibLog, "MVTX_CarbonFiber$");
   m_Detector->FillSupportLVArray(cyssRibLog);
 
-  zpos -= (sCYSSconLen + sCYSSFlgSsfConesf - sCYSSFlgSsfRibsf);
+  zpos -= (sCYSSconLen + ServiceProperties::sCYSSFlgSsfConesf - ServiceProperties::sCYSSFlgSsfRibsf);
   Ta.set(0., 0., zpos);
   Ra.set(0, 0., 0.);
   av->AddPlacedVolume(cyssRibLog, Ta, &Ra);
@@ -794,15 +793,15 @@ void PHG4MvtxSupport::CreateCYSS(G4AssemblyVolume *&av)
                                            sFlgSRstep,
                                            sFlgSRstep};
 
-  auto cyssFlgSSol = new G4Polycone("cyssFlgSSol", 0., 2. * M_PI * rad,
+  auto *cyssFlgSSol = new G4Polycone("cyssFlgSSol", 0., 2. * M_PI * rad,
                                     nZplanesFlgS, zPlanesFlgS, rInnerFlgS, rOuterFlgS);
 
-  auto cyssFlgSLog = new G4LogicalVolume(cyssFlgSSol, matAl, "CYSSFlgS_LOGIC",
+  auto *cyssFlgSLog = new G4LogicalVolume(cyssFlgSSol, matAl, "CYSSFlgS_LOGIC",
                                          nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(cyssFlgSLog, "MVTX_EW_Al$");
   m_Detector->FillSupportLVArray(cyssFlgSLog);
 
-  zpos -= (sCYSSFlgSsfRibsf);
+  zpos -= (ServiceProperties::sCYSSFlgSsfRibsf);
   Ta.set(0., 0., zpos);
   Ra.set(0, 0., 0.);
   av->AddPlacedVolume(cyssFlgSLog, Ta, &Ra);
@@ -863,17 +862,17 @@ void PHG4MvtxSupport::CreateServiceBarrel(G4AssemblyVolume *&av)
                                            sSBFlgNRimRmax,
                                            sSBFlgNRimRmax};
 
-  auto sbFlgNSol = new G4Polycone("sbFlgNSol", 0., 2. * M_PI * rad,
+  auto *sbFlgNSol = new G4Polycone("sbFlgNSol", 0., 2. * M_PI * rad,
                                   nZplanesFlgN, zPlanesFlgN, rInnerFlgN, rOuterFlgN);
 
-  auto matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
+  auto *matAl = PHG4Detector::GetDetectorMaterial("MVTX_EW_Al$");
 
-  auto sbFlgNLog = new G4LogicalVolume(sbFlgNSol, matAl, "sbFlgN_LOGIC",
+  auto *sbFlgNLog = new G4LogicalVolume(sbFlgNSol, matAl, "sbFlgN_LOGIC",
                                        nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(sbFlgNLog, "MVTX_CarbonFiber$");
   m_Detector->FillSupportLVArray(sbFlgNLog);
 
-  zpos = sEndWheelSNHolesZdist / 2 - (sEndWStepHoleZpos + sEndWStepHoleZdist) + sEndWheelNLen - sCYSSFlgSsfFlgNsf;
+  zpos = ServiceProperties::sEndWheelSNHolesZdist / 2 - (ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist) + ServiceProperties::sEndWheelNLen - ServiceProperties::sCYSSFlgSsfFlgNsf;
   Ta.set(0., 0., zpos);
   Ra.set(0, M_PI * rad, 0.);
   av->AddPlacedVolume(sbFlgNLog, Ta, &Ra);
@@ -883,11 +882,11 @@ void PHG4MvtxSupport::CreateServiceBarrel(G4AssemblyVolume *&av)
   const double sSBcylRmax = 107.66 * mm;
   const double sSBcylLen = 1197.0 * mm;
 
-  auto sbCylSol = new G4Tubs("SBcyl_SOLID", sSBcylRmin, sSBcylRmax,
+  auto *sbCylSol = new G4Tubs("SBcyl_SOLID", sSBcylRmin, sSBcylRmax,
                              sSBcylLen / 2, 0., 2 * M_PI);
 
-  auto matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
-  auto sbCylLog = new G4LogicalVolume(sbCylSol, matCF, "SBcyl_LOGIC",
+  auto *matCF = PHG4Detector::GetDetectorMaterial("MVTX_CarbonFiber$");
+  auto *sbCylLog = new G4LogicalVolume(sbCylSol, matCF, "SBcyl_LOGIC",
                                       nullptr, nullptr, nullptr);
   m_DisplayAction->AddVolume(sbCylLog, "MVTX_CarbonFiber$");
   m_Detector->FillSupportLVArray(sbCylLog);
@@ -995,7 +994,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
       {
         double deltaX = samtecShiftX + ((iCol + 1) * (samtecSheathRadius * 2.6));
         double deltaY = samtecShiftY - ((iRow + 1) * (samtecSheathRadius * 2.1));
-        PHG4MvtxCable *cable = new PHG4MvtxCable(boost::str(boost::format("%s_samtec_%d_%d") % superName.c_str() % iRow % iCol),
+        PHG4MvtxCable *cable = new PHG4MvtxCable(std::format("{}_samtec_{}_{}", superName, iRow, iCol),
                                                  "G4_Cu", samtecCoreRadius, samtecSheathRadius,
                                                  x1 + deltaX, x2 + deltaX, y1 + deltaY,
                                                  y2 + deltaY, z1, z2, "blue");
@@ -1022,7 +1021,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
       {
         double deltaX = coolingShiftX + ((iCool + 1) * (sheathRadius * 2));
         double deltaY = coolingShiftY + (sheathRadius * 2);
-        cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool),
+        cable = new PHG4MvtxCable(std::format("{}_cooling_{}", superName, iCool),
                                   "G4_WATER", coreRadius, sheathRadius,
                                   x1 + deltaX, x2 + deltaX, y1 + deltaY,
                                   y2 + deltaY, z1, z2, cooling_color[iCool]);
@@ -1031,7 +1030,7 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
       {
         double deltaX = coolingShiftX + (sheathRadius * 2);
         double deltaY = coolingShiftY + ((iCool + 1) * (sheathRadius * 2));
-        cable = new PHG4MvtxCable(boost::str(boost::format("%s_cooling_%d") % superName.c_str() % iCool),
+        cable = new PHG4MvtxCable(std::format("{}_cooling_{}", superName, iCool),
                                   "G4_WATER", coreRadius, sheathRadius,
                                   x1 + deltaX, x2 + deltaX, y1 + deltaY,
                                   y2 + deltaY, z1, z2, cooling_color[iCool]);
@@ -1048,18 +1047,19 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
     std::vector<PowerCableParameters> powerCables;
     std::vector<std::vector<double>> powerCableColors;
 
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiReturn") % superName.c_str()), "Large"), std::make_pair((-2.5 * powerLargeSheathRadius) + powerShiftX, (-2.5 * powerLargeSheathRadius) + powerShiftY));
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiSupply") % superName.c_str()), "Large"), std::make_pair((-4.5 * powerLargeSheathRadius) + powerShiftX, (-1.5 * powerLargeSheathRadius) + powerShiftY));
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_anaReturn") % superName.c_str()), "Medium"), std::make_pair((-4 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY));
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_anaSupply") % superName.c_str()), "Medium"), std::make_pair((-5.1 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY));
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_digiSense") % superName.c_str()), "Small"), std::make_pair((-10 * powerSmallSheathRadius) + powerShiftX, (-1 * powerSmallSheathRadius) + powerShiftY));
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_anaSense") % superName.c_str()), "Small"), std::make_pair((-8 * powerSmallSheathRadius) + powerShiftX, (-2 * powerSmallSheathRadius) + powerShiftY));
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_bias") % superName.c_str()), "Small"), std::make_pair((-6 * powerSmallSheathRadius) + powerShiftX, (-3 * powerSmallSheathRadius) + powerShiftY));
-    powerCables.emplace_back(std::make_pair(boost::str(boost::format("%s_ground") % superName.c_str()), "Small"), std::make_pair((-4 * powerSmallSheathRadius) + powerShiftX, (-4 * powerSmallSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_digiReturn", superName), "Large"), std::make_pair((-2.5 * powerLargeSheathRadius) + powerShiftX, (-2.5 * powerLargeSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_digiSupply", superName), "Large"), std::make_pair((-4.5 * powerLargeSheathRadius) + powerShiftX, (-1.5 * powerLargeSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_anaReturn", superName), "Medium"), std::make_pair((-4 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_anaSupply", superName), "Medium"), std::make_pair((-5.1 * powerLargeSheathRadius) + powerShiftX, (-5.75 * powerMediumSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_digiSense", superName), "Small"), std::make_pair((-10 * powerSmallSheathRadius) + powerShiftX, (-1 * powerSmallSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_anaSense", superName), "Small"), std::make_pair((-8 * powerSmallSheathRadius) + powerShiftX, (-2 * powerSmallSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_bias", superName), "Small"), std::make_pair((-6 * powerSmallSheathRadius) + powerShiftX, (-3 * powerSmallSheathRadius) + powerShiftY));
+    powerCables.emplace_back(std::make_pair(std::format("{}_ground", superName), "Small"), std::make_pair((-4 * powerSmallSheathRadius) + powerShiftX, (-4 * powerSmallSheathRadius) + powerShiftY));
 
     for (PowerCableParameters &powerCable : powerCables)
     {
-      double coreRad, sheathRad;
+      double coreRad;
+      double sheathRad;
       std::string cableColor;
       std::string cableType = powerCable.first.second;
       std::string cableName = powerCable.first.first;
@@ -1079,35 +1079,35 @@ void PHG4MvtxSupport::CreateCableBundle(G4AssemblyVolume &assemblyVolume, const 
         sheathRad = powerLargeSheathRadius;
       }
 
-      if (cableName == boost::str(boost::format("%s_digiReturn") % superName.c_str()))
+      if (cableName == std::format("{}_digiReturn", superName))
       {
         cableColor = "black";
       }
-      if (cableName == boost::str(boost::format("%s_digiSupply") % superName.c_str()))
+      if (cableName == std::format("{}_digiSupply", superName))
       {
         cableColor = "red";
       }
-      if (cableName == boost::str(boost::format("%s_anaReturn") % superName.c_str()))
+      if (cableName == std::format("{}_anaReturn", superName))
       {
         cableColor = "black";
       }
-      if (cableName == boost::str(boost::format("%s_anaSupply") % superName.c_str()))
+      if (cableName == std::format("{}_anaSupply", superName))
       {
         cableColor = "red";
       }
-      if (cableName == boost::str(boost::format("%s_digiSense") % superName.c_str()))
+      if (cableName == std::format("{}_digiSense", superName))
       {
         cableColor = "white";
       }
-      if (cableName == boost::str(boost::format("%s_anaSense") % superName.c_str()))
+      if (cableName == std::format("{}_anaSense", superName))
       {
         cableColor = "green";
       }
-      if (cableName == boost::str(boost::format("%s_bias") % superName.c_str()))
+      if (cableName == std::format("{}_bias", superName))
       {
         cableColor = "white";
       }
-      if (cableName == boost::str(boost::format("%s_ground") % superName.c_str()))
+      if (cableName == std::format("{}_ground", superName))
       {
         cableColor = "green";
       }
@@ -1127,10 +1127,10 @@ G4AssemblyVolume *PHG4MvtxSupport::buildBarrelCable()
   G4AssemblyVolume *av = new G4AssemblyVolume();
 
   CreateCableBundle(*av, "barrelCable", true, true, false, 0, 0, 0, 0,
-                    BarrelCableEnd, BarrelCableStart);
+                    ServiceProperties::BarrelCableEnd, ServiceProperties::BarrelCableStart);
   CreateCableBundle(*av, "barrelCable", false, false, true, 0, 0, 0, 0,
-                    BarrelCableEnd,
-                    -sEndWheelSNHolesZdist / 2 + (sEndWStepHoleZpos + sEndWStepHoleZdist) - 40 * cm);
+                    ServiceProperties::BarrelCableEnd,
+                    -ServiceProperties::sEndWheelSNHolesZdist / 2 + (ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist) - 40 * cm);
   return av;
 }
 
@@ -1141,16 +1141,16 @@ G4AssemblyVolume *PHG4MvtxSupport::buildLayerCables(const int &lay)
   //  double rInner[3] = { 59.94 / 2 * mm, 75.98 / 2 * mm, 91.48 / 2 * mm };
   double rOuter[3] = {(103 - 2.) / 2 * mm, (149 - 2.24) / 2 * mm, (195 - 2.24) / 2 * mm};
   double zConeLen[3] = {186.8 * mm, 179.74 * mm, 223 * mm};
-  double zMax = -sEndWheelSNHolesZdist / 2 + (sEndWStepHoleZpos + sEndWStepHoleZdist) - 17 * mm - zConeLen[lay];
+  double zMax = -ServiceProperties::sEndWheelSNHolesZdist / 2 + (ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist) - 17 * mm - zConeLen[lay];
   //  double zTransition2[3] = { -9.186 * cm, -8.938 *cm,  -8.538 * cm };
   CreateCableBundle(*av, std::string("MVTX_L" + std::to_string(lay) + "Cable"), true, true, false,
                     rOuter[lay] - 3 * mm, rOuter[lay] - 5 * mm, 0, 0,
-                    BarrelCableStart + 1 * mm, zMax);
+                    ServiceProperties::BarrelCableStart + 1 * mm, zMax);
 
-  //  double zCoolStart = - sEndWheelSNHolesZdist / 2 + ( sEndWStepHoleZpos + sEndWStepHoleZdist )
+  //  double zCoolStart = - ServiceProperties::sEndWheelSNHolesZdist / 2 + ( ServiceProperties::sEndWStepHoleZpos + ServiceProperties::sEndWStepHoleZdist )
   //                     - 17 * mm - zConeLen[lay];
   //  CreateCableBundle( *av, Form( "MVTX_L%dCool_0", lay ), false, true, false, rInner[lay], rInner[lay], 0, 0,
-  //                     BarrelCableStart,  );
+  //                     ServiceProperties::BarrelCableStart,  );
   //  CreateCableBundle(*av, Form( "MVTX_L%dCable_1", lay ), true, false, false, rOuter[lay], rInner[lay], 0, 0, zTransition1[lay] + 0.1, zTransition2[lay]);
   //  CreateCableBundle(*av, Form( "MVTX_L%dCable_2", lay ), true, false, false, rInner[lay], rInner[lay], 0, 0, zTransition2[lay] + 0.1, zMax);
 
@@ -1187,8 +1187,8 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
   for (unsigned int i = 0; i < totStaves; ++i)
   {
     double phi = (2.0 * M_PI / totStaves) * i;
-    placeBarrelCable.setX((BarrelRadius - 1 * cm) * std::cos(phi));
-    placeBarrelCable.setY((BarrelRadius - 1 * cm) * std::sin(phi));
+    placeBarrelCable.setX((ServiceProperties::BarrelRadius - 1 * cm) * std::cos(phi));
+    placeBarrelCable.setY((ServiceProperties::BarrelRadius - 1 * cm) * std::sin(phi));
     G4RotationMatrix rotBarrelCable;
     rotBarrelCable.rotateZ(phi + (-90. * deg));
     G4Transform3D transformBarrelCable(rotBarrelCable, placeBarrelCable);
@@ -1205,7 +1205,7 @@ void PHG4MvtxSupport::ConstructMvtxSupport(G4LogicalVolume *&lv)
       double phi = (2.0 * M_PI / nStaves[iLayer]) * iStave;
       placeCable.setX(std::cos(phi));
       placeCable.setY(std::sin(phi));
-      rotCable.rotateZ(phi + ((90. + cableRotate[iLayer]) * deg));
+      rotCable.rotateZ(phi + ((90. + ServiceProperties::cableRotate[iLayer]) * deg));
       G4Transform3D transformCable(rotCable, placeCable);
       m_avLayerCable[iLayer]->MakeImprint(lv, transformCable, 0, m_overlapCheck);
     }

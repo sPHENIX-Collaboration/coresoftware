@@ -5,7 +5,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <cmath>
+#include <limits>
 #include <string>  // for string
 
 class PHCompositeNode;
@@ -14,7 +14,7 @@ class PHG4GenHit : public SubsysReco
 {
  public:
   PHG4GenHit(const std::string &name = "PHG4GenHit");
-  ~PHG4GenHit() override {}
+  ~PHG4GenHit() = default;
 
   int process_event(PHCompositeNode *topNode) override;
 
@@ -25,10 +25,10 @@ class PHG4GenHit : public SubsysReco
   void Detector(const std::string &n) { detector = n; }
 
  protected:
-  double phi = NAN;
-  double theta = NAN;
-  double eloss = NAN;
-  int layer = -9999;
+  double phi {std::numeric_limits<double>::quiet_NaN()};
+  double theta {std::numeric_limits<double>::quiet_NaN()};
+  double eloss {std::numeric_limits<double>::quiet_NaN()};
+  int layer {-9999};
   std::string detector;
 };
 

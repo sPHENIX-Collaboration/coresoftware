@@ -49,7 +49,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
@@ -76,14 +76,14 @@ int PHG4MicromegasDetector::IsInDetector(G4VPhysicalVolume* volume) const
 {
   if (m_ActiveFlag)
   {
-    if (m_activeVolumes.find(volume) != m_activeVolumes.end())
+    if (m_activeVolumes.contains(volume))
     {
       return 1;
     }
   }
   if (m_SupportActiveFlag)
   {
-    if (m_passiveVolumes.find(volume) != m_passiveVolumes.end())
+    if (m_passiveVolumes.contains(volume))
     {
       return -1;
     }
@@ -166,17 +166,17 @@ void PHG4MicromegasDetector::create_materials() const
 {
   // get the list of NIST materials
   // ---------------------------------
-  auto G4_N = GetDetectorMaterial("G4_N");
-  auto G4_O = GetDetectorMaterial("G4_O");
-  auto G4_C = GetDetectorMaterial("G4_C");
-  auto G4_H = GetDetectorMaterial("G4_H");
-  auto G4_Si = GetDetectorMaterial("G4_Si");
-  auto G4_Ar = GetDetectorMaterial("G4_Ar");
-  auto G4_Cr = GetDetectorMaterial("G4_Cr");
-  auto G4_Fe = GetDetectorMaterial("G4_Fe");
-  auto G4_Mn = GetDetectorMaterial("G4_Mn");
-  auto G4_Ni = GetDetectorMaterial("G4_Ni");
-  auto G4_Cu = GetDetectorMaterial("G4_Cu");
+  auto *G4_N = GetDetectorMaterial("G4_N");
+  auto *G4_O = GetDetectorMaterial("G4_O");
+  auto *G4_C = GetDetectorMaterial("G4_C");
+  auto *G4_H = GetDetectorMaterial("G4_H");
+  auto *G4_Si = GetDetectorMaterial("G4_Si");
+  auto *G4_Ar = GetDetectorMaterial("G4_Ar");
+  auto *G4_Cr = GetDetectorMaterial("G4_Cr");
+  auto *G4_Fe = GetDetectorMaterial("G4_Fe");
+  auto *G4_Mn = GetDetectorMaterial("G4_Mn");
+  auto *G4_Ni = GetDetectorMaterial("G4_Ni");
+  auto *G4_Cu = GetDetectorMaterial("G4_Cu");
 
   // combine elements
   // ----------------
@@ -186,7 +186,7 @@ void PHG4MicromegasDetector::create_materials() const
   // FR4
   if (!GetDetectorMaterial("mmg_FR4", false))
   {
-    auto mmg_FR4 = new G4Material("mmg_FR4", 1.860 * g / cm3, 4, kStateSolid);
+    auto *mmg_FR4 = new G4Material("mmg_FR4", 1.860 * g / cm3, 4, kStateSolid);
     mmg_FR4->AddMaterial(G4_C, 0.43550);
     mmg_FR4->AddMaterial(G4_H, 0.03650);
     mmg_FR4->AddMaterial(G4_O, 0.28120);
@@ -196,7 +196,7 @@ void PHG4MicromegasDetector::create_materials() const
   // Kapton
   if (!GetDetectorMaterial("mmg_Kapton", false))
   {
-    auto mmg_Kapton = new G4Material("mmg_Kapton", 1.420 * g / cm3, 4, kStateSolid);
+    auto *mmg_Kapton = new G4Material("mmg_Kapton", 1.420 * g / cm3, 4, kStateSolid);
     mmg_Kapton->AddMaterial(G4_C, 0.6911330);
     mmg_Kapton->AddMaterial(G4_H, 0.0263620);
     mmg_Kapton->AddMaterial(G4_N, 0.0732700);
@@ -206,7 +206,7 @@ void PHG4MicromegasDetector::create_materials() const
   // MMgas
   if (!GetDetectorMaterial("mmg_Gas", false))
   {
-    auto mmg_Gas = new G4Material("mmg_Gas", 0.00170335 * g / cm3, 3, kStateGas, temperature, pressure);
+    auto *mmg_Gas = new G4Material("mmg_Gas", 0.00170335 * g / cm3, 3, kStateGas, temperature, pressure);
     mmg_Gas->AddMaterial(G4_Ar, 0.900);
     mmg_Gas->AddMaterial(G4_C, 0.0826586);
     mmg_Gas->AddMaterial(G4_H, 0.0173414);
@@ -215,7 +215,7 @@ void PHG4MicromegasDetector::create_materials() const
   // MMMesh
   if (!GetDetectorMaterial("mmg_Mesh", false))
   {
-    auto mmg_Mesh = new G4Material("mmg_Mesh", 2.8548 * g / cm3, 5, kStateSolid);
+    auto *mmg_Mesh = new G4Material("mmg_Mesh", 2.8548 * g / cm3, 5, kStateSolid);
     mmg_Mesh->AddMaterial(G4_Cr, 0.1900);
     mmg_Mesh->AddMaterial(G4_Fe, 0.6800);
     mmg_Mesh->AddMaterial(G4_Mn, 0.0200);
@@ -264,7 +264,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     const auto& tile = m_tiles[tileid];
 
     // create phi tile master volume
-    const auto tile_logic_phi = construct_micromegas_tile(tileid, MicromegasDefs::SegmentationType::SEGMENTATION_PHI);
+    auto *const tile_logic_phi = construct_micromegas_tile(tileid, MicromegasDefs::SegmentationType::SEGMENTATION_PHI);
     const double tile_thickness_phi = static_cast<G4Box*>(tile_logic_phi->GetSolid())->GetXHalfLength() * 2;
 
     {
@@ -303,7 +303,7 @@ void PHG4MicromegasDetector::construct_micromegas(G4LogicalVolume* logicWorld)
     }
 
     // create z tile master volume
-    const auto tile_logic_z = construct_micromegas_tile(tileid, MicromegasDefs::SegmentationType::SEGMENTATION_Z);
+    auto *const tile_logic_z = construct_micromegas_tile(tileid, MicromegasDefs::SegmentationType::SEGMENTATION_Z);
     const double tile_thickness_z = static_cast<G4Box*>(tile_logic_z->GetSolid())->GetXHalfLength() * 2;
 
     {
@@ -396,7 +396,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile(int tileid, M
       , m_z_offset(z_offset)
     {
     }
-
+// NOLINTBEGIN(misc-non-private-member-variables-in-classes)
     // thickness
     float m_thickness = 0;
 
@@ -417,6 +417,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile(int tileid, M
 
     // center offset along z
     double m_z_offset = 0;
+// NOLINTEND(misc-non-private-member-variables-in-classes)
   };
 
   // define all layers
@@ -501,14 +502,14 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile(int tileid, M
   const double tile_dz = layer_map.at(Component::PCB).m_dz;
 
   // get world material to define parent volume
-  auto rc = recoConsts::instance();
-  auto world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
+  auto *rc = recoConsts::instance();
+  auto *world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
 
   // define tile name
   const auto tilename = GetName() + "_tile_" + std::to_string(tileid) + (is_z ? "_z" : "_phi");
 
-  auto tile_solid = new G4Box(tilename + "_solid", tile_thickness / 2, tile_dy / 2, tile_dz / 2);
-  auto tile_logic = new G4LogicalVolume(tile_solid, world_material, "invisible_" + tilename + "_logic");
+  auto *tile_solid = new G4Box(tilename + "_solid", tile_thickness / 2, tile_dy / 2, tile_dz / 2);
+  auto *tile_logic = new G4LogicalVolume(tile_solid, world_material, "invisible_" + tilename + "_logic");
   GetDisplayAction()->AddVolume(tile_logic, G4Colour::Grey());
 
   /* we loop over registered layers and create volumes for each as daughter of the tile volume */
@@ -534,12 +535,12 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_micromegas_tile(int tileid, M
     const auto& y_offset = component.m_y_offset;
     const auto& z_offset = component.m_z_offset;
 
-    auto component_solid = new G4Box(cname + "_solid", thickness / 2, dy / 2, dz / 2);
-    auto component_logic = new G4LogicalVolume(component_solid, material, cname + "_logic");
+    auto *component_solid = new G4Box(cname + "_solid", thickness / 2, dy / 2, dz / 2);
+    auto *component_logic = new G4LogicalVolume(component_solid, material, cname + "_logic");
     GetDisplayAction()->AddVolume(component_logic, color);
 
     const G4ThreeVector center((current_radius_local + thickness / 2), y_offset, z_offset);
-    auto component_phys = new G4PVPlacement(nullptr, center, component_logic, cname + "_phys", tile_logic, false, 0, OverlapCheck());
+    auto *component_phys = new G4PVPlacement(nullptr, center, component_logic, cname + "_phys", tile_logic, false, 0, OverlapCheck());
 
     if (type == Component::Gas2)
     {
@@ -591,6 +592,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board(int id)
     {
     }
 
+// NOLINTBEGIN(misc-non-private-member-variables-in-classes)
     // name
     std::string m_name;
 
@@ -602,6 +604,7 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board(int id)
 
     // color
     G4Colour m_color = 0;
+// NOLINTEND(misc-non-private-member-variables-in-classes)
   };
 
   static constexpr double inch_to_cm = 2.54;
@@ -627,14 +630,14 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board(int id)
   const double fee_dz = 140 * mm;
 
   // get world material to define parent volume
-  auto rc = recoConsts::instance();
-  auto world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
+  auto *rc = recoConsts::instance();
+  auto *world_material = GetDetectorMaterial(rc->get_StringFlag("WorldMaterial"));
 
   // define tile name
   const auto feename = GetName() + "_fee_" + std::to_string(id);
 
-  auto fee_solid = new G4Box(feename + "_solid", fee_thickness / 2, fee_dy / 2, fee_dz / 2);
-  auto fee_logic = new G4LogicalVolume(fee_solid, world_material, "invisible_" + feename + "_logic");
+  auto *fee_solid = new G4Box(feename + "_solid", fee_thickness / 2, fee_dy / 2, fee_dz / 2);
+  auto *fee_logic = new G4LogicalVolume(fee_solid, world_material, "invisible_" + feename + "_logic");
   GetDisplayAction()->AddVolume(fee_logic, G4Colour::Grey());
 
   /* we loop over registered layers and create volumes for each as daughter of the fee volume */
@@ -653,12 +656,12 @@ G4LogicalVolume* PHG4MicromegasDetector::construct_fee_board(int id)
     const auto& material = layer.m_material;
     const auto& color = layer.m_color;
 
-    auto component_solid = new G4Box(cname + "_solid", thickness / 2, fee_dy / 2, fee_dz / 2);
-    auto component_logic = new G4LogicalVolume(component_solid, material, cname + "_logic");
+    auto *component_solid = new G4Box(cname + "_solid", thickness / 2, fee_dy / 2, fee_dz / 2);
+    auto *component_logic = new G4LogicalVolume(component_solid, material, cname + "_logic");
     GetDisplayAction()->AddVolume(component_logic, color);
 
     const G4ThreeVector center((current_radius_local + thickness / 2), 0, 0);
-    auto component_phys = new G4PVPlacement(nullptr, center, component_logic, cname + "_phys", fee_logic, false, 0, OverlapCheck());
+    auto *component_phys = new G4PVPlacement(nullptr, center, component_logic, cname + "_phys", fee_logic, false, 0, OverlapCheck());
 
     // store as passive
     m_passiveVolumes.insert(component_phys);
@@ -682,14 +685,21 @@ void PHG4MicromegasDetector::add_geometry_node()
 
   // find or create geometry node
   const auto geonode_name = std::string("CYLINDERGEOM_") + m_SuperDetector + "_FULL";
-  auto geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode_name);
+  auto *geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode_name);
   if (!geonode)
   {
     geonode = new PHG4CylinderGeomContainer;
     PHNodeIterator iter(topNode());
-    auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
-    auto newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
-    runNode->addNode(newNode);
+    auto *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+    PHNodeIterator runiter(runNode);
+    PHCompositeNode *geomNode = dynamic_cast<PHCompositeNode *>(runiter.findFirst("PHCompositeNode", "RECO_TRACKING_GEOMETRY"));
+    if(!geomNode)
+      {
+        geomNode = new PHCompositeNode("RECO_TRACKING_GEOMETRY");
+        runNode->addNode(geomNode);
+      }
+    auto *newNode = new PHIODataNode<PHObject>(geonode, geonode_name, "PHObject");
+    geomNode->addNode(newNode);
   }
 
   // cylinder maximal length
@@ -702,7 +712,7 @@ void PHG4MicromegasDetector::add_geometry_node()
   {
     // create cylinder and match geometry
     /* note: cylinder segmentation type and pitch is set in PHG4MicromegasHitReco */
-    auto cylinder = new CylinderGeomMicromegas(layer_index);
+    auto *cylinder = new CylinderGeomMicromegas(layer_index);
     cylinder->set_radius(radius);
     cylinder->set_thickness(m_layer_thickness.at(layer_index));
     cylinder->set_zmin(-length / 2);

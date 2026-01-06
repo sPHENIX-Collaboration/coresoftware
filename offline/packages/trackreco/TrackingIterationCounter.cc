@@ -6,6 +6,7 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/TrackSeed.h>
+#include <trackbase_historic/TrackSeedContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -24,11 +25,10 @@ TrackingIterationCounter::TrackingIterationCounter(const std::string &name)
 
 //____________________________________________________________________________..
 TrackingIterationCounter::~TrackingIterationCounter()
-{
-}
+= default;
 
 //____________________________________________________________________________..
-int TrackingIterationCounter::Init(PHCompositeNode *)
+int TrackingIterationCounter::Init(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -47,20 +47,27 @@ int TrackingIterationCounter::InitRun(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int TrackingIterationCounter::process_event(PHCompositeNode *)
+int TrackingIterationCounter::process_event(PHCompositeNode *topNode)
 {
+  if (m_iterateSeeds)
+  {
+    iterateSeeds(topNode);
+
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
+
   for (const auto &[key, track] : *m_trackMap)
   {
-    auto silseed = track->get_silicon_seed();
-    auto tpcseed = track->get_tpc_seed();
-    if(silseed)
+    auto *silseed = track->get_silicon_seed();
+    auto *tpcseed = track->get_tpc_seed();
+    if (silseed)
     {
-    addClustersToIterationMap(silseed);
+      addClustersToIterationMap(silseed);
     }
-    if(tpcseed)
+    if (tpcseed)
     {
-    addClustersToIterationMap(tpcseed);
-  }
+      addClustersToIterationMap(tpcseed);
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -78,7 +85,7 @@ void TrackingIterationCounter::addClustersToIterationMap(TrackSeed *seed)
 }
 
 //____________________________________________________________________________..
-int TrackingIterationCounter::End(PHCompositeNode *)
+int TrackingIterationCounter::End(PHCompositeNode * /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -107,7 +114,7 @@ int TrackingIterationCounter::createNodes(PHCompositeNode *topNode)
   if (!m_iterMap)
   {
     m_iterMap = new TrkrClusterIterationMapv1;
-    auto node =
+    auto *node =
         new PHIODataNode<PHObject>(m_iterMap, "TrkrClusterIterationMap", "PHObject");
     svtxNode->addNode(node);
   }
@@ -116,12 +123,65 @@ int TrackingIterationCounter::createNodes(PHCompositeNode *topNode)
 }
 int TrackingIterationCounter::getNodes(PHCompositeNode *topNode)
 {
-  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
   if (!m_trackMap)
   {
-    std::cout << PHWHERE << "No track map, bailing. " << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
+    if (!m_iterateSeeds)
+    {
+      std::cout << PHWHERE << "No track map, bailing. " << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void TrackingIterationCounter::iterateSeeds(PHCompositeNode *topNode)
+{
+  if (m_trackMapName.find("Silicon") != std::string::npos)
+  {
+    iterateSiliconSeeds(topNode);
+  }
+}
+void TrackingIterationCounter::iterateSiliconSeeds(PHCompositeNode *topNode)
+{
+  auto *seeds = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
+  for (const auto &seed : *seeds)
+  {
+    if (!seed)
+    {
+      continue;
+    }
+
+    if (m_iteration == 1)
+    {
+      if (seed->size_cluster_keys() > 4)
+      {
+        int nmaps = 0;
+        int nintt = 0;
+        for (auto clusIter = seed->begin_cluster_keys();
+             clusIter != seed->end_cluster_keys();
+             ++clusIter)
+        {
+          auto trkrid = TrkrDefs::getTrkrId(*clusIter);
+          if (trkrid == TrkrDefs::inttId)
+          {
+            nintt++;
+          }
+          if (trkrid == TrkrDefs::mvtxId)
+          {
+            nmaps++;
+          }
+        }
+        if (nintt > 1 && nmaps > 2)
+        {
+          addClustersToIterationMap(seed);
+        }
+      }
+    }
+    else
+    {
+      addClustersToIterationMap(seed);
+    }
+  }
 }

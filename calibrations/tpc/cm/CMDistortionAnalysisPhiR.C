@@ -1,22 +1,34 @@
 //step 3 with phi,r coords
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include "TMath.h"
-#include "TVector3.h"
-#include "TTree.h"
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TFileCollection.h>
+#include <TFileInfo.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <THashList.h>
+#include <TLatex.h>
+#include <TMath.h>
+#include <TPad.h>
+#include <TVector3.h>
+#include <TTree.h>
 
-using namespace std;
+#include <cmath>
+#include <iostream>
+#include <format>
+#include <vector>
 
 class Shifter {
 public:
-Shifter(TString sourcefilename);
+explicit Shifter(const TString& sourcefilename);
+ // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   TFile *forward, *average;
   TH3F *hX, *hY, *hZ, *hR, *hPhi, *hXave, *hYave, *hZave, *hRave, *hPhiave;  
+// NOLINTEND(misc-non-private-member-variables-in-classes)
 };
 
-Shifter::Shifter(TString sourcefilename){
+Shifter::Shifter(const TString& sourcefilename){
   //single event distortion file
+// NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
   forward=TFile::Open(sourcefilename,"READ"); 
 
   hX=(TH3F*)forward->Get("hIntDistortionPosX");
@@ -35,7 +47,8 @@ Shifter::Shifter(TString sourcefilename){
   
   hRave=(TH3F*)average->Get("hIntDistortionPosR");
   hPhiave=(TH3F*)average->Get("hIntDistortionPosP");
- 
+ // NOLINTEND(cppcoreguidelines-prefer-member-initializer)
+
   //subtract average from total distortions to study fluctuations
   hX->Add(hXave,-1);
   hY->Add(hYave,-1);
@@ -48,10 +61,10 @@ Shifter::Shifter(TString sourcefilename){
 int CMDistortionAnalysisPhiR(int nMaxEvents = -1) {
   Shifter *shifter;
   int nbins = 35; 
-  double x, y, z;
-  double low = -80.0;
-  double high = 80.0;
-  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
+//  double x, y, z;
+  // double low = -80.0;
+  // double high = 80.0;
+//  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
   int nEvents; 
   
   TCanvas *canvas=new TCanvas("canvas","CMDistortionAnalysisPhiR",2000,3000);
@@ -81,11 +94,12 @@ int CMDistortionAnalysisPhiR(int nMaxEvents = -1) {
   TString sourcefilename;
   
   //how many events
-  if (nMaxEvents<0){
-    nEvents=filelist->GetNFiles();
-  } else if(nMaxEvents<filelist->GetNFiles()){
+  if(nMaxEvents >= 0 && nMaxEvents<filelist->GetNFiles())
+  {
     nEvents=nMaxEvents;
-  } else {
+  }
+  else
+  {
     nEvents= filelist->GetNFiles();
   }
 
@@ -98,7 +112,7 @@ int CMDistortionAnalysisPhiR(int nMaxEvents = -1) {
     
     TFile *plots;
 
-    plots=TFile::Open(Form("CMModelsPhiR_Event%d.root",ifile),"READ");
+    plots=TFile::Open(std::format("CMModelsPhiR_Event{}.root",ifile).c_str(),"READ");
 
     TH3F *hCartCMModelPhiR[3];
     hCartCMModelPhiR[0]=(TH3F*)plots->Get("hCMModelX_PhiR");
@@ -125,7 +139,7 @@ int CMDistortionAnalysisPhiR(int nMaxEvents = -1) {
     double maxr = 79.115387;
     double maxz = 106.81875;
 
-    double rshiftcart, phishiftcart;
+//    double rshiftcart, phishiftcart;
 
     int ndiff = 300;
     int mindiff = -20;
@@ -202,7 +216,7 @@ int CMDistortionAnalysisPhiR(int nMaxEvents = -1) {
 	  double shiftrecoCylPhiR[2];
 	  double differenceCylPhiR[2];
 
-	  double differenceR_PhiR, differencePhi_PhiR;	  
+//	  double differenceR_PhiR, differencePhi_PhiR;	  
 
 	  int binPhiR = hCartCMModelPhiR[0]->FindBin(phi,r,z);
 
@@ -301,24 +315,24 @@ int CMDistortionAnalysisPhiR(int nMaxEvents = -1) {
     hTrueMeanPhi->Fill(hPhiShiftTrue->GetMean(1));
     hTrueStdDevPhi->Fill(hPhiShiftTrue->GetStdDev(1));
 
-    for (int m = 0; m < 6; m++){
-      hCartesianAveDiffPhiR[m]->SetStats(0);
+    for (auto & m : hCartesianAveDiffPhiR){
+      m->SetStats(false);
     }
-    for (int m = 0; m < 4; m++){
-      hCylindricalAveDiffPhiR[m]->SetStats(0);
+    for (auto & m : hCylindricalAveDiffPhiR){
+      m->SetStats(false);
     }
   
 
-    hCompareRTrue_PhiR->SetStats(0);
-    hComparePhiTrue_PhiR->SetStats(0);
+    hCompareRTrue_PhiR->SetStats(false);
+    hComparePhiTrue_PhiR->SetStats(false);
 
-    hRDiffvR_PhiR->SetStats(0);
-    hRDiffvZ_PhiR->SetStats(0);
-    hRDiffvPhi_PhiR->SetStats(0);
+    hRDiffvR_PhiR->SetStats(false);
+    hRDiffvZ_PhiR->SetStats(false);
+    hRDiffvPhi_PhiR->SetStats(false);
   
-    hPhiDiffvR_PhiR->SetStats(0);
-    hPhiDiffvZ_PhiR->SetStats(0);
-    hPhiDiffvPhi_PhiR->SetStats(0);
+    hPhiDiffvR_PhiR->SetStats(false);
+    hPhiDiffvZ_PhiR->SetStats(false);
+    hPhiDiffvPhi_PhiR->SetStats(false);
     
     TPad *c1=new TPad("c1","",0.0,0.8,1.0,0.93); //can i do an array of pads?
     TPad *c2=new TPad("c2","",0.0,0.64,1.0,0.77);
@@ -448,7 +462,7 @@ int CMDistortionAnalysisPhiR(int nMaxEvents = -1) {
 
     titlepad->cd();
     titlepad->Clear();
-    title->DrawLatex(0.01,0.4,Form("Event %d; %s", ifile, sourcefilename.Data())); 
+    title->DrawLatex(0.01,0.4,std::format("Event {}; {}", ifile, sourcefilename.Data()).c_str()); 
     title->Draw();
     
     stitlepad1->cd();

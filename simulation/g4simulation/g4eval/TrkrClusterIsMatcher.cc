@@ -1,4 +1,5 @@
 #include "TrkrClusterIsMatcher.h"
+
 #include "g4evalfn.h"
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -6,6 +7,7 @@
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
 #include <intt/CylinderGeomIntt.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <trackbase/ActsGeometry.h>
@@ -13,14 +15,13 @@
 #include <trackbase/TrkrClusterContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>  // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
 #include <cmath>
+#include <iostream>
 
 int TrkrClusterIsMatcher::init(
     PHCompositeNode* topNode,
@@ -36,7 +37,7 @@ int TrkrClusterIsMatcher::init(
   }
   for (int i = 0; i < 3; ++i)
   {
-    auto layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(i));
+    auto *layergeom = dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(i));
     pitch_phi[i] = layergeom->get_pixel_x();
     if (i == 0)
     {
@@ -60,7 +61,7 @@ int TrkrClusterIsMatcher::init(
   }
 
   // ------ TPC data ------
-  auto geom_tpc =
+  auto *geom_tpc =
       findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom_tpc)
   {
@@ -78,7 +79,7 @@ int TrkrClusterIsMatcher::init(
   }
 
   m_TruthClusters =
-      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters.c_str());
+      findNode::getClass<TrkrClusterContainer>(topNode, name_phg4_clusters);
   if (!m_TruthClusters)
   {
     std::cout << PHWHERE << " Could not locate " << name_phg4_clusters << " node" << std::endl;
@@ -86,7 +87,7 @@ int TrkrClusterIsMatcher::init(
   }
 
   m_RecoClusters =
-      findNode::getClass<TrkrClusterContainer>(topNode, name_reco_clusters.c_str());
+      findNode::getClass<TrkrClusterContainer>(topNode, name_reco_clusters);
   if (!m_TruthClusters)
   {
     std::cout << PHWHERE << " Could not locate " << name_reco_clusters << " node" << std::endl;
@@ -263,6 +264,8 @@ bool TrkrClusterIsMatcher::operator()(TrkrDefs::cluskey key_T, TrkrDefs::cluskey
     return false;  // no info for matching TPOT at this time
   }
   break;
+  default:
+    std::cout << "not implemented det_0123 : " << det_0123 << std::endl;
   }
   return false;  // code shouldn't arrive here; just for completeness for compiler
 }

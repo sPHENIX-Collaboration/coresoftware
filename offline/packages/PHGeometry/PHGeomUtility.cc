@@ -26,8 +26,6 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace std;
-
 //! DST node -> TGeoManager for downstream use
 TGeoManager *
 PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
@@ -35,22 +33,22 @@ PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
   PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode, true);
   if (!dst_geom)
   {
-    cout << __PRETTY_FUNCTION__
-         << " - Error - Can NOT construct geometry node." << endl;
+    std::cout << __PRETTY_FUNCTION__
+              << " - Error - Can NOT construct geometry node." << std::endl;
     exit(1);
     return nullptr;
   }
 
-  if (! dst_geom->isValid())
+  if (!dst_geom->isValid())
   {
     // try to construct the geometry node
     dst_geom = LoadFromIONode(topNode);
   }
 
-  if (TGeoManager::GetDefaultUnits() != TGeoManager::kRootUnits )
+  if (TGeoManager::GetDefaultUnits() != TGeoManager::kRootUnits)
   {
-    cout << __PRETTY_FUNCTION__ << " TGeoManager was not constructed with RootUnits, which potentially leads to unit mismatch with Fun4All. This is considered a fatal error."
-        <<endl;
+    std::cout << __PRETTY_FUNCTION__ << " TGeoManager was not constructed with RootUnits, which potentially leads to unit mismatch with Fun4All. This is considered a fatal error."
+              << std::endl;
 
     exit(1);
     return nullptr;
@@ -82,9 +80,9 @@ int PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
   TGeoManager::SetVerboseLevel(GetVerbosity());
 
   // force TGeoManager to use the Fun4All unit of cm
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,23,2)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 23, 2)
   TGeoManager::LockDefaultUnits(kFALSE);
-  TGeoManager::SetDefaultUnits( TGeoManager::kRootUnits );
+  TGeoManager::SetDefaultUnits(TGeoManager::kRootUnits);
   TGeoManager::LockDefaultUnits(kTRUE);
 #else
   TGeoManager::SetDefaultRootUnits();
@@ -94,8 +92,8 @@ int PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
 
   if (dst_geom->GetGeometry() == nullptr)
   {
-    cout << __PRETTY_FUNCTION__ << "failed to import " << geometry_file
-         << endl;
+    std::cout << __PRETTY_FUNCTION__ << "failed to import " << geometry_file
+              << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -110,9 +108,11 @@ int PHGeomUtility::ImportCurrentTGeoManager(PHCompositeNode *topNode)
   assert(dst_geom);
 
   if (dst_geom->GetGeometry() == gGeoManager)
+  {
     return Fun4AllReturnCodes::EVENT_OK;  // noting to be done
+  }
 
-  assert(! dst_geom->isValid());  // check that it is uninitialized
+  assert(!dst_geom->isValid());  // check that it is uninitialized
   dst_geom->SetGeometry(gGeoManager);
   TGeoManager::SetVerboseLevel(GetVerbosity());
 
@@ -130,11 +130,11 @@ PHGeomUtility::GetGeomTGeoNode(PHCompositeNode *topNode, bool build_new)
       "PHCompositeNode", "PAR"));
   if (!parNode)
   {
-    ostringstream serr;
+    std::ostringstream serr;
     serr << __PRETTY_FUNCTION__ << ": PAR Node missing, request aborting.";
-    cout << serr.str() << endl;
+    std::cout << serr.str() << std::endl;
 
-    throw runtime_error(serr.str());
+    throw std::runtime_error(serr.str());
 
     return nullptr;
   }
@@ -163,11 +163,11 @@ PHGeomUtility::GetGeomIOTGeoNode(PHCompositeNode *topNode, bool build_new)
       "PHCompositeNode", "RUN"));
   if (!runNode)
   {
-    ostringstream serr;
+    std::ostringstream serr;
     serr << __PRETTY_FUNCTION__ << ": RUN Node missing, request aborting.";
-    cout << serr.str() << endl;
+    std::cout << serr.str() << std::endl;
 
-    throw runtime_error(serr.str());
+    throw std::runtime_error(serr.str());
 
     return nullptr;
   }
@@ -188,7 +188,7 @@ PHGeomUtility::GetGeomIOTGeoNode(PHCompositeNode *topNode, bool build_new)
 std::string
 PHGeomUtility::GenerateGeometryFileName(const std::string &filename_extension)
 {
-  ostringstream file;
+  std::ostringstream file;
 
   uuid_t uu;
   uuid_generate(uu);
@@ -207,22 +207,20 @@ std::string PHGeomUtility::mg_GenerateGeometryFileNameBase = "/tmp";
 //! delete the geometry file after use
 bool PHGeomUtility::RemoveGeometryFile(const std::string &file_name)
 {
-  fstream ifile(file_name, ios_base::in);
+  std::fstream ifile(file_name, std::ios_base::in);
 
   if (ifile)
   {
     ifile.close();
     if (remove(file_name.c_str()) != 0)
     {
-      cout << __PRETTY_FUNCTION__ << " - Error - can not remove file "
-           << file_name << endl;
+      std::cout << __PRETTY_FUNCTION__ << " - Error - can not remove file "
+                << file_name << std::endl;
       return false;
     }
-    else
-      return true;
+    return true;
   }
-  else
-    return true;  // file do not exist
+  return true;  // file do not exist
 }
 
 //! Update persistent PHGeomIOTGeo node RUN/GEOMETRY_IO based on run-time object PHGeomTGeo at RUN/GEOMETRY
@@ -232,18 +230,18 @@ PHGeomUtility::UpdateIONode(PHCompositeNode *topNode)
 {
   PHGeomTGeo *dst_geom = GetGeomTGeoNode(topNode, false);
 
-  if (! dst_geom)
+  if (!dst_geom)
   {
-    cout << __PRETTY_FUNCTION__
-         << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to missing PHGeomTGeo node at RUN/GEOMETRY"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__
+              << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to missing PHGeomTGeo node at RUN/GEOMETRY"
+              << std::endl;
     return nullptr;
   }
-  if (! dst_geom->isValid())
+  if (!dst_geom->isValid())
   {
-    cout << __PRETTY_FUNCTION__
-         << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to invalid PHGeomTGeo node at RUN/GEOMETRY"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__
+              << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to invalid PHGeomTGeo node at RUN/GEOMETRY"
+              << std::endl;
     return nullptr;
   }
 
@@ -262,18 +260,18 @@ PHGeomUtility::LoadFromIONode(PHCompositeNode *topNode)
 {
   PHGeomIOTGeo *dst_geom_io = GetGeomIOTGeoNode(topNode, false);
 
-  if (! dst_geom_io)
+  if (!dst_geom_io)
   {
-    cout << __PRETTY_FUNCTION__
-         << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to missing PHGeomIOTGeo node at RUN/GEOMETRY_IO"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__
+              << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to missing PHGeomIOTGeo node at RUN/GEOMETRY_IO"
+              << std::endl;
     return nullptr;
   }
-  if (! dst_geom_io->isValid())
+  if (!dst_geom_io->isValid())
   {
-    cout << __PRETTY_FUNCTION__
-         << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to invalid PHGeomIOTGeo node at RUN/GEOMETRY_IO"
-         << endl;
+    std::cout << __PRETTY_FUNCTION__
+              << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to invalid PHGeomIOTGeo node at RUN/GEOMETRY_IO"
+              << std::endl;
     return nullptr;
   }
 
@@ -301,7 +299,8 @@ int PHGeomUtility::GetVerbosity()
 {
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("PHGEOMETRY_VERBOSITY"))
+  {
     return rc->get_IntFlag("PHGEOMETRY_VERBOSITY");
-  else
-    return 0;
+  }
+  return 0;
 }

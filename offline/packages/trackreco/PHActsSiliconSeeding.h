@@ -29,7 +29,7 @@ class TrackSeed;
 class TrackSeedContainer;
 class TrkrCluster;
 class TrkrClusterContainer;
-class TrkrClusterIterationMapv1;
+class TrkrClusterIterationMap;
 class TrkrClusterCrossingAssoc;
 
 using GridSeeds = std::vector<std::vector<Acts::Seed<SpacePoint>>>;
@@ -50,6 +50,22 @@ class PHActsSiliconSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
+  void setIter1()
+  {
+    setStrobeRange(-5,5);
+    isStreaming();
+    setinttRPhiSearchWindow(0.2);
+  }
+  void setIter2()
+  {
+    searchInIntt();
+    set_track_map_name("SiliconTrackSeedContainerIt1");
+    iteration(2);
+    setStrobeRange(-1,2);
+    checkTiming();
+    strobeWindowLowSearch(-1);
+    strobeWindowHighSearch(2);
+  }
   void isStreaming()
   {
     m_streaming = true;
@@ -164,7 +180,7 @@ class PHActsSiliconSeeding : public SubsysReco
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
   void largeGridSpacing(const bool spacing);
-
+  void checkTiming() { m_checkTiming = true; }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
   void iteration(int iter) { m_nIteration = iter; }
   void searchInIntt() { m_searchInIntt = true; }
@@ -175,7 +191,7 @@ class PHActsSiliconSeeding : public SubsysReco
   int createNodes(PHCompositeNode *topNode);
   
   int m_strobeLowWindow = -1;
-  int m_strobeHighWindow = 1;
+  int m_strobeHighWindow = 2;
 
   void runSeeder();
 
@@ -202,13 +218,15 @@ class PHActsSiliconSeeding : public SubsysReco
   std::vector<const SpacePoint *> getSiliconSpacePoints(Acts::Extent &rRangeSPExtent,
                                                         const int strobe);
   void printSeedConfigs(Acts::SeedFilterConfig &sfconfig);
-
-  /// Projects circle fit to radii to find possible MVTX/INTT clusters
-  /// belonging to track stub
-  std::vector<TrkrDefs::cluskey> findMatches(
-      std::vector<Acts::Vector3> &clusters,
-      std::vector<TrkrDefs::cluskey> &keys,
-      TrackSeed &seed);
+  bool isTimingMismatched(TrackSeed& seed) const;
+  
+      /// Projects circle fit to radii to find possible MVTX/INTT clusters
+      /// belonging to track stub
+      std::vector<TrkrDefs::cluskey>
+      findMatches(
+          std::vector<Acts::Vector3> &clusters,
+          std::vector<TrkrDefs::cluskey> &keys,
+          TrackSeed &seed);
 
   std::vector<std::vector<TrkrDefs::cluskey>> findMatchesWithTime(
       std::map<TrkrDefs::cluskey, Acts::Vector3> &positions,
@@ -266,6 +284,10 @@ class PHActsSiliconSeeding : public SubsysReco
   /// boolean whether or not we are going to match the intt clusters
   /// per strobe with crossing information and take all possible matches
   bool m_streaming = false;
+
+///boolean whether or not we should check the timing mismatch between
+/// intt and mvtx, i.e. for second pass in streaming mode
+  bool m_checkTiming = false;
 
   // default to 10 mus
   float m_strobeWidth = 10;
@@ -339,7 +361,7 @@ class PHActsSiliconSeeding : public SubsysReco
 
   int m_nBadUpdates = 0;
   int m_nBadInitialFits = 0;
-  TrkrClusterIterationMapv1 *_iteration_map = nullptr;
+  TrkrClusterIterationMap *_iteration_map = nullptr;
   int m_nIteration = 0;
   std::string _track_map_name = "SiliconTrackSeedContainer";
 

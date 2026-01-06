@@ -23,7 +23,6 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
-#include <phool/PHCompositeNode.h>
 
 //____________________________________________________________________________..
 SvtxTruthRecoTableEval::SvtxTruthRecoTableEval(const std::string &name)
@@ -136,14 +135,14 @@ void SvtxTruthRecoTableEval::fillTruthMap(PHCompositeNode *topNode)
     const std::set<SvtxTrack *> &alltracks = trackeval->all_tracks_from(g4particle);
 
     // not to record zero associations
-    if (alltracks.size() == 0)
+    if (alltracks.empty())
     {
       continue;
     }
 
     PHG4ParticleSvtxMap::WeightedRecoTrackMap recomap;
 
-    for (auto track : alltracks)
+    for (auto *track : alltracks)
     {
       /// We fill the map with a key corresponding to the ncluster contribution.
       /// This weight could in principle be anything we choose

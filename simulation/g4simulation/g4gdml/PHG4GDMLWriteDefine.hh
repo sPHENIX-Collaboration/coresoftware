@@ -75,7 +75,7 @@ class PHG4GDMLWriteDefine : public PHG4GDMLWrite
   protected:
 
     PHG4GDMLWriteDefine();
-    virtual ~PHG4GDMLWriteDefine();
+  virtual ~PHG4GDMLWriteDefine() = default;
 
     void Scale_vectorWrite(xercesc::DOMElement*, const G4String&,
                               const G4String&, const G4ThreeVector&);

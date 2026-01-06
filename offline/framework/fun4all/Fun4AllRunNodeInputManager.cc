@@ -1,11 +1,11 @@
 #include "Fun4AllRunNodeInputManager.h"
 
+#include "DBInterface.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllServer.h"
+#include "InputFileHandlerReturnCodes.h"
 
 #include <ffaobjects/RunHeader.h>
-
-#include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
@@ -38,8 +38,7 @@ int Fun4AllRunNodeInputManager::fileopen(const std::string &filenam)
     fileclose();
   }
   FileName(filenam);
-  FROG frog;
-  fullfilename = frog.location(FileName());
+  fullfilename = DBInterface::instance()->location(FileName());
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << fullfilename << std::endl;
@@ -91,7 +90,7 @@ int Fun4AllRunNodeInputManager::run(const int /*nevents*/)
       return -1;
     }
 
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;

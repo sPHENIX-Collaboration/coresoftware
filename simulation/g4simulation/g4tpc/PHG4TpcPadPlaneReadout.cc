@@ -994,8 +994,18 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 
 void PHG4TpcPadPlaneReadout::makeChannelMask(hitMaskTpc &aMask, const std::string &dbName, const std::string &totalChannelsToMask)
 {
-  std::string database = CDBInterface::instance()->getUrl(dbName);
-  CDBTTree *cdbttree = new CDBTTree(database);
+  CDBTTree *cdbttree;
+  if (m_maskFromFile)
+  {
+    cdbttree = new CDBTTree(dbName);
+  }
+  else // mask using CDB TTree, default
+  {
+    std::string database = CDBInterface::instance()->getUrl(dbName);
+    cdbttree = new CDBTTree(database);
+  }
+  
+  std::cout << "Masking TPC Channel Map: " << dbName << std::endl;
 
   int NChan = -1;
   NChan = cdbttree->GetSingleIntValue(totalChannelsToMask);

@@ -84,12 +84,14 @@ namespace genfit
   class AbsTrackRep;
 }  // namespace genfit
 
-// NOLINTNEXTLINE(bugprone-macro-parentheses)
-#define LogDebug(exp) if (Verbosity()) std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-// NOLINTNEXTLINE(bugprone-macro-parentheses)
-#define LogError(exp) std::cout << "PHG4TrackFastSim (ERROR): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-// NOLINTNEXTLINE(bugprone-macro-parentheses)
-#define LogWarning(exp) std::cout << "PHG4TrackFastSim (WARNING): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
+#define LogDebug(exp) \
+  if (Verbosity()) (std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl)
+
+#define LogError(exp) \
+  (std::cout << "PHG4TrackFastSim (ERROR): " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl)
+
+#define LogWarning(exp) \
+  (std::cout << "PHG4TrackFastSim (WARNING): " << __FILE__ << ": " << __LINE__ << ": " << (exp) << std::endl)
 
 // names of our implemented calorimeters where the projections are done
 // at 1/2 of their depth, not at the surface
@@ -99,6 +101,7 @@ std::set<std::string> reserved_zplane_projection_names{"FEMC", "FHCAL", "EEMC", 
 
 PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   : SubsysReco(name)
+  , m_RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
   , m_Fitter(nullptr)
   , m_RaveVertexFactory(nullptr)
   , m_TruthContainer(nullptr)
@@ -120,7 +123,7 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   , m_DoVertexingFlag(false)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+
   gsl_rng_set(m_RandomGenerator, seed);
 
   m_Parameter = new PHParameters(Name());
@@ -253,7 +256,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
   //		return Fun4AllReturnCodes::ABORTRUN;
   //	}
 
-  if (! m_SvtxTrackMapOut)
+  if (!m_SvtxTrackMapOut)
   {
     LogError("m_SvtxTrackMapOut not found!");
     return Fun4AllReturnCodes::ABORTRUN;
@@ -424,7 +427,8 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* /*topNode*/)
 
           if (Verbosity())
           {
-            TVector3 pos, mom;
+            TVector3 pos;
+            TVector3 mom;
             TMatrixDSym cov;
 
             track->getFittedState().getPosMomCov(pos, mom, cov);
@@ -595,7 +599,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
   }
 
   m_SvtxVertexMap = findNode::getClass<SvtxVertexMap_v1>(topNode, "SvtxVertexMap");
-  if (! m_SvtxVertexMap)
+  if (!m_SvtxVertexMap)
   {
     m_SvtxVertexMap = new SvtxVertexMap_v1;
     PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(m_SvtxVertexMap, "SvtxVertexMap", "PHObject");
@@ -620,7 +624,7 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
   if (!m_TruthContainer)
   {
     std::cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
-         << std::endl;
+              << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -630,7 +634,7 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
     if (!phg4hit)
     {
       std::cout << PHWHERE << m_PHG4HitsName
-           << " node not found on node tree" << std::endl;
+                << " node not found on node tree" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
@@ -687,7 +691,7 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
   if (!m_SvtxTrackMapOut && m_EventCnt < 2)
   {
     std::cout << PHWHERE << m_TrackmapOutNodeName
-         << " node not found on node tree" << std::endl;
+              << " node not found on node tree" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -831,7 +835,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
         }
       }
     } /*Loop layers within one detector layer*/
-  }   /*Loop detector layers*/
+  } /*Loop detector layers*/
 
   for (auto& pair : ordered_measurements)
   {
@@ -1091,11 +1095,11 @@ void PHG4TrackFastSim::DisplayEvent() const
 
 void PHG4TrackFastSim::add_state_name(const std::string& stateName)
 {
-  if (reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
+  if (reserved_zplane_projection_names.contains(stateName))
   {
     m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Vertical_Plane, NAN)));
   }
-  else if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end())
+  else if (reserved_cylinder_projection_names.contains(stateName))
   {
     m_ProjectionsMap.insert(std::make_pair(stateName, std::make_pair(DETECTOR_TYPE::Cylinder, NAN)));
   }
@@ -1103,13 +1107,13 @@ void PHG4TrackFastSim::add_state_name(const std::string& stateName)
   {
     std::cout << PHWHERE << " Invalid stateName " << stateName << std::endl;
     std::cout << std::endl
-         << "These are implemented for cylinders" << std::endl;
+              << "These are implemented for cylinders" << std::endl;
     for (const auto& iter : reserved_cylinder_projection_names)
     {
       std::cout << iter << std::endl;
     }
     std::cout << std::endl
-         << "These are implemented are for zplanes" << std::endl;
+              << "These are implemented are for zplanes" << std::endl;
     for (const auto& iter : reserved_zplane_projection_names)
     {
       std::cout << iter << std::endl;
@@ -1121,13 +1125,13 @@ void PHG4TrackFastSim::add_state_name(const std::string& stateName)
 
 void PHG4TrackFastSim::add_cylinder_state(const std::string& stateName, const double radius)
 {
-  if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
-      reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
+  if (reserved_cylinder_projection_names.contains(stateName) ||
+      reserved_zplane_projection_names.contains(stateName))
   {
     std::cout << PHWHERE << ": " << stateName << " is a reserved name, used a different name for your cylinder projection" << std::endl;
     gSystem->Exit(1);
   }
-  if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
+  if (m_ProjectionsMap.contains(stateName))
   {
     std::cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << std::endl;
     gSystem->Exit(1);
@@ -1138,13 +1142,13 @@ void PHG4TrackFastSim::add_cylinder_state(const std::string& stateName, const do
 
 void PHG4TrackFastSim::add_zplane_state(const std::string& stateName, const double zplane)
 {
-  if (reserved_cylinder_projection_names.find(stateName) != reserved_cylinder_projection_names.end() ||
-      reserved_zplane_projection_names.find(stateName) != reserved_zplane_projection_names.end())
+  if (reserved_cylinder_projection_names.contains(stateName) ||
+      reserved_zplane_projection_names.contains(stateName))
   {
     std::cout << PHWHERE << ": " << stateName << " is  a reserved name, used different name for your zplane projection" << std::endl;
     gSystem->Exit(1);
   }
-  if (m_ProjectionsMap.find(stateName) != m_ProjectionsMap.end())
+  if (m_ProjectionsMap.contains(stateName))
   {
     std::cout << PHWHERE << ": " << stateName << " is already a projection, please rename" << std::endl;
     gSystem->Exit(1);

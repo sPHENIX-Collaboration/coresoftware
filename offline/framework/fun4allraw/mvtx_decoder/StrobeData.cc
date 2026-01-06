@@ -1,17 +1,10 @@
 #include "StrobeData.h"
+
 #include <iostream>
-
-using namespace mvtx;
-
-///_________________________________________________________________
-/// Destructor
-StrobeData::~StrobeData()
-{
-}
 
 ///_________________________________________________________________
 /// clear
-void StrobeData::clear()
+void mvtx::StrobeData::clear()
 {
   ir.clear();
   hasCDW = false;

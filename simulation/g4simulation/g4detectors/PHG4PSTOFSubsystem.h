@@ -40,7 +40,7 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
   PHG4PSTOFSubsystem(const std::string& name = "PSTOF");
 
   //! destructor
-  ~PHG4PSTOFSubsystem(void) override
+  ~PHG4PSTOFSubsystem() override
   {
   }
 
@@ -59,8 +59,8 @@ class PHG4PSTOFSubsystem : public PHG4DetectorGroupSubsystem
   int process_event(PHCompositeNode*) override;
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const override;
-  PHG4SteppingAction* GetSteppingAction(void) const override;
+  PHG4Detector* GetDetector() const override;
+  PHG4SteppingAction* GetSteppingAction() const override;
   //! Print info (from SubsysReco)
   void Print(const std::string& what = "ALL") const override;
 

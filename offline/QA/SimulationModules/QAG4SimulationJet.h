@@ -36,9 +36,8 @@ class QAG4SimulationJet : public SubsysReco
     kDefaultFlag = kProcessTruthSpectrum | kProcessRecoSpectrum | kProcessTruthMatching
   };
 
-  QAG4SimulationJet(const std::string &truth_jet, enu_flags flags =
-                                                      kDefaultFlag);
-  virtual ~QAG4SimulationJet() {}
+  QAG4SimulationJet(const std::string &truth_jet, enu_flags flags = kDefaultFlag);
+  ~QAG4SimulationJet() override = default;
 
   //! add reco jet to the process list
   //! @return number of reco jet on list
@@ -124,9 +123,9 @@ class QAG4SimulationJet : public SubsysReco
   void
   set_eta_range(double low, double high);
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
+  int process_event(PHCompositeNode *topNode) override;
 
  private:
   int Init_Spectrum(PHCompositeNode *topNode, const std::string &jet_name);
@@ -159,12 +158,10 @@ class QAG4SimulationJet : public SubsysReco
 
   //! string description of eta range
   //! @return TString as ROOT likes
-  TString
-  get_eta_range_str(const char *eta_name = "#eta_{Jet}") const;
+  std::string get_eta_range_str(const std::string &eta_name = "#eta_{Jet}") const;
 
   //! acceptance cut on jet object
-  bool
-  jet_acceptance_cut(const Jet *jet) const;
+  bool jet_acceptance_cut(const Jet *jet) const;
 
   //! Eta difference cut for matched jets
   double _jet_match_dEta;

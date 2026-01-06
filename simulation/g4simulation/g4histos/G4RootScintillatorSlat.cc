@@ -4,17 +4,6 @@
 
 #include <iostream>
 
-using namespace std;
-
-G4RootScintillatorSlat::G4RootScintillatorSlat()
-  : row(-1)
-  , column(-1)
-  , edep(0)
-  , eion(0)
-  , light_yield(0)
-{
-}
-
 G4RootScintillatorSlat::G4RootScintillatorSlat(const PHG4ScintillatorSlat& slat)
   : row(slat.get_row())
   , column(slat.get_column())

@@ -32,15 +32,13 @@
 //____________________________________________________________________________
 PHG4PhenixDetector::PHG4PhenixDetector(PHG4Reco *subsys)
   : m_DisplayAction(dynamic_cast<PHG4PhenixDisplayAction *>(subsys->GetDisplayAction()))
-  , m_Verbosity(0)
-  , logicWorld(nullptr)
-  , physiWorld(nullptr)
   , WorldSizeX(1000 * cm)
   , WorldSizeY(1000 * cm)
   , WorldSizeZ(1000 * cm)
   , worldshape("G4TUBS")
   , worldmaterial("G4_AIR")
 {
+  return;
 }
 
 PHG4PhenixDetector::~PHG4PhenixDetector()
@@ -62,9 +60,9 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
   }
   // Clean old geometry, if any
   G4GeometryManager::GetInstance()->OpenGeometry();
-  G4PhysicalVolumeStore::GetInstance()->Clean();
-  G4LogicalVolumeStore::GetInstance()->Clean();
-  G4SolidStore::GetInstance()->Clean();
+  G4PhysicalVolumeStore::Clean();
+  G4LogicalVolumeStore::Clean();
+  G4SolidStore::Clean();
   if (m_Verbosity > 0)
   {
     std::cout << "PHG4PhenixDetector::Construct - cleaning done." << std::endl;

@@ -17,9 +17,9 @@ class PHObject;
 class DecayFinderContainer_v1 : public DecayFinderContainerBase
 {
  public:
-  DecayFinderContainer_v1();
-  DecayFinderContainer_v1(const DecayFinderContainer_v1& decayfindermap);
-  DecayFinderContainer_v1& operator=(const DecayFinderContainer_v1& decayfindermap);
+  DecayFinderContainer_v1() = default;
+  DecayFinderContainer_v1(const DecayFinderContainer_v1& decaymap);
+  DecayFinderContainer_v1& operator=(const DecayFinderContainer_v1& decaymap);
   ~DecayFinderContainer_v1() override;
 
   void identify(std::ostream& os = std::cout) const override;
@@ -33,8 +33,8 @@ class DecayFinderContainer_v1 : public DecayFinderContainerBase
   size_t count(unsigned int key) const override { return m_decaymap.count(key); }
   void clear() override { Reset(); }
 
-  const Decay get(unsigned int key) const override;
-  Decay get(unsigned int key) override;
+  Decay get(unsigned int id) const override;
+  Decay get(unsigned int id) override;
 
   ConstIter begin() const override { return m_decaymap.begin(); }
   ConstIter find(unsigned int key) const override { return m_decaymap.find(key); }

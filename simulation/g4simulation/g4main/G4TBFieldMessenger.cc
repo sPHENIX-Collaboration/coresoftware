@@ -45,23 +45,25 @@
 
 G4TBFieldMessenger::G4TBFieldMessenger(G4TBMagneticFieldSetup* pEMfield)
   : fEFieldSetup(pEMfield)
+  , G4TBdetDir(new G4UIdirectory("/field/"))
+  , StepperCmd(new G4UIcmdWithAnInteger("/field/setStepperType", this))
+  , ElFieldCmd(new G4UIcmdWithADoubleAndUnit("/field/setFieldZ", this))
+  , MinStepCmd(new G4UIcmdWithADoubleAndUnit("/field/setMinStep", this))
+  , UpdateCmd(new G4UIcmdWithoutParameter("/field/update", this))
+  , AbsMaterCmd(new G4UIcmdWithAString("/field/setAbsMat", this))
 {
-  G4TBdetDir = new G4UIdirectory("/field/");
   G4TBdetDir->SetGuidance("G4TB field tracking control.");
 
-  StepperCmd = new G4UIcmdWithAnInteger("/field/setStepperType", this);
   StepperCmd->SetGuidance("Select stepper type for electric field");
   StepperCmd->SetParameterName("choice", true);
   StepperCmd->SetDefaultValue(4);
   StepperCmd->AvailableForStates(G4State_PreInit, G4State_Idle);
 
-  UpdateCmd = new G4UIcmdWithoutParameter("/field/update", this);
   UpdateCmd->SetGuidance("Update calorimeter geometry.");
   UpdateCmd->SetGuidance("This command MUST be applied before \"beamOn\" ");
   UpdateCmd->SetGuidance("if you changed geometrical value(s).");
   UpdateCmd->AvailableForStates(G4State_Idle);
 
-  ElFieldCmd = new G4UIcmdWithADoubleAndUnit("/field/setFieldZ", this);
   ElFieldCmd->SetGuidance("Define uniform Electric field.");
   ElFieldCmd->SetGuidance("Electric field will be in Z direction.");
   ElFieldCmd->SetGuidance("Value of Electric field has to be given in volt/m");
@@ -69,13 +71,11 @@ G4TBFieldMessenger::G4TBFieldMessenger(G4TBMagneticFieldSetup* pEMfield)
   ElFieldCmd->SetDefaultUnit("volt/m");
   ElFieldCmd->AvailableForStates(G4State_Idle);
 
-  MinStepCmd = new G4UIcmdWithADoubleAndUnit("/field/setMinStep", this);
   MinStepCmd->SetGuidance("Define minimal step");
   MinStepCmd->SetParameterName("min step", false, false);
   MinStepCmd->SetDefaultUnit("mm");
   MinStepCmd->AvailableForStates(G4State_Idle);
 
-  AbsMaterCmd = new G4UIcmdWithAString("/field/setAbsMat", this);
   AbsMaterCmd->SetGuidance("Select Material of the Absorber.");
   AbsMaterCmd->SetParameterName("choice", true);
   AbsMaterCmd->SetDefaultValue("Xe");
@@ -103,7 +103,7 @@ void G4TBFieldMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 {
   if (command == StepperCmd)
   {
-    fEFieldSetup->SetStepperType(StepperCmd->GetNewIntValue(newValue));
+    fEFieldSetup->SetStepperType(G4UIcmdWithAnInteger::GetNewIntValue(newValue));
   }
   if (command == UpdateCmd)
   {
@@ -111,11 +111,11 @@ void G4TBFieldMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
   }
   if (command == ElFieldCmd)
   {
-    fEFieldSetup->SetFieldValue(ElFieldCmd->GetNewDoubleValue(newValue));
+    fEFieldSetup->SetFieldValue(G4UIcmdWithADoubleAndUnit::GetNewDoubleValue(newValue));
   }
   if (command == MinStepCmd)
   {
-    fEFieldSetup->SetMinStep(MinStepCmd->GetNewDoubleValue(newValue));
+    fEFieldSetup->SetMinStep(G4UIcmdWithADoubleAndUnit::GetNewDoubleValue(newValue));
   }
 }
 

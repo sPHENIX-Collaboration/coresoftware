@@ -9,7 +9,6 @@
 
 class PHCompositeNode;
 class RawClusterContainer;
-class RawClusterv2;
 class RawTowerGeomContainer;
 class BEmcRec;
 class TowerInfo;
@@ -58,8 +57,6 @@ class RawClusterBuilderTemplate : public SubsysReco
   void set_UseCorrectShowerDepth(const bool useCorrectShowerDepth);
 
   void set_UseDetailedGeometry(const bool useDetailedGeometry);
-    
-  void WriteClusterV2(bool enable) { m_writeClusterV2 = enable; }
 
   void setOutputClusterNodeName(const std::string& inpNodenm)
   {
@@ -79,7 +76,12 @@ class RawClusterBuilderTemplate : public SubsysReco
   }
 
   void set_min_cluster_E_saved(float min_cluster_E) { m_min_cluster_e = min_cluster_E; }
-  
+
+  void set_vertex_type(GlobalVertex::VTXTYPE type)
+  {
+    m_vertex_type = type;
+  }
+
   void setSubclusterSplitting(bool doSubClusterSplitting)
   {
     m_subclustersplitting = doSubClusterSplitting;
@@ -137,7 +139,6 @@ class RawClusterBuilderTemplate : public SubsysReco
   float m_min_cluster_e{0.0};
 
   bool m_subclustersplitting{true};
-  bool m_writeClusterV2{false};  // default off: use RawClusterv1
 
   std::string m_inputnodename;
   std::string m_outputnodename;

@@ -40,17 +40,15 @@ const G4double PHG4GDMLWriteDefine::kAngularPrecision = DBL_EPSILON;
 const G4double PHG4GDMLWriteDefine::kLinearPrecision = DBL_EPSILON;
 
 PHG4GDMLWriteDefine::PHG4GDMLWriteDefine()
-  : PHG4GDMLWrite(), defineElement(0)
-{
-}
-
-PHG4GDMLWriteDefine::~PHG4GDMLWriteDefine()
+  :  defineElement(nullptr)
 {
 }
 
 G4ThreeVector PHG4GDMLWriteDefine::GetAngles(const G4RotationMatrix& mtx)
 {
-   G4double x,y,z;
+   G4double x;
+   G4double y;
+   G4double z;
    G4RotationMatrix mat = mtx;
    mat.rectify();   // Rectify matrix from possible roundoff errors
 

@@ -22,7 +22,7 @@
 
 #include <gsl/gsl_rng.h>
 
-#include <climits>  // for UINT_MAX
+#include <limits>
 #include <map>
 #include <memory>
 #include <string>
@@ -264,15 +264,15 @@ class PHG4TrackFastSim : public SubsysReco
   /*!
    * Make SvtxTrack from PHGenFit::Track
    */
-  bool MakeSvtxTrack(SvtxTrack* track_out, const PHGenFit::Track* phgf_track_in,
-                     const unsigned int truth_track_id = UINT_MAX,
+  bool MakeSvtxTrack(SvtxTrack* out_track, const PHGenFit::Track* phgf_track_in,
+                     const unsigned int truth_track_id = std::numeric_limits<unsigned int>::max(),
                      const unsigned int nmeas = 0, const TVector3& vtx = TVector3(0.0, 0.0, 0.0));
 
   /*
    * Fill SvtxVertexMap from GFRaveVertexes and Tracks
    */
   bool FillSvtxVertexMap(const std::vector<genfit::GFRaveVertex*>& rave_vertices,
-                         const GenFitTrackMap& gf_tracks);
+                         const GenFitTrackMap& gf_track_map);
 
  protected:
   // Pointers first

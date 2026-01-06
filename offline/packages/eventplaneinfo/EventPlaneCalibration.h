@@ -1,13 +1,12 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef EVENTPLANECALIBRATION_H
-#define EVENTPLANECALIBRATION_H
+#ifndef EVENTPLANEINFO_EVENTPLANECALIBRATION_H
+#define EVENTPLANEINFO_EVENTPLANECALIBRATION_H
 
 //===========================================================
 /// \author Ejiro Umaka
 //===========================================================
 
-#include <cdbobjects/CDBTTree.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string> // for string
@@ -119,4 +118,4 @@ private:
   float _mbd_vertex_cut{60.0};
 };
 
-#endif // EVENTPLANECALIBRATION_H
+#endif // EVENTPLANEINFO_EVENTPLANECALIBRATION_H

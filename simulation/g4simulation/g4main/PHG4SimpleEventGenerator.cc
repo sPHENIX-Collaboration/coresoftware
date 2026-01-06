@@ -53,8 +53,8 @@ void PHG4SimpleEventGenerator::set_eta_range(const double min, const double max)
   }
   m_EtaMin = min;
   m_EtaMax = max;
-  m_ThetaMin = NAN;
-  m_ThetaMax = NAN;
+  m_ThetaMin = std::numeric_limits<double>::quiet_NaN();
+  m_ThetaMax = std::numeric_limits<double>::quiet_NaN();
   return;
 }
 
@@ -72,8 +72,8 @@ void PHG4SimpleEventGenerator::set_theta_range(const double min, const double ma
   }
   m_ThetaMin = min;
   m_ThetaMax = max;
-  m_EtaMin = NAN;
-  m_EtaMax = NAN;
+  m_EtaMin = std::numeric_limits<double>::quiet_NaN();
+  m_EtaMax = std::numeric_limits<double>::quiet_NaN();
   return;
 }
 
@@ -118,9 +118,9 @@ void PHG4SimpleEventGenerator::set_pt_range(const double min, const double max, 
   m_Pt_Min = min;
   m_Pt_Max = max;
   m_Pt_GausWidth = pt_gaus_width;
-  m_P_Min = NAN;
-  m_P_Max = NAN;
-  m_P_GausWidth = NAN;
+  m_P_Min = std::numeric_limits<double>::quiet_NaN();
+  m_P_Max = std::numeric_limits<double>::quiet_NaN();
+  m_P_GausWidth = std::numeric_limits<double>::quiet_NaN();
   return;
 }
 
@@ -137,9 +137,9 @@ void PHG4SimpleEventGenerator::set_p_range(const double min, const double max, c
               << ", max: " << max << ", p_gaus_width: " << p_gaus_width << std::endl;
     gSystem->Exit(1);
   }
-  m_Pt_Min = NAN;
-  m_Pt_Max = NAN;
-  m_Pt_GausWidth = NAN;
+  m_Pt_Min = std::numeric_limits<double>::quiet_NaN();
+  m_Pt_Max = std::numeric_limits<double>::quiet_NaN();
+  m_Pt_GausWidth = std::numeric_limits<double>::quiet_NaN();
   m_P_Min = min;
   m_P_Max = max;
   m_P_GausWidth = p_gaus_width;
@@ -187,17 +187,17 @@ void PHG4SimpleEventGenerator::set_vertex_size_parameters(const double mean, con
 
 int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode)
 {
-  if (m_FunctionNames.find(m_VertexFunc_x) == m_FunctionNames.end())
+  if (!m_FunctionNames.contains(m_VertexFunc_x))
   {
     std::cout << PHWHERE << "::Error - unknown x vertex distribution function requested" << std::endl;
     gSystem->Exit(1);
   }
-  if (m_FunctionNames.find(m_VertexFunc_y) == m_FunctionNames.end())
+  if (!m_FunctionNames.contains(m_VertexFunc_y))
   {
     std::cout << PHWHERE << "::Error - unknown y vertex distribution function requested" << std::endl;
     gSystem->Exit(1);
   }
-  if (m_FunctionNames.find(m_VertexFunc_z) == m_FunctionNames.end())
+  if (!m_FunctionNames.contains(m_VertexFunc_z))
   {
     std::cout << PHWHERE << "::Error - unknown z vertex distribution function requested" << std::endl;
     gSystem->Exit(1);

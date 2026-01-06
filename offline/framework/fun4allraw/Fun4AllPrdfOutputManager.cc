@@ -11,10 +11,8 @@
 
 #include <iostream>
 
-using namespace std;
-
 //______________________________________________________
-Fun4AllPrdfOutputManager::Fun4AllPrdfOutputManager(const string &myname, const string &fname)
+Fun4AllPrdfOutputManager::Fun4AllPrdfOutputManager(const std::string &myname, const std::string &fname)
   : Fun4AllOutputManager(myname, fname)
   , m_PrdfNode(nullptr)
   , m_PrdfOutManager(nullptr)
@@ -30,10 +28,10 @@ Fun4AllPrdfOutputManager::~Fun4AllPrdfOutputManager()
 }
 
 //______________________________________________________
-int Fun4AllPrdfOutputManager::InitPrdfNode(PHCompositeNode *top_node, const string &nodeName)
+int Fun4AllPrdfOutputManager::InitPrdfNode(PHCompositeNode *top_node, const std::string &nodeName)
 {
   PHNodeIterator topIter(top_node);
-  m_PrdfNode = dynamic_cast<PHCompositeNode *>(topIter.findFirst("PHCompositeNode", nodeName.c_str()));
+  m_PrdfNode = dynamic_cast<PHCompositeNode *>(topIter.findFirst("PHCompositeNode", nodeName));
   if (m_PrdfNode)
   {
     // the m_PrdfNode already exists (Pisa Input Mgr creates one also)
@@ -43,23 +41,23 @@ int Fun4AllPrdfOutputManager::InitPrdfNode(PHCompositeNode *top_node, const stri
   // check name wrt default
   if (nodeName != "SIMPRDF")
   {
-    cout << "Fun4AllPrdfOutputManager::InitPrdfNode - WARNING: nodeName is \"" << nodeName << "\". most systems expect \"SIMPRDF\" and this is most likely not going to work" << endl;
+    std::cout << "Fun4AllPrdfOutputManager::InitPrdfNode - WARNING: nodeName is \"" << nodeName << "\". most systems expect \"SIMPRDF\" and this is most likely not going to work" << std::endl;
   }
 
   // create node
-  m_PrdfNode = new PHCompositeNode(nodeName.c_str());
+  m_PrdfNode = new PHCompositeNode(nodeName);
   top_node->addNode(m_PrdfNode);
   return 0;
 }
 
 //______________________________________________________
-int Fun4AllPrdfOutputManager::outfileopen(const string &fname)
+int Fun4AllPrdfOutputManager::outfileopen(const std::string &fname)
 {
   if (m_PrdfOutManager)
   {
     if (Verbosity())
     {
-      cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << OutFileName() << "\"" << endl;
+      std::cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << OutFileName() << "\"" << std::endl;
     }
     delete m_PrdfOutManager;
     m_PrdfOutManager = nullptr;
@@ -68,7 +66,7 @@ int Fun4AllPrdfOutputManager::outfileopen(const string &fname)
   OutFileName(fname);
   if (Verbosity())
   {
-    cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << OutFileName() << "\"" << endl;
+    std::cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << OutFileName() << "\"" << std::endl;
   }
 
   return 0;
@@ -80,7 +78,7 @@ int Fun4AllPrdfOutputManager::Write(PHCompositeNode * /*node*/)
   // check m_PrdfNode
   if (!m_PrdfNode)
   {
-    cout << "Fun4AllPrdfOutputManager::Write - prdfNode not initialized" << endl;
+    std::cout << "Fun4AllPrdfOutputManager::Write - prdfNode not initialized" << std::endl;
     return -1;
   }
 
@@ -91,7 +89,7 @@ int Fun4AllPrdfOutputManager::Write(PHCompositeNode * /*node*/)
   }
   if (!m_PrdfOutManager)
   {
-    cout << "Fun4AllPrdfOutputManager::Write - prdf manager not initialized" << endl;
+    std::cout << "Fun4AllPrdfOutputManager::Write - prdf manager not initialized" << std::endl;
     return -1;
   }
 

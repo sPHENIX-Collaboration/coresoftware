@@ -8,11 +8,12 @@
 
 #include <algorithm>  // for max
 #include <cmath>
+#include <format>
 #include <iostream>  // for operator<<, basic_...
 #include <memory>    // for allocator_traits<>...
 
 TH2INTT::TH2INTT()
-  : TH2Poly()
+   
 {
   TH2Poly::Initialize(-23, 23., -10., 10., 25, 25);
   TH2Poly::SetStats(false);
@@ -25,7 +26,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B0L0S"][i].x1, ladder_pos_map["B0L0S"][i].x2, ladder_pos_map["B0L0S"][i].x3, ladder_pos_map["B0L0S"][i].x4};
     py = {ladder_pos_map["B0L0S"][i].y1, ladder_pos_map["B0L0S"][i].y2, ladder_pos_map["B0L0S"][i].y3, ladder_pos_map["B0L0S"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 
   // note : set the bin shape
@@ -33,7 +34,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B0L1S"][i].x1, ladder_pos_map["B0L1S"][i].x2, ladder_pos_map["B0L1S"][i].x3, ladder_pos_map["B0L1S"][i].x4};
     py = {ladder_pos_map["B0L1S"][i].y1, ladder_pos_map["B0L1S"][i].y2, ladder_pos_map["B0L1S"][i].y3, ladder_pos_map["B0L1S"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 
   // note : set the bin shape
@@ -41,7 +42,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B1L0S"][i].x1, ladder_pos_map["B1L0S"][i].x2, ladder_pos_map["B1L0S"][i].x3, ladder_pos_map["B1L0S"][i].x4};
     py = {ladder_pos_map["B1L0S"][i].y1, ladder_pos_map["B1L0S"][i].y2, ladder_pos_map["B1L0S"][i].y3, ladder_pos_map["B1L0S"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 
   // note : set the bin shape
@@ -49,7 +50,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B1L1S"][i].x1, ladder_pos_map["B1L1S"][i].x2, ladder_pos_map["B1L1S"][i].x3, ladder_pos_map["B1L1S"][i].x4};
     py = {ladder_pos_map["B1L1S"][i].y1, ladder_pos_map["B1L1S"][i].y2, ladder_pos_map["B1L1S"][i].y3, ladder_pos_map["B1L1S"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 
   // note : set the bin shape
@@ -57,7 +58,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B0L0N"][i].x1, ladder_pos_map["B0L0N"][i].x2, ladder_pos_map["B0L0N"][i].x3, ladder_pos_map["B0L0N"][i].x4};
     py = {ladder_pos_map["B0L0N"][i].y1, ladder_pos_map["B0L0N"][i].y2, ladder_pos_map["B0L0N"][i].y3, ladder_pos_map["B0L0N"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 
   // note : set the bin shape
@@ -65,7 +66,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B0L1N"][i].x1, ladder_pos_map["B0L1N"][i].x2, ladder_pos_map["B0L1N"][i].x3, ladder_pos_map["B0L1N"][i].x4};
     py = {ladder_pos_map["B0L1N"][i].y1, ladder_pos_map["B0L1N"][i].y2, ladder_pos_map["B0L1N"][i].y3, ladder_pos_map["B0L1N"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 
   // note : set the bin shape
@@ -73,7 +74,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B1L0N"][i].x1, ladder_pos_map["B1L0N"][i].x2, ladder_pos_map["B1L0N"][i].x3, ladder_pos_map["B1L0N"][i].x4};
     py = {ladder_pos_map["B1L0N"][i].y1, ladder_pos_map["B1L0N"][i].y2, ladder_pos_map["B1L0N"][i].y3, ladder_pos_map["B1L0N"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 
   // note : set the bin shape
@@ -81,7 +82,7 @@ TH2INTT::TH2INTT()
   {
     px = {ladder_pos_map["B1L1N"][i].x1, ladder_pos_map["B1L1N"][i].x2, ladder_pos_map["B1L1N"][i].x3, ladder_pos_map["B1L1N"][i].x4};
     py = {ladder_pos_map["B1L1N"][i].y1, ladder_pos_map["B1L1N"][i].y2, ladder_pos_map["B1L1N"][i].y3, ladder_pos_map["B1L1N"][i].y4};
-    TH2Poly::AddBin(4, &px[0], &py[0]);
+    TH2Poly::AddBin(4, px.data(), py.data());
   }
 };
 
@@ -319,7 +320,7 @@ void TH2INTT::fill_ladder_toinfo_map_bin()
       for (int HL = 0; HL < n_ladder; HL++)
       {
         ladder_toinfo_map
-            [(boost::format("%s%s%s") % layer_map.at(layer) % index_word[HL] % side_word).str().c_str()]
+	  [std::format("{}{}{}", layer_map.at(layer), index_word[HL], side_word)]
                 .bin_id = bin_index;
 
         // std::cout<< (boost::format("%s%s%s") %layer_map.at(layer) %index_word[HL] %side_word).str() <<" "<<bin_index<<std::endl;

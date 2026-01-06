@@ -16,14 +16,14 @@ namespace
 {
   /// square
   template <class T>
-  inline constexpr T square(T x)
+  constexpr T square(T x)
   {
     return x * x;
   }
 
   // regularize angle between 0 and 2PI
   template <class T>
-  inline constexpr T get_bound_angle(T phi)
+  constexpr T get_bound_angle(T phi)
   {
     while (phi < 0)
     {
@@ -48,7 +48,8 @@ namespace
    public:
     explicit range_ftor_t(double value)
       : m_value(value){};
-    bool operator()(const TpcSpaceChargeReconstructionHelper::range_t& range)
+
+    bool operator()(const TpcSpaceChargeReconstructionHelper::range_t& range) const
     {
       return m_value > range.first && m_value < range.second;
     }
@@ -312,8 +313,26 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, const TH2
   // loop over phi bins
   for (int ip = 0; ip < source->GetNbinsX(); ++ip)
   {
+
+    // get phi
+    const double phi = source->GetXaxis()->GetBinCenter(ip + 1);
+    std::cout << "TpcSpaceChargeReconstructionHelper::extrapolate_phi1 -"
+      << " source: " << source->GetName()
+      << " ip: " << ip
+      << " phi: " << phi
+      << std::endl;
+
     for (int ir = 0; ir < source->GetNbinsY(); ++ir)
     {
+
+      // get radius
+      const double r = source->GetYaxis()->GetBinCenter(ir + 1);
+      std::cout << "TpcSpaceChargeReconstructionHelper::extrapolate_phi1 -"
+        << " source: " << source->GetName()
+        << " ir: " << ir
+        << " r: " << r
+        << std::endl;
+
       for (int iz = 0; iz < source->GetNbinsZ(); ++iz)
       {
         // do nothing if in TPOT acceptance
@@ -324,8 +343,6 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, const TH2
         }
 
         // phi not in TPOT range, rotate by steps of 2pi/12 (= one TPC sector) until found in range
-        const double r = source->GetYaxis()->GetBinCenter(ir + 1);
-        const double phi = source->GetXaxis()->GetBinCenter(ip + 1);
         static constexpr int n_sectors = 12;
         for (int sector = 1; sector < n_sectors; ++sector)
         {
@@ -347,9 +364,43 @@ void TpcSpaceChargeReconstructionHelper::extrapolate_phi1(TH3* source, const TH2
           double scale = 1;
           if (source_cm)
           {
-            const double distortion_local = source_cm->Interpolate(phi, r);
-            const double distortion_ref = source_cm->Interpolate(phi_ref, r);
-            scale = distortion_local / distortion_ref;
+
+            auto ip_cm = source_cm->GetXaxis()->FindBin(phi);
+            auto ip_ref_cm = source_cm->GetXaxis()->FindBin(phi_ref);
+            auto ir_cm = source_cm->GetYaxis()->FindBin( r );
+
+            // check out of bound
+            if( ( ip_cm == 0 || ip_cm > source_cm->GetNbinsX() ) ||
+              ( ir==0 || ir > source_cm->GetNbinsY() ) )
+            {
+
+              scale = 1;
+
+            } else if( ir_cm==1 || ir_cm == source_cm->GetNbinsY() ) {
+
+              // if first or last bin is used, interpolate will break. Need to use the bin content
+              const double distortion_local = source_cm->GetBinContent(ip_cm, ir_cm);
+              const double distortion_ref = source_cm->GetBinContent(ip_ref_cm, ir_cm);
+              scale = distortion_local / distortion_ref;
+
+            } else if( ip_cm==1 || ip_cm == source_cm->GetNbinsX() ) {
+
+              // if first or last bin is used, interpolate will break. Need to use the bin content
+              const double distortion_local = source_cm->GetBinContent(ip_cm, ir_cm);
+              const double distortion_ref = source_cm->GetBinContent(ip_ref_cm, ir_cm);
+              scale = distortion_local / distortion_ref;
+
+            } else {
+
+              // use interpolation
+              const double distortion_local = source_cm->Interpolate(phi, r);
+              const double distortion_ref = source_cm->Interpolate(phi_ref, r);
+              scale = distortion_local / distortion_ref;
+
+            }
+
+            // check imposible values
+            if( std::isnan(scale) ) { scale = 1; }
           }
 
           // update content and error
@@ -446,20 +497,20 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* sour
     return std::make_tuple<TH3*, TH3*>(nullptr, nullptr);
   }
 
-  auto xaxis = source->GetXaxis();
-  auto yaxis = source->GetYaxis();
-  auto zaxis = source->GetZaxis();
+  const auto *xaxis = source->GetXaxis();
+  const auto *yaxis = source->GetYaxis();
+  const auto *zaxis = source->GetZaxis();
   auto ibin = zaxis->FindBin((double) 0);
 
   // create histograms
   const TString name(source->GetName());
-  auto hneg = new TH3F(
+  auto *hneg = new TH3F(
       name + "_negz", name + "_negz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
       ibin - 1, zaxis->GetXmin(), zaxis->GetBinUpEdge(ibin - 1));
 
-  auto hpos = new TH3F(
+  auto *hpos = new TH3F(
       name + "_posz", name + "_posz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
@@ -490,7 +541,7 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* sour
   }
 
   // also copy axis titles
-  for (const auto h : {hneg, hpos})
+  for (auto *const h : {hneg, hpos})
   {
     h->GetXaxis()->SetTitle(source->GetXaxis()->GetTitle());
     h->GetYaxis()->SetTitle(source->GetYaxis()->GetTitle());
@@ -508,7 +559,7 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
   std::array<double, 3> x_max{};
 
   int index = 0;
-  for (const auto axis : {source->GetXaxis(), source->GetYaxis(), source->GetZaxis()})
+  for (const auto *const axis : {source->GetXaxis(), source->GetYaxis(), source->GetZaxis()})
   {
     // calculate bin width
     const auto bin_width = (axis->GetXmax() - axis->GetXmin()) / axis->GetNbins();
@@ -523,7 +574,7 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
   }
 
   // create new histogram
-  auto hout = new TH3F(name, name,
+  auto *hout = new TH3F(name, name,
                        bins[0], x_min[0], x_max[0],
                        bins[1], x_min[1], x_max[1],
                        bins[2], x_min[2], x_max[2]);

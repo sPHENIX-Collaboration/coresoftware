@@ -1,32 +1,24 @@
-#ifndef TRUTHTRKMATCHER__H
-#define TRUTHTRKMATCHER__H
+#ifndef G4EVAL_TRUTHTRKMATCHER__H
+#define G4EVAL_TRUTHTRKMATCHER__H
+
 #include "TrackClusEvaluator.h"
 
 #include <fun4all/SubsysReco.h>
 
-#include <trackbase/ActsGeometry.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/TrackSeed.h>
-
 #include <array>
 #include <iostream>
 #include <map>
-#include <set>
 #include <string>
 #include <tuple>
 #include <vector>
 
+class ActsGeometry;
 class EmbRecoMatchContainer;
 class PHCompositeNode;
-class PHG4TpcGeom;
 class PHG4TpcGeomContainer;
 class PHG4TruthInfoContainer;
-class SvtxTrack;
 class SvtxTrackMap;
-class TrackSeedContainer;
-class TrkrCluster;
 class TrkrClusterContainer;
-class TrkrTruthTrack;
 class TrkrTruthTrackContainer;
 class TrkrClusterIsMatcher;
 class TTree;
@@ -38,7 +30,19 @@ class TruthRecoTrackMatching : public SubsysReco
   // Standard public interface
   //--------------------------------------------------
  public:
-  TruthRecoTrackMatching( // Criteria to match a TrkrClusterContainer and track
+
+  using RECOentry = std::tuple<float, float, float, unsigned short>;
+  using RECOvec = std::vector<RECOentry>;
+  using RECOiter = RECOvec::iterator;
+  using RECO_pair_iter = std::pair<RECOiter, RECOiter>;
+  // sorting tuple is by: phi, eta, pT,  index, is_matched
+  //--------------------------------------------------
+  //    PossibleMatches (just array<unsinged short, 5>)
+  //--------------------------------------------------
+
+  using PossibleMatch = std::array<unsigned short, 5>;
+
+    // Criteria to match a TrkrClusterContainer and track
       /*-----------------------------------------------------------------------------------
       * Input criteria for Truth Track (with nT clusters) to reco track (with nR clusters) :
       *  - nmin_match  : minimum number of clusters in Truth and Reco track that must
@@ -52,9 +56,10 @@ class TruthRecoTrackMatching : public SubsysReco
       *                         |z_true-z_reco| must be <= dz_reco * cluster_nzwidths
       *  - cluster_nphiwidths : like cluster_nzwidths for phi
       *--------------------------------------------------------*/
+  TruthRecoTrackMatching(
         TrkrClusterIsMatcher* _ismatcher 
-      , const unsigned short _nmin_match = 4
-      , const float _nmin_ratio          = 0.
+      , const unsigned short _nmincluster_match = 4
+      , const float _nmincluster_ratio   = 0.
       , const float _cutoff_dphi         = 0.3
       , const float _same_dphi           = 0.05
       , const float _cutoff_deta         = 0.3
@@ -63,7 +68,6 @@ class TruthRecoTrackMatching : public SubsysReco
       , const unsigned short _max_ntruth_per_reco = 4);  // for some output kinematis
 
   ~TruthRecoTrackMatching() override = default;
-  int Init(PHCompositeNode*) override { return 0; };
   int InitRun(PHCompositeNode*) override;        //`
   int process_event(PHCompositeNode*) override;  //`
   int End(PHCompositeNode*) override;
@@ -133,18 +137,11 @@ class TruthRecoTrackMatching : public SubsysReco
   //--------------------------------------------------
   //    RECO data for a "table" of reconstructed tracks
   //--------------------------------------------------
-  using RECOentry = std::tuple<float, float, float, unsigned short>;
   static constexpr int RECOphi = 0;
   static constexpr int RECOeta = 1;
   static constexpr int RECOpt = 2;
   static constexpr int RECOid = 3;
 
- public:
-  using RECOvec = std::vector<RECOentry>;
-  using RECOiter = RECOvec::iterator;
-  using RECO_pair_iter = std::pair<RECOiter, RECOiter>;
-
- private:
   struct CompRECOtoPhi
   {
     bool operator()(const RECOentry& lhs, const double& rhs) { return std::get<RECOphi>(lhs) < rhs; }
@@ -163,13 +160,6 @@ class TruthRecoTrackMatching : public SubsysReco
     bool operator()(const double& lhs, const RECOentry& rhs) { return lhs < std::get<RECOpt>(rhs); }
     bool operator()(const RECOentry& lhs, const RECOentry& rhs) { return std::get<RECOpt>(lhs) < std::get<RECOpt>(rhs); }
   };
-
-  // sorting tuple is by: phi, eta, pT,  index, is_matched
-  //--------------------------------------------------
-  //    PossibleMatches (just array<unsinged short, 5>)
-  //--------------------------------------------------
- public:
-  using PossibleMatch = std::array<unsigned short, 5>;
 
  private:
   static constexpr int PM_nmatch = 0;
@@ -190,10 +180,6 @@ class TruthRecoTrackMatching : public SubsysReco
   };
 
   //--------------------------------------------------
-  //    PossibleMatches (just array<unsinged short, 5>)
-  //--------------------------------------------------
- public:
-  //--------------------------------------------------
   // non-node member data
   //--------------------------------------------------
   RECOvec recoData{};  // "sv" = Sort Vector
@@ -206,7 +192,7 @@ class TruthRecoTrackMatching : public SubsysReco
   // -------------------------------------------------------------------
   std::pair<std::vector<unsigned short>, std::vector<unsigned short>>
   find_box_matches(float truth_phi, float truth_eta, float truth_pt);                         // will populate to truth_to_reco_map and
-  void match_tracks_in_box(std::vector<std::pair<unsigned short, unsigned short>>& indices);  // pairs of {id_true, id_reco}
+  void match_tracks_in_box(std::vector<std::pair<unsigned short, unsigned short>>& box_pairs);  // pairs of {id_true, id_reco}
 
   //    Helper functions
   // -------------------------------------------------------------------

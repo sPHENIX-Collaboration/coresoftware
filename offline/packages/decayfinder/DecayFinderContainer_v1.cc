@@ -11,13 +11,9 @@
 #include <utility>  // for pair, make_pair
 #include <vector>   // for vector
 
-DecayFinderContainer_v1::DecayFinderContainer_v1()
-  : m_decaymap()
-{
-}
-
 DecayFinderContainer_v1::DecayFinderContainer_v1(const DecayFinderContainer_v1& decaymap)
-  : m_decaymap()
+
+  : DecayFinderContainerBase(decaymap)
 {
   for (const auto& iter : decaymap)
   {
@@ -53,7 +49,7 @@ void DecayFinderContainer_v1::identify(std::ostream& os) const
   return;
 }
 
-const DecayFinderContainerBase::Decay DecayFinderContainer_v1::get(unsigned int id) const
+DecayFinderContainerBase::Decay DecayFinderContainer_v1::get(unsigned int id) const
 {
   std::pair<int, int> dummyPair = {0, 0};
   Decay dummyDecay = {{dummyPair, 0}};

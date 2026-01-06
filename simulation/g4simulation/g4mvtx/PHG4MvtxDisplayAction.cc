@@ -66,7 +66,7 @@ void PHG4MvtxDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     {
       PHG4Utils::SetColour(visatt, "G4_Cu");
     }
-    else if (it.second == "G4_POLYETHYLENE")
+    else if (it.second == "G4_POLYETHYLENE" || it.second == "black")
     {
       visatt->SetColour(0., 0., 0., 1.);
     }
@@ -81,10 +81,6 @@ void PHG4MvtxDisplayAction::ApplyDisplayAction(G4VPhysicalVolume * /*physvol*/)
     else if (it.second == "blue")
     {
       visatt->SetColour(0., 0., 1., 1.);
-    }
-    else if (it.second == "black")
-    {
-      visatt->SetColour(0., 0., 0., 1.);
     }
     else if (it.second == "white")
     {

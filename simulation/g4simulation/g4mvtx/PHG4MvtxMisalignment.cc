@@ -14,7 +14,7 @@
 #include <utility>  // for pair, make_pair
 #include <vector>
 
-PHG4MvtxMisalignment::PHG4MvtxMisalignment() {}
+PHG4MvtxMisalignment::PHG4MvtxMisalignment() = default;
 
 std::vector<double> PHG4MvtxMisalignment::get_GlobalDisplacement()
 {
@@ -33,33 +33,34 @@ void PHG4MvtxMisalignment::LoadMvtxStaveAlignmentParameters()
     m_GlobalDisplacementZ = 0.0;
     return;
   }
-  else
+  std::string line;
+  while (std::getline(file, line))
   {
-    std::string line;
-    while (std::getline(file, line))
+    std::istringstream iss(line);
+    int layer;
+    int stave;
+    double alpha;
+    double beta;
+    double gamma;
+    double x;
+    double y;
+    double z;
+    if (!(iss >> layer >> stave >> alpha >> beta >> gamma >> x >> y >> z))
     {
-      std::istringstream iss(line);
-      int layer, stave;
-      double alpha, beta, gamma, x, y, z;
-      if (!(iss >> layer >> stave >> alpha >> beta >> gamma >> x >> y >> z))
-      {
-        std::cout << "PHG4MvtxMisalignment::LoadMvtxStaveAlignmentParameters - ERROR - Could not read line " << line << std::endl;
-        m_GlobalDisplacementX = 0.0;
-        m_GlobalDisplacementY = 0.0;
-        m_GlobalDisplacementZ = 0.0;
-        continue;
-      }
-      else
-      {
-        m_GlobalDisplacementX += x;
-        m_GlobalDisplacementY += y;
-        m_GlobalDisplacementZ += z;
-      }
+      std::cout << "PHG4MvtxMisalignment::LoadMvtxStaveAlignmentParameters - ERROR - Could not read line " << line << std::endl;
+      m_GlobalDisplacementX = 0.0;
+      m_GlobalDisplacementY = 0.0;
+      m_GlobalDisplacementZ = 0.0;
+      continue;
     }
+
+    m_GlobalDisplacementX += x;
+    m_GlobalDisplacementY += y;
+    m_GlobalDisplacementZ += z;
   }
 
   double Ntotstaves = 0.0;
-  for (const auto & i : PHG4MvtxDefs::mvtxdat)
+  for (const auto &i : PHG4MvtxDefs::mvtxdat)
   {
     Ntotstaves += i[PHG4MvtxDefs::kNStave];
   }

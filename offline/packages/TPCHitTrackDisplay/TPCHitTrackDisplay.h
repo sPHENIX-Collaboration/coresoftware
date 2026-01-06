@@ -5,7 +5,7 @@
 
 #include <string>
 
-// Forward declerations
+// Forward declarations
 class PHCompositeNode;
 
 // Writes json file to be used to display an event with:
@@ -28,6 +28,9 @@ class TPCHitTrackDisplay : public SubsysReco
   void setIncludeTracklessClusters(float value) { m_trackless_clusters = value; }
 
  private:
+  // User modules
+  void SimulationOut(PHCompositeNode *);
+
   float m_cut_ADC;
   bool m_trackless_clusters;
 
@@ -36,11 +39,6 @@ class TPCHitTrackDisplay : public SubsysReco
   int _pdgcode{0};
   std::string _fileName;
 
-  // bool isRawData;
-
-  // User modules
-  void SimulationOut(PHCompositeNode *);
-  // void TPCRawOut(PHCompositeNode*);
 };
 
-#endif  //* __TPCHitTrackDisplay_H__ *//
+#endif  //* TPCHITTRACKDISPLAY_TPCHITTRACKDISPLAY_H *//

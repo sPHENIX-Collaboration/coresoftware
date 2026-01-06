@@ -98,7 +98,8 @@ class PHCASeeding : public PHTrackSeeding
       /* float cosTheta_limit = -0.8 */
   );
 
-  ~PHCASeeding() override {}
+  ~PHCASeeding() override = default;
+
   void SetSplitSeeds(bool opt = true) { _split_seeds = opt; }
   void SetLayerRange(unsigned int layer_low, unsigned int layer_up)
   {
@@ -130,10 +131,20 @@ class PHCASeeding : public PHTrackSeeding
   }
 
   // obsolete
-  void set_field_dir(const double) {}
-  void magFieldFile(const std::string&) {}
-  void useConstBField(bool) {}
-  void constBField(float) {}
+  void set_field_dir(const double)
+  { std::cout << "PHCASeeding::set_field_dir - Warning - This function does nothing. Remove from macro" << std::endl; }
+
+  // obsolete
+  void magFieldFile(const std::string&)
+  { std::cout << "PHCASeeding::magFieldFile - Warning - This function does nothing. Remove from macro" << std::endl; }
+
+  // obsolete
+  void useConstBField(bool)
+  { std::cout << "PHCASeeding::useConstBField - Warning - This function does nothing. Remove from macro" << std::endl; }
+
+  // obsolete
+  void constBField(float)
+  { std::cout << "PHCASeeding::constBField - Warning - This function does nothing. Remove from macro" << std::endl; }
 
   void useFixedClusterError(bool opt) { _use_fixed_clus_err = opt; }
   void setFixedClusterError(int i, double val) { _fixed_clus_err.at(i) = val; }

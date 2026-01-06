@@ -33,6 +33,7 @@ G4SnglNtuple::~G4SnglNtuple()
 
 int G4SnglNtuple::Init(PHCompositeNode * /*unused*/)
 {
+  delete hm; // make cppcheck happy
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("snglntup", "G4Sngls", "phi:theta:e:detid:layer:x0:y0:z0:x1:y1:z1:edep");

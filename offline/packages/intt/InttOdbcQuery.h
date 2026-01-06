@@ -5,6 +5,11 @@
 #include <set>
 #include <string>
 
+namespace odbc
+{
+  class Statement;
+}  // namespace odbc
+
 class InttOdbcQuery
 {
 public:
@@ -20,8 +25,8 @@ public:
   const std::string &Type() {return m_type;}
 
 private:
-  int QueryStreaming(void*, int);
-  int QueryType(void*, int);
+  int QueryStreaming(odbc::Statement *, int);
+  int QueryType(odbc::Statement *, int);
 
   static const int m_MAX_NUM_RETRIES = 3000;
   static const int m_MIN_SLEEP_DUR =  200; // milliseconds

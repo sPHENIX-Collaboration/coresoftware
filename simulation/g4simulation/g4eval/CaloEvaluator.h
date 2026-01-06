@@ -32,7 +32,7 @@ class CaloEvaluator : public SubsysReco
   CaloEvaluator(const std::string &name = "CALOEVALUATOR",
                 const std::string &caloname = "CEMC",
                 const std::string &filename = "g4eval_cemc.root");
-  ~CaloEvaluator() override{};
+  ~CaloEvaluator() override = default;
 
   int Init(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;

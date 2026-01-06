@@ -344,7 +344,7 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
         std::cout << "   Cell Size (phi,eta): (" << cell_size[layer].first << " rad, " << cell_size[layer].second << " units)" << std::endl;
         break;
       }
-      else if (binning[layer] == PHG4CellDefs::sizebinning)
+      if (binning[layer] == PHG4CellDefs::sizebinning)
       {
         std::cout << " Layer #" << layer << std::endl;
         std::cout << "   Nbins (phi,z): (" << n_phi_z_bins[layer].first << ", " << n_phi_z_bins[layer].second << ")" << std::endl;
@@ -392,7 +392,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; layer++)
   {
     // only handle layers/detector ids which have parameters set
-    if (implemented_detid.find(*layer) == implemented_detid.end())
+    if (!implemented_detid.contains(*layer))
     {
       continue;
     }
@@ -571,6 +571,8 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
           }
           else
           {
+	    // this is just messed up, the args are swapped but consistently - don't try to fix it
+	    //NOLINTNEXTLINE(readability-suspicious-call-argument)
             PHG4CellDefs::keytype cellkey = PHG4CellDefs::EtaPhiBinning::genkey(*layer, ietabin, iphibin);
             cell = new PHG4Cellv1(cellkey);
             cellptmap[key] = cell;
@@ -922,7 +924,7 @@ int PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 
 void PHG4CylinderCellReco::cellsize(const int detid, const double sr, const double sz)
 {
-  if (binning.find(detid) != binning.end())
+  if (binning.contains(detid))
   {
     std::cout << "size for layer " << detid << " already set" << std::endl;
     return;
@@ -934,7 +936,7 @@ void PHG4CylinderCellReco::cellsize(const int detid, const double sr, const doub
 
 void PHG4CylinderCellReco::etaphisize(const int detid, const double deltaeta, const double deltaphi)
 {
-  if (binning.find(detid) != binning.end())
+  if (binning.contains(detid))
   {
     std::cout << "size for layer " << detid << " already set" << std::endl;
     return;
@@ -1013,9 +1015,8 @@ int PHG4CylinderCellReco::CheckEnergy(PHCompositeNode *topNode)
     std::cout << Name() << ": hit energy before cuts: " << sum_energy_before_cuts << " GeV" << std::endl;
     return -1;
   }
-  else
-  {
-    if (Verbosity() > 0)
+  
+      if (Verbosity() > 0)
     {
       std::cout << Name() << ":total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
       std::cout << Name() << ": sum cell energy: " << sum_energy_cells << " GeV" << std::endl;
@@ -1023,7 +1024,7 @@ int PHG4CylinderCellReco::CheckEnergy(PHCompositeNode *topNode)
       std::cout << Name() << ": sum stored hit energy: " << sum_energy_stored_hits << " GeV" << std::endl;
       std::cout << Name() << ": hit energy before cuts: " << sum_energy_before_cuts << " GeV" << std::endl;
     }
-  }
+ 
   return 0;
 }
 
@@ -1032,7 +1033,7 @@ void PHG4CylinderCellReco::Detector(const std::string &d)
   detector = d;
   // only set the outdetector nodename if it wasn't set already
   // in case the order in the macro is outdetector(); detector();
-  if (outdetector.size() == 0)
+  if (outdetector.empty())
   {
     OutputDetector(d);
   }
@@ -1041,8 +1042,8 @@ void PHG4CylinderCellReco::Detector(const std::string &d)
 
 void PHG4CylinderCellReco::SetDefaultParameters()
 {
-  set_default_double_param("size_long", NAN);
-  set_default_double_param("size_perp", NAN);
+  set_default_double_param("size_long", std::numeric_limits<double>::quiet_NaN());
+  set_default_double_param("size_perp", std::numeric_limits<double>::quiet_NaN());
   set_default_double_param("tmax", 60.0);
   set_default_double_param("tmin", -20.0);  // collision has a timing spread around the triggered event. Accepting negative time too.
   set_default_double_param("delta_t", 100.);

@@ -1,13 +1,13 @@
 #include "Fun4AllDstInputManager.h"
 
+#include "DBInterface.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllServer.h"
+#include "InputFileHandlerReturnCodes.h"
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncDefs.h>
 #include <ffaobjects/SyncObject.h>
-
-#include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIOManager.h>
@@ -20,10 +20,7 @@
 
 #include <TSystem.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/algorithm/string.hpp>
-#pragma GCC diagnostic pop
 
 #include <cassert>
 #include <cstdlib>
@@ -57,8 +54,7 @@ int Fun4AllDstInputManager::fileopen(const std::string &filenam)
     fileclose();
   }
   FileName(filenam);
-  FROG frog;
-  fullfilename = frog.location(FileName());
+  fullfilename = DBInterface::instance()->location(FileName());
   if (Verbosity() > 0)
   {
     std::cout << Name() << ": opening file " << fullfilename << std::endl;
@@ -172,7 +168,7 @@ int Fun4AllDstInputManager::run(const int nevents)
       return -1;
     }
 
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;
@@ -198,10 +194,9 @@ readagain:
   if (!dummy)
   {
     fileclose();
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::SUCCESS)
     {
-      // NOLINTNEXTLINE(hicpp-avoid-goto)
-      goto readagain;
+      goto readagain;// NOLINT(hicpp-avoid-goto)
     }
     return -1;
   }
@@ -495,13 +490,12 @@ readnextsync:
       std::cout << Name() << ": File exhausted while resyncing" << std::endl;
     }
     fileclose();
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       return Fun4AllReturnCodes::SYNC_FAIL;
     }
     syncbranchname.clear();  // clear the sync branch name, who knows - it might be different on new file
-    // NOLINTNEXTLINE(hicpp-avoid-goto)
-    goto readnextsync;
+    goto readnextsync;// NOLINT(hicpp-avoid-goto)
   }
   if (!readfull)
   {

@@ -6,12 +6,13 @@
 #include "PHG4EventHeader.h"
 
 #include <iostream>
+#include <limits>
 
 ///
 class PHG4EventHeaderv1 : public PHG4EventHeader
 {
  public:
-  PHG4EventHeaderv1();
+  PHG4EventHeaderv1() = default;
 
   /// dtor
   ~PHG4EventHeaderv1() override = default;
@@ -39,9 +40,9 @@ class PHG4EventHeaderv1 : public PHG4EventHeader
   void set_EventPlaneAngle(const float r) override { rplane = r; }
 
  protected:
-  int evtseq;
-  float bimp;
-  float rplane;
+  int evtseq{-9999};
+  float bimp{std::numeric_limits<float>::quiet_NaN()};
+  float rplane{std::numeric_limits<float>::quiet_NaN()};
 
  private:  // prevent doc++ from showing ClassDefOverride
   ClassDefOverride(PHG4EventHeaderv1, 1)

@@ -230,7 +230,9 @@ void CDBTTree::WriteMultipleCDBTTree()
 void CDBTTree::SetSingleFloatValue(const std::string &name, float value)
 {
   std::string fieldname = "F" + name;
-  if (!m_SingleFloatEntryMap.contains(fieldname))
+//  if (!m_SingleFloatEntryMap.contains(fieldname))
+  // NOLINTNEXTLINE(readability-container-contains)
+  if (m_SingleFloatEntryMap.find(fieldname) == m_SingleFloatEntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {
@@ -247,7 +249,9 @@ void CDBTTree::SetSingleFloatValue(const std::string &name, float value)
 void CDBTTree::SetSingleDoubleValue(const std::string &name, double value)
 {
   std::string fieldname = "D" + name;
-  if (!m_SingleDoubleEntryMap.contains(fieldname))
+//  if (!m_SingleDoubleEntryMap.contains(fieldname))
+  // NOLINTNEXTLINE(readability-container-contains)
+  if (m_SingleDoubleEntryMap.find(fieldname) == m_SingleDoubleEntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {
@@ -264,7 +268,9 @@ void CDBTTree::SetSingleDoubleValue(const std::string &name, double value)
 void CDBTTree::SetSingleIntValue(const std::string &name, int value)
 {
   std::string fieldname = "I" + name;
-  if (!m_SingleIntEntryMap.contains(fieldname))
+//  if (!m_SingleIntEntryMap.contains(fieldname))
+  // NOLINTNEXTLINE(readability-container-contains)
+  if (m_SingleIntEntryMap.find(fieldname) == m_SingleIntEntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {
@@ -281,7 +287,9 @@ void CDBTTree::SetSingleIntValue(const std::string &name, int value)
 void CDBTTree::SetSingleUInt64Value(const std::string &name, uint64_t value)
 {
   std::string fieldname = "g" + name;
-  if (!m_SingleUInt64EntryMap.contains(fieldname))
+//  if (m_SingleUInt64EntryMap.contains(fieldname))
+  // NOLINTNEXTLINE(readability-container-contains)
+  if (m_SingleUInt64EntryMap.find(fieldname) == m_SingleUInt64EntryMap.end())
   {
     if (m_Locked[SingleEntries])
     {

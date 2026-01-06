@@ -37,10 +37,12 @@
 
 #include <TVector3.h>
 
+#include <algorithm>
 #include <cassert>
-#include <cmath>    // for sqrt, NAN, fabs
+#include <cmath>    // for sqrt, fabs
 #include <cstdlib>  // for abs
 #include <iostream>
+#include <limits>
 #include <map>
 #include <set>
 #include <utility>
@@ -312,11 +314,11 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
   unsigned int layer;
   for (layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc + _nlayers_mms; ++layer)
   {
-    float gx = NAN;
-    float gy = NAN;
-    float gz = NAN;
-    float gt = NAN;
-    float gedep = NAN;
+    float gx = std::numeric_limits<float>::quiet_NaN();
+    float gy = std::numeric_limits<float>::quiet_NaN();
+    float gz = std::numeric_limits<float>::quiet_NaN();
+    float gt = std::numeric_limits<float>::quiet_NaN();
+    float gedep = std::numeric_limits<float>::quiet_NaN();
 
     std::vector<PHG4Hit*> contributing_hits;
     std::vector<double> contributing_hits_energy;
@@ -390,8 +392,8 @@ std::map<TrkrDefs::cluskey, std::shared_ptr<TrkrCluster>> SvtxTruthEval::all_tru
     }
 
     // Estimate the size of the truth cluster
-    float g4phisize = NAN;
-    float g4zsize = NAN;
+    float g4phisize = std::numeric_limits<float>::quiet_NaN();
+    float g4zsize = std::numeric_limits<float>::quiet_NaN();
     G4ClusterSize(ckey, layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
     for (int i1 = 0; i1 < 3; ++i1)
@@ -453,7 +455,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
     }
 
     // we do not assume that the truth hits know what layer they are in
-    for (auto this_g4hit : truth_hits)
+    for (auto *this_g4hit : truth_hits)
     {
       float rbegin = std::sqrt(this_g4hit->get_x(0) * this_g4hit->get_x(0) + this_g4hit->get_y(0) * this_g4hit->get_y(0));
       float rend = std::sqrt(this_g4hit->get_x(1) * this_g4hit->get_x(1) + this_g4hit->get_y(1) * this_g4hit->get_y(1));
@@ -511,7 +513,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
       float yout = yl[1];
       float zout = zl[1];
 
-      float local_t = NAN;
+      float local_t = std::numeric_limits<float>::quiet_NaN();
 
       if (rbegin < rbin)
       {
@@ -661,7 +663,7 @@ void SvtxTruthEval::LayerClusterG4Hits(const std::set<PHG4Hit*>& truth_hits, std
   else
   {
     // not TPC, one g4hit per cluster
-    for (auto this_g4hit : truth_hits)
+    for (auto *this_g4hit : truth_hits)
     {
       if (this_g4hit->get_layer() != (unsigned int) layer)
       {
@@ -705,15 +707,14 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
 {
   // sort the contributing g4hits in radius
   double inner_radius = 100.;
-  double inner_x = NAN;
-  double inner_y = NAN;
-  double inner_z = NAN;
-  ;
+  double inner_x = std::numeric_limits<double>::quiet_NaN();
+  double inner_y = std::numeric_limits<double>::quiet_NaN();
+  double inner_z = std::numeric_limits<double>::quiet_NaN();
 
   double outer_radius = 0.;
-  double outer_x = NAN;
-  double outer_y = NAN;
-  double outer_z = NAN;
+  double outer_x = std::numeric_limits<double>::quiet_NaN();
+  double outer_y = std::numeric_limits<double>::quiet_NaN();
+  double outer_z = std::numeric_limits<double>::quiet_NaN();
 
   for (unsigned int ihit = 0; ihit < contributing_hits_entry.size(); ++ihit)
   {
@@ -837,7 +838,8 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     double world_inner[3] = {inner_x, inner_y, inner_z};
     TVector3 world_inner_vec = {inner_x, inner_y, inner_z};
 
-    int segment_z_bin, segment_phi_bin;
+    int segment_z_bin;
+    int segment_phi_bin;
     layergeom->find_indices_from_world_location(segment_z_bin, segment_phi_bin, world_inner);
 
     TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
@@ -845,7 +847,8 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     TVector3 local_inner_vec = CylinderGeomInttHelper::get_local_from_world_coords(surf, _tgeometry, world_inner);
     double yin = local_inner_vec[1];
     double zin = local_inner_vec[2];
-    int strip_y_index, strip_z_index;
+    int strip_y_index;
+    int strip_z_index;
     layergeom->find_strip_index_values(segment_z_bin, yin, zin, strip_y_index, strip_z_index);
 
     // outer location
@@ -858,7 +861,8 @@ void SvtxTruthEval::G4ClusterSize(TrkrDefs::cluskey ckey, unsigned int layer, co
     TVector3 local_outer_vec = CylinderGeomInttHelper::get_local_from_world_coords(osurf, _tgeometry, world_outer_vec);
     double yout = local_outer_vec[1];
     double zout = local_outer_vec[2];
-    int strip_y_index_out, strip_z_index_out;
+    int strip_y_index_out;
+    int strip_z_index_out;
     layergeom->find_strip_index_values(segment_z_bin, yout, zout, strip_y_index_out, strip_z_index_out);
 
     int strips = abs(strip_y_index_out - strip_y_index) + 1;
@@ -989,10 +993,10 @@ PHG4Hit* SvtxTruthEval::get_innermost_truth_hit(PHG4Particle* particle)
   }
 
   PHG4Hit* innermost_hit = nullptr;
-  float innermost_radius = FLT_MAX;
+  float innermost_radius = std::numeric_limits<float>::max();
 
   std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
-  for (auto candidate : truth_hits)
+  for (auto *candidate : truth_hits)
   {
     float x = candidate->get_x(0);  // use entry points
     float y = candidate->get_y(0);  // use entry points
@@ -1026,7 +1030,7 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle)
   }
 
   PHG4Hit* outermost_hit = nullptr;
-  float outermost_radius = FLT_MAX * -1.0;
+  float outermost_radius = std::numeric_limits<float>::min();
 
   if (_do_cache)
   {
@@ -1039,7 +1043,7 @@ PHG4Hit* SvtxTruthEval::get_outermost_truth_hit(PHG4Particle* particle)
   }
 
   std::set<PHG4Hit*> truth_hits = all_truth_hits(particle);
-  for (auto candidate : truth_hits)
+  for (auto *candidate : truth_hits)
   {
     float x = candidate->get_x(1);  // use exit points
     float y = candidate->get_y(1);  // use exit points
@@ -1165,11 +1169,6 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
   _intt_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   _mvtx_geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
-  PHNodeIterator iter(topNode);
-  auto* parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR"));
-  PHNodeIterator parIter(parNode);
-  auto* ParDetNode = dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode", "TPC"));
-  _tpc_params = findNode::getClass<PHParametersContainer>(ParDetNode, "G4GEO_TPC");
   return;
 }
 
@@ -1259,10 +1258,7 @@ unsigned int SvtxTruthEval::getAdcValue(double gedep)
   double ADCSignalConversionGain = ChargeToPeakVolts * 1.60e-04 * 2.4;             // 20 (or 30) mV/fC * fC/electron * scaleup factor
   double adc_input_voltage = input_electrons * ADCSignalConversionGain;            // mV, see comments above
   unsigned int adc_output = (unsigned int) (adc_input_voltage * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
-  if (adc_output > 1023)
-  {
-    adc_output = 1023;
-  }
+  adc_output = std::min<unsigned int>(adc_output, 1023);
 
   return adc_output;
 }

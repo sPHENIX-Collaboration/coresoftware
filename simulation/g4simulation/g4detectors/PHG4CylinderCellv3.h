@@ -10,8 +10,8 @@
 class PHG4CylinderCellv3 : public PHG4CylinderCellv1
 {
  public:
-  PHG4CylinderCellv3();
-  ~PHG4CylinderCellv3() override {}
+  PHG4CylinderCellv3() = default;
+  ~PHG4CylinderCellv3() = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -26,9 +26,9 @@ class PHG4CylinderCellv3 : public PHG4CylinderCellv1
   int get_l_index() const override { return l_index; }
 
  protected:
-  int j_index;
-  int k_index;
-  int l_index;
+  int j_index {-9999};
+  int k_index {-9999};
+  int l_index {-9999};
 
   ClassDefOverride(PHG4CylinderCellv3, 1)
 };

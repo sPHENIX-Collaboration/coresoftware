@@ -11,27 +11,28 @@
 #ifndef CLUSTERSTATUSMAPPER_H
 #define CLUSTERSTATUSMAPPER_H
 
-// jet qa
-#include "jetqa/JetQADefs.h"
-
 // module definitions
 #include "CaloStatusMapperDefs.h"
 
-// calo base
-#include <calobase/TowerInfoContainer.h>
+// jet qa
+#include <jetqa/JetQADefs.h>
 
+// calo base
 // f4a libraries
 #include <fun4all/SubsysReco.h>
 
 // c++ utilities
+#include <cstdint>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 // forward declarations
 class PHCompositeNode;
 class Fun4AllHistoManager;
 class TH1;
+class TowerInfoContainer;
 class TriggerAnalyzer;
 
 
@@ -76,11 +77,14 @@ class CaloStatusMapper : public SubsysReco
         {"TOWERINFO_CALIB_HCALOUT", CaloStatusMapperDefs::Calo::HCal}
       };
 
-     ///! turn trigger selection on/off
-     bool doTrgSelect {false};
+      ///! turn trigger selection on/off
+      bool doTrgSelect {false};
 
-     ///! trigger to select
-     uint32_t trgToSelect {JetQADefs::GL1::MBDNSJet1};
+      ///! switch between pp and AuAu
+      bool inPPMode {false};
+
+      ///! trigger to select
+      uint32_t trgToSelect {JetQADefs::GL1::MBDNSJet1};
 
     };  // end Config
 
@@ -119,6 +123,7 @@ class CaloStatusMapper : public SubsysReco
 
     ///! output histograms
     std::map<std::string, TH1*> m_hists;
+    TH1 *allCaloEnergy {nullptr};
 
     ///! input nodes
     std::vector<TowerInfoContainer*> m_inNodes;

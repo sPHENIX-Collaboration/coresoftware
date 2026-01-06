@@ -1,12 +1,11 @@
 #include "mvtx_pool.h"
+#include "mvtx_decoder/RDH.h"
 
 #include <string>
 #include <cstdint>
 
 #include <Event/packet.h>
-#include "mvtx_decoder/RDH.h"
 
-using namespace std;
 
 //_________________________________________________
 mvtx_pool::~mvtx_pool()
@@ -135,9 +134,8 @@ void mvtx_pool::setupLinks()
           // skip incomplete felix packet, return to fetch more data
           break;
         }
-        else
-        {
-          feeid_set.insert((*rdhP).feeId);
+        
+                  feeid_set.insert((*rdhP).feeId);
           auto& lnkref = mFeeId2LinkID[(*rdhP).feeId];
           if (lnkref.entry == -1)
           {
@@ -189,7 +187,7 @@ void mvtx_pool::setupLinks()
           // move packet to buffer
           gbtLink.data.add((payload + payload_position), pageSizeInBytes);
           payload_position += pageSizeInBytes;
-        }
+       
       }
       else
       {
@@ -365,11 +363,10 @@ int mvtx_pool::iValue(const int n, const char *what)
     {
       return get_feeidSet_size();
     }
-    else
-    {
-      std::cout << "Unknow option " << what << std::endl;
+    
+          std::cout << "Unknow option " << what << std::endl;
       return -1;
-    }
+   
   }
 
   unsigned int i = n;
@@ -377,30 +374,28 @@ int mvtx_pool::iValue(const int n, const char *what)
   {
     return get_feeid(i);
   }
-  else
-  {
-    if ( strcmp(what, "NR_HBF") == 0 )
+  
+      if ( strcmp(what, "NR_HBF") == 0 )
     {
       return get_hbfSet_size(i);
     }
-    else if ( strcmp(what, "NR_PHYS_TRG") == 0 )
+    if ( strcmp(what, "NR_PHYS_TRG") == 0 )
     {
       return get_trgSet_size(i);
     }
-    else if ( strcmp(what, "NR_STROBES") == 0 )
+    if ( strcmp(what, "NR_STROBES") == 0 )
     {
     return get_strbSet_size(i);
     }
-    else if ( strcmp(what, "NR_HITS") == 0 )  // the number of datasets
+    if ( strcmp(what, "NR_HITS") == 0 )  // the number of datasets
     {
       return -1;
     }
-    else
-    {
-      std::cout << "Unknow option " << what << std::endl;
+    
+          std::cout << "Unknow option " << what << std::endl;
       return -1;
-    }
-  }
+   
+ 
   return 0;
 }
 
@@ -415,23 +410,22 @@ int mvtx_pool::iValue(const int i_feeid, const int idx, const char *what)
   {
     return get_L1_IR_BC(feeId, index);
   }
-  else if ( strcmp(what, "TRG_IR_BC") == 0 )
+  if ( strcmp(what, "TRG_IR_BC") == 0 )
   {
     return get_TRG_IR_BC(feeId, index);
   }
-  else if ( strcmp(what, "TRG_DET_FIELD") == 0 )
+  if ( strcmp(what, "TRG_DET_FIELD") == 0 )
   {
     return get_TRG_DET_FIELD(feeId, index);
   }
-  else if ( strcmp(what, "TRG_NR_HITS") == 0)
+  if ( strcmp(what, "TRG_NR_HITS") == 0)
   {
     return get_TRG_NR_HITS(feeId, index);
   }
-  else
-  {
-    std::cout << "Unknow option " << what << std::endl;
+  
+      std::cout << "Unknow option " << what << std::endl;
     return -1;
-  }
+ 
   return 0;
 }
 
@@ -457,26 +451,25 @@ int mvtx_pool::iValue(const int i_feeid, const int i_trg, const int i_hit, const
     return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
                      mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->chip_id : -1;
   }
-  else if ( strcmp(what, "HIT_BC") == 0 )
+  if ( strcmp(what, "HIT_BC") == 0 )
   {
     return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
                      mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->bunchcounter : -1;
   }
-  else if ( strcmp(what, "HIT_ROW") == 0 )
+  if ( strcmp(what, "HIT_ROW") == 0 )
   {
     return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
                      mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->row_pos : -1;
   }
-  else if ( strcmp(what, "HIT_COL") == 0 )
+  if ( strcmp(what, "HIT_COL") == 0 )
   {
     return ( (i_hit >= 0) && (hit < mGBTLinks[lnkId].mTrgData[trg].hit_vector.size()) ) ? \
                      mGBTLinks[lnkId].mTrgData[trg].hit_vector[hit]->col_pos : -1;
   }
-  else
-  {
-    std::cout << "Unknow option " << what << std::endl;
+  
+      std::cout << "Unknow option " << what << std::endl;
     return -1;
-  }
+ 
   return 0;
 }
 
@@ -492,15 +485,14 @@ long long int mvtx_pool::lValue(const int i_feeid, const int idx, const char *wh
   {
     return get_L1_IR_BCO(feeId, index);
   }
-  else if ( strcmp(what, "TRG_IR_BCO") == 0 )
+  if ( strcmp(what, "TRG_IR_BCO") == 0 )
   {
     return get_TRG_IR_BCO(feeId, index);
   }
-  else
-  {
-    std::cout << "Unknow option " << what << std::endl;
+  
+      std::cout << "Unknow option " << what << std::endl;
     return -1;
-  }
+ 
 
   return 0;
 }

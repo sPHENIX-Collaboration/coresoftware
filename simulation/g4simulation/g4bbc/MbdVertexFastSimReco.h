@@ -11,6 +11,7 @@
 
 #include <gsl/gsl_rng.h>
 
+#include <limits>
 #include <string>  // for string
 
 class PHCompositeNode;
@@ -25,10 +26,8 @@ class MbdVertexFastSimReco : public SubsysReco
   MbdVertexFastSimReco(const std::string &name = "MbdVertexFastSimReco");
   ~MbdVertexFastSimReco() override;
 
-  int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
-  int End(PHCompositeNode *topNode) override;
 
   void set_t_smearing(const float t_smear) { m_T_Smear = t_smear; }
   void set_z_smearing(const float z_smear) { m_Z_Smear = z_smear; }
@@ -36,8 +35,8 @@ class MbdVertexFastSimReco : public SubsysReco
  private:
   int CreateNodes(PHCompositeNode *topNode);
 
-  float m_T_Smear;
-  float m_Z_Smear;
+  float m_T_Smear{std::numeric_limits<float>::quiet_NaN()};
+  float m_Z_Smear{std::numeric_limits<float>::quiet_NaN()};
 
   gsl_rng *RandomGenerator;
 };

@@ -204,6 +204,10 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
     alignment_transformation.setMMParams(m_mmDevs);
   }
 
+  alignment_transformation.setUseNewSiliconRotationOrder(m_use_new_silicon_rotation_order);
+  alignment_transformation.setUseModuleTiltAlways(m_use_module_tilt_always);
+  
+  
   if (buildAllGeometry(topNode) != Fun4AllReturnCodes::EVENT_OK)
   {
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -1816,7 +1820,7 @@ int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
               << "ERROR: Can't find node TPCGEOMCONTAINER"
               << std::endl;
     topNode->print();
-    auto se = Fun4AllServer::instance();
+    auto *se = Fun4AllServer::instance();
     se->Print();
     return Fun4AllReturnCodes::ABORTRUN;
   }

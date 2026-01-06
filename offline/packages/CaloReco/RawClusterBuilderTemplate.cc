@@ -14,7 +14,6 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
-#include <calobase/RawClusterv2.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -46,6 +45,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <limits>
 
 RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string &name)
   : SubsysReco(name)
@@ -686,9 +686,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       //      std::cout << "Prob/Chi2/NDF = " << prob << " " << chi2
       //           << " " << ndf << " Ecl = " << ecl << std::endl;
 
-      cluster = m_writeClusterV2
-                    ? static_cast<RawCluster*>(new RawClusterv2())
-                    : static_cast<RawCluster*>(new RawClusterv1());
+      cluster = new RawClusterv1();
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_r(std::sqrt(xg * xg + yg * yg));
@@ -706,6 +704,12 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       }
       hlist = pp->GetHitList();
       ph = hlist.begin();
+
+      // accumulate energy-weighted time
+      float ew_num = 0.0;   // sum(E * t)
+      float ew_den = 0.0;   // sum(E)
+      bool   saw_nonzero_t = false;
+
       while (ph != hlist.end())
       {
         ich = (*ph).ich;
@@ -720,15 +724,57 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid(Calo_ID, iy + BINY0, ix + BINX0);  // Becuase in this part index1 is iy
         //	std::cout << iphi << " " << ieta << ": "
         //           << twrkey << " e = " << (*ph).amp) << std::endl;
-        cluster->addTower(twrkey, (*ph).amp / fEnergyNorm);
+          
+        const float amp = (*ph).amp;
+        const float tof = (*ph).tof;
+
+        // add tower (energy is un-normalized inside vhit)
+        cluster->addTower(twrkey, amp / fEnergyNorm);
+
+        // accumulate EW time (finite guard; treat exact 0 as “no time”)
+        if (std::isfinite(tof))
+        {
+          if (std::abs(tof) > 1e-9F) { saw_nonzero_t = true; }
+          ew_num += amp * tof;    // float math end-to-end
+        }
+        ew_den += amp;
+
+
         ++ph;
       }
 
-      // stamp tower CoG (raw & corrected) only when writing v2
+      // stamp tower CoG (raw & corrected) into the cluster (now via properties in v1)
       float xcorr = xcg;
       float ycorr = ycg;
       bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
       cluster->set_tower_cog(xcg, ycg, xcorr, ycorr);
+
+      const float tmean = (ew_den > 0.0F && saw_nonzero_t)
+                            ? (ew_num / ew_den)
+                            : std::numeric_limits<float>::quiet_NaN();
+      cluster->set_mean_time(tmean);
+        // mechanical incidence angles (CEMC-only; stored as signed alphas in properties)
+        {
+          BEmcRecCEMC* cemc = dynamic_cast<BEmcRecCEMC*>(bemc);
+          if (cemc)
+          {
+            float a_phi_sgn = std::numeric_limits<float>::quiet_NaN();
+            float a_eta_sgn = std::numeric_limits<float>::quiet_NaN();
+
+            // use corrected CoG for incidence, in tower units
+            const bool inc_ok = cemc->calculateIncidence(
+                xcorr, ycorr,
+                a_phi_sgn, a_eta_sgn);
+
+            if (inc_ok)
+            {
+              // Use explicit property IDs so this compiles even when the
+              // RawCluster header does not yet define the named incidence enums.
+              cluster->set_property(RawCluster::prop_incidence_alpha_phi, a_phi_sgn);
+              cluster->set_property(RawCluster::prop_incidence_alpha_eta, a_eta_sgn);
+            }
+          }
+        }
 
       _clusters->AddCluster(cluster);
       // ncl++;

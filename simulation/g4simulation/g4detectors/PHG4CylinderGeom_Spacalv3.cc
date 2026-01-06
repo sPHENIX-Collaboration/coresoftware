@@ -278,8 +278,7 @@ void PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
      << std::endl;
 }
 
-void PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
-    const PHParameters& param, const std::string& param_prefix)
+void PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(const PHParameters& param, const std::string& param_prefix)
 {
   id = param.get_int_param(param_prefix + "id");
   pDz = param.get_double_param(param_prefix + "pDz");
@@ -301,29 +300,23 @@ void PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
   centralY = param.get_double_param(param_prefix + "centralY");
   centralZ = param.get_double_param(param_prefix + "centralZ");
 
-  ModuleSkinThickness = param.get_double_param(
-      param_prefix + "ModuleSkinThickness");
+  ModuleSkinThickness = param.get_double_param(param_prefix + "ModuleSkinThickness");
   NFiberX = param.get_int_param(param_prefix + "NFiberX");
   NFiberY = param.get_int_param(param_prefix + "NFiberY");
   NSubtowerX = param.get_int_param(param_prefix + "NSubtowerX");
   NSubtowerY = param.get_int_param(param_prefix + "NSubtowerY");
 
   LightguideHeight = param.get_double_param(param_prefix + "LightguideHeight");
-  LightguideTaperRatio = param.get_double_param(
-      param_prefix + "LightguideTaperRatio");
-  LightguideMaterial = param.get_string_param(
-      param_prefix + "LightguideMaterial");
+  LightguideTaperRatio = param.get_double_param(param_prefix + "LightguideTaperRatio");
+  LightguideMaterial = param.get_string_param(param_prefix + "LightguideMaterial");
 }
 
 PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int scint_id)
   : scint_ID(scint_id)
+  , sector_ID((scint_ID >> (kfiber_bit + ktower_bit)) & ((1 << ksector_bit) - 1)) //NOLINT(hicpp-signed-bitwise)
+  , tower_ID((scint_ID >> kfiber_bit) & ((1 << ktower_bit) - 1)) //NOLINT(hicpp-signed-bitwise)
+  , fiber_ID((scint_ID) & ((1 << kfiber_bit) - 1)) //NOLINT(hicpp-signed-bitwise)
 {
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  sector_ID = (scint_ID >> (kfiber_bit + ktower_bit)) & ((1 << ksector_bit) - 1);
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  tower_ID = (scint_ID >> kfiber_bit) & ((1 << ktower_bit) - 1);
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  fiber_ID = (scint_ID) & ((1 << kfiber_bit) - 1);
 }
 
 PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
@@ -332,15 +325,11 @@ PHG4CylinderGeom_Spacalv3::scint_id_coder::scint_id_coder(int sector_id,
   , tower_ID(tower_id)
   , fiber_ID(fiber_id)
 {
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  assert(fiber_ID < (1 << kfiber_bit) && fiber_ID >= 0);
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  assert(tower_ID < (1 << ktower_bit) && tower_ID >= 0);
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  assert(sector_ID < (1 << ksector_bit) && sector_ID >= 0);
+  assert(fiber_ID < (1 << kfiber_bit) && fiber_ID >= 0); // NOLINT(hicpp-signed-bitwise)
+  assert(tower_ID < (1 << ktower_bit) && tower_ID >= 0); // NOLINT(hicpp-signed-bitwise)
+  assert(sector_ID < (1 << ksector_bit) && sector_ID >= 0); // NOLINT(hicpp-signed-bitwise)
 
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  scint_ID = (((sector_ID << ktower_bit) | tower_ID) << kfiber_bit) | fiber_ID;
+  scint_ID = (((sector_ID << ktower_bit) | tower_ID) << kfiber_bit) | fiber_ID; // NOLINT(hicpp-signed-bitwise)
 }
 
 std::pair<int, int>
@@ -348,8 +337,7 @@ PHG4CylinderGeom_Spacalv3::get_tower_z_phi_ID(const int tower_ID,
                                               const int sector_ID) const
 {
   // tower_ID to eta/z within a sector
-  // NOLINTNEXTLINE(bugprone-integer-division)
-  int z_bin = floor(tower_ID / 10);
+  int z_bin = floor(tower_ID / 10);// NOLINT(bugprone-integer-division)
 
   int phi_bin_in_sec = -1;
 
@@ -387,7 +375,7 @@ double PHG4CylinderGeom_Spacalv3::
   {
     return tower.centralY;
   }
-  else if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower || get_config() == kFullProjective_2DTaper_Tilted)
+  if (get_config() == kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower || get_config() == kFullProjective_2DTaper_Tilted)
   {
     const double outter_wall_shift = get_sidewall_thickness() + get_sidewall_outer_torr() + get_assembly_spacing();
     assert(outter_wall_shift >= 0);
@@ -409,16 +397,15 @@ double PHG4CylinderGeom_Spacalv3::
 
     return tower_radial;
   }
-  else
-  {
-    std::cout
+  
+      std::cout
         << "PHG4CylinderGeom_Spacalv3::get_tower_radial_position - ERROR - "
            "unsupported configuration!"
         << std::endl;
     Print();
     exit(10);
-  }
-  return NAN;
+ 
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 //! check that all towers has consistent sub-tower divider

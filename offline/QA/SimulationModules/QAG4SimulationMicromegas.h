@@ -53,25 +53,25 @@ class QAG4SimulationMicromegas : public SubsysReco
   bool m_initialized = false;
 
   //! micromegas geometry
-  PHG4CylinderGeomContainer* m_micromegas_geonode = nullptr;
+  PHG4CylinderGeomContainer* m_micromegas_geonode{nullptr};
 
   /// Acts tracking geometry for surface lookup
-  ActsGeometry* m_tGeometry = nullptr;
+  ActsGeometry* m_tGeometry{nullptr};
 
   /// cluster map
-  TrkrClusterContainer* m_cluster_map = nullptr;
+  TrkrClusterContainer* m_cluster_map{nullptr};
 
   /// hitsets
-  TrkrHitSetContainer* m_hitsets = nullptr;
+  TrkrHitSetContainer* m_hitsets{nullptr};
 
   /// clusters to hit association
-  TrkrClusterHitAssoc* m_cluster_hit_map = nullptr;
+  TrkrClusterHitAssoc* m_cluster_hit_map{nullptr};
 
   /// hit to g4hit association
-  TrkrHitTruthAssoc* m_hit_truth_map = nullptr;
+  TrkrHitTruthAssoc* m_hit_truth_map{nullptr};
 
   /// g4 hits
-  PHG4HitContainer* m_g4hits_micromegas = nullptr;
+  PHG4HitContainer* m_g4hits_micromegas{nullptr};
 
   PHG4TruthInfoContainer* m_truthContainer;
   /// list of relevant layers

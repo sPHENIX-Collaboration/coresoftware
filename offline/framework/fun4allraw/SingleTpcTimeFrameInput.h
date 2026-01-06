@@ -3,8 +3,6 @@
 
 #include "SingleStreamingInput.h"
 
-#include <TString.h>
-
 #include <array>
 #include <list>
 #include <map>
@@ -26,7 +24,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
  public:
   explicit SingleTpcTimeFrameInput(const std::string &name);
   ~SingleTpcTimeFrameInput() override;
-  void FillPool(const uint64_t minBCO) override;
+  void FillPool(const uint64_t targetBCO) override;
   void CleanupUsedPackets(const uint64_t bclk) override;
   // bool CheckPoolDepth(const uint64_t bclk) override;
   void ClearCurrentEvent() override;
@@ -73,7 +71,7 @@ class SingleTpcTimeFrameInput : public SingleStreamingInput
 
    private:
     PHTimer * m_timer = nullptr;
-    TString m_name;
+    std::string m_name;
     TH1 *m_hNorm = nullptr;
     bool stopped = false;
   };

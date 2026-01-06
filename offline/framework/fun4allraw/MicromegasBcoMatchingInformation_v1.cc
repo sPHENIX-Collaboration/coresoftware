@@ -7,7 +7,11 @@
 
 #include "MicromegasBcoMatchingInformation_v1.h"
 
+#include <phool/phool.h>
+
 #include <Event/packet.h>
+
+#include <TSystem.h>
 
 #include <algorithm>
 #include <vector>
@@ -78,25 +82,25 @@ namespace
 
   // get the difference between two BCO.
   template <class T>
-  inline static constexpr T get_bco_diff(const T& first, const T& second)
+  constexpr T get_bco_diff(const T& first, const T& second)
   {
     return first < second ? (second - first) : (first - second);
   }
 
   // define limit for matching two fee_bco
-  static constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
+  constexpr unsigned int m_max_multiplier_adjustment_count = 1000;
 
   // define limit for matching two fee_bco
-  static constexpr unsigned int m_max_fee_bco_diff = 10;
+  constexpr unsigned int m_max_fee_bco_diff = 10;
 
   // define limit for matching fee_bco to fee_bco_predicted
-  static constexpr unsigned int m_max_gtm_bco_diff = 100;
+  constexpr unsigned int m_max_gtm_bco_diff = 100;
 
   // needed to avoid memory leak. Assumes that we will not be assembling more than 50 events at the same time
-  static constexpr unsigned int m_max_matching_data_size = 50;
+  constexpr unsigned int m_max_matching_data_size = 50;
 
   //! copied from micromegas/MicromegasDefs.h, not available here
-  static constexpr int m_nchannels_fee = 256;
+  constexpr int m_nchannels_fee = 256;
 
   /* see: https://git.racf.bnl.gov/gitea/Instrumentation/sampa_data/src/branch/fmtv2/README.md */
   enum SampaDataType
@@ -189,13 +193,15 @@ void MicromegasBcoMatchingInformation_v1::save_gtm_bco_information(Packet* packe
 
     // also save ENDDAT bco
     const bool is_endat = static_cast<uint8_t>(packet->lValue(t, "IS_ENDAT"));
-    if( is_endat )
+    if (is_endat)
     {
       const uint64_t gtm_bco = static_cast<uint64_t>(packet->lValue(t, "BCO"));
 
       // add to list if difference to last entry is big enough
-      if( m_gtm_bco_list.empty() || (gtm_bco-m_gtm_bco_list.back()) > 10 )
-      {  m_gtm_bco_list.push_back(gtm_bco); }
+      if (m_gtm_bco_list.empty() || (gtm_bco - m_gtm_bco_list.back()) > 10)
+      {
+        m_gtm_bco_list.push_back(gtm_bco);
+      }
 
       continue;
     }
@@ -373,22 +379,22 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v1::find_gtm_bco(uint32
   {
     return bco_matching_iter->second;
   }
-  else
-  {
-    // find element for which predicted fee_bco matches fee_bco, within limit
-    const auto iter = std::find_if(
-        m_gtm_bco_list.begin(),
-        m_gtm_bco_list.end(),
-        [this, fee_bco](const uint64_t& gtm_bco)
-        { return get_bco_diff(get_predicted_fee_bco(gtm_bco).value(), fee_bco) < m_max_gtm_bco_diff; });
+  // find element for which predicted fee_bco matches fee_bco, within limit
+  const auto iter = std::find_if(
+      m_gtm_bco_list.begin(),
+      m_gtm_bco_list.end(),
+      [this, fee_bco](const uint64_t& gtm_bco)
+      { return get_bco_diff(get_predicted_fee_bco(gtm_bco).value(), fee_bco) < m_max_gtm_bco_diff; });
 
-    // check
-    if (iter != m_gtm_bco_list.end())
+  // check
+  if (iter != m_gtm_bco_list.end())
+  {
+    const auto gtm_bco = *iter;
+    if (verbosity())
     {
-      const auto gtm_bco = *iter;
-      if (verbosity())
+      if (auto opt_fee_bco = get_predicted_fee_bco(gtm_bco))  // check if optional exists
       {
-        const auto fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
+        const auto fee_bco_predicted = *opt_fee_bco;  // get_predicted_fee_bco(gtm_bco).value();
         const auto fee_bco_diff = get_bco_diff(fee_bco_predicted, fee_bco);
 
         std::cout << "MicromegasBcoMatchingInformation_v1::find_gtm_bco -"
@@ -400,47 +406,53 @@ std::optional<uint64_t> MicromegasBcoMatchingInformation_v1::find_gtm_bco(uint32
                   << " difference: " << fee_bco_diff
                   << std::endl;
       }
-
-      // save fee_bco and gtm_bco matching in map
-      m_bco_matching_list.emplace_back(fee_bco, gtm_bco);
-
-      // remove gtm bco from runing list
-      m_gtm_bco_list.erase(iter);
-
-      // update clock adjustment
-      update_multiplier_adjustment(gtm_bco, fee_bco);
-
-      return gtm_bco;
     }
-    else
-    {
-      if (m_orphans.insert(fee_bco).second)
-      {
-        if (verbosity())
-        {
-          // find element for which predicted fee_bco is the closest to request
-          const auto iter2 = std::min_element(
-              m_gtm_bco_list.begin(),
-              m_gtm_bco_list.end(),
-              [this, fee_bco](const uint64_t& first, const uint64_t& second)
-              { return get_bco_diff(get_predicted_fee_bco(first).value(), fee_bco) < get_bco_diff(get_predicted_fee_bco(second).value(), fee_bco); });
+    // save fee_bco and gtm_bco matching in map
+    m_bco_matching_list.emplace_back(fee_bco, gtm_bco);
 
-          const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
+    // remove gtm bco from runing list
+    m_gtm_bco_list.erase(iter);
 
-          std::cout << "MicromegasBcoMatchingInformation_v1::find_gtm_bco -"
-                    << std::hex
-                    << " fee_bco: 0x" << fee_bco
-                    << std::dec
-                    << " gtm_bco: none"
-                    << " difference: " << fee_bco_diff
-                    << std::endl;
-        }
-      }
-      return std::nullopt;
-    }
+    // update clock adjustment
+    update_multiplier_adjustment(gtm_bco, fee_bco);
+
+    return gtm_bco;
   }
 
-  // never reached
+  if (m_orphans.insert(fee_bco).second)
+  {
+    if (verbosity())
+    {
+      // find element for which predicted fee_bco is the closest to request
+      const auto iter2 = std::min_element(
+          m_gtm_bco_list.begin(),
+          m_gtm_bco_list.end(),
+          [this, fee_bco](const uint64_t& first, const uint64_t& second)
+          { return get_bco_diff(get_predicted_fee_bco(first).value(), fee_bco) < get_bco_diff(get_predicted_fee_bco(second).value(), fee_bco); });
+
+      //          const int fee_bco_diff = (iter2 != m_gtm_bco_list.end()) ? get_bco_diff(get_predicted_fee_bco(*iter2).value(), fee_bco) : -1;
+      // compared to the previous statement, this checks if the optional
+      int fee_bco_diff = -1;
+
+      if (iter2 != m_gtm_bco_list.end())
+      {
+        auto predicted = get_predicted_fee_bco(*iter2);
+
+        if (predicted)
+        {
+          fee_bco_diff = get_bco_diff(*predicted, fee_bco);
+        }
+      }
+
+      std::cout << "MicromegasBcoMatchingInformation_v1::find_gtm_bco -"
+                << std::hex
+                << " fee_bco: 0x" << fee_bco
+                << std::dec
+                << " gtm_bco: none"
+                << " difference: " << fee_bco_diff
+                << std::endl;
+    }
+  }
   return std::nullopt;
 }
 
@@ -465,10 +477,14 @@ void MicromegasBcoMatchingInformation_v1::cleanup()
 void MicromegasBcoMatchingInformation_v1::cleanup(uint64_t ref_bco)
 {
   // erase all elements from bco_list that are less than or equal to ref_bco
-  m_gtm_bco_list.erase( std::remove_if( m_gtm_bco_list.begin(), m_gtm_bco_list.end(), [ref_bco](const uint64_t& bco) { return bco<=ref_bco; }), m_gtm_bco_list.end() );
+  m_gtm_bco_list.erase(std::remove_if(m_gtm_bco_list.begin(), m_gtm_bco_list.end(), [ref_bco](const uint64_t& bco)
+                                      { return bco <= ref_bco; }),
+                       m_gtm_bco_list.end());
 
   // erase all elements from bco_list that are less than or equal to ref_bco
-  m_bco_matching_list.erase( std::remove_if( m_bco_matching_list.begin(), m_bco_matching_list.end(), [ref_bco](const m_bco_matching_pair_t& pair) { return pair.second<=ref_bco; }), m_bco_matching_list.end() );
+  m_bco_matching_list.erase(std::remove_if(m_bco_matching_list.begin(), m_bco_matching_list.end(), [ref_bco](const m_bco_matching_pair_t& pair)
+                                           { return pair.second <= ref_bco; }),
+                            m_bco_matching_list.end());
 
   // clear orphans
   m_orphans.clear();
@@ -495,7 +511,15 @@ void MicromegasBcoMatchingInformation_v1::update_multiplier_adjustment(uint64_t 
     return;
   }
 
-  const uint32_t fee_bco_predicted = get_predicted_fee_bco(gtm_bco).value();
+  auto predicted_opt = get_predicted_fee_bco(gtm_bco);
+  if (!predicted_opt)
+  {
+    // Safety belt: print error and exit if optional is not set
+    std::cout << PHWHERE << " No predicted fee_bco for given gtm_bco, exiting" << std::endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
+  const uint32_t fee_bco_predicted = *predicted_opt;
   const double delta_fee_bco = double(fee_bco) - double(fee_bco_predicted);
   const double gtm_bco_difference = (gtm_bco >= m_gtm_bco_first) ? (gtm_bco - m_gtm_bco_first) : (gtm_bco + (1ULL << 40U) - m_gtm_bco_first);
 

@@ -51,19 +51,19 @@ class PHSimpleKFProp : public SubsysReco
 
   // noop
   void set_field_dir(const double)
-  {}
+  { std::cout << "PHSimpleKFProp::set_field_dir - Warning - This function does nothing. Remove from macro" << std::endl; }
 
   // noop
   void magFieldFile(const std::string&)
-  {}
+  { std::cout << "PHSimpleKFProp::magFieldFile - Warning - This function does nothing. Remove from macro" << std::endl; }
 
   // noop
   void useConstBField(bool)
-  {}
+  { std::cout << "PHSimpleKFProp::useConstBField - Warning - This function does nothing. Remove from macro" << std::endl; }
 
   // noop
   void setConstBField(float)
-  {}
+  { std::cout << "PHSimpleKFProp::constBField - Warning - This function does nothing. Remove from macro" << std::endl; }
 
   void ghostRejection(bool set_value = true) { m_ghostrejection = set_value; }
   void set_max_window(double s) { _max_dist = s; }

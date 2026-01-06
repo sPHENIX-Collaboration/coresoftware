@@ -59,6 +59,7 @@ int ClockDiffCheck::InitRun(PHCompositeNode *topNode)
     while ((thisNode = nodeIter()))
     {
       m_PacketNodeNames.push_back(thisNode->getName());
+      m_PacketCorruptCount.try_emplace(thisNode->getName(), 0);
     }
   }
   if (pktKeepNode)  // old combined packet containers
@@ -69,6 +70,7 @@ int ClockDiffCheck::InitRun(PHCompositeNode *topNode)
     while ((thisNode = nodeIter()))
     {
       m_PacketNodeNames.push_back(thisNode->getName());
+      m_PacketCorruptCount.try_emplace(thisNode->getName(), 0);
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -112,7 +114,10 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
 
   for (const auto &iter : m_PacketNodeNames)
   {
-    if (iter == "14001") continue;
+    if (iter == "14001")
+    { 
+      continue;
+    }
     CaloPacket *calopacket = findNode::getClass<CaloPacket>(topNode, iter);
     if (!calopacket)
     {
@@ -129,6 +134,7 @@ int ClockDiffCheck::process_event(PHCompositeNode *topNode)
           npacketprnt++;
         }
         std::get<1>(m_PacketStuffMap[calopacket->getIdentifier()]) = std::numeric_limits<uint64_t>::max();
+        m_PacketCorruptCount[iter]++;
         continue;
       }
       FillCaloClockDiffSngl(calopacket);
@@ -344,7 +350,7 @@ void ClockDiffCheck::FillCaloClockDiff(CaloPacketContainer *pktcont)
 void ClockDiffCheck::FillCaloClockDiffSngl(CaloPacket *calopkt)
 {
   unsigned int packetid = calopkt->getIdentifier();
-  if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
+  if (!m_PacketStuffMap.contains(packetid))
   {
     std::string hname = "clkdiff" + std::to_string(packetid);
     TH1 *h1 = new TH1F(hname.c_str(), hname.c_str(), 100, 0, 99);
@@ -392,7 +398,7 @@ void ClockDiffCheck::FillPacketDiff(OfflinePacket *pkt)
 {
   unsigned int packetid = pkt->getIdentifier();
   uint64_t clk = (pkt->getBCO() & 0xFFFFFFFF);
-  if (m_PacketStuffMap.find(packetid) == m_PacketStuffMap.end())
+  if (!m_PacketStuffMap.contains(packetid))
   {
     std::string hname = "clkdiff" + std::to_string(packetid);
     TH1 *h1 = new TH1F(hname.c_str(), hname.c_str(), 100, 0, 99);
@@ -489,4 +495,19 @@ bool ClockDiffCheck::CheckFemEventNr(CaloPacket *calopkt)
     }
   }
   return true;
+}
+
+int ClockDiffCheck::End(PHCompositeNode* /*topNode*/)
+{
+  std::cout << std::endl;
+  std::cout << "----------- Packet corruption/drop summary ------------" << std::endl;
+  for (const auto &iter : m_PacketNodeNames)
+  {
+    if (iter == "14001")
+    { 
+      continue;
+    }
+    std::cout << "Missing events for packet " << iter << " : " << m_PacketCorruptCount[iter] << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -45,7 +45,7 @@ short int TrkrClusterIterationMapv1::getIteration(TrkrDefs::cluskey ckey)
   }
   else
   {
-    return std::numeric_limits<short int>::max();
+    return std::numeric_limits<short int>::min();
   }
 }
 

@@ -1,20 +1,26 @@
 #include "QAG4SimulationTruthDecay.h"
 
-#include <phool/PHNode.h>
+#include <decayfinder/DecayFinder.h>
+#include <decayfinder/DecayFinderContainerBase.h>
+
+#include <g4main/PHG4TruthInfoContainer.h>
+
 #include <qautils/QAHistManagerDef.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <decayfinder/DecayFinder.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHNode.h>
 #include <phool/getClass.h>
 
 #include <CLHEP/Vector/LorentzVector.h>
 
+#include <TFile.h>
 #include <TH1.h>
 #include <TString.h>
+#include <TTree.h>
 
 #include <algorithm>
 #include <cassert>
@@ -26,9 +32,10 @@
 #include <string>
 #include <vector>
 
-#include <cmath>
-
-static int candidateCounter = 0;
+namespace
+{
+  int candidateCounter = 0;
+}
 
 /*
  *  QA module to check that decayers obey laws of physics
@@ -65,8 +72,8 @@ int QAG4SimulationTruthDecay::Init(PHCompositeNode *topNode)
 
   TH1 *h(nullptr);
 
-  int const m_mother_PDG_ID_nBins = (int) (m_mother_PDG_ID_max - m_mother_PDG_ID_min) * 1.2;
-  int const m_daughter_PDG_ID_nBins = (int) (m_daughter_PDG_ID_max - m_daughter_PDG_ID_min) * 1.2;
+  int const m_mother_PDG_ID_nBins = (m_mother_PDG_ID_max - m_mother_PDG_ID_min) * 1.2;
+  int const m_daughter_PDG_ID_nBins = (m_daughter_PDG_ID_max - m_daughter_PDG_ID_min) * 1.2;
 
   h = new TH1I(TString(get_histo_prefix()) + "mother_PDG_ID",  //
                ";Mother PDG ID;Entries", m_mother_PDG_ID_nBins, m_mother_PDG_ID_min, m_mother_PDG_ID_max);
@@ -655,10 +662,10 @@ void QAG4SimulationTruthDecay::getMotherPDG(PHCompositeNode *topNode)
 
   std::string const node_name = m_df_module_name + "_DecayMap";
 
-  PHNode *findNode = dynamic_cast<PHNode *>(nodeIter.findFirst(node_name.c_str()));
+  PHNode *findNode = nodeIter.findFirst(node_name);
   if (findNode)
   {
-    m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, node_name.c_str());
+    m_decayMap = findNode::getClass<DecayFinderContainerBase>(topNode, node_name);
   }
   else
   {
@@ -676,7 +683,7 @@ std::vector<int> QAG4SimulationTruthDecay::getDecayFinderMothers(PHCompositeNode
 
   std::string const node_name = m_df_module_name + "_DecayMap";
 
-  m_decayMap = findNode::getClass<DecayFinderContainer_v1>(topNode, node_name.c_str());
+  m_decayMap = findNode::getClass<DecayFinderContainerBase>(topNode, node_name);
 
   for (auto &iter : *m_decayMap)
   {

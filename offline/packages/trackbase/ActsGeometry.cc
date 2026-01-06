@@ -165,7 +165,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
 
   // Predict which surface index this phi and side will correspond to
   // assumes that the vector elements are ordered positive z, -pi to pi, then negative z, -pi to pi
-  // we use TPC side from the hitsetkey, since z can be either sign in northa nd south, depending on crossing
+  // we use TPC side from the hitsetkey, since z can be either sign in north and south, depending on crossing
   double fraction = (world_phi + M_PI) / (2.0 * M_PI);
 
   double rounded_nsurf = std::round((double) (surf_vec.size() / 2) * fraction - 0.5);  // NOLINT
@@ -175,15 +175,16 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
   {
     nsurfm += surf_vec.size() / 2;
   }
-
   unsigned int nsurf = nsurfm % surf_vec.size();
   Surface this_surf = surf_vec[nsurf];
-
+  //std::cout << "    world_phi " << world_phi << " fraction " << fraction << " rounded_nsurf " << rounded_nsurf << " nsurfm " << nsurfm << " nsurf " << nsurf << std::endl;
+  
   auto vec3d = this_surf->center(m_tGeometry.getGeoContext());
   std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
   double surf_phi = atan2(surf_center[1], surf_center[0]);
   double surfStepPhi = m_tGeometry.tpcSurfStepPhi;
-
+  //  std::cout << "    surf_phi " << surf_phi << " surfStepPhi " << surfStepPhi  << " nsurf " << nsurf << std::endl;
+  
   if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
   {
     surf_index = nsurf;
@@ -211,7 +212,7 @@ Surface ActsGeometry::get_tpc_surface_from_coords(
       vec3d = this_surf->center(geometry().getGeoContext());
       surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       surf_phi = atan2(surf_center[1], surf_center[0]);
-
+      //std::cout << "    new world_phi " << world_phi << " new surf_phi " << surf_phi  << " new_nsurf " << new_nsurf << std::endl;
       if ((world_phi > surf_phi - surfStepPhi / 2.0 && world_phi < surf_phi + surfStepPhi / 2.0))
       {
         surf_index = new_nsurf;

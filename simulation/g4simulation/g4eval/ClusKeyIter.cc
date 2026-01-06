@@ -10,7 +10,7 @@ ClusKeyIter::ClusKeyIter(SvtxTrack* _track)
 {
 }
 
-ClusKeyIter ClusKeyIter::begin()
+ClusKeyIter ClusKeyIter::begin() const
 {
   ClusKeyIter iter0{track};
   if (iter0.no_data)
@@ -29,7 +29,7 @@ ClusKeyIter ClusKeyIter::begin()
   return iter0;
 }
 
-ClusKeyIter ClusKeyIter::end()
+ClusKeyIter ClusKeyIter::end() const
 {
   ClusKeyIter iter0{track};
   if (iter0.no_data)
@@ -61,7 +61,7 @@ void ClusKeyIter::operator++()
   }
 }
 
-bool ClusKeyIter::operator!=(const ClusKeyIter& rhs)
+bool ClusKeyIter::operator!=(const ClusKeyIter& rhs) const
 {
   if (no_data)
   {
@@ -70,7 +70,7 @@ bool ClusKeyIter::operator!=(const ClusKeyIter& rhs)
   return iter != rhs.iter;
 }
 
-TrkrDefs::cluskey ClusKeyIter::operator*()
+TrkrDefs::cluskey ClusKeyIter::operator*() const
 {
   return *iter;
 }

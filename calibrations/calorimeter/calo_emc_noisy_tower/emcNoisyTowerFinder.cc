@@ -114,7 +114,7 @@ int emcNoisyTowerFinder::process_event(PHCompositeNode *topNode)
 }
 
 //__________________________
-void emcNoisyTowerFinder::FindHot(std::string &infilename, std::string &outfilename, const std::string &inHist)
+void emcNoisyTowerFinder::FindHot(const std::string &infilename, const std::string &outfilename, const std::string &inHist)
 {
   // TH2F *h_hits_eta_phi_adc = nullptr;
   bool isListFile = (infilename.substr(infilename.rfind('.') + 1) == "txt" || infilename.substr(infilename.rfind('.') + 1) == "list");

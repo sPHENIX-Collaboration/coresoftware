@@ -7,9 +7,6 @@ LT_INIT([disable-static])
 
 CXXFLAGS="$CXXFLAGS -Wall -Werror -Wshadow -Wextra"
 
-CINTDEFS=" -noIncludePaths  -inlineInputHeader "
-AC_SUBST(CINTDEFS)
-
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 

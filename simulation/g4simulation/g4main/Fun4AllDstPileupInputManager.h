@@ -82,10 +82,10 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   std::map<const std::string, int> m_branchread;
 
   //! dst node from TopNode
-  PHCompositeNode *m_dstNode = nullptr;
+  PHCompositeNode *m_dstNode{nullptr};
 
   //! run node from TopNode
-  PHCompositeNode *m_runNode = nullptr;
+  PHCompositeNode *m_runNode{nullptr};
 
   //! internal dst node to copy background events
   std::unique_ptr<PHCompositeNode> m_dstNodeInternal;
@@ -104,13 +104,13 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   double m_time_between_crossings = sphenix_constants::time_between_crossings;
 
   //! collision rate (Hz)
-  double m_collision_rate = 5e4;
+  double m_collision_rate{5e4};
 
   //! min integration time for pileup in the TPC (ns)
-  double m_tmin = -13500;
+  double m_tmin{-13500};
 
   //! max integration time for pileup in the TPC (ns)
-  double m_tmax = 13500;
+  double m_tmax{13500};
 
   //! random generator
   class Deleter
@@ -124,4 +124,4 @@ class Fun4AllDstPileupInputManager : public Fun4AllInputManager
   std::map<std::string, std::pair<double, double>> m_DetectorTiming;
 };
 
-#endif /* __Fun4AllDstPileupInputManager_H__ */
+#endif /* G4MAIN_FUN4ALLDSTPILEUPINPUTMANAGER_H_ */

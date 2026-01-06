@@ -1,7 +1,6 @@
-#ifndef TRIGGERVALID_TRIGGERVALID_H
-#define TRIGGERVALID_TRIGGERVALID_H
+#ifndef QA_TRIGGER_TRIGGERVALID_H
+#define QA_TRIGGER_TRIGGERVALID_H
 
-#include <ffarawobjects/Gl1Packet.h>
 #include <fun4all/SubsysReco.h>
 
 #include <string>
@@ -33,7 +32,7 @@ class TriggerValid : public SubsysReco
   //! event processing method
   int process_event(PHCompositeNode*) override;
 
-  int process_towers(PHCompositeNode*);
+  int process_towers(PHCompositeNode*) const;
   int process_ll1out(PHCompositeNode*);
 
   void set_debug(bool debug) { m_debug = debug; }

@@ -6,33 +6,10 @@
  * \author Alex Patton <aopatton@mit.edu>
  */
 
-// #include "DSTContainerv3.h"
-
 #include <fun4all/SubsysReco.h>
-#include <trackbase/TrkrClusterContainerv4.h>
-#include <trackbase/TrkrClusterv5.h>
-#include <trackbase/TrkrDefs.h>
-#include <trackbase_historic/TrackInfoContainer_v1.h>
-#include <trackbase_historic/TrackSeedContainer_v1.h>
-#include <trackbase_historic/TrackSeed_v1.h>
 
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-
-class PHG4Hit;
-class PHG4HitContainer;
-class PHG4Particle;
-class PHG4TruthInfoContainer;
-class SvtxTrack;
-class SvtxTrackMap;
-// class DSTContainer;
-class TrkrCluster;
-class TrkrClusterContainer;
-class TrkrClusterHitAssoc;
-class TrkrHitSetContainer;
-class TrkrHitTruthAssoc;
+class PHCompositeNode;
+class TrackInfoContainer;
 
 class DSTTrackInfoReader : public SubsysReco
 {
@@ -41,10 +18,10 @@ class DSTTrackInfoReader : public SubsysReco
   DSTTrackInfoReader(const std::string& = "DSTTrackInfoReader");
 
   //! run initialization
-  int InitRun(PHCompositeNode*) override;
+  int InitRun(PHCompositeNode *topNode) override;
 
   //! event processing
-  int process_event(PHCompositeNode*) override;
+  int process_event(PHCompositeNode *topNode) override;
 
   enum Flags
   {
@@ -61,7 +38,7 @@ class DSTTrackInfoReader : public SubsysReco
 
  private:
   //! load nodes
-  int load_nodes(PHCompositeNode*);
+  int load_nodes(PHCompositeNode *topNode);
 
   void evaluate_track_info();
 
@@ -69,7 +46,7 @@ class DSTTrackInfoReader : public SubsysReco
 
   // TrkrCluster recover_cluster(DSTContainerv3::ClusterStruct);
 
-  TrackInfoContainer_v1* m_track_info_container = nullptr;
+  TrackInfoContainer *m_track_info_container {nullptr};
   // DSTContainer* m_container = nullptr;
 
   //! flags

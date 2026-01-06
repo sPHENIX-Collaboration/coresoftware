@@ -2,6 +2,8 @@
 #include "MbdCalib.h"
 #include "MbdGeomV1.h"
 #include "MbdOut.h"
+#include "MbdRawContainer.h"
+#include "MbdRawHit.h"
 #include "MbdPmtContainer.h"
 #include "MbdPmtHit.h"
 
@@ -73,7 +75,7 @@ MbdEvent::MbdEvent(const int cal_pass, const bool proc_charge) :
     name += std::to_string(iarm);
     title = "bbc times, arm ";
     title += std::to_string(iarm);
-    hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -50., 50.);
+    hevt_bbct[iarm] = new TH1F(name.c_str(), title.c_str(), 2000, -25., 25.);
     hevt_bbct[iarm]->SetLineColor(4);
   }
 
@@ -146,6 +148,8 @@ int MbdEvent::InitRun()
     _mbdcal->Verbosity(1);
   }
 
+  _mbdcal->SetRawDstFlag( _rawdstflag );
+  _mbdcal->SetFitsOnly( _fitsonly );
   _mbdcal->Download_All();
 
   if ( _simflag == 0 )  // do following for real data
@@ -367,6 +371,9 @@ void MbdEvent::Clear()
   std::fill_n(m_pmttt, 128, std::numeric_limits<Float_t>::quiet_NaN());
   std::fill_n(m_pmttq, 128, std::numeric_limits<Float_t>::quiet_NaN());
   std::fill_n(m_pmtq, 128, 0.);
+  std::fill_n(m_ampl, 256, 0.);
+  std::fill_n(m_ttdc, 128, std::numeric_limits<Float_t>::quiet_NaN());
+  std::fill_n(m_qtdc, 128, std::numeric_limits<Float_t>::quiet_NaN());
 
   // Reset BBC/MBD Arm Data
   for (int iarm = 0; iarm < 2; iarm++)
@@ -377,7 +384,7 @@ void MbdEvent::Clear()
     m_bbcte[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
     m_bbctl[iarm] = std::numeric_limits<Float_t>::quiet_NaN();
     hevt_bbct[iarm]->Reset();
-    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-50, 50);
+    hevt_bbct[iarm]->GetXaxis()->SetRangeUser(-25, 25);
   }
 
   // Reset end product to prepare next event
@@ -396,11 +403,11 @@ bool MbdEvent::isbadtch(const int ipmtch)
 
 #ifndef ONLINE
 // Get raw data from event combined DSTs
-int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
+int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
 {
-  //Verbosity(100);
+  //std::cout << "MbdEvent::SetRawData()" << std::endl;
   // First check if there is any event (ie, reading from PRDF)
-  if ((dstp[0] == nullptr && dstp[1] == nullptr) || bbcpmts == nullptr)
+  if (dstp[0] == nullptr && dstp[1] == nullptr)
   {
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
@@ -428,11 +435,9 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbc
   }
 
   // Get Packets
-//  CaloPacket *dstp[2]{nullptr};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
-//    dstp[ipkt] = mbdraw->getPacketbyId(pktid);
 
     if (Verbosity() > 0)
     {
@@ -481,8 +486,10 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbc
         _mbdsig[feech].SetNSamples( _nsamples );
         _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
 
-        //std::cout << "feech " << feech << std::endl;
-        //_mbdsig[feech].Print();
+        /*
+        std::cout << "feech " << feech << std::endl;
+        _mbdsig[feech].Print();
+        */
       }
 
       //delete dstp[ipkt];
@@ -496,15 +503,25 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdPmtContainer *bbc
     }
   }
 
-  int status = ProcessRawPackets(bbcpmts);
+  // Fill MbdRawContainer
+  int status = ProcessPackets(bbcraws);
+
+  if ( _fitsonly )
+  {
+    return status;
+  }
+
+  // Fill MbdPmtContainer and MbdOut
+  status = ProcessRawContainer(bbcraws,bbcpmts);
+
   return status;
 }
 #endif  // ONLINE
 
-int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
+int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
 {
   // First check if there is any event (ie, reading from PRDF)
-  if (event == nullptr || bbcpmts == nullptr)
+  if (event == nullptr)
   {
 #ifndef ONLINE
     return Fun4AllReturnCodes::DISCARDEVENT;
@@ -601,12 +618,22 @@ int MbdEvent::SetRawData(Event *event, MbdPmtContainer *bbcpmts)
     }
   }
 
-  int status = ProcessRawPackets(bbcpmts);
+  // Fill MbdRawContainer
+  int status = ProcessPackets(bbcraws);
+  if ( _fitsonly )
+  {
+    return status;
+  }
+
+  // Fill MbdPmtContainer and MbdOut
+  status = ProcessRawContainer(bbcraws,bbcpmts);
+
   return status;
 }
 
-int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
+int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
 {
+  //std::cout << "In ProcessPackets" << std::endl;
   // Do a quick sanity check that all fem counters agree
   if (m_xmitclocks[0] != m_xmitclocks[1])
   {
@@ -641,9 +668,6 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     return -1001; // stop processing event (negative return values end event processing)
   }
 
-  std::array<Double_t,MbdDefs::MBD_N_FEECH> tdc{0.};
-  tdc.fill( 0. );
-
   for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
@@ -652,22 +676,14 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     // time channel
     if (type == 0)
     {
-      tdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
+      m_ttdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if ( tdc[pmtch] < 40. || std::isnan(tdc[pmtch]) || isbadtch(pmtch) )
+      if ( m_ttdc[pmtch] < 40. || std::isnan(m_ttdc[pmtch]) || isbadtch(pmtch) )
       {
-        m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
+        m_ttdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();   // no hit
       }
-      else
-      {
-        m_pmttt[pmtch] = _mbdcal->get_tcorr(ifeech,tdc[pmtch]);
-
-        // at calpass 2, we use tcorr (uncal_mbd pass). make sure tt_t0 = 0.
-        m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
-      }
-
     }
-    else if ( type == 1 && (!std::isnan(m_pmttt[pmtch]) || isbadtch(pmtch) || _always_process_charge ) )
+    else if ( type == 1 && (!std::isnan(m_ttdc[pmtch]) || isbadtch(pmtch) || _always_process_charge ) )
     {
       // we process charge channels which have good time hit
       // or have time channels marked as bad
@@ -677,7 +693,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       // std::cout << "getspline " << ifeech << std::endl;
       _mbdsig[ifeech].GetSplineAmpl();
       Double_t threshold = 0.5;
-      m_pmttq[pmtch] = _mbdsig[ifeech].dCFD(threshold);
+      m_qtdc[pmtch] = _mbdsig[ifeech].dCFD(threshold);
       m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl(); // in adc units
       if (do_templatefit)
       {
@@ -688,7 +704,7 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
         {
           std::cout << "tt " << ifeech << " " << pmtch << " " << m_pmttt[pmtch] << std::endl;
         }
-        m_pmttq[pmtch] = _mbdsig[ifeech].GetTime(); // in units of sample number
+        m_qtdc[pmtch] = _mbdsig[ifeech].GetTime();  // in units of sample number
         m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl(); // in units of adc
       }
 
@@ -697,16 +713,64 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       // In Run 1 (runs before 40000), we didn't set hardware thresholds, and instead set a software threshold of 0.25
       if ( ((m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
       {
-        // m_t0[ifeech] = -9999.;
-        m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
+        m_qtdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
+      }
+    }
+
+  }
+
+  // Copy to output
+  for (int ipmt = 0; ipmt < MbdDefs::BBC_N_PMT; ipmt++)
+  {
+    int feech = _mbdgeom->get_feech(ipmt);
+    bbcraws->get_pmt(ipmt)->set_pmt(ipmt, m_ampl[feech], m_ttdc[ipmt], m_qtdc[ipmt]);
+  }
+  bbcraws->set_npmt(MbdDefs::BBC_N_PMT);  // this would need to be changed if we zero-suppressed
+  bbcraws->set_clocks(m_evt, m_clk, m_femclk);
+
+  return m_evt;
+}
+
+int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
+{
+  //std::cout << "In ProcessRawContainer" << std::endl;
+  for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
+  {
+    int pmtch = _mbdgeom->get_pmt(ifeech);
+    int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
+
+    // time channel
+    if (type == 0)
+    {
+      if ( std::isnan(bbcraws->get_pmt(pmtch)->get_ttdc()) || isbadtch(pmtch) )
+      {
+        m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
       else
       {
-        // if ( m_pmttq[pmtch]<-50. && ifeech==255 ) std::cout << "hit_times " << ifeech << "\t" << m_pmttq[pmtch] << std::endl;
-        // if ( arm==1 ) std::cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << std::endl;
+        m_pmttt[pmtch] = _mbdcal->get_tcorr(ifeech,bbcraws->get_pmt(pmtch)->get_ttdc());
+
+        // at calpass 2, we use tcorr (uncal_mbd pass). make sure tt_t0 = 0.
+        m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
+      }
+
+    }
+    else if ( type == 1 && (!std::isnan(bbcraws->get_pmt(pmtch)->get_ttdc()) || isbadtch(pmtch) || _always_process_charge ) )
+    {
+      // we process charge channels which have good time hit
+      // or have time channels marked as bad
+      // or have always_process_charge set to 1 (useful for threshold studies)
+
+      m_pmttq[pmtch] = bbcraws->get_pmt(pmtch)->get_qtdc();
+
+      if ( !std::isnan(m_pmttq[pmtch]) )
+      {
         m_pmttq[pmtch] -= (_mbdcal->get_sampmax(ifeech) - 2);
         m_pmttq[pmtch] *= 17.7623;  // convert from sample to ns (1 sample = 1/56.299 MHz)
         m_pmttq[pmtch] = m_pmttq[pmtch] - _mbdcal->get_tq0(pmtch);
+
+        // if ( m_pmttq[pmtch]<-50. && ifeech==255 ) std::cout << "hit_times " << ifeech << "\t" << m_pmttq[pmtch] << std::endl;
+        // if ( arm==1 ) std::cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << std::endl;
 
         // if tt is bad, use tq
         if ( std::fabs(_mbdcal->get_tt0(pmtch))>100. )
@@ -719,14 +783,14 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
           //if ( ifeech==0 ) std::cout << "applying scorr" << std::endl;
           if ( !std::isnan(m_pmttt[pmtch]) )
           {
-            m_pmttt[pmtch] -= _mbdcal->get_scorr(ifeech-8,m_ampl[ifeech]);
+            m_pmttt[pmtch] -= _mbdcal->get_scorr(ifeech-8,bbcraws->get_pmt(pmtch)->get_adc());
           }
         }
       }
 
       if ( _mbdcal->get_qgain(pmtch) > 0. )
       {
-        m_pmtq[pmtch] = m_ampl[ifeech] / _mbdcal->get_qgain(pmtch);
+        m_pmtq[pmtch] = bbcraws->get_pmt(pmtch)->get_adc() / _mbdcal->get_qgain(pmtch);
       }
       else
       {
@@ -740,9 +804,9 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
       }
 
       /*
-      if ( m_evt<3 && ifeech==255 && m_ampl[ifeech] )
+      if ( m_evt<3 && ifeech==255 && bbcraws->get_pmt(pmtch)->get_adc() )
       {
-        std::cout << "dcfdcalc " << m_evt << "\t" << ifeech << "\t" << m_pmttq[pmtch] << "\t" << m_ampl[ifeech] << std::endl;
+        std::cout << "dcfdcalc " << m_evt << "\t" << ifeech << "\t" << m_pmttq[pmtch] << "\t" << bbcraws->get_pmt(pmtch)->get_adc() << std::endl;
       }
       */
     }
@@ -758,6 +822,9 @@ int MbdEvent::ProcessRawPackets(MbdPmtContainer *bbcpmts)
     bbcpmts->get_pmt(ipmt)->set_pmt(ipmt, m_pmtq[ipmt], m_pmttt[ipmt], m_pmttq[ipmt]);
   }
   bbcpmts->set_npmt(MbdDefs::BBC_N_PMT);
+
+  m_clk = bbcraws->get_clock();
+  m_femclk = bbcraws->get_femclock();
 
   PostProcessChannels(bbcpmts);
 
@@ -963,7 +1030,8 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
     gausfit[iarm]->SetParameter(0, 5);
     gausfit[iarm]->SetParameter(1, mean);
     gausfit[iarm]->SetParameter(2, rms);
-    gausfit[iarm]->SetRange(rmin,rmax);
+    double binwid = hevt_bbct[iarm]->GetBinWidth(1);
+    gausfit[iarm]->SetRange(rmin-binwid,rmax+binwid);
     // gausfit[iarm]->SetParameter(1, earliest);
     // gausfit[iarm]->SetRange(6, earliest + 5 * 0.05);
     /*
@@ -1121,7 +1189,7 @@ void MbdEvent::ClusterEarliest(std::vector<float>& times, double& mean, double& 
 
   if ( npts>1.0 )
   {
-    rms = sqrt( (sum2/npts) - (mean*mean) );
+    rms = std::max( sqrt( (sum2/npts) - (mean*mean) ), 0.05);
   }
   else
   {

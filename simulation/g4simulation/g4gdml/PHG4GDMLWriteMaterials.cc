@@ -45,12 +45,8 @@
 #include <sstream>
 
 PHG4GDMLWriteMaterials::PHG4GDMLWriteMaterials()
-  : PHG4GDMLWriteDefine()
-  , materialsElement(0)
-{
-}
-
-PHG4GDMLWriteMaterials::~PHG4GDMLWriteMaterials()
+  : 
+   materialsElement(nullptr)
 {
 }
 
@@ -404,9 +400,9 @@ void PHG4GDMLWriteMaterials::MaterialsWrite(xercesc::DOMElement* element)
 
 void PHG4GDMLWriteMaterials::AddIsotope(const G4Isotope* const isotopePtr)
 {
-  for (size_t i = 0; i < isotopeList.size(); i++)  // Check if isotope is
+  for (auto & i : isotopeList)  // Check if isotope is
   {                                                // already in the list!
-    if (isotopeList[i] == isotopePtr)
+    if (i == isotopePtr)
     {
       return;
     }
@@ -417,9 +413,9 @@ void PHG4GDMLWriteMaterials::AddIsotope(const G4Isotope* const isotopePtr)
 
 void PHG4GDMLWriteMaterials::AddElement(const G4Element* const elementPtr)
 {
-  for (size_t i = 0; i < elementList.size(); i++)  // Check if element is
+  for (auto & i : elementList)  // Check if element is
   {                                                // already in the list!
-    if (elementList[i] == elementPtr)
+    if (i == elementPtr)
     {
       return;
     }
@@ -430,9 +426,9 @@ void PHG4GDMLWriteMaterials::AddElement(const G4Element* const elementPtr)
 
 void PHG4GDMLWriteMaterials::AddMaterial(const G4Material* const materialPtr)
 {
-  for (size_t i = 0; i < materialList.size(); i++)  // Check if material is
+  for (auto & i : materialList)  // Check if material is
   {                                                 // already in the list!
-    if (materialList[i] == materialPtr)
+    if (i == materialPtr)
     {
       return;
     }

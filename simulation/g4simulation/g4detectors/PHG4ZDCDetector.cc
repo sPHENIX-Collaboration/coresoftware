@@ -84,25 +84,25 @@ int PHG4ZDCDetector::IsInZDC(G4VPhysicalVolume* volume) const
 
   if (m_ActiveFlag)
   {
-    if (m_ScintiLogicalVolSet.find(mylogvol) != m_ScintiLogicalVolSet.end())
+    if (m_ScintiLogicalVolSet.contains(mylogvol))
     {
       return 1;
     }
-    if (m_FiberLogicalVolSet.find(mylogvol) != m_FiberLogicalVolSet.end())
+    if (m_FiberLogicalVolSet.contains(mylogvol))
     {
       return 2;
     }
   }
   if (m_AbsorberActiveFlag)
   {
-    if (m_AbsorberLogicalVolSet.find(mylogvol) != m_AbsorberLogicalVolSet.end())
+    if (m_AbsorberLogicalVolSet.contains(mylogvol))
     {
       return -1;
     }
   }
   if (m_SupportActiveFlag)
   {
-    if (m_SupportLogicalVolSet.find(mylogvol) != m_SupportLogicalVolSet.end())
+    if (m_SupportLogicalVolSet.contains(mylogvol))
     {
       return -2;
     }

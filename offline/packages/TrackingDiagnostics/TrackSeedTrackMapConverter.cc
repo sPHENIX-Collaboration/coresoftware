@@ -6,7 +6,7 @@
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
-#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrackMap_v2.h>
 #include <trackbase_historic/SvtxTrack_v4.h>
 #include <trackbase_historic/SvtxTrackState_v2.h>
 #include <trackbase_historic/TrackSeed.h>
@@ -24,6 +24,7 @@
 #include <phool/phool.h>
 
 #include <cmath>
+
 namespace
 {
   template <class T>
@@ -64,7 +65,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
     for (auto iter = m_siContainer->begin(); iter != m_siContainer->end();
          ++iter)
     {
-      auto seed = *iter;
+      auto *seed = *iter;
       if (!seed)
       {
         std::cout << "no seed at index " << m_siContainer->index(iter)
@@ -79,7 +80,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       for (auto iter = m_tpcContainer->begin(); iter != m_tpcContainer->end();
            ++iter)
       {
-        auto seed = *iter;
+        auto *seed = *iter;
         if (!seed)
         {
           std::cout << "no tpc seed at entry " << m_tpcContainer->index(iter)
@@ -166,7 +167,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         }
         else
         {
-          float pt = fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
+          float pt = std::abs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
           float phi = tpcseed->get_phi();
           svtxtrack->set_px(pt * std::cos(phi));
           svtxtrack->set_py(pt * std::sin(phi));
@@ -190,12 +191,13 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         // perform circle fit
         TrackSeedHelper::circleFitByTaubin(tpcseed, positions, 0, 58);
 
-        float tpcR = fabs(1. / tpcseed->get_qOverR());
+        float tpcR = std::abs(1. / tpcseed->get_qOverR());
         float tpcx = tpcseed->get_X0();
         float tpcy = tpcseed->get_Y0();
         float vertexradius = 80;
         const auto intersect = TrackFitUtils::circle_circle_intersection(vertexradius, tpcR, tpcx, tpcy);
-        float intx, inty;
+        float intx;
+        float inty;
 
         if (std::get<1>(intersect) < std::get<3>(intersect))
         {
@@ -227,7 +229,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
         float p;
         if (m_ConstField)
         {
-          p = std::cosh(tpcseed->get_eta()) * fabs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
+          p = std::cosh(tpcseed->get_eta()) * std::abs(1. / tpcseed->get_qOverR()) * (0.3 / 100) * fieldstrength;
         }
         else
         {
@@ -239,8 +241,34 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 
         svtxtrack->set_px(charge < 0 ? tan.x() : tan.x() * -1);
         svtxtrack->set_py(charge < 0 ? tan.y() : tan.y() * -1);
-        svtxtrack->set_pz(cosmicslope > 0 ? fabs(tan.z()) : -1 * fabs(tan.z()));
-        svtxtrack->set_z(svtxtrack->get_pz() > 0 ? (slope < 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()));
+        svtxtrack->set_pz(cosmicslope > 0 ? std::abs(tan.z()) : -1 * std::abs(tan.z()));
+//        svtxtrack->set_z(svtxtrack->get_pz() > 0 ? (slope < 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()) : (slope > 0 ? intz : vertexradius * slope * -1 + tpcseed->get_Z0()));
+// This is easier to understand than the convoluted expression above
+	float zvalue = 0.0F;
+	if (svtxtrack->get_pz() > 0)
+	{
+	  if (slope < 0)
+	  {
+	    zvalue = intz;
+	  }
+	  else
+	  {
+	    zvalue = vertexradius * slope * -1 + tpcseed->get_Z0();
+	  }
+	}
+	else   // pz <= 0
+	{
+	  if (slope > 0)
+	  {
+	    zvalue = intz;
+	  }
+	  else
+	  {
+	    zvalue = vertexradius * slope * -1 + tpcseed->get_Z0();
+	  }
+	}
+	svtxtrack->set_z(zvalue);
+
         svtxtrack->set_charge(charge);
         addKeys(svtxtrack, tpcseed);
         if (silseed)
@@ -275,7 +303,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       svtxtrack->set_charge(trackSeed->get_qOverR() > 0 ? 1 : -1);
       if (m_ConstField)
       {
-        float pt = fabs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * fieldstrength;
+        float pt = std::abs(1. / trackSeed->get_qOverR()) * (0.3 / 100) * fieldstrength;
 
         float phi = trackSeed->get_phi();
         svtxtrack->set_px(pt * std::cos(phi));
@@ -291,7 +319,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
       }
 
       // calculate chisq and ndf
-      float R = 1. / std::fabs(trackSeed->get_qOverR());
+      float R = 1. / std::abs(trackSeed->get_qOverR());
       float X0 = trackSeed->get_X0();
       float Y0 = trackSeed->get_Y0();
       float Z0 = trackSeed->get_Z0();
@@ -428,7 +456,7 @@ int TrackSeedTrackMapConverter::process_event(PHCompositeNode* /*unused*/)
 void TrackSeedTrackMapConverter::lineFit(SvtxTrack_v4* track, TrackSeed* seed)
 {
   auto firstclusterckey = *(seed->begin_cluster_keys());
-  auto cluster = m_clusters->findCluster(firstclusterckey);
+  auto *cluster = m_clusters->findCluster(firstclusterckey);
   auto glob = m_tGeometry->getGlobalPosition(firstclusterckey, cluster);
   float phi = seed->get_phi();
   float theta = seed->get_theta();
@@ -494,7 +522,7 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
         std::cout << PHWHERE << "SVTX node added" << std::endl;
       }
     }
-    m_trackMap = new SvtxTrackMap_v1;
+    m_trackMap = new SvtxTrackMap_v2;
     PHIODataNode<PHObject>* tracks_node =
         new PHIODataNode<PHObject>(m_trackMap, "SvtxTrackMap", "PHObject");
     tb_node->addNode(tracks_node);
@@ -530,7 +558,7 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
       }
     }
 
-    m_trackMap = new SvtxTrackMap_v1;
+    m_trackMap = new SvtxTrackMap_v2;
     PHIODataNode<PHObject>* tracks_node =
         new PHIODataNode<PHObject>(m_trackMap, m_trackMapName, "PHObject");
     tb_node->addNode(tracks_node);
@@ -590,7 +618,7 @@ std::pair<int, float> TrackSeedTrackMapConverter::getCosmicCharge(TrackSeed* see
        ++it)
   {
     auto ckey = *it;
-    auto clus = m_clusters->findCluster(ckey);
+    auto *clus = m_clusters->findCluster(ckey);
     auto glob = m_tGeometry->getGlobalPosition(ckey, clus);
     globpos.push_back(glob);
     float r = std::sqrt(square(glob.x()) + square(glob.y()));

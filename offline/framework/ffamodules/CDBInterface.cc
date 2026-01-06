@@ -84,9 +84,9 @@ int CDBInterface::UpdateRunNode(PHCompositeNode *topNode)
     {
       if (tmp_set.contains(*itr))
       {
-        if (Verbosity())
+        if (Verbosity() > 2)
         {
-          std::cout << PHWHERE << " removing already saved: domain " << std::get<0>(*itr)
+          std::cout << PHWHERE << " cleaning duplicately saved: domain " << std::get<0>(*itr)
                     << ", url: " << std::get<1>(*itr)
                     << ", timestamp: " << std::get<2>(*itr) << std::endl;
         }

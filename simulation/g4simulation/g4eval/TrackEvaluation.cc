@@ -11,7 +11,6 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -21,9 +20,6 @@
 
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ClusterErrorPara.h>
-#include <trackbase/InttDefs.h>
-#include <trackbase/MvtxDefs.h>
-#include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
@@ -32,23 +28,32 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/TrackSeed.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
 
 #include <TVector3.h>
 
 #include <algorithm>
-#include <bitset>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <numeric>
+#include <vector>
 
 //_____________________________________________________________________
 namespace
@@ -63,8 +68,8 @@ namespace
       : m_range(range)
     {
     }
-    inline const typename T::first_type& begin() { return m_range.first; }
-    inline const typename T::second_type& end() { return m_range.second; }
+    const typename T::first_type& begin() { return m_range.first; }
+    const typename T::second_type& end() { return m_range.second; }
 
    private:
     T m_range;
@@ -72,14 +77,14 @@ namespace
 
   //! square
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
 
   //! radius
   template <class T>
-  inline constexpr T get_r(T x, T y)
+  constexpr T get_r(T x, T y)
   {
     return std::sqrt(square(x) + square(y));
   }
@@ -117,9 +122,9 @@ namespace
     double py() const { return momentum.y(); }
     double pz() const { return momentum.z(); }
 
-    TVector3 position;
-    TVector3 momentum;
-    double weight = 1;
+    TVector3 position; // NOLINT(misc-non-private-member-variables-in-classes)
+    TVector3 momentum; // NOLINT(misc-non-private-member-variables-in-classes)
+    double weight = 1; // NOLINT(misc-non-private-member-variables-in-classes)
   };
 
   //! calculate the average of member function called on all members in collection
@@ -153,7 +158,7 @@ namespace
 
     if (!valid)
     {
-      return NAN;
+      return std::numeric_limits<double>::quiet_NaN();
     }
     return swx / sw;
   }
@@ -186,7 +191,7 @@ namespace
     return std::accumulate(cluster_keys.begin(), cluster_keys.end(), int64_t(0),
                            [](int64_t value, const TrkrDefs::cluskey& key)
                            {
-                             return TrkrDefs::getLayer(key) < 64 ? value | (1LL << TrkrDefs::getLayer(key)) : value;
+                             return TrkrDefs::getLayer(key) < 64 ? (uint64_t) value | (1ULL << TrkrDefs::getLayer(key)) : value;
                            });
   }
 
@@ -235,11 +240,11 @@ namespace
   //! number of hits associated to cluster
   void add_cluster_size(TrackEvaluationContainerv1::ClusterStruct& cluster, TrkrCluster* trk_clus)
   {
-    cluster.size = trk_clus->getSize();
+    cluster.size = (unsigned char) trk_clus->getSize();
     cluster.phi_size = trk_clus->getPhiSize();
     cluster.z_size = trk_clus->getZSize();
-    cluster.ovlp = trk_clus->getOverlap();
-    cluster.edge = trk_clus->getEdge();
+    cluster.ovlp = (unsigned char) trk_clus->getOverlap();
+    cluster.edge = (unsigned char) trk_clus->getEdge();
     cluster.adc = trk_clus->getAdc();
     cluster.max_adc = trk_clus->getMaxAdc();
   }
@@ -263,7 +268,7 @@ namespace
     }
 
     const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(clus_key);
-    const auto hitset = hitsetcontainer->findHitSet(hitset_key);
+    auto *const hitset = hitsetcontainer->findHitSet(hitset_key);
     if (!hitset)
     {
       return;
@@ -275,15 +280,12 @@ namespace
 
     for (const auto& pair : range_adaptor(range))
     {
-      const auto hit = hitset->getHit(pair.second);
+      auto *const hit = hitset->getHit(pair.second);
       if (hit)
       {
         const auto energy = hit->getEnergy();
         cluster.energy_sum += energy;
-        if (energy > cluster.energy_max)
-        {
-          cluster.energy_max = energy;
-        }
+        cluster.energy_max = std::max<double>(energy, cluster.energy_max);
       }
     }
   }
@@ -366,7 +368,7 @@ int TrackEvaluation::Init(PHCompositeNode* topNode)
 {
   // find DST node
   PHNodeIterator iter(topNode);
-  auto dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  auto *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
     std::cout << "TrackEvaluation::Init - DST Node missing" << std::endl;
@@ -375,7 +377,7 @@ int TrackEvaluation::Init(PHCompositeNode* topNode)
 
   // get EVAL node
   iter = PHNodeIterator(dstNode);
-  auto evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
+  auto *evalNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "EVAL"));
   if (!evalNode)
   {
     // create
@@ -384,7 +386,7 @@ int TrackEvaluation::Init(PHCompositeNode* topNode)
     dstNode->addNode(evalNode);
   }
 
-  auto newNode = new PHIODataNode<PHObject>(new TrackEvaluationContainerv1, "TrackEvaluationContainer", "PHObject");
+  auto *newNode = new PHIODataNode<PHObject>(new TrackEvaluationContainerv1, "TrackEvaluationContainer", "PHObject");
   evalNode->addNode(newNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -523,6 +525,9 @@ void TrackEvaluation::evaluate_event()
       case TrkrDefs::micromegasId:
         event.nclusters_micromegas += nclusters;
         break;
+      default:
+	std::cout << "unknown trkrId: " << trkrId << std::endl;
+	exit(1);
       }
 
       event.nclusters[layer] += nclusters;
@@ -592,7 +597,7 @@ void TrackEvaluation::evaluate_tracks()
     track_struct.contributors = contributors;
 
     // get particle
-    auto particle = m_g4truthinfo->GetParticle(id);
+    auto *particle = m_g4truthinfo->GetParticle(id);
     track_struct.embed = get_embed(particle);
     ::add_truth_information(track_struct, particle, m_g4truthinfo);
 
@@ -601,7 +606,7 @@ void TrackEvaluation::evaluate_tracks()
     // loop over clusters
     for (const auto& cluster_key : get_cluster_keys(track))
     {
-      auto cluster = m_cluster_map->findCluster(cluster_key);
+      auto *cluster = m_cluster_map->findCluster(cluster_key);
       if (!cluster)
       {
         std::cout << "TrackEvaluation::evaluate_tracks - unable to find cluster for key " << cluster_key << std::endl;
@@ -774,13 +779,11 @@ std::pair<int, int> TrackEvaluation::get_max_contributor(SvtxTrack* track) const
   {
     return {0, 0};
   }
-  else
-  {
-    return *std::max_element(
-        contributor_map.cbegin(), contributor_map.cend(),
-        [](const IdMap::value_type& first, const IdMap::value_type& second)
-        { return first.second < second.second; });
-  }
+
+  return *std::max_element(
+    contributor_map.cbegin(), contributor_map.cend(),
+    [](const IdMap::value_type& first, const IdMap::value_type& second)
+      { return first.second < second.second; });
 }
 
 //_____________________________________________________________________
@@ -822,15 +825,15 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster(TrkrDe
 
     if (cluster_struct.layer >= 7)
     {
-      auto para_errors_mm = ClusErrPara.get_clusterv5_modified_error(cluster, r, key);
+      auto para_errors_mm = ClusterErrorPara::get_clusterv5_modified_error(cluster, r, key);
 
       cluster_struct.phi_error = cluster->getRPhiError() / cluster_struct.r;
       cluster_struct.z_error = cluster->getZError();
       cluster_struct.para_phi_error = sqrt(para_errors_mm.first) / cluster_struct.r;
       cluster_struct.para_z_error = sqrt(para_errors_mm.second);
-      //	float R = TMath::Abs(1.0/tpc_seed->get_qOverR());
+      //	float R = std::abs(1.0/tpc_seed->get_qOverR());
       cluster_struct.trk_radius = 1.0 / tpc_seed->get_qOverR();
-      cluster_struct.trk_alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpc_seed->get_qOverR()));
+      cluster_struct.trk_alpha = (r * r) / (2 * r * std::abs(1.0 / tpc_seed->get_qOverR()));
       cluster_struct.trk_beta = std::atan(tpc_seed->get_slope());
     }
     else
@@ -838,9 +841,9 @@ TrackEvaluationContainerv1::ClusterStruct TrackEvaluation::create_cluster(TrkrDe
       auto para_errors_mvtx = ClusErrPara.get_cluster_error(cluster, r, key, si_seed->get_qOverR(), si_seed->get_slope());
       cluster_struct.phi_error = sqrt(para_errors_mvtx.first) / cluster_struct.r;
       cluster_struct.z_error = sqrt(para_errors_mvtx.second);
-      //	float R = TMath::Abs(1.0/si_seed->get_qOverR());
+      //	float R = std::abs(1.0/si_seed->get_qOverR());
       cluster_struct.trk_radius = 1.0 / tpc_seed->get_qOverR();
-      cluster_struct.trk_alpha = (r * r) / (2 * r * TMath::Abs(1.0 / tpc_seed->get_qOverR()));
+      cluster_struct.trk_alpha = (r * r) / (2 * r * std::abs(1.0 / tpc_seed->get_qOverR()));
       cluster_struct.trk_beta = std::atan(si_seed->get_slope());
     }
   }
@@ -891,7 +894,7 @@ void TrackEvaluation::add_trk_information_micromegas(TrackEvaluationContainerv1:
 {
   // get geometry cylinder from layer
   const auto layer = cluster.layer;
-  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geom_container->GetLayerGeom(layer));
+  auto *const layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geom_container->GetLayerGeom(layer));
   assert(layergeom);
 
   // convert cluster position to local tile coordinates
@@ -1061,7 +1064,7 @@ void TrackEvaluation::add_truth_information_micromegas(TrackEvaluationContainerv
   cluster.truth_size = g4hits.size();
 
   const auto layer = cluster.layer;
-  const auto layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geom_container->GetLayerGeom(layer));
+  auto *const layergeom = dynamic_cast<CylinderGeomMicromegas*>(m_micromegas_geom_container->GetLayerGeom(layer));
   assert(layergeom);
 
   // convert cluster position to local tile coordinates

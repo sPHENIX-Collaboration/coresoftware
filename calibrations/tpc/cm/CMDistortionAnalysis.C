@@ -1,22 +1,35 @@
 //step 3
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include "TMath.h"
-#include "TVector3.h"
-#include "TTree.h"
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TFileCollection.h>
+#include <TFileInfo.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <THashList.h>
+#include <TLatex.h>
+#include <TMath.h>
+#include <TPad.h>
+#include <TVector3.h>
+#include <TTree.h>
 
-using namespace std;
+#include <cmath>
+#include <iostream>
+#include <format>
+#include <vector>
 
 class Shifter {
 public:
-Shifter(TString sourcefilename);
+explicit Shifter(const TString& sourcefilename);
+ // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
   TFile *forward, *average;
   TH3F *hX, *hY, *hZ, *hR, *hPhi, *hXave, *hYave, *hZave, *hRave, *hPhiave;  
+// NOLINTEND(misc-non-private-member-variables-in-classes)
 };
 
-Shifter::Shifter(TString sourcefilename){
+Shifter::Shifter(const TString& sourcefilename){
   //single event distortion file
+// NOLINTBEGIN(cppcoreguidelines-prefer-member-initializer)
+
   forward=TFile::Open(sourcefilename,"READ"); 
 
   hX=(TH3F*)forward->Get("hIntDistortionPosX");
@@ -35,6 +48,7 @@ Shifter::Shifter(TString sourcefilename){
   
   hRave=(TH3F*)average->Get("hIntDistortionPosR");
   hPhiave=(TH3F*)average->Get("hIntDistortionPosP");
+// NOLINTEND(cppcoreguidelines-prefer-member-initializer)
  
   //subtract average from total distortions to study fluctuations
   hX->Add(hXave,-1);
@@ -45,13 +59,13 @@ Shifter::Shifter(TString sourcefilename){
   hPhi->Add(hPhiave,-1);
 }
 
-int CMDistortionAnalysis(int nMaxEvents = -1) {
+int CMDistortionAnalysis(int  /*nMaxEvents*/ = -1) {
   Shifter *shifter;
   int nbins = 35; 
-  double x, y, z;
+//  double x, y, z;
   double low = -80.0;
   double high = 80.0;
-  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
+//  double deltaX, deltaY, deltaZ, deltaR, deltaPhi;
   int nEvents; 
   
   TCanvas *canvas=new TCanvas("canvas","CMDistortionAnalysisPhiR",2000,3000);
@@ -100,7 +114,7 @@ int CMDistortionAnalysis(int nMaxEvents = -1) {
     
     TFile *plots;
 
-    plots=TFile::Open(Form("CMModels_Event%d.root",ifile),"READ");
+    plots=TFile::Open(std::string("CMModels_Event" + std::to_string(ifile) + ".root").c_str(),"READ");
    
     TH3F *hCartCMModel[3];
     hCartCMModel[0]=(TH3F*)plots->Get("hCMModelX");
@@ -137,7 +151,7 @@ int CMDistortionAnalysis(int nMaxEvents = -1) {
     double maxr = 79.115387;
     double maxz = 106.81875;
 
-    double rshiftcart, phishiftcart;
+//    double rshiftcart, phishiftcart;
 
     int ndiff = 300;
     int mindiff = -20;
@@ -271,7 +285,7 @@ int CMDistortionAnalysis(int nMaxEvents = -1) {
 	  double shifttrueCyl[2];
 	  double differenceCyl[2];
 
-	  double differenceR, differencePhi;
+//	  double differenceR, differencePhi;
 
 	  int bin = hCartCMModel[0]->FindBin(phi,r,z); //same for all
 
@@ -280,7 +294,7 @@ int CMDistortionAnalysis(int nMaxEvents = -1) {
 	  double differenceCartPhiR[3];
 	  double shiftrecoCylPhiR[2];
 	  double differenceCylPhiR[2];
-	  double differenceR_PhiR, differencePhi_PhiR;	  
+//	  double differenceR_PhiR, differencePhi_PhiR;	  
 	  int binPhiR = hCartCMModelPhiR[0]->FindBin(phi,r,z);
 
 	  if((r > 30.0) && (r < 76.0)){
@@ -447,35 +461,35 @@ int CMDistortionAnalysis(int nMaxEvents = -1) {
     hTrueStdDevPhi->Fill(hPhiShiftTrue->GetStdDev(1));
 
     for (int m = 0; m < 6; m++){
-      hCartesianAveDiff[m]->SetStats(0);
-      hCartesianAveDiffPhiR[m]->SetStats(0);
+      hCartesianAveDiff[m]->SetStats(false);
+      hCartesianAveDiffPhiR[m]->SetStats(false);
     }
     for (int m = 0; m < 4; m++){
-      hCylindricalAveDiff[m]->SetStats(0);
-      hCylindricalAveDiffPhiR[m]->SetStats(0);
+      hCylindricalAveDiff[m]->SetStats(false);
+      hCylindricalAveDiffPhiR[m]->SetStats(false);
     }
   
-    hCompareRTrue->SetStats(0);
-    hComparePhiTrue->SetStats(0);
+    hCompareRTrue->SetStats(false);
+    hComparePhiTrue->SetStats(false);
 
-    hRDiffvR->SetStats(0);
-    hRDiffvZ->SetStats(0);
-    hRDiffvPhi->SetStats(0);
+    hRDiffvR->SetStats(false);
+    hRDiffvZ->SetStats(false);
+    hRDiffvPhi->SetStats(false);
   
-    hPhiDiffvR->SetStats(0);
-    hPhiDiffvZ->SetStats(0);
-    hPhiDiffvPhi->SetStats(0);
+    hPhiDiffvR->SetStats(false);
+    hPhiDiffvZ->SetStats(false);
+    hPhiDiffvPhi->SetStats(false);
 
-    hCompareRTrue_PhiR->SetStats(0);
-    hComparePhiTrue_PhiR->SetStats(0);
+    hCompareRTrue_PhiR->SetStats(false);
+    hComparePhiTrue_PhiR->SetStats(false);
 
-    hRDiffvR_PhiR->SetStats(0);
-    hRDiffvZ_PhiR->SetStats(0);
-    hRDiffvPhi_PhiR->SetStats(0);
+    hRDiffvR_PhiR->SetStats(false);
+    hRDiffvZ_PhiR->SetStats(false);
+    hRDiffvPhi_PhiR->SetStats(false);
   
-    hPhiDiffvR_PhiR->SetStats(0);
-    hPhiDiffvZ_PhiR->SetStats(0);
-    hPhiDiffvPhi_PhiR->SetStats(0);
+    hPhiDiffvR_PhiR->SetStats(false);
+    hPhiDiffvZ_PhiR->SetStats(false);
+    hPhiDiffvPhi_PhiR->SetStats(false);
     
     TPad *c1=new TPad("c1","",0.0,0.8,1.0,0.93); //can i do an array of pads?
     TPad *c2=new TPad("c2","",0.0,0.64,1.0,0.77);
@@ -605,7 +619,7 @@ int CMDistortionAnalysis(int nMaxEvents = -1) {
 
     titlepad->cd();
     titlepad->Clear();
-    title->DrawLatex(0.01,0.4,Form("Event %d; %s", ifile, sourcefilename.Data())); 
+    title->DrawLatex(0.01,0.4,std::format("Event {}; {}", ifile, sourcefilename.Data()).c_str());
     title->Draw();
     
     stitlepad1->cd();

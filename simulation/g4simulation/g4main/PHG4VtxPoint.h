@@ -11,7 +11,7 @@
 class PHG4VtxPoint : public PHObject
 {
  public:
-  ~PHG4VtxPoint() override {}
+  ~PHG4VtxPoint() = default;
 
   void identify(std::ostream& os = std::cout) const override;
 

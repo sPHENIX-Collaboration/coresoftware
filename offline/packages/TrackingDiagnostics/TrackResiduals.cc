@@ -11,7 +11,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-
+#include <trackbase/TrkrClusterIterationMap.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
@@ -132,6 +132,10 @@ void TrackResiduals::clearClusterStateVectors()
   m_idealsurfcentery.clear();
   m_idealsurfcenterz.clear();
   m_idealsurfnormx.clear();
+  m_clstave.clear();
+  m_clchip.clear();
+  m_clladderz.clear();
+  m_clladderphi.clear();
   m_clsector.clear();
   m_clside.clear();
   m_idealsurfnormy.clear();
@@ -360,7 +364,7 @@ void TrackResiduals::fillFailedSeedTree(PHCompositeNode* topNode, std::set<unsig
     }
     m_trackid = svtxseedmap->find(seed);
     auto tpcseedindex = seed->get_tpc_seed_index();
-    if (tpc_seed_ids.find(tpcseedindex) != tpc_seed_ids.end())
+    if (tpc_seed_ids.contains(tpcseedindex))
     {
       continue;
     }
@@ -660,7 +664,7 @@ void TrackResiduals::fillClusterTree(TrkrClusterContainer* clusters,
         m_clusmaxadc = cluster->getMaxAdc();
         m_scluslx = cluster->getLocalX();
         m_scluslz = cluster->getLocalY();
-        auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster, m_sclusgr, key);
+        auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, m_sclusgr, key);
         m_phisize = cluster->getPhiSize();
         m_zsize = cluster->getZSize();
         m_scluselx = std::sqrt(para_errors.first);
@@ -1009,9 +1013,13 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   switch (TrkrDefs::getTrkrId(ckey))
   {
   case TrkrDefs::mvtxId:
+    m_clstave.push_back(MvtxDefs::getStaveId(ckey));
+    m_clchip.push_back(MvtxDefs::getChipId(ckey));
     m_nmaps++;
     break;
   case TrkrDefs::inttId:
+    m_clladderz.push_back(InttDefs::getLadderZId(ckey));
+    m_clladderphi.push_back(InttDefs::getLadderPhiId(ckey));
     m_nintt++;
     break;
   case TrkrDefs::tpcId:
@@ -1139,7 +1147,7 @@ void TrackResiduals::fillClusterBranchesKF(TrkrDefs::cluskey ckey, SvtxTrack* tr
   }
 
   float clusr = r(clusglob_moved.x(), clusglob_moved.y());
-  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
+  auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster,
                                                                 clusr, ckey);
   m_cluselx.push_back(sqrt(para_errors.first));
   m_cluselz.push_back(sqrt(para_errors.second));
@@ -1358,22 +1366,38 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   {
   case TrkrDefs::mvtxId:
     m_nmaps++;
+    m_clstave.push_back(MvtxDefs::getStaveId(ckey));
+    m_clchip.push_back(MvtxDefs::getChipId(ckey));
+    m_clladderz.push_back(-1);
+    m_clladderphi.push_back(-1);
     m_clsector.push_back(-1);
     m_clside.push_back(-1);
     break;
   case TrkrDefs::inttId:
+    m_clstave.push_back(-1);
+    m_clchip.push_back(-1);
+    m_clladderz.push_back(InttDefs::getLadderZId(ckey));
+    m_clladderphi.push_back(InttDefs::getLadderPhiId(ckey));
     m_clsector.push_back(-1);
     m_clside.push_back(-1);
     m_nintt++;
     break;
   case TrkrDefs::tpcId:
     m_ntpc++;
+    m_clstave.push_back(-1);
+    m_clchip.push_back(-1);
+    m_clladderz.push_back(-1);
+    m_clladderphi.push_back(-1);
     m_clsector.push_back(TpcDefs::getSectorId(ckey));
     m_clside.push_back(TpcDefs::getSide(ckey));
     break;
   case TrkrDefs::micromegasId:
     m_nmms++;
     m_tileid = MicromegasDefs::getTileId(ckey);
+    m_clstave.push_back(-1);
+    m_clchip.push_back(-1);
+    m_clladderz.push_back(-1);
+    m_clladderphi.push_back(-1);
     m_clsector.push_back(-1);
     m_clside.push_back(-1);
     break;
@@ -1401,7 +1425,7 @@ void TrackResiduals::fillClusterBranchesSeeds(TrkrDefs::cluskey ckey,  // SvtxTr
   m_cluslz.push_back(loc.y());
 
   float clusr = r(clusglob_moved.x(), clusglob_moved.y());
-  auto para_errors = m_clusErrPara.get_clusterv5_modified_error(cluster,
+  auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster,
                                                                 clusr, ckey);
   m_cluselx.push_back(sqrt(para_errors.first));
   m_cluselz.push_back(sqrt(para_errors.second));
@@ -1719,6 +1743,7 @@ void TrackResiduals::createBranches()
   m_tree->Branch("gl1bco", &m_bco, "m_bco/l");
   m_tree->Branch("crossing", &m_crossing, "m_crossing/I");
   m_tree->Branch("crossing_estimate", &m_crossing_estimate, "m_crossing_estimate/I");
+  m_tree->Branch("silseedit",&m_silseedit, "m_silseedit/I");
   m_tree->Branch("silseedx", &m_silseedx, "m_silseedx/F");
   m_tree->Branch("silseedy", &m_silseedy, "m_silseedy/F");
   m_tree->Branch("silseedz", &m_silseedz, "m_silseedz/F");
@@ -1780,8 +1805,12 @@ void TrackResiduals::createBranches()
   m_tree->Branch("dcaxy", &m_dcaxy, "m_dcaxy/F");
   m_tree->Branch("dcaz", &m_dcaz, "m_dcaz/F");
 
-  m_tree->Branch("clussector", &m_clsector);
   m_tree->Branch("cluslayer", &m_cluslayer);
+  m_tree->Branch("clusstave", &m_clstave);
+  m_tree->Branch("cluschip", &m_clchip);
+  m_tree->Branch("clusladderz", &m_clladderz);
+  m_tree->Branch("clusladderphi", &m_clladderphi);
+  m_tree->Branch("clussector", &m_clsector);
   m_tree->Branch("clusside", &m_clside);
   m_tree->Branch("cluskeys", &m_cluskeys);
   m_tree->Branch("clusedge", &m_clusedge);
@@ -2226,6 +2255,8 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
   auto *vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   auto *alignmentmap = findNode::getClass<SvtxAlignmentStateMap>(topNode, m_alignmentMapName);
   auto *geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  auto *iteration_map = findNode::getClass<TrkrClusterIterationMap>(topNode, "TrkrClusterIterationMap");
+   
   std::set<unsigned int> tpc_seed_ids;
 
   for (const auto& [key, track] : *trackmap)
@@ -2235,7 +2266,7 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       continue;
     }
     m_trackid = track->get_id();
-
+   
     m_crossing = track->get_crossing();
     m_crossing_estimate = SHRT_MAX;
     m_px = track->get_px();
@@ -2328,6 +2359,11 @@ void TrackResiduals::fillResidualTreeSeeds(PHCompositeNode* topNode)
       m_silseedphi = silseed->get_phi();
       m_silseedeta = silseed->get_eta();
       m_silseedcharge = silseed->get_qOverR() > 0 ? 1 : -1;
+      if (iteration_map)
+      {
+        m_silseedit = iteration_map->getIteration(*silseed->begin_cluster_keys());
+   
+      }
     }
     if (tpcseed)
     {

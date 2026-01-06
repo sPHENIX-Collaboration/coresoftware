@@ -7,9 +7,8 @@
 #include <Rtypes.h> // For Int_t, Long64_t, etc
 
 #include <filesystem>  // for exists
+#include <format>
 #include <utility>     // for pair
-
-#include <boost/format.hpp>
 
 InttSurveyMap::~InttSurveyMap()
 {
@@ -80,7 +79,7 @@ int InttSurveyMap::v_LoadFromCDBTTree(CDBTTree& cdbttree)
 
     for (int i = 0; i < 16; ++i)
     {
-      std::string boost_formatted = boost::str(boost::format("m_abs_%01d_%01d") % (i / 4) % (i % 4));
+      std::string boost_formatted = std::format("m_abs_{:01d}_{:01d}", (i / 4), (i % 4));
       aff.matrix()(i / 4, i % 4) = cdbttree.GetDoubleValue(n, boost_formatted);
     }
     m_absolute_transforms->insert({ofl, aff});

@@ -18,7 +18,7 @@ class PHG4ZDCSubsystem : public PHG4DetectorSubsystem
  public:
   /** Constructor
    */
-  explicit PHG4ZDCSubsystem(const std::string& name, const int layer);
+  explicit PHG4ZDCSubsystem(const std::string& name, const int lyr);
 
   /** Destructor
    */

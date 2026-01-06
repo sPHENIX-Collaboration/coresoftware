@@ -78,7 +78,7 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep, bool 
   if (m_BlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
-    auto killtrack = const_cast<G4Track *>(aTrack);
+    auto *killtrack = const_cast<G4Track *>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
 
@@ -287,8 +287,8 @@ bool PHG4MicromegasSteppingAction::UserSteppingAction(const G4Step *aStep, bool 
       // ownership is transferred to container
       // so we release the hit
       // cppcheck says to check the return code, likely it should be non-zero
-      // cppcheck-suppress *
-      m_hit.release();
+      // cppcheck-suppress ignoredReturnValue
+      m_hit.release(); // NOLINT(bugprone-unused-return-value)
     }
     else
     {
@@ -330,7 +330,7 @@ void PHG4MicromegasSteppingAction::SetHitNodeName(const std::string &type, const
     m_HitNodeName = name;
     return;
   }
-  else if (type == "G4HIT_SUPPORT")
+  if (type == "G4HIT_SUPPORT")
   {
     m_SupportNodeName = name;
     return;

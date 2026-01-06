@@ -15,11 +15,12 @@
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 
+#include <globalvertex/SvtxVertex.h>  // for SvtxVertex
+#include <globalvertex/SvtxVertexMap.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
-#include <globalvertex/SvtxVertex.h>  // for SvtxVertex
-#include <globalvertex/SvtxVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -48,11 +49,8 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <HepMC/GenEvent.h>
 #include <HepMC/GenVertex.h>
-#pragma GCC diagnostic pop
 
 #include <cmath>
 #include <cstdlib>
@@ -62,6 +60,7 @@
 
 EventEvaluator::EventEvaluator(const std::string& name, const std::string& filename)
   : SubsysReco(name)
+  , _geometry_done(new int[20])
   , _filename(filename)
 {
   _hits_layerID = new int[_maxNHits];
@@ -147,7 +146,7 @@ EventEvaluator::EventEvaluator(const std::string& name, const std::string& filen
   _calo_towers_x = new float[_maxNTowersCalo];
   _calo_towers_y = new float[_maxNTowersCalo];
   _calo_towers_z = new float[_maxNTowersCalo];
-  _geometry_done = new int[20];
+
   for (int igem = 0; igem < 20; igem++)
   {
     _geometry_done[igem] = 0;
@@ -428,7 +427,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             return;
           }
 
-          auto xsec = truthevent->cross_section();
+          auto* xsec = truthevent->cross_section();
           if (xsec)
           {
             _cross_section = xsec->cross_section();
@@ -436,7 +435,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           // Only fill the event weight if available.
           // The overall event weight will be stored in the last entry in the vector.
           auto weights = truthevent->weights();
-          if (weights.size() > 0)
+          if (!weights.empty())
           {
             _event_weight = weights[weights.size() - 1];
           }
@@ -579,11 +578,9 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                     {
                       break;
                     }
-                    else
-                    {
-                      _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
-                      mcSteps2 += 1;
-                    }
+
+                    _hits_trueID[_nHitsLayers] = g4particleMother2->get_parent_id();
+                    mcSteps2 += 1;
                   }
                 }
               }
@@ -618,7 +615,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     CaloRawTowerEval* towerevalHCALIN = _caloevalstackHCALIN->get_rawtower_eval();
     _nTowers_HCALIN = 0;
     std::string towernodeHCALIN = "TOWER_CALIB_HCALIN";
-    RawTowerContainer* towersHCALIN = findNode::getClass<RawTowerContainer>(topNode, towernodeHCALIN.c_str());
+    RawTowerContainer* towersHCALIN = findNode::getClass<RawTowerContainer>(topNode, towernodeHCALIN);
     if (towersHCALIN)
     {
       if (Verbosity() > 0)
@@ -626,7 +623,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         std::cout << "saving HCAL towers" << std::endl;
       }
       std::string towergeomnodeHCALIN = "TOWERGEOM_HCALIN";
-      RawTowerGeomContainer* towergeomHCALIN = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeHCALIN.c_str());
+      RawTowerGeomContainer* towergeomHCALIN = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeHCALIN);
       if (towergeomHCALIN)
       {
         if (_do_GEOMETRY && !_geometry_done[kHCALIN])
@@ -710,7 +707,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     CaloRawTowerEval* towerevalHCALOUT = _caloevalstackHCALOUT->get_rawtower_eval();
     _nTowers_HCALOUT = 0;
     std::string towernodeHCALOUT = "TOWER_CALIB_HCALOUT";
-    RawTowerContainer* towersHCALOUT = findNode::getClass<RawTowerContainer>(topNode, towernodeHCALOUT.c_str());
+    RawTowerContainer* towersHCALOUT = findNode::getClass<RawTowerContainer>(topNode, towernodeHCALOUT);
     if (towersHCALOUT)
     {
       if (Verbosity() > 0)
@@ -718,7 +715,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         std::cout << "saving HCAL towers" << std::endl;
       }
       std::string towergeomnodeHCALOUT = "TOWERGEOM_HCALOUT";
-      RawTowerGeomContainer* towergeomHCALOUT = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeHCALOUT.c_str());
+      RawTowerGeomContainer* towergeomHCALOUT = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeHCALOUT);
       if (towergeomHCALOUT)
       {
         if (_do_GEOMETRY && !_geometry_done[kHCALOUT])
@@ -802,7 +799,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     CaloRawTowerEval* towerevalCEMC = _caloevalstackCEMC->get_rawtower_eval();
     _nTowers_CEMC = 0;
     std::string towernodeCEMC = "TOWER_CALIB_CEMC";
-    RawTowerContainer* towersCEMC = findNode::getClass<RawTowerContainer>(topNode, towernodeCEMC.c_str());
+    RawTowerContainer* towersCEMC = findNode::getClass<RawTowerContainer>(topNode, towernodeCEMC);
     if (towersCEMC)
     {
       if (Verbosity() > 0)
@@ -810,7 +807,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         std::cout << "saving EMC towers" << std::endl;
       }
       std::string towergeomnodeCEMC = "TOWERGEOM_CEMC";
-      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeCEMC.c_str());
+      RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodeCEMC);
       if (towergeom)
       {
         if (_do_GEOMETRY && !_geometry_done[kCEMC])
@@ -901,7 +898,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     std::string clusternodeHCALIN = "CLUSTER_HCALIN";
-    RawClusterContainer* clustersHCALIN = findNode::getClass<RawClusterContainer>(topNode, clusternodeHCALIN.c_str());
+    RawClusterContainer* clustersHCALIN = findNode::getClass<RawClusterContainer>(topNode, clusternodeHCALIN);
     if (clustersHCALIN)
     {
       // for every cluster
@@ -973,7 +970,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     std::string clusternodeHCALOUT = "CLUSTER_HCALOUT";
-    RawClusterContainer* clustersHCALOUT = findNode::getClass<RawClusterContainer>(topNode, clusternodeHCALOUT.c_str());
+    RawClusterContainer* clustersHCALOUT = findNode::getClass<RawClusterContainer>(topNode, clusternodeHCALOUT);
     if (clustersHCALOUT)
     {
       // for every cluster
@@ -1045,7 +1042,7 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     std::string clusternodeCEMC = "CLUSTER_CEMC";
-    RawClusterContainer* clustersCEMC = findNode::getClass<RawClusterContainer>(topNode, clusternodeCEMC.c_str());
+    RawClusterContainer* clustersCEMC = findNode::getClass<RawClusterContainer>(topNode, clusternodeCEMC);
     if (clustersCEMC)
     {
       // for every cluster
@@ -1143,8 +1140,8 @@ void EventEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             // current (June 2021) simulations (they return NaN). So we take dca (seems to be ~ the 3d distance)
             // and dca_2d (seems to be ~ the distance in the transverse plane).
             // The names of the branches are based on the method names.
-            _track_dca[_nTracks] = static_cast<float>(track->get_dca());
-            _track_dca_2d[_nTracks] = static_cast<float>(track->get_dca2d());
+            _track_dca[_nTracks] = track->get_dca();
+            _track_dca_2d[_nTracks] = track->get_dca2d();
             _track_trueID[_nTracks] = track->get_truth_track_id();
             _track_source[_nTracks] = static_cast<unsigned short>(trackMapInfo.second);
             if (_do_PROJECTIONS)
@@ -1475,18 +1472,9 @@ int EventEvaluator::End(PHCompositeNode* /*topNode*/)
     std::cout << "===========================================================================" << std::endl;
   }
 
-  if (_caloevalstackHCALIN)
-  {
-    delete _caloevalstackHCALIN;
-  }
-  if (_caloevalstackHCALOUT)
-  {
-    delete _caloevalstackHCALOUT;
-  }
-  if (_caloevalstackCEMC)
-  {
-    delete _caloevalstackCEMC;
-  }
+  delete _caloevalstackHCALIN;
+  delete _caloevalstackHCALOUT;
+  delete _caloevalstackCEMC;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1497,18 +1485,17 @@ int EventEvaluator::GetProjectionIndex(const std::string& projname)
   {
     return 1;
   }
-  else if (projname.find("HCALOUT") != std::string::npos)
+  if (projname.find("HCALOUT") != std::string::npos)
   {
     return 2;
   }
-  else if (projname.find("CEMC") != std::string::npos)
+  if (projname.find("CEMC") != std::string::npos)
   {
     return 3;
   }
-  else
-  {
-    return -1;
-  }
+
+  return -1;
+
   return -1;
 }
 

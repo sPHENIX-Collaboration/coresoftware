@@ -14,7 +14,7 @@ class Fun4AllPrdfOutputManager : public Fun4AllOutputManager
 {
  public:
   //! constructor
-  Fun4AllPrdfOutputManager(const std::string &myname = "PRDFOUT", const std::string &filename = "data_out.prdf");
+  Fun4AllPrdfOutputManager(const std::string &myname = "PRDFOUT", const std::string &fname = "data_out.prdf");
 
   //! destructor
   virtual ~Fun4AllPrdfOutputManager();

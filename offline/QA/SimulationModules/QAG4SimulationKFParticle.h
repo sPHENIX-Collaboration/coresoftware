@@ -38,29 +38,28 @@ class QAG4SimulationKFParticle : public SubsysReco
 
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
 
- protected:
-  SvtxClusterEval *clustereval = nullptr;
-  int m_mother_id = 0;
-  double m_min_mass = 0.;
-  double m_max_mass = 10.;
+ private:
+  SvtxClusterEval *clustereval{nullptr};
+  int m_mother_id{0};
+  double m_min_mass{0.};
+  double m_max_mass{10.};
   std::string m_mother_name;
 
- private:
   int load_nodes(PHCompositeNode *);
 
   SvtxTrack *getTrack(unsigned int track_id, SvtxTrackMap *trackmap);
   PHG4Particle *getTruthTrack(SvtxTrack *thisTrack);
   CLHEP::HepLorentzVector *makeHepLV(PHCompositeNode *topNode, int track_number);
 
-  PHG4TruthInfoContainer *m_truthContainer = nullptr;
+  PHG4TruthInfoContainer *m_truthContainer{nullptr};
 
   std::unique_ptr<SvtxEvalStack> m_svtxEvalStack;
 
-  SvtxTrackMap *m_trackMap = nullptr;
-  PHG4TruthInfoContainer *m_truthInfo = nullptr;
-  KFParticle_Container *m_kfpContainer = nullptr;
+  SvtxTrackMap *m_trackMap{nullptr};
+  PHG4TruthInfoContainer *m_truthInfo{nullptr};
+  KFParticle_Container *m_kfpContainer{nullptr};
   std::map<std::string, std::pair<int, float>> particleMasses;
-  std::string m_trackMapName = "SvtxTrackMap";
+  std::string m_trackMapName{"SvtxTrackMap"};
 };
 
 #endif  // QAG4SIMULATIONKFPARTICLE_H

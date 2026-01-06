@@ -25,15 +25,12 @@
 #include <cmath>
 #include <cstdlib>  // for exit
 #include <iostream>
+#include <limits>
 
-using namespace std;
-
-MbdVertexFastSimReco::MbdVertexFastSimReco(const string &name)
+MbdVertexFastSimReco::MbdVertexFastSimReco(const std::string &name)
   : SubsysReco(name)
-  , m_T_Smear(NAN)
-  , m_Z_Smear(NAN)
+  , RandomGenerator(gsl_rng_alloc(gsl_rng_mt19937))
 {
-  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
 
 MbdVertexFastSimReco::~MbdVertexFastSimReco()
@@ -41,16 +38,11 @@ MbdVertexFastSimReco::~MbdVertexFastSimReco()
   gsl_rng_free(RandomGenerator);
 }
 
-int MbdVertexFastSimReco::Init(PHCompositeNode * /*topNode*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int MbdVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 {
-  if (isnan(m_T_Smear) || isnan(m_Z_Smear))
+  if (std::isnan(m_T_Smear) || std::isnan(m_Z_Smear))
   {
-    cout << PHWHERE << "::ERROR - smearing must be defined via setm_T_Smearing(float) and set_z_smeaering(float)" << endl;
+    std::cout << PHWHERE << "::ERROR - smearing must be defined via setm_T_Smearing(float) and set_z_smeaering(float)" << std::endl;
     exit(-1);
   }
 
@@ -59,11 +51,11 @@ int MbdVertexFastSimReco::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "===================== MbdVertexFastSimReco::InitRun() =====================" << endl;
-    cout << " t smearing: " << m_T_Smear << " cm " << endl;
-    cout << "  z smearing: " << m_Z_Smear << " cm " << endl;
-    cout << " random seed: " << seed << endl;
-    cout << "===========================================================================" << endl;
+    std::cout << "===================== MbdVertexFastSimReco::InitRun() =====================" << std::endl;
+    std::cout << " t smearing: " << m_T_Smear << " cm " << std::endl;
+    std::cout << "  z smearing: " << m_Z_Smear << " cm " << std::endl;
+    std::cout << " random seed: " << seed << std::endl;
+    std::cout << "===========================================================================" << std::endl;
   }
 
   return CreateNodes(topNode);
@@ -73,7 +65,7 @@ int MbdVertexFastSimReco::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 1)
   {
-    cout << "MbdVertexFastSimReco::process_event -- entered" << endl;
+    std::cout << "MbdVertexFastSimReco::process_event -- entered" << std::endl;
   }
 
   //---------------------------------
@@ -82,14 +74,14 @@ int MbdVertexFastSimReco::process_event(PHCompositeNode *topNode)
   PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!truthinfo)
   {
-    cout << PHWHERE << "::ERROR - cannot find G4TruthInfo" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find G4TruthInfo" << std::endl;
     exit(-1);
   }
 
   MbdVertexMap *vertexes = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   if (!vertexes)
   {
-    cout << PHWHERE << "::ERROR - cannot find MbdVertexMap" << endl;
+    std::cout << PHWHERE << "::ERROR - cannot find MbdVertexMap" << std::endl;
     exit(-1);
   }
 
@@ -113,7 +105,7 @@ int MbdVertexFastSimReco::process_event(PHCompositeNode *topNode)
   else
   {
     vertex->set_t(point->get_t() + 2.0 * gsl_rng_uniform_pos(RandomGenerator) * m_T_Smear);
-    vertex->set_t_err(fabs(m_T_Smear) / sqrt(12));
+    vertex->set_t_err(std::abs(m_T_Smear) / sqrt(12.));
   }
 
   if (m_Z_Smear >= 0.0)
@@ -124,16 +116,11 @@ int MbdVertexFastSimReco::process_event(PHCompositeNode *topNode)
   else
   {
     vertex->set_z(point->get_z() + 2.0 * gsl_rng_uniform_pos(RandomGenerator) * m_Z_Smear);
-    vertex->set_z_err(fabs(m_Z_Smear) / sqrt(12));
+    vertex->set_z_err(std::abs(m_Z_Smear) / sqrt(12.));
   }
 
   vertexes->insert(vertex);
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int MbdVertexFastSimReco::End(PHCompositeNode * /*topNode*/)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -145,7 +132,7 @@ int MbdVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -167,7 +154,7 @@ int MbdVertexFastSimReco::CreateNodes(PHCompositeNode *topNode)
   }
   else
   {
-    cout << PHWHERE << "::ERROR - MbdVertexMap pre-exists, but should not if running FastSim" << endl;
+    std::cout << PHWHERE << "::ERROR - MbdVertexMap pre-exists, but should not if running FastSim" << std::endl;
     exit(-1);
   }
 

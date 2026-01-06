@@ -19,6 +19,8 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <ffamodules/CDBInterface.h>
+
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -33,8 +35,6 @@
 #include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
-#include <ffamodules/CDBInterface.h>
-
 #include <TAxis.h>  // for TAxis
 #include <TFile.h>
 #include <TH1.h>
@@ -47,7 +47,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <sstream>
+#include <limits>
 #include <utility>  // for pair
 
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const std::string &name)
@@ -167,7 +167,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 
   using map_z_tower_z_ID_t = std::map<double, int>;
   map_z_tower_z_ID_t map_z_tower_z_ID;
-  double phi_min = NAN;
+  double phi_min = std::numeric_limits<double>::quiet_NaN();
 
   for (const auto &tower_pair : tower_map)
   {
@@ -183,7 +183,7 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
     if (tower_ID_phi == 0)
     {
       // assign phi min according phi bin 0
-// NOLINTNEXTLINE(bugprone-integer-division)
+      // NOLINTNEXTLINE(bugprone-integer-division)
       phi_min = M_PI_2 - deltaphi * (layergeom->get_max_phi_bin_in_sec() * layergeom->get_n_subtower_phi() / 2)  // shift of first tower in sector
                 + sector_map.begin()->second;
     }
@@ -210,8 +210,8 @@ int PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
   }
   layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
   layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
-  layerseggeo->set_etamin(NAN);
-  layerseggeo->set_etastep(NAN);
+  layerseggeo->set_etamin(std::numeric_limits<double>::quiet_NaN());
+  layerseggeo->set_etastep(std::numeric_limits<double>::quiet_NaN());
 
   // build eta bin maps
   for (const auto &tower_pair : tower_map)
@@ -437,7 +437,7 @@ int PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     if (light_collection_model.use_fiber_model())
     {
       const double z = 0.5 * (hiter->second->get_local_z(0) + hiter->second->get_local_z(1));
-      assert(! std::isnan(z));
+      assert(!std::isnan(z));
 
       light_yield *= light_collection_model.get_fiber_transmission(z);
     }
@@ -514,15 +514,14 @@ int PHG4FullProjSpacalCellReco::CheckEnergy(PHCompositeNode *topNode)
         << sum_energy_cells - sum_energy_g4hit << std::endl;
     return -1;
   }
-  else
+
+  if (Verbosity() > 0)
   {
-    if (Verbosity() > 0)
-    {
-      std::cout << "PHG4FullProjSpacalCellReco::CheckEnergy::" << Name()
-                << " - total energy for this event: " << sum_energy_g4hit
-                << " GeV. Passed CheckEnergy" << std::endl;
-    }
+    std::cout << "PHG4FullProjSpacalCellReco::CheckEnergy::" << Name()
+              << " - total energy for this event: " << sum_energy_g4hit
+              << " GeV. Passed CheckEnergy" << std::endl;
   }
+
   return 0;
 }
 

@@ -24,15 +24,11 @@
 class PHG4EventAction;
 class PHG4TrackingAction;
 
-using namespace std;
-
 //_______________________________________________________________________
-PHG4TruthSubsystem::PHG4TruthSubsystem(const string& name)
+PHG4TruthSubsystem::PHG4TruthSubsystem(const std::string& name)
   : PHG4Subsystem(name)
-  , m_EventAction(nullptr)
-  , m_TrackingAction(nullptr)
-  , m_SaveOnlyEmbededFlag(false)
 {
+  return;
 }
 
 //_______________________________________________________________________
@@ -69,7 +65,7 @@ int PHG4TruthSubsystem::process_event(PHCompositeNode* topNode)
   }
   else
   {
-    cout << PHWHERE << " No EventAction registered" << endl;
+    std::cout << PHWHERE << " No EventAction registered" << std::endl;
     exit(1);
   }
 
@@ -79,7 +75,7 @@ int PHG4TruthSubsystem::process_event(PHCompositeNode* topNode)
   }
   else
   {
-    cout << PHWHERE << " No TrackingAction registered" << endl;
+    std::cout << PHWHERE << " No TrackingAction registered" << std::endl;
     exit(1);
   }
 
@@ -92,13 +88,13 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode* topNode)
   {
     if (Verbosity() > 1)
     {
-      cout << __PRETTY_FUNCTION__ << " - INFO - only save the G4 truth information that is associated with the embedded particle" << endl;
+      std::cout << __PRETTY_FUNCTION__ << " - INFO - only save the G4 truth information that is associated with the embedded particle" << std::endl;
     }
 
     PHG4TruthInfoContainer* truthInfoList = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     assert(truthInfoList);
 
-    set<int> savevtxlist;
+    std::set<int> savevtxlist;
 
     // remove particle that is not embedd associated
     PHG4TruthInfoContainer::Range truth_range = truthInfoList->GetParticleRange();
@@ -126,7 +122,7 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode* topNode)
     PHG4TruthInfoContainer::VtxIterator vtxiter = vtxrange.first;
     while (vtxiter != vtxrange.second)
     {
-      if (savevtxlist.find(vtxiter->first) == savevtxlist.end())
+      if (!savevtxlist.contains(vtxiter->first))
       {
         truthInfoList->delete_vtx(vtxiter++);
       }

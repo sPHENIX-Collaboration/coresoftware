@@ -46,15 +46,11 @@
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VSolid.hh>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wpedantic"
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Circular_kernel_intersections.h>
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/Object.h>
 #include <CGAL/point_generators_2.h>
-#pragma GCC diagnostic pop
 
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
@@ -64,7 +60,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <sstream>
+#include <limits>
 
 class PHCompositeNode;
 
@@ -80,7 +76,10 @@ typedef typename CGAL::CK2_Intersection_traits<PHG4InnerHcalDetector::Circular_k
 // there is still a minute problem for very low tilt angles where the scintillator
 // face touches the boundary instead of the corner, subtracting 1 permille from the total
 // scintilator length takes care of this
-static double subtract_from_scinti_x = 0.1 * mm;
+namespace
+{
+  double constexpr subtract_from_scinti_x = 0.1 * mm;
+}
 
 PHG4InnerHcalDetector::PHG4InnerHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
@@ -135,14 +134,14 @@ int PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume *volume) const
 {
   if (m_AbsorberActive)
   {
-    if (m_SteelAbsorberPhysVolSet.find(volume) != m_SteelAbsorberPhysVolSet.end())
+    if (m_SteelAbsorberPhysVolSet.contains(volume))
     {
       return -1;
     }
   }
   if (m_Active)
   {
-    if (m_ScintiTilePhysVolMap.find(volume) != m_ScintiTilePhysVolMap.end())
+    if (m_ScintiTilePhysVolMap.contains(volume))
     {
       return 1;
     }
@@ -164,7 +163,9 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope
   Line_2 s2(p_in_1, p_upperedge);  // center vertical
 
   Line_2 perp = s2.perpendicular(p_upperedge);
-  Point_2 sc1(m_OuterRadius, 0), sc2(0, m_OuterRadius), sc3(-m_OuterRadius, 0);
+  Point_2 sc1(m_OuterRadius, 0);
+  Point_2 sc2(0, m_OuterRadius);
+  Point_2 sc3(-m_OuterRadius, 0);
   Circle_2 outer_circle(sc1, sc2, sc3);
 #if CGAL_VERSION_NR > 1060000000
     std::vector<Intersection_result> res;
@@ -198,7 +199,9 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume * /*hcalenvelope
   Point_2 p_loweredge(xcoord, ycoord);
   Line_2 s3(p_in_1, p_loweredge);
   Line_2 l_lower = s3.perpendicular(p_loweredge);
-  Point_2 ic1(m_InnerRadius, 0), ic2(0, m_InnerRadius), ic3(-m_InnerRadius, 0);
+  Point_2 ic1(m_InnerRadius, 0);
+  Point_2 ic2(0, m_InnerRadius);
+  Point_2 ic3(-m_InnerRadius, 0);
   Circle_2 inner_circle(ic1, ic2, ic3);
   res.clear();
   CGAL::intersection(inner_circle, l_lower, std::back_inserter(res));
@@ -243,7 +246,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Point_2 p_loweredge(xcoord, ycoord);
   Line_2 s2(p_in_1, p_loweredge);               // center vertical
   Line_2 perp = s2.perpendicular(p_loweredge);  // that is the lower edge of the steel plate
-  Point_2 sc1(m_InnerRadius, 0), sc2(0, m_InnerRadius), sc3(-m_InnerRadius, 0);
+  Point_2 sc1(m_InnerRadius, 0);
+  Point_2 sc2(0, m_InnerRadius);
+  Point_2 sc3(-m_InnerRadius, 0);
   Circle_2 inner_circle(sc1, sc2, sc3);
 #if CGAL_VERSION_NR > 1060000000
     std::vector<Intersection_result> res;
@@ -274,7 +279,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Line_2 s2_2(p_in_1, p_loweredge2);                // center vertical
   Line_2 perp2 = s2_2.perpendicular(p_loweredge2);  // that is the lower edge of the steel plate
 
-  Point_2 so1(m_OuterRadius, 0), so2(0, m_OuterRadius), so3(-m_OuterRadius, 0);
+  Point_2 so1(m_OuterRadius, 0);
+  Point_2 so2(0, m_OuterRadius);
+  Point_2 so3(-m_OuterRadius, 0);
   Circle_2 outer_circle(so1, so2, so3);
   res.clear();  // just clear the content from the last intersection search
   CGAL::intersection(outer_circle, perp2, std::back_inserter(res));
@@ -310,7 +317,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Point_2 p_upperedge(xcoordup, ycoordup);
   Line_2 sup(mid_upperscint, p_upperedge);        // center vertical
   Line_2 perpA = sup.perpendicular(p_upperedge);  // that is the upper edge of the steel plate
-  Point_2 sc1A(m_InnerRadius, 0), sc2A(0, m_InnerRadius), sc3A(-m_InnerRadius, 0);
+  Point_2 sc1A(m_InnerRadius, 0);
+  Point_2 sc2A(0, m_InnerRadius);
+  Point_2 sc3A(-m_InnerRadius, 0);
   Circle_2 inner_circleA(sc1A, sc2A, sc3A);
 #if CGAL_VERSION_NR > 1060000000
     std::vector<Intersection_result> resA;
@@ -342,7 +351,9 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   Line_2 sup2(mid_upperscint, p_upperedge2);         // center vertical
   Line_2 perpA2 = sup2.perpendicular(p_upperedge2);  // that is the upper edge of the steel plate
 
-  Point_2 so1A(m_OuterRadius, 0), so2A(0, m_OuterRadius), so3A(-m_OuterRadius, 0);
+  Point_2 so1A(m_OuterRadius, 0);
+  Point_2 so2A(0, m_OuterRadius);
+  Point_2 so3A(-m_OuterRadius, 0);
   Circle_2 outer_circleA(so1A, so2A, so3A);
   resA.clear();  // just clear the content from the last intersection search
   CGAL::intersection(outer_circleA, perpA2, std::back_inserter(resA));
@@ -385,7 +396,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume * /*hcalenvelope*/)
   return steel_plate;
 }
 
-void PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright)
+void PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright) const
 {
   Line_2 secant(lowleft, upleft);
   Segment_2 upedge(upleft, upright);
@@ -394,7 +405,9 @@ void PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &uple
   double ymid = (CGAL::to_double(lowleft.y()) + CGAL::to_double(upleft.y())) / 2.;
   Point_2 midpoint(xmid, ymid);
   Line_2 sekperp = secant.perpendicular(midpoint);
-  Point_2 sc1(m_InnerRadius, 0), sc2(0, m_InnerRadius), sc3(-m_InnerRadius, 0);
+  Point_2 sc1(m_InnerRadius, 0);
+  Point_2 sc2(0, m_InnerRadius);
+  Point_2 sc3(-m_InnerRadius, 0);
   Circle_2 inner_circle(sc1, sc2, sc3);
 #if CGAL_VERSION_NR > 1060000000
     std::vector<Intersection_result> res;
@@ -527,7 +540,6 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
   m_ScintiMotherAssembly = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
   double deltaphi = 2 * M_PI / m_NumScintiPlates;
-  std::ostringstream name;
   double middlerad = m_OuterRadius - (m_OuterRadius - m_InnerRadius) / 2.;
   // for shorter scintillators we have to shift by 1/2 the "missing length"
   double scinti_tile_orig_length = m_ScintiTileXUpper + m_ScintiTileXLower - subtract_from_scinti_x;
@@ -580,9 +592,8 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
     delete Rot;
     Rot = new G4RotationMatrix();
     Rot->rotateZ(-phi * rad);
-    name.str("");
-    name << "InnerHcalSteel_" << i;
-    m_SteelAbsorberPhysVolSet.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str(), hcalenvelope, false, i, OverlapCheck()));
+    std::string name = "InnerHcalSteel_" + std::to_string(i);
+    m_SteelAbsorberPhysVolSet.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name, hcalenvelope, false, i, OverlapCheck()));
     phi += deltaphi;
   }
   return 0;
@@ -610,7 +621,6 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
   G4double theta;
   G4double x[4];
   G4double z[4];
-  std::ostringstream name;
   double overhang = (m_ScintiTileX - (m_OuterRadius - m_InnerRadius)) / 2.;
   double offset = 1 * cm + overhang;  // add 1cm to make sure the G4ExtrudedSolid
   // is larger than the tile so we do not have
@@ -665,9 +675,8 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
                                            zero, 1.0);
     G4RotationMatrix *rotm = new G4RotationMatrix();
     rotm->rotateX(-90 * deg);
-    name.str("");
-    name << "scintillator_" << i << "_left";
-    G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
+    std::string name = std::format("scintillator_{}_left", i);
+    G4VSolid *scinti_tile = new G4IntersectionSolid(name, bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
     delete rotm;
     m_ScintiTilesVec[i + m_NumScintiTilesNeg] = scinti_tile;
   }
@@ -720,9 +729,8 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
 
     G4RotationMatrix *rotm = new G4RotationMatrix();
     rotm->rotateX(90 * deg);
-    name.str("");
-    name << "scintillator_" << i << "_right";
-    G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
+    std::string name = std::format("scintillator_{}_right", i);
+    G4VSolid *scinti_tile = new G4IntersectionSolid(name, bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, -m_Params->get_double_param("place_z") * cm));
     m_ScintiTilesVec[m_NumScintiTilesNeg - i - 1] = scinti_tile;
     delete rotm;
   }
@@ -741,7 +749,7 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
 double
 PHG4InnerHcalDetector::x_at_y(Point_2 &p0, Point_2 &p1, double yin)
 {
-  double xret = NAN;
+  double xret = std::numeric_limits<double>::quiet_NaN();
   double x[2];
   double y[2];
   x[0] = CGAL::to_double(p0.x());
@@ -773,20 +781,18 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
 {
   ConstructHcalSingleScintillators(hcalenvelope);
   G4AssemblyVolume *assmeblyvol = new G4AssemblyVolume();
-  std::ostringstream name;
   G4ThreeVector g4vec;
 
   double steplimits = m_Params->get_double_param("steplimits") * cm;
   for (unsigned int i = 0; i < m_ScintiTilesVec.size(); i++)
   {
-    name.str("");
-    name << m_ScintiLogicNamePrefix << i;
+    std::string name =  m_ScintiLogicNamePrefix + std::to_string(i);
     G4UserLimits *g4userlimits = nullptr;
     if (isfinite(steplimits))
     {
       g4userlimits = new G4UserLimits(steplimits);
     }
-    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name.str(), nullptr, nullptr, g4userlimits);
+    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], GetDetectorMaterial("G4_POLYSTYRENE"), name, nullptr, nullptr, g4userlimits);
     m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
   }
@@ -809,7 +815,9 @@ int PHG4InnerHcalDetector::CheckTiltAngle() const
   double ycoord = mid_radius * tan(m_TiltAngle / rad);
   Point_2 pxnull(xcoord, ycoord);
   Line_2 s2(pmid, pxnull);
-  Point_2 sc1(m_InnerRadius, 0), sc2(0, m_InnerRadius), sc3(-m_InnerRadius, 0);
+  Point_2 sc1(m_InnerRadius, 0);
+  Point_2 sc2(0, m_InnerRadius);
+  Point_2 sc3(-m_InnerRadius, 0);
   Circle_2 inner_circle(sc1, sc2, sc3);
 #if CGAL_VERSION_NR > 1060000000
     std::vector<Intersection_result> res;
@@ -817,7 +825,7 @@ int PHG4InnerHcalDetector::CheckTiltAngle() const
   std::vector<CGAL::Object> res;
 #endif
   CGAL::intersection(inner_circle, s2, std::back_inserter(res));
-  if (res.size() == 0)
+  if (res.empty())
   {
     std::cout << PHWHERE << " Tilt angle " << (m_TiltAngle / deg)
               << " too large, no intersection with inner radius" << std::endl;
@@ -875,11 +883,17 @@ void PHG4InnerHcalDetector::SetTiltViaNcross()
   Point_2 pnull(0, 0);
   Point_2 plow(m_InnerRadius, 0);
   Point_2 phightmp(1, tan(deltaphi));
-  Point_2 pin1(m_InnerRadius, 0), pin2(0, m_InnerRadius), pin3(-m_InnerRadius, 0);
+  Point_2 pin1(m_InnerRadius, 0);
+  Point_2 pin2(0, m_InnerRadius);
+  Point_2 pin3(-m_InnerRadius, 0);
   Circle_2 inner_circle(pin1, pin2, pin3);
-  Point_2 pmid1(mid_radius, 0), pmid2(0, mid_radius), pmid3(-mid_radius, 0);
+  Point_2 pmid1(mid_radius, 0);
+  Point_2 pmid2(0, mid_radius);
+  Point_2 pmid3(-mid_radius, 0);
   Circle_2 mid_circle(pmid1, pmid2, pmid3);
-  Point_2 pout1(m_OuterRadius, 0), pout2(0, m_OuterRadius), pout3(-m_OuterRadius, 0);
+  Point_2 pout1(m_OuterRadius, 0);
+  Point_2 pout2(0, m_OuterRadius);
+  Point_2 pout3(-m_OuterRadius, 0);
   Circle_2 outer_circle(pout1, pout2, pout3);
   Line_2 l_up(pnull, phightmp);
 #if CGAL_VERSION_NR > 1060000000

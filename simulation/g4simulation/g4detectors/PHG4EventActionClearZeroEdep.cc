@@ -1,4 +1,5 @@
 #include "PHG4EventActionClearZeroEdep.h"
+
 #include <g4main/PHG4HitContainer.h>
 
 #include <phool/getClass.h>
@@ -18,7 +19,7 @@ void PHG4EventActionClearZeroEdep::AddNode(const std::string &name)
 //___________________________________________________
 void PHG4EventActionClearZeroEdep::EndOfEventAction(const G4Event * /*evt*/)
 {
-  for (auto &node : nodename_set)
+  for (const auto &node : nodename_set)
   {
     PHG4HitContainer *generic_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
     if (generic_hits)
