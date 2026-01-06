@@ -405,7 +405,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
-        if(isGood)
+        if (isGood)
         {
           totalihcal += offlineenergy;
         }
@@ -473,7 +473,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
-        if(isGood)
+        if (isGood)
         {
           totalohcal += offlineenergy;
         }
