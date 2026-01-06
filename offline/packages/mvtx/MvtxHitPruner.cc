@@ -54,7 +54,7 @@ namespace
   template<class T> class range_adaptor
   {
     public:
-    range_adaptor( const T& range ):m_range(range){}
+    explicit range_adaptor( const T& range ):m_range(range){}
     const typename T::first_type& begin() {return m_range.first;}
     const typename T::second_type& end() {return m_range.second;}
     private:
@@ -98,7 +98,8 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
 
     // get strobe, skip if already zero
     const int strobe = MvtxDefs::getStrobeId(hitsetkey);
-    if( strobe == 0 ) continue;
+    if( strobe == 0 ) { continue;
+}
 
     // get the hitsetkey value for strobe 0
     const auto bare_hitsetkey = MvtxDefs::resetStrobe(hitsetkey);
@@ -117,7 +118,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
   for (const auto& bare_hitsetkey : bare_hitset_set)
   {
     // find matching hitset of creater
-    auto bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
+    auto *bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
     if (Verbosity())
     {
       std::cout
@@ -131,7 +132,8 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
     for( const auto& [unused,hitsetkey]:range_adaptor(bare_hitsetrange) )
     {
       const int strobe = MvtxDefs::getStrobeId(hitsetkey);
-      if( strobe == 0 ) continue;
+      if( strobe == 0 ) { continue;
+}
 
       if (Verbosity())
       {
@@ -143,7 +145,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
       }
 
       // copy all hits to the hitset with strobe 0
-      auto hitset = m_hits->findHitSet(hitsetkey);
+      auto *hitset = m_hits->findHitSet(hitsetkey);
 
       if (Verbosity())
       {
@@ -181,7 +183,7 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
             << hitkey << std::endl;
         }
 
-        auto new_hit = new TrkrHitv2;
+        auto *new_hit = new TrkrHitv2;
         new_hit->CopyFrom(old_hit);
         bare_hitset->addHitSpecificKey(hitkey, new_hit);
       }
