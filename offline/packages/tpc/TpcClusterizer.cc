@@ -25,7 +25,6 @@
 #include <trackbase/RawHit.h>
 #include <trackbase/RawHitSet.h>
 #include <trackbase/RawHitSetContainer.h>
-#include <trackbase/RawHitSet.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
@@ -50,6 +49,7 @@
 
 #include <TFile.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>  // for sqrt, cos, sin
 #include <iostream>
@@ -64,7 +64,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T &x)
+  constexpr T square(const T &x)
   {
     return x * x;
   }
@@ -365,20 +365,14 @@ namespace
 
     int isosum = 0;
     int isophimin = iphi - 1;
-    if (isophimin < 0)
-    {
-      isophimin = 0;
-    }
+    isophimin = std::max(isophimin, 0);
     int isophimax = iphi + 1;
     if (!(isophimax < NPhiBinsMax))
     {
       isophimax = NPhiBinsMax - 1;
     }
     int isotmin = it - 1;
-    if (isotmin < 0)
-    {
-      isotmin = 0;
-    }
+    isotmin = std::max(isotmin, 0);
     int isotmax = it + 1;
     if (!(isotmax < NTBinsMax))
     {
@@ -537,30 +531,15 @@ namespace
         continue;
       }
 
-      if (adc > max_adc)
-      {
-        max_adc = adc;
-      }
+      max_adc = std::max<double>(adc, max_adc);
 
-      if (iphi > phibinhi)
-      {
-        phibinhi = iphi;
-      }
+      phibinhi = std::max(iphi, phibinhi);
 
-      if (iphi < phibinlo)
-      {
-        phibinlo = iphi;
-      }
+      phibinlo = std::min(iphi, phibinlo);
 
-      if (it > tbinhi)
-      {
-        tbinhi = it;
-      }
+      tbinhi = std::max(it, tbinhi);
 
-      if (it < tbinlo)
-      {
-        tbinlo = it;
-      }
+      tbinlo = std::min(it, tbinlo);
 
       // if(it==it_center){ yg_sum += adc; }
       // update phi sums
@@ -686,7 +665,7 @@ namespace
     //	std::cout << "clus num" << my_data.cluster_vector.size() << " X " << local(0) << " Y " << clust << std::endl;
     if (sqrt(phi_err_square) > my_data.min_err_squared)
     {
-      auto clus = new TrkrClusterv5;
+      auto *clus = new TrkrClusterv5;
       // auto clus = std::make_unique<TrkrClusterv3>();
       clus_base = clus;
       clus->setAdc(adc_sum);
@@ -738,19 +717,19 @@ namespace
     if (my_data.fillClusHitsVerbose && b_made_cluster)
     {
       // push the data back to
-      my_data.phivec_ClusHitsVerbose.push_back(std::vector<std::pair<int, int>>{});
-      my_data.zvec_ClusHitsVerbose.push_back(std::vector<std::pair<int, int>>{});
+      my_data.phivec_ClusHitsVerbose.emplace_back();
+      my_data.zvec_ClusHitsVerbose.emplace_back();
 
       auto &vphi = my_data.phivec_ClusHitsVerbose.back();
       auto &vz = my_data.zvec_ClusHitsVerbose.back();
 
       for (auto &entry : m_phi)
       {
-        vphi.push_back({entry.first, entry.second});
+        vphi.emplace_back(entry.first, entry.second);
       }
       for (auto &entry : m_z)
       {
-        vz.push_back({entry.first, entry.second});
+        vz.emplace_back(entry.first, entry.second);
       }
     }
 
@@ -875,7 +854,7 @@ namespace
           }
           if (adc > my_data->edge_threshold)
           {
-            adcval[phibin][tbin] = (unsigned short) adc;
+            adcval[phibin][tbin] = adc;
           }
         }
       }
@@ -967,7 +946,7 @@ namespace
     }
     */
     // std::cout << "done filling " << std::endl;
-    while (all_hit_map.size() > 0)
+    while (!all_hit_map.empty())
     {
       // std::cout << "all hit map size: " << all_hit_map.size() << std::endl;
       auto iter = all_hit_map.rbegin();
@@ -1013,22 +992,10 @@ namespace
           {
             continue;
           }
-          if (wiphi > wphibinhi)
-          {
-            wphibinhi = wiphi;
-          }
-          if (wiphi < wphibinlo)
-          {
-            wphibinlo = wiphi;
-          }
-          if (wit > wtbinhi)
-          {
-            wtbinhi = wit;
-          }
-          if (wit < wtbinlo)
-          {
-            wtbinlo = wit;
-          }
+          wphibinhi = std::max(wiphi, wphibinhi);
+          wphibinlo = std::min(wiphi, wphibinlo);
+          wtbinhi = std::max(wit, wtbinhi);
+          wtbinlo = std::min(wit, wtbinlo);
         }
         char wtsize = wtbinhi - wtbinlo + 1;
         char wphisize = wphibinhi - wphibinlo + 1;
@@ -1077,7 +1044,7 @@ namespace
   }
   void *ProcessSector(void *threadarg)
   {
-    auto my_data = static_cast<thread_data *>(threadarg);
+    auto *my_data = static_cast<thread_data *>(threadarg);
     ProcessSectorData(my_data);
     pthread_exit(nullptr);
   }
@@ -1133,7 +1100,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  auto *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -1151,7 +1118,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(TrkrClusterContainerNode);
   }
 
-  auto clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  auto *clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!clusterhitassoc)
   {
     PHNodeIterator dstiter(dstNode);
@@ -1168,7 +1135,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
-  auto training_container = findNode::getClass<TrainingHitsContainer>(dstNode, "TRAINING_HITSET");
+  auto *training_container = findNode::getClass<TrainingHitsContainer>(dstNode, "TRAINING_HITSET");
   if (!training_container)
   {
     PHNodeIterator dstiter(dstNode);
@@ -1217,18 +1184,18 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     if (!mClusHitsVerbose)
     {
       PHNodeIterator dstiter(dstNode);
-      auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
       if (!DetNode)
       {
         DetNode = new PHCompositeNode("TRKR");
         dstNode->addNode(DetNode);
       }
       mClusHitsVerbose = new ClusHitsVerbosev1();
-      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
+      auto *newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
       DetNode->addNode(newNode);
     }
   }
-  auto geom =
+  auto *geom =
       findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
   if (!geom)
   {
@@ -1489,18 +1456,18 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
           const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
 
           // get cluster
-          auto cluster = data.cluster_vector[index];
+          auto *cluster = data.cluster_vector[index];
 
           // insert in map
           m_clusterlist->addClusterSpecifyKey(ckey, cluster);
 
           if (mClusHitsVerbose)
           {
-            for (auto &hit : data.phivec_ClusHitsVerbose[index])
+            for (const auto &hit : data.phivec_ClusHitsVerbose[index])
             {
               mClusHitsVerbose->addPhiHit(hit.first, hit.second);
             }
-            for (auto &hit : data.zvec_ClusHitsVerbose[index])
+            for (const auto &hit : data.zvec_ClusHitsVerbose[index])
             {
               mClusHitsVerbose->addZHit(hit.first, hit.second);
             }
@@ -1624,7 +1591,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
           const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
 
           // get cluster
-          auto cluster = data.cluster_vector[index];
+          auto *cluster = data.cluster_vector[index];
 
           // insert in map
           m_clusterlist->addClusterSpecifyKey(ckey, cluster);
@@ -1668,7 +1635,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
         const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
 
         // get cluster
-        auto cluster = data.cluster_vector[index];
+        auto *cluster = data.cluster_vector[index];
 
         // insert in map
         // std::cout << "X: " << cluster->getLocalX() << "Y: " << cluster->getLocalY() << std::endl;
@@ -1676,11 +1643,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
 
         if (mClusHitsVerbose)
         {
-          for (auto &hit : data.phivec_ClusHitsVerbose[index])
+          for (const auto &hit : data.phivec_ClusHitsVerbose[index])
           {
             mClusHitsVerbose->addPhiHit(hit.first, (float) hit.second);
           }
-          for (auto &hit : data.zvec_ClusHitsVerbose[index])
+          for (const auto &hit : data.zvec_ClusHitsVerbose[index])
           {
             mClusHitsVerbose->addZHit(hit.first, (float) hit.second);
           }
@@ -1698,7 +1665,7 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
         m_clusterhitassoc->addAssoc(ckey, hkey);
       }
 
-      for (auto v_hit : thread_pair.data.v_hits)
+      for (auto *v_hit : thread_pair.data.v_hits)
       {
         if (_store_hits)
         {

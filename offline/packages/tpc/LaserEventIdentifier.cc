@@ -130,7 +130,7 @@ int LaserEventIdentifier::process_event(PHCompositeNode *topNode)
   }
   else if(m_runnumber > 66153)
   {
-    if ((gl1pkt->getGTMAllBusyVector() & (1<<14)) == 0)
+    if ((gl1pkt->getGTMAllBusyVector() & (1U<<14U)) == 0)
     {
       m_laserEventInfo->setIsGl1LaserEvent(true);
       m_laserEventInfo->setIsGl1LaserPileupEvent(false);
