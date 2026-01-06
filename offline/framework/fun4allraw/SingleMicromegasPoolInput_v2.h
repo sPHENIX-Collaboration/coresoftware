@@ -230,6 +230,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
     /// true if measurement is hearbeat
     bool is_heartbeat = false;
 
+    /// true if matched
+    bool matched = false;
+
     /// ll1 bco
     uint64_t gtm_bco_first {0};
 

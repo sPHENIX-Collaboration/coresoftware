@@ -607,6 +607,7 @@ void SingleMicromegasPoolInput_v2::createQAHistos()
     m_evaluation_file.reset(new TFile(m_evaluation_filename.c_str(), "RECREATE"));
     m_evaluation_tree = new TTree("T", "T");
     m_evaluation_tree->Branch("is_heartbeat", &m_waveform.is_heartbeat);
+    m_evaluation_tree->Branch("matched", &m_waveform.matched);
     m_evaluation_tree->Branch("packet_id", &m_waveform.packet_id);
     m_evaluation_tree->Branch("fee_id", &m_waveform.fee_id);
     m_evaluation_tree->Branch("channel", &m_waveform.channel);
@@ -912,6 +913,13 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
 
     // try get gtm bco matching fee
     const auto& fee_bco = payload.bx_timestamp;
+    if( m_do_evaluation )
+    {
+      m_waveform.is_heartbeat = is_heartbeat;
+      m_waveform.fee_id = fee_id;
+      m_waveform.channel = payload.channel;
+      m_waveform.fee_bco = fee_bco;
+    }
 
     // find matching gtm bco
     uint64_t gtm_bco = 0;
@@ -920,9 +928,20 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
     {
       // assign gtm bco
       gtm_bco = result.value();
-    }
-    else
-    {
+      if( m_do_evaluation )
+      {
+        m_waveform.matched = true;
+        m_waveform.gtm_bco_matched = gtm_bco;
+        {
+          const auto predicted = bco_matching_information.get_predicted_fee_bco(gtm_bco);;
+          if( predicted )
+          {
+            m_waveform.fee_bco_predicted_matched = predicted.value();
+          }
+        }
+        m_evaluation_tree->Fill();
+      }
+    } else {
       // increment counter and histogram
       ++m_waveform_counters[packet_id].dropped_bco;
       ++m_fee_waveform_counters[fee_id].dropped_bco;
@@ -935,28 +954,16 @@ void SingleMicromegasPoolInput_v2::process_fee_data(int packet_id, unsigned int 
         ++m_fee_heartbeat_counters[fee_id].dropped_bco;
       }
 
-      // skip the waverform
-      continue;
-    }
-
-    if (m_do_evaluation)
-    {
-      m_waveform.is_heartbeat = (payload.type == HEARTBEAT_T);
-      m_waveform.fee_id = fee_id;
-      m_waveform.channel = payload.channel;
-      m_waveform.fee_bco = fee_bco;
-
-      m_waveform.gtm_bco_matched = gtm_bco;
+      if( m_do_evaluation )
       {
-        const auto predicted = bco_matching_information.get_predicted_fee_bco(gtm_bco);
-        ;
-        if (predicted)
-        {
-          m_waveform.fee_bco_predicted_matched = predicted.value();
-        }
+        m_waveform.matched = false;
+        m_waveform.gtm_bco_matched = 0;
+        m_waveform.fee_bco_predicted_matched = 0;
+        m_evaluation_tree->Fill();
       }
 
-      m_evaluation_tree->Fill();
+      // skip the waverform
+      continue;
     }
 
     // ignore heartbeat waveforms
