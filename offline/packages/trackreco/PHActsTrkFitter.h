@@ -21,8 +21,8 @@
 #include <Acts/Definitions/Algebra.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
-#include <Acts/Utilities/Logger.hpp>
 #include <Acts/Utilities/Helpers.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
 #include <ActsExamples/EventData/Trajectories.hpp>
 
@@ -130,18 +130,19 @@ class PHActsTrkFitter : public SubsysReco
   void set_track_map_name(const std::string& map_name) { _track_map_name = map_name; }
   void set_svtx_seed_map_name(const std::string& map_name) { _svtx_seed_map_name = map_name; }
 
-  void set_svtx_alignment_state_map_name(const std::string& map_name) {
-      _svtx_alignment_state_map_name = map_name;
-      m_alignStates.alignmentStateMap(map_name);
+  void set_svtx_alignment_state_map_name(const std::string& map_name)
+  {
+    _svtx_alignment_state_map_name = map_name;
+    m_alignStates.alignmentStateMap(map_name);
   }
 
   /// Set flag for pp running
   void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
 
-  void set_enable_geometric_crossing_estimate(bool flag) { m_enable_crossing_estimate = flag ; }
+  void set_enable_geometric_crossing_estimate(bool flag) { m_enable_crossing_estimate = flag; }
   void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
-  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
+  void setTrkrClusterContainerName(std::string& name) { m_clusterContainerName = name; }
   void setDirectNavigation(bool flag) { m_directNavigation = flag; }
 
  private:
@@ -155,10 +156,10 @@ class PHActsTrkFitter : public SubsysReco
 
   /// Convert the acts track fit result to an svtx track
   void updateSvtxTrack(
-    const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
-    const Trajectory::IndexedParameters& paramsMap,
-    const ActsTrackFittingAlgorithm::TrackContainer& tracks,
-    SvtxTrack* track);
+      const std::vector<Acts::MultiTrajectoryTraits::IndexType>& tips,
+      const Trajectory::IndexedParameters& paramsMap,
+      const ActsTrackFittingAlgorithm::TrackContainer& tracks,
+      SvtxTrack* track);
 
   /// Helper function to call either the regular navigation or direct
   /// navigation, depending on m_fitSiliconMMs
@@ -240,7 +241,7 @@ class PHActsTrkFitter : public SubsysReco
   // max variation of bunch crossing away from crossing_estimate
   short int max_bunch_search = 2;
 
-  //name of TRKR_CLUSTER container
+  // name of TRKR_CLUSTER container
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   //!@name evaluator
@@ -253,7 +254,7 @@ class PHActsTrkFitter : public SubsysReco
   //@}
 
   //! tracks
-//  SvtxTrackMap* m_seedTracks = nullptr;
+  //  SvtxTrackMap* m_seedTracks = nullptr;
 
   //! tpc global position wrapper
   TpcGlobalPositionWrapper m_globalPositionWrapper;
@@ -268,7 +269,7 @@ class PHActsTrkFitter : public SubsysReco
   int _n_iteration = 0;
   std::string _track_map_name = "SvtxTrackMap";
   std::string _svtx_seed_map_name = "SvtxTrackSeedContainer";
-  std::string _svtx_alignment_state_map_name =  "SvtxAlignmentStateMap";
+  std::string _svtx_alignment_state_map_name = "SvtxAlignmentStateMap";
 
   /// Default particle assumption to pion
   unsigned int m_pHypothesis = 211;
@@ -292,14 +293,18 @@ class PHActsTrkFitter : public SubsysReco
 
   std::vector<const Acts::Surface*> m_materialSurfaces = {};
 
-  struct MaterialSurfaceSelector {
+  struct MaterialSurfaceSelector
+  {
     std::vector<const Acts::Surface*> surfaces = {};
 
     /// @param surface is the test surface
-    void operator()(const Acts::Surface* surface) {
-      if (surface->surfaceMaterial() != nullptr) {
+    void operator()(const Acts::Surface* surface)
+    {
+      if (surface->surfaceMaterial() != nullptr)
+      {
         if (std::find(surfaces.begin(), surfaces.end(), surface) ==
-            surfaces.end()) {
+            surfaces.end())
+        {
           surfaces.push_back(surface);
         }
       }
