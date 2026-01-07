@@ -531,14 +531,10 @@ namespace
         continue;
       }
 
-      max_adc = std::max<double>(adc, max_adc);
-
+      max_adc = std::max(max_adc, static_cast<int>(std::round(adc))); // preserves rounding (0.5 -> 1)
       phibinhi = std::max(iphi, phibinhi);
-
       phibinlo = std::min(iphi, phibinlo);
-
       tbinhi = std::max(it, tbinhi);
-
       tbinlo = std::min(it, tbinlo);
 
       // if(it==it_center){ yg_sum += adc; }
