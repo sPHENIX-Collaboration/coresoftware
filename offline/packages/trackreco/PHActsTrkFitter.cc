@@ -314,7 +314,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
     // capture the input crossing value, and set crossing parameters
     //==============================
     short silicon_crossing = SHRT_MAX;
-    auto siseed = m_siliconSeeds->get(siid);
+    auto *siseed = m_siliconSeeds->get(siid);
     if (siseed)
     {
       silicon_crossing = siseed->get_crossing();
@@ -352,7 +352,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       }
     }
 
-    auto tpcseed = m_tpcSeeds->get(tpcid);
+    auto *tpcseed = m_tpcSeeds->get(tpcid);
 
     /// Need to also check that the tpc seed wasn't removed by the ghost finder
     if (!tpcseed)
