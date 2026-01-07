@@ -76,7 +76,7 @@ int TpcRawWriter::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  auto *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -94,7 +94,7 @@ int TpcRawWriter::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(TrkrClusterContainerNode);
   }
 
-  auto clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  auto *clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!clusterhitassoc)
   {
     PHNodeIterator dstiter(dstNode);
@@ -116,7 +116,7 @@ int TpcRawWriter::InitRun(PHCompositeNode *topNode)
   if (!m_rawhits)
   {
     PHNodeIterator dstiter(dstNode);
-    auto DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    auto *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode("TRKR");
@@ -124,7 +124,7 @@ int TpcRawWriter::InitRun(PHCompositeNode *topNode)
     }
 
     m_rawhits = new RawHitSetContainerv1;
-    auto newNode = new PHIODataNode<PHObject>(m_rawhits, "TRKR_RAWHITSET", "PHObject");
+    auto *newNode = new PHIODataNode<PHObject>(m_rawhits, "TRKR_RAWHITSET", "PHObject");
     DetNode->addNode(newNode);
   }
 

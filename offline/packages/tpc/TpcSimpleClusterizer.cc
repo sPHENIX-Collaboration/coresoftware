@@ -33,6 +33,7 @@
 
 #include <TFile.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>  // for sqrt, cos, sin
 #include <iostream>
@@ -46,7 +47,7 @@
 namespace
 {
   template <class T>
-  inline constexpr T square(const T &x)
+  constexpr T square(const T &x)
   {
     return x * x;
   }
@@ -142,22 +143,10 @@ namespace
 
       int iphi = iter.second.first + my_data.phioffset;
       int iz = iter.second.second + my_data.zoffset;
-      if (iphi > phibinhi)
-      {
-        phibinhi = iphi;
-      }
-      if (iphi < phibinlo)
-      {
-        phibinlo = iphi;
-      }
-      if (iz > zbinhi)
-      {
-        zbinhi = iz;
-      }
-      if (iz < zbinlo)
-      {
-        zbinlo = iz;
-      }
+      phibinhi = std::max(iphi, phibinhi);
+      phibinlo = std::min(iphi, phibinlo);
+      zbinhi = std::max(iz, zbinhi);
+      zbinlo = std::min(iz, zbinlo);
 
       // update phi sums
       double phi_center = my_data.layergeom->get_phicenter(iphi, my_data.side);
@@ -205,7 +194,7 @@ namespace
     clusz -= (clusz < 0) ? my_data.par0_neg : my_data.par0_pos;
 
     // create cluster and fill
-    auto clus = new TrkrClusterv3;
+    auto *clus = new TrkrClusterv3;
     clus->setAdc(adc_sum);
 
     /// Get the surface key to find the surface from the map
@@ -280,7 +269,7 @@ namespace
 
   void *ProcessSector(void *threadarg)
   {
-    auto my_data = (struct thread_data *) threadarg;
+    auto *my_data = (struct thread_data *) threadarg;
 
     const auto &pedestal = my_data->pedestal;
     const auto &phibins = my_data->phibins;
@@ -332,11 +321,11 @@ namespace
           all_hit_map.insert(std::make_pair(adc, thisHit));
         }
         // adcval[phibin][zbin] = (unsigned short) adc;
-        adcval[phibin][zbin] = (unsigned short) adc;
+        adcval[phibin][zbin] = adc;
       }
     }
 
-    while (all_hit_map.size() > 0)
+    while (!all_hit_map.empty())
     {
       auto iter = all_hit_map.rbegin();
       if (iter == all_hit_map.rend())
@@ -413,7 +402,7 @@ int TpcSimpleClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  auto *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -431,7 +420,7 @@ int TpcSimpleClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(TrkrClusterContainerNode);
   }
 
-  auto clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  auto *clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!clusterhitassoc)
   {
     PHNodeIterator dstiter(dstNode);
@@ -614,7 +603,7 @@ int TpcSimpleClusterizer::process_event(PHCompositeNode *topNode)
       const auto ckey = TrkrDefs::genClusKey(hitsetkey, index);
 
       // get cluster
-      auto cluster = data.cluster_vector[index];
+      auto *cluster = data.cluster_vector[index];
 
       // insert in map
       m_clusterlist->addClusterSpecifyKey(ckey, cluster);

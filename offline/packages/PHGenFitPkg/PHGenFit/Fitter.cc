@@ -51,9 +51,9 @@ namespace PHGenFit
       const std::string& /*track_rep_choice*/,
       const bool doEventDisplay)
     : verbosity(1000)
+    , _tgeo_manager(new TGeoManager("Default", "Geane geometry"))
     , _doEventDisplay(doEventDisplay)
   {
-    _tgeo_manager = new TGeoManager("Default", "Geane geometry");
     TGeoManager::Import(tgeo_file_name.data());
 
     assert(field);
@@ -73,26 +73,24 @@ namespace PHGenFit
     }
 
     // init fitter
-    if (fitter_choice.compare("KalmanFitterRefTrack") == 0)
+    if (fitter_choice == "KalmanFitterRefTrack")
     {
       _fitter = new genfit::KalmanFitterRefTrack();
     }
-    else if (fitter_choice.compare("KalmanFitter") == 0)
-// NOLINTNEXTLINE(bugprone-branch-clone)
-    {
+    else if (fitter_choice == "KalmanFitter")
+    {  // NOLINT(bugprone-branch-clone)
       _fitter = new genfit::KalmanFitter();
     }
-    else if (fitter_choice.compare("DafSimple") == 0)
+    else if (fitter_choice == "DafSimple")
     {
       _fitter = new genfit::DAF(false);
     }
-    else if (fitter_choice.compare("DafRef") == 0)
+    else if (fitter_choice == "DafRef")
     {
       _fitter = new genfit::DAF(true);
     }
     else
-// NOLINTNEXTLINE(bugprone-branch-clone)
-    {
+    {  // NOLINT(bugprone-branch-clone)
       _fitter = new genfit::KalmanFitter();
     }
 
@@ -235,7 +233,7 @@ namespace PHGenFit
     {
       _fitter = new genfit::KalmanFitterRefTrack();
     }
-    if (fitter_choice == PHGenFit::Fitter::DafSimple)
+    else if (fitter_choice == PHGenFit::Fitter::DafSimple)
     {
       _fitter = new genfit::DAF(false);
     }
@@ -289,19 +287,19 @@ namespace PHGenFit
     }
 
     // init fitter
-    if (fitter_choice.compare("KalmanFitterRefTrack") == 0)
+    if (fitter_choice == "KalmanFitterRefTrack")
     {
       _fitter = new genfit::KalmanFitterRefTrack();
     }
-    else if (fitter_choice.compare("KalmanFitter") == 0)
+    else if (fitter_choice == "KalmanFitter")
     {
       _fitter = new genfit::KalmanFitter();
     }
-    else if (fitter_choice.compare("DafSimple") == 0)
+    else if (fitter_choice == "DafSimple")
     {
       _fitter = new genfit::DAF(false);
     }
-    else if (fitter_choice.compare("DafRef") == 0)
+    else if (fitter_choice == "DafRef")
     {
       _fitter = new genfit::DAF(true);
     }
