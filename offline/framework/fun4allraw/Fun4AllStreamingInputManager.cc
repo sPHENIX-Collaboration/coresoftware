@@ -776,9 +776,15 @@ int Fun4AllStreamingInputManager::FillIntt()
   {
     h_taggedAllFee_intt->Fill(refbcobitshift);
   }
-  while (m_InttRawHitMap.begin()->first <= select_crossings - m_intt_negative_bco)
+
+  for (auto& [bco, hitinfo] : m_InttRawHitMap)
   {
-    for (auto *intthititer : m_InttRawHitMap.begin()->second.InttRawHitVector)
+    if (bco > select_crossings)
+    {
+      break;
+    }
+
+    for (auto *intthititer : hitinfo.InttRawHitVector)
     {
       if (Verbosity() > 1)
       {
@@ -788,25 +794,9 @@ int Fun4AllStreamingInputManager::FillIntt()
       }
       inttcont->AddHit(intthititer);
     }
-    for (auto *iter : m_InttInputVector)
-    {
-      iter->CleanupUsedPackets(m_InttRawHitMap.begin()->first);
-      if (m_intt_negative_bco < 2)  // triggered mode
-      {
-        iter->clearPacketBClkStackMap(m_InttRawHitMap.begin()->first);
-        iter->clearFeeGTML1BCOMap(m_InttRawHitMap.begin()->first);
-      }
-    }
-    m_InttRawHitMap.begin()->second.InttRawHitVector.clear();
-    m_InttRawHitMap.erase(m_InttRawHitMap.begin());
-    if (m_InttRawHitMap.empty())
-    {
-      break;
-    }
-  }
+  } 
   return 0;
 }
-
 int Fun4AllStreamingInputManager::FillMvtx()
 {
   int iret = FillMvtxPool();
@@ -846,7 +836,7 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   select_crossings += m_RefBCO;
 
-  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? 0 : m_RefBCO - m_mvtx_bco_range;
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_negative_bco ? 0 : m_RefBCO - m_mvtx_negative_bco;
   if (Verbosity() > 2)
   {
     std::cout << "select MVTX crossings"
@@ -981,90 +971,42 @@ int Fun4AllStreamingInputManager::FillMvtx()
   }
   taggedPacketsFEEs.clear();
 
-  if (m_mvtx_is_triggered)
-  {
-    while (select_crossings <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings + m_mvtx_bco_range)  // triggered
-    {
-      if (Verbosity() > 2)
-      {
-        std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
-                  << " ref: 0x" << select_crossings << std::dec << std::endl;
-      }
-      for (auto *mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
-      {
-        if (Verbosity() > 1)
-        {
-          mvtxFeeIdInfo->identify();
-        }
-        mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
-        delete mvtxFeeIdInfo;
-      }
-      m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
-      mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
+  uint64_t lower_limit = m_mvtx_is_triggered ? select_crossings : select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco;
+  uint64_t upper_limit = m_mvtx_is_triggered ? select_crossings + m_mvtx_bco_range : select_crossings;
 
-      for (auto *mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
-      {
-        if (Verbosity() > 1)
-        {
-          mvtxhititer->identify();
-        }
-        mvtxcont->AddHit(mvtxhititer);
-      }
-      for (auto *iter : m_MvtxInputVector)
-      {
-        iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
-      }
-      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
-      m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
-      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
-      // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
-      if (m_MvtxRawHitMap.empty())
-      {
-        break;
-      }
+  for (auto& [bco, hitinfo] : m_MvtxRawHitMap)
+  {
+    if (bco < lower_limit)
+    {
+      continue;
     }
-  }
-  else
-  {
-    while (select_crossings - m_mvtx_bco_range - m_mvtx_negative_bco <= m_MvtxRawHitMap.begin()->first && m_MvtxRawHitMap.begin()->first <= select_crossings)  // streamed
+    if (bco > upper_limit)
     {
-      if (Verbosity() > 2)
-      {
-        std::cout << "Adding 0x" << std::hex << m_MvtxRawHitMap.begin()->first
-                  << " ref: 0x" << select_crossings << std::dec << std::endl;
-      }
-      for (auto *mvtxFeeIdInfo : m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector)
-      {
-        if (Verbosity() > 1)
-        {
-          mvtxFeeIdInfo->identify();
-        }
-        mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
-        delete mvtxFeeIdInfo;
-      }
-      m_MvtxRawHitMap.begin()->second.MvtxFeeIdInfoVector.clear();
-      mvtxEvtHeader->AddL1Trg(m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco);
+      break;
+    }
 
-      for (auto *mvtxhititer : m_MvtxRawHitMap.begin()->second.MvtxRawHitVector)
+    if (Verbosity() > 2)
+    {
+      std::cout << "Adding 0x" << std::hex << bco 
+                << " ref: 0x" << select_crossings << std::dec << std::endl;
+    }
+    for (auto *mvtxFeeIdInfo : hitinfo.MvtxFeeIdInfoVector)
+    {
+      if (Verbosity() > 1)
       {
-        if (Verbosity() > 1)
-        {
-          mvtxhititer->identify();
-        }
-        mvtxcont->AddHit(mvtxhititer);
+        mvtxFeeIdInfo->identify();
       }
-      for (auto *iter : m_MvtxInputVector)
+      mvtxEvtHeader->AddFeeIdInfo(mvtxFeeIdInfo);
+    }
+    mvtxEvtHeader->AddL1Trg(hitinfo.MvtxL1TrgBco);
+
+    for (auto *mvtxhititer : hitinfo.MvtxRawHitVector)
+    {
+      if (Verbosity() > 1)
       {
-        iter->CleanupUsedPackets(m_MvtxRawHitMap.begin()->first);
+        mvtxhititer->identify();
       }
-      m_MvtxRawHitMap.begin()->second.MvtxRawHitVector.clear();
-      m_MvtxRawHitMap.begin()->second.MvtxL1TrgBco.clear();
-      m_MvtxRawHitMap.erase(m_MvtxRawHitMap.begin());
-      // m_MvtxRawHitMap.empty() need to be checked here since we do not call FillPoolMvtx()
-      if (m_MvtxRawHitMap.empty())
-      {
-        break;
-      }
+      mvtxcont->AddHit(mvtxhititer);
     }
   }
 
@@ -1422,7 +1364,7 @@ int Fun4AllStreamingInputManager::FillMicromegasPool()
 
 int Fun4AllStreamingInputManager::FillMvtxPool()
 {
-  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_bco_range ? m_mvtx_bco_range : m_RefBCO - m_mvtx_bco_range;
+  uint64_t ref_bco_minus_range = m_RefBCO < m_mvtx_negative_bco ? m_mvtx_negative_bco : m_RefBCO - m_mvtx_negative_bco;
   for (auto *iter : m_MvtxInputVector)
   {
     if (Verbosity() > 3)
