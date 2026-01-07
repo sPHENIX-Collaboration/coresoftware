@@ -77,7 +77,7 @@ namespace MicromegasDefs
   uint8_t getStrip( TrkrDefs::hitkey key )
   {
     TrkrDefs::hitkey tmp = (key >> kBitShiftStrip);
-    return tmp;
+    return tmp & 0xFF;
   }
 
   //________________________________________________________________
