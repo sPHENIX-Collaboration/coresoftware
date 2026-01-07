@@ -15,7 +15,7 @@
 namespace
 {
   template <class T>
-  constexpr T square(const T& x)
+  constexpr T square(const T x)
   {
     return x * x;
   }
