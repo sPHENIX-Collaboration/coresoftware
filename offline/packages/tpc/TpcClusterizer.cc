@@ -1206,13 +1206,13 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
 
   std::cout << "FirstLayerCellGeomv1 streamer: " << std::endl;  
-  auto *g1 = (PHG4TpcGeomv1*) geom->GetFirstLayerCellGeom(); // cast because << not in the base class
+  auto *g1 = static_cast<PHG4TpcGeomv1*> (geom->GetFirstLayerCellGeom()); // cast because << not in the base class
   std::cout << *g1 << std::endl;
   std::cout << "LayerCellGeomv1 streamer for layer 24: " << std::endl;
-  auto *g2 = (PHG4TpcGeomv1*) geom->GetLayerCellGeom(24); // cast because << not in the base class
+  auto *g2 = static_cast<PHG4TpcGeomv1*> (geom->GetLayerCellGeom(24)); // cast because << not in the base class
   std::cout << *g2 << std::endl;
   std::cout << "LayerCellGeomv1 streamer for layer 40: " << std::endl;  
-  auto *g3 = (PHG4TpcGeomv1*) geom->GetLayerCellGeom(40); // cast because << not in the base class
+  auto *g3 = static_cast<PHG4TpcGeomv1*> (geom->GetLayerCellGeom(40)); // cast because << not in the base class
   std::cout << *g3 << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;

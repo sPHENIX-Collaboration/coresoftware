@@ -879,7 +879,6 @@ int LaserClusterizer::process_event(PHCompositeNode *topNode)
   }
 
   TrkrHitSetContainer::ConstRange hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
-  ;
 
   struct thread_pair_t
   {
