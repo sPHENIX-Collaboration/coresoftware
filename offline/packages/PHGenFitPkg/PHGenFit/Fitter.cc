@@ -233,7 +233,7 @@ namespace PHGenFit
     {
       _fitter = new genfit::KalmanFitterRefTrack();
     }
-    if (fitter_choice == PHGenFit::Fitter::DafSimple)
+    else if (fitter_choice == PHGenFit::Fitter::DafSimple)
     {
       _fitter = new genfit::DAF(false);
     }
