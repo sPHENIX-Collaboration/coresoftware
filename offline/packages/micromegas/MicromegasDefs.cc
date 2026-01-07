@@ -84,7 +84,7 @@ namespace MicromegasDefs
   uint16_t getSample( TrkrDefs::hitkey key )
   {
     TrkrDefs::hitkey tmp = (key >> kBitShiftSample);
-    return tmp;
+    return tmp & 0xFFFF;
   }
 
   //________________________________________________________________
