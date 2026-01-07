@@ -335,7 +335,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
-        totalcemc += offlineenergy;
+        if (isGood)
+        {
+          totalcemc += offlineenergy;
+        }
         h_emcaltime->Fill(_timef);
         if (offlineenergy > emcal_hit_threshold)
         {
@@ -407,7 +410,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
-        totalihcal += offlineenergy;
+        if (isGood)
+        {
+          totalihcal += offlineenergy;
+        }
         h_ihcaltime->Fill(_timef);
 
         if (offlineenergy > ihcal_hit_threshold)
@@ -472,7 +478,10 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
           status = status >> 1U;  // clang-tidy mark 1 as unsigned
         }
 
-        totalohcal += offlineenergy;
+        if (isGood)
+        {
+          totalohcal += offlineenergy;
+        }
         h_ohcaltime->Fill(_timef);
 
         if (offlineenergy > ohcal_hit_threshold)
