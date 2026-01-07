@@ -158,9 +158,12 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
   PHG4CylinderGeomContainer* geonode = nullptr;
   for( std::string geonodename: {"CYLINDERGEOM_MICROMEGAS_FULL", "CYLINDERGEOM_MICROMEGAS" } )
   {
-    if(( geonode =  findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str()) ))
-    { break;}
+    // try load node and test
+    geonode = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename);
+    if( geonode ) { break;}
   }
+
+  //ma
   assert(geonode);
 
   // hitset container
@@ -261,7 +264,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       } else if( strip - previous_strip > 1 ) {
 
         // store current cluster range
-        ranges.push_back( std::make_pair( begin, hit_it ) );
+        ranges.emplace_back( begin, hit_it );
 
         // reinitialize begin of next cluster range
         begin = hit_it;
@@ -274,7 +277,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
     }
 
     // store last cluster
-    if( begin != local_hitmap.end() ) { ranges.push_back( std::make_pair( begin, local_hitmap.end() ) ); }
+    if( begin != local_hitmap.end() ) { ranges.emplace_back( begin, local_hitmap.end() ); }
 
     // initialize cluster count
     int cluster_count = 0;

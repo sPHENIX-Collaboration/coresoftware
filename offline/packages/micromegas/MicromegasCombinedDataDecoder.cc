@@ -258,7 +258,7 @@ int MicromegasCombinedDataDecoder::process_event(PHCompositeNode* topNode)
     const TrkrDefs::hitkey hitkey = MicromegasDefs::genHitKey(strip, max_adc.first);
 
     // find existing hit, or create
-    auto hit = hitset_it->second->getHit(hitkey);
+    auto* hit = hitset_it->second->getHit(hitkey);
     if (hit)
     {
       std::cout << "MicromegasCombinedDataDecoder::process_event - duplicated hit, hitsetkey: " << hitsetkey << " strip: " << strip << std::endl;
