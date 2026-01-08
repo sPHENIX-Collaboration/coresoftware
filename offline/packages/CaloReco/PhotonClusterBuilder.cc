@@ -566,6 +566,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("et3", showershape[2]);
   photon->set_shower_shape_parameter("et4", showershape[3]);
   photon->set_shower_shape_parameter("e11", e11);
+  photon->set_shower_shape_parameter("e22", showershape[8] + showershape[9] + showershape[10] + showershape[11]);
   photon->set_shower_shape_parameter("e33", e33);
   photon->set_shower_shape_parameter("e55", e55);
   photon->set_shower_shape_parameter("e77", e77);
