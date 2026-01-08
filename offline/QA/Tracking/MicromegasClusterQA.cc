@@ -73,6 +73,9 @@ int MicromegasClusterQA::InitRun(PHCompositeNode* topNode)
       << (m_calibration_filename.empty() ? "unspecified" : m_calibration_filename)
       << std::endl;
 
+  std::cout << "MicromegasClusterQA::InitRun - m_sample_min: " << m_sample_min << std::endl;
+  std::cout << "MicromegasClusterQA::InitRun - m_sample_max: " << m_sample_max << std::endl;
+
   // read calibrations
   if (!m_calibration_filename.empty())
   {
@@ -161,6 +164,13 @@ int MicromegasClusterQA::process_event(PHCompositeNode* topNode)
     {
       // find associated hits
       const auto hit_range = m_cluster_hit_map->getHits(ckey);
+
+      // check hit samples
+      // if none of the associated hits' sample is within acceptable range, skip the cluster
+      if( std::none_of( hit_range.first, hit_range.second,
+        [this]( const TrkrClusterHitAssoc::Map::value_type& pair )
+        { return MicromegasDefs::getSample( pair.second ) >= m_sample_min &&  MicromegasDefs::getSample( pair.second ) < m_sample_max; } ) )
+      { continue; }
 
       // store cluster size and fill cluster size histogram
       const int cluster_size = std::distance(hit_range.first, hit_range.second);
