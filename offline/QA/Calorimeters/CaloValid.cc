@@ -267,7 +267,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   uint64_t raw[64] = {0};
   uint64_t live[64] = {0};
   // long long int scaled[64] = { 0 };
-  Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "14001");
+  Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, 14001);
   if (!gl1PacketInfo)
   {
     gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
