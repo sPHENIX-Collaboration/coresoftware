@@ -253,15 +253,8 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
 
       // get strip number
       const auto strip = MicromegasDefs::getStrip( hitkey );
-
-      if( first )
+      if( !first && (strip - previous_strip > 1 ) )
       {
-
-        previous_strip = strip;
-        first = false;
-        continue;
-
-      } else if( strip - previous_strip > 1 ) {
 
         // store current cluster range
         ranges.emplace_back( begin, hit_it );
@@ -272,6 +265,7 @@ int MicromegasClusterizer::process_event(PHCompositeNode *topNode)
       }
 
       // update previous strip
+      first = false;
       previous_strip = strip;
 
     }
