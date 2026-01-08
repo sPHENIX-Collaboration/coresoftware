@@ -32,7 +32,7 @@ class PHTpcDeltaZCorrection : public SubsysReco, public PHParameterInterface
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
   void SetDefaultParameters() override;
-  void setTrkrClusterContainerName(std::string &name) { m_clusterContainerName = name; }
+  void setTrkrClusterContainerName(const std::string &name) { m_clusterContainerName = name; }
 
  private:
   /// load nodes

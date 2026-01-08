@@ -142,7 +142,7 @@ class PHActsTrkFitter : public SubsysReco
   void set_enable_geometric_crossing_estimate(bool flag) { m_enable_crossing_estimate = flag; }
   void set_use_clustermover(bool use) { m_use_clustermover = use; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
-  void setTrkrClusterContainerName(std::string& name) { m_clusterContainerName = name; }
+  void setTrkrClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
   void setDirectNavigation(bool flag) { m_directNavigation = flag; }
 
  private:

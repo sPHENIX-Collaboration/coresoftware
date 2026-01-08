@@ -54,7 +54,7 @@ class PHSimpleVertexFinder : public SubsysReco
   void setTrackMapName(const std::string &name) { _track_map_name = name; }
   void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
   void zeroField(const bool flag) { _zero_field = flag; }
-  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
+  void setTrkrClusterContainerName(const std::string &name){ m_clusterContainerName = name; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
 
  private:
