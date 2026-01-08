@@ -272,6 +272,17 @@ void PhotonClusterBuilder::calculate_bdt_score(PhotonClusterv1* photon)
   photon->set_shower_shape_parameter("bdt_score", bdt_score);
 }
 
+/// @brief Extracts and stores shower-shape and isolation observables for a cluster onto a PhotonClusterv1.
+///
+— Computes a 7x7 local energy grid around the cluster lead tower, derives moments, summed energies
+— (e.g., e11, e22, e33, e55, e77 and related e13..e75), centroid and width metrics (weta, wphi, cog variants),
+— timing and saturation counters, closest HCAL tower ET summaries, and calorimeter-layer isolation values,
+— and attaches these values to the provided photon via set_shower_shape_parameter.
+///
+@param rc Pointer to the RawCluster providing tower membership and shower-shape inputs; if rc->get_shower_shapes(...) is empty the function returns without modifying the photon.
+///@param photon PhotonClusterv1 instance to receive computed shower-shape and isolation parameters.
+///@param cluster_eta Pseudorapidity of the cluster (used for ET calculations and stored as "cluster_eta").
+///@param cluster_phi Azimuthal angle of the cluster (used for storage as "cluster_phi").
 void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonClusterv1* photon, float cluster_eta, float cluster_phi)
 {
   std::vector<float> showershape = rc->get_shower_shapes(m_shape_min_tower_E);
@@ -566,6 +577,7 @@ void PhotonClusterBuilder::calculate_shower_shapes(RawCluster* rc, PhotonCluster
   photon->set_shower_shape_parameter("et3", showershape[2]);
   photon->set_shower_shape_parameter("et4", showershape[3]);
   photon->set_shower_shape_parameter("e11", e11);
+  photon->set_shower_shape_parameter("e22", showershape[8] + showershape[9] + showershape[10] + showershape[11]);
   photon->set_shower_shape_parameter("e33", e33);
   photon->set_shower_shape_parameter("e55", e55);
   photon->set_shower_shape_parameter("e77", e77);
