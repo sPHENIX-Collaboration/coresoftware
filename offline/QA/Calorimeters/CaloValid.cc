@@ -267,7 +267,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   uint64_t raw[64] = {0};
   uint64_t live[64] = {0};
   // long long int scaled[64] = { 0 };
-  Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, 14001);
+  Gl1Packet* gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "14001");
   if (!gl1PacketInfo)
   {
     gl1PacketInfo = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
@@ -344,7 +344,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_cemc_etaphi_time->Fill(ieta, iphi, _timef);
           h_cemc_etaphi->Fill(ieta, iphi);
-          if (isGood && (scaledBits[10] || scaledBits[11]))
+          if (isGood && (scaledBits[10] || scaledBits[12]))
           {
             h_cemc_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
           }
@@ -420,7 +420,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_ihcal_etaphi->Fill(ieta, iphi);
           h_ihcal_etaphi_time->Fill(ieta, iphi, _timef);
-          if (isGood && (scaledBits[10] || scaledBits[11]))
+          if (isGood && (scaledBits[10] || scaledBits[12]))
           {
             h_ihcal_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
           }
@@ -488,7 +488,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         {
           h_ohcal_etaphi_time->Fill(ieta, iphi, _timef);
           h_ohcal_etaphi->Fill(ieta, iphi);
-          if (isGood && (scaledBits[10] || scaledBits[11]))
+          if (isGood && (scaledBits[10] || scaledBits[12]))
           {
             h_ohcal_etaphi_wQA->Fill(ieta, iphi, offlineenergy);
           }
