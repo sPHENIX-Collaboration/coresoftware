@@ -1,7 +1,7 @@
 #include "SingleMvtxPoolInput.h"
 
-#include "MvtxRawDefs.h"
 #include "Fun4AllStreamingInputManager.h"
+#include "MvtxRawDefs.h"
 #include "mvtx_pool.h"
 
 #include <ffarawobjects/MvtxFeeIdInfov1.h>
@@ -29,7 +29,8 @@
 #include <set>
 
 SingleMvtxPoolInput::SingleMvtxPoolInput(const std::string &name)
-  : SingleStreamingInput(name), plist(new Packet *[2])
+  : SingleStreamingInput(name)
+  , plist(new Packet *[2])
 {
   
   m_rawHitContainerName = "MVTXRAWHIT";
@@ -161,7 +162,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
             m_BclkStack.insert(strb_bco);
             m_FEEBclkMap[feeId] = strb_bco;
 
-            if (strb_bco < minBCO - m_NegativeBco)
+            if (strb_bco < minBCO)
             {
               continue;
             }
@@ -206,7 +207,7 @@ void SingleMvtxPoolInput::FillPool(const uint64_t minBCO)
       auto it = m_BclkStack.lower_bound(lv1Bco);
 //      auto const strb_it = (it == m_BclkStack.begin()) ? (*it == lv1Bco ? it : m_BclkStack.cend()) : --it;
 // this is equivalent but human readable for the above:
-      auto strb_it = m_BclkStack.cend();
+      auto strb_it = m_BclkStack.cend(); 
 
       if (it == m_BclkStack.begin())
       {
@@ -462,7 +463,7 @@ void SingleMvtxPoolInput::ConfigureStreamingInputManager()
     else if (m_strobeWidth > 9 && m_strobeWidth < 11)
     {
       m_BcoRange = 500;
-      m_NegativeBco = 500;
+      m_NegativeBco = 120;
     }
     else if (m_strobeWidth < 1)  // triggered mode
     {
