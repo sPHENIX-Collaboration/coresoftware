@@ -1,0 +1,123 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef HEPMCJETTRIGGER_H
+#define HEPMCJETTRIGGER_H
+
+#include <fun4all/SubsysReco.h>
+
+#include <fastjet/PseudoJet.hh>
+
+#include <string>
+#include <vector>
+
+class PHCompositeNode;
+namespace HepMC
+{
+  class GenEvent;
+}
+
+class HepMCJetTrigger : public SubsysReco
+{
+ public:
+  HepMCJetTrigger(float trigger_thresh = 10., int n_incom = 1000, bool up_lim = false, const std::string& name = "HepMCJetTrigger");
+
+  ~HepMCJetTrigger() override = default;
+
+  /** Called during initialization.
+      Typically this is where you can book histograms, and e.g.
+      register them to Fun4AllServer (so they can be output to file
+      using Fun4AllServer::dumpHistos() method).
+   */
+
+  /** Called for first event when run number is known.
+      Typically this is where you may want to fetch data from
+      database, because you know the run number. A place
+      to book histograms which have to know the run number.
+   */
+
+  /** Called for each event.
+      This is where you do the real work.
+   */
+  int process_event(PHCompositeNode* topNode) override;
+
+  /// Clean up internals after each event.
+
+  /// Called at the end of each run.
+
+  /// Called at the end of all processing.
+
+  /// Reset
+  void AddParticles(const std::string &particles);
+  void AddParticles(int particle);
+  void AddParticles(std::vector<int> particles);
+  void AddParticlespID(std::vector<int> particles);
+
+  void AddParents(const std::string &parents);
+  void AddParents(int parent);
+  void AddParents(std::vector<int> parents);
+  void AddParentspID(std::vector<int> parents);
+
+  void SetPtHigh(double pt);
+  void SetPtLow(double pt);
+  void SetPtHighLow(double ptHigh, double ptLow);
+
+  void SetPHigh(double p);
+  void SetPLow(double p);
+  void SetPHighLow(double pHigh, double pLow);
+  
+  void SetEtaHigh(double eta);
+  void SetEtaLow(double eta);
+  void SetEtaHighLow(double etaHigh, double etaLow);
+  
+  void SetAbsEtaHigh(double eta);
+  void SetAbsEtaLow(double eta);
+  void SetAbsEtaHighLow(double etaHigh, double etaLow);
+
+  void SetPzHigh(double pz);
+  void SetPzLow(double pz);
+  void SetPzHighLow(double pzHigh, double pzLow);
+ 
+  void SetStableParticleOnly(bool b) { m_doStableParticleOnly = b; }
+ private:
+  std::vector<int> _theParents;
+  std::vector<int> _theParticles;
+
+  bool isGoodEvent(HepMC::GenEvent* e1);
+  std::vector<int> findAllParticles(HepMC::GenEvent* e1);
+  int particleAboveThreshold(std::map<int, int> n_particles, int particle);
+  float threshold{0.};
+  int goal_event_number{1000};
+  int n_evts{0};
+  int n_good{0};
+  bool set_event_limit{false};
+  float _theEtaHigh{-999.9};
+  float _theEtaLow{-999.9};
+  float _thePtHigh(999.9};
+  float _thePtLow(-999.9};
+  float _thePHigh(999.9};
+  float _thePLow(-999.9};
+  float _thePzHigh(999.9};
+  float _thePzLow(-999.9};
+
+  bool _doEtaHighCut{false};
+  bool _doEtaLowCut{false};
+  bool _doBothEtaCut{false};
+
+  bool _doAbsEtaHighCut{false};
+  bool _doAbsEtaLowCut{false};
+  bool _doBothAbsEtaCut{false};
+
+  bool _doPtHighCut{false};
+  bool _doPtLowCut{false};
+  bool _doBothPtCut{false};
+
+  bool _doPHighCut{false};
+  bool _doPLowCut{false};
+  bool _doBothPCut{false};
+
+  bool _doPzHighCut{false};
+  bool _doPzLowCut{false};
+  bool _doBothPzCut{false};
+};
+
+#endif  // HEPMCJETTRIGGER_H
