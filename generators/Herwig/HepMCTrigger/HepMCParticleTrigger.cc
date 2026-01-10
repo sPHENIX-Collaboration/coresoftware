@@ -262,7 +262,7 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
       float pz = p.pz();
       float p_M = std::sqrt(std::pow(px, 2) + std::pow(py, 2) + std::pow(pz, 2));
       float pt = std::sqrt(std::pow(px, 2) + std::pow(py, 2));
-      int pid = (*iter)->pdg_id();
+      int pid = std::abs((*iter)->pdg_id());
       double eta = p.eta();
       if((_doEtaHighCut || _doBothEtaCut ) && eta > _theEtaHigh) continue;
       if((_doEtaLowCut || _doBothEtaCut ) && eta < _theEtaLow) continue;
