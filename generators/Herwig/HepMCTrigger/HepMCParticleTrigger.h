@@ -47,44 +47,42 @@ class HepMCJetTrigger : public SubsysReco
   /// Called at the end of all processing.
 
   /// Reset
-  void AddParticles(const std::string &particles);
-  void AddParticles(int particle);
-  void AddParticles(std::vector<int> particles);
-  void AddParticlespID(std::vector<int> particles);
+  void AddParticles(std::vector<int>);
+  void AddParticle(int);
 
-  void AddParents(const std::string &parents);
+/*  void AddParents(const std::string &parents);
   void AddParents(int parent);
   void AddParents(std::vector<int> parents);
   void AddParentspID(std::vector<int> parents);
+*/
+  void SetPtHigh(double);
+  void SetPtLow(double);
+  void SetPtHighLow(double, double);
 
-  void SetPtHigh(double pt);
-  void SetPtLow(double pt);
-  void SetPtHighLow(double ptHigh, double ptLow);
-
-  void SetPHigh(double p);
-  void SetPLow(double p);
-  void SetPHighLow(double pHigh, double pLow);
+  void SetPHigh(double);
+  void SetPLow(double);
+  void SetPHighLow(double, double);
   
-  void SetEtaHigh(double eta);
-  void SetEtaLow(double eta);
-  void SetEtaHighLow(double etaHigh, double etaLow);
+  void SetEtaHigh(double);
+  void SetEtaLow(double);
+  void SetEtaHighLow(double, double);
   
-  void SetAbsEtaHigh(double eta);
-  void SetAbsEtaLow(double eta);
-  void SetAbsEtaHighLow(double etaHigh, double etaLow);
+  void SetAbsEtaHigh(double);
+  void SetAbsEtaLow(double);
+  void SetAbsEtaHighLow(double, double);
 
-  void SetPzHigh(double pz);
-  void SetPzLow(double pz);
-  void SetPzHighLow(double pzHigh, double pzLow);
+  void SetPzHigh(double);
+  void SetPzLow(double);
+  void SetPzHighLow(double, double);
  
   void SetStableParticleOnly(bool b) { m_doStableParticleOnly = b; }
  private:
-  std::vector<int> _theParents;
-  std::vector<int> _theParticles;
-
   bool isGoodEvent(HepMC::GenEvent* e1);
   std::vector<int> findAllParticles(HepMC::GenEvent* e1);
   int particleAboveThreshold(std::map<int, int> n_particles, int particle);
+  std::vector<int> _theParentsi {};
+  std::vector<int> _theParticles {};
+  bool m_doStableParticleOnly {true};
   float threshold{0.};
   int goal_event_number{1000};
   int n_evts{0};
