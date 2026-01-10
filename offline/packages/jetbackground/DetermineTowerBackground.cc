@@ -62,7 +62,7 @@ int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 	{
 	  std::cout << "Loading the average calo v2" << std::endl;
 	}
-      if (!LoadCalibrations())
+      if (LoadCalibrations())
 	{
 	  std::cout << "Load calibrations failed." << std::endl;
 	  return Fun4AllReturnCodes::ABORTRUN;
@@ -78,25 +78,20 @@ int DetermineTowerBackground::LoadCalibrations()
   
   CDBTTree *cdbtree_calo_v2 = nullptr;
 
-  std::string calibdir;
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
   if (m_overwrite_average_calo_v2)
     {
       calibdir = m_overwrite_average_calo_v2_path;
     }
-  else
-    {
-      calibdir = CDBInterface::instance()->getUrl(m_calibName);
-    }
 
   if (calibdir.empty())
     {
-      std::cout << "Could not find and load histograms for EMCAL LUTs! defaulting to the identity table!" << std::endl;
+      std::cout << "Could not find filename for calo average v2, exiting" << std::endl;
       exit(-1);
     }
-  else
-    {
-      cdbtree_calo_v2 = new CDBTTree(calibdir);
-    }
+
+  cdbtree_calo_v2 = new CDBTTree(calibdir);
+  
     
   cdbtree_calo_v2->LoadCalibrations();
 
