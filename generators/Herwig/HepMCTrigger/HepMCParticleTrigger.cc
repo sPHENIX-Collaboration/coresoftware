@@ -268,7 +268,7 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
       if((_doAbsEtaHighCut || _doBothAbsEtaCut ) && std::abs(eta) > _theEtaHigh) continue;
       if((_doAbsEtaLowCut || _doBothAbsEtaCut ) && std::abs(eta) < _theEtaLow) continue;
       if((_doPtHighCut || _doBothPtCut ) && pt > _thePtHigh) continue;
-      if((_doPLowCut || _doBothPCut ) && pt < _thePtLow) continue;
+      if((_doPtLowCut || _doBothPtCut ) && pt < _thePtLow) continue;
       if((_doPHighCut || _doBothPCut ) && p_M > _thePHigh) continue;
       if((_doPLowCut || _doBothPCut ) && p_M < _thePLow) continue;
       if((_doPzHighCut || _doBothPzCut ) && pz > _thePzHigh) continue;
@@ -276,12 +276,11 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
       if(particle_types.find(pid) != particle_types.end()) particle_types[pid]++;
       else particle_types[pid]=1;
      }
-    for(auto p:_theParticles)
-    {
-	    n_trigger.push_back(particleAboveThreshold(particle_types, p)); //make sure we have at least one of each required particle
-    }
-
-   } 
+  }
+  for(auto p:_theParticles)
+  {
+    n_trigger.push_back(particleAboveThreshold(particle_types, p)); //make sure we have at least one of each required particle
+  } 
   return n_trigger;
 }
 int HepMCParticleTrigger::particleAboveThreshold(std::map<int, int> n_particles, int trigger_particle )
