@@ -77,7 +77,7 @@ int HepMCParticleTrigger::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  bool good_event;
+  bool good_event {false};
   PHHepMCGenEventMap* phg = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!phg)
   {
