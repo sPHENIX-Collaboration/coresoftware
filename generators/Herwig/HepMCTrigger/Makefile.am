@@ -12,15 +12,26 @@ AM_LDFLAGS = \
   `fastjet-config --libs`
 
 pkginclude_HEADERS = \
-  HepMCJetTrigger.h
+  HepMCJetTrigger.h \
+  HepMCParticleTrigger.h
 
 lib_LTLIBRARIES = \
-  libHepMCJetTrigger.la
+  libHepMCJetTrigger.la \
+  libHepMCParticleTrigger.la
 
 libHepMCJetTrigger_la_SOURCES = \
   HepMCJetTrigger.cc
 
+libHepMCParticleTrigger_la_SOURCES = \
+  HepMCParticleTrigger.cc
+
 libHepMCJetTrigger_la_LIBADD = \
+  -lphool \
+  -lSubsysReco \
+  -lfun4all \
+  -lphhepmc 
+
+libHepMCParticleTrigger_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lfun4all \
