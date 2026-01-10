@@ -89,6 +89,17 @@ int InputFileHandler::OpenNextFile()
     {
       std::cout << PHWHERE << " opening next file: " << *iter << std::endl;
     }
+    if (!GetOpeningScript().empty())
+    {
+      std::vector<std::string> stringvec;
+      stringvec.push_back(*iter);
+      if (! m_FileName.empty())
+      {
+	stringvec.push_back(m_FileName);
+      }
+      RunBeforeOpening(stringvec);
+    }
+    std::cout << "closing " << m_FileName << ", opening " << *iter << std::endl;
     if (fileopen(*iter))
     {
       std::cout << PHWHERE << " could not open file: " << *iter << std::endl;
