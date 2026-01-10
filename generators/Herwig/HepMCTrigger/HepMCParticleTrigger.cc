@@ -77,6 +77,7 @@ int HepMCParticleTrigger::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
+  bool good_event;
   PHHepMCGenEventMap* phg = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!phg)
   {
@@ -94,16 +95,16 @@ int HepMCParticleTrigger::process_event(PHCompositeNode* topNode)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    bool const good_event = isGoodEvent(ev);
-    if (good_event)
-    {
-      n_good++;
-    }
+    good_event = isGoodEvent(ev);
     if (!good_event)
     {
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
+   if (good_event)
+   {
+     n_good++;
+   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 void HepMCParticleTrigger::AddParticle(int particlePid)
@@ -253,7 +254,7 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
  std::map<int, int> particle_types;
  for (HepMC::GenEvent::particle_const_iterator iter = e1->particles_begin(); iter != e1->particles_end(); ++iter)
   {
-    if (m_doStableParticleOnly && ((*iter)->end_vertex() && (*iter)->status() != 1)) continue;
+    if (m_doStableParticleOnly && ((*iter)->end_vertex() || (*iter)->status() != 1)) continue;
     else{
       auto p = (*iter)->momentum(); 
       float px = p.px();
@@ -283,11 +284,10 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
   } 
   return n_trigger;
 }
-int HepMCParticleTrigger::particleAboveThreshold(std::map<int, int> n_particles, int trigger_particle )
+int HepMCParticleTrigger::particleAboveThreshold(const std::map<int, int>& n_particles, int trigger_particle )
 {
  // search through for the number of identified trigger particles passing cuts
- for(auto p:n_particles){
-	 if(std::abs(p.first) == std::abs(trigger_particle)) return p.second; //accept both trigger particle and antiparticle
- }
- return 0;
+  auto it = n_particles.find(std::abs(trigger_particle));
+  if( it!= n_particles.end()) return it->second;
+  else return 0;
 }

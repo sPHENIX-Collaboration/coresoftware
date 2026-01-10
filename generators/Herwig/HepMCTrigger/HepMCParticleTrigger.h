@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <math.h>
 
 class PHCompositeNode;
 namespace HepMC
@@ -80,7 +81,7 @@ class HepMCParticleTrigger : public SubsysReco
  private:
   bool isGoodEvent(HepMC::GenEvent* e1);
   std::vector<int> getParticles(HepMC::GenEvent* e1);
-  int particleAboveThreshold(std::map<int, int> n_particles, int particle);
+  int particleAboveThreshold(const std::map<int, int>& n_particles, int particle);
 //  std::vector<int> _theParentsi {};
   std::vector<int> _theParticles {};
   bool m_doStableParticleOnly {true};
