@@ -1,4 +1,4 @@
-#include "HepMCJetTrigger.h"
+#include "HepMCParticleTrigger.h"
 
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenEvent.h>
@@ -16,10 +16,10 @@
 #include <fastjet/PseudoJet.hh>
 #include <string>
 #include <vector>
-
+#include <map> 
 //____________________________________________________________________________..
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-HepMCJetTrigger::HepMCJetTrigger(float trigger_thresh, int n_incom, bool up_lim, const std::string& name)
+HepMCParticleTrigger::HepMCParticleTrigger(float trigger_thresh, int n_incom, bool up_lim, const std::string& name)
   : SubsysReco(name)
   , threshold(trigger_thresh)
   , goal_event_number(n_incom)
@@ -58,12 +58,17 @@ HepMCJetTrigger::HepMCJetTrigger(float trigger_thresh, int n_incom, bool up_lim,
   , _doPzLowCut(false)
   , _doBothPzCut(false) 
 {
+	if(threshold != 0 )
+	{
+		_doPtLowCut=true;
+		_thePtLow=threshold;
+	}
 }
 
 //____________________________________________________________________________..
-int HepMCJetTrigger::process_event(PHCompositeNode* topNode)
+int HepMCParticleTrigger::process_event(PHCompositeNode* topNode)
 {
-  // std::cout << "HepMCJetTrigger::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
+  // std::cout << "HepMCParticleTrigger::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
   n_evts++;
   if (this->set_event_limit == true)
   {  // needed to keep all HepMC output at the same number of events
@@ -112,117 +117,117 @@ void HepMCParticleTrigger::AddParticles(std::vector<int> particles)
 	return;
 }
 
-void SetPtHigh(double pt) 
+void HepMCParticleTrigger::SetPtHigh(double pt) 
 {
 	_thePtHigh=pt;
 	_doPtHighCut=true;
 	if(_doPtLowCut) _doBothPtCut=true;
 	return;
 }
-void SetPtLow(double pt) 
+void HepMCParticleTrigger::SetPtLow(double pt) 
 {
 	_thePtLow=pt;
 	_doPtLowCut=true;
 	if(_doPtHighCut) _doBothPtCut=true;
 	return;
 }
-void SetPtHighLow(double ptHigh, double ptLow) 
+void HepMCParticleTrigger::SetPtHighLow(double ptHigh, double ptLow) 
 {
-	_thePtHigh=pt;
+	_thePtHigh=ptHigh;
 	_doPtHighCut=true;
-	_thePtLow=pt;
+	_thePtLow=ptLow;
 	_doPtLowCut=true;
 	_doBothPtCut=true;
 	return;
 }
-void SetPHigh(double pt) 
+void HepMCParticleTrigger::SetPHigh(double pt) 
 {
 	_thePHigh=pt;
 	_doPHighCut=true;
 	if(_doPLowCut) _doBothPCut=true;
 	return;
 }
-void SetPLow(double pt) 
+void HepMCParticleTrigger::SetPLow(double pt) 
 {
 	_thePLow=pt;
 	_doPLowCut=true;
 	if(_doPHighCut) _doBothPCut=true;
 	return;
 }
-void SetPHighLow(double ptHigh, double ptLow) 
+void HepMCParticleTrigger::SetPHighLow(double ptHigh, double ptLow) 
 {
-	_thePHigh=pt;
+	_thePHigh=ptHigh;
 	_doPHighCut=true;
-	_thePLow=pt;
+	_thePLow=ptLow;
 	_doPLowCut=true;
 	_doBothPCut=true;
 	return;
 }
-void SetPzHigh(double pt) 
+void HepMCParticleTrigger::SetPzHigh(double pt) 
 {
 	_thePzHigh=pt;
 	_doPzHighCut=true;
 	if(_doPzLowCut) _doBothPzCut=true;
 	return;
 }
-void SetPzLow(double pt) 
+void HepMCParticleTrigger::SetPzLow(double pt) 
 {
 	_thePzLow=pt;
 	_doPzLowCut=true;
 	if(_doPzHighCut) _doBothPzCut=true;
 	return;
 }
-void SetPzHighLow(double ptHigh, double ptLow) 
+void HepMCParticleTrigger::SetPzHighLow(double ptHigh, double ptLow) 
 {
-	_thePzHigh=pt;
+	_thePzHigh=ptHigh;
 	_doPzHighCut=true;
-	_thePzLow=pt;
+	_thePzLow=ptLow;
 	_doPzLowCut=true;
 	_doBothPzCut=true;
 	return;
 }
-void SetEtaHigh(double pt) 
+void HepMCParticleTrigger::SetEtaHigh(double pt) 
 {
 	_theEtaHigh=pt;
 	_doEtaHighCut=true;
 	if(_doEtaLowCut) _doBothEtaCut=true;
 	return;
 }
-void SetEtaLow(double pt) 
+void HepMCParticleTrigger::SetEtaLow(double pt) 
 {
 	_theEtaLow=pt;
 	_doEtaLowCut=true;
 	if(_doEtaHighCut) _doBothEtaCut=true;
 	return;
 }
-void SetEtaHighLow(double ptHigh, double ptLow) 
+void HepMCParticleTrigger::SetEtaHighLow(double ptHigh, double ptLow) 
 {
-	_theEtaHigh=pt;
+	_theEtaHigh=ptHigh;
 	_doEtaHighCut=true;
-	_theEtaLow=pt;
+	_theEtaLow=ptLow;
 	_doEtaLowCut=true;
 	_doBothEtaCut=true;
 	return;
 }
-void SetAbsEtaHigh(double pt) 
+void HepMCParticleTrigger::SetAbsEtaHigh(double pt) 
 {
-	_theAbsEtaHigh=pt;
+	_theEtaHigh=pt;
 	_doAbsEtaHighCut=true;
 	if(_doAbsEtaLowCut) _doBothAbsEtaCut=true;
 	return;
 }
-void SetAbsEtaLow(double pt) 
+void HepMCParticleTrigger::SetAbsEtaLow(double pt) 
 {
-	_theAbsEtaLow=pt;
+	_theEtaLow=pt;
 	_doAbsEtaLowCut=true;
 	if(_doAbsEtaHighCut) _doBothAbsEtaCut=true;
 	return;
 }
-void SetAbsEtaHighLow(double ptHigh, double ptLow) 
+void HepMCParticleTrigger::SetAbsEtaHighLow(double ptHigh, double ptLow) 
 {
-	_theAbsEtaHigh=pt;
+	_theEtaHigh=ptHigh;
 	_doAbsEtaHighCut=true;
-	_theAbsEtaLow=pt;
+	_theEtaLow=ptLow;
 	_doAbsEtaLowCut=true;
 	_doBothAbsEtaCut=true;
 	return;
@@ -237,7 +242,7 @@ bool HepMCParticleTrigger::isGoodEvent(HepMC::GenEvent* e1)
   std::vector<int> n_trigger_particles = getParticles(e1);
   for(auto ntp:n_trigger_particles)
   {
-    if(ntp <=0 ) return false; //make sure all 
+    if(ntp <=0 ) return false; //make sure all particles have at least 1 
   }
   return true;
 }
@@ -254,9 +259,9 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
       float px = p.px();
       float py = p.py();
       float pz = p.pz();
-      float p = std::sqrt(std::pow(px, 2) + std::pow(py, 2) + std::pow(pz, 2));
+      float p_M = std::sqrt(std::pow(px, 2) + std::pow(py, 2) + std::pow(pz, 2));
       float pt = std::sqrt(std::pow(px, 2) + std::pow(py, 2));
-      int pid = (*iter)->pid();
+      int pid = (*iter)->pdg_id();
       double eta = p.eta();
       if((_doEtaHighCut || _doBothEtaCut ) && eta > _theEtaHigh) continue;
       if((_doEtaLowCut || _doBothEtaCut ) && eta < _theEtaLow) continue;
@@ -264,8 +269,8 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
       if((_doAbsEtaLowCut || _doBothAbsEtaCut ) && std::abs(eta) < _theEtaLow) continue;
       if((_doPtHighCut || _doBothPtCut ) && pt > _thePtHigh) continue;
       if((_doPLowCut || _doBothPCut ) && pt < _thePtLow) continue;
-      if((_doPHighCut || _doBothPCut ) && p > _thePHigh) continue;
-      if((_doPLowCut || _doBothPCut ) && p < _thePLow) continue;
+      if((_doPHighCut || _doBothPCut ) && p_M > _thePHigh) continue;
+      if((_doPLowCut || _doBothPCut ) && p_M < _thePLow) continue;
       if((_doPzHighCut || _doBothPzCut ) && pz > _thePzHigh) continue;
       if((_doPzLowCut || _doBothPzCut ) && pz < _thePzLow) continue;
       if(particle_types.find(pid) != particle_types.end()) particle_types[pid]++;
@@ -273,13 +278,13 @@ std::vector<int> HepMCParticleTrigger::getParticles(HepMC::GenEvent* e1)
      }
     for(auto p:_theParticles)
     {
-	    n_trigger.push_back(particlesAboveThreshold(particle_types, p)); //make sure we have at least one of each required particle
+	    n_trigger.push_back(particleAboveThreshold(particle_types, p)); //make sure we have at least one of each required particle
     }
 
    } 
   return n_trigger;
 }
-int HepMCParticle::particlesAboveThreshold(std::map<int, int> n_particles, int trigger_particle )
+int HepMCParticleTrigger::particleAboveThreshold(std::map<int, int> n_particles, int trigger_particle )
 {
  // search through for the number of identified trigger particles passing cuts
  for(auto p:n_particles){

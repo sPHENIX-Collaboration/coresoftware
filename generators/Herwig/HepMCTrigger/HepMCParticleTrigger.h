@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef HEPMCJETTRIGGER_H
-#define HEPMCJETTRIGGER_H
+#ifndef HEPMCPARTICLETRIGGER_H
+#define HEPMCPARTICLETRIGGER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 class PHCompositeNode;
 namespace HepMC
@@ -16,12 +17,12 @@ namespace HepMC
   class GenEvent;
 }
 
-class HepMCJetTrigger : public SubsysReco
+class HepMCParticleTrigger : public SubsysReco
 {
  public:
-  HepMCJetTrigger(float trigger_thresh = 10., int n_incom = 1000, bool up_lim = false, const std::string& name = "HepMCJetTrigger");
+  HepMCParticleTrigger(float trigger_thresh = 10., int n_incom = 1000, bool up_lim = false, const std::string& name = "HepMCParticleTrigger");
 
-  ~HepMCJetTrigger() override = default;
+  ~HepMCParticleTrigger() override = default;
 
   /** Called during initialization.
       Typically this is where you can book histograms, and e.g.
@@ -78,9 +79,9 @@ class HepMCJetTrigger : public SubsysReco
   void SetStableParticleOnly(bool b) { m_doStableParticleOnly = b; }
  private:
   bool isGoodEvent(HepMC::GenEvent* e1);
-  std::vector<int> findAllParticles(HepMC::GenEvent* e1);
+  std::vector<int> getParticles(HepMC::GenEvent* e1);
   int particleAboveThreshold(std::map<int, int> n_particles, int particle);
-  std::vector<int> _theParentsi {};
+//  std::vector<int> _theParentsi {};
   std::vector<int> _theParticles {};
   bool m_doStableParticleOnly {true};
   float threshold{0.};
@@ -88,14 +89,15 @@ class HepMCJetTrigger : public SubsysReco
   int n_evts{0};
   int n_good{0};
   bool set_event_limit{false};
+
   float _theEtaHigh{-999.9};
   float _theEtaLow{-999.9};
-  float _thePtHigh(999.9};
-  float _thePtLow(-999.9};
-  float _thePHigh(999.9};
-  float _thePLow(-999.9};
-  float _thePzHigh(999.9};
-  float _thePzLow(-999.9};
+  float _thePtHigh{999.9};
+  float _thePtLow{-999.9};
+  float _thePHigh{999.9};
+  float _thePLow{-999.9};
+  float _thePzHigh{999.9};
+  float _thePzLow{-999.9};
 
   bool _doEtaHighCut{false};
   bool _doEtaLowCut{false};
@@ -118,4 +120,4 @@ class HepMCJetTrigger : public SubsysReco
   bool _doBothPzCut{false};
 };
 
-#endif  // HEPMCJETTRIGGER_H
+#endif  // HEPMCPARTICLETRIGGER_H
