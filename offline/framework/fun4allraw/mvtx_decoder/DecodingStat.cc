@@ -10,16 +10,8 @@
 #include <bitset>
 #include <sstream>
 
-using namespace mvtx;
-
-#if (__cplusplus >= CXX_17)
-constexpr std::array<std::string_view, ChipStat::NErrorsDefined> ChipStat::ErrNames;
-#endif
-
-constexpr std::array<uint32_t, ChipStat::NErrorsDefined> ChipStat::ErrActions;
-
 //________________________________________________________________________________
-uint32_t ChipStat::getNErrors() const
+uint32_t mvtx::ChipStat::getNErrors() const
 {
   uint32_t nerr = 0;
   for (int i = NErrorsDefined; i--;)
@@ -31,7 +23,7 @@ uint32_t ChipStat::getNErrors() const
 
 //________________________________________________________________________________
 /// print link decoding statistics
-uint32_t ChipStat::addErrors(uint32_t mask, uint16_t chID, int verbosity)
+uint32_t mvtx::ChipStat::addErrors(uint32_t mask, uint16_t chID, int verbosity)
 {
   uint32_t res = 0;
   if (mask)
@@ -55,7 +47,7 @@ uint32_t ChipStat::addErrors(uint32_t mask, uint16_t chID, int verbosity)
 
 //________________________________________________________________________________
 /// print link decoding statistics
-uint32_t ChipStat::addErrors(const ChipPixelData& d, int verbosity)
+uint32_t mvtx::ChipStat::addErrors(const ChipPixelData& d, int verbosity)
 {
   uint32_t res = 0;
   if (d.getErrorFlags())
@@ -81,7 +73,7 @@ uint32_t ChipStat::addErrors(const ChipPixelData& d, int verbosity)
 
 //________________________________________________________________________________
 /// print chip decoding statistics
-void ChipStat::print(bool skipNoErr, const std::string& pref) const
+void mvtx::ChipStat::print(bool skipNoErr, const std::string& pref) const
 {
   uint32_t nErr = 0;
   for (int i = NErrorsDefined; i--;)
@@ -105,7 +97,7 @@ void ChipStat::print(bool skipNoErr, const std::string& pref) const
 
 //________________________________________________________________________________
 /// print link decoding statistics
-void GBTLinkDecodingStat::print(bool skipNoErr) const
+void mvtx::GBTLinkDecodingStat::print(bool skipNoErr) const
 {
   int nErr = 0;
   for (int i = NErrorsDefined; i--;)

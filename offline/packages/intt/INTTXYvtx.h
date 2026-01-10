@@ -3,22 +3,18 @@
 
 #include "InttVertexUtil.h"
 
-#include <TCanvas.h>
-#include <TFile.h>
-#include <TGraphErrors.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TLatex.h>
-#include <TLegend.h>
-#include <TProfile.h>
-
-#include <filesystem>
+#include <cstdint>
 #include <iostream>
-#include <map>
-#include <numeric>
 #include <string>
 #include <vector>
 
+class TCanvas;
+class TF1;
+class TGraph;
+class TH1;
+class TH2;
+class TLatex;
+class TProfile;
 // note : this class mainly focus on two things
 // note : 1. find a single vertex for the whole run
 // note :     a. the functions prepared for this purpose are : ProcessEvt(), GetFinalVTXxy(), MacroVTXSquare()
@@ -90,7 +86,7 @@ class INTTXYvtx
                   int NvtxMC,
                   double TrigZvtxMC,
                   bool PhiCheckTag,
-                  Long64_t bco_full);
+                  int64_t bco_full);
 
   //////////////////////////////////////////////////////
   // calculate XY vertex
@@ -124,13 +120,13 @@ class INTTXYvtx
   // access to internal variables, necessary?
   unsigned long GetVecNele();
   std::pair<double, double> GetFinalVTXxy();
-  std::pair<std::vector<TH2F*>, std::vector<TH1F*>> GetHistFinal();
+  std::pair<std::vector<TH2*>, std::vector<TH1*>> GetHistFinal();
 
- protected:
+ private:
   std::string run_type;
   std::string out_folder_directory;
   std::pair<double, double> beam_origin;
-  double phi_diff_cut;
+//  double phi_diff_cut;
   std::pair<double, double> DCA_cut;
   int N_clu_cutl;
   int N_clu_cut;
@@ -146,7 +142,6 @@ class INTTXYvtx
   bool m_initialized{false};
   std::string m_quad_pdfname{"New_Trial_square.pdf"};
 
- protected:
   ////////////////////////////
   std::vector<double> subMacroVTXxyCorrection(int test_index, int trial_index, bool draw_plot_opt);
   std::vector<double> GetVTXxyCorrection_new(int trial_index);
@@ -159,8 +154,8 @@ class INTTXYvtx
   void PrintPlotsVTXxy();
 
   std::vector<std::pair<double, double>> Get4vtx(std::pair<double, double> origin, double length);
-  void TH1F_FakeClone(TH1F* hist_in, TH1F* hist_out);
-  void TH2F_FakeClone(TH2F* hist_in, TH2F* hist_out);
+  void TH1F_FakeClone(TH1* hist_in, TH1* hist_out);
+  void TH2F_FakeClone(TH2* hist_in, TH2* hist_out);
 
   void ClearHist(int print_option = 0);
 
@@ -171,73 +166,72 @@ class INTTXYvtx
                    std::vector<double> x2_vec, std::vector<double> y2_vec,
                    const std::string& output_directory, std::vector<std::string> plot_name);
 
-  void TH2F_threshold(TH2F* hist, double threshold);
-  std::vector<double> SumTH2FColumnContent(TH2F* hist_in);
-  void Hist_1D_bkg_remove(TH1F* hist_in, double factor);
-  void TH2F_threshold_advanced_2(TH2F* hist, double threshold);
+  void TH2F_threshold(TH2* hist, double threshold);
+  std::vector<double> SumTH2FColumnContent(TH2* hist_in);
+  void Hist_1D_bkg_remove(TH1* hist_in, double factor);
+  void TH2F_threshold_advanced_2(TH2* hist, double threshold);
 
   // note : from the INTTXYvtxEvt.h // for FillLine_FindVertex
-  void TH2FSampleLineFill(TH2F* hist_in,
+  void TH2FSampleLineFill(TH2* hist_in,
                           double segmentation,
                           std::pair<double, double>
                               inner_clu,
-                          std::pair<double, double> outer_clu);
+                          std::pair<double, double> outer_clu) const;
 
- protected:
   std::vector<TH1*> m_v_hist{};
 
   /////////////////
   // QA histograms in process_evt // in m_v_hist
-  TH2F* N_cluster_correlation{nullptr};        // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* N_cluster_correlation_close{nullptr};  // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* inner_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* outer_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
-  TH2F* inner_outer_pos_xy{nullptr};           // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* N_cluster_correlation{nullptr};        // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* N_cluster_correlation_close{nullptr};  // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* inner_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* outer_pos_xy{nullptr};                 // QA fill: ProcessEvt, draw: PrintPlot
+  TH2* inner_outer_pos_xy{nullptr};           // QA fill: ProcessEvt, draw: PrintPlot
 
   // Quadorant method // in m_v_hist
-  TH2F* DCA_distance_inner_phi{nullptr};  // fill: subMacroPlotWorking
-  TH2F* angle_diff_inner_phi{nullptr};    // fill: subMacroPlotWorking
+  TH2* DCA_distance_inner_phi{nullptr};  // fill: subMacroPlotWorking
+  TH2* angle_diff_inner_phi{nullptr};    // fill: subMacroPlotWorking
 
-  TH1F* angle_diff{nullptr};                 // QA fill: subMacroPlotWorking
-  TH1F* angle_diff_new{nullptr};             // QA fill: subMacroPlotWorking
-  TH1F* angle_diff_new_bkg_remove{nullptr};  // QA fill: subMacroPlotWorking
-  TH1F* DCA_distance{nullptr};               // QA fill: subMacroPlotWorking
+  TH1* angle_diff{nullptr};                 // QA fill: subMacroPlotWorking
+  TH1* angle_diff_new{nullptr};             // QA fill: subMacroPlotWorking
+  TH1* angle_diff_new_bkg_remove{nullptr};  // QA fill: subMacroPlotWorking
+  TH1* DCA_distance{nullptr};               // QA fill: subMacroPlotWorking
 
-  TH2F* DCA_distance_outer_phi{nullptr};  // QA fill: subMacroPlotWorking
-  TH2F* angle_diff_outer_phi{nullptr};    // QA fill: subMacroPlotWorking
+  TH2* DCA_distance_outer_phi{nullptr};  // QA fill: subMacroPlotWorking
+  TH2* angle_diff_outer_phi{nullptr};    // QA fill: subMacroPlotWorking
 
-  TH2F* angle_correlation{nullptr};     // QA Fill: subMacroPlotWorking
-  TH2F* angle_diff_DCA_dist{nullptr};   // QA Fill: subMacroPlotWorking
-  TH2F* DCA_point{nullptr};             // QA fill: subMacroPlotWorking
-  TH2F* DCA_distance_inner_X{nullptr};  // QA fill: subMacroPlotWorking
-  TH2F* DCA_distance_inner_Y{nullptr};  // QA fill: subMacroPlotWorking
-  TH2F* DCA_distance_outer_X{nullptr};  // QA fill: subMacroPlotWorking
-  TH2F* DCA_distance_outer_Y{nullptr};  // QA fill: subMacroPlotWorking
+  TH2* angle_correlation{nullptr};     // QA Fill: subMacroPlotWorking
+  TH2* angle_diff_DCA_dist{nullptr};   // QA Fill: subMacroPlotWorking
+  TH2* DCA_point{nullptr};             // QA fill: subMacroPlotWorking
+  TH2* DCA_distance_inner_X{nullptr};  // QA fill: subMacroPlotWorking
+  TH2* DCA_distance_inner_Y{nullptr};  // QA fill: subMacroPlotWorking
+  TH2* DCA_distance_outer_X{nullptr};  // QA fill: subMacroPlotWorking
+  TH2* DCA_distance_outer_Y{nullptr};  // QA fill: subMacroPlotWorking
 
   /// histograms & graphs created in subMacroPlotWorking
-  TH2F* DCA_distance_inner_phi_peak{nullptr};                  // fill: subMacroPlotWorking
+  TH2* DCA_distance_inner_phi_peak{nullptr};                  // fill: subMacroPlotWorking
   TProfile* DCA_distance_inner_phi_peak_profile{nullptr};      // fill: subMacroPlotWorking
   TGraph* DCA_distance_inner_phi_peak_profile_graph{nullptr};  // fill: subMacroPlotWorking
 
-  TH2F* angle_diff_inner_phi_peak{nullptr};                  // fill: subMacroPlotWorking
+  TH2* angle_diff_inner_phi_peak{nullptr};                  // fill: subMacroPlotWorking
   TProfile* angle_diff_inner_phi_peak_profile{nullptr};      // fill: subMacroPlotWorking
   TGraph* angle_diff_inner_phi_peak_profile_graph{nullptr};  // fill: subMacroPlotWorking
 
-  TH2F* DCA_distance_outer_phi_peak{nullptr};                  // QA fill: subMacroPlotWorking
+  TH2* DCA_distance_outer_phi_peak{nullptr};                  // QA fill: subMacroPlotWorking
   TProfile* DCA_distance_outer_phi_peak_profile{nullptr};      // QA fill: subMacroPlotWorking
   TGraph* DCA_distance_outer_phi_peak_profile_graph{nullptr};  // QA fill: subMacroPlotWorking
 
-  TH2F* angle_diff_outer_phi_peak{nullptr};                  // QA fill: subMacroPlotWorking
+  TH2* angle_diff_outer_phi_peak{nullptr};                  // QA fill: subMacroPlotWorking
   TProfile* angle_diff_outer_phi_peak_profile{nullptr};      // QA fill: subMacroPlotWorking
   TGraph* angle_diff_outer_phi_peak_profile_graph{nullptr};  // QA fill: subMacroPlotWorking
 
   // note : it's for the geometry correction // in m_v_hist
-  TH2F* angle_diff_inner_phi_peak_final{nullptr};    // fill: MacroVTXSquare
-  TH2F* DCA_distance_inner_phi_peak_final{nullptr};  // fill: MacroVTXSquare
+  TH2* angle_diff_inner_phi_peak_final{nullptr};    // fill: MacroVTXSquare
+  TH2* DCA_distance_inner_phi_peak_final{nullptr};  // fill: MacroVTXSquare
 
-  TH2F* angle_diff_outer_phi_peak_final{nullptr};    // QA fill: MacroVTXSquare
-  TH2F* DCA_distance_outer_phi_peak_final{nullptr};  // QA fill: MacroVTXSquare
-  TH1F* angle_diff_new_bkg_remove_final{nullptr};    // QA fill: MacroVTXSquare
+  TH2* angle_diff_outer_phi_peak_final{nullptr};    // QA fill: MacroVTXSquare
+  TH2* DCA_distance_outer_phi_peak_final{nullptr};  // QA fill: MacroVTXSquare
+  TH1* angle_diff_new_bkg_remove_final{nullptr};    // QA fill: MacroVTXSquare
 
   TF1* horizontal_fit_inner{nullptr};             // subMacroPlotWorking
   TF1* horizontal_fit_angle_diff_inner{nullptr};  // subMacroPlotWorking
@@ -248,8 +242,8 @@ class INTTXYvtx
   TF1* gaus_fit{nullptr};  // subMacroPlotWorking, QA, not used for ana
 
   // LineFill method
-  TH2F* xy_hist{nullptr};        // fill: FillLine_FindVertex(
-  TH2F* xy_hist_bkgrm{nullptr};  // fill: FillLine_FindVertex(
+  TH2* xy_hist{nullptr};        // fill: FillLine_FindVertex(
+  TH2* xy_hist_bkgrm{nullptr};  // fill: FillLine_FindVertex(
 
   // note : to keep the cluster pair information
   // note : this is the vector for the whole run, not event by event

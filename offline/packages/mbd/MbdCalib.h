@@ -13,9 +13,11 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <string_view>
 #include <memory>
 
 class TTree;
+class TGraph;
 class CDBInterface;
 
 class MbdCalib 
@@ -49,6 +51,7 @@ class MbdCalib
     //std::cout << "aaa " << _tcorr_y_interp[ifeech].size() << std::endl;
     return _tcorr_y_interp[ifeech][tdc];
   }
+
   float get_scorr(const int ifeech, const int adc) const {
     if ( _scorr_y_interp[ifeech].size() == 0 ) return 0.; // return 0 if calib doesn't exist
     if (adc<0)
@@ -62,6 +65,21 @@ class MbdCalib
       return _scorr_y_interp[ifeech][_scorr_maxrange[ifeech]-1];
     }
     return _scorr_y_interp[ifeech][adc];
+  }
+
+  float get_trms(const int ifeech, const int adc) const {
+    if ( _trms_y_interp[ifeech].size() == 0 ) return 0.; // return 0 if calib doesn't exist
+    if (adc<0)
+    {
+      //std::cout << "bad adc " << ifeech << " " << adc << std::endl;
+      return _trms_y_interp[ifeech][0];
+    }
+    if (adc>=_trms_maxrange[ifeech])
+    {
+      //std::cout << "high adc " << ifeech << " " << adc << std::endl;
+      return _trms_y_interp[ifeech][_trms_maxrange[ifeech]-1];
+    }
+    return _trms_y_interp[ifeech][adc];
   }
 
   std::vector<float> get_shape(const int ifeech) const { return _shape_y[ifeech]; }
@@ -87,6 +105,8 @@ class MbdCalib
 
   float get_threshold(const int pmtch, const int rel_or_abs = 0);
 
+  TGraph *get_lut_graph(const int pmtch, std::string_view type);
+
   void set_sampmax(const int ifeech, const int val) { _sampmax[ifeech] = val; }
   void set_ped(const int ifeech, const float m, const float merr, const float s, const float serr);
   void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
@@ -101,6 +121,7 @@ class MbdCalib
   int Download_Shapes(const std::string& dbase_location);
   int Download_TimeCorr(const std::string& dbase_location);
   int Download_SlewCorr(const std::string& dbase_location);
+  int Download_TimeRMS(const std::string& dbase_location);
   int Download_Pileup(const std::string& dbase_location);
   int Download_Thresholds(const std::string& dbase_location);
   int Download_All();
@@ -114,6 +135,7 @@ class MbdCalib
   int Write_CDB_Shapes(const std::string& dbfile);
   int Write_CDB_TimeCorr(const std::string& dbfile);
   int Write_CDB_SlewCorr(const std::string& dbfile);
+  int Write_CDB_TimeRMS(const std::string& dbfile);
   int Write_CDB_Gains(const std::string& dbfile);
   int Write_CDB_Pileup(const std::string& dbfile);
   int Write_CDB_Thresholds(const std::string& dbfile);
@@ -243,6 +265,13 @@ class MbdCalib
   std::array<float, MbdDefs::MBD_N_FEECH> _scorr_maxrange{};  // in units (detta-TDC)
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _scorr_y{};
   std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _scorr_y_interp{}; // interpolated scorr
+
+  // Time Resolution vs ADC
+  std::array<int, MbdDefs::MBD_N_FEECH>   _trms_npts{};       // num points in trms
+  std::array<float, MbdDefs::MBD_N_FEECH> _trms_minrange{};   // in units (delta-TDC)
+  std::array<float, MbdDefs::MBD_N_FEECH> _trms_maxrange{};   // in units (detta-TDC)
+  std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _trms_y{};
+  std::array<std::vector<float>, MbdDefs::MBD_N_FEECH> _trms_y_interp{}; // interpolated trms
 
   // Thresolds
   std::array<float, MbdDefs::MBD_N_PMT> _thresh_mean{};

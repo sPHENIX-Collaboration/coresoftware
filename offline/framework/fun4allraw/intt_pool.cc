@@ -6,7 +6,7 @@
 #include <cstring>
 #include <iomanip>  // for operator<<, setw, setfill
 
-using namespace std;
+//using namespace std;
 
 #define coutfl std::cout << __FILE__ << "  " << __LINE__ << " "
 #define cerrfl std::cerr << __FILE__ << "  " << __LINE__ << " "
@@ -68,7 +68,7 @@ int intt_pool::addPacket(Packet *p)
 
 
   //currentpos = packetData.size();
-  // coutfl << "at position " << currentpos << " adding " << p->getDataLength() << " words" << endl;
+  // coutfl << "at position " << currentpos << " adding " << p->getDataLength() << " words" << std::endl;
 
   //  packetData.resize(packetData.size() + p->getDataLength(), 0);
 
@@ -79,7 +79,7 @@ int intt_pool::addPacket(Packet *p)
   p->fillIntArray( (int *) &packetData[writeindex], p->getDataLength(), &nw,  "DATA");
 
   writeindex += nw;
-  //coutfl << "status = " << status << " nw: " << nw << " writeindex = " << writeindex << endl;
+  //coutfl << "status = " << status << " nw: " << nw << " writeindex = " << writeindex << std::endl;
 
 
   return 0;
@@ -217,7 +217,7 @@ int intt_pool::iValue(const int fee, const char *what)
     return iValue(hit, F_ADC);
   }
 
-  else if (strcmp(what, "AMPLITUDE") == 0)
+  if (strcmp(what, "AMPLITUDE") == 0)
   {
     return iValue(hit, F_AMPLITUDE);
   }
@@ -322,7 +322,7 @@ long long intt_pool::lValue(const int fee, const int i, const char *what)
   unsigned int ui= i; //  size() is unsigned
   if ( strcmp(what,"BCOVAL") == 0)
     {
-      if (BCOs_by_FEE[fee].size() == 0)
+      if (BCOs_by_FEE[fee].empty())
 	{
 	  return -1;
 	}
@@ -455,14 +455,14 @@ int intt_pool::next()
   BCOs_by_FEE.clear();
 
   // now move the remaining stuff to the start of the array
-  //coutfl << " current_pos: " << currentpos << " writeindex " << writeindex << endl;
+  //coutfl << " current_pos: " << currentpos << " writeindex " << writeindex << std::endl;
 
   unsigned int l = (writeindex - currentpos) * sizeof(unsigned int);
   memcpy(packetData, &packetData[currentpos], l);
   writeindex -= currentpos;
   currentpos = 0;
 
-  //coutfl << " current_pos: " << currentpos << " writeindex " << writeindex << endl;
+  //coutfl << " current_pos: " << currentpos << " writeindex " << writeindex << std::endl;
 
   return 0;
 }
@@ -479,7 +479,7 @@ int intt_pool::intt_decode ()
 
 
   unsigned int payload_length = writeindex - _low_mark;
-//  coutfl << " payload_length:  " << payload_length << " writeindex " << writeindex << endl;
+//  coutfl << " payload_length:  " << payload_length << " writeindex " << writeindex << std::endl;
 
   unsigned int index = currentpos;
   
@@ -491,11 +491,11 @@ int intt_pool::intt_decode ()
       // find the "ba" index
       while ( (buffer[index] & 0xff00ffff ) !=  0xf000caf0 )
 	{
-	  coutfl << "skipping  at " << index << " values " << hex << buffer[index] << dec << endl;
+	  coutfl << "skipping  at " << index << " values " << std::hex << buffer[index] << std::dec << std::endl;
 	  index++;
 	  if (index >= payload_length)
 	    {
-	      coutfl << " reached end at  " << index << " values " << hex << buffer[index] << dec << endl;
+	      coutfl << " reached end at  " << index << " values " << std::hex << buffer[index] << std::dec << std::endl;
 	      //_broken = 1;
 	      return -1;
 	    }
@@ -504,20 +504,20 @@ int intt_pool::intt_decode ()
       
       unsigned short fee = ( buffer[index] >> 20U ) & 0xfU;
       unsigned short len = ( (buffer[index] >> 16U) & 0xfU) >>1U;
-      // coutfl << "found start at index " << index << " values " << hex << buffer[index+1] << dec << " fee: " << fee << " len: " << len << " BCO: 0x" << hex << calcBCO(&buffer[index+1]) << dec <<endl;
+      // coutfl << "found start at index " << index << " values " << std::hex << buffer[index+1] << std::dec << " fee: " << fee << " len: " << len << " BCO: 0x" << std::hex << calcBCO(&buffer[index+1]) << std::dec <<std::endl;
       index++;
 
 
 
       for ( int i = 0; i < len ; i++)
 	{
-	  //coutfl << "adding to ladder " << fee << "  " << hex << buffer[index] << dec << endl;
+	  //coutfl << "adding to ladder " << fee << "  " << std::hex << buffer[index] << std::dec << std::endl;
 	  fee_data[fee].push_back(buffer[index++]);
 	}
 
       if ( payload_length - index < 100  && buffer[index-1] == 0xcafeff80 )
 	{
-	  //coutfl << " found end at index " << index-1 << " 0x" << hex << buffer[index-1] << dec << endl;
+	  //coutfl << " found end at index " << index-1 << " 0x" << std::hex << buffer[index-1] << std::dec << std::endl;
 	  break;
 	}
 
@@ -533,16 +533,16 @@ int intt_pool::intt_decode ()
   //   {
   //     cout << fee_data[fee].size() << " ";
   //   }
-  // cout << endl;
+  // cout << std::endl;
 
-  //coutfl << "payload_length; " << payload_length << " index: " << index << endl;
+  //coutfl << "payload_length; " << payload_length << " index: " << index << std::endl;
 
   currentpos = index;
 
 
   // for ( int j = 0;  j <  fee_data[0].size(); j++)
   //   {
-  //     coutfl << "feedata[0]  0x" << hex << fee_data[0][j] << dec << endl;
+  //     coutfl << "feedata[0]  0x" << std::hex << fee_data[0][j] << std::dec << std::endl;
   //   }
 
 
@@ -550,9 +550,9 @@ int intt_pool::intt_decode ()
   //   {
   //     for ( int j = fee_data[fee].size() -10 ;  j <  fee_data[fee].size(); j++) 
   // 	{
-  // 	  coutfl << "feedata[" << fee << "][" << j << "]  0x" << hex << fee_data[fee][j] << dec << endl;
+  // 	  coutfl << "feedata[" << fee << "][" << j << "]  0x" << std::hex << fee_data[fee][j] << std::dec << std::endl;
   // 	}
-  //     cout << endl;
+  //     cout << std::endl;
   //   }
 
 
@@ -566,14 +566,14 @@ int intt_pool::intt_decode ()
 
 	  if ( fee_data[fee][end_here] == 0xcafeff80 )
 	    {
-	      //coutfl << " found feedata[" << fee << "] end at index " << end_here <<  "  0x" << hex << fee_data[fee][end_here] << dec << endl;
+	      //coutfl << " found feedata[" << fee << "] end at index " << end_here <<  "  0x" << std::hex << fee_data[fee][end_here] << std::dec << std::endl;
 	      break;
 	    }
 	}
 
       // for ( j = 0;  j <  fee_data[fee].size(); j++)
       //  	{
-      //  	  coutfl << "fee " << fee << "  " << j << " found code 0x" << hex << fee_data[fee][j] << dec << endl;
+      //  	  coutfl << "fee " << fee << "  " << j << " found code 0x" << std::hex << fee_data[fee][j] << std::dec << std::endl;
       // 	}
 
 
@@ -605,7 +605,7 @@ int intt_pool::intt_decode ()
 	    }
 	  else
 	    {
-	      coutfl << " Warning - index is " << j << " and size is " << end_here << endl;
+	      coutfl << " Warning - index is " << j << " and size is " << end_here << std::endl;
 	      j+= end_here -j +1;
 	    }
 
@@ -619,7 +619,7 @@ int intt_pool::intt_decode ()
 		  header_found  = 0;
 		  j--;
 		  // we have a full hitlist in the vector here
-		  coutfl << "calling decode for FEE " << fee << " with size " << hitlist.size() << endl;
+		  coutfl << "calling decode for FEE " << fee << " with size " << hitlist.size() << std::endl;
 		  intt_decode_hitlist (hitlist, fee);
 		  hitlist.clear();
 		  break;
@@ -629,7 +629,7 @@ int intt_pool::intt_decode ()
 	      if ( fee_data[fee][j] == 0xcafeff80 )
 		{
 		  // we have a full hitlist in the vector here
-		  //		  coutfl << "calling decode for FEE " << fee << " with size " << hitlist.size() << endl;
+		  //		  coutfl << "calling decode for FEE " << fee << " with size " << hitlist.size() << std::endl;
 		  intt_decode_hitlist (hitlist, fee);
 		  hitlist.clear();
 		  j++;
@@ -643,21 +643,21 @@ int intt_pool::intt_decode ()
 	}
 
       hitlist.clear();
-      //coutfl << " end of fee_data for FEE " << fee << " size: " << fee_data[fee].size() << " position : " << j << endl;
+      //coutfl << " end of fee_data for FEE " << fee << " size: " << fee_data[fee].size() << " position : " << j << std::endl;
 
       fee_data[fee].erase(fee_data[fee].begin(), fee_data[fee].begin() + j);
 
-      //coutfl << " Fee_data size now: " << fee_data[fee].size() << endl;
+      //coutfl << " Fee_data size now: " << fee_data[fee].size() << std::endl;
 
 
 
       
     }
-   //coutfl << " data size: " << writeindex - currentpos << " current pos: " << currentpos << endl;
+   //coutfl << " data size: " << writeindex - currentpos << " current pos: " << currentpos << std::endl;
   return 0;
 }
 
-unsigned long long intt_pool::calcBCO(unsigned int *hitlist) const
+unsigned long long intt_pool::calcBCO(const unsigned int *hitlist) const
 {
   unsigned long long BCO = 0;
   unsigned long long l = 0;
@@ -738,19 +738,19 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
     //   }
 
 
-    //    coutfl << "count " << count << "  " << hit->bco << endl;  
+    //    coutfl << "count " << count << "  " << hit->bco << std::endl;  
     intt_hits.push_back(hit);
 //    count++;
   }
-  // coutfl << "pushed back " << count  << " hits for FEE " << fee << " with BCO 0x" << std::hex << BCO << dec
-  // 	 << " size of hitlist now " << intt_hits.size() << std::endl;
+  // coutfl << "pushed back " << count  << " hits for FEE " << fee << " with BCO 0x" << std::hex << BCO << std::dec
+  // 	 << " size of hitlist now " << intt_hits.size() << std::std::endl;
 
 
 
   auto it = BCO_List.end();
   it--;
 
-  //  coutfl << " last BCO value: 0x" << hex << *(it) << dec << endl;
+  //  coutfl << " last BCO value: 0x" << std::hex << *(it) << std::dec << std::endl;
 
 
 
@@ -762,47 +762,47 @@ int intt_pool::intt_decode_hitlist(std::vector<unsigned int> &hitlist, const int
 void  intt_pool::dump ( OSTREAM& os )
 {
 
-  //  os << "number_of_hits: " << iValue(0, "NR_HITS") << endl;
+  //  os << "number_of_hits: " << iValue(0, "NR_HITS") << std::endl;
   intt_decode();
   // identify(os);
 
 
-  os << " Number of unique BCOs: " << iValue(0, "NR_BCOS") << endl;
+  os << " Number of unique BCOs: " << iValue(0, "NR_BCOS") << std::endl;
   for ( int b = 0; b < iValue(0, "NR_BCOS"); b++)
     {
-      os << " BCO " << setw(3) << b << ":  0x" << hex << lValue(b, "BCOLIST") << dec << "    number of FEEs for this BCO " << setw(3) << iValue(b,"NR_FEES") <<  endl;
+      os << " BCO " << std::setw(3) << b << ":  0x" << std::hex << lValue(b, "BCOLIST") << std::dec << "    number of FEEs for this BCO " << std::setw(3) << iValue(b,"NR_FEES") <<  std::endl;
       os << "           Number of unique FEEs: ";
 
       for ( int i = 0; i < iValue(b, "NR_FEES"); i++)
       	{
-      	  os << " " << setw(3) << iValue(b, i, "FEELIST");
+      	  os << " " << std::setw(3) << iValue(b, i, "FEELIST");
       	}
-      os << endl;
+      os << std::endl;
     }
 
-  os << " Number of hits: " << iValue(0, "NR_HITS") << endl;
+  os << " Number of hits: " << iValue(0, "NR_HITS") << std::endl;
 
 
-  os << "   #    FEE    BCO      chip_BCO  chip_id channel_id    ADC  full_phx full_ROC Ampl." << endl;
+  os << "   #    FEE    BCO      chip_BCO  chip_id channel_id    ADC  full_phx full_ROC Ampl." << std::endl;
 
   for ( int i = 0; i < iValue(0, "NR_HITS"); i++)
     {
-      os << setw(4) << i << " "
-	 << setw(5) <<             iValue(i, F_FEE)     << " "
-	 <<  hex <<  setw(11) <<   lValue(i, F_BCO)  << dec << "   " 
-	 <<  hex <<  setw(2) << "0x" <<  iValue(i,F_FPHX_BCO)  << dec  << "   " 
-	 << setw(5) <<             iValue(i,F_CHIP_ID)    << " " 
-	 << setw(9) <<             iValue(i,F_CHANNEL_ID) << "     "
-	 << setw(5) <<             iValue(i,F_ADC)        << " " 
-	 << setw(5) <<             iValue(i,F_FULL_FPHX) << " "
-	 << setw(9) <<             iValue(i,F_FULL_ROC)
-	 << setw(8) <<             iValue(i,F_AMPLITUDE) 
+      os << std::setw(4) << i << " "
+	 << std::setw(5) <<             iValue(i, F_FEE)     << " "
+	 <<  std::hex <<  std::setw(11) <<   lValue(i, F_BCO)  << std::dec << "   " 
+	 <<  std::hex <<  std::setw(2) << "0x" <<  iValue(i,F_FPHX_BCO)  << std::dec  << "   " 
+	 << std::setw(5) <<             iValue(i,F_CHIP_ID)    << " " 
+	 << std::setw(9) <<             iValue(i,F_CHANNEL_ID) << "     "
+	 << std::setw(5) <<             iValue(i,F_ADC)        << " " 
+	 << std::setw(5) <<             iValue(i,F_FULL_FPHX) << " "
+	 << std::setw(9) <<             iValue(i,F_FULL_ROC)
+	 << std::setw(8) <<             iValue(i,F_AMPLITUDE) 
 	 << "     " 
-	 << "0x" << setw(8) <<  hex << setfill('0') << iValue(i,F_DATAWORD)
-	 <<  setfill(' ') << dec << endl;
+	 << "0x" << std::setw(8) <<  std::hex << std::setfill('0') << iValue(i,F_DATAWORD)
+	 <<  std::setfill(' ') << std::dec << std::endl;
       
     }
-  os << endl;
+  os << std::endl;
   
 }
 

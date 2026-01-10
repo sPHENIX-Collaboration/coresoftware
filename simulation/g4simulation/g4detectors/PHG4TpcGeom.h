@@ -7,9 +7,9 @@
 
 #include <phool/phool.h>
 
-#include <cmath>
-#include <iostream>  // for cout, ostream
 #include <array>
+#include <iostream>  // for cout, ostream
+#include <limits>
 
 class PHParameters;
 
@@ -29,22 +29,22 @@ class PHG4TpcGeom : public PHObject
   virtual double get_radius() const
   {
     PHOOL_VIRTUAL_WARN("get_radius()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_thickness() const
   {
     PHOOL_VIRTUAL_WARN("get_thickness()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_zmin() const
   {
     PHOOL_VIRTUAL_WARN("get_zmin()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_zmax() const
   {
     PHOOL_VIRTUAL_WARN("get_zmax()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual int get_binning() const
   {
@@ -64,17 +64,17 @@ class PHG4TpcGeom : public PHObject
   virtual double get_phistep() const
   {
     PHOOL_VIRTUAL_WARN("get_phistep()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_phimin() const
   {
     PHOOL_VIRTUAL_WARN("get_phimin()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_zstep() const
   {
     PHOOL_VIRTUAL_WARN("get_zstep()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual int get_etabins() const
   {
@@ -84,77 +84,77 @@ class PHG4TpcGeom : public PHObject
   virtual double get_etastep() const
   {
     PHOOL_VIRTUAL_WARN("get_etastep()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_etamin() const
   {
     PHOOL_VIRTUAL_WARN("get_etamin()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_max_driftlength() const
   {
     PHOOL_VIRTUAL_WARN("get_max_driftlength()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_CM_halfwidth() const
   {
     PHOOL_VIRTUAL_WARN("get_CM_halfwidth()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_adc_clock() const
   {
     PHOOL_VIRTUAL_WARN("get_adc_clock()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_extended_readout_time() const
   {
     PHOOL_VIRTUAL_WARN("get_extended_readout_time()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_drift_velocity_sim() const
   {
     PHOOL_VIRTUAL_WARN("get_drift_velocity_sim()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual std::pair<double, double> get_zbounds(const int) const
   {
     PHOOL_VIRTUAL_WARN("get_zbounds()");
-    return std::make_pair(NAN,NAN);
+    return std::make_pair(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
   }
   virtual std::pair<double, double> get_phibounds(const int) const
    {
     PHOOL_VIRTUAL_WARN("get_zbounds()");
-    return std::make_pair(NAN,NAN);
+    return std::make_pair(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
   }
   virtual std::pair<double, double> get_etabounds(const int) const
    {
     PHOOL_VIRTUAL_WARN("get_zbounds()");
-    return std::make_pair(NAN,NAN);
+    return std::make_pair(std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::quiet_NaN());
   }
   virtual double get_etacenter(const int) const
   {
     PHOOL_VIRTUAL_WARN("get_etacenter()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_zcenter(const int) const
   {
     PHOOL_VIRTUAL_WARN("get_zcenter()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }    
   virtual double get_phicenter(const int, const int=0) const
   {
     PHOOL_VIRTUAL_WARN("get_phicenter()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_phicenter_new(const int) const
   {
     PHOOL_VIRTUAL_WARN("get_phicenter_new()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_phi(const float, const int) const
   {
     PHOOL_VIRTUAL_WARN("get_phi()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual int get_etabin(const double) const
   {

@@ -30,7 +30,9 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void FillPool(const unsigned int nevents = 1) override;
 
   void CleanupUsedPackets(const uint64_t bclk) override
-  { CleanupUsedPackets(bclk,false); }
+  {
+    CleanupUsedPackets(bclk, false);
+  }
 
   //! specialized verion of cleaning up packets, with an extra flag about wheter the cleanup hits are dropped or not
   void CleanupUsedPackets(const uint64_t /* bclk */, bool /*dropped */) override;
@@ -54,13 +56,12 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   void createQAHistos() override;
 
   /// do evalutation
-  void set_do_evaluation( bool value ) { m_do_evaluation = value; }
+  void set_do_evaluation(bool value) { m_do_evaluation = value; }
 
   /// output file name for evaluation histograms
-  void set_evaluation_outputfile(const std::string& outputfile) { m_evaluation_filename = outputfile; }
+  void set_evaluation_outputfile(const std::string &outputfile) { m_evaluation_filename = outputfile; }
 
-  private:
-
+ private:
   //!@name decoding constants
   //@{
   /// max number of FEE per OBDC
@@ -77,8 +78,8 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
     uint16_t data[DAM_DMA_WORD_LENGTH - 1];
   };
 
-  void process_packet(Packet*);
-  void decode_gtm_data(int /*packet_id*/, const dma_word&);
+  void process_packet(Packet *);
+  void decode_gtm_data(int /*packet_id*/, const dma_word &);
   void process_fee_data(int /*packet_id*/, unsigned int /*fee_id*/);
 
   // fee data buffer
@@ -131,39 +132,37 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
 
   class counter_t
   {
-    public:
-
+   public:
     //! total count
-    uint64_t total = 0;
+    uint64_t total {0};
 
     //! drop count due to unmatched bco
-    uint64_t dropped_bco = 0;
+    uint64_t dropped_bco {0};
 
     //! drop count due to pools
-    uint64_t dropped_pool = 0;
+    uint64_t dropped_pool {0};
 
     //! dropped fraction (bco)
-    double dropped_fraction_bco() const { return double(dropped_bco)/total; }
+    double dropped_fraction_bco() const { return double(dropped_bco) / total; }
 
     //! dropped fraction (pool)
-    double dropped_fraction_pool() const { return double(dropped_pool)/total; }
-
+    double dropped_fraction_pool() const { return double(dropped_pool) / total; }
   };
 
   // keep track of waveform statistics per fee
-  std::map<int,counter_t> m_fee_waveform_counters{};
+  std::map<int, counter_t> m_fee_waveform_counters{};
 
   // keep track of waveform statistics per packet
-  std::map<int,counter_t> m_waveform_counters{};
+  std::map<int, counter_t> m_waveform_counters{};
 
   // keep track of heartbeat statistics per fee
-  std::map<int,counter_t> m_fee_heartbeat_counters{};
+  std::map<int, counter_t> m_fee_heartbeat_counters{};
 
   // keep track of heartbeat statistics per packet
-  std::map<int,counter_t> m_heartbeat_counters{};
+  std::map<int, counter_t> m_heartbeat_counters{};
 
   // timer
-  PHTimer m_timer{ "SingleMicromegasPoolInput_v2" };
+  PHTimer m_timer{"SingleMicromegasPoolInput_v2"};
 
   //!@name QA histograms
   //@{
@@ -219,48 +218,49 @@ class SingleMicromegasPoolInput_v2 : public SingleStreamingInput
   class Waveform
   {
    public:
-
     /// packet
-    unsigned int packet_id = 0;
+    unsigned int packet_id {0};
 
     /// fee
-    unsigned short fee_id = 0;
+    unsigned short fee_id {0};
 
     /// channel id
-    unsigned short channel = 0;
+    unsigned short channel {0};
 
     /// true if measurement is hearbeat
     bool is_heartbeat = false;
 
-    /// ll1 bco
-    uint64_t gtm_bco_first = 0;
+    /// true if matched
+    bool matched = false;
 
     /// ll1 bco
-    uint64_t gtm_bco = 0;
+    uint64_t gtm_bco_first {0};
 
     /// ll1 bco
-    uint64_t gtm_bco_matched = 0;
+    uint64_t gtm_bco {0};
+
+    /// ll1 bco
+    uint64_t gtm_bco_matched {0};
 
     /// fee bco
-    unsigned int fee_bco_first = 0;
+    unsigned int fee_bco_first {0};
 
     /// fee bco
-    unsigned int fee_bco = 0;
+    unsigned int fee_bco {0};
 
     /// fee bco predicted (from gtm)
-    unsigned int fee_bco_predicted = 0;
+    unsigned int fee_bco_predicted {0};
 
     /// fee bco match (from gtm)
-    unsigned int fee_bco_predicted_matched = 0;
+    unsigned int fee_bco_predicted_matched {0};
   };
 
   Waveform m_waveform;
 
   //! tree
-  TTree* m_evaluation_tree = nullptr;
+  TTree *m_evaluation_tree {nullptr};
 
   //*}
-
 };
 
 #endif

@@ -5,12 +5,10 @@
 
 #include "PayLoadCont.h"
 
-using namespace mvtx;
-
-constexpr size_t PayLoadCont::MinCapacity;
+#include <algorithm>
 
 //________________________________________________________________________________
-PayLoadCont::PayLoadCont(const PayLoadCont& src)
+mvtx::PayLoadCont::PayLoadCont(const PayLoadCont& src)
   :mBuffer(src.mBuffer)
 {
   if (src.mPtr)
@@ -24,7 +22,7 @@ PayLoadCont::PayLoadCont(const PayLoadCont& src)
 }
 
 //________________________________________________________________________________
-PayLoadCont& PayLoadCont::operator=(const PayLoadCont& src)
+mvtx::PayLoadCont& mvtx::PayLoadCont::operator=(const PayLoadCont& src)
 {
   if (&src != this)
   {
@@ -42,14 +40,11 @@ PayLoadCont& PayLoadCont::operator=(const PayLoadCont& src)
 }
 
 //________________________________________________________________________________
-void PayLoadCont::expand(size_t sz)
+void mvtx::PayLoadCont::expand(size_t sz)
 {
   ///< increase the buffer size
   auto* oldHead = mBuffer.data();
-  if (sz < MinCapacity)
-  {
-    sz = MinCapacity;
-  }
+  sz = std::max(sz, MinCapacity);
   if (sz < mBuffer.size())
   {  // never decrease the size
     return;

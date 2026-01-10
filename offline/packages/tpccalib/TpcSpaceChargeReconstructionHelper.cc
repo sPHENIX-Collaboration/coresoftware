@@ -16,14 +16,14 @@ namespace
 {
   /// square
   template <class T>
-  inline constexpr T square(T x)
+  constexpr T square(T x)
   {
     return x * x;
   }
 
   // regularize angle between 0 and 2PI
   template <class T>
-  inline constexpr T get_bound_angle(T phi)
+  constexpr T get_bound_angle(T phi)
   {
     while (phi < 0)
     {
@@ -497,20 +497,20 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* sour
     return std::make_tuple<TH3*, TH3*>(nullptr, nullptr);
   }
 
-  auto xaxis = source->GetXaxis();
-  auto yaxis = source->GetYaxis();
-  auto zaxis = source->GetZaxis();
+  const auto *xaxis = source->GetXaxis();
+  const auto *yaxis = source->GetYaxis();
+  const auto *zaxis = source->GetZaxis();
   auto ibin = zaxis->FindBin((double) 0);
 
   // create histograms
   const TString name(source->GetName());
-  auto hneg = new TH3F(
+  auto *hneg = new TH3F(
       name + "_negz", name + "_negz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
       ibin - 1, zaxis->GetXmin(), zaxis->GetBinUpEdge(ibin - 1));
 
-  auto hpos = new TH3F(
+  auto *hpos = new TH3F(
       name + "_posz", name + "_posz",
       xaxis->GetNbins(), xaxis->GetXmin(), xaxis->GetXmax(),
       yaxis->GetNbins(), yaxis->GetXmin(), yaxis->GetXmax(),
@@ -541,7 +541,7 @@ std::tuple<TH3*, TH3*> TpcSpaceChargeReconstructionHelper::split(const TH3* sour
   }
 
   // also copy axis titles
-  for (const auto h : {hneg, hpos})
+  for (auto *const h : {hneg, hpos})
   {
     h->GetXaxis()->SetTitle(source->GetXaxis()->GetTitle());
     h->GetYaxis()->SetTitle(source->GetYaxis()->GetTitle());
@@ -559,7 +559,7 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
   std::array<double, 3> x_max{};
 
   int index = 0;
-  for (const auto axis : {source->GetXaxis(), source->GetYaxis(), source->GetZaxis()})
+  for (const auto *const axis : {source->GetXaxis(), source->GetYaxis(), source->GetZaxis()})
   {
     // calculate bin width
     const auto bin_width = (axis->GetXmax() - axis->GetXmin()) / axis->GetNbins();
@@ -574,7 +574,7 @@ TH3* TpcSpaceChargeReconstructionHelper::add_guarding_bins(const TH3* source, co
   }
 
   // create new histogram
-  auto hout = new TH3F(name, name,
+  auto *hout = new TH3F(name, name,
                        bins[0], x_min[0], x_max[0],
                        bins[1], x_min[1], x_max[1],
                        bins[2], x_min[2], x_max[2]);

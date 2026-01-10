@@ -9,6 +9,7 @@
 #include <ffaobjects/RunHeader.h>
 
 #include <fun4all/DBInterface.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 
@@ -149,7 +150,7 @@ int Fun4AllSingleDstPileupInputManager::run(const int nevents)
       return -1;
     }
 
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;
@@ -179,10 +180,9 @@ readagain:
   if (!dummy)
   {
     fileclose();
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::SUCCESS)
     {
-      // NOLINTNEXTLINE(hicpp-avoid-goto)
-      goto readagain;
+      goto readagain; // NOLINT(hicpp-avoid-goto)
     }
     else
     {
@@ -208,8 +208,7 @@ readagain:
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cout << "Fun4AllSingleDstPileupInputManager::run - skipped event " << m_ievent_thisfile - 1 << std::endl;
-    // NOLINTNEXTLINE(hicpp-avoid-goto)
-    goto readagain;
+    goto readagain; // NOLINT(hicpp-avoid-goto)
   }
 
   // load relevant DST nodes to internal pointers

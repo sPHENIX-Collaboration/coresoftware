@@ -32,7 +32,7 @@ public:
 
 
   virtual int iValue(const int hit, const int field);
-  virtual int iValue(const int hit, const char *what);
+  virtual int iValue(const int fee, const char *what);
   virtual int iValue(const int, const int, const char *what);
   virtual long long lValue(const int hit, const int field);
   virtual long long lValue(const int hit, const char *what);
@@ -58,7 +58,7 @@ protected:
 
   int intt_decode_hitlist (std::vector<unsigned int> & /*hitlist*/ , const int /*fee*/);
 
-  unsigned long long calcBCO(unsigned int *hitlist) const;
+  unsigned long long calcBCO(const unsigned int *hitlist) const;
 
   static const int MAX_FEECOUNT {14};
   

@@ -68,16 +68,16 @@ void PHG4BlockCellGeom::set_xbins(const int i)
   _nxbins = i;
 }
 
-void PHG4BlockCellGeom::set_xstep(const double r)
+void PHG4BlockCellGeom::set_xstep(const double x)
 {
   check_binning_method_x("PHG4BlockCellGeom::set_xstep");
-  _xstep = r;
+  _xstep = x;
 }
 
-void PHG4BlockCellGeom::set_xmin(const double r)
+void PHG4BlockCellGeom::set_xmin(const double x)
 {
   check_binning_method_x("PHG4BlockCellGeom::set_xmin");
-  _xmin = r;
+  _xmin = x;
 }
 
 int PHG4BlockCellGeom::get_etabins() const
@@ -301,7 +301,7 @@ void PHG4BlockCellGeom::check_binning_method_eta(const std::string& src) const
   if (_binning != PHG4CylinderCellDefs::etaphibinning &&
       _binning != PHG4CylinderCellDefs::etaslatbinning)
   {
-    if (src.size())
+    if (!src.empty())
     {
       std::cout << src << " : ";
     }
@@ -321,7 +321,7 @@ void PHG4BlockCellGeom::check_binning_method_x(const std::string& src) const
       _binning != PHG4CylinderCellDefs::sizebinning &&
       _binning != PHG4CylinderCellDefs::etaslatbinning)
   {
-    if (src.size())
+    if (!src.empty())
     {
       std::cout << src << " : ";
     }

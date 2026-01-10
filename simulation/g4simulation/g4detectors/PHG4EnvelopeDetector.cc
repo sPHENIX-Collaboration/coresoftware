@@ -49,10 +49,8 @@ bool PHG4EnvelopeDetector::IsInEnvelope(G4VPhysicalVolume* volume) const
   {
     return true;
   }
-  else
-  {
-    return false;
-  }
+
+  return false;
 }
 
 void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)

@@ -23,7 +23,6 @@ class AlignmentTransformation
 
   void createMap(PHCompositeNode* topNode);
   void createAlignmentTransformContainer(PHCompositeNode* topNode);
-
   void generateRandomPerturbations(Eigen::Vector3d angleDev, Eigen::Vector3d transformDev);
 
   bool perturbMVTX = false;
@@ -108,6 +107,8 @@ class AlignmentTransformation
     return transformMap->getMisalignmentFactor(layer);
   }
   void useInttSurveyGeometry(bool sur) { use_intt_survey_geometry = sur; }
+  void setUseNewSiliconRotationOrder(bool flag) { use_new_silicon_rotation_order = flag; }
+  void setUseModuleTiltAlways(bool flag) { use_module_tilt_always = flag; }
 
 private:
   Eigen::Vector3d mvtxAngleDev;
@@ -125,15 +126,27 @@ private:
 
   int localVerbosity = 0;
 
-  bool use_intt_survey_geometry = false;
+  bool use_new_silicon_rotation_order = false;
+  bool use_module_tilt_always = false;
 
-  Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& sensorAnglesGlobal, bool survey);
+  bool use_intt_survey_geometry = false;
+  
+  Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, unsigned int trkrid, bool survey);
+
+  Eigen::Vector3d getTpcLocalFrameTranslation(float moduleRadius, float layerRadius, Eigen::Vector3d& localRotation) const; 
+  void extractModuleCenterPositions();
+  double extractModuleCenter(TrkrDefs::hitsetkey hitsetkey, double sectorphi);  
 
   alignmentTransformationContainer* transformMap = NULL;
   alignmentTransformationContainer* transformMapTransient = NULL;
   ActsGeometry* m_tGeometry = NULL;
 
   int getNodes(PHCompositeNode* topNode);
+
+  // These should be checked and updated (ADF 12/2/2025)
+  float TpcModuleRadii[2][12][3] = {}; // module radial center in local coords
+  unsigned int innerLayer[3] = {};
+  double sectorPhi[2][12] = {};
 };
 
 #endif

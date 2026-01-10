@@ -29,6 +29,7 @@ pkginclude_HEADERS = \
   Fun4AllSyncManager.h \
   Fun4AllUtils.h \
   InputFileHandler.h \
+  InputFileHandlerReturnCodes.h \
   PHTFileServer.h \
   SubsysReco.h \
   TDirectoryHelper.h

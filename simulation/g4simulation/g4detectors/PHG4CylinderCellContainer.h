@@ -33,8 +33,8 @@ class PHG4CylinderCellContainer : public PHObject
   void identify(std::ostream &os = std::cout) const override;
   void Reset() override;
 
-  ConstIterator AddCylinderCell(const unsigned int detid, PHG4CylinderCell *newcylinderCell);
-  ConstIterator AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcylinderCell);
+  ConstIterator AddCylinderCell(const unsigned int detid, PHG4CylinderCell *newcell);
+  ConstIterator AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcell);
 
   //! preferred removal method, key is currently the cell id
   void RemoveCylinderCell(PHG4CylinderCellDefs::keytype key)

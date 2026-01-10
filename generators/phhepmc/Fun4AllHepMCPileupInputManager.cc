@@ -6,6 +6,7 @@
 
 #include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBOSITY_SOME
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/PHRandomSeed.h>
 
@@ -131,7 +132,7 @@ int Fun4AllHepMCPileupInputManager::run(const int /*nevents*/, const bool skip)
             return -1;
           }
 
-          if (OpenNextFile())
+          if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
           {
             std::cout << Name() << ": No Input file from filelist opened" << std::endl;
             return -1;

@@ -11,7 +11,7 @@
 class PHG4CylinderCellv2 : public PHG4CylinderCellv1
 {
  public:
-  PHG4CylinderCellv2();
+  PHG4CylinderCellv2() = default;
   ~PHG4CylinderCellv2() = default;
 
   // from PHObject
@@ -27,8 +27,8 @@ class PHG4CylinderCellv2 : public PHG4CylinderCellv1
   int get_ladder_z_index() const override { return ladder_z_index; }
 
  protected:
-  int ladder_phi_index;
-  int ladder_z_index;
+  int ladder_phi_index {-9999};
+  int ladder_z_index {-9999};
   std::string sensor_index;
 
   ClassDefOverride(PHG4CylinderCellv2, 1)

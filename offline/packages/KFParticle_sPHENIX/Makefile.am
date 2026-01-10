@@ -31,8 +31,8 @@ ROOTDICTS = \
   KFParticle_Container_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  KFParticle_Container_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libkfparticle_sphenix_io_la_SOURCES = \
   $(ROOTDICTS) \
@@ -55,6 +55,7 @@ libkfparticle_sphenix_io_la_LIBADD = \
 libkfparticle_sphenix_la_LIBADD = \
   libkfparticle_sphenix_io.la \
   -lcalo_io \
+  -lCLHEP \
   -lfun4all \
   -lg4eval \
   -lTMVA \

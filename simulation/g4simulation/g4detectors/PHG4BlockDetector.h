@@ -38,7 +38,7 @@ class PHG4BlockDetector : public PHG4Detector
  private:
   PHParameters *m_Params;
 
-  G4VPhysicalVolume *m_BlockPhysi;
+  G4VPhysicalVolume *m_BlockPhysi {nullptr};
   PHG4BlockDisplayAction *m_DisplayAction;
 
   int m_Layer;

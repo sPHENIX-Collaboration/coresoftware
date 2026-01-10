@@ -22,7 +22,7 @@ class PHG4CellContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  PHG4CellContainer();
+  PHG4CellContainer() = default;
 
   ~PHG4CellContainer() = default;
 

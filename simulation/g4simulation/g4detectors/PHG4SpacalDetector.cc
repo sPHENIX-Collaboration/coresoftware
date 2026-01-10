@@ -103,24 +103,24 @@ PHG4SpacalDetector::~PHG4SpacalDetector()
 int PHG4SpacalDetector::IsInCylinderActive(const G4VPhysicalVolume *volume)
 {
   //  std::cout << "checking detector" << std::endl;
-  if (active && fiber_core_vol.find(volume) != fiber_core_vol.end())
+  if (active && fiber_core_vol.contains(volume))
   {
     //      return fiber_core_vol.find(volume)->second;
     return FIBER_CORE;
   }
   if (absorberactive)
   {
-    if (fiber_vol.find(volume) != fiber_vol.end())
+    if (fiber_vol.contains(volume))
     {
       return FIBER_CLADING;
     }
 
-    if (block_vol.find(volume) != block_vol.end())
+    if (block_vol.contains(volume))
     {
       return ABSORBER;
     }
 
-    if (calo_vol.find(volume) != calo_vol.end())
+    if (calo_vol.contains(volume))
     {
       return SUPPORT;
     }
@@ -173,7 +173,7 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
                       logicWorld, false, 0, OverlapCheck());
   }
   // install sectors
-  if (_geom->get_sector_map().size() == 0)
+  if (_geom->get_sector_map().empty())
   {
     _geom->init_default_sector_map();
   }
@@ -813,7 +813,7 @@ void PHG4SpacalDetector::AddCellGeometryNode()
 
   using map_z_tower_z_ID_t = std::map<double, int>;
   map_z_tower_z_ID_t map_z_tower_z_ID;
-  double phi_min = NAN;
+  double phi_min = std::numeric_limits<double>::quiet_NaN();
 
   for (const auto &tower_pair : tower_map)
   {
@@ -829,7 +829,7 @@ void PHG4SpacalDetector::AddCellGeometryNode()
     if (tower_ID_phi == 0)
     {
       // assign phi min according phi bin 0
-// NOLINTNEXTLINE(bugprone-integer-division)
+      // NOLINTNEXTLINE(bugprone-integer-division)
       phi_min = M_PI_2 - deltaphi * (layergeom->get_max_phi_bin_in_sec() * layergeom->get_n_subtower_phi() / 2)  // shift of first tower in sector
                 + sector_map.begin()->second;
     }
@@ -856,8 +856,8 @@ void PHG4SpacalDetector::AddCellGeometryNode()
   }
   layerseggeo->set_tower_z_ID_eta_bin_map(tower_z_ID_eta_bin_map);
   layerseggeo->set_etabins(eta_bin * layergeom->get_n_subtower_eta());
-  layerseggeo->set_etamin(NAN);
-  layerseggeo->set_etastep(NAN);
+  layerseggeo->set_etamin(std::numeric_limits<double>::quiet_NaN());
+  layerseggeo->set_etastep(std::numeric_limits<double>::quiet_NaN());
 
   // build eta bin maps
   for (const auto &tower_pair : tower_map)

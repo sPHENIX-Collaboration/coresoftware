@@ -1,8 +1,8 @@
 #include "PHG4DetectorSubsystem.h"
 
+#include <phparameter/PHParameterUtils.h>
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
-#include <phparameter/PHParameterUtils.h>
 
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
@@ -146,7 +146,7 @@ void PHG4DetectorSubsystem::SuperDetector(const std::string &name)
 
 void PHG4DetectorSubsystem::set_double_param(const std::string &name, const double dval)
 {
-  if (default_double.find(name) == default_double.end())
+  if (!default_double.contains(name))
   {
     std::cout << "double parameter " << name << " not implemented" << std::endl;
     std::cout << "implemented double parameters are:" << std::endl;
@@ -167,7 +167,7 @@ PHG4DetectorSubsystem::get_double_param(const std::string &name) const
 
 void PHG4DetectorSubsystem::set_int_param(const std::string &name, const int ival)
 {
-  if (default_int.find(name) == default_int.end())
+  if (!default_int.contains(name))
   {
     std::cout << "integer parameter " << name << " not implemented" << std::endl;
     std::cout << "implemented integer parameters are:" << std::endl;
@@ -187,7 +187,7 @@ int PHG4DetectorSubsystem::get_int_param(const std::string &name) const
 
 void PHG4DetectorSubsystem::set_string_param(const std::string &name, const std::string &sval)
 {
-  if (default_string.find(name) == default_string.end())
+  if (!default_string.contains(name))
   {
     std::cout << "string parameter " << name << " not implemented" << std::endl;
     std::cout << "implemented string parameters are:" << std::endl;
@@ -225,7 +225,7 @@ void PHG4DetectorSubsystem::UpdateParametersWithMacro()
 
 void PHG4DetectorSubsystem::set_default_double_param(const std::string &name, const double dval)
 {
-  if (default_double.find(name) == default_double.end())
+  if (!default_double.contains(name))
   {
     default_double[name] = dval;
   }
@@ -240,7 +240,7 @@ void PHG4DetectorSubsystem::set_default_double_param(const std::string &name, co
 
 void PHG4DetectorSubsystem::set_default_int_param(const std::string &name, const int ival)
 {
-  if (default_int.find(name) == default_int.end())
+  if (!default_int.contains(name))
   {
     default_int[name] = ival;
   }
@@ -255,7 +255,7 @@ void PHG4DetectorSubsystem::set_default_int_param(const std::string &name, const
 
 void PHG4DetectorSubsystem::set_default_string_param(const std::string &name, const std::string &sval)
 {
-  if (default_string.find(name) == default_string.end())
+  if (!default_string.contains(name))
   {
     default_string[name] = sval;
   }
@@ -278,20 +278,19 @@ void PHG4DetectorSubsystem::InitializeParameters()
 
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
-  for( const auto& [key, value]:default_double )
+  for (const auto &[key, value] : default_double)
   {
-    params->set_double_param(key,value);
+    params->set_double_param(key, value);
   }
-  for( const auto& [key, value]:default_int )
+  for (const auto &[key, value] : default_int)
   {
-    params->set_int_param(key,value);
+    params->set_int_param(key, value);
   }
-  for( const auto& [key, value]:default_string )
+  for (const auto &[key, value] : default_string)
   {
-    params->set_string_param(key,value);
+    params->set_string_param(key, value);
   }
 }
-
 
 int PHG4DetectorSubsystem::SaveParamsToFile(const PHG4DetectorSubsystem::FILE_TYPE ftyp)
 {
@@ -376,7 +375,7 @@ int PHG4DetectorSubsystem::ReadParamsFromCDB(const std::string &domain)
 {
   if (params)
   {
-    PHParameterUtils::FillPHParametersFromCDB(*params,domain);
+    PHParameterUtils::FillPHParametersFromCDB(*params, domain);
   }
   return 0;
 }

@@ -47,23 +47,23 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
   double ZDCEResponse(double E, double angle);
 
   //! pointer to the detector
-  PHG4ZDCDetector* m_Detector = nullptr;
+  PHG4ZDCDetector* m_Detector {nullptr};
 
   //! pointer to hit container
-  PHG4HitContainer* m_HitContainer = nullptr;
-  PHG4HitContainer* m_AbsorberHitContainer = nullptr;
-  PHG4HitContainer* m_SupportHitContainer = nullptr;
-  const PHParameters* m_Params = nullptr;
-  PHG4HitContainer* m_CurrentHitContainer = nullptr;
-  PHG4Hit* m_Hit = nullptr;
-  PHG4Shower* m_CurrentShower = nullptr;
-  gsl_rng* RandomGenerator = nullptr;
+  PHG4HitContainer* m_HitContainer {nullptr};
+  PHG4HitContainer* m_AbsorberHitContainer {nullptr};
+  PHG4HitContainer* m_SupportHitContainer {nullptr};
+  const PHParameters* m_Params {nullptr};
+  PHG4HitContainer* m_CurrentHitContainer {nullptr};
+  PHG4Hit* m_Hit {nullptr};
+  PHG4Shower* m_CurrentShower {nullptr};
+  gsl_rng* RandomGenerator {nullptr};
 
-  int m_IsActiveFlag = 0;
-  int absorbertruth = 0;
-  int m_IsBlackHole = 0;
+  int m_IsActiveFlag {0};
+  int absorbertruth {0};
+  int m_IsBlackHole {0};
 
-  const std::array<std::array<double, 18>, 9> m_PMMA05 =
+  const std::array<std::array<double, 18>, 9> m_PMMA05
       {{{16.258, 6.771, 3.844, 2.432, 1.531, 1.003, 0.543, 0.195, 0.102,
          0.053, 0.017, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000},
 
@@ -100,9 +100,9 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
 
       }};
   const double m_Beta[9] = {0.70, 0.75, 0.80, 0.85, 0.90, 0.92, 0.95, 0.98, 1.00};
-  const double m_BetaThersh = 0.671141;
+  const double m_BetaThersh {0.671141};
 
-  const std::array<std::array<double, 36>, 11> m_PMMA05E =
+  const std::array<std::array<double, 36>, 11> m_PMMA05E 
       {{{0.002, 0.009, 0.012, 0.047, 0.066, 0.053, 0.046, 0.041, 0.033,
          0.014, 0.007, 0.005, 0.008, 0.001, 0.000, 0.000, 0.000, 0.000,
          0.001, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
@@ -157,7 +157,7 @@ class PHG4ZDCSteppingAction : public PHG4SteppingAction
          2.788, 2.350, 2.039, 1.428, 0.684, 0.372, 0.201, 0.119, 0.000,
          0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
          0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000}}};
-  const double m_E[11] = {0.0005, 0.00055, 0.0006, 0.00075, 0.001, 0.0015, 0.002, 0.003, 0.005, 0.01, 0.05};
+  const double m_E[11] {0.0005, 0.00055, 0.0006, 0.00075, 0.001, 0.0015, 0.002, 0.003, 0.005, 0.01, 0.05};
 
   std::string m_AbsorberNodeName;
   std::string m_HitNodeName;

@@ -18,7 +18,7 @@ class PHG4ConeSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4ConeSubsystem(const std::string& name = "CONE", const int layer = 0);
+  PHG4ConeSubsystem(const std::string& name = "CONE", const int lyr = 0);
 
   //! destructor
   ~PHG4ConeSubsystem() override;

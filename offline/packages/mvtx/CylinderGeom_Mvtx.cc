@@ -8,7 +8,6 @@
 #include <cmath>
 #include <ostream>  // for operator<<, basic_ostream::operator<<, basic_...
 
-using namespace std;
 using Segmentation = SegmentationAlpide;
 
 CylinderGeom_Mvtx::CylinderGeom_Mvtx(
@@ -89,7 +88,7 @@ void CylinderGeom_Mvtx::get_sensor_indices_from_world_coords(std::vector<double>
   double chip_delta_z = (inner_loc_chip_in_module[8][2] - inner_loc_chip_in_module[0][2]) / 8.0;
   // int chip_tmp = (int) (world[2]/chip_delta_z) + 4;  // 0-9
   int chip_tmp = round(world[2] / chip_delta_z) + 4;  // 0-9
-  // std::cout << "  z " << world[2] << " chip_delta_z " << chip_delta_z << " chip_tmp " << chip_tmp << endl;
+  // std::cout << "  z " << world[2] << " chip_delta_z " << chip_delta_z << " chip_tmp " << chip_tmp << std::endl;
 
   stave_index = stave_tmp;
   chip_index = chip_tmp;
@@ -102,15 +101,15 @@ bool CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local, int& 
   double EPS = 5e-6;
   if (fabs(fabs(sensor_local.X()) - SegmentationAlpide::ActiveMatrixSizeRows / 2.F) < EPS)
   {
-    // cout << " Adjusting X,  before X= " << sensor_local.X() << endl;
+    // std::cout << " Adjusting X,  before X= " << sensor_local.X() << std::endl;
     sensor_local.SetX(((sensor_local.X() < 0) ? -1 : 1) * (SegmentationAlpide::ActiveMatrixSizeRows / 2.F - EPS));
-    // cout << " Adjusting X,  after X= " << sensor_local.X() << endl;
+    // std::cout << " Adjusting X,  after X= " << sensor_local.X() << std::endl;
   }
   if (fabs(fabs(sensor_local.Z()) - SegmentationAlpide::ActiveMatrixSizeCols / 2.F) < EPS)
   {
-    // cout << " Adjusting Z,  before Z= " << sensor_local.Z() << endl;
+    // std::cout << " Adjusting Z,  before Z= " << sensor_local.Z() << std::endl;
     sensor_local.SetZ(((sensor_local.Z() < 0) ? -1 : 1) * (SegmentationAlpide::ActiveMatrixSizeCols / 2.F - EPS));
-    // cout << " Adjusting Z,  after Z= " << sensor_local.Z() << endl;
+    // std::cout << " Adjusting Z,  after Z= " << sensor_local.Z() << std::endl;
   }
   // YCM (2020-01-02): go from sensor to chip local coords
   TVector3 in_chip = sensor_local;
@@ -122,21 +121,22 @@ bool CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local, int& 
 
 int CylinderGeom_Mvtx::get_pixel_from_local_coords(const TVector3& sensor_local)
 {
-  int Ngridx, Ngridz;
+  int Ngridx;
+  int Ngridz;
   bool px_in = get_pixel_from_local_coords(sensor_local, Ngridx, Ngridz);
   if (!px_in)
   {
-    cout << PHWHERE
+    std::cout << PHWHERE
          << " Pixel is out sensor. ("
          << sensor_local.X() << ", "
          << sensor_local.Y() << ", "
          << sensor_local.Z() << ")."
-         << endl;
+         << std::endl;
   }
 
   if (Ngridx < 0 || Ngridx >= get_NX() || Ngridz < 0 || Ngridz >= get_NZ())
   {
-    cout << PHWHERE << "Wrong pixel value X= " << Ngridx << " and Z= " << Ngridz << endl;
+    std::cout << PHWHERE << "Wrong pixel value X= " << Ngridx << " and Z= " << Ngridz << std::endl;
   }
 
   // numbering starts at zero
@@ -157,8 +157,8 @@ TVector3 CylinderGeom_Mvtx::get_local_coords_from_pixel(int iRow, int iCol)
   bool check = SegmentationAlpide::detectorToLocal((float) iRow, (float) iCol, local);
   if (!check)
   {
-    cout << PHWHERE << "Pixel coord ( " << iRow << ", " << iCol << " )"
-         << "out of range" << endl;
+    std::cout << PHWHERE << "Pixel coord ( " << iRow << ", " << iCol << " )"
+         << "out of range" << std::endl;
   }
   // Transform location in chip to location in sensors
   TVector3 trChipToSens(loc_sensor_in_chip[0],
@@ -177,7 +177,7 @@ void CylinderGeom_Mvtx::identify(std::ostream& os) const
      << ", pixel_x: " << pixel_x
      << ", pixel_z: " << pixel_z
      << ", pixel_thickness: " << pixel_thickness
-     << endl;
+     << std::endl;
   return;
 }
 
@@ -192,17 +192,17 @@ int CylinderGeom_Mvtx::get_NX() const
   return SegmentationAlpide::NRows;
 }
 
-int CylinderGeom_Mvtx::get_pixel_X_from_pixel_number(int NXZ)
+int CylinderGeom_Mvtx::get_pixel_X_from_pixel_number(int NXZ) const
 {
   return NXZ % get_NX();
 }
 
-int CylinderGeom_Mvtx::get_pixel_Z_from_pixel_number(int NXZ)
+int CylinderGeom_Mvtx::get_pixel_Z_from_pixel_number(int NXZ) const
 {
   return NXZ / get_NX();
 }
 
-int CylinderGeom_Mvtx::get_pixel_number_from_xbin_zbin(int xbin, int zbin)  // obsolete
+int CylinderGeom_Mvtx::get_pixel_number_from_xbin_zbin(int xbin, int zbin) const  // obsolete
 {
   return xbin + zbin * get_NX();
 }

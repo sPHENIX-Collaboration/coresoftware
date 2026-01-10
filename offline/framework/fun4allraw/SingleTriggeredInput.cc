@@ -6,6 +6,7 @@
 
 #include <fun4all/DBInterface.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -157,20 +158,12 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
   {
     std::cout << std::endl;
     std::cout << "----------------- " << Name() << " -----------------" << std::endl;
-  }
 
-  size_t idx = 0;
-  while (idx < bad_diff_indices.size() && !move_to_shift_algo)
-  {
+    size_t idx = 0;
     int start = bad_diff_indices[idx];
-    int end = start;
-    while ((idx+1) < bad_diff_indices.size() && bad_diff_indices[idx+1] == end + 1)
-    {
-      ++idx;
-      ++end;
-    }
+    int end = bad_diff_indices[idx] + bad_diff_indices.size();
 
-    int length = end - start + 1;
+    int length = end - start;
     if(length<=0)
     {
       std::cout << Name() << ": length of bad diffs is <=0. This should not happen... something very wrong. rejecting the pool" << std::endl;
@@ -229,11 +222,6 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
       std::cout << Name() << ": no categories assigned for length " << length << " and start / end " << start << " / " << end << " rejecting pool" << std::endl; 
       return false;
     }
-    ++idx;
-  }
-
-  if (!move_to_shift_algo)
-  {
     size_t nbads = bad_indices.size();
 
     if (nbads == 0 || nbads >= 4)
@@ -245,7 +233,6 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
     std::cout << Name() << ": intermittent bad events = " << nbads << " – do not try shifting algorithm" << std::endl;
     return true;
   }
-
 
   //Try shift 
   if(!move_to_shift_algo)
@@ -261,9 +248,9 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
 
   bool match = true;
   bool first_pool = (gl1diff[0] == std::numeric_limits<uint64_t>::max());
-  size_t start = first_pool ? 2 : 1;
+  size_t startpool = first_pool ? 2 : 1;
 
-  for (size_t i = start; i < pooldepth; ++i)
+  for (size_t i = startpool; i < pooldepth; ++i)
   {
     if (sebdiff[i] != gl1diff[i - 1])
     {
@@ -278,8 +265,8 @@ bool SingleTriggeredInput::CheckPoolAlignment(int pid, const std::array<uint64_t
   }
 
   match = true;
-  start = first_pool ? 1 : 0;
-  for (size_t i = start; i < pooldepth - 1; ++i)
+  startpool = first_pool ? 1 : 0;
+  for (size_t i = startpool; i < pooldepth - 1; ++i)
   {
     if (sebdiff[i] != gl1diff[i + 1])
     {
@@ -344,7 +331,7 @@ int SingleTriggeredInput::FillEventVector()
 {
   while (GetEventIterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return -1;
@@ -387,65 +374,24 @@ int SingleTriggeredInput::FillEventVector()
       if (gl1)
       {
         int nskip = gl1->GetGl1SkipArray()[i];
-        if (m_Gl1PacketOneSkipActiveTrace)
-        {
-          int gl1packetcountdiff = static_cast<int>(gl1->GetPacketNumbers()[i] - m_Gl1PacketNumberOneSkip);
-          if ( nskip == -1 && gl1packetcountdiff < m_Gl1PacketOneSkipCount )
-          {
-            m_Gl1PacketOneSkipActiveTrace = false;
-            if (Verbosity() > 0)
-            {
-              std::cout << Name() << ": GL1 stuck detected at " << gl1->GetPacketNumbers()[i] << " after skipping " << gl1packetcountdiff << ". Clearing trace." << std::endl;
-            }
-          }
-          else if ( gl1packetcountdiff >= m_Gl1PacketOneSkipCount )
-          {
-            m_Gl1PacketOneSkipActiveTrace = false;
-            if (Verbosity() > 0)
-            {
-              std::cout <<  Name() << ": No stuck found before " << m_Gl1PacketOneSkipCount << " events. Skipping one SEB event now." << std::endl;
-            }
-            Event* skip_evt = GetEventIterator()->getNextEvent();
-            while (!skip_evt)
-            {
-              fileclose();
-              if (!OpenNextFile())
-              {
-                FilesDone(1);
-                return -1;
-              }
-              skip_evt = GetEventIterator()->getNextEvent();
-            }
-          }
-        }
-        if (nskip == 1 && m_packetclk_copy_runs == true)
-        {
-          m_Gl1PacketOneSkipActiveTrace = true;
-          m_Gl1PacketNumberOneSkip = gl1->GetPacketNumbers()[i];
-          if (Verbosity() > 0)
-          {
-            std::cout << Name() << ": GL1 packet skip for " << m_Gl1PacketNumberOneSkip << ". Start tracing Gl1 packet number." << std::endl;
-          }
-          nskip = 0;
-        }
-
+        
         while (nskip > 0)
         {
           Event* skip_evt = GetEventIterator()->getNextEvent();
           while (!skip_evt)
           {
             fileclose();
-            if (!OpenNextFile())
+            if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
             {
               FilesDone(1);
               return -1;
             }
             skip_evt = GetEventIterator()->getNextEvent();
           }
-          if (Verbosity() > 0)
+          
+          if (skip_evt->getEvtType() != DATAEVENT)
           {
-            std::cout << Name() << ": Skipping SEB events because of GL1 packet number diff : " << nskip
-              << ", with event sequence number " << skip_evt->getEvtSequence() << std::endl;
+            continue;
           }
 
           Packet* pkt = skip_evt->getPacket(representative_pid);
@@ -460,14 +406,13 @@ int SingleTriggeredInput::FillEventVector()
 
           uint64_t seb_diff = m_bclkdiffarray_map[representative_pid][i];
           int gl1pid = Gl1Input()->m_bclkdiffarray_map.begin()->first;
-          uint64_t gl1_diff = Gl1Input()->m_bclkdiffarray_map[gl1pid][i];
+          uint64_t gl1_diff = gl1->m_bclkdiffarray_map[gl1pid][i];
 
           if (seb_diff == gl1_diff)
           {
             if (Verbosity() > 0)
             {
-              std::cout << Name() << ": Early stop of SEB skip after " << (gl1->GetGl1SkipArray()[i] - nskip)
-                << " from intial " << gl1->GetGl1SkipArray()[i] << " events." << std::endl;
+              std::cout << Name() << ": Early stop of SEB skip after " << (gl1->GetGl1SkipArray()[i] - nskip) << " from intial " << gl1->GetGl1SkipArray()[i] << " events." << std::endl;
             }
             evt = skip_evt;
             break;
@@ -484,7 +429,7 @@ int SingleTriggeredInput::FillEventVector()
       while (!evt)
       {
         fileclose();
-        if (!OpenNextFile())
+        if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
         {
           FilesDone(1);
           return -1;
@@ -635,7 +580,7 @@ void SingleTriggeredInput::FillPacketClock(Event* evt, Packet* pkt, size_t event
 
     if (!warned.contains(pid))
     {
-      std::cout << Name() << ": First pool for pacekt " << pid << " – skipping first diff because of no previous clock" << std::endl;
+      std::cout << Name() << ": First pool for packet " << pid << " – skipping first diff because of no previous clock" << std::endl;
       warned.insert(pid);
     }
     else
@@ -712,11 +657,6 @@ void SingleTriggeredInput::FillPool()
       }
       m_DitchPackets.clear();
 
-      for (auto& [pid, _] : m_PrevPoolLastDiffBad)
-      {
-        m_PrevPoolLastDiffBad[pid] = false;
-      }
-
       for (const auto& [pid, sebdiff] : m_bclkdiffarray_map)
       {
         size_t packetpoolsize = m_PacketEventDeque[pid].size();
@@ -736,7 +676,15 @@ void SingleTriggeredInput::FillPool()
         bool CurrentPoolLastDiffBad = false;
         bool PrevPoolLastDiffBad = m_PrevPoolLastDiffBad[pid];
 
-        bool aligned = CheckPoolAlignment(pid, sebdiff, gl1diff, bad_indices, shift, CurrentPoolLastDiffBad, PrevPoolLastDiffBad);
+        bool aligned = false;
+        if( packetpoolsize < pooldepth && FilesDone() )
+        {
+          aligned = true;
+        }
+        else 
+        {
+          aligned = CheckPoolAlignment(pid, sebdiff, gl1diff, bad_indices, shift, CurrentPoolLastDiffBad, PrevPoolLastDiffBad);
+        }
         
         if (aligned)
         {
@@ -878,8 +826,7 @@ void SingleTriggeredInput::FillPool()
         }
         else
         {
-          std::cout << Name() << ": Alignment failed for packet " << pid
-            << " (retry count = " << m_PacketAlignmentFailCount[pid] << ")" << std::endl;
+          std::cout << Name() << ": Alignment failed for packet " << pid << " (retry count = " << m_PacketAlignmentFailCount[pid] << ")" << std::endl;
           std::cout << "full print out of gl1 vs seb clocks " << std::endl;
           for (size_t i = 0; i <= pooldepth; ++i)
           {
@@ -909,6 +856,8 @@ void SingleTriggeredInput::FillPool()
             m_PacketAlignmentFailCount[pid] = 0; 
             m_PacketAlignmentProblem[pid] = true;
           }
+          
+          m_PrevPoolLastDiffBad[pid] = false;
         }
       }
     }
@@ -1036,7 +985,7 @@ int SingleTriggeredInput::FemEventNrClockCheck(OfflinePacket *pkt)
   size_t femeventnumbers = EventNoSet.size();
   if (femeventnumbers > 1)
   {
-    int goodfemevent = 0;  // store the good event number so we can insert it in the set, but only if the clock counters agree
+    int goodfemevent = 0;  // store the good event number so we can insert it in the set but only if the clock counters agree
     if (femeventnumbers == 2)
     {
       // find the outlier if we have a 2:1 decision
@@ -1292,4 +1241,3 @@ int SingleTriggeredInput::ReadEvent()
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-

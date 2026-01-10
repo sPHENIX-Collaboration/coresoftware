@@ -36,7 +36,10 @@
 #define ROWDIM 320
 #define COLUMNDIM 27
 
-static std::array<std::array<PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {{{nullptr}}};
+namespace
+{
+  std::array<std::array<PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {{{nullptr}}};
+}
 
 PHG4HcalCellReco::PHG4HcalCellReco(const std::string &name)
   : SubsysReco(name)
@@ -136,6 +139,8 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
     {
       for (int irow = 0; irow < maxrow; irow++)
       {
+        // this is just messed up, the args are swapped but consistently - don't try to fix it
+        // NOLINTNEXTLINE(readability-suspicious-call-argument)
         PHG4CellDefs::keytype key = PHG4CellDefs::ScintillatorSlatBinning::genkey(0, icolumn, irow);
         PHG4Cell *cell = new PHG4Cellv1(key);
         cell->add_edep(m_FixedEnergy);
@@ -188,6 +193,8 @@ int PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
     {
       // hcal has no layers so far, I do not want to make an expensive
       // call to the g4hits to find that out use 0 as layer number
+      // this is just messed up, the args are swapped but consistently - don't try to fix it
+      // NOLINTNEXTLINE(readability-suspicious-call-argument)
       PHG4CellDefs::keytype key = PHG4CellDefs::ScintillatorSlatBinning::genkey(0, icolumn, irow);
       slatarray[irow][icolumn] = new PHG4Cellv1(key);
     }
@@ -255,13 +262,12 @@ int PHG4HcalCellReco::CheckEnergy(PHCompositeNode *topNode)
               << std::endl;
     return -1;
   }
-  else
+
+  if (Verbosity() > 0)
   {
-    if (Verbosity() > 0)
-    {
-      std::cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
-    }
+    std::cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
   }
+
   return 0;
 }
 

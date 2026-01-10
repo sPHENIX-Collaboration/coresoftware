@@ -6,8 +6,10 @@
 #include "PHG4ScintillatorSlatDefs.h"
 
 #include <g4main/PHG4HitDefs.h>
+
 #include <phool/PHObject.h>
-#include <cmath>
+
+#include <limits>
 #include <map>
 #include <set>
 
@@ -31,9 +33,9 @@ class PHG4ScintillatorSlat : public PHObject
   virtual short get_row() const { return -1; }
   virtual PHG4ScintillatorSlatDefs::keytype get_key() const { return 0xFFFFFFFF; }
 
-  virtual double get_edep() const { return NAN; }
-  virtual double get_eion() const { return NAN; }
-  virtual double get_light_yield() const { return NAN; }
+  virtual double get_edep() const { return std::numeric_limits<double>::quiet_NaN(); }
+  virtual double get_eion() const { return std::numeric_limits<double>::quiet_NaN(); }
+  virtual double get_light_yield() const { return std::numeric_limits<double>::quiet_NaN(); }
   virtual std::pair<std::set<PHG4HitDefs::keytype>::const_iterator, std::set<PHG4HitDefs::keytype>::const_iterator> get_hit_ids() const = 0;
 
  protected:

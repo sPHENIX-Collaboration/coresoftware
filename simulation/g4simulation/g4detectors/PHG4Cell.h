@@ -9,9 +9,9 @@
 
 #include <phool/PHObject.h>
 
-#include <climits>
 #include <cmath>
 #include <iostream>  // for ostream, cout, operator<<, endl, bas...
+#include <limits>
 #include <map>
 #include <string>   // for string
 #include <utility>  // for pair, make_pair
@@ -62,16 +62,16 @@ class PHG4Cell : public PHObject
   short int get_layer() const { return get_detid(); }
 
   virtual void add_edep(const float) { return; }
-  virtual double get_edep() const { return NAN; }
+  virtual double get_edep() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   virtual void add_eion(const float) { return; }
-  virtual double get_eion() const { return NAN; }
+  virtual double get_eion() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   virtual void add_light_yield(const float) { return; }
-  virtual float get_light_yield() const { return NAN; }
+  virtual float get_light_yield() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   virtual void add_raw_light_yield(const float) { return; }
-  virtual float get_raw_light_yield() const { return NAN; }
+  virtual float get_raw_light_yield() const { return std::numeric_limits<double>::quiet_NaN(); }
 
   // get/set methodes - PLEASE add those ALPHABETICALLY
 
@@ -147,9 +147,9 @@ class PHG4Cell : public PHObject
   };
 
   virtual bool has_property(const PROPERTY /*prop_id*/) const { return false; }
-  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return NAN; }
-  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return INT_MIN; }
-  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual float get_property_float(const PROPERTY /*prop_id*/) const { return std::numeric_limits<double>::quiet_NaN(); }
+  virtual int get_property_int(const PROPERTY /*prop_id*/) const { return std::numeric_limits<int>::min(); }
+  virtual unsigned int get_property_uint(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property(const PROPERTY /*prop_id*/, const float /*value*/) { return; }
   virtual void set_property(const PROPERTY /*prop_id*/, const int /*value*/) { return; }
   virtual void set_property(const PROPERTY /*prop_id*/, const unsigned int /*value*/) { return; }
@@ -159,7 +159,7 @@ class PHG4Cell : public PHObject
 
  protected:
   PHG4Cell() = default;
-  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return UINT_MAX; }
+  virtual unsigned int get_property_nocheck(const PROPERTY /*prop_id*/) const { return std::numeric_limits<unsigned int>::max(); }
   virtual void set_property_nocheck(const PROPERTY /*prop_id*/, const unsigned int) { return; }
   ClassDefOverride(PHG4Cell, 2)
 };

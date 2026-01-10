@@ -7,7 +7,7 @@
 
 #include <phool/phool.h>
 
-#include <cmath>
+#include <limits>
 #include <iostream>  // for cout, ostream
 
 class PHG4BlockGeom : public PHObject
@@ -26,59 +26,59 @@ class PHG4BlockGeom : public PHObject
   virtual double get_size_x() const
   {
     PHOOL_VIRTUAL_WARN("get_size_x()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_size_y() const
   {
     PHOOL_VIRTUAL_WARN("get_size_y()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_size_z() const
   {
     PHOOL_VIRTUAL_WARN("get_size_z()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_center_x() const
   {
     PHOOL_VIRTUAL_WARN("get_place_x()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_center_y() const
   {
     PHOOL_VIRTUAL_WARN("get_place_y()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_center_z() const
   {
     PHOOL_VIRTUAL_WARN("get_place_z()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_z_rot() const
   {
     PHOOL_VIRTUAL_WARN("get_z_rot()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 
   virtual double get_width() const
   {
     PHOOL_VIRTUAL_WARN("get_width()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_length() const
   {
     PHOOL_VIRTUAL_WARN("get_length()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   virtual double get_thickness() const
   {
     PHOOL_VIRTUAL_WARN("get_thickness()");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 
   virtual double get_rot_matrix(const int, const int) const
   {
     PHOOL_VIRTUAL_WARN("get_rot_matrix(const int, const int)");
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
 
   virtual void set_layer(const int) { PHOOL_VIRTUAL_WARN("set_layer(const int)"); }

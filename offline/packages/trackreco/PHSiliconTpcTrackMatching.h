@@ -139,7 +139,10 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   void set_file_name(const std::string &name) { _file_name = name; }
   void set_pp_mode(const bool flag) { _pp_mode = flag; }
   void set_use_intt_crossing(const bool flag) { _use_intt_crossing = flag; }
-
+  void set_cluster_map_name(const std::string &name)
+  {
+    _cluster_map_name = name;
+  }
   int InitRun(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *) override;
@@ -210,6 +213,7 @@ class PHSiliconTpcTrackMatching : public SubsysReco, public PHParameterInterface
   int _n_iteration = 0;
   std::string _track_map_name = "TpcTrackSeedContainer";
   std::string _silicon_track_map_name = "SiliconTrackSeedContainer";
+  std::string _cluster_map_name = "TRKR_CLUSTER";
   std::string m_fieldMap = "1.4";
   std::vector<TrkrDefs::cluskey> getTrackletClusterList(TrackSeed* tracklet);
 };

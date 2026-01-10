@@ -1,27 +1,10 @@
 #ifndef KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 #define KFPARTICLESPHENIX_KFPARTICLETRUTHANDDETTOOLS_H
 
-//Cluster 
-#include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
+// Cluster
 #include <calobase/RawClusterDefs.h>
-//Tower 
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerDefs.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calobase/TowerInfo.h>
-#include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv4.h>
-#include <calobase/TowerInfoDefs.h>
-#include <calobase/TowerInfov4.h>
 
-//ACTS
-#include <trackbase/ActsGeometry.h>
-
-
-
+#include <cmath>
 #include <limits>
 #include <string>
 #include <vector>
@@ -35,6 +18,11 @@ class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
 class MbdVertexMap;
 class MbdVertex;
+class RawCluster;
+class RawClusterContainer;
+class RawTower;
+class RawTowerContainer;
+class RawTowerGeomContainer;
 class SvtxClusterEval;
 class SvtxEvalStack;
 class SvtxHitEval;
@@ -45,6 +33,7 @@ class SvtxTruthEval;
 class SvtxVertexMap;
 class SvtxVertex;
 class SvtxVertexEval;
+class TowerInfoContainer;
 class TrkrClusterContainer;
 class TTree;
 class KFParticle;
@@ -75,7 +64,7 @@ class KFParticle_truthAndDetTools
   int getHepMCInfo(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id);
 
   void initializeCaloBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
-  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch);
+  void fillCaloBranch(PHCompositeNode *topNode, TTree *m_tree, const KFParticle &daughter, int daughter_id, bool &isTrackEMCalmatch, const KFParticle &vertex);
   void Get5x5CellInfo(RawClusterDefs::keytype key_in, int daughter_id);
 
   void initializeDetectorBranches(TTree *m_tree, int daughter_id, const std::string &daughter_number);
@@ -90,7 +79,7 @@ class KFParticle_truthAndDetTools
 
   void clearVectors();
 
-  float get_e3x3(RawCluster *cluster, RawTowerContainer *Towers, int layer); //Nonfunctional; for now, tree fills with NAN
+  float get_e3x3(RawCluster *cluster, RawTowerContainer *Towers, int layer);  // Nonfunctional; for now, tree fills with NAN
   float get_e5x5(RawCluster *cluster, RawTowerContainer *Towers, int layer);
 
   float PiRange(float deltaPhi)
@@ -99,7 +88,7 @@ class KFParticle_truthAndDetTools
     if (deltaPhi < -M_PI) deltaPhi += 2 * M_PI;
     return deltaPhi;
   }
-  
+
   // Functions to set cuts
   void set_emcal_radius_user(float set_variable) { m_emcal_radius_user = set_variable; }
   void set_emcal_e_low_cut(float set_variable) { m_emcal_e_low_cut = set_variable; }
@@ -107,9 +96,8 @@ class KFParticle_truthAndDetTools
   void set_dphi_cut_high(float set_variable) { m_dphi_cut_high = set_variable; }
   void set_dz_cut_low(float set_variable) { m_dz_cut_low = set_variable; }
   void set_dz_cut_high(float set_variable) { m_dz_cut_high = set_variable; }
-  
-  
-  protected:
+
+ protected:
   bool m_get_detailed_tracking{true};
   bool m_get_detailed_calorimetry{false};
   bool m_use_mbd_vertex_truth{false};
@@ -186,6 +174,9 @@ class KFParticle_truthAndDetTools
   float detector_emcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_energy_5x5[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_emcal_cluster_energy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  // float detector_emcal_eta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  // float detector_emcal_phi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
+  // float detector_emcal_z[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_ihcal_deltaphi[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_ihcal_deltaeta[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_ihcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
@@ -196,7 +187,7 @@ class KFParticle_truthAndDetTools
   float detector_ohcal_energy_3x3[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_ohcal_energy_5x5[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
   float detector_ohcal_cluster_energy[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
-  //Detailed Calo Info
+  // Detailed Calo Info
   std::vector<unsigned int> detector_emcal_5x5Cell_Phi[max_tracks];
   std::vector<unsigned int> detector_emcal_5x5Cell_Eta[max_tracks];
   std::vector<float> detector_emcal_5x5Cell_E[max_tracks];
@@ -204,14 +195,14 @@ class KFParticle_truthAndDetTools
   float detector_emcal_chi2[max_tracks]{std::numeric_limits<float>::quiet_NaN()};
 
   RawTowerGeomContainer *EMCalGeo{nullptr};
-  RawClusterContainer   *clustersEM{nullptr};
-  TowerInfoContainer    *_towersEM{nullptr};
+  RawClusterContainer *clustersEM{nullptr};
+  TowerInfoContainer *_towersEM{nullptr};
   RawTowerGeomContainer *IHCalGeo{nullptr};
-  RawClusterContainer   *clustersIH{nullptr};
-  RawTowerContainer     *_towersIH{nullptr};
+  RawClusterContainer *clustersIH{nullptr};
+  RawTowerContainer *_towersIH{nullptr};
   RawTowerGeomContainer *OHCalGeo{nullptr};
-  RawClusterContainer   *clustersOH{nullptr};
-  RawTowerContainer     *_towersOH{nullptr};
+  RawClusterContainer *clustersOH{nullptr};
+  RawTowerContainer *_towersOH{nullptr};
 
   unsigned int detector_nHits_MVTX[max_tracks]{0};
   unsigned int detector_nHits_INTT[max_tracks]{0};

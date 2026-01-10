@@ -210,7 +210,7 @@ PHG4Sector::PHG4SectorConstructor::Construct_Sectors_Plane(  //
     const double start_z,                                    //
     const double thickness,                                  //
     G4VSolid *SecConeBoundary_Det                            //
-)
+) const
 {
   assert(SecConeBoundary_Det);
 
@@ -264,7 +264,7 @@ PHG4Sector::PHG4SectorConstructor::RegisterLogicalVolume(G4LogicalVolume *v)
         << std::endl;
     return v;
   }
-  if (map_log_vol.find(v->GetName()) != map_log_vol.end())
+  if (map_log_vol.contains(v->GetName()))
   {
     std::cout << "PHG4SectorConstructor::RegisterVolume - Warning - replacing "
               << v->GetName() << std::endl;
@@ -289,7 +289,7 @@ PHG4Sector::PHG4SectorConstructor::RegisterPhysicalVolume(G4PVPlacement *v,
 
   phy_vol_idx_t id(v->GetName(), v->GetCopyNo());
 
-  if (map_phy_vol.find(id) != map_phy_vol.end())
+  if (map_phy_vol.contains(id))
   {
     std::cout
         << "PHG4SectorConstructor::RegisterPhysicalVolume - Warning - replacing "
@@ -360,14 +360,12 @@ PHG4Sector::Sector_Geometry::get_max_R() const
 
     return (get_normal_start() + get_total_thickness()) * sqrt(1 + max_tan_angle * max_tan_angle);
   }
-  else
-  {
-    const double max_angle = std::max(
-        std::abs(min_polar_angle - normal_polar_angle),
-        std::abs(max_polar_angle - normal_polar_angle));
 
-    return (get_normal_start() + get_total_thickness()) * sqrt(1 + pow(tan(max_angle), 2) + pow(tan(2 * pi / N_Sector), 2)) * 2;
-  }
+  const double max_angle = std::max(
+      std::abs(min_polar_angle - normal_polar_angle),
+      std::abs(max_polar_angle - normal_polar_angle));
+
+  return (get_normal_start() + get_total_thickness()) * sqrt(1 + pow(tan(max_angle), 2) + pow(tan(2 * pi / N_Sector), 2)) * 2;
 }
 
 //! add Entrace window and drift volume

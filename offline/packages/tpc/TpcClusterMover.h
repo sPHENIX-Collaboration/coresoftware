@@ -27,7 +27,7 @@ class TpcClusterMover
   void initialize_geometry(PHG4TpcGeomContainer *cellgeo);
 
  private:
-  int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y);
+  int get_circle_circle_intersection(double target_radius, double R, double X0, double Y0, double xclus, double yclus, double &x, double &y) const;
 
   double _z_start = 0.0;
   double _y_start = 0.0;

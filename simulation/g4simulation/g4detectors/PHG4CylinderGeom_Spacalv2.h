@@ -24,9 +24,7 @@ class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
  public:
   PHG4CylinderGeom_Spacalv2();
 
-  ~PHG4CylinderGeom_Spacalv2() override
-  {
-  }
+  ~PHG4CylinderGeom_Spacalv2() override = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -83,7 +81,7 @@ class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
   {
     const double available_depth = get_thickness() - (sqrt((get_radius()) * (get_radius()) + (get_sec_azimuthal_width() / 2) * (get_sec_azimuthal_width() / 2)) - get_radius()) - get_assembly_spacing();
     if (available_depth < get_sec_azimuthal_width())
-      return NAN;
+      return std::numeric_limits<double>::quiet_NaN();
     else
       return sqrt(
           available_depth * available_depth - get_sec_azimuthal_width() * get_sec_azimuthal_width());
