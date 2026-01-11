@@ -73,7 +73,7 @@ class HepMCParticleTrigger : public SubsysReco
   int n_good{0};
   bool set_event_limit{false};
 
-  float _theEtaHigh{-999.9};
+  float _theEtaHigh{999.9};
   float _theEtaLow{-999.9};
   float _thePtHigh{999.9};
   float _thePtLow{-999.9};
