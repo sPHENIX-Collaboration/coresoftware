@@ -176,7 +176,7 @@ int InputFileHandler::RunBeforeOpening(const std::vector<std::string> &stringvec
   }
   if (!((std::filesystem::status(m_RunBeforeOpeningScript).permissions() & std::filesystem::perms::owner_exec) == std::filesystem::perms::owner_exec))
   {
-    std::cout << PHWHERE << "RunAfterClosing() closing script "
+    std::cout << PHWHERE << "RunBeforeOpeningScript script "
               << m_RunBeforeOpeningScript << " is not owner executable" << std::endl;
     return -1;
   }
