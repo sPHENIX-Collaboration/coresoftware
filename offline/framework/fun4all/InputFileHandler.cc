@@ -3,10 +3,13 @@
 
 #include <phool/phool.h>
 
+#include <TSystem.h>
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 int InputFileHandler::AddFile(const std::string &filename)
 {
@@ -93,13 +96,15 @@ int InputFileHandler::OpenNextFile()
     {
       std::vector<std::string> stringvec;
       stringvec.push_back(*iter);
-      if (! m_FileName.empty())
+      if (!m_FileName.empty())
       {
-	stringvec.push_back(m_FileName);
+        stringvec.push_back(m_FileName);
       }
-      RunBeforeOpening(stringvec);
+      if (RunBeforeOpening(stringvec))
+      {
+        std::cout << PHWHERE << " RunBeforeOpening() failed" << std::endl;
+      }
     }
-    std::cout << "closing " << m_FileName << ", opening " << *iter << std::endl;
     if (fileopen(*iter))
     {
       std::cout << PHWHERE << " could not open file: " << *iter << std::endl;
@@ -155,4 +160,41 @@ int InputFileHandler::fileopen(const std::string &fname)
 {
   std::cout << "InputFileHandler::fileopen opening " << fname << std::endl;
   return 0;
+}
+
+int InputFileHandler::RunBeforeOpening(const std::vector<std::string> &stringvec)
+{
+  if (m_RunBeforeOpeningScript.empty())
+  {
+    return 0;
+  }
+  if (!std::filesystem::exists(m_RunBeforeOpeningScript))
+  {
+    std::cout << PHWHERE << " script " << m_RunBeforeOpeningScript << " not found"
+              << std::endl;
+    return -1;
+  }
+  if (!((std::filesystem::status(m_RunBeforeOpeningScript).permissions() & std::filesystem::perms::owner_exec) == std::filesystem::perms::owner_exec))
+  {
+    std::cout << PHWHERE << "RunAfterClosing() closing script "
+              << m_RunBeforeOpeningScript << " is not owner executable" << std::endl;
+    return -1;
+  }
+  std::string fullcmd = m_RunBeforeOpeningScript + " " + m_OpeningArgs;
+  for (auto iter : stringvec)
+  {
+    fullcmd += " " + iter;
+  }
+
+  if (m_Verbosity > 1)
+  {
+    std::cout << PHWHERE << " running " << fullcmd << std::endl;
+  }
+  int iret = gSystem->Exec(fullcmd.c_str());
+
+  if (iret)
+  {
+    iret = iret >> 8U;
+  }
+  return iret;
 }
