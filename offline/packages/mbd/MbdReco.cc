@@ -103,7 +103,8 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     int status = Fun4AllReturnCodes::EVENT_OK;
     if ( m_evtheader!=nullptr )
     {
-      m_mbdevent->set_EventNumber( m_evtheader->get_EvtSequence() );
+      _evtnum = m_evtheader->get_EvtSequence();
+      m_mbdevent->set_EventNumber( _evtnum );
     }
 
     if ( m_event!=nullptr )
@@ -125,7 +126,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       static int counter = 0;
       if ( counter<3 )
       {
-        std::cout << PHWHERE << " Warning, MBD discarding event " << std::endl;
+        std::cout << PHWHERE << " Warning, MBD discarding event " << _evtnum << std::endl;
         counter++;
       }
       return Fun4AllReturnCodes::DISCARDEVENT;
@@ -135,7 +136,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       static int counter = 0;
       if ( counter<3 )
       {
-        std::cout << PHWHERE << " Warning, MBD aborting event " << std::endl;
+        std::cout << PHWHERE << " Warning, MBD aborting event " << _evtnum << std::endl;
         counter++;
       }
       return Fun4AllReturnCodes::ABORTEVENT;
