@@ -18,12 +18,56 @@
 #include <string>
 #include <vector>
 //____________________________________________________________________________..
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+/**
+ * @brief Construct a HepMCParticleTrigger with configurable trigger thresholds and event limits.
+ *
+ * Initializes the trigger's kinematic cut thresholds, cut enable flags, and event counting controls.
+ * Default numeric thresholds for eta, pt, momentum (p), and pz are established and the corresponding
+ * boolean flags determine which cuts are active. If `trigger_thresh` is nonzero, the low-pt cut is
+ * enabled and `_thePtLow` is set to `trigger_thresh`.
+ *
+ * @param trigger_thresh Baseline transverse momentum threshold (used to enable and set a low-pt cut when nonzero).
+ * @param n_incom Goal number of accepted ("good") events before optionally aborting further processing.
+ * @param up_lim When true, enable event limiting so processing aborts after `n_incom` good events are reached.
+ * @param name Name forwarded to the SubsysReco base class for identifying this module.
+ */
 HepMCParticleTrigger::HepMCParticleTrigger(float trigger_thresh, int n_incom, bool up_lim, const std::string& name)
   : SubsysReco(name)
   , threshold(trigger_thresh)
   , goal_event_number(n_incom)
   , set_event_limit(up_lim)
+  , _theEtaHigh(1.1)
+  , _theEtaLow(-1.1)
+  , _thePtHigh(999.9)
+  , _thePtLow(0)
+  , _thePHigh(999.9)
+  , _thePLow(-999.9)
+  , _thePzHigh(999.9)
+  , _thePzLow(-999.9)
+  ,
+
+    _doEtaHighCut(true)
+  , _doEtaLowCut(true)
+  , _doBothEtaCut(true)
+  ,
+
+  _doAbsEtaHighCut(false)
+  , _doAbsEtaLowCut(false)
+  , _doBothAbsEtaCut(false)
+  ,
+
+  _doPtHighCut(false)
+  , _doPtLowCut(false)
+  , _doBothPtCut(false)
+  ,
+    _doPHighCut(false)
+  , _doPLowCut(false)
+  , _doBothPCut(false)
+  ,
+
+  _doPzHighCut(false)
+  , _doPzLowCut(false)
+  , _doBothPzCut(false) 
 {
   if (threshold != 0)
   {

@@ -85,6 +85,16 @@ bool HepMCJetTrigger::isGoodEvent(HepMC::GenEvent* e1)
   return false;
 }
 
+/**
+ * @brief Cluster stable generator-level particles into anti-kT (R=0.4) jets.
+ *
+ * Builds FastJet input from final-state HepMC particles (status == 1 and no end vertex),
+ * excludes particles with absolute PDG IDs in the range 12–18, and returns the resulting
+ * inclusive jets produced by the anti-kT algorithm with radius 0.4.
+ *
+ * @param e1 Pointer to the HepMC::GenEvent whose particles will be clustered.
+ * @return std::vector<fastjet::PseudoJet> Inclusive jets produced from the event, in FastJet PseudoJet format.
+ */
 std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1)
 {
   // do the fast jet clustering, antikt r=-0.4
@@ -96,6 +106,8 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
     if (!(*iter)->end_vertex() && (*iter)->status() == 1)
     {
       auto p = (*iter)->momentum();
+      auto pd = std::abs((*iter)->pdg_id());
+      if( pd >=12 && pd <=18) continue; //keep jet in the expected behavioro
       fastjet::PseudoJet pj(p.px(), p.py(), p.pz(), p.e());
       pj.set_user_index((*iter)->barcode());
       input.push_back(pj);
@@ -115,6 +127,15 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
   return output;
 }
 
+/**
+ * @brief Count jets that pass the configured pseudorapidity and transverse-momentum thresholds.
+ *
+ * Counts how many jets in the supplied collection have |eta| <= 1.1 and transverse momentum
+ * greater than the instance's `threshold` member.
+ *
+ * @param jets Collection of jets to evaluate.
+ * @return int Number of jets with |eta| <= 1.1 and pt > threshold.
+ */
 int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets) const
 {
   // search through for the number of identified jets above the threshold
@@ -122,6 +143,7 @@ int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& j
   for (const auto& j : jets)
   {
     float const pt = j.pt();
+    if(std::abs(j.eta()) > 1.1) continue;
     if (pt > this->threshold)
     {
       n_good_jets++;
