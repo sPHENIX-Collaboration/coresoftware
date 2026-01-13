@@ -7,13 +7,11 @@
 
 #include <string>  // for string
 
-class PHCompositeNode;
-
 class HeadReco : public SubsysReco
 {
  public:
   HeadReco(const std::string &name = "HeadReco");
-  ~HeadReco() override {}
+  ~HeadReco() override = default;
   int Init(PHCompositeNode *topNode) override;
   int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
