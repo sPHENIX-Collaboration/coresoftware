@@ -484,9 +484,17 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
         }
 
         _mbdsig[feech].SetNSamples( _nsamples );
-        _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
-
+        
+        if ( _nsamples > 0 && _nsamples <= 30 )
+        {
+          _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+        }
         /*
+        else
+        {
+          std::cout << PHWHERE << " empty feech " << feech << std::endl;
+        }
+
         std::cout << "feech " << feech << std::endl;
         _mbdsig[feech].Print();
         */
@@ -548,6 +556,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
 
   // int flag_err = 0;
   Packet *p[2]{nullptr};
+  int tot_nsamples{0};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
@@ -565,6 +574,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
     if (p[ipkt])
     {
       _nsamples = p[ipkt]->iValue(0, "SAMPLES");
+      tot_nsamples += _nsamples;
       {
         static int counter = 0;
         if ( counter<1 )
@@ -618,6 +628,12 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
     }
   }
 
+  // If packets are missing, stop processing
+  if ( tot_nsamples == 0 )
+  {
+    return -1002;
+  }
+
   // Fill MbdRawContainer
   int status = ProcessPackets(bbcraws);
   if ( _fitsonly )
@@ -637,7 +653,7 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
   // Do a quick sanity check that all fem counters agree
   if (m_xmitclocks[0] != m_xmitclocks[1])
   {
-    std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
+    std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree, evt " << m_evt << std::endl;
   }
   /*
   // format changed in run2024, need to update check
@@ -672,6 +688,11 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
+
+    if ( _mbdsig[ifeech].GetNSamples()==0 )
+    {
+      continue;
+    }
 
     // time channel
     if (type == 0)
@@ -738,6 +759,11 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
+
+    if ( _mbdsig[ifeech].GetNSamples()==0 )
+    {
+      continue;
+    }
 
     // time channel
     if (type == 0)
@@ -854,8 +880,14 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         */
 
         TGraphErrors *gsubpulse = _mbdsig[ifeech].GetGraph();
-        Double_t *y = gsubpulse->GetY();
-        h2_trange->Fill( y[samp_max], pmtch );  // fill ped-subtracted tdc
+        if ( gsubpulse )
+        {
+          Double_t *y = gsubpulse->GetY();
+          if ( y )
+          {
+            h2_trange->Fill( y[samp_max], pmtch );  // fill ped-subtracted tdc
+          }
+        }
       }
     }
 
