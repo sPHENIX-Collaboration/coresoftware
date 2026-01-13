@@ -181,7 +181,7 @@ int InputFileHandler::RunBeforeOpening(const std::vector<std::string> &stringvec
     return -1;
   }
   std::string fullcmd = m_RunBeforeOpeningScript + " " + m_OpeningArgs;
-  for (auto iter : stringvec)
+  for (const auto& iter : stringvec)
   {
     fullcmd += " " + iter;
   }
@@ -190,11 +190,11 @@ int InputFileHandler::RunBeforeOpening(const std::vector<std::string> &stringvec
   {
     std::cout << PHWHERE << " running " << fullcmd << std::endl;
   }
-  int iret = gSystem->Exec(fullcmd.c_str());
+  unsigned int iret = gSystem->Exec(fullcmd.c_str());
 
   if (iret)
   {
     iret = iret >> 8U;
   }
-  return iret;
+  return static_cast<int> (iret);
 }
