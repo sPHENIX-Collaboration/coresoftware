@@ -7,10 +7,10 @@
 
 #include <fastjet/PseudoJet.hh>
 
+#include <cmath>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <math.h>
 
 class PHCompositeNode;
 namespace HepMC
@@ -25,18 +25,6 @@ class HepMCParticleTrigger : public SubsysReco
 
   ~HepMCParticleTrigger() override = default;
 
-  /** Called during initialization.
-      Typically this is where you can book histograms, and e.g.
-      register them to Fun4AllServer (so they can be output to file
-      using Fun4AllServer::dumpHistos() method).
-   */
-
-  /** Called for first event when run number is known.
-      Typically this is where you may want to fetch data from
-      database, because you know the run number. A place
-      to book histograms which have to know the run number.
-   */
-
   /** Called for each event.
       This is where you do the real work.
    */
@@ -49,14 +37,14 @@ class HepMCParticleTrigger : public SubsysReco
   /// Called at the end of all processing.
 
   /// Reset
-  void AddParticles(std::vector<int>); //exclusively take input in the form of a pdg_ids (22 for photon, primary use case)
+  void AddParticles(const std::vector<int>&); //exclusively take input in the form of a pdg_ids (22 for photon, primary use case)
   void AddParticle(int);
 
-/*  void AddParents(const std::string &parents);
-  void AddParents(int parent);
-  void AddParents(std::vector<int> parents);
-  void AddParentspID(std::vector<int> parents);
-*/
+  /*  void AddParents(const std::string &parents);
+    void AddParents(int parent);
+    void AddParents(std::vector<int> parents);
+    void AddParentspID(std::vector<int> parents);
+  */
   void SetPtHigh(double);
   void SetPtLow(double);
   void SetPtHighLow(double, double);
@@ -64,11 +52,11 @@ class HepMCParticleTrigger : public SubsysReco
   void SetPHigh(double);
   void SetPLow(double);
   void SetPHighLow(double, double);
-  
+
   void SetEtaHigh(double);
   void SetEtaLow(double);
   void SetEtaHighLow(double, double);
-  
+
   void SetAbsEtaHigh(double);
   void SetAbsEtaLow(double);
   void SetAbsEtaHighLow(double, double);
@@ -76,15 +64,16 @@ class HepMCParticleTrigger : public SubsysReco
   void SetPzHigh(double);
   void SetPzLow(double);
   void SetPzHighLow(double, double);
- 
+
   void SetStableParticleOnly(bool b) { m_doStableParticleOnly = b; }
+
  private:
   bool isGoodEvent(HepMC::GenEvent* e1);
   std::vector<int> getParticles(HepMC::GenEvent* e1);
   int particleAboveThreshold(const std::map<int, int>& n_particles, int particle);
-//  std::vector<int> _theParentsi {};
-  std::vector<int> _theParticles {};
-  bool m_doStableParticleOnly {true};
+  //  std::vector<int> _theParentsi {};
+  std::vector<int> _theParticles{};
+  bool m_doStableParticleOnly{true};
   float threshold{0.};
   int goal_event_number{1000};
   int n_evts{0};
