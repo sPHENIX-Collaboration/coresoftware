@@ -29,6 +29,24 @@
 #include <fstream>
 #include <sstream>
 
+/**
+ * @brief Build and install detector alignment transforms from parameters.
+ *
+ * Reads alignment parameters (from disk or database), parses per-detector entries,
+ * constructs per-surface Acts transforms (MVTX, INTT, TPC, Micromegas), stores them
+ * into the persistent and transient alignmentTransformationContainer maps, and
+ * assigns the resulting transform map into the geometry context so subsequent
+ * code will use the alignment corrections.
+ *
+ * The function also computes TPC module local-frame translations as needed,
+ * supports optional randomized perturbations per detector type, and toggles the
+ * global use_alignment flag when finished.
+ *
+ * @param topNode Top-level PHCompositeNode used to locate geometry and DST nodes.
+ *
+ * @note The function will call exit(1) if it encounters an invalid/ill-formed
+ *       line in the alignment parameters file.
+ */
 void AlignmentTransformation::createMap(PHCompositeNode* topNode)
 {
   localVerbosity = 0;
@@ -277,6 +295,7 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
           surf = surfMaps.getTpcSurface(this_hitsetkey, (unsigned int) sskey);
 
           Eigen::Vector3d localFrameTranslation(0, 0, 0);
+	  use_module_tilt = false;
           if (test_layer < 4 || use_module_tilt_always)
           {
             // get the local frame translation that puts the local surface center at the tilted position after the local rotations are applied
@@ -285,6 +304,9 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
             double this_radius = std::sqrt(this_center[0] * this_center[0] + this_center[1] * this_center[1]);
             float moduleRadius = TpcModuleRadii[side][sector][this_region];                                     // radius of the center of the module in cm
             localFrameTranslation = getTpcLocalFrameTranslation(moduleRadius, this_radius, sensorAngles) * 10;  // cm to mm
+
+	    // set this flag for later use 
+	    use_module_tilt = true;
           }
 
           Acts::Transform3 transform;
@@ -355,7 +377,23 @@ void AlignmentTransformation::createMap(PHCompositeNode* topNode)
   alignmentTransformationContainer::use_alignment = true;
 }
 
-// currently used as the transform maker
+/**
+ * @brief Builds an Acts::Transform3 combining surface pose with alignment rotations and translations.
+ *
+ * Constructs a transform that applies the surface's Acts pose together with a global
+ * translation/rotation (millepede global) and a local sensor-frame translation/rotation
+ * (millepede local). The exact multiplication order depends on the `survey` flag and
+ * on tracker-specific options (e.g., TPC module-tilt and silicon rotation-order compatibility).
+ *
+ * @param surf The surface whose Acts pose is used as the baseline.
+ * @param millepedeTranslation Global translation read from alignment parameters (applied in global frame).
+ * @param sensorAngles Local sensor rotation angles (X, Y, Z) used to build the local rotation.
+ * @param localFrameTranslation Local-frame translation applied in the sensor/local coordinate frame.
+ * @param sensorAnglesGlobal Global rotation angles (X, Y, Z) applied in the global alignment rotation.
+ * @param trkrid Tracker identifier used to select tracker-specific transform ordering (e.g., TPC).
+ * @param survey If true, uses the provided millepede parameters as survey-derived transform (different composition).
+ * @return Acts::Transform3 The composed transform combining survey/Acts pose and alignment perturbations.
+ */
 Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, unsigned int trkrid, bool survey)
 {
   // define null matrices
@@ -417,70 +455,83 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
   Acts::Transform3 transform;
   //! If we read the survey parameters directly, that is the full transform
   if (survey)
-  {
-    //! The millepede affines will just be what was read in, which was the
-    //! survey information. This should (in principle) be equivalent to
-    //! the ideal position + any misalignment
-    transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * mpLocalRotationAffine;
-  }
-  else
-  {
-    if (trkrid == TrkrDefs::tpcId)
     {
-      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * actsRotationAffine * mpLocalTranslationAffine * mpLocalRotationAffine;
+      //! The millepede affines will just be what was read in, which was the
+      //! survey information. This should (in principle) be equivalent to
+      //! the ideal position + any misalignment
+      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * mpLocalRotationAffine;
     }
-    else
+  else
     {
-      if(use_new_silicon_rotation_order)
+      // not survey. this is the normal usage
+
+      if (trkrid == TrkrDefs::tpcId)
 	{
-	  transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * actsRotationAffine * mpLocalTranslationAffine * mpLocalRotationAffine;
+	  if(use_module_tilt)
+	    {
+	      // use module tilt transforms with local rotation followed by local translation 
+	      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * actsRotationAffine * mpLocalTranslationAffine * mpLocalRotationAffine;
+	    }
+	  else
+	    {
+	      // backward compatibility for old alignment params sets
+	      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * mpLocalRotationAffine * actsRotationAffine;
+	    }
 	}
       else
 	{
-	  // needed for backward compatibility to existing local rotations in MVTX
-	  transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * mpLocalRotationAffine * actsRotationAffine;
+	  // silicon and TPOT	  
+	  if(use_new_silicon_rotation_order)
+	    {
+	      // use new transform order for silicon as well as TPC
+	      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * actsRotationAffine * mpLocalTranslationAffine * mpLocalRotationAffine;
+	    }
+	  else
+	    {
+	      // needed for backward compatibility to existing local rotation parmeter sets in silicon
+	      transform = mpGlobalTranslationAffine * mpGlobalRotationAffine * actsTranslationAffine * mpLocalRotationAffine * actsRotationAffine;
+	    }
 	}
     }
-  }
-
+  
   if (localVerbosity)
-  {
-    Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
-
-    std::cout << "newMakeTransform" << std::endl;
-    std::cout << "Input sensorAngles: " << std::endl
-              << sensorAngles << std::endl;
-    std::cout << "Input sensorAnglesGlobal: " << std::endl
-              << sensorAnglesGlobal << std::endl;
-    std::cout << "Input translation: " << std::endl
-              << millepedeTranslation << std::endl;
-    std::cout << "mpLocalRotationAffine: " << std::endl
-              << mpLocalRotationAffine.matrix() << std::endl;
-    std::cout << "mpLocalTranslationAffine: " << std::endl
-              << mpLocalTranslationAffine.matrix() << std::endl;
-    std::cout << "actsRotationAffine: " << std::endl
-              << actsRotationAffine.matrix() << std::endl;
-    std::cout << "actsTranslationAffine: " << std::endl
-              << actsTranslationAffine.matrix() << std::endl;
-    std::cout << "mpRotationGlobalAffine: " << std::endl
-              << mpGlobalRotationAffine.matrix() << std::endl;
-    std::cout << "mpTranslationGlobalAffine: " << std::endl
-              << mpGlobalTranslationAffine.matrix() << std::endl;
-    std::cout << "Overall transform: " << std::endl
-              << transform.matrix() << std::endl;
-    std::cout << "overall * idealinv " << std::endl
-              << (transform * actstransform.inverse()).matrix() << std::endl;
-    std::cout << "overall - ideal " << std::endl;
-    for (int test = 0; test < transform.matrix().rows(); test++)
     {
-      for (int test2 = 0; test2 < transform.matrix().cols(); test2++)
-      {
-        std::cout << transform(test, test2) - actstransform(test, test2) << ", ";
-      }
-      std::cout << std::endl;
+      Acts::Transform3 actstransform = actsTranslationAffine * actsRotationAffine;
+      
+      std::cout << "newMakeTransform" << std::endl;
+      std::cout << "Input sensorAngles: " << std::endl
+		<< sensorAngles << std::endl;
+      std::cout << "Input sensorAnglesGlobal: " << std::endl
+		<< sensorAnglesGlobal << std::endl;
+      std::cout << "Input translation: " << std::endl
+		<< millepedeTranslation << std::endl;
+      std::cout << "mpLocalRotationAffine: " << std::endl
+		<< mpLocalRotationAffine.matrix() << std::endl;
+      std::cout << "mpLocalTranslationAffine: " << std::endl
+		<< mpLocalTranslationAffine.matrix() << std::endl;
+      std::cout << "actsRotationAffine: " << std::endl
+		<< actsRotationAffine.matrix() << std::endl;
+      std::cout << "actsTranslationAffine: " << std::endl
+		<< actsTranslationAffine.matrix() << std::endl;
+      std::cout << "mpRotationGlobalAffine: " << std::endl
+		<< mpGlobalRotationAffine.matrix() << std::endl;
+      std::cout << "mpTranslationGlobalAffine: " << std::endl
+		<< mpGlobalTranslationAffine.matrix() << std::endl;
+      std::cout << "Overall transform: " << std::endl
+		<< transform.matrix() << std::endl;
+      std::cout << "overall * idealinv " << std::endl
+		<< (transform * actstransform.inverse()).matrix() << std::endl;
+      std::cout << "overall - ideal " << std::endl;
+      for (int test = 0; test < transform.matrix().rows(); test++)
+	{
+	  for (int test2 = 0; test2 < transform.matrix().cols(); test2++)
+	    {
+	      std::cout << transform(test, test2) - actstransform(test, test2) << ", ";
+	    }
+	  std::cout << std::endl;
+	}
     }
-  }
-
+  
   return transform;
 }
 

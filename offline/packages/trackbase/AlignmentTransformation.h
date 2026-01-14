@@ -14,6 +14,77 @@ class PHCompositeNode;
 
 class ActsGeometry;
 
+/**
+ * Build or populate the alignment transformation map from the node tree.
+ * @param topNode Top-level node containing geometry and alignment information.
+ */
+ 
+/**
+ * Create and attach an alignmentTransformationContainer to the node tree and initialize it.
+ * @param topNode Top-level node where the container will be created or retrieved.
+ */
+
+/**
+ * Generate and store random perturbations for rotations and translations.
+ * The generated samples are stored in the object's internal perturbation vectors.
+ * @param angleDev Standard deviations for rotation about X, Y, Z (radians).
+ * @param transformDev Standard deviations for translation along X, Y, Z (same units as detector coordinates).
+ */
+
+/**
+ * Set MVTX subsystem perturbation standard deviations and enable MVTX perturbations.
+ * The array layout is [angleX, angleY, angleZ, transX, transY, transZ].
+ * @param mvtxDevs Six-element array with angle (first 3) then translation (last 3) standard deviations.
+ */
+
+/**
+ * Set INTT subsystem perturbation standard deviations and enable INTT perturbations.
+ * The array layout is [angleX, angleY, angleZ, transX, transY, transZ].
+ * @param inttDevs Six-element array with angle (first 3) then translation (last 3) standard deviations.
+ */
+
+/**
+ * Set TPC subsystem perturbation standard deviations and enable TPC perturbations.
+ * The array layout is [angleX, angleY, angleZ, transX, transY, transZ].
+ * @param tpcDevs Six-element array with angle (first 3) then translation (last 3) standard deviations.
+ */
+
+/**
+ * Set MM subsystem perturbation standard deviations and enable MM perturbations.
+ * The array layout is [angleX, angleY, angleZ, transX, transY, transZ].
+ * @param mmDevs Six-element array with angle (first 3) then translation (last 3) standard deviations.
+ */
+
+/**
+ * Enable local verbose output.
+ */
+
+/**
+ * Set the misalignment factor for a given layer.
+ * @param layer Layer identifier.
+ * @param factor Multiplicative misalignment factor to apply for the specified layer.
+ */
+
+/**
+ * Retrieve the misalignment factor for the specified layer from the active transform container.
+ * @param layer Layer identifier.
+ * @returns The misalignment factor for the given layer.
+ */
+
+/**
+ * Toggle use of INTT survey geometry.
+ * @param sur If true, survey geometry for INTT will be used.
+ */
+
+/**
+ * Toggle use of the new silicon rotation application order.
+ * @param flag If true, the new silicon rotation order will be used.
+ */
+
+/**
+ * Toggle always-on module tilt behavior.
+ * @param flag If true, module tilt will always be applied.
+ */
 class AlignmentTransformation
 {
  public:
@@ -128,7 +199,8 @@ private:
 
   bool use_new_silicon_rotation_order = false;
   bool use_module_tilt_always = false;
-
+  bool use_module_tilt = false;   // starts at false in all cases
+  
   bool use_intt_survey_geometry = false;
   
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, unsigned int trkrid, bool survey);
