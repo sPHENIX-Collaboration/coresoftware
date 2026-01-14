@@ -97,7 +97,10 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
     {
       auto p = (*iter)->momentum();
       auto pd = std::abs((*iter)->pdg_id());
-      if( pd >=12 && pd <=18) continue; //keep jet in the expected behavioro
+      if (pd >= 12 && pd <= 18)
+      {
+        continue;  // keep jet in the expected behavioro
+      }
       fastjet::PseudoJet pj(p.px(), p.py(), p.pz(), p.e());
       pj.set_user_index((*iter)->barcode());
       input.push_back(pj);
@@ -124,7 +127,10 @@ int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& j
   for (const auto& j : jets)
   {
     float const pt = j.pt();
-    if(std::abs(j.eta()) > 1.1) continue;
+    if (std::abs(j.eta()) > 1.1)
+    {
+      continue;
+    }
     if (pt > this->threshold)
     {
       n_good_jets++;
