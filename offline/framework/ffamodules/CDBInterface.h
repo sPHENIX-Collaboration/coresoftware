@@ -10,7 +10,6 @@
 #include <string>
 #include <tuple>  // for tuple
 
-class PHCompositeNode;
 class SphenixClient;
 
 class CDBInterface : public SubsysReco

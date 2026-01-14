@@ -52,6 +52,8 @@ class MbdReco : public SubsysReco
   float m_tres = 0.05;
   std::unique_ptr<TF1> m_gaussian = nullptr;
 
+  int _evtnum{-1};
+
   std::unique_ptr<MbdEvent> m_mbdevent{nullptr};
   Event *m_event{nullptr};
   std::array<CaloPacket *,2>m_mbdpacket{nullptr};
