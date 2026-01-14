@@ -1,6 +1,7 @@
 #include "SingleGl1PoolInput.h"
 
 #include "Fun4AllStreamingInputManager.h"
+#include "Fun4AllStreamingLumiCountingInputManager.h"
 #include "InputManagerType.h"
 
 #include <ffarawobjects/Gl1Packetv3.h>
@@ -71,6 +72,25 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     {
       std::cout << PHWHERE << "Fetching next Event" << evt->getEvtSequence() << std::endl;
     }
+    if ((m_total_event == 0 && evt->getEvtType() == ENDRUNEVENT) ||
+        (m_total_event != 0 && evt->getEvtSequence() - 2 == m_total_event))
+    {
+      m_alldone_flag = true;
+      m_lastevent_flag = true;
+    }
+    if (evt->getEvtSequence() % 5000 == 0)
+    {
+      m_alldone_flag = true;
+      m_lastevent_flag = true;
+    }
+    if (Verbosity() > 2)
+    {
+      if (m_alldone_flag)
+      {
+        std::cout << "gl1 all done is true" << std::endl;
+      }
+      // else{std::cout<<"gl1 all done is false"<<std::endl;}
+    }
     RunNumber(evt->getRunNumber());
     if (GetVerbosity() > 1)
     {
@@ -101,6 +121,15 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     {
       std::cout << PHWHERE << "Packet 14001 is null ptr" << std::endl;
       evt->identify();
+      m_alldone_flag = true;
+      m_lastevent_flag = true;
+      if (StreamingLumiInputManager())
+      {
+        StreamingLumiInputManager()->SetEndofEvent(m_alldone_flag, m_lastevent_flag);
+        StreamingLumiInputManager()->SetEventNumber(EventSequence);
+      }
+      m_alldone_flag = false;
+      m_lastevent_flag = false;
       continue;
     }
     if (Verbosity() > 1)
@@ -110,6 +139,10 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
 
     Gl1Packet *newhit = new Gl1Packetv3();
     uint64_t gtm_bco = packet->lValue(0, "BCO");
+    uint64_t bco_trim = gtm_bco & 0xFFFFFFFFFFU;
+    m_BCOWindows[bco_trim] = std::make_pair(bco_trim - m_negative_bco_window, bco_trim + m_positive_bco_window);
+    //    std::cout<<"BCO "<< m_BCOWindows.begin()->first<<" left "<<m_BCOWindows.begin()->second.first<<" right "<< m_BCOWindows.begin()->second.second<<std::endl;
+    m_BCOBunchNumber[bco_trim] = packet->lValue(0, "BunchNumber");
     m_FEEBclkMap.insert(gtm_bco);
     newhit->setBCO(packet->lValue(0, "BCO"));
     newhit->setHitFormat(packet->getHitFormat());
@@ -157,6 +190,20 @@ void SingleGl1PoolInput::FillPool(const unsigned int /*nbclks*/)
     if (StreamingInputManager())
     {
       StreamingInputManager()->AddGl1RawHit(gtm_bco, newhit);
+    }
+    if (StreamingLumiInputManager())
+    {
+      StreamingLumiInputManager()->AddGl1Window(bco_trim, m_negative_bco_window, m_positive_bco_window);
+      StreamingLumiInputManager()->AddGl1BunchNumber(bco_trim, m_BCOBunchNumber[bco_trim]);
+      StreamingLumiInputManager()->SetEndofEvent(m_alldone_flag, m_lastevent_flag);
+      StreamingLumiInputManager()->SetEventNumber(EventSequence);
+      StreamingLumiInputManager()->SetNegativeWindow(m_negative_bco_window);
+      StreamingLumiInputManager()->SetPositiveWindow(m_positive_bco_window);
+    }
+    if (evt->getEvtSequence() % 5000 == 0)
+    {
+      m_alldone_flag = false;
+      m_lastevent_flag = false;
     }
     m_Gl1RawHitMap[gtm_bco].push_back(newhit);
     m_BclkStack.insert(gtm_bco);
@@ -222,6 +269,9 @@ void SingleGl1PoolInput::CleanupUsedPackets(const uint64_t bclk)
     m_FEEBclkMap.erase(iter);
     m_BclkStack.erase(iter);
     m_Gl1RawHitMap.erase(iter);
+    auto trimbclk = iter & 0xFFFFFFFFFFU;
+    m_BCOWindows.erase(trimbclk);
+    m_BCOBunchNumber.erase(trimbclk);
   }
 }
 
