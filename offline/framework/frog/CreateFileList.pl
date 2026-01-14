@@ -74,7 +74,8 @@ my %proddesc = (
     "33" => "JS pythia8 Jet ptmin = 15GeV",
     "34" => "JS pythia8 Jet ptmin = 50GeV",
     "35" => "JS pythia8 Jet ptmin = 70GeV",
-    "36" => "JS pythia8 Jet ptmin = 5GeV"
+    "36" => "JS pythia8 Jet ptmin = 5GeV",
+    "37" => "hijing O+O (0-15fm)"
     );
 
 my %pileupdesc = (
@@ -925,6 +926,20 @@ if (defined $prodtype)
 	}
         $pileupstring = $pp_pileupstring;
 	&commonfiletypes();
+    }
+    elsif ($prodtype == 37)
+    {
+	if (defined $nopileup)
+	{
+	    $filenamestring = sprintf("sHijing_OO_0_15fm");
+	}
+	else
+	{
+	    $filenamestring = sprintf("sHijing_OO_0_15fm%s",$AuAu_pileupstring);
+	}
+        $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
+        $pileupstring = $AuAu_pileupstring;
+        &commonfiletypes();
     }
 
     else
