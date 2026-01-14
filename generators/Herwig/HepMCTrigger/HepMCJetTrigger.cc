@@ -85,6 +85,18 @@ bool HepMCJetTrigger::isGoodEvent(HepMC::GenEvent* e1)
   return false;
 }
 
+/**
+ * @brief Cluster particles from a HepMC::GenEvent into anti-kt (R=0.4) jets.
+ *
+ * Builds a FastJet input from final-state HepMC particles (status == 1 and no end vertex),
+ * excluding particles with absolute PDG IDs in the range 12–18, then runs anti-kt clustering
+ * with radius parameter 0.4 and returns the resulting inclusive jets. Each returned
+ * PseudoJet preserves the originating particle barcode in its user index.
+ *
+ * @param e1 Pointer to the HepMC::GenEvent whose particles will be clustered.
+ * @return std::vector<fastjet::PseudoJet> Inclusive jets produced by anti-kt (R=0.4) clustering,
+ *         in FastJet PseudoJet format with user indices set to particle barcodes.
+ */
 std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1)
 {
   // do the fast jet clustering, antikt r=-0.4
@@ -96,6 +108,11 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
     if (!(*iter)->end_vertex() && (*iter)->status() == 1)
     {
       auto p = (*iter)->momentum();
+      auto pd = std::abs((*iter)->pdg_id());
+      if (pd >= 12 && pd <= 18)
+      {
+        continue;  // keep jet in the expected behavioro
+      }
       fastjet::PseudoJet pj(p.px(), p.py(), p.pz(), p.e());
       pj.set_user_index((*iter)->barcode());
       input.push_back(pj);
@@ -115,6 +132,15 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
   return output;
 }
 
+/**
+ * @brief Count jets that satisfy the central eta cut and the configured pT threshold.
+ *
+ * Evaluates each jet in the provided collection, ignores jets with |eta| > 1.1, and counts
+ * those whose transverse momentum (pT) exceeds this object's threshold.
+ *
+ * @param jets Collection of jets to evaluate.
+ * @return int Number of jets with |eta| <= 1.1 and pT greater than the configured threshold.
+ */
 int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& jets) const
 {
   // search through for the number of identified jets above the threshold
@@ -122,6 +148,10 @@ int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& j
   for (const auto& j : jets)
   {
     float const pt = j.pt();
+    if (std::abs(j.eta()) > 1.1)
+    {
+      continue;
+    }
     if (pt > this->threshold)
     {
       n_good_jets++;
