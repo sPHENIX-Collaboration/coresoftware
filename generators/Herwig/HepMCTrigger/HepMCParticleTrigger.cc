@@ -24,6 +24,38 @@ HepMCParticleTrigger::HepMCParticleTrigger(float trigger_thresh, int n_incom, bo
   , threshold(trigger_thresh)
   , goal_event_number(n_incom)
   , set_event_limit(up_lim)
+  , _theEtaHigh(1.1)
+  , _theEtaLow(-1.1)
+  , _thePtHigh(999.9)
+  , _thePtLow(0)
+  , _thePHigh(999.9)
+  , _thePLow(-999.9)
+  , _thePzHigh(999.9)
+  , _thePzLow(-999.9)
+  ,
+
+    _doEtaHighCut(true)
+  , _doEtaLowCut(true)
+  , _doBothEtaCut(true)
+  ,
+
+  _doAbsEtaHighCut(false)
+  , _doAbsEtaLowCut(false)
+  , _doBothAbsEtaCut(false)
+  ,
+
+  _doPtHighCut(false)
+  , _doPtLowCut(false)
+  , _doBothPtCut(false)
+  ,
+    _doPHighCut(false)
+  , _doPLowCut(false)
+  , _doBothPCut(false)
+  ,
+
+  _doPzHighCut(false)
+  , _doPzLowCut(false)
+  , _doBothPzCut(false) 
 {
   if (threshold != 0)
   {
