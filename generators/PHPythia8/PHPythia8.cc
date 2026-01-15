@@ -45,8 +45,12 @@ PHPythia8::PHPythia8(const std::string &name)
 
   std::string thePath(charPath);
   thePath += "/xmldoc/";
+  // the pythia8 ctor messes with the formatting, so we save the cout state here
+  // and restore it later
+  std::ios old_state(nullptr);
+  old_state.copyfmt(std::cout);
   m_Pythia8.reset(new Pythia8::Pythia(thePath));
-
+  std::cout.copyfmt(old_state);
   m_Pythia8ToHepMC.reset(new HepMC::Pythia8ToHepMC());
   m_Pythia8ToHepMC->set_store_proc(true);
   m_Pythia8ToHepMC->set_store_pdf(true);
@@ -92,7 +96,18 @@ int PHPythia8::Init(PHCompositeNode *topNode)
   // print out seed so we can make this is reproducible
   std::cout << "PHPythia8 random seed: " << seed << std::endl;
 
+
+  // this is empirical - something in the pythia8::init() method interferes
+  // with our macros (it sets the tpc drift verlocity back to 0)
+  // not the feintest idea right now what this could be
+  // but saving the old cout state and restoring it aftwerwards
+  // gets our tpc drift velocity back
+  std::ios old_state(nullptr);
+  old_state.copyfmt(std::cout);
+
   m_Pythia8->init();
+
+  std::cout.copyfmt(old_state);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
