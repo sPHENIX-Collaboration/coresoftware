@@ -285,6 +285,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   if (!success)
   {
     std::cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << std::endl;
+    std::cout.copyfmt(old_state); // restore state to saved state
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
