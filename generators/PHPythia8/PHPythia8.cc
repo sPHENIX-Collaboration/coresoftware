@@ -33,6 +33,20 @@
 #include <fstream>
 #include <iostream>  // for operator<<, endl
 
+/**
+ * @brief Construct a PHPythia8 generator instance and configure HepMC conversion.
+ *
+ * Initializes the Pythia8 engine using the path from the environment variable
+ * `PYTHIA8`, configures a HepMC::Pythia8ToHepMC converter to store process,
+ * PDF, and cross-section information, and sets the default embedding ID to 1.
+ * The constructor preserves and restores std::cout formatting around Pythia8
+ * construction to avoid altering global stream state.
+ *
+ * If `PYTHIA8` is not set, an error message is printed and the Pythia8 instance
+ * remains uninitialized.
+ *
+ * @param name Name forwarded to the SubsysReco base class (module instance name).
+ */
 PHPythia8::PHPythia8(const std::string &name)
   : SubsysReco(name)
 {
@@ -59,6 +73,18 @@ PHPythia8::PHPythia8(const std::string &name)
   PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
 }
 
+/**
+ * @brief Initialize the Pythia8 generator, configure nodes, and seed the RNG.
+ *
+ * Performs module initialization: reads an optional configuration file and any
+ * queued Pythia command strings, creates the required node tree under the
+ * provided top-level node, sets Pythia's random seed (mapped from PHRandomSeed
+ * into Pythia's valid range) and prints it for reproducibility, then calls
+ * Pythia8::init().
+ *
+ * @param topNode Top-level PHCompositeNode under which generator nodes are created.
+ * @return int Fun4All return code; returns Fun4AllReturnCodes::EVENT_OK on success.
+ */
 int PHPythia8::Init(PHCompositeNode *topNode)
 {
   if (!m_ConfigFileName.empty())
