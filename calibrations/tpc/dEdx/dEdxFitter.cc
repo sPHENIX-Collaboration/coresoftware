@@ -31,7 +31,10 @@ int dEdxFitter::InitRun(PHCompositeNode *topNode)
 int dEdxFitter::process_event(PHCompositeNode *topNode)
 {
   _event++;
-  if(_event%1000==0) std::cout << PHWHERE << "Events processed: " << _event << std::endl;
+  if(_event%1000==0) 
+  {
+    std::cout << PHWHERE << "Events processed: " << _event << std::endl;
+  }
  
   GetNodes(topNode);
 
@@ -52,10 +55,16 @@ void dEdxFitter::process_tracks(PHCompositeNode *topNode)
 
   for(const auto &[key, track] : *_trackmap)
   {
-    if(!track) continue;
+    if(!track)
+    {
+      continue;
+    }
 
     double trackID = track->get_id();
-    if(Verbosity()>1) std::cout << "track ID " << trackID << std::endl;
+    if(Verbosity()>1)
+    {
+      std::cout << "track ID " << trackID << std::endl;
+    }
     if(std::isnan(track->get_x()) ||
        std::isnan(track->get_y()) ||
        std::isnan(track->get_z()) ||
@@ -72,7 +81,10 @@ void dEdxFitter::process_tracks(PHCompositeNode *topNode)
     // ignore TPC-only tracks
     if(!track->get_silicon_seed())
     {
-      if(Verbosity()>1) std::cout << "TPC-only track, skipping..." << std::endl;
+      if(Verbosity()>1) 
+      {
+        std::cout << "TPC-only track, skipping..." << std::endl;
+      }
       continue;
     }
 
@@ -100,22 +112,28 @@ std::tuple<int,int,int> dEdxFitter::get_nclus(SvtxTrack* track)
   int nintt = 0;
   int ntpc = 0;
 
-  for(auto it = track->get_silicon_seed()->begin_cluster_keys(); it != track->get_silicon_seed()->end_cluster_keys(); ++it)
+  if(track->get_silicon_seed())
   {
-    TrkrDefs::cluskey ckey = *it;
-    auto trkrid = TrkrDefs::getTrkrId(ckey);
-    if(trkrid == TrkrDefs::mvtxId)
+    for(auto it = track->get_silicon_seed()->begin_cluster_keys(); it != track->get_silicon_seed()->end_cluster_keys(); ++it)
     {
-      nmaps++;
-    }
-    else if(trkrid == TrkrDefs::inttId)
-    {
-      nintt++;
+      TrkrDefs::cluskey ckey = *it;
+      auto trkrid = TrkrDefs::getTrkrId(ckey);
+      if(trkrid == TrkrDefs::mvtxId)
+      {
+        nmaps++;
+      }
+      else if(trkrid == TrkrDefs::inttId)
+      {
+        nintt++;
+      }
     }
   }
-  for(auto it = track->get_tpc_seed()->begin_cluster_keys(); it != track->get_tpc_seed()->end_cluster_keys(); ++it)
+  if(track->get_tpc_seed())
   {
-    ntpc++;
+    for(auto it = track->get_tpc_seed()->begin_cluster_keys(); it != track->get_tpc_seed()->end_cluster_keys(); ++it)
+    {
+      ntpc++;
+    }
   }
 
   return std::make_tuple(nmaps,nintt,ntpc);
@@ -144,10 +162,8 @@ double dEdxFitter::get_dcaxy(SvtxTrack* track)
     auto dcapair = TrackAnalysisUtils::get_dca(track,vertex);
     return dcapair.first.first;
   }
-  else
-  {
-    return std::numeric_limits<float>::quiet_NaN();
-  }
+  // if no vertex found
+  return std::numeric_limits<float>::quiet_NaN();
 }
 
 //___________________________________
@@ -188,7 +204,7 @@ void dEdxFitter::GetNodes(PHCompositeNode *topNode)
 //______________________________________
 int dEdxFitter::End(PHCompositeNode *topNode)
 {
-  if(minima.size()==0)
+  if(minima.empty())
   {
     minima.push_back(fitter->get_minimum());
   }
@@ -222,7 +238,10 @@ int dEdxFitter::End(PHCompositeNode *topNode)
   d_band->SetParameter(1,dedx_constants::m_d);
   d_band->Write();
 
-  if(Verbosity()>0) std::cout << "dEdxFitter extracted minimum: " << avg_minimum << std::endl;
+  if(Verbosity()>0)
+  {
+    std::cout << "dEdxFitter extracted minimum: " << avg_minimum << std::endl;
+  }
 
   return 0;
 }

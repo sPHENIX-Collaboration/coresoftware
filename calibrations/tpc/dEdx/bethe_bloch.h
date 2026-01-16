@@ -1,7 +1,7 @@
 #ifndef BETHE_BLOCH_H
 #define BETHE_BLOCH_H
 
-#include "TMath.h"
+#include <TMath.h>
 
 namespace dedx_constants
 {
@@ -31,21 +31,21 @@ namespace dedx_constants
 // Bethe-Bloch fit function, vs. betagamma
 // A = normalization constant, equal to (ADC conversion)*4pi*n*Z^2*e^4/(m_e*c^2*4pi*epsilon_0^2)
 // B = A*(ln(2*m_e/I)-1) - (zero-suppression loss factor)
-const double bethe_bloch_new(const double betagamma, const double A, const double B, const double C)
+inline const double bethe_bloch_new(const double betagamma, const double A, const double B, const double C)
 {
   const double beta = betagamma/sqrt(1.+betagamma*betagamma);
 
   return A/(beta*beta)*TMath::Log(betagamma) + A/(beta*beta)*B - A - C;
 }
 
-const double bethe_bloch_new_2D(const double betagamma, const double A, const double B)
+inline const double bethe_bloch_new_2D(const double betagamma, const double A, const double B)
 {
   const double beta = betagamma/sqrt(1.+betagamma*betagamma);
 
   return A/(beta*beta)*(2.*TMath::Log(2.*dedx_constants::m_e/dedx_constants::sphenix_I * betagamma) - beta*beta) - B;
 }
 
-const double bethe_bloch_new_1D(const double betagamma, const double A)
+inline const double bethe_bloch_new_1D(const double betagamma, const double A)
 {
   const double beta = betagamma/sqrt(1.+betagamma*betagamma);
 
@@ -53,7 +53,7 @@ const double bethe_bloch_new_1D(const double betagamma, const double A)
 }
 
 // dE/dx for one gas species, up to normalization
-const double bethe_bloch_species(const double betagamma, const double I)
+inline const double bethe_bloch_species(const double betagamma, const double I)
 {
   const double m_e = 511e3; // eV
 
@@ -63,14 +63,14 @@ const double bethe_bloch_species(const double betagamma, const double I)
 }
 
 // dE/dx for TPC gas mixture, up to normalization
-const double bethe_bloch_total(const double betagamma)
+inline const double bethe_bloch_total(const double betagamma)
 {
   return dedx_constants::ar_frac * bethe_bloch_species(betagamma,dedx_constants::ar_I) +
          dedx_constants::cf4_frac * bethe_bloch_species(betagamma,dedx_constants::cf4_I) +
          dedx_constants::isobutane_frac * bethe_bloch_species(betagamma,dedx_constants::isobutane_I);
 }
 
-Double_t bethe_bloch_new_wrapper(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_new_wrapper(Double_t* x, Double_t* par)
 {
   Double_t betagamma = x[0];
   Double_t A = par[0];
@@ -80,7 +80,7 @@ Double_t bethe_bloch_new_wrapper(Double_t* x, Double_t* par)
   return bethe_bloch_new(betagamma,A,B,C);
 }
 
-Double_t bethe_bloch_new_2D_wrapper(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_new_2D_wrapper(Double_t* x, Double_t* par)
 {
   Double_t betagamma = x[0];
   Double_t A = par[0];
@@ -89,7 +89,7 @@ Double_t bethe_bloch_new_2D_wrapper(Double_t* x, Double_t* par)
   return bethe_bloch_new_2D(betagamma,A,B);
 }
 
-Double_t bethe_bloch_new_1D_wrapper(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_new_1D_wrapper(Double_t* x, Double_t* par)
 {
   Double_t betagamma = x[0];
   Double_t A = par[0];
@@ -98,7 +98,7 @@ Double_t bethe_bloch_new_1D_wrapper(Double_t* x, Double_t* par)
 }
 
 // wrapper function for TF1 constructor, for fitting
-Double_t bethe_bloch_wrapper(Double_t* ln_bg, Double_t* par)
+inline Double_t bethe_bloch_wrapper(Double_t* ln_bg, Double_t* par)
 {
   Double_t betagamma = exp(ln_bg[0]);
 
@@ -107,7 +107,7 @@ Double_t bethe_bloch_wrapper(Double_t* ln_bg, Double_t* par)
   return norm * bethe_bloch_total(betagamma);
 }
 
-Double_t bethe_bloch_vs_p_wrapper(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_p_wrapper(Double_t* x, Double_t* par)
 {
   Double_t p = x[0];
   Double_t norm = par[0];
@@ -116,7 +116,7 @@ Double_t bethe_bloch_vs_p_wrapper(Double_t* x, Double_t* par)
   return norm * bethe_bloch_total(fabs(p)/m);
 }
 
-Double_t bethe_bloch_vs_logp_wrapper(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_logp_wrapper(Double_t* x, Double_t* par)
 {
   Double_t p = pow(10.,x[0]);
   Double_t norm = par[0];
@@ -125,7 +125,7 @@ Double_t bethe_bloch_vs_logp_wrapper(Double_t* x, Double_t* par)
   return norm * bethe_bloch_total(fabs(p)/m);
 }
 
-Double_t bethe_bloch_vs_p_wrapper_ZS(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_p_wrapper_ZS(Double_t* x, Double_t* par)
 {
   Double_t p = x[0];
   Double_t norm = par[0];
@@ -135,7 +135,7 @@ Double_t bethe_bloch_vs_p_wrapper_ZS(Double_t* x, Double_t* par)
   return norm * bethe_bloch_total(fabs(p)/m) - ZS_loss;
 }
 
-Double_t bethe_bloch_vs_p_wrapper_new(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_p_wrapper_new(Double_t* x, Double_t* par)
 {
   Double_t p = x[0];
   Double_t A = par[0];
@@ -146,7 +146,7 @@ Double_t bethe_bloch_vs_p_wrapper_new(Double_t* x, Double_t* par)
   return bethe_bloch_new(fabs(p)/m,A,B,C);
 }
 
-Double_t bethe_bloch_vs_p_wrapper_new_2D(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_p_wrapper_new_2D(Double_t* x, Double_t* par)
 {
   Double_t p = x[0];
   Double_t A = par[0];
@@ -156,7 +156,7 @@ Double_t bethe_bloch_vs_p_wrapper_new_2D(Double_t* x, Double_t* par)
   return bethe_bloch_new_2D(fabs(p)/m,A,B);
 }
 
-Double_t bethe_bloch_vs_p_wrapper_new_1D(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_p_wrapper_new_1D(Double_t* x, Double_t* par)
 {
   Double_t p = x[0];
   Double_t A = par[0];
@@ -165,7 +165,7 @@ Double_t bethe_bloch_vs_p_wrapper_new_1D(Double_t* x, Double_t* par)
   return bethe_bloch_new_1D(fabs(p)/m,A);
 }
 
-Double_t bethe_bloch_vs_logp_wrapper_ZS(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_logp_wrapper_ZS(Double_t* x, Double_t* par)
 {
   Double_t p = pow(10.,x[0]);
   Double_t norm = par[0];
@@ -175,7 +175,7 @@ Double_t bethe_bloch_vs_logp_wrapper_ZS(Double_t* x, Double_t* par)
   return norm * bethe_bloch_total(fabs(p)/m) - ZS_loss;
 }
 
-Double_t bethe_bloch_vs_logp_wrapper_new(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_logp_wrapper_new(Double_t* x, Double_t* par)
 {
   Double_t p = pow(10.,x[0]);
   Double_t A = par[0];
@@ -186,7 +186,7 @@ Double_t bethe_bloch_vs_logp_wrapper_new(Double_t* x, Double_t* par)
   return bethe_bloch_new(fabs(p)/m,A,B,C);
 }
 
-Double_t bethe_bloch_vs_logp_wrapper_new_1D(Double_t* x, Double_t* par)
+inline Double_t bethe_bloch_vs_logp_wrapper_new_1D(Double_t* x, Double_t* par)
 {
   Double_t p = pow(10.,x[0]);
   Double_t A = par[0];
@@ -197,7 +197,7 @@ Double_t bethe_bloch_vs_logp_wrapper_new_1D(Double_t* x, Double_t* par)
 
 // ratio of dE/dx between two particle species at the same momentum
 // (useful for dE/dx peak fits)
-const double dedx_ratio(const double p, const double m1, const double m2)
+inline const double dedx_ratio(const double p, const double m1, const double m2)
 {
   const double betagamma1 = fabs(p)/m1;
   const double betagamma2 = fabs(p)/m2;

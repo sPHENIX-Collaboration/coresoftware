@@ -1,8 +1,11 @@
 #include "GlobaldEdxFitter.h"
 
-void test_sample_size(std::string infile="/sphenix/tg/tg01/hf/mjpeters/run53877_tracks/track_output_53877_02613_53877-2613.root_resid.root")
+#include <TCanvas.h>
+#include <algorithm>
+
+void test_sample_size(const std::string& infile="/sphenix/tg/tg01/hf/mjpeters/run53877_tracks/track_output_53877_*.root")
 {
-  std::vector<float> samplesizes = {1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000};//,2000000,5000000};
+  std::vector<float> samplesizes = {1000,2000,5000,10000,20000};//,50000,100000,200000,500000,1000000};//,2000000,5000000};
 
   const int n_samples = 20;
   const float fluctuation_ymin = 5.;
@@ -30,18 +33,21 @@ void test_sample_size(std::string infile="/sphenix/tg/tg01/hf/mjpeters/run53877_
     fitvalues_all.emplace_back();
     gfs.push_back(std::make_unique<GlobaldEdxFitter>());
 
-    std::string fluctuation_canvasname = "fluctuations_"+std::to_string((int)floor(samplesizes[i]));
-    std::string distribution_canvasname = "distributions_"+std::to_string((int)floor(samplesizes[i]));
+    const std::string& fluctuation_canvasname = "fluctuations_"+std::to_string((int)floor(samplesizes[i]));
+    const std::string& distribution_canvasname = "distributions_"+std::to_string((int)floor(samplesizes[i]));
     fluctuations.push_back(new TCanvas(fluctuation_canvasname.c_str(),fluctuation_canvasname.c_str(),600,600));
     distributions.push_back(new TCanvas(distribution_canvasname.c_str(),distribution_canvasname.c_str(),600,600));
 
     for(int j=0;j<n_samples;j++)
     {
-      gfs[i]->processResidualData(floor(samplesizes[i]),j*samplesizes[i]);
+      gfs[i]->processResidualData(infile,floor(samplesizes[i]),j*samplesizes[i]);
       double min = gfs[i]->get_minimum();
       std::cout << "minimum: " << min << std::endl;
       fitvalues_all[i].push_back(min);
-      if(j<n_samples-1) gfs[i]->reset();
+      if(j<n_samples-1)
+      {
+        gfs[i]->reset();
+      }
 /*
       tf1s[i]->cd();
       TF1* tf1copy = gfs[i]->create_TF1(("ntrk_"+std::to_string(samplesizes[i])).c_str());
@@ -139,7 +145,7 @@ void test_sample_size(std::string infile="/sphenix/tg/tg01/hf/mjpeters/run53877_
   gp->Draw("AP");
   cbands->SetLogx();
 
-  for(double mass : {m_pi, m_K, m_p, m_d})
+  for(double mass : {dedx_constants::m_pi, dedx_constants::m_K, dedx_constants::m_p, dedx_constants::m_d})
   {
     TF1* band = new TF1(("band_"+std::to_string(mass)).c_str(),bethe_bloch_vs_p_wrapper_new_1D,0.,10.,2,1);
     band->SetParameter(0,best_A);
@@ -160,7 +166,7 @@ void test_sample_size(std::string infile="/sphenix/tg/tg01/hf/mjpeters/run53877_
   dedx_h->Draw("COLZ");
   cb->SetLogz();
 
-  for(float mass : {m_pi, m_K, m_p, m_d})
+  for(double mass : {dedx_constants::m_pi, dedx_constants::m_K, dedx_constants::m_p, dedx_constants::m_d})
   {
     TF1* band = new TF1(("band_"+std::to_string(mass)).c_str(),bethe_bloch_vs_logp_wrapper_new_1D,-1.,5.,2,1);
     band->SetParameter(0,best_A);

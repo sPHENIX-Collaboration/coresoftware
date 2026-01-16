@@ -56,7 +56,7 @@ class dEdxFitter: public SubsysReco
  private:
   //output filename
   std::string _outfile = "dedx_outfile.root";
-  size_t _event;
+  size_t _event = 0;
    
   SvtxTrackMap* _trackmap = nullptr;
   TrkrClusterContainer* _clustermap = nullptr;

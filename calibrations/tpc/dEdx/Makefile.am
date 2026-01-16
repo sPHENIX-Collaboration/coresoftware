@@ -19,7 +19,8 @@ lib_LTLIBRARIES = \
   libdedxfitter.la
 
 libdedxfitter_la_SOURCES = \
-  dEdxFitter.cc
+  dEdxFitter.cc \
+  GlobaldEdxFitter.cc
 
 libdedxfitter_la_LIBADD = \
   -lphool \
