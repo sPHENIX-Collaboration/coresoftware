@@ -402,7 +402,23 @@ bool MbdEvent::isbadtch(const int ipmtch)
 
 
 #ifndef ONLINE
-// Get raw data from event combined DSTs
+/**
+ * @brief Extracts MBD waveform data from two combined DST calo packets and populates output containers.
+ *
+ * Reads per-channel sample arrays and clocks from the provided CaloPacket pair, validates packet/sample
+ * presence and trigger conditions (when a GL1 packet is supplied during calibration), fills the MbdRawContainer
+ * and then processes raw data into the MbdPmtContainer. May return early after raw processing when configured
+ * to perform only waveform fits.
+ *
+ * @param dstp Array of two pointers to CaloPacket representing the combined DST packets (one per packet slot).
+ * @param bbcraws Output container to be filled with channel-level raw waveform results.
+ * @param bbcpmts Output container to be filled with per-PMT calibrated charge/time results.
+ * @param gl1raw Optional GL1 packet used to check scaled trigger bits during calibration passes.
+ * @return int Status code:
+ * - Fun4AllReturnCodes::DISCARDEVENT if both input packets are absent.
+ * - Fun4AllReturnCodes::ABORTEVENT if a packet is missing, reports zero samples, or the event lacks required MBD trigger bits during calibration.
+ * - Non-error positive value on successful processing (event index/status) or other processing status codes returned by downstream processing functions.
+ */
 int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts, Gl1Packet *gl1raw)
 {
   //std::cout << "MbdEvent::SetRawData()" << std::endl;
@@ -451,6 +467,7 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
     if (dstp[ipkt])
     {
       _nsamples = dstp[ipkt]->iValue(0, "SAMPLES");
+
       {
         static bool printcount{true};
         if ( printcount && Verbosity() > 0)
@@ -458,6 +475,13 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
 	  printcount = false;
         }
+      }
+
+      // skip empty packets, corrupt event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, evt " << m_evt << " no samples in Packet " << pktid << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "CLOCK"));
@@ -524,7 +548,20 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
 
   return status;
 }
-#endif  // ONLINE
+#endif  /**
+ * @brief Populate raw and per-PMT MBD containers from an Event's packets.
+ *
+ * Reads the two MBD packets contained in the provided Event, extracts per-channel ADC samples
+ * and clocks, updates internal per-channel signal buffers, and fills the provided MbdRawContainer
+ * and MbdPmtContainer with processed per-channel raw and calibrated values.
+ *
+ * @param event Input Event; must be non-null and of type DATAEVENT.
+ * @param bbcraws Output container which will be filled with per-channel raw/primitive results.
+ * @param bbcpmts Output container which will be filled with per-PMT calibrated charge/time results.
+ * @return int Processing status code: a positive value (typically the event index) on success,
+ *         or a Fun4All return code such as DISCARDEVENT / ABORTEVENT or a negative error code
+ *         on failure.
+ */
 
 int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer *bbcpmts)
 {
@@ -556,7 +593,6 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
 
   // int flag_err = 0;
   Packet *p[2]{nullptr};
-  int tot_nsamples{0};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
@@ -574,7 +610,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
     if (p[ipkt])
     {
       _nsamples = p[ipkt]->iValue(0, "SAMPLES");
-      tot_nsamples += _nsamples;
+
       {
         static int counter = 0;
         if ( counter<1 )
@@ -582,6 +618,15 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
         }
         counter++;
+      }
+
+      // If packets are missing, stop processing event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, skipping evt " << m_evt << " nsamples = 0 " << pktid << std::endl;
+        delete p[ipkt];
+        p[ipkt] = nullptr;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
@@ -626,12 +671,6 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
       return -1;
 #endif
     }
-  }
-
-  // If packets are missing, stop processing
-  if ( tot_nsamples == 0 )
-  {
-    return -1002;
   }
 
   // Fill MbdRawContainer

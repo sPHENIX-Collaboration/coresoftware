@@ -1213,6 +1213,19 @@ int MbdCalib::Download_SlewCorr(const std::string& dbase_location)
   return 1;
 }
 
+/**
+ * @brief Load time-RMS calibration data and build interpolated lookup tables.
+ *
+ * Loads per-FEECH time RMS calibration either from a ROOT CDB file or from a plain
+ * text ".calib" file, validates the input, and generates per-channel interpolated
+ * TRMS arrays used for ADC-to-time-RMS lookup.
+ *
+ * @param dbase_location Path to the calibration source (ROOT CDB file or ".calib" text file).
+ * @return int `1` on success;
+ *             `-1` if the TRMS calibration is missing or invalid;
+ *             `-2` if an invalid FEECH index is encountered in the text file;
+ *             `-3` if a text file cannot be opened.
+ */
 int MbdCalib::Download_TimeRMS(const std::string& dbase_location)
 {
   //Verbosity(100);
@@ -1331,7 +1344,7 @@ int MbdCalib::Download_TimeRMS(const std::string& dbase_location)
 
   if ( _trms_y[0].empty() )
   {
-    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    std::cout << PHWHERE << ", WARNING, trms calib missing " << dbase_location << std::endl;
     _status = -1;
     return _status;  // file not found
   }
@@ -2418,4 +2431,3 @@ TGraph *MbdCalib::get_lut_graph(const int pmtch, std::string_view type)
 
   return g;
 }
-
