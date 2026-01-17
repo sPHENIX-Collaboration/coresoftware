@@ -148,7 +148,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
     {
       std::cout << "KFParticle: Event skipped as there are no tracks" << std::endl;
     }
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::EVENT_OK;
   }
 
   if (!m_use_fake_pv)
@@ -162,7 +162,7 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
         {
           std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
         }
-        return Fun4AllReturnCodes::ABORTEVENT;
+        return Fun4AllReturnCodes::EVENT_OK;
       }
     }
     else
@@ -174,10 +174,9 @@ int KFParticle_sPHENIX::process_event(PHCompositeNode *topNode)
         {
           std::cout << "KFParticle: Event skipped as there are no vertices" << std::endl;
         }
-        return Fun4AllReturnCodes::ABORTEVENT;
+        return Fun4AllReturnCodes::EVENT_OK;
       }
     }
-
   }
   
   createDecay(topNode, mother, vertex_kfparticle, daughters, intermediates, nPVs);
