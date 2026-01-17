@@ -17,6 +17,7 @@ pkginclude_HEADERS = \
   TpcSeedsQA.h \
   TpcSiliconQA.h \
   SiliconSeedsQA.h \
+  StateClusterResidualsQA.h \
   MicromegasClusterQA.h \
   CosmicTrackQA.h \
   TrackFittingQA.h \
@@ -32,6 +33,7 @@ libtrackingqa_la_SOURCES = \
   TpcSeedsQA.cc \
   TpcSiliconQA.cc \
   SiliconSeedsQA.cc \
+  StateClusterResidualsQA.cc \
   MicromegasClusterQA.cc \
   CosmicTrackQA.cc \
   TrackFittingQA.cc \
