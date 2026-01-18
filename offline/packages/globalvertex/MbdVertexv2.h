@@ -44,12 +44,12 @@ class MbdVertexv2 : public MbdVertex
 
   float get_position(unsigned int coor) const override;
 
-  unsigned int get_beam_crossing() const override { return _bco; }
-  void set_beam_crossing(unsigned int bco) override { _bco = bco; }
+  short int get_beam_crossing() const override { return _bco; }
+  void set_beam_crossing(short int bco) override { _bco = bco; }
 
  private:
   unsigned int _id{std::numeric_limits<unsigned int>::max()};   //< unique identifier within container
-  unsigned int _bco{std::numeric_limits<unsigned int>::max()};  //< global bco
+  short int _bco{std::numeric_limits<short int>::max()};  //< global bco
   float _t{std::numeric_limits<float>::quiet_NaN()};            //< collision time
   float _t_err{std::numeric_limits<float>::quiet_NaN()};        //< collision time uncertainty
   float _z{std::numeric_limits<float>::quiet_NaN()};            //< collision position z

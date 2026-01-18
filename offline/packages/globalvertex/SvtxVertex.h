@@ -56,6 +56,9 @@ class SvtxVertex : public Vertex
   virtual float get_error(unsigned int, unsigned int) const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_error(unsigned int, unsigned int, float) override {}
 
+  virtual short int get_beam_crossing() const override { return std::numeric_limits<short int>::max(); }
+  virtual void set_beam_crossing(short int) override {}
+
   //
   // associated track ids methods
   //
