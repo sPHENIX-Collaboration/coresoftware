@@ -35,7 +35,7 @@ class CopyIODataNodes : public SubsysReco
   void CopyMbdOut(bool flag = true) { m_CopyMbdOutFlag = flag; }
   void CopyRunHeader(bool flag = true) { m_CopyRunHeaderFlag = flag; }
   void CopySyncObject(bool flag = true) { m_CopySyncObjectFlag = flag; }
-  void set_CopyTowerInfo(std::string set_from_towerInfo_name,std::string set_to_towerInfo_name)
+  void set_CopyTowerInfo(const std::string& set_from_towerInfo_name,const std::string& set_to_towerInfo_name)
   {
     from_towerInfo_name = set_from_towerInfo_name;
     to_towerInfo_name = set_to_towerInfo_name;
