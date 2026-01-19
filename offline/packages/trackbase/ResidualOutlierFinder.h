@@ -6,10 +6,12 @@
 #include <TNtuple.h>
 #include <phool/phool.h>
 #include <Acts/Definitions/Units.hpp>
-#include <Acts/EventData/Measurement.hpp>
+
+#include <ActsExamples/EventData/Measurement.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/EventData/MultiTrajectory.hpp>
 #include <Acts/EventData/VectorMultiTrajectory.hpp>
+#include <Acts/Utilities/TrackHelpers.hpp>
 
 #include <Acts/EventData/MultiTrajectoryHelpers.hpp>
 struct ResidualOutlierFinder
@@ -49,44 +51,14 @@ struct ResidualOutlierFinder
     auto sourceLink = state.getUncalibratedSourceLink().template get<ActsSourceLink>();
     const auto& cluskey = sourceLink.cluskey();
 
-    const auto predicted = state.predicted();
-    const auto predictedCovariance = state.predictedCovariance();
-    float chi2 = std::numeric_limits<float>::max();
-
-    auto fullCalibrated = state
-                              .template calibrated<Acts::MultiTrajectoryTraits::MeasurementSizeMax>()
-                              .data();
-    auto fullCalibratedCovariance = state
-                                        .template calibratedCovariance<Acts::MultiTrajectoryTraits::MeasurementSizeMax>()
-                                        .data();
-
-    chi2 = Acts::visit_measurement(state.calibratedSize(), [&](auto N) -> double
-                                   {
-	constexpr size_t kMeasurementSize = decltype(N)::value;
-	typename Acts::TrackStateTraits<kMeasurementSize, true>::Measurement calibrated{
-	  fullCalibrated};
-
-	typename Acts::TrackStateTraits<kMeasurementSize, true>::MeasurementCovariance
-	  calibratedCovariance{fullCalibratedCovariance};
-
-	using ParametersVector = Acts::ActsVector<kMeasurementSize>;
-	const auto H = state.projector().template topLeftCorner<kMeasurementSize, Acts::eBoundSize>().eval();
-	ParametersVector res;
-	res = calibrated - H * predicted;
-	chi2 = (res.transpose() * ((calibratedCovariance + H * predictedCovariance * H.transpose())).inverse() * res).eval()(0, 0);
-	
-	return chi2; });
+    double chi2 = Acts::calculatePredictedChi2(state);
 
     float distance = Acts::visit_measurement(state.calibratedSize(), [&](auto N)
                                              {
       constexpr size_t kMeasurementSize = decltype(N)::value;
-      auto residuals =
-          state.template calibrated<kMeasurementSize>() -
-          state.projector()
-      .template topLeftCorner<kMeasurementSize, Acts::eBoundSize>() *
-              state.predicted();
-      auto cdistance = residuals.norm();
-      return cdistance; });
+      auto [residual, residualCovariance] =
+          calculatePredictedResidual<kMeasurementSize>(state);
+      return residual.norm(); });
 
     if (verbosity > 2)
     {
@@ -108,6 +80,10 @@ struct ResidualOutlierFinder
       std::cout << PHWHERE << "no geometry set in residual outlier finder" << std::endl;
       exit(1);
     }
+    const auto predicted = state.predicted();
+    auto fullCalibrated = state
+                              .template calibrated<Acts::MultiTrajectoryTraits::MeasurementSizeMax>()
+                              .data();
     Acts::FreeVector freeParams =
         Acts::transformBoundToFreeParameters(state.referenceSurface(),
                                                      m_tGeometry->geometry().getGeoContext(),
@@ -117,7 +93,7 @@ struct ResidualOutlierFinder
         m_tGeometry->geometry().getGeoContext(), local,
         Acts::Vector3(1, 1, 1));
     float data[] = {
-        (float) sphenixlayer, (float) layer, (float) volume, distance, chi2,
+        (float) sphenixlayer, (float) layer, (float) volume, distance, (float)chi2,
         (float) freeParams[Acts::eFreePos0], (float) freeParams[Acts::eFreePos1], (float) freeParams[Acts::eFreePos2],
         (float) predicted[Acts::eBoundLoc0], (float) predicted[Acts::eBoundLoc1],
         (float) global[Acts::eFreePos0], (float) global[Acts::eFreePos1], (float) global[Acts::eFreePos2],
