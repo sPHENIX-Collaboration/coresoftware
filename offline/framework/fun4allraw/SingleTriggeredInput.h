@@ -32,19 +32,49 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   ~SingleTriggeredInput() override;
   virtual Eventiterator *GetEventIterator() { return m_EventIterator; }
   virtual void FillPool();
-  virtual void RunNumber(const int runno) { m_RunNumber = runno; }
+  /**
+ * Set the current run number used for event processing.
+ * @param runno The run number to assign; this value will be associated with subsequently read events.
+ */
+virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
-  virtual void EventNumber(const int i) { m_EventNumber = i; }
-  virtual int EventNumber() const { return m_EventNumber; }
-  virtual int EventsInThisFile() const { return m_EventsThisFile; }
   virtual int fileopen(const std::string &filename) override;
+  /**
+   * Close the currently opened input file.
+   * @returns 0 on success, non-zero on error.
+   */
+  
+  /**
+   * Report whether processing is complete.
+   * @returns The completion flag: nonzero if processing is complete, zero otherwise.
+   */
+  
+  /**
+   * Set the completion flag for processing.
+   * @param i Completion flag value; nonzero indicates processing is complete.
+   */
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
   virtual void AllDone(const int i) { m_AllDone = i; }
   virtual int FilesDone() const { return m_FilesDone; }
-  virtual void FilesDone(const int i) { m_FilesDone = i; }
-  virtual void EventAlignmentProblem(const int i) { m_EventAlignmentProblem = i; }
+  /**
+ * Set the count of files that have been completed.
+ * @param i Number of completed files to store as the current files-done count.
+ */
+virtual void FilesDone(const int i) { m_FilesDone = i; }
+  /**
+ * Set the event alignment problem flag.
+ *
+ * @param i Flag value where non-zero indicates an event alignment problem, zero clears it.
+ */
+virtual void EventAlignmentProblem(const int i) { m_EventAlignmentProblem = i; }
   virtual int EventAlignmentProblem() const { return m_EventAlignmentProblem; }
+  /**
+ * Set the current event number used by this input instance.
+ * @param i Event number to set; updates the internal event counter state.
+ */
+virtual void EventNumber(const int i) { m_EventNumber = i; }
+  virtual int EventNumber() const { return m_EventNumber; }
   virtual void CreateDSTNodes(Event *evt);
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
@@ -91,12 +121,37 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
  private:
   Eventiterator *m_EventIterator{nullptr};
   SingleTriggeredInput *m_Gl1Input{nullptr};
-  int m_AllDone{0};
-  uint64_t m_Event{0};
-  int m_EventNumber{0};
-  int m_EventsThisFile{0};
-  int m_EventAlignmentProblem{0};
-  int m_FilesDone{0};
+  /**
+ * Flag indicating whether processing is complete.
+ *
+ * When non-zero, the input has finished processing and no further events or files will be read.
+ */
+int m_AllDone{0};
+  /**
+ * @brief Current event sequence number within the input stream.
+ *
+ * Tracks the number of events processed by this SingleTriggeredInput instance;
+ * used for bookkeeping, diagnostics, and run/event lifecycle management.
+ */
+uint64_t m_Event{0};
+  /**
+ * Current event number within the input stream.
+ *
+ * Stores the index of the most recently processed or loaded event and is used to track progression through input events.
+ */
+int m_EventNumber{0};
+  /**
+ * Indicates whether an event alignment problem has been detected.
+ *
+ * 0 means no alignment problem; a non-zero value indicates an alignment problem.
+ */
+int m_EventAlignmentProblem{0};
+  /**
+ * Number of input files that have been completely processed.
+ *
+ * Tracks how many files the input handler has finished handling; used to report progress and determine completion.
+ */
+int m_FilesDone{0};
   int m_LastEvent{std::numeric_limits<int>::max()};
   int m_ProblemEvent{-1};
   int m_RepresPacket{-1};
@@ -114,6 +169,14 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   std::map<int, bool> m_PacketAlignmentProblem;
   std::map<int, bool> m_PrevPoolLastDiffBad;
   std::map<int, uint64_t> m_PreviousValidBCOMap;
+  /**
+ * Monotonic counter of processed events for this SingleTriggeredInput instance.
+ *
+ * Tracks the total number of events observed/handled by the object across its
+ * lifetime; incremented as events are read and used for bookkeeping and
+ * diagnostics.
+ */
+long long eventcounter{0};
 };
 
 #endif
