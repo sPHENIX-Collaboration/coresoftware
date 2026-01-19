@@ -108,7 +108,13 @@ auto TGeoDetectorWithOptions::finalize(
     readTGeoLayerBuilderConfigs(vm, config);
   }
 
-  return m_detector.finalize(config, std::move(mdecorator));
+  auto logger = Acts::getDefaultLogger("TGeoDetector", Acts::Logging::INFO);
+  ContextDecorators tgeoContextDecorators = {};
+  std::vector<std::shared_ptr<const Acts::DetectorElementBase>> detectorStore;
+  TrackingGeometryPtr tgeoTrackingGeometry = ActsExamples::buildTGeoDetectorWrapper(
+      config, Acts::GeometryContext(), detectorStore, std::move(mdecorator), *logger);
+
+  return {std::move(tgeoTrackingGeometry), std::move(tgeoContextDecorators)};
 }
 
 }  // namespace ActsExamples
