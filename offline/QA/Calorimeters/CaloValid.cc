@@ -142,6 +142,20 @@ int CaloValid::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+/**
+ * @brief Process event towers, triggers, MBD, and clusters to populate QA histograms.
+ *
+ * Reads event header, vertex, trigger (GL1), calibrated and raw tower containers for
+ * CEMC/HCAL (inner/outer), MBD PMTs, and CEMC clusters; computes per-detector totals,
+ * downscaled correlations, per-channel and per-tower QA, pi0 candidate invariant masses,
+ * and trigger/alignment summaries, then fills the corresponding histograms and profiles.
+ *
+ * @param topNode Top-level PHCompositeNode containing event data (towers, clusters,
+ *                trigger/GL1 packets, vertex map, and MBD PMTs).
+ * @return Fun4AllReturnCodes::EVENT_OK on success; may return other Fun4All return codes
+ *         or 0 on error conditions encountered while processing nodes.
+ *
+ */
 int CaloValid::process_towers(PHCompositeNode* topNode)
 {
   //---------------------------Event header--------------------------------//
@@ -176,7 +190,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
   float ihcaldownscale;
   float ohcaldownscale;
   float mbddownscale;
-  float adc_threshold;
+  float adc_threshold_hcal;
+  float adc_threshold_emcal;
   float emcal_hit_threshold;
   float emcal_highhit_threshold;
   float ohcal_hit_threshold;
@@ -190,7 +205,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     ihcaldownscale = 55000. / 300.;
     ohcaldownscale = 265000. / 600.;
     mbddownscale = 2800.0;
-    adc_threshold = 15.;
+    adc_threshold_hcal = 30;
+    adc_threshold_emcal = 70;
 
     emcal_hit_threshold = 0.5;  // GeV
     ohcal_hit_threshold = 0.5;
@@ -206,7 +222,8 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     ihcaldownscale = 4000. / 300.;
     ohcaldownscale = 25000. / 600.;
     mbddownscale = 200.0;
-    adc_threshold = 100.;
+    adc_threshold_hcal = 30;
+    adc_threshold_emcal = 70;
 
     emcal_hit_threshold = 0.5;  // GeV
     ohcal_hit_threshold = 0.5;
@@ -528,7 +545,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         float raw_energy = tower->get_energy();
-        if (raw_energy > adc_threshold)
+        if (raw_energy > adc_threshold_emcal)
         {
           h_cemc_etaphi_fracHitADC->Fill(ieta, iphi, 1);
           h_cemc_etaphi_time_raw->Fill(ieta, iphi, raw_time);
@@ -558,7 +575,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         float raw_energy = tower->get_energy();
-        if (raw_energy > adc_threshold)
+        if (raw_energy > adc_threshold_hcal)
         {
           h_ohcal_etaphi_time_raw->Fill(ieta, iphi, raw_time);
           h_ohcal_etaphi_fracHitADC->Fill(ieta, iphi, 1);
@@ -588,7 +605,7 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
         }
 
         float raw_energy = tower->get_energy();
-        if (raw_energy > adc_threshold)
+        if (raw_energy > adc_threshold_hcal)
         {
           h_ihcal_etaphi_time_raw->Fill(ieta, iphi, raw_time);
           h_ihcal_etaphi_fracHitADC->Fill(ieta, iphi, 1);
