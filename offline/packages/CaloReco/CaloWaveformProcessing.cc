@@ -65,6 +65,19 @@ void CaloWaveformProcessing::initialize_processing()
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
   }
+  else if (m_processingtype == CaloWaveformProcessing::FUNCFIT)
+  {
+    m_Fitter = new CaloWaveformFitting();
+    // Set functional fit type and parameters
+    m_Fitter->set_funcfit_type(static_cast<CaloWaveformFitting::FuncFitType>(_funcfit_type));
+    m_Fitter->set_powerlaw_params(_powerlaw_power, _powerlaw_decay);
+    m_Fitter->set_doubleexp_params(_doubleexp_power, _doubleexp_peaktime1, _doubleexp_peaktime2, _doubleexp_ratio);
+    if (_bdosoftwarezerosuppression)
+    {
+      m_Fitter->set_softwarezerosuppression(_bdosoftwarezerosuppression, _nsoftwarezerosuppression);
+    }
+    m_Fitter->set_handleSaturation(true);
+  }
 }
 
 std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::vector<std::vector<float>> waveformvector)
@@ -90,6 +103,10 @@ std::vector<std::vector<float>> CaloWaveformProcessing::process_waveform(std::ve
   if (m_processingtype == CaloWaveformProcessing::NYQUIST)
   {
     fitresults = m_Fitter->calo_processing_nyquist(waveformvector);
+  }
+  if (m_processingtype == CaloWaveformProcessing::FUNCFIT)
+  {
+    fitresults = m_Fitter->calo_processing_funcfit(waveformvector);
   }
   return fitresults;
 }

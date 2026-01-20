@@ -2,6 +2,7 @@
 
 #include <TF1.h>
 #include <TFile.h>
+#include <TH1F.h>
 #include <TProfile.h>
 #include <TSpline.h>
 
@@ -618,4 +619,255 @@ float CaloWaveformFitting::psinc(float time, std::vector<float> &vec_signal_samp
   }
 
   return sum;
+}
+
+double CaloWaveformFitting::SignalShape_PowerLawExp(double *x, double *par)
+{
+  // par[0]: Amplitude
+  // par[1]: Sample Start (t0)
+  // par[2]: Power
+  // par[3]: Decay
+  // par[4]: Pedestal
+  double pedestal = par[4];
+  if (x[0] < par[1])
+  {
+    return pedestal;
+  }
+  double signal = par[0] * pow((x[0] - par[1]), par[2]) * exp(-(x[0] - par[1]) * par[3]);
+  return pedestal + signal;
+}
+
+double CaloWaveformFitting::SignalShape_PowerLawDoubleExp(double *x, double *par)
+{
+  // par[0]: Amplitude
+  // par[1]: Sample Start (t0)
+  // par[2]: Power
+  // par[3]: Peak Time 1
+  // par[4]: Pedestal
+  // par[5]: Amplitude ratio
+  // par[6]: Peak Time 2
+  double pedestal = par[4];
+  if (x[0] < par[1])
+  {
+    return pedestal;
+  }
+  double signal = par[0] * pow((x[0] - par[1]), par[2]) *
+                  (((1.0 - par[5]) / pow(par[3], par[2]) * exp(par[2])) *
+                       exp(-(x[0] - par[1]) * (par[2] / par[3])) +
+                   (par[5] / pow(par[6], par[2]) * exp(par[2])) *
+                       exp(-(x[0] - par[1]) * (par[2] / par[6])));
+  return pedestal + signal;
+}
+
+std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(const std::vector<std::vector<float>> &chnlvector)
+{
+  std::vector<std::vector<float>> fit_values;
+  int nchnls = chnlvector.size();
+
+  for (int m = 0; m < nchnls; m++)
+  {
+    const std::vector<float> &v = chnlvector.at(m);
+    int nsamples = v.size();
+
+    float amp = 0;
+    float time = 0;
+    float ped = 0;
+    float chi2 = std::numeric_limits<float>::quiet_NaN();
+
+    // Handle zero-suppressed samples (2-sample case)
+    if (nsamples == _nzerosuppresssamples)
+    {
+      amp = v.at(1) - v.at(0);
+      time = std::numeric_limits<float>::quiet_NaN();
+      ped = v.at(0);
+      if (v.at(0) != 0 && v.at(1) == 0)
+      {
+        chi2 = 1000000;
+      }
+      fit_values.push_back({amp, time, ped, chi2, 0});
+      continue;
+    }
+
+    // Find peak position and estimate pedestal
+    float maxheight = 0;
+    int maxbin = 0;
+    for (int i = 0; i < nsamples; i++)
+    {
+      if (v.at(i) > maxheight)
+      {
+        maxheight = v.at(i);
+        maxbin = i;
+      }
+    }
+
+    float pedestal = 1500;
+    if (maxbin > 4)
+    {
+      pedestal = 0.5 * (v.at(maxbin - 4) + v.at(maxbin - 5));
+    }
+    else if (maxbin > 3)
+    {
+      pedestal = v.at(maxbin - 4);
+    }
+    else
+    {
+      pedestal = 0.5 * (v.at(nsamples - 3) + v.at(nsamples - 2));
+    }
+
+    // Software zero suppression check
+    if ((_bdosoftwarezerosuppression && v.at(6) - v.at(0) < _nsoftwarezerosuppression) ||
+        (_maxsoftwarezerosuppression && maxheight - pedestal < _nsoftwarezerosuppression))
+    {
+      amp = v.at(6) - v.at(0);
+      time = std::numeric_limits<float>::quiet_NaN();
+      ped = v.at(0);
+      if (v.at(0) != 0 && v.at(1) == 0)
+      {
+        chi2 = 1000000;
+      }
+      fit_values.push_back({amp, time, ped, chi2, 0});
+      continue;
+    }
+
+    // Create histogram for fitting
+    TH1F h("h_funcfit", "", nsamples, -0.5, nsamples - 0.5);
+    int ndata = 0;
+    for (int i = 0; i < nsamples; ++i)
+    {
+      if ((v.at(i) == 16383) && _handleSaturation)
+      {
+        continue;
+      }
+      h.SetBinContent(i + 1, v.at(i));
+      h.SetBinError(i + 1, 1);
+      ndata++;
+    }
+
+    // If too many saturated, use all data
+    if (ndata < (nsamples - 4))
+    {
+      ndata = nsamples;
+      for (int i = 0; i < nsamples; ++i)
+      {
+        h.SetBinContent(i + 1, v.at(i));
+        h.SetBinError(i + 1, 1);
+      }
+    }
+
+    double fit_amp = 0;
+    double fit_time = 0;
+    double fit_ped = 0;
+    double chi2val = 0;
+    int npar = 0;
+
+    if (m_funcfit_type == POWERLAWEXP)
+    {
+      // Create fit function with 5 parameters
+      TF1 f("f_powerlaw", SignalShape_PowerLawExp, 0, nsamples, 5);
+      npar = 5;
+
+      // Set initial parameters
+      double risetime = m_powerlaw_power / m_powerlaw_decay;
+      double par[5];
+      par[0] = maxheight - pedestal;  // Amplitude
+      par[1] = maxbin - risetime;     // t0
+      if (par[1] < 0)
+      {
+        par[1] = 0;
+      }
+      par[2] = m_powerlaw_power;  // Power
+      par[3] = m_powerlaw_decay;  // Decay
+      par[4] = pedestal;          // Pedestal
+
+      f.SetParameters(par);
+      f.SetParLimits(0, (maxheight - pedestal) * 0.5, (maxheight - pedestal) * 10);
+      f.SetParLimits(1, 0, nsamples);
+      f.SetParLimits(2, 0, 10.0);
+      f.SetParLimits(3, 0, 10.0);
+      f.SetParLimits(4, pedestal - std::abs(maxheight - pedestal), pedestal + std::abs(maxheight - pedestal));
+
+      // Perform fit
+      h.Fit(&f, "QRN0W", "", 0, nsamples);
+
+      // Calculate peak amplitude and time from fit parameters
+      // Peak height is (p0 * Power(p2/p3, p2)) / exp(p2)
+      fit_amp = (f.GetParameter(0) * pow(f.GetParameter(2) / f.GetParameter(3), f.GetParameter(2))) / exp(f.GetParameter(2));
+      // Peak time is t0 + power/decay
+      fit_time = f.GetParameter(1) + f.GetParameter(2) / f.GetParameter(3);
+      fit_ped = f.GetParameter(4);
+
+      // Calculate chi2
+      for (int i = 0; i < nsamples; i++)
+      {
+        if (h.GetBinContent(i + 1) > 0)
+        {
+          double diff = h.GetBinContent(i + 1) - f.Eval(i);
+          chi2val += diff * diff;
+        }
+      }
+    }
+    else  // POWERLAWDOUBLEEXP
+    {
+      // Create fit function with 7 parameters
+      TF1 f("f_doubleexp", SignalShape_PowerLawDoubleExp, 0, nsamples, 7);
+      npar = 7;
+
+      // Set initial parameters
+      double risetime = 2.0;
+      double par[7];
+      par[0] = (maxheight - pedestal) * 0.7;  // Amplitude
+      par[1] = maxbin - risetime;              // t0
+      if (par[1] < 0)
+      {
+        par[1] = 0;
+      }
+      par[2] = m_doubleexp_power;      // Power
+      par[3] = m_doubleexp_peaktime1;  // Peak Time 1
+      par[4] = pedestal;               // Pedestal
+      par[5] = m_doubleexp_ratio;      // Amplitude ratio
+      par[6] = m_doubleexp_peaktime2;  // Peak Time 2
+
+      f.SetParameters(par);
+      f.SetParLimits(0, (maxheight - pedestal) * -1.5, (maxheight - pedestal) * 1.5);
+      f.SetParLimits(1, maxbin - 3 * risetime, maxbin + risetime);
+      f.SetParLimits(2, 1, 5.0);
+      f.SetParLimits(3, risetime * 0.5, risetime * 4);
+      f.SetParLimits(4, pedestal - std::abs(maxheight - pedestal), pedestal + std::abs(maxheight - pedestal));
+      f.SetParLimits(5, 0, 1);
+      f.SetParLimits(6, risetime * 0.5, risetime * 4);
+
+      // Perform fit
+      h.Fit(&f, "QRN0W", "", 0, nsamples);
+
+      // Find peak by evaluating the function
+      double peakpos1 = f.GetParameter(3);
+      double peakpos2 = f.GetParameter(6);
+      double max_peakpos = f.GetParameter(1) + (peakpos1 > peakpos2 ? peakpos1 : peakpos2);
+      if (max_peakpos > nsamples - 1)
+      {
+        max_peakpos = nsamples - 1;
+      }
+
+      fit_time = f.GetMaximumX(f.GetParameter(1), max_peakpos);
+      fit_amp = f.Eval(fit_time) - f.GetParameter(4);
+      fit_ped = f.GetParameter(4);
+
+      // Calculate chi2
+      for (int i = 0; i < nsamples; i++)
+      {
+        if (h.GetBinContent(i + 1) > 0)
+        {
+          double diff = h.GetBinContent(i + 1) - f.Eval(i);
+          chi2val += diff * diff;
+        }
+      }
+    }
+
+    chi2val /= (ndata - npar);  // divide by ndf
+
+    fit_values.push_back({static_cast<float>(fit_amp), static_cast<float>(fit_time),
+                          static_cast<float>(fit_ped), static_cast<float>(chi2val), 0});
+  }
+
+  return fit_values;
 }
