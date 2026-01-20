@@ -63,7 +63,7 @@ class MakeSourceLinks
   void resetTransientTransformMap(
       alignmentTransformationContainer* /*transformMapTransient*/,
       std::set<Acts::GeometryIdentifier>& /*transient_id_set*/,
-      ActsGeometry* /*tGeometry*/);
+      ActsGeometry* /*tGeometry*/) const;
 
   SourceLinkVec getSourceLinksClusterMover(
       TrackSeed* /*seed*/,
