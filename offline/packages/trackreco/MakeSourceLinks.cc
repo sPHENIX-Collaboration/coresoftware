@@ -97,7 +97,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
        ++clusIter)
   {
     auto key = *clusIter;
-    auto cluster = clusterContainer->findCluster(key);
+    auto* cluster = clusterContainer->findCluster(key);
     if (!cluster)
     {
       if (m_verbosity > 0)
@@ -106,7 +106,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
       }
       continue;
     }
-    else if (m_verbosity > 0)
+    if (m_verbosity > 0)
     {
       std::cout << "MakeSourceLinks: Found cluster with key " << key << " for track seed " << std::endl;
     }
@@ -163,7 +163,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
       auto this_surf = tGeometry->maps().getSurface(key, cluster);
       Acts::GeometryIdentifier id = this_surf->geometryId();
 
-      auto check_cluster = clusterContainer->findCluster(key);
+      auto* check_cluster = clusterContainer->findCluster(key);
       Acts::Vector2 check_local2d = tGeometry->getLocalCoords(key, check_cluster) * Acts::UnitConstants::cm;  // need mm
       Acts::Vector3 check_local3d(check_local2d(0), check_local2d(1), 0);
       Acts::GeometryContext temp_transient_geocontext;
@@ -224,10 +224,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
     }
 
     // get local coordinates (TPC time needs conversion to cm)
-    auto cluster = clusterContainer->findCluster(cluskey);
-    if(TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::tpcId)
+    auto* cluster = clusterContainer->findCluster(cluskey);
+    if (TrkrDefs::getTrkrId(cluskey) == TrkrDefs::TrkrId::tpcId)
     {
-      if(cluster->getEdge() > m_cluster_edge_rejection)
+      if (cluster->getEdge() > m_cluster_edge_rejection)
       {
         continue;
       }
@@ -247,7 +247,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
     // get errors
     Acts::Vector3 global = tGeometry->getGlobalPosition(cluskey, cluster);
     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
+    auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusRadius, cluskey);
     cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
     cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
     cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
@@ -284,7 +284,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
     }
 
     sourcelinks.push_back(actsSL);
-    measurements.push_back(meas);
+    measurements.emplace_back(meas);
   }
 
   SLTrackTimer.stop();
@@ -301,7 +301,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinks(
 void MakeSourceLinks::resetTransientTransformMap(
     alignmentTransformationContainer* transformMapTransient,
     std::set<Acts::GeometryIdentifier>& transient_id_set,
-    ActsGeometry* tGeometry)
+    ActsGeometry* tGeometry) const
 {
   if (m_verbosity > 2)
   {
@@ -309,7 +309,7 @@ void MakeSourceLinks::resetTransientTransformMap(
   }
 
   // loop over modifiedTransformSet and replace transient elements modified for the last track with the default transforms
-  for (auto& id : transient_id_set)
+  for (const auto& id : transient_id_set)
   {
     auto ctxt = tGeometry->geometry().getGeoContext();
     alignmentTransformationContainer* transformMap = ctxt.get<alignmentTransformationContainer*>();
@@ -361,7 +361,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
        ++clusIter)
   {
     auto key = *clusIter;
-    auto cluster = clusterContainer->findCluster(key);
+    auto* cluster = clusterContainer->findCluster(key);
     if (!cluster)
     {
       if (m_verbosity > 0)
@@ -421,7 +421,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     }
 
     // add the global positions to a vector to give to the cluster mover
-    global_raw.emplace_back(std::make_pair(key, global));
+    global_raw.emplace_back(key, global);
 
   }  // end loop over clusters here
 
@@ -448,7 +448,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
       continue;
     }
 
-    auto cluster = clusterContainer->findCluster(cluskey);
+    auto* cluster = clusterContainer->findCluster(cluskey);
     Surface surf = tGeometry->maps().getSurface(cluskey, cluster);
     if (std::isnan(global.x()) || std::isnan(global.y()))
     {
@@ -464,10 +464,10 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     if (trkrid == TrkrDefs::tpcId)
     {
       if (cluster->getEdge() > m_cluster_edge_rejection)
-        {
-          continue;
-        }
-      
+      {
+        continue;
+      }
+
       TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
       TrkrDefs::subsurfkey new_subsurfkey = 0;
       surf = tGeometry->get_tpc_surface_from_coords(hitsetkey, global, new_subsurfkey);
@@ -534,7 +534,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     Acts::ActsSquareMatrix<2> cov = Acts::ActsSquareMatrix<2>::Zero();
 
     double clusRadius = sqrt(global[0] * global[0] + global[1] * global[1]);
-    auto para_errors = _ClusErrPara.get_clusterv5_modified_error(cluster, clusRadius, cluskey);
+    auto para_errors = ClusterErrorPara::get_clusterv5_modified_error(cluster, clusRadius, cluskey);
     cov(Acts::eBoundLoc0, Acts::eBoundLoc0) = para_errors.first * Acts::UnitConstants::cm2;
     cov(Acts::eBoundLoc0, Acts::eBoundLoc1) = 0;
     cov(Acts::eBoundLoc1, Acts::eBoundLoc0) = 0;
@@ -561,7 +561,7 @@ SourceLinkVec MakeSourceLinks::getSourceLinksClusterMover(
     }
 
     sourcelinks.push_back(actsSL);
-    measurements.push_back(meas);
+    measurements.emplace_back(meas);
   }
 
   SLTrackTimer.stop();
