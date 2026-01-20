@@ -142,8 +142,8 @@ void TrackSeedHelper::circleFitByTaubin(
   float qOverR = 1./r;
 
   /// Set the charge
-  const auto& firstpos = positions_2d.at(0);
-  const auto& secondpos = positions_2d.at(1);
+  const auto& firstpos = *(positions_2d.begin());
+  const auto& secondpos = *(positions_2d.rbegin());
 
   const auto firstphi = atan2(firstpos.second, firstpos.first);
   const auto secondphi = atan2(secondpos.second, secondpos.first);
