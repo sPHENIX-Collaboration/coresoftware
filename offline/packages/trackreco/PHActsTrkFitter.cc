@@ -145,6 +145,7 @@ int PHActsTrkFitter::InitRun(PHCompositeNode* topNode)
   chi2Cuts.insert(std::make_pair(14, 9));
   chi2Cuts.insert(std::make_pair(16, 4));
   m_outlierFinder.chi2Cuts = chi2Cuts;
+
   if (m_useOutlierFinder)
   {
     m_outlierFinder.m_tGeometry = m_tGeometry;
@@ -439,6 +440,7 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
       makeSourceLinks.initialize(_tpccellgeo);
       makeSourceLinks.setVerbosity(Verbosity());
       makeSourceLinks.set_pp_mode(m_pp_mode);
+      makeSourceLinks.set_cluster_edge_rejection(m_cluster_edge_rejection);
       for (const auto& layer : m_ignoreLayer)
       {
         makeSourceLinks.ignoreLayer(layer);

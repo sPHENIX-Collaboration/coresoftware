@@ -144,7 +144,7 @@ class PHActsTrkFitter : public SubsysReco
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
   void setTrkrClusterContainerName(const std::string& name) { m_clusterContainerName = name; }
   void setDirectNavigation(bool flag) { m_directNavigation = flag; }
-
+  void setClusterEdgeRejection(int edge ) { m_cluster_edge_rejection = edge; }
  private:
   /// Get all the nodes
   int getNodes(PHCompositeNode* topNode);
@@ -244,6 +244,7 @@ class PHActsTrkFitter : public SubsysReco
   // name of TRKR_CLUSTER container
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
+  int m_cluster_edge_rejection = 0;
   //!@name evaluator
   //@{
   bool m_actsEvaluator = false;
