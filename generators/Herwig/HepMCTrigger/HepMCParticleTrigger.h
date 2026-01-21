@@ -29,8 +29,6 @@ class HepMCParticleTrigger : public SubsysReco
       This is where you do the real work.
    */
   int process_event(PHCompositeNode* topNode) override;
-  int n_evts{0};
-  int n_good{0};
 
   /// Clean up internals after each event.
 
@@ -68,6 +66,8 @@ class HepMCParticleTrigger : public SubsysReco
   void SetPzHighLow(double, double);
 
   void SetStableParticleOnly(bool b) { m_doStableParticleOnly = b; }
+  int getNevts(){return this->n_evts;}
+  int getNgood(){return this->n_good;}
 
  private:
   bool isGoodEvent(HepMC::GenEvent* e1);
@@ -79,6 +79,8 @@ class HepMCParticleTrigger : public SubsysReco
   float threshold{0.};
   int goal_event_number{1000};
   bool set_event_limit{false};
+  int n_evts{0};
+  int n_good{0};
 
   float _theEtaHigh{1.1};
   float _theEtaLow{-1.1};

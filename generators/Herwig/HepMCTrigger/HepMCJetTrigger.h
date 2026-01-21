@@ -47,8 +47,8 @@ class HepMCJetTrigger : public SubsysReco
   /// Called at the end of all processing.
 
   /// Reset
-  int n_evts{0};
-  int n_good{0};
+  int getNevts(){return this->n_evts;}
+  int getNgood(){return this->n_good;}
 
  private:
   bool isGoodEvent(HepMC::GenEvent* e1);
@@ -57,6 +57,8 @@ class HepMCJetTrigger : public SubsysReco
   float threshold{0.};
   int goal_event_number{1000};
   bool set_event_limit{false};
+  int n_evts{0};
+  int n_good{0};
 };
 
 #endif  // HEPMCJETTRIGGER_H
