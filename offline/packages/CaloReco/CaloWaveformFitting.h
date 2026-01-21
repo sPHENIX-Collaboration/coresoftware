@@ -130,7 +130,7 @@ class CaloWaveformFitting
   std::string m_model_name;
 
   // Functional fit type selector
-  FuncFitType m_funcfit_type{POWERLAWEXP};
+  FuncFitType m_funcfit_type{POWERLAWDOUBLEEXP};
 
   // Power-law fit parameters
   double m_powerlaw_power{4.0};
