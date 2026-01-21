@@ -863,7 +863,15 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       }
     }
 
-    chi2val /= (ndata - npar);  // divide by ndf
+    int ndf = ndata - npar;
+    if (ndf > 0)
+    {
+      chi2val /= ndf;
+    }
+    else
+    {
+      chi2val = std::numeric_limits<double>::quiet_NaN();
+    }
 
     fit_values.push_back({static_cast<float>(fit_amp), static_cast<float>(fit_time),
                           static_cast<float>(fit_ped), static_cast<float>(chi2val), 0});
