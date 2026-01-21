@@ -14,11 +14,9 @@
 class GlobaldEdxFitter
 {
   public:
-  GlobaldEdxFitter(double xmin = 10., double xmax = 50.) 
-  {
-    min_norm = xmin;
-    max_norm = xmax;
-  };
+  explicit GlobaldEdxFitter(double xmin = 10., double xmax = 50.) 
+  : min_norm(xmin), max_norm(xmax) 
+  {};
   void processResidualData(const std::string& infile, 
                   size_t ntracks = 200000, 
                   size_t skip = 0);

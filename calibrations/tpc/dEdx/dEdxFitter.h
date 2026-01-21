@@ -1,5 +1,5 @@
-#ifndef __DEDXFITTER_H__
-#define __DEDXFITTER_H__
+#ifndef DEDXFITTER_H_
+#define DEDXFITTER_H_
 
 #include <fun4all/SubsysReco.h>
 #include <string>
@@ -20,20 +20,25 @@ class dEdxFitter: public SubsysReco
 {
  public: 
   //Default constructor
-  dEdxFitter(const std::string &name="dEdxFitter");
+  explicit dEdxFitter(const std::string &name="dEdxFitter");
 
   //Initialization, called for initialization
-  int InitRun(PHCompositeNode *);
+  int InitRun(PHCompositeNode * /*topNode*/) override;
 
   //Process Event, called for each event
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *topNode) override;
 
   //End, write and close files
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode * /*topNode*/) override;
 
   //Change output filename
   void set_filename(const char* file)
-  { if(file) _outfile = file; }
+  {
+    if(file)
+    {
+      _outfile = file;
+    }
+  }
 
   void set_nmaps_cut(int nmaps)
   { nmaps_cut = nmaps; }
@@ -56,6 +61,7 @@ class dEdxFitter: public SubsysReco
  private:
   //output filename
   std::string _outfile = "dedx_outfile.root";
+  TFile* outf = nullptr;
   size_t _event = 0;
    
   SvtxTrackMap* _trackmap = nullptr;
@@ -65,9 +71,9 @@ class dEdxFitter: public SubsysReco
   SvtxVertexMap* _vertexmap = nullptr;
   
   //Get all the nodes
-  void GetNodes(PHCompositeNode *);
+  void GetNodes(PHCompositeNode * /*topNode*/);
 
-  void process_tracks(PHCompositeNode *);
+  void process_tracks();
 
   int nmaps_cut = 1;
   int nintt_cut = 1;
@@ -85,4 +91,4 @@ class dEdxFitter: public SubsysReco
 
 };
 
-#endif //* __DEDXFITTER_H__ *//
+#endif //* DEDXFITTER_H_ *//

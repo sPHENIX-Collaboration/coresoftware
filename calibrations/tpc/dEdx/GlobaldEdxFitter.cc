@@ -50,9 +50,9 @@ void GlobaldEdxFitter::processResidualData(const std::string& infile, size_t ntr
       std::cout << entry << std::endl;
     }
     t->GetEntry(entry);
-    if(nmaps>0 && nintt>0 && fabs(eta)<1. && dcaxy<0.5 && ntpc>30)
+    if(nmaps>0 && nintt>0 && std::fabs(eta)<1. && dcaxy<0.5 && ntpc>30)
     {
-      p.push_back(sqrt(px*px+py*py+pz*pz));
+      p.push_back(std::sqrt(px*px+py*py+pz*pz));
       dEdx.push_back(dedx);
     }
   }
@@ -172,28 +172,28 @@ double GlobaldEdxFitter::get_fitquality(double norm, double ZS_loss)
 
     if(pi_dist<K_dist && pi_dist<p_dist && pi_dist<d_dist)
     {
-      pi_chi2 += pi_dist*pi_dist/fabs(dedx_pi);
+      pi_chi2 += pi_dist*pi_dist/std::fabs(dedx_pi);
       pi_ndf += 2.;
     }
     else if(K_dist<pi_dist && K_dist<p_dist && K_dist<d_dist)
     {
-      K_chi2 += K_dist*K_dist/fabs(dedx_K);
+      K_chi2 += K_dist*K_dist/std::fabs(dedx_K);
       K_ndf += 2.;
     }
     else if(p_dist<pi_dist && p_dist<K_dist && p_dist<d_dist)
     {
-      p_chi2 += p_dist*p_dist/fabs(dedx_p);
+      p_chi2 += p_dist*p_dist/std::fabs(dedx_p);
       p_ndf += 2.;
     }
     else if(d_dist<pi_dist && d_dist<K_dist && d_dist<p_dist)
     {
-      d_chi2 += d_dist*d_dist/fabs(dedx_d);
+      d_chi2 += d_dist*d_dist/std::fabs(dedx_d);
       d_ndf += 2.;
     }
     //ndf += 2;
   }
 
-  const double quality = sqrt((pi_chi2*pi_chi2)/(pi_ndf*pi_ndf) +
+  const double quality = std::sqrt((pi_chi2*pi_chi2)/(pi_ndf*pi_ndf) +
                         (K_chi2*K_chi2)/(K_ndf*K_ndf) +
                         (p_chi2*p_chi2)/(p_ndf*p_ndf) +
                         (d_chi2*d_chi2)/(d_ndf*d_ndf));
@@ -253,17 +253,17 @@ double GlobaldEdxFitter::get_fitquality_functor(const double* x)
   return get_fitquality_new(x[0]);
 }
 
-double GlobaldEdxFitter::get_fitquality_wrapper(double* x, double* par)
+double GlobaldEdxFitter::get_fitquality_wrapper(double* x, double* /* par */)
 {
   return get_fitquality(x[0]);
 }
 
-double GlobaldEdxFitter::get_fitquality_wrapper_ZS(double* x, double* par)
+double GlobaldEdxFitter::get_fitquality_wrapper_ZS(double* x, double* /* par */)
 {
   return get_fitquality(x[0],x[1]);
 }
 
-double GlobaldEdxFitter::get_fitquality_wrapper_new(double* x, double* par)
+double GlobaldEdxFitter::get_fitquality_wrapper_new(double* x, double* /* par */)
 {
   return get_fitquality_new(x[0]);
 }

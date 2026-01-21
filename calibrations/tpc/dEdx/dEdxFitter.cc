@@ -18,10 +18,10 @@ dEdxFitter::dEdxFitter(const std::string &name):
 }
 
 //___________________________________
-int dEdxFitter::InitRun(PHCompositeNode *topNode)
+int dEdxFitter::InitRun(PHCompositeNode * /*topNode*/)
 {
   std::cout << PHWHERE << " Opening file " << _outfile << std::endl;
-  PHTFileServer::get().open( _outfile, "RECREATE");
+  outf = new TFile( _outfile.c_str(), "RECREATE");
 
   return 0;
 }
@@ -44,13 +44,13 @@ int dEdxFitter::process_event(PHCompositeNode *topNode)
     std::cout << "event " << _event << std::endl;
   }
 
-  process_tracks(topNode);
+  process_tracks();
 
   return 0;
 }
 
 //_____________________________________
-void dEdxFitter::process_tracks(PHCompositeNode *topNode)
+void dEdxFitter::process_tracks()
 {
 
   for(const auto &[key, track] : *_trackmap)
@@ -93,7 +93,7 @@ void dEdxFitter::process_tracks(PHCompositeNode *topNode)
     int nintt = std::get<1>(nclus);
     int ntpc = std::get<2>(nclus);
 
-    if(nmaps>=nmaps_cut && nintt>=nintt_cut && ntpc>=ntpc_cut && fabs(track->get_eta())<eta_cut && get_dcaxy(track)<dcaxy_cut)
+    if(nmaps>=nmaps_cut && nintt>=nintt_cut && ntpc>=ntpc_cut && std::fabs(track->get_eta())<eta_cut && get_dcaxy(track)<dcaxy_cut)
     {
       fitter->addTrack(get_dedx(track),track->get_p());
     }
@@ -202,14 +202,12 @@ void dEdxFitter::GetNodes(PHCompositeNode *topNode)
 }
 
 //______________________________________
-int dEdxFitter::End(PHCompositeNode *topNode)
+int dEdxFitter::End(PHCompositeNode * /*topNode*/)
 {
   if(minima.empty())
   {
     minima.push_back(fitter->get_minimum());
   }
-
-  PHTFileServer::get().cd( _outfile );
 
   double avg_minimum = 0.;
   for(double m : minima)
@@ -217,6 +215,8 @@ int dEdxFitter::End(PHCompositeNode *topNode)
     avg_minimum += m;
   }
   avg_minimum /= (double)minima.size();
+
+  outf->cd();
 
   TF1* pi_band = new TF1("pi_band","bethe_bloch_new_1D(fabs(x)/[1],[0])");
   pi_band->SetParameter(0,avg_minimum);
@@ -242,6 +242,8 @@ int dEdxFitter::End(PHCompositeNode *topNode)
   {
     std::cout << "dEdxFitter extracted minimum: " << avg_minimum << std::endl;
   }
+
+  outf->Close();
 
   return 0;
 }

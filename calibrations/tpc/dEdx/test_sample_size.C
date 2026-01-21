@@ -1,7 +1,13 @@
 #include "GlobaldEdxFitter.h"
 
 #include <TCanvas.h>
+#include <TH1F.h>
+#include <TH2F.h>
+#include <TGraphErrors.h>
+#include <TFile.h>
+
 #include <algorithm>
+#include <numeric>
 
 void test_sample_size(const std::string& infile="/sphenix/tg/tg01/hf/mjpeters/run53877_tracks/track_output_53877_*.root")
 {
@@ -13,9 +19,6 @@ void test_sample_size(const std::string& infile="/sphenix/tg/tg01/hf/mjpeters/ru
   const int distribution_nbins = 30;
   const float distribution_xmin = 5.;
   const float distribution_xmax = 26.;
-
-
-  EColor base_color = kRed;
 
   std::vector<std::vector<float>> fitvalues_all;
   std::vector<float> fitvalues_avg;
@@ -102,7 +105,7 @@ void test_sample_size(const std::string& infile="/sphenix/tg/tg01/hf/mjpeters/ru
       stdev += pow(fitvalues_all[i][j]-avg,2.);
     }
     stdev /= (float)n_samples;
-    stdev = sqrt(stdev);
+    stdev = std::sqrt(stdev);
 
     fitvalues_avg.push_back(avg);
     fitvalues_stdev.push_back(stdev);
@@ -181,11 +184,17 @@ void test_sample_size(const std::string& infile="/sphenix/tg/tg01/hf/mjpeters/ru
   }
 
   TFile* fout = new TFile("dedxfitvals.root","RECREATE");
-  for(auto& c : fluctuations) c->Write();
-  for(auto& c : distributions) c->Write();
+  for(auto& c : fluctuations)
+  {
+    c->Write();
+  }
+  for(auto& c : distributions)
+  {
+    c->Write();
+  }
   cg->Write();
   cbg->Write();
   cbands->Write();
   cb->Write();
-
+  fout->Close();
 }
