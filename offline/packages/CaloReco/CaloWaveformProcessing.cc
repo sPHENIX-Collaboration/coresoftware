@@ -186,7 +186,7 @@ std::vector<std::vector<float>> CaloWaveformProcessing::calo_processing_ONNX(con
         {
           // downstream onnx does not have a static input vector API,
           // so we need to make a copy
-          std::vector<float> vtmp(v); //NOLINT(performance-unnecessary-copy-initialization)
+          std::vector<float> vtmp(v);  // NOLINT(performance-unnecessary-copy-initialization)
           val = onnxInference(onnxmodule, vtmp, 1, onnxlib::n_input, onnxlib::n_output);
           unsigned int nvals = val.size();
           for (unsigned int i = 0; i < nvals; i++)

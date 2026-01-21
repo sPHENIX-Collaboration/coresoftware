@@ -22,7 +22,7 @@
 #include <limits>
 #include <string>
 
-static ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);// NOLINT(misc-use-anonymous-namespace)
+static ROOT::TThreadExecutor *t = new ROOT::TThreadExecutor(1);  // NOLINT(misc-use-anonymous-namespace)
 double CaloWaveformFitting::template_function(double *x, double *par)
 {
   Double_t v1 = (par[0] * h_template->Interpolate(x[0] - par[1])) + par[2];
@@ -771,10 +771,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       double par[5];
       par[0] = maxheight - pedestal;  // Amplitude
       par[1] = maxbin - risetime;     // t0
-      if (par[1] < 0)
-      {
-        par[1] = 0;
-      }
+      par[1] = std::max<double>(par[1], 0);
       par[2] = m_powerlaw_power;  // Power
       par[3] = m_powerlaw_decay;  // Decay
       par[4] = pedestal;          // Pedestal
@@ -816,11 +813,8 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       double risetime = 2.0;
       double par[7];
       par[0] = (maxheight - pedestal) * 0.7;  // Amplitude
-      par[1] = maxbin - risetime;              // t0
-      if (par[1] < 0)
-      {
-        par[1] = 0;
-      }
+      par[1] = maxbin - risetime;             // t0
+      par[1] = std::max<double>(par[1], 0);
       par[2] = m_doubleexp_power;      // Power
       par[3] = m_doubleexp_peaktime1;  // Peak Time 1
       par[4] = pedestal;               // Pedestal
@@ -843,10 +837,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
       double peakpos1 = f.GetParameter(3);
       double peakpos2 = f.GetParameter(6);
       double max_peakpos = f.GetParameter(1) + (peakpos1 > peakpos2 ? peakpos1 : peakpos2);
-      if (max_peakpos > nsamples - 1)
-      {
-        max_peakpos = nsamples - 1;
-      }
+      max_peakpos = std::min<double>(max_peakpos, nsamples - 1);
 
       fit_time = f.GetMaximumX(f.GetParameter(1), max_peakpos);
       fit_amp = f.Eval(fit_time) - f.GetParameter(4);
