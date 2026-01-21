@@ -131,7 +131,7 @@ class CaloWaveformProcessing : public SubsysReco
   std::array<double, 4> m_Onnx_offset{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
 
   // Functional fit parameters
-  int _funcfit_type{0};  // 0 = PowerLawExp, 1 = PowerLawDoubleExp
+  int _funcfit_type{1};  // 0 = PowerLawExp, 1 = PowerLawDoubleExp
   double _powerlaw_power{4.0};
   double _powerlaw_decay{1.5};
   double _doubleexp_power{2.0};
