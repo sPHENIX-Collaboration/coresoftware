@@ -9,6 +9,12 @@ class TProfile;
 class CaloWaveformFitting
 {
  public:
+  enum FuncFitType
+  {
+    POWERLAWEXP = 0,
+    POWERLAWDOUBLEEXP = 1,
+  };
+
   CaloWaveformFitting() = default;
   ~CaloWaveformFitting();
 
@@ -61,8 +67,33 @@ class CaloWaveformFitting
   std::vector<std::vector<float>> calo_processing_templatefit(std::vector<std::vector<float>> chnlvector);
   static std::vector<std::vector<float>> calo_processing_fast(const std::vector<std::vector<float>> &chnlvector);
   std::vector<std::vector<float>> calo_processing_nyquist(const std::vector<std::vector<float>> &chnlvector);
+  std::vector<std::vector<float>> calo_processing_funcfit(const std::vector<std::vector<float>> &chnlvector);
 
   void initialize_processing(const std::string &templatefile);
+
+  // Power-law fit function: amplitude * (x-t0)^power * exp(-(x-t0)*decay) + pedestal
+  static double SignalShape_PowerLawExp(double *x, double *par);
+  // Double exponential power-law fit function
+  static double SignalShape_PowerLawDoubleExp(double *x, double *par);
+
+  void set_funcfit_type(FuncFitType type)
+  {
+    m_funcfit_type = type;
+  }
+
+  void set_powerlaw_params(double power, double decay)
+  {
+    m_powerlaw_power = power;
+    m_powerlaw_decay = decay;
+  }
+
+  void set_doubleexp_params(double power, double peaktime1, double peaktime2, double ratio)
+  {
+    m_doubleexp_power = power;
+    m_doubleexp_peaktime1 = peaktime1;
+    m_doubleexp_peaktime2 = peaktime2;
+    m_doubleexp_ratio = ratio;
+  }
 
  private:
   static void FastMax(float x0, float x1, float x2, float y0, float y1, float y2, float &xmax, float &ymax);
@@ -97,5 +128,18 @@ class CaloWaveformFitting
   std::string url_template;
   std::string url_onnx;
   std::string m_model_name;
+
+  // Functional fit type selector
+  FuncFitType m_funcfit_type{POWERLAWDOUBLEEXP};
+
+  // Power-law fit parameters
+  double m_powerlaw_power{4.0};
+  double m_powerlaw_decay{1.5};
+
+  // Double exponential fit parameters
+  double m_doubleexp_power{2.0};
+  double m_doubleexp_peaktime1{5.0};
+  double m_doubleexp_peaktime2{5.0};
+  double m_doubleexp_ratio{0.3};
 };
 #endif
