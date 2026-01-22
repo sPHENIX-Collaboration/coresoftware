@@ -11,10 +11,10 @@
 
 //____________________________________
 dEdxFitter::dEdxFitter(const std::string &name):
-    SubsysReco(name)
+    SubsysReco(name),
+    fitter(std::make_unique<GlobaldEdxFitter>())
 { 
   //initialize
-  fitter = std::make_unique<GlobaldEdxFitter>();
 }
 
 //___________________________________
