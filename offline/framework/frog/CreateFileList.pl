@@ -149,6 +149,7 @@ my %notlike = ();
 my $AuAu_pileupstring;
 my $pp_pileupstring;
 my $pAu_pileupstring;
+my $OO_pileupstring;
 my $pileupstring;
 
 if (! defined $runnumber && $#newargs >= 0)
@@ -169,6 +170,7 @@ if (!defined $embed && defined $nobkgpileup)
 }
 my $pAu_bkgpileup = sprintf("_bkg_0_20fm");
 my $AuAu_bkgpileup = sprintf("_bkg_0_10fm");
+my $OO_bkgpileup = sprintf("_bkg_0_15fm");
 if ($pileup == 1)
 {
     $AuAu_pileupstring = sprintf("_50kHz%s",$AuAu_bkgpileup);
@@ -194,12 +196,14 @@ elsif ($pileup == 5)
 else
 {
     $pp_pileupstring = sprintf("_%dkHz",$pileup);
-    $AuAu_pileupstring = sprintf("_%dkHz%s",$AuAu_bkgpileup);
+    $AuAu_pileupstring = sprintf("_%dkHz%s",$pileup, $AuAu_bkgpileup);
+    $OO_pileupstring = sprintf("_%dkHz%s",$pileup,$ OO_bkgpileup);
 }
 if (defined $nobkgpileup)
 {
     $pp_pileupstring = sprintf("");
     $AuAu_pileupstring = sprintf("");
+    $OO_pileupstring = sprintf("");
 }
 
 my $embedok = 0;
@@ -936,7 +940,7 @@ if (defined $prodtype)
 	}
 	else
 	{
-	    $filenamestring = sprintf("sHijing_OO_0_15fm%s",$AuAu_pileupstring);
+	    $filenamestring = sprintf("sHijing_OO_0_15fm%s",$OO_pileupstring);
 	}
         $notlike{$filenamestring} = ["pythia8" ,"single", "special"];
         $pileupstring = $AuAu_pileupstring;
