@@ -197,7 +197,7 @@ else
 {
     $pp_pileupstring = sprintf("_%dkHz",$pileup);
     $AuAu_pileupstring = sprintf("_%dkHz%s",$pileup, $AuAu_bkgpileup);
-    $OO_pileupstring = sprintf("_%dkHz%s",$pileup,$ OO_bkgpileup);
+    $OO_pileupstring = sprintf("_%dkHz%s",$pileup,$OO_bkgpileup);
 }
 if (defined $nobkgpileup)
 {
