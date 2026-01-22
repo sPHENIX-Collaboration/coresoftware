@@ -52,6 +52,12 @@ class DSTClusterPruning : public SubsysReco
   //! end of processing
   //int End(PHCompositeNode*) override;
 
+  //! dump all clusters on all seeds out
+  void pruneAllSeeds()
+  {
+    m_pruneAllSeeds = true;
+  }
+
  private:
   //! load nodes
   int load_nodes(PHCompositeNode*);
@@ -68,6 +74,9 @@ class DSTClusterPruning : public SubsysReco
   TrackSeedContainer* m_tpc_track_seed_container = nullptr;
   TrackSeedContainer* m_silicon_track_seed_container = nullptr;
 
+//! set to true if you want to dump out all clusters on all silicon
+//! and all tpc seeds individually
+  bool m_pruneAllSeeds = false;
   //@}
 
   // debugging helpers

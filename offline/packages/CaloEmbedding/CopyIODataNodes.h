@@ -35,6 +35,13 @@ class CopyIODataNodes : public SubsysReco
   void CopyMbdOut(bool flag = true) { m_CopyMbdOutFlag = flag; }
   void CopyRunHeader(bool flag = true) { m_CopyRunHeaderFlag = flag; }
   void CopySyncObject(bool flag = true) { m_CopySyncObjectFlag = flag; }
+  void set_CopyTowerInfo(const std::string& set_from_towerInfo_name,const std::string& set_to_towerInfo_name)
+  {
+    from_towerInfo_name = set_from_towerInfo_name;
+    to_towerInfo_name = set_to_towerInfo_name;
+    m_CopyTowerInfoFlag = true; 
+    return;
+  }
 
  private:
   void CreateCentralityInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
@@ -56,6 +63,8 @@ class CopyIODataNodes : public SubsysReco
 
   void CreateSyncObject(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
   void CopySyncObject(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
+  void CopyTowerInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
+  void CreateTowerInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode);
 
   bool m_CopyCentralityInfoFlag = true;
   bool m_CopyEventHeaderFlag = true;
@@ -64,6 +73,10 @@ class CopyIODataNodes : public SubsysReco
   bool m_CopyMbdOutFlag = true;
   bool m_CopyRunHeaderFlag = true;
   bool m_CopySyncObjectFlag = true;
+  bool m_CopyTowerInfoFlag = false;
+
+  std::string from_towerInfo_name = {};
+  std::string to_towerInfo_name = {};
 };
 
 #endif  // COPYIODATANODES_H

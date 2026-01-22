@@ -1331,7 +1331,7 @@ int MbdCalib::Download_TimeRMS(const std::string& dbase_location)
 
   if ( _trms_y[0].empty() )
   {
-    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
+    std::cout << PHWHERE << ", WARNING, trms calib missing " << dbase_location << std::endl;
     _status = -1;
     return _status;  // file not found
   }
