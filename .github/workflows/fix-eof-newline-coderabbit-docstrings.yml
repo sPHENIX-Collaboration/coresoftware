@@ -1,0 +1,106 @@
+name: Fix missing final newline (CodeRabbit docstring PRs)
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  fix_eof_newline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard - only CodeRabbit docstring PRs from same repo
+        id: guard
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          AUTHOR='${{ github.event.pull_request.user.login }}'
+          BASE_REPO='${{ github.event.pull_request.base.repo.full_name }}'
+          HEAD_REPO='${{ github.event.pull_request.head.repo.full_name }}'
+          TITLE='${{ github.event.pull_request.title }}'
+
+          if [[ "$AUTHOR" != "coderabbitai[bot]" ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Safety: only push to branches within the same repo
+          if [[ "$BASE_REPO" != "$HEAD_REPO" ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # only run for docstring PRs
+          if ! echo "$TITLE" | grep -qi "docstring"; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR head
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+
+      - name: Append final newline when missing (changed files only)
+        if: steps.guard.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          files=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- \
+            '*.C' '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' '*.hxx' || true)
+
+          if [[ -z "${files}" ]]; then
+            echo "No relevant files changed."
+            exit 0
+          fi
+
+          changed=0
+          for f in $files; do
+            [[ -f "$f" ]] || continue
+
+            # For non-empty files: ensure last byte is '\n'
+            if [[ -s "$f" ]]; then
+              last_byte="$(tail -c 1 "$f" || true)"
+              if [[ "$last_byte" != $'\n' ]]; then
+                printf '\n' >> "$f"
+                echo "Fixed EOF newline: $f"
+                changed=1
+              fi
+            fi
+          done
+
+          if [[ "$changed" -eq 0 ]]; then
+            echo "All files already end with a newline."
+            exit 0
+          fi
+
+          git status --porcelain
+          git add -A
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git commit -m "Fix missing final newline in docstring PR"
+
+      - name: Push fix commit back to PR branch
+        if: steps.guard.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # If no commit was created, pushing will fail; so only push if HEAD is ahead.
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          fi

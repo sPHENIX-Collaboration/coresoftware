@@ -30,7 +30,14 @@ class HepMCParticleTrigger : public SubsysReco
    */
   int process_event(PHCompositeNode* topNode) override;
 
-  void AddParticles(const std::vector<int>&);
+  /// Clean up internals after each event.
+
+  /// Called at the end of each run.
+
+  /// Called at the end of all processing.
+
+  /// Reset
+  void AddParticles(const std::vector<int>&); //exclusively take input in the form of a pdg_ids (22 for photon, primary use case)
   void AddParticle(int);
 
   /*  void AddParents(const std::string &parents);
@@ -73,8 +80,8 @@ class HepMCParticleTrigger : public SubsysReco
   int n_good{0};
   bool set_event_limit{false};
 
-  float _theEtaHigh{999.9};
-  float _theEtaLow{-999.9};
+  float _theEtaHigh{1.1};
+  float _theEtaLow{-1.1};
   float _thePtHigh{999.9};
   float _thePtLow{-999.9};
   float _thePHigh{999.9};
@@ -82,9 +89,9 @@ class HepMCParticleTrigger : public SubsysReco
   float _thePzHigh{999.9};
   float _thePzLow{-999.9};
 
-  bool _doEtaHighCut{false};
-  bool _doEtaLowCut{false};
-  bool _doBothEtaCut{false};
+  bool _doEtaHighCut{true};
+  bool _doEtaLowCut{true};
+  bool _doBothEtaCut{true};
 
   bool _doAbsEtaHighCut{false};
   bool _doAbsEtaLowCut{false};

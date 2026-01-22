@@ -451,6 +451,7 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
     if (dstp[ipkt])
     {
       _nsamples = dstp[ipkt]->iValue(0, "SAMPLES");
+
       {
         static bool printcount{true};
         if ( printcount && Verbosity() > 0)
@@ -458,6 +459,13 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
 	  printcount = false;
         }
+      }
+
+      // skip empty packets, corrupt event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, evt " << m_evt << " no samples in Packet " << pktid << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "CLOCK"));
@@ -556,7 +564,6 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
 
   // int flag_err = 0;
   Packet *p[2]{nullptr};
-  int tot_nsamples{0};
   for (int ipkt = 0; ipkt < 2; ipkt++)
   {
     int pktid = 1001 + ipkt;  // packet id
@@ -574,7 +581,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
     if (p[ipkt])
     {
       _nsamples = p[ipkt]->iValue(0, "SAMPLES");
-      tot_nsamples += _nsamples;
+
       {
         static int counter = 0;
         if ( counter<1 )
@@ -582,6 +589,15 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
         }
         counter++;
+      }
+
+      // If packets are missing, stop processing event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, skipping evt " << m_evt << " nsamples = 0 " << pktid << std::endl;
+        delete p[ipkt];
+        p[ipkt] = nullptr;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
@@ -626,12 +642,6 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
       return -1;
 #endif
     }
-  }
-
-  // If packets are missing, stop processing
-  if ( tot_nsamples == 0 )
-  {
-    return -1002;
   }
 
   // Fill MbdRawContainer
