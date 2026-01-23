@@ -144,7 +144,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
 
   m_calibName_hotMap = m_detector + "nome";
-  if (m_dettype == CaloTowerDefs::CEMC)
+  if (m_dettype == CaloTowerDefs::CEMC || m_dettype == CaloTowerDefs::SEPD)
   {
     m_calibName_hotMap = m_detector + "_BadTowerMap";
   }
