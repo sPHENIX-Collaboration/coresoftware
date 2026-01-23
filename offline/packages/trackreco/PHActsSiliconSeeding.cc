@@ -905,7 +905,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
 	y0 = m_mvtx_y0;
       }
       float xfitradius_moved = fitpars[1] - x0;
-      float yfitradius_moved = fitpars[1] - y0;      
+      float yfitradius_moved = fitpars[2] - y0;      
       const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0],
 											       xfitradius_moved, yfitradius_moved);
       float xp = xplus + x0;
@@ -1176,8 +1176,6 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
   for (int layer = startLayer; layer < endLayer; ++layer)
   {
     float layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
-    //const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0], fitpars[1], fitpars[2]);
-
     if(layer < 3)
       {
 	x0 = m_mvtx_x0;
