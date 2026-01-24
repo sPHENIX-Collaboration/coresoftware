@@ -451,6 +451,7 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
     if (dstp[ipkt])
     {
       _nsamples = dstp[ipkt]->iValue(0, "SAMPLES");
+
       {
         static bool printcount{true};
         if ( printcount && Verbosity() > 0)
@@ -458,6 +459,13 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
 	  printcount = false;
         }
+      }
+
+      // skip empty packets, corrupt event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, evt " << m_evt << " no samples in Packet " << pktid << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "CLOCK"));
@@ -484,9 +492,17 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
         }
 
         _mbdsig[feech].SetNSamples( _nsamples );
-        _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
-
+        
+        if ( _nsamples > 0 && _nsamples <= 30 )
+        {
+          _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+        }
         /*
+        else
+        {
+          std::cout << PHWHERE << " empty feech " << feech << std::endl;
+        }
+
         std::cout << "feech " << feech << std::endl;
         _mbdsig[feech].Print();
         */
@@ -565,6 +581,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
     if (p[ipkt])
     {
       _nsamples = p[ipkt]->iValue(0, "SAMPLES");
+
       {
         static int counter = 0;
         if ( counter<1 )
@@ -572,6 +589,15 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
         }
         counter++;
+      }
+
+      // If packets are missing, stop processing event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, skipping evt " << m_evt << " nsamples = 0 " << pktid << std::endl;
+        delete p[ipkt];
+        p[ipkt] = nullptr;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
@@ -637,7 +663,7 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
   // Do a quick sanity check that all fem counters agree
   if (m_xmitclocks[0] != m_xmitclocks[1])
   {
-    std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
+    std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree, evt " << m_evt << std::endl;
   }
   /*
   // format changed in run2024, need to update check
@@ -672,6 +698,11 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
+
+    if ( _mbdsig[ifeech].GetNSamples()==0 )
+    {
+      continue;
+    }
 
     // time channel
     if (type == 0)
@@ -738,6 +769,11 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
   {
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
+
+    if ( _mbdsig[ifeech].GetNSamples()==0 )
+    {
+      continue;
+    }
 
     // time channel
     if (type == 0)
@@ -854,8 +890,14 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         */
 
         TGraphErrors *gsubpulse = _mbdsig[ifeech].GetGraph();
-        Double_t *y = gsubpulse->GetY();
-        h2_trange->Fill( y[samp_max], pmtch );  // fill ped-subtracted tdc
+        if ( gsubpulse )
+        {
+          Double_t *y = gsubpulse->GetY();
+          if ( y )
+          {
+            h2_trange->Fill( y[samp_max], pmtch );  // fill ped-subtracted tdc
+          }
+        }
       }
     }
 

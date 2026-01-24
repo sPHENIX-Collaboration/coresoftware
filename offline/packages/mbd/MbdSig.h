@@ -32,6 +32,8 @@ class MbdSig
   void SetY(const Float_t *y, const int invert = 1);
   void SetXY(const Float_t *x, const Float_t *y, const int invert = 1);
 
+  int  GetNSamples() { return _nsamples; }
+
   void SetCalib(MbdCalib *mcal);
 
   TH1 *GetHist() { return hpulse; }

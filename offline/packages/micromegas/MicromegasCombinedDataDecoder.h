@@ -49,10 +49,10 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   /** This removes faulty channels for which calibration has failed */
   void set_min_adc(double value) { m_min_adc = value; }
 
-  /// set min sample for noise estimation
+  /// set min sample for signal hits
   void set_sample_min(uint16_t value) { m_sample_min = value; }
 
-  /// set min sample for noise estimation
+  /// set max sample for signal hits
   void set_sample_max(uint16_t value) { m_sample_max = value; }
 
  private:
@@ -85,7 +85,7 @@ class MicromegasCombinedDataDecoder : public SubsysReco
   uint16_t m_sample_min = 0;
 
   /// max sample for signal
-  uint16_t m_sample_max = 100;
+  uint16_t m_sample_max = 1024;
 
   /// keep track of number of hits per hitsetid
   using hitcountmap_t = std::map<TrkrDefs::hitsetkey, int>;
