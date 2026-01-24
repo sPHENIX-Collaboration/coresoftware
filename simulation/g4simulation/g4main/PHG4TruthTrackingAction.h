@@ -4,10 +4,12 @@
 #define G4MAIN_PHG4TRUTHTRACKINGACTION_H
 
 #include "PHG4TrackingAction.h"
+#include "PHG4MCProcessDefs.h"
 
 #include <Geant4/G4ThreeVector.hh>
 
 #include <map>
+#include <utility>
 #include <vector>
 
 class G4Track;
@@ -37,7 +39,8 @@ class PHG4TruthTrackingAction : public PHG4TrackingAction
   int ResetEvent(PHCompositeNode*) override;
 
  private:
-  std::map<G4ThreeVector, int> m_VertexMap;
+  // Key is (position, process) to distinguish vertices at the same location but different processes
+  std::map<std::pair<G4ThreeVector, PHG4MCProcess>, int> m_VertexMap;
 
   //! pointer to the "owning" event action
   PHG4TruthEventAction* m_EventAction;
