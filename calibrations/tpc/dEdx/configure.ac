@@ -6,10 +6,10 @@ AC_PROG_CXX(CC g++)
 
 LT_INIT([disable-static])
 
-dnl   no point in suppressing warnings people should 
-dnl   at least see them, so here we go for g++: -Wall
+dnl   enable more warnings and make them fatal
+dnl this package needs openmp which requires -fopenmp for clang
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
+   CXXFLAGS="$CXXFLAGS -fopenmp -Wall -Wshadow -Wextra -Werror"
 fi
 
 AC_CONFIG_FILES([Makefile])
