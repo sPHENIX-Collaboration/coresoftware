@@ -74,7 +74,10 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
       {
         continue;
       }
+      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
+      {
       track1Strobe = MvtxDefs::getStrobeId(ckey);
+      }
       mvtx1Keys.insert(ckey);
     }
 
@@ -110,7 +113,10 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
           continue;
         }
         mvtx2Keys.insert(ckey);
+        if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
+        {
         track2Strobe = MvtxDefs::getStrobeId(ckey);
+        }
       }
 
       std::vector<TrkrDefs::cluskey> intersection;
@@ -120,9 +126,8 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
                             mvtx2Keys.end(),
                             std::back_inserter(intersection));
 
-      /// If we have two clusters in common in the triplet, it is likely
-      /// from the same track
-      if (intersection.size() > m_clusterOverlap && track1Strobe == track2Strobe)
+      /// If the intersection fully encompasses one of the tracks, it is completely duplicated
+      if (intersection.size() == mvtx1Keys.size() || intersection.size() == mvtx2Keys.size())
       {
         if (Verbosity() > 2)
         {
@@ -143,9 +148,35 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
           }
         }
 
-        for (auto& key : mvtx2Keys)
+        /// one of the tracks is encompassed in the other. Take the larger one
+        std::set<TrkrDefs::cluskey> keysToKeep;
+        if(mvtx1Keys.size() >= mvtx2Keys.size())
         {
-          mvtx1Keys.insert(key);
+          keysToKeep = mvtx1Keys;
+          if(track1Strobe == track2Strobe && m_mergeSeeds)
+        {
+          keysToKeep.insert(mvtx2Keys.begin(), mvtx2Keys.end());
+        }
+          matches.insert(std::make_pair(track1ID, mvtx1Keys));
+          seedsToDelete.insert(track2ID);
+          if(Verbosity() > 2)
+          {
+            std::cout << "     will delete seed " << track2ID << std::endl;
+          }
+        }
+        else
+        {
+          keysToKeep = mvtx2Keys;
+          if (track1Strobe == track2Strobe && m_mergeSeeds)
+          {
+            keysToKeep.insert(mvtx1Keys.begin(), mvtx1Keys.end());
+          }
+          matches.insert(std::make_pair(track2ID, mvtx2Keys));
+          seedsToDelete.insert(track1ID);
+          if(Verbosity() > 2)
+          {
+            std::cout << "     will delete seed " << track1ID << std::endl;
+          }
         }
 
         if (Verbosity() > 2)
@@ -179,7 +210,9 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
       {
         track->insert_cluster_key(key);
         if (Verbosity() > 2)
+        {
           std::cout << "adding " << key << std::endl;
+        }
       }
     }
   }
@@ -197,7 +230,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
   {
     for (const auto& seed : *m_siliconTracks)
     {
-      if (!seed) continue;
+      if (!seed){ continue; }
       seed->identify();
     }
   }
