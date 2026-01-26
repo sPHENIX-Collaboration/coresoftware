@@ -14,8 +14,6 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
-#include <phool/PHCompositeNode.h>
-
 //____________________________________________________________________________..
 PHSiliconSeedMerger::PHSiliconSeedMerger(const std::string& name)
   : SubsysReco(name)
@@ -23,12 +21,10 @@ PHSiliconSeedMerger::PHSiliconSeedMerger(const std::string& name)
 }
 
 //____________________________________________________________________________..
-PHSiliconSeedMerger::~PHSiliconSeedMerger()
-{
-}
+PHSiliconSeedMerger::~PHSiliconSeedMerger() = default;
 
 //____________________________________________________________________________..
-int PHSiliconSeedMerger::Init(PHCompositeNode*)
+int PHSiliconSeedMerger::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -41,7 +37,7 @@ int PHSiliconSeedMerger::InitRun(PHCompositeNode* topNode)
 }
 
 //____________________________________________________________________________..
-int PHSiliconSeedMerger::process_event(PHCompositeNode*)
+int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
 {
   std::multimap<unsigned int, std::set<TrkrDefs::cluskey>> matches;
   std::set<unsigned int> seedsToDelete;
@@ -57,7 +53,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
   {
     TrackSeed* track1 = m_siliconTracks->get(track1ID);
 
-    if (seedsToDelete.find(track1ID) != seedsToDelete.end())
+    if (seedsToDelete.contains(track1ID))
     {
       continue;
     }
@@ -74,9 +70,9 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
       {
         continue;
       }
-      if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
+      if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
       {
-      track1Strobe = MvtxDefs::getStrobeId(ckey);
+        track1Strobe = MvtxDefs::getStrobeId(ckey);
       }
       mvtx1Keys.insert(ckey);
     }
@@ -113,9 +109,9 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
           continue;
         }
         mvtx2Keys.insert(ckey);
-        if(TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
+        if (TrkrDefs::getTrkrId(ckey) == TrkrDefs::TrkrId::mvtxId)
         {
-        track2Strobe = MvtxDefs::getStrobeId(ckey);
+          track2Strobe = MvtxDefs::getStrobeId(ckey);
         }
       }
 
@@ -132,12 +128,12 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
         if (Verbosity() > 2)
         {
           std::cout << "Track " << track1ID << " keys " << std::endl;
-          for (auto& key : mvtx1Keys)
+          for (const auto& key : mvtx1Keys)
           {
             std::cout << "   ckey: " << key << std::endl;
           }
           std::cout << "Track " << track2ID << " keys " << std::endl;
-          for (auto& key : mvtx2Keys)
+          for (const auto& key : mvtx2Keys)
           {
             std::cout << "   ckey: " << key << std::endl;
           }
@@ -150,16 +146,16 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
 
         /// one of the tracks is encompassed in the other. Take the larger one
         std::set<TrkrDefs::cluskey> keysToKeep;
-        if(mvtx1Keys.size() >= mvtx2Keys.size())
+        if (mvtx1Keys.size() >= mvtx2Keys.size())
         {
           keysToKeep = mvtx1Keys;
-          if(track1Strobe == track2Strobe && m_mergeSeeds)
-        {
-          keysToKeep.insert(mvtx2Keys.begin(), mvtx2Keys.end());
-        }
+          if (track1Strobe == track2Strobe && m_mergeSeeds)
+          {
+            keysToKeep.insert(mvtx2Keys.begin(), mvtx2Keys.end());
+          }
           matches.insert(std::make_pair(track1ID, mvtx1Keys));
           seedsToDelete.insert(track2ID);
-          if(Verbosity() > 2)
+          if (Verbosity() > 2)
           {
             std::cout << "     will delete seed " << track2ID << std::endl;
           }
@@ -173,7 +169,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
           }
           matches.insert(std::make_pair(track2ID, mvtx2Keys));
           seedsToDelete.insert(track1ID);
-          if(Verbosity() > 2)
+          if (Verbosity() > 2)
           {
             std::cout << "     will delete seed " << track1ID << std::endl;
           }
@@ -182,7 +178,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
         if (Verbosity() > 2)
         {
           std::cout << "Match IDed" << std::endl;
-          for (auto& key : mvtx1Keys)
+          for (const auto& key : mvtx1Keys)
           {
             std::cout << "  total track keys " << key << std::endl;
           }
@@ -197,14 +193,14 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
 
   for (const auto& [trackKey, mvtxKeys] : matches)
   {
-    auto track = m_siliconTracks->get(trackKey);
+    auto* track = m_siliconTracks->get(trackKey);
     if (Verbosity() > 2)
     {
       std::cout << "original track: " << std::endl;
       track->identify();
     }
 
-    for (auto& key : mvtxKeys)
+    for (const auto& key : mvtxKeys)
     {
       if (track->find_cluster_key(key) == track->end_cluster_keys())
       {
@@ -230,7 +226,10 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
   {
     for (const auto& seed : *m_siliconTracks)
     {
-      if (!seed){ continue; }
+      if (!seed)
+      {
+        continue;
+      }
       seed->identify();
     }
   }
@@ -239,20 +238,20 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode*)
 }
 
 //____________________________________________________________________________..
-int PHSiliconSeedMerger::ResetEvent(PHCompositeNode*)
+int PHSiliconSeedMerger::ResetEvent(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int PHSiliconSeedMerger::End(PHCompositeNode*)
+int PHSiliconSeedMerger::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHSiliconSeedMerger::getNodes(PHCompositeNode* topNode)
 {
-  m_siliconTracks = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName.c_str());
+  m_siliconTracks = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
   if (!m_siliconTracks)
   {
     std::cout << PHWHERE << "No silicon track container, can't merge seeds"
