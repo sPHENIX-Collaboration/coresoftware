@@ -37,9 +37,9 @@ void trackMapName(const std::string &name) { m_trackMapName = name; }
  */
 void clusterOverlap(const unsigned int nclusters) { m_clusterOverlap = nclusters; }
   /**
- * @brief Allow seed searches to include the INTT detector.
+ * @brief Allow merging searches to include the INTT detector.
  *
- * Configure the merger to include INTT seeds in subsequent processing by disabling the MVTX-only restriction.
+ * Configure the merger to include INTT clusters in subsequent processing by disabling the MVTX-only restriction.
  */
 void searchIntt() { m_mvtxOnly = false; }
   /**
@@ -66,8 +66,8 @@ unsigned int m_clusterOverlap{1};
  * Restrict seed processing to the MVTX detector only.
  *
  * When set to `true`, operations that iterate or merge silicon seed tracks
- * will be limited to seeds originating from the MVTX vertex detector.
- * When `false`, seeds from other silicon detectors are included.
+ * will be limited to clusters originating from the MVTX vertex detector.
+ * When `false`, clusters from other silicon detectors are included.
  */
 bool m_mvtxOnly{false};
 };
