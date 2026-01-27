@@ -145,8 +145,10 @@ MbdSig::~MbdSig()
   delete hAmpl;
   delete hTime;
   delete template_fcn;
+  delete twotemplate_fcn;
   delete ped_fcn;
   delete ped_tail;
+  delete h_chi2ndf;
 }
 
 void MbdSig::SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps, const int max_samp)
@@ -1167,10 +1169,14 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   // Get x and y of maximum
   Double_t x_at_max{-1.};
   Double_t ymax{0.};
-  if ( sampmax>=0 )
+  if ( sampmax>0 )
   {
     for (int isamp=sampmax-1; isamp<=sampmax+1; isamp++)
     {
+      if ( (isamp>=gSubPulse->GetN()) )
+      {
+        continue;
+      }
       double adcval = gSubPulse->GetPointY(isamp);
       if ( adcval>ymax )
       {

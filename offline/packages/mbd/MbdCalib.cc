@@ -1683,7 +1683,7 @@ int MbdCalib::Write_CDB_Status(const std::string& dbfile)
 
     if (ifeech < 12 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
     {
-      std::cout << ifeech << "\t" << std::hex << cdbttree->GetIntValue(ifeech, "status") << std::dec << std::endl;
+      std::cout << ifeech << "\t" << cdbttree->GetIntValue(ifeech, "status") << std::endl;
     }
   }
 
@@ -1704,7 +1704,7 @@ int MbdCalib::Write_Status(const std::string& dbfile)
   cal_file.open(dbfile);
   for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
   {
-    cal_file << ifeech << "\t0x" << std::hex << _mbdstatus[ifeech] << std::dec << std::endl;
+    cal_file << ifeech << "\t" << _mbdstatus[ifeech] << std::endl;
   }
   cal_file.close();
 
