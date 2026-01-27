@@ -1,4 +1,3 @@
-
 #include "PHSiliconSeedMerger.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -14,29 +13,66 @@
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 
-//____________________________________________________________________________..
+/**
+ * @brief Construct a PHSiliconSeedMerger with the given subsystem name.
+ *
+ * Initializes the PHSiliconSeedMerger and forwards the provided subsystem
+ * name to the base SubsysReco constructor.
+ *
+ * @param name Subsystem name used to register this module in the node tree.
+ */
 PHSiliconSeedMerger::PHSiliconSeedMerger(const std::string& name)
   : SubsysReco(name)
 {
 }
 
-//____________________________________________________________________________..
+/**
+ * @brief Default destructor for PHSiliconSeedMerger.
+ *
+ * Performs default cleanup of the merger object and its owned resources.
+ */
 PHSiliconSeedMerger::~PHSiliconSeedMerger() = default;
 
-//____________________________________________________________________________..
+/**
+ * @brief Perform module initialization (no operation required).
+ *
+ * This implementation does not perform any setup and always succeeds.
+ *
+ * @return int `EVENT_OK` indicating initialization succeeded.
+ */
 int PHSiliconSeedMerger::Init(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//____________________________________________________________________________..
+/**
+ * @brief Initializes run-time resources by retrieving required nodes.
+ *
+ * Calls getNodes(topNode) to locate and cache containers needed for processing this run.
+ *
+ * @param topNode Root of the node tree from which required nodes are retrieved.
+ * @return int `EVENT_OK` on success, `ABORTEVENT` or another non-zero code on failure.
+ */
 int PHSiliconSeedMerger::InitRun(PHCompositeNode* topNode)
 {
   int ret = getNodes(topNode);
   return ret;
 }
 
-//____________________________________________________________________________..
+/**
+ * @brief Merge overlapping silicon seed tracks by consolidating MVTX cluster keys.
+ *
+ * Detects seeds whose MVTX cluster key sets fully overlap (one set equals the
+ * intersection) and treats one seed as a duplicate of the other. The merger
+ * preserves the seed with the larger MVTX key set; if both seeds share the
+ * same MVTX strobe and seed merging is enabled, the smaller seed's MVTX keys
+ * are merged into the preserved seed. After consolidation, duplicate seeds are
+ * erased from the silicon track container and preserved seeds are updated to
+ * include any newly merged MVTX cluster keys.
+ *
+ * @return Fun4AllReturnCodes::EVENT_OK on successful processing.
+ *
+ */
 int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
 {
   std::multimap<unsigned int, std::set<TrkrDefs::cluskey>> matches;
@@ -237,18 +273,38 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//____________________________________________________________________________..
+/**
+ * @brief Reset per-event state for the merger.
+ *
+ * This implementation performs no per-event cleanup and always reports success.
+ *
+ * @return Integer status code: `Fun4AllReturnCodes::EVENT_OK`.
+ */
 int PHSiliconSeedMerger::ResetEvent(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//____________________________________________________________________________..
+/**
+ * @brief Perform end-of-run shutdown for the silicon seed merger.
+ *
+ * @return int EVENT_OK on successful completion.
+ */
 int PHSiliconSeedMerger::End(PHCompositeNode* /*unused*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+/**
+ * @brief Retrieve required nodes from the top-level node tree and validate availability.
+ *
+ * Locates the silicon TrackSeedContainer using m_trackMapName and stores it in
+ * m_siliconTracks. If the container is not found, the function logs an error
+ * message and signals an abort for the current event.
+ *
+ * @param topNode Root node used to search for the TrackSeedContainer.
+ * @return int Fun4AllReturnCodes::EVENT_OK on success, Fun4AllReturnCodes::ABORTEVENT if the silicon TrackSeedContainer is not present.
+ */
 int PHSiliconSeedMerger::getNodes(PHCompositeNode* topNode)
 {
   m_siliconTracks = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
@@ -261,3 +317,5 @@ int PHSiliconSeedMerger::getNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+
