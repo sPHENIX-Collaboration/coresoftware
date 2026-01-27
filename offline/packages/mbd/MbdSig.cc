@@ -1296,10 +1296,10 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     //PadUpdate();
  
     // Get fit parameters
-    f_ampl = template_fcn->GetParameter(0);
-    f_time = template_fcn->GetParameter(1);
-    f_chi2 = template_fcn->GetChisquare();
-    f_ndf = template_fcn->GetNDF();
+    f_ampl = twotemplate_fcn->GetParameter(0);
+    f_time = twotemplate_fcn->GetParameter(1);
+    f_chi2 = twotemplate_fcn->GetChisquare();
+    f_ndf = twotemplate_fcn->GetNDF();
 
     // Good fit
     if ( (f_chi2/f_ndf) < 5. && f_ndf>6. )

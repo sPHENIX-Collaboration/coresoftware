@@ -35,6 +35,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <format>
 
 MbdEvent::MbdEvent(const int cal_pass, const bool proc_charge) :
   _nsamples(MbdDefs::MAX_SAMPLES),
@@ -366,8 +367,9 @@ int MbdEvent::End()
   {
     TDirectory *orig_dir = gDirectory;
 
-    TString savefname = "mbdeval_"; savefname += _runnum; savefname += ".root";
-    _evalfile = std::make_unique<TFile>(savefname,"RECREATE");
+    // _doeval is overloaded with segment_number+1
+    std::string savefname = std::format("mbdfiteval_{:08}-{:05}.root",_runnum,_doeval-1);
+    _evalfile = std::make_unique<TFile>(savefname.c_str(),"RECREATE");
 
     for (auto & sig : _mbdsig)
     {

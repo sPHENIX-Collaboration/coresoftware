@@ -65,6 +65,7 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
   m_mbdevent->SetSim(_simflag);
   m_mbdevent->SetRawDstFlag(_rawdstflag);
   m_mbdevent->SetFitsOnly(_fitsonly);
+  m_mbdevent->set_doeval(_fiteval);
   m_mbdevent->InitRun();
 
   return ret;

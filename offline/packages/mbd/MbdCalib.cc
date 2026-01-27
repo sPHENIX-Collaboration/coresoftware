@@ -739,6 +739,12 @@ int MbdCalib::Download_Status(const std::string& dbase_location)
     int feech = -1;
     while (infile >> feech)
     {
+      if (feech < 0 || feech >= MbdDefs::MBD_N_FEECH)
+      {
+        std::cout << "ERROR, invalid FEECH " << feech << " in MBD status calibration" << std::endl;
+        _status = -4;
+        return _status;
+      }
       infile >> _mbdstatus[feech];
       if (Verbosity() > 0)
       {
@@ -750,7 +756,7 @@ int MbdCalib::Download_Status(const std::string& dbase_location)
     }
     infile.close();
   }
-  
+
 
   if ( _mbdstatus[0] == -1 )
   {
