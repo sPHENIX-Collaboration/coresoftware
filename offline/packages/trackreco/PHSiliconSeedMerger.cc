@@ -317,3 +317,4 @@ int PHSiliconSeedMerger::getNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
