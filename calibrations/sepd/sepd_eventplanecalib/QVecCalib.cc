@@ -305,10 +305,6 @@ void QVecCalib::process_bad_channels(TFile* file)
 
 void QVecCalib::init_hists()
 {
-  unsigned int bins_Q = 100;
-  double Q_low = -1;
-  double Q_high = 1;
-
   unsigned int bins_psi = 126;
   double psi_low = -std::numbers::pi;
   double psi_high = std::numbers::pi;
@@ -328,39 +324,23 @@ void QVecCalib::init_hists()
   // n = 2, 3, 4, etc.
   for (int n : m_harmonics)
   {
-    std::string psi_hist_name = std::format("h3_sEPD_Psi_{}", n);
-    std::string psi_hist_title = std::format("sEPD #Psi (Order {0}): |z| < 10 cm and MB; {0}#Psi^{{S}}_{{{0}}}; {0}#Psi^{{N}}_{{{0}}}; Centrality [%]", n);
+    std::string name_S = std::format("h2_sEPD_Psi_S_{}{}", n, pass_suffix);
+    std::string name_N = std::format("h2_sEPD_Psi_N_{}{}", n, pass_suffix);
+    std::string name_NS = std::format("h2_sEPD_Psi_NS_{}{}", n, pass_suffix);
 
-    if (m_pass == Pass::ComputeRecentering)
-    {
-      psi_hist_name = std::format("h3_sEPD_Psi_{}", n);
-    }
+    std::string title_S = std::format("sEPD South #Psi (Order {0}); Centrality [%]; {0}#Psi^{{S}}_{{{0}}}", n);
+    std::string title_N = std::format("sEPD North #Psi (Order {0}); Centrality [%]; {0}#Psi^{{N}}_{{{0}}}", n);
+    std::string title_NS = std::format("sEPD North South #Psi (Order {0}); Centrality [%]; {0}#Psi^{{NS}}_{{{0}}}", n);
 
-    if (m_pass == Pass::ApplyRecentering)
-    {
-      psi_hist_name = std::format("h3_sEPD_Psi_{}_corr", n);
-    }
-
-    if (m_pass == Pass::ApplyFlattening)
-    {
-      psi_hist_name = std::format("h3_sEPD_Psi_{}_corr2", n);
-    }
-
-    m_hists3D[psi_hist_name] = std::make_unique<TH3F>(psi_hist_name.c_str(), psi_hist_title.c_str(), bins_psi, psi_low, psi_high, bins_psi, psi_low, psi_high, m_cent_bins, m_cent_low, m_cent_high);
+    m_hists2D[name_S] = std::make_unique<TH2F>(name_S.c_str(), title_S.c_str(), m_cent_bins, m_cent_low, m_cent_high, bins_psi, psi_low, psi_high);
+    m_hists2D[name_N] = std::make_unique<TH2F>(name_N.c_str(), title_N.c_str(), m_cent_bins, m_cent_low, m_cent_high, bins_psi, psi_low, psi_high);
+    m_hists2D[name_NS] = std::make_unique<TH2F>(name_NS.c_str(), title_NS.c_str(), m_cent_bins, m_cent_low, m_cent_high, bins_psi, psi_low, psi_high);
 
     // South, North
     for (auto det : m_subdetectors)
     {
       std::string det_str = (det == QVecShared::Subdetector::S) ? "S" : "N";
       std::string det_name = (det == QVecShared::Subdetector::S) ? "South" : "North";
-
-      if (m_pass == Pass::ComputeRecentering)
-      {
-        std::string q_hist_name = std::format("h3_sEPD_Q_{}_{}", det_str, n);
-        std::string q_hist_title = std::format("sEPD {} Q (Order {}): |z| < 10 cm and MB; Q_{{x}}; Q_{{y}}; Centrality [%]", det_name, n);
-        m_hists3D[q_hist_name] = std::make_unique<TH3F>(q_hist_name.c_str(), q_hist_title.c_str(),
-                                                        bins_Q, Q_low, Q_high, bins_Q, Q_low, Q_high, m_cent_bins, m_cent_low, m_cent_high);
-      }
 
       std::string q_avg_sq_cross_name;
       std::string q_avg_sq_cross_title = std::format("sEPD {0}; Centrality [%]; <Q_{{{1},x}} Q_{{{1},y}}>", det_name, n);
@@ -418,6 +398,31 @@ void QVecCalib::init_hists()
         }
       }
     }
+
+    // Init for Combined NS Histograms
+    if (m_pass == Pass::ApplyRecentering || m_pass == Pass::ApplyFlattening)
+    {
+      std::string det_str = "NS";
+
+      // Initialize 2nd Moment Profiles for NS (needed to compute flattening)
+      for (const auto* comp : {"xx", "yy", "xy"})
+      {
+        std::string name = QVecShared::get_hist_name(det_str, comp, n);
+        std::string title = std::format("sEPD NS; Centrality [%]; <Q_{{{},{}}}>", n, comp);
+        m_profiles[name] = std::make_unique<TProfile>(name.c_str(), title.c_str(), m_cent_bins, m_cent_low, m_cent_high);
+      }
+
+      // Initialize Validation Profiles (Flattened NS)
+      if (m_pass == Pass::ApplyFlattening)
+      {
+        for (const auto* comp : {"xx", "yy", "xy"})
+        {
+            std::string name = QVecShared::get_hist_name(det_str, comp, n, "_corr");
+            std::string title = std::format("sEPD NS Corrected; Centrality [%]; <Q_{{{},{}}}^{{2}}>", n, comp);
+            m_profiles[name] = std::make_unique<TProfile>(name.c_str(), title.c_str(), m_cent_bins, m_cent_low, m_cent_high);
+        }
+      }
+    }
   }
 }
 
@@ -425,15 +430,16 @@ void QVecCalib::process_averages(double cent, QVecShared::QVec q_S, QVecShared::
 {
   double psi_S = std::atan2(q_S.y, q_S.x);
   double psi_N = std::atan2(q_N.y, q_N.x);
+  double psi_NS = std::atan2(q_S.y + q_N.y, q_S.x + q_N.x);
 
   h.S_x_avg->Fill(cent, q_S.x);
   h.S_y_avg->Fill(cent, q_S.y);
   h.N_x_avg->Fill(cent, q_N.x);
   h.N_y_avg->Fill(cent, q_N.y);
 
-  h.Q_S->Fill(q_S.x, q_S.y, cent);
-  h.Q_N->Fill(q_N.x, q_N.y, cent);
-  h.Psi->Fill(psi_S, psi_N, cent);
+  h.Psi_S->Fill(cent, psi_S);
+  h.Psi_N->Fill(cent, psi_N);
+  h.Psi_NS->Fill(cent, psi_NS);
 }
 
 void QVecCalib::process_recentering(double cent, size_t h_idx, QVecShared::QVec q_S, QVecShared::QVec q_N, const RecenterHists& h)
@@ -448,8 +454,13 @@ void QVecCalib::process_recentering(double cent, size_t h_idx, QVecShared::QVec 
   QVecShared::QVec q_S_corr = {q_S.x - Q_S_x_avg, q_S.y - Q_S_y_avg};
   QVecShared::QVec q_N_corr = {q_N.x - Q_N_x_avg, q_N.y - Q_N_y_avg};
 
+  //  Construct Combined Recentered Vector
+  //  We use the sum of the individually recentered vectors
+  QVecShared::QVec q_NS_corr = {q_S_corr.x + q_N_corr.x, q_S_corr.y + q_N_corr.y};
+
   double psi_S_corr = std::atan2(q_S_corr.y, q_S_corr.x);
   double psi_N_corr = std::atan2(q_N_corr.y, q_N_corr.x);
+  double psi_NS_corr = std::atan2(q_NS_corr.y, q_NS_corr.x);
 
   h.S_x_corr_avg->Fill(cent, q_S_corr.x);
   h.S_y_corr_avg->Fill(cent, q_S_corr.y);
@@ -463,7 +474,13 @@ void QVecCalib::process_recentering(double cent, size_t h_idx, QVecShared::QVec 
   h.N_yy_avg->Fill(cent, q_N_corr.y * q_N_corr.y);
   h.N_xy_avg->Fill(cent, q_N_corr.x * q_N_corr.y);
 
-  h.Psi_corr->Fill(psi_S_corr, psi_N_corr, cent);
+  h.NS_xx_avg->Fill(cent, q_NS_corr.x * q_NS_corr.x);
+  h.NS_yy_avg->Fill(cent, q_NS_corr.y * q_NS_corr.y);
+  h.NS_xy_avg->Fill(cent, q_NS_corr.x * q_NS_corr.y);
+
+  h.Psi_S_corr->Fill(cent, psi_S_corr);
+  h.Psi_N_corr->Fill(cent, psi_N_corr);
+  h.Psi_NS_corr->Fill(cent, psi_NS_corr);
 }
 
 void QVecCalib::process_flattening(double cent, size_t h_idx, QVecShared::QVec q_S, QVecShared::QVec q_N, const FlatteningHists& h)
@@ -478,19 +495,28 @@ void QVecCalib::process_flattening(double cent, size_t h_idx, QVecShared::QVec q
   QVecShared::QVec q_S_corr = {q_S.x - Q_S_x_avg, q_S.y - Q_S_y_avg};
   QVecShared::QVec q_N_corr = {q_N.x - Q_N_x_avg, q_N.y - Q_N_y_avg};
 
+  // Construct Combined Recentered Vector
+  QVecShared::QVec q_NS_corr = {q_S_corr.x + q_N_corr.x, q_S_corr.y + q_N_corr.y};
+
   const auto& X_S = m_correction_data[cent_bin][h_idx][0].X_matrix;
   const auto& X_N = m_correction_data[cent_bin][h_idx][1].X_matrix;
+  const auto& X_NS = m_correction_data[cent_bin][h_idx][IDX_NS].X_matrix;
 
   double Q_S_x_corr2 = X_S[0][0] * q_S_corr.x + X_S[0][1] * q_S_corr.y;
   double Q_S_y_corr2 = X_S[1][0] * q_S_corr.x + X_S[1][1] * q_S_corr.y;
   double Q_N_x_corr2 = X_N[0][0] * q_N_corr.x + X_N[0][1] * q_N_corr.y;
   double Q_N_y_corr2 = X_N[1][0] * q_N_corr.x + X_N[1][1] * q_N_corr.y;
 
+  double Q_NS_x_corr2 = X_NS[0][0] * q_NS_corr.x + X_NS[0][1] * q_NS_corr.y;
+  double Q_NS_y_corr2 = X_NS[1][0] * q_NS_corr.x + X_NS[1][1] * q_NS_corr.y;
+
   QVecShared::QVec q_S_corr2 = {Q_S_x_corr2, Q_S_y_corr2};
   QVecShared::QVec q_N_corr2 = {Q_N_x_corr2, Q_N_y_corr2};
+  QVecShared::QVec q_NS_corr2 = {Q_NS_x_corr2, Q_NS_y_corr2};
 
   double psi_S = std::atan2(q_S_corr2.y, q_S_corr2.x);
   double psi_N = std::atan2(q_N_corr2.y, q_N_corr2.x);
+  double psi_NS = std::atan2(q_NS_corr2.y, q_NS_corr2.x);
 
   h.S_x_corr2_avg->Fill(cent, q_S_corr2.x);
   h.S_y_corr2_avg->Fill(cent, q_S_corr2.y);
@@ -504,7 +530,13 @@ void QVecCalib::process_flattening(double cent, size_t h_idx, QVecShared::QVec q
   h.N_yy_corr_avg->Fill(cent, q_N_corr2.y * q_N_corr2.y);
   h.N_xy_corr_avg->Fill(cent, q_N_corr2.x * q_N_corr2.y);
 
-  h.Psi_corr2->Fill(psi_S, psi_N, cent);
+  h.NS_xx_corr_avg->Fill(cent, q_NS_corr2.x * q_NS_corr2.x);
+  h.NS_yy_corr_avg->Fill(cent, q_NS_corr2.y * q_NS_corr2.y);
+  h.NS_xy_corr_avg->Fill(cent, q_NS_corr2.x * q_NS_corr2.y);
+
+  h.Psi_S_corr2->Fill(cent, psi_S);
+  h.Psi_N_corr2->Fill(cent, psi_N);
+  h.Psi_NS_corr2->Fill(cent, psi_NS);
 }
 
 void QVecCalib::compute_averages(size_t cent_bin, int h_idx)
@@ -598,12 +630,16 @@ void QVecCalib::compute_recentering(size_t cent_bin, int h_idx)
   double Q_N_yy_avg = m_profiles[N_yy_avg_name]->GetBinContent(bin);
   double Q_N_xy_avg = m_profiles[N_xy_avg_name]->GetBinContent(bin);
 
-  m_correction_data[cent_bin][h_idx][0].avg_Q_xx = Q_S_xx_avg;
-  m_correction_data[cent_bin][h_idx][0].avg_Q_yy = Q_S_yy_avg;
-  m_correction_data[cent_bin][h_idx][0].avg_Q_xy = Q_S_xy_avg;
-  m_correction_data[cent_bin][h_idx][1].avg_Q_xx = Q_N_xx_avg;
-  m_correction_data[cent_bin][h_idx][1].avg_Q_yy = Q_N_yy_avg;
-  m_correction_data[cent_bin][h_idx][1].avg_Q_xy = Q_N_xy_avg;
+  // -- Compute NS Matrix --
+  std::string NS_xx_avg_name = QVecShared::get_hist_name("NS", "xx", n);
+  std::string NS_yy_avg_name = QVecShared::get_hist_name("NS", "yy", n);
+  std::string NS_xy_avg_name = QVecShared::get_hist_name("NS", "xy", n);
+
+  double Q_NS_xx_avg = m_profiles[NS_xx_avg_name]->GetBinContent(bin);
+  double Q_NS_yy_avg = m_profiles[NS_yy_avg_name]->GetBinContent(bin);
+  double Q_NS_xy_avg = m_profiles[NS_xy_avg_name]->GetBinContent(bin);
+
+  m_correction_data[cent_bin][h_idx][IDX_NS].X_matrix = calculate_flattening_matrix(Q_NS_xx_avg, Q_NS_yy_avg, Q_NS_xy_avg, n, cent_bin, "NS");
 
   for (size_t det_idx = 0; det_idx < 2; ++det_idx)
   {
@@ -625,8 +661,10 @@ void QVecCalib::compute_recentering(size_t cent_bin, int h_idx)
       "Q_N_y_corr_avg: {:13.10f}, "
       "Q_S_xx_avg / Q_S_yy_avg: {:13.10f}, "
       "Q_N_xx_avg / Q_N_yy_avg: {:13.10f}, "
+      "Q_NS_xx_avg / Q_NS_yy_avg: {:13.10f}, "
       "Q_S_xy_avg: {:13.10f}, "
-      "Q_N_xy_avg: {:13.10f}\n",
+      "Q_N_xy_avg: {:13.10f}, "
+      "Q_NS_xy_avg: {:13.10f}\n",
       cent_bin,
       n,
       Q_S_x_corr_avg,
@@ -635,8 +673,10 @@ void QVecCalib::compute_recentering(size_t cent_bin, int h_idx)
       Q_N_y_corr_avg,
       Q_S_xx_avg / Q_S_yy_avg,
       Q_N_xx_avg / Q_N_yy_avg,
+      Q_NS_xx_avg / Q_NS_yy_avg,
       Q_S_xy_avg,
-      Q_N_xy_avg);
+      Q_N_xy_avg,
+      Q_NS_xy_avg);
 }
 
 void QVecCalib::print_flattening(size_t cent_bin, int n) const
@@ -653,6 +693,10 @@ void QVecCalib::print_flattening(size_t cent_bin, int n) const
   std::string N_yy_corr_avg_name = QVecShared::get_hist_name("N", "yy", n, "_corr");
   std::string N_xy_corr_avg_name = QVecShared::get_hist_name("N", "xy", n, "_corr");
 
+  std::string NS_xx_corr_avg_name = QVecShared::get_hist_name("NS", "xx", n, "_corr");
+  std::string NS_yy_corr_avg_name = QVecShared::get_hist_name("NS", "yy", n, "_corr");
+  std::string NS_xy_corr_avg_name = QVecShared::get_hist_name("NS", "xy", n, "_corr");
+
   int bin = static_cast<int>(cent_bin + 1);
 
   double Q_S_x_corr2_avg = m_profiles.at(S_x_corr2_avg_name)->GetBinContent(bin);
@@ -667,6 +711,10 @@ void QVecCalib::print_flattening(size_t cent_bin, int n) const
   double Q_N_yy_corr_avg = m_profiles.at(N_yy_corr_avg_name)->GetBinContent(bin);
   double Q_N_xy_corr_avg = m_profiles.at(N_xy_corr_avg_name)->GetBinContent(bin);
 
+  double Q_NS_xx_corr_avg = m_profiles.at(NS_xx_corr_avg_name)->GetBinContent(bin);
+  double Q_NS_yy_corr_avg = m_profiles.at(NS_yy_corr_avg_name)->GetBinContent(bin);
+  double Q_NS_xy_corr_avg = m_profiles.at(NS_xy_corr_avg_name)->GetBinContent(bin);
+
   std::cout << std::format(
       "Centrality Bin: {}, "
       "Harmonic: {}, "
@@ -676,8 +724,10 @@ void QVecCalib::print_flattening(size_t cent_bin, int n) const
       "Q_N_y_corr2_avg: {:13.10f}, "
       "Q_S_xx_corr_avg / Q_S_yy_corr_avg: {:13.10f}, "
       "Q_N_xx_corr_avg / Q_N_yy_corr_avg: {:13.10f}, "
+      "Q_NS_xx_corr_avg / Q_NS_yy_corr_avg: {:13.10f}, "
       "Q_S_xy_corr_avg: {:13.10f}, "
-      "Q_N_xy_corr_avg: {:13.10f}\n",
+      "Q_N_xy_corr_avg: {:13.10f}, "
+      "Q_NS_xy_corr_avg: {:13.10f}\n",
       cent_bin,
       n,
       Q_S_x_corr2_avg,
@@ -686,8 +736,10 @@ void QVecCalib::print_flattening(size_t cent_bin, int n) const
       Q_N_y_corr2_avg,
       Q_S_xx_corr_avg / Q_S_yy_corr_avg,
       Q_N_xx_corr_avg / Q_N_yy_corr_avg,
+      Q_NS_xx_corr_avg / Q_NS_yy_corr_avg,
       Q_S_xy_corr_avg,
-      Q_N_xy_corr_avg);
+      Q_N_xy_corr_avg,
+      Q_NS_xy_corr_avg);
 }
 
 std::vector<QVecCalib::AverageHists> QVecCalib::prepare_average_hists()
@@ -701,9 +753,9 @@ std::vector<QVecCalib::AverageHists> QVecCalib::prepare_average_hists()
     std::string N_x_avg_name = QVecShared::get_hist_name("N", "x", n);
     std::string N_y_avg_name = QVecShared::get_hist_name("N", "y", n);
 
-    std::string hist_Q_S_name = std::format("h3_sEPD_Q_S_{}", n);
-    std::string hist_Q_N_name = std::format("h3_sEPD_Q_N_{}", n);
-    std::string psi_Q_name = std::format("h3_sEPD_Psi_{}", n);
+    std::string psi_S_name = std::format("h2_sEPD_Psi_S_{}", n);
+    std::string psi_N_name = std::format("h2_sEPD_Psi_N_{}", n);
+    std::string psi_NS_name = std::format("h2_sEPD_Psi_NS_{}", n);
 
     AverageHists h;
 
@@ -712,10 +764,9 @@ std::vector<QVecCalib::AverageHists> QVecCalib::prepare_average_hists()
     h.N_x_avg = m_profiles.at(N_x_avg_name).get();
     h.N_y_avg = m_profiles.at(N_y_avg_name).get();
 
-    h.Q_S = m_hists3D.at(hist_Q_S_name).get();
-    h.Q_N = m_hists3D.at(hist_Q_N_name).get();
-
-    h.Psi = m_hists3D.at(psi_Q_name).get();
+    h.Psi_S = m_hists2D.at(psi_S_name).get();
+    h.Psi_N = m_hists2D.at(psi_N_name).get();
+    h.Psi_NS = m_hists2D.at(psi_NS_name).get();
 
     hists_cache.push_back(h);
   }
@@ -800,7 +851,13 @@ std::vector<QVecCalib::RecenterHists> QVecCalib::prepare_recenter_hists()
     std::string N_yy_avg_name = QVecShared::get_hist_name("N", "yy", n);
     std::string N_xy_avg_name = QVecShared::get_hist_name("N", "xy", n);
 
-    std::string psi_Q_corr_name = std::format("h3_sEPD_Psi_{}_corr", n);
+    std::string NS_xx_avg_name = QVecShared::get_hist_name("NS", "xx", n);
+    std::string NS_yy_avg_name = QVecShared::get_hist_name("NS", "yy", n);
+    std::string NS_xy_avg_name = QVecShared::get_hist_name("NS", "xy", n);
+
+    std::string psi_S_name = std::format("h2_sEPD_Psi_S_{}_corr", n);
+    std::string psi_N_name = std::format("h2_sEPD_Psi_N_{}_corr", n);
+    std::string psi_NS_name = std::format("h2_sEPD_Psi_NS_{}_corr", n);
 
     RecenterHists h;
 
@@ -816,7 +873,13 @@ std::vector<QVecCalib::RecenterHists> QVecCalib::prepare_recenter_hists()
     h.N_yy_avg = m_profiles.at(N_yy_avg_name).get();
     h.N_xy_avg = m_profiles.at(N_xy_avg_name).get();
 
-    h.Psi_corr = m_hists3D.at(psi_Q_corr_name).get();
+    h.NS_xx_avg = m_profiles.at(NS_xx_avg_name).get();
+    h.NS_yy_avg = m_profiles.at(NS_yy_avg_name).get();
+    h.NS_xy_avg = m_profiles.at(NS_xy_avg_name).get();
+
+    h.Psi_S_corr = m_hists2D.at(psi_S_name).get();
+    h.Psi_N_corr = m_hists2D.at(psi_N_name).get();
+    h.Psi_NS_corr = m_hists2D.at(psi_NS_name).get();
 
     hists_cache.push_back(h);
   }
@@ -842,7 +905,13 @@ std::vector<QVecCalib::FlatteningHists> QVecCalib::prepare_flattening_hists()
     std::string N_yy_corr_avg_name = QVecShared::get_hist_name("N", "yy", n, "_corr");
     std::string N_xy_corr_avg_name = QVecShared::get_hist_name("N", "xy", n, "_corr");
 
-    std::string psi_Q_corr2_name = std::format("h3_sEPD_Psi_{}_corr2", n);
+    std::string NS_xx_corr_avg_name = QVecShared::get_hist_name("NS", "xx", n, "_corr");
+    std::string NS_yy_corr_avg_name = QVecShared::get_hist_name("NS", "yy", n, "_corr");
+    std::string NS_xy_corr_avg_name = QVecShared::get_hist_name("NS", "xy", n, "_corr");
+
+    std::string psi_S_name = std::format("h2_sEPD_Psi_S_{}_corr2", n);
+    std::string psi_N_name = std::format("h2_sEPD_Psi_N_{}_corr2", n);
+    std::string psi_NS_name = std::format("h2_sEPD_Psi_NS_{}_corr2", n);
 
     FlatteningHists h;
 
@@ -859,7 +928,13 @@ std::vector<QVecCalib::FlatteningHists> QVecCalib::prepare_flattening_hists()
     h.N_yy_corr_avg = m_profiles.at(N_yy_corr_avg_name).get();
     h.N_xy_corr_avg = m_profiles.at(N_xy_corr_avg_name).get();
 
-    h.Psi_corr2 = m_hists3D.at(psi_Q_corr2_name).get();
+    h.NS_xx_corr_avg = m_profiles.at(NS_xx_corr_avg_name).get();
+    h.NS_yy_corr_avg = m_profiles.at(NS_yy_corr_avg_name).get();
+    h.NS_xy_corr_avg = m_profiles.at(NS_xy_corr_avg_name).get();
+
+    h.Psi_S_corr2 = m_hists2D.at(psi_S_name).get();
+    h.Psi_N_corr2 = m_hists2D.at(psi_N_name).get();
+    h.Psi_NS_corr2 = m_hists2D.at(psi_NS_name).get();
 
     hists_cache.push_back(h);
   }
@@ -1047,14 +1122,10 @@ void QVecCalib::load_correction_data()
     std::string N_x_avg_name = QVecShared::get_hist_name("N", "x", n);
     std::string N_y_avg_name = QVecShared::get_hist_name("N", "y", n);
 
-    std::string psi_hist_name = std::format("h3_sEPD_Psi_{}", n);
-
     m_profiles[S_x_avg_name] = load_and_clone<TProfile>(file.get(), S_x_avg_name);
     m_profiles[S_y_avg_name] = load_and_clone<TProfile>(file.get(), S_y_avg_name);
     m_profiles[N_x_avg_name] = load_and_clone<TProfile>(file.get(), N_x_avg_name);
     m_profiles[N_y_avg_name] = load_and_clone<TProfile>(file.get(), N_y_avg_name);
-
-    m_hists3D[psi_hist_name] = load_and_clone<TH3>(file.get(), psi_hist_name);
 
     std::string S_xx_avg_name = QVecShared::get_hist_name("S", "xx", n);
     std::string S_yy_avg_name = QVecShared::get_hist_name("S", "yy", n);
@@ -1063,18 +1134,23 @@ void QVecCalib::load_correction_data()
     std::string N_yy_avg_name = QVecShared::get_hist_name("N", "yy", n);
     std::string N_xy_avg_name = QVecShared::get_hist_name("N", "xy", n);
 
-    std::string psi_corr_hist_name = std::format("h3_sEPD_Psi_{}_corr", n);
+    std::string NS_xx_avg_name = QVecShared::get_hist_name("NS", "xx", n);
+    std::string NS_yy_avg_name = QVecShared::get_hist_name("NS", "yy", n);
+    std::string NS_xy_avg_name = QVecShared::get_hist_name("NS", "xy", n);
 
     if(m_pass == Pass::ApplyFlattening)
     {
       m_profiles[S_xx_avg_name] = load_and_clone<TProfile>(file.get(), S_xx_avg_name);
       m_profiles[S_yy_avg_name] = load_and_clone<TProfile>(file.get(), S_yy_avg_name);
       m_profiles[S_xy_avg_name] = load_and_clone<TProfile>(file.get(), S_xy_avg_name);
+
       m_profiles[N_xx_avg_name] = load_and_clone<TProfile>(file.get(), N_xx_avg_name);
       m_profiles[N_yy_avg_name] = load_and_clone<TProfile>(file.get(), N_yy_avg_name);
       m_profiles[N_xy_avg_name] = load_and_clone<TProfile>(file.get(), N_xy_avg_name);
 
-      m_hists3D[psi_corr_hist_name] = load_and_clone<TH3>(file.get(), psi_corr_hist_name);
+      m_profiles[NS_xx_avg_name] = load_and_clone<TProfile>(file.get(), NS_xx_avg_name);
+      m_profiles[NS_yy_avg_name] = load_and_clone<TProfile>(file.get(), NS_yy_avg_name);
+      m_profiles[NS_xy_avg_name] = load_and_clone<TProfile>(file.get(), NS_xy_avg_name);
     }
 
     size_t south_idx = static_cast<size_t>(QVecShared::Subdetector::S);
@@ -1098,19 +1174,18 @@ void QVecCalib::load_correction_data()
         double Q_S_xx_avg = m_profiles[S_xx_avg_name]->GetBinContent(bin);
         double Q_S_yy_avg = m_profiles[S_yy_avg_name]->GetBinContent(bin);
         double Q_S_xy_avg = m_profiles[S_xy_avg_name]->GetBinContent(bin);
+
         double Q_N_xx_avg = m_profiles[N_xx_avg_name]->GetBinContent(bin);
         double Q_N_yy_avg = m_profiles[N_yy_avg_name]->GetBinContent(bin);
         double Q_N_xy_avg = m_profiles[N_xy_avg_name]->GetBinContent(bin);
 
+        double Q_NS_xx_avg = m_profiles[NS_xx_avg_name]->GetBinContent(bin);
+        double Q_NS_yy_avg = m_profiles[NS_yy_avg_name]->GetBinContent(bin);
+        double Q_NS_xy_avg = m_profiles[NS_xy_avg_name]->GetBinContent(bin);
+
+        m_correction_data[cent_bin][h_idx][IDX_NS].X_matrix = calculate_flattening_matrix(Q_NS_xx_avg, Q_NS_yy_avg, Q_NS_xy_avg, n, cent_bin, "NS");
+
         // Flattening Params
-        m_correction_data[cent_bin][h_idx][south_idx].avg_Q_xx = Q_S_xx_avg;
-        m_correction_data[cent_bin][h_idx][south_idx].avg_Q_yy = Q_S_yy_avg;
-        m_correction_data[cent_bin][h_idx][south_idx].avg_Q_xy = Q_S_xy_avg;
-
-        m_correction_data[cent_bin][h_idx][north_idx].avg_Q_xx = Q_N_xx_avg;
-        m_correction_data[cent_bin][h_idx][north_idx].avg_Q_yy = Q_N_yy_avg;
-        m_correction_data[cent_bin][h_idx][north_idx].avg_Q_xy = Q_N_xy_avg;
-
         for (size_t det_idx = 0; det_idx < 2; ++det_idx)
         {
           double xx = (det_idx == 0) ? Q_S_xx_avg : Q_N_xx_avg;
@@ -1154,11 +1229,6 @@ void QVecCalib::save_results() const
   for (const auto& [name, hist] : m_hists2D)
   {
     std::cout << std::format("Saving 2D: {}\n", name);
-    hist->Write();
-  }
-  for (const auto& [name, hist] : m_hists3D)
-  {
-    std::cout << std::format("Saving 3D: {}\n", name);
     hist->Write();
   }
   for (const auto& [name, hist] : m_profiles)

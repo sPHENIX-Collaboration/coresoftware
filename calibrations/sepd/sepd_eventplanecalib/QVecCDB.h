@@ -56,8 +56,8 @@ class QVecCDB
   // Holds all correction data
   // key: [Harmonic][Cent][Subdetector]
   // Harmonics {2,3,4} -> 3 elements
-  // Subdetectors {S,N} -> 2 elements
-  std::array<std::array<std::array<QVecShared::CorrectionMoments, 2>, m_cent_bins>, m_harmonics.size()> m_correction_data;
+  // Subdetectors {S,N,NS} -> 3 elements
+  std::array<std::array<std::array<QVecShared::CorrectionMoments, 3>, m_cent_bins>, m_harmonics.size()> m_correction_data;
 
   // --- Member Variables ---
   std::string m_input_file;

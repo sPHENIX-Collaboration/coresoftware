@@ -68,6 +68,11 @@ void QVecCDB::load_correction_data(size_t h_idx)
   auto pN_yy = load_and_clone<TProfile>(QVecShared::get_hist_name("N", "yy", n));
   auto pN_xy = load_and_clone<TProfile>(QVecShared::get_hist_name("N", "xy", n));
 
+  // Load NS flattening terms
+  auto pNS_xx = load_and_clone<TProfile>(QVecShared::get_hist_name("NS", "xx", n));
+  auto pNS_yy = load_and_clone<TProfile>(QVecShared::get_hist_name("NS", "yy", n));
+  auto pNS_xy = load_and_clone<TProfile>(QVecShared::get_hist_name("NS", "xy", n));
+
   for (size_t cent_bin = 0; cent_bin < m_cent_bins; ++cent_bin)
   {
     int bin = static_cast<int>(cent_bin) + 1; // ROOT bins start at 1
@@ -85,6 +90,12 @@ void QVecCDB::load_correction_data(size_t h_idx)
     dataN.avg_Q_xx = pN_xx->GetBinContent(bin);
     dataN.avg_Q_yy = pN_yy->GetBinContent(bin);
     dataN.avg_Q_xy = pN_xy->GetBinContent(bin);
+
+    // North South
+    auto& dataNS = getData(h_idx, cent_bin, QVecShared::Subdetector::NS);
+    dataNS.avg_Q_xx = pNS_xx->GetBinContent(bin);
+    dataNS.avg_Q_yy = pNS_yy->GetBinContent(bin);
+    dataNS.avg_Q_xy = pNS_xy->GetBinContent(bin);
   }
 }
 
@@ -168,6 +179,7 @@ void QVecCDB::write_cdb_EventPlane(const std::string &output_dir)
       // Access data references to clean up the calls
       const auto& S = getData(h_idx, cent_bin, QVecShared::Subdetector::S);
       const auto& N = getData(h_idx, cent_bin, QVecShared::Subdetector::N);
+      const auto& NS = getData(h_idx, cent_bin, QVecShared::Subdetector::NS);
 
       // South
       cdbttree->SetDoubleValue(key, field("S", "x"), S.avg_Q.x);
@@ -182,6 +194,11 @@ void QVecCDB::write_cdb_EventPlane(const std::string &output_dir)
       cdbttree->SetDoubleValue(key, field("N", "xx"), N.avg_Q_xx);
       cdbttree->SetDoubleValue(key, field("N", "yy"), N.avg_Q_yy);
       cdbttree->SetDoubleValue(key, field("N", "xy"), N.avg_Q_xy);
+
+      // North South
+      cdbttree->SetDoubleValue(key, field("NS", "xx"), NS.avg_Q_xx);
+      cdbttree->SetDoubleValue(key, field("NS", "yy"), NS.avg_Q_yy);
+      cdbttree->SetDoubleValue(key, field("NS", "xy"), NS.avg_Q_xy);
     }
   }
 

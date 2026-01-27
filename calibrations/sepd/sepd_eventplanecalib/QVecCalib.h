@@ -11,7 +11,6 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
-#include <TH3.h>
 #include <TProfile.h>
 
 // ====================================================================
@@ -68,8 +67,9 @@ class QVecCalib
 
  private:
 
-  struct CorrectionData : public QVecShared::CorrectionMoments
+  struct CorrectionData
   {
+    QVecShared::QVec avg_Q{};
     std::array<std::array<double, 2>, 2> X_matrix{};
   };
 
@@ -81,8 +81,10 @@ class QVecCalib
   // Holds all correction data
   // key: [Cent][Harmonic][Subdetector]
   // Harmonics {2,3,4} -> 3 elements
-  // Subdetectors {S,N} -> 2 elements
-  std::array<std::array<std::array<CorrectionData, 2>, m_harmonics.size()>, m_cent_bins> m_correction_data;
+  // Subdetectors {S,N,NS} -> 3 elements
+  std::array<std::array<std::array<CorrectionData, 3>, m_harmonics.size()>, m_cent_bins> m_correction_data;
+
+  static constexpr size_t IDX_NS = 2;
 
   // Store harmonic orders and subdetectors for easy iteration
   static constexpr std::array<QVecShared::Subdetector, 2> m_subdetectors = {QVecShared::Subdetector::S, QVecShared::Subdetector::N};
@@ -121,10 +123,9 @@ class QVecCalib
     TProfile* N_x_avg{nullptr};
     TProfile* N_y_avg{nullptr};
 
-    TH3* Q_S{nullptr};
-    TH3* Q_N{nullptr};
-
-    TH3* Psi{nullptr};
+    TH2* Psi_S{nullptr};
+    TH2* Psi_N{nullptr};
+    TH2* Psi_NS{nullptr};
   };
 
   struct RecenterHists
@@ -141,7 +142,13 @@ class QVecCalib
     TProfile* N_yy_avg{nullptr};
     TProfile* N_xy_avg{nullptr};
 
-    TH3* Psi_corr{nullptr};
+    TProfile* NS_xx_avg{nullptr};
+    TProfile* NS_yy_avg{nullptr};
+    TProfile* NS_xy_avg{nullptr};
+
+    TH2* Psi_S_corr{nullptr};
+    TH2* Psi_N_corr{nullptr};
+    TH2* Psi_NS_corr{nullptr};
   };
 
   struct FlatteningHists
@@ -159,7 +166,13 @@ class QVecCalib
     TProfile* N_yy_corr_avg{nullptr};
     TProfile* N_xy_corr_avg{nullptr};
 
-    TH3* Psi_corr2{nullptr};
+    TProfile* NS_xx_corr_avg{nullptr};
+    TProfile* NS_yy_corr_avg{nullptr};
+    TProfile* NS_xy_corr_avg{nullptr};
+
+    TH2* Psi_S_corr2{nullptr};
+    TH2* Psi_N_corr2{nullptr};
+    TH2* Psi_NS_corr2{nullptr};
   };
 
   // --- Member Variables ---
@@ -177,7 +190,6 @@ class QVecCalib
   // Hists
   std::map<std::string, std::unique_ptr<TH1>> m_hists1D;
   std::map<std::string, std::unique_ptr<TH2>> m_hists2D;
-  std::map<std::string, std::unique_ptr<TH3>> m_hists3D;
   std::map<std::string, std::unique_ptr<TProfile>> m_profiles;
 
   // sEPD Bad Channels
@@ -216,7 +228,7 @@ class QVecCalib
  * @brief Safely retrieves a ROOT object from a file and returns a managed unique_ptr.
  * * Performs a dynamic_cast to verify the requested type T and Clones the object
  * to ensure it remains valid after the source file is closed.
- * * @tparam T The ROOT class type (e.g., TProfile, TH3).
+ * * @tparam T The ROOT class type (e.g., TProfile).
  * @param file Pointer to the source TFile.
  * @param name The name of the object within the file.
  * @return std::unique_ptr<T> A managed pointer to the cloned object.
@@ -265,8 +277,8 @@ class QVecCalib
 
 /**
  * @brief Finalizes the analysis by writing all histograms to the output ROOT file.
- * * Creates the output directory if it does not exist and ensures all 1D, 2D,
- * 3D histograms and TProfiles are safely persisted to disk.
+ * * Creates the output directory if it does not exist and ensures all 1D, 2D
+ * and TProfiles are safely persisted to disk.
  */
   void save_results() const;
 

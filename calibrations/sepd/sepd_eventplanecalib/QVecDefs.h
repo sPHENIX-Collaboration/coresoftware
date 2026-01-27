@@ -14,7 +14,8 @@ namespace QVecShared
   enum class Subdetector
   {
     S, // South
-    N  // North
+    N, // North
+    NS // North South
   };
 
   enum class QComponent
