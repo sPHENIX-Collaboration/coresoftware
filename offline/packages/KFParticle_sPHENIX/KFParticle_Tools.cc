@@ -1184,7 +1184,16 @@ float KFParticle_Tools::get_dEdx(PHCompositeNode *topNode, const KFParticle &dau
 
 void KFParticle_Tools::init_dEdx_fits()
 {
-  std::string dedx_fitparams = CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
+  std::string dedx_fitparams;
+  if (m_use_local_PID_file)
+  {
+    dedx_fitparams = m_local_PID_filename;
+  }
+  else
+  {
+    dedx_fitparams = CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
+  }
+
   TFile *filefit = TFile::Open(dedx_fitparams.c_str());
 
   if (!filefit->IsOpen())
@@ -1193,12 +1202,25 @@ void KFParticle_Tools::init_dEdx_fits()
     return;
   }
 
-  filefit->GetObject("f_piband", f_pion_plus);
-  filefit->GetObject("f_Kband", f_kaon_plus);
-  filefit->GetObject("f_pband", f_proton_plus);
-  filefit->GetObject("f_piminus_band", f_pion_minus);
-  filefit->GetObject("f_Kminus_band", f_kaon_minus);
-  filefit->GetObject("f_pbar_band", f_proton_minus);
+  if (m_use_local_PID_file)
+  {
+    // new method is independent of charge
+    filefit->GetObject("pi_band",f_pion_plus);
+    filefit->GetObject("K_band",f_kaon_plus);
+    filefit->GetObject("p_band",f_proton_plus);
+    filefit->GetObject("pi_band",f_pion_minus);
+    filefit->GetObject("K_band",f_kaon_minus);
+    filefit->GetObject("p_band",f_proton_minus);
+  }
+  else
+  {
+    filefit->GetObject("f_piband", f_pion_plus);
+    filefit->GetObject("f_Kband", f_kaon_plus);
+    filefit->GetObject("f_pband", f_proton_plus);
+    filefit->GetObject("f_piminus_band", f_pion_minus);
+    filefit->GetObject("f_Kminus_band", f_kaon_minus);
+    filefit->GetObject("f_pbar_band", f_proton_minus);
+  }
 
   pidMap.insert(std::pair<int, TF1 *>(-11, f_pion_plus));
   pidMap.insert(std::pair<int, TF1 *>(211, f_pion_plus));
