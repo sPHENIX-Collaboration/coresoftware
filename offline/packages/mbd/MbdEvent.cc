@@ -361,6 +361,22 @@ int MbdEvent::End()
     orig_dir->cd();
   }
 
+  // Write out MbdSig eval histograms
+  if ( _doeval )
+  {
+    TDirectory *orig_dir = gDirectory;
+
+    TString savefname = "mbdeval_"; savefname += _runnum; savefname += ".root";
+    _evalfile = std::make_unique<TFile>(savefname,"RECREATE");
+
+    for (auto & sig : _mbdsig)
+    {
+      sig.WriteChi2Hist();
+    }
+
+    orig_dir->cd();
+  }
+
   return 1;
 }
 
@@ -741,11 +757,6 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
  
-      // In Run 1 (runs before 40000), we didn't set hardware thresholds, and instead set a software threshold of 0.25
-      if ( ((m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
-      {
-        m_qtdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
-      }
     }
 
   }
@@ -799,6 +810,12 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
 
       m_pmttq[pmtch] = bbcraws->get_pmt(pmtch)->get_qtdc();
 
+      // In Run 1 (runs before 40000), we didn't set hardware thresholds, and instead set a software threshold of 0.25
+      if ( ((bbcraws->get_pmt(pmtch)->get_adc() < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
+      {
+        m_qtdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
+      }
+
       if ( !std::isnan(m_pmttq[pmtch]) )
       {
         m_pmttq[pmtch] -= (_mbdcal->get_sampmax(ifeech) - 2);
@@ -809,7 +826,7 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         // if ( arm==1 ) std::cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << std::endl;
 
         // if tt is bad, use tq
-        if ( std::fabs(_mbdcal->get_tt0(pmtch))>100. )
+        if ( _mbdcal->get_status(ifeech-8)>0 )
         {
           m_pmttt[pmtch] = m_pmttq[pmtch];
         }

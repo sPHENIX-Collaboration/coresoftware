@@ -86,6 +86,13 @@ int MbdCalib::Download_All()
     }
     Download_SampMax(sampmax_url);
 
+    std::string status_url = _cdb->getUrl("MBD_STATUS");
+    if (Verbosity() > 0)
+    {
+      std::cout << "status_url " << status_url << std::endl;
+    }
+    Download_Status(status_url);
+
     if ( !_rawdstflag )
     {
       std::string ped_url = _cdb->getUrl("MBD_PED");
@@ -175,6 +182,9 @@ int MbdCalib::Download_All()
   {
     std::string sampmax_file = bbc_caldir + "/mbd_sampmax.calib";
     Download_SampMax(sampmax_file);
+
+    std::string status_file = bbc_caldir + "/mbd_status.calib";
+    Download_Status(status_file);
 
     if ( !_rawdstflag )
     {
@@ -679,6 +689,70 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
   
 
   if ( _sampmax[0] == -1 )
+  {
+    std::cout << PHWHERE << ", WARNING, sampmax calib missing, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;  // file not found
+  }
+
+  return 1;
+}
+
+int MbdCalib::Download_Status(const std::string& dbase_location)
+{
+  // Reset All Values
+  _mbdstatus.fill(-1);
+
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
+  {
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    cdbttree->LoadCalibrations();
+
+    for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+    {
+      _mbdstatus[ifeech] = cdbttree->GetIntValue(ifeech, "status");
+      if (Verbosity() > 0)
+      {
+        if (ifeech < 5 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
+        {
+          std::cout << ifeech << "\t" << _mbdstatus[ifeech] << std::endl;
+        }
+      }
+    }
+    delete cdbttree;
+  }
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
+  {
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    int feech = -1;
+    while (infile >> feech)
+    {
+      infile >> _mbdstatus[feech];
+      if (Verbosity() > 0)
+      {
+        if (feech < 5 || feech >= MbdDefs::MBD_N_FEECH - 5)
+        {
+          std::cout << "status\t" << feech << "\t" << _mbdstatus[feech] << std::endl;
+        }
+      }
+    }
+    infile.close();
+  }
+  
+
+  if ( _mbdstatus[0] == -1 )
   {
     std::cout << PHWHERE << ", WARNING, sampmax calib missing, " << dbase_location << std::endl;
     _status = -1;
@@ -1585,6 +1659,52 @@ int MbdCalib::Write_SampMax(const std::string& dbfile)
   for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
   {
     cal_file << ifeech << "\t" << _sampmax[ifeech] << std::endl;
+  }
+  cal_file.close();
+
+  return 1;
+}
+
+#ifndef ONLINE
+int MbdCalib::Write_CDB_Status(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "STATUS" << std::endl;
+  for (size_t ifeech = 0; ifeech < _mbdstatus.size(); ifeech++)
+  {
+    // store in a CDBTree
+    cdbttree->SetIntValue(ifeech, "status", _mbdstatus[ifeech]);
+
+    if (ifeech < 12 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
+    {
+      std::cout << ifeech << "\t" << std::hex << cdbttree->GetIntValue(ifeech, "status") << std::dec << std::endl;
+    }
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+#endif
+
+int MbdCalib::Write_Status(const std::string& dbfile)
+{
+  std::ofstream cal_file;
+  cal_file.open(dbfile);
+  for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    cal_file << ifeech << "\t0x" << std::hex << _mbdstatus[ifeech] << std::dec << std::endl;
   }
   cal_file.close();
 
