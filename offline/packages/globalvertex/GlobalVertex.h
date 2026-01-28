@@ -78,8 +78,8 @@ class GlobalVertex : public PHObject
   virtual float get_error(unsigned int /*i*/, unsigned int /*j*/) const { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) { return; }
 
-  virtual unsigned int get_beam_crossing() const { return std::numeric_limits<unsigned int>::max(); }
-  virtual void set_beam_crossing(unsigned int) { return; }
+  virtual short int get_beam_crossing() const { return std::numeric_limits<short int>::max(); }
+  virtual void set_beam_crossing(short int) { return; }
 
   virtual bool empty_vtxs() const { return true; }
   virtual size_t size_vtxs() const { return 0; }
