@@ -26,8 +26,8 @@ libdedxfitter_la_LIBADD = \
   -lphool \
   -ltrack_io \
   -lg4detectors \
+  -ltrackbase_historic \
   -ltrackbase_historic_io \
-  -ltrack_reco \
   -lglobalvertex \
   -lSubsysReco
 

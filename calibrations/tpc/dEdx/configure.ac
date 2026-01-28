@@ -9,7 +9,7 @@ LT_INIT([disable-static])
 dnl   enable more warnings and make them fatal
 dnl this package needs openmp which requires -fopenmp for clang
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -fopenmp -Wall -Wshadow -Wextra -Werror"
+   CXXFLAGS="$CXXFLAGS -Wall -Wshadow -Wextra -Werror"
 fi
 
 AC_CONFIG_FILES([Makefile])
