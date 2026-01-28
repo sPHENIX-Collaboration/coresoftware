@@ -1746,7 +1746,7 @@ double PHActsSiliconSeeding::normPhi2Pi(const double phi)
   return returnPhi;
 }
 
-float PHActsSiliconSeeding::getPhiFromBeamSpot(float clusy, float clusx)
+float PHActsSiliconSeeding::getPhiFromBeamSpot(float clusy, float clusx) const
 {
   // Calculate the phi value for (clusx, clusy) relative to the beam spot (x,y) position
 
