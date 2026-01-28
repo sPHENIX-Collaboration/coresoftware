@@ -142,6 +142,20 @@ int CaloValid::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+/**
+ * @brief Process event towers, triggers, MBD, and clusters to populate QA histograms.
+ *
+ * Reads event header, vertex, trigger (GL1), calibrated and raw tower containers for
+ * CEMC/HCAL (inner/outer), MBD PMTs, and CEMC clusters; computes per-detector totals,
+ * downscaled correlations, per-channel and per-tower QA, pi0 candidate invariant masses,
+ * and trigger/alignment summaries, then fills the corresponding histograms and profiles.
+ *
+ * @param topNode Top-level PHCompositeNode containing event data (towers, clusters,
+ *                trigger/GL1 packets, vertex map, and MBD PMTs).
+ * @return Fun4AllReturnCodes::EVENT_OK on success; may return other Fun4All return codes
+ *         or 0 on error conditions encountered while processing nodes.
+ *
+ */
 int CaloValid::process_towers(PHCompositeNode* topNode)
 {
   //---------------------------Event header--------------------------------//
