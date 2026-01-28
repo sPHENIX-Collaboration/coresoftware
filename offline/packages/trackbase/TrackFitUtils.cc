@@ -37,7 +37,7 @@ namespace
   }
 }  // namespace
 
-std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global)
+std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const std::vector<float>& fitpars, Acts::Vector3& global, bool is_cosmics)
 {
   // no analytic solution for the coordinates of the closest approach of a helix to a point
   // Instead, we get the PCA in x and y to the circle, and the PCA in z to the z vs R line at the R of the PCA
@@ -62,7 +62,12 @@ std::pair<Acts::Vector3, Acts::Vector3> TrackFitUtils::get_helix_tangent(const s
   float const d_angle = 0.005;
   float const newx = radius * std::cos(angle_pca + d_angle) + x0;
   float const newy = radius * std::sin(angle_pca + d_angle) + y0;
-  float const newz = std::sqrt(newx * newx + newy * newy) * zslope + z0;
+  float ztmp;
+  if(is_cosmics)
+    ztmp = newx * zslope + z0;
+  else
+    ztmp = std::sqrt(newx * newx + newy * newy) * zslope + z0;
+  float const newz = ztmp;
   Acts::Vector3 const second_point_pca(newx, newy, newz);
 
   // pca and second_point_pca define a straight line approximation to the track
@@ -610,7 +615,7 @@ Acts::Vector2 TrackFitUtils::get_circle_point_pca(float radius, float x0, float 
 //_________________________________________________________________________________
 std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global_vec,
                                               const std::vector<TrkrDefs::cluskey> &cluskey_vec,
-                                              bool use_intt, bool mvtx_east, bool mvtx_west)
+                                              bool use_intt, bool mvtx_east, bool mvtx_west, bool is_cosmics)
 {
   std::vector<float> fitpars;
 
@@ -658,7 +663,11 @@ std::vector<float> TrackFitUtils::fitClusters(std::vector<Acts::Vector3>& global
   {
     return fitpars;
   }
-  std::tuple<double, double> line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
+  std::tuple<double, double> line_fit_pars;
+  if(is_cosmics) 
+    line_fit_pars = TrackFitUtils::line_fit_xz(global_vec_noINTT);
+  else
+    line_fit_pars = TrackFitUtils::line_fit(global_vec_noINTT);
 
   fitpars.push_back(std::get<0>(circle_fit_pars));
   fitpars.push_back(std::get<1>(circle_fit_pars));

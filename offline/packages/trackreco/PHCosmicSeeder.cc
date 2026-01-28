@@ -86,6 +86,10 @@ int PHCosmicSeeder::InitRun(PHCompositeNode* topNode)
 //____________________________________________________________________________..
 int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
 {
+  if (Verbosity() > 1)
+  {
+    std::cout<<"processing next event"<<std::endl;
+  }
   PHCosmicSeeder::PositionMap clusterPositions;
   for (const auto& hitsetkey : m_clusterContainer->getHitSetKeys(m_trackerId))
   {
@@ -100,6 +104,12 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
       const auto global = m_tGeometry->getGlobalPosition(ckey, cluster);
       clusterPositions.insert(std::make_pair(ckey, global));
     }
+  }
+  if(clusterPositions.size()<3)
+    return Fun4AllReturnCodes::ABORTEVENT;
+  if (Verbosity() > 1)
+  {
+    std::cout<<"processing next event2"<<std::endl;
   }
   if(m_trackerId==TrkrDefs::TrkrId::mvtxId)
   {
@@ -118,11 +128,15 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
       }
     }
   }
+  if (Verbosity() > 1)
+  {
+    std::cout<<"processing next event 3: "<<int(clusterPositions.size())<<std::endl;
+  }
   if (Verbosity() > 2)
   {
     std::cout << "cluster map size is " << clusterPositions.size() << std::endl;
   }
-  if(m_trackerId==TrkrDefs::TrkrId::mvtxId && clusterPositions.size()<4)
+  if(m_trackerId==TrkrDefs::TrkrId::mvtxId && (clusterPositions.size()<4 || clusterPositions.size() > 500))
   {
         return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -132,6 +146,8 @@ int PHCosmicSeeder::process_event(PHCompositeNode* /*unused*/)
   {
     std::cout << "Initial seed candidate size is " << seeds.size() << std::endl;
   }
+   if (int(seeds.size())>500)
+    return Fun4AllReturnCodes::ABORTEVENT;
   std::sort(seeds.begin(), seeds.end(),
             [](const seed& a, const seed& b)
             { return a.ckeys.size() > b.ckeys.size(); });
@@ -243,7 +259,8 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::findIntersections(PHCosmicSeeder::See
         //! so merge and delete
         for (auto key : seed2.ckeys)
         {
-          seed1.ckeys.insert(key);
+          if(m_trackerId!=TrkrDefs::TrkrId::mvtxId || !seedContainsClusterSensor(seed1,key))
+            seed1.ckeys.insert(key);
         }
         seedsToDelete.insert(j);
       }
@@ -309,7 +326,10 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       float pdiff_tol = 1.0;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
-        pdiff_tol = 0.25;
+        if(m_zerofield)
+          pdiff_tol = 0.25;
+        else
+          pdiff_tol = 1.0;
       }
       float const pdiff = std::abs((seed1.xyslope - seed2.xyslope) / longestxyslope);
       float const pdiff2 = std::abs((seed1.xyintercept - seed2.xyintercept) / longestxyint);
@@ -317,7 +337,7 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
       float const pdiff4 = std::abs((seed1.xzslope - seed2.xzslope) / longestxzslope);
       if (Verbosity() > 1)
       {
-        std::cout << "pdiff1,2,3,4 " << pdiff << ", " << pdiff2 << ", " << pdiff3 << ", " << pdiff4 << std::endl;
+        std::cout << "tol: "<<pdiff_tol<<"  pdiff1,2,3,4 " << pdiff << ", " << pdiff2 << ", " << pdiff3 << ", " << pdiff4 << std::endl;
       }
       if (pdiff < pdiff_tol && pdiff2 < pdiff_tol && pdiff3 < pdiff_tol && pdiff4 < pdiff_tol)
       {
@@ -339,12 +359,15 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
     // if mvtx only, require each seed have at least one hit in each layer
     if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
     {
-      std::vector<bool> contains_layer = {false, false, false};
+      //std::vector<bool> contains_layer = {false, false, false};
+      int mvtx_layers = 0;
       for (auto& key : initialSeeds[i].ckeys)
       {
-        contains_layer[TrkrDefs::getLayer(key)] = true;
+        if(int(TrkrDefs::getLayer(key))<3)
+          mvtx_layers++;
+        //std::cout<<int(TrkrDefs::getLayer(key))<<std::endl;
       }
-      if (std::find(contains_layer.begin(), contains_layer.end(), false) != contains_layer.end())
+      if (mvtx_layers<3)
       {
         continue;
       }
@@ -352,12 +375,12 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::chainSeeds(PHCosmicSeeder::SeedVector
 
     returnseeds.push_back(initialSeeds[i]);
   }
-  if (returnseeds.size() > 1 && m_trackerId == TrkrDefs::TrkrId::mvtxId)
-  {
-    PHCosmicSeeder::SeedVector emptyseeds;
-    return emptyseeds;
-  }
-
+  //if (returnseeds.size() > 1 && m_trackerId == TrkrDefs::TrkrId::mvtxId)
+  //{
+  //  PHCosmicSeeder::SeedVector emptyseeds;
+  //  return emptyseeds;
+  //}
+//
   return returnseeds;
 }
 PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVector& initialSeeds,
@@ -383,26 +406,38 @@ PHCosmicSeeder::SeedVector PHCosmicSeeder::combineSeeds(PHCosmicSeeder::SeedVect
       recalculateSeedLineParameters(seed1, clusterPositions, false);
       recalculateSeedLineParameters(seed2, clusterPositions, false);
 
-      float slope_tol = 0.1;
-      float incept_tol = 3.0;
+      float slope_tol_xy = 0.1;
+      float incept_tol_xy = 3.0;
+      float slope_tol_xz = 0.1;
+      float incept_tol_xz = 3.0;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
-        slope_tol = 0.1;
-        incept_tol = 0.5;
+        slope_tol_xy = 0.1;
+        incept_tol_xy = 0.5;
+        slope_tol_xz = 0.1;
+        incept_tol_xz = 0.5;
+        if(!m_zerofield)
+        {
+          slope_tol_xy = 1.0;
+          incept_tol_xy = 2.0;
+          slope_tol_xz = 1.0;
+          incept_tol_xz = 2.0;
+        }
       }
       if (Verbosity() > 4)
       {
         std::cout << "xy slope diff: " << seed1.xyslope - seed2.xyslope << ", xy int diff   " << seed1.xyintercept - seed2.xyintercept << ", xz slope diff " << seed1.xzslope - seed2.xzslope << ", xz int diff   " << seed1.xzintercept - seed2.xzintercept << std::endl;
       }
       //! These values are tuned on the cosmic data
-      if (std::abs(seed1.xyslope - seed2.xyslope) < slope_tol &&
-          std::abs(seed1.xyintercept - seed2.xyintercept) < incept_tol &&
-          std::abs(seed1.xzslope - seed2.xzslope) < slope_tol &&
-          std::abs(seed1.xzintercept - seed2.xzintercept) < incept_tol)
+      if (std::abs(seed1.xyslope - seed2.xyslope) < slope_tol_xy &&
+          std::abs(seed1.xyintercept - seed2.xyintercept) < incept_tol_xy &&
+          std::abs(seed1.xzslope - seed2.xzslope) < slope_tol_xz &&
+          std::abs(seed1.xzintercept - seed2.xzintercept) < incept_tol_xz)
       {
         for (auto& key : seed2.ckeys)
         {
-          seed1.ckeys.insert(key);
+          if(m_trackerId!=TrkrDefs::TrkrId::mvtxId || !seedContainsClusterSensor(seed1,key))
+            seed1.ckeys.insert(key);
         }
         seedsToDelete.insert(j);
       }
@@ -439,6 +474,10 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
     for (auto& [key2, pos2] : clusterPositions)
     {
       if (key1 == key2)
+      {
+        continue;
+      }
+      if(m_trackerId==TrkrDefs::TrkrId::mvtxId && TrkrDefs::getHitSetKeyFromClusKey(key1) == TrkrDefs::getHitSetKeyFromClusKey(key2))
       {
         continue;
       }
@@ -486,14 +525,14 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       std::cout << "doublet has " << dub.ckeys.size() << " keys " << std::endl;
       for (auto key : dub.ckeys)
       {
-        std::cout << "position is " << clusterPositions.find(key)->second.transpose() << std::endl;
+        std::cout << "position is " << clusterPositions.find(key)->second.transpose() << "layer is " << int(TrkrDefs::getLayer(key))<< std::endl;
       }
     }
+
     auto begin = dub.ckeys.begin();
     auto pos1 = clusterPositions.find(*(begin))->second;
     std::advance(begin, 1);
-    auto pos2 = clusterPositions.find(*(begin))->second;
-
+    auto pos2 = clusterPositions.find(*(begin))->second;   
     for (auto& [key, pos] : clusterPositions)
     {
       //! skip existing keys
@@ -504,15 +543,13 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       // only look at the cluster that is within 2cm of the doublet clusters
       float const dist1 = (pos1 - pos).norm();
       float const dist2 = (pos2 - pos).norm();
-      //std::cout<< "layer " << int(TrkrDefs::getLayer(key)) << std::endl;
-      //std::cout << "dist1, dist2 " << dist1 << ", " << dist2 << std::endl;
       float dist12_check = 2.;
       if (m_trackerId == TrkrDefs::TrkrId::mvtxId)
       {
         dist12_check = 4.0;
         if(TrkrDefs::getLayer(key) > 2)
         {
-          dist12_check = 100000.0;
+          dist12_check = 15.0;
         }
       }
       if (dist1 < dist2)
@@ -535,14 +572,18 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       float const predz2 = dub.yzslope * pos.y() + dub.yzintercept;
       if (Verbosity() > 2)
       {
-        std::cout << "testing key with layer "<< int(TrkrDefs::getLayer(key))<<std::endl; 
+        std::cout << "testing key with layer     "<< int(TrkrDefs::getLayer(key))<<std::endl; 
+        std::cout << "testing key with hitsetkey "<< int(TrkrDefs::getHitSetKeyFromClusKey(key))<<std::endl; 
+        std::cout << "testing lyr/stv/chip in seed? "<< int(seedContainsClusterSensor(dub, key))<<std::endl; 
         std::cout << "testing ckey " << key << " with box dca "
                   << predy << ", " << pos.transpose() << " and " << predz << ", " << pos.z()
                   << std::endl;
       }
+      if(seedContainsClusterSensor(dub, key))
+        continue;
       if (fabs(predy - pos.y()) < m_xyTolerance)
       {
-        if (m_trackerId == TrkrDefs::TrkrId::mvtxId && TrkrDefs::getLayer(key)<3 && (fabs(predz - pos.z()) > 0.3 || fabs(predz2 - pos.z()) > 0.3))
+        if (m_trackerId == TrkrDefs::TrkrId::mvtxId && TrkrDefs::getLayer(key)<3 && (fabs(predz - pos.z()) > 0.5 || fabs(predz2 - pos.z()) > 0.3))
         {
           continue;
         }
@@ -577,10 +618,10 @@ PHCosmicSeeder::makeSeeds(PHCosmicSeeder::PositionMap& clusterPositions)
       }
       std::cout << "seed xy slope: " << seed_A.xyslope << std::endl;
       std::cout << std::endl
-                << "seed pos " << std::endl;
+                << " hitsetkey and seed pos " << std::endl;
       for (auto& key : seed_A.ckeys)
       {
-        std::cout << clusterPositions.find(key)->second.transpose() << std::endl;
+        std::cout << int(TrkrDefs::getLayer(key))<<" , "<<int(MvtxDefs::getStaveId(key))<<" , "<<int(MvtxDefs::getChipId(key)) << " , " <<int(InttDefs::getLadderPhiId(key))<<" , "<<int(InttDefs::getLadderZId(key)) <<" : "<< clusterPositions.find(key)->second.transpose() << std::endl;
       }
       std::cout << "Done printing seed info" << std::endl;
     }
@@ -650,6 +691,32 @@ void PHCosmicSeeder::recalculateSeedLineParameters(seed& seed_A,
     seed_A.xzslope = num / denom;
     seed_A.xzintercept = avgy - seed_A.xzslope * avgx;
   }
+}
+bool PHCosmicSeeder::seedContainsClusterSensor(seed& seed_in, TrkrDefs::cluskey key)
+{
+  for (auto& existing_key : seed_in.ckeys)
+  {
+    if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::mvtxId&&TrkrDefs::getTrkrId(existing_key) == TrkrDefs::TrkrId::mvtxId)
+    {
+      if(TrkrDefs::getLayer(existing_key) == TrkrDefs::getLayer(key)&&
+         MvtxDefs::getStaveId(existing_key) == MvtxDefs::getStaveId(key)&&
+         MvtxDefs::getChipId(existing_key) == MvtxDefs::getChipId(key))
+      {
+        return true;
+      }
+    }
+    if(TrkrDefs::getTrkrId(key) == TrkrDefs::TrkrId::inttId &&TrkrDefs::getTrkrId(existing_key) == TrkrDefs::TrkrId::inttId)
+    {
+      //std::cout<<int(TrkrDefs::getLayer(existing_key))<< " : "<<int(TrkrDefs::getLayer(key))<<" , "<<int(InttDefs::getLadderPhiId(existing_key))<<" : "<<int(InttDefs::getLadderPhiId(key))<<" , "<<int(InttDefs::getLadderZId(existing_key))<< " : "<<int(InttDefs::getLadderZId(key))<<std::endl;
+      if(TrkrDefs::getLayer(existing_key) == TrkrDefs::getLayer(key)&&
+         InttDefs::getLadderPhiId(existing_key) == InttDefs::getLadderPhiId(key)&&
+         InttDefs::getLadderZId(existing_key) == InttDefs::getLadderZId(key))
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 int PHCosmicSeeder::getNodes(PHCompositeNode* topNode)
 {
