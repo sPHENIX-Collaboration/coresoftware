@@ -117,6 +117,14 @@ int CaloValid::InitRun(PHCompositeNode* topNode)
         std::cout << "This run is from Run-3 Au+Au.\n";
       }
     }
+    else if (runnumber >= RunnumberRange::RUN3OO_FIRST && runnumber <= RunnumberRange::RUN3OO_LAST)
+    {
+      m_species = "OO";
+      if (Verbosity() > 0)
+      {
+        std::cout << "This run is from Run-3 O+O.\n";
+      }
+    }
     else
     {
       if (Verbosity() > 0)
@@ -205,6 +213,26 @@ int CaloValid::process_towers(PHCompositeNode* topNode)
     ihcaldownscale = 55000. / 300.;
     ohcaldownscale = 265000. / 600.;
     mbddownscale = 2800.0;
+    adc_threshold_hcal = 30;
+    adc_threshold_emcal = 70;
+
+    emcal_hit_threshold = 0.5;  // GeV
+    ohcal_hit_threshold = 0.5;
+    ihcal_hit_threshold = 0.25;
+
+    emcal_highhit_threshold = 3.0;
+    ohcal_highhit_threshold = 3.0;
+    ihcal_highhit_threshold = 3.0;
+  }
+  else if (m_species == "OO")
+  {
+    // Scale by the ratio of nucleons: OO/AuAu
+    float scale_factor = 16. / 197.;
+
+    emcaldownscale = (1350000. / 800.) * scale_factor;
+    ihcaldownscale = (55000. / 300.) * scale_factor;
+    ohcaldownscale = (265000. / 600.) * scale_factor;
+    mbddownscale = 2800.0 * scale_factor;
     adc_threshold_hcal = 30;
     adc_threshold_emcal = 70;
 
