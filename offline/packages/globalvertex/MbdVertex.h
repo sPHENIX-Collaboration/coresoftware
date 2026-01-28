@@ -36,8 +36,12 @@ class MbdVertex : public Vertex
   virtual float get_z_err() const override { return std::numeric_limits<float>::quiet_NaN(); }
   virtual void set_z_err(float) override {}
 
-  virtual unsigned int get_beam_crossing() const override { return std::numeric_limits<unsigned int>::max(); }
-  virtual void set_beam_crossing(unsigned int) override {}
+  virtual short int get_beam_crossing() const override
+  {
+    return std::numeric_limits<short int>::max();
+  }
+  virtual void set_beam_crossing(short int) override {}
+
 
   virtual void set_bbc_ns(int, int, float, float) override {}
   virtual int get_bbc_npmt(int) const override { return std::numeric_limits<int>::max(); }

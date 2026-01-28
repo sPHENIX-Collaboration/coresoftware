@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef GLOBALVERTEX_SVTXVERTEXV2_H
-#define GLOBALVERTEX_SVTXVERTEXV2_H
+#ifndef GLOBALVERTEX_SVTXVERTEXV3_H
+#define GLOBALVERTEX_SVTXVERTEXV3_H
 
 #include "SvtxVertex.h"
 
@@ -12,21 +12,19 @@
 
 class PHObject;
 
-class SvtxVertex_v2 : public SvtxVertex
+class SvtxVertex_v3 : public SvtxVertex
 {
  public:
-  SvtxVertex_v2();
-  ~SvtxVertex_v2() override {}
+  SvtxVertex_v3();
+  ~SvtxVertex_v3() override {}
 
   // PHObject virtual overloads
-
   void identify(std::ostream& os = std::cout) const override;
-  void Reset() override { *this = SvtxVertex_v2(); }
+  void Reset() override { *this = SvtxVertex_v3(); }
   int isValid() const override;
-  PHObject* CloneMe() const override { return new SvtxVertex_v2(*this); }
+  PHObject* CloneMe() const override { return new SvtxVertex_v3(*this); }
 
   // vertex info
-
   unsigned int get_id() const override { return _id; }
   void set_id(unsigned int id) override { _id = id; }
 
@@ -54,21 +52,9 @@ class SvtxVertex_v2 : public SvtxVertex
   float get_error(unsigned int i, unsigned int j) const override;        //< get vertex error covar
   void set_error(unsigned int i, unsigned int j, float value) override;  //< set vertex error covar
 
-  short int get_beam_crossing() const override 
-  { 
-    return rollover_from_unsignedint(_beamcrossing);
-  }
-  void set_beam_crossing(short int cross) override 
-  { 
-    if (cross == short_int_max)
-    {
-      _beamcrossing = std::numeric_limits<unsigned int>::max();
-      return;
-    }
-
-    const short int cross_ro = rollover_short(cross);
-    _beamcrossing = static_cast<unsigned int>(cross_ro);
-  }
+  // v3 uses signed short
+  short int get_beam_crossing() const override { return _beamcrossing; }
+  void set_beam_crossing(short int cross) override { _beamcrossing = cross; }
 
   //
   // associated track ids methods
@@ -86,37 +72,6 @@ class SvtxVertex_v2 : public SvtxVertex
   TrackIter end_tracks() override { return _track_ids.end(); }
 
  private:
-  static constexpr short int short_int_max = std::numeric_limits<short int>::max(); // 32767
-  // for unsigned int to short int conversion (rollover)
-  static short int rollover_short(short int cross)
-  {
-    if (cross == short_int_max) return short_int_max;
-    if (cross >= 0) return cross;
-
-    const int cross_ro = static_cast<int>(short_int_max) + static_cast<int>(cross); // cross negative
-    return static_cast<short int>(cross_ro);
-  }
-
-  static short int rollover_from_unsignedint(unsigned int cross)
-  {
-    // if unsigned int max, return short int max
-    if (cross == std::numeric_limits<unsigned int>::max())
-    {
-      return short_int_max;
-    }
-
-    // Common case: [0, 32767]
-    if (cross <= static_cast<unsigned int>(short_int_max))
-    {
-      return static_cast<short int>(cross);
-    }
-
-    const short int cross_ro = static_cast<short int>(static_cast<unsigned short>(cross));
-    if (cross_ro >= 0) return cross_ro;
-
-    return rollover_short(cross_ro);
-  }
-
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
   unsigned int _id{std::numeric_limits<unsigned int>::max()};    //< unique identifier within container
@@ -126,9 +81,9 @@ class SvtxVertex_v2 : public SvtxVertex
   unsigned int _ndof{std::numeric_limits<unsigned int>::max()};  //< degrees of freedom
   float _err[6]{};                                               //< error covariance matrix (packed storage) (+/- cm^2)
   std::set<unsigned int> _track_ids;                             //< list of track ids
-  unsigned int _beamcrossing{std::numeric_limits<unsigned int>::max()};
+  short int _beamcrossing{std::numeric_limits<short int>::max()};
 
-  ClassDefOverride(SvtxVertex_v2, 2);
+  ClassDefOverride(SvtxVertex_v3, 3);
 };
 
 #endif
