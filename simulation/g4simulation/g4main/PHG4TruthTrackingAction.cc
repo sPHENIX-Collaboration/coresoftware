@@ -305,6 +305,17 @@ PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth
   return truth.AddParticle(trackid, ti)->second;
 }
 
+/**
+ * @brief Create or retrieve a truth vertex for a Geant4 track keyed by position and production process.
+ *
+ * Uses the track vertex position combined with the mapped MC production process to look up an existing
+ * vertex or create a new PHG4VtxPoint and register it in the truth container. The vertex index is chosen
+ * positive for primary tracks and negative for secondaries.
+ *
+ * @param truth Container in which to find or register the vertex.
+ * @param track Geant4 track whose production vertex and creator process determine the vertex key.
+ * @return PHG4VtxPoint* Pointer to the vertex instance stored in the truth container.
+ */
 PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, const G4Track& track)
 {
   G4ThreeVector v = track.GetVertexPosition();
@@ -334,6 +345,18 @@ PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, 
   return truth.AddVertex(vtxindex, vtxpt)->second;
 }
 
+/**
+ * @brief Determine whether a PHG4Particle should be considered an sPHENIX primary.
+ *
+ * Evaluates the particle's production vertex, PDG id longevity, and ancestry to decide
+ * if it originates as an sPHENIX primary (produced as a primary or from a decay and
+ * having no long-lived ancestor produced by material interactions).
+ *
+ * @param truth Truth container used to look up particle parents and production vertices.
+ * @param particle Particle to evaluate.
+ * @return true if the particle is classified as an sPHENIX primary, `false` otherwise.
+ *
+ */
 bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PHG4Particle* particle) const
 {
   PHG4VtxPoint* vtx = truth.GetVtx(particle->get_vtx_id());

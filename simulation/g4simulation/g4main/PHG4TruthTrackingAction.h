@@ -19,6 +19,68 @@ class PHG4TruthEventAction;
 class PHG4Particle;
 class PHG4VtxPoint;
 
+/**
+ * Construct a PHG4TruthTrackingAction associated with an event action.
+ * @param eventAction Pointer to the owning PHG4TruthEventAction used to record per-event truth information.
+ */
+
+/**
+ * Destroy the PHG4TruthTrackingAction.
+ */
+
+/**
+ * Handle actions to perform before Geant4 begins tracking a G4 track.
+ * @param track The Geant4 track about to be processed.
+ */
+
+/**
+ * Handle actions to perform after Geant4 finishes tracking a G4 track.
+ * @param track The Geant4 track that has just been processed.
+ */
+
+/**
+ * Set required node/interface pointers from the given top-level node.
+ * @param topNode Pointer to the PHCompositeNode root from which required I/O nodes are retrieved.
+ * @returns Zero on success, non-zero on failure.
+ */
+
+/**
+ * Reset per-event state using nodes found under the given composite node.
+ * @param topNode Pointer to the PHCompositeNode for the current event.
+ * @returns Zero on success, non-zero on failure.
+ */
+
+/**
+ * Create or update a truth particle entry corresponding to the provided Geant4 track.
+ * @param truth Container to which the particle entry will be added or updated.
+ * @param track Geant4 track from which particle information is derived.
+ * @returns Pointer to the created or updated PHG4Particle.
+ */
+
+/**
+ * Create or update a truth vertex entry corresponding to the provided Geant4 track.
+ * @param truth Container to which the vertex entry will be added or updated.
+ * @param track Geant4 track whose production point will be recorded as a vertex.
+ * @returns Pointer to the created or updated PHG4VtxPoint.
+ */
+
+/**
+ * Determine whether a particle type is considered long-lived for truth-building.
+ * @param pid Particle PDG identifier.
+ * @returns `true` if the particle with the given PDG id is treated as long-lived, `false` otherwise.
+ */
+
+/**
+ * Determine whether a particle should be flagged as an sPHENIX primary.
+ * @param truth Truth information container used to evaluate primary status.
+ * @param particle Particle to evaluate.
+ * @returns `true` if the particle is considered an sPHENIX primary, `false` otherwise.
+ */
+
+/**
+ * Update the internal upstream G4 particle stack when processing a new Geant4 track.
+ * @param track Geant4 track used to update parent/ancestor particle bookkeeping.
+ */
 class PHG4TruthTrackingAction : public PHG4TrackingAction
 {
  public:
