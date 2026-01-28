@@ -822,7 +822,8 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
     avgtripletx += std::cos(getPhiFromBeamSpot(pos(1), pos(0)));
     avgtriplety += std::sin(getPhiFromBeamSpot(pos(1), pos(0)));
   }
-  float avgtripletphi = getPhiFromBeamSpot(avgtriplety, avgtripletx);
+  
+  float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
   
   std::vector<TrkrDefs::cluskey> dummykeys = keys;
   std::vector<Acts::Vector3> dummyclusters = clusters;
@@ -1159,7 +1160,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
     avgtriplety += std::sin(getPhiFromBeamSpot(pos(1), pos(0)));
   }
        
-  float avgtripletphi = getPhiFromBeamSpot(avgtriplety, avgtripletx);
+  float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
 
   int layer34timebucket = std::numeric_limits<int>::max();
   for (const auto& key : keys)
