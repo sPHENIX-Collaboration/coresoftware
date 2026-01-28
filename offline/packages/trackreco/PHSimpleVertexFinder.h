@@ -91,7 +91,7 @@ class PHSimpleVertexFinder : public SubsysReco
   double _beamline_y_cut_hi = 0.2; 
   double _qual_cut = 10.0;
   bool _require_mvtx = true;
-  unsigned int _nmvtx_required = 3;
+  unsigned int _nmvtx_required = 2;
   double _track_pt_cut = 0.0;
   double _outlier_cut = 0.015;
 
