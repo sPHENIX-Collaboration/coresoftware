@@ -80,6 +80,11 @@ int MbdCalib::Download_All()
   if (!_rc->FlagExist("MBD_CALDIR"))
   {
     std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
+    if ( sampmax_url.empty() )
+    {
+      std::cerr << "ERROR, MBD_SAMPMAX missing" << std::endl;
+      return -1;
+    }
     if (Verbosity() > 0)
     {
       std::cout << "sampmax_url " << sampmax_url << std::endl;
@@ -87,6 +92,11 @@ int MbdCalib::Download_All()
     Download_SampMax(sampmax_url);
 
     std::string status_url = _cdb->getUrl("MBD_STATUS");
+    if ( status_url.empty() )
+    {
+      std::cerr << "ERROR, MBD_STATUS missing" << std::endl;
+      return -1;
+    }
     if (Verbosity() > 0)
     {
       std::cout << "status_url " << status_url << std::endl;
@@ -96,6 +106,11 @@ int MbdCalib::Download_All()
     if ( !_rawdstflag )
     {
       std::string ped_url = _cdb->getUrl("MBD_PED");
+      if ( ped_url.empty() )
+      {
+        std::cerr << "ERROR, MBD_PED missing" << std::endl;
+        return -1;
+      }
       if (Verbosity() > 0)
       {
         std::cout << "ped_url " << ped_url << std::endl;
@@ -104,6 +119,11 @@ int MbdCalib::Download_All()
 
     
       std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
+      if ( pileup_url.empty() )
+      {
+        std::cerr << "ERROR, MBD_PILEUP missing" << std::endl;
+        return -1;
+      }
       if (Verbosity() > 0)
       {
         std::cout << "pileup_url " << pileup_url << std::endl;
@@ -113,6 +133,11 @@ int MbdCalib::Download_All()
       if (do_templatefit)
       {
         std::string shape_url = _cdb->getUrl("MBD_SHAPES");
+        if ( shape_url.empty() )
+        {
+          std::cerr << "ERROR, MBD_SHAPES missing" << std::endl;
+          return -1;
+        }
         if (Verbosity() > 0)
         {
           std::cout << "shape_url " << shape_url << std::endl;

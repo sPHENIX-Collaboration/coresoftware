@@ -61,12 +61,17 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
   }
 
   int ret = getNodes(topNode);
+  if ( ret != Fun4AllReturnCodes::EVENT_OK )
+  {
+    return ret;
+  }
 
   m_mbdevent->SetSim(_simflag);
   m_mbdevent->SetRawDstFlag(_rawdstflag);
   m_mbdevent->SetFitsOnly(_fitsonly);
   m_mbdevent->set_doeval(_fiteval);
-  m_mbdevent->InitRun();
+
+  ret = m_mbdevent->InitRun();
 
   return ret;
 }

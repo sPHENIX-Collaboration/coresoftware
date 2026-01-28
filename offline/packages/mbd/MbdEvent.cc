@@ -151,7 +151,11 @@ int MbdEvent::InitRun()
 
   _mbdcal->SetRawDstFlag( _rawdstflag );
   _mbdcal->SetFitsOnly( _fitsonly );
-  _mbdcal->Download_All();
+  int status = _mbdcal->Download_All();
+  if ( status == -1 )
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   if ( _simflag == 0 )  // do following for real data
   {
@@ -810,12 +814,14 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
       // or have time channels marked as bad
       // or have always_process_charge set to 1 (useful for threshold studies)
 
-      m_pmttq[pmtch] = bbcraws->get_pmt(pmtch)->get_qtdc();
-
       // In Run 1 (runs before 40000), we didn't set hardware thresholds, and instead set a software threshold of 0.25
       if ( ((bbcraws->get_pmt(pmtch)->get_adc() < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
       {
-        m_qtdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
+        m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
+      }
+      else
+      {
+        m_pmttq[pmtch] = bbcraws->get_pmt(pmtch)->get_qtdc();
       }
 
       if ( !std::isnan(m_pmttq[pmtch]) )
