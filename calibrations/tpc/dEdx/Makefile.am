@@ -11,28 +11,24 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  caloTowerEmbed.h \
-  CopyIODataNodes.h \
-  CombineTowerInfo.h \
-  HepMCCollisionVertex.h
+  dEdxFitter.h \
+  GlobaldEdxFitter.h \
+  bethe_bloch.h
 
 lib_LTLIBRARIES = \
-  libCaloEmbedding.la
+  libdedxfitter.la
 
-libCaloEmbedding_la_SOURCES = \
-  caloTowerEmbed.cc \
-  CopyIODataNodes.cc \
-  CombineTowerInfo.cc \
-  HepMCCollisionVertex.cc
+libdedxfitter_la_SOURCES = \
+  dEdxFitter.cc \
+  GlobaldEdxFitter.cc
 
-libCaloEmbedding_la_LIBADD = \
-  -lcalo_io \
-  -lcalotrigger_io \
-  -lcentrality_io \
-  -lfun4all \
-  -lglobalvertex_io \
-  -lphhepmc_io \
+libdedxfitter_la_LIBADD = \
   -lphool \
+  -ltrack_io \
+  -lg4detectors \
+  -ltrackbase_historic \
+  -ltrackbase_historic_io \
+  -lglobalvertex \
   -lSubsysReco
 
 BUILT_SOURCES = testexternals.cc
@@ -41,7 +37,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libCaloEmbedding.la
+testexternals_LDADD   = libdedxfitter.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
