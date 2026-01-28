@@ -54,8 +54,8 @@ class SvtxVertex_v2 : public SvtxVertex
   float get_error(unsigned int i, unsigned int j) const override;        //< get vertex error covar
   void set_error(unsigned int i, unsigned int j, float value) override;  //< set vertex error covar
 
-  short int get_beam_crossing() const override { return _beamcrossing; }
-  void set_beam_crossing(short int cross) override { _beamcrossing = cross; }
+  unsigned int get_beam_crossing() const override { return _beamcrossing; }
+  void set_beam_crossing(unsigned int cross) override { _beamcrossing = cross; }
 
   //
   // associated track ids methods
@@ -82,7 +82,7 @@ class SvtxVertex_v2 : public SvtxVertex
   unsigned int _ndof{std::numeric_limits<unsigned int>::max()};  //< degrees of freedom
   float _err[6]{};                                               //< error covariance matrix (packed storage) (+/- cm^2)
   std::set<unsigned int> _track_ids;                             //< list of track ids
-  short int _beamcrossing{std::numeric_limits<short int>::max()};
+  unsigned int _beamcrossing{std::numeric_limits<unsigned int>::max()};
 
   ClassDefOverride(SvtxVertex_v2, 2);
 };
