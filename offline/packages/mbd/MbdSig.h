@@ -111,10 +111,12 @@ class MbdSig
   // Double_t FitPulse();
   void SetTimeOffset(const Double_t o) { f_time_offset = o; }
   Double_t TemplateFcn(const Double_t *x, const Double_t *par);
+  Double_t TwoTemplateFcn(const Double_t *x, const Double_t *par);
   TF1 *GetTemplateFcn() { return template_fcn; }
   void SetMinMaxFitTime(const Double_t mintime, const Double_t maxtime);
 
   void WritePedHist();
+  void WriteChi2Hist();
 
   void DrawWaveform();      /// Draw Subtracted Waveform
   void PadUpdate() const;
@@ -143,6 +145,9 @@ class MbdSig
   Double_t f_time_offset{4.0}; /** time offset used in fit */
 
   Double_t f_integral{0.}; /** integral */
+
+  Double_t f_chi2{0.};
+  Double_t f_ndf{0.};
 
   TH1 *hRawPulse{nullptr};           //!
   TH1 *hSubPulse{nullptr};           //!
@@ -182,19 +187,17 @@ class MbdSig
   Int_t template_npointsy{0};
   Double_t template_begintime{0.};
   Double_t template_endtime{0.};
-  // Double_t template_min_good_amplitude{20.};    //! for template, in original units of waveform data
-  // Double_t template_max_good_amplitude{4080.};  //! for template, in original units of waveform data
-  // Double_t template_min_xrange{0.};             //! for template, in original units of waveform data
-  // Double_t template_max_xrange{0.};             //! for template, in original units of waveform data
   std::vector<float> template_y;
   std::vector<float> template_yrms;
   TF1 *template_fcn{nullptr};
+  TF1 *twotemplate_fcn{nullptr};
   Double_t fit_min_time{};  //! min time for fit, in original units of waveform data
   Double_t fit_max_time{};  //! max time for fit, in original units of waveform data
 
   std::ofstream *_pileupfile{nullptr};  // for writing out waveforms from prev. crossing pileup
                                         // use for calibrating out the tail from these events
 
+  TH1 *h_chi2ndf{nullptr};  //! for eval
 
   int _verbose{0};
 };

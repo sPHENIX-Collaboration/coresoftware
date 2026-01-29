@@ -74,6 +74,7 @@ class MbdEvent
   void  set_EventNumber(int ievt) { m_evt = ievt; }
 
   void  set_debug(const int d) { _debug = d; }
+  void  set_doeval(const int d) { _doeval = d; }
 
   MbdSig *GetSig(const int ipmt) { return &_mbdsig[ipmt]; }
 
@@ -196,12 +197,14 @@ class MbdEvent
   // debug stuff
   TCanvas *ac{nullptr};  // for plots used during debugging
   void PlotDebug();
+  int  _doeval{0};
+  std::unique_ptr<TFile> _evalfile{nullptr};
   std::unique_ptr<TFile> _synctfile{nullptr};
   TTree *_syncttree{nullptr};
   Double_t _refz{ std::numeric_limits<double>::quiet_NaN() };
-  std::vector<Int_t> bbevt;
+  std::vector<Int_t>    bbevt;
   std::vector<UShort_t> bbclk;
-  std::vector<Float_t> mybbz;
+  std::vector<Float_t>  mybbz;
   std::vector<Long64_t> bco;
   std::vector<Double_t> intz;
   std::vector<Double_t> bbz;
