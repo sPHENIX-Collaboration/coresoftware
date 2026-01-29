@@ -26,7 +26,7 @@
 #include <trackbase_historic/WeightedTrackMap.h>
 
 #include <globalvertex/SvtxVertexMap_v1.h>
-#include <globalvertex/SvtxVertex_v2.h>
+#include <globalvertex/SvtxVertex_v3.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
