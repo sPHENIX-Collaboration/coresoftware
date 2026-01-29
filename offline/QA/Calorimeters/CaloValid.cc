@@ -84,7 +84,23 @@ int CaloValid::Init(PHCompositeNode* /*unused*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-// Note: InitRun cannot be made static as it modifies member variable m_species
+/**
+ * @brief Determine the collision species for the current run and set m_species.
+ *
+ * Reads the RunHeader from the provided node tree, inspects the run number, and sets
+ * the member variable `m_species` to one of the recognized values ("pp", "AuAu", "OO").
+ * If the run number does not match any known range or the RunHeader is missing,
+ * `m_species` remains unchanged (default behavior uses "pp" elsewhere) and a diagnostic
+ * message may be printed depending on verbosity.
+ *
+ * Recognized mappings:
+ * - RUN2PP_*  -> "pp"
+ * - RUN2AUAU_* or RUN3AUAU_* -> "AuAu"
+ * - RUN3OO_*  -> "OO"
+ *
+ * @param topNode Top-level node of the event tree used to locate the RunHeader.
+ * @return int EVENT_OK on success.
+ */
 int CaloValid::InitRun(PHCompositeNode* topNode)
 {
   RunHeader* runhdr = findNode::getClass<RunHeader>(topNode, "RunHeader");
