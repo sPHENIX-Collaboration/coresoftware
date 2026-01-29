@@ -92,16 +92,15 @@ int MbdCalib::Download_All()
     Download_SampMax(sampmax_url);
 
     std::string status_url = _cdb->getUrl("MBD_STATUS");
-    if ( status_url.empty() )
+    if ( ! status_url.empty() )
     {
-      std::cerr << "ERROR, MBD_STATUS missing" << std::endl;
-      return -1;
+      // if this doesn't exist, the status is assumed to be all good
+      Download_Status(status_url);
     }
     if (Verbosity() > 0)
     {
       std::cout << "status_url " << status_url << std::endl;
     }
-    Download_Status(status_url);
 
     if ( !_rawdstflag )
     {
@@ -785,7 +784,7 @@ int MbdCalib::Download_Status(const std::string& dbase_location)
 
   if ( _mbdstatus[0] == -1 )
   {
-    std::cout << PHWHERE << ", WARNING, sampmax calib missing, " << dbase_location << std::endl;
+    std::cout << PHWHERE << ", WARNING, status calib seems bad, " << dbase_location << std::endl;
     _status = -1;
     return _status;  // file not found
   }
@@ -2504,6 +2503,7 @@ void MbdCalib::Reset()
   Reset_Thresholds();
 
   _sampmax.fill(-1);
+  _mbdstatus.fill(0);
 }
 
 void MbdCalib::set_ped(const int ifeech, const float m, const float merr, const float s, const float serr)
