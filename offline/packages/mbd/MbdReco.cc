@@ -7,7 +7,7 @@
 #include "MbdPmtSimContainerV1.h"
 
 #include <globalvertex/MbdVertexMapv1.h>
-#include <globalvertex/MbdVertexv2.h>
+#include <globalvertex/MbdVertexv3.h>
 
 #include <ffarawobjects/CaloPacket.h>
 
@@ -178,7 +178,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   // For multiple global vertex
   if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0 && _calpass==0 )
   {
-    auto *vertex = new MbdVertexv2();
+    auto *vertex = new MbdVertexv3();
     vertex->set_t(m_mbdevent->get_bbct0());
     vertex->set_z(m_mbdevent->get_bbcz());
     vertex->set_z_err(0.6);
