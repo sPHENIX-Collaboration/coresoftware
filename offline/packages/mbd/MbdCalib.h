@@ -37,6 +37,7 @@ class MbdCalib
   float get_ped(const int ifeech) const { return _pedmean[ifeech]; }
   float get_pedrms(const int ifeech) const { return _pedsigma[ifeech]; }
   int   get_sampmax(const int ifeech) const { return _sampmax[ifeech]; }
+  int   get_status(const int ifeech) const { return _mbdstatus[ifeech]; }
   float get_tcorr(const int ifeech, const int tdc) const {
     if (tdc<0)
     {
@@ -108,6 +109,7 @@ class MbdCalib
   TGraph *get_lut_graph(const int pmtch, std::string_view type);
 
   void set_sampmax(const int ifeech, const int val) { _sampmax[ifeech] = val; }
+  void set_status(const int ifeech, const int val) { _mbdstatus[ifeech] = val; }
   void set_ped(const int ifeech, const float m, const float merr, const float s, const float serr);
   void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
   void set_tq0(const int ipmt, const float t0) { _tqfit_t0mean[ipmt] = t0; }
@@ -118,6 +120,7 @@ class MbdCalib
   int Download_T0Corr(const std::string& dbase_location);
   int Download_Ped(const std::string& dbase_location);
   int Download_SampMax(const std::string& dbase_location);
+  int Download_Status(const std::string& dbase_location);
   int Download_Shapes(const std::string& dbase_location);
   int Download_TimeCorr(const std::string& dbase_location);
   int Download_SlewCorr(const std::string& dbase_location);
@@ -128,6 +131,7 @@ class MbdCalib
 
 #ifndef ONLINE
   int Write_CDB_SampMax(const std::string& dbfile);
+  int Write_CDB_Status(const std::string& dbfile);
   int Write_CDB_TTT0(const std::string& dbfile);
   int Write_CDB_TQT0(const std::string& dbfile);
   int Write_CDB_T0Corr(const std::string& dbfile);
@@ -143,6 +147,7 @@ class MbdCalib
 #endif
 
   int Write_SampMax(const std::string& dbfile);
+  int Write_Status(const std::string& dbfile);
   int Write_TQT0(const std::string& dbfile);
   int Write_TTT0(const std::string& dbfile);
   int Write_T0Corr(const std::string& dbfile);
@@ -230,6 +235,9 @@ class MbdCalib
 
   // SampMax (Peak of waveform)
   std::array<int, MbdDefs::MBD_N_FEECH> _sampmax{};
+
+  // Status (MBD Channel Status)
+  std::array<int, MbdDefs::MBD_N_FEECH> _mbdstatus{};
 
   // Pileup waveform correction
   std::array<float, MbdDefs::MBD_N_FEECH> _pileup_p0{};
