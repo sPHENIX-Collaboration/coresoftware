@@ -2084,6 +2084,11 @@ int MbdCalib::Write_TimeCorr(const std::string& dbfile)
 {
   std::ofstream cal_timecorr_file;
   cal_timecorr_file.open(dbfile);
+  if (!cal_timecorr_file.is_open())
+  {
+    std::cout << PHWHERE << "unable to open " << dbfile << std::endl;
+    return -1;
+  }
   for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
   {
     if ( _mbdgeom->get_type(ifeech) == 1 )
