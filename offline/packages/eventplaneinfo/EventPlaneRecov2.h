@@ -96,7 +96,8 @@ class EventPlaneRecov2 : public SubsysReco
  enum class Subdetector
  {
    S,
-   N
+   N,
+   NS
  };
 
  struct QVec
@@ -123,14 +124,14 @@ class EventPlaneRecov2 : public SubsysReco
  // Holds all correction data
  // key: [Harmonic][Cent][Subdetector]
  // Harmonics {2,3,4} -> 3 elements
- // Subdetectors {S,N} -> 2 elements
- std::array<std::array<std::array<CorrectionData, 2>, m_bins_cent>, m_harmonics.size()> m_correction_data;
+ // Subdetectors {S,N,NS} -> 3 elements
+ std::array<std::array<std::array<CorrectionData, 3>, m_bins_cent>, m_harmonics.size()> m_correction_data;
 
  // sEPD Q Vectors
  // key: [Harmonic][Subdetector]
- // Subdetectors {S,N} -> 2 elements
- std::array<std::array<QVec, 2>, m_harmonics.size()> m_Q_raw{};
- std::array<std::array<QVec, 2>, m_harmonics.size()> m_Q_recentered{};
- std::array<std::array<QVec, 2>, m_harmonics.size()> m_Q_flat{};
+ // Subdetectors {S,N,NS} -> 3 elements
+ std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_raw{};
+ std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_recentered{};
+ std::array<std::array<QVec, 3>, m_harmonics.size()> m_Q_flat{};
 };
 #endif
