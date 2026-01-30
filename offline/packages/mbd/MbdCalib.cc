@@ -1329,7 +1329,6 @@ int MbdCalib::Download_TimeRMS(const std::string& dbase_location)
     trms.clear();
   }
   std::fill(_trms_npts.begin(), _trms_npts.end(), 0);
-  
   TString dbase_file = dbase_location;
 
 #ifndef ONLINE
@@ -1436,8 +1435,9 @@ int MbdCalib::Download_TimeRMS(const std::string& dbase_location)
   if ( _trms_y[0].empty() )
   {
     std::cout << PHWHERE << ", WARNING, trms calib missing " << dbase_location << std::endl;
-    _status = -1;
-    return _status;  // file not found
+//    _status = -1;
+//    return _status;  // file not found
+    return 0;
   }
 
   // Now we interpolate the trms
