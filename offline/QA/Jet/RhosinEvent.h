@@ -44,6 +44,10 @@ class RhosinEvent : public SubsysReco
     m_doTrgSelect = true;
     m_trgToSelect = trig;
   }
+  void setPPMode(const bool pp)
+  {
+    m_inPPMode = pp;
+  }
 
   // standard Fun4All functions
   int Init(PHCompositeNode *topNode) override;
@@ -63,6 +67,7 @@ class RhosinEvent : public SubsysReco
 
   // trigger selection
   bool m_doTrgSelect {false};
+  bool m_inPPMode{false};
   uint32_t m_trgToSelect {JetQADefs::GL1::MBDNSJet1};
 
   Fun4AllHistoManager *m_manager{nullptr};

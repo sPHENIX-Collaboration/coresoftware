@@ -49,14 +49,14 @@ namespace PHG4CellDefs
 
   namespace SizeBinning
   {
-    keytype genkey(const unsigned short layer, const unsigned short zbin, const unsigned short iphibin);
+    keytype genkey(const unsigned short detid, const unsigned short zbin, const unsigned short iphibin);
     unsigned short int get_zbin(const PHG4CellDefs::keytype key);
     unsigned short int get_phibin(const PHG4CellDefs::keytype key);
   }  // namespace SizeBinning
 
   namespace EtaPhiBinning
   {
-    keytype genkey(const unsigned short layer, const unsigned short etabin, const unsigned short phibin);
+    keytype genkey(const unsigned short detid, const unsigned short iphi, const unsigned short ieta);
     unsigned short int get_etabin(const PHG4CellDefs::keytype key);
     unsigned short int get_phibin(const PHG4CellDefs::keytype key);
   }  // namespace EtaPhiBinning
@@ -71,27 +71,27 @@ namespace PHG4CellDefs
 
   namespace ScintillatorSlatBinning
   {
-    keytype genkey(const unsigned short layer, const unsigned short irow, const unsigned short icolumn);
+    keytype genkey(const unsigned short detid, const unsigned short icolumn, const unsigned short irow);
     unsigned short int get_row(const PHG4CellDefs::keytype key);
     unsigned short int get_column(const PHG4CellDefs::keytype key);
   }  // namespace ScintillatorSlatBinning
 
   namespace EtaXsizeBinning
   {
-    keytype genkey(const unsigned short layer, const unsigned short etabin, const unsigned short xbin);
+    keytype genkey(const unsigned short detid, const unsigned short ixbin, const unsigned short ieta);
     unsigned short int get_etabin(const PHG4CellDefs::keytype key);
     unsigned short int get_xsizebin(const PHG4CellDefs::keytype key);
   }  // namespace EtaXsizeBinning
 
   namespace MVTXBinning
   {
-    keytype genkey(const unsigned short layer, const unsigned int bit32_index);
+    keytype genkey(const unsigned short detid, const unsigned int bit32_index);
     unsigned int get_index(const PHG4CellDefs::keytype key);
   }  // namespace MVTXBinning
 
   namespace TPCBinning
   {
-    keytype genkey(const unsigned short lyr, const unsigned short mod, const unsigned short pad);
+    keytype genkey(const unsigned short detid, const unsigned short mod, const unsigned short pad);
     unsigned short get_radbin(const PHG4CellDefs::keytype key);
     unsigned short get_phibin(const PHG4CellDefs::keytype key);
   }  // namespace TPCBinning

@@ -3,6 +3,7 @@
 #include "Fun4AllDstOutputManager.h"
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllHistoManager.h"  // for Fun4AllHistoManager
+#include "Fun4AllInputManager.h"
 #include "Fun4AllMemoryTracker.h"
 #include "Fun4AllMonitoring.h"
 #include "Fun4AllOutputManager.h"
@@ -127,9 +128,9 @@ void Fun4AllServer::InitAll()
   {
     gSystem->IgnoreSignal((ESignals) i);
   }
+  m_saved_cout_state.copyfmt(std::cout); // save current state
   Fun4AllMonitoring::instance()->Snapshot("StartUp");
-  std::string histomanagername;
-  histomanagername = Name() + "HISTOS";
+  std::string histomanagername = Name() + "HISTOS";
   ServerHistoManager = new Fun4AllHistoManager(histomanagername);
   registerHistoManager(ServerHistoManager);
   double uplim = NFRAMEWORKBINS - 0.5;
@@ -244,6 +245,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const std::string &t
               << subsystem->Name() << std::endl;
     exit(1);
   }
+  std::cout.copyfmt(m_saved_cout_state); // restore cout to default formatting
   gROOT->cd(currdir.c_str());
   if (iret)
   {
@@ -575,6 +577,7 @@ int Fun4AllServer::process_event()
       ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
 #endif
       int retcode = Subsystem.first->process_event(Subsystem.second);
+      std::cout.copyfmt(m_saved_cout_state); // restore cout to default formatting
 #ifdef FFAMEMTRACKER
       ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
 #endif
@@ -898,6 +901,7 @@ int Fun4AllServer::BeginRun(const int runno)
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
     iret = BeginRunSubsystem(*iter);
+    std::cout.copyfmt(m_saved_cout_state); // restore cout to default formatting
   }
   for (; !NewSubsystems.empty(); NewSubsystems.pop_front())
   {
@@ -1091,6 +1095,7 @@ int Fun4AllServer::EndRun(const int runno)
                 << (*iter).first->Name() << std::endl;
       exit(1);
     }
+    std::cout.copyfmt(m_saved_cout_state); // restore cout to default formatting
   }
   gROOT->cd(currdir.c_str());
 
@@ -1143,6 +1148,7 @@ int Fun4AllServer::End()
                 << (*iter).first->Name() << std::endl;
       exit(1);
     }
+    std::cout.copyfmt(m_saved_cout_state); // restore cout to default formatting
   }
   gROOT->cd(currdir.c_str());
   PHNodeIterator nodeiter(TopNode);
@@ -1385,6 +1391,11 @@ PHCompositeNode *Fun4AllServer::getNode(const std::string &name, const std::stri
 
 int Fun4AllServer::registerInputManager(Fun4AllInputManager *InManager)
 {
+  if (Verbosity() > 1)
+  {
+    std::cout << "Registering Input Manager " << InManager->Name()
+	      << std::endl;
+  }
   int iret = defaultSyncManager->registerInputManager(InManager);
   return iret;
 }

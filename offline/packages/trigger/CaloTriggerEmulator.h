@@ -38,7 +38,7 @@ class CaloTriggerEmulator : public SubsysReco
   //! event processing method
   int process_event(PHCompositeNode *) override;
   int process_sim();
-  int process_offline();
+  int process_offline(PHCompositeNode *);
 
   //! end of run method
   int End(PHCompositeNode *) override;
@@ -53,7 +53,7 @@ class CaloTriggerEmulator : public SubsysReco
   void CreateNodes(PHCompositeNode *);
 
   //! MakePrimitives
-  int process_waveforms();
+  int process_waveforms(PHCompositeNode *);
 
   //! MakeTriggerOutput
   int process_primitives();
@@ -226,6 +226,7 @@ class CaloTriggerEmulator : public SubsysReco
 
   int m_isdata{1};
   int m_useoffline{false};
+  int m_use_individual_packets{false};
   // default nsamples is 16 for mbd, 12 for calos
   int m_nsamples{16};
   // int m_idx{12};

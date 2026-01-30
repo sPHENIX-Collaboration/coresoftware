@@ -10,7 +10,7 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <globalvertex/GlobalVertexv2.h>
+#include <globalvertex/GlobalVertexv3.h>
 #include <globalvertex/GlobalVertexMapv1.h>
 
 #include <phool/getClass.h>

@@ -20,7 +20,7 @@ class PHG4TpcCylinderGeomContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  PHG4TpcCylinderGeomContainer() {}
+  PHG4TpcCylinderGeomContainer() = default;
   ~PHG4TpcCylinderGeomContainer() override;
 
   // from PHObject

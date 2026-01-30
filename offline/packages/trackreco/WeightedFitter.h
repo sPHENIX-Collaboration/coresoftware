@@ -102,6 +102,8 @@ private:
 	bool refit_with_vertex();
 	bool add_track();
 
+	Eigen::Matrix4d param_cov{Eigen::Matrix4d::Zero()};
+
 	std::string m_ntuple_file_name{}; // empty--by default do not make it
 	TFile* m_file{};
 	TNtuple* m_ntuple{};

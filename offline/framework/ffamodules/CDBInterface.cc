@@ -185,11 +185,14 @@ std::string CDBInterface::getUrl(const std::string &domain, const std::string &f
       std::cout << "... reply: " << return_url << std::endl;
     }
   }
-  auto pret = m_UrlVector.insert(make_tuple(domain_noconst, return_url, timestamp));
-  if (!pret.second && Verbosity() > 1)
+  if (! return_url.empty())
   {
-    std::cout << PHWHERE << "not adding again " << domain_noconst << ", url: " << return_url
-              << ", time stamp: " << timestamp << std::endl;
+    auto pret = m_UrlVector.insert(make_tuple(domain_noconst, return_url, timestamp));
+    if (!pret.second && Verbosity() > 1)
+    {
+      std::cout << PHWHERE << "not adding again " << domain_noconst << ", url: " << return_url
+		<< ", time stamp: " << timestamp << std::endl;
+    }
   }
   return return_url;
 }

@@ -20,6 +20,7 @@ class CaloWaveformProcessing : public SubsysReco
     FAST = 3,
     NYQUIST = 4,
     TEMPLATE_NOSAT = 5,
+    FUNCFIT = 6,
   };
 
   CaloWaveformProcessing() = default;
@@ -75,6 +76,26 @@ class CaloWaveformProcessing : public SubsysReco
     _dobitfliprecovery = dobitfliprecovery;
   }
 
+  // Functional fit options: 0 = PowerLawExp, 1 = PowerLawDoubleExp
+  void set_funcfit_type(int type)
+  {
+    _funcfit_type = type;
+  }
+
+  void set_powerlaw_params(double power, double decay)
+  {
+    _powerlaw_power = power;
+    _powerlaw_decay = decay;
+  }
+
+  void set_doubleexp_params(double power, double peaktime1, double peaktime2, double ratio)
+  {
+    _doubleexp_power = power;
+    _doubleexp_peaktime1 = peaktime1;
+    _doubleexp_peaktime2 = peaktime2;
+    _doubleexp_ratio = ratio;
+  }
+
   std::vector<std::vector<float>> process_waveform(std::vector<std::vector<float>> waveformvector);
   std::vector<std::vector<float>> calo_processing_ONNX(const std::vector<std::vector<float>> &chnlvector);
 
@@ -106,8 +127,17 @@ class CaloWaveformProcessing : public SubsysReco
 
   std::string url_onnx;
   std::string m_model_name{"CEMC_ONNX"};
-  std::array<double, 3> m_Onnx_factor{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
-  std::array<double, 3> m_Onnx_offset{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  std::array<double, 4> m_Onnx_factor{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+  std::array<double, 4> m_Onnx_offset{std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+
+  // Functional fit parameters
+  int _funcfit_type{1};  // 0 = PowerLawExp, 1 = PowerLawDoubleExp
+  double _powerlaw_power{4.0};
+  double _powerlaw_decay{1.5};
+  double _doubleexp_power{2.0};
+  double _doubleexp_peaktime1{5.0};
+  double _doubleexp_peaktime2{5.0};
+  double _doubleexp_ratio{0.3};
 };
 
 #endif

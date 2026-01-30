@@ -56,7 +56,7 @@ int PHG4sPHENIXMagnetDetector::IsInsPHENIXMagnet(G4VPhysicalVolume* volume) cons
 {
   G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
 
-  if (m_LogicalVolSet.find(mylogvol) != m_LogicalVolSet.end())
+  if (m_LogicalVolSet.contains(mylogvol))
   {
     return 1;
   }
@@ -84,7 +84,7 @@ void PHG4sPHENIXMagnetDetector::ConstructMe(G4LogicalVolume* logicWorld)
       new G4LogicalVolume(cryostat, aluminum, "CRYOSTAT");
   GetDisplayAction()->AddVolume(logCryostat, "CRYOSTAT");
   m_LogicalVolSet.insert(logCryostat);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logCryostat, "CRYOSTAT", logicWorld, false, false, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), logCryostat, "CRYOSTAT", logicWorld, false, false, OverlapCheck());
 
   // Air (or vacuum?) inside cryostat
 
@@ -94,7 +94,7 @@ void PHG4sPHENIXMagnetDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   GetDisplayAction()->AddVolume(logCryostatInterior, "CRYOINT");
   m_LogicalVolSet.insert(logCryostatInterior);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logCryostatInterior, "CRYOINT", logCryostat, false, false, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), logCryostatInterior, "CRYOINT", logCryostat, false, false, OverlapCheck());
 
   // Thermal shield
 
@@ -103,14 +103,14 @@ void PHG4sPHENIXMagnetDetector::ConstructMe(G4LogicalVolume* logicWorld)
       new G4LogicalVolume(therm, aluminum, "THERM");
   GetDisplayAction()->AddVolume(logTherm, "THERM");
   m_LogicalVolSet.insert(logTherm);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logTherm, "THERM", logCryostatInterior, false, false, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), logTherm, "THERM", logCryostatInterior, false, false, OverlapCheck());
 
   G4Tubs* thermvac = SolenoidTubes(2);
   G4LogicalVolume* logThermVac =
       new G4LogicalVolume(thermvac, WorldMaterial, "THERMVAC");
   GetDisplayAction()->AddVolume(logThermVac, "THERMVAC");
   m_LogicalVolSet.insert(logThermVac);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logThermVac, "THERMVAC", logTherm, false, false, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), logThermVac, "THERMVAC", logTherm, false, false, OverlapCheck());
 
   // Coil support
 
@@ -119,7 +119,7 @@ void PHG4sPHENIXMagnetDetector::ConstructMe(G4LogicalVolume* logicWorld)
       new G4LogicalVolume(coilSupport, aluminum, "COILSUP");
   GetDisplayAction()->AddVolume(logCoilSupport, "COILSUP");
   m_LogicalVolSet.insert(logCoilSupport);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, 0), logCoilSupport, "COILSUP", logThermVac, false, false, OverlapCheck());
+  new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), logCoilSupport, "COILSUP", logThermVac, false, false, OverlapCheck());
 
   // Coil
 
@@ -129,7 +129,7 @@ void PHG4sPHENIXMagnetDetector::ConstructMe(G4LogicalVolume* logicWorld)
   GetDisplayAction()->AddVolume(logCoil, "COIL");
   m_LogicalVolSet.insert(logCoil);
   G4double zpos = 1.25 * cm;  // ifr_inert.dat file line 185
-  new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, zpos),
+  new G4PVPlacement(nullptr, G4ThreeVector(0.0, 0.0, zpos),
                     logCoil, "COIL", logThermVac, false, false, OverlapCheck());
 
   // Tube connecting solenoid to cryotower
@@ -142,14 +142,14 @@ void PHG4sPHENIXMagnetDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4double ycon = 158.5 * cm;   // ifr_inert.dat file line 189
   G4double zcon = -197.5 * cm;  // ifr_inert.dat file line 189
-  new G4PVPlacement(0, G4ThreeVector(0.0, ycon, zcon),
+  new G4PVPlacement(nullptr, G4ThreeVector(0.0, ycon, zcon),
                     logConnector, "CONNECTOR", logicWorld, false, false, OverlapCheck());
 
   // Bus bar in connecting tube
 
   G4Box* busbarD = Block(14);
   G4LogicalVolume* logBusbarD =
-      new G4LogicalVolume(busbarD, copper, "BusbarD", 0, 0, 0);
+      new G4LogicalVolume(busbarD, copper, "BusbarD", nullptr, nullptr, nullptr);
   GetDisplayAction()->AddVolume(logBusbarD, "BusbarD");
   m_LogicalVolSet.insert(logBusbarD);
 

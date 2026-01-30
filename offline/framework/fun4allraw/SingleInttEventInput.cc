@@ -7,6 +7,8 @@
 #include <ffarawobjects/InttRawHitContainerv2.h>
 #include <ffarawobjects/InttRawHitv2.h>
 
+#include <fun4all/InputFileHandlerReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -53,7 +55,7 @@ void SingleInttEventInput::FillPool(const uint64_t minBCO)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -67,7 +69,7 @@ void SingleInttEventInput::FillPool(const uint64_t minBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;

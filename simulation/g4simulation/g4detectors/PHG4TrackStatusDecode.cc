@@ -7,7 +7,10 @@
 #include <iostream>
 #include <map>
 
-static std::map<int, std::string> trackstatus;
+namespace
+{
+  std::map<int, std::string> trackstatus;
+}
 
 std::string PHG4TrackStatusDecode::GetTrackStatus(const int istatus)
 {
@@ -21,7 +24,7 @@ std::string PHG4TrackStatusDecode::GetTrackStatus(const int istatus)
     trackstatus[fSuspend] = "fSuspend";
     trackstatus[fPostponeToNextEvent] = "fPostponeToNextEvent";
   }
-  if (trackstatus.find(istatus) == trackstatus.end())
+  if (!trackstatus.contains(istatus))
   {
     std::cout << "could not find status " << istatus << " in trackstatus map" << std::endl;
     gSystem->Exit(1);

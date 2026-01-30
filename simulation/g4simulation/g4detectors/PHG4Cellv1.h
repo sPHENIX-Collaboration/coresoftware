@@ -17,7 +17,7 @@
 class PHG4Cellv1 : public PHG4Cell
 {
  public:
-  PHG4Cellv1() {}
+  PHG4Cellv1() = default;
   explicit PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
   ~PHG4Cellv1() override;
 

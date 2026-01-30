@@ -20,7 +20,7 @@ class PHG4TruthSubsystem : public PHG4Subsystem
   PHG4TruthSubsystem(const std::string &name = "TRUTH");
 
   //! destructor
-  ~PHG4TruthSubsystem(void) override
+  ~PHG4TruthSubsystem() override
   {
   }
 
@@ -37,8 +37,8 @@ class PHG4TruthSubsystem : public PHG4Subsystem
   int ResetEvent(PHCompositeNode *) override;
 
   //! accessors (reimplemented)
-  PHG4EventAction *GetEventAction(void) const override;
-  PHG4TrackingAction *GetTrackingAction(void) const override;
+  PHG4EventAction *GetEventAction() const override;
+  PHG4TrackingAction *GetTrackingAction() const override;
 
   //! only save the G4 truth information that is associated with the embedded particle
   void SetSaveOnlyEmbeded(bool b = true) { m_SaveOnlyEmbededFlag = b; };

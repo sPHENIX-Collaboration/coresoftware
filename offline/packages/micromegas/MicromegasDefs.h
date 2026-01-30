@@ -60,11 +60,15 @@ namespace MicromegasDefs
   /*!
    * @brief Generate a hitkey from strip index inside tile
    * @param[in] strip strip index
+   * @param[in] sample sample index
    */
-  TrkrDefs::hitkey genHitKey(uint16_t strip );
+  TrkrDefs::hitkey genHitKey(uint16_t strip, uint16_t sample = 0 );
 
   //! get strip from hit key
-  uint16_t getStrip(TrkrDefs::hitkey);
+  uint8_t getStrip(TrkrDefs::hitkey);
+
+  //! get sample from hit key
+  uint16_t getSample(TrkrDefs::hitkey);
 
   /*!
    * @brief Get the segmentation type from cluster key

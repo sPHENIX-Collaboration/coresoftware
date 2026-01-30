@@ -42,7 +42,7 @@ libphhepmc_la_LIBADD = \
   -lgsl \
   -lgslcblas
 
-ROOT_DICTS = \
+ROOTDICTS = \
   PHGenIntegral_Dict.cc \
   PHGenIntegralv1_Dict.cc \
   PHHepMC_io_Dict.cc \
@@ -51,13 +51,8 @@ ROOT_DICTS = \
   PHHepMCGenEventMap_Dict.cc
 
 pcmdir = $(libdir)
-nobase_dist_pcm_DATA = \
-  PHGenIntegral_Dict_rdict.pcm \
-  PHGenIntegralv1_Dict_rdict.pcm \
-  PHHepMC_io_Dict_rdict.pcm \
-  PHHepMCGenEvent_Dict_rdict.pcm \
-  PHHepMCGenEventv1_Dict_rdict.pcm \
-  PHHepMCGenEventMap_Dict_rdict.pcm
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
 
 libphhepmc_la_SOURCES = \
   Fun4AllHepMCInputManager.cc \
@@ -69,7 +64,7 @@ libphhepmc_la_SOURCES = \
   PHHepMCParticleSelectorDecayProductChain.cc
 
 libphhepmc_io_la_SOURCES = \
-  $(ROOT_DICTS) \
+  $(ROOTDICTS) \
   PHHepMCGenEvent.cc \
   PHHepMCGenEventv1.cc \
   PHHepMCGenEventMap.cc \

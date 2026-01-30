@@ -6,6 +6,8 @@
 #include <ffarawobjects/TpcRawHitContainerv2.h>
 #include <ffarawobjects/TpcRawHitv2.h>
 
+#include <fun4all/InputFileHandlerReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
 #include <phool/getClass.h>
@@ -15,6 +17,7 @@
 #include <Event/EventTypes.h>
 #include <Event/Eventiterator.h>
 
+#include <algorithm>
 #include <memory>
 #include <set>
 
@@ -33,7 +36,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -46,7 +49,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;
@@ -77,7 +80,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
     std::vector<Packet *> pktvec = evt->getPacketVector();
     if (m_skipEarlyEvents)
     {
-      for (auto packet : pktvec)
+      for (auto *packet : pktvec)
       {
         int numBCOs = packet->lValue(0, "N_TAGGER");
         bool bco_set = false;
@@ -100,13 +103,13 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
     }
     if (m_skipEarlyEvents)
     {
-      for (auto packet : pktvec)
+      for (auto *packet : pktvec)
       {
         delete packet;
       }
       continue;
     }
-    for (auto packet : pktvec)
+    for (auto *packet : pktvec)
     {
       // get packet id
       const auto packet_id = packet->getIdentifier();
@@ -134,10 +137,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
         {
           bco_set = true;
           gtm_bco = packet->lValue(t, "BCO");
-          if (largest_bco < gtm_bco)
-          {
-            largest_bco = gtm_bco;
-          }
+          largest_bco = std::max(largest_bco, gtm_bco);
           if (gtm_bco < minBCO)
           {
             continue;
@@ -149,7 +149,7 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
           // store
           skipthis = false;
           previous_bco = gtm_bco;
-          if (m_BclkStackPacketMap.find(packet_id) == m_BclkStackPacketMap.end())
+          if (!m_BclkStackPacketMap.contains(packet_id))
           {
             m_BclkStackPacketMap.insert(std::make_pair(packet_id, std::set<uint64_t>()));
           }
@@ -179,14 +179,13 @@ void SingleTpcPoolInput::FillPool(const uint64_t minBCO)
             once++;
             continue;
           }
-          else
-          {
-            if (once)
+          
+                      if (once)
             {
               std::cout << "many more hits: " << once << std::endl;
             }
             once = 0;
-          }
+         
           bool checksumerror = (packet->iValue(wf, "CHECKSUMERROR") > 0);
           if (checksumerror)
           {
@@ -304,7 +303,7 @@ void SingleTpcPoolInput::Print(const std::string &what) const
     for (const auto &bcliter : m_TpcRawHitMap)
     {
       std::cout << "Beam clock 0x" << std::hex << bcliter.first << std::dec << std::endl;
-      for (auto feeiter : bcliter.second)
+      for (auto *feeiter : bcliter.second)
       {
         std::cout << "fee: " << feeiter->get_fee()
                   << " at " << std::hex << feeiter << std::dec << std::endl;
@@ -332,7 +331,7 @@ void SingleTpcPoolInput::CleanupUsedPackets(const uint64_t bclk)
   {
     if (iter.first <= bclk)
     {
-      for (auto pktiter : iter.second)
+      for (auto *pktiter : iter.second)
       {
         delete pktiter;
       }
@@ -427,16 +426,15 @@ bool SingleTpcPoolInput::GetSomeMoreEvents(const uint64_t ibclk)
         // 		<< std::dec << std::endl;
         return true;
       }
-      else
-      {
-        std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
+      
+              std::cout << PHWHERE << Name() << ": erasing FEE " << bcliter.first
                   << " with stuck bclk: " << std::hex << bcliter.second
                   << " current bco range: 0x" << m_TpcRawHitMap.begin()->first
                   << ", to: 0x" << highest_bclk << ", delta: " << std::dec
                   << (highest_bclk - m_TpcRawHitMap.begin()->first)
                   << std::dec << std::endl;
         toerase.insert(bcliter.first);
-      }
+     
     }
   }
   for (auto iter : toerase)

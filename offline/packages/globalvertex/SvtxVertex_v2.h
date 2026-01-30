@@ -54,8 +54,21 @@ class SvtxVertex_v2 : public SvtxVertex
   float get_error(unsigned int i, unsigned int j) const override;        //< get vertex error covar
   void set_error(unsigned int i, unsigned int j, float value) override;  //< set vertex error covar
 
-  unsigned int get_beam_crossing() const override { return _beamcrossing; }
-  void set_beam_crossing(unsigned int cross) override { _beamcrossing = cross; }
+  short int get_beam_crossing() const override 
+  { 
+    return rollover_from_unsignedint(_beamcrossing);
+  }
+  void set_beam_crossing(short int cross) override 
+  { 
+    if (cross == short_int_max)
+    {
+      _beamcrossing = std::numeric_limits<unsigned int>::max();
+      return;
+    }
+
+    const short int cross_ro = rollover_short(cross);
+    _beamcrossing = static_cast<unsigned int>(cross_ro);
+  }
 
   //
   // associated track ids methods
@@ -73,6 +86,37 @@ class SvtxVertex_v2 : public SvtxVertex
   TrackIter end_tracks() override { return _track_ids.end(); }
 
  private:
+  static constexpr short int short_int_max = std::numeric_limits<short int>::max(); // 32767
+  // for unsigned int to short int conversion (rollover)
+  static short int rollover_short(short int cross)
+  {
+    if (cross == short_int_max) return short_int_max;
+    if (cross >= 0) return cross;
+
+    const int cross_ro = static_cast<int>(short_int_max) + static_cast<int>(cross); // cross negative
+    return static_cast<short int>(cross_ro);
+  }
+
+  static short int rollover_from_unsignedint(unsigned int cross)
+  {
+    // if unsigned int max, return short int max
+    if (cross == std::numeric_limits<unsigned int>::max())
+    {
+      return short_int_max;
+    }
+
+    // Common case: [0, 32767]
+    if (cross <= static_cast<unsigned int>(short_int_max))
+    {
+      return static_cast<short int>(cross);
+    }
+
+    const short int cross_ro = static_cast<short int>(static_cast<unsigned short>(cross));
+    if (cross_ro >= 0) return cross_ro;
+
+    return rollover_short(cross_ro);
+  }
+
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
   unsigned int _id{std::numeric_limits<unsigned int>::max()};    //< unique identifier within container

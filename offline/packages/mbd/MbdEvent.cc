@@ -35,6 +35,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <format>
 
 MbdEvent::MbdEvent(const int cal_pass, const bool proc_charge) :
   _nsamples(MbdDefs::MAX_SAMPLES),
@@ -150,7 +151,11 @@ int MbdEvent::InitRun()
 
   _mbdcal->SetRawDstFlag( _rawdstflag );
   _mbdcal->SetFitsOnly( _fitsonly );
-  _mbdcal->Download_All();
+  int status = _mbdcal->Download_All();
+  if ( status == -1 )
+  {
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   if ( _simflag == 0 )  // do following for real data
   {
@@ -361,6 +366,23 @@ int MbdEvent::End()
     orig_dir->cd();
   }
 
+  // Write out MbdSig eval histograms
+  if ( _doeval )
+  {
+    TDirectory *orig_dir = gDirectory;
+
+    // _doeval is overloaded with segment_number+1
+    std::string savefname = std::format("mbdfiteval_{:08}-{:05}.root",_runnum,_doeval-1);
+    _evalfile = std::make_unique<TFile>(savefname.c_str(),"RECREATE");
+
+    for (auto & sig : _mbdsig)
+    {
+      sig.WriteChi2Hist();
+    }
+
+    orig_dir->cd();
+  }
+
   return 1;
 }
 
@@ -397,7 +419,13 @@ void MbdEvent::Clear()
 
 bool MbdEvent::isbadtch(const int ipmtch)
 {
-  return std::fabs(_mbdcal->get_tt0(ipmtch))>100.;
+  int feech = _mbdgeom->get_feech(ipmtch,0);
+  if ( _mbdcal->get_status(feech) > 0 )
+  {
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -451,6 +479,7 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
     if (dstp[ipkt])
     {
       _nsamples = dstp[ipkt]->iValue(0, "SAMPLES");
+
       {
         static bool printcount{true};
         if ( printcount && Verbosity() > 0)
@@ -458,6 +487,13 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
 	  printcount = false;
         }
+      }
+
+      // skip empty packets, corrupt event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, evt " << m_evt << " no samples in Packet " << pktid << std::endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(dstp[ipkt]->iValue(0, "CLOCK"));
@@ -484,9 +520,17 @@ int MbdEvent::SetRawData(std::array< CaloPacket *,2> &dstp, MbdRawContainer *bbc
         }
 
         _mbdsig[feech].SetNSamples( _nsamples );
-        _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
-
+        
+        if ( _nsamples > 0 && _nsamples <= 30 )
+        {
+          _mbdsig[feech].SetXY(m_samp[feech], m_adc[feech]);
+        }
         /*
+        else
+        {
+          std::cout << PHWHERE << " empty feech " << feech << std::endl;
+        }
+
         std::cout << "feech " << feech << std::endl;
         _mbdsig[feech].Print();
         */
@@ -565,6 +609,7 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
     if (p[ipkt])
     {
       _nsamples = p[ipkt]->iValue(0, "SAMPLES");
+
       {
         static int counter = 0;
         if ( counter<1 )
@@ -572,6 +617,15 @@ int MbdEvent::SetRawData(Event *event, MbdRawContainer *bbcraws, MbdPmtContainer
           std::cout << "NSAMPLES = " << _nsamples << std::endl;
         }
         counter++;
+      }
+
+      // If packets are missing, stop processing event
+      if ( _nsamples == 0 )
+      {
+        std::cout << PHWHERE << " ERROR, skipping evt " << m_evt << " nsamples = 0 " << pktid << std::endl;
+        delete p[ipkt];
+        p[ipkt] = nullptr;
+        return Fun4AllReturnCodes::ABORTEVENT;
       }
 
       m_xmitclocks[ipkt] = static_cast<UShort_t>(p[ipkt]->iValue(0, "CLOCK"));
@@ -637,8 +691,9 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
   // Do a quick sanity check that all fem counters agree
   if (m_xmitclocks[0] != m_xmitclocks[1])
   {
-    std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree" << std::endl;
+    std::cout << __FILE__ << ":" << __LINE__ << " ERROR, xmitclocks don't agree, evt " << m_evt << std::endl;
   }
+
   /*
   // format changed in run2024, need to update check
   for (auto &femclock : femclocks)
@@ -673,20 +728,24 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
 
+    if ( _mbdsig[ifeech].GetNSamples()==0 )
+    {
+      continue;
+    }
+
     // time channel
     if (type == 0)
     {
       m_ttdc[pmtch] = _mbdsig[ifeech].MBDTDC(_mbdcal->get_sampmax(ifeech));
 
-      if ( m_ttdc[pmtch] < 40. || std::isnan(m_ttdc[pmtch]) || isbadtch(pmtch) )
+      if ( m_ttdc[pmtch] < 40. || std::isnan(m_ttdc[pmtch]) )
       {
         m_ttdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();   // no hit
       }
     }
-    else if ( type == 1 && (!std::isnan(m_ttdc[pmtch]) || isbadtch(pmtch) || _always_process_charge ) )
+    else if ( type == 1 && (!std::isnan(m_ttdc[pmtch]) || _always_process_charge ) )
     {
       // we process charge channels which have good time hit
-      // or have time channels marked as bad
       // or have always_process_charge set to 1 (useful for threshold studies)
 
       // Use dCFD method to seed time in charge channels (or as primary if not fitting template)
@@ -700,21 +759,18 @@ int MbdEvent::ProcessPackets(MbdRawContainer *bbcraws)
         //std::cout << "fittemplate" << std::endl;
         _mbdsig[ifeech].FitTemplate( _mbdcal->get_sampmax(ifeech) );
 
+        /*
         if ( _verbose )
         {
           std::cout << "tt " << ifeech << " " << pmtch << " " << m_pmttt[pmtch] << std::endl;
         }
+        */
         m_qtdc[pmtch] = _mbdsig[ifeech].GetTime();  // in units of sample number
         m_ampl[ifeech] = _mbdsig[ifeech].GetAmpl(); // in units of adc
       }
 
       // calpass 2, uncal_mbd. template fit. make sure qgain = 1, tq_t0 = 0
  
-      // In Run 1 (runs before 40000), we didn't set hardware thresholds, and instead set a software threshold of 0.25
-      if ( ((m_ampl[ifeech] < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
-      {
-        m_qtdc[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
-      }
     }
 
   }
@@ -739,11 +795,17 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
     int pmtch = _mbdgeom->get_pmt(ifeech);
     int type = _mbdgeom->get_type(ifeech);  // 0 = T-channel, 1 = Q-channel
 
+    if ( _mbdsig[ifeech].GetNSamples()==0 )
+    {
+      continue;
+    }
+
     // time channel
     if (type == 0)
     {
       if ( std::isnan(bbcraws->get_pmt(pmtch)->get_ttdc()) || isbadtch(pmtch) )
       {
+        // time channel has no hit or is marked as bad
         m_pmttt[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();  // no hit
       }
       else
@@ -761,7 +823,15 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
       // or have time channels marked as bad
       // or have always_process_charge set to 1 (useful for threshold studies)
 
-      m_pmttq[pmtch] = bbcraws->get_pmt(pmtch)->get_qtdc();
+      // In Run 1 (runs before 40000), we didn't set hardware thresholds, and instead set a software threshold of 0.25
+      if ( ((bbcraws->get_pmt(pmtch)->get_adc() < (_mbdcal->get_qgain(pmtch) * 0.25)) && (_runnum < 40000)) || std::fabs(_mbdcal->get_tq0(pmtch))>100. )
+      {
+        m_pmttq[pmtch] = std::numeric_limits<Float_t>::quiet_NaN();
+      }
+      else
+      {
+        m_pmttq[pmtch] = bbcraws->get_pmt(pmtch)->get_qtdc();
+      }
 
       if ( !std::isnan(m_pmttq[pmtch]) )
       {
@@ -773,7 +843,7 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         // if ( arm==1 ) std::cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << std::endl;
 
         // if tt is bad, use tq
-        if ( std::fabs(_mbdcal->get_tt0(pmtch))>100. )
+        if ( _mbdcal->get_status(ifeech-8)>0 )
         {
           m_pmttt[pmtch] = m_pmttq[pmtch];
         }
@@ -854,8 +924,14 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         */
 
         TGraphErrors *gsubpulse = _mbdsig[ifeech].GetGraph();
-        Double_t *y = gsubpulse->GetY();
-        h2_trange->Fill( y[samp_max], pmtch );  // fill ped-subtracted tdc
+        if ( gsubpulse )
+        {
+          Double_t *y = gsubpulse->GetY();
+          if ( y )
+          {
+            h2_trange->Fill( y[samp_max], pmtch );  // fill ped-subtracted tdc
+          }
+        }
       }
     }
 

@@ -22,7 +22,7 @@ class CDBUtils
   int setGlobalTag(const std::string &tagname);
   int lockGlobalTag(const std::string &tagname);
   int unlockGlobalTag(const std::string &tagname);
-  int createPayloadType(const std::string &domain);
+  int createPayloadType(const std::string &pt);
   std::string getUrl(const std::string &type, uint64_t iov);
   int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start);
   int insertPayload(const std::string &pl_type, const std::string &file_url, uint64_t iov_start, uint64_t iov_end);

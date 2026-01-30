@@ -74,7 +74,7 @@ namespace InttVertexUtil
     v_range.clear();
 
     // for (unsigned int i = 0; i < v.size(); i++){
-    for (auto& vi : v)
+    for (const auto& vi : v)
     {
       if (vi >= sigmaEff_vec[1] && vi <= sigmaEff_vec[2])
       {

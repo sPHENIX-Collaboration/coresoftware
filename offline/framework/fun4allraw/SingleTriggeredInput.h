@@ -34,9 +34,6 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual void FillPool();
   virtual void RunNumber(const int runno) { m_RunNumber = runno; }
   virtual int RunNumber() const { return m_RunNumber; }
-  virtual void EventNumber(const int i) { m_EventNumber = i; }
-  virtual int EventNumber() const { return m_EventNumber; }
-  virtual int EventsInThisFile() const { return m_EventsThisFile; }
   virtual int fileopen(const std::string &filename) override;
   virtual int fileclose() override;
   virtual int AllDone() const { return m_AllDone; }
@@ -45,6 +42,8 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   virtual void FilesDone(const int i) { m_FilesDone = i; }
   virtual void EventAlignmentProblem(const int i) { m_EventAlignmentProblem = i; }
   virtual int EventAlignmentProblem() const { return m_EventAlignmentProblem; }
+  virtual void EventNumber(const int i) { m_EventNumber = i; }
+  virtual int EventNumber() const { return m_EventNumber; }
   virtual void CreateDSTNodes(Event *evt);
   // these ones are used directly by the derived classes, maybe later
   // move to cleaner accessors
@@ -93,20 +92,16 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   SingleTriggeredInput *m_Gl1Input{nullptr};
   int m_AllDone{0};
   uint64_t m_Event{0};
-  uint64_t m_Gl1PacketNumberOneSkip{0};
   int m_EventNumber{0};
-  int m_EventsThisFile{0};
   int m_EventAlignmentProblem{0};
   int m_FilesDone{0};
-  int m_Gl1PacketOneSkipCount{5};
   int m_LastEvent{std::numeric_limits<int>::max()};
   int m_ProblemEvent{-1};
   int m_RepresPacket{-1};
   int m_RunNumber{0};
-  int m_max_alignment_retries{3};
+  int m_max_alignment_retries{5};
   bool firstcall{true};
   bool firstclockcheck{true};
-  bool m_Gl1PacketOneSkipActiveTrace{false};
   bool m_KeepPacketsFlag{false};
   bool m_packetclk_copy_runs{false};
   std::set<int> m_CorrectCopiedClockPackets;
@@ -117,6 +112,7 @@ class SingleTriggeredInput : public Fun4AllBase, public InputFileHandler
   std::map<int, bool> m_PacketAlignmentProblem;
   std::map<int, bool> m_PrevPoolLastDiffBad;
   std::map<int, uint64_t> m_PreviousValidBCOMap;
+  long long eventcounter{0};
 };
 
 #endif

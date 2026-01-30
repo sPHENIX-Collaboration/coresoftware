@@ -190,7 +190,7 @@ int StateClusterResidualsQA::process_event(PHCompositeNode* top_node)
         {
           continue;
         }
-        else if ((cfg.charge > 0) && !(track->get_positive_charge()))
+        if ((cfg.charge > 0) && !(track->get_positive_charge()))
         {
           continue;
         }

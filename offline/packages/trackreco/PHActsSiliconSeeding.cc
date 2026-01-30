@@ -565,7 +565,7 @@ void PHActsSiliconSeeding::makeSvtxTracks(const GridSeeds& seedVector)
         std::cout << "find intt clusters time " << addClusters << std::endl;
       }
 
-      if(m_searchInIntt)
+      if(m_searchInIntt && m_checkTiming)
       {
         bool mismatch = isTimingMismatched(*trackSeed);
         if (mismatch)
@@ -984,13 +984,13 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
                            local.x() - cluster->getLocalX());
             m_tree->Fill();
           }
-
+          bool strobecheck = std::abs(newstrobe - seedstrobe) < 2;
           /// Z strip spacing is the entire strip, so because we use fabs
           /// we divide by two
           float rphiresid = fabs(local.x() - cluster->getLocalX());
           float zresid = fabs(local.y() - cluster->getLocalY());
           if ((det == TrkrDefs::TrkrId::mvtxId && rphiresid < m_mvtxrPhiSearchWin &&
-               zresid < m_mvtxzSearchWin && newstrobe == seedstrobe) ||
+               zresid < m_mvtxzSearchWin && strobecheck) ||
               (det == TrkrDefs::TrkrId::inttId && rphiresid < m_inttrPhiSearchWin && zresid < m_inttzSearchWin))
 
           {

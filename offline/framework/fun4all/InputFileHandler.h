@@ -1,35 +1,51 @@
 #ifndef FUN4ALL_INPUTFILEHANDLER_H
 #define FUN4ALL_INPUTFILEHANDLER_H
 
+#include <cstdint>
 #include <list>
 #include <string>
+#include <vector>
 
 class InputFileHandler
 {
  public:
   InputFileHandler() = default;
   virtual ~InputFileHandler() = default;
-  virtual int fileopen(const std::string & /*filename*/) { return 0; }
+  virtual int fileopen(const std::string & /*filename*/);  // { return 0; }
   virtual int fileclose() { return -1; }
+
+  virtual int ResetFileList();
+
   int OpenNextFile();
   int AddListFile(const std::string &filename);
   int AddFile(const std::string &filename);
   void AddToFileOpened(const std::string &filename) { m_FileListOpened.push_back(filename); }
   void Print(const std::string &what = "ALL") const;
-  int IsOpen() const { return m_IsOpen; }
+  virtual int IsOpen() const { return m_IsOpen; }
   void IsOpen(const int i) { m_IsOpen = i; }
-  void SetVerbosity(const int i) { m_Verbosity = i; }
-  int GetVerbosity() const { return m_Verbosity; }
-  const std::list<std::string> &GetFileList() const { return m_FileList; }
+  void SetVerbosity(const uint64_t i) { m_Verbosity = i; }
+  uint64_t GetVerbosity() const { return m_Verbosity; }
   void UpdateFileList();
   void FileName(const std::string &fn) { m_FileName = fn; }
   const std::string &FileName() const { return m_FileName; }
+  bool FileListEmpty() const { return m_FileList.empty(); }
+  void Repeat(const int i = -1) { m_Repeat = i; }
+  std::pair<std::list<std::string>::const_iterator, std::list<std::string>::const_iterator> FileOpenListBeginEnd() { return std::make_pair(m_FileListOpened.begin(), m_FileListOpened.end()); }
+  const std::list<std::string> &GetFileList() const { return m_FileListCopy; }
+  const std::list<std::string> &GetFileOpenedList() const { return m_FileListOpened; }
+  void SetOpeningScript(const std::string &script) { m_RunBeforeOpeningScript = script; }
+  const std::string &GetOpeningScript() const { return m_RunBeforeOpeningScript; }
+  void SetOpeningScriptArgs(const std::string &args) { m_OpeningArgs = args; }
+  const std::string &GetOpeningScriptArgs() const { return m_OpeningArgs; }
+  int RunBeforeOpening(const std::vector<std::string> &stringvec);
 
  private:
-  int m_IsOpen {0};
-  int m_Repeat {0};
-  int m_Verbosity {0};
+  int m_IsOpen{0};
+  int m_Repeat{0};
+  uint64_t m_Verbosity{0};
   std::string m_FileName;
+  std::string m_RunBeforeOpeningScript;
+  std::string m_OpeningArgs;
   std::list<std::string> m_FileList;
   std::list<std::string> m_FileListCopy;
   std::list<std::string> m_FileListOpened;  // all files which were opened during running

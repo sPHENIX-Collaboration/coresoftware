@@ -6,6 +6,7 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
 #include <fun4all/Fun4AllUtils.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
 #include <ffaobjects/SyncObject.h>  // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
@@ -100,7 +101,7 @@ readagain:
       return -1;
     }
 
-    if (OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       std::cout << Name() << ": No Input file from filelist opened" << std::endl;
       return -1;

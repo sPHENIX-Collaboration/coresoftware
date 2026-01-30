@@ -14,6 +14,10 @@
 #include <eventplaneinfo/Eventplaneinfo.h>
 #include <eventplaneinfo/EventplaneinfoMap.h>
 
+#include <centrality/CentralityInfo.h>
+#include <ffamodules/CDBInterface.h>
+#include <cdbobjects/CDBTTree.h>
+
 #include <jetbase/Jet.h>
 #include <jetbase/JetContainer.h>
 
@@ -52,12 +56,62 @@ DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
 
 int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 {
+  if (_do_flow == 4)
+    {
+      if (Verbosity())
+	{
+	  std::cout << "Loading the average calo v2" << std::endl;
+	}
+      if (LoadCalibrations())
+	{
+	  std::cout << "Load calibrations failed." << std::endl;
+	  return Fun4AllReturnCodes::ABORTRUN;
+	}
+
+    }
+  
   return CreateNode(topNode);
 }
 
+int DetermineTowerBackground::LoadCalibrations()
+{
+  
+  CDBTTree *cdbtree_calo_v2 = nullptr;
+
+  std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
+  if (m_overwrite_average_calo_v2)
+    {
+      calibdir = m_overwrite_average_calo_v2_path;
+    }
+
+  if (calibdir.empty())
+    {
+      std::cout << "Could not find filename for calo average v2, exiting" << std::endl;
+      exit(-1);
+    }
+
+  cdbtree_calo_v2 = new CDBTTree(calibdir);
+  
+    
+  cdbtree_calo_v2->LoadCalibrations();
+
+  _CENTRALITY_V2.assign(100,0);
+
+  for (int icent = 0; icent < 100; icent++)
+    {
+      _CENTRALITY_V2[icent] = cdbtree_calo_v2->GetFloatValue(icent, "jet_calo_v2");
+    }
+      
+  delete cdbtree_calo_v2;
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+  
 int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 {
-  if (Verbosity() > 0)
+  
+  
+  if ( Verbosity() > 0 )
   {
     std::cout << "DetermineTowerBackground::process_event: entering with do_flow = " << _do_flow << ", seed type = " << _seed_type << ", ";
     if (_seed_type == 0)
@@ -76,58 +130,36 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   
   // pull out the tower containers and geometry objects at the start
-  RawTowerContainer *towersEM3 = nullptr;
-  RawTowerContainer *towersIH3 = nullptr;
-  RawTowerContainer *towersOH3 = nullptr;
-  TowerInfoContainer *towerinfosEM3 = nullptr;
-  TowerInfoContainer *towerinfosIH3 = nullptr;
-  TowerInfoContainer *towerinfosOH3 = nullptr;
-  if (m_use_towerinfo)
+  EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
+  IHTowerName = m_towerNodePrefix + "_HCALIN";
+  OHTowerName = m_towerNodePrefix + "_HCALOUT";
+  auto * towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
+  auto * towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
+  auto * towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
+  if ( !towerinfosEM3 )
   {
-    EMTowerName = m_towerNodePrefix + "_CEMC_RETOWER";
-    IHTowerName = m_towerNodePrefix + "_HCALIN";
-    OHTowerName = m_towerNodePrefix + "_HCALOUT";
-    towerinfosEM3 = findNode::getClass<TowerInfoContainer>(topNode, EMTowerName);
-    towerinfosIH3 = findNode::getClass<TowerInfoContainer>(topNode, IHTowerName);
-    towerinfosOH3 = findNode::getClass<TowerInfoContainer>(topNode, OHTowerName);
-    if (!towerinfosEM3)
-    {
-      std::cout << "DetermineTowerBackground::process_event: Cannot find node " << EMTowerName << std::endl;
-      exit(1);
-    }
-    if (!towerinfosIH3)
-    {
-      std::cout << "DetermineTowerBackground::process_event: Cannot find node " << IHTowerName << std::endl;
-      exit(1);
-    }
-    if (!towerinfosOH3)
-    {
-      std::cout << "DetermineTowerBackground::process_event: Cannot find node " << OHTowerName << std::endl;
-      exit(1);
-    }
+    std::cout << "DetermineTowerBackground::process_event: Cannot find node " << EMTowerName << std::endl;
+    exit(1);
   }
-  else
+  if ( !towerinfosIH3 )
   {
-    towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
-    towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-    towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-
-    if (Verbosity() > 0)
-    {
-      std::cout << "DetermineTowerBackground::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC_RETOWER towers" << std::endl;
-      std::cout << "DetermineTowerBackground::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
-      std::cout << "DetermineTowerBackground::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
-    }
+    std::cout << "DetermineTowerBackground::process_event: Cannot find node " << IHTowerName << std::endl;
+    exit(1);
+  }
+  if ( !towerinfosOH3 )
+  {
+    std::cout << "DetermineTowerBackground::process_event: Cannot find node " << OHTowerName << std::endl;
+    exit(1);
   }
 
-  RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-  RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
-  if (!geomIH)
+  auto * geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
+  auto * geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+  if ( !geomIH )
   {
     std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALIN, exiting" << std::endl;
     exit(1);
   }
-  if (!geomOH)
+  if ( !geomOH )
   {
     std::cout << "DetermineTowerBackground::process_event: Cannot find TOWERGEOM_HCALOUT, exiting" << std::endl;
     exit(1);
@@ -188,17 +220,14 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   std::set<int> EtaStripsAvailbleForFlow = {};
   for ( int eta = 0; eta < _HCAL_NETA; eta++) { EtaStripsAvailbleForFlow.insert(eta); }
 
-   // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
+  // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
   if (_seed_type == 0)
   {
-    JetContainer *reco2_jets;
-    if (m_use_towerinfo)
+    auto * reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
+    if (!reco2_jets)
     {
-      reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsRaw_r02");
-    }
-    else
-    {
-      reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsRaw_r02");
+      std::cout << "DetermineTowerBackground::process_event: Cannot find AntiKt_TowerInfo_HIRecoSeedsRaw_r02, exiting" << std::endl;
+      exit(1);
     }
     if (Verbosity() > 1)
     {
@@ -236,76 +265,45 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
         float comp_ET = 0;
         int comp_isBad = -99;
 
-        RawTower *tower;
         TowerInfo *towerinfo;
         RawTowerGeom *tower_geom;
 
-        if (m_use_towerinfo)
+  
+        if (comp.first == 5 || comp.first == 26)
         {
-          if (comp.first == 5 || comp.first == 26)
-          {
-            towerinfo = towerinfosIH3->get_tower_at_channel(comp.second);
-            unsigned int towerkey = towerinfosIH3->encode_key(comp.second);
-            comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
-            comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
-            const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
-            tower_geom = geomIH->get_tower_geometry(key);
-            comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-            comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
-          }
-          else if (comp.first == 7 || comp.first == 27)
-          {
-            towerinfo = towerinfosOH3->get_tower_at_channel(comp.second);
-            unsigned int towerkey = towerinfosOH3->encode_key(comp.second);
-            comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
-            comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
-            const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
-            tower_geom = geomOH->get_tower_geometry(key);
-            comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-            comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
-          }
-          else if (comp.first == 13 || comp.first == 28)
-          {
-            towerinfo = towerinfosEM3->get_tower_at_channel(comp.second);
-            unsigned int towerkey = towerinfosEM3->encode_key(comp.second);
-            comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
-            comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
-            const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
-            tower_geom = geomIH->get_tower_geometry(key);
-            comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-            comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
-          }
+          towerinfo = towerinfosIH3->get_tower_at_channel(comp.second);
+          unsigned int towerkey = towerinfosIH3->encode_key(comp.second);
+          comp_ieta = towerinfosIH3->getTowerEtaBin(towerkey);
+          comp_iphi = towerinfosIH3->getTowerPhiBin(towerkey);
+          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
+          tower_geom = geomIH->get_tower_geometry(key);
+          comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+          comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
         }
-        else
+        else if (comp.first == 7 || comp.first == 27)
         {
-          if (comp.first == 5)
-          {
-            tower = towersIH3->getTower(comp.second);
-            tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-            comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-            comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
-            comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
-          }
-          else if (comp.first == 7)
-          {
-            tower = towersOH3->getTower(comp.second);
-            tower_geom = geomOH->get_tower_geometry(tower->get_key());
-
-            comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-            comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
-            comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
-          }
-          else if (comp.first == 13)
-          {
-            tower = towersEM3->getTower(comp.second);
-            tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-            comp_ieta = geomIH->get_etabin(tower_geom->get_eta());
-            comp_iphi = geomIH->get_phibin(tower_geom->get_phi());
-            comp_ET = tower->get_energy() / cosh(tower_geom->get_eta());
-          }
+          towerinfo = towerinfosOH3->get_tower_at_channel(comp.second);
+          unsigned int towerkey = towerinfosOH3->encode_key(comp.second);
+          comp_ieta = towerinfosOH3->getTowerEtaBin(towerkey);
+          comp_iphi = towerinfosOH3->getTowerPhiBin(towerkey);
+          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
+          tower_geom = geomOH->get_tower_geometry(key);
+          comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+          comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
         }
+        else if (comp.first == 13 || comp.first == 28)
+        {
+          towerinfo = towerinfosEM3->get_tower_at_channel(comp.second);
+          unsigned int towerkey = towerinfosEM3->encode_key(comp.second);
+          comp_ieta = towerinfosEM3->getTowerEtaBin(towerkey);
+          comp_iphi = towerinfosEM3->getTowerPhiBin(towerkey);
+          const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
+          tower_geom = geomIH->get_tower_geometry(key);
+          comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
+          comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
+        }
+        
+
         if (comp_isBad)
         {
           if (Verbosity() > 4)
@@ -396,14 +394,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   // pT > 20 GeV
   if (_seed_type == 1)
   {
-    JetContainer *reco2_jets;
-    if (m_use_towerinfo)
+    auto * reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
+    if (!reco2_jets)
     {
-      reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_TowerInfo_HIRecoSeedsSub_r02");
-    }
-    else
-    {
-      reco2_jets = findNode::getClass<JetContainer>(topNode, "AntiKt_Tower_HIRecoSeedsSub_r02");
+      std::cout << "DetermineTowerBackground::process_event: Cannot find AntiKt_TowerInfo_HIRecoSeedsSub_r02, exiting" << std::endl;
+      exit(1);
     }
     if (Verbosity() > 1)
     {
@@ -458,132 +453,63 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   }
 
   // fill energy and status vectors
-  if (m_use_towerinfo)
+  // iterate over EMCal towerinfos
+  if (!towerinfosEM3 || !towerinfosIH3 || !towerinfosOH3)
   {
-    // iterate over EMCal towerinfos
-    if (!towerinfosEM3 || !towerinfosIH3 || !towerinfosOH3)
-    {
-      std::cout << PHWHERE << "missing tower info object, doing nothing" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    unsigned int nchannels_em = towerinfosEM3->size();
-    for (unsigned int channel = 0; channel < nchannels_em; channel++)
-    {
-      unsigned int key = towerinfosEM3->encode_key(channel);
-      int this_etabin = towerinfosEM3->getTowerEtaBin(key);
-      int this_phibin = towerinfosEM3->getTowerPhiBin(key);
-      TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
-      float this_E = tower->get_energy();
-      int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
-      _EMCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
-      if (!this_isBad)
-      { // just in case since all energy is summed
-        _EMCAL_E[this_etabin][this_phibin] += this_E;
-      }
-      
-    }
-
-    // iterate over IHCal towerinfos
-    unsigned int nchannels_ih = towerinfosIH3->size();
-    for (unsigned int channel = 0; channel < nchannels_ih; channel++)
-    {
-      unsigned int key = towerinfosIH3->encode_key(channel);
-      int this_etabin = towerinfosIH3->getTowerEtaBin(key);
-      int this_phibin = towerinfosIH3->getTowerPhiBin(key);
-      TowerInfo *tower = towerinfosIH3->get_tower_at_channel(channel);
-      float this_E = tower->get_energy();
-      int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
-      _IHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
-      if (!this_isBad)
-      { // just in case since all energy is summed
-        _IHCAL_E[this_etabin][this_phibin] += this_E;
-      }
-     
-    }
-
-    // iterate over OHCal towerinfos
-    unsigned int nchannels_oh = towerinfosOH3->size();
-    for (unsigned int channel = 0; channel < nchannels_oh; channel++)
-    {
-      unsigned int key = towerinfosOH3->encode_key(channel);
-      int this_etabin = towerinfosOH3->getTowerEtaBin(key);
-      int this_phibin = towerinfosOH3->getTowerPhiBin(key);
-      TowerInfo *tower = towerinfosOH3->get_tower_at_channel(channel);
-      float this_E = tower->get_energy();
-      int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
-      _OHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
-      if (!this_isBad)
-      { // just in case since all energy is summed
-        _OHCAL_E[this_etabin][this_phibin] += this_E;
-      }
-      
-    }
+    std::cout << PHWHERE << "missing tower info object, doing nothing" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
-  else
+  unsigned int nchannels_em = towerinfosEM3->size();
+  for (unsigned int channel = 0; channel < nchannels_em; channel++)
   {
-    // iterate over EMCal towers
-    RawTowerContainer::ConstRange begin_end = towersEM3->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
-    {
-      RawTower *tower = rtiter->second;
-
-      RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-      float this_eta = tower_geom->get_eta();
-      float this_phi = tower_geom->get_phi();
-      int this_etabin = geomIH->get_etabin(this_eta);
-      int this_phibin = geomIH->get_phibin(this_phi);
-      float this_E = tower->get_energy();
-
+    unsigned int key = towerinfosEM3->encode_key(channel);
+    int this_etabin = towerinfosEM3->getTowerEtaBin(key);
+    int this_phibin = towerinfosEM3->getTowerPhiBin(key);
+    TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
+    float this_E = tower->get_energy();
+    int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
+    _EMCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
+    if (!this_isBad)
+    { // just in case since all energy is summed
       _EMCAL_E[this_etabin][this_phibin] += this_E;
-
-      if (Verbosity() > 2 && tower->get_energy() > 1)
-      {
-        std::cout << "DetermineTowerBackground::process_event: EMCal tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
-      }
     }
+    
+  }
 
-    // iterate over IHCal towers
-    RawTowerContainer::ConstRange begin_end_IH = towersIH3->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_IH.first; rtiter != begin_end_IH.second; ++rtiter)
-    {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
-
-      float this_eta = tower_geom->get_eta();
-      float this_phi = tower_geom->get_phi();
-      int this_etabin = geomIH->get_etabin(this_eta);
-      int this_phibin = geomIH->get_phibin(this_phi);
-      float this_E = tower->get_energy();
-
+  // iterate over IHCal towerinfos
+  unsigned int nchannels_ih = towerinfosIH3->size();
+  for (unsigned int channel = 0; channel < nchannels_ih; channel++)
+  {
+    unsigned int key = towerinfosIH3->encode_key(channel);
+    int this_etabin = towerinfosIH3->getTowerEtaBin(key);
+    int this_phibin = towerinfosIH3->getTowerPhiBin(key);
+    TowerInfo *tower = towerinfosIH3->get_tower_at_channel(channel);
+    float this_E = tower->get_energy();
+    int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
+    _IHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
+    if (!this_isBad)
+    { // just in case since all energy is summed
       _IHCAL_E[this_etabin][this_phibin] += this_E;
-
-      if (Verbosity() > 2 && tower->get_energy() > 1)
-      {
-        std::cout << "DetermineTowerBackground::process_event: IHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
-      }
     }
+    
+  }
 
-    // iterate over OHCal towers
-    RawTowerContainer::ConstRange begin_end_OH = towersOH3->getTowers();
-    for (RawTowerContainer::ConstIterator rtiter = begin_end_OH.first; rtiter != begin_end_OH.second; ++rtiter)
-    {
-      RawTower *tower = rtiter->second;
-      RawTowerGeom *tower_geom = geomOH->get_tower_geometry(tower->get_key());
-
-      float this_eta = tower_geom->get_eta();
-      float this_phi = tower_geom->get_phi();
-      int this_etabin = geomOH->get_etabin(this_eta);
-      int this_phibin = geomOH->get_phibin(this_phi);
-      float this_E = tower->get_energy();
-
+  // iterate over OHCal towerinfos
+  unsigned int nchannels_oh = towerinfosOH3->size();
+  for (unsigned int channel = 0; channel < nchannels_oh; channel++)
+  {
+    unsigned int key = towerinfosOH3->encode_key(channel);
+    int this_etabin = towerinfosOH3->getTowerEtaBin(key);
+    int this_phibin = towerinfosOH3->getTowerPhiBin(key);
+    TowerInfo *tower = towerinfosOH3->get_tower_at_channel(channel);
+    float this_E = tower->get_energy();
+    int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
+    _OHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
+    if (!this_isBad)
+    { // just in case since all energy is summed
       _OHCAL_E[this_etabin][this_phibin] += this_E;
-
-      if (Verbosity() > 2 && tower->get_energy() > 1)
-      {
-        std::cout << "DetermineTowerBackground::process_event: OHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
-      }
     }
+    
   }
   
   
@@ -607,7 +533,103 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if ( _do_flow >= 1 )
+
+  // Get psi
+  if (_do_flow == 2)
+    { // HIJING truth flow extraction
+      PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
+      if (!truthinfo)
+        {
+          std::cout << "DetermineTowerBackground::process_event: FATAL , G4TruthInfo does not exist , cannot extract truth flow with do_flow = " << _do_flow << std::endl;
+          return -1;
+        }
+
+      PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
+
+      float Hijing_Qx = 0;
+      float Hijing_Qy = 0;
+
+      for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+        { 
+          PHG4Particle *g4particle = iter->second;
+
+          if (truthinfo->isEmbeded(g4particle->get_track_id()) != 0)
+	    {
+	      continue;
+	    }
+
+          TLorentzVector t;
+          t.SetPxPyPzE(g4particle->get_px(), g4particle->get_py(), g4particle->get_pz(), g4particle->get_e());
+
+          float truth_pt = t.Pt();
+          if (truth_pt < 0.4)
+	    {
+	      continue;
+	    }
+          float truth_eta = t.Eta();
+          if (std::fabs(truth_eta) > 1.1)
+	    {
+	      continue;
+	    }
+          float truth_phi = t.Phi();
+          int truth_pid = g4particle->get_pid();
+
+          if (Verbosity() > 10)
+	    {
+	      std::cout << "DetermineTowerBackground::process_event: determining truth flow, using particle w/ pt / eta / phi " << truth_pt << " / " << truth_eta << " / " << truth_phi << " , embed / PID = " << truthinfo->isEmbeded(g4particle->get_track_id()) << " / " << truth_pid << std::endl;
+	    }
+
+          Hijing_Qx += truth_pt * std::cos(2 * truth_phi);
+          Hijing_Qy += truth_pt * std::sin(2 * truth_phi);
+        }
+
+      _Psi2 = std::atan2(Hijing_Qy, Hijing_Qx) / 2.0;
+
+      if (Verbosity() > 0)
+        {
+          std::cout << "DetermineTowerBackground::process_event: flow extracted from Hijing truth particles, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
+        }
+    }
+  else if (_do_flow == 3 || _do_flow == 4)
+    { // sEPD event plane extraction
+      // get event plane map
+      EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
+      if (!epmap)
+        {
+          std::cout << "DetermineTowerBackground::process_event: FATAL, EventplaneinfoMap does not exist, cannot extract sEPD flow with do_flow = " << _do_flow << std::endl;
+          exit(-1);
+        }
+      if (!(epmap->empty()))
+        {
+          auto *EPDNS = epmap->get(EventplaneinfoMap::sEPDNS);
+          _Psi2 = EPDNS->get_shifted_psi(2);
+        }
+      else
+        {
+          _is_flow_failure = true;
+          _Psi2 = 0; 
+        }
+
+        // Safety check
+        if (!std::isfinite(_Psi2))
+        {
+          if (Verbosity() > 0)
+          {
+            std::cout << "DetermineTowerBackground::process_event: WARNING Psi2 is non-finite (NaN or Inf), setting Psi2 = 0." << std::endl;
+          }
+          _is_flow_failure = true;
+          _Psi2 = 0;
+        }
+    
+      if (Verbosity() > 0)
+        {
+          std::cout << "DetermineTowerBackground::process_event: flow extracted from sEPD, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
+        }
+
+    }
+
+  if ( _do_flow >= 1 && _do_flow < 4)
   {
 
     if (Verbosity() > 0)
@@ -880,88 +902,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       { // Calo event plane
         _Psi2 = std::atan2(Q_y, Q_x) / 2.0;
       }
-      else if (_do_flow == 2)
-      { // HIJING truth flow extraction
-        PHG4TruthInfoContainer *truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-
-        if (!truthinfo)
-        {
-          std::cout << "DetermineTowerBackground::process_event: FATAL , G4TruthInfo does not exist , cannot extract truth flow with do_flow = " << _do_flow << std::endl;
-          return -1;
-        }
-
-        PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
-
-        float Hijing_Qx = 0;
-        float Hijing_Qy = 0;
-
-        for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
-        { 
-          PHG4Particle *g4particle = iter->second;
-
-          if (truthinfo->isEmbeded(g4particle->get_track_id()) != 0)
-          {
-            continue;
-          }
-
-          TLorentzVector t;
-          t.SetPxPyPzE(g4particle->get_px(), g4particle->get_py(), g4particle->get_pz(), g4particle->get_e());
-
-          float truth_pt = t.Pt();
-          if (truth_pt < 0.4)
-          {
-            continue;
-          }
-          float truth_eta = t.Eta();
-          if (std::fabs(truth_eta) > 1.1)
-          {
-            continue;
-          }
-          float truth_phi = t.Phi();
-          int truth_pid = g4particle->get_pid();
-
-          if (Verbosity() > 10)
-          {
-            std::cout << "DetermineTowerBackground::process_event: determining truth flow, using particle w/ pt / eta / phi " << truth_pt << " / " << truth_eta << " / " << truth_phi << " , embed / PID = " << truthinfo->isEmbeded(g4particle->get_track_id()) << " / " << truth_pid << std::endl;
-          }
-
-          Hijing_Qx += truth_pt * std::cos(2 * truth_phi);
-          Hijing_Qy += truth_pt * std::sin(2 * truth_phi);
-        }
-
-        _Psi2 = std::atan2(Hijing_Qy, Hijing_Qx) / 2.0;
-
-        if (Verbosity() > 0)
-        {
-          std::cout << "DetermineTowerBackground::process_event: flow extracted from Hijing truth particles, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
-        }
-      }
-      else if (_do_flow == 3)
-      { // sEPD event plane extraction
-        // get event plane map
-        EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
-        if (!epmap)
-        {
-          std::cout << "DetermineTowerBackground::process_event: FATAL, EventplaneinfoMap does not exist, cannot extract sEPD flow with do_flow = " << _do_flow << std::endl;
-          exit(-1);
-        }
-        if (!(epmap->empty()))
-        {
-          auto *EPDNS = epmap->get(EventplaneinfoMap::sEPDNS);
-          _Psi2 = EPDNS->get_shifted_psi(2);
-        }
-        else
-        {
-          _is_flow_failure = true;
-          _Psi2 = 0; 
-        }
-    
-        if (Verbosity() > 0)
-        {
-          std::cout << "DetermineTowerBackground::process_event: flow extracted from sEPD, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) " << std::endl;
-        }
-
-      }
 
       if (std::isnan(_Psi2) || std::isinf(_Psi2))
       {
@@ -1011,25 +951,35 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     }
 
 
-    // if ( _is_flow_failure )
-    // {
-    //   _Psi2 = 0;
-    //   _v2 = 0;
-    //   _nStrips = 0;
-    //   if (Verbosity() > 0)
-    //   {
-    //     std::cout << "DetermineTowerBackground::process_event: flow extraction failed, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
-    //   }
-    // }
-    // else
-    // {
-      if (Verbosity() > 0)
-      {
-        std::cout << "DetermineTowerBackground::process_event: flow extraction successful, Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
-      }
-    // }
+    if (Verbosity() > 0)
+    {
+      std::cout << "DetermineTowerBackground::process_event: flow extraction successful, Psi2 = " << _Psi2 << " ( " << _Psi2 / M_PI << " * pi ) , v2 = " << _v2 << std::endl;
+    }
   }  // if do flow
+  else if (_do_flow == 4)
+    {
 
+      CentralityInfo *centinfo = findNode::getClass<CentralityInfo>(topNode, "CentralityInfo");
+      
+      if (!centinfo)
+	{
+	  std::cout << "DetermineTowerBackground::process_event: FATAL, CentralityInfo does not exist, cannot extract centrality with do_flow = " << _do_flow << std::endl;
+	  exit(-1);
+	}
+
+      int centrality_bin = centinfo->get_centrality_bin(CentralityInfo::PROP::mbd_NS);
+      
+      if (centrality_bin > 0 && centrality_bin < 95)
+	{
+	  _v2 = _CENTRALITY_V2[centrality_bin];
+	}
+      else
+	{
+	  _v2 = 0;
+	  _is_flow_failure = true;
+	  _Psi2 = 0;
+	}
+    }
 
   // now calculate energy densities...
   _nTowers = 0;  // store how many towers were used to determine bkg
@@ -1214,7 +1164,7 @@ int DetermineTowerBackground::CreateNode(PHCompositeNode *topNode)
   else
   {
     std::cout << PHWHERE << "::ERROR - " << _backgroundName << " pre-exists, but should not" << std::endl;
-    exit(-1);
+    // exit(-1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

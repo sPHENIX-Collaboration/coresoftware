@@ -32,6 +32,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <iostream>
@@ -45,13 +46,13 @@ namespace
 
   /// convenience square method
   template <class T>
-  inline constexpr T square(const T& x)
+  constexpr T square(const T& x)
   {
     return x * x;
   }
 }  // namespace
 
-bool InttClusterizer::ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*>& lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*>& rhs, const int layer)
+bool InttClusterizer::ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*>& lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*>& rhs, const int layer) const
 {
   if (get_z_clustering(layer))
   {
@@ -74,7 +75,7 @@ bool InttClusterizer::ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, Trkr
   return false;
 }
 
-bool InttClusterizer::ladder_are_adjacent(RawHit* lhs, RawHit* rhs, const int layer)
+bool InttClusterizer::ladder_are_adjacent(RawHit* lhs, RawHit* rhs, const int layer) const
 {
   if (get_z_clustering(layer))
   {
@@ -132,7 +133,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
   PHNodeIterator iter_dst(dstNode);
 
   // Create the Cluster and association nodes if required
-  auto trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  auto *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
     PHNodeIterator dstiter(dstNode);
@@ -150,7 +151,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
     DetNode->addNode(TrkrClusterContainerNode);
   }
 
-  auto clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  auto *clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
   if (!clusterhitassoc)
   {
     PHNodeIterator dstiter(dstNode);
@@ -178,7 +179,7 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
       dstNode->addNode(DetNode);
     }
 
-    auto clustercrossingassoc = new TrkrClusterCrossingAssocv1;
+    auto *clustercrossingassoc = new TrkrClusterCrossingAssocv1;
     PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(clustercrossingassoc, "TRKR_CLUSTERCROSSINGASSOC", "PHObject");
     DetNode->addNode(newNode);
   }
@@ -219,14 +220,14 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
     if (!mClusHitsVerbose)
     {
       PHNodeIterator dstiter(dstNode);
-      auto DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      auto *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", "TRKR"));
       if (!DetNode)
       {
         DetNode = new PHCompositeNode("TRKR");
         dstNode->addNode(DetNode);
       }
       mClusHitsVerbose = new ClusHitsVerbosev1();
-      auto newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
+      auto *newNode = new PHIODataNode<PHObject>(mClusHitsVerbose, "Trkr_SvtxClusHitsVerbose", "PHObject");
       DetNode->addNode(newNode);
     }
   }
@@ -321,12 +322,12 @@ void InttClusterizer::CalculateLadderThresholds(PHCompositeNode* topNode)
     _thresholds_by_layer.insert(std::make_pair(layer, threshold));
 
     // fill in a default z_clustering value if not present
-    if (_make_z_clustering.find(layer) == _make_z_clustering.end())
+    if (!_make_z_clustering.contains(layer))
     {
       _make_z_clustering.insert(std::make_pair(layer, false));
     }
 
-    if (_make_e_weights.find(layer) == _make_e_weights.end())
+    if (!_make_e_weights.contains(layer))
     {
       _make_e_weights.insert(std::make_pair(layer, false));
     }
@@ -422,7 +423,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     std::vector<int> component(num_vertices(G));
 
     // this is the actual clustering, performed by boost
-    connected_components(G, &component[0]);
+    connected_components(G, component.data());
 
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
@@ -483,6 +484,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
         // now get the positions from the geometry
         double local_hit_location[3] = {0., 0., 0.};
+
+	// NOLINTNEXTLINE(readability-suspicious-call-argument)
         geom->find_strip_center_localcoords(ladder_z_index,
                                             row, col,
                                             local_hit_location);
@@ -499,10 +502,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
           ylocalsum += local_hit_location[1];
           zlocalsum += local_hit_location[2];
         }
-        if (hit_adc > clus_maxadc)
-        {
-          clus_maxadc = hit_adc;
-        }
+        clus_maxadc = std::max(hit_adc, clus_maxadc);
         clus_adc += hit_adc;
         ++nhits;
 
@@ -692,7 +692,7 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
     std::vector<int> component(num_vertices(G));
 
     // this is the actual clustering, performed by boost
-    connected_components(G, &component[0]);
+    connected_components(G, component.data());
 
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
@@ -735,7 +735,8 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
       unsigned nhits = 0;
 
       // std::cout << PHWHERE << " ckey " << ckey << ":" << std::endl;
-      std::map<int, unsigned int> m_phi, m_z;  // hold data for
+      std::map<int, unsigned int> m_phi;
+      std::map<int, unsigned int> m_z;  // hold data for
 
       // get all hits for this cluster ID only
       const auto clusrange = clusters.equal_range(clusid);
@@ -770,6 +771,8 @@ void InttClusterizer::ClusterLadderCellsRaw(PHCompositeNode* topNode)
 
         // now get the positions from the geometry
         double local_hit_location[3] = {0., 0., 0.};
+
+	// NOLINTNEXTLINE(readability-suspicious-call-argument)
         geom->find_strip_center_localcoords(ladder_z_index,
                                             row, col,
                                             local_hit_location);

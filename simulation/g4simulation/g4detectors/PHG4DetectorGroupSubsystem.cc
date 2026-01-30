@@ -163,12 +163,10 @@ double PHG4DetectorGroupSubsystem::get_double_param(const int detid, const std::
   {
     return params->get_double_param(name);
   }
-  else
-  {
-    std::cout << PHWHERE << " no parameters for detid " << detid << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
+
+  std::cout << PHWHERE << " no parameters for detid " << detid << std::endl;
+  gSystem->Exit(1);
+  exit(1);
 }
 
 int PHG4DetectorGroupSubsystem::get_int_param(const int detid, const std::string &name) const
@@ -178,12 +176,10 @@ int PHG4DetectorGroupSubsystem::get_int_param(const int detid, const std::string
   {
     return params->get_int_param(name);
   }
-  else
-  {
-    std::cout << PHWHERE << " no parameters for detid " << detid << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
+
+  std::cout << PHWHERE << " no parameters for detid " << detid << std::endl;
+  gSystem->Exit(1);
+  exit(1);
 }
 
 std::string
@@ -194,12 +190,10 @@ PHG4DetectorGroupSubsystem::get_string_param(const int detid, const std::string 
   {
     return params->get_string_param(name);
   }
-  else
-  {
-    std::cout << PHWHERE << " no parameters for detid " << detid << std::endl;
-    gSystem->Exit(1);
-    exit(1);
-  }
+
+  std::cout << PHWHERE << " no parameters for detid " << detid << std::endl;
+  gSystem->Exit(1);
+  exit(1);
 }
 
 void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::string &name, const double dval)
@@ -217,7 +211,7 @@ void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::st
     }
     return;
   }
-  if (iter->second.find(name) == iter->second.end())
+  if (!iter->second.contains(name))
   {
     std::cout << "double parameter " << name << " not implemented for detid "
               << detid << std::endl;
@@ -260,7 +254,7 @@ void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::strin
     }
     return;
   }
-  if (iter->second.find(name) == iter->second.end())
+  if (!iter->second.contains(name))
   {
     std::cout << "int parameter " << name << " not implemented for detid"
               << detid << std::endl;
@@ -298,7 +292,7 @@ void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::st
     }
     return;
   }
-  if (iter->second.find(name) == iter->second.end())
+  if (!iter->second.contains(name))
   {
     std::cout << "string parameter " << name << " not implemented for detid "
               << detid << std::endl;
@@ -426,7 +420,7 @@ void PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const
 
 void PHG4DetectorGroupSubsystem::InitializeParameters()
 {
-  for (auto &iter : m_LayerSet)
+  for (const auto &iter : m_LayerSet)
   {
     set_default_int_param(iter, "absorberactive", 0);
     set_default_int_param(iter, "absorbertruth", 0);
@@ -443,7 +437,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
       detidparams = new PHParameters((boost::format("%s_%d") % Name() % iter1.first).str());
       m_ParamsContainerDefault->AddPHParameters(iter1.first, detidparams);
     }
-    for (auto &iter2 : iter1.second)
+    for (const auto &iter2 : iter1.second)
     {
       detidparams->set_double_param(iter2.first, iter2.second);
     }
@@ -538,7 +532,7 @@ void PHG4DetectorGroupSubsystem::SetActive(const int detid, const int i)
 
 void PHG4DetectorGroupSubsystem::SetActive(const int i)
 {
-  for (auto &detid : m_LayerSet)
+  for (const auto &detid : m_LayerSet)
   {
     set_int_param(detid, "active", i);
   }
@@ -551,7 +545,7 @@ void PHG4DetectorGroupSubsystem::SetAbsorberActive(const int detid, const int i)
 
 void PHG4DetectorGroupSubsystem::SetAbsorberActive(const int i)
 {
-  for (auto &detid : m_LayerSet)
+  for (const auto &detid : m_LayerSet)
   {
     set_int_param(detid, "absorberactive", i);
   }
@@ -564,7 +558,7 @@ void PHG4DetectorGroupSubsystem::SetSupportActive(const int detid, const int i)
 
 void PHG4DetectorGroupSubsystem::SetSupportActive(const int i)
 {
-  for (auto &detid : m_LayerSet)
+  for (const auto &detid : m_LayerSet)
   {
     set_int_param(detid, "supportactive", i);
   }
@@ -577,7 +571,7 @@ void PHG4DetectorGroupSubsystem::BlackHole(const int detid, const int i)
 
 void PHG4DetectorGroupSubsystem::BlackHole(const int i)
 {
-  for (auto &detid : m_LayerSet)
+  for (const auto &detid : m_LayerSet)
   {
     set_int_param(detid, "blackhole", i);
   }
@@ -590,7 +584,7 @@ void PHG4DetectorGroupSubsystem::SetAbsorberTruth(const int detid, const int i)
 
 void PHG4DetectorGroupSubsystem::SetAbsorberTruth(const int i)
 {
-  for (auto &detid : m_LayerSet)
+  for (const auto &detid : m_LayerSet)
   {
     set_int_param(detid, "absorbertruth", i);
   }
@@ -600,28 +594,28 @@ void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
 {
   std::cout << "Default Parameters: " << std::endl;
   std::cout << "int values: " << std::endl;
-  for (auto &iter1 : m_DefaultIntegerParamsMap)
+  for (const auto &iter1 : m_DefaultIntegerParamsMap)
   {
     std::cout << "Detector id: " << iter1.first << std::endl;
-    for (auto &iter2 : iter1.second)
+    for (const auto &iter2 : iter1.second)
     {
       std::cout << iter2.first << " : " << iter2.second << std::endl;
     }
   }
   std::cout << "double values: " << std::endl;
-  for (auto &iter1 : m_DefaultDoubleParamsMap)
+  for (const auto &iter1 : m_DefaultDoubleParamsMap)
   {
     std::cout << "Detector id: " << iter1.first << std::endl;
-    for (auto &iter2 : iter1.second)
+    for (const auto &iter2 : iter1.second)
     {
       std::cout << iter2.first << " : " << iter2.second << std::endl;
     }
   }
   std::cout << "string values: " << std::endl;
-  for (auto &iter1 : m_DefaultStringParamsMap)
+  for (const auto &iter1 : m_DefaultStringParamsMap)
   {
     std::cout << "Detector id: " << iter1.first << std::endl;
-    for (auto &iter2 : iter1.second)
+    for (const auto &iter2 : iter1.second)
     {
       std::cout << iter2.first << " : " << iter2.second << std::endl;
     }
@@ -633,28 +627,28 @@ void PHG4DetectorGroupSubsystem::PrintMacroParams() const
 {
   std::cout << "Macro Parameters: " << std::endl;
   std::cout << "int values: " << std::endl;
-  for (auto &iter1 : m_MacroIntegerParamsMap)
+  for (const auto &iter1 : m_MacroIntegerParamsMap)
   {
     std::cout << "Detector id: " << iter1.first << std::endl;
-    for (auto &iter2 : iter1.second)
+    for (const auto &iter2 : iter1.second)
     {
       std::cout << iter2.first << " : " << iter2.second << std::endl;
     }
   }
   std::cout << "double values: " << std::endl;
-  for (auto &iter1 : m_MacroDoubleParamsMap)
+  for (const auto &iter1 : m_MacroDoubleParamsMap)
   {
     std::cout << "Detector id: " << iter1.first << std::endl;
-    for (auto &iter2 : iter1.second)
+    for (const auto &iter2 : iter1.second)
     {
       std::cout << iter2.first << " : " << iter2.second << std::endl;
     }
   }
   std::cout << "string values: " << std::endl;
-  for (auto &iter1 : m_MacroStringParamsMap)
+  for (const auto &iter1 : m_MacroStringParamsMap)
   {
     std::cout << "Detector id: " << iter1.first << std::endl;
-    for (auto &iter2 : iter1.second)
+    for (const auto &iter2 : iter1.second)
     {
       std::cout << iter2.first << " : " << iter2.second << std::endl;
     }

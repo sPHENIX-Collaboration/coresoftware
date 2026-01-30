@@ -27,6 +27,8 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   int InitRun(PHCompositeNode *topNode) override;
 
   int process_event(PHCompositeNode *topNode) override;
+  
+  int End(PHCompositeNode *topNode) override;
 
   void FillCaloClockDiff(CaloPacketContainer *pktcont);
   void FillCaloClockDiffSngl(CaloPacket *calopkt);
@@ -48,6 +50,7 @@ class ClockDiffCheck : public SubsysReco, public DumpPacket
   bool delBadPkts{false};
   std::map<unsigned int, std::tuple<uint64_t, uint64_t, uint64_t, TH1 *, bool>> m_PacketStuffMap;
   std::vector<std::string> m_PacketNodeNames;
+  std::map<std::string, long long> m_PacketCorruptCount;
 };
 
 #endif  // FFARAWMODULES_CLOCKDIFFCHECK_H

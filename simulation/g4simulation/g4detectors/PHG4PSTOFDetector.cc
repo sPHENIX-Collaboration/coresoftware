@@ -17,7 +17,8 @@
 
 #include <cmath>
 #include <iostream>  // for operator<<, endl, bas...
-#include <utility>   // for pair
+#include <limits>
+#include <utility>  // for pair
 
 class G4Material;
 class PHCompositeNode;
@@ -68,8 +69,8 @@ void PHG4PSTOFDetector::ConstructMe(G4LogicalVolume *logicWorld)
     for (int imod = 0; imod < nmod; imod++)
     {
       const PHParameters *par = paramscontainer->GetParameters(imod);
-      double z = NAN;
-      double r = NAN;
+      double z = std::numeric_limits<double>::quiet_NaN();
+      double r = std::numeric_limits<double>::quiet_NaN();
       if (rowtype == 0)
       {
         z = par->get_double_param("z_mod_0") * cm;

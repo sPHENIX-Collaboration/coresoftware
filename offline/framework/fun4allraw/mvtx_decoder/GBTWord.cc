@@ -4,14 +4,13 @@
 //     <1ecb2b0a2>
 
 #include "GBTWord.h"
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
-using namespace mvtx;
-
 //________________________________________________________________________________
-std::string GBTWord::asString() const
+std::string mvtx::GBTWord::asString() const
 {
   std::stringstream ss;
   for (int i = GBTWordLength; i--;)
@@ -22,7 +21,7 @@ std::string GBTWord::asString() const
 }
 
 //________________________________________________________________________________
-void GBTWord::printX() const
+void mvtx::GBTWord::printX() const
 {
   /// print in right aligned hex format
   std::cout << asString() << std::endl;

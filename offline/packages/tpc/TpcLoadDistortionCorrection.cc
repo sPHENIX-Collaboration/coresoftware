@@ -58,7 +58,7 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
   }
   
   /// Get the RUN node and check
-  auto runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+  auto *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
     std::cout << "TpcLoadDistortionCorrection::InitRun - RUN Node missing, quitting" << std::endl;
@@ -74,17 +74,17 @@ int TpcLoadDistortionCorrection::InitRun(PHCompositeNode* topNode)
     }
 
     // get distortion correction object and create if not found
-    auto distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, m_node_name[i]);
+    auto *distortion_correction_object = findNode::getClass<TpcDistortionCorrectionContainer>(topNode, m_node_name[i]);
     if (!distortion_correction_object)
     {
       std::cout << "TpcLoadDistortionCorrection::InitRun - creating TpcDistortionCorrectionContainer in node " << m_node_name[i] << std::endl;
       distortion_correction_object = new TpcDistortionCorrectionContainer;
-      auto node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name[i]);
+      auto *node = new PHDataNode<TpcDistortionCorrectionContainer>(distortion_correction_object, m_node_name[i]);
       runNode->addNode(node);
     }
 
     std::cout << "TpcLoadDistortionCorrection::InitRun - reading corrections from " << m_correction_filename[i] << std::endl;
-    auto distortion_tfile = TFile::Open(m_correction_filename[i].c_str());
+    auto *distortion_tfile = TFile::Open(m_correction_filename[i].c_str());
     if (!distortion_tfile)
     {
       std::cout << "TpcLoadDistortionCorrection::InitRun - cannot open " << m_correction_filename[i] << std::endl;

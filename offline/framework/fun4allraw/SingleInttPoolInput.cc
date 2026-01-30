@@ -8,7 +8,9 @@
 #include <ffarawobjects/InttRawHitv2.h>
 
 #include <fun4all/DBInterface.h>
+#include <fun4all/InputFileHandlerReturnCodes.h>
 
+#include <phool/RunnumberRange.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
@@ -59,7 +61,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
   }
   while (GetEventiterator() == nullptr)  // at startup this is a null pointer
   {
-    if (!OpenNextFile())
+    if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
     {
       AllDone(1);
       return;
@@ -73,7 +75,7 @@ void SingleInttPoolInput::FillPool(const uint64_t minBCO)
     while (!evt)
     {
       fileclose();
-      if (!OpenNextFile())
+      if (OpenNextFile() == InputFileHandlerReturnCodes::FAILURE)
       {
         AllDone(1);
         return;
@@ -561,7 +563,14 @@ void SingleInttPoolInput::streamingMode(const bool isStreaming)
 {
   if (isStreaming)
   {
-    SetNegativeBco(120 - 23);
+    if(RunNumber() > RunnumberRange::RUN3PP_FIRST)
+    {
+      SetNegativeBco(120 - 24);
+    }
+    else
+    {
+      SetNegativeBco(120 - 23);
+    }
     SetBcoRange(500);
     if (GetVerbosity() > 2)
     {

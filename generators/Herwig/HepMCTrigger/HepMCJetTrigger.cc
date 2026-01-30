@@ -31,7 +31,6 @@ HepMCJetTrigger::HepMCJetTrigger(float trigger_thresh, int n_incom, bool up_lim,
 int HepMCJetTrigger::process_event(PHCompositeNode* topNode)
 {
   // std::cout << "HepMCJetTrigger::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-  n_evts++;
   if (this->set_event_limit == true)
   {  // needed to keep all HepMC output at the same number of events
     if (n_good >= this->goal_event_number)
@@ -39,6 +38,7 @@ int HepMCJetTrigger::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
+  n_evts++;
   PHHepMCGenEventMap* phg = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!phg)
   {
@@ -96,6 +96,11 @@ std::vector<fastjet::PseudoJet> HepMCJetTrigger::findAllJets(HepMC::GenEvent* e1
     if (!(*iter)->end_vertex() && (*iter)->status() == 1)
     {
       auto p = (*iter)->momentum();
+      auto pd = std::abs((*iter)->pdg_id());
+      if (pd >= 12 && pd <= 18)
+      {
+        continue;  // keep jet in the expected behavioro
+      }
       fastjet::PseudoJet pj(p.px(), p.py(), p.pz(), p.e());
       pj.set_user_index((*iter)->barcode());
       input.push_back(pj);
@@ -122,6 +127,10 @@ int HepMCJetTrigger::jetsAboveThreshold(const std::vector<fastjet::PseudoJet>& j
   for (const auto& j : jets)
   {
     float const pt = j.pt();
+    if (std::abs(j.eta()) > 1.1)
+    {
+      continue;
+    }
     if (pt > this->threshold)
     {
       n_good_jets++;

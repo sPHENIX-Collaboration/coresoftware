@@ -584,7 +584,10 @@ int InttCalib::MakeHotMapPng_v3()
     ++n_total;
     if (m_hitmap_half[raw.felix_server][raw.felix_channel][raw.chip] > 100)
     {
+      if(m_hist_half[raw.felix_server])
+      {
       m_hist_half[raw.felix_server]->Fill(hitrate);
+      }
     }
   }
   for (int j = 0; j < 8; ++j)

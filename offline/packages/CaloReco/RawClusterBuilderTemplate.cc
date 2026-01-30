@@ -14,7 +14,6 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
-#include <calobase/RawClusterv2.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDefs.h>
@@ -687,9 +686,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       //      std::cout << "Prob/Chi2/NDF = " << prob << " " << chi2
       //           << " " << ndf << " Ecl = " << ecl << std::endl;
 
-      cluster = m_writeClusterV2
-                    ? static_cast<RawCluster*>(new RawClusterv2())
-                    : static_cast<RawCluster*>(new RawClusterv1());
+      cluster = new RawClusterv1();
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_r(std::sqrt(xg * xg + yg * yg));
@@ -746,7 +743,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
         ++ph;
       }
 
-      // stamp tower CoG (raw & corrected) only when writing v2
+      // stamp tower CoG (raw & corrected) into the cluster (now via properties in v1)
       float xcorr = xcg;
       float ycorr = ycg;
       bemc->CorrectPosition(ecl, xcg, ycg, xcorr, ycorr);
@@ -756,6 +753,29 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
                             ? (ew_num / ew_den)
                             : std::numeric_limits<float>::quiet_NaN();
       cluster->set_mean_time(tmean);
+        // mechanical incidence angles (CEMC-only; stored as signed alphas in properties)
+        {
+          BEmcRecCEMC* cemc = dynamic_cast<BEmcRecCEMC*>(bemc);
+          if (cemc)
+          {
+            float a_phi_sgn = std::numeric_limits<float>::quiet_NaN();
+            float a_eta_sgn = std::numeric_limits<float>::quiet_NaN();
+
+            // use corrected CoG for incidence, in tower units
+            const bool inc_ok = cemc->calculateIncidence(
+                xcorr, ycorr,
+                a_phi_sgn, a_eta_sgn);
+
+            if (inc_ok)
+            {
+              // Use explicit property IDs so this compiles even when the
+              // RawCluster header does not yet define the named incidence enums.
+              cluster->set_property(RawCluster::prop_incidence_alpha_phi, a_phi_sgn);
+              cluster->set_property(RawCluster::prop_incidence_alpha_eta, a_eta_sgn);
+            }
+          }
+        }
+
       _clusters->AddCluster(cluster);
       // ncl++;
 

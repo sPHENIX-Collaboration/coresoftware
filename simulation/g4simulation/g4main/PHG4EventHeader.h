@@ -14,7 +14,7 @@ class PHG4EventHeader : public PHObject
 {
  public:
   /// dtor
-  ~PHG4EventHeader() override {}
+  ~PHG4EventHeader() = default;
 
   /// Clear Event
   void Reset() override

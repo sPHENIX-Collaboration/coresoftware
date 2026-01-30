@@ -28,7 +28,7 @@ class PHG4Detector
   explicit PHG4Detector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &nam);
 
   //! destructor
-  virtual ~PHG4Detector(void)
+  virtual ~PHG4Detector()
   {
   }
 

@@ -65,8 +65,8 @@ class MvtxClusterizer : public SubsysReco
  private:
   // bool are_adjacent(const pixel lhs, const pixel rhs);
   bool record_ClusHitsVerbose{false};
-  bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit *> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit *> &rhs);
-  bool are_adjacent(RawHit *lhs, RawHit *rhs);
+  bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit *> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit *> &rhs) const;
+  bool are_adjacent(RawHit *lhs, RawHit *rhs) const;
 
   void ClusterMvtx(PHCompositeNode *topNode);
   void ClusterMvtxRaw(PHCompositeNode *topNode);

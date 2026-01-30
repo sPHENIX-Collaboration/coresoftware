@@ -34,6 +34,7 @@
 #include <TNtuple.h>
 #include <TSystem.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>   // for exit
 #include <cstdlib>   // for exit
@@ -234,14 +235,8 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
     TpcRawHit* tpchit = tpccont->get_hit(i);
     uint64_t gtm_bco = tpchit->get_gtm_bco();
 
-    if (gtm_bco < bco_min)
-    {
-      bco_min = gtm_bco;
-    }
-    if (gtm_bco > bco_max)
-    {
-      bco_max = gtm_bco;
-    }
+    bco_min = std::min(gtm_bco, bco_min);
+    bco_max = std::max(gtm_bco, bco_max);
 
     int fee = tpchit->get_fee();
     int channel = tpchit->get_channel();
@@ -539,7 +534,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
 
         for (int binx = 1; binx < hist2d->GetNbinsX(); binx++)
         {
-          double timebin = ((TAxis*) hist2d->GetXaxis())->GetBinCenter(binx);
+          double timebin = ( hist2d->GetXaxis())->GetBinCenter(binx);
           std::string histname1d = "h" + std::to_string(hiter.first) + "_" + std::to_string((int) timebin);
           TH1D* hist1d = hist2d->ProjectionY(histname1d.c_str(), binx, binx);
           float local_ped = 0;
@@ -697,11 +692,8 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
           if ((float(adc) - pedestal_offset - corr) > (hpedwidth2 * m_ped_sig_cut))
           {
             float nuadc = (float(adc) - corr - pedestal_offset);
-            if (nuadc < 0)
-            {
-              nuadc = 0;
-            }
-            hitr->second->setAdc(float(nuadc));
+            nuadc = std::max<float>(nuadc, 0);
+            hitr->second->setAdc(nuadc);
 #ifdef DEBUG
             //	    hitr->second->setAdc(10);
             if (tbin == 383 && layer >= 7 + 32 && fee == 21)

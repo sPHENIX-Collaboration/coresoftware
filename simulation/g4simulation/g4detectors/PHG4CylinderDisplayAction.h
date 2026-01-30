@@ -16,7 +16,7 @@ class PHParameters;
 class PHG4CylinderDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4CylinderDisplayAction(const std::string &name, PHParameters *parameters);
+  PHG4CylinderDisplayAction(const std::string &name, PHParameters *pars);
 
   ~PHG4CylinderDisplayAction() override;
 
@@ -25,10 +25,10 @@ class PHG4CylinderDisplayAction : public PHG4DisplayAction
   void SetColor(const double red, const double green, const double blue, const double alpha = 1.);
 
  private:
-  PHParameters *m_Params;
-  G4LogicalVolume *m_MyVolume;
-  G4VisAttributes *m_VisAtt;
-  G4Colour *m_Colour;
+  PHParameters *m_Params {nullptr};
+  G4LogicalVolume *m_MyVolume {nullptr};
+  G4VisAttributes *m_VisAtt {nullptr};
+  G4Colour *m_Colour {nullptr};
 };
 
 #endif  // G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H

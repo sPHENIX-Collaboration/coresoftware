@@ -13,7 +13,7 @@ class PHParameters;
 class PHG4CylinderGeomv1 : public PHG4CylinderGeom
 {
  public:
-  PHG4CylinderGeomv1() {}
+  PHG4CylinderGeomv1() = default;
   PHG4CylinderGeomv1(const double r, const double zmi, const double zma, const double thickn)
     : radius(r)
     , zmin(zmi)
@@ -22,7 +22,7 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
   {
   }
 
-  ~PHG4CylinderGeomv1() override {}
+  ~PHG4CylinderGeomv1() = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -43,11 +43,11 @@ class PHG4CylinderGeomv1 : public PHG4CylinderGeom
   void ImportParameters(const PHParameters& param) override;
 
  protected:
-  int layer = -1;
-  double radius = NAN;
-  double zmin = NAN;
-  double zmax = NAN;
-  double thickness = NAN;
+  int layer {-1};
+  double radius {std::numeric_limits<double>::quiet_NaN()};
+  double zmin {std::numeric_limits<double>::quiet_NaN()};
+  double zmax {std::numeric_limits<double>::quiet_NaN()};
+  double thickness {std::numeric_limits<double>::quiet_NaN()};
 
   ClassDefOverride(PHG4CylinderGeomv1, 1)
 };
