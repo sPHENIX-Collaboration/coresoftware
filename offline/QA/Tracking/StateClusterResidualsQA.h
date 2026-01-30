@@ -13,6 +13,7 @@
 
 class PHCompositeNode;
 class TH1;
+class TH2;
 
 struct ResidualHistConfig
 {
@@ -35,6 +36,17 @@ struct ResidualHistConfig
   float pt_max = FLT_MAX;
 
   int charge = 0;
+
+  float rphi_local_lower = -0.5;
+  float rphi_local_upper = 0.5;
+  float z_local_lower = -0.5;
+  float z_local_upper = 0.5;
+  float x_lower = -0.5;
+  float x_upper = 0.5;
+  float y_lower = -0.5;
+  float y_upper = 0.5;
+  float z_lower = -0.5;
+  float z_upper = 0.5;
 };
 
 class StateClusterResidualsQA : public SubsysReco
@@ -89,6 +101,36 @@ class StateClusterResidualsQA : public SubsysReco
     m_pending.back().pt_max = max;
     return *this;
   }
+  StateClusterResidualsQA& setXRange(float min, float max)
+  {
+    m_pending.back().x_lower = min;
+    m_pending.back().x_upper = max;
+    return *this;
+  }
+  StateClusterResidualsQA& setYRange(float min, float max)
+  {
+    m_pending.back().y_lower = min;
+    m_pending.back().y_upper = max;
+    return *this;
+  }
+  StateClusterResidualsQA& setZRange(float min, float max)
+  {
+    m_pending.back().z_lower = min;
+    m_pending.back().z_upper = max;
+    return *this;
+  }
+  StateClusterResidualsQA& setLocalRphiRange(float min, float max)
+  {
+    m_pending.back().rphi_local_lower = min;
+    m_pending.back().rphi_local_upper = max;
+    return *this;
+  }
+  StateClusterResidualsQA& setLocalZRange(float min, float max)
+  {
+    m_pending.back().z_local_lower = min;
+    m_pending.back().z_local_upper = max;
+    return *this;
+  }
   StateClusterResidualsQA& setPositiveTracks()
   {
     m_pending.back().charge = 1;
@@ -98,6 +140,11 @@ class StateClusterResidualsQA : public SubsysReco
   {
     m_pending.back().charge = -1;
     return *this;
+  }
+  
+  void setUseLocalCoords()
+  {
+    m_use_local_coords = true;
   }
 
   void createHistos();
@@ -115,13 +162,20 @@ class StateClusterResidualsQA : public SubsysReco
   std::string m_clusterContainerName = "TRKR_CLUSTER";
 
   int m_nBins = 50;
-  std::pair<float,float> m_xrange {-0.5,0.5};
-  std::pair<float,float> m_yrange {-0.5,0.5};
-  std::pair<float,float> m_zrange {-0.5,0.5};
+  bool m_use_local_coords = false;
 
   std::vector<TH1*> m_histograms_x{};
   std::vector<TH1*> m_histograms_y{};
   std::vector<TH1*> m_histograms_z{};
+  std::vector<TH2*> m_histograms_layer_x{};
+  std::vector<TH2*> m_histograms_layer_y{};
+  std::vector<TH2*> m_histograms_layer_z{};
+  std::vector<TH1*> m_histograms_phi_x{};
+  std::vector<TH1*> m_histograms_phi_y{};
+  std::vector<TH1*> m_histograms_phi_z{};
+  std::vector<TH1*> m_histograms_eta_x{};
+  std::vector<TH1*> m_histograms_eta_y{};
+  std::vector<TH1*> m_histograms_eta_z{};
 };
 
 #endif  // TRACKFITTINGQA_H
