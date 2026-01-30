@@ -74,7 +74,7 @@ bool EventPlaneRecov2::hasValidTree(const std::string &filePath)
 }
 
 //____________________________________________________________________________..
-int EventPlaneRecov2::Init([[maybe_unused]] PHCompositeNode *topNode)
+int EventPlaneRecov2::Init(PHCompositeNode *topNode)
 {
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
@@ -152,6 +152,7 @@ void EventPlaneRecov2::LoadCalib()
 {
   size_t south_idx = static_cast<size_t>(Subdetector::S);
   size_t north_idx = static_cast<size_t>(Subdetector::N);
+  size_t ns_idx = static_cast<size_t>(Subdetector::NS);
 
   for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
   {
@@ -168,6 +169,10 @@ void EventPlaneRecov2::LoadCalib()
     std::string N_xx_avg_name = std::format("Q_N_xx_{}_avg", n);
     std::string N_yy_avg_name = std::format("Q_N_yy_{}_avg", n);
     std::string N_xy_avg_name = std::format("Q_N_xy_{}_avg", n);
+
+    std::string NS_xx_avg_name = std::format("Q_NS_xx_{}_avg", n);
+    std::string NS_yy_avg_name = std::format("Q_NS_yy_{}_avg", n);
+    std::string NS_xy_avg_name = std::format("Q_NS_xy_{}_avg", n);
 
     for (size_t cent_bin = 0; cent_bin < m_bins_cent; ++cent_bin)
     {
@@ -194,6 +199,16 @@ void EventPlaneRecov2::LoadCalib()
       dataN.avg_Q_xy = m_cdbttree->GetDoubleValue(key, N_xy_avg_name);
 
       dataN.X_matrix = calculate_flattening_matrix(dataN.avg_Q_xx, dataN.avg_Q_yy, dataN.avg_Q_xy, n, cent_bin, "North");
+
+      // North South
+      // Note: We do NOT load avg_Q (x,y) for NS because NS is recentered by summing the recentered S and N vectors.
+      auto& dataNS = m_correction_data[h_idx][cent_bin][ns_idx];
+
+      dataNS.avg_Q_xx = m_cdbttree->GetDoubleValue(key, NS_xx_avg_name);
+      dataNS.avg_Q_yy = m_cdbttree->GetDoubleValue(key, NS_yy_avg_name);
+      dataNS.avg_Q_xy = m_cdbttree->GetDoubleValue(key, NS_xy_avg_name);
+
+      dataNS.X_matrix = calculate_flattening_matrix(dataNS.avg_Q_xx, dataNS.avg_Q_yy, dataNS.avg_Q_xy, n, cent_bin, "NorthSouth");
     }
   }
 }
@@ -222,11 +237,26 @@ void EventPlaneRecov2::print_correction_data()
                                "Detector", "Avg Qx", "Avg Qy", "Avg Qxx", "Avg Qyy", "Avg Qxy");
 
       // Iterate through Subdetectors {S, N}
-      for (size_t det_idx = 0; det_idx < 2; ++det_idx)
+      for (size_t det_idx = 0; det_idx < 3; ++det_idx)
       {
-        std::string det_name = (det_idx == static_cast<size_t>(Subdetector::S)) ? "South" : "North";
-        const auto& data = m_correction_data[h_idx][cent][det_idx]; //
+        std::string det_name;
+        if (det_idx == 0)
+        {
+          det_name = "South";
+        }
+        else if (det_idx == 1)
+        {
+          det_name = "North";
+        }
+        else
+        {
+          det_name = "NorthSouth";
+        }
 
+        const auto& data = m_correction_data[h_idx][cent][det_idx];
+
+        // For NS, Avg Qx/Qy will be 0.0 because they are not loaded from CDB.
+        // This is expected behavior.
         std::cout << std::format("    {:<12} {:>10.6f} {:>10.6f} {:>10.6f} {:>10.6f} {:>10.6f}\n",
                                  det_name,
                                  data.avg_Q.x, data.avg_Q.y,
@@ -376,6 +406,10 @@ int EventPlaneRecov2::process_sEPD(PHCompositeNode* topNode)
 
     m_Q_raw[h_idx][1].x /= sepd_total_charge_north;
     m_Q_raw[h_idx][1].y /= sepd_total_charge_north;
+
+    // NEW: Calculate Raw NS (Sum of Raw S + Raw N)
+    m_Q_raw[h_idx][2].x = m_Q_raw[h_idx][0].x + m_Q_raw[h_idx][1].x;
+    m_Q_raw[h_idx][2].y = m_Q_raw[h_idx][0].y + m_Q_raw[h_idx][1].y;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -391,11 +425,13 @@ void EventPlaneRecov2::correct_QVecs()
 
   size_t south_idx = static_cast<size_t>(Subdetector::S);
   size_t north_idx = static_cast<size_t>(Subdetector::N);
+  size_t ns_idx = static_cast<size_t>(Subdetector::NS);
 
   for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
   {
     auto& dataS = m_correction_data[h_idx][cent_bin][south_idx];
     auto& dataN = m_correction_data[h_idx][cent_bin][north_idx];
+    auto& dataNS = m_correction_data[h_idx][cent_bin][ns_idx];
 
     double Q_S_x_avg = dataS.avg_Q.x;
     double Q_S_y_avg = dataS.avg_Q.y;
@@ -408,12 +444,16 @@ void EventPlaneRecov2::correct_QVecs()
     // Apply Recentering
     QVec q_S_recenter = {q_S.x - Q_S_x_avg, q_S.y - Q_S_y_avg};
     QVec q_N_recenter = {q_N.x - Q_N_x_avg, q_N.y - Q_N_y_avg};
+    QVec q_NS_recenter = {q_S_recenter.x + q_N_recenter.x, q_S_recenter.y + q_N_recenter.y};
 
-    m_Q_recentered[h_idx][0] = q_S_recenter;
-    m_Q_recentered[h_idx][1] = q_N_recenter;
+    m_Q_recentered[h_idx][south_idx] = q_S_recenter;
+    m_Q_recentered[h_idx][north_idx] = q_N_recenter;
+    m_Q_recentered[h_idx][ns_idx] = q_NS_recenter;
 
+    // Flattening Matrix
     const auto &X_S = dataS.X_matrix;
     const auto &X_N = dataN.X_matrix;
+    const auto &X_NS = dataNS.X_matrix;
 
     // Apply Flattening
     double Q_S_x_flat = X_S[0][0] * q_S_recenter.x + X_S[0][1] * q_S_recenter.y;
@@ -421,11 +461,16 @@ void EventPlaneRecov2::correct_QVecs()
     double Q_N_x_flat = X_N[0][0] * q_N_recenter.x + X_N[0][1] * q_N_recenter.y;
     double Q_N_y_flat = X_N[1][0] * q_N_recenter.x + X_N[1][1] * q_N_recenter.y;
 
+    double Q_NS_x_flat = X_NS[0][0] * q_NS_recenter.x + X_NS[0][1] * q_NS_recenter.y;
+    double Q_NS_y_flat = X_NS[1][0] * q_NS_recenter.x + X_NS[1][1] * q_NS_recenter.y;
+
     QVec q_S_flat = {Q_S_x_flat, Q_S_y_flat};
     QVec q_N_flat = {Q_N_x_flat, Q_N_y_flat};
+    QVec q_NS_flat = {Q_NS_x_flat, Q_NS_y_flat};
 
     m_Q_flat[h_idx][south_idx] = q_S_flat;
     m_Q_flat[h_idx][north_idx] = q_N_flat;
+    m_Q_flat[h_idx][ns_idx] = q_NS_flat;
   }
 }
 
@@ -446,9 +491,21 @@ void EventPlaneRecov2::print_QVectors()
   {
     int n = m_harmonics[h_idx];
 
-    for (size_t det_idx = 0; det_idx < 2; ++det_idx)
+    for (size_t det_idx = 0; det_idx < 3; ++det_idx)
     {
-      std::string det_name = (det_idx == static_cast<size_t>(Subdetector::S)) ? "South" : "North";
+      std::string det_name;
+      if (det_idx == 0)
+      {
+        det_name = "South";
+      }
+      else if (det_idx == 1)
+      {
+        det_name = "North";
+      }
+      else
+      {
+        det_name = "NorthSouth";
+      }
 
       const auto& raw = m_Q_raw[h_idx][det_idx];
       const auto& rec = m_Q_recentered[h_idx][det_idx];
@@ -472,7 +529,7 @@ void EventPlaneRecov2::print_QVectors()
   std::cout << std::format("{:*>100}\n\n", "");
 }
 
-int EventPlaneRecov2::FillNode([[maybe_unused]] PHCompositeNode *topNode)
+int EventPlaneRecov2::FillNode(PHCompositeNode *topNode)
 {
   EventplaneinfoMap *epmap = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
   if (!epmap)
@@ -507,12 +564,16 @@ int EventPlaneRecov2::FillNode([[maybe_unused]] PHCompositeNode *topNode)
     // Fallback logic: Use raw if calibration failed or centrality is out of range
     const auto& Q_S = (m_doNotCalib || m_doNotCalibEvent) ? m_Q_raw[h_idx][0] : m_Q_flat[h_idx][0];
     const auto& Q_N = (m_doNotCalib || m_doNotCalibEvent) ? m_Q_raw[h_idx][1] : m_Q_flat[h_idx][1];
+    const auto& Q_NS = (m_doNotCalib || m_doNotCalibEvent) ? m_Q_raw[h_idx][2] : m_Q_flat[h_idx][2];
 
     const auto& Q_S_raw = m_Q_raw[h_idx][0];
     const auto& Q_S_recentered = m_Q_recentered[h_idx][0];
 
     const auto& Q_N_raw = m_Q_raw[h_idx][1];
     const auto& Q_N_recentered = m_Q_recentered[h_idx][1];
+
+    const auto& Q_NS_raw = m_Q_raw[h_idx][2];
+    const auto& Q_NS_recentered = m_Q_recentered[h_idx][2];
 
     // South
     south_Qvec_raw[idx] = {Q_S_raw.x, Q_S_raw.y};
@@ -525,18 +586,9 @@ int EventPlaneRecov2::FillNode([[maybe_unused]] PHCompositeNode *topNode)
     north_Qvec[idx] = {Q_N.x, Q_N.y};
 
     // Combined (North + South)
-    double Qx_NS_raw = Q_S_raw.x + Q_N_raw.x;
-    double Qy_NS_raw = Q_S_raw.y + Q_N_raw.y;
-
-    double Qx_NS_recentered = Q_S_recentered.x + Q_N_recentered.x;
-    double Qy_NS_recentered = Q_S_recentered.y + Q_N_recentered.y;
-
-    double Qx_NS = Q_S.x + Q_N.x;
-    double Qy_NS = Q_S.y + Q_N.y;
-
-    northsouth_Qvec_raw[idx] = {Qx_NS_raw, Qy_NS_raw};
-    northsouth_Qvec_recentered[idx] = {Qx_NS_recentered, Qy_NS_recentered};
-    northsouth_Qvec[idx] = {Qx_NS, Qy_NS};
+    northsouth_Qvec_raw[idx] = {Q_NS_raw.x, Q_NS_raw.y};
+    northsouth_Qvec_recentered[idx] = {Q_NS_recentered.x, Q_NS_recentered.y};
+    northsouth_Qvec[idx] = {Q_NS.x, Q_NS.y};
   }
 
   // Helper lambda to fill nodes using the class's GetPsi method
@@ -562,9 +614,8 @@ int EventPlaneRecov2::FillNode([[maybe_unused]] PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int EventPlaneRecov2::process_event([[maybe_unused]] PHCompositeNode *topNode)
+int EventPlaneRecov2::process_event(PHCompositeNode *topNode)
 {
-
   EventHeader *eventInfo = findNode::getClass<EventHeader>(topNode, "EventHeader");
   if (!eventInfo)
   {
