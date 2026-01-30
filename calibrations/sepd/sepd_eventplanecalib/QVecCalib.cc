@@ -204,6 +204,11 @@ void QVecCalib::process_bad_channels(TFile* file)
 
   auto* hSEPD_Charge = dynamic_cast<TH1*>(hist);
 
+  if (!hSEPD_Charge)
+  {
+    throw std::runtime_error(std::format("Histogram '{}' is not a TH1", sepd_charge_hist));
+  }
+
   int rbins = 16;
   int bins_charge = 40;
 
