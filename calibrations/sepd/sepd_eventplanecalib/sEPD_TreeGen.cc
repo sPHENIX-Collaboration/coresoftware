@@ -1,4 +1,5 @@
 #include "sEPD_TreeGen.h"
+#include "QVecDefs.h"
 
 // -- c++
 #include <format>
@@ -52,7 +53,7 @@ int sEPD_TreeGen::Init([[maybe_unused]] PHCompositeNode *topNode)
   double centrality_low{-0.5};
   double centrality_high{79.5};
 
-  hSEPD_Charge = std::make_unique<TProfile>("hSEPD_Charge", "|z| < 10 cm and MB; Channel; Avg Charge", m_sepd_channels, 0, m_sepd_channels);
+  hSEPD_Charge = std::make_unique<TProfile>("hSEPD_Charge", "|z| < 10 cm and MB; Channel; Avg Charge", QVecShared::sepd_channels, 0, QVecShared::sepd_channels);
   hSEPD_Charge->Sumw2();
 
   h2SEPD_totalcharge_centrality = std::make_unique<TH2F>("h2SEPD_totalcharge_centrality", "|z| < 10 cm and MB; sEPD Total Charge; Centrality [%]", bins_sepd_totalcharge, sepd_totalcharge_low, sepd_totalcharge_high, bins_centrality, centrality_low, centrality_high);
@@ -166,11 +167,11 @@ int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
   // sepd
   unsigned int sepd_channels = towerinfosEPD->size();
 
-  if(sepd_channels != m_sepd_channels)
+  if(sepd_channels != QVecShared::sepd_channels)
   {
     if (Verbosity() > 2)
     {
-      std::cout << "Event: " << m_data.event_id << ", SEPD Channels = " << sepd_channels << " != " << m_sepd_channels << std::endl;
+      std::cout << "Event: " << m_data.event_id << ", SEPD Channels = " << sepd_channels << " != " << QVecShared::sepd_channels << std::endl;
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -220,7 +221,7 @@ int sEPD_TreeGen::process_event(PHCompositeNode *topNode)
 
   m_data.event_id = eventInfo->get_EvtSequence();
 
-  if (Verbosity() > 1 && m_event % 20 == 0)
+  if (Verbosity() > 1 && m_event % PROGRESS_PRINT_INTERVAL == 0)
   {
     std::cout << "Progress: " << m_event << ", Global: " << m_data.event_id << std::endl;
   }

@@ -165,6 +165,11 @@ void QVecCalib::process_sEPD_event_thresholds(TFile* file)
     hSEPD_Charge_Min->Fill(cent, charge_low);
     hSEPD_Charge_Max->Fill(cent, charge_high);
 
+    if (sigma == 0)
+    {
+      continue;
+    }
+
     for (int x = 1; x <= binsx; ++x)
     {
       double charge = h2SEPD_Charge->GetXaxis()->GetBinCenter(x);
@@ -192,7 +197,6 @@ void QVecCalib::process_bad_channels(TFile* file)
 
   auto* hSEPD_Charge = dynamic_cast<TH1*>(hist);
 
-  int sepd_channels = 744;
   int rbins = 16;
   int bins_charge = 40;
 
@@ -216,7 +220,7 @@ void QVecCalib::process_bad_channels(TFile* file)
                                                                    rbins, -0.5, rbins - 0.5,
                                                                    bins_charge, 0, bins_charge);
 
-  m_profiles["h_sEPD_Bad_Channels"] = std::make_unique<TProfile>("h_sEPD_Bad_Channels", "sEPD Bad Channels; Channel; Status", sepd_channels, -0.5, sepd_channels-0.5);
+  m_profiles["h_sEPD_Bad_Channels"] = std::make_unique<TProfile>("h_sEPD_Bad_Channels", "sEPD Bad Channels; Channel; Status", QVecShared::sepd_channels, -0.5, QVecShared::sepd_channels-0.5);
 
   auto* h2S = m_hists2D["h2SEPD_South_Charge_rbin"].get();
   auto* h2N = m_hists2D["h2SEPD_North_Charge_rbin"].get();
@@ -226,7 +230,7 @@ void QVecCalib::process_bad_channels(TFile* file)
 
   auto* hBad = m_profiles["h_sEPD_Bad_Channels"].get();
 
-  for (int channel = 0; channel < sepd_channels; ++channel)
+  for (int channel = 0; channel < QVecShared::sepd_channels; ++channel)
   {
     unsigned int key = TowerInfoDefs::encode_epd(static_cast<unsigned int>(channel));
     int rbin = static_cast<int>(TowerInfoDefs::get_epd_rbin(key));
@@ -246,7 +250,7 @@ void QVecCalib::process_bad_channels(TFile* file)
   int ctr_hot = 0;
   int ctr_cold = 0;
 
-  for (int channel = 0; channel < sepd_channels; ++channel)
+  for (int channel = 0; channel < QVecShared::sepd_channels; ++channel)
   {
     unsigned int key = TowerInfoDefs::encode_epd(static_cast<unsigned int>(channel));
     int rbin = static_cast<int>(TowerInfoDefs::get_epd_rbin(key));
@@ -258,7 +262,12 @@ void QVecCalib::process_bad_channels(TFile* file)
     double charge = hSEPD_Charge->GetBinContent(channel + 1);
     double mean_charge = hprof->GetBinContent(rbin + 1);
     double sigma = hprof->GetBinError(rbin + 1);
-    double zscore = (charge - mean_charge) / sigma;
+    double zscore = 0.0;
+
+    if (sigma > 0)
+    {
+      zscore = (charge - mean_charge) / sigma;
+    }
 
     if (charge < m_sEPD_min_avg_charge_threshold || std::fabs(zscore) > m_sEPD_sigma_threshold)
     {
@@ -271,21 +280,21 @@ void QVecCalib::process_bad_channels(TFile* file)
       if (charge == 0)
       {
         type = "Dead";
-        status_fill = 1;
+        status_fill = static_cast<int>(QVecShared::ChannelStatus::Dead);
         ++ctr_dead;
       }
       // hot channel
       else if (zscore > m_sEPD_sigma_threshold)
       {
         type = "Hot";
-        status_fill = 2;
+        status_fill = static_cast<int>(QVecShared::ChannelStatus::Hot);
         ++ctr_hot;
       }
       // cold channel
       else
       {
         type = "Cold";
-        status_fill = 3;
+        status_fill = static_cast<int>(QVecShared::ChannelStatus::Cold);
         ++ctr_cold;
       }
 
@@ -426,7 +435,7 @@ void QVecCalib::init_hists()
   }
 }
 
-void QVecCalib::process_averages(double cent, QVecShared::QVec q_S, QVecShared::QVec q_N, const AverageHists& h)
+void QVecCalib::process_averages(double cent, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const AverageHists& h)
 {
   double psi_S = std::atan2(q_S.y, q_S.x);
   double psi_N = std::atan2(q_N.y, q_N.x);
@@ -442,7 +451,7 @@ void QVecCalib::process_averages(double cent, QVecShared::QVec q_S, QVecShared::
   h.Psi_NS->Fill(cent, psi_NS);
 }
 
-void QVecCalib::process_recentering(double cent, size_t h_idx, QVecShared::QVec q_S, QVecShared::QVec q_N, const RecenterHists& h)
+void QVecCalib::process_recentering(double cent, size_t h_idx, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const RecenterHists& h)
 {
   size_t cent_bin = static_cast<size_t>(m_hists1D["h_Cent"]->FindBin(cent) - 1);
 
@@ -483,7 +492,7 @@ void QVecCalib::process_recentering(double cent, size_t h_idx, QVecShared::QVec 
   h.Psi_NS_corr->Fill(cent, psi_NS_corr);
 }
 
-void QVecCalib::process_flattening(double cent, size_t h_idx, QVecShared::QVec q_S, QVecShared::QVec q_N, const FlatteningHists& h)
+void QVecCalib::process_flattening(double cent, size_t h_idx, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const FlatteningHists& h)
 {
   size_t cent_bin = static_cast<size_t>(m_hists1D["h_Cent"]->FindBin(cent) - 1);
 
@@ -993,18 +1002,17 @@ void QVecCalib::run_event_loop()
     m_chain->GetEntry(i);
     m_event_data.reset();
 
-    if (i % 10000 == 0)
+    if (i % PROGRESS_REPORT_INTERVAL == 0)
     {
-      std::cout << std::format("Processing {}/{}: {:.2f} %", i, n_entries, static_cast<double>(i) * 100. / static_cast<double>(n_entries)) << std::endl;
+      std::cout << std::format("Processing {}/{}: {:.2f} %", i, n_entries, static_cast<double>(i) / n_entries * 100.) << std::endl;
     }
 
     double cent = m_event_data.event_centrality;
 
-    // Identify Centrality Bin
-    size_t cent_bin = static_cast<size_t>(m_hists1D["h_Cent"]->FindBin(cent) - 1);
+    int cent_bin_int = m_hists1D["h_Cent"]->FindBin(cent) - 1;
 
     // ensure centrality is valid
-    if (cent_bin >= m_cent_bins)
+    if (cent_bin_int < 0 || static_cast<size_t>(cent_bin_int) >= m_cent_bins)
     {
       std::cout << std::format("Weird Centrality: {}, Skipping Event: {}\n", cent, m_event_data.event_id);
       ++ctr["invalid_cent_bin"];
@@ -1059,7 +1067,7 @@ void QVecCalib::run_event_loop()
   std::cout << "Skipped Event Types\n";
   for (const auto& [name, events] : ctr)
   {
-    std::cout << std::format("{}: {}, {:.2f} %\n", name, events, events * 100. / static_cast<double>(n_entries));
+    std::cout << std::format("{}: {}, {:.2f} %\n", name, events, static_cast<double>(events) / n_entries * 100.);
   }
 
   // ---------------

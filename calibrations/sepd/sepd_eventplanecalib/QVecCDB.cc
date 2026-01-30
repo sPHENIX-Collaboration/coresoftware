@@ -135,13 +135,13 @@ void QVecCDB::write_cdb_BadTowers(const std::string &output_dir)
     float sigma = 0;
 
     // Hot
-    if (status == 2)
+    if (status == static_cast<int>(QVecShared::ChannelStatus::Hot))
     {
       sigma = SIGMA_HOT;
     }
 
     // Cold
-    else if (status == 3)
+    else if (status == static_cast<int>(QVecShared::ChannelStatus::Cold))
     {
       sigma = SIGMA_COLD;
     }

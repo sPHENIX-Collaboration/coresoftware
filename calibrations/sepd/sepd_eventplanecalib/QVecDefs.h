@@ -10,6 +10,15 @@ namespace QVecShared
 {
   static constexpr size_t CENT_BINS = 8;
   static constexpr std::array<int, 3> HARMONICS = {2, 3, 4};
+  static constexpr int sepd_channels = 744;
+
+  enum class ChannelStatus : int
+  {
+    Good = 0,
+    Dead = 1,
+    Hot = 2,
+    Cold = 3
+  };
 
   enum class Subdetector
   {

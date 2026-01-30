@@ -99,7 +99,7 @@ class sEPD_TreeGen : public SubsysReco
    */
   void set_sepd_charge_threshold(double charge_min)
   {
-    m_cuts.m_sepd_charge_min= charge_min;
+    m_cuts.m_sepd_charge_min = charge_min;
   }
 
  /**
@@ -139,7 +139,7 @@ class sEPD_TreeGen : public SubsysReco
   std::string m_outfile_name{"test.root"};
   std::string m_outtree_name{"tree.root"};
 
-  static constexpr int m_sepd_channels = 744;
+  static constexpr int PROGRESS_PRINT_INTERVAL = 20;
 
   // Cuts
   struct Cuts

@@ -15,9 +15,8 @@ int main(int argc, const char* const argv[])
   const std::string &input_file = args[1];
   const std::string &input_hist = args[2];
   const std::string &input_Q_calib = args[3];
-  const std::string &pass_str = (argc >= 5) ? args[4] : "ComputeRecentering"; // Default to the first pass
-  long long events = (argc >= 6) ? std::stoll(args[5]) : 0;
-  std::string output_dir = (argc >= 7) ? args[6] : ".";
+  const std::string &pass_str = (args.size() >= 5) ? args[4] : "ComputeRecentering"; // Default to the first pass
+  std::string output_dir = (args.size() >= 7) ? args[6] : ".";
 
   const std::map<std::string, QVecCalib::Pass> pass_map = {
       {"ComputeRecentering", QVecCalib::Pass::ComputeRecentering},
@@ -39,8 +38,14 @@ int main(int argc, const char* const argv[])
 
   try
   {
+    long long events = (args.size() >= 6) ? std::stoll(args[5]) : 0;
     QVecCalib analysis(input_file, input_hist, input_Q_calib, static_cast<int>(pass), events, output_dir);
     analysis.run();
+  }
+  catch (const std::invalid_argument& e)
+  {
+    std::cout << "Error: events must be an integer" << std::endl;
+    return 1;
   }
   catch (const std::exception& e)
   {

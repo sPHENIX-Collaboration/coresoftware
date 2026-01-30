@@ -19,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <unordered_set>
+#include <stdexcept>
 
 /**
  * @class QVecCalib
@@ -43,7 +44,7 @@ class QVecCalib
     : m_input_file(std::move(input_file))
     , m_input_hist(std::move(input_hist))
     , m_input_Q_calib(std::move(input_Q_calib))
-    , m_pass(static_cast<Pass>(pass))
+    , m_pass(validate_pass(pass))
     , m_events_to_process(events)
     , m_output_dir(std::move(output_dir))
   {
@@ -66,6 +67,20 @@ class QVecCalib
   };
 
  private:
+  static Pass validate_pass(int pass)
+  {
+    switch (pass)
+    {
+    case 0:
+      return Pass::ComputeRecentering;
+    case 1:
+      return Pass::ApplyRecentering;
+    case 2:
+      return Pass::ApplyFlattening;
+    default:
+      throw std::invalid_argument("Invalid pass value");
+    }
+  }
 
   struct CorrectionData
   {
@@ -77,6 +92,8 @@ class QVecCalib
   static constexpr auto m_harmonics = QVecShared::HARMONICS;
   double m_cent_low = -0.5;
   double m_cent_high = 79.5;
+
+  static constexpr int PROGRESS_REPORT_INTERVAL = 10000;
 
   // Holds all correction data
   // key: [Cent][Harmonic][Subdetector]
@@ -183,7 +200,7 @@ class QVecCalib
   std::string m_input_file;
   std::string m_input_hist;
   std::string m_input_Q_calib;
-  Pass m_pass{0};
+  Pass m_pass{Pass::ComputeRecentering};
   long long m_events_to_process;
   std::string m_output_dir;
 
@@ -289,7 +306,7 @@ class QVecCalib
  * @param q_N The North arm normalized Q-vector.
  * @param h Reference to the cache of profiles for the first pass.
  */
-  static void process_averages(double cent, QVecShared::QVec q_S, QVecShared::QVec q_N, const AverageHists& h);
+  static void process_averages(double cent, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const AverageHists& h);
 
 /**
  * @brief Applies re-centering offsets and fills profiles for second-moment calculation.
@@ -299,7 +316,7 @@ class QVecCalib
  * @param q_N The North arm normalized Q-vector.
  * @param h Reference to the cache of profiles for the second pass.
  */
-  void process_recentering(double cent, size_t h_idx, QVecShared::QVec q_S, QVecShared::QVec q_N, const RecenterHists& h);
+  void process_recentering(double cent, size_t h_idx, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const RecenterHists& h);
 
 /**
  * @brief Applies the full correction (re-centering + flattening) for validation.
@@ -309,7 +326,7 @@ class QVecCalib
  * @param q_N The North arm normalized Q-vector.
  * @param h Reference to the cache of profiles for the third pass.
  */
-  void process_flattening(double cent, size_t h_idx, QVecShared::QVec q_S, QVecShared::QVec q_N, const FlatteningHists& h);
+  void process_flattening(double cent, size_t h_idx, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const FlatteningHists& h);
 
 /**
  * @brief Calculates the 2x2 anisotropy correction (whitening) matrix.

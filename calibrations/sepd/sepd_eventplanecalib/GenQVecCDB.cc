@@ -14,22 +14,33 @@ int main(int argc, const char* const argv[])
   }
 
   const std::string &input_file = args[1];
-  int runnumber = std::stoi(args[2]);
   const std::string output_dir = (args.size() >= 4) ? args[3] : ".";
   const std::string cdb_tag = (args.size() >= 5) ? args[4] : "new_newcdbtag_v008";
 
-  std::cout << std::format("{:#<20}\n", "");
-  std::cout << std::format("Analysis Params\n");
-  std::cout << std::format("Input File: {}\n", input_file);
-  std::cout << std::format("Run: {}\n", runnumber);
-  std::cout << std::format("Output Dir: {}\n", output_dir);
-  std::cout << std::format("CDB Tag: {}\n", cdb_tag);
-  std::cout << std::format("{:#<20}\n", "");
-
   try
   {
+    int runnumber = std::stoi(args[2]);
+
+    std::cout << std::format("{:#<20}\n", "");
+    std::cout << std::format("Analysis Params\n");
+    std::cout << std::format("Input File: {}\n", input_file);
+    std::cout << std::format("Run: {}\n", runnumber);
+    std::cout << std::format("Output Dir: {}\n", output_dir);
+    std::cout << std::format("CDB Tag: {}\n", cdb_tag);
+    std::cout << std::format("{:#<20}\n", "");
+
     QVecCDB analysis(input_file, runnumber, output_dir, cdb_tag);
     analysis.run();
+  }
+  catch (const std::invalid_argument& e)
+  {
+    std::cout << "Error: runnumber must be an integer: " << args[2] << std::endl;
+    return 1;
+  }
+  catch (const std::out_of_range& e)
+  {
+    std::cout << "Error: runnumber is out of range for an integer." << std::endl;
+    return 1;
   }
   catch (const std::exception& e)
   {

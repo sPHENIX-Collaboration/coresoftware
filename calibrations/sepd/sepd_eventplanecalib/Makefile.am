@@ -42,11 +42,9 @@ libsepd_eventplanecalib_la_LIBADD = \
   -lepd_io
 
 GenQVecCalib_SOURCES = GenQVecCalib.cc
-# GenQVecCalib_CXXFLAGS = -fsanitize=address
 GenQVecCalib_LDADD = libsepd_eventplanecalib.la
 
 GenQVecCDB_SOURCES = GenQVecCDB.cc
-# GenQVecCDB_CXXFLAGS = -fsanitize=address
 GenQVecCDB_LDADD = libsepd_eventplanecalib.la
 
 BUILT_SOURCES = testexternals.cc
