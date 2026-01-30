@@ -42,6 +42,13 @@ sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
 //____________________________________________________________________________..
 int sEPD_TreeGen::Init([[maybe_unused]] PHCompositeNode *topNode)
 {
+  // Early guard against filename collision
+  if (m_outfile_name == m_outtree_name)
+  {
+    std::cout << PHWHERE << " Error: Histogram filename and Tree filename are identical: " << m_outfile_name << ". This will cause data loss." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Print("NODETREE");
 
@@ -59,6 +66,13 @@ int sEPD_TreeGen::Init([[maybe_unused]] PHCompositeNode *topNode)
   h2SEPD_totalcharge_centrality = std::make_unique<TH2F>("h2SEPD_totalcharge_centrality", "|z| < 10 cm and MB; sEPD Total Charge; Centrality [%]", bins_sepd_totalcharge, sepd_totalcharge_low, sepd_totalcharge_high, bins_centrality, centrality_low, centrality_high);
 
   m_output = std::make_unique<TFile>(m_outtree_name.c_str(), "recreate");
+
+  if (!m_output || m_output->IsZombie())
+  {
+    std::cout << PHWHERE << "Failed to open tree output file: " << m_outtree_name << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
   m_output->cd();
 
   // TTree

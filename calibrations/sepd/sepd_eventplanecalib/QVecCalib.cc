@@ -135,13 +135,19 @@ void QVecCalib::process_sEPD_event_thresholds(TFile* file)
     throw std::runtime_error(std::format("Cannot find hist: {}", sepd_totalcharge_centrality));
   }
 
-  m_hists2D["h2SEPD_Charge"] = std::unique_ptr<TH2>(static_cast<TH2*>(hist->Clone("h2SEPD_Charge")));
-  m_hists2D["h2SEPD_Chargev2"] = std::unique_ptr<TH2>(static_cast<TH2*>(hist->Clone("h2SEPD_Chargev2")));
+  auto* h2_check = dynamic_cast<TH2*>(hist);
+  if (!h2_check)
+  {
+    throw std::runtime_error(std::format("Histogram '{}' is not a TH2", sepd_totalcharge_centrality));
+  }
+
+  m_hists2D["h2SEPD_Charge"] = std::unique_ptr<TH2>(static_cast<TH2*>(h2_check->Clone("h2SEPD_Charge")));
+  m_hists2D["h2SEPD_Chargev2"] = std::unique_ptr<TH2>(static_cast<TH2*>(h2_check->Clone("h2SEPD_Chargev2")));
 
   auto* h2SEPD_Charge = m_hists2D["h2SEPD_Charge"].get();
   auto* h2SEPD_Chargev2 = m_hists2D["h2SEPD_Chargev2"].get();
 
-  auto* h2SEPD_Charge_py = h2SEPD_Charge->ProfileY("h2SEPD_Charge_py", 1, -1, "s");
+  std::unique_ptr<TProfile> h2SEPD_Charge_py(h2SEPD_Charge->ProfileY("h2SEPD_Charge_py", 1, -1, "s"));
 
   int binsx = h2SEPD_Charge->GetNbinsX();
   int binsy = h2SEPD_Charge->GetNbinsY();
@@ -244,8 +250,8 @@ void QVecCalib::process_bad_channels(TFile* file)
     h2->Fill(rbin, avg_charge);
   }
 
-  auto* hSpx = h2S->ProfileX("hSpx", 2, -1, "s");
-  auto* hNpx = h2N->ProfileX("hNpx", 2, -1, "s");
+  std::unique_ptr<TProfile> hSpx(h2S->ProfileX("hSpx", 2, -1, "s"));
+  std::unique_ptr<TProfile> hNpx(h2N->ProfileX("hNpx", 2, -1, "s"));
 
   int ctr_dead = 0;
   int ctr_hot = 0;
@@ -258,7 +264,7 @@ void QVecCalib::process_bad_channels(TFile* file)
     unsigned int arm = TowerInfoDefs::get_epd_arm(key);
 
     auto* h2 = (arm == 0) ? h2Sv2 : h2Nv2;
-    auto* hprof = (arm == 0) ? hSpx : hNpx;
+    auto* hprof = (arm == 0) ? hSpx.get() : hNpx.get();
 
     double charge = hSEPD_Charge->GetBinContent(channel + 1);
     double mean_charge = hprof->GetBinContent(rbin + 1);
@@ -1229,6 +1235,11 @@ void QVecCalib::save_results() const
   std::string output_filename = std::format("{}/Q-vec-corr_Pass-{}_{}.root", m_output_dir, static_cast<int>(m_pass), output_stem);
 
   auto output_file = std::make_unique<TFile>(output_filename.c_str(), "RECREATE");
+
+  if (!output_file || output_file->IsZombie())
+  {
+    throw std::runtime_error(std::format("Failed to create output file: {}", output_filename));
+  }
 
   for (const auto& [name, hist] : m_hists1D)
   {
