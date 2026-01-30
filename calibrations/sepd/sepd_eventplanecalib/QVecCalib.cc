@@ -145,8 +145,8 @@ void QVecCalib::process_sEPD_event_thresholds(TFile* file)
 
   int binsx = h2SEPD_Charge->GetNbinsX();
   int binsy = h2SEPD_Charge->GetNbinsY();
-  int ymin = h2SEPD_Charge->GetYaxis()->GetXmin();
-  int ymax = h2SEPD_Charge->GetYaxis()->GetXmax();
+  double ymin = h2SEPD_Charge->GetYaxis()->GetXmin();
+  double ymax = h2SEPD_Charge->GetYaxis()->GetXmax();
 
   m_profiles["hSEPD_Charge_Min"] = std::make_unique<TProfile>("hSEPD_Charge_Min", "; Centrality [%]; sEPD Total Charge", binsy, ymin, ymax);
   m_profiles["hSEPD_Charge_Max"] = std::make_unique<TProfile>("hSEPD_Charge_Max", "; Centrality [%]; sEPD Total Charge", binsy, ymin, ymax);
@@ -159,16 +159,17 @@ void QVecCalib::process_sEPD_event_thresholds(TFile* file)
     double cent = h2SEPD_Charge_py->GetBinCenter(y);
     double mean = h2SEPD_Charge_py->GetBinContent(y);
     double sigma = h2SEPD_Charge_py->GetBinError(y);
-    double charge_low  = mean - m_sEPD_sigma_threshold * sigma;
-    double charge_high = mean + m_sEPD_sigma_threshold * sigma;
-
-    hSEPD_Charge_Min->Fill(cent, charge_low);
-    hSEPD_Charge_Max->Fill(cent, charge_high);
 
     if (sigma == 0)
     {
       continue;
     }
+
+    double charge_low  = mean - m_sEPD_sigma_threshold * sigma;
+    double charge_high = mean + m_sEPD_sigma_threshold * sigma;
+
+    hSEPD_Charge_Min->Fill(cent, charge_low);
+    hSEPD_Charge_Max->Fill(cent, charge_high);
 
     for (int x = 1; x <= binsx; ++x)
     {

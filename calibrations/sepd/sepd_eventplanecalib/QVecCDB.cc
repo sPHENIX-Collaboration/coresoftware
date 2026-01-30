@@ -103,9 +103,14 @@ void QVecCDB::write_cdb()
 {
   std::string output_dir = std::format("{}/{}", m_output_dir, m_runnumber);
 
-  if (std::filesystem::create_directories(output_dir))
+  std::error_code ec;
+  if (std::filesystem::create_directories(output_dir, ec))
   {
     std::cout << std::format("Success: Directory {} created.\n", output_dir);
+  }
+  else if (ec)
+  {
+    throw std::runtime_error(std::format("Failed to create directory {}: {}", output_dir, ec.message()));
   }
   else
   {

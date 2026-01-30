@@ -184,6 +184,15 @@ int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
 
     TowerInfo *tower = towerinfosEPD->get_tower_at_channel(channel);
 
+    if (!tower)
+    {
+      if (Verbosity() > 2)
+      {
+        std::cout << PHWHERE << "Null SEPD tower at channel " << channel << std::endl;
+      }
+      continue;
+    }
+
     double charge = tower->get_energy();
     bool isZS = tower->get_isZS();
     double phi = epdgeom->get_phi(key);
