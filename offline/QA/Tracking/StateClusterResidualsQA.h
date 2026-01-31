@@ -170,12 +170,12 @@ class StateClusterResidualsQA : public SubsysReco
   std::vector<TH2*> m_histograms_layer_x{};
   std::vector<TH2*> m_histograms_layer_y{};
   std::vector<TH2*> m_histograms_layer_z{};
-  std::vector<TH1*> m_histograms_phi_x{};
-  std::vector<TH1*> m_histograms_phi_y{};
-  std::vector<TH1*> m_histograms_phi_z{};
-  std::vector<TH1*> m_histograms_eta_x{};
-  std::vector<TH1*> m_histograms_eta_y{};
-  std::vector<TH1*> m_histograms_eta_z{};
+  std::vector<TH2*> m_histograms_phi_x{};
+  std::vector<TH2*> m_histograms_phi_y{};
+  std::vector<TH2*> m_histograms_phi_z{};
+  std::vector<TH2*> m_histograms_eta_x{};
+  std::vector<TH2*> m_histograms_eta_y{};
+  std::vector<TH2*> m_histograms_eta_z{};
 };
 
 #endif  // TRACKFITTINGQA_H

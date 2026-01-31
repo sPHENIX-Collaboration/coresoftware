@@ -212,8 +212,12 @@ int StateClusterResidualsQA::process_event(PHCompositeNode* top_node)
             continue;
           }          
 
-          float state_x, state_y, state_z;
-          float cluster_x, cluster_y, cluster_z;
+          float state_x; 
+          float state_y;
+          float state_z;
+          float cluster_x;
+          float cluster_y;
+          float cluster_z;
           if (m_use_local_coords == true)
           {
             state_x = state->get_localX();
