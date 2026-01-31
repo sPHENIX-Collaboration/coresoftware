@@ -152,6 +152,7 @@ class MbdCalib
   int Write_TTT0(const std::string& dbfile);
   int Write_T0Corr(const std::string& dbfile);
   int Write_Ped(const std::string& dbfile);
+  int Write_TimeCorr(const std::string& dbfile);
   int Write_Gains(const std::string& dbfile);
   int Write_Pileup(const std::string& dbfile);
   int Write_Thresholds(const std::string& dbfile);
