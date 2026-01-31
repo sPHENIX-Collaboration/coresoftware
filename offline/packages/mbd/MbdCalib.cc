@@ -2080,6 +2080,40 @@ int MbdCalib::Write_CDB_TimeCorr(const std::string& dbfile)
 }
 #endif
 
+int MbdCalib::Write_TimeCorr(const std::string& dbfile)
+{
+  std::ofstream cal_timecorr_file;
+  cal_timecorr_file.open(dbfile);
+  if (!cal_timecorr_file.is_open())
+  {
+    std::cout << PHWHERE << "unable to open " << dbfile << std::endl;
+    return -1;
+  }
+  for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    if ( _mbdgeom->get_type(ifeech) == 1 )
+    {
+      continue;  // skip q-channels
+    }
+    cal_timecorr_file << ifeech << "\t" << _tcorr_npts[ifeech] << "\t" << _tcorr_minrange[ifeech] << "\t" << _tcorr_maxrange[ifeech] << std::endl;
+    for (int ipt=0; ipt<_tcorr_npts[ifeech]; ipt++)
+    {
+      cal_timecorr_file << _tcorr_y[ifeech][ipt];
+      if ( ipt%10 == 9 )
+      {
+        cal_timecorr_file << std::endl;
+      }
+      else
+      {
+        cal_timecorr_file << " ";
+      }
+    }
+  }
+  cal_timecorr_file.close();
+
+  return 1;
+}
+
 #ifndef ONLINE
 int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
 {

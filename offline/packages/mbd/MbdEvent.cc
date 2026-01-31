@@ -151,14 +151,16 @@ int MbdEvent::InitRun()
 
   _mbdcal->SetRawDstFlag( _rawdstflag );
   _mbdcal->SetFitsOnly( _fitsonly );
-  int status = _mbdcal->Download_All();
-  if ( status == -1 )
-  {
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
 
   if ( _simflag == 0 )  // do following for real data
   {
+    // Download calibrations
+    int status = _mbdcal->Download_All();
+    if ( status == -1 )
+    {
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
     // load pass1 calibs from local file for calpass2+
     if ( _calpass>1 )
     {
@@ -180,35 +182,36 @@ int MbdEvent::InitRun()
       _calib_done = 0;
       std::cout << PHWHERE << ",no sampmax calib, determining it on the fly using first " << _no_sampmax << " evts." << std::endl;
     }
-  }
 
-  // Init parameters of the signal processing
-  for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
-  {
-    _mbdsig[ifeech].SetCalib(_mbdcal);
+    // Init parameters of the signal processing
+    for (int ifeech = 0; ifeech < MbdDefs::BBC_N_FEECH; ifeech++)
+    {
+      _mbdsig[ifeech].SetCalib(_mbdcal);
 
-    // Do evt-by-evt pedestal using sample range below
-    if ( _calpass==1 || _is_online || _no_sampmax>0 )
-    {
-      _mbdsig[ifeech].SetEventPed0Range(0,1);
-    }
-    else
-    {
-      const int presamp = 5;  // start from 5 samples before sampmax
-      const int nsamps = -1;  // use all to sample 0
-      _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
+      // Do evt-by-evt pedestal using sample range below
+      if ( _calpass==1 || _is_online || _no_sampmax>0 )
+      {
+        _mbdsig[ifeech].SetEventPed0Range(0,1);
+      }
+      else
+      {
+        const int presamp = 5;  // start from 5 samples before sampmax
+        const int nsamps = -1;  // use all to sample 0
+        _mbdsig[ifeech].SetEventPed0PreSamp(presamp, nsamps, _mbdcal->get_sampmax(ifeech));
+      }
+
+      // Read in template if specified
+      if ( do_templatefit && _mbdgeom->get_type(ifeech)==1 )
+      {
+        // std::cout << PHWHERE << "Reading template " << ifeech << std::endl;
+        // std::cout << "SIZES0 " << _mbdcal->get_shape(ifeech).size() << std::endl;
+        //  Should set template size automatically here
+        _mbdsig[ifeech].SetTemplate(_mbdcal->get_shape(ifeech), _mbdcal->get_sherr(ifeech));
+        _mbdsig[ifeech].SetMinMaxFitTime(_mbdcal->get_sampmax(ifeech) - 2 - 3, _mbdcal->get_sampmax(ifeech) - 2 + 3);
+        //_mbdsig[ifeech].SetMinMaxFitTime( 0, 31 );
+      }
     }
 
-    // Read in template if specified
-    if ( do_templatefit && _mbdgeom->get_type(ifeech)==1 )
-    {
-      // std::cout << PHWHERE << "Reading template " << ifeech << std::endl;
-      // std::cout << "SIZES0 " << _mbdcal->get_shape(ifeech).size() << std::endl;
-      //  Should set template size automatically here
-      _mbdsig[ifeech].SetTemplate(_mbdcal->get_shape(ifeech), _mbdcal->get_sherr(ifeech));
-      _mbdsig[ifeech].SetMinMaxFitTime(_mbdcal->get_sampmax(ifeech) - 2 - 3, _mbdcal->get_sampmax(ifeech) - 2 + 3);
-      //_mbdsig[ifeech].SetMinMaxFitTime( 0, 31 );
-    }
   }
 
   if ( _calpass > 0 )
@@ -816,6 +819,16 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         m_pmttt[pmtch] -= _mbdcal->get_tt0(pmtch);
       }
 
+      /*
+      if ( !std::isnan(m_pmttt[pmtch]) )
+      {
+        std::cout << "pmttt " << m_evt << "\t" << pmtch << "\t" << m_pmttt[pmtch] << "\t" 
+          << bbcraws->get_pmt(pmtch)->get_ttdc() << "\t"
+          << _mbdcal->get_tcorr(ifeech,bbcraws->get_pmt(pmtch)->get_ttdc()) << "\t"
+          << _mbdcal->get_tt0(pmtch) << std::endl;
+      }
+      */
+
     }
     else if ( type == 1 && (!std::isnan(bbcraws->get_pmt(pmtch)->get_ttdc()) || isbadtch(pmtch) || _always_process_charge ) )
     {
@@ -840,7 +853,6 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         m_pmttq[pmtch] = m_pmttq[pmtch] - _mbdcal->get_tq0(pmtch);
 
         // if ( m_pmttq[pmtch]<-50. && ifeech==255 ) std::cout << "hit_times " << ifeech << "\t" << m_pmttq[pmtch] << std::endl;
-        // if ( arm==1 ) std::cout << "hit_times " << ifeech << "\t" << setw(10) << m_pmttq[pmtch] << "\t" << board << "\t" << TRIG_SAMP[board] << std::endl;
 
         // if tt is bad, use tq
         if ( _mbdcal->get_status(ifeech-8)>0 )
@@ -850,7 +862,6 @@ int MbdEvent::ProcessRawContainer(MbdRawContainer *bbcraws, MbdPmtContainer *bbc
         else
         {
           // we have a good tt ch. correct for slew if there is a hit
-          //if ( ifeech==0 ) std::cout << "applying scorr" << std::endl;
           if ( !std::isnan(m_pmttt[pmtch]) )
           {
             m_pmttt[pmtch] -= _mbdcal->get_scorr(ifeech-8,bbcraws->get_pmt(pmtch)->get_adc());
