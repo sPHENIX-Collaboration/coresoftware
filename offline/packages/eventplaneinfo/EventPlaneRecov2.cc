@@ -78,7 +78,7 @@ int EventPlaneRecov2::Init(PHCompositeNode *topNode)
 {
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
-  if (hasValidTree(m_directURL_EventPlaneCalib))
+  if (!m_directURL_EventPlaneCalib.empty() && hasValidTree(m_directURL_EventPlaneCalib))
   {
     m_cdbttree = std::make_unique<CDBTTree>(m_directURL_EventPlaneCalib);
     std::cout << PHWHERE << " Custom Event Plane Calib Found: " << m_directURL_EventPlaneCalib << std::endl;
@@ -551,10 +551,6 @@ int EventPlaneRecov2::FillNode(PHCompositeNode *topNode)
   std::vector<std::pair<double, double>> northsouth_Qvec_raw(vec_size, {NAN, NAN});
   std::vector<std::pair<double, double>> northsouth_Qvec_recentered(vec_size, {NAN, NAN});
   std::vector<std::pair<double, double>> northsouth_Qvec(vec_size, {NAN, NAN});
-
-  std::vector<double> south_psi(vec_size, NAN);
-  std::vector<double> north_psi(vec_size, NAN);
-  std::vector<double> northsouth_psi(vec_size, NAN);
 
   for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
   {

@@ -10,14 +10,13 @@ void Eventplaneinfov2::identify(std::ostream& os) const
 
 double Eventplaneinfov2::GetPsi(const double Qx, const double Qy, const unsigned int order) const
 {
-  double temp;
+  if (order == 0)
+  {
+    return NAN;
+  }
   if ((Qx == 0.0) && (Qy == 0.0))
   {
-    temp = NAN;
+    return NAN;
   }
-  else
-  {
-    temp = atan2(Qy, Qx) / ((double) order);
-  }
-  return temp;
+  return atan2(Qy, Qx) / static_cast<double>(order);
 }
