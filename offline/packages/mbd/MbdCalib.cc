@@ -106,6 +106,7 @@ int MbdCalib::Download_All()
       }
       Download_Ped(ped_url);
 
+    
       std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
       if ( pileup_url.empty() )
       {
@@ -117,7 +118,6 @@ int MbdCalib::Download_All()
         std::cout << "pileup_url " << pileup_url << std::endl;
       }
       Download_Pileup(pileup_url);
-    
 
       if (do_templatefit)
       {
@@ -765,6 +765,14 @@ int MbdCalib::Download_Status(const std::string& dbase_location)
       }
     }
     infile.close();
+  }
+
+
+  if ( _mbdstatus[0] == -1 )
+  {
+    std::cout << PHWHERE << ", WARNING, status calib seems bad, " << dbase_location << std::endl;
+    _status = -1;
+    return _status;  // file not found
   }
 
   return 1;
