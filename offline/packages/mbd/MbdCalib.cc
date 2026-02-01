@@ -80,11 +80,6 @@ int MbdCalib::Download_All()
   if (!_rc->FlagExist("MBD_CALDIR"))
   {
     std::string sampmax_url = _cdb->getUrl("MBD_SAMPMAX");
-    if ( sampmax_url.empty() )
-    {
-      std::cerr << "ERROR, MBD_SAMPMAX missing" << std::endl;
-      return -1;
-    }
     if (Verbosity() > 0)
     {
       std::cout << "sampmax_url " << sampmax_url << std::endl;
@@ -105,11 +100,6 @@ int MbdCalib::Download_All()
     if ( !_rawdstflag )
     {
       std::string ped_url = _cdb->getUrl("MBD_PED");
-      if ( ped_url.empty() )
-      {
-        std::cerr << "ERROR, MBD_PED missing" << std::endl;
-        return -1;
-      }
       if (Verbosity() > 0)
       {
         std::cout << "ped_url " << ped_url << std::endl;
@@ -651,8 +641,6 @@ int MbdCalib::Download_Ped(const std::string& dbase_location)
   if ( std::isnan(_pedmean[0]) )
   {
     std::cout << PHWHERE << ", WARNING, ped calib missing, " << dbase_location << std::endl;
-    _status = -1;
-    return _status;
   }
 
   return 1;
@@ -715,8 +703,6 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
   if ( _sampmax[0] == -1 )
   {
     std::cout << PHWHERE << ", WARNING, sampmax calib missing, " << dbase_location << std::endl;
-    _status = -1;
-    return _status;  // file not found
   }
 
   return 1;
