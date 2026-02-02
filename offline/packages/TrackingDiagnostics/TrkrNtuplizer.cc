@@ -31,10 +31,15 @@
 #include <trackbase_historic/TrackAnalysisUtils.h>
 #include <trackbase_historic/TrackSeed.h>
 
+#include <mvtx/SegmentationAlpide.h>
+
+#include <intt/CylinderGeomIntt.h>
+
 #include <micromegas/MicromegasDefs.h>
 
 #include <g4detectors/PHG4TpcGeom.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackermillepedealignment/HelicalFitter.h>
 
@@ -158,6 +163,7 @@ enum n_hit  // NOLINT(readability-enum-initial-value, performance-enum-size)
   nhitcellID,
   nhitecell,
   nhitphibin,
+  nhitzbin,
   nhittbin,
   nhitphi,
   nhitr,
@@ -330,7 +336,7 @@ int TrkrNtuplizer::Init(PHCompositeNode* /*unused*/)
 
   std::string str_vertex = {"vertexID:vx:vy:vz:ntracks:chi2:ndof"};
   std::string str_event = {"event:seed:run:seg:job"};
-  std::string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:tbin:phi:r:x:y:z"};
+  std::string str_hit = {"hitID:e:adc:layer:phielem:zelem:cellID:ecell:phibin:zbin:tbin:phi:r:x:y:z"};
   std::string str_cluster = {"locx:locy:x:y:z:r:phi:eta:theta:phibin:tbin:fee:chan:sampa:ex:ey:ez:ephi:pez:pephi:e:adc:maxadc:thick:afac:bfac:dcal:layer:phielem:zelem:size:phisize:zsize:pedge:redge:ovlp:trackID:niter"};
   std::string str_seed = {"seedID:siter:spt:sptot:seta:sphi:syxint:srzint:sxyslope:srzslope:sX0:sY0:sdZ0:sR0:scharge:sdedx:spidedx:skdedx:sprdedx:sn1pix:snsil:sntpc:snhits"};
   std::string str_residual = {"alpha:beta:resphio:resphi:resz"};
@@ -559,6 +565,13 @@ int TrkrNtuplizer::InitRun(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
   AdcClockPeriod = geom->GetFirstLayerCellGeom()->get_zstep();
+
+  _inttGeom = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  if (_do_hit_eval && !_inttGeom)
+  {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERGEOM_INTT" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   // Create Fee Map
   auto* geom_container = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
@@ -1464,6 +1477,11 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
           fx_hit[n_hit::nhitphielem] = -666;
           fx_hit[n_hit::nhitzelem] = -666;
 
+          if (layer_local < 3)
+          {
+            fx_hit[n_hit::nhitphielem] = MvtxDefs::getStaveId(hitset_key);
+            fx_hit[n_hit::nhitzelem] = MvtxDefs::getChipId(hitset_key);
+          }
           if (layer_local >= 3 && layer_local < 7)
           {
             fx_hit[n_hit::nhitphielem] = InttDefs::getLadderPhiId(hitset_key);
@@ -1485,17 +1503,64 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             }
           }
           */
-          fx_hit[n_hit::nhitphielem] = TpcDefs::getSectorId(hitset_key);
-          fx_hit[n_hit::nhitzelem] = TpcDefs::getSide(hitset_key);
+          //fx_hit[n_hit::nhitphielem] = TpcDefs::getSectorId(hitset_key);
+          //fx_hit[n_hit::nhitzelem] = TpcDefs::getSide(hitset_key);
           fx_hit[n_hit::nhitcellID] = 0;
           fx_hit[n_hit::nhitecell] = hit->getAdc();
           fx_hit[n_hit::nhitphibin] = std::numeric_limits<float>::quiet_NaN();
           fx_hit[n_hit::nhittbin] = std::numeric_limits<float>::quiet_NaN();
+          fx_hit[n_hit::nhitzbin] = std::numeric_limits<float>::quiet_NaN();
           fx_hit[n_hit::nhitphi] = std::numeric_limits<float>::quiet_NaN();
           fx_hit[n_hit::nhitr] = std::numeric_limits<float>::quiet_NaN();
           fx_hit[n_hit::nhitx] = std::numeric_limits<float>::quiet_NaN();
           fx_hit[n_hit::nhity] = std::numeric_limits<float>::quiet_NaN();
           fx_hit[n_hit::nhitz] = std::numeric_limits<float>::quiet_NaN();
+
+          if (layer_local < _nlayers_maps)
+          {
+            int row = MvtxDefs::getRow(hit_key);
+            int col = MvtxDefs::getCol(hit_key);
+
+            float localX = std::numeric_limits<float>::quiet_NaN();
+            float localZ = std::numeric_limits<float>::quiet_NaN();
+            SegmentationAlpide::detectorToLocal(row,col,localX,localZ);
+            Acts::Vector2 local(localX * Acts::UnitConstants::cm, localZ * Acts::UnitConstants::cm);
+
+            const auto& surface = m_tGeometry->maps().getSiliconSurface(hitset_key);
+            auto glob = surface->localToGlobal(m_tGeometry->geometry().getGeoContext(), local, Acts::Vector3());
+
+            fx_hit[n_hit::nhitphibin] = row;
+            fx_hit[n_hit::nhitzbin] = col;
+            fx_hit[n_hit::nhittbin] = MvtxDefs::getStrobeId(hitset_key);
+            fx_hit[n_hit::nhitx] = glob.x() / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhity] = glob.y() / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhitz] = glob.z() / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhitr] = sqrt(glob.x()*glob.x()+glob.y()*glob.y()) / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhitphi] = atan2(glob.y(),glob.x());
+          }
+
+          if (layer_local >= _nlayers_maps && layer_local < _nlayers_intt)
+          {
+            int row = InttDefs::getRow(hit_key);
+            int col = InttDefs::getCol(hit_key);
+
+            CylinderGeomIntt* intt_cylinder = dynamic_cast<CylinderGeomIntt*>(_inttGeom->GetLayerGeom(layer_local));
+            double localcoords[3];
+            intt_cylinder->find_strip_center_localcoords(InttDefs::getLadderZId(hitset_key),row,col,localcoords);
+
+            Acts::Vector2 local(localcoords[1]*Acts::UnitConstants::cm,localcoords[2]*Acts::UnitConstants::cm);
+            const auto& surface = m_tGeometry->maps().getSiliconSurface(hitset_key);
+            auto glob = surface->localToGlobal(m_tGeometry->geometry().getGeoContext(), local, Acts::Vector3());
+
+            fx_hit[n_hit::nhitphibin] = row;
+            fx_hit[n_hit::nhitzbin] = col;
+            fx_hit[n_hit::nhittbin] = InttDefs::getTimeBucketId(hitset_key);
+            fx_hit[n_hit::nhitx] = glob.x() / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhity] = glob.y() / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhitz] = glob.z() / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhitr] = sqrt(glob.x()*glob.x()+glob.y()*glob.y()) / Acts::UnitConstants::cm;
+            fx_hit[n_hit::nhitphi] = atan2(glob.y(),glob.x());
+          }
 
           if (layer_local >= _nlayers_maps + _nlayers_intt && layer_local < _nlayers_maps + _nlayers_intt + _nlayers_tpc)
           {
@@ -1618,7 +1683,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     TrackSeedContainer* _tpc_seeds = findNode::getClass<TrackSeedContainer>(topNode, "TpcTrackSeedContainer");
-    if (!_tpc_seeds)
+    if (!_tpc_seeds && _do_tpcseed_eval)
     {
       std::cout << PHWHERE << " ERROR: Can't find "
                 << "TpcTrackSeedContainer" << std::endl;
@@ -1737,9 +1802,9 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
         }
         else
         {
-          pidedx = f_pion_minus->Eval(tptot);
-          kdedx = f_kaon_minus->Eval(tptot);
-          prdedx = f_proton_plus->Eval(tptot);
+          pidedx = f_pion_minus->Eval(-tptot);
+          kdedx = f_kaon_minus->Eval(-tptot);
+          prdedx = f_proton_minus->Eval(-tptot);
         }
         float n1pix = get_n1pix(tpcseed);
         float fx_seed[n_seed::seedsize] = {(float) trackID, 0, tpt, tptot, teta, tphi, xyint, rzint, xyslope, rzslope, tX0, tY0, tZ0, R0, charge, dedx, pidedx, kdedx, prdedx, n1pix, nsil_local, ntpc_local, nhits_local};
@@ -1933,9 +1998,9 @@ void TrkrNtuplizer::FillTrack(float fX[50], SvtxTrack* track, GlobalVertexMap* v
     }
     else
     {
-      fX[n_track::ntrknpidedx] = f_pion_minus->Eval(trptot);
-      fX[n_track::ntrknkdedx] = f_kaon_minus->Eval(trptot);
-      fX[n_track::ntrknprdedx] = f_proton_minus->Eval(trptot);
+      fX[n_track::ntrknpidedx] = f_pion_minus->Eval(-trptot);
+      fX[n_track::ntrknkdedx] = f_kaon_minus->Eval(-trptot);
+      fX[n_track::ntrknprdedx] = f_proton_minus->Eval(-trptot);
     }
 
     for (SvtxTrack::ConstClusterKeyIter iter_local = tpcseed->begin_cluster_keys();
