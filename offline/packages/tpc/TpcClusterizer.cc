@@ -1292,10 +1292,12 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 
   if (m_maskDeadChannels)
   {
+    m_deadChannelMap.clear();
     makeChannelMask(m_deadChannelMap, m_deadChannelMapName, "TotalDeadChannels");
   }
   if (m_maskHotChannels)
   {
+    m_hotChannelMap.clear();
     makeChannelMask(m_hotChannelMap, m_hotChannelMapName, "TotalHotChannels");
   }
 
