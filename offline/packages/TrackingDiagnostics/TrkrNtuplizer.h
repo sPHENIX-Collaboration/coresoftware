@@ -35,6 +35,7 @@ class SvtxVertexMap;
 class TrkrClusterContainer;
 class ActsGeometry;
 class PHG4TpcGeomContainer;
+class PHG4CylinderGeomContainer;
 class GlobalVertexMap;
 
 // class ClusterErrorPara;
@@ -157,6 +158,7 @@ class TrkrNtuplizer : public SubsysReco
   SvtxTrackMap *_trackmap{nullptr};
   ActsGeometry *_tgeometry{nullptr};
   PHG4TpcGeomContainer *_geom_container{nullptr};
+  PHG4CylinderGeomContainer *_inttGeom{nullptr};
   float m_ZDC_coincidence{0};
   float m_mbd_rate{0};
   float m_rawzdc{0};
