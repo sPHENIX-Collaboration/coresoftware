@@ -149,8 +149,6 @@ class KFParticle_Tools : protected KFParticle_MVA
   std::vector<float> m_intermediate_vertex_volume;
 
   bool m_use_PID{false};
-  bool m_use_local_PID_file{false};
-  std::string m_local_PID_filename = "";
   float m_dEdx_band_width{0.2};  // Fraction of expected dE/dx
 
   TF1 *f_pion_plus{nullptr};
