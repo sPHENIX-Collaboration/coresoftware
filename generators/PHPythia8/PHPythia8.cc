@@ -123,17 +123,13 @@ int PHPythia8::Init(PHCompositeNode *topNode)
   std::cout << "PHPythia8 random seed: " << seed << std::endl;
 
 
-  // this is empirical - something in the pythia8::init() method interferes
-  // with our macros (it sets the tpc drift verlocity back to 0)
-  // not the feintest idea right now what this could be
-  // but saving the old cout state and restoring it aftwerwards
-  // gets our tpc drift velocity back
+// pythia again messes with the cout formatting
   std::ios old_state(nullptr);
-  old_state.copyfmt(std::cout);
+  old_state.copyfmt(std::cout); // save current state
 
   m_Pythia8->init();
 
-  std::cout.copyfmt(old_state);
+  std::cout.copyfmt(old_state); // restore state to saved state
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -211,6 +207,9 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   bool passedGen = false;
   bool passedTrigger = false;
   //  int genCounter = 0;
+// pythia again messes with the cout formatting in its event loop
+  std::ios old_state(nullptr);
+  old_state.copyfmt(std::cout); // save current state
 
   while (!passedTrigger)
   {
@@ -286,6 +285,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   if (!success)
   {
     std::cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << std::endl;
+    std::cout.copyfmt(old_state); // restore state to saved state
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -305,6 +305,8 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   }
 
   ++m_EventCount;
+
+  std::cout.copyfmt(old_state); // restore state to saved state
 
   // save statistics
   if (m_IntegralNode)

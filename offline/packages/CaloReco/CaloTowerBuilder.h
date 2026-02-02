@@ -94,6 +94,26 @@ class CaloTowerBuilder : public SubsysReco
     m_dobitfliprecovery = dobitfliprecovery;
   }
 
+  // Functional fit options: 0 = PowerLawExp, 1 = PowerLawDoubleExp
+  void set_funcfit_type(int type)
+  {
+    m_funcfit_type = type;
+  }
+
+  void set_powerlaw_params(double power, double decay)
+  {
+    m_powerlaw_power = power;
+    m_powerlaw_decay = decay;
+  }
+
+  void set_doubleexp_params(double power, double peaktime1, double peaktime2, double ratio)
+  {
+    m_doubleexp_power = power;
+    m_doubleexp_peaktime1 = peaktime1;
+    m_doubleexp_peaktime2 = peaktime2;
+    m_doubleexp_ratio = ratio;
+  }
+
   void set_tbt_softwarezerosuppression(const std::string &url)
   {
     m_zsURL = url;
@@ -150,6 +170,15 @@ class CaloTowerBuilder : public SubsysReco
   std::string m_directURL;
   std::string m_zsURL;
   std::string m_zs_fieldname{"zs_threshold"};
+
+  // Functional fit parameters
+  int m_funcfit_type{1};  // 0 = PowerLawExp, 1 = PowerLawDoubleExp
+  double m_powerlaw_power{4.0};
+  double m_powerlaw_decay{1.5};
+  double m_doubleexp_power{2.0};
+  double m_doubleexp_peaktime1{5.0};
+  double m_doubleexp_peaktime2{5.0};
+  double m_doubleexp_ratio{0.3};
 };
 
 #endif  // CALOTOWERBUILDER_H

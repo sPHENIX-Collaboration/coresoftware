@@ -610,6 +610,17 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           _is_flow_failure = true;
           _Psi2 = 0; 
         }
+
+        // Safety check
+        if (!std::isfinite(_Psi2))
+        {
+          if (Verbosity() > 0)
+          {
+            std::cout << "DetermineTowerBackground::process_event: WARNING Psi2 is non-finite (NaN or Inf), setting Psi2 = 0." << std::endl;
+          }
+          _is_flow_failure = true;
+          _Psi2 = 0;
+        }
     
       if (Verbosity() > 0)
         {

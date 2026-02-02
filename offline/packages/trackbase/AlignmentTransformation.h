@@ -128,7 +128,8 @@ private:
 
   bool use_new_silicon_rotation_order = false;
   bool use_module_tilt_always = false;
-
+  bool use_module_tilt = false;   // starts at false in all cases
+  
   bool use_intt_survey_geometry = false;
   
   Acts::Transform3 newMakeTransform(const Surface& surf, Eigen::Vector3d& millepedeTranslation, Eigen::Vector3d& sensorAngles, Eigen::Vector3d& localFrameTranslation, Eigen::Vector3d& sensorAnglesGlobal, unsigned int trkrid, bool survey);
