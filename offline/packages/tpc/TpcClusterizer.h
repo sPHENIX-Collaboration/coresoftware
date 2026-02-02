@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+typedef std::map<TrkrDefs::hitsetkey, std::vector<TrkrDefs::hitkey>> hitMaskTpc;
+
 class ClusHitsVerbosev1;
 class PHCompositeNode;
 class TrkrHitSet;
@@ -69,12 +71,30 @@ public:
     set_max_cluster_half_size_z(20);
     set_fixed_window(3);
   };
-  
+
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
-  
+
+  void SetMaskChannelsFromFile() 
+  {
+    m_maskFromFile = true;
+  }
+
+  void SetDeadChannelMapName(const std::string& dcmap) 
+  {
+    m_maskDeadChannels = true;
+    m_deadChannelMapName = dcmap;
+  }
+  void SetHotChannelMapName(const std::string& hmap) 
+  {
+    m_maskHotChannels = true;
+    m_hotChannelMapName = hmap;
+  }
+
  private:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
   bool record_ClusHitsVerbose{false};
+
+  void makeChannelMask(hitMaskTpc& aMask, const std::string& dbName, const std::string& totalChannelsToMask);
 
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
@@ -105,8 +125,17 @@ public:
   double m_tdriftmax = 0;
   double AdcClockPeriod = 53.0;  // ns
   double NZBinsSide = 249;
-    
+
   TrainingHitsContainer *m_training;
+
+  hitMaskTpc m_deadChannelMap;
+  hitMaskTpc m_hotChannelMap; 
+
+  bool m_maskDeadChannels {false};
+  bool m_maskHotChannels {false};
+  bool m_maskFromFile {false};
+  std::string m_deadChannelMapName; 
+  std::string m_hotChannelMapName;
 };
 
 #endif
