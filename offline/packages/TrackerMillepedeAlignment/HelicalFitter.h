@@ -238,7 +238,7 @@ class HelicalFitter : public SubsysReco, public PHParameterInterface
   bool use_intt_zfit{false};
   bool straight_line_fit = false;
   int do_mvtx_half = -1;
-  bool is_cosmics = false;
+  bool is_cosmics = true;
 
   int event{0};
 

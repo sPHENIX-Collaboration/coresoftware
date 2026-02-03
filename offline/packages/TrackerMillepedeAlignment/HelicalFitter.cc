@@ -331,7 +331,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         continue;
       }
 
-      fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec);  // do helical fit
+      fitpars = TrackFitUtils::fitClusters(global_vec, cluskey_vec,false,false,false,is_cosmics);  // do helical fit
       fitpars_mvtx_half = TrackFitUtils::fitClusters(global_vec, cluskey_vec, use_intt_zfit, mvtx_east_only, mvtx_west_only, is_cosmics);
       if (fitpars_mvtx_half.size() < 3)
       {
@@ -572,7 +572,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
                 //std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
               }
             }
-            else if(m_acts_mode && vertex->get_beam_crossing() == abs_cross && vertex->size_tracks()>2)
+            else if(m_acts_mode && (vertex->get_beam_crossing()) == short(abs_cross) && vertex->size_tracks()>2)
             {
               //std::cout<<"matched"<<std::endl;
               event_vtx(0) = vertex->get_x();
@@ -1067,6 +1067,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       bool pull_cumulative_pass = true;
       if (pull_cumulative>2000)
+        pull_cumulative_pass = false;
+      if (layer>2 && residual(0) < 0.003)  //exclude INTT clusters with tiny residuals that dominate the pull
         pull_cumulative_pass = false;
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0&&pull_cumulative_pass)  // discards crazy clusters
       {
