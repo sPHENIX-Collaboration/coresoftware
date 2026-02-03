@@ -116,7 +116,7 @@ class CaloWaveformProcessing : public SubsysReco
   bool _bdosoftwarezerosuppression{false};
   bool _dobitfliprecovery{false};
 
-  std::string m_template_input_file = "testbeam_cemc_template.root";
+  std::string m_template_input_file;
   std::string url_template;
   std::string m_template_name{"NONE"};
 

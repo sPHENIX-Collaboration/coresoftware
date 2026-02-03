@@ -675,19 +675,19 @@ double CaloWaveformFitting::SignalShape_FermiExp(double *x, double *par)
   double tau = par[3];
   double ped = par[4];
 
-  // Protect against bad values
   if (w <= 0 || tau <= 0)
+  {
     return ped;
+  }
 
-  // Fermi turn-on
   double fermi = 1.0 / (1.0 + exp(-(tt - t0) / w));
 
-  // Exponential decay (starts at t0)
   double expo = exp(-(tt - t0) / tau);
 
-  // Suppress before turn-on
   if (tt < t0)
-    expo = 1.0;   // flat before midpoint
+  {
+    expo = 1.0;  
+  }
 
   double signal = A * fermi * expo;
 
@@ -896,22 +896,21 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
 
       // Set initial parameters
       double par[5];
-      par[0] = maxheight - pedestal;  // Amplitude
-      par[1] = maxbin ;             // t0
-      par[2] = 1.0;
-      par[3] = 2.0;  // Peak Time 1
-      par[4] = pedestal;               // Pedestal
+      par[0] = maxheight - pedestal; // Amplitude
+      par[1] = maxbin ;              // t0
+      par[2] = 1.0;                  // width
+      par[3] = 2.0;                  // Peak Time 1
+      par[4] = pedestal;             // Pedestal
 
       f.SetParameters(par);
       f.SetParLimits(0, maxheight-pedestal, 3*(maxheight-pedestal));
       f.SetParLimits(1, maxbin-1, maxbin);
-      f.SetParLimits(2, 0.025, 5.0);
-      f.SetParLimits(3, 0.5, 5.0);
+      f.SetParLimits(2, 0.025, 2.0);
+      f.SetParLimits(3, 0.5, 4.0);
       f.SetParLimits(4, pedestal-500, pedestal+500);
 
-      f.FixParameter(2, 0.10);  // width
+      f.FixParameter(2, 0.2);  
 
-      // Perform fit
       h.Fit(&f, "QRN0W", "", 0, nsamples);
 
       fit_time = f.GetParameter(1);

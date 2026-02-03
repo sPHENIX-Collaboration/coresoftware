@@ -31,7 +31,6 @@ void CaloWaveformProcessing::initialize_processing()
   {
     std::string calibrations_repo_template = std::string(calibrationsroot) + "/WaveformProcessing/templates/" + m_template_input_file;
     url_template = CDBInterface::instance()->getUrl(m_template_name, calibrations_repo_template);
-    url_template = "/sphenix/u/bseidlitz/work/zdcStuff/templateFile.root";
     m_Fitter = new CaloWaveformFitting();
     m_Fitter->initialize_processing(url_template);
     if (m_processingtype == CaloWaveformProcessing::TEMPLATE_NOSAT)
