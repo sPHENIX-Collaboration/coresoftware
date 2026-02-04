@@ -1767,8 +1767,17 @@ int CaloTriggerEmulator::process_organizer()
         }
 
         TriggerDefs::TriggerSumKey jet_skey = (*iter_sum).first;
+	uint16_t jet_sum_loc =  TriggerDefs::getSumLocId(jet_skey);
+	uint16_t jet_prim_loc =  TriggerDefs::getPrimitiveLocId_from_TriggerSumKey(jet_skey);
+	if (jet_prim_loc >= 12)
+	  {
+	    uint16_t sumeta = TriggerDefs::getSumEtaId(jet_skey);
+	    uint16_t sumphi = TriggerDefs::getSumPhiId(jet_skey);
+	    jet_sum_loc = sumphi%2 + sumeta*2;
+	  }
+	TriggerDefs::TriggerSumKey hcal_skey = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), jet_sum_loc);
 
-        TriggerDefs::TriggerSumKey hcal_skey = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("HCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
+	
         TriggerDefs::TriggerSumKey emcal_skey = TriggerDefs::getTriggerSumKey(TriggerDefs::TriggerId::jetTId, TriggerDefs::GetDetectorId("EMCAL"), TriggerDefs::GetPrimitiveId("JET"), TriggerDefs::getPrimitiveLocId_from_TriggerPrimKey(jet_pkey), TriggerDefs::getSumLocId(jet_skey));
 
         int i = 0;
