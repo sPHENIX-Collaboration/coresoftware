@@ -962,16 +962,16 @@ namespace
           continue;
         }
 
-        int pindex = 0;
+	if (is_pad_masked(nphi + phioffset))
+	{
+	  continue;
+	}
+
+	int pindex = 0;
         for (unsigned int nt = 0; nt < hitset->size(nphi); nt++)
         {
           unsigned short val = (*(hitset->getHits(nphi)))[nt];
 
-	  if (is_pad_masked(nphi + phioffset))
-	  {
-	    pindex++;
-	    continue;
-	  }
           if (val == 0)
           {
             pindex++;
