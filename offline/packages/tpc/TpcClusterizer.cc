@@ -1833,6 +1833,14 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
   else // mask using CDB TTree, default
   {
     std::string database = CDBInterface::instance()->getUrl(dbName);
+    
+    if (database.empty())
+    {
+      std::cout << PHWHERE << "ERROR: CDB URL not found for " << dbName
+                << ". Masking disabled for this map." << std::endl;
+      return;
+    }
+
     cdbttree = std::make_unique<CDBTTree>(database);
   }
   
