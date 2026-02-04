@@ -619,12 +619,13 @@ namespace
 	const auto &deadset = it->second;
 
 	if (left_pad >= 0 &&
+	    left_pad >= my_data.phioffset &&
 	    deadset.count(TpcDefs::genHitKey(left_pad, 0)))
 	{
 	  nedge++;
 	}
 
-	if (right_pad < my_data.phibins &&
+	if (right_pad < (my_data.phibins + my_data.phioffset) &&
 	    deadset.count(TpcDefs::genHitKey(right_pad, 0)))
 	{
 	  nedge++;
@@ -641,12 +642,13 @@ namespace
 	const auto &hotset = it->second;
 
 	if (left_pad >= 0 &&
+	    left_pad >= my_data.phioffset &&
 	    hotset.count(TpcDefs::genHitKey(left_pad, 0)))
 	{
 	  nedge++;
 	}
 
-	if (right_pad < my_data.phibins &&
+	if (right_pad < (my_data.phibins + my_data.phioffset) &&
 	    hotset.count(TpcDefs::genHitKey(right_pad, 0)))
 	{
 	  nedge++;
@@ -1823,15 +1825,15 @@ int TpcClusterizer::End(PHCompositeNode * /*topNode*/)
 
 void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &dbName, const std::string &totalChannelsToMask)
 {
-  CDBTTree *cdbttree;
+  std::unique_ptr<CDBTTree> cdbttree;
   if (m_maskFromFile)
   {
-    cdbttree = new CDBTTree(dbName);
+    cdbttree = std::make_unique<CDBTTree>(dbName);
   }
   else // mask using CDB TTree, default
   {
     std::string database = CDBInterface::instance()->getUrl(dbName);
-    cdbttree = new CDBTTree(database);
+    cdbttree = std::make_unique<CDBTTree>(database);
   }
   
   std::cout << "Masking TPC Channel Map: " << dbName << std::endl;
@@ -1855,5 +1857,4 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
     aMask[DeadChannelHitKey].insert(DeadHitKey);
   }
 
-  delete cdbttree;
 }
