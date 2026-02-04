@@ -1,20 +1,10 @@
 #include "sEPD_TreeGen.h"
 #include "QVecDefs.h"
+#include "EventPlaneData.h"
 
 // -- c++
 #include <format>
 #include <iostream>
-
-// -- event
-#include <ffaobjects/EventHeader.h>
-
-// -- Fun4All
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-
-// -- Nodes
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 
 // -- Calo
 #include <calobase/TowerInfo.h>
@@ -33,6 +23,18 @@
 // -- sEPD
 #include <epd/EpdGeom.h>
 
+// -- event
+#include <ffaobjects/EventHeader.h>
+
+// -- Fun4All
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+
+// -- Nodes
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
+
 //____________________________________________________________________________..
 sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
   : SubsysReco(name)
@@ -40,7 +42,7 @@ sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
 }
 
 //____________________________________________________________________________..
-int sEPD_TreeGen::Init([[maybe_unused]] PHCompositeNode *topNode)
+int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 {
   // Early guard against filename collision
   if (m_outfile_name == m_outtree_name)
@@ -85,6 +87,16 @@ int sEPD_TreeGen::Init([[maybe_unused]] PHCompositeNode *topNode)
   m_tree->Branch("sepd_channel", &m_data.sepd_channel);
   m_tree->Branch("sepd_charge", &m_data.sepd_charge);
   m_tree->Branch("sepd_phi", &m_data.sepd_phi);
+  PHNodeIterator node_itr(topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "DST"));
+
+  EventPlaneData *evtdata = findNode::getClass<EventPlaneData>(topNode, "EventPlaneData");
+  if (!evtdata)
+  {
+    evtdata = new EventPlaneData();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(evtdata, "EventPlaneData", "PHObject");
+    dstNode->addNode(newNode);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
