@@ -1841,6 +1841,13 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
   int NChan = -1;
   NChan = cdbttree->GetSingleIntValue(totalChannelsToMask);
 
+  if (NChan < 0)
+  {
+    std::cout << PHWHERE << "ERROR: Invalid or missing " << totalChannelsToMask
+	      << " for " << dbName << ". Masking disabled for this map." << std::endl;
+    return;
+  }
+
   for (int i = 0; i < NChan; i++)
   {
     int Layer = cdbttree->GetIntValue(i, "layer");
