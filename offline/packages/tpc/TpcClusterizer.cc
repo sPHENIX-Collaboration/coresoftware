@@ -52,6 +52,7 @@
 
 #include <TFile.h>
 
+#include <memory>
 #include <algorithm>
 #include <array>
 #include <cmath>  // for sqrt, cos, sin
