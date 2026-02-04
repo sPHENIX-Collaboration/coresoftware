@@ -27,6 +27,10 @@ lib_LTLIBRARIES = \
 ROOTDICTS = \
   EventPlaneData_Dict.cc
 
+pcmdir = $(libdir)
+# more elegant way to create pcm files (without listing them)
+nobase_dist_pcm_DATA = $(ROOTDICTS:.cc=_rdict.pcm)
+
 # EventPlaneData is a locally used root i/o object - no need to create an io library
 libsepd_eventplanecalib_la_SOURCES = \
   $(ROOTDICTS) \
