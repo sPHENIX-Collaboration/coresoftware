@@ -6,8 +6,8 @@ bin_PROGRAMS = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include
+  -isystem$(OFFLINE_MAIN)/include \
+  -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -24,7 +24,13 @@ pkginclude_HEADERS = \
 lib_LTLIBRARIES = \
   libsepd_eventplanecalib.la
 
+ROOTDICTS = \
+  EventPlaneData_Dict.cc
+
+# EventPlaneData is a locally used root i/o object - no need to create an io library
 libsepd_eventplanecalib_la_SOURCES = \
+  $(ROOTDICTS) \
+  EventPlaneData.cc \
   sEPD_TreeGen.cc \
   QVecCalib.cc \
   QVecCDB.cc
@@ -46,6 +52,13 @@ GenQVecCalib_LDADD = libsepd_eventplanecalib.la
 
 GenQVecCDB_SOURCES = GenQVecCDB.cc
 GenQVecCDB_LDADD = libsepd_eventplanecalib.la
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 BUILT_SOURCES = testexternals.cc
 

@@ -12,5 +12,8 @@ if test $ac_cv_prog_gxx = yes; then
    CXXFLAGS="$CXXFLAGS -Wshadow -Wall -Wextra -Werror"
 fi
 
+CINTDEFS=" -noIncludePaths  -inlineInputHeader "
+AC_SUBST(CINTDEFS)
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
