@@ -4,12 +4,13 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <map>
 #include <string>
-#include <vector>
+#include <unordered_set>
 
-typedef std::map<TrkrDefs::hitsetkey, std::vector<TrkrDefs::hitkey>> hitMaskTpc;
+typedef std::map<TrkrDefs::hitsetkey, std::unordered_set<TrkrDefs::hitkey>> hitMaskTpcSet;
 
 class ClusHitsVerbosev1;
 class PHCompositeNode;
@@ -94,7 +95,7 @@ public:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
   bool record_ClusHitsVerbose{false};
 
-  void makeChannelMask(hitMaskTpc& aMask, const std::string& dbName, const std::string& totalChannelsToMask);
+  void makeChannelMask(hitMaskTpcSet& aMask, const std::string& dbName, const std::string& totalChannelsToMask);
 
   TrkrHitSetContainer *m_hits = nullptr;
   RawHitSetContainer *m_rawhits = nullptr;
@@ -128,8 +129,8 @@ public:
 
   TrainingHitsContainer *m_training;
 
-  hitMaskTpc m_deadChannelMap;
-  hitMaskTpc m_hotChannelMap; 
+  hitMaskTpcSet m_deadChannelMap;
+  hitMaskTpcSet m_hotChannelMap; 
 
   bool m_maskDeadChannels {false};
   bool m_maskHotChannels {false};

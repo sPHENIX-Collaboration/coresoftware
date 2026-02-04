@@ -61,6 +61,7 @@
 #include <string>
 #include <utility>  // for pair
 #include <vector>
+#include <unordered_set>
 // Terra incognita....
 #include <pthread.h>
 
@@ -123,8 +124,8 @@ namespace
     double m_tdriftmax = 0;
 
     // --- new members for dead/hot map ---
-    hitMaskTpc *deadMap = nullptr;
-    hitMaskTpc *hotMap = nullptr;
+    hitMaskTpcSet *deadMap = nullptr;
+    hitMaskTpcSet *hotMap = nullptr;
     bool maskDead = false;
     bool maskHot  = false;
 
@@ -605,43 +606,53 @@ namespace
 
     TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(my_data.layer, my_data.sector, my_data.side);
 
+    // pads just outside the cluster in phi
+    const int left_pad  = phibinlo - 1;
+    const int right_pad = phibinhi + 1;
+
     // --- Dead channels ---
-    if (my_data.maskDead && my_data.deadMap->count(tpcHitSetKey))
+    if (my_data.maskDead)
+    {
+      auto it = my_data.deadMap->find(tpcHitSetKey);
+      if (it != my_data.deadMap->end())
       {
-	const auto &deadvec = (*my_data.deadMap)[tpcHitSetKey];
+	const auto &deadset = it->second;
 
-	for (const auto &deadkey : deadvec)
-	  {
-	    int dphi = TpcDefs::getPad(deadkey);
+	if (left_pad >= 0 &&
+	    deadset.count(TpcDefs::genHitKey(left_pad, 0)))
+	{
+	  nedge++;
+	}
 
-	    bool touch = (dphi == phibinlo - 1 || dphi == phibinhi + 1);
-
-	    if (touch)
-	      {
-		nedge++;
-		continue;
-	      }
-	  }
+	if (right_pad < my_data.phibins &&
+	    deadset.count(TpcDefs::genHitKey(right_pad, 0)))
+	{
+	  nedge++;
+	}
       }
+    }
 
     // --- Hot channels ---
-    if (my_data.maskHot && my_data.hotMap->count(tpcHitSetKey))
+    if (my_data.maskHot)
+    {
+      auto it = my_data.hotMap->find(tpcHitSetKey);
+      if (it != my_data.hotMap->end())
       {
-	const auto &hotvec = (*my_data.hotMap)[tpcHitSetKey];
+	const auto &hotset = it->second;
 
-	for (const auto &hotkey : hotvec)
-	  {
-	    int hphi = TpcDefs::getPad(hotkey);
+	if (left_pad >= 0 &&
+	    hotset.count(TpcDefs::genHitKey(left_pad, 0)))
+	{
+	  nedge++;
+	}
 
-	    bool touch = (hphi == phibinlo -1 || hphi == phibinhi + 1);
-
-	    if (touch)
-	      {
-		nedge++;
-		continue;
-	      }
-	  }
+	if (right_pad < my_data.phibins &&
+	    hotset.count(TpcDefs::genHitKey(right_pad, 0)))
+	{
+	  nedge++;
+	}
       }
+    }
 
     // This is the global position
     double clusiphi = iphi_sum / adc_sum;
@@ -843,24 +854,28 @@ namespace
     // Helper function to check if a pad is masked
     auto is_pad_masked = [&](int abs_pad) -> bool
     {
-      if (my_data->maskDead && my_data->deadMap->count(tpcHitSetKey))
+      TrkrDefs::hitkey key = TpcDefs::genHitKey(abs_pad, 0);
+
+      if (my_data->maskDead)
+      {
+	auto it = my_data->deadMap->find(tpcHitSetKey);
+	if (it != my_data->deadMap->end() &&
+	    it->second.count(key))
 	{
-	  const auto &deadvec = (*my_data->deadMap)[tpcHitSetKey];
-	  for (const auto &deadkey : deadvec)
-	    {
-	      if (TpcDefs::getPad(deadkey) == abs_pad)
-		return true;
-	    }
+	  return true;
 	}
-      if (my_data->maskHot && my_data->hotMap->count(tpcHitSetKey))
+      }
+
+      if (my_data->maskHot)
+      {
+	auto it = my_data->hotMap->find(tpcHitSetKey);
+	if (it != my_data->hotMap->end() &&
+	    it->second.count(key))
 	{
-	  const auto &hotvec = (*my_data->hotMap)[tpcHitSetKey];
-	  for (const auto &hotkey : hotvec)
-	    {
-	      if (TpcDefs::getPad(hotkey) == abs_pad)
-		return true;
-	    }
+	  return true;
 	}
+      }
+
       return false;
     };
 
@@ -1806,7 +1821,7 @@ int TpcClusterizer::End(PHCompositeNode * /*topNode*/)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void TpcClusterizer::makeChannelMask(hitMaskTpc &aMask, const std::string &dbName, const std::string &totalChannelsToMask)
+void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &dbName, const std::string &totalChannelsToMask)
 {
   CDBTTree *cdbttree;
   if (m_maskFromFile)
@@ -1837,7 +1852,7 @@ void TpcClusterizer::makeChannelMask(hitMaskTpc &aMask, const std::string &dbNam
 
     TrkrDefs::hitsetkey DeadChannelHitKey = TpcDefs::genHitSetKey(Layer, Sector, Side);
     TrkrDefs::hitkey DeadHitKey = TpcDefs::genHitKey((unsigned int) Pad, 0);
-    aMask[DeadChannelHitKey].push_back(DeadHitKey);
+    aMask[DeadChannelHitKey].insert(DeadHitKey);
   }
 
   delete cdbttree;
