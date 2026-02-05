@@ -258,8 +258,60 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
 
   if (Verbosity() > 2)
   {
+    printRemainingDuplicates();
+  }
 
-    for (unsigned int track1ID = 0;
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+/**
+ * @brief Reset per-event state for the merger.
+ *
+ * This implementation performs no per-event cleanup and always reports success.
+ *
+ * @return Integer status code: `Fun4AllReturnCodes::EVENT_OK`.
+ */
+int PHSiliconSeedMerger::ResetEvent(PHCompositeNode* /*unused*/)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+/**
+ * @brief Perform end-of-run shutdown for the silicon seed merger.
+ *
+ * @return int EVENT_OK on successful completion.
+ */
+int PHSiliconSeedMerger::End(PHCompositeNode* /*unused*/)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+/**
+ * @brief Retrieve required nodes from the top-level node tree and validate availability.
+ *
+ * Locates the silicon TrackSeedContainer using m_trackMapName and stores it in
+ * m_siliconTracks. If the container is not found, the function logs an error
+ * message and signals an abort for the current event.
+ *
+ * @param topNode Root node used to search for the TrackSeedContainer.
+ * @return int Fun4AllReturnCodes::EVENT_OK on success, Fun4AllReturnCodes::ABORTEVENT if the silicon TrackSeedContainer is not present.
+ */
+int PHSiliconSeedMerger::getNodes(PHCompositeNode* topNode)
+{
+  m_siliconTracks = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
+  if (!m_siliconTracks)
+  {
+    std::cout << PHWHERE << "No silicon track container, can't merge seeds"
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHSiliconSeedMerger::printRemainingDuplicates()
+{
+  for (unsigned int track1ID = 0;
          track1ID != m_siliconTracks->size();
          ++track1ID)
     {
@@ -338,54 +390,4 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
         }
       }
     }
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
 }
-
-/**
- * @brief Reset per-event state for the merger.
- *
- * This implementation performs no per-event cleanup and always reports success.
- *
- * @return Integer status code: `Fun4AllReturnCodes::EVENT_OK`.
- */
-int PHSiliconSeedMerger::ResetEvent(PHCompositeNode* /*unused*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-/**
- * @brief Perform end-of-run shutdown for the silicon seed merger.
- *
- * @return int EVENT_OK on successful completion.
- */
-int PHSiliconSeedMerger::End(PHCompositeNode* /*unused*/)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-/**
- * @brief Retrieve required nodes from the top-level node tree and validate availability.
- *
- * Locates the silicon TrackSeedContainer using m_trackMapName and stores it in
- * m_siliconTracks. If the container is not found, the function logs an error
- * message and signals an abort for the current event.
- *
- * @param topNode Root node used to search for the TrackSeedContainer.
- * @return int Fun4AllReturnCodes::EVENT_OK on success, Fun4AllReturnCodes::ABORTEVENT if the silicon TrackSeedContainer is not present.
- */
-int PHSiliconSeedMerger::getNodes(PHCompositeNode* topNode)
-{
-  m_siliconTracks = findNode::getClass<TrackSeedContainer>(topNode, m_trackMapName);
-  if (!m_siliconTracks)
-  {
-    std::cout << PHWHERE << "No silicon track container, can't merge seeds"
-              << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-

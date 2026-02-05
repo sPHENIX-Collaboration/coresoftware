@@ -51,7 +51,7 @@ void mergeSeeds() { m_mergeSeeds = true; }
 
  private:
   int getNodes(PHCompositeNode *topNode);
-
+  void printRemainingDuplicates();
   TrackSeedContainer *m_siliconTracks{nullptr};
   std::string m_trackMapName{"SiliconTrackSeedContainer"};
   /**
@@ -60,7 +60,8 @@ void mergeSeeds() { m_mergeSeeds = true; }
  *
  * Defaults to 1.
  */
-unsigned int m_clusterOverlap{1};
+  unsigned int m_clusterOverlap{1};
+
   bool m_mergeSeeds{false};
   /**
  * Restrict seed processing to the MVTX detector only.
