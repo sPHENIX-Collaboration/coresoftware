@@ -208,19 +208,6 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
             std::cout << "     will delete seed " << track1ID << std::endl;
           }
         }
-
-        if (Verbosity() > 2)
-        {
-          std::cout << "Match IDed" << std::endl;
-          for (const auto& key : mvtx1Keys)
-          {
-            std::cout << "  total track keys " << key << std::endl;
-          }
-        }
-
-        matches.insert(std::make_pair(track1ID, mvtx1Keys));
-        seedsToDelete.insert(track2ID);
-        
       }
     }
   }
