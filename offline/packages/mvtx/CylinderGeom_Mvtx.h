@@ -13,7 +13,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
  public:
   CylinderGeom_Mvtx(
       int layer,
-      int in_Nstaves,
+      int in_N_staves,
       double in_layer_nominal_radius,
       double in_phistep,
       double in_phitilt,
@@ -31,7 +31,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   {
   }
 
-  ~CylinderGeom_Mvtx() override {}
+  ~CylinderGeom_Mvtx() override = default;
 
   // from PHObject
   void identify(std::ostream& os = std::cout) const override;
@@ -53,11 +53,11 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   TVector3 get_local_coords_from_pixel(int NXZ);
   TVector3 get_local_coords_from_pixel(int iRow, int iCol);
 
-  int get_pixel_X_from_pixel_number(int NXZ);
+  int get_pixel_X_from_pixel_number(int NXZ) const;
 
-  int get_pixel_Z_from_pixel_number(int NXZ);
+  int get_pixel_Z_from_pixel_number(int NXZ) const;
 
-  int get_pixel_number_from_xbin_zbin(int xbin, int zbin);  // obsolete
+  int get_pixel_number_from_xbin_zbin(int xbin, int zbin) const;  // obsolete
 
   double get_stave_phi_tilt() const { return stave_phi_tilt; }
   double get_stave_phi_0() const { return stave_phi_0; }

@@ -818,10 +818,13 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
   float avgtriplety = 0;
   for (auto& pos : clusters)
   {
-    avgtripletx += std::cos(std::atan2(pos(1), pos(0)));
-    avgtriplety += std::sin(std::atan2(pos(1), pos(0)));
+
+    avgtripletx += std::cos(getPhiFromBeamSpot(pos(1), pos(0)));
+    avgtriplety += std::sin(getPhiFromBeamSpot(pos(1), pos(0)));
   }
+  
   float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
+  
   std::vector<TrkrDefs::cluskey> dummykeys = keys;
   std::vector<Acts::Vector3> dummyclusters = clusters;
 
@@ -889,6 +892,9 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
       // get an estimate of the phi of the track at this layer
       // to know which hitsetkeys to look at
       float layerradius = 0;
+      float x0 = 0.0;
+      float y0 = 0.0;
+      
       if (layer > 2)
       {
         layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
@@ -896,12 +902,21 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
       else
       {
         layerradius = m_geomContainerMvtx->GetLayerGeom(layer)->get_radius();
+	x0 = m_mvtx_x0;
+	y0 = m_mvtx_y0;
       }
+      float xfitradius_moved = fitpars[1] - x0;
+      float yfitradius_moved = fitpars[2] - y0;      
       const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0],
-                                                                                            fitpars[1], fitpars[2]);
+											       xfitradius_moved, yfitradius_moved);
+      float xp = xplus + x0;
+      float xm = xminus + x0;
+      float yp = yplus + y0;
+      float ym = yminus + y0;
 
-      float approximate_phi1 = atan2(yplus, xplus);
-      float approximate_phi2 = atan2(yminus, xminus);
+      
+      float approximate_phi1 = getPhiFromBeamSpot(yp, xp);
+      float approximate_phi2 = getPhiFromBeamSpot(ym, xm);
       float approximatephi = approximate_phi1;
       if (std::fabs(normPhi2Pi(approximate_phi2 - avgtripletphi)) < std::fabs(normPhi2Pi(approximate_phi1 - avgtripletphi)))
       {
@@ -911,7 +926,7 @@ std::vector<TrkrDefs::cluskey> PHActsSiliconSeeding::findMatches(
       {
         auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
         auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
-        float surfphi = atan2(surfcenter.y(), surfcenter.x());
+	float surfphi =  getPhiFromBeamSpot(surfcenter.y(), surfcenter.x());
 
         float dphi = normPhi2Pi(approximatephi - surfphi);
         /// Check that the projection is within some reasonable amount of the segment
@@ -1141,9 +1156,10 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
   float avgtriplety = 0;
   for (const auto& pos : positions)
   {
-    avgtripletx += std::cos(std::atan2(pos(1), pos(0)));
-    avgtriplety += std::sin(std::atan2(pos(1), pos(0)));
+    avgtripletx += std::cos(getPhiFromBeamSpot(pos(1), pos(0)));
+    avgtriplety += std::sin(getPhiFromBeamSpot(pos(1), pos(0)));
   }
+       
   float avgtripletphi = std::atan2(avgtriplety, avgtripletx);
 
   int layer34timebucket = std::numeric_limits<int>::max();
@@ -1155,13 +1171,29 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
     }
   }
 
+  // move the fitted circle center the negative of the MVTX center position
+  float x0 = 0.0; // cm
+  float y0 = 0.0;
   for (int layer = startLayer; layer < endLayer; ++layer)
   {
     float layerradius = m_geomContainerIntt->GetLayerGeom(layer)->get_radius();
-    const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0], fitpars[1], fitpars[2]);
+    if(layer < 3)
+      {
+	x0 = m_mvtx_x0;
+	y0 = m_mvtx_y0;
+      }
 
-    float approximate_phi1 = atan2(yplus, xplus);
-    float approximate_phi2 = atan2(yminus, xminus);
+    float xfitradius_moved = fitpars[1] - x0;
+    float yfitradius_moved = fitpars[2] - y0;
+        
+    const auto [xplus, yplus, xminus, yminus] = TrackFitUtils::circle_circle_intersection(layerradius, fitpars[0], xfitradius_moved, yfitradius_moved);
+
+    float xp = xplus + x0;
+    float xm = xminus + x0;
+    float yp = yplus + y0;
+    float ym = yminus + y0;
+    float approximate_phi1 = getPhiFromBeamSpot(yp, xp);
+    float approximate_phi2 = getPhiFromBeamSpot(ym, xm);
     float approximatephi = approximate_phi1;
     if (std::fabs(normPhi2Pi(approximate_phi2 - avgtripletphi)) < std::fabs(normPhi2Pi(approximate_phi1 - avgtripletphi)))
     {
@@ -1171,7 +1203,7 @@ std::vector<std::vector<TrkrDefs::cluskey>> PHActsSiliconSeeding::iterateLayers(
     {
       auto surf = m_tGeometry->maps().getSiliconSurface(hitsetkey);
       auto surfcenter = surf->center(m_tGeometry->geometry().geoContext);
-      float surfphi = atan2(surfcenter.y(), surfcenter.x());
+      float surfphi = getPhiFromBeamSpot(surfcenter.y(), surfcenter.x());
       if(Verbosity() > 5)
       {
         std::cout << "approximate phis " << approximate_phi1 << " " << approximate_phi2 << " using " << approximatephi
@@ -1404,7 +1436,8 @@ std::vector<const SpacePoint*> PHActsSiliconSeeding::getSiliconSpacePoints(Acts:
       if (det == TrkrDefs::TrkrId::mvtxId)
       {
         auto strobeId = MvtxDefs::getStrobeId(hitsetkey);
-        if (strobeId != strobe)
+	//if (strobeId != strobe)
+	if (abs(strobeId - strobe) > 1)
         {
           continue;
         }
@@ -1711,6 +1744,15 @@ double PHActsSiliconSeeding::normPhi2Pi(const double phi)
     returnPhi -= 2 * M_PI;
   }
   return returnPhi;
+}
+
+float PHActsSiliconSeeding::getPhiFromBeamSpot(float clusy, float clusx) const
+{
+  // Calculate the phi value for (clusx, clusy) relative to the beam spot (x,y) position
+
+  float phirel = std::atan2(clusy - m_beamSpoty, clusx - m_beamSpotx);
+  
+  return phirel;
 }
 
 void PHActsSiliconSeeding::largeGridSpacing(const bool spacing)

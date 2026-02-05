@@ -29,8 +29,22 @@ class GlobalVertexv2 : public GlobalVertex
   unsigned int get_id() const override { return _id; }
   void set_id(unsigned int id) override { _id = id; }
 
-  unsigned int get_beam_crossing() const override { return _bco; }
-  void set_beam_crossing(unsigned int bco) override { _bco = bco; }
+  short int get_beam_crossing() const override
+  {
+    return rollover_from_unsignedint(_bco);
+  }
+
+  void set_beam_crossing(short int bco) override
+  {
+    if (bco == short_int_max)
+    {
+      _bco = std::numeric_limits<unsigned int>::max();
+      return;
+    }
+
+    const short int bco_ro = rollover_short(bco);
+    _bco = static_cast<unsigned int>(bco_ro);
+  }
 
   float get_t() const override;
   float get_t_err() const override;
@@ -65,6 +79,25 @@ class GlobalVertexv2 : public GlobalVertex
   GlobalVertex::VertexIter end_vertexes() override { return _vtxs.end(); }
 
  private:
+  static constexpr short int short_int_max = std::numeric_limits<short int>::max();
+
+  static short int rollover_short(short int bco)
+  {
+    if (bco == short_int_max) return short_int_max;
+    if (bco >= 0) return bco;
+    return static_cast<short int>(static_cast<int>(short_int_max) + static_cast<int>(bco));
+  }
+
+  static short int rollover_from_unsignedint(unsigned int bco)
+  {
+    if (bco == std::numeric_limits<unsigned int>::max()) return short_int_max;
+    if (bco <= static_cast<unsigned int>(short_int_max)) return static_cast<short int>(bco);
+
+    const short int bco_ro = static_cast<short int>(static_cast<unsigned short>(bco));
+    if (bco_ro >= 0) return bco_ro;
+    return rollover_short(bco_ro);
+  }
+
   unsigned int _id{std::numeric_limits<unsigned int>::max()};
   unsigned int _bco{std::numeric_limits<unsigned int>::max()};  //< global bco
   std::map<GlobalVertex::VTXTYPE, VertexVector> _vtxs;          //< list of vtxs

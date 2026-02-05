@@ -24,6 +24,8 @@ libjetbackground_la_LDFLAGS = \
 libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
   -lcalo_io \
+  -lcentrality_io \
+  -lcdbobjects \
   -lConstituentSubtractor \
   -leventplaneinfo_io \
   -lglobalvertex \
@@ -33,6 +35,7 @@ libjetbackground_la_LIBADD = \
   -lphg4hit \
   -lphparameter \
   -lqautils \
+  -lffamodules \
   -lSubsysReco
 
 pkginclude_HEADERS = \

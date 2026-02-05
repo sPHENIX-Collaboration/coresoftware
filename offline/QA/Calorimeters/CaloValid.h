@@ -55,7 +55,7 @@ class CaloValid : public SubsysReco
 
   TriggerAnalyzer* trigAna{nullptr};
   TH3* h_pi0_trigIB_mass{nullptr};
-  std::vector<int> triggerIndices{10, 28, 29, 30, 31};  // MBD NS>=1, Photon Triggers
+  std::vector<int> triggerIndices{10, 12, 28, 29, 30, 31};  // MBD NS>=1, Photon Triggers
 
   TH1* h_cemc_channel_pedestal[128 * 192]{nullptr};
   TH1* h_ihcal_channel_pedestal[32 * 48]{nullptr};

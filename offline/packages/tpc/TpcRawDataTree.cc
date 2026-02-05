@@ -61,7 +61,7 @@ int TpcRawDataTree::InitRun(PHCompositeNode * /*unused*/)
   m_SampleTree->Branch("nWaveormInFrame", &m_nWaveormInFrame, "nWaveormInFrame/I");
   m_SampleTree->Branch("maxFEECount", &m_maxFEECount, "maxFEECount/I");
   m_SampleTree->Branch("nSamples", &m_nSamples, "nSamples/I");
-  m_SampleTree->Branch("adcSamples", &m_adcSamples[0], "adcSamples[nSamples]/s");
+  m_SampleTree->Branch("adcSamples", m_adcSamples.data(), "adcSamples[nSamples]/s");
   m_SampleTree->Branch("fee", &m_fee, "fee/I");
   m_SampleTree->Branch("sampaAddress", &m_sampaAddress, "sampaAddress/I");
   m_SampleTree->Branch("sampaChannel", &m_sampaChannel, "sampaChannel/I");

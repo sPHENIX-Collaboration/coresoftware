@@ -75,6 +75,14 @@ int CaloTowerBuilder::InitRun(PHCompositeNode *topNode)
     WaveformProcessing->set_bitFlipRecovery(m_dobitfliprecovery);
   }
 
+  // Set functional fit parameters
+  if (_processingtype == CaloWaveformProcessing::FUNCFIT)
+  {
+    WaveformProcessing->set_funcfit_type(m_funcfit_type);
+    WaveformProcessing->set_powerlaw_params(m_powerlaw_power, m_powerlaw_decay);
+    WaveformProcessing->set_doubleexp_params(m_doubleexp_power, m_doubleexp_peaktime1, m_doubleexp_peaktime2, m_doubleexp_ratio);
+  }
+
   if (m_dettype == CaloTowerDefs::CEMC)
   {
     m_detector = "CEMC";
@@ -476,6 +484,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     towerinfo->set_pedestal(processed_waveforms.at(idx).at(2));
     towerinfo->set_chi2(processed_waveforms.at(idx).at(3));
     bool SZS = isSZS(processed_waveforms.at(idx).at(1), processed_waveforms.at(idx).at(3));
+
     if (processed_waveforms.at(idx).at(4) == 0)
     {
       towerinfo->set_isRecovered(false);

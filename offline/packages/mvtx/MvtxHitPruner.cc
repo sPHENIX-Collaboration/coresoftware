@@ -51,26 +51,33 @@
 namespace
 {
   //! range adaptor to be able to use range-based for loop
-  template<class T> class range_adaptor
+  template <class T>
+  class range_adaptor
   {
-    public:
-    range_adaptor( const T& range ):m_range(range){}
-    const typename T::first_type& begin() {return m_range.first;}
-    const typename T::second_type& end() {return m_range.second;}
-    private:
+   public:
+    explicit range_adaptor(const T& range)
+      : m_range(range)
+    {
+    }
+    const typename T::first_type& begin() { return m_range.first; }
+    const typename T::second_type& end() { return m_range.second; }
+
+   private:
     T m_range;
   };
-}
+}  // namespace
 
-MvtxHitPruner::MvtxHitPruner(const std::string &name)
+MvtxHitPruner::MvtxHitPruner(const std::string& name)
   : SubsysReco(name)
 {
 }
 
-int MvtxHitPruner::InitRun(PHCompositeNode * /*topNode*/)
-{ return Fun4AllReturnCodes::EVENT_OK; }
+int MvtxHitPruner::InitRun(PHCompositeNode* /*topNode*/)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
-int MvtxHitPruner::process_event(PHCompositeNode *topNode)
+int MvtxHitPruner::process_event(PHCompositeNode* topNode)
 {
   // get node containing the digitized hits
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -93,12 +100,14 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
   std::set<TrkrDefs::hitsetkey> bare_hitset_set;
 
   const auto hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::mvtxId);
-  for( const auto& [hitsetkey,hitset]:range_adaptor(hitsetrange) )
+  for (const auto& [hitsetkey, hitset] : range_adaptor(hitsetrange))
   {
-
     // get strobe, skip if already zero
     const int strobe = MvtxDefs::getStrobeId(hitsetkey);
-    if( strobe == 0 ) continue;
+    if (strobe == 0)
+    {
+      continue;
+    }
 
     // get the hitsetkey value for strobe 0
     const auto bare_hitsetkey = MvtxDefs::resetStrobe(hitsetkey);
@@ -117,43 +126,46 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
   for (const auto& bare_hitsetkey : bare_hitset_set)
   {
     // find matching hitset of creater
-    auto bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
+    auto* bare_hitset = (m_hits->findOrAddHitSet(bare_hitsetkey))->second;
     if (Verbosity())
     {
       std::cout
-        << "MvtxHitPruner::process_event - bare_hitset " << bare_hitsetkey
-        << " initially has " << bare_hitset->size() << " hits "
-        << std::endl;
+          << "MvtxHitPruner::process_event - bare_hitset " << bare_hitsetkey
+          << " initially has " << bare_hitset->size() << " hits "
+          << std::endl;
     }
 
     // get all hitsets with non-zero strobe that match the bare hitset key
     auto bare_hitsetrange = hitset_multimap.equal_range(bare_hitsetkey);
-    for( const auto& [unused,hitsetkey]:range_adaptor(bare_hitsetrange) )
+    for (const auto& [unused, hitsetkey] : range_adaptor(bare_hitsetrange))
     {
       const int strobe = MvtxDefs::getStrobeId(hitsetkey);
-      if( strobe == 0 ) continue;
+      if (strobe == 0)
+      {
+        continue;
+      }
 
       if (Verbosity())
       {
         std::cout << "MvtxHitPruner::process_event -"
-          << " process hitsetkey " << hitsetkey
-          << " from strobe " << strobe
-          << " for bare_hitsetkey " << bare_hitsetkey
-          << std::endl;
+                  << " process hitsetkey " << hitsetkey
+                  << " from strobe " << strobe
+                  << " for bare_hitsetkey " << bare_hitsetkey
+                  << std::endl;
       }
 
       // copy all hits to the hitset with strobe 0
-      auto hitset = m_hits->findHitSet(hitsetkey);
+      auto* hitset = m_hits->findHitSet(hitsetkey);
 
       if (Verbosity())
       {
         std::cout << "MvtxHitPruner::process_event - hitsetkey " << hitsetkey
-          << " has strobe " << strobe << " and has " << hitset->size()
-          << " hits,  so copy it" << std::endl;
+                  << " has strobe " << strobe << " and has " << hitset->size()
+                  << " hits,  so copy it" << std::endl;
       }
 
       TrkrHitSet::ConstRange hitrangei = hitset->getHits();
-      for( const auto& [hitkey,old_hit]:range_adaptor(hitrangei) )
+      for (const auto& [hitkey, old_hit] : range_adaptor(hitrangei))
       {
         if (Verbosity())
         {
@@ -166,9 +178,9 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
           if (Verbosity())
           {
             std::cout
-              << "MvtxHitPruner::process_event - hitkey " << hitkey
-              << " is already in bare hitsest, do not copy"
-              << std::endl;
+                << "MvtxHitPruner::process_event - hitkey " << hitkey
+                << " is already in bare hitsest, do not copy"
+                << std::endl;
           }
           continue;
         }
@@ -177,11 +189,11 @@ int MvtxHitPruner::process_event(PHCompositeNode *topNode)
         if (Verbosity())
         {
           std::cout
-            << "MvtxHitPruner::process_event - copying over hitkey "
-            << hitkey << std::endl;
+              << "MvtxHitPruner::process_event - copying over hitkey "
+              << hitkey << std::endl;
         }
 
-        auto new_hit = new TrkrHitv2;
+        auto* new_hit = new TrkrHitv2;
         new_hit->CopyFrom(old_hit);
         bare_hitset->addHitSpecificKey(hitkey, new_hit);
       }

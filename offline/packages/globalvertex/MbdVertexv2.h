@@ -44,12 +44,56 @@ class MbdVertexv2 : public MbdVertex
 
   float get_position(unsigned int coor) const override;
 
-  unsigned int get_beam_crossing() const override { return _bco; }
-  void set_beam_crossing(unsigned int bco) override { _bco = bco; }
+  short int get_beam_crossing() const override
+  {
+    return rollover_from_unsignedint(_bco);
+  }
+  void set_beam_crossing(short int bco) override
+  {
+    if (bco == short_int_max)
+    {
+      _bco = std::numeric_limits<unsigned int>::max();
+      return;
+    }
+
+    const short int bco_ro = rollover_short(bco);
+    _bco = static_cast<unsigned int>(bco_ro);
+  }
 
  private:
+  static constexpr short int short_int_max = std::numeric_limits<short int>::max();  // 32767
+
+  static short int rollover_short(short int bco)
+  {
+    if (bco == short_int_max) return short_int_max;
+    if (bco >= 0) return bco;
+
+    const int bco_ro = static_cast<int>(short_int_max) + static_cast<int>(bco);  // bco negative
+    return static_cast<short int>(bco_ro);
+  }
+
+  static short int rollover_from_unsignedint(unsigned int bco)
+  {
+    // if unsigned int max, return short int max
+    if (bco == std::numeric_limits<unsigned int>::max())
+    {
+      return short_int_max;
+    }
+
+    // common case: [0, 32767]
+    if (bco <= static_cast<unsigned int>(short_int_max))
+    {
+      return static_cast<short int>(bco);
+    }
+
+    const short int bco_ro = static_cast<short int>(static_cast<unsigned short>(bco));
+    if (bco_ro >= 0) return bco_ro;
+
+    return rollover_short(bco_ro);
+  }
+
   unsigned int _id{std::numeric_limits<unsigned int>::max()};   //< unique identifier within container
-  unsigned int _bco{std::numeric_limits<unsigned int>::max()};  //< global bco
+  unsigned int _bco{std::numeric_limits<unsigned int>::max()};  //< global bco (legacy storage)
   float _t{std::numeric_limits<float>::quiet_NaN()};            //< collision time
   float _t_err{std::numeric_limits<float>::quiet_NaN()};        //< collision time uncertainty
   float _z{std::numeric_limits<float>::quiet_NaN()};            //< collision position z

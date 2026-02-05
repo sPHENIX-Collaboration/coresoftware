@@ -54,7 +54,7 @@ class PHSimpleVertexFinder : public SubsysReco
   void setTrackMapName(const std::string &name) { _track_map_name = name; }
   void setVertexMapName(const std::string &name) { _vertex_map_name = name; }
   void zeroField(const bool flag) { _zero_field = flag; }
-  void setTrkrClusterContainerName(std::string &name){ m_clusterContainerName = name; }
+  void setTrkrClusterContainerName(const std::string &name){ m_clusterContainerName = name; }
   void set_pp_mode(bool mode) { _pp_mode = mode; }
 
  private:
@@ -91,7 +91,7 @@ class PHSimpleVertexFinder : public SubsysReco
   double _beamline_y_cut_hi = 0.2; 
   double _qual_cut = 10.0;
   bool _require_mvtx = true;
-  unsigned int _nmvtx_required = 3;
+  unsigned int _nmvtx_required = 2;
   double _track_pt_cut = 0.0;
   double _outlier_cut = 0.015;
 

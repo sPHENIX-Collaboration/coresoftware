@@ -7,7 +7,7 @@
 #include "MbdPmtSimContainerV1.h"
 
 #include <globalvertex/MbdVertexMapv1.h>
-#include <globalvertex/MbdVertexv2.h>
+#include <globalvertex/MbdVertexv3.h>
 
 #include <ffarawobjects/CaloPacket.h>
 
@@ -61,11 +61,17 @@ int MbdReco::InitRun(PHCompositeNode *topNode)
   }
 
   int ret = getNodes(topNode);
+  if ( ret != Fun4AllReturnCodes::EVENT_OK )
+  {
+    return ret;
+  }
 
   m_mbdevent->SetSim(_simflag);
   m_mbdevent->SetRawDstFlag(_rawdstflag);
   m_mbdevent->SetFitsOnly(_fitsonly);
-  m_mbdevent->InitRun();
+  m_mbdevent->set_doeval(_fiteval);
+
+  ret = m_mbdevent->InitRun();
 
   return ret;
 }
@@ -103,7 +109,8 @@ int MbdReco::process_event(PHCompositeNode *topNode)
     int status = Fun4AllReturnCodes::EVENT_OK;
     if ( m_evtheader!=nullptr )
     {
-      m_mbdevent->set_EventNumber( m_evtheader->get_EvtSequence() );
+      _evtnum = m_evtheader->get_EvtSequence();
+      m_mbdevent->set_EventNumber( _evtnum );
     }
 
     if ( m_event!=nullptr )
@@ -125,7 +132,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       static int counter = 0;
       if ( counter<3 )
       {
-        std::cout << PHWHERE << " Warning, MBD discarding event " << std::endl;
+        std::cout << PHWHERE << " Warning, MBD discarding event " << _evtnum << std::endl;
         counter++;
       }
       return Fun4AllReturnCodes::DISCARDEVENT;
@@ -135,7 +142,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
       static int counter = 0;
       if ( counter<3 )
       {
-        std::cout << PHWHERE << " Warning, MBD aborting event " << std::endl;
+        std::cout << PHWHERE << " Warning, MBD aborting event " << _evtnum << std::endl;
         counter++;
       }
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -171,7 +178,7 @@ int MbdReco::process_event(PHCompositeNode *topNode)
   // For multiple global vertex
   if (m_mbdevent->get_bbcn(0) > 0 && m_mbdevent->get_bbcn(1) > 0 && _calpass==0 )
   {
-    auto *vertex = new MbdVertexv2();
+    auto *vertex = new MbdVertexv3();
     vertex->set_t(m_mbdevent->get_bbct0());
     vertex->set_z(m_mbdevent->get_bbcz());
     vertex->set_z_err(0.6);

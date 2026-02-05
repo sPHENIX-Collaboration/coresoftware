@@ -9,6 +9,7 @@
 #include <CLHEP/Vector/Rotation.h>
 
 #include <iostream>  // for cout
+#include <limits>
 #include <map>       // for map
 #include <sstream>
 #include <utility>  // for swap
@@ -109,6 +110,6 @@ float PHHepMCGenEventv1::get_flow_psi(unsigned int n) const
     return it->second;
   }
 
-  std::cout << "PHHepMCGenEventv1::get_flow_psi - Warning - requested reaction plane angle psi_n for n=" << n << " does not exist. Returning 0.0" << std::endl;
-  return 0.0F;
+  std::cout << "PHHepMCGenEventv1::get_flow_psi - Warning - requested reaction plane angle psi_n for n=" << n << " does not exist. Returning NAN" << std::endl;
+  return std::numeric_limits<float>::quiet_NaN();
 }

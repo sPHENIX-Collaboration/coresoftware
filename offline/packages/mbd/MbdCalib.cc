@@ -86,6 +86,17 @@ int MbdCalib::Download_All()
     }
     Download_SampMax(sampmax_url);
 
+    std::string status_url = _cdb->getUrl("MBD_STATUS");
+    if ( ! status_url.empty() )
+    {
+      // if this doesn't exist, the status is assumed to be all good
+      Download_Status(status_url);
+    }
+    if (Verbosity() > 0)
+    {
+      std::cout << "status_url " << status_url << std::endl;
+    }
+
     if ( !_rawdstflag )
     {
       std::string ped_url = _cdb->getUrl("MBD_PED");
@@ -97,6 +108,11 @@ int MbdCalib::Download_All()
 
     
       std::string pileup_url = _cdb->getUrl("MBD_PILEUP");
+      if ( pileup_url.empty() )
+      {
+        std::cerr << "ERROR, MBD_PILEUP missing" << std::endl;
+        return -1;
+      }
       if (Verbosity() > 0)
       {
         std::cout << "pileup_url " << pileup_url << std::endl;
@@ -106,6 +122,11 @@ int MbdCalib::Download_All()
       if (do_templatefit)
       {
         std::string shape_url = _cdb->getUrl("MBD_SHAPES");
+        if ( shape_url.empty() )
+        {
+          std::cerr << "ERROR, MBD_SHAPES missing" << std::endl;
+          return -1;
+        }
         if (Verbosity() > 0)
         {
           std::cout << "shape_url " << shape_url << std::endl;
@@ -175,6 +196,9 @@ int MbdCalib::Download_All()
   {
     std::string sampmax_file = bbc_caldir + "/mbd_sampmax.calib";
     Download_SampMax(sampmax_file);
+
+    std::string status_file = bbc_caldir + "/mbd_status.calib";
+    Download_Status(status_file);
 
     if ( !_rawdstflag )
     {
@@ -617,8 +641,6 @@ int MbdCalib::Download_Ped(const std::string& dbase_location)
   if ( std::isnan(_pedmean[0]) )
   {
     std::cout << PHWHERE << ", WARNING, ped calib missing, " << dbase_location << std::endl;
-    _status = -1;
-    return _status;
   }
 
   return 1;
@@ -681,6 +703,74 @@ int MbdCalib::Download_SampMax(const std::string& dbase_location)
   if ( _sampmax[0] == -1 )
   {
     std::cout << PHWHERE << ", WARNING, sampmax calib missing, " << dbase_location << std::endl;
+  }
+
+  return 1;
+}
+
+int MbdCalib::Download_Status(const std::string& dbase_location)
+{
+  // Reset All Values
+  _mbdstatus.fill(-1);
+
+  TString dbase_file = dbase_location;
+
+#ifndef ONLINE
+  if (dbase_file.EndsWith(".root"))  // read from database
+  {
+    CDBTTree* cdbttree = new CDBTTree(dbase_location);
+    cdbttree->LoadCalibrations();
+
+    for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+    {
+      _mbdstatus[ifeech] = cdbttree->GetIntValue(ifeech, "status");
+      if (Verbosity() > 0)
+      {
+        if (ifeech < 5 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
+        {
+          std::cout << ifeech << "\t" << _mbdstatus[ifeech] << std::endl;
+        }
+      }
+    }
+    delete cdbttree;
+  }
+#endif
+
+  if (dbase_file.EndsWith(".calib"))  // read from text file
+  {
+    std::ifstream infile(dbase_location);
+    if (!infile.is_open())
+    {
+      std::cout << PHWHERE << "unable to open " << dbase_location << std::endl;
+      _status = -3;
+      return _status;
+    }
+
+    int feech = -1;
+    while (infile >> feech)
+    {
+      if (feech < 0 || feech >= MbdDefs::MBD_N_FEECH)
+      {
+        std::cout << "ERROR, invalid FEECH " << feech << " in MBD status calibration" << std::endl;
+        _status = -4;
+        return _status;
+      }
+      infile >> _mbdstatus[feech];
+      if (Verbosity() > 0)
+      {
+        if (feech < 5 || feech >= MbdDefs::MBD_N_FEECH - 5)
+        {
+          std::cout << "status\t" << feech << "\t" << _mbdstatus[feech] << std::endl;
+        }
+      }
+    }
+    infile.close();
+  }
+
+
+  if ( _mbdstatus[0] == -1 )
+  {
+    std::cout << PHWHERE << ", WARNING, status calib seems bad, " << dbase_location << std::endl;
     _status = -1;
     return _status;  // file not found
   }
@@ -1225,7 +1315,6 @@ int MbdCalib::Download_TimeRMS(const std::string& dbase_location)
     trms.clear();
   }
   std::fill(_trms_npts.begin(), _trms_npts.end(), 0);
-  
   TString dbase_file = dbase_location;
 
 #ifndef ONLINE
@@ -1331,9 +1420,10 @@ int MbdCalib::Download_TimeRMS(const std::string& dbase_location)
 
   if ( _trms_y[0].empty() )
   {
-    std::cout << PHWHERE << ", ERROR, unknown file type, " << dbase_location << std::endl;
-    _status = -1;
-    return _status;  // file not found
+    std::cout << PHWHERE << ", WARNING, trms calib missing " << dbase_location << std::endl;
+//    _status = -1;
+//    return _status;  // file not found
+    return 0;
   }
 
   // Now we interpolate the trms
@@ -1585,6 +1675,52 @@ int MbdCalib::Write_SampMax(const std::string& dbfile)
   for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
   {
     cal_file << ifeech << "\t" << _sampmax[ifeech] << std::endl;
+  }
+  cal_file.close();
+
+  return 1;
+}
+
+#ifndef ONLINE
+int MbdCalib::Write_CDB_Status(const std::string& dbfile)
+{
+  CDBTTree* cdbttree{ nullptr };
+
+  std::cout << "Creating " << dbfile << std::endl;
+  cdbttree = new CDBTTree( dbfile );
+  cdbttree->SetSingleIntValue("version", 1);
+  cdbttree->CommitSingle();
+
+  std::cout << "STATUS" << std::endl;
+  for (size_t ifeech = 0; ifeech < _mbdstatus.size(); ifeech++)
+  {
+    // store in a CDBTree
+    cdbttree->SetIntValue(ifeech, "status", _mbdstatus[ifeech]);
+
+    if (ifeech < 12 || ifeech >= MbdDefs::MBD_N_FEECH - 5)
+    {
+      std::cout << ifeech << "\t" << cdbttree->GetIntValue(ifeech, "status") << std::endl;
+    }
+  }
+
+  cdbttree->Commit();
+  // cdbttree->Print();
+
+  // for now we create the tree after reading it
+  cdbttree->WriteCDBTTree();
+  delete cdbttree;
+
+  return 1;
+}
+#endif
+
+int MbdCalib::Write_Status(const std::string& dbfile)
+{
+  std::ofstream cal_file;
+  cal_file.open(dbfile);
+  for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    cal_file << ifeech << "\t" << _mbdstatus[ifeech] << std::endl;
   }
   cal_file.close();
 
@@ -1929,6 +2065,40 @@ int MbdCalib::Write_CDB_TimeCorr(const std::string& dbfile)
   return 1;
 }
 #endif
+
+int MbdCalib::Write_TimeCorr(const std::string& dbfile)
+{
+  std::ofstream cal_timecorr_file;
+  cal_timecorr_file.open(dbfile);
+  if (!cal_timecorr_file.is_open())
+  {
+    std::cout << PHWHERE << "unable to open " << dbfile << std::endl;
+    return -1;
+  }
+  for (int ifeech = 0; ifeech < MbdDefs::MBD_N_FEECH; ifeech++)
+  {
+    if ( _mbdgeom->get_type(ifeech) == 1 )
+    {
+      continue;  // skip q-channels
+    }
+    cal_timecorr_file << ifeech << "\t" << _tcorr_npts[ifeech] << "\t" << _tcorr_minrange[ifeech] << "\t" << _tcorr_maxrange[ifeech] << std::endl;
+    for (int ipt=0; ipt<_tcorr_npts[ifeech]; ipt++)
+    {
+      cal_timecorr_file << _tcorr_y[ifeech][ipt];
+      if ( ipt%10 == 9 )
+      {
+        cal_timecorr_file << std::endl;
+      }
+      else
+      {
+        cal_timecorr_file << " ";
+      }
+    }
+  }
+  cal_timecorr_file.close();
+
+  return 1;
+}
 
 #ifndef ONLINE
 int MbdCalib::Write_CDB_SlewCorr(const std::string& dbfile)
@@ -2353,6 +2523,7 @@ void MbdCalib::Reset()
   Reset_Thresholds();
 
   _sampmax.fill(-1);
+  _mbdstatus.fill(0);
 }
 
 void MbdCalib::set_ped(const int ifeech, const float m, const float merr, const float s, const float serr)

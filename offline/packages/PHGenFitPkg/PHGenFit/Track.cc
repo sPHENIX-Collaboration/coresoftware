@@ -48,8 +48,8 @@
 
 #define WILD_DOUBLE (-999999)
 
-//#define _DEBUG_
-//#define _PRINT_MATRIX_
+// #define _DEBUG_
+// #define _PRINT_MATRIX_
 
 #ifdef _DEBUG_
 #include <fstream>
@@ -60,10 +60,9 @@ ofstream fout_matrix("matrix.txt");
 namespace PHGenFit
 {
   Track::Track(genfit::AbsTrackRep* rep, const TVector3& seed_pos, const TVector3& seed_mom, const TMatrixDSym& seed_cov, const int v)
+    : verbosity(v)
   {
     // TODO Add input param check
-
-    verbosity = v;
 
     genfit::MeasuredStateOnPlane seedMSoP(rep);
     seedMSoP.setPosMomCov(seed_pos, seed_mom, seed_cov);
@@ -78,12 +77,12 @@ namespace PHGenFit
   }
 
   Track::Track(const PHGenFit::Track& t)
+    : verbosity(t.verbosity)
+    , _track(new genfit::Track(*(t.getGenFitTrack())))
+    , _clusterIDs(t.get_cluster_IDs())
+    , _clusterkeys(t.get_cluster_keys())
+    , _vertex_id(t.get_vertex_id())
   {
-    _track = new genfit::Track(*(t.getGenFitTrack()));
-    verbosity = t.verbosity;
-    _clusterIDs = t.get_cluster_IDs();
-    _clusterkeys = t.get_cluster_keys();
-    _vertex_id = t.get_vertex_id();
   }
 
   int Track::addMeasurement(PHGenFit::Measurement* measurement)
@@ -191,10 +190,8 @@ namespace PHGenFit
       delete state;
       return nullptr;
     }
-    else
-    {
-      return state;
-    }
+
+    return state;
   }
 
   double Track::extrapolateToLine(genfit::MeasuredStateOnPlane& state, const TVector3& line_point, const TVector3& line_direction, const int tr_point_id) const
@@ -240,10 +237,8 @@ namespace PHGenFit
       delete state;
       return nullptr;
     }
-    else
-    {
-      return state;
-    }
+
+    return state;
   }
 
   double Track::extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, const TVector3& line_point, const TVector3& line_direction, const int tr_point_id, const int direction) const
@@ -361,10 +356,8 @@ namespace PHGenFit
       delete state;
       return nullptr;
     }
-    else
-    {
-      return state;
-    }
+
+    return state;
   }
 
   int Track::updateOneMeasurementKalman(
@@ -385,7 +378,7 @@ namespace PHGenFit
         << std::endl;
 #endif
 
-    if (measurements.size() == 0)
+    if (measurements.empty())
     {
       return -1;
     }
@@ -437,11 +430,11 @@ namespace PHGenFit
 #endif
             continue;
           }
-          //#ifdef _DEBUG_
+          // #ifdef _DEBUG_
           //				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
           //				kfi->Print();
           //				std::cout << __LINE__ << "\n ###################################################################"<<std::endl;
-          //#endif
+          // #endif
           if (use_fitted_state)
           {
             const genfit::MeasuredStateOnPlane* tempFS = &(kfi->getFittedState(true));
@@ -579,7 +572,7 @@ namespace PHGenFit
         //			std::cout << err_phi << "\t" << err_z << "\t";
       }
 #endif
-      for (auto rawMeasurement : rawMeasurements)
+      for (auto* rawMeasurement : rawMeasurements)
       {
         fi->addMeasurementsOnPlane(
             rawMeasurement->constructMeasurementsOnPlane(*state));
@@ -598,7 +591,7 @@ namespace PHGenFit
           << ": size of fi's MeasurementsOnPlane: " << measurements_on_plane.size()
           << std::endl;
 #endif
-      for (auto it : measurements_on_plane)
+      for (auto* it : measurements_on_plane)
       {
         const genfit::MeasurementOnPlane& mOnPlane = *it;
         // const double weight = mOnPlane.getWeight();
@@ -769,10 +762,7 @@ namespace PHGenFit
       delete state;
       return nullptr;
     }
-    else
-    {
-      return state;
-    }
+    return state;
   }
 
   double Track::get_chi2() const

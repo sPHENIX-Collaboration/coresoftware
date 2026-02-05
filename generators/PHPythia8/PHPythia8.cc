@@ -33,6 +33,20 @@
 #include <fstream>
 #include <iostream>  // for operator<<, endl
 
+/**
+ * @brief Construct a PHPythia8 generator instance and configure HepMC conversion.
+ *
+ * Initializes the Pythia8 engine using the path from the environment variable
+ * `PYTHIA8`, configures a HepMC::Pythia8ToHepMC converter to store process,
+ * PDF, and cross-section information, and sets the default embedding ID to 1.
+ * The constructor preserves and restores std::cout formatting around Pythia8
+ * construction to avoid altering global stream state.
+ *
+ * If `PYTHIA8` is not set, an error message is printed and the Pythia8 instance
+ * remains uninitialized.
+ *
+ * @param name Name forwarded to the SubsysReco base class (module instance name).
+ */
 PHPythia8::PHPythia8(const std::string &name)
   : SubsysReco(name)
 {
@@ -45,8 +59,12 @@ PHPythia8::PHPythia8(const std::string &name)
 
   std::string thePath(charPath);
   thePath += "/xmldoc/";
+  // the pythia8 ctor messes with the formatting, so we save the cout state here
+  // and restore it later
+  std::ios old_state(nullptr);
+  old_state.copyfmt(std::cout);
   m_Pythia8.reset(new Pythia8::Pythia(thePath));
-
+  std::cout.copyfmt(old_state);
   m_Pythia8ToHepMC.reset(new HepMC::Pythia8ToHepMC());
   m_Pythia8ToHepMC->set_store_proc(true);
   m_Pythia8ToHepMC->set_store_pdf(true);
@@ -55,6 +73,18 @@ PHPythia8::PHPythia8(const std::string &name)
   PHHepMCGenHelper::set_embedding_id(1);  // default embedding ID to 1
 }
 
+/**
+ * @brief Initialize the Pythia8 generator, configure nodes, and seed the RNG.
+ *
+ * Performs module initialization: reads an optional configuration file and any
+ * queued Pythia command strings, creates the required node tree under the
+ * provided top-level node, sets Pythia's random seed (mapped from PHRandomSeed
+ * into Pythia's valid range) and prints it for reproducibility, then calls
+ * Pythia8::init().
+ *
+ * @param topNode Top-level PHCompositeNode under which generator nodes are created.
+ * @return int Fun4All return code; returns Fun4AllReturnCodes::EVENT_OK on success.
+ */
 int PHPythia8::Init(PHCompositeNode *topNode)
 {
   if (!m_ConfigFileName.empty())
@@ -92,7 +122,14 @@ int PHPythia8::Init(PHCompositeNode *topNode)
   // print out seed so we can make this is reproducible
   std::cout << "PHPythia8 random seed: " << seed << std::endl;
 
+
+// pythia again messes with the cout formatting
+  std::ios old_state(nullptr);
+  old_state.copyfmt(std::cout); // save current state
+
   m_Pythia8->init();
+
+  std::cout.copyfmt(old_state); // restore state to saved state
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -139,7 +176,7 @@ int PHPythia8::read_config(const std::string &cfg_file)
 
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    std::cout << "PHPythia8::read_config - Reading " << m_ConfigFileName << std::endl;
+    std::cout << Name() << " PHPythia8::read_config - Reading " << m_ConfigFileName << std::endl;
   }
 
   std::ifstream infile(m_ConfigFileName);
@@ -164,12 +201,15 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_MORE)
   {
-    std::cout << "PHPythia8::process_event - event: " << m_EventCount << std::endl;
+    std::cout << Name() << " PHPythia8::process_event - event: " << m_EventCount << std::endl;
   }
 
   bool passedGen = false;
   bool passedTrigger = false;
   //  int genCounter = 0;
+// pythia again messes with the cout formatting in its event loop
+  std::ios old_state(nullptr);
+  old_state.copyfmt(std::cout); // save current state
 
   while (!passedTrigger)
   {
@@ -208,7 +248,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
         andScoreKeeper &= trigResult;
       }
 
-      if (Verbosity() >= VERBOSITY_EVEN_MORE && !passedTrigger)
+      if (Verbosity() >= VERBOSITY_EVEN_MORE && !passedTrigger && !andScoreKeeper)
       {
         std::cout << "PHPythia8::process_event - failed trigger: "
                   << m_RegisteredTrigger->GetName() << std::endl;
@@ -245,6 +285,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   if (!success)
   {
     std::cout << "PHPythia8::process_event - Failed to add event to HepMC record!" << std::endl;
+    std::cout.copyfmt(old_state); // restore state to saved state
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -264,6 +305,8 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
   }
 
   ++m_EventCount;
+
+  std::cout.copyfmt(old_state); // restore state to saved state
 
   // save statistics
   if (m_IntegralNode)

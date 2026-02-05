@@ -34,10 +34,11 @@ class MbdReco : public SubsysReco
   int process_event(PHCompositeNode *topNode) override;
   int End(PHCompositeNode *topNode) override;
 
-  void DoOnlyFits() { _fitsonly = 1; }
+  void DoOnlyFits()                  { _fitsonly = 1; }
+  void DoFitEval(const int s)        { _fiteval = s; }
   void SetCalPass(const int calpass) { _calpass = calpass; }
   void SetProcChargeCh(const bool s) { _always_process_charge = s; }
-  void SetMbdTrigOnly(const int m) { _mbdonly = m; }
+  void SetMbdTrigOnly(const int m)   { _mbdonly = m; }
 
  private:
   int  createNodes(PHCompositeNode *topNode);
@@ -48,9 +49,12 @@ class MbdReco : public SubsysReco
   int  _mbdonly{0};     // only use mbd triggers
   int  _rawdstflag{0};  // dst with raw container
   int  _fitsonly{0};    // stop reco after waveform fits (for DST_CALOFIT pass)
+  int  _fiteval{0};     // overload with segment+1
 
   float m_tres = 0.05;
   std::unique_ptr<TF1> m_gaussian = nullptr;
+
+  int _evtnum{-1};
 
   std::unique_ptr<MbdEvent> m_mbdevent{nullptr};
   Event *m_event{nullptr};

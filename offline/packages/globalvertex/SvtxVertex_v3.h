@@ -1,0 +1,89 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef GLOBALVERTEX_SVTXVERTEXV3_H
+#define GLOBALVERTEX_SVTXVERTEXV3_H
+
+#include "SvtxVertex.h"
+
+#include <cstddef>  // for size_t
+#include <iostream>
+#include <limits>
+#include <set>
+
+class PHObject;
+
+class SvtxVertex_v3 : public SvtxVertex
+{
+ public:
+  SvtxVertex_v3();
+  ~SvtxVertex_v3() override {}
+
+  // PHObject virtual overloads
+  void identify(std::ostream& os = std::cout) const override;
+  void Reset() override { *this = SvtxVertex_v3(); }
+  int isValid() const override;
+  PHObject* CloneMe() const override { return new SvtxVertex_v3(*this); }
+
+  // vertex info
+  unsigned int get_id() const override { return _id; }
+  void set_id(unsigned int id) override { _id = id; }
+
+  float get_t() const override { return _t0; }
+  void set_t(float t0) override { _t0 = t0; }
+
+  float get_x() const override { return _pos[0]; }
+  void set_x(float x) override { _pos[0] = x; }
+
+  float get_y() const override { return _pos[1]; }
+  void set_y(float y) override { _pos[1] = y; }
+
+  float get_z() const override { return _pos[2]; }
+  void set_z(float z) override { _pos[2] = z; }
+
+  float get_chisq() const override { return _chisq; }
+  void set_chisq(float chisq) override { _chisq = chisq; }
+
+  unsigned int get_ndof() const override { return _ndof; }
+  void set_ndof(unsigned int ndof) override { _ndof = ndof; }
+
+  float get_position(unsigned int coor) const override { return _pos[coor]; }
+  void set_position(unsigned int coor, float xi) override { _pos[coor] = xi; }
+
+  float get_error(unsigned int i, unsigned int j) const override;        //< get vertex error covar
+  void set_error(unsigned int i, unsigned int j, float value) override;  //< set vertex error covar
+
+  // v3 uses signed short
+  short int get_beam_crossing() const override { return _beamcrossing; }
+  void set_beam_crossing(short int cross) override { _beamcrossing = cross; }
+
+  //
+  // associated track ids methods
+  //
+  void clear_tracks() override { _track_ids.clear(); }
+  bool empty_tracks() override { return _track_ids.empty(); }
+  size_t size_tracks() const override { return _track_ids.size(); }
+  void insert_track(unsigned int trackid) override { _track_ids.insert(trackid); }
+  size_t erase_track(unsigned int trackid) override { return _track_ids.erase(trackid); }
+  ConstTrackIter begin_tracks() const override { return _track_ids.begin(); }
+  ConstTrackIter find_track(unsigned int trackid) const override { return _track_ids.find(trackid); }
+  ConstTrackIter end_tracks() const override { return _track_ids.end(); }
+  TrackIter begin_tracks() override { return _track_ids.begin(); }
+  TrackIter find_track(unsigned int trackid) override { return _track_ids.find(trackid); }
+  TrackIter end_tracks() override { return _track_ids.end(); }
+
+ private:
+  unsigned int covar_index(unsigned int i, unsigned int j) const;
+
+  unsigned int _id{std::numeric_limits<unsigned int>::max()};    //< unique identifier within container
+  float _t0{std::numeric_limits<float>::quiet_NaN()};            //< collision time
+  float _pos[3]{};                                               //< collision position x,y,z
+  float _chisq{std::numeric_limits<float>::quiet_NaN()};         //< vertex fit chisq
+  unsigned int _ndof{std::numeric_limits<unsigned int>::max()};  //< degrees of freedom
+  float _err[6]{};                                               //< error covariance matrix (packed storage) (+/- cm^2)
+  std::set<unsigned int> _track_ids;                             //< list of track ids
+  short int _beamcrossing{std::numeric_limits<short int>::max()};
+
+  ClassDefOverride(SvtxVertex_v3, 3);
+};
+
+#endif
