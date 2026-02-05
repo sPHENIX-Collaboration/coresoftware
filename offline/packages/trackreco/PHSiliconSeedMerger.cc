@@ -187,7 +187,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
           {
             keysToKeep.insert(mvtx2Keys.begin(), mvtx2Keys.end());
           }
-          matches.insert(std::make_pair(track1ID, mvtx1Keys));
+          matches.insert(std::make_pair(track1ID, keysToKeep));
           seedsToDelete.insert(track2ID);
           if (Verbosity() > 2)
           {
@@ -201,7 +201,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
           {
             keysToKeep.insert(mvtx1Keys.begin(), mvtx1Keys.end());
           }
-          matches.insert(std::make_pair(track2ID, mvtx2Keys));
+          matches.insert(std::make_pair(track2ID, keysToKeep));
           seedsToDelete.insert(track1ID);
           if (Verbosity() > 2)
           {
@@ -211,7 +211,9 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
       }
     }
   }
-
+  
+  if (m_mergeSeeds)
+  {
   for (const auto& [trackKey, mvtxKeys] : matches)
   {
     auto* track = m_siliconTracks->get(trackKey);
@@ -233,7 +235,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
       }
     }
   }
-
+  }
   for (const auto& key : seedsToDelete)
   {
     if (Verbosity() > 2)
