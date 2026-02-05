@@ -621,13 +621,13 @@ namespace
 
 	if (left_pad >= 0 &&
 	    left_pad >= my_data.phioffset &&
-	    deadset.count(TpcDefs::genHitKey(left_pad, 0)))
+	    deadset.contains(TpcDefs::genHitKey(left_pad, 0)))
 	{
 	  nedge++;
 	}
 
 	if (right_pad < (my_data.phibins + my_data.phioffset) &&
-	    deadset.count(TpcDefs::genHitKey(right_pad, 0)))
+	    deadset.contains(TpcDefs::genHitKey(right_pad, 0)))
 	{
 	  nedge++;
 	}
@@ -644,13 +644,13 @@ namespace
 
 	if (left_pad >= 0 &&
 	    left_pad >= my_data.phioffset &&
-	    hotset.count(TpcDefs::genHitKey(left_pad, 0)))
+	    hotset.contains(TpcDefs::genHitKey(left_pad, 0)))
 	{
 	  nedge++;
 	}
 
 	if (right_pad < (my_data.phibins + my_data.phioffset) &&
-	    hotset.count(TpcDefs::genHitKey(right_pad, 0)))
+	    hotset.contains(TpcDefs::genHitKey(right_pad, 0)))
 	{
 	  nedge++;
 	}
@@ -863,7 +863,7 @@ namespace
       {
 	auto it = my_data->deadMap->find(tpcHitSetKey);
 	if (it != my_data->deadMap->end() &&
-	    it->second.count(key))
+	    it->second.contains(key))
 	{
 	  return true;
 	}
@@ -873,7 +873,7 @@ namespace
       {
 	auto it = my_data->hotMap->find(tpcHitSetKey);
 	if (it != my_data->hotMap->end() &&
-	    it->second.count(key))
+	    it->second.contains(key))
 	{
 	  return true;
 	}
