@@ -981,6 +981,9 @@ int TpcCentralMembraneMatching::getClusterRMatch(double clusterR, int side)
 //____________________________________________________________________________..
 int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
 {
+
+  std::cout << "skipOutliers? " << m_skipOutliers << "   manualInterp? " << m_manualInterp << std::endl;
+
   if (!m_fieldOn)
   {
     m_useHeader = false;
@@ -2266,12 +2269,20 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
 
     ckey++;
   }
-
+ 
   // std::cout << "about to fill fluct hist" << std::endl;
 
   for (int s = 0; s < 2; s++)
   {
+    /*
     int N = gr_dR[s]->GetN();
+    std::vector<double> dataX(N), dataY(N);
+    for(int k=0; k<N; k++)
+    {
+      dataX[k] = gr_dR[s]->GetY()[k]*cos(gr_dR[s]->GetX()[k]);
+      dataY[k] = gr_dR[s]->GetY()[k]*sin(gr_dR[s]->GetX()[k]);
+    }
+    */
 
     bool firstGoodR = false;
     for (int j = 1; j <= m_dcc_out->m_hDRint[s]->GetNbinsY(); j++)
@@ -2297,18 +2308,22 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       {
         double phiVal = m_dcc_out->m_hDRint[s]->GetXaxis()->GetBinCenter(i);
 
+        /*
         double num_dPhi = 0.0;
         double num_dR = 0.0;
         double den = 0.0;
         double smoothing_parameter = 2.0;
 
+        double hX = RVal*cos(phiVal);
+        double hY = RVal*sin(phiVal);
+        
+
+
         for(int k=0; k<N; k++)
         {
-          double interp_dPhi = delta_phi(phiVal - gr_dR[s]->GetX()[k]);
-          double interp_RdPhi = RVal*interp_dPhi;
-          double interp_dR = RVal - gr_dR[s]->GetY()[k];
-
-          double distSq = (interp_RdPhi*interp_RdPhi) + (interp_dR*interp_dR);
+          double dx = hX - dataX[k];
+          double dy = hY - dataY[k];
+          double distSq = (dx*dx) + (dy*dy);
 
           if(distSq > 100.0) continue;
 
@@ -2334,8 +2349,9 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
           m_dcc_out->m_hDRint[s]->SetBinContent(i, j, num_dR / den);
           m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*(num_dPhi / den));
         }
-        //m_dcc_out->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal,RVal));
-        //m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
+        */
+        m_dcc_out->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal,RVal));
+        m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
       }      
     }
   }
@@ -2427,15 +2443,146 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
       }
     }
 
+    for(int s=0; s<2; s++)
+    {
+      gr_dR_toInterp[s] = (TGraph2D*)gr_dR[s]->Clone();
+      gr_dPhi_toInterp[s] = (TGraph2D*)gr_dPhi[s]->Clone();
+    }
+
+    //figure out anomolous points to skip and make list
+    std::vector<int> pointsToSkip[2];
+    if(m_skipOutliers)
+    {
+      for(int s=0; s<2; s++)
+      {
+        std::vector<int> peakBins;
+        std::vector<double> peakVals;
+        TH1D *hPeaks = new TH1D("hPeaks","",500,26,80);
+        int N = gr_dR[s]->GetN();
+    
+        //Make R histogram
+        for(int i=0; i<N; i++)
+        {
+          hPeaks->Fill(gr_dR[s]->GetY()[i]);
+        }
+
+        int bc = 0;
+        int pbc = 0;
+        //loop over and find peaks by identifying hist bins where content is higher than adjacent bins
+        for(int i=1; i<=500; i++)
+        {
+          bc = hPeaks->GetBinContent(i);
+          if(bc > 10 && bc > pbc)
+          {
+            if(peakBins.size() == 0 || i > peakBins[peakBins.size()-1] + 1)
+            {
+              peakBins.push_back(i);
+            }
+            else
+            {
+              peakBins[peakBins.size()-1] = i;
+            }
+          }
+        pbc = bc;
+        }
+
+        //Convert bins to R values, but if two bins are closer than 0.5 cm, pick the one with the largest bin content
+        for(int i=0; i<(int)peakBins.size(); i++)
+        {
+          if(i<(int)peakBins.size()-1 && hPeaks->GetBinCenter(peakBins[i+1]) - hPeaks->GetBinCenter(peakBins[i]) < 0.5)
+          {
+            peakVals.push_back((hPeaks->GetBinContent(peakBins[i]) > hPeaks->GetBinContent(peakBins[i+1]) ? hPeaks->GetBinCenter(peakBins[i]) : hPeaks->GetBinCenter(peakBins[i+1])));
+            i++;
+          }
+          else
+          {
+            peakVals.push_back(hPeaks->GetBinCenter(peakBins[i]));
+          }
+        }
+
+        std::vector<double> mu;
+        std::vector<double> sig;
+
+        //fit each peak with a gaussian to get mean and sigma
+        TF1 *f1 = new TF1("f1","gaus(0)",26,80);
+        for(int i=0; i<(int)peakVals.size(); i++)
+        {
+          f1->SetParameters(hPeaks->GetBinContent(hPeaks->FindBin(peakVals[i])),peakVals[i],0.2);
+          if(i == 0) hPeaks->Fit(f1,"Q","",peakVals[i]-0.5,(peakVals[i]+peakVals[i+1])/2);
+          else if (i<(int)peakVals.size()-1) hPeaks->Fit(f1,"Q","",(peakVals[i-1]+peakVals[i])/2,(peakVals[i]+peakVals[i+1])/2);
+          else hPeaks->Fit(f1,"Q","",(peakVals[i-1]+peakVals[i])/2,peakVals[i]+1);
+          mu.push_back(f1->GetParameter(1));
+          sig.push_back(f1->GetParameter(2));
+        }
+
+        //for each point in histogram, identify if within 3 sigma from mean of any of the peaks
+        //if not within 3 sigma from any of them, add to list of points to skip
+        for(int i=0; i<N; i++)
+        {
+          bool good = false;
+          for(int j=0; j<(int)peakVals.size(); j++)
+          {
+            double RVal_gr = gr_dR[s]->GetY()[i];
+            if(RVal_gr > mu[j] - 3*sig[j] && RVal_gr < mu[j] + 3*sig[j])
+            {
+              good = true;
+              break;
+            }
+          }
+          if(!good)
+          {
+            pointsToSkip[s].push_back(i);
+          }
+        }
+      }
+    }
+    
     for (int s = 0; s < 2; s++)
     {
-      bool firstGoodR = false;
+      int N = gr_dR[s]->GetN();
+      std::vector<double> dataX(N), dataY(N);
+      double minR = 99.0;
+      double maxR = 0.0;
+
+      if(m_skipOutliers)
+      {
+        int N_toInterp = (int)gr_dR_toInterp[s]->GetN();
+        for(int i=N_toInterp-1; i>=0; i--)
+        {
+          for(int j=0; j<(int)pointsToSkip[s].size(); j++)
+          {
+            if(i == pointsToSkip[s][j])
+            {
+              gr_dR_toInterp[s]->RemovePoint(i);
+              gr_dPhi_toInterp[s]->RemovePoint(i);
+              gr_points[s]->RemovePoint(i);
+              break;
+            }
+          }
+        }
+      }
+
+      for(int k=0; k<N; k++)
+      {
+        double RVal = gr_dR[s]->GetY()[k];
+
+        dataX[k] = RVal*cos(gr_dR[s]->GetX()[k]);
+        dataY[k] = RVal*sin(gr_dR[s]->GetX()[k]);
+
+        if(RVal < minR) minR = RVal;
+        if(RVal > maxR) maxR = RVal;
+      }
+
+      //bool firstGoodR = false;
       for (int j = 1; j <= m_dcc_out_aggregated->m_hDRint[s]->GetNbinsY(); j++)
       {
         double RVal = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinCenter(j);
         double Rlow = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j);
         double Rhigh = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j + 1);
+        
+        if(Rhigh < minR || Rlow > maxR) continue;
 
+        /*
         if (!firstGoodR)
         {
           for (int p = 0; p < gr_dR[s]->GetN(); p++)
@@ -2448,14 +2595,76 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
           }
           continue;
         }
+        */
 
         for (int i = 2; i <= m_dcc_out_aggregated->m_hDRint[s]->GetNbinsX() - 1; i++)
         {
           double phiVal = m_dcc_out_aggregated->m_hDRint[s]->GetXaxis()->GetBinCenter(i);
 
-          m_dcc_out_aggregated->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal, RVal));
-          m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal * gr_dPhi[s]->Interpolate(phiVal, RVal));
-        }
+          if(m_manualInterp)
+          {
+            double num_dPhi = 0.0;
+            double num_dR = 0.0;
+            double den = 0.0;
+            double smoothing_parameter = 2.0;
+
+            double hX = RVal*cos(phiVal);
+            double hY = RVal*sin(phiVal);
+
+            for(int k=0; k<N; k++)
+            {
+              bool skipPoint = false;
+              if(m_skipOutliers)
+              {
+                for(int l=0; l<(int)pointsToSkip[s].size(); l++)
+                {
+                  if(k == pointsToSkip[s][l])
+                  {
+                    skipPoint = true;
+                    break;
+                  }
+                }
+              }
+
+              if(m_skipOutliers && skipPoint)
+              {
+                continue;
+              }
+
+              double dx = hX - dataX[k];
+              double dy = hY - dataY[k];
+              double distSq = (dx*dx) + (dy*dy);
+
+              if(distSq > 100.0) continue;
+
+              if(distSq < 1e-9)
+              {
+                num_dPhi = gr_dPhi[s]->GetZ()[k];
+                num_dR = gr_dR[s]->GetZ()[k];
+            
+                den = 1.0;
+
+                break;
+              }
+
+              double weight = 1.0 / pow(distSq, smoothing_parameter / 2.0);
+              num_dPhi += weight * gr_dPhi[s]->GetZ()[k];
+              num_dR += weight * gr_dR[s]->GetZ()[k];
+              den += weight;
+            }
+
+            if(den > 0.0)
+            {    
+              m_dcc_out_aggregated->m_hDRint[s]->SetBinContent(i, j, num_dR / den);
+              m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal*(num_dPhi / den));
+            }
+          }
+          else
+          {
+            m_dcc_out_aggregated->m_hDRint[s]->SetBinContent(i, j, gr_dR_toInterp[s]->Interpolate(phiVal,RVal));
+            m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi_toInterp[s]->Interpolate(phiVal,RVal));
+          }
+        }      
       }
     }
 
@@ -2480,6 +2689,9 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
       gr_points[i]->Write(std::format("gr_points_{}z", (i == 1 ? "pos" : "neg")).c_str());
       gr_dR[i]->Write(std::format("gr_dr_{}z", (i == 1 ? "pos" : "neg")).c_str());
       gr_dPhi[i]->Write(std::format("gr_dPhi_{}z", (i == 1 ? "pos" : "neg")).c_str());
+
+      gr_dR_toInterp[i]->Write(std::format("gr_dr_toInterp_{}z", (i == 1 ? "pos" : "neg")).c_str());
+      gr_dPhi_toInterp[i]->Write(std::format("gr_dPhi_toInterp_{}z", (i == 1 ? "pos" : "neg")).c_str());
     }
   }
 

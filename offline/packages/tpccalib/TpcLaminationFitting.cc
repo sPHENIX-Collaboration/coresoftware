@@ -33,6 +33,10 @@
 #include <TTree.h>
 #include <TVector3.h>
 
+#include <boost/format.hpp>
+#include <boost/math/special_functions/lambert_w.hpp>
+
+
 #include <cmath>
 #include <format>
 #include <iomanip>
@@ -61,6 +65,8 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
 
     m_hPetal[s] = new TH2D((boost::format("hPetal_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s;#phi;R [cm]") %(s == 1 ? "North" : "South")).str().c_str(), 500, m_phiModMin[s], m_phiModMax[s], 500, 30, 80);
     m_parameterScan[s] = new TH2D((boost::format("parameterScan_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s Lamination Parameter Scan;m;B") %(s == 1 ? "North" : "South")).str().c_str(), 41, -0.0205, 0.0205, 49, -3.0625, 3.0625);
+    //m_parameterScan[s] = new TH2D((boost::format("parameterScan_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s Lamination Parameter Scan;m;B") %(s == 1 ? "North" : "South")).str().c_str(), 101, -0.101, 0.101, 101, -10.1, 10.1);
+    //m_parameterScan[s] = new TH2D((boost::format("parameterScan_%s") %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("TPC %s Lamination Parameter Scan;A (asymptote);C (decay constant)") %(s == 1 ? "North" : "South")).str().c_str(), 101, -1.005, 0.005, 101, -0.0025, 0.5025);
 
     for (int l = 0; l < 18; l++)
     {
@@ -329,6 +335,7 @@ int TpcLaminationFitting::GetNodes(PHCompositeNode *topNode)
   m_laminationTree->Branch("C_err",&m_C_err);
   m_laminationTree->Branch("distanceToFit",&m_dist);
   m_laminationTree->Branch("nBinsFit",&m_nBins);
+  m_laminationTree->Branch("RMSE",&m_rmse);
 
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -632,6 +639,9 @@ int TpcLaminationFitting::fitLaminations()
       int nBinsUsed = 0;
       int nBinsUsed_R_lt_45 = 0;
 
+      double wc = 0.0;
+      double c = 0.0;
+
       for (int i = 1; i <= m_hLamination[l][s]->GetNbinsX(); i++)
       {
         double R = m_hLamination[l][s]->GetXaxis()->GetBinCenter(i);
@@ -663,10 +673,25 @@ int TpcLaminationFitting::fitLaminations()
             break;
           }
         }
+        for(int j=0; j<= nBinAvg; j++)
+        {
+          if(m_hLamination[l][s]->GetBinContent(i,funcBin + j) > 0)
+          {
+            wc += m_hLamination[l][s]->GetBinContent(i,funcBin + j) * pow(j,2);
+            c += m_hLamination[l][s]->GetBinContent(i,funcBin + j);
+          }
+          if(j != 0 && m_hLamination[l][s]->GetBinContent(i,funcBin - j) > 0)
+          {
+            wc += m_hLamination[l][s]->GetBinContent(i,funcBin - j) * pow(j,2);
+            c += m_hLamination[l][s]->GetBinContent(i,funcBin - j);
+          }
+        }
       }
 
       m_distanceToFit[l][s] = distToFunc / nBinsUsed;
       m_nBinsFit[l][s] = nBinsUsed;
+      if(c>0) m_fitRMSE[l][s] = sqrt(wc / c);
+      else m_fitRMSE[l][s] = -999;
       if (nBinsUsed < 10 || distToFunc / nBinsUsed > 1.0 || nBinsUsed_R_lt_45 < 5)
       {
         m_laminationGoodFit[l][s] = false;
@@ -800,14 +825,16 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
   std::vector<double> distortedPhi;
   TF1 *tmpLamFit = (TF1*)m_fLamination[0][side]->Clone();
 
+  double meanB = 0.0;
+
   if(m_fieldOff)
   {
     tmpLamFit->SetParameters(0.0, 0.0);
+    meanB = -999.99;
   }
   else
   {
     double meanA = 0.0;
-    double meanB = 0.0;
     double meanC = 0.0;
     double meanOffset = 0.0;
     int nGoodFits = 0;
@@ -854,16 +881,21 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
   double maxSum = 0.0;
   double best_m = 0.0;
   double best_b = 0.0;
-  int mStep = 0;
-  int bStep = 0;
-  for(double m = -0.02; m<=0.02; m+=0.001)
+  //int mStep = 0;
+  //int bStep = 0;
+  //for(double m = -0.02; m<=0.02; m+=0.001)
+  for(int xbin=1; xbin<=m_parameterScan[side]->GetNbinsX(); xbin++)
   {
-    for(double b=-3.0; b<=3.0; b+=0.125)
+    double m = m_parameterScan[side]->GetXaxis()->GetBinCenter(xbin);
+    //for(double b=-3.0; b<=3.0; b+=0.125)
+    for(int ybin=1; ybin<=m_parameterScan[side]->GetNbinsY(); ybin++)
     {
+      double b = m_parameterScan[side]->GetYaxis()->GetBinCenter(ybin);
       double sum = 0.0;
       for(int i=0; i<(int)m_truthR[side].size(); i++)
       {
         double distortedTruthR = (m_truthR[side][i] + b)/(1.0 - m);
+        //double distortedTruthR = boost::math::lambert_w0(-m*b*exp(meanB-m_truthR[side][i]-m))/b + m_truthR[side][i] + m;
         int binR = m_hPetal[side]->GetYaxis()->FindBin(distortedTruthR);
         int binPhi = m_hPetal[side]->GetXaxis()->FindBin(distortedPhi[i]);
         for(int j=-2; j<=2; j++)
@@ -885,7 +917,7 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
           } 
         }
       }
-      std::cout << "working on side " << side << " m step " << mStep << " b step " << bStep << " with m = " << m << " and b = " << b << " with sum = " << sum << std::endl;
+      std::cout << "working on side " << side << " m step " << xbin-1 << " b step " << ybin-1 << " with m = " << m << " and b = " << b << " with sum = " << sum << std::endl;
 
       m_parameterScan[side]->Fill(m, b, sum);
       
@@ -895,9 +927,9 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
         best_m = m;
         best_b = b;
       }
-      bStep++;
+      //bStep++;
     }
-    mStep++;
+    //mStep++;
   }
 
   std::cout << "Best R distortion for side " << side << " is m = " << best_m << " and b = " << best_b << " with sum of " << maxSum << std::endl;
@@ -1021,6 +1053,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     pars->AddText((boost::format("#phi_{offset}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
     pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
     pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
+    pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
   }
   else
   {
@@ -1033,6 +1066,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 	  pars->AddText((boost::format("C=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(2) %m_fLamination[l][s]->GetParError(2)).str().c_str());
 	  pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
 	  pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
+    pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
   }
 	pars->Draw("same");
 	c1->SaveAs(m_QAFileName.c_str());
@@ -1135,6 +1169,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
       }
       m_dist = m_distanceToFit[l][s];
       m_nBins = m_nBinsFit[l][s];
+      m_rmse = m_fitRMSE[l][s];
       m_laminationTree->Fill();
     }
   }

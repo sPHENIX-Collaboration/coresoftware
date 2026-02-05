@@ -89,6 +89,8 @@ class TpcLaminationFitting : public SubsysReco
   bool m_laminationGoodFit[18][2]{{false}};
   double m_distanceToFit[18][2]{{0.0}};
   int m_nBinsFit[18][2]{{0}};
+  double m_fitRMSE[18][2]{{0.0}};
+
 
   TH2 *m_hPetal[2]{nullptr};
   TGraph *m_bestRMatch[2]{nullptr};
@@ -129,6 +131,7 @@ class TpcLaminationFitting : public SubsysReco
   double m_B_err{0};
   double m_C_err{0};
   double m_dist{0};
+  double m_rmse{};
   int m_nBins{0};
 
   int m_phibins{80};

@@ -103,6 +103,16 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_totalDistMode = totalDistMode;
   }
 
+  void set_skipOutliers(bool skipOutliers)
+  {
+    m_skipOutliers = skipOutliers;
+  }
+
+  void set_manualInterp(bool manualInterp)
+  {
+    m_manualInterp = manualInterp;
+  }
+
   void set_event_sequence(int seq)
   {
     m_event_sequence = seq;
@@ -281,6 +291,9 @@ class TpcCentralMembraneMatching : public SubsysReco
   TGraph2D *gr_dPhi[2]{nullptr, nullptr};
   TGraph *gr_points[2]{nullptr, nullptr};
 
+  TGraph2D *gr_dR_toInterp[2]{nullptr, nullptr};
+  TGraph2D *gr_dPhi_toInterp[2]{nullptr, nullptr};
+
   /// phi cut for matching clusters to pad
   /** TODO: this will need to be adjusted to match beam-induced time averaged distortions */
   double m_phi_cut{0.025};
@@ -387,6 +400,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   bool m_fieldOn{true};
   bool m_doFancy{false};
   bool m_doHadd{false};
+  bool m_skipOutliers{false};
+  bool m_manualInterp{false};
 
   std::vector<double> m_reco_RPeaks[2];
   double m_m[2]{};
