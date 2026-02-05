@@ -220,7 +220,7 @@ int PHSiliconSeedMerger::process_event(PHCompositeNode* /*unused*/)
 
         matches.insert(std::make_pair(track1ID, mvtx1Keys));
         seedsToDelete.insert(track2ID);
-        break;
+        
       }
     }
   }
