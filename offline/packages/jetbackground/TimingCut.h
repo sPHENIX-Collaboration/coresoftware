@@ -7,6 +7,9 @@
 
 #include <phparameter/PHParameters.h>
 
+
+#include <TFile.h>
+#include <TF1.h>
 #include <cmath>
 #include <string>
 
@@ -15,10 +18,16 @@ class PHCompositeNode;
 class TimingCut : public SubsysReco
 {
  public:
-  explicit TimingCut(const std::string &jetNodeName, const std::string &name = "TimingCutModule", bool doAbort = false);
+  explicit TimingCut(const std::string &jetNodeName, const std::string &name = "TimingCutModule", bool doAbort = false, const std::string &ohTowerName = "TOWERINFO_CALIB_HCALOUT");
 
   ~TimingCut() override = default;
 
+  float Correct_Time_Ohfrac(float t, float ohfrac)
+  {
+    float corrt = t + _fitFunc->Eval(ohfrac);
+    return corrt;
+  }
+  
   float calc_dphi(float maxJetPhi, float subJetPhi)
   {
     float dPhi = std::abs(maxJetPhi - subJetPhi);
@@ -76,23 +85,31 @@ class TimingCut : public SubsysReco
     _cutParams.set_int_param("passLeadtCut", 0);
     _cutParams.set_int_param("passDeltatCut", 0);
     _cutParams.set_int_param("passMbdDtCut", 0);
-    _cutParams.set_int_param("failAnyTimeCut",0);
+    _cutParams.set_int_param("failAnyTimeCut",1);
     _cutParams.set_double_param("maxJett",9999);
     _cutParams.set_double_param("subJett",9999);
     _cutParams.set_double_param("mbd_time",9999);
     _cutParams.set_double_param("dPhi",9999);
+    _cutParams.set_double_param("leadOhFrac",-1);
+    _cutParams.set_double_param("subOhFrac",-1);
+    _cutParams.set_double_param("corrMaxJett",9999);
+    _cutParams.set_double_param("corrSubJett",9999);
+    
   }
 
 private:
   bool _doAbort;
   bool _missingInfoWarningPrinted = false;
   std::string _jetNodeName;
+  std::string _ohTowerName;
   PHParameters _cutParams;
   float _t_width{6.0};
   float _dt_width{3.0};
-  float _t_shift{2.0};
+  float _t_shift{0.0};
   float _mbd_dt_width{3.0};
   float _min_dphi{3*M_PI/4};
+  TFile* _fitFile = nullptr;
+  TF1* _fitFunc = nullptr;
 };
 
 #endif
