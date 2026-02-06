@@ -2474,7 +2474,7 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
           bc = hPeaks->GetBinContent(i);
           if(bc > 10 && bc > pbc)
           {
-            if(peakBins.size() == 0 || i > peakBins[peakBins.size()-1] + 1)
+            if(peakBins.empty() || i > peakBins[peakBins.size()-1] + 1)
             {
               peakBins.push_back(i);
             }
@@ -2508,9 +2508,10 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
         for(int i=0; i<(int)peakVals.size(); i++)
         {
           f1->SetParameters(hPeaks->GetBinContent(hPeaks->FindBin(peakVals[i])),peakVals[i],0.2);
-          if(i == 0) hPeaks->Fit(f1,"Q","",peakVals[i]-0.5,(peakVals[i]+peakVals[i+1])/2);
-          else if (i<(int)peakVals.size()-1) hPeaks->Fit(f1,"Q","",(peakVals[i-1]+peakVals[i])/2,(peakVals[i]+peakVals[i+1])/2);
-          else hPeaks->Fit(f1,"Q","",(peakVals[i-1]+peakVals[i])/2,peakVals[i]+1);
+          double lo = (i == 0) ? peakVals[i] - 0.5 : (peakVals[i-1] + peakVals[i])/2.0;
+          double hi = (i < (int)peakVals.size() - 1) ? (peakVals[i] + peakVals[i+1])/2.0 : peakVals[i] + 1.0;
+          hPeaks->Fit(f1,"Q","",lo,hi);
+          
           mu.push_back(f1->GetParameter(1));
           sig.push_back(f1->GetParameter(2));
         }
@@ -2570,8 +2571,8 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
         dataX[k] = RVal*cos(gr_dR[s]->GetX()[k]);
         dataY[k] = RVal*sin(gr_dR[s]->GetX()[k]);
 
-        if(RVal < minR) minR = RVal;
-        if(RVal > maxR) maxR = RVal;
+        minR = std::min(RVal, minR);
+        maxR = std::max(RVal, maxR);
       }
 
       //bool firstGoodR = false;
@@ -2581,7 +2582,8 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
         double Rlow = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j);
         double Rhigh = m_dcc_out_aggregated->m_hDRint[s]->GetYaxis()->GetBinLowEdge(j + 1);
         
-        if(Rhigh < minR || Rlow > maxR) continue;
+        if(Rhigh < minR || Rlow > maxR) { continue;
+}
 
         /*
         if (!firstGoodR)
@@ -2617,9 +2619,9 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
               bool skipPoint = false;
               if(m_skipOutliers)
               {
-                for(int l=0; l<(int)pointsToSkip[s].size(); l++)
+                for(int l : pointsToSkip[s])
                 {
-                  if(k == pointsToSkip[s][l])
+                  if(k == l)
                   {
                     skipPoint = true;
                     break;
@@ -2636,7 +2638,8 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
               double dy = hY - dataY[k];
               double distSq = (dx*dx) + (dy*dy);
 
-              if(distSq > 100.0) continue;
+              if(distSq > 100.0) { continue;
+}
 
               if(distSq < 1e-9)
               {

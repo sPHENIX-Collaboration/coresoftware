@@ -200,7 +200,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
       m_truthPhi[1].push_back(cdbttree->GetDoubleValue(index, "truthPhi"));
     }
   }
-  if(m_truthR[0].size() == 0 || m_truthPhi[0].size() == 0 || m_truthR[1].size() == 0 || m_truthPhi[1].size() == 0)
+  if(m_truthR[0].empty() || m_truthPhi[0].empty() || m_truthR[1].empty() || m_truthPhi[1].empty())
   {
     std::cerr << "stripe pattern file passed has no stripes on one side. Exiting" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -695,8 +695,9 @@ int TpcLaminationFitting::fitLaminations()
 
       m_distanceToFit[l][s] = distToFunc / nBinsUsed;
       m_nBinsFit[l][s] = nBinsUsed;
-      if(c>0) m_fitRMSE[l][s] = sqrt(wc / c);
-      else m_fitRMSE[l][s] = -999;
+      if(c>0) { m_fitRMSE[l][s] = sqrt(wc / c);
+      } else { m_fitRMSE[l][s] = -999;
+}
       if (nBinsUsed < 10 || distToFunc / nBinsUsed > 1.0 || nBinsUsed_R_lt_45 < 5)
       {
         m_laminationGoodFit[l][s] = false;
@@ -903,7 +904,8 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
         for(int j=-2; j<=2; j++)
         {
           int neighborBinR = binR + j;
-          if(neighborBinR < 1 || neighborBinR > m_hPetal[side]->GetNbinsY()) continue;
+          if(neighborBinR < 1 || neighborBinR > m_hPetal[side]->GetNbinsY()) { continue;
+}
           for(int k=-5; k<=5; k++)
           {
             int neighborBinPhi = binPhi + k;
@@ -919,7 +921,11 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
           } 
         }
       }
-      std::cout << "working on side " << side << " m step " << xbin-1 << " b step " << ybin-1 << " with m = " << m << " and b = " << b << " with sum = " << sum << std::endl;
+      
+      if(Verbosity() > 2)
+      {
+        std::cout << "working on side " << side << " m step " << xbin-1 << " b step " << ybin-1 << " with m = " << m << " and b = " << b << " with sum = " << sum << std::endl;
+      }
 
       m_parameterScan[side]->Fill(m, b, sum);
       
@@ -947,13 +953,13 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
   }
 
   std::vector<double> bestDistortedR;
-  for(int i=0; i<(int)m_truthR[side].size(); i++)
+  for(double i : m_truthR[side])
   {
-    double distortedR = (m_truthR[side][i] + best_b)/(1.0 - best_m);
+    double distortedR = (i + best_b)/(1.0 - best_m);
     bestDistortedR.push_back(distortedR);
   }
 
-  m_bestRMatch[side] = new TGraph(distortedPhi.size(), &distortedPhi[0], &bestDistortedR[0]);
+  m_bestRMatch[side] = new TGraph(distortedPhi.size(), distortedPhi.data(), bestDistortedR.data());
   m_bestRMatch[side]->SetTitle((boost::format("Best R matching TPC %s, m = %.3f  b = %.3f") %(side == 0 ? "South" : "North") %best_m %best_b).str().c_str());
   m_bestRMatch[side]->SetName((boost::format("bestRMatch_side%d") %side).str().c_str());
   m_bestRMatch[side]->SetMarkerStyle(25);
@@ -1190,7 +1196,8 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     phiDistortionLamination[s]->Write();
     //scaleFactorMap[s]->Write();
     m_hPetal[s]->Write();
-    if(m_bestRMatch[s]) m_bestRMatch[s]->Write();
+    if(m_bestRMatch[s]) { m_bestRMatch[s]->Write();
+}
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();

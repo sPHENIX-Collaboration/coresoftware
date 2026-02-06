@@ -119,7 +119,7 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_event_index = 100 * seq;
   }
 
-  void set_stripePatternFile(std::string stripePatternFile)
+  void set_stripePatternFile(const std::string &stripePatternFile)
   {
     m_stripePatternFile = stripePatternFile;
   }

@@ -149,6 +149,7 @@ namespace
   void splitWeaklyConnectedRegion(const std::vector<hitData> &region, std::vector<std::vector<hitData>> &outputRegions, int aVerbosity)
   {
     int N = region.size();
+    /*
     std::vector<std::vector<int>> adj(N);
     for(int i=0; i<N; i++)
     {
@@ -167,8 +168,36 @@ namespace
         }
       }
     }
+    */
+    std::map<std::tuple<int,int,int>, int> coordIndex;
+    for(int i=0; i<N; i++)
+    {
+      int l = static_cast<int>(std::round(region[i].first.get<0>()));
+      int p = static_cast<int>(std::round(region[i].first.get<1>()));
+      int t = static_cast<int>(std::round(region[i].first.get<2>()));
+      coordIndex[{l,p,t}] = i;
+    }
+    std::vector<std::vector<int>> adj(N);
+    for(int i=0; i<N; i++)
+    {
+      int l = static_cast<int>(std::round(region[i].first.get<0>()));
+      int p = static_cast<int>(std::round(region[i].first.get<1>()));
+      int t = static_cast<int>(std::round(region[i].first.get<2>()));
+      for(const auto &neigh : neighborOffsets)
+      {
+        int nl = l + static_cast<int>(neigh.get<0>());
+        int np = p + static_cast<int>(neigh.get<1>());
+        int nt = t + static_cast<int>(neigh.get<2>());
+        auto it = coordIndex.find[{nl,np,nt}];
+        if(it != coordIndex.end())
+        {
+          adj[i].push_back(it.second);
+        }
+      }
+    }
 
-    if(aVerbosity > 3) std::cout << "   constructed adjacency list, average degree = " << std::accumulate(adj.begin(), adj.end(), 0.0, [](double s, auto &v) { return s + v.size(); }) / N << ")" << std::endl;
+    if(aVerbosity > 3) { std::cout << "   constructed adjacency list, average degree = " << std::accumulate(adj.begin(), adj.end(), 0.0, [](double s, auto &v) { return s + v.size(); }) / N << ")" << std::endl;
+}
 
     std::vector<int> disc(N, -1);
     std::vector<int> low(N, -1);
@@ -200,10 +229,12 @@ namespace
 
     for(int i=0; i<N; i++)
     {
-      if(disc[i] == -1) dfs(i);
+      if(disc[i] == -1) { dfs(i);
+}
     }
 
-    if(aVerbosity > 2) std::cout << "   Found " << bridges.size() << " bridges in region of size " << N << std::endl;
+    if(aVerbosity > 2) { std::cout << "   Found " << bridges.size() << " bridges in region of size " << N << std::endl;
+}
 
     std::vector<std::vector<int>> adj2 = adj;
     int removed = 0;
@@ -214,16 +245,19 @@ namespace
         adj2[u].erase(std::remove(adj2[u].begin(), adj2[u].end(), v), adj2[u].end());
         adj2[v].erase(std::remove(adj2[v].begin(), adj2[v].end(), u), adj2[v].end());
         removed++;
-        if(aVerbosity > 3) std::cout << "      removed weak bridge between nodes " << u << " (deg = " << adj[u].size() << ") and " << v << " (deg = " << adj[v].size() << ")" << std::endl;
+        if(aVerbosity > 3) { std::cout << "      removed weak bridge between nodes " << u << " (deg = " << adj[u].size() << ") and " << v << " (deg = " << adj[v].size() << ")" << std::endl;
+}
       }
     }
 
-    if(aVerbosity > 3) std::cout << "   Removed " << removed << " weak bridges, now finding connected components" << std::endl;
+    if(aVerbosity > 3) { std::cout << "   Removed " << removed << " weak bridges, now finding connected components" << std::endl;
+}
 
     std::vector<bool> visited(N, false);
     for(int i=0; i<N; i++)
     {
-      if(visited[i]) continue;
+      if(visited[i]) { continue;
+}
       std::vector<hitData> sub;
       std::queue<int> q;
       q.push(i);
@@ -243,9 +277,11 @@ namespace
         }
       }
       outputRegions.push_back(sub);
-      if(aVerbosity > 3) std::cout << "      found subregion of size " << sub.size() << std::endl;
+      if(aVerbosity > 3) { std::cout << "      found subregion of size " << sub.size() << std::endl;
+}
   }
-  if(aVerbosity > 2) std::cout << "   finished splitting region into " << outputRegions.size() << " subregions" << std::endl;
+  if(aVerbosity > 2) { std::cout << "   finished splitting region into " << outputRegions.size() << " subregions" << std::endl;
+}
 }
 
   void findConnectedRegions3(std::vector<hitData> &clusHits, std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> &maxKey, int aVerbosity)
@@ -310,22 +346,26 @@ namespace
       regions.push_back(region);
     }
 
-    if(aVerbosity > 2) std::cout << "finished with normal region finding, now splitting weakly connected regions" << std::endl;
+    if(aVerbosity > 2) { std::cout << "finished with normal region finding, now splitting weakly connected regions" << std::endl;
+}
 
     std::vector<std::vector<hitData>> refinedRegions;
     int regionNum = 0;
     for(auto &region : regions)
     {
       std::vector<std::vector<hitData>> tmpRefinedRegions;
-      if(aVerbosity > 2) std::cout << "starting to split region " << regionNum << " with " << region.size() << " hits" << std::endl;
+      if(aVerbosity > 2) { std::cout << "starting to split region " << regionNum << " with " << region.size() << " hits" << std::endl;
+}
       regionNum++;
       splitWeaklyConnectedRegion(region, tmpRefinedRegions, aVerbosity);
-      if(aVerbosity > 2) std::cout << "finished splitting region into " << tmpRefinedRegions.size() << std::endl;
+      if(aVerbosity > 2) { std::cout << "finished splitting region into " << tmpRefinedRegions.size() << std::endl;
+}
       for(auto &subregion : tmpRefinedRegions)
       {
         refinedRegions.push_back(subregion);
       }
-      if(aVerbosity > 2) std::cout << "total refined regions so far: " << refinedRegions.size() << std::endl;
+      if(aVerbosity > 2) { std::cout << "total refined regions so far: " << refinedRegions.size() << std::endl;
+}
     }
 
     std::sort(refinedRegions.begin(), refinedRegions.end(), [&](const auto &a, const auto &b)
@@ -356,7 +396,7 @@ namespace
     });
 
     clusHits.clear();
-    if(refinedRegions[0].size() == 0)
+    if(refinedRegions.empty() || refinedRegions[0].empty())
     {
       return;
     }

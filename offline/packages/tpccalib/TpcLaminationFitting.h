@@ -43,7 +43,7 @@ class TpcLaminationFitting : public SubsysReco
     m_QAFileName = QAFileName;
   }
 
-  void set_stripePatternFile(std::string stripePatternFile)
+  void set_stripePatternFile(const std::string &stripePatternFile)
   {
     m_stripePatternFile = stripePatternFile;
   }
