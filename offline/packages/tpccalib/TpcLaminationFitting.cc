@@ -1033,18 +1033,18 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   {
     lineIdeal = new TLine(30,m_laminationIdeal[l][s],80,m_laminationIdeal[l][s]);
   	lineIdeal->SetLineColor(kBlue);
-    leg->AddEntry(lineIdeal,Form("#phi_{ideal}=%.6f",m_laminationIdeal[l][s]), "l");
+	leg->AddEntry(lineIdeal,std::format("#phi_{{ideal}}={:.6f}",m_laminationIdeal[l][s]).c_str(), "l");
   }
   else
   {
     lineIdeal = new TLine(30,m_laminationIdeal[l][s],80,m_laminationIdeal[l][s]);
   	lineIdeal->SetLineColor(kBlue);
-    leg->AddEntry(lineIdeal,Form("#phi_{ideal}=%.6f",m_laminationIdeal[l][s]), "l");
+	leg->AddEntry(lineIdeal,std::format("#phi_{{ideal}}={:.6f}",m_laminationIdeal[l][s]).c_str(), "l");
 
     lineOffset = new TLine(30,m_laminationIdeal[l][s]+m_laminationOffset[l][s],80,m_laminationIdeal[l][s]+m_laminationOffset[l][s]);
     lineOffset->SetLineColor(kGreen+2);
     lineOffset->SetLineStyle(2);
-    leg->AddEntry(lineOffset,Form("#phi_{ideal}+#phi_{offset}=%.6f",m_laminationOffset[l][s]), "l");
+    leg->AddEntry(lineOffset,std::format("#phi_{{ideal}}+#phi_{{offset}}={:.6f}",m_laminationOffset[l][s]).c_str(), "l");
     lineOffset->Draw("same");
   }
 	lineIdeal->Draw("same");
@@ -1054,27 +1054,27 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 
 	
 	TPaveText *pars = new TPaveText(0.6, 0.55, 0.85, 0.85, "NDC");
-  if(m_fieldOff)
-  {
-    pars->AddText("#phi = #phi_{ideal} + #phi_{offset}");
-    pars->AddText((boost::format("#phi_{ideal}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(1) %m_fLamination[l][s]->GetParError(1)).str().c_str());
-    pars->AddText((boost::format("#phi_{offset}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
-    pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
-    pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
-    pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
-  }
+	if(m_fieldOff)
+	{
+	  pars->AddText("#phi = #phi_{ideal} + #phi_{offset}");
+	  pars->AddText(std::format("#phi_{{ideal}}={:.3f}#pm {:.3f}",m_fLamination[l][s]->GetParameter(1), m_fLamination[l][s]->GetParError(1)).c_str());
+	  pars->AddText(std::format("#phi_{{offset}}={:.3f}#pm {:.3f}", m_fLamination[l][s]->GetParameter(0), m_fLamination[l][s]->GetParError(0)).c_str());
+	  pars->AddText(std::format("Distance to line={:.2f}", m_distanceToFit[l][s]).c_str());
+	  pars->AddText(std::format("Number of Bins used={}", m_nBinsFit[l][s]).c_str());
+	  pars->AddText(std::format("WRMSE={:.2f}", m_fitRMSE[l][s]).c_str());
+	}
   else
   {
 	  pars->AddText("#phi = #phi_{ideal} + A#times (1 - e^{-C#times (R - B)})");
-	  pars->AddText((boost::format("A=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
-	  //pars->AddText((boost::format("#phi_{ideal}=%.3f#pm 0.000") %m_laminationIdeal[l][s]).str().c_str());
-	  pars->AddText((boost::format("#phi_{nominal}=%.3f#pm 0.000") %(m_laminationIdeal[l][s]+m_laminationOffset[l][s])).str().c_str());
-	  //pars->AddText((boost::format("#phi_{offset}=%.3f#pm 0.000") %m_laminationOffset[l][s]).str().c_str());
-	  pars->AddText((boost::format("B=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(1) %m_fLamination[l][s]->GetParError(1)).str().c_str());
-	  pars->AddText((boost::format("C=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(2) %m_fLamination[l][s]->GetParError(2)).str().c_str());
-	  pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
-	  pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
-    pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
+	  pars->AddText(std::format("A={:.3f}#pm {:.3f}", m_fLamination[l][s]->GetParameter(0), m_fLamination[l][s]->GetParError(0)).c_str());
+	  //pars->AddText(std::format("#phi_{{ideal}}=%.3f#pm 0.000", m_laminationIdeal[l][s]).c_str());
+	pars->AddText(std::format("#phi_{{nominal}}={:.3f}#pm 0.000", (m_laminationIdeal[l][s]+m_laminationOffset[l][s])).c_str());
+	  //pars->AddText(std::format("#phi_{{offset}}={:.3f}#pm 0.000", m_laminationOffset[l][s]).c_str());
+      pars->AddText(std::format("B={:.3f}#pm {:.3f}", m_fLamination[l][s]->GetParameter(1), m_fLamination[l][s]->GetParError(1)).c_str());
+    pars->AddText(std::format("C={:.3f}#pm {:.3f}", m_fLamination[l][s]->GetParameter(2), m_fLamination[l][s]->GetParError(2)).c_str());
+  pars->AddText(std::format("Distance to line={:.2f}", m_distanceToFit[l][s]).c_str());
+pars->AddText(std::format("Number of Bins used={}", m_nBinsFit[l][s]).c_str());
+pars->AddText(std::format("WRMSE={:.2f}", m_fitRMSE[l][s]).c_str());
   }
 	pars->Draw("same");
 	c1->SaveAs(m_QAFileName.c_str());
@@ -1139,7 +1139,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     }
     */
     //m_dcc_out->m_hDRint[s] = (TH2 *) simRDistortion[s]->Clone();
-    //m_dcc_out->m_hDRint[s]->SetName((boost::format("hIntDistortionR%s") %(s == 0 ? "_negz" : "_posz")).str().c_str());
+    //m_dcc_out->m_hDRint[s]->SetName(std::format("hIntDistortionR{}", (s == 0 ? "_negz" : "_posz")).c_str());
     //m_dcc_out->m_hDRint[s]->Multiply(scaleFactorMap[s]);
   }
   
