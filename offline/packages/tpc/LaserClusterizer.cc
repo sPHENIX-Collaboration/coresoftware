@@ -188,7 +188,7 @@ namespace
         int nl = l + static_cast<int>(neigh.get<0>());
         int np = p + static_cast<int>(neigh.get<1>());
         int nt = t + static_cast<int>(neigh.get<2>());
-        auto it = coordIndex.find[{nl,np,nt}];
+        auto it = coordIndex.find({nl,np,nt});
         if(it != coordIndex.end())
         {
           adj[i].push_back(it.second);
