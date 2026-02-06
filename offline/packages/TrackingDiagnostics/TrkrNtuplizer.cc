@@ -854,8 +854,9 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
   //--------------------------------------------------
 
   // printOutputInfo(topNode);
-  /*
+  
   ++_ievent;
+/*
   if(m_rawzdc_hist.size()==50){
     m_rawzdc_hist.pop();
     m_rawmbd_hist.pop();
@@ -866,7 +867,7 @@ int TrkrNtuplizer::process_event(PHCompositeNode* topNode)
   m_rawmbdlast = m_rawmbd;
   m_rawmbdv10last = m_rawmbdv10;
   m_bcolast =m_bco;
-  */
+*/  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1539,7 +1540,7 @@ void TrkrNtuplizer::fillOutputNtuples(PHCompositeNode* topNode)
             fx_hit[n_hit::nhitphi] = atan2(glob.y(),glob.x());
           }
 
-          if (layer_local >= _nlayers_maps && layer_local < _nlayers_intt)
+          if (layer_local >= _nlayers_maps && layer_local < _nlayers_maps + _nlayers_intt)
           {
             int row = InttDefs::getRow(hit_key);
             int col = InttDefs::getCol(hit_key);
@@ -2233,10 +2234,20 @@ void TrkrNtuplizer::FillCluster(float fXcluster[n_cluster::clusize], TrkrDefs::c
       fXcluster[n_cluster::ncludcal] = 1;
     }
   }
+  else if (layer_local < 3)
+  {
+    phibin = std::numeric_limits<unsigned int>::quiet_NaN();
+    tbin = MvtxDefs::getStrobeId(cluster_key);
+  }
+  else if (layer_local >= 3 && layer_local < 7)
+  {
+    phibin = std::numeric_limits<unsigned int>::quiet_NaN();
+    tbin = InttDefs::getTimeBucketId(cluster_key);
+  }
   else
   {
-    phibin = locx;
-    tbin = locy;
+    phibin = std::numeric_limits<unsigned int>::quiet_NaN();
+    tbin = std::numeric_limits<unsigned int>::quiet_NaN();
   }
   fXcluster[n_cluster::nclulocx] = locx;
   fXcluster[n_cluster::nclulocy] = locy;
