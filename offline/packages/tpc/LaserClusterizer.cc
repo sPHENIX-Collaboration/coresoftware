@@ -191,7 +191,7 @@ namespace
         auto it = coordIndex.find({nl,np,nt});
         if(it != coordIndex.end())
         {
-          adj[i].push_back(it.second);
+          adj[i].push_back(it->second);
         }
       }
     }
