@@ -119,6 +119,11 @@ class TpcCentralMembraneMatching : public SubsysReco
     m_event_index = 100 * seq;
   }
 
+  void set_stripePatternFile(std::string stripePatternFile)
+  {
+    m_stripePatternFile = stripePatternFile;
+  }
+
   // void set_laminationFile(const std::string& filename)
   //{
   // m_lamfilename = filename;
@@ -211,6 +216,8 @@ class TpcCentralMembraneMatching : public SubsysReco
   //  TNtuple *match_ntup {nullptr};
   TTree *match_tree{nullptr};
   TTree *event_tree{nullptr};
+
+  std::string m_stripePatternFile = "/sphenix/u/bkimelman/CMStripePattern.root";
 
   bool m_useHeader{true};
   bool m_averageMode{false};

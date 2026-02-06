@@ -184,7 +184,7 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
     }
   }
   */
-  CDBTTree *cdbttree = new CDBTTree("/sphenix/u/bkimelman/CMStripePattern.root");
+  CDBTTree *cdbttree = new CDBTTree(m_stripePatternFile);
   cdbttree->LoadCalibrations();
   auto cdbMap = cdbttree->GetDoubleEntryMap();
   for (const auto &[index, values] : cdbMap)
@@ -199,6 +199,11 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
       m_truthR[1].push_back(cdbttree->GetDoubleValue(index, "truthR"));
       m_truthPhi[1].push_back(cdbttree->GetDoubleValue(index, "truthPhi"));
     }
+  }
+  if(m_truthR[0].size() == 0 || m_truthPhi[0].size() == 0 || m_truthR[1].size() == 0 || m_truthPhi[1].size() == 0)
+  {
+    std::cerr << "stripe pattern file passed has no stripes on one side. Exiting" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
   }
   /*
   for(int i=0; i<32; i++)
@@ -836,7 +841,6 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
   {
     double meanA = 0.0;
     double meanC = 0.0;
-    double meanOffset = 0.0;
     int nGoodFits = 0;
     for(int l = 0; l < 18; l++)
     {
@@ -847,7 +851,6 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
       meanA += m_fLamination[l][side]->GetParameter(0);
       meanB += m_fLamination[l][side]->GetParameter(1);
       meanC += m_fLamination[l][side]->GetParameter(2);
-      meanOffset += m_laminationOffset[l][side];
       nGoodFits++;
     }
     if(nGoodFits == 0)
@@ -858,7 +861,6 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
     meanA /= nGoodFits;
     meanB /= nGoodFits;
     meanC /= nGoodFits;
-    meanOffset /= nGoodFits;
     //tmpLamFit->SetParameters(meanA, meanB, meanC, meanOffset);
     tmpLamFit->SetParameters(meanA, meanB, meanC, 0.0);
   }
@@ -1188,7 +1190,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     phiDistortionLamination[s]->Write();
     //scaleFactorMap[s]->Write();
     m_hPetal[s]->Write();
-    m_bestRMatch[s]->Write();
+    if(m_bestRMatch[s]) m_bestRMatch[s]->Write();
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();

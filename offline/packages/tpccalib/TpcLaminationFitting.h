@@ -43,6 +43,11 @@ class TpcLaminationFitting : public SubsysReco
     m_QAFileName = QAFileName;
   }
 
+  void set_stripePatternFile(std::string stripePatternFile)
+  {
+    m_stripePatternFile = stripePatternFile;
+  }
+
   void set_ppMode(bool mode){ ppMode = mode; }
 
   void set_fieldOff(bool fieldOff){ m_fieldOff = fieldOff; }
@@ -98,7 +103,7 @@ class TpcLaminationFitting : public SubsysReco
 
 
   TH2 *phiDistortionLamination[2]{nullptr};
-  TH2 *scaleFactorMap[2]{nullptr};
+  //TH2 *scaleFactorMap[2]{nullptr};
 
   unsigned int m_nLayerCut{1};
   
@@ -115,7 +120,9 @@ class TpcLaminationFitting : public SubsysReco
   double m_ZDC_coincidence{0};
   //std::map<int, float>  m_run_ZDC_map_pp;
   //std::map<int, float>  m_run_ZDC_map_auau;
-  
+
+  std::string m_stripePatternFile = "/sphenix/u/bkimelman/CMStripePattern.root";
+
   bool m_fieldOff{false};
 
   TTree *m_laminationTree{nullptr};

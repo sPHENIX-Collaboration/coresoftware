@@ -1093,7 +1093,7 @@ int TpcCentralMembraneMatching::InitRun(PHCompositeNode* topNode)
   // Get truth cluster positions
   //=====================
 
-  CDBTTree *cdbttree = new CDBTTree("/sphenix/u/bkimelman/CMStripePattern.root");
+  CDBTTree *cdbttree = new CDBTTree(m_stripePatternFile);
   cdbttree->LoadCalibrations();
   auto cdbMap = cdbttree->GetDoubleEntryMap();
   for (const auto &[index, values] : cdbMap)
@@ -2196,7 +2196,7 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
       dr = static_pos[reco_index].Perp() - m_truth_pos[i].Perp();
       dphi = delta_phi(static_pos[reco_index].Phi() - m_truth_pos[i].Phi());
     }
-    if(m_totalDistMode)
+    else if(m_totalDistMode)
     {
       clus_r = raw_pos[reco_index].Perp();
       clus_phi = raw_pos[reco_index].Phi();
@@ -2540,7 +2540,8 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
     for (int s = 0; s < 2; s++)
     {
       int N = gr_dR[s]->GetN();
-      std::vector<double> dataX(N), dataY(N);
+      std::vector<double> dataX(N);
+      std::vector<double> dataY(N);
       double minR = 99.0;
       double maxR = 0.0;
 
@@ -2555,7 +2556,7 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
             {
               gr_dR_toInterp[s]->RemovePoint(i);
               gr_dPhi_toInterp[s]->RemovePoint(i);
-              gr_points[s]->RemovePoint(i);
+              //gr_points[s]->RemovePoint(i);
               break;
             }
           }
