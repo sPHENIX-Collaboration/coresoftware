@@ -1194,7 +1194,7 @@ void KFParticle_Tools::init_dEdx_fits()
     dedx_fitparams = CDBInterface::instance()->getUrl("TPC_DEDX_FITPARAM");
   }
 
-  std::cout << "opening " << dedx_fitparams << std::endl;
+  std::cout << PHWHERE << " opening " << dedx_fitparams << std::endl;
 
   TFile *filefit = TFile::Open(dedx_fitparams.c_str());
 
@@ -1206,7 +1206,7 @@ void KFParticle_Tools::init_dEdx_fits()
 
   if (m_use_local_PID_file)
   {
-    std::cout << "using local" << std::endl;
+    std::cout << PHWHERE << " using local file " << m_local_PID_filename << std::endl;
     // new method is independent of charge
     filefit->GetObject("pi_band",f_pion_plus);
     filefit->GetObject("K_band",f_kaon_plus);
@@ -1237,7 +1237,6 @@ void KFParticle_Tools::init_dEdx_fits()
 
 double KFParticle_Tools::get_dEdx_fitValue(float momentum, int PID)
 {
-  std::cout << "eval of PID " << PID << " returns " << pidMap[PID]->Eval(momentum) << std::endl;
   return pidMap[PID]->Eval(momentum);
 }
 
