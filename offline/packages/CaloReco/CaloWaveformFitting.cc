@@ -839,7 +839,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
         }
       }
     }
-    else if(m_funcfit_type == POWERLAWDOUBLEEXP) // POWERLAWDOUBLEEXP
+    else if(m_funcfit_type == POWERLAWDOUBLEEXP)
     {
       // Create fit function with 7 parameters
       TF1 f("f_doubleexp", SignalShape_PowerLawDoubleExp, 0, nsamples, 7);
@@ -889,7 +889,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
         }
       }
     }
-    else if(m_funcfit_type == FERMIEXP) // POWERLAWDOUBLEEXP
+    else if(m_funcfit_type == FERMIEXP)
     {
       TF1 f("f_fermiexp", SignalShape_FermiExp, 0, nsamples, 5);
       npar = 5;
