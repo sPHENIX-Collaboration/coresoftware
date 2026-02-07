@@ -5,19 +5,14 @@
 #include <fun4all/SubsysReco.h>
 
 // -- c++
-#include <filesystem>
-#include <map>
-#include <memory>
 #include <string>
-#include <vector>
 
 // -- ROOT
-#include <TFile.h>
 #include <TProfile.h>
 #include <TH2.h>
-#include <TTree.h>
 
 class PHCompositeNode;
+class EventPlaneData;
 
 /**
  * @class sEPD_TreeGen
@@ -67,22 +62,10 @@ class sEPD_TreeGen : public SubsysReco
   int End(PHCompositeNode *topNode) override;
 
  /**
-   * @brief Sets the filename for the QA histograms ROOT file.
-   * @param file Output path for histograms.
+   * @brief Prints the current state of the EventPlaneData object.
+   * @param what Optional string to specify what to print (default "ALL").
    */
-  void set_filename(const std::string &file)
-  {
-    m_outfile_name = file;
-  }
-
- /**
-   * @brief Sets the filename for the flat TTree ROOT file.
-   * @param file Output path for the TTree.
-   */
-  void set_tree_filename(const std::string &file)
-  {
-    m_outtree_name = file;
-  }
+  void Print(const std::string &what = "ALL") const override;
 
  /**
    * @brief Sets the maximum allowed Z-vertex position for event selection.
@@ -136,9 +119,6 @@ class sEPD_TreeGen : public SubsysReco
 
   int m_event{0};
 
-  std::string m_outfile_name{"test.root"};
-  std::string m_outtree_name{"tree.root"};
-
   static constexpr int PROGRESS_PRINT_INTERVAL = 20;
 
   // Cuts
@@ -154,24 +134,14 @@ class sEPD_TreeGen : public SubsysReco
   struct EventData
   {
     int event_id{0};
-    double event_zvertex{9999};
     double event_centrality{9999};
-
-    double sepd_totalcharge{-9999};
-
-    std::vector<int> sepd_channel;
-    std::vector<double> sepd_charge;
-    std::vector<double> sepd_phi;
   };
 
   EventData m_data;
+  EventPlaneData* m_evtdata{nullptr};
 
-  std::unique_ptr<TFile> m_output;
-  std::unique_ptr<TTree> m_tree;
-
-  std::unique_ptr<TProfile> hSEPD_Charge;
-  std::unique_ptr<TH2> h2SEPD_totalcharge_centrality;
+  TProfile *hSEPD_Charge{nullptr};
+  TH2 *h2SEPD_totalcharge_centrality{nullptr};
 };
-
 
 #endif // SEPD_TREEGEN_H

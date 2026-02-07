@@ -3,13 +3,12 @@
 #include "EventPlaneData.h"
 
 // -- c++
-#include <format>
+#include <iomanip>
 #include <iostream>
 
 // -- Calo
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoDefs.h>
 
 // -- Vtx
 #include <globalvertex/GlobalVertex.h>
@@ -44,13 +43,6 @@ sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
 //____________________________________________________________________________..
 int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 {
-  // Early guard against filename collision
-  if (m_outfile_name == m_outtree_name)
-  {
-    std::cout << PHWHERE << " Error: Histogram filename and Tree filename are identical: " << m_outfile_name << ". This will cause data loss." << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Print("NODETREE");
 
@@ -62,33 +54,25 @@ int sEPD_TreeGen::Init(PHCompositeNode *topNode)
   double centrality_low{-0.5};
   double centrality_high{79.5};
 
-  hSEPD_Charge = std::make_unique<TProfile>("hSEPD_Charge", "|z| < 10 cm and MB; Channel; Avg Charge", QVecShared::sepd_channels, 0, QVecShared::sepd_channels);
+  hSEPD_Charge = new TProfile("hSEPD_Charge", "|z| < 10 cm and MB; Channel; Avg Charge", QVecShared::SEPD_CHANNELS, 0, QVecShared::SEPD_CHANNELS);
   hSEPD_Charge->Sumw2();
 
-  h2SEPD_totalcharge_centrality = std::make_unique<TH2F>("h2SEPD_totalcharge_centrality", "|z| < 10 cm and MB; sEPD Total Charge; Centrality [%]", bins_sepd_totalcharge, sepd_totalcharge_low, sepd_totalcharge_high, bins_centrality, centrality_low, centrality_high);
+  h2SEPD_totalcharge_centrality = new TH2F("h2SEPD_totalcharge_centrality",
+                                           "|z| < 10 cm and MB; sEPD Total Charge; Centrality [%]",
+                                           bins_sepd_totalcharge, sepd_totalcharge_low, sepd_totalcharge_high,
+                                           bins_centrality, centrality_low, centrality_high);
 
-  m_output = std::make_unique<TFile>(m_outtree_name.c_str(), "recreate");
+  se->registerHisto(hSEPD_Charge);
+  se->registerHisto(h2SEPD_totalcharge_centrality);
 
-  if (!m_output || m_output->IsZombie())
-  {
-    std::cout << PHWHERE << "Failed to open tree output file: " << m_outtree_name << std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  m_output->cd();
-
-  // TTree
-  m_tree = std::make_unique<TTree>("T", "T");
-  m_tree->SetDirectory(m_output.get());
-  m_tree->Branch("event_id", &m_data.event_id);
-  m_tree->Branch("event_zvertex", &m_data.event_zvertex);
-  m_tree->Branch("event_centrality", &m_data.event_centrality);
-  m_tree->Branch("sepd_totalcharge", &m_data.sepd_totalcharge);
-  m_tree->Branch("sepd_channel", &m_data.sepd_channel);
-  m_tree->Branch("sepd_charge", &m_data.sepd_charge);
-  m_tree->Branch("sepd_phi", &m_data.sepd_phi);
   PHNodeIterator node_itr(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(node_itr.findFirst("PHCompositeNode", "DST"));
+
+  if (!dstNode)
+  {
+    std::cout << PHWHERE << "DST node missing, cannot attach EventPlaneData." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   EventPlaneData *evtdata = findNode::getClass<EventPlaneData>(topNode, "EventPlaneData");
   if (!evtdata)
@@ -112,11 +96,17 @@ int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  if (!vertexmap->empty())
+  if (vertexmap->empty())
   {
-    GlobalVertex *vtx = vertexmap->begin()->second;
-    m_data.event_zvertex = vtx->get_z();
+    if (Verbosity() > 1)
+    {
+      std::cout << PHWHERE << "GlobalVertexMap Empty, Skipping Event: " << m_data.event_id << std::endl;
+    }
+    return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  GlobalVertex *vtx = vertexmap->begin()->second;
+  double zvtx = vtx->get_z();
 
   MinimumBiasInfo *m_mb_info = findNode::getClass<MinimumBiasInfo>(topNode, "MinimumBiasInfo");
   if (!m_mb_info)
@@ -128,7 +118,7 @@ int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
   // skip event if not minimum bias
   if (!m_mb_info->isAuAuMinimumBias())
   {
-    if (Verbosity() > 2)
+    if (Verbosity() > 1)
     {
       std::cout << "Event: " << m_data.event_id << ", Not Min Bias, Skipping" << std::endl;
     }
@@ -136,14 +126,16 @@ int sEPD_TreeGen::process_event_check(PHCompositeNode *topNode)
   }
 
   // skip event if zvtx is too large
-  if (std::abs(m_data.event_zvertex) >= m_cuts.m_zvtx_max)
+  if (std::abs(zvtx) >= m_cuts.m_zvtx_max)
   {
-    if (Verbosity() > 2)
+    if (Verbosity() > 1)
     {
-      std::cout << "Event: " << m_data.event_id << ", Z: " << m_data.event_zvertex << " cm, Skipping" << std::endl;
+      std::cout << "Event: " << m_data.event_id << ", Z: " << zvtx << " cm, Skipping" << std::endl;
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  m_evtdata->set_event_zvertex(zvtx);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -158,17 +150,20 @@ int sEPD_TreeGen::process_centrality(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  m_data.event_centrality = centInfo->get_centile(CentralityInfo::PROP::mbd_NS) * 100;
+  double cent = centInfo->get_centile(CentralityInfo::PROP::mbd_NS) * 100;
 
   // skip event if centrality is too peripheral
-  if (!std::isfinite(m_data.event_centrality) || m_data.event_centrality < 0 || m_data.event_centrality >= m_cuts.m_cent_max)
+  if (!std::isfinite(cent) || cent < 0 || cent >= m_cuts.m_cent_max)
   {
-    if(Verbosity() > 2)
+    if (Verbosity() > 1)
     {
-        std::cout << "Event: " << m_data.event_id << ", Centrality: " << m_data.event_centrality << ", Skipping" << std::endl;
+      std::cout << "Event: " << m_data.event_id << ", Centrality: " << cent << ", Skipping" << std::endl;
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  m_evtdata->set_event_centrality(cent);
+  m_data.event_centrality = cent;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -193,26 +188,24 @@ int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
   // sepd
   unsigned int sepd_channels = towerinfosEPD->size();
 
-  if(sepd_channels != QVecShared::sepd_channels)
+  if(sepd_channels != QVecShared::SEPD_CHANNELS)
   {
-    if (Verbosity() > 2)
+    if (Verbosity() > 1)
     {
-      std::cout << "Event: " << m_data.event_id << ", SEPD Channels = " << sepd_channels << " != " << QVecShared::sepd_channels << std::endl;
+      std::cout << "Event: " << m_data.event_id << ", SEPD Channels = " << sepd_channels << " != " << QVecShared::SEPD_CHANNELS << std::endl;
     }
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_data.sepd_totalcharge = 0;
+  double sepd_totalcharge = 0;
 
   for (unsigned int channel = 0; channel < sepd_channels; ++channel)
   {
-    unsigned int key = TowerInfoDefs::encode_epd(channel);
-
     TowerInfo *tower = towerinfosEPD->get_tower_at_channel(channel);
 
     if (!tower)
     {
-      if (Verbosity() > 2)
+      if (Verbosity() > 1)
       {
         std::cout << PHWHERE << "Null SEPD tower at channel " << channel << std::endl;
       }
@@ -221,7 +214,6 @@ int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
 
     double charge = tower->get_energy();
     bool isZS = tower->get_isZS();
-    double phi = epdgeom->get_phi(key);
 
     // exclude ZS
     // exclude Nmips
@@ -230,18 +222,55 @@ int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
       continue;
     }
 
-    m_data.sepd_channel.push_back(channel);
-    m_data.sepd_charge.push_back(charge);
-    m_data.sepd_phi.push_back(phi);
+    m_evtdata->set_sepd_charge(channel, charge);
 
-    m_data.sepd_totalcharge += charge;
+    sepd_totalcharge += charge;
 
     hSEPD_Charge->Fill(channel, charge);
   }
 
-  h2SEPD_totalcharge_centrality->Fill(m_data.sepd_totalcharge, m_data.event_centrality);
+  m_evtdata->set_sepd_totalcharge(sepd_totalcharge);
+  h2SEPD_totalcharge_centrality->Fill(sepd_totalcharge, m_data.event_centrality);
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//____________________________________________________________________________..
+void sEPD_TreeGen::Print([[maybe_unused]] const std::string &what) const
+{
+  // Only execute if Verbosity is high enough
+  if (Verbosity() <= 2) return;
+
+  std::cout << "\n============================================================" << std::endl;
+  std::cout << "sEPD_TreeGen::Print -> Event Data State" << std::endl;
+
+  if (!m_evtdata)
+  {
+    std::cout << " [WARNING] m_evtdata is null." << std::endl;
+    return;
+  }
+
+  // Verbosity > 2: Print basic scalars
+  std::cout << "  Event ID:          " << m_evtdata->get_event_id() << std::endl;
+  std::cout << "  Z-Vertex:          " << m_evtdata->get_event_zvertex() << " cm" << std::endl;
+  std::cout << "  Centrality:        " << m_evtdata->get_event_centrality() << " %" << std::endl;
+  std::cout << "  sEPD Total Charge: " << m_evtdata->get_sepd_totalcharge() << std::endl;
+
+  // Verbosity > 3: Print channel arrays
+  if (Verbosity() > 3)
+  {
+    std::cout << "  Active Towers (Charge > 0):" << std::endl;
+    for (int i = 0; i < QVecShared::SEPD_CHANNELS; ++i)
+    {
+      double charge = m_evtdata->get_sepd_charge(i);
+      if (charge > 0)
+      {
+        std::cout << "    Channel: " << std::setw(3) << i
+                  << " | Charge: " << std::fixed << std::setprecision(4) << charge << std::endl;
+      }
+    }
+  }
+  std::cout << "============================================================\n" << std::endl;
 }
 
 //____________________________________________________________________________..
@@ -256,11 +285,20 @@ int sEPD_TreeGen::process_event(PHCompositeNode *topNode)
 
   m_data.event_id = eventInfo->get_EvtSequence();
 
-  if (Verbosity() > 1 && m_event % PROGRESS_PRINT_INTERVAL == 0)
+  if (Verbosity() && m_event % PROGRESS_PRINT_INTERVAL == 0)
   {
     std::cout << "Progress: " << m_event << ", Global: " << m_data.event_id << std::endl;
   }
   ++m_event;
+
+  m_evtdata = findNode::getClass<EventPlaneData>(topNode, "EventPlaneData");
+  if (!m_evtdata)
+  {
+    std::cout << PHWHERE << "EventPlaneData Node missing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  m_evtdata->set_event_id(m_data.event_id);
 
   int ret = process_event_check(topNode);
   if (ret)
@@ -279,9 +317,8 @@ int sEPD_TreeGen::process_event(PHCompositeNode *topNode)
   {
     return ret;
   }
-
-  // Fill the TTree
-  m_tree->Fill();
+  
+  Print();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -291,14 +328,13 @@ int sEPD_TreeGen::ResetEvent([[maybe_unused]] PHCompositeNode *topNode)
 {
   // Event
   m_data.event_id = -1;
-  m_data.event_zvertex = 9999;
   m_data.event_centrality = 9999;
 
-  // sEPD
-  m_data.sepd_totalcharge = 0;
-  m_data.sepd_channel.clear();
-  m_data.sepd_charge.clear();
-  m_data.sepd_phi.clear();
+  // DST
+  if (m_evtdata)
+  {
+    m_evtdata->Reset();
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -307,19 +343,5 @@ int sEPD_TreeGen::ResetEvent([[maybe_unused]] PHCompositeNode *topNode)
 int sEPD_TreeGen::End([[maybe_unused]] PHCompositeNode *topNode)
 {
   std::cout << "sEPD_TreeGen::End" << std::endl;
-
-  TFile output(m_outfile_name.c_str(), "recreate");
-  output.cd();
-
-  hSEPD_Charge->Write();
-  h2SEPD_totalcharge_centrality->Write();
-
-  output.Close();
-
-  // TTree
-  m_output->cd();
-  m_tree->Write();
-  m_output->Close();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
