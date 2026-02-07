@@ -659,8 +659,8 @@ double CaloWaveformFitting::SignalShape_PowerLawDoubleExp(double *x, double *par
   return pedestal + signal;
 }
 
-
-double CaloWaveformFitting::SignalShape_FermiExp(double *x, double *par)
+// chp: needs to be verified, but I can vaguely recall that making the args const fails in root
+double CaloWaveformFitting::SignalShape_FermiExp(double *x, double *par) //NOLINT(readability-non-const-parameter)
 {
   // par[0]: Amplitude
   // par[1]: Midpoint (t0)
