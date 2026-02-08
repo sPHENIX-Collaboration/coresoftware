@@ -153,7 +153,7 @@ class QVecCalib : public SubsysReco
 
   std::array<std::array<QVecShared::QVec, 2>, m_harmonics.size()> m_q_vectors{};
 
-  static constexpr int PROGRESS_REPORT_INTERVAL = 1000;
+  static constexpr int PROGRESS_REPORT_INTERVAL = 10000;
 
   // Holds all correction data
   // key: [Cent][Harmonic][Subdetector]
