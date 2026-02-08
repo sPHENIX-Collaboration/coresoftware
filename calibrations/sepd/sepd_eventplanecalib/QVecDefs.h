@@ -20,11 +20,12 @@ namespace QVecShared
     Cold = 3
   };
 
-  enum class Subdetector
+  enum class Subdetector : size_t
   {
-    S, // South
-    N, // North
-    NS // North South
+    S = 0,
+    N = 1,
+    NS = 2,
+    Count = 3
   };
 
   enum class QComponent
@@ -37,14 +38,6 @@ namespace QVecShared
   {
     double x{0.0};
     double y{0.0};
-  };
-
-  struct CorrectionMoments
-  {
-    QVec avg_Q{};       // Mean Q vector
-    double avg_Q_xx{0.0};
-    double avg_Q_yy{0.0};
-    double avg_Q_xy{0.0};
   };
 
  /**

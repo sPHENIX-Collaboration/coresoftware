@@ -239,7 +239,10 @@ int sEPD_TreeGen::process_sEPD(PHCompositeNode *topNode)
 void sEPD_TreeGen::Print([[maybe_unused]] const std::string &what) const
 {
   // Only execute if Verbosity is high enough
-  if (Verbosity() <= 2) return;
+  if (Verbosity() <= 2)
+  {
+    return;
+  }
 
   std::cout << "\n============================================================" << std::endl;
   std::cout << "sEPD_TreeGen::Print -> Event Data State" << std::endl;

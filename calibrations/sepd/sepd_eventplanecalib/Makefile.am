@@ -1,9 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-bin_PROGRAMS = \
-  GenQVecCalib \
-  GenQVecCDB
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -isystem$(OFFLINE_MAIN)/include \
@@ -18,7 +14,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   sEPD_TreeGen.h \
   QVecCalib.h \
-  QVecCDB.h \
   QVecDefs.h
 
 lib_LTLIBRARIES = \
@@ -36,8 +31,7 @@ libsepd_eventplanecalib_la_SOURCES = \
   $(ROOTDICTS) \
   EventPlaneData.cc \
   sEPD_TreeGen.cc \
-  QVecCalib.cc \
-  QVecCDB.cc
+  QVecCalib.cc
 
 libsepd_eventplanecalib_la_LIBADD = \
   -lphool \
@@ -50,12 +44,6 @@ libsepd_eventplanecalib_la_LIBADD = \
   -lcalotrigger \
   -lcdbobjects \
   -lepd_io
-
-GenQVecCalib_SOURCES = GenQVecCalib.cc
-GenQVecCalib_LDADD = libsepd_eventplanecalib.la
-
-GenQVecCDB_SOURCES = GenQVecCDB.cc
-GenQVecCDB_LDADD = libsepd_eventplanecalib.la
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
