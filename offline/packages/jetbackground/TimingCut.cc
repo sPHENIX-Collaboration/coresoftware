@@ -12,6 +12,11 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <cdbobjects/CDBTF.h>  // for CDBTF1
+
+#include <ffamodules/CDBInterface.h>
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfov4.h>
 #include <cmath>
 #include <iostream>  // for basic_ostream, operator<<
 #include <map>       // for _Rb_tree_iterator, opera...
@@ -36,6 +41,10 @@ int TimingCut::Init(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
+  _fitFile = new CDBTF(CDBInterface::instance()->getUrl("t_ohfrac_calib_Default"));
+  _fitFile->LoadCalibrations();
+  _fitFunc = _fitFile->getTF("t_ohcal_calib_function_Default");
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -58,7 +67,7 @@ int TimingCut::CreateNodeTree(PHCompositeNode *topNode)
 int TimingCut::process_event(PHCompositeNode *topNode)
 {
   JetContainer *jets = findNode::getClass<JetContainer>(topNode, _jetNodeName);
-  TowerInfoContainer* towersOH = findNode::getClas<TowerInfoContainer>(topNode, _ohTowerName);
+  TowerInfoContainer* towersOH = findNode::getClass<TowerInfoContainer>(topNode, _ohTowerName);
   if (!jets || !towersOH)
   {
     if (Verbosity() > 0 && !_missingInfoWarningPrinted)

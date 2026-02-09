@@ -13,6 +13,7 @@
 #include <cmath>
 #include <string>
 
+class CDBTF;
 class PHCompositeNode;
 
 class TimingCut : public SubsysReco
@@ -108,8 +109,8 @@ private:
   float _t_shift{0.0};
   float _mbd_dt_width{3.0};
   float _min_dphi{3*M_PI/4};
-  TFile* _fitFile = nullptr;
-  TF1* _fitFunc = nullptr;
+  CDBTF* _fitFile{nullptr};
+  TF1* _fitFunc{nullptr};
 };
 
 #endif
