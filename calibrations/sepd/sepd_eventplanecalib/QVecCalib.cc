@@ -546,7 +546,20 @@ int QVecCalib::load_correction_data()
         // Populate Flattening for S, N, and NS
         for (int d = 0; d < (int) SD::Count; ++d)
         {
-          std::string det_str = (d == 0) ? "S" : (d == 1) ? "N" : "NS";
+          std::string det_str;
+          switch (d)
+          {
+          case 0:
+            det_str = "S";
+            break;
+          case 1:
+            det_str = "N";
+            break;
+          default:
+            det_str = "NS";
+            break;
+          }
+
           double xx = m_profiles[QVecShared::get_hist_name(det_str, "xx", n)]->GetBinContent(bin);
           double yy = m_profiles[QVecShared::get_hist_name(det_str, "yy", n)]->GetBinContent(bin);
           double xy = m_profiles[QVecShared::get_hist_name(det_str, "xy", n)]->GetBinContent(bin);
