@@ -80,18 +80,20 @@ int TpcLaminationFitting::InitRun(PHCompositeNode *topNode)
       //m_laminationOffset[l][s] = -0.00296837 + 0.0014604 * cos(shift - 1.2246);
       if(s == 0)
       {
-        m_laminationOffset[l][s] = -0.00236289 + 0.00143918 * cos(shift - 1.31782);
+        //m_laminationOffset[l][s] = -0.00236289 + 0.00143918 * cos(shift - 1.31782);
+	m_laminationOffset[l][s] = -0.00148465 + 0.00219335 * cos(shift - 1.24219);
       }
       else
       {
-        m_laminationOffset[l][s] = -0.00323259 + 0.00138333 * cos(shift - 1.25373);
+        //m_laminationOffset[l][s] = -0.00323259 + 0.00138333 * cos(shift - 1.25373);
+        m_laminationOffset[l][s] = -0.00303345 + 0.0010828 * cos(shift - 1.03718);
       }
 
       if(m_fieldOff)
       {
         m_hLamination[l][s] = new TH2D((boost::format("hLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), (boost::format("Lamination %d %s, #phi_{ideal}=%.2f;R [cm];#phi") %l %(s == 1 ? "North" : "South") %m_laminationIdeal[l][s]).str().c_str(), 200, 30, 80, 200, m_laminationIdeal[l][s] - 0.2, m_laminationIdeal[l][s] + 0.2);
         m_fLamination[l][s] = new TF1((boost::format("fLamination%d_%s") %l %(s == 1 ? "North" : "South")).str().c_str(), "[0]+[1]", 30, 80);
-        m_fLamination[l][s]->SetParameters(-0.003, m_laminationIdeal[l][s]);
+        m_fLamination[l][s]->SetParameters(m_laminationOffset[l][s], m_laminationIdeal[l][s]);
         m_fLamination[l][s]->SetParLimits(0, -0.05, 0.05);
         m_fLamination[l][s]->FixParameter(1, m_laminationIdeal[l][s]);
       }
@@ -559,7 +561,7 @@ int TpcLaminationFitting::fitLaminations()
 
       if(m_fieldOff)
       {
-        m_fLamination[l][s]->SetParameters(0.003, m_laminationIdeal[l][s]);
+        m_fLamination[l][s]->SetParameters(m_laminationOffset[l][s], m_laminationIdeal[l][s]);
         m_fLamination[l][s]->FixParameter(1, m_laminationIdeal[l][s]);
       }
       else
@@ -743,6 +745,7 @@ int TpcLaminationFitting::InterpolatePhiDistortions()
         int phiBin = phiDistortionLamination[s]->GetXaxis()->FindBin(phi);
         if(m_fieldOff)
         {
+	  m_laminationOffset[l][s] = m_fLamination[l][s]->GetParameter(0);
           m_fLamination[l][s]->SetParameter(1, 0.0);
         }
         else
@@ -971,7 +974,7 @@ int TpcLaminationFitting::doGlobalRMatching(int side)
 
 int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 {
-
+  
   std::string sql = "SELECT * FROM gl1_scalers WHERE runnumber = " + std::to_string(m_runnumber) + ";";
   odbc::Statement *stmt =  DBInterface::instance()->getStatement("daq");
   odbc::ResultSet *resultSet = stmt->executeQuery(sql);
@@ -982,7 +985,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     delete resultSet;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  
   while (resultSet->next())
   {
     int index = resultSet->getInt("index");
@@ -991,20 +994,20 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     scalers[index][1] = resultSet->getLong("live");
     scalers[index][2] = resultSet->getLong("raw");
   }
-
+  
   delete resultSet;
-
+  
   m_ZDC_coincidence = (1.0*scalers[3][2]/scalers[0][2])/(106e-9);
-
+  
   std::cout << "Runnumber: " << m_runnumber << "   ppMode: " << ppMode << "   ZDC coindicence rate: " << m_ZDC_coincidence << std::endl;
-
+  
   int fitSuccess = fitLaminations();
   if (fitSuccess != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cout << PHWHERE << " Return code for lamination fitting was " << fitSuccess << " and not successful" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  
   if(!m_QAFileName.empty())
   {
     TCanvas *c1 = new TCanvas();
@@ -1025,46 +1028,49 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 	}
 	m_fLamination[l][s]->Draw("same");
 	
-  TLegend *leg = new TLegend(0.15,0.15,0.45,0.4);
-
+	TLegend *leg = new TLegend(0.15,0.15,0.45,0.4);
+	
 	TLine *lineIdeal;
-  TLine *lineOffset;
-  if(m_fieldOff)
-  {
-    lineIdeal = new TLine(30,m_laminationIdeal[l][s],80,m_laminationIdeal[l][s]);
-  	lineIdeal->SetLineColor(kBlue);
-    leg->AddEntry(lineIdeal,Form("#phi_{ideal}=%.6f",m_laminationIdeal[l][s]), "l");
-  }
-  else
-  {
-    lineIdeal = new TLine(30,m_laminationIdeal[l][s],80,m_laminationIdeal[l][s]);
-  	lineIdeal->SetLineColor(kBlue);
-    leg->AddEntry(lineIdeal,Form("#phi_{ideal}=%.6f",m_laminationIdeal[l][s]), "l");
-
-    lineOffset = new TLine(30,m_laminationIdeal[l][s]+m_laminationOffset[l][s],80,m_laminationIdeal[l][s]+m_laminationOffset[l][s]);
-    lineOffset->SetLineColor(kGreen+2);
-    lineOffset->SetLineStyle(2);
-    leg->AddEntry(lineOffset,Form("#phi_{ideal}+#phi_{offset}=%.6f",m_laminationOffset[l][s]), "l");
-    lineOffset->Draw("same");
-  }
+	TLine *lineOffset;
+	if(m_fieldOff)
+	{
+	  lineIdeal = new TLine(30,m_laminationIdeal[l][s],80,m_laminationIdeal[l][s]);
+	  lineIdeal->SetLineColor(kBlue);
+	  leg->AddEntry(lineIdeal,(boost::format("#phi_{ideal}=%.6f") %m_laminationIdeal[l][s]).str().c_str(), "l");
+	  //leg->AddEntry(lineIdeal,Form("#phi_{ideal}=%.6f",m_laminationIdeal[l][s]), "l");
+	}
+	else
+	{
+	  lineIdeal = new TLine(30,m_laminationIdeal[l][s],80,m_laminationIdeal[l][s]);
+	  lineIdeal->SetLineColor(kBlue);
+	  leg->AddEntry(lineIdeal,(boost::format("#phi_{ideal}=%.6f") %m_laminationIdeal[l][s]).str().c_str(), "l");
+	  //leg->AddEntry(lineIdeal,Form("#phi_{ideal}=%.6f",m_laminationIdeal[l][s]), "l");
+	  
+	  lineOffset = new TLine(30,m_laminationIdeal[l][s]+m_laminationOffset[l][s],80,m_laminationIdeal[l][s]+m_laminationOffset[l][s]);
+	  lineOffset->SetLineColor(kGreen+2);
+	  lineOffset->SetLineStyle(2);
+	  leg->AddEntry(lineOffset,(boost::format("#phi_{ideal}+#phi_{offset}=%.6f") %m_laminationOffset[l][s]).str().c_str(), "l");
+	  //leg->AddEntry(lineOffset,Form("#phi_{ideal}+#phi_{offset}=%.6f",m_laminationOffset[l][s]), "l");
+	  lineOffset->Draw("same");
+	}
 	lineIdeal->Draw("same");
-
-  leg->Draw("same");
-
-
+	
+	leg->Draw("same");
+	
+	
 	
 	TPaveText *pars = new TPaveText(0.6, 0.55, 0.85, 0.85, "NDC");
-  if(m_fieldOff)
-  {
-    pars->AddText("#phi = #phi_{ideal} + #phi_{offset}");
-    pars->AddText((boost::format("#phi_{ideal}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(1) %m_fLamination[l][s]->GetParError(1)).str().c_str());
-    pars->AddText((boost::format("#phi_{offset}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
-    pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
-    pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
-    pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
-  }
-  else
-  {
+	if(m_fieldOff)
+	{
+	  pars->AddText("#phi = #phi_{ideal} + #phi_{offset}");
+	  pars->AddText((boost::format("#phi_{ideal}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(1) %m_fLamination[l][s]->GetParError(1)).str().c_str());
+	  pars->AddText((boost::format("#phi_{offset}=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
+	  pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
+	  pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
+	  pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
+	}
+	else
+	{
 	  pars->AddText("#phi = #phi_{ideal} + A#times (1 - e^{-C#times (R - B)})");
 	  pars->AddText((boost::format("A=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(0) %m_fLamination[l][s]->GetParError(0)).str().c_str());
 	  //pars->AddText((boost::format("#phi_{ideal}=%.3f#pm 0.000") %m_laminationIdeal[l][s]).str().c_str());
@@ -1074,8 +1080,8 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
 	  pars->AddText((boost::format("C=%.3f#pm %.3f") %m_fLamination[l][s]->GetParameter(2) %m_fLamination[l][s]->GetParError(2)).str().c_str());
 	  pars->AddText((boost::format("Distance to line=%.2f") %m_distanceToFit[l][s]).str().c_str());
 	  pars->AddText((boost::format("Number of Bins used=%d") %m_nBinsFit[l][s]).str().c_str());
-    pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
-  }
+	  pars->AddText((boost::format("WRMSE=%.2f") %m_fitRMSE[l][s]).str().c_str());
+	}
 	pars->Draw("same");
 	c1->SaveAs(m_QAFileName.c_str());
       }
@@ -1091,32 +1097,32 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   //TH3 *hIntDistortionP_negz = (TH3 *) simDistortion->Get("hIntDistortionP_negz");
   //hIntDistortionP_negz->GetZaxis()->SetRange(hIntDistortionP_negz->GetNbinsZ() - 1, hIntDistortionP_negz->GetNbinsZ() - 1);
   //simPhiDistortion[0] = (TH2 *) hIntDistortionP_negz->Project3D("yx");
-
+  
   int interpolateSuccess = InterpolatePhiDistortions();
   if (interpolateSuccess != Fun4AllReturnCodes::EVENT_OK)
   {
     std::cout << PHWHERE << " Return code for lamination interpolation was " << interpolateSuccess << " and not successful" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
+  
   /*
-  for (int s = 0; s < 2; s++)
-  {
+    for (int s = 0; s < 2; s++)
+    {
     scaleFactorMap[s] = (TH2 *) m_dcc_out->m_hDPint[s]->Clone();
     scaleFactorMap[s]->SetName(std::format("scaleFactorMap{}", s).c_str());
     scaleFactorMap[s]->Divide(simPhiDistortion[s]);
-  }
-
-  TH3 *hIntDistortionR_posz = (TH3 *) simDistortion->Get("hIntDistortionR_posz");
-  hIntDistortionR_posz->GetZaxis()->SetRange(2, 2);
-  TH2 *simRDistortion[2];
-  simRDistortion[1] = (TH2 *) hIntDistortionR_posz->Project3D("yx");
-  TH3 *hIntDistortionR_negz = (TH3 *) simDistortion->Get("hIntDistortionR_negz");
-  hIntDistortionR_negz->GetZaxis()->SetRange(hIntDistortionR_negz->GetNbinsZ() - 1, hIntDistortionR_negz->GetNbinsZ() - 1);
-  simRDistortion[0] = (TH2 *) hIntDistortionR_negz->Project3D("yx");
+    }
+    
+    TH3 *hIntDistortionR_posz = (TH3 *) simDistortion->Get("hIntDistortionR_posz");
+    hIntDistortionR_posz->GetZaxis()->SetRange(2, 2);
+    TH2 *simRDistortion[2];
+    simRDistortion[1] = (TH2 *) hIntDistortionR_posz->Project3D("yx");
+    TH3 *hIntDistortionR_negz = (TH3 *) simDistortion->Get("hIntDistortionR_negz");
+    hIntDistortionR_negz->GetZaxis()->SetRange(hIntDistortionR_negz->GetNbinsZ() - 1, hIntDistortionR_negz->GetNbinsZ() - 1);
+    simRDistortion[0] = (TH2 *) hIntDistortionR_negz->Project3D("yx");
   */
-
-
+  
+  
   
   for (int s = 0; s < 2; s++)
   {
@@ -1127,27 +1133,27 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
       return Fun4AllReturnCodes::ABORTRUN;
     }
     /*
-    for(int i=1; i<=m_dcc_out->m_hDRint[s]->GetNbinsX(); i++)
-    {
-            for(int j=1; j<=m_dcc_out->m_hDRint[s]->GetNbinsY(); j++)
-            {
-                    if(simRDistortion[s]->GetBinContent(i,j) != 0.0)
-                    {
-                            m_dcc_out->m_hDRint[s]->SetBinContent(i,j, simRDistortion[s]->GetBinContent(i,j));
-                    }
-            }
-    }
+      for(int i=1; i<=m_dcc_out->m_hDRint[s]->GetNbinsX(); i++)
+      {
+      for(int j=1; j<=m_dcc_out->m_hDRint[s]->GetNbinsY(); j++)
+      {
+      if(simRDistortion[s]->GetBinContent(i,j) != 0.0)
+      {
+      m_dcc_out->m_hDRint[s]->SetBinContent(i,j, simRDistortion[s]->GetBinContent(i,j));
+      }
+      }
+      }
     */
     //m_dcc_out->m_hDRint[s] = (TH2 *) simRDistortion[s]->Clone();
     //m_dcc_out->m_hDRint[s]->SetName((boost::format("hIntDistortionR%s") %(s == 0 ? "_negz" : "_posz")).str().c_str());
     //m_dcc_out->m_hDRint[s]->Multiply(scaleFactorMap[s]);
   }
   
-
-
+  
+  
   fill_guarding_bins(m_dcc_out);
-
-
+  
+  
   for(int s=0; s<2; s++)
   {
     for(int l=0; l<18; l++)
@@ -1181,7 +1187,7 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
       m_laminationTree->Fill();
     }
   }
-
+  
   TFile *outputfile = new TFile(m_outputfile.c_str(), "RECREATE");
   outputfile->cd();
   for (int s = 0; s < 2; s++)
@@ -1196,19 +1202,21 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
     phiDistortionLamination[s]->Write();
     //scaleFactorMap[s]->Write();
     m_hPetal[s]->Write();
-    if(m_bestRMatch[s]) { m_bestRMatch[s]->Write();
-}
+    if(m_bestRMatch[s])
+    {
+      m_bestRMatch[s]->Write();
+    }
     m_parameterScan[s]->Write();
   }
   m_laminationTree->Write();
-
+  
   m_hLamination[13][0]->Write();
   m_hLamination[13][1]->Write();
   m_hLamination[14][1]->Write();
-
+  
   
   outputfile->Close();
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
