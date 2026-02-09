@@ -24,7 +24,7 @@ class TimingCut : public SubsysReco
 
   float Correct_Time_Ohfrac(float t, float ohfrac)
   {
-    float corrt = t + _fitFunc->Eval(ohfrac);
+    float corrt = t - _fitFunc->Eval(ohfrac);
     return corrt;
   }
   
