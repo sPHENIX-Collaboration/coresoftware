@@ -261,6 +261,13 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     float calibconst = m_cdbInfo_vec[channel].calibconst;
     bool isZS = caloinfo_raw->get_isZS();
 
+    if (calibconst <= 0)
+    {
+      _calib_towers->get_tower_at_channel(channel)->set_energy(0.0);
+      _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
+      continue;
+    }
+
     if (isZS && m_doZScrosscalib)
     {
       float crosscalibconst = m_cdbInfo_vec[channel].crosscalibconst;
@@ -273,11 +280,6 @@ int CaloTowerCalib::process_event(PHCompositeNode *topNode)
     else
     {
       _calib_towers->get_tower_at_channel(channel)->set_energy(raw_amplitude * calibconst);
-    }
-   
-    if (calibconst == 0)
-    {
-      _calib_towers->get_tower_at_channel(channel)->set_isNoCalib(true);
     }
     if(m_dotimecalib)
     {
