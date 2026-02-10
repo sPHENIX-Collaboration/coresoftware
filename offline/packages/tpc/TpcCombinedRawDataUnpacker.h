@@ -88,8 +88,8 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   struct chan_info
   {
     unsigned int fee = std::numeric_limits<unsigned int>::max();
-    float ped = -1;
-    float width = -1;
+    double ped = -1;
+    double width = -1;
     int entries = 0;
   };
   TNtuple *m_ntup{nullptr};
@@ -113,7 +113,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   bool m_doChanHitsCut{false};
   int m_ChanHitsCut{9999};
 
-  float m_ped_sig_cut{4.0};
+  double m_ped_sig_cut{4.0};
 
   bool m_writeTree{false};
   bool m_do_baseline_corr{false};
@@ -125,7 +125,7 @@ class TpcCombinedRawDataUnpacker : public SubsysReco
   std::map<unsigned int, chan_info> chan_map;                  // stays in place
   std::map<unsigned int, TH2 *> feeadc_map;                    // histos reset after each event
   std::map<unsigned int, std::vector<int>> feeentries_map;     // cleared after each event
-  std::map<unsigned int, std::vector<float>> feebaseline_map;  // cleared after each event
+  std::map<unsigned int, std::vector<double>> feebaseline_map;  // cleared after each event
 };
 
 #endif  // TPC_COMBINEDRAWDATAUNPACKER_H

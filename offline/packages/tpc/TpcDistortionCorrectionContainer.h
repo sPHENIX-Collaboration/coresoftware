@@ -21,7 +21,7 @@ class TpcDistortionCorrectionContainer
   int m_dimensions = 3;
 
   bool m_use_scalefactor = false;
-  float m_scalefactor = 1.0;
+  double m_scalefactor = 1.0;
 
   //! set the phi histogram to be interpreted as radians rather than mm
   bool m_phi_hist_in_radians = true;

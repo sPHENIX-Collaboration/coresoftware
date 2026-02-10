@@ -15,34 +15,34 @@ class TpcClusterZCrossingCorrection
   //@{
 
   //! drift velocity (cm/ns)
-  static float get_vdrift() { return _vdrift; }
+  static double get_vdrift() { return _vdrift; }
 
   //! time between crossing (ns)
-  static float get_time_between_crossings() { return _time_between_crossings; }
+  static double get_time_between_crossings() { return _time_between_crossings; }
 
   //! apply correction on a given z
-  static float correctZ(float zinit, unsigned int side, short int crossing);
+  static double correctZ(double zinit, unsigned int side, short int crossing);
   //@}
 
   //!@name modifiers
   //@{
   //! drift velocity (cm/ns)
-  static void set_vdrift( float value ) { _vdrift = value; }
+  static void set_vdrift( double value ) { _vdrift = value; }
 
   //! time between crossing (ns)
-  static void set_time_between_crossings( float value ) { _time_between_crossings = value; }
+  static void set_time_between_crossings( double value ) { _time_between_crossings = value; }
   //@}
 
   // TODO: move to private
   //!@name parameters
   //@{
   //! drift velocity (cm/ns)
-  static float _vdrift;
+  static double _vdrift;
 
   private:
 
   //! time between crossing (ns)
-  static float _time_between_crossings;
+  static double _time_between_crossings;
 
   //@}
 

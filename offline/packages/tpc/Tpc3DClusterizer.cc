@@ -50,7 +50,7 @@
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-using point = bg::model::point<float, 3, bg::cs::cartesian>;
+using point = bg::model::point<double, 3, bg::cs::cartesian>;
 using box = bg::model::box<point>;
 using specHitKey = std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>;
 using pointKeyLaser = std::pair<point, specHitKey>;
@@ -215,7 +215,7 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
       int iphi = TpcDefs::getPad(hitr->first);
       int it = TpcDefs::getTBin(hitr->first);
       //      std::cout << " iphi: " << iphi << " it: " << it << std::endl;
-      float_t fadc = (hitr->second->getAdc());  // - m_pedestal;  // proper int rounding +0.5
+      double_t fadc = (hitr->second->getAdc());  // - m_pedestal;  // proper int rounding +0.5
       unsigned short adc = 0;
       if (fadc > 0)
       {
@@ -270,7 +270,7 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
       int iphi = TpcDefs::getPad(hitr->first);
       int it = TpcDefs::getTBin(hitr->first);
       // std::cout << " iphi: " << iphi << " it: " << it << std::endl;
-      float_t fadc = (hitr->second->getAdc());  // - m_pedestal;  // proper int rounding +0.5
+      double_t fadc = (hitr->second->getAdc());  // - m_pedestal;  // proper int rounding +0.5
       unsigned short adc = 0;
       // std::cout << " nhit: " << nhits++ << "adc: " << fadc << " phi: " << iphi << " it: " << it << std::endl;
       if (fadc > 0)
@@ -347,9 +347,9 @@ int Tpc3DClusterizer::process_event(PHCompositeNode *topNode)
       double m_sampa_tbias = 39.6;
       double zdriftlength = (layergeom->get_zcenter(it)+ m_sampa_tbias) * m_tGeometry->get_drift_velocity();
 
-      float x = r * cos(phi);
-      float y = r * sin(phi);
-      float z = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
+      double x = r * cos(phi);
+      double y = r * sin(phi);
+      double z = m_tdriftmax * m_tGeometry->get_drift_velocity() - zdriftlength;
       if (side == 0){
         z = -z;
         it = -it;
@@ -524,13 +524,13 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
   int iphimax = -1;
   int ilaymin = 6666;
   int ilaymax = -1;
-  float itmin = 66666666.6;
-  float itmax = -6666666666.6;
+  double itmin = 66666666.6;
+  double itmax = -6666666666.6;
   auto *clus = new LaserClusterv1;
 
   for (auto &clusHit : clusHits)
   {
-    float coords[3] = {clusHit.first.get<0>(), clusHit.first.get<1>(), clusHit.first.get<2>()};
+    double coords[3] = {clusHit.first.get<0>(), clusHit.first.get<1>(), clusHit.first.get<2>()};
     std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> spechitkey = clusHit.second;
 
     int side = TpcDefs::getSide(spechitkey.second);
@@ -555,8 +555,8 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
     iphimax = std::max<double>(phi, iphimax);
     ilaymin = std::min(lay, ilaymin);
     ilaymax = std::max(lay, ilaymax);
-    itmin = std::min<float>(tbin, itmin);
-    itmax = std::max<float>(tbin, itmax);
+    itmin = std::min<double>(tbin, itmin);
+    itmax = std::max<double>(tbin, itmax);
 
     for (auto &iterKey : adcMap)
     {
@@ -571,7 +571,7 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
         clus->setHitX(clus->getNhits() - 1, r * cos(phi));
         clus->setHitY(clus->getNhits() - 1, r * sin(phi));
         clus->setHitZ(clus->getNhits() - 1, hitZ);
-        clus->setHitAdc(clus->getNhits() - 1, (float) adc);
+        clus->setHitAdc(clus->getNhits() - 1, (double) adc);
 
         rSum += r * adc;
         phiSum += phi * adc;
@@ -657,7 +657,7 @@ void Tpc3DClusterizer::calc_cluster_parameter(std::vector<pointKeyLaser> &clusHi
             << std::endl;
   */
   // if (m_output){
-  float fX[20] = {0};
+  double fX[20] = {0};
   int n = 0;
   fX[n++] = m_event;
   fX[n++] = m_seed;
