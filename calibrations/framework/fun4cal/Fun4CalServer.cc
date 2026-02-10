@@ -1,7 +1,7 @@
-#include "OnCalServer.h"
-#include "OnCal.h"
-#include "OnCalDBCodes.h"
-#include "OnCalHistoBinDefs.h"
+#include "Fun4CalServer.h"
+#include "CalReco.h"
+#include "Fun4CalDBCodes.h"
+#include "Fun4CalHistoBinDefs.h"
 
 #include <fun4all/Fun4AllInputManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -53,33 +53,33 @@ namespace
   odbc::Connection *DBconnection{nullptr};
 }  // namespace
 
-OnCalServer *OnCalServer::instance()
+Fun4CalServer *Fun4CalServer::instance()
 {
   if (__instance)
   {
-    OnCalServer *oncal = dynamic_cast<OnCalServer *>(__instance);
+    Fun4CalServer *oncal = dynamic_cast<Fun4CalServer *>(__instance);
     return oncal;
   }
-  __instance = new OnCalServer();
-  OnCalServer *oncal = dynamic_cast<OnCalServer *>(__instance);
+  __instance = new Fun4CalServer();
+  Fun4CalServer *oncal = dynamic_cast<Fun4CalServer *>(__instance);
   return oncal;
 }
 
 //---------------------------------------------------------------------
 
-OnCalServer::OnCalServer(const std::string &name)
+Fun4CalServer::Fun4CalServer(const std::string &name)
   : Fun4AllServer(name)
-  , OnCalServerVars(new TH1D("OnCalServerVars", "OnCalServerVars", OnCalHistoBinDefs::LASTBINPLUSONE, -0.5, (int) (OnCalHistoBinDefs::LASTBINPLUSONE) -0.5))
+  , Fun4CalServerVars(new TH1D("Fun4CalServerVars", "Fun4CalServerVars", Fun4CalHistoBinDefs::LASTBINPLUSONE, -0.5, (int) (Fun4CalHistoBinDefs::LASTBINPLUSONE) -0.5))
 {
   beginTimeStamp.setTics(0);
   endTimeStamp.setTics(0);
 
-  Fun4AllServer::registerHisto(OnCalServerVars);
+  Fun4AllServer::registerHisto(Fun4CalServerVars);
   return;
 }
 //---------------------------------------------------------------------
 
-OnCalServer::~OnCalServer()
+Fun4CalServer::~Fun4CalServer()
 {
   delete DBconnection;
   return;
@@ -87,7 +87,7 @@ OnCalServer::~OnCalServer()
 //---------------------------------------------------------------------
 
 PHTimeStamp *
-OnCalServer::GetEndValidityTS()
+Fun4CalServer::GetEndValidityTS()
 {
   if (endTimeStamp.getTics())
   {
@@ -100,7 +100,7 @@ OnCalServer::GetEndValidityTS()
 }
 //---------------------------------------------------------------------
 
-PHTimeStamp *OnCalServer::GetBeginValidityTS()
+PHTimeStamp *Fun4CalServer::GetBeginValidityTS()
 {
   if (beginTimeStamp.getTics())
   {
@@ -113,7 +113,7 @@ PHTimeStamp *OnCalServer::GetBeginValidityTS()
 }
 //---------------------------------------------------------------------
 
-void OnCalServer::dumpHistos()
+void Fun4CalServer::dumpHistos()
 {
   std::ostringstream filename;
   std::string fileprefix = "./";
@@ -137,7 +137,7 @@ void OnCalServer::dumpHistos()
              << "_" << iter->first << ".root";
     TFile *hfile = new TFile(filename.str().c_str(), "RECREATE",
                              "Created by Online Calibrator", compress);
-    std::cout << "OnCalServer::dumpHistos() Output root file: " << filename.str() << std::endl;
+    std::cout << "Fun4CalServer::dumpHistos() Output root file: " << filename.str() << std::endl;
     for (siter = (iter->second).begin(); siter != (iter->second).end(); ++siter)
     {
       histo = dynamic_cast<TH1 *>(getHisto(*siter));
@@ -159,7 +159,7 @@ void OnCalServer::dumpHistos()
   return;
 }
 
-void OnCalServer::registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace)
+void Fun4CalServer::registerHisto(TH1 *h1d, CalReco *Calibrator, const int replace)
 {
   if (Calibrator)
   {
@@ -174,7 +174,7 @@ void OnCalServer::registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace)
     {
       std::set<std::string> newset;
       newset.insert(h1d->GetName());
-      newset.insert("OnCalServerVars");
+      newset.insert("Fun4CalServerVars");
       calibratorhistomap[calibratorname] = newset;
     }
   }
@@ -182,13 +182,13 @@ void OnCalServer::registerHisto(TH1 *h1d, OnCal *Calibrator, const int replace)
   return;
 }
 
-void OnCalServer::unregisterHisto(const std::string &calibratorname)
+void Fun4CalServer::unregisterHisto(const std::string &calibratorname)
 {
   calibratorhistomap.erase(calibratorname);
   return;
 }
 
-int OnCalServer::process_event()
+int Fun4CalServer::process_event()
 {
   Fun4AllServer::process_event();
   int i = 0;
@@ -201,7 +201,7 @@ int OnCalServer::process_event()
     std::vector<std::pair<SubsysReco *, PHCompositeNode *> >::const_iterator iter;
     for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
     {
-      OnCal *oncal = dynamic_cast<OnCal *>(iter->first);
+      CalReco *oncal = dynamic_cast<CalReco *>(iter->first);
       if (oncal)
       {
         ical++;
@@ -220,7 +220,7 @@ int OnCalServer::process_event()
   return i;
 }
 
-int OnCalServer::BeginRun(const int runno)
+int Fun4CalServer::BeginRun(const int runno)
 {
   if (runno <= 0)
   {
@@ -291,10 +291,10 @@ int OnCalServer::BeginRun(const int runno)
                 << " - send e-mail to off-l with your macro" << std::endl;
       exit(1);
     }
-    OnCal *oncal = dynamic_cast<OnCal *>((*iter).first);
+    CalReco *oncal = dynamic_cast<CalReco *>((*iter).first);
     if (oncal)
     {
-      std::string table = "OnCal";
+      std::string table = "CalReco";
       table += (*iter).first->Name();
       check_create_subsystable(table);
       insertRunNumInDB(table, runNum);
@@ -312,7 +312,7 @@ int OnCalServer::BeginRun(const int runno)
       else
       {
         std::ostringstream stringarg;
-        stringarg << OnCalDBCodes::STARTED;
+        stringarg <<  Fun4CalDBCodes::STARTED;
         for (runiter = runlist.begin(); runiter != runlist.end(); ++runiter)
         {
           updateDB(successTable, calibname, stringarg.str(), *runiter);
@@ -328,7 +328,7 @@ int OnCalServer::BeginRun(const int runno)
     else
     {
       rc->set_IntFlag("RUNNUMBER", oncalrun);
-      // rc->set_TimeStamp(OnCalBORTimeStamp);
+      // rc->set_TimeStamp(CalRecoBORTimeStamp);
     }
     if (!droplist.contains((*iter).first->Name()))
     {
@@ -344,17 +344,17 @@ int OnCalServer::BeginRun(const int runno)
   gROOT->cd(currdir.c_str());
 
   rc->set_IntFlag("RUNNUMBER", oncalrun);
-  //  rc->set_TimeStamp(OnCalBORTimeStamp);
-  if (OnCalServerVars->GetBinContent(OnCalHistoBinDefs::FIRSTRUNBIN) == 0)
+  //  rc->set_TimeStamp(CalRecoBORTimeStamp);
+  if (Fun4CalServerVars->GetBinContent(Fun4CalHistoBinDefs::FIRSTRUNBIN) == 0)
   {
-    OnCalServerVars->SetBinContent(OnCalHistoBinDefs::FIRSTRUNBIN, runno);
-    OnCalServerVars->SetBinContent(OnCalHistoBinDefs::BORTIMEBIN, (Stat_t) OnCalBORTimeStamp.getTics());
+    Fun4CalServerVars->SetBinContent(Fun4CalHistoBinDefs::FIRSTRUNBIN, runno);
+    Fun4CalServerVars->SetBinContent(Fun4CalHistoBinDefs::BORTIMEBIN, (Stat_t) OnCalBORTimeStamp.getTics());
   }
-  OnCalServerVars->SetBinContent(OnCalHistoBinDefs::LASTRUNBIN, (Stat_t) runno);
+  Fun4CalServerVars->SetBinContent(Fun4CalHistoBinDefs::LASTRUNBIN, (Stat_t) runno);
   ts = runTime->getEndTime(runno);
   if (ts)
   {
-    OnCalServerVars->SetBinContent(OnCalHistoBinDefs::EORTIMEBIN, (Stat_t) ts->getTics());
+    Fun4CalServerVars->SetBinContent(Fun4CalHistoBinDefs::EORTIMEBIN, (Stat_t) ts->getTics());
     delete ts;
   }
 
@@ -367,7 +367,7 @@ int OnCalServer::BeginRun(const int runno)
   return i;
 }
 
-int OnCalServer::End()
+int Fun4CalServer::End()
 {
   if (nEvents == 0)
   {
@@ -404,7 +404,7 @@ int OnCalServer::End()
   currdir = gDirectory->GetPath();
   for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
   {
-    OnCal *oncal = dynamic_cast<OnCal *>((*iter).first);
+    CalReco *oncal = dynamic_cast<CalReco *>((*iter).first);
     if (!oncal)
     {
       continue;
@@ -427,17 +427,17 @@ int OnCalServer::End()
     // report success database the status of the calibration
     if (recordDB)
     {
-      std::string table = "OnCal";
+      std::string table = "CalReco";
       table += CalibratorName;
 
       std::ostringstream stringarg;
-      if (databasecommitstatus == OnCalDBCodes::SUCCESS)
+      if (databasecommitstatus == Fun4CalDBCodes::SUCCESS)
       {
-        stringarg << OnCalDBCodes::COVERED;
+        stringarg << Fun4CalDBCodes::COVERED;
       }
       else
       {
-        stringarg << OnCalDBCodes::FAILED;
+        stringarg << Fun4CalDBCodes::FAILED;
       }
       std::set<int>::const_iterator runiter;
       for (runiter = runlist.begin(); runiter != runlist.end(); ++runiter)
@@ -503,7 +503,7 @@ int OnCalServer::End()
 }
 //---------------------------------------------------------------------
 
-void OnCalServer::Print(const std::string &what) const
+void Fun4CalServer::Print(const std::string &what) const
 {
   Fun4AllServer::Print(what);
   if (what == "ALL" || what == "CALIBRATOR")
@@ -513,13 +513,13 @@ void OnCalServer::Print(const std::string &what) const
 
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "List of Calibrators in OnCalServer:" << std::endl;
+    std::cout << "List of Calibrators in Fun4CalServer:" << std::endl;
 
     std::vector<std::pair<SubsysReco *, PHCompositeNode *> >::const_iterator miter;
     for (miter = Subsystems.begin();
          miter != Subsystems.end(); ++miter)
     {
-      OnCal *oncal = dynamic_cast<OnCal *>((*miter).first);
+      CalReco *oncal = dynamic_cast<CalReco *>((*miter).first);
       if (oncal)
       {
         std::cout << oncal->Name() << std::endl;
@@ -534,7 +534,7 @@ void OnCalServer::Print(const std::string &what) const
 
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "List of required Calibrations in OnCalServer:" << std::endl;
+    std::cout << "List of required Calibrations in Fun4CalServer:" << std::endl;
 
     std::map<std::string, std::set<SubsysReco *> >::const_iterator iter;
     std::set<SubsysReco *>::const_iterator siter;
@@ -553,7 +553,7 @@ void OnCalServer::Print(const std::string &what) const
   {
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "List of PRDF Files in OnCalServer:" << std::endl;
+    std::cout << "List of PRDF Files in Fun4CalServer:" << std::endl;
     for (Fun4AllSyncManager *sync : SyncManagers)
     {
       for (Fun4AllInputManager *inmgr : sync->GetInputManagers())
@@ -569,7 +569,7 @@ void OnCalServer::Print(const std::string &what) const
   {
     std::cout << "--------------------------------------" << std::endl
               << std::endl;
-    std::cout << "List of Run Numbers in OnCalServer:" << std::endl;
+    std::cout << "List of Run Numbers in Fun4CalServer:" << std::endl;
     std::set<int>::const_iterator liter;
     for (liter = runlist.begin(); liter != runlist.end(); ++liter)
     {
@@ -580,7 +580,7 @@ void OnCalServer::Print(const std::string &what) const
   return;
 }
 
-void OnCalServer::printStamps()
+void Fun4CalServer::printStamps()
 {
   std::cout << std::endl
             << std::endl;
@@ -605,7 +605,7 @@ void OnCalServer::printStamps()
 
 //---------------------------------------------------------------------
 
-void OnCalServer::RunNumber(const int runnum)
+void Fun4CalServer::RunNumber(const int runnum)
 {
   runNum = runnum;
   SetBorTime(runnum);
@@ -641,7 +641,7 @@ void OnCalServer::RunNumber(const int runnum)
 
 //---------------------------------------------------------------------
 
-bool OnCalServer::connectDB()
+bool Fun4CalServer::connectDB()
 {
   if (DBconnection)
   {
@@ -678,7 +678,7 @@ bool OnCalServer::connectDB()
 }
 //---------------------------------------------------------------------
 
-int OnCalServer::DisconnectDB()
+int Fun4CalServer::DisconnectDB()
 {
   delete DBconnection;
   DBconnection = nullptr;
@@ -686,7 +686,7 @@ int OnCalServer::DisconnectDB()
 }
 //---------------------------------------------------------------------
 
-bool OnCalServer::insertRunNumInDB(const std::string &DBtable, const int runno)
+bool Fun4CalServer::insertRunNumInDB(const std::string &DBtable, const int runno)
 {
   if (findRunNumInDB(DBtable, runno))
   {
@@ -705,7 +705,7 @@ bool OnCalServer::insertRunNumInDB(const std::string &DBtable, const int runno)
 
   if (Verbosity() == 1)
   {
-    std::cout << "in function OnCalServer::insertRunNumInDB() ... ";
+    std::cout << "in function Fun4CalServer::insertRunNumInDB() ... ";
     std::cout << "executing SQL statements ..." << std::endl;
     std::cout << cmd.str() << std::endl;
   }
@@ -725,7 +725,7 @@ bool OnCalServer::insertRunNumInDB(const std::string &DBtable, const int runno)
 
 //---------------------------------------------------------------------
 
-bool OnCalServer::findRunNumInDB(const std::string &DBtable, const int runno)
+bool Fun4CalServer::findRunNumInDB(const std::string &DBtable, const int runno)
 {
   if (!DBconnection)
   {
@@ -743,7 +743,7 @@ bool OnCalServer::findRunNumInDB(const std::string &DBtable, const int runno)
 
   if (Verbosity() == 1)
   {
-    std::cout << "in function OnCalServer::findRunNumInDB() ";
+    std::cout << "in function Fun4CalServer::findRunNumInDB() ";
     std::cout << "executing SQL statement ..." << std::endl
               << cmd.str() << std::endl;
   }
@@ -779,7 +779,7 @@ bool OnCalServer::findRunNumInDB(const std::string &DBtable, const int runno)
   return true;
 }
 
-bool OnCalServer::updateDBRunRange(const std::string &table, const std::string &column, const int entry, const int firstrun, const int lastrun)
+bool Fun4CalServer::updateDBRunRange(const std::string &table, const std::string &column, const int entry, const int firstrun, const int lastrun)
 {
   if (!DBconnection)
   {
@@ -801,7 +801,7 @@ bool OnCalServer::updateDBRunRange(const std::string &table, const std::string &
 
   if (Verbosity() == 1)
   {
-    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "in function Fun4CalServer::updateDB() ... ";
     std::cout << "executin SQL statement ... " << std::endl;
     std::cout << command << std::endl;
   }
@@ -822,7 +822,7 @@ bool OnCalServer::updateDBRunRange(const std::string &table, const std::string &
 
 //---------------------------------------------------------------------
 
-bool OnCalServer::updateDB(const std::string &table, const std::string &column, int entry)
+bool Fun4CalServer::updateDB(const std::string &table, const std::string &column, int entry)
 {
   if (!DBconnection)
   {
@@ -842,7 +842,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column, 
 
   if (Verbosity() == 1)
   {
-    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "in function Fun4CalServer::updateDB() ... ";
     std::cout << "executin SQL statement ... " << std::endl;
     std::cout << command.Data() << std::endl;
   }
@@ -862,7 +862,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column, 
 }
 //---------------------------------------------------------------------
 
-bool OnCalServer::updateDB(const std::string &table, const std::string &column, bool entry)
+bool Fun4CalServer::updateDB(const std::string &table, const std::string &column, bool entry)
 {
   if (!DBconnection)
   {
@@ -881,7 +881,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column, 
 
   if (Verbosity() == 1)
   {
-    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "in function Fun4CalServer::updateDB() ... ";
     std::cout << "executin SQL statement ... " << std::endl;
     std::cout << command.Data() << std::endl;
   }
@@ -902,7 +902,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column, 
 
 //---------------------------------------------------------------------
 
-int OnCalServer::updateDB(const std::string &table, const std::string &column,
+int Fun4CalServer::updateDB(const std::string &table, const std::string &column,
                           const time_t ticks)
 {
   if (!DBconnection)
@@ -924,7 +924,7 @@ int OnCalServer::updateDB(const std::string &table, const std::string &column,
 
   if (Verbosity() == 1)
   {
-    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "in function Fun4CalServer::updateDB() ... ";
     std::cout << "executin SQL statement ... " << std::endl;
     std::cout << cmd.str() << std::endl;
   }
@@ -942,7 +942,7 @@ int OnCalServer::updateDB(const std::string &table, const std::string &column,
 }
 //---------------------------------------------------------------------
 
-bool OnCalServer::updateDB(const std::string &table, const std::string &column,
+bool Fun4CalServer::updateDB(const std::string &table, const std::string &column,
                            const std::string &entry, const int runno, const bool append)
 {
   if (!DBconnection)
@@ -971,7 +971,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column,
     }
     catch (odbc::SQLException &e)
     {
-      std::cout << "in function OnCalServer::updateDB() ... ";
+      std::cout << "in function Fun4CalServer::updateDB() ... ";
       std::cout << "run number " << runno << "not found in DB" << std::endl;
       std::cout << e.getMessage() << std::endl;
     }
@@ -984,7 +984,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column,
     }
     catch (odbc::SQLException &e)
     {
-      std::cout << "in function OnCalServer::updateDB() ... " << std::endl;
+      std::cout << "in function Fun4CalServer::updateDB() ... " << std::endl;
       std::cout << "nothing to append." << std::endl;
       std::cout << e.getMessage() << std::endl;
     }
@@ -1003,7 +1003,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column,
 
   if (Verbosity() == 1)
   {
-    std::cout << "in function OnCalServer::updateDB() ... ";
+    std::cout << "in function Fun4CalServer::updateDB() ... ";
     std::cout << "executin SQL statement ... " << std::endl;
     std::cout << cmd.str() << std::endl;
   }
@@ -1023,7 +1023,7 @@ bool OnCalServer::updateDB(const std::string &table, const std::string &column,
 
 //---------------------------------------------------------------------
 
-int OnCalServer::check_create_subsystable(const std::string &tablename)
+int Fun4CalServer::check_create_subsystable(const std::string &tablename)
 {
   if (!connectDB())
   {
@@ -1110,7 +1110,7 @@ int OnCalServer::check_create_subsystable(const std::string &tablename)
   return 0;
 }
 
-int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname)
+int Fun4CalServer::add_calibrator_to_statustable(const std::string &calibratorname)
 {
   if (!connectDB())
   {
@@ -1139,7 +1139,7 @@ int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname
   }
   cmd.str("");
   cmd << "ALTER TABLE " << successTable << " ALTER COLUMN "
-      << calibname << " SET DEFAULT " << OnCalDBCodes::INIT;
+      << calibname << " SET DEFAULT " << Fun4CalDBCodes::INIT;
   try
   {
     stmt->executeUpdate(cmd.str());
@@ -1152,7 +1152,7 @@ int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname
   }
   cmd.str("");
   cmd << "UPDATE " << successTable << " SET "
-      << calibname << " = " << OnCalDBCodes::INIT;
+      << calibname << " = " << Fun4CalDBCodes::INIT;
   try
   {
     stmt->executeUpdate(cmd.str());
@@ -1167,7 +1167,7 @@ int OnCalServer::add_calibrator_to_statustable(const std::string &calibratorname
   return 0;
 }
 
-int OnCalServer::check_calibrator_in_statustable(const std::string &calibratorname)
+int Fun4CalServer::check_calibrator_in_statustable(const std::string &calibratorname)
 {
   // replace this contraption by this sql command which returns 1 row if column exists
   // select * from information_schema.columns where table_name = 'oncal_status' and column_name = 'svxstripdeadmapcal';
@@ -1213,7 +1213,7 @@ int OnCalServer::check_calibrator_in_statustable(const std::string &calibratorna
   return -1;
 }
 
-int OnCalServer::check_create_successtable(const std::string &tablename)
+int Fun4CalServer::check_create_successtable(const std::string &tablename)
 {
   if (!connectDB())
   {
@@ -1257,7 +1257,7 @@ int OnCalServer::check_create_successtable(const std::string &tablename)
   return 0;
 }
 
-void OnCalServer::recordDataBase(const bool bookkeep)
+void Fun4CalServer::recordDataBase(const bool bookkeep)
 {
   recordDB = bookkeep;
   if (recordDB)
@@ -1267,20 +1267,20 @@ void OnCalServer::recordDataBase(const bool bookkeep)
   return;
 }
 
-void OnCalServer::BeginTimeStamp(const PHTimeStamp &TimeStp)
+void Fun4CalServer::BeginTimeStamp(const PHTimeStamp &TimeStp)
 {
   beginTimeStamp = TimeStp;
-  std::cout << "OnCalServer::BeginTimeStamp: Setting BOR TimeStamp to " << beginTimeStamp << std::endl;
+  std::cout << "Fun4CalServer::BeginTimeStamp: Setting BOR TimeStamp to " << beginTimeStamp << std::endl;
 }
 
-void OnCalServer::EndTimeStamp(const PHTimeStamp &TimeStp)
+void Fun4CalServer::EndTimeStamp(const PHTimeStamp &TimeStp)
 {
   endTimeStamp = TimeStp;
-  std::cout << "OnCalServer::EndTimeStamp: Setting EOR TimeStamp to " << endTimeStamp << std::endl;
+  std::cout << "Fun4CalServer::EndTimeStamp: Setting EOR TimeStamp to " << endTimeStamp << std::endl;
 }
 
 PHTimeStamp *
-OnCalServer::GetLastGoodRunTS(OnCal *calibrator, const int irun)
+Fun4CalServer::GetLastGoodRunTS(CalReco *calibrator, const int irun)
 {
   PHTimeStamp *ts = nullptr;
   if (!connectDB())
@@ -1324,7 +1324,7 @@ OnCalServer::GetLastGoodRunTS(OnCal *calibrator, const int irun)
   return ts;
 }
 
-int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int commit)
+int Fun4CalServer::SyncCalibTimeStampsToOnCal(const CalReco *calibrator, const int commit)
 {
   std::vector<std::string> caltab;
   calibrator->GetPdbCalTables(caltab);
@@ -1337,7 +1337,7 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const int c
   return 0;
 }
 
-int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::string &table, const int commit)
+int Fun4CalServer::SyncCalibTimeStampsToOnCal(const CalReco *calibrator, const std::string &table, const int commit)
 {
   std::string name = calibrator->Name();
   odbc::Connection *con = nullptr;
@@ -1500,7 +1500,7 @@ int OnCalServer::SyncCalibTimeStampsToOnCal(const OnCal *calibrator, const std::
   return 0;
 }
 
-int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
+int Fun4CalServer::SyncOncalTimeStampsToRunDB(const int commit)
 {
   odbc::Connection *con = nullptr;
   RunToTime *rt = RunToTime::instance();
@@ -1636,13 +1636,13 @@ int OnCalServer::SyncOncalTimeStampsToRunDB(const int commit)
   return 0;
 }
 
-int OnCalServer::CopyTables(const OnCal *calibrator, const int FromRun, const int ToRun, const int commit)
+int Fun4CalServer::CopyTables(const CalReco *calibrator, const int FromRun, const int ToRun, const int commit)
 {
   int iret = calibrator->CopyTables(FromRun, ToRun, commit);
   return iret;
 }
 
-int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, const std::string &what, const int commit)
+int Fun4CalServer::CreateCalibration(CalReco *calibrator, const int myrunnumber, const std::string &what, const int commit)
 {
   int iret = -1;
   runNum = myrunnumber;
@@ -1703,7 +1703,7 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
       std::cout << "updating oncal status tables for " << runnumber << std::endl;
       if (commit)
       {
-        CreateCalibrationUpdateStatus(calibrator, table, tablecomment, OnCalDBCodes::SUBSYSTEM);
+        CreateCalibrationUpdateStatus(calibrator, table, tablecomment, Fun4CalDBCodes::SUBSYSTEM);
       }
     }
     else
@@ -1711,7 +1711,7 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
       std::cout << "Calibratior " << calibrator->Name() << " for run " << runnumber << " failed" << std::endl;
       if (commit)
       {
-        CreateCalibrationUpdateStatus(calibrator, table, tablecomment, OnCalDBCodes::FAILED);
+        CreateCalibrationUpdateStatus(calibrator, table, tablecomment, Fun4CalDBCodes::FAILED);
       }
     }
   }
@@ -1723,7 +1723,7 @@ int OnCalServer::CreateCalibration(OnCal *calibrator, const int myrunnumber, con
   return iret;
 }
 
-void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode)
+void Fun4CalServer::CreateCalibrationUpdateStatus(CalReco *calibrator, const std::string &table, const std::string &tablecomment, const int dbcode)
 {
   updateDB(successTable, calibrator->Name(), dbcode);
   insertRunNumInDB(table, RunNumber());
@@ -1766,7 +1766,7 @@ void OnCalServer::CreateCalibrationUpdateStatus(OnCal *calibrator, const std::st
   return;
 }
 
-int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int previous)
+int Fun4CalServer::ClosestGoodRun(CalReco *calibrator, const int irun, const int previous)
 {
   RunToTime *rt = RunToTime::instance();
   PHTimeStamp *ts = rt->getBeginTime(irun);
@@ -1906,7 +1906,7 @@ int OnCalServer::ClosestGoodRun(OnCal *calibrator, const int irun, const int pre
   return closestrun;
 }
 
-int OnCalServer::OverwriteCalibration(OnCal *calibrator, const int runno, const int commit, const int FromRun)
+int Fun4CalServer::OverwriteCalibration(CalReco *calibrator, const int runno, const int commit, const int FromRun)
 {
   if (FromRun < 0)
   {
@@ -1916,7 +1916,7 @@ int OnCalServer::OverwriteCalibration(OnCal *calibrator, const int runno, const 
   return iret;
 }
 
-int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const int commit, const int fromrun)
+int Fun4CalServer::FixMissingCalibration(CalReco *calibrator, const int runno, const int commit, const int fromrun)
 {
   int iret = -1;
   // find this run in oncal_status
@@ -1987,11 +1987,11 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
       int newstatus = 0;
       if (FromRun < runno)
       {
-        newstatus = OnCalDBCodes::COPIEDPREVIOUS;
+        newstatus = Fun4CalDBCodes::COPIEDPREVIOUS;
       }
       else
       {
-        newstatus = OnCalDBCodes::COPIEDLATER;
+        newstatus = Fun4CalDBCodes::COPIEDLATER;
       }
       std::string table = "OnCal";
       table += calibrator->Name();
@@ -2016,7 +2016,7 @@ int OnCalServer::FixMissingCalibration(OnCal *calibrator, const int runno, const
   return iret;
 }
 
-int OnCalServer::SetBorTime(const int runno)
+int Fun4CalServer::SetBorTime(const int runno)
 {
   //  recoConsts *rc = recoConsts::instance();
   RunToTime *runTime = RunToTime::instance();
@@ -2033,7 +2033,7 @@ int OnCalServer::SetBorTime(const int runno)
   // enter begin run timestamp into rc flags
   PHTimeStamp BeginRunTimeStamp(*BorTimeStp);
   //  rc->set_TimeStamp(BeginRunTimeStamp);
-  std::cout << "OnCalServer::SetBorTime from RunToTime was found for run : " << runno << " to ";
+  std::cout << "Fun4CalServer::SetBorTime from RunToTime was found for run : " << runno << " to ";
   BeginRunTimeStamp.print();
   std::cout << std::endl;
 
@@ -2041,7 +2041,7 @@ int OnCalServer::SetBorTime(const int runno)
   return 0;
 }
 
-int OnCalServer::SetEorTime(const int runno)
+int Fun4CalServer::SetEorTime(const int runno)
 {
   //  recoConsts *rc = recoConsts::instance();
   RunToTime *runTime = RunToTime::instance();
@@ -2065,14 +2065,14 @@ int OnCalServer::SetEorTime(const int runno)
     EorTimeStp->setTics(eorticks);
   }
   EndTimeStamp(*EorTimeStp);
-  std::cout << "OnCalServer::SetEorTime: setting eor time to ";
+  std::cout << "Fun4CalServer::SetEorTime: setting eor time to ";
   EorTimeStp->print();
   std::cout << std::endl;
   delete EorTimeStp;
   return 0;
 }
 
-int OnCalServer::GetRunTimeTicks(const int runno, time_t &borticks, time_t &eorticks)
+int Fun4CalServer::GetRunTimeTicks(const int runno, time_t &borticks, time_t &eorticks)
 {
   RunToTime *runTime = RunToTime::instance();
   PHTimeStamp *TimeStp(runTime->getBeginTime(runno));
@@ -2102,7 +2102,7 @@ int OnCalServer::GetRunTimeTicks(const int runno, time_t &borticks, time_t &eort
   return 0;
 }
 
-int OnCalServer::requiredCalibration(SubsysReco *reco, const std::string &calibratorname)
+int Fun4CalServer::requiredCalibration(SubsysReco *reco, const std::string &calibratorname)
 {
   std::map<std::string, std::set<SubsysReco *> >::iterator iter;
   if (check_calibrator_in_statustable(calibratorname))
@@ -2124,7 +2124,7 @@ int OnCalServer::requiredCalibration(SubsysReco *reco, const std::string &calibr
   return 0;
 }
 
-int OnCalServer::FindClosestCalibratedRun(const int irun)
+int Fun4CalServer::FindClosestCalibratedRun(const int irun)
 {
   RunToTime *rt = RunToTime::instance();
   PHTimeStamp *ts = rt->getBeginTime(irun);
@@ -2261,7 +2261,7 @@ int OnCalServer::FindClosestCalibratedRun(const int irun)
   return closestrun;
 }
 
-int OnCalServer::FillRunListFromFileList()
+int Fun4CalServer::FillRunListFromFileList()
 {
   for (Fun4AllSyncManager *sync : SyncManagers)
   {
@@ -2277,7 +2277,7 @@ int OnCalServer::FillRunListFromFileList()
   return 0;
 }
 
-int OnCalServer::AdjustRichTimeStampForMultipleRuns()
+int Fun4CalServer::AdjustRichTimeStampForMultipleRuns()
 {
   int firstrun = *runlist.begin();
   int lastrun = *runlist.rbegin();
@@ -2289,7 +2289,7 @@ int OnCalServer::AdjustRichTimeStampForMultipleRuns()
   GetRunTimeTicks(firstrun, beginticks, dummy);
   GetRunTimeTicks(lastrun, dummy, endticks);
   std::ostringstream stringarg;
-  stringarg << OnCalDBCodes::COVERED;
+  stringarg << Fun4CalDBCodes::COVERED;
   //  std::set<int>::const_iterator runiter;
   /*
     for (runiter = runlist.begin(); runiter != runlist.end(); runiter++)
@@ -2297,7 +2297,7 @@ int OnCalServer::AdjustRichTimeStampForMultipleRuns()
     updateDB(successTable, "RichCal", stringarg.str(), *runiter);
     }
     stringarg.str("");
-    stringarg << OnCalDBCodes::SUCCESS;
+    stringarg << Fun4CalDBCodes::SUCCESS;
 
     updateDB(successTable, "RichCal", stringarg.str(), firstrun);
   */
@@ -2378,7 +2378,7 @@ int OnCalServer::AdjustRichTimeStampForMultipleRuns()
   return 0;
 }
 
-int OnCalServer::GetCalibStatus(const std::string &calibname, const int runno)
+int Fun4CalServer::GetCalibStatus(const std::string &calibname, const int runno)
 {
   int iret = -3;
   if (!connectDB())
@@ -2417,7 +2417,7 @@ int OnCalServer::GetCalibStatus(const std::string &calibname, const int runno)
   return iret;
 }
 
-void OnCalServer::TestMode(const int i)
+void Fun4CalServer::TestMode(const int i)
 {
   const char *logname = getenv("LOGNAME");
   if (logname)

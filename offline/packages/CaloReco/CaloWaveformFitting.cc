@@ -659,6 +659,42 @@ double CaloWaveformFitting::SignalShape_PowerLawDoubleExp(double *x, double *par
   return pedestal + signal;
 }
 
+// chp: needs to be verified, but I can vaguely recall that making the args const fails in root
+double CaloWaveformFitting::SignalShape_FermiExp(double *x, double *par) //NOLINT(readability-non-const-parameter)
+{
+  // par[0]: Amplitude
+  // par[1]: Midpoint (t0)
+  // par[2]: Rise width (w)
+  // par[3]: Decay time (tau)
+  // par[4]: Pedestal
+
+  double tt  = x[0];
+  double A  = par[0];
+  double t0 = par[1];
+  double w  = par[2];
+  double tau = par[3];
+  double ped = par[4];
+
+  if (w <= 0 || tau <= 0)
+  {
+    return ped;
+  }
+
+  double fermi = 1.0 / (1.0 + exp(-(tt - t0) / w));
+
+  double expo = exp(-(tt - t0) / tau);
+
+  if (tt < t0)
+  {
+    expo = 1.0;  
+  }
+
+  double signal = A * fermi * expo;
+
+  return ped + signal;
+}
+
+
 std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(const std::vector<std::vector<float>> &chnlvector)
 {
   std::vector<std::vector<float>> fit_values;
@@ -803,7 +839,7 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
         }
       }
     }
-    else  // POWERLAWDOUBLEEXP
+    else if(m_funcfit_type == POWERLAWDOUBLEEXP)
     {
       // Create fit function with 7 parameters
       TF1 f("f_doubleexp", SignalShape_PowerLawDoubleExp, 0, nsamples, 7);
@@ -841,6 +877,44 @@ std::vector<std::vector<float>> CaloWaveformFitting::calo_processing_funcfit(con
 
       fit_time = f.GetMaximumX(f.GetParameter(1), max_peakpos);
       fit_amp = f.Eval(fit_time) - f.GetParameter(4);
+      fit_ped = f.GetParameter(4);
+
+      // Calculate chi2
+      for (int i = 0; i < nsamples; i++)
+      {
+        if (h.GetBinContent(i + 1) > 0)
+        {
+          double diff = h.GetBinContent(i + 1) - f.Eval(i);
+          chi2val += diff * diff;
+        }
+      }
+    }
+    else if(m_funcfit_type == FERMIEXP)
+    {
+      TF1 f("f_fermiexp", SignalShape_FermiExp, 0, nsamples, 5);
+      npar = 5;
+
+      // Set initial parameters
+      double par[5];
+      par[0] = maxheight - pedestal; // Amplitude
+      par[1] = maxbin ;              // t0
+      par[2] = 1.0;                  // width
+      par[3] = 2.0;                  // Peak Time 1
+      par[4] = pedestal;             // Pedestal
+
+      f.SetParameters(par);
+      f.SetParLimits(0, maxheight-pedestal, 3*(maxheight-pedestal));
+      f.SetParLimits(1, maxbin-1, maxbin);
+      f.SetParLimits(2, 0.025, 2.0);
+      f.SetParLimits(3, 0.5, 4.0);
+      f.SetParLimits(4, pedestal-500, pedestal+500);
+
+      f.FixParameter(2, 0.2);  
+
+      h.Fit(&f, "QRN0W", "", 0, nsamples);
+
+      fit_time = f.GetParameter(1);
+      fit_amp = f.GetParameter(0);
       fit_ped = f.GetParameter(4);
 
       // Calculate chi2

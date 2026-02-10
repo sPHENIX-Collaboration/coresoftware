@@ -29,6 +29,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
   void setFieldMap(const std::string &name) { m_fieldMap = name; }
   void setTrackMapName(const std::string &name) { m_trackMapName = name; }
   void setTrackSeedName(const std::string &name) { m_trackSeedName = name; }
+  void setClusterMapName(const std::string& name) {m_clusterMapName = name; }
   void cosmics() { m_cosmics = true; }
   void constField() { m_ConstField = true; }
 
@@ -56,6 +57,7 @@ class TrackSeedTrackMapConverter : public SubsysReco
   std::string m_fieldMap;
   std::string m_trackMapName{"SvtxTrackMap"};
   std::string m_trackSeedName{"TpcTrackSeedContainer"};
+  std::string m_clusterMapName{"TRKR_CLUSTER"};
 };
 
 #endif  // TRACKSEEDTRACKMAPCONVERTER_H

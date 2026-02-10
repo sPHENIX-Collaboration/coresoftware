@@ -1,4 +1,4 @@
-AC_INIT(oncal,[2.00])
+AC_INIT(fun4cal,[1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE

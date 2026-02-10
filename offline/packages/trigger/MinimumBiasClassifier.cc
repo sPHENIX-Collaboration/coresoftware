@@ -39,6 +39,29 @@ int MinimumBiasClassifier::InitRun(PHCompositeNode *topNode)
   {
     std::cout << __FILE__ << " :: " << __FUNCTION__ << std::endl;
   }
+
+  if (m_species == MinimumBiasInfo::SPECIES::AUAU)
+    {
+      m_useZDC = true;
+      m_max_charge_cut = 2100;
+      m_box_cut = true;
+      m_hit_cut = 2;
+    }
+  if (m_species == MinimumBiasInfo::SPECIES::OO)
+    {
+      m_useZDC = false;
+      m_max_charge_cut = 300;
+      m_box_cut = false;
+      m_hit_cut = 1;
+    }
+  if (m_species == MinimumBiasInfo::SPECIES::PP)
+    {
+      m_useZDC = false;
+      m_max_charge_cut = 300;
+      m_box_cut = false;
+      m_hit_cut = 1;
+    }
+
   CDBInterface *m_cdb = CDBInterface::instance();
 
   std::string centscale_url = m_cdb->getUrl("CentralityScale");
@@ -132,7 +155,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   {
     std::cout << "Getting ZDC" << std::endl;
   }
-  if (!m_issim)
+  if (!m_issim && !m_useZDC)
   {
     if (!m_zdcinfo)
     {
@@ -169,7 +192,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   }
 
   // MBD Background cut
-  if (m_mbd_charge_sum[1] < m_mbd_north_cut && m_mbd_charge_sum[0] > m_mbd_south_cut && minbiascheck)
+  if (m_box_cut && m_mbd_charge_sum[1] < m_mbd_north_cut && m_mbd_charge_sum[0] > m_mbd_south_cut && minbiascheck)
   {
     minbiascheck = false;
     //    m_mb_info->setIsAuAuMinimumBias(false);
@@ -179,13 +202,13 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
   // Mbd two hit requirement and ZDC energy sum coincidence requirement
   for (int iside = 0; iside < 2; iside++)
   {
-    if (m_mbd_hit[iside] < 2 && minbiascheck)
+    if (m_mbd_hit[iside] < m_hit_cut && minbiascheck)
     {
       minbiascheck = false;
       // m_mb_info->setIsAuAuMinimumBias(false);
       // return Fun4AllReturnCodes::EVENT_OK;
     }
-    if (!m_issim)
+    if (!m_issim && m_useZDC)
     {
       if (m_zdcinfo->get_zdc_energy(iside) <= m_zdc_cut && minbiascheck)
       {
@@ -195,7 +218,7 @@ int MinimumBiasClassifier::FillMinimumBiasInfo()
       }
     }
   }
-  if ((m_mbd_charge_sum[0] + m_mbd_charge_sum[1]) > 2100 && minbiascheck)
+  if ((m_mbd_charge_sum[0] + m_mbd_charge_sum[1]) > m_max_charge_cut && minbiascheck)
   {
     minbiascheck = false;
     // m_mb_info->setIsAuAuMinimumBias(false);

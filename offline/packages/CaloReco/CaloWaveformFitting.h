@@ -13,6 +13,7 @@ class CaloWaveformFitting
   {
     POWERLAWEXP = 0,
     POWERLAWDOUBLEEXP = 1,
+    FERMIEXP = 2,
   };
 
   CaloWaveformFitting() = default;
@@ -75,6 +76,7 @@ class CaloWaveformFitting
   static double SignalShape_PowerLawExp(double *x, double *par);
   // Double exponential power-law fit function
   static double SignalShape_PowerLawDoubleExp(double *x, double *par);
+  static double SignalShape_FermiExp(double *x, double *par);
 
   void set_funcfit_type(FuncFitType type)
   {
