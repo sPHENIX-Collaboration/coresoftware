@@ -769,22 +769,6 @@ int PHTpcResiduals::getNodes(PHCompositeNode* topNode)
 
   // tpc global position wrapper
   m_globalPositionWrapper.loadNodes(topNode);
-  if (m_disable_module_edge_corr)
-  {
-    m_globalPositionWrapper.set_enable_module_edge_corr(false);
-  }
-  if (m_disable_static_corr)
-  {
-    m_globalPositionWrapper.set_enable_static_corr(false);
-  }
-  if (m_disable_average_corr)
-  {
-    m_globalPositionWrapper.set_enable_average_corr(false);
-  }
-  if (m_disable_fluctuation_corr)
-  {
-    m_globalPositionWrapper.set_enable_fluctuation_corr(false);
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
