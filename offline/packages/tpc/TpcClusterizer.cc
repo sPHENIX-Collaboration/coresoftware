@@ -1893,6 +1893,22 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
     int Pad    = (m_isSimulation) ? Pad0            : Pad1;
     int Sector = (m_isSimulation) ? mc_sectors[Sec] : Sec;
 
+    if (Layer < 7 || Layer > 48)
+    {
+      std::cout << PHWHERE << "WARNING: layer " << Layer
+                << " out of TPC range [7,48] in " << dbName
+                << ", skipping channel " << i << std::endl;
+      continue;
+    }
+
+    if (Side < 0 || Side > 1)
+    {
+      std::cout << PHWHERE << "WARNING: side " << Side
+                << " out of range [0,1] in " << dbName
+                << ", skipping channel " << i << std::endl;
+      continue;
+    }
+
     if (Verbosity() > VERBOSITY_A_LOT)
     {
       std::cout << dbName << ": Will mask layer: " << Layer << ", sector: " << Sector << ", side: " << Side << ", Pad: " << Pad << std::endl;
