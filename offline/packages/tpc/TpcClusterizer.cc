@@ -1881,6 +1881,14 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
     int Pad0   = cdbttree->GetIntValue(i, "pad0");   // Simulation pad
     int Pad1   = cdbttree->GetIntValue(i, "pad1");   // Data pad
 
+    if (Sec < 0 || Sec >= 12)
+    {
+      std::cout << PHWHERE << "WARNING: sector index " << Sec
+                << " out of range [0,11] in " << dbName
+                << ", skipping channel " << i << std::endl;
+      continue;
+    }
+
     int Layer  = (m_isSimulation) ? Layer0          : Layer1;
     int Pad    = (m_isSimulation) ? Pad0            : Pad1;
     int Sector = (m_isSimulation) ? mc_sectors[Sec] : Sec;
