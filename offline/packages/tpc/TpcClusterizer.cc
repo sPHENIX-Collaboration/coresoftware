@@ -29,8 +29,6 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <ffaobjects/EventHeader.h>
-
 #include <g4detectors/PHG4TpcGeomv1.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
@@ -1310,19 +1308,6 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   auto *g3 = static_cast<PHG4TpcGeomv1*> (geom->GetLayerCellGeom(40)); // cast because << not in the base class
   std::cout << *g3 << std::endl;
 
-  auto *evtHeader = findNode::getClass<EventHeader>(topNode, "EVENTHEADER");
-  if (evtHeader)
-  {
-    m_runNumber = evtHeader->get_RunNumber();
-    m_isSimulation = (m_runNumber < 1000); // Threshold: < 1000 is simulation
-    std::cout << PHWHERE << "Run number = " << m_runNumber << ", isSimulation = " << m_isSimulation << std::endl;
-  }
-  else
-  {
-    std::cout << PHWHERE << "WARNING: EventHeader node not found; defaulting to simulation." << std::endl;
-    m_isSimulation = true;
-  }
-
   if (m_maskDeadChannels)
   {
     m_deadChannelMap.clear();
@@ -1883,29 +1868,51 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
 
     if (Sec < 0 || Sec >= 12)
     {
-      std::cout << PHWHERE << "WARNING: sector index " << Sec
-                << " out of range [0,11] in " << dbName
-                << ", skipping channel " << i << std::endl;
+      if (Verbosity() > VERBOSITY_A_LOT)
+      {
+	std::cout << PHWHERE << "WARNING: sector index " << Sec
+		  << " out of range [0,11] in " << dbName
+		  << ", skipping channel " << i << std::endl;
+      }
       continue;
     }
 
-    int Layer  = (m_isSimulation) ? Layer0          : Layer1;
-    int Pad    = (m_isSimulation) ? Pad0            : Pad1;
-    int Sector = (m_isSimulation) ? mc_sectors[Sec] : Sec;
+    int Layer;
+    int Pad;
+    int Sector;
+
+    if (!m_is_data)
+    {
+      Layer = Layer0;
+      Pad = Pad0;
+      Sector = mc_sectors[Sec];
+    }
+    else
+    {
+      Layer = Layer1;
+      Pad = Pad1;
+      Sector = Sec;
+    }
 
     if (Layer < 7 || Layer > 48)
     {
-      std::cout << PHWHERE << "WARNING: layer " << Layer
-                << " out of TPC range [7,48] in " << dbName
-                << ", skipping channel " << i << std::endl;
+      if (Verbosity() > VERBOSITY_A_LOT)
+      {
+	std::cout << PHWHERE << "WARNING: layer " << Layer
+		  << " out of TPC range [7,48] in " << dbName
+		  << ", skipping channel " << i << std::endl;
+      }
       continue;
     }
 
     if (Side < 0 || Side > 1)
     {
-      std::cout << PHWHERE << "WARNING: side " << Side
-                << " out of range [0,1] in " << dbName
-                << ", skipping channel " << i << std::endl;
+      if (Verbosity() > VERBOSITY_A_LOT)
+      {
+	std::cout << PHWHERE << "WARNING: side " << Side
+		  << " out of range [0,1] in " << dbName
+		  << ", skipping channel " << i << std::endl;
+      }
       continue;
     }
 
