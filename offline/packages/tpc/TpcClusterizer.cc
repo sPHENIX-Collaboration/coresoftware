@@ -1310,7 +1310,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   auto *g3 = static_cast<PHG4TpcGeomv1*> (geom->GetLayerCellGeom(40)); // cast because << not in the base class
   std::cout << *g3 << std::endl;
 
-  auto evtHeader = findNode::getClass<EventHeader>(topNode, "EVENTHEADER");
+  auto *evtHeader = findNode::getClass<EventHeader>(topNode, "EVENTHEADER");
   if (evtHeader)
   {
     m_runNumber = evtHeader->get_RunNumber();
