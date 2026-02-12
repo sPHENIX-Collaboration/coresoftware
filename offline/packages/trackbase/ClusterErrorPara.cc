@@ -22,7 +22,7 @@ namespace
 
 }  // namespace
 
-ClusterErrorPara::ClusterErrorPara()
+ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
 {
   /*
   ftpcR1 = new TF1("ftpcR1", "pol2", 0, 10);
