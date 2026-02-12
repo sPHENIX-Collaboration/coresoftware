@@ -75,7 +75,7 @@ public:
 
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
-  void SetSimDataFlag(bool flag)
+  void SetIsData(bool flag)
   {
     m_is_data = flag;
   }
