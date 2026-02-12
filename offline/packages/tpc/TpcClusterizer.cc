@@ -29,6 +29,8 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>  // for SubsysReco
 
+#include <ffaobjects/EventHeader.h>
+
 #include <g4detectors/PHG4TpcGeomv1.h>
 #include <g4detectors/PHG4TpcGeomContainer.h>
 
@@ -1308,6 +1310,19 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
   auto *g3 = static_cast<PHG4TpcGeomv1*> (geom->GetLayerCellGeom(40)); // cast because << not in the base class
   std::cout << *g3 << std::endl;
 
+  auto evtHeader = findNode::getClass<EventHeader>(topNode, "EVENTHEADER");
+  if (evtHeader)
+  {
+    m_runNumber = evtHeader->get_RunNumber();
+    m_isSimulation = (m_runNumber < 1000); // Threshold: < 1000 is simulation
+    std::cout << PHWHERE << "Run number = " << m_runNumber << ", isSimulation = " << m_isSimulation << std::endl;
+  }
+  else
+  {
+    std::cout << PHWHERE << "WARNING: EventHeader node not found; defaulting to simulation." << std::endl;
+    m_isSimulation = true;
+  }
+
   if (m_maskDeadChannels)
   {
     m_deadChannelMap.clear();
@@ -1859,10 +1874,17 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
 
   for (int i = 0; i < NChan; i++)
   {
-    int Layer = cdbttree->GetIntValue(i, "layer");
-    int Sector = cdbttree->GetIntValue(i, "sector");
-    int Side = cdbttree->GetIntValue(i, "side");
-    int Pad = cdbttree->GetIntValue(i, "pad");
+    int Layer0 = cdbttree->GetIntValue(i, "layer0"); // Simulation layer
+    int Layer1 = cdbttree->GetIntValue(i, "layer1"); // Data layer
+    int Sec    = cdbttree->GetIntValue(i, "sector"); // Stored sector
+    int Side   = cdbttree->GetIntValue(i, "side");   // 0 or 1
+    int Pad0   = cdbttree->GetIntValue(i, "pad0");   // Simulation pad
+    int Pad1   = cdbttree->GetIntValue(i, "pad1");   // Data pad
+
+    int Layer  = (m_isSimulation) ? Layer0          : Layer1;
+    int Pad    = (m_isSimulation) ? Pad0            : Pad1;
+    int Sector = (m_isSimulation) ? mc_sectors[Sec] : Sec;
+
     if (Verbosity() > VERBOSITY_A_LOT)
     {
       std::cout << dbName << ": Will mask layer: " << Layer << ", sector: " << Sector << ", side: " << Side << ", Pad: " << Pad << std::endl;

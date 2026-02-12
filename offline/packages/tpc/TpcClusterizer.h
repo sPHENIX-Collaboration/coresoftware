@@ -95,6 +95,9 @@ public:
   bool is_in_sector_boundary(int phibin, int sector, PHG4TpcGeom *layergeom) const;
   bool record_ClusHitsVerbose{false};
 
+  int m_runNumber = -1; // Store run number from Event Header
+  bool m_isSimulation = true; // Default true; Updated based on run number
+  int mc_sectors[12]{5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6};
   void makeChannelMask(hitMaskTpcSet& aMask, const std::string& dbName, const std::string& totalChannelsToMask);
 
   TrkrHitSetContainer *m_hits = nullptr;
