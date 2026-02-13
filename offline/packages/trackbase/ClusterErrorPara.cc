@@ -22,7 +22,37 @@ namespace
 
 }  // namespace
 
-ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
+ClusterErrorPara::ClusterErrorPara():
+  f0{new TF1("f0", "pol1", 0, 10)},
+  f1{new TF1("f1", "pol2", 0, 10)},
+  f2{new TF1("f2", "pol2", 0, 10)},
+  f0fine{new TF1("f0fine", "pol2", 0, 20000)},
+  f1fine{new TF1("f1fine", "pol3", 0, 20000)},
+  f2fine{new TF1("f2fine", "pol5", 0, 20000)},
+  f2fine2{new TF1("f2fine", "pol5", 0, 20000)},
+  fz0{new TF1("fz0", "pol2", -2, 2)},
+  fz1{new TF1("fz1", "pol4", -2, 2)},
+  fz2{new TF1("fz2", "pol2", -2, 2)},
+  fz0fine{new TF1("fz0fine", "pol2", 0, 20000)},
+  fz1fine{new TF1("fz1fine", "pol3", 0, 20000)},
+  fz2fine{new TF1("fz2fine", "pol5", 0, 20000)},
+  fmm_55_2{new TF1("fmm_55_2", "pol2", -2, 2)},  
+  fmm_56_2{new TF1("fmm_56_2", "pol2", -2, 2)},
+  fmm_3{new TF1("fmm_3", "pol2", -2, 2)},
+  fadcz0{new TF1("fadcz0", "pol5", 0, 20000)},
+  fadcz1{new TF1("fadcz1", "pol5", 0, 20000)},
+  fadcz2{new TF1("fadcz2", "pol5", 0, 20000)},
+  fadcz0fine{new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
+  fadcz1fine{new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
+  fadcz2fine{new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
+  fadcphi0{new TF1("fadcphi0", "pol4", 0, 20000)},
+  fadcphi0fine{new TF1("fadcphi0fine", "pol2", 0, 20000)},
+  fadcphi1{new TF1("fadcphi1", "pol4", 0, 20000)},
+  fadcphi1fine{new TF1("fadcphi1fine", "pol4", 0, 20000)},
+  fadcphi2{new TF1("fadcphi2", "pol5", 0, 20000)},
+  fadcphi2fine1{new TF1("fadcphi2fine1", "pol4", 0, 20000)},
+  fadcphi2fine2{new TF1("fadcphi2fine2", "pol1", 0, 20000)}
+
 {
   /*
   ftpcR1 = new TF1("ftpcR1", "pol2", 0, 10);
@@ -31,54 +61,54 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   ftpcR1->SetParameter(2, 0.007);
   */
   
-  f0 = new TF1("f0", "pol1", 0, 10);
+  //  f0 = new TF1("f0", "pol1", 0, 10);
   f0->SetParameter(0, 0.0163943);
   f0->SetParameter(1, 0.0192931);
 
-  f1 = new TF1("f1", "pol2", 0, 10);
+  //  f1 = new TF1("f1", "pol2", 0, 10);
   f1->SetParameter(0, 0.0119384);
   f1->SetParameter(1, 0.0253197);
   f1->SetParameter(2, 0.0404213);
 
-  f2 = new TF1("f2", "pol2", 0, 10);
+  //  f2 = new TF1("f2", "pol2", 0, 10);
   f2->SetParameter(0, 0.0107316);
   f2->SetParameter(1, 0.0294968);
   f2->SetParameter(2, 0.0414098);
   // f2->SetParameter(3,9.75877);
 
-  fz0 = new TF1("fz0", "pol2", -2, 2);
+  //  fz0 = new TF1("fz0", "pol2", -2, 2);
   fz0->SetParameter(0, 0.0520278);
   fz0->SetParameter(1, -0.00578699);
   fz0->SetParameter(2, 0.0156972);
 
-  fz1 = new TF1("fz1", "pol4", -2, 2);
+  //  fz1 = new TF1("fz1", "pol4", -2, 2);
   fz1->SetParameter(0, 0.0383233);
   fz1->SetParameter(1, -0.00577128);
   fz1->SetParameter(2, 0.0770914);
   fz1->SetParameter(3, -0.0818139);
   fz1->SetParameter(4, 0.050305);
 
-  fz2 = new TF1("fz2", "pol2", -2, 2);
+  //  fz2 = new TF1("fz2", "pol2", -2, 2);
   fz2->SetParameter(0, 0.0371611);
   fz2->SetParameter(1, -0.000694558);
   fz2->SetParameter(2, 0.0437917);
 
-  fmm_55_2 = new TF1("fmm_55_2", "pol2", -2, 2);
+  //  fmm_55_2 = new TF1("fmm_55_2", "pol2", -2, 2);
   fmm_55_2->SetParameter(0, 0.0430592);
   fmm_55_2->SetParameter(1, -0.000177174);
   fmm_55_2->SetParameter(2, 0.0914288);
 
-  fmm_56_2 = new TF1("fmm_56_2", "pol2", -2, 2);
+  //  fmm_56_2 = new TF1("fmm_56_2", "pol2", -2, 2);
   fmm_56_2->SetParameter(0, 0.00363897);
   fmm_56_2->SetParameter(1, 0.0109713);
   fmm_56_2->SetParameter(2, 0.032354);
 
-  fmm_3 = new TF1("fmm_3", "pol2", -2, 2);
+  //  fmm_3 = new TF1("fmm_3", "pol2", -2, 2);
   fmm_3->SetParameter(0, 0.00305396);
   fmm_3->SetParameter(1, 0.00505814);
   fmm_3->SetParameter(2, 0.0395137);
 
-  fadcz0 = new TF1("fadcz0", "pol5", 0, 20000);
+  //  fadcz0 = new TF1("fadcz0", "pol5", 0, 20000);
   fadcz0->SetParameter(0, 2.08854);
   fadcz0->SetParameter(1, -0.0536847);
   fadcz0->SetParameter(2, 0.000989393);
@@ -86,7 +116,7 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   fadcz0->SetParameter(4, 4.42178e-08);
   fadcz0->SetParameter(5, -7.79669e-11);
 
-  fadcz1 = new TF1("fadcz1", "pol5", 0, 20000);
+  //  fadcz1 = new TF1("fadcz1", "pol5", 0, 20000);
   fadcz1->SetParameter(0, 2.35278);
   fadcz1->SetParameter(1, -0.0535903);
   fadcz1->SetParameter(2, 0.00088052);
@@ -94,7 +124,7 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   fadcz1->SetParameter(4, 3.35361e-08);
   fadcz1->SetParameter(5, -5.61371e-11);
 
-  fadcz2 = new TF1("fadcz2", "pol5", 0, 20000);
+  //  fadcz2 = new TF1("fadcz2", "pol5", 0, 20000);
   fadcz2->SetParameter(0, 2.53191);
   fadcz2->SetParameter(1, -0.062285);
   fadcz2->SetParameter(2, 0.00103893);
@@ -102,22 +132,22 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   fadcz2->SetParameter(4, 3.9802e-08);
   fadcz2->SetParameter(5, -6.67137e-11);
 
-  fadcz0fine = new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
+  //  fadcz0fine = new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
   fadcz0fine->SetParameter(0, 9.63983e-01);
   fadcz0fine->SetParameter(1, 2.68585e+01);
   fadcz0fine->SetParameter(2, -4.78664e+00);
 
-  fadcz1fine = new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
+  //  fadcz1fine = new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
   fadcz1fine->SetParameter(0, 9.85546e-01);
   fadcz1fine->SetParameter(1, 1.12622e+02);
   fadcz1fine->SetParameter(2, -1.26552e+01);
 
-  fadcz2fine = new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
+  //  fadcz2fine = new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
   fadcz2fine->SetParameter(0, 9.71125e-01);
   fadcz2fine->SetParameter(1, 6.67244e+01);
   fadcz2fine->SetParameter(2, -3.55034e+00);
 
-  fadcphi0 = new TF1("fadcphi0", "pol4", 0, 20000);
+  //  fadcphi0 = new TF1("fadcphi0", "pol4", 0, 20000);
   fadcphi0->SetParameter(0, 1.79273);
   fadcphi0->SetParameter(1, -0.0306044);
   fadcphi0->SetParameter(2, 0.000355984);
@@ -125,26 +155,26 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   fadcphi0->SetParameter(4, 4.26161e-09);
   //  fadcphi0->SetParameter(5,-4.22758e-11);
 
-  fadcphi0fine = new TF1("fadcphi0fine", "pol2", 0, 20000);
+  //  fadcphi0fine = new TF1("fadcphi0fine", "pol2", 0, 20000);
   fadcphi0fine->SetParameter(0, 1.02625);
   fadcphi0fine->SetParameter(1, -0.00167294);
   fadcphi0fine->SetParameter(2, 2.2912e-5);
 
-  fadcphi1 = new TF1("fadcphi1", "pol4", 0, 20000);
+  //  fadcphi1 = new TF1("fadcphi1", "pol4", 0, 20000);
   fadcphi1->SetParameter(0, 2.12873);
   fadcphi1->SetParameter(1, -0.0369604);
   fadcphi1->SetParameter(2, 0.00042828);
   fadcphi1->SetParameter(3, -2.3665e-06);
   fadcphi1->SetParameter(4, 4.87683e-09);
 
-  fadcphi1fine = new TF1("fadcphi1fine", "pol4", 0, 20000);
+  //  fadcphi1fine = new TF1("fadcphi1fine", "pol4", 0, 20000);
   fadcphi1fine->SetParameter(0, 1.11749);
   fadcphi1fine->SetParameter(1, -0.00354277);
   fadcphi1fine->SetParameter(2, 5.60236e-05);
   fadcphi1fine->SetParameter(3, -4.46412e-07);
   fadcphi1fine->SetParameter(4, 1.22689e-09);
 
-  fadcphi2 = new TF1("fadcphi2", "pol5", 0, 20000);
+  //  fadcphi2 = new TF1("fadcphi2", "pol5", 0, 20000);
   fadcphi2->SetParameter(0, 2.29);
   fadcphi2->SetParameter(1, -0.0474362);
   fadcphi2->SetParameter(2, 0.000717789);
@@ -152,23 +182,23 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   fadcphi2->SetParameter(4, 2.52007e-08);
   fadcphi2->SetParameter(5, -4.14747e-11);
 
-  fadcphi2fine1 = new TF1("fadcphi2fine1", "pol4", 0, 20000);
+  //  fadcphi2fine1 = new TF1("fadcphi2fine1", "pol4", 0, 20000);
   fadcphi2fine1->SetParameter(0, 1.39404);
   fadcphi2fine1->SetParameter(1, -0.0202245);
   fadcphi2fine1->SetParameter(2, 0.000394666);
   fadcphi2fine1->SetParameter(3, -3.37831e-06);
   fadcphi2fine1->SetParameter(4, 1.05017e-08);
 
-  fadcphi2fine2 = new TF1("fadcphi2fine2", "pol1", 0, 20000);
+  //  fadcphi2fine2 = new TF1("fadcphi2fine2", "pol1", 0, 20000);
   fadcphi2fine2->SetParameter(0, 0.997);
   fadcphi2fine2->SetParameter(1, 0.00047);
 
-  f0fine = new TF1("f0fine", "pol2", 0, 20000);
+  //  f0fine = new TF1("f0fine", "pol2", 0, 20000);
   f0fine->SetParameter(0, 0.98611);
   f0fine->SetParameter(1, -0.169505);
   f0fine->SetParameter(2, 1.12907);
 
-  f1fine = new TF1("f1fine", "pol3", 0, 20000);
+  //  f1fine = new TF1("f1fine", "pol3", 0, 20000);
   f1fine->SetParameter(0, 0.968625);
   f1fine->SetParameter(1, -0.38894);
   f1fine->SetParameter(2, 3.36493);
@@ -181,7 +211,7 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   f2fine->SetParameter(3,-42.4668);
   f2fine->SetParameter(4,43.6083);
   */
-  f2fine = new TF1("f2fine", "pol5", 0, 20000);
+  //  f2fine = new TF1("f2fine", "pol5", 0, 20000);
   f2fine->SetLineColor(kBlue);
   f2fine->SetParameter(0, 1.14119);
   f2fine->SetParameter(1, -2.81483);
@@ -190,18 +220,18 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
   f2fine->SetParameter(4, 72.2359);
   f2fine->SetParameter(5, -20.3802);
 
-  fz0fine = new TF1("fz0fine", "pol2", 0, 20000);
+  //  fz0fine = new TF1("fz0fine", "pol2", 0, 20000);
   fz0fine->SetParameter(0, 0.96933);
   fz0fine->SetParameter(1, -0.0458534);
   fz0fine->SetParameter(2, 0.231419);
 
-  fz1fine = new TF1("fz1fine", "pol3", 0, 20000);
+  //  fz1fine = new TF1("fz1fine", "pol3", 0, 20000);
   fz1fine->SetParameter(0, 0.886262);
   fz1fine->SetParameter(1, -0.0818167);
   fz1fine->SetParameter(2, 0.805824);
   fz1fine->SetParameter(3, -0.425423);
 
-  fz2fine = new TF1("fz2fine", "pol5", 0, 20000);
+  //  fz2fine = new TF1("fz2fine", "pol5", 0, 20000);
   fz2fine->SetLineColor(kBlue);
   fz2fine->SetParameter(0, 0.880153);
   fz2fine->SetParameter(1, 0.552461);
