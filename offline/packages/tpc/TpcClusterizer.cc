@@ -1859,8 +1859,7 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
 
   for (int i = 0; i < NChan; i++)
   {
-    int Layer0 = cdbttree->GetIntValue(i, "layer0"); // Simulation layer
-    int Layer1 = cdbttree->GetIntValue(i, "layer1"); // Data layer
+    int Layer  = cdbttree->GetIntValue(i, "layer");  // Stored layer
     int Sec    = cdbttree->GetIntValue(i, "sector"); // Stored sector
     int Side   = cdbttree->GetIntValue(i, "side");   // 0 or 1
     int Pad0   = cdbttree->GetIntValue(i, "pad0");   // Simulation pad
@@ -1877,19 +1876,16 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
       continue;
     }
 
-    int Layer;
     int Pad;
     int Sector;
 
     if (!m_is_data)
     {
-      Layer = Layer0;
       Pad = Pad0;
       Sector = mc_sectors[Sec];
     }
     else
     {
-      Layer = Layer1;
       Pad = Pad1;
       Sector = Sec;
     }
