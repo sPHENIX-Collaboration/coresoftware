@@ -733,9 +733,9 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
       if (cluster->getPhiSize() == 2){
 	phierror *= 2.25;
       }
-      if(layer==3||layer==4)
+      if((layer==3)||(layer==4))
 	phierror*=0.8;
-      if(layer==5||layer==6)
+      if((layer==5)||(layer==6))
 	phierror*=1.2;
     }
     
