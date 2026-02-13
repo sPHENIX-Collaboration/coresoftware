@@ -485,14 +485,15 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
 //_________________________________________________________________________________
 ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double /*unused*/, TrkrDefs::cluskey key)
 {
-  bool is_data_reco;
+
   recoConsts* rc = recoConsts::instance();
-  if(rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos){
-    is_data_reco = false;
-  }
-  else{
-    //    std::cout << "CHECK Setting reconstruction for data with CDB tag " << rc->get_StringFlag("CDB_GLOBALTAG") << std::endl;
-    is_data_reco = true;
+  bool is_data_reco = true;  // default to data
+  if(rc->FlagExist("CDB_GLOBALTAG"))
+  {
+    if(rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
+    {
+      is_data_reco = false;
+    }
   }
   
   int layer = TrkrDefs::getLayer(key);
@@ -593,7 +594,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 	    }
 	    //	zerror*=6;
 	  }
-	  if (cluster->getZSize() >5){
+	  if (cluster->getZSize() >=5){
 	    if(layer>=7&&layer<(7+16)){
 	      zerror*=20;
 	    }
@@ -604,17 +605,17 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 	      zerror*=7;
 	    }
 	  }
-	  TF1 ftpcR1("ftpcR1", "pol2", 0, 60);
+	  static TF1 ftpcR1("ftpcR1", "pol2", 0, 60);
 	  ftpcR1.SetParameter(0, 3.206);
 	  ftpcR1.SetParameter(1, -0.252);
 	  ftpcR1.SetParameter(2, 0.007);
 	  
-	  TF1 ftpcR2("ftpcR2", "pol2", 0, 60);
+	  static TF1 ftpcR2("ftpcR2", "pol2", 0, 60);
 	  ftpcR2.SetParameter(0, 4.48);
 	  ftpcR2.SetParameter(1, -0.226);
 	  ftpcR2.SetParameter(2, 0.00362);
 	  
-	  TF1 ftpcR3("ftpcR3", "pol2", 0, 60);
+	  static TF1 ftpcR3("ftpcR3", "pol2", 0, 60);
 	  ftpcR3.SetParameter(0, 14.8112);
 	  ftpcR3.SetParameter(1, -0.577);
 	  ftpcR3.SetParameter(2, 0.00605);
