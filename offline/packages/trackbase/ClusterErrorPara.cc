@@ -486,6 +486,18 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
 ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double /*unused*/, TrkrDefs::cluskey key)
 {
 
+  static const bool is_data_reco = []() {
+    recoConsts* rc = recoConsts::instance();
+    if (rc->FlagExist("CDB_GLOBALTAG"))
+    {
+      if (rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
+      {
+        return false;
+      }
+    }
+    return true;  // default to data
+  }();
+  /*
   static bool is_data_reco{true};  // default to data
   static bool is_data_reco_set{false};  // default to data
   if(!is_data_reco_set){
@@ -499,7 +511,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
       }
     is_data_reco_set = true;
   }
-  
+  */
   int layer = TrkrDefs::getLayer(key);
 
   double phierror = cluster->getRPhiError();
