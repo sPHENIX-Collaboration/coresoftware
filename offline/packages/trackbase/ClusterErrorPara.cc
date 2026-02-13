@@ -486,14 +486,18 @@ ClusterErrorPara::ClusterErrorPara(): f0{new TF1("f0", "pol1", 0, 10)}
 ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double /*unused*/, TrkrDefs::cluskey key)
 {
 
-  recoConsts* rc = recoConsts::instance();
-  bool is_data_reco = true;  // default to data
-  if(rc->FlagExist("CDB_GLOBALTAG"))
-  {
-    if(rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
-    {
-      is_data_reco = false;
-    }
+  static bool is_data_reco{true};  // default to data
+  static bool is_data_reco_set{false};  // default to data
+  if(!is_data_reco_set){
+    recoConsts* rc = recoConsts::instance(); 
+    if(rc->FlagExist("CDB_GLOBALTAG"))
+      {
+	if(rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
+	  {
+	    is_data_reco = false;
+	  }
+      }
+    is_data_reco_set = true;
   }
   
   int layer = TrkrDefs::getLayer(key);
@@ -605,6 +609,7 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 	      zerror*=7;
 	    }
 	  }
+	  /*
 	  static TF1 ftpcR1("ftpcR1", "pol2", 0, 60);
 	  ftpcR1.SetParameter(0, 3.206);
 	  ftpcR1.SetParameter(1, -0.252);
@@ -642,6 +647,29 @@ ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrClu
 	  }
 	  if(layer>=(7+32)&&layer<(7+48)){
 	    zerror*= ftpcR3.Eval(layer);
+	    }
+	  */
+	  
+	  // Inline pol2 evaluation: p0 + p1*x + p2*x^2
+	  auto pol2 = [](double x, double p0, double p1, double p2) {
+	    return p0 + p1 * x + p2 * x * x;
+	  };
+	  
+	  if(layer>=7&&layer<(7+16)){
+	    phierror *= pol2(layer, 3.206, -0.252, 0.007);
+	  }
+	  if(layer>=(7+16)&&layer<(7+32)){
+	    phierror *= pol2(layer, 4.48, -0.226, 0.00362);
+	  }
+	  if(layer>=(7+32)&&layer<(7+48)){
+	    phierror *= pol2(layer, 14.8112, -0.577, 0.00605);
+	  }
+	  
+	  if(layer>=(7+16)&&layer<(7+32)){
+	    zerror *= pol2(layer, 5.593, -0.2458, 0.00333455);
+	  }
+	  if(layer>=(7+32)&&layer<(7+48)){
+	    zerror *= pol2(layer, 5.6964, -0.21338, 0.002502);
 	  }
 	}
 	if (cluster->getPhiSize() >= 5)
