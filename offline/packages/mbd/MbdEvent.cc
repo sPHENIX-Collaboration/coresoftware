@@ -380,6 +380,7 @@ int MbdEvent::End()
 
     for (auto & sig : _mbdsig)
     {
+      sig.WritePedvsEvent();
       sig.WriteChi2Hist();
     }
 
@@ -1127,11 +1128,6 @@ int MbdEvent::Calculate(MbdPmtContainer *bbcpmts, MbdOut *bbcout, PHCompositeNod
     gausfit[iarm]->SetRange(hevt_bbct[iarm]->GetMean() - 5, hevt_bbct[iarm]->GetMean() + 5);
     */
 
-    if ( hevt_bbct[iarm]->GetEntries()==0 )//chiu
-    {
-      std::cout << PHWHERE << " hevt_bbct EMPTY" << std::endl;
-    }
-
     hevt_bbct[iarm]->Fit(gausfit[iarm], "BNQLR");
 
     // m_bbct[iarm] = m_bbct[iarm] / m_bbcn[iarm];
@@ -1462,10 +1458,6 @@ int MbdEvent::CalcPedCalib()
 
     pedgaus->SetParameters(ampl,mean,sigma);
     pedgaus->SetRange(mean-(4*sigma), mean+(4*sigma));
-    if ( hped0->GetEntries()==0 ) //chiu
-    {
-      std::cout << "HPED0 EMPTY" << std::endl;
-    }
     hped0->Fit(pedgaus,"RNQ");
 
     mean = pedgaus->GetParameter(1);
