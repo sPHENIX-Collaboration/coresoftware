@@ -357,15 +357,26 @@ void MbdSig::Remove_Pileup()
       }
 
       int sampmax = _mbdcal->get_sampmax(_ch);
-      double x_sampmax = gSubPulse->GetPointX(sampmax);
-      double y_sampmax = gSubPulse->GetPointY(sampmax);
-      double y_min6 = gSubPulse->GetPointY(sampmax-6);
+      if ( (sampmax-6) > 0 )
+      {
+        double x_sampmax = gSubPulse->GetPointX(sampmax);
+        double y_sampmax = gSubPulse->GetPointY(sampmax);
+        double y_min6 = gSubPulse->GetPointY(sampmax-6);
 
-      double offset = y_min6*fit_pileup->Eval(y_min6);
+        double offset = y_min6*fit_pileup->Eval(y_min6);
 
-      hSubPulse->SetBinContent( sampmax + 1, y_sampmax - offset );
-      gSubPulse->SetPoint( sampmax, x_sampmax, y_sampmax - offset );
-
+        hSubPulse->SetBinContent( sampmax + 1, y_sampmax - offset );
+        gSubPulse->SetPoint( sampmax, x_sampmax, y_sampmax - offset );
+      }
+      else
+      {
+        static int ctr = 0;
+        if ( ctr<10 )
+        {
+          std::cout << PHWHERE << " WARNING, sampmax too early for time pileup corr" << std::endl;
+          ctr++;
+        }
+      }
     }
     else
     {
