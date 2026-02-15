@@ -75,11 +75,6 @@ public:
 
   ClusHitsVerbosev1 *mClusHitsVerbose{nullptr};
 
-  void SetIsData(bool flag)
-  {
-    m_is_data = flag;
-  }
-
   void SetMaskChannelsFromFile() 
   {
     m_maskFromFile = true;
@@ -140,7 +135,6 @@ public:
 
   bool m_maskDeadChannels {false};
   bool m_maskHotChannels {false};
-  bool m_is_data {false};
   bool m_maskFromFile {false};
   std::string m_deadChannelMapName; 
   std::string m_hotChannelMapName;

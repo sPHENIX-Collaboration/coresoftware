@@ -1859,43 +1859,28 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
 
   for (int i = 0; i < NChan; i++)
   {
-    int Layer  = cdbttree->GetIntValue(i, "layer");  // Stored layer
-    int Sec    = cdbttree->GetIntValue(i, "sector"); // Stored sector
-    int Side   = cdbttree->GetIntValue(i, "side");   // 0 or 1
-    int Pad0   = cdbttree->GetIntValue(i, "pad0");   // Simulation pad
-    int Pad1   = cdbttree->GetIntValue(i, "pad1");   // Data pad
+    int Layer  = cdbttree->GetIntValue(i, "layer");
+    int Sector = cdbttree->GetIntValue(i, "sector");
+    int Side   = cdbttree->GetIntValue(i, "side");
+    int Pad    = cdbttree->GetIntValue(i, "pad");
 
-    if (Sec < 0 || Sec >= 12)
+    if (Sector < 0 || Sector >= 12)
     {
       if (Verbosity() > VERBOSITY_A_LOT)
       {
-	std::cout << PHWHERE << "WARNING: sector index " << Sec
+	std::cout << PHWHERE << "WARNING: sector index " << Sector
 		  << " out of range [0,11] in " << dbName
 		  << ", skipping channel " << i << std::endl;
       }
       continue;
     }
 
-    int Pad;
-    int Sector;
-
-    if (!m_is_data)
-    {
-      Pad = Pad0;
-      Sector = mc_sectors[Sec];
-    }
-    else
-    {
-      Pad = Pad1;
-      Sector = Sec;
-    }
-
-    if (Layer < 7 || Layer > 48)
+    if (Layer < 7 || Layer > 54)
     {
       if (Verbosity() > VERBOSITY_A_LOT)
       {
 	std::cout << PHWHERE << "WARNING: layer " << Layer
-		  << " out of TPC range [7,48] in " << dbName
+		  << " out of TPC range [7,54] in " << dbName
 		  << ", skipping channel " << i << std::endl;
       }
       continue;
