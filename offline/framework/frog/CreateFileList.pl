@@ -77,6 +77,7 @@ my %proddesc = (
     "36" => "JS pythia8 Jet ptmin = 5GeV",
     "37" => "hijing O+O (0-15fm)",
     "38" => "JS pythia8 Jet ptmin = 60GeV",
+    "39" => "JS pythia8 Jet ptmin = 12GeV"
     );
 
 my %pileupdesc = (
@@ -950,6 +951,35 @@ if (defined $prodtype)
     {
         $embedok = 1;
 	$filenamestring = "pythia8_Jet60";
+	if (! defined $nopileup)
+	{
+	    if (defined $embed)
+	    {
+		if ($embed eq "pau")
+		{
+		    $filenamestring = sprintf("%s_sHijing_pAu_0_10fm%s",$filenamestring, $pAu_pileupstring);
+		}
+		elsif ($embed eq "central")
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_488fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+		else
+		{
+		    $filenamestring = sprintf("%s_sHijing_0_20fm%s",$filenamestring, $AuAu_pileupstring);
+		}
+	    }
+	    else
+	    {
+		$filenamestring = sprintf("%s%s",$filenamestring,$pp_pileupstring);
+	    }
+	}
+        $pileupstring = $pp_pileupstring;
+	&commonfiletypes();
+    }
+    elsif ($prodtype == 39)
+    {
+        $embedok = 1;
+	$filenamestring = "pythia8_Jet12";
 	if (! defined $nopileup)
 	{
 	    if (defined $embed)
