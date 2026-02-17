@@ -1859,10 +1859,44 @@ void TpcClusterizer::makeChannelMask(hitMaskTpcSet &aMask, const std::string &db
 
   for (int i = 0; i < NChan; i++)
   {
-    int Layer = cdbttree->GetIntValue(i, "layer");
+    int Layer  = cdbttree->GetIntValue(i, "layer");
     int Sector = cdbttree->GetIntValue(i, "sector");
-    int Side = cdbttree->GetIntValue(i, "side");
-    int Pad = cdbttree->GetIntValue(i, "pad");
+    int Side   = cdbttree->GetIntValue(i, "side");
+    int Pad    = cdbttree->GetIntValue(i, "pad");
+
+    if (Sector < 0 || Sector >= 12)
+    {
+      if (Verbosity() > VERBOSITY_A_LOT)
+      {
+	std::cout << PHWHERE << "WARNING: sector index " << Sector
+		  << " out of range [0,11] in " << dbName
+		  << ", skipping channel " << i << std::endl;
+      }
+      continue;
+    }
+
+    if (Layer < 7 || Layer > 54)
+    {
+      if (Verbosity() > VERBOSITY_A_LOT)
+      {
+	std::cout << PHWHERE << "WARNING: layer " << Layer
+		  << " out of TPC range [7,54] in " << dbName
+		  << ", skipping channel " << i << std::endl;
+      }
+      continue;
+    }
+
+    if (Side < 0 || Side > 1)
+    {
+      if (Verbosity() > VERBOSITY_A_LOT)
+      {
+	std::cout << PHWHERE << "WARNING: side " << Side
+		  << " out of range [0,1] in " << dbName
+		  << ", skipping channel " << i << std::endl;
+      }
+      continue;
+    }
+
     if (Verbosity() > VERBOSITY_A_LOT)
     {
       std::cout << dbName << ": Will mask layer: " << Layer << ", sector: " << Sector << ", side: " << Side << ", Pad: " << Pad << std::endl;
