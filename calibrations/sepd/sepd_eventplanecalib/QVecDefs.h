@@ -8,7 +8,7 @@
 
 namespace QVecShared
 {
-  static constexpr size_t CENT_BINS = 8;
+  static constexpr size_t CENT_BINS = 80;
   static constexpr std::array<int, 3> HARMONICS = {2, 3, 4};
   static constexpr int SEPD_CHANNELS = 744;
 
