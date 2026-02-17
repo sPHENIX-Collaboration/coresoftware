@@ -40,6 +40,8 @@ class MbdReco : public SubsysReco
   void SetProcChargeCh(const bool s) { _always_process_charge = s; }
   void SetMbdTrigOnly(const int m)   { _mbdonly = m; }
 
+  MbdEvent* GetMbdEvent() { return m_mbdevent.get(); }
+
  private:
   int  createNodes(PHCompositeNode *topNode);
   int  getNodes(PHCompositeNode *topNode);
