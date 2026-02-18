@@ -288,6 +288,8 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
         nintt++;
       }
     }
+    if(nintt<2)
+      continue;
 
     // store cluster global positions in a vector global_vec and cluskey_vec
 
@@ -558,7 +560,7 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
           //if (vtxtrack)
           //{
             //unsigned int const vtxtrackid = vtxtrack->get_id();
-            if (!m_acts_mode && (trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>5)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
+            if (!m_acts_mode && (trackid-trkid_correction) == (*trackiter) && vertex->size_tracks()>3)//&&(newTrack.get_crossing())==short(vertex->get_beam_crossing()) )//&& vtxtrack->get_crossing()== newTrack.get_crossing())
             {
                 //std::cout<<"matched"<<std::endl;
               event_vtx(0) = vertex->get_x();
@@ -567,9 +569,9 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
               passed_vtx_flag = true;
               if (Verbosity() > 0)
               {
-                //std::cout << "vtx crossing: "<<vertex->get_beam_crossing()<<"setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey<< std::endl;
+                std::cout << "vtx crossing: "<<vertex->get_beam_crossing()<<"setting event_vertex for trackid " << trackid << " to vtxid " << vtxkey<< std::endl;
                 //std::cout  <<"crossing:" << vtxtrack->get_crossing()<<" vtx  " << event_vtx(0) << "  " << event_vtx(1) << "  " << event_vtx(2) << std::endl;
-                //std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
+                std::cout<< "crossing:" << newTrack.get_crossing()<<"trk vtx "<<newTrack.get_x() << "  " << newTrack.get_y()<< "  " << newTrack.get_z()<< std::endl;
               }
             }
             else if(m_acts_mode && (vertex->get_beam_crossing()) == short(abs_cross) && vertex->size_tracks()>2)
@@ -1067,8 +1069,6 @@ int HelicalFitter::process_event(PHCompositeNode* /*unused*/)
 
       bool pull_cumulative_pass = true;
       if (pull_cumulative>2000)
-        pull_cumulative_pass = false;
-      if (layer>2 && residual(0) < 0.003)  //exclude INTT clusters with tiny residuals that dominate the pull
         pull_cumulative_pass = false;
       if (!isnan(residual(0)) && clus_sigma(0) < 1.0&&pull_cumulative_pass)  // discards crazy clusters
       {
@@ -1727,11 +1727,11 @@ void HelicalFitter::getTrackletClusterList(TrackSeed* tracklet, std::vector<Trkr
       continue;
     }
 
-    // drop INTT clusters for now  -- TEMPORARY!
-     if (layer > 2 && layer < 7)
-    {
-      continue;
-    }
+    //// drop INTT clusters for now  -- TEMPORARY!
+    // if (layer > 2 && layer < 5)
+    //{
+    //  continue;
+    //}
 
     cluskey_vec.push_back(key);
 

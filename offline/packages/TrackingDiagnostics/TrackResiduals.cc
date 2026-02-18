@@ -606,7 +606,7 @@ void TrackResiduals::circleFitClusters(
 
   auto xyparams = TrackFitUtils::line_fit(xypoints);
   auto yzLineParams = TrackFitUtils::line_fit(yzpoints);
-  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, false);
+  auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, false,false,false,true);
   // auto fitpars = TrackFitUtils::fitClusters(global_vec, keys, !m_linefitTPCOnly);
   m_xyint = std::get<1>(xyparams);
   m_xyslope = std::get<0>(xyparams);
