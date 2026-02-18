@@ -2351,7 +2351,8 @@ int TpcCentralMembraneMatching::process_event(PHCompositeNode* topNode)
         }
         */
         m_dcc_out->m_hDRint[s]->SetBinContent(i, j, gr_dR[s]->Interpolate(phiVal,RVal));
-        m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
+        if(!m_phiHist_in_rad) m_dcc_out->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi[s]->Interpolate(phiVal,RVal));
+        else m_dcc_out->m_hDPint[s]->SetBinContent(i, j, gr_dPhi[s]->Interpolate(phiVal,RVal));
       }      
     }
   }
@@ -2660,13 +2661,15 @@ int TpcCentralMembraneMatching::End(PHCompositeNode* /*topNode*/)
             if(den > 0.0)
             {    
               m_dcc_out_aggregated->m_hDRint[s]->SetBinContent(i, j, num_dR / den);
-              m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal*(num_dPhi / den));
+              if(!m_phiHist_in_rad) m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal*(num_dPhi / den));
+              else m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, num_dPhi / den);
             }
           }
           else
           {
             m_dcc_out_aggregated->m_hDRint[s]->SetBinContent(i, j, gr_dR_toInterp[s]->Interpolate(phiVal,RVal));
-            m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi_toInterp[s]->Interpolate(phiVal,RVal));
+            if(!m_phiHist_in_rad) m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, RVal*gr_dPhi_toInterp[s]->Interpolate(phiVal,RVal));
+            else m_dcc_out_aggregated->m_hDPint[s]->SetBinContent(i, j, gr_dPhi_toInterp[s]->Interpolate(phiVal,RVal));
           }
         }      
       }
@@ -2873,8 +2876,8 @@ int TpcCentralMembraneMatching::GetNodes(PHCompositeNode* topNode)
     std::cout << "TpcCentralMembraneMatching::GetNodes - creating TpcDistortionCorrectionContainer in node " << dcc_out_node_name << std::endl;
     m_dcc_out = new TpcDistortionCorrectionContainer;
     m_dcc_out->m_dimensions = 2;
-    m_dcc_out->m_phi_hist_in_radians = false;
-    m_dcc_out->m_interpolate_z = true;
+    m_dcc_out->m_phi_hist_in_radians = m_phiHist_in_rad;
+    m_dcc_out->m_interpolate_z = false;
     auto* node = new PHDataNode<TpcDistortionCorrectionContainer>(m_dcc_out, dcc_out_node_name);
     runNode->addNode(node);
   }
