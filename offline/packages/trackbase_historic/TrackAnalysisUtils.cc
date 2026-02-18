@@ -303,16 +303,16 @@ namespace TrackAnalysisUtils
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
     for (const auto& key : get_cluster_keys(track))
     {
-      auto* clus = clustermap->findCluster(ckey);
+      auto* clus = clustermap->findCluster(key);
 
       // Fully correct the cluster positions for the crossing and all distortions
       Acts::Vector3 global = globalWrapper.getGlobalPositionDistortionCorrected(key, clus, track->get_crossing());
-
       // add the global positions to a vector to give to the cluster mover
       global_raw.emplace_back(key, global);
     }
 
     auto global_moved = mover.processTrack(global_raw);
+
     // loop over global vectors and get this cluster
     Acts::Vector3 clusglob(0, 0, 0);
     for (const auto& pair : global_raw)
@@ -380,9 +380,10 @@ namespace TrackAnalysisUtils
       loc(0) = loct(0);
       loc(1) = loct(1);
     }
-    clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+   clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
     Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
     Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
+
     return std::make_pair(stateloc - loc, stateglob - clusglob_moved);
   }
 
