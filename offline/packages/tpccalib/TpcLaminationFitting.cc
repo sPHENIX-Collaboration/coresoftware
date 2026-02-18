@@ -745,7 +745,7 @@ int TpcLaminationFitting::InterpolatePhiDistortions()
         int phiBin = phiDistortionLamination[s]->GetXaxis()->FindBin(phi);
         if(m_fieldOff)
         {
-	  m_laminationOffset[l][s] = m_fLamination[l][s]->GetParameter(0);
+	        m_laminationOffset[l][s] = m_fLamination[l][s]->GetParameter(0);
           m_fLamination[l][s]->SetParameter(1, 0.0);
         }
         else
@@ -753,7 +753,8 @@ int TpcLaminationFitting::InterpolatePhiDistortions()
           //m_fLamination[l][s]->SetParameter(3, -1.0*m_laminationOffset[l][s]);
           m_fLamination[l][s]->SetParameter(3, 0.0);
         }
-        double phiDistortion = R * m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1)) / (phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1) - phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i));
+        double phiDistortion = m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1)) / (phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1) - phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i));
+        if(!m_phiHist_in_rad) phiDistortion *= R;
         if(m_fieldOff)
         {
           m_fLamination[l][s]->SetParameter(1, m_laminationIdeal[l][s]);
