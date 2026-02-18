@@ -1,12 +1,11 @@
 #include "TrackAnalysisUtils.h"
 
+#include <globalvertex/GlobalVertex.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
-#include <globalvertex/GlobalVertex.h>
 
-#include <tpc/TpcClusterZCrossingCorrection.h>
 #include "SvtxTrack.h"
 #include "TrackSeed.h"
 
@@ -98,7 +97,7 @@ namespace TrackAnalysisUtils
                         float thickness_per_region[4])
   {
     auto clusterKeys = get_cluster_keys(track->get_tpc_seed());
-    
+
     std::vector<float> dedxlist;
     for (unsigned long cluster_key : clusterKeys)
     {
@@ -150,14 +149,14 @@ namespace TrackAnalysisUtils
       {
         betacorr = 4;
       }
-      if(track->get_crossing() < SHRT_MAX)
+      if (track->get_crossing() < SHRT_MAX)
       {
-        double z_crossing_corrected = 
-          TpcClusterZCrossingCorrection::correctZ(cglob.z(), 
-          TpcDefs::getSide(cluster_key), track->get_crossing());
+        double z_crossing_corrected =
+            TpcClusterZCrossingCorrection::correctZ(cglob.z(),
+                                                    TpcDefs::getSide(cluster_key), track->get_crossing());
 
-	double maxz = tgeometry->get_max_driftlength() + tgeometry->get_CM_halfwidth();
-	adc /= (1 - ((maxz - abs(z_crossing_corrected)) * 0.50 / maxz));
+        double maxz = tgeometry->get_max_driftlength() + tgeometry->get_CM_halfwidth();
+        adc /= (1 - ((maxz - abs(z_crossing_corrected)) * 0.50 / maxz));
       }
       adc /= thickness;
       adc *= alphacorr;
@@ -178,7 +177,7 @@ namespace TrackAnalysisUtils
     return sumdedx;
   }
 
-  TrackAnalysisUtils::DCAPair get_dca(SvtxTrack *track,
+  TrackAnalysisUtils::DCAPair get_dca(SvtxTrack* track,
                                       GlobalVertex* vertex)
   {
     Acts::Vector3 vpos(vertex->get_x(),
@@ -201,9 +200,8 @@ namespace TrackAnalysisUtils
         vertexCov(i, j) = vertex->get_error(i, j);
       }
     }
-    
 
-    Acts::ActsSquareMatrix<3> rotCov = rot * (posCov+vertexCov) * rot_T;
+    Acts::ActsSquareMatrix<3> rotCov = rot * (posCov + vertexCov) * rot_T;
     dca.first.second = sqrt(rotCov(0, 0));
     dca.second.second = sqrt(rotCov(2, 2));
 
@@ -274,12 +272,12 @@ namespace TrackAnalysisUtils
   std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed)
   {
     std::vector<TrkrDefs::cluskey> out;
-   
-      if (seed)
-      {
-        std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
-      }
-    
+
+    if (seed)
+    {
+      std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
+    }
+
     return out;
   }
 
@@ -294,6 +292,98 @@ namespace TrackAnalysisUtils
       }
     }
     return out;
+  }
+
+  std::pair<Acts::Vector2, Acts::Vector3>
+  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track,
+               TpcGlobalPositionWrapper& globalWrapper, TrkrClusterContainer* clustermap,
+               ActsGeometry* geometry, TpcClusterMover& mover)
+  {
+    auto* cluster = clustermap->findCluster(ckey);
+    std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
+    for (const auto& key : get_cluster_keys(track))
+    {
+      auto* clus = clustermap->findCluster(ckey);
+
+      // Fully correct the cluster positions for the crossing and all distortions
+      Acts::Vector3 global = globalWrapper.getGlobalPositionDistortionCorrected(key, clus, track->get_crossing());
+
+      // add the global positions to a vector to give to the cluster mover
+      global_raw.emplace_back(key, global);
+    }
+
+    auto global_moved = mover.processTrack(global_raw);
+    // loop over global vectors and get this cluster
+    Acts::Vector3 clusglob(0, 0, 0);
+    for (const auto& pair : global_raw)
+    {
+      auto thiskey = pair.first;
+      clusglob = pair.second;
+      if (thiskey == ckey)
+      {
+        break;
+      }
+    }
+
+    Acts::Vector3 clusglob_moved(0, 0, 0);
+    for (const auto& pair : global_moved)
+    {
+      auto thiskey = pair.first;
+      clusglob_moved = pair.second;
+      if (thiskey == ckey)
+      {
+        break;
+      }
+    }
+    SvtxTrackState* state = nullptr;
+    for (auto state_iter = track->begin_states();
+         state_iter != track->end_states();
+         ++state_iter)
+    {
+      SvtxTrackState* tstate = state_iter->second;
+      auto stateckey = tstate->get_cluskey();
+      if (stateckey == ckey)
+      {
+        state = tstate;
+        break;
+      }
+    }
+    Surface surf = geometry->maps().getSurface(ckey, cluster);
+    Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);  // Unchanged by distortion corrections
+    // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
+    auto trkrid = TrkrDefs::getTrkrId(ckey);
+    if (trkrid == TrkrDefs::tpcId)
+    {
+      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+      TrkrDefs::subsurfkey new_subsurfkey = 0;
+      surf = geometry->get_tpc_surface_from_coords(hitsetkey, clusglob_moved, new_subsurfkey);
+    }
+
+    auto loc = geometry->getLocalCoords(ckey, cluster, track->get_crossing());
+    // in this case we get local coords from transform of corrected global coords
+    clusglob_moved *= Acts::UnitConstants::cm;  // we want mm for transformations
+    Acts::Vector3 normal = surf->normal(geometry->geometry().getGeoContext(),
+                                        Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
+    auto local = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                     clusglob_moved, normal);
+    if (local.ok())
+    {
+      loc = local.value() / Acts::UnitConstants::cm;
+    }
+    else
+    {
+      // otherwise take the manual calculation for the TPC
+      // doing it this way just avoids the bounds check that occurs in the surface class method
+      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
+      loct /= Acts::UnitConstants::cm;
+
+      loc(0) = loct(0);
+      loc(1) = loct(1);
+    }
+    clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+    Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
+    Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
+    return std::make_pair(stateloc - loc, stateglob - clusglob_moved);
   }
 
 }  // namespace TrackAnalysisUtils

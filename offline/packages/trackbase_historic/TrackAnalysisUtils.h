@@ -4,6 +4,9 @@
 #include <trackbase/TrkrDefs.h>
 #include <Acts/Definitions/Algebra.hpp>
 
+#include <tpc/TpcClusterMover.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 #include <utility>
 
 class SvtxTrack;
@@ -31,6 +34,11 @@ namespace TrackAnalysisUtils
                         float thickness_per_region[4]);
   float calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* clustermap, ActsGeometry* tgeometry,
                   float thickness_per_region[4]);
+
+  std::pair<Acts::Vector2, Acts::Vector3>
+  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track,
+               TpcGlobalPositionWrapper& globalWrapper, TrkrClusterContainer* clustermap,
+               ActsGeometry* geometry, TpcClusterMover& mover);
 
 };  // namespace TrackAnalysisUtils
 
