@@ -36,9 +36,8 @@ namespace TrackAnalysisUtils
                   float thickness_per_region[4]);
 
   std::pair<Acts::Vector2, Acts::Vector3>
-  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track,
-               TpcGlobalPositionWrapper& globalWrapper, TrkrClusterContainer* clustermap,
-               ActsGeometry* geometry, TpcClusterMover& mover);
+  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track, TrkrClusterContainer* clustermap,
+               PHCompositeNode *topNode);
 
 };  // namespace TrackAnalysisUtils
 

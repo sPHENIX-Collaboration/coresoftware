@@ -1,11 +1,16 @@
 #include "TrackAnalysisUtils.h"
 
 #include <globalvertex/GlobalVertex.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/TpcDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 
+#include <g4detectors/PHG4TpcGeomContainer.h>
 #include "SvtxTrack.h"
 #include "TrackSeed.h"
 
@@ -295,10 +300,17 @@ namespace TrackAnalysisUtils
   }
 
   std::pair<Acts::Vector2, Acts::Vector3>
-  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track,
-               TpcGlobalPositionWrapper& globalWrapper, TrkrClusterContainer* clustermap,
-               ActsGeometry* geometry, TpcClusterMover& mover)
+  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track, TrkrClusterContainer* clustermap,
+                PHCompositeNode* topNode)
   {
+    TpcGlobalPositionWrapper globalWrapper;
+    globalWrapper.loadNodes(topNode);
+    globalWrapper.set_suppressCrossing(true);
+    TpcClusterMover mover;
+    auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
+    mover.initialize_geometry(tpccellgeo);
+    mover.set_verbosity(0);
+    auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
     auto* cluster = clustermap->findCluster(ckey);
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
     for (const auto& key : get_cluster_keys(track))
