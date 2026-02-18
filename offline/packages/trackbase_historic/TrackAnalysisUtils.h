@@ -37,7 +37,7 @@ namespace TrackAnalysisUtils
 
   std::pair<Acts::Vector2, Acts::Vector3>
   get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track, TrkrClusterContainer* clustermap,
-               PHCompositeNode *topNode);
+               PHCompositeNode* topNode);
 
 };  // namespace TrackAnalysisUtils
 

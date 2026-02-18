@@ -301,7 +301,7 @@ namespace TrackAnalysisUtils
 
   std::pair<Acts::Vector2, Acts::Vector3>
   get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track, TrkrClusterContainer* clustermap,
-                PHCompositeNode* topNode)
+               PHCompositeNode* topNode)
   {
     TpcGlobalPositionWrapper globalWrapper;
     globalWrapper.loadNodes(topNode);
@@ -392,7 +392,7 @@ namespace TrackAnalysisUtils
       loc(0) = loct(0);
       loc(1) = loct(1);
     }
-   clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+    clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
     Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
     Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
 
