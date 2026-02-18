@@ -38,6 +38,11 @@ class CaloTowerStatus : public SubsysReco
     m_inputNodePrefix = name;
     return;
   }
+  void set_inputNode(const std::string &name)
+  {
+    m_inputNode = name;
+    return;
+  }
   void set_badChi2_const_threshold(float threshold)
   {
     badChi2_treshold_const = threshold;
@@ -134,6 +139,7 @@ class CaloTowerStatus : public SubsysReco
   std::string m_fieldname_z_score;
   std::string m_calibName_hotMap;
   std::string m_inputNodePrefix{"TOWERS_"};
+  std::string m_inputNode;
 
   std::string m_directURL_time;
   std::string m_directURL_hotMap;
