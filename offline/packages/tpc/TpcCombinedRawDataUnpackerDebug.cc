@@ -278,7 +278,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
     unsigned int phibin = layergeom->get_phibin(phi, side);
     if (m_writeTree)
     {
-      float fX[12];
+      double fX[12];
       int n = 0;
 
       fX[n++] = _ievent - 1;
@@ -298,8 +298,8 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
     hit_set_key = TpcDefs::genHitSetKey(layer, (mc_sectors[sector % 12]), side);
     hit_set_container_itr = trkr_hit_set_container->findOrAddHitSet(hit_set_key);
 
-    float hpedestal = 0;
-    float hpedwidth = 0;
+    double hpedestal = 0;
+    double hpedwidth = 0;
     pedhist.Reset();
 
     if (!m_do_zerosup)
@@ -323,7 +323,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
         if (!hit)
         {
           hit = new TrkrHitv2();
-          hit->setAdc(float(adc));
+          hit->setAdc(double(adc));
 
           hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
         }
@@ -357,7 +357,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
         int hmaxbin = 0;
         for (int nbin = 1; nbin <= pedhist.GetNbinsX(); nbin++)
         {
-          float val = pedhist.GetBinContent(nbin);
+          double val = pedhist.GetBinContent(nbin);
           if (val > hmax)
           {
             hmaxbin = nbin;
@@ -381,8 +381,8 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
 
           for (int isum = -3; isum <= 3; isum++)
           {
-            float val = pedhist.GetBinContent(hmaxbin + isum);
-            float center = pedhist.GetBinCenter(hmaxbin + isum);
+            double val = pedhist.GetBinContent(hmaxbin + isum);
+            double center = pedhist.GetBinCenter(hmaxbin + isum);
             ibin_sum += center * val;
             ibin2_sum += center * center * val;
             adc_sum += val;
@@ -462,12 +462,12 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
             feehist->Fill(t, adc - hpedestal + pedestal_offset);
           }
         }
-        float threshold_cut = (hpedwidth * m_ped_sig_cut);
+        double threshold_cut = (hpedwidth * m_ped_sig_cut);
         if (m_do_zs_emulation)
         {
           threshold_cut = m_zs_threshold;
         }
-        if ((float(adc) - hpedestal) > threshold_cut)
+        if ((double(adc) - hpedestal) > threshold_cut)
         {
           hit_key = TpcDefs::genHitKey(phibin, (unsigned int) t);
           // find existing hit, or create new one
@@ -477,17 +477,17 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
             hit = new TrkrHitv2();
             if (m_do_baseline_corr)
             {
-              hit->setAdc(float(adc) - hpedestal + pedestal_offset);
+              hit->setAdc(double(adc) - hpedestal + pedestal_offset);
             }
             else
             {
-              hit->setAdc(float(adc) - hpedestal);
+              hit->setAdc(double(adc) - hpedestal);
             }
             hit_set_container_itr->second->addHitSpecificKey(hit_key, hit);
           }
           if (m_writeTree)
           {
-            float fXh[18];
+            double fXh[18];
             int nh = 0;
 
             fXh[nh++] = _ievent - 1;
@@ -500,10 +500,10 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
             fXh[nh++] = 0;  // channel;
             fXh[nh++] = 0;  // sampadd;
             fXh[nh++] = 0;  // sampch;
-            fXh[nh++] = (float) phibin;
-            fXh[nh++] = (float) t;
+            fXh[nh++] = (double) phibin;
+            fXh[nh++] = (double) t;
             fXh[nh++] = layer;
-            fXh[nh++] = (float(adc) - hpedestal + pedestal_offset);
+            fXh[nh++] = (double(adc) - hpedestal + pedestal_offset);
             fXh[nh++] = hpedestal;
             fXh[nh++] = hpedwidth;
 
@@ -527,9 +527,9 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
       if (hiter.second != nullptr)
       {
         TH2I* hist2d = hiter.second;
-        std::vector<float> pedvec(hist2d->GetNbinsX(), 0);
+        std::vector<double> pedvec(hist2d->GetNbinsX(), 0);
         feebaseline_map.insert(std::make_pair(hiter.first, pedvec));
-        std::map<unsigned int, std::vector<float>>::iterator fee_blm_it = feebaseline_map.find(hiter.first);
+        std::map<unsigned int, std::vector<double>>::iterator fee_blm_it = feebaseline_map.find(hiter.first);
         (*fee_blm_it).second.resize(hist2d->GetNbinsX(), 0);
 
         for (int binx = 1; binx < hist2d->GetNbinsX(); binx++)
@@ -537,7 +537,7 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
           double timebin = ( hist2d->GetXaxis())->GetBinCenter(binx);
           std::string histname1d = "h" + std::to_string(hiter.first) + "_" + std::to_string((int) timebin);
           TH1D* hist1d = hist2d->ProjectionY(histname1d.c_str(), binx, binx);
-          float local_ped = 0;
+          double local_ped = 0;
 #ifdef DEBUG
           //  if((*hiter).first == 210802&&timebin==383){
 
@@ -557,8 +557,8 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
 
             for (int isum = -3; isum <= 3; isum++)
             {
-              float val = hist1d->GetBinContent(maxbin + isum);
-              float center = hist1d->GetBinCenter(maxbin + isum);
+              double val = hist1d->GetBinContent(maxbin + isum);
+              double center = hist1d->GetBinCenter(maxbin + isum);
               hibin_sum += center * val;
               // hibin2_sum += center * center * val;
               hadc_sum += val;
@@ -624,9 +624,9 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
 
         unsigned int pad_key = create_pad_key(side, layer, phibin);
 
-        float fee = 0;
-        float hpedestal2 = 0;
-        float hpedwidth2 = 0;
+        double fee = 0;
+        double hpedestal2 = 0;
+        double hpedwidth2 = 0;
         std::map<unsigned int, chan_info>::iterator chan_it = chan_map.find(pad_key);
         if (chan_it != chan_map.end())
         {
@@ -637,10 +637,10 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
         }
 
         int rx = get_rx(layer);
-        float corr = 0;
+        double corr = 0;
 
         unsigned int fee_key = create_fee_key(side, sector, rx, fee);
-        std::map<unsigned int, std::vector<float>>::iterator fee_blm_it = feebaseline_map.find(fee_key);
+        std::map<unsigned int, std::vector<double>>::iterator fee_blm_it = feebaseline_map.find(fee_key);
         if (fee_blm_it != feebaseline_map.end())
         {
           corr = (*fee_blm_it).second[tbin] - pedestal_offset;
@@ -689,10 +689,10 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
         }
         if (hpedwidth2 > -100 && hpedestal2 > -100)
         {
-          if ((float(adc) - pedestal_offset - corr) > (hpedwidth2 * m_ped_sig_cut))
+          if ((double(adc) - pedestal_offset - corr) > (hpedwidth2 * m_ped_sig_cut))
           {
-            float nuadc = (float(adc) - corr - pedestal_offset);
-            nuadc = std::max<float>(nuadc, 0);
+            double nuadc = (double(adc) - corr - pedestal_offset);
+            nuadc = std::max<double>(nuadc, 0);
             hitr->second->setAdc(nuadc);
 #ifdef DEBUG
             //	    hitr->second->setAdc(10);
@@ -709,14 +709,14 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
                         << " phibin " << phibin
                         << " adc " << adc
                         << " corr: " << corr
-                        << " adcnu " << (float(adc) - corr - pedestal_offset)
+                        << " adcnu " << (double(adc) - corr - pedestal_offset)
                         << " adc in " << hitr->second->getAdc()
                         << std::endl;
             }
 #endif
             if (m_writeTree)
             {
-              float fXh[18];
+              double fXh[18];
               int nh = 0;
 
               fXh[nh++] = _ievent - 1;
@@ -729,10 +729,10 @@ int TpcCombinedRawDataUnpackerDebug::process_event(PHCompositeNode* topNode)
               fXh[nh++] = 0;  // channel;
               fXh[nh++] = 0;  // sampadd;
               fXh[nh++] = 0;  // sampch;
-              fXh[nh++] = (float) phibin;
-              fXh[nh++] = (float) tbin;
+              fXh[nh++] = (double) phibin;
+              fXh[nh++] = (double) tbin;
               fXh[nh++] = layer;
-              fXh[nh++] = float(adc);
+              fXh[nh++] = double(adc);
               fXh[nh++] = hpedestal2;
               fXh[nh++] = hpedwidth2;
               fXh[nh++] = corr;

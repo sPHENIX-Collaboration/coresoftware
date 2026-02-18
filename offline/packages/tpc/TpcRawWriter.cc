@@ -311,7 +311,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
 //    count++;
   }
   std::cout << "processing tpc" << std::endl;
-  float tpc_zmax = m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
+  double tpc_zmax = m_tGeometry->get_max_driftlength() + m_tGeometry->get_CM_halfwidth();
 
   // loop over the TPC HitSet objects
   TrkrHitSetContainer::ConstRange tpc_hitsetrange = m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
@@ -405,7 +405,7 @@ int TpcRawWriter::process_event(PHCompositeNode *topNode)
       {
         continue;
       }
-      float_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
+      double_t fadc = (hitr->second->getAdc()) - pedestal;  // proper int rounding +0.5
       unsigned short adc = 0;
       if (fadc > 0)
       {

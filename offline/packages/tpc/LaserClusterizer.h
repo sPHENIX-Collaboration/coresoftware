@@ -40,9 +40,9 @@ class LaserClusterizer : public SubsysReco
   //void calc_cluster_parameter(std::vector<pointKeyLaser> &clusHits, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap, bool isLamination);
   //void remove_hits(std::vector<pointKeyLaser> &clusHits, boost::geometry::index::rtree<pointKeyLaser, boost::geometry::index::quadratic<16>> &rtree, std::multimap<unsigned int, std::pair<std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>, std::array<int, 3>>> &adcMap);
 
-  void set_adc_threshold(float val) { m_adc_threshold = val; }
-  void set_min_clus_size(float val) { min_clus_size = val; }
-  void set_min_adc_sum(float val) { min_adc_sum = val; }
+  void set_adc_threshold(double val) { m_adc_threshold = val; }
+  void set_min_clus_size(double val) { min_clus_size = val; }
+  void set_min_adc_sum(double val) { min_adc_sum = val; }
   void set_max_time_samples(int val) { m_time_samples_max = val; }
   void set_lamination(bool val) { m_lamination = val; }
   void set_do_sequential(bool val) { m_do_sequential = val; }

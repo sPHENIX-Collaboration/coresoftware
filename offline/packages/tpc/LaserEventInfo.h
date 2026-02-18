@@ -32,8 +32,8 @@ class LaserEventInfo : public PHObject
   virtual int getPeakSample(const bool /*side*/) const { return std::numeric_limits<int>::max(); }
   virtual void setPeakSample(const bool /*side*/, const int /*sample*/) {}
 
-  virtual float getPeakWidth(const bool /*side*/) const { return std::numeric_limits<float>::quiet_NaN(); }
-  virtual void setPeakWidth(const bool /*side*/, const float /*width*/) {}
+  virtual double getPeakWidth(const bool /*side*/) const { return std::numeric_limits<double>::quiet_NaN(); }
+  virtual void setPeakWidth(const bool /*side*/, const double /*width*/) {}
 
  protected:
   LaserEventInfo() = default;
