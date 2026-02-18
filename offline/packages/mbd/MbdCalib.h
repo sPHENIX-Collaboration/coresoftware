@@ -38,6 +38,36 @@ class MbdCalib
   float get_pedrms(const int ifeech) const { return _pedsigma[ifeech]; }
   int   get_sampmax(const int ifeech) const { return _sampmax[ifeech]; }
   int   get_status(const int ifeech) const { return _mbdstatus[ifeech]; }
+
+  float get_pileup(const int ifeech, const int ipar) const
+  {
+    int chtype = (ifeech / 8) % 2;  // 0=T-ch, 1=Q-ch
+
+    if (ipar==0)
+    {
+      return _pileup_p0[ifeech];
+    }
+    else if (ipar==1)
+    {
+      return _pileup_p1[ifeech];
+    }
+    else if (ipar==2)
+    {
+      return _pileup_p2[ifeech];
+    }
+    else if (ipar==3 && chtype==0)
+    {
+      return _pileup_p1err[ifeech];
+    }
+    else if (ipar==4 && chtype==0)
+    {
+      return _pileup_p2err[ifeech];
+    }
+
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+
   float get_tcorr(const int ifeech, const int tdc) const {
     if (tdc<0)
     {
@@ -86,24 +116,6 @@ class MbdCalib
   std::vector<float> get_shape(const int ifeech) const { return _shape_y[ifeech]; }
   std::vector<float> get_sherr(const int ifeech) const { return _sherr_yerr[ifeech]; }
 
-  float get_pileup(const int ifeech, const int ipar) const {
-
-    if (ipar==0)
-    {
-      return _pileup_p0[ifeech];
-    }
-    else if (ipar==1)
-    {
-      return _pileup_p1[ifeech];
-    }
-    else if (ipar==2)
-    {
-      return _pileup_p2[ifeech];
-    }
-
-    return std::numeric_limits<float>::quiet_NaN();
-  }
-
   float get_threshold(const int pmtch, const int rel_or_abs = 0);
 
   TGraph *get_lut_graph(const int pmtch, std::string_view type);
@@ -111,6 +123,7 @@ class MbdCalib
   void set_sampmax(const int ifeech, const int val) { _sampmax[ifeech] = val; }
   void set_status(const int ifeech, const int val) { _mbdstatus[ifeech] = val; }
   void set_ped(const int ifeech, const float m, const float merr, const float s, const float serr);
+  void set_pileup(const int ifeech, const int ipar, const float val);
   void set_tt0(const int ipmt, const float t0) { _ttfit_t0mean[ipmt] = t0; }
   void set_tq0(const int ipmt, const float t0) { _tqfit_t0mean[ipmt] = t0; }
 

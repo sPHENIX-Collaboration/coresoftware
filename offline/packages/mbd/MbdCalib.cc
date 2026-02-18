@@ -2497,7 +2497,7 @@ void MbdCalib::Reset_Pileup()
   _pileup_p0err.fill(std::numeric_limits<float>::quiet_NaN());
   _pileup_p1err.fill(std::numeric_limits<float>::quiet_NaN());
   _pileup_p2err.fill(std::numeric_limits<float>::quiet_NaN());
-  _qfit_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
+  _pileup_chi2ndf.fill(std::numeric_limits<float>::quiet_NaN());
 }
 
 void MbdCalib::Reset_Thresholds()
@@ -2589,4 +2589,32 @@ TGraph *MbdCalib::get_lut_graph(const int pmtch, std::string_view type)
 
   return g;
 }
+
+
+void MbdCalib::set_pileup(const int ifeech, const int ipar, const float pval)
+{
+  int chtype = (ifeech / 8) % 2;  // 0=T-ch, 1=Q-ch
+
+  if (ipar==0)
+  {
+    _pileup_p0[ifeech] = pval;
+  }
+  else if (ipar==1)
+  {
+    _pileup_p1[ifeech] = pval;
+  }
+  else if (ipar==2)
+  {
+    _pileup_p2[ifeech] = pval;
+  }
+  else if (ipar==3 && chtype==0)
+  {
+    _pileup_p1err[ifeech] = pval;
+  }
+  else if (ipar==4 && chtype==0)
+  {
+    _pileup_p2err[ifeech] = pval;
+  }
+}
+
 
