@@ -311,11 +311,13 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
       Remove_Pileup();
     }
 
+    /*
     if ( _verbose && _ch==9 )
     {
       std::cout << "SetXY: ch " << _ch << std::endl;
       gSubPulse->Print("ALL");
     }
+    */
   }
 
   _evt_counter++;

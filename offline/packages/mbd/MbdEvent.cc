@@ -156,7 +156,7 @@ int MbdEvent::InitRun()
   {
     // Download calibrations
     int status = _mbdcal->Download_All();
-    if ( status == -1 )
+    if ( status < 0 && _calpass==0 )  // only abort for normal processing
     {
       return Fun4AllReturnCodes::ABORTRUN;
     }
