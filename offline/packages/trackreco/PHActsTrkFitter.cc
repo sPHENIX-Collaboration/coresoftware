@@ -543,17 +543,21 @@ void PHActsTrkFitter::loopTracks(Acts::Logging::Level logLevel)
         continue;
       }
 
+      // filter sourcelinks to remove detectors that we don't want to include in the fit
+      sourceLinks = filterSourceLinks( sourceLinks );
+
       if (sourceLinks.empty())
       {
         continue;
       }
 
       /// If using directed navigation, collect surface list to navigate
-      SurfacePtrVec surfaces_tmp;
       SurfacePtrVec surfaces;
       if (m_fitSiliconMMs || m_directNavigation)
       {
-        sourceLinks = getSurfaceVector(sourceLinks, surfaces_tmp);
+
+        // get surfaces matching source links
+        const auto surfaces_tmp = getSurfaceVector(sourceLinks);
 
         // skip if there is no surfaces
         if (surfaces_tmp.empty())
@@ -960,59 +964,45 @@ ActsTrackFittingAlgorithm::TrackFitterResult PHActsTrkFitter::fitTrack(
 }
 
 //__________________________________________________________________________________
-SourceLinkVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks, SurfacePtrVec& surfaces) const
+SourceLinkVec PHActsTrkFitter::filterSourceLinks(const SourceLinkVec& sourceLinks ) const
 {
-  SourceLinkVec siliconMMSls;
-
-  //   if(Verbosity() > 1)
-  //     std::cout << "Sorting " << sourceLinks.size() << " SLs" << std::endl;
-
+  SourceLinkVec filtered;
   for (const auto& sl : sourceLinks)
   {
     const ActsSourceLink asl = sl.get<ActsSourceLink>();
-    if (Verbosity() > 1)
-    {
-      std::cout << "SL available on : " << asl.geometryId() << std::endl;
-    }
-
     const auto* const surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
-    if (m_fitSiliconMMs)
-    {
-      // skip TPC surfaces
-      if (m_tGeometry->maps().isTpcSurface(surf))
-      {
-        continue;
-      }
 
-      // also skip micromegas surfaces if not used
-      if (m_tGeometry->maps().isMicromegasSurface(surf) && !m_useMicromegas)
-      {
-        continue;
-      }
-    }
+    // skip TPC surfaces for fitSilicon MMs
+    if (m_tGeometry->maps().isTpcSurface(surf) && m_fitSiliconMMs)
+    { continue; }
 
-    if (m_forceSiOnlyFit)
-    {
-      if (m_tGeometry->maps().isMicromegasSurface(surf) || m_tGeometry->maps().isTpcSurface(surf))
-      {
-        continue;
-      }
-    }
+    // skip micromegas surfaces if not used
+    if (m_tGeometry->maps().isMicromegasSurface(surf) && !m_useMicromegas)
+    { continue; }
+
+    // skip everything but silicons if only silicon fit is required
+    if (m_forceSiOnlyFit && (m_tGeometry->maps().isMicromegasSurface(surf) || m_tGeometry->maps().isTpcSurface(surf)) )
+    { continue; }
 
     // update vectors
-    siliconMMSls.push_back(sl);
+    filtered.push_back(sl);
+  }
+
+  return filtered;
+}
+
+//__________________________________________________________________________________
+SurfacePtrVec PHActsTrkFitter::getSurfaceVector(const SourceLinkVec& sourceLinks) const
+{
+  SurfacePtrVec surfaces;
+  for (const auto& sl : sourceLinks)
+  {
+    const ActsSourceLink asl = sl.get<ActsSourceLink>();
+    const auto* const surf = m_tGeometry->geometry().tGeometry->findSurface(asl.geometryId());
     surfaces.push_back(surf);
   }
 
-  if (Verbosity() > 10)
-  {
-    for (const auto& surf : surfaces)
-    {
-      std::cout << "Surface vector : " << surf->geometryId() << std::endl;
-    }
-  }
-
-  return siliconMMSls;
+  return surfaces;
 }
 
 void PHActsTrkFitter::checkSurfaceVec(SurfacePtrVec& surfaces) const
