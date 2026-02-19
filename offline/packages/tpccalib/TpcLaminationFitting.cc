@@ -1213,11 +1213,11 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   
   if(m_saveAllLaminationHistograms)
   {
-    for(int s=0; s<2; s++)
+    for(auto &i : m_hLamination)
     {
-      for(int l=0; l<18; l++)
+      for(auto &j : i)
       {
-        m_hLamination[l][s]->Write();
+        j->Write();
       }
     }
   }
