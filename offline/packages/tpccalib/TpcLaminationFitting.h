@@ -52,6 +52,8 @@ class TpcLaminationFitting : public SubsysReco
 
   void set_phiHistInRad(bool rad){ m_phiHist_in_rad = rad; }
 
+  void set_saveAllLaminationHistograms(bool save){ m_saveAllLaminationHistograms = save; }
+
   void set_fieldOff(bool fieldOff){ m_fieldOff = fieldOff; }
 
   void set_grid_dimensions(int phibins, int rbins);
@@ -124,6 +126,7 @@ class TpcLaminationFitting : public SubsysReco
   //std::map<int, float>  m_run_ZDC_map_auau;
 
   bool m_phiHist_in_rad{true};
+  bool m_saveAllLaminationHistograms{false};
 
   std::string m_stripePatternFile = "/sphenix/u/bkimelman/CMStripePattern.root";
 

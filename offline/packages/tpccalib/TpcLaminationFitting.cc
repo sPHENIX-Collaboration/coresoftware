@@ -412,22 +412,22 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     {
       for (int l = 0; l < 18; l++)
       {
-	double shift = m_laminationIdeal[l][side];
+	      double shift = m_laminationIdeal[l][side];
 	
-	double phi2pi = tmp_pos.Phi();
-	if (side && phi2pi < -0.2)
-	{
-	  phi2pi += 2 * M_PI;
-	}
-	if (!side && phi2pi < M_PI / 18 - 0.2)
-	{
-	  phi2pi += 2 * M_PI;
-	}
+	      double phi2pi = tmp_pos.Phi();
+	      if (side && phi2pi < -0.2)
+	      {
+	        phi2pi += 2 * M_PI;
+	      }
+	      if (!side && phi2pi < M_PI / 18 - 0.2)
+	      {
+	        phi2pi += 2 * M_PI;
+	      }
 	
-	if (phi2pi > shift - 0.2 && phi2pi < shift + 0.2)
-	{
-	  m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi);
-	}
+      	if (phi2pi > shift - 0.2 && phi2pi < shift + 0.2)
+	      {
+	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi);
+	      }
       }
     }
 
@@ -1211,9 +1211,22 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   }
   m_laminationTree->Write();
   
-  m_hLamination[13][0]->Write();
-  m_hLamination[13][1]->Write();
-  m_hLamination[14][1]->Write();
+  if(m_saveAllLaminationHistograms)
+  {
+    for(int s=0; s<2; s++)
+    {
+      for(int l=0; l<18; l++)
+      {
+        m_hLamination[l][s]->Write();
+      }
+    }
+  }
+  else
+  {
+    m_hLamination[13][0]->Write();
+    m_hLamination[13][1]->Write();
+    m_hLamination[14][1]->Write();
+  }
   
   
   outputfile->Close();
