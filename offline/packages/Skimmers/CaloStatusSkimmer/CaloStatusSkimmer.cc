@@ -24,152 +24,145 @@
 // for cluster vertex correction
 #include <CLHEP/Vector/ThreeVector.h>
 #include <TLorentzVector.h>
+#include <array>
 #include <cstdint>
 #include <iostream>
-#include <array>
-#include <vector>
 #include <utility>
-
+#include <vector>
 
 //____________________________________________________________________________..
-CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name) : SubsysReco(name)
-{
+CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name)
+    : SubsysReco(name) {
   n_eventcounter = 0;
   n_skimcounter = 0;
   n_notowernodecounter = 0;
-  std::cout << "CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name) Calling ctor" << std::endl;
+  std::cout << "CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name) "
+               "Calling ctor"
+            << std::endl;
 }
 
 //____________________________________________________________________________..
-CaloStatusSkimmer::~CaloStatusSkimmer()
-{
-  //std::cout << "CaloStatusSkimmer::~CaloStatusSkimmer() Calling dtor" << std::endl;
+CaloStatusSkimmer::~CaloStatusSkimmer() {
+  // std::cout << "CaloStatusSkimmer::~CaloStatusSkimmer() Calling dtor" <<
+  // std::endl;
 }
 
 //____________________________________________________________________________..
-int CaloStatusSkimmer::Init(PHCompositeNode *topNode)
-{
-  std::cout << "CaloStatusSkimmer::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+int CaloStatusSkimmer::Init(PHCompositeNode *topNode) {
+  std::cout << "CaloStatusSkimmer::Init(PHCompositeNode *topNode) Initializing"
+            << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //____________________________________________________________________________..
-int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
-{
+int CaloStatusSkimmer::process_event(PHCompositeNode *topNode) {
   n_eventcounter++;
-  if (b_do_skim_EMCal)
-  {
-    TowerInfoContainer *towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
-    if (!towers)
-    {
+  if (b_do_skim_EMCal) {
+    TowerInfoContainer *towers =
+        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_CEMC");
+    if (!towers) {
       n_notowernodecounter++;
-      std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_CEMC\n";
+      std::cout << PHWHERE
+                << "calostatuscheck::process_event: missing TOWERS_CEMC\n";
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     const UInt_t ntowers = towers->size();
     uint16_t notinstr_count = 0;
-    for (UInt_t ch = 0; ch < ntowers; ++ch)
-    {
+    for (UInt_t ch = 0; ch < ntowers; ++ch) {
       TowerInfo *tower = towers->get_tower_at_channel(ch);
-      if (tower->get_isNotInstr())
-      {
+      if (tower->get_isNotInstr()) {
         ++notinstr_count;
       }
     }
-    if (notinstr_count >= m_EMC_skim_threshold)
-    {
+    if (notinstr_count >= m_EMC_skim_threshold) {
       n_skimcounter++;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
 
-  if (b_do_skim_HCal)
-  {
-    TowerInfoContainer *hcalin_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
-    TowerInfoContainer *hcalout_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
-    if (!hcalin_towers || !hcalout_towers)
-    {
+  if (b_do_skim_HCal) {
+    TowerInfoContainer *hcalin_towers =
+        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALIN");
+    TowerInfoContainer *hcalout_towers =
+        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_HCALOUT");
+    if (!hcalin_towers || !hcalout_towers) {
       n_notowernodecounter++;
-      std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_HCALIN or TOWERS_HCALOUT\n";
-      return Fun4AllReturnCodes::ABORTEVENT;// do I want ABORTPROCESSING or just ABORTEVENT here? ABORTPROCESSING will stop the entire job, while ABORTEVENT will just skip this event and continue with the next one. 
+      std::cout << PHWHERE
+                << "calostatuscheck::process_event: missing TOWERS_HCALIN or "
+                   "TOWERS_HCALOUT\n";
+      return Fun4AllReturnCodes::
+          ABORTEVENT; // do I want ABORTPROCESSING or just ABORTEVENT here?
+                      // ABORTPROCESSING will stop the entire job, while
+                      // ABORTEVENT will just skip this event and continue with
+                      // the next one.
     }
 
     const UInt_t ntowers_hcalin = hcalin_towers->size();
     uint16_t notinstr_count_hcalin = 0;
-    for (UInt_t ch = 0; ch < ntowers_hcalin; ++ch)
-    {
+    for (UInt_t ch = 0; ch < ntowers_hcalin; ++ch) {
       TowerInfo *tower_in = hcalin_towers->get_tower_at_channel(ch);
-      if (tower_in->get_isNotInstr())
-      {
+      if (tower_in->get_isNotInstr()) {
         ++notinstr_count_hcalin;
       }
     }
-    
+
     const UInt_t ntowers_hcalout = hcalout_towers->size();
     uint16_t notinstr_count_hcalout = 0;
-    for (UInt_t ch = 0; ch < ntowers_hcalout; ++ch)
-    {
+    for (UInt_t ch = 0; ch < ntowers_hcalout; ++ch) {
       TowerInfo *tower_out = hcalout_towers->get_tower_at_channel(ch);
-      if (tower_out->get_isNotInstr())
-      {
+      if (tower_out->get_isNotInstr()) {
         ++notinstr_count_hcalout;
       }
     }
 
-    if (notinstr_count_hcalin >= m_HCal_skim_threshold || notinstr_count_hcalout >= m_HCal_skim_threshold)
-    {
+    if (notinstr_count_hcalin >= m_HCal_skim_threshold ||
+        notinstr_count_hcalout >= m_HCal_skim_threshold) {
       n_skimcounter++;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
 
-  if (b_do_skim_sEPD)
-  {
-    TowerInfoContainer *sepd_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
-    if (!sepd_towers)
-    {
+  if (b_do_skim_sEPD) {
+    TowerInfoContainer *sepd_towers =
+        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_SEPD");
+    if (!sepd_towers) {
       n_notowernodecounter++;
-      std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_SEPD\n";
+      std::cout << PHWHERE
+                << "calostatuscheck::process_event: missing TOWERS_SEPD\n";
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     const UInt_t ntowers = sepd_towers->size();
     uint16_t notinstr_count = 0;
-    for (UInt_t ch = 0; ch < ntowers; ++ch)
-    {
+    for (UInt_t ch = 0; ch < ntowers; ++ch) {
       TowerInfo *tower = sepd_towers->get_tower_at_channel(ch);
-      if (tower->get_isNotInstr())
-      {
+      if (tower->get_isNotInstr()) {
         ++notinstr_count;
       }
     }
-    if (notinstr_count >= m_sEPD_skim_threshold)
-    {
+    if (notinstr_count >= m_sEPD_skim_threshold) {
       n_skimcounter++;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
 
-  if (b_do_skim_ZDC)
-  {
-    TowerInfoContainer *zdc_towers = findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
-    if (!zdc_towers)
-    {
+  if (b_do_skim_ZDC) {
+    TowerInfoContainer *zdc_towers =
+        findNode::getClass<TowerInfoContainer>(topNode, "TOWERS_ZDC");
+    if (!zdc_towers) {
       n_notowernodecounter++;
-      std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_ZDC\n";
+      std::cout << PHWHERE
+                << "calostatuscheck::process_event: missing TOWERS_ZDC\n";
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     const UInt_t ntowers = zdc_towers->size();
     uint16_t notinstr_count = 0;
-    for (UInt_t ch = 0; ch < ntowers; ++ch)
-    {
+    for (UInt_t ch = 0; ch < ntowers; ++ch) {
       TowerInfo *tower = zdc_towers->get_tower_at_channel(ch);
-      if (tower->get_isNotInstr())
-      {
+      if (tower->get_isNotInstr()) {
         ++notinstr_count;
       }
     }
-    if (notinstr_count >= m_ZDC_skim_threshold)
-    {
+    if (notinstr_count >= m_ZDC_skim_threshold) {
       n_skimcounter++;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -179,12 +172,14 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int CaloStatusSkimmer::End(PHCompositeNode *topNode)
-{
-  std::cout << "CaloStatusSkimmer::End(PHCompositeNode *topNode) This is the End..." << std::endl;
+int CaloStatusSkimmer::End(PHCompositeNode *topNode) {
+  std::cout
+      << "CaloStatusSkimmer::End(PHCompositeNode *topNode) This is the End..."
+      << std::endl;
   std::cout << "Total events processed: " << n_eventcounter << std::endl;
   std::cout << "Total events skimmed: " << n_skimcounter << std::endl;
-  std::cout << "Total events with missing tower nodes: " << n_notowernodecounter << std::endl;
+  std::cout << "Total events with missing tower nodes: " << n_notowernodecounter
+            << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
