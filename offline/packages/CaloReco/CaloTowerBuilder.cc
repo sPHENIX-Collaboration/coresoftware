@@ -273,6 +273,9 @@ int CaloTowerBuilder::process_data(PHCompositeNode *topNode,
       if (nchannels == 0) // push back -1 and return for empty packets
       {
         for (int channel = 0; channel < m_nchannels; channel++) {
+          if (skipChannel(channel, pid)) {
+            continue;
+          }
           std::vector<float> waveform;
           waveform.reserve(m_nzerosuppsamples);
           for (int samp = 0; samp < m_nzerosuppsamples; samp++) {
@@ -435,9 +438,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode) {
     }
     int n_samples = waveforms.at(idx).size();
     if (n_samples == m_nzerosuppsamples || SZS) {
-      if (waveforms.at(idx).at(0) ==
-          -1) // set bit for missing and empty packets.
-      {
+      if (waveforms.at(idx).at(0) == -1) {
         towerinfo->set_isNotInstr(true);
       } else {
         towerinfo->set_isZS(true);
