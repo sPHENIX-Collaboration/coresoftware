@@ -141,7 +141,7 @@ namespace TrackAnalysisUtils
       float adc = cluster->getAdc();
 
       float r = std::sqrt(cglob(0) * cglob(0) + cglob(1) * cglob(1));
-      auto *tpcseed = track->get_tpc_seed();
+      auto* tpcseed = track->get_tpc_seed();
       float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
       float beta = std::atan(tpcseed->get_slope());
       float alphacorr = std::cos(alpha);
