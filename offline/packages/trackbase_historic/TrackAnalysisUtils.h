@@ -4,6 +4,9 @@
 #include <trackbase/TrkrDefs.h>
 #include <Acts/Definitions/Algebra.hpp>
 
+#include <tpc/TpcClusterMover.h>
+#include <tpc/TpcClusterZCrossingCorrection.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 #include <utility>
 
 class SvtxTrack;
@@ -28,9 +31,13 @@ namespace TrackAnalysisUtils
                         // to pass these from the geometry object, which keeps the dependencies
                         // of this helper class minimal. This will also help us catch any changes
                         // when/if the tpc geometry changes in the future. This is to get us going
-                        float thickness_per_region[4]);
+                        const float thickness_per_region[4]);
   float calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* clustermap, ActsGeometry* tgeometry,
-                  float thickness_per_region[4]);
+                  const float thickness_per_region[4]);
+
+  std::pair<Acts::Vector2, Acts::Vector3>
+  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track, TrkrClusterContainer* clustermap,
+               PHCompositeNode* topNode);
 
 };  // namespace TrackAnalysisUtils
 
