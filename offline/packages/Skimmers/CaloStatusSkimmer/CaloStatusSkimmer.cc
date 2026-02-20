@@ -23,20 +23,6 @@ CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name)
 }
 
 //____________________________________________________________________________..
-CaloStatusSkimmer::~CaloStatusSkimmer()
-{
-  // std::cout << "CaloStatusSkimmer::~CaloStatusSkimmer() Calling dtor" <<
-  // std::endl;
-}
-
-//____________________________________________________________________________..
-int CaloStatusSkimmer::Init(PHCompositeNode *topNode)
-{
-  std::cout << "CaloStatusSkimmer::Init(PHCompositeNode *topNode) Initializing" << std::endl;
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
 int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
 {
   n_eventcounter++;
@@ -51,9 +37,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_CEMC" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    const UInt_t ntowers = towers->size();
+    const uint32_t ntowers = towers->size();
     uint16_t notinstr_count = 0;
-    for (UInt_t ch = 0; ch < ntowers; ++ch)
+    for (uint32_t ch = 0; ch < ntowers; ++ch)
     {
       TowerInfo *tower = towers->get_tower_at_channel(ch);
       if (tower->get_isNotInstr())
@@ -85,9 +71,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-    const UInt_t ntowers_hcalin = hcalin_towers->size();
+    const uint32_t ntowers_hcalin = hcalin_towers->size();
     uint16_t notinstr_count_hcalin = 0;
-    for (UInt_t ch = 0; ch < ntowers_hcalin; ++ch)
+    for (uint32_t ch = 0; ch < ntowers_hcalin; ++ch)
     {
       TowerInfo *tower_in = hcalin_towers->get_tower_at_channel(ch);
       if (tower_in->get_isNotInstr())
@@ -96,9 +82,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       }
     }
 
-    const UInt_t ntowers_hcalout = hcalout_towers->size();
+    const uint32_t ntowers_hcalout = hcalout_towers->size();
     uint16_t notinstr_count_hcalout = 0;
-    for (UInt_t ch = 0; ch < ntowers_hcalout; ++ch)
+    for (uint32_t ch = 0; ch < ntowers_hcalout; ++ch)
     {
       TowerInfo *tower_out = hcalout_towers->get_tower_at_channel(ch);
       if (tower_out->get_isNotInstr())
@@ -131,9 +117,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_SEPD" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    const UInt_t ntowers = sepd_towers->size();
+    const uint32_t ntowers = sepd_towers->size();
     uint16_t notinstr_count = 0;
-    for (UInt_t ch = 0; ch < ntowers; ++ch)
+    for (uint32_t ch = 0; ch < ntowers; ++ch)
     {
       TowerInfo *tower = sepd_towers->get_tower_at_channel(ch);
       if (tower->get_isNotInstr())
@@ -165,9 +151,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_ZDC" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    const UInt_t ntowers = zdc_towers->size();
+    const uint32_t ntowers = zdc_towers->size();
     uint16_t notinstr_count = 0;
-    for (UInt_t ch = 0; ch < ntowers; ++ch)
+    for (uint32_t ch = 0; ch < ntowers; ++ch)
     {
       TowerInfo *tower = zdc_towers->get_tower_at_channel(ch);
       if (tower->get_isNotInstr())
@@ -192,7 +178,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int CaloStatusSkimmer::End(PHCompositeNode *topNode)
+int CaloStatusSkimmer::End([[maybe_unused]] PHCompositeNode *topNode)
 {
   std::cout << "CaloStatusSkimmer::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   std::cout << "Total events processed: " << n_eventcounter << std::endl;

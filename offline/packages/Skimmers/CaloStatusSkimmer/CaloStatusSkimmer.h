@@ -16,14 +16,7 @@ class CaloStatusSkimmer : public SubsysReco {
 public:
   CaloStatusSkimmer(const std::string &name = "CaloStatusSkimmer");
 
-  ~CaloStatusSkimmer() override;
-
-  /** Called during initialization.
-      Typically this is where you can book histograms, and e.g.
-      register them to Fun4AllServer (so they can be output to file
-      using Fun4AllServer::dumpHistos() method).
-   */
-  int Init(PHCompositeNode *topNode) override;
+  ~CaloStatusSkimmer() override = default;
 
   /** Called for each event.
       This is where you do the real work.
