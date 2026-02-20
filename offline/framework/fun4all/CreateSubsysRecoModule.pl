@@ -138,6 +138,8 @@ sub CreateImplementation()
     print F "// void $classname\:\:Print(const std::string &what) const\n";
     print F "// Called from the command line - useful to print information when you need it\n";
     print F "//\n";
+    print F "// [[maybe_unused]] suppresses compiler warnings if topNode is not used in this method\n";
+    print F "//\n";
     print F "//____________________________________________________________________________..\n";
     print F "\n";
 
@@ -166,7 +168,7 @@ sub CreateImplementation()
     print F "\n";
 
     print F "//____________________________________________________________________________..\n";
-    print F "int $classname\:\:Init(PHCompositeNode *topNode)\n";
+    print F "int $classname\:\:Init([[maybe_unused]] PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  std::cout << \"$classname\:\:Init(PHCompositeNode *topNode) Initializing\" << std::endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
@@ -174,7 +176,7 @@ sub CreateImplementation()
     print F "\n";
 
     print F "//____________________________________________________________________________..\n";
-    print F "int $classname\:\:InitRun(PHCompositeNode *topNode)\n";
+    print F "int $classname\:\:InitRun([[maybe_unused]] PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  std::cout << \"$classname\:\:InitRun(PHCompositeNode *topNode) Initializing for Run XXX\" << std::endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
@@ -182,7 +184,7 @@ sub CreateImplementation()
     print F "\n";
 
     print F "//____________________________________________________________________________..\n";
-    print F "int $classname\:\:process_event(PHCompositeNode *topNode)\n";
+    print F "int $classname\:\:process_event([[maybe_unused]] PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  std::cout << \"$classname\:\:process_event(PHCompositeNode *topNode) Processing Event\" << std::endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
@@ -190,7 +192,7 @@ sub CreateImplementation()
     print F "\n";
 
     print F "//____________________________________________________________________________..\n";
-    print F "int $classname\:\:ResetEvent(PHCompositeNode *topNode)\n";
+    print F "int $classname\:\:ResetEvent([[maybe_unused]] PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  std::cout << \"$classname\:\:ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event\" << std::endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
@@ -206,7 +208,7 @@ sub CreateImplementation()
     print F "\n";
 
     print F "//____________________________________________________________________________..\n";
-    print F "int $classname\:\:End(PHCompositeNode *topNode)\n";
+    print F "int $classname\:\:End([[maybe_unused]] PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  std::cout << \"$classname\:\:End(PHCompositeNode *topNode) This is the End...\" << std::endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
@@ -214,7 +216,7 @@ sub CreateImplementation()
     print F "\n";
 
     print F "//____________________________________________________________________________..\n";
-    print F "int $classname\:\:Reset(PHCompositeNode *topNode)\n";
+    print F "int $classname\:\:Reset([[maybe_unused]] PHCompositeNode *topNode)\n";
     print F "{\n";
     print F " std::cout << \"$classname\:\:Reset(PHCompositeNode *topNode) being Reset\" << std::endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
@@ -331,7 +333,7 @@ sub CreateConfigure()
     print F "dnl   no point in suppressing warnings people should \n";
     print F "dnl   at least see them, so here we go for g++: -Wall\n";
     print F "if test \$ac_cv_prog_gxx = yes; then\n";
-    print F "   CXXFLAGS=\"\$CXXFLAGS -Wall -Werror\"\n";
+    print F "   CXXFLAGS=\"\$CXXFLAGS -Wall -Wextra -Wshadow -Werror\"\n";
     print F "fi\n";
     print F "\n";
 
