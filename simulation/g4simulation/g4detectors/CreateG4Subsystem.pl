@@ -1007,7 +1007,7 @@ sub CreateConfigure()
     print F "dnl   no point in suppressing warnings people should \n";
     print F "dnl   at least see them, so here we go for g++: -Wall\n";
     print F "if test \$ac_cv_prog_gxx = yes; then\n";
-    print F "   CXXFLAGS=\"\$CXXFLAGS -Wall -Werror\"\n";
+    print F "   CXXFLAGS=\"\$CXXFLAGS -Wall -Wextra -Wshadow -Werror\"\n";
     print F "fi\n";
     print F "\n";
 
