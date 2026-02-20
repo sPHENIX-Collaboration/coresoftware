@@ -1189,6 +1189,7 @@ void PHActsTrkFitter::updateSvtxTrack(
       // get corresponding surface
       const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
       const auto surface = m_tGeometry->maps().getMMSurface(hitsetkey);
+      if (!surface) { continue; }
 
       // get layer, propagate
       auto result = propagator.propagateTrack(params, surface);
