@@ -1191,7 +1191,7 @@ void PHActsTrkFitter::updateSvtxTrack(
       const auto surface = m_tGeometry->maps().getMMSurface(hitsetkey);
       if (!surface) { continue; }
 
-      // get layer, propagate
+      // propagate
       auto result = propagator.propagateTrack(params, surface);
       if (!result.ok()) { continue; }
 
