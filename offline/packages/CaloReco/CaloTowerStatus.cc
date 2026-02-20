@@ -309,6 +309,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 void CaloTowerStatus::CreateNodeTree(PHCompositeNode *topNode)
 {
   std::string RawTowerNodeName = m_inputNodePrefix + m_detector;
+  if (!m_inputNode.empty())
+  {
+    RawTowerNodeName = m_inputNode;
+  }
   m_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
   if (!m_raw_towers)
   {
