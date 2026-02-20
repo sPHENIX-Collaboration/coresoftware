@@ -18,7 +18,7 @@ namespace TrackAnalysisUtils
   float calc_dedx(TrackSeed* tpcseed,
                   TrkrClusterContainer* clustermap,
                   ActsGeometry* tgeometry,
-                  float thickness_per_region[4])
+                  float const thickness_per_region[4])
   {
     std::vector<TrkrDefs::cluskey> clusterKeys;
     clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
@@ -95,10 +95,10 @@ namespace TrackAnalysisUtils
   float calc_dedx_calib(SvtxTrack* track,
                         TrkrClusterContainer* cluster_map,
                         ActsGeometry* tgeometry,
-                        float thickness_per_region[4])
+                        float const thickness_per_region[4])
   {
     auto clusterKeys = get_cluster_keys(track->get_tpc_seed());
-    
+
     std::vector<float> dedxlist;
     for (unsigned long cluster_key : clusterKeys)
     {
@@ -137,7 +137,7 @@ namespace TrackAnalysisUtils
       float adc = cluster->getAdc();
 
       float r = std::sqrt(cglob(0) * cglob(0) + cglob(1) * cglob(1));
-      auto tpcseed = track->get_tpc_seed();
+      auto* tpcseed = track->get_tpc_seed();
       float alpha = (r * r) / (2 * r * std::abs(1.0 / tpcseed->get_qOverR()));
       float beta = std::atan(tpcseed->get_slope());
       float alphacorr = std::cos(alpha);
@@ -152,8 +152,8 @@ namespace TrackAnalysisUtils
       }
       if(track->get_crossing() < SHRT_MAX)
       {
-        double z_crossing_corrected = 
-          TpcClusterZCrossingCorrection::correctZ(cglob.z(), 
+        double z_crossing_corrected =
+          TpcClusterZCrossingCorrection::correctZ(cglob.z(),
           TpcDefs::getSide(cluster_key), track->get_crossing());
 
 	double maxz = tgeometry->get_max_driftlength() + tgeometry->get_CM_halfwidth();
@@ -201,7 +201,7 @@ namespace TrackAnalysisUtils
         vertexCov(i, j) = vertex->get_error(i, j);
       }
     }
-    
+
 
     Acts::ActsSquareMatrix<3> rotCov = rot * (posCov+vertexCov) * rot_T;
     dca.first.second = sqrt(rotCov(0, 0));
@@ -274,12 +274,12 @@ namespace TrackAnalysisUtils
   std::vector<TrkrDefs::cluskey> get_cluster_keys(TrackSeed* seed)
   {
     std::vector<TrkrDefs::cluskey> out;
-   
+
       if (seed)
       {
         std::copy(seed->begin_cluster_keys(), seed->end_cluster_keys(), std::back_inserter(out));
       }
-    
+
     return out;
   }
 
