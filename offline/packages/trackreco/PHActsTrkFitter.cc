@@ -1169,6 +1169,41 @@ void PHActsTrkFitter::updateSvtxTrack(
     }
   }
 
+  // also propagate to Micromegas if not used for the fit
+  /* this is be used to get unbiased residuals in TPOT */
+  if ((!m_useMicromegas) && seed)
+  {
+    // acts propagator
+    ActsPropagator propagator(m_tGeometry);
+
+    // loop over cluster keys associated to TPC seed
+    for (auto key_iter = seed->begin_cluster_keys(); key_iter != seed->end_cluster_keys(); ++key_iter)
+    {
+      const auto& cluskey = *key_iter;
+
+      // make sure cluster is from Micromegas (TPOT)
+      const auto detId = TrkrDefs::getTrkrId(cluskey);
+      if (detId != TrkrDefs::micromegasId)
+      { continue; }
+
+      // get corresponding surface
+      const auto hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);
+      const auto surface = m_tGeometry->maps().getMMSurface(hitsetkey);
+      if (!surface) { continue; }
+
+      // propagate
+      auto result = propagator.propagateTrack(params, surface);
+      if (!result.ok()) { continue; }
+
+      // get path length and extrapolated parameters
+      auto& [pathLength, trackStateParams] = result.value();
+      pathLength /= Acts::UnitConstants::cm;
+
+      // create track state and add to track
+      transformer.addTrackState(track, cluskey, pathLength, trackStateParams, m_transient_geocontext);
+    }
+  }
+
   trackStateTimer.stop();
   auto stateTime = trackStateTimer.get_accumulated_time();
 
