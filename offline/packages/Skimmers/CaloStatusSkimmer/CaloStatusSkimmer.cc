@@ -1,34 +1,16 @@
 #include "CaloStatusSkimmer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-// Tower stuff
-#include <calobase/RawTowerDefs.h>
 #include <calobase/TowerInfo.h>
-// #include <calobase/TowerInfov3.h>
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoDefs.h>
 
-// ROOT stuff
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TH3.h>
-#include <TTree.h>
-
-// for cluster vertex correction
-#include <CLHEP/Vector/ThreeVector.h>
-#include <TLorentzVector.h>
-#include <array>
 #include <cstdint>
 #include <iostream>
-#include <utility>
-#include <vector>
 
 //____________________________________________________________________________..
 CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name)
@@ -65,7 +47,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     if (!towers)
     {
       n_notowernodecounter++;
-      if (Verbosity > 0)
+      if (Verbosity() > 0)
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_CEMC" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -79,7 +61,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
         ++notinstr_count;
       }
     }
-    if (Verbosity > 9)
+    if (Verbosity() > 9)
     {
       std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in EMCal = " << ntowers << ", not-instrumented(empty/missing pckt) towers in EMCal = " << notinstr_count << std::endl;
     }
@@ -98,7 +80,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     if (!hcalin_towers || !hcalout_towers)
     {
       n_notowernodecounter++;
-      if (Verbosity > 0)
+      if (Verbosity() > 0)
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_HCALIN or TOWERS_HCALOUT" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -125,7 +107,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       }
     }
 
-    if (Verbosity > 9)
+    if (Verbosity() > 9)
     {
       std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in HCalIn = " << ntowers_hcalin << ", not-instrumented(empty/missing pckt) towers in HCalIn = " << notinstr_count_hcalin << ", ntowers in HCalOut = " << ntowers_hcalout << ", not-instrumented(empty/missing pckt) towers in HCalOut = " << notinstr_count_hcalout << std::endl;
     }
@@ -145,7 +127,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     if (!sepd_towers)
     {
       n_notowernodecounter++;
-      if (Verbosity > 0)
+      if (Verbosity() > 0)
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_SEPD" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -160,7 +142,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       }
     }
 
-    if (Verbosity > 9)
+    if (Verbosity() > 9)
     {
       std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in sEPD = " << ntowers << ", not-instrumented(empty/missing pckt) towers in sEPD = " << notinstr_count << std::endl;
     }
@@ -179,7 +161,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     if (!zdc_towers)
     {
       n_notowernodecounter++;
-      if (Verbosity > 0)
+      if (Verbosity() > 0)
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_ZDC" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -194,7 +176,7 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
       }
     }
 
-    if (Verbosity > 9)
+    if (Verbosity() > 9)
     {
       std::cout << "CaloStatusSkimmer::process_event: event " << n_eventcounter << ", ntowers in ZDC = " << ntowers << ", not-instrumented(empty/missing pckt) towers in ZDC = " << notinstr_count << std::endl;
     }

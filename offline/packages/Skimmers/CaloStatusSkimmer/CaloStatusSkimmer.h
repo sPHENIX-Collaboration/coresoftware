@@ -53,13 +53,10 @@ public:
     m_ZDC_skim_threshold = threshold;
   }
 
-  void SetVerbosity(uint8_t v) { Verbosity = v; }
-
 private:
   uint32_t n_eventcounter{0};
   uint32_t n_skimcounter{0};
   uint32_t n_notowernodecounter{0};
-  uint8_t Verbosity{0};
 
   bool b_do_skim_EMCal{false};
   uint16_t m_EMC_skim_threshold{

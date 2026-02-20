@@ -515,7 +515,7 @@ int CaloTowerBuilder::process_event(PHCompositeNode *topNode)
     int n_samples = waveforms.at(idx).size();
     if (n_samples == m_nzerosuppsamples || SZS)
     {
-      if (waveforms.at(idx).at(0) == 0)
+      if (waveforms.at(idx).at(0) == -1)
       {
         towerinfo->set_isNotInstr(true);
       }
