@@ -2,10 +2,6 @@
 #include "QVecDefs.h"
 #include "EventPlaneData.h"
 
-// -- c++
-#include <iomanip>
-#include <iostream>
-
 // -- Calo
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
@@ -15,8 +11,8 @@
 #include <globalvertex/GlobalVertexMap.h>
 
 // -- MB
-#include <calotrigger/MinimumBiasClassifier.h>
 #include <calotrigger/MinimumBiasInfo.h>
+
 #include <centrality/CentralityInfo.h>
 
 // -- sEPD
@@ -34,6 +30,14 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
+// -- ROOT
+#include <TProfile.h>
+#include <TH2.h>
+
+// -- c++
+#include <iomanip>
+#include <iostream>
+
 //____________________________________________________________________________..
 sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
   : SubsysReco(name)
@@ -44,8 +48,10 @@ sEPD_TreeGen::sEPD_TreeGen(const std::string &name)
 int sEPD_TreeGen::Init(PHCompositeNode *topNode)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  se->Print("NODETREE");
-
+  if (Verbosity() > 0)
+  {
+    se->Print("NODETREE");
+  }
   unsigned int bins_sepd_totalcharge{100};
   double sepd_totalcharge_low{0};
   double sepd_totalcharge_high{2e4};
@@ -152,7 +158,7 @@ int sEPD_TreeGen::process_centrality(PHCompositeNode *topNode)
 
   double cent = centInfo->get_centile(CentralityInfo::PROP::mbd_NS) * 100;
 
-  // skip event if centrality is too peripheral
+  // skip event if centrality is bad or too peripheral
   if (!std::isfinite(cent) || cent < 0 || cent >= m_cuts.m_cent_max)
   {
     if (Verbosity() > 1)
@@ -333,18 +339,5 @@ int sEPD_TreeGen::ResetEvent([[maybe_unused]] PHCompositeNode *topNode)
   m_data.event_id = -1;
   m_data.event_centrality = 9999;
 
-  // DST
-  if (m_evtdata)
-  {
-    m_evtdata->Reset();
-  }
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int sEPD_TreeGen::End([[maybe_unused]] PHCompositeNode *topNode)
-{
-  std::cout << "sEPD_TreeGen::End" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }

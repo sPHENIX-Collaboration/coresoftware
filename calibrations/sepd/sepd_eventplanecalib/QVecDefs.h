@@ -1,5 +1,5 @@
-#ifndef QVECDEFS_H
-#define QVECDEFS_H
+#ifndef SEPDEVENTPLANECALIB_QVECDEFS_H
+#define SEPDEVENTPLANECALIB_QVECDEFS_H
 
 #include <array>
 #include <string>
@@ -55,4 +55,4 @@ namespace QVecShared
   }
 }  // namespace QVecShared
 
-#endif // QVECDEFS_H
+#endif // SEPDEVENTPLANECALIB_QVECDEFS_H

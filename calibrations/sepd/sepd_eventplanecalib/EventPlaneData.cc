@@ -1,5 +1,7 @@
 #include "EventPlaneData.h"
 
+#include <cmath>
+
 EventPlaneData::EventPlaneData()
 {
   sepd_charge.fill(0);

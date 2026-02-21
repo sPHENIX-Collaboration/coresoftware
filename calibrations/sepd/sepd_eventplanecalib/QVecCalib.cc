@@ -23,6 +23,12 @@
 // -- CDBTTree
 #include <cdbobjects/CDBTTree.h>
 
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TProfile.h>
+
+
 // ====================================================================
 // Standard C++ Includes
 // ====================================================================
@@ -34,16 +40,19 @@
 QVecCalib::QVecCalib(const std::string &name):
  SubsysReco(name)
 {
-  std::cout << "QVecCalib::QVecCalib(const std::string &name) Calling ctor" << std::endl;
+  //  std::cout << "QVecCalib::QVecCalib(const std::string &name) Calling ctor" << std::endl;
 }
 
 //____________________________________________________________________________..
 int QVecCalib::Init([[maybe_unused]] PHCompositeNode *topNode)
 {
-  std::cout << "QVecCalib::Init(PHCompositeNode *topNode) Initializing" << std::endl;
+  if (Verbosity() > 1)
+  {
+    std::cout << "QVecCalib::Init(PHCompositeNode *topNode) Initializing" << std::endl;
 
-  Fun4AllServer *se = Fun4AllServer::instance();
-  se->Print("NODETREE");
+    Fun4AllServer *se = Fun4AllServer::instance();
+    se->Print("NODETREE");
+  }
 
   int ret = process_QA_hist();
   if (ret)
@@ -122,7 +131,8 @@ int QVecCalib::process_sEPD_event_thresholds(TFile* file)
 
   std::string sepd_totalcharge_centrality = "h2SEPD_totalcharge_centrality";
 
-  auto* hist = file->Get<TH2F>(sepd_totalcharge_centrality.c_str());
+  TH2 *hist {nullptr};
+  file->GetObject(sepd_totalcharge_centrality.c_str(),hist);
 
   // Check if the hist is stored in the file
   if (hist == nullptr)
@@ -189,7 +199,8 @@ int QVecCalib::process_bad_channels(TFile* file)
 
   std::string sepd_charge_hist = "hSEPD_Charge";
 
-  auto* hSEPD_Charge = file->Get<TProfile>(sepd_charge_hist.c_str());
+  TProfile *hSEPD_Charge{nullptr};
+  file->GetObject(sepd_charge_hist.c_str(), hSEPD_Charge);
 
   // Check if the hist is stored in the file
   if (hSEPD_Charge == nullptr)
@@ -229,14 +240,6 @@ int QVecCalib::process_bad_channels(TFile* file)
   se->registerHisto(h2SEPD_North_Charge_rbinv2);
   se->registerHisto(hSEPD_Bad_Channels);
 
-  auto* h2S = h2SEPD_South_Charge_rbin;
-  auto* h2N = h2SEPD_North_Charge_rbin;
-
-  auto* h2Sv2 = h2SEPD_South_Charge_rbinv2;
-  auto* h2Nv2 = h2SEPD_North_Charge_rbinv2;
-
-  auto* hBad = hSEPD_Bad_Channels;
-
   for (int channel = 0; channel < QVecShared::SEPD_CHANNELS; ++channel)
   {
     unsigned int key = TowerInfoDefs::encode_epd(channel);
@@ -245,13 +248,13 @@ int QVecCalib::process_bad_channels(TFile* file)
 
     double avg_charge = hSEPD_Charge->GetBinContent(channel + 1);
 
-    auto* h2 = (arm == 0) ? h2S : h2N;
+    auto* h2 = (arm == 0) ? h2SEPD_South_Charge_rbin : h2SEPD_North_Charge_rbin;
 
     h2->Fill(rbin, avg_charge);
   }
 
-  auto* hSpx = h2S->ProfileX("hSpx", 2, -1, "s");
-  auto* hNpx = h2N->ProfileX("hNpx", 2, -1, "s");
+  auto* hSpx = h2SEPD_South_Charge_rbin->ProfileX("hSpx", 2, -1, "s");
+  auto* hNpx = h2SEPD_North_Charge_rbin->ProfileX("hNpx", 2, -1, "s");
 
   int ctr_dead = 0;
   int ctr_hot = 0;
@@ -263,7 +266,7 @@ int QVecCalib::process_bad_channels(TFile* file)
     int rbin = TowerInfoDefs::get_epd_rbin(key);
     unsigned int arm = TowerInfoDefs::get_epd_arm(key);
 
-    auto* h2 = (arm == 0) ? h2Sv2 : h2Nv2;
+    auto* h2 = (arm == 0) ? h2SEPD_South_Charge_rbinv2 : h2SEPD_North_Charge_rbinv2;
     auto* hprof = (arm == 0) ? hSpx : hNpx;
 
     double charge = hSEPD_Charge->GetBinContent(channel + 1);
@@ -281,31 +284,31 @@ int QVecCalib::process_bad_channels(TFile* file)
       m_bad_channels.insert(channel);
 
       std::string type;
-      int status_fill;
+      QVecShared::ChannelStatus status_fill;
 
       // dead channel
       if (charge == 0)
       {
         type = "Dead";
-        status_fill = static_cast<int>(QVecShared::ChannelStatus::Dead);
+        status_fill = QVecShared::ChannelStatus::Dead;
         ++ctr_dead;
       }
       // hot channel
       else if (zscore > m_sEPD_sigma_threshold)
       {
         type = "Hot";
-        status_fill = static_cast<int>(QVecShared::ChannelStatus::Hot);
+        status_fill = QVecShared::ChannelStatus::Hot;
         ++ctr_hot;
       }
       // cold channel
       else
       {
         type = "Cold";
-        status_fill = static_cast<int>(QVecShared::ChannelStatus::Cold);
+        status_fill = QVecShared::ChannelStatus::Cold;
         ++ctr_cold;
       }
 
-      hBad->Fill(channel, status_fill);
+      hSEPD_Bad_Channels->Fill(channel, static_cast<int>(status_fill));
       std::cout << std::format("{:4} Channel: {:3d}, arm: {}, rbin: {:2d}, Mean: {:5.2f}, Charge: {:5.2f}, Z-Score: {:5.2f}",
                                 type, channel, arm, rbin, mean_charge, charge, zscore) << std::endl;
     }
@@ -315,7 +318,8 @@ int QVecCalib::process_bad_channels(TFile* file)
     }
   }
 
-  std::cout << std::format("Total Bad Channels: {}, Dead: {}, Hot: {}, Cold: {}", m_bad_channels.size(), ctr_dead, ctr_hot, ctr_cold) << std::endl;
+  std::cout << "Total Bad Channels: " << m_bad_channels.size() << ", Dead: "
+	    << ctr_dead << ", Hot: " << ctr_hot << ", Cold: " << ctr_cold << std::endl;
 
   std::cout << "Finished processing Hot sEPD channels" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -460,8 +464,9 @@ std::array<std::array<double, 2>, 2> QVecCalib::calculate_flattening_matrix(doub
   double N_term = D * (xx + yy + (2 * D));
   if (N_term <= 0)
   {
-    throw std::runtime_error(std::format(
-        "Invalid N-term ({}) for n={}, cent={}, det={}", N_term, n, cent_bin, det_label));
+    std::cout << "Invalid N-term (" << N_term << ") for n=" << n << ", cent=" << cent_bin
+	      << ", det=" << det_label << std::endl;
+    exit(1);
   }
   double inv_sqrt_N = 1.0 / std::sqrt(N_term);
 
@@ -475,10 +480,12 @@ std::array<std::array<double, 2>, 2> QVecCalib::calculate_flattening_matrix(doub
 
 template <typename T>
 T* QVecCalib::load_and_clone(TFile* file, const std::string& name) {
-  auto* obj = file->Get<T>(name.c_str());
+  T *obj {nullptr};
+  file->GetObject(name.c_str(),obj);
   if (!obj)
   {
-    throw std::runtime_error(std::format("Could not find histogram '{}' in file '{}'", name, file->GetName()));
+    std::cout << "Could not find histogram " << name << " in file " << file->GetName() << std::endl;
+    exit(1);
   }
   return static_cast<T*>(obj->Clone());
 }
@@ -493,8 +500,6 @@ int QVecCalib::load_correction_data()
     std::cout << PHWHERE << "Error! Cannot open: " << m_input_Q_calib << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  using SD = QVecShared::Subdetector;
 
   for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
   {
@@ -544,7 +549,7 @@ int QVecCalib::load_correction_data()
       if (m_pass == Pass::ApplyFlattening)
       {
         // Populate Flattening for S, N, and NS
-        for (int d = 0; d < (int) SD::Count; ++d)
+        for (int d = 0; d < (int) QVecShared::Subdetector::Count; ++d)
         {
           std::string det_str;
           switch (d)
@@ -822,7 +827,7 @@ void QVecCalib::process_averages(double cent, const QVecShared::QVec& q_S, const
 
 void QVecCalib::process_recentering(double cent, size_t h_idx, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const RecenterHists& h)
 {
-  size_t cent_bin = static_cast<size_t>(hCentrality->FindBin(cent) - 1);
+  int cent_bin = hCentrality->FindBin(cent) - 1;
 
   const auto& S = m_correction_data[cent_bin][h_idx][(size_t) QVecShared::Subdetector::S];
   const auto& N = m_correction_data[cent_bin][h_idx][(size_t) QVecShared::Subdetector::N];
@@ -866,7 +871,7 @@ void QVecCalib::process_recentering(double cent, size_t h_idx, const QVecShared:
 
 void QVecCalib::process_flattening(double cent, size_t h_idx, const QVecShared::QVec& q_S, const QVecShared::QVec& q_N, const FlatteningHists& h)
 {
-  size_t cent_bin = static_cast<size_t>(hCentrality->FindBin(cent) - 1);
+  int cent_bin = hCentrality->FindBin(cent) - 1;
 
   const auto& S = m_correction_data[cent_bin][h_idx][(size_t) QVecShared::Subdetector::S];
   const auto& N = m_correction_data[cent_bin][h_idx][(size_t) QVecShared::Subdetector::N];
@@ -1000,7 +1005,7 @@ bool QVecCalib::process_event_check()
 }
 
 //____________________________________________________________________________..
-int QVecCalib::process_event([[maybe_unused]] PHCompositeNode *topNode)
+int QVecCalib::process_event(PHCompositeNode *topNode)
 {
   m_evtdata = findNode::getClass<EventPlaneData>(topNode, "EventPlaneData");
   if (!m_evtdata)
@@ -1067,7 +1072,7 @@ int QVecCalib::process_event([[maybe_unused]] PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int QVecCalib::ResetEvent([[maybe_unused]] PHCompositeNode *topNode)
+int QVecCalib::ResetEvent(PHCompositeNode *)
 {
   m_q_vectors = {};
 
@@ -1083,15 +1088,15 @@ void QVecCalib::compute_averages(size_t cent_bin, int h_idx)
   std::string N_x_avg_name = QVecShared::get_hist_name("N", "x", n);
   std::string N_y_avg_name = QVecShared::get_hist_name("N", "y", n);
 
-  int bin = static_cast<int>(cent_bin + 1);
+  int bin = cent_bin + 1;
 
   double Q_S_x_avg = m_profiles[S_x_avg_name]->GetBinContent(bin);
   double Q_S_y_avg = m_profiles[S_y_avg_name]->GetBinContent(bin);
   double Q_N_x_avg = m_profiles[N_x_avg_name]->GetBinContent(bin);
   double Q_N_y_avg = m_profiles[N_y_avg_name]->GetBinContent(bin);
 
-  m_correction_data[cent_bin][h_idx][(size_t)QVecShared::Subdetector::S].avg_Q = {Q_S_x_avg, Q_S_y_avg};
-  m_correction_data[cent_bin][h_idx][(size_t)QVecShared::Subdetector::N].avg_Q = {Q_N_x_avg, Q_N_y_avg};
+  m_correction_data[cent_bin][h_idx][static_cast<size_t>(QVecShared::Subdetector::S)].avg_Q = {Q_S_x_avg, Q_S_y_avg};
+  m_correction_data[cent_bin][h_idx][static_cast<size_t>(QVecShared::Subdetector::N)].avg_Q = {Q_N_x_avg, Q_N_y_avg};
 
   std::cout << std::format(
       "Centrality Bin: {}, "
@@ -1117,7 +1122,7 @@ void QVecCalib::compute_recentering(size_t cent_bin, int h_idx)
   std::string N_x_corr_avg_name = QVecShared::get_hist_name("N", "x", n, "_corr");
   std::string N_y_corr_avg_name = QVecShared::get_hist_name("N", "y", n, "_corr");
 
-  int bin = static_cast<int>(cent_bin + 1);
+  int bin = cent_bin + 1;
 
   double Q_S_x_corr_avg = m_profiles[S_x_corr_avg_name]->GetBinContent(bin);
   double Q_S_y_corr_avg = m_profiles[S_y_corr_avg_name]->GetBinContent(bin);
@@ -1148,7 +1153,7 @@ void QVecCalib::compute_recentering(size_t cent_bin, int h_idx)
   double Q_NS_yy_avg = m_profiles[NS_yy_avg_name]->GetBinContent(bin);
   double Q_NS_xy_avg = m_profiles[NS_xy_avg_name]->GetBinContent(bin);
 
-  m_correction_data[cent_bin][h_idx][(size_t)QVecShared::Subdetector::NS].X_matrix = calculate_flattening_matrix(Q_NS_xx_avg, Q_NS_yy_avg, Q_NS_xy_avg, n, cent_bin, "NS");
+  m_correction_data[cent_bin][h_idx][static_cast<size_t>(QVecShared::Subdetector::NS)].X_matrix = calculate_flattening_matrix(Q_NS_xx_avg, Q_NS_yy_avg, Q_NS_xy_avg, n, cent_bin, "NS");
 
   for (size_t det_idx = 0; det_idx < 2; ++det_idx)
   {
@@ -1206,7 +1211,7 @@ void QVecCalib::print_flattening(size_t cent_bin, int n) const
   std::string NS_yy_corr_avg_name = QVecShared::get_hist_name("NS", "yy", n, "_corr");
   std::string NS_xy_corr_avg_name = QVecShared::get_hist_name("NS", "xy", n, "_corr");
 
-  int bin = static_cast<int>(cent_bin + 1);
+  int bin = cent_bin + 1;
 
   double Q_S_x_corr2_avg = m_profiles.at(S_x_corr2_avg_name)->GetBinContent(bin);
   double Q_S_y_corr2_avg = m_profiles.at(S_y_corr2_avg_name)->GetBinContent(bin);
@@ -1260,7 +1265,8 @@ void QVecCalib::write_cdb()
   }
   else if (ec)
   {
-    throw std::runtime_error(std::format("Failed to create directory {}: {}", m_cdb_output_dir, ec.message()));
+    std::cout << "Failed to create directory " <<  m_cdb_output_dir << ": " << ec.message() << std::endl;
+    exit(1);
   }
   else
   {
@@ -1320,8 +1326,6 @@ void QVecCalib::write_cdb_EventPlane()
 
   CDBTTree cdbttree(output_file);
 
-  using SD = QVecShared::Subdetector;
-
   for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
   {
     int n = m_harmonics[h_idx];
@@ -1334,24 +1338,24 @@ void QVecCalib::write_cdb_EventPlane()
 
     for (size_t cent_bin = 0; cent_bin < m_cent_bins; ++cent_bin)
     {
-      int key = static_cast<int>(cent_bin);
+      int key = cent_bin;
 
       // Iterate through all subdetectors (S, N, NS) using the Enum Count
-      for (size_t d = 0; d < static_cast<size_t>(SD::Count); ++d)
+      for (size_t d = 0; d < static_cast<size_t>(QVecShared::Subdetector::Count); ++d)
       {
-        auto det_enum = static_cast<SD>(d);
+        auto det_enum = static_cast<QVecShared::Subdetector>(d);
 
         // Map enum to the string labels used in the CDB field names
         std::string det_label;
         switch (det_enum)
         {
-        case SD::S:
+        case QVecShared::Subdetector::S:
           det_label = "S";
           break;
-        case SD::N:
+        case QVecShared::Subdetector::N:
           det_label = "N";
           break;
-        case SD::NS:
+        case QVecShared::Subdetector::NS:
           det_label = "NS";
           break;
         default:
@@ -1360,7 +1364,7 @@ void QVecCalib::write_cdb_EventPlane()
 
         const auto& data = m_correction_data[cent_bin][h_idx][d];
         // 1st Order Moments (Recentering) - Skip for NS as it is a combined vector
-        if (det_enum != SD::NS)
+        if (det_enum != QVecShared::Subdetector::NS)
         {
           cdbttree.SetDoubleValue(key, field(det_label, "x"), data.avg_Q.x);
           cdbttree.SetDoubleValue(key, field(det_label, "y"), data.avg_Q.y);
@@ -1381,7 +1385,7 @@ void QVecCalib::write_cdb_EventPlane()
 }
 
 //____________________________________________________________________________..
-int QVecCalib::End([[maybe_unused]] PHCompositeNode *topNode)
+int QVecCalib::End(PHCompositeNode *)
 {
   std::cout << "QVecCalib::End(PHCompositeNode *topNode) This is the End..." << std::endl;
 

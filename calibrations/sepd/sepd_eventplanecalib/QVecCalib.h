@@ -1,24 +1,24 @@
-#ifndef QVECCALIB_H
-#define QVECCALIB_H
+#ifndef SEPDEVENTPLANECALIB_QVECCALIB_H
+#define SEPDEVENTPLANECALIB_QVECCALIB_H
 
 #include "QVecDefs.h"
 
 #include <fun4all/SubsysReco.h>
 
+#include <array>
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unordered_set>
-
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TProfile.h>
+#include <vector>
 
 class PHCompositeNode;
 class EventPlaneData;
-class EpdGeom;
+class TFile;
+class TH1;
+class TH2;
+class TProfile;
 
 /**
  * @class QVecCalib
@@ -126,8 +126,8 @@ class QVecCalib : public SubsysReco
   static constexpr size_t m_cent_bins = QVecShared::CENT_BINS;
   static constexpr auto m_harmonics = QVecShared::HARMONICS;
 
-  static constexpr float SIGMA_HOT = 6.0F;
-  static constexpr float SIGMA_COLD = -6.0F;
+  static constexpr float SIGMA_HOT {6.0};
+  static constexpr float SIGMA_COLD {-6.0};
 
   double m_cent_low{-0.5};
   double m_cent_high{79.5};
@@ -432,4 +432,4 @@ class QVecCalib : public SubsysReco
   void write_cdb_BadTowers();
 };
 
-#endif  // QVECCALIB_H
+#endif  // SEPDEVENTPLANECALIB_QVECCALIB_H

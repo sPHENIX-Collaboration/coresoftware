@@ -1,5 +1,5 @@
-#ifndef SEPD_TREEGEN_H
-#define SEPD_TREEGEN_H
+#ifndef SEPDEVENTPLANECALIB_SEPDTREEGEN_H
+#define SEPDEVENTPLANECALIB_SEPDTREEGEN_H
 
 // -- sPHENIX
 #include <fun4all/SubsysReco.h>
@@ -7,12 +7,10 @@
 // -- c++
 #include <string>
 
-// -- ROOT
-#include <TProfile.h>
-#include <TH2.h>
-
-class PHCompositeNode;
 class EventPlaneData;
+class PHCompositeNode;
+class TH2;
+class TProfile;
 
 /**
  * @class sEPD_TreeGen
@@ -53,13 +51,6 @@ class sEPD_TreeGen : public SubsysReco
    * @return Fun4All return code.
    */
   int ResetEvent(PHCompositeNode *topNode) override;
-
- /**
-   * @brief Finalizes the module, writing all histograms and the TTree to disk.
-   * @param topNode Pointer to the node tree.
-   * @return Fun4All return code.
-   */
-  int End(PHCompositeNode *topNode) override;
 
  /**
    * @brief Prints the current state of the EventPlaneData object.
@@ -144,4 +135,4 @@ class sEPD_TreeGen : public SubsysReco
   TH2 *h2SEPD_totalcharge_centrality{nullptr};
 };
 
-#endif // SEPD_TREEGEN_H
+#endif // SEPDEVENTPLANECALIB_SEPDTREEGEN_H

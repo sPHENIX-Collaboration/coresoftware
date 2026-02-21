@@ -6,7 +6,6 @@
 #include <phool/PHObject.h>
 
 #include <array>
-#include <cmath>
 #include <limits>
 
 class EventPlaneData : public PHObject
