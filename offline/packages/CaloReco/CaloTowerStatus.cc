@@ -3,10 +3,6 @@
 
 #include <calobase/TowerInfo.h>  // for TowerInfo
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfov2.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
