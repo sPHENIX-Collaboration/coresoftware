@@ -1072,7 +1072,7 @@ int QVecCalib::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int QVecCalib::ResetEvent(PHCompositeNode *)
+int QVecCalib::ResetEvent(PHCompositeNode * /*topNode*/)
 {
   m_q_vectors = {};
 
@@ -1385,7 +1385,7 @@ void QVecCalib::write_cdb_EventPlane()
 }
 
 //____________________________________________________________________________..
-int QVecCalib::End(PHCompositeNode *)
+int QVecCalib::End(PHCompositeNode * /*topNode*/)
 {
   std::cout << "QVecCalib::End(PHCompositeNode *topNode) This is the End..." << std::endl;
 
