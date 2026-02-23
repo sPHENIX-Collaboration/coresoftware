@@ -372,7 +372,7 @@ Acts::Transform3 AlignmentTransformation::newMakeTransform(const Surface& surf, 
 
   // get the acts transform components
   // Note that Acts transforms local coordinates of (x,z,y) to global (x,y,z)
-  Acts::Transform3 actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
+  auto actsTransform = surf->transform(m_tGeometry->geometry().getGeoContext());
   Eigen::Matrix3d actsRotationPart = actsTransform.rotation();
   Eigen::Vector3d actsTranslationPart = actsTransform.translation();
 

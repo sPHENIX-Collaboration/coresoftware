@@ -23,16 +23,7 @@ const Acts::Transform3& sPHENIXActsDetectorElement::transform(const Acts::Geomet
     auto& layerVec = transformVec[sphlayer];  // get the vector of transforms for this layer
 
     if (layerVec.size() > sensor)
-    {
-      /*
-      if(sphlayer > 7)
-	{
-	  std::cout << "sPHENIXActsDetectorElement:  volume " << volume <<" Acts  layer " << layer << " sensor " << sensor
-		    << " sphenix layer " << sphlayer << std::endl;
-	  std::cout << layerVec[sensor].matrix() << std::endl;
-	}
-      */
-      
+    { 
       return layerVec[sensor];
     }
 

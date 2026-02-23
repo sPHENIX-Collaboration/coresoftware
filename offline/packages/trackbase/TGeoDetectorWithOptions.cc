@@ -10,9 +10,9 @@
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Geometry/TrackingGeometryBuilder.hpp>
 #include <Acts/Geometry/TrackingVolumeArrayCreator.hpp>
-#include <Acts/Plugins/TGeo/TGeoCylinderDiscSplitter.hpp>
-#include <Acts/Plugins/TGeo/TGeoDetectorElement.hpp>
-#include <Acts/Plugins/TGeo/TGeoLayerBuilder.hpp>
+#include <ActsPlugins/Root/TGeoCylinderDiscSplitter.hpp>
+#include <ActsPlugins/Root/TGeoDetectorElement.hpp>
+#include <ActsPlugins/Root/TGeoLayerBuilder.hpp>
 #include <Acts/Utilities/Logger.hpp>
 #include <ActsExamples/Framework/IContextDecorator.hpp>
 #include <ActsExamples/TGeoDetector/JsonTGeoDetectorConfig.hpp>

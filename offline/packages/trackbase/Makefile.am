@@ -32,9 +32,9 @@ AM_CPPFLAGS = \
   -isystem$(ROOTSYS)/include
 
 AM_LDFLAGS = \
+  -L$(MYINSTALL)/lib64 \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(MYINSTALL)/lib64 \
   -L$(ROOTSYS)/lib
 
 
@@ -72,7 +72,6 @@ pkginclude_HEADERS = \
   LaserClusterContainerv1.h \
   LaserClusterv1.h \
   LaserClusterv2.h \
-  MagneticFieldOptions.h \
   MaterialWiper.h \
   MvtxDefs.h \
   MvtxEventInfo.h \
@@ -217,7 +216,6 @@ libtrack_la_SOURCES = \
   Calibrator.cc \
   ClusterErrorPara.cc \
   CommonOptions.cc \
-  MagneticFieldOptions.cc \
   sPHENIXActsDetectorElement.cc \
   TGeoDetectorWithOptions.cc \
   TrackFittingAlgorithmFunctionsGsf.cc \
@@ -293,8 +291,7 @@ libtrack_io_la_SOURCES = \
 libtrack_la_LIBADD = \
   libtrack_io.la \
   -lActsCore \
-  -lActsExamplesMagneticField \
-  -lActsPluginTGeo \
+  -lActsPluginRoot \
   -lActsExamplesDetectorTGeo \
   -lffamodules \
   -lboost_program_options
