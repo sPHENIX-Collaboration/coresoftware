@@ -17,10 +17,11 @@ class GlobalVertex;
 namespace TrackAnalysisUtils
 {
 
-struct TrackFitResiduals {
-  std::map<TrkrDefs::cluskey, Acts::Vector2> local_residuals;
-  std::map<TrkrDefs::cluskey, Acts::Vector3> global_residuals;  
-};
+  struct TrackFitResiduals
+  {
+    std::map<TrkrDefs::cluskey, Acts::Vector2> local_residuals;
+    std::map<TrkrDefs::cluskey, Acts::Vector3> global_residuals;
+  };
 
   /// Returns DCA as .first and uncertainty on DCA as .second
   using DCA = std::pair<float, float>;
@@ -43,7 +44,7 @@ struct TrackFitResiduals {
 
   TrackFitResiduals
   get_residuals(SvtxTrack* track, TrkrClusterContainer* clustermap,
-               PHCompositeNode* topNode);
+                PHCompositeNode* topNode);
 
 };  // namespace TrackAnalysisUtils
 

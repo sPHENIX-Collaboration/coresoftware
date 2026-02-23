@@ -301,7 +301,7 @@ namespace TrackAnalysisUtils
 
   TrackAnalysisUtils::TrackFitResiduals
   get_residuals(SvtxTrack* track, TrkrClusterContainer* clustermap,
-               PHCompositeNode* topNode) 
+                PHCompositeNode* topNode)
   {
     TrackAnalysisUtils::TrackFitResiduals residuals;
     TpcGlobalPositionWrapper globalWrapper;
@@ -313,9 +313,9 @@ namespace TrackAnalysisUtils
     mover.set_verbosity(0);
 
     auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-    
+
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
-    
+
     for (const auto& key : get_cluster_keys(track))
     {
       auto* clus = clustermap->findCluster(key);
@@ -328,81 +328,81 @@ namespace TrackAnalysisUtils
 
     auto global_moved = mover.processTrack(global_raw);
 
-    for(const auto& ckey : get_cluster_keys(track))
+    for (const auto& ckey : get_cluster_keys(track))
     {
-      auto *cluster = clustermap->findCluster(ckey);
-    // loop over global vectors and get this cluster
-    Acts::Vector3 clusglob(0, 0, 0);
-    for (const auto& pair : global_raw)
-    {
-      auto thiskey = pair.first;
-      clusglob = pair.second;
-      if (thiskey == ckey)
+      auto* cluster = clustermap->findCluster(ckey);
+      // loop over global vectors and get this cluster
+      Acts::Vector3 clusglob(0, 0, 0);
+      for (const auto& pair : global_raw)
       {
-        break;
+        auto thiskey = pair.first;
+        clusglob = pair.second;
+        if (thiskey == ckey)
+        {
+          break;
+        }
       }
-    }
 
-    Acts::Vector3 clusglob_moved(0, 0, 0);
-    for (const auto& pair : global_moved)
-    {
-      auto thiskey = pair.first;
-      clusglob_moved = pair.second;
-      if (thiskey == ckey)
+      Acts::Vector3 clusglob_moved(0, 0, 0);
+      for (const auto& pair : global_moved)
       {
-        break;
+        auto thiskey = pair.first;
+        clusglob_moved = pair.second;
+        if (thiskey == ckey)
+        {
+          break;
+        }
       }
-    }
-    SvtxTrackState* state = nullptr;
-    for (auto state_iter = track->begin_states();
-         state_iter != track->end_states();
-         ++state_iter)
-    {
-      SvtxTrackState* tstate = state_iter->second;
-      auto stateckey = tstate->get_cluskey();
-      if (stateckey == ckey)
+      SvtxTrackState* state = nullptr;
+      for (auto state_iter = track->begin_states();
+           state_iter != track->end_states();
+           ++state_iter)
       {
-        state = tstate;
-        break;
+        SvtxTrackState* tstate = state_iter->second;
+        auto stateckey = tstate->get_cluskey();
+        if (stateckey == ckey)
+        {
+          state = tstate;
+          break;
+        }
       }
-    }
-    Surface surf = geometry->maps().getSurface(ckey, cluster);
-    Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);  // Unchanged by distortion corrections
-    // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
-    auto trkrid = TrkrDefs::getTrkrId(ckey);
-    if (trkrid == TrkrDefs::tpcId)
-    {
-      TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
-      TrkrDefs::subsurfkey new_subsurfkey = 0;
-      surf = geometry->get_tpc_surface_from_coords(hitsetkey, clusglob_moved, new_subsurfkey);
-    }
+      Surface surf = geometry->maps().getSurface(ckey, cluster);
+      Surface surf_ideal = geometry->maps().getSurface(ckey, cluster);  // Unchanged by distortion corrections
+      // if this is a TPC cluster, the crossing correction may have moved it across the central membrane, check the surface
+      auto trkrid = TrkrDefs::getTrkrId(ckey);
+      if (trkrid == TrkrDefs::tpcId)
+      {
+        TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(ckey);
+        TrkrDefs::subsurfkey new_subsurfkey = 0;
+        surf = geometry->get_tpc_surface_from_coords(hitsetkey, clusglob_moved, new_subsurfkey);
+      }
 
-    auto loc = geometry->getLocalCoords(ckey, cluster, track->get_crossing());
-    // in this case we get local coords from transform of corrected global coords
-    clusglob_moved *= Acts::UnitConstants::cm;  // we want mm for transformations
-    Acts::Vector3 normal = surf->normal(geometry->geometry().getGeoContext(),
-                                        Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
-    auto local = surf->globalToLocal(geometry->geometry().getGeoContext(),
-                                     clusglob_moved, normal);
-    if (local.ok())
-    {
-      loc = local.value() / Acts::UnitConstants::cm;
-    }
-    else
-    {
-      // otherwise take the manual calculation for the TPC
-      // doing it this way just avoids the bounds check that occurs in the surface class method
-      Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
-      loct /= Acts::UnitConstants::cm;
+      auto loc = geometry->getLocalCoords(ckey, cluster, track->get_crossing());
+      // in this case we get local coords from transform of corrected global coords
+      clusglob_moved *= Acts::UnitConstants::cm;  // we want mm for transformations
+      Acts::Vector3 normal = surf->normal(geometry->geometry().getGeoContext(),
+                                          Acts::Vector3(1, 1, 1), Acts::Vector3(1, 1, 1));
+      auto local = surf->globalToLocal(geometry->geometry().getGeoContext(),
+                                       clusglob_moved, normal);
+      if (local.ok())
+      {
+        loc = local.value() / Acts::UnitConstants::cm;
+      }
+      else
+      {
+        // otherwise take the manual calculation for the TPC
+        // doing it this way just avoids the bounds check that occurs in the surface class method
+        Acts::Vector3 loct = surf->transform(geometry->geometry().getGeoContext()).inverse() * clusglob_moved;  // global is in mm
+        loct /= Acts::UnitConstants::cm;
 
-      loc(0) = loct(0);
-      loc(1) = loct(1);
-    }
-    clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
-    Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
-    Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
-    residuals.local_residuals[ckey] = stateloc - loc;
-    residuals.global_residuals[ckey] = stateglob - clusglob_moved;
+        loc(0) = loct(0);
+        loc(1) = loct(1);
+      }
+      clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
+      Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
+      Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
+      residuals.local_residuals[ckey] = stateloc - loc;
+      residuals.global_residuals[ckey] = stateglob - clusglob_moved;
     }
     return residuals;
   }
