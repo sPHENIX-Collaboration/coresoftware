@@ -299,10 +299,11 @@ namespace TrackAnalysisUtils
     return out;
   }
 
-  std::pair<Acts::Vector2, Acts::Vector3>
-  get_residual(TrkrDefs::cluskey& ckey, SvtxTrack* track, TrkrClusterContainer* clustermap,
-               PHCompositeNode* topNode)
+  TrackAnalysisUtils::TrackFitResiduals
+  get_residuals(SvtxTrack* track, TrkrClusterContainer* clustermap,
+               PHCompositeNode* topNode) 
   {
+    TrackAnalysisUtils::TrackFitResiduals residuals;
     TpcGlobalPositionWrapper globalWrapper;
     globalWrapper.loadNodes(topNode);
     globalWrapper.set_suppressCrossing(true);
@@ -310,9 +311,11 @@ namespace TrackAnalysisUtils
     auto* tpccellgeo = findNode::getClass<PHG4TpcGeomContainer>(topNode, "TPCGEOMCONTAINER");
     mover.initialize_geometry(tpccellgeo);
     mover.set_verbosity(0);
+
     auto* geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-    auto* cluster = clustermap->findCluster(ckey);
+    
     std::vector<std::pair<TrkrDefs::cluskey, Acts::Vector3>> global_raw;
+    
     for (const auto& key : get_cluster_keys(track))
     {
       auto* clus = clustermap->findCluster(key);
@@ -325,6 +328,9 @@ namespace TrackAnalysisUtils
 
     auto global_moved = mover.processTrack(global_raw);
 
+    for(const auto& ckey : get_cluster_keys(track))
+    {
+      auto *cluster = clustermap->findCluster(ckey);
     // loop over global vectors and get this cluster
     Acts::Vector3 clusglob(0, 0, 0);
     for (const auto& pair : global_raw)
@@ -395,8 +401,10 @@ namespace TrackAnalysisUtils
     clusglob_moved /= Acts::UnitConstants::cm;  // we want cm for the tree
     Acts::Vector2 stateloc(state->get_localX(), state->get_localY());
     Acts::Vector3 stateglob(state->get_x(), state->get_y(), state->get_z());
-
-    return std::make_pair(stateloc - loc, stateglob - clusglob_moved);
+    residuals.local_residuals[ckey] = stateloc - loc;
+    residuals.global_residuals[ckey] = stateglob - clusglob_moved;
+    }
+    return residuals;
   }
 
 }  // namespace TrackAnalysisUtils
