@@ -3,25 +3,28 @@
 #include "EventplaneinfoMapv1.h"
 #include "Eventplaneinfov2.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <ffamodules/CDBInterface.h>
-
-#include <phool/getClass.h>
-#include <phool/phool.h>
-#include <phool/PHCompositeNode.h>
-
 #include <calobase/TowerInfo.h>
 #include <calobase/TowerInfoContainer.h>
 #include <calobase/TowerInfoDefs.h>
-
-// -- event
-#include <ffaobjects/EventHeader.h>
 
 // -- Centrality
 #include <centrality/CentralityInfo.h>
 
 // -- sEPD
 #include <epd/EpdGeom.h>
+
+#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
+// -- event
+#include <ffaobjects/EventHeader.h>
+
+#include <ffamodules/CDBInterface.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/getClass.h>
+#include <phool/phool.h>
+#include <phool/PHCompositeNode.h>
 
 // -- root includes --
 #include <TFile.h>
@@ -42,50 +45,18 @@ EventPlaneRecov2::EventPlaneRecov2(const std::string &name):
 }
 
 //____________________________________________________________________________..
-EventPlaneRecov2::~EventPlaneRecov2()
-{
-  std::cout << "EventPlaneRecov2::~EventPlaneRecov2() Calling dtor" << std::endl;
-}
-
-bool EventPlaneRecov2::hasValidTree(const std::string &filePath)
-{
-  // 1. Attempt to open the file
-  // "READ" is the default, but being explicit is good practice
-  std::unique_ptr<TFile> file(TFile::Open(filePath.c_str(), "READ"));
-
-  // 2. Validate the file pointer and check if the file is "Zombie" (corrupt/unreadable)
-  if (!file || file->IsZombie())
-  {
-    std::cout << "Error: Could not open file: " << filePath << std::endl;
-    return false;
-  }
-
-  // 3. Attempt to get the object by name
-  TObject *obj = file->Get("Multiple");
-
-  // 4. Validate existence and check if it actually inherits from TTree
-  if (obj && obj->InheritsFrom(TTree::Class()))
-  {
-    return true;
-  }
-
-  std::cout << "Error: Object 'Multiple' not found or is not a TTree." << std::endl;
-  return false;
-}
-
-//____________________________________________________________________________..
 int EventPlaneRecov2::Init(PHCompositeNode *topNode)
 {
   std::string calibdir = CDBInterface::instance()->getUrl(m_calibName);
 
-  if (!m_directURL_EventPlaneCalib.empty() && hasValidTree(m_directURL_EventPlaneCalib))
+  if (!m_directURL_EventPlaneCalib.empty())
   {
-    m_cdbttree = std::make_unique<CDBTTree>(m_directURL_EventPlaneCalib);
+    m_cdbttree = new CDBTTree(m_directURL_EventPlaneCalib);
     std::cout << PHWHERE << " Custom Event Plane Calib Found: " << m_directURL_EventPlaneCalib << std::endl;
   }
   else if (!calibdir.empty())
   {
-    m_cdbttree = std::make_unique<CDBTTree>(calibdir);
+    m_cdbttree = new CDBTTree(calibdir);
     std::cout << PHWHERE << " Event Plane Calib Found: " << calibdir << std::endl;
   }
   else if (m_doAbortNoEventPlaneCalib)
@@ -176,7 +147,7 @@ void EventPlaneRecov2::LoadCalib()
 
     for (size_t cent_bin = 0; cent_bin < m_bins_cent; ++cent_bin)
     {
-      int key = static_cast<int>(cent_bin);
+      int key = cent_bin;
 
       // South
       auto& dataS = m_correction_data[h_idx][cent_bin][south_idx];
@@ -211,6 +182,8 @@ void EventPlaneRecov2::LoadCalib()
       dataNS.X_matrix = calculate_flattening_matrix(dataNS.avg_Q_xx, dataNS.avg_Q_yy, dataNS.avg_Q_xy, n, cent_bin, "NorthSouth");
     }
   }
+  delete m_cdbttree;
+  m_cdbttree = nullptr;
 }
 
 //____________________________________________________________________________..

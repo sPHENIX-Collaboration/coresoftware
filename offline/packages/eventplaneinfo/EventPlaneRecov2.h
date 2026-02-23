@@ -2,12 +2,13 @@
 #define EVENTPLANEINFO_EVENTPLANERECOV2_H
 
 #include <fun4all/SubsysReco.h>
-#include <cdbobjects/CDBTTree.h>  // for CDBTTree
+
 
 #include <string>
 #include <array>
 #include <memory>
 
+class CDBTTree;
 class PHCompositeNode;
 
 class EventPlaneRecov2 : public SubsysReco
@@ -15,7 +16,7 @@ class EventPlaneRecov2 : public SubsysReco
  public:
 
   explicit EventPlaneRecov2(const std::string &name = "EventPlaneRecov2");
-  ~EventPlaneRecov2() override;
+  ~EventPlaneRecov2() override = default;
 
   // Explicitly disable copying and moving
   EventPlaneRecov2(const EventPlaneRecov2&) = delete;
@@ -64,7 +65,6 @@ class EventPlaneRecov2 : public SubsysReco
 
  private:
 
- static bool hasValidTree(const std::string &filePath);
  static int CreateNodes(PHCompositeNode *topNode);
 
  std::array<std::array<double, 2>, 2> calculate_flattening_matrix(double xx, double yy, double xy, int n, int cent_bin, const std::string& det_label);
@@ -91,7 +91,7 @@ class EventPlaneRecov2 : public SubsysReco
  std::string m_calibName{"SEPD_EventPlaneCalib"};
  std::string m_inputNode{"TOWERINFO_CALIB_SEPD"};
 
- std::unique_ptr<CDBTTree> m_cdbttree;
+ CDBTTree *m_cdbttree;
 
  enum class Subdetector
  {

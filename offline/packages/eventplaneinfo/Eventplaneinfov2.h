@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef EVENTPLANEINFOV2_H
-#define EVENTPLANEINFOV2_H
+#ifndef EVENTPLANEINFO_EVENTPLANEINFOV2_H
+#define EVENTPLANEINFO_EVENTPLANEINFOV2_H
 
 #include "Eventplaneinfo.h"
 
@@ -40,7 +40,7 @@ class Eventplaneinfov2 : public Eventplaneinfo
   {
     if (ring_index < 0 || static_cast<size_t>(ring_index) >= ring_Qvec.size())
     {
-      return {NAN, NAN};
+      return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }
     return safe_qvec(ring_Qvec[ring_index], order);
   }
@@ -60,7 +60,7 @@ class Eventplaneinfov2 : public Eventplaneinfo
   {
     if (order <= 0 || static_cast<size_t>(order) > mPsi_Shifted.size())
     {
-      return NAN;
+      return std::numeric_limits<double>::quiet_NaN();
     }
     return mPsi_Shifted[order - 1];
   }
@@ -70,7 +70,7 @@ class Eventplaneinfov2 : public Eventplaneinfo
   {
     if (order <= 0 || static_cast<size_t>(order) > v.size())
     {
-      return {NAN, NAN};
+      return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }
     return v[order - 1];
   }
@@ -84,4 +84,3 @@ class Eventplaneinfov2 : public Eventplaneinfo
 };
 
 #endif
-     

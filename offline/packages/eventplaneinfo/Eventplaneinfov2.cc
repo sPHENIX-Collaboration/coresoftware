@@ -1,6 +1,7 @@
 #include "Eventplaneinfov2.h"
 
 #include <cmath>
+#include <limits>
 
 void Eventplaneinfov2::identify(std::ostream& os) const
 {
@@ -12,11 +13,11 @@ double Eventplaneinfov2::GetPsi(const double Qx, const double Qy, const unsigned
 {
   if (order == 0)
   {
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
   if ((Qx == 0.0) && (Qy == 0.0))
   {
-    return NAN;
+    return std::numeric_limits<double>::quiet_NaN();
   }
-  return atan2(Qy, Qx) / static_cast<double>(order);
+  return atan2(Qy, Qx) / order;
 }
