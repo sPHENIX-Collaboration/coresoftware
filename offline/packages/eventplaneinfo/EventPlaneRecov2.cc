@@ -259,17 +259,16 @@ int EventPlaneRecov2::CreateNodes(PHCompositeNode *topNode) {
   PHCompositeNode *globalNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "GLOBAL"));
   if (!globalNode)
   {
-    auto global_ptr = std::make_unique<PHCompositeNode>("GLOBAL");
-    globalNode = global_ptr.get();
-    dstNode->addNode(global_ptr.release());
+    globalNode = new PHCompositeNode("GLOBAL");
+    dstNode->addNode(globalNode);
   }
 
   EventplaneinfoMap *eps = findNode::getClass<EventplaneinfoMap>(topNode, "EventplaneinfoMap");
   if (!eps)
   {
-    auto eps_ptr = std::make_unique<EventplaneinfoMapv1>();
-    auto epMapNode_ptr = std::make_unique<PHIODataNode<PHObject>>(eps_ptr.release(), "EventplaneinfoMap", "PHObject");
-    globalNode->addNode(epMapNode_ptr.release());
+    eps = new EventplaneinfoMapv1();
+    PHIODataNode<PHObject> *newNode  = new PHIODataNode<PHObject>(eps , "EventplaneinfoMap", "PHObject");
+    globalNode->addNode(newNode);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
