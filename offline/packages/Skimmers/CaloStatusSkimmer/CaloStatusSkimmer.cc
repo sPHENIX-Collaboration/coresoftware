@@ -16,9 +16,6 @@
 CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name)
     : SubsysReco(name)
 {
-  n_eventcounter = 0;
-  n_skimcounter = 0;
-  n_notowernodecounter = 0;
   std::cout << "CaloStatusSkimmer::CaloStatusSkimmer(const std::string &name) ""Calling ctor" << std::endl;
 }
 
@@ -34,7 +31,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     {
       n_notowernodecounter++;
       if (Verbosity() > 0)
+      {
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_CEMC" << std::endl;
+      }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     const uint32_t ntowers = towers->size();
@@ -67,7 +66,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     {
       n_notowernodecounter++;
       if (Verbosity() > 0)
+      {
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_HCALIN or TOWERS_HCALOUT" << std::endl;
+      }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
@@ -114,7 +115,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     {
       n_notowernodecounter++;
       if (Verbosity() > 0)
+      {
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_SEPD" << std::endl;
+      }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     const uint32_t ntowers = sepd_towers->size();
@@ -148,7 +151,9 @@ int CaloStatusSkimmer::process_event(PHCompositeNode *topNode)
     {
       n_notowernodecounter++;
       if (Verbosity() > 0)
+      {
         std::cout << PHWHERE << "calostatuscheck::process_event: missing TOWERS_ZDC" << std::endl;
+      }
       return Fun4AllReturnCodes::ABORTEVENT;
     }
     const uint32_t ntowers = zdc_towers->size();
