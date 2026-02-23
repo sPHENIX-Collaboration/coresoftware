@@ -157,8 +157,8 @@ namespace TrackAnalysisUtils
       if (track->get_crossing() < SHRT_MAX)
       {
         double z_crossing_corrected =
-            TpcClusterZCrossingCorrection::correctZ(cglob.z(),
-                                                    TpcDefs::getSide(cluster_key), track->get_crossing());
+          TpcClusterZCrossingCorrection::correctZ(cglob.z(),
+          TpcDefs::getSide(cluster_key), track->get_crossing());
 
         double maxz = tgeometry->get_max_driftlength() + tgeometry->get_CM_halfwidth();
         adc /= (1 - ((maxz - abs(z_crossing_corrected)) * 0.50 / maxz));
@@ -205,6 +205,7 @@ namespace TrackAnalysisUtils
         vertexCov(i, j) = vertex->get_error(i, j);
       }
     }
+
 
     Acts::ActsSquareMatrix<3> rotCov = rot * (posCov + vertexCov) * rot_T;
     dca.first.second = sqrt(rotCov(0, 0));
