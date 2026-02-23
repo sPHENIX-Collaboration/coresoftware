@@ -471,7 +471,7 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
       int iphi = towerinfos->getTowerPhiBin(calokey);
       const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(geocaloid, ieta, iphi);
       // skip masked towers
-      if (tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2())
+      if (!tower->get_isGood())
       {
         continue;
       }
