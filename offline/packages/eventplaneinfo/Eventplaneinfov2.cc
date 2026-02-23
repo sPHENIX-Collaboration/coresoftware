@@ -19,5 +19,5 @@ double Eventplaneinfov2::GetPsi(const double Qx, const double Qy, const unsigned
   {
     return std::numeric_limits<double>::quiet_NaN();
   }
-  return atan2(Qy, Qx) / order;
+  return std::atan2(Qy, Qx) / order;
 }

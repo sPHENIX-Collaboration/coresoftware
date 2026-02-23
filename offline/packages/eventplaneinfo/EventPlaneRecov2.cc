@@ -512,17 +512,17 @@ int EventPlaneRecov2::FillNode(PHCompositeNode *topNode)
 
   size_t vec_size = static_cast<size_t>(*std::ranges::max_element(m_harmonics));
 
-  std::vector<std::pair<double, double>> south_Qvec_raw(vec_size, {NAN, NAN});
-  std::vector<std::pair<double, double>> south_Qvec_recentered(vec_size, {NAN, NAN});
-  std::vector<std::pair<double, double>> south_Qvec(vec_size, {NAN, NAN});
+  std::vector<std::pair<double, double>> south_Qvec_raw(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> south_Qvec_recentered(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> south_Qvec(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
 
-  std::vector<std::pair<double, double>> north_Qvec_raw(vec_size, {NAN, NAN});
-  std::vector<std::pair<double, double>> north_Qvec_recentered(vec_size, {NAN, NAN});
-  std::vector<std::pair<double, double>> north_Qvec(vec_size, {NAN, NAN});
+  std::vector<std::pair<double, double>> north_Qvec_raw(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> north_Qvec_recentered(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> north_Qvec(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
 
-  std::vector<std::pair<double, double>> northsouth_Qvec_raw(vec_size, {NAN, NAN});
-  std::vector<std::pair<double, double>> northsouth_Qvec_recentered(vec_size, {NAN, NAN});
-  std::vector<std::pair<double, double>> northsouth_Qvec(vec_size, {NAN, NAN});
+  std::vector<std::pair<double, double>> northsouth_Qvec_raw(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> northsouth_Qvec_recentered(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
+  std::vector<std::pair<double, double>> northsouth_Qvec(vec_size, {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()});
 
   for (size_t h_idx = 0; h_idx < m_harmonics.size(); ++h_idx)
   {
@@ -566,7 +566,7 @@ int EventPlaneRecov2::FillNode(PHCompositeNode *topNode)
       node->set_qvector_recentered(qvecs_recentered);
       node->set_qvector(qvecs);
 
-      std::vector<double> psi_vec(vec_size, NAN);
+      std::vector<double> psi_vec(vec_size, std::numeric_limits<double>::quiet_NaN());
       for (int n : m_harmonics) {
           psi_vec[n-1] = node->GetPsi(qvecs[n-1].first, qvecs[n-1].second, n);
       }
@@ -625,7 +625,7 @@ int EventPlaneRecov2::process_event(PHCompositeNode *topNode)
 }
 
 //____________________________________________________________________________..
-int EventPlaneRecov2::ResetEvent([[maybe_unused]] PHCompositeNode *topNode)
+int EventPlaneRecov2::ResetEvent(PHCompositeNode */*topNode*/)
 {
   m_doNotCalibEvent = false;
 
@@ -633,12 +633,5 @@ int EventPlaneRecov2::ResetEvent([[maybe_unused]] PHCompositeNode *topNode)
   m_Q_recentered = {};
   m_Q_flat = {};
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-//____________________________________________________________________________..
-int EventPlaneRecov2::End([[maybe_unused]] PHCompositeNode *topNode)
-{
-  std::cout << "EventPlaneRecov2::End(PHCompositeNode *topNode) This is the End..." << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }

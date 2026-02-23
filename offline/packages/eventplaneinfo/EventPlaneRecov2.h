@@ -39,9 +39,6 @@ class EventPlaneRecov2 : public SubsysReco
   /// Clean up internals after each event.
   int ResetEvent(PHCompositeNode *topNode) override;
 
-  /// Called at the end of all processing.
-  int End(PHCompositeNode *topNode) override;
-
 
   void set_inputNode(const std::string &inputNode)
   {
