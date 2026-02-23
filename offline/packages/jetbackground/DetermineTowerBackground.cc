@@ -278,7 +278,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
           tower_geom = geomIH->get_tower_geometry(key);
           comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-          comp_isBad = !tower->get_isGood();
+          comp_isBad = !towerinfo->get_isGood();
         }
         else if (comp.first == 7 || comp.first == 27)
         {
@@ -289,7 +289,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
           tower_geom = geomOH->get_tower_geometry(key);
           comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-          comp_isBad = !tower->get_isGood();
+          comp_isBad = !towerinfo->get_isGood();
         }
         else if (comp.first == 13 || comp.first == 28)
         {
@@ -300,7 +300,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
           tower_geom = geomIH->get_tower_geometry(key);
           comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-          comp_isBad = !tower->get_isGood();
+          comp_isBad = !towerinfo->get_isGood();
         }
         
 
