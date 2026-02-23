@@ -1,7 +1,7 @@
-#ifndef ONCALDBCODES_H__
-#define ONCALDBCODES_H__
+#ifndef FUN4CAL_FUN4CALDBCODES_H
+#define FUN4CAL_FUN4CALDBCODES_H
 
-namespace OnCalDBCodes
+namespace Fun4CalDBCodes
 {
   enum
   {

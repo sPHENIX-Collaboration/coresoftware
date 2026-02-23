@@ -68,7 +68,6 @@ HepMCParticleTrigger::HepMCParticleTrigger(float trigger_thresh, int n_incom, bo
 int HepMCParticleTrigger::process_event(PHCompositeNode* topNode)
 {
   // std::cout << "HepMCParticleTrigger::process_event(PHCompositeNode *topNode) Processing Event" << std::endl;
-  n_evts++;
   if (this->set_event_limit == true)
   {  // needed to keep all HepMC output at the same number of events
     if (n_good >= this->goal_event_number)
@@ -76,6 +75,7 @@ int HepMCParticleTrigger::process_event(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
+  n_evts++;
   bool good_event{false};
   PHHepMCGenEventMap* phg = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!phg)

@@ -394,6 +394,10 @@ class KFParticle_sPHENIX : public SubsysReco, public KFParticle_nTuple, public K
   void selectMotherByMassError(bool select = true) { m_select_by_mass_error = select; }
 
   void usePID(bool use = true){ m_use_PID = use; }
+
+  void useLocalPIDFile(bool use = true){ m_use_local_PID_file = use; }
+
+  void setLocalPIDFilename(const std::string &filename){ m_local_PID_filename = filename; }
  
   void setPIDacceptFraction(float frac = 0.2){ m_dEdx_band_width = frac; }
 

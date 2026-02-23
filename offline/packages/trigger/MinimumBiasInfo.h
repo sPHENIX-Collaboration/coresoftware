@@ -6,6 +6,14 @@
 class MinimumBiasInfo : public PHObject
 {
  public:
+
+  enum SPECIES
+    {
+      AUAU = 0,
+      OO = 1,
+      PP = 2
+    };
+
   ~MinimumBiasInfo() override {};
 
   void identify(std::ostream &os = std::cout) const override { os << "MinimumBiasInfo base class" << std::endl; };

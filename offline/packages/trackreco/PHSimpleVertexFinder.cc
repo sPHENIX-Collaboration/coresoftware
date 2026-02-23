@@ -11,7 +11,7 @@
 #include <trackbase_historic/SvtxTrackMap_v2.h>
 
 #include <globalvertex/SvtxVertexMap_v1.h>
-#include <globalvertex/SvtxVertex_v2.h>
+#include <globalvertex/SvtxVertex_v3.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -263,7 +263,7 @@ int PHSimpleVertexFinder::process_event(PHCompositeNode * /*topNode*/)
     {
       unsigned int thisid = it + vertex_id;  // the address of the vertex in the event
 
-      auto svtxVertex = std::make_unique<SvtxVertex_v2>();
+      auto svtxVertex = std::make_unique<SvtxVertex_v3>();
 
       svtxVertex->set_chisq(0.0);
       svtxVertex->set_ndof(0);

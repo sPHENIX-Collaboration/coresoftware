@@ -176,6 +176,16 @@ class PHActsSiliconSeeding : public SubsysReco
   {
     m_minSeedPt = pt;
   }
+  void set_mvtxCenterXY(const float X, const float Y)
+  {
+    m_mvtx_x0 = X;
+    m_mvtx_y0 = Y;
+  }
+  void set_beamSpotXY(const float X, const float Y)
+  {
+    m_beamSpotx = X;
+    m_beamSpoty = Y;
+  }
 
   /// A function to run the seeder with large (true)
   /// or small (false) grid spacing
@@ -243,6 +253,8 @@ class PHActsSiliconSeeding : public SubsysReco
   short int getCrossingIntt(TrackSeed &si_track);
   std::vector<short int> getInttCrossings(TrackSeed &si_track);
 
+  float getPhiFromBeamSpot(float clusy, float clusx) const;
+  
   void createHistograms();
   void writeHistograms();
   double normPhi2Pi(const double phi);
@@ -354,6 +366,15 @@ class PHActsSiliconSeeding : public SubsysReco
   float m_inttzSearchWin = 2.0;  // default to one strip width
   double m_mvtxrPhiSearchWin = 0.2;
   float m_mvtxzSearchWin = 0.5;
+
+  // collision point in sPHENIX coordinates, from vertex finder (pp run 3)
+  float m_beamSpotx = -0.072;  // cm
+  float m_beamSpoty = 0.141;  // cm
+
+  // center of MVTX barrel in sPHENIX coordinates - default is for Run 3 pp
+  float m_mvtx_x0 = 0.6;  // cm
+  float m_mvtx_y0 = -0.1;
+  
   /// Whether or not to use truth clusters in hit lookup
   bool m_useTruthClusters = false;
 

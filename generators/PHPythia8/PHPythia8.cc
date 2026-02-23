@@ -176,7 +176,7 @@ int PHPythia8::read_config(const std::string &cfg_file)
 
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    std::cout << "PHPythia8::read_config - Reading " << m_ConfigFileName << std::endl;
+    std::cout << Name() << " PHPythia8::read_config - Reading " << m_ConfigFileName << std::endl;
   }
 
   std::ifstream infile(m_ConfigFileName);
@@ -201,7 +201,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
 {
   if (Verbosity() >= VERBOSITY_MORE)
   {
-    std::cout << "PHPythia8::process_event - event: " << m_EventCount << std::endl;
+    std::cout << Name() << " PHPythia8::process_event - event: " << m_EventCount << std::endl;
   }
 
   bool passedGen = false;
@@ -248,7 +248,7 @@ int PHPythia8::process_event(PHCompositeNode * /*topNode*/)
         andScoreKeeper &= trigResult;
       }
 
-      if (Verbosity() >= VERBOSITY_EVEN_MORE && !passedTrigger)
+      if (Verbosity() >= VERBOSITY_EVEN_MORE && !passedTrigger && !andScoreKeeper)
       {
         std::cout << "PHPythia8::process_event - failed trigger: "
                   << m_RegisteredTrigger->GetName() << std::endl;

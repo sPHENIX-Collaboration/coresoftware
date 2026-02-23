@@ -49,12 +49,13 @@ void MbdSig::Init()
   gSubPulse->SetName(name);
   gSubPulse->GetHistogram()->SetXTitle("sample");
   gSubPulse->GetHistogram()->SetYTitle("ADC");
+  gSubPulse->GetHistogram()->SetTitle(name);
 
   hpulse = hRawPulse;  // hpulse,gpulse point to raw by default
   gpulse = gRawPulse;  // we switch to sub for default if ped is applied
 
-  //ped0stats = std::make_unique<MbdRunningStats>(100);  // use the last 100 events for running pedestal
-  ped0stats = new MbdRunningStats(100);  // use the last 100 events for running pedestal
+  ped0stats = new MbdRunningStats(8);  // use the last 8 samples for running pedestal
+
   name = "hPed0_";
   name += _ch;
   hPed0 = new TH1F(name, name, 3000, -0.5, 2999.5);
@@ -62,6 +63,15 @@ void MbdSig::Init()
   name = "hPedEvt_";
   name += _ch;
   hPedEvt = new TH1F(name, name, 3000, -0.5, 2999.5);
+  if ( _pedstudyflag )
+  {
+    gPedvsEvent = new TGraphErrors();
+    name = "gpedvsevent";
+    name += _ch;
+    gPedvsEvent->SetName(name);
+    gPedvsEvent->GetHistogram()->SetXTitle("evtnum");
+    gPedvsEvent->GetHistogram()->SetYTitle("ped");
+  }
 
   SetTemplateSize(900, 1000, -10., 20.);
   // SetTemplateSize(300,300,0.,15.);
@@ -74,10 +84,13 @@ void MbdSig::Init()
   ped_tail = new TF1("ped_tail","[0]+[1]*exp(-[2]*x)",0,2);
   ped_tail->SetLineColor(2);
 
-  // uncomment this to write out waveforms from events that have pileup from prev. crossing
+  name = "h_chi2ndf"; name += _ch;
+  h_chi2ndf = new TH1F(name,name,2000,0,100);
+
+  // uncomment this to write out waveforms from events that have pileup from prev. crossing or next crossing
   /*
   name = "mbdsig"; name += _ch; name += ".txt";
-  _pileupfile = new ofstream(name);
+  _pileupfile = new std::ofstream(name);
   */
 }
 
@@ -134,16 +147,22 @@ MbdSig::~MbdSig()
   delete hSubPulse;
   delete gRawPulse;
   delete gSubPulse;
-  delete hPed0;
   delete ped0stats;
-  // h2Template->Write();
+  delete hPed0;
+  delete hPedEvt;
   delete h2Template;
   delete h2Residuals;
   delete hAmpl;
   delete hTime;
   delete template_fcn;
+  delete twotemplate_fcn;
   delete ped_fcn;
   delete ped_tail;
+  delete h_chi2ndf;
+  if ( _pedstudyflag )
+  {
+    delete gPedvsEvent;
+  }
 }
 
 void MbdSig::SetEventPed0PreSamp(const Int_t presample, const Int_t nsamps, const int max_samp)
@@ -251,6 +270,7 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
   {
     gRawPulse->Draw("ap");
     gRawPulse->GetHistogram()->SetTitle(gRawPulse->GetName());
+    gPad->SetGridx(1);
     gPad->SetGridy(1);
     PadUpdate();
   }
@@ -291,11 +311,13 @@ void MbdSig::SetXY(const Float_t* x, const Float_t* y, const int invert)
       Remove_Pileup();
     }
 
+    /*
     if ( _verbose && _ch==9 )
     {
       std::cout << "SetXY: ch " << _ch << std::endl;
       gSubPulse->Print("ALL");
     }
+    */
   }
 
   _evt_counter++;
@@ -321,54 +343,134 @@ void MbdSig::Remove_Pileup()
 
   if ( (_ch/8)%2 == 0 )   // time ch
   {
-    float offset = _pileup_p0*gSubPulse->GetPointY(0);
+    double x_at_max = TMath::LocMax( 5, gSubPulse->GetY() );
 
-    for (int isamp = 0; isamp < _nsamples; isamp++)
+    if ( x_at_max != 0 )
     {
-      double x = gSubPulse->GetPointX(isamp);
-      double y = gSubPulse->GetPointY(isamp);
+      // time hit in prev crossing
+      if ( fit_pileup == nullptr )
+      {
+        TString name = "fit_pileup"; name += _ch;
+        fit_pileup = new TF1(name,"pol3",0,16000);
+        for (int ipar=0; ipar<4; ipar++)
+        {
+          fit_pileup->SetParameter( ipar, _mbdcal->get_pileup(_ch,ipar+1) );
+        }
+      }
 
-      hSubPulse->SetBinContent( isamp + 1, y - offset );
-      gSubPulse->SetPoint( isamp, x, y - offset );
-    }
-  }
-  else
-  {
-    if ( fit_pileup == nullptr )
-    {
-      TString name = "fit_pileup"; name += _ch;
-      fit_pileup = new TF1(name,"gaus",-0.1,4.1);
-      fit_pileup->SetLineColor(2);
-    }
+      int sampmax = _mbdcal->get_sampmax(_ch);
+      if ( (sampmax-6) > 0 )
+      {
+        double x_sampmax = gSubPulse->GetPointX(sampmax);
+        double y_sampmax = gSubPulse->GetPointY(sampmax);
+        double y_min6 = gSubPulse->GetPointY(sampmax-6);
 
-    fit_pileup->SetRange(-0.1,4.1);
-    fit_pileup->SetParameters( _pileup_p0*gSubPulse->GetPointY(0), _pileup_p1, _pileup_p2 );
-    
-    // fix par limits
-    double plow{0.};
-    double phigh{0.};
-    fit_pileup->GetParLimits(2,plow,phigh);
-    if ( phigh < _pileup_p2 )
-    {
-      phigh = 2*_pileup_p2;
-      fit_pileup->SetParLimits(2,plow,phigh);
-    }
+        double offset = y_min6*fit_pileup->Eval(y_min6);
 
-    if ( _verbose )
-    {
-      gSubPulse->Fit( fit_pileup, "R" );
-      gSubPulse->Draw("ap");
-      PadUpdate();
+        hSubPulse->SetBinContent( sampmax + 1, y_sampmax - offset );
+        gSubPulse->SetPoint( sampmax, x_sampmax, y_sampmax - offset );
+      }
+      else
+      {
+        static int ctr = 0;
+        if ( ctr<10 )
+        {
+          std::cout << PHWHERE << " WARNING, sampmax too early for time pileup corr" << std::endl;
+          ctr++;
+        }
+      }
     }
     else
     {
-      gSubPulse->Fit( fit_pileup, "RNQ" );
+      // time hit in 2 crossings before
+      float offset = _pileup_p0*gSubPulse->GetPointY(0);
+
+      for (int isamp = 0; isamp < _nsamples; isamp++)
+      {
+        double x = gSubPulse->GetPointX(isamp);
+        double y = gSubPulse->GetPointY(isamp);
+
+        hSubPulse->SetBinContent( isamp + 1, y - offset );
+        gSubPulse->SetPoint( isamp, x, y - offset );
+      }
+    }
+  }
+  else  // charge ch
+  {
+    double ymax = TMath::MaxElement( 5, gSubPulse->GetY() );
+    double x_at_max = TMath::LocMax( 5, gSubPulse->GetY() );
+
+    if ( x_at_max != 0 )
+    {
+      // Fit a pulse in prev crossing
+      template_fcn->SetParameters(ymax, x_at_max);
+      template_fcn->SetRange(0, x_at_max+2.1);
+
+      if (_verbose == 0)
+      {
+        //std::cout << PHWHERE << std::endl;
+        gSubPulse->Fit(template_fcn, "RNQ");
+      }
+      else
+      {
+        std::cout << "pre-pileup " << _ch << "\t" << x_at_max << "\t" << ymax << std::endl;
+        gSubPulse->Fit(template_fcn, "R");
+        gSubPulse->Draw("ap");
+        gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+        gPad->SetGridy(1);
+        PadUpdate();
+        //gSubPulse->Print("ALL");
+      }
+
+    }
+    else
+    {
+      // Fit the tail
+      if ( fit_pileup == nullptr )
+      {
+        TString name = "fit_pileup"; name += _ch;
+        fit_pileup = new TF1(name,"gaus",-0.1,4.1);
+        fit_pileup->SetLineColor(2);
+      }
+
+      fit_pileup->SetRange(-0.1,4.1);
+      fit_pileup->SetParameters( _pileup_p0*gSubPulse->GetPointY(0), _pileup_p1, _pileup_p2 );
+
+      // fix par limits
+      double plow{0.};
+      double phigh{0.};
+      fit_pileup->GetParLimits(2,plow,phigh);
+      if ( phigh < _pileup_p2 )
+      {
+        phigh = 2*_pileup_p2;
+        fit_pileup->SetParLimits(2,plow,phigh);
+      }
+
+      if ( _verbose )
+      {
+        gSubPulse->Fit( fit_pileup, "R" );
+        gSubPulse->Draw("ap");
+        PadUpdate();
+      }
+      else
+      {
+        gSubPulse->Fit( fit_pileup, "RNQ" );
+      }
     }
 
+    // subtract pre-pulse
     for (int isamp = 0; isamp < _nsamples; isamp++)
     {
 
-      double bkg = fit_pileup->Eval(isamp);
+      double bkg = 0.;
+      if ( x_at_max != 0 )
+      { 
+        bkg = template_fcn->Eval(isamp);
+      }
+      else
+      {
+        bkg = fit_pileup->Eval(isamp);
+      }
 
       double x = gSubPulse->GetPointX(isamp);
       double y = gSubPulse->GetPointY(isamp);
@@ -382,6 +484,7 @@ void MbdSig::Remove_Pileup()
 
   if ( _verbose )
   {
+    std::cout << "pileup sub " << _ch << std::endl;
     gSubPulse->Draw("ap");
     PadUpdate();
   }
@@ -412,9 +515,22 @@ Double_t MbdSig::GetSplineAmpl()
   return f_ampl;
 }
 
+void MbdSig::WriteChi2Hist()
+{
+  h_chi2ndf->Write();
+}
+
 void MbdSig::WritePedHist()
 {
   hPed0->Write();
+}
+
+void MbdSig::WritePedvsEvent()
+{
+  if ( _pedstudyflag )
+  {
+    gPedvsEvent->Write();
+  }
 }
 
 void MbdSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
@@ -426,13 +542,6 @@ void MbdSig::FillPed0(const Int_t sampmin, const Int_t sampmax)
     gRawPulse->GetPoint(isamp, x, y);
     // gRawPulse->Print("all");
     hPed0->Fill(y);
-
-    /*
-    // chiu taken out
-    ped0stats->Push( y );
-    ped0 = ped0stats->Mean();
-    ped0rms = ped0stats->RMS();
-    */
 
     // std::cout << "ped0 " << _ch << " " << n << "\t" << ped0 << std::endl;
     // std::cout << "ped0 " << _ch << "\t" << ped0 << std::endl;
@@ -452,10 +561,10 @@ void MbdSig::FillPed0(const Double_t begin, const Double_t end)
       hPed0->Fill(y);
 
       /*
-         ped0stats->Push( y );
-         ped0 = ped0stats->Mean();
-         ped0rms = ped0stats->RMS();
-         */
+      ped0stats->Push( y );
+      ped0 = ped0stats->Mean();
+      ped0rms = ped0stats->RMS();
+      */
 
       // std::cout << "ped0 " << _ch << " " << n << "\t" << x << "\t" << y << std::endl;
     }
@@ -537,9 +646,7 @@ void MbdSig::CalcEventPed0(const Double_t minpedx, const Double_t maxpedx)
 // If a prev event pileup is detected, return 1, otherwise, return 0
 int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
 {
-  //std::cout << PHWHERE << std::endl;  //chiu
   //_verbose = 100;
-  //ped0stats->Clear();
 
   int status = 0; // assume no pileup
 
@@ -597,11 +704,6 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
   ped_fcn->SetRange(minsamp-0.1,maxsamp+0.1);
   ped_fcn->SetParameter(0,1500.);
 
-  if ( gRawPulse->GetN()==0 )//chiu
-  {
-    std::cout << PHWHERE << " gRawPulse 0" << std::endl;
-  }
-
   if ( _verbose )
   {
     gRawPulse->Fit( ped_fcn, "RQ" );
@@ -619,16 +721,6 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
     //std::cout << PHWHERE << std::endl;
     gRawPulse->Fit( ped_fcn, "RNQ" );
 
-    double chi2ndf = ped_fcn->GetChisquare()/ped_fcn->GetNDF();
-    if ( _pileupfile != nullptr && chi2ndf > 4.0 )
-    {
-      *_pileupfile << "ped " << _ch << " mean " << mean << "\t";
-      for ( int i=0; i<gRawPulse->GetN(); i++)
-      {
-        *_pileupfile << std::setw(6) << gRawPulse->GetPointY(i);
-      }
-      *_pileupfile << std::endl;
-    }
   }
 
   double chi2 = ped_fcn->GetChisquare();
@@ -657,6 +749,28 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
           << "isamp " << isamp << "\t" << x << "\t" << y << std::endl;
       }
     }
+
+    // study pedestal vs event
+    if ( _pedstudyflag )
+    {
+      // running pedestal (replace with mean and meanerr for evt-by-evt)
+      double ped_evtnum = _evt_counter;
+      double ped_mean = ped0stats->Mean();
+      double ped_meanerr = rms;
+      if ( ped0stats->Size()>1 )
+      {
+        ped_meanerr = ped0stats->RMS()/std::sqrt(ped0stats->Size());
+      }
+      else
+      {
+        ped_meanerr = _mbdcal->get_pedrms(_ch);
+      }
+
+      int n = gPedvsEvent->GetN();
+      gPedvsEvent->SetPoint(n,ped_evtnum,ped_mean);
+      gPedvsEvent->SetPointError(n,0,ped_meanerr);
+    }
+
   }
   else
   {
@@ -687,11 +801,18 @@ int MbdSig::CalcEventPed0_PreSamp(const int presample, const int nsamps)
       }
     }
 
-    // use straight mean for pedestal
-    // Could consider using fit to hPed0 to remove outliers
-    //rms = ped0stats->RMS();
-    //Double_t mean = hPed0->GetMean();
-    //Double_t rms = hPed0->GetRMS();
+    // uncomment this to write out file with pileup waveforms
+    /*
+    if ( _pileupfile != nullptr )
+    {
+      *_pileupfile << "ped " << _ch << " mean " << mean << "\t";
+      for ( int i=0; i<gRawPulse->GetN(); i++)
+      {
+        *_pileupfile << std::setw(6) << gRawPulse->GetPointY(i);
+      }
+      *_pileupfile << std::endl;
+    }
+    */
   }
 
   SetPed0(mean, rms);
@@ -969,9 +1090,10 @@ void MbdSig::PadUpdate() const
   std::cout << PHWHERE << " PadUpdate\t_verbose = " << _verbose << std::endl;
   if ( _verbose>5 )
   {
+    gPad->SetGridy(1);
     gPad->Modified();
     gPad->Update();
-    std::cout << _ch << " ? ";
+    std::cout << _evt_counter << ": " << _ch << " ? ";
     if ( _verbose>10 )
     {
       std::string junk;
@@ -986,6 +1108,12 @@ void MbdSig::PadUpdate() const
       }
     }
   }
+}
+
+Double_t MbdSig::TwoTemplateFcn(const Double_t* x, const Double_t* par)
+{
+  Double_t f = TemplateFcn(x,par) + TemplateFcn(x,par+2);
+  return f;
 }
 
 Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
@@ -1105,9 +1233,14 @@ Double_t MbdSig::TemplateFcn(const Double_t* x, const Double_t* par)
 // sampmax>0 means fit to the peak near sampmax
 int MbdSig::FitTemplate( const Int_t sampmax )
 {
-  //std::cout << PHWHERE << std::endl;  //chiu
-  //_verbose = 100;	// uncomment to see fits
-  //_verbose = 12;        // don't see pedestal fits
+  //std::cout << PHWHERE << std::endl;
+  /*
+  if ( _evt_counter==2142 && _ch==92 )
+  {
+    _verbose = 100;	// uncomment to see fits
+    //_verbose = 12;      // don't see pedestal fits
+  }
+  */
 
   // Check if channel is empty
   if (gSubPulse->GetN() == 0)
@@ -1124,30 +1257,44 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   int nsaturated = 0;
   for (int ipt=0; ipt<nrawsamps; ipt++)
   {
-    if ( rawsamps[ipt] > 16370. )
+    if ( rawsamps[ipt] > 16370. ) // don't trust adc near edge
     {
       nsaturated++;
     }
   }
   /*
-  if ( nsaturated>2 && _ch==185 )
+  //if ( nsaturated>2 && _ch==185 )
+  if ( nsaturated>2 )
   {
     _verbose = 12;
   }
   */
 
-
   if (_verbose > 0)
   {
-    std::cout << "Fitting ch " << _ch << std::endl;
+    std::cout << "Fitting ch sampmax " << _ch << "\t" << sampmax << std::endl;
   }
 
   // Get x and y of maximum
   Double_t x_at_max{-1.};
   Double_t ymax{0.};
-  if ( sampmax>=0 )
+  if ( sampmax>0 )
   {
-    gSubPulse->GetPoint(sampmax, x_at_max, ymax);
+    for (int isamp=sampmax-1; isamp<=sampmax+1; isamp++)
+    {
+      if ( (isamp>=gSubPulse->GetN()) )
+      {
+        continue;
+      }
+      double adcval = gSubPulse->GetPointY(isamp);
+      if ( adcval>ymax )
+      {
+        ymax = adcval;
+        x_at_max = isamp;
+      }
+    }
+
+    //gSubPulse->GetPoint(sampmax, x_at_max, ymax);
     if ( nsaturated<=3 )
     {
       x_at_max -= 2.0;
@@ -1176,6 +1323,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
       gSubPulse->Draw("ap");
       gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
       gPad->SetGridy(1);
+      gPad->SetGridx(1);
       PadUpdate();
     }
 
@@ -1184,21 +1332,13 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   }
 
   template_fcn->SetParameters(ymax, x_at_max);
-  // template_fcn->SetParLimits(1, fit_min_time, fit_max_time);
-  // template_fcn->SetParLimits(1, 3, 15);
-  // template_fcn->SetRange(template_min_xrange,template_max_xrange);
   if ( nsaturated<=3 )
   {
-    template_fcn->SetRange(0, _nsamples);
+    template_fcn->SetRange(0, x_at_max+4.2);
   }
   else
   {
     template_fcn->SetRange(0, sampmax + nsaturated - 0.5);
-  }
-
-  if ( gSubPulse->GetN()==0 )//chiu
-  {
-    std::cout << PHWHERE << " gSubPulse 0" << std::endl;
   }
 
   if (_verbose == 0)
@@ -1214,24 +1354,79 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
     gPad->SetGridy(1);
     PadUpdate();
-    //std::cout << "doing fit2 " << _verbose << std::endl;
-    //std::cout << "doing fit3 " << _verbose << std::endl;
     //gSubPulse->Print("ALL");
   }
 
   // Get fit parameters
   f_ampl = template_fcn->GetParameter(0);
   f_time = template_fcn->GetParameter(1);
-  if ( f_time<0. || f_time>_nsamples )
+  f_chi2 = template_fcn->GetChisquare();
+  f_ndf = template_fcn->GetNDF();
+
+  // Good fit
+  if ( (f_chi2/f_ndf) < 5. && f_ndf>6. )
   {
-    f_time = _nsamples*0.5;  // bad fit last time
+    h_chi2ndf->Fill( f_chi2/f_ndf );
+    _verbose = 0;
+    return 1;
+  }
+
+  // fit was out of time, likely from pileup, try two waveforms
+  if ( (f_time<(sampmax-2.5) || f_time>sampmax) && (nsaturated<=3) )
+  {
+    //_verbose = 100;
+
+    if ( _verbose )
+    {
+      std::cout << "BADTIME " << _evt_counter << "\t" << _ch << "\t" << sampmax << "\t" << f_ampl << "\t" <<  f_time << std::endl;
+      gSubPulse->Draw("ap");
+      template_fcn->Draw("same");
+      PadUpdate();
+    }
+
+    twotemplate_fcn->SetParameters(ymax,x_at_max,ymax,10);
+    twotemplate_fcn->SetRange(0,_nsamples);
+
+    if (_verbose == 0)
+    {
+      gSubPulse->Fit(twotemplate_fcn, "RNQ");
+    }
+    else
+    {
+      std::cout << "doing fit1 " << x_at_max << "\t" << ymax << std::endl;
+      gSubPulse->Fit(twotemplate_fcn, "R");
+      gSubPulse->Draw("ap");
+      gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+      gPad->SetGridy(1);
+      PadUpdate();
+      //gSubPulse->Print("ALL");
+    }
+
+    //PadUpdate();
+ 
+    // Get fit parameters
+    f_ampl = twotemplate_fcn->GetParameter(0);
+    f_time = twotemplate_fcn->GetParameter(1);
+    f_chi2 = twotemplate_fcn->GetChisquare();
+    f_ndf = twotemplate_fcn->GetNDF();
+
+    // Good fit
+    if ( (f_chi2/f_ndf) < 5. && f_ndf>6. )
+    {
+      h_chi2ndf->Fill( f_chi2/f_ndf );
+      _verbose = 0;
+      return 1;
+    }
   }
 
   // refit with new range to exclude after-pulses
-  template_fcn->SetParameters( f_ampl, f_time );
+  template_fcn->SetParameters(ymax, x_at_max);
+  //template_fcn->SetParameters( f_ampl, f_time );
+
   if ( nsaturated<=3 )
   {
-    template_fcn->SetRange( 0., f_time+4.0 );
+    template_fcn->SetRange(0, x_at_max+4.2);
+    //template_fcn->SetRange( 0., f_time+4.0 );
   }
   else
   {
@@ -1242,16 +1437,16 @@ int MbdSig::FitTemplate( const Int_t sampmax )
   {
     //std::cout << PHWHERE << std::endl;
     int fit_status = gSubPulse->Fit(template_fcn, "RNQ");
-    if ( fit_status<0 )
+    if ( fit_status<0 && _verbose>0 )
     {
       std::cout << PHWHERE << "\t" << fit_status << std::endl;
       gSubPulse->Print("ALL");
       gSubPulse->Draw("ap");
       gSubPulse->Fit(template_fcn, "R");
-      std::cout << "ampl time before refit " << f_ampl << "\t" << f_time << std::endl;
+      std::cout << "ampl time before refit " << _ch << "\t" << f_ampl << "\t" << f_time << std::endl;
       f_ampl = template_fcn->GetParameter(0);
       f_time = template_fcn->GetParameter(1);
-      std::cout << "ampl time after  refit " << f_ampl << "\t" << f_time << std::endl;
+      std::cout << "ampl time after  refit " << _ch << "\t" << f_ampl << "\t" << f_time << std::endl;
       PadUpdate();
       std::string junk;
       std::cin >> junk;
@@ -1269,6 +1464,10 @@ int MbdSig::FitTemplate( const Int_t sampmax )
 
   f_ampl = template_fcn->GetParameter(0);
   f_time = template_fcn->GetParameter(1);
+  f_chi2 = template_fcn->GetChisquare();
+  f_ndf = template_fcn->GetNDF();
+
+  h_chi2ndf->Fill( f_chi2/f_ndf );
 
   //if ( f_time<0 || f_time>30 )
   //if ( (_ch==185||_ch==155||_ch==249) && (fabs(f_ampl) > 44000.) )
@@ -1282,6 +1481,7 @@ int MbdSig::FitTemplate( const Int_t sampmax )
     std::cout << "            " << template_fcn->GetChisquare()/template_fcn->GetNDF() << std::endl;
     gSubPulse->Draw("ap");
     gSubPulse->GetHistogram()->SetTitle(gSubPulse->GetName());
+    gPad->SetGridx(1);
     gPad->SetGridy(1);
     template_fcn->SetLineColor(4);
     template_fcn->Draw("same");
@@ -1322,6 +1522,16 @@ int MbdSig::SetTemplate(const std::vector<float>& shape, const std::vector<float
     template_fcn->SetParName(0, "ampl");
     template_fcn->SetParName(1, "time");
     SetTemplateSize(900, 1000, -10., 20.);
+
+    name = "twotemplate_fcn";
+    name += _ch;
+    twotemplate_fcn = new TF1(name, this, &MbdSig::TwoTemplateFcn, 0, _nsamples, 4, "MbdSig", "TwoTemplateFcn");
+    twotemplate_fcn->SetLineColor(3);
+    twotemplate_fcn->SetParameters(1, 6, 1,8);
+    twotemplate_fcn->SetParName(0, "ampl");
+    twotemplate_fcn->SetParName(1, "time");
+    twotemplate_fcn->SetParName(2, "ampl2");
+    twotemplate_fcn->SetParName(3, "time2");
 
     if (_verbose)
     {

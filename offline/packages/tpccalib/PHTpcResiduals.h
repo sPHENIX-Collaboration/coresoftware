@@ -106,10 +106,25 @@ class PHTpcResiduals : public SubsysReco
     m_useMicromegas = value;
   }
 
-  void disableModuleEdgeCorr() { m_disable_module_edge_corr = true; }
-  void disableStaticCorr() { m_disable_static_corr = true; }
-  void disableAverageCorr() { m_disable_average_corr = true; }
-  void disableFluctuationCorr() { m_disable_fluctuation_corr = true; }
+  void disableModuleEdgeCorr()
+  {
+    m_globalPositionWrapper.set_enable_module_edge_corr(false);
+  }
+
+  void disableStaticCorr()
+  {
+    m_globalPositionWrapper.set_enable_static_corr(false);
+  }
+
+  void disableAverageCorr()
+  {
+    m_globalPositionWrapper.set_enable_average_corr(false);
+  }
+
+  void disableFluctuationCorr()
+  {
+    m_globalPositionWrapper.set_enable_fluctuation_corr(false);
+  }
 
   /// modify track map name
   void setTrackMapName( const std::string& value )
@@ -177,12 +192,6 @@ class PHTpcResiduals : public SubsysReco
 
   /// require track crossing zero
   bool m_requireCrossing = false;
-
-  /// disable distortion correction
-  bool m_disable_module_edge_corr = false;
-  bool m_disable_static_corr = false;
-  bool m_disable_average_corr = false;
-  bool m_disable_fluctuation_corr = false;
 
   /// output file
   std::string m_outputfile = "TpcSpaceChargeMatrices.root";

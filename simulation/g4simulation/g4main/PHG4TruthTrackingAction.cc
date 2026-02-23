@@ -305,28 +305,58 @@ PHG4Particle* PHG4TruthTrackingAction::AddParticle(PHG4TruthInfoContainer& truth
   return truth.AddParticle(trackid, ti)->second;
 }
 
+/**
+ * @brief Create or retrieve a truth vertex for a Geant4 track keyed by position and production process.
+ *
+ * Uses the track vertex position combined with the mapped MC production process to look up an existing
+ * vertex or create a new PHG4VtxPoint and register it in the truth container. The vertex index is chosen
+ * positive for primary tracks and negative for secondaries.
+ *
+ * @param truth Container in which to find or register the vertex.
+ * @param track Geant4 track whose production vertex and creator process determine the vertex key.
+ * @return PHG4VtxPoint* Pointer to the vertex instance stored in the truth container.
+ */
 PHG4VtxPoint* PHG4TruthTrackingAction::AddVertex(PHG4TruthInfoContainer& truth, const G4Track& track)
 {
   G4ThreeVector v = track.GetVertexPosition();
+
+  // Get G4Track creator process FIRST (needed for vertex map key)
+  const auto* const g4Process = track.GetCreatorProcess();
+  // Convert G4 Process to MC process
+  const auto process = PHG4ProcessMapPhysics::Instance().GetMCProcess(g4Process);
+
   int vtxindex = (track.GetParentID() == 0 ? truth.maxvtxindex() + 1 : truth.minvtxindex() - 1);
 
-  auto [iter, inserted] = m_VertexMap.insert(std::make_pair(v, vtxindex));
+  // Use (position, process) as key to distinguish vertices at same location but different processes
+  // This is important for cases like K0 -> K0_S/K0_L mixing where particles are produced
+  // at the same position but by different physics processes
+  auto key = std::make_pair(v, process);
+  auto [iter, inserted] = m_VertexMap.insert(std::make_pair(key, vtxindex));
 
   // If could not add a unique vertex => return the existing one
   if (!inserted)
   {
     return truth.GetVtxMap().find(iter->second)->second;
   }
-  // get G4Track creator process
-  const auto* const g4Process = track.GetCreatorProcess();
-  // convert G4 Process to MC process
-  const auto process = PHG4ProcessMapPhysics::Instance().GetMCProcess(g4Process);
-  // otherwise, create and add a new one
+
+  // Create and add a new vertex
   PHG4VtxPoint* vtxpt = new PHG4VtxPointv2(v[0] / cm, v[1] / cm, v[2] / cm, track.GetGlobalTime() / ns, vtxindex, process);
 
   return truth.AddVertex(vtxindex, vtxpt)->second;
 }
 
+/**
+ * @brief Determine whether a PHG4Particle should be considered an sPHENIX primary.
+ *
+ * Evaluates the particle's production vertex, PDG id longevity, and ancestry to decide
+ * if it originates as an sPHENIX primary (produced as a primary or from a decay and
+ * having no long-lived ancestor produced by material interactions).
+ *
+ * @param truth Truth container used to look up particle parents and production vertices.
+ * @param particle Particle to evaluate.
+ * @return true if the particle is classified as an sPHENIX primary, `false` otherwise.
+ *
+ */
 bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PHG4Particle* particle) const
 {
   PHG4VtxPoint* vtx = truth.GetVtx(particle->get_vtx_id());
@@ -346,13 +376,15 @@ bool PHG4TruthTrackingAction::issPHENIXPrimary(PHG4TruthInfoContainer& truth, PH
   // check the production process
   // if not decay or primary, then it is not a primary
   // debug print for pid, track id, parent id, and process
-  /*
-  std::cout << "PHG4TruthTrackingAction::issPHENIXPrimary - checking particle with track id " << particle->get_track_id()
-            << ", pid: " << pdgid
-            << ", parent id: " << particle->get_parent_id()
-            << ", process: " << process
-            << std::endl;
-            */
+  // if (pdgid == 311 || pdgid == 130 || pdgid == 310)
+  //{
+  // std::cout << "PHG4TruthTrackingAction::issPHENIXPrimary - checking particle with track id " << particle->get_track_id()
+  //          << ", pid: " << pdgid
+  //            << ", parent id: " << particle->get_parent_id()
+  //            << ", process: " << process
+  //            << std::endl;
+  //}
+
   if (!(process == PHG4MCProcess::kPPrimary || process == PHG4MCProcess::kPDecay) && particle->get_parent_id())  // all primary particles seems to have unkown process id
   {
     return false;

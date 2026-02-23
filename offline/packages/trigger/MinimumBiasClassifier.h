@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "MinimumBiasInfo.h"
 // Forward declarations
 
 class MinimumBiasInfo;
@@ -21,6 +22,8 @@ class MinimumBiasClassifier : public SubsysReco
 {
  public:
   //! constructor
+
+  
   explicit MinimumBiasClassifier(const std::string &name = "MinimumBiasClassifier");
 
   //! destructor
@@ -56,8 +59,17 @@ class MinimumBiasClassifier : public SubsysReco
   }
   void setIsSim(const bool sim) { m_issim = sim; }
 
+  void setSpecies(MinimumBiasInfo::SPECIES spec) { m_species = spec; };
+  
  private:
   bool m_issim{false};
+  bool m_useZDC{true};
+  bool m_box_cut{true};
+  int m_hit_cut{2};
+  double m_max_charge_cut{2100};
+  
+  MinimumBiasInfo::SPECIES m_species{MinimumBiasInfo::SPECIES::AUAU};
+
   float getVertexScale();
   std::string m_dbfilename;
 

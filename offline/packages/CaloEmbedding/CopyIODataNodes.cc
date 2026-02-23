@@ -7,6 +7,9 @@
 
 #include <centrality/CentralityInfo.h>
 
+#include <calobase/TowerInfoContainer.h>
+#include <calobase/TowerInfo.h>
+
 #include <mbd/MbdOut.h>
 
 #include <ffaobjects/EventHeader.h>
@@ -57,6 +60,10 @@ int CopyIODataNodes::InitRun(PHCompositeNode *topNode)
   {
     CreateSyncObject(topNode, se->topNode());
   }
+  if (m_CopyTowerInfoFlag)
+  {
+    CreateTowerInfo(topNode, se->topNode());
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -88,6 +95,10 @@ int CopyIODataNodes::process_event(PHCompositeNode *topNode)
   if (m_CopySyncObjectFlag)
   {
     CopySyncObject(topNode, se->topNode());
+  }
+  if (m_CopyTowerInfoFlag)
+  {
+    CopyTowerInfo(topNode, se->topNode());
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -293,6 +304,29 @@ void CopyIODataNodes::CopyMinimumBiasInfo(PHCompositeNode *from_topNode, PHCompo
   return;
 }
 
+void CopyIODataNodes::CopyTowerInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
+{
+  TowerInfoContainer *from_towerInfo = findNode::getClass<TowerInfoContainer>(from_topNode, from_towerInfo_name);
+  TowerInfoContainer   *to_towerInfo = findNode::getClass<TowerInfoContainer>(  to_topNode, to_towerInfo_name);
+  unsigned int ntowers = from_towerInfo->size();
+  for (unsigned int ch = 0; ch < ntowers; ++ch)
+  {
+    TowerInfo *from_tow = from_towerInfo->get_tower_at_channel(ch);
+    to_towerInfo->get_tower_at_channel(ch)->copy_tower(from_tow);
+  }
+  
+  if (Verbosity() > 0)
+  {
+    std::cout << "From TowerInfoContainer identify()" << std::endl;
+    from_towerInfo->identify();
+    std::cout << "To TowerInfoCOntainer identify()" << std::endl;
+    to_towerInfo->identify();
+  }
+
+  return;
+}
+
+
 void CopyIODataNodes::CreateMbdOut(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
 {
 
@@ -329,6 +363,36 @@ void CopyIODataNodes::CreateMbdOut(PHCompositeNode *from_topNode, PHCompositeNod
   return;
 
 }
+
+void CopyIODataNodes::CreateTowerInfo(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
+{
+  std::cout << "copying tower info" << std::endl;
+  TowerInfoContainer *from_towerInfo = findNode::getClass<TowerInfoContainer>(from_topNode, from_towerInfo_name);
+  if (!from_towerInfo)
+  {
+    std::cout << "Could not locate TowerInfoContainer on " << from_topNode->getName() << std::endl;
+    m_CopyTowerInfoFlag = false;
+    return;
+  }
+  TowerInfoContainer *to_towerInfo = findNode::getClass<TowerInfoContainer>(to_topNode, to_towerInfo_name);
+  if (!to_towerInfo)
+  {
+    PHNodeIterator iter(to_topNode);
+    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    if (!dstNode)
+    {
+      dstNode = new PHCompositeNode("DST");
+      to_topNode->addNode(dstNode);
+    }
+    to_towerInfo = dynamic_cast<TowerInfoContainer*>(from_towerInfo->CloneMe());
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(to_towerInfo, to_towerInfo_name, "PHObject");
+    dstNode->addNode(newNode);
+  }
+  return;
+}
+
+
+
 
 void CopyIODataNodes::CopyMbdOut(PHCompositeNode *from_topNode, PHCompositeNode *to_topNode)
 {

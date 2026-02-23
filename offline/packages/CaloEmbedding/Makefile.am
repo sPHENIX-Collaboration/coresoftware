@@ -13,6 +13,7 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   caloTowerEmbed.h \
   CopyIODataNodes.h \
+  CombineTowerInfo.h \
   HepMCCollisionVertex.h
 
 lib_LTLIBRARIES = \
@@ -21,6 +22,7 @@ lib_LTLIBRARIES = \
 libCaloEmbedding_la_SOURCES = \
   caloTowerEmbed.cc \
   CopyIODataNodes.cc \
+  CombineTowerInfo.cc \
   HepMCCollisionVertex.cc
 
 libCaloEmbedding_la_LIBADD = \

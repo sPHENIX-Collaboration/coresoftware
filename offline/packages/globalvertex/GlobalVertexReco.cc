@@ -3,7 +3,7 @@
 //#include "GlobalVertex.h"     // for GlobalVertex, GlobalVe...
 #include "GlobalVertexMap.h"  // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
-#include "GlobalVertexv2.h"
+#include "GlobalVertexv3.h"
 #include "MbdVertex.h"
 #include "MbdVertexMap.h"
 #include "CaloVertex.h"
@@ -140,7 +140,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a matching pair
-      GlobalVertex *vertex = new GlobalVertexv2();
+      GlobalVertex *vertex = new GlobalVertexv3();
       vertex->set_id(globalmap->size());
 
       vertex->clone_insert_vtx(GlobalVertex::SVTX, svtx);
@@ -193,7 +193,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
       }
 
       // we have a standalone SVTX vertex
-      GlobalVertex *vertex = new GlobalVertexv2();
+      GlobalVertex *vertex = new GlobalVertexv3();
 
       vertex->set_id(globalmap->size());
 
@@ -243,7 +243,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      GlobalVertex *vertex = new GlobalVertexv2();
+      GlobalVertex *vertex = new GlobalVertexv3();
       vertex->set_id(globalmap->size());
 
       vertex->clone_insert_vtx(GlobalVertex::MBD, mbd);
@@ -282,7 +282,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 	    continue;
 	  }
 	
-	GlobalVertex *vertex = new GlobalVertexv2();
+	GlobalVertex *vertex = new GlobalVertexv3();
 	vertex->set_id(globalmap->size());
 	
 	vertex->clone_insert_vtx(GlobalVertex::CALO, calo);
@@ -337,7 +337,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 		  continue;
 		}
 	      
-	      GlobalVertex *vertex = new GlobalVertexv2();
+	      GlobalVertex *vertex = new GlobalVertexv3();
 	      vertex->set_id(globalmap->size());
 	
 	      vertex->clone_insert_vtx(GlobalVertex::CALO, calo);
@@ -354,7 +354,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 	}
       else
 	{
-	  GlobalVertex *vertex = new GlobalVertexv2();
+	  GlobalVertex *vertex = new GlobalVertexv3();
 	  vertex->set_id(globalmap->size());
 	  
 	  vertex->clone_insert_vtx(GlobalVertex::MBD, mbd);
@@ -393,7 +393,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode)
 
       tvertex->set_t(0);
       tvertex->set_t_err(0);  // 0.1
-      GlobalVertex *vertex = new GlobalVertexv2();
+      GlobalVertex *vertex = new GlobalVertexv3();
       vertex->clone_insert_vtx(GlobalVertex::TRUTH, tvertex);
       globalmap->insert(vertex);
       if (truthmap)

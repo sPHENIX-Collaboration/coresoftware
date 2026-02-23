@@ -48,7 +48,7 @@ ActsPropagator::makeTrackParams(SvtxTrackState* state,
   Acts::BoundSquareMatrix cov = transformer.rotateSvtxTrackCovToActs(state);
 
   return ActsTrackFittingAlgorithm::TrackParameters::create(
-             surf,
+    surf, // NOLINT (performance-unnecessary-value-param)
              m_geometry->geometry().getGeoContext(),
              actsFourPos, momentum,
              trackCharge / momentum.norm(),
@@ -98,7 +98,8 @@ ActsPropagator::BTPPairResult
 ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
                                const unsigned int sphenixLayer)
 {
-  unsigned int actsvolume, actslayer;
+  unsigned int actsvolume;
+  unsigned int actslayer;
   if (!checkLayer(sphenixLayer, actsvolume, actslayer) || !m_geometry)
   {
     return Acts::Result<BoundTrackParamPair>::failure(std::error_code(0, std::generic_category()));
@@ -125,7 +126,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   if (result.ok())
   {
-    auto finalparams = *result.value().endParameters;
+    auto finalparams = *result.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
     auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
@@ -154,7 +155,7 @@ ActsPropagator::propagateTrack(const Acts::BoundTrackParameters& params,
 
   if (result.ok())
   {
-    auto finalparams = *result.value().endParameters;
+    auto finalparams = *result.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
     auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 
@@ -183,7 +184,7 @@ ActsPropagator::propagateTrackFast(const Acts::BoundTrackParameters& params,
 
   if (result.ok())
   {
-    auto finalparams = *result.value().endParameters;
+    auto finalparams = *result.value().endParameters; // NOLINT(bugprone-unchecked-optional-access)
     auto pathlength = result.value().pathLength;
     auto pair = std::make_pair(pathlength, finalparams);
 

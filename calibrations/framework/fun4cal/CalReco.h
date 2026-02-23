@@ -1,5 +1,5 @@
-#ifndef ONCAL_ONCAL_H
-#define ONCAL_ONCAL_H
+#ifndef FUN4CAL_CALRECO_H
+#define FUN4CAL_CALRECO_H
 
 #include <fun4all/SubsysReco.h>
 #include <iostream>
@@ -7,10 +7,10 @@
 #include <utility>  // for pair
 #include <vector>
 
-class OnCal : public SubsysReco
+class CalReco : public SubsysReco
 {
  public:
-  ~OnCal() override = default;
+  ~CalReco() override = default;
 
   //  These might be overwritten by everyone...
   int process_event(PHCompositeNode *topNode) override;
@@ -47,7 +47,7 @@ class OnCal : public SubsysReco
   virtual std::vector<std::string> GetLocalFileList() const { return localfilelist; }
 
  protected:
-  OnCal(const std::string &Name);  // so noone can call it from outside
+  CalReco(const std::string &Name);  // so noone can call it from outside
   unsigned int alldone{0};
   std::string m_Comment;
   std::vector<std::string> pdbcaltables;
@@ -56,4 +56,4 @@ class OnCal : public SubsysReco
   std::vector<std::string> localfilelist;
 };
 
-#endif /* ONCAL_ONCAL_H */
+#endif /* CALRECO_CALRECO_H */

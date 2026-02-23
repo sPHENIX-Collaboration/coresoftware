@@ -23,9 +23,9 @@ libXingShiftCal_la_SOURCES = \
 libXingShiftCal_la_LIBADD = \
   -lcdbobjects \
   -lfun4all \
+  -lfun4cal \
   -lphool \
-  -lSubsysReco \
-  -loncal
+  -lSubsysReco
 
 
 BUILT_SOURCES = testexternals.cc

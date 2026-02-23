@@ -62,8 +62,8 @@ class Vertex : public PHObject
   virtual void set_error(unsigned int /*i*/, unsigned int /*j*/, float /*value*/) {}
 
   // beam crossing methods
-  virtual unsigned int get_beam_crossing() const { return std::numeric_limits<unsigned int>::max(); }
-  virtual void set_beam_crossing(unsigned int) {}
+  virtual short int get_beam_crossing() const { return std::numeric_limits<short int>::max(); }
+  virtual void set_beam_crossing(short int) {}
 
   // bbcvertex methods
   virtual void set_bbc_ns(int, int, float, float) {}

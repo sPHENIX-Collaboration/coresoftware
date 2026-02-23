@@ -92,6 +92,32 @@ class CaloTowerCalib : public SubsysReco
     }
   }
 
+  void set_doAbortNoEnergyCalib(bool doAbort = true)
+  {
+    m_doAbortNoEnergyCalib = doAbort;
+    return;
+  }
+
+  void set_doAbortNoTimeCalib(bool doAbort = true)
+  {
+    m_doAbortNoTimeCalib = doAbort;
+    return;
+  }
+
+  void set_doAbortNoZSCalib(bool doAbort = true)
+  {
+    m_doAbortNoZSCalib = doAbort;
+    return;
+  }
+
+  void set_doAbortMissingCalib(bool doAbort = true)
+  {
+    m_doAbortNoEnergyCalib = doAbort;
+    m_doAbortNoTimeCalib = doAbort;
+    m_doAbortNoZSCalib = doAbort;
+    return;
+  }
+
   void set_use_TowerInfov2(bool use) { m_use_TowerInfov2 = use; }
 
  private:
@@ -124,6 +150,10 @@ class CaloTowerCalib : public SubsysReco
   bool m_giveDirectURL_ZScrosscalib = false;
   std::string m_directURL_ZScrosscalib = "";
   bool m_doZScrosscalib = true;
+
+  bool m_doAbortNoEnergyCalib{false};
+  bool m_doAbortNoTimeCalib{false};
+  bool m_doAbortNoZSCalib{false};
 
   CDBTTree *cdbttree = nullptr;
   CDBTTree *cdbttree_time = nullptr;

@@ -1,17 +1,17 @@
 #ifndef TRACKRECO_MAKESOURCELINKS_H
 #define TRACKRECO_MAKESOURCELINKS_H
 
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/ActsGeometry.h>
 #include <trackbase/ActsTrackFittingAlgorithm.h>
-#include <trackbase/alignmentTransformationContainer.h>
 #include <trackbase/ClusterErrorPara.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/alignmentTransformationContainer.h>
 
 #include <tpc/TpcClusterMover.h>
 
 /// Acts includes to create all necessary definitions
-#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Definitions/Algebra.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>
 
 #include <trackbase_historic/SvtxTrack.h>
 
@@ -40,51 +40,47 @@ class TrackSeed;
 class MakeSourceLinks
 {
  public:
- MakeSourceLinks() = default;
+  MakeSourceLinks() = default;
 
- void initialize(PHG4TpcGeomContainer* cellgeo);
+  void initialize(PHG4TpcGeomContainer* cellgeo);
 
-  void setVerbosity(int verbosity) {m_verbosity = verbosity;}
+  void setVerbosity(int verbosity) { m_verbosity = verbosity; }
 
- void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
-
+  void set_pp_mode(bool ispp) { m_pp_mode = ispp; }
+  void set_cluster_edge_rejection(int edge) { m_cluster_edge_rejection = edge; }
   void ignoreLayer(int layer) { m_ignoreLayer.insert(layer); }
 
   SourceLinkVec getSourceLinks(
-    TrackSeed* /*seed*/,
-    ActsTrackFittingAlgorithm::MeasurementContainer& /*measurements*/,
-    TrkrClusterContainer* /*clusters*/,
-    ActsGeometry* /*geometry*/,
-    const TpcGlobalPositionWrapper& /*globalpositionWrapper*/,
-    alignmentTransformationContainer* /*transformMapTransient*/,
-    std::set< Acts::GeometryIdentifier>& /*transient_id_set*/,
-    short int /*crossing*/);
+      TrackSeed* /*seed*/,
+      ActsTrackFittingAlgorithm::MeasurementContainer& /*measurements*/,
+      TrkrClusterContainer* /*clusters*/,
+      ActsGeometry* /*geometry*/,
+      const TpcGlobalPositionWrapper& /*globalpositionWrapper*/,
+      alignmentTransformationContainer* /*transformMapTransient*/,
+      std::set<Acts::GeometryIdentifier>& /*transient_id_set*/,
+      short int /*crossing*/);
 
   void resetTransientTransformMap(
-    alignmentTransformationContainer* /*transformMapTransient*/,
-    std::set< Acts::GeometryIdentifier>& /*transient_id_set*/,
-    ActsGeometry* /*tGeometry*/ );
+      alignmentTransformationContainer* /*transformMapTransient*/,
+      std::set<Acts::GeometryIdentifier>& /*transient_id_set*/,
+      ActsGeometry* /*tGeometry*/) const;
 
   SourceLinkVec getSourceLinksClusterMover(
-    TrackSeed* /*seed*/,
-    ActsTrackFittingAlgorithm::MeasurementContainer& /*measurements*/,
-    TrkrClusterContainer* /*clusters*/,
-    ActsGeometry* /*geometry*/,
-    const TpcGlobalPositionWrapper& /*globalpositionWrapper*/,
-    short int crossing
-    );
+      TrackSeed* /*seed*/,
+      ActsTrackFittingAlgorithm::MeasurementContainer& /*measurements*/,
+      TrkrClusterContainer* /*clusters*/,
+      ActsGeometry* /*geometry*/,
+      const TpcGlobalPositionWrapper& /*globalpositionWrapper*/,
+      short int crossing);
 
  private:
   int m_verbosity = 0;
   bool m_pp_mode = false;
   std::set<int> m_ignoreLayer;
-
+  int m_cluster_edge_rejection = 0;
   TpcClusterMover _clusterMover;
 
   ClusterErrorPara _ClusErrPara;
-
-
 };
-
 
 #endif

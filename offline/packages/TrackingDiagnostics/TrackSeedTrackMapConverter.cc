@@ -588,10 +588,11 @@ int TrackSeedTrackMapConverter::getNodes(PHCompositeNode* topNode)
     std::cout << PHWHERE << "WARNING, TrackSeedTrackMapConverter may seg fault depending on what seeding algorithm this is run after" << std::endl;
   }
 
-  m_clusters = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  m_clusters = findNode::getClass<TrkrClusterContainer>(topNode, m_clusterMapName);
   if (!m_clusters)
   {
-    std::cout << PHWHERE << " Can't find cluster container, can't continue."
+    std::cout << PHWHERE << " Can't find cluster container " << m_clusterMapName
+              << ", can't continue."
               << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }

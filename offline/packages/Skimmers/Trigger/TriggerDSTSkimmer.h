@@ -22,10 +22,22 @@ class TriggerDSTSkimmer : public SubsysReco
 
   void SetTrigger(std::vector<int> &trigger_vector) {m_trigger_index = trigger_vector;}
 
+  void set_accept_max(int max_events) 
+  {
+    use_max_accept = true;
+    max_accept = max_events;
+    return;
+  }
+
  private:
 
   std::vector<int> m_trigger_index{10}; 
   int ievent{0};
+
+  int accepted_events{0};
+  int max_accept{0};
+  bool use_max_accept{false};
+
 };
 
 #endif // JETDSTSKIMMER_H

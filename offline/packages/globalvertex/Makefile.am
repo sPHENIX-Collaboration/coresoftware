@@ -30,17 +30,20 @@ pkginclude_HEADERS = \
   GlobalVertex.h \
   GlobalVertexv1.h \
   GlobalVertexv2.h \
+  GlobalVertexv3.h \
   GlobalVertexMap.h \
   GlobalVertexMapv1.h \
   GlobalVertexReco.h \
   MbdVertex.h \
   MbdVertexv1.h \
   MbdVertexv2.h \
+  MbdVertexv3.h \
   MbdVertexMap.h \
   MbdVertexMapv1.h \
   SvtxVertex.h \
   SvtxVertex_v1.h \
   SvtxVertex_v2.h \
+  SvtxVertex_v3.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
   TruthVertex.h \
@@ -57,16 +60,19 @@ ROOTDICTS = \
   GlobalVertex_Dict.cc \
   GlobalVertexv1_Dict.cc \
   GlobalVertexv2_Dict.cc \
+  GlobalVertexv3_Dict.cc \
   GlobalVertexMap_Dict.cc \
   GlobalVertexMapv1_Dict.cc \
   MbdVertex_Dict.cc \
   MbdVertexv1_Dict.cc \
   MbdVertexv2_Dict.cc \
+  MbdVertexv3_Dict.cc \
   MbdVertexMap_Dict.cc \
   MbdVertexMapv1_Dict.cc \
   SvtxVertex_Dict.cc \
   SvtxVertex_v1_Dict.cc \
   SvtxVertex_v2_Dict.cc \
+  SvtxVertex_v3_Dict.cc \
   SvtxVertexMap_Dict.cc \
   SvtxVertexMap_v1_Dict.cc \
   TruthVertex_Dict.cc \
@@ -87,15 +93,18 @@ libglobalvertex_io_la_SOURCES = \
   GlobalVertex.cc \
   GlobalVertexv1.cc \
   GlobalVertexv2.cc \
+  GlobalVertexv3.cc \
   GlobalVertexMap.cc \
   GlobalVertexMapv1.cc \
   MbdVertexv1.cc \
   MbdVertexv2.cc \
+  MbdVertexv3.cc \
   MbdVertexMap.cc \
   MbdVertexMapv1.cc \
   SvtxVertex.cc \
   SvtxVertex_v1.cc \
   SvtxVertex_v2.cc \
+  SvtxVertex_v3.cc \
   SvtxVertexMap.cc \
   SvtxVertexMap_v1.cc \
   TruthVertex.cc \

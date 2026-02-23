@@ -672,7 +672,8 @@ void KFParticle_nTuple::fillBranch(PHCompositeNode* topNode,
     {
       gl1packet = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
     }
-    m_bco = m_trigger_info_available ? gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0] : 0;
+    m_bco = gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0];
+    //m_bco = m_trigger_info_available ? gl1packet->lValue(0, "BCO") + m_calculated_daughter_bunch_crossing[0] : 0;
   }
   else
   {

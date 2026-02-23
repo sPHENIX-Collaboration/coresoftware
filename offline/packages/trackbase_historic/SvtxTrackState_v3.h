@@ -78,7 +78,7 @@ class SvtxTrackState_v3 : public SvtxTrackState
   float _pos[3]{};
   float _mom[3]{};
   float _covar[21]{};         //  6x6 triangular packed storage
-  TrkrDefs::cluskey _ckey{};  // clusterkey that is associated with this state
+  TrkrDefs::cluskey _ckey{std::numeric_limits<uint64_t>::max()};  // clusterkey that is associated with this state
   std::string state_name;
 
   ClassDefOverride(SvtxTrackState_v3, 1)

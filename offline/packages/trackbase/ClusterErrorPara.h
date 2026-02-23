@@ -128,6 +128,7 @@ class ClusterErrorPara
   double scale_mm_1 {1.5};
   double pull_fine_phi[60]{};
   double pull_fine_z[60]{};
+
 };
 
 #endif
