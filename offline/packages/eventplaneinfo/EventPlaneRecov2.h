@@ -91,7 +91,7 @@ class EventPlaneRecov2 : public SubsysReco
  std::string m_calibName{"SEPD_EventPlaneCalib"};
  std::string m_inputNode{"TOWERINFO_CALIB_SEPD"};
 
- CDBTTree *m_cdbttree;
+  CDBTTree *m_cdbttree {nullptr};
 
  enum class Subdetector
  {
@@ -118,7 +118,7 @@ class EventPlaneRecov2 : public SubsysReco
     std::array<std::array<double, 2>, 2> X_matrix{};
  };
 
- static constexpr size_t m_bins_cent = 8;
+  static constexpr size_t m_bins_cent {8};
  static constexpr std::array<int, 3> m_harmonics = {2, 3, 4};
 
  // Holds all correction data
