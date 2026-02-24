@@ -1,7 +1,7 @@
 #include "Fun4AllStreamingLumiCountingInputManager.h"
 
 #include <fun4allraw/InputManagerType.h>
-#include "SingleStreamingInputv2.h"
+#include "SingleStreamingInput.h"
 
 #include <ffarawobjects/Gl1Packet.h>
 
@@ -173,7 +173,7 @@ std::string Fun4AllStreamingLumiCountingInputManager::GetString(const std::strin
   return "";
 }
 
-void Fun4AllStreamingLumiCountingInputManager::registerStreamingInput(SingleStreamingInputv2 *evtin, InputManagerType::enu_subsystem system)
+void Fun4AllStreamingLumiCountingInputManager::registerStreamingInput(SingleStreamingInput *evtin, InputManagerType::enu_subsystem system)
 {
   evtin->StreamingLumiInputManager(this);
   // if the streaming flag is set, we only want the first event from the GL1 to
