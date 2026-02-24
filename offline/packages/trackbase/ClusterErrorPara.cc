@@ -1,7 +1,8 @@
 #include "ClusterErrorPara.h"
 
 #include "TrkrCluster.h"
-
+//#include <phool/phool.h>
+#include <phool/recoConsts.h>
 #include <TF1.h>
 
 #include <algorithm>
@@ -18,58 +19,96 @@ namespace
   {
     return x * x;
   }
+
 }  // namespace
 
-ClusterErrorPara::ClusterErrorPara()
+ClusterErrorPara::ClusterErrorPara():
+  f0{new TF1("f0", "pol1", 0, 10)},
+  f1{new TF1("f1", "pol2", 0, 10)},
+  f2{new TF1("f2", "pol2", 0, 10)},
+  f0fine{new TF1("f0fine", "pol2", 0, 20000)},
+  f1fine{new TF1("f1fine", "pol3", 0, 20000)},
+  f2fine{new TF1("f2fine", "pol5", 0, 20000)},
+  f2fine2{new TF1("f2fine", "pol5", 0, 20000)},
+  fz0{new TF1("fz0", "pol2", -2, 2)},
+  fz1{new TF1("fz1", "pol4", -2, 2)},
+  fz2{new TF1("fz2", "pol2", -2, 2)},
+  fz0fine{new TF1("fz0fine", "pol2", 0, 20000)},
+  fz1fine{new TF1("fz1fine", "pol3", 0, 20000)},
+  fz2fine{new TF1("fz2fine", "pol5", 0, 20000)},
+  fmm_55_2{new TF1("fmm_55_2", "pol2", -2, 2)},  
+  fmm_56_2{new TF1("fmm_56_2", "pol2", -2, 2)},
+  fmm_3{new TF1("fmm_3", "pol2", -2, 2)},
+  fadcz0{new TF1("fadcz0", "pol5", 0, 20000)},
+  fadcz1{new TF1("fadcz1", "pol5", 0, 20000)},
+  fadcz2{new TF1("fadcz2", "pol5", 0, 20000)},
+  fadcz0fine{new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
+  fadcz1fine{new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
+  fadcz2fine{new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000)},
+  fadcphi0{new TF1("fadcphi0", "pol4", 0, 20000)},
+  fadcphi0fine{new TF1("fadcphi0fine", "pol2", 0, 20000)},
+  fadcphi1{new TF1("fadcphi1", "pol4", 0, 20000)},
+  fadcphi1fine{new TF1("fadcphi1fine", "pol4", 0, 20000)},
+  fadcphi2{new TF1("fadcphi2", "pol5", 0, 20000)},
+  fadcphi2fine1{new TF1("fadcphi2fine1", "pol4", 0, 20000)},
+  fadcphi2fine2{new TF1("fadcphi2fine2", "pol1", 0, 20000)}
+
 {
-  f0 = new TF1("f0", "pol1", 0, 10);
+  /*
+  ftpcR1 = new TF1("ftpcR1", "pol2", 0, 10);
+  ftpcR1->SetParameter(0, 3.206);
+  ftpcR1->SetParameter(1, -0.252);
+  ftpcR1->SetParameter(2, 0.007);
+  */
+  
+  //  f0 = new TF1("f0", "pol1", 0, 10);
   f0->SetParameter(0, 0.0163943);
   f0->SetParameter(1, 0.0192931);
 
-  f1 = new TF1("f1", "pol2", 0, 10);
+  //  f1 = new TF1("f1", "pol2", 0, 10);
   f1->SetParameter(0, 0.0119384);
   f1->SetParameter(1, 0.0253197);
   f1->SetParameter(2, 0.0404213);
 
-  f2 = new TF1("f2", "pol2", 0, 10);
+  //  f2 = new TF1("f2", "pol2", 0, 10);
   f2->SetParameter(0, 0.0107316);
   f2->SetParameter(1, 0.0294968);
   f2->SetParameter(2, 0.0414098);
   // f2->SetParameter(3,9.75877);
 
-  fz0 = new TF1("fz0", "pol2", -2, 2);
+  //  fz0 = new TF1("fz0", "pol2", -2, 2);
   fz0->SetParameter(0, 0.0520278);
   fz0->SetParameter(1, -0.00578699);
   fz0->SetParameter(2, 0.0156972);
 
-  fz1 = new TF1("fz1", "pol4", -2, 2);
+  //  fz1 = new TF1("fz1", "pol4", -2, 2);
   fz1->SetParameter(0, 0.0383233);
   fz1->SetParameter(1, -0.00577128);
   fz1->SetParameter(2, 0.0770914);
   fz1->SetParameter(3, -0.0818139);
   fz1->SetParameter(4, 0.050305);
 
-  fz2 = new TF1("fz2", "pol2", -2, 2);
+  //  fz2 = new TF1("fz2", "pol2", -2, 2);
   fz2->SetParameter(0, 0.0371611);
   fz2->SetParameter(1, -0.000694558);
   fz2->SetParameter(2, 0.0437917);
 
-  fmm_55_2 = new TF1("fmm_55_2", "pol2", -2, 2);
+  //  fmm_55_2 = new TF1("fmm_55_2", "pol2", -2, 2);
   fmm_55_2->SetParameter(0, 0.0430592);
   fmm_55_2->SetParameter(1, -0.000177174);
   fmm_55_2->SetParameter(2, 0.0914288);
 
-  fmm_56_2 = new TF1("fmm_56_2", "pol2", -2, 2);
+  //  fmm_56_2 = new TF1("fmm_56_2", "pol2", -2, 2);
   fmm_56_2->SetParameter(0, 0.00363897);
   fmm_56_2->SetParameter(1, 0.0109713);
   fmm_56_2->SetParameter(2, 0.032354);
 
-  fmm_3 = new TF1("fmm_3", "pol2", -2, 2);
+  //  fmm_3 = new TF1("fmm_3", "pol2", -2, 2);
   fmm_3->SetParameter(0, 0.00305396);
   fmm_3->SetParameter(1, 0.00505814);
   fmm_3->SetParameter(2, 0.0395137);
 
-  fadcz0 = new TF1("fadcz0", "pol5", 0, 20000);
+  //  fadcz0 = new TF1("fadcz0", "pol5", 0, 20000);
   fadcz0->SetParameter(0, 2.08854);
   fadcz0->SetParameter(1, -0.0536847);
   fadcz0->SetParameter(2, 0.000989393);
@@ -77,7 +116,7 @@ ClusterErrorPara::ClusterErrorPara()
   fadcz0->SetParameter(4, 4.42178e-08);
   fadcz0->SetParameter(5, -7.79669e-11);
 
-  fadcz1 = new TF1("fadcz1", "pol5", 0, 20000);
+  //  fadcz1 = new TF1("fadcz1", "pol5", 0, 20000);
   fadcz1->SetParameter(0, 2.35278);
   fadcz1->SetParameter(1, -0.0535903);
   fadcz1->SetParameter(2, 0.00088052);
@@ -85,7 +124,7 @@ ClusterErrorPara::ClusterErrorPara()
   fadcz1->SetParameter(4, 3.35361e-08);
   fadcz1->SetParameter(5, -5.61371e-11);
 
-  fadcz2 = new TF1("fadcz2", "pol5", 0, 20000);
+  //  fadcz2 = new TF1("fadcz2", "pol5", 0, 20000);
   fadcz2->SetParameter(0, 2.53191);
   fadcz2->SetParameter(1, -0.062285);
   fadcz2->SetParameter(2, 0.00103893);
@@ -93,22 +132,22 @@ ClusterErrorPara::ClusterErrorPara()
   fadcz2->SetParameter(4, 3.9802e-08);
   fadcz2->SetParameter(5, -6.67137e-11);
 
-  fadcz0fine = new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
+  //  fadcz0fine = new TF1("fadcz0fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
   fadcz0fine->SetParameter(0, 9.63983e-01);
   fadcz0fine->SetParameter(1, 2.68585e+01);
   fadcz0fine->SetParameter(2, -4.78664e+00);
 
-  fadcz1fine = new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
+  //  fadcz1fine = new TF1("fadcz1fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
   fadcz1fine->SetParameter(0, 9.85546e-01);
   fadcz1fine->SetParameter(1, 1.12622e+02);
   fadcz1fine->SetParameter(2, -1.26552e+01);
 
-  fadcz2fine = new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
+  //  fadcz2fine = new TF1("fadcz2fine", "[0]+([1]/pow(x-[2],2))", 0, 20000);
   fadcz2fine->SetParameter(0, 9.71125e-01);
   fadcz2fine->SetParameter(1, 6.67244e+01);
   fadcz2fine->SetParameter(2, -3.55034e+00);
 
-  fadcphi0 = new TF1("fadcphi0", "pol4", 0, 20000);
+  //  fadcphi0 = new TF1("fadcphi0", "pol4", 0, 20000);
   fadcphi0->SetParameter(0, 1.79273);
   fadcphi0->SetParameter(1, -0.0306044);
   fadcphi0->SetParameter(2, 0.000355984);
@@ -116,26 +155,26 @@ ClusterErrorPara::ClusterErrorPara()
   fadcphi0->SetParameter(4, 4.26161e-09);
   //  fadcphi0->SetParameter(5,-4.22758e-11);
 
-  fadcphi0fine = new TF1("fadcphi0fine", "pol2", 0, 20000);
+  //  fadcphi0fine = new TF1("fadcphi0fine", "pol2", 0, 20000);
   fadcphi0fine->SetParameter(0, 1.02625);
   fadcphi0fine->SetParameter(1, -0.00167294);
   fadcphi0fine->SetParameter(2, 2.2912e-5);
 
-  fadcphi1 = new TF1("fadcphi1", "pol4", 0, 20000);
+  //  fadcphi1 = new TF1("fadcphi1", "pol4", 0, 20000);
   fadcphi1->SetParameter(0, 2.12873);
   fadcphi1->SetParameter(1, -0.0369604);
   fadcphi1->SetParameter(2, 0.00042828);
   fadcphi1->SetParameter(3, -2.3665e-06);
   fadcphi1->SetParameter(4, 4.87683e-09);
 
-  fadcphi1fine = new TF1("fadcphi1fine", "pol4", 0, 20000);
+  //  fadcphi1fine = new TF1("fadcphi1fine", "pol4", 0, 20000);
   fadcphi1fine->SetParameter(0, 1.11749);
   fadcphi1fine->SetParameter(1, -0.00354277);
   fadcphi1fine->SetParameter(2, 5.60236e-05);
   fadcphi1fine->SetParameter(3, -4.46412e-07);
   fadcphi1fine->SetParameter(4, 1.22689e-09);
 
-  fadcphi2 = new TF1("fadcphi2", "pol5", 0, 20000);
+  //  fadcphi2 = new TF1("fadcphi2", "pol5", 0, 20000);
   fadcphi2->SetParameter(0, 2.29);
   fadcphi2->SetParameter(1, -0.0474362);
   fadcphi2->SetParameter(2, 0.000717789);
@@ -143,23 +182,23 @@ ClusterErrorPara::ClusterErrorPara()
   fadcphi2->SetParameter(4, 2.52007e-08);
   fadcphi2->SetParameter(5, -4.14747e-11);
 
-  fadcphi2fine1 = new TF1("fadcphi2fine1", "pol4", 0, 20000);
+  //  fadcphi2fine1 = new TF1("fadcphi2fine1", "pol4", 0, 20000);
   fadcphi2fine1->SetParameter(0, 1.39404);
   fadcphi2fine1->SetParameter(1, -0.0202245);
   fadcphi2fine1->SetParameter(2, 0.000394666);
   fadcphi2fine1->SetParameter(3, -3.37831e-06);
   fadcphi2fine1->SetParameter(4, 1.05017e-08);
 
-  fadcphi2fine2 = new TF1("fadcphi2fine2", "pol1", 0, 20000);
+  //  fadcphi2fine2 = new TF1("fadcphi2fine2", "pol1", 0, 20000);
   fadcphi2fine2->SetParameter(0, 0.997);
   fadcphi2fine2->SetParameter(1, 0.00047);
 
-  f0fine = new TF1("f0fine", "pol2", 0, 20000);
+  //  f0fine = new TF1("f0fine", "pol2", 0, 20000);
   f0fine->SetParameter(0, 0.98611);
   f0fine->SetParameter(1, -0.169505);
   f0fine->SetParameter(2, 1.12907);
 
-  f1fine = new TF1("f1fine", "pol3", 0, 20000);
+  //  f1fine = new TF1("f1fine", "pol3", 0, 20000);
   f1fine->SetParameter(0, 0.968625);
   f1fine->SetParameter(1, -0.38894);
   f1fine->SetParameter(2, 3.36493);
@@ -172,7 +211,7 @@ ClusterErrorPara::ClusterErrorPara()
   f2fine->SetParameter(3,-42.4668);
   f2fine->SetParameter(4,43.6083);
   */
-  f2fine = new TF1("f2fine", "pol5", 0, 20000);
+  //  f2fine = new TF1("f2fine", "pol5", 0, 20000);
   f2fine->SetLineColor(kBlue);
   f2fine->SetParameter(0, 1.14119);
   f2fine->SetParameter(1, -2.81483);
@@ -181,18 +220,18 @@ ClusterErrorPara::ClusterErrorPara()
   f2fine->SetParameter(4, 72.2359);
   f2fine->SetParameter(5, -20.3802);
 
-  fz0fine = new TF1("fz0fine", "pol2", 0, 20000);
+  //  fz0fine = new TF1("fz0fine", "pol2", 0, 20000);
   fz0fine->SetParameter(0, 0.96933);
   fz0fine->SetParameter(1, -0.0458534);
   fz0fine->SetParameter(2, 0.231419);
 
-  fz1fine = new TF1("fz1fine", "pol3", 0, 20000);
+  //  fz1fine = new TF1("fz1fine", "pol3", 0, 20000);
   fz1fine->SetParameter(0, 0.886262);
   fz1fine->SetParameter(1, -0.0818167);
   fz1fine->SetParameter(2, 0.805824);
   fz1fine->SetParameter(3, -0.425423);
 
-  fz2fine = new TF1("fz2fine", "pol5", 0, 20000);
+  //  fz2fine = new TF1("fz2fine", "pol5", 0, 20000);
   fz2fine->SetLineColor(kBlue);
   fz2fine->SetParameter(0, 0.880153);
   fz2fine->SetParameter(1, 0.552461);
@@ -476,40 +515,255 @@ ClusterErrorPara::ClusterErrorPara()
 //_________________________________________________________________________________
 ClusterErrorPara::error_t ClusterErrorPara::get_clusterv5_modified_error(TrkrCluster* cluster, double /*unused*/, TrkrDefs::cluskey key)
 {
+
+  static const bool is_data_reco = []() {
+    recoConsts* rc = recoConsts::instance();
+    if (rc->FlagExist("CDB_GLOBALTAG"))
+    {
+      if (rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
+      {
+        return false;
+      }
+    }
+    return true;  // default to data
+  }();
+  /*
+  static bool is_data_reco{true};  // default to data
+  static bool is_data_reco_set{false};  // default to data
+  if(!is_data_reco_set){
+    recoConsts* rc = recoConsts::instance(); 
+    if(rc->FlagExist("CDB_GLOBALTAG"))
+      {
+	if(rc->get_StringFlag("CDB_GLOBALTAG").find("MDC") != std::string::npos)
+	  {
+	    is_data_reco = false;
+	  }
+      }
+    is_data_reco_set = true;
+  }
+  */
   int layer = TrkrDefs::getLayer(key);
 
   double phierror = cluster->getRPhiError();
   double zerror = cluster->getZError();
-  if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
-  {
-    if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
-    {
-      phierror *= 4;
-      zerror *= 4;
+  if(is_data_reco==false){
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+      {
+	if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39)
+	  {
+	    phierror *= 4;
+	    zerror *= 4;
+	  }
+	if (cluster->getEdge() >= 3)
+	  {
+	    phierror *= 4;
+	  }
+	if (cluster->getOverlap() >= 2)
+	  {
+	    phierror *= 2;
+	  }
+	if (cluster->getPhiSize() == 1)
+	  {
+	    phierror *= 10;
+	  }
+	if (cluster->getPhiSize() >= 5)
+	  {
+	    phierror *= 10;
+	  }
+	
+	phierror = std::min(phierror, 0.1);
+	if (phierror < 0.0005)
+	  {
+	    phierror = 0.1;
+	  }
+      }
+  }else{
+    
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::tpcId)
+      {
+	if (layer == 7 || layer == 22 || layer == 23 || layer == 38 || layer == 39 || layer == 54)
+	  {
+	    phierror *= 4;
+	    zerror *= 4;
+	  }
+	if (cluster->getEdge() >= 3)
+	  {
+	    phierror *= 4;
+	  }
+	if (cluster->getOverlap() >= 2)
+	  {
+	    phierror *= 2;
+	  }
+	if(layer>=7&&layer<(7+48)){
+	  //Set phi error
+	  if (cluster->getPhiSize() == 1)
+	    {
+	      phierror *= 1.0;
+	    }
+	  if (cluster->getPhiSize() == 2)
+	    {
+	      phierror*=3.15;
+	    }
+	  if (cluster->getPhiSize() == 3)
+	    {
+	  phierror *=3.5;
+	    }
+	  if (cluster->getPhiSize() >3)
+	    {
+	      phierror *= 4;
+	    }
+	  //Set Z Error
+	  if (cluster->getZSize() == 1){
+	    zerror*=1.0;
+	  }
+	  if (cluster->getZSize() == 2){
+	    if(layer>=7&&layer<(7+16)){
+	      zerror*=7;
+	    }
+	    if(layer>=(7+16)&&layer<(7+32)){
+	      zerror*=4.5;
+	    }
+	    if(layer>=(7+32)&&layer<(7+48)){
+	      zerror*=4.5;
+	    }
+	    
+	  }
+	  if ((cluster->getZSize() == 3) || (cluster->getZSize() == 4)){
+	    if(layer>=7&&layer<(7+16)){
+	      zerror*=7;
+	    }
+	    if(layer>=(7+16)&&layer<(7+32)){
+	      zerror*=5;
+	    }
+	    if(layer>=(7+32)&&layer<(7+48)){
+	      zerror*=5;
+	    }
+	    //	zerror*=6;
+	  }
+	  if (cluster->getZSize() >=5){
+	    if(layer>=7&&layer<(7+16)){
+	      zerror*=20;
+	    }
+	    if(layer>=(7+16)&&layer<(7+32)){
+	      zerror*=6;
+	    }
+	    if(layer>=(7+32)&&layer<(7+48)){
+	      zerror*=7;
+	    }
+	  }
+	  /*
+	  static TF1 ftpcR1("ftpcR1", "pol2", 0, 60);
+	  ftpcR1.SetParameter(0, 3.206);
+	  ftpcR1.SetParameter(1, -0.252);
+	  ftpcR1.SetParameter(2, 0.007);
+	  
+	  static TF1 ftpcR2("ftpcR2", "pol2", 0, 60);
+	  ftpcR2.SetParameter(0, 4.48);
+	  ftpcR2.SetParameter(1, -0.226);
+	  ftpcR2.SetParameter(2, 0.00362);
+	  
+	  static TF1 ftpcR3("ftpcR3", "pol2", 0, 60);
+	  ftpcR3.SetParameter(0, 14.8112);
+	  ftpcR3.SetParameter(1, -0.577);
+	  ftpcR3.SetParameter(2, 0.00605);
+	  
+	  if(layer>=7&&layer<(7+16)){
+	    phierror*= ftpcR1.Eval(layer);
+	  }
+	  if(layer>=(7+16)&&layer<(7+32)){
+	    phierror*= ftpcR2.Eval(layer);
+	  }
+	  if(layer>=(7+32)&&layer<(7+48)){
+	    phierror*= ftpcR3.Eval(layer);
+	  }
+	  ftpcR2.SetParameter(0, 5.593);
+	  ftpcR2.SetParameter(1, -0.2458);
+	  ftpcR2.SetParameter(2, 0.00333455);
+	  
+	  ftpcR3.SetParameter(0, 5.6964);
+	  ftpcR3.SetParameter(1, -0.21338);
+	  ftpcR3.SetParameter(2, 0.002502);
+	  
+	  if(layer>=(7+16)&&layer<(7+32)){
+	    zerror*= ftpcR2.Eval(layer);
+	  }
+	  if(layer>=(7+32)&&layer<(7+48)){
+	    zerror*= ftpcR3.Eval(layer);
+	    }
+	  */
+	  
+	  // Inline pol2 evaluation: p0 + p1*x + p2*x^2
+	  auto pol2 = [](double x, double p0, double p1, double p2) {
+	    return p0 + p1 * x + p2 * x * x;
+	  };
+	  
+	  if(layer>=7&&layer<(7+16)){
+	    phierror *= pol2(layer, 3.206, -0.252, 0.007);
+	  }
+	  if(layer>=(7+16)&&layer<(7+32)){
+	    phierror *= pol2(layer, 4.48, -0.226, 0.00362);
+	  }
+	  if(layer>=(7+32)&&layer<(7+48)){
+	    phierror *= pol2(layer, 14.8112, -0.577, 0.00605);
+	  }
+	  
+	  if(layer>=(7+16)&&layer<(7+32)){
+	    zerror *= pol2(layer, 5.593, -0.2458, 0.00333455);
+	  }
+	  if(layer>=(7+32)&&layer<(7+48)){
+	    zerror *= pol2(layer, 5.6964, -0.21338, 0.002502);
+	  }
+	}
+	if (cluster->getPhiSize() >= 5)
+	  {
+	    phierror *= 10;
+	  }
+      }
+    
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::mvtxId){
+      phierror*=2;
+      zerror*=2;
     }
-    if (cluster->getEdge() >= 3)
-    {
-      phierror *= 4;
+    
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::inttId){
+      phierror*=9;
+      if (cluster->getPhiSize() == 1){
+	phierror *= 1.25;
+      }
+      if (cluster->getPhiSize() == 2){
+	phierror *= 2.25;
+      }
+      if((layer==3)||(layer==4)){
+	phierror*=0.8;
+      }
+      if((layer==5)||(layer==6)){
+	phierror*=1.2;
+      }
     }
-    if (cluster->getOverlap() >= 2)
-    {
-      phierror *= 2;
-    }
-    if (cluster->getPhiSize() == 1)
-    {
-      phierror *= 10;
-    }
-    if (cluster->getPhiSize() >= 5)
-    {
-      phierror *= 10;
-    }
-
-    phierror = std::min(phierror, 0.1);
-    if (phierror < 0.0005)
-    {
-      phierror = 0.1;
+    
+    if (TrkrDefs::getTrkrId(key) == TrkrDefs::micromegasId){
+      if(layer==55){
+	/*
+	phierror*=5.4;
+	phierror*=4.6;
+	phierror*=3.0;
+	zerror*=0.82;
+	*/
+	phierror = 0.0289;
+      }
+      
+      if(layer==56){
+	/*
+	phierror*=0.9;
+	phierror*=0.95;
+	zerror*=4.5;
+	zerror*=3.4;
+	*/
+	zerror = 0.577;
+      }
     }
   }
+      
   return std::make_pair(square(phierror), square(zerror));
 }
 

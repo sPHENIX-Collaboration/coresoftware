@@ -101,6 +101,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     }
     else 
     {
+      if (m_doAbortNoChi2)
+      {
+        std::cout << "CaloTowerStatus::InitRun: No chi2 calibration found for " << m_calibName_chi2 << " and abort mode is set. Exiting." << std::endl;
+        gSystem->Exit(1);
+      }
       m_doHotChi2 = false;
       if (Verbosity() > 0)
       {
@@ -131,6 +136,11 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
     }
     else
     {
+      if (m_doAbortNoTime)
+      {
+        std::cout << "CaloTowerStatus::InitRun: No time calibration found for " << m_calibName_time << " and abort mode is set. Exiting." << std::endl;
+        gSystem->Exit(1);
+      }
       m_doTime = false;
       if (Verbosity() > 1)
       {
@@ -160,7 +170,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   {
     if (m_doAbortNoHotMap)
     {
-      std::cout << "CaloTowerStatus::InitRun: No hot map.. exiting" << std::endl;
+      std::cout << "CaloTowerStatus::InitRun: No hot map found for " << m_calibName_hotMap << " and abort mode is set. Exiting." << std::endl;
       gSystem->Exit(1);
     }
     if (use_directURL_hotMap)
@@ -295,6 +305,10 @@ int CaloTowerStatus::process_event(PHCompositeNode * /*topNode*/)
 void CaloTowerStatus::CreateNodeTree(PHCompositeNode *topNode)
 {
   std::string RawTowerNodeName = m_inputNodePrefix + m_detector;
+  if (!m_inputNode.empty())
+  {
+    RawTowerNodeName = m_inputNode;
+  }
   m_raw_towers = findNode::getClass<TowerInfoContainer>(topNode, RawTowerNodeName);
   if (!m_raw_towers)
   {
