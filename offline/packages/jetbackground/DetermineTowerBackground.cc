@@ -278,7 +278,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
           tower_geom = geomIH->get_tower_geometry(key);
           comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-          comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
+          comp_isBad = !towerinfo->get_isGood();
         }
         else if (comp.first == 7 || comp.first == 27)
         {
@@ -289,7 +289,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALOUT, comp_ieta, comp_iphi);
           tower_geom = geomOH->get_tower_geometry(key);
           comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-          comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
+          comp_isBad = !towerinfo->get_isGood();
         }
         else if (comp.first == 13 || comp.first == 28)
         {
@@ -300,7 +300,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
           const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(RawTowerDefs::CalorimeterId::HCALIN, comp_ieta, comp_iphi);
           tower_geom = geomIH->get_tower_geometry(key);
           comp_ET = towerinfo->get_energy() / cosh(tower_geom->get_eta());
-          comp_isBad = towerinfo->get_isHot() || towerinfo->get_isNoCalib() || towerinfo->get_isNotInstr() || towerinfo->get_isBadChi2();
+          comp_isBad = !towerinfo->get_isGood();
         }
         
 
@@ -467,7 +467,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     int this_phibin = towerinfosEM3->getTowerPhiBin(key);
     TowerInfo *tower = towerinfosEM3->get_tower_at_channel(channel);
     float this_E = tower->get_energy();
-    int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
+    int this_isBad = !tower->get_isGood();
     _EMCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
     if (!this_isBad)
     { // just in case since all energy is summed
@@ -485,7 +485,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     int this_phibin = towerinfosIH3->getTowerPhiBin(key);
     TowerInfo *tower = towerinfosIH3->get_tower_at_channel(channel);
     float this_E = tower->get_energy();
-    int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
+    int this_isBad = !tower->get_isGood();
     _IHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
     if (!this_isBad)
     { // just in case since all energy is summed
@@ -503,7 +503,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     int this_phibin = towerinfosOH3->getTowerPhiBin(key);
     TowerInfo *tower = towerinfosOH3->get_tower_at_channel(channel);
     float this_E = tower->get_energy();
-    int this_isBad = tower->get_isHot() || tower->get_isNoCalib() || tower->get_isNotInstr() || tower->get_isBadChi2();
+    int this_isBad = !tower->get_isGood();
     _OHCAL_ISBAD[this_etabin][this_phibin] = this_isBad;
     if (!this_isBad)
     { // just in case since all energy is summed

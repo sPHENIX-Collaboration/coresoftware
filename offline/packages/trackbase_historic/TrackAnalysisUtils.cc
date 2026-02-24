@@ -22,7 +22,7 @@ namespace TrackAnalysisUtils
   float calc_dedx(TrackSeed* tpcseed,
                   TrkrClusterContainer* clustermap,
                   ActsGeometry* tgeometry,
-                  const float thickness_per_region[4])
+                  float const thickness_per_region[4])
   {
     std::vector<TrkrDefs::cluskey> clusterKeys;
     clusterKeys.insert(clusterKeys.end(), tpcseed->begin_cluster_keys(),
@@ -99,7 +99,7 @@ namespace TrackAnalysisUtils
   float calc_dedx_calib(SvtxTrack* track,
                         TrkrClusterContainer* cluster_map,
                         ActsGeometry* tgeometry,
-                        const float thickness_per_region[4])
+                        float const thickness_per_region[4])
   {
     auto clusterKeys = get_cluster_keys(track->get_tpc_seed());
 

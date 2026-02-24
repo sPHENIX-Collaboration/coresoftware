@@ -412,22 +412,22 @@ int TpcLaminationFitting::process_event(PHCompositeNode *topNode)
     {
       for (int l = 0; l < 18; l++)
       {
-	double shift = m_laminationIdeal[l][side];
+	      double shift = m_laminationIdeal[l][side];
 	
-	double phi2pi = tmp_pos.Phi();
-	if (side && phi2pi < -0.2)
-	{
-	  phi2pi += 2 * M_PI;
-	}
-	if (!side && phi2pi < M_PI / 18 - 0.2)
-	{
-	  phi2pi += 2 * M_PI;
-	}
+	      double phi2pi = tmp_pos.Phi();
+	      if (side && phi2pi < -0.2)
+	      {
+	        phi2pi += 2 * M_PI;
+	      }
+	      if (!side && phi2pi < M_PI / 18 - 0.2)
+	      {
+	        phi2pi += 2 * M_PI;
+	      }
 	
-	if (phi2pi > shift - 0.2 && phi2pi < shift + 0.2)
-	{
-	  m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi);
-	}
+      	if (phi2pi > shift - 0.2 && phi2pi < shift + 0.2)
+	      {
+	        m_hLamination[l][side]->Fill(tmp_pos.Perp(), phi2pi);
+	      }
       }
     }
 
@@ -745,7 +745,7 @@ int TpcLaminationFitting::InterpolatePhiDistortions()
         int phiBin = phiDistortionLamination[s]->GetXaxis()->FindBin(phi);
         if(m_fieldOff)
         {
-	  m_laminationOffset[l][s] = m_fLamination[l][s]->GetParameter(0);
+	        m_laminationOffset[l][s] = m_fLamination[l][s]->GetParameter(0);
           m_fLamination[l][s]->SetParameter(1, 0.0);
         }
         else
@@ -753,7 +753,11 @@ int TpcLaminationFitting::InterpolatePhiDistortions()
           //m_fLamination[l][s]->SetParameter(3, -1.0*m_laminationOffset[l][s]);
           m_fLamination[l][s]->SetParameter(3, 0.0);
         }
-        double phiDistortion = R * m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1)) / (phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1) - phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i));
+        double phiDistortion = m_fLamination[l][s]->Integral(phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i), phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1)) / (phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i + 1) - phiDistortionLamination[s]->GetYaxis()->GetBinLowEdge(i));
+        if(!m_phiHist_in_rad)
+        {
+          phiDistortion *= R;
+        }
         if(m_fieldOff)
         {
           m_fLamination[l][s]->SetParameter(1, m_laminationIdeal[l][s]);
@@ -1207,9 +1211,22 @@ int TpcLaminationFitting::End(PHCompositeNode * /*topNode*/)
   }
   m_laminationTree->Write();
   
-  m_hLamination[13][0]->Write();
-  m_hLamination[13][1]->Write();
-  m_hLamination[14][1]->Write();
+  if(m_saveAllLaminationHistograms)
+  {
+    for(auto &i : m_hLamination)
+    {
+      for(auto &j : i)
+      {
+        j->Write();
+      }
+    }
+  }
+  else
+  {
+    m_hLamination[13][0]->Write();
+    m_hLamination[13][1]->Write();
+    m_hLamination[14][1]->Write();
+  }
   
   
   outputfile->Close();
