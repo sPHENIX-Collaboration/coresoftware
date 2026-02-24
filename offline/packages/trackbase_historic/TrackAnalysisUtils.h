@@ -40,11 +40,12 @@ namespace TrackAnalysisUtils
                         // when/if the tpc geometry changes in the future. This is to get us going
                         const float thickness_per_region[4]);
   float calc_dedx(TrackSeed* tpcseed, TrkrClusterContainer* clustermap, ActsGeometry* tgeometry,
-                  const float thickness_per_region[4]);
-
+                  float const thickness_per_region[4]);
   TrackFitResiduals
   get_residuals(SvtxTrack* track, TrkrClusterContainer* clustermap,
                 PHCompositeNode* topNode);
+                        float const thickness_per_region[4]);
+
 
 };  // namespace TrackAnalysisUtils
 
