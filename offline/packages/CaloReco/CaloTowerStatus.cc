@@ -3,10 +3,6 @@
 
 #include <calobase/TowerInfo.h>  // for TowerInfo
 #include <calobase/TowerInfoContainer.h>
-#include <calobase/TowerInfoContainerv1.h>
-#include <calobase/TowerInfoContainerv2.h>
-#include <calobase/TowerInfov1.h>
-#include <calobase/TowerInfov2.h>
 
 #include <cdbobjects/CDBTTree.h>  // for CDBTTree
 
@@ -154,7 +150,7 @@ int CaloTowerStatus::InitRun(PHCompositeNode *topNode)
   }
 
   m_calibName_hotMap = m_detector + "nome";
-  if (m_dettype == CaloTowerDefs::CEMC)
+  if (m_dettype == CaloTowerDefs::CEMC || m_dettype == CaloTowerDefs::SEPD)
   {
     m_calibName_hotMap = m_detector + "_BadTowerMap";
   }
