@@ -60,7 +60,7 @@
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-using point = bg::model::point<float, 3, bg::cs::cartesian>;
+using point = bg::model::point<double, 3, bg::cs::cartesian>;
 using box = bg::model::box<point>;
 using specHitKey = std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey>;
 using adcKey = std::pair<unsigned int, specHitKey>;
@@ -319,16 +319,16 @@ namespace
 
       while (!q.empty())
       {
-        float ix = q.front().first.get<0>();
-        float iy = q.front().first.get<1>();
-        float iz = q.front().first.get<2>();
+        double ix = q.front().first.get<0>();
+        double iy = q.front().first.get<1>();
+        double iz = q.front().first.get<2>();
         q.pop();
 
         for (auto neigh : neighborOffsets)
         {
-          float nx = ix + neigh.get<0>();
-          float ny = iy + neigh.get<1>();
-          float nz = iz + neigh.get<2>();
+          double nx = ix + neigh.get<0>();
+          double ny = iy + neigh.get<1>();
+          double nz = iz + neigh.get<2>();
 
           for (unsigned int v = 0; v < unvisited.size(); v++)
           {
@@ -450,9 +450,9 @@ namespace
 
     int meanSide = 0;
 
-    std::vector<float> usedLayer;
-    std::vector<float> usedIPhi;
-    std::vector<float> usedIT;
+    std::vector<double> usedLayer;
+    std::vector<double> usedIPhi;
+    std::vector<double> usedIT;
 
     double meanLayer = 0.0;
     double meanIPhi = 0.0;
@@ -460,7 +460,7 @@ namespace
 
     for (auto &clusHit : clusHits)
     {
-      float coords[3] = {clusHit.first.get<0>(), clusHit.first.get<1>(), clusHit.first.get<2>()};
+      double coords[3] = {clusHit.first.get<0>(), clusHit.first.get<1>(), clusHit.first.get<2>()};
       std::pair<TrkrDefs::hitkey, TrkrDefs::hitsetkey> spechitkey = clusHit.second.second;
       unsigned int adc = clusHit.second.first;
 
@@ -485,7 +485,7 @@ namespace
       double hitZ = my_data.tdriftmax * my_data.tGeometry->get_drift_velocity() - hitzdriftlength;
 
       bool foundLayer = false;
-      for (float i : usedLayer)
+      for (double i : usedLayer)
       {
         if (coords[0] == i)
         {
@@ -500,7 +500,7 @@ namespace
       }
 
       bool foundIPhi = false;
-      for (float i : usedIPhi)
+      for (double i : usedIPhi)
       {
         if (coords[1] == i)
         {
@@ -515,7 +515,7 @@ namespace
       }
 
       bool foundIT = false;
-      for (float i : usedIT)
+      for (double i : usedIT)
       {
         if (coords[2] == i)
         {
@@ -536,7 +536,7 @@ namespace
       clus->setHitX(clus->getNhits() - 1, r * cos(phi));
       clus->setHitY(clus->getNhits() - 1, r * sin(phi));
       clus->setHitZ(clus->getNhits() - 1, hitZ);
-      clus->setHitAdc(clus->getNhits() - 1, (float) adc);
+      clus->setHitAdc(clus->getNhits() - 1, (double) adc);
 
       rSum += r * adc;
       phiSum += phi * adc;
@@ -861,7 +861,7 @@ namespace
 
       for (TrkrHitSet::ConstIterator hitr = hitrangei.first; hitr != hitrangei.second; ++hitr)
       {
-        float_t fadc = hitr->second->getAdc();
+        double_t fadc = hitr->second->getAdc();
         unsigned short adc = 0;
         if (fadc > my_data->adc_threshold)
         {

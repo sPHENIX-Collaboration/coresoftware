@@ -53,8 +53,8 @@ class LaserEventIdentifier : public SubsysReco
   bool isGl1LaserPileupEvent = false;
   int peakSample0 = -999;
   int peakSample1 = -999;
-  float peakWidth0 = -999;
-  float peakWidth1 = -999;
+  double peakWidth0 = -999;
+  double peakWidth1 = -999;
   int m_runnumber = 0;
 
   uint64_t prev_BCO = 0;
